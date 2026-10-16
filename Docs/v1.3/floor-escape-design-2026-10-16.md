@@ -2,9 +2,13 @@
 
 Synthesis of five floor-escape proposals and their ten adversarial reviews (two Fable lenses per proposal: construct validity and fairness, feasibility and run-once risk). All evidence below was reproduced by the reviewers against origin/v1.3 and the named PR branches; this document does not add new measurements. Where a proposal's claim was found wrong by a reviewer, the corrected form is used here.
 
+> **Amendment, 2026-10-16.** The author adopted this design's Decision 1 B as a declared, dated deviation (`Docs/v1.3/study2-deviation-2026-10-16.md`), which is the protocol's single source. This file was amended in the same change: the "neither passes" fallback is now **do not run** (§4); the order follows the canonical sequence (§3.1); pilot T1 is marked **open** (§3.1); the count unit cites A26 as amended (§3.4); the V10 waiver option is removed and the grid is costed for two generators (§3.7, Decision 3); probe 3's status is updated (§4).
+
+<!-- study2-protocol: primary=Y-distinct-blocking-edges-at-step-k; k=4; arms=none,daedalus-mcp; unit=distinct-edge; fallback=do-not-run; order=freeze,hold-out,dress-rehearsal,pre-registration,gate,run; generators=claude-sonnet-5-5,codex-pin -->
+
 ## 1. The problem in numbers
 
-Study 2 compares coding-agent arms (none, gate, daedalus-mcp) on a primary outcome that counts blocking architectural violations the agent introduces. Every measurement of agent-written code so far sits at or near zero on that outcome.
+Study 2, as planned before this design (arms none, gate and daedalus-mcp; superseded by §3.2), compares coding-agent arms on a primary outcome that counts blocking architectural violations the agent introduces. Every measurement of agent-written code so far sits at or near zero on that outcome.
 
 | Source | What was run | Blocking violations | Where |
 |---|---|---|---|
@@ -39,11 +43,11 @@ Study 2 becomes a spec-rung x arm factorial with a level outcome at horizon k, c
 
 ### 3.1 Order of operations (governance first)
 
-1. Apply pilot memo section 5 mechanically before anything else. The T1 freezer fix is merged (PR #142); the open item is the D15 construct decision (what a DDD spec says when the step-1 tree has no aggregate folder). Decide D15 on the development set, re-freeze the 8 kept DDD pilot snapshots from their recorded step-1 commits, score them, and record the section 5 branch. This costs no model call and half a day. Skipping it hands an examiner "the pre-committed rule was abandoned before its result was read".
-2. Write a dated design amendment. Outline v2's header states nothing is pre-registered yet, so this changes a plan, not a registration. It cites only development-task and none-arm evidence (section 1 above), keeps the memo's slope outcome as a registered secondary, and retires the sealed 6-task greenfield list unread with the reason stated.
+1. Apply pilot memo section 5 mechanically before anything else. **Pilot T1 is open** (corrected 2026-10-16; the original text said the freezer fix was merged). PR #142 only makes the DDD freeze fail cleanly and leave the run unscored, and probe 3 reproduced T1 on a second DDD task after #142. PR #229 (open) adds opt-in T1 options and re-scored the 8 kept snapshots offline: **zero branch** under every option that scores them. Fix steps: (a) the author decides T1 and D15 (dashboard AD2); (b) merge the chosen #229 option with its ADR and a development-set check; (c) re-freeze the 8 kept DDD pilot snapshots from their recorded step-1 commits and score them on `v1.3` with Neo4j; (d) record the section 5 branch in the deviation record §4. No model call. Skipping it hands an examiner "the pre-committed rule was abandoned before its result was read".
+2. Write a dated design amendment (done 2026-10-16: `Docs/v1.3/study2-deviation-2026-10-16.md`, a declared deviation). Outline v2's header states nothing is pre-registered yet, so this changes a plan, not a registration. It cites only development-task and none-arm evidence (section 1 above), keeps the memo's slope outcome as a registered secondary, and retires the sealed 6-task greenfield list unread with the reason stated.
 3. Repair the instrument where the reviewers found artefacts (3.6).
 4. Run the validation pilot (section 4).
-5. Write and seal the confirmatory tasks (3.3), run the power simulation (3.7), pass the readiness gate, dress-rehearse, pre-register, run once.
+5. Re-run the level power simulation with the pilot's dispersion (3.7), then write and seal the confirmatory tasks (3.3). Then the canonical order (deviation record §6; gate rule 5): instrument freeze → sealed hold-out (V3/V4) → dress rehearsal → pre-registration → the gate, re-verified at the run commit after the pre-registration exists → Study 2, once. (Corrected 2026-10-16: the original step put the gate before the dress rehearsal and the pre-registration.)
 
 ### 3.2 Arms
 
@@ -52,7 +56,7 @@ Two arms, crossed with spec rungs.
 - none: the frame carries the style sentence, the layout sentence (STYLED_*_TEMPLATE, unchanged), the rung content, and one attention sentence.
 - daedalus-mcp: the same frame plus the 9 spec-only MCP tools; evaluate_project denied; neural tools out (outline v2 section 3.2).
 
-The gate arm is dropped (outline v2 section 3.4): a post-hoc repair turn lowers the count mechanically, and on the pilot it fired on 0 of 8 steps.
+The gate arm is dropped by author decision of 2026-10-16 (deviation record §2; outline v2 §3.4 now records option (c) as decided): a post-hoc repair turn lowers the count mechanically, and on the pilot it fired on 0 of 8 steps. The self-review placebo goes with it.
 
 Attention sentence (graft from the outcome-measure review's placebo logic): arms.ts today gives only the MCP arm the instruction "use them while you work". A matched sentence goes into every arm's frame, identical across arms and rungs, for example "Check your work against the architecture described here as you go." Hint-audited. The arm difference is then tool availability alone.
 
@@ -72,13 +76,13 @@ Strata, by a criterion fixed in advance (task-design T3, probe 1 section 5.1: de
 - Confirmatory: Layered (strict layering, FF-S03 blocking only there) and DDD (FF-DS02 context isolation), each conditional on passing the section 4 pilot.
 - Descriptive zero control: Hexagonal at L2 only, with its expected zeros declared in advance (0/14, 0/4, 0 in the pilot). Clean is reported from E1 and the pilot as a second declared zero, not re-run.
 
-Tasks: 4 confirmatory tasks (2 Layered, 2 DDD) written by the author to T1-T10, hint-audited, hashed, with sealed per-step acceptance checks (T8, PR #200 runner). The writer is barred from running or scoring (V10c). Domains are checked against the retired sealed list and the rehearsal fixtures. Step 1 stays in memory over HTTP (keeps the step-1 level the design measures, and the only implementation sentences, per checklist section 4.1 item 5). The in-memory limitation is declared in the outline as a threat to ecological validity, with the task-design proposal's evidence (FF-P01 34 rows, FF-DT04 24 rows in human code arise from ORM decorators the greenfield tasks cannot produce). Horizon k = 4: the outcome is a level, the probes show the signal is set at step 1, and k = 6 doubles cost for nothing.
+Tasks: 4 confirmatory tasks (2 Layered, 2 DDD) written by the author to T1-T10, hint-audited, hashed, with sealed per-step acceptance checks (T8, PR #200 runner). The writer is barred from running or scoring (V10c). Domains are checked against the retired sealed list and the rehearsal fixtures. Step 1 stays in memory over HTTP (keeps the step-1 level the design measures, and the only implementation sentences, per checklist section 4.1 item 5). The in-memory limitation is declared in the outline as a threat to ecological validity, with the task-design proposal's evidence (FF-P01 34 rows, FF-DT04 24 rows in human code arise from ORM decorators the greenfield tasks cannot produce). Horizon k = 4: the outcome is a level, the probes show the signal is set at step 1, and k = 6 adds turns for no power (level simulation §4.3). Every confirmatory task places each defining pressure of its style in steps 1–4, because probe 3 showed that k = 4 cuts a step-5 pressure (amended T6).
 
 ### 3.4 Outcomes
 
 Primary, per run: Y = distinct blocking violating edges present in the step-k snapshot.
 
-- Blocking tier at its sealed hash. FF-S01 and FF-S03 on the same edge count once (A26); a cycle counts once as its sorted file set.
+- Blocking tier at its sealed hash. One count per distinct edge: FF-S01 and FF-S03 on the same edge count once (outline A26 as amended 2026-10-16; the earlier A26 text recommended a raw count); a cycle counts once as its sorted file set. The raw per-rule count is a sensitivity analysis.
 - Only findings that check-correct.ts labels correct count.
 - ITT: every snapshot is scored whether or not it type-checks; completion, type-check errors, skeleton integrity and unmapped-file share (10 % flag, kept) are reported beside every count (A21, D13).
 - Edge kinds are reported separately and pre-declared: in Layered, "persistence imports entity types from business" (FF-S01, type-only) and "entry file wires repositories" (FF-S03, presentation -> persistence) are different constructs, and a result driven by one kind is reported as such.
@@ -114,9 +118,9 @@ SO4 (validity) is carried by the instrument work the design depends on: check-co
 
 ### 3.7 Grid, power, cost
 
-Realistic ceiling: Sonnet 5.5 as the generator of record (the Codex pin is unavailable until about 2026-11-09 and no Gemini loop adapter exists; see decision 3). 4 confirmatory tasks x 3 replicates = 12 blocks x 5 cells x k = 4 = 240 step turns, plus the Hexagonal control (2 tasks x {none@L2, mcp@L2} x 2 replicates x k = 4 = 32 turns). At the pilot's 0.15-0.42 USD per turn (MCP turns run 57-230 s and carry more tokens), about 50-130 USD API-equivalent, 8-14 hours on the one lane the machine allows, more under usage-window pauses. A second model doubles all of this.
+Grid (amended 2026-10-16, decision 3 B): Sonnet 5.5 and the Codex pin as generators, with the run scheduled after the Codex pin is available again (about 2026-11-09). 4 confirmatory tasks x 3 replicates x 2 generators = 24 blocks x 5 cells x k = 4 = 480 step turns, plus the Hexagonal control (2 tasks x {none@L2, mcp@L2} x 2 replicates x 2 generators x k = 4 = 64 turns). At the pilot's 0.15-0.42 USD per turn (MCP turns run 57-230 s and carry more tokens; Codex cost per turn is unmeasured), about 80-230 USD API-equivalent for 544 turns, roughly 18-32 hours on the one lane the machine allows, more under usage-window pauses. (The original single-generator figure, 240 + 32 turns, is superseded.)
 
-Power must be simulated, not asserted: the PR #119 model simulates slopes and does not model an arm that lowers the level. Gate D3 requires a level-outcome simulation with the pilot's measured dispersion (mean and theta per style) before k and the number of replicates are fixed. With 4 tasks, inference is to these tasks; the power notes show task-level generalisation has power 0 at six tasks, and the amendment says so.
+Power must be simulated, not asserted: the PR #119 model simulates slopes and does not model an arm that lowers the level. The level-outcome simulation now exists (`level-power-sim-2026-10-16.md`, PR #234). At 24 blocks and the measured Layered base rate it gives H1/H2/H3 1.00/1.00/0.92 at RR 0.25 and 0.88/0.88/0.70 at RR 0.5, so the design targets large effects (RR <= 0.25); the limit and the power rule are in the deviation record §5. It is re-run with the validation pilot's mean and theta per style before the pre-registration; a contrast below 0.80 is demoted to secondary then. The simulation assumes the Codex pin behaves like Sonnet, which is unmeasured. With 4 tasks, inference is to these tasks; the power notes show task-level generalisation has power 0 at six tasks, and the deviation record says so.
 
 ### 3.8 Why this is not rigged toward the tool
 
@@ -130,14 +134,14 @@ Power must be simulated, not asserted: the PR #119 model simulates slopes and do
 
 ## 4. The validation pilot before the single run
 
-Purpose: measure the none@L2 base rate per confirmatory stratum on development tasks, and check that the new cells are scoreable. It never touches Study 2 tasks (T10). It is folded into the existing floor probe 3 plan (origin/v1.3-floor-probe-3: repair-cafe, school-bus, vineyard x none x k = 4 x Sonnet, no results yet) so that only one Sonnet baseline exists.
+Purpose: measure the none@L2 base rate per confirmatory stratum on development tasks, and check that the new cells are scoreable. It never touches Study 2 tasks (T10). Floor probe 3 has since run (PR #227, merged; corrected 2026-10-16, the original text said no results yet): repair-cafe (Hexagonal) and school-bus (Clean) 0 blocking at all 8 steps; vineyard-harvest (DDD) generated but unscored (T1). Probe 3's Hexagonal and Clean runs serve as the zero control below. Its vineyard-harvest run was generated before the go/no-go rule below existed, so it is **excluded** from the go/no-go and reported separately (deviation record §6).
 
-Prerequisites: steps 1-3 of section 3.1 (DDD pilot scored, amendment written, layered preset repaired and layered frame built, D15 decided, L3/L4 slots and attention sentence hint-audited).
+Prerequisites: steps 1-3 of section 3.1 (pilot T1 fixed and the DDD pilot scored on `v1.3`, deviation record written, layered preset repaired and layered frame built, D15 decided, L3/L4 slots and attention sentence hint-audited). Each fixture is used in a dated, hashed k = 4 variant whose step 4 is the original step 5, committed before the first call, so the defining pressure falls inside the horizon.
 
 Runs:
 
 - Base-rate runs: ice-rink (Layered) and vineyard-harvest (DDD) from fixtures/v1.3-rehearsal-tasks, none@L2, Sonnet, k = 4, 3 replicates each: 24 step turns.
-- Zero control: probe 3's repair-cafe and school-bus none@L2 runs as planned (8 turns).
+- Zero control: probe 3's repair-cafe and school-bus none@L2 runs, already run (8 turns, 0 blocking).
 - Smoke runs for scoreability only: ice-rink none@L4 k = 2 and ice-rink mcp@L4 k = 2 (4 turns). Checked for coverage, evaluation errors, V9 agreement on Layered, L4 file-read log, MCP call log and confinement. Their Y is written to a hashed sealed file and not read, so the pilot never sees H1, H2 or H3.
 - Stage-0 instrument probe (no model calls).
 
@@ -153,14 +157,15 @@ Go/no-go rule, per style, committed before the first call:
 Consequences, fixed in advance:
 
 - Both styles pass: two confirmatory strata, 4 tasks, as in section 3.
-- One passes: the passing style is the only confirmatory stratum with 2 tasks; the other joins the descriptive strata. Claims scope to that style and those two tasks, and the amendment says the design collapsed to one stratum.
-- Neither passes: the factorial design is withdrawn, not re-tuned. No further lever is piloted. Study 2 runs the memo section 5 branch as recorded in step 1 of section 3.1, with the degenerate null A24 pre-declared, and the thesis takes the section 5 fallback below. The pilot result is reported as the fourth greenfield floor measurement.
+- One passes: the passing style is the only confirmatory stratum, with 4 tasks of that style so that the grid keeps 24 blocks (level simulation §6 item 5); the other joins the descriptive strata. Claims scope to that style and those tasks, and the pre-registration says the design collapsed to one stratum.
+- Neither passes: the factorial design is withdrawn, not re-tuned. No further lever is piloted. **Study 2 does not run** (amended 2026-10-16; the original text ran the memo section 5 branch, which gate D1 blocks). The thesis takes the honest-null route of section 5 below, and the pilot result is reported as the fourth greenfield floor measurement.
+- After the pilot, the level power re-run applies the deviation record §5 rule: a contrast below 0.80 at 24 blocks is demoted to secondary before the pre-registration; if none reaches 0.80, Study 2 does not run.
 
 The smoke runs' sealed Y is opened only after Study 2 pre-registration, as a provenance record.
 
 ## 5. What the thesis claims if Study 2 still lands on the floor
 
-Planned before the run, as the registered fallback.
+Planned before the run, as the registered fallback. It covers two cases: Study 2 runs and lands on the floor, or Study 2 does not run because no stratum passes the validation pilot or the power rule (the honest-null route). In the second case, item 1 rests on the development and rehearsal evidence only and says that no confirmatory run took place.
 
 1. A pre-registered, construct-valid null on the generation side: across 4 models, 65 E1 cells, the loop pilot, three floor probes, the precedent probe and the Study 2 run, strong coding agents given a style name and a layout sentence did not introduce defining architectural violations in greenfield TypeScript backends at horizons up to k. The claim is scoped to those styles, tasks, models and horizon, and the mechanism is stated: violations in agent code are set at step 1 by the layout the frame induces and are replicated rather than accumulated (probe 1), and planted precedents are not copied when a compliant route exists (#189).
 2. SO4 stands on the instrument's validity on human code: 283/283 blocking findings correct on wave 1 (#167, with the negative control), 30/35 human projects failing (#181), the hold-out gate V4 result, the second-author reliability limit (#186, kappa 0.21) reported as a bound on spec dependence, and the human erosion profile (#209).
@@ -177,7 +182,7 @@ Decision 1. Primary outcome and governance order.
 A) Keep the memo section 5 slope outcome and run Study 2 on it.
 B) Score the 8 kept DDD pilot snapshots after the D15 decision, record the section 5 branch, then issue a dated amendment to the level outcome Y at horizon k, keeping the slope as a registered secondary.
 C) Issue the amendment now without scoring the DDD snapshots.
-[Answer]:
+[Answer]: B, as a formally declared, dated deviation (author, 2026-10-16 13:50 UTC; `Docs/v1.3/study2-deviation-2026-10-16.md`). The DDD snapshots were scored offline first (PR #229, zero branch); the on-`v1.3` re-score follows the T1 fix.
 Recommendation: B. It costs no model call and removes the strongest process objection.
 
 Decision 2. DDD construct (gate D15), which also fixes whether DDD can be a confirmatory stratum.
@@ -188,11 +193,11 @@ C) Drop DDD; Layered is the only confirmatory stratum.
 Recommendation: A, decided on the development set, with the aggregate declaration hint-audited.
 
 Decision 3. Model factor and gate V10(a) (one non-Claude generator, no waiver).
-A) Sonnet 5.5 only, with a dated V10 waiver note and the generalisation limit stated.
+A) Sonnet 5.5 only. *(Removed 2026-10-16: it needed a V10(a) waiver, and V10(a) has none. Not an available option.)*
 B) Sonnet 5.5 plus the registered Codex pin, scheduling the run after Codex credits return (about 2026-11-09); the build, pilot and gate path lands near that date anyway.
 C) Build a Gemini loop adapter and confinement-probe it (new code, new S4 probe).
-[Answer]:
-Recommendation: B. A is the fallback if the run date slips past the pin's availability; C is not a two-week item.
+[Answer]: B (author, 2026-10-16). No waiver: if the Codex pin is unavailable or fails S4 at the run commit, Study 2 does not start.
+Recommendation: B. C is not a two-week item. (The earlier note that A is a fallback is withdrawn.)
 
 Decision 4. Persistence and the ORM lever.
 A) Add the TypeORM stack to the Study 2 skeleton and a go-live step to every task.
@@ -200,6 +205,15 @@ B) Run only the stage-0 instrument probe, declare the in-memory limitation in th
 C) Run the ORM pilot on rehearsal tasks after Study 2 as a separate probe.
 [Answer]:
 Recommendation: B now, C as future work. A manufactures a level out of one decision and is built around a package named in the rule.
+
+Decision 6. Count unit (added 2026-10-16).
+A) Raw per-rule count, with a distinct-edge sensitivity (outline A26 before amendment).
+B) One count per distinct edge (FF-S01 and FF-S03 on the same edge count once), with the raw count as a sensitivity.
+[Answer]: B (author, 2026-10-16). Outline A26 and section 4.3 are amended to match; the task-design guide's base-rate targets already use deduplicated edges.
+
+Decision 7. Gate arm (added 2026-10-16).
+A) Keep `gate`. B) Drop `gate` and the placebo.
+[Answer]: B (author, 2026-10-16). The outline, gap plan, gate D11 and dress rehearsal are amended to match.
 
 Decision 5. Brownfield burden.
 A) Brownfield baselines inside Study 2.
@@ -214,9 +228,9 @@ Recommendation: B.
 - DDD has never been scored on agent code. Its base rate is a guess (30-70 % of runs with Y >= 1) until the pilot runs.
 - H2 remains open to the charge that an agent not told a rule breaks it and an agent given a checker does not. The attention sentence and H3 mitigate; the honest reading if H3 is null is that the firewall's value is spec delivery.
 - L4 hands the agent the evaluator spec (B5). It is labelled as the test oracle; L2 vs L3 is the informative SO5 contrast.
-- Power is unknown until the level-outcome simulation runs with pilot dispersion. Twelve Sonnet-only blocks may not reach 0.80 for H3; the amendment then pre-states which contrast is dropped to secondary.
-- The amendment changes the memo's outcome and arm set after the pilot was seen. Some examiners will call it a deviation; the thesis says so plainly and shows the memo's branch result beside it.
-- Readiness gate lines independent of this design are still red: V1 (Q1-Q25), V3/V4 hold-out (V4 has no waiver and needs about 35 expected blocking findings per style), V5 independent second rater, V9 (PR #176 open), S4 (MCP never confinement-probed), S8 (model tiers live), D15. The two-week claim is scoped to "design amended, instrument ready, pilot run"; registration follows the gate.
+- Power depends on the validation pilot's dispersion. At 24 blocks (two generators) H3 reaches 0.92 at RR 0.25 on the measured Layered base rate but 0.70 at RR 0.5, and lower if the repaired Layered or DDD base rate is small; the deviation record §5 rule then demotes it to secondary before the pre-registration.
+- The amendment changes the memo's outcome and arm set after the pilot was seen. It is declared as a deviation (deviation record), the thesis says so plainly, and it shows the memo's branch result beside it.
+- Readiness gate lines independent of this design are still red: pilot T1 (open, PR #229 unmerged), V1 (Q1-Q25), V3/V4 hold-out (V4 has no waiver and needs about 35 expected blocking findings per style), V5 independent second rater, V9 (PR #176 open), S4 (MCP never confinement-probed), S8 (model tiers live), D15. The two-week claim is scoped to "design amended, instrument ready, pilot run"; registration follows the gate.
 - Operational run-once risk: the daedalus-mcp arm has never run inside the loop harness; the layered frame, L3/L4 slots and per-task MCP spec are new code. The dress rehearsal must exercise every cell type with 0 evaluation errors.
 - Generalisation is to 4 tasks and one or two models. Task-level inference is not available at this grid size.
 - Machine limits (one lane, one capped Neo4j, kernel-panic history) and subscription usage-window pauses make wall time, not USD, the binding constraint; a long run may pause mid-block, so resume (D14) must be rehearsed.

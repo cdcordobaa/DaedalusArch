@@ -42,7 +42,7 @@ export interface Counterfactual {
   readonly seq: number;
   readonly path: string;
   readonly toolBlockingRules: readonly string[];
-  readonly fullVerdict: 'pass' | 'fail';
+  readonly fullVerdict: 'pass' | 'fail' | 'incomplete';
   readonly fullBlockingRules: readonly string[];
   readonly agree: boolean;
 }

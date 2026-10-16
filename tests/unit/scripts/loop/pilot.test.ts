@@ -298,11 +298,11 @@ describe('per-task specs', () => {
     expect(calls).toBe(2);
   });
 
-  it('a failed freeze is recorded and every snapshot of the run carries an evaluation error', async () => {
+  it('a failed freeze is recorded and every snapshot of the run carries an evaluation error; the run then fails', async () => {
     const out = tmpRoot();
     const freeze: SpecFreezer = () => Promise.resolve(DomainResult.fail([{ code: 'LOOP_SPEC_FREEZE_FAILED', message: 'no src' }]));
     const r = await runLoop(context(out, stubAgent(), { profiles: frozenProfile(freeze, []) }), spec('gate'));
-    expect(r.success).toBe(true);
+    expect(r.success ? [] : r.errors.map((e) => e.code)).toEqual(['LOOP_EVAL_ALL_FAILED']);
     const runDir = runDirFor(out, loopRunId(spec('gate')));
     expect((JSON.parse(fs.readFileSync(path.join(runDir, SPEC_DIR, FROZEN_SPEC_RECORD), 'utf8')) as FrozenSpecRecord).status).toBe('failed');
     for (let i = 0; i < 3; i++) {

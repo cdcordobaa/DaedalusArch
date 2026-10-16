@@ -1,0 +1,986 @@
+{
+  "runId": "run-1792118157528",
+  "projectPath": "$SCRATCH/agentproof-app",
+  "specVersion": "1.0.0",
+  "ahsNeuronal": 1,
+  "verdict": "pass",
+  "scoring": {
+    "weights": {
+      "structural": 0.35,
+      "coupling": 0.2,
+      "pattern": 0.3,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0,
+      "integrity": 0
+    },
+    "fullModeWeights": {
+      "structural": 0.32,
+      "coupling": 0.18,
+      "pattern": 0.27,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0.04,
+      "integrity": 0.04
+    },
+    "thresholds": {
+      "pass": 0.8,
+      "warning": 0.65,
+      "softBlock": 0.5
+    },
+    "confidenceThresholds": {
+      "high": 0.85,
+      "medium": 0.6,
+      "iccMinimum": 0.7
+    },
+    "verdictSource": "ahsNeuronal",
+    "neuralAggregation": "registered"
+  },
+  "perDimensionScores": [
+    {
+      "dimension": "semantic",
+      "avr": 0,
+      "violatedWeight": 0,
+      "weight": 0.04,
+      "effectiveWeight": 0.5,
+      "violationCount": 0,
+      "functionCount": 1
+    },
+    {
+      "dimension": "integrity",
+      "avr": 0,
+      "violatedWeight": 0,
+      "weight": 0.04,
+      "effectiveWeight": 0.5,
+      "violationCount": 0,
+      "functionCount": 1
+    }
+  ],
+  "violations": [
+    {
+      "id": "v-08c2e0500b74f98e",
+      "type": "INTEGRITY_VIOLATION",
+      "dimension": "integrity",
+      "severity": "major",
+      "functionId": "FF-N01",
+      "route": "neuronal",
+      "filePath": "src/adapters/inbound/invoices-handler.ts",
+      "message": "Builds a 400 response by hand for a missing patientId instead of throwing `BadRequest` and letting `toErrorResponse` map it. It also exports `toAccountingCsv`, an accounting export that none of this handler's HTTP routes use.",
+      "deterministic": false
+    },
+    {
+      "id": "v-e8255c17a2f24c26",
+      "type": "INTEGRITY_VIOLATION",
+      "dimension": "integrity",
+      "severity": "major",
+      "functionId": "FF-N01",
+      "route": "neuronal",
+      "filePath": "src/adapters/inbound/reports-handler.ts",
+      "message": "Skips error-responses.ts. It has its own catch block that sends every DomainError to 400, which conflicts with toErrorResponse (404/403/409/422). It also writes the 404 'Route not found' response inline twice instead of calling routeNotFound().",
+      "deterministic": false
+    },
+    {
+      "id": "v-2ef2670886b41c64",
+      "type": "INTEGRITY_VIOLATION",
+      "dimension": "integrity",
+      "severity": "major",
+      "functionId": "FF-N01",
+      "route": "neuronal",
+      "filePath": "src/adapters/inbound/router.ts",
+      "message": "Writes the 404 'Route not found' response inline instead of calling routeNotFound() from error-responses.ts.",
+      "deterministic": false
+    }
+  ],
+  "universalMetrics": {
+    "cyclicDependencyCount": 0,
+    "maxFanOut": 27,
+    "maxFanIn": 14,
+    "abstractionRatio": 0.463,
+    "averageInstability": 0.44,
+    "orphanFileCount": 0
+  },
+  "evaluationMode": "neuronal-only",
+  "durationMs": 74,
+  "droppedDimensions": [],
+  "tiers": {
+    "scoringMode": "v1.3",
+    "tierTable": "Docs/v1.3/rule-tiers.md",
+    "style": "hexagonal",
+    "verdict": "pass",
+    "verdictRule": "any-blocking-violation",
+    "v12eVerdict": "pass",
+    "blockingAhs": null,
+    "blocking": {
+      "rules": [],
+      "violatedRules": 0,
+      "violationCount": 0
+    },
+    "advisory": {
+      "rules": [
+        {
+          "functionId": "FF-N01",
+          "name": "architectural-integrity",
+          "dimension": "integrity",
+          "tier": "advisory",
+          "tierSource": "table",
+          "judge": true,
+          "violationCount": 3,
+          "violated": false
+        },
+        {
+          "functionId": "FF-N02",
+          "name": "intent-alignment",
+          "dimension": "semantic",
+          "tier": "advisory",
+          "tierSource": "table",
+          "judge": true,
+          "violationCount": 0,
+          "violated": false
+        }
+      ],
+      "violatedRules": 0,
+      "violationCount": 3
+    },
+    "notApplicable": [],
+    "blockingNotExecuted": []
+  },
+  "warnings": [
+    {
+      "code": "EXTRACTOR_005",
+      "message": "CONSTRUCTOR_INJECTS type unresolvable: readonly import(\"$SCRATCH/agentproof-app/src/domain/invoice\").InvoiceLine[]",
+      "context": {
+        "filePath": "src/domain/invoice.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    }
+  ],
+  "functionExecution": {
+    "declared": 24,
+    "adrDerived": 0,
+    "compiled": 22,
+    "disabled": 2,
+    "dropped": [],
+    "skippedByMode": 20,
+    "noJudgeUnits": [],
+    "executed": 2,
+    "failed": []
+  },
+  "functionResults": [
+    {
+      "functionId": "FF-N01",
+      "name": "architectural-integrity",
+      "dimension": "integrity",
+      "route": "neuronal",
+      "passed": true,
+      "violationCount": 3,
+      "executionTimeMs": 0,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-N02",
+      "name": "intent-alignment",
+      "dimension": "semantic",
+      "route": "neuronal",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 0,
+      "truncated": false
+    }
+  ],
+  "disabledFunctions": [
+    {
+      "functionId": "FF-CV01",
+      "name": "naming-conventions",
+      "reason": "ADR-016 b (B&T Step 31): cannot fire; per-layer naming patterns compile to .* and no requirement supplies them (SP-FF-CV01 not fired)"
+    },
+    {
+      "functionId": "FF-CV04",
+      "name": "naming-controllers",
+      "reason": "ADR-016 b (B&T Step 31): cannot fire; class decorators are not ingested (BR-U2-31), so no controller is selected (SP-FF-CV04 not fired)"
+    }
+  ],
+  "graphStats": {
+    "nodeCount": 178,
+    "edgeCount": 336,
+    "layerCoverage": 1,
+    "nodeCountByType": {
+      "File": 43,
+      "Class": 29,
+      "Interface": 25,
+      "Method": 50,
+      "Function": 30,
+      "Package": 1
+    },
+    "edgeCountByType": {
+      "IMPORTS": 139,
+      "IMPLEMENTS": 8,
+      "EXTENDS": 4,
+      "CONSTRUCTOR_INJECTS": 34,
+      "CALLS": 17,
+      "DECLARES": 84,
+      "CONTAINS": 50,
+      "FLOWS_TO": 0,
+      "RE_EXPORTS": 0
+    }
+  },
+  "layerAnnotation": {
+    "mapped": 43,
+    "unmapped": 0,
+    "unmappedFiles": []
+  },
+  "parseCoverage": {
+    "total": 43,
+    "parsed": 43,
+    "percentage": 100,
+    "skipped": []
+  },
+  "importResolution": {
+    "resolvedInternal": 138,
+    "external": 1,
+    "externalOutOfRootAlias": 0,
+    "unresolved": 0,
+    "droppedNoFileNode": 0,
+    "unsupportedDynamic": 0
+  },
+  "timings": {
+    "stages": [
+      {
+        "name": "parallel:extract-apg+parse-spec",
+        "durationMs": 705,
+        "status": "success"
+      },
+      {
+        "name": "ingest-apg",
+        "durationMs": 38,
+        "status": "success"
+      },
+      {
+        "name": "compile-functions",
+        "durationMs": 2,
+        "status": "success"
+      },
+      {
+        "name": "evaluate-neuronal",
+        "durationMs": 243735,
+        "status": "success"
+      },
+      {
+        "name": "universal-metric:cyclicDependencyCount",
+        "durationMs": 46,
+        "status": "success"
+      },
+      {
+        "name": "compute-scores",
+        "durationMs": 75,
+        "status": "success"
+      }
+    ],
+    "totalMs": 244555
+  },
+  "judge": {
+    "provider": "claude-cli",
+    "model": "claude-opus-5-5",
+    "effort": "high",
+    "cliVersion": "2.1.294",
+    "cassetteMode": "record",
+    "runsPerUnit": 3,
+    "resolvedModel": "claude-opus-5-5",
+    "repetition": 0,
+    "isolationProbeSha256": "e63c9a5e3a81c7ecaec80176705c3b7c08b659057f696820f76a8daeb323e0d8",
+    "configListingSha256": "49aefe08eb2fb717d222904e33a6d3841a2e3821f4729dacfc7c71c17b85c0e2",
+    "provenanceMixed": false,
+    "seededList": []
+  },
+  "instrumentVersion": 2,
+  "neuralResults": [
+    {
+      "functionId": "FF-N01",
+      "dimension": "integrity",
+      "aggregationRule": "majority-of-valid-units-v1",
+      "selection": {
+        "source": "own",
+        "candidateUnitIds": [
+          "src/adapters/inbound",
+          "src/adapters/outbound",
+          "src/application",
+          "src/application/ports",
+          "src/config",
+          "src/domain"
+        ],
+        "selectedUnitIds": [
+          "src/adapters/inbound",
+          "src/adapters/outbound",
+          "src/application",
+          "src/application/ports",
+          "src/config",
+          "src/domain"
+        ]
+      },
+      "unitsSelected": 6,
+      "unitsCapped": 0,
+      "candidateCount": 6,
+      "uncoveredFileCount": 0,
+      "singleFileModules": 1,
+      "candidateExclusions": {
+        "unlayered": 0,
+        "exclude-paths": 0,
+        "barrel": 0,
+        "test-path": 0,
+        "e2e-spec": 0,
+        "generated-path": 0,
+        "generated-marker": 0
+      },
+      "unitsInvalidByCause": {
+        "PARSE_FAILURE": 0,
+        "MISSING_CONFIDENCE": 0,
+        "MODEL_MISMATCH": 0,
+        "TIMEOUT": 0,
+        "BAD_ENVELOPE": 0,
+        "CLI_EXIT": 0,
+        "INSUFFICIENT_VALID_RUNS": 0
+      },
+      "truncatedUnits": 0,
+      "excerptTruncatedUnits": 6,
+      "removedByVariant": [],
+      "unitResults": [
+        {
+          "unitId": "src/adapters/inbound",
+          "unitKind": "module",
+          "layer": "adapters-inbound",
+          "filePaths": [
+            "src/adapters/inbound/appointments-handler.ts",
+            "src/adapters/inbound/csv.ts",
+            "src/adapters/inbound/error-responses.ts",
+            "src/adapters/inbound/http.ts",
+            "src/adapters/inbound/invoices-handler.ts",
+            "src/adapters/inbound/reports-handler.ts",
+            "src/adapters/inbound/request-parsing.ts",
+            "src/adapters/inbound/router.ts"
+          ],
+          "status": "valid",
+          "verdict": "fail",
+          "confidence": 0.86,
+          "confidenceStdDev": 0.014142135623730963,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/adapters/outbound",
+          "unitKind": "module",
+          "layer": "adapters-outbound",
+          "filePaths": [
+            "src/adapters/outbound/console-notification-sender.ts",
+            "src/adapters/outbound/in-memory-appointment-repository.ts",
+            "src/adapters/outbound/in-memory-doctor-repository.ts",
+            "src/adapters/outbound/in-memory-invoice-repository.ts",
+            "src/adapters/outbound/in-memory-patient-repository.ts",
+            "src/adapters/outbound/static-fee-schedule.ts",
+            "src/adapters/outbound/system-clock.ts",
+            "src/adapters/outbound/uuid-id-generator.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.8566666666666666,
+          "confidenceStdDev": 0.004714045207910321,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/application",
+          "unitKind": "module",
+          "layer": "application",
+          "filePaths": [
+            "src/application/appointment-notifier.ts",
+            "src/application/book-appointment.ts",
+            "src/application/cancel-appointment.ts",
+            "src/application/complete-appointment.ts",
+            "src/application/doctor-utilization-report.ts",
+            "src/application/generate-invoice.ts",
+            "src/application/get-appointment.ts",
+            "src/application/list-patient-invoices.ts",
+            "src/application/reschedule-appointment.ts",
+            "src/application/scheduling-lock.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.8333333333333334,
+          "confidenceStdDev": 0.023570226039551553,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/application/ports",
+          "unitKind": "module",
+          "layer": "application",
+          "filePaths": [
+            "src/application/ports/appointment-repository.ts",
+            "src/application/ports/clock.ts",
+            "src/application/ports/doctor-repository.ts",
+            "src/application/ports/fee-schedule.ts",
+            "src/application/ports/id-generator.ts",
+            "src/application/ports/invoice-repository.ts",
+            "src/application/ports/notification-sender.ts",
+            "src/application/ports/patient-repository.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.8933333333333334,
+          "confidenceStdDev": 0.009428090415820642,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/config",
+          "unitKind": "module",
+          "layer": "config",
+          "filePaths": [
+            "src/config/composition-root.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.8733333333333334,
+          "confidenceStdDev": 0.009428090415820642,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/domain",
+          "unitKind": "module",
+          "layer": "domain",
+          "filePaths": [
+            "src/domain/appointment.ts",
+            "src/domain/doctor.ts",
+            "src/domain/errors.ts",
+            "src/domain/invoice.ts",
+            "src/domain/money.ts",
+            "src/domain/patient.ts",
+            "src/domain/requester.ts",
+            "src/domain/time-slot.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.84,
+          "confidenceStdDev": 0.014142135623730963,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        }
+      ],
+      "candidatesByLayer": {
+        "adapters-inbound": 1,
+        "adapters-outbound": 1,
+        "application": 2,
+        "config": 1,
+        "domain": 1
+      }
+    },
+    {
+      "functionId": "FF-N02",
+      "dimension": "semantic",
+      "aggregationRule": "majority-of-valid-units-v1",
+      "selection": {
+        "source": "own",
+        "candidateUnitIds": [
+          "src/adapters/inbound/appointments-handler.ts",
+          "src/adapters/inbound/csv.ts",
+          "src/adapters/inbound/error-responses.ts",
+          "src/adapters/inbound/http.ts",
+          "src/adapters/inbound/invoices-handler.ts",
+          "src/adapters/inbound/reports-handler.ts",
+          "src/adapters/inbound/request-parsing.ts",
+          "src/adapters/inbound/router.ts",
+          "src/adapters/outbound/console-notification-sender.ts",
+          "src/adapters/outbound/in-memory-appointment-repository.ts",
+          "src/adapters/outbound/in-memory-doctor-repository.ts",
+          "src/adapters/outbound/in-memory-invoice-repository.ts",
+          "src/adapters/outbound/in-memory-patient-repository.ts",
+          "src/adapters/outbound/static-fee-schedule.ts",
+          "src/adapters/outbound/system-clock.ts",
+          "src/adapters/outbound/uuid-id-generator.ts",
+          "src/application/appointment-notifier.ts",
+          "src/application/book-appointment.ts",
+          "src/application/cancel-appointment.ts",
+          "src/application/complete-appointment.ts",
+          "src/application/doctor-utilization-report.ts",
+          "src/application/generate-invoice.ts",
+          "src/application/get-appointment.ts",
+          "src/application/list-patient-invoices.ts",
+          "src/application/ports/appointment-repository.ts",
+          "src/application/ports/clock.ts",
+          "src/application/ports/doctor-repository.ts",
+          "src/application/ports/fee-schedule.ts",
+          "src/application/ports/id-generator.ts",
+          "src/application/ports/invoice-repository.ts",
+          "src/application/ports/notification-sender.ts",
+          "src/application/ports/patient-repository.ts",
+          "src/application/reschedule-appointment.ts",
+          "src/application/scheduling-lock.ts",
+          "src/config/composition-root.ts",
+          "src/domain/appointment.ts",
+          "src/domain/doctor.ts",
+          "src/domain/errors.ts",
+          "src/domain/invoice.ts",
+          "src/domain/money.ts",
+          "src/domain/patient.ts",
+          "src/domain/requester.ts",
+          "src/domain/time-slot.ts"
+        ],
+        "selectedUnitIds": [
+          "src/adapters/inbound/appointments-handler.ts",
+          "src/adapters/inbound/csv.ts",
+          "src/adapters/inbound/error-responses.ts",
+          "src/adapters/inbound/invoices-handler.ts",
+          "src/adapters/inbound/request-parsing.ts",
+          "src/adapters/outbound/console-notification-sender.ts",
+          "src/adapters/outbound/in-memory-appointment-repository.ts",
+          "src/adapters/outbound/in-memory-doctor-repository.ts",
+          "src/adapters/outbound/in-memory-patient-repository.ts",
+          "src/adapters/outbound/system-clock.ts",
+          "src/application/book-appointment.ts",
+          "src/application/ports/doctor-repository.ts",
+          "src/application/ports/id-generator.ts",
+          "src/application/ports/invoice-repository.ts",
+          "src/application/scheduling-lock.ts",
+          "src/config/composition-root.ts",
+          "src/domain/doctor.ts",
+          "src/domain/invoice.ts",
+          "src/domain/money.ts",
+          "src/domain/requester.ts"
+        ]
+      },
+      "unitsSelected": 20,
+      "unitsCapped": 23,
+      "candidateCount": 43,
+      "uncoveredFileCount": 0,
+      "candidateExclusions": {
+        "unlayered": 0,
+        "exclude-paths": 0,
+        "barrel": 0,
+        "test-path": 0,
+        "e2e-spec": 0,
+        "generated-path": 0,
+        "generated-marker": 0
+      },
+      "unitsInvalidByCause": {
+        "PARSE_FAILURE": 0,
+        "MISSING_CONFIDENCE": 0,
+        "MODEL_MISMATCH": 0,
+        "TIMEOUT": 0,
+        "BAD_ENVELOPE": 0,
+        "CLI_EXIT": 0,
+        "INSUFFICIENT_VALID_RUNS": 0
+      },
+      "truncatedUnits": 0,
+      "excerptTruncatedUnits": 2,
+      "removedByVariant": [],
+      "unitResults": [
+        {
+          "unitId": "src/adapters/inbound/appointments-handler.ts",
+          "unitKind": "file",
+          "layer": "adapters-inbound",
+          "filePaths": [
+            "src/adapters/inbound/appointments-handler.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9,
+          "confidenceStdDev": 0,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/adapters/inbound/csv.ts",
+          "unitKind": "file",
+          "layer": "adapters-inbound",
+          "filePaths": [
+            "src/adapters/inbound/csv.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9066666666666667,
+          "confidenceStdDev": 0.009428090415820642,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/adapters/inbound/error-responses.ts",
+          "unitKind": "file",
+          "layer": "adapters-inbound",
+          "filePaths": [
+            "src/adapters/inbound/error-responses.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9133333333333334,
+          "confidenceStdDev": 0.009428090415820642,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/adapters/inbound/invoices-handler.ts",
+          "unitKind": "file",
+          "layer": "adapters-inbound",
+          "filePaths": [
+            "src/adapters/inbound/invoices-handler.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.88,
+          "confidenceStdDev": 0,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/adapters/inbound/request-parsing.ts",
+          "unitKind": "file",
+          "layer": "adapters-inbound",
+          "filePaths": [
+            "src/adapters/inbound/request-parsing.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.88,
+          "confidenceStdDev": 0,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/adapters/outbound/console-notification-sender.ts",
+          "unitKind": "file",
+          "layer": "adapters-outbound",
+          "filePaths": [
+            "src/adapters/outbound/console-notification-sender.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.88,
+          "confidenceStdDev": 0,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/adapters/outbound/in-memory-appointment-repository.ts",
+          "unitKind": "file",
+          "layer": "adapters-outbound",
+          "filePaths": [
+            "src/adapters/outbound/in-memory-appointment-repository.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.93,
+          "confidenceStdDev": 0,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/adapters/outbound/in-memory-doctor-repository.ts",
+          "unitKind": "file",
+          "layer": "adapters-outbound",
+          "filePaths": [
+            "src/adapters/outbound/in-memory-doctor-repository.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9499999999999998,
+          "confidenceStdDev": 1.1102230246251565e-16,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/adapters/outbound/in-memory-patient-repository.ts",
+          "unitKind": "file",
+          "layer": "adapters-outbound",
+          "filePaths": [
+            "src/adapters/outbound/in-memory-patient-repository.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.96,
+          "confidenceStdDev": 0.008164965809277268,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/adapters/outbound/system-clock.ts",
+          "unitKind": "file",
+          "layer": "adapters-outbound",
+          "filePaths": [
+            "src/adapters/outbound/system-clock.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9700000000000001,
+          "confidenceStdDev": 1.1102230246251565e-16,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/application/book-appointment.ts",
+          "unitKind": "file",
+          "layer": "application",
+          "filePaths": [
+            "src/application/book-appointment.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9,
+          "confidenceStdDev": 0,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/application/ports/doctor-repository.ts",
+          "unitKind": "file",
+          "layer": "application",
+          "filePaths": [
+            "src/application/ports/doctor-repository.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9499999999999998,
+          "confidenceStdDev": 1.1102230246251565e-16,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/application/ports/id-generator.ts",
+          "unitKind": "file",
+          "layer": "application",
+          "filePaths": [
+            "src/application/ports/id-generator.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9700000000000001,
+          "confidenceStdDev": 1.1102230246251565e-16,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/application/ports/invoice-repository.ts",
+          "unitKind": "file",
+          "layer": "application",
+          "filePaths": [
+            "src/application/ports/invoice-repository.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9499999999999998,
+          "confidenceStdDev": 1.1102230246251565e-16,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/application/scheduling-lock.ts",
+          "unitKind": "file",
+          "layer": "application",
+          "filePaths": [
+            "src/application/scheduling-lock.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.8333333333333334,
+          "confidenceStdDev": 0.023570226039551553,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/config/composition-root.ts",
+          "unitKind": "file",
+          "layer": "config",
+          "filePaths": [
+            "src/config/composition-root.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.85,
+          "confidenceStdDev": 0,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/domain/doctor.ts",
+          "unitKind": "file",
+          "layer": "domain",
+          "filePaths": [
+            "src/domain/doctor.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9666666666666667,
+          "confidenceStdDev": 0.004714045207910321,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/domain/invoice.ts",
+          "unitKind": "file",
+          "layer": "domain",
+          "filePaths": [
+            "src/domain/invoice.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9066666666666667,
+          "confidenceStdDev": 0.009428090415820642,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/domain/money.ts",
+          "unitKind": "file",
+          "layer": "domain",
+          "filePaths": [
+            "src/domain/money.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.8166666666666668,
+          "confidenceStdDev": 0.023570226039551553,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        },
+        {
+          "unitId": "src/domain/requester.ts",
+          "unitKind": "file",
+          "layer": "domain",
+          "filePaths": [
+            "src/domain/requester.ts"
+          ],
+          "status": "valid",
+          "verdict": "pass",
+          "confidence": 0.9499999999999998,
+          "confidenceStdDev": 1.1102230246251565e-16,
+          "flaggedUnstable": false,
+          "validRunCount": 3
+        }
+      ],
+      "candidatesByLayer": {
+        "adapters-inbound": 8,
+        "adapters-outbound": 8,
+        "application": 18,
+        "config": 1,
+        "domain": 8
+      }
+    }
+  ]
+}

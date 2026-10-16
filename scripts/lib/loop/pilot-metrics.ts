@@ -8,6 +8,7 @@
  * - new at step s (s >= 2): no snapshot of an earlier step of the run (step and repair turns alike) holds a finding
  *   with the same identity: rule id, template, file and target, lines ignored; for a cycle (a template whose name
  *   says `cycl`), the rule id, template and the set of files.
+ * - a step whose final snapshot was not evaluated is unscored: its count is null (never 0), and so is the run total.
  * §4 secondary outcomes: advisory slope per KLOC (with and without FF-CV05), gate repair success, cost and time
  * (repair turns apart), and the guards (type-check errors, skeleton integrity, files, LOC, unmatched files).
  */
@@ -42,8 +43,14 @@ export function olsSlope(points: readonly { readonly x: number; readonly y: numb
 
 export interface NewBlockingStep {
   readonly step: number;
-  readonly count: number;
+  /** Null when the step's final snapshot was not evaluated (unscored, never 0). */
+  readonly count: number | null;
   readonly findings: readonly BlockingFinding[];
+  /**
+   * True when no snapshot of the previous step was evaluated: findings first seen here may already have been there,
+   * so `count` is an upper bound.
+   */
+  readonly afterUnscored?: true;
 }
 
 export interface StepCostTime {
@@ -80,7 +87,10 @@ export interface RunOutcomes {
   readonly arm: string;
   /** §3: new blocking findings at steps 2..k (final snapshots). */
   readonly newBlocking: readonly NewBlockingStep[];
-  readonly newBlockingTotal: number;
+  /** Sum over the steps; null when any step is unscored (`unscoredSteps`). */
+  readonly newBlockingTotal: number | null;
+  /** Steps (1-based) whose final snapshot was not evaluated, step 1 included. */
+  readonly unscoredSteps: readonly number[];
   /** §4 advisory findings per KLOC per step (final snapshots), and their OLS slope over the steps. */
   readonly advisoryPerKloc: readonly (number | null)[];
   readonly advisoryPerKlocWithoutCv05: readonly (number | null)[];
@@ -124,20 +134,30 @@ export function runOutcomes(steps: readonly StepRecord[]): RunOutcomes {
   const advisoryNoCv05: (number | null)[] = [];
   const guards: StepGuards[] = [];
   const costTime: StepCostTime[] = [];
+  const unscoredSteps: number[] = [];
+  let previousUnevaluated = false;
   for (const s of steps) {
     const last = s.turns[s.turns.length - 1];
     const ev = last?.snapshot.evaluation ?? null;
+    if (ev === null) unscoredSteps.push(s.stepIndex + 1);
     if (s.stepIndex > 0) {
-      const fresh: BlockingFinding[] = [];
-      const ids = new Set<string>();
-      for (const f of ev?.blockingFindings ?? []) {
-        const id = findingIdentity(f);
-        if (seen.has(id) || ids.has(id)) continue;
-        ids.add(id);
-        fresh.push(f);
+      const after = previousUnevaluated ? { afterUnscored: true as const } : {};
+      if (ev === null) {
+        // An evaluator failure is a missing outcome, not zero new findings.
+        newBlocking.push({ step: s.stepIndex + 1, count: null, findings: [], ...after });
+      } else {
+        const fresh: BlockingFinding[] = [];
+        const ids = new Set<string>();
+        for (const f of ev.blockingFindings) {
+          const id = findingIdentity(f);
+          if (seen.has(id) || ids.has(id)) continue;
+          ids.add(id);
+          fresh.push(f);
+        }
+        newBlocking.push({ step: s.stepIndex + 1, count: fresh.length, findings: fresh, ...after });
       }
-      newBlocking.push({ step: s.stepIndex + 1, count: fresh.length, findings: fresh });
     }
+    previousUnevaluated = s.turns.every((t) => t.snapshot.evaluation === null);
     for (const t of s.turns) for (const f of t.snapshot.evaluation?.blockingFindings ?? []) seen.add(findingIdentity(f));
     const k = kloc(last?.snapshot.loc ?? 0);
     const cv05 = ev?.advisoryByRule?.[CV05] ?? 0;
@@ -181,7 +201,8 @@ export function runOutcomes(steps: readonly StepRecord[]): RunOutcomes {
     taskId: first.spec.taskId,
     arm: first.spec.arm,
     newBlocking,
-    newBlockingTotal: newBlocking.reduce((a, s) => a + s.count, 0),
+    newBlockingTotal: newBlocking.some((s) => s.count === null) ? null : newBlocking.reduce((a, s) => a + (s.count ?? 0), 0),
+    unscoredSteps,
     advisoryPerKloc: advisory,
     advisoryPerKlocWithoutCv05: advisoryNoCv05,
     advisorySlopePerKloc: olsSlope(xs.map((x, i) => ({ x, y: advisory[i] ?? null }))),

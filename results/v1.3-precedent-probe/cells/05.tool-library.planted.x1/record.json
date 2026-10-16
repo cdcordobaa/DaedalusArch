@@ -1,0 +1,50 @@
+{
+  "spec": "presets/hexagonal.yaml",
+  "engine": "cypher-interp",
+  "scoringMode": "v1.3",
+  "instrumentVersion": 2,
+  "typecheckErrors": 0,
+  "typecheckSample": [],
+  "verdict": "fail",
+  "blockingViolationCount": 1,
+  "advisoryViolationCount": 18,
+  "blockingByRule": {
+    "FF-S01": 1
+  },
+  "advisoryByRule": {
+    "FF-CV03": 1,
+    "FF-CV05": 16,
+    "FF-P02": 1
+  },
+  "blockingFindings": [
+    {
+      "rule": "FF-S01",
+      "template": "dependency-direction-graph",
+      "file": "src/application/lend-tool.ts",
+      "line": 4,
+      "target": "src/adapters/outbound/console-mailer.ts",
+      "message": "src/application/lend-tool.ts (application) imports against the allowed direction from src/adapters/outbound/console-mailer.ts (adapters-outbound)"
+    }
+  ],
+  "srcFiles": 17,
+  "loc": 277,
+  "cell": "05.tool-library.planted.x1",
+  "order": 5,
+  "domain": "tool-library",
+  "style": "hexagonal",
+  "condition": "planted",
+  "step": "x1",
+  "filesTouched": [
+    "M src/adapters/inbound/http-routes.ts",
+    "M src/adapters/outbound/in-memory-loan-repository.ts",
+    "M src/application/ports/loan-repository.ts",
+    "A src/application/report-damage.ts",
+    "M src/config/main.ts",
+    "M src/domain/loan.ts"
+  ],
+  "seedBlocking": 1,
+  "newBlockingIdentities": [],
+  "newSameShape": 0,
+  "newOther": 0,
+  "precedentSurvives": true
+}

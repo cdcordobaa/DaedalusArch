@@ -1,0 +1,185 @@
+diff --git a/src/adapters/inbound/http-routes.ts b/src/adapters/inbound/http-routes.ts
+index 9e423df..fb303a7 100644
+--- a/src/adapters/inbound/http-routes.ts
++++ b/src/adapters/inbound/http-routes.ts
+@@ -1,4 +1,5 @@
+ import { Router, type Request, type Response } from 'express';
++import type { JoinWaitlist } from '../../application/join-waitlist';
+ import type { LendTool } from '../../application/lend-tool';
+ import type { RegisterTool } from '../../application/register-tool';
+ import type { ReturnTool } from '../../application/return-tool';
+@@ -7,6 +8,7 @@ export interface ToolLibraryUseCases {
+   readonly registerTool: RegisterTool;
+   readonly lendTool: LendTool;
+   readonly returnTool: ReturnTool;
++  readonly joinWaitlist: JoinWaitlist;
+ }
+ 
+ function fail(res: Response, e: unknown): void {
+@@ -38,5 +40,13 @@ export function toolRoutes(uc: ToolLibraryUseCases): Router {
+       fail(res, e);
+     }
+   });
++  r.post('/tools/:id/waitlist', async (req: Request, res: Response) => {
++    try {
++      const body = req.body as { memberId: string };
++      res.status(201).json({ position: await uc.joinWaitlist.execute(String(req.params.id), body.memberId) });
++    } catch (e) {
++      fail(res, e);
++    }
++  });
+   return r;
+ }
+diff --git a/src/adapters/outbound/in-memory-waitlist-repository.ts b/src/adapters/outbound/in-memory-waitlist-repository.ts
+new file mode 100644
+index 0000000..c099a4d
+--- /dev/null
++++ b/src/adapters/outbound/in-memory-waitlist-repository.ts
+@@ -0,0 +1,18 @@
++import type { WaitlistRepository } from '../../application/ports/waitlist-repository';
++import type { WaitlistEntry } from '../../domain/waitlist';
++
++export class InMemoryWaitlistRepository implements WaitlistRepository {
++  private entries: WaitlistEntry[] = [];
++
++  async forTool(toolId: string): Promise<WaitlistEntry[]> {
++    return this.entries.filter((e) => e.toolId === toolId);
++  }
++
++  async add(entry: WaitlistEntry): Promise<void> {
++    this.entries.push(entry);
++  }
++
++  async remove(toolId: string, memberId: string): Promise<void> {
++    this.entries = this.entries.filter((e) => !(e.toolId === toolId && e.memberId === memberId));
++  }
++}
+diff --git a/src/application/join-waitlist.ts b/src/application/join-waitlist.ts
+new file mode 100644
+index 0000000..763ca68
+--- /dev/null
++++ b/src/application/join-waitlist.ts
+@@ -0,0 +1,24 @@
++import type { WaitlistEntry } from '../domain/waitlist';
++import type { MemberRepository } from './ports/member-repository';
++import type { ToolRepository } from './ports/tool-repository';
++import type { WaitlistRepository } from './ports/waitlist-repository';
++
++export class JoinWaitlist {
++  constructor(
++    private readonly tools: ToolRepository,
++    private readonly members: MemberRepository,
++    private readonly waitlist: WaitlistRepository,
++  ) {}
++
++  async execute(toolId: string, memberId: string, now = new Date()): Promise<number> {
++    const tool = await this.tools.findById(toolId);
++    if (tool === undefined) throw new Error(`unknown tool ${toolId}`);
++    if (tool.status !== 'on-loan') throw new Error(`${tool.name} is available, borrow it instead`);
++    if ((await this.members.findById(memberId)) === undefined) throw new Error(`unknown member ${memberId}`);
++    const waiting = await this.waitlist.forTool(toolId);
++    if (waiting.some((e) => e.memberId === memberId)) return waiting.length;
++    const entry: WaitlistEntry = { toolId, memberId, joinedAt: now };
++    await this.waitlist.add(entry);
++    return waiting.length + 1;
++  }
++}
+diff --git a/src/application/ports/waitlist-repository.ts b/src/application/ports/waitlist-repository.ts
+new file mode 100644
+index 0000000..22159d0
+--- /dev/null
++++ b/src/application/ports/waitlist-repository.ts
+@@ -0,0 +1,7 @@
++import type { WaitlistEntry } from '../../domain/waitlist';
++
++export interface WaitlistRepository {
++  forTool(toolId: string): Promise<WaitlistEntry[]>;
++  add(entry: WaitlistEntry): Promise<void>;
++  remove(toolId: string, memberId: string): Promise<void>;
++}
+diff --git a/src/application/return-tool.ts b/src/application/return-tool.ts
+index d423994..2cb0b70 100644
+--- a/src/application/return-tool.ts
++++ b/src/application/return-tool.ts
+@@ -1,11 +1,18 @@
+ import type { Loan } from '../domain/loan';
++import { firstInLine } from '../domain/waitlist';
+ import type { LoanRepository } from './ports/loan-repository';
++import type { Mailer } from './ports/mailer';
++import type { MemberRepository } from './ports/member-repository';
+ import type { ToolRepository } from './ports/tool-repository';
++import type { WaitlistRepository } from './ports/waitlist-repository';
+ 
+ export class ReturnTool {
+   constructor(
+     private readonly tools: ToolRepository,
+     private readonly loans: LoanRepository,
++    private readonly waitlist: WaitlistRepository,
++    private readonly members: MemberRepository,
++    private readonly mailer: Mailer,
+   ) {}
+ 
+   async execute(toolId: string, now = new Date()): Promise<Loan> {
+@@ -17,7 +24,17 @@ export class ReturnTool {
+     if (tool !== undefined) {
+       tool.status = 'available';
+       await this.tools.save(tool);
++      await this.notifyNextInLine(toolId, tool.name);
+     }
+     return loan;
+   }
++
++  private async notifyNextInLine(toolId: string, toolName: string): Promise<void> {
++    const next = firstInLine(await this.waitlist.forTool(toolId));
++    if (next === undefined) return;
++    const member = await this.members.findById(next.memberId);
++    await this.waitlist.remove(toolId, next.memberId);
++    if (member === undefined) return;
++    await this.mailer.send(member.email, `${toolName} is ready to collect`, `Hi ${member.name}, ${toolName} is back and ready for you to collect.`);
++  }
+ }
+diff --git a/src/config/main.ts b/src/config/main.ts
+index fe78635..9ebb93f 100644
+--- a/src/config/main.ts
++++ b/src/config/main.ts
+@@ -4,6 +4,8 @@ import { ConsoleMailer } from '../adapters/outbound/console-mailer';
+ import { InMemoryLoanRepository } from '../adapters/outbound/in-memory-loan-repository';
+ import { InMemoryMemberRepository } from '../adapters/outbound/in-memory-member-repository';
+ import { InMemoryToolRepository } from '../adapters/outbound/in-memory-tool-repository';
++import { InMemoryWaitlistRepository } from '../adapters/outbound/in-memory-waitlist-repository';
++import { JoinWaitlist } from '../application/join-waitlist';
+ import { LendTool } from '../application/lend-tool';
+ import { RegisterTool } from '../application/register-tool';
+ import { ReturnTool } from '../application/return-tool';
+@@ -13,13 +15,15 @@ export function buildApp(): express.Express {
+   const members = new InMemoryMemberRepository();
+   const loans = new InMemoryLoanRepository();
+   const mailer = new ConsoleMailer();
++  const waitlist = new InMemoryWaitlistRepository();
+   const app = express();
+   app.use(express.json());
+   app.use(
+     toolRoutes({
+       registerTool: new RegisterTool(tools),
+       lendTool: new LendTool(tools, members, loans, mailer),
+-      returnTool: new ReturnTool(tools, loans),
++      returnTool: new ReturnTool(tools, loans, waitlist, members, mailer),
++      joinWaitlist: new JoinWaitlist(tools, members, waitlist),
+     }),
+   );
+   return app;
+diff --git a/src/domain/waitlist.ts b/src/domain/waitlist.ts
+new file mode 100644
+index 0000000..6329573
+--- /dev/null
++++ b/src/domain/waitlist.ts
+@@ -0,0 +1,9 @@
++export interface WaitlistEntry {
++  readonly toolId: string;
++  readonly memberId: string;
++  readonly joinedAt: Date;
++}
++
++export function firstInLine(entries: readonly WaitlistEntry[]): WaitlistEntry | undefined {
++  return [...entries].sort((a, b) => a.joinedAt.getTime() - b.joinedAt.getTime())[0];
++}

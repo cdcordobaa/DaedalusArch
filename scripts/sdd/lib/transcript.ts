@@ -58,7 +58,7 @@ export interface ToolCallEvent extends Base {
 export interface FullEvalEvent extends Base {
   readonly kind: 'full-eval';
   readonly engine: 'cypher-interp';
-  readonly verdict: 'pass' | 'fail';
+  readonly verdict: 'pass' | 'fail' | 'incomplete';
   readonly blocking: readonly FullFindingKey[];
   readonly advisoryCount: number;
   readonly advisoryRules: readonly string[];

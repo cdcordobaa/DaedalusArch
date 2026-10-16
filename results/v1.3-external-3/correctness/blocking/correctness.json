@@ -1,0 +1,3284 @@
+{
+  "schemaVersion": 1,
+  "summary": [
+    {
+      "rule": "FF-DS02/context-isolation",
+      "n": 35,
+      "correct": 35,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.9010990076755959,
+      "wilsonHigh": 0.9999999999999999
+    },
+    {
+      "rule": "FF-DT01/aggregate-boundary",
+      "n": 2,
+      "correct": 2,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.34238022750665303,
+      "wilsonHigh": 1
+    },
+    {
+      "rule": "FF-DT04/domain-purity",
+      "n": 3,
+      "correct": 3,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.4385029682449546,
+      "wilsonHigh": 1
+    },
+    {
+      "rule": "FF-P01/domain-purity",
+      "n": 16,
+      "correct": 16,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.8063923194655637,
+      "wilsonHigh": 1
+    },
+    {
+      "rule": "FF-P03/port-adapter-pattern",
+      "n": 4,
+      "correct": 4,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.5101091635454027,
+      "wilsonHigh": 1
+    },
+    {
+      "rule": "FF-P03/repository-pattern",
+      "n": 3,
+      "correct": 3,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.4385029682449546,
+      "wilsonHigh": 1
+    },
+    {
+      "rule": "FF-S01/dependency-direction",
+      "n": 35,
+      "correct": 35,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.9010990076755959,
+      "wilsonHigh": 0.9999999999999999
+    },
+    {
+      "rule": "FF-S01/dependency-direction-graph",
+      "n": 41,
+      "correct": 41,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.9143324298155681,
+      "wilsonHigh": 0.9999999999999999
+    },
+    {
+      "rule": "FF-S02/no-cyclic-deps",
+      "n": 38,
+      "correct": 38,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.908190131774416,
+      "wilsonHigh": 0.9999999999999999
+    },
+    {
+      "rule": "FF-S03/no-layer-skip",
+      "n": 27,
+      "correct": 27,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.8754449702581328,
+      "wilsonHigh": 0.9999999999999998
+    },
+    {
+      "rule": "FF-S04/core-isolation",
+      "n": 7,
+      "correct": 7,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.6456695649333126,
+      "wilsonHigh": 1
+    }
+  ],
+  "results": [
+    {
+      "key": "d8d53c2c06c06411caa1f771",
+      "projectId": "leal32b-webapi",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/core/3.infra/persistence/mongodb/base/mongodb-fixture.ts",
+      "verdict": "correct",
+      "reason": "infrastructure (position 3) imports main (position 4), against the spec's layer order",
+      "checks": [
+        "'@/core/4.main/container/index' at line 3 resolves to src/core/4.main/container/index.ts",
+        "layers by spec globs: src/core/3.infra/persistence/mongodb/base/mongodb-fixture.ts -> infrastructure; src/core/4.main/container/index.ts -> main"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "3449e83786423eefe76ea3fd",
+      "projectId": "leal32b-webapi",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/core/3.infra/persistence/postgres/base/postgres-fixture.ts",
+      "verdict": "correct",
+      "reason": "infrastructure (position 3) imports main (position 4), against the spec's layer order",
+      "checks": [
+        "'@/core/4.main/container/index' at line 3 resolves to src/core/4.main/container/index.ts",
+        "layers by spec globs: src/core/3.infra/persistence/postgres/base/postgres-fixture.ts -> infrastructure; src/core/4.main/container/index.ts -> main"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "b912bcd44e265eabc9a62ce9",
+      "projectId": "leal32b-webapi",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/modules/user/3.infra/persistence/mongodb/repositories/mongodb-user-repository.ts",
+      "verdict": "correct",
+      "reason": "infrastructure (position 3) imports main (position 4), against the spec's layer order",
+      "checks": [
+        "'@/core/4.main/container/index' at line 6 resolves to src/core/4.main/container/index.ts",
+        "layers by spec globs: src/modules/user/3.infra/persistence/mongodb/repositories/mongodb-user-repository.ts -> infrastructure; src/core/4.main/container/index.ts -> main"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "cfe85210a6b36a509c1dc08e",
+      "projectId": "leal32b-webapi",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/modules/user/3.infra/persistence/postgres/repositories/postgres-user-repository.ts",
+      "verdict": "correct",
+      "reason": "infrastructure (position 3) imports main (position 4), against the spec's layer order",
+      "checks": [
+        "'@/core/4.main/container/index' at line 4 resolves to src/core/4.main/container/index.ts",
+        "layers by spec globs: src/modules/user/3.infra/persistence/postgres/repositories/postgres-user-repository.ts -> infrastructure; src/core/4.main/container/index.ts -> main"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "7304aa036a67d896d085548b",
+      "projectId": "leal32b-webapi",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/core/0.domain/base/aggregate-root.ts,src/core/0.domain/events/domain-events.ts,src/core/0.domain/base/aggregate-root.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/core/0.domain/base/aggregate-root.ts:3 '@/core/0.domain/events/domain-events' -> src/core/0.domain/events/domain-events.ts",
+        "src/core/0.domain/events/domain-events.ts:1 '@/core/0.domain/base/aggregate-root' -> src/core/0.domain/base/aggregate-root.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "d0966c18b298b41e41db622a",
+      "projectId": "leal32b-webapi",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/core/4.main/container/index.ts,src/core/4.main/container/persistence/make-mongodb.ts,src/modules/user/3.infra/persistence/mongodb/repositories/mongodb-user-repository.ts,src/core/4.main/container/index.ts",
+      "verdict": "correct",
+      "reason": "every step of the 3-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/core/4.main/container/index.ts:10 '@/core/4.main/container/persistence/make-mongodb' -> src/core/4.main/container/persistence/make-mongodb.ts",
+        "src/core/4.main/container/persistence/make-mongodb.ts:6 '@/user/3.infra/persistence/mongodb/repositories/mongodb-user-repository' -> src/modules/user/3.infra/persistence/mongodb/repositories/mongodb-user-repository.ts",
+        "src/modules/user/3.infra/persistence/mongodb/repositories/mongodb-user-repository.ts:6 '@/core/4.main/container/index' -> src/core/4.main/container/index.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "e8b18de81c2ab61cd5681534",
+      "projectId": "leal32b-webapi",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/core/4.main/container/index.ts,src/core/4.main/container/persistence/make-postgres.ts,src/modules/user/3.infra/persistence/postgres/repositories/postgres-user-repository.ts,src/core/4.main/container/index.ts",
+      "verdict": "correct",
+      "reason": "every step of the 3-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/core/4.main/container/index.ts:11 '@/core/4.main/container/persistence/make-postgres' -> src/core/4.main/container/persistence/make-postgres.ts",
+        "src/core/4.main/container/persistence/make-postgres.ts:6 '@/user/3.infra/persistence/postgres/repositories/postgres-user-repository' -> src/modules/user/3.infra/persistence/postgres/repositories/postgres-user-repository.ts",
+        "src/modules/user/3.infra/persistence/postgres/repositories/postgres-user-repository.ts:4 '@/core/4.main/container/index' -> src/core/4.main/container/index.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "6f83fdde3380baaa5e18b03c",
+      "projectId": "leal32b-webapi",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/core/4.main/setup/fixtures/index.ts,src/core/4.main/setup/fixtures/make-mongodb-fixtures.ts,src/core/4.main/setup/fixtures/index.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/core/4.main/setup/fixtures/index.ts:3 '@/core/4.main/setup/fixtures/make-mongodb-fixtures' -> src/core/4.main/setup/fixtures/make-mongodb-fixtures.ts",
+        "src/core/4.main/setup/fixtures/make-mongodb-fixtures.ts:1 '@/core/4.main/setup/fixtures' -> src/core/4.main/setup/fixtures/index.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "223c9851a25d2d035b5202e0",
+      "projectId": "leal32b-webapi",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/core/4.main/setup/fixtures/index.ts,src/core/4.main/setup/fixtures/make-postgres-fixtures.ts,src/core/4.main/setup/fixtures/index.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/core/4.main/setup/fixtures/index.ts:4 '@/core/4.main/setup/fixtures/make-postgres-fixtures' -> src/core/4.main/setup/fixtures/make-postgres-fixtures.ts",
+        "src/core/4.main/setup/fixtures/make-postgres-fixtures.ts:1 '@/core/4.main/setup/fixtures' -> src/core/4.main/setup/fixtures/index.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "47a54e3837a043988931fe29",
+      "projectId": "cersouza-boilerplate",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/api/controllers/CustomerController.ts",
+      "verdict": "correct",
+      "reason": "presentation (position 2) imports infrastructure (position 3), against the spec's layer order",
+      "checks": [
+        "'../../infra/injections' at line 4 resolves to src/infra/injections.ts",
+        "layers by spec globs: src/api/controllers/CustomerController.ts -> presentation; src/infra/injections.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "6bb273227522d3159f7ca252",
+      "projectId": "cartaxo-ts-boilerplate",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/microservices/users/services/users.service.ts",
+      "verdict": "correct",
+      "reason": "application (position 1) imports infrastructure (position 3), against the spec's layer order",
+      "checks": [
+        "'../repositories/users.repository' at line 4 resolves to src/microservices/users/repositories/users.repository.ts",
+        "layers by spec globs: src/microservices/users/services/users.service.ts -> application; src/microservices/users/repositories/users.repository.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "4cac7838a34fc7cf3b257653",
+      "projectId": "cartaxo-ts-boilerplate",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/utils/base/services/base-service.ts",
+      "verdict": "correct",
+      "reason": "application (position 1) imports infrastructure (position 3), against the spec's layer order",
+      "checks": [
+        "'../repositories/base-repository' at line 7 resolves to src/utils/base/repositories/base-repository.ts",
+        "layers by spec globs: src/utils/base/services/base-service.ts -> application; src/utils/base/repositories/base-repository.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "63faa1973cb5d8812a8ec8e2",
+      "projectId": "cartaxo-ts-boilerplate",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/utils/base/services/base-service.ts",
+      "verdict": "correct",
+      "reason": "application (position 1) imports infrastructure (position 3), against the spec's layer order",
+      "checks": [
+        "'../repositories/mongo-base-repository' at line 8 resolves to src/utils/base/repositories/mongo-base-repository.ts",
+        "layers by spec globs: src/utils/base/services/base-service.ts -> application; src/utils/base/repositories/mongo-base-repository.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "948ad06c7bdf65fd74f318ab",
+      "projectId": "cartaxo-ts-boilerplate",
+      "ruleId": "FF-P03",
+      "template": "repository-pattern",
+      "tier": "blocking",
+      "file": "src/microservices/users/repositories/users.repository.ts",
+      "verdict": "correct",
+      "reason": "UsersRepository implements no interface",
+      "checks": [
+        "class UsersRepository declared at src/microservices/users/repositories/users.repository.ts:6"
+      ],
+      "rule": "FF-P03/repository-pattern"
+    },
+    {
+      "key": "bfb4ec7f6d9c9f2968f4ee25",
+      "projectId": "cartaxo-ts-boilerplate",
+      "ruleId": "FF-P03",
+      "template": "repository-pattern",
+      "tier": "blocking",
+      "file": "src/utils/base/repositories/base-repository.ts",
+      "verdict": "correct",
+      "reason": "BaseRepository implements no interface",
+      "checks": [
+        "class BaseRepository declared at src/utils/base/repositories/base-repository.ts:6"
+      ],
+      "rule": "FF-P03/repository-pattern"
+    },
+    {
+      "key": "53f021c854b92ca75fee01cc",
+      "projectId": "cartaxo-ts-boilerplate",
+      "ruleId": "FF-P03",
+      "template": "repository-pattern",
+      "tier": "blocking",
+      "file": "src/utils/base/repositories/mongo-base-repository.ts",
+      "verdict": "correct",
+      "reason": "MongoBaseRepository implements no interface",
+      "checks": [
+        "class MongoBaseRepository declared at src/utils/base/repositories/mongo-base-repository.ts:13"
+      ],
+      "rule": "FF-P03/repository-pattern"
+    },
+    {
+      "key": "cced3a8024a04ddc34533e8b",
+      "projectId": "devnica-clean-backend",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/infrastructure/express/api/routes/auth.router.ts",
+      "verdict": "correct",
+      "reason": "infrastructure (position 3) imports main (position 4), against the spec's layer order",
+      "checks": [
+        "'@factories/auth/auth-controller-factory' at line 2 resolves to src/factories/auth/auth-controller-factory.ts",
+        "layers by spec globs: src/infrastructure/express/api/routes/auth.router.ts -> infrastructure; src/factories/auth/auth-controller-factory.ts -> main"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "797aa8687cc346055adb8a68",
+      "projectId": "devnica-clean-backend",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/infrastructure/express/api/routes/auth.router.ts",
+      "verdict": "correct",
+      "reason": "infrastructure (position 3) imports main (position 4), against the spec's layer order",
+      "checks": [
+        "'@factories/middlewares/request-parser-middleware-factory' at line 3 resolves to src/factories/middlewares/request-parser-middleware-factory.ts",
+        "layers by spec globs: src/infrastructure/express/api/routes/auth.router.ts -> infrastructure; src/factories/middlewares/request-parser-middleware-factory.ts -> main"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "4a2923268760062885cdcc6e",
+      "projectId": "devnica-clean-backend",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/infrastructure/express/api/routes/user.router.ts",
+      "verdict": "correct",
+      "reason": "infrastructure (position 3) imports main (position 4), against the spec's layer order",
+      "checks": [
+        "'@factories/auth/user-controller-factory' at line 2 resolves to src/factories/auth/user-controller-factory.ts",
+        "layers by spec globs: src/infrastructure/express/api/routes/user.router.ts -> infrastructure; src/factories/auth/user-controller-factory.ts -> main"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "066d4214fe6eea3a02e81865",
+      "projectId": "devnica-clean-backend",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/infrastructure/express/api/routes/user.router.ts",
+      "verdict": "correct",
+      "reason": "infrastructure (position 3) imports main (position 4), against the spec's layer order",
+      "checks": [
+        "'@factories/middlewares/auth-middleware-factory' at line 3 resolves to src/factories/middlewares/auth-middleware-factory.ts",
+        "layers by spec globs: src/infrastructure/express/api/routes/user.router.ts -> infrastructure; src/factories/middlewares/auth-middleware-factory.ts -> main"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "d413f143926b2f5fe81908ba",
+      "projectId": "q00-api-server",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/model/APIlogs.ts,src/model/Users.ts,src/model/index.ts,src/model/APIlogs.ts",
+      "verdict": "correct",
+      "reason": "every step of the 3-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/model/APIlogs.ts:3 './Users' -> src/model/Users.ts",
+        "src/model/Users.ts:12 '.' -> src/model/index.ts",
+        "src/model/index.ts:7 './APIlogs' -> src/model/APIlogs.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "1a90dfdbac3e8e0bfd958f60",
+      "projectId": "q00-api-server",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/model/ExampleBoardComments.ts,src/model/ExampleBoardDepthComments.ts,src/model/ExampleBoardComments.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/model/ExampleBoardComments.ts:5 './ExampleBoardDepthComments' -> src/model/ExampleBoardDepthComments.ts",
+        "src/model/ExampleBoardDepthComments.ts:3 './ExampleBoardComments' -> src/model/ExampleBoardComments.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "8c0c1d925bce043172dda6a3",
+      "projectId": "q00-api-server",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/model/ExampleBoardComments.ts,src/model/ExampleBoardDepthComments.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoardComments.ts",
+      "verdict": "correct",
+      "reason": "every step of the 4-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/model/ExampleBoardComments.ts:5 './ExampleBoardDepthComments' -> src/model/ExampleBoardDepthComments.ts",
+        "src/model/ExampleBoardDepthComments.ts:4 './Users' -> src/model/Users.ts",
+        "src/model/Users.ts:12 '.' -> src/model/index.ts",
+        "src/model/index.ts:5 './ExampleBoardComments' -> src/model/ExampleBoardComments.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "4fd7299367437dc5bd07f586",
+      "projectId": "q00-api-server",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/model/ExampleBoardComments.ts,src/model/ExampleBoardDepthComments.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoards.ts,src/model/ExampleBoardComments.ts",
+      "verdict": "correct",
+      "reason": "every step of the 5-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/model/ExampleBoardComments.ts:5 './ExampleBoardDepthComments' -> src/model/ExampleBoardDepthComments.ts",
+        "src/model/ExampleBoardDepthComments.ts:4 './Users' -> src/model/Users.ts",
+        "src/model/Users.ts:12 '.' -> src/model/index.ts",
+        "src/model/index.ts:4 './ExampleBoards' -> src/model/ExampleBoards.ts",
+        "src/model/ExampleBoards.ts:3 './ExampleBoardComments' -> src/model/ExampleBoardComments.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "7b8e6a64b27c298054fae0a0",
+      "projectId": "q00-api-server",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/model/ExampleBoardComments.ts,src/model/ExampleBoards.ts,src/model/ExampleBoardComments.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/model/ExampleBoardComments.ts:3 './ExampleBoards' -> src/model/ExampleBoards.ts",
+        "src/model/ExampleBoards.ts:3 './ExampleBoardComments' -> src/model/ExampleBoardComments.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "4a71d0a2c0a225b5c6f032af",
+      "projectId": "q00-api-server",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/model/ExampleBoardComments.ts,src/model/ExampleBoards.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoardComments.ts",
+      "verdict": "correct",
+      "reason": "every step of the 4-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/model/ExampleBoardComments.ts:3 './ExampleBoards' -> src/model/ExampleBoards.ts",
+        "src/model/ExampleBoards.ts:4 './Users' -> src/model/Users.ts",
+        "src/model/Users.ts:12 '.' -> src/model/index.ts",
+        "src/model/index.ts:5 './ExampleBoardComments' -> src/model/ExampleBoardComments.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "a462c706ba35b9458d34e59c",
+      "projectId": "q00-api-server",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/model/ExampleBoardComments.ts,src/model/ExampleBoards.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoardDepthComments.ts,src/model/ExampleBoardComments.ts",
+      "verdict": "correct",
+      "reason": "every step of the 5-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/model/ExampleBoardComments.ts:3 './ExampleBoards' -> src/model/ExampleBoards.ts",
+        "src/model/ExampleBoards.ts:4 './Users' -> src/model/Users.ts",
+        "src/model/Users.ts:12 '.' -> src/model/index.ts",
+        "src/model/index.ts:6 './ExampleBoardDepthComments' -> src/model/ExampleBoardDepthComments.ts",
+        "src/model/ExampleBoardDepthComments.ts:3 './ExampleBoardComments' -> src/model/ExampleBoardComments.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "cf5236a2d893576cd74208a8",
+      "projectId": "q00-api-server",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/model/ExampleBoardComments.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoardComments.ts",
+      "verdict": "correct",
+      "reason": "every step of the 3-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/model/ExampleBoardComments.ts:4 './Users' -> src/model/Users.ts",
+        "src/model/Users.ts:12 '.' -> src/model/index.ts",
+        "src/model/index.ts:5 './ExampleBoardComments' -> src/model/ExampleBoardComments.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "63fad352d23f38e77c083636",
+      "projectId": "q00-api-server",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/model/ExampleBoardComments.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoardDepthComments.ts,src/model/ExampleBoardComments.ts",
+      "verdict": "correct",
+      "reason": "every step of the 4-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/model/ExampleBoardComments.ts:4 './Users' -> src/model/Users.ts",
+        "src/model/Users.ts:12 '.' -> src/model/index.ts",
+        "src/model/index.ts:6 './ExampleBoardDepthComments' -> src/model/ExampleBoardDepthComments.ts",
+        "src/model/ExampleBoardDepthComments.ts:3 './ExampleBoardComments' -> src/model/ExampleBoardComments.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "9d3d20e6f679476a80a25c18",
+      "projectId": "q00-api-server",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/model/ExampleBoardComments.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoards.ts,src/model/ExampleBoardComments.ts",
+      "verdict": "correct",
+      "reason": "every step of the 4-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/model/ExampleBoardComments.ts:4 './Users' -> src/model/Users.ts",
+        "src/model/Users.ts:12 '.' -> src/model/index.ts",
+        "src/model/index.ts:4 './ExampleBoards' -> src/model/ExampleBoards.ts",
+        "src/model/ExampleBoards.ts:3 './ExampleBoardComments' -> src/model/ExampleBoardComments.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "c07e0513fbcb0ffb385e1e86",
+      "projectId": "q00-api-server",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/model/ExampleBoardDepthComments.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoardDepthComments.ts",
+      "verdict": "correct",
+      "reason": "every step of the 3-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/model/ExampleBoardDepthComments.ts:4 './Users' -> src/model/Users.ts",
+        "src/model/Users.ts:12 '.' -> src/model/index.ts",
+        "src/model/index.ts:6 './ExampleBoardDepthComments' -> src/model/ExampleBoardDepthComments.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "72cbb902e68743c8dcb9c2af",
+      "projectId": "q00-api-server",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/model/ExampleBoards.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoards.ts",
+      "verdict": "correct",
+      "reason": "every step of the 3-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/model/ExampleBoards.ts:4 './Users' -> src/model/Users.ts",
+        "src/model/Users.ts:12 '.' -> src/model/index.ts",
+        "src/model/index.ts:4 './ExampleBoards' -> src/model/ExampleBoards.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "d4a8c302b507da1f90d87700",
+      "projectId": "q00-api-server",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/model/UserAccounts.ts,src/model/Users.ts,src/model/UserAccounts.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/model/UserAccounts.ts:3 './Users' -> src/model/Users.ts",
+        "src/model/Users.ts:11 './UserAccounts' -> src/model/UserAccounts.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "4d737f884a8c4b32c7b701a9",
+      "projectId": "q00-api-server",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/model/UserAccounts.ts,src/model/Users.ts,src/model/index.ts,src/model/UserAccounts.ts",
+      "verdict": "correct",
+      "reason": "every step of the 3-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/model/UserAccounts.ts:3 './Users' -> src/model/Users.ts",
+        "src/model/Users.ts:12 '.' -> src/model/index.ts",
+        "src/model/index.ts:3 './UserAccounts' -> src/model/UserAccounts.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "fc3f1492b69dc531d53843e8",
+      "projectId": "q00-api-server",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/model/Users.ts,src/model/index.ts,src/model/Users.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/model/Users.ts:12 '.' -> src/model/index.ts",
+        "src/model/index.ts:2 './Users' -> src/model/Users.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "0a9cf4a4f508f2e74334a0c0",
+      "projectId": "q00-api-server",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/controller/BaseAuthController.ts",
+      "verdict": "correct",
+      "reason": "presentation -> persistence is not the adjacent downward step (positions 2 -> 0)",
+      "checks": [
+        "'../model/Enum' at line 3 resolves to src/model/Enum.ts",
+        "layers by spec globs: src/controller/BaseAuthController.ts -> presentation; src/model/Enum.ts -> persistence"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "8fadbd81ef7d458fbd6be55d",
+      "projectId": "q00-api-server",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/controller/BaseCommentController.ts",
+      "verdict": "correct",
+      "reason": "presentation -> persistence is not the adjacent downward step (positions 2 -> 0)",
+      "checks": [
+        "'../model' at line 3 resolves to src/model/index.ts",
+        "layers by spec globs: src/controller/BaseCommentController.ts -> presentation; src/model/index.ts -> persistence"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "398c463458ecbb4a8dcd2b99",
+      "projectId": "q00-api-server",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/controller/ExampleBoardCommentController.ts",
+      "verdict": "correct",
+      "reason": "presentation -> persistence is not the adjacent downward step (positions 2 -> 0)",
+      "checks": [
+        "'../model' at line 14 resolves to src/model/index.ts",
+        "layers by spec globs: src/controller/ExampleBoardCommentController.ts -> presentation; src/model/index.ts -> persistence"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "16016ef98cbb6a82a647bf65",
+      "projectId": "q00-api-server",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/controller/ExampleBoardController.ts",
+      "verdict": "correct",
+      "reason": "presentation -> persistence is not the adjacent downward step (positions 2 -> 0)",
+      "checks": [
+        "'../model' at line 18 resolves to src/model/index.ts",
+        "layers by spec globs: src/controller/ExampleBoardController.ts -> presentation; src/model/index.ts -> persistence"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "35c446612d2a7606cb57625d",
+      "projectId": "q00-api-server",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/controller/ExampleBoardDepthCommentController.ts",
+      "verdict": "correct",
+      "reason": "presentation -> persistence is not the adjacent downward step (positions 2 -> 0)",
+      "checks": [
+        "'../model' at line 14 resolves to src/model/index.ts",
+        "layers by spec globs: src/controller/ExampleBoardDepthCommentController.ts -> presentation; src/model/index.ts -> persistence"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "11dfbdfa9172eb379f31e043",
+      "projectId": "q00-api-server",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/controller/UserController.ts",
+      "verdict": "correct",
+      "reason": "presentation -> persistence is not the adjacent downward step (positions 2 -> 0)",
+      "checks": [
+        "'../model' at line 12 resolves to src/model/index.ts",
+        "layers by spec globs: src/controller/UserController.ts -> presentation; src/model/index.ts -> persistence"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "f2cd9bc64f025d6317dacb53",
+      "projectId": "q00-api-server",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/dto/UserDTO.ts",
+      "verdict": "correct",
+      "reason": "presentation -> persistence is not the adjacent downward step (positions 2 -> 0)",
+      "checks": [
+        "'../model/Enum' at line 4 resolves to src/model/Enum.ts",
+        "layers by spec globs: src/dto/UserDTO.ts -> presentation; src/model/Enum.ts -> persistence"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "c45632010f63e9aaf8c0271d",
+      "projectId": "q00-api-server",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/middleware/WriteLog.ts",
+      "verdict": "correct",
+      "reason": "presentation -> persistence is not the adjacent downward step (positions 2 -> 0)",
+      "checks": [
+        "'../model/Enum' at line 6 resolves to src/model/Enum.ts",
+        "layers by spec globs: src/middleware/WriteLog.ts -> presentation; src/model/Enum.ts -> persistence"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "c45cb0b9dfc54744ca0381e3",
+      "projectId": "q00-api-server",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/service/BaseBoardService.ts",
+      "verdict": "correct",
+      "reason": "'typeorm' at line 4 imports typeorm (forbidden by 'typeorm')",
+      "checks": [
+        "layer by spec globs: src/service/BaseBoardService.ts -> business"
+      ],
+      "rule": "FF-P01/domain-purity"
+    },
+    {
+      "key": "7c0ee845205216a2fac239e8",
+      "projectId": "q00-api-server",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/service/BaseService.ts",
+      "verdict": "correct",
+      "reason": "'typeorm' at line 1 imports typeorm (forbidden by 'typeorm')",
+      "checks": [
+        "layer by spec globs: src/service/BaseService.ts -> business"
+      ],
+      "rule": "FF-P01/domain-purity"
+    },
+    {
+      "key": "a29aee0002e9451d924317e7",
+      "projectId": "bymi15-express-typeorm",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/api/middlewares/attachUser.ts",
+      "verdict": "correct",
+      "reason": "presentation -> persistence is not the adjacent downward step (positions 2 -> 0)",
+      "checks": [
+        "'../entities/User' at line 4 resolves to src/api/entities/User.ts",
+        "layers by spec globs: src/api/middlewares/attachUser.ts -> presentation; src/api/entities/User.ts -> persistence"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "2fa9102b68e3f72f0438cb71",
+      "projectId": "bymi15-express-typeorm",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/api/middlewares/checkRole.ts",
+      "verdict": "correct",
+      "reason": "presentation -> persistence is not the adjacent downward step (positions 2 -> 0)",
+      "checks": [
+        "'../entities/User' at line 4 resolves to src/api/entities/User.ts",
+        "layers by spec globs: src/api/middlewares/checkRole.ts -> presentation; src/api/entities/User.ts -> persistence"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "2c79cfebf38bb79de836566b",
+      "projectId": "bymi15-express-typeorm",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/api/routes/company.ts",
+      "verdict": "correct",
+      "reason": "presentation -> persistence is not the adjacent downward step (positions 2 -> 0)",
+      "checks": [
+        "'../entities/Company' at line 6 resolves to src/api/entities/Company.ts",
+        "layers by spec globs: src/api/routes/company.ts -> presentation; src/api/entities/Company.ts -> persistence"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "64f789558e0e6dc18ff222f8",
+      "projectId": "bymi15-express-typeorm",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/api/routes/jobApplication.ts",
+      "verdict": "correct",
+      "reason": "presentation -> persistence is not the adjacent downward step (positions 2 -> 0)",
+      "checks": [
+        "'../entities/JobApplication' at line 6 resolves to src/api/entities/JobApplication.ts",
+        "layers by spec globs: src/api/routes/jobApplication.ts -> presentation; src/api/entities/JobApplication.ts -> persistence"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "274421ad3ef727c705c580bd",
+      "projectId": "bymi15-express-typeorm",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/api/routes/jobApplication.ts",
+      "verdict": "correct",
+      "reason": "presentation -> persistence is not the adjacent downward step (positions 2 -> 0)",
+      "checks": [
+        "'../entities/User' at line 8 resolves to src/api/entities/User.ts",
+        "layers by spec globs: src/api/routes/jobApplication.ts -> presentation; src/api/entities/User.ts -> persistence"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "b6b553c57b440687d6a5845c",
+      "projectId": "bymi15-express-typeorm",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/api/services/CRUD.ts",
+      "verdict": "correct",
+      "reason": "'typeorm' at line 2 imports typeorm (forbidden by 'typeorm')",
+      "checks": [
+        "layer by spec globs: src/api/services/CRUD.ts -> business"
+      ],
+      "rule": "FF-P01/domain-purity"
+    },
+    {
+      "key": "c7178d172ef8fbec1509f733",
+      "projectId": "bymi15-express-typeorm",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/api/services/CompanyService.ts",
+      "verdict": "correct",
+      "reason": "'typeorm' at line 3 imports typeorm (forbidden by 'typeorm')",
+      "checks": [
+        "layer by spec globs: src/api/services/CompanyService.ts -> business"
+      ],
+      "rule": "FF-P01/domain-purity"
+    },
+    {
+      "key": "2ba2e0f40922ee59ccbc2f17",
+      "projectId": "bymi15-express-typeorm",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/api/services/JobApplicationService.ts",
+      "verdict": "correct",
+      "reason": "'typeorm' at line 3 imports typeorm (forbidden by 'typeorm')",
+      "checks": [
+        "layer by spec globs: src/api/services/JobApplicationService.ts -> business"
+      ],
+      "rule": "FF-P01/domain-purity"
+    },
+    {
+      "key": "727dcab27bc4a19713d39b13",
+      "projectId": "bymi15-express-typeorm",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/api/services/UserService.ts",
+      "verdict": "correct",
+      "reason": "'typeorm' at line 6 imports typeorm (forbidden by 'typeorm')",
+      "checks": [
+        "layer by spec globs: src/api/services/UserService.ts -> business"
+      ],
+      "rule": "FF-P01/domain-purity"
+    },
+    {
+      "key": "3bbc1eef1d1c9b2bb1a31423",
+      "projectId": "pallavi-twitter-backend",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/controllers/access/login.controller.ts",
+      "verdict": "correct",
+      "reason": "business (position 1) imports presentation (position 2), against the spec's layer order",
+      "checks": [
+        "'../../middlewares/asyncHandler' at line 7 resolves to src/middlewares/asyncHandler.ts",
+        "layers by spec globs: src/controllers/access/login.controller.ts -> business; src/middlewares/asyncHandler.ts -> presentation"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "79865176e37f81e8f96cd05c",
+      "projectId": "pallavi-twitter-backend",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/controllers/access/signup.controller.ts",
+      "verdict": "correct",
+      "reason": "business (position 1) imports presentation (position 2), against the spec's layer order",
+      "checks": [
+        "'../../middlewares/asyncHandler' at line 9 resolves to src/middlewares/asyncHandler.ts",
+        "layers by spec globs: src/controllers/access/signup.controller.ts -> business; src/middlewares/asyncHandler.ts -> presentation"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "65b463dae9889a78e043943f",
+      "projectId": "pallavi-twitter-backend",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/controllers/access/token.controller.ts",
+      "verdict": "correct",
+      "reason": "business (position 1) imports presentation (position 2), against the spec's layer order",
+      "checks": [
+        "'../../middlewares/asyncHandler' at line 8 resolves to src/middlewares/asyncHandler.ts",
+        "layers by spec globs: src/controllers/access/token.controller.ts -> business; src/middlewares/asyncHandler.ts -> presentation"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "9b6ab92cf69a28593385b5fe",
+      "projectId": "pallavi-twitter-backend",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/controllers/follow/follow.controller.ts",
+      "verdict": "correct",
+      "reason": "business (position 1) imports presentation (position 2), against the spec's layer order",
+      "checks": [
+        "'../../middlewares/asyncHandler' at line 6 resolves to src/middlewares/asyncHandler.ts",
+        "layers by spec globs: src/controllers/follow/follow.controller.ts -> business; src/middlewares/asyncHandler.ts -> presentation"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "9e533aff3161346f0668454d",
+      "projectId": "pallavi-twitter-backend",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/controllers/follow/followers.controller.ts",
+      "verdict": "correct",
+      "reason": "business (position 1) imports presentation (position 2), against the spec's layer order",
+      "checks": [
+        "'../../middlewares/asyncHandler' at line 5 resolves to src/middlewares/asyncHandler.ts",
+        "layers by spec globs: src/controllers/follow/followers.controller.ts -> business; src/middlewares/asyncHandler.ts -> presentation"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "c68d80235a1c1e8658f9390d",
+      "projectId": "pallavi-twitter-backend",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/controllers/follow/followings.controller.ts",
+      "verdict": "correct",
+      "reason": "business (position 1) imports presentation (position 2), against the spec's layer order",
+      "checks": [
+        "'../../middlewares/asyncHandler' at line 5 resolves to src/middlewares/asyncHandler.ts",
+        "layers by spec globs: src/controllers/follow/followings.controller.ts -> business; src/middlewares/asyncHandler.ts -> presentation"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "014f05e3f5b19dc6a4e8cc04",
+      "projectId": "pallavi-twitter-backend",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/controllers/follow/unfollow.controller.ts",
+      "verdict": "correct",
+      "reason": "business (position 1) imports presentation (position 2), against the spec's layer order",
+      "checks": [
+        "'../../middlewares/asyncHandler' at line 6 resolves to src/middlewares/asyncHandler.ts",
+        "layers by spec globs: src/controllers/follow/unfollow.controller.ts -> business; src/middlewares/asyncHandler.ts -> presentation"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "25001ad97e8af122f4457398",
+      "projectId": "pallavi-twitter-backend",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/controllers/like/like.controller.ts",
+      "verdict": "correct",
+      "reason": "business (position 1) imports presentation (position 2), against the spec's layer order",
+      "checks": [
+        "'../../middlewares/asyncHandler' at line 8 resolves to src/middlewares/asyncHandler.ts",
+        "layers by spec globs: src/controllers/like/like.controller.ts -> business; src/middlewares/asyncHandler.ts -> presentation"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "6b0dde24f8b7510a6ca2366f",
+      "projectId": "pallavi-twitter-backend",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/controllers/profile/profile.controller.ts",
+      "verdict": "correct",
+      "reason": "business (position 1) imports presentation (position 2), against the spec's layer order",
+      "checks": [
+        "'../../middlewares/asyncHandler' at line 6 resolves to src/middlewares/asyncHandler.ts",
+        "layers by spec globs: src/controllers/profile/profile.controller.ts -> business; src/middlewares/asyncHandler.ts -> presentation"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "99052b3265097aeaf6daf928",
+      "projectId": "pallavi-twitter-backend",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/controllers/tweet/feed.controller.ts",
+      "verdict": "correct",
+      "reason": "business (position 1) imports presentation (position 2), against the spec's layer order",
+      "checks": [
+        "'../../middlewares/asyncHandler' at line 6 resolves to src/middlewares/asyncHandler.ts",
+        "layers by spec globs: src/controllers/tweet/feed.controller.ts -> business; src/middlewares/asyncHandler.ts -> presentation"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "860167aebb36955770009044",
+      "projectId": "pallavi-twitter-backend",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/controllers/tweet/tweet.controller.ts",
+      "verdict": "correct",
+      "reason": "business (position 1) imports presentation (position 2), against the spec's layer order",
+      "checks": [
+        "'../../middlewares/asyncHandler' at line 8 resolves to src/middlewares/asyncHandler.ts",
+        "layers by spec globs: src/controllers/tweet/tweet.controller.ts -> business; src/middlewares/asyncHandler.ts -> presentation"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "1b66ffad4b5b0d80a715aaee",
+      "projectId": "pallavi-twitter-backend",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/controllers/access/login.controller.ts",
+      "verdict": "correct",
+      "reason": "business -> presentation is not the adjacent downward step (positions 1 -> 2)",
+      "checks": [
+        "'../../middlewares/asyncHandler' at line 7 resolves to src/middlewares/asyncHandler.ts",
+        "layers by spec globs: src/controllers/access/login.controller.ts -> business; src/middlewares/asyncHandler.ts -> presentation"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "b153cac3cd8bb0703735e088",
+      "projectId": "pallavi-twitter-backend",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/controllers/access/signup.controller.ts",
+      "verdict": "correct",
+      "reason": "business -> presentation is not the adjacent downward step (positions 1 -> 2)",
+      "checks": [
+        "'../../middlewares/asyncHandler' at line 9 resolves to src/middlewares/asyncHandler.ts",
+        "layers by spec globs: src/controllers/access/signup.controller.ts -> business; src/middlewares/asyncHandler.ts -> presentation"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "c060e44731c3b8982aa6886f",
+      "projectId": "pallavi-twitter-backend",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/controllers/access/token.controller.ts",
+      "verdict": "correct",
+      "reason": "business -> presentation is not the adjacent downward step (positions 1 -> 2)",
+      "checks": [
+        "'../../middlewares/asyncHandler' at line 8 resolves to src/middlewares/asyncHandler.ts",
+        "layers by spec globs: src/controllers/access/token.controller.ts -> business; src/middlewares/asyncHandler.ts -> presentation"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "625045d67898b1a0373c4594",
+      "projectId": "pallavi-twitter-backend",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/controllers/follow/follow.controller.ts",
+      "verdict": "correct",
+      "reason": "business -> presentation is not the adjacent downward step (positions 1 -> 2)",
+      "checks": [
+        "'../../middlewares/asyncHandler' at line 6 resolves to src/middlewares/asyncHandler.ts",
+        "layers by spec globs: src/controllers/follow/follow.controller.ts -> business; src/middlewares/asyncHandler.ts -> presentation"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "43cf78f5cd68cc7d5e82caea",
+      "projectId": "pallavi-twitter-backend",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/controllers/follow/followers.controller.ts",
+      "verdict": "correct",
+      "reason": "business -> presentation is not the adjacent downward step (positions 1 -> 2)",
+      "checks": [
+        "'../../middlewares/asyncHandler' at line 5 resolves to src/middlewares/asyncHandler.ts",
+        "layers by spec globs: src/controllers/follow/followers.controller.ts -> business; src/middlewares/asyncHandler.ts -> presentation"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "9bbf80277c00fa517e0785e2",
+      "projectId": "pallavi-twitter-backend",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/controllers/follow/followings.controller.ts",
+      "verdict": "correct",
+      "reason": "business -> presentation is not the adjacent downward step (positions 1 -> 2)",
+      "checks": [
+        "'../../middlewares/asyncHandler' at line 5 resolves to src/middlewares/asyncHandler.ts",
+        "layers by spec globs: src/controllers/follow/followings.controller.ts -> business; src/middlewares/asyncHandler.ts -> presentation"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "4bbb35ac3b4bacfd49949e45",
+      "projectId": "pallavi-twitter-backend",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/controllers/follow/unfollow.controller.ts",
+      "verdict": "correct",
+      "reason": "business -> presentation is not the adjacent downward step (positions 1 -> 2)",
+      "checks": [
+        "'../../middlewares/asyncHandler' at line 6 resolves to src/middlewares/asyncHandler.ts",
+        "layers by spec globs: src/controllers/follow/unfollow.controller.ts -> business; src/middlewares/asyncHandler.ts -> presentation"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "9d9ecb42d485abf2e3686601",
+      "projectId": "pallavi-twitter-backend",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/controllers/like/like.controller.ts",
+      "verdict": "correct",
+      "reason": "business -> presentation is not the adjacent downward step (positions 1 -> 2)",
+      "checks": [
+        "'../../middlewares/asyncHandler' at line 8 resolves to src/middlewares/asyncHandler.ts",
+        "layers by spec globs: src/controllers/like/like.controller.ts -> business; src/middlewares/asyncHandler.ts -> presentation"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "65fe2f11f9a6d90b5c3162ff",
+      "projectId": "pallavi-twitter-backend",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/controllers/profile/profile.controller.ts",
+      "verdict": "correct",
+      "reason": "business -> presentation is not the adjacent downward step (positions 1 -> 2)",
+      "checks": [
+        "'../../middlewares/asyncHandler' at line 6 resolves to src/middlewares/asyncHandler.ts",
+        "layers by spec globs: src/controllers/profile/profile.controller.ts -> business; src/middlewares/asyncHandler.ts -> presentation"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "6ce48cb948f96ea1d537f44d",
+      "projectId": "pallavi-twitter-backend",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/controllers/tweet/feed.controller.ts",
+      "verdict": "correct",
+      "reason": "business -> presentation is not the adjacent downward step (positions 1 -> 2)",
+      "checks": [
+        "'../../middlewares/asyncHandler' at line 6 resolves to src/middlewares/asyncHandler.ts",
+        "layers by spec globs: src/controllers/tweet/feed.controller.ts -> business; src/middlewares/asyncHandler.ts -> presentation"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "1433bd2dc99e488de05b6ca7",
+      "projectId": "pallavi-twitter-backend",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/controllers/tweet/tweet.controller.ts",
+      "verdict": "correct",
+      "reason": "business -> presentation is not the adjacent downward step (positions 1 -> 2)",
+      "checks": [
+        "'../../middlewares/asyncHandler' at line 8 resolves to src/middlewares/asyncHandler.ts",
+        "layers by spec globs: src/controllers/tweet/tweet.controller.ts -> business; src/middlewares/asyncHandler.ts -> presentation"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "af7ddcf5b1c2ae835f8785a5",
+      "projectId": "pallavi-twitter-backend",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/middlewares/apikey.ts",
+      "verdict": "correct",
+      "reason": "presentation -> persistence is not the adjacent downward step (positions 2 -> 0)",
+      "checks": [
+        "'../database/repository/ApiKeyRepo' at line 2 resolves to src/database/repository/ApiKeyRepo.ts",
+        "layers by spec globs: src/middlewares/apikey.ts -> presentation; src/database/repository/ApiKeyRepo.ts -> persistence"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "16a563cf66180f3700be7775",
+      "projectId": "pallavi-twitter-backend",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/middlewares/authentication.ts",
+      "verdict": "correct",
+      "reason": "presentation -> persistence is not the adjacent downward step (positions 2 -> 0)",
+      "checks": [
+        "'../database/repository/UserRepo' at line 3 resolves to src/database/repository/UserRepo.ts",
+        "layers by spec globs: src/middlewares/authentication.ts -> presentation; src/database/repository/UserRepo.ts -> persistence"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "50b5a6217d3be41ae76a5301",
+      "projectId": "firmanjs-express-template",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/transport/rest/handler/auth_handler.ts",
+      "verdict": "correct",
+      "reason": "presentation -> persistence is not the adjacent downward step (positions 2 -> 0)",
+      "checks": [
+        "'../../../db/models/Users' at line 2 resolves to src/db/models/Users.ts",
+        "layers by spec globs: src/transport/rest/handler/auth_handler.ts -> presentation; src/db/models/Users.ts -> persistence"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "e049a44fa4ad63e83e2560b1",
+      "projectId": "firmanjs-express-template",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/usecase/country_usecase.ts",
+      "verdict": "correct",
+      "reason": "'express' at line 2 imports express (forbidden by 'express')",
+      "checks": [
+        "layer by spec globs: src/usecase/country_usecase.ts -> business"
+      ],
+      "rule": "FF-P01/domain-purity"
+    },
+    {
+      "key": "552e4a4ce2cffec169401de2",
+      "projectId": "firmanjs-express-template",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/usecase/users_usecase.ts",
+      "verdict": "correct",
+      "reason": "'express' at line 1 imports express (forbidden by 'express')",
+      "checks": [
+        "layer by spec globs: src/usecase/users_usecase.ts -> business"
+      ],
+      "rule": "FF-P01/domain-purity"
+    },
+    {
+      "key": "56e98d6849b58aace5705e67",
+      "projectId": "neosoft-rest-nestjs",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/core/auth/jwt.strategy.ts",
+      "verdict": "correct",
+      "reason": "infrastructure (position 1) imports application (position 2), against the spec's layer order",
+      "checks": [
+        "'@app/feature/users/services/users.service' at line 6 resolves to src/feature/users/services/users.service.ts",
+        "layers by spec globs: src/core/auth/jwt.strategy.ts -> infrastructure; src/feature/users/services/users.service.ts -> application"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "d9e0ec7b69ee80e3963fdbac",
+      "projectId": "neosoft-rest-nestjs",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/feature/users/repository/db/user.repository.ts",
+      "verdict": "correct",
+      "reason": "infrastructure (position 1) imports application (position 2), against the spec's layer order",
+      "checks": [
+        "'@app/feature/users/dto/create.user.dto' at line 4 resolves to src/feature/users/dto/create.user.dto.ts",
+        "layers by spec globs: src/feature/users/repository/db/user.repository.ts -> infrastructure; src/feature/users/dto/create.user.dto.ts -> application"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "cf8b80b8003885872f03c6de",
+      "projectId": "neosoft-rest-nestjs",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/feature/users/repository/db/user.repository.ts",
+      "verdict": "correct",
+      "reason": "infrastructure (position 1) imports application (position 2), against the spec's layer order",
+      "checks": [
+        "'@app/feature/users/dto/update.user.dto' at line 5 resolves to src/feature/users/dto/update.user.dto.ts",
+        "layers by spec globs: src/feature/users/repository/db/user.repository.ts -> infrastructure; src/feature/users/dto/update.user.dto.ts -> application"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "392447f507f6093a7e9f5e07",
+      "projectId": "neosoft-rest-nestjs",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/feature/users/repository/user.repository.ts",
+      "verdict": "correct",
+      "reason": "infrastructure (position 1) imports application (position 2), against the spec's layer order",
+      "checks": [
+        "'@app/feature/users/dto/create.user.dto' at line 3 resolves to src/feature/users/dto/create.user.dto.ts",
+        "layers by spec globs: src/feature/users/repository/user.repository.ts -> infrastructure; src/feature/users/dto/create.user.dto.ts -> application"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "6638ebd9298e553f3bbb41c6",
+      "projectId": "neosoft-rest-nestjs",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/feature/users/repository/user.repository.ts",
+      "verdict": "correct",
+      "reason": "infrastructure (position 1) imports application (position 2), against the spec's layer order",
+      "checks": [
+        "'@app/feature/users/dto/update.user.dto' at line 4 resolves to src/feature/users/dto/update.user.dto.ts",
+        "layers by spec globs: src/feature/users/repository/user.repository.ts -> infrastructure; src/feature/users/dto/update.user.dto.ts -> application"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "555ea91489be815290e8ead5",
+      "projectId": "neosoft-rest-nestjs",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/feature/users/entities/user.entity.ts",
+      "verdict": "correct",
+      "reason": "'typeorm' at line 2 imports typeorm (forbidden by 'typeorm')",
+      "checks": [
+        "layer by spec globs: src/feature/users/entities/user.entity.ts -> domain"
+      ],
+      "rule": "FF-P01/domain-purity"
+    },
+    {
+      "key": "4d68bb6a022676ee58bc7fcf",
+      "projectId": "ruslanguns-nestjs-starter",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/modules/auth/strategies/jwt.strategy.ts",
+      "verdict": "correct",
+      "reason": "infrastructure (position 1) imports application (position 2), against the spec's layer order",
+      "checks": [
+        "'../auth.service' at line 6 resolves to src/modules/auth/auth.service.ts",
+        "layers by spec globs: src/modules/auth/strategies/jwt.strategy.ts -> infrastructure; src/modules/auth/auth.service.ts -> application"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "8b6c3e260758e41acc309769",
+      "projectId": "ruslanguns-nestjs-starter",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/modules/auth/strategies/local.strategy.ts",
+      "verdict": "correct",
+      "reason": "infrastructure (position 1) imports application (position 2), against the spec's layer order",
+      "checks": [
+        "'../auth.service' at line 4 resolves to src/modules/auth/auth.service.ts",
+        "layers by spec globs: src/modules/auth/strategies/local.strategy.ts -> infrastructure; src/modules/auth/auth.service.ts -> application"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "f115726611170e13f94bd9c8",
+      "projectId": "ruslanguns-nestjs-starter",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/modules/users/dto/index.ts,src/modules/users/dto/update-contact-phone.dto.ts,src/modules/users/dto/index.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/modules/users/dto/index.ts:8 './update-contact-phone.dto' -> src/modules/users/dto/update-contact-phone.dto.ts",
+        "src/modules/users/dto/update-contact-phone.dto.ts:2 '.' -> src/modules/users/dto/index.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "fa87709df96bf72b1dc596f8",
+      "projectId": "ruslanguns-nestjs-starter",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/modules/users/dto/index.ts,src/modules/users/dto/update-user-metadata.dto.ts,src/modules/users/dto/index.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/modules/users/dto/index.ts:9 './update-user-metadata.dto' -> src/modules/users/dto/update-user-metadata.dto.ts",
+        "src/modules/users/dto/update-user-metadata.dto.ts:2 '.' -> src/modules/users/dto/index.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "8def43a199c03ef28eb17cee",
+      "projectId": "ruslanguns-nestjs-starter",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/contact-address.entity.ts,src/modules/users/entities/contact-info.entity.ts,src/modules/users/entities/contact-address.entity.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/modules/users/entities/contact-address.entity.ts:5 './contact-info.entity' -> src/modules/users/entities/contact-info.entity.ts",
+        "src/modules/users/entities/contact-info.entity.ts:8 './contact-address.entity' -> src/modules/users/entities/contact-address.entity.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "4cfa4efc7d353fc065186172",
+      "projectId": "ruslanguns-nestjs-starter",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/contact-address.entity.ts,src/modules/users/entities/contact-info.entity.ts,src/modules/users/entities/user.entity.ts,src/modules/users/entities/user-metadata.entity.ts,src/modules/users/entities/index.ts,src/modules/users/entities/contact-address.entity.ts",
+      "verdict": "correct",
+      "reason": "every step of the 5-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/modules/users/entities/contact-address.entity.ts:5 './contact-info.entity' -> src/modules/users/entities/contact-info.entity.ts",
+        "src/modules/users/entities/contact-info.entity.ts:7 './user.entity' -> src/modules/users/entities/user.entity.ts",
+        "src/modules/users/entities/user.entity.ts:7 './user-metadata.entity' -> src/modules/users/entities/user-metadata.entity.ts",
+        "src/modules/users/entities/user-metadata.entity.ts:5 '.' -> src/modules/users/entities/index.ts",
+        "src/modules/users/entities/index.ts:4 './contact-address.entity' -> src/modules/users/entities/contact-address.entity.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "02700025082e97b33d00084d",
+      "projectId": "ruslanguns-nestjs-starter",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/contact-info.entity.ts,src/modules/users/entities/contact-phone.entity.ts,src/modules/users/entities/contact-info.entity.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/modules/users/entities/contact-info.entity.ts:9 './contact-phone.entity' -> src/modules/users/entities/contact-phone.entity.ts",
+        "src/modules/users/entities/contact-phone.entity.ts:5 './contact-info.entity' -> src/modules/users/entities/contact-info.entity.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "4b6423aedc76f74881f00278",
+      "projectId": "ruslanguns-nestjs-starter",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/contact-info.entity.ts,src/modules/users/entities/user.entity.ts,src/modules/users/entities/contact-info.entity.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/modules/users/entities/contact-info.entity.ts:7 './user.entity' -> src/modules/users/entities/user.entity.ts",
+        "src/modules/users/entities/user.entity.ts:8 './contact-info.entity' -> src/modules/users/entities/contact-info.entity.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "b1dccd652a7fdb5a5cf31e78",
+      "projectId": "ruslanguns-nestjs-starter",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/contact-info.entity.ts,src/modules/users/entities/user.entity.ts,src/modules/users/entities/user-metadata.entity.ts,src/modules/users/entities/index.ts,src/modules/users/entities/contact-info.entity.ts",
+      "verdict": "correct",
+      "reason": "every step of the 4-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/modules/users/entities/contact-info.entity.ts:7 './user.entity' -> src/modules/users/entities/user.entity.ts",
+        "src/modules/users/entities/user.entity.ts:7 './user-metadata.entity' -> src/modules/users/entities/user-metadata.entity.ts",
+        "src/modules/users/entities/user-metadata.entity.ts:5 '.' -> src/modules/users/entities/index.ts",
+        "src/modules/users/entities/index.ts:3 './contact-info.entity' -> src/modules/users/entities/contact-info.entity.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "7664ba90e7f6fc2a30cc5143",
+      "projectId": "ruslanguns-nestjs-starter",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/contact-info.entity.ts,src/modules/users/entities/user.entity.ts,src/modules/users/entities/user-metadata.entity.ts,src/modules/users/entities/index.ts,src/modules/users/entities/contact-phone.entity.ts,src/modules/users/entities/contact-info.entity.ts",
+      "verdict": "correct",
+      "reason": "every step of the 5-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/modules/users/entities/contact-info.entity.ts:7 './user.entity' -> src/modules/users/entities/user.entity.ts",
+        "src/modules/users/entities/user.entity.ts:7 './user-metadata.entity' -> src/modules/users/entities/user-metadata.entity.ts",
+        "src/modules/users/entities/user-metadata.entity.ts:5 '.' -> src/modules/users/entities/index.ts",
+        "src/modules/users/entities/index.ts:5 './contact-phone.entity' -> src/modules/users/entities/contact-phone.entity.ts",
+        "src/modules/users/entities/contact-phone.entity.ts:5 './contact-info.entity' -> src/modules/users/entities/contact-info.entity.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "32c6d6a1dac6135226455118",
+      "projectId": "ruslanguns-nestjs-starter",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/index.ts,src/modules/users/entities/user-metadata.entity.ts,src/modules/users/entities/index.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/modules/users/entities/index.ts:2 './user-metadata.entity' -> src/modules/users/entities/user-metadata.entity.ts",
+        "src/modules/users/entities/user-metadata.entity.ts:5 '.' -> src/modules/users/entities/index.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "ad8f9d5ad3bb915f24882aa5",
+      "projectId": "ruslanguns-nestjs-starter",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/index.ts,src/modules/users/entities/user.entity.ts,src/modules/users/entities/user-metadata.entity.ts,src/modules/users/entities/index.ts",
+      "verdict": "correct",
+      "reason": "every step of the 3-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/modules/users/entities/index.ts:1 './user.entity' -> src/modules/users/entities/user.entity.ts",
+        "src/modules/users/entities/user.entity.ts:7 './user-metadata.entity' -> src/modules/users/entities/user-metadata.entity.ts",
+        "src/modules/users/entities/user-metadata.entity.ts:5 '.' -> src/modules/users/entities/index.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "1b36d81d963f314eea6314ae",
+      "projectId": "ruslanguns-nestjs-starter",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/common/abstracts/entities/base.entity.ts",
+      "verdict": "correct",
+      "reason": "'typeorm' at line 1 imports typeorm (forbidden by 'typeorm')",
+      "checks": [
+        "layer by spec globs: src/common/abstracts/entities/base.entity.ts -> domain"
+      ],
+      "rule": "FF-P01/domain-purity"
+    },
+    {
+      "key": "53c7b63c34397a9241ff2fa4",
+      "projectId": "ruslanguns-nestjs-starter",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/common/abstracts/entities/metadata.base.entity.ts",
+      "verdict": "correct",
+      "reason": "'typeorm' at line 1 imports typeorm (forbidden by 'typeorm')",
+      "checks": [
+        "layer by spec globs: src/common/abstracts/entities/metadata.base.entity.ts -> domain"
+      ],
+      "rule": "FF-P01/domain-purity"
+    },
+    {
+      "key": "52a37fd0debc0ff7c1a6fb89",
+      "projectId": "ruslanguns-nestjs-starter",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/contact-address.entity.ts",
+      "verdict": "correct",
+      "reason": "'typeorm' at line 1 imports typeorm (forbidden by 'typeorm')",
+      "checks": [
+        "layer by spec globs: src/modules/users/entities/contact-address.entity.ts -> domain"
+      ],
+      "rule": "FF-P01/domain-purity"
+    },
+    {
+      "key": "f55e154a1fb57db19598cfd8",
+      "projectId": "ruslanguns-nestjs-starter",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/contact-info.entity.ts",
+      "verdict": "correct",
+      "reason": "'typeorm' at line 1 imports typeorm (forbidden by 'typeorm')",
+      "checks": [
+        "layer by spec globs: src/modules/users/entities/contact-info.entity.ts -> domain"
+      ],
+      "rule": "FF-P01/domain-purity"
+    },
+    {
+      "key": "ebba3185d0b3fb636bfe74be",
+      "projectId": "ruslanguns-nestjs-starter",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/contact-phone.entity.ts",
+      "verdict": "correct",
+      "reason": "'typeorm' at line 1 imports typeorm (forbidden by 'typeorm')",
+      "checks": [
+        "layer by spec globs: src/modules/users/entities/contact-phone.entity.ts -> domain"
+      ],
+      "rule": "FF-P01/domain-purity"
+    },
+    {
+      "key": "cd0ca0a6444bc7265be2bba5",
+      "projectId": "ruslanguns-nestjs-starter",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/user-metadata.entity.ts",
+      "verdict": "correct",
+      "reason": "'typeorm' at line 1 imports typeorm (forbidden by 'typeorm')",
+      "checks": [
+        "layer by spec globs: src/modules/users/entities/user-metadata.entity.ts -> domain"
+      ],
+      "rule": "FF-P01/domain-purity"
+    },
+    {
+      "key": "3431a40cc0a8ecd303458a3c",
+      "projectId": "ruslanguns-nestjs-starter",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/user.entity.ts",
+      "verdict": "correct",
+      "reason": "'typeorm' at line 1 imports typeorm (forbidden by 'typeorm')",
+      "checks": [
+        "layer by spec globs: src/modules/users/entities/user.entity.ts -> domain"
+      ],
+      "rule": "FF-P01/domain-purity"
+    },
+    {
+      "key": "a352644ad244c94bd0c60ca5",
+      "projectId": "surgeharb-nestjs",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/auth/jwt.strategy.ts",
+      "verdict": "correct",
+      "reason": "infrastructure (position 1) imports application (position 2), against the spec's layer order",
+      "checks": [
+        "'./auth.service' at line 2 resolves to src/auth/auth.service.ts",
+        "layers by spec globs: src/auth/jwt.strategy.ts -> infrastructure; src/auth/auth.service.ts -> application"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "f833466ca224b7741b26e0d5",
+      "projectId": "innei-nest-http",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/common/filters/any-exception.filter.ts",
+      "verdict": "correct",
+      "reason": "infrastructure (position 1) imports presentation (position 3), against the spec's layer order",
+      "checks": [
+        "'../interceptors/logging.interceptor' at line 20 resolves to src/common/interceptors/logging.interceptor.ts",
+        "layers by spec globs: src/common/filters/any-exception.filter.ts -> infrastructure; src/common/interceptors/logging.interceptor.ts -> presentation"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "1becb2cda4a94b4fef176d87",
+      "projectId": "innei-nest-http",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/modules/auth/jwt.strategy.ts",
+      "verdict": "correct",
+      "reason": "infrastructure (position 1) imports presentation (position 3), against the spec's layer order",
+      "checks": [
+        "'./auth.module' at line 6 resolves to src/modules/auth/auth.module.ts",
+        "layers by spec globs: src/modules/auth/jwt.strategy.ts -> infrastructure; src/modules/auth/auth.module.ts -> presentation"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "bb26c2bd71d342b92101ad0e",
+      "projectId": "innei-nest-http",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/modules/auth/jwt.strategy.ts",
+      "verdict": "correct",
+      "reason": "infrastructure (position 1) imports application (position 2), against the spec's layer order",
+      "checks": [
+        "'./auth.service' at line 7 resolves to src/modules/auth/auth.service.ts",
+        "layers by spec globs: src/modules/auth/jwt.strategy.ts -> infrastructure; src/modules/auth/auth.service.ts -> application"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "7cfc57a2d04803ccbb28e83d",
+      "projectId": "innei-nest-http",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/modules/auth/auth.module.ts,src/modules/auth/jwt.strategy.ts,src/modules/auth/auth.module.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/modules/auth/auth.module.ts:9 './jwt.strategy' -> src/modules/auth/jwt.strategy.ts",
+        "src/modules/auth/jwt.strategy.ts:6 './auth.module' -> src/modules/auth/auth.module.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "b21b5a805e69a3d1836d8eec",
+      "projectId": "tannergabriel-nest-graphql",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/auth/strategy/jwt.strategy.ts",
+      "verdict": "correct",
+      "reason": "infrastructure (position 1) imports application (position 2), against the spec's layer order",
+      "checks": [
+        "'../auth.service' at line 4 resolves to src/auth/auth.service.ts",
+        "layers by spec globs: src/auth/strategy/jwt.strategy.ts -> infrastructure; src/auth/auth.service.ts -> application"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "356b7562f4b8c05197defbbd",
+      "projectId": "nalhin-movies",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.entity.ts,src/movie/adapter/out/persistance/movie/movie.entity.ts,src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.entity.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.entity.ts:10 '../movie/movie.entity' -> src/movie/adapter/out/persistance/movie/movie.entity.ts",
+        "src/movie/adapter/out/persistance/movie/movie.entity.ts:3 '../movie-favourite-by-user/movie-favourite-by-user.entity' -> src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.entity.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "96ef45607b944fc3f727b22d",
+      "projectId": "nalhin-movies",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/movie/adapter/out/persistance/movie-rating/movie-rating.entity.ts,src/movie/adapter/out/persistance/movie/movie.entity.ts,src/movie/adapter/out/persistance/movie-rating/movie-rating.entity.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/movie/adapter/out/persistance/movie-rating/movie-rating.entity.ts:11 '../movie/movie.entity' -> src/movie/adapter/out/persistance/movie/movie.entity.ts",
+        "src/movie/adapter/out/persistance/movie/movie.entity.ts:2 '../movie-rating/movie-rating.entity' -> src/movie/adapter/out/persistance/movie-rating/movie-rating.entity.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "81a45054662fac7468e2170b",
+      "projectId": "nalhin-movies",
+      "ruleId": "FF-P03",
+      "template": "port-adapter-pattern",
+      "tier": "blocking",
+      "file": "src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.repository.ts",
+      "verdict": "correct",
+      "reason": "MovieFavouriteByUserRepository implements no interface declared in domain or application",
+      "checks": [
+        "class MovieFavouriteByUserRepository declared at src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.repository.ts:4"
+      ],
+      "rule": "FF-P03/port-adapter-pattern"
+    },
+    {
+      "key": "3e8409452c1c0a0dbba78ce1",
+      "projectId": "nalhin-movies",
+      "ruleId": "FF-P03",
+      "template": "port-adapter-pattern",
+      "tier": "blocking",
+      "file": "src/movie/adapter/out/persistance/movie-rating/movie-rating.repository.ts",
+      "verdict": "correct",
+      "reason": "MovieRatingRepository implements no interface declared in domain or application",
+      "checks": [
+        "class MovieRatingRepository declared at src/movie/adapter/out/persistance/movie-rating/movie-rating.repository.ts:4"
+      ],
+      "rule": "FF-P03/port-adapter-pattern"
+    },
+    {
+      "key": "b9ab9c4cd855cdc3c3ec6000",
+      "projectId": "nalhin-movies",
+      "ruleId": "FF-P03",
+      "template": "port-adapter-pattern",
+      "tier": "blocking",
+      "file": "src/movie/adapter/out/persistance/movie/movie.repository.ts",
+      "verdict": "correct",
+      "reason": "MovieRepository implements no interface declared in domain or application",
+      "checks": [
+        "class MovieRepository declared at src/movie/adapter/out/persistance/movie/movie.repository.ts:12"
+      ],
+      "rule": "FF-P03/port-adapter-pattern"
+    },
+    {
+      "key": "b859e443ad88995dd469d361",
+      "projectId": "nalhin-movies",
+      "ruleId": "FF-P03",
+      "template": "port-adapter-pattern",
+      "tier": "blocking",
+      "file": "src/user/adapter/out/persistance/database/user.repository.ts",
+      "verdict": "correct",
+      "reason": "UserRepository implements no interface declared in domain or application",
+      "checks": [
+        "class UserRepository declared at src/user/adapter/out/persistance/database/user.repository.ts:4"
+      ],
+      "rule": "FF-P03/port-adapter-pattern"
+    },
+    {
+      "key": "4749c85c636db19f39f55ccf",
+      "projectId": "hexagonal-banking",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/core/domain/account/account-service.adapter.ts",
+      "verdict": "correct",
+      "reason": "domain -> application runs against the allowed edge application -> domain",
+      "checks": [
+        "'../../use-case/account/close-account.port' at line 1 resolves to src/core/use-case/account/close-account.port.ts",
+        "layers by spec globs: src/core/domain/account/account-service.adapter.ts -> domain; src/core/use-case/account/close-account.port.ts -> application"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "3c64ff2198d466ee18c5aa1f",
+      "projectId": "hexagonal-banking",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/core/domain/account/account-service.adapter.ts",
+      "verdict": "correct",
+      "reason": "domain -> application runs against the allowed edge application -> domain",
+      "checks": [
+        "'../../use-case/account/open-account.port' at line 2 resolves to src/core/use-case/account/open-account.port.ts",
+        "layers by spec globs: src/core/domain/account/account-service.adapter.ts -> domain; src/core/use-case/account/open-account.port.ts -> application"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "faa32b19912f19ddcfb7ba10",
+      "projectId": "hexagonal-banking",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/core/domain/account/account-service.adapter.ts",
+      "verdict": "correct",
+      "reason": "domain -> application runs against the allowed edge application -> domain",
+      "checks": [
+        "'../../use-case/account/perform-debit.port' at line 3 resolves to src/core/use-case/account/perform-debit.port.ts",
+        "layers by spec globs: src/core/domain/account/account-service.adapter.ts -> domain; src/core/use-case/account/perform-debit.port.ts -> application"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "6cf7e7c4ec2f4340f83102e1",
+      "projectId": "hexagonal-banking",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/core/domain/account/account-service.adapter.ts",
+      "verdict": "correct",
+      "reason": "domain -> application runs against the allowed edge application -> domain",
+      "checks": [
+        "'../../use-case/account/view-current-balance' at line 4 resolves to src/core/use-case/account/view-current-balance.ts",
+        "layers by spec globs: src/core/domain/account/account-service.adapter.ts -> domain; src/core/use-case/account/view-current-balance.ts -> application"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "9c0165689f625b833a33aff4",
+      "projectId": "hexagonal-banking",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/core/domain/account/account.aggregate.ts",
+      "verdict": "correct",
+      "reason": "domain -> application runs against the allowed edge application -> domain",
+      "checks": [
+        "'../../use-case/account/open-account.port' at line 1 resolves to src/core/use-case/account/open-account.port.ts",
+        "layers by spec globs: src/core/domain/account/account.aggregate.ts -> domain; src/core/use-case/account/open-account.port.ts -> application"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "8171c51ee8ae89a71a70c614",
+      "projectId": "hexagonal-banking",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/core/domain/account-holder/account-holder.aggregate.ts,src/core/domain/account/events/account-closed.event.ts,src/core/domain/account-holder/account-holder.aggregate.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/core/domain/account-holder/account-holder.aggregate.ts:1 '../account/events/account-closed.event' -> src/core/domain/account/events/account-closed.event.ts",
+        "src/core/domain/account/events/account-closed.event.ts:1 '../../account-holder/account-holder.aggregate' -> src/core/domain/account-holder/account-holder.aggregate.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "42e1f78c10cb3d3a98b0efa1",
+      "projectId": "hexagonal-banking",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/core/domain/account-holder/account-holder.aggregate.ts,src/core/domain/account/events/account-opened.event.ts,src/core/domain/account-holder/account-holder.aggregate.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/core/domain/account-holder/account-holder.aggregate.ts:4 '../account/events/account-opened.event' -> src/core/domain/account/events/account-opened.event.ts",
+        "src/core/domain/account/events/account-opened.event.ts:1 '../../account-holder/account-holder.aggregate' -> src/core/domain/account-holder/account-holder.aggregate.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "27e958e563f7f5e0e15d3155",
+      "projectId": "hexagonal-banking",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/core/domain/account/account.aggregate.ts,src/core/use-case/account/open-account.port.ts,src/core/domain/account/account.aggregate.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/core/domain/account/account.aggregate.ts:1 '../../use-case/account/open-account.port' -> src/core/use-case/account/open-account.port.ts",
+        "src/core/use-case/account/open-account.port.ts:3 '../../domain/account/account.aggregate' -> src/core/domain/account/account.aggregate.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "1094bbe035adc7b4725d7a57",
+      "projectId": "hexagonal-banking",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/infrastructure/repository/postgresql/account-repository.adapter.ts,src/infrastructure/repository/postgresql/account.row-mapper.ts,src/infrastructure/repository/postgresql/account-repository.adapter.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/infrastructure/repository/postgresql/account-repository.adapter.ts:6 './account.row-mapper' -> src/infrastructure/repository/postgresql/account.row-mapper.ts",
+        "src/infrastructure/repository/postgresql/account.row-mapper.ts:6 './account-repository.adapter' -> src/infrastructure/repository/postgresql/account-repository.adapter.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "1c7c3495d7d31484213de8bc",
+      "projectId": "hexagonal-banking",
+      "ruleId": "FF-S04",
+      "template": "core-isolation",
+      "tier": "blocking",
+      "file": "src/core/domain/account/account-service.adapter.ts",
+      "verdict": "correct",
+      "reason": "domain file imports application",
+      "checks": [
+        "'../../use-case/account/close-account.port' at line 1 resolves to src/core/use-case/account/close-account.port.ts",
+        "layers by spec globs: src/core/domain/account/account-service.adapter.ts -> domain; src/core/use-case/account/close-account.port.ts -> application"
+      ],
+      "rule": "FF-S04/core-isolation"
+    },
+    {
+      "key": "8bd0aa232fdd4555bddd690e",
+      "projectId": "hexagonal-banking",
+      "ruleId": "FF-S04",
+      "template": "core-isolation",
+      "tier": "blocking",
+      "file": "src/core/domain/account/account-service.adapter.ts",
+      "verdict": "correct",
+      "reason": "domain file imports application",
+      "checks": [
+        "'../../use-case/account/open-account.port' at line 2 resolves to src/core/use-case/account/open-account.port.ts",
+        "layers by spec globs: src/core/domain/account/account-service.adapter.ts -> domain; src/core/use-case/account/open-account.port.ts -> application"
+      ],
+      "rule": "FF-S04/core-isolation"
+    },
+    {
+      "key": "6a22fc4435949c114b1207fc",
+      "projectId": "hexagonal-banking",
+      "ruleId": "FF-S04",
+      "template": "core-isolation",
+      "tier": "blocking",
+      "file": "src/core/domain/account/account-service.adapter.ts",
+      "verdict": "correct",
+      "reason": "domain file imports application",
+      "checks": [
+        "'../../use-case/account/perform-debit.port' at line 3 resolves to src/core/use-case/account/perform-debit.port.ts",
+        "layers by spec globs: src/core/domain/account/account-service.adapter.ts -> domain; src/core/use-case/account/perform-debit.port.ts -> application"
+      ],
+      "rule": "FF-S04/core-isolation"
+    },
+    {
+      "key": "ea7e4189a9f2bd569552c02b",
+      "projectId": "hexagonal-banking",
+      "ruleId": "FF-S04",
+      "template": "core-isolation",
+      "tier": "blocking",
+      "file": "src/core/domain/account/account-service.adapter.ts",
+      "verdict": "correct",
+      "reason": "domain file imports application",
+      "checks": [
+        "'../../use-case/account/view-current-balance' at line 4 resolves to src/core/use-case/account/view-current-balance.ts",
+        "layers by spec globs: src/core/domain/account/account-service.adapter.ts -> domain; src/core/use-case/account/view-current-balance.ts -> application"
+      ],
+      "rule": "FF-S04/core-isolation"
+    },
+    {
+      "key": "e941bf6d99c8be645be35571",
+      "projectId": "hexagonal-banking",
+      "ruleId": "FF-S04",
+      "template": "core-isolation",
+      "tier": "blocking",
+      "file": "src/core/domain/account/account.aggregate.ts",
+      "verdict": "correct",
+      "reason": "domain file imports application",
+      "checks": [
+        "'../../use-case/account/open-account.port' at line 1 resolves to src/core/use-case/account/open-account.port.ts",
+        "layers by spec globs: src/core/domain/account/account.aggregate.ts -> domain; src/core/use-case/account/open-account.port.ts -> application"
+      ],
+      "rule": "FF-S04/core-isolation"
+    },
+    {
+      "key": "1ef91e8314775997a8ed05f6",
+      "projectId": "twiddlle-nest-hexagonal",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/article/application/query/get-article-counts-by-user-id.query-handler.ts",
+      "verdict": "correct",
+      "reason": "application -> adapters-outbound runs against the allowed edge adapters-outbound -> application",
+      "checks": [
+        "'../../infrastructure/persistence/article.repository' at line 3 resolves to src/modules/article/infrastructure/persistence/article.repository.ts",
+        "layers by spec globs: src/modules/article/application/query/get-article-counts-by-user-id.query-handler.ts -> application; src/modules/article/infrastructure/persistence/article.repository.ts -> adapters-outbound"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "1274676c1d1c09860b947172",
+      "projectId": "twiddlle-nest-hexagonal",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/user/application/query/get-user-by-id.query-handler.ts",
+      "verdict": "correct",
+      "reason": "application -> adapters-outbound runs against the allowed edge adapters-outbound -> application",
+      "checks": [
+        "'../../infrastructure/persistence/user-repository' at line 3 resolves to src/modules/user/infrastructure/persistence/user-repository.ts",
+        "layers by spec globs: src/modules/user/application/query/get-user-by-id.query-handler.ts -> application; src/modules/user/infrastructure/persistence/user-repository.ts -> adapters-outbound"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "e86e64bc7aff3ed4a41ff955",
+      "projectId": "canario-hexagonal-express",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/apps/cart/back/routes/carts.ts",
+      "verdict": "correct",
+      "reason": "adapters-inbound -> config runs against the allowed edge config -> adapters-inbound",
+      "checks": [
+        "'../dependencyInjection' at line 2 resolves to src/apps/cart/back/dependencyInjection/index.ts",
+        "layers by spec globs: src/apps/cart/back/routes/carts.ts -> adapters-inbound; src/apps/cart/back/dependencyInjection/index.ts -> config"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "544e99e0cc91389ed72dc736",
+      "projectId": "canario-hexagonal-express",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts",
+      "verdict": "correct",
+      "reason": "domain -> application runs against the allowed edge application -> domain",
+      "checks": [
+        "'../../../cart/application/read/countById/cartCountByIdQuery' at line 2 resolves to src/contexts/cartsMs/cart/application/read/countById/cartCountByIdQuery.ts",
+        "layers by spec globs: src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts -> domain; src/contexts/cartsMs/cart/application/read/countById/cartCountByIdQuery.ts -> application"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "ec9409ba1abca2daf10a6300",
+      "projectId": "canario-hexagonal-express",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts",
+      "verdict": "correct",
+      "reason": "domain -> application runs against the allowed edge application -> domain",
+      "checks": [
+        "'../../../cart/application/read/countById/cartCountByIdResponse' at line 3 resolves to src/contexts/cartsMs/cart/application/read/countById/cartCountByIdResponse.ts",
+        "layers by spec globs: src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts -> domain; src/contexts/cartsMs/cart/application/read/countById/cartCountByIdResponse.ts -> application"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "9478cb50e15dd19fadab68ea",
+      "projectId": "canario-hexagonal-express",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCart.ts,src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCartItem.ts,src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCart.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCart.ts:2 './typeORMCartItem' -> src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCartItem.ts",
+        "src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCartItem.ts:9 './typeORMCart' -> src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCart.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "8882d4a38346145d095078d4",
+      "projectId": "canario-hexagonal-express",
+      "ruleId": "FF-S04",
+      "template": "core-isolation",
+      "tier": "blocking",
+      "file": "src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts",
+      "verdict": "correct",
+      "reason": "domain file imports application",
+      "checks": [
+        "'../../../cart/application/read/countById/cartCountByIdQuery' at line 2 resolves to src/contexts/cartsMs/cart/application/read/countById/cartCountByIdQuery.ts",
+        "layers by spec globs: src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts -> domain; src/contexts/cartsMs/cart/application/read/countById/cartCountByIdQuery.ts -> application"
+      ],
+      "rule": "FF-S04/core-isolation"
+    },
+    {
+      "key": "7dc4a582362916aa45adb0bd",
+      "projectId": "canario-hexagonal-express",
+      "ruleId": "FF-S04",
+      "template": "core-isolation",
+      "tier": "blocking",
+      "file": "src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts",
+      "verdict": "correct",
+      "reason": "domain file imports application",
+      "checks": [
+        "'../../../cart/application/read/countById/cartCountByIdResponse' at line 3 resolves to src/contexts/cartsMs/cart/application/read/countById/cartCountByIdResponse.ts",
+        "layers by spec globs: src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts -> domain; src/contexts/cartsMs/cart/application/read/countById/cartCountByIdResponse.ts -> application"
+      ],
+      "rule": "FF-S04/core-isolation"
+    },
+    {
+      "key": "a659746b73e4b26e22684708",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/domain/Attendee.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/UserEmail.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@src/modules/users/domain/UserEmail' at line 6 resolves to src/modules/users/domain/UserEmail.ts",
+        "contexts by root: src/modules/meetings/domain/Attendee.ts -> meetings; src/modules/users/domain/UserEmail.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "1439a231873d17fff2d8ada9",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/domain/Attendee.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/UserFullName.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/domain/UserFullName' at line 4 resolves to src/modules/users/domain/UserFullName.ts",
+        "contexts by root: src/modules/meetings/domain/Attendee.ts -> meetings; src/modules/users/domain/UserFullName.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "940c4dc04f416455874ab1fe",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/domain/Attendee.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/UserName.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/domain/UserName' at line 3 resolves to src/modules/users/domain/UserName.ts",
+        "contexts by root: src/modules/meetings/domain/Attendee.ts -> meetings; src/modules/users/domain/UserName.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "5c111f018c55c5291eff0c65",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/domain/Attendees.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/UserName.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/domain/UserName' at line 2 resolves to src/modules/users/domain/UserName.ts",
+        "contexts by root: src/modules/meetings/domain/Attendees.ts -> meetings; src/modules/users/domain/UserName.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "3e87fda361a17d43c85041dd",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/domain/Meeting.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/UserName.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/domain/UserName' at line 3 resolves to src/modules/users/domain/UserName.ts",
+        "contexts by root: src/modules/meetings/domain/Meeting.ts -> meetings; src/modules/users/domain/UserName.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "d8c04584bee18d7dc5acade0",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/domain/events/AttendeeJoined.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/UserName.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/domain/UserName' at line 1 resolves to src/modules/users/domain/UserName.ts",
+        "contexts by root: src/modules/meetings/domain/events/AttendeeJoined.ts -> meetings; src/modules/users/domain/UserName.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "55464a3806606820a18e488f",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/domain/events/AttendeeLeft.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/UserName.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/domain/UserName' at line 1 resolves to src/modules/users/domain/UserName.ts",
+        "contexts by root: src/modules/meetings/domain/events/AttendeeLeft.ts -> meetings; src/modules/users/domain/UserName.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "b63f29fc14f50fff60ec9fb7",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/mappers/AttendeeMap.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/UserEmail.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@src/modules/users/domain/UserEmail' at line 8 resolves to src/modules/users/domain/UserEmail.ts",
+        "contexts by root: src/modules/meetings/mappers/AttendeeMap.ts -> meetings; src/modules/users/domain/UserEmail.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "9db5f38ff5a5c968e8e34f46",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/mappers/AttendeeMap.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/UserFullName.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/domain/UserFullName' at line 3 resolves to src/modules/users/domain/UserFullName.ts",
+        "contexts by root: src/modules/meetings/mappers/AttendeeMap.ts -> meetings; src/modules/users/domain/UserFullName.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "95dbcfb9c9f976ddfcf5d0e4",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/mappers/AttendeeMap.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/UserName.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/domain/UserName' at line 5 resolves to src/modules/users/domain/UserName.ts",
+        "contexts by root: src/modules/meetings/mappers/AttendeeMap.ts -> meetings; src/modules/users/domain/UserName.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "f546925996a471c711d871f1",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/mappers/MeetingMap.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/UserName.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/domain/UserName' at line 5 resolves to src/modules/users/domain/UserName.ts",
+        "contexts by root: src/modules/meetings/mappers/MeetingMap.ts -> meetings; src/modules/users/domain/UserName.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "3a6eb1f2d33434e9791d062f",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/repos/AttendeeRepo.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/UserName.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/domain/UserName' at line 1 resolves to src/modules/users/domain/UserName.ts",
+        "contexts by root: src/modules/meetings/repos/AttendeeRepo.ts -> meetings; src/modules/users/domain/UserName.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "b26dd6c4b14f29e3182cf278",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/repos/MeetingRepo.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/UserName.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/domain/UserName' at line 6 resolves to src/modules/users/domain/UserName.ts",
+        "contexts by root: src/modules/meetings/repos/MeetingRepo.ts -> meetings; src/modules/users/domain/UserName.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "f2a54445592730069fe0ddee",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/repos/implementations/DynamoDBAttendeeRepo.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/UserName.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/domain/UserName' at line 9 resolves to src/modules/users/domain/UserName.ts",
+        "contexts by root: src/modules/meetings/repos/implementations/DynamoDBAttendeeRepo.ts -> meetings; src/modules/users/domain/UserName.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "f31723e0311e4ba50bb53a0d",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/repos/implementations/DynamoDBMeetingRepo.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/UserName.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/domain/UserName' at line 19 resolves to src/modules/users/domain/UserName.ts",
+        "contexts by root: src/modules/meetings/repos/implementations/DynamoDBMeetingRepo.ts -> meetings; src/modules/users/domain/UserName.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "933b8739298f1b4a9be10598",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/createMeeting/CreateMeetingUseCase.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/UserName.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/domain/UserName' at line 4 resolves to src/modules/users/domain/UserName.ts",
+        "contexts by root: src/modules/meetings/usecase/createMeeting/CreateMeetingUseCase.ts -> meetings; src/modules/users/domain/UserName.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "ac6b297a1d5b4479788791e2",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/editMeeting/EditMeetingUseCase.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/UserName.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/domain/UserName' at line 4 resolves to src/modules/users/domain/UserName.ts",
+        "contexts by root: src/modules/meetings/usecase/editMeeting/EditMeetingUseCase.ts -> meetings; src/modules/users/domain/UserName.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "318cdf20306bc5f430ef6704",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/emailJoinedAttendee/EmailJoinedAttendeeUseCase.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/User.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/domain/User' at line 8 resolves to src/modules/users/domain/User.ts",
+        "contexts by root: src/modules/meetings/usecase/emailJoinedAttendee/EmailJoinedAttendeeUseCase.ts -> meetings; src/modules/users/domain/User.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "45683af46b213170c6d9d20f",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/emailJoinedAttendee/EmailJoinedAttendeeUseCase.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/UserName.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/domain/UserName' at line 6 resolves to src/modules/users/domain/UserName.ts",
+        "contexts by root: src/modules/meetings/usecase/emailJoinedAttendee/EmailJoinedAttendeeUseCase.ts -> meetings; src/modules/users/domain/UserName.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "50099fea7b8da5d5ec82c9f0",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/emailJoinedAttendee/EmailJoinedAttendeeUseCase.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/repos/UserRepo.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/repos/UserRepo' at line 7 resolves to src/modules/users/repos/UserRepo.ts",
+        "contexts by root: src/modules/meetings/usecase/emailJoinedAttendee/EmailJoinedAttendeeUseCase.ts -> meetings; src/modules/users/repos/UserRepo.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "8834eac8289021b57566d50c",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/emailJoinedAttendee/index.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/repos/implementations/DynamoDBUserRepo.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/repos/implementations/DynamoDBUserRepo' at line 4 resolves to src/modules/users/repos/implementations/DynamoDBUserRepo.ts",
+        "contexts by root: src/modules/meetings/usecase/emailJoinedAttendee/index.ts -> meetings; src/modules/users/repos/implementations/DynamoDBUserRepo.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "bf26e3c8aca8e8ff45f1f624",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/getAttendance/GetAttendanceUseCase.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/UserName.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/domain/UserName' at line 3 resolves to src/modules/users/domain/UserName.ts",
+        "contexts by root: src/modules/meetings/usecase/getAttendance/GetAttendanceUseCase.ts -> meetings; src/modules/users/domain/UserName.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "2d29ab9e2a54995c429c3f27",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/joinMeeting/JoinMeetingUseCase.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/UserName.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/domain/UserName' at line 5 resolves to src/modules/users/domain/UserName.ts",
+        "contexts by root: src/modules/meetings/usecase/joinMeeting/JoinMeetingUseCase.ts -> meetings; src/modules/users/domain/UserName.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "9cf281d9c81933218fb95730",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/leaveMeeting/LeaveMeetingUseCase.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/UserName.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/domain/UserName' at line 3 resolves to src/modules/users/domain/UserName.ts",
+        "contexts by root: src/modules/meetings/usecase/leaveMeeting/LeaveMeetingUseCase.ts -> meetings; src/modules/users/domain/UserName.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "d284356f8ac047ab1ee194a8",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/listRegisteredMeetings/ListRegisteredMeetingsUseCase.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/UserName.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/domain/UserName' at line 5 resolves to src/modules/users/domain/UserName.ts",
+        "contexts by root: src/modules/meetings/usecase/listRegisteredMeetings/ListRegisteredMeetingsUseCase.ts -> meetings; src/modules/users/domain/UserName.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "a3dd696243dc38b5e42ec308",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/meetingChangePropagator/MeetingChangePropagatorUseCase.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/UserName.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/domain/UserName' at line 10 resolves to src/modules/users/domain/UserName.ts",
+        "contexts by root: src/modules/meetings/usecase/meetingChangePropagator/MeetingChangePropagatorUseCase.ts -> meetings; src/modules/users/domain/UserName.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "57e9417a995d9b12ea2268ee",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/persistAttendee/PersistAttendeeUseCase.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/User.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/domain/User' at line 12 resolves to src/modules/users/domain/User.ts",
+        "contexts by root: src/modules/meetings/usecase/persistAttendee/PersistAttendeeUseCase.ts -> meetings; src/modules/users/domain/User.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "a2372194a2fb9bac9eebad52",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/persistAttendee/PersistAttendeeUseCase.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/UserName.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/domain/UserName' at line 10 resolves to src/modules/users/domain/UserName.ts",
+        "contexts by root: src/modules/meetings/usecase/persistAttendee/PersistAttendeeUseCase.ts -> meetings; src/modules/users/domain/UserName.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "3f7b639e2f0035f3734bbbd6",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/persistAttendee/PersistAttendeeUseCase.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/repos/UserRepo.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/repos/UserRepo' at line 11 resolves to src/modules/users/repos/UserRepo.ts",
+        "contexts by root: src/modules/meetings/usecase/persistAttendee/PersistAttendeeUseCase.ts -> meetings; src/modules/users/repos/UserRepo.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "d45f127bfb763e8c07dc83b5",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/persistAttendee/index.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/repos/implementations/DynamoDBUserRepo.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/repos/implementations/DynamoDBUserRepo' at line 6 resolves to src/modules/users/repos/implementations/DynamoDBUserRepo.ts",
+        "contexts by root: src/modules/meetings/usecase/persistAttendee/index.ts -> meetings; src/modules/users/repos/implementations/DynamoDBUserRepo.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "271e95cbaeda827467c0d610",
+      "projectId": "meetinger",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/removeAttendee/RemoveAttendeeUseCase.ts",
+      "verdict": "correct",
+      "reason": "meetings imports src/modules/users/domain/UserName.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@users/domain/UserName' at line 7 resolves to src/modules/users/domain/UserName.ts",
+        "contexts by root: src/modules/meetings/usecase/removeAttendee/RemoveAttendeeUseCase.ts -> meetings; src/modules/users/domain/UserName.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "a858ffeead25927affb4545f",
+      "projectId": "meetinger",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/meetings/listeners/OnAttendeeJoined.ts",
+      "verdict": "correct",
+      "reason": "application -> infrastructure runs against the allowed edge infrastructure -> application",
+      "checks": [
+        "'@src/shared/infra/brokers/MessageBroker' at line 5 resolves to src/shared/infra/brokers/MessageBroker.ts",
+        "layers by spec globs: src/modules/meetings/listeners/OnAttendeeJoined.ts -> application; src/shared/infra/brokers/MessageBroker.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "ccbb6e80c0cbdfcd945870ad",
+      "projectId": "meetinger",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/meetings/listeners/OnAttendeeLeft.ts",
+      "verdict": "correct",
+      "reason": "application -> infrastructure runs against the allowed edge infrastructure -> application",
+      "checks": [
+        "'@src/shared/infra/brokers/MessageBroker' at line 5 resolves to src/shared/infra/brokers/MessageBroker.ts",
+        "layers by spec globs: src/modules/meetings/listeners/OnAttendeeLeft.ts -> application; src/shared/infra/brokers/MessageBroker.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "55e0ee267c79db672a880b5b",
+      "projectId": "meetinger",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/meetings/listeners/OnMeetingChanged.ts",
+      "verdict": "correct",
+      "reason": "application -> infrastructure runs against the allowed edge infrastructure -> application",
+      "checks": [
+        "'@src/shared/infra/brokers/MessageBroker' at line 5 resolves to src/shared/infra/brokers/MessageBroker.ts",
+        "layers by spec globs: src/modules/meetings/listeners/OnMeetingChanged.ts -> application; src/shared/infra/brokers/MessageBroker.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "ed00981188f45c04f9af3f16",
+      "projectId": "meetinger",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/meetings/listeners/OnMeetingCreated.ts",
+      "verdict": "correct",
+      "reason": "application -> infrastructure runs against the allowed edge infrastructure -> application",
+      "checks": [
+        "'@src/shared/infra/brokers/MessageBroker' at line 5 resolves to src/shared/infra/brokers/MessageBroker.ts",
+        "layers by spec globs: src/modules/meetings/listeners/OnMeetingCreated.ts -> application; src/shared/infra/brokers/MessageBroker.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "fe79aa011470b991664ff8ad",
+      "projectId": "meetinger",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/emailJoinedAttendee/EmailJoinedAttendeeUseCase.ts",
+      "verdict": "correct",
+      "reason": "application -> infrastructure runs against the allowed edge infrastructure -> application",
+      "checks": [
+        "'@src/shared/infra/emailService/EmailMessage' at line 11 resolves to src/shared/infra/emailService/EmailMessage.ts",
+        "layers by spec globs: src/modules/meetings/usecase/emailJoinedAttendee/EmailJoinedAttendeeUseCase.ts -> application; src/shared/infra/emailService/EmailMessage.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "f7e8961c2d05057fd0b455e9",
+      "projectId": "meetinger",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/emailJoinedAttendee/EmailJoinedAttendeeUseCase.ts",
+      "verdict": "correct",
+      "reason": "application -> infrastructure runs against the allowed edge infrastructure -> application",
+      "checks": [
+        "'@src/shared/infra/queues/JobQueue' at line 10 resolves to src/shared/infra/queues/JobQueue.ts",
+        "layers by spec globs: src/modules/meetings/usecase/emailJoinedAttendee/EmailJoinedAttendeeUseCase.ts -> application; src/shared/infra/queues/JobQueue.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "dc88a19083fd63ad35ebcebe",
+      "projectId": "meetinger",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/emailSender/EmailSenderUseCase.ts",
+      "verdict": "correct",
+      "reason": "application -> infrastructure runs against the allowed edge infrastructure -> application",
+      "checks": [
+        "'@src/shared/infra/emailService/EmailMessage' at line 4 resolves to src/shared/infra/emailService/EmailMessage.ts",
+        "layers by spec globs: src/modules/meetings/usecase/emailSender/EmailSenderUseCase.ts -> application; src/shared/infra/emailService/EmailMessage.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "460e82165a702a1c31a31a3e",
+      "projectId": "meetinger",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/emailSender/EmailSenderUseCase.ts",
+      "verdict": "correct",
+      "reason": "application -> infrastructure runs against the allowed edge infrastructure -> application",
+      "checks": [
+        "'@src/shared/infra/emailService/EmailService' at line 5 resolves to src/shared/infra/emailService/EmailService.ts",
+        "layers by spec globs: src/modules/meetings/usecase/emailSender/EmailSenderUseCase.ts -> application; src/shared/infra/emailService/EmailService.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "4c686001ed2ed52383439014",
+      "projectId": "meetinger",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/getMeeting/GetMeetingUseCase.ts",
+      "verdict": "correct",
+      "reason": "application -> infrastructure runs against the allowed edge infrastructure -> application",
+      "checks": [
+        "'@meetings/mappers/AttendeeDetailsMap' at line 12 resolves to src/modules/meetings/mappers/AttendeeDetailsMap.ts",
+        "layers by spec globs: src/modules/meetings/usecase/getMeeting/GetMeetingUseCase.ts -> application; src/modules/meetings/mappers/AttendeeDetailsMap.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "4bb7732ca218ef98a0ad8d98",
+      "projectId": "meetinger",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/listMeetings/ListMeetingsUseCase.ts",
+      "verdict": "correct",
+      "reason": "application -> infrastructure runs against the allowed edge infrastructure -> application",
+      "checks": [
+        "'@meetings/mappers/MeetingItemViewMap' at line 12 resolves to src/modules/meetings/mappers/MeetingItemViewMap.ts",
+        "layers by spec globs: src/modules/meetings/usecase/listMeetings/ListMeetingsUseCase.ts -> application; src/modules/meetings/mappers/MeetingItemViewMap.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "33fafe6446c6e1b9249a6d08",
+      "projectId": "meetinger",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/listRegisteredMeetings/ListRegisteredMeetingsUseCase.ts",
+      "verdict": "correct",
+      "reason": "application -> infrastructure runs against the allowed edge infrastructure -> application",
+      "checks": [
+        "'@meetings/mappers/RegisteredMeetingMap' at line 7 resolves to src/modules/meetings/mappers/RegisteredMeetingMap.ts",
+        "layers by spec globs: src/modules/meetings/usecase/listRegisteredMeetings/ListRegisteredMeetingsUseCase.ts -> application; src/modules/meetings/mappers/RegisteredMeetingMap.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "f9d309ce2891859f2dd8c580",
+      "projectId": "ddd-libellis",
+      "ruleId": "FF-DT01",
+      "template": "aggregate-boundary",
+      "tier": "blocking",
+      "file": "src/election-system/tests/core/application/factories/TestUpdateMasterBallotDataFactory.model.ts",
+      "verdict": "correct",
+      "reason": "src/election-system/tests/core/application/factories/TestUpdateMasterBallotDataFactory.model.ts, outside aggregate MasterBallot, references its inner entity src/election-system/core/domain/model/master-ballot-aggregate/Choice.model.ts",
+      "checks": [
+        "'../../../../core/domain/model/master-ballot-aggregate/Choice.model' at line 5 resolves to src/election-system/core/domain/model/master-ballot-aggregate/Choice.model.ts"
+      ],
+      "rule": "FF-DT01/aggregate-boundary"
+    },
+    {
+      "key": "835dd3766876831233997e74",
+      "projectId": "ddd-libellis",
+      "ruleId": "FF-DT01",
+      "template": "aggregate-boundary",
+      "tier": "blocking",
+      "file": "src/election-system/tests/core/application/factories/TestUpdateMasterBallotDataFactory.model.ts",
+      "verdict": "correct",
+      "reason": "src/election-system/tests/core/application/factories/TestUpdateMasterBallotDataFactory.model.ts, outside aggregate MasterBallot, references its inner entity src/election-system/core/domain/model/master-ballot-aggregate/Question.model.ts",
+      "checks": [
+        "'../../../../core/domain/model/master-ballot-aggregate/Question.model' at line 4 resolves to src/election-system/core/domain/model/master-ballot-aggregate/Question.model.ts"
+      ],
+      "rule": "FF-DT01/aggregate-boundary"
+    },
+    {
+      "key": "9758f46516f7cf69c1cc3330",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "ruleId": "FF-DT04",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/app/validation/domain-validator.ts",
+      "verdict": "correct",
+      "reason": "'class-validator' at line 2 imports class-validator (forbidden by 'class-validator')",
+      "checks": [
+        "layer by spec globs: src/app/validation/domain-validator.ts -> domain"
+      ],
+      "rule": "FF-DT04/domain-purity"
+    },
+    {
+      "key": "42b9ff07b7b0dd5efd645559",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "ruleId": "FF-DT04",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/iam/role/models/role.validator.ts",
+      "verdict": "correct",
+      "reason": "'class-validator' at line 1 imports class-validator (forbidden by 'class-validator')",
+      "checks": [
+        "layer by spec globs: src/iam/role/models/role.validator.ts -> domain"
+      ],
+      "rule": "FF-DT04/domain-purity"
+    },
+    {
+      "key": "71d4c616393bb6f7fab76554",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "ruleId": "FF-DT04",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/iam/user/models/user.validator.ts",
+      "verdict": "correct",
+      "reason": "'class-validator' at line 2 imports class-validator (forbidden by 'class-validator')",
+      "checks": [
+        "layer by spec globs: src/iam/user/models/user.validator.ts -> domain"
+      ],
+      "rule": "FF-DT04/domain-purity"
+    },
+    {
+      "key": "0afe3f837e652069f788d874",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/app/application.controller.ts",
+      "verdict": "correct",
+      "reason": "api -> composition runs against the allowed edge composition -> api",
+      "checks": [
+        "'./application-container' at line 3 resolves to src/app/application-container.ts",
+        "layers by spec globs: src/app/application.controller.ts -> api; src/app/application-container.ts -> composition"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "dedcc779f8392fdcec6b83f4",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/event-store/brokers/event-source-broker.ts",
+      "verdict": "correct",
+      "reason": "api -> composition runs against the allowed edge composition -> api",
+      "checks": [
+        "'../../app/application-container' at line 8 resolves to src/app/application-container.ts",
+        "layers by spec globs: src/event-store/brokers/event-source-broker.ts -> api; src/app/application-container.ts -> composition"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "6cb5cdf8e863960c7fe873bb",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/event-store/brokers/queue-broker.ts",
+      "verdict": "correct",
+      "reason": "api -> composition runs against the allowed edge composition -> api",
+      "checks": [
+        "'../../app/application-container' at line 6 resolves to src/app/application-container.ts",
+        "layers by spec globs: src/event-store/brokers/queue-broker.ts -> api; src/app/application-container.ts -> composition"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "a34854b35ae2797c79a40ad3",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/event-store/dynamo-kinesis-adaptor.ts",
+      "verdict": "correct",
+      "reason": "api -> composition runs against the allowed edge composition -> api",
+      "checks": [
+        "'../app/application-container' at line 7 resolves to src/app/application-container.ts",
+        "layers by spec globs: src/event-store/dynamo-kinesis-adaptor.ts -> api; src/app/application-container.ts -> composition"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "4d265d5a3d809250a9164c05",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/event-store/projections/repository/projection-repository.interface.ts",
+      "verdict": "correct",
+      "reason": "application -> infrastructure runs against the allowed edge infrastructure -> application",
+      "checks": [
+        "'../projection' at line 4 resolves to src/event-store/projections/projection.ts",
+        "layers by spec globs: src/event-store/projections/repository/projection-repository.interface.ts -> application; src/event-store/projections/projection.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "1ab0b763802d426568ee9177",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/iam/role/controllers/role-controller.ts",
+      "verdict": "correct",
+      "reason": "api -> composition runs against the allowed edge composition -> api",
+      "checks": [
+        "'../../../app/application-container' at line 9 resolves to src/app/application-container.ts",
+        "layers by spec globs: src/iam/role/controllers/role-controller.ts -> api; src/app/application-container.ts -> composition"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "de1748df6c2c9d66e9282403",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/iam/role/services/role.service.ts",
+      "verdict": "correct",
+      "reason": "application -> infrastructure runs against the allowed edge infrastructure -> application",
+      "checks": [
+        "'../../../app/repository/dynamo-set-validation.repository' at line 5 resolves to src/app/repository/dynamo-set-validation.repository.ts",
+        "layers by spec globs: src/iam/role/services/role.service.ts -> application; src/app/repository/dynamo-set-validation.repository.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "4d8778e924d8b5654013bdd6",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/iam/role/services/role.service.ts",
+      "verdict": "correct",
+      "reason": "application -> infrastructure runs against the allowed edge infrastructure -> application",
+      "checks": [
+        "'../../../event-store/publisher/dynamo-event-publisher' at line 8 resolves to src/event-store/publisher/dynamo-event-publisher.ts",
+        "layers by spec globs: src/iam/role/services/role.service.ts -> application; src/event-store/publisher/dynamo-event-publisher.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "c9241b39add94cc471d86e74",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/iam/user/controllers/user-controller.ts",
+      "verdict": "correct",
+      "reason": "api -> composition runs against the allowed edge composition -> api",
+      "checks": [
+        "'../../../app/application-container' at line 9 resolves to src/app/application-container.ts",
+        "layers by spec globs: src/iam/user/controllers/user-controller.ts -> api; src/app/application-container.ts -> composition"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "0b9be06a3ad863b63c1cccf5",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/iam/user/services/user.service.ts",
+      "verdict": "correct",
+      "reason": "application -> infrastructure runs against the allowed edge infrastructure -> application",
+      "checks": [
+        "'../../../app/repository/dynamo-set-validation.repository' at line 5 resolves to src/app/repository/dynamo-set-validation.repository.ts",
+        "layers by spec globs: src/iam/user/services/user.service.ts -> application; src/app/repository/dynamo-set-validation.repository.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "29c5a568332af8ba447b9850",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/iam/user/services/user.service.ts",
+      "verdict": "correct",
+      "reason": "application -> infrastructure runs against the allowed edge infrastructure -> application",
+      "checks": [
+        "'../../../event-store/publisher/dynamo-event-publisher' at line 8 resolves to src/event-store/publisher/dynamo-event-publisher.ts",
+        "layers by spec globs: src/iam/user/services/user.service.ts -> application; src/event-store/publisher/dynamo-event-publisher.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "955bc30ccce0ba96d0db2f7b",
+      "projectId": "lucashang-ddd-payday",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/accounts/useCases/createAccount/CreateAccountUseCase.ts",
+      "verdict": "correct",
+      "reason": "accounts imports src/modules/users/repositories/IUserRepository.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@modules/users/repositories/IUserRepository' at line 9 resolves to src/modules/users/repositories/IUserRepository.ts",
+        "contexts by root: src/modules/accounts/useCases/createAccount/CreateAccountUseCase.ts -> accounts; src/modules/users/repositories/IUserRepository.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "213495eae4b42897b21d5683",
+      "projectId": "lucashang-ddd-payday",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/accounts/useCases/createAccount/index.ts",
+      "verdict": "correct",
+      "reason": "accounts imports src/modules/users/repositories/implementations/fake/fakeUserRepository.ts of users, which is not its public API, outside an ACL",
+      "checks": [
+        "'@modules/users/repositories/implementations/fake/fakeUserRepository' at line 2 resolves to src/modules/users/repositories/implementations/fake/fakeUserRepository.ts",
+        "contexts by root: src/modules/accounts/useCases/createAccount/index.ts -> accounts; src/modules/users/repositories/implementations/fake/fakeUserRepository.ts -> users"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "714cc217521192aafcf1ce1a",
+      "projectId": "lucashang-ddd-payday",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/users/useCases/createUser/CreateUserUseCase.ts",
+      "verdict": "correct",
+      "reason": "users imports src/modules/accounts/useCases/createAccount/CreateAccountUseCase.ts of accounts, which is not its public API, outside an ACL",
+      "checks": [
+        "'@modules/accounts/useCases/createAccount/CreateAccountUseCase' at line 4 resolves to src/modules/accounts/useCases/createAccount/CreateAccountUseCase.ts",
+        "contexts by root: src/modules/users/useCases/createUser/CreateUserUseCase.ts -> users; src/modules/accounts/useCases/createAccount/CreateAccountUseCase.ts -> accounts"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "81cf3c8baa313b1b1693a8f6",
+      "projectId": "lucashang-ddd-payday",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/users/useCases/createUser/index.ts",
+      "verdict": "correct",
+      "reason": "users imports src/modules/accounts/useCases/createAccount/index.ts of accounts, which is not its public API, outside an ACL",
+      "checks": [
+        "'@modules/accounts/useCases/createAccount' at line 1 resolves to src/modules/accounts/useCases/createAccount/index.ts",
+        "contexts by root: src/modules/users/useCases/createUser/index.ts -> users; src/modules/accounts/useCases/createAccount/index.ts -> accounts"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "80bffdf978e38cd2e230c478",
+      "projectId": "lucashang-ddd-payday",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/accounts/infra/http/routes/index.ts",
+      "verdict": "correct",
+      "reason": "api -> composition runs against the allowed edge composition -> api",
+      "checks": [
+        "'@modules/accounts/useCases/deposit' at line 2 resolves to src/modules/accounts/useCases/deposit/index.ts",
+        "layers by spec globs: src/modules/accounts/infra/http/routes/index.ts -> api; src/modules/accounts/useCases/deposit/index.ts -> composition"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "fb499d74c8ac995a07b35cc4",
+      "projectId": "lucashang-ddd-payday",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/accounts/infra/http/routes/index.ts",
+      "verdict": "correct",
+      "reason": "api -> composition runs against the allowed edge composition -> api",
+      "checks": [
+        "'@modules/accounts/useCases/withdraw' at line 1 resolves to src/modules/accounts/useCases/withdraw/index.ts",
+        "layers by spec globs: src/modules/accounts/infra/http/routes/index.ts -> api; src/modules/accounts/useCases/withdraw/index.ts -> composition"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "9910d9194a6d19ead80b56af",
+      "projectId": "lucashang-ddd-payday",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/accounts/useCases/createAccount/CreateAccountUseCase.ts",
+      "verdict": "correct",
+      "reason": "application -> infrastructure runs against the allowed edge infrastructure -> application",
+      "checks": [
+        "'@modules/accounts/mappers/accountMap' at line 7 resolves to src/modules/accounts/mappers/accountMap.ts",
+        "layers by spec globs: src/modules/accounts/useCases/createAccount/CreateAccountUseCase.ts -> application; src/modules/accounts/mappers/accountMap.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "6fa2224d75b1a9ecdc2578cd",
+      "projectId": "lucashang-ddd-payday",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/accounts/useCases/deposit/DepositDTOValidation.ts",
+      "verdict": "correct",
+      "reason": "application -> infrastructure runs against the allowed edge infrastructure -> application",
+      "checks": [
+        "'@shared/validators/implementations/MyDtoValidator' at line 2 resolves to src/shared/validators/implementations/MyDtoValidator.ts",
+        "layers by spec globs: src/modules/accounts/useCases/deposit/DepositDTOValidation.ts -> application; src/shared/validators/implementations/MyDtoValidator.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "479ef2b7c84866f6e3197b1a",
+      "projectId": "lucashang-ddd-payday",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/accounts/useCases/deposit/DepositUseCase.ts",
+      "verdict": "correct",
+      "reason": "application -> infrastructure runs against the allowed edge infrastructure -> application",
+      "checks": [
+        "'@modules/accounts/mappers/accountMap' at line 6 resolves to src/modules/accounts/mappers/accountMap.ts",
+        "layers by spec globs: src/modules/accounts/useCases/deposit/DepositUseCase.ts -> application; src/modules/accounts/mappers/accountMap.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "e7e0b26b893fad033acd9f30",
+      "projectId": "lucashang-ddd-payday",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/accounts/useCases/withdraw/WithdrawDTOValidation.ts",
+      "verdict": "correct",
+      "reason": "application -> infrastructure runs against the allowed edge infrastructure -> application",
+      "checks": [
+        "'@shared/validators/implementations/MyDtoValidator' at line 2 resolves to src/shared/validators/implementations/MyDtoValidator.ts",
+        "layers by spec globs: src/modules/accounts/useCases/withdraw/WithdrawDTOValidation.ts -> application; src/shared/validators/implementations/MyDtoValidator.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "f1d86e01deeca40d8f6f9dda",
+      "projectId": "lucashang-ddd-payday",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/accounts/useCases/withdraw/WithdrawUseCase.ts",
+      "verdict": "correct",
+      "reason": "application -> infrastructure runs against the allowed edge infrastructure -> application",
+      "checks": [
+        "'@modules/accounts/mappers/accountMap' at line 6 resolves to src/modules/accounts/mappers/accountMap.ts",
+        "layers by spec globs: src/modules/accounts/useCases/withdraw/WithdrawUseCase.ts -> application; src/modules/accounts/mappers/accountMap.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "d82e2f7bb30ecb243c667902",
+      "projectId": "lucashang-ddd-payday",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/users/infra/http/routes/index.ts",
+      "verdict": "correct",
+      "reason": "api -> composition runs against the allowed edge composition -> api",
+      "checks": [
+        "'@modules/users/useCases/createUser' at line 1 resolves to src/modules/users/useCases/createUser/index.ts",
+        "layers by spec globs: src/modules/users/infra/http/routes/index.ts -> api; src/modules/users/useCases/createUser/index.ts -> composition"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "0e96e1efd3c7558e91d1a5dc",
+      "projectId": "lucashang-ddd-payday",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/users/useCases/createUser/CreateUserUseCase.ts",
+      "verdict": "correct",
+      "reason": "application -> infrastructure runs against the allowed edge infrastructure -> application",
+      "checks": [
+        "'@modules/users/mappers/userMap' at line 7 resolves to src/modules/users/mappers/userMap.ts",
+        "layers by spec globs: src/modules/users/useCases/createUser/CreateUserUseCase.ts -> application; src/modules/users/mappers/userMap.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    }
+  ]
+}

@@ -170,7 +170,7 @@ export async function labelNewBlocking(result: ReplayResult, repoRoot: string, s
     const records = readRunSteps(run.runDir, steps);
     const outcomes = runOutcomes(records);
     for (const ns of outcomes.newBlocking) {
-      if (ns.count === 0) continue;
+      if (ns.count === null || ns.count === 0) continue;
       const rec = records[ns.step - 1];
       const last = rec?.turns[rec.turns.length - 1];
       if (rec === undefined || last === undefined) continue;
@@ -255,10 +255,19 @@ export function canonicalTree(outRoot: string): CanonicalTree {
     }
     let bytes = fs.readFileSync(path.join(outRoot, rel));
     if (rel.endsWith('.json')) {
-      const text = bytes.toString('utf8');
-      const canon = `${JSON.stringify(zeroTiming(JSON.parse(text)), null, 2)}\n`;
-      if (canon !== `${JSON.stringify(JSON.parse(text), null, 2)}\n`) normalised.push(rel);
-      bytes = Buffer.from(canon);
+      // A file that is not JSON (a truncated record a resume set aside, loop fault drill D7) is compared raw.
+      let parsed: unknown;
+      let isJson = true;
+      try {
+        parsed = JSON.parse(bytes.toString('utf8'));
+      } catch {
+        isJson = false;
+      }
+      if (isJson) {
+        const canon = `${JSON.stringify(zeroTiming(parsed), null, 2)}\n`;
+        if (canon !== `${JSON.stringify(parsed, null, 2)}\n`) normalised.push(rel);
+        bytes = Buffer.from(canon);
+      }
     }
     files.set(rel, crypto.createHash('sha256').update(bytes).digest('hex'));
   }

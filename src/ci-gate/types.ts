@@ -49,7 +49,9 @@ export interface GateResult extends GateClassification {
   readonly head: { readonly ref: string; readonly sha: string; readonly findings: number };
   /** Base path -> head path for files git reports renamed; base findings are re-keyed through it before matching. */
   readonly renames: Readonly<Record<string, string>>;
-  /** `fail` iff at least one NEW finding is blocking. */
+  /** `fail` iff at least one NEW finding is blocking, or a blocking rule failed to execute on head (fail-closed). */
   readonly verdict: 'pass' | 'fail';
   readonly newBlocking: number;
+  /** Blocking rules that failed to execute on the head commit (its report verdict `incomplete`); absent when none. */
+  readonly headBlockingNotExecuted?: readonly string[];
 }

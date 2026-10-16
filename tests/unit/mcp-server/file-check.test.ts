@@ -140,14 +140,15 @@ describe('check_file (checkSource) on specs/clean-arch.yaml', () => {
     expect(res.verdict).toBe('clean');
   });
 
-  it('reports require()/import() hits as advisories, not violations', () => {
+  it('scores require()/import() hits as violations, as the v1.3 graph does (R03)', () => {
     const res = checkSource(clean, {
       path: 'src/domain/entities/Order.ts',
       content: "const orm = require('typeorm');",
     });
-    expect(res.violations).toEqual([]);
-    expect(res.advisories.map((a) => a.rule)).toEqual(['FF-P01']);
-    expect(res.verdict).toBe('clean');
+    expect(res.violations.map((a) => a.rule)).toEqual(['FF-P01']);
+    expect(res.advisories).toEqual([]);
+    expect(res.verdict).toBe('violations');
+    expect(res.blockingVerdict).toBe('block');
   });
 
   it('returns unknown for an unresolvable alias import', () => {

@@ -30,7 +30,7 @@ import {
 } from './lib/snapshot-measures.js';
 import type { Agreement, ClassifyContext, ToolRow } from './lib/snapshot-measures.js';
 
-const REPO = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
+const REPO = process.cwd();
 
 interface SnapshotRef {
   /** Store-relative id; the measures file is `<out>/<id>.json`. */
@@ -271,7 +271,7 @@ function summaryMarkdown(rows: readonly SnapshotMeasures[]): string {
     const dcs = r.depcruise.error !== undefined ? `error` : Object.entries(r.depcruise.byFunction).filter(([, v]) => v.count > 0).map(([k, v]) => `${k}:${String(v.count)}`).join(' ') || '0';
     const a = r.agreement;
     const agr = a === null ? 'n/a' : (() => {
-      const s = a.compared.reduce((acc, c) => [acc[0] + c.both, acc[1] + c.toolOnly.length, acc[2] + c.depcruiseOnly.length], [0, 0, 0]);
+      const s = a.compared.reduce((acc, c) => [acc[0] + c.both, acc[1] + c.toolOnly.length, acc[2] + c.depcruiseOnly.length] as [number, number, number], [0, 0, 0] as [number, number, number]);
       return `${String(s[0])} / ${String(s[1])} / ${String(s[2])}`;
     })();
     const k = r.importKinds;

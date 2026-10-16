@@ -49,9 +49,12 @@ never written. It unsets every API key and the `NEO4J_*` variables first. It nee
 and takes about 4–5 minutes. Each file it checks is reported as one of:
 
 - `IDENTICAL`: byte-identical to the committed file (sha256 prefix shown).
-- `KNOWN`: a divergence listed in [`known-divergences.json`](known-divergences.json). Each one is explained in the
-  audit doc and is checked in a narrower form, so it is never just waved through (see below).
+- `KNOWN`: a divergence listed in [`known-divergences.json`](known-divergences.json). Each entry records the sha256
+  of the regenerated file, and the file is `KNOWN` only when it has that hash; any other content is a `DIFF`. Each one
+  is explained in the audit doc and is checked in a narrower form, so it is never just waved through (see below).
 - `DIFF` / `MISSING` / `EXTRA`: unexpected; the script exits 1.
+- `SKIPPED`: a step that could not run (the `apg2@72fa9203` replay needs the git history; a tarball or shallow clone
+  without that commit skips it). The summary line counts the skipped steps.
 
 | Step (`--only`) | What it regenerates | Compared against | Result on 2026-10-15 |
 |---|---|---|---|
@@ -127,7 +130,7 @@ raw file).
 | Study 1 SO4 score + aggregates | `npx tsx scripts/score-golden-cli.ts --case results/v1.3-study1-rerun/so4/case --out <dir>/score.json`, then `npx tsx scripts/v1.3/study1-rerun.ts so4-agg --run <dir> --out <dir>` | none | D | byte-identical |
 | Study 1 reports | `study1-rerun.ts e1` / `so4 --paths-root <dir>` | Neo4j + `../daedalus-e1-outcomes`, `../daedalus-corpus`, `../daedalus-so4` | D | not re-run |
 | labelling, reference: jobs, sample, correctness | `npx tsx scripts/v1.3/labelling-jobs.ts --reference results/v1.3-reference/after-member-facts/evidence --materialise <dir>/variants --out <dir>/jobs.json`, then `sample-findings.ts --jobs <dir>/jobs.json --seed 20261015 --tiers all --out <dir>/sample-all.json`, then `check-correct.ts --jobs <dir>/jobs.json --tiers all --out <dir>/correctness-all` | none | D (`jobs.json` holds absolute paths) | sample and correctness byte-identical |
-| labelling, E1 sample | `sample-findings.ts` on `results/v1.3-labelling/e1/jobs.json`, after rewriting its absolute paths to `results/v1.3-labelling/e1/reports/<file>` and `specs/clean-arch.yaml` | none | D | byte-identical |
+| labelling, E1 sample | `sample-findings.ts` on `results/v1.3-labelling/e1/jobs.json` (its paths have been repo- or workspace-relative since 2026-10-16), after rewriting them to `results/v1.3-labelling/e1/reports/<file>` and `specs/clean-arch.yaml` | none | D | byte-identical |
 | labelling, E1 correctness | `check-correct.ts` on the E1 jobs | `../daedalus-e1-outcomes` | D | not regenerable here |
 | labelling, meaningful labels | `npx tsx scripts/v1.3/label-meaningful.ts ... --provider codex --model gpt-5.6-terra --mode replay --cassette-dir results/v1.3-labelling/cassettes-codex` (live: `--mode record` with Codex CLI 0.162.1 and the reader's own `CODEX_HOME`) | M | M | only `--estimate` run. The one stored answer replays, but a label needs 2 runs. |
 

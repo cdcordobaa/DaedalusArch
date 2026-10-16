@@ -1,0 +1,3462 @@
+{
+  "note": "Descriptive, development set and E1, offline. Not a registered result. See Docs/DiagnosticRuns/v1.3-advisory-noise-2026-10-16.md.",
+  "inputs": {
+    "dev": "results/v1.3-reference/after-member-facts/evidence",
+    "e1": "results/v1.3-labelling/e1/reports",
+    "e1Source": "experiments/e1-grid/cassettes",
+    "fe": "results/v1.3-advisory-noise/fe-advisory-rows.json",
+    "feSource": {
+      "branch": "v1.3-judge-v2 (PR #126)",
+      "commit": "5f636af34453d9df0be32017bb1cf06ec0bbfbf3",
+      "file": "results/v1.3-judge-v2/filter-explain/scores.json",
+      "sha256": "ac5d456953ffb15db40004127efdeeb4146e75880d934633eb3be003cc4b4669",
+      "feRevision": "fe-1.0",
+      "note": "Every non-blocking row of the filter-and-explain run, fields copied unchanged; promptSha from plan.json. Rows that share a promptSha share one answer."
+    },
+    "labels": {
+      "dev": "results/v1.3-labelling/reference/correctness-all/correctness.csv",
+      "e1": "results/v1.3-labelling/e1/correctness-all/correctness.csv"
+    }
+  },
+  "e1SourceCoverage": {
+    "rows": 1428,
+    "withSource": 1422,
+    "conflicts": 0
+  },
+  "devProjects": 71,
+  "e1Projects": 65,
+  "feAdvisoryRows": 252,
+  "clusterLabels": {
+    "composition-root": "composition root / wiring module (instability 1 and high fan-out are expected)",
+    "outer-adapter": "outer-layer adapter or controller (instability is expected)",
+    "orchestrator": "use-case / application service orchestrating stable abstractions",
+    "no-logic": "nothing worth a dedicated test (types, error subclass, in-memory pass-through)",
+    "naming": "the name fits the role (naming rule over-reads)",
+    "abstractions": "collaborators are already abstractions"
+  },
+  "noise": [
+    {
+      "rule": "FF-CV05",
+      "dev": 1426,
+      "e1": 1184,
+      "shareOfAdvisory": 0.8602504943968359,
+      "judged": 86,
+      "judgedPrompts": 10,
+      "dismissed": 42,
+      "confirmed": 44,
+      "manifestTrue": 0,
+      "correctnessDev": {
+        "n": 1426,
+        "correct": 1426,
+        "incorrect": 0,
+        "notCheckable": 0
+      },
+      "correctnessE1": {
+        "n": 1184,
+        "correct": 1184,
+        "incorrect": 0,
+        "notCheckable": 0
+      },
+      "clusters": {
+        "no-logic": {
+          "rows": 42,
+          "prompts": 3,
+          "example": "src/infrastructure/persistence/InMemoryMemberRepository.ts: The rule correctly reports that src/infrastructure/persistence/InMemoryMemberRepository.ts has no paired test file, but this file does not carry the risk the ru…"
+        }
+      }
+    },
+    {
+      "rule": "FF-C03",
+      "dev": 120,
+      "e1": 159,
+      "shareOfAdvisory": 0.09195781147000659,
+      "judged": 120,
+      "judgedPrompts": 28,
+      "dismissed": 116,
+      "confirmed": 4,
+      "manifestTrue": 0,
+      "correctnessDev": {
+        "n": 120,
+        "correct": 0,
+        "incorrect": 0,
+        "notCheckable": 120
+      },
+      "correctnessE1": {
+        "n": 159,
+        "correct": 0,
+        "incorrect": 0,
+        "notCheckable": 159
+      },
+      "clusters": {
+        "orchestrator": {
+          "rows": 69,
+          "prompts": 9,
+          "example": "src/application/use-cases/BorrowBookUseCase.ts: The instability value of 0.83 is correct as a measurement, but it doesn't point to a design problem here. BorrowBookUseCase is an application-layer orchestrator…"
+        },
+        "outer-adapter": {
+          "rows": 15,
+          "prompts": 5,
+          "example": "src/infrastructure/http/LoanController.ts: LoanController is an inbound HTTP adapter in the infrastructure layer, which is the outermost ring. Its outgoing dependencies are what you would expect from an …"
+        },
+        "composition-root": {
+          "rows": 32,
+          "prompts": 10,
+          "example": "src/infrastructure/testing/TestLibraryApp.ts: The rule checks instability, Ce/(Ca+Ce). A value of 1 means the module depends on others and nothing depends on it. For a composition root that is the expected …"
+        }
+      }
+    },
+    {
+      "rule": "FF-P02",
+      "dev": 4,
+      "e1": 51,
+      "shareOfAdvisory": 0.01812788398154252,
+      "judged": 4,
+      "judgedPrompts": 4,
+      "dismissed": 1,
+      "confirmed": 3,
+      "manifestTrue": 3,
+      "correctnessDev": {
+        "n": 4,
+        "correct": 0,
+        "incorrect": 0,
+        "notCheckable": 4
+      },
+      "correctnessE1": {
+        "n": 51,
+        "correct": 0,
+        "incorrect": 0,
+        "notCheckable": 51
+      },
+      "clusters": {
+        "abstractions": {
+          "rows": 1,
+          "prompts": 1,
+          "example": "src/registrations/registrations.service.ts: The rule exists to catch classes that depend on concrete, volatile implementations rather than abstractions, and that is not happening here. Three of the four i…"
+        }
+      }
+    },
+    {
+      "rule": "FF-C02",
+      "dev": 30,
+      "e1": 21,
+      "shareOfAdvisory": 0.016809492419248517,
+      "judged": 30,
+      "judgedPrompts": 3,
+      "dismissed": 30,
+      "confirmed": 0,
+      "manifestTrue": 0,
+      "correctnessDev": {
+        "n": 30,
+        "correct": 0,
+        "incorrect": 0,
+        "notCheckable": 30
+      },
+      "correctnessE1": {
+        "n": 21,
+        "correct": 0,
+        "incorrect": 0,
+        "notCheckable": 21
+      },
+      "clusters": {
+        "orchestrator": {
+          "rows": 15,
+          "prompts": 1,
+          "example": "src/application/services/BookRoomService.ts: The fan-out of 12 is accurate, but it comes from a single, cohesive use-case orchestrator in a hexagonal application layer, not from a module with tangled respo…"
+        },
+        "composition-root": {
+          "rows": 15,
+          "prompts": 2,
+          "example": "src/config/container.ts: src/config/container.ts is the project's composition root. The comment at line 19 says so, and the code matches: it builds every concrete adapter (lines 21-25),…"
+        }
+      }
+    },
+    {
+      "rule": "FF-C06",
+      "dev": 14,
+      "e1": 6,
+      "shareOfAdvisory": 0.0065919578114700065,
+      "judged": 0,
+      "judgedPrompts": 0,
+      "dismissed": 0,
+      "confirmed": 0,
+      "manifestTrue": 0,
+      "correctnessDev": {
+        "n": 14,
+        "correct": 0,
+        "incorrect": 0,
+        "notCheckable": 14
+      },
+      "correctnessE1": {
+        "n": 6,
+        "correct": 0,
+        "incorrect": 0,
+        "notCheckable": 6
+      },
+      "clusters": {}
+    },
+    {
+      "rule": "FF-CV03",
+      "dev": 2,
+      "e1": 0,
+      "shareOfAdvisory": 0.0006591957811470006,
+      "judged": 2,
+      "judgedPrompts": 2,
+      "dismissed": 2,
+      "confirmed": 0,
+      "manifestTrue": 0,
+      "correctnessDev": {
+        "n": 2,
+        "correct": 2,
+        "incorrect": 0,
+        "notCheckable": 0
+      },
+      "correctnessE1": null,
+      "clusters": {
+        "naming": {
+          "rows": 2,
+          "prompts": 2,
+          "example": "src/infrastructure/http/CsvReportWriter.ts: FF-CV03 is meant to catch two things: classes that use a Repository-style name but aren't repositories, and repositories that aren't named as repositories. `Csv…"
+        }
+      }
+    },
+    {
+      "rule": "FF-C01",
+      "dev": 3,
+      "e1": 0,
+      "shareOfAdvisory": 0.000988793671720501,
+      "judged": 3,
+      "judgedPrompts": 3,
+      "dismissed": 0,
+      "confirmed": 3,
+      "manifestTrue": 0,
+      "correctnessDev": {
+        "n": 3,
+        "correct": 0,
+        "incorrect": 0,
+        "notCheckable": 3
+      },
+      "correctnessE1": null,
+      "clusters": {}
+    },
+    {
+      "rule": "FF-C04",
+      "dev": 0,
+      "e1": 2,
+      "shareOfAdvisory": 0.0006591957811470006,
+      "judged": 0,
+      "judgedPrompts": 0,
+      "dismissed": 0,
+      "confirmed": 0,
+      "manifestTrue": 0,
+      "correctnessDev": null,
+      "correctnessE1": {
+        "n": 2,
+        "correct": 0,
+        "incorrect": 0,
+        "notCheckable": 2
+      },
+      "clusters": {}
+    },
+    {
+      "rule": "FF-SO01",
+      "dev": 0,
+      "e1": 3,
+      "shareOfAdvisory": 0.000988793671720501,
+      "judged": 0,
+      "judgedPrompts": 0,
+      "dismissed": 0,
+      "confirmed": 0,
+      "manifestTrue": 0,
+      "correctnessDev": null,
+      "correctnessE1": {
+        "n": 3,
+        "correct": 0,
+        "incorrect": 0,
+        "notCheckable": 3
+      },
+      "clusters": {}
+    },
+    {
+      "rule": "FF-SO02",
+      "dev": 0,
+      "e1": 2,
+      "shareOfAdvisory": 0.0006591957811470006,
+      "judged": 0,
+      "judgedPrompts": 0,
+      "dismissed": 0,
+      "confirmed": 0,
+      "manifestTrue": 0,
+      "correctnessDev": null,
+      "correctnessE1": {
+        "n": 2,
+        "correct": 0,
+        "incorrect": 0,
+        "notCheckable": 2
+      },
+      "clusters": {}
+    },
+    {
+      "rule": "FF-P04",
+      "dev": 2,
+      "e1": 0,
+      "shareOfAdvisory": 0.0006591957811470006,
+      "judged": 2,
+      "judgedPrompts": 2,
+      "dismissed": 0,
+      "confirmed": 2,
+      "manifestTrue": 1,
+      "correctnessDev": {
+        "n": 2,
+        "correct": 0,
+        "incorrect": 0,
+        "notCheckable": 2
+      },
+      "correctnessE1": null,
+      "clusters": {}
+    },
+    {
+      "rule": "FF-DT05",
+      "dev": 1,
+      "e1": 0,
+      "shareOfAdvisory": 0.0003295978905735003,
+      "judged": 1,
+      "judgedPrompts": 1,
+      "dismissed": 0,
+      "confirmed": 1,
+      "manifestTrue": 1,
+      "correctnessDev": {
+        "n": 1,
+        "correct": 0,
+        "incorrect": 0,
+        "notCheckable": 1
+      },
+      "correctnessE1": null,
+      "clusters": {}
+    },
+    {
+      "rule": "FF-DT06",
+      "dev": 1,
+      "e1": 0,
+      "shareOfAdvisory": 0.0003295978905735003,
+      "judged": 1,
+      "judgedPrompts": 1,
+      "dismissed": 0,
+      "confirmed": 1,
+      "manifestTrue": 1,
+      "correctnessDev": {
+        "n": 1,
+        "correct": 0,
+        "incorrect": 0,
+        "notCheckable": 1
+      },
+      "correctnessE1": null,
+      "clusters": {}
+    },
+    {
+      "rule": "FF-S03",
+      "dev": 3,
+      "e1": 0,
+      "shareOfAdvisory": 0.000988793671720501,
+      "judged": 3,
+      "judgedPrompts": 3,
+      "dismissed": 0,
+      "confirmed": 3,
+      "manifestTrue": 3,
+      "correctnessDev": {
+        "n": 8,
+        "correct": 8,
+        "incorrect": 0,
+        "notCheckable": 0
+      },
+      "correctnessE1": null,
+      "clusters": {}
+    }
+  ],
+  "results": [
+    {
+      "option": "cv05-no-logic",
+      "options": [
+        "cv05-no-logic"
+      ],
+      "dev": {
+        "before": 1606,
+        "after": 1233,
+        "byRule": {
+          "FF-C03": [
+            120,
+            120
+          ],
+          "FF-CV05": [
+            1426,
+            1053
+          ],
+          "FF-CV03": [
+            2,
+            2
+          ],
+          "FF-C01": [
+            3,
+            3
+          ],
+          "FF-P02": [
+            4,
+            4
+          ],
+          "FF-P04": [
+            2,
+            2
+          ],
+          "FF-C06": [
+            14,
+            14
+          ],
+          "FF-C02": [
+            30,
+            30
+          ],
+          "FF-S03": [
+            3,
+            3
+          ],
+          "FF-DT05": [
+            1,
+            1
+          ],
+          "FF-DT06": [
+            1,
+            1
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "e1": {
+        "before": 1428,
+        "after": 1176,
+        "byRule": {
+          "FF-P02": [
+            51,
+            51
+          ],
+          "FF-C02": [
+            21,
+            21
+          ],
+          "FF-C03": [
+            159,
+            159
+          ],
+          "FF-CV05": [
+            1184,
+            932
+          ],
+          "FF-C06": [
+            6,
+            6
+          ],
+          "FF-C04": [
+            2,
+            2
+          ],
+          "FF-SO01": [
+            3,
+            3
+          ],
+          "FF-SO02": [
+            2,
+            2
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "fe": {
+        "dismissed": 191,
+        "dismissedRemoved": 28,
+        "confirmed": 61,
+        "confirmedRemoved": 0,
+        "unscoredDismissed": 190,
+        "unscoredDismissedRemoved": 28,
+        "unscoredConfirmed": 51,
+        "unscoredConfirmedRemoved": 0,
+        "manifestTrue": 9,
+        "manifestTrueRemoved": 0,
+        "confirmedRemovedRows": [],
+        "dismissedKept": {
+          "FF-C03 src/application/use-cases/BorrowBookUseCase.ts": 13,
+          "FF-C03 src/infrastructure/http/LoanController.ts": 14,
+          "FF-CV05 src/infrastructure/persistence/InMemoryMemberRepository.ts": 14,
+          "FF-C03 src/infrastructure/testing/TestLibraryApp.ts": 1,
+          "FF-CV03 src/infrastructure/http/CsvReportWriter.ts": 1,
+          "FF-C03 src/business/ServiceFactory.ts": 13,
+          "FF-C03 src/business/services/OrderService.ts": 11,
+          "FF-CV03 src/business/services/SalesReportService.ts": 1,
+          "FF-C03 src/presentation/app.ts": 1,
+          "FF-C03 src/registrations/registrations.controller.ts": 1,
+          "FF-C03 src/registrations/registrations.service.ts": 3,
+          "FF-P02 src/registrations/registrations.service.ts": 1,
+          "FF-C02 src/application/services/BookRoomService.ts": 15,
+          "FF-C02 src/config/container.ts": 15,
+          "FF-C03 src/application/services/BookRoomService.ts": 15,
+          "FF-C03 src/application/services/CancelBookingService.ts": 14,
+          "FF-C03 src/application/services/FindAvailableRoomsService.ts": 14,
+          "FF-C03 src/config/container.ts": 15,
+          "FF-C03 src/config/testContainer.ts": 1
+        }
+      },
+      "reasons": {
+        "cv05-no-logic: type declarations only": 411,
+        "cv05-no-logic: no runtime logic (data classes, enums, constant data)": 191,
+        "cv05-no-logic: configuration file": 23
+      },
+      "e1Sample": [
+        {
+          "project": "claude-opus-5-5/order-fulfilment/minimal-prose/run-0",
+          "functionId": "FF-CV05",
+          "file": "src/domain/IdGenerator.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        },
+        {
+          "project": "claude-sonnet-5-5/task-management/minimal-prose/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/domain/errors.ts",
+          "reason": "cv05-no-logic: no runtime logic (data classes, enums, constant data)"
+        },
+        {
+          "project": "claude-haiku-4-5/task-management/full-aac/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/application/UserDTO.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        },
+        {
+          "project": "gpt-5.6-terra/task-management/full-aac/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/domain/user-repository.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        },
+        {
+          "project": "claude-opus-5-5/task-management/full-aac/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/application/task/CompleteTaskUseCase.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        },
+        {
+          "project": "claude-opus-5-5/order-fulfilment/full-aac/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/config/container.ts",
+          "reason": "cv05-no-logic: configuration file"
+        },
+        {
+          "project": "claude-opus-5-5/order-fulfilment/full-aac/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/application/ApplicationErrors.ts",
+          "reason": "cv05-no-logic: no runtime logic (data classes, enums, constant data)"
+        },
+        {
+          "project": "claude-sonnet-5-5/task-management/minimal-prose/run-0",
+          "functionId": "FF-CV05",
+          "file": "src/domain/user-repository.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        },
+        {
+          "project": "claude-opus-5-5/order-fulfilment/full-aac/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/domain/repositories/OrderRepository.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        },
+        {
+          "project": "gpt-5.6-terra/order-fulfilment/minimal-prose/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/domain/repositories.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        },
+        {
+          "project": "claude-sonnet-5-5/order-fulfilment/none/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/application/ports.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        },
+        {
+          "project": "claude-opus-5-5/task-management/full-aac/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/domain/user/UserRepository.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        }
+      ]
+    },
+    {
+      "option": "cv05-no-branching",
+      "options": [
+        "cv05-no-branching"
+      ],
+      "dev": {
+        "before": 1606,
+        "after": 928,
+        "byRule": {
+          "FF-C03": [
+            120,
+            120
+          ],
+          "FF-CV05": [
+            1426,
+            748
+          ],
+          "FF-CV03": [
+            2,
+            2
+          ],
+          "FF-C01": [
+            3,
+            3
+          ],
+          "FF-P02": [
+            4,
+            4
+          ],
+          "FF-P04": [
+            2,
+            2
+          ],
+          "FF-C06": [
+            14,
+            14
+          ],
+          "FF-C02": [
+            30,
+            30
+          ],
+          "FF-S03": [
+            3,
+            3
+          ],
+          "FF-DT05": [
+            1,
+            1
+          ],
+          "FF-DT06": [
+            1,
+            1
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "e1": {
+        "before": 1428,
+        "after": 1042,
+        "byRule": {
+          "FF-P02": [
+            51,
+            51
+          ],
+          "FF-C02": [
+            21,
+            21
+          ],
+          "FF-C03": [
+            159,
+            159
+          ],
+          "FF-CV05": [
+            1184,
+            798
+          ],
+          "FF-C06": [
+            6,
+            6
+          ],
+          "FF-C04": [
+            2,
+            2
+          ],
+          "FF-SO01": [
+            3,
+            3
+          ],
+          "FF-SO02": [
+            2,
+            2
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "fe": {
+        "dismissed": 191,
+        "dismissedRemoved": 42,
+        "confirmed": 61,
+        "confirmedRemoved": 0,
+        "unscoredDismissed": 190,
+        "unscoredDismissedRemoved": 42,
+        "unscoredConfirmed": 51,
+        "unscoredConfirmedRemoved": 0,
+        "manifestTrue": 9,
+        "manifestTrueRemoved": 0,
+        "confirmedRemovedRows": [],
+        "dismissedKept": {
+          "FF-C03 src/application/use-cases/BorrowBookUseCase.ts": 13,
+          "FF-C03 src/infrastructure/http/LoanController.ts": 14,
+          "FF-C03 src/infrastructure/testing/TestLibraryApp.ts": 1,
+          "FF-CV03 src/infrastructure/http/CsvReportWriter.ts": 1,
+          "FF-C03 src/business/ServiceFactory.ts": 13,
+          "FF-C03 src/business/services/OrderService.ts": 11,
+          "FF-CV03 src/business/services/SalesReportService.ts": 1,
+          "FF-C03 src/presentation/app.ts": 1,
+          "FF-C03 src/registrations/registrations.controller.ts": 1,
+          "FF-C03 src/registrations/registrations.service.ts": 3,
+          "FF-P02 src/registrations/registrations.service.ts": 1,
+          "FF-C02 src/application/services/BookRoomService.ts": 15,
+          "FF-C02 src/config/container.ts": 15,
+          "FF-C03 src/application/services/BookRoomService.ts": 15,
+          "FF-C03 src/application/services/CancelBookingService.ts": 14,
+          "FF-C03 src/application/services/FindAvailableRoomsService.ts": 14,
+          "FF-C03 src/config/container.ts": 15,
+          "FF-C03 src/config/testContainer.ts": 1
+        }
+      },
+      "reasons": {
+        "cv05-no-branching: type declarations only": 411,
+        "cv05-no-branching: no runtime logic (data classes, enums, constant data)": 191,
+        "cv05-no-branching: no control flow, no callbacks, function bodies of at most two statements": 439,
+        "cv05-no-branching: configuration file": 23
+      },
+      "e1Sample": [
+        {
+          "project": "claude-opus-5-5/order-fulfilment/minimal-prose/run-0",
+          "functionId": "FF-CV05",
+          "file": "src/domain/IdGenerator.ts",
+          "reason": "cv05-no-branching: type declarations only"
+        },
+        {
+          "project": "claude-opus-5-5/order-fulfilment/full-aac/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/application/catalogue/ListCatalogueUseCase.ts",
+          "reason": "cv05-no-branching: no control flow, no callbacks, function bodies of at most two statements"
+        },
+        {
+          "project": "claude-opus-5-5/task-management/full-aac/run-0",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/composition/Dependencies.ts",
+          "reason": "cv05-no-branching: no control flow, no callbacks, function bodies of at most two statements"
+        },
+        {
+          "project": "claude-sonnet-5-5/task-management/minimal-prose/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/domain/errors.ts",
+          "reason": "cv05-no-branching: no runtime logic (data classes, enums, constant data)"
+        },
+        {
+          "project": "claude-haiku-4-5/task-management/full-aac/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/application/UserDTO.ts",
+          "reason": "cv05-no-branching: type declarations only"
+        },
+        {
+          "project": "gpt-5.6-terra/order-fulfilment/minimal-prose/run-0",
+          "functionId": "FF-CV05",
+          "file": "src/application/dtos.ts",
+          "reason": "cv05-no-branching: no control flow, no callbacks, function bodies of at most two statements"
+        },
+        {
+          "project": "gpt-5.6-terra/task-management/full-aac/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/domain/user-repository.ts",
+          "reason": "cv05-no-branching: type declarations only"
+        },
+        {
+          "project": "claude-opus-5-5/task-management/full-aac/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/application/task/CompleteTaskUseCase.ts",
+          "reason": "cv05-no-branching: type declarations only"
+        },
+        {
+          "project": "claude-opus-5-5/order-fulfilment/minimal-prose/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/http/controllers/StockController.ts",
+          "reason": "cv05-no-branching: no control flow, no callbacks, function bodies of at most two statements"
+        },
+        {
+          "project": "claude-opus-5-5/order-fulfilment/full-aac/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/config/container.ts",
+          "reason": "cv05-no-branching: configuration file"
+        },
+        {
+          "project": "claude-opus-5-5/order-fulfilment/full-aac/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/application/ApplicationErrors.ts",
+          "reason": "cv05-no-branching: no runtime logic (data classes, enums, constant data)"
+        },
+        {
+          "project": "claude-sonnet-5-5/task-management/minimal-prose/run-0",
+          "functionId": "FF-CV05",
+          "file": "src/domain/user-repository.ts",
+          "reason": "cv05-no-branching: type declarations only"
+        }
+      ]
+    },
+    {
+      "option": "composition-roots",
+      "options": [
+        "composition-roots"
+      ],
+      "dev": {
+        "before": 1606,
+        "after": 1529,
+        "byRule": {
+          "FF-C03": [
+            120,
+            89
+          ],
+          "FF-CV05": [
+            1426,
+            1395
+          ],
+          "FF-CV03": [
+            2,
+            2
+          ],
+          "FF-C01": [
+            3,
+            3
+          ],
+          "FF-P02": [
+            4,
+            4
+          ],
+          "FF-P04": [
+            2,
+            2
+          ],
+          "FF-C06": [
+            14,
+            14
+          ],
+          "FF-C02": [
+            30,
+            15
+          ],
+          "FF-S03": [
+            3,
+            3
+          ],
+          "FF-DT05": [
+            1,
+            1
+          ],
+          "FF-DT06": [
+            1,
+            1
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "e1": {
+        "before": 1428,
+        "after": 1313,
+        "byRule": {
+          "FF-P02": [
+            51,
+            51
+          ],
+          "FF-C02": [
+            21,
+            2
+          ],
+          "FF-C03": [
+            159,
+            115
+          ],
+          "FF-CV05": [
+            1184,
+            1132
+          ],
+          "FF-C06": [
+            6,
+            6
+          ],
+          "FF-C04": [
+            2,
+            2
+          ],
+          "FF-SO01": [
+            3,
+            3
+          ],
+          "FF-SO02": [
+            2,
+            2
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "fe": {
+        "dismissed": 191,
+        "dismissedRemoved": 46,
+        "confirmed": 61,
+        "confirmedRemoved": 0,
+        "unscoredDismissed": 190,
+        "unscoredDismissedRemoved": 46,
+        "unscoredConfirmed": 51,
+        "unscoredConfirmedRemoved": 0,
+        "manifestTrue": 9,
+        "manifestTrueRemoved": 0,
+        "confirmedRemovedRows": [],
+        "dismissedKept": {
+          "FF-C03 src/application/use-cases/BorrowBookUseCase.ts": 13,
+          "FF-C03 src/infrastructure/http/LoanController.ts": 14,
+          "FF-CV05 src/infrastructure/persistence/InMemoryMemberRepository.ts": 14,
+          "FF-CV03 src/infrastructure/http/CsvReportWriter.ts": 1,
+          "FF-C03 src/business/services/OrderService.ts": 11,
+          "FF-CV05 src/business/errors/BusinessError.ts": 13,
+          "FF-CV03 src/business/services/SalesReportService.ts": 1,
+          "FF-C03 src/registrations/registrations.controller.ts": 1,
+          "FF-C03 src/registrations/registrations.service.ts": 3,
+          "FF-P02 src/registrations/registrations.service.ts": 1,
+          "FF-C02 src/application/services/BookRoomService.ts": 15,
+          "FF-C03 src/application/services/BookRoomService.ts": 15,
+          "FF-C03 src/application/services/CancelBookingService.ts": 14,
+          "FF-C03 src/application/services/FindAvailableRoomsService.ts": 14,
+          "FF-CV05 src/adapters/inbound/http/HttpTypes.ts": 15
+        }
+      },
+      "reasons": {
+        "composition-roots: composition-root file name": 62,
+        "composition-roots: class-free file without control flow that instantiates classes from N layers (business, persistence)": 26,
+        "composition-roots: class-free file without control flow that instantiates classes from N layers (persistence, presentation)": 2,
+        "composition-roots: class-free file without control flow that instantiates classes from N layers (application, domain, infrastructure)": 32,
+        "composition-roots: class-free file without control flow that instantiates classes from N layers (application, infrastructure)": 69,
+        "composition-roots: class-free file without control flow that instantiates classes from N layers (application, domain)": 1
+      },
+      "e1Sample": [
+        {
+          "project": "claude-haiku-4-5/task-management/minimal-prose/run-0",
+          "functionId": "FF-C03",
+          "file": "src/infrastructure/app.ts",
+          "reason": "composition-roots: class-free file without control flow that instantiates classes from 3 layers (application, domain, infrastructure)"
+        },
+        {
+          "project": "claude-opus-5-5/order-fulfilment/full-aac/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/config/container.ts",
+          "reason": "composition-roots: composition-root file name"
+        },
+        {
+          "project": "claude-haiku-4-5/task-management/minimal-prose/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/app.ts",
+          "reason": "composition-roots: class-free file without control flow that instantiates classes from 2 layers (application, infrastructure)"
+        },
+        {
+          "project": "claude-opus-5-5/task-management/minimal-prose/run-0",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/composition/buildControllers.ts",
+          "reason": "composition-roots: class-free file without control flow that instantiates classes from 3 layers (application, domain, infrastructure)"
+        },
+        {
+          "project": "claude-sonnet-5-5/task-management/minimal-prose/run-0",
+          "functionId": "FF-C02",
+          "file": "src/infrastructure/app.ts",
+          "reason": "composition-roots: class-free file without control flow that instantiates classes from 2 layers (application, infrastructure)"
+        },
+        {
+          "project": "claude-opus-5-5/order-fulfilment/none/run-1",
+          "functionId": "FF-C03",
+          "file": "src/infrastructure/server.ts",
+          "reason": "composition-roots: class-free file without control flow that instantiates classes from 2 layers (application, infrastructure)"
+        },
+        {
+          "project": "claude-sonnet-5-5/order-fulfilment/full-aac/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/createApp.ts",
+          "reason": "composition-roots: class-free file without control flow that instantiates classes from 3 layers (application, domain, infrastructure)"
+        },
+        {
+          "project": "claude-opus-5-5/order-fulfilment/full-aac/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/CatalogueModule.ts",
+          "reason": "composition-roots: class-free file without control flow that instantiates classes from 2 layers (application, infrastructure)"
+        },
+        {
+          "project": "claude-opus-5-5/order-fulfilment/minimal-prose/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/app.ts",
+          "reason": "composition-roots: class-free file without control flow that instantiates classes from 3 layers (application, domain, infrastructure)"
+        },
+        {
+          "project": "claude-opus-5-5/order-fulfilment/full-aac/run-0",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/config/createApp.ts",
+          "reason": "composition-roots: class-free file without control flow that instantiates classes from 3 layers (application, domain, infrastructure)"
+        },
+        {
+          "project": "claude-opus-5-5/task-management/full-aac/run-1",
+          "functionId": "FF-C03",
+          "file": "src/infrastructure/composition/taskModule.ts",
+          "reason": "composition-roots: class-free file without control flow that instantiates classes from 2 layers (application, infrastructure)"
+        },
+        {
+          "project": "claude-opus-5-5/order-fulfilment/none/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/server.ts",
+          "reason": "composition-roots: class-free file without control flow that instantiates classes from 2 layers (application, infrastructure)"
+        }
+      ]
+    },
+    {
+      "option": "c03-core-only",
+      "options": [
+        "c03-core-only"
+      ],
+      "dev": {
+        "before": 1606,
+        "after": 1513,
+        "byRule": {
+          "FF-C03": [
+            120,
+            27
+          ],
+          "FF-CV05": [
+            1426,
+            1426
+          ],
+          "FF-CV03": [
+            2,
+            2
+          ],
+          "FF-C01": [
+            3,
+            3
+          ],
+          "FF-P02": [
+            4,
+            4
+          ],
+          "FF-P04": [
+            2,
+            2
+          ],
+          "FF-C06": [
+            14,
+            14
+          ],
+          "FF-C02": [
+            30,
+            30
+          ],
+          "FF-S03": [
+            3,
+            3
+          ],
+          "FF-DT05": [
+            1,
+            1
+          ],
+          "FF-DT06": [
+            1,
+            1
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "e1": {
+        "before": 1428,
+        "after": 1272,
+        "byRule": {
+          "FF-P02": [
+            51,
+            51
+          ],
+          "FF-C02": [
+            21,
+            21
+          ],
+          "FF-C03": [
+            159,
+            3
+          ],
+          "FF-CV05": [
+            1184,
+            1184
+          ],
+          "FF-C06": [
+            6,
+            6
+          ],
+          "FF-C04": [
+            2,
+            2
+          ],
+          "FF-SO01": [
+            3,
+            3
+          ],
+          "FF-SO02": [
+            2,
+            2
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "fe": {
+        "dismissed": 191,
+        "dismissedRemoved": 92,
+        "confirmed": 61,
+        "confirmedRemoved": 1,
+        "unscoredDismissed": 190,
+        "unscoredDismissedRemoved": 92,
+        "unscoredConfirmed": 51,
+        "unscoredConfirmedRemoved": 1,
+        "manifestTrue": 9,
+        "manifestTrueRemoved": 0,
+        "confirmedRemovedRows": [
+          {
+            "rowId": "hexagonal/v03-use-case-injects-concrete-adapter#6",
+            "functionId": "FF-C03",
+            "file": "src/application/services/FindAvailableRoomsService.ts",
+            "reason": "c03-core-only: layer 'application' is of kind application, not domain"
+          }
+        ],
+        "dismissedKept": {
+          "FF-CV05 src/infrastructure/persistence/InMemoryMemberRepository.ts": 14,
+          "FF-CV03 src/infrastructure/http/CsvReportWriter.ts": 1,
+          "FF-C03 src/business/ServiceFactory.ts": 13,
+          "FF-C03 src/business/services/OrderService.ts": 11,
+          "FF-CV05 src/business/errors/BusinessError.ts": 13,
+          "FF-CV03 src/business/services/SalesReportService.ts": 1,
+          "FF-P02 src/registrations/registrations.service.ts": 1,
+          "FF-C02 src/application/services/BookRoomService.ts": 15,
+          "FF-C02 src/config/container.ts": 15,
+          "FF-CV05 src/adapters/inbound/http/HttpTypes.ts": 15
+        }
+      },
+      "reasons": {
+        "c03-core-only: layer 'application' is of kind application, not domain": 86,
+        "c03-core-only: layer 'infrastructure' is of kind infrastructure, not domain": 145,
+        "c03-core-only: layer 'presentation' is of kind presentation, not domain": 2,
+        "c03-core-only: layer 'config' is of kind application, not domain": 16
+      },
+      "e1Sample": [
+        {
+          "project": "claude-haiku-4-5/task-management/minimal-prose/run-0",
+          "functionId": "FF-C03",
+          "file": "src/infrastructure/app.ts",
+          "reason": "c03-core-only: layer 'infrastructure' is of kind infrastructure, not domain"
+        },
+        {
+          "project": "claude-haiku-4-5/task-management/minimal-prose/run-2",
+          "functionId": "FF-C03",
+          "file": "src/infrastructure/TaskController.ts",
+          "reason": "c03-core-only: layer 'infrastructure' is of kind infrastructure, not domain"
+        },
+        {
+          "project": "claude-sonnet-5-5/task-management/none/run-2",
+          "functionId": "FF-C03",
+          "file": "src/infrastructure/server.ts",
+          "reason": "c03-core-only: layer 'infrastructure' is of kind infrastructure, not domain"
+        },
+        {
+          "project": "claude-sonnet-5-5/task-management/none/run-0",
+          "functionId": "FF-C03",
+          "file": "src/infrastructure/server.ts",
+          "reason": "c03-core-only: layer 'infrastructure' is of kind infrastructure, not domain"
+        },
+        {
+          "project": "claude-opus-5-5/task-management/full-aac/run-0",
+          "functionId": "FF-C03",
+          "file": "src/application/use-cases/CreateUserUseCase.ts",
+          "reason": "c03-core-only: layer 'application' is of kind application, not domain"
+        },
+        {
+          "project": "claude-haiku-4-5/order-fulfilment/none/run-1",
+          "functionId": "FF-C03",
+          "file": "src/infrastructure/index.ts",
+          "reason": "c03-core-only: layer 'infrastructure' is of kind infrastructure, not domain"
+        },
+        {
+          "project": "claude-haiku-4-5/order-fulfilment/full-aac/run-0",
+          "functionId": "FF-C03",
+          "file": "src/infrastructure/order-controller.ts",
+          "reason": "c03-core-only: layer 'infrastructure' is of kind infrastructure, not domain"
+        },
+        {
+          "project": "claude-opus-5-5/order-fulfilment/full-aac/run-2",
+          "functionId": "FF-C03",
+          "file": "src/infrastructure/server.ts",
+          "reason": "c03-core-only: layer 'infrastructure' is of kind infrastructure, not domain"
+        },
+        {
+          "project": "gpt-5.6-terra/order-fulfilment/full-aac/run-2",
+          "functionId": "FF-C03",
+          "file": "src/application/OrderService.ts",
+          "reason": "c03-core-only: layer 'application' is of kind application, not domain"
+        },
+        {
+          "project": "claude-haiku-4-5/order-fulfilment/full-aac/run-2",
+          "functionId": "FF-C03",
+          "file": "src/infrastructure/OrderController.ts",
+          "reason": "c03-core-only: layer 'infrastructure' is of kind infrastructure, not domain"
+        },
+        {
+          "project": "gpt-5.6-terra/order-fulfilment/minimal-prose/run-0",
+          "functionId": "FF-C03",
+          "file": "src/infrastructure/order-controller.ts",
+          "reason": "c03-core-only: layer 'infrastructure' is of kind infrastructure, not domain"
+        },
+        {
+          "project": "claude-opus-5-5/task-management/minimal-prose/run-2",
+          "functionId": "FF-C03",
+          "file": "src/application/use-cases/CreateTaskUseCase.ts",
+          "reason": "c03-core-only: layer 'application' is of kind application, not domain"
+        }
+      ]
+    },
+    {
+      "option": "c02-abstract-imports",
+      "options": [
+        "c02-abstract-imports"
+      ],
+      "dev": {
+        "before": 1606,
+        "after": 1591,
+        "byRule": {
+          "FF-C03": [
+            120,
+            120
+          ],
+          "FF-CV05": [
+            1426,
+            1426
+          ],
+          "FF-CV03": [
+            2,
+            2
+          ],
+          "FF-C01": [
+            3,
+            3
+          ],
+          "FF-P02": [
+            4,
+            4
+          ],
+          "FF-P04": [
+            2,
+            2
+          ],
+          "FF-C06": [
+            14,
+            14
+          ],
+          "FF-C02": [
+            30,
+            15
+          ],
+          "FF-S03": [
+            3,
+            3
+          ],
+          "FF-DT05": [
+            1,
+            1
+          ],
+          "FF-DT06": [
+            1,
+            1
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "e1": {
+        "before": 1428,
+        "after": 1428,
+        "byRule": {
+          "FF-P02": [
+            51,
+            51
+          ],
+          "FF-C02": [
+            21,
+            21
+          ],
+          "FF-C03": [
+            159,
+            159
+          ],
+          "FF-CV05": [
+            1184,
+            1184
+          ],
+          "FF-C06": [
+            6,
+            6
+          ],
+          "FF-C04": [
+            2,
+            2
+          ],
+          "FF-SO01": [
+            3,
+            3
+          ],
+          "FF-SO02": [
+            2,
+            2
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "fe": {
+        "dismissed": 191,
+        "dismissedRemoved": 15,
+        "confirmed": 61,
+        "confirmedRemoved": 0,
+        "unscoredDismissed": 190,
+        "unscoredDismissedRemoved": 15,
+        "unscoredConfirmed": 51,
+        "unscoredConfirmedRemoved": 0,
+        "manifestTrue": 9,
+        "manifestTrueRemoved": 0,
+        "confirmedRemovedRows": [],
+        "dismissedKept": {
+          "FF-C03 src/application/use-cases/BorrowBookUseCase.ts": 13,
+          "FF-C03 src/infrastructure/http/LoanController.ts": 14,
+          "FF-CV05 src/infrastructure/persistence/InMemoryMemberRepository.ts": 14,
+          "FF-C03 src/infrastructure/testing/TestLibraryApp.ts": 1,
+          "FF-CV03 src/infrastructure/http/CsvReportWriter.ts": 1,
+          "FF-C03 src/business/ServiceFactory.ts": 13,
+          "FF-C03 src/business/services/OrderService.ts": 11,
+          "FF-CV05 src/business/errors/BusinessError.ts": 13,
+          "FF-CV03 src/business/services/SalesReportService.ts": 1,
+          "FF-C03 src/presentation/app.ts": 1,
+          "FF-C03 src/registrations/registrations.controller.ts": 1,
+          "FF-C03 src/registrations/registrations.service.ts": 3,
+          "FF-P02 src/registrations/registrations.service.ts": 1,
+          "FF-C02 src/config/container.ts": 15,
+          "FF-C03 src/application/services/BookRoomService.ts": 15,
+          "FF-C03 src/application/services/CancelBookingService.ts": 14,
+          "FF-C03 src/application/services/FindAvailableRoomsService.ts": 14,
+          "FF-C03 src/config/container.ts": 15,
+          "FF-CV05 src/adapters/inbound/http/HttpTypes.ts": 15,
+          "FF-C03 src/config/testContainer.ts": 1
+        }
+      },
+      "reasons": {
+        "c02-abstract-imports: fan-out N counts N type-only targets; N concrete <= N": 15
+      },
+      "e1Sample": []
+    },
+    {
+      "option": "c02-size-scaled",
+      "options": [
+        "c02-size-scaled"
+      ],
+      "dev": {
+        "before": 1606,
+        "after": 1606,
+        "byRule": {
+          "FF-C03": [
+            120,
+            120
+          ],
+          "FF-CV05": [
+            1426,
+            1426
+          ],
+          "FF-CV03": [
+            2,
+            2
+          ],
+          "FF-C01": [
+            3,
+            3
+          ],
+          "FF-P02": [
+            4,
+            4
+          ],
+          "FF-P04": [
+            2,
+            2
+          ],
+          "FF-C06": [
+            14,
+            14
+          ],
+          "FF-C02": [
+            30,
+            30
+          ],
+          "FF-S03": [
+            3,
+            3
+          ],
+          "FF-DT05": [
+            1,
+            1
+          ],
+          "FF-DT06": [
+            1,
+            1
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "e1": {
+        "before": 1428,
+        "after": 1428,
+        "byRule": {
+          "FF-P02": [
+            51,
+            51
+          ],
+          "FF-C02": [
+            21,
+            21
+          ],
+          "FF-C03": [
+            159,
+            159
+          ],
+          "FF-CV05": [
+            1184,
+            1184
+          ],
+          "FF-C06": [
+            6,
+            6
+          ],
+          "FF-C04": [
+            2,
+            2
+          ],
+          "FF-SO01": [
+            3,
+            3
+          ],
+          "FF-SO02": [
+            2,
+            2
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "fe": {
+        "dismissed": 191,
+        "dismissedRemoved": 0,
+        "confirmed": 61,
+        "confirmedRemoved": 0,
+        "unscoredDismissed": 190,
+        "unscoredDismissedRemoved": 0,
+        "unscoredConfirmed": 51,
+        "unscoredConfirmedRemoved": 0,
+        "manifestTrue": 9,
+        "manifestTrueRemoved": 0,
+        "confirmedRemovedRows": [],
+        "dismissedKept": {
+          "FF-C03 src/application/use-cases/BorrowBookUseCase.ts": 13,
+          "FF-C03 src/infrastructure/http/LoanController.ts": 14,
+          "FF-CV05 src/infrastructure/persistence/InMemoryMemberRepository.ts": 14,
+          "FF-C03 src/infrastructure/testing/TestLibraryApp.ts": 1,
+          "FF-CV03 src/infrastructure/http/CsvReportWriter.ts": 1,
+          "FF-C03 src/business/ServiceFactory.ts": 13,
+          "FF-C03 src/business/services/OrderService.ts": 11,
+          "FF-CV05 src/business/errors/BusinessError.ts": 13,
+          "FF-CV03 src/business/services/SalesReportService.ts": 1,
+          "FF-C03 src/presentation/app.ts": 1,
+          "FF-C03 src/registrations/registrations.controller.ts": 1,
+          "FF-C03 src/registrations/registrations.service.ts": 3,
+          "FF-P02 src/registrations/registrations.service.ts": 1,
+          "FF-C02 src/application/services/BookRoomService.ts": 15,
+          "FF-C02 src/config/container.ts": 15,
+          "FF-C03 src/application/services/BookRoomService.ts": 15,
+          "FF-C03 src/application/services/CancelBookingService.ts": 14,
+          "FF-C03 src/application/services/FindAvailableRoomsService.ts": 14,
+          "FF-C03 src/config/container.ts": 15,
+          "FF-CV05 src/adapters/inbound/http/HttpTypes.ts": 15,
+          "FF-C03 src/config/testContainer.ts": 1
+        }
+      },
+      "reasons": {},
+      "e1Sample": []
+    },
+    {
+      "option": "c04-entry-points",
+      "options": [
+        "c04-entry-points"
+      ],
+      "dev": {
+        "before": 1606,
+        "after": 1606,
+        "byRule": {
+          "FF-C03": [
+            120,
+            120
+          ],
+          "FF-CV05": [
+            1426,
+            1426
+          ],
+          "FF-CV03": [
+            2,
+            2
+          ],
+          "FF-C01": [
+            3,
+            3
+          ],
+          "FF-P02": [
+            4,
+            4
+          ],
+          "FF-P04": [
+            2,
+            2
+          ],
+          "FF-C06": [
+            14,
+            14
+          ],
+          "FF-C02": [
+            30,
+            30
+          ],
+          "FF-S03": [
+            3,
+            3
+          ],
+          "FF-DT05": [
+            1,
+            1
+          ],
+          "FF-DT06": [
+            1,
+            1
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "e1": {
+        "before": 1428,
+        "after": 1428,
+        "byRule": {
+          "FF-P02": [
+            51,
+            51
+          ],
+          "FF-C02": [
+            21,
+            21
+          ],
+          "FF-C03": [
+            159,
+            159
+          ],
+          "FF-CV05": [
+            1184,
+            1184
+          ],
+          "FF-C06": [
+            6,
+            6
+          ],
+          "FF-C04": [
+            2,
+            2
+          ],
+          "FF-SO01": [
+            3,
+            3
+          ],
+          "FF-SO02": [
+            2,
+            2
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "fe": {
+        "dismissed": 191,
+        "dismissedRemoved": 0,
+        "confirmed": 61,
+        "confirmedRemoved": 0,
+        "unscoredDismissed": 190,
+        "unscoredDismissedRemoved": 0,
+        "unscoredConfirmed": 51,
+        "unscoredConfirmedRemoved": 0,
+        "manifestTrue": 9,
+        "manifestTrueRemoved": 0,
+        "confirmedRemovedRows": [],
+        "dismissedKept": {
+          "FF-C03 src/application/use-cases/BorrowBookUseCase.ts": 13,
+          "FF-C03 src/infrastructure/http/LoanController.ts": 14,
+          "FF-CV05 src/infrastructure/persistence/InMemoryMemberRepository.ts": 14,
+          "FF-C03 src/infrastructure/testing/TestLibraryApp.ts": 1,
+          "FF-CV03 src/infrastructure/http/CsvReportWriter.ts": 1,
+          "FF-C03 src/business/ServiceFactory.ts": 13,
+          "FF-C03 src/business/services/OrderService.ts": 11,
+          "FF-CV05 src/business/errors/BusinessError.ts": 13,
+          "FF-CV03 src/business/services/SalesReportService.ts": 1,
+          "FF-C03 src/presentation/app.ts": 1,
+          "FF-C03 src/registrations/registrations.controller.ts": 1,
+          "FF-C03 src/registrations/registrations.service.ts": 3,
+          "FF-P02 src/registrations/registrations.service.ts": 1,
+          "FF-C02 src/application/services/BookRoomService.ts": 15,
+          "FF-C02 src/config/container.ts": 15,
+          "FF-C03 src/application/services/BookRoomService.ts": 15,
+          "FF-C03 src/application/services/CancelBookingService.ts": 14,
+          "FF-C03 src/application/services/FindAvailableRoomsService.ts": 14,
+          "FF-C03 src/config/container.ts": 15,
+          "FF-CV05 src/adapters/inbound/http/HttpTypes.ts": 15,
+          "FF-C03 src/config/testContainer.ts": 1
+        }
+      },
+      "reasons": {},
+      "e1Sample": []
+    },
+    {
+      "option": "so-framework-members",
+      "options": [
+        "so-framework-members"
+      ],
+      "dev": {
+        "before": 1606,
+        "after": 1606,
+        "byRule": {
+          "FF-C03": [
+            120,
+            120
+          ],
+          "FF-CV05": [
+            1426,
+            1426
+          ],
+          "FF-CV03": [
+            2,
+            2
+          ],
+          "FF-C01": [
+            3,
+            3
+          ],
+          "FF-P02": [
+            4,
+            4
+          ],
+          "FF-P04": [
+            2,
+            2
+          ],
+          "FF-C06": [
+            14,
+            14
+          ],
+          "FF-C02": [
+            30,
+            30
+          ],
+          "FF-S03": [
+            3,
+            3
+          ],
+          "FF-DT05": [
+            1,
+            1
+          ],
+          "FF-DT06": [
+            1,
+            1
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "e1": {
+        "before": 1428,
+        "after": 1428,
+        "byRule": {
+          "FF-P02": [
+            51,
+            51
+          ],
+          "FF-C02": [
+            21,
+            21
+          ],
+          "FF-C03": [
+            159,
+            159
+          ],
+          "FF-CV05": [
+            1184,
+            1184
+          ],
+          "FF-C06": [
+            6,
+            6
+          ],
+          "FF-C04": [
+            2,
+            2
+          ],
+          "FF-SO01": [
+            3,
+            3
+          ],
+          "FF-SO02": [
+            2,
+            2
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "fe": {
+        "dismissed": 191,
+        "dismissedRemoved": 0,
+        "confirmed": 61,
+        "confirmedRemoved": 0,
+        "unscoredDismissed": 190,
+        "unscoredDismissedRemoved": 0,
+        "unscoredConfirmed": 51,
+        "unscoredConfirmedRemoved": 0,
+        "manifestTrue": 9,
+        "manifestTrueRemoved": 0,
+        "confirmedRemovedRows": [],
+        "dismissedKept": {
+          "FF-C03 src/application/use-cases/BorrowBookUseCase.ts": 13,
+          "FF-C03 src/infrastructure/http/LoanController.ts": 14,
+          "FF-CV05 src/infrastructure/persistence/InMemoryMemberRepository.ts": 14,
+          "FF-C03 src/infrastructure/testing/TestLibraryApp.ts": 1,
+          "FF-CV03 src/infrastructure/http/CsvReportWriter.ts": 1,
+          "FF-C03 src/business/ServiceFactory.ts": 13,
+          "FF-C03 src/business/services/OrderService.ts": 11,
+          "FF-CV05 src/business/errors/BusinessError.ts": 13,
+          "FF-CV03 src/business/services/SalesReportService.ts": 1,
+          "FF-C03 src/presentation/app.ts": 1,
+          "FF-C03 src/registrations/registrations.controller.ts": 1,
+          "FF-C03 src/registrations/registrations.service.ts": 3,
+          "FF-P02 src/registrations/registrations.service.ts": 1,
+          "FF-C02 src/application/services/BookRoomService.ts": 15,
+          "FF-C02 src/config/container.ts": 15,
+          "FF-C03 src/application/services/BookRoomService.ts": 15,
+          "FF-C03 src/application/services/CancelBookingService.ts": 14,
+          "FF-C03 src/application/services/FindAvailableRoomsService.ts": 14,
+          "FF-C03 src/config/container.ts": 15,
+          "FF-CV05 src/adapters/inbound/http/HttpTypes.ts": 15,
+          "FF-C03 src/config/testContainer.ts": 1
+        }
+      },
+      "reasons": {},
+      "e1Sample": []
+    },
+    {
+      "option": "cv05-rollup",
+      "options": [
+        "cv05-rollup"
+      ],
+      "dev": {
+        "before": 1606,
+        "after": 490,
+        "byRule": {
+          "FF-C03": [
+            120,
+            120
+          ],
+          "FF-CV05": [
+            1426,
+            310
+          ],
+          "FF-CV03": [
+            2,
+            2
+          ],
+          "FF-C01": [
+            3,
+            3
+          ],
+          "FF-P02": [
+            4,
+            4
+          ],
+          "FF-P04": [
+            2,
+            2
+          ],
+          "FF-C06": [
+            14,
+            14
+          ],
+          "FF-C02": [
+            30,
+            30
+          ],
+          "FF-S03": [
+            3,
+            3
+          ],
+          "FF-DT05": [
+            1,
+            1
+          ],
+          "FF-DT06": [
+            1,
+            1
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "e1": {
+        "before": 1428,
+        "after": 314,
+        "byRule": {
+          "FF-P02": [
+            51,
+            51
+          ],
+          "FF-C02": [
+            21,
+            21
+          ],
+          "FF-C03": [
+            159,
+            159
+          ],
+          "FF-CV05": [
+            1184,
+            70
+          ],
+          "FF-C06": [
+            6,
+            6
+          ],
+          "FF-C04": [
+            2,
+            2
+          ],
+          "FF-SO01": [
+            3,
+            3
+          ],
+          "FF-SO02": [
+            2,
+            2
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "fe": {
+        "dismissed": 191,
+        "dismissedRemoved": 42,
+        "confirmed": 61,
+        "confirmedRemoved": 30,
+        "unscoredDismissed": 190,
+        "unscoredDismissedRemoved": 42,
+        "unscoredConfirmed": 51,
+        "unscoredConfirmedRemoved": 30,
+        "manifestTrue": 9,
+        "manifestTrueRemoved": 0,
+        "confirmedRemovedRows": [
+          {
+            "rowId": "clean-architecture/clean#20",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/ports/Clock.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/n01-second-composition-root-for-tests#20",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 27 of 30 source files; one row (src/application/ports/Clock.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/n02-report-writer-named-like-repo#22",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 27 of 30 source files; one row (src/application/ports/Clock.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/n03-controller-uses-dto-that-wraps-entity#20",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/ports/Clock.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v01-domain-imports-application-port#22",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/ports/Clock.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v02-domain-uses-infrastructure-clock#23",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/ports/Clock.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v03-domain-entity-cycle#21",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/ports/Clock.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v04-domain-entity-typeorm-decorator#21",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/ports/Clock.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v05-use-case-injects-concrete-repository#23",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/ports/Clock.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v06-repository-without-port#21",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/ports/Clock.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v07-controller-reads-entity#20",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/ports/Clock.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v08-domain-service-holds-infrastructure-clock#24",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/ports/Clock.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v09-dto-depends-on-http-adapter#21",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/ports/Clock.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v10-domain-entity-type-imports-express#21",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/ports/Clock.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/clean#11",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/ServiceFactory.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/n01-controller-parses-money#11",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/ServiceFactory.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/n02-reporting-service-reads-database#12",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 27 of 28 source files; one row (src/business/ServiceFactory.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/n03-views-import-model-barrel#11",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 28 source files; one row (src/business/ServiceFactory.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/n03-views-import-model-barrel#26",
+            "functionId": "FF-CV05",
+            "file": "src/presentation/views/OrderView.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 28 source files; one row (src/business/ServiceFactory.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v01-gateway-returns-business-money#13",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/ServiceFactory.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v02-service-renders-view#13",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/ServiceFactory.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v03-controller-reads-gateway#12",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/ServiceFactory.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v04-view-types-persistence-record#12",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/ServiceFactory.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v05-business-model-cycle#12",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/ServiceFactory.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v06-router-controller-cycle#12",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/ServiceFactory.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v07-business-model-typeorm-decorator#12",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/ServiceFactory.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v08-business-service-takes-express-request#11",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/OrderService.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/ServiceFactory.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v08-business-service-takes-express-request#12",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/ServiceFactory.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v09-presentation-root-builds-database#13",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/ServiceFactory.ts) stands for the project"
+          },
+          {
+            "rowId": "hexagonal/n01-inbound-adapter-parses-domain-value#9",
+            "functionId": "FF-CV05",
+            "file": "src/adapters/inbound/http/RoomController.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 30 of 30 source files; one row (src/adapters/inbound/cli/BookingCli.ts) stands for the project"
+          }
+        ],
+        "dismissedKept": {
+          "FF-C03 src/application/use-cases/BorrowBookUseCase.ts": 13,
+          "FF-C03 src/infrastructure/http/LoanController.ts": 14,
+          "FF-C03 src/infrastructure/testing/TestLibraryApp.ts": 1,
+          "FF-CV03 src/infrastructure/http/CsvReportWriter.ts": 1,
+          "FF-C03 src/business/ServiceFactory.ts": 13,
+          "FF-C03 src/business/services/OrderService.ts": 11,
+          "FF-CV03 src/business/services/SalesReportService.ts": 1,
+          "FF-C03 src/presentation/app.ts": 1,
+          "FF-C03 src/registrations/registrations.controller.ts": 1,
+          "FF-C03 src/registrations/registrations.service.ts": 3,
+          "FF-P02 src/registrations/registrations.service.ts": 1,
+          "FF-C02 src/application/services/BookRoomService.ts": 15,
+          "FF-C02 src/config/container.ts": 15,
+          "FF-C03 src/application/services/BookRoomService.ts": 15,
+          "FF-C03 src/application/services/CancelBookingService.ts": 14,
+          "FF-C03 src/application/services/FindAvailableRoomsService.ts": 14,
+          "FF-C03 src/config/container.ts": 15,
+          "FF-C03 src/config/testContainer.ts": 1
+        }
+      },
+      "reasons": {
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/ports/Clock.ts) stands for the project": 388,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/business/ServiceFactory.ts) stands for the project": 326,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/adapters/inbound/cli/BookingCli.ts) stands for the project": 438,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/cancel-order.ts) stands for the project": 14,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/CancelOrderUseCase.ts) stands for the project": 40,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/usecases/CancelOrderUseCase.ts) stands for the project": 13,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/CatalogueService.ts) stands for the project": 19,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/AssignTaskUseCase.ts) stands for the project": 70,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/AddTaskUseCase.ts) stands for the project": 48,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/usecases/AssignTaskUseCase.ts) stands for the project": 16,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/services/requireOrder.ts) stands for the project": 24,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/catalogue/AddProductUseCase.ts) stands for the project": 43,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/AdvanceOrderUseCase.ts) stands for the project": 141,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/inventory-service.ts) stands for the project": 9,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/catalogue-service.ts) stands for the project": 45,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/ports/IdGenerator.ts) stands for the project": 97,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/errors/ErrorClassifier.ts) stands for the project": 46,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/errors/ApplicationError.ts) stands for the project": 33,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/use-cases/AssignTaskUseCase.ts) stands for the project": 30,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/project-service.ts) stands for the project": 10,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/dto.ts) stands for the project": 12,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/ports.ts) stands for the project": 11,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/advance-order-use-case.ts) stands for the project": 71,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/cancel-order-use-case.ts) stands for the project": 23,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/fulfilment-service.ts) stands for the project": 14,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/order-service.ts) stands for the project": 33,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/errors.ts) stands for the project": 34,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/assign-task-use-case.ts) stands for the project": 26,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/add-task-use-case.ts) stands for the project": 54,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/services.ts) stands for the project": 19,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/dtos.ts) stands for the project": 18,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/CreateProjectUseCase.ts) stands for the project": 14,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/task-service.ts) stands for the project": 17,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/application-error.ts) stands for the project": 24,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/task-dtos.ts) stands for the project": 10
+      },
+      "e1Sample": [
+        {
+          "project": "gpt-5.6-terra/task-management/minimal-prose/run-0",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/in-memory-repositories.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 11 of 11 source files; one row (src/application/errors.ts) stands for the project"
+        },
+        {
+          "project": "claude-opus-5-5/order-fulfilment/minimal-prose/run-0",
+          "functionId": "FF-CV05",
+          "file": "src/domain/IdGenerator.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 31 of 31 source files; one row (src/application/AdvanceOrderUseCase.ts) stands for the project"
+        },
+        {
+          "project": "claude-opus-5-5/order-fulfilment/full-aac/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/application/catalogue/ListCatalogueUseCase.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 44 of 46 source files; one row (src/application/catalogue/AddProductUseCase.ts) stands for the project"
+        },
+        {
+          "project": "claude-opus-5-5/task-management/full-aac/run-0",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/composition/Dependencies.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 37 of 41 source files; one row (src/application/ports/IdGenerator.ts) stands for the project"
+        },
+        {
+          "project": "claude-sonnet-5-5/task-management/none/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/domain/model.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 5 of 5 source files; one row (src/application/services.ts) stands for the project"
+        },
+        {
+          "project": "gpt-5.6-terra/order-fulfilment/minimal-prose/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/domain/product.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 9 of 9 source files; one row (src/application/catalogue-service.ts) stands for the project"
+        },
+        {
+          "project": "claude-haiku-4-5/task-management/full-aac/run-0",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/TaskController.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 24 of 24 source files; one row (src/application/AssignTaskUseCase.ts) stands for the project"
+        },
+        {
+          "project": "claude-opus-5-5/task-management/none/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/domain/user.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 13 of 15 source files; one row (src/application/dto.ts) stands for the project"
+        },
+        {
+          "project": "claude-sonnet-5-5/task-management/full-aac/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/persistence/in-memory-task-repository.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 25 of 28 source files; one row (src/application/errors.ts) stands for the project"
+        },
+        {
+          "project": "claude-sonnet-5-5/task-management/minimal-prose/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/domain/errors.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 27 of 27 source files; one row (src/application/add-task-use-case.ts) stands for the project"
+        },
+        {
+          "project": "claude-haiku-4-5/task-management/full-aac/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/application/UserDTO.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 22 of 23 source files; one row (src/application/AddTaskUseCase.ts) stands for the project"
+        },
+        {
+          "project": "gpt-5.6-terra/order-fulfilment/minimal-prose/run-0",
+          "functionId": "FF-CV05",
+          "file": "src/application/dtos.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 13 of 13 source files; one row (src/application/catalogue-service.ts) stands for the project"
+        }
+      ]
+    },
+    {
+      "option": "no-logic+composition-roots",
+      "options": [
+        "cv05-no-logic",
+        "composition-roots"
+      ],
+      "dev": {
+        "before": 1606,
+        "after": 1172,
+        "byRule": {
+          "FF-C03": [
+            120,
+            89
+          ],
+          "FF-CV05": [
+            1426,
+            1038
+          ],
+          "FF-CV03": [
+            2,
+            2
+          ],
+          "FF-C01": [
+            3,
+            3
+          ],
+          "FF-P02": [
+            4,
+            4
+          ],
+          "FF-P04": [
+            2,
+            2
+          ],
+          "FF-C06": [
+            14,
+            14
+          ],
+          "FF-C02": [
+            30,
+            15
+          ],
+          "FF-S03": [
+            3,
+            3
+          ],
+          "FF-DT05": [
+            1,
+            1
+          ],
+          "FF-DT06": [
+            1,
+            1
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "e1": {
+        "before": 1428,
+        "after": 1065,
+        "byRule": {
+          "FF-P02": [
+            51,
+            51
+          ],
+          "FF-C02": [
+            21,
+            2
+          ],
+          "FF-C03": [
+            159,
+            115
+          ],
+          "FF-CV05": [
+            1184,
+            884
+          ],
+          "FF-C06": [
+            6,
+            6
+          ],
+          "FF-C04": [
+            2,
+            2
+          ],
+          "FF-SO01": [
+            3,
+            3
+          ],
+          "FF-SO02": [
+            2,
+            2
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "fe": {
+        "dismissed": 191,
+        "dismissedRemoved": 74,
+        "confirmed": 61,
+        "confirmedRemoved": 0,
+        "unscoredDismissed": 190,
+        "unscoredDismissedRemoved": 74,
+        "unscoredConfirmed": 51,
+        "unscoredConfirmedRemoved": 0,
+        "manifestTrue": 9,
+        "manifestTrueRemoved": 0,
+        "confirmedRemovedRows": [],
+        "dismissedKept": {
+          "FF-C03 src/application/use-cases/BorrowBookUseCase.ts": 13,
+          "FF-C03 src/infrastructure/http/LoanController.ts": 14,
+          "FF-CV05 src/infrastructure/persistence/InMemoryMemberRepository.ts": 14,
+          "FF-CV03 src/infrastructure/http/CsvReportWriter.ts": 1,
+          "FF-C03 src/business/services/OrderService.ts": 11,
+          "FF-CV03 src/business/services/SalesReportService.ts": 1,
+          "FF-C03 src/registrations/registrations.controller.ts": 1,
+          "FF-C03 src/registrations/registrations.service.ts": 3,
+          "FF-P02 src/registrations/registrations.service.ts": 1,
+          "FF-C02 src/application/services/BookRoomService.ts": 15,
+          "FF-C03 src/application/services/BookRoomService.ts": 15,
+          "FF-C03 src/application/services/CancelBookingService.ts": 14,
+          "FF-C03 src/application/services/FindAvailableRoomsService.ts": 14
+        }
+      },
+      "reasons": {
+        "cv05-no-logic: type declarations only": 411,
+        "cv05-no-logic: no runtime logic (data classes, enums, constant data)": 191,
+        "composition-roots: composition-root file name": 44,
+        "composition-roots: class-free file without control flow that instantiates classes from N layers (business, persistence)": 26,
+        "composition-roots: class-free file without control flow that instantiates classes from N layers (persistence, presentation)": 2,
+        "cv05-no-logic: configuration file": 23,
+        "composition-roots: class-free file without control flow that instantiates classes from N layers (application, domain, infrastructure)": 31,
+        "composition-roots: class-free file without control flow that instantiates classes from N layers (application, infrastructure)": 68,
+        "composition-roots: class-free file without control flow that instantiates classes from N layers (application, domain)": 1
+      },
+      "e1Sample": [
+        {
+          "project": "claude-opus-5-5/order-fulfilment/minimal-prose/run-0",
+          "functionId": "FF-CV05",
+          "file": "src/domain/IdGenerator.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        },
+        {
+          "project": "claude-sonnet-5-5/task-management/minimal-prose/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/domain/errors.ts",
+          "reason": "cv05-no-logic: no runtime logic (data classes, enums, constant data)"
+        },
+        {
+          "project": "claude-haiku-4-5/task-management/full-aac/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/application/UserDTO.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        },
+        {
+          "project": "claude-haiku-4-5/task-management/minimal-prose/run-0",
+          "functionId": "FF-C03",
+          "file": "src/infrastructure/app.ts",
+          "reason": "composition-roots: class-free file without control flow that instantiates classes from 3 layers (application, domain, infrastructure)"
+        },
+        {
+          "project": "gpt-5.6-terra/task-management/full-aac/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/domain/user-repository.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        },
+        {
+          "project": "claude-opus-5-5/task-management/full-aac/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/application/task/CompleteTaskUseCase.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        },
+        {
+          "project": "claude-opus-5-5/order-fulfilment/full-aac/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/config/container.ts",
+          "reason": "cv05-no-logic: configuration file"
+        },
+        {
+          "project": "claude-opus-5-5/order-fulfilment/full-aac/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/application/ApplicationErrors.ts",
+          "reason": "cv05-no-logic: no runtime logic (data classes, enums, constant data)"
+        },
+        {
+          "project": "claude-sonnet-5-5/task-management/minimal-prose/run-0",
+          "functionId": "FF-CV05",
+          "file": "src/domain/user-repository.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        },
+        {
+          "project": "claude-opus-5-5/order-fulfilment/full-aac/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/domain/repositories/OrderRepository.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        },
+        {
+          "project": "gpt-5.6-terra/order-fulfilment/minimal-prose/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/domain/repositories.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        },
+        {
+          "project": "claude-sonnet-5-5/order-fulfilment/none/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/application/ports.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        }
+      ]
+    },
+    {
+      "option": "proposed",
+      "options": [
+        "cv05-no-logic",
+        "composition-roots",
+        "c03-core-only",
+        "c02-abstract-imports",
+        "c04-entry-points",
+        "so-framework-members"
+      ],
+      "dev": {
+        "before": 1606,
+        "after": 1082,
+        "byRule": {
+          "FF-C03": [
+            120,
+            14
+          ],
+          "FF-CV05": [
+            1426,
+            1038
+          ],
+          "FF-CV03": [
+            2,
+            2
+          ],
+          "FF-C01": [
+            3,
+            3
+          ],
+          "FF-P02": [
+            4,
+            4
+          ],
+          "FF-P04": [
+            2,
+            2
+          ],
+          "FF-C06": [
+            14,
+            14
+          ],
+          "FF-C02": [
+            30,
+            0
+          ],
+          "FF-S03": [
+            3,
+            3
+          ],
+          "FF-DT05": [
+            1,
+            1
+          ],
+          "FF-DT06": [
+            1,
+            1
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "e1": {
+        "before": 1428,
+        "after": 953,
+        "byRule": {
+          "FF-P02": [
+            51,
+            51
+          ],
+          "FF-C02": [
+            21,
+            2
+          ],
+          "FF-C03": [
+            159,
+            3
+          ],
+          "FF-CV05": [
+            1184,
+            884
+          ],
+          "FF-C06": [
+            6,
+            6
+          ],
+          "FF-C04": [
+            2,
+            2
+          ],
+          "FF-SO01": [
+            3,
+            3
+          ],
+          "FF-SO02": [
+            2,
+            2
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "fe": {
+        "dismissed": 191,
+        "dismissedRemoved": 163,
+        "confirmed": 61,
+        "confirmedRemoved": 1,
+        "unscoredDismissed": 190,
+        "unscoredDismissedRemoved": 163,
+        "unscoredConfirmed": 51,
+        "unscoredConfirmedRemoved": 1,
+        "manifestTrue": 9,
+        "manifestTrueRemoved": 0,
+        "confirmedRemovedRows": [
+          {
+            "rowId": "hexagonal/v03-use-case-injects-concrete-adapter#6",
+            "functionId": "FF-C03",
+            "file": "src/application/services/FindAvailableRoomsService.ts",
+            "reason": "c03-core-only: layer 'application' is of kind application, not domain"
+          }
+        ],
+        "dismissedKept": {
+          "FF-CV05 src/infrastructure/persistence/InMemoryMemberRepository.ts": 14,
+          "FF-CV03 src/infrastructure/http/CsvReportWriter.ts": 1,
+          "FF-C03 src/business/services/OrderService.ts": 11,
+          "FF-CV03 src/business/services/SalesReportService.ts": 1,
+          "FF-P02 src/registrations/registrations.service.ts": 1
+        }
+      },
+      "reasons": {
+        "c03-core-only: layer 'application' is of kind application, not domain": 86,
+        "c03-core-only: layer 'infrastructure' is of kind infrastructure, not domain": 100,
+        "cv05-no-logic: type declarations only": 411,
+        "cv05-no-logic: no runtime logic (data classes, enums, constant data)": 191,
+        "composition-roots: composition-root file name": 44,
+        "composition-roots: class-free file without control flow that instantiates classes from N layers (business, persistence)": 26,
+        "composition-roots: class-free file without control flow that instantiates classes from N layers (persistence, presentation)": 2,
+        "c03-core-only: layer 'presentation' is of kind presentation, not domain": 1,
+        "c02-abstract-imports: fan-out N counts N type-only targets; N concrete <= N": 15,
+        "cv05-no-logic: configuration file": 23,
+        "composition-roots: class-free file without control flow that instantiates classes from N layers (application, domain, infrastructure)": 31,
+        "composition-roots: class-free file without control flow that instantiates classes from N layers (application, infrastructure)": 68,
+        "composition-roots: class-free file without control flow that instantiates classes from N layers (application, domain)": 1
+      },
+      "e1Sample": [
+        {
+          "project": "claude-opus-5-5/order-fulfilment/minimal-prose/run-0",
+          "functionId": "FF-CV05",
+          "file": "src/domain/IdGenerator.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        },
+        {
+          "project": "claude-sonnet-5-5/task-management/minimal-prose/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/domain/errors.ts",
+          "reason": "cv05-no-logic: no runtime logic (data classes, enums, constant data)"
+        },
+        {
+          "project": "claude-haiku-4-5/task-management/full-aac/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/application/UserDTO.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        },
+        {
+          "project": "claude-haiku-4-5/task-management/minimal-prose/run-0",
+          "functionId": "FF-C03",
+          "file": "src/infrastructure/app.ts",
+          "reason": "composition-roots: class-free file without control flow that instantiates classes from 3 layers (application, domain, infrastructure)"
+        },
+        {
+          "project": "gpt-5.6-terra/task-management/full-aac/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/domain/user-repository.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        },
+        {
+          "project": "claude-haiku-4-5/task-management/minimal-prose/run-2",
+          "functionId": "FF-C03",
+          "file": "src/infrastructure/TaskController.ts",
+          "reason": "c03-core-only: layer 'infrastructure' is of kind infrastructure, not domain"
+        },
+        {
+          "project": "claude-opus-5-5/task-management/full-aac/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/application/task/CompleteTaskUseCase.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        },
+        {
+          "project": "claude-sonnet-5-5/task-management/none/run-2",
+          "functionId": "FF-C03",
+          "file": "src/infrastructure/server.ts",
+          "reason": "c03-core-only: layer 'infrastructure' is of kind infrastructure, not domain"
+        },
+        {
+          "project": "claude-opus-5-5/order-fulfilment/full-aac/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/config/container.ts",
+          "reason": "cv05-no-logic: configuration file"
+        },
+        {
+          "project": "claude-sonnet-5-5/task-management/none/run-0",
+          "functionId": "FF-C03",
+          "file": "src/infrastructure/server.ts",
+          "reason": "c03-core-only: layer 'infrastructure' is of kind infrastructure, not domain"
+        },
+        {
+          "project": "claude-opus-5-5/order-fulfilment/full-aac/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/application/ApplicationErrors.ts",
+          "reason": "cv05-no-logic: no runtime logic (data classes, enums, constant data)"
+        },
+        {
+          "project": "claude-sonnet-5-5/task-management/minimal-prose/run-0",
+          "functionId": "FF-CV05",
+          "file": "src/domain/user-repository.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        }
+      ]
+    },
+    {
+      "option": "proposed+rollup",
+      "options": [
+        "cv05-no-logic",
+        "composition-roots",
+        "c03-core-only",
+        "c02-abstract-imports",
+        "c04-entry-points",
+        "so-framework-members",
+        "cv05-rollup"
+      ],
+      "dev": {
+        "before": 1606,
+        "after": 297,
+        "byRule": {
+          "FF-C03": [
+            120,
+            14
+          ],
+          "FF-CV05": [
+            1426,
+            253
+          ],
+          "FF-CV03": [
+            2,
+            2
+          ],
+          "FF-C01": [
+            3,
+            3
+          ],
+          "FF-P02": [
+            4,
+            4
+          ],
+          "FF-P04": [
+            2,
+            2
+          ],
+          "FF-C06": [
+            14,
+            14
+          ],
+          "FF-C02": [
+            30,
+            0
+          ],
+          "FF-S03": [
+            3,
+            3
+          ],
+          "FF-DT05": [
+            1,
+            1
+          ],
+          "FF-DT06": [
+            1,
+            1
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "e1": {
+        "before": 1428,
+        "after": 137,
+        "byRule": {
+          "FF-P02": [
+            51,
+            51
+          ],
+          "FF-C02": [
+            21,
+            2
+          ],
+          "FF-C03": [
+            159,
+            3
+          ],
+          "FF-CV05": [
+            1184,
+            68
+          ],
+          "FF-C06": [
+            6,
+            6
+          ],
+          "FF-C04": [
+            2,
+            2
+          ],
+          "FF-SO01": [
+            3,
+            3
+          ],
+          "FF-SO02": [
+            2,
+            2
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "fe": {
+        "dismissed": 191,
+        "dismissedRemoved": 177,
+        "confirmed": 61,
+        "confirmedRemoved": 31,
+        "unscoredDismissed": 190,
+        "unscoredDismissedRemoved": 177,
+        "unscoredConfirmed": 51,
+        "unscoredConfirmedRemoved": 31,
+        "manifestTrue": 9,
+        "manifestTrueRemoved": 0,
+        "confirmedRemovedRows": [
+          {
+            "rowId": "clean-architecture/clean#20",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/n01-second-composition-root-for-tests#20",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 27 of 30 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/n02-report-writer-named-like-repo#22",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 27 of 30 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/n03-controller-uses-dto-that-wraps-entity#20",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v01-domain-imports-application-port#22",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v02-domain-uses-infrastructure-clock#23",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v03-domain-entity-cycle#21",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v04-domain-entity-typeorm-decorator#21",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v05-use-case-injects-concrete-repository#23",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v06-repository-without-port#21",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v07-controller-reads-entity#20",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v08-domain-service-holds-infrastructure-clock#24",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v09-dto-depends-on-http-adapter#21",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v10-domain-entity-type-imports-express#21",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/clean#11",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Customer.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/n01-controller-parses-money#11",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Customer.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/n02-reporting-service-reads-database#12",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 27 of 28 source files; one row (src/business/model/Customer.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/n03-views-import-model-barrel#11",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 28 source files; one row (src/business/model/Customer.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/n03-views-import-model-barrel#26",
+            "functionId": "FF-CV05",
+            "file": "src/presentation/views/OrderView.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 28 source files; one row (src/business/model/Customer.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v01-gateway-returns-business-money#13",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Customer.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v02-service-renders-view#13",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Customer.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v03-controller-reads-gateway#12",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Customer.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v04-view-types-persistence-record#12",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Customer.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v05-business-model-cycle#12",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Customer.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v06-router-controller-cycle#12",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Customer.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v07-business-model-typeorm-decorator#12",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Customer.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v08-business-service-takes-express-request#11",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/OrderService.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Customer.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v08-business-service-takes-express-request#12",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Customer.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v09-presentation-root-builds-database#13",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Customer.ts) stands for the project"
+          },
+          {
+            "rowId": "hexagonal/n01-inbound-adapter-parses-domain-value#9",
+            "functionId": "FF-CV05",
+            "file": "src/adapters/inbound/http/RoomController.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 30 of 30 source files; one row (src/adapters/inbound/cli/BookingCli.ts) stands for the project"
+          },
+          {
+            "rowId": "hexagonal/v03-use-case-injects-concrete-adapter#6",
+            "functionId": "FF-C03",
+            "file": "src/application/services/FindAvailableRoomsService.ts",
+            "reason": "c03-core-only: layer 'application' is of kind application, not domain"
+          }
+        ],
+        "dismissedKept": {
+          "FF-CV03 src/infrastructure/http/CsvReportWriter.ts": 1,
+          "FF-C03 src/business/services/OrderService.ts": 11,
+          "FF-CV03 src/business/services/SalesReportService.ts": 1,
+          "FF-P02 src/registrations/registrations.service.ts": 1
+        }
+      },
+      "reasons": {
+        "c03-core-only: layer 'application' is of kind application, not domain": 86,
+        "c03-core-only: layer 'infrastructure' is of kind infrastructure, not domain": 100,
+        "cv05-no-logic: type declarations only": 411,
+        "cv05-no-logic: no runtime logic (data classes, enums, constant data)": 191,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project": 267,
+        "composition-roots: composition-root file name": 44,
+        "composition-roots: class-free file without control flow that instantiates classes from N layers (business, persistence)": 26,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/business/model/Customer.ts) stands for the project": 247,
+        "composition-roots: class-free file without control flow that instantiates classes from N layers (persistence, presentation)": 2,
+        "c03-core-only: layer 'presentation' is of kind presentation, not domain": 1,
+        "c02-abstract-imports: fan-out N counts N type-only targets; N concrete <= N": 15,
+        "cv05-no-logic: configuration file": 23,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/adapters/inbound/cli/BookingCli.ts) stands for the project": 271,
+        "composition-roots: class-free file without control flow that instantiates classes from N layers (application, domain, infrastructure)": 31,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/cancel-order.ts) stands for the project": 9,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/CancelOrderUseCase.ts) stands for the project": 34,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/usecases/CancelOrderUseCase.ts) stands for the project": 11,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/CatalogueService.ts) stands for the project": 12,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/AssignTaskUseCase.ts) stands for the project": 51,
+        "composition-roots: class-free file without control flow that instantiates classes from N layers (application, infrastructure)": 68,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/AddTaskUseCase.ts) stands for the project": 34,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/usecases/AssignTaskUseCase.ts) stands for the project": 10,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/services/requireOrder.ts) stands for the project": 19,
+        "composition-roots: class-free file without control flow that instantiates classes from N layers (application, domain)": 1,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/catalogue/AddProductUseCase.ts) stands for the project": 32,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/AdvanceOrderUseCase.ts) stands for the project": 106,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/services/OrderLookupService.ts) stands for the project": 29,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/inventory-service.ts) stands for the project": 13,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/catalogue-service.ts) stands for the project": 31,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/use-cases/AddTaskToProjectUseCase.ts) stands for the project": 48,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/errors/ErrorClassifier.ts) stands for the project": 29,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/errors/ErrorClassification.ts) stands for the project": 23,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/use-cases/AssignTaskUseCase.ts) stands for the project": 46,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/project-service.ts) stands for the project": 15,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/dto.ts) stands for the project": 9,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/advance-order-use-case.ts) stands for the project": 55,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/cancel-order-use-case.ts) stands for the project": 18,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/fulfilment-service.ts) stands for the project": 8,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/order-service.ts) stands for the project": 23,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/errors.ts) stands for the project": 19,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/assign-task-use-case.ts) stands for the project": 18,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/add-task-use-case.ts) stands for the project": 42,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/services.ts) stands for the project": 16,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/CreateProjectUseCase.ts) stands for the project": 11,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/task-service.ts) stands for the project": 17,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/create-project-use-case.ts) stands for the project": 15,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/task-dtos.ts) stands for the project": 8,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/task-management-service.ts) stands for the project": 5
+      },
+      "e1Sample": [
+        {
+          "project": "gpt-5.6-terra/task-management/minimal-prose/run-0",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/in-memory-repositories.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 11 of 11 source files; one row (src/application/task-service.ts) stands for the project"
+        },
+        {
+          "project": "claude-opus-5-5/order-fulfilment/minimal-prose/run-0",
+          "functionId": "FF-CV05",
+          "file": "src/domain/IdGenerator.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        },
+        {
+          "project": "claude-opus-5-5/order-fulfilment/full-aac/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/application/catalogue/ListCatalogueUseCase.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 44 of 46 source files; one row (src/application/catalogue/AddProductUseCase.ts) stands for the project"
+        },
+        {
+          "project": "claude-opus-5-5/task-management/full-aac/run-0",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/composition/Dependencies.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 37 of 41 source files; one row (src/application/use-cases/AddTaskToProjectUseCase.ts) stands for the project"
+        },
+        {
+          "project": "claude-sonnet-5-5/task-management/none/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/domain/model.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 5 of 5 source files; one row (src/application/services.ts) stands for the project"
+        },
+        {
+          "project": "gpt-5.6-terra/order-fulfilment/minimal-prose/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/domain/product.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 9 of 9 source files; one row (src/application/catalogue-service.ts) stands for the project"
+        },
+        {
+          "project": "claude-haiku-4-5/task-management/full-aac/run-0",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/TaskController.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 24 of 24 source files; one row (src/application/AssignTaskUseCase.ts) stands for the project"
+        },
+        {
+          "project": "claude-opus-5-5/task-management/none/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/domain/user.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 13 of 15 source files; one row (src/application/dto.ts) stands for the project"
+        },
+        {
+          "project": "claude-sonnet-5-5/task-management/full-aac/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/persistence/in-memory-task-repository.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 25 of 28 source files; one row (src/application/errors.ts) stands for the project"
+        },
+        {
+          "project": "claude-sonnet-5-5/task-management/minimal-prose/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/domain/errors.ts",
+          "reason": "cv05-no-logic: no runtime logic (data classes, enums, constant data)"
+        },
+        {
+          "project": "claude-haiku-4-5/task-management/full-aac/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/application/UserDTO.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        },
+        {
+          "project": "claude-haiku-4-5/task-management/minimal-prose/run-0",
+          "functionId": "FF-C03",
+          "file": "src/infrastructure/app.ts",
+          "reason": "composition-roots: class-free file without control flow that instantiates classes from 3 layers (application, domain, infrastructure)"
+        }
+      ]
+    },
+    {
+      "option": "all",
+      "options": [
+        "cv05-no-logic",
+        "cv05-no-branching",
+        "composition-roots",
+        "c03-core-only",
+        "c02-abstract-imports",
+        "c02-size-scaled",
+        "c04-entry-points",
+        "so-framework-members",
+        "cv05-rollup"
+      ],
+      "dev": {
+        "before": 1606,
+        "after": 215,
+        "byRule": {
+          "FF-C03": [
+            120,
+            14
+          ],
+          "FF-CV05": [
+            1426,
+            171
+          ],
+          "FF-CV03": [
+            2,
+            2
+          ],
+          "FF-C01": [
+            3,
+            3
+          ],
+          "FF-P02": [
+            4,
+            4
+          ],
+          "FF-P04": [
+            2,
+            2
+          ],
+          "FF-C06": [
+            14,
+            14
+          ],
+          "FF-C02": [
+            30,
+            0
+          ],
+          "FF-S03": [
+            3,
+            3
+          ],
+          "FF-DT05": [
+            1,
+            1
+          ],
+          "FF-DT06": [
+            1,
+            1
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "e1": {
+        "before": 1428,
+        "after": 137,
+        "byRule": {
+          "FF-P02": [
+            51,
+            51
+          ],
+          "FF-C02": [
+            21,
+            2
+          ],
+          "FF-C03": [
+            159,
+            3
+          ],
+          "FF-CV05": [
+            1184,
+            68
+          ],
+          "FF-C06": [
+            6,
+            6
+          ],
+          "FF-C04": [
+            2,
+            2
+          ],
+          "FF-SO01": [
+            3,
+            3
+          ],
+          "FF-SO02": [
+            2,
+            2
+          ]
+        },
+        "blockingIdentical": true
+      },
+      "fe": {
+        "dismissed": 191,
+        "dismissedRemoved": 177,
+        "confirmed": 61,
+        "confirmedRemoved": 31,
+        "unscoredDismissed": 190,
+        "unscoredDismissedRemoved": 177,
+        "unscoredConfirmed": 51,
+        "unscoredConfirmedRemoved": 31,
+        "manifestTrue": 9,
+        "manifestTrueRemoved": 0,
+        "confirmedRemovedRows": [
+          {
+            "rowId": "clean-architecture/clean#20",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/n01-second-composition-root-for-tests#20",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 27 of 30 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/n02-report-writer-named-like-repo#22",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 27 of 30 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/n03-controller-uses-dto-that-wraps-entity#20",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v01-domain-imports-application-port#22",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v02-domain-uses-infrastructure-clock#23",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v03-domain-entity-cycle#21",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v04-domain-entity-typeorm-decorator#21",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v05-use-case-injects-concrete-repository#23",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v06-repository-without-port#21",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v07-controller-reads-entity#20",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v08-domain-service-holds-infrastructure-clock#24",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v09-dto-depends-on-http-adapter#21",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "clean-architecture/v10-domain-entity-type-imports-express#21",
+            "functionId": "FF-CV05",
+            "file": "src/infrastructure/http/ErrorMapper.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 29 source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/clean#11",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Money.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/n01-controller-parses-money#11",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Money.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/n02-reporting-service-reads-database#12",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 27 of 28 source files; one row (src/business/model/Money.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/n03-views-import-model-barrel#11",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 28 source files; one row (src/business/model/Money.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/n03-views-import-model-barrel#26",
+            "functionId": "FF-CV05",
+            "file": "src/presentation/views/OrderView.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 28 source files; one row (src/business/model/Money.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v01-gateway-returns-business-money#13",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Money.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v02-service-renders-view#13",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Money.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v03-controller-reads-gateway#12",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Money.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v04-view-types-persistence-record#12",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Money.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v05-business-model-cycle#12",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Customer.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v06-router-controller-cycle#12",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Money.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v07-business-model-typeorm-decorator#12",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Money.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v08-business-service-takes-express-request#11",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/OrderService.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Money.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v08-business-service-takes-express-request#12",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Money.ts) stands for the project"
+          },
+          {
+            "rowId": "layered/v09-presentation-root-builds-database#13",
+            "functionId": "FF-CV05",
+            "file": "src/business/services/PricingPolicy.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Money.ts) stands for the project"
+          },
+          {
+            "rowId": "hexagonal/n01-inbound-adapter-parses-domain-value#9",
+            "functionId": "FF-CV05",
+            "file": "src/adapters/inbound/http/RoomController.ts",
+            "reason": "cv05-rollup: project-level: FF-CV05 fires on 30 of 30 source files; one row (src/adapters/inbound/cli/BookingCli.ts) stands for the project"
+          },
+          {
+            "rowId": "hexagonal/v03-use-case-injects-concrete-adapter#6",
+            "functionId": "FF-C03",
+            "file": "src/application/services/FindAvailableRoomsService.ts",
+            "reason": "c03-core-only: layer 'application' is of kind application, not domain"
+          }
+        ],
+        "dismissedKept": {
+          "FF-CV03 src/infrastructure/http/CsvReportWriter.ts": 1,
+          "FF-C03 src/business/services/OrderService.ts": 11,
+          "FF-CV03 src/business/services/SalesReportService.ts": 1,
+          "FF-P02 src/registrations/registrations.service.ts": 1
+        }
+      },
+      "reasons": {
+        "c03-core-only: layer 'application' is of kind application, not domain": 86,
+        "c03-core-only: layer 'infrastructure' is of kind infrastructure, not domain": 100,
+        "cv05-no-logic: type declarations only": 411,
+        "cv05-no-logic: no runtime logic (data classes, enums, constant data)": 191,
+        "cv05-no-branching: no control flow, no callbacks, function bodies of at most two statements": 439,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/use-cases/BorrowBookUseCase.ts) stands for the project": 183,
+        "composition-roots: composition-root file name": 44,
+        "composition-roots: class-free file without control flow that instantiates classes from N layers (business, persistence)": 26,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/business/model/Money.ts) stands for the project": 169,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/business/model/Customer.ts) stands for the project": 15,
+        "composition-roots: class-free file without control flow that instantiates classes from N layers (persistence, presentation)": 1,
+        "c03-core-only: layer 'presentation' is of kind presentation, not domain": 1,
+        "c02-abstract-imports: fan-out N counts N type-only targets; N concrete <= N": 15,
+        "cv05-no-logic: configuration file": 23,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/adapters/inbound/cli/BookingCli.ts) stands for the project": 196,
+        "composition-roots: class-free file without control flow that instantiates classes from N layers (application, domain, infrastructure)": 30,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/cancel-order.ts) stands for the project": 9,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/CancelOrderUseCase.ts) stands for the project": 33,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/usecases/CancelOrderUseCase.ts) stands for the project": 10,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/CatalogueService.ts) stands for the project": 9,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/AssignTaskUseCase.ts) stands for the project": 44,
+        "composition-roots: class-free file without control flow that instantiates classes from N layers (application, infrastructure)": 59,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/AddTaskUseCase.ts) stands for the project": 29,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/usecases/AssignTaskUseCase.ts) stands for the project": 9,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/services/requireOrder.ts) stands for the project": 15,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/catalogue/AddProductUseCase.ts) stands for the project": 22,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/AdvanceOrderUseCase.ts) stands for the project": 87,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/services/OrderLookupService.ts) stands for the project": 21,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/inventory-service.ts) stands for the project": 12,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/catalogue-service.ts) stands for the project": 30,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/use-cases/AddTaskToProjectUseCase.ts) stands for the project": 34,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/errors/ErrorClassifier.ts) stands for the project": 20,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/errors/ErrorClassification.ts) stands for the project": 20,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/use-cases/AssignTaskUseCase.ts) stands for the project": 41,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/project-service.ts) stands for the project": 14,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/dto.ts) stands for the project": 8,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/advance-order-use-case.ts) stands for the project": 50,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/cancel-order-use-case.ts) stands for the project": 15,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/fulfilment-service.ts) stands for the project": 8,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/order-service.ts) stands for the project": 23,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/errors.ts) stands for the project": 17,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/assign-task-use-case.ts) stands for the project": 13,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/add-task-use-case.ts) stands for the project": 33,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/services.ts) stands for the project": 16,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/CreateProjectUseCase.ts) stands for the project": 10,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/task-service.ts) stands for the project": 24,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/create-project-use-case.ts) stands for the project": 12,
+        "cv05-rollup: project-level: FF-CVN fires on N of N source files; one row (src/application/task-management-service.ts) stands for the project": 5
+      },
+      "e1Sample": [
+        {
+          "project": "gpt-5.6-terra/task-management/minimal-prose/run-0",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/in-memory-repositories.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 11 of 11 source files; one row (src/application/task-service.ts) stands for the project"
+        },
+        {
+          "project": "claude-opus-5-5/order-fulfilment/minimal-prose/run-0",
+          "functionId": "FF-CV05",
+          "file": "src/domain/IdGenerator.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        },
+        {
+          "project": "claude-opus-5-5/order-fulfilment/full-aac/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/application/catalogue/ListCatalogueUseCase.ts",
+          "reason": "cv05-no-branching: no control flow, no callbacks, function bodies of at most two statements"
+        },
+        {
+          "project": "claude-opus-5-5/task-management/full-aac/run-0",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/composition/Dependencies.ts",
+          "reason": "cv05-no-branching: no control flow, no callbacks, function bodies of at most two statements"
+        },
+        {
+          "project": "claude-sonnet-5-5/task-management/none/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/domain/model.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 5 of 5 source files; one row (src/application/services.ts) stands for the project"
+        },
+        {
+          "project": "gpt-5.6-terra/order-fulfilment/minimal-prose/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/domain/product.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 9 of 9 source files; one row (src/application/catalogue-service.ts) stands for the project"
+        },
+        {
+          "project": "claude-haiku-4-5/task-management/full-aac/run-0",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/TaskController.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 24 of 24 source files; one row (src/application/AssignTaskUseCase.ts) stands for the project"
+        },
+        {
+          "project": "claude-opus-5-5/task-management/none/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/domain/user.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 13 of 15 source files; one row (src/application/dto.ts) stands for the project"
+        },
+        {
+          "project": "claude-sonnet-5-5/task-management/full-aac/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/infrastructure/persistence/in-memory-task-repository.ts",
+          "reason": "cv05-rollup: project-level: FF-CV05 fires on 25 of 28 source files; one row (src/application/errors.ts) stands for the project"
+        },
+        {
+          "project": "claude-sonnet-5-5/task-management/minimal-prose/run-1",
+          "functionId": "FF-CV05",
+          "file": "src/domain/errors.ts",
+          "reason": "cv05-no-logic: no runtime logic (data classes, enums, constant data)"
+        },
+        {
+          "project": "claude-haiku-4-5/task-management/full-aac/run-2",
+          "functionId": "FF-CV05",
+          "file": "src/application/UserDTO.ts",
+          "reason": "cv05-no-logic: type declarations only"
+        },
+        {
+          "project": "claude-haiku-4-5/task-management/minimal-prose/run-0",
+          "functionId": "FF-C03",
+          "file": "src/infrastructure/app.ts",
+          "reason": "composition-roots: class-free file without control flow that instantiates classes from 3 layers (application, domain, infrastructure)"
+        }
+      ]
+    }
+  ]
+}

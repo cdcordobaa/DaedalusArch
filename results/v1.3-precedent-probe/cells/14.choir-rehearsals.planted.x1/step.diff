@@ -1,0 +1,64 @@
+diff --git a/src/application/record-attendance.ts b/src/application/record-attendance.ts
+index 1ef3e9a..da3a9bf 100644
+--- a/src/application/record-attendance.ts
++++ b/src/application/record-attendance.ts
+@@ -1,13 +1,28 @@
++import { absentTwiceInARow } from '../domain/absence';
+ import type { RehearsalRepository } from '../domain/rehearsal-repository';
++import type { SingerRepository } from '../domain/singer-repository';
++import type { SmsSender } from './ports/sms-sender';
+ 
+ export class RecordAttendance {
+-  constructor(private readonly rehearsals: RehearsalRepository) {}
++  constructor(
++    private readonly rehearsals: RehearsalRepository,
++    private readonly singers: SingerRepository,
++    private readonly sms: SmsSender,
++  ) {}
+ 
+   async execute(rehearsalId: string, singerIds: readonly string[]): Promise<number> {
+     const rehearsal = await this.rehearsals.findById(rehearsalId);
+     if (rehearsal === undefined) throw new Error(`unknown rehearsal ${rehearsalId}`);
+     for (const id of singerIds) rehearsal.attended.add(id);
+     await this.rehearsals.save(rehearsal);
++    const upToNow = (await this.rehearsals.findAll()).filter((r) => r.startsAt.getTime() <= rehearsal.startsAt.getTime());
++    for (const section of rehearsal.sections) {
++      for (const singer of await this.singers.findBySection(section)) {
++        if (absentTwiceInARow(singer, upToNow)) {
++          await this.sms.send(singer.phone, `Hi ${singer.name}, you missed the last two rehearsals. Are you still able to come?`);
++        }
++      }
++    }
+     return rehearsal.attended.size;
+   }
+ }
+diff --git a/src/domain/absence.ts b/src/domain/absence.ts
+new file mode 100644
+index 0000000..fd36e2e
+--- /dev/null
++++ b/src/domain/absence.ts
+@@ -0,0 +1,11 @@
++import { involves, type Rehearsal } from './rehearsal';
++import type { Singer } from './singer';
++
++/** True when the singer was absent from both of the last two held rehearsals of their section (latest first). */
++export function absentTwiceInARow(singer: Singer, rehearsalsUpToNow: readonly Rehearsal[]): boolean {
++  const lastTwo = rehearsalsUpToNow
++    .filter((r) => !r.cancelled && involves(r, singer.section))
++    .sort((a, b) => b.startsAt.getTime() - a.startsAt.getTime())
++    .slice(0, 2);
++  return lastTwo.length === 2 && lastTwo.every((r) => !r.attended.has(singer.id));
++}
+diff --git a/src/infrastructure/main.ts b/src/infrastructure/main.ts
+index 07796b9..4a51038 100644
+--- a/src/infrastructure/main.ts
++++ b/src/infrastructure/main.ts
+@@ -16,7 +16,7 @@ export function buildApp(): express.Express {
+   app.use(
+     choirRoutes({
+       scheduleRehearsal: new ScheduleRehearsal(rehearsals),
+-      recordAttendance: new RecordAttendance(rehearsals),
++      recordAttendance: new RecordAttendance(rehearsals, singers, sms),
+       cancelRehearsal: new CancelRehearsal(rehearsals, singers, sms),
+     }),
+   );

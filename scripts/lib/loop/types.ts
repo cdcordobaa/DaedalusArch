@@ -40,6 +40,44 @@ export interface LoopTask {
   readonly id: string;
   readonly title: string;
   readonly steps: readonly LoopStep[];
+  /** How the acceptance runner starts the task's service (`acceptance.ts`); used only when the plan enables it. */
+  readonly acceptance?: TaskAcceptance;
+}
+
+/** Per-task start block of the acceptance runner (argv arrays; `{{port}}` and `{{dir}}` are substituted). */
+export interface TaskAcceptance {
+  readonly startCommand?: readonly string[];
+  readonly buildCommand?: readonly string[];
+  readonly port?: number;
+  /** Path the readiness wait polls (any HTTP answer counts); default `/`. */
+  readonly healthPath?: string;
+}
+
+/** One acceptance test file run on a snapshot. */
+export interface AcceptanceFileResult {
+  readonly file: string;
+  readonly sha256: string;
+  readonly passed: number;
+  readonly failed: number;
+  readonly skipped: number;
+  /** Cancelled tests, plus 1 when the file crashed, timed out or never ran. */
+  readonly errors: number;
+  readonly timedOut: boolean;
+}
+
+/** The acceptance checks of one snapshot (`Docs/v1.3/acceptance-checks.md`). */
+export interface AcceptanceRecord {
+  readonly schema: 'loop-acceptance/v1';
+  readonly status: 'ran' | 'no-tests' | 'no-start-command' | 'build-failed' | 'service-not-ready' | 'runner-error';
+  readonly passed: number;
+  readonly failed: number;
+  readonly skipped: number;
+  readonly errors: number;
+  readonly durationMs: number;
+  /** sha256 of the sorted `file<TAB>sha256` manifest of the files run. */
+  readonly testFileSha256: string;
+  readonly files: readonly AcceptanceFileResult[];
+  readonly message?: string;
 }
 
 export interface LoopTasksFile {
@@ -103,6 +141,11 @@ export interface TurnInput {
   readonly prompt: string;
   /** Harness-owned directory of this turn's records (outside `cwd`). */
   readonly recordDir: string;
+  /**
+   * `daedalus-mcp` with the loop's call log on: the absolute JSONL path the MCP server appends its calls to
+   * (`<H>/runs/<runId>/calls/<turnId>.jsonl`, outside `cwd`; Docs/v1.3/mcp-call-log.md). Absent otherwise.
+   */
+  readonly callLogPath?: string;
   /** Files the agent changed since the last snapshot (decides "timeout with files written"). */
   readonly changedFiles: () => number;
   /** Puts `cwd` back to the last snapshot (before an infrastructure retry or after a usage-limit interruption). */
@@ -148,6 +191,11 @@ export interface BlockingFinding {
   readonly line?: number;
   readonly target?: string;
   readonly message: string;
+  /**
+   * Gate arm with held-out rules (`plan.gate.shownRules`, `Docs/v1.3/gate-heldout-rules.md`): whether the finding's
+   * rule may be shown in the repair feedback. Absent when the plan sets no held-out rules.
+   */
+  readonly shown?: boolean;
 }
 
 /** The firewall evaluation of one snapshot (v1.3 scoring, FR-V6). */
@@ -158,7 +206,7 @@ export interface StepEvaluation {
   /** AHS over the blocking rules only; null when none ran. */
   readonly blockingAhs: number | null;
   /** v1.3 verdict: `fail` iff a blocking rule has an applicable violation. */
-  readonly verdict: 'pass' | 'fail';
+  readonly verdict: 'pass' | 'fail' | 'incomplete';
   readonly violationCount: number;
   readonly blockingViolationCount: number;
   readonly advisoryViolationCount: number;
@@ -170,8 +218,8 @@ export interface StepEvaluation {
    */
   readonly advisoryByRule?: Readonly<Record<string, number>>;
   /**
-   * The listed blocking findings: every one when the evaluator returns the report's violations (the live
-   * evaluator), else each rule capped as `evaluate_project` caps it.
+   * The blocking findings: every report row the v1.3 scoring counts as blocking (FF-P06's N/A rows and rows a
+   * construct switch moves to advisory are left out), so the list has exactly `blockingViolationCount` entries.
    */
   readonly blockingFindings: readonly BlockingFinding[];
   readonly durationMs: number;
@@ -181,12 +229,73 @@ export interface StepEvaluation {
    * step record.
    */
   readonly reportViolations?: readonly unknown[];
+  /**
+   * The graph engine this evaluation was recorded on: set by every live evaluator (`evaluatorForEngine`; `neo4j`
+   * under `--engine both`). Absent from the stub and from records written before 2026-10-16
+   * (`Docs/v1.3/loop-engine-tee.md`).
+   */
+  readonly engineOfRecord?: 'neo4j' | 'cypher-interp';
+  /** `--engine both` only: the interpreter's evaluation of the same snapshot compared with this one. */
+  readonly parity?: EngineParity;
+}
+
+/** The loop evaluator's graph engine (`--engine`, `Docs/v1.3/loop-engine-tee.md`). */
+export const LOOP_ENGINES = ['neo4j', 'cypher-interp', 'both'] as const;
+export type LoopEngine = (typeof LOOP_ENGINES)[number];
+
+export function parseLoopEngine(value: unknown): LoopEngine | undefined {
+  return typeof value === 'string' && (LOOP_ENGINES as readonly string[]).includes(value) ? (value as LoopEngine) : undefined;
+}
+
+/** Where a parity check landed (`Docs/v1.3/loop-engine-tee.md` §3). */
+export type ParityStatus = 'identical' | 'order' | 'divergent' | 'check-failed';
+
+/** A blocking finding's identity for parity: `(ruleId, template, filePath, target)`. */
+export interface ParityFindingKey {
+  readonly ruleId: string;
+  readonly template: string | null;
+  readonly filePath: string;
+  readonly target: string | null;
+}
+
+/** What differs between the engine of record and the check engine (empty fields left out). */
+export interface ParityDiff {
+  /** Blocking findings only on the engine of record / only on the check engine (at most 20 listed each). */
+  readonly onlyRecord?: readonly ParityFindingKey[];
+  readonly onlyCheck?: readonly ParityFindingKey[];
+  readonly onlyRecordTotal?: number;
+  readonly onlyCheckTotal?: number;
+  /** Rule id → [record, check] where the per-rule counts differ. */
+  readonly blockingByRule?: Readonly<Record<string, readonly [number, number]>>;
+  readonly advisoryByRule?: Readonly<Record<string, readonly [number, number]>>;
+  /** Scalar field → [record, check] where it differs. */
+  readonly fields?: Readonly<Record<string, readonly [unknown, unknown]>>;
+}
+
+export interface EngineParity {
+  readonly checkEngine: 'cypher-interp';
+  readonly status: ParityStatus;
+  /** Present when the status is not `identical`. */
+  readonly diff?: ParityDiff;
+  /** `check-failed` only: the check engine's first error. */
+  readonly checkError?: { readonly code: string; readonly message: string };
+  /** The check engine's own pipeline duration (ms; a timing field, zeroed by the replay's comparisons). */
+  readonly durationMs?: number;
+}
+
+/** `run.json` `parity` under `--engine both`: counts over every evaluated snapshot of the run. */
+export interface RunParityCounts {
+  readonly snapshots: number;
+  readonly identical: number;
+  readonly order: number;
+  readonly divergent: number;
+  readonly checkFailed: number;
 }
 
 /** The firewall run on a snapshot. A failure here is recorded on the step, never retried silently. */
 export interface StepEvaluator {
   readonly id: string;
-  /** `runId` names the loop run of the snapshot (the live evaluator finds the run's pinned tsconfig with it). */
+  /** `runId` names the loop run of the snapshot (the live evaluator finds the run's pinned tsconfig with it, R01). */
   evaluate(projectDir: string, runId?: string): Promise<DomainResult<StepEvaluation>>;
 }
 
@@ -218,6 +327,8 @@ export interface SnapshotMeasure {
   readonly evaluation: StepEvaluation | null;
   /** Code and message when the evaluator failed (the step is kept; the outcome is missing). */
   readonly evaluationError?: { readonly code: string; readonly message: string };
+  /** The acceptance checks of the snapshot; absent unless the plan enables them. */
+  readonly acceptance?: AcceptanceRecord;
 }
 
 export interface TurnRecord {
@@ -241,7 +352,17 @@ export interface StepRecord {
   readonly finishedAt: string;
   readonly turns: readonly TurnRecord[];
   /** Gate arm: whether a repair turn ran and whether it cleared every blocking finding. */
-  readonly repair: { readonly attempted: boolean; readonly blockingBefore: number | null; readonly blockingAfter: number | null; readonly cleared: boolean | null } | null;
+  readonly repair: {
+    readonly attempted: boolean;
+    readonly blockingBefore: number | null;
+    readonly blockingAfter: number | null;
+    readonly cleared: boolean | null;
+    /**
+     * Set when the gate could not judge the step: its snapshot has no evaluation (see `evaluationError`). Such a step
+     * is a harness failure, not a step with no blocking findings (R01, post-merge review 2026-10-16).
+     */
+    readonly skipped?: 'evaluation-failed';
+  } | null;
   /**
    * Gate arm, when a repair ran and both snapshots were evaluated: finding by finding, which blocking findings the
    * repair removed and which it introduced (`repairOutcome` in `loop.ts`).
@@ -249,10 +370,33 @@ export interface StepRecord {
   readonly repairOutcome?: RepairOutcome;
   /** The spec the step's snapshots were evaluated against, when the plan sets one per task (`specs.ts`). */
   readonly evaluatorSpec?: StepSpecRef;
+  /** Gate arm with held-out rules: blocking counts by split before and after the repair (null: no evaluation). */
+  readonly heldOut?: HeldOutCounts;
+  /** `daedalus-mcp` with the call log on: tool use during the step (`process-metrics.ts`). Absent otherwise. */
+  readonly process?: StepProcess;
+  /** The acceptance checks of the step's final snapshot; absent unless the plan enables them. */
+  readonly acceptance?: AcceptanceRecord;
   /** Commit the next step starts from (the last turn's snapshot). */
   readonly finalCommit: string;
   /** Sum over the turns. */
   readonly cost: { readonly costUsd: number | null; readonly inputTokens: number | null; readonly outputTokens: number | null; readonly wallMs: number };
+}
+
+/** Per-step tool use of a `daedalus-mcp` step, from the turns' MCP call logs (Docs/v1.3/mcp-call-log.md). */
+export interface StepProcess {
+  readonly schema: 'loop-process/v1';
+  /** Run-directory-relative paths of the turns' logs that exist. */
+  readonly logs: readonly string[];
+  readonly logFound: boolean;
+  readonly calls: number;
+  readonly errors: number;
+  readonly callsByTool: Readonly<Record<string, number>>;
+  readonly firstCallAt: string | null;
+  /** Null when undetermined (no call, or only an mtime bound that does not decide it). */
+  readonly firstCallBeforeFirstWrite: boolean | null;
+  readonly firstWriteEvidence: 'server-fingerprint' | 'mtime-upper-bound' | 'none';
+  /** Nearest-rank percentiles of the calls' durationMs. */
+  readonly latencyMs: { readonly p50: number | null; readonly p95: number | null };
 }
 
 /**
@@ -282,6 +426,23 @@ export interface RepairOutcome {
   readonly introducedFindings: readonly { readonly ruleId: string; readonly filePath: string; readonly target?: string }[];
 }
 
+/** Blocking counts of a gate step split into shown and withheld rules (`Docs/v1.3/gate-heldout-rules.md`). */
+export interface HeldOutCounts {
+  readonly shownBefore: number | null;
+  readonly withheldBefore: number | null;
+  /** Null when no repair ran or its evaluation failed. */
+  readonly shownAfter: number | null;
+  readonly withheldAfter: number | null;
+}
+
+/** The rule split of a run with held-out rules (`run.json`). */
+export interface HeldOutRuleSplit {
+  /** The plan's `gate.shownRules`, sorted. */
+  readonly shownRuleIds: readonly string[];
+  /** Rules with a blocking finding on some snapshot of the run that are not shown, sorted; set at completion. */
+  readonly withheldRuleIds?: readonly string[];
+}
+
 /** The evaluator spec of a step: a fixed file, or the run's spec frozen after step 1 (`spec/frozen-spec.yaml`). */
 export interface StepSpecRef {
   readonly kind: 'static' | 'frozen-after-step-1';
@@ -307,4 +468,8 @@ export interface RunRecord {
     readonly attention: boolean;
     readonly placedSpec?: { readonly file: string; readonly source: string; readonly sha256: string; readonly readLogMethod: ReadLogMethod };
   };
+  /** Present only when the plan sets `gate.shownRules`. */
+  readonly heldOutRules?: HeldOutRuleSplit;
+  /** `--engine both` only, set at completion: parity counts over every step record of the run. */
+  readonly parity?: RunParityCounts;
 }
