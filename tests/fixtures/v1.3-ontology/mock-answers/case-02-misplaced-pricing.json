@@ -1,0 +1,313 @@
+{
+  "case": "case-02-misplaced-pricing",
+  "note": "Hand-written scripted mock answers (NOT model output). They exercise the ontology pipeline, the grounding validator, the cache and the scorer on the planted cases; they were written after expected-semantic.json and say nothing about what a model would answer. Planted hallucinations are marked 'planted-hallucination'.",
+  "responses": [
+    {
+      "pass": "responsibility",
+      "item": "OrderNotificationService",
+      "answer": {
+        "responsibilities": [
+          {
+            "name": "Send the order confirmation message",
+            "description": "Send the order confirmation message",
+            "naturalLayer": "application",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "OrderNotificationService.sendConfirmation",
+                "quote": "await this.mailer.send(order.customerEmail, 'Order confirmed',"
+              }
+            ]
+          },
+          {
+            "name": "Compute the order discount and the payable amount",
+            "description": "Compute the order discount and the payable amount",
+            "naturalLayer": "domain",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "OrderNotificationService.sendConfirmation",
+                "quote": "const discount = order.lines.length > 3 ? subtotal * 0.1 : 0;"
+              }
+            ]
+          }
+        ],
+        "concepts": [
+          {
+            "name": "Order",
+            "relation": "uses",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "OrderNotificationService.sendConfirmation",
+                "quote": "async sendConfirmation(order: Order): Promise<void> {"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "responsibility",
+      "item": "Order",
+      "answer": {
+        "responsibilities": [
+          {
+            "name": "Hold the order lines and compute the subtotal",
+            "description": "Hold the order lines and compute the subtotal",
+            "naturalLayer": "domain",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "Order.subtotal",
+                "quote": "return this.lines.reduce((acc, l) => acc + l.price * l.quantity, 0);"
+              }
+            ]
+          }
+        ],
+        "concepts": [
+          {
+            "name": "Order",
+            "relation": "defines",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "Order",
+                "quote": "export class Order {"
+              }
+            ]
+          }
+        ]
+      },
+      "runs": [
+        0
+      ]
+    },
+    {
+      "pass": "responsibility",
+      "item": "Order",
+      "answer": {
+        "responsibilities": [
+          {
+            "name": "Hold the order lines and compute the subtotal",
+            "description": "Hold the order lines and compute the subtotal",
+            "naturalLayer": "domain",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "Order.subtotal",
+                "quote": "return this.lines.reduce((acc, l) => acc + l.price * l.quantity, 0);"
+              }
+            ]
+          },
+          {
+            "name": "Send mail",
+            "description": "Send mail",
+            "naturalLayer": "infrastructure",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "ConsoleMailer",
+                "quote": "export class ConsoleMailer implements Mailer {"
+              }
+            ]
+          }
+        ],
+        "concepts": [
+          {
+            "name": "Order",
+            "relation": "defines",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "Order",
+                "quote": "export class Order {"
+              }
+            ]
+          },
+          {
+            "name": "Order history",
+            "relation": "defines",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "nodeId": "0000000000000000",
+                "file": "src/ordering/domain/order.ts",
+                "startLine": 1,
+                "endLine": 400,
+                "quote": "orderHistory"
+              }
+            ]
+          }
+        ]
+      },
+      "runs": [
+        1
+      ],
+      "tag": "planted-hallucination: a node outside the item, an unknown node id and an out-of-range span"
+    },
+    {
+      "pass": "responsibility",
+      "item": "PlaceOrderUseCase",
+      "answer": {
+        "responsibilities": [
+          {
+            "name": "Place an order",
+            "description": "Place an order",
+            "naturalLayer": "application",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "PlaceOrderUseCase.execute",
+                "quote": "const order = new Order(id, customerEmail, lines);"
+              }
+            ]
+          }
+        ],
+        "concepts": [
+          {
+            "name": "Order",
+            "relation": "uses",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "PlaceOrderUseCase.execute",
+                "quote": "const order = new Order(id, customerEmail, lines);"
+              }
+            ]
+          }
+        ]
+      },
+      "runs": [
+        0
+      ]
+    },
+    {
+      "pass": "responsibility",
+      "item": "PlaceOrderUseCase",
+      "answer": {
+        "responsibilities": [
+          {
+            "name": "Place an order",
+            "description": "Place an order",
+            "naturalLayer": "domain",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "PlaceOrderUseCase.execute",
+                "quote": "const order = new Order(id, customerEmail, lines);"
+              }
+            ]
+          }
+        ],
+        "concepts": [
+          {
+            "name": "Order",
+            "relation": "uses",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "PlaceOrderUseCase.execute",
+                "quote": "const order = new Order(id, customerEmail, lines);"
+              }
+            ]
+          }
+        ]
+      },
+      "runs": [
+        1
+      ],
+      "tag": "planted disagreement: natural layer differs between runs"
+    },
+    {
+      "pass": "responsibility",
+      "item": "ConsoleMailer",
+      "answer": {
+        "responsibilities": [
+          {
+            "name": "Deliver mail (console stand-in)",
+            "description": "Deliver mail (console stand-in)",
+            "naturalLayer": "infrastructure",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "ConsoleMailer.send",
+                "quote": "this.sent.push(`${to}|${subject}|${body}`);"
+              }
+            ]
+          }
+        ],
+        "concepts": []
+      }
+    },
+    {
+      "pass": "rules",
+      "item": "OrderNotificationService",
+      "answer": {
+        "rules": [
+          {
+            "statement": "Orders with more than 3 lines get a 10% discount",
+            "subject": "order line count",
+            "operator": ">",
+            "threshold": 3,
+            "unit": "lines",
+            "enforcedBy": "OrderNotificationService.sendConfirmation",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "OrderNotificationService.sendConfirmation",
+                "quote": "order.lines.length > 3 ? subtotal * 0.1 : 0"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "capability",
+      "item": "component:notifications",
+      "answer": {
+        "capabilities": [
+          {
+            "name": "Customer notification",
+            "description": "Customer notification",
+            "realizedBy": [
+              "OrderNotificationService",
+              "ConsoleMailer"
+            ],
+            "confidence": 0.8,
+            "evidence": [
+              {
+                "node": "OrderNotificationService",
+                "quote": "export class OrderNotificationService {"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "capability",
+      "item": "component:ordering",
+      "answer": {
+        "capabilities": [
+          {
+            "name": "Order placement",
+            "description": "Order placement",
+            "realizedBy": [
+              "Order",
+              "PlaceOrderUseCase"
+            ],
+            "confidence": 0.8,
+            "evidence": [
+              {
+                "node": "PlaceOrderUseCase",
+                "quote": "export class PlaceOrderUseCase {"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

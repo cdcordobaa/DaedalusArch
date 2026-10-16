@@ -1,0 +1,45 @@
+{
+  "itemId": "component:notifications",
+  "itemName": "component:notifications",
+  "key": "c531b253656333cd680fd397ace220e525fbd76a707502200ffee84e22b62e02",
+  "parts": {
+    "model": "mock-ontology",
+    "pass": "capability",
+    "promptHash": "d23380f8038b410b3af8250403839b46286bf08396f4174337dc69eef76b88e5",
+    "promptVersion": "ontology-v0.1",
+    "provider": "mock",
+    "runIndex": 1,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "1c83830bfa99ad49d460d30b4c3202dea92d0aeeb55aa17addec0d18e16c9cd5"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of component \"notifications\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- ConsoleMailer (node 9e5dca9006c883b8), file src/notifications/infrastructure/console-mailer.ts, declaration line 3: \"export class ConsoleMailer implements Mailer {\"\n  component notifications, layer infrastructure; responsibilities: Deliver mail (console stand-in)\n- OrderNotificationService (node ee110f001f97012a), file src/notifications/application/order-notification.service.ts, declaration line 4: \"export class OrderNotificationService {\"\n  component notifications, layer application; responsibilities: Send the order confirmation message; Compute the order discount and the payable amount",
+  "recordedAt": "2026-10-15T00:00:00.000Z",
+  "resolvedModel": "mock-ontology",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.8,
+        "description": "Customer notification",
+        "evidence": [
+          {
+            "endLine": 4,
+            "file": "src/notifications/application/order-notification.service.ts",
+            "nodeId": "ee110f001f97012a",
+            "quote": "export class OrderNotificationService {",
+            "startLine": 4
+          }
+        ],
+        "name": "Customer notification",
+        "realizedBy": [
+          "ee110f001f97012a",
+          "9e5dca9006c883b8"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 249,
+    "outputTokens": 87
+  }
+}

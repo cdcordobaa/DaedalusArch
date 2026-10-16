@@ -1,0 +1,28 @@
+{
+  "itemId": "94fad50109c76d14",
+  "itemName": "Shipping is waived when the invoice sum reaches 50.00 ~ Shipping is free when the order total is at least 50",
+  "key": "6e5935f3a1f9be8c5d8f1f73aad31e3eef36d9ee5e69a581ecb9cf283eec7919",
+  "parts": {
+    "model": "mock-ontology",
+    "pass": "adjudicate",
+    "promptHash": "fba0ff161a00bc379d192302363a6dec93d56b39b992b79c1eaecd85df703e95",
+    "promptVersion": "ontology-v0.1",
+    "provider": "mock",
+    "runIndex": 0,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "1c83830bfa99ad49d460d30b4c3202dea92d0aeeb55aa17addec0d18e16c9cd5"
+  },
+  "prompt": "## Task\nDo A and B state the same business rule (the same policy, so that changing the policy would require changing both), even if the code is shaped differently or uses other units? Different policies that happen to share a threshold are not the same rule.\n\n### A\nrule: Shipping is waived when the invoice sum reaches 50.00\nwhere: src/invoicing/application/invoice-assembler.ts assemble (component invoicing)\ncode:\n=====SOURCE-BEGIN\n!(sum < FREE_SHIPPING_MIN_CENTS) ? 0 : SHIPPING_FEE_CENTS\n=====SOURCE-END=====\n\n### B\nrule: Shipping is free when the order total is at least 50\nwhere: src/checkout/domain/shipping-policy.ts shippingFor (component checkout)\ncode:\n=====SOURCE-BEGIN\nif (total >= 50) {\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-15T00:00:00.000Z",
+  "resolvedModel": "mock-ontology",
+  "response": {
+    "confidence": 0.9,
+    "rationale": "Both waive shipping from an order value of 50; the invoicing side counts in cents.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 181,
+    "outputTokens": 32
+  }
+}

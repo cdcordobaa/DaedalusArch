@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6534,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "174240baa37bb81956efa528f0acf94946fb8185dd2d72766b3491a9a75d90b0-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/model/Booking.ts imports only from the domain: '../errors/BookingError', './DateRange' and './Money'",
+      "class Booking has no decorators and no base class; its constructor fields are string, DateRange and Money",
+      "cancel() throws new BookingError('invalid', ...), a domain error type the project declares, not an HTTP error",
+      "No queries, database clients, HTTP calls or file access appear in the file"
+    ],
+    "pass": true,
+    "reasoning": "Booking.ts is a pure domain entity. It has no framework decorators, no ORM base classes and no dependency injection annotations. It does no persistence or I/O, and no HTTP request, response or status types appear. Its only imports are domain types: BookingError, DateRange and Money. The cancel() method enforces a domain invariant, so a booking that is already cancelled cannot be cancelled again. It throws a domain error that the project defines itself. Every declaration fits the domain layer.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities, signatures and annotations match the role of its declared layer.\n\n## Rubric\nPass: Every declaration in the file belongs to the role and kind of its declared layer, including its parameter, return and field types, its decorators and base classes, and its statements, and agrees with any ADR prose given.\nFail: The file carries something that belongs to a different layer kind. In a domain or application file: a request, response, HTTP context, status code or HTTP error, from a web or transport package or from the delivery layer, in any method or function signature (parameter or return) or thrown, even when the parameter is optional or unused. In a domain file also: any framework or ORM type, decorator or base class (dependency injection, routing, persistence mapping), even when the class logic is pure; or persistence or I/O (queries, database or ORM clients, HTTP or file access). In an infrastructure or presentation file: a business rule, that is a domain invariant, calculation or decision that the domain or application layer should own. Constructor parameters of an application file are dependency wiring: an injected repository, client or service there is not by itself misplaced. A type the project declares itself is not a framework type, whatever its name.\nEvidence required: Name the file and cite the signature, decorator, declaration or statement that carries the misplaced responsibility, its package or origin, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- adapters-inbound (kind: presentation): src/adapters/inbound/**\n- adapters-outbound (kind: infrastructure): src/adapters/outbound/**\n- config (kind: application): src/config/**\n\n## Unit\nKind: file\nId: src/domain/model/Booking.ts\nLayer: domain\nUnit files:\n- src/domain/model/Booking.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/model/Booking.ts=====\nimport { BookingError } from '../errors/BookingError';\nimport { DateRange } from './DateRange';\nimport { Money } from './Money';\n\nexport type BookingStatus = 'confirmed' | 'cancelled';\n\nexport class Booking {\n  private bookingStatus: BookingStatus = 'confirmed';\n\n  constructor(\n    readonly id: string,\n    readonly roomId: string,\n    readonly guestId: string,\n    readonly stay: DateRange,\n    readonly total: Money,\n    readonly paymentRef: string,\n  ) {}\n\n  get status(): BookingStatus {\n    return this.bookingStatus;\n  }\n\n  get isActive(): boolean {\n    return this.bookingStatus === 'confirmed';\n  }\n\n  cancel(): void {\n    if (!this.isActive) throw new BookingError('invalid', `Booking ${this.id} is already cancelled`);\n    this.bookingStatus = 'cancelled';\n  }\n}\n\n=====SOURCE-END=====\n\n## Neighbourhood\nsrc/domain/model/Booking.ts (layer domain, kind domain)\n  imports: src/domain/errors/BookingError.ts (layer domain, kind domain); src/domain/model/DateRange.ts (layer domain, kind domain); src/domain/model/Money.ts (layer domain, kind domain)\n  imported by: src/adapters/outbound/persistence/InMemoryBookingRepository.ts (layer adapters-outbound, kind infrastructure); src/application/ports/in/BookingView.ts (layer application, kind application); src/application/ports/out/BookingRepository.ts (layer application, kind application); src/application/services/BookRoomService.ts (layer application, kind application); src/domain/services/AvailabilityChecker.ts (layer domain, kind domain)\n  types: Booking injects DateRange in src/domain/model/DateRange.ts (layer domain, kind domain); Booking injects Money in src/domain/model/Money.ts (layer domain, kind domain)\n\n## Candidate flags\nCandidates proposed by deterministic checks; verify, don't trust. Each line is a tool observation with its location, not a finding.\n(none)\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric. Check each candidate flag against the source: a flag the source does not support must not count against the unit, and a violation the flags miss counts as much as one they name. Judge what each declaration is, not only what it does at run time.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T21:15:40.298Z",
+  "repetition": 0,
+  "requestHash": "174240baa37bb81956efa528f0acf94946fb8185dd2d72766b3491a9a75d90b0",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":440}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"Booking.ts is a pure domain entity. It has no framework decorators, no ORM base classes and no dependency injection annotations. It does no persistence or I/O, and no HTTP request, response or status types appear. Its only imports are domain types: BookingError, DateRange and Money. The cancel() method enforces a domain invariant, so a booking that is already cancelled cannot be cancelled again. It throws a domain error that the project defines itself. Every declaration fits the domain layer.\\\",\\\"evidence\\\":[\\\"src/domain/model/Booking.ts imports only from the domain: '../errors/BookingError', './DateRange' and './Money'\\\",\\\"class Booking has no decorators and no base class; its constructor fields are string, DateRange and Money\\\",\\\"cancel() throws new BookingError('invalid', ...), a domain error type the project declares, not an HTTP error\\\",\\\"No queries, database clients, HTTP calls or file access appear in the file\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/model/Booking.ts imports only from the domain: '../errors/BookingError', './DateRange' and './Money'\",\"class Booking has no decorators and no base class; its constructor fields are string, DateRange and Money\",\"cancel() throws new BookingError('invalid', ...), a domain error type the project declares, not an HTTP error\",\"No queries, database clients, HTTP calls or file access appear in the file\"],\"pass\":true,\"reasoning\":\"Booking.ts is a pure domain entity. It has no framework decorators, no ORM base classes and no dependency injection annotations. It does no persistence or I/O, and no HTTP request, response or status types appear. Its only imports are domain types: BookingError, DateRange and Money. The cancel() method enforces a domain invariant, so a booking that is already cancelled cannot be cancelled again. It throws a domain error that the project defines itself. Every declaration fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/model/Booking.ts",
+  "usage": {
+    "inputTokens": 3035,
+    "outputTokens": 440
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

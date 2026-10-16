@@ -4,7 +4,7 @@
  * Entry file: no exports besides `summarise` and `renderDownstream` (unit-tested).
  *
  * Usage (repository root), after `ise-measure.ts` wrote <out>/specs/:
- *   NEO4J_URI=bolt://localhost:7687 NEO4J_PASSWORD=... npx tsx scripts/v1.3/ise-downstream.ts [--out <dir>] [--target id,id]
+ *   NEO4J_URI=bolt://localhost:7687 NEO4J_PASSWORD=... npx tsx scripts/v1.3/ise-downstream.ts [--out <dir>] [--set dev|heldout|all] [--target id,id]
  *   npx tsx scripts/v1.3/ise-downstream.ts --from-raw [--out <dir>]     (recompute from <out>/raw, no Neo4j)
  * Writes <out>/raw/<target>/<variant>.json (both specs' rows), <out>/downstream.json and <out>/downstream.md.
  */
@@ -15,7 +15,7 @@ import { acquireNeo4jLock } from '../../src/shared/process/neo4j-lock.js';
 import type { ActualFinding } from './lib/compare.js';
 import { blockingAgreement, plantedResult } from './lib/ise-compare.js';
 import type { BlockingAgreement, PlantedResult } from './lib/ise-compare.js';
-import { ISE_TARGETS, materialiseTarget, renamedFindings, trueSpecText } from './lib/ise-targets.js';
+import { materialiseTarget, targetSet, renamedFindings, trueSpecText } from './lib/ise-targets.js';
 import { makeTempRoot } from './lib/materialise.js';
 import { loadAllReferences } from './lib/reference-model.js';
 import { LIVE_REFUSAL, liveEvaluator } from './lib/validate-reference-main.js';
@@ -34,11 +34,14 @@ export interface TargetDownstream {
   readonly inferredStyle: string;
   readonly variants: readonly VariantDownstream[];
   readonly summary: ReturnType<typeof summarise>;
+  /** The firewall refused to evaluate under the inferred spec (e.g. the compiler rejects it); inferred columns are void. */
+  readonly inferredSpecError?: string;
 }
 
 interface Raw {
   readonly trueFindings: readonly ActualFinding[];
   readonly inferredFindings: readonly ActualFinding[];
+  readonly inferredError?: string;
 }
 
 /** Per-target totals: verdict agreement, mean blocking Jaccard, planted recall under each spec. */
@@ -81,9 +84,18 @@ export function renderDownstream(results: readonly TargetDownstream[]): string {
   out.push('|---|---|---|---|---|---|---|---|---|---|');
   for (const r of results) {
     const s = r.summary;
+    if (r.inferredSpecError !== undefined) {
+      const x = 'inferred spec rejected';
+      out.push(`| ${r.id} | ${r.trueStyle} | ${r.inferredStyle} | ${x} | ${x} | - | ${frac(s.plantedTrue, s.violationVariants)} | ${x} | ${frac(s.touchedTrue, s.violationVariants)} / - | ${frac(s.expectedMatchedTrue, s.expectedTotal)} / - |`);
+      continue;
+    }
     out.push(`| ${r.id} | ${r.trueStyle} | ${r.inferredStyle} | ${frac(s.verdictAgreement, s.variants)} | ${frac(s.exactBlockingAgreement, s.variants)} | ${s.meanJaccard.toFixed(2)} | ${frac(s.plantedTrue, s.violationVariants)} | ${frac(s.plantedInferred, s.violationVariants)} | ${frac(s.touchedTrue, s.violationVariants)} / ${frac(s.touchedInferred, s.violationVariants)} | ${frac(s.expectedMatchedTrue, s.expectedTotal)} / ${frac(s.expectedMatchedInferred, s.expectedTotal)} |`);
   }
   for (const r of results) {
+    if (r.inferredSpecError !== undefined) {
+      out.push('', `## ${r.id}`, '', `The firewall refused every evaluation under the inferred spec: \`${r.inferredSpecError}\`.`);
+      continue;
+    }
     const rows = r.variants.filter((v) => v.agreement.onlyInferred.length + v.agreement.onlyTrue.length > 0 || v.trueSpec.plantedDetected !== v.inferredSpec.plantedDetected);
     out.push('', `## ${r.id}`, '', rows.length === 0 ? 'Every variant: identical blocking findings and the same planted-rule outcome.' : '| Variant | Kind | Blocking only under inferred | Blocking only under true | Planted (true / inferred) |');
     if (rows.length > 0) out.push('|---|---|---|---|---|');
@@ -116,7 +128,7 @@ async function run(): Promise<number> {
   const work = makeTempRoot('v13-ise-d-');
   const results: TargetDownstream[] = [];
   try {
-    for (const t of ISE_TARGETS.filter((x) => only === undefined || only.has(x.id))) {
+    for (const t of targetSet(argv).filter((x) => only === undefined || only.has(x.id))) {
       const ref = refs.find((r) => r.style === t.style);
       if (ref === undefined) throw new Error(`no reference ${t.style}`);
       const inferredPath = path.join(out, 'specs', `${t.id}.yaml`);
@@ -133,7 +145,12 @@ async function run(): Promise<number> {
         if (evaluate === undefined) raw = JSON.parse(fs.readFileSync(rawFile, 'utf8')) as Raw;
         else {
           const dir = materialiseTarget(ref, v, t, work);
-          raw = { trueFindings: await evaluate(dir, truePath), inferredFindings: await evaluate(dir, inferredPath) };
+          const trueFindings = await evaluate(dir, truePath);
+          try {
+            raw = { trueFindings, inferredFindings: await evaluate(dir, inferredPath) };
+          } catch (e: unknown) {
+            raw = { trueFindings, inferredFindings: [], inferredError: e instanceof Error ? e.message : String(e) };
+          }
           fs.mkdirSync(path.dirname(rawFile), { recursive: true });
           fs.writeFileSync(rawFile, JSON.stringify(raw, null, 1) + '\n');
         }
@@ -153,7 +170,8 @@ async function run(): Promise<number> {
           inferredSpec: plantedResult(ref.style, manifest, raw.inferredFindings, cleanRaw.inferredFindings, scope),
         };
       });
-      results.push({ id: t.id, trueStyle: ref.style, inferredStyle, variants, summary: summarise(variants) });
+      const inferredError = [...raws.values()].find((r) => r.inferredError !== undefined)?.inferredError;
+      results.push({ id: t.id, trueStyle: ref.style, inferredStyle, variants, summary: summarise(variants), ...(inferredError !== undefined ? { inferredSpecError: inferredError } : {}) });
     }
   } finally {
     fs.rmSync(work, { recursive: true, force: true });

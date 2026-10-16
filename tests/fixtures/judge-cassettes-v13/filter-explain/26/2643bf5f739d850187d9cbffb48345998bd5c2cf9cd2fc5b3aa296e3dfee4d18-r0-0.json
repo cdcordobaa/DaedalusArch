@@ -1,0 +1,36 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 18410,
+  "effort": "high",
+  "functionId": "filter-explain",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "2643bf5f739d850187d9cbffb48345998bd5c2cf9cd2fc5b3aa296e3dfee4d18-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "## Finding\nRule: FF-C03\nRule intent: Component instability stays below its threshold for the layer.\nType: INSTABILITY_VIOLATION\nSeverity: major; tier: advisory (unscored)\nFile: src/business/ServiceFactory.ts\nMessage: Violation in src/business/ServiceFactory.ts\nEvidence: instability=0.8571428571428571\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**\n- business (kind: domain): src/business/**\n- presentation (kind: presentation): src/presentation/**\n\n## Source (line-numbered)\n=====SOURCE-BEGIN src/business/ServiceFactory.ts (layer business)=====\n 1| import { InMemoryDatabase } from '../persistence/Database';\n 2| import { CustomerGateway } from '../persistence/CustomerGateway';\n 3| import { OrderGateway } from '../persistence/OrderGateway';\n 4| import { ProductGateway } from '../persistence/ProductGateway';\n 5| import { CatalogService } from './services/CatalogService';\n 6| import { OrderService } from './services/OrderService';\n 7| \n 8| export interface BusinessServices {\n 9|   catalog: CatalogService;\n10|   orders: OrderService;\n11| }\n12| \n13| /**\n14|  * The business layer builds the layer below it, so the presentation layer only ever names business services\n15|  * (closed layering, Buschmann et al. 1996, \"Layers\").\n16|  */\n17| export function createServices(): BusinessServices {\n18|   const db = new InMemoryDatabase();\n19|   const products = new ProductGateway(db);\n20|   new CustomerGateway(db).insert({ id: 'c-1', name: 'Grace', email: 'grace@example.org', loyaltyTier: 'gold' });\n21|   return {\n22|     catalog: new CatalogService(products),\n23|     orders: new OrderService(new OrderGateway(db), products, new CustomerGateway(db)),\n24|   };\n25| }\n=====SOURCE-END=====\n\n## Instructions\nDecide confirm or dismiss. Confirm: the cited code has the problem the rule is meant to catch, in this project and layer model. Dismiss: the rule fired, but the code does not have that problem (a false positive of the rule's mechanism, a threshold artefact on sound code, or a case the style allows). Measurements stated in the finding (counts, ratios, missing files) are correct as measurements; judge what they mean for this code. explanation: one paragraph that justifies the decision from the code, citing file paths and line numbers exactly as numbered below. fix: one concrete change: for a confirm, how to fix the code; for a dismiss, what (if anything) the rule or its configuration should change. citations: the line ranges your explanation relies on; every one must name a file shown below and lines that exist.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T00:03:04.102Z",
+  "repetition": 0,
+  "requestHash": "2643bf5f739d850187d9cbffb48345998bd5c2cf9cd2fc5b3aa296e3dfee4d18",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":1647}},\"result\":\"{\\\"decision\\\":\\\"dismiss\\\",\\\"explanation\\\":\\\"src/business/ServiceFactory.ts is a composition root. It imports four concrete persistence classes (lines 1-4) and two business services (lines 5-6), and its one function, createServices (lines 17-25), only builds and wires them. A module like this always has high fan-out and fan-in of about one (its startup caller), so instability ≈ 6/7 = 0.857 comes from what the module is, not from a design flaw. The rule exists to stop stable code from depending on volatile code, and that doesn't apply here. The factory has no domain logic, its only consumer is startup code that is meant to be unstable, and its dependencies point downward from business to persistence, which closed layering allows (the comment on lines 13-16 says this is intended). Business services are exposed through the BusinessServices interface (lines 8-11), and the factory doesn't make them any less stable. Lowering this module's fan-out would add indirection for no structural benefit, so this is a threshold artefact on sound code.\\\",\\\"fix\\\":\\\"Leave the code as is. Change FF-C03's configuration instead: exempt composition roots by path pattern (e.g. **/*Factory.ts or a composition/ folder) or by detecting modules that only construct objects and have one importer, or measure instability per layer rather than per file.\\\",\\\"citations\\\":[{\\\"filePath\\\":\\\"src/business/ServiceFactory.ts\\\",\\\"startLine\\\":1,\\\"endLine\\\":6},{\\\"filePath\\\":\\\"src/business/ServiceFactory.ts\\\",\\\"startLine\\\":8,\\\"endLine\\\":11},{\\\"filePath\\\":\\\"src/business/ServiceFactory.ts\\\",\\\"startLine\\\":13,\\\"endLine\\\":16},{\\\"filePath\\\":\\\"src/business/ServiceFactory.ts\\\",\\\"startLine\\\":17,\\\"endLine\\\":25}]}\",\"structured_output\":{\"citations\":[{\"endLine\":6,\"filePath\":\"src/business/ServiceFactory.ts\",\"startLine\":1},{\"endLine\":11,\"filePath\":\"src/business/ServiceFactory.ts\",\"startLine\":8},{\"endLine\":16,\"filePath\":\"src/business/ServiceFactory.ts\",\"startLine\":13},{\"endLine\":25,\"filePath\":\"src/business/ServiceFactory.ts\",\"startLine\":17}],\"decision\":\"dismiss\",\"explanation\":\"src/business/ServiceFactory.ts is a composition root. It imports four concrete persistence classes (lines 1-4) and two business services (lines 5-6), and its one function, createServices (lines 17-25), only builds and wires them. A module like this always has high fan-out and fan-in of about one (its startup caller), so instability ≈ 6/7 = 0.857 comes from what the module is, not from a design flaw. The rule exists to stop stable code from depending on volatile code, and that doesn't apply here. The factory has no domain logic, its only consumer is startup code that is meant to be unstable, and its dependencies point downward from business to persistence, which closed layering allows (the comment on lines 13-16 says this is intended). Business services are exposed through the BusinessServices interface (lines 8-11), and the factory doesn't make them any less stable. Lowering this module's fan-out would add indirection for no structural benefit, so this is a threshold artefact on sound code.\",\"fix\":\"Leave the code as is. Change FF-C03's configuration instead: exempt composition roots by path pattern (e.g. **/*Factory.ts or a composition/ folder) or by detecting modules that only construct objects and have one importer, or measure instability per layer rather than per file.\"}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "b9d36932d0737560",
+  "usage": {
+    "inputTokens": 2387,
+    "outputTokens": 1647
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

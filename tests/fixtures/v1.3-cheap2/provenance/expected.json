@@ -1,0 +1,44 @@
+{
+  "proxy": "agent-provenance",
+  "planted": [
+    {
+      "id": "P1",
+      "kind": "reimplementation-candidate",
+      "file": "src/tags/application/tag.service.ts",
+      "className": "TagService",
+      "methodName": "overdueTagged",
+      "note": "clone of TodoService.overdue (step 1), step 2"
+    },
+    {
+      "id": "P2",
+      "kind": "reimplementation-candidate",
+      "file": "src/reports/infrastructure/todo.store.ts",
+      "className": "TodoStore",
+      "note": "concept and members of InMemoryTodoRepository, step 3"
+    },
+    {
+      "id": "P3",
+      "kind": "reimplementation-candidate",
+      "file": "src/reports/domain/overdue.ts",
+      "methodName": "isBehind",
+      "note": "clone of isLate (step 1), step 4"
+    }
+  ],
+  "nearMisses": [
+    {
+      "id": "N1",
+      "file": "src/todos/infrastructure/postgres-todo.repository.ts",
+      "note": "second adapter of the TodoRepository port"
+    },
+    {
+      "id": "N2",
+      "file": "src/tags/infrastructure/in-memory-tag.repository.ts",
+      "note": "same members, different concept"
+    },
+    {
+      "id": "N3",
+      "file": "src/todos/application/todo-query.service.ts",
+      "note": "reuses TodoService"
+    }
+  ]
+}

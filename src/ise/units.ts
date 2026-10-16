@@ -5,6 +5,13 @@
  * directory (`src/adapters/inbound/`), or a file directly under the source root (`src/main.ts`). Unit edges aggregate
  * the file import edges. Between two units the majority direction (by edge count) is taken as the observed rule; a
  * unit's level is the longest path to a sink over majority edges (sinks, which import no other unit, are level 0).
+ *
+ * Structure over vocabulary (2026-10-15, after the rename probes of the prototype):
+ * - the source root descends through wrapper directories (`src/app/` when everything sits under it);
+ * - a chain of single-child directories is looked through (`src/x/only/{a,b}` has the children `a` and `b`);
+ * - a top-level directory is split into its children when it is a *structural container*: no files of its own and
+ *   children that (almost) never import each other (`STRUCTURAL_CONTAINER_MAX_CROSS`), whatever their names are.
+ *   The container vocabulary (`adapters`, `common`, ...) still splits as before.
  */
 import type { IseGraph } from './graph-view.js';
 import { CONTAINER_TOKENS, normaliseToken } from './vocabulary.js';
@@ -18,6 +25,8 @@ export interface Unit {
   readonly files: readonly string[];
   /** The directly contained files of a split directory only (glob `<id>*`, not `<id>**`). */
   readonly directOnly: boolean;
+  /** For a child of a container directory (vocabulary or structural): the container's id. */
+  readonly group?: string;
 }
 
 export interface UnitEdge {
@@ -32,7 +41,10 @@ export interface UnitStructure {
   readonly unitOf: ReadonlyMap<string, string>;
   /** All cross-unit edges with counts (both directions kept). */
   readonly edges: readonly UnitEdge[];
-  /** Majority-direction edges (the minority direction of a pair dropped; ties keep both). */
+  /**
+   * Majority-direction edges (the minority direction of a pair dropped; ties keep both), without lateral edges: an
+   * edge between two children of the same container (`Unit.group`) is a sideways exception, not a layer order.
+   */
   readonly majority: readonly UnitEdge[];
   /** Longest-path level to a sink over `majority` (members of a majority cycle share a level). */
   readonly level: ReadonlyMap<string, number>;
@@ -40,52 +52,114 @@ export interface UnitStructure {
   readonly roots: readonly string[];
 }
 
-/** `src/` when every file is under it, else '' (the project root). */
-export function detectSourceRoot(files: readonly string[]): string {
-  return files.length > 0 && files.every((f) => f.startsWith('src/')) ? 'src/' : '';
-}
-
-function dirsUnder(files: readonly string[], prefix: string): Map<string, string[]> {
-  const out = new Map<string, string[]>();
+/** Direct files and child directories (`<dir><name>/` -> files below it) of `dir` among `files`. */
+export function childrenOf(files: readonly string[], dir: string): { direct: string[]; dirs: Map<string, string[]> } {
+  const direct: string[] = [];
+  const dirs = new Map<string, string[]>();
   for (const f of files) {
-    if (!f.startsWith(prefix)) continue;
-    const rest = f.slice(prefix.length);
+    if (!f.startsWith(dir)) continue;
+    const rest = f.slice(dir.length);
     const i = rest.indexOf('/');
-    const key = i < 0 ? rest : rest.slice(0, i + 1);
-    const list = out.get(key) ?? [];
-    list.push(f);
-    out.set(key, list);
+    if (i < 0) {
+      direct.push(f);
+      continue;
+    }
+    const key = dir + rest.slice(0, i + 1);
+    dirs.set(key, [...(dirs.get(key) ?? []), f]);
   }
-  return out;
+  return { direct, dirs };
 }
 
 /**
- * Units of `files`. A top-level directory is split into its children when its token is a container token or
- * `split(dirId)` says so; files directly inside a split directory become one unit `<dir>` (kind dir) of their own.
+ * The directory below `dir` where it branches: descends while the directory has exactly one child directory (and, when
+ * `strict`, no files of its own). Returns the chain from `dir` to that directory, both included.
  */
-export function detectUnits(files: readonly string[], sourceRoot: string, split: (dirId: string) => boolean = () => false): Unit[] {
+export function singleChildChain(files: readonly string[], dir: string, strict: boolean): string[] {
+  const chain = [dir];
+  for (;;) {
+    const cur = chain[chain.length - 1] ?? dir;
+    const { direct, dirs } = childrenOf(files, cur);
+    if (dirs.size !== 1 || (strict && direct.length > 0)) return chain;
+    chain.push([...dirs.keys()][0] ?? cur);
+  }
+}
+
+/**
+ * `src/` when every file is under it, else '' (the project root); then down through wrapper directories: while the
+ * root holds no file of its own and exactly one directory, that directory is the root (`src/app/`).
+ */
+export function detectSourceRoot(files: readonly string[]): string {
+  const base = files.length > 0 && files.every((f) => f.startsWith('src/')) ? 'src/' : '';
+  if (files.length === 0) return base;
+  const chain = singleChildChain(files, base, true);
+  return chain[chain.length - 1] ?? base;
+}
+
+/** At most this share of a container's edges may run between two of its children (one stray import tolerated). */
+export const STRUCTURAL_CONTAINER_MAX_CROSS = 0.1;
+
+/**
+ * A structural container: `dirId` (through its single-child chain) holds no file of its own and branches into >= 2
+ * child directories that do not import each other: edges between two different children are at most
+ * `STRUCTURAL_CONTAINER_MAX_CROSS` of all edges touching the children. Names play no part.
+ */
+export function isStructuralContainer(files: readonly string[], edges: readonly { from: string; to: string }[], dirId: string): boolean {
+  const chain = singleChildChain(files, dirId, true);
+  const end = chain[chain.length - 1] ?? dirId;
+  const { direct, dirs } = childrenOf(files, end);
+  if (direct.length > 0 || dirs.size < 2) return false;
+  const childOf = (f: string): string | undefined => (f.startsWith(end) ? [...dirs.keys()].find((d) => f.startsWith(d)) : undefined);
+  let cross = 0;
+  let touching = 0;
+  for (const e of edges) {
+    const a = childOf(e.from);
+    const b = childOf(e.to);
+    if (a === undefined && b === undefined) continue;
+    if (a === b) continue;
+    touching += 1;
+    if (a !== undefined && b !== undefined) cross += 1;
+  }
+  return cross === 0 || cross <= STRUCTURAL_CONTAINER_MAX_CROSS * touching;
+}
+
+/**
+ * Units of `files`. A top-level directory is split into its children when its token is a container token, when
+ * `split(dirId)` says so, or (given `edges`) when it is a structural container; the children are taken where the
+ * directory first branches (`singleChildChain`), and the files directly inside a split directory (or a directory of
+ * its chain) become one unit `<dir>` (kind dir, `directOnly`) of their own.
+ */
+export function detectUnits(
+  files: readonly string[],
+  sourceRoot: string,
+  split: (dirId: string) => boolean = () => false,
+  edges?: readonly { from: string; to: string }[],
+): Unit[] {
   const units: Unit[] = [];
-  const add = (id: string, kind: Unit['kind'], fs: string[], directOnly = false): void => {
+  const add = (id: string, kind: Unit['kind'], fs: string[], directOnly = false, group?: string): void => {
     const name = id.replace(/\/$/, '').split('/').pop() ?? id;
-    units.push({ id, kind, token: normaliseToken(kind === 'file' ? name.replace(/\.[^.]+$/, '') : name), files: fs.sort(), directOnly });
+    units.push({ id, kind, token: normaliseToken(kind === 'file' ? name.replace(/\.[^.]+$/, '') : name), files: fs.sort(), directOnly, ...(group !== undefined ? { group } : {}) });
   };
-  for (const [key, fs] of [...dirsUnder(files, sourceRoot)].sort(([a], [b]) => (a < b ? -1 : 1))) {
-    const id = sourceRoot + key;
-    if (!key.endsWith('/')) {
-      add(id, 'file', fs);
+  const top = childrenOf(files, sourceRoot);
+  for (const f of top.direct) add(f, 'file', [f]);
+  for (const [id, fs] of top.dirs) {
+    const byName = CONTAINER_TOKENS.includes(normaliseToken(id.slice(sourceRoot.length, -1)));
+    const structural = !byName && !split(id) && edges !== undefined && isStructuralContainer(fs, edges, id);
+    if (!byName && !split(id) && !structural) {
+      add(id, 'dir', fs);
       continue;
     }
-    const children = dirsUnder(fs, id);
-    const subdirs = [...children.keys()].filter((k) => k.endsWith('/'));
-    const isContainer = CONTAINER_TOKENS.includes(normaliseToken(key.slice(0, -1))) || split(id);
-    if (isContainer && subdirs.length >= 1) {
-      const direct: string[] = [];
-      for (const [ck, cfs] of children) {
-        if (ck.endsWith('/')) add(id + ck, 'dir', cfs);
-        else direct.push(...cfs);
-      }
-      if (direct.length > 0) add(id, 'dir', direct, true);
-    } else add(id, 'dir', fs);
+    const chain = singleChildChain(fs, id, structural);
+    const end = chain[chain.length - 1] ?? id;
+    const branch = childrenOf(fs, end);
+    if (branch.dirs.size < 1) {
+      add(id, 'dir', fs);
+      continue;
+    }
+    for (const [cid, cfs] of branch.dirs) add(cid, 'dir', cfs, false, byName || structural ? id : undefined);
+    for (const d of chain) {
+      const own = childrenOf(fs, d).direct;
+      if (own.length > 0) add(d, 'dir', own, true);
+    }
   }
   return units.sort((a, b) => (a.id < b.id ? -1 : 1));
 }
@@ -160,10 +234,16 @@ export function levels(nodes: readonly string[], edges: readonly { from: string;
   return out;
 }
 
+/** An edge between two children of the same container. */
+export function isLateral(groupOf: ReadonlyMap<string, string | undefined>, e: { from: string; to: string }): boolean {
+  const g = groupOf.get(e.from);
+  return g !== undefined && g === groupOf.get(e.to);
+}
+
 /** The unit structure of `graph` (see the file comment). */
 export function unitStructure(graph: IseGraph, split?: (dirId: string) => boolean): UnitStructure {
   const sourceRoot = detectSourceRoot(graph.files);
-  const units = detectUnits(graph.files, sourceRoot, split);
+  const units = detectUnits(graph.files, sourceRoot, split, graph.edges);
   const unitOf = new Map<string, string>();
   for (const u of units) for (const f of u.files) unitOf.set(f, u.id);
   const counts = new Map<string, number>();
@@ -177,7 +257,8 @@ export function unitStructure(graph: IseGraph, split?: (dirId: string) => boolea
     const [from = '', to = ''] = k.split('\n');
     return { from, to, count };
   }).sort((x, y) => (x.from + x.to < y.from + y.to ? -1 : 1));
-  const majority = edges.filter((e) => (counts.get(`${e.to}\n${e.from}`) ?? 0) <= e.count);
+  const groupOf = new Map(units.map((u) => [u.id, u.group]));
+  const majority = edges.filter((e) => (counts.get(`${e.to}\n${e.from}`) ?? 0) <= e.count && !isLateral(groupOf, e));
   const ids = units.map((u) => u.id);
   const level = levels(ids, majority);
   const hasIn = new Set(edges.map((e) => e.to));

@@ -15,9 +15,10 @@ import { loadIsePreset } from './preset.js';
 import type { IsePreset } from './preset.js';
 import { emitSpecYaml, validateEmittedSpec } from './spec-emitter.js';
 import type { SpecCheck } from './spec-emitter.js';
-import { boundedContexts, classifyStyle } from './style-classifier.js';
+import { detectContexts } from './contexts.js';
+import { classifyStyle } from './style-classifier.js';
 import type { IseStyle, StyleClassification } from './style-classifier.js';
-import { detectSourceRoot, unitStructure } from './units.js';
+import { unitStructure } from './units.js';
 
 export interface IseOptions {
   /** The tool's canonical presets (`presets/` of this repository). */
@@ -52,7 +53,7 @@ export function inferFromGraph(graph: IseGraph, opts: IseOptions): IseInference 
   ];
   const specYaml = emitSpecYaml({ preset, mapping, ...(ddd !== undefined ? { ddd } : {}), header });
   // Option 1 is style-free; it splits bounded-context-like folders (a structural fact) like the DDD mapping does.
-  const contexts = new Set(boundedContexts(graph.files, detectSourceRoot(graph.files)));
+  const contexts = new Set(detectContexts(graph).contexts.map((c) => c.root));
   const majorityVote = mineRules(graph, unitStructure(graph, (id) => contexts.has(id)));
   return { classification, style, preset, mapping, ...(ddd !== undefined ? { ddd } : {}), specYaml, majorityVote };
 }

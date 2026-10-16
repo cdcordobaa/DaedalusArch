@@ -19,7 +19,7 @@ In the U-E baseline (`Docs/DiagnosticRuns/v1.3-reference-baseline-2026-10-15.md`
   - Clean: the Dependency Rule; entities and use cases do not depend on databases (Martin 2017, ch. 22).
   - Hexagonal: the core reaches the outside only through ports and does not depend on adapters (Cockburn 2005).
   - DDD: "Isolating the Domain" (Evans 2003, ch. 4).
-  - NestJS: the repo's NestJS preset is a Clean Architecture layering inside Nest modules (domain kind = `domain`), so the Clean reasoning applies.
+  - NestJS: the repo's NestJS preset (`presets/nestjs.yaml`) is not a Clean Architecture layering. Its order, inner to outer, is domain → infrastructure → application → presentation, and application services call the repositories in the infrastructure layer directly (Controller → Service → Repository). The preset does keep an isolated domain at the bottom. The innermost layer is `domain` (kind `domain`: entities, value objects, domain services and repository interfaces). The preset declares `no-domain-outward-dep`, `domain-purity` and `domain-state-purity` for that layer. So the isolated-domain reasoning applies to the `domain` layer, while the Clean ordering of the outer layers does not.
 
   In these styles, a domain class that holds an infrastructure object is exactly the breach FF-P06 names.
 
@@ -48,3 +48,7 @@ This works like FF-S03's style dependence: the style decides whether the constru
 - **Expected on the reference set** (written before the rerun): the 53 FF-P06 rows in `layered` disappear, the layered clean variant passes, and layered blocking precision rises. No layered manifest expects FF-P06 (`reference.json`: `noViolatingVariant`), so no recall is lost. The other styles are unaffected.
 - A layered project whose business layer holds infrastructure state *without* going through the layer below cannot be expressed with the current three-layer binding anyway; if a Study 2 spec author wants such a check, it needs its own rule over a declared "data source" boundary, not FF-P06.
 - The thesis reports FF-P06 per style with "n/a (layered)", and the applicability table is an instrument fact to report next to the tier table.
+
+## Note: factual correction (v1.3 fix batch)
+
+The NestJS bullet under "The construct" used to call the NestJS preset "a Clean Architecture layering inside Nest modules". That contradicts `presets/nestjs.yaml`: in the preset, services call repositories directly, with infrastructure as an inner data-access layer (`Docs/v1.3/construct-decisions.md` Q13, action item). The bullet now describes the preset as it is. The decision does not change. FF-P06 still applies to `nestjs`, because the preset's `domain` layer is innermost and isolated, and FF-P06 reads a domain class that holds an infrastructure object. This correction does not answer Q13 (the layer order and FF-P04).

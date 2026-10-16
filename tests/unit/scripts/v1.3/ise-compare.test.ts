@@ -82,3 +82,12 @@ describe('ISE measurement comparisons', () => {
     expect(md).toContain('| v01 | violation |  | FF-S01|a|b | yes / no |');
   });
 });
+
+describe('renderDownstream: an inferred spec the firewall rejects', () => {
+  it('voids the inferred columns and names the error', () => {
+    const summary = summarise([]);
+    const md = renderDownstream([{ id: 'S-x', trueStyle: 'ddd', inferredStyle: 'ddd', variants: [], summary, inferredSpecError: 'BR-SPEC-10 FF-DT02: repositoryPatterns' }]);
+    expect(md).toContain('| S-x | ddd | ddd | inferred spec rejected | inferred spec rejected | - |');
+    expect(md).toContain('The firewall refused every evaluation under the inferred spec: `BR-SPEC-10 FF-DT02: repositoryPatterns`.');
+  });
+});

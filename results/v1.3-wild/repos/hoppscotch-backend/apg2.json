@@ -1,0 +1,3860 @@
+{
+ "id": "hoppscotch-backend",
+ "stats": {
+  "signatureUses": 297,
+  "components": 34,
+  "componentSource": "declared",
+  "dependsOn": 187,
+  "deepImports": 0,
+  "exportsSymbol": 0,
+  "channels": 0,
+  "async": {
+   "publishes": 0,
+   "subscribes": 0,
+   "dynamicNames": 0
+  },
+  "io": {
+   "byCategory": {
+    "db": 4,
+    "http-out": 0,
+    "fs": 2,
+    "env": 14,
+    "clock": 20,
+    "random": 11,
+    "process": 4
+   }
+  },
+  "timingsMs": {
+   "typeFlow": 90.7,
+   "components": 21.3,
+   "async": 294.5,
+   "io": 221.8
+  }
+ },
+ "params": {
+  "domainLayer": "domain",
+  "applicationLayers": [
+   "application"
+  ],
+  "infraLayer": "infrastructure",
+  "controllerLayer": "presentation",
+  "threshold": 0.7,
+  "allowedAsync": [],
+  "compositionRootLayers": [],
+  "compositionRootPatterns": [
+   "^(?:.*/)?(?:main|bootstrap|composition-root|compositionRoot|container|di)\\.(?:ts|tsx|mts|cts)$",
+   "^(?:.*/)?[^/]+\\.(?:module|container)\\.(?:ts|tsx|mts|cts)$"
+  ],
+  "testPatterns": [
+   "^(?:.*/)?[^/]*\\.(?:spec|test)\\.(?:ts|tsx|mts|cts)$",
+   "^(?:.*/)?(?:__tests__|__mocks__|test|tests)/.*$",
+   "^(?:.*/)?[Tt]est[A-Z._-][^/]*$"
+  ],
+  "aclPatterns": [],
+  "minTypes": 4
+ },
+ "components": [
+  {
+   "name": "domain",
+   "kind": "layer"
+  },
+  {
+   "name": "infrastructure",
+   "kind": "layer"
+  },
+  {
+   "name": "application",
+   "kind": "layer"
+  },
+  {
+   "name": "presentation",
+   "kind": "layer"
+  },
+  {
+   "name": "access-token",
+   "kind": "folder"
+  },
+  {
+   "name": "admin",
+   "kind": "folder"
+  },
+  {
+   "name": "auth",
+   "kind": "folder"
+  },
+  {
+   "name": "decorators",
+   "kind": "folder"
+  },
+  {
+   "name": "guards",
+   "kind": "folder"
+  },
+  {
+   "name": "health",
+   "kind": "folder"
+  },
+  {
+   "name": "infra-config",
+   "kind": "folder"
+  },
+  {
+   "name": "infra-token",
+   "kind": "folder"
+  },
+  {
+   "name": "interceptors",
+   "kind": "folder"
+  },
+  {
+   "name": "mailer",
+   "kind": "folder"
+  },
+  {
+   "name": "mock-server",
+   "kind": "folder"
+  },
+  {
+   "name": "orchestration",
+   "kind": "folder"
+  },
+  {
+   "name": "plugins",
+   "kind": "folder"
+  },
+  {
+   "name": "posthog",
+   "kind": "folder"
+  },
+  {
+   "name": "prisma",
+   "kind": "folder"
+  },
+  {
+   "name": "published-docs",
+   "kind": "folder"
+  },
+  {
+   "name": "pubsub",
+   "kind": "folder"
+  },
+  {
+   "name": "shortcode",
+   "kind": "folder"
+  },
+  {
+   "name": "team",
+   "kind": "folder"
+  },
+  {
+   "name": "team-collection",
+   "kind": "folder"
+  },
+  {
+   "name": "team-environments",
+   "kind": "folder"
+  },
+  {
+   "name": "team-invitation",
+   "kind": "folder"
+  },
+  {
+   "name": "team-request",
+   "kind": "folder"
+  },
+  {
+   "name": "types",
+   "kind": "folder"
+  },
+  {
+   "name": "user",
+   "kind": "folder"
+  },
+  {
+   "name": "user-collection",
+   "kind": "folder"
+  },
+  {
+   "name": "user-environment",
+   "kind": "folder"
+  },
+  {
+   "name": "user-history",
+   "kind": "folder"
+  },
+  {
+   "name": "user-request",
+   "kind": "folder"
+  },
+  {
+   "name": "user-settings",
+   "kind": "folder"
+  }
+ ],
+ "parseCoverage": {
+  "total": 189,
+  "parsed": 189
+ },
+ "importResolution": {
+  "resolvedInternal": 868,
+  "external": 472,
+  "externalOutOfRootAlias": 0,
+  "unresolved": 28,
+  "droppedNoFileNode": 0,
+  "unsupportedDynamic": 0
+ },
+ "counts": {
+  "boundary-type-leak": 25,
+  "component-adp-cycle": 108,
+  "component-sdp-violation": 33,
+  "component-main-sequence-distance": 4,
+  "deep-import-declared-api": 0,
+  "deep-import-inferred-api": 0,
+  "undeclared-async-coupling": 0,
+  "io-outside-adapters": 0,
+  "nondeterminism-in-core": 18
+ },
+ "rows": {
+  "boundary-type-leak": [
+   {
+    "filePath": "src/admin/admin.service.ts",
+    "member": "AdminService.fetchInvitedUsers",
+    "leakedType": "InvitedUser",
+    "target": "src/admin/invited-user.model.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "return"
+    ],
+    "inferred": true,
+    "_file": "src/admin/admin.service.ts",
+    "_line": 188,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/infra-token/infra-token.service.ts",
+    "member": "InfraTokenService.create",
+    "leakedType": "Admin",
+    "target": "src/admin/admin.model.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/infra-token/infra-token.service.ts",
+    "_line": 77,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/published-docs/published-docs.service.ts",
+    "member": "PublishedDocsService.createPublishedDoc",
+    "leakedType": "User",
+    "target": "src/user/user.model.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/published-docs/published-docs.service.ts",
+    "_line": 529,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/published-docs/published-docs.service.ts",
+    "member": "PublishedDocsService.deletePublishedDoc",
+    "leakedType": "User",
+    "target": "src/user/user.model.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/published-docs/published-docs.service.ts",
+    "_line": 762,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/published-docs/published-docs.service.ts",
+    "member": "PublishedDocsService.getPublishedDocByID",
+    "leakedType": "User",
+    "target": "src/user/user.model.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/published-docs/published-docs.service.ts",
+    "_line": 309,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/published-docs/published-docs.service.ts",
+    "member": "PublishedDocsService.updatePublishedDoc",
+    "leakedType": "User",
+    "target": "src/user/user.model.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/published-docs/published-docs.service.ts",
+    "_line": 649,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/user-environment/user-environments.resolver.ts",
+    "member": "UserEnvironmentsResolver.clearGlobalEnvironments",
+    "leakedType": "User",
+    "target": "src/user/user.model.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/user-environment/user-environments.resolver.ts",
+    "_line": 144,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/user-environment/user-environments.resolver.ts",
+    "member": "UserEnvironmentsResolver.createUserEnvironment",
+    "leakedType": "User",
+    "target": "src/user/user.model.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/user-environment/user-environments.resolver.ts",
+    "_line": 28,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/user-environment/user-environments.resolver.ts",
+    "member": "UserEnvironmentsResolver.createUserGlobalEnvironment",
+    "leakedType": "User",
+    "target": "src/user/user.model.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/user-environment/user-environments.resolver.ts",
+    "_line": 58,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/user-environment/user-environments.resolver.ts",
+    "member": "UserEnvironmentsResolver.deleteUserEnvironment",
+    "leakedType": "User",
+    "target": "src/user/user.model.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/user-environment/user-environments.resolver.ts",
+    "_line": 117,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/user-environment/user-environments.resolver.ts",
+    "member": "UserEnvironmentsResolver.deleteUserEnvironments",
+    "leakedType": "User",
+    "target": "src/user/user.model.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/user-environment/user-environments.resolver.ts",
+    "_line": 136,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/user-environment/user-environments.resolver.ts",
+    "member": "UserEnvironmentsResolver.updateUserEnvironment",
+    "leakedType": "User",
+    "target": "src/user/user.model.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/user-environment/user-environments.resolver.ts",
+    "_line": 82,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/user-environment/user-environments.resolver.ts",
+    "member": "UserEnvironmentsResolver.userEnvironmentCreated",
+    "leakedType": "User",
+    "target": "src/user/user.model.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/user-environment/user-environments.resolver.ts",
+    "_line": 167,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/user-environment/user-environments.resolver.ts",
+    "member": "UserEnvironmentsResolver.userEnvironmentDeleteMany",
+    "leakedType": "User",
+    "target": "src/user/user.model.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/user-environment/user-environments.resolver.ts",
+    "_line": 197,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/user-environment/user-environments.resolver.ts",
+    "member": "UserEnvironmentsResolver.userEnvironmentDeleted",
+    "leakedType": "User",
+    "target": "src/user/user.model.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/user-environment/user-environments.resolver.ts",
+    "_line": 187,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/user-environment/user-environments.resolver.ts",
+    "member": "UserEnvironmentsResolver.userEnvironmentUpdated",
+    "leakedType": "User",
+    "target": "src/user/user.model.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/user-environment/user-environments.resolver.ts",
+    "_line": 177,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/user-environment/user-environments.service.ts",
+    "member": "UserEnvironmentsService.updateUserEnvironment",
+    "leakedType": "User",
+    "target": "src/user/user.model.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/user-environment/user-environments.service.ts",
+    "_line": 135,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/user-environment/user.resolver.ts",
+    "member": "UserEnvsUserResolver.environments",
+    "leakedType": "User",
+    "target": "src/user/user.model.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/user-environment/user.resolver.ts",
+    "_line": 20,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/user-environment/user.resolver.ts",
+    "member": "UserEnvsUserResolver.globalEnvironments",
+    "leakedType": "User",
+    "target": "src/user/user.model.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/user-environment/user.resolver.ts",
+    "_line": 32,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/user-settings/user-settings.resolver.ts",
+    "member": "UserSettingsResolver.userSettingsCreated",
+    "leakedType": "User",
+    "target": "src/user/user.model.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/user-settings/user-settings.resolver.ts",
+    "_line": 71,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/user-settings/user-settings.resolver.ts",
+    "member": "UserSettingsResolver.userSettingsUpdated",
+    "leakedType": "User",
+    "target": "src/user/user.model.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/user-settings/user-settings.resolver.ts",
+    "_line": 81,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/user-settings/user-settings.service.ts",
+    "member": "UserSettingsService.fetchUserSettings",
+    "leakedType": "User",
+    "target": "src/user/user.model.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/user-settings/user-settings.service.ts",
+    "_line": 35,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/user-settings/user.resolver.ts",
+    "member": "UserSettingsUserResolver.settings",
+    "leakedType": "User",
+    "target": "src/user/user.model.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/user-settings/user.resolver.ts",
+    "_line": 20,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/user/user.service.ts",
+    "member": "UserService.convertDbUserToUser",
+    "leakedType": "User",
+    "target": "src/user/user.model.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "return"
+    ],
+    "inferred": false,
+    "_file": "src/user/user.service.ts",
+    "_line": 45,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/user/user.service.ts",
+    "member": "UserService.registerUserDataHandler",
+    "leakedType": "UserDataHandler",
+    "target": "src/user/user.data.handler.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/user/user.service.ts",
+    "_line": 35,
+    "_importGraphSees": true
+   }
+  ],
+  "component-adp-cycle": [
+   {
+    "component": "access-token",
+    "target": "auth",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "access-token",
+    "_file": "src/access-token/access-token.controller.ts",
+    "_line": 16,
+    "_evidence": [
+     {
+      "file": "src/access-token/access-token.controller.ts",
+      "target": "src/auth/guards/jwt-auth.guard.ts",
+      "line": 16
+     }
+    ]
+   },
+   {
+    "component": "access-token",
+    "target": "guards",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "access-token",
+    "_file": "src/access-token/access-token.controller.ts",
+    "_line": 21,
+    "_evidence": [
+     {
+      "file": "src/access-token/access-token.controller.ts",
+      "target": "src/guards/throttler-behind-proxy.guard.ts",
+      "line": 21
+     },
+     {
+      "file": "src/access-token/access-token.controller.ts",
+      "target": "src/guards/rest-pat-auth.guard.ts",
+      "line": 22
+     }
+    ]
+   },
+   {
+    "component": "access-token",
+    "target": "interceptors",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "access-token",
+    "_file": "src/access-token/access-token.controller.ts",
+    "_line": 23,
+    "_evidence": [
+     {
+      "file": "src/access-token/access-token.controller.ts",
+      "target": "src/interceptors/access-token.interceptor.ts",
+      "line": 23
+     }
+    ]
+   },
+   {
+    "component": "access-token",
+    "target": "team",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "access-token",
+    "_file": "src/access-token/access-token.module.ts",
+    "_line": 6,
+    "_evidence": [
+     {
+      "file": "src/access-token/access-token.module.ts",
+      "target": "src/team/team.module.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "component": "access-token",
+    "target": "team-collection",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "access-token",
+    "_file": "src/access-token/access-token.controller.ts",
+    "_line": 25,
+    "_evidence": [
+     {
+      "file": "src/access-token/access-token.controller.ts",
+      "target": "src/team-collection/team-collection.service.ts",
+      "line": 25
+     },
+     {
+      "file": "src/access-token/access-token.module.ts",
+      "target": "src/team-collection/team-collection.module.ts",
+      "line": 4
+     }
+    ]
+   },
+   {
+    "component": "access-token",
+    "target": "team-environments",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "access-token",
+    "_file": "src/access-token/access-token.controller.ts",
+    "_line": 24,
+    "_evidence": [
+     {
+      "file": "src/access-token/access-token.controller.ts",
+      "target": "src/team-environments/team-environments.service.ts",
+      "line": 24
+     },
+     {
+      "file": "src/access-token/access-token.module.ts",
+      "target": "src/team-environments/team-environments.module.ts",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "guards",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "admin",
+    "_file": "src/admin/admin.resolver.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/admin/admin.resolver.ts",
+      "target": "src/guards/gql-auth.guard.ts",
+      "line": 11
+     },
+     {
+      "file": "src/admin/admin.resolver.ts",
+      "target": "src/guards/gql-throttler.guard.ts",
+      "line": 26
+     },
+     {
+      "file": "src/admin/infra.resolver.ts",
+      "target": "src/guards/gql-throttler.guard.ts",
+      "line": 10
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "infra-config",
+    "kind": "folder",
+    "imports": 5,
+    "filePath": "admin",
+    "_file": "src/admin/admin.module.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/admin/admin.module.ts",
+      "target": "src/infra-config/infra-config.module.ts",
+      "line": 12
+     },
+     {
+      "file": "src/admin/infra.resolver.ts",
+      "target": "src/infra-config/infra-config.model.ts",
+      "line": 29
+     },
+     {
+      "file": "src/admin/infra.resolver.ts",
+      "target": "src/infra-config/infra-config.service.ts",
+      "line": 30
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "mailer",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "admin",
+    "_file": "src/admin/admin.service.ts",
+    "_line": 21,
+    "_evidence": [
+     {
+      "file": "src/admin/admin.service.ts",
+      "target": "src/mailer/mailer.service.ts",
+      "line": 21
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "pubsub",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "admin",
+    "_file": "src/admin/admin.resolver.ts",
+    "_line": 20,
+    "_evidence": [
+     {
+      "file": "src/admin/admin.resolver.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 20
+     },
+     {
+      "file": "src/admin/admin.service.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 3
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "shortcode",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "admin",
+    "_file": "src/admin/admin.module.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/admin/admin.module.ts",
+      "target": "src/shortcode/shortcode.module.ts",
+      "line": 11
+     },
+     {
+      "file": "src/admin/admin.service.ts",
+      "target": "src/shortcode/shortcode.service.ts",
+      "line": 29
+     },
+     {
+      "file": "src/admin/infra.resolver.ts",
+      "target": "src/shortcode/shortcode.model.ts",
+      "line": 28
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "team",
+    "kind": "folder",
+    "imports": 6,
+    "filePath": "admin",
+    "_file": "src/admin/admin.module.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/admin/admin.module.ts",
+      "target": "src/team/team.module.ts",
+      "line": 5
+     },
+     {
+      "file": "src/admin/admin.resolver.ts",
+      "target": "src/team/team.model.ts",
+      "line": 21
+     },
+     {
+      "file": "src/admin/admin.service.ts",
+      "target": "src/team/team.service.ts",
+      "line": 23
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "team-collection",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "admin",
+    "_file": "src/admin/admin.module.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/admin/admin.module.ts",
+      "target": "src/team-collection/team-collection.module.ts",
+      "line": 8
+     },
+     {
+      "file": "src/admin/admin.service.ts",
+      "target": "src/team-collection/team-collection.service.ts",
+      "line": 24
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "team-environments",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "admin",
+    "_file": "src/admin/admin.module.ts",
+    "_line": 7,
+    "_evidence": [
+     {
+      "file": "src/admin/admin.module.ts",
+      "target": "src/team-environments/team-environments.module.ts",
+      "line": 7
+     },
+     {
+      "file": "src/admin/admin.service.ts",
+      "target": "src/team-environments/team-environments.service.ts",
+      "line": 26
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "team-invitation",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "admin",
+    "_file": "src/admin/admin.module.ts",
+    "_line": 6,
+    "_evidence": [
+     {
+      "file": "src/admin/admin.module.ts",
+      "target": "src/team-invitation/team-invitation.module.ts",
+      "line": 6
+     },
+     {
+      "file": "src/admin/admin.service.ts",
+      "target": "src/team-invitation/team-invitation.service.ts",
+      "line": 27
+     },
+     {
+      "file": "src/admin/infra.resolver.ts",
+      "target": "src/team-invitation/team-invitation.model.ts",
+      "line": 26
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "team-request",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "admin",
+    "_file": "src/admin/admin.module.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/admin/admin.module.ts",
+      "target": "src/team-request/team-request.module.ts",
+      "line": 9
+     },
+     {
+      "file": "src/admin/admin.service.ts",
+      "target": "src/team-request/team-request.service.ts",
+      "line": 25
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "user",
+    "kind": "folder",
+    "imports": 6,
+    "filePath": "admin",
+    "_file": "src/admin/admin.model.ts",
+    "_line": 2,
+    "_evidence": [
+     {
+      "file": "src/admin/admin.model.ts",
+      "target": "src/user/user.model.ts",
+      "line": 2
+     },
+     {
+      "file": "src/admin/admin.module.ts",
+      "target": "src/user/user.module.ts",
+      "line": 4
+     },
+     {
+      "file": "src/admin/admin.resolver.ts",
+      "target": "src/user/user.model.ts",
+      "line": 28
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "user-history",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "admin",
+    "_file": "src/admin/admin.module.ts",
+    "_line": 13,
+    "_evidence": [
+     {
+      "file": "src/admin/admin.module.ts",
+      "target": "src/user-history/user-history.module.ts",
+      "line": 13
+     },
+     {
+      "file": "src/admin/admin.service.ts",
+      "target": "src/user-history/user-history.service.ts",
+      "line": 33
+     }
+    ]
+   },
+   {
+    "component": "auth",
+    "target": "guards",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "auth",
+    "_file": "src/auth/auth.controller.ts",
+    "_line": 27,
+    "_evidence": [
+     {
+      "file": "src/auth/auth.controller.ts",
+      "target": "src/guards/throttler-behind-proxy.guard.ts",
+      "line": 27
+     }
+    ]
+   },
+   {
+    "component": "auth",
+    "target": "infra-config",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "auth",
+    "_file": "src/auth/auth.module.ts",
+    "_line": 14,
+    "_evidence": [
+     {
+      "file": "src/auth/auth.module.ts",
+      "target": "src/infra-config/helper.ts",
+      "line": 14
+     },
+     {
+      "file": "src/auth/auth.module.ts",
+      "target": "src/infra-config/infra-config.module.ts",
+      "line": 18
+     },
+     {
+      "file": "src/auth/auth.service.ts",
+      "target": "src/infra-config/infra-config.service.ts",
+      "line": 31
+     }
+    ]
+   },
+   {
+    "component": "auth",
+    "target": "interceptors",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "auth",
+    "_file": "src/auth/auth.controller.ts",
+    "_line": 32,
+    "_evidence": [
+     {
+      "file": "src/auth/auth.controller.ts",
+      "target": "src/interceptors/user-last-login.interceptor.ts",
+      "line": 32
+     }
+    ]
+   },
+   {
+    "component": "auth",
+    "target": "mailer",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "auth",
+    "_file": "src/auth/auth.service.ts",
+    "_line": 2,
+    "_evidence": [
+     {
+      "file": "src/auth/auth.service.ts",
+      "target": "src/mailer/mailer.service.ts",
+      "line": 2
+     }
+    ]
+   },
+   {
+    "component": "auth",
+    "target": "user",
+    "kind": "folder",
+    "imports": 7,
+    "filePath": "auth",
+    "_file": "src/auth/auth.module.ts",
+    "_line": 4,
+    "_evidence": [
+     {
+      "file": "src/auth/auth.module.ts",
+      "target": "src/user/user.module.ts",
+      "line": 4
+     },
+     {
+      "file": "src/auth/auth.service.ts",
+      "target": "src/user/user.service.ts",
+      "line": 4
+     },
+     {
+      "file": "src/auth/strategies/github.strategy.ts",
+      "target": "src/user/user.service.ts",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "component": "guards",
+    "target": "access-token",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "guards",
+    "_file": "src/guards/rest-pat-auth.guard.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/guards/rest-pat-auth.guard.ts",
+      "target": "src/access-token/access-token.service.ts",
+      "line": 8
+     },
+     {
+      "file": "src/guards/rest-pat-auth.guard.ts",
+      "target": "src/access-token/helper.ts",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "component": "infra-config",
+    "target": "admin",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "infra-config",
+    "_file": "src/infra-config/infra-config.controller.ts",
+    "_line": 6,
+    "_evidence": [
+     {
+      "file": "src/infra-config/infra-config.controller.ts",
+      "target": "src/admin/guards/rest-admin.guard.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "component": "infra-config",
+    "target": "auth",
+    "kind": "folder",
+    "imports": 5,
+    "filePath": "infra-config",
+    "_file": "src/infra-config/helper.ts",
+    "_line": 1,
+    "_evidence": [
+     {
+      "file": "src/infra-config/helper.ts",
+      "target": "src/auth/helper.ts",
+      "line": 1
+     },
+     {
+      "file": "src/infra-config/infra-config.controller.ts",
+      "target": "src/auth/guards/jwt-auth.guard.ts",
+      "line": 5
+     },
+     {
+      "file": "src/infra-config/infra-config.model.ts",
+      "target": "src/auth/helper.ts",
+      "line": 2
+     }
+    ]
+   },
+   {
+    "component": "infra-config",
+    "target": "guards",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "infra-config",
+    "_file": "src/infra-config/infra-config.controller.ts",
+    "_line": 2,
+    "_evidence": [
+     {
+      "file": "src/infra-config/infra-config.controller.ts",
+      "target": "src/guards/throttler-behind-proxy.guard.ts",
+      "line": 2
+     },
+     {
+      "file": "src/infra-config/infra-config.resolver.ts",
+      "target": "src/guards/gql-throttler.guard.ts",
+      "line": 3
+     },
+     {
+      "file": "src/infra-config/infra-config.resolver.ts",
+      "target": "src/guards/gql-auth.guard.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "component": "infra-config",
+    "target": "mailer",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "infra-config",
+    "_file": "src/infra-config/helper.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/infra-config/helper.ts",
+      "target": "src/mailer/helper.ts",
+      "line": 5
+     },
+     {
+      "file": "src/infra-config/infra-config.service.ts",
+      "target": "src/mailer/helper.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "infra-config",
+    "target": "pubsub",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "infra-config",
+    "_file": "src/infra-config/infra-config.resolver.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/infra-config/infra-config.resolver.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 8
+     },
+     {
+      "file": "src/infra-config/infra-config.service.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 40
+     }
+    ]
+   },
+   {
+    "component": "infra-config",
+    "target": "user",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "infra-config",
+    "_file": "src/infra-config/infra-config.module.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/infra-config/infra-config.module.ts",
+      "target": "src/user/user.module.ts",
+      "line": 5
+     },
+     {
+      "file": "src/infra-config/infra-config.service.ts",
+      "target": "src/user/user.service.ts",
+      "line": 41
+     }
+    ]
+   },
+   {
+    "component": "infra-token",
+    "target": "admin",
+    "kind": "folder",
+    "imports": 7,
+    "filePath": "infra-token",
+    "_file": "src/infra-token/infra-token.controller.ts",
+    "_line": 15,
+    "_evidence": [
+     {
+      "file": "src/infra-token/infra-token.controller.ts",
+      "target": "src/admin/admin.service.ts",
+      "line": 15
+     },
+     {
+      "file": "src/infra-token/infra-token.module.ts",
+      "target": "src/admin/admin.module.ts",
+      "line": 5
+     },
+     {
+      "file": "src/infra-token/infra-token.resolver.ts",
+      "target": "src/admin/guards/gql-admin.guard.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "infra-token",
+    "target": "guards",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "infra-token",
+    "_file": "src/infra-token/infra-token.controller.ts",
+    "_line": 16,
+    "_evidence": [
+     {
+      "file": "src/infra-token/infra-token.controller.ts",
+      "target": "src/guards/infra-token.guard.ts",
+      "line": 16
+     },
+     {
+      "file": "src/infra-token/infra-token.controller.ts",
+      "target": "src/guards/throttler-behind-proxy.guard.ts",
+      "line": 17
+     },
+     {
+      "file": "src/infra-token/infra-token.resolver.ts",
+      "target": "src/guards/gql-throttler.guard.ts",
+      "line": 4
+     }
+    ]
+   },
+   {
+    "component": "infra-token",
+    "target": "interceptors",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "infra-token",
+    "_file": "src/infra-token/infra-token.controller.ts",
+    "_line": 52,
+    "_evidence": [
+     {
+      "file": "src/infra-token/infra-token.controller.ts",
+      "target": "src/interceptors/infra-token.interceptor.ts",
+      "line": 52
+     }
+    ]
+   },
+   {
+    "component": "infra-token",
+    "target": "team",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "infra-token",
+    "_file": "src/infra-token/request-response.dto.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/infra-token/request-response.dto.ts",
+      "target": "src/team/team.model.ts",
+      "line": 12
+     }
+    ]
+   },
+   {
+    "component": "infra-token",
+    "target": "user",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "infra-token",
+    "_file": "src/infra-token/infra-token.controller.ts",
+    "_line": 45,
+    "_evidence": [
+     {
+      "file": "src/infra-token/infra-token.controller.ts",
+      "target": "src/user/user.service.ts",
+      "line": 45
+     },
+     {
+      "file": "src/infra-token/infra-token.module.ts",
+      "target": "src/user/user.module.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "component": "interceptors",
+    "target": "access-token",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "interceptors",
+    "_file": "src/interceptors/access-token.interceptor.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/interceptors/access-token.interceptor.ts",
+      "target": "src/access-token/access-token.service.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "component": "interceptors",
+    "target": "infra-token",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "interceptors",
+    "_file": "src/interceptors/infra-token.interceptor.ts",
+    "_line": 10,
+    "_evidence": [
+     {
+      "file": "src/interceptors/infra-token.interceptor.ts",
+      "target": "src/infra-token/infra-token.service.ts",
+      "line": 10
+     }
+    ]
+   },
+   {
+    "component": "interceptors",
+    "target": "user",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "interceptors",
+    "_file": "src/interceptors/user-last-active-on.interceptor.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/interceptors/user-last-active-on.interceptor.ts",
+      "target": "src/user/user.service.ts",
+      "line": 11
+     },
+     {
+      "file": "src/interceptors/user-last-login.interceptor.ts",
+      "target": "src/user/user.service.ts",
+      "line": 10
+     }
+    ]
+   },
+   {
+    "component": "mailer",
+    "target": "infra-config",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "mailer",
+    "_file": "src/mailer/mailer.module.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/mailer/mailer.module.ts",
+      "target": "src/infra-config/helper.ts",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "component": "orchestration",
+    "target": "guards",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "orchestration",
+    "_file": "src/orchestration/sort/sort-team-collection.resolver.ts",
+    "_line": 3,
+    "_evidence": [
+     {
+      "file": "src/orchestration/sort/sort-team-collection.resolver.ts",
+      "target": "src/guards/gql-throttler.guard.ts",
+      "line": 3
+     },
+     {
+      "file": "src/orchestration/sort/sort-team-collection.resolver.ts",
+      "target": "src/guards/gql-auth.guard.ts",
+      "line": 6
+     },
+     {
+      "file": "src/orchestration/sort/sort-user-collection.resolver.ts",
+      "target": "src/guards/gql-throttler.guard.ts",
+      "line": 3
+     }
+    ]
+   },
+   {
+    "component": "orchestration",
+    "target": "pubsub",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "orchestration",
+    "_file": "src/orchestration/sort/sort-team-collection.resolver.ts",
+    "_line": 13,
+    "_evidence": [
+     {
+      "file": "src/orchestration/sort/sort-team-collection.resolver.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 13
+     },
+     {
+      "file": "src/orchestration/sort/sort-user-collection.resolver.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 12
+     },
+     {
+      "file": "src/orchestration/sort/sort.service.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "component": "orchestration",
+    "target": "team",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "orchestration",
+    "_file": "src/orchestration/sort/sort-team-collection.resolver.ts",
+    "_line": 7,
+    "_evidence": [
+     {
+      "file": "src/orchestration/sort/sort-team-collection.resolver.ts",
+      "target": "src/team/decorators/requires-team-role.decorator.ts",
+      "line": 7
+     },
+     {
+      "file": "src/orchestration/sort/sort-team-collection.resolver.ts",
+      "target": "src/team/team.model.ts",
+      "line": 8
+     },
+     {
+      "file": "src/orchestration/sort/sort-team-collection.resolver.ts",
+      "target": "src/team/guards/gql-team-member.guard.ts",
+      "line": 12
+     }
+    ]
+   },
+   {
+    "component": "orchestration",
+    "target": "team-collection",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "orchestration",
+    "_file": "src/orchestration/sort/sort-team-collection.resolver.ts",
+    "_line": 4,
+    "_evidence": [
+     {
+      "file": "src/orchestration/sort/sort-team-collection.resolver.ts",
+      "target": "src/team-collection/team-collection.model.ts",
+      "line": 4
+     },
+     {
+      "file": "src/orchestration/sort/sort.module.ts",
+      "target": "src/team-collection/team-collection.module.ts",
+      "line": 4
+     },
+     {
+      "file": "src/orchestration/sort/sort.service.ts",
+      "target": "src/team-collection/team-collection.service.ts",
+      "line": 2
+     }
+    ]
+   },
+   {
+    "component": "orchestration",
+    "target": "team-request",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "orchestration",
+    "_file": "src/orchestration/sort/sort.module.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/orchestration/sort/sort.module.ts",
+      "target": "src/team-request/team-request.module.ts",
+      "line": 5
+     },
+     {
+      "file": "src/orchestration/sort/sort.service.ts",
+      "target": "src/team-request/team-request.service.ts",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "component": "orchestration",
+    "target": "user-collection",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "orchestration",
+    "_file": "src/orchestration/sort/sort-user-collection.resolver.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/orchestration/sort/sort-user-collection.resolver.ts",
+      "target": "src/user-collection/user-collections.model.ts",
+      "line": 8
+     },
+     {
+      "file": "src/orchestration/sort/sort.module.ts",
+      "target": "src/user-collection/user-collection.module.ts",
+      "line": 7
+     },
+     {
+      "file": "src/orchestration/sort/sort.service.ts",
+      "target": "src/user-collection/user-collection.service.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "component": "orchestration",
+    "target": "user-request",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "orchestration",
+    "_file": "src/orchestration/sort/sort.module.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/orchestration/sort/sort.module.ts",
+      "target": "src/user-request/user-request.module.ts",
+      "line": 8
+     },
+     {
+      "file": "src/orchestration/sort/sort.service.ts",
+      "target": "src/user-request/user-request.service.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "admin",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 23,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/admin/invited-user.model.ts",
+      "line": 23
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "orchestration",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 31,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/orchestration/sort/sort.model.ts",
+      "line": 31
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "shortcode",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 30,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/shortcode/shortcode.model.ts",
+      "line": 30
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "team",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/team/team.model.ts",
+      "line": 12
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "team-collection",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 14,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/team-collection/team-collection.model.ts",
+      "line": 14
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "team-environments",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 13,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/team-environments/team-environments.model.ts",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "team-invitation",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 22,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/team-invitation/team-invitation.model.ts",
+      "line": 22
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "team-request",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 18,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/team-request/team-request.model.ts",
+      "line": 18
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "user",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/user/user.model.ts",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "user-collection",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 24,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/user-collection/user-collections.model.ts",
+      "line": 24
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "user-environment",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 7,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/user-environment/user-environments.model.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "user-history",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/user-history/user-history.model.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "user-request",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 1,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/user-request/user-request.model.ts",
+      "line": 1
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "user-settings",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 6,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/user-settings/user-settings.model.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "component": "shortcode",
+    "target": "guards",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "shortcode",
+    "_file": "src/shortcode/shortcode.resolver.ts",
+    "_line": 15,
+    "_evidence": [
+     {
+      "file": "src/shortcode/shortcode.resolver.ts",
+      "target": "src/guards/gql-auth.guard.ts",
+      "line": 15
+     },
+     {
+      "file": "src/shortcode/shortcode.resolver.ts",
+      "target": "src/guards/gql-throttler.guard.ts",
+      "line": 20
+     }
+    ]
+   },
+   {
+    "component": "shortcode",
+    "target": "pubsub",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "shortcode",
+    "_file": "src/shortcode/shortcode.resolver.ts",
+    "_line": 17,
+    "_evidence": [
+     {
+      "file": "src/shortcode/shortcode.resolver.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 17
+     },
+     {
+      "file": "src/shortcode/shortcode.service.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 15
+     }
+    ]
+   },
+   {
+    "component": "shortcode",
+    "target": "user",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "shortcode",
+    "_file": "src/shortcode/shortcode.module.ts",
+    "_line": 2,
+    "_evidence": [
+     {
+      "file": "src/shortcode/shortcode.module.ts",
+      "target": "src/user/user.module.ts",
+      "line": 2
+     },
+     {
+      "file": "src/shortcode/shortcode.resolver.ts",
+      "target": "src/user/user.model.ts",
+      "line": 16
+     },
+     {
+      "file": "src/shortcode/shortcode.service.ts",
+      "target": "src/user/user.data.handler.ts",
+      "line": 12
+     }
+    ]
+   },
+   {
+    "component": "team",
+    "target": "admin",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "team",
+    "_file": "src/team/team.resolver.ts",
+    "_line": 26,
+    "_evidence": [
+     {
+      "file": "src/team/team.resolver.ts",
+      "target": "src/admin/guards/gql-admin.guard.ts",
+      "line": 26
+     }
+    ]
+   },
+   {
+    "component": "team",
+    "target": "guards",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "team",
+    "_file": "src/team/team.resolver.ts",
+    "_line": 14,
+    "_evidence": [
+     {
+      "file": "src/team/team.resolver.ts",
+      "target": "src/guards/gql-auth.guard.ts",
+      "line": 14
+     },
+     {
+      "file": "src/team/team.resolver.ts",
+      "target": "src/guards/gql-throttler.guard.ts",
+      "line": 24
+     }
+    ]
+   },
+   {
+    "component": "team",
+    "target": "pubsub",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "team",
+    "_file": "src/team/team.resolver.ts",
+    "_line": 19,
+    "_evidence": [
+     {
+      "file": "src/team/team.resolver.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 19
+     },
+     {
+      "file": "src/team/team.service.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 16
+     }
+    ]
+   },
+   {
+    "component": "team",
+    "target": "user",
+    "kind": "folder",
+    "imports": 6,
+    "filePath": "team",
+    "_file": "src/team/team-member.resolver.ts",
+    "_line": 3,
+    "_evidence": [
+     {
+      "file": "src/team/team-member.resolver.ts",
+      "target": "src/user/user.service.ts",
+      "line": 3
+     },
+     {
+      "file": "src/team/team-member.resolver.ts",
+      "target": "src/user/user.model.ts",
+      "line": 4
+     },
+     {
+      "file": "src/team/team.module.ts",
+      "target": "src/user/user.module.ts",
+      "line": 4
+     }
+    ]
+   },
+   {
+    "component": "team-collection",
+    "target": "auth",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "team-collection",
+    "_file": "src/team-collection/team-collection.controller.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/team-collection/team-collection.controller.ts",
+      "target": "src/auth/guards/jwt-auth.guard.ts",
+      "line": 12
+     }
+    ]
+   },
+   {
+    "component": "team-collection",
+    "target": "guards",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "team-collection",
+    "_file": "src/team-collection/team-collection.controller.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/team-collection/team-collection.controller.ts",
+      "target": "src/guards/throttler-behind-proxy.guard.ts",
+      "line": 11
+     },
+     {
+      "file": "src/team-collection/team-collection.resolver.ts",
+      "target": "src/guards/gql-auth.guard.ts",
+      "line": 14
+     },
+     {
+      "file": "src/team-collection/team-collection.resolver.ts",
+      "target": "src/guards/gql-throttler.guard.ts",
+      "line": 32
+     }
+    ]
+   },
+   {
+    "component": "team-collection",
+    "target": "pubsub",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "team-collection",
+    "_file": "src/team-collection/team-collection.resolver.ts",
+    "_line": 19,
+    "_evidence": [
+     {
+      "file": "src/team-collection/team-collection.resolver.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 19
+     },
+     {
+      "file": "src/team-collection/team-collection.service.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 25
+     }
+    ]
+   },
+   {
+    "component": "team-collection",
+    "target": "team",
+    "kind": "folder",
+    "imports": 9,
+    "filePath": "team-collection",
+    "_file": "src/team-collection/team-collection.controller.ts",
+    "_line": 13,
+    "_evidence": [
+     {
+      "file": "src/team-collection/team-collection.controller.ts",
+      "target": "src/team/decorators/requires-team-role.decorator.ts",
+      "line": 13
+     },
+     {
+      "file": "src/team-collection/team-collection.controller.ts",
+      "target": "src/team/guards/rest-team-member.guard.ts",
+      "line": 15
+     },
+     {
+      "file": "src/team-collection/team-collection.module.ts",
+      "target": "src/team/team.module.ts",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "component": "team-collection",
+    "target": "user",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "team-collection",
+    "_file": "src/team-collection/team-collection.module.ts",
+    "_line": 6,
+    "_evidence": [
+     {
+      "file": "src/team-collection/team-collection.module.ts",
+      "target": "src/user/user.module.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "component": "team-environments",
+    "target": "guards",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "team-environments",
+    "_file": "src/team-environments/team-environments.resolver.ts",
+    "_line": 4,
+    "_evidence": [
+     {
+      "file": "src/team-environments/team-environments.resolver.ts",
+      "target": "src/guards/gql-auth.guard.ts",
+      "line": 4
+     },
+     {
+      "file": "src/team-environments/team-environments.resolver.ts",
+      "target": "src/guards/gql-throttler.guard.ts",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "component": "team-environments",
+    "target": "pubsub",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "team-environments",
+    "_file": "src/team-environments/team-environments.resolver.ts",
+    "_line": 6,
+    "_evidence": [
+     {
+      "file": "src/team-environments/team-environments.resolver.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 6
+     },
+     {
+      "file": "src/team-environments/team-environments.service.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "team-environments",
+    "target": "team",
+    "kind": "folder",
+    "imports": 7,
+    "filePath": "team-environments",
+    "_file": "src/team-environments/gql-team-env-team.guard.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/team-environments/gql-team-env-team.guard.ts",
+      "target": "src/team/team.service.ts",
+      "line": 11
+     },
+     {
+      "file": "src/team-environments/team-environments.module.ts",
+      "target": "src/team/team.module.ts",
+      "line": 5
+     },
+     {
+      "file": "src/team-environments/team-environments.resolver.ts",
+      "target": "src/team/decorators/requires-team-role.decorator.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "team-environments",
+    "target": "user",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "team-environments",
+    "_file": "src/team-environments/team-environments.module.ts",
+    "_line": 4,
+    "_evidence": [
+     {
+      "file": "src/team-environments/team-environments.module.ts",
+      "target": "src/user/user.module.ts",
+      "line": 4
+     }
+    ]
+   },
+   {
+    "component": "team-invitation",
+    "target": "guards",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "team-invitation",
+    "_file": "src/team-invitation/team-invitation.resolver.ts",
+    "_line": 22,
+    "_evidence": [
+     {
+      "file": "src/team-invitation/team-invitation.resolver.ts",
+      "target": "src/guards/gql-auth.guard.ts",
+      "line": 22
+     },
+     {
+      "file": "src/team-invitation/team-invitation.resolver.ts",
+      "target": "src/guards/gql-throttler.guard.ts",
+      "line": 32
+     }
+    ]
+   },
+   {
+    "component": "team-invitation",
+    "target": "mailer",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "team-invitation",
+    "_file": "src/team-invitation/team-invitation.service.ts",
+    "_line": 18,
+    "_evidence": [
+     {
+      "file": "src/team-invitation/team-invitation.service.ts",
+      "target": "src/mailer/mailer.service.ts",
+      "line": 18
+     }
+    ]
+   },
+   {
+    "component": "team-invitation",
+    "target": "pubsub",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "team-invitation",
+    "_file": "src/team-invitation/team-invitation.resolver.ts",
+    "_line": 31,
+    "_evidence": [
+     {
+      "file": "src/team-invitation/team-invitation.resolver.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 31
+     },
+     {
+      "file": "src/team-invitation/team-invitation.service.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 20
+     }
+    ]
+   },
+   {
+    "component": "team-invitation",
+    "target": "team",
+    "kind": "folder",
+    "imports": 13,
+    "filePath": "team-invitation",
+    "_file": "src/team-invitation/input-type.args.ts",
+    "_line": 3,
+    "_evidence": [
+     {
+      "file": "src/team-invitation/input-type.args.ts",
+      "target": "src/team/team.model.ts",
+      "line": 3
+     },
+     {
+      "file": "src/team-invitation/team-invitation.model.ts",
+      "target": "src/team/team.model.ts",
+      "line": 2
+     },
+     {
+      "file": "src/team-invitation/team-invitation.module.ts",
+      "target": "src/team/team.module.ts",
+      "line": 2
+     }
+    ]
+   },
+   {
+    "component": "team-invitation",
+    "target": "user",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "team-invitation",
+    "_file": "src/team-invitation/team-invitation.module.ts",
+    "_line": 3,
+    "_evidence": [
+     {
+      "file": "src/team-invitation/team-invitation.module.ts",
+      "target": "src/user/user.module.ts",
+      "line": 3
+     },
+     {
+      "file": "src/team-invitation/team-invitation.resolver.ts",
+      "target": "src/user/user.model.ts",
+      "line": 20
+     },
+     {
+      "file": "src/team-invitation/team-invitation.resolver.ts",
+      "target": "src/user/user.service.ts",
+      "line": 30
+     }
+    ]
+   },
+   {
+    "component": "team-request",
+    "target": "guards",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "team-request",
+    "_file": "src/team-request/team-request.resolver.ts",
+    "_line": 24,
+    "_evidence": [
+     {
+      "file": "src/team-request/team-request.resolver.ts",
+      "target": "src/guards/gql-auth.guard.ts",
+      "line": 24
+     },
+     {
+      "file": "src/team-request/team-request.resolver.ts",
+      "target": "src/guards/gql-throttler.guard.ts",
+      "line": 33
+     }
+    ]
+   },
+   {
+    "component": "team-request",
+    "target": "pubsub",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "team-request",
+    "_file": "src/team-request/team-request.resolver.ts",
+    "_line": 29,
+    "_evidence": [
+     {
+      "file": "src/team-request/team-request.resolver.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 29
+     },
+     {
+      "file": "src/team-request/team-request.service.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 14
+     }
+    ]
+   },
+   {
+    "component": "team-request",
+    "target": "team",
+    "kind": "folder",
+    "imports": 7,
+    "filePath": "team-request",
+    "_file": "src/team-request/team-request.module.ts",
+    "_line": 4,
+    "_evidence": [
+     {
+      "file": "src/team-request/team-request.module.ts",
+      "target": "src/team/team.module.ts",
+      "line": 4
+     },
+     {
+      "file": "src/team-request/team-request.resolver.ts",
+      "target": "src/team/team.model.ts",
+      "line": 20
+     },
+     {
+      "file": "src/team-request/team-request.resolver.ts",
+      "target": "src/team/decorators/requires-team-role.decorator.ts",
+      "line": 27
+     }
+    ]
+   },
+   {
+    "component": "team-request",
+    "target": "team-collection",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "team-request",
+    "_file": "src/team-request/team-request.module.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/team-request/team-request.module.ts",
+      "target": "src/team-collection/team-collection.module.ts",
+      "line": 5
+     },
+     {
+      "file": "src/team-request/team-request.resolver.ts",
+      "target": "src/team-collection/team-collection.model.ts",
+      "line": 22
+     },
+     {
+      "file": "src/team-request/team-request.resolver.ts",
+      "target": "src/team-collection/guards/gql-collection-team-member.guard.ts",
+      "line": 26
+     }
+    ]
+   },
+   {
+    "component": "team-request",
+    "target": "user",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "team-request",
+    "_file": "src/team-request/team-request.module.ts",
+    "_line": 7,
+    "_evidence": [
+     {
+      "file": "src/team-request/team-request.module.ts",
+      "target": "src/user/user.module.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "user",
+    "target": "guards",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "user",
+    "_file": "src/user/user.resolver.ts",
+    "_line": 4,
+    "_evidence": [
+     {
+      "file": "src/user/user.resolver.ts",
+      "target": "src/guards/gql-auth.guard.ts",
+      "line": 4
+     },
+     {
+      "file": "src/user/user.resolver.ts",
+      "target": "src/guards/gql-throttler.guard.ts",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "component": "user",
+    "target": "infra-token",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "user",
+    "_file": "src/user/user.service.ts",
+    "_line": 23,
+    "_evidence": [
+     {
+      "file": "src/user/user.service.ts",
+      "target": "src/infra-token/request-response.dto.ts",
+      "line": 23
+     }
+    ]
+   },
+   {
+    "component": "user",
+    "target": "pubsub",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "user",
+    "_file": "src/user/user.resolver.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/user/user.resolver.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 11
+     },
+     {
+      "file": "src/user/user.service.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 18
+     }
+    ]
+   },
+   {
+    "component": "user",
+    "target": "team",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "user",
+    "_file": "src/user/user.service.ts",
+    "_line": 24,
+    "_evidence": [
+     {
+      "file": "src/user/user.service.ts",
+      "target": "src/team/team.model.ts",
+      "line": 24
+     }
+    ]
+   },
+   {
+    "component": "user-collection",
+    "target": "guards",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "user-collection",
+    "_file": "src/user-collection/user-collection.resolver.ts",
+    "_line": 13,
+    "_evidence": [
+     {
+      "file": "src/user-collection/user-collection.resolver.ts",
+      "target": "src/guards/gql-auth.guard.ts",
+      "line": 13
+     },
+     {
+      "file": "src/user-collection/user-collection.resolver.ts",
+      "target": "src/guards/gql-throttler.guard.ts",
+      "line": 38
+     }
+    ]
+   },
+   {
+    "component": "user-collection",
+    "target": "pubsub",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "user-collection",
+    "_file": "src/user-collection/user-collection.resolver.ts",
+    "_line": 14,
+    "_evidence": [
+     {
+      "file": "src/user-collection/user-collection.resolver.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 14
+     },
+     {
+      "file": "src/user-collection/user-collection.service.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 22
+     }
+    ]
+   },
+   {
+    "component": "user-collection",
+    "target": "user",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "user-collection",
+    "_file": "src/user-collection/user-collection.module.ts",
+    "_line": 4,
+    "_evidence": [
+     {
+      "file": "src/user-collection/user-collection.module.ts",
+      "target": "src/user/user.module.ts",
+      "line": 4
+     },
+     {
+      "file": "src/user-collection/user-collection.resolver.ts",
+      "target": "src/user/user.model.ts",
+      "line": 25
+     }
+    ]
+   },
+   {
+    "component": "user-collection",
+    "target": "user-request",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "user-collection",
+    "_file": "src/user-collection/user-collections.model.ts",
+    "_line": 3,
+    "_evidence": [
+     {
+      "file": "src/user-collection/user-collections.model.ts",
+      "target": "src/user-request/user-request.model.ts",
+      "line": 3
+     }
+    ]
+   },
+   {
+    "component": "user-environment",
+    "target": "guards",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "user-environment",
+    "_file": "src/user-environment/user-environments.resolver.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/user-environment/user-environments.resolver.ts",
+      "target": "src/guards/gql-auth.guard.ts",
+      "line": 5
+     },
+     {
+      "file": "src/user-environment/user-environments.resolver.ts",
+      "target": "src/guards/gql-throttler.guard.ts",
+      "line": 11
+     },
+     {
+      "file": "src/user-environment/user.resolver.ts",
+      "target": "src/guards/gql-auth.guard.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "component": "user-environment",
+    "target": "pubsub",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "user-environment",
+    "_file": "src/user-environment/user-environments.resolver.ts",
+    "_line": 2,
+    "_evidence": [
+     {
+      "file": "src/user-environment/user-environments.resolver.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 2
+     },
+     {
+      "file": "src/user-environment/user-environments.service.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 4
+     }
+    ]
+   },
+   {
+    "component": "user-environment",
+    "target": "user",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "user-environment",
+    "_file": "src/user-environment/user-environments.module.ts",
+    "_line": 2,
+    "_evidence": [
+     {
+      "file": "src/user-environment/user-environments.module.ts",
+      "target": "src/user/user.module.ts",
+      "line": 2
+     },
+     {
+      "file": "src/user-environment/user-environments.resolver.ts",
+      "target": "src/user/user.model.ts",
+      "line": 7
+     },
+     {
+      "file": "src/user-environment/user-environments.service.ts",
+      "target": "src/user/user.model.ts",
+      "line": 17
+     }
+    ]
+   },
+   {
+    "component": "user-history",
+    "target": "guards",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "user-history",
+    "_file": "src/user-history/user-history.resolver.ts",
+    "_line": 7,
+    "_evidence": [
+     {
+      "file": "src/user-history/user-history.resolver.ts",
+      "target": "src/guards/gql-auth.guard.ts",
+      "line": 7
+     },
+     {
+      "file": "src/user-history/user-history.resolver.ts",
+      "target": "src/guards/gql-throttler.guard.ts",
+      "line": 12
+     },
+     {
+      "file": "src/user-history/user.resolver.ts",
+      "target": "src/guards/gql-auth.guard.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "component": "user-history",
+    "target": "infra-config",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "user-history",
+    "_file": "src/user-history/user-history-feature-flag.guard.ts",
+    "_line": 3,
+    "_evidence": [
+     {
+      "file": "src/user-history/user-history-feature-flag.guard.ts",
+      "target": "src/infra-config/infra-config.service.ts",
+      "line": 3
+     },
+     {
+      "file": "src/user-history/user-history-feature-flag.guard.ts",
+      "target": "src/infra-config/helper.ts",
+      "line": 6
+     },
+     {
+      "file": "src/user-history/user-history.module.ts",
+      "target": "src/infra-config/infra-config.module.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "component": "user-history",
+    "target": "pubsub",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "user-history",
+    "_file": "src/user-history/user-history.resolver.ts",
+    "_line": 3,
+    "_evidence": [
+     {
+      "file": "src/user-history/user-history.resolver.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 3
+     },
+     {
+      "file": "src/user-history/user-history.service.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 3
+     }
+    ]
+   },
+   {
+    "component": "user-history",
+    "target": "user",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "user-history",
+    "_file": "src/user-history/user-history.module.ts",
+    "_line": 2,
+    "_evidence": [
+     {
+      "file": "src/user-history/user-history.module.ts",
+      "target": "src/user/user.module.ts",
+      "line": 2
+     },
+     {
+      "file": "src/user-history/user-history.resolver.ts",
+      "target": "src/user/user.model.ts",
+      "line": 9
+     },
+     {
+      "file": "src/user-history/user.resolver.ts",
+      "target": "src/user/user.model.ts",
+      "line": 3
+     }
+    ]
+   },
+   {
+    "component": "user-request",
+    "target": "guards",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "user-request",
+    "_file": "src/user-request/resolvers/user-request.resolver.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/user-request/resolvers/user-request.resolver.ts",
+      "target": "src/guards/gql-auth.guard.ts",
+      "line": 12
+     },
+     {
+      "file": "src/user-request/resolvers/user-request.resolver.ts",
+      "target": "src/guards/gql-throttler.guard.ts",
+      "line": 27
+     }
+    ]
+   },
+   {
+    "component": "user-request",
+    "target": "pubsub",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "user-request",
+    "_file": "src/user-request/user-request.service.ts",
+    "_line": 3,
+    "_evidence": [
+     {
+      "file": "src/user-request/user-request.service.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 3
+     },
+     {
+      "file": "src/user-request/resolvers/user-request.resolver.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "component": "user-request",
+    "target": "user",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "user-request",
+    "_file": "src/user-request/resolvers/user-request.resolver.ts",
+    "_line": 25,
+    "_evidence": [
+     {
+      "file": "src/user-request/resolvers/user-request.resolver.ts",
+      "target": "src/user/user.model.ts",
+      "line": 25
+     }
+    ]
+   },
+   {
+    "component": "user-request",
+    "target": "user-collection",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "user-request",
+    "_file": "src/user-request/user-request.module.ts",
+    "_line": 2,
+    "_evidence": [
+     {
+      "file": "src/user-request/user-request.module.ts",
+      "target": "src/user-collection/user-collection.module.ts",
+      "line": 2
+     },
+     {
+      "file": "src/user-request/user-request.service.ts",
+      "target": "src/user-collection/user-collection.service.ts",
+      "line": 19
+     },
+     {
+      "file": "src/user-request/resolvers/user-collection.resolver.ts",
+      "target": "src/user-collection/user-collections.model.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "user-settings",
+    "target": "guards",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "user-settings",
+    "_file": "src/user-settings/user-settings.resolver.ts",
+    "_line": 4,
+    "_evidence": [
+     {
+      "file": "src/user-settings/user-settings.resolver.ts",
+      "target": "src/guards/gql-auth.guard.ts",
+      "line": 4
+     },
+     {
+      "file": "src/user-settings/user-settings.resolver.ts",
+      "target": "src/guards/gql-throttler.guard.ts",
+      "line": 12
+     },
+     {
+      "file": "src/user-settings/user.resolver.ts",
+      "target": "src/guards/gql-auth.guard.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "component": "user-settings",
+    "target": "pubsub",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "user-settings",
+    "_file": "src/user-settings/user-settings.resolver.ts",
+    "_line": 10,
+    "_evidence": [
+     {
+      "file": "src/user-settings/user-settings.resolver.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 10
+     },
+     {
+      "file": "src/user-settings/user-settings.service.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 3
+     }
+    ]
+   },
+   {
+    "component": "user-settings",
+    "target": "user",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "user-settings",
+    "_file": "src/user-settings/user-settings.module.ts",
+    "_line": 2,
+    "_evidence": [
+     {
+      "file": "src/user-settings/user-settings.module.ts",
+      "target": "src/user/user.module.ts",
+      "line": 2
+     },
+     {
+      "file": "src/user-settings/user-settings.resolver.ts",
+      "target": "src/user/user.model.ts",
+      "line": 5
+     },
+     {
+      "file": "src/user-settings/user-settings.service.ts",
+      "target": "src/user/user.model.ts",
+      "line": 4
+     }
+    ]
+   }
+  ],
+  "component-sdp-violation": [
+   {
+    "component": "access-token",
+    "target": "auth",
+    "kind": "folder",
+    "fromInstability": 0.5,
+    "toInstability": 0.563,
+    "filePath": "access-token",
+    "_file": "src/access-token/access-token.controller.ts",
+    "_line": 16,
+    "_evidence": [
+     {
+      "file": "src/access-token/access-token.controller.ts",
+      "target": "src/auth/guards/jwt-auth.guard.ts",
+      "line": 16
+     }
+    ]
+   },
+   {
+    "component": "access-token",
+    "target": "interceptors",
+    "kind": "folder",
+    "fromInstability": 0.5,
+    "toInstability": 0.571,
+    "filePath": "access-token",
+    "_file": "src/access-token/access-token.controller.ts",
+    "_line": 23,
+    "_evidence": [
+     {
+      "file": "src/access-token/access-token.controller.ts",
+      "target": "src/interceptors/access-token.interceptor.ts",
+      "line": 23
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "infra-config",
+    "kind": "folder",
+    "fromInstability": 0.462,
+    "toInstability": 0.563,
+    "filePath": "admin",
+    "_file": "src/admin/admin.module.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/admin/admin.module.ts",
+      "target": "src/infra-config/infra-config.module.ts",
+      "line": 12
+     },
+     {
+      "file": "src/admin/infra.resolver.ts",
+      "target": "src/infra-config/infra-config.model.ts",
+      "line": 29
+     },
+     {
+      "file": "src/admin/infra.resolver.ts",
+      "target": "src/infra-config/infra-config.service.ts",
+      "line": 30
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "team-environments",
+    "kind": "folder",
+    "fromInstability": 0.462,
+    "toInstability": 0.5,
+    "filePath": "admin",
+    "_file": "src/admin/admin.module.ts",
+    "_line": 7,
+    "_evidence": [
+     {
+      "file": "src/admin/admin.module.ts",
+      "target": "src/team-environments/team-environments.module.ts",
+      "line": 7
+     },
+     {
+      "file": "src/admin/admin.service.ts",
+      "target": "src/team-environments/team-environments.service.ts",
+      "line": 26
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "team-invitation",
+    "kind": "folder",
+    "fromInstability": 0.462,
+    "toInstability": 0.667,
+    "filePath": "admin",
+    "_file": "src/admin/admin.module.ts",
+    "_line": 6,
+    "_evidence": [
+     {
+      "file": "src/admin/admin.module.ts",
+      "target": "src/team-invitation/team-invitation.module.ts",
+      "line": 6
+     },
+     {
+      "file": "src/admin/admin.service.ts",
+      "target": "src/team-invitation/team-invitation.service.ts",
+      "line": 27
+     },
+     {
+      "file": "src/admin/infra.resolver.ts",
+      "target": "src/team-invitation/team-invitation.model.ts",
+      "line": 26
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "user-history",
+    "kind": "folder",
+    "fromInstability": 0.462,
+    "toInstability": 0.667,
+    "filePath": "admin",
+    "_file": "src/admin/admin.module.ts",
+    "_line": 13,
+    "_evidence": [
+     {
+      "file": "src/admin/admin.module.ts",
+      "target": "src/user-history/user-history.module.ts",
+      "line": 13
+     },
+     {
+      "file": "src/admin/admin.service.ts",
+      "target": "src/user-history/user-history.service.ts",
+      "line": 33
+     }
+    ]
+   },
+   {
+    "component": "auth",
+    "target": "interceptors",
+    "kind": "folder",
+    "fromInstability": 0.563,
+    "toInstability": 0.571,
+    "filePath": "auth",
+    "_file": "src/auth/auth.controller.ts",
+    "_line": 32,
+    "_evidence": [
+     {
+      "file": "src/auth/auth.controller.ts",
+      "target": "src/interceptors/user-last-login.interceptor.ts",
+      "line": 32
+     }
+    ]
+   },
+   {
+    "component": "guards",
+    "target": "access-token",
+    "kind": "folder",
+    "fromInstability": 0.059,
+    "toInstability": 0.5,
+    "filePath": "guards",
+    "_file": "src/guards/rest-pat-auth.guard.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/guards/rest-pat-auth.guard.ts",
+      "target": "src/access-token/access-token.service.ts",
+      "line": 8
+     },
+     {
+      "file": "src/guards/rest-pat-auth.guard.ts",
+      "target": "src/access-token/helper.ts",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "component": "interceptors",
+    "target": "infra-token",
+    "kind": "folder",
+    "fromInstability": 0.571,
+    "toInstability": 0.714,
+    "filePath": "interceptors",
+    "_file": "src/interceptors/infra-token.interceptor.ts",
+    "_line": 10,
+    "_evidence": [
+     {
+      "file": "src/interceptors/infra-token.interceptor.ts",
+      "target": "src/infra-token/infra-token.service.ts",
+      "line": 10
+     }
+    ]
+   },
+   {
+    "component": "mailer",
+    "target": "infra-config",
+    "kind": "folder",
+    "fromInstability": 0.167,
+    "toInstability": 0.563,
+    "filePath": "mailer",
+    "_file": "src/mailer/mailer.module.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/mailer/mailer.module.ts",
+      "target": "src/infra-config/helper.ts",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "admin",
+    "kind": "folder",
+    "fromInstability": 0.031,
+    "toInstability": 0.462,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 23,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/admin/invited-user.model.ts",
+      "line": 23
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "orchestration",
+    "kind": "folder",
+    "fromInstability": 0.031,
+    "toInstability": 0.833,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 31,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/orchestration/sort/sort.model.ts",
+      "line": 31
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "shortcode",
+    "kind": "folder",
+    "fromInstability": 0.031,
+    "toInstability": 0.429,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 30,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/shortcode/shortcode.model.ts",
+      "line": 30
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "team",
+    "kind": "folder",
+    "fromInstability": 0.031,
+    "toInstability": 0.093,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/team/team.model.ts",
+      "line": 12
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "team-collection",
+    "kind": "folder",
+    "fromInstability": 0.031,
+    "toInstability": 0.286,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 14,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/team-collection/team-collection.model.ts",
+      "line": 14
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "team-environments",
+    "kind": "folder",
+    "fromInstability": 0.031,
+    "toInstability": 0.5,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 13,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/team-environments/team-environments.model.ts",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "team-invitation",
+    "kind": "folder",
+    "fromInstability": 0.031,
+    "toInstability": 0.667,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 22,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/team-invitation/team-invitation.model.ts",
+      "line": 22
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "team-request",
+    "kind": "folder",
+    "fromInstability": 0.031,
+    "toInstability": 0.455,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 18,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/team-request/team-request.model.ts",
+      "line": 18
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "user",
+    "kind": "folder",
+    "fromInstability": 0.031,
+    "toInstability": 0.058,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/user/user.model.ts",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "user-collection",
+    "kind": "folder",
+    "fromInstability": 0.031,
+    "toInstability": 0.313,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 24,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/user-collection/user-collections.model.ts",
+      "line": 24
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "user-environment",
+    "kind": "folder",
+    "fromInstability": 0.031,
+    "toInstability": 0.8,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 7,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/user-environment/user-environments.model.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "user-history",
+    "kind": "folder",
+    "fromInstability": 0.031,
+    "toInstability": 0.667,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/user-history/user-history.model.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "user-request",
+    "kind": "folder",
+    "fromInstability": 0.031,
+    "toInstability": 0.6,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 1,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/user-request/user-request.model.ts",
+      "line": 1
+     }
+    ]
+   },
+   {
+    "component": "pubsub",
+    "target": "user-settings",
+    "kind": "folder",
+    "fromInstability": 0.031,
+    "toInstability": 0.8,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 6,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/user-settings/user-settings.model.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "component": "team",
+    "target": "admin",
+    "kind": "folder",
+    "fromInstability": 0.093,
+    "toInstability": 0.462,
+    "filePath": "team",
+    "_file": "src/team/team.resolver.ts",
+    "_line": 26,
+    "_evidence": [
+     {
+      "file": "src/team/team.resolver.ts",
+      "target": "src/admin/guards/gql-admin.guard.ts",
+      "line": 26
+     }
+    ]
+   },
+   {
+    "component": "team-collection",
+    "target": "auth",
+    "kind": "folder",
+    "fromInstability": 0.286,
+    "toInstability": 0.563,
+    "filePath": "team-collection",
+    "_file": "src/team-collection/team-collection.controller.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/team-collection/team-collection.controller.ts",
+      "target": "src/auth/guards/jwt-auth.guard.ts",
+      "line": 12
+     }
+    ]
+   },
+   {
+    "component": "user",
+    "target": "guards",
+    "kind": "folder",
+    "fromInstability": 0.058,
+    "toInstability": 0.059,
+    "filePath": "user",
+    "_file": "src/user/user.resolver.ts",
+    "_line": 4,
+    "_evidence": [
+     {
+      "file": "src/user/user.resolver.ts",
+      "target": "src/guards/gql-auth.guard.ts",
+      "line": 4
+     },
+     {
+      "file": "src/user/user.resolver.ts",
+      "target": "src/guards/gql-throttler.guard.ts",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "component": "user",
+    "target": "infra-token",
+    "kind": "folder",
+    "fromInstability": 0.058,
+    "toInstability": 0.714,
+    "filePath": "user",
+    "_file": "src/user/user.service.ts",
+    "_line": 23,
+    "_evidence": [
+     {
+      "file": "src/user/user.service.ts",
+      "target": "src/infra-token/request-response.dto.ts",
+      "line": 23
+     }
+    ]
+   },
+   {
+    "component": "user",
+    "target": "team",
+    "kind": "folder",
+    "fromInstability": 0.058,
+    "toInstability": 0.093,
+    "filePath": "user",
+    "_file": "src/user/user.service.ts",
+    "_line": 24,
+    "_evidence": [
+     {
+      "file": "src/user/user.service.ts",
+      "target": "src/team/team.model.ts",
+      "line": 24
+     }
+    ]
+   },
+   {
+    "component": "user-collection",
+    "target": "user-request",
+    "kind": "folder",
+    "fromInstability": 0.313,
+    "toInstability": 0.6,
+    "filePath": "user-collection",
+    "_file": "src/user-collection/user-collections.model.ts",
+    "_line": 3,
+    "_evidence": [
+     {
+      "file": "src/user-collection/user-collections.model.ts",
+      "target": "src/user-request/user-request.model.ts",
+      "line": 3
+     }
+    ]
+   },
+   {
+    "component": "application",
+    "target": "presentation",
+    "kind": "layer",
+    "fromInstability": 0.375,
+    "toInstability": 0.851,
+    "filePath": "application",
+    "_file": "src/user-collection/user-collection.resolver.ts",
+    "_line": 13,
+    "_evidence": [
+     {
+      "file": "src/user-collection/user-collection.resolver.ts",
+      "target": "src/guards/gql-auth.guard.ts",
+      "line": 13
+     },
+     {
+      "file": "src/user-collection/user-collection.resolver.ts",
+      "target": "src/guards/gql-throttler.guard.ts",
+      "line": 38
+     },
+     {
+      "file": "src/user-environment/user-environments.resolver.ts",
+      "target": "src/guards/gql-auth.guard.ts",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "component": "infrastructure",
+    "target": "application",
+    "kind": "layer",
+    "fromInstability": 0.265,
+    "toInstability": 0.375,
+    "filePath": "infrastructure",
+    "_file": "src/admin/admin.resolver.ts",
+    "_line": 14,
+    "_evidence": [
+     {
+      "file": "src/admin/admin.resolver.ts",
+      "target": "src/admin/admin.service.ts",
+      "line": 14
+     },
+     {
+      "file": "src/admin/admin.resolver.ts",
+      "target": "src/pubsub/pubsub.service.ts",
+      "line": 20
+     },
+     {
+      "file": "src/admin/infra.resolver.ts",
+      "target": "src/admin/admin.service.ts",
+      "line": 12
+     }
+    ]
+   },
+   {
+    "component": "infrastructure",
+    "target": "presentation",
+    "kind": "layer",
+    "fromInstability": 0.265,
+    "toInstability": 0.851,
+    "filePath": "infrastructure",
+    "_file": "src/admin/admin.resolver.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/admin/admin.resolver.ts",
+      "target": "src/guards/gql-auth.guard.ts",
+      "line": 11
+     },
+     {
+      "file": "src/admin/admin.resolver.ts",
+      "target": "src/admin/guards/gql-admin.guard.ts",
+      "line": 12
+     },
+     {
+      "file": "src/admin/admin.resolver.ts",
+      "target": "src/guards/gql-throttler.guard.ts",
+      "line": 26
+     }
+    ]
+   }
+  ],
+  "component-main-sequence-distance": [
+   {
+    "component": "guards",
+    "kind": "folder",
+    "abstractness": 0,
+    "instability": 0.059,
+    "distance": 0.941,
+    "filePath": "guards",
+    "_file": "src/guards/gql-auth.guard.ts",
+    "_line": 1,
+    "_evidence": {
+     "files": 5,
+     "sample": [
+      "src/guards/gql-auth.guard.ts",
+      "src/guards/gql-throttler.guard.ts",
+      "src/guards/infra-token.guard.ts",
+      "src/guards/rest-pat-auth.guard.ts",
+      "src/guards/throttler-behind-proxy.guard.ts"
+     ]
+    }
+   },
+   {
+    "component": "team",
+    "kind": "folder",
+    "abstractness": 0,
+    "instability": 0.093,
+    "distance": 0.907,
+    "filePath": "team",
+    "_file": "src/team/team-member.resolver.ts",
+    "_line": 1,
+    "_evidence": {
+     "files": 8,
+     "sample": [
+      "src/team/team-member.resolver.ts",
+      "src/team/team.model.ts",
+      "src/team/team.module.ts",
+      "src/team/team.resolver.ts",
+      "src/team/team.service.ts"
+     ]
+    }
+   },
+   {
+    "component": "team-collection",
+    "kind": "folder",
+    "abstractness": 0,
+    "instability": 0.286,
+    "distance": 0.714,
+    "filePath": "team-collection",
+    "_file": "src/team-collection/helper.ts",
+    "_line": 1,
+    "_evidence": {
+     "files": 8,
+     "sample": [
+      "src/team-collection/helper.ts",
+      "src/team-collection/input-type.args.ts",
+      "src/team-collection/team-collection.controller.ts",
+      "src/team-collection/team-collection.model.ts",
+      "src/team-collection/team-collection.module.ts"
+     ]
+    }
+   },
+   {
+    "component": "user",
+    "kind": "folder",
+    "abstractness": 0.167,
+    "instability": 0.058,
+    "distance": 0.775,
+    "filePath": "user",
+    "_file": "src/user/user.data.handler.ts",
+    "_line": 1,
+    "_evidence": {
+     "files": 5,
+     "sample": [
+      "src/user/user.data.handler.ts",
+      "src/user/user.model.ts",
+      "src/user/user.module.ts",
+      "src/user/user.resolver.ts",
+      "src/user/user.service.ts"
+     ]
+    }
+   }
+  ],
+  "deep-import-declared-api": [],
+  "deep-import-inferred-api": [],
+  "undeclared-async-coupling": [],
+  "io-outside-adapters": [],
+  "nondeterminism-in-core": [
+   {
+    "filePath": "src/access-token/access-token.service.ts",
+    "member": "AccessTokenService.updateLastUsedForPAT",
+    "layer": "application",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 184,
+    "lines": [
+     184
+    ],
+    "_file": "src/access-token/access-token.service.ts",
+    "_line": 184,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/auth/auth.service.ts",
+    "member": "AuthService.generateMagicLinkTokens",
+    "layer": "application",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 61,
+    "lines": [
+     61
+    ],
+    "_file": "src/auth/auth.service.ts",
+    "_line": 61,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/auth/auth.service.ts",
+    "member": "AuthService.verifyMagicLinkTokens",
+    "layer": "application",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 299,
+    "lines": [
+     299
+    ],
+    "_file": "src/auth/auth.service.ts",
+    "_line": 299,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/infra-config/infra-config.service.ts",
+    "member": "InfraConfigService.updateOnboardingConfig",
+    "layer": "application",
+    "category": "random",
+    "apis": [
+     "crypto:crypto.randomUUID"
+    ],
+    "line": 557,
+    "lines": [
+     557
+    ],
+    "_file": "src/infra-config/infra-config.service.ts",
+    "_line": 557,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/infra-token/infra-token.service.ts",
+    "member": "InfraTokenService.updateLastUsedOn",
+    "layer": "application",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 127,
+    "lines": [
+     127
+    ],
+    "_file": "src/infra-token/infra-token.service.ts",
+    "_line": 127,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/mock-server/mock-server.service.ts",
+    "member": "MockServerService.deleteMockServer",
+    "layer": "application",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 548,
+    "lines": [
+     548
+    ],
+    "_file": "src/mock-server/mock-server.service.ts",
+    "_line": 548,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/mock-server/mock-server.service.ts",
+    "member": "MockServerService.generateMockServerSubdomain",
+    "layer": "application",
+    "category": "random",
+    "apis": [
+     "crypto:randomBytes"
+    ],
+    "line": 285,
+    "lines": [
+     285
+    ],
+    "_file": "src/mock-server/mock-server.service.ts",
+    "_line": 285,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/mock-server/mock-server.service.ts",
+    "member": "MockServerService.incrementHitCount",
+    "layer": "application",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 711,
+    "lines": [
+     711
+    ],
+    "_file": "src/mock-server/mock-server.service.ts",
+    "_line": 711,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/published-docs/published-docs.service.ts",
+    "member": "PublishedDocsService.getOrGenerateSlug",
+    "layer": "application",
+    "category": "random",
+    "apis": [
+     "crypto:crypto.randomUUID"
+    ],
+    "line": 74,
+    "lines": [
+     74
+    ],
+    "_file": "src/published-docs/published-docs.service.ts",
+    "_line": 74,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/shortcode/shortcode.service.ts",
+    "member": "ShortcodeService.generateShortCodeID",
+    "layer": "application",
+    "category": "random",
+    "apis": [
+     "Math.random()"
+    ],
+    "line": 74,
+    "lines": [
+     74
+    ],
+    "_file": "src/shortcode/shortcode.service.ts",
+    "_line": 74,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/user/user.service.ts",
+    "member": "UserService.createUserSSO",
+    "layer": "application",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 179,
+    "lines": [
+     179
+    ],
+    "_file": "src/user/user.service.ts",
+    "_line": 179,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/user/user.service.ts",
+    "member": "UserService.updateUserDetails",
+    "layer": "application",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 242,
+    "lines": [
+     242
+    ],
+    "_file": "src/user/user.service.ts",
+    "_line": 242,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/user/user.service.ts",
+    "member": "UserService.updateUserLastActiveOn",
+    "layer": "application",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 347,
+    "lines": [
+     347
+    ],
+    "_file": "src/user/user.service.ts",
+    "_line": 347,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/user/user.service.ts",
+    "member": "UserService.updateUserLastLoggedOn",
+    "layer": "application",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 331,
+    "lines": [
+     331
+    ],
+    "_file": "src/user/user.service.ts",
+    "_line": 331,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/utils.ts",
+    "member": "calculateExpirationDate",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 313,
+    "lines": [
+     313
+    ],
+    "_file": "src/utils.ts",
+    "_line": 313,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/utils.ts",
+    "member": "decrypt",
+    "layer": "domain",
+    "category": "env",
+    "apis": [
+     "process.env"
+    ],
+    "line": 368,
+    "lines": [
+     368
+    ],
+    "_file": "src/utils.ts",
+    "_line": 368,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/utils.ts",
+    "member": "encrypt",
+    "layer": "domain",
+    "category": "env",
+    "apis": [
+     "process.env"
+    ],
+    "line": 344,
+    "lines": [
+     344
+    ],
+    "_file": "src/utils.ts",
+    "_line": 344,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/utils.ts",
+    "member": "encrypt",
+    "layer": "domain",
+    "category": "random",
+    "apis": [
+     "crypto:crypto.randomBytes"
+    ],
+    "line": 349,
+    "lines": [
+     349
+    ],
+    "_file": "src/utils.ts",
+    "_line": 349,
+    "_importGraphSees": true
+   }
+  ]
+ }
+}

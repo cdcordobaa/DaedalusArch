@@ -225,12 +225,12 @@ export function renderMarkdown(metrics: readonly StyleMetrics[], comparisons: re
   out.push('| Style | Variants | Planted detected | Silent clean/near-miss | Blocking recall | Blocking precision | Blocking precision (distinct) | All recall | All precision |');
   out.push('|---|---|---|---|---|---|---|---|---|');
   for (const m of metrics) {
-    out.push(`| ${m.style} | ${m.variants} | ${m.plantedDetected}/${m.violationVariants} | ${m.silentNonViolations}/${m.nonViolationVariants} | ${pct(m.blocking.recall)} | ${pct(m.blocking.precision)} | ${pct(m.blocking.precisionDistinct)} | ${pct(m.all.recall)} | ${pct(m.all.precision)} |`);
+    out.push(`| ${m.style} | ${String(m.variants)} | ${String(m.plantedDetected)}/${String(m.violationVariants)} | ${String(m.silentNonViolations)}/${String(m.nonViolationVariants)} | ${pct(m.blocking.recall)} | ${pct(m.blocking.precision)} | ${pct(m.blocking.precisionDistinct)} | ${pct(m.all.recall)} | ${pct(m.all.precision)} |`);
   }
   for (const m of metrics) {
     out.push('', `## ${m.style}`, '', '| Rule | Name | Blocking candidate | TP | FN | FP | FP distinct | Recall | Precision |', '|---|---|---|---|---|---|---|---|---|');
     for (const r of m.rules) {
-      out.push(`| ${r.ruleId} | ${r.ruleName} | ${r.blockingCandidate ? 'yes' : 'no'} | ${r.tp} | ${r.fn} | ${r.fp} | ${r.fpDistinct} | ${pct(r.recall)} | ${pct(r.precision)} |`);
+      out.push(`| ${r.ruleId} | ${r.ruleName} | ${r.blockingCandidate ? 'yes' : 'no'} | ${String(r.tp)} | ${String(r.fn)} | ${String(r.fp)} | ${String(r.fpDistinct)} | ${pct(r.recall)} | ${pct(r.precision)} |`);
     }
     const rows = comparisons.filter((c) => c.style === m.style && c.mismatches.length > 0);
     out.push('', rows.length === 0 ? 'No mismatch.' : '| Variant | Kind | Mismatch | Rule | File | Target | Note |');

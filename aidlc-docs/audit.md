@@ -1493,6 +1493,32 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 
 ---
 
+## v1.3 Construction — night plan (2026-10-16)
+**Timestamp**: 2026-10-16T01:55:00Z
+**User Input**: "The author wants all remaining subscription usage spent tonight on closing the thesis gaps (SO3 neuro-symbolic, SO4 validity, SO5 spec level), never on side tracks (frontend dropped). The overriding constraint is that Study 2 must run exactly once ('I don't want to ruin a third study'). Human labels by the author or director carry little authority, so validity must rest on non-human evidence. Cloud work must bill the subscription, not the $250 credit. The plan is to be tracked in AI-DLC."
+**AI Response**: "Wrote construction/plans/v1.3-night-2026-10-16-plan.md, tracking about 40 jobs across three usage windows with a pass criterion each.
+- Validity without raters: developer-fix mining, predictive bug-fix churn, convergent agreement with three external checkers, a cross-vendor model panel, a methods memo, an external human-written set, and graph-fidelity adjudication prep.
+- Readiness: a go/no-go gate, a floor-effect probe, an analysis rehearsal on synthetic data, a no-LLM loop replay, and task design.
+- Tool behaviour: blind-key misses, fix hints, warning noise, npx, CI gate, HTML report, init, rule mining, rule gaps, scale, interpreter fuzz and review fixes, dogfooding, and a spec-driven OpenSpec/AI-DLC demo.
+- Quality: a local multi-agent post-merge review, merge trains at 02:47, 04:17 and 09:30 UTC, and an adversarial review of open PRs at 07:50 that holds failing PRs before the morning train.
+Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, jest with no new failures, byte-identical reference results on Neo4j and the in-process engine). Billing finding: `claude --cloud` sessions drew on the cloud credit ($250 → $186), so further jobs are routines only."
+**Context**: CONSTRUCTION, v1.3 validity cycle. Autonomous under the standing delegation; author decisions are listed in §6 of the plan.
+## v1.3 SPIKE — independent multi-vendor model panel for the meaningful label (scheduled task)
+**Timestamp**: 2026-10-16T12:00:00Z
+**User Input**: "Scheduled task: replace or calibrate the author/director 'meaningful' labels with an independent multi-vendor model panel (Gemini via GEMINI_API_KEY with tools off, OpenAI/Codex via env, Claude via the CLI with an isolated config dir reusing the judge isolation pattern). One shared prompt and schema, cassettes for every call, blinding through the label scrubber, decoys from the reference manifests to measure each rater. Statistics: per-rater decoy accuracy, pairwise and Fleiss/Krippendorff agreement, majority with confidence, and an authority rule fixed in a committed doc before any data. Dry run end to end with fake adapters on 40 items; no real model call. Docs/v1.3/model-panel.md with design, rule, cost per 100 items per vendor, local run command, and how it complements developer-fix and predictive-validity evidence. Branch v1.3-model-panel from origin/v1.3; one PR, not merged."
+**AI Response**: "Docs/v1.3/model-panel.md (rule panel-authority-v1) committed first. scripts/v1.3/lib/panel/ (items, prompt, adapters, run, stats, main) and scripts/v1.3/model-panel.ts; ProviderId widened with claude-cli, openai-api, fake. Dry run: 40 items (20 wild targets, 10 known-correct and 10 known-wrong reference decoys), three fake raters, 240 calls recorded then replayed identically, no item withheld by the blinding check; results/v1.3-panel/dry-run/ (not a result). 30 new unit tests; tests/unit/scripts/v1.3 367/367 pass. No real model called, no key read. The AI-DLC approval gates were not run interactively: the request came from a scheduled task with no one present; the stored prompt served as the requirements."
+**Context**: v1.3 spike, outside the v1.3 study stages. Harness only; no labels produced.
+
+---
+
+## v1.3 CONSTRUCTION — loop replay (scheduled task, no live user)
+**Timestamp**: 2026-10-16T01:40:00Z
+**User Input**: (scheduled task prompt) Prove the firewall-in-the-loop harness end to end without any LLM: a deterministic scripted agent replaying recorded edits for at least 2 pilot tasks under none / daedalus-mcp / gate, on the in-process engine or Neo4j 5.26 + APOC; assert memo-defined metrics, per-step latency, gate exactness, consistency with a full evaluation, byte reproducibility; jest integration test, npm script, Docs/v1.3/loop-replay.md; one PR into v1.3, not merged.
+**AI Response**: "Branch v1.3-loop-replay from origin/v1.3. `--engine cypher-interp` is not on v1.3, so Neo4j 5.26.24 + APOC 5.26.24 from the tarball. Scripted agent and tapes for market-vendors, shelter-adoptions and relief-volunteers; replay CLI (npm run loop:replay) and jest test (npm run test:loop-replay). Plumbing bugs found and fixed: missing tsconfig for the live evaluator, DDD freeze accepting an uncompilable spec, report/template not persisted for the memo §3 labelling, advisory counts per rule missing for memo §4, non-deterministic snapshot commit dates for the replay. Tool gap recorded, not fixed: check_file/check_diff do not check the hexagonal graph or DDD context rules. No LLM called. Interactive approval gates were not run: no live user."
+**Context**: v1.3 loop pilot readiness; the pilot itself has not run and still needs the author's go.
+
+---
+
 ## v1.3 — differential fuzz of the Cypher interpreter (scheduled task)
 **Timestamp**: 2026-10-16T04:55:00Z
 **User Input**: "Scheduled task: differential fuzz parity of the in-process Cypher interpreter (PR #128) against live Neo4j 5.26.24 + APOC: a seeded adversarial APG generator; thousands of graphs × every template in every compiled form and binding of the parity harness, rows compared exactly; minimise, classify and fix every mismatch (regression test each, never change template text); fuzz the rejection path; write Docs/v1.3/cypher-interp-fuzz.md; re-run the 71-reference byte-identity check. Branch v1.3-interp-fuzz, one PR into v1.3, not merged."

@@ -1,0 +1,1152 @@
+{
+ "id": "awesome-nest-boilerplate",
+ "stats": {
+  "signatureUses": 98,
+  "components": 18,
+  "componentSource": "declared",
+  "dependsOn": 41,
+  "deepImports": 0,
+  "exportsSymbol": 0,
+  "channels": 3,
+  "async": {
+   "publishes": 2,
+   "subscribes": 3,
+   "dynamicNames": 0
+  },
+  "io": {
+   "byCategory": {
+    "db": 68,
+    "http-out": 0,
+    "fs": 0,
+    "env": 9,
+    "clock": 0,
+    "random": 7,
+    "process": 0
+   }
+  },
+  "timingsMs": {
+   "typeFlow": 44,
+   "components": 6.2,
+   "async": 103.7,
+   "io": 73.2
+  }
+ },
+ "params": {
+  "domainLayer": "domain",
+  "applicationLayers": [
+   "application"
+  ],
+  "infraLayer": "infrastructure",
+  "controllerLayer": "presentation",
+  "threshold": 0.7,
+  "allowedAsync": [],
+  "compositionRootLayers": [],
+  "compositionRootPatterns": [
+   "^(?:.*/)?(?:main|bootstrap|composition-root|compositionRoot|container|di)\\.(?:ts|tsx|mts|cts)$",
+   "^(?:.*/)?[^/]+\\.(?:module|container)\\.(?:ts|tsx|mts|cts)$"
+  ],
+  "testPatterns": [
+   "^(?:.*/)?[^/]*\\.(?:spec|test)\\.(?:ts|tsx|mts|cts)$",
+   "^(?:.*/)?(?:__tests__|__mocks__|test|tests)/.*$",
+   "^(?:.*/)?[Tt]est[A-Z._-][^/]*$"
+  ],
+  "aclPatterns": [],
+  "minTypes": 4
+ },
+ "components": [
+  {
+   "name": "domain",
+   "kind": "layer"
+  },
+  {
+   "name": "infrastructure",
+   "kind": "layer"
+  },
+  {
+   "name": "application",
+   "kind": "layer"
+  },
+  {
+   "name": "presentation",
+   "kind": "layer"
+  },
+  {
+   "name": "common",
+   "kind": "folder"
+  },
+  {
+   "name": "constants",
+   "kind": "folder"
+  },
+  {
+   "name": "database",
+   "kind": "folder"
+  },
+  {
+   "name": "decorators",
+   "kind": "folder"
+  },
+  {
+   "name": "entity-subscribers",
+   "kind": "folder"
+  },
+  {
+   "name": "exceptions",
+   "kind": "folder"
+  },
+  {
+   "name": "filters",
+   "kind": "folder"
+  },
+  {
+   "name": "guards",
+   "kind": "folder"
+  },
+  {
+   "name": "interceptors",
+   "kind": "folder"
+  },
+  {
+   "name": "interfaces",
+   "kind": "folder"
+  },
+  {
+   "name": "modules",
+   "kind": "folder"
+  },
+  {
+   "name": "providers",
+   "kind": "folder"
+  },
+  {
+   "name": "shared",
+   "kind": "folder"
+  },
+  {
+   "name": "validators",
+   "kind": "folder"
+  }
+ ],
+ "parseCoverage": {
+  "total": 98,
+  "parsed": 98
+ },
+ "importResolution": {
+  "resolvedInternal": 232,
+  "external": 199,
+  "externalOutOfRootAlias": 0,
+  "unresolved": 0,
+  "droppedNoFileNode": 0,
+  "unsupportedDynamic": 0
+ },
+ "counts": {
+  "boundary-type-leak": 0,
+  "component-adp-cycle": 22,
+  "component-sdp-violation": 9,
+  "component-main-sequence-distance": 0,
+  "deep-import-declared-api": 0,
+  "deep-import-inferred-api": 0,
+  "undeclared-async-coupling": 0,
+  "io-outside-adapters": 18,
+  "nondeterminism-in-core": 3
+ },
+ "rows": {
+  "boundary-type-leak": [],
+  "component-adp-cycle": [
+   {
+    "component": "common",
+    "target": "decorators",
+    "kind": "folder",
+    "imports": 6,
+    "filePath": "common",
+    "_file": "src/common/dto/abstract.dto.ts",
+    "_line": 1,
+    "_evidence": [
+     {
+      "file": "src/common/dto/abstract.dto.ts",
+      "target": "src/decorators/field.decorators.ts",
+      "line": 1
+     },
+     {
+      "file": "src/common/dto/abstract.dto.ts",
+      "target": "src/decorators/translate.decorator.ts",
+      "line": 2
+     },
+     {
+      "file": "src/common/dto/create-translation.dto.ts",
+      "target": "src/decorators/field.decorators.ts",
+      "line": 2
+     }
+    ]
+   },
+   {
+    "component": "common",
+    "target": "providers",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "common",
+    "_file": "src/common/dto/abstract.dto.ts",
+    "_line": 3,
+    "_evidence": [
+     {
+      "file": "src/common/dto/abstract.dto.ts",
+      "target": "src/providers/context.provider.ts",
+      "line": 3
+     }
+    ]
+   },
+   {
+    "component": "decorators",
+    "target": "common",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "decorators",
+    "_file": "src/decorators/api-page-response.decorator.ts",
+    "_line": 6,
+    "_evidence": [
+     {
+      "file": "src/decorators/api-page-response.decorator.ts",
+      "target": "src/common/dto/page.dto.ts",
+      "line": 6
+     },
+     {
+      "file": "src/decorators/property.decorators.ts",
+      "target": "src/common/utils.ts",
+      "line": 4
+     }
+    ]
+   },
+   {
+    "component": "decorators",
+    "target": "guards",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "decorators",
+    "_file": "src/decorators/http.decorators.ts",
+    "_line": 17,
+    "_evidence": [
+     {
+      "file": "src/decorators/http.decorators.ts",
+      "target": "src/guards/auth.guard.ts",
+      "line": 17
+     },
+     {
+      "file": "src/decorators/http.decorators.ts",
+      "target": "src/guards/roles.guard.ts",
+      "line": 18
+     }
+    ]
+   },
+   {
+    "component": "decorators",
+    "target": "interceptors",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "decorators",
+    "_file": "src/decorators/http.decorators.ts",
+    "_line": 19,
+    "_evidence": [
+     {
+      "file": "src/decorators/http.decorators.ts",
+      "target": "src/interceptors/auth-user-interceptor.service.ts",
+      "line": 19
+     }
+    ]
+   },
+   {
+    "component": "decorators",
+    "target": "providers",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "decorators",
+    "_file": "src/decorators/transform.decorators.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/decorators/transform.decorators.ts",
+      "target": "src/providers/generator.provider.ts",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "component": "entity-subscribers",
+    "target": "common",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "entity-subscribers",
+    "_file": "src/entity-subscribers/user-subscriber.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/entity-subscribers/user-subscriber.ts",
+      "target": "src/common/utils.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "component": "entity-subscribers",
+    "target": "modules",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "entity-subscribers",
+    "_file": "src/entity-subscribers/user-subscriber.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/entity-subscribers/user-subscriber.ts",
+      "target": "src/modules/user/user.entity.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "component": "guards",
+    "target": "modules",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "guards",
+    "_file": "src/guards/roles.guard.ts",
+    "_line": 6,
+    "_evidence": [
+     {
+      "file": "src/guards/roles.guard.ts",
+      "target": "src/modules/user/user.entity.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "component": "interceptors",
+    "target": "common",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "interceptors",
+    "_file": "src/interceptors/translation-interceptor.service.ts",
+    "_line": 10,
+    "_evidence": [
+     {
+      "file": "src/interceptors/translation-interceptor.service.ts",
+      "target": "src/common/dto/abstract.dto.ts",
+      "line": 10
+     }
+    ]
+   },
+   {
+    "component": "interceptors",
+    "target": "modules",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "interceptors",
+    "_file": "src/interceptors/auth-user-interceptor.service.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/interceptors/auth-user-interceptor.service.ts",
+      "target": "src/modules/user/user.entity.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "component": "interceptors",
+    "target": "providers",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "interceptors",
+    "_file": "src/interceptors/auth-user-interceptor.service.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/interceptors/auth-user-interceptor.service.ts",
+      "target": "src/providers/context.provider.ts",
+      "line": 9
+     },
+     {
+      "file": "src/interceptors/language-interceptor.service.ts",
+      "target": "src/providers/context.provider.ts",
+      "line": 10
+     }
+    ]
+   },
+   {
+    "component": "interceptors",
+    "target": "shared",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "interceptors",
+    "_file": "src/interceptors/translation-interceptor.service.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/interceptors/translation-interceptor.service.ts",
+      "target": "src/shared/services/translation.service.ts",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "component": "modules",
+    "target": "common",
+    "kind": "folder",
+    "imports": 17,
+    "filePath": "modules",
+    "_file": "src/modules/auth/auth.service.ts",
+    "_line": 4,
+    "_evidence": [
+     {
+      "file": "src/modules/auth/auth.service.ts",
+      "target": "src/common/utils.ts",
+      "line": 4
+     },
+     {
+      "file": "src/modules/post/post-translation.entity.ts",
+      "target": "src/common/abstract.entity.ts",
+      "line": 4
+     },
+     {
+      "file": "src/modules/post/post.controller.ts",
+      "target": "src/common/dto/page.dto.ts",
+      "line": 20
+     }
+    ]
+   },
+   {
+    "component": "modules",
+    "target": "decorators",
+    "kind": "folder",
+    "imports": 23,
+    "filePath": "modules",
+    "_file": "src/modules/auth/auth.controller.ts",
+    "_line": 14,
+    "_evidence": [
+     {
+      "file": "src/modules/auth/auth.controller.ts",
+      "target": "src/decorators/auth-user.decorator.ts",
+      "line": 14
+     },
+     {
+      "file": "src/modules/auth/auth.controller.ts",
+      "target": "src/decorators/http.decorators.ts",
+      "line": 15
+     },
+     {
+      "file": "src/modules/auth/auth.controller.ts",
+      "target": "src/decorators/swagger.schema.ts",
+      "line": 16
+     }
+    ]
+   },
+   {
+    "component": "modules",
+    "target": "interceptors",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "modules",
+    "_file": "src/modules/post/post.controller.ts",
+    "_line": 29,
+    "_evidence": [
+     {
+      "file": "src/modules/post/post.controller.ts",
+      "target": "src/interceptors/language-interceptor.service.ts",
+      "line": 29
+     },
+     {
+      "file": "src/modules/user/user.controller.ts",
+      "target": "src/interceptors/language-interceptor.service.ts",
+      "line": 20
+     }
+    ]
+   },
+   {
+    "component": "modules",
+    "target": "shared",
+    "kind": "folder",
+    "imports": 6,
+    "filePath": "modules",
+    "_file": "src/modules/auth/auth.module.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/modules/auth/auth.module.ts",
+      "target": "src/shared/services/api-config.service.ts",
+      "line": 5
+     },
+     {
+      "file": "src/modules/auth/auth.service.ts",
+      "target": "src/shared/services/api-config.service.ts",
+      "line": 8
+     },
+     {
+      "file": "src/modules/auth/jwt.strategy.ts",
+      "target": "src/shared/services/api-config.service.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "providers",
+    "target": "modules",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "providers",
+    "_file": "src/providers/context.provider.ts",
+    "_line": 4,
+    "_evidence": [
+     {
+      "file": "src/providers/context.provider.ts",
+      "target": "src/modules/user/user.entity.ts",
+      "line": 4
+     }
+    ]
+   },
+   {
+    "component": "shared",
+    "target": "common",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "shared",
+    "_file": "src/shared/services/translation.service.ts",
+    "_line": 6,
+    "_evidence": [
+     {
+      "file": "src/shared/services/translation.service.ts",
+      "target": "src/common/dto/abstract.dto.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "component": "shared",
+    "target": "decorators",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "shared",
+    "_file": "src/shared/services/translation.service.ts",
+    "_line": 7,
+    "_evidence": [
+     {
+      "file": "src/shared/services/translation.service.ts",
+      "target": "src/decorators/translate.decorator.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "shared",
+    "target": "entity-subscribers",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "shared",
+    "_file": "src/shared/services/api-config.service.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/shared/services/api-config.service.ts",
+      "target": "src/entity-subscribers/user-subscriber.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "component": "shared",
+    "target": "providers",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "shared",
+    "_file": "src/shared/services/translation.service.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/shared/services/translation.service.ts",
+      "target": "src/providers/context.provider.ts",
+      "line": 9
+     }
+    ]
+   }
+  ],
+  "component-sdp-violation": [
+   {
+    "component": "decorators",
+    "target": "guards",
+    "kind": "folder",
+    "fromInstability": 0.241,
+    "toInstability": 0.5,
+    "filePath": "decorators",
+    "_file": "src/decorators/http.decorators.ts",
+    "_line": 17,
+    "_evidence": [
+     {
+      "file": "src/decorators/http.decorators.ts",
+      "target": "src/guards/auth.guard.ts",
+      "line": 17
+     },
+     {
+      "file": "src/decorators/http.decorators.ts",
+      "target": "src/guards/roles.guard.ts",
+      "line": 18
+     }
+    ]
+   },
+   {
+    "component": "decorators",
+    "target": "interceptors",
+    "kind": "folder",
+    "fromInstability": 0.241,
+    "toInstability": 0.5,
+    "filePath": "decorators",
+    "_file": "src/decorators/http.decorators.ts",
+    "_line": 19,
+    "_evidence": [
+     {
+      "file": "src/decorators/http.decorators.ts",
+      "target": "src/interceptors/auth-user-interceptor.service.ts",
+      "line": 19
+     }
+    ]
+   },
+   {
+    "component": "entity-subscribers",
+    "target": "modules",
+    "kind": "folder",
+    "fromInstability": 0.5,
+    "toInstability": 0.852,
+    "filePath": "entity-subscribers",
+    "_file": "src/entity-subscribers/user-subscriber.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/entity-subscribers/user-subscriber.ts",
+      "target": "src/modules/user/user.entity.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "component": "guards",
+    "target": "modules",
+    "kind": "folder",
+    "fromInstability": 0.5,
+    "toInstability": 0.852,
+    "filePath": "guards",
+    "_file": "src/guards/roles.guard.ts",
+    "_line": 6,
+    "_evidence": [
+     {
+      "file": "src/guards/roles.guard.ts",
+      "target": "src/modules/user/user.entity.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "component": "interceptors",
+    "target": "modules",
+    "kind": "folder",
+    "fromInstability": 0.5,
+    "toInstability": 0.852,
+    "filePath": "interceptors",
+    "_file": "src/interceptors/auth-user-interceptor.service.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/interceptors/auth-user-interceptor.service.ts",
+      "target": "src/modules/user/user.entity.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "component": "providers",
+    "target": "modules",
+    "kind": "folder",
+    "fromInstability": 0.167,
+    "toInstability": 0.852,
+    "filePath": "providers",
+    "_file": "src/providers/context.provider.ts",
+    "_line": 4,
+    "_evidence": [
+     {
+      "file": "src/providers/context.provider.ts",
+      "target": "src/modules/user/user.entity.ts",
+      "line": 4
+     }
+    ]
+   },
+   {
+    "component": "shared",
+    "target": "entity-subscribers",
+    "kind": "folder",
+    "fromInstability": 0.333,
+    "toInstability": 0.5,
+    "filePath": "shared",
+    "_file": "src/shared/services/api-config.service.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/shared/services/api-config.service.ts",
+      "target": "src/entity-subscribers/user-subscriber.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "component": "infrastructure",
+    "target": "application",
+    "kind": "layer",
+    "fromInstability": 0.258,
+    "toInstability": 0.676,
+    "filePath": "infrastructure",
+    "_file": "src/common/abstract.entity.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/common/abstract.entity.ts",
+      "target": "src/common/dto/abstract.dto.ts",
+      "line": 9
+     },
+     {
+      "file": "src/decorators/api-page-response.decorator.ts",
+      "target": "src/common/dto/page.dto.ts",
+      "line": 6
+     },
+     {
+      "file": "src/decorators/http.decorators.ts",
+      "target": "src/interceptors/auth-user-interceptor.service.ts",
+      "line": 19
+     }
+    ]
+   },
+   {
+    "component": "infrastructure",
+    "target": "presentation",
+    "kind": "layer",
+    "fromInstability": 0.258,
+    "toInstability": 0.9,
+    "filePath": "infrastructure",
+    "_file": "src/decorators/http.decorators.ts",
+    "_line": 17,
+    "_evidence": [
+     {
+      "file": "src/decorators/http.decorators.ts",
+      "target": "src/guards/auth.guard.ts",
+      "line": 17
+     },
+     {
+      "file": "src/decorators/http.decorators.ts",
+      "target": "src/guards/roles.guard.ts",
+      "line": 18
+     }
+    ]
+   }
+  ],
+  "component-main-sequence-distance": [],
+  "deep-import-declared-api": [],
+  "deep-import-inferred-api": [],
+  "undeclared-async-coupling": [],
+  "io-outside-adapters": [
+   {
+    "filePath": "src/boilerplate.polyfill.ts",
+    "member": "boilerplate.polyfill.ts",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "typeorm:Brackets"
+    ],
+    "line": 146,
+    "lines": [
+     146
+    ],
+    "_file": "src/boilerplate.polyfill.ts",
+    "_line": 146,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/database/migrations/1622299665807-create-users-table.ts",
+    "member": "CreateUsersTable1622299665807.down",
+    "layer": "domain",
+    "category": "db",
+    "apis": [
+     "typeorm:queryRunner.query"
+    ],
+    "line": 29,
+    "lines": [
+     29,
+     30
+    ],
+    "_file": "src/database/migrations/1622299665807-create-users-table.ts",
+    "_line": 29,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/database/migrations/1622299665807-create-users-table.ts",
+    "member": "CreateUsersTable1622299665807.up",
+    "layer": "domain",
+    "category": "db",
+    "apis": [
+     "typeorm:queryRunner.query"
+    ],
+    "line": 7,
+    "lines": [
+     7,
+     10
+    ],
+    "_file": "src/database/migrations/1622299665807-create-users-table.ts",
+    "_line": 7,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/database/migrations/1639940635548-add-user-settings.ts",
+    "member": "AddUserSettings1639940635548.down",
+    "layer": "domain",
+    "category": "db",
+    "apis": [
+     "typeorm:queryRunner.query"
+    ],
+    "line": 24,
+    "lines": [
+     24,
+     26
+    ],
+    "_file": "src/database/migrations/1639940635548-add-user-settings.ts",
+    "_line": 24,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/database/migrations/1639940635548-add-user-settings.ts",
+    "member": "AddUserSettings1639940635548.up",
+    "layer": "domain",
+    "category": "db",
+    "apis": [
+     "typeorm:queryRunner.query"
+    ],
+    "line": 7,
+    "lines": [
+     7,
+     19
+    ],
+    "_file": "src/database/migrations/1639940635548-add-user-settings.ts",
+    "_line": 7,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/database/migrations/1641994291086-add-posts-table.ts",
+    "member": "AddPostsTable1641994291086.down",
+    "layer": "domain",
+    "category": "db",
+    "apis": [
+     "typeorm:queryRunner.query"
+    ],
+    "line": 44,
+    "lines": [
+     44,
+     46,
+     48,
+     50,
+     51,
+     52,
+     55
+    ],
+    "_file": "src/database/migrations/1641994291086-add-posts-table.ts",
+    "_line": 44,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/database/migrations/1641994291086-add-posts-table.ts",
+    "member": "AddPostsTable1641994291086.up",
+    "layer": "domain",
+    "category": "db",
+    "apis": [
+     "typeorm:queryRunner.query"
+    ],
+    "line": 7,
+    "lines": [
+     7,
+     9,
+     11,
+     23,
+     32,
+     35,
+     38
+    ],
+    "_file": "src/database/migrations/1641994291086-add-posts-table.ts",
+    "_line": 7,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/modules/post/post.service.ts",
+    "member": "PostService.deletePost",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "typeorm:this.postRepository.createQueryBuilder('post').where",
+     "typeorm:this.postRepository.createQueryBuilder",
+     "typeorm:queryBuilder.getOne",
+     "typeorm:this.postRepository.remove"
+    ],
+    "line": 74,
+    "lines": [
+     74,
+     74,
+     78,
+     84
+    ],
+    "_file": "src/modules/post/post.service.ts",
+    "_line": 74,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/modules/post/post.service.ts",
+    "member": "PostService.getAllPost",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "typeorm:this.postRepository.createQueryBuilder('post').leftJoinAn...",
+     "typeorm:this.postRepository.createQueryBuilder",
+     "typeorm:queryBuilder.paginate"
+    ],
+    "line": 34,
+    "lines": [
+     34,
+     34,
+     38
+    ],
+    "_file": "src/modules/post/post.service.ts",
+    "_line": 34,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/modules/post/post.service.ts",
+    "member": "PostService.getSinglePost",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "typeorm:this.postRepository.createQueryBuilder('post').where",
+     "typeorm:this.postRepository.createQueryBuilder",
+     "typeorm:queryBuilder.getOne"
+    ],
+    "line": 44,
+    "lines": [
+     44,
+     44,
+     48
+    ],
+    "_file": "src/modules/post/post.service.ts",
+    "_line": 44,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/modules/post/post.service.ts",
+    "member": "PostService.updatePost",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "typeorm:this.postRepository.createQueryBuilder('post').where",
+     "typeorm:this.postRepository.createQueryBuilder",
+     "typeorm:queryBuilder.getOne",
+     "typeorm:this.postRepository.merge",
+     "typeorm:this.postRepository.save"
+    ],
+    "line": 58,
+    "lines": [
+     58,
+     58,
+     62,
+     68,
+     70
+    ],
+    "_file": "src/modules/post/post.service.ts",
+    "_line": 58,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/modules/user/user.service.ts",
+    "member": "UserService.createUser",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "typeorm:this.userRepository.create",
+     "typeorm:this.userRepository.save"
+    ],
+    "line": 68,
+    "lines": [
+     68,
+     78
+    ],
+    "_file": "src/modules/user/user.service.ts",
+    "_line": 68,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/modules/user/user.service.ts",
+    "member": "UserService.findByUsernameOrEmail",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "typeorm:this.userRepository.createQueryBuilder('user').leftJoinAn...",
+     "typeorm:this.userRepository.createQueryBuilder",
+     "typeorm:queryBuilder.orWhere",
+     "typeorm:queryBuilder.getOne"
+    ],
+    "line": 44,
+    "lines": [
+     44,
+     44,
+     49,
+     55,
+     60
+    ],
+    "_file": "src/modules/user/user.service.ts",
+    "_line": 44,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/modules/user/user.service.ts",
+    "member": "UserService.findOne",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "typeorm:this.userRepository.findOneBy"
+    ],
+    "line": 38,
+    "lines": [
+     38
+    ],
+    "_file": "src/modules/user/user.service.ts",
+    "_line": 38,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/modules/user/user.service.ts",
+    "member": "UserService.getUser",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "typeorm:this.userRepository.createQueryBuilder",
+     "typeorm:queryBuilder.where",
+     "typeorm:queryBuilder.getOne",
+     "typeorm:userEntity.toDto"
+    ],
+    "line": 107,
+    "lines": [
+     107,
+     109,
+     111,
+     117
+    ],
+    "_file": "src/modules/user/user.service.ts",
+    "_line": 107,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/modules/user/user.service.ts",
+    "member": "UserService.getUsers",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "typeorm:this.userRepository.createQueryBuilder",
+     "typeorm:queryBuilder.searchByString",
+     "typeorm:queryBuilder.paginate"
+    ],
+    "line": 94,
+    "lines": [
+     94,
+     97,
+     100
+    ],
+    "_file": "src/modules/user/user.service.ts",
+    "_line": 94,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/validators/exists.validator.ts",
+    "member": "ExistsValidator.validate",
+    "layer": "domain",
+    "category": "db",
+    "apis": [
+     "typeorm:this.dataSource.getRepository(entityClass).count",
+     "typeorm:this.dataSource.getRepository"
+    ],
+    "line": 25,
+    "lines": [
+     25,
+     25
+    ],
+    "_file": "src/validators/exists.validator.ts",
+    "_line": 25,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/validators/unique.validator.ts",
+    "member": "UniqueValidator.validate",
+    "layer": "domain",
+    "category": "db",
+    "apis": [
+     "typeorm:this.dataSource.getRepository(entityClass).count",
+     "typeorm:this.dataSource.getRepository"
+    ],
+    "line": 25,
+    "lines": [
+     25,
+     25
+    ],
+    "_file": "src/validators/unique.validator.ts",
+    "_line": 25,
+    "_importGraphSees": true
+   }
+  ],
+  "nondeterminism-in-core": [
+   {
+    "filePath": "src/common/dto/base.dto.ts",
+    "member": "BaseDto.create",
+    "layer": "application",
+    "category": "env",
+    "apis": [
+     "process.env"
+    ],
+    "line": 27,
+    "lines": [
+     27
+    ],
+    "_file": "src/common/dto/base.dto.ts",
+    "_line": 27,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/setup-swagger.ts",
+    "member": "setupSwagger",
+    "layer": "domain",
+    "category": "env",
+    "apis": [
+     "process.env"
+    ],
+    "line": 53,
+    "lines": [
+     53,
+     54,
+     65
+    ],
+    "_file": "src/setup-swagger.ts",
+    "_line": 53,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/shared/services/generator.service.ts",
+    "member": "GeneratorService.uuid",
+    "layer": "application",
+    "category": "random",
+    "apis": [
+     "uuid:uuid"
+    ],
+    "line": 7,
+    "lines": [
+     7
+    ],
+    "_file": "src/shared/services/generator.service.ts",
+    "_line": 7,
+    "_importGraphSees": true
+   }
+  ]
+ }
+}

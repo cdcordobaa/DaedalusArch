@@ -1,0 +1,36 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 10598,
+  "effort": "high",
+  "functionId": "filter-explain",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "ae800954b20b68f09146bea343720d1548647a156eec5bccedd62e66201a8bba-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "## Finding\nRule: FF-S04\nRule intent: Domain files do not import any outer layer.\nType: DOMAIN_OUTWARD_DEP\nSeverity: major; tier: blocking\nFile: src/domain/registration.ts\nTarget: src/registrations/dto/register-attendee.dto.ts\nReported lines: 1\nMessage: Domain file src/domain/registration.ts imports from src/registrations/dto/register-attendee.dto.ts in application\nDiscriminator: IMPORTS\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Source (line-numbered)\n=====SOURCE-BEGIN src/domain/registration.ts (layer domain)=====\n 1| import { RegisterAttendeeDto } from '../registrations/dto/register-attendee.dto';\n 2| import { DomainError } from './domain-error';\n 3| \n 4| export class Registration {\n 5|   private cancelledAt: Date | undefined;\n 6| \n 7|   constructor(\n 8|     readonly id: string,\n 9|     readonly workshopId: string,\n10|     readonly attendeeId: string,\n11|     readonly registeredAt: Date,\n12|   ) {}\n13| \n14|   static fromDto(id: string, dto: RegisterAttendeeDto, at: Date): Registration {\n15|     return new Registration(id, dto.workshopId, dto.attendeeId, at);\n16|   }\n17| \n18|   get isActive(): boolean {\n19|     return this.cancelledAt === undefined;\n20|   }\n21| \n22|   cancel(at: Date): void {\n23|     if (!this.isActive) throw new DomainError('conflict', `Registration ${this.id} is already cancelled`);\n24|     this.cancelledAt = at;\n25|   }\n26| }\n=====SOURCE-END=====\n\n=====SOURCE-BEGIN src/registrations/dto/register-attendee.dto.ts (layer application)=====\n1| export class RegisterAttendeeDto {\n2|   workshopId!: string;\n3|   attendeeId!: string;\n4| }\n=====SOURCE-END=====\n\n## Instructions\nDecide confirm or dismiss. Confirm: the cited code has the problem the rule is meant to catch, in this project and layer model. Dismiss: the rule fired, but the code does not have that problem (a false positive of the rule's mechanism, a threshold artefact on sound code, or a case the style allows). Measurements stated in the finding (counts, ratios, missing files) are correct as measurements; judge what they mean for this code. explanation: one paragraph that justifies the decision from the code, citing file paths and line numbers exactly as numbered below. fix: one concrete change: for a confirm, how to fix the code; for a dismiss, what (if anything) the rule or its configuration should change. citations: the line ranges your explanation relies on; every one must name a file shown below and lines that exist.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T00:04:42.054Z",
+  "repetition": 0,
+  "requestHash": "ae800954b20b68f09146bea343720d1548647a156eec5bccedd62e66201a8bba",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":604}},\"result\":\"{\\\"decision\\\":\\\"confirm\\\",\\\"explanation\\\":\\\"The domain entity in src/domain/registration.ts imports RegisterAttendeeDto from the application-layer DTO module (src/registrations/dto/register-attendee.dto.ts, line 1). This is more than a type-only import that does nothing. The domain factory `Registration.fromDto` (lines 14-16) takes that DTO as a parameter, so the domain's public API is tied to the shape of an input-boundary object. That is exactly the outward dependency FF-S04 is meant to stop: the domain has to change whenever the request DTO changes. The DTO (lines 1-4) is a plain carrier with only two fields, and the mapping simply forwards dto.workshopId and dto.attendeeId into the constructor. So the dependency is easy to remove, and nothing needs it to be there.\\\",\\\"fix\\\":\\\"Take the DTO import out of src/domain/registration.ts. Either delete `fromDto` and call `new Registration(id, dto.workshopId, dto.attendeeId, at)` in the application service, or change the factory to accept plain values (`static register(id: string, workshopId: string, attendeeId: string, at: Date)`) and let the application layer map the DTO onto it.\\\",\\\"citations\\\":[{\\\"filePath\\\":\\\"src/domain/registration.ts\\\",\\\"startLine\\\":1,\\\"endLine\\\":1},{\\\"filePath\\\":\\\"src/domain/registration.ts\\\",\\\"startLine\\\":14,\\\"endLine\\\":16},{\\\"filePath\\\":\\\"src/registrations/dto/register-attendee.dto.ts\\\",\\\"startLine\\\":1,\\\"endLine\\\":4}]}\",\"structured_output\":{\"citations\":[{\"endLine\":1,\"filePath\":\"src/domain/registration.ts\",\"startLine\":1},{\"endLine\":16,\"filePath\":\"src/domain/registration.ts\",\"startLine\":14},{\"endLine\":4,\"filePath\":\"src/registrations/dto/register-attendee.dto.ts\",\"startLine\":1}],\"decision\":\"confirm\",\"explanation\":\"The domain entity in src/domain/registration.ts imports RegisterAttendeeDto from the application-layer DTO module (src/registrations/dto/register-attendee.dto.ts, line 1). This is more than a type-only import that does nothing. The domain factory `Registration.fromDto` (lines 14-16) takes that DTO as a parameter, so the domain's public API is tied to the shape of an input-boundary object. That is exactly the outward dependency FF-S04 is meant to stop: the domain has to change whenever the request DTO changes. The DTO (lines 1-4) is a plain carrier with only two fields, and the mapping simply forwards dto.workshopId and dto.attendeeId into the constructor. So the dependency is easy to remove, and nothing needs it to be there.\",\"fix\":\"Take the DTO import out of src/domain/registration.ts. Either delete `fromDto` and call `new Registration(id, dto.workshopId, dto.attendeeId, at)` in the application service, or change the factory to accept plain values (`static register(id: string, workshopId: string, attendeeId: string, at: Date)`) and let the application layer map the DTO onto it.\"}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "ee32ab9a97b67a1c",
+  "usage": {
+    "inputTokens": 2725,
+    "outputTokens": 604
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
