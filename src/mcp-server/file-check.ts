@@ -357,7 +357,9 @@ export function checkSource(spec: ParsedSpec, input: CheckSourceInput): FileChec
         fix: importFix(spec, hit, filePath, layer, res.to),
         ...(target !== undefined ? { target } : {}),
       };
-      (imp.kind === 'require' || imp.kind === 'dynamic' ? baseAdvisories : base).push(row);
+      // v1.3: string-literal require()/import() calls are IMPORTS edges of the evaluated graph (dynamicImports), so
+      // they are scored like static imports (R03, post-merge review 2026-10-16); `advisories` stays empty.
+      base.push(row);
     }
   }
   base.push(...namingViolations(spec, filePath, layer, scan.classes, lineOf));
@@ -388,11 +390,6 @@ export function checkSource(spec: ParsedSpec, input: CheckSourceInput): FileChec
   if (layer === null) {
     notes.push(
       'no layer glob matches this path, so layer and purity rules do not apply; use suggest_placement or which_layer to pick a layer',
-    );
-  }
-  if (advisories.length > 0) {
-    notes.push(
-      'advisories are require()/import() calls: not scored by the firewall, but they break the same rule',
     );
   }
   if (!view.hasRoot) {

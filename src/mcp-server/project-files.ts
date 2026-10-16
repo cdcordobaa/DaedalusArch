@@ -174,7 +174,8 @@ export class ProjectView {
   /**
    * The literal import graph (ADR-V13-01 literal view: an import ends at the module its specifier names, a barrel
    * included; `export ... from` counts, as RE_EXPORTS does): project file to the project files it imports.
-   * `require()` and `import()` are left out (the extractor does not model them, BR-U2-25).
+   * String-literal `require()` and `import()` calls count: the v1.3 extractor models them as IMPORTS edges
+   * (`dynamicImports`, R03 of the post-merge review 2026-10-16).
    */
   importGraph(): ReadonlyMap<string, ReadonlySet<string>> {
     const graph = new Map<string, Set<string>>();
@@ -183,7 +184,6 @@ export class ProjectView {
       if (text === undefined) continue;
       const edges = new Set<string>();
       for (const imp of scanSource(text).imports) {
-        if (imp.kind === 'require' || imp.kind === 'dynamic') continue;
         const t = this.resolveModule(file, imp.specifier);
         if (t.kind === 'file' && t.exists && t.path !== file) edges.add(t.path);
       }
