@@ -29,6 +29,9 @@ export function formatGateJSON(result: GateResult): string {
 export function formatGateHuman(result: GateResult): string {
   const lines: string[] = [];
   lines.push(`Architecture gate: ${result.verdict.toUpperCase()} (${String(result.newBlocking)} new blocking finding(s))`);
+  if (result.headBlockingNotExecuted !== undefined) {
+    lines.push(`  incomplete: blocking rule(s) failed to execute on head: ${result.headBlockingNotExecuted.join(', ')}`);
+  }
   lines.push(`  base ${result.base.ref} ${short(result.base.sha)}: ${String(result.base.findings)} finding(s)`);
   lines.push(`  head ${result.head.ref} ${short(result.head.sha)}: ${String(result.head.findings)} finding(s)`);
   lines.push(`  engine ${result.engine}, spec ${result.spec}, project ${result.project}`);
@@ -77,7 +80,12 @@ export function formatGateMarkdown(result: GateResult): string {
     '',
     result.verdict === 'pass'
       ? 'This change introduces no new blocking architecture finding.'
-      : `This change introduces **${String(result.newBlocking)} new blocking** architecture finding(s).`,
+      : result.newBlocking > 0
+        ? `This change introduces **${String(result.newBlocking)} new blocking** architecture finding(s).`
+        : 'This change introduces no new blocking architecture finding, but the check is **incomplete**.',
+    ...(result.headBlockingNotExecuted !== undefined
+      ? ['', `Blocking rule(s) that failed to execute on head, so it cannot pass: ${result.headBlockingNotExecuted.map((id) => code(id)).join(', ')}.`]
+      : []),
     '',
     '| | Findings |',
     '|---|---|',

@@ -15,7 +15,9 @@ It is not a pre-registration of Study 2. It covers only the validation of the to
 | Presets, templates, specs | as at `<FREEZE_SHA>`, sha256 of each listed in the freeze commit |
 | Matching | `scripts/v1.3/lib/compare.ts` at `<FREEZE_SHA>` |
 
-**How the freeze works.** Commit X holds the tool. Commit Y fills `<FREEZE_SHA>` = X in this file and records the file's hash. The run uses the code at X. Before the run, `git diff X Y -- src scripts presets specs` must be empty. Construct decisions that change code (`Docs/v1.3/construct-decisions.md`) must be merged before X, including their single development-set runs (Q16, Q25). Nothing merges between X and the run.
+**How the freeze works.** Commit X holds the tool. Commit Y fills `<FREEZE_SHA>` = X in this file and records the file's hash. The run uses the code at X. Before the run, `git diff X Y -- src scripts presets specs package.json package-lock.json 'tsconfig*.json'` must be empty, and every package installed under `node_modules` must have its `package-lock.json` version. The run's provenance records the sha256 of `package-lock.json` and the installed version of each direct dependency. Construct decisions that change code (`Docs/v1.3/construct-decisions.md`) must be merged before X, including their single development-set runs (Q16, Q25). Nothing merges between X and the run.
+
+*Amended 2026-10-16 (before the freeze; review finding F19):* the frozen paths now include the dependency manifests and the TypeScript configs, and `holdout-run.ts` checks the installed dependency versions against the lockfile and records the lockfile hash. Before this amendment a changed lockfile, `package.json` or `node_modules` passed the freeze check.
 
 ### Known limitations of the hold-out (added 2026-10-16, after the adversarial review)
 
@@ -29,9 +31,9 @@ It is not a pre-registration of Study 2. It covers only the validation of the to
 ## 2. The run
 
 1. The author unseals the hold-out projects into a temporary directory outside the repository and outside any `node_modules` ancestry.
-2. One live run at X, with the same pipeline as the development runs: `scripts/v1.3/ue-baseline-live.ts`, then `ue-graph.ts`, then `ue-score.ts --base results/v1.3-holdout/run-1 --blind <hold-out manifests>`. One capped Neo4j, holding the cross-process lock (NFR-V2).
+2. One live run at X, with the same pipeline as the development runs: `scripts/v1.3/ue-baseline-live.ts`, then `ue-graph.ts`, then `ue-score.ts --base results/v1.3-holdout/run-1 --blind <hold-out manifests>`. One capped Neo4j, holding the cross-process lock (NFR-V2). The exact commands are `Docs/v1.3/freeze-runbook.md` §B (`scripts/v1.3/holdout-run.ts`, which runs this pipeline and the scoring of §3–§5). **Engine:** every reported figure comes from Neo4j 5.26.x with APOC core; the in-process interpreter (`--engine cypher-interp`) runs once afterwards as an engine cross-check (runbook §C). A difference is a defect under §6, and the Neo4j figures stand.
 3. **A repeat is allowed only to check determinism.** If a second run differs from the first in any finding, that is a defect, recorded under §6. The first run stands.
-4. The outputs are committed unchanged, with `run-provenance.json`, before anyone labels anything (§7).
+4. The outputs are committed unchanged, with `holdout-run-provenance.json` (the runner's provenance file), before anyone labels anything (§7).
 
 ## 3. Metrics
 

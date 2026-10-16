@@ -228,6 +228,16 @@ export interface Grounding {
   readonly problems: readonly string[];
 }
 
+export interface GroundingOptions {
+  /**
+   * What a bare `line N` / `lines N-M` reference is checked against. 'attributed' (default, R20): the shown file named
+   * last before it in its sentence, else the finding's own (first shown) file. 'longest': the longest shown file (the
+   * pre-R20 heuristic the committed judge-v2 figures used). 'finding-file': always the finding's own (first shown)
+   * file. With one file shown all three agree.
+   */
+  readonly bareLines?: 'attributed' | 'longest' | 'finding-file';
+}
+
 /**
  * Grounding check: at least one citation when files were shown; every citation names a shown file with
  * 1 <= startLine <= endLine <= its line count; every `path:line[-line]` in the explanation names a shown file and
@@ -236,7 +246,7 @@ export interface Grounding {
  * `files` must be the files as the model saw them (`renderFilterExplainPrompt(...).shown`, R19), the finding's files
  * first: a bare `line N` that no file name in its sentence attributes is checked against the first file (R20).
  */
-export function checkGrounding(answer: FilterExplainAnswer, files: readonly ShownFile[]): Grounding {
+export function checkGrounding(answer: FilterExplainAnswer, files: readonly ShownFile[], options: GroundingOptions = {}): Grounding {
   const problems: string[] = [];
   const count = lineCounts(files);
   if (files.length > 0 && answer.citations.length === 0) problems.push('no citation');
@@ -245,7 +255,7 @@ export function checkGrounding(answer: FilterExplainAnswer, files: readonly Show
     if (n === undefined) problems.push(`citation of a file not shown: ${c.filePath}`);
     else if (c.startLine < 1 || c.endLine < c.startLine || c.endLine > n) problems.push(`citation ${c.filePath}:${String(c.startLine)}-${String(c.endLine)} outside 1-${String(n)}`);
   }
-  problems.push(...checkTextReferences(`${answer.explanation}\n${answer.fix}`, files));
+  problems.push(...checkTextReferences(`${answer.explanation}\n${answer.fix}`, files, options));
   return { grounded: problems.length === 0, problems };
 }
 
@@ -266,7 +276,7 @@ export function shownFileOf(token: string, files: readonly ShownFile[]): string 
  *   the same sentence (by path or file name), else the first shown file (the finding's own file). With one file shown
  *   that file is the only candidate, as before.
  */
-export function checkTextReferences(text: string, files: readonly ShownFile[]): string[] {
+export function checkTextReferences(text: string, files: readonly ShownFile[], options: GroundingOptions = {}): string[] {
   const problems: string[] = [];
   const count = lineCounts(files);
   for (const m of text.matchAll(/([\w./@-]+\.(?:ts|tsx|js|mjs|cjs)):(\d+)(?:\s*[-–]\s*(\d+))?/g)) {
@@ -280,12 +290,25 @@ export function checkTextReferences(text: string, files: readonly ShownFile[]): 
   for (const m of text.matchAll(/\blines?\s+(\d+)(?:\s*(?:[-–]|to|and)\s*(\d+))?/gi)) {
     const a = Number(m[1]);
     const b = m[2] !== undefined ? Number(m[2]) : a;
-    const file = attributedFile(text, m.index, files);
+    const file = bareLineFile(text, m.index, files, count, options.bareLines ?? 'attributed');
     const n = file === undefined ? 0 : count.get(file) ?? 0;
     const where = file === undefined ? '' : ` of ${file}`;
     if (a < 1 || Math.max(a, b) > n) problems.push(`explanation cites line ${String(a)}${b !== a ? `-${String(b)}` : ''}${where} beyond ${String(n)}`);
   }
   return problems;
+}
+
+/** The shown file a bare line reference at `at` is checked against, under the `bareLines` mode (`GroundingOptions`). */
+function bareLineFile(
+  text: string, at: number, files: readonly ShownFile[], count: ReadonlyMap<string, number>, mode: NonNullable<GroundingOptions['bareLines']>,
+): string | undefined {
+  if (mode === 'finding-file') return files[0]?.path;
+  if (mode === 'longest') {
+    let best: string | undefined;
+    for (const f of files) if (best === undefined || (count.get(f.path) ?? 0) > (count.get(best) ?? 0)) best = f.path;
+    return best;
+  }
+  return attributedFile(text, at, files);
 }
 
 /** R20: the shown file a bare line reference at `at` refers to: the last one named earlier in its sentence, else the first. */
@@ -325,9 +348,11 @@ export type FilterExplainOutcome =
   | { readonly status: 'invalid'; readonly cause: string };
 
 /** Effective outcome of one answer: a dismiss or a confirm counts only when grounded. */
-export function outcomeOf(answer: FilterExplainAnswer | null, files: readonly ShownFile[], invalidCause = 'PARSE_FAILURE'): FilterExplainOutcome {
+export function outcomeOf(
+  answer: FilterExplainAnswer | null, files: readonly ShownFile[], invalidCause = 'PARSE_FAILURE', options: GroundingOptions = {},
+): FilterExplainOutcome {
   if (answer === null) return { status: 'invalid', cause: invalidCause };
-  const grounding = checkGrounding(answer, files);
+  const grounding = checkGrounding(answer, files, options);
   return grounding.grounded ? { status: answer.decision, answer, grounding } : { status: 'rejected', answer, grounding };
 }
 

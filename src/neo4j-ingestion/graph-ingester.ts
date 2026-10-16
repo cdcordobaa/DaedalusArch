@@ -73,6 +73,29 @@ function checkCreated(
 const NODE_CHECK = { key: 'nodesCreated', code: 'INGEST_002', noun: 'nodes' } as const;
 const EDGE_CHECK = { key: 'relationshipsCreated', code: 'INGEST_003', noun: 'relationships' } as const;
 
+/** The node write of one node type (`$batch`: one property map per node). The graph mirror recognises this text. */
+export function nodeIngestCypher(type: string): string {
+  return `
+      UNWIND $batch AS node
+      CREATE (n:APGNode:${type})
+      SET n = node
+    `;
+}
+
+/**
+ * The edge write of one relationship type (`$batch`: `{ sourceId, targetId, props }` per edge). Neo4j doesn't support
+ * dynamic relationship types in UNWIND CREATE, so there is one query per edge type. The graph mirror recognises this text.
+ */
+export function edgeIngestCypher(type: string): string {
+  return `
+      UNWIND $batch AS edge
+      MATCH (src:APGNode {id: edge.sourceId})
+      MATCH (tgt:APGNode {id: edge.targetId})
+      CREATE (src)-[r:${type}]->(tgt)
+      SET r = edge.props
+    `;
+}
+
 /**
  * Ingest annotated nodes into Neo4j via UNWIND bulk insert.
  */
@@ -104,11 +127,7 @@ export async function ingestNodes(
       };
     });
 
-    const cypher = `
-      UNWIND $batch AS node
-      CREATE (n:APGNode:${type})
-      SET n = node
-    `;
+    const cypher = nodeIngestCypher(type);
 
     const result = await graphRepo.executeQuery(cypher, { batch }, { timeoutMs: WRITE_QUERY_TIMEOUT_MS });
     if (!result.success) {
@@ -144,15 +163,7 @@ export async function ingestEdges(
       props: { ...flattenProperties(e.properties), id: e.id },
     }));
 
-    // Neo4j doesn't support dynamic relationship types in UNWIND CREATE,
-    // so we use a separate query per edge type
-    const cypher = `
-      UNWIND $batch AS edge
-      MATCH (src:APGNode {id: edge.sourceId})
-      MATCH (tgt:APGNode {id: edge.targetId})
-      CREATE (src)-[r:${type}]->(tgt)
-      SET r = edge.props
-    `;
+    const cypher = edgeIngestCypher(type);
 
     const result = await graphRepo.executeQuery(cypher, { batch }, { timeoutMs: WRITE_QUERY_TIMEOUT_MS });
     if (!result.success) {

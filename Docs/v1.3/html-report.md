@@ -73,7 +73,7 @@ On a phone the page reflows to one column. The diagram scrolls inside its own bo
 
 - One file. CSS and JavaScript are inline. The diagram is inline SVG, drawn when the report is generated. No third-party library is used, so there is nothing to vendor or pin.
 - A `Content-Security-Policy` meta tag (`default-src 'none'`, inline style and script only, `data:` images) blocks every network request. The browser test checks that loading the page makes no request.
-- Code excerpts are read only from source files (`.ts`, `.tsx`, `.js`, …) inside `--project`. Paths outside the project, `.env*` files and files named like secrets or credentials are never read (`src/report/architect/excerpt.ts`).
+- Code excerpts are read only from source files (`.ts`, `.tsx`, `.js`, …) inside `--project`. Paths outside the project, `.env*` files and files named like secrets or credentials are never read. The check is made on the path and again on its real path, so a symlink inside the project that points outside it, or at such a file, is not followed (`src/report/architect/excerpt.ts`). The excerpt text itself is not redacted: a source file that holds a secret in code shows it.
 - The output is deterministic: the same report, spec and project give the same bytes. It contains no timestamp. The run id comes from the report.
 
 ## Code

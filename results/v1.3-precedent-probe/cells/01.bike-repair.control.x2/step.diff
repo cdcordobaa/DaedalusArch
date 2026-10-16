@@ -1,0 +1,99 @@
+diff --git a/src/adapters/inbound/http-routes.ts b/src/adapters/inbound/http-routes.ts
+index 1c604f7..d9fa259 100644
+--- a/src/adapters/inbound/http-routes.ts
++++ b/src/adapters/inbound/http-routes.ts
+@@ -1,5 +1,6 @@
+ import { Router, type Request, type Response } from 'express';
+ import type { CloseWorkOrder } from '../../application/close-work-order';
++import type { FindPriceIncreases } from '../../application/find-price-increases';
+ import type { OpenWorkOrder } from '../../application/open-work-order';
+ import type { QuoteRepair } from '../../application/quote-repair';
+ 
+@@ -7,6 +8,7 @@ export interface WorkshopUseCases {
+   readonly openWorkOrder: OpenWorkOrder;
+   readonly quoteRepair: QuoteRepair;
+   readonly closeWorkOrder: CloseWorkOrder;
++  readonly findPriceIncreases: FindPriceIncreases;
+ }
+ 
+ function fail(res: Response, e: unknown): void {
+@@ -38,5 +40,12 @@ export function workshopRoutes(uc: WorkshopUseCases): Router {
+       fail(res, e);
+     }
+   });
++  r.get('/reports/price-increases', async (_req: Request, res: Response) => {
++    try {
++      res.json(await uc.findPriceIncreases.execute());
++    } catch (e) {
++      fail(res, e);
++    }
++  });
+   return r;
+ }
+diff --git a/src/application/find-price-increases.ts b/src/application/find-price-increases.ts
+new file mode 100644
+index 0000000..5dec69b
+--- /dev/null
++++ b/src/application/find-price-increases.ts
+@@ -0,0 +1,41 @@
++import type { PartsCatalogue } from './ports/parts-catalogue';
++import type { WorkOrderRepository } from './ports/work-order-repository';
++
++export interface PriceIncrease {
++  readonly workOrderId: string;
++  readonly customerName: string;
++  readonly bike: string;
++  readonly sku: string;
++  readonly description: string;
++  readonly quotedCents: number;
++  readonly currentCents: number;
++}
++
++export class FindPriceIncreases {
++  constructor(
++    private readonly orders: WorkOrderRepository,
++    private readonly catalogue: PartsCatalogue,
++  ) {}
++
++  async execute(): Promise<PriceIncrease[]> {
++    const rows: PriceIncrease[] = [];
++    for (const order of await this.orders.findOpen()) {
++      if (order.quote === undefined) continue;
++      for (const part of order.quote.parts) {
++        const current = await this.catalogue.priceOf(part.sku);
++        if (current.priceCents > part.priceCents) {
++          rows.push({
++            workOrderId: order.id,
++            customerName: order.customerName,
++            bike: order.bike,
++            sku: part.sku,
++            description: part.description,
++            quotedCents: part.priceCents,
++            currentCents: current.priceCents,
++          });
++        }
++      }
++    }
++    return rows;
++  }
++}
+diff --git a/src/config/main.ts b/src/config/main.ts
+index fa3bdd5..0eac29e 100644
+--- a/src/config/main.ts
++++ b/src/config/main.ts
+@@ -3,6 +3,7 @@ import { workshopRoutes } from '../adapters/inbound/http-routes';
+ import { InMemoryWorkOrderRepository } from '../adapters/outbound/in-memory-work-order-repository';
+ import { SpokeSupplyClient } from '../adapters/outbound/spoke-supply-client';
+ import { CloseWorkOrder } from '../application/close-work-order';
++import { FindPriceIncreases } from '../application/find-price-increases';
+ import { OpenWorkOrder } from '../application/open-work-order';
+ import { QuoteRepair } from '../application/quote-repair';
+ 
+@@ -16,6 +17,7 @@ export function buildApp(): express.Express {
+       openWorkOrder: new OpenWorkOrder(orders),
+       quoteRepair: new QuoteRepair(orders, spokeSupply),
+       closeWorkOrder: new CloseWorkOrder(orders),
++      findPriceIncreases: new FindPriceIncreases(orders, spokeSupply),
+     }),
+   );
+   return app;

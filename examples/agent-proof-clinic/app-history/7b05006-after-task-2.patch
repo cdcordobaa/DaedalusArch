@@ -1,0 +1,691 @@
+commit 7b05006 agentproof
+after task 2
+
+
+diff --git a/src/adapters/inbound/appointments-handler.ts b/src/adapters/inbound/appointments-handler.ts
+index 783e7af..cd9d944 100644
+--- a/src/adapters/inbound/appointments-handler.ts
++++ b/src/adapters/inbound/appointments-handler.ts
+@@ -1,44 +1,65 @@
+ import type { BookAppointmentUseCase } from "../../application/book-appointment.js";
++import type { CancelAppointmentUseCase } from "../../application/cancel-appointment.js";
+ import type { GetAppointmentUseCase } from "../../application/get-appointment.js";
++import type { RescheduleAppointmentUseCase } from "../../application/reschedule-appointment.js";
+ import type { Appointment } from "../../domain/appointment.js";
+-import { DomainError, NotFoundError, SlotUnavailableError } from "../../domain/errors.js";
++import {
++  DomainError,
++  ForbiddenError,
++  InvalidStateError,
++  NotFoundError,
++  SlotUnavailableError,
++} from "../../domain/errors.js";
+ import type { HttpHandler, HttpRequest, HttpResponse } from "./http.js";
++import { BadRequest, parseBookRequest, parseCancelRequest, parseRescheduleRequest } from "./request-parsing.js";
+ 
+-const APPOINTMENT_PATH = /^\/appointments\/([^/]+)$/;
++export interface AppointmentUseCases {
++  book: BookAppointmentUseCase;
++  get: GetAppointmentUseCase;
++  cancel: CancelAppointmentUseCase;
++  reschedule: RescheduleAppointmentUseCase;
++}
++
++const APPOINTMENT_PATH = /^\/appointments\/([^/]+)(?:\/(cancel|reschedule))?$/;
+ 
+-export function createAppointmentsHandler(
+-  bookAppointment: BookAppointmentUseCase,
+-  getAppointment: GetAppointmentUseCase,
+-): HttpHandler {
++export function createAppointmentsHandler(useCases: AppointmentUseCases): HttpHandler {
+   return async (request: HttpRequest): Promise<HttpResponse> => {
+     try {
+       if (request.method === "POST" && request.path === "/appointments") {
+-        const command = parseBookRequest(request.body);
+-        if (typeof command === "string") return { status: 400, body: { error: command } };
+-        const appointment = await bookAppointment.execute(command);
++        const appointment = await useCases.book.execute(parseBookRequest(request.body));
+         return { status: 201, body: toDto(appointment) };
+       }
+-      const match = request.method === "GET" ? APPOINTMENT_PATH.exec(request.path) : null;
+-      if (match) {
+-        const appointment = await getAppointment.execute(decodeURIComponent(match[1]!));
++      const match = APPOINTMENT_PATH.exec(request.path);
++      if (!match) return notFound();
++      const id = decodeURIComponent(match[1]!);
++      const action = match[2];
++
++      if (request.method === "GET" && !action) {
++        return { status: 200, body: toDto(await useCases.get.execute(id)) };
++      }
++      if (request.method === "POST" && action === "cancel") {
++        const { requester } = parseCancelRequest(request.body);
++        const appointment = await useCases.cancel.execute({ appointmentId: id, requester });
++        return { status: 200, body: toDto(appointment) };
++      }
++      if (request.method === "POST" && action === "reschedule") {
++        const { requester, start } = parseRescheduleRequest(request.body);
++        const appointment = await useCases.reschedule.execute({
++          appointmentId: id,
++          requester,
++          newStart: start,
++        });
+         return { status: 200, body: toDto(appointment) };
+       }
+-      return { status: 404, body: { error: "Route not found" } };
++      return notFound();
+     } catch (error) {
+       return toErrorResponse(error);
+     }
+   };
+ }
+ 
+-function parseBookRequest(body: unknown): { patientId: string; doctorId: string; start: Date } | string {
+-  if (typeof body !== "object" || body === null) return "Body must be a JSON object";
+-  const { patientId, doctorId, start } = body as Record<string, unknown>;
+-  if (typeof patientId !== "string" || !patientId) return "patientId is required";
+-  if (typeof doctorId !== "string" || !doctorId) return "doctorId is required";
+-  if (typeof start !== "string") return "start is required (ISO-8601 string)";
+-  const startDate = new Date(start);
+-  if (Number.isNaN(startDate.getTime())) return "start must be a valid ISO-8601 date";
+-  return { patientId, doctorId, start: startDate };
++function notFound(): HttpResponse {
++  return { status: 404, body: { error: "Route not found" } };
+ }
+ 
+ function toDto(appointment: Appointment) {
+@@ -53,8 +74,13 @@ function toDto(appointment: Appointment) {
+ }
+ 
+ function toErrorResponse(error: unknown): HttpResponse {
++  if (error instanceof BadRequest) return { status: 400, body: { error: error.message } };
+   if (error instanceof NotFoundError) return { status: 404, body: { error: error.message } };
+-  if (error instanceof SlotUnavailableError) return { status: 409, body: { error: error.message } };
++  if (error instanceof ForbiddenError) return { status: 403, body: { error: error.message } };
++  if (error instanceof SlotUnavailableError || error instanceof InvalidStateError) {
++    return { status: 409, body: { error: error.message } };
++  }
+   if (error instanceof DomainError) return { status: 422, body: { error: error.message } };
++  console.error(error);
+   return { status: 500, body: { error: "Internal server error" } };
+ }
+diff --git a/src/adapters/inbound/request-parsing.ts b/src/adapters/inbound/request-parsing.ts
+new file mode 100644
+index 0000000..4f73f8f
+--- /dev/null
++++ b/src/adapters/inbound/request-parsing.ts
+@@ -0,0 +1,63 @@
++import type { Requester } from "../../domain/requester.js";
++
++export class BadRequest extends Error {}
++
++type Body = Record<string, unknown>;
++
++export function parseBookRequest(body: unknown): { patientId: string; doctorId: string; start: Date } {
++  const fields = asObject(body);
++  return {
++    patientId: requiredString(fields, "patientId"),
++    doctorId: requiredString(fields, "doctorId"),
++    start: requiredDate(fields, "start"),
++  };
++}
++
++export function parseCancelRequest(body: unknown): { requester: Requester } {
++  return { requester: parseRequester(asObject(body)) };
++}
++
++export function parseRescheduleRequest(body: unknown): { requester: Requester; start: Date } {
++  const fields = asObject(body);
++  return { requester: parseRequester(fields), start: requiredDate(fields, "start") };
++}
++
++/**
++ * The requester is taken from the body: `{ "requester": { "kind": "staff" } }` or
++ * `{ "requester": { "kind": "patient", "patientId": "..." } }`.
++ * There is no authentication yet, so this is trusted as sent.
++ */
++function parseRequester(fields: Body): Requester {
++  const requester = fields.requester;
++  if (typeof requester !== "object" || requester === null) {
++    throw new BadRequest("requester is required");
++  }
++  const { kind, patientId } = requester as Body;
++  if (kind === "staff") return { kind: "staff" };
++  if (kind === "patient") {
++    if (typeof patientId !== "string" || !patientId) {
++      throw new BadRequest("requester.patientId is required for patient requesters");
++    }
++    return { kind: "patient", patientId };
++  }
++  throw new BadRequest('requester.kind must be "staff" or "patient"');
++}
++
++function asObject(body: unknown): Body {
++  if (typeof body !== "object" || body === null) throw new BadRequest("Body must be a JSON object");
++  return body as Body;
++}
++
++function requiredString(fields: Body, name: string): string {
++  const value = fields[name];
++  if (typeof value !== "string" || !value) throw new BadRequest(`${name} is required`);
++  return value;
++}
++
++function requiredDate(fields: Body, name: string): Date {
++  const value = fields[name];
++  if (typeof value !== "string") throw new BadRequest(`${name} is required (ISO-8601 string)`);
++  const date = new Date(value);
++  if (Number.isNaN(date.getTime())) throw new BadRequest(`${name} must be a valid ISO-8601 date`);
++  return date;
++}
+diff --git a/src/adapters/outbound/console-notification-sender.ts b/src/adapters/outbound/console-notification-sender.ts
+new file mode 100644
+index 0000000..a1e71d1
+--- /dev/null
++++ b/src/adapters/outbound/console-notification-sender.ts
+@@ -0,0 +1,10 @@
++import type { Notification, NotificationSender } from "../../application/ports/notification-sender.js";
++
++/** Development sender: logs what would be emailed (preferred) or texted. */
++export class ConsoleNotificationSender implements NotificationSender {
++  async send(notification: Notification): Promise<void> {
++    const { recipient, subject, body } = notification;
++    const channel = recipient.email ? `email to ${recipient.email}` : `SMS to ${recipient.phone}`;
++    console.log(`[notification] ${channel} | ${subject} | ${body}`);
++  }
++}
+diff --git a/src/application/appointment-notifier.ts b/src/application/appointment-notifier.ts
+new file mode 100644
+index 0000000..000632a
+--- /dev/null
++++ b/src/application/appointment-notifier.ts
+@@ -0,0 +1,45 @@
++import type { Appointment } from "../domain/appointment.js";
++import type { Patient } from "../domain/patient.js";
++import type { NotificationSender } from "./ports/notification-sender.js";
++
++export type AppointmentEvent =
++  | { kind: "booked" }
++  | { kind: "cancelled" }
++  | { kind: "rescheduled"; previousStart: Date };
++
++/** Turns appointment events into patient notifications. */
++export class AppointmentNotifier {
++  constructor(private readonly sender: NotificationSender) {}
++
++  /**
++   * The appointment change is already saved when this runs, so a delivery failure
++   * is reported but does not fail the request.
++   */
++  async notify(patient: Patient, appointment: Appointment, event: AppointmentEvent): Promise<void> {
++    const { subject, body } = compose(appointment, event);
++    try {
++      await this.sender.send({
++        recipient: { name: patient.name, ...patient.contact },
++        subject,
++        body: `Hello ${patient.name}, ${body}`,
++      });
++    } catch (error) {
++      console.error(`Notification for appointment ${appointment.id} failed`, error);
++    }
++  }
++}
++
++function compose(appointment: Appointment, event: AppointmentEvent): { subject: string; body: string } {
++  const start = appointment.slot.start.toISOString();
++  switch (event.kind) {
++    case "booked":
++      return { subject: "Appointment booked", body: `your appointment is booked for ${start}.` };
++    case "cancelled":
++      return { subject: "Appointment cancelled", body: `your appointment on ${start} was cancelled.` };
++    case "rescheduled":
++      return {
++        subject: "Appointment rescheduled",
++        body: `your appointment on ${event.previousStart.toISOString()} was moved to ${start}.`,
++      };
++  }
++}
+diff --git a/src/application/book-appointment.ts b/src/application/book-appointment.ts
+index b4a8297..05d87f6 100644
+--- a/src/application/book-appointment.ts
++++ b/src/application/book-appointment.ts
+@@ -1,11 +1,13 @@
+ import { Appointment } from "../domain/appointment.js";
+ import { NotFoundError } from "../domain/errors.js";
+ import { TimeSlot } from "../domain/time-slot.js";
++import type { AppointmentNotifier } from "./appointment-notifier.js";
+ import type { AppointmentRepository } from "./ports/appointment-repository.js";
+ import type { Clock } from "./ports/clock.js";
+ import type { DoctorRepository } from "./ports/doctor-repository.js";
+ import type { IdGenerator } from "./ports/id-generator.js";
+ import type { PatientRepository } from "./ports/patient-repository.js";
++import type { SchedulingLock } from "./scheduling-lock.js";
+ 
+ export interface BookAppointmentCommand {
+   patientId: string;
+@@ -20,33 +22,30 @@ export class BookAppointmentUseCase {
+     private readonly doctors: DoctorRepository,
+     private readonly ids: IdGenerator,
+     private readonly clock: Clock,
++    private readonly notifier: AppointmentNotifier,
++    private readonly lock: SchedulingLock,
+   ) {}
+ 
+-  // Bookings run one at a time so the slot-conflict check and the save cannot interleave.
+-  private queue: Promise<unknown> = Promise.resolve();
+-
+-  execute(command: BookAppointmentCommand): Promise<Appointment> {
+-    const result = this.queue.then(() => this.book(command));
+-    this.queue = result.catch(() => undefined);
+-    return result;
+-  }
+-
+-  private async book(command: BookAppointmentCommand): Promise<Appointment> {
++  async execute(command: BookAppointmentCommand): Promise<Appointment> {
+     const slot = TimeSlot.startingAt(command.start);
+     const patient = await this.patients.findById(command.patientId);
+     if (!patient) throw new NotFoundError("Patient", command.patientId);
+     const doctor = await this.doctors.findById(command.doctorId);
+     if (!doctor) throw new NotFoundError("Doctor", command.doctorId);
+ 
+-    const appointment = Appointment.book({
+-      id: this.ids.next(),
+-      patientId: patient.id,
+-      doctorId: doctor.id,
+-      slot,
+-      now: this.clock.now(),
+-      existing: await this.appointments.findBySlot(slot),
++    const appointment = await this.lock.run(async () => {
++      const booked = Appointment.book({
++        id: this.ids.next(),
++        patientId: patient.id,
++        doctorId: doctor.id,
++        slot,
++        now: this.clock.now(),
++        existing: await this.appointments.findBySlot(slot),
++      });
++      await this.appointments.save(booked);
++      return booked;
+     });
+-    await this.appointments.save(appointment);
++    await this.notifier.notify(patient, appointment, { kind: "booked" });
+     return appointment;
+   }
+ }
+diff --git a/src/application/cancel-appointment.ts b/src/application/cancel-appointment.ts
+new file mode 100644
+index 0000000..72360a8
+--- /dev/null
++++ b/src/application/cancel-appointment.ts
+@@ -0,0 +1,36 @@
++import type { Appointment } from "../domain/appointment.js";
++import { NotFoundError } from "../domain/errors.js";
++import type { Requester } from "../domain/requester.js";
++import type { AppointmentNotifier } from "./appointment-notifier.js";
++import type { AppointmentRepository } from "./ports/appointment-repository.js";
++import type { Clock } from "./ports/clock.js";
++import type { PatientRepository } from "./ports/patient-repository.js";
++import type { SchedulingLock } from "./scheduling-lock.js";
++
++export interface CancelAppointmentCommand {
++  appointmentId: string;
++  requester: Requester;
++}
++
++export class CancelAppointmentUseCase {
++  constructor(
++    private readonly appointments: AppointmentRepository,
++    private readonly patients: PatientRepository,
++    private readonly clock: Clock,
++    private readonly notifier: AppointmentNotifier,
++    private readonly lock: SchedulingLock,
++  ) {}
++
++  async execute(command: CancelAppointmentCommand): Promise<Appointment> {
++    const cancelled = await this.lock.run(async () => {
++      const appointment = await this.appointments.findById(command.appointmentId);
++      if (!appointment) throw new NotFoundError("Appointment", command.appointmentId);
++      const updated = appointment.cancel({ requester: command.requester, now: this.clock.now() });
++      await this.appointments.save(updated);
++      return updated;
++    });
++    const patient = await this.patients.findById(cancelled.patientId);
++    if (patient) await this.notifier.notify(patient, cancelled, { kind: "cancelled" });
++    return cancelled;
++  }
++}
+diff --git a/src/application/ports/notification-sender.ts b/src/application/ports/notification-sender.ts
+new file mode 100644
+index 0000000..19d61bd
+--- /dev/null
++++ b/src/application/ports/notification-sender.ts
+@@ -0,0 +1,16 @@
++export interface NotificationRecipient {
++  name: string;
++  email?: string;
++  phone?: string;
++}
++
++export interface Notification {
++  recipient: NotificationRecipient;
++  subject: string;
++  body: string;
++}
++
++/** Delivers a message to a patient; the adapter picks the channel (email, SMS, ...). */
++export interface NotificationSender {
++  send(notification: Notification): Promise<void>;
++}
+diff --git a/src/application/reschedule-appointment.ts b/src/application/reschedule-appointment.ts
+new file mode 100644
+index 0000000..55a0600
+--- /dev/null
++++ b/src/application/reschedule-appointment.ts
+@@ -0,0 +1,49 @@
++import type { Appointment } from "../domain/appointment.js";
++import { NotFoundError } from "../domain/errors.js";
++import type { Requester } from "../domain/requester.js";
++import { TimeSlot } from "../domain/time-slot.js";
++import type { AppointmentNotifier } from "./appointment-notifier.js";
++import type { AppointmentRepository } from "./ports/appointment-repository.js";
++import type { Clock } from "./ports/clock.js";
++import type { PatientRepository } from "./ports/patient-repository.js";
++import type { SchedulingLock } from "./scheduling-lock.js";
++
++export interface RescheduleAppointmentCommand {
++  appointmentId: string;
++  requester: Requester;
++  newStart: Date;
++}
++
++export class RescheduleAppointmentUseCase {
++  constructor(
++    private readonly appointments: AppointmentRepository,
++    private readonly patients: PatientRepository,
++    private readonly clock: Clock,
++    private readonly notifier: AppointmentNotifier,
++    private readonly lock: SchedulingLock,
++  ) {}
++
++  async execute(command: RescheduleAppointmentCommand): Promise<Appointment> {
++    const newSlot = TimeSlot.startingAt(command.newStart);
++    const { previous, updated } = await this.lock.run(async () => {
++      const appointment = await this.appointments.findById(command.appointmentId);
++      if (!appointment) throw new NotFoundError("Appointment", command.appointmentId);
++      const moved = appointment.reschedule({
++        requester: command.requester,
++        newSlot,
++        now: this.clock.now(),
++        existing: await this.appointments.findBySlot(newSlot),
++      });
++      await this.appointments.save(moved);
++      return { previous: appointment, updated: moved };
++    });
++    const patient = await this.patients.findById(updated.patientId);
++    if (patient) {
++      await this.notifier.notify(patient, updated, {
++        kind: "rescheduled",
++        previousStart: previous.slot.start,
++      });
++    }
++    return updated;
++  }
++}
+diff --git a/src/application/scheduling-lock.ts b/src/application/scheduling-lock.ts
+new file mode 100644
+index 0000000..0eb054c
+--- /dev/null
++++ b/src/application/scheduling-lock.ts
+@@ -0,0 +1,14 @@
++/**
++ * Runs schedule-changing operations one at a time, so a slot-conflict check and the
++ * save that follows it cannot interleave with another booking, cancel or reschedule.
++ * One instance must be shared by every use case that changes the schedule.
++ */
++export class SchedulingLock {
++  private queue: Promise<unknown> = Promise.resolve();
++
++  run<T>(operation: () => Promise<T>): Promise<T> {
++    const result = this.queue.then(operation);
++    this.queue = result.catch(() => undefined);
++    return result;
++  }
++}
+diff --git a/src/config/composition-root.ts b/src/config/composition-root.ts
+index 7212a79..cb18bbf 100644
+--- a/src/config/composition-root.ts
++++ b/src/config/composition-root.ts
+@@ -1,15 +1,21 @@
+ import { createAppointmentsHandler } from "../adapters/inbound/appointments-handler.js";
+ import type { HttpHandler } from "../adapters/inbound/http.js";
++import { ConsoleNotificationSender } from "../adapters/outbound/console-notification-sender.js";
+ import { InMemoryAppointmentRepository } from "../adapters/outbound/in-memory-appointment-repository.js";
+ import { InMemoryDoctorRepository } from "../adapters/outbound/in-memory-doctor-repository.js";
+ import { InMemoryPatientRepository } from "../adapters/outbound/in-memory-patient-repository.js";
+ import { SystemClock } from "../adapters/outbound/system-clock.js";
+ import { UuidIdGenerator } from "../adapters/outbound/uuid-id-generator.js";
++import { AppointmentNotifier } from "../application/appointment-notifier.js";
+ import { BookAppointmentUseCase } from "../application/book-appointment.js";
++import { CancelAppointmentUseCase } from "../application/cancel-appointment.js";
+ import { GetAppointmentUseCase } from "../application/get-appointment.js";
+ import type { Clock } from "../application/ports/clock.js";
+ import type { DoctorRepository } from "../application/ports/doctor-repository.js";
++import type { NotificationSender } from "../application/ports/notification-sender.js";
+ import type { PatientRepository } from "../application/ports/patient-repository.js";
++import { RescheduleAppointmentUseCase } from "../application/reschedule-appointment.js";
++import { SchedulingLock } from "../application/scheduling-lock.js";
+ 
+ export interface App {
+   handle: HttpHandler;
+@@ -17,24 +23,34 @@ export interface App {
+   doctors: DoctorRepository;
+ }
+ 
+-export function createApp(options: { clock?: Clock } = {}): App {
++export interface AppOptions {
++  clock?: Clock;
++  /** Swap in a real email/SMS provider here. */
++  notificationSender?: NotificationSender;
++}
++
++export function createApp(options: AppOptions = {}): App {
+   const appointments = new InMemoryAppointmentRepository();
+   const patients = new InMemoryPatientRepository();
+   const doctors = new InMemoryDoctorRepository();
+   const clock = options.clock ?? new SystemClock();
++  const notifier = new AppointmentNotifier(options.notificationSender ?? new ConsoleNotificationSender());
++  const lock = new SchedulingLock();
+ 
+-  const bookAppointment = new BookAppointmentUseCase(
+-    appointments,
+-    patients,
+-    doctors,
+-    new UuidIdGenerator(),
+-    clock,
+-  );
+-  const getAppointment = new GetAppointmentUseCase(appointments);
++  const handle = createAppointmentsHandler({
++    book: new BookAppointmentUseCase(
++      appointments,
++      patients,
++      doctors,
++      new UuidIdGenerator(),
++      clock,
++      notifier,
++      lock,
++    ),
++    get: new GetAppointmentUseCase(appointments),
++    cancel: new CancelAppointmentUseCase(appointments, patients, clock, notifier, lock),
++    reschedule: new RescheduleAppointmentUseCase(appointments, patients, clock, notifier, lock),
++  });
+ 
+-  return {
+-    handle: createAppointmentsHandler(bookAppointment, getAppointment),
+-    patients,
+-    doctors,
+-  };
++  return { handle, patients, doctors };
+ }
+diff --git a/src/domain/appointment.ts b/src/domain/appointment.ts
+index e1a7f26..7c5bfa3 100644
+--- a/src/domain/appointment.ts
++++ b/src/domain/appointment.ts
+@@ -1,7 +1,12 @@
+-import { DomainError, SlotUnavailableError } from "./errors.js";
++import { DomainError, ForbiddenError, InvalidStateError, SlotUnavailableError } from "./errors.js";
++import type { Requester } from "./requester.js";
+ import { TimeSlot } from "./time-slot.js";
+ 
+-export type AppointmentStatus = "booked";
++export type AppointmentStatus = "booked" | "cancelled";
++
++/** Patients must cancel or reschedule at least this long before the start; staff are exempt. */
++export const CHANGE_NOTICE_HOURS = 24;
++const CHANGE_NOTICE_MS = CHANGE_NOTICE_HOURS * 60 * 60 * 1000;
+ 
+ export class Appointment {
+   private constructor(
+@@ -13,8 +18,8 @@ export class Appointment {
+   ) {}
+ 
+   /**
+-   * Books a slot. `existing` are the doctor's and patient's current appointments;
+-   * neither may already hold the same slot.
++   * Books a slot. `existing` are the appointments already in that slot;
++   * neither the doctor nor the patient may hold an active one there.
+    */
+   static book(params: {
+     id: string;
+@@ -26,18 +31,66 @@ export class Appointment {
+   }): Appointment {
+     const { id, patientId, doctorId, slot, now, existing } = params;
+     if (!id) throw new DomainError("Appointment id is required");
+-    if (slot.start.getTime() <= now.getTime()) {
+-      throw new DomainError("Cannot book a slot in the past");
++    assertBookable(slot, now, patientId, doctorId, existing);
++    return new Appointment(id, patientId, doctorId, slot, "booked");
++  }
++
++  get isActive(): boolean {
++    return this.status === "booked";
++  }
++
++  cancel(params: { requester: Requester; now: Date }): Appointment {
++    this.assertChangeableBy(params.requester, params.now);
++    return new Appointment(this.id, this.patientId, this.doctorId, this.slot, "cancelled");
++  }
++
++  /** Moves the appointment to `newSlot`. `existing` are the appointments already in `newSlot`. */
++  reschedule(params: {
++    requester: Requester;
++    newSlot: TimeSlot;
++    now: Date;
++    existing: readonly Appointment[];
++  }): Appointment {
++    const { requester, newSlot, now, existing } = params;
++    this.assertChangeableBy(requester, now);
++    if (newSlot.equals(this.slot)) throw new DomainError("Appointment is already in that slot");
++    const others = existing.filter((a) => a.id !== this.id);
++    assertBookable(newSlot, now, this.patientId, this.doctorId, others);
++    return new Appointment(this.id, this.patientId, this.doctorId, newSlot, "booked");
++  }
++
++  private assertChangeableBy(requester: Requester, now: Date): void {
++    if (requester.kind === "patient" && requester.patientId !== this.patientId) {
++      throw new ForbiddenError("Patients can only change their own appointments");
+     }
+-    for (const other of existing) {
+-      if (!other.slot.equals(slot)) continue;
+-      if (other.doctorId === doctorId) {
+-        throw new SlotUnavailableError("Doctor is already booked for this slot");
+-      }
+-      if (other.patientId === patientId) {
+-        throw new SlotUnavailableError("Patient already has an appointment in this slot");
+-      }
++    if (!this.isActive) throw new InvalidStateError("Appointment is already cancelled");
++    const msUntilStart = this.slot.start.getTime() - now.getTime();
++    if (msUntilStart <= 0) throw new InvalidStateError("Appointment has already started");
++    if (requester.kind !== "staff" && msUntilStart < CHANGE_NOTICE_MS) {
++      throw new DomainError(
++        `Changes less than ${CHANGE_NOTICE_HOURS} hours before the start must be made by clinic staff`,
++      );
++    }
++  }
++}
++
++function assertBookable(
++  slot: TimeSlot,
++  now: Date,
++  patientId: string,
++  doctorId: string,
++  existing: readonly Appointment[],
++): void {
++  if (slot.start.getTime() <= now.getTime()) {
++    throw new DomainError("Cannot book a slot in the past");
++  }
++  for (const other of existing) {
++    if (!other.isActive || !other.slot.equals(slot)) continue;
++    if (other.doctorId === doctorId) {
++      throw new SlotUnavailableError("Doctor is already booked for this slot");
++    }
++    if (other.patientId === patientId) {
++      throw new SlotUnavailableError("Patient already has an appointment in this slot");
+     }
+-    return new Appointment(id, patientId, doctorId, slot, "booked");
+   }
+ }
+diff --git a/src/domain/errors.ts b/src/domain/errors.ts
+index c019357..09f4a97 100644
+--- a/src/domain/errors.ts
++++ b/src/domain/errors.ts
+@@ -18,3 +18,17 @@ export class SlotUnavailableError extends DomainError {
+     this.name = "SlotUnavailableError";
+   }
+ }
++
++export class ForbiddenError extends DomainError {
++  constructor(message: string) {
++    super(message);
++    this.name = "ForbiddenError";
++  }
++}
++
++export class InvalidStateError extends DomainError {
++  constructor(message: string) {
++    super(message);
++    this.name = "InvalidStateError";
++  }
++}
+diff --git a/src/domain/patient.ts b/src/domain/patient.ts
+index bc0b9ff..30316f5 100644
+--- a/src/domain/patient.ts
++++ b/src/domain/patient.ts
+@@ -1,11 +1,20 @@
+ import { DomainError } from "./errors.js";
+ 
++export interface PatientContact {
++  email?: string;
++  phone?: string;
++}
++
+ export class Patient {
+   constructor(
+     readonly id: string,
+     readonly name: string,
++    readonly contact: PatientContact,
+   ) {
+     if (!id) throw new DomainError("Patient id is required");
+     if (!name.trim()) throw new DomainError("Patient name is required");
++    if (!contact.email && !contact.phone) {
++      throw new DomainError("Patient needs an email or a phone number");
++    }
+   }
+ }
+diff --git a/src/domain/requester.ts b/src/domain/requester.ts
+new file mode 100644
+index 0000000..8ab15a1
+--- /dev/null
++++ b/src/domain/requester.ts
+@@ -0,0 +1,2 @@
++/** Who is asking for a change: clinic staff, or a specific patient. */
++export type Requester = { kind: "staff" } | { kind: "patient"; patientId: string };

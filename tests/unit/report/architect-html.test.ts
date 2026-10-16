@@ -2,12 +2,12 @@
  * Architect HTML report (`evaluate --html`): snapshot tests on the three reference variants (one clean, two
  * violating) plus checks of the model against the v1.3 tiered scoring of the same run.
  */
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { architectReportHtml, buildArchitectModel, TIER_LABELS, writeArchitectReport } from '../../../src/report/architect/index.js';
 import { esc } from '../../../src/report/architect/render.js';
-import { isReadableSource, SourceReader } from '../../../src/report/architect/excerpt.js';
+import { isReadableSource, realSourcePath, SourceReader } from '../../../src/report/architect/excerpt.js';
 import { plainRule, withoutRuleIds } from '../../../src/report/architect/rule-text.js';
 import { REPO_ROOT, VARIANTS, loadFixture, reportInput } from './architect-fixtures.js';
 
@@ -105,6 +105,21 @@ describe('architect HTML report: reference variants', () => {
     }
   });
 
+  it('a defining rule that could not run (EVAL_002) shows INCOMPLETE, not PASS', async () => {
+    const input = await reportInput('correct-reference');
+    const tiers = input.report.tiers;
+    if (tiers === undefined) throw new Error('fixture without tiers');
+    const report = { ...input.report, verdict: 'soft-block' as const, tiers: { ...tiers, verdict: 'incomplete' as const, blockingNotExecuted: [...tiers.blockingNotExecuted, 'FF-S02' as (typeof tiers.blockingNotExecuted)[number]] } };
+    const model = buildArchitectModel({ ...input, report });
+    expect(model.summary.verdict).toBe('incomplete');
+    expect(model.summary.headline).toMatch(/^Incomplete/);
+    expect(model.summary.explanation[0]).toMatch(/could not run/);
+    expect(model.summary.notExecuted.map((r) => r.ruleId)).toContain('FF-S02');
+    const html = architectReportHtml({ ...input, report });
+    expect(html).toContain('class="summary verdict-incomplete"');
+    expect(html).toContain('>INCOMPLETE</p>');
+  });
+
   it('without tiers (v1.2e scoring) explains that the verdict comes from the score', async () => {
     const input = await reportInput('variant-a-structural');
     const { tiers: _drop, ...report } = input.report;
@@ -132,6 +147,35 @@ describe('architect HTML report: helpers', () => {
     expect(isReadableSource(root, 'tsconfig.json')).toBe(false);
     expect(new SourceReader(root).excerpt('src/domain/entities/Task.ts', [999])).toBeNull();
     expect(new SourceReader(undefined).excerpt('src/domain/entities/Task.ts', [1])).toBeNull();
+  });
+
+  it('does not follow a symlink out of the project or onto a refused file', () => {
+    const tmp = mkdtempSync(join(tmpdir(), 'excerpt-link-'));
+    try {
+      const root = join(tmp, 'project');
+      mkdirSync(join(root, 'src'), { recursive: true });
+      writeFileSync(join(root, 'src', 'ok.ts'), 'export const ok = 1;\n');
+      writeFileSync(join(tmp, 'outside.ts'), 'export const PRIVATE_KEY = "outside the project";\n');
+      writeFileSync(join(root, '.env'), 'TOKEN=abc\n');
+      symlinkSync(join(tmp, 'outside.ts'), join(root, 'src', 'escape.ts'));
+      symlinkSync(join(root, '.env'), join(root, 'src', 'env.ts'));
+      symlinkSync(join(root, 'src', 'ok.ts'), join(root, 'src', 'alias.ts'));
+      symlinkSync(tmp, join(root, 'src', 'up'));
+      const reader = new SourceReader(root);
+      // The name screen alone passes all four; the real path does not.
+      expect(isReadableSource(root, 'src/escape.ts')).toBe(true);
+      expect(realSourcePath(root, 'src/escape.ts')).toBeNull();
+      expect(reader.excerpt('src/escape.ts', [1])).toBeNull();
+      expect(reader.excerpt('src/env.ts', [1])).toBeNull();
+      expect(reader.excerpt('src/up/outside.ts', [1])).toBeNull();
+      // A link that stays inside the project onto an allowed source file is read.
+      expect(reader.excerpt('src/alias.ts', [1])?.lines[0]?.text).toBe('export const ok = 1;');
+      // A project root that is itself reached through a symlink still works.
+      symlinkSync(root, join(tmp, 'root-link'));
+      expect(new SourceReader(join(tmp, 'root-link')).excerpt('src/ok.ts', [1])?.lines[0]?.hit).toBe(true);
+    } finally {
+      rmSync(tmp, { recursive: true, force: true });
+    }
   });
 
   it('marks the hit lines with context around them', () => {

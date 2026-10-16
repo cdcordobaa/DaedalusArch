@@ -204,6 +204,20 @@ Reading the table:
 - **Combined answers.** Answers interact (Q13 C with Q25 B, above; Q2 B with every rule that reads import edges).
   Preview the full set with `construct-rescore.ts --answers <file>` before the live run.
 
+## Note (2026-10-16): fixes after the post-merge review
+
+Changes to how answers combine and run (`Docs/v1.3/post-merge-review-2026-10-16.md`, fix-status table). Every switch
+is still at A; no figure in the table above was recomputed, and none of these changes moves a single option on its own.
+
+- **R08, Q9 B with Q22 B.** Q22 B's redefinition of FF-P02 now keeps the FF-P02 rows Q9 B adds on implementers (they
+  were erased and logged as Q22 drops).
+- **R09, carrier rules in a live run.** With Q5 D, Q16 B or Q17 C the live run (`evaluate`) now assembles a report: the
+  declared side counts the carrier (identity I1) and the carrier's result carries its template tag.
+- **R10, Q5 B with Q24 B.** The Q24 B inward-bypass rows keep the advisory tier Q24 B states, reported apart, when Q5 B
+  makes the rest of FF-S03 blocking in hexagonal.
+- **R30, `--scoring v1.2e`.** No switch applies under the v1.2E scoring, the compile overlays included.
+- **R31, Q13 C without Q25 B.** The answer script warns and prints the combination among the sign-off lines.
+
 ## Byte identity
 
 - `tests/unit/construct-switches/rescore.test.ts`: with the switch default, the row stage leaves all 71 saved

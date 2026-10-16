@@ -1,0 +1,256 @@
+# v1.3 external set, wave 3: spec for `lucashang-ddd-payday` (style ddd).
+# Derived from presets/ddd.yaml: the `architecture:` block maps THIS project's folders
+# (judgements in results/v1.3-external-3/spec-rationale.md); `fitness_functions:` is the preset's, verbatim.
+# Written before any tool run on the project.
+
+spec_version: "1.0.0"
+
+architecture:
+  style: ddd
+
+  # README: "Api de aplicação bancária aplicando clean architecture e DDD". Stemmler-style modules
+  # src/modules/{accounts,users}/{domain,dtos,mappers,repositories,useCases,infra/http}, plus src/core
+  # (domain base classes, logic, infra base classes), src/infra (TypeORM, Express) and src/shared.
+  # useCases/<name>/index.ts wires fake repository, validator, use case and controller (composition).
+  # Repository interfaces (repositories/I*Repository.ts) are domain ports; implementations are infrastructure.
+  # mappers/* map domain to the persistence interfaces in infra/database/entities and to DTOs: infrastructure.
+  # domain/index.ts are export-only barrels and are unmapped, as are core/logic (Result, Guard, errors),
+  # shared/utils (types) and the spec files.
+  layers:
+    - name: domain
+      kind: domain
+      directories:
+        - src/modules/*/domain/!(index).ts
+        - src/modules/*/repositories/I*Repository.ts
+        - src/core/domain/**
+      roles:
+        - aggregate
+        - entity
+        - value-object
+        - repository-interface
+
+    - name: application
+      kind: application
+      directories:
+        - src/modules/*/useCases/*/*UseCase.ts
+        - src/modules/*/useCases/*/*DTO.ts
+        - src/modules/*/useCases/*/*DTOValidation.ts
+        - src/modules/*/dtos/**
+        - src/shared/validators/IValidator.ts
+      roles:
+        - application-service
+        - port
+
+    - name: infrastructure
+      kind: infrastructure
+      directories:
+        - src/modules/*/repositories/implementations/**
+        - src/modules/*/mappers/**
+        - src/infra/database/**
+        - src/core/infra/BaseFakeRepository.ts
+        - src/shared/infra/**
+        - src/shared/validators/implementations/**
+      roles:
+        - repository
+
+    - name: api
+      kind: presentation
+      directories:
+        - src/modules/*/useCases/*/*Controller.ts
+        - src/modules/*/infra/http/**
+        - src/infra/http/api/**
+        - src/infra/http/app.ts
+        - src/core/infra/BaseController.ts
+      roles:
+        - controller
+
+    - name: composition
+      kind: application
+      directories:
+        - src/modules/*/useCases/*/index.ts
+        - src/infra/http/server.ts
+        - src/index.ts
+      roles:
+        - composition-root
+
+  allowed_dependencies:
+    - from: application
+      to: [domain]
+    - from: infrastructure
+      to: [application, domain]
+    - from: api
+      to: [application, domain]
+    - from: composition
+      to: [domain, application, infrastructure, api]
+
+  ddd:
+    source_root: src/modules/
+    # Contexts are the two modules; neither publishes a barrel or contracts folder for other modules.
+    contexts:
+      - name: accounts
+        root: src/modules/accounts/
+        public_api: []
+        acl: []
+      - name: users
+        root: src/modules/users/
+        public_api: []
+        acl: []
+    outside_contexts: [src/core/**, src/shared/**, src/infra/**, src/index.ts]
+    # No class extends an AggregateRoot base (core/domain has only Entity). Account and User are the entities
+    # with their own repository, so they are declared the aggregate roots (as wave 2's camps-graphql-api).
+    aggregates:
+      - name: Account
+        context: accounts
+        module: src/modules/accounts/domain/**
+        root: src/modules/accounts/domain/account.ts
+        inner_entities: []
+      - name: User
+        context: users
+        module: src/modules/users/domain/**
+        root: src/modules/users/domain/user.ts
+        inner_entities: []
+    # Every class that extends ValueObject at the pin.
+    value_objects:
+      - src/modules/accounts/domain/accountBalance.ts
+      - src/modules/users/domain/userAge.ts
+      - src/modules/users/domain/userEmail.ts
+      - src/modules/users/domain/userPassword.ts
+    repositories: ["src/modules/*/repositories/I*Repository.ts", "src/modules/*/repositories/implementations/**/*Repository.ts"]
+    # No domain-event type exists at the pin; this is the preset's name and matches nothing (rationale).
+    domain_event_types: [DomainEvent]
+    application_services: ["src/modules/*/useCases/*/*UseCase.ts"]
+
+fitness_functions:
+
+  # ── STRATEGIC ──
+
+  - id: FF-DS01
+    name: bounded-context-modules
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DS02
+    name: context-isolation
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # ── TACTICAL ──
+
+  - id: FF-DT01
+    name: aggregate-boundary
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DT02
+    name: repository-aggregate-root
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Blocking per the sealed Docs/v1.3/rule-tiers.md. The check is still a method-name proxy (the extractor sees no
+  # readonly, accessors or visibility); see Docs/v1.3-ddd-notes.md §2 for the proposed ADR.
+  - id: FF-DT03
+    name: value-object-immutability
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Framework-free domain: the existing domain-purity template, unchanged, with the DDD package list.
+  - id: FF-DT04
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+    forbidden_imports:
+      - "@nestjs/*"
+      - typeorm
+      - express
+      - prisma
+      - "@prisma/*"
+      - sequelize
+      - mongoose
+      - "@mikro-orm/*"
+      - class-validator
+      - class-transformer
+      - inversify
+      - tsyringe
+
+  # Advisory per the sealed Docs/v1.3/rule-tiers.md (placement guideline).
+  - id: FF-DT05
+    name: domain-event-placement
+    dimension: pattern
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+  # Advisory heuristic: more methods than the threshold in an application service.
+  - id: FF-DT06
+    name: application-service-thin
+    dimension: pattern
+    severity: advisory
+    route: symbolic
+    validated: false
+    tier: advisory
+    threshold: 3
+
+  # ── LAYERING INSIDE EACH CONTEXT (hexagonal templates) ──
+
+  - id: FF-S01
+    name: dependency-direction-graph
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Advisory per the sealed Docs/v1.3/rule-tiers.md (hexagonal does not define strict layering).
+  - id: FF-S03
+    name: layer-skip-graph
+    dimension: structural
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70

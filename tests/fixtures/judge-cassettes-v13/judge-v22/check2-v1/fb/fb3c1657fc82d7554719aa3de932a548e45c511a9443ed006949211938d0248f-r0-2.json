@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8847,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "fb3c1657fc82d7554719aa3de932a548e45c511a9443ed006949211938d0248f-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "Appointment.endsAt() works out the end time from startsAt and minutes, which is pure domain calculation",
+      "Appointment.overlaps(other) is a scheduling rule that checks whether two time intervals overlap",
+      "Appointment.cancel(now) enforces business rules: the status must be 'booked' and there must be at least two hours' notice. On failure it throws the domain error SchedulingError",
+      "There is no database, HTTP, framework or UI code. The only import is the domain-layer error ../errors/SchedulingError"
+    ],
+    "pass": true,
+    "reasoning": "src/business/entities/Appointment.ts is a plain domain entity in the business (domain) layer. It holds appointment state and contains only domain behaviour: it computes the end time, checks whether two appointments overlap, and enforces the cancellation rules (only booked appointments can be cancelled, and not within two hours of the start). The current time is passed in as an argument, so the file has no hidden clock dependency. Nothing in it handles persistence, transport, framework concerns or presentation formatting. Every responsibility fits the domain layer.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**\n- business (kind: domain): src/business/**\n- presentation (kind: presentation): src/presentation/**\n\n## Unit\nKind: file\nId: src/business/entities/Appointment.ts\nLayer: business\nUnit files:\n- src/business/entities/Appointment.ts\n\n## Source\n=====SOURCE-BEGIN src/business/entities/Appointment.ts=====\nimport { SchedulingError } from '../errors/SchedulingError';\n\nexport type AppointmentStatus = 'booked' | 'cancelled' | 'attended';\n\nexport class Appointment {\n  id: string;\n  patientId: string;\n  practitionerId: string;\n  startsAt: Date;\n  minutes: number;\n  status: AppointmentStatus;\n\n  constructor(id: string, patientId: string, practitionerId: string, startsAt: Date, minutes: number, status: AppointmentStatus) {\n    this.id = id;\n    this.patientId = patientId;\n    this.practitionerId = practitionerId;\n    this.startsAt = startsAt;\n    this.minutes = minutes;\n    this.status = status;\n  }\n\n  endsAt(): Date {\n    return new Date(this.startsAt.getTime() + this.minutes * 60_000);\n  }\n\n  overlaps(other: Appointment): boolean {\n    return this.startsAt < other.endsAt() && other.startsAt < this.endsAt();\n  }\n\n  cancel(now: Date): void {\n    if (this.status !== 'booked') throw new SchedulingError('rejected', `Appointment ${this.id} is ${this.status}`);\n    if (this.startsAt.getTime() - now.getTime() < 2 * 3_600_000) {\n      throw new SchedulingError('rejected', 'Appointments can be cancelled up to two hours before they start');\n    }\n    this.status = 'cancelled';\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/business/entities/Appointment.ts\",\"to\":\"src/business/errors/SchedulingError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/business/services/SchedulingService.ts\",\"to\":\"src/business/entities/Appointment.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/presentation/presenters/AppointmentPresenter.ts\",\"to\":\"src/business/entities/Appointment.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"business\",\"name\":\"Appointment\",\"path\":\"src/business/entities/Appointment.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/entities/Appointment.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/errors/SchedulingError.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/services/SchedulingService.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/presentation/presenters/AppointmentPresenter.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T02:29:36.919Z",
+  "repetition": 0,
+  "requestHash": "fb3c1657fc82d7554719aa3de932a548e45c511a9443ed006949211938d0248f",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":488}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/business/entities/Appointment.ts is a plain domain entity in the business (domain) layer. It holds appointment state and contains only domain behaviour: it computes the end time, checks whether two appointments overlap, and enforces the cancellation rules (only booked appointments can be cancelled, and not within two hours of the start). The current time is passed in as an argument, so the file has no hidden clock dependency. Nothing in it handles persistence, transport, framework concerns or presentation formatting. Every responsibility fits the domain layer.\\\",\\\"evidence\\\":[\\\"Appointment.endsAt() works out the end time from startsAt and minutes, which is pure domain calculation\\\",\\\"Appointment.overlaps(other) is a scheduling rule that checks whether two time intervals overlap\\\",\\\"Appointment.cancel(now) enforces business rules: the status must be 'booked' and there must be at least two hours' notice. On failure it throws the domain error SchedulingError\\\",\\\"There is no database, HTTP, framework or UI code. The only import is the domain-layer error ../errors/SchedulingError\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"Appointment.endsAt() works out the end time from startsAt and minutes, which is pure domain calculation\",\"Appointment.overlaps(other) is a scheduling rule that checks whether two time intervals overlap\",\"Appointment.cancel(now) enforces business rules: the status must be 'booked' and there must be at least two hours' notice. On failure it throws the domain error SchedulingError\",\"There is no database, HTTP, framework or UI code. The only import is the domain-layer error ../errors/SchedulingError\"],\"pass\":true,\"reasoning\":\"src/business/entities/Appointment.ts is a plain domain entity in the business (domain) layer. It holds appointment state and contains only domain behaviour: it computes the end time, checks whether two appointments overlap, and enforces the cancellation rules (only booked appointments can be cancelled, and not within two hours of the start). The current time is passed in as an argument, so the file has no hidden clock dependency. Nothing in it handles persistence, transport, framework concerns or presentation formatting. Every responsibility fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/business/entities/Appointment.ts",
+  "usage": {
+    "inputTokens": 2754,
+    "outputTokens": 488
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -30,6 +30,7 @@ echo "commit $(git -C "$REPO" rev-parse --short HEAD), node $(node -v), scratch 
 CMP="node $REPO/replication/lib/compare.mjs"
 KNOWN="--known $REPO/replication/known-divergences.json"
 status=0
+skipped=0
 # run <title> <cmd...>: runs in the scratch tree, log in $OUT/logs. A non-zero exit is reported; the comparison that
 # follows decides the verdict (apg2-ablation.ts exits 1 whenever a case fails, which is itself compared).
 run() {
@@ -80,7 +81,11 @@ fi
 
 # 3b. The same ablation on the tree of the commit that produced the committed outputs (72fa9203): expected
 #     byte-identical with no known divergence. Needs the git history (a clone, not a tarball).
-if want apg2 && git -C "$REPO" cat-file -e 72fa9203^{commit} 2>/dev/null; then
+if want apg2 && ! git -C "$REPO" cat-file -e 72fa9203^{commit} 2>/dev/null; then
+  echo; echo "== APG v2 ablation @72fa9203"
+  echo "SKIPPED   apg2-ablation@72fa9203 (commit 72fa9203 is not in this checkout's history: a tarball or shallow clone; the strict replay did not run)"
+  skipped=$((skipped + 1))
+elif want apg2; then
   T72="$WORK/tree-72fa9203"; mkdir -p "$T72"; git -C "$REPO" archive 72fa9203 | tar -x -C "$T72"
   ln -s "$REPO/node_modules" "$T72/node_modules"
   ln -s "$REPO/experiments/tool-comparison/depcruise/node_modules" "$T72/experiments/tool-comparison/depcruise/node_modules"
@@ -100,5 +105,6 @@ if want judge; then
 fi
 
 echo
+[ "$skipped" = 0 ] || echo "SKIPPED: $skipped step(s) did not run (see the SKIPPED lines above)"
 [ "$status" = 0 ] && echo "SMOKE: OK (identical or known divergences only)" || echo "SMOKE: UNEXPECTED DIFFERENCES (see above)"
 exit "$status"

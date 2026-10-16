@@ -16,6 +16,7 @@ import type { LayerKind } from '../../shared/types/enums.js';
 import { classesOf } from '../cheap/context.js';
 import type { CheapContext } from '../cheap/context.js';
 import type { CheapEnrichment, Evidence } from '../cheap/types.js';
+import { hostIndependentCompare } from '../../shared/collation.js';
 
 export interface MethodUnit {
   readonly nodeId: string;
@@ -150,7 +151,7 @@ export function buildUnits(ctx: CheapContext, cheap: CheapEnrichment, opts: { re
         if (other === undefined) continue;
         neighbours.push({ relation: e.type, direction: out ? 'out' : 'in', nodeId: other.id, type: other.type, name: other.name, file: other.filePath });
       }
-      neighbours.sort((a, b) => `${a.relation}|${a.direction}|${a.name}|${a.nodeId}`.localeCompare(`${b.relation}|${b.direction}|${b.name}|${b.nodeId}`));
+      neighbours.sort((a, b) => hostIndependentCompare(`${a.relation}|${a.direction}|${a.name}|${a.nodeId}`, `${b.relation}|${b.direction}|${b.name}|${b.nodeId}`));
       const dedup = neighbours.filter((n, i) => i === 0 || `${n.relation}${n.direction}${n.nodeId}` !== `${neighbours[i - 1]?.relation ?? ''}${neighbours[i - 1]?.direction ?? ''}${neighbours[i - 1]?.nodeId ?? ''}`);
       const cheapFacts = [nodeId, ...methods.map((m) => m.nodeId)].flatMap((id) => {
         const label = id === nodeId ? name : (nodeById.get(id)?.name ?? id);
@@ -177,7 +178,7 @@ export function buildUnits(ctx: CheapContext, cheap: CheapEnrichment, opts: { re
   const groups: GroupUnit[] = [];
   const compMembers = new Map<string, string[]>();
   for (const c of classes) compMembers.set(c.component, [...(compMembers.get(c.component) ?? []), c.nodeId]);
-  for (const [comp, ids] of [...compMembers.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+  for (const [comp, ids] of [...compMembers.entries()].sort((a, b) => hostIndependentCompare(a[0], b[0]))) {
     groups.push({ id: `component:${comp}`, kind: 'component', classIds: ids });
   }
   const communityOfFile = new Map<string, number>();
