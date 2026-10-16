@@ -1562,3 +1562,10 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: v1.3 spike follow-up, outside the v1.3 study stages. Development-set evidence only.
 
 ---
+## v1.3 — human erosion trajectories, job M1 (scheduled task)
+**Timestamp**: 2026-10-16T09:30:00Z
+**User Input**: (scheduled task, no one present) "Night backlog 2026-10-16 job #23 (M1): on 6 external-set repos (2 per clean/layered/ddd) with >= 100 commits, evaluate 8 evenly spaced commits each under the pinned spec with cypher-interp; blocking count, blocking/KLOC, new identities per interval (pilot memo §3); per-repo slope and sign test; spec-drift caveat with coverage per commit; diagnostic doc; one PR into v1.3, not merged."
+**AI Response**: "Branch v1.3-human-erosion from origin/v1.3 9768def4; repos, sampling rule, identity rule, analysis and pass criterion committed (55eb1aae) before any trajectory evaluation. Read v1.3-external-set (b8492a7a) for the selection and specs (not merged). 48 commits: 47 evaluated, 1 no-tsconfig, 0 errors; pins reproduce the external set's Neo4j counts; two runs byte-identical; reference set byte-identical. Primary sign test on blocking/KLOC slopes: 5+/1-, p = 0.219 (direction, not significant by the pre-committed rule); raw count 6/6, p = 0.031; 209 new identities. Growth comes in steps during build-out and largely coincides with layer coverage rising (spec drift). Options taken under delegation: first-parent chain for 'evenly spaced by commit count'; no check-correct filter (descriptive tool counts); a post-hoc coverage >= 0.9 sensitivity, labelled as post hoc. No tool code, template, tier, preset or construct switch touched; no LLM call; nothing under the sealed directory read."
+**Context**: v1.3 SO5/SO4 exploratory evidence; AI-DLC gates not run interactively (scheduled task, complete stored specification, PR left unmerged for the author's review).
+
+---

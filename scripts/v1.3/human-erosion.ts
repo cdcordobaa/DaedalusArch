@@ -166,7 +166,7 @@ function run(): void {
 
 /** The report minus fields that vary run to run (timings, ids, paths), so its hash is a determinism check. */
 function stableReport(r: Record<string, unknown>): string {
-  const drop = new Set(['runId', 'projectPath', 'durationMs', 'timings', 'elapsedMs', 'startedAt', 'finishedAt']);
+  const drop = new Set(['runId', 'projectPath', 'durationMs', 'timings', 'elapsedMs', 'startedAt', 'finishedAt', 'executionTimeMs', 'totalMs']);
   return JSON.stringify(r, (k, v: unknown) => (drop.has(k) ? undefined : v));
 }
 
