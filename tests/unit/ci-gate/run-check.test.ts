@@ -9,7 +9,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { lexicalEngine } from '../../../src/ci-gate/engines.js';
 import { runCheck } from '../../../src/ci-gate/run-check.js';
-import type { GateEngine } from '../../../src/ci-gate/engines.js';
+import type { EngineEvaluation, GateEngine } from '../../../src/ci-gate/engines.js';
 import { loadReference } from '../../../scripts/v1.3/lib/reference-model.js';
 import { runSynthetic } from '../../../scripts/v1.3/lib/ci-gate-synthetic.js';
 
@@ -94,6 +94,60 @@ describe('runCheck on git commits (lexical engine)', () => {
     await check(clean, violating, spy);
     expect(seen).toHaveLength(2);
     expect(seen.every((p) => p.includes(clean))).toBe(true);
+  });
+
+  it('fails closed when a blocking rule failed to execute on head (EVAL_002), with no new finding', async () => {
+    const timedOutOnHead: GateEngine = {
+      name: 'neo4j',
+      evaluate: (input) => Promise.resolve({ findings: [], blockingNotExecuted: input.projectDir.includes(violating) ? ['FF-S02'] : [] }),
+    };
+    const r = await check(clean, violating, timedOutOnHead);
+    expect(r.newBlocking).toBe(0);
+    expect(r.headBlockingNotExecuted).toEqual(['FF-S02']);
+    expect(r.verdict).toBe('fail');
+    // The base's failure alone does not fail the gate, and a complete head omits the field.
+    const baseOnly = await check(violating, clean, timedOutOnHead);
+    expect(baseOnly.verdict).toBe('pass');
+    expect(baseOnly.headBlockingNotExecuted).toBeUndefined();
+  });
+
+  it('keys a shared cache by the spec content, so a spec change along a chain re-evaluates the commit', async () => {
+    const chain = fs.mkdtempSync(path.join(os.tmpdir(), 'ci-gate-chain-'));
+    try {
+      git(chain, 'init', '-q', '-b', 'main');
+      fs.copyFileSync(path.join(FIXTURE, 'spec.yaml'), path.join(chain, 'spec.yaml'));
+      fs.cpSync(path.join(FIXTURE, 'project'), path.join(chain, 'app'), { recursive: true });
+      git(chain, 'add', '-A');
+      git(chain, 'commit', '-qm', 'c1');
+      const c1 = git(chain, 'rev-parse', 'HEAD');
+      // c2 changes only the spec (a comment is enough to change its identity).
+      fs.appendFileSync(path.join(chain, 'spec.yaml'), '\n# spec revised in c2\n');
+      git(chain, 'commit', '-qam', 'c2');
+      const c2 = git(chain, 'rev-parse', 'HEAD');
+      fs.writeFileSync(path.join(chain, 'app', 'NOTE.md'), 'c3\n');
+      git(chain, 'add', '-A');
+      git(chain, 'commit', '-qm', 'c3');
+      const c3 = git(chain, 'rev-parse', 'HEAD');
+
+      const evaluated: string[] = [];
+      const spy: GateEngine = {
+        name: 'lexical',
+        evaluate: (input) => {
+          const revised = fs.readFileSync(input.specPath, 'utf8').includes('spec revised in c2');
+          evaluated.push(`${path.basename(path.dirname(input.projectDir)).slice(0, 7)}@${revised ? 'v2' : 'v1'}`);
+          return Promise.resolve([]);
+        },
+      };
+      const cache = new Map<string, EngineEvaluation>();
+      const pair = (base: string, head: string) => runCheck({ repo: chain, base, head, spec: 'spec.yaml', project: 'app', engine: spy, cache });
+      await pair(c1, c2); // spec from c1 (v1): c1 and c2 evaluated under v1
+      await pair(c2, c3); // spec from c2 (v2): c2 must be evaluated again, not served from the v1 entry
+      await pair(c2, c3); // same pair again: served from the cache
+      expect(evaluated).toEqual([`${c1.slice(0, 7)}@v1`, `${c2.slice(0, 7)}@v1`, `${c2.slice(0, 7)}@v2`, `${c3.slice(0, 7)}@v2`]);
+      expect(cache.size).toBe(4);
+    } finally {
+      fs.rmSync(chain, { recursive: true, force: true });
+    }
   });
 
   it('refuses a project or spec path outside the repository', async () => {

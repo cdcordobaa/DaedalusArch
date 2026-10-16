@@ -1,0 +1,353 @@
+# PROPOSED rules, mined from the code (daedalus mine-rules; src/rule-mining). Not a reviewed spec: review before use.
+# style: layered (ISE, confidence 1.00); layers: ISE preset-first
+# mined rules: 7 (7 emitted)
+# MR-001 [layer-direction, high 0.80] persistence must not depend on business (11 edges business -> persistence; 0/7 persistence files import business)
+# MR-002 [layer-unobserved, low 0.39] persistence must not depend on presentation (no import between them either way)
+# MR-003 [layer-direction, high 0.79] business must not depend on presentation (6 edges presentation -> business; 0/11 business files import presentation)
+# MR-004 [layer-unobserved, low 0.39] presentation must not depend on persistence (no import between them either way)
+# MR-005 [acyclic-files, high 0.96] no file lies on an import cycle (27/27 files do not)
+# MR-006 [component-direction, high 0.80] folder component sierra must not depend on thistle (11 imports thistle -> sierra; 0/7 files import back)
+# MR-007 [component-direction, high 0.79] folder component thistle must not depend on oasis (6 imports oasis -> thistle; 0/11 files import back)
+
+spec_version: "1.0.0"
+
+architecture:
+  style: layered
+
+  layers:
+    - name: persistence
+      kind: infrastructure
+      directories:
+        - src/sierra/**
+      roles:
+        - repository
+        - data-access-object
+        - orm-entity
+
+    - name: business
+      kind: domain
+      directories:
+        - src/thistle/**
+      roles:
+        - business-service
+        - entity
+        - value-object
+
+    - name: presentation
+      kind: presentation
+      directories:
+        - src/oasis/**
+      roles:
+        - controller
+        - view
+        - presenter
+
+fitness_functions:
+
+  # ── STRUCTURAL ──
+
+  # mined: MR-001 high 0.80, 0 exceptions; MR-003 high 0.79, 0 exceptions
+  - id: FF-S01
+    name: dependency-direction
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: true
+
+  # mined: MR-005 high 0.96, 0 exceptions
+  - id: FF-S02
+    name: no-cyclic-deps
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: true
+
+  # mined: MR-002 low 0.39, 0 exceptions; MR-004 low 0.39, 0 exceptions
+  - id: FF-S03
+    name: no-layer-skip
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+  # mined: MR-006 high 0.80, 0 exceptions; MR-007 high 0.79, 0 exceptions (APG v2: evaluated on a graph extracted with V13_APG2_OPTIONS)
+  - id: FF-A01
+    name: component-adp-cycle
+    dimension: structural
+    severity: advisory
+    route: symbolic
+    validated: false
+
+  # not mined: switched off (the style template would otherwise add them)
+  - id: FF-S04
+    name: no-domain-outward-dep
+    dimension: structural
+    severity: major
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P01
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+    forbidden_imports:
+      - "@nestjs/*"
+      - typeorm
+      - express
+      - prisma
+      - "@prisma/*"
+      - sequelize
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P02
+    name: dependency-inversion
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+    threshold: 0.85
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P03
+    name: repository-pattern
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P04
+    name: use-case-isolation
+    dimension: pattern
+    severity: major
+    route: symbolic
+    validated: true
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P05
+    name: controller-no-entity
+    dimension: pattern
+    severity: major
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P06
+    name: domain-state-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C01
+    name: domain-stability
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    threshold: 0.3
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C02
+    name: module-fan-out
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    threshold: 10
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C03
+    name: component-instability
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C04
+    name: no-orphan-files
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C05
+    name: max-fan-in
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    validated: false
+    threshold: 15
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C06
+    name: abstraction-ratio
+    dimension: coupling
+    severity: advisory
+    route: symbolic
+    validated: false
+    threshold: 0.3
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-SO01
+    name: single-responsibility-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    validated: true
+    max_public_methods: 10
+    max_dependencies: 5
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-SO02
+    name: interface-segregation-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    validated: true
+    max_interface_methods: 5
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-SO03
+    name: inheritance-depth
+    dimension: solid
+    severity: minor
+    route: symbolic
+    validated: false
+    max_depth: 3
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-CV01
+    name: naming-conventions
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+    validated: true
+
+  - id: FF-CV02
+    name: naming-services
+    dimension: convention
+    severity: minor
+    route: symbolic
+    validated: false
+    pattern: "*Service|*UseCase"
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-CV03
+    name: naming-repos
+    dimension: convention
+    severity: minor
+    route: symbolic
+    validated: false
+    pattern: "*Repository|*Repo"
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-CV04
+    name: naming-controllers
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+    validated: false
+    pattern: "*Controller"
+
+  - id: FF-CV05
+    name: test-file-pairing
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-CV06
+    name: no-index-logic
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-N01
+    name: architectural-integrity
+    dimension: integrity
+    severity: major
+    route: neuronal
+    validated: false
+    semantic_criteria:
+      rule: "The module's files form one coherent unit with a consistent abstraction and boundary."
+      rubric:
+        pass: "The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place."
+        fail: "The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions."
+        evidence_required: "Name each file involved and cite the declarations that show the split, the duplication or the bypass."
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-N02
+    name: intent-alignment
+    dimension: semantic
+    severity: major
+    route: neuronal
+    validated: false
+    semantic_criteria:
+      rule: "The unit's responsibilities match the role of its declared layer."
+      rubric:
+        pass: "Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given."
+        fail: "The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file."
+        evidence_required: "Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to."
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70

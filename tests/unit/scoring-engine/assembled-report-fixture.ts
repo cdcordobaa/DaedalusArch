@@ -10,7 +10,7 @@ import { buildEvaluationReport, NO_JUDGE } from '../../../src/scoring-engine/rep
 import type { ScoringInput } from '../../../src/scoring-engine/types.js';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import type {
-  CompiledFunctions, CypherQuery, EvaluationReport, NeuralResultRow, NeuronalFunctionResult, NeuronalInstruction,
+  CompiledFunctions, CypherQuery, EvaluationReport, JudgeProvenance, NeuralResultRow, NeuronalFunctionResult, NeuronalInstruction,
 } from '../../../src/shared/types/evaluation.js';
 
 function queryOf(id: CypherQuery['functionId'], dimension: CypherQuery['dimension']): CypherQuery {
@@ -42,7 +42,7 @@ export function stubNeuralRows(results: readonly NeuronalFunctionResult[]): Neur
   }));
 }
 
-export async function scoreAndAssemble(input: ScoringInput): Promise<DomainResult<EvaluationReport>> {
+export async function scoreAndAssemble(input: ScoringInput, judge: JudgeProvenance = NO_JUDGE): Promise<DomainResult<EvaluationReport>> {
   const scored = await computeScoredReport(input);
   if (!scored.success) return DomainResult.fail(scored.errors, scored.warnings);
   const ev = input.evaluationResults;
@@ -71,7 +71,7 @@ export async function scoreAndAssemble(input: ScoringInput): Promise<DomainResul
     evaluation: ev,
     timings: { stages: [{ name: 'compute-scores', durationMs: 1, status: 'success' }], totalMs: 1 },
     pipelineWarnings: (scored.warnings ?? []).map((w) => ({ ...w, stage: 'compute-scores' })),
-    judge: NO_JUDGE,
+    judge,
     ...(input.mode !== 'symbolic-only' && { neuralRows: stubNeuralRows(ev.neuronalResults) }),
     knownSecrets: [],
     mode: input.mode,

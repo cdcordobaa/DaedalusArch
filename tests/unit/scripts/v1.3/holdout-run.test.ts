@@ -5,11 +5,12 @@
  * repository or is read.
  */
 import { execSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import {
-  checkStructure, determinismDiff, freezeCheck, holdoutMain, locationProblems, parseHoldoutArgs, treeSha256,
+  FROZEN_PATHS, checkStructure, dependencyCheck, determinismDiff, freezeCheck, holdoutMain, locationProblems, parseHoldoutArgs, sealedTreeSha256, treeSha256,
 } from '../../../../scripts/v1.3/lib/holdout-run-main.js';
 import type { GitRunner, NodeSpawner } from '../../../../scripts/v1.3/lib/holdout-run-main.js';
 import { applyRuleIdMap, loadReference, loadRuleIdMap } from '../../../../scripts/v1.3/lib/reference-model.js';
@@ -58,6 +59,9 @@ describe('parseHoldoutArgs', () => {
     expect(parseHoldoutArgs(['--holdout', 'h', '--out', 'o'])).toMatch(/--commit/);
     expect(parseHoldoutArgs(['--holdout', 'h', '--commit', 'x'])).toMatch(/--out/);
     expect(parseHoldoutArgs(['--commit', 'x'])).toMatch(/--holdout/);
+    expect(parseHoldoutArgs(['--dry-run', '--holdout', 'h'])).toMatchObject({ engine: 'neo4j' });
+    expect(parseHoldoutArgs(['--dry-run', '--holdout', 'h', '--engine', 'cypher-interp'])).toMatchObject({ engine: 'cypher-interp' });
+    expect(parseHoldoutArgs(['--dry-run', '--holdout', 'h', '--engine', 'memory'])).toMatch(/--engine takes/);
     expect(parseHoldoutArgs(['--holdout', 'h', '--commit', 'x', '--out', 'o', '--from-raw', 'r', '--deferred', 'FF-DS01', '--no-correctness', '--style', 'ddd'])).toMatchObject({
       mode: 'from-raw', fromRaw: 'r', deferred: ['FF-DS01'], correctness: false, styles: ['ddd'],
     });
@@ -85,6 +89,24 @@ describe('location and tree hash', () => {
     fs.writeFileSync(path.join(d, 'b', 'c.json'), '{}\n');
     const shell = execSync('(find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum) | sha256sum', { cwd: d, encoding: 'utf8' }).split(' ')[0];
     expect(treeSha256(d)).toEqual({ sha256: shell, files: 2 });
+  });
+
+  it('also hashes the tree as sealed-hashes.md does (from the parent, files named <dir>/<path>), a different value', () => {
+    const d = path.join(tmp, 'v1.3-holdout');
+    fs.mkdirSync(path.join(d, 'b'), { recursive: true });
+    fs.writeFileSync(path.join(d, 'a.txt'), 'one\n');
+    fs.writeFileSync(path.join(d, 'b', 'c.json'), '{}\n');
+    const shell = execSync('find v1.3-holdout -type f | LC_ALL=C sort | xargs sha256sum | sha256sum', { cwd: tmp, encoding: 'utf8' }).split(' ')[0];
+    expect(sealedTreeSha256(d)).toBe(shell);
+    expect(sealedTreeSha256(d)).not.toBe(treeSha256(d).sha256);
+    // Each option checks its own method only: --expect-sha256 the runner hash, --expect-sealed-sha256 the sealed one.
+    const hashProblems = (o: { expectSha256?: string; expectSealedSha256?: string }): string[] =>
+      checkStructure(ROOT, { holdout: d, standIn: false, deferred: [], ...o }).problems.filter((p) => p.includes('expect-'));
+    expect(hashProblems({ expectSealedSha256: shell ?? '' })).toEqual([]);
+    expect(hashProblems({ expectSha256: treeSha256(d).sha256, expectSealedSha256: shell ?? '' })).toEqual([]);
+    expect(hashProblems({ expectSha256: shell ?? '' })[0]).toMatch(/does not match --expect-sha256/);
+    expect(hashProblems({ expectSealedSha256: treeSha256(d).sha256 })[0]).toMatch(/does not match --expect-sealed-sha256/);
+    expect(parseHoldoutArgs(['--holdout', 'h', '--dry-run', '--expect-sealed-sha256', 'abc'])).toMatch(/64 hex/);
   });
 });
 
@@ -159,6 +181,62 @@ describe('freezeCheck', () => {
   });
 });
 
+describe('dependencyCheck', () => {
+  function project(lock: unknown, installed: Readonly<Record<string, string>>): string {
+    const root = path.join(tmp, 'deps-project');
+    fs.mkdirSync(root, { recursive: true });
+    fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify({ dependencies: { a: '^1.0.0' }, devDependencies: { b: '^2.0.0' } }));
+    fs.writeFileSync(path.join(root, 'package-lock.json'), JSON.stringify(lock));
+    for (const [name, version] of Object.entries(installed)) {
+      fs.mkdirSync(path.join(root, 'node_modules', name), { recursive: true });
+      fs.writeFileSync(path.join(root, 'node_modules', name, 'package.json'), JSON.stringify({ name, version }));
+    }
+    return root;
+  }
+  const lock = {
+    lockfileVersion: 3,
+    packages: {
+      '': { name: 'p' },
+      'node_modules/a': { version: '1.2.0' },
+      'node_modules/b': { version: '2.0.1', dev: true },
+      'node_modules/fsevents': { version: '2.3.3', optional: true },
+    },
+  };
+
+  it('the frozen paths cover the dependency manifests and the TypeScript configs', () => {
+    expect(FROZEN_PATHS).toEqual(expect.arrayContaining(['package.json', 'package-lock.json', 'tsconfig*.json']));
+  });
+
+  it('passes when every installed version equals the lockfile, and records the lockfile hash and direct versions', () => {
+    const root = project(lock, { a: '1.2.0', b: '2.0.1' });
+    const r = dependencyCheck(root);
+    expect(r.problems).toEqual([]);
+    expect(r.checked).toBe(2);
+    expect(r.direct).toEqual({ a: '1.2.0', b: '2.0.1' });
+    expect(r.lockfileSha256).toBe(createHash('sha256').update(fs.readFileSync(path.join(root, 'package-lock.json'))).digest('hex'));
+  });
+
+  it('names a version drift and a missing non-optional package', () => {
+    const r = dependencyCheck(project(lock, { a: '1.3.0' }));
+    expect(r.problems).toEqual([
+      'node_modules/a is 1.3.0, package-lock.json has 1.2.0',
+      'node_modules/b is in package-lock.json (2.0.1) but not installed',
+    ]);
+    expect(r.direct.b).toBe('not installed');
+  });
+
+  it('refuses a missing or v1 lockfile', () => {
+    const root = project({ lockfileVersion: 1, dependencies: {} }, {});
+    expect(dependencyCheck(root).problems[0]).toMatch(/no packages map/);
+    fs.rmSync(path.join(root, 'package-lock.json'));
+    expect(dependencyCheck(root)).toMatchObject({ lockfileSha256: '', problems: [expect.stringMatching(/cannot read/)] });
+  });
+
+  it('holds the repository itself: node_modules matches package-lock.json', () => {
+    expect(dependencyCheck(ROOT).problems).toEqual([]);
+  });
+});
+
 describe('holdoutMain', () => {
   it('a dry run prints the structure and never spawns', async () => {
     const t = io();
@@ -205,11 +283,30 @@ describe('holdoutMain', () => {
     const prov = JSON.parse(fs.readFileSync(path.join(out, 'holdout-run-provenance.json'), 'utf8')) as Record<string, unknown>;
     expect(prov).toMatchObject({ standIn: false, mode: 'live', commit: 'a'.repeat(40), neo4j: 'bolt://localhost:7687', started: '2026-10-15T12:00:00.000Z' });
     expect(JSON.stringify(prov)).not.toContain('pw');
+    expect(prov.lockfileSha256).toMatch(/^[0-9a-f]{64}$/);
+    expect(prov.frozenPaths).toEqual(expect.arrayContaining(['package-lock.json']));
+    expect((prov.dependencies as Record<string, string>).typescript).toMatch(/^\d+\.\d+\.\d+/);
+
+    // A dependency drift stops the run before anything is spawned.
+    t = io();
+    const drift = () => ({ lockfileSha256: 'f'.repeat(64), direct: {}, checked: 1, problems: ['node_modules/x is 2.0.0, package-lock.json has 1.0.0'] });
+    const never: NodeSpawner = () => { throw new Error('must not run'); };
+    expect(await holdoutMain(['--holdout', h, '--commit', 'HEAD', '--out', path.join(tmp, 'run-drift')], ROOT, t.io, { git: cleanGit, spawnNode: never, dependencies: drift })).toBe(1);
+    expect(t.err.join('')).toMatch(/dependencies: node_modules\/x is 2.0.0/);
 
     // The hold-out is run once: a second live run into the same directory is refused.
     t = io();
     expect(await holdoutMain(['--holdout', h, '--commit', 'HEAD', '--out', out], ROOT, t.io, { git: cleanGit, spawnNode })).toBe(1);
     expect(t.err.join('')).toMatch(/run once/);
+
+    // The engine cross-check: no Neo4j needed, the engine is passed on, and every output is headed as a cross-check.
+    const out2 = path.join(tmp, 'interp');
+    calls.length = 0;
+    t = io();
+    expect(await holdoutMain(['--holdout', h, '--commit', 'HEAD', '--out', out2, '--no-correctness', '--engine', 'cypher-interp', '--determinism', out], ROOT, { ...t.io, env: {} }, { git: cleanGit, spawnNode })).toBe(0);
+    expect(calls[0]?.slice(-2)).toEqual(['--engine', 'cypher-interp']);
+    expect(fs.readFileSync(path.join(out2, 'holdout-scores.md'), 'utf8')).toMatch(/^# ENGINE CROSS-CHECK \(cypher-interp\)[^\n]*\n[\s\S]*Determinism repeat: identical raw rows/);
+    expect(JSON.parse(fs.readFileSync(path.join(out2, 'holdout-run-provenance.json'), 'utf8'))).toMatchObject({ engine: 'cypher-interp', neo4j: null });
   }, 120_000);
 
   it('from-raw scores a saved run with the correctness check, and flags a non-identical repeat', async () => {

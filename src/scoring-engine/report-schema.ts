@@ -11,7 +11,7 @@ export const REPORT_SCHEMA_ID = 'https://daedalus-arch.local/schemas/report.sche
 export const REPORT_SCHEMA = {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://daedalus-arch.local/schemas/report.schema.json",
-  "$comment": "FROZEN at U3-R10 (FR-14, FR-36; U3 BR-U3-59, 60, 65; domain-entities.md §7). Amended 2026-10-09 (ADR-021 item 9, zero judge units): full mode requires ahsNeuronal unless droppedDimensions lists both semantic and integrity. Amended 2026-10-09 (ADR-026): optional instrumentVersion (1 | 2). Embedded as REPORT_SCHEMA in src/scoring-engine/report-schema.ts (deep-equal test); validateReport runs it on every assembled report. Version = $id + the CLI commit (no reportSchemaVersion). A change reopens U3 as a reviewed patch. Enums mirror NODE_TYPES, EDGE_TYPES, DIMENSIONS (src/shared/types/enums.ts) and BUILT_IN_VIOLATION_TYPES; neuralResults rows are U4 NeuralResultRow (U4 DE §4.8). Amended 2026-10-10 (ADR-028): optional scoring.neuralAggregation (registered | proportional) and optional neuralResults[].candidatesByLayer. Amended 2026-10-14 (v1.3 FR-V6, U-D): optional tiers (v1.3 scoring mode only). Amended 2026-10-16 (v1.3 fix hints): optional fixHints (firewall evaluate --hints only).",
+  "$comment": "FROZEN at U3-R10 (FR-14, FR-36; U3 BR-U3-59, 60, 65; domain-entities.md §7). Amended 2026-10-09 (ADR-021 item 9, zero judge units): full mode requires ahsNeuronal unless droppedDimensions lists both semantic and integrity. Amended 2026-10-09 (ADR-026): optional instrumentVersion (1 | 2). Embedded as REPORT_SCHEMA in src/scoring-engine/report-schema.ts (deep-equal test); validateReport runs it on every assembled report. Version = $id + the CLI commit (no reportSchemaVersion). A change reopens U3 as a reviewed patch. Enums mirror NODE_TYPES, EDGE_TYPES, DIMENSIONS (src/shared/types/enums.ts) and BUILT_IN_VIOLATION_TYPES; neuralResults rows are U4 NeuralResultRow (U4 DE §4.8). Amended 2026-10-10 (ADR-028): optional scoring.neuralAggregation (registered | proportional) and optional neuralResults[].candidatesByLayer. Amended 2026-10-14 (v1.3 FR-V6, U-D): optional tiers (v1.3 scoring mode only). Amended 2026-10-16 (v1.3 fix hints): optional fixHints (firewall evaluate --hints only). Amended 2026-10-16 (fail-closed): tiers.verdict may be incomplete when a blocking rule failed to execute. Amended 2026-10-16 (v1.3 post-merge review R04): optional judge.judgeVersion (v2) and judge.judgeRevision, set only by a judge v2 run; a v1 report carries neither. Amended 2026-10-16 (v1.3 advisory-noise proposal): optional advisoryFilter, present only when an advisory post-filter option is on.",
   "title": "DaedalusArch evaluation report",
   "type": "object",
   "additionalProperties": false,
@@ -257,8 +257,48 @@ export const REPORT_SCHEMA = {
         2
       ]
     },
+    "advisoryFilter": {
+      "$comment": "Proposal, off by default (Docs/DiagnosticRuns/v1.3-advisory-noise-2026-10-16.md): present only when an advisory post-filter option is on. Every advisory row the options removed from violations, with the option and the reason. Scores, tiers, functionResults and the verdict are computed before the filter and do not change.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "options",
+        "suppressed"
+      ],
+      "properties": {
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "suppressed": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "option",
+              "reason",
+              "violation"
+            ],
+            "properties": {
+              "option": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              },
+              "violation": {
+                "$ref": "#/definitions/violation"
+              }
+            }
+          }
+        }
+      }
+    },
     "tiers": {
-      "$comment": "v1.3 scoring mode only (FR-V6, Docs/v1.3/rule-tiers.md); absent in the v1.2E mode. verdict is fail iff a blocking rule has an applicable violation; the report verdict is then hard-block (pass otherwise) and v12eVerdict keeps the v1.2E reading.",
+      "$comment": "v1.3 scoring mode only (FR-V6, Docs/v1.3/rule-tiers.md); absent in the v1.2E mode. verdict is fail iff a blocking rule has an applicable violation (report verdict hard-block), else incomplete iff a blocking rule failed to execute (report verdict soft-block; added 2026-10-16), else pass and v12eVerdict keeps the v1.2E reading.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -288,9 +328,11 @@ export const REPORT_SCHEMA = {
           ]
         },
         "verdict": {
+          "$comment": "Amended 2026-10-16 (frozen-schema amendment, fail-closed): incomplete added. It is the verdict when no blocking rule has an applicable violation but blockingNotExecuted is non-empty; the report verdict is then soft-block. Reports without a failed blocking rule are unchanged.",
           "enum": [
             "pass",
-            "fail"
+            "fail",
+            "incomplete"
           ]
         },
         "verdictRule": {
@@ -1481,6 +1523,15 @@ export const REPORT_SCHEMA = {
           "items": {
             "type": "string"
           }
+        },
+        "judgeVersion": {
+          "type": "string",
+          "enum": [
+            "v2"
+          ]
+        },
+        "judgeRevision": {
+          "type": "string"
         }
       }
     },

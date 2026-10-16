@@ -21,6 +21,8 @@ section{margin:20px 0}
 .verdict-fail .verdict-card{border-left-color:var(--def)}
 .verdict-word{margin:0;font-weight:800;letter-spacing:.08em;font-size:.9rem;color:var(--ok)}
 .verdict-fail .verdict-word{color:var(--def)}
+.verdict-incomplete .verdict-card{border-left-color:var(--warn)}
+.verdict-incomplete .verdict-word{color:var(--warn)}
 .explain{margin:.5rem 0 0;padding-left:1.2rem}
 .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px;margin-top:14px}
 .panel{padding:14px 16px;min-width:0}

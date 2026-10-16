@@ -18,7 +18,7 @@ import { FE_REVISION, outcomeOf, renderFilterExplainPrompt, RULE_INTENTS } from 
 import type { FilterExplainOutcome, ShownFile, SymbolicFinding } from '../llm-critic/filter-explain.js';
 import type { EnsembleVerdict } from '../llm-critic/ensemble.js';
 import { normalisePath, resolveLayer } from './layer-resolver.js';
-import { buildReviewPrompt, groundVerdict, judgeProfileOf, reviewCacheKey, DEFAULT_REVIEW_JUDGE_VERSION } from './neural-review.js';
+import { buildReviewPrompt, groundVerdict, judgeProfileOf, reviewCacheKey, shownReviewFiles, DEFAULT_REVIEW_JUDGE_VERSION } from './neural-review.js';
 import type { GroundedCitation, ReviewFile, ReviewFunctionId, ReviewJudgeVersion, VerdictGrounding } from './neural-review.js';
 import type { JobView, JudgeAnswer, ExplainAnswer, NeuralService } from './neural-service.js';
 
@@ -311,12 +311,13 @@ export async function reviewUnit(ctx: NeuralToolContext, spec: ParsedSpec, args:
     }
   }
 
-  const prompt = buildReviewPrompt({ spec, files, profile, ...(args.function !== undefined ? { functionId: args.function } : {}) });
+  const strip = ctx.neural.stripComments ? { stripComments: true } : {};
+  const prompt = buildReviewPrompt({ spec, files, profile, ...strip, ...(args.function !== undefined ? { functionId: args.function } : {}) });
   const base: Pick<ReviewUnitResult, 'judge' | 'unit'> = {
     judge: judgeInfo,
     unit: { id: prompt.unitId, kind: prompt.unitKind, layer: prompt.layer, functionId: prompt.functionId, files: files.map((f) => f.path).sort(), truncated: prompt.truncated },
   };
-  const key = reviewCacheKey({ profile, functionId: prompt.functionId, layerModel: renderLayerModel(spec.layerModel.layers), judgeId: judge.id, files });
+  const key = reviewCacheKey({ profile, functionId: prompt.functionId, layerModel: renderLayerModel(spec.layerModel.layers), judgeId: judge.id, files, ...strip });
   const view = await ctx.neural.run(
     key,
     async () => ({ base, shown: prompt.shown, answer: await judge.verdict({ prompt: prompt.prompt, systemPrompt: prompt.systemPrompt, functionId: prompt.functionId, unitId: prompt.unitId }) }),
@@ -519,7 +520,8 @@ export async function explainAndFix(ctx: ExplainToolContext, spec: ParsedSpec, a
     ...(f.line !== undefined ? { lines: [f.line] } : {}),
   };
   const layers = Object.fromEntries(files.map((s) => [s.path, resolveLayer(spec, s.path)?.layer ?? null]));
-  const rendered = renderFilterExplainPrompt({ finding: symbolic, files, layerModel: renderLayerModel(spec.layerModel.layers), fileLayers: layers });
+  const shownFiles = shownReviewFiles(files, ctx.neural.stripComments);
+  const rendered = renderFilterExplainPrompt({ finding: symbolic, files: shownFiles, layerModel: renderLayerModel(spec.layerModel.layers), fileLayers: layers });
   const key = createHash('sha256').update(`explain_and_fix\u0000${FE_REVISION}\u0000${judge.id}\u0000${rendered.prompt}`).digest('hex');
   const waitMs = args.wait === false ? 0 : Math.min(args.waitMs ?? ctx.neural.waitMs, 120_000);
   const view = args.jobId !== undefined

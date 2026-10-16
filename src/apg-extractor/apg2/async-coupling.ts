@@ -4,6 +4,7 @@ import type { APGEdge, APGNode } from '../../shared/types/apg.js';
 import type { NodeLookup } from '../types.js';
 import { normalizeFilePath } from '../id-generator.js';
 import { apg2Edge, apg2Node, chainRoot, lineOf, literalString, originOfValue, packageRoot } from './common.js';
+import { hostIndependentCompare } from '../../shared/collation.js';
 
 /**
  * Enrichment 4, async coupling: PUBLISHES and SUBSCRIBES edges from the owning Method / Function / Class / File node to
@@ -241,6 +242,6 @@ export function extractAsyncCoupling(
       edges.set(ekey, apg2Edge(h.kind, owner, ch.id, { transport: h.transport, via: h.via, line: lineOf(h.node), lines: [lineOf(h.node)] }));
     }
   }
-  const nodes = [...channels.values()].sort((a, b) => (a.filePath + a.name).localeCompare(b.filePath + b.name));
+  const nodes = [...channels.values()].sort((a, b) => hostIndependentCompare(a.filePath + a.name, b.filePath + b.name));
   return { nodes, edges: [...edges.values()], stats };
 }

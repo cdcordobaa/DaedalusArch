@@ -16,6 +16,7 @@ import type { AdjudicationSide } from './prompts.js';
 import { ADJUDICATION_SCHEMA, ONTOLOGY_SYSTEM, adjudicationPrompt } from './prompts.js';
 import { equalUpToDecimalScale, jaccard, normName, tokens } from './text.js';
 import type { AdjudicationOut, RuleOperator } from './types.js';
+import { hostIndependentCompare } from '../../shared/collation.js';
 
 export interface ClusterItem {
   readonly key: string;
@@ -109,7 +110,7 @@ export function candidatePairs(items: readonly ClusterItem[], decimalScaleMaxPow
       if (score > 0) out.push({ a, b, score, basis });
     }
   }
-  return out.sort((x, y) => y.score - x.score || `${x.a.key}|${x.b.key}`.localeCompare(`${y.a.key}|${y.b.key}`));
+  return out.sort((x, y) => y.score - x.score || hostIndependentCompare(`${x.a.key}|${x.b.key}`, `${y.a.key}|${y.b.key}`));
 }
 
 function side(item: ClusterItem): AdjudicationSide {
@@ -158,6 +159,6 @@ export async function cluster(p: PassContext, items: readonly ClusterItem[], opt
     const r = uf.find(it.key);
     groups.set(r, [...(groups.get(r) ?? []), it.key]);
   }
-  const clusters = [...groups.values()].map((g) => [...g].sort()).sort((x, y) => (x[0] ?? '').localeCompare(y[0] ?? ''));
+  const clusters = [...groups.values()].map((g) => [...g].sort()).sort((x, y) => hostIndependentCompare(x[0] ?? '', y[0] ?? ''));
   return { clusters, adjudications, droppedPairs };
 }
