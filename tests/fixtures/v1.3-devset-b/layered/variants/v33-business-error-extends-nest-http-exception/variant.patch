@@ -1,0 +1,15 @@
+--- a/src/business/errors/BusinessError.ts
++++ b/src/business/errors/BusinessError.ts
+@@ -1,6 +1,10 @@
+-export class BusinessError extends Error {
++import { HttpException } from '@nestjs/common';
++
++const STATUS_BY_CODE = { NOT_FOUND: 404, INVALID: 400, CONFLICT: 409 } as const;
++
++export class BusinessError extends HttpException {
+   constructor(readonly code: 'NOT_FOUND' | 'INVALID' | 'CONFLICT', message: string) {
+-    super(message);
++    super(message, STATUS_BY_CODE[code]);
+     this.name = 'BusinessError';
+   }
+ }

@@ -1,0 +1,35 @@
+{
+  "verdict": "violations",
+  "summary": "3 violation(s) in src/persistence/repositories.ts, src/presentation/server.ts; apply each fix.",
+  "blocking": [
+    {
+      "file": "src/persistence/repositories.ts",
+      "rule": "FF-S01",
+      "tier": "blocking",
+      "line": 1,
+      "target": "src/business/entities",
+      "reason": "persistence (position 0) may not import business (position 1): layers are ordered inner to outer and may only depend on themselves or inner layers",
+      "fix": "Do not import business from persistence (it may import: no other layer). Declare an interface for what you need in persistence, implement it in business, and inject the implementation from the composi"
+    },
+    {
+      "file": "src/persistence/repositories.ts",
+      "rule": "FF-S03",
+      "tier": "blocking",
+      "line": 1,
+      "target": "src/business/entities",
+      "reason": "persistence may not import business: closed layering allows only business>persistence, presentation>business",
+      "fix": "Do not import business from persistence (it may import: no other layer). Declare an interface for what you need in persistence, implement it in business, and inject the implementation from the composi"
+    },
+    {
+      "file": "src/presentation/server.ts",
+      "rule": "FF-S03",
+      "tier": "blocking",
+      "line": 2,
+      "target": "src/persistence/repositories",
+      "reason": "presentation may not import persistence: closed layering allows only business>persistence, presentation>business",
+      "fix": "Go through business: call a business service that wraps what you need from persistence, or move that type into business. presentation may import: business."
+    }
+  ],
+  "advisoryCount": 0,
+  "skipped": []
+}
