@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6679,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "ec5979328258a690cda0c5b961670ce57b3baa4b942b121de6ed65959d3ac710-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/entities/Loan.ts: `export class Loan` has no decorators and no base class",
+      "src/domain/entities/Loan.ts: `close(at: Date)` throws the project-declared `DomainError('LOAN_CLOSED', ...)`, not an HTTP error",
+      "src/domain/entities/Loan.ts: `static open(..., period: LoanPeriod): Loan` uses only domain types",
+      "src/domain/entities/Loan.ts: `daysOverdue(now: Date): number` is a pure calculation with no I/O"
+    ],
+    "pass": true,
+    "reasoning": "src/domain/entities/Loan.ts is a plain domain entity. It has a private constructor and a static factory, `open`. Its methods are domain invariants and calculations: `close` throws when the loan is already returned, and `isOverdue` and `daysOverdue` work out lateness. Every type in its signatures is a primitive, `Date` or a project-declared domain type (`LoanPeriod`, `DomainError`). It has no decorators, no framework or ORM base classes, no HTTP request, response or status types, and no persistence or I/O. All of this fits the domain layer's role. No candidate flags were raised.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities, signatures and annotations match the role of its declared layer.\n\n## Rubric\nPass: Every declaration in the file belongs to the role and kind of its declared layer, including its parameter, return and field types, its decorators and base classes, and its statements, and agrees with any ADR prose given.\nFail: The file carries something that belongs to a different layer kind. In a domain or application file: a request, response, HTTP context, status code or HTTP error, from a web or transport package or from the delivery layer, in any method or function signature (parameter or return) or thrown, even when the parameter is optional or unused. In a domain file also: any framework or ORM type, decorator or base class (dependency injection, routing, persistence mapping), even when the class logic is pure; or persistence or I/O (queries, database or ORM clients, HTTP or file access). In an infrastructure or presentation file: a business rule, that is a domain invariant, calculation or decision that the domain or application layer should own. Constructor parameters of an application file are dependency wiring: an injected repository, client or service there is not by itself misplaced. A type the project declares itself is not a framework type, whatever its name.\nEvidence required: Name the file and cite the signature, decorator, declaration or statement that carries the misplaced responsibility, its package or origin, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/entities/Loan.ts\nLayer: domain\nUnit files:\n- src/domain/entities/Loan.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/entities/Loan.ts=====\nimport { DomainError } from '../errors/DomainError';\nimport { LoanPeriod } from '../value-objects/LoanPeriod';\n\nconst DAY_MS = 24 * 60 * 60 * 1000;\n\nexport class Loan {\n  private returnedAt: Date | undefined;\n\n  private constructor(\n    readonly id: string,\n    readonly bookId: string,\n    readonly memberId: string,\n    readonly borrowedAt: Date,\n    readonly dueAt: Date,\n  ) {}\n\n  static open(id: string, bookId: string, memberId: string, borrowedAt: Date, period: LoanPeriod): Loan {\n    return new Loan(id, bookId, memberId, borrowedAt, period.dueDateFrom(borrowedAt));\n  }\n\n  get isActive(): boolean {\n    return this.returnedAt === undefined;\n  }\n\n  close(at: Date): void {\n    if (!this.isActive) throw new DomainError('LOAN_CLOSED', `Loan ${this.id} is already returned`);\n    this.returnedAt = at;\n  }\n\n  isOverdue(now: Date): boolean {\n    return this.isActive && now.getTime() > this.dueAt.getTime();\n  }\n\n  daysOverdue(now: Date): number {\n    if (!this.isOverdue(now)) return 0;\n    return Math.ceil((now.getTime() - this.dueAt.getTime()) / DAY_MS);\n  }\n\n  hasReturnedAt(): boolean {\n    return this.returnedAt !== undefined;\n  }\n}\n\n=====SOURCE-END=====\n\n## Neighbourhood\nsrc/domain/entities/Loan.ts (layer domain, kind domain)\n  imports: src/domain/errors/DomainError.ts (layer domain, kind domain); src/domain/value-objects/LoanPeriod.ts (layer domain, kind domain)\n  imported by: src/application/dto/LoanDto.ts (layer application, kind application); src/application/use-cases/BorrowBookUseCase.ts (layer application, kind application); src/domain/repositories/LoanRepository.ts (layer domain, kind domain); src/domain/services/FineCalculator.ts (layer domain, kind domain); src/domain/services/LoanPolicy.ts (layer domain, kind domain); src/infrastructure/persistence/InMemoryLoanRepository.ts (layer infrastructure, kind infrastructure)\n\n## Candidate flags\nCandidates proposed by deterministic checks; verify, don't trust. Each line is a tool observation with its location, not a finding.\n(none)\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric. Check each candidate flag against the source: a flag the source does not support must not count against the unit, and a violation the flags miss counts as much as one they name. Judge what each declaration is, not only what it does at run time.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T21:16:45.165Z",
+  "repetition": 0,
+  "requestHash": "ec5979328258a690cda0c5b961670ce57b3baa4b942b121de6ed65959d3ac710",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":528}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/domain/entities/Loan.ts is a plain domain entity. It has a private constructor and a static factory, `open`. Its methods are domain invariants and calculations: `close` throws when the loan is already returned, and `isOverdue` and `daysOverdue` work out lateness. Every type in its signatures is a primitive, `Date` or a project-declared domain type (`LoanPeriod`, `DomainError`). It has no decorators, no framework or ORM base classes, no HTTP request, response or status types, and no persistence or I/O. All of this fits the domain layer's role. No candidate flags were raised.\\\",\\\"evidence\\\":[\\\"src/domain/entities/Loan.ts: `export class Loan` has no decorators and no base class\\\",\\\"src/domain/entities/Loan.ts: `close(at: Date)` throws the project-declared `DomainError('LOAN_CLOSED', ...)`, not an HTTP error\\\",\\\"src/domain/entities/Loan.ts: `static open(..., period: LoanPeriod): Loan` uses only domain types\\\",\\\"src/domain/entities/Loan.ts: `daysOverdue(now: Date): number` is a pure calculation with no I/O\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/entities/Loan.ts: `export class Loan` has no decorators and no base class\",\"src/domain/entities/Loan.ts: `close(at: Date)` throws the project-declared `DomainError('LOAN_CLOSED', ...)`, not an HTTP error\",\"src/domain/entities/Loan.ts: `static open(..., period: LoanPeriod): Loan` uses only domain types\",\"src/domain/entities/Loan.ts: `daysOverdue(now: Date): number` is a pure calculation with no I/O\"],\"pass\":true,\"reasoning\":\"src/domain/entities/Loan.ts is a plain domain entity. It has a private constructor and a static factory, `open`. Its methods are domain invariants and calculations: `close` throws when the loan is already returned, and `isOverdue` and `daysOverdue` work out lateness. Every type in its signatures is a primitive, `Date` or a project-declared domain type (`LoanPeriod`, `DomainError`). It has no decorators, no framework or ORM base classes, no HTTP request, response or status types, and no persistence or I/O. All of this fits the domain layer's role. No candidate flags were raised.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/entities/Loan.ts",
+  "usage": {
+    "inputTokens": 3138,
+    "outputTokens": 528
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
