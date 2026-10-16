@@ -37,7 +37,8 @@ export type CompilerWarningCode =
   | 'COMPILER_001'   // neuronal-only, no Cypher template (expected)
   | 'COMPILER_002'   // unknown function name, no built-in template
   | 'COMPILER_003'   // shadow mode eligible but no handcrafted Cypher
-  | 'COMPILER_004';  // fitness function auto-disabled (e.g. too few layers)
+  | 'COMPILER_004'   // fitness function auto-disabled (e.g. too few layers)
+  | 'COMPILER_005';  // v1.3: an ADR symbolic rule reads IMPORTS with no edge view (both views at once; R12)
 
 export interface CompilerWarning extends DomainWarning {
   readonly code: CompilerWarningCode;

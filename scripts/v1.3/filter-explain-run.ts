@@ -16,7 +16,15 @@
  *                          Writes results/v1.3-judge-v2/filter-explain/plan.json (no call).
  *   record [--budget n]    one FE call per selected distinct prompt (one init probe), cassettes in
  *                          tests/fixtures/judge-cassettes-v13/filter-explain; shares the judge-v2 call ledger.
- *   score                  confirm / dismiss / rejected per label, precision and recall before and after, grounding.
+ *   score [--na-partial] [--bare-lines attributed|longest|finding-file]
+ *                          confirm / dismiss / rejected per label, precision and recall before and after, grounding.
+ *                          Grounding counts only the files and lines each prompt rendered (R19; the same as the full
+ *                          files for every committed prompt, none of which was truncated).
+ *                          --na-partial (opt-in, R26): rows of a partial rule's N/A half (FF-P06 FLOWS_TO /
+ *                          HOLDS_STATE_OF field rows, rule-tiers.md) are labelled 'n/a' and left out of the true/false
+ *                          counts. Off by default because it changes the committed scores.json (66 -> 63 true rows).
+ *                          --bare-lines (R20): see `GroundingOptions.bareLines`; default 'attributed' (v1.3's rule);
+ *                          'longest' is the pre-R20 heuristic the committed judge-v2 figures used.
  */
 import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
@@ -30,7 +38,10 @@ import {
   FE_PERSONA, FE_REVISION, FE_SCHEMA_TEXT, answerOfResponse, computeFilterExplainSha256,
   createFilterExplainProvider, findingKept, outcomeOf, renderFilterExplainPrompt,
 } from '../../src/llm-critic/filter-explain.js';
-import type { FilterExplainOutcome, ShownFile, SymbolicFinding } from '../../src/llm-critic/filter-explain.js';
+import type { FilterExplainOutcome, GroundingOptions, ShownFile, SymbolicFinding } from '../../src/llm-critic/filter-explain.js';
+import { RULE_TIERS } from '../../src/scoring-engine/rule-tiers.js';
+import { relTypeOf } from '../../src/scoring-engine/tiered-scoring.js';
+import type { Violation as TaxonomyViolation } from '../../src/shared/taxonomy/violation-types.js';
 import { parseSpec } from '../../src/spec-parser/index.js';
 import { wilson } from '../lib/stats.js';
 import { loadAllReferences } from './lib/reference-model.js';
@@ -45,9 +56,9 @@ const LEDGER = 'results/v1.3-judge-v2/call-ledger.json';
 export const FE_SAMPLE_SEED = 'daedalus-v1.3-fe-sample-20261016';
 export const CV05_SAMPLE = 10;
 
-type Label = 'true' | 'false' | 'unscored';
+type Label = 'true' | 'false' | 'unscored' | 'n/a';
 
-interface Row {
+export interface FilterExplainRow {
   readonly rowId: string;            // style/variant/#index
   readonly style: string;
   readonly variant: string;
@@ -58,10 +69,13 @@ interface Row {
   readonly promptSha: string;
 }
 
-interface Plan {
+type Row = FilterExplainRow;
+
+export interface FilterExplainPlan {
   readonly feRevision: string;
   readonly feSha256: string;
   readonly rows: readonly Row[];
+  /** `files`: the files as the prompt rendered them (R19; plans written before it hold the full files). */
   readonly prompts: Readonly<Record<string, { prompt: string; files: readonly ShownFile[] }>>;
   readonly selected: readonly string[];   // prompt shas
   readonly skipped: readonly { rowId: string; reason: string }[];
@@ -154,7 +168,7 @@ async function plan(argv: readonly string[]): Promise<number> {
     .filter((s) => !selected.has(s))
     .sort((a, b) => (sha(`${FE_SAMPLE_SEED}|${a}`) < sha(`${FE_SAMPLE_SEED}|${b}`) ? -1 : 1));
   for (const s of cv05.slice(0, CV05_SAMPLE)) selected.add(s);
-  const out: Plan = { feRevision: FE_REVISION, feSha256: computeFilterExplainSha256(), rows, prompts, selected: [...selected].sort(), skipped };
+  const out: FilterExplainPlan ={ feRevision: FE_REVISION, feSha256: computeFilterExplainSha256(), rows, prompts, selected: [...selected].sort(), skipped };
   writeJson(path.join(REPO, OUT, 'plan.json'), out);
   const by = (l: Label): number => rows.filter((r) => r.label === l).length;
   process.stdout.write(`rows ${String(rows.length)} (true ${String(by('true'))}, false ${String(by('false'))}, unscored ${String(by('unscored'))}); distinct prompts ${String(Object.keys(prompts).length)}; selected ${String(selected.size)} (CV05 distinct ${String(cv05.length)}, sampled ${String(Math.min(CV05_SAMPLE, cv05.length))}); skipped ${String(skipped.length)}\n`);
@@ -165,7 +179,7 @@ interface Ledger { calls: number; phases: { label: string; at: string; judgeAtte
 
 async function record(argv: readonly string[]): Promise<number> {
   const budget = Number(arg(argv, '--budget', '600'));
-  const p = readJson<Plan>(path.join(REPO, OUT, 'plan.json'));
+  const p = readJson<FilterExplainPlan>(path.join(REPO, OUT, 'plan.json'));
   if (p.feSha256 !== computeFilterExplainSha256()) {
     process.stderr.write('plan.json was built with other FE texts; re-plan\n');
     return 2;
@@ -236,34 +250,71 @@ function fmt(k: number, n: number): string {
   return `${String(k)}/${String(n)} = ${(k / n).toFixed(2)} [${w.low.toFixed(2)}, ${w.high.toFixed(2)}]`;
 }
 
-function score(): number {
-  const p = readJson<Plan>(path.join(REPO, OUT, 'plan.json'));
-  const a = readJson<{ answers: Record<string, { valid: boolean; response: string }> }>(path.join(REPO, OUT, 'answers.json')).answers;
+export interface ScoreOptions extends GroundingOptions {
+  /** R26 (opt-in): label the rows of a partial rule's N/A half (FF-P06 FLOWS_TO / HOLDS_STATE_OF) 'n/a'. */
+  readonly naPartial?: boolean;
+}
+
+/**
+ * True when the finding is in a partial rule's N/A half: `RULE_TIERS` `partial.naRelTypes` against `relTypeOf`
+ * (discriminator[2], else the message), as `countsAsBlocking` in lib/mcp-consistency.ts and splitPartial do.
+ */
+export function isPartialNa(finding: SymbolicFinding): boolean {
+  const partial = RULE_TIERS.get(finding.functionId)?.partial;
+  if (partial === undefined) return false;
+  const rel = relTypeOf({ discriminator: finding.discriminator, message: finding.message } as unknown as TaxonomyViolation);
+  return rel !== undefined && partial.naRelTypes.includes(rel);
+}
+
+export interface ScoredRow {
+  readonly rowId: string;
+  readonly label: Label;
+  readonly tier: string;
+  readonly functionId: string;
+  readonly file: string;
+  readonly status: FilterExplainOutcome['status'];
+  readonly kept: boolean;
+  readonly [extra: string]: unknown;
+}
+
+/** The score phase without I/O: per-row outcomes, the summary and the markdown table. */
+export function scoreFilterExplain(
+  p: FilterExplainPlan, a: Readonly<Record<string, { valid: boolean; response: string }>>, options: ScoreOptions = {},
+): { rows: ScoredRow[]; summary: Record<string, number>; md: string } {
+  const grounding: GroundingOptions = options.bareLines !== undefined ? { bareLines: options.bareLines } : {};
   const selected = new Set(p.selected);
   const outcome = new Map<string, FilterExplainOutcome>();
   for (const s of p.selected) {
     const ans = a[s];
-    const files = p.prompts[s]?.files ?? [];
-    outcome.set(s, ans === undefined ? { status: 'invalid', cause: 'NOT_RUN' } : outcomeOf(ans.valid ? answerOfResponse(ans.response) : null, files));
+    const pr = p.prompts[s];
+    // R19: ground against what the prompt rendered (identical to the full files when nothing was truncated). The
+    // source budget depends on the files alone and re-rendering already-cut files leaves them as they are, so this also
+    // covers plans written before R19, which stored the full files.
+    const finding = p.rows.find((r) => r.promptSha === s)?.finding;
+    const shown = finding === undefined ? (pr?.files ?? []) : renderFilterExplainPrompt({ finding, files: pr?.files ?? [], layerModel: '' }).shown;
+    outcome.set(s, ans === undefined ? { status: 'invalid', cause: 'NOT_RUN' } : outcomeOf(ans.valid ? answerOfResponse(ans.response) : null, shown, 'PARSE_FAILURE', grounding));
   }
   const judged = p.rows.filter((r) => selected.has(r.promptSha));
-  const rowsOut = judged.map((r) => {
+  const rowsOut: ScoredRow[] = judged.map((r) => {
     const o = outcome.get(r.promptSha) ?? { status: 'invalid', cause: 'NOT_RUN' };
+    const label: Label = options.naPartial === true && r.label !== 'unscored' && isPartialNa(r.finding) ? 'n/a' : r.label;
     return {
-      rowId: r.rowId, label: r.label, tier: r.tier, functionId: r.finding.functionId, file: r.finding.filePath, status: o.status,
+      rowId: r.rowId, label, tier: r.tier, functionId: r.finding.functionId, file: r.finding.filePath, status: o.status,
       kept: findingKept(o),
       ...(o.status !== 'invalid' ? { decision: o.answer.decision, grounded: o.grounding.grounded, problems: o.grounding.problems, explanation: o.answer.explanation, fix: o.answer.fix, citations: o.answer.citations } : { cause: o.cause }),
     };
   });
-  const count = (pred: (r: (typeof rowsOut)[number]) => boolean): number => rowsOut.filter(pred).length;
+  const count = (pred: (r: ScoredRow) => boolean): number => rowsOut.filter(pred).length;
   const lines: string[] = [];
   const t = rowsOut.filter((r) => r.label === 'true');
   const f = rowsOut.filter((r) => r.label === 'false');
+  const na = count((r) => r.label === 'n/a');
   const tp0 = t.length; const fp0 = f.length;
   const tp1 = t.filter((r) => r.kept).length; const fp1 = f.filter((r) => r.kept).length;
   lines.push(`| Label | Rows | Confirm (grounded) | Dismiss (grounded) | Rejected (ungrounded) | Invalid |`);
   lines.push('|---|---|---|---|---|---|');
-  for (const label of ['true', 'false', 'unscored'] as const) {
+  const labels: Label[] = ['true', 'false', 'unscored', ...(na > 0 ? ['n/a' as const] : [])];
+  for (const label of labels) {
     const rs = rowsOut.filter((r) => r.label === label);
     lines.push(`| ${label} | ${String(rs.length)} | ${fmt(rs.filter((r) => r.status === 'confirm').length, rs.length)} | ${fmt(rs.filter((r) => r.status === 'dismiss').length, rs.length)} | ${String(rs.filter((r) => r.status === 'rejected').length)} | ${String(rs.filter((r) => r.status === 'invalid').length)} |`);
   }
@@ -271,6 +322,7 @@ function score(): number {
   const prec1 = tp1 / Math.max(1, tp1 + fp1);
   lines.push('');
   lines.push(`Scored rows: precision before ${fmt(tp0, tp0 + fp0)}, after ${fmt(tp1, tp1 + fp1)} (gain ${(prec1 - prec0).toFixed(3)}); recall kept ${fmt(tp1, tp0)} (recall loss ${fmt(tp0 - tp1, tp0)}).`);
+  if (na > 0) lines.push(`N/A rows (a partial rule's N/A half, left out of the true/false counts): ${String(na)}.`);
   const answered = rowsOut.filter((r) => r.status !== 'invalid');
   lines.push(`Grounding: ${fmt(answered.filter((r) => 'grounded' in r && r.grounded).length, answered.length)} of the valid answers grounded; invalid answers ${String(count((r) => r.status === 'invalid'))}.`);
   const distinct = [...outcome.values()];
@@ -289,10 +341,22 @@ function score(): number {
     byRule.push(`| ${fn ?? ''} | ${label ?? ''} | ${String(rs.length)} | ${String(rs.filter((r) => r.status === 'confirm').length)} | ${String(rs.filter((r) => r.status === 'dismiss').length)} | ${String(rs.filter((r) => r.status === 'rejected').length)} |`);
   }
   const md = [...lines, ...byTier, ...byRule].join('\n');
-  writeJson(path.join(REPO, OUT, 'scores.json'), {
-    feRevision: p.feRevision, rows: rowsOut,
-    summary: { tp0, fp0, tp1, fp1, precisionBefore: prec0, precisionAfter: prec1, recallKept: tp1 / Math.max(1, tp0) },
-  });
+  const summary: Record<string, number> = {
+    tp0, fp0, tp1, fp1, precisionBefore: prec0, precisionAfter: prec1, recallKept: tp1 / Math.max(1, tp0), ...(na > 0 ? { na } : {}),
+  };
+  return { rows: rowsOut, summary, md };
+}
+
+function score(argv: readonly string[]): number {
+  const p = readJson<FilterExplainPlan>(path.join(REPO, OUT, 'plan.json'));
+  const a = readJson<{ answers: Record<string, { valid: boolean; response: string }> }>(path.join(REPO, OUT, 'answers.json')).answers;
+  const bare = arg(argv, '--bare-lines', 'attributed');
+  if (bare !== 'attributed' && bare !== 'longest' && bare !== 'finding-file') {
+    process.stderr.write('--bare-lines must be attributed, longest or finding-file\n');
+    return 2;
+  }
+  const { rows, summary, md } = scoreFilterExplain(p, a, { naPartial: argv.includes('--na-partial'), bareLines: bare });
+  writeJson(path.join(REPO, OUT, 'scores.json'), { feRevision: p.feRevision, rows, summary });
   fs.writeFileSync(path.join(REPO, OUT, 'scores.md'), `${md}\n`);
   process.stdout.write(`${md}\n`);
   return 0;
@@ -302,7 +366,7 @@ export async function main(argv: readonly string[]): Promise<number> {
   const [phase] = argv;
   if (phase === 'plan') return plan(argv);
   if (phase === 'record') return record(argv);
-  if (phase === 'score') return score();
+  if (phase === 'score') return score(argv);
   process.stderr.write('usage: filter-explain-run.ts plan|record|score\n');
   return 2;
 }

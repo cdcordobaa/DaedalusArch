@@ -3,7 +3,8 @@ import { parseInstrumentVersion } from '../fitness-compiler/role-exemptions.js';
 import type { InstrumentVersion } from '../fitness-compiler/role-exemptions.js';
 import { config as loadDotenv } from 'dotenv';
 import { createPipeline } from '../pipeline/pipeline-factory.js';
-import type { PipelineConfig, OutputFormat } from '../pipeline/types.js';
+import type { PipelineConfig, OutputFormat, ExtractorDefaults } from '../pipeline/types.js';
+import { EXTRACTOR_DEFAULTS } from '../pipeline/types.js';
 import type { BatchOptions, DriftOptions } from '../pipeline/types.js';
 import type { EvaluationMode } from '../shared/types/enums.js';
 import { formatJSON, formatHuman, formatCSV, csvHeader } from '../scoring-engine/index.js';
@@ -221,9 +222,10 @@ withLLMOptions(program
   .option('--instrument <version>', 'Symbolic instrument: v2 (role exemptions, default) | v1 (ADR-026)', 'v2')
   .option('--neural-aggregation <rule>', 'Neural aggregation of the AHS: registered (default, primary) | proportional (ADR-028 sensitivity variant)', 'registered')
   .option('--tsconfig <path>', 'Explicit tsconfig for APG extraction; the project\'s own tsconfig.json is then ignored (ADR-032)')
+  .option('--scoring <mode>', 'Scoring mode: v1.3 (rule tiers, default; verdict from blocking rules) | v1.2e (the registered Study 1 scoring; on the default v1.3 graph its universal metrics count both re-export edge views, so pair it with --extractor v1.2e for the v1.2E graph)', 'v1.3')
+  .option('--extractor <defaults>', 'Extractor defaults: v1.3 (default; literal and resolved re-export edges, dynamic imports, module wiring, member facts) | v1.2e (the registered v1.2E graph)', 'v1.3')
   .option('--resolved-edges-in-literal-view', 'Off by default. Keep an import\'s edge to the declaring file in the literal view when it goes through a barrel (MT-B1, Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md)', false)
   .option('--literal-through-layerless-barrels', 'Off by default. At graph build, an import through barrels that belong to no layer (and are no declared DDD public API) also keeps its edge to the declaring file in the literal view (MT-B1 fix, Docs/DiagnosticRuns/v1.3-mtb1-fix-2026-10-16.md)', false)
-  .option('--scoring <mode>', 'Scoring mode: v1.3 (rule tiers, default; verdict from blocking rules) | v1.2e (the registered Study 1 scoring)', 'v1.3')
   .option('--html <out.html>', 'Also write a self-contained architect HTML report (layer diagram, findings in plain language, filters)')
   .option('--hints', 'Add a deterministic fix hint to every blocking finding (json: `fixHints`; human: a Fix hints section). Off by default: the output is then unchanged', false)
   .option('--engine <name>', ENGINE_OPTION_HELP)
@@ -247,6 +249,7 @@ withLLMOptions(program
     instrument: string;
     neuralAggregation: string;
     scoring: string;
+    extractor: string;
     hints: boolean;
     html?: string;
   }, cmd: Command) => {
@@ -272,6 +275,12 @@ withLLMOptions(program
     if (graphMode === undefined) return;
     const scoringMode = resolveScoringMode(opts.scoring, '--scoring');
     if (scoringMode === undefined) return;
+    if (!(EXTRACTOR_DEFAULTS as readonly string[]).includes(opts.extractor)) {
+      process.stderr.write(`Error: --extractor must be one of ${EXTRACTOR_DEFAULTS.join(' | ')}\n`);
+      process.exitCode = 2;
+      return;
+    }
+    const extractorDefaults = opts.extractor as ExtractorDefaults;
     const instrumentVersion = resolveInstrument(opts.instrument);
     if (instrumentVersion === undefined) return;
     const neuralAggregation = resolveNeuralAggregation(opts.neuralAggregation);
@@ -318,6 +327,7 @@ withLLMOptions(program
       instrumentVersion,
       neuralAggregation,
       scoringMode,
+      ...(extractorDefaults !== 'v1.3' && { extractorDefaults }),
       ...(graphEngine !== 'neo4j' && { graphEngine }),
     };
 

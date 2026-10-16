@@ -221,6 +221,16 @@ function compileFunctionsCore(input: CompilerInput, options: CompileOptions): Do
     const neur = compileADRNeuronal(adr);
     if (adr.symbolicRule) {
       const sym = compileADRSymbolic(adr);
+      // v1.3 (R12, post-merge review 2026-10-16): ADR queries are not rewritten to an edge view (edge-views.md), so
+      // on the v1.3 graph a query over IMPORTS reads the literal barrel edge and the resolved edge together. The
+      // text stays as written; the author is told to choose a view.
+      if (options.edgeViews === true && readsImportsWithoutView(sym.cypher)) {
+        warnings.push({
+          code: 'COMPILER_005',
+          message: `ADR "${adr.title}": its query reads IMPORTS on a graph that holds both re-export views (literal edges to a barrel and resolved viaReExport edges); add NOT coalesce(r.viaReExport, false) for the literal view or NOT coalesce(r.reExportHop, false) for the resolved view`,
+          functionId: adrId,
+        });
+      }
       hybridPairs.push({ functionId: adr.id as import('../shared/types/value-objects.js').FunctionId, symbolicQuery: sym, neuronalInstruction: neur });
     } else {
       neuronalInstructions.push(neur);
@@ -335,6 +345,11 @@ function compileNeuronal(
 }
 
 // ── ADR Compilation ───────────────────────────────────────────────────────────
+
+/** An IMPORTS relationship pattern in the text, and no edge-view property named anywhere (R12). */
+function readsImportsWithoutView(cypher: string): boolean {
+  return /\[[^\]]*:\s*(?:[A-Z_]+\s*\|\s*)*IMPORTS\b/.test(cypher) && !/\b(?:viaReExport|reExportHop)\b/.test(cypher);
+}
 
 function compileADRSymbolic(adr: ADRRule): CypherQuery {
   const rule = adr.symbolicRule!;

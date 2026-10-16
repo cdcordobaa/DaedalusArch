@@ -52,9 +52,9 @@ import { ClaudeStepAgent, CodexStepAgent } from './agents.js';
 import { firewallEvaluator, harnessSnapshotTsconfig, harnessTypechecker } from './evaluator.js';
 import { evaluatorForEngine, parseLoopEngine } from './engine-tee.js';
 import type { LoopEngine } from './engine-tee.js';
-import { runLoop } from './loop.js';
+import { gateEvaluationFailures, runLoop } from './loop.js';
 import type { LoopContext, LoopRunResult, TaskProfile } from './loop.js';
-import { loadLoopPlan, loopRunId, planCallBudget, scheduleLoopRuns } from './plan.js';
+import { loadLoopPlan, loopRunId, mcpSpecCheck, planCallBudget, scheduleLoopRuns } from './plan.js';
 import type { LoadedPlan, LocalOverrides } from './plan.js';
 import { iseDddFreezer } from './specs.js';
 import type { SpecFreezer } from './specs.js';
@@ -300,6 +300,9 @@ async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs
   const { plan } = loaded;
   if (isInsideOrEqual(repoRoot, plan.outRoot)) return DomainResult.fail([{ code: 'LOOP_PLAN_INVALID', message: 'outRoot must lie outside the repository' }]);
   if (deps.evaluateDeps === undefined) return DomainResult.fail([{ code: 'LOOP_NO_EVALUATOR', message: 'no evaluate_project wiring' }]);
+  // R23: the MCP arm's advice and the score must come from the same spec.
+  const specMatch = mcpSpecCheck(plan, repoRoot);
+  if (!specMatch.success) return DomainResult.fail(specMatch.errors);
   const ready = await ensureHarness(deps.runner, repoRoot, plan.harnessRoot);
   if (!ready.success) return DomainResult.fail(ready.errors);
   const install: SkeletonInstall = ready.data.install;
@@ -411,6 +414,8 @@ export function gridSummary(loaded: LoadedPlan, results: readonly LoopRunResult[
     skipped: results.length - completed.length,
     callBudget: planCallBudget(loaded.plan, loaded.tasks.tasks),
     turnsThisInvocation: { step: stepTurns, repair: repairTurns, repairsCleared },
+    // R01: gate steps the gate could not judge (no evaluation); non-zero means the gate arm did not run as designed.
+    gateStepsWithoutEvaluation: gateEvaluationFailures(results),
   };
 }
 

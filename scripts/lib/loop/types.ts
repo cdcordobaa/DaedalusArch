@@ -283,7 +283,7 @@ export interface RunParityCounts {
 /** The firewall run on a snapshot. A failure here is recorded on the step, never retried silently. */
 export interface StepEvaluator {
   readonly id: string;
-  /** `runId` names the loop run of the snapshot (the live evaluator finds the run's pinned tsconfig with it). */
+  /** `runId` names the loop run of the snapshot (the live evaluator finds the run's pinned tsconfig with it, R01). */
   evaluate(projectDir: string, runId?: string): Promise<DomainResult<StepEvaluation>>;
 }
 
@@ -338,7 +338,17 @@ export interface StepRecord {
   readonly finishedAt: string;
   readonly turns: readonly TurnRecord[];
   /** Gate arm: whether a repair turn ran and whether it cleared every blocking finding. */
-  readonly repair: { readonly attempted: boolean; readonly blockingBefore: number | null; readonly blockingAfter: number | null; readonly cleared: boolean | null } | null;
+  readonly repair: {
+    readonly attempted: boolean;
+    readonly blockingBefore: number | null;
+    readonly blockingAfter: number | null;
+    readonly cleared: boolean | null;
+    /**
+     * Set when the gate could not judge the step: its snapshot has no evaluation (see `evaluationError`). Such a step
+     * is a harness failure, not a step with no blocking findings (R01, post-merge review 2026-10-16).
+     */
+    readonly skipped?: 'evaluation-failed';
+  } | null;
   /**
    * Gate arm, when a repair ran and both snapshots were evaluated: finding by finding, which blocking findings the
    * repair removed and which it introduced (`repairOutcome` in `loop.ts`).

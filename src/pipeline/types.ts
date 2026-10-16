@@ -7,6 +7,7 @@ import type { NeuralAggregation } from '../scoring-engine/neural-aggregation.js'
 import type { ScoringMode } from '../shared/types/evaluation.js';
 import type { GraphRepository } from '../shared/interfaces/graph-repository.js';
 import type { GraphEngine } from '../cypher-interp/engine.js';
+import type { ConstructAnswers } from '../shared/construct-switches.js';
 
 export interface PipelineConfig {
   readonly projectPath: string;
@@ -43,6 +44,19 @@ export interface PipelineConfig {
    */
   readonly scoringMode?: ScoringMode | undefined;
   /**
+   * Extractor defaults (R02, post-merge review 2026-10-16): `v1.3` (default, `V13_DEFAULT_OPTIONS`: literal and
+   * resolved re-export edges, dynamic imports, module wiring, member facts) or `v1.2e` (`V12E_DEFAULT_OPTIONS`, the
+   * registered v1.2E graph). The `v1.2e` scoring mode computes the frozen universal metrics, which read every IMPORTS
+   * edge; on the default v1.3 graph a barrel import then counts twice. Opt-in, so existing v1.2e-mode outputs
+   * (scripts/run-experiment.ts) are unchanged; pair `--scoring v1.2e` with `--extractor v1.2e` for the v1.2E graph.
+   */
+  readonly extractorDefaults?: ExtractorDefaults | undefined;
+  /**
+   * Harness injection (tests): the construct-switch answers in place of the switch file (`CONSTRUCT_ANSWERS`). They
+   * apply in the v1.3 scoring mode only: compile overlays, row stage and tier overrides together (R30).
+   */
+  readonly constructAnswers?: ConstructAnswers | undefined;
+  /**
    * Graph engine (v1.3 spike, Docs/v1.3/cypher-interpreter.md): `neo4j` (default, the reference engine) or
    * `cypher-interp` (the in-process Cypher interpreter over an in-memory graph; no server, no credentials).
    */
@@ -52,6 +66,10 @@ export interface PipelineConfig {
   /** v1.3 npx mode (MCP template checks): in-memory file contents for extraction (absolute path; `null` = removed). */
   readonly sourceOverrides?: ReadonlyMap<string, string | null> | undefined;
 }
+
+/** Which extractor defaults a pipeline extracts with (`PipelineConfig.extractorDefaults`). */
+export type ExtractorDefaults = 'v1.3' | 'v1.2e';
+export const EXTRACTOR_DEFAULTS: readonly ExtractorDefaults[] = ['v1.3', 'v1.2e'];
 
 export type OutputFormat = 'json' | 'human' | 'csv';
 
