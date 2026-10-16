@@ -13,7 +13,7 @@ import type { EvaluationReport, ScoringMode } from '../shared/types/evaluation.j
 import type { DomainResult } from '../shared/errors/domain-result.js';
 import { DomainResult as Result } from '../shared/errors/domain-result.js';
 import { neo4jScrubPolicy, scrubWithPolicy } from '../shared/errors/scrub.js';
-import type { PipelineConfig } from '../pipeline/types.js';
+import type { ExtractorDefaults, PipelineConfig } from '../pipeline/types.js';
 import type { PipelineBundle } from '../pipeline/pipeline-factory.js';
 import { MissingEnvError, requireEnv } from '../cli/require-env.js';
 import type { EvaluateProjectResult, Neo4jEnv, RuleViolationGroup } from './types.js';
@@ -40,6 +40,8 @@ export interface EvaluateInput {
    * pinned per-run tsconfig, because the agent's work tree has none of its own (R01).
    */
   readonly tsconfigPath?: string;
+  /** Extractor defaults (R02; absent = the v1.3 defaults). `v1.2e` with scoring `v1.2e` measures the v1.2E graph. */
+  readonly extractorDefaults?: ExtractorDefaults;
 }
 
 /** The Neo4j settings from the environment (the CLI's variables); throws `MissingEnvError` for no password. */
@@ -158,6 +160,7 @@ export async function evaluateProject(
     apgStorePath: neo4j.apgStorePath,
     scoringMode,
     ...(input.tsconfigPath !== undefined ? { tsconfigPath: path.resolve(input.tsconfigPath) } : {}),
+    ...(input.extractorDefaults !== undefined ? { extractorDefaults: input.extractorDefaults } : {}),
   };
   const { executor, cleanup } = deps.makePipeline(config);
   try {

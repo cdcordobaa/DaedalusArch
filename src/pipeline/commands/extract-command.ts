@@ -4,6 +4,7 @@ import type { DomainResult as DomainResultType } from '../../shared/errors/domai
 import { DomainResult } from '../../shared/errors/domain-result.js';
 import { extractAPG } from '../../apg-extractor/index.js';
 import type { GraphMode } from '../../apg-extractor/types.js';
+import { V12E_DEFAULT_OPTIONS } from '../../apg-extractor/types.js';
 import { toPipelineError, toPipelineWarning } from './map-helpers.js';
 
 export class ExtractCommand implements PipelineCommand {
@@ -16,10 +17,13 @@ export class ExtractCommand implements PipelineCommand {
     private readonly graphMode?: GraphMode,
     /** ADR-032: explicit tsconfig (the project's own `tsconfig.json` is then ignored); absent = `<project>/tsconfig.json`. */
     private readonly tsconfigPath?: string,
+    /** R02: `v1.2e` extracts with `V12E_DEFAULT_OPTIONS` (the registered graph); absent = the v1.3 defaults. */
+    private readonly defaults?: 'v1.3' | 'v1.2e',
   ) {}
 
   async execute(context: FirewallContext): Promise<DomainResultType<void>> {
     const result = await extractAPG(this.projectPath, {
+      ...(this.defaults === 'v1.2e' ? V12E_DEFAULT_OPTIONS : {}),
       excludePatterns: this.excludePatterns,
       ...(this.graphMode !== undefined && { graphMode: this.graphMode }),
     }, this.tsconfigPath);
