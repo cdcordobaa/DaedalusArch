@@ -29,6 +29,8 @@ interface ParityRow {
   readonly runId: string;
   readonly turnId: string;
   readonly status: ParityStatus | 'none';
+  /** Blocking findings on the engine of record (so the parity table shows it covers non-clean trees). */
+  readonly blockingViolationCount: number | null;
 }
 
 /** One row per evaluated snapshot of the replay (tape, arm, turn order). */
@@ -36,7 +38,7 @@ function parityTable(result: ReplayResult): ParityRow[] {
   const rows: ParityRow[] = [];
   for (const run of result.runs) {
     if (run.result.kind !== 'completed') continue;
-    for (const step of run.result.steps) for (const t of step.turns) rows.push({ runId: run.runId, turnId: t.turnId, status: t.snapshot.evaluation?.parity?.status ?? 'none' });
+    for (const step of run.result.steps) for (const t of step.turns) rows.push({ runId: run.runId, turnId: t.turnId, status: t.snapshot.evaluation?.parity?.status ?? 'none', blockingViolationCount: t.snapshot.evaluation?.blockingViolationCount ?? null });
   }
   return rows;
 }
