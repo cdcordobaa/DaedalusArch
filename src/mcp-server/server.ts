@@ -43,6 +43,13 @@ const specArg = z
   .optional()
   .describe("Path to the firewall spec YAML; defaults to the server's configured spec.");
 
+const hintsArg = z
+  .boolean()
+  .optional()
+  .describe(
+    "Attach a deterministic fix hint to each blocking violation: what is wrong, the edge and the allowed-dependency rule it breaks, the target layer and folder, and the minimal structural fix. Defaults to the server's --hints setting (off).",
+  );
+
 function toResult<T extends object>(outcome: ToolOutcome<T>): CallToolResult {
   if (!outcome.ok) return { isError: true, content: [{ type: 'text', text: outcome.message }] };
   return {
@@ -109,10 +116,12 @@ const checkFileShape = {
     .describe('Path of the file, relative to the project root (decides its layer).'),
   content: z.string().describe('The full proposed content of the file.'),
   spec: specArg,
+  hints: hintsArg,
 };
 const checkDiffShape = {
   diff: z.string().min(1).describe('A unified diff (git diff or diff -u output).'),
   spec: specArg,
+  hints: hintsArg,
 };
 const placementShape = {
   purpose: z
@@ -128,6 +137,7 @@ const placementShape = {
 const explainShape = {
   rule: z.string().min(1).describe('Rule id, rule name or violation type.'),
   spec: specArg,
+  hints: hintsArg,
 };
 
 export function createServer(ctx: ServerContext): McpServer {

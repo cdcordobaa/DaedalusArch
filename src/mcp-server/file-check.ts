@@ -13,6 +13,7 @@ import { scanSource } from './source-scan.js';
 import type { ScannedClass } from './source-scan.js';
 import { importableLayers, isExcluded, ruleState } from './spec-rules.js';
 import type { FileCheckResult, FileVerdict, FileViolation, RuleHit } from './types.js';
+import { buildFixHint } from '../fix-hints/index.js';
 
 /** Naming templates a class declaration alone decides (the others need the graph or never fire). */
 export const NAMING_RULE_NAMES: readonly string[] = Object.freeze([
@@ -172,6 +173,8 @@ export interface CheckSourceInput {
   readonly content: string;
   /** Maps a line of `content` to the line reported (`check_diff` passes the new-file line numbers). */
   readonly lineOf?: (line: number) => number;
+  /** Attach a deterministic fix hint to each blocking import violation (Docs/v1.3/fix-hints.md). Off by default. */
+  readonly hints?: boolean;
 }
 
 function verdictOf(violations: readonly FileViolation[], unresolved: number): FileVerdict {
@@ -213,6 +216,16 @@ export function checkSource(spec: ParsedSpec, input: CheckSourceInput): FileChec
     }
     if (layer === null) continue;
     for (const hit of res.violations) {
+      const target = res.to.path ?? res.to.package;
+      const hint =
+        input.hints === true && target !== undefined
+          ? buildFixHint(spec, {
+              ruleId: hit.ruleId,
+              filePath,
+              target,
+              isTypeOnly: imp.kind === 'type',
+            })
+          : undefined;
       const row: FileViolation = {
         rule: hit.ruleId,
         ruleName: hit.ruleName,
@@ -221,6 +234,7 @@ export function checkSource(spec: ParsedSpec, input: CheckSourceInput): FileChec
         subject: `import "${imp.specifier}"`,
         reason: hit.reason,
         fix: importFix(spec, hit, filePath, layer, res.to),
+        ...(hint !== undefined ? { hint } : {}),
       };
       (imp.kind === 'require' || imp.kind === 'dynamic' ? advisories : violations).push(row);
     }

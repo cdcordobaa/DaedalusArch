@@ -13,6 +13,7 @@ import { parseScoringMode, SCORING_MODES } from '../scoring-engine/tiered-scorin
 import type { ScoringMode } from '../shared/types/evaluation.js';
 import { generateReport } from '../report/report-generator.js';
 import { formatActionableHuman } from '../scoring-engine/report-formatter.js';
+import { buildReportFixHints, formatFixHintsHuman } from '../fix-hints/index.js';
 import { runBatch } from './batch-runner.js';
 import { requireEnvForCli } from './require-env.js';
 import { handleDrift } from './drift-handler.js';
@@ -184,6 +185,7 @@ withLLMOptions(program
   .option('--neural-aggregation <rule>', 'Neural aggregation of the AHS: registered (default, primary) | proportional (ADR-028 sensitivity variant)', 'registered')
   .option('--tsconfig <path>', 'Explicit tsconfig for APG extraction; the project\'s own tsconfig.json is then ignored (ADR-032)')
   .option('--scoring <mode>', 'Scoring mode: v1.3 (rule tiers, default; verdict from blocking rules) | v1.2e (the registered Study 1 scoring)', 'v1.3')
+  .option('--hints', 'Add a deterministic fix hint to every blocking finding (json: `fixHints`; human: a Fix hints section). Off by default: the output is then unchanged', false)
   .action(async (opts: LLMCliOpts & {
     project: string;
     tsconfig?: string;
@@ -200,6 +202,7 @@ withLLMOptions(program
     instrument: string;
     neuralAggregation: string;
     scoring: string;
+    hints: boolean;
   }) => {
     const evaluationMode = resolveEvaluationMode(opts.symbolicOnly, opts.neuronalOnly);
     const graphMode = resolveGraphMode(opts.graphMode);
@@ -237,7 +240,7 @@ withLLMOptions(program
       scoringMode,
     };
 
-    const { executor, cleanup } = createPipeline(config);
+    const { executor, context, cleanup } = createPipeline(config);
 
     // Graceful shutdown on signals
     const onSignal = (): void => {
@@ -279,13 +282,19 @@ withLLMOptions(program
         exitVerdict = comparison.newViolations.length === 0 ? 'pass' : report.verdict;
       }
 
+      // Fix hints (Docs/v1.3/fix-hints.md): only with --hints, so the default output is byte-identical.
+      const fixHints = opts.hints
+        ? buildReportFixHints(report.violations, context.getParsedSpec(), opts.project, context.getApgResult())
+        : undefined;
+
       // Route output: machine-readable to stdout, human to stderr
       switch (format) {
         case 'json':
-          process.stdout.write(formatJSON(report) + '\n');
+          process.stdout.write(formatJSON(fixHints === undefined ? report : { ...report, fixHints }) + '\n');
           break;
         case 'human':
           process.stderr.write(formatHuman(report) + '\n');
+          if (fixHints !== undefined) process.stderr.write(formatFixHintsHuman(fixHints) + '\n');
           break;
         case 'csv':
           process.stdout.write(csvHeader() + '\n');

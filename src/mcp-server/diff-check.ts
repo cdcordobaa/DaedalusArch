@@ -78,7 +78,7 @@ function worst(verdicts: readonly FileVerdict[]): FileVerdict {
   return verdicts.includes('unknown') ? 'unknown' : 'clean';
 }
 
-export function checkDiff(spec: ParsedSpec, diff: string): DiffCheckResult {
+export function checkDiff(spec: ParsedSpec, diff: string, options: { readonly hints?: boolean } = {}): DiffCheckResult {
   const files: DiffCheckResult['files'][number][] = [];
   const skipped: { path: string; reason: string }[] = [];
 
@@ -97,6 +97,7 @@ export function checkDiff(spec: ParsedSpec, diff: string): DiffCheckResult {
       path: f.newPath,
       content: f.added.map((a) => a.text).join('\n'),
       lineOf: (l) => lines[l - 1] ?? l,
+      ...(options.hints === true ? { hints: true } : {}),
     });
     const notes = [...result.notes];
     if (change === 'renamed' && f.oldPath !== null) {

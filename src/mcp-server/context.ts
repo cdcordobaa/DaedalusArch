@@ -11,13 +11,19 @@ import type { ServerContext } from './tools.js';
 export interface McpArgs {
   readonly spec?: string;
   readonly project?: string;
+  /** `--hints`: fix hints on by default in check_file, check_diff and explain_violation. */
+  readonly hints?: boolean;
 }
 
 /** `--spec <path>` and `--project <path>` (also `--flag=value`); unknown flags are ignored. Pure. */
 export function parseArgs(argv: readonly string[]): McpArgs {
-  const out: { spec?: string; project?: string } = {};
+  const out: { spec?: string; project?: string; hints?: boolean } = {};
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i] ?? '';
+    if (arg === '--hints') {
+      out.hints = true;
+      continue;
+    }
     const [flag, inline] = arg.split('=', 2);
     const value = inline ?? argv[i + 1];
     if ((flag === '--spec' || flag === '--project') && value !== undefined && value !== '') {
@@ -32,6 +38,7 @@ export function buildContext(args: McpArgs, env: NodeJS.ProcessEnv): ServerConte
   return {
     defaultSpecPath: args.spec ?? env.DAEDALUS_SPEC,
     defaultProjectPath: args.project ?? env.DAEDALUS_PROJECT,
+    ...(args.hints === true || env.DAEDALUS_HINTS === '1' ? { hints: true } : {}),
     env,
     loadSpec: createSpecLoader(),
     evaluateDeps: {

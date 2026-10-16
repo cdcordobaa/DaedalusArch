@@ -163,3 +163,8 @@ symbolic-only pipeline behind injected ports, unit tests on the `fixtures/` proj
 Lacks, in order of need: the A1 context-graph tool; the call log; the fidelity check against the graph on the
 corpus; per-cell Neo4j isolation; cycle detection and class-level rules in a fast path (so A2 would cover more than
 four rules); handling of `tsconfig` path aliases; the generator-protocol and confinement work (T7).
+
+Fix hints (v1.3, `Docs/v1.3/fix-hints.md`): with `hints: true` (or the server's `--hints`), `check_file` and
+`check_diff` attach a deterministic hint to each blocking violation (the problem, the edge and the allowed-dependency
+rule it breaks, the target layer and folder, the minimal structural fix and its graph edit). It is off by default, so
+the arms' tool output is unchanged unless an arm turns it on.
