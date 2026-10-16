@@ -146,7 +146,7 @@ The figures are milliseconds on this container, measured on the second CLI run. 
 
 ## 5. Re-run after the harness correctness fixes (2026-10-16)
 
-The harness changed after the first run, so the replay was run again on `v1.3-loop-harness-fixes`:
+The harness changed after the first run, so the replay was run again on `v1.3-loop-harness-fixes` (after merging the engine tee, #199):
 - The blocking findings are now exactly the rows the v1.3 scoring counts. FF-P06's FLOWS_TO and HOLDS_STATE_OF rows are N/A, and so are rows a construct switch moves to advisory. They no longer reach the repair prompt, `repairOutcome` or the pilot outcomes. A count mismatch fails the evaluation with `LOOP_EVAL_FINDINGS_MISMATCH`.
 - An unscored step has a `null` count, never 0. `newBlockingTotal` is null when any step is unscored, and `unscoredSteps` lists those steps.
 - `evaluate_project` on cypher-interp honours the run's pinned tsconfig. A run in which every snapshot failed evaluation fails with `LOOP_EVAL_ALL_FAILED`.
@@ -156,6 +156,7 @@ The harness changed after the first run, so the replay was run again on `v1.3-lo
 |---|---|---|---|---|---|
 | neo4j (Neo4j Community 5.26.24 + APOC 5.26.24, tarballs) | 0 | yes (321) | 39/39 | 8/8 `correct` | market [2,0,0] / [0,0,0] / [0,0,0]; shelter [0,2,0] / [0,2,0] / [0,0,0]; relief [1,0,0] / [1,0,0] / [0,0,0] |
 | cypher-interp (no database) | 0 | yes (321) | 39/39 | 8/8 `correct` | identical to neo4j |
+| both (Neo4j of record, interpreter check) | 0 | yes (321) | 39/39 | 8/8 `correct` | identical to neo4j; parity 39/39 `identical` |
 
 These are the same outcomes as §2. None of the 39 snapshot reports holds an FF-P06 row on these tapes, so the counted-row change does not move any number here; the new unit tests cover it. No step is unscored on either engine, and the gate repairs ran exactly on the scripted steps.
 
