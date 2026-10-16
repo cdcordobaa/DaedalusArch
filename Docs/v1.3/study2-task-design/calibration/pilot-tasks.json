@@ -1,0 +1,71 @@
+{
+  "description": "v1.3 loop pilot tasks (exploratory, not Study 2). Defined in Docs/v1.3/pilot-tasks.md before any pilot run; hashed in Docs/v1.3/pilot-outcome-memo.md. Never to be used in Study 2.",
+  "tasks": [
+    {
+      "id": "market-vendors",
+      "title": "Farmers' market vendors",
+      "steps": [
+        {
+          "id": "stalls",
+          "request": "Create a service for a weekly farmers' market. The market organiser defines market days and the stall pitches of the market (number, size, with or without power). Vendors register (business name, contact, products sold) and book a pitch for a market day. A pitch is never booked twice for the same market day, and a vendor holds at most one pitch per market day. Shoppers pay at the stalls with card readers from PayLane, which the market provides; PayLane posts each card sale to a webhook as JSON with the reader id, the amount and the time. The organiser links each reader to a vendor for a market day. A sale from a reader that is not linked to a vendor with a booking on that day is rejected. The service lists each vendor's card sales per market day. Keep the data in memory and expose the operations over HTTP."
+        },
+        {
+          "id": "fees-and-settlement",
+          "request": "Add vendor fees and payouts. Each pitch size has a stall fee per market day, with a surcharge for power, and the market keeps a commission of every card sale (5% by default; the organiser can set a different rate per vendor). A vendor can cancel a booking up to 48 hours before the market day without paying the stall fee. After a market day is closed, the organiser runs its settlement: each vendor's payout is their card sales for the day minus the commission and the stall fee. A payout is never negative: what the vendor still owes is carried into their next settlement. A settled market day can no longer receive sales or booking changes."
+        },
+        {
+          "id": "second-provider",
+          "request": "Some vendors now bring their own card readers from TillWave instead of using PayLane. TillWave does not call us: the service must poll its HTTP API every 15 minutes for new sales. TillWave reports amounts in cents and identifies sellers by its own merchant ids, which the organiser links to vendors. Each vendor uses at most one provider on a market day. TillWave sales go through the same checks, the same commission and the same settlement as PayLane sales, and a sale reported twice is counted once."
+        },
+        {
+          "id": "audit-and-statements",
+          "request": "The market's accountant needs an audit log. Every change to a booking, a fee or commission rate, a card sale or a settlement is recorded with who made it (the organiser id from a request header, or 'system' for provider sales), when, and the values before and after. A change and its audit record are always saved together or not at all. The organiser can list the audit log of one market day, including the changes to its bookings, sales and settlement. Each vendor can download a monthly statement of their bookings, card sales per provider, fees, payouts and carried balance."
+        }
+      ]
+    },
+    {
+      "id": "shelter-adoptions",
+      "title": "Animal shelter adoptions",
+      "steps": [
+        {
+          "id": "adoptions",
+          "request": "Create a service for an animal shelter. Staff register animals (species, name, estimated age, intake date, medical notes) and mark them ready for adoption. Members of the public submit an adoption application for an animal, with their contact details and household information. Staff approve or reject an application. Approving one marks the animal adopted and rejects the animal's other open applications. The applicant gets an e-mail when an application is decided; for now, send e-mails through a fake mail provider that records the messages. Keep the data in memory and expose the operations over HTTP."
+        },
+        {
+          "id": "fostering",
+          "request": "Add a foster network. Volunteers sign up as foster carers, with the number and the species of animals they can host. Staff place an animal with a carer and end the placement. A carer never hosts more animals than their capacity. An animal in foster care can still be adopted: approving its adoption ends the placement and e-mails the carer."
+        },
+        {
+          "id": "sms",
+          "request": "Applicants and carers can now choose to be notified by SMS instead of e-mail. SMS messages go through TextBridge: its HTTP API takes a phone number and a text of at most 160 characters, and it reports each message's delivery later, by calling a webhook of ours. When TextBridge reports a failed delivery, the same notification is sent by e-mail instead. Staff can see the delivery status of every notification."
+        },
+        {
+          "id": "audit-trail",
+          "request": "The shelter needs an audit trail for its licence inspections. Every change to an animal, an application, a foster placement or a notification's delivery status is recorded with who made it (the staff member id from a request header, or 'system' for webhooks), when, and the values before and after. Staff can list the audit trail of one animal, including the changes to its applications and placements, and list every change one staff member made in a date range. A change and its audit record are always saved together or not at all."
+        }
+      ]
+    },
+    {
+      "id": "relief-volunteers",
+      "title": "Disaster-relief volunteer coordination",
+      "steps": [
+        {
+          "id": "registry-and-shifts",
+          "request": "Create a service for a disaster-relief organisation. It has two parts, run by different teams. The volunteer registry keeps volunteers (name, contact, home region) and their skills (first aid, heavy machinery, logistics, translation); a skill may need a certification with a number and an expiry date. First-aid certificates are verified with the MedCert HTTP API by certificate number; a certification its issuer has not confirmed counts as missing. Deployment planning keeps incidents (name, region, start date) and the shifts each incident needs (date, hours, required skill, number of people). A coordinator assigns volunteers to shifts. A shift never has more people than it needs, and a volunteer is never on two overlapping shifts. Keep the data in memory and expose the operations over HTTP."
+        },
+        {
+          "id": "qualified-assignments",
+          "request": "A volunteer may only be assigned to a shift whose required skill they hold, with a certification that is valid on the shift's date. When a certification expires or is withdrawn, the volunteer's future shifts that need it are released and show as open again. Add a list of the open shifts of an incident, with the volunteers who could fill each one."
+        },
+        {
+          "id": "licence-registry",
+          "request": "Heavy-machinery licences must now be verified too. The national licence registry has no API: it publishes a CSV file of the valid licence numbers once a day at a fixed URL, which the service downloads. A heavy-machinery certification is valid only while its number is in the latest file. Re-verify every certification, of either kind, once a day."
+        },
+        {
+          "id": "impact-report",
+          "request": "Funders now require a monthly impact report: for each incident and region, the hours served per skill, the number of distinct volunteers and the share of shift places filled, with the volunteers also counted by home region. Each volunteer can also download a record of their own service hours, showing the certification each shift relied on. The registry and deployment planning must use the same volunteer identifiers and the same skill names."
+        }
+      ]
+    }
+  ]
+}

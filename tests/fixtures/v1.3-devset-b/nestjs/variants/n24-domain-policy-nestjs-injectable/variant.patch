@@ -1,0 +1,14 @@
+--- a/src/domain/registration-policy.ts
++++ b/src/domain/registration-policy.ts
+@@ -1,9 +1,11 @@
++import { Injectable } from '@nestjs/common';
+ import { Attendee } from './attendee';
+ import { DomainError } from './domain-error';
+ import { Registration } from './registration';
+ import { Workshop } from './workshop';
+ 
+ /** Domain service: rules that span a workshop, an attendee and their existing registrations. */
++@Injectable()
+ export class RegistrationPolicy {
+   assertCanRegister(workshop: Workshop, attendee: Attendee, existing: readonly Registration[], now: Date): void {
+     if (workshop.startsAt.getTime() <= now.getTime()) {

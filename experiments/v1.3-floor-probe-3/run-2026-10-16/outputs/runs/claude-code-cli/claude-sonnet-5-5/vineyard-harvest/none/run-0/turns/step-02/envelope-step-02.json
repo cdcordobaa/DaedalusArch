@@ -1,0 +1,121 @@
+{
+  "duration_api_ms": 158142,
+  "stop_reason": "end_turn",
+  "session_id": "1e72152c-a7cb-45af-8709-a008993a22ed",
+  "total_cost_usd": 0.43388730000000003,
+  "usage": {
+    "input_tokens": 26,
+    "cache_creation_input_tokens": 40844,
+    "cache_read_input_tokens": 320393,
+    "output_tokens": 23842,
+    "output_tokens_details": {
+      "thinking_tokens": 1868
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 40844,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 859,
+        "cache_read_input_tokens": 46087,
+        "cache_creation_input_tokens": 669,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 669
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "modelUsage": {
+    "claude-sonnet-5-5": {
+      "inputTokens": 26,
+      "outputTokens": 23842,
+      "cacheReadInputTokens": 320393,
+      "cacheCreationInputTokens": 40844,
+      "webSearchRequests": 0,
+      "costUSD": 0.43388730000000003,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "thinkingTokens": 1868,
+      "canonicalModel": "claude-sonnet-5-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_013W6qMVXCKMzcxNPb7CaouM",
+      "tool_input": {
+        "command": "find . -path ./node_modules -prune -o -type f -print | head -100 && cat package.json && wc -l $(find src -name '*.ts')"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01Q7SppzTEkX5MA3AKp9tf11",
+      "tool_input": {
+        "command": "cd /tmp/claude-0/-home-user-DaedalusArch/a83fccad-843c-5015-8db8-a37911ed0199/scratchpad/out/runs/claude-code-cli/claude-sonnet-5-5/vineyard-harvest/none/run-0/work; for f in package.json $(find src -name '*.ts'); do echo \"=== $f\"; cat $f; done"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_018y2xndUJdVH6enLajUVvdL",
+      "tool_input": {
+        "command": "cd /tmp/claude-0/-home-user-DaedalusArch/a83fccad-843c-5015-8db8-a37911ed0199/scratchpad/out/runs/claude-code-cli/claude-sonnet-5-5/vineyard-harvest/none/run-0/work/src && python3 - <<'EOF'\np='picking/domain/picking-day.ts'\ns=open(p).read()\ns=s.replace(\"  readonly pickerId: string;\\n}\",\"  readonly pickerId: string;\\n  readonly binType?: string;\\n}\",1)\ns=s.replace(\"  private readonly bins = new Map<number, Bin>();\\n\",\"  private readonly bins = new Map<number, Bin>();\\n  private readonly hours = new Map<string, number>(); // pickerId -> hours worked\\n\")\ns=s.replace(\"recordBin(tag: number, blockId: string, pickerId: string): Bin {\",\"recordBin(tag: number, blockId: string, pickerId: string, binType?: string): Bin {\")\ns=s.replace(\"const bin: Bin = { tag, blockId, pickerId };\",\"const bin: Bin = binType === undefined ? { tag, blockId, pickerId } : { tag, blockId, pickerId, binType };\")\ns=s.replace(\"  findBin(\",\"\"\"  setHours(pickerId: string, hours: number): void {\n    if (!Number.isFinite(hours) || hours < 0 || hours > 24) throw new DomainError(\"hours must be between 0 and 24\");\n    this.hours.set(pickerId, hours);\n  }\n\n  hoursOf(pickerId: string): number {\n    return this.hours.get(pickerId) ?? 0;\n  }\n\n  listHours(): { pickerId: string; hours: number }[] {\n    return [...this.hours].map(([pickerId, hours]) => ({ pickerId, hours }));\n  }\n\n  findBin(\"\"\",1)\nopen(p,'w').write(s)\nEOF\ncat > picking/domain/pay.ts <<'EOF'\nimport { DomainError, conflict } from \"../../shared/errors.js\";\n\nexport type BinStatus = \"accepted\" | \"rejected\" | \"pending\";\n\n/** The cellar's verdict on a bin, as picking needs it. */\nexport interface BinOutcome {\n  readonly status: BinStatus;\n  readonly grossKg?: number;\n}\n\nexport interface PayRules {\n  readonly pieceRatePerKg: number;\n  readonly binTareKg: Readonly<Record<string, number>>;\n}\n\nexport interface StatementBin {\n  readonly date: string;\n  readonly tag: number;\n  readonly binType: string | null;\n  readonly status: BinStatus;\n  readonly grossKg: number | null;\n  readonly tareKg: number;\n  readonly netKg: number | null;\n  readonly pay: number;\n}\n\nexport interface StatementDay {\n  readonly date: string;\n  readonly hours: number;\n}\n\nexport interface PayStatement {\n  readonly pickerId: string;\n  readonly pickerName: string;\n  readonly weekStart: string;\n  readonly weekEnd: string;\n  readonly hourlyRate: number;\n  readonly pieceRatePerKg: number;\n  readonly days: StatementDay[];\n  readonly totalHours: number;\n  readonly hoursPay: number;\n  readonly bins: StatementBin[];\n  readonly acceptedNetKg: number;\n  readonly piecePay: number;\n  readonly total: number;\n  readonly approved: boolean;\n}\n\nexport const round2 = (n: number): number => Math.round((n + Number.EPSILON) * 100) / 100;\n\nconst DAY_MS = 86_400_000;\n\nexport function addDays(date: string, n: number): string {\n  return new Date(Date.parse(date) + n * DAY_MS).toISOString().slice(0, 10);\n}\n\n/** Monday of the week containing the date. */\nexport function weekStartOf(date: string): string {\n  const dow = new Date(Date.parse(date)).getUTCDay(); // 0 = Sunday\n  return addDays(date, -((dow + 6) % 7));\n}\n\nexport function weekDates(weekStart: string): string[] {\n  return [0, 1, 2, 3, 4, 5, 6].map((i) => addDays(weekStart, i));\n}\n\nexport function requireWeekStart(date: string): string {\n  if (weekStartOf(date) !== date) throw new DomainError(\"week must be the Monday that starts the week\");\n  return date;\n}\n\nexport function newPayRules(): PayRules {\n  return { pieceRatePerKg: 0, binTareKg: {} };\n}\n\nexport function binStatementLine(\n  date: string,\n  tag: number,\n  binType: string | undefined,\n  outcome: BinOutcome,\n  rules: PayRules,\n): StatementBin {\n  const tareKg = binType === undefined ? 0 : (rules.binTareKg[binType] ?? 0);\n  const known = outcome.grossKg !== undefined;\n  const netKg = known ? Math.max(0, outcome.grossKg! - tareKg) : null;\n  const pay = outcome.status === \"accepted\" && netKg !== null ? round2(netKg * rules.pieceRatePerKg) : 0;\n  return {\n    date,\n    tag,\n    binType: binType ?? null,\n    status: outcome.status,\n    grossKg: outcome.grossKg ?? null,\n    tareKg,\n    netKg,\n    pay,\n  };\n}\n\n/** Aggregate: the approval of one week's pay. Once approved, the statements are frozen. */\nexport class ApprovedWeek {\n  constructor(\n    readonly weekStart: string,\n    readonly approvedAt: string,\n    private readonly statements: PayStatement[],\n  ) {}\n\n  statementFor(pickerId: string): PayStatement | undefined {\n    return this.statements.find((s) => s.pickerId === pickerId);\n  }\n\n  list(): PayStatement[] {\n    return [...this.statements];\n  }\n}\n\nexport function assertWeekOpen(approved: ApprovedWeek | undefined, weekStart: string): void {\n  if (approved) throw conflict(`pay for the week of ${weekStart} is approved and can no longer change`);\n}\nEOF\ncat >> picking/domain/repositories.ts <<'EOF'\n\nexport interface PayRulesRepository {\n  get(): PayRules;\n  save(r: PayRules): void;\n}\nexport interface ApprovedWeekRepository {\n  find(weekStart: string): ApprovedWeek | undefined;\n  save(w: ApprovedWeek): void;\n}\n/** Picking's view of the cellar, implemented by an anti-corruption adapter. */\nexport interface BinOutcomeLookup {\n  find(date: string, tag: number): BinOutcome;\n}\nEOF\nsed -i '1i import type { ApprovedWeek, BinOutcome, PayRules } from \"./pay.js\";' picking/domain/repositories.ts\ncat >> picking/infrastructure/in-memory.ts <<'EOF'\n\nexport class InMemoryPayRulesRepository implements PayRulesRepository {\n  private rules: PayRules = newPayRules();\n  get(): PayRules {\n    return this.rules;\n  }\n  save(r: PayRules): void {\n    this.rules = r;\n  }\n}\n\nexport class InMemoryApprovedWeekRepository implements ApprovedWeekRepository {\n  private readonly weeks = new Map<string, ApprovedWeek>();\n  find(weekStart: string): ApprovedWeek | undefined {\n    return this.weeks.get(weekStart);\n  }\n  save(w: ApprovedWeek): void {\n    this.weeks.set(w.weekStart, w);\n  }\n}\nEOF\npython3 - <<'EOF'\np='picking/infrastructure/in-memory.ts'\ns=open(p).read()\ns=s.replace('import type { BlockRepository, PickerRepository, PickingDayRepository } from \"../domain/repositories.js\";','import { newPayRules, type ApprovedWeek, type PayRules } from \"../domain/pay.js\";\\nimport type {\\n  ApprovedWeekRepository,\\n  BlockRepository,\\n  PayRulesRepository,\\n  PickerRepository,\\n  PickingDayRepository,\\n} from \"../domain/repositories.js\";')\nopen(p,'w').write(s)\nEOF\ncat > cellar/acl/bin-outcomes.ts <<'EOF'\nimport type { CellarService } from \"../application/cellar-service.js\";\n\n/** Published language of the cellar context, consumed by other contexts. */\nexport interface BinOutcomeView {\n  status: \"accepted\" | \"rejected\" | \"pending\";\n  grossKg?: number;\n}\n\nexport class BinOutcomesFacade {\n  constructor(private readonly cellar: CellarService) {}\n\n  lookup(date: string, tag: number): BinOutcomeView {\n    const d = this.cellar.findIntake(date, tag);\n    if (!d) {\n      const w = this.cellar.latestWeighing(tag);\n      return w ? { status: \"pending\", grossKg: w.grossKg } : { status: \"pending\" };\n    }\n    return d.grossKg === undefined ? { status: d.status } : { status: d.status, grossKg: d.grossKg };\n  }\n}\nEOF\npython3 - <<'EOF'\np='cellar/application/cellar-service.ts'\ns=open(p).read()\ns=s.replace(\"  listWeighings()\",\"\"\"  findIntake(date: string, tag: number): IntakeDecision | undefined {\n    return this.intakes.find(date, tag);\n  }\n  latestWeighing(tag: number): Weighing | undefined {\n    return this.weighings.latest(tag);\n  }\n  listWeighings()\"\"\")\nopen(p,'w').write(s)\nEOF\ncat > picking/acl/cellar-adapter.ts <<'EOF'\nimport type { BinOutcomesFacade } from \"../../cellar/acl/bin-outcomes.js\";\nimport type { BinOutcome } from \"../domain/pay.js\";\nimport type { BinOutcomeLookup } from \"../domain/repositories.js\";\n\n/** Translates the cellar's published language into picking's own model. */\nexport class CellarAdapter implements BinOutcomeLookup {\n  constructor(private readonly cellar: BinOutcomesFacade) {}\n\n  find(date: string, tag: number): BinOutcome {\n    const v = this.cellar.lookup(date, tag);\n    return v.grossKg === undefined ? { status: v.status } : { status: v.status, grossKg: v.grossKg };\n  }\n}\nEOF"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subagent_stats": {
+    "spawned": 0,
+    "requested": {
+      "background": 0,
+      "foreground": 0,
+      "unset": 0
+    },
+    "started_in_background": 0,
+    "max_depth": 0,
+    "spawned_by_subagents": 0,
+    "completed": 0,
+    "failed": 0,
+    "killed": {
+      "parent": 0,
+      "user": 0,
+      "system": 0
+    },
+    "refused": {
+      "depth_limit": 0,
+      "concurrency_limit": 0,
+      "budget": 0
+    },
+    "by_type": {}
+  },
+  "safety_stops": 0,
+  "is_error": false,
+  "num_turns": 57,
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "Picker pay is in, and the type-check you specified now passes with no errors. I haven't started the server or run any requests, so none of it has been exercised.\n\nNothing in the existing service covered hours, piece rates, bin types or approval, so I made the following design choices. Tell me if any should change.\n\n**Endpoints (all under `/picking`)**\n- `PUT /days/:date/hours/:pickerId` with `{hours}`: sets the hours a picker worked that day (0–24).\n- `PUT /pay/piece-rate` with `{pieceRatePerKg}`: sets the piece rate.\n- `PUT /pay/bin-types/:binType` with `{tareKg}`: registers a bin type and its tare weight.\n- `GET /pay/rules`: shows the current rates and bin types.\n- `POST /days/:date/bins` now takes an optional `binType`, which must be registered. A bin with no type has zero tare.\n- `GET /pay/weeks/:monday/pickers/:pickerId`: the weekly pay statement for one picker. It lists hours per day, each bin with gross, tare, net and status, and the hours pay, piece pay and total.\n- `GET /pay/weeks/:monday`: statements for every picker with hours or bins that week.\n- `POST /pay/weeks/:monday/approve`: the farm manager's approval.\n\n**Pay rules**\n- Weeks start on Monday, and the week parameter must be a Monday.\n- Piece pay is (gross weight − tare) × rate, and only for bins the cellar accepted.\n- Rejected bins pay nothing. Bins with no cellar decision yet show as `pending` and pay nothing.\n- Amounts are rounded to cents.\n\n**Locking.** Approval saves a frozen copy of every statement for that week. Later cellar changes, rate changes or picker changes don't alter it. Recording hours or bins into an approved week returns 409, as does approving the same week twice. The cellar can still change a bin's decision after approval, but the approved statement won't move.\n\n**Structure**\n- Picking now reads bin decisions and gross weights from the cellar through a new anti-corruption layer. The cellar side is `src/cellar/acl/bin-outcomes.ts`; picking's adapter is `src/picking/acl/cellar-adapter.ts`.\n- The pay logic is in `src/picking/domain/pay.ts` and `src/picking/application/pay-service.ts`.\n- `src/main.ts` wires it all together.\n- `PickingService` now needs two more constructor arguments, the pay-rules and approved-week repositories.",
+  "ttft_ms": 2437,
+  "type": "result",
+  "duration_ms": 160151,
+  "uuid": "9b5d22ad-b75c-481d-ba63-029dad968c97",
+  "ttft_stream_ms": 1248,
+  "time_to_request_ms": 223,
+  "first_content_frame_ms": 1248,
+  "queued_turn_count": 0,
+  "result_index": 0
+}

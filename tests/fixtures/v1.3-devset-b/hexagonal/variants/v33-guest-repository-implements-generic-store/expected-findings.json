@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "variant": "v33-guest-repository-implements-generic-store",
+  "kind": "violation",
+  "plants": "FF-P03",
+  "description": "InMemoryGuestRepository implements KeyValueStore<Guest>, a generic interface in adapters/outbound/shared, instead of the GuestRepository port.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P03",
+      "ruleName": "port-adapter-pattern",
+      "file": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts",
+      "reason": "The repository implements an interface declared in the outbound adapter layer, not a port in the domain or application layer."
+    }
+  ]
+}

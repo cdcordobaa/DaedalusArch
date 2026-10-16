@@ -59,3 +59,26 @@ export function stripComments(content: string): string {
   out += text.slice(at);
   return out.split('\n').map((l, i) => (touched.has(i) ? l.trimEnd() : l)).join('\n');
 }
+
+/**
+ * The comment text on each line a comment touches (0-based line index -> the comment text on that line, several
+ * comments on one line joined by a space). Same scanner as `stripComments`; used by the fixture leakage census.
+ */
+export function commentLineTexts(content: string): Map<number, string> {
+  const text = content.replace(/\r\n/g, '\n');
+  const out = new Map<number, string>();
+  let line = 0;
+  let at = 0;
+  for (const r of commentRanges(text)) {
+    if (r.pos < at) continue;
+    for (let i = at; i < r.pos; i += 1) if (text[i] === '\n') line += 1;
+    const pieces = text.slice(r.pos, r.end).split('\n');
+    pieces.forEach((p, k) => {
+      const prev = out.get(line + k);
+      out.set(line + k, prev === undefined ? p : `${prev} ${p}`);
+    });
+    line += pieces.length - 1;
+    at = r.end;
+  }
+  return out;
+}

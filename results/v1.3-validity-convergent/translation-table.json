@@ -1,0 +1,1989 @@
+{
+ "templateKinds": {
+  "dependency-direction": {
+   "kind": "layer-edge",
+   "view": "literal"
+  },
+  "no-layer-skip": {
+   "kind": "layer-edge",
+   "view": "literal"
+  },
+  "no-domain-outward-dep": {
+   "kind": "layer-edge",
+   "view": "literal"
+  },
+  "dependency-direction-graph": {
+   "kind": "layer-edge",
+   "view": "literal"
+  },
+  "layer-skip-graph": {
+   "kind": "layer-edge",
+   "view": "literal"
+  },
+  "core-isolation": {
+   "kind": "layer-edge",
+   "view": "literal"
+  },
+  "domain-purity": {
+   "kind": "package",
+   "view": "resolved"
+  },
+  "no-cyclic-deps": {
+   "kind": "cycle",
+   "view": "literal"
+  },
+  "no-orphan-files": {
+   "kind": "orphan",
+   "view": "literal"
+  },
+  "max-fan-in": {
+   "kind": "fan-in",
+   "view": "literal"
+  },
+  "context-isolation": {
+   "kind": "context",
+   "view": "literal"
+  },
+  "aggregate-boundary": {
+   "kind": "aggregate",
+   "view": "resolved"
+  },
+  "repository-aggregate-root": {
+   "kind": "repo-aggregate",
+   "view": "resolved"
+  },
+  "bounded-context-modules": {
+   "kind": "unknown-file",
+   "view": "none"
+  }
+ },
+ "capability": {
+  "depcruise": {
+   "layer-edge": null,
+   "package": null,
+   "cycle": null,
+   "orphan": null,
+   "fan-in": null,
+   "context": null,
+   "aggregate": null,
+   "repo-aggregate": null,
+   "unknown-file": "rules constrain dependencies or modules with dependencies; a file that lies in no declared context is not a dependency fact (no rule on file placement alone)"
+  },
+  "boundaries": {
+   "layer-edge": null,
+   "package": null,
+   "cycle": "no cycle rule (cycles are eslint-plugin-import `no-cycle`, a different tool)",
+   "orphan": "per-import lint rule: sees one file's imports, never the whole graph, so \"no file imports this one\" is not expressible",
+   "fan-in": "per-import lint rule: no dependent counts",
+   "context": null,
+   "aggregate": null,
+   "repo-aggregate": null,
+   "unknown-file": null
+  },
+  "archunit": {
+   "layer-edge": null,
+   "package": "the dependency graph holds project files only; imports of packages are dropped (resolved or not), so no rule can name a package",
+   "cycle": null,
+   "orphan": "no orphan rule (file rules are dependency, cycle, naming and placement predicates)",
+   "fan-in": "count metrics are per class (methods, fields, lines, statements); no per-file dependent count",
+   "context": null,
+   "aggregate": null,
+   "repo-aggregate": null,
+   "unknown-file": null
+  }
+ },
+ "unexpressible": {
+  "dependency-inversion": "ratio of interface to concrete constructor-injected dependencies per class against a threshold (CONSTRUCTOR_INJECTS, symbol kinds)",
+  "port-dependency-inversion": "same ratio as dependency-inversion, over the application layers",
+  "repository-pattern": "a repository class in infrastructure must IMPLEMENT a domain interface (class roles, IMPLEMENTS)",
+  "port-adapter-pattern": "an outbound adapter class must IMPLEMENT a port interface of the core (class roles, IMPLEMENTS)",
+  "use-case-isolation": "use-case classes must not constructor-inject other use cases (class roles, CONSTRUCTOR_INJECTS)",
+  "controller-no-entity": "a controller class must not use an entity class (class roles; constructor injection and signature types)",
+  "domain-state-purity": "a domain class must not hold infrastructure state (constructor injection of an infrastructure type; field data flow)",
+  "domain-stability": "Martin instability of the domain layer against a threshold (layer-level metric)",
+  "module-fan-out": "distinct file fan-out over IMPORTS against a threshold (no tool has a fan-out condition)",
+  "component-instability": "Martin instability per file against a threshold (ArchUnitTS instability is per folder/project, not per file, and not filterable to mapped files)",
+  "abstraction-ratio": "abstract classes and interfaces over all classes of the domain against a threshold",
+  "single-responsibility-proxy": "public methods and constructor dependencies per class (ArchUnitTS methodCount counts all methods; no dependency count)",
+  "interface-segregation-proxy": "methods per interface (ArchUnitTS count metrics read classes only)",
+  "inheritance-depth": "class inheritance depth (EXTENDS chains)",
+  "naming-services": "class names of application-layer classes (tools match file names, not declared class names)",
+  "naming-repos": "class names of repository classes (tools match file names, not declared class names)",
+  "test-file-pairing": "existence of a sibling test file (no tool rule on file existence)",
+  "no-index-logic": "statement kinds declared inside index.ts barrels",
+  "value-object-immutability": "mutable members (setters, non-readonly fields) of value-object classes",
+  "domain-event-placement": "classes that implement or extend DomainEvent, outside the domain layer (type hierarchy)",
+  "application-service-thin": "methods per application-service class (ArchUnitTS methodCount is close but counts every class member method of every class in a file, and our CONTAINS counts declared methods; not translated)"
+ },
+ "rows": [
+  {
+   "style": "clean-architecture",
+   "id": "FF-S01",
+   "template": "dependency-direction",
+   "kind": "layer-edge",
+   "view": "literal",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 3
+    },
+    "boundaries": {
+     "translated": true,
+     "units": 3
+    },
+    "archunit": {
+     "translated": true,
+     "units": 3
+    }
+   }
+  },
+  {
+   "style": "clean-architecture",
+   "id": "FF-S02",
+   "template": "no-cyclic-deps",
+   "kind": "cycle",
+   "view": "literal",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 1
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "no cycle rule (cycles are eslint-plugin-import `no-cycle`, a different tool)"
+    },
+    "archunit": {
+     "translated": true,
+     "units": 1
+    }
+   }
+  },
+  {
+   "style": "clean-architecture",
+   "id": "FF-S04",
+   "template": "no-domain-outward-dep",
+   "kind": "layer-edge",
+   "view": "literal",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 2
+    },
+    "boundaries": {
+     "translated": true,
+     "units": 2
+    },
+    "archunit": {
+     "translated": true,
+     "units": 2
+    }
+   }
+  },
+  {
+   "style": "clean-architecture",
+   "id": "FF-P01",
+   "template": "domain-purity",
+   "kind": "package",
+   "view": "resolved",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 1
+    },
+    "boundaries": {
+     "translated": true,
+     "units": 1
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "the dependency graph holds project files only; imports of packages are dropped (resolved or not), so no rule can name a package"
+    }
+   }
+  },
+  {
+   "style": "clean-architecture",
+   "id": "FF-C04",
+   "template": "no-orphan-files",
+   "kind": "orphan",
+   "view": "literal",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 3
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "per-import lint rule: sees one file's imports, never the whole graph, so \"no file imports this one\" is not expressible"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "no orphan rule (file rules are dependency, cycle, naming and placement predicates)"
+    }
+   }
+  },
+  {
+   "style": "clean-architecture",
+   "id": "FF-C05",
+   "template": "max-fan-in",
+   "kind": "fan-in",
+   "view": "literal",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 1
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "per-import lint rule: no dependent counts"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "count metrics are per class (methods, fields, lines, statements); no per-file dependent count"
+    }
+   }
+  },
+  {
+   "style": "clean-architecture",
+   "id": "FF-P02",
+   "template": "dependency-inversion",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "ratio of interface to concrete constructor-injected dependencies per class against a threshold (CONSTRUCTOR_INJECTS, symbol kinds)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "ratio of interface to concrete constructor-injected dependencies per class against a threshold (CONSTRUCTOR_INJECTS, symbol kinds)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "ratio of interface to concrete constructor-injected dependencies per class against a threshold (CONSTRUCTOR_INJECTS, symbol kinds)"
+    }
+   }
+  },
+  {
+   "style": "clean-architecture",
+   "id": "FF-P03",
+   "template": "repository-pattern",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "a repository class in infrastructure must IMPLEMENT a domain interface (class roles, IMPLEMENTS)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "a repository class in infrastructure must IMPLEMENT a domain interface (class roles, IMPLEMENTS)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "a repository class in infrastructure must IMPLEMENT a domain interface (class roles, IMPLEMENTS)"
+    }
+   }
+  },
+  {
+   "style": "clean-architecture",
+   "id": "FF-P04",
+   "template": "use-case-isolation",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "use-case classes must not constructor-inject other use cases (class roles, CONSTRUCTOR_INJECTS)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "use-case classes must not constructor-inject other use cases (class roles, CONSTRUCTOR_INJECTS)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "use-case classes must not constructor-inject other use cases (class roles, CONSTRUCTOR_INJECTS)"
+    }
+   }
+  },
+  {
+   "style": "clean-architecture",
+   "id": "FF-P05",
+   "template": "controller-no-entity",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "a controller class must not use an entity class (class roles; constructor injection and signature types)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "a controller class must not use an entity class (class roles; constructor injection and signature types)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "a controller class must not use an entity class (class roles; constructor injection and signature types)"
+    }
+   }
+  },
+  {
+   "style": "clean-architecture",
+   "id": "FF-P06",
+   "template": "domain-state-purity",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "a domain class must not hold infrastructure state (constructor injection of an infrastructure type; field data flow)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "a domain class must not hold infrastructure state (constructor injection of an infrastructure type; field data flow)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "a domain class must not hold infrastructure state (constructor injection of an infrastructure type; field data flow)"
+    }
+   }
+  },
+  {
+   "style": "clean-architecture",
+   "id": "FF-C01",
+   "template": "domain-stability",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "Martin instability of the domain layer against a threshold (layer-level metric)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "Martin instability of the domain layer against a threshold (layer-level metric)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "Martin instability of the domain layer against a threshold (layer-level metric)"
+    }
+   }
+  },
+  {
+   "style": "clean-architecture",
+   "id": "FF-C02",
+   "template": "module-fan-out",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "distinct file fan-out over IMPORTS against a threshold (no tool has a fan-out condition)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "distinct file fan-out over IMPORTS against a threshold (no tool has a fan-out condition)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "distinct file fan-out over IMPORTS against a threshold (no tool has a fan-out condition)"
+    }
+   }
+  },
+  {
+   "style": "clean-architecture",
+   "id": "FF-C03",
+   "template": "component-instability",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "Martin instability per file against a threshold (ArchUnitTS instability is per folder/project, not per file, and not filterable to mapped files)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "Martin instability per file against a threshold (ArchUnitTS instability is per folder/project, not per file, and not filterable to mapped files)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "Martin instability per file against a threshold (ArchUnitTS instability is per folder/project, not per file, and not filterable to mapped files)"
+    }
+   }
+  },
+  {
+   "style": "clean-architecture",
+   "id": "FF-C06",
+   "template": "abstraction-ratio",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "abstract classes and interfaces over all classes of the domain against a threshold"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "abstract classes and interfaces over all classes of the domain against a threshold"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "abstract classes and interfaces over all classes of the domain against a threshold"
+    }
+   }
+  },
+  {
+   "style": "clean-architecture",
+   "id": "FF-SO01",
+   "template": "single-responsibility-proxy",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "public methods and constructor dependencies per class (ArchUnitTS methodCount counts all methods; no dependency count)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "public methods and constructor dependencies per class (ArchUnitTS methodCount counts all methods; no dependency count)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "public methods and constructor dependencies per class (ArchUnitTS methodCount counts all methods; no dependency count)"
+    }
+   }
+  },
+  {
+   "style": "clean-architecture",
+   "id": "FF-SO02",
+   "template": "interface-segregation-proxy",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "methods per interface (ArchUnitTS count metrics read classes only)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "methods per interface (ArchUnitTS count metrics read classes only)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "methods per interface (ArchUnitTS count metrics read classes only)"
+    }
+   }
+  },
+  {
+   "style": "clean-architecture",
+   "id": "FF-SO03",
+   "template": "inheritance-depth",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "class inheritance depth (EXTENDS chains)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "class inheritance depth (EXTENDS chains)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "class inheritance depth (EXTENDS chains)"
+    }
+   }
+  },
+  {
+   "style": "clean-architecture",
+   "id": "FF-CV02",
+   "template": "naming-services",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "class names of application-layer classes (tools match file names, not declared class names)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "class names of application-layer classes (tools match file names, not declared class names)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "class names of application-layer classes (tools match file names, not declared class names)"
+    }
+   }
+  },
+  {
+   "style": "clean-architecture",
+   "id": "FF-CV03",
+   "template": "naming-repos",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "class names of repository classes (tools match file names, not declared class names)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "class names of repository classes (tools match file names, not declared class names)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "class names of repository classes (tools match file names, not declared class names)"
+    }
+   }
+  },
+  {
+   "style": "clean-architecture",
+   "id": "FF-CV05",
+   "template": "test-file-pairing",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "existence of a sibling test file (no tool rule on file existence)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "existence of a sibling test file (no tool rule on file existence)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "existence of a sibling test file (no tool rule on file existence)"
+    }
+   }
+  },
+  {
+   "style": "clean-architecture",
+   "id": "FF-CV06",
+   "template": "no-index-logic",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "statement kinds declared inside index.ts barrels"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "statement kinds declared inside index.ts barrels"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "statement kinds declared inside index.ts barrels"
+    }
+   }
+  },
+  {
+   "style": "layered",
+   "id": "FF-S01",
+   "template": "dependency-direction",
+   "kind": "layer-edge",
+   "view": "literal",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 3
+    },
+    "boundaries": {
+     "translated": true,
+     "units": 3
+    },
+    "archunit": {
+     "translated": true,
+     "units": 3
+    }
+   }
+  },
+  {
+   "style": "layered",
+   "id": "FF-S02",
+   "template": "no-cyclic-deps",
+   "kind": "cycle",
+   "view": "literal",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 1
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "no cycle rule (cycles are eslint-plugin-import `no-cycle`, a different tool)"
+    },
+    "archunit": {
+     "translated": true,
+     "units": 1
+    }
+   }
+  },
+  {
+   "style": "layered",
+   "id": "FF-S03",
+   "template": "no-layer-skip",
+   "kind": "layer-edge",
+   "view": "literal",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 4
+    },
+    "boundaries": {
+     "translated": true,
+     "units": 4
+    },
+    "archunit": {
+     "translated": true,
+     "units": 4
+    }
+   }
+  },
+  {
+   "style": "layered",
+   "id": "FF-P01",
+   "template": "domain-purity",
+   "kind": "package",
+   "view": "resolved",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 1
+    },
+    "boundaries": {
+     "translated": true,
+     "units": 1
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "the dependency graph holds project files only; imports of packages are dropped (resolved or not), so no rule can name a package"
+    }
+   }
+  },
+  {
+   "style": "layered",
+   "id": "FF-C04",
+   "template": "no-orphan-files",
+   "kind": "orphan",
+   "view": "literal",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 3
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "per-import lint rule: sees one file's imports, never the whole graph, so \"no file imports this one\" is not expressible"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "no orphan rule (file rules are dependency, cycle, naming and placement predicates)"
+    }
+   }
+  },
+  {
+   "style": "layered",
+   "id": "FF-C05",
+   "template": "max-fan-in",
+   "kind": "fan-in",
+   "view": "literal",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 1
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "per-import lint rule: no dependent counts"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "count metrics are per class (methods, fields, lines, statements); no per-file dependent count"
+    }
+   }
+  },
+  {
+   "style": "layered",
+   "id": "FF-C02",
+   "template": "module-fan-out",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "distinct file fan-out over IMPORTS against a threshold (no tool has a fan-out condition)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "distinct file fan-out over IMPORTS against a threshold (no tool has a fan-out condition)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "distinct file fan-out over IMPORTS against a threshold (no tool has a fan-out condition)"
+    }
+   }
+  },
+  {
+   "style": "layered",
+   "id": "FF-C03",
+   "template": "component-instability",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "Martin instability per file against a threshold (ArchUnitTS instability is per folder/project, not per file, and not filterable to mapped files)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "Martin instability per file against a threshold (ArchUnitTS instability is per folder/project, not per file, and not filterable to mapped files)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "Martin instability per file against a threshold (ArchUnitTS instability is per folder/project, not per file, and not filterable to mapped files)"
+    }
+   }
+  },
+  {
+   "style": "layered",
+   "id": "FF-C06",
+   "template": "abstraction-ratio",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "abstract classes and interfaces over all classes of the domain against a threshold"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "abstract classes and interfaces over all classes of the domain against a threshold"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "abstract classes and interfaces over all classes of the domain against a threshold"
+    }
+   }
+  },
+  {
+   "style": "layered",
+   "id": "FF-SO01",
+   "template": "single-responsibility-proxy",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "public methods and constructor dependencies per class (ArchUnitTS methodCount counts all methods; no dependency count)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "public methods and constructor dependencies per class (ArchUnitTS methodCount counts all methods; no dependency count)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "public methods and constructor dependencies per class (ArchUnitTS methodCount counts all methods; no dependency count)"
+    }
+   }
+  },
+  {
+   "style": "layered",
+   "id": "FF-SO02",
+   "template": "interface-segregation-proxy",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "methods per interface (ArchUnitTS count metrics read classes only)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "methods per interface (ArchUnitTS count metrics read classes only)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "methods per interface (ArchUnitTS count metrics read classes only)"
+    }
+   }
+  },
+  {
+   "style": "layered",
+   "id": "FF-SO03",
+   "template": "inheritance-depth",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "class inheritance depth (EXTENDS chains)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "class inheritance depth (EXTENDS chains)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "class inheritance depth (EXTENDS chains)"
+    }
+   }
+  },
+  {
+   "style": "layered",
+   "id": "FF-CV03",
+   "template": "naming-repos",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "class names of repository classes (tools match file names, not declared class names)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "class names of repository classes (tools match file names, not declared class names)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "class names of repository classes (tools match file names, not declared class names)"
+    }
+   }
+  },
+  {
+   "style": "layered",
+   "id": "FF-CV05",
+   "template": "test-file-pairing",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "existence of a sibling test file (no tool rule on file existence)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "existence of a sibling test file (no tool rule on file existence)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "existence of a sibling test file (no tool rule on file existence)"
+    }
+   }
+  },
+  {
+   "style": "layered",
+   "id": "FF-CV06",
+   "template": "no-index-logic",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "statement kinds declared inside index.ts barrels"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "statement kinds declared inside index.ts barrels"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "statement kinds declared inside index.ts barrels"
+    }
+   }
+  },
+  {
+   "style": "nestjs",
+   "id": "FF-S01",
+   "template": "dependency-direction",
+   "kind": "layer-edge",
+   "view": "literal",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 18
+    },
+    "boundaries": {
+     "translated": true,
+     "units": 6
+    },
+    "archunit": {
+     "translated": true,
+     "units": 18
+    }
+   }
+  },
+  {
+   "style": "nestjs",
+   "id": "FF-S02",
+   "template": "no-cyclic-deps",
+   "kind": "cycle",
+   "view": "literal",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 1
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "no cycle rule (cycles are eslint-plugin-import `no-cycle`, a different tool)"
+    },
+    "archunit": {
+     "translated": true,
+     "units": 1
+    }
+   }
+  },
+  {
+   "style": "nestjs",
+   "id": "FF-S04",
+   "template": "no-domain-outward-dep",
+   "kind": "layer-edge",
+   "view": "literal",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 6
+    },
+    "boundaries": {
+     "translated": true,
+     "units": 3
+    },
+    "archunit": {
+     "translated": true,
+     "units": 6
+    }
+   }
+  },
+  {
+   "style": "nestjs",
+   "id": "FF-P01",
+   "template": "domain-purity",
+   "kind": "package",
+   "view": "resolved",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 1
+    },
+    "boundaries": {
+     "translated": true,
+     "units": 1
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "the dependency graph holds project files only; imports of packages are dropped (resolved or not), so no rule can name a package"
+    }
+   }
+  },
+  {
+   "style": "nestjs",
+   "id": "FF-C04",
+   "template": "no-orphan-files",
+   "kind": "orphan",
+   "view": "literal",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 7
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "per-import lint rule: sees one file's imports, never the whole graph, so \"no file imports this one\" is not expressible"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "no orphan rule (file rules are dependency, cycle, naming and placement predicates)"
+    }
+   }
+  },
+  {
+   "style": "nestjs",
+   "id": "FF-C05",
+   "template": "max-fan-in",
+   "kind": "fan-in",
+   "view": "literal",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 1
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "per-import lint rule: no dependent counts"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "count metrics are per class (methods, fields, lines, statements); no per-file dependent count"
+    }
+   }
+  },
+  {
+   "style": "nestjs",
+   "id": "FF-P02",
+   "template": "dependency-inversion",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "ratio of interface to concrete constructor-injected dependencies per class against a threshold (CONSTRUCTOR_INJECTS, symbol kinds)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "ratio of interface to concrete constructor-injected dependencies per class against a threshold (CONSTRUCTOR_INJECTS, symbol kinds)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "ratio of interface to concrete constructor-injected dependencies per class against a threshold (CONSTRUCTOR_INJECTS, symbol kinds)"
+    }
+   }
+  },
+  {
+   "style": "nestjs",
+   "id": "FF-P03",
+   "template": "repository-pattern",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "a repository class in infrastructure must IMPLEMENT a domain interface (class roles, IMPLEMENTS)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "a repository class in infrastructure must IMPLEMENT a domain interface (class roles, IMPLEMENTS)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "a repository class in infrastructure must IMPLEMENT a domain interface (class roles, IMPLEMENTS)"
+    }
+   }
+  },
+  {
+   "style": "nestjs",
+   "id": "FF-P04",
+   "template": "use-case-isolation",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "use-case classes must not constructor-inject other use cases (class roles, CONSTRUCTOR_INJECTS)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "use-case classes must not constructor-inject other use cases (class roles, CONSTRUCTOR_INJECTS)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "use-case classes must not constructor-inject other use cases (class roles, CONSTRUCTOR_INJECTS)"
+    }
+   }
+  },
+  {
+   "style": "nestjs",
+   "id": "FF-P05",
+   "template": "controller-no-entity",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "a controller class must not use an entity class (class roles; constructor injection and signature types)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "a controller class must not use an entity class (class roles; constructor injection and signature types)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "a controller class must not use an entity class (class roles; constructor injection and signature types)"
+    }
+   }
+  },
+  {
+   "style": "nestjs",
+   "id": "FF-P06",
+   "template": "domain-state-purity",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "a domain class must not hold infrastructure state (constructor injection of an infrastructure type; field data flow)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "a domain class must not hold infrastructure state (constructor injection of an infrastructure type; field data flow)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "a domain class must not hold infrastructure state (constructor injection of an infrastructure type; field data flow)"
+    }
+   }
+  },
+  {
+   "style": "nestjs",
+   "id": "FF-C01",
+   "template": "domain-stability",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "Martin instability of the domain layer against a threshold (layer-level metric)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "Martin instability of the domain layer against a threshold (layer-level metric)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "Martin instability of the domain layer against a threshold (layer-level metric)"
+    }
+   }
+  },
+  {
+   "style": "nestjs",
+   "id": "FF-C02",
+   "template": "module-fan-out",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "distinct file fan-out over IMPORTS against a threshold (no tool has a fan-out condition)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "distinct file fan-out over IMPORTS against a threshold (no tool has a fan-out condition)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "distinct file fan-out over IMPORTS against a threshold (no tool has a fan-out condition)"
+    }
+   }
+  },
+  {
+   "style": "nestjs",
+   "id": "FF-C03",
+   "template": "component-instability",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "Martin instability per file against a threshold (ArchUnitTS instability is per folder/project, not per file, and not filterable to mapped files)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "Martin instability per file against a threshold (ArchUnitTS instability is per folder/project, not per file, and not filterable to mapped files)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "Martin instability per file against a threshold (ArchUnitTS instability is per folder/project, not per file, and not filterable to mapped files)"
+    }
+   }
+  },
+  {
+   "style": "nestjs",
+   "id": "FF-C06",
+   "template": "abstraction-ratio",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "abstract classes and interfaces over all classes of the domain against a threshold"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "abstract classes and interfaces over all classes of the domain against a threshold"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "abstract classes and interfaces over all classes of the domain against a threshold"
+    }
+   }
+  },
+  {
+   "style": "nestjs",
+   "id": "FF-SO01",
+   "template": "single-responsibility-proxy",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "public methods and constructor dependencies per class (ArchUnitTS methodCount counts all methods; no dependency count)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "public methods and constructor dependencies per class (ArchUnitTS methodCount counts all methods; no dependency count)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "public methods and constructor dependencies per class (ArchUnitTS methodCount counts all methods; no dependency count)"
+    }
+   }
+  },
+  {
+   "style": "nestjs",
+   "id": "FF-SO02",
+   "template": "interface-segregation-proxy",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "methods per interface (ArchUnitTS count metrics read classes only)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "methods per interface (ArchUnitTS count metrics read classes only)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "methods per interface (ArchUnitTS count metrics read classes only)"
+    }
+   }
+  },
+  {
+   "style": "nestjs",
+   "id": "FF-SO03",
+   "template": "inheritance-depth",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "class inheritance depth (EXTENDS chains)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "class inheritance depth (EXTENDS chains)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "class inheritance depth (EXTENDS chains)"
+    }
+   }
+  },
+  {
+   "style": "nestjs",
+   "id": "FF-CV02",
+   "template": "naming-services",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "class names of application-layer classes (tools match file names, not declared class names)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "class names of application-layer classes (tools match file names, not declared class names)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "class names of application-layer classes (tools match file names, not declared class names)"
+    }
+   }
+  },
+  {
+   "style": "nestjs",
+   "id": "FF-CV03",
+   "template": "naming-repos",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "class names of repository classes (tools match file names, not declared class names)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "class names of repository classes (tools match file names, not declared class names)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "class names of repository classes (tools match file names, not declared class names)"
+    }
+   }
+  },
+  {
+   "style": "nestjs",
+   "id": "FF-CV05",
+   "template": "test-file-pairing",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "existence of a sibling test file (no tool rule on file existence)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "existence of a sibling test file (no tool rule on file existence)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "existence of a sibling test file (no tool rule on file existence)"
+    }
+   }
+  },
+  {
+   "style": "nestjs",
+   "id": "FF-CV06",
+   "template": "no-index-logic",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "statement kinds declared inside index.ts barrels"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "statement kinds declared inside index.ts barrels"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "statement kinds declared inside index.ts barrels"
+    }
+   }
+  },
+  {
+   "style": "hexagonal",
+   "id": "FF-S01",
+   "template": "dependency-direction-graph",
+   "kind": "layer-edge",
+   "view": "literal",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 9
+    },
+    "boundaries": {
+     "translated": true,
+     "units": 9
+    },
+    "archunit": {
+     "translated": true,
+     "units": 9
+    }
+   }
+  },
+  {
+   "style": "hexagonal",
+   "id": "FF-S02",
+   "template": "no-cyclic-deps",
+   "kind": "cycle",
+   "view": "literal",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 1
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "no cycle rule (cycles are eslint-plugin-import `no-cycle`, a different tool)"
+    },
+    "archunit": {
+     "translated": true,
+     "units": 1
+    }
+   }
+  },
+  {
+   "style": "hexagonal",
+   "id": "FF-S03",
+   "template": "layer-skip-graph",
+   "kind": "layer-edge",
+   "view": "literal",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 2
+    },
+    "boundaries": {
+     "translated": true,
+     "units": 2
+    },
+    "archunit": {
+     "translated": true,
+     "units": 2
+    }
+   }
+  },
+  {
+   "style": "hexagonal",
+   "id": "FF-S04",
+   "template": "core-isolation",
+   "kind": "layer-edge",
+   "view": "literal",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 4
+    },
+    "boundaries": {
+     "translated": true,
+     "units": 4
+    },
+    "archunit": {
+     "translated": true,
+     "units": 4
+    }
+   }
+  },
+  {
+   "style": "hexagonal",
+   "id": "FF-P01",
+   "template": "domain-purity",
+   "kind": "package",
+   "view": "resolved",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 1
+    },
+    "boundaries": {
+     "translated": true,
+     "units": 1
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "the dependency graph holds project files only; imports of packages are dropped (resolved or not), so no rule can name a package"
+    }
+   }
+  },
+  {
+   "style": "hexagonal",
+   "id": "FF-C04",
+   "template": "no-orphan-files",
+   "kind": "orphan",
+   "view": "literal",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 5
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "per-import lint rule: sees one file's imports, never the whole graph, so \"no file imports this one\" is not expressible"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "no orphan rule (file rules are dependency, cycle, naming and placement predicates)"
+    }
+   }
+  },
+  {
+   "style": "hexagonal",
+   "id": "FF-C05",
+   "template": "max-fan-in",
+   "kind": "fan-in",
+   "view": "literal",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 1
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "per-import lint rule: no dependent counts"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "count metrics are per class (methods, fields, lines, statements); no per-file dependent count"
+    }
+   }
+  },
+  {
+   "style": "hexagonal",
+   "id": "FF-P02",
+   "template": "port-dependency-inversion",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "same ratio as dependency-inversion, over the application layers"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "same ratio as dependency-inversion, over the application layers"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "same ratio as dependency-inversion, over the application layers"
+    }
+   }
+  },
+  {
+   "style": "hexagonal",
+   "id": "FF-P03",
+   "template": "port-adapter-pattern",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "an outbound adapter class must IMPLEMENT a port interface of the core (class roles, IMPLEMENTS)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "an outbound adapter class must IMPLEMENT a port interface of the core (class roles, IMPLEMENTS)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "an outbound adapter class must IMPLEMENT a port interface of the core (class roles, IMPLEMENTS)"
+    }
+   }
+  },
+  {
+   "style": "hexagonal",
+   "id": "FF-P06",
+   "template": "domain-state-purity",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "a domain class must not hold infrastructure state (constructor injection of an infrastructure type; field data flow)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "a domain class must not hold infrastructure state (constructor injection of an infrastructure type; field data flow)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "a domain class must not hold infrastructure state (constructor injection of an infrastructure type; field data flow)"
+    }
+   }
+  },
+  {
+   "style": "hexagonal",
+   "id": "FF-C02",
+   "template": "module-fan-out",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "distinct file fan-out over IMPORTS against a threshold (no tool has a fan-out condition)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "distinct file fan-out over IMPORTS against a threshold (no tool has a fan-out condition)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "distinct file fan-out over IMPORTS against a threshold (no tool has a fan-out condition)"
+    }
+   }
+  },
+  {
+   "style": "hexagonal",
+   "id": "FF-C03",
+   "template": "component-instability",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "Martin instability per file against a threshold (ArchUnitTS instability is per folder/project, not per file, and not filterable to mapped files)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "Martin instability per file against a threshold (ArchUnitTS instability is per folder/project, not per file, and not filterable to mapped files)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "Martin instability per file against a threshold (ArchUnitTS instability is per folder/project, not per file, and not filterable to mapped files)"
+    }
+   }
+  },
+  {
+   "style": "hexagonal",
+   "id": "FF-C06",
+   "template": "abstraction-ratio",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "abstract classes and interfaces over all classes of the domain against a threshold"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "abstract classes and interfaces over all classes of the domain against a threshold"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "abstract classes and interfaces over all classes of the domain against a threshold"
+    }
+   }
+  },
+  {
+   "style": "hexagonal",
+   "id": "FF-SO01",
+   "template": "single-responsibility-proxy",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "public methods and constructor dependencies per class (ArchUnitTS methodCount counts all methods; no dependency count)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "public methods and constructor dependencies per class (ArchUnitTS methodCount counts all methods; no dependency count)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "public methods and constructor dependencies per class (ArchUnitTS methodCount counts all methods; no dependency count)"
+    }
+   }
+  },
+  {
+   "style": "hexagonal",
+   "id": "FF-SO02",
+   "template": "interface-segregation-proxy",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "methods per interface (ArchUnitTS count metrics read classes only)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "methods per interface (ArchUnitTS count metrics read classes only)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "methods per interface (ArchUnitTS count metrics read classes only)"
+    }
+   }
+  },
+  {
+   "style": "hexagonal",
+   "id": "FF-SO03",
+   "template": "inheritance-depth",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "class inheritance depth (EXTENDS chains)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "class inheritance depth (EXTENDS chains)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "class inheritance depth (EXTENDS chains)"
+    }
+   }
+  },
+  {
+   "style": "hexagonal",
+   "id": "FF-CV02",
+   "template": "naming-services",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "class names of application-layer classes (tools match file names, not declared class names)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "class names of application-layer classes (tools match file names, not declared class names)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "class names of application-layer classes (tools match file names, not declared class names)"
+    }
+   }
+  },
+  {
+   "style": "hexagonal",
+   "id": "FF-CV03",
+   "template": "naming-repos",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "class names of repository classes (tools match file names, not declared class names)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "class names of repository classes (tools match file names, not declared class names)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "class names of repository classes (tools match file names, not declared class names)"
+    }
+   }
+  },
+  {
+   "style": "hexagonal",
+   "id": "FF-CV05",
+   "template": "test-file-pairing",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "existence of a sibling test file (no tool rule on file existence)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "existence of a sibling test file (no tool rule on file existence)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "existence of a sibling test file (no tool rule on file existence)"
+    }
+   }
+  },
+  {
+   "style": "hexagonal",
+   "id": "FF-CV06",
+   "template": "no-index-logic",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "statement kinds declared inside index.ts barrels"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "statement kinds declared inside index.ts barrels"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "statement kinds declared inside index.ts barrels"
+    }
+   }
+  },
+  {
+   "style": "ddd",
+   "id": "FF-DS01",
+   "template": "bounded-context-modules",
+   "kind": "unknown-file",
+   "view": "none",
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "rules constrain dependencies or modules with dependencies; a file that lies in no declared context is not a dependency fact (no rule on file placement alone)"
+    },
+    "boundaries": {
+     "translated": true,
+     "units": 1
+    },
+    "archunit": {
+     "translated": true,
+     "units": 1
+    }
+   }
+  },
+  {
+   "style": "ddd",
+   "id": "FF-DS02",
+   "template": "context-isolation",
+   "kind": "context",
+   "view": "literal",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 2
+    },
+    "boundaries": {
+     "translated": true,
+     "units": 2
+    },
+    "archunit": {
+     "translated": true,
+     "units": 2
+    }
+   }
+  },
+  {
+   "style": "ddd",
+   "id": "FF-DT01",
+   "template": "aggregate-boundary",
+   "kind": "aggregate",
+   "view": "resolved",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 2
+    },
+    "boundaries": {
+     "translated": true,
+     "units": 2
+    },
+    "archunit": {
+     "translated": true,
+     "units": 2
+    }
+   }
+  },
+  {
+   "style": "ddd",
+   "id": "FF-DT02",
+   "template": "repository-aggregate-root",
+   "kind": "repo-aggregate",
+   "view": "resolved",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 1
+    },
+    "boundaries": {
+     "translated": true,
+     "units": 1
+    },
+    "archunit": {
+     "translated": true,
+     "units": 1
+    }
+   }
+  },
+  {
+   "style": "ddd",
+   "id": "FF-DT04",
+   "template": "domain-purity",
+   "kind": "package",
+   "view": "resolved",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 1
+    },
+    "boundaries": {
+     "translated": true,
+     "units": 1
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "the dependency graph holds project files only; imports of packages are dropped (resolved or not), so no rule can name a package"
+    }
+   }
+  },
+  {
+   "style": "ddd",
+   "id": "FF-S01",
+   "template": "dependency-direction-graph",
+   "kind": "layer-edge",
+   "view": "literal",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 9
+    },
+    "boundaries": {
+     "translated": true,
+     "units": 9
+    },
+    "archunit": {
+     "translated": true,
+     "units": 9
+    }
+   }
+  },
+  {
+   "style": "ddd",
+   "id": "FF-S03",
+   "template": "layer-skip-graph",
+   "kind": "layer-edge",
+   "view": "literal",
+   "tools": {
+    "depcruise": {
+     "translated": true,
+     "units": 2
+    },
+    "boundaries": {
+     "translated": true,
+     "units": 2
+    },
+    "archunit": {
+     "translated": true,
+     "units": 2
+    }
+   }
+  },
+  {
+   "style": "ddd",
+   "id": "FF-DT03",
+   "template": "value-object-immutability",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "mutable members (setters, non-readonly fields) of value-object classes"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "mutable members (setters, non-readonly fields) of value-object classes"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "mutable members (setters, non-readonly fields) of value-object classes"
+    }
+   }
+  },
+  {
+   "style": "ddd",
+   "id": "FF-DT05",
+   "template": "domain-event-placement",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "classes that implement or extend DomainEvent, outside the domain layer (type hierarchy)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "classes that implement or extend DomainEvent, outside the domain layer (type hierarchy)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "classes that implement or extend DomainEvent, outside the domain layer (type hierarchy)"
+    }
+   }
+  },
+  {
+   "style": "ddd",
+   "id": "FF-DT06",
+   "template": "application-service-thin",
+   "kind": null,
+   "view": null,
+   "tools": {
+    "depcruise": {
+     "translated": false,
+     "reason": "methods per application-service class (ArchUnitTS methodCount is close but counts every class member method of every class in a file, and our CONTAINS counts declared methods; not translated)"
+    },
+    "boundaries": {
+     "translated": false,
+     "reason": "methods per application-service class (ArchUnitTS methodCount is close but counts every class member method of every class in a file, and our CONTAINS counts declared methods; not translated)"
+    },
+    "archunit": {
+     "translated": false,
+     "reason": "methods per application-service class (ArchUnitTS methodCount is close but counts every class member method of every class in a file, and our CONTAINS counts declared methods; not translated)"
+    }
+   }
+  }
+ ]
+}
