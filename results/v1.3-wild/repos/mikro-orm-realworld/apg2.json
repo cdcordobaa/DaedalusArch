@@ -1,0 +1,214 @@
+{
+ "id": "mikro-orm-realworld",
+ "stats": {
+  "signatureUses": 71,
+  "components": 11,
+  "componentSource": "declared",
+  "dependsOn": 8,
+  "deepImports": 0,
+  "exportsSymbol": 0,
+  "channels": 0,
+  "async": {
+   "publishes": 0,
+   "subscribes": 0,
+   "dynamicNames": 0
+  },
+  "io": {
+   "byCategory": {
+    "db": 0,
+    "http-out": 0,
+    "fs": 0,
+    "env": 0,
+    "clock": 7,
+    "random": 1,
+    "process": 0
+   }
+  },
+  "timingsMs": {
+   "typeFlow": 11,
+   "components": 4.9,
+   "async": 61.6,
+   "io": 30.7
+  }
+ },
+ "params": {
+  "domainLayer": "domain",
+  "applicationLayers": [
+   "application"
+  ],
+  "infraLayer": "infrastructure",
+  "controllerLayer": "presentation",
+  "threshold": 0.7,
+  "allowedAsync": [],
+  "compositionRootLayers": [],
+  "compositionRootPatterns": [
+   "^(?:.*/)?(?:main|bootstrap|composition-root|compositionRoot|container|di)\\.(?:ts|tsx|mts|cts)$",
+   "^(?:.*/)?[^/]+\\.(?:module|container)\\.(?:ts|tsx|mts|cts)$"
+  ],
+  "testPatterns": [
+   "^(?:.*/)?[^/]*\\.(?:spec|test)\\.(?:ts|tsx|mts|cts)$",
+   "^(?:.*/)?(?:__tests__|__mocks__|test|tests)/.*$",
+   "^(?:.*/)?[Tt]est[A-Z._-][^/]*$"
+  ],
+  "aclPatterns": [],
+  "minTypes": 4
+ },
+ "components": [
+  {
+   "name": "domain",
+   "kind": "layer"
+  },
+  {
+   "name": "infrastructure",
+   "kind": "layer"
+  },
+  {
+   "name": "application",
+   "kind": "layer"
+  },
+  {
+   "name": "presentation",
+   "kind": "layer"
+  },
+  {
+   "name": "article",
+   "kind": "folder"
+  },
+  {
+   "name": "migrations",
+   "kind": "folder"
+  },
+  {
+   "name": "profile",
+   "kind": "folder"
+  },
+  {
+   "name": "seeders",
+   "kind": "folder"
+  },
+  {
+   "name": "shared",
+   "kind": "folder"
+  },
+  {
+   "name": "tag",
+   "kind": "folder"
+  },
+  {
+   "name": "user",
+   "kind": "folder"
+  }
+ ],
+ "parseCoverage": {
+  "total": 39,
+  "parsed": 39
+ },
+ "importResolution": {
+  "resolvedInternal": 76,
+  "external": 67,
+  "externalOutOfRootAlias": 0,
+  "unresolved": 4,
+  "droppedNoFileNode": 0,
+  "unsupportedDynamic": 0
+ },
+ "counts": {
+  "boundary-type-leak": 0,
+  "component-adp-cycle": 2,
+  "component-sdp-violation": 1,
+  "component-main-sequence-distance": 0,
+  "deep-import-declared-api": 0,
+  "deep-import-inferred-api": 0,
+  "undeclared-async-coupling": 0,
+  "io-outside-adapters": 0,
+  "nondeterminism-in-core": 1
+ },
+ "rows": {
+  "boundary-type-leak": [],
+  "component-adp-cycle": [
+   {
+    "component": "article",
+    "target": "user",
+    "kind": "folder",
+    "imports": 8,
+    "filePath": "article",
+    "_file": "src/article/article.controller.ts",
+    "_line": 4,
+    "_evidence": [
+     {
+      "file": "src/article/article.controller.ts",
+      "target": "src/user/user.decorator.ts",
+      "line": 4
+     },
+     {
+      "file": "src/article/article.controller.ts",
+      "target": "src/user/user.entity.ts",
+      "line": 5
+     },
+     {
+      "file": "src/article/article.entity.ts",
+      "target": "src/user/user.entity.ts",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "component": "user",
+    "target": "article",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "user",
+    "_file": "src/user/user.entity.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/user/user.entity.ts",
+      "target": "src/article/article.entity.ts",
+      "line": 5
+     }
+    ]
+   }
+  ],
+  "component-sdp-violation": [
+   {
+    "component": "user",
+    "target": "article",
+    "kind": "folder",
+    "fromInstability": 0.182,
+    "toInstability": 0.833,
+    "filePath": "user",
+    "_file": "src/user/user.entity.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/user/user.entity.ts",
+      "target": "src/article/article.entity.ts",
+      "line": 5
+     }
+    ]
+   }
+  ],
+  "component-main-sequence-distance": [],
+  "deep-import-declared-api": [],
+  "deep-import-inferred-api": [],
+  "undeclared-async-coupling": [],
+  "io-outside-adapters": [],
+  "nondeterminism-in-core": [
+   {
+    "filePath": "src/user/user.service.ts",
+    "member": "UserService.generateJWT",
+    "layer": "application",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 105,
+    "lines": [
+     105
+    ],
+    "_file": "src/user/user.service.ts",
+    "_line": 105,
+    "_importGraphSees": false
+   }
+  ]
+ }
+}

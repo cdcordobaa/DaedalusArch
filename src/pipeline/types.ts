@@ -5,6 +5,8 @@ import type { GraphMode } from '../apg-extractor/types.js';
 import type { InstrumentVersion } from '../fitness-compiler/role-exemptions.js';
 import type { NeuralAggregation } from '../scoring-engine/neural-aggregation.js';
 import type { ScoringMode } from '../shared/types/evaluation.js';
+import type { GraphRepository } from '../shared/interfaces/graph-repository.js';
+import type { GraphEngine } from '../cypher-interp/engine.js';
 
 export interface PipelineConfig {
   readonly projectPath: string;
@@ -24,6 +26,13 @@ export interface PipelineConfig {
   readonly graphMode?: GraphMode | undefined;
   /** ADR-032: explicit tsconfig for the extractor (E1 cells: the pinned per-run tsconfig); absent = `<project>/tsconfig.json`. */
   readonly tsconfigPath?: string | undefined;
+  /** MT-B1 (OFF by default): `ExtractorOptions.resolvedEdgesInLiteralView`. Absent or false = the v1.3 default graph. */
+  readonly resolvedEdgesInLiteralView?: boolean | undefined;
+  /**
+   * MT-B1 graph-build fix (OFF by default, Docs/DiagnosticRuns/v1.3-mtb1-fix-2026-10-16.md): at ingestion, an import's
+   * resolved edge through barrels that have no layer (and are no declared DDD public API/ACL) joins the literal view.
+   */
+  readonly literalThroughLayerlessBarrels?: boolean | undefined;
   /** Symbolic instrument version (ADR-026): 1 = no role exemptions; default 2. */
   readonly instrumentVersion?: InstrumentVersion | undefined;
   /** Neural aggregation of the AHS fields (ADR-028): `registered` (default, primary) or `proportional`. */
@@ -33,6 +42,15 @@ export interface PipelineConfig {
    * command and the MCP `evaluate_project` tool pass `v1.3` unless told otherwise.
    */
   readonly scoringMode?: ScoringMode | undefined;
+  /**
+   * Graph engine (v1.3 spike, Docs/v1.3/cypher-interpreter.md): `neo4j` (default, the reference engine) or
+   * `cypher-interp` (the in-process Cypher interpreter over an in-memory graph; no server, no credentials).
+   */
+  readonly graphEngine?: GraphEngine | undefined;
+  /** Harness injection (the parity tee): this repository is used instead of the one `graphEngine` selects. */
+  readonly graphRepository?: GraphRepository | undefined;
+  /** v1.3 npx mode (MCP template checks): in-memory file contents for extraction (absolute path; `null` = removed). */
+  readonly sourceOverrides?: ReadonlyMap<string, string | null> | undefined;
 }
 
 export type OutputFormat = 'json' | 'human' | 'csv';
@@ -57,6 +75,8 @@ export interface BatchOptions {
   readonly neo4jUri: string;
   readonly symbolicOnly: boolean;
   readonly neuronalOnly: boolean;
+  /** Graph engine of every project's pipeline; absent = `neo4j` (the CLI passes its resolved default). */
+  readonly graphEngine?: GraphEngine | undefined;
 }
 
 export interface DriftOptions {
@@ -67,6 +87,8 @@ export interface DriftOptions {
   readonly format: 'json' | 'human';
   readonly neo4jUri: string;
   readonly persist: boolean;
+  /** Graph engine of the fresh evaluation (latest-vs-current); absent = `neo4j`. */
+  readonly graphEngine?: GraphEngine | undefined;
 }
 
 // Moved to C10 (FR-14); re-exported here for existing importers

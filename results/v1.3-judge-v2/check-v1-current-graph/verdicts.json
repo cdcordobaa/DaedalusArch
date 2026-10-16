@@ -1,0 +1,194 @@
+{
+  "split": "CHECK",
+  "runs": 3,
+  "judgeVersion": "v1",
+  "revision": "v1-frozen",
+  "judgeV2Sha256": "0add6562061d6eb7b2466cbeb5c1d194e896c91b77f337fd6239584ff40145f3",
+  "complete": true,
+  "verdicts": [
+    {
+      "itemId": "r1|antipattern-nest__AP-PERSIST-IN-DOMAINn__0|FF-N02|src/invoice/invoice.entity.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.72,
+          "violations": [
+            {
+              "filePath": "src/invoice/invoice.entity.ts",
+              "message": "Class InvoiceEntity defines how invoices are stored in the database (@Entity('invoices') sets the table name, @PrimaryGeneratedColumn('uuid') has the database create the id, @Column() maps orderId and amount to columns). This storage mapping belongs in the infrastructure layer, not in a domain file."
+            }
+          ],
+          "reasoning": "src/invoice/invoice.entity.ts is in the domain layer, but its class mostly defines how invoices are stored in the database. That is persistence work, which belongs to the infrastructure layer. The @Entity('invoices') decorator names the database table. @PrimaryGeneratedColumn('uuid') says the database creates the id as a UUID. @Column() maps the orderId and amount fields to columns. The only behaviour, hasId(), just checks whether the database has assigned an id yet. That reflects persistence state, not a business rule. The rubric names persistence logic in a domain file as a failure. The import of typeorm is not judged here because import direction is out of scope; the failure rests on what the file does, which is storage mapping. Confidence is moderate because the layer model puts all *.entity.ts files in the domain layer, so the project may knowingly accept ORM entities as domain objects."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.72,
+          "violations": [
+            {
+              "filePath": "src/invoice/invoice.entity.ts",
+              "message": "Domain class InvoiceEntity does persistence mapping: @Entity('invoices') maps it to a table, @PrimaryGeneratedColumn('uuid') sets database key generation, and @Column() maps orderId and amount to columns. This ORM schema work belongs in the infrastructure layer, not domain."
+            }
+          ],
+          "reasoning": "src/invoice/invoice.entity.ts is in the domain layer because it matches **/*.entity.ts. Most of what it does is persistence mapping. @Entity('invoices') binds the class to a database table. @PrimaryGeneratedColumn('uuid') makes the database generate the key with the uuid strategy. @Column() maps each field to a column. That is ORM and schema work, which belongs in infrastructure, for example a *.repository.ts or a persistence model. The only domain behaviour is hasId(), which is trivial; it has no invariants or business rules. So the class is really an ORM persistence model that has been placed in the domain layer. The typeorm import itself is out of scope here because import direction is checked by other tools. The violation is the table, column and key-generation mapping, which is persistence work. Confidence is moderate because the layer model puts *.entity.ts files in domain, which suggests the project may accept ORM entities as domain objects. Still, the rubric says persistence logic in a domain file is a failure."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.78,
+          "violations": [
+            {
+              "filePath": "src/invoice/invoice.entity.ts",
+              "message": "InvoiceEntity is a domain-layer class that does infrastructure persistence work: @Entity('invoices'), @PrimaryGeneratedColumn('uuid') and @Column() map it to a database table, generated key and columns. The ORM mapping should live in an infrastructure persistence model or repository mapping, and the domain model should stay free of storage concerns."
+            }
+          ],
+          "reasoning": "src/invoice/invoice.entity.ts is in the domain layer because it matches the **/*.entity.ts pattern. The class InvoiceEntity is also a TypeORM persistence model. @Entity('invoices') ties it to a database table, @PrimaryGeneratedColumn('uuid') sets how the database generates the primary key, and @Column() maps each field to a column. Mapping to tables, columns and generated keys is persistence work, which belongs in the infrastructure layer, not in a domain model. The only behaviour in the class is hasId(), and it reflects persistence state: it checks whether the database has assigned an id yet. The file has no business rules, so the class mostly describes database storage rather than domain behaviour. This matches the rubric's fail case of persistence logic in a domain file. Confidence is not full because some projects accept ORM-annotated entities as domain objects, and no ADR text was given to settle that."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r1|antipattern-nest__AP-PERSIST-IN-DOMAINn__2|FF-N02|src/order/order.entity.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.75,
+          "violations": [
+            {
+              "filePath": "src/order/order.entity.ts",
+              "message": "OrderEntity in the domain layer handles persistence mapping, which belongs to infrastructure: @Entity('orders') maps it to a table, @PrimaryGeneratedColumn('uuid') sets key generation, and @Column() maps customerId, quantity and total to columns. The ORM model should move to infrastructure and the domain should keep an ORM-free Order model."
+            }
+          ],
+          "reasoning": "The file sits in the domain layer because it matches **/*.entity.ts. Its main job, though, is persistence mapping, which belongs to the infrastructure layer. The class is a TypeORM ORM model: it maps itself to the 'orders' table, sets a uuid generation strategy for the primary key, and declares each field as a database column. It contains no business rules or invariants. Its only method, hasId(), checks whether the record has been saved (an ORM identity check, like TypeORM's BaseEntity.hasId), not domain behaviour. The rubric names persistence logic in a domain file as a failure. This verdict is about what the file does, not which files it imports, so import direction is not part of it."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.8,
+          "violations": [
+            {
+              "filePath": "src/order/order.entity.ts",
+              "message": "Class OrderEntity carries ORM persistence mapping: @Entity('orders') maps it to a table, @PrimaryGeneratedColumn('uuid') sets primary-key generation, and @Column() declares storage columns. This responsibility belongs in the infrastructure layer (a persistence model or repository mapping), not in a domain file."
+            },
+            {
+              "filePath": "src/order/order.entity.ts",
+              "message": "Method hasId() only checks whether the database-generated id is set. It tracks persistence state, which belongs in infrastructure, and adds no domain behaviour."
+            }
+          ],
+          "reasoning": "The file is in the domain layer (it matches **/*.entity.ts), but its main job is ORM persistence mapping, which is an infrastructure concern. The TypeORM decorators bind the class to the 'orders' database table, choose how the primary key is generated (uuid), and mark which fields are stored as columns. This is the persistence schema, not a domain model. The class has no business rules or invariants. Its only method, hasId(), checks whether the record has been given a database-generated id yet, so it describes persistence state, not domain behaviour. The rubric's fail example covers this case: persistence logic in a domain file. Import direction was not considered, because that is checked separately."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.8,
+          "violations": [
+            {
+              "filePath": "src/order/order.entity.ts",
+              "message": "OrderEntity is declared as domain but carries persistence responsibilities: @Entity('orders') maps it to a table, @PrimaryGeneratedColumn('uuid') hands id generation to the database, @Column() defines the schema for customerId, quantity and total, and hasId() checks whether an id has been assigned yet. These belong to the infrastructure layer (persistence model or repository mapping), not the domain layer."
+            }
+          ],
+          "reasoning": "src/order/order.entity.ts is declared as domain, but its main responsibility is persistence. OrderEntity is a TypeORM table mapping. @Entity('orders') binds the class to the 'orders' table, @PrimaryGeneratedColumn('uuid') hands id generation to the database, and @Column() on customerId, quantity and total defines the column schema. Defining tables, columns and storage-generated keys belongs to the infrastructure layer. The class has no domain behaviour: there are no invariants and no business rules about quantity or total. Its only method, hasId(), checks whether the database has assigned an id yet, which is a persistence state check rather than a domain concept. The file is effectively a persistence model placed in the domain layer. This judgement is about the file's responsibilities, not about the typeorm import direction, which is out of scope."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r1|base:antipattern-nest|FF-N02|src/invoice/invoice.entity.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.8,
+          "violations": [
+            {
+              "filePath": "src/invoice/invoice.entity.ts",
+              "message": "Class InvoiceEntity is in the domain layer but does persistence work: @Entity('invoices') maps it to a database table, and @PrimaryGeneratedColumn('uuid') and @Column() map its fields to columns. This ORM mapping belongs in the infrastructure layer. It should be kept separate from a plain domain model."
+            }
+          ],
+          "reasoning": "This file is in the domain layer because it matches **/*.entity.ts, but its whole job is mapping data to a database table with TypeORM. The class is marked @Entity('invoices'), which ties it to a specific table name. Its fields use @PrimaryGeneratedColumn('uuid') and @Column(), which set how ids are generated and how columns are mapped. That is persistence work, which belongs in the infrastructure layer. The class has no business rules or invariants of its own. It is a database record model, not a domain model. The rubric names persistence logic in a domain file as a failure. The typeorm import itself is an import-direction matter and is out of scope here. The failure rests on the persistence mapping the file carries."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.85,
+          "violations": [
+            {
+              "filePath": "src/invoice/invoice.entity.ts",
+              "message": "Class InvoiceEntity is in the domain layer but does persistence mapping, which belongs to the infrastructure layer: @Entity('invoices') maps it to a table, @PrimaryGeneratedColumn('uuid') sets how the key is generated, and @Column marks orderId and amount as columns. Move the ORM mapping into an infrastructure persistence model or repository, and keep the domain Invoice free of database concerns."
+            }
+          ],
+          "reasoning": "src/invoice/invoice.entity.ts is in the domain layer because it matches the **/*.entity.ts pattern. The class InvoiceEntity has no domain behaviour or business invariants. Its only job is to map the class to the 'invoices' table using TypeORM decorators: it names the table, generates the primary key as a UUID, and declares the columns. That is ORM persistence mapping, which belongs to the infrastructure layer. The rubric's example of a failure is persistence logic in a domain file, and this file is exactly that. I am judging the persistence work the file does, not the fact that it imports typeorm, because import direction is out of scope."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.72,
+          "violations": [
+            {
+              "filePath": "src/invoice/invoice.entity.ts",
+              "message": "InvoiceEntity is a TypeORM persistence model: @Entity('invoices'), @PrimaryGeneratedColumn('uuid') and @Column() set the table, how keys are generated and the column mapping. That is persistence work, which belongs in the infrastructure layer, not in a domain-layer file. The class has no domain behaviour."
+            }
+          ],
+          "reasoning": "src/invoice/invoice.entity.ts is in the domain layer because it matches **/*.entity.ts. Its only job is to map InvoiceEntity to a database table using TypeORM: @Entity('invoices') sets the table name, @PrimaryGeneratedColumn('uuid') sets how ids are generated, and @Column() maps each field. The class has no business behaviour, invariants or validation. All it describes is how invoices are stored, which is a persistence and infrastructure job. Import direction is out of scope, so this verdict rests only on what the file does. Confidence is moderate because putting TypeORM decorators on entities is a common NestJS habit, and some projects accept it on purpose. Under this layer model, though, it puts persistence work in a domain file."
+        }
+      ],
+      "verdict": "fail"
+    },
+    {
+      "itemId": "r1|base:antipattern-nest|FF-N02|src/order/order.entity.ts",
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.7,
+          "violations": [
+            {
+              "filePath": "src/order/order.entity.ts",
+              "message": "The domain-layer class OrderEntity does persistence mapping, which belongs to infrastructure: @Entity('orders') maps it to a table, @PrimaryGeneratedColumn('uuid') sets database key generation, and @Column decorators map customerId, quantity and total. Move the ORM mapping to the infrastructure layer and keep a persistence-free domain model."
+            }
+          ],
+          "reasoning": "The layer model puts src/order/order.entity.ts in the domain layer, but this file's only job is persistence mapping. The @Entity('orders') decorator ties the class to a database table. @PrimaryGeneratedColumn('uuid') sets how the database generates keys, and @Column marks each field as a stored column. These are ORM/persistence concerns, which belong to the infrastructure layer. The class also has no domain behaviour, such as invariants or business rules. The rubric names persistence logic in a domain file as a failure. Import direction is out of scope; this judgment rests on what the file does (schema and table mapping), not on the fact that it imports typeorm. Confidence is moderate because putting TypeORM entities in *.entity.ts files is a common NestJS habit, and the layer model itself sends that pattern to domain."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.72,
+          "violations": [
+            {
+              "filePath": "src/order/order.entity.ts",
+              "message": "OrderEntity is a domain-layer file whose whole job is TypeORM persistence mapping (@Entity('orders'), @PrimaryGeneratedColumn('uuid'), @Column). Table and column mapping is persistence, which belongs to infrastructure. Move it to an infrastructure persistence model, or separate a plain domain Order from an ORM entity in infrastructure."
+            }
+          ],
+          "reasoning": "src/order/order.entity.ts is in the domain layer because it matches the **/*.entity.ts pattern. Its only content is TypeORM mapping: @Entity('orders') ties the class to a database table, @PrimaryGeneratedColumn('uuid') sets how ids are generated, and @Column marks each field as a column. The file has no domain behaviour, such as invariants, validation or business rules. It is really a persistence schema, which belongs to infrastructure (for example a persistence model next to a repository). The rubric names persistence logic in a domain file as a failure. Confidence is moderate because the layer model's *.entity.ts pattern follows a NestJS habit of treating ORM entities as domain. Even so, the rule judges what the file does, and what this file does is persistence mapping."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.75,
+          "violations": [
+            {
+              "filePath": "src/order/order.entity.ts",
+              "message": "OrderEntity is a TypeORM persistence model: @Entity('orders'), @PrimaryGeneratedColumn('uuid') and @Column() map it to a database table. This is persistence work, which belongs in infrastructure, but the file is in the domain layer. Move the ORM mapping into an infrastructure persistence model, or keep a plain domain Order and map it in a repository."
+            }
+          ],
+          "reasoning": "The file is classified as domain because it matches the **/*.entity.ts pattern, but its only job is persistence mapping. OrderEntity is a TypeORM schema definition: `@Entity('orders')` binds it to a database table, `@PrimaryGeneratedColumn('uuid')` hands identity generation to the database, and the `@Column()` decorators map each field to a column. It has no domain behaviour, invariants or business rules, so it is an ORM persistence model sitting in the domain layer. That puts infrastructure (persistence) work in a domain file, which the rubric names as a failure. This judgement is about the file's responsibility, not about the typeorm import direction, which is out of scope."
+        }
+      ],
+      "verdict": "fail"
+    }
+  ]
+}

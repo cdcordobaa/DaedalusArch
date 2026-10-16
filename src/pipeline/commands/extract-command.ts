@@ -16,13 +16,22 @@ export class ExtractCommand implements PipelineCommand {
     private readonly graphMode?: GraphMode,
     /** ADR-032: explicit tsconfig (the project's own `tsconfig.json` is then ignored); absent = `<project>/tsconfig.json`. */
     private readonly tsconfigPath?: string,
+    /** In-memory file contents (absolute path; `null` = removed); absent = the files on disk. */
+    private readonly sourceOverrides?: ReadonlyMap<string, string | null>,
+    /** MT-B1 (OFF by default): `ExtractorOptions.resolvedEdgesInLiteralView`. */
+    private readonly resolvedEdgesInLiteralView = false,
   ) {}
 
   async execute(context: FirewallContext): Promise<DomainResultType<void>> {
-    const result = await extractAPG(this.projectPath, {
+    const options = {
       excludePatterns: this.excludePatterns,
       ...(this.graphMode !== undefined && { graphMode: this.graphMode }),
-    }, this.tsconfigPath);
+      ...(this.resolvedEdgesInLiteralView && { resolvedEdgesInLiteralView: true }),
+    };
+    // The overrides argument is passed only when present (MCP template checks): every other caller is unchanged.
+    const result = this.sourceOverrides === undefined
+      ? await extractAPG(this.projectPath, options, this.tsconfigPath)
+      : await extractAPG(this.projectPath, options, this.tsconfigPath, this.sourceOverrides);
 
     if (!result.success) {
       return DomainResult.fail<void>(

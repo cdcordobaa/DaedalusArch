@@ -1,0 +1,16 @@
+--- a/src/business/errors/BusinessError.ts
++++ b/src/business/errors/BusinessError.ts
+@@ -1,6 +1,13 @@
++import type { HttpResponse } from '../../presentation/http/HttpTypes';
++
+ export class BusinessError extends Error {
+   constructor(readonly code: 'NOT_FOUND' | 'INVALID' | 'CONFLICT', message: string) {
+     super(message);
+     this.name = 'BusinessError';
+   }
++
++  toResponse(): HttpResponse {
++    const status = this.code === 'NOT_FOUND' ? 404 : this.code === 'CONFLICT' ? 409 : 400;
++    return { status, body: { error: this.message } };
++  }
+ }

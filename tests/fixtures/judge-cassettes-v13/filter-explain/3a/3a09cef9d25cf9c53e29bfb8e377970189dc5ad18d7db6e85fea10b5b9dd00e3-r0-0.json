@@ -1,0 +1,36 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 12182,
+  "effort": "high",
+  "functionId": "filter-explain",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "3a09cef9d25cf9c53e29bfb8e377970189dc5ad18d7db6e85fea10b5b9dd00e3-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "## Finding\nRule: FF-CV03\nRule intent: Repository names are used only for repositories, and repositories are named as such.\nType: NAMING_CONVENTION\nSeverity: minor; tier: advisory (unscored)\nFile: src/infrastructure/http/CsvReportWriter.ts\nMessage: Violation in src/infrastructure/http/CsvReportWriter.ts\nDiscriminator: CsvReportWriter\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Source (line-numbered)\n=====SOURCE-BEGIN src/infrastructure/http/CsvReportWriter.ts (layer infrastructure)=====\n1| import { LoanDto } from '../../application/dto/LoanDto';\n2| \n3| /** Formats the overdue list for the librarians' spreadsheet export. Not a repository: it stores nothing. */\n4| export class CsvReportWriter {\n5|   write(loans: readonly LoanDto[]): string {\n6|     const rows = loans.map((loan) => [loan.id, loan.bookId, loan.memberId, loan.dueAt].join(','));\n7|     return ['id,bookId,memberId,dueAt', ...rows].join('\\n');\n8|   }\n9| }\n=====SOURCE-END=====\n\n## Instructions\nDecide confirm or dismiss. Confirm: the cited code has the problem the rule is meant to catch, in this project and layer model. Dismiss: the rule fired, but the code does not have that problem (a false positive of the rule's mechanism, a threshold artefact on sound code, or a case the style allows). Measurements stated in the finding (counts, ratios, missing files) are correct as measurements; judge what they mean for this code. explanation: one paragraph that justifies the decision from the code, citing file paths and line numbers exactly as numbered below. fix: one concrete change: for a confirm, how to fix the code; for a dismiss, what (if anything) the rule or its configuration should change. citations: the line ranges your explanation relies on; every one must name a file shown below and lines that exist.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T00:04:54.239Z",
+  "repetition": 0,
+  "requestHash": "3a09cef9d25cf9c53e29bfb8e377970189dc5ad18d7db6e85fea10b5b9dd00e3",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":877}},\"result\":\"{\\\"decision\\\":\\\"dismiss\\\",\\\"explanation\\\":\\\"FF-CV03 is meant to catch two things: classes that use a Repository-style name but aren't repositories, and repositories that aren't named as repositories. `CsvReportWriter` in src/infrastructure/http/CsvReportWriter.ts is neither. Its name contains no repository term (line 4). Its only method, `write`, is a pure transformation (lines 5-8): it maps an in-memory `readonly LoanDto[]` into CSV rows (line 6) and returns the joined string with a header (line 7). It doesn't store, load, query or delete anything, and it doesn't touch a database, file system or collection, so it doesn't act as a repository that should carry the suffix. The only import is an application DTO (line 1), and there's no persistence dependency. I ignored the doc comment on line 3 when judging; the decision comes from what the method body does. The class is a formatter, and calling it a \\\\\\\"Writer\\\\\\\" is accurate. The rule most likely matched on a broad pattern such as the word \\\\\\\"Write\\\\\\\" or \\\\\\\"Writer\\\\\\\", or a method named `write`, and treated it as a sign of persistence. That makes this a false positive of the rule's mechanism, not a naming violation.\\\",\\\"fix\\\":\\\"No code change is needed. The rule should stop treating \\\\\\\"Writer\\\\\\\" class names or `write` methods as signs of a repository. It should only flag a class as an unnamed repository when it has real persistence behaviour, such as depending on a database, ORM, file system or storage client, or having CRUD-style methods (save/find/delete) on an entity. Pure functions that turn data into a string, like this one, should be excluded.\\\",\\\"citations\\\":[{\\\"filePath\\\":\\\"src/infrastructure/http/CsvReportWriter.ts\\\",\\\"startLine\\\":1,\\\"endLine\\\":1},{\\\"filePath\\\":\\\"src/infrastructure/http/CsvReportWriter.ts\\\",\\\"startLine\\\":4,\\\"endLine\\\":9}]}\",\"structured_output\":{\"citations\":[{\"endLine\":1,\"filePath\":\"src/infrastructure/http/CsvReportWriter.ts\",\"startLine\":1},{\"endLine\":9,\"filePath\":\"src/infrastructure/http/CsvReportWriter.ts\",\"startLine\":4}],\"decision\":\"dismiss\",\"explanation\":\"FF-CV03 is meant to catch two things: classes that use a Repository-style name but aren't repositories, and repositories that aren't named as repositories. `CsvReportWriter` in src/infrastructure/http/CsvReportWriter.ts is neither. Its name contains no repository term (line 4). Its only method, `write`, is a pure transformation (lines 5-8): it maps an in-memory `readonly LoanDto[]` into CSV rows (line 6) and returns the joined string with a header (line 7). It doesn't store, load, query or delete anything, and it doesn't touch a database, file system or collection, so it doesn't act as a repository that should carry the suffix. The only import is an application DTO (line 1), and there's no persistence dependency. I ignored the doc comment on line 3 when judging; the decision comes from what the method body does. The class is a formatter, and calling it a \\\"Writer\\\" is accurate. The rule most likely matched on a broad pattern such as the word \\\"Write\\\" or \\\"Writer\\\", or a method named `write`, and treated it as a sign of persistence. That makes this a false positive of the rule's mechanism, not a naming violation.\",\"fix\":\"No code change is needed. The rule should stop treating \\\"Writer\\\" class names or `write` methods as signs of a repository. It should only flag a class as an unnamed repository when it has real persistence behaviour, such as depending on a database, ORM, file system or storage client, or having CRUD-style methods (save/find/delete) on an entity. Pure functions that turn data into a string, like this one, should be excluded.\"}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "ef9c6ef6df75de4d",
+  "usage": {
+    "inputTokens": 2157,
+    "outputTokens": 877
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

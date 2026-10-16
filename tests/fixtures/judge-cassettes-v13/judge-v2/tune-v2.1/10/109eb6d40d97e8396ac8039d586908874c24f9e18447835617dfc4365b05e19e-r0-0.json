@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7473,
+  "effort": "high",
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "109eb6d40d97e8396ac8039d586908874c24f9e18447835617dfc4365b05e19e-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "src/invoice/invoice.service.ts: constructor injects `@InjectRepository(InvoiceEntity) private readonly invoiceRepository: Repository<InvoiceEntity>`, which is the only route to persistence",
+      "src/invoice/invoice.service.ts: issue() calls create/save through a local alias of this.invoiceRepository, which is the same injected repository",
+      "src/invoice/invoice.service.ts: countFor() calls this.invoiceRepository.count, the same abstraction",
+      "The outgoing imports show only invoice.entity.ts and framework packages; no separate invoice repository or port exists that could be bypassed"
+    ],
+    "pass": true,
+    "reasoning": "This unit has one file, src/invoice/invoice.service.ts, and it covers a single concern: creating invoices and counting them per order. All persistence goes through the injected TypeORM Repository<InvoiceEntity>. The unit, its imports and its neighbourhood show no separate invoice repository or port class that this service goes around. It doesn't use a raw query builder, data source or entity manager. In issue(), the local alias `const invoiceRepository = this.invoiceRepository` points to that same injected repository, so it doesn't bypass it. No rule, invariant or validation appears in more than one place, and nothing is split into unrelated concerns.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, keep each rule or invariant in one place, and reach persistence only through the module's own repository or port.\nFail: The files split into unrelated concerns; the same rule, invariant or validation is written out in two places (a copy, not a call to one shared definition); a class reaches persistence around the module's own repository or port (a database, ORM or query client used directly where the repository exists); or a file bypasses the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: module\nId: src/invoice#application\nLayer: application\nUnit files:\n- src/invoice/invoice.service.ts\n\n## Source\n=====SOURCE-BEGIN src/invoice/invoice.service.ts=====\nimport { Injectable } from '@nestjs/common';\nimport { InjectRepository } from '@nestjs/typeorm';\nimport { Repository } from 'typeorm';\nimport { InvoiceEntity } from './invoice.entity';\n\n@Injectable()\nexport class InvoiceService {\n  constructor(\n    @InjectRepository(InvoiceEntity)\n    private readonly invoiceRepository: Repository<InvoiceEntity>,\n  ) {}\n\n  async issue(orderId: string, amount: number): Promise<InvoiceEntity> {\n    const invoiceRepository = this.invoiceRepository;\n    const invoice = invoiceRepository.create({ orderId, amount });\n    return invoiceRepository.save(invoice);\n  }\n\n  countFor(orderId: string): Promise<number> {\n    return this.invoiceRepository.count({ where: { orderId } });\n  }\n}\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/invoice/invoice.service.ts\nexport class InvoiceService {\n  constructor(\n    @InjectRepository(InvoiceEntity)\n    private readonly invoiceRepository: Repository<InvoiceEntity>,\n  );\n  async issue(orderId: string, amount: number): Promise<InvoiceEntity>;\n  countFor(orderId: string): Promise<number>;\n}\n\n## Incoming\n(none)\n\n## Outgoing\n- @nestjs/common\n- @nestjs/typeorm\n- src/invoice/invoice.entity.ts\n- typeorm\n\n## Neighbourhood\nsrc/invoice/invoice.service.ts (layer application, kind application)\n  imports: package @nestjs/common; package @nestjs/typeorm; package typeorm; src/invoice/invoice.entity.ts (layer domain, kind domain)\n  imported by: (none)\n\n## Candidate flags\nCandidates proposed by deterministic checks; verify, don't trust. Each line is a tool observation with its location, not a finding.\n(none)\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric. Check each candidate flag against the source: a flag the source does not support must not count against the unit, and a violation the flags miss counts as much as one they name. Judge what each declaration is, not only what it does at run time.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T21:06:33.984Z",
+  "repetition": 0,
+  "requestHash": "109eb6d40d97e8396ac8039d586908874c24f9e18447835617dfc4365b05e19e",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":667}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"This unit has one file, src/invoice/invoice.service.ts, and it covers a single concern: creating invoices and counting them per order. All persistence goes through the injected TypeORM Repository<InvoiceEntity>. The unit, its imports and its neighbourhood show no separate invoice repository or port class that this service goes around. It doesn't use a raw query builder, data source or entity manager. In issue(), the local alias `const invoiceRepository = this.invoiceRepository` points to that same injected repository, so it doesn't bypass it. No rule, invariant or validation appears in more than one place, and nothing is split into unrelated concerns.\\\",\\\"evidence\\\":[\\\"src/invoice/invoice.service.ts: constructor injects `@InjectRepository(InvoiceEntity) private readonly invoiceRepository: Repository<InvoiceEntity>`, which is the only route to persistence\\\",\\\"src/invoice/invoice.service.ts: issue() calls create/save through a local alias of this.invoiceRepository, which is the same injected repository\\\",\\\"src/invoice/invoice.service.ts: countFor() calls this.invoiceRepository.count, the same abstraction\\\",\\\"The outgoing imports show only invoice.entity.ts and framework packages; no separate invoice repository or port exists that could be bypassed\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"src/invoice/invoice.service.ts: constructor injects `@InjectRepository(InvoiceEntity) private readonly invoiceRepository: Repository<InvoiceEntity>`, which is the only route to persistence\",\"src/invoice/invoice.service.ts: issue() calls create/save through a local alias of this.invoiceRepository, which is the same injected repository\",\"src/invoice/invoice.service.ts: countFor() calls this.invoiceRepository.count, the same abstraction\",\"The outgoing imports show only invoice.entity.ts and framework packages; no separate invoice repository or port exists that could be bypassed\"],\"pass\":true,\"reasoning\":\"This unit has one file, src/invoice/invoice.service.ts, and it covers a single concern: creating invoices and counting them per order. All persistence goes through the injected TypeORM Repository<InvoiceEntity>. The unit, its imports and its neighbourhood show no separate invoice repository or port class that this service goes around. It doesn't use a raw query builder, data source or entity manager. In issue(), the local alias `const invoiceRepository = this.invoiceRepository` points to that same injected repository, so it doesn't bypass it. No rule, invariant or validation appears in more than one place, and nothing is split into unrelated concerns.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/invoice#application",
+  "usage": {
+    "inputTokens": 3019,
+    "outputTokens": 667
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

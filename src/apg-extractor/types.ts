@@ -41,6 +41,16 @@ export interface ExtractorOptions {
    */
   reExportEdges?: ReExportEdgesMode;
   /**
+   * v1.3 metamorphic finding MT-B1 (`Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md`), OFF in both
+   * `V12E_DEFAULT_OPTIONS` and `V13_DEFAULT_OPTIONS`. With `reExportEdges: 'both'`, the resolved occurrence of a name
+   * imported through a re-export file is recorded without the `viaReExport` mark, so the literal view keeps the edge to
+   * the declaring file next to the literal edge to the barrel. The barrel edge (and its `reExportHop` mark) is
+   * unchanged, so the resolved view and barrel-induced cycles are unchanged. Use: a barrel that belongs to no layer
+   * (a NestJS feature folder's `index.ts`, layers assigned by file-name pattern) otherwise hides the layer of what it
+   * re-exports from every literal-view layer rule. No effect with `reExportEdges: 'resolved-only'`.
+   */
+  resolvedEdgesInLiteralView?: boolean;
+  /**
    * v1.3, ON by default on the v1.3 branch; OFF in the frozen v1.2E instrument. Write class-member facts on Class
    * nodes (field names with their readonly, static and visibility facts, get/set accessors, public mutator methods,
    * fields assigned outside the constructor) and on Method nodes (`visibility`, `assignedFields`). See
@@ -55,6 +65,14 @@ export interface ExtractorOptions {
    * `severity: 'info'`. Off: the import is dropped with `EXTRACTOR_008` (the v1.2E behaviour).
    */
   aliasDeclarationPackages?: boolean;
+  /**
+   * v1.3 field-level state facts, OFF in both `V12E_DEFAULT_OPTIONS` and `V13_DEFAULT_OPTIONS`; ON in
+   * `V13_FIELD_STATE_OPTIONS`. Adds HOLDS_STATE_OF edges (Class → Class | Interface) for what an instance field holds:
+   * its declared type, a property-injection decorator, a `new` initialiser, or a constructor-body assignment from `new`
+   * or from a typed constructor parameter (`field-state.ts`). Written after the class's FLOWS_TO edges; FLOWS_TO is
+   * unchanged. Read by the FF-P06 field-half variant (`CompileOptions.fieldState`).
+   */
+  fieldState?: boolean;
   /**
    * APG v2 (`Docs/v1.3/apg2-design.md`), OFF in both `V12E_DEFAULT_OPTIONS` and `V13_DEFAULT_OPTIONS`; ON in
    * `V13_APG2_OPTIONS`. Adds, after every v1.3 node and edge: SIGNATURE_USES (type flow through signatures), Component
@@ -171,8 +189,10 @@ export const V12E_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object
   dynamicImports: false,
   moduleWiring: false,
   reExportEdges: 'resolved-only',
+  resolvedEdgesInLiteralView: false,
   memberFacts: false,
   aliasDeclarationPackages: false,
+  fieldState: false,
   apg2: false,
   components: [],
 });
@@ -189,6 +209,15 @@ export const V13_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.
   reExportEdges: 'both',
   memberFacts: true,
   aliasDeclarationPackages: true,
+});
+
+/**
+ * v1.3 field-level state facts: the v1.3 defaults plus HOLDS_STATE_OF edges. Not the default, so every v1.3 graph read
+ * by the existing templates, metrics and reports is unchanged.
+ */
+export const V13_FIELD_STATE_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.freeze({
+  ...V13_DEFAULT_OPTIONS,
+  fieldState: true,
 });
 
 /**

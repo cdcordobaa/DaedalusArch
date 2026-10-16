@@ -1,0 +1,470 @@
+{
+ "id": "bitloops-ddd-backend",
+ "sha": "daa3f22f9bbfdf9fc7c1dce67f54e3086a17adf6",
+ "label": "PROPOSED rules: mined from the code (deterministic, no LLM), not a reviewed spec. Review before use; exceptions are candidate violations, not confirmed ones.",
+ "style": "nestjs",
+ "styleConfidence": 0.857,
+ "layers": {
+  "presentation": 10,
+  "application": 5,
+  "infrastructure": 133,
+  "domain": 2
+ },
+ "allowedDependencies": [
+  "application>infrastructure",
+  "presentation>application",
+  "presentation>domain",
+  "presentation>infrastructure"
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-unobserved",
+   "statement": "domain must not depend on infrastructure (no import between them either way)",
+   "subject": "domain",
+   "object": "infrastructure",
+   "confidence": 0.331,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 2,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 0
+   },
+   "exceptions": [],
+   "compilesTo": null,
+   "notRepresentable": "style nestjs orders its layers totally: dependency-direction allows every inward import, and no-layer-skip applies to the layered style only",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-unobserved",
+   "statement": "domain must not depend on application (no import between them either way)",
+   "subject": "domain",
+   "object": "application",
+   "confidence": 0.278,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 2,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 0
+   },
+   "exceptions": [],
+   "compilesTo": null,
+   "notRepresentable": "style nestjs orders its layers totally: dependency-direction allows every inward import, and no-layer-skip applies to the layered style only",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "statement": "domain must not depend on presentation (4 edges presentation -> domain; 0/2 domain files import presentation)",
+   "subject": "domain",
+   "object": "presentation",
+   "confidence": 0.533,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 2,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 4
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-004",
+   "kind": "layer-unobserved",
+   "statement": "infrastructure must not depend on domain (no import between them either way)",
+   "subject": "infrastructure",
+   "object": "domain",
+   "confidence": 0.331,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 133,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 0
+   },
+   "exceptions": [],
+   "compilesTo": null,
+   "notRepresentable": "style nestjs orders its layers totally: dependency-direction allows every inward import, and no-layer-skip applies to the layered style only",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-005",
+   "kind": "layer-direction",
+   "statement": "infrastructure must not depend on application (3 edges application -> infrastructure; 0/133 infrastructure files import application)",
+   "subject": "infrastructure",
+   "object": "application",
+   "confidence": 0.744,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 133,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 3
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-006",
+   "kind": "layer-direction",
+   "statement": "infrastructure must not depend on presentation (64 edges presentation -> infrastructure; 0/133 infrastructure files import presentation)",
+   "subject": "infrastructure",
+   "object": "presentation",
+   "confidence": 0.977,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 133,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 64
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-007",
+   "kind": "layer-unobserved",
+   "statement": "application must not depend on domain (no import between them either way)",
+   "subject": "application",
+   "object": "domain",
+   "confidence": 0.278,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 5,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 0
+   },
+   "exceptions": [],
+   "compilesTo": null,
+   "notRepresentable": "style nestjs orders its layers totally: dependency-direction allows every inward import, and no-layer-skip applies to the layered style only",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-008",
+   "kind": "layer-direction",
+   "statement": "application must not depend on presentation (5 edges presentation -> application; 0/5 application files import presentation)",
+   "subject": "application",
+   "object": "presentation",
+   "confidence": 0.694,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 5,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 5
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-009",
+   "kind": "acyclic-files",
+   "statement": "no file lies on an import cycle (156/164 files do not)",
+   "subject": "*",
+   "confidence": 0.945,
+   "level": "high",
+   "evidence": {
+    "files": 164,
+    "filesOnCycles": 8,
+    "cycles": 2
+   },
+   "exceptions": [
+    {
+     "file": "src/api/pub-sub-handlers/todo-added.integration-handler.ts",
+     "target": "src/api/todo.sse.controller.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/api/pub-sub-handlers/todo-completed.integration-handler.ts",
+     "target": "src/api/todo.sse.controller.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/api/pub-sub-handlers/todo-deleted.integration-handler.ts",
+     "target": "src/api/todo.sse.controller.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/api/pub-sub-handlers/todo-modified-title.integration-handler.ts",
+     "target": "src/api/todo.sse.controller.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/api/pub-sub-handlers/todo-uncompleted.integration-handler.ts",
+     "target": "src/api/todo.sse.controller.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/api/todo.sse.controller.ts",
+     "target": "src/api/pub-sub-handlers/todo-added.integration-handler.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/api/todo.sse.controller.ts",
+     "target": "src/api/pub-sub-handlers/todo-completed.integration-handler.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/api/todo.sse.controller.ts",
+     "target": "src/api/pub-sub-handlers/todo-deleted.integration-handler.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/api/todo.sse.controller.ts",
+     "target": "src/api/pub-sub-handlers/todo-modified-title.integration-handler.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/api/todo.sse.controller.ts",
+     "target": "src/api/pub-sub-handlers/todo-uncompleted.integration-handler.ts",
+     "detail": "edge on an import cycle"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "no-cyclic-deps",
+    "via": "fitness function FF-S02"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-010",
+   "kind": "component-direction",
+   "statement": "folder component lib must not depend on api (18 imports api -> lib; 0/128 files import back)",
+   "subject": "folder:lib",
+   "object": "folder:api",
+   "confidence": 0.94,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 128,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 18
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-011",
+   "kind": "component-direction",
+   "statement": "folder component lib must not depend on bounded-contexts (53 imports bounded-contexts -> lib; 0/128 files import back)",
+   "subject": "folder:lib",
+   "object": "folder:bounded-contexts",
+   "confidence": 0.974,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 128,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 53
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-012",
+   "kind": "component-direction",
+   "statement": "folder component config must not depend on api (2 imports api -> config; 0/2 files import back)",
+   "subject": "folder:config",
+   "object": "folder:api",
+   "confidence": 0.444,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 2,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 2
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-013",
+   "kind": "component-direction",
+   "statement": "folder component config must not depend on bounded-contexts (1 imports bounded-contexts -> config; 0/2 files import back)",
+   "subject": "folder:config",
+   "object": "folder:bounded-contexts",
+   "confidence": 0.333,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 2,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-014",
+   "kind": "component-direction",
+   "statement": "folder component bounded-contexts must not depend on api (4 imports api -> bounded-contexts; 0/18 files import back)",
+   "subject": "folder:bounded-contexts",
+   "object": "folder:api",
+   "confidence": 0.758,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 18,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 4
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-015",
+   "kind": "inject-abstractions",
+   "statement": "classes of presentation inject interfaces across layers, not concrete classes (2/2)",
+   "subject": "presentation",
+   "confidence": 0.667,
+   "level": "medium",
+   "evidence": {
+    "crossLayerInjections": 2,
+    "ofInterfaces": 2
+   },
+   "exceptions": [],
+   "compilesTo": null,
+   "notRepresentable": "the existing templates check the application-kind layer only (application), not presentation",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-016",
+   "kind": "core-package-free",
+   "statement": "domain (a core layer: it may depend on no other layer) imports none of @nestjs/common, @nestjs/config, @nestjs/swagger, async-mutex, async_hooks, class-validator, crypto, ddd-tactical-core-boilerplate, fastify, nats, pg, reflect-metadata, rxjs, uuid",
+   "subject": "domain",
+   "confidence": 0.667,
+   "level": "medium",
+   "evidence": {
+    "coreFiles": 2,
+    "packages": 14
+   },
+   "exceptions": [],
+   "params": {
+    "forbidden_imports": [
+     "@nestjs/common",
+     "@nestjs/config",
+     "@nestjs/swagger",
+     "async-mutex",
+     "async_hooks",
+     "class-validator",
+     "crypto",
+     "ddd-tactical-core-boilerplate",
+     "fastify",
+     "nats",
+     "pg",
+     "reflect-metadata",
+     "rxjs",
+     "uuid"
+    ]
+   },
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "domain-purity",
+    "via": "fitness function FF-P01 (domain-purity) forbidden_imports"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-017",
+   "kind": "core-package-free",
+   "statement": "infrastructure (a core layer: it may depend on no other layer) imports none of @nestjs/config, @nestjs/swagger, class-validator, rxjs, uuid",
+   "subject": "infrastructure",
+   "confidence": 0.978,
+   "level": "high",
+   "evidence": {
+    "coreFiles": 133,
+    "packages": 5
+   },
+   "exceptions": [
+    {
+     "file": "src/lib/infra/oidc/principal-context.interceptor.ts",
+     "target": "rxjs"
+    },
+    {
+     "file": "src/lib/infra/telemetry/correlation-id.interceptor.ts",
+     "target": "rxjs"
+    }
+   ],
+   "params": {
+    "forbidden_imports": [
+     "@nestjs/config",
+     "@nestjs/swagger",
+     "class-validator",
+     "rxjs",
+     "uuid"
+    ]
+   },
+   "compilesTo": null,
+   "notRepresentable": "domain-purity checks the domain-kind layer only (domain), not infrastructure",
+   "status": "proposal"
+  }
+ ],
+ "counts": {
+  "rules": 17,
+  "high": 6,
+  "medium": 5,
+  "low": 6,
+  "exceptions": 14,
+  "notRepresentable": 6
+ },
+ "spec": {
+  "valid": true,
+  "errors": [],
+  "compiled": [
+   "dependency-direction",
+   "domain-purity",
+   "no-cyclic-deps"
+  ]
+ }
+}

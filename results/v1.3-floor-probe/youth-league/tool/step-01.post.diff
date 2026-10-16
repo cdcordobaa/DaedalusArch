@@ -1,0 +1,134 @@
+diff --git a/src/business/container.ts b/src/business/container.ts
+new file mode 100644
+index 0000000..5745236
+--- /dev/null
++++ b/src/business/container.ts
+@@ -0,0 +1,14 @@
++import { FixtureRepository, PlayerRepository, TeamRepository } from '../persistence/repositories';
++import { TeamService } from './team-service';
++import { FixtureService } from './fixture-service';
++
++/** Builds the business services with their persistence. */
++export function createServices() {
++  const teamRepo = new TeamRepository();
++  const playerRepo = new PlayerRepository();
++  const fixtureRepo = new FixtureRepository();
++  return {
++    teams: new TeamService(teamRepo, playerRepo),
++    fixtures: new FixtureService(fixtureRepo, teamRepo),
++  };
++}
+diff --git a/src/business/entities.ts b/src/business/entities.ts
+index dfa88bb..632b1ca 100644
+--- a/src/business/entities.ts
++++ b/src/business/entities.ts
+@@ -1,35 +1,4 @@
+-export type AgeGroup = `U${number}`;
+-
+-export interface Team {
+-  id: string;
+-  name: string;
+-  ageGroup: AgeGroup;
+-  coachName: string;
+-  coachEmail: string;
+-}
+-
+-export interface Player {
+-  id: string;
+-  name: string;
+-  birthDate: string;
+-  parentEmail: string;
+-  teamId: string;
+-}
+-
+-export interface Result {
+-  homeGoals: number;
+-  awayGoals: number;
+-  recordedAt: string;
+-}
+-
+-export interface Fixture {
+-  id: string;
+-  homeTeamId: string;
+-  awayTeamId: string;
+-  pitch: string;
+-  kickOff: string; // ISO date-time
+-  result?: Result;
+-}
++export * from '../persistence/entities';
+ 
+ export class ValidationError extends Error {}
+ export class NotFoundError extends Error {}
+diff --git a/src/persistence/entities.ts b/src/persistence/entities.ts
+new file mode 100644
+index 0000000..4898020
+--- /dev/null
++++ b/src/persistence/entities.ts
+@@ -0,0 +1,33 @@
++/** Records stored by the persistence layer. The business layer re-exports them. */
++export type AgeGroup = `U${number}`;
++
++export interface Team {
++  id: string;
++  name: string;
++  ageGroup: AgeGroup;
++  coachName: string;
++  coachEmail: string;
++}
++
++export interface Player {
++  id: string;
++  name: string;
++  birthDate: string;
++  parentEmail: string;
++  teamId: string;
++}
++
++export interface Result {
++  homeGoals: number;
++  awayGoals: number;
++  recordedAt: string;
++}
++
++export interface Fixture {
++  id: string;
++  homeTeamId: string;
++  awayTeamId: string;
++  pitch: string;
++  kickOff: string; // ISO date-time
++  result?: Result;
++}
+diff --git a/src/persistence/repositories.ts b/src/persistence/repositories.ts
+index d321203..3fed79a 100644
+--- a/src/persistence/repositories.ts
++++ b/src/persistence/repositories.ts
+@@ -1,4 +1,4 @@
+-import { Fixture, Player, Team } from '../business/entities';
++import { Fixture, Player, Team } from './entities';
+ 
+ class MemoryRepository<T extends { id: string }> {
+   protected readonly items = new Map<string, T>();
+diff --git a/src/presentation/server.ts b/src/presentation/server.ts
+index 36d46e6..3d1bb51 100644
+--- a/src/presentation/server.ts
++++ b/src/presentation/server.ts
+@@ -1,16 +1,12 @@
+ import express from 'express';
+-import { FixtureRepository, PlayerRepository, TeamRepository } from '../persistence/repositories';
+-import { TeamService } from '../business/team-service';
+-import { FixtureService } from '../business/fixture-service';
++import { createServices } from '../business/container';
+ import { buildRouter, errorHandler } from './controllers';
+ 
+-const teamRepo = new TeamRepository();
+-const playerRepo = new PlayerRepository();
+-const fixtureRepo = new FixtureRepository();
++const services = createServices();
+ 
+ const app = express();
+ app.use(express.json());
+-app.use(buildRouter(new TeamService(teamRepo, playerRepo), new FixtureService(fixtureRepo, teamRepo)));
++app.use(buildRouter(services.teams, services.fixtures));
+ app.use(errorHandler);
+ 
+ app.listen(Number(process.env.PORT ?? 3000), () => console.log('league service listening'));

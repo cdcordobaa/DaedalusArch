@@ -1,0 +1,89 @@
+--- a/src/business/ServiceFactory.ts
++++ b/src/business/ServiceFactory.ts
+@@ -3,11 +3,13 @@
+ import { OrderGateway } from '../persistence/OrderGateway';
+ import { ProductGateway } from '../persistence/ProductGateway';
+ import { CatalogService } from './services/CatalogService';
++import { InventoryGateway } from './services/InventoryGateway';
+ import { OrderService } from './services/OrderService';
+ 
+ export interface BusinessServices {
+   catalog: CatalogService;
+   orders: OrderService;
++  inventory: InventoryGateway;
+ }
+ 
+ /**
+@@ -21,5 +23,6 @@
+   return {
+     catalog: new CatalogService(products),
+     orders: new OrderService(new OrderGateway(db), products, new CustomerGateway(db)),
++    inventory: new InventoryGateway(products),
+   };
+ }
+--- /dev/null
++++ b/src/business/services/InventoryGateway.ts
+@@ -0,0 +1,18 @@
++import { ProductGateway } from '../../persistence/ProductGateway';
++import { BusinessError } from '../errors/BusinessError';
++
++export interface StockLevel {
++  sku: string;
++  available: number;
++  reorder: boolean;
++}
++
++export class InventoryGateway {
++  constructor(private readonly products: ProductGateway) {}
++
++  stockOf(sku: string): StockLevel {
++    const row = this.products.findBySku(sku);
++    if (row === undefined) throw new BusinessError('NOT_FOUND', `No product ${sku}`);
++    return { sku: row.sku, available: row.stock, reorder: row.stock < 5 };
++  }
++}
+--- a/src/presentation/Router.ts
++++ b/src/presentation/Router.ts
+@@ -10,6 +10,7 @@
+   constructor(catalog: CatalogController, orders: OrderController) {
+     this.routes.set('GET /products', () => catalog.list());
+     this.routes.set('POST /products', (r) => catalog.create(r));
++    this.routes.set('GET /products/:sku/stock', (r) => catalog.stock(r));
+     this.routes.set('POST /orders', (r) => orders.place(r));
+     this.routes.set('GET /orders/:id', (r) => orders.show(r));
+     this.routes.set('POST /orders/:id/cancel', (r) => orders.cancel(r));
+--- a/src/presentation/app.ts
++++ b/src/presentation/app.ts
+@@ -5,5 +5,5 @@
+ 
+ export function createApp(): Router {
+   const services = createServices();
+-  return new Router(new CatalogController(services.catalog), new OrderController(services.orders));
++  return new Router(new CatalogController(services.catalog, services.inventory), new OrderController(services.orders));
+ }
+--- a/src/presentation/http/CatalogController.ts
++++ b/src/presentation/http/CatalogController.ts
+@@ -1,10 +1,22 @@
+ import { CatalogService } from '../../business/services/CatalogService';
++import { InventoryGateway } from '../../business/services/InventoryGateway';
+ import { renderProduct } from '../views/ProductView';
+ import { errorResponse } from './ErrorHandling';
+ import { HttpRequest, HttpResponse } from './HttpTypes';
+ 
+ export class CatalogController {
+-  constructor(private readonly catalog: CatalogService) {}
++  constructor(
++    private readonly catalog: CatalogService,
++    private readonly inventory: InventoryGateway,
++  ) {}
++
++  stock(request: HttpRequest): HttpResponse {
++    try {
++      return { status: 200, body: this.inventory.stockOf(String(request.params['sku'])) };
++    } catch (error) {
++      return errorResponse(error);
++    }
++  }
+ 
+   list(): HttpResponse {
+     return { status: 200, body: this.catalog.listProducts().map(renderProduct) };
