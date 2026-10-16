@@ -30,7 +30,7 @@ DaedalusArch is described here only through what the repository shows on `origin
 - **Graph.** APG v2 enrichments for type flow, components with Martin metrics, public API, async coupling and I/O. They are **off by default** (`apg2: false` in `src/apg-extractor/types.ts`; `Docs/v1.3/apg2-design.md`). Dynamic `import()`/`require()` extraction is on by default in v1.3 (`src/apg-extractor/edge-extractor.ts`).
 - **Engines.** Neo4j 5.26 is the reference engine. `--engine cypher-interp` runs the same rules with no database server (`Docs/v1.3/cypher-interpreter.md`).
 - **Neural layer.** An LLM judge (`src/llm-critic`).
-- **Agent loop.** An MCP server with ten tools (`Docs/v1.3/mcp-v2.md`).
+- **Agent loop.** An MCP server with eleven tools (`TOOL_NAMES` in `src/mcp-server/server.ts`; `Docs/v1.3/mcp-v2.md` describes the first ten), plus two neural-arm tools (`review_unit`, `explain_and_fix`) registered only with `--neural`.
 
 ### (a) Architecture conformance and dependency checkers
 
@@ -372,7 +372,7 @@ For **Java, Python and C#**, Zügel is a real counterexample to "no in-loop arch
 
 | Tool | Specification language | Rule representation | Architectural facts | Semantic / LLM layer | Agent-loop integration | Determinism and auditability | Styles | TypeScript | Published validation evidence |
 |---|---|---|---|---|---|---|---|---|---|
-| **DaedalusArch** | **YAML architecture spec per style, compiled to rules** | **Cypher** (generated; one text, two engines) | I (dyn, ty, re-exports), T, D, C (M), A, O. T/C/A/O are APG v2 and **off by default** | **LLM judge** for non-structural rules | **MCP server, 10 tools** (`check_file`, `check_diff`, `blockingVerdict`); no IDE plugin | deterministic symbolic layer, Neo4j vs interpreter parity; judge is not deterministic | clean, layered, nestjs, hexagonal, ddd | native, **only** | own studies only: SO4 seeded held-out (37/37 in coverage), ADR-030 vs dependency-cruiser, 5 real pairs (2/5), 71-case dev set; sealed hold-out pending; **no peer-reviewed publication yet** |
+| **DaedalusArch** | **YAML architecture spec per style, compiled to rules** | **Cypher** (generated; one text, two engines) | I (dyn, ty, re-exports), T, D, C (M), A, O. T/C/A/O are APG v2 and **off by default** | **LLM judge** for non-structural rules | **MCP server, 11 tools** (`check_file`, `check_diff`, `blockingVerdict`), +2 neural tools with `--neural`; no IDE plugin | deterministic symbolic layer, Neo4j vs interpreter parity; judge is not deterministic | clean, layered, nestjs, hexagonal, ddd | native, **only** | own studies only: SO4 seeded held-out (37/37 in coverage), ADR-030 vs dependency-cruiser, 5 real pairs (2/5), 71-case dev set; sealed hold-out pending; **no peer-reviewed publication yet** |
 | ArchUnit | code; PlantUML import | Java fluent API in tests | I, T (member/param types), D (types only), C (M, Lakos) | — | — (JUnit) | deterministic *(inferred)*; freeze baseline | layered, onion presets | — | none found |
 | ArchUnitTS | code; PlantUML; Nx graph | TS fluent API in tests | I, C (M per folder, LCOM); T/D unknown | — (LLM planned) | — | deterministic *(inferred)* | examples only (clean, hexagonal) | native | none found |
 | ts-arch | code; PlantUML | TS fluent API in tests | I, cycles | — | — | deterministic *(inferred)* | — | native | none found |
