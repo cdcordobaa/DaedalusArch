@@ -2,10 +2,14 @@
 
 > **NOT A PRE-REGISTRATION, AND NOT DATA.** Written on 2026-10-16 to meet readiness-gate line D9 ("analysis script
 > run end to end on rehearsal data", `origin/v1.3-study2-readiness:Docs/v1.3/study2-readiness-gate.md`). Study 2 must run
-> exactly once, so its analysis is proven here, before any real data exist. Every number below comes from
+> exactly once, so its analysis is rehearsed here, before any real data exist. Every number below comes from
 > **synthetic** telemetry, made by a seeded generator. Nothing here is binding, hashed or listed in `corpus/prereg.json`,
 > and no prereg tooling was touched. No sealed task is named, paraphrased or used. The task ids are `synth-task-N`, the
 > model ids are `synth-model-*`, and every run says `dryRun: true`.
+>
+> **Scope of the evidence.** The synthetic data are drawn from the same model as the power simulation. This rehearsal
+> therefore shows only that the pipeline runs end to end on harness-format telemetry and recovers the values planted
+> under that model. It says nothing about whether the model fits real erosion data.
 
 Inputs: `Docs/v1.3/study2-outline.md` (design, §5 candidate analysis), `Docs/v1.3/pilot-outcome-memo.md` (§3 primary
 outcome, §5 switch rule), `Docs/v1.3/study2-power-notes.md` and `scripts/v1.3/lib/study2-power.ts` (power model),
@@ -108,6 +112,8 @@ reductions.
 
 ### 3.1 Assertions: 30 of 30 pass
 
+The 30 checks come from five check sets: the four scenarios, plus the `floor-advisory-by-rule` format variant.
+
 Full table: `results/v1.3-study2-rehearsal/summary.md`.
 
 | Scenario | What the assertion requires | Result |
@@ -151,14 +157,14 @@ The calibration used 999 resamples and 1999 flips per study. Readings:
 
 1. **At the planned N, Study 2 is underpowered for the expected effect.** The `gate` contrast reaches 0.54–0.60 and
    `daedalus-mcp` 0.17–0.20, against gate D3's 0.80. A small effect is invisible (≈ 0.1). This repeats the power
-   notes; the end-to-end pipeline confirms it rather than the simulator's own analysis.
+   notes; the end-to-end pipeline reproduces it under the same model, not only the simulator's own analysis.
 2. **The memo §5 fallback cannot be computed from v1.3 telemetry.** `StepEvaluation` has `advisoryViolationCount`
    only. FF-CV05 cannot be removed, and in the synthetic data FF-CV05 is about 80 % of the advisory total (≈ 33 per
    KLOC against ≈ 6). Unless `advisoryByRule` (PR #142, gate S6) lands before the first Study 2 call, a floor result
    leaves Study 2 with no computable pre-committed primary outcome. A re-score from the kept snapshot commits would be
    a post-hoc pipeline.
 3. **The fallback outcome has no power** (≈ 0.05 under the default assumptions). The power notes said so (§4); the
-   rehearsal confirms it on the defined outcome (the `floor-advisory-by-rule` variant). Under the floor, Study 2 would
+   rehearsal reproduces it on the defined outcome (the `floor-advisory-by-rule` variant). Under the floor, Study 2 would
    be a costly null by design, unless the pilot shows fast advisory growth (gate D1).
 4. **Under the floor the `gate` arm never fires.** T7 of `floor` reports 0 failing steps, so the gate arm is identical
    to `none` plus noise. Memo §5 already requires a decision here (gate D11b). The rehearsal makes it concrete: the
@@ -189,7 +195,7 @@ fixing that value.
 | A9 | memo §3 | **Findings beyond the listing cap** (`blockingFindings` is capped per rule as `evaluate_project` caps it) are invisible to the identity count, though `blockingViolationCount` includes them. | (a) identities only; (b) also count unlisted increases. | Not measured. | Record the cap, and flag steps where the count exceeds the listed findings. |
 | A10 | memo §5 | **The fallback outcome**, "advisory per KLOC, FF-CV05 excluded", cannot be computed from v1.3 records (§4.2). | (a) total advisory as surrogate; (b) re-score commits; (c) no primary. | The surrogate is ≈ 80 % FF-CV05. | Merge `advisoryByRule` before the first call (gate S6). |
 | A11 | memo §5 | **`gate` under the advisory branch**: advisory subset, or arm dropped. | (a) keep as designed; (b) give advisory findings; (c) drop it. | Under `floor` the gate fires on 0 steps (§4.4). | Decide in the design (gate D11b). If (c), Holm is over one contrast. |
-| A12 | outline §5.1 | **Monte Carlo precision of the sign-flip p.** Flips count and seed are unstated; with 54 blocks the test is not exact. | Any flips or seed. | `expected` mcp: Holm p 0.0461–0.0526 over 8 analysis seeds at 9999 flips. The decision flips on 3 of 8 seeds. | Fix the seed and flips (≥ 99 999), or use an exact or normal-approximate rule near α. Say which. |
+| A12 | outline §5.1 | **Monte Carlo precision of the sign-flip p.** Flips count and seed are unstated; with 54 blocks the test is not exact. | Any flips or seed. | `expected` mcp: Holm p 0.0461–0.0526 over 8 analysis seeds at 9999 flips. The decision flips on 3 of 8 seeds. (`results/v1.3-study2-rehearsal/summary.md`, seed-sensitivity table.) | Fix the seed and flips (≥ 99 999), or use an exact or normal-approximate rule near α. Say which. |
 | A13 | outline §5.1 | **Bootstrap details**: one or two stages; percentile or BCa; resamples; seed. | Many. | Two-stage percentile over-covers (0.97–0.99). | Fix stage, method, resamples (≥ 4999) and seed. |
 | A14 | outline §5.1, §6 | **Effect size**: d_z (outline §6) or relative reduction ("halves the slope"); and relative reduction as a ratio of mean slopes or a mean of per-block ratios. | (a) d_z; (b) 1 − mean(arm)/mean(none); (c) mean of ratios. | Under `floor` the ratio CI is [−18, 2.7] (none slope ≈ 0). The mean of ratios is undefined when a none slope ≤ 0. | Report d_z and the mean difference. Report the relative reduction only when the none mean slope's CI excludes 0. |
 | A15 | outline §5.1 | **Two-sided or one-sided.** The question is directional ("lower"); the power notes use two-sided. | (a) two-sided α 0.05; (b) one-sided 0.025. | Same p for a negative effect; differs if an arm increases erosion. | Two-sided, stated. |
@@ -224,7 +230,7 @@ table cannot be produced once the data exist.
 ## 7. Limits
 
 - The synthetic data follow the power simulation's model. That model is linear erosion, with arms changing the slope
-  only. Recovery is proven for that model, not for front-loaded or saturating erosion.
+  only. Recovery is shown for that model only, not for front-loaded or saturating erosion.
 - The generated repair turns, costs and failure rates are plausible placeholders, not estimates.
 - One analysis seed per scenario is reported. The many-seed calibration (§3.3) is the evidence on size and coverage.
 - The figures are static SVG with native tooltips, drawn with the reference palette slots 1–3, light surface only.

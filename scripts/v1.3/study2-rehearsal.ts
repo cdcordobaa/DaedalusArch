@@ -78,6 +78,17 @@ try {
   const calOpts = { ...DEFAULT_OPTIONS, resamples: 999, flips: 1999 };
   const cal = calSims === 0 ? [] : SCENARIOS.map((s, i) => calibrate(s, calSims, seed + 7 + i, calOpts));
 
+  // Monte Carlo seed sensitivity of the confirmatory decision (rehearsal doc A12): the `expected` data set, fixed,
+  // analysed under analysis seeds 1..8 at the default flips.
+  const exp = SCENARIOS.find((x) => x.id === 'expected');
+  if (exp === undefined) throw new Error('expected scenario missing');
+  const expStudy = generateStudy(PLANNED_DESIGN, exp, { seed });
+  const expPilot = generateStudy(PILOT_DESIGN, exp, { seed: seed + 1, taskPrefix: 'synth-pilot-task-' });
+  const seedRows = [1, 2, 3, 4, 5, 6, 7, 8].map((analysisSeed) => {
+    const rep = analyse(expStudy.runs, expStudy.schedule.runs, pilotSwitch(expPilot.runs, null), { ...DEFAULT_OPTIONS, seed: analysisSeed, primaryOnly: true });
+    return { analysisSeed, contrasts: rep.confirmatory.map((c) => ({ arm: c.arm, p: c.p, holmP: c.holmP ?? null, reject: c.holmReject === true })) };
+  });
+
   const md: string[] = ['# Study 2 analysis rehearsal: summary (SYNTHETIC; not a pre-registration)', '', `Seed ${String(seed)}. Planned design: ${String(PLANNED_DESIGN.tasks)} tasks × ${String(PLANNED_DESIGN.models.length)} models × ${String(PLANNED_DESIGN.replicates)} replicates × ${String(PLANNED_DESIGN.arms.length)} arms, k = ${String(PLANNED_DESIGN.steps)} (outline §6; power notes option B). Pilot: ${String(PILOT_DESIGN.tasks)} tasks × ${PILOT_DESIGN.arms.join('/')} , k = ${String(PILOT_DESIGN.steps)}.`, ''];
   md.push('## Checks per scenario', '', '| Scenario | Check | Result | Detail |', '|---|---|---|---|');
   for (const r of runs) for (const c of r.checks) md.push(`| ${r.id} | ${c.name} | ${c.pass ? 'PASS' : 'FAIL'} | ${c.detail.replace(/\|/g, '\\|')} |`);
@@ -87,9 +98,15 @@ try {
     md.push('', `## Calibration of the full pipeline (${String(calSims)} synthetic studies per scenario; generator → analysis; 999 resamples, 1999 flips)`, '', '| Scenario | Holm reject gate | Holm reject mcp | CI covers truth (gate) | CI covers truth (mcp) | Rel. reduction CI covers planted (gate) | Mean estimate gate | Mean truth gate | Sign-flip and bootstrap CI disagree (gate) |', '|---|---|---|---|---|---|---|---|---|');
     for (const c of cal) md.push(`| ${c.scenario} | ${r2(c.rejectGate)} | ${r2(c.rejectMcp)} | ${r2(c.coverGate)} | ${r2(c.coverMcp)} | ${r2(c.coverRelGate)} | ${c.meanEstGate.toFixed(3)} | ${c.meanTruthGate.toFixed(3)} | ${r2(c.signFlipVsBootstrapDisagree)} |`);
   }
+  md.push('', `## Monte Carlo seed sensitivity (scenario expected, data seed ${String(seed)}, analysis seeds 1–8, ${String(DEFAULT_OPTIONS.flips)} flips)`, '', '| Analysis seed | gate Holm p | gate rejected | mcp Holm p | mcp rejected |', '|---|---|---|---|---|');
+  for (const r of seedRows) {
+    const g = r.contrasts.find((c) => c.arm === 'gate');
+    const m = r.contrasts.find((c) => c.arm === 'daedalus-mcp');
+    md.push(`| ${String(r.analysisSeed)} | ${g?.holmP?.toFixed(4) ?? 'n/a'} | ${g?.reject === true ? 'yes' : 'no'} | ${m?.holmP?.toFixed(4) ?? 'n/a'} | ${m?.reject === true ? 'yes' : 'no'} |`);
+  }
   md.push('');
   fs.writeFileSync(path.join(out, 'summary.md'), md.join('\n'));
-  fs.writeFileSync(path.join(out, 'summary.json'), `${JSON.stringify({ note: 'SYNTHETIC rehearsal; not a pre-registration.', seed, checks: runs, power: powerRows, calibration: cal }, null, 1)}\n`);
+  fs.writeFileSync(path.join(out, 'summary.json'), `${JSON.stringify({ note: 'SYNTHETIC rehearsal; not a pre-registration.', seed, checks: runs, power: powerRows, calibration: cal, seedSensitivity: seedRows }, null, 1)}\n`);
   process.stdout.write(md.join('\n'));
   if (runs.some((r) => r.checks.some((c) => !c.pass))) process.exitCode = 1;
 } catch (e) {

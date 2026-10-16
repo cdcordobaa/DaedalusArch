@@ -54,3 +54,16 @@ Seed 20261016. Planned design: 6 tasks × 3 models × 3 replicates × 3 arms, k 
 | small | 0.14 | 0.07 | 0.99 | 0.98 | 0.97 | -0.282 | -0.263 | 0.07 |
 | expected | 0.60 | 0.20 | 0.99 | 0.98 | 0.99 | -0.668 | -0.659 | 0.13 |
 | floor | 0.03 | 0.03 | 0.99 | 0.97 | 0.99 | -0.389 | -0.336 | 0.04 |
+
+## Monte Carlo seed sensitivity (scenario expected, data seed 20261016, analysis seeds 1–8, 9999 flips)
+
+| Analysis seed | gate Holm p | gate rejected | mcp Holm p | mcp rejected |
+|---|---|---|---|---|
+| 1 | 0.0086 | yes | 0.0526 | no |
+| 2 | 0.0068 | yes | 0.0461 | yes |
+| 3 | 0.0058 | yes | 0.0504 | no |
+| 4 | 0.0076 | yes | 0.0500 | yes |
+| 5 | 0.0074 | yes | 0.0494 | yes |
+| 6 | 0.0088 | yes | 0.0516 | no |
+| 7 | 0.0068 | yes | 0.0500 | yes |
+| 8 | 0.0062 | yes | 0.0494 | yes |
