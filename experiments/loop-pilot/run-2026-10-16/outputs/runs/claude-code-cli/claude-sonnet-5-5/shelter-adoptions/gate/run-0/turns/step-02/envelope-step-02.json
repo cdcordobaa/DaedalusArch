@@ -1,0 +1,107 @@
+{
+  "duration_api_ms": 53032,
+  "stop_reason": "end_turn",
+  "session_id": "40c7d7d3-4a63-4e44-a777-78aced2248a3",
+  "total_cost_usd": 0.20133000000000004,
+  "usage": {
+    "input_tokens": 16,
+    "cache_creation_input_tokens": 21907,
+    "cache_read_input_tokens": 125300,
+    "output_tokens": 10114,
+    "output_tokens_details": {
+      "thinking_tokens": 640
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 21907,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 661,
+        "cache_read_input_tokens": 27314,
+        "cache_creation_input_tokens": 505,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 505
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "modelUsage": {
+    "claude-sonnet-5-5": {
+      "inputTokens": 16,
+      "outputTokens": 10114,
+      "cacheReadInputTokens": 125300,
+      "cacheCreationInputTokens": 21907,
+      "webSearchRequests": 0,
+      "costUSD": 0.20133000000000004,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "thinkingTokens": 640,
+      "canonicalModel": "claude-sonnet-5-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01G3kvaJF4rCPjHtc6jgmdqQ",
+      "tool_input": {
+        "command": "find . -path ./node_modules -prune -o -type f -print | head -100 && cat package.json && cat /root/pilot/harness/runs/claude-code-cli/claude-sonnet-5-5/shelter-adoptions/gate/run-0/tsconfig.json"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subagent_stats": {
+    "spawned": 0,
+    "requested": {
+      "background": 0,
+      "foreground": 0,
+      "unset": 0
+    },
+    "started_in_background": 0,
+    "max_depth": 0,
+    "spawned_by_subagents": 0,
+    "completed": 0,
+    "failed": 0,
+    "killed": {
+      "parent": 0,
+      "user": 0,
+      "system": 0
+    },
+    "refused": {
+      "depth_limit": 0,
+      "concurrency_limit": 0,
+      "budget": 0
+    },
+    "by_type": {}
+  },
+  "safety_stops": 0,
+  "is_error": false,
+  "num_turns": 33,
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "The foster network is in, and the type-check command you gave now passes with no errors. I haven't started the service or run any requests against it, so the behaviour below is untested.\n\n**Endpoints**\n- `POST /foster-carers` registers a carer with `name`, `email`, `phone`, `capacity` (an integer of at least 1) and `species` (a list of species names).\n- `GET /foster-carers`, `GET /foster-carers/:id` and `GET /foster-carers/:id/placements` read carers and their placements.\n- `POST /placements` with `animalId` and `carerId` places an animal with a carer. `POST /placements/:id/end` ends a placement.\n- `GET /placements` and `GET /placements/:id` read placements.\n\n**Rules**\n- A placement is rejected with a 409 if the carer is at capacity, the carer doesn't host that species, the animal is already adopted, or the animal already has an active placement.\n- The capacity check and the save happen as one step in the repository, so two simultaneous placements can't push a carer over capacity.\n- Species are stored lowercase and matched case-insensitively.\n- Placing an animal doesn't change its status. Animals in care or ready for adoption can both be placed. An animal in foster care that is ready for adoption can still be adopted.\n- Approving an adoption now also ends the animal's active placement and e-mails the carer.\n\n**Code changes**\n- **New files:** the new code is in `src/domain/foster.ts` and `src/application/foster-service.ts`.\n- **Updated files:** I updated the ports, the in-memory repositories, the HTTP server, `main.ts` and `application-service.ts`.\n- **Constructor change:** `ApplicationService` now takes the placement and carer repositories as two extra constructor arguments. `main.ts` is updated; any other code that constructs it needs the same change.\n- **Layout:** the source stays in the five folders you specified.\n\nMy first attempt to explore the directory with a shell command was denied, so I read the files with the file tools instead.",
+  "ttft_ms": 2286,
+  "type": "result",
+  "duration_ms": 54778,
+  "uuid": "df31f81f-f43a-4236-a846-76d7297f591b",
+  "ttft_stream_ms": 1041,
+  "time_to_request_ms": 243,
+  "first_content_frame_ms": 1041,
+  "queued_turn_count": 0,
+  "result_index": 0
+}

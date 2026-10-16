@@ -1,0 +1,291 @@
+{
+ "id": "etherpad",
+ "sha": "b052af27a66893b25ae11201e29273ce26ccc966",
+ "label": "PROPOSED rules: mined from the code (deterministic, no LLM), not a reviewed spec. Review before use; exceptions are candidate violations, not confirmed ones.",
+ "style": "layered",
+ "styleConfidence": 1,
+ "layers": {
+  "persistence": 78,
+  "business": 34,
+  "presentation": 20
+ },
+ "allowedDependencies": [
+  "business>persistence",
+  "presentation>business",
+  "presentation>persistence"
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "statement": "persistence must not depend on business (55 edges business -> persistence; 2/78 persistence files import business)",
+   "subject": "persistence",
+   "object": "business",
+   "confidence": 0.912,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 78,
+    "importingFiles": 2,
+    "edges": 2,
+    "reverseEdges": 55
+   },
+   "exceptions": [
+    {
+     "file": "src/node/db/API.ts",
+     "target": "src/node/handler/PadMessageHandler.ts"
+    },
+    {
+     "file": "src/node/db/Pad.ts",
+     "target": "src/node/handler/PadMessageHandler.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "statement": "persistence must not depend on presentation (79 edges presentation -> persistence; 1/78 persistence files import presentation)",
+   "subject": "persistence",
+   "object": "presentation",
+   "confidence": 0.951,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 78,
+    "importingFiles": 1,
+    "edges": 1,
+    "reverseEdges": 79
+   },
+   "exceptions": [
+    {
+     "file": "src/node/db/SecurityManager.ts",
+     "target": "src/node/hooks/express/webaccess.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "statement": "business must not depend on presentation (29 edges presentation -> business; 1/34 business files import presentation)",
+   "subject": "business",
+   "object": "presentation",
+   "confidence": 0.882,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 34,
+    "importingFiles": 1,
+    "edges": 1,
+    "reverseEdges": 29
+   },
+   "exceptions": [
+    {
+     "file": "src/node/handler/PadMessageHandler.ts",
+     "target": "src/node/hooks/express/webaccess.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-004",
+   "kind": "acyclic-files",
+   "statement": "no file lies on an import cycle (126/133 files do not)",
+   "subject": "*",
+   "confidence": 0.94,
+   "level": "high",
+   "evidence": {
+    "files": 133,
+    "filesOnCycles": 7,
+    "cycles": 1
+   },
+   "exceptions": [
+    {
+     "file": "src/node/db/AuthorManager.ts",
+     "target": "src/node/db/PadManager.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/node/db/GroupManager.ts",
+     "target": "src/node/db/PadManager.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/node/db/GroupManager.ts",
+     "target": "src/node/db/SessionManager.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/node/db/Pad.ts",
+     "target": "src/node/db/AuthorManager.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/node/db/Pad.ts",
+     "target": "src/node/db/GroupManager.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/node/db/Pad.ts",
+     "target": "src/node/db/PadManager.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/node/db/Pad.ts",
+     "target": "src/node/handler/PadMessageHandler.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/node/db/PadManager.ts",
+     "target": "src/node/db/Pad.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/node/db/SecurityManager.ts",
+     "target": "src/node/db/AuthorManager.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/node/db/SecurityManager.ts",
+     "target": "src/node/db/PadManager.ts",
+     "detail": "edge on an import cycle"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "no-cyclic-deps",
+    "via": "fitness function FF-S02"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-005",
+   "kind": "core-package-free",
+   "statement": "persistence (a core layer: it may depend on no other layer) imports none of assert, buffer, child_process, chokidar, cookie-parser, cross-spawn, crypto, ep_etherpad-lite, esbuild, events, express, express-rate-limit, express-session, formidable, fs, html-to-docx, http, http-errors, http2, https, jose, languages4translatewiki, lodash.clonedeep, lru-cache, net, nodemailer, oidc-provider, openapi-backend, os, prom-client, proxy-addr, querystring, rate-limiter-flexible, semver, socket.io, underscore, url, util",
+   "subject": "persistence",
+   "confidence": 0.899,
+   "level": "high",
+   "evidence": {
+    "coreFiles": 78,
+    "packages": 38
+   },
+   "exceptions": [
+    {
+     "file": "src/node/db/Pad.ts",
+     "target": "assert"
+    },
+    {
+     "file": "src/node/db/PadDeletionManager.ts",
+     "target": "crypto"
+    },
+    {
+     "file": "src/node/db/SessionStore.ts",
+     "target": "express-session"
+    },
+    {
+     "file": "src/node/db/SessionStore.ts",
+     "target": "util"
+    },
+    {
+     "file": "src/node/eejs/index.ts",
+     "target": "fs"
+    },
+    {
+     "file": "src/node/metrics.ts",
+     "target": "prom-client"
+    },
+    {
+     "file": "src/node/types/ArgsExpressType.ts",
+     "target": "express"
+    },
+    {
+     "file": "src/node/types/PromiseWithStd.ts",
+     "target": "child_process"
+    },
+    {
+     "file": "src/node/utils/AbsolutePaths.ts",
+     "target": "fs"
+    },
+    {
+     "file": "src/node/utils/AbsolutePaths.ts",
+     "target": "underscore"
+    }
+   ],
+   "params": {
+    "forbidden_imports": [
+     "assert",
+     "buffer",
+     "child_process",
+     "chokidar",
+     "cookie-parser",
+     "cross-spawn",
+     "crypto",
+     "ep_etherpad-lite",
+     "esbuild",
+     "events",
+     "express",
+     "express-rate-limit",
+     "express-session",
+     "formidable",
+     "fs",
+     "html-to-docx",
+     "http",
+     "http-errors",
+     "http2",
+     "https",
+     "jose",
+     "languages4translatewiki",
+     "lodash.clonedeep",
+     "lru-cache",
+     "net",
+     "nodemailer",
+     "oidc-provider",
+     "openapi-backend",
+     "os",
+     "prom-client",
+     "proxy-addr",
+     "querystring",
+     "rate-limiter-flexible",
+     "semver",
+     "socket.io",
+     "underscore",
+     "url",
+     "util"
+    ]
+   },
+   "compilesTo": null,
+   "notRepresentable": "domain-purity checks the domain-kind layer only (business), not persistence",
+   "status": "proposal"
+  }
+ ],
+ "counts": {
+  "rules": 5,
+  "high": 5,
+  "medium": 0,
+  "low": 0,
+  "exceptions": 52,
+  "notRepresentable": 1
+ },
+ "spec": {
+  "valid": true,
+  "errors": [],
+  "compiled": [
+   "dependency-direction",
+   "no-cyclic-deps",
+   "no-layer-skip"
+  ]
+ }
+}

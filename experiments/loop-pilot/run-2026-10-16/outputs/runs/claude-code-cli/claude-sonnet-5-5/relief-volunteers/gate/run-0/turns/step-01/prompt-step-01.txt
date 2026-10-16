@@ -1,0 +1,10 @@
+You are building a new TypeScript backend service in the current directory, in several feature steps.
+This is step 1 of 4 of "Disaster-relief volunteer coordination".
+
+Feature request:
+Create a service for a disaster-relief organisation. It has two parts, run by different teams. The volunteer registry keeps volunteers (name, contact, home region) and their skills (first aid, heavy machinery, logistics, translation); a skill may need a certification with a number and an expiry date. First-aid certificates are verified with the MedCert HTTP API by certificate number; a certification its issuer has not confirmed counts as missing. Deployment planning keeps incidents (name, region, start date) and the shifts each incident needs (date, hours, required skill, number of people). A coordinator assigns volunteers to shifts. A shift never has more people than it needs, and a volunteer is never on two overlapping shifts. Keep the data in memory and expose the operations over HTTP.
+
+Put the source under src/. Organise the code following Domain-Driven Design, with one bounded context per part: src/registry/ for the volunteer registry and src/deployment/ for deployment planning.
+Inside each bounded context folder, organise the source code in the folders domain, application, infrastructure, acl and api (for example src/registry/domain), and put the composition root in src/main.ts.
+Before you finish, type-check the project with exactly this command and fix every error it reports:
+/root/pilot/harness/bin/tsc --noEmit --incremental false -p /root/pilot/harness/runs/claude-code-cli/claude-sonnet-5-5/relief-volunteers/gate/run-0/tsconfig.json

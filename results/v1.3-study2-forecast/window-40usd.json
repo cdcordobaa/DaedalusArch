@@ -1,0 +1,606 @@
+{
+  "options": {
+    "draws": 2000,
+    "seed": 20261016,
+    "lanes": [
+      1,
+      2
+    ],
+    "windowUsd": {
+      "claude-code-cli": 40
+    },
+    "repairScale": 1,
+    "mcpScale": 1,
+    "fireSource": "gate"
+  },
+  "sources": [
+    "results/e1-grid/agg/runs.csv",
+    "results/e1-grid/agg/latency.csv",
+    "results/v1.3-floor-probe/summary.json",
+    "<branch v1.3-agent-proof>/examples/agent-proof-clinic/transcripts"
+  ],
+  "forecasts": [
+    {
+      "planFile": "experiments/study2-forecast/plan.working.json",
+      "plan": {
+        "description": "FORECAST ONLY (Docs/v1.3/study2-forecast.md): outline §6 working grid, 6 tasks x k=5 (middle of 4-6) x 3 models (2 Claude pins + 1 Codex pin) x 3 runs x 3 arms. Model pins are placeholders from E1, not a decision.",
+        "adapters": [
+          {
+            "adapterId": "claude-code-cli",
+            "modelId": "claude-opus-5-5"
+          },
+          {
+            "adapterId": "claude-code-cli",
+            "modelId": "claude-sonnet-5-5"
+          },
+          {
+            "adapterId": "codex-cli",
+            "modelId": "gpt-5.6-terra"
+          }
+        ],
+        "arms": [
+          "none",
+          "daedalus-mcp",
+          "gate"
+        ],
+        "runs": 3,
+        "tasks": 6,
+        "stepsPerTask": 5
+      },
+      "options": {
+        "draws": 2000,
+        "seed": 20261016,
+        "lanes": [
+          1,
+          2
+        ],
+        "windowUsd": {
+          "claude-code-cli": 40
+        },
+        "repairScale": 1,
+        "mcpScale": 1,
+        "fireSource": "gate"
+      },
+      "fireRate": {
+        "p10": 0.03571428571428571,
+        "p50": 0.10714285714285714,
+        "p90": 0.17857142857142858
+      },
+      "evalMsPerScoring": 5374,
+      "arms": [
+        {
+          "arm": "none",
+          "stepCalls": 270,
+          "repairCalls": {
+            "p10": 0,
+            "p50": 0,
+            "p90": 0
+          },
+          "agentTurns": {
+            "p10": 6494.9,
+            "p50": 6702,
+            "p90": 6914
+          },
+          "usd": {
+            "p10": 78.85366858000008,
+            "p50": 82.49173450000004,
+            "p90": 86.32216566000005
+          },
+          "modelHours": {
+            "p10": 8.263895599920273,
+            "p50": 8.57165657974847,
+            "p90": 8.881863343403717
+          }
+        },
+        {
+          "arm": "daedalus-mcp",
+          "stepCalls": 270,
+          "repairCalls": {
+            "p10": 0,
+            "p50": 0,
+            "p90": 0
+          },
+          "agentTurns": {
+            "p10": 6482.9,
+            "p50": 6705,
+            "p90": 6914
+          },
+          "usd": {
+            "p10": 78.85599506000004,
+            "p50": 82.53511620000006,
+            "p90": 86.31173392000007
+          },
+          "modelHours": {
+            "p10": 8.271368307515885,
+            "p50": 8.571013382318057,
+            "p90": 8.892545776048475
+          }
+        },
+        {
+          "arm": "gate",
+          "stepCalls": 270,
+          "repairCalls": {
+            "p10": 9,
+            "p50": 27,
+            "p90": 51
+          },
+          "agentTurns": {
+            "p10": 6863.9,
+            "p50": 7360,
+            "p90": 8017
+          },
+          "usd": {
+            "p10": 83.9235022600001,
+            "p50": 90.73943040000006,
+            "p90": 99.45374388000013
+          },
+          "modelHours": {
+            "p10": 8.765114987868033,
+            "p50": 9.426588273195833,
+            "p90": 10.257386075952772
+          }
+        }
+      ],
+      "total": {
+        "arm": "__total",
+        "stepCalls": 810,
+        "repairCalls": {
+          "p10": 9,
+          "p50": 27,
+          "p90": 51
+        },
+        "agentTurns": {
+          "p10": 20172,
+          "p50": 20789.5,
+          "p90": 21479.1
+        },
+        "usd": {
+          "p10": 247.24895581999982,
+          "p50": 256.16613059999975,
+          "p90": 266.44468919999946
+        },
+        "modelHours": {
+          "p10": 25.800173843491123,
+          "p50": 26.607338818064797,
+          "p90": 27.503164033669403
+        }
+      },
+      "wall": [
+        {
+          "lanes": 1,
+          "wallHours": {
+            "p10": 35.00748669878524,
+            "p50": 36.08354048440758,
+            "p90": 38.96448451627377
+          },
+          "windows": {
+            "claude-code-cli": {
+              "p10": 7,
+              "p50": 7,
+              "p90": 8
+            },
+            "codex-cli": {
+              "p10": 3,
+              "p50": 3,
+              "p90": 3
+            }
+          }
+        },
+        {
+          "lanes": 2,
+          "wallHours": {
+            "p10": 31.853690303403628,
+            "p50": 32.30912508457878,
+            "p90": 32.78580160931328
+          },
+          "windows": {
+            "claude-code-cli": {
+              "p10": 7,
+              "p50": 7,
+              "p90": 7
+            },
+            "codex-cli": {
+              "p10": 3,
+              "p50": 3,
+              "p90": 3
+            }
+          }
+        }
+      ],
+      "pools": {
+        "claude-opus-5-5": 18,
+        "claude-sonnet-5-5": 18,
+        "gpt-5.6-terra": 18
+      },
+      "assumptions": [
+        "Each step turn and each repair turn draws one E1 generation of the same model id (cost, duration, agent turns jointly).",
+        "Repair turns cost repairScale = 1 of a step turn; daedalus-mcp turns cost mcpScale = 1.",
+        "Gate fire rate resampled from 28 floor-probe tool-arm pre-fix steps.",
+        "Evaluator overhead per scoring: median E1 total_ms = 5374 ms; a fired gate step is scored twice.",
+        "Lanes on one adapter share one account window; a window opens at the first call after the previous one ended.",
+        "Window capacity (USD API-equivalent per 5 h): {\"claude-code-cli\":40}; hypothetical, calls per window are unmeasured.",
+        "A capped call pauses its lane until window end + 60 s (generator protocol §8). Interrupted-call waste is not modelled.",
+        "Tokens: n/a (E1 envelopes with modelUsage are not committed). Codex has no metered USD.",
+        "Infrastructure retries, failed-typecheck reruns and the self-review placebo arm are not modelled."
+      ]
+    },
+    {
+      "planFile": "experiments/study2-forecast/plan.2models.json",
+      "plan": {
+        "description": "FORECAST ONLY: smaller grid, 2 models (the 2 Claude pins), k=5, 6 tasks x 3 runs x 3 arms.",
+        "adapters": [
+          {
+            "adapterId": "claude-code-cli",
+            "modelId": "claude-opus-5-5"
+          },
+          {
+            "adapterId": "claude-code-cli",
+            "modelId": "claude-sonnet-5-5"
+          }
+        ],
+        "arms": [
+          "none",
+          "daedalus-mcp",
+          "gate"
+        ],
+        "runs": 3,
+        "tasks": 6,
+        "stepsPerTask": 5
+      },
+      "options": {
+        "draws": 2000,
+        "seed": 20261016,
+        "lanes": [
+          1,
+          2
+        ],
+        "windowUsd": {
+          "claude-code-cli": 40
+        },
+        "repairScale": 1,
+        "mcpScale": 1,
+        "fireSource": "gate"
+      },
+      "fireRate": {
+        "p10": 0.03571428571428571,
+        "p50": 0.10714285714285714,
+        "p90": 0.17857142857142858
+      },
+      "evalMsPerScoring": 5374,
+      "arms": [
+        {
+          "arm": "none",
+          "stepCalls": 180,
+          "repairCalls": {
+            "p10": 0,
+            "p50": 0,
+            "p90": 0
+          },
+          "agentTurns": {
+            "p10": 5219,
+            "p50": 5429,
+            "p90": 5631.1
+          },
+          "usd": {
+            "p10": 78.75966828000006,
+            "p50": 82.49288240000007,
+            "p90": 86.28757236000007
+          },
+          "modelHours": {
+            "p10": 5.891502427552887,
+            "p50": 6.17604868154069,
+            "p90": 6.461015093518938
+          }
+        },
+        {
+          "arm": "daedalus-mcp",
+          "stepCalls": 180,
+          "repairCalls": {
+            "p10": 0,
+            "p50": 0,
+            "p90": 0
+          },
+          "agentTurns": {
+            "p10": 5220,
+            "p50": 5430,
+            "p90": 5627
+          },
+          "usd": {
+            "p10": 78.83728630000005,
+            "p50": 82.48799290000002,
+            "p90": 86.26486760000006
+          },
+          "modelHours": {
+            "p10": 5.906570438773971,
+            "p50": 6.170893397519305,
+            "p90": 6.458223807095862
+          }
+        },
+        {
+          "arm": "gate",
+          "stepCalls": 180,
+          "repairCalls": {
+            "p10": 5,
+            "p50": 18,
+            "p90": 35
+          },
+          "agentTurns": {
+            "p10": 5549.9,
+            "p50": 5967.5,
+            "p90": 6531.3
+          },
+          "usd": {
+            "p10": 83.99121706000004,
+            "p50": 90.8454751000001,
+            "p90": 99.46647696000007
+          },
+          "modelHours": {
+            "p10": 6.289609309381114,
+            "p50": 6.797351430674301,
+            "p90": 7.446661519521417
+          }
+        }
+      ],
+      "total": {
+        "arm": "__total",
+        "stepCalls": 540,
+        "repairCalls": {
+          "p10": 5,
+          "p50": 18,
+          "p90": 35
+        },
+        "agentTurns": {
+          "p10": 16294.9,
+          "p50": 16823.5,
+          "p90": 17454.5
+        },
+        "usd": {
+          "p10": 247.21949953999967,
+          "p50": 256.07659239999975,
+          "p90": 266.1176944999998
+        },
+        "modelHours": {
+          "p10": 18.50578324510107,
+          "p50": 19.175003641381124,
+          "p90": 19.908504216492926
+        }
+      },
+      "wall": [
+        {
+          "lanes": 1,
+          "wallHours": {
+            "p10": 30.939095608409257,
+            "p50": 31.80467701638515,
+            "p90": 32.71056727339246
+          },
+          "windows": {
+            "claude-code-cli": {
+              "p10": 7,
+              "p50": 7,
+              "p90": 7
+            }
+          }
+        },
+        {
+          "lanes": 2,
+          "wallHours": {
+            "p10": 30.557782166456057,
+            "p50": 30.99032073689668,
+            "p90": 31.444199626233274
+          },
+          "windows": {
+            "claude-code-cli": {
+              "p10": 7,
+              "p50": 7,
+              "p90": 7
+            }
+          }
+        }
+      ],
+      "pools": {
+        "claude-opus-5-5": 18,
+        "claude-sonnet-5-5": 18
+      },
+      "assumptions": [
+        "Each step turn and each repair turn draws one E1 generation of the same model id (cost, duration, agent turns jointly).",
+        "Repair turns cost repairScale = 1 of a step turn; daedalus-mcp turns cost mcpScale = 1.",
+        "Gate fire rate resampled from 28 floor-probe tool-arm pre-fix steps.",
+        "Evaluator overhead per scoring: median E1 total_ms = 5374 ms; a fired gate step is scored twice.",
+        "Lanes on one adapter share one account window; a window opens at the first call after the previous one ended.",
+        "Window capacity (USD API-equivalent per 5 h): {\"claude-code-cli\":40}; hypothetical, calls per window are unmeasured.",
+        "A capped call pauses its lane until window end + 60 s (generator protocol §8). Interrupted-call waste is not modelled.",
+        "Tokens: n/a (E1 envelopes with modelUsage are not committed). Codex has no metered USD.",
+        "Infrastructure retries, failed-typecheck reruns and the self-review placebo arm are not modelled."
+      ]
+    },
+    {
+      "planFile": "experiments/study2-forecast/plan.2models-k4.json",
+      "plan": {
+        "description": "FORECAST ONLY: smaller grid, 2 models (the 2 Claude pins), k=4, 6 tasks x 3 runs x 3 arms.",
+        "adapters": [
+          {
+            "adapterId": "claude-code-cli",
+            "modelId": "claude-opus-5-5"
+          },
+          {
+            "adapterId": "claude-code-cli",
+            "modelId": "claude-sonnet-5-5"
+          }
+        ],
+        "arms": [
+          "none",
+          "daedalus-mcp",
+          "gate"
+        ],
+        "runs": 3,
+        "tasks": 6,
+        "stepsPerTask": 4
+      },
+      "options": {
+        "draws": 2000,
+        "seed": 20261016,
+        "lanes": [
+          1,
+          2
+        ],
+        "windowUsd": {
+          "claude-code-cli": 40
+        },
+        "repairScale": 1,
+        "mcpScale": 1,
+        "fireSource": "gate"
+      },
+      "fireRate": {
+        "p10": 0.03571428571428571,
+        "p50": 0.10714285714285714,
+        "p90": 0.17857142857142858
+      },
+      "evalMsPerScoring": 5374,
+      "arms": [
+        {
+          "arm": "none",
+          "stepCalls": 144,
+          "repairCalls": {
+            "p10": 0,
+            "p50": 0,
+            "p90": 0
+          },
+          "agentTurns": {
+            "p10": 4158.9,
+            "p50": 4344.5,
+            "p90": 4532
+          },
+          "usd": {
+            "p10": 62.754696780000025,
+            "p50": 66.0235001,
+            "p90": 69.41959714000002
+          },
+          "modelHours": {
+            "p10": 4.69493096000797,
+            "p50": 4.9398766419709705,
+            "p90": 5.199996794971917
+          }
+        },
+        {
+          "arm": "daedalus-mcp",
+          "stepCalls": 144,
+          "repairCalls": {
+            "p10": 0,
+            "p50": 0,
+            "p90": 0
+          },
+          "agentTurns": {
+            "p10": 4151.9,
+            "p50": 4346,
+            "p90": 4525.200000000001
+          },
+          "usd": {
+            "p10": 62.67724996000002,
+            "p50": 66.02284290000006,
+            "p90": 69.53494944000003
+          },
+          "modelHours": {
+            "p10": 4.692470402458943,
+            "p50": 4.940814855021802,
+            "p90": 5.203426073728917
+          }
+        },
+        {
+          "arm": "gate",
+          "stepCalls": 144,
+          "repairCalls": {
+            "p10": 5,
+            "p50": 15,
+            "p90": 28
+          },
+          "agentTurns": {
+            "p10": 4425,
+            "p50": 4786,
+            "p90": 5239.1
+          },
+          "usd": {
+            "p10": 66.86295170000001,
+            "p50": 72.67821970000003,
+            "p90": 79.83169096000009
+          },
+          "modelHours": {
+            "p10": 5.004526933441415,
+            "p50": 5.448030605621943,
+            "p90": 5.982261821263113
+          }
+        }
+      ],
+      "total": {
+        "arm": "__total",
+        "stepCalls": 432,
+        "repairCalls": {
+          "p10": 5,
+          "p50": 15,
+          "p90": 28
+        },
+        "agentTurns": {
+          "p10": 13029.9,
+          "p50": 13476,
+          "p90": 14012.1
+        },
+        "usd": {
+          "p10": 197.1774078,
+          "p50": 204.87076709999985,
+          "p90": 213.69216603999985
+        },
+        "modelHours": {
+          "p10": 14.763387647286224,
+          "p50": 15.337910128420004,
+          "p90": 16.003537047588907
+        }
+      },
+      "wall": [
+        {
+          "lanes": 1,
+          "wallHours": {
+            "p10": 23.284667219604525,
+            "p50": 25.702963169617092,
+            "p90": 26.57422948767514
+          },
+          "windows": {
+            "claude-code-cli": {
+              "p10": 5,
+              "p50": 6,
+              "p90": 6
+            }
+          }
+        },
+        {
+          "lanes": 2,
+          "wallHours": {
+            "p10": 21.693847886099,
+            "p50": 25.422898906417636,
+            "p90": 25.865145526938555
+          },
+          "windows": {
+            "claude-code-cli": {
+              "p10": 5,
+              "p50": 6,
+              "p90": 6
+            }
+          }
+        }
+      ],
+      "pools": {
+        "claude-opus-5-5": 18,
+        "claude-sonnet-5-5": 18
+      },
+      "assumptions": [
+        "Each step turn and each repair turn draws one E1 generation of the same model id (cost, duration, agent turns jointly).",
+        "Repair turns cost repairScale = 1 of a step turn; daedalus-mcp turns cost mcpScale = 1.",
+        "Gate fire rate resampled from 28 floor-probe tool-arm pre-fix steps.",
+        "Evaluator overhead per scoring: median E1 total_ms = 5374 ms; a fired gate step is scored twice.",
+        "Lanes on one adapter share one account window; a window opens at the first call after the previous one ended.",
+        "Window capacity (USD API-equivalent per 5 h): {\"claude-code-cli\":40}; hypothetical, calls per window are unmeasured.",
+        "A capped call pauses its lane until window end + 60 s (generator protocol §8). Interrupted-call waste is not modelled.",
+        "Tokens: n/a (E1 envelopes with modelUsage are not committed). Codex has no metered USD.",
+        "Infrastructure retries, failed-typecheck reruns and the self-review placebo arm are not modelled."
+      ]
+    }
+  ]
+}

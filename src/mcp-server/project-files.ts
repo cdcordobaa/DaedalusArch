@@ -62,9 +62,25 @@ export class ProjectView {
     if (this.cache.has(file)) return this.cache.get(file);
     const abs = path.resolve(this.root, file);
     let text: string | undefined;
-    if (abs.startsWith(this.root + path.sep) && fs.existsSync(abs) && fs.statSync(abs).isFile()) text = fs.readFileSync(abs, 'utf8');
+    if (abs.startsWith(this.root + path.sep) && fs.existsSync(abs) && fs.statSync(abs).isFile() && this.insideRealRoot(abs)) text = fs.readFileSync(abs, 'utf8');
     this.cache.set(file, text);
     return text;
+  }
+
+  private realRoot: string | undefined;
+
+  /**
+   * Whether the file, symlinks resolved, is still under the realpath of the root. The lexical check alone lets a
+   * symlink inside the project read any file on the host (R06, post-merge review 2026-10-16).
+   */
+  private insideRealRoot(abs: string): boolean {
+    try {
+      this.realRoot ??= fs.realpathSync(this.root ?? '');
+      const real = fs.realpathSync(abs);
+      return real.startsWith(this.realRoot + path.sep);
+    } catch {
+      return false;
+    }
   }
 
   exists(rel: string): boolean {
@@ -158,7 +174,8 @@ export class ProjectView {
   /**
    * The literal import graph (ADR-V13-01 literal view: an import ends at the module its specifier names, a barrel
    * included; `export ... from` counts, as RE_EXPORTS does): project file to the project files it imports.
-   * `require()` and `import()` are left out (the extractor does not model them, BR-U2-25).
+   * String-literal `require()` and `import()` calls count: the v1.3 extractor models them as IMPORTS edges
+   * (`dynamicImports`, R03 of the post-merge review 2026-10-16).
    */
   importGraph(): ReadonlyMap<string, ReadonlySet<string>> {
     const graph = new Map<string, Set<string>>();
@@ -167,7 +184,6 @@ export class ProjectView {
       if (text === undefined) continue;
       const edges = new Set<string>();
       for (const imp of scanSource(text).imports) {
-        if (imp.kind === 'require' || imp.kind === 'dynamic') continue;
         const t = this.resolveModule(file, imp.specifier);
         if (t.kind === 'file' && t.exists && t.path !== file) edges.add(t.path);
       }

@@ -1,0 +1,69 @@
+# Idiomatic translation of Sairyss/domain-driven-hexagon .dependency-cruiser.js (rules no-domain-to-api-deps,
+# no-domain-to-app-deps, no-domain-to-infra-deps, no-infra-to-api-deps, no-command-query-to-api-deps),
+# written by hand with globs. The human layers are OVERLAPPING substring regexes; ours is a first-match partition,
+# so this file records more judgement calls than the other two:
+#  J1 order of precedence (first match wins): api, domain, infrastructure, application. A file matching two human
+#     layers (e.g. src/libs/api/... dto files are api; src/modules/*/database/*.repository.port.ts are infra by
+#     'repository' and exempted as targets by pathNot port.ts) gets one layer only;
+#  J2 ports (**/*.port.ts) go to the DOMAIN layer: the human config exempts port.ts from no-domain-to-infra-deps,
+#     i.e. the authors treat ports as importable from the domain;
+#  J3 AppRequestContext.ts is exempted from no-domain-to-app-deps by pathNot; we keep it in application and accept
+#     that a domain -> AppRequestContext import would be flagged by us and not by them (none exists at HEAD);
+#  J4 the substring 'controller'/'dtos'/'request'/'response' regexes become name globs (**/*controller*.ts,
+#     **/dtos/**, **/*.request.dto.ts, **/*response*.ts) and 'dto.ts$', 'resolver.ts$';
+#  J5 the 'service.ts$', 'command-handler.ts$', 'query-handler.ts$', 'command.ts$' rule (commands/queries must
+#     not import api) is folded into application: application may not import api;
+#  J6 infrastructure: dirs infrastructure, infra, database plus *.repository.ts; src/configs and module wiring
+#     (*.module.ts, main.ts, *.di-tokens.ts, *.mapper.ts) stay unlayered as the human rules never constrain them
+#     as a source... except mapper/di-tokens files under database/? none exist at HEAD.
+architecture:
+  style: hexagonal
+  layers:
+    - name: api
+      kind: presentation
+      roles: [controller]
+      directories:
+        - "src/**/dtos/**"
+      file_patterns:
+        - "**/*controller*.ts"
+        - "**/*resolver.ts"
+        - "**/*dto.ts"
+        - "**/*request*.ts"
+        - "**/*response*.ts"
+    - name: domain
+      kind: domain
+      roles: [entity]
+      directories:
+        - "src/**/domain/**"
+      file_patterns:
+        - "**/*.port.ts"
+        - "**/*entity.ts"
+        - "**/*aggregate.ts"
+        - "**/*domain-event.ts"
+        - "**/*value-object.ts"
+    - name: infrastructure
+      kind: infrastructure
+      roles: [repository]
+      directories:
+        - "src/**/infrastructure/**"
+        - "src/**/infra/**"
+        - "src/**/database/**"
+      file_patterns:
+        - "**/*repository*.ts"
+    - name: application
+      kind: application
+      roles: [use-case]
+      directories:
+        - "src/**/application/**"
+      file_patterns:
+        - "**/*service.ts"
+        - "**/*command-handler.ts"
+        - "**/*query-handler.ts"
+        - "**/*command.ts"
+  allowed_dependencies:
+    - from: api
+      to: [domain, infrastructure, application]
+    - from: infrastructure
+      to: [domain, application]
+    - from: application
+      to: [domain, infrastructure]
