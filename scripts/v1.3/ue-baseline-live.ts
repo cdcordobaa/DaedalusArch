@@ -11,6 +11,9 @@
  * Cypher templates run in process over an in-memory graph; no Neo4j server, credentials or Neo4j lock are needed.
  * `--advisory-filter <list|all|none>` (default: not passed, so the CLI default `none`) passes the same flag to every CLI
  * child (src/advisory-filter, off by default); the report's `advisoryFilter` block is kept in the evidence file.
+ * `--query-engine <accelerated|neo4j>` (default: not passed, so the CLI default `accelerated`) passes the same flag to
+ * every CLI child (Docs/v1.3/scale.md §3): `neo4j` sends every query to Neo4j, bypassing the in-memory cycle-query
+ * accelerator of #188. Only meaningful with `--engine neo4j`.
  * Writes <out>/raw/<style>/<variant>.json (replayable with --from-raw), <out>/evidence/<style>/<variant>.json,
  * <out>/report.json and <out>/report.md.
  * `--keep-cli` also writes <out>/cli/<style>/<variant>.json: the CLI's whole JSON result (AHS, per-dimension scores,
@@ -42,7 +45,14 @@ if (afIdx >= 0 && (advisoryFilter === undefined || advisoryFilter === '')) {
   process.stderr.write('--advisory-filter needs a value\n');
   process.exit(2);
 }
-const argv = afIdx >= 0 ? [...argv0.slice(0, afIdx), ...argv0.slice(afIdx + 2)] : argv0;
+const argv1 = afIdx >= 0 ? [...argv0.slice(0, afIdx), ...argv0.slice(afIdx + 2)] : argv0;
+const qeIdx = argv1.indexOf('--query-engine');
+const queryEngine = qeIdx >= 0 ? argv1[qeIdx + 1] : undefined;
+if (qeIdx >= 0 && queryEngine !== 'accelerated' && queryEngine !== 'neo4j') {
+  process.stderr.write('--query-engine must be accelerated or neo4j\n');
+  process.exit(2);
+}
+const argv = qeIdx >= 0 ? [...argv1.slice(0, qeIdx), ...argv1.slice(qeIdx + 2)] : argv1;
 const outIdx = argv.indexOf('--out');
 const setIdx = argv.indexOf('--set');
 const defaultOut = setIdx >= 0 && argv[setIdx + 1] === 'devset-b' ? 'results/v1.3-devset-b' : 'results/v1.3-reference';
@@ -60,7 +70,8 @@ for (const k of ['PATH', 'HOME', 'NEO4J_URI', 'NEO4J_USER', 'NEO4J_PASSWORD']) {
 
 async function evaluate(projectDir: string, specPath: string): Promise<readonly ActualFinding[]> {
   const args = [CLI_ENTRY, 'evaluate', '--project', projectDir, '--spec', specPath, '--format', 'json', '--symbolic-only', '--neo4j-uri', env.NEO4J_URI ?? '',
-    '--engine', engine, ...(advisoryFilter !== undefined ? ['--advisory-filter', advisoryFilter] : [])];
+    '--engine', engine, ...(advisoryFilter !== undefined ? ['--advisory-filter', advisoryFilter] : []),
+    ...(queryEngine !== undefined ? ['--query-engine', queryEngine] : [])];
   const started = Date.now();
   const run = await runner.run(tsx, args, { cwd: repoRoot, env: childEnv, timeoutMs: 600_000 });
   if (!run.success) throw new Error(run.errors.map((e) => e.message).join('; '));
