@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "nestjs",
+  "variant": "v25-controller-reads-route-from-module",
+  "kind": "violation",
+  "plants": "FF-S02",
+  "description": "RegistrationsModule exports REGISTRATIONS_ROUTE and RegistrationsController imports it for @Controller(), while the module already imports the controller.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "file": "src/registrations/registrations.controller.ts",
+      "target": "src/registrations/registrations.module.ts",
+      "reason": "Two-file import cycle between the controller and its module (\"registrations.controller.ts\" sorts before \"registrations.module.ts\")."
+    }
+  ]
+}

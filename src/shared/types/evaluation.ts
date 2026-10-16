@@ -367,6 +367,8 @@ export interface EvaluationReport {
   readonly neuralResults?: readonly NeuralResultRow[];
   /** v1.3 scoring mode only (FR-V6, Docs/v1.3/rule-tiers.md): the tiered verdict; absent in the v1.2E mode. */
   readonly tiers?: TieredScoring;
+  /** `firewall evaluate --hints` only (Docs/v1.3/fix-hints.md): a deterministic fix hint per blocking violation; absent otherwise. */
+  readonly fixHints?: readonly import('../../fix-hints/types.js').ReportFixHint[];
 }
 
 /** Scoring mode: `v1.2e` (the registered Study 1 scoring, unchanged) or `v1.3` (rule tiers, FR-V6). */

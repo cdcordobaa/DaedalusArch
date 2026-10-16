@@ -1,0 +1,145 @@
+diff --git a/src/business/container.ts b/src/business/container.ts
+index 72d3c35..19b58a7 100644
+--- a/src/business/container.ts
++++ b/src/business/container.ts
+@@ -5,6 +5,7 @@ import { TeamService } from './team-service';
+ import { FixtureService } from './fixture-service';
+ import { WeatherService } from './weather-service';
+ import { RefereeService } from './referee-service';
++import { TableService } from './table-service';
+ 
+ /** Builds the business services with their persistence. */
+ export function createServices() {
+@@ -20,5 +21,6 @@ export function createServices() {
+     fixtures: new FixtureService(fixtureRepo, teamRepo, pitchRepo, referees),
+     referees,
+     weather: new WeatherService(fixtureRepo, pitchRepo, teamRepo, new WeatherNowClient(), mailer),
++    tables: new TableService(fixtureRepo, teamRepo),
+   };
+ }
+diff --git a/src/business/table-service.ts b/src/business/table-service.ts
+new file mode 100644
+index 0000000..41727ed
+--- /dev/null
++++ b/src/business/table-service.ts
+@@ -0,0 +1,72 @@
++import { AgeGroup } from './entities';
++import { FixtureRepository, TeamRepository } from '../persistence/repositories';
++
++export interface TableRow {
++  teamId: string;
++  team: string;
++  played: number;
++  won: number;
++  drawn: number;
++  lost: number;
++  goalsFor: number;
++  goalsAgainst: number;
++  goalDifference: number;
++  points: number;
++}
++
++export class TableService {
++  private cache: { key: string; tables: Record<string, TableRow[]> } | undefined;
++
++  constructor(private readonly fixtures: FixtureRepository, private readonly teams: TeamRepository) {}
++
++  /** League tables per age group; cached until a result changes. */
++  tables(): Record<string, TableRow[]> {
++    const played = this.fixtures.findAll().filter((f) => f.result);
++    const key = played.map((f) => `${f.id}:${f.result?.recordedAt}`).join('|') + `#${this.teams.findAll().length}`;
++    if (this.cache?.key === key) return this.cache.tables;
++
++    const rows = new Map<string, TableRow>();
++    const groupOf = new Map<string, AgeGroup>();
++    for (const t of this.teams.findAll()) {
++      groupOf.set(t.id, t.ageGroup);
++      rows.set(t.id, { teamId: t.id, team: t.name, played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0 });
++    }
++    for (const f of played) {
++      const r = f.result;
++      const home = rows.get(f.homeTeamId);
++      const away = rows.get(f.awayTeamId);
++      if (!r || !home || !away) continue;
++      home.played++;
++      away.played++;
++      home.goalsFor += r.homeGoals;
++      home.goalsAgainst += r.awayGoals;
++      away.goalsFor += r.awayGoals;
++      away.goalsAgainst += r.homeGoals;
++      if (r.homeGoals > r.awayGoals) {
++        home.won++;
++        away.lost++;
++        home.points += 3;
++      } else if (r.homeGoals < r.awayGoals) {
++        away.won++;
++        home.lost++;
++        away.points += 3;
++      } else {
++        home.drawn++;
++        away.drawn++;
++        home.points++;
++        away.points++;
++      }
++    }
++    const tables: Record<string, TableRow[]> = {};
++    for (const row of rows.values()) {
++      row.goalDifference = row.goalsFor - row.goalsAgainst;
++      const g = groupOf.get(row.teamId) as string;
++      (tables[g] ??= []).push(row);
++    }
++    for (const g of Object.keys(tables)) {
++      tables[g].sort((a, b) => b.points - a.points || b.goalDifference - a.goalDifference || b.goalsFor - a.goalsFor || a.team.localeCompare(b.team));
++    }
++    this.cache = { key, tables };
++    return tables;
++  }
++}
+diff --git a/src/presentation/controllers.ts b/src/presentation/controllers.ts
+index 44e08d5..56c2281 100644
+--- a/src/presentation/controllers.ts
++++ b/src/presentation/controllers.ts
+@@ -3,9 +3,16 @@ import { TeamService } from '../business/team-service';
+ import { FixtureService } from '../business/fixture-service';
+ import { WeatherService } from '../business/weather-service';
+ import { RefereeService } from '../business/referee-service';
++import { TableService } from '../business/table-service';
+ import { NotFoundError, ValidationError } from '../business/entities';
+ 
+-export function buildRouter(teams: TeamService, fixtures: FixtureService, weather: WeatherService, referees: RefereeService): Router {
++export function buildRouter(
++  teams: TeamService,
++  fixtures: FixtureService,
++  weather: WeatherService,
++  referees: RefereeService,
++  tables: TableService,
++): Router {
+   const r = Router();
+   r.post('/teams', (req, res) => {
+     res.status(201).json(teams.registerTeam(req.body));
+@@ -46,6 +53,12 @@ export function buildRouter(teams: TeamService, fixtures: FixtureService, weathe
+   r.put('/fixtures/:id/referee', (req, res) => {
+     res.json(referees.assign(req.params.id, req.body.refereeId));
+   });
++  r.get('/tables', (_req, res) => {
++    res.set('cache-control', 'public, max-age=30').json(tables.tables());
++  });
++  r.get('/tables/:ageGroup', (req, res) => {
++    res.set('cache-control', 'public, max-age=30').json(tables.tables()[req.params.ageGroup] ?? []);
++  });
+   return r;
+ }
+ 
+diff --git a/src/presentation/server.ts b/src/presentation/server.ts
+index 25dec28..49b644c 100644
+--- a/src/presentation/server.ts
++++ b/src/presentation/server.ts
+@@ -7,7 +7,7 @@ export const mailer = services.mailer;
+ 
+ const app = express();
+ app.use(express.json());
+-app.use(buildRouter(services.teams, services.fixtures, services.weather, services.referees));
++app.use(buildRouter(services.teams, services.fixtures, services.weather, services.referees, services.tables));
+ app.use(errorHandler);
+ 
+ // every evening at 18:00 check tomorrow's fixtures
