@@ -1,0 +1,36 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8333,
+  "effort": "high",
+  "functionId": "filter-explain",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "e0ca99623d68815694acef25c1c4d1998db4833dc80f891ca26de1ff710295cf-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "## Finding\nRule: FF-P01\nRule intent: Domain files do not import framework, persistence or transport packages.\nType: DOMAIN_PURITY_VIOLATION\nSeverity: critical; tier: blocking\nFile: src/domain/entities/Book.ts\nTarget: typeorm\nReported lines: 1\nMessage: Domain file src/domain/entities/Book.ts imports forbidden package typeorm\nDiscriminator: IMPORTS\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Source (line-numbered)\n=====SOURCE-BEGIN src/domain/entities/Book.ts (layer domain)=====\n 1| import { Entity } from 'typeorm';\n 2| import { DomainError } from '../errors/DomainError';\n 3| import { Isbn } from '../value-objects/Isbn';\n 4| \n 5| @Entity('books')\n 6| export class Book {\n 7|   constructor(\n 8|     readonly id: string,\n 9|     readonly isbn: Isbn,\n10|     readonly title: string,\n11|     readonly author: string,\n12|     private availableCopies: number,\n13|   ) {\n14|     if (title.trim().length === 0) throw new DomainError('INVALID_BOOK', 'A book needs a title');\n15|     if (availableCopies < 0) throw new DomainError('INVALID_BOOK', 'Copies cannot be negative');\n16|   }\n17| \n18|   get copiesAvailable(): number {\n19|     return this.availableCopies;\n20|   }\n21| \n22|   checkOut(): void {\n23|     if (this.availableCopies === 0) {\n24|       throw new DomainError('NO_COPIES', `No copy of \"${this.title}\" is available`);\n25|     }\n26|     this.availableCopies -= 1;\n27|   }\n28| \n29|   checkIn(): void {\n30|     this.availableCopies += 1;\n31|   }\n32| }\n=====SOURCE-END=====\n\n## Instructions\nDecide confirm or dismiss. Confirm: the cited code has the problem the rule is meant to catch, in this project and layer model. Dismiss: the rule fired, but the code does not have that problem (a false positive of the rule's mechanism, a threshold artefact on sound code, or a case the style allows). Measurements stated in the finding (counts, ratios, missing files) are correct as measurements; judge what they mean for this code. explanation: one paragraph that justifies the decision from the code, citing file paths and line numbers exactly as numbered below. fix: one concrete change: for a confirm, how to fix the code; for a dismiss, what (if anything) the rule or its configuration should change. citations: the line ranges your explanation relies on; every one must name a file shown below and lines that exist.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T23:58:44.710Z",
+  "repetition": 0,
+  "requestHash": "e0ca99623d68815694acef25c1c4d1998db4833dc80f891ca26de1ff710295cf",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":634}},\"result\":\"{\\\"decision\\\":\\\"confirm\\\",\\\"explanation\\\":\\\"src/domain/entities/Book.ts sits in the domain layer, and line 1 imports `Entity` from the persistence ORM `typeorm`. This is not just a type-only import. Line 5 applies it as a runtime decorator, `@Entity('books')`, which ties the class to the table name 'books'. That puts a persistence detail into the domain entity and makes the domain depend on typeorm at runtime. This is exactly the coupling FF-P01 is meant to stop. Nothing else in the class (lines 6-32) uses typeorm. The constructor checks and the checkOut/checkIn logic only use domain types (DomainError, Isbn, lines 2-3). So the ORM mapping is a stray leak that can be moved out, not something the entity needs.\\\",\\\"fix\\\":\\\"Delete the `typeorm` import (line 1) and the `@Entity('books')` decorator (line 5) from src/domain/entities/Book.ts. Define the persistence mapping in the infrastructure layer instead. One way is a separate ORM entity class, such as src/infrastructure/persistence/BookRecord.ts, plus a mapper that converts between it and the domain `Book`. Another is a typeorm `EntitySchema` declared under src/infrastructure/** that targets `Book`.\\\",\\\"citations\\\":[{\\\"filePath\\\":\\\"src/domain/entities/Book.ts\\\",\\\"startLine\\\":1,\\\"endLine\\\":1},{\\\"filePath\\\":\\\"src/domain/entities/Book.ts\\\",\\\"startLine\\\":5,\\\"endLine\\\":6},{\\\"filePath\\\":\\\"src/domain/entities/Book.ts\\\",\\\"startLine\\\":14,\\\"endLine\\\":15}]}\",\"structured_output\":{\"citations\":[{\"endLine\":1,\"filePath\":\"src/domain/entities/Book.ts\",\"startLine\":1},{\"endLine\":6,\"filePath\":\"src/domain/entities/Book.ts\",\"startLine\":5},{\"endLine\":15,\"filePath\":\"src/domain/entities/Book.ts\",\"startLine\":14}],\"decision\":\"confirm\",\"explanation\":\"src/domain/entities/Book.ts sits in the domain layer, and line 1 imports `Entity` from the persistence ORM `typeorm`. This is not just a type-only import. Line 5 applies it as a runtime decorator, `@Entity('books')`, which ties the class to the table name 'books'. That puts a persistence detail into the domain entity and makes the domain depend on typeorm at runtime. This is exactly the coupling FF-P01 is meant to stop. Nothing else in the class (lines 6-32) uses typeorm. The constructor checks and the checkOut/checkIn logic only use domain types (DomainError, Isbn, lines 2-3). So the ORM mapping is a stray leak that can be moved out, not something the entity needs.\",\"fix\":\"Delete the `typeorm` import (line 1) and the `@Entity('books')` decorator (line 5) from src/domain/entities/Book.ts. Define the persistence mapping in the infrastructure layer instead. One way is a separate ORM entity class, such as src/infrastructure/persistence/BookRecord.ts, plus a mapper that converts between it and the domain `Book`. Another is a typeorm `EntitySchema` declared under src/infrastructure/** that targets `Book`.\"}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "14767b7d15323f2b",
+  "usage": {
+    "inputTokens": 2394,
+    "outputTokens": 634
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

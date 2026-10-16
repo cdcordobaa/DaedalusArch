@@ -84,11 +84,25 @@ No other pilot result may change Study 2's primary outcome. In particular, nothi
 | Task `market-vendors` "Farmers' market vendors" (sha256 of `JSON.stringify(task)`) | `009c672b4dee2a566da4fc9ad4d6d084df317763cbfce1508f53c6196d012c89` |
 | Task `shelter-adoptions` "Animal shelter adoptions" | `acc8a145f5c884653dfec92bd98315b4cd272d24bdce3c3253d0f52e6d4ff49c` |
 | Task `relief-volunteers` "Disaster-relief volunteer coordination" | `0a6f2531c56e09f4bd69d739bfa16c20e058a14224f70d1263b5964fd5c52315` |
-| Tool commit | `<PILOT_SHA>` |
-| Step and repair frames (`promptSha256` of each) | `<FRAME_SHA256>` |
-| Pilot specs (Hexagonal, DDD) and `specs/clean-arch.yaml` (sha256 each) | `<SPEC_SHA256>` |
-| `daedalus-mcp` included? | `<YES/NO, with the probe result>` |
-| `orderSeed` | `<SEED>` |
-| CLI version and model id | `<CLAUDE_CLI_VERSION>`, `claude-sonnet-5-5` |
+| Tool commit | `419e29067e6eebcf8358d2fd6d0eb3181e2a2fe9` (`origin/v1.3` with `origin/v1.3-review-fixes-2` merged, a fast-forward; R01 fix included) |
+| Step and repair frames (`promptSha256` of each) | `STYLED_FIRST_STEP_TEMPLATE` `54e815ddf472515b55b1c839a4ee417f711ee5817222ea5e23d758814c5b0911`; `STYLED_NEXT_STEP_TEMPLATE` `93161c32c3cebcb6a1b2cebc5fc6d7de253282b0becfe59de7e5389bb6818626`; `REPAIR_TEMPLATE` `2a06bf712219964ff682e77d827620d0a7db3d62fbc457bb3de94367660acec0` (templates before the slots are filled; each instantiated prompt's `promptSha256` is in its turn record) |
+| Pilot specs (Hexagonal, DDD) and `specs/clean-arch.yaml` (sha256 each) | `specs/clean-arch.yaml` `91bd152e0ae58dcc28a35f2ebc6fe264bf9ff7cd11a2fa6a8094ef54fcd6f6a8`; `presets/hexagonal.yaml` `d085d6b9badca2e79ade19b12fcfff96d1317df139d646772871266f0ed20ab7`; `presets/ddd.yaml` `ce28a78582a92571c5c8ff2c9144eb2161c580e140db3af880d451737b6260f7` (base of the DDD specs frozen per run after step 1; each frozen spec's sha256 is in its run's `spec/spec.json`) |
+| `daedalus-mcp` included? | **NO.** Check (a) cannot be passed without new engineering: no live confinement probe exists for the Claude CLI with the MCP server attached in the loop wiring (`scripts/lib/loop/agents.ts`, header: "has NOT been through a live confinement probe yet"), and the plan loader refuses `daedalus-mcp` together with per-task specs (`scripts/lib/loop/plan.ts`, `taskProfiles cannot be combined with the daedalus-mcp arm`). Check (b) was therefore not reached. Per §2 the arm needs no engineering beyond the two checks, so it is out. |
+| `orderSeed` | `20261015` (as in `experiments/loop-pilot/plan.json`, sha256 `4104919ee0c02937b6b639b5d20b71d3757d8e1cca2c8757536f6c64bb7f6d83`) |
+| CLI version and model id | `2.1.301 (Claude Code)`, `claude-sonnet-5-5` |
 
 The commands that reproduce the task hashes are in `pilot-tasks.md` §5.
+
+<!-- protocol-check: historical-above -->
+
+## 8. Amendment, 2026-10-16: declared deviation from §5 (appended; the text above is unchanged)
+
+<!-- study2-protocol: primary=Y-distinct-blocking-edges-at-step-k; k=4; arms=none,daedalus-mcp; unit=distinct-edge; fallback=do-not-run; order=freeze,hold-out,dress-rehearsal,pre-registration,gate,run; generators=claude-sonnet-5-5,codex-pin -->
+
+Sections 1–7 above are the memo as written on 2026-10-15, before any pilot run. Their sha256 before this amendment was appended is `46d94136febeb308139f5224c974ecc879123855e7842891494b23bbfa63c9ca` (the whole file at `origin/v1.3` `38f199fd`). Nothing above this section was edited.
+
+1. **§5 branch.** The 8 kept DDD snapshots were scored offline under §3 and §5 on PR #229 (`v1.3-pilot-t1-options:Docs/DiagnosticRuns/v1.3-pilot-t1-options-2026-10-16.md`). Under every T1 option that scores them (a, c, d), DDD `none` has 1 blocking finding at each step and **0 new** at steps 2–4. With Clean and Hexagonal at 0 (PR #170), **§5 lands on the zero branch.** It is final once the author's T1 option is merged and the snapshots are re-scored on `v1.3` with Neo4j, the engine of record; #229 used `cypher-interp`. The zero rests on 5 of DDD's 7 blocking rules, because FF-DT01 and FF-DT02 cannot fire on these trees.
+2. **Deviation.** The author did **not** apply §5's consequence. Study 2's primary outcome is instead the level outcome Y (distinct blocking violating edges at step k = 4), decided 2026-10-16 13:50 UTC and recorded in `Docs/v1.3/study2-deviation-2026-10-16.md`. This breaks the commitment in §5 that "no other pilot result may change Study 2's primary outcome". The thesis reports it as a deviation, with the rationale and the timeline given there. Briefly: the floor was seen only on development and rehearsal tasks, never on sealed Study 2 tasks; Study 2 was not pre-registered; and the zero branch's advisory outcome is blocked by gate D1.
+3. **What stays.** The §3 primary outcome and the §5 outcomes (new blocking identities at steps ≥ 2, the per-run slope, and the advisory slope per KLOC without FF-CV05) are **registered secondary outcomes** of Study 2, computed exactly as this memo defines them. The §5 branch result is reported beside the Study 2 primary.
+4. **The `gate` question in §5** is settled: `gate` is dropped, and Study 2 compares `none` and `daedalus-mcp`.
+5. **§6 leakage controls still hold.** The pilot tasks and their domains never become Study 2 tasks, and no pilot figure estimates an arm effect.

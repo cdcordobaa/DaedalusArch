@@ -1,0 +1,250 @@
+# v1.3 external set, wave 3: spec for `dlydiard-ddd-cqrs-es` (style ddd).
+# Derived from presets/ddd.yaml: the `architecture:` block maps THIS project's folders
+# (judgements in results/v1.3-external-3/spec-rationale.md); `fitness_functions:` is the preset's, verbatim.
+# Written before any tool run on the project.
+
+spec_version: "1.0.0"
+
+architecture:
+  style: ddd
+
+  # README: "Comprehensive Domain Driven Design, CQRS, and Event Sourcing example"; "this project uses Identity
+  # and Access Management (IAM) as an example Bounded Context. The Aggregate Roots for the IAM Bounded Context
+  # are User and Role." Layout src/iam/{user,role}/{models,events,commands,services,projections,controllers,dtos};
+  # src/app (IoC container, base controller, repositories, domain validator) and src/event-store (event base,
+  # publisher, projections, Lambda brokers) are outside the context and are split by role.
+  # README: "All classes marked injectable() must be registered in application-container.ts" (composition).
+  # events/*.handler.ts are projection event handlers (write read models through the projection repository):
+  # infrastructure, as wave 2's mustodon. events/*.enricher.ts implement "Event Enrichment" and are used by the
+  # services: application. app/application-error.ts is cross-cutting and unmapped.
+  layers:
+    - name: domain
+      kind: domain
+      directories:
+        - src/iam/*/models/**
+        - src/iam/*/events/!(*.handler|*.enricher).ts
+        - src/event-store/events/event.ts
+        - src/app/validation/**
+      roles:
+        - aggregate
+        - entity
+        - value-object
+        - domain-event
+        - repository-interface
+
+    - name: application
+      kind: application
+      directories:
+        - src/iam/*/commands/**
+        - src/iam/*/services/**
+        - src/iam/*/events/*.enricher.ts
+        - src/app/service/**
+        - src/app/repository/*.interface.ts
+        - src/event-store/**/*.interface.ts
+      roles:
+        - application-service
+        - port
+
+    - name: infrastructure
+      kind: infrastructure
+      directories:
+        - src/iam/*/events/*.handler.ts
+        - src/iam/*/projections/**
+        - src/app/repository/dynamo*.ts
+        - src/event-store/publisher/dynamo-event-publisher.ts
+        - src/event-store/projections/projection.ts
+        - src/event-store/projections/repository/dynamo-projection.repository.ts
+        - src/event-store/handler/!(*.interface).ts
+      roles:
+        - repository
+
+    # Driving adapters: the API Gateway Lambda controllers and their DTOs, and the stream/queue Lambda brokers.
+    - name: api
+      kind: presentation
+      directories:
+        - src/iam/*/controllers/**
+        - src/iam/*/dtos/**
+        - src/app/application.controller.ts
+        - src/app/dto/**
+        - src/event-store/brokers/**
+        - src/event-store/dynamo-kinesis-adaptor.ts
+      roles:
+        - controller
+
+    - name: composition
+      kind: application
+      directories:
+        - src/app/application-container.ts
+      roles:
+        - composition-root
+
+  allowed_dependencies:
+    - from: application
+      to: [domain]
+    - from: infrastructure
+      to: [application, domain]
+    - from: api
+      to: [application, domain]
+    - from: composition
+      to: [domain, application, infrastructure, api]
+
+  ddd:
+    source_root: src/
+    # One bounded context (README); user/ and role/ are aggregate folders inside it.
+    contexts:
+      - name: iam
+        root: src/iam/
+        public_api: []
+        acl: []
+    outside_contexts: [src/app/**, src/event-store/**]
+    aggregates:
+      - name: User
+        context: iam
+        module: src/iam/user/models/**
+        root: src/iam/user/models/user.ts
+        inner_entities: []
+      - name: Role
+        context: iam
+        module: src/iam/role/models/**
+        root: src/iam/role/models/role.ts
+        inner_entities: []
+    # No value-object file exists at the pin; this is the preset's convention and matches nothing (rationale).
+    value_objects: ["src/**/value-objects/**"]
+    repositories: ["src/app/repository/*.ts", "src/event-store/projections/repository/*.ts"]
+    domain_event_types: [Event]
+    application_services: ["src/iam/*/services/*.service.ts", "src/iam/*/commands/*.handler.ts"]
+
+fitness_functions:
+
+  # ── STRATEGIC ──
+
+  - id: FF-DS01
+    name: bounded-context-modules
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DS02
+    name: context-isolation
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # ── TACTICAL ──
+
+  - id: FF-DT01
+    name: aggregate-boundary
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DT02
+    name: repository-aggregate-root
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Blocking per the sealed Docs/v1.3/rule-tiers.md. The check is still a method-name proxy (the extractor sees no
+  # readonly, accessors or visibility); see Docs/v1.3-ddd-notes.md §2 for the proposed ADR.
+  - id: FF-DT03
+    name: value-object-immutability
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Framework-free domain: the existing domain-purity template, unchanged, with the DDD package list.
+  - id: FF-DT04
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+    forbidden_imports:
+      - "@nestjs/*"
+      - typeorm
+      - express
+      - prisma
+      - "@prisma/*"
+      - sequelize
+      - mongoose
+      - "@mikro-orm/*"
+      - class-validator
+      - class-transformer
+      - inversify
+      - tsyringe
+
+  # Advisory per the sealed Docs/v1.3/rule-tiers.md (placement guideline).
+  - id: FF-DT05
+    name: domain-event-placement
+    dimension: pattern
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+  # Advisory heuristic: more methods than the threshold in an application service.
+  - id: FF-DT06
+    name: application-service-thin
+    dimension: pattern
+    severity: advisory
+    route: symbolic
+    validated: false
+    tier: advisory
+    threshold: 3
+
+  # ── LAYERING INSIDE EACH CONTEXT (hexagonal templates) ──
+
+  - id: FF-S01
+    name: dependency-direction-graph
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Advisory per the sealed Docs/v1.3/rule-tiers.md (hexagonal does not define strict layering).
+  - id: FF-S03
+    name: layer-skip-graph
+    dimension: structural
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70

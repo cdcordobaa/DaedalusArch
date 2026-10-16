@@ -1,0 +1,224 @@
+# v1.3 external set, wave 2: spec for `mustodon` (style ddd).
+# Derived from presets/ddd.yaml: the `architecture:` block maps THIS project's folders
+# (judgements in results/v1.3-external-2/spec-rationale.md); `fitness_functions:` is the preset's, verbatim.
+# Written before any tool run on the project.
+
+spec_version: "1.0.0"
+
+architecture:
+  style: ddd
+
+  # README: "a to do list example DDD + CQRS + ES application". Context todos under src/; src/common/domain is the
+  # shared kernel (AggregateRoot, Entity, ValueObject, Id). config/ (outside src/, Nest modules) is the composition.
+  # todos/infrastructure is split by role: controllers and API DTOs -> api; event-store/Mongoose repositories,
+  # the Mongoose view model and the projection event handlers -> infrastructure. models/index.ts stays unmapped.
+  layers:
+    - name: domain
+      kind: domain
+      directories:
+        - src/*/domain/**
+        - src/common/domain/**
+      roles:
+        - aggregate
+        - entity
+        - value-object
+        - domain-event
+        - repository-interface
+
+    - name: application
+      kind: application
+      directories:
+        - src/*/application/**
+      roles:
+        - application-service
+
+    - name: infrastructure
+      kind: infrastructure
+      directories:
+        - src/todos/infrastructure/repositories/**
+        - src/todos/infrastructure/events/**
+        - src/todos/infrastructure/models/MongooseTodoView.ts
+      roles:
+        - repository
+
+    - name: api
+      kind: presentation
+      directories:
+        - src/todos/infrastructure/controllers/**
+        - src/todos/infrastructure/models/PostTodoDTO.ts
+        - src/todos/infrastructure/models/PutTodoDTO.ts
+        - src/todos/infrastructure/models/SwaggerTodoView.ts
+      roles:
+        - controller
+
+    - name: composition
+      kind: application
+      directories:
+        - src/main.ts
+        - config/**
+      roles:
+        - composition-root
+
+  allowed_dependencies:
+    - from: application
+      to: [domain]
+    - from: infrastructure
+      to: [application, domain]
+    - from: api
+      to: [application, domain]
+    - from: composition
+      to: [domain, application, infrastructure, api]
+
+  ddd:
+    source_root: src/
+    contexts:
+      - name: todos
+        root: src/todos/
+        public_api: []
+        acl: []
+    outside_contexts: [src/common/**, src/main.ts]
+    aggregates:
+      - name: Todo
+        context: todos
+        module: src/todos/domain/**
+        root: src/todos/domain/models/Todo.ts
+        inner_entities: []
+    value_objects: ["src/todos/domain/models/TodoId.ts", "src/todos/domain/models/TodoTitle.ts", "src/common/domain/models/Id.ts"]
+    repositories: ["src/todos/domain/repository/Todos.ts", "src/todos/application/repositories/TodoViews.ts", "src/todos/infrastructure/repositories/*.ts"]
+    domain_event_types: [IEvent]
+    application_services: ["src/todos/application/commands/*Handler.ts", "src/todos/application/queries/*Handler.ts"]
+
+fitness_functions:
+
+  # ── STRATEGIC ──
+
+  - id: FF-DS01
+    name: bounded-context-modules
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DS02
+    name: context-isolation
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # ── TACTICAL ──
+
+  - id: FF-DT01
+    name: aggregate-boundary
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DT02
+    name: repository-aggregate-root
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Blocking per the sealed Docs/v1.3/rule-tiers.md. The check is still a method-name proxy (the extractor sees no
+  # readonly, accessors or visibility); see Docs/v1.3-ddd-notes.md §2 for the proposed ADR.
+  - id: FF-DT03
+    name: value-object-immutability
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Framework-free domain: the existing domain-purity template, unchanged, with the DDD package list.
+  - id: FF-DT04
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+    forbidden_imports:
+      - "@nestjs/*"
+      - typeorm
+      - express
+      - prisma
+      - "@prisma/*"
+      - sequelize
+      - mongoose
+      - "@mikro-orm/*"
+      - class-validator
+      - class-transformer
+      - inversify
+      - tsyringe
+
+  # Advisory per the sealed Docs/v1.3/rule-tiers.md (placement guideline).
+  - id: FF-DT05
+    name: domain-event-placement
+    dimension: pattern
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+  # Advisory heuristic: more methods than the threshold in an application service.
+  - id: FF-DT06
+    name: application-service-thin
+    dimension: pattern
+    severity: advisory
+    route: symbolic
+    validated: false
+    tier: advisory
+    threshold: 3
+
+  # ── LAYERING INSIDE EACH CONTEXT (hexagonal templates) ──
+
+  - id: FF-S01
+    name: dependency-direction-graph
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Advisory per the sealed Docs/v1.3/rule-tiers.md (hexagonal does not define strict layering).
+  - id: FF-S03
+    name: layer-skip-graph
+    dimension: structural
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70

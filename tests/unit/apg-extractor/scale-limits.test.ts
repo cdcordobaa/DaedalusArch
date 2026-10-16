@@ -23,7 +23,7 @@ function tempProject(files: Record<string, string>): string {
 
 describe('--max-files', () => {
   it('fails with PROJECT_TOO_LARGE before parsing when the analysable files exceed the cap', async () => {
-    const result = await extractAPG(FIXTURE, {}, undefined, { maxFiles: 3 });
+    const result = await extractAPG(FIXTURE, {}, undefined, undefined, { maxFiles: 3 });
     expect(result.success).toBe(false);
     if (result.success) return;
     expect(result.errors[0]?.code).toBe('PROJECT_TOO_LARGE');
@@ -32,7 +32,7 @@ describe('--max-files', () => {
 
   it('leaves the APG unchanged when the project is within the cap', async () => {
     const plain = await extractAPG(FIXTURE);
-    const capped = await extractAPG(FIXTURE, {}, undefined, { maxFiles: 10 });
+    const capped = await extractAPG(FIXTURE, {}, undefined, undefined, { maxFiles: 10 });
     expect(JSON.stringify(capped)).toBe(JSON.stringify(plain));
   });
 });
@@ -40,7 +40,7 @@ describe('--max-files', () => {
 describe('memory guard', () => {
   it('turns a guard stop into MEMORY_LIMIT_EXCEEDED', async () => {
     const guard = new MemoryGuard({ heapLimitBytes: 1, read: () => ({ heapUsedBytes: 10, rssBytes: 0 }), collect: () => {} });
-    const result = await extractAPG(FIXTURE, {}, undefined, { memoryGuard: guard });
+    const result = await extractAPG(FIXTURE, {}, undefined, undefined, { memoryGuard: guard });
     expect(result.success).toBe(false);
     if (result.success) return;
     expect(result.errors[0]?.code).toBe('MEMORY_LIMIT_EXCEEDED');
@@ -49,7 +49,7 @@ describe('memory guard', () => {
 
   it('leaves the APG unchanged when memory is within budget', async () => {
     const plain = await extractAPG(FIXTURE);
-    const guarded = await extractAPG(FIXTURE, {}, undefined, { memoryGuard: new MemoryGuard() });
+    const guarded = await extractAPG(FIXTURE, {}, undefined, undefined, { memoryGuard: new MemoryGuard() });
     expect(JSON.stringify(guarded)).toBe(JSON.stringify(plain));
   });
 });
@@ -64,7 +64,7 @@ describe('--skip-excluded-sources', () => {
       'src/app/service.spec.ts': "import { OrderService } from './service';\nexport const s: OrderService | undefined = undefined;\n",
     });
     const full = await extractAPG(dir);
-    const analysed = await extractAPG(dir, {}, undefined, { sourceScope: 'analysed' });
+    const analysed = await extractAPG(dir, {}, undefined, undefined, { sourceScope: 'analysed' });
     expect(full.success).toBe(true);
     expect(JSON.stringify(analysed)).toBe(JSON.stringify(full));
   });

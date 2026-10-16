@@ -2,6 +2,8 @@
 
 > **DEVELOPMENT-SET NUMBERS, CIRCULAR BY CONSTRUCTION.** Every figure here comes from the v1.3 development reference projects and the `antipattern-nest` unit fixture. 10 of the 11 seeds sit on one 8-file fixture. The proxies were written *after* the five frozen operators and the judge round-1 results had been read, and each operator has a designated proxy. A catch here shows that the proxies implement what they were written to detect. It is not a recall estimate. The less circular evidence is §4 (hand-written analogues written before this unit) and §5 (false flags on clean code). There is no pre-registration (author decision).
 
+> **Correction (2026-10-16, post-merge review R28):** all **11 of the 11** seeds sit on the one 8-file `antipattern-nest` fixture, not 10 of 11 (this doc's own §1 seed list: "11 seeds: REPO-BYPASS 4, FAT-CONTROLLER 1, PERSIST-IN-DOMAIN 1, DUP-RULE 1, FRAMEWORK-LEAK 4, all on `antipattern-nest`"; same count corrected in `Docs/DiagnosticRuns/v1.3-judge-catch-2026-10-15.md`). The same applies to "11 seeds, 10 on one fixture" in the threats section. The banner above is left as written.
+
 Branch `v1.3-cheap-semantics`, cut from `origin/v1.3` @ `81143247`. Code: `src/apg-enrich/cheap/` (design: `Docs/v1.3/cheap-semantics-design.md`). Harness: `scripts/v1.3/cheap-semantics-eval.ts`. Outputs: `results/v1.3-cheap-semantics/` (`scores.json`, `rows.csv`, one `flags/<row>.json` per copy).
 
 ## 1. Setup
@@ -151,6 +153,7 @@ The reported precision is therefore a tuned-on-dev number. The 5 clean projects 
 - **Circularity.** This is the main threat: see the banner. The proxies encode the operators' code shapes, such as the `getRepository` accessor, `@Entity` from a db package, and an express type in an application signature. The judge reads the code without being told what to look for. The proxies cannot be fooled by phrasing or by what a body says, but they also cannot see a defect outside their tables. §4 shows one side of that (6/6), and the three misses show the other.
 - **Sample.**
   - 11 seeds, 10 on one fixture, and three operators with one seed each. The pooled lower bound is 0.74.
+    > **Correction (2026-10-16, post-merge review R28):** all 11 seeds are on that one fixture (`antipattern-nest`), not 10. The line above is left as written.
   - The fixture's ORM and express typings come through tsconfig `paths` (`vendor/*.d.ts`); the reference projects use ambient `declare module`. Real `node_modules` declarations are supported (`packageOfPath`) but untested on the development set.
 - **Unit matching.** The proxies flag a class or method and the judge fails a file or module unit. Matching on file plus class plus method is stricter than the judge's file or module unit. A proxy can therefore only lose catches by that choice, never gain them.
 - **Not measured.**

@@ -1,0 +1,261 @@
+# v1.3 external set, wave 3: spec for `ddd-libellis` (style ddd).
+# Derived from presets/ddd.yaml: the `architecture:` block maps THIS project's folders
+# (judgements in results/v1.3-external-3/spec-rationale.md); `fitness_functions:` is the preset's, verbatim.
+# Written before any tool run on the project.
+
+spec_version: "1.0.0"
+
+architecture:
+  style: ddd
+
+  # Analysis root: application/. README: "There are currently two bounded contexts: Election System, and User
+  # Management", "a cohesive and rich domain model". Contexts src/{election-system,user-management}/
+  # {core/{domain,application},infrastructure,tests}; src/shared-kernel is the shared kernel (preset convention:
+  # domain layer, outside every context), except services/ and models/ (JWT payload decoding used only by the
+  # application services), which go to application. README: "For now there is no web api layer", so the api
+  # layer keeps the preset's convention glob and matches nothing. tests/, shared-kernel/test-factories,
+  # shared-kernel/configs (an empty file) and src/config.ts (dotenv) are unmapped.
+  layers:
+    - name: domain
+      kind: domain
+      directories:
+        - src/*/core/domain/**
+        - src/shared-kernel/*.ts
+        - src/shared-kernel/event-streams/**
+        - src/shared-kernel/exceptions/**
+        - src/shared-kernel/interfaces/**
+        - src/shared-kernel/value-objects/**
+      roles:
+        - aggregate
+        - entity
+        - value-object
+        - domain-event
+        - repository-interface
+
+    - name: application
+      kind: application
+      directories:
+        - src/*/core/application/**
+        - src/shared-kernel/services/**
+        - src/shared-kernel/models/**
+      roles:
+        - application-service
+        - port
+
+    - name: infrastructure
+      kind: infrastructure
+      directories:
+        - src/*/infrastructure/**
+      roles:
+        - repository
+
+    - name: api
+      kind: presentation
+      directories:
+        - src/*/api/**
+      roles:
+        - controller
+
+    # src/index.ts is the package entry point; it is empty at the pin.
+    - name: composition
+      kind: application
+      directories:
+        - src/index.ts
+      roles:
+        - composition-root
+
+  allowed_dependencies:
+    - from: application
+      to: [domain]
+    - from: infrastructure
+      to: [application, domain]
+    - from: api
+      to: [application, domain]
+    - from: composition
+      to: [domain, application, infrastructure, api]
+
+  ddd:
+    source_root: src/
+    contexts:
+      - name: election-system
+        root: src/election-system/
+        public_api: []
+        acl: []
+      - name: user-management
+        root: src/user-management/
+        public_api: []
+        acl: []
+    outside_contexts: [src/shared-kernel/**, src/index.ts, src/config.ts]
+    # Aggregates from the *-aggregate folders (README: "Master Ballot Aggregate", "the Election aggregate root";
+    # the Teller "is under the direct control of the Election aggregate root").
+    aggregates:
+      - name: Ballot
+        context: election-system
+        module: src/election-system/core/domain/model/ballot-aggregate/**
+        root: src/election-system/core/domain/model/ballot-aggregate/Ballot.model.ts
+        inner_entities: [src/election-system/core/domain/model/ballot-aggregate/Vote.model.ts]
+      - name: Election
+        context: election-system
+        module: src/election-system/core/domain/model/election-aggregate/**
+        root: src/election-system/core/domain/model/election-aggregate/Election.model.ts
+        inner_entities: [src/election-system/core/domain/model/election-aggregate/Teller.model.ts]
+      - name: MasterBallot
+        context: election-system
+        module: src/election-system/core/domain/model/master-ballot-aggregate/**
+        root: src/election-system/core/domain/model/master-ballot-aggregate/MasterBallot.model.ts
+        inner_entities:
+          - src/election-system/core/domain/model/master-ballot-aggregate/Question.model.ts
+          - src/election-system/core/domain/model/master-ballot-aggregate/Choice.model.ts
+      - name: Voter
+        context: election-system
+        module: src/election-system/core/domain/model/voter-aggregate/**
+        root: src/election-system/core/domain/model/voter-aggregate/Voter.model.ts
+        inner_entities: []
+      - name: User
+        context: user-management
+        module: src/user-management/core/domain/model/user-aggregate/**
+        root: src/user-management/core/domain/model/user-aggregate/User.model.ts
+        inner_entities: []
+    value_objects: ["src/*/core/domain/model/**/value-objects/*.model.ts", "src/shared-kernel/value-objects/*.model.ts"]
+    # Per-aggregate repository interfaces (I?*Repository leaves out the generic IRepository base) and the SQL
+    # implementations (SQLMasterBallotRepository is entirely commented out at the pin).
+    repositories:
+      - "src/*/core/application/abstractions/I?*Repository.ts"
+      - "src/*/infrastructure/persistence/repositories/sql-repositories/SQL*Repository.model.ts"
+    domain_event_types: [IDomainEvent]
+    application_services: ["src/*/core/application/*.service.ts"]
+
+fitness_functions:
+
+  # ── STRATEGIC ──
+
+  - id: FF-DS01
+    name: bounded-context-modules
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DS02
+    name: context-isolation
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # ── TACTICAL ──
+
+  - id: FF-DT01
+    name: aggregate-boundary
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DT02
+    name: repository-aggregate-root
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Blocking per the sealed Docs/v1.3/rule-tiers.md. The check is still a method-name proxy (the extractor sees no
+  # readonly, accessors or visibility); see Docs/v1.3-ddd-notes.md §2 for the proposed ADR.
+  - id: FF-DT03
+    name: value-object-immutability
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Framework-free domain: the existing domain-purity template, unchanged, with the DDD package list.
+  - id: FF-DT04
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+    forbidden_imports:
+      - "@nestjs/*"
+      - typeorm
+      - express
+      - prisma
+      - "@prisma/*"
+      - sequelize
+      - mongoose
+      - "@mikro-orm/*"
+      - class-validator
+      - class-transformer
+      - inversify
+      - tsyringe
+
+  # Advisory per the sealed Docs/v1.3/rule-tiers.md (placement guideline).
+  - id: FF-DT05
+    name: domain-event-placement
+    dimension: pattern
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+  # Advisory heuristic: more methods than the threshold in an application service.
+  - id: FF-DT06
+    name: application-service-thin
+    dimension: pattern
+    severity: advisory
+    route: symbolic
+    validated: false
+    tier: advisory
+    threshold: 3
+
+  # ── LAYERING INSIDE EACH CONTEXT (hexagonal templates) ──
+
+  - id: FF-S01
+    name: dependency-direction-graph
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Advisory per the sealed Docs/v1.3/rule-tiers.md (hexagonal does not define strict layering).
+  - id: FF-S03
+    name: layer-skip-graph
+    dimension: structural
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70

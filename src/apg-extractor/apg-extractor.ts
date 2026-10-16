@@ -26,6 +26,12 @@ export async function extractAPG(
    * `tsconfig.json` (if any) is ignored. E1 cells pass the pinned per-run tsconfig of `Docs/generator-protocol.md` §3.
    */
   tsconfigOverride?: string,
+  /**
+   * v1.3 npx mode (MCP `check_file`/`check_diff` with `templates`): in-memory content per absolute file path, applied
+   * to the ts-morph project before extraction (`null` removes the file). Nothing is written to disk. Absent (every
+   * CLI and study path) = the files on disk, unchanged.
+   */
+  sourceOverrides?: ReadonlyMap<string, string | null>,
   /** Scale controls (`--max-files`, the memory guard, `--skip-excluded-sources`); absent = the extraction as before. */
   limits: ExtractionLimits = {},
 ): Promise<DomainResult<APGResult>> {
@@ -86,6 +92,15 @@ export async function extractAPG(
         skipAddingFilesFromTsConfig: false,
         skipFileDependencyResolution: opts.lenientMode,
       });
+    }
+    // In-memory edits (MCP template checks); never saved.
+    for (const [filePath, content] of sourceOverrides ?? []) {
+      if (content === null) {
+        const sf = project.getSourceFile(filePath);
+        if (sf !== undefined) project.removeSourceFile(sf);
+      } else {
+        project.createSourceFile(filePath, content, { overwrite: true });
+      }
     }
     guard?.check('source loading');
     // The node pass creates the type checker in one uninterruptible step; stop before it when it cannot fit.

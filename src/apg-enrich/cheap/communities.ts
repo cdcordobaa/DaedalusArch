@@ -3,7 +3,7 @@
  *
  * Graph: project File nodes; an undirected edge of weight 1 per literal-view IMPORTS edge (`Docs/v1.3/edge-views.md`),
  * per CONSTRUCTOR_INJECTS edge (class to class, mapped to their files) and per CALLS edge (method to method, mapped to
- * their files); self-loops dropped. Reports the adjusted Rand index of the partition against the declared layers (files
+ * their files); self-loops dropped. With `communityReExports` (opt-in, R14) also per RE_EXPORTS edge of the literal view. Reports the adjusted Rand index of the partition against the declared layers (files
  * with a layer) and against the components, and flags each file of a community of two or more files whose majority
  * component differs from the file's own component.
  */
@@ -20,8 +20,9 @@ export function fileGraph(ctx: CheapContext): { nodes: string[]; edges: Weighted
   for (const n of ctx.apg.nodes) if (n.type !== 'Package' && ctx.files.has(n.filePath)) fileOf.set(n.id, n.filePath);
   const nodes = [...ctx.files.keys()];
   const acc = new Map<string, number>();
+  const types = ctx.options.communityReExports === true ? new Set([...GRAPH_EDGE_TYPES, 'RE_EXPORTS']) : GRAPH_EDGE_TYPES;
   for (const e of literalEdgeView(ctx.apg.edges)) {
-    if (!GRAPH_EDGE_TYPES.has(e.type)) continue;
+    if (!types.has(e.type)) continue;
     const a = fileOf.get(e.sourceId);
     const b = fileOf.get(e.targetId);
     if (a === undefined || b === undefined || a === b) continue;

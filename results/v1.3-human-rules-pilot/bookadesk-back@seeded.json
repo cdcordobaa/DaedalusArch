@@ -1,0 +1,349 @@
+{
+ "id": "bookadesk-back",
+ "repo": "TalanLabs/bookadesk",
+ "sha": "d362aadba4b86fa76eb9e74da2543dc9e8c0403a",
+ "licence": "GPL-3.0",
+ "ruleFile": ".dependency-cruiser.js",
+ "root": "back",
+ "depcruise": {
+  "version": "18.4.0",
+  "wallMs": 1187,
+  "tsPreCompilationDeps": true,
+  "layerRules": [
+   {
+    "name": "no-dep-from-domain",
+    "severity": "error",
+    "comment": "don't allow dependencies from domain to other modules",
+    "from": {
+     "path": "src/domain"
+    },
+    "to": {
+     "path": "src",
+     "pathNot": "src/domain"
+    }
+   },
+   {
+    "name": "no-dep-from-usecase",
+    "severity": "error",
+    "comment": "usecase should depend only on domain",
+    "from": {
+     "path": "src/usecase",
+     "pathNot": "\\.spec\\.(js|ts)$|\\.d\\.ts$"
+    },
+    "to": {
+     "path": "src",
+     "pathNot": "src/domain|src/usecase"
+    }
+   }
+  ],
+  "excludedRules": [
+   {
+    "name": "no-circular",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "no-orphans",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "no-deprecated-core",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "not-to-deprecated",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "no-non-package-json",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "not-to-unresolvable",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "no-duplicate-dep-types",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "not-to-spec",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "not-to-dev-dep",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "optional-deps-used",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "peer-deps-used",
+    "reason": "dependency-cruiser recommended preset"
+   }
+  ],
+  "layerViolationsAll": 8,
+  "layerViolationsInScope": 8,
+  "otherViolations": 56
+ },
+ "scope": {
+  "files": 47,
+  "localEdges": 142
+ },
+ "translation": {
+  "atoms": [
+   {
+    "name": "atom-01",
+    "label": "to:no-dep-from-domain; to:no-dep-from-usecase",
+    "files": 21
+   },
+   {
+    "name": "atom-02",
+    "label": "to:no-dep-from-domain; from:no-dep-from-usecase",
+    "files": 24
+   },
+   {
+    "name": "atom-03",
+    "label": "from:no-dep-from-domain",
+    "files": 2
+   }
+  ],
+  "forbiddenPairs": 3,
+  "allowedPairs": 3,
+  "selfForbidden": [],
+  "unconstrainedFiles": 0,
+  "inexpressibleEdges": []
+ },
+ "theirs": [
+  "src/domain/domain.ts|src/adapters/DynamoDbBookingRepo.ts",
+  "src/domain/domain.ts|src/usecase/ConfirmPresence.ts",
+  "src/domain/errors.ts|src/adapters/DynamoDbBookingRepo.ts",
+  "src/domain/errors.ts|src/usecase/ConfirmPresence.ts",
+  "src/usecase/BookPlace.ts|src/adapters/DynamoDbBookingRepo.ts",
+  "src/usecase/GetFloorPlaces.ts|src/adapters/DynamoDbBookingRepo.ts",
+  "src/usecase/GetOffices.ts|src/adapters/DynamoDbBookingRepo.ts",
+  "src/usecase/ports/EmailGateway.ts|src/adapters/DynamoDbBookingRepo.ts"
+ ],
+ "resolved": {
+  "label": "resolved-atoms",
+  "ourFindingsS01S03": 8,
+  "ourKeysInScope": 8,
+  "ourKeysCompared": 8,
+  "typeOnlyDropped": 0,
+  "confusion": {
+   "both": 8,
+   "oursOnly": 0,
+   "theirsOnly": 0,
+   "neither": 134,
+   "kappa": 1,
+   "observedAgreement": 1
+  },
+  "flagged": [
+   "src/domain/domain.ts|src/adapters/DynamoDbBookingRepo.ts",
+   "src/domain/domain.ts|src/usecase/ConfirmPresence.ts",
+   "src/domain/errors.ts|src/adapters/DynamoDbBookingRepo.ts",
+   "src/domain/errors.ts|src/usecase/ConfirmPresence.ts",
+   "src/usecase/BookPlace.ts|src/adapters/DynamoDbBookingRepo.ts",
+   "src/usecase/GetFloorPlaces.ts|src/adapters/DynamoDbBookingRepo.ts",
+   "src/usecase/GetOffices.ts|src/adapters/DynamoDbBookingRepo.ts",
+   "src/usecase/ports/EmailGateway.ts|src/adapters/DynamoDbBookingRepo.ts"
+  ],
+  "oursOnly": [],
+  "theirsOnly": [],
+  "ourFailedFunctions": [],
+  "ourFileNodes": 47,
+  "ourWallMs": 3736
+ },
+ "idiomatic": {
+  "label": "idiomatic",
+  "ourFindingsS01S03": 8,
+  "ourKeysInScope": 8,
+  "ourKeysCompared": 8,
+  "typeOnlyDropped": 0,
+  "confusion": {
+   "both": 8,
+   "oursOnly": 0,
+   "theirsOnly": 0,
+   "neither": 134,
+   "kappa": 1,
+   "observedAgreement": 1
+  },
+  "flagged": [
+   "src/domain/domain.ts|src/adapters/DynamoDbBookingRepo.ts",
+   "src/domain/domain.ts|src/usecase/ConfirmPresence.ts",
+   "src/domain/errors.ts|src/adapters/DynamoDbBookingRepo.ts",
+   "src/domain/errors.ts|src/usecase/ConfirmPresence.ts",
+   "src/usecase/BookPlace.ts|src/adapters/DynamoDbBookingRepo.ts",
+   "src/usecase/GetFloorPlaces.ts|src/adapters/DynamoDbBookingRepo.ts",
+   "src/usecase/GetOffices.ts|src/adapters/DynamoDbBookingRepo.ts",
+   "src/usecase/ports/EmailGateway.ts|src/adapters/DynamoDbBookingRepo.ts"
+  ],
+  "oursOnly": [],
+  "theirsOnly": [],
+  "ourFailedFunctions": [],
+  "ourFileNodes": 47,
+  "ourWallMs": 3459
+ },
+ "seeds": [
+  {
+   "from": "src/domain/domain.ts",
+   "to": "src/adapters/DynamoDbBookingRepo.ts",
+   "forbidden": true,
+   "rules": [
+    "no-dep-from-domain"
+   ],
+   "theirs": true,
+   "oursResolved": true,
+   "oursIdiomatic": true
+  },
+  {
+   "from": "src/domain/domain.ts",
+   "to": "src/usecase/ConfirmPresence.ts",
+   "forbidden": true,
+   "rules": [
+    "no-dep-from-domain"
+   ],
+   "theirs": true,
+   "oursResolved": true,
+   "oursIdiomatic": true
+  },
+  {
+   "from": "src/domain/errors.ts",
+   "to": "src/adapters/DynamoDbBookingRepo.ts",
+   "forbidden": true,
+   "rules": [
+    "no-dep-from-domain"
+   ],
+   "theirs": true,
+   "oursResolved": true,
+   "oursIdiomatic": true
+  },
+  {
+   "from": "src/domain/errors.ts",
+   "to": "src/usecase/ConfirmPresence.ts",
+   "forbidden": true,
+   "rules": [
+    "no-dep-from-domain"
+   ],
+   "theirs": true,
+   "oursResolved": true,
+   "oursIdiomatic": true
+  },
+  {
+   "from": "src/usecase/BookPlace.ts",
+   "to": "src/adapters/DynamoDbBookingRepo.ts",
+   "forbidden": true,
+   "rules": [
+    "no-dep-from-usecase"
+   ],
+   "theirs": true,
+   "oursResolved": true,
+   "oursIdiomatic": true
+  },
+  {
+   "from": "src/usecase/GetFloorPlaces.ts",
+   "to": "src/adapters/DynamoDbBookingRepo.ts",
+   "forbidden": true,
+   "rules": [
+    "no-dep-from-usecase"
+   ],
+   "theirs": true,
+   "oursResolved": true,
+   "oursIdiomatic": true
+  },
+  {
+   "from": "src/usecase/GetOffices.ts",
+   "to": "src/adapters/DynamoDbBookingRepo.ts",
+   "forbidden": true,
+   "rules": [
+    "no-dep-from-usecase"
+   ],
+   "theirs": true,
+   "oursResolved": true,
+   "oursIdiomatic": true
+  },
+  {
+   "from": "src/usecase/ports/EmailGateway.ts",
+   "to": "src/adapters/DynamoDbBookingRepo.ts",
+   "forbidden": true,
+   "rules": [
+    "no-dep-from-usecase"
+   ],
+   "theirs": true,
+   "oursResolved": true,
+   "oursIdiomatic": true
+  },
+  {
+   "from": "src/adapters/DynamoDbBookingRepo.ts",
+   "to": "src/adapters/rest/DeletePlaceController.ts",
+   "forbidden": false,
+   "rules": [],
+   "theirs": false,
+   "oursResolved": false,
+   "oursIdiomatic": false
+  },
+  {
+   "from": "src/adapters/FileImageRepo.ts",
+   "to": "src/usecase/GetFloorPlan.ts",
+   "forbidden": false,
+   "rules": [],
+   "theirs": false,
+   "oursResolved": false,
+   "oursIdiomatic": false
+  },
+  {
+   "from": "src/adapters/PostgresBookingRepo.ts",
+   "to": "src/adapters/rest/RestUtils.ts",
+   "forbidden": false,
+   "rules": [],
+   "theirs": false,
+   "oursResolved": false,
+   "oursIdiomatic": false
+  },
+  {
+   "from": "src/adapters/S3ImageRepo.ts",
+   "to": "src/usecase/GetNextBookings.ts",
+   "forbidden": false,
+   "rules": [],
+   "theirs": false,
+   "oursResolved": false,
+   "oursIdiomatic": false
+  },
+  {
+   "from": "src/adapters/rest/NextBookingController.ts",
+   "to": "src/usecase/UpdatePlaces.ts",
+   "forbidden": false,
+   "rules": [],
+   "theirs": false,
+   "oursResolved": false,
+   "oursIdiomatic": false
+  },
+  {
+   "from": "src/config.ts",
+   "to": "src/usecase/SaveFloorPlan.ts",
+   "forbidden": false,
+   "rules": [],
+   "theirs": false,
+   "oursResolved": false,
+   "oursIdiomatic": false
+  },
+  {
+   "from": "src/infra/postgres.ts",
+   "to": "src/usecase/UpdatePlaces.ts",
+   "forbidden": false,
+   "rules": [],
+   "theirs": false,
+   "oursResolved": false,
+   "oursIdiomatic": false
+  },
+  {
+   "from": "src/usecase/ports/BookingRepo.ts",
+   "to": "src/usecase/ConfirmPresence.ts",
+   "forbidden": false,
+   "rules": [],
+   "theirs": false,
+   "oursResolved": false,
+   "oursIdiomatic": false
+  }
+ ]
+}

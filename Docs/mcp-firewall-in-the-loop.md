@@ -5,6 +5,9 @@
 > instrument (v1.2e) is untouched. Running any of this needs a pre-registration bump first (§7).
 > **Update (v1.3-mcp-loop)**: the pre-registration draft `Docs/prereg-drafts/firewall-in-the-loop.md` refines this
 > design (three arms, A3 dropped for leakage; outcomes, analysis, threats and budget made specific).
+> **Update (v1.3-mcp2)**: the server is now MCP v2 (`Docs/v1.3/mcp-v2.md`): v1.3 tiers on every finding, more rules
+> decided by `check_file`/`check_diff`, `infer_spec` and `explain_finding`; the `daedalus-mcp` arm allows the nine
+> spec-only tools. A live smoke test of one agent run is `Docs/v1.3/mcp-smoke.md`.
 > **Not claimed**: that agents use the tools well, or that they produce better architecture. That is what the
 > experiment would test.
 
@@ -163,3 +166,8 @@ symbolic-only pipeline behind injected ports, unit tests on the `fixtures/` proj
 Lacks, in order of need: the A1 context-graph tool; the call log; the fidelity check against the graph on the
 corpus; per-cell Neo4j isolation; cycle detection and class-level rules in a fast path (so A2 would cover more than
 four rules); handling of `tsconfig` path aliases; the generator-protocol and confinement work (T7).
+
+Fix hints (v1.3, `Docs/v1.3/fix-hints.md`): with `hints: true` (or the server's `--hints`), `check_file` and
+`check_diff` attach a deterministic hint to each blocking violation (the problem, the edge and the allowed-dependency
+rule it breaks, the target layer and folder, the minimal structural fix and its graph edit). It is off by default, so
+the arms' tool output is unchanged unless an arm turns it on.

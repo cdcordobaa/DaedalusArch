@@ -1,0 +1,449 @@
+{
+ "id": "clean-ts-api",
+ "sha": "65d0b790eb4d7106c56b3f9326d75433005bb243",
+ "label": "PROPOSED rules: mined from the code (deterministic, no LLM), not a reviewed spec. Review before use; exceptions are candidate violations, not confirmed ones.",
+ "style": "clean-architecture",
+ "styleConfidence": 0.6,
+ "layers": {
+  "application": 75,
+  "domain": 15,
+  "infrastructure": 90
+ },
+ "allowedDependencies": [
+  "application>domain",
+  "infrastructure>application",
+  "infrastructure>domain"
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "statement": "domain must not depend on application (56 edges application -> domain; 0/15 domain files import application)",
+   "subject": "domain",
+   "object": "application",
+   "confidence": 0.921,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 15,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 56
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "statement": "domain must not depend on infrastructure (18 edges infrastructure -> domain; 0/15 domain files import infrastructure)",
+   "subject": "domain",
+   "object": "infrastructure",
+   "confidence": 0.888,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 15,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 18
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "statement": "application must not depend on infrastructure (111 edges infrastructure -> application; 0/75 application files import infrastructure)",
+   "subject": "application",
+   "object": "infrastructure",
+   "confidence": 0.978,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 75,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 111
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-004",
+   "kind": "component-direction",
+   "statement": "folder component data must not depend on infra (6 imports infra -> data; 0/34 files import back)",
+   "subject": "folder:data",
+   "object": "folder:infra",
+   "confidence": 0.833,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 34,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 6
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-005",
+   "kind": "component-direction",
+   "statement": "folder component data must not depend on main (10 imports main -> data; 0/34 files import back)",
+   "subject": "folder:data",
+   "object": "folder:main",
+   "confidence": 0.883,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 34,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 10
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-006",
+   "kind": "component-direction",
+   "statement": "folder component infra must not depend on main (16 imports main -> infra; 0/13 files import back)",
+   "subject": "folder:infra",
+   "object": "folder:main",
+   "confidence": 0.874,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 13,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 16
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-007",
+   "kind": "component-direction",
+   "statement": "folder component presentation must not depend on main (22 imports main -> presentation; 0/23 files import back)",
+   "subject": "folder:presentation",
+   "object": "folder:main",
+   "confidence": 0.917,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 23,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 22
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-008",
+   "kind": "component-direction",
+   "statement": "folder component presentation must not depend on validation (7 imports validation -> presentation; 0/23 files import back)",
+   "subject": "folder:presentation",
+   "object": "folder:validation",
+   "confidence": 0.839,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 23,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 7
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-009",
+   "kind": "component-direction",
+   "statement": "folder component domain must not depend on data (16 imports data -> domain; 0/13 files import back)",
+   "subject": "folder:domain",
+   "object": "folder:data",
+   "confidence": 0.874,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 13,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 16
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-010",
+   "kind": "component-direction",
+   "statement": "folder component domain must not depend on infra (1 imports infra -> domain; 0/13 files import back)",
+   "subject": "folder:domain",
+   "object": "folder:infra",
+   "confidence": 0.464,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 13,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-011",
+   "kind": "component-direction",
+   "statement": "folder component domain must not depend on main (9 imports main -> domain; 0/13 files import back)",
+   "subject": "folder:domain",
+   "object": "folder:main",
+   "confidence": 0.836,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 13,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 9
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-012",
+   "kind": "component-direction",
+   "statement": "folder component domain must not depend on presentation (7 imports presentation -> domain; 0/13 files import back)",
+   "subject": "folder:domain",
+   "object": "folder:presentation",
+   "confidence": 0.813,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 13,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 7
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-013",
+   "kind": "component-direction",
+   "statement": "folder component validation must not depend on infra (1 imports infra -> validation; 0/7 files import back)",
+   "subject": "folder:validation",
+   "object": "folder:infra",
+   "confidence": 0.438,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 7,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-014",
+   "kind": "component-direction",
+   "statement": "folder component validation must not depend on main (3 imports main -> validation; 0/7 files import back)",
+   "subject": "folder:validation",
+   "object": "folder:main",
+   "confidence": 0.656,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 7,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 3
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-015",
+   "kind": "port-implementation",
+   "statement": "every *Result class in application implements an interface declared in another layer (2/2)",
+   "subject": "application/Result",
+   "confidence": 0.667,
+   "level": "medium",
+   "evidence": {
+    "classes": 2,
+    "implementingAPort": 2
+   },
+   "exceptions": [],
+   "compilesTo": null,
+   "notRepresentable": "the existing templates check the infrastructure-kind layer only (infrastructure), not application",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-016",
+   "kind": "port-implementation",
+   "statement": "every *Survey class in application implements an interface declared in another layer (2/2)",
+   "subject": "application/Survey",
+   "confidence": 0.667,
+   "level": "medium",
+   "evidence": {
+    "classes": 2,
+    "implementingAPort": 2
+   },
+   "exceptions": [],
+   "compilesTo": null,
+   "notRepresentable": "the existing templates check the infrastructure-kind layer only (infrastructure), not application",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-017",
+   "kind": "inject-abstractions",
+   "statement": "classes of application inject interfaces across layers, not concrete classes (11/11)",
+   "subject": "application",
+   "confidence": 0.917,
+   "level": "high",
+   "evidence": {
+    "crossLayerInjections": 11,
+    "ofInterfaces": 11
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-inversion",
+    "via": "fitness function FF-P02 (dependency-inversion)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-018",
+   "kind": "inject-abstractions",
+   "statement": "classes of infrastructure inject interfaces across layers, not concrete classes (2/2)",
+   "subject": "infrastructure",
+   "confidence": 0.667,
+   "level": "medium",
+   "evidence": {
+    "crossLayerInjections": 2,
+    "ofInterfaces": 2
+   },
+   "exceptions": [],
+   "compilesTo": null,
+   "notRepresentable": "the existing templates check the application-kind layer only (application), not infrastructure",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-019",
+   "kind": "core-package-free",
+   "statement": "domain (a core layer: it may depend on no other layer) imports none of @graphql-tools/schema, @graphql-tools/utils, apollo-server-express, bcrypt, express, fs, graphql, graphql-scalars, jsonwebtoken, module-alias, mongo-round, mongodb, path, swagger-ui-express, validator",
+   "subject": "domain",
+   "confidence": 0.938,
+   "level": "high",
+   "evidence": {
+    "coreFiles": 15,
+    "packages": 15
+   },
+   "exceptions": [],
+   "params": {
+    "forbidden_imports": [
+     "@graphql-tools/schema",
+     "@graphql-tools/utils",
+     "apollo-server-express",
+     "bcrypt",
+     "express",
+     "fs",
+     "graphql",
+     "graphql-scalars",
+     "jsonwebtoken",
+     "module-alias",
+     "mongo-round",
+     "mongodb",
+     "path",
+     "swagger-ui-express",
+     "validator"
+    ]
+   },
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "domain-purity",
+    "via": "fitness function FF-P01 (domain-purity) forbidden_imports"
+   },
+   "status": "proposal"
+  }
+ ],
+ "counts": {
+  "rules": 19,
+  "high": 13,
+  "medium": 4,
+  "low": 2,
+  "exceptions": 0,
+  "notRepresentable": 3
+ },
+ "spec": {
+  "valid": true,
+  "errors": [],
+  "compiled": [
+   "dependency-direction",
+   "dependency-inversion",
+   "domain-purity"
+  ]
+ }
+}

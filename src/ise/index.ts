@@ -22,3 +22,5 @@ export { loadIsePreset, parsePreset, layerRank, COMPOSITION_LAYERS } from './pre
 export type { IsePreset, PresetLayer } from './preset.js';
 export { unitStructure, detectUnits, detectSourceRoot, levels, stronglyConnected, childrenOf, singleChildChain, isStructuralContainer, STRUCTURAL_CONTAINER_MAX_CROSS } from './units.js';
 export type { Unit, UnitEdge, UnitStructure } from './units.js';
+export { proposeSpec, proposeWithBuiltinPresets, builtinPresetsDir, proposalFromInference, proposedMappings, proposalQuestions, commentedYaml, checkProposal, INFERRED_SPEC_LABEL } from './propose.js';
+export type { SpecProposal, ProposedMapping, ProposalQuestion, ProposalCheck, ProposeOptions } from './propose.js';

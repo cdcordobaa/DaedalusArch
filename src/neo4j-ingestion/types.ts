@@ -14,6 +14,8 @@ export interface IngestionInput {
   readonly commitSha?: CommitSha;
   readonly apgStorePath?: string;
   readonly driftThresholds?: DriftThresholds;
+  /** MT-B1 (OFF by default): `liftLayerlessBarrelEdges` before the edges are written (`layerless-barrel-edges.ts`). */
+  readonly literalThroughLayerlessBarrels?: boolean;
 }
 
 export interface IngestionConfig {

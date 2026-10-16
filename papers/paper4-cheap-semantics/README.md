@@ -1,7 +1,16 @@
 # Paper 4 (short): How Much Architectural Semantics Is Cheaply Computable?
 
 *Deterministic Proxies vs an LLM Judge.* Extended abstract of 2026-10-15, written from the committed files on
-branch `v1.3`. Plain `article` class, 10 pt, A4; about 2 pages. Not compiled in the drafting container (no TeX).
+branch `v1.3`; refreshed on 2026-10-16 (branch `v1.3-paper1-4-refresh`). Plain `article` class, 10 pt, A4; 3 pages
+with references. Compiles with pdflatex + bibtex, no undefined references.
+
+**v1.3 refresh.** A new section, "Further v1.3 results": the batch-2 proxies (PR #110: 29/29 planted, 0/3
+independent analogues), the guard-unit fix for duplicated rules (projected 9/9, not measured; 8 new clean flags),
+the advisory post-filters as cheap relevance (PR #139 in sample, PR #213 out of sample; both on hold), the
+blind-miss classification (PR #134: 0 extractor gaps, 14 definition gaps) and the in-process Cypher interpreter
+(byte-identical, 149 ms vs 728 ms; fuzz 0 mismatches). #139 and #213 are on hold; their `% src:` comments use
+`git show <sha>:<path>`, pinned to each branch tip on 2026-10-16 (`afb44917`, `d5170b93`). The sentences are
+provisional until the PRs merge; see the submission gate in `papers/STATUS.md`.
 
 ```
 pdflatex main && bibtex main && pdflatex main && pdflatex main

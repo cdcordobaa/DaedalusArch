@@ -11,11 +11,17 @@ import {
   ruleState,
 } from './spec-rules.js';
 import { normalisePath, resolveLayer } from './layer-resolver.js';
+import { specRuleMeta, v13RuleStates } from './rule-meta.js';
+import { fileCheckedRulesV2 } from './file-check.js';
 import type { ArchitectureSpecView, LayerView, RuleView, WhichLayerResult } from './types.js';
 
 function ruleViews(spec: ParsedSpec): readonly RuleView[] {
+  const v13 = v13RuleStates(spec);
+  const fast = new Set(fileCheckedRulesV2(spec, true));
   return spec.fitnessFunctions.map((ff) => {
     const state = ruleState(spec, ff);
+    const meta = specRuleMeta(spec, { id: String(ff.id), name: ff.name });
+    const s13 = v13.get(String(ff.id)) ?? { status: state.status };
     const description =
       CYPHER_TEMPLATES.get(ff.name)?.description ?? ff.semanticCriteria?.rule ?? ff.name;
     return {
@@ -29,6 +35,13 @@ function ruleViews(spec: ParsedSpec): readonly RuleView[] {
       description,
       excludePaths: ff.excludePaths,
       checkedByCheckImport: state.status === 'active' && IMPORT_RULE_NAMES.includes(ff.name),
+      v13Status: s13.status,
+      ...(s13.statusReason !== undefined ? { v13StatusReason: s13.statusReason } : {}),
+      tier: meta.tier,
+      construct: meta.construct,
+      source: meta.source,
+      edgeView: meta.edgeView,
+      checkedByFastPath: fast.has(String(ff.id)),
     };
   });
 }

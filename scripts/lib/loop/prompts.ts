@@ -169,7 +169,7 @@ export function formatFinding(f: BlockingFinding): string {
 
 export function repairPrompt(findings: readonly BlockingFinding[], blockingCount: number, typecheckCommand: string): string {
   const listed = findings.slice(0, MAX_REPAIR_FINDINGS).map(formatFinding);
-  const more = blockingCount - listed.length;
+  const more = Math.max(0, blockingCount - listed.length);
   if (more > 0) listed.push(`- … and ${String(more)} more`);
   return fill(REPAIR_TEMPLATE, {
     FINDING_COUNT: String(blockingCount),
