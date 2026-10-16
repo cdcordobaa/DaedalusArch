@@ -17,7 +17,7 @@ const RAW = { basis: 're-derived' };
 const E1_COLS = ['n', 'files', 'loc', 'blkfile', 'anyblk', 'pass', 'blkahs', 'advshare', 'cv05', 'symfile', 'v12eahs', 'v12esym', 'v12ecv05'];
 const E1_ROWS = [
   [65, 'claude-opus-5-5', 'none', '6', '11.0', '569', '0', '0/6', '6/6', '1.000', '1.000', '0.821', '1.167', '0.957', '1.112', '0.877'],
-  [66, 'claude-opus-5-5', 'minimal-prose', '6', '34.2', '693', '0', '0/6', '6/6', '1.000', '1.000', '0.818', '1.154', '0.877', '1.154', '0.818'],
+  [66, 'claude-opus-5-5', 'minimal-prose', '6', '34.2', '693', '0', '0/6', '6/6', '1.000', '1.000', '0.818', '1.153', '0.877', '1.153', '0.818'],
   [67, 'claude-opus-5-5', 'full-aac', '6', '39.3', '748', '0', '0/6', '6/6', '1.000', '1.000', '0.841', '1.122', '0.937', '1.122', '0.841'],
   [68, 'claude-sonnet-5-5', 'none', '6', '7.7', '315', '0', '0/6', '6/6', '1.000', '1.000', '0.852', '1.172', '0.957', '1.172', '0.852'],
   [69, 'claude-sonnet-5-5', 'minimal-prose', '6', '25.7', '462', '0', '0/6', '6/6', '1.000', '1.000', '0.815', '1.232', '0.882', '1.232', '0.815'],
@@ -74,8 +74,7 @@ const numbers = [
   n('rep-so4-files', 52, 'SO4 files compared: reports + run records', '163 reports + 163 run records', RAW),
   n('rep-so4-ident', 52, 'SO4 byte-identical files across the two passes', '326/326', NC('pass 2 is not committed (audit E-6).')),
   n('headline-n', 56, 'accepted cells in the headline table', '65'),
-  ...E1_ROWS.flatMap(([line, model, level, ...cells]) => E1_COLS.map((c, j) => n(`e1-${mk(model)}-${level}-${c}`, line, `E1 table ${c}, ${model} ${level}`, cells[j],
-    model === 'claude-opus-5-5' && level === 'minimal-prose' && (c === 'symfile' || c === 'v12esym') ? { known: { actual: '1.153', note: 'the cell mean is 1.15345; by_level_model.csv prints it as 1.1535 and the doc rounded that again to 1.154 (double rounding).' } } : {}))),
+  ...E1_ROWS.flatMap(([line, model, level, ...cells]) => E1_COLS.map((c, j) => n(`e1-${mk(model)}-${level}-${c}`, line, `E1 table ${c}, ${model} ${level}`, cells[j]))),
   n('gentc-blocking', 83, 'blocking findings in the 7 GEN-TYPECHECK cells', '0'),
   n('gentc-advisory', 83, 'advisory counts of the 7 GEN-TYPECHECK cells (range)', '4 to 24'),
   n('blk-65', 88, 'cells with a blocking finding, accepted', '0 of 65'),
@@ -119,7 +118,7 @@ const numbers = [
   n('seeds-changed', 139, 'seeds that changed', '7'),
   n('x01-changed', 141, 'MO-X01 seeds missed -> matched', '6 seeds'),
   n('x01-per-base', 141, 'MO-X01 changed seeds per base (nestjslatam, truthy, zhuravlevma)', 'nestjslatam__ddd ×2, truthy-demo ×2 and zhuravlevma__nestjs-active-record ×2'),
-  n('x01-collateral', 143, 'new undeclared findings per changed MO-X01 seed', 'one', { known: { actual: 'one, except truthy-demo:MO-X01:0 with 2', note: 'truthy-demo:MO-X01:0 carries two new undeclared findings (FF-C01 and FF-C03), audit finding E-5.' } }),
+  n('x01-collateral', 143, 'new undeclared findings per changed MO-X01 seed', 'one new undeclared finding (truthy-demo:MO-X01:0 carries 2'),
   n('c03-v12e-inst', 145, 'v1.2E FF-C03 instability of article.controller.ts on the realworld base', '0.83', RAW),
   n('bases-fail', 150, 'SO4 bases, each failing the v1.3 blocking verdict', '7', RAW),
   ...BASES.flatMap(([line, b, rules, ahs]) => [
@@ -287,7 +286,7 @@ async function runS1(ctx) {
   out['d-s1-x01-per-base'] = `nestjslatam__ddd ×${per('nestjslatam__ddd')}, truthy-demo ×${per('truthy-demo')} and zhuravlevma__nestjs-active-record ×${per('zhuravlevma__nestjs-active-record')}`;
   const nNew = x01.map((r) => [r.seed_id, JSON.parse(r.v13_undeclared_new).length]);
   const odd = nNew.filter(([, k]) => k !== 1);
-  out['d-s1-x01-collateral'] = odd.length === 0 ? 'one' : `one, except ${odd.map(([s, k]) => `${s} with ${k}`).join(', ')}`;
+  out['d-s1-x01-collateral'] = odd.length === 0 ? 'one new undeclared finding:' : `one new undeclared finding (${odd.map(([s, k]) => `${s} carries ${k}`).join(', ')}`;
   const rw2 = ctx.json('results/so4-heldout/v2/case/reports/so4-heldout-000-realworld-test.json');
   const ac = rw2.violations.find((v) => v.functionId === 'FF-C03' && v.filePath === 'src/article/article.controller.ts');
   const rw3 = ctx.json(`${SO4}/case/reports/so4-heldout-000-realworld-test.json`);

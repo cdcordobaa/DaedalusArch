@@ -6,7 +6,7 @@ Written 2026-10-15 on branch `v1.3-cheap-semantics`. Code: `src/apg-enrich/cheap
 
 The author's direction is to "win the cheap, quick, easy" signals with deterministic code analysis before building an LLM semantic layer over the graph. Each proxy here is a programmatic approximation of a semantic property: duplicated rule, misplaced responsibility, persistence or framework in the core, low cohesion. A proxy proposes **candidate sites**. It does not give a verdict. The later LLM pass is meant to verify the candidates.
 
-None of the proxies uses an LLM, Neo4j or the network. The proxies are deterministic: the same project always gives the same facts in the same order. They take about 50 to 130 ms per reference project, on top of extraction (results §5).
+None of the proxies uses an LLM, Neo4j or the network. The proxies are deterministic: the same project always gives the same facts in the same order. They take about 60 to 130 ms per reference project, on top of extraction (results §5).
 
 ## Placement and contract
 
@@ -175,7 +175,7 @@ None of the proxies uses an LLM, Neo4j or the network. The proxies are determini
 - **Semantic property.** "A component speaks its own domain language" (ubiquitous language per bounded context, Evans 2003, ch. 2 and 14). A component that mostly talks about another component's concepts is a misplaced module or a missing boundary.
 - **Literature.** Salton and Buckley (1988), *Term-weighting approaches in automatic text retrieval*; Kuhn, Ducasse and Gîrba (2007), *Semantic clustering: identifying topics in source code*, IST 49(3).
 - **Limits.**
-  - The reference projects are small (5 to 7 components with 2 to 12 files each), so tf is noisy.
+  - The reference projects are small (3 to 6 components with 1 to 16 files each), so tf is noisy.
   - Layer-first projects have layer "components", which naturally share vocabulary. The maximum observed leakage on the clean projects is 0.40 (`hexagonal` application → domain), below the threshold.
   - A deliberately shared kernel or published language looks like leakage.
 

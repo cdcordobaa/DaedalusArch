@@ -4,6 +4,7 @@
 import { createHash } from 'node:crypto';
 import { cpSync, existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { treeAt } from '../lib/at-commit.mjs';
 
 // ---- shared helpers (also imported by b-judge-v2.mjs) ---------------------------------------------------------------
 export const RC = 'results/v1.3-judge-catch';
@@ -222,8 +223,7 @@ const r1Scores = [
   { id: 'b-r1-twinff-paired', doc: D1, line: 89, what: 'paired twin false-fail rate', stated: '1/33 = 0.03 [0.01, 0.15]' },
   { id: 'b-r1-clean-units', doc: D1, line: 91, what: 'clean unit false-fail rate', stated: '2/24 = 0.08 [0.02, 0.26]' },
   { id: 'b-r1-clean-bases', doc: D1, line: 92, what: 'clean per-base false-fail rate', stated: '1/7 = 0.14 [0.03, 0.51]' },
-  { id: 'b-r1-clean-refunits', doc: D1, line: 92, what: 'reference-project clean units (none failed)', stated: '22',
-    known: { actual: '16', note: 'D-1/D-2 (PR #117): 24 clean units minus the 8 antipattern-nest units = 16 reference-project units; 22 is the number of non-failing clean units. 0/16 failed, so the conclusion holds.' } },
+  { id: 'b-r1-clean-refunits', doc: D1, line: 92, what: 'reference-project clean units (none failed)', stated: '16' },
   ...R1_OPS.flatMap((o) => ['seeds', 's2', 'judgeonly'].map((c, i) => ({ id: `b-r1-t4-${slug(o)}-${c}`, doc: D1, line: R1_SYMLINE[o], what: `§4 ${o} ${c}`, stated: R1_SYMSTATED[o][i] }))),
   { id: 'b-r1-t4-persist-s1', doc: D1, line: 102, what: '§4 PERSIST-IN-DOMAIN S1 (FF-P01 at the expected key)', stated: '0/1' },
   { id: 'b-r1-v-pooled', doc: D1, line: 114, what: '§5 pooled catch', stated: '9/11 = 0.82' },
@@ -235,10 +235,8 @@ const r1Scores = [
 ];
 
 const r1Run = [
-  { id: 'b-r1-onfixture-hdr', doc: D1, line: 9, what: 'seeds on the one fixture, of all seeds', stated: '10 of the 11',
-    known: { actual: '11 of the 11', note: 'D-1 (PR #117): all 11 seeds are on antipattern-nest, as the doc\'s own §1 says.' } },
-  { id: 'b-r1-onfixture-v', doc: D1, line: 117, what: 'seeds on the one fixture, of all seeds (§5)', stated: '10 of the 11',
-    known: { actual: '11 of the 11', note: 'D-1 (PR #117): all 11 seeds are on antipattern-nest.' } },
+  { id: 'b-r1-onfixture-hdr', doc: D1, line: 9, what: 'seeds on the one fixture, of all seeds', stated: 'All 11' },
+  { id: 'b-r1-onfixture-v', doc: D1, line: 117, what: 'seeds on the one fixture, of all seeds (§5)', stated: 'All 11' },
   { id: 'b-r1-fixture-files', doc: D1, line: 117, what: 'antipattern-nest source files (src/**/*.ts)', stated: '8' },
   { id: 'b-r1-ops', doc: D1, line: 15, what: 'AP operators frozen (positives)', stated: 'five' },
   { id: 'b-r1-digest', doc: D1, line: 15, what: 'combined registry digest at the freeze commit 0771ecb5', stated: '59d70946…d36b' },
@@ -297,10 +295,11 @@ async function r1RunValues(ctx) {
   const c = runCounts(ctx, 'r1');
   const rows = manifest(ctx, 'r1').rows.filter((r) => r.role === 'seed' && r.status === 'ok');
   const onFx = rows.filter((r) => r.baseId === 'antipattern-nest').length;
+  const onFxOf = onFx === rows.length ? `All ${onFx}` : `${onFx} of the ${rows.length}`;
   const fx = walk(ctx.p('fixtures/unit/antipattern-nest/src')).filter((f) => f.endsWith('.ts')).length;
   const unitCap = ctx.sh(`${tsx} --eval "import {UNIT_CAP} from './src/llm-critic/frozen.ts'; console.log(UNIT_CAP)"`).trim();
   return {
-    'b-r1-onfixture-hdr': `${onFx} of the ${rows.length}`, 'b-r1-onfixture-v': `${onFx} of the ${rows.length}`, 'b-r1-fixture-files': String(fx),
+    'b-r1-onfixture-hdr': onFxOf, 'b-r1-onfixture-v': onFxOf, 'b-r1-fixture-files': String(fx),
     'b-r1-ops': word(manifest(ctx, 'r1').expandedToNearMiss.length),
     'b-r1-digest': pre8end4(registryDigest(ctx, '0771ecb5')),
     'b-r1-rubric': pre8(shaAt(ctx, 'HEAD', 'src/llm-critic/rubric.ts')), 'b-r1-frozensha': pre8(frozenSha(ctx)),
@@ -432,8 +431,7 @@ const r2Scores = [
   { id: 'b-r2-exit-point', doc: D2, line: 164, what: 'pooled point estimate', stated: '0.88 (combined, n = 24)' },
   { id: 'b-r2-exit-lb', doc: D2, line: 164, what: 'Wilson lower bounds', stated: '0.69 combined, 0.64 for the operator stratum and 0.53 for the hand-planted stratum' },
   { id: 'b-r2-exit-fl', doc: D2, line: 166, what: 'FRAMEWORK-LEAK combined point and lower bound', stated: '0.77 with a lower bound of 0.50' },
-  { id: 'b-r2-informative', doc: D2, line: 167, what: 'informative seeds left after discounting DUP-RULE', stated: '14',
-    known: { actual: '16', note: 'new: FRAMEWORK-LEAK 13 + PERSIST-IN-DOMAIN 3 = 16 seeds (24 combined minus 8 DUP-RULE), as the same sentence\'s 13/16 shows; 14 is a typo.' } },
+  { id: 'b-r2-informative', doc: D2, line: 167, what: 'informative seeds left after discounting DUP-RULE', stated: '16' },
   { id: 'b-r2-informative-fl', doc: D2, line: 167, what: 'informative FRAMEWORK-LEAK catch', stated: '10/13 FRAMEWORK-LEAK' },
   { id: 'b-r2-informative-pd', doc: D2, line: 167, what: 'informative PERSIST-IN-DOMAIN catch', stated: '3/3 PERSIST-IN-DOMAIN' },
   { id: 'b-r2-informative-pool', doc: D2, line: 167, what: 'informative seeds pooled', stated: '13/16 = 0.81 [0.57, 0.93]' },
@@ -491,16 +489,14 @@ const r2Run = [
 
 // FF-P01 repro (§4) at HEAD
 const FFP = [['A', 179, 'none', 'none'], ['B', 180, 'File:vendor/typeorm.ts', 'none'], ['C', 181, 'Package:typeorm', 'typeorm'], ['D', 182, 'none', 'none']];
-const FFP_KNOWN = {
-  'A-imports': 'Package:typeorm', 'A-packages': 'typeorm', 'D-imports': 'Package:typeorm', 'D-packages': '@nestjs/common, @nestjs/typeorm, typeorm',
-};
+// The table describes the extractor at the round-2 commit, before the F-P01-ALIAS fix (15e755eb). At HEAD shapes A and
+// D resolve the .d.ts alias to Package:typeorm, so the repro runs in an export of the round-2 commit (audit D-4).
+const FFP_COMMIT = 'f8251b8b';
+const FFP_NOTE = `checked at the round-2 commit ${FFP_COMMIT}, which the table describes; at HEAD the later F-P01-ALIAS fix (15e755eb) gives shapes A and D Package:typeorm (audit D-4)`;
 const r2Ffp = FFP.flatMap(([s, line, imp, pk]) => [
   { id: `b-r2-ffp01-${s}-imports`, doc: D2, line, what: `FF-P01 repro shape ${s}: IMPORTS from the domain file`, stated: imp },
   { id: `b-r2-ffp01-${s}-packages`, doc: D2, line, what: `FF-P01 repro shape ${s}: Package nodes`, stated: pk },
-].map((x) => {
-  const k = `${s}-${x.id.endsWith('imports') ? 'imports' : 'packages'}`;
-  return FFP_KNOWN[k] ? { ...x, known: { actual: FFP_KNOWN[k], note: 'D-4 (PR #117): reproduces at the round-2 commit f8251b8b; at HEAD the later F-P01-ALIAS fix (aliasDeclarationPackages) records the .d.ts alias as Package typeorm.' } } : x;
-}));
+].map((x) => ({ ...x, note: FFP_NOTE })));
 
 async function r2ScoreValues(ctx) {
   const S = scored(ctx); const R = S.r2;
@@ -640,7 +636,7 @@ async function r2RunValues(ctx) {
 
 async function r2FfpValues(ctx) {
   const dir = ctx.out('b-r2-ffp01');
-  const txt = ctx.sh(`${tsx} scripts/v1.3/judge-catch2-ffp01-repro.ts "${dir}"`);
+  const txt = ctx.sh(`${tsx} scripts/v1.3/judge-catch2-ffp01-repro.ts "${dir}"`, { cwd: treeAt(ctx, FFP_COMMIT) });
   const out = {};
   for (const [s] of FFP) {
     const block = txt.split('\n').reduce((acc, l) => { if (/^[A-D] /.test(l)) acc.cur = l[0]; else if (acc.cur === s) acc.lines.push(l); return acc; }, { cur: '', lines: [] }).lines;
@@ -1046,7 +1042,7 @@ export default [
   { id: 'b-jc-r2-run', title: 'Judge catch round 2: sites (committed manifest), counts, hashes, vote replay', needs: 'offline', basis: 're-derived', slow: false,
     how: `round2/seed-manifest.json (seeding needs ../daedalus-e1-outcomes), plan, ledger, cassettes; git show a06532d3; ${NEO}`, numbers: r2Run, run: r2RunValues },
   { id: 'b-jc-r2-ffp01', title: 'Judge catch round 2 §4: FF-P01 alias repro at HEAD', needs: 'offline', basis: 'regenerated', slow: false,
-    how: 'node --import tsx scripts/v1.3/judge-catch2-ffp01-repro.ts <scratch>', numbers: r2Ffp, run: r2FfpValues },
+    how: `node --import tsx scripts/v1.3/judge-catch2-ffp01-repro.ts <scratch>, in a git archive of ${FFP_COMMIT}`, numbers: r2Ffp, run: r2FfpValues },
   { id: 'b-jc-dv2-scores', title: 'DUP-RULE v2: rates and cross-round pools replayed from cassettes', needs: 'offline', basis: 'replayed', slow: false,
     how: 'node --import tsx scripts/v1.3/judge-catch-v2-score.ts --results <copy>/duprule-v2', numbers: dv2Scores, run: dv2ScoreValues },
   { id: 'b-jc-dv2-run', title: 'DUP-RULE v2: sites (committed manifest), counts, hashes, vote replay', needs: 'offline', basis: 're-derived', slow: false,

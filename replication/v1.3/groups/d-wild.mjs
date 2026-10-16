@@ -81,14 +81,19 @@ const S8 = [ // files, ISE, APG v2 extract, templates, cheap, analyse total, ana
 ];
 const S8_COLS = ['files', 'ise', 'extract', 'templates', 'cheap', 'total', 'rss', 'fid', 'fidrss'];
 
-const HALF = { 'podkrepi-api': 'clean (0.13)', 'hedgedoc-backend': 'layered (0.13)' };
+// §6 prints confidences to two decimals with ties rounded half to even (0.125 -> 0.12, as Python's round does), where
+// toFixed(2) rounds half up (0.13); both are correct roundings of 0.125, so the group formats §6 the doc's way.
+const f2even = (x) => {
+  const y = x * 100; const t = Math.trunc(y);
+  return Math.abs(y - t - 0.5) < 1e-9 ? ((t % 2 === 0 ? t : t + 1) / 100).toFixed(2) : x.toFixed(2);
+};
 
 // ---- number registry ---------------------------------------------------------------------------------------------
 const RAW = { basis: 're-derived' }; // read straight from a committed wild-run.ts output, not from the regenerated summary
 const numbers = [
   n('title-repos', 1, 'public TypeScript backends analysed (title)', '14'),
   n('tests', 7, 'unit tests in tests/unit/scripts/v1.3/wild.test.ts (jest)', '25', { basis: 'regenerated' }),
-  n('pool', 13, 'candidate pool named by the operator', '38', { ...RAW, known: { actual: '39', note: 'selection.json names 39 candidates (14 kept + 25 rejected) and its method text adds one more name that did not resolve (goldbergyoni/practica); 38 only works if that name is the practicajs/practica row, which the JSON does not say.' } }),
+  n('pool', 13, 'candidate pool named by the operator: probed candidates (selection.json less the 2 Study 1 projects excluded by name) plus the names that did not resolve (method text)', '38', { ...RAW }),
   n('resolved', 13, 'candidates resolved and shallow-cloned (probed)', '37', { ...RAW }),
   n('kept', 23, 'candidates that passed all five rules and were kept', '14', { ...RAW }),
   ...R.map((id, i) => n(`s1-files-${short(id)}`, 27 + i, `§1 files in the harness program, ${id}`, S1_FILES[i])),
@@ -101,8 +106,8 @@ const numbers = [
   n('lit-scoped-dis', 108, 'v1.3 literal view scoped disagreements', '0'),
   n('dc-excluded', 108, 'dependency-cruiser edges into excluded (test) files, v1.3 literal view', '6,073'),
   n('tsc-excluded', 108, 'tsc edges into excluded files (medplum, podkrepi, etherpad)', '91'),
-  n('barrel-resolved-only', 110, 'v1.2E re-export/barrel edge differences, "resolved-only"', '262', { known: { actual: '373', note: 'labels swapped: 262 is missing-in-apg:re-export/barrel (the reference has the literal barrel edge, v1.2E does not: literal-only) and 373 is missing-in-ref (v1.2E resolved edge the references lack: resolved-only).' } }),
-  n('barrel-literal-only', 110, 'v1.2E re-export/barrel edge differences, "literal-only"', '373', { known: { actual: '262', note: 'labels swapped, see d-wild-barrel-resolved-only.' } }),
+  n('barrel-resolved-only', 110, 'v1.2E re-export/barrel edge differences, "resolved-only"', '373'),
+  n('barrel-literal-only', 110, 'v1.2E re-export/barrel edge differences, "literal-only"', '262'),
   n('cleants-short', 110, 'clean-ts-api v1.2E agreement, short form', '0.47/0.38'),
   n('require', 111, 'v1.2E require edges missed, all in etherpad', '123'),
   n('dyn-total', 112, 'v1.2E dynamic-import edges missed', '41'),
@@ -138,7 +143,7 @@ const numbers = [
   n('communities', 188, 'community-component-mismatch files', '1,086'),
   ...R.flatMap((id, i) => [
     n(`s6-style-${short(id)}`, 194 + i, `§6 ISE style (confidence), ${id}`, S6[i][0]),
-    n(`s6-runner-${short(id)}`, 194 + i, `§6 ISE runner-up, ${id}`, S6[i][1], HALF[id] ? { known: { actual: HALF[id], note: 'the runner-up confidence is exactly 0.125; toFixed(2) gives 0.13, the doc rounds half to even (0.12). Rounding convention only.' } } : {}),
+    n(`s6-runner-${short(id)}`, 194 + i, `§6 ISE runner-up, ${id}`, S6[i][1]),
     ...(S6_EV[id] ?? []).map(([k, v]) => n(`s6-ev-${k}-${short(id)}`, 194 + i, `§6 ISE evidence ${k}, ${id}`, v)),
   ]),
   n('spec-valid', 209, 'repositories whose emitted spec validated', '14'),
@@ -201,7 +206,9 @@ async function run(ctx) {
 
   const N = sum.repos;
   out['d-wild-title-repos'] = String(N);
-  out['d-wild-pool'] = String(sel.entries.length + sel.rejected.length);
+  // the 2 Study 1 projects in `rejected` were excluded by name and never part of the probed pool (method text)
+  const unresolved = /\b(one|two|three) names?, [^()]*?, did not resolve/.exec(sel.method)?.[1];
+  out['d-wild-pool'] = String(sel.entries.length + sel.rejected.filter((r) => !/Study 1 corpus/.test(r.reason)).length + ({ one: 1, two: 2, three: 3 }[unresolved] ?? 0));
   out['d-wild-resolved'] = String(sel.entries.length + sel.rejected.filter((r) => !/Study 1 corpus/.test(r.reason)).length);
   out['d-wild-kept'] = String(sel.entries.length);
   out['d-wild-rejected'] = String(sel.rejected.length);
@@ -293,10 +300,10 @@ async function run(ctx) {
   const nm = (s) => (s === 'clean-architecture' ? 'clean' : s);
   R.forEach((id) => {
     const ise = P[id].ise;
-    let style = `${ise.style} (${ctx.f2(ise.confidence)})`;
-    if (ise.runnerUp && ise.runnerUp.confidence === ise.confidence) style += `, tied with ${ise.runnerUp.style} (${ctx.f2(ise.runnerUp.confidence)})`;
+    let style = `${ise.style} (${f2even(ise.confidence)})`;
+    if (ise.runnerUp && ise.runnerUp.confidence === ise.confidence) style += `, tied with ${ise.runnerUp.style} (${f2even(ise.runnerUp.confidence)})`;
     out[`d-wild-s6-style-${short(id)}`] = style;
-    out[`d-wild-s6-runner-${short(id)}`] = id === 'etherpad' ? `${ise.runnerUp.style} (${ctx.f2(ise.runnerUp.confidence)})` : `${nm(ise.runnerUp.style)} (${ctx.f2(ise.runnerUp.confidence)})`;
+    out[`d-wild-s6-runner-${short(id)}`] = id === 'etherpad' ? `${ise.runnerUp.style} (${f2even(ise.runnerUp.confidence)})` : `${nm(ise.runnerUp.style)} (${f2even(ise.runnerUp.confidence)})`;
     const ev = ise.evidence.join(' | ');
     for (const [k] of S6_EV[id] ?? []) {
       let v = '?';

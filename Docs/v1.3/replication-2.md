@@ -179,6 +179,10 @@ These are not doc mismatches, but a reviewer will hit them.
 
 ## 4. Mismatches (58)
 
+> **Errata (2026-10-16).** [`replication-errata-2026-10-16.md`](replication-errata-2026-10-16.md) classifies these 58.
+> 41 were doc errors and are corrected in the docs; 15 were errors of the replication groups and are fixed there; 2
+> (rows 29 and 30, `smoke.sh` at HEAD) are real defects and stay `KNOWN`. This section is kept as the PR #215 record.
+
 The "stated" value is copied from the doc, and "reproduced" is what the committed inputs give at HEAD. The last column
 says whether the PR #117 audit (`Docs/DiagnosticRuns/v1.3-repro-audit-2026-10-16.md`) already recorded it.
 

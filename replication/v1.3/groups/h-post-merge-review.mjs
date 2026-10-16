@@ -1,16 +1,19 @@
 // Docs/v1.3/post-merge-review-2026-10-16.md: the review's own tallies, and every result number it cites, re-derived
 // from the committed results (ffp06-na-recount, filter-explain score, judge-catch scorers, construct-rescore re-run
 // offline; labelling correctness, seed manifest and source constants read directly). Quoted stale values of other docs
-// are checked against the cited doc line.
+// are checked against the cited doc line, as it was at the review's commit (the errata of 2026-10-16 corrected some
+// of those lines since).
 import * as fs from 'node:fs';
+import { readAt } from '../lib/at-commit.mjs';
 
 const DOC = 'Docs/v1.3/post-merge-review-2026-10-16.md';
+const REVIEW_COMMIT = '37076d94'; // the review's only commit: the docs it quotes are read as they were there
 const kn = (cell) => cell.split(' = ')[0];
 const th = (n) => n.toLocaleString('en-US');
 
-/** Returns `text` when the cited doc line contains it (the review quotes a stale value there), else what is there. */
+/** Returns `text` when the cited doc line, at the review's commit, contains it (the review quotes a stale value there). */
 function quote(ctx, doc, line, text) {
-  const l = ctx.read(doc).split('\n')[line - 1] ?? '';
+  const l = readAt(ctx, REVIEW_COMMIT, doc).split('\n')[line - 1] ?? '';
   return l.includes(text) ? text : `(not on ${doc}:${line})`;
 }
 /** "a+b+c = N" when the summed terms are the same multiset as the non-zero data values. */
@@ -201,7 +204,7 @@ const labelling = {
     N('h-pmr-r25-l400-q82', 400, 'labelling doc line 82 as quoted (stale)', '1,484 correct, 0 incorrect, 179 not-checkable'),
     N('h-pmr-r25-l400-check', 400, 'reference correct + E1 correct = checkable', '1,485 + 1,184 = 2,669'),
     N('h-pmr-r25-l400-nc', 400, 'reference findings not-checkable', '178 not-checkable'),
-    N('h-pmr-r25-l400-commits', 400, 'commits touching the labelling doc (shallow clone: git log at HEAD)', 'one commit'),
+    N('h-pmr-r25-l400-commits', 400, 'commits touching the labelling doc up to the review (shallow clone: git log at the review commit)', 'one commit'),
     N('h-pmr-r25-l404-incorrect', 404, 'reference findings incorrect', '0 incorrect'),
     N('h-pmr-r25-l404-block', 404, 'blocking findings correct / checkable', '54/54'),
   ],
@@ -226,7 +229,7 @@ const labelling = {
     const q = (line, text) => quote(ctx, LAB, line, text);
     const q6 = (text) => quote(ctx, LAB, 6, text); const q82 = (text) => quote(ctx, LAB, 82, text);
     const quoted = [q82('1,484 correct'), q82('179 not-checkable'), q6('2,668')].every((x) => !x.startsWith('(not'));
-    const nCommits = ctx.sh(`git log --oneline -- ${LAB}`).trim().split('\n').filter(Boolean).length;
+    const nCommits = ctx.sh(`git log --oneline ${REVIEW_COMMIT} -- ${LAB}`).trim().split('\n').filter(Boolean).length;
     const blockSorted = [...blockC].sort((a, b) => a - b).join(',');
     const blockTerms = '1+2+1+1+2+1+7+2+2+11+6+5+5+3+5'.split('+').map(Number).sort((a, b) => a - b).join(',');
     return {

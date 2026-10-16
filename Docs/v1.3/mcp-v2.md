@@ -8,7 +8,7 @@ This unit upgrades the DaedalusArch MCP server, which coding agents call while t
 
 - **Every finding carries** its v1.3 tier (blocking or advisory, by the spec's style), its rule id, the construct it encodes, a literature source line (`Docs/v1.3/style-rule-sources.md`), `file:line`, the reason and a concrete fix. The answer an agent acts on is the new `blockingVerdict` (`block` / `pass` / `unknown`).
 - **check_file and check_diff** now decide every v1.3 rule that a changed file and the spec (plus, when the server has a project root, the files around it) can decide: the allowed-dependency layering of hexagonal and DDD, the DDD rules, repository and port placement, infrastructure injected into the domain, domain purity through a barrel, and import cycles. They follow ADR-V13-01 (literal edge to the barrel or resolved `viaReExport` edge, per `Docs/v1.3/edge-views.md`) and the v1.3 style applicability.
-- **Hints** from three APG v2 templates and two cheap proxies are reported apart, always ADVISORY.
+- **Hints** from five APG v2 templates and two cheap proxies are reported apart, always ADVISORY.
 - **Two new tools**: `infer_spec` (zero-config onboarding with the ISE prototype; returns a proposal to confirm) and `explain_finding`.
 - **Consistency with the full evaluation** on the 71 reference variants of the five styles: with a project root, check_diff's blocking answer and its set of blocking rules agree with the saved full evaluation on **71/71** variants, and every finding is in the right file. Without a project root (spec-only), 64/71 agree, and the 7 disagreements are two documented limits: cycles (5) and DDD value-object mutability in a modified file (2). This is a development set (§4.4).
 - **Latency**: check_file p50 6 ms / p95 16 ms, check_diff p50 14 ms / p95 40 ms in process; over stdio from an MCP client, p95 13 ms and 36 ms. The target was under 1 s.
@@ -77,10 +77,10 @@ Every element of `violations`, `findings`, `advisories` and `hints`:
 | layered | 13 | 13 / 13 / 13 | 13 / 13 / 13 | 11 / 11 | 4/4 |
 | nestjs | 14 | 14 / 14 / 14 | 14 / 14 / 14 | 13 / 13 | 4/4 |
 | hexagonal | 15 | 15 / 15 / 15 | 15 / 15 / 15 | 14 / 14 | 4/4 |
-| ddd | 15 | 15 / 15 / 15 | 15 / 15 / 15 | 13 / 15 | 3/3 |
+| ddd | 15 | 15 / 15 / 15 | 15 / 15 / 15 | 13 / 13 | 3/3 |
 | **all** | **71** | **71 / 71 / 71** | **71 / 71 / 71** | **64 / 64** | **19/19** |
 
-(The spec-only DDD row reads 13/15: the two disagreements are both FF-DT03.) Unexplained disagreements: 0 in every mode.
+(Spec-only, DDD agrees on 13/15 variants: the two disagreements are both FF-DT03.) Unexplained disagreements: 0 in every mode.
 
 ### 4.3 Agreement per rule
 
@@ -198,7 +198,7 @@ The agent or a human must confirm the proposal before it is saved and used as th
 | stdio: check_diff | 325 | 13.3 | 35.8 | 130.1 |
 | stdio: server start-up to listTools | 5 | 776.8 | 787.7 | |
 
-check_file and check_diff are about two orders of magnitude under the 1 s target, cold calls included. The cost grows with the project when a project root is given: the cycle check and the delta read every source file of the project once per call (cached per call, not across calls). The reference projects have 27 to 31 source files. A project of thousands of files was not measured. `evaluate_project` was not measured (no Neo4j here).
+check_file and check_diff are about one order of magnitude under the 1 s target, cold calls included (worst p95 45.2 ms, worst cold call 130.1 ms; the p50s, 6 to 19 ms, are about two orders under it). The cost grows with the project when a project root is given: the cycle check and the delta read every source file of the project once per call (cached per call, not across calls). The reference projects have 27 to 31 source files. A project of thousands of files was not measured. `evaluate_project` was not measured (no Neo4j here).
 
 ## 10. Limits of the fast path
 

@@ -456,9 +456,9 @@ This is ambiguity 6b.
 **Action item (before sealing, whichever option is chosen).** Fix the contradiction: either correct ADR-V13-02's claim that the NestJS preset is "a Clean Architecture layering" (under A or B), or correct the preset comment (under C). ADR-V13-02 uses that claim to apply the Clean reasoning for FF-P06 to NestJS, so check that its FF-P06 conclusion still holds once the claim is fixed.
 
 **Effect on the development set.**
-- A: nestjs R 11/11, P 11/11; all-rule P 13/14.
+- A: nestjs R 11/11, P 11/11; all-rule P 14/14.
 - B: the same blocking figures; all-rule P 13/14 → 13/13.
-- C: nestjs R 10/11, P 10/11 → 11/11.
+- C: nestjs R 10/11 → 11/11, P 10/11 → 11/11.
 
 **Example** (nestjs v07, `registrations/registrations.service.ts`):
 ```ts

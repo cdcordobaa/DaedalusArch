@@ -1770,6 +1770,14 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 
 ---
 
+## v1.3 CONSTRUCTION — replication errata (scheduled task)
+**Timestamp**: 2026-10-16T14:20:00Z
+**User Input**: "scheduled task: classify the 58 KNOWN numbers of replication part 2 (PR #215) as doc error / environment / real defect / group error; errata file and per-doc text corrections; flag headline claims; fix only the group errors; re-run the replication; PR into v1.3-replication-2, not merged"
+**AI Response**: "Branch v1.3-replication-errata, PR #236. 41 doc errors corrected (19 docs, one commit each), 0 environment, 2 real defects (smoke.sh at HEAD; fix proposed only), 15 group errors fixed (commit-scoped checks via replication/v1.3/lib/at-commit.mjs, wild pool, half-even ties, panel schema tokens, ~900 range). Claims affected listed for the author (labelling 2,669/1,485/178; largest cell 19; all 11 round-1 seeds on the fixture; MCP latency one order; Study 2 arm 9 tools; Q13 figures); papers not edited. Full run exits 0: 5,155 numbers, 4,644 yes, 2 KNOWN, 0 FAIL. No LLM, no Neo4j. Interactive approval gates were not run: no live user."
+**Context**: CONSTRUCTION, v1.3 replication package; docs and replication groups only.
+
+---
+
 ## v1.3 CONSTRUCTION — snapshot measures and gaming guards (night backlog job #9 D1, scheduled task)
 **Timestamp**: 2026-10-16T08:30:00Z
 **User Input**: (scheduled task, no one present) "Build a post-hoc scorer that computes the Study 2 independent measures and gaming guards (dependency-cruiser under the ADR-030 translation, import kinds, barrels, layer-coverage share, LOC, files) for every snapshot of a loop store, so gate lines D13 and D16 can be verified without changing the live loop; run it on the #142 replay store and #161's probe snapshots; report tool vs dependency-cruiser agreement; byte-reproducible. Branch v1.3-snapshot-measures, one PR into v1.3, not merged."

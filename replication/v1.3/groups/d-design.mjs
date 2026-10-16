@@ -46,7 +46,7 @@ const hpNumbers = [
   h('lb-0b', 73, 'fewer than N expected blocking findings cannot pass the lower-bound check', 'fewer than 35', { basis: 're-derived' }),
 ];
 const soNumbers = [
-  o('mcp-tools', 53, 'spec-only DaedalusArch MCP tools the daedalus-mcp arm allows', 'the 7 spec-only tools', { basis: 're-derived', known: { actual: 'the 9 spec-only tools', note: 'DAEDALUS_ARM_TOOLS (scripts/lib/generators/arms.ts, pinned equal to SPEC_TOOL_NAMES) now holds 9 tools: MCP v2 added infer_spec and explain_finding after the outline listed 7.' } }),
+  o('mcp-tools', 53, 'spec-only DaedalusArch MCP tools the daedalus-mcp arm allows', 'the 9 spec-only tools', { basis: 're-derived' }),
   o('repair-max', 54, 'blocking findings listed in the gate repair turn (MAX_REPAIR_FINDINGS)', 'at most 40 listed', { basis: 're-derived' }),
   o('tasks', 111, 'tasks in the sealed Study 2 list', '6 (the sealed list)', EXT_TASKS),
   o('blocks', 117, 'blocks of the working grid 6 x 3 x 3', '6 × 3 × 3 = **54 blocks**', { basis: 're-derived' }),
@@ -70,7 +70,7 @@ const pnNumbers = [
   p('fallback-each', 100, 'fallback outcome, base assumptions: max gate and mcp power; max power any', 'gate and\nmcp each ≤ 0.08, either ≤ 0.13'.replace('\n', ' '), R),
   p('fallback-steep', 101, 'fallback, full spillover + steep advisory erosion: gate power, option B', 'about 0.5', R),
   p('dz-mean', 107, 'option B, gate halves the slope: mean |d_z| / power / normal approximation', 'mean |d_z| of about 0.33', R),
-  p('dz-power', 107, 'option B, gate halves the slope: power', 'power about 0.55', { ...R, known: { actual: 'power about 0.54', note: 'power.json has 0.535 (214/400), which the doc\'s own §4 table prints as 0.54; "about 0.55" rounds the other way. 0.55 is the "no arm x task interaction" sensitivity row.' } }),
+  p('dz-power', 107, 'option B, gate halves the slope: power', 'power about 0.54', { ...R }),
   p('dz-approx', 108, 'option B, gate halves the slope: normal approximation of the power', 'approximation gives 0.57', R),
   p('poisson', 108, 'Poisson counts: mean |d_z| and power', 'd_z ≈ 0.56 and power 0.94', R),
   p('minp', 110, 'smallest two-sided sign-flip p-value with six clusters', '2/64 ≈ 0.031', R),

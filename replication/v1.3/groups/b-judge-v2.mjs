@@ -4,6 +4,7 @@
 import { cpSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { once, sha, walk } from './b-judge-catch.mjs';
+import { treeAt } from '../lib/at-commit.mjs';
 
 const D = 'Docs/DiagnosticRuns/v1.3-judge-v2-2026-10-16.md';
 const RES = 'results/v1.3-judge-v2';
@@ -382,24 +383,26 @@ async function scoreValues(ctx) {
 const jestNumbers = [
   { id: 'b-v2-jest-judgev2', doc: D, line: 26, what: 'tests/unit/llm-critic/judge-v2.test.ts passing tests', stated: '(10)' },
   { id: 'b-v2-jest-fe', doc: D, line: 26, what: 'tests/unit/llm-critic/filter-explain.test.ts passing tests', stated: '(4)' },
-  { id: 'b-v2-jest-dirs', doc: D, line: 27, what: 'tests/unit/llm-critic + tests/unit/cli suites and tests, all passing', stated: '30 suites, 610 tests',
-    known: { actual: '31 suites, 615 tests', note: 'new: 31 suites / 615 tests, all passing at HEAD (minimal environment, git work tree); the doc\'s own commit 205a73bd already has 31 suites / 615 tests in these directories, so the stated count was probably taken earlier on the branch.' } },
+  { id: 'b-v2-jest-dirs', doc: D, line: 27, what: 'tests/unit/llm-critic + tests/unit/cli suites and tests, all passing', stated: '31 suites, 615 tests', note: 'at the doc commit 205a73bd (later v1.3 work added suites), in a git work tree for ISO-04' },
   { id: 'b-v2-jest-ap', doc: D3x(), line: 37, what: 'tests/unit/scripts/mutation/antipatterns.test.ts passing / total', stated: '21/21' },
 ];
 function D3x() { return 'Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md'; }
 
+const JEST_DIRS_COMMIT = '205a73bd'; // the commit that wrote line 27 (31 suites, 615 tests there)
+
 async function jestValues(ctx) {
   const dir = ctx.out('b-jest');
-  const run = (name, paths) => {
+  const run = (name, paths, cwd = ctx.repo) => {
     const f = join(dir, `${name}.json`);
     try {
-      ctx.sh(`env -i PATH="$PATH" HOME="$HOME" TMPDIR="${dir}" npx jest --maxWorkers=2 --forceExit ${paths} --json --outputFile="${f}"`, { timeout: 30 * 60_000 });
+      ctx.sh(`env -i PATH="$PATH" HOME="$HOME" TMPDIR="${dir}" npx jest --maxWorkers=2 --forceExit ${paths} --json --outputFile="${f}"`, { cwd, timeout: 30 * 60_000 });
     } catch { /* failures are counted below */ }
     return JSON.parse(readFileSync(f, 'utf8'));
   };
   const a = run('files', 'tests/unit/llm-critic/judge-v2.test.ts tests/unit/llm-critic/filter-explain.test.ts tests/unit/scripts/mutation/antipatterns.test.ts');
   const per = (suffix) => { const t = a.testResults.find((x) => x.name.endsWith(suffix)); return [t.assertionResults.filter((x) => x.status === 'passed').length, t.assertionResults.length]; };
-  const b = run('dirs', 'tests/unit/llm-critic tests/unit/cli');
+  // the directory count is the doc's: at its commit (later v1.3 work added suites), in a git work tree (ISO-04)
+  const b = run('dirs', 'tests/unit/llm-critic tests/unit/cli', treeAt(ctx, JEST_DIRS_COMMIT, { git: true }));
   const [jv, jvn] = per('judge-v2.test.ts'); const [fe, fen] = per('filter-explain.test.ts'); const [ap, apn] = per('antipatterns.test.ts');
   return {
     'b-v2-jest-judgev2': jv === jvn ? `(${jv})` : `(${jv} of ${jvn})`,
