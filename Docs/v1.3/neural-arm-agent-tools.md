@@ -160,7 +160,7 @@ With the 20 s default an agent on the Claude route usually sees `pending` on a c
   - the token cap (default 2M);
   - the dollar ceiling (`--gemini-max-usd`, default and hard maximum **$5**: `effectiveCap` clamps any larger value).
 
-  After a call, the reported usage is charged; a failed call is charged at the worst case. `--gemini-ledger <file>` persists the ledger, so the cap holds across server restarts.
+  After a call, the reported usage is charged; a failed call is charged at the worst case. `--gemini-ledger <file>` persists the ledger, so the cap holds across server restarts. A missing ledger file starts at zero; an unreadable or malformed one stops the rater instead of resetting it. The file is replaced atomically (temp file plus rename). Each call holds its worst-case cost until it settles, so concurrent calls in one server cannot together cross the cap.
 - **Combination** (`combineVerdicts`). With n valid raters out of t configured, f of them failing:
   - `fail-if-both`: the unit fails when f = n. Every valid rater fails; with two raters, both.
   - `fail-if-either`: the unit fails when f ≥ 1.
@@ -229,6 +229,7 @@ Flags (`src/mcp-server/neural-context.ts`):
 | `--neural off\|claude-cli\|mock\|ensemble` | The arm (env `DAEDALUS_NEURAL`; a flag wins). |
 | `--neural-cassettes <dir>` | The cassette root (default `.firewall/cassettes/mcp-neural`). |
 | `--neural-wait-ms <ms>` | The latency budget of one call. |
+| `--strip-comments` | Show the judge the code without comments (`review_unit`, `explain_and_fix`), line for line. OFF by default; with it off, prompts and cache keys are byte-identical. Why: an agent can steer the judge with a comment in its own code (`Docs/v1.3/judge-steering-plan.md`). |
 | `--judge-cli <path>`, `--claude-config-dir <dir>` | The Claude route. |
 | `--ensemble-raters <list>`, `--ensemble-rule <rule>` | The ensemble. |
 | `--agy-model <name>`, `--agy-home <dir>` | The `agy` rater. |

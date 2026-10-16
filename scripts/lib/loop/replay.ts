@@ -33,6 +33,7 @@ import type { EvaluateDeps } from '../../../src/mcp-server/evaluate-project.js';
 import { writeHarnessTsconfig } from '../generators/harness-tsconfig.js';
 import { CLAUDE_CODE_ADAPTER_ID } from '../generators/types.js';
 import { firewallEvaluator, harnessSnapshotTsconfig } from './evaluator.js';
+import { evaluatorForEngine } from './engine-tee.js';
 import { runDirFor, runLoop, stepRecordPath } from './loop.js';
 import type { LoopContext, LoopRunResult, TaskProfile } from './loop.js';
 import { buildProfiles, prepareDryRunWorkDir } from './main.js';
@@ -40,7 +41,9 @@ import { loadLoopPlan, loopRunId } from './plan.js';
 import type { LoadedPlan } from './plan.js';
 import { FROZEN_SPEC_FILE, SPEC_DIR, iseDddFreezer } from './specs.js';
 import type {
+  EngineParity,
   LoopArm,
+  LoopEngine,
   LoopRunSpec,
   StepAgent,
   StepEvaluation,
@@ -291,7 +294,9 @@ export function checkoutCommit(gitDir: string, commit: string, into: string): vo
 export function evaluationContent(e: StepEvaluation | null | undefined): Omit<StepEvaluation, 'durationMs'> | null {
   if (e === null || e === undefined) return null;
   const { durationMs: _ignored, ...rest } = e;
-  return rest;
+  if (rest.parity === undefined) return rest;
+  const { durationMs: _checkMs, ...parity } = rest.parity;
+  return { ...rest, parity };
 }
 
 export interface ReplayOptions {
@@ -306,6 +311,8 @@ export interface ReplayOptions {
   readonly tapes: readonly ReplayTape[];
   readonly arms?: readonly LoopArm[];
   readonly log?: (line: string) => void;
+  /** The evaluator's graph engine (`engine-tee.ts`); absent = `evaluateDeps` as given, unchanged. */
+  readonly engine?: LoopEngine;
   /** Fault-drill hooks (`scripts/v1.3/loop-fault-drills.ts`); absent in the replay itself, which they leave unchanged. */
   readonly decorate?: ReplayDecorators;
 }
@@ -342,8 +349,9 @@ export async function runReplay(o: ReplayOptions): Promise<DomainResult<ReplayRe
   // The loop's evaluator, timed per call: `evaluation.durationMs` is the pipeline's own figure, not the wall time a
   // gate step waits (connection, extraction and ingestion included).
   const evaluateWallMs = new Map<string, number[]>();
+  const teeOptions = { onMismatch: (runId: string | undefined, _dir: string, p: EngineParity): void => o.log?.(`PARITY ${p.status} ${runId ?? '?'}: ${JSON.stringify(p.diff ?? p.checkError ?? {})}`) };
   const evaluatorOf = (specFile: string): StepEvaluator => {
-    const inner = firewallEvaluator(specFile, o.evaluatorEnv, o.evaluateDeps, harnessSnapshotTsconfig(o.harnessRoot));
+    const inner = evaluatorForEngine(o.engine, o.evaluateDeps, o.evaluatorEnv, (d, env) => firewallEvaluator(specFile, env, d, harnessSnapshotTsconfig(o.harnessRoot)), teeOptions);
     return {
       id: inner.id,
       evaluate: async (dir, runId) => {
@@ -405,7 +413,8 @@ export async function runReplay(o: ReplayOptions): Promise<DomainResult<ReplayRe
       runs.push({ runId, spec, runDir: runDirFor(o.outRoot, runId), result: r.data });
     }
   }
-  const checkoutEvaluatorOf = (specFile: string, tsconfigFile: string): StepEvaluator => firewallEvaluator(specFile, o.evaluatorEnv, o.evaluateDeps, () => tsconfigFile);
+  const checkoutEvaluatorOf = (specFile: string, tsconfigFile: string): StepEvaluator =>
+    evaluatorForEngine(o.engine, o.evaluateDeps, o.evaluatorEnv, (d, env) => firewallEvaluator(specFile, env, d, () => tsconfigFile), teeOptions);
   return DomainResult.ok({ loaded: loaded.data, profiles, runs, typecheckMs: typechecker.timings, evaluateWallMs, evaluatorOf: checkoutEvaluatorOf });
 }
 
