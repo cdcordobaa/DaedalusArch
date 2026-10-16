@@ -1,0 +1,36 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8602,
+  "effort": "high",
+  "functionId": "filter-explain",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "fee33eb3b9ead56df6dcd0b7f92d9dfeae4fb2b8233898fd29b02d74eedd3acb-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "## Finding\nRule: FF-C03\nRule intent: Component instability stays below its threshold for the layer.\nType: INSTABILITY_VIOLATION\nSeverity: major; tier: advisory (unscored)\nFile: src/config/testContainer.ts\nMessage: Violation in src/config/testContainer.ts\nEvidence: instability=1\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- adapters-inbound (kind: presentation): src/adapters/inbound/**\n- adapters-outbound (kind: infrastructure): src/adapters/outbound/**\n- config (kind: application): src/config/**\n\n## Source (line-numbered)\n=====SOURCE-BEGIN src/config/testContainer.ts (layer config)=====\n 1| import { BookingController } from '../adapters/inbound/http/BookingController';\n 2| import { OutboxNotificationAdapter } from '../adapters/outbound/notification/OutboxNotificationAdapter';\n 3| import { FakePaymentGateway } from '../adapters/outbound/payment/FakePaymentGateway';\n 4| import { InMemoryBookingRepository } from '../adapters/outbound/persistence/InMemoryBookingRepository';\n 5| import { InMemoryGuestRepository } from '../adapters/outbound/persistence/InMemoryGuestRepository';\n 6| import { InMemoryRoomRepository } from '../adapters/outbound/persistence/InMemoryRoomRepository';\n 7| import { BookRoomService } from '../application/services/BookRoomService';\n 8| import { CancelBookingService } from '../application/services/CancelBookingService';\n 9| \n10| /** A second composition root for acceptance tests: same ports, outbox exposed for assertions. */\n11| export function createTestContainer(): { controller: BookingController; outbox: OutboxNotificationAdapter } {\n12|   const bookings = new InMemoryBookingRepository();\n13|   const guests = new InMemoryGuestRepository();\n14|   const payments = new FakePaymentGateway();\n15|   const outbox = new OutboxNotificationAdapter();\n16|   const controller = new BookingController(\n17|     new BookRoomService(new InMemoryRoomRepository(), bookings, guests, payments, outbox),\n18|     new CancelBookingService(bookings, guests, payments, outbox),\n19|   );\n20|   return { controller, outbox };\n21| }\n=====SOURCE-END=====\n\n## Instructions\nDecide confirm or dismiss. Confirm: the cited code has the problem the rule is meant to catch, in this project and layer model. Dismiss: the rule fired, but the code does not have that problem (a false positive of the rule's mechanism, a threshold artefact on sound code, or a case the style allows). Measurements stated in the finding (counts, ratios, missing files) are correct as measurements; judge what they mean for this code. explanation: one paragraph that justifies the decision from the code, citing file paths and line numbers exactly as numbered below. fix: one concrete change: for a confirm, how to fix the code; for a dismiss, what (if anything) the rule or its configuration should change. citations: the line ranges your explanation relies on; every one must name a file shown below and lines that exist.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T00:04:46.126Z",
+  "repetition": 0,
+  "requestHash": "fee33eb3b9ead56df6dcd0b7f92d9dfeae4fb2b8233898fd29b02d74eedd3acb",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":603}},\"result\":\"{\\\"decision\\\":\\\"dismiss\\\",\\\"explanation\\\":\\\"src/config/testContainer.ts is a composition root, and its own doc comment says so (line 10). A composition root's job is to depend on concrete adapters and services and wire them together (lines 1-8, 12-19). Production code is not supposed to depend on it; only test code imports it. So an instability of 1 (all outgoing dependencies, no incoming ones) is the expected value for this kind of module, not a sign of decay. The instability metric exists to flag modules that many others depend on but that themselves change easily. That risk is absent here: no stable component relies on this file, so its volatility cannot spread. The finding is an artefact of the layer model, which gives src/config/** the kind 'application' and therefore holds it to the application-layer instability threshold. Wiring/config code is meant to sit at the unstable edge of the dependency graph, so that threshold does not fit it.\\\",\\\"fix\\\":\\\"Change the layer model so src/config/** is treated as a composition-root/bootstrap layer, not an 'application' layer. Either exempt it from FF-C03 or set its instability threshold to 1.0, so wiring modules like testContainer.ts are not judged against application-layer stability limits.\\\",\\\"citations\\\":[{\\\"filePath\\\":\\\"src/config/testContainer.ts\\\",\\\"startLine\\\":1,\\\"endLine\\\":8},{\\\"filePath\\\":\\\"src/config/testContainer.ts\\\",\\\"startLine\\\":10,\\\"endLine\\\":21}]}\",\"structured_output\":{\"citations\":[{\"endLine\":8,\"filePath\":\"src/config/testContainer.ts\",\"startLine\":1},{\"endLine\":21,\"filePath\":\"src/config/testContainer.ts\",\"startLine\":10}],\"decision\":\"dismiss\",\"explanation\":\"src/config/testContainer.ts is a composition root, and its own doc comment says so (line 10). A composition root's job is to depend on concrete adapters and services and wire them together (lines 1-8, 12-19). Production code is not supposed to depend on it; only test code imports it. So an instability of 1 (all outgoing dependencies, no incoming ones) is the expected value for this kind of module, not a sign of decay. The instability metric exists to flag modules that many others depend on but that themselves change easily. That risk is absent here: no stable component relies on this file, so its volatility cannot spread. The finding is an artefact of the layer model, which gives src/config/** the kind 'application' and therefore holds it to the application-layer instability threshold. Wiring/config code is meant to sit at the unstable edge of the dependency graph, so that threshold does not fit it.\",\"fix\":\"Change the layer model so src/config/** is treated as a composition-root/bootstrap layer, not an 'application' layer. Either exempt it from FF-C03 or set its instability threshold to 1.0, so wiring modules like testContainer.ts are not judged against application-layer stability limits.\"}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "ef09871192bf0ba5",
+  "usage": {
+    "inputTokens": 2536,
+    "outputTokens": 603
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

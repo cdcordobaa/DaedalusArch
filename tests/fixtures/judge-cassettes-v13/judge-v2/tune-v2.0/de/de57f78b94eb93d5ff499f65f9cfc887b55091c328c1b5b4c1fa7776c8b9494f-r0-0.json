@@ -1,0 +1,51 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7306,
+  "effort": "high",
+  "functionId": "FF-N01",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "de57f78b94eb93d5ff499f65f9cfc887b55091c328c1b5b4c1fa7776c8b9494f-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/order/order.service.ts: constructor injects `@InjectRepository(OrderEntity) private readonly orderRepository: Repository<OrderEntity>`",
+      "src/order/order.service.ts: create() uses this.orderRepository.create/save",
+      "src/order/order.service.ts: findOne() uses `const orderRepository = getRepository(OrderEntity);` imported from 'typeorm' rather than this.orderRepository"
+    ],
+    "pass": false,
+    "reasoning": "OrderService gets a Repository<OrderEntity> through its constructor (@InjectRepository) and uses it in create(). findOne() does not use it. Instead it calls typeorm's global getRepository(OrderEntity) to get a second, separate repository instance. That goes around the module's own injected repository, which is the bypass the rubric fails. Both candidate flags (service-direct-orm and repo-bypass at line 22) match the source. Apart from that, the file handles one concern (orders), and I found no rule written out twice.",
+    "violations": [
+      {
+        "filePath": "src/order/order.service.ts",
+        "message": "OrderService.findOne goes around the module's injected repository (this.orderRepository). It calls typeorm's global getRepository(OrderEntity) to reach persistence directly, so OrderService uses two different ways to access the data."
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe module's files form one coherent unit with a consistent abstraction and boundary.\n\n## Rubric\nPass: The files serve one cohesive concern, use the module's abstractions consistently, keep each rule or invariant in one place, and reach persistence only through the module's own repository or port.\nFail: The files split into unrelated concerns; the same rule, invariant or validation is written out in two places (a copy, not a call to one shared definition); a class reaches persistence around the module's own repository or port (a database, ORM or query client used directly where the repository exists); or a file bypasses the module's own abstractions.\nEvidence required: Name each file involved and cite the declarations that show the split, the duplication or the bypass.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: module\nId: src/order#application\nLayer: application\nUnit files:\n- src/order/order.service.ts\n\n## Source\n=====SOURCE-BEGIN src/order/order.service.ts=====\nimport { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';\nimport { InjectRepository } from '@nestjs/typeorm';\nimport { Repository, getRepository } from 'typeorm';\nimport { OrderEntity } from './order.entity';\n\n@Injectable()\nexport class OrderService {\n  constructor(\n    @InjectRepository(OrderEntity)\n    private readonly orderRepository: Repository<OrderEntity>,\n  ) {}\n\n  async create(customerId: string, quantity: number, unitPrice: number): Promise<OrderEntity> {\n    if (quantity <= 0) {\n      throw new BadRequestException('Quantity must be positive');\n    }\n    const order = this.orderRepository.create({ customerId, quantity, total: quantity * unitPrice });\n    return this.orderRepository.save(order);\n  }\n\n  async findOne(id: string): Promise<OrderEntity> {\n    const orderRepository = getRepository(OrderEntity);\n    const order = await orderRepository.findOne({ where: { id } });\n    if (order === null) {\n      throw new NotFoundException(`Order ${id} not found`);\n    }\n    return order;\n  }\n}\n\n=====SOURCE-END=====\n\n## Exported signatures\n// src/order/order.service.ts\nexport class OrderService {\n  constructor(\n    @InjectRepository(OrderEntity)\n    private readonly orderRepository: Repository<OrderEntity>,\n  );\n  async create(customerId: string, quantity: number, unitPrice: number): Promise<OrderEntity>;\n  async findOne(id: string): Promise<OrderEntity>;\n}\n\n## Incoming\n- src/order/order.controller.ts\n- src/order/order.module.ts\n\n## Outgoing\n- @nestjs/common\n- @nestjs/typeorm\n- src/order/order.entity.ts\n- typeorm\n\n## Neighbourhood\nsrc/order/order.service.ts (layer application, kind application)\n  imports: package @nestjs/common; package @nestjs/typeorm; package typeorm; src/order/order.entity.ts (layer domain, kind domain)\n  imported by: src/order/order.controller.ts (layer presentation, kind presentation); src/order/order.module.ts (layer presentation, kind presentation)\n  types: OrderService is injected into OrderController in src/order/order.controller.ts (layer presentation, kind presentation)\n\n## Candidate flags\nCandidates proposed by deterministic checks; verify, don't trust. Each line is a tool observation with its location, not a finding.\n- name-behaviour/service-direct-orm at src/order/order.service.ts:22: service OrderService makes a direct ORM call getRepository (typeorm)\n- repo-bypass/direct-db-access at src/order/order.service.ts:22: OrderService.findOne uses getRepository from typeorm directly (role service)\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric. Check each candidate flag against the source: a flag the source does not support must not count against the unit, and a violation the flags miss counts as much as one they name. Judge what each declaration is, not only what it does at run time.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T20:53:43.385Z",
+  "repetition": 0,
+  "requestHash": "de57f78b94eb93d5ff499f65f9cfc887b55091c328c1b5b4c1fa7776c8b9494f",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":556}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"OrderService gets a Repository<OrderEntity> through its constructor (@InjectRepository) and uses it in create(). findOne() does not use it. Instead it calls typeorm's global getRepository(OrderEntity) to get a second, separate repository instance. That goes around the module's own injected repository, which is the bypass the rubric fails. Both candidate flags (service-direct-orm and repo-bypass at line 22) match the source. Apart from that, the file handles one concern (orders), and I found no rule written out twice.\\\",\\\"evidence\\\":[\\\"src/order/order.service.ts: constructor injects `@InjectRepository(OrderEntity) private readonly orderRepository: Repository<OrderEntity>`\\\",\\\"src/order/order.service.ts: create() uses this.orderRepository.create/save\\\",\\\"src/order/order.service.ts: findOne() uses `const orderRepository = getRepository(OrderEntity);` imported from 'typeorm' rather than this.orderRepository\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/order/order.service.ts\\\",\\\"message\\\":\\\"OrderService.findOne goes around the module's injected repository (this.orderRepository). It calls typeorm's global getRepository(OrderEntity) to reach persistence directly, so OrderService uses two different ways to access the data.\\\"}]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/order/order.service.ts: constructor injects `@InjectRepository(OrderEntity) private readonly orderRepository: Repository<OrderEntity>`\",\"src/order/order.service.ts: create() uses this.orderRepository.create/save\",\"src/order/order.service.ts: findOne() uses `const orderRepository = getRepository(OrderEntity);` imported from 'typeorm' rather than this.orderRepository\"],\"pass\":false,\"reasoning\":\"OrderService gets a Repository<OrderEntity> through its constructor (@InjectRepository) and uses it in create(). findOne() does not use it. Instead it calls typeorm's global getRepository(OrderEntity) to get a second, separate repository instance. That goes around the module's own injected repository, which is the bypass the rubric fails. Both candidate flags (service-direct-orm and repo-bypass at line 22) match the source. Apart from that, the file handles one concern (orders), and I found no rule written out twice.\",\"violations\":[{\"filePath\":\"src/order/order.service.ts\",\"message\":\"OrderService.findOne goes around the module's injected repository (this.orderRepository). It calls typeorm's global getRepository(OrderEntity) to reach persistence directly, so OrderService uses two different ways to access the data.\"}]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/order#application",
+  "usage": {
+    "inputTokens": 3306,
+    "outputTokens": 556
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
