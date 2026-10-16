@@ -172,9 +172,12 @@ function trackedFiles(git: GitRunner, dirs: readonly string[]): string[] {
   return git(['ls-files', '--', ...dirs]).split('\n').filter((l) => l !== '');
 }
 
-/** Rules whose tier is still deferred at X (prespec §4): FF-DS01 while Q15 is unanswered. */
-export function deferredRulesOf(answered: ReadonlySet<string>): string[] {
-  return answered.has('Q15') ? [] : ['FF-DS01'];
+/**
+ * Rules whose tier is still deferred at X (prespec §4). FF-DS01 is deferred unless Q15 is answered B: its option A
+ * reads "keep blocking, defer the decision to hold-out evidence", and an unanswered Q15 is A.
+ */
+export function deferredRulesOf(answers: ConstructAnswers): string[] {
+  return answers.Q15 === 'B' ? [] : ['FF-DS01'];
 }
 
 export async function buildManifest(repoRoot: string, git: GitRunner, commit: string, answersFile: string, answers: ConstructAnswers = CONSTRUCT_ANSWERS): Promise<FreezeManifest> {
@@ -205,7 +208,7 @@ export async function buildManifest(repoRoot: string, git: GitRunner, commit: st
     note: 'Byte-identity manifest of the inputs of the v1.3 hold-out run (Docs/v1.3/freeze-runbook.md). Recomputed by scripts/v1.3/freeze-check.ts and compared byte for byte.',
     commit: sha, frozenPathTrees, engine: ENGINE, node: process.versions.node.split('.')[0] ?? '',
     answers: { file: answersFile, sha256: answersSha, options: { ...answers }, answered: answered.size },
-    deferredRules: deferredRulesOf(answered), compiled, tiers, files,
+    deferredRules: deferredRulesOf(answers), compiled, tiers, files,
   };
 }
 
@@ -475,6 +478,6 @@ export function runTestSuite(repoRoot: string, commit: string): Record<string, u
   const j = JSON.parse(fs.readFileSync(out, 'utf8')) as Record<string, unknown>;
   fs.rmSync(tmp, { recursive: true, force: true });
   const keys = ['success', 'numTotalTestSuites', 'numPassedTestSuites', 'numFailedTestSuites', 'numPendingTestSuites', 'numTotalTests', 'numPassedTests', 'numFailedTests', 'numPendingTests', 'numTodoTests'];
-  const failed = ((j.testResults ?? []) as { name: string; status: string }[]).filter((t) => t.status !== 'passed').map((t) => path.relative(repoRoot, t.name));
+  const failed = ((j.testResults ?? []) as { name: string; status: string }[]).filter((t) => t.status === 'failed').map((t) => path.relative(repoRoot, t.name));
   return { commit, command: 'jest --maxWorkers=2 --forceExit', node: process.version, ...Object.fromEntries(keys.map((k) => [k, j[k]])), failedSuites: failed };
 }

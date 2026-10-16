@@ -51,9 +51,9 @@ describe('parsers', () => {
     const block = switchBlockOf(fs.readFileSync(path.join(ROOT, 'src/shared/construct-switches.ts'), 'utf8'));
     expect(block).toBe(renderSwitchBlock(STATUS_QUO_ANSWERS));
   });
-  it('FF-DS01 is deferred until Q15 is answered', () => {
-    expect(deferredRulesOf(new Set())).toEqual(['FF-DS01']);
-    expect(deferredRulesOf(new Set(['Q15']))).toEqual([]);
+  it('FF-DS01 stays deferred unless Q15 is answered B', () => {
+    expect(deferredRulesOf(STATUS_QUO_ANSWERS)).toEqual(['FF-DS01']);
+    expect(deferredRulesOf({ ...STATUS_QUO_ANSWERS, Q15: 'B' })).toEqual([]);
   });
   it('rejects a dry run that would write', () => {
     expect(parseFreezeArgs(['--dry-run', '--write-manifest'])).toMatch(/writes nothing/);
@@ -81,7 +81,7 @@ describe('runFreezeChecks', () => {
     let r = await runFreezeChecks(opts({ answers: all }), { git: cleanTreeGit });
     expect(r.checks.find((c) => c.id === 'F1')?.status).toBe('ok');
     expect(r.checks.find((c) => c.id === 'F2')?.status).toBe('ok');
-    expect(r.manifest.deferredRules).toEqual([]);
+    expect(r.manifest.deferredRules).toEqual(['FF-DS01']);
     fs.writeFileSync(all, JSON.stringify({ ...Object.fromEntries(CONSTRUCT_QUESTION_IDS.map((q) => [q, 'A'])), Q3: 'C' }));
     r = await runFreezeChecks(opts({ answers: all }), { git: cleanTreeGit });
     expect(r.checks.find((c) => c.id === 'F2')?.detail[0]).toMatch(/differs from the rendering/);

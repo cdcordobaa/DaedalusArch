@@ -187,7 +187,7 @@ async function rescoreStyle(
   const input0 = compilerInputFromSpec(spec);
   const overlaid = applyConstructCompileOverlays(input0, answers);
   const compiledIds = (a: ConstructAnswers): string[] => {
-    const r = compileFunctions(input0, { ...V13_COMPILE_OPTIONS, constructSwitches: a });
+    const r = compileFunctions(compilerInputFromSpec(spec), { ...V13_COMPILE_OPTIONS, constructSwitches: a });
     if (!r.success) throw new Error(`${ref.style}: compile failed: ${r.errors.map((e) => e.message).join('; ')}`);
     return [...r.data.symbolicQueries.map((q) => String(q.functionId)), ...r.data.hybridPairs.map((p) => String(p.functionId))];
   };
