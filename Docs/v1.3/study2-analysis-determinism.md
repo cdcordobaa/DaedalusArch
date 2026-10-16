@@ -55,6 +55,51 @@ diffing it against `results/v1.3-study2-rehearsal/`).
 
 A failure of any line is reported as such in the PR; nothing is tuned after seeing it.
 
-## 3. Results
+## 3. Results (synthetic data; seed 20261016; plan `scripts/v1.3/study2-analysis-plan.json`)
 
-(filled after the run, below this line)
+Reproduce:
+
+```
+npx tsx scripts/v1.3/study2-rehearsal.ts --data-root <scratch> --out results/v1.3-analysis-determinism --seed 20261016 \
+  --calibration-sims 200 --power-sims 400 --plan scripts/v1.3/study2-analysis-plan.json \
+  --outcome blockingCount,blockingPerKloc,distinctViolatingEdges,newIdentitiesFromStep2      # about 3 minutes
+npx jest tests/unit/scripts/v1.3/study2-analysis-determinism.test.ts --maxWorkers=2             # 17 tests
+```
+
+Outputs: `results/v1.3-analysis-determinism/` (per-scenario `report.md`/`report.json`/`checks.json`/figures, and
+`summary.md`/`summary.json` with the calibration per scale and method and the seed-stability tables).
+
+| # | Result | Evidence |
+|---|---|---|
+| P1 | **PASS.** `study2-analyse.ts --plan` run 10 times on the `expected` out-root with `--seed` 20261016 + 7919·i (i = 0..9): the 6 per-model p-values (18 blocks each, exact) and the 2 task-level p-values (6 tasks, exact) are identical on all 10 runs (same SHA-1 of the p list). The seed-stability table in `summary.md` shows the same for `null` and `expected` over seeds 20261016..20261025. | `summary.md` "Decision stability"; unit test "per-model contrasts … identical p across seeds". |
+| P2 | **PASS.** Two runs with the plan and no `--seed` are byte-identical (`diff -r`), and equal to a run with `--seed 20261016`. Every table has a caption line with outcome, scale, inference method and seed (unit test counts captions = tables). A CLI seed other than the plan's is printed as `CLI override, not the plan seed`. | Unit tests; `*/report.md`. |
+| P3 | **PASS.** Under `null`, 200 studies: Holm sign-flip rejects 0.03 / 0.01 (raw, gate / mcp) and 0.03 / 0.04 (per KLOC); the bootstrap CI excludes 0 in 0.03 / 0.01 (raw) and 0.02 / 0.03 (per KLOC). All ≤ 0.06. Reported, not part of P3: the **unadjusted** sign-flip p ≤ α on raw `gate − none` is 0.07 (Monte Carlo SE ≈ 0.018 with 200 studies, so within about one SE of 0.05). | `summary.md` "Calibration per scale and inference method". |
+| P4 | **PASS.** `distinctViolatingEdges` and `newIdentitiesFromStep2` appear only with `--outcome` (T12). Unit tests on hand-made records: an edge scored by FF-S01 and FF-S03 counts once; other rules and reversed edges are kept; a capped listing is flagged; identities first seen at step 2..k are counted with lines ignored. | Unit tests. |
+| P5 | **PASS.** 30/30 rehearsal checks with `--plan` (`summary.md`), and 30/30 without. | `summary.md` in both result folders. |
+| P6 | **PASS.** Without `--plan`, a fresh rehearsal run is byte-identical to the committed `results/v1.3-study2-rehearsal/` (`diff -r`, no output). | — |
+
+What the numbers say (synthetic; exploratory; nothing here is a finding about agents):
+
+1. **The `mcp` decision is still seed-dependent at 54 blocks, but the plan now fixes the seed.** Over 10 seeds the raw
+   `daedalus-mcp − none` Holm p ranges 0.0463–0.0560 and rejects on 4 of 10 (#160 saw 3 of 8). With the plan seed it is
+   0.0494 (reject), and the report flags it as within 3 Monte Carlo SE of α. Exact enumeration is impossible at 54
+   blocks (2^54); raising `flips` (an author decision, A12) shrinks the band, it does not remove it.
+2. **The two inference methods still disagree** on the `expected` data: the sign-flip test rejects both contrasts on
+   the raw scale while both bootstrap CIs include 0 (flagged `DISAGREE`). Across 200 studies they disagree in 14 % (gate)
+   and 11 % (mcp) on raw. Which one decides is the empty `confirmatoryInference` slot (A1).
+3. **Raw and per-KLOC still give different answers** on the `expected` data (raw Holm p 0.008 / 0.049; per KLOC 0.215 /
+   0.215), and under `expected` the per-KLOC power is about half the raw power (0.28 vs 0.59 for gate). The slot
+   `primaryScale` (A3) is empty; T2 shows raw as a labelled placeholder.
+4. **The synthetic generator emits no FF-S01/FF-S03 findings**, so `distinctViolatingEdges` equals the blocking count
+   on these data (0 duplicates, 0 capped steps). Its dedup is tested only on hand-made records; the #161 snapshots would
+   be the first real data (31 of 65 FF-S03 findings there duplicate an FF-S01 edge), and were not re-scored here.
+5. `newIdentitiesFromStep2` drops runs with any unevaluated step (44 of 54 blocks in `expected`), because a finding
+   could first appear on the unevaluated step. That rule is a choice taken under delegation and is listed in the PR.
+
+## 4. Not done
+
+- No author slot was filled; no A-item was decided (`study2-analysis-rehearsal.md` §5b marks which are now mechanical).
+- No exact or normal-approximate rule at 54 blocks; flips stay at 9999.
+- The #161 floor-probe snapshots were not re-scored with `distinctViolatingEdges` (needs a pass over its reports).
+- The T1 switch rule still uses the rehearsal's identity (rule + file + target), not the memo identity (A7).
+- No GLMM; no construct switch; nothing under the sealed directory was read; no LLM call.

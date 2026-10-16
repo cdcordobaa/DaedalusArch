@@ -6,16 +6,21 @@
  * Usage (repository root):
  *   npx tsx scripts/v1.3/study2-rehearsal.ts --data-root <scratch dir> --out results/v1.3-study2-rehearsal
  *     [--seed 20261016] [--calibration-sims 200] [--power-sims 400]
+ *     [--plan scripts/v1.3/study2-analysis-plan.json [--outcome <list>] [--stability-seeds 10]]
+ * `--plan` (OFF by default; Docs/v1.3/study2-analysis-determinism.md) analyses every scenario in plan mode, calibrates
+ * per scale and per inference method, and adds the "decision stability across seeds" table. Without it the output is
+ * the #160 rehearsal, byte for byte.
  * The synthetic out-roots go to --data-root (large; regenerable from the seed) and are not committed. Exit code 1 when
  * any check fails. Uses no model, no sealed task and no network.
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { DEFAULT_OPTIONS, METRIC_LABEL, analyse, pilotSwitch } from './lib/study2-analysis.js';
+import { DEFAULT_OPTIONS, METRIC_LABEL, OUTCOME_IDS, analyse, parsePlan, pilotSwitch } from './lib/study2-analysis.js';
+import type { AnalysisOptions, OutcomeId } from './lib/study2-analysis.js';
 import { loadOutRoot, writeOutRoot } from './lib/study2-io.js';
 import { DEFAULT_ASSUMPTIONS, DESIGN_OPTIONS, power } from './lib/study2-power.js';
-import { calibrate, scenarioChecks } from './lib/study2-rehearsal.js';
-import type { Check } from './lib/study2-rehearsal.js';
+import { calibrate, calibratePlan, scenarioChecks, seedStability } from './lib/study2-rehearsal.js';
+import type { Check, PlanCalibrationRow, StabilityRow } from './lib/study2-rehearsal.js';
 import { forestSvg, renderReport, trajectorySvg } from './lib/study2-report.js';
 import { PILOT_DESIGN, PLANNED_DESIGN, SCENARIOS, generateStudy } from './lib/study2-synth.js';
 
@@ -38,6 +43,19 @@ try {
   const seed = int('--seed', 20261016);
   const calSims = int('--calibration-sims', 200);
   const powerSims = int('--power-sims', 400);
+  const planFile = opt('--plan', '');
+  const plan = planFile === '' ? undefined : parsePlan(JSON.parse(fs.readFileSync(planFile, 'utf8')));
+  const outcomeArg = opt('--outcome', '');
+  const outcomes = outcomeArg === '' ? [] : outcomeArg.split(',').map((x) => x.trim());
+  for (const x of outcomes) if (!(OUTCOME_IDS as readonly string[]).includes(x)) throw new Error(`--outcome: unknown ${x}`);
+  if (plan === undefined && (outcomes.length > 0 || argv.includes('--stability-seeds'))) throw new Error('--outcome and --stability-seeds need --plan');
+  const stabilitySeeds = int('--stability-seeds', 10);
+  // Plan mode: the analysis seed, flips, resamples and α come from the plan; --seed still seeds the synthetic data.
+  const aOpts: AnalysisOptions =
+    plan === undefined
+      ? { ...DEFAULT_OPTIONS, seed }
+      : { ...DEFAULT_OPTIONS, alpha: plan.alpha, seed: plan.seed, flips: plan.flips, resamples: plan.resamples, plan, seedSource: 'plan', ...(outcomes.length > 0 ? { outcomes: outcomes as OutcomeId[] } : {}) };
+  const stability: { scenario: string; rows: StabilityRow[] }[] = [];
   fs.mkdirSync(out, { recursive: true });
   const runs: { id: string; label: string; advisoryByRule: boolean; checks: Check[] }[] = [];
   const variants = [...SCENARIOS.map((s) => ({ s, byRule: true })), { s: SCENARIOS.find((x) => x.floor) ?? SCENARIOS[3], byRule: false }];
@@ -53,7 +71,11 @@ try {
     fs.writeFileSync(path.join(dir, 'truth.json'), `${JSON.stringify({ study2: study.truth, pilot: pilot.truth }, null, 1)}\n`);
     // Read back from disk through the harness reader: the analysis never sees the in-memory records or the truth.
     const loaded = loadOutRoot(path.join(dir, 'study2'));
-    const report = analyse(loaded.runs, loaded.scheduled, pilotSwitch(loadOutRoot(path.join(dir, 'pilot')).runs, null), { ...DEFAULT_OPTIONS, seed });
+    const decision = pilotSwitch(loadOutRoot(path.join(dir, 'pilot')).runs, null);
+    const report = analyse(loaded.runs, loaded.scheduled, decision, aOpts);
+    if (plan !== undefined && !byRule && (s.id === 'null' || s.id === 'expected')) {
+      stability.push({ scenario: s.id, rows: seedStability(loaded.runs, loaded.scheduled, decision, aOpts, Array.from({ length: stabilitySeeds }, (_, i) => plan.seed + i)) });
+    }
     const checks = scenarioChecks(s, report, study.truth, byRule);
     const tdir = path.join(out, id);
     fs.mkdirSync(tdir, { recursive: true });
@@ -76,7 +98,8 @@ try {
 
   // Calibration of the full pipeline (generator → analysis), in memory, cheaper resampling.
   const calOpts = { ...DEFAULT_OPTIONS, resamples: 999, flips: 1999 };
-  const cal = calSims === 0 ? [] : SCENARIOS.map((s, i) => calibrate(s, calSims, seed + 7 + i, calOpts));
+  const cal = calSims === 0 || plan !== undefined ? [] : SCENARIOS.map((s, i) => calibrate(s, calSims, seed + 7 + i, calOpts));
+  const calPlan: PlanCalibrationRow[] = calSims === 0 || plan === undefined ? [] : SCENARIOS.flatMap((s, i) => calibratePlan(s, calSims, seed + 7 + i, { ...aOpts, outcomes: [], resamples: 999, flips: 1999 }));
 
   // Monte Carlo seed sensitivity of the confirmatory decision (rehearsal doc A12): the `expected` data set, fixed,
   // analysed under analysis seeds 1..8 at the default flips.
@@ -104,9 +127,17 @@ try {
     const m = r.contrasts.find((c) => c.arm === 'daedalus-mcp');
     md.push(`| ${String(r.analysisSeed)} | ${g?.holmP?.toFixed(4) ?? 'n/a'} | ${g?.reject === true ? 'yes' : 'no'} | ${m?.holmP?.toFixed(4) ?? 'n/a'} | ${m?.reject === true ? 'yes' : 'no'} |`);
   }
+  if (calPlan.length > 0) {
+    md.push('', `## Calibration per scale and inference method (plan mode; ${String(calSims)} synthetic studies per scenario; 999 resamples, 1999 flips; exact sign-flip at ≤ ${String(plan?.exactMaxUnits ?? 0)} units)`, '', 'Rates over the simulated studies. Under `null` every rate is the test size. Coverage of the generating value is shown for the raw (and advisory) scale only: the generator\'s truth file has no per-KLOC slope.', '', '| Scenario | Scale | Contrast | Sign-flip, Holm | Sign-flip, unadjusted | Bootstrap CI excludes 0 | Disagree (CI vs p) | CI covers truth |', '|---|---|---|---|---|---|---|---|');
+    for (const c of calPlan) for (const a of c.arms) md.push(`| ${c.scenario} | ${c.scale} | ${a.arm} − none | ${r2(a.signFlipHolm)} | ${r2(a.signFlipUnadjusted)} | ${r2(a.bootstrap)} | ${r2(a.disagree)} | ${Number.isNaN(a.cover) ? 'n/a' : r2(a.cover)} |`);
+  }
+  for (const st of stability) {
+    md.push('', `## Decision stability across ${String(stabilitySeeds)} seeds (scenario ${st.scenario}; seeds ${String(plan?.seed ?? 0)}..${String((plan?.seed ?? 0) + stabilitySeeds - 1)}; same data)`, '', 'Exact enumeration must give identical p on every seed. Monte Carlo p varies with the seed; the plan file fixes which seed is used.', '', '| Scope | Contrast | Units | Test | p min | p max | Identical on every seed | Seeds rejecting |', '|---|---|---|---|---|---|---|---|');
+    for (const r of st.rows) md.push(`| ${r.scope} | ${r.contrast} | ${String(r.units)} | ${r.method} | ${r.pMin === null ? 'n/a' : r.pMin.toFixed(4)} | ${r.pMax === null ? 'n/a' : r.pMax.toFixed(4)} | ${r.identical ? 'yes' : 'NO'} | ${String(r.rejects)} of ${String(r.seeds)} |`);
+  }
   md.push('');
   fs.writeFileSync(path.join(out, 'summary.md'), md.join('\n'));
-  fs.writeFileSync(path.join(out, 'summary.json'), `${JSON.stringify({ note: 'SYNTHETIC rehearsal; not a pre-registration.', seed, checks: runs, power: powerRows, calibration: cal, seedSensitivity: seedRows }, null, 1)}\n`);
+  fs.writeFileSync(path.join(out, 'summary.json'), `${JSON.stringify({ note: 'SYNTHETIC rehearsal; not a pre-registration.', seed, checks: runs, power: powerRows, calibration: cal, seedSensitivity: seedRows, ...(plan !== undefined ? { plan, calibrationPlan: calPlan, stability } : {}) }, null, 1)}\n`);
   process.stdout.write(md.join('\n'));
   if (runs.some((r) => r.checks.some((c) => !c.pass))) process.exitCode = 1;
 } catch (e) {

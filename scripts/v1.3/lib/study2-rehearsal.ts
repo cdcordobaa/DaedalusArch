@@ -6,7 +6,7 @@
  * (each arm's expected OLS slope given its latent terms) and the planted relative reduction of the scenario.
  */
 import { analyse, pilotSwitch } from './study2-analysis.js';
-import type { AnalysisOptions, AnalysisReport, ContrastResult } from './study2-analysis.js';
+import type { AnalysisOptions, AnalysisReport, ContrastResult, LoadedRun, SwitchDecision } from './study2-analysis.js';
 import { PILOT_DESIGN, PLANNED_DESIGN, generateStudy } from './study2-synth.js';
 import type { Scenario, SynthTruth } from './study2-synth.js';
 
@@ -115,4 +115,95 @@ export function calibrate(scenario: Scenario, sims: number, seed: number, o: Ana
     if (bootExcludes0 !== ((g.p ?? 1) <= o.alpha)) dis++;
   }
   return { scenario: scenario.id, sims, rejectGate: rg / sims, rejectMcp: rm / sims, coverGate: cg / sims, coverMcp: cm / sims, coverRelGate: crg / sims, meanEstGate: eg / sims, meanTruthGate: tg / sims, signFlipVsBootstrapDisagree: dis / sims };
+}
+
+// ── Determinism pack (A1): calibration per scale and inference method, and seed stability ──
+
+export interface PlanCalibrationRow {
+  readonly scenario: string;
+  /** `raw` / `perKloc` (blocking branch) or `advisory` (the floor's fallback scale, per KLOC). */
+  readonly scale: string;
+  readonly sims: number;
+  readonly arms: readonly {
+    readonly arm: string;
+    /** Rejection rate of the Holm sign-flip test. */
+    readonly signFlipHolm: number;
+    /** Rejection rate of the unadjusted sign-flip test (p ≤ α). */
+    readonly signFlipUnadjusted: number;
+    /** Rate at which the two-stage bootstrap 95% CI excludes 0. */
+    readonly bootstrap: number;
+    /** Rate at which the bootstrap CI and the unadjusted p disagree. */
+    readonly disagree: number;
+    readonly cover: number;
+  }[];
+}
+
+/** The calibration of `calibrate`, in plan mode, per scale and per inference method. `o.plan` must be set. */
+export function calibratePlan(scenario: Scenario, sims: number, seed: number, o: AnalysisOptions): PlanCalibrationRow[] {
+  if (o.plan === undefined) throw new Error('calibratePlan needs o.plan');
+  const acc = new Map<string, Map<string, { h: number; u: number; b: number; d: number; c: number }>>();
+  const outcome = scenario.floor ? 'advisory' : 'blocking';
+  for (let i = 0; i < sims; i++) {
+    const s = seed + 1000 * i;
+    const study = generateStudy(PLANNED_DESIGN, scenario, { seed: s });
+    const pilot = generateStudy(PILOT_DESIGN, scenario, { seed: s + 1, taskPrefix: 'synth-pilot-task-' });
+    const rep = analyse(study.runs, study.schedule.runs, pilotSwitch(pilot.runs, null), { ...o, seed: s, seedSource: 'cli-override', primaryOnly: true });
+    const sets: { scale: string; cs: readonly ContrastResult[] }[] = rep.plan !== undefined && rep.plan.scales.length > 0 ? rep.plan.scales.map((x) => ({ scale: x.scale, cs: x.contrasts })) : [{ scale: 'advisory', cs: rep.confirmatory }];
+    for (const { scale, cs } of sets) {
+      const m = acc.get(scale) ?? new Map<string, { h: number; u: number; b: number; d: number; c: number }>();
+      acc.set(scale, m);
+      for (const c of cs) {
+        const a = m.get(c.arm) ?? { h: 0, u: 0, b: 0, d: 0, c: 0 };
+        m.set(c.arm, a);
+        if (c.holmReject === true) a.h++;
+        if (c.inference?.signFlipRejects === true) a.u++;
+        if (c.inference?.bootstrapRejects === true) a.b++;
+        if (c.inference?.disagreement === true) a.d++;
+        // Coverage of the generating value; the per-KLOC truth is not in SynthTruth, so only the raw scale has it.
+        if (scale !== 'perKloc' && inCi(truthDiff(study.truth, c.arm, c.reference, outcome), c.ci)) a.c++;
+      }
+    }
+  }
+  return [...acc.entries()].map(([scale, m]) => ({
+    scenario: scenario.id, scale, sims,
+    arms: [...m.entries()].map(([arm, a]) => ({ arm, signFlipHolm: a.h / sims, signFlipUnadjusted: a.u / sims, bootstrap: a.b / sims, disagree: a.d / sims, cover: scale === 'perKloc' ? Number.NaN : a.c / sims })),
+  }));
+}
+
+export interface StabilityRow {
+  readonly scope: string;
+  readonly contrast: string;
+  readonly units: number;
+  readonly method: string;
+  readonly seeds: number;
+  readonly pMin: number | null;
+  readonly pMax: number | null;
+  readonly identical: boolean;
+  readonly rejects: number;
+}
+
+/**
+ * The same data analysed under `seeds.length` different seeds (plan mode): per contrast, the range of p and whether
+ * every seed gives the same p. Scopes: T2b (both scales, Holm decision), T5 (per model), T3 (task level).
+ */
+export function seedStability(runs: readonly LoadedRun[], scheduled: readonly string[], decision: SwitchDecision, o: AnalysisOptions, seeds: readonly number[]): StabilityRow[] {
+  const reps = seeds.map((seed) => analyse(runs, scheduled, decision, { ...o, seed, seedSource: seed === o.plan?.seed ? 'plan' : 'cli-override' }));
+  const rows = new Map<string, { scope: string; contrast: string; units: number; method: string; ps: (number | null)[]; rejects: number }>();
+  const add = (scope: string, c: ContrastResult, p: number | null, units: number, method: string, reject: boolean): void => {
+    const key = `${scope}|${c.arm}-${c.reference}`;
+    const r = rows.get(key) ?? { scope, contrast: `${c.arm} − ${c.reference}`, units, method, ps: [], rejects: 0 };
+    rows.set(key, r);
+    r.ps.push(p);
+    if (reject) r.rejects++;
+  };
+  for (const rep of reps) {
+    const sets = rep.plan !== undefined && rep.plan.scales.length > 0 ? rep.plan.scales.map((x) => ({ s: `T2b ${x.scale} (Holm)`, cs: x.contrasts })) : [{ s: 'T2 (Holm)', cs: rep.confirmatory }];
+    for (const { s, cs } of sets) for (const c of cs) add(s, c, c.p, c.blocks, c.inference?.test.method ?? 'sign-flip', c.holmReject === true);
+    for (const c of rep.confirmatory) add('T3 task level', c, c.taskLevelP, c.tasks, c.inference?.taskLevelTest.method ?? 'sign-flip', (c.taskLevelP ?? 1) <= o.alpha);
+    for (const m of rep.perModel) for (const c of m.contrasts) add(`T5 ${m.model}`, c, c.p, c.blocks, c.inference?.test.method ?? 'sign-flip', (c.p ?? 1) <= o.alpha);
+  }
+  return [...rows.values()].map((r) => {
+    const ps = r.ps.filter((x): x is number => x !== null);
+    return { scope: r.scope, contrast: r.contrast, units: r.units, method: r.method, seeds: seeds.length, pMin: ps.length === 0 ? null : Math.min(...ps), pMax: ps.length === 0 ? null : Math.max(...ps), identical: ps.length === r.ps.length && ps.every((p) => p === ps[0]), rejects: r.rejects };
+  });
 }

@@ -1,0 +1,5593 @@
+{
+ "schema": "study2-analysis/v0-rehearsal",
+ "synthetic": true,
+ "options": {
+  "seed": 20261016,
+  "resamples": 4999,
+  "flips": 9999,
+  "alpha": 0.05,
+  "minStepsForSlope": 3,
+  "plan": {
+   "schema": "study2-analysis-plan/v0-tooling",
+   "seed": 20261016,
+   "flips": 9999,
+   "resamples": 4999,
+   "alpha": 0.05,
+   "exactMaxUnits": 20,
+   "primaryScale": null,
+   "confirmatoryInference": null
+  },
+  "seedSource": "plan",
+  "outcomes": [
+   "blockingCount",
+   "blockingPerKloc",
+   "distinctViolatingEdges",
+   "newIdentitiesFromStep2"
+  ]
+ },
+ "arms": [
+  "none",
+  "daedalus-mcp",
+  "gate"
+ ],
+ "design": {
+  "runs": 162,
+  "blocks": 54,
+  "tasks": 6,
+  "models": [
+   "claude-code-cli/synth-model-a",
+   "claude-code-cli/synth-model-b",
+   "codex-cli/synth-model-c"
+  ],
+  "k": [
+   5
+  ]
+ },
+ "switch": {
+  "source": "pilot",
+  "perTask": [
+   {
+    "taskId": "synth-pilot-task-1",
+    "newBlockingAfterStep1": 1,
+    "unlabelled": 1,
+    "excludedByLabel": 0
+   },
+   {
+    "taskId": "synth-pilot-task-2",
+    "newBlockingAfterStep1": 33,
+    "unlabelled": 33,
+    "excludedByLabel": 0
+   },
+   {
+    "taskId": "synth-pilot-task-3",
+    "newBlockingAfterStep1": 3,
+    "unlabelled": 3,
+    "excludedByLabel": 0
+   }
+  ],
+  "erosion": true,
+  "primary": "blocking",
+  "fallbackTriggered": false,
+  "statement": "Pilot memo §3: erosion EXISTS (new blocking findings after step 1 in 3 of 3 tasks). Per memo §5 the Study 2 primary outcome stays the blocking erosion slope.",
+  "provisional": true
+ },
+ "primaryMetric": "blockingSlope",
+ "primaryDefinitionMet": true,
+ "primaryNotes": [
+  "Primary scale slot UNFILLED (A3, author decision): T2 shows the raw slope as a placeholder; T2b shows both scales side by side, each with its own Holm."
+ ],
+ "confirmatory": [
+  {
+   "metric": "blockingSlope",
+   "arm": "gate",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0.8235449735449735,
+   "meanReference": 0.7185185185185184,
+   "meanDiff": 0.10502645502645501,
+   "ci": {
+    "low": -0.30011904761904756,
+    "high": 0.533902116402117
+   },
+   "sdDiff": 1.3296887091371552,
+   "dz": 0.0789857462914064,
+   "relativeReduction": -0.14617083946980847,
+   "relativeReductionCi": {
+    "low": -0.9542301687383659,
+    "high": 0.36704437757664793
+   },
+   "p": 0.5637,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 0.17777777777777776,
+     "ci": {
+      "low": -0.47777777777777763,
+      "high": 0.7
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 0.14444444444444443,
+     "ci": {
+      "low": -0.5999999999999999,
+      "high": 0.8888888888888888
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 0.36666666666666675,
+     "ci": {
+      "low": -1.056111111111111,
+      "high": 1.7666666666666666
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0.011111111111111115,
+     "ci": {
+      "low": -0.34444444444444444,
+      "high": 0.39999999999999997
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 0.41904761904761895,
+     "ci": {
+      "low": -0.5510317460317461,
+      "high": 1.4005555555555549
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": -0.4888888888888888,
+     "ci": {
+      "low": -1,
+      "high": 0.07777777777777772
+     }
+    }
+   ],
+   "taskLevelP": 0.40625,
+   "taskLevelMinP": 0.03125,
+   "inference": {
+    "test": {
+     "method": "Monte Carlo sign-flip",
+     "units": 54,
+     "flips": 9999,
+     "seed": 20361026,
+     "mcSe": 0.004959505083077031,
+     "nearAlpha": false
+    },
+    "taskLevelTest": {
+     "method": "exact sign-flip",
+     "units": 6,
+     "seed": null
+    },
+    "bootstrap": {
+     "method": "two-stage cluster percentile (tasks, then blocks within task)",
+     "resamples": 4999,
+     "seed": 20261026
+    },
+    "planSeed": 20261016,
+    "seedSource": "plan",
+    "bootstrapRejects": false,
+    "signFlipRejects": false,
+    "disagreement": false
+   },
+   "holmP": 1,
+   "holmReject": false
+  },
+  {
+   "metric": "blockingSlope",
+   "arm": "daedalus-mcp",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0.6796296296296296,
+   "meanReference": 0.7185185185185184,
+   "meanDiff": -0.03888888888888888,
+   "ci": {
+    "low": -0.42592592592592593,
+    "high": 0.3408333333333339
+   },
+   "sdDiff": 1.2352398998020155,
+   "dz": -0.03148286328438873,
+   "relativeReduction": 0.054123711340206104,
+   "relativeReductionCi": {
+    "low": -0.699659880316375,
+    "high": 0.4838096687324772
+   },
+   "p": 0.8291,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 0.4222222222222222,
+     "ci": {
+      "low": -0.21166666666666664,
+      "high": 1.2000000000000002
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": -0.23333333333333328,
+     "ci": {
+      "low": -1.5005555555555552,
+      "high": 0.6000000000000001
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": -0.14444444444444438,
+     "ci": {
+      "low": -1.1888888888888887,
+      "high": 0.7555555555555554
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0.15555555555555556,
+     "ci": {
+      "low": -0.14444444444444446,
+      "high": 0.4444444444444444
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 0.07777777777777782,
+     "ci": {
+      "low": -0.8116666666666665,
+      "high": 0.9783333333333329
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": -0.5111111111111111,
+     "ci": {
+      "low": -0.8777777777777778,
+      "high": -0.10000000000000005
+     }
+    }
+   ],
+   "taskLevelP": 0.8125,
+   "taskLevelMinP": 0.03125,
+   "inference": {
+    "test": {
+     "method": "Monte Carlo sign-flip",
+     "units": 54,
+     "flips": 9999,
+     "seed": 20361027,
+     "mcSe": 0.00376440381383392,
+     "nearAlpha": false
+    },
+    "taskLevelTest": {
+     "method": "exact sign-flip",
+     "units": 6,
+     "seed": null
+    },
+    "bootstrap": {
+     "method": "two-stage cluster percentile (tasks, then blocks within task)",
+     "resamples": 4999,
+     "seed": 20261027
+    },
+    "planSeed": 20261016,
+    "seedSource": "plan",
+    "bootstrapRejects": false,
+    "signFlipRejects": false,
+    "disagreement": false
+   },
+   "holmP": 1,
+   "holmReject": false
+  }
+ ],
+ "floorCheck": {
+  "noneSteps": 270,
+  "noneStepsWithBlocking": 193,
+  "allStudyBlockingZero": false
+ },
+ "secondaryContrasts": [
+  {
+   "metric": "blockingSlope",
+   "arm": "gate",
+   "reference": "daedalus-mcp",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0.8235449735449735,
+   "meanReference": 0.6796296296296296,
+   "meanDiff": 0.14391534391534394,
+   "ci": {
+    "low": -0.1994973544973544,
+    "high": 0.5485052910052912
+   },
+   "sdDiff": 1.155935451575187,
+   "dz": 0.12450119400631868,
+   "relativeReduction": -0.21175554690541065,
+   "relativeReductionCi": {
+    "low": -0.9257389731035214,
+    "high": 0.26618424511493416
+   },
+   "p": 0.3789,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": -0.2444444444444444,
+     "ci": {
+      "low": -0.7894444444444443,
+      "high": 0.24444444444444435
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 0.3777777777777777,
+     "ci": {
+      "low": -0.35611111111111116,
+      "high": 1.1888888888888889
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 0.5111111111111111,
+     "ci": {
+      "low": -0.47777777777777763,
+      "high": 1.6338888888888883
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": -0.14444444444444446,
+     "ci": {
+      "low": -0.6333333333333334,
+      "high": 0.2555555555555556
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 0.3412698412698412,
+     "ci": {
+      "low": -0.4477777777777777,
+      "high": 1.1333333333333333
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0.022222222222222268,
+     "ci": {
+      "low": -0.44444444444444436,
+      "high": 0.5555555555555555
+     }
+    }
+   ],
+   "taskLevelP": 0.3125,
+   "taskLevelMinP": 0.03125,
+   "inference": {
+    "test": {
+     "method": "Monte Carlo sign-flip",
+     "units": 54,
+     "flips": 9999,
+     "seed": 20361036,
+     "mcSe": 0.004851374298408475,
+     "nearAlpha": false
+    },
+    "taskLevelTest": {
+     "method": "exact sign-flip",
+     "units": 6,
+     "seed": null
+    },
+    "bootstrap": {
+     "method": "two-stage cluster percentile (tasks, then blocks within task)",
+     "resamples": 4999,
+     "seed": 20261036
+    },
+    "planSeed": 20261016,
+    "seedSource": "plan",
+    "bootstrapRejects": false,
+    "signFlipRejects": false,
+    "disagreement": false
+   }
+  }
+ ],
+ "secondaryOutcomes": [
+  {
+   "metric": "blockingPerKlocSlope",
+   "arm": "gate",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0.06312051113931119,
+   "meanReference": -0.005050149393874148,
+   "meanDiff": 0.06817066053318531,
+   "ci": {
+    "low": -0.2896757319522812,
+    "high": 0.41319772760209983
+   },
+   "sdDiff": 0.9155299542539708,
+   "dz": 0.07446032783136505,
+   "relativeReduction": null,
+   "relativeReductionCi": {
+    "low": -32.41763111505938,
+    "high": 13.457383159889105
+   },
+   "p": 0.5939,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 0.39446717639861784,
+     "ci": {
+      "low": -0.07193968839939273,
+      "high": 0.8962396726538395
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": -0.18643226078249406,
+     "ci": {
+      "low": -0.9282203919145858,
+      "high": 0.45211662780202627
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 0.03576182883373513,
+     "ci": {
+      "low": -0.6735752505266713,
+      "high": 0.8165308354684219
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0.2049474245726098,
+     "ci": {
+      "low": -0.0709472047656002,
+      "high": 0.48081918569677357
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 0.44580590168056067,
+     "ci": {
+      "low": -0.15811444248451043,
+      "high": 0.9654946530927311
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": -0.4855261075039173,
+     "ci": {
+      "low": -0.9337885164514822,
+      "high": -0.03716453914477507
+     }
+    }
+   ],
+   "taskLevelP": 0.6875,
+   "taskLevelMinP": 0.03125,
+   "inference": {
+    "test": {
+     "method": "Monte Carlo sign-flip",
+     "units": 54,
+     "flips": 9999,
+     "seed": 20361117,
+     "mcSe": 0.00491128201889353,
+     "nearAlpha": false
+    },
+    "taskLevelTest": {
+     "method": "exact sign-flip",
+     "units": 6,
+     "seed": null
+    },
+    "bootstrap": {
+     "method": "two-stage cluster percentile (tasks, then blocks within task)",
+     "resamples": 1999,
+     "seed": 20261117
+    },
+    "planSeed": 20261016,
+    "seedSource": "plan",
+    "bootstrapRejects": false,
+    "signFlipRejects": false,
+    "disagreement": false
+   }
+  },
+  {
+   "metric": "blockingPerKlocSlope",
+   "arm": "daedalus-mcp",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0.016769665059362667,
+   "meanReference": -0.005050149393874148,
+   "meanDiff": 0.021819814453236837,
+   "ci": {
+    "low": -0.2910108327433517,
+    "high": 0.32618705277468185
+   },
+   "sdDiff": 0.8345989011703377,
+   "dz": 0.026144072826646957,
+   "relativeReduction": null,
+   "relativeReductionCi": {
+    "low": -19.465935719653277,
+    "high": 17.742214818291902
+   },
+   "p": 0.8488,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 0.34553481472275327,
+     "ci": {
+      "low": -0.16210191750712288,
+      "high": 0.9766114090610225
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": -0.01962874451957017,
+     "ci": {
+      "low": -0.5611903998822237,
+      "high": 0.45984314505876
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": -0.10700276746068574,
+     "ci": {
+      "low": -0.717200612042327,
+      "high": 0.49760107782801266
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0.32669201180233787,
+     "ci": {
+      "low": 0.012727032899265479,
+      "high": 0.6314378723084905
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 0.07045515778248346,
+     "ci": {
+      "low": -0.4085198381204807,
+      "high": 0.48648077704422904
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": -0.48513158560789765,
+     "ci": {
+      "low": -1.0351311019061835,
+      "high": 0.010304449792379277
+     }
+    }
+   ],
+   "taskLevelP": 0.9375,
+   "taskLevelMinP": 0.03125,
+   "inference": {
+    "test": {
+     "method": "Monte Carlo sign-flip",
+     "units": 54,
+     "flips": 9999,
+     "seed": 20361118,
+     "mcSe": 0.0035826162945466816,
+     "nearAlpha": false
+    },
+    "taskLevelTest": {
+     "method": "exact sign-flip",
+     "units": 6,
+     "seed": null
+    },
+    "bootstrap": {
+     "method": "two-stage cluster percentile (tasks, then blocks within task)",
+     "resamples": 1999,
+     "seed": 20261118
+    },
+    "planSeed": 20261016,
+    "seedSource": "plan",
+    "bootstrapRejects": false,
+    "signFlipRejects": false,
+    "disagreement": false
+   }
+  },
+  {
+   "metric": "advisoryTotalPerKlocSlope",
+   "arm": "gate",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0.35081682089684424,
+   "meanReference": 1.0599683072948967,
+   "meanDiff": -0.7091514863980524,
+   "ci": {
+    "low": -1.842402410122199,
+    "high": 0.373734256592662
+   },
+   "sdDiff": 3.562031853873762,
+   "dz": -0.19908622816689292,
+   "relativeReduction": 0.6690308394293882,
+   "relativeReductionCi": {
+    "low": -0.4968826106593985,
+    "high": 1.5970567856238767
+   },
+   "p": 0.154,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": -1.5731096295270985,
+     "ci": {
+      "low": -4.059829018293504,
+      "high": 1.1065836116996055
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": -0.09132906793793356,
+     "ci": {
+      "low": -1.7319354739931732,
+      "high": 2.02051232093619
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": -1.406884820873079,
+     "ci": {
+      "low": -4.766119892208366,
+      "high": 1.21151050259888
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": -0.8018581999686829,
+     "ci": {
+      "low": -2.6754747750207075,
+      "high": 1.200426028844488
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": -0.8045349157730958,
+     "ci": {
+      "low": -2.5493509036131154,
+      "high": 1.0524217133890783
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0.4228077156915744,
+     "ci": {
+      "low": -1.6981435926462614,
+      "high": 2.270364799612505
+     }
+    }
+   ],
+   "taskLevelP": 0.09375,
+   "taskLevelMinP": 0.03125,
+   "inference": {
+    "test": {
+     "method": "Monte Carlo sign-flip",
+     "units": 54,
+     "flips": 9999,
+     "seed": 20361121,
+     "mcSe": 0.003609667986158426,
+     "nearAlpha": false
+    },
+    "taskLevelTest": {
+     "method": "exact sign-flip",
+     "units": 6,
+     "seed": null
+    },
+    "bootstrap": {
+     "method": "two-stage cluster percentile (tasks, then blocks within task)",
+     "resamples": 1999,
+     "seed": 20261121
+    },
+    "planSeed": 20261016,
+    "seedSource": "plan",
+    "bootstrapRejects": false,
+    "signFlipRejects": false,
+    "disagreement": false
+   }
+  },
+  {
+   "metric": "advisoryTotalPerKlocSlope",
+   "arm": "daedalus-mcp",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0.6207477618322408,
+   "meanReference": 1.0599683072948967,
+   "meanDiff": -0.439220545462656,
+   "ci": {
+    "low": -1.6563095552141782,
+    "high": 0.7198988287661517
+   },
+   "sdDiff": 3.1080411412803786,
+   "dz": -0.14131748117134516,
+   "relativeReduction": 0.4143713943519437,
+   "relativeReductionCi": {
+    "low": -1.2248949485210938,
+    "high": 1.4289278875622637
+   },
+   "p": 0.3033,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": -2.053399965136744,
+     "ci": {
+      "low": -4.358848164036558,
+      "high": 0.37290777624871824
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": -1.5141775746823027,
+     "ci": {
+      "low": -3.21019750497351,
+      "high": -0.08689126478326373
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 1.1150848930583228,
+     "ci": {
+      "low": -1.316209879401946,
+      "high": 3.528677058692921
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0.41454517802585944,
+     "ci": {
+      "low": -1.739863131954115,
+      "high": 2.7634927736771107
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 0.5470183679380404,
+     "ci": {
+      "low": -0.7277828576478849,
+      "high": 1.8793788680458805
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": -1.1443941719791109,
+     "ci": {
+      "low": -1.7323396429724893,
+      "high": -0.5723966487653638
+     }
+    }
+   ],
+   "taskLevelP": 0.46875,
+   "taskLevelMinP": 0.03125,
+   "inference": {
+    "test": {
+     "method": "Monte Carlo sign-flip",
+     "units": 54,
+     "flips": 9999,
+     "seed": 20361122,
+     "mcSe": 0.0045970669238581075,
+     "nearAlpha": false
+    },
+    "taskLevelTest": {
+     "method": "exact sign-flip",
+     "units": 6,
+     "seed": null
+    },
+    "bootstrap": {
+     "method": "two-stage cluster percentile (tasks, then blocks within task)",
+     "resamples": 1999,
+     "seed": 20261122
+    },
+    "planSeed": 20261016,
+    "seedSource": "plan",
+    "bootstrapRejects": false,
+    "signFlipRejects": false,
+    "disagreement": false
+   }
+  },
+  {
+   "metric": "ahsAtK",
+   "arm": "gate",
+   "reference": "none",
+   "blocks": 52,
+   "tasks": 6,
+   "meanArm": 0.5603076923076922,
+   "meanReference": 0.5769230769230769,
+   "meanDiff": -0.0166153846153846,
+   "ci": {
+    "low": -0.0978901220865705,
+    "high": 0.0641084720680725
+   },
+   "sdDiff": 0.26653257563817556,
+   "dz": -0.0623390389546244,
+   "relativeReduction": 0.02880000000000016,
+   "relativeReductionCi": {
+    "low": -0.11248685287826976,
+    "high": 0.168559315724119
+   },
+   "p": 0.6573,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 8,
+     "meanDiff": -0.08399999999999999,
+     "ci": {
+      "low": -0.2711,
+      "high": 0.090525
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": -0.08533333333333334,
+     "ci": {
+      "low": -0.2484444444444444,
+      "high": 0.08488888888888887
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": -0.009777777777777798,
+     "ci": {
+      "low": -0.24362222222222218,
+      "high": 0.22859999999999986
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0.013333333333333332,
+     "ci": {
+      "low": -0.08366666666666665,
+      "high": 0.11111111111111108
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 8,
+     "meanDiff": 0.017500000000000022,
+     "ci": {
+      "low": -0.13155,
+      "high": 0.15100000000000002
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0.044888888888888895,
+     "ci": {
+      "low": -0.12002222222222222,
+      "high": 0.21066666666666667
+     }
+    }
+   ],
+   "taskLevelP": 0.46875,
+   "taskLevelMinP": 0.03125,
+   "inference": {
+    "test": {
+     "method": "Monte Carlo sign-flip",
+     "units": 52,
+     "flips": 9999,
+     "seed": 20361123,
+     "mcSe": 0.004746359003739523,
+     "nearAlpha": false
+    },
+    "taskLevelTest": {
+     "method": "exact sign-flip",
+     "units": 6,
+     "seed": null
+    },
+    "bootstrap": {
+     "method": "two-stage cluster percentile (tasks, then blocks within task)",
+     "resamples": 1999,
+     "seed": 20261123
+    },
+    "planSeed": 20261016,
+    "seedSource": "plan",
+    "bootstrapRejects": false,
+    "signFlipRejects": false,
+    "disagreement": false
+   }
+  },
+  {
+   "metric": "ahsAtK",
+   "arm": "daedalus-mcp",
+   "reference": "none",
+   "blocks": 53,
+   "tasks": 6,
+   "meanArm": 0.5747924528301885,
+   "meanReference": 0.5804528301886792,
+   "meanDiff": -0.005660377358490569,
+   "ci": {
+    "low": -0.0885109579100145,
+    "high": 0.07785185185185182
+   },
+   "sdDiff": 0.2649080350870864,
+   "dz": -0.021367329823082815,
+   "relativeReduction": 0.009751657781823075,
+   "relativeReductionCi": {
+    "low": -0.13569371983240108,
+    "high": 0.14861313694648215
+   },
+   "p": 0.8782,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 8,
+     "meanDiff": -0.135,
+     "ci": {
+      "low": -0.28800000000000003,
+      "high": 0.03502499999999996
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 0.03733333333333333,
+     "ci": {
+      "low": -0.13202222222222224,
+      "high": 0.21831111111111104
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 0.015999999999999976,
+     "ci": {
+      "low": -0.18497777777777782,
+      "high": 0.2174222222222221
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0.019111111111111117,
+     "ci": {
+      "low": -0.11246666666666666,
+      "high": 0.13911111111111113
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": -0.028444444444444432,
+     "ci": {
+      "low": -0.22813333333333333,
+      "high": 0.18355555555555558
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0.04266666666666666,
+     "ci": {
+      "low": -0.08977777777777776,
+      "high": 0.14937777777777772
+     }
+    }
+   ],
+   "taskLevelP": 0.90625,
+   "taskLevelMinP": 0.03125,
+   "inference": {
+    "test": {
+     "method": "Monte Carlo sign-flip",
+     "units": 53,
+     "flips": 9999,
+     "seed": 20361124,
+     "mcSe": 0.003270710282885884,
+     "nearAlpha": false
+    },
+    "taskLevelTest": {
+     "method": "exact sign-flip",
+     "units": 6,
+     "seed": null
+    },
+    "bootstrap": {
+     "method": "two-stage cluster percentile (tasks, then blocks within task)",
+     "resamples": 1999,
+     "seed": 20261124
+    },
+    "planSeed": 20261016,
+    "seedSource": "plan",
+    "bootstrapRejects": false,
+    "signFlipRejects": false,
+    "disagreement": false
+   }
+  },
+  {
+   "metric": "ahsSlope",
+   "arm": "gate",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": -0.07871746031746028,
+   "meanReference": -0.0779777777777778,
+   "meanDiff": -0.0007396825396825407,
+   "ci": {
+    "low": -0.01825148148148149,
+    "high": 0.016322592592592586
+   },
+   "sdDiff": 0.059430522896289174,
+   "dz": -0.012446172499160801,
+   "relativeReduction": null,
+   "relativeReductionCi": {
+    "low": null,
+    "high": null
+   },
+   "p": 0.9303,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": -0.005377777777777783,
+     "ci": {
+      "low": -0.03969111111111112,
+      "high": 0.03156222222222222
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": -0.009333333333333353,
+     "ci": {
+      "low": -0.04542444444444447,
+      "high": 0.02584666666666662
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": -0.005999999999999996,
+     "ci": {
+      "low": -0.0574488888888889,
+      "high": 0.04791333333333334
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0.008755555555555563,
+     "ci": {
+      "low": -0.01321333333333333,
+      "high": 0.02902444444444446
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": -0.011638095238095229,
+     "ci": {
+      "low": -0.05036095238095237,
+      "high": 0.026152698412698412
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0.019155555555555554,
+     "ci": {
+      "low": -0.016402222222222224,
+      "high": 0.05435555555555555
+     }
+    }
+   ],
+   "taskLevelP": 0.90625,
+   "taskLevelMinP": 0.03125,
+   "inference": {
+    "test": {
+     "method": "Monte Carlo sign-flip",
+     "units": 54,
+     "flips": 9999,
+     "seed": 20361125,
+     "mcSe": 0.002546534799280857,
+     "nearAlpha": false
+    },
+    "taskLevelTest": {
+     "method": "exact sign-flip",
+     "units": 6,
+     "seed": null
+    },
+    "bootstrap": {
+     "method": "two-stage cluster percentile (tasks, then blocks within task)",
+     "resamples": 1999,
+     "seed": 20261125
+    },
+    "planSeed": 20261016,
+    "seedSource": "plan",
+    "bootstrapRejects": false,
+    "signFlipRejects": false,
+    "disagreement": false
+   }
+  },
+  {
+   "metric": "ahsSlope",
+   "arm": "daedalus-mcp",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": -0.07591111111111111,
+   "meanReference": -0.0779777777777778,
+   "meanDiff": 0.0020666666666666633,
+   "ci": {
+    "low": -0.015510000000000015,
+    "high": 0.019970740740740733
+   },
+   "sdDiff": 0.05737991233543879,
+   "dz": 0.03601725033292279,
+   "relativeReduction": null,
+   "relativeReductionCi": {
+    "low": null,
+    "high": null
+   },
+   "p": 0.7966,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": -0.01444444444444445,
+     "ci": {
+      "low": -0.04920444444444446,
+      "high": 0.024724444444444427
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 0.011733333333333325,
+     "ci": {
+      "low": -0.024511111111111115,
+      "high": 0.06000666666666665
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": -0.004444444444444445,
+     "ci": {
+      "low": -0.049780000000000005,
+      "high": 0.04018666666666666
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0.0020444444444444477,
+     "ci": {
+      "low": -0.024444444444444442,
+      "high": 0.029646666666666675
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": -0.0055111111111111125,
+     "ci": {
+      "low": -0.041835555555555556,
+      "high": 0.031748888888888875
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0.023022222222222208,
+     "ci": {
+      "low": 0.005153333333333329,
+      "high": 0.03719999999999998
+     }
+    }
+   ],
+   "taskLevelP": 0.75,
+   "taskLevelMinP": 0.03125,
+   "inference": {
+    "test": {
+     "method": "Monte Carlo sign-flip",
+     "units": 54,
+     "flips": 9999,
+     "seed": 20361126,
+     "mcSe": 0.004025476921613717,
+     "nearAlpha": false
+    },
+    "taskLevelTest": {
+     "method": "exact sign-flip",
+     "units": 6,
+     "seed": null
+    },
+    "bootstrap": {
+     "method": "two-stage cluster percentile (tasks, then blocks within task)",
+     "resamples": 1999,
+     "seed": 20261126
+    },
+    "planSeed": 20261016,
+    "seedSource": "plan",
+    "bootstrapRejects": false,
+    "signFlipRejects": false,
+    "disagreement": false
+   }
+  },
+  {
+   "metric": "ahsAuc",
+   "arm": "gate",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0.7138827160493826,
+   "meanReference": 0.7284722222222223,
+   "meanDiff": -0.014589506172839507,
+   "ci": {
+    "low": -0.0792726851851852,
+    "high": 0.03756527777777777
+   },
+   "sdDiff": 0.1662283188774299,
+   "dz": -0.08776787415865779,
+   "relativeReduction": 0.020027539455566457,
+   "relativeReductionCi": {
+    "low": -0.051721533184438104,
+    "high": 0.10318101461243274
+   },
+   "p": 0.5292,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 0.028333333333333394,
+     "ci": {
+      "low": -0.07495555555555551,
+      "high": 0.12489722222222227
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": -0.057499999999999996,
+     "ci": {
+      "low": -0.1833111111111111,
+      "high": 0.0527861111111111
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": -0.10544444444444447,
+     "ci": {
+      "low": -0.2429527777777778,
+      "high": 0.03751944444444439
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0.02827777777777776,
+     "ci": {
+      "low": -0.012277777777777783,
+      "high": 0.0698944444444444
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": -0.01592592592592596,
+     "ci": {
+      "low": -0.1362777777777778,
+      "high": 0.0956296296296296
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0.03472222222222224,
+     "ci": {
+      "low": -0.023222222222222207,
+      "high": 0.08808333333333332
+     }
+    }
+   ],
+   "taskLevelP": 0.59375,
+   "taskLevelMinP": 0.03125,
+   "inference": {
+    "test": {
+     "method": "Monte Carlo sign-flip",
+     "units": 54,
+     "flips": 9999,
+     "seed": 20361127,
+     "mcSe": 0.004991715909661955,
+     "nearAlpha": false
+    },
+    "taskLevelTest": {
+     "method": "exact sign-flip",
+     "units": 6,
+     "seed": null
+    },
+    "bootstrap": {
+     "method": "two-stage cluster percentile (tasks, then blocks within task)",
+     "resamples": 1999,
+     "seed": 20261127
+    },
+    "planSeed": 20261016,
+    "seedSource": "plan",
+    "bootstrapRejects": false,
+    "signFlipRejects": false,
+    "disagreement": false
+   }
+  },
+  {
+   "metric": "ahsAuc",
+   "arm": "daedalus-mcp",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0.7287037037037037,
+   "meanReference": 0.7284722222222223,
+   "meanDiff": 0.00023148148148149095,
+   "ci": {
+    "low": -0.05209490740740739,
+    "high": 0.04670370370370369
+   },
+   "sdDiff": 0.1481633695774913,
+   "dz": 0.0015623394779802388,
+   "relativeReduction": -0.0003177629488400058,
+   "relativeReductionCi": {
+    "low": -0.06423111471719485,
+    "high": 0.06948095069237535
+   },
+   "p": 0.9927,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 0.027555555555555604,
+     "ci": {
+      "low": -0.040419444444444376,
+      "high": 0.09980277777777781
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 0.035555555555555576,
+     "ci": {
+      "low": -0.03156666666666665,
+      "high": 0.13219166666666662
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": -0.07061111111111112,
+     "ci": {
+      "low": -0.19583611111111113,
+      "high": 0.025172222222222203
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0.04299999999999999,
+     "ci": {
+      "low": -0.022227777777777784,
+      "high": 0.09772777777777775
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": -0.01783333333333333,
+     "ci": {
+      "low": -0.14350555555555555,
+      "high": 0.12094999999999997
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": -0.016277777777777773,
+     "ci": {
+      "low": -0.07644999999999998,
+      "high": 0.03211111111111112
+     }
+    }
+   ],
+   "taskLevelP": 1,
+   "taskLevelMinP": 0.03125,
+   "inference": {
+    "test": {
+     "method": "Monte Carlo sign-flip",
+     "units": 54,
+     "flips": 9999,
+     "seed": 20361128,
+     "mcSe": 0.0008513186679190303,
+     "nearAlpha": false
+    },
+    "taskLevelTest": {
+     "method": "exact sign-flip",
+     "units": 6,
+     "seed": null
+    },
+    "bootstrap": {
+     "method": "two-stage cluster percentile (tasks, then blocks within task)",
+     "resamples": 1999,
+     "seed": 20261128
+    },
+    "planSeed": 20261016,
+    "seedSource": "plan",
+    "bootstrapRejects": false,
+    "signFlipRejects": false,
+    "disagreement": false
+   }
+  },
+  {
+   "metric": "blockingAhsAtK",
+   "arm": "gate",
+   "reference": "none",
+   "blocks": 52,
+   "tasks": 6,
+   "meanArm": 0.6892307692307694,
+   "meanReference": 0.7153846153846157,
+   "meanDiff": -0.02615384615384614,
+   "ci": {
+    "low": -0.14119172113289766,
+    "high": 0.09100829562594265
+   },
+   "sdDiff": 0.35343776025924833,
+   "dz": -0.0739984492168074,
+   "relativeReduction": 0.036559139784946404,
+   "relativeReductionCi": {
+    "low": -0.13356507612044985,
+    "high": 0.18884658140980187
+   },
+   "p": 0.6025,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 8,
+     "meanDiff": -0.12,
+     "ci": {
+      "low": -0.23000000000000004,
+      "high": -0.009999999999999981
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": -0.15555555555555556,
+     "ci": {
+      "low": -0.4266666666666667,
+      "high": 0.12444444444444445
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 0.022222222222222216,
+     "ci": {
+      "low": -0.2177777777777778,
+      "high": 0.29333333333333333
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": -0.02666666666666669,
+     "ci": {
+      "low": -0.17777777777777778,
+      "high": 0.09777777777777776
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 8,
+     "meanDiff": 0,
+     "ci": {
+      "low": -0.32000000000000006,
+      "high": 0.3
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0.11555555555555556,
+     "ci": {
+      "low": -0.07111111111111111,
+      "high": 0.3111111111111111
+     }
+    }
+   ],
+   "taskLevelP": 0.4375,
+   "taskLevelMinP": 0.03125,
+   "inference": {
+    "test": {
+     "method": "Monte Carlo sign-flip",
+     "units": 52,
+     "flips": 9999,
+     "seed": 20361129,
+     "mcSe": 0.004894054574380807,
+     "nearAlpha": false
+    },
+    "taskLevelTest": {
+     "method": "exact sign-flip",
+     "units": 6,
+     "seed": null
+    },
+    "bootstrap": {
+     "method": "two-stage cluster percentile (tasks, then blocks within task)",
+     "resamples": 1999,
+     "seed": 20261129
+    },
+    "planSeed": 20261016,
+    "seedSource": "plan",
+    "bootstrapRejects": false,
+    "signFlipRejects": false,
+    "disagreement": false
+   }
+  },
+  {
+   "metric": "blockingAhsAtK",
+   "arm": "daedalus-mcp",
+   "reference": "none",
+   "blocks": 53,
+   "tasks": 6,
+   "meanArm": 0.6905660377358495,
+   "meanReference": 0.7177358490566041,
+   "meanDiff": -0.027169811320754737,
+   "ci": {
+    "low": -0.13806033182503774,
+    "high": 0.08370719776380156
+   },
+   "sdDiff": 0.35723498708020546,
+   "dz": -0.07605585203963978,
+   "relativeReduction": 0.03785488958990535,
+   "relativeReductionCi": {
+    "low": -0.135179248889804,
+    "high": 0.19958275993025232
+   },
+   "p": 0.5988,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 8,
+     "meanDiff": -0.20499999999999996,
+     "ci": {
+      "low": -0.38,
+      "high": -0.039999999999999966
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 0.004444444444444436,
+     "ci": {
+      "low": -0.2222222222222222,
+      "high": 0.2844444444444444
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 0.04000000000000001,
+     "ci": {
+      "low": -0.1468888888888889,
+      "high": 0.28022222222222204
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": -0.06222222222222223,
+     "ci": {
+      "low": -0.18666666666666668,
+      "high": 0.05333333333333335
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": -0.04000000000000003,
+     "ci": {
+      "low": -0.3955555555555556,
+      "high": 0.2844444444444444
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0.08,
+     "ci": {
+      "low": -0.11599999999999999,
+      "high": 0.24000000000000002
+     }
+    }
+   ],
+   "taskLevelP": 0.625,
+   "taskLevelMinP": 0.03125,
+   "inference": {
+    "test": {
+     "method": "Monte Carlo sign-flip",
+     "units": 53,
+     "flips": 9999,
+     "seed": 20361130,
+     "mcSe": 0.004901658762690706,
+     "nearAlpha": false
+    },
+    "taskLevelTest": {
+     "method": "exact sign-flip",
+     "units": 6,
+     "seed": null
+    },
+    "bootstrap": {
+     "method": "two-stage cluster percentile (tasks, then blocks within task)",
+     "resamples": 1999,
+     "seed": 20261130
+    },
+    "planSeed": 20261016,
+    "seedSource": "plan",
+    "bootstrapRejects": false,
+    "signFlipRejects": false,
+    "disagreement": false
+   }
+  },
+  {
+   "metric": "blockingAhsSlope",
+   "arm": "gate",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": -0.05780952380952384,
+   "meanReference": -0.05066666666666668,
+   "meanDiff": -0.007142857142857149,
+   "ci": {
+    "low": -0.03453439153439154,
+    "high": 0.02045925925925924
+   },
+   "sdDiff": 0.08290971470957398,
+   "dz": -0.08615223400391618,
+   "relativeReduction": null,
+   "relativeReductionCi": {
+    "low": null,
+    "high": null
+   },
+   "p": 0.5258,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": -0.014222222222222226,
+     "ci": {
+      "low": -0.056888888888888905,
+      "high": 0.03733333333333332
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": -0.024888888888888887,
+     "ci": {
+      "low": -0.08222222222222222,
+      "high": 0.028444444444444446
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": -0.00844444444444444,
+     "ci": {
+      "low": -0.06537777777777778,
+      "high": 0.04535555555555555
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": -0.0008888888888888951,
+     "ci": {
+      "low": -0.03293333333333334,
+      "high": 0.02755555555555555
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": -0.033523809523809525,
+     "ci": {
+      "low": -0.09963809523809525,
+      "high": 0.042752380952380924
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0.03911111111111111,
+     "ci": {
+      "low": -0.005333333333333344,
+      "high": 0.08266666666666667
+     }
+    }
+   ],
+   "taskLevelP": 0.5,
+   "taskLevelMinP": 0.03125,
+   "inference": {
+    "test": {
+     "method": "Monte Carlo sign-flip",
+     "units": 54,
+     "flips": 9999,
+     "seed": 20361131,
+     "mcSe": 0.004993588849010229,
+     "nearAlpha": false
+    },
+    "taskLevelTest": {
+     "method": "exact sign-flip",
+     "units": 6,
+     "seed": null
+    },
+    "bootstrap": {
+     "method": "two-stage cluster percentile (tasks, then blocks within task)",
+     "resamples": 1999,
+     "seed": 20261131
+    },
+    "planSeed": 20261016,
+    "seedSource": "plan",
+    "bootstrapRejects": false,
+    "signFlipRejects": false,
+    "disagreement": false
+   }
+  },
+  {
+   "metric": "blockingAhsSlope",
+   "arm": "daedalus-mcp",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": -0.053481481481481505,
+   "meanReference": -0.05066666666666668,
+   "meanDiff": -0.0028148148148148156,
+   "ci": {
+    "low": -0.030381481481481485,
+    "high": 0.025485185185185187
+   },
+   "sdDiff": 0.08191161229770991,
+   "dz": -0.03436405090629027,
+   "relativeReduction": null,
+   "relativeReductionCi": {
+    "low": null,
+    "high": null
+   },
+   "p": 0.8025,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": -0.03288888888888889,
+     "ci": {
+      "low": -0.09604444444444445,
+      "high": 0.01777777777777778
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 0.0022222222222222244,
+     "ci": {
+      "low": -0.04622222222222223,
+      "high": 0.0689333333333333
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": -0.005777777777777769,
+     "ci": {
+      "low": -0.06533333333333334,
+      "high": 0.056888888888888905
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": -0.012444444444444458,
+     "ci": {
+      "low": -0.035555555555555576,
+      "high": 0.011555555555555536
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": -0.008888888888888894,
+     "ci": {
+      "low": -0.06933333333333334,
+      "high": 0.053333333333333316
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0.04088888888888889,
+     "ci": {
+      "low": 0.007066666666666656,
+      "high": 0.06937777777777775
+     }
+    }
+   ],
+   "taskLevelP": 0.71875,
+   "taskLevelMinP": 0.03125,
+   "inference": {
+    "test": {
+     "method": "Monte Carlo sign-flip",
+     "units": 54,
+     "flips": 9999,
+     "seed": 20361132,
+     "mcSe": 0.0039813264241970415,
+     "nearAlpha": false
+    },
+    "taskLevelTest": {
+     "method": "exact sign-flip",
+     "units": 6,
+     "seed": null
+    },
+    "bootstrap": {
+     "method": "two-stage cluster percentile (tasks, then blocks within task)",
+     "resamples": 1999,
+     "seed": 20261132
+    },
+    "planSeed": 20261016,
+    "seedSource": "plan",
+    "bootstrapRejects": false,
+    "signFlipRejects": false,
+    "disagreement": false
+   }
+  },
+  {
+   "metric": "blockingAhsAuc",
+   "arm": "gate",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0.7870370370370368,
+   "meanReference": 0.8085185185185182,
+   "meanDiff": -0.021481481481481476,
+   "ci": {
+    "low": -0.10362037037037038,
+    "high": 0.05240740740740742
+   },
+   "sdDiff": 0.20658414528844232,
+   "dz": -0.10398417289714097,
+   "relativeReduction": 0.026568941823179038,
+   "relativeReductionCi": {
+    "low": -0.06617166749490144,
+    "high": 0.13327288120116437
+   },
+   "p": 0.4582,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 0.05999999999999999,
+     "ci": {
+      "low": -0.034444444444444416,
+      "high": 0.15333333333333327
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": -0.09833333333333331,
+     "ci": {
+      "low": -0.24502777777777776,
+      "high": 0.033444444444444395
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": -0.1472222222222222,
+     "ci": {
+      "low": -0.31727777777777777,
+      "high": -0.0066388888888888825
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0.029999999999999978,
+     "ci": {
+      "low": -0.005555555555555585,
+      "high": 0.07222222222222222
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": -0.00666666666666666,
+     "ci": {
+      "low": -0.17894444444444443,
+      "high": 0.16899999999999993
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0.033333333333333354,
+     "ci": {
+      "low": -0.034444444444444375,
+      "high": 0.1111111111111111
+     }
+    }
+   ],
+   "taskLevelP": 0.53125,
+   "taskLevelMinP": 0.03125,
+   "inference": {
+    "test": {
+     "method": "Monte Carlo sign-flip",
+     "units": 54,
+     "flips": 9999,
+     "seed": 20361133,
+     "mcSe": 0.004982746107908529,
+     "nearAlpha": false
+    },
+    "taskLevelTest": {
+     "method": "exact sign-flip",
+     "units": 6,
+     "seed": null
+    },
+    "bootstrap": {
+     "method": "two-stage cluster percentile (tasks, then blocks within task)",
+     "resamples": 1999,
+     "seed": 20261133
+    },
+    "planSeed": 20261016,
+    "seedSource": "plan",
+    "bootstrapRejects": false,
+    "signFlipRejects": false,
+    "disagreement": false
+   }
+  },
+  {
+   "metric": "blockingAhsAuc",
+   "arm": "daedalus-mcp",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0.8098148148148148,
+   "meanReference": 0.8085185185185182,
+   "meanDiff": 0.0012962962962962934,
+   "ci": {
+    "low": -0.07464351851851851,
+    "high": 0.0664861111111111
+   },
+   "sdDiff": 0.19860405567213366,
+   "dz": 0.006527038392590984,
+   "relativeReduction": -0.0016032982134679408,
+   "relativeReductionCi": {
+    "low": -0.08525878643716522,
+    "high": 0.08914285593175506
+   },
+   "p": 0.9675,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 0.07388888888888885,
+     "ci": {
+      "low": 0.0138888888888889,
+      "high": 0.1288888888888888
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 0.061666666666666696,
+     "ci": {
+      "low": -0.049999999999999906,
+      "high": 0.20616666666666666
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": -0.11611111111111108,
+     "ci": {
+      "low": -0.2466666666666666,
+      "high": -0.011638888888888912
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0.023333333333333293,
+     "ci": {
+      "low": -0.0366666666666667,
+      "high": 0.07555555555555553
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": -0.013888888888888914,
+     "ci": {
+      "low": -0.2150277777777778,
+      "high": 0.21336111111111108
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": -0.021111111111111094,
+     "ci": {
+      "low": -0.09444444444444439,
+      "high": 0.03672222222222219
+     }
+    }
+   ],
+   "taskLevelP": 0.96875,
+   "taskLevelMinP": 0.03125,
+   "inference": {
+    "test": {
+     "method": "Monte Carlo sign-flip",
+     "units": 54,
+     "flips": 9999,
+     "seed": 20361134,
+     "mcSe": 0.001773327231208863,
+     "nearAlpha": false
+    },
+    "taskLevelTest": {
+     "method": "exact sign-flip",
+     "units": 6,
+     "seed": null
+    },
+    "bootstrap": {
+     "method": "two-stage cluster percentile (tasks, then blocks within task)",
+     "resamples": 1999,
+     "seed": 20261134
+    },
+    "planSeed": 20261016,
+    "seedSource": "plan",
+    "bootstrapRejects": false,
+    "signFlipRejects": false,
+    "disagreement": false
+   }
+  },
+  {
+   "metric": "locAtK",
+   "arm": "gate",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 2054,
+   "meanReference": 2076.185185185185,
+   "meanDiff": -22.185185185185187,
+   "ci": {
+    "low": -245.61388888888888,
+    "high": 197.93425925925922
+   },
+   "sdDiff": 807.249442968285,
+   "dz": -0.02748244099569703,
+   "relativeReduction": 0.010685552205790594,
+   "relativeReductionCi": {
+    "low": -0.10034332336524827,
+    "high": 0.11726948725201476
+   },
+   "p": 0.8349,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": -42.22222222222222,
+     "ci": {
+      "low": -746.5388888888889,
+      "high": 636.3444444444444
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": -162,
+     "ci": {
+      "low": -593.0611111111111,
+      "high": 375.9222222222222
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": -4.222222222222222,
+     "ci": {
+      "low": -539.8166666666667,
+      "high": 431.50555555555553
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": -95.11111111111111,
+     "ci": {
+      "low": -679.6555555555555,
+      "high": 361.96111111111105
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 157.55555555555554,
+     "ci": {
+      "low": -111.16666666666666,
+      "high": 400.03888888888883
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 12.88888888888889,
+     "ci": {
+      "low": -503.03333333333336,
+      "high": 624.3333333333331
+     }
+    }
+   ],
+   "taskLevelP": 0.65625,
+   "taskLevelMinP": 0.03125,
+   "inference": {
+    "test": {
+     "method": "Monte Carlo sign-flip",
+     "units": 54,
+     "flips": 9999,
+     "seed": 20361135,
+     "mcSe": 0.0037128934212761586,
+     "nearAlpha": false
+    },
+    "taskLevelTest": {
+     "method": "exact sign-flip",
+     "units": 6,
+     "seed": null
+    },
+    "bootstrap": {
+     "method": "two-stage cluster percentile (tasks, then blocks within task)",
+     "resamples": 1999,
+     "seed": 20261135
+    },
+    "planSeed": 20261016,
+    "seedSource": "plan",
+    "bootstrapRejects": false,
+    "signFlipRejects": false,
+    "disagreement": false
+   }
+  },
+  {
+   "metric": "locAtK",
+   "arm": "daedalus-mcp",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 2091.6666666666665,
+   "meanReference": 2076.185185185185,
+   "meanDiff": 15.481481481481481,
+   "ci": {
+    "low": -275.375,
+    "high": 268.0768518518518
+   },
+   "sdDiff": 731.2264120560266,
+   "dz": 0.021171939670438615,
+   "relativeReduction": -0.00745669586313924,
+   "relativeReductionCi": {
+    "low": -0.1331496867437123,
+    "high": 0.13210400222484367
+   },
+   "p": 0.8793,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 142.11111111111111,
+     "ci": {
+      "low": -474.46111111111105,
+      "high": 773.9499999999997
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 192,
+     "ci": {
+      "low": 30.3,
+      "high": 351.0944444444444
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 27.11111111111111,
+     "ci": {
+      "low": -501.56666666666666,
+      "high": 617.2277777777778
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": -559.6666666666666,
+     "ci": {
+      "low": -1105.9722222222222,
+      "high": -124.9222222222225
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 180,
+     "ci": {
+      "low": -91.74444444444444,
+      "high": 428.3499999999999
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 111.33333333333333,
+     "ci": {
+      "low": -185.61666666666665,
+      "high": 405.7333333333333
+     }
+    }
+   ],
+   "taskLevelP": 0.96875,
+   "taskLevelMinP": 0.03125,
+   "inference": {
+    "test": {
+     "method": "Monte Carlo sign-flip",
+     "units": 54,
+     "flips": 9999,
+     "seed": 20361136,
+     "mcSe": 0.0032579460433288525,
+     "nearAlpha": false
+    },
+    "taskLevelTest": {
+     "method": "exact sign-flip",
+     "units": 6,
+     "seed": null
+    },
+    "bootstrap": {
+     "method": "two-stage cluster percentile (tasks, then blocks within task)",
+     "resamples": 1999,
+     "seed": 20261136
+    },
+    "planSeed": 20261016,
+    "seedSource": "plan",
+    "bootstrapRejects": false,
+    "signFlipRejects": false,
+    "disagreement": false
+   }
+  },
+  {
+   "metric": "filesAtK",
+   "arm": "gate",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 58.74074074074074,
+   "meanReference": 59.24074074074074,
+   "meanDiff": -0.5,
+   "ci": {
+    "low": -6.87037037037037,
+    "high": 5.648148148148148
+   },
+   "sdDiff": 23.10905237967997,
+   "dz": -0.021636542761902917,
+   "relativeReduction": 0.008440137542982229,
+   "relativeReductionCi": {
+    "low": -0.09898934508787609,
+    "high": 0.11326511274331356
+   },
+   "p": 0.8826,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": -1.2222222222222223,
+     "ci": {
+      "low": -22.555555555555557,
+      "high": 17.555555555555557
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": -4.333333333333333,
+     "ci": {
+      "low": -16.227777777777778,
+      "high": 10.89999999999999
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": -0.2222222222222222,
+     "ci": {
+      "low": -15.222222222222221,
+      "high": 12.222222222222221
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": -2.7777777777777777,
+     "ci": {
+      "low": -18.555555555555557,
+      "high": 11.227777777777773
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 4.888888888888889,
+     "ci": {
+      "low": -2.6666666666666665,
+      "high": 11.444444444444445
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0.6666666666666666,
+     "ci": {
+      "low": -13.894444444444444,
+      "high": 17.783333333333328
+     }
+    }
+   ],
+   "taskLevelP": 0.75,
+   "taskLevelMinP": 0.03125,
+   "inference": {
+    "test": {
+     "method": "Monte Carlo sign-flip",
+     "units": 54,
+     "flips": 9999,
+     "seed": 20361137,
+     "mcSe": 0.003219124147346231,
+     "nearAlpha": false
+    },
+    "taskLevelTest": {
+     "method": "exact sign-flip",
+     "units": 6,
+     "seed": null
+    },
+    "bootstrap": {
+     "method": "two-stage cluster percentile (tasks, then blocks within task)",
+     "resamples": 1999,
+     "seed": 20261137
+    },
+    "planSeed": 20261016,
+    "seedSource": "plan",
+    "bootstrapRejects": false,
+    "signFlipRejects": false,
+    "disagreement": false
+   }
+  },
+  {
+   "metric": "filesAtK",
+   "arm": "daedalus-mcp",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 59.75925925925926,
+   "meanReference": 59.24074074074074,
+   "meanDiff": 0.5185185185185185,
+   "ci": {
+    "low": -8.859259259259257,
+    "high": 7.814814814814815
+   },
+   "sdDiff": 20.96874650138327,
+   "dz": 0.024728160001567703,
+   "relativeReduction": -0.00875273522975939,
+   "relativeReductionCi": {
+    "low": -0.13805643832704464,
+    "high": 0.13811523786960878
+   },
+   "p": 0.8613,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 4,
+     "ci": {
+      "low": -13.783333333333333,
+      "high": 21.783333333333328
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 5.666666666666667,
+     "ci": {
+      "low": 0.7777777777777778,
+      "high": 10.333333333333334
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 0.8888888888888888,
+     "ci": {
+      "low": -13.56111111111111,
+      "high": 17.333333333333332
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": -16.22222222222222,
+     "ci": {
+      "low": -33.12222222222223,
+      "high": -3.661111111111116
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 5.444444444444445,
+     "ci": {
+      "low": -2.3333333333333335,
+      "high": 12.672222222222217
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 3.3333333333333335,
+     "ci": {
+      "low": -4.894444444444445,
+      "high": 12.11111111111111
+     }
+    }
+   ],
+   "taskLevelP": 0.96875,
+   "taskLevelMinP": 0.03125,
+   "inference": {
+    "test": {
+     "method": "Monte Carlo sign-flip",
+     "units": 54,
+     "flips": 9999,
+     "seed": 20361138,
+     "mcSe": 0.0034565048448648617,
+     "nearAlpha": false
+    },
+    "taskLevelTest": {
+     "method": "exact sign-flip",
+     "units": 6,
+     "seed": null
+    },
+    "bootstrap": {
+     "method": "two-stage cluster percentile (tasks, then blocks within task)",
+     "resamples": 1999,
+     "seed": 20261138
+    },
+    "planSeed": 20261016,
+    "seedSource": "plan",
+    "bootstrapRejects": false,
+    "signFlipRejects": false,
+    "disagreement": false
+   }
+  },
+  {
+   "metric": "typecheckErrorsPerStep",
+   "arm": "gate",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0.11481481481481487,
+   "meanReference": 0.162962962962963,
+   "meanDiff": -0.04814814814814814,
+   "ci": {
+    "low": -0.12962962962962965,
+    "high": 0.025925925925925936
+   },
+   "sdDiff": 0.22963526514127985,
+   "dz": -0.20967227363151594,
+   "relativeReduction": 0.2954545454545453,
+   "relativeReductionCi": {
+    "low": -0.2584946236559146,
+    "high": 0.629727095516569
+   },
+   "p": 0.1631,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 0.04444444444444446,
+     "ci": {
+      "low": -0.08888888888888888,
+      "high": 0.17777777777777778
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": -0.13333333333333333,
+     "ci": {
+      "low": -0.3777777777777777,
+      "high": 0.04444444444444445
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": -0.06666666666666668,
+     "ci": {
+      "low": -0.17777777777777778,
+      "high": 0.044444444444444446
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": -0.1111111111111111,
+     "ci": {
+      "low": -0.24444444444444446,
+      "high": -0.022222222222222223
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": -0.044444444444444446,
+     "ci": {
+      "low": -0.11222222222222215,
+      "high": 0.044444444444444446
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0.022222222222222237,
+     "ci": {
+      "low": -0.13333333333333333,
+      "high": 0.17777777777777776
+     }
+    }
+   ],
+   "taskLevelP": 0.21875,
+   "taskLevelMinP": 0.03125,
+   "inference": {
+    "test": {
+     "method": "Monte Carlo sign-flip",
+     "units": 54,
+     "flips": 9999,
+     "seed": 20361139,
+     "mcSe": 0.0036947535940048885,
+     "nearAlpha": false
+    },
+    "taskLevelTest": {
+     "method": "exact sign-flip",
+     "units": 6,
+     "seed": null
+    },
+    "bootstrap": {
+     "method": "two-stage cluster percentile (tasks, then blocks within task)",
+     "resamples": 1999,
+     "seed": 20261139
+    },
+    "planSeed": 20261016,
+    "seedSource": "plan",
+    "bootstrapRejects": false,
+    "signFlipRejects": false,
+    "disagreement": false
+   }
+  },
+  {
+   "metric": "typecheckErrorsPerStep",
+   "arm": "daedalus-mcp",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0.1962962962962962,
+   "meanReference": 0.162962962962963,
+   "meanDiff": 0.03333333333333335,
+   "ci": {
+    "low": -0.05925925925925928,
+    "high": 0.13722222222222208
+   },
+   "sdDiff": 0.27403346442112053,
+   "dz": 0.12163964501105017,
+   "relativeReduction": -0.2045454545454537,
+   "relativeReductionCi": {
+    "low": -1.259757834757833,
+    "high": 0.27669000807971955
+   },
+   "p": 0.4309,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 0.13333333333333333,
+     "ci": {
+      "low": -0.06666666666666665,
+      "high": 0.3111111111111111
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": -0.04444444444444445,
+     "ci": {
+      "low": -0.2666666666666667,
+      "high": 0.15555555555555556
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": -0.044444444444444446,
+     "ci": {
+      "low": -0.15555555555555556,
+      "high": 0.08888888888888889
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 6.1679056923619804e-18,
+     "ci": {
+      "low": -0.08888888888888886,
+      "high": 0.08888888888888889
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 0.17777777777777778,
+     "ci": {
+      "low": -6.1679056923619804e-18,
+      "high": 0.37777777777777777
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": -0.022222222222222213,
+     "ci": {
+      "low": -0.17777777777777778,
+      "high": 0.15555555555555556
+     }
+    }
+   ],
+   "taskLevelP": 0.5,
+   "taskLevelMinP": 0.03125,
+   "inference": {
+    "test": {
+     "method": "Monte Carlo sign-flip",
+     "units": 54,
+     "flips": 9999,
+     "seed": 20361140,
+     "mcSe": 0.004952269328010111,
+     "nearAlpha": false
+    },
+    "taskLevelTest": {
+     "method": "exact sign-flip",
+     "units": 6,
+     "seed": null
+    },
+    "bootstrap": {
+     "method": "two-stage cluster percentile (tasks, then blocks within task)",
+     "resamples": 1999,
+     "seed": 20261140
+    },
+    "planSeed": 20261016,
+    "seedSource": "plan",
+    "bootstrapRejects": false,
+    "signFlipRejects": false,
+    "disagreement": false
+   }
+  }
+ ],
+ "perModel": [
+  {
+   "model": "claude-code-cli/synth-model-a",
+   "contrasts": [
+    {
+     "metric": "blockingSlope",
+     "arm": "gate",
+     "reference": "none",
+     "blocks": 18,
+     "tasks": 6,
+     "meanArm": 1.25,
+     "meanReference": 1.2277777777777774,
+     "meanDiff": 0.02222222222222223,
+     "ci": {
+      "low": -0.7947222222222221,
+      "high": 0.8391666666666665
+     },
+     "sdDiff": 1.5869154525666358,
+     "dz": 0.014003406537053115,
+     "relativeReduction": -0.018099547511312597,
+     "relativeReductionCi": {
+      "low": -1.2262828045436736,
+      "high": 0.46133382035126114
+     },
+     "p": 0.9646987915039062,
+     "taskEffects": [
+      {
+       "taskId": "synth-task-1",
+       "blocks": 3,
+       "meanDiff": 0.16666666666666666,
+       "ci": {
+        "low": -1.8999999999999997,
+        "high": 1.2999999999999998
+       }
+      },
+      {
+       "taskId": "synth-task-2",
+       "blocks": 3,
+       "meanDiff": -0.16666666666666655,
+       "ci": {
+        "low": -1.7,
+        "high": 1.5999999999999999
+       }
+      },
+      {
+       "taskId": "synth-task-3",
+       "blocks": 3,
+       "meanDiff": -0.2666666666666666,
+       "ci": {
+        "low": -3.2999999999999994,
+        "high": 1.8999999999999997
+       }
+      },
+      {
+       "taskId": "synth-task-4",
+       "blocks": 3,
+       "meanDiff": -0.5333333333333333,
+       "ci": {
+        "low": -0.9,
+        "high": -0.30000000000000004
+       }
+      },
+      {
+       "taskId": "synth-task-5",
+       "blocks": 3,
+       "meanDiff": 1.3,
+       "ci": {
+        "low": -0.3999999999999999,
+        "high": 3.0999999999999996
+       }
+      },
+      {
+       "taskId": "synth-task-6",
+       "blocks": 3,
+       "meanDiff": -0.36666666666666664,
+       "ci": {
+        "low": -1.7,
+        "high": 0.8000000000000002
+       }
+      }
+     ],
+     "taskLevelP": 1,
+     "taskLevelMinP": 0.03125,
+     "inference": {
+      "test": {
+       "method": "exact sign-flip",
+       "units": 18,
+       "flips": null,
+       "seed": null,
+       "mcSe": null,
+       "nearAlpha": false
+      },
+      "taskLevelTest": {
+       "method": "exact sign-flip",
+       "units": 6,
+       "seed": null
+      },
+      "bootstrap": {
+       "method": "two-stage cluster percentile (tasks, then blocks within task)",
+       "resamples": 1999,
+       "seed": 20261141
+      },
+      "planSeed": 20261016,
+      "seedSource": "plan",
+      "bootstrapRejects": false,
+      "signFlipRejects": false,
+      "disagreement": false
+     }
+    },
+    {
+     "metric": "blockingSlope",
+     "arm": "daedalus-mcp",
+     "reference": "none",
+     "blocks": 18,
+     "tasks": 6,
+     "meanArm": 1.261111111111111,
+     "meanReference": 1.2277777777777774,
+     "meanDiff": 0.03333333333333337,
+     "ci": {
+      "low": -0.9611111111111111,
+      "high": 0.9613888888888886
+     },
+     "sdDiff": 1.886796226411321,
+     "dz": 0.01766663133343935,
+     "relativeReduction": -0.027149321266968673,
+     "relativeReductionCi": {
+      "low": -1.6601008993200266,
+      "high": 0.5076800918539285
+     },
+     "p": 0.951568603515625,
+     "taskEffects": [
+      {
+       "taskId": "synth-task-1",
+       "blocks": 3,
+       "meanDiff": 1.0666666666666667,
+       "ci": {
+        "low": -0.5999999999999999,
+        "high": 2.9999999999999996
+       }
+      },
+      {
+       "taskId": "synth-task-2",
+       "blocks": 3,
+       "meanDiff": -0.9999999999999999,
+       "ci": {
+        "low": -4.6,
+        "high": 1
+       }
+      },
+      {
+       "taskId": "synth-task-3",
+       "blocks": 3,
+       "meanDiff": 0.03333333333333351,
+       "ci": {
+        "low": -2.7999999999999994,
+        "high": 2.1
+       }
+      },
+      {
+       "taskId": "synth-task-4",
+       "blocks": 3,
+       "meanDiff": 0.20000000000000004,
+       "ci": {
+        "low": -0.49999999999999994,
+        "high": 0.7000000000000001
+       }
+      },
+      {
+       "taskId": "synth-task-5",
+       "blocks": 3,
+       "meanDiff": 0.6666666666666669,
+       "ci": {
+        "low": -1.8999999999999997,
+        "high": 2.7000000000000006
+       }
+      },
+      {
+       "taskId": "synth-task-6",
+       "blocks": 3,
+       "meanDiff": -0.7666666666666667,
+       "ci": {
+        "low": -1,
+        "high": -0.5000000000000002
+       }
+      }
+     ],
+     "taskLevelP": 0.90625,
+     "taskLevelMinP": 0.03125,
+     "inference": {
+      "test": {
+       "method": "exact sign-flip",
+       "units": 18,
+       "flips": null,
+       "seed": null,
+       "mcSe": null,
+       "nearAlpha": false
+      },
+      "taskLevelTest": {
+       "method": "exact sign-flip",
+       "units": 6,
+       "seed": null
+      },
+      "bootstrap": {
+       "method": "two-stage cluster percentile (tasks, then blocks within task)",
+       "resamples": 1999,
+       "seed": 20261142
+      },
+      "planSeed": 20261016,
+      "seedSource": "plan",
+      "bootstrapRejects": false,
+      "signFlipRejects": false,
+      "disagreement": false
+     }
+    }
+   ]
+  },
+  {
+   "model": "claude-code-cli/synth-model-b",
+   "contrasts": [
+    {
+     "metric": "blockingSlope",
+     "arm": "gate",
+     "reference": "none",
+     "blocks": 18,
+     "tasks": 6,
+     "meanArm": 0.6484126984126984,
+     "meanReference": 0.5055555555555555,
+     "meanDiff": 0.1428571428571429,
+     "ci": {
+      "low": -0.6155555555555556,
+      "high": 1.0838888888888887
+     },
+     "sdDiff": 1.456953357260998,
+     "dz": 0.09805196724053503,
+     "relativeReduction": -0.2825745682888541,
+     "relativeReductionCi": {
+      "low": -4.094999999999998,
+      "high": 0.9967560408610323
+     },
+     "p": 0.7277679443359375,
+     "taskEffects": [
+      {
+       "taskId": "synth-task-1",
+       "blocks": 3,
+       "meanDiff": -0.033333333333333375,
+       "ci": {
+        "low": -0.4000000000000001,
+        "high": 0.20000000000000004
+       }
+      },
+      {
+       "taskId": "synth-task-2",
+       "blocks": 3,
+       "meanDiff": 0.5333333333333333,
+       "ci": {
+        "low": -0.7000000000000001,
+        "high": 1.3999999999999997
+       }
+      },
+      {
+       "taskId": "synth-task-3",
+       "blocks": 3,
+       "meanDiff": 1.6000000000000003,
+       "ci": {
+        "low": -1.3,
+        "high": 4.6000000000000005
+       }
+      },
+      {
+       "taskId": "synth-task-4",
+       "blocks": 3,
+       "meanDiff": 0.4000000000000001,
+       "ci": {
+        "low": -0.5000000000000001,
+        "high": 1.1
+       }
+      },
+      {
+       "taskId": "synth-task-5",
+       "blocks": 3,
+       "meanDiff": -1.1761904761904762,
+       "ci": {
+        "low": -1.8857142857142855,
+        "high": -0.6
+       }
+      },
+      {
+       "taskId": "synth-task-6",
+       "blocks": 3,
+       "meanDiff": -0.4666666666666666,
+       "ci": {
+        "low": -0.8999999999999999,
+        "high": 0
+       }
+      }
+     ],
+     "taskLevelP": 0.75,
+     "taskLevelMinP": 0.03125,
+     "inference": {
+      "test": {
+       "method": "exact sign-flip",
+       "units": 18,
+       "flips": null,
+       "seed": null,
+       "mcSe": null,
+       "nearAlpha": false
+      },
+      "taskLevelTest": {
+       "method": "exact sign-flip",
+       "units": 6,
+       "seed": null
+      },
+      "bootstrap": {
+       "method": "two-stage cluster percentile (tasks, then blocks within task)",
+       "resamples": 1999,
+       "seed": 20261143
+      },
+      "planSeed": 20261016,
+      "seedSource": "plan",
+      "bootstrapRejects": false,
+      "signFlipRejects": false,
+      "disagreement": false
+     }
+    },
+    {
+     "metric": "blockingSlope",
+     "arm": "daedalus-mcp",
+     "reference": "none",
+     "blocks": 18,
+     "tasks": 6,
+     "meanArm": 0.3944444444444445,
+     "meanReference": 0.5055555555555555,
+     "meanDiff": -0.1111111111111111,
+     "ci": {
+      "low": -0.6000000000000001,
+      "high": 0.3333333333333333
+     },
+     "sdDiff": 0.8743998875793002,
+     "dz": -0.127071277900907,
+     "relativeReduction": 0.21978021978021967,
+     "relativeReductionCi": {
+      "low": -1.3944816053511706,
+      "high": 0.8704301075268818
+     },
+     "p": 0.61700439453125,
+     "taskEffects": [
+      {
+       "taskId": "synth-task-1",
+       "blocks": 3,
+       "meanDiff": 0.2333333333333334,
+       "ci": {
+        "low": -0.9,
+        "high": 0.9
+       }
+      },
+      {
+       "taskId": "synth-task-2",
+       "blocks": 3,
+       "meanDiff": 0.4666666666666666,
+       "ci": {
+        "low": -1.1102230246251565e-16,
+        "high": 1
+       }
+      },
+      {
+       "taskId": "synth-task-3",
+       "blocks": 3,
+       "meanDiff": -0.4666666666666666,
+       "ci": {
+        "low": -2,
+        "high": 0.6
+       }
+      },
+      {
+       "taskId": "synth-task-4",
+       "blocks": 3,
+       "meanDiff": 0.09999999999999994,
+       "ci": {
+        "low": -0.30000000000000016,
+        "high": 0.49999999999999994
+       }
+      },
+      {
+       "taskId": "synth-task-5",
+       "blocks": 3,
+       "meanDiff": -0.6666666666666666,
+       "ci": {
+        "low": -1.7999999999999998,
+        "high": -0.09999999999999987
+       }
+      },
+      {
+       "taskId": "synth-task-6",
+       "blocks": 3,
+       "meanDiff": -0.3333333333333333,
+       "ci": {
+        "low": -1,
+        "high": 0.6999999999999998
+       }
+      }
+     ],
+     "taskLevelP": 0.625,
+     "taskLevelMinP": 0.03125,
+     "inference": {
+      "test": {
+       "method": "exact sign-flip",
+       "units": 18,
+       "flips": null,
+       "seed": null,
+       "mcSe": null,
+       "nearAlpha": false
+      },
+      "taskLevelTest": {
+       "method": "exact sign-flip",
+       "units": 6,
+       "seed": null
+      },
+      "bootstrap": {
+       "method": "two-stage cluster percentile (tasks, then blocks within task)",
+       "resamples": 1999,
+       "seed": 20261144
+      },
+      "planSeed": 20261016,
+      "seedSource": "plan",
+      "bootstrapRejects": false,
+      "signFlipRejects": false,
+      "disagreement": false
+     }
+    }
+   ]
+  },
+  {
+   "model": "codex-cli/synth-model-c",
+   "contrasts": [
+    {
+     "metric": "blockingSlope",
+     "arm": "gate",
+     "reference": "none",
+     "blocks": 18,
+     "tasks": 6,
+     "meanArm": 0.5722222222222223,
+     "meanReference": 0.4222222222222223,
+     "meanDiff": 0.15000000000000002,
+     "ci": {
+      "low": -0.3891666666666667,
+      "high": 0.6833333333333333
+     },
+     "sdDiff": 0.9275204136012635,
+     "dz": 0.16172150801252802,
+     "relativeReduction": -0.35526315789473695,
+     "relativeReductionCi": {
+      "low": -4.074216524216524,
+      "high": 0.6440512430238455
+     },
+     "p": 0.5157012939453125,
+     "taskEffects": [
+      {
+       "taskId": "synth-task-1",
+       "blocks": 3,
+       "meanDiff": 0.39999999999999997,
+       "ci": {
+        "low": 0,
+        "high": 0.8999999999999999
+       }
+      },
+      {
+       "taskId": "synth-task-2",
+       "blocks": 3,
+       "meanDiff": 0.06666666666666665,
+       "ci": {
+        "low": -1,
+        "high": 1.5999999999999999
+       }
+      },
+      {
+       "taskId": "synth-task-3",
+       "blocks": 3,
+       "meanDiff": -0.2333333333333334,
+       "ci": {
+        "low": -1.1,
+        "high": 0.6000000000000001
+       }
+      },
+      {
+       "taskId": "synth-task-4",
+       "blocks": 3,
+       "meanDiff": 0.16666666666666666,
+       "ci": {
+        "low": -0.20000000000000004,
+        "high": 0.4000000000000001
+       }
+      },
+      {
+       "taskId": "synth-task-5",
+       "blocks": 3,
+       "meanDiff": 1.133333333333333,
+       "ci": {
+        "low": 0.5999999999999999,
+        "high": 1.8999999999999997
+       }
+      },
+      {
+       "taskId": "synth-task-6",
+       "blocks": 3,
+       "meanDiff": -0.6333333333333333,
+       "ci": {
+        "low": -1.5999999999999999,
+        "high": 0.6
+       }
+      }
+     ],
+     "taskLevelP": 0.65625,
+     "taskLevelMinP": 0.03125,
+     "inference": {
+      "test": {
+       "method": "exact sign-flip",
+       "units": 18,
+       "flips": null,
+       "seed": null,
+       "mcSe": null,
+       "nearAlpha": false
+      },
+      "taskLevelTest": {
+       "method": "exact sign-flip",
+       "units": 6,
+       "seed": null
+      },
+      "bootstrap": {
+       "method": "two-stage cluster percentile (tasks, then blocks within task)",
+       "resamples": 1999,
+       "seed": 20261145
+      },
+      "planSeed": 20261016,
+      "seedSource": "plan",
+      "bootstrapRejects": false,
+      "signFlipRejects": false,
+      "disagreement": false
+     }
+    },
+    {
+     "metric": "blockingSlope",
+     "arm": "daedalus-mcp",
+     "reference": "none",
+     "blocks": 18,
+     "tasks": 6,
+     "meanArm": 0.3833333333333333,
+     "meanReference": 0.4222222222222223,
+     "meanDiff": -0.03888888888888889,
+     "ci": {
+      "low": -0.3666666666666667,
+      "high": 0.28888888888888875
+     },
+     "sdDiff": 0.6491069783025334,
+     "dz": -0.05991137083533818,
+     "relativeReduction": 0.09210526315789491,
+     "relativeReductionCi": {
+      "low": -1.395263157894736,
+      "high": 0.7113600317208564
+     },
+     "p": 0.829071044921875,
+     "taskEffects": [
+      {
+       "taskId": "synth-task-1",
+       "blocks": 3,
+       "meanDiff": -0.03333333333333329,
+       "ci": {
+        "low": -0.39999999999999997,
+        "high": 0.6000000000000001
+       }
+      },
+      {
+       "taskId": "synth-task-2",
+       "blocks": 3,
+       "meanDiff": -0.16666666666666663,
+       "ci": {
+        "low": -0.5999999999999999,
+        "high": 0.4000000000000001
+       }
+      },
+      {
+       "taskId": "synth-task-3",
+       "blocks": 3,
+       "meanDiff": -2.7755575615628914e-17,
+       "ci": {
+        "low": -1.2,
+        "high": 1.0999999999999999
+       }
+      },
+      {
+       "taskId": "synth-task-4",
+       "blocks": 3,
+       "meanDiff": 0.16666666666666663,
+       "ci": {
+        "low": -0.4000000000000001,
+        "high": 0.7999999999999999
+       }
+      },
+      {
+       "taskId": "synth-task-5",
+       "blocks": 3,
+       "meanDiff": 0.2333333333333333,
+       "ci": {
+        "low": -0.10000000000000003,
+        "high": 0.7999999999999999
+       }
+      },
+      {
+       "taskId": "synth-task-6",
+       "blocks": 3,
+       "meanDiff": -0.4333333333333333,
+       "ci": {
+        "low": -1.2,
+        "high": 0.39999999999999997
+       }
+      }
+     ],
+     "taskLevelP": 0.75,
+     "taskLevelMinP": 0.03125,
+     "inference": {
+      "test": {
+       "method": "exact sign-flip",
+       "units": 18,
+       "flips": null,
+       "seed": null,
+       "mcSe": null,
+       "nearAlpha": false
+      },
+      "taskLevelTest": {
+       "method": "exact sign-flip",
+       "units": 6,
+       "seed": null
+      },
+      "bootstrap": {
+       "method": "two-stage cluster percentile (tasks, then blocks within task)",
+       "resamples": 1999,
+       "seed": 20261146
+      },
+      "planSeed": 20261016,
+      "seedSource": "plan",
+      "bootstrapRejects": false,
+      "signFlipRejects": false,
+      "disagreement": false
+     }
+    }
+   ]
+  }
+ ],
+ "repair": {
+  "gateSteps": 270,
+  "failingSteps": 234,
+  "repairsWithOutcome": 232,
+  "cleared": 51,
+  "clearedShare": 0.21982758620689655,
+  "clearedWilson": {
+   "low": 0.1713408930826645,
+   "high": 0.2774413496576309
+  },
+  "clearedShareClusterCi": {
+   "low": 0.1440677966101695,
+   "high": 0.30456481858948226
+  },
+  "meanReduction": {
+   "n": 232,
+   "mean": 1.9482758620689655,
+   "ci": {
+    "low": 1.771186440677966,
+    "high": 2.1310498931524666
+   }
+  },
+  "introducedFindings": 0,
+  "repairEvaluationFailed": 2
+ },
+ "cost": [
+  {
+   "arm": "none",
+   "steps": 270,
+   "stepsWithCost": 180,
+   "costPerStepUsd": {
+    "n": 180,
+    "mean": 3.3006249999999984,
+    "ci": {
+     "low": 3.1077571944444444,
+     "high": 3.509950833333334
+    }
+   },
+   "costPerRunUsd": {
+    "n": 36,
+    "mean": 16.503125,
+    "ci": {
+     "low": 15.61578486111111,
+     "high": 17.344683888888888
+    }
+   },
+   "inputTokensPerStep": {
+    "n": 270,
+    "mean": 62991.933333333334,
+    "ci": {
+     "low": 59901.00685185185,
+     "high": 66362.64185185185
+    }
+   },
+   "outputTokensPerStep": {
+    "n": 270,
+    "mean": 9829.277777777777,
+    "ci": {
+     "low": 9212.527222222223,
+     "high": 10458.215925925926
+    }
+   },
+   "wallMinutesPerStep": {
+    "n": 270,
+    "mean": 4.312791728395062,
+    "ci": {
+     "low": 4.08174685493827,
+     "high": 4.5588763672839505
+    }
+   },
+   "agentTurnsPerStep": {
+    "n": 270,
+    "mean": 14.985185185185186,
+    "ci": {
+     "low": 14.459259259259259,
+     "high": 15.544629629629629
+    }
+   },
+   "repairTurns": 0,
+   "repairCostUsd": 0,
+   "usageLimitInterruptions": 0
+  },
+  {
+   "arm": "daedalus-mcp",
+   "steps": 270,
+   "stepsWithCost": 180,
+   "costPerStepUsd": {
+    "n": 180,
+    "mean": 3.2802616666666657,
+    "ci": {
+     "low": 3.0694173888888874,
+     "high": 3.5127196111111125
+    }
+   },
+   "costPerRunUsd": {
+    "n": 36,
+    "mean": 16.401308333333336,
+    "ci": {
+     "low": 15.434965000000007,
+     "high": 17.440412638888887
+    }
+   },
+   "inputTokensPerStep": {
+    "n": 270,
+    "mean": 60706.514814814815,
+    "ci": {
+     "low": 58222.01981481482,
+     "high": 63449.56314814815
+    }
+   },
+   "outputTokensPerStep": {
+    "n": 270,
+    "mean": 9932.75925925926,
+    "ci": {
+     "low": 9426.215185185185,
+     "high": 10468.976111111111
+    }
+   },
+   "wallMinutesPerStep": {
+    "n": 270,
+    "mean": 4.182431543209878,
+    "ci": {
+     "low": 3.8337774629629675,
+     "high": 4.557758052469135
+    }
+   },
+   "agentTurnsPerStep": {
+    "n": 270,
+    "mean": 15.474074074074075,
+    "ci": {
+     "low": 14.981481481481481,
+     "high": 16.022407407407407
+    }
+   },
+   "repairTurns": 0,
+   "repairCostUsd": 0,
+   "usageLimitInterruptions": 0
+  },
+  {
+   "arm": "gate",
+   "steps": 270,
+   "stepsWithCost": 180,
+   "costPerStepUsd": {
+    "n": 180,
+    "mean": 4.2743666666666655,
+    "ci": {
+     "low": 4.03696636111111,
+     "high": 4.530293472222223
+    }
+   },
+   "costPerRunUsd": {
+    "n": 36,
+    "mean": 21.371833333333335,
+    "ci": {
+     "low": 20.193798611111113,
+     "high": 22.564597083333325
+    }
+   },
+   "inputTokensPerStep": {
+    "n": 270,
+    "mean": 86853.04074074075,
+    "ci": {
+     "low": 83712.14277777779,
+     "high": 89939.79981481482
+    }
+   },
+   "outputTokensPerStep": {
+    "n": 270,
+    "mean": 12311.518518518518,
+    "ci": {
+     "low": 11713.567222222222,
+     "high": 12944.747592592592
+    }
+   },
+   "wallMinutesPerStep": {
+    "n": 270,
+    "mean": 5.6397617283950625,
+    "ci": {
+     "low": 5.322322067901228,
+     "high": 5.9578066172839454
+    }
+   },
+   "agentTurnsPerStep": {
+    "n": 270,
+    "mean": 20.062962962962963,
+    "ci": {
+     "low": 19.407222222222224,
+     "high": 20.78148148148148
+    }
+   },
+   "repairTurns": 234,
+   "repairCostUsd": 218.4831,
+   "usageLimitInterruptions": 0
+  }
+ ],
+ "guards": [
+  {
+   "arm": "none",
+   "steps": 270,
+   "evaluationErrors": 1,
+   "stepsWithTypecheckErrors": 41,
+   "meanTypecheckErrors": 0.16296296296296298,
+   "skeletonBroken": 1,
+   "nonCompletedTurns": 8,
+   "meanLocStep1": 622.8333333333334,
+   "meanLocStepK": 2076.185185185185,
+   "meanFilesStepK": 59.24074074074074,
+   "runsWithLocDrop": 0
+  },
+  {
+   "arm": "daedalus-mcp",
+   "steps": 270,
+   "evaluationErrors": 0,
+   "stepsWithTypecheckErrors": 48,
+   "meanTypecheckErrors": 0.1962962962962963,
+   "skeletonBroken": 1,
+   "nonCompletedTurns": 7,
+   "meanLocStep1": 627.6111111111111,
+   "meanLocStepK": 2091.6666666666665,
+   "meanFilesStepK": 59.75925925925926,
+   "runsWithLocDrop": 0
+  },
+  {
+   "arm": "gate",
+   "steps": 270,
+   "evaluationErrors": 3,
+   "stepsWithTypecheckErrors": 30,
+   "meanTypecheckErrors": 0.11481481481481481,
+   "skeletonBroken": 3,
+   "nonCompletedTurns": 12,
+   "meanLocStep1": 616.2407407407408,
+   "meanLocStepK": 2054,
+   "meanFilesStepK": 58.74074074074074,
+   "runsWithLocDrop": 0
+  }
+ ],
+ "missing": [
+  {
+   "model": "claude-code-cli/synth-model-a",
+   "arm": "none",
+   "runsScheduled": 18,
+   "runsFound": 18,
+   "runsComplete": 18,
+   "stepsExpected": 90,
+   "stepsRecorded": 90,
+   "stepsWithoutOutcome": 1,
+   "runsWithoutSlope": 0
+  },
+  {
+   "model": "claude-code-cli/synth-model-a",
+   "arm": "daedalus-mcp",
+   "runsScheduled": 18,
+   "runsFound": 18,
+   "runsComplete": 18,
+   "stepsExpected": 90,
+   "stepsRecorded": 90,
+   "stepsWithoutOutcome": 0,
+   "runsWithoutSlope": 0
+  },
+  {
+   "model": "claude-code-cli/synth-model-a",
+   "arm": "gate",
+   "runsScheduled": 18,
+   "runsFound": 18,
+   "runsComplete": 18,
+   "stepsExpected": 90,
+   "stepsRecorded": 90,
+   "stepsWithoutOutcome": 0,
+   "runsWithoutSlope": 0
+  },
+  {
+   "model": "claude-code-cli/synth-model-b",
+   "arm": "none",
+   "runsScheduled": 18,
+   "runsFound": 18,
+   "runsComplete": 18,
+   "stepsExpected": 90,
+   "stepsRecorded": 90,
+   "stepsWithoutOutcome": 0,
+   "runsWithoutSlope": 0
+  },
+  {
+   "model": "claude-code-cli/synth-model-b",
+   "arm": "daedalus-mcp",
+   "runsScheduled": 18,
+   "runsFound": 18,
+   "runsComplete": 18,
+   "stepsExpected": 90,
+   "stepsRecorded": 90,
+   "stepsWithoutOutcome": 0,
+   "runsWithoutSlope": 0
+  },
+  {
+   "model": "claude-code-cli/synth-model-b",
+   "arm": "gate",
+   "runsScheduled": 18,
+   "runsFound": 18,
+   "runsComplete": 18,
+   "stepsExpected": 90,
+   "stepsRecorded": 90,
+   "stepsWithoutOutcome": 2,
+   "runsWithoutSlope": 0
+  },
+  {
+   "model": "codex-cli/synth-model-c",
+   "arm": "none",
+   "runsScheduled": 18,
+   "runsFound": 18,
+   "runsComplete": 18,
+   "stepsExpected": 90,
+   "stepsRecorded": 90,
+   "stepsWithoutOutcome": 0,
+   "runsWithoutSlope": 0
+  },
+  {
+   "model": "codex-cli/synth-model-c",
+   "arm": "daedalus-mcp",
+   "runsScheduled": 18,
+   "runsFound": 18,
+   "runsComplete": 18,
+   "stepsExpected": 90,
+   "stepsRecorded": 90,
+   "stepsWithoutOutcome": 0,
+   "runsWithoutSlope": 0
+  },
+  {
+   "model": "codex-cli/synth-model-c",
+   "arm": "gate",
+   "runsScheduled": 18,
+   "runsFound": 18,
+   "runsComplete": 18,
+   "stepsExpected": 90,
+   "stepsRecorded": 90,
+   "stepsWithoutOutcome": 1,
+   "runsWithoutSlope": 0
+  }
+ ],
+ "trajectories": {
+  "blocking": [
+   {
+    "arm": "none",
+    "step": 1,
+    "n": 54,
+    "mean": 1.2407407407407407,
+    "low": 0.8168406699385048,
+    "high": 1.6646408115429767
+   },
+   {
+    "arm": "none",
+    "step": 2,
+    "n": 54,
+    "mean": 1.5,
+    "low": 0.9425617644590149,
+    "high": 2.0574382355409853
+   },
+   {
+    "arm": "none",
+    "step": 3,
+    "n": 54,
+    "mean": 2.7222222222222223,
+    "low": 1.9547351638215704,
+    "high": 3.489709280622874
+   },
+   {
+    "arm": "none",
+    "step": 4,
+    "n": 54,
+    "mean": 3.3333333333333335,
+    "low": 2.1484186017875393,
+    "high": 4.518248064879128
+   },
+   {
+    "arm": "none",
+    "step": 5,
+    "n": 53,
+    "mean": 3.792452830188679,
+    "low": 2.630429303177127,
+    "high": 4.954476357200232
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 1,
+    "n": 54,
+    "mean": 1.037037037037037,
+    "low": 0.5884366680356872,
+    "high": 1.4856374060383868
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 2,
+    "n": 54,
+    "mean": 1.9814814814814814,
+    "low": 1.3850933136735102,
+    "high": 2.5778696492894526
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 3,
+    "n": 54,
+    "mean": 2.314814814814815,
+    "low": 1.5107589869907538,
+    "high": 3.1188706426388757
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 4,
+    "n": 54,
+    "mean": 2.888888888888889,
+    "low": 1.8927006727212745,
+    "high": 3.885077105056503
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 5,
+    "n": 54,
+    "mean": 3.9814814814814814,
+    "low": 3.045274901687973,
+    "high": 4.91768806127499
+   },
+   {
+    "arm": "gate",
+    "step": 1,
+    "n": 54,
+    "mean": 1.037037037037037,
+    "low": 0.5975047602870305,
+    "high": 1.4765693137870435
+   },
+   {
+    "arm": "gate",
+    "step": 2,
+    "n": 53,
+    "mean": 2.509433962264151,
+    "low": 1.1380409919702832,
+    "high": 3.880826932558019
+   },
+   {
+    "arm": "gate",
+    "step": 3,
+    "n": 54,
+    "mean": 2.9814814814814814,
+    "low": 1.9936498452902436,
+    "high": 3.969313117672719
+   },
+   {
+    "arm": "gate",
+    "step": 4,
+    "n": 53,
+    "mean": 3.8867924528301887,
+    "low": 2.5276124874565324,
+    "high": 5.245972418203845
+   },
+   {
+    "arm": "gate",
+    "step": 5,
+    "n": 53,
+    "mean": 4.39622641509434,
+    "low": 2.9231813539842992,
+    "high": 5.86927147620438
+   }
+  ],
+  "primary": [
+   {
+    "arm": "none",
+    "step": 1,
+    "n": 54,
+    "mean": 1.2407407407407407,
+    "low": 0.8168406699385048,
+    "high": 1.6646408115429767
+   },
+   {
+    "arm": "none",
+    "step": 2,
+    "n": 54,
+    "mean": 1.5,
+    "low": 0.9425617644590149,
+    "high": 2.0574382355409853
+   },
+   {
+    "arm": "none",
+    "step": 3,
+    "n": 54,
+    "mean": 2.7222222222222223,
+    "low": 1.9547351638215704,
+    "high": 3.489709280622874
+   },
+   {
+    "arm": "none",
+    "step": 4,
+    "n": 54,
+    "mean": 3.3333333333333335,
+    "low": 2.1484186017875393,
+    "high": 4.518248064879128
+   },
+   {
+    "arm": "none",
+    "step": 5,
+    "n": 53,
+    "mean": 3.792452830188679,
+    "low": 2.630429303177127,
+    "high": 4.954476357200232
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 1,
+    "n": 54,
+    "mean": 1.037037037037037,
+    "low": 0.5884366680356872,
+    "high": 1.4856374060383868
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 2,
+    "n": 54,
+    "mean": 1.9814814814814814,
+    "low": 1.3850933136735102,
+    "high": 2.5778696492894526
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 3,
+    "n": 54,
+    "mean": 2.314814814814815,
+    "low": 1.5107589869907538,
+    "high": 3.1188706426388757
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 4,
+    "n": 54,
+    "mean": 2.888888888888889,
+    "low": 1.8927006727212745,
+    "high": 3.885077105056503
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 5,
+    "n": 54,
+    "mean": 3.9814814814814814,
+    "low": 3.045274901687973,
+    "high": 4.91768806127499
+   },
+   {
+    "arm": "gate",
+    "step": 1,
+    "n": 54,
+    "mean": 1.037037037037037,
+    "low": 0.5975047602870305,
+    "high": 1.4765693137870435
+   },
+   {
+    "arm": "gate",
+    "step": 2,
+    "n": 53,
+    "mean": 2.509433962264151,
+    "low": 1.1380409919702832,
+    "high": 3.880826932558019
+   },
+   {
+    "arm": "gate",
+    "step": 3,
+    "n": 54,
+    "mean": 2.9814814814814814,
+    "low": 1.9936498452902436,
+    "high": 3.969313117672719
+   },
+   {
+    "arm": "gate",
+    "step": 4,
+    "n": 53,
+    "mean": 3.8867924528301887,
+    "low": 2.5276124874565324,
+    "high": 5.245972418203845
+   },
+   {
+    "arm": "gate",
+    "step": 5,
+    "n": 53,
+    "mean": 4.39622641509434,
+    "low": 2.9231813539842992,
+    "high": 5.86927147620438
+   }
+  ],
+  "ahs": [
+   {
+    "arm": "none",
+    "step": 1,
+    "n": 54,
+    "mean": 0.8784444444444445,
+    "low": 0.8590109734612132,
+    "high": 0.8978779154276757
+   },
+   {
+    "arm": "none",
+    "step": 2,
+    "n": 54,
+    "mean": 0.8214074074074077,
+    "low": 0.7965190460107147,
+    "high": 0.8462957688041007
+   },
+   {
+    "arm": "none",
+    "step": 3,
+    "n": 54,
+    "mean": 0.7145925925925929,
+    "low": 0.6762309441608735,
+    "high": 0.7529542410243123
+   },
+   {
+    "arm": "none",
+    "step": 4,
+    "n": 54,
+    "mean": 0.6457777777777778,
+    "low": 0.5969335195292577,
+    "high": 0.6946220360262979
+   },
+   {
+    "arm": "none",
+    "step": 5,
+    "n": 53,
+    "mean": 0.5804528301886792,
+    "low": 0.5237654580421552,
+    "high": 0.6371402023352032
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 1,
+    "n": 54,
+    "mean": 0.8838518518518521,
+    "low": 0.8643031853737114,
+    "high": 0.9034005183299928
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 2,
+    "n": 54,
+    "mean": 0.7971851851851853,
+    "low": 0.7661926087227283,
+    "high": 0.8281777616476423
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 3,
+    "n": 54,
+    "mean": 0.7274814814814812,
+    "low": 0.6855071554758552,
+    "high": 0.7694558074871072
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 4,
+    "n": 54,
+    "mean": 0.6623703703703705,
+    "low": 0.6114323874264471,
+    "high": 0.7133083533142939
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 5,
+    "n": 54,
+    "mean": 0.5717037037037036,
+    "low": 0.5162875131092246,
+    "high": 0.6271198942981826
+   },
+   {
+    "arm": "gate",
+    "step": 1,
+    "n": 54,
+    "mean": 0.8788148148148147,
+    "low": 0.8591143961251031,
+    "high": 0.8985152335045263
+   },
+   {
+    "arm": "gate",
+    "step": 2,
+    "n": 53,
+    "mean": 0.7814339622641508,
+    "low": 0.7305244942050928,
+    "high": 0.8323434303232089
+   },
+   {
+    "arm": "gate",
+    "step": 3,
+    "n": 54,
+    "mean": 0.7122962962962963,
+    "low": 0.6673539909538521,
+    "high": 0.7572386016387406
+   },
+   {
+    "arm": "gate",
+    "step": 4,
+    "n": 53,
+    "mean": 0.6329056603773584,
+    "low": 0.5688320917376224,
+    "high": 0.6969792290170944
+   },
+   {
+    "arm": "gate",
+    "step": 5,
+    "n": 53,
+    "mean": 0.5617358490566038,
+    "low": 0.5038240320190901,
+    "high": 0.6196476660941175
+   }
+  ]
+ },
+ "notComputable": [
+  {
+   "item": "GLMM (outline §5 candidate 2)",
+   "reason": "Not implemented: the outline leaves the choice between candidates 1 and 2 to registration, and a negative-binomial GLMM with crossed random slopes needs an R/Python fit outside this TypeScript toolchain. Listed as an open decision (rehearsal doc §5)."
+  },
+  {
+   "item": "Held-out rule violations (Q4)",
+   "reason": "Not in the step record. `holdout-run.ts` (PR #119) scores the hold-out REFERENCE set for the validity gate, not loop snapshots; a held-out-rule score per snapshot needs a re-scoring pass over the kept commits."
+  },
+  {
+   "item": "Dependency-cruiser violations (Q4)",
+   "reason": "Not in the step record; needs the ADR-030 translation run over every snapshot commit."
+  },
+  {
+   "item": "Layer-coverage share, dynamic imports, barrels (gaming guards)",
+   "reason": "Not in the step record (`sourceFiles` lists files but not their layer match); readiness gate D13."
+  },
+  {
+   "item": "MCP tool calls per step, first call before or after the first write (process)",
+   "reason": "The call log is not part of the step record (readiness gate D6)."
+  },
+  {
+   "item": "Per-step acceptance checks (feature completeness)",
+   "reason": "Not adopted yet (outline §4); only LOC and file trajectories are reported."
+  },
+  {
+   "item": "Judge dimensions FF-N01, FF-N02",
+   "reason": "Scored offline after the runs (memo §4); not in the step record."
+  }
+ ],
+ "plan": {
+  "plan": {
+   "schema": "study2-analysis-plan/v0-tooling",
+   "seed": 20261016,
+   "flips": 9999,
+   "resamples": 4999,
+   "alpha": 0.05,
+   "exactMaxUnits": 20,
+   "primaryScale": null,
+   "confirmatoryInference": null
+  },
+  "seedSource": "plan",
+  "t2Scale": "raw",
+  "primaryScaleSlotFilled": false,
+  "scales": [
+   {
+    "scale": "raw",
+    "metric": "blockingSlope",
+    "contrasts": [
+     {
+      "metric": "blockingSlope",
+      "arm": "gate",
+      "reference": "none",
+      "blocks": 54,
+      "tasks": 6,
+      "meanArm": 0.8235449735449735,
+      "meanReference": 0.7185185185185184,
+      "meanDiff": 0.10502645502645501,
+      "ci": {
+       "low": -0.30011904761904756,
+       "high": 0.533902116402117
+      },
+      "sdDiff": 1.3296887091371552,
+      "dz": 0.0789857462914064,
+      "relativeReduction": -0.14617083946980847,
+      "relativeReductionCi": {
+       "low": -0.9542301687383659,
+       "high": 0.36704437757664793
+      },
+      "p": 0.5637,
+      "taskEffects": [
+       {
+        "taskId": "synth-task-1",
+        "blocks": 9,
+        "meanDiff": 0.17777777777777776,
+        "ci": {
+         "low": -0.47777777777777763,
+         "high": 0.7
+        }
+       },
+       {
+        "taskId": "synth-task-2",
+        "blocks": 9,
+        "meanDiff": 0.14444444444444443,
+        "ci": {
+         "low": -0.5999999999999999,
+         "high": 0.8888888888888888
+        }
+       },
+       {
+        "taskId": "synth-task-3",
+        "blocks": 9,
+        "meanDiff": 0.36666666666666675,
+        "ci": {
+         "low": -1.056111111111111,
+         "high": 1.7666666666666666
+        }
+       },
+       {
+        "taskId": "synth-task-4",
+        "blocks": 9,
+        "meanDiff": 0.011111111111111115,
+        "ci": {
+         "low": -0.34444444444444444,
+         "high": 0.39999999999999997
+        }
+       },
+       {
+        "taskId": "synth-task-5",
+        "blocks": 9,
+        "meanDiff": 0.41904761904761895,
+        "ci": {
+         "low": -0.5510317460317461,
+         "high": 1.4005555555555549
+        }
+       },
+       {
+        "taskId": "synth-task-6",
+        "blocks": 9,
+        "meanDiff": -0.4888888888888888,
+        "ci": {
+         "low": -1,
+         "high": 0.07777777777777772
+        }
+       }
+      ],
+      "taskLevelP": 0.40625,
+      "taskLevelMinP": 0.03125,
+      "inference": {
+       "test": {
+        "method": "Monte Carlo sign-flip",
+        "units": 54,
+        "flips": 9999,
+        "seed": 20361026,
+        "mcSe": 0.004959505083077031,
+        "nearAlpha": false
+       },
+       "taskLevelTest": {
+        "method": "exact sign-flip",
+        "units": 6,
+        "seed": null
+       },
+       "bootstrap": {
+        "method": "two-stage cluster percentile (tasks, then blocks within task)",
+        "resamples": 4999,
+        "seed": 20261026
+       },
+       "planSeed": 20261016,
+       "seedSource": "plan",
+       "bootstrapRejects": false,
+       "signFlipRejects": false,
+       "disagreement": false
+      },
+      "holmP": 1,
+      "holmReject": false
+     },
+     {
+      "metric": "blockingSlope",
+      "arm": "daedalus-mcp",
+      "reference": "none",
+      "blocks": 54,
+      "tasks": 6,
+      "meanArm": 0.6796296296296296,
+      "meanReference": 0.7185185185185184,
+      "meanDiff": -0.03888888888888888,
+      "ci": {
+       "low": -0.42592592592592593,
+       "high": 0.3408333333333339
+      },
+      "sdDiff": 1.2352398998020155,
+      "dz": -0.03148286328438873,
+      "relativeReduction": 0.054123711340206104,
+      "relativeReductionCi": {
+       "low": -0.699659880316375,
+       "high": 0.4838096687324772
+      },
+      "p": 0.8291,
+      "taskEffects": [
+       {
+        "taskId": "synth-task-1",
+        "blocks": 9,
+        "meanDiff": 0.4222222222222222,
+        "ci": {
+         "low": -0.21166666666666664,
+         "high": 1.2000000000000002
+        }
+       },
+       {
+        "taskId": "synth-task-2",
+        "blocks": 9,
+        "meanDiff": -0.23333333333333328,
+        "ci": {
+         "low": -1.5005555555555552,
+         "high": 0.6000000000000001
+        }
+       },
+       {
+        "taskId": "synth-task-3",
+        "blocks": 9,
+        "meanDiff": -0.14444444444444438,
+        "ci": {
+         "low": -1.1888888888888887,
+         "high": 0.7555555555555554
+        }
+       },
+       {
+        "taskId": "synth-task-4",
+        "blocks": 9,
+        "meanDiff": 0.15555555555555556,
+        "ci": {
+         "low": -0.14444444444444446,
+         "high": 0.4444444444444444
+        }
+       },
+       {
+        "taskId": "synth-task-5",
+        "blocks": 9,
+        "meanDiff": 0.07777777777777782,
+        "ci": {
+         "low": -0.8116666666666665,
+         "high": 0.9783333333333329
+        }
+       },
+       {
+        "taskId": "synth-task-6",
+        "blocks": 9,
+        "meanDiff": -0.5111111111111111,
+        "ci": {
+         "low": -0.8777777777777778,
+         "high": -0.10000000000000005
+        }
+       }
+      ],
+      "taskLevelP": 0.8125,
+      "taskLevelMinP": 0.03125,
+      "inference": {
+       "test": {
+        "method": "Monte Carlo sign-flip",
+        "units": 54,
+        "flips": 9999,
+        "seed": 20361027,
+        "mcSe": 0.00376440381383392,
+        "nearAlpha": false
+       },
+       "taskLevelTest": {
+        "method": "exact sign-flip",
+        "units": 6,
+        "seed": null
+       },
+       "bootstrap": {
+        "method": "two-stage cluster percentile (tasks, then blocks within task)",
+        "resamples": 4999,
+        "seed": 20261027
+       },
+       "planSeed": 20261016,
+       "seedSource": "plan",
+       "bootstrapRejects": false,
+       "signFlipRejects": false,
+       "disagreement": false
+      },
+      "holmP": 1,
+      "holmReject": false
+     }
+    ]
+   },
+   {
+    "scale": "perKloc",
+    "metric": "blockingPerKlocSlope",
+    "contrasts": [
+     {
+      "metric": "blockingPerKlocSlope",
+      "arm": "gate",
+      "reference": "none",
+      "blocks": 54,
+      "tasks": 6,
+      "meanArm": 0.06312051113931119,
+      "meanReference": -0.005050149393874148,
+      "meanDiff": 0.06817066053318531,
+      "ci": {
+       "low": -0.2903797511859174,
+       "high": 0.4130522006676109
+      },
+      "sdDiff": 0.9155299542539708,
+      "dz": 0.07446032783136505,
+      "relativeReduction": null,
+      "relativeReductionCi": {
+       "low": -30.602233822902388,
+       "high": 11.052208933029352
+      },
+      "p": 0.5885,
+      "taskEffects": [
+       {
+        "taskId": "synth-task-1",
+        "blocks": 9,
+        "meanDiff": 0.39446717639861784,
+        "ci": {
+         "low": -0.05137835926323978,
+         "high": 0.8968230096940573
+        }
+       },
+       {
+        "taskId": "synth-task-2",
+        "blocks": 9,
+        "meanDiff": -0.18643226078249406,
+        "ci": {
+         "low": -0.8903586646385243,
+         "high": 0.4408658481071286
+        }
+       },
+       {
+        "taskId": "synth-task-3",
+        "blocks": 9,
+        "meanDiff": 0.03576182883373513,
+        "ci": {
+         "low": -0.6602550909195052,
+         "high": 0.7823686369595682
+        }
+       },
+       {
+        "taskId": "synth-task-4",
+        "blocks": 9,
+        "meanDiff": 0.2049474245726098,
+        "ci": {
+         "low": -0.06990971872507314,
+         "high": 0.49813073342279623
+        }
+       },
+       {
+        "taskId": "synth-task-5",
+        "blocks": 9,
+        "meanDiff": 0.44580590168056067,
+        "ci": {
+         "low": -0.11953898466703115,
+         "high": 0.9782547392957014
+        }
+       },
+       {
+        "taskId": "synth-task-6",
+        "blocks": 9,
+        "meanDiff": -0.4855261075039173,
+        "ci": {
+         "low": -0.9163304382493453,
+         "high": -0.058352064056818975
+        }
+       }
+      ],
+      "taskLevelP": 0.6875,
+      "taskLevelMinP": 0.03125,
+      "inference": {
+       "test": {
+        "method": "Monte Carlo sign-flip",
+        "units": 54,
+        "flips": 9999,
+        "seed": 20361046,
+        "mcSe": 0.004921300328134016,
+        "nearAlpha": false
+       },
+       "taskLevelTest": {
+        "method": "exact sign-flip",
+        "units": 6,
+        "seed": null
+       },
+       "bootstrap": {
+        "method": "two-stage cluster percentile (tasks, then blocks within task)",
+        "resamples": 4999,
+        "seed": 20261046
+       },
+       "planSeed": 20261016,
+       "seedSource": "plan",
+       "bootstrapRejects": false,
+       "signFlipRejects": false,
+       "disagreement": false
+      },
+      "holmP": 1,
+      "holmReject": false
+     },
+     {
+      "metric": "blockingPerKlocSlope",
+      "arm": "daedalus-mcp",
+      "reference": "none",
+      "blocks": 54,
+      "tasks": 6,
+      "meanArm": 0.016769665059362667,
+      "meanReference": -0.005050149393874148,
+      "meanDiff": 0.021819814453236837,
+      "ci": {
+       "low": -0.2906739485260174,
+       "high": 0.31337123284946494
+      },
+      "sdDiff": 0.8345989011703377,
+      "dz": 0.026144072826646957,
+      "relativeReduction": null,
+      "relativeReductionCi": {
+       "low": -17.56678928366517,
+       "high": 17.26667831587214
+      },
+      "p": 0.8473,
+      "taskEffects": [
+       {
+        "taskId": "synth-task-1",
+        "blocks": 9,
+        "meanDiff": 0.34553481472275327,
+        "ci": {
+         "low": -0.1716711945780969,
+         "high": 0.9943361972180798
+        }
+       },
+       {
+        "taskId": "synth-task-2",
+        "blocks": 9,
+        "meanDiff": -0.01962874451957017,
+        "ci": {
+         "low": -0.5213124783143119,
+         "high": 0.46383116393346036
+        }
+       },
+       {
+        "taskId": "synth-task-3",
+        "blocks": 9,
+        "meanDiff": -0.10700276746068574,
+        "ci": {
+         "low": -0.7095785715896471,
+         "high": 0.5236771226465616
+        }
+       },
+       {
+        "taskId": "synth-task-4",
+        "blocks": 9,
+        "meanDiff": 0.32669201180233787,
+        "ci": {
+         "low": -0.017584839737266503,
+         "high": 0.62346193297077
+        }
+       },
+       {
+        "taskId": "synth-task-5",
+        "blocks": 9,
+        "meanDiff": 0.07045515778248346,
+        "ci": {
+         "low": -0.37568319729646155,
+         "high": 0.48641311841429774
+        }
+       },
+       {
+        "taskId": "synth-task-6",
+        "blocks": 9,
+        "meanDiff": -0.48513158560789765,
+        "ci": {
+         "low": -1.0760955276067432,
+         "high": -0.005342447283680738
+        }
+       }
+      ],
+      "taskLevelP": 0.9375,
+      "taskLevelMinP": 0.03125,
+      "inference": {
+       "test": {
+        "method": "Monte Carlo sign-flip",
+        "units": 54,
+        "flips": 9999,
+        "seed": 20361047,
+        "mcSe": 0.003597160679827306,
+        "nearAlpha": false
+       },
+       "taskLevelTest": {
+        "method": "exact sign-flip",
+        "units": 6,
+        "seed": null
+       },
+       "bootstrap": {
+        "method": "two-stage cluster percentile (tasks, then blocks within task)",
+        "resamples": 4999,
+        "seed": 20261047
+       },
+       "planSeed": 20261016,
+       "seedSource": "plan",
+       "bootstrapRejects": false,
+       "signFlipRejects": false,
+       "disagreement": false
+      },
+      "holmP": 1,
+      "holmReject": false
+     }
+    ]
+   }
+  ]
+ },
+ "outcomeColumns": [
+  {
+   "outcome": "blockingCount",
+   "metric": "blockingSlope",
+   "scale": "raw",
+   "contrasts": [
+    {
+     "metric": "blockingSlope",
+     "arm": "gate",
+     "reference": "none",
+     "blocks": 54,
+     "tasks": 6,
+     "meanArm": 0.8235449735449735,
+     "meanReference": 0.7185185185185184,
+     "meanDiff": 0.10502645502645501,
+     "ci": {
+      "low": -0.30011904761904756,
+      "high": 0.533902116402117
+     },
+     "sdDiff": 1.3296887091371552,
+     "dz": 0.0789857462914064,
+     "relativeReduction": -0.14617083946980847,
+     "relativeReductionCi": {
+      "low": -0.9542301687383659,
+      "high": 0.36704437757664793
+     },
+     "p": 0.5637,
+     "taskEffects": [
+      {
+       "taskId": "synth-task-1",
+       "blocks": 9,
+       "meanDiff": 0.17777777777777776,
+       "ci": {
+        "low": -0.47777777777777763,
+        "high": 0.7
+       }
+      },
+      {
+       "taskId": "synth-task-2",
+       "blocks": 9,
+       "meanDiff": 0.14444444444444443,
+       "ci": {
+        "low": -0.5999999999999999,
+        "high": 0.8888888888888888
+       }
+      },
+      {
+       "taskId": "synth-task-3",
+       "blocks": 9,
+       "meanDiff": 0.36666666666666675,
+       "ci": {
+        "low": -1.056111111111111,
+        "high": 1.7666666666666666
+       }
+      },
+      {
+       "taskId": "synth-task-4",
+       "blocks": 9,
+       "meanDiff": 0.011111111111111115,
+       "ci": {
+        "low": -0.34444444444444444,
+        "high": 0.39999999999999997
+       }
+      },
+      {
+       "taskId": "synth-task-5",
+       "blocks": 9,
+       "meanDiff": 0.41904761904761895,
+       "ci": {
+        "low": -0.5510317460317461,
+        "high": 1.4005555555555549
+       }
+      },
+      {
+       "taskId": "synth-task-6",
+       "blocks": 9,
+       "meanDiff": -0.4888888888888888,
+       "ci": {
+        "low": -1,
+        "high": 0.07777777777777772
+       }
+      }
+     ],
+     "taskLevelP": 0.40625,
+     "taskLevelMinP": 0.03125,
+     "inference": {
+      "test": {
+       "method": "Monte Carlo sign-flip",
+       "units": 54,
+       "flips": 9999,
+       "seed": 20361026,
+       "mcSe": 0.004959505083077031,
+       "nearAlpha": false
+      },
+      "taskLevelTest": {
+       "method": "exact sign-flip",
+       "units": 6,
+       "seed": null
+      },
+      "bootstrap": {
+       "method": "two-stage cluster percentile (tasks, then blocks within task)",
+       "resamples": 4999,
+       "seed": 20261026
+      },
+      "planSeed": 20261016,
+      "seedSource": "plan",
+      "bootstrapRejects": false,
+      "signFlipRejects": false,
+      "disagreement": false
+     },
+     "holmP": 1,
+     "holmReject": false
+    },
+    {
+     "metric": "blockingSlope",
+     "arm": "daedalus-mcp",
+     "reference": "none",
+     "blocks": 54,
+     "tasks": 6,
+     "meanArm": 0.6796296296296296,
+     "meanReference": 0.7185185185185184,
+     "meanDiff": -0.03888888888888888,
+     "ci": {
+      "low": -0.42592592592592593,
+      "high": 0.3408333333333339
+     },
+     "sdDiff": 1.2352398998020155,
+     "dz": -0.03148286328438873,
+     "relativeReduction": 0.054123711340206104,
+     "relativeReductionCi": {
+      "low": -0.699659880316375,
+      "high": 0.4838096687324772
+     },
+     "p": 0.8291,
+     "taskEffects": [
+      {
+       "taskId": "synth-task-1",
+       "blocks": 9,
+       "meanDiff": 0.4222222222222222,
+       "ci": {
+        "low": -0.21166666666666664,
+        "high": 1.2000000000000002
+       }
+      },
+      {
+       "taskId": "synth-task-2",
+       "blocks": 9,
+       "meanDiff": -0.23333333333333328,
+       "ci": {
+        "low": -1.5005555555555552,
+        "high": 0.6000000000000001
+       }
+      },
+      {
+       "taskId": "synth-task-3",
+       "blocks": 9,
+       "meanDiff": -0.14444444444444438,
+       "ci": {
+        "low": -1.1888888888888887,
+        "high": 0.7555555555555554
+       }
+      },
+      {
+       "taskId": "synth-task-4",
+       "blocks": 9,
+       "meanDiff": 0.15555555555555556,
+       "ci": {
+        "low": -0.14444444444444446,
+        "high": 0.4444444444444444
+       }
+      },
+      {
+       "taskId": "synth-task-5",
+       "blocks": 9,
+       "meanDiff": 0.07777777777777782,
+       "ci": {
+        "low": -0.8116666666666665,
+        "high": 0.9783333333333329
+       }
+      },
+      {
+       "taskId": "synth-task-6",
+       "blocks": 9,
+       "meanDiff": -0.5111111111111111,
+       "ci": {
+        "low": -0.8777777777777778,
+        "high": -0.10000000000000005
+       }
+      }
+     ],
+     "taskLevelP": 0.8125,
+     "taskLevelMinP": 0.03125,
+     "inference": {
+      "test": {
+       "method": "Monte Carlo sign-flip",
+       "units": 54,
+       "flips": 9999,
+       "seed": 20361027,
+       "mcSe": 0.00376440381383392,
+       "nearAlpha": false
+      },
+      "taskLevelTest": {
+       "method": "exact sign-flip",
+       "units": 6,
+       "seed": null
+      },
+      "bootstrap": {
+       "method": "two-stage cluster percentile (tasks, then blocks within task)",
+       "resamples": 4999,
+       "seed": 20261027
+      },
+      "planSeed": 20261016,
+      "seedSource": "plan",
+      "bootstrapRejects": false,
+      "signFlipRejects": false,
+      "disagreement": false
+     },
+     "holmP": 1,
+     "holmReject": false
+    }
+   ],
+   "step1Level": [
+    {
+     "arm": "none",
+     "estimate": {
+      "n": 54,
+      "mean": 1.2407407407407407,
+      "ci": {
+       "low": 0.7962962962962963,
+       "high": 1.7962962962962963
+      }
+     }
+    },
+    {
+     "arm": "daedalus-mcp",
+     "estimate": {
+      "n": 54,
+      "mean": 1.037037037037037,
+      "ci": {
+       "low": 0.5370370370370371,
+       "high": 1.7222222222222223
+      }
+     }
+    },
+    {
+     "arm": "gate",
+     "estimate": {
+      "n": 54,
+      "mean": 1.037037037037037,
+      "ci": {
+       "low": 0.4064814814814815,
+       "high": 1.7962962962962963
+      }
+     }
+    }
+   ],
+   "notes": []
+  },
+  {
+   "outcome": "blockingPerKloc",
+   "metric": "blockingPerKlocSlope",
+   "scale": "perKloc",
+   "contrasts": [
+    {
+     "metric": "blockingPerKlocSlope",
+     "arm": "gate",
+     "reference": "none",
+     "blocks": 54,
+     "tasks": 6,
+     "meanArm": 0.06312051113931119,
+     "meanReference": -0.005050149393874148,
+     "meanDiff": 0.06817066053318531,
+     "ci": {
+      "low": -0.2903797511859174,
+      "high": 0.4130522006676109
+     },
+     "sdDiff": 0.9155299542539708,
+     "dz": 0.07446032783136505,
+     "relativeReduction": null,
+     "relativeReductionCi": {
+      "low": -30.602233822902388,
+      "high": 11.052208933029352
+     },
+     "p": 0.5885,
+     "taskEffects": [
+      {
+       "taskId": "synth-task-1",
+       "blocks": 9,
+       "meanDiff": 0.39446717639861784,
+       "ci": {
+        "low": -0.05137835926323978,
+        "high": 0.8968230096940573
+       }
+      },
+      {
+       "taskId": "synth-task-2",
+       "blocks": 9,
+       "meanDiff": -0.18643226078249406,
+       "ci": {
+        "low": -0.8903586646385243,
+        "high": 0.4408658481071286
+       }
+      },
+      {
+       "taskId": "synth-task-3",
+       "blocks": 9,
+       "meanDiff": 0.03576182883373513,
+       "ci": {
+        "low": -0.6602550909195052,
+        "high": 0.7823686369595682
+       }
+      },
+      {
+       "taskId": "synth-task-4",
+       "blocks": 9,
+       "meanDiff": 0.2049474245726098,
+       "ci": {
+        "low": -0.06990971872507314,
+        "high": 0.49813073342279623
+       }
+      },
+      {
+       "taskId": "synth-task-5",
+       "blocks": 9,
+       "meanDiff": 0.44580590168056067,
+       "ci": {
+        "low": -0.11953898466703115,
+        "high": 0.9782547392957014
+       }
+      },
+      {
+       "taskId": "synth-task-6",
+       "blocks": 9,
+       "meanDiff": -0.4855261075039173,
+       "ci": {
+        "low": -0.9163304382493453,
+        "high": -0.058352064056818975
+       }
+      }
+     ],
+     "taskLevelP": 0.6875,
+     "taskLevelMinP": 0.03125,
+     "inference": {
+      "test": {
+       "method": "Monte Carlo sign-flip",
+       "units": 54,
+       "flips": 9999,
+       "seed": 20361046,
+       "mcSe": 0.004921300328134016,
+       "nearAlpha": false
+      },
+      "taskLevelTest": {
+       "method": "exact sign-flip",
+       "units": 6,
+       "seed": null
+      },
+      "bootstrap": {
+       "method": "two-stage cluster percentile (tasks, then blocks within task)",
+       "resamples": 4999,
+       "seed": 20261046
+      },
+      "planSeed": 20261016,
+      "seedSource": "plan",
+      "bootstrapRejects": false,
+      "signFlipRejects": false,
+      "disagreement": false
+     },
+     "holmP": 1,
+     "holmReject": false
+    },
+    {
+     "metric": "blockingPerKlocSlope",
+     "arm": "daedalus-mcp",
+     "reference": "none",
+     "blocks": 54,
+     "tasks": 6,
+     "meanArm": 0.016769665059362667,
+     "meanReference": -0.005050149393874148,
+     "meanDiff": 0.021819814453236837,
+     "ci": {
+      "low": -0.2906739485260174,
+      "high": 0.31337123284946494
+     },
+     "sdDiff": 0.8345989011703377,
+     "dz": 0.026144072826646957,
+     "relativeReduction": null,
+     "relativeReductionCi": {
+      "low": -17.56678928366517,
+      "high": 17.26667831587214
+     },
+     "p": 0.8473,
+     "taskEffects": [
+      {
+       "taskId": "synth-task-1",
+       "blocks": 9,
+       "meanDiff": 0.34553481472275327,
+       "ci": {
+        "low": -0.1716711945780969,
+        "high": 0.9943361972180798
+       }
+      },
+      {
+       "taskId": "synth-task-2",
+       "blocks": 9,
+       "meanDiff": -0.01962874451957017,
+       "ci": {
+        "low": -0.5213124783143119,
+        "high": 0.46383116393346036
+       }
+      },
+      {
+       "taskId": "synth-task-3",
+       "blocks": 9,
+       "meanDiff": -0.10700276746068574,
+       "ci": {
+        "low": -0.7095785715896471,
+        "high": 0.5236771226465616
+       }
+      },
+      {
+       "taskId": "synth-task-4",
+       "blocks": 9,
+       "meanDiff": 0.32669201180233787,
+       "ci": {
+        "low": -0.017584839737266503,
+        "high": 0.62346193297077
+       }
+      },
+      {
+       "taskId": "synth-task-5",
+       "blocks": 9,
+       "meanDiff": 0.07045515778248346,
+       "ci": {
+        "low": -0.37568319729646155,
+        "high": 0.48641311841429774
+       }
+      },
+      {
+       "taskId": "synth-task-6",
+       "blocks": 9,
+       "meanDiff": -0.48513158560789765,
+       "ci": {
+        "low": -1.0760955276067432,
+        "high": -0.005342447283680738
+       }
+      }
+     ],
+     "taskLevelP": 0.9375,
+     "taskLevelMinP": 0.03125,
+     "inference": {
+      "test": {
+       "method": "Monte Carlo sign-flip",
+       "units": 54,
+       "flips": 9999,
+       "seed": 20361047,
+       "mcSe": 0.003597160679827306,
+       "nearAlpha": false
+      },
+      "taskLevelTest": {
+       "method": "exact sign-flip",
+       "units": 6,
+       "seed": null
+      },
+      "bootstrap": {
+       "method": "two-stage cluster percentile (tasks, then blocks within task)",
+       "resamples": 4999,
+       "seed": 20261047
+      },
+      "planSeed": 20261016,
+      "seedSource": "plan",
+      "bootstrapRejects": false,
+      "signFlipRejects": false,
+      "disagreement": false
+     },
+     "holmP": 1,
+     "holmReject": false
+    }
+   ],
+   "step1Level": [
+    {
+     "arm": "none",
+     "estimate": {
+      "n": 54,
+      "mean": 2.0779350528050355,
+      "ci": {
+       "low": 1.4047995310827937,
+       "high": 2.8813861413931745
+      }
+     }
+    },
+    {
+     "arm": "daedalus-mcp",
+     "estimate": {
+      "n": 54,
+      "mean": 1.7176785488601543,
+      "ci": {
+       "low": 0.8495864785880972,
+       "high": 2.736910654006737
+      }
+     }
+    },
+    {
+     "arm": "gate",
+     "estimate": {
+      "n": 54,
+      "mean": 1.9019136977137114,
+      "ci": {
+       "low": 0.6625623568668555,
+       "high": 3.3930351393850144
+      }
+     }
+    }
+   ],
+   "notes": []
+  },
+  {
+   "outcome": "distinctViolatingEdges",
+   "metric": "distinctViolatingEdgesSlope",
+   "scale": "raw",
+   "contrasts": [
+    {
+     "metric": "distinctViolatingEdgesSlope",
+     "arm": "gate",
+     "reference": "none",
+     "blocks": 54,
+     "tasks": 6,
+     "meanArm": 0.8235449735449735,
+     "meanReference": 0.7185185185185184,
+     "meanDiff": 0.10502645502645501,
+     "ci": {
+      "low": -0.28398148148148145,
+      "high": 0.53734126984127
+     },
+     "sdDiff": 1.3296887091371552,
+     "dz": 0.0789857462914064,
+     "relativeReduction": -0.14617083946980847,
+     "relativeReductionCi": {
+      "low": -0.9298755520604169,
+      "high": 0.35641636642528446
+     },
+     "p": 0.5699,
+     "taskEffects": [
+      {
+       "taskId": "synth-task-1",
+       "blocks": 9,
+       "meanDiff": 0.17777777777777776,
+       "ci": {
+        "low": -0.44499999999999995,
+        "high": 0.7222222222222222
+       }
+      },
+      {
+       "taskId": "synth-task-2",
+       "blocks": 9,
+       "meanDiff": 0.14444444444444443,
+       "ci": {
+        "low": -0.5783333333333334,
+        "high": 0.900555555555555
+       }
+      },
+      {
+       "taskId": "synth-task-3",
+       "blocks": 9,
+       "meanDiff": 0.36666666666666675,
+       "ci": {
+        "low": -0.9333333333333333,
+        "high": 1.7555555555555555
+       }
+      },
+      {
+       "taskId": "synth-task-4",
+       "blocks": 9,
+       "meanDiff": 0.011111111111111115,
+       "ci": {
+        "low": -0.35611111111111116,
+        "high": 0.4222222222222223
+       }
+      },
+      {
+       "taskId": "synth-task-5",
+       "blocks": 9,
+       "meanDiff": 0.41904761904761895,
+       "ci": {
+        "low": -0.46190476190476193,
+        "high": 1.4006349206349198
+       }
+      },
+      {
+       "taskId": "synth-task-6",
+       "blocks": 9,
+       "meanDiff": -0.4888888888888888,
+       "ci": {
+        "low": -1.0444444444444443,
+        "high": 0.033333333333333354
+       }
+      }
+     ],
+     "taskLevelP": 0.40625,
+     "taskLevelMinP": 0.03125,
+     "inference": {
+      "test": {
+       "method": "Monte Carlo sign-flip",
+       "units": 54,
+       "flips": 9999,
+       "seed": 20361436,
+       "mcSe": 0.004951146370795203,
+       "nearAlpha": false
+      },
+      "taskLevelTest": {
+       "method": "exact sign-flip",
+       "units": 6,
+       "seed": null
+      },
+      "bootstrap": {
+       "method": "two-stage cluster percentile (tasks, then blocks within task)",
+       "resamples": 4999,
+       "seed": 20261436
+      },
+      "planSeed": 20261016,
+      "seedSource": "plan",
+      "bootstrapRejects": false,
+      "signFlipRejects": false,
+      "disagreement": false
+     },
+     "holmP": 1,
+     "holmReject": false
+    },
+    {
+     "metric": "distinctViolatingEdgesSlope",
+     "arm": "daedalus-mcp",
+     "reference": "none",
+     "blocks": 54,
+     "tasks": 6,
+     "meanArm": 0.6796296296296296,
+     "meanReference": 0.7185185185185184,
+     "meanDiff": -0.03888888888888888,
+     "ci": {
+      "low": -0.45370370370370355,
+      "high": 0.35555555555555535
+     },
+     "sdDiff": 1.2352398998020155,
+     "dz": -0.03148286328438873,
+     "relativeReduction": 0.054123711340206104,
+     "relativeReductionCi": {
+      "low": -0.7252680891956228,
+      "high": 0.4647949098097355
+     },
+     "p": 0.8283,
+     "taskEffects": [
+      {
+       "taskId": "synth-task-1",
+       "blocks": 9,
+       "meanDiff": 0.4222222222222222,
+       "ci": {
+        "low": -0.24499999999999988,
+        "high": 1.211111111111111
+       }
+      },
+      {
+       "taskId": "synth-task-2",
+       "blocks": 9,
+       "meanDiff": -0.23333333333333328,
+       "ci": {
+        "low": -1.4777777777777774,
+        "high": 0.5555555555555557
+       }
+      },
+      {
+       "taskId": "synth-task-3",
+       "blocks": 9,
+       "meanDiff": -0.14444444444444438,
+       "ci": {
+        "low": -1.1444444444444444,
+        "high": 0.7444444444444444
+       }
+      },
+      {
+       "taskId": "synth-task-4",
+       "blocks": 9,
+       "meanDiff": 0.15555555555555556,
+       "ci": {
+        "low": -0.1333333333333334,
+        "high": 0.4444444444444444
+       }
+      },
+      {
+       "taskId": "synth-task-5",
+       "blocks": 9,
+       "meanDiff": 0.07777777777777782,
+       "ci": {
+        "low": -0.7777777777777778,
+        "high": 0.9777777777777776
+       }
+      },
+      {
+       "taskId": "synth-task-6",
+       "blocks": 9,
+       "meanDiff": -0.5111111111111111,
+       "ci": {
+        "low": -0.8777777777777778,
+        "high": -0.08888888888888889
+       }
+      }
+     ],
+     "taskLevelP": 0.8125,
+     "taskLevelMinP": 0.03125,
+     "inference": {
+      "test": {
+       "method": "Monte Carlo sign-flip",
+       "units": 54,
+       "flips": 9999,
+       "seed": 20361437,
+       "mcSe": 0.003771383477363888,
+       "nearAlpha": false
+      },
+      "taskLevelTest": {
+       "method": "exact sign-flip",
+       "units": 6,
+       "seed": null
+      },
+      "bootstrap": {
+       "method": "two-stage cluster percentile (tasks, then blocks within task)",
+       "resamples": 4999,
+       "seed": 20261437
+      },
+      "planSeed": 20261016,
+      "seedSource": "plan",
+      "bootstrapRejects": false,
+      "signFlipRejects": false,
+      "disagreement": false
+     },
+     "holmP": 1,
+     "holmReject": false
+    }
+   ],
+   "step1Level": [
+    {
+     "arm": "none",
+     "estimate": {
+      "n": 54,
+      "mean": 1.2407407407407407,
+      "ci": {
+       "low": 0.8148148148148148,
+       "high": 1.7962962962962963
+      }
+     }
+    },
+    {
+     "arm": "daedalus-mcp",
+     "estimate": {
+      "n": 54,
+      "mean": 1.037037037037037,
+      "ci": {
+       "low": 0.5555555555555556,
+       "high": 1.7416666666666658
+      }
+     }
+    },
+    {
+     "arm": "gate",
+     "estimate": {
+      "n": 54,
+      "mean": 1.037037037037037,
+      "ci": {
+       "low": 0.3888888888888889,
+       "high": 1.7222222222222223
+      }
+     }
+    }
+   ],
+   "notes": [
+    "Duplicates removed (same file pair and direction across FF-S01/FF-S03): none.",
+    "Steps whose listed findings are fewer than their blocking count (capped listing; dedup partial): 0 of 810."
+   ]
+  },
+  {
+   "outcome": "newIdentitiesFromStep2",
+   "metric": "newIdentitiesFromStep2",
+   "scale": "raw",
+   "contrasts": [
+    {
+     "metric": "newIdentitiesFromStep2",
+     "arm": "gate",
+     "reference": "none",
+     "blocks": 50,
+     "tasks": 6,
+     "meanArm": 3.92,
+     "meanReference": 4.66,
+     "meanDiff": -0.74,
+     "ci": {
+      "low": -2.734751636503658,
+      "high": 1.755124716553288
+     },
+     "sdDiff": 6.805789852045392,
+     "dz": -0.1087309505710939,
+     "relativeReduction": 0.15879828326180256,
+     "relativeReductionCi": {
+      "low": -0.3924129093001359,
+      "high": 0.628388030888031
+     },
+     "p": 0.4648,
+     "taskEffects": [
+      {
+       "taskId": "synth-task-1",
+       "blocks": 8,
+       "meanDiff": -1.875,
+       "ci": {
+        "low": -4.125,
+        "high": 0.25
+       }
+      },
+      {
+       "taskId": "synth-task-2",
+       "blocks": 9,
+       "meanDiff": 1,
+       "ci": {
+        "low": -4,
+        "high": 6.777777777777778
+       }
+      },
+      {
+       "taskId": "synth-task-3",
+       "blocks": 9,
+       "meanDiff": 1.5555555555555556,
+       "ci": {
+        "low": -5.666666666666667,
+        "high": 7.888888888888889
+       }
+      },
+      {
+       "taskId": "synth-task-4",
+       "blocks": 9,
+       "meanDiff": -1.7777777777777777,
+       "ci": {
+        "low": -3.2222222222222223,
+        "high": -0.4444444444444444
+       }
+      },
+      {
+       "taskId": "synth-task-5",
+       "blocks": 6,
+       "meanDiff": -0.16666666666666666,
+       "ci": {
+        "low": -5.333333333333333,
+        "high": 5.166666666666667
+       }
+      },
+      {
+       "taskId": "synth-task-6",
+       "blocks": 9,
+       "meanDiff": -3.111111111111111,
+       "ci": {
+        "low": -5.222222222222222,
+        "high": -1.3333333333333333
+       }
+      }
+     ],
+     "taskLevelP": 0.34375,
+     "taskLevelMinP": 0.03125,
+     "inference": {
+      "test": {
+       "method": "Monte Carlo sign-flip",
+       "units": 50,
+       "flips": 9999,
+       "seed": 20361446,
+       "mcSe": 0.004987843608052065,
+       "nearAlpha": false
+      },
+      "taskLevelTest": {
+       "method": "exact sign-flip",
+       "units": 6,
+       "seed": null
+      },
+      "bootstrap": {
+       "method": "two-stage cluster percentile (tasks, then blocks within task)",
+       "resamples": 4999,
+       "seed": 20261446
+      },
+      "planSeed": 20261016,
+      "seedSource": "plan",
+      "bootstrapRejects": false,
+      "signFlipRejects": false,
+      "disagreement": false
+     },
+     "holmP": 0.9296,
+     "holmReject": false
+    },
+    {
+     "metric": "newIdentitiesFromStep2",
+     "arm": "daedalus-mcp",
+     "reference": "none",
+     "blocks": 53,
+     "tasks": 6,
+     "meanArm": 4.283018867924528,
+     "meanReference": 4.679245283018868,
+     "meanDiff": -0.39622641509433965,
+     "ci": {
+      "low": -2.0567147613762486,
+      "high": 1.2504629629629647
+     },
+     "sdDiff": 5.728940104153745,
+     "dz": -0.06916225477851606,
+     "relativeReduction": 0.08467741935483875,
+     "relativeReductionCi": {
+      "low": -0.32963095467429876,
+      "high": 0.36202715016706
+     },
+     "p": 0.6288,
+     "taskEffects": [
+      {
+       "taskId": "synth-task-1",
+       "blocks": 8,
+       "meanDiff": 0,
+       "ci": {
+        "low": -3.7562499999999996,
+        "high": 4.125
+       }
+      },
+      {
+       "taskId": "synth-task-2",
+       "blocks": 9,
+       "meanDiff": -1.6666666666666667,
+       "ci": {
+        "low": -6.894444444444445,
+        "high": 2.6666666666666665
+       }
+      },
+      {
+       "taskId": "synth-task-3",
+       "blocks": 9,
+       "meanDiff": -0.2222222222222222,
+       "ci": {
+        "low": -4.555555555555555,
+        "high": 3.888888888888889
+       }
+      },
+      {
+       "taskId": "synth-task-4",
+       "blocks": 9,
+       "meanDiff": -0.2222222222222222,
+       "ci": {
+        "low": -2.4499999999999997,
+        "high": 1.4444444444444444
+       }
+      },
+      {
+       "taskId": "synth-task-5",
+       "blocks": 9,
+       "meanDiff": 0.8888888888888888,
+       "ci": {
+        "low": -3.2277777777777774,
+        "high": 5.111111111111111
+       }
+      },
+      {
+       "taskId": "synth-task-6",
+       "blocks": 9,
+       "meanDiff": -1.1111111111111112,
+       "ci": {
+        "low": -2,
+        "high": 0
+       }
+      }
+     ],
+     "taskLevelP": 0.3125,
+     "taskLevelMinP": 0.03125,
+     "inference": {
+      "test": {
+       "method": "Monte Carlo sign-flip",
+       "units": 53,
+       "flips": 9999,
+       "seed": 20361447,
+       "mcSe": 0.004831499802238835,
+       "nearAlpha": false
+      },
+      "taskLevelTest": {
+       "method": "exact sign-flip",
+       "units": 6,
+       "seed": null
+      },
+      "bootstrap": {
+       "method": "two-stage cluster percentile (tasks, then blocks within task)",
+       "resamples": 4999,
+       "seed": 20261447
+      },
+      "planSeed": 20261016,
+      "seedSource": "plan",
+      "bootstrapRejects": false,
+      "signFlipRejects": false,
+      "disagreement": false
+     },
+     "holmP": 0.9296,
+     "holmReject": false
+    }
+   ],
+   "step1Level": [
+    {
+     "arm": "none",
+     "estimate": {
+      "n": 54,
+      "mean": 1.2407407407407407,
+      "ci": {
+       "low": 0.7962962962962963,
+       "high": 1.7962962962962963
+      }
+     }
+    },
+    {
+     "arm": "daedalus-mcp",
+     "estimate": {
+      "n": 54,
+      "mean": 1.037037037037037,
+      "ci": {
+       "low": 0.5370370370370371,
+       "high": 1.7592592592592593
+      }
+     }
+    },
+    {
+     "arm": "gate",
+     "estimate": {
+      "n": 54,
+      "mean": 1.037037037037037,
+      "ci": {
+       "low": 0.44351851851851853,
+       "high": 1.7407407407407407
+      }
+     }
+    }
+   ],
+   "notes": [
+    "Per-run count, not a slope: blocking identities (rule, template, file, target; cycles by file set) first seen at step 2..k, earlier repair turns counting as seen (`scripts/lib/loop/pilot-metrics.ts`). A run with an unevaluated step has no value. Step-1 level = distinct identities at step 1. No `check-correct` labels are applied."
+   ]
+  }
+ ]
+}
