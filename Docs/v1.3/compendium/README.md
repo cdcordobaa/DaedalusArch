@@ -1,0 +1,92 @@
+# v1.3 evidence compendium: a one-page map
+
+**Compiled 2026-10-16 from `origin/v1.3` at `81933889`** (after merge train MT6 and the protocol reconciliation). This folder aggregates the v1.3 evidence for the thesis. It adds no new measurement. Every number on this page was checked against its primary report, its committed results file or the replication output. Each one is also a row of the claims ledger, where `scripts/v1.3/claims-ledger-check.mjs` confirms that the cited line still states it.
+
+| File | What it holds |
+|---|---|
+| [`claims-ledger.md`](claims-ledger.md) | Every quantitative claim in `Docs/v1.3`, `Docs/DiagnosticRuns/v1.3-*`, `papers/` and the readiness dashboard (4,795 rows in ten parts), plus the **conflicts** between documents and the correct values |
+| [`nulls-and-limits.md`](nulls-and-limits.md) | Every null or negative result and every limitation, with its source and suggested wording |
+| [`timeline.md`](timeline.md) | The v1.3 story from 2026-10-14 to now, with PR numbers |
+| [`open-items.md`](open-items.md) | What remains before Study 2 and before the defence |
+
+**Status key.** **GREEN**: the claim rests on committed, reproducible evidence, stated within its scope. **AMBER**: evidence exists, but it is development-only, partial, below a stated target, or rests partly on unmerged work. **RED**: the evidence does not exist yet, or the result is null. Two facts bound every row: **the sealed v1.3 hold-out has not been run**, and **Study 2 has not been run**. No v1.3 figure is a held-out estimate.
+
+**Sets.** *Development*: the 71-variant reference set, E1/SO4 corpora, fixtures, seeded variants and rehearsal tasks, which v1.3 was tuned on. *External*: 15 human-written repositories chosen before their specs were written (#133, #181, #232). *Wild*: 14 public TypeScript backends (#114). *Hold-out*: sealed and not run.
+
+---
+
+## SO1. Architectural specifications and style libraries
+
+| Claim the thesis can make | Status | Evidence |
+|---|---|---|
+| Five style libraries (clean, layered, NestJS, hexagonal, DDD) exist with a priori rule tiers, fixed and hashed before any v1.3 measurement. They were fixed after the Study 1 data. | **GREEN** | [`rule-tiers.md`](../rule-tiers.md), [`sealed-hashes.md`](../sealed-hashes.md), [`decision-chronology.md`](../decision-chronology.md) row 2 |
+| The rules trace to the literature. Some rows are verbatim, others paraphrase or are only partly supported, and some blocking rules first had no source row. A supplement adds those rows. No independent expert has reviewed the sources. | **AMBER** | [`rule-source-verification.md`](../rule-source-verification.md), [`style-rule-sources-supplement.md`](../style-rule-sources-supplement.md), [`rule-gap-catalogue.md`](../rule-gap-catalogue.md) |
+| 25 construct questions are written with their impact on the reference figures; **none has been answered** (0/25). | **RED** | [`construct-decisions.md`](../construct-decisions.md), [`construct-switches.md`](../construct-switches.md) |
+
+Ledger part: [`claims-ledger/so1-specs-rules-constructs.md`](claims-ledger/so1-specs-rules-constructs.md).
+
+## SO2. The architectural property graph and its tooling
+
+| Claim the thesis can make | Status | Evidence |
+|---|---|---|
+| The extracted import graph matches the compiler. E1: Jaccard 0.988 against dependency-cruiser. SO4: Jaccard 0.913 against tsc. Development corpora. | **GREEN** | [`v1.3-graph-fidelity-2026-10-14.md:32-35`](../../DiagnosticRuns/v1.3-graph-fidelity-2026-10-14.md) |
+| On the 15 external repositories, the literal-view templates read a graph that matches tsc at 1.000 / 1.000. | **GREEN** (external) | [`v1.3-default-view-coverage-2026-10-16.md:17`](../../DiagnosticRuns/v1.3-default-view-coverage-2026-10-16.md) |
+| The evaluation does not depend on the Neo4j version, and the in-process interpreter reproduces it. 73/73 files are identical across Neo4j 5.26.24, 2025.12.1 and the interpreter. The reference outputs are byte-identical (71/71) without Neo4j. | **GREEN** | [`v1.3-neo4j-version-2026-10-16.md:37`](../../DiagnosticRuns/v1.3-neo4j-version-2026-10-16.md); [`merge-train-mt6.md`](../merge-train-mt6.md) |
+| The fidelity edge rows are **proposed, not adjudicated**: an agent proposed them, and the human verdict column is empty. | **AMBER** | [`v1.3-fidelity-adjudication-prep-2026-10-16.md`](../../DiagnosticRuns/v1.3-fidelity-adjudication-prep-2026-10-16.md) |
+| The value of the graph on real code beyond correctness (type flow, APG v2) is not shown. APG v2 catches 25/27 planted cases after its scope change, against a required 27/27. | **AMBER** | [`apg2-scope-adr-draft.md`](../apg2-scope-adr-draft.md); [`v1.3-wild-2026-10-16.md`](../../DiagnosticRuns/v1.3-wild-2026-10-16.md) |
+
+Ledger part: [`claims-ledger/so2-graph-reference-tooling.md`](claims-ledger/so2-graph-reference-tooling.md).
+
+## SO3. The neuro-symbolic gate (LLM judge)
+
+| Claim the thesis can make | Status | Evidence |
+|---|---|---|
+| The frozen judge v1 catches 16/21 = 0.76 [0.55, 0.89] of the seeded semantic defects (both rounds pooled). This is **below the 0.80 target**. Development data, same vendor. | **AMBER** | [`v1.3-judge-catch-round2-2026-10-15.md:5`](../../DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md) |
+| Bounded, complementary role: the judge catches 22/26 = 0.85 [0.66, 0.94] of the planted seeds that the symbolic rules do not flag. | **AMBER** (development) | [`v1.3-complementarity-2026-10-16.md:49`](../../DiagnosticRuns/v1.3-complementarity-2026-10-16.md) |
+| Improving the judge did not work. Judge v2.2 is NOT CANDIDATE on CHECK-2 (check D1 fails). Three-run unanimity does not predict a correct verdict (v1 unanimous-subset accuracy 0.883; the rule is not met). | **RED** (null) | [`v1.3-judge-v22-check2-2026-10-16.md:9`](../../DiagnosticRuns/v1.3-judge-v22-check2-2026-10-16.md); [`v1.3-judge-selective-2026-10-16.md:50`](../../DiagnosticRuns/v1.3-judge-selective-2026-10-16.md) |
+| Agreement with an independent cross-vendor panel or with human labels: **not measured**. The panel harness has only been dry-run with fake raters. | **RED** | [`model-panel.md:3`](../model-panel.md) |
+
+Ledger part: [`claims-ledger/so3-judge.md`](claims-ledger/so3-judge.md).
+
+## SO4. Validity of the findings
+
+| Claim the thesis can make | Status | Evidence |
+|---|---|---|
+| **Correctness, development.** Every checkable finding on the reference set and E1 is correct: 2,669 checkable (1,485 reference + 1,184 E1), 0 incorrect. The labelling report says 2,668; that figure is corrected in the conflicts. | **GREEN** | [`v1.3-labelling-2026-10-15.md:6`](../../DiagnosticRuns/v1.3-labelling-2026-10-15.md), `results/v1.3-labelling/reference/correctness-all/correctness.json`; repro audit E-7 |
+| **Correctness, external.** All 283 blocking findings on the 15 human-written repositories are correct: 283/283, Wilson [0.987, 1.000]. A negative control of 500 perturbed findings was all rejected. "Correct" means the claimed dependency or cycle exists. It does not mean the finding is architecturally meaningful. The findings are clustered: three repositories hold 214 of the 283. | **GREEN** (external), with that qualifier | [`v1.3-external-correctness-2026-10-16.md:44`](../../DiagnosticRuns/v1.3-external-correctness-2026-10-16.md), `:55` |
+| **Convergent.** κ against three independent tools, on the rules they can express: dependency-cruiser 1.000 / 0.961 / 0.913, eslint-plugin-boundaries 1.000 / 0.930 / 1.000, ArchUnitTS 1.000 / 0.918 / 0.950 (reference / external / wild). | **GREEN** | [`v1.3-validity-convergent-2026-10-16.md:19-21`](../../DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md) |
+| **Criterion, development.** Reference-set blocking recall is 54/54 in the author view (after the FF-P06 N/A correction) and 53/67 = 0.79 in the blind-expanded view. Development set; no style has more than 19 expected blocking findings. | **AMBER** | [`v1.3-reference-after-member-facts-2026-10-15.md`](../../DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md) |
+| **Mutation and metamorphic.** The strict kill rate on 273 measurable rule mutants rises from 90 (33 %) to 164 (60 %) with semantic tests. Six of nine surface transformations are invariant on all 71 variants, and one tool bug (MT-B1) was found. | **AMBER** | [`v1.3-rule-mutation-semantic-tests-2026-10-16.md:9`](../../DiagnosticRuns/v1.3-rule-mutation-semantic-tests-2026-10-16.md); [`v1.3-metamorphic-2026-10-16.md:13`](../../DiagnosticRuns/v1.3-metamorphic-2026-10-16.md) |
+| **Predictive and known-groups validity: null.** Fix mining shows no robust signal (ratio 2.65 rests on one commit; 0.93 without it). Known groups is null. Human erosion shows a direction without significance (5 of 6, p = 0.219). | **RED** (null) | [`v1.3-validity-fixes-mined-2026-10-16.md:9-11`](../../DiagnosticRuns/v1.3-validity-fixes-mined-2026-10-16.md); [`v1.3-known-groups-2026-10-16.md:30`](../../DiagnosticRuns/v1.3-known-groups-2026-10-16.md); [`v1.3-human-erosion-2026-10-16.md:54`](../../DiagnosticRuns/v1.3-human-erosion-2026-10-16.md) |
+| **Spec-author reliability** is below its criterion: file-to-layer κ = 0.77 (criterion 0.80), and 4 of 15 repositories reach 0.80. Every external figure depends on who wrote the spec; both authors were AI sessions. | **AMBER** | [`v1.3-spec-author-reliability.md:8`](../../DiagnosticRuns/v1.3-spec-author-reliability.md) |
+| **Held-out validity** (M1, M3 ≥ 0.90, M7 ≥ 0.95 per style) and an independent human rater: **not run**. | **RED** | [`holdout-prespec.md`](../holdout-prespec.md); dashboard V3–V6 |
+
+Ledger part: [`claims-ledger/so4-validity.md`](claims-ledger/so4-validity.md).
+
+## SO5. Specification level and the architecture of agent-generated code
+
+| Claim the thesis can make | Status | Evidence |
+|---|---|---|
+| **Study 1 (registered, v1.2E instrument).** The spec level affects the Architectural Health Score in the reverse direction: `none` scores best (Holm p = 0.0003). There is no model effect (p = 0.44). The effect runs through project size. | **GREEN** (registered) | [`e1-size-analysis-2026-10-10.md:20-21`](../../DiagnosticRuns/e1-size-analysis-2026-10-10.md) |
+| Under v1.3 scoring, no accepted E1 cell has a blocking finding (0 of 65). The E1 effect lies in advisory coupling rules, not in architectural violations. Descriptive rerun, not a registered result. | **AMBER** | [`v1.3-study1-rerun-2026-10-15.md:3`](../../DiagnosticRuns/v1.3-study1-rerun-2026-10-15.md), `results/v1.3-study1-rerun/e1/cells.csv` |
+| **Floor effect.** Agents rarely break defining rules in greenfield code. In probe 1, Hexagonal `none`-arm steps were blocking in 0/14. Layered was blocking in 14/14, but as a level set at steps 1–2 that later steps replicated, not as accumulating erosion. Probe 2 gave 1/24, and probe 3 gave 0/8 (Clean and Hexagonal). The loop pilot gave 0/8 (report on open #170). | **RED** (null) | [`v1.3-floor-probe-2026-10-16.md`](../../DiagnosticRuns/v1.3-floor-probe-2026-10-16.md); [`v1.3-floor-probe-2-2026-10-16.md`](../../DiagnosticRuns/v1.3-floor-probe-2-2026-10-16.md); [`v1.3-floor-probe-3-2026-10-16.md`](../../DiagnosticRuns/v1.3-floor-probe-3-2026-10-16.md) |
+| **Study 2 protocol.** A declared deviation (not a pre-registration) moves the primary outcome to Y, the distinct blocking edges at step 4, with arms `none` vs `daedalus-mcp`. The design powers only large effects (RR ≤ 0.25). If no stratum passes the validation pilot, Study 2 does not run. | **AMBER** (design) | [`study2-deviation-2026-10-16.md`](../study2-deviation-2026-10-16.md) §2, §5 |
+| **Study 2 result: not run.** Readiness at 12:00Z: 1 of 42 gate lines GREEN, 11 AMBER, 30 RED. | **RED** | [`study2-readiness-dashboard.md:3`](../study2-readiness-dashboard.md); [`open-items.md`](open-items.md) |
+
+Ledger parts: [`so5-study1-probes-power.md`](claims-ledger/so5-study1-probes-power.md), [`so5-study2-protocol-readiness.md`](claims-ledger/so5-study2-protocol-readiness.md).
+
+## Reproducibility (cross-cutting)
+
+| Claim | Status | Evidence |
+|---|---|---|
+| 5,154 numbers stated in 48 v1.3 docs are registered with their file:line and a regenerating command. 58 of them differ from the regenerated value. Every difference is classified, and none overturns a headline. | **GREEN** (with the 58 listed as conflicts) | [`replication-2.md`](../replication-2.md); [`v1.3-repro-audit-2026-10-16.md`](../../DiagnosticRuns/v1.3-repro-audit-2026-10-16.md) |
+| Release-grade reproducibility (tag, DOI, path scrub) does not exist yet. | **RED** | [`open-items.md`](open-items.md) G5 |
+
+Ledger parts: [`replication-and-audit.md`](claims-ledger/replication-and-audit.md), [`papers.md`](claims-ledger/papers.md), [`synthesis-and-governance.md`](claims-ledger/synthesis-and-governance.md), [`tooling-and-research-memos.md`](claims-ledger/tooling-and-research-memos.md).
+
+## How to check this folder
+
+```bash
+node scripts/v1.3/claims-ledger-check.mjs        # every cited file:line still states its number(s); exit 0 = pass
+npm run replicate:v1.3 -- --fast                  # regenerate the registered numbers (replication part 2)
+```

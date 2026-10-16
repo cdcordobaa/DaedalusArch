@@ -6,20 +6,25 @@
 // still on it. It fails when a cited file or line is missing, or when a number is no longer on its line (the source
 // was edited or the line moved). It reads no result file, runs nothing else and calls no service.
 //
-// Every markdown table in the ledger whose header has a `source` column (a `path:line` in backticks) and a `numbers`
+// The ledger is claims-ledger.md plus its parts in claims-ledger/*.md (the claims tables are split by objective so
+// that each file stays small enough to render). By default all of them are checked; pass one or more files to check
+// only those. Every markdown table whose header has a `source` column (a `path:line` in backticks) and a `numbers`
 // column (number strings in backticks, separated by ` ; `) is checked. Other tables are ignored. Claim ids must be
 // unique across the claims tables.
 //
-//   node scripts/v1.3/claims-ledger-check.mjs [ledger.md] [--quiet]
+//   node scripts/v1.3/claims-ledger-check.mjs [file.md ...] [--quiet]
 //
 // Exit 0 when every row passes, 1 otherwise.
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const REPO = process.cwd();
 const args = process.argv.slice(2);
 const quiet = args.includes('--quiet');
-const ledgerPath = args.find((a) => !a.startsWith('--')) ?? 'Docs/v1.3/compendium/claims-ledger.md';
+const DIR = 'Docs/v1.3/compendium';
+const given = args.filter((a) => !a.startsWith('--'));
+const ledgerFiles = given.length ? given : [`${DIR}/claims-ledger.md`,
+  ...readdirSync(join(REPO, DIR, 'claims-ledger')).filter((f) => f.endsWith('.md')).sort().map((f) => `${DIR}/claims-ledger/${f}`)];
 
 /** Split a markdown table row into cells, honouring `\|` escapes. */
 function cells(row) {
@@ -50,12 +55,13 @@ function lineOf(path, n) {
   return { text: lines[n - 1] };
 }
 
-const md = readFileSync(join(REPO, ledgerPath), 'utf8').split('\n');
-let header = null;
 let checked = 0;
 const failures = [];
 const ids = new Map();
 
+for (const ledgerPath of ledgerFiles) {
+const md = readFileSync(join(REPO, ledgerPath), 'utf8').split('\n');
+let header = null;
 for (const [i, raw] of md.entries()) {
   if (!raw.trim().startsWith('|')) { header = null; continue; }
   const c = cells(raw);
@@ -67,22 +73,23 @@ for (const [i, raw] of md.entries()) {
   const idCol = header.indexOf('id');
   const id = idCol >= 0 ? c[idCol] : `row@${i + 1}`;
   if (idCol >= 0) {
-    if (ids.has(id)) failures.push(`${id} (ledger line ${i + 1}): duplicate id, first at ledger line ${ids.get(id)}`);
-    else ids.set(id, i + 1);
+    if (ids.has(id)) failures.push(`${id} (${ledgerPath}:${i + 1}): duplicate id, first at ${ids.get(id)}`);
+    else ids.set(id, `${ledgerPath}:${i + 1}`);
   }
   const loc = ticks(c[src] ?? '')[0];
   const m = loc && /^(.+):(\d+)$/.exec(loc);
-  if (!m) { failures.push(`${id} (ledger line ${i + 1}): no \`path:line\` in the source cell`); continue; }
+  if (!m) { failures.push(`${id} (${ledgerPath}:${i + 1}): no \`path:line\` in the source cell`); continue; }
   const nums = ticks(c[num] ?? '');
-  if (!nums.length) { failures.push(`${id} (ledger line ${i + 1}): no number in the numbers cell`); continue; }
+  if (!nums.length) { failures.push(`${id} (${ledgerPath}:${i + 1}): no number in the numbers cell`); continue; }
   checked++;
   const { text, error } = lineOf(m[1], Number(m[2]));
-  if (error) { failures.push(`${id} (ledger line ${i + 1}): ${error}`); continue; }
+  if (error) { failures.push(`${id} (${ledgerPath}:${i + 1}): ${error}`); continue; }
   for (const n of nums) {
-    if (!text.includes(n)) failures.push(`${id} (ledger line ${i + 1}): "${n}" is not on ${m[1]}:${m[2]}`);
+    if (!text.includes(n)) failures.push(`${id} (${ledgerPath}:${i + 1}): "${n}" is not on ${m[1]}:${m[2]}`);
   }
+}
 }
 
 if (!quiet || failures.length) for (const f of failures) console.log(`FAIL ${f}`);
-console.log(`claims-ledger-check: ${checked} rows checked in ${ledgerPath}, ${failures.length} failure(s).`);
+console.log(`claims-ledger-check: ${checked} rows checked in ${ledgerFiles.length} file(s), ${failures.length} failure(s).`);
 process.exit(failures.length || checked === 0 ? 1 : 0);
