@@ -57,6 +57,16 @@ export function parseUnifiedDiffWithHunks(diff: string): readonly DiffFileWithHu
   let newLine = 0;
   let oldLeft = 0;
   let newLeft = 0;
+  // A `diff --git` section whose `rename from` / `rename to` lines are not followed by ---/+++ lines (a 100%-similarity
+  // move: git prints no hunk) is kept as a renamed entry with no hunks (R07, post-merge review 2026-10-16).
+  let section: { renameFrom?: string; renameTo?: string; sawFileHeader: boolean } | undefined;
+  const closeSection = (): void => {
+    if (section !== undefined && !section.sawFileHeader && section.renameFrom !== undefined && section.renameTo !== undefined) {
+      current = { oldPath: normalisePath(section.renameFrom), newPath: normalisePath(section.renameTo), added: [], hunks: [] };
+      files.push(current);
+    }
+    section = undefined;
+  };
   for (const line of diff.split(/\r?\n/)) {
     if (current !== undefined && (oldLeft > 0 || newLeft > 0)) {
       const body = current.hunks[current.hunks.length - 1]?.lines;
@@ -77,7 +87,21 @@ export function parseUnifiedDiffWithHunks(diff: string): readonly DiffFileWithHu
       // '\ No newline at end of file' changes no counter.
       continue;
     }
+    if (line.startsWith('diff --git ')) {
+      closeSection();
+      section = { sawFileHeader: false };
+      continue;
+    }
+    if (section !== undefined && line.startsWith('rename from ')) {
+      section.renameFrom = line.slice('rename from '.length);
+      continue;
+    }
+    if (section !== undefined && line.startsWith('rename to ')) {
+      section.renameTo = line.slice('rename to '.length);
+      continue;
+    }
     if (line.startsWith('--- ')) {
+      if (section !== undefined) section.sawFileHeader = true;
       current = { oldPath: stripPrefix(line.slice(4)), newPath: null, added: [], hunks: [] };
       files.push(current);
       continue;
@@ -94,6 +118,7 @@ export function parseUnifiedDiffWithHunks(diff: string): readonly DiffFileWithHu
       current.hunks.push({ oldStart: Number(hunk[1]), newStart: newLine, lines: [] });
     }
   }
+  closeSection();
   return files;
 }
 
@@ -281,6 +306,10 @@ export function checkDiff(spec: ParsedSpec, diff: string, options: CheckDiffOpti
         notes.push(
           `moved from ${from ?? 'no layer'} to ${result.layer ?? 'no layer'}: unchanged imports are not in the diff, so run check_file on the whole file`,
         );
+        // A pure move (no hunk) across layers was not checked at all: unknown, not pass (R07).
+        if (f.hunks.length === 0 && result.blockingVerdict === 'pass') {
+          result = { ...result, blockingVerdict: 'unknown', blockingSummary: blockingSummaryOf('unknown', result.findings, result.hints.length) };
+        }
       }
     }
     if (basis === 'added-lines' && change !== 'added') notes.push('only added lines were checked');
