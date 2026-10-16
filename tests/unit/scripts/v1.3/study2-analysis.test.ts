@@ -64,8 +64,8 @@ describe('format: the synthetic records are the harness records', () => {
   });
 
   it('the step records have the same key paths and value types as a harness dry run', () => {
-    // #142 (merged into v1.3) made `advisoryByRule` part of the harness step record, so compare with it on.
-    const synth = generateStudy({ ...PLANNED_DESIGN, tasks: 2, replicates: 1 }, scenario('expected'), { seed: 3, evalFailureRate: 0, advisoryByRule: true });
+    // #142 (merged into v1.3) made `advisoryByRule` part of the harness step record; the generator writes it by default.
+    const synth = generateStudy({ ...PLANNED_DESIGN, tasks: 2, replicates: 1 }, scenario('expected'), { seed: 3, evalFailureRate: 0 });
     const s = merged(synth.runs.flatMap((r) => r.steps));
     const h = merged(harness);
     // Paths the dry run cannot show: the stub type-check never reports a code; the stub costs are never null; the stub
@@ -88,12 +88,14 @@ describe('format: the synthetic records are the harness records', () => {
     for (const t of failed) expect(t.snapshot.evaluationError?.code).toBe('EVAL_SYNTH_FAILURE');
   });
 
-  it('is deterministic for a seed, marks itself synthetic and keeps advisoryByRule off by default', () => {
+  it('is deterministic for a seed, marks itself synthetic, writes advisoryByRule by default and omits it pre-#142', () => {
     const a = generateStudy(PILOT_DESIGN, scenario('null'), { seed: 9 });
     const b = generateStudy(PILOT_DESIGN, scenario('null'), { seed: 9 });
     expect(JSON.stringify(a)).toBe(JSON.stringify(b));
     expect(a.runs.every((r) => r.run.dryRun && r.run.spec.modelId.startsWith('synth-'))).toBe(true);
-    expect(a.runs.flatMap((r) => r.steps).flatMap((s) => s.turns).some((t) => t.snapshot.evaluation !== null && 'advisoryByRule' in t.snapshot.evaluation)).toBe(false);
+    const evs = (x: typeof a) => x.runs.flatMap((r) => r.steps).flatMap((s) => s.turns).flatMap((t) => (t.snapshot.evaluation === null ? [] : [t.snapshot.evaluation]));
+    expect(evs(a).every((e) => e.advisoryByRule !== undefined)).toBe(true);
+    expect(evs(generateStudy(PILOT_DESIGN, scenario('null'), { seed: 9, advisoryByRule: false })).some((e) => 'advisoryByRule' in e)).toBe(false);
   });
 
   it('round-trips through the harness reader', () => {
@@ -167,7 +169,7 @@ describe('rehearsal scenarios at the planned N (seed 20261016)', () => {
     return out;
   };
 
-  it.each([['null', false], ['small', false], ['expected', false], ['floor', false], ['floor', true]] as const)('%s (advisoryByRule %s): every check passes', (id, byRule) => {
+  it.each([['null', true], ['small', true], ['expected', true], ['floor', true], ['floor', false]] as const)('%s (advisoryByRule %s): every check passes', (id, byRule) => {
     const { checks, report } = run(id, byRule);
     expect(checks.filter((c) => !c.pass)).toEqual([]);
     expect(report.confirmatory.map((c) => c.blocks)).toEqual([54, 54]);
@@ -184,7 +186,7 @@ describe('rehearsal scenarios at the planned N (seed 20261016)', () => {
     expect(forestSvg(c, 't')).toContain('Pooled');
   });
 
-  it('floor: the report states the fallback and, in the v1.3 format, that its definition cannot be met', () => {
+  it('floor: the report states the fallback and, on pre-#142 records, that its definition cannot be met', () => {
     const { report } = run('floor', false);
     expect(report.switch.fallbackTriggered).toBe(true);
     expect(renderReport(report, 't')).toMatch(/PRE-COMMITTED FALLBACK[\s\S]*Memo definition met on these records:\*\* NO/);

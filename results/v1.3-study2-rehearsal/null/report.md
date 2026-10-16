@@ -80,6 +80,8 @@ Outcome: Erosion slope: blocking violations per step. Per run, OLS slope on step
 |---|---|---|---|---|---|---|---|---|---|
 | gate − none | Erosion slope: blocking violations per KLOC, per step | 54 | 0.063 | -0.005 | 0.068 | [-0.290, 0.413] | 0.07 | n/a [-32.42, 13.46] | 0.5868 |
 | daedalus-mcp − none | Erosion slope: blocking violations per KLOC, per step | 54 | 0.017 | -0.005 | 0.022 | [-0.291, 0.326] | 0.03 | n/a [-19.47, 17.74] | 0.8481 |
+| gate − none | Advisory violations per KLOC (FF-CV05 excluded), slope per step | 54 | 0.650 | 0.714 | -0.064 | [-0.888, 0.788] | -0.03 | 0.09 [-1.99, 0.86] | 0.8624 |
+| daedalus-mcp − none | Advisory violations per KLOC (FF-CV05 excluded), slope per step | 54 | 0.517 | 0.714 | -0.197 | [-0.750, 0.393] | -0.11 | 0.28 [-0.72, 1.17] | 0.4400 |
 | gate − none | Advisory violations per KLOC (all advisory rules, FF-CV05 INCLUDED), slope per step | 54 | 0.351 | 1.060 | -0.709 | [-1.842, 0.374] | -0.20 | 0.67 [-0.50, 1.60] | 0.1457 |
 | daedalus-mcp − none | Advisory violations per KLOC (all advisory rules, FF-CV05 INCLUDED), slope per step | 54 | 0.621 | 1.060 | -0.439 | [-1.656, 0.720] | -0.14 | 0.41 [-1.22, 1.43] | 0.3045 |
 | gate − none | AHS (v1.2E symbolic) at step k | 52 | 0.560 | 0.577 | -0.017 | [-0.098, 0.064] | -0.06 | 0.03 [-0.11, 0.17] | 0.6507 |

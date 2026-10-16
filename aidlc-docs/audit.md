@@ -1542,3 +1542,10 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: CONSTRUCTION, v1.3 readiness (gate line D9). Not a pre-registration; synthetic data only; no sealed task used.
 
 ---
+## v1.3 Construction — B2 rehearsal: owner review response
+**Timestamp**: 2026-10-16T08:30:00Z
+**User Input**: "(Owner review on PR #160, verdict HOLD.) Numbers match the results; the doc overclaims on synthetic data ('proven', 'confirms'); 30/30 checks are five sets, not four scenarios; the A12 seed range is not in a committed result file."
+**AI Response**: "Reworded to 'rehearsed'/'reproduces' with a scope note (the synthetic data come from the power model, so only pipeline execution and recovery of planted values are shown); stated the five check sets; the rehearsal now writes the A12 seed-sensitivity table to summary.md/json. While merging the foreman's update (#142 now in v1.3), the generator default became advisoryByRule on (the current harness format); the old records are the labelled floor-pre-142 variant; the floor scenario now computes the memo §5 fallback as defined; finding #1 and A10 updated. 30/30 checks still pass; 75 loop/power/rehearsal tests pass. The PR stays on hold for the author; not merged."
+**Context**: CONSTRUCTION, v1.3 readiness (gate D9). Not a pre-registration.
+
+---

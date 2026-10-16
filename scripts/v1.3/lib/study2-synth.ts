@@ -78,8 +78,9 @@ export const PILOT_DESIGN: SynthDesign = { tasks: 3, models: [{ adapterId: 'clau
 export interface SynthOptions {
   readonly seed: number;
   /**
-   * Adds `advisoryByRule` to every evaluation: the field PR #142 added to the harness step record (readiness gate S6;
-   * #142 is merged into v1.3, so harness records now carry it). Off by default, so the committed rehearsal is unchanged.
+   * Writes `advisoryByRule` on every evaluation, as the harness has done since PR #142 (merged into v1.3). On by default.
+   * `false` writes records as the harness wrote them before #142 (no per-rule advisory counts), so the analysis's handling
+   * of such records can be rehearsed.
    */
   readonly advisoryByRule?: boolean;
   /** Probability that a snapshot's evaluation fails (recorded as `evaluationError`, outcome missing). */
@@ -257,7 +258,7 @@ function expectedSlope(slope: number): number {
 export function generateStudy(design: SynthDesign, scenario: Scenario, o: SynthOptions): SynthStudy {
   const a = o.assumptions ?? DEFAULT_ASSUMPTIONS;
   const rng = createRng(o.seed);
-  const withByRule = o.advisoryByRule === true;
+  const withByRule = o.advisoryByRule !== false;
   const evalFailureRate = o.evalFailureRate ?? 0.01;
   const prefix = o.taskPrefix ?? 'synth-task-';
   const ck = clock();

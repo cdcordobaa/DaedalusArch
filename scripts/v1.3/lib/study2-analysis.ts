@@ -52,7 +52,7 @@ export interface StepRow {
   readonly step: number;
   readonly blocking: number | null;
   readonly kloc: number;
-  /** Advisory findings without FF-CV05: null unless the evaluation carries `advisoryByRule` (not in the v1.3 format). */
+  /** Advisory findings without FF-CV05: null unless the evaluation carries `advisoryByRule` (written since PR #142). */
   readonly advisoryExclCv05: number | null;
   readonly advisoryTotal: number | null;
   readonly ahs: number | null;
@@ -702,7 +702,7 @@ export function analyse(study: readonly LoadedRun[], scheduled: readonly string[
     } else {
       primaryMetric = 'advisoryTotalPerKlocSlope';
       primaryDefinitionMet = false;
-      notes.push('The memo §5 fallback outcome (advisory per KLOC WITHOUT FF-CV05) is NOT computable from these step records: the v1.3 `StepEvaluation` has only `advisoryViolationCount`, no per-rule advisory counts (readiness gate S6; PR #142 proposes `advisoryByRule`). The table below uses ALL advisory rules, FF-CV05 included, as a labelled surrogate; it is not the pre-committed outcome.');
+      notes.push('The memo §5 fallback outcome (advisory per KLOC WITHOUT FF-CV05) is NOT computable from these step records: these records carry only `advisoryViolationCount`, no `advisoryByRule` (records written before PR #142, or by an evaluator that omits it; readiness gate S6). The table below uses ALL advisory rules, FF-CV05 included, as a labelled surrogate; it is not the pre-committed outcome.');
     }
     notes.push('Under the advisory branch the `gate` arm still shows blocking findings only; whether `gate` gets the advisory subset or is dropped is undecided (memo §5, readiness gate D11b). The gate contrast is computed as designed and must be read with that caveat.');
   }

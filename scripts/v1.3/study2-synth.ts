@@ -2,7 +2,7 @@
  * Study 2 analysis rehearsal: writes a SYNTHETIC loop out-root (and its pilot) for one scenario. NOT DATA, NOT A
  * PRE-REGISTRATION. Entry file: no exports. Generator: scripts/v1.3/lib/study2-synth.ts.
  * Usage (repository root):
- *   npx tsx scripts/v1.3/study2-synth.ts --scenario null|small|expected|floor --out <dir> [--seed 20261016] [--advisory-by-rule]
+ *   npx tsx scripts/v1.3/study2-synth.ts --scenario null|small|expected|floor --out <dir> [--seed 20261016] [--pre-142]
  * Writes <dir>/study2/ (the planned grid), <dir>/pilot/ (the memo's pilot) and <dir>/truth.json (generating
  * quantities, OUTSIDE both out-roots so the analysis never reads them). Uses no model, no sealed task, no network.
  */
@@ -24,7 +24,7 @@ try {
   if (out === '') throw new Error('--out <dir> is required');
   const seed = Number(opt('--seed', '20261016'));
   if (!Number.isSafeInteger(seed)) throw new Error('--seed must be an integer');
-  const advisoryByRule = argv.includes('--advisory-by-rule');
+  const advisoryByRule = !argv.includes('--pre-142');
   const study = generateStudy(PLANNED_DESIGN, scenario, { seed, advisoryByRule });
   const pilot = generateStudy(PILOT_DESIGN, scenario, { seed: seed + 1, advisoryByRule, taskPrefix: 'synth-pilot-task-' });
   writeOutRoot(path.join(out, 'study2'), study);

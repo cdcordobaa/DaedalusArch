@@ -56,9 +56,10 @@ and `summary.json`.
    `schedule.json` do too. The only path the dry run cannot show is a non-empty `typecheck.codes[]`.
 3. The analysis never sees the in-memory records. It reads the files back through the harness's own reader.
 
-The generator does **not** add `advisoryByRule`, because the v1.3 harness does not write it. A separately labelled
-variant, `floor-advisory-by-rule`, adds it (the field PR #142 proposes) only to exercise the fallback as the memo defines
-it.
+The generator writes `advisoryByRule` (advisory counts per rule), as the harness has done since PR #142 was merged into
+`v1.3`. The conformance test compares against that format. A separately labelled variant, `floor-pre-142`, writes
+records as the harness wrote them before #142, without `advisoryByRule`. It checks that the analysis says so when the
+fallback cannot be computed as defined, for example on records written before the merge.
 
 **Planned tables.** These are the tables the outline (§4, §5) and gate D9 name. Each is produced from raw telemetry:
 
@@ -112,7 +113,7 @@ reductions.
 
 ### 3.1 Assertions: 30 of 30 pass
 
-The 30 checks come from five check sets: the four scenarios, plus the `floor-advisory-by-rule` format variant.
+The 30 checks come from five check sets: the four scenarios, plus the `floor-pre-142` format variant.
 
 Full table: `results/v1.3-study2-rehearsal/summary.md`.
 
@@ -121,9 +122,8 @@ Full table: `results/v1.3-study2-rehearsal/summary.md`.
 | null | No confirmatory contrast rejected under Holm, and both CIs contain 0. | gate − none: +0.105 [−0.300, 0.534], Holm p 1.00. mcp − none: −0.039 [−0.426, 0.341], Holm p 1.00. **Null reported.** |
 | small | The CI covers the generating difference, the estimate has the planted sign, and the relative-reduction CI covers the planted reduction. | gate: truth −0.090, estimate −0.094 [−0.593, 0.361]. mcp: truth −0.214, estimate −0.101 [−0.689, 0.374]. **Recovered, but not significant** (power ≈ 0.1, §3.2). |
 | expected | Same as small. | gate: truth −0.510, estimate −0.705 [−1.942, 0.061], relative reduction 0.60 [−0.12, 0.79] against the planted 0.50, sign-flip p 0.004, Holm p 0.007, **rejected**. mcp: truth −0.287, estimate −0.632, relative reduction 0.54 against the planted 0.25, Holm p 0.0495, **rejected** (see A12: this decision depends on the Monte Carlo seed). |
-| floor | The pilot's §3 outcome is zero, the pre-committed fallback triggers, and the report says so. | T1: "the primary outcome is ZERO … the PRE-COMMITTED FALLBACK applies". **Triggered and stated.** |
-| floor (v1.3 format) | The report must also say that the fallback, as defined, cannot be computed. | "NOT computable from these step records … uses ALL advisory rules, FF-CV05 included, as a labelled surrogate". The primary metric is `advisoryTotalPerKlocSlope`, flagged *definition met: NO*. |
-| floor-advisory-by-rule | The fallback is computed as defined (FF-CV05 excluded), and the CIs cover the truth. | Yes. gate: truth −0.100, estimate +0.173 [−0.547, 0.851]. Null, as the power predicts. |
+| floor | The pilot's §3 outcome is zero, the pre-committed fallback triggers, the report says so, the fallback is computed as defined (FF-CV05 excluded), and the CIs cover the truth. | T1: "the primary outcome is ZERO … the PRE-COMMITTED FALLBACK applies". **Triggered and stated.** Primary metric `advisoryExclCv05PerKlocSlope`. gate: truth −0.100, estimate +0.173 [−0.547, 0.851]. Null, as the power predicts. |
+| floor-pre-142 | On records without `advisoryByRule`, the report must also say that the fallback, as defined, cannot be computed. | "NOT computable from these step records … uses ALL advisory rules, FF-CV05 included, as a labelled surrogate". The primary metric is `advisoryTotalPerKlocSlope`, flagged *definition met: NO*. |
 
 ### 3.2 Power at the planned N (power simulation, design B, 400 studies, block-level sign-flip, Holm, α = 0.05)
 
@@ -143,7 +143,7 @@ Monte Carlo SE ≤ 0.025. These figures agree with `study2-power-notes.md` §4 (
 | null | 0.04 | 0.02 | 0.98 / 0.97 | 0.97 | 0.011 / −0.002 | 0.04 |
 | small | 0.14 | 0.07 | 0.99 / 0.98 | 0.97 | −0.282 / −0.263 | 0.07 |
 | expected | 0.60 | 0.20 | 0.99 / 0.98 | 0.99 | −0.668 / −0.659 | 0.13 |
-| floor (v1.3 format) | 0.03 | 0.03 | 0.99 / 0.97 | 0.99 | −0.389 / −0.336 | 0.04 |
+| floor | 0.04 | 0.03 | 0.99 / 0.97 | 0.99 | −0.337 / −0.336 | 0.04 |
 
 The calibration used 999 resamples and 1999 flips per study. Readings:
 
@@ -158,13 +158,14 @@ The calibration used 999 resamples and 1999 flips per study. Readings:
 1. **At the planned N, Study 2 is underpowered for the expected effect.** The `gate` contrast reaches 0.54–0.60 and
    `daedalus-mcp` 0.17–0.20, against gate D3's 0.80. A small effect is invisible (≈ 0.1). This repeats the power
    notes; the end-to-end pipeline reproduces it under the same model, not only the simulator's own analysis.
-2. **The memo §5 fallback cannot be computed from v1.3 telemetry.** `StepEvaluation` has `advisoryViolationCount`
-   only. FF-CV05 cannot be removed, and in the synthetic data FF-CV05 is about 80 % of the advisory total (≈ 33 per
-   KLOC against ≈ 6). Unless `advisoryByRule` (PR #142, gate S6) lands before the first Study 2 call, a floor result
-   leaves Study 2 with no computable pre-committed primary outcome. A re-score from the kept snapshot commits would be
-   a post-hoc pipeline.
+2. **The memo §5 fallback needs `advisoryByRule`.** Since PR #142 was merged into `v1.3`, the harness writes it, and
+   the `floor` rehearsal computes the fallback as defined. On records without it (the `floor-pre-142` variant), FF-CV05
+   cannot be removed. In the synthetic data FF-CV05 is about 80 % of the advisory total (≈ 33 per KLOC against ≈ 6),
+   so the analysis flags the surrogate as not the pre-committed outcome. Every pilot and Study 2 record must therefore
+   come from a harness at or after #142. A re-score of older records from the kept snapshot commits would be a post-hoc
+   pipeline.
 3. **The fallback outcome has no power** (≈ 0.05 under the default assumptions). The power notes said so (§4); the
-   rehearsal reproduces it on the defined outcome (the `floor-advisory-by-rule` variant). Under the floor, Study 2 would
+   rehearsal reproduces it on the defined outcome (the `floor` scenario). Under the floor, Study 2 would
    be a costly null by design, unless the pilot shows fast advisory growth (gate D1).
 4. **Under the floor the `gate` arm never fires.** T7 of `floor` reports 0 failing steps, so the gate arm is identical
    to `none` plus noise. Memo §5 already requires a decision here (gate D11b). The rehearsal makes it concrete: the
@@ -193,7 +194,7 @@ fixing that value.
 | A7 | memo §3 | **Finding identity.** The memo says rule, *template*, file, target, and for cycles the file set. `BlockingFinding` has no template field, and the harness's `repairOutcome` uses rule + file + target. | (a) harness identity; (b) memo identity, which needs the template and the cycle file set from elsewhere. | Not measured. A cycle reported from two files counts once or twice. | Add `template` (and the cycle file set) to `BlockingFinding`, or amend the memo to the harness identity. |
 | A8 | memo §3 | **"New" needs `check-correct` labels** and author confirmation for `not-checkable`. Neither is in the telemetry, and the counting time is unstated. | (a) count all, provisional; (b) count only labelled `correct`. | Changes the switch verdict whenever every new finding is mislabelled (unit test). | Fix the label file format (the script accepts `{identity: label}`) and require it before the decision. |
 | A9 | memo §3 | **Findings beyond the listing cap** (`blockingFindings` is capped per rule as `evaluate_project` caps it) are invisible to the identity count, though `blockingViolationCount` includes them. | (a) identities only; (b) also count unlisted increases. | Not measured. | Record the cap, and flag steps where the count exceeds the listed findings. |
-| A10 | memo §5 | **The fallback outcome**, "advisory per KLOC, FF-CV05 excluded", cannot be computed from v1.3 records (§4.2). | (a) total advisory as surrogate; (b) re-score commits; (c) no primary. | The surrogate is ≈ 80 % FF-CV05. | Merge `advisoryByRule` before the first call (gate S6). |
+| A10 | memo §5 | **The fallback outcome**, "advisory per KLOC, FF-CV05 excluded", cannot be computed from records without `advisoryByRule` (§4.2). | (a) total advisory as surrogate; (b) re-score commits; (c) no primary. | The surrogate is ≈ 80 % FF-CV05. | Partly closed: #142 (merged) writes `advisoryByRule`. Still open: require every pilot and Study 2 record to carry it, with the harness commit at or after #142 in the frozen inputs. |
 | A11 | memo §5 | **`gate` under the advisory branch**: advisory subset, or arm dropped. | (a) keep as designed; (b) give advisory findings; (c) drop it. | Under `floor` the gate fires on 0 steps (§4.4). | Decide in the design (gate D11b). If (c), Holm is over one contrast. |
 | A12 | outline §5.1 | **Monte Carlo precision of the sign-flip p.** Flips count and seed are unstated; with 54 blocks the test is not exact. | Any flips or seed. | `expected` mcp: Holm p 0.0461–0.0526 over 8 analysis seeds at 9999 flips. The decision flips on 3 of 8 seeds. (`results/v1.3-study2-rehearsal/summary.md`, seed-sensitivity table.) | Fix the seed and flips (≥ 99 999), or use an exact or normal-approximate rule near α. Say which. |
 | A13 | outline §5.1 | **Bootstrap details**: one or two stages; percentile or BCa; resamples; seed. | Many. | Two-stage percentile over-covers (0.97–0.99). | Fix stage, method, resamples (≥ 4999) and seed. |

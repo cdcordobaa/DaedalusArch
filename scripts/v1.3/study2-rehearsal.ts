@@ -40,10 +40,10 @@ try {
   const powerSims = int('--power-sims', 400);
   fs.mkdirSync(out, { recursive: true });
   const runs: { id: string; label: string; advisoryByRule: boolean; checks: Check[] }[] = [];
-  const variants = [...SCENARIOS.map((s) => ({ s, byRule: false })), { s: SCENARIOS.find((x) => x.floor) ?? SCENARIOS[3], byRule: true }];
+  const variants = [...SCENARIOS.map((s) => ({ s, byRule: true })), { s: SCENARIOS.find((x) => x.floor) ?? SCENARIOS[3], byRule: false }];
   for (const { s, byRule } of variants) {
     if (s === undefined) continue;
-    const id = byRule ? `${s.id}-advisory-by-rule` : s.id;
+    const id = byRule ? s.id : `${s.id}-pre-142`;
     const dir = path.join(dataRoot, id);
     fs.rmSync(dir, { recursive: true, force: true });
     const study = generateStudy(PLANNED_DESIGN, s, { seed, advisoryByRule: byRule });
@@ -57,7 +57,7 @@ try {
     const checks = scenarioChecks(s, report, study.truth, byRule);
     const tdir = path.join(out, id);
     fs.mkdirSync(tdir, { recursive: true });
-    fs.writeFileSync(path.join(tdir, 'report.md'), renderReport(report, `Study 2 analysis rehearsal: scenario ${id} (${s.label})${byRule ? ' — with advisoryByRule, NOT the v1.3 format' : ''}`));
+    fs.writeFileSync(path.join(tdir, 'report.md'), renderReport(report, `Study 2 analysis rehearsal: scenario ${id} (${s.label})${byRule ? '' : ' — records as written before PR #142 (no advisoryByRule)'}`));
     fs.writeFileSync(path.join(tdir, 'report.json'), `${JSON.stringify(report, null, 1)}\n`);
     fs.writeFileSync(path.join(tdir, 'F1-trajectory.svg'), trajectorySvg(report.trajectories.primary, METRIC_LABEL[report.primaryMetric].replace(/, slope per step$|^Erosion slope: /g, ''), `F1. ${id}: primary outcome per step, by arm`));
     for (const c of report.confirmatory) fs.writeFileSync(path.join(tdir, `F2-forest-${c.arm}-vs-${c.reference}.svg`), forestSvg(c, `F2. ${id}: task-level effects, ${c.arm} − ${c.reference}`));

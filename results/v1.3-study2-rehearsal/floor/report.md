@@ -22,60 +22,59 @@ Pilot memo §3: the primary outcome is ZERO (no new blocking finding after step 
 
 **Provisional:** the memo counts a new finding only when `check-correct.ts` labels it `correct` (or the author confirms a `not-checkable` one). No label file was given, so every new finding was counted.
 
-**Fallback triggered:** YES. **Primary outcome:** Advisory violations per KLOC (all advisory rules, FF-CV05 INCLUDED), slope per step. **Memo definition met on these records:** NO.
+**Fallback triggered:** YES. **Primary outcome:** Advisory violations per KLOC (FF-CV05 excluded), slope per step. **Memo definition met on these records:** yes.
 
-- The memo §5 fallback outcome (advisory per KLOC WITHOUT FF-CV05) is NOT computable from these step records: the v1.3 `StepEvaluation` has only `advisoryViolationCount`, no per-rule advisory counts (readiness gate S6; PR #142 proposes `advisoryByRule`). The table below uses ALL advisory rules, FF-CV05 included, as a labelled surrogate; it is not the pre-committed outcome.
 - Under the advisory branch the `gate` arm still shows blocking findings only; whether `gate` gets the advisory subset or is dropped is undecided (memo §5, readiness gate D11b). The gate contrast is computed as designed and must be read with that caveat.
 
 Floor check (descriptive, cannot change the primary outcome): 0 of 270 `none` steps have a blocking finding; every Study 2 step zero: yes.
 
 ## T2. Primary outcome: confirmatory contrasts (Holm over the two)
 
-Outcome: Advisory violations per KLOC (all advisory rules, FF-CV05 INCLUDED), slope per step. Per run, OLS slope on step 1..k; per block, arm − none; two-sided sign-flip test of the mean.
+Outcome: Advisory violations per KLOC (FF-CV05 excluded), slope per step. Per run, OLS slope on step 1..k; per block, arm − none; two-sided sign-flip test of the mean.
 
 | Contrast | Blocks | Tasks | Mean slope arm | Mean slope ref | Mean diff | 95% CI (2-stage cluster bootstrap) | d_z | Relative reduction [95% CI] | Sign-flip p | Holm p | Reject at α |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| gate − none | 54 | 6 | 0.473 | 0.231 | 0.242 | [-0.811, 1.310] | 0.08 | -1.05 [-18.07, 2.72] | 0.5561 | 1.0000 | no |
-| daedalus-mcp − none | 54 | 6 | 0.041 | 0.231 | -0.190 | [-1.314, 1.083] | -0.06 | 0.82 [-9.36, 7.86] | 0.6735 | 1.0000 | no |
+| gate − none | 54 | 6 | 0.564 | 0.391 | 0.173 | [-0.547, 0.851] | 0.07 | -0.44 [-11.50, 0.80] | 0.5941 | 1.0000 | no |
+| daedalus-mcp − none | 54 | 6 | 0.424 | 0.391 | 0.033 | [-0.896, 0.790] | 0.01 | -0.08 [-12.24, 1.48] | 0.9271 | 1.0000 | no |
 
 ## T3. Task-level effects (forest plot F2) and the task-level test
 
 | Contrast | Task | Blocks | Mean diff | 95% CI (blocks within task) |
 |---|---|---|---|---|
-| gate − none | synth-task-1 | 9 | 0.347 | [-1.461, 2.304] |
-| gate − none | synth-task-2 | 9 | -1.488 | [-3.414, 0.065] |
-| gate − none | synth-task-3 | 9 | 1.691 | [-0.855, 4.223] |
-| gate − none | synth-task-4 | 9 | -0.158 | [-1.670, 1.431] |
-| gate − none | synth-task-5 | 9 | 0.541 | [-0.962, 1.919] |
-| gate − none | synth-task-6 | 9 | 0.519 | [-1.259, 2.294] |
-| daedalus-mcp − none | synth-task-1 | 9 | -1.093 | [-2.721, 0.528] |
-| daedalus-mcp − none | synth-task-2 | 9 | -0.839 | [-2.321, 0.628] |
-| daedalus-mcp − none | synth-task-3 | 9 | 0.765 | [-1.929, 3.940] |
-| daedalus-mcp − none | synth-task-4 | 9 | -1.100 | [-2.360, 0.145] |
-| daedalus-mcp − none | synth-task-5 | 9 | -0.920 | [-2.622, 0.756] |
-| daedalus-mcp − none | synth-task-6 | 9 | 2.048 | [-0.498, 4.222] |
+| gate − none | synth-task-1 | 9 | 0.511 | [-0.941, 1.947] |
+| gate − none | synth-task-2 | 9 | -0.576 | [-2.881, 1.411] |
+| gate − none | synth-task-3 | 9 | 0.476 | [-1.618, 2.755] |
+| gate − none | synth-task-4 | 9 | 0.104 | [-0.405, 0.583] |
+| gate − none | synth-task-5 | 9 | -0.037 | [-1.261, 1.181] |
+| gate − none | synth-task-6 | 9 | 0.563 | [-0.309, 1.461] |
+| daedalus-mcp − none | synth-task-1 | 9 | 0.374 | [-0.638, 1.700] |
+| daedalus-mcp − none | synth-task-2 | 9 | -0.616 | [-2.514, 1.107] |
+| daedalus-mcp − none | synth-task-3 | 9 | -0.855 | [-3.437, 2.233] |
+| daedalus-mcp − none | synth-task-4 | 9 | 0.026 | [-0.595, 0.711] |
+| daedalus-mcp − none | synth-task-5 | 9 | -0.022 | [-0.993, 0.957] |
+| daedalus-mcp − none | synth-task-6 | 9 | 1.291 | [-0.049, 2.553] |
 
 | Contrast | Task-level sign-flip p | Smallest attainable p | Tasks agreeing in sign |
 |---|---|---|---|
-| gate − none | 0.5625 | 0.0313 | 2 of 6 below 0 |
-| daedalus-mcp − none | 0.7188 | 0.0313 | 4 of 6 below 0 |
+| gate − none | 0.4063 | 0.0313 | 2 of 6 below 0 |
+| daedalus-mcp − none | 0.9375 | 0.0313 | 3 of 6 below 0 |
 
 ## T4. Secondary contrast on the primary outcome (unadjusted)
 
 | Contrast | Outcome | Blocks | Mean arm | Mean ref | Mean diff | 95% CI | d_z | Relative reduction [95% CI] | Unadjusted p |
 |---|---|---|---|---|---|---|---|---|---|
-| gate − daedalus-mcp | Advisory violations per KLOC (all advisory rules, FF-CV05 INCLUDED), slope per step | 54 | 0.473 | 0.041 | 0.432 | [-0.834, 1.586] | 0.13 | -10.41 [-38.77, 3.12] | 0.3292 |
+| gate − daedalus-mcp | Advisory violations per KLOC (FF-CV05 excluded), slope per step | 54 | 0.564 | 0.424 | 0.140 | [-0.504, 0.955] | 0.07 | -0.33 [-12.29, 0.71] | 0.6321 |
 
 ## T5. Primary outcome by model (model is a fixed factor; descriptive)
 
 | Model | Contrast | Blocks | Mean diff | 95% CI | Relative reduction |
 |---|---|---|---|---|---|
-| claude-code-cli/synth-model-a | gate − none | 18 | 0.304 | [-2.053, 2.571] | -0.55 |
-| claude-code-cli/synth-model-a | daedalus-mcp − none | 18 | -1.024 | [-3.117, 1.703] | 1.84 |
-| claude-code-cli/synth-model-b | gate − none | 18 | 0.291 | [-1.362, 2.069] | -0.56 |
-| claude-code-cli/synth-model-b | daedalus-mcp − none | 18 | 0.229 | [-1.883, 2.830] | -0.44 |
-| codex-cli/synth-model-c | gate − none | 18 | 0.131 | [-1.247, 1.439] | n/a |
-| codex-cli/synth-model-c | daedalus-mcp − none | 18 | 0.226 | [-1.487, 1.810] | n/a |
+| claude-code-cli/synth-model-a | gate − none | 18 | -0.208 | [-2.200, 1.568] | 0.30 |
+| claude-code-cli/synth-model-a | daedalus-mcp − none | 18 | -0.414 | [-2.490, 1.715] | 0.59 |
+| claude-code-cli/synth-model-b | gate − none | 18 | 0.258 | [-0.726, 1.313] | -0.76 |
+| claude-code-cli/synth-model-b | daedalus-mcp − none | 18 | 0.349 | [-1.038, 2.259] | -1.03 |
+| codex-cli/synth-model-c | gate − none | 18 | 0.469 | [-0.089, 1.181] | -3.59 |
+| codex-cli/synth-model-c | daedalus-mcp − none | 18 | 0.165 | [-1.051, 1.123] | -1.26 |
 
 ## T6. Secondary outcomes and guards (exploratory, unadjusted)
 
@@ -85,6 +84,8 @@ Outcome: Advisory violations per KLOC (all advisory rules, FF-CV05 INCLUDED), sl
 | daedalus-mcp − none | Erosion slope: blocking violations per step | 54 | 0.000 | 0.000 | 0.000 | [0.000, 0.000] | n/a | n/a n/a | 1.0000 |
 | gate − none | Erosion slope: blocking violations per KLOC, per step | 54 | 0.000 | 0.000 | 0.000 | [0.000, 0.000] | n/a | n/a n/a | 1.0000 |
 | daedalus-mcp − none | Erosion slope: blocking violations per KLOC, per step | 54 | 0.000 | 0.000 | 0.000 | [0.000, 0.000] | n/a | n/a n/a | 1.0000 |
+| gate − none | Advisory violations per KLOC (all advisory rules, FF-CV05 INCLUDED), slope per step | 54 | 0.473 | 0.231 | 0.242 | [-0.872, 1.381] | 0.08 | -1.05 [-25.33, 3.04] | 0.5636 |
+| daedalus-mcp − none | Advisory violations per KLOC (all advisory rules, FF-CV05 INCLUDED), slope per step | 54 | 0.041 | 0.231 | -0.190 | [-1.287, 1.125] | -0.06 | 0.82 [-6.68, 8.43] | 0.6694 |
 | gate − none | AHS (v1.2E symbolic) at step k | 51 | 0.728 | 0.747 | -0.018 | [-0.064, 0.023] | -0.16 | 0.02 [-0.03, 0.09] | 0.2496 |
 | daedalus-mcp − none | AHS (v1.2E symbolic) at step k | 53 | 0.737 | 0.745 | -0.009 | [-0.057, 0.037] | -0.06 | 0.01 [-0.05, 0.08] | 0.6409 |
 | gate − none | AHS slope per step | 54 | -0.047 | -0.046 | -0.002 | [-0.012, 0.008] | -0.07 | n/a n/a | 0.6021 |
@@ -144,21 +145,21 @@ Outcome: Advisory violations per KLOC (all advisory rules, FF-CV05 INCLUDED), sl
 
 | Arm | Step | n | Primary outcome per step | Blocking per step | AHS |
 |---|---|---|---|---|---|
-| none | 1 | 53 | 31.611 [29.354, 33.868] | 0.000 | 0.925 |
-| none | 2 | 54 | 31.809 [29.593, 34.024] | 0.000 | 0.881 |
-| none | 3 | 54 | 30.221 [28.469, 31.974] | 0.000 | 0.843 |
-| none | 4 | 53 | 32.541 [30.853, 34.229] | 0.000 | 0.787 |
-| none | 5 | 54 | 32.351 [30.335, 34.366] | 0.000 | 0.744 |
-| daedalus-mcp | 1 | 52 | 32.775 [29.780, 35.770] | 0.000 | 0.921 |
-| daedalus-mcp | 2 | 53 | 32.073 [29.638, 34.509] | 0.000 | 0.877 |
-| daedalus-mcp | 3 | 54 | 34.154 [31.163, 37.144] | 0.000 | 0.822 |
-| daedalus-mcp | 4 | 54 | 33.019 [30.733, 35.306] | 0.000 | 0.780 |
-| daedalus-mcp | 5 | 53 | 32.438 [30.470, 34.406] | 0.000 | 0.737 |
-| gate | 1 | 54 | 30.813 [28.273, 33.354] | 0.000 | 0.926 |
-| gate | 2 | 54 | 32.432 [30.372, 34.492] | 0.000 | 0.877 |
-| gate | 3 | 54 | 32.427 [30.081, 34.773] | 0.000 | 0.833 |
-| gate | 4 | 54 | 31.830 [29.955, 33.706] | 0.000 | 0.788 |
-| gate | 5 | 51 | 33.899 [31.370, 36.429] | 0.000 | 0.728 |
+| none | 1 | 53 | 4.903 [3.416, 6.391] | 0.000 | 0.925 |
+| none | 2 | 54 | 6.297 [4.369, 8.225] | 0.000 | 0.881 |
+| none | 3 | 54 | 5.282 [3.867, 6.696] | 0.000 | 0.843 |
+| none | 4 | 53 | 6.236 [4.799, 7.672] | 0.000 | 0.787 |
+| none | 5 | 54 | 6.842 [4.979, 8.705] | 0.000 | 0.744 |
+| daedalus-mcp | 1 | 52 | 5.817 [3.508, 8.126] | 0.000 | 0.921 |
+| daedalus-mcp | 2 | 53 | 5.587 [3.821, 7.353] | 0.000 | 0.877 |
+| daedalus-mcp | 3 | 54 | 6.875 [4.289, 9.461] | 0.000 | 0.822 |
+| daedalus-mcp | 4 | 54 | 7.417 [5.340, 9.494] | 0.000 | 0.780 |
+| daedalus-mcp | 5 | 53 | 7.077 [5.262, 8.893] | 0.000 | 0.737 |
+| gate | 1 | 54 | 4.915 [3.385, 6.445] | 0.000 | 0.926 |
+| gate | 2 | 54 | 5.550 [4.192, 6.908] | 0.000 | 0.877 |
+| gate | 3 | 54 | 6.419 [4.326, 8.512] | 0.000 | 0.833 |
+| gate | 4 | 54 | 5.878 [4.348, 7.409] | 0.000 | 0.788 |
+| gate | 5 | 51 | 7.829 [5.475, 10.183] | 0.000 | 0.728 |
 
 ## Not computable from the step records
 

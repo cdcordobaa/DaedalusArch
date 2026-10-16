@@ -5,7 +5,7 @@
   {
    "id": "null",
    "label": "no effect",
-   "advisoryByRule": false,
+   "advisoryByRule": true,
    "checks": [
     {
      "name": "switch rule: pilot shows erosion → primary stays blocking",
@@ -42,7 +42,7 @@
   {
    "id": "small",
    "label": "small effect (gate 0.2, mcp 0.1)",
-   "advisoryByRule": false,
+   "advisoryByRule": true,
    "checks": [
     {
      "name": "switch rule: pilot shows erosion → primary stays blocking",
@@ -84,7 +84,7 @@
   {
    "id": "expected",
    "label": "expected effect (gate halves the slope, mcp quarters it)",
-   "advisoryByRule": false,
+   "advisoryByRule": true,
    "checks": [
     {
      "name": "switch rule: pilot shows erosion → primary stays blocking",
@@ -126,33 +126,6 @@
   {
    "id": "floor",
    "label": "floor: zero blocking findings everywhere; expected effect on the advisory rules",
-   "advisoryByRule": false,
-   "checks": [
-    {
-     "name": "switch rule: pilot primary outcome is zero → pre-committed fallback triggered",
-     "pass": true,
-     "detail": "Pilot memo §3: the primary outcome is ZERO (no new blocking finding after step 1 in any of 3 tasks). Per memo §5 the PRE-COMMITTED FALLBACK applies: the Study 2 primary outcome moves to the advisory-tier erosion rate (per-run slope of advisory findings per KLOC, FF-CV05 excluded)."
-    },
-    {
-     "name": "primary outcome moved to the advisory-tier erosion rate",
-     "pass": true,
-     "detail": "advisoryTotalPerKlocSlope"
-    },
-    {
-     "name": "the report says so (statement names the fallback)",
-     "pass": true,
-     "detail": "T1 of report.md"
-    },
-    {
-     "name": "v1.3 format: the report says the defined fallback is NOT computable (no per-rule advisory counts)",
-     "pass": true,
-     "detail": "The memo §5 fallback outcome (advisory per KLOC WITHOUT FF-CV05) is NOT computable from these step records: the v1.3 `StepEvaluation` has only `advisoryViolationCount`, no per-rule advisory counts (readiness gate S6; PR #142 proposes `advisoryByRule`). The table below uses ALL advisory rules, FF-CV05 included, as a labelled surrogate; it is not the pre-committed outcome."
-    }
-   ]
-  },
-  {
-   "id": "floor-advisory-by-rule",
-   "label": "floor: zero blocking findings everywhere; expected effect on the advisory rules",
    "advisoryByRule": true,
    "checks": [
     {
@@ -184,6 +157,33 @@
      "name": "daedalus-mcp − none: 95% CI of the mean slope difference covers the generating value",
      "pass": true,
      "detail": "truth -0.018, estimate 0.033, CI [-0.896, 0.790]"
+    }
+   ]
+  },
+  {
+   "id": "floor-pre-142",
+   "label": "floor: zero blocking findings everywhere; expected effect on the advisory rules",
+   "advisoryByRule": false,
+   "checks": [
+    {
+     "name": "switch rule: pilot primary outcome is zero → pre-committed fallback triggered",
+     "pass": true,
+     "detail": "Pilot memo §3: the primary outcome is ZERO (no new blocking finding after step 1 in any of 3 tasks). Per memo §5 the PRE-COMMITTED FALLBACK applies: the Study 2 primary outcome moves to the advisory-tier erosion rate (per-run slope of advisory findings per KLOC, FF-CV05 excluded)."
+    },
+    {
+     "name": "primary outcome moved to the advisory-tier erosion rate",
+     "pass": true,
+     "detail": "advisoryTotalPerKlocSlope"
+    },
+    {
+     "name": "the report says so (statement names the fallback)",
+     "pass": true,
+     "detail": "T1 of report.md"
+    },
+    {
+     "name": "pre-#142 records: the report says the defined fallback is NOT computable (no per-rule advisory counts)",
+     "pass": true,
+     "detail": "The memo §5 fallback outcome (advisory per KLOC WITHOUT FF-CV05) is NOT computable from these step records: these records carry only `advisoryViolationCount`, no `advisoryByRule` (records written before PR #142, or by an evaluator that omits it; readiness gate S6). The table below uses ALL advisory rules, FF-CV05 included, as a labelled surrogate; it is not the pre-committed outcome."
     }
    ]
   }
@@ -262,14 +262,14 @@
   {
    "scenario": "floor",
    "sims": 200,
-   "rejectGate": 0.03,
-   "rejectMcp": 0.025,
+   "rejectGate": 0.035,
+   "rejectMcp": 0.03,
    "coverGate": 0.995,
    "coverMcp": 0.97,
    "coverRelGate": 0.99,
-   "meanEstGate": -0.38894044496008134,
+   "meanEstGate": -0.33702654709102725,
    "meanTruthGate": -0.33591576603259066,
-   "signFlipVsBootstrapDisagree": 0.045
+   "signFlipVsBootstrapDisagree": 0.035
   }
  ],
  "seedSensitivity": [

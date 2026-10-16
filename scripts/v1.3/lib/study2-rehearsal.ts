@@ -56,7 +56,7 @@ export function scenarioChecks(scenario: Scenario, report: AnalysisReport, truth
       checks.push({ name: 'fallback outcome computed as defined (FF-CV05 excluded)', pass: report.primaryDefinitionMet, detail: 'advisoryByRule present on every evaluated step' });
       for (const c of report.confirmatory) checks.push(...contrastChecks(c, truth, 'advisory', false));
     } else {
-      checks.push({ name: 'v1.3 format: the report says the defined fallback is NOT computable (no per-rule advisory counts)', pass: !report.primaryDefinitionMet && report.primaryNotes.some((n) => /NOT computable/.test(n)), detail: report.primaryNotes[0] ?? '' });
+      checks.push({ name: 'pre-#142 records: the report says the defined fallback is NOT computable (no per-rule advisory counts)', pass: !report.primaryDefinitionMet && report.primaryNotes.some((n) => /NOT computable/.test(n)), detail: report.primaryNotes[0] ?? '' });
     }
     return checks;
   }
