@@ -221,6 +221,7 @@ withLLMOptions(program
   .option('--instrument <version>', 'Symbolic instrument: v2 (role exemptions, default) | v1 (ADR-026)', 'v2')
   .option('--neural-aggregation <rule>', 'Neural aggregation of the AHS: registered (default, primary) | proportional (ADR-028 sensitivity variant)', 'registered')
   .option('--tsconfig <path>', 'Explicit tsconfig for APG extraction; the project\'s own tsconfig.json is then ignored (ADR-032)')
+  .option('--resolved-edges-in-literal-view', 'Off by default. Keep an import\'s edge to the declaring file in the literal view when it goes through a barrel (MT-B1, Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md)', false)
   .option('--scoring <mode>', 'Scoring mode: v1.3 (rule tiers, default; verdict from blocking rules) | v1.2e (the registered Study 1 scoring)', 'v1.3')
   .option('--html <out.html>', 'Also write a self-contained architect HTML report (layer diagram, findings in plain language, filters)')
   .option('--hints', 'Add a deterministic fix hint to every blocking finding (json: `fixHints`; human: a Fix hints section). Off by default: the output is then unchanged', false)
@@ -229,6 +230,7 @@ withLLMOptions(program
     engine?: string;
     project?: string;
     tsconfig?: string;
+    resolvedEdgesInLiteralView: boolean;
     spec?: string;
     fromInferred: boolean;
     format: string;
@@ -309,6 +311,7 @@ withLLMOptions(program
       llmConfig,
       ...(graphMode !== 'full' && { graphMode }),
       ...(opts.tsconfig !== undefined && { tsconfigPath: opts.tsconfig }),
+      ...(opts.resolvedEdgesInLiteralView && { resolvedEdgesInLiteralView: true }),
       instrumentVersion,
       neuralAggregation,
       scoringMode,
