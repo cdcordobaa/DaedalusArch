@@ -3,7 +3,7 @@ import type { FirewallContext } from '../../shared/context/firewall-context.js';
 import type { DomainResult as DomainResultType } from '../../shared/errors/domain-result.js';
 import { DomainResult } from '../../shared/errors/domain-result.js';
 import { extractAPG } from '../../apg-extractor/index.js';
-import type { GraphMode } from '../../apg-extractor/types.js';
+import type { ExtractionLimits, GraphMode } from '../../apg-extractor/types.js';
 import { V12E_DEFAULT_OPTIONS } from '../../apg-extractor/types.js';
 import { toPipelineError, toPipelineWarning } from './map-helpers.js';
 
@@ -23,6 +23,8 @@ export class ExtractCommand implements PipelineCommand {
     private readonly resolvedEdgesInLiteralView = false,
     /** R02: `v1.2e` extracts with `V12E_DEFAULT_OPTIONS` (the registered graph); absent = the v1.3 defaults. */
     private readonly defaults?: 'v1.3' | 'v1.2e',
+    /** Scale controls: `--max-files`, the memory guard, `--skip-excluded-sources` (Docs/v1.3/scale.md §5, §6). */
+    private readonly limits: ExtractionLimits = {},
   ) {}
 
   async execute(context: FirewallContext): Promise<DomainResultType<void>> {
@@ -33,9 +35,7 @@ export class ExtractCommand implements PipelineCommand {
       ...(this.resolvedEdgesInLiteralView && { resolvedEdgesInLiteralView: true }),
     };
     // The overrides argument is passed only when present (MCP template checks): every other caller is unchanged.
-    const result = this.sourceOverrides === undefined
-      ? await extractAPG(this.projectPath, options, this.tsconfigPath)
-      : await extractAPG(this.projectPath, options, this.tsconfigPath, this.sourceOverrides);
+    const result = await extractAPG(this.projectPath, options, this.tsconfigPath, this.sourceOverrides, this.limits);
 
     if (!result.success) {
       return DomainResult.fail<void>(

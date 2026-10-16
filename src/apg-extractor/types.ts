@@ -106,7 +106,32 @@ export type ExtractorErrorCode =
   | 'PROJECT_NOT_FOUND'
   | 'TSCONFIG_NOT_FOUND'
   | 'PARSE_FAILURE'
-  | 'EMPTY_PROJECT';
+  | 'EMPTY_PROJECT'
+  /** More analysable source files than `ExtractionLimits.maxFiles` (`--max-files`); Docs/v1.3/scale.md §6. */
+  | 'PROJECT_TOO_LARGE'
+  /** The memory guard stopped the extraction (`MemoryGuard`); Docs/v1.3/scale.md §6. */
+  | 'MEMORY_LIMIT_EXCEEDED';
+
+/**
+ * Scale controls of one extraction (Docs/v1.3/scale.md §5, §6). Kept out of `ExtractorOptions`, whose frozen default
+ * objects define the instrument; every field is optional and its absence keeps the extraction as it was.
+ */
+export interface ExtractionLimits {
+  /** Fail with `PROJECT_TOO_LARGE` when more source files than this remain after the exclusions. */
+  readonly maxFiles?: number;
+  /** Checked between files of the extraction passes; a `MemoryLimitError` becomes `MEMORY_LIMIT_EXCEEDED`. */
+  readonly memoryGuard?: import('../shared/process/memory-guard.js').MemoryGuard;
+  /**
+   * `tsconfig` (default): ts-morph loads every file of the tsconfig, as before. `analysed` (`--skip-excluded-sources`):
+   * it loads only the files that will be analysed plus every declaration file; an excluded file still reaches the
+   * type checker when an analysed file imports it. Faster and smaller, but the checker's root set differs, so the
+   * output is not guaranteed identical (it was on every project measured in scale.md).
+   */
+  readonly sourceScope?: 'tsconfig' | 'analysed';
+}
+
+/** Called after each file of an extraction pass (memory guard checkpoints). */
+export type FileCheckpoint = (done: number, total: number) => void;
 
 export interface ExtractorError extends PipelineError {
   readonly code: ExtractorErrorCode;

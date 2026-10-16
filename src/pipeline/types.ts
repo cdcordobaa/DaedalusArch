@@ -5,6 +5,7 @@ import type { GraphMode } from '../apg-extractor/types.js';
 import type { InstrumentVersion } from '../fitness-compiler/role-exemptions.js';
 import type { NeuralAggregation } from '../scoring-engine/neural-aggregation.js';
 import type { ScoringMode } from '../shared/types/evaluation.js';
+import type { AccelerationEvent } from '../graph-accelerator/accelerated-repository.js';
 import type { AdvisoryFilterOption } from '../advisory-filter/advisory-filter.js';
 import type { GraphRepository } from '../shared/interfaces/graph-repository.js';
 import type { GraphEngine } from '../cypher-interp/engine.js';
@@ -77,7 +78,22 @@ export interface PipelineConfig {
   readonly emptyAggregates?: EmptyAggregatePolicy | undefined;
   /** v1.3 npx mode (MCP template checks): in-memory file contents for extraction (absolute path; `null` = removed). */
   readonly sourceOverrides?: ReadonlyMap<string, string | null> | undefined;
+  /**
+   * Scale (Docs/v1.3/scale.md §3): `accelerated` (default) answers the bounded cycle queries in memory with the same
+   * rows on the Neo4j engine; `neo4j` sends every query to Neo4j. Not used by the in-process engine.
+   */
+  readonly queryEngine?: QueryEngine | undefined;
+  /** Scale (`--max-files`): fail with `PROJECT_TOO_LARGE` above this many analysable source files; absent = no cap. */
+  readonly maxFiles?: number | undefined;
+  /** Scale (`--memory-limit-mb`): an RSS budget for the memory guard, in MB; the heap budget applies regardless. */
+  readonly memoryLimitMb?: number | undefined;
+  /** Scale (`--skip-excluded-sources` = `analysed`): which tsconfig files ts-morph loads; absent = `tsconfig`. */
+  readonly sourceScope?: 'tsconfig' | 'analysed' | undefined;
+  /** Called once per recognised cycle query with the engine that answered it (profiling only). */
+  readonly onAcceleration?: ((event: AccelerationEvent) => void) | undefined;
 }
+
+export type QueryEngine = 'accelerated' | 'neo4j';
 
 /** Which extractor defaults a pipeline extracts with (`PipelineConfig.extractorDefaults`). */
 export type ExtractorDefaults = 'v1.3' | 'v1.2e';
