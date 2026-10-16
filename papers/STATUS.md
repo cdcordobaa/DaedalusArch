@@ -63,42 +63,69 @@ EMSE submission, once citations and related work are fixed.
 
 ## Paper 2: A Spec-Driven Neuro-Symbolic Architectural Firewall for TypeScript (`paper2-tool/`)
 
-Tool and approach paper. **Revised on this branch:** new Section 7 (v1.3), abstract, contributions, threats and
-conclusion. Compiles with `pdflatex` + `bibtex` (TeX Live from the container's apt): 20 pages in this class, no
-undefined references.
+Tool and approach paper. **Updated 2026-10-16 on branch `v1.3-paper2-update`** to the later v1.3 evidence: seven new
+subsections of Section 7 (interpreter parity, convergent agreement, external correctness, metamorphic invariance,
+rule mutation, replication package, null results), and a revised abstract, contribution list, limits, threats and
+conclusion. Compiles with `pdflatex` + `bibtex` (TeX Live from the container's apt): 24 pages in this class, no
+errors and no undefined references.
 
-**Venue candidates**
+**Target venue (verified 2026-10-16): ECSA 2027 research track.**
 
-| Venue | Deadline found | Fit |
+| Item | Value | Verified at |
 |---|---|---|
-| ICSA 2027 technical research papers (Sydney, 8–12 Mar 2027) | abstract 30 Oct 2026, paper 4 Nov 2026 (EasyChair call; **verify**) | Right venue, but 10 pages + 2 of references: the paper must lose half its length, and the v1.3 evidence is development-only |
-| ICSE 2027 Tool Demonstration and Data Showcase | 23 Oct 2026 (conf.researchr.org dates page; **verify**) | A short tool paper on the v1.2E evaluation plus v1.3 features; feasible only with an immediate cut-down |
-| ECSA 2027 (research or tools track) | not found (**verify**; ECSA 2026's main deadline was 13 Mar 2026, so expect early 2027) | Best realistic target: by then the hold-out run and human labels can exist |
+| Event | 21st ECSA, 27 Sep to 1 Oct 2027, Porto, Portugal (FEUP) | https://conf.researchr.org/home/ecsa-2027 |
+| Abstract (mandatory) | **Fri 12 Mar 2027**, 23:59 AoE | https://conf.researchr.org/track/ecsa-2027/ecsa-2027-research-track |
+| Paper | **Fri 19 Mar 2027**, 23:59 AoE | same page |
+| Notification | Wed 28 Apr 2027 | same page |
+| Format | Springer LNCS, research papers 16 + 2 pages (provisional, pending publisher confirmation), HotCRP, double-anonymous (replication package must be anonymised) | same page |
 
-**Readiness.** v1.2E core: complete and registered (seeded recall 0.918, real-code precision 0.33–0.79;
-`results/so4-heldout/agg/prf_overall.csv`, `results/so4-heldout/agg/precision_baseline.csv`). v1.3 section:
-written, every figure development-set:
+Why this venue: it is the venue the paper was written for; the deadline leaves about five months for the sealed
+hold-out run and the human labels, which the paper needs; and the 16 + 2 LNCS limit is reachable from the current
+24 pages of `article` by moving Section 6.7 and part of Section 7 to an appendix or the replication package.
+The page limits are marked provisional on the call; re-check them in January 2027.
 
-- graph fidelity is agreement, Jaccard 0.988 (E1) and 0.913 (SO4, tsc), 0 unexplained disagreements *[dev]*
+**Alternatives checked and set aside (2026-10-16):**
+
+| Venue | Date found | Why not |
+|---|---|---|
+| ICSA 2027 research track (Sydney, Mar 2027) | research-track page not found on conf.researchr.org (404); other ICSA 2027 track pages say "to be announced" | Earlier listing gave 30 Oct / 4 Nov 2026: two weeks away, 10 + 2 pages, no hold-out yet |
+| ICSE 2027 Tool Demonstration and Data Showcase | notification 11 Dec 2026 (https://conf.researchr.org/dates/icse-2027, search result, not opened); submission 23 Oct 2026 per the earlier listing | One week away; a 4-page demo would drop the evaluation |
+| SANER 2027 tool demo (Richmond, VA, 9-12 Mar 2027) | paper 23 Oct 2026, 5 pages incl. references (https://conf.researchr.org/track/saner-2027/saner-2027-tool-demo-track) | One week away; demo format |
+| ICPC 2027 tool demo | 19 Nov 2026 (https://conf.researchr.org/dates/icpc-2027, search result, not opened) | Possible cut-down demo; weaker topical fit |
+
+**Readiness.** v1.2E core: complete and registered (seeded recall 0.918, real-code precision 0.33 to 0.79;
+`results/so4-heldout/agg/prf_overall.csv`, `results/so4-heldout/agg/precision_baseline.csv`). v1.3 evidence now in
+the paper (*[dev]* = development set; *[expl]* = exploratory, human-written code outside the development set):
+
+- graph fidelity as agreement, Jaccard 0.988 (E1) and 0.913 (SO4, tsc) *[dev]*
   (`Docs/DiagnosticRuns/v1.3-graph-fidelity-2026-10-14.md`);
 - reference set pooled blocking recall 54/54 (author view; 3 FF-P06 field-initialiser rows reported N/A, recall
   unestimated; PR #120) and 50/64 (blind view) *[dev]*
   (`Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md`, "Correction (2026-10-16)");
 - 0 incorrect of 2,668 checkable findings *[dev]* (`Docs/DiagnosticRuns/v1.3-labelling-2026-10-15.md`);
-- APG v2 25/27 vs 0/27 on designer-planted cases *[dev]* (`Docs/DiagnosticRuns/apg2-scope-2026-10-15.md`;
-  `Docs/DiagnosticRuns/apg2-ablation-2026-10-15.md`);
-- eleven defects found and fixed (Table 12 of the paper).
+- APG v2 25/27 vs 0/27 on designer-planted cases *[dev]* (`Docs/DiagnosticRuns/apg2-scope-2026-10-15.md`);
+- interpreter parity: 65,254 real-graph statements and 836,000 fuzzed statements, 0 mismatches
+  (`Docs/v1.3/cypher-interpreter.md`, `Docs/v1.3/cypher-interp-fuzz.md`; #128, #183 merged);
+- convergent agreement with dependency-cruiser, eslint-plugin-boundaries and ArchUnitTS: kappa 1.000 on the reference
+  set, 0.913 to 1.000 elsewhere, 0 of 253 disagreements our bug *[dev]/[expl]*
+  (`Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md`; #166 merged);
+- external human-written set: 283/283 blocking findings correct, negative control 500/500 rejected *[expl]*
+  (#167, not merged); wave 2 brings 35 projects, unlabelled (#181, not merged);
+- metamorphic invariance 637/655 *[dev]* (#185, not merged);
+- rule mutation: development sets kill 90/273 (33%), stated as a limit of the oracle *[dev]* (#190, not merged);
+- replication: 531-row audit and 160-file smoke run (#117 merged); 5,154 numbers, 4,587 reproduce, 58 differ (#215,
+  not merged);
+- null results stated as limitations: developer-fix mining (#168) and known groups (#198), both not merged.
 
 **Still missing.** The hold-out run (the only thing that turns Section 7 into validity evidence); human labels for
-meaningfulness and the graph adjudication; the 20-seeds-per-style target (styles have 9–12 violation variants;
-`Docs/DiagnosticRuns/v1.3-reference-baseline-2026-10-15.md`); usefulness to architects; Study 2. Citation
-verification and the cut to a venue's page limit.
+meaningfulness and the graph adjudication; the 20-seeds-per-style target; a second specification author on the
+external set (verdicts flip on 5 of 15 with one); usefulness to architects; Study 2. Citation verification and the
+cut to 16 + 2 LNCS pages. Seven of the cited reports are on unmerged PRs: re-check their numbers after merge.
 
-**Honest rating: 2.5 / 5 today, 3.5 / 5 with the hold-out and human labels.** The engineering and the candour are
-strong; the reviewer's main objection (`paper2-tool/REVIEW-adversarial.md` M2: the breadth claim is the least
-evaluated part) is only partly answered, because the v1.3 evidence is development-set and the APG v2 cases were
-planted by their designer. Submitting to ICSA 2027 now would likely draw a weak reject on validity; ECSA 2027 after
-the hold-out is the better bet.
+**Honest rating: 3 / 5 today, 3.5 to 4 / 5 with the hold-out and human labels.** The v1.3 additions answer part of
+the adversarial review's M2 (breadth is the least evaluated part) with independent-tool agreement and correctness on
+human-written code, and the mutation analysis and null results make the limits explicit. The central gap is
+unchanged: no hold-out and no human judgement of whether findings matter.
 
 ---
 
@@ -198,6 +225,6 @@ tiny, and the strongest new number (0.85) is in-sample against one judge run.
 2. Run the hold-out and the author audit; these unblock Papers 2, 3 and 4 together.
 3. Paper 3 to LLM4Code 2027 (13 Nov 2026), cut to the workshop limit, once PRs #191, #165 and #179 are reviewed;
    AgentArch 2027 (20 Dec 2026) as the second choice.
-4. Paper 2 to ECSA 2027 with the hold-out numbers; a cut-down tool demo is an option before that.
+4. Paper 2 to ECSA 2027 (abstract 12 Mar 2027, paper 19 Mar 2027, verified) with the hold-out numbers; a cut-down tool demo is an option before that.
 5. Paper 4 to ICPC 2027 ERA (26 Nov 2026) or ICSA 2027 NEMI (20 Dec 2026) as a new-ideas paper; the full paper after
    the follow-up has at least its frozen proxies and independent seeds.
