@@ -72,6 +72,8 @@ interface Ctx {
   readonly pushed?: ReadonlyMap<RelPattern, Pushdown>;
   /** The current MATCH's WHERE conjuncts with the variables they read (see `matchPart`). */
   readonly early?: readonly { readonly expr: Expr; readonly vars: ReadonlySet<string> }[];
+  /** Existential MATCH only: the first data error a pushed-down filter raised, held back (see `rejects`). */
+  readonly held?: { err?: CypherRuntimeError };
 }
 
 /**
@@ -211,7 +213,7 @@ function* matchClause(clause: Extract<Clause, { k: 'match' }>, rows: Iterable<Ro
   });
   const ctx: Ctx = {
     graph: ctx0.graph, params: ctx0.params, ...(ctx0.aggregates !== undefined ? { aggregates: ctx0.aggregates } : {}), ...(pushed.size > 0 ? { pushed } : {}),
-    ...(early.length > 0 ? { early } : {}),
+    ...(early.length > 0 ? { early } : {}), ...(ctx0.existential === true && !evalDiagnostics.strict ? { held: {} } : {}),
   };
   // In an existential MATCH a row's data error is held back (F8): EXISTS is true as soon as any row qualifies, in
   // whatever order Neo4j finds them, so the error is raised only if the match runs out of rows without one.
@@ -248,7 +250,9 @@ function* matchClause(clause: Extract<Clause, { k: 'match' }>, rows: Iterable<Ro
       }
     }
     done = true;
+    held ??= ctx.held?.err;
   } finally {
+    if (!done && ctx.held?.err !== undefined) suppress(ctx.held.err);
     // Stopped early: a row qualified, the held error did not matter.
     if (!done && held !== undefined) suppress(held);
   }
@@ -329,6 +333,7 @@ function isExpr(v: unknown): v is Expr {
  * Whether a pushed-down filter rejects `x` (its predicate is false or null). A data error is raised at once, as Neo4j
  * raises it from inside the expansion it pushed the predicate into (`ALL(r IN rels WHERE NOT r.flag)` on a string
  * `flag` fails before any path is complete); deferring it would enumerate every path only to raise it at the end.
+ * Inside an `EXISTS` it is held back instead (F10), like a row's error (F8): another path may still qualify.
  */
 function rejects(q: Extract<Expr, { k: 'quant' }>, x: Value, row: Row, ctx: Ctx): boolean {
   const where = q.where;
@@ -339,6 +344,11 @@ function rejects(q: Extract<Expr, { k: 'quant' }>, x: Value, row: Row, ctx: Ctx)
   } catch (e) {
     // A variable the predicate reads is not bound yet at this point of the expansion: do not push it.
     if (e instanceof CypherSyntaxError) return false;
+    // In an existential MATCH another path may still qualify (F10): prune this one and hold the error back.
+    if (ctx.held !== undefined && e instanceof CypherRuntimeError) {
+      ctx.held.err ??= e;
+      return true;
+    }
     throw e;
   }
   // ALL needs p true for every element, NONE needs it false: anything else makes the quantifier false or null.

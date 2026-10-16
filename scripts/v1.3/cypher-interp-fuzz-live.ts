@@ -1,7 +1,8 @@
 /**
  * Live check of the fuzz regression cases (tests/unit/cypher-interp/fuzz-regressions.cases.ts): each case's graph is
  * written to Neo4j through the ingestion statements and its query run there and in the interpreter; every expectation
- * must be Neo4j's answer and the interpreter's. Entry file: no exports. Wipes the database; holds the Neo4j lock.
+ * must be Neo4j's answer and the interpreter's (for a case marked `neo4jMayRaise`, Neo4j may instead fail with that code:
+ * its answer depends on its plan, trap T20). Entry file: no exports. Wipes the database; holds the Neo4j lock.
  * Usage (Neo4j env loaded): node --import tsx scripts/v1.3/cypher-interp-fuzz-live.ts
  */
 import { Neo4jRepository } from '../../src/neo4j-ingestion/neo4j-repository.js';
@@ -44,7 +45,7 @@ async function main(): Promise<number> {
       const n = outcome(await neo.executeQuery(c.query, { ...c.params }));
       const m = outcome(await mem.executeQuery(c.query, { ...c.params }));
       const want = JSON.stringify('error' in c.expect ? c.expect : c.expect.map(canon));
-      const ok = n === want && m === want;
+      const ok = m === want && (n === want || (c.neo4jMayRaise !== undefined && n === JSON.stringify({ error: c.neo4jMayRaise })));
       if (!ok) bad += 1;
       process.stdout.write(`${ok ? 'ok  ' : 'FAIL'} ${c.finding}: ${c.title}${ok ? '' : `\n     expect ${want}\n     neo4j  ${n}\n     interp ${m}`}\n`);
     }

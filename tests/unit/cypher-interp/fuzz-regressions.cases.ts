@@ -29,6 +29,12 @@ export interface RegressionCase {
   readonly params?: Readonly<Record<string, unknown>>;
   /** Canonical rows in order, or the Neo4j status code of the expected failure. */
   readonly expect: readonly unknown[] | { readonly error: string };
+  /**
+   * Plan-order dependent in Neo4j itself (trap T20): Neo4j may return `expect` or fail with this code, depending on
+   * which row its plan reaches first (the same case gave rows on one 5.26.24 instance and the error on another). The
+   * interpreter must return `expect`: the answer of the orders that avoid the error.
+   */
+  readonly neo4jMayRaise?: string;
   /** The interpreter must answer within this many milliseconds (the enumeration the fix removes took minutes). */
   readonly withinMs?: number;
 }
@@ -231,6 +237,7 @@ export const REGRESSION_CASES: readonly RegressionCase[] = [
     nodes: [{ id: 'a', label: 'File', props: { name: 'a.ts', isBarrel: false } }, { id: 'b', label: 'File', props: { name: 'b.ts' } }, { id: 'c', label: 'File', props: { name: 'c.ts' } }],
     edges: [{ type: 'IMPORTS', from: 'a', to: 'b', props: { viaReExport: 'Event' } }, { type: 'IMPORTS', from: 'a', to: 'c' }],
     query: "MATCH (f:File {name: 'a.ts'}) WHERE EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) } RETURN f.name AS n",
+    neo4jMayRaise: TYPE_ERROR,
     expect: [{ n: 'a.ts' }],
   },
   {
@@ -268,5 +275,13 @@ export const REGRESSION_CASES: readonly RegressionCase[] = [
     query: 'MATCH (n)-[*1..$max]->(m) RETURN n',
     params: { max: 3 },
     expect: { error: SYNTAX_ERROR },
+  },
+  {
+    finding: 'F10', title: 'inside EXISTS a pushed-down predicate error on a dead-end path is held back while another path qualifies (cyclicDependencyCount, literal view, fuzz seed 474)',
+    nodes: [{ id: 'f', label: 'File', props: { name: 'f.ts' } }, { id: 'p', label: 'Package', props: { name: 'pkg' } }],
+    edges: [{ type: 'IMPORTS', from: 'f', to: 'f' }, { type: 'RE_EXPORTS', from: 'f', to: 'f' }, { type: 'DEPENDS_ON', from: 'f', to: 'p' }, { type: 'RE_EXPORTS', from: 'f', to: 'p', props: { viaReExport: 3.5 } }],
+    query: 'MATCH (f:File) WHERE EXISTS { MATCH p = (f)-[:IMPORTS|RE_EXPORTS*2..10]->(f) WHERE ALL(r IN relationships(p) WHERE NOT coalesce(r.viaReExport, false)) } RETURN count(f) AS cnt',
+    neo4jMayRaise: TYPE_ERROR,
+    expect: [{ cnt: { $int: '1' } }],
   },
 ];
