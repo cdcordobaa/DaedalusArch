@@ -28,9 +28,12 @@ For each row:
    - **Reference**: `tests/fixtures/v1.3-reference/<style>/variants/<variant>`, applied to the clean project.
 3. Fill `author_confirms` with `yes` or `no`, and add a reason in `author_note` if you answer `no`.
 
-When you **confirm a sampled row**, you vouch for the class rule that produced it (`proposed_rule`). Every row under that rule passed the same mechanical checks. If you **reject one**, re-open every row under its rule: `grep <rule>` in the `*.proposed.csv` files.
+**The sample is a quality screen, not the adjudication.** It estimates how often each class rule is wrong and shows which rules are worth trusting. A confirmed sampled row says nothing certain about the roughly 90% of its class that you did not open. That holds even though every row under a rule passed the same mechanical checks: the checks cover the quote and the resolution, not the judgment the rule encodes. The agents that proposed the reference rows also saw `author_reason`. If you **reject a sampled row**, distrust its whole rule (`grep <rule>` in the `*.proposed.csv` files) until you have re-opened every row under it.
 
-Writing the adjudication itself is up to you. One way is to copy `proposed_verdict` into `human_verdict` / `adjudication` for each rule you have confirmed. The original sheets are not changed until you do that.
+**Fill `human_verdict` / `adjudication` only for rows you have reviewed yourself.** Never copy `proposed_verdict` in bulk for a rule on the strength of its sample.
+- If you adjudicate only part of a set, report the figure over the adjudicated rows, or report the remaining rows separately as proposed.
+- Name the covered rows; do not call the whole set adjudicated.
+- The original sheets are not changed until you fill them.
 
 ## Verdicts
 
