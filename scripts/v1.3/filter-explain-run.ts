@@ -27,8 +27,8 @@ import { createLLMProvider } from '../../src/llm-critic/provider-factory.js';
 import { disposeJudgeProvider } from '../../src/llm-critic/judge-stage.js';
 import { renderLayerModel } from '../../src/llm-critic/context-assembler.js';
 import {
-  FE_PERSONA, FE_REVISION, FE_SCHEMA_TEXT, answerOfResponse, buildFilterExplainPrompt, computeFilterExplainSha256,
-  createFilterExplainProvider, findingKept, outcomeOf,
+  FE_PERSONA, FE_REVISION, FE_SCHEMA_TEXT, answerOfResponse, computeFilterExplainSha256,
+  createFilterExplainProvider, findingKept, outcomeOf, renderFilterExplainPrompt,
 } from '../../src/llm-critic/filter-explain.js';
 import type { FilterExplainOutcome, ShownFile, SymbolicFinding } from '../../src/llm-critic/filter-explain.js';
 import { parseSpec } from '../../src/spec-parser/index.js';
@@ -62,7 +62,7 @@ interface Plan {
   readonly feRevision: string;
   readonly feSha256: string;
   readonly rows: readonly Row[];
-  readonly prompts: Readonly<Record<string, { prompt: string; files: ShownFile[] }>>;
+  readonly prompts: Readonly<Record<string, { prompt: string; files: readonly ShownFile[] }>>;
   readonly selected: readonly string[];   // prompt shas
   readonly skipped: readonly { rowId: string; reason: string }[];
 }
@@ -102,7 +102,7 @@ async function plan(argv: readonly string[]): Promise<number> {
   const report = readJson<{ comparisons: Comparison[] }>(path.join(REPO, INPUT, 'report.json'));
   const comps = new Map(report.comparisons.map((c) => [`${c.style}/${c.variant}`, c]));
   const rows: Row[] = [];
-  const prompts: Record<string, { prompt: string; files: ShownFile[] }> = {};
+  const prompts: Record<string, { prompt: string; files: readonly ShownFile[] }> = {};
   const skipped: { rowId: string; reason: string }[] = [];
   for (const ref of loadAllReferences(REPO)) {
     const parsed = await parseSpec({ specFilePath: ref.specPath });
@@ -138,9 +138,10 @@ async function plan(argv: readonly string[]): Promise<number> {
         };
         const shown: ShownFile[] = files.map((f) => ({ path: f, content: fs.readFileSync(path.join(mat.projectDir, f), 'utf8') }));
         const layers = Object.fromEntries(assignLayers(files, model).assignments.map((a) => [a.file, a.layer]));
-        const prompt = buildFilterExplainPrompt({ finding, files: shown, layerModel: layerText, fileLayers: layers });
+        // R19: ground against the files as the prompt rendered them (a truncated or omitted file is cut there too).
+        const { prompt, shown: rendered } = renderFilterExplainPrompt({ finding, files: shown, layerModel: layerText, fileLayers: layers });
         const promptSha = sha(prompt);
-        prompts[promptSha] = { prompt, files: shown };
+        prompts[promptSha] = { prompt, files: rendered };
         rows.push({ rowId, style: ref.style, variant: v.manifest.variant, label, tier, finding, files, promptSha });
       });
     }

@@ -1,0 +1,732 @@
+diff --git a/src/adapters/inbound/http-app.ts b/src/adapters/inbound/http-app.ts
+index c6e3f0b..69d58cc 100644
+--- a/src/adapters/inbound/http-app.ts
++++ b/src/adapters/inbound/http-app.ts
+@@ -3,12 +3,20 @@ import { AnimalService, NotFoundError } from '../../application/animal-service';
+ import { AdoptionService } from '../../application/adoption-service';
+ import { FosterService } from '../../application/foster-service';
+ import { NotificationService } from '../../application/notification-service';
++import { AuditService } from '../../application/audit-service';
+ 
+ export interface HttpDeps {
+   animals: AnimalService;
+   adoptions: AdoptionService;
+   foster: FosterService;
+   notifications: NotificationService;
++  audit: AuditService;
++}
++
++function staffId(req: Request): string {
++  const id = req.header('x-staff-id');
++  if (!id) throw new Error('x-staff-id header is required');
++  return id;
+ }
+ 
+ export function createHttpApp(deps: HttpDeps): express.Express {
+@@ -16,7 +24,7 @@ export function createHttpApp(deps: HttpDeps): express.Express {
+   app.use(express.json());
+ 
+   app.post('/animals', (req, res) => {
+-    res.status(201).json(deps.animals.register(req.body));
++    res.status(201).json(deps.animals.register(staffId(req), req.body));
+   });
+   app.get('/animals', (_req, res) => {
+     res.json(deps.animals.list());
+@@ -25,19 +33,23 @@ export function createHttpApp(deps: HttpDeps): express.Express {
+     res.json(deps.animals.get(req.params.id));
+   });
+   app.post('/animals/:id/ready', (req, res) => {
+-    res.json(deps.animals.markReady(req.params.id));
++    res.json(deps.animals.markReady(staffId(req), req.params.id));
++  });
++  app.get('/animals/:id/audit', (req, res) => {
++    res.json(deps.audit.trailForAnimal(req.params.id));
+   });
+   app.post('/animals/:id/applications', (req, res) => {
+-    res.status(201).json(deps.adoptions.submit(req.params.id, req.body));
++    // submitted by the public: recorded with the staff header if present, else as 'public'
++    res.status(201).json(deps.adoptions.submit(req.header('x-staff-id') ?? 'public', req.params.id, req.body));
+   });
+   app.get('/animals/:id/applications', (req, res) => {
+     res.json(deps.adoptions.listForAnimal(req.params.id));
+   });
+   app.post('/applications/:id/approve', (req, res) => {
+-    res.json(deps.adoptions.approve(req.params.id));
++    res.json(deps.adoptions.approve(staffId(req), req.params.id));
+   });
+   app.post('/applications/:id/reject', (req, res) => {
+-    res.json(deps.adoptions.reject(req.params.id));
++    res.json(deps.adoptions.reject(staffId(req), req.params.id));
+   });
+   app.post('/carers', (req, res) => {
+     res.status(201).json(deps.foster.signUp(req.body));
+@@ -46,14 +58,19 @@ export function createHttpApp(deps: HttpDeps): express.Express {
+     res.json(deps.foster.listCarers());
+   });
+   app.post('/placements', (req, res) => {
+-    res.status(201).json(deps.foster.place(req.body.animalId, req.body.carerId));
++    res.status(201).json(deps.foster.place(staffId(req), req.body.animalId, req.body.carerId));
+   });
+   app.post('/placements/:id/end', (req, res) => {
+-    res.json(deps.foster.endPlacement(req.params.id));
++    res.json(deps.foster.endPlacement(staffId(req), req.params.id));
+   });
+   app.get('/notifications', (_req, res) => {
+     res.json(deps.notifications.list());
+   });
++  app.get('/staff/:staffId/changes', (req, res) => {
++    const from = String(req.query.from ?? '0000');
++    const to = String(req.query.to ?? '9999');
++    res.json(deps.audit.changesBy(req.params.staffId, from, to));
++  });
+   // TextBridge delivery report webhook
+   app.post('/webhooks/textbridge', (req, res) => {
+     const { messageId, status } = req.body as { messageId: string; status: string };
+diff --git a/src/adapters/outbound/in-memory-repositories.ts b/src/adapters/outbound/in-memory-repositories.ts
+index 3a2e1f4..362fc83 100644
+--- a/src/adapters/outbound/in-memory-repositories.ts
++++ b/src/adapters/outbound/in-memory-repositories.ts
+@@ -4,14 +4,23 @@ import {
+   AnimalRepository,
+   ApplicationRepository,
+   CarerRepository,
++  AuditLogRepository,
+   NotificationRepository,
+   PlacementRepository,
+ } from '../../application/ports';
+ import { Notification } from '../../domain/notification';
++import { AuditEntry } from '../../domain/audit';
++import { Snapshottable } from './in-memory-unit-of-work';
+ import { FosterCarer, Placement, isActive } from '../../domain/foster';
+ 
+-export class InMemoryAnimalRepository implements AnimalRepository {
+-  private readonly items = new Map<string, Animal>();
++export class InMemoryAnimalRepository implements AnimalRepository, Snapshottable {
++  private items = new Map<string, Animal>();
++  snapshot(): unknown {
++    return new Map(this.items);
++  }
++  restore(state: unknown): void {
++    this.items = state as Map<string, Animal>;
++  }
+   save(animal: Animal): void {
+     this.items.set(animal.id, animal);
+   }
+@@ -23,8 +32,14 @@ export class InMemoryAnimalRepository implements AnimalRepository {
+   }
+ }
+ 
+-export class InMemoryApplicationRepository implements ApplicationRepository {
+-  private readonly items = new Map<string, AdoptionApplication>();
++export class InMemoryApplicationRepository implements ApplicationRepository, Snapshottable {
++  private items = new Map<string, AdoptionApplication>();
++  snapshot(): unknown {
++    return new Map(this.items);
++  }
++  restore(state: unknown): void {
++    this.items = state as Map<string, AdoptionApplication>;
++  }
+   save(app: AdoptionApplication): void {
+     this.items.set(app.id, app);
+   }
+@@ -36,8 +51,14 @@ export class InMemoryApplicationRepository implements ApplicationRepository {
+   }
+ }
+ 
+-export class InMemoryCarerRepository implements CarerRepository {
+-  private readonly items = new Map<string, FosterCarer>();
++export class InMemoryCarerRepository implements CarerRepository, Snapshottable {
++  private items = new Map<string, FosterCarer>();
++  snapshot(): unknown {
++    return new Map(this.items);
++  }
++  restore(state: unknown): void {
++    this.items = state as Map<string, FosterCarer>;
++  }
+   save(carer: FosterCarer): void {
+     this.items.set(carer.id, carer);
+   }
+@@ -49,8 +70,14 @@ export class InMemoryCarerRepository implements CarerRepository {
+   }
+ }
+ 
+-export class InMemoryPlacementRepository implements PlacementRepository {
+-  private readonly items = new Map<string, Placement>();
++export class InMemoryPlacementRepository implements PlacementRepository, Snapshottable {
++  private items = new Map<string, Placement>();
++  snapshot(): unknown {
++    return new Map(this.items);
++  }
++  restore(state: unknown): void {
++    this.items = state as Map<string, Placement>;
++  }
+   save(placement: Placement): void {
+     this.items.set(placement.id, placement);
+   }
+@@ -65,8 +92,14 @@ export class InMemoryPlacementRepository implements PlacementRepository {
+   }
+ }
+ 
+-export class InMemoryNotificationRepository implements NotificationRepository {
+-  private readonly items = new Map<string, Notification>();
++export class InMemoryNotificationRepository implements NotificationRepository, Snapshottable {
++  private items = new Map<string, Notification>();
++  snapshot(): unknown {
++    return new Map(this.items);
++  }
++  restore(state: unknown): void {
++    this.items = state as Map<string, Notification>;
++  }
+   save(n: Notification): void {
+     this.items.set(n.id, n);
+   }
+@@ -80,3 +113,22 @@ export class InMemoryNotificationRepository implements NotificationRepository {
+     return [...this.items.values()];
+   }
+ }
++
++export class InMemoryAuditLogRepository implements AuditLogRepository, Snapshottable {
++  private entries: AuditEntry[] = [];
++  snapshot(): unknown {
++    return [...this.entries];
++  }
++  restore(state: unknown): void {
++    this.entries = state as AuditEntry[];
++  }
++  append(entry: AuditEntry): void {
++    this.entries.push(entry);
++  }
++  findByAnimal(animalId: string): AuditEntry[] {
++    return this.entries.filter((e) => e.animalId === animalId);
++  }
++  findByActor(actor: string, from: string, to: string): AuditEntry[] {
++    return this.entries.filter((e) => e.actor === actor && e.at >= from && e.at <= to);
++  }
++}
+diff --git a/src/adapters/outbound/in-memory-unit-of-work.ts b/src/adapters/outbound/in-memory-unit-of-work.ts
+new file mode 100644
+index 0000000..f3b1344
+--- /dev/null
++++ b/src/adapters/outbound/in-memory-unit-of-work.ts
+@@ -0,0 +1,26 @@
++import { UnitOfWork } from '../../application/ports';
++
++export interface Snapshottable {
++  snapshot(): unknown;
++  restore(state: unknown): void;
++}
++
++/** In-memory transaction: snapshots every store before the work and restores them all if it throws. */
++export class InMemoryUnitOfWork implements UnitOfWork {
++  private depth = 0;
++  constructor(private readonly stores: Snapshottable[]) {}
++
++  run<T>(work: () => T): T {
++    if (this.depth > 0) return work();
++    const snapshots = this.stores.map((s) => s.snapshot());
++    this.depth++;
++    try {
++      return work();
++    } catch (err) {
++      this.stores.forEach((s, i) => s.restore(snapshots[i]));
++      throw err;
++    } finally {
++      this.depth--;
++    }
++  }
++}
+diff --git a/src/application/adoption-service.ts b/src/application/adoption-service.ts
+index 9f2da8a..7e36a76 100644
+--- a/src/application/adoption-service.ts
++++ b/src/application/adoption-service.ts
+@@ -1,8 +1,9 @@
+ import { markAdopted } from '../domain/animal';
+ import { AdoptionApplication, Applicant, decide } from '../domain/adoption-application';
+-import { AnimalRepository, ApplicationRepository, CarerRepository, IdGenerator, PlacementRepository } from './ports';
++import { AnimalRepository, ApplicationRepository, CarerRepository, IdGenerator, PlacementRepository, UnitOfWork } from './ports';
+ import { NotificationService } from './notification-service';
+ import { NotFoundError } from './animal-service';
++import { AuditService } from './audit-service';
+ 
+ export class AdoptionService {
+   constructor(
+@@ -12,10 +13,12 @@ export class AdoptionService {
+     private readonly ids: IdGenerator,
+     private readonly placements: PlacementRepository,
+     private readonly carers: CarerRepository,
++    private readonly audit: AuditService,
++    private readonly uow: UnitOfWork,
+     private readonly now: () => Date = () => new Date(),
+   ) {}
+ 
+-  submit(animalId: string, applicant: Applicant): AdoptionApplication {
++  submit(actor: string, animalId: string, applicant: Applicant): AdoptionApplication {
+     const animal = this.animals.findById(animalId);
+     if (!animal) throw new NotFoundError(`Animal ${animalId} not found`);
+     if (animal.status !== 'ready') throw new Error('Animal is not available for adoption');
+@@ -27,48 +30,64 @@ export class AdoptionService {
+       status: 'open',
+       submittedAt: this.now().toISOString(),
+     };
+-    this.applications.save(app);
+-    return app;
++    return this.uow.run(() => {
++      this.applications.save(app);
++      this.audit.record(actor, 'application', app.id, animalId, null, app);
++      return app;
++    });
+   }
+ 
+-  approve(applicationId: string): AdoptionApplication {
++  approve(actor: string, applicationId: string): AdoptionApplication {
+     const app = this.getApplication(applicationId);
+     const animal = this.animals.findById(app.animalId);
+     if (!animal) throw new NotFoundError(`Animal ${app.animalId} not found`);
+     const at = this.now().toISOString();
+-    const approved = decide(app, 'approved', at);
+-    this.animals.save(markAdopted(animal));
+-    this.applications.save(approved);
+-    this.notify(approved, animal.name);
+-    const placement = this.placements.findActiveByAnimal(animal.id);
+-    if (placement) {
+-      this.placements.save({ ...placement, endedAt: at });
+-      const carer = this.carers.findById(placement.carerId);
+-      if (carer) {
+-        this.notifications.notify(
+-          carer,
+-          `${animal.name} has been adopted`,
+-          `Dear ${carer.name}, ${animal.name} has been adopted. Thank you for fostering! The placement has ended.`,
+-        );
++    return this.uow.run(() => {
++      const approved = decide(app, 'approved', at);
++      const adopted = markAdopted(animal);
++      this.animals.save(adopted);
++      this.audit.record(actor, 'animal', animal.id, animal.id, animal, adopted);
++      this.applications.save(approved);
++      this.audit.record(actor, 'application', app.id, animal.id, app, approved);
++      this.notify(actor, approved, animal.name);
++      const placement = this.placements.findActiveByAnimal(animal.id);
++      if (placement) {
++        const ended = { ...placement, endedAt: at };
++        this.placements.save(ended);
++        this.audit.record(actor, 'placement', placement.id, animal.id, placement, ended);
++        const carer = this.carers.findById(placement.carerId);
++        if (carer) {
++          this.notifications.notify(
++            actor,
++            carer,
++            `${animal.name} has been adopted`,
++            `Dear ${carer.name}, ${animal.name} has been adopted. Thank you for fostering! The placement has ended.`,
++            animal.id,
++          );
++        }
+       }
+-    }
+-    for (const other of this.applications.findByAnimal(animal.id)) {
+-      if (other.id !== approved.id && other.status === 'open') {
+-        const rejected = decide(other, 'rejected', at);
+-        this.applications.save(rejected);
+-        this.notify(rejected, animal.name);
++      for (const other of this.applications.findByAnimal(animal.id)) {
++        if (other.id !== approved.id && other.status === 'open') {
++          const rejected = decide(other, 'rejected', at);
++          this.applications.save(rejected);
++          this.audit.record(actor, 'application', other.id, animal.id, other, rejected);
++          this.notify(actor, rejected, animal.name);
++        }
+       }
+-    }
+-    return approved;
++      return approved;
++    });
+   }
+ 
+-  reject(applicationId: string): AdoptionApplication {
++  reject(actor: string, applicationId: string): AdoptionApplication {
+     const app = this.getApplication(applicationId);
+     const rejected = decide(app, 'rejected', this.now().toISOString());
+-    this.applications.save(rejected);
+-    const animal = this.animals.findById(app.animalId);
+-    this.notify(rejected, animal?.name ?? 'the animal');
+-    return rejected;
++    return this.uow.run(() => {
++      this.applications.save(rejected);
++      this.audit.record(actor, 'application', app.id, app.animalId, app, rejected);
++      const animal = this.animals.findById(app.animalId);
++      this.notify(actor, rejected, animal?.name ?? 'the animal');
++      return rejected;
++    });
+   }
+ 
+   listForAnimal(animalId: string): AdoptionApplication[] {
+@@ -81,12 +100,14 @@ export class AdoptionService {
+     return app;
+   }
+ 
+-  private notify(app: AdoptionApplication, animalName: string): void {
++  private notify(actor: string, app: AdoptionApplication, animalName: string): void {
+     const outcome = app.status === 'approved' ? 'approved' : 'not successful';
+     this.notifications.notify(
++      actor,
+       app.applicant,
+       `Your adoption application for ${animalName}`,
+       `Dear ${app.applicant.name}, your application to adopt ${animalName} was ${outcome}.`,
++      app.animalId,
+     );
+   }
+ }
+diff --git a/src/application/animal-service.ts b/src/application/animal-service.ts
+index 7e85ae6..4eac902 100644
+--- a/src/application/animal-service.ts
++++ b/src/application/animal-service.ts
+@@ -1,5 +1,6 @@
+ import { Animal, markReady } from '../domain/animal';
+-import { AnimalRepository, IdGenerator } from './ports';
++import { AnimalRepository, IdGenerator, UnitOfWork } from './ports';
++import { AuditService } from './audit-service';
+ 
+ export interface RegisterAnimalInput {
+   species: string;
+@@ -10,9 +11,14 @@ export interface RegisterAnimalInput {
+ }
+ 
+ export class AnimalService {
+-  constructor(private readonly animals: AnimalRepository, private readonly ids: IdGenerator) {}
++  constructor(
++    private readonly animals: AnimalRepository,
++    private readonly ids: IdGenerator,
++    private readonly audit: AuditService,
++    private readonly uow: UnitOfWork,
++  ) {}
+ 
+-  register(input: RegisterAnimalInput): Animal {
++  register(actor: string, input: RegisterAnimalInput): Animal {
+     if (!input.species || !input.name) throw new Error('species and name are required');
+     const animal: Animal = {
+       id: this.ids.next(),
+@@ -23,15 +29,21 @@ export class AnimalService {
+       medicalNotes: input.medicalNotes ?? '',
+       status: 'registered',
+     };
+-    this.animals.save(animal);
+-    return animal;
++    return this.uow.run(() => {
++      this.animals.save(animal);
++      this.audit.record(actor, 'animal', animal.id, animal.id, null, animal);
++      return animal;
++    });
+   }
+ 
+-  markReady(id: string): Animal {
++  markReady(actor: string, id: string): Animal {
+     const animal = this.get(id);
+     const updated = markReady(animal);
+-    this.animals.save(updated);
+-    return updated;
++    return this.uow.run(() => {
++      this.animals.save(updated);
++      this.audit.record(actor, 'animal', id, id, animal, updated);
++      return updated;
++    });
+   }
+ 
+   get(id: string): Animal {
+diff --git a/src/application/audit-service.ts b/src/application/audit-service.ts
+new file mode 100644
+index 0000000..3ba5277
+--- /dev/null
++++ b/src/application/audit-service.ts
+@@ -0,0 +1,31 @@
++import { AuditEntry, AuditedEntity } from '../domain/audit';
++import { AuditLogRepository, IdGenerator } from './ports';
++
++export class AuditService {
++  constructor(
++    private readonly log: AuditLogRepository,
++    private readonly ids: IdGenerator,
++    private readonly now: () => Date = () => new Date(),
++  ) {}
++
++  record(actor: string, entityType: AuditedEntity, entityId: string, animalId: string | undefined, before: unknown, after: unknown): void {
++    this.log.append({
++      id: this.ids.next(),
++      entityType,
++      entityId,
++      animalId,
++      actor,
++      at: this.now().toISOString(),
++      before: before ?? null,
++      after: after ?? null,
++    });
++  }
++
++  trailForAnimal(animalId: string): AuditEntry[] {
++    return this.log.findByAnimal(animalId);
++  }
++
++  changesBy(actor: string, from: string, to: string): AuditEntry[] {
++    return this.log.findByActor(actor, from, to);
++  }
++}
+diff --git a/src/application/foster-service.ts b/src/application/foster-service.ts
+index ae02a60..9fc20c7 100644
+--- a/src/application/foster-service.ts
++++ b/src/application/foster-service.ts
+@@ -1,5 +1,6 @@
+ import { FosterCarer, Placement, canHost } from '../domain/foster';
+-import { AnimalRepository, CarerRepository, IdGenerator, PlacementRepository } from './ports';
++import { AnimalRepository, CarerRepository, IdGenerator, PlacementRepository, UnitOfWork } from './ports';
++import { AuditService } from './audit-service';
+ import { NotFoundError } from './animal-service';
+ 
+ export interface SignUpCarerInput {
+@@ -15,6 +16,8 @@ export class FosterService {
+     private readonly placements: PlacementRepository,
+     private readonly animals: AnimalRepository,
+     private readonly ids: IdGenerator,
++    private readonly audit: AuditService,
++    private readonly uow: UnitOfWork,
+     private readonly now: () => Date = () => new Date(),
+   ) {}
+ 
+@@ -30,7 +33,7 @@ export class FosterService {
+     return this.carers.findAll();
+   }
+ 
+-  place(animalId: string, carerId: string): Placement {
++  place(actor: string, animalId: string, carerId: string): Placement {
+     const animal = this.animals.findById(animalId);
+     if (!animal) throw new NotFoundError(`Animal ${animalId} not found`);
+     if (animal.status === 'adopted') throw new Error('Animal is already adopted');
+@@ -40,16 +43,22 @@ export class FosterService {
+     const active = this.placements.findActiveByCarer(carerId).length;
+     if (!canHost(carer, animal.species, active)) throw new Error('Carer cannot host this animal (capacity or species)');
+     const placement: Placement = { id: this.ids.next(), animalId, carerId, startedAt: this.now().toISOString() };
+-    this.placements.save(placement);
+-    return placement;
++    return this.uow.run(() => {
++      this.placements.save(placement);
++      this.audit.record(actor, 'placement', placement.id, animalId, null, placement);
++      return placement;
++    });
+   }
+ 
+-  endPlacement(placementId: string): Placement {
++  endPlacement(actor: string, placementId: string): Placement {
+     const placement = this.placements.findById(placementId);
+     if (!placement) throw new NotFoundError(`Placement ${placementId} not found`);
+     if (placement.endedAt) throw new Error('Placement already ended');
+     const ended = { ...placement, endedAt: this.now().toISOString() };
+-    this.placements.save(ended);
+-    return ended;
++    return this.uow.run(() => {
++      this.placements.save(ended);
++      this.audit.record(actor, 'placement', placement.id, placement.animalId, placement, ended);
++      return ended;
++    });
+   }
+ }
+diff --git a/src/application/notification-service.ts b/src/application/notification-service.ts
+index bafe3df..2884039 100644
+--- a/src/application/notification-service.ts
++++ b/src/application/notification-service.ts
+@@ -1,5 +1,7 @@
+ import { Notification, Recipient, chooseChannel, smsText } from '../domain/notification';
+-import { IdGenerator, Mailer, NotificationRepository, SmsGateway } from './ports';
++import { SYSTEM_ACTOR } from '../domain/audit';
++import { IdGenerator, Mailer, NotificationRepository, SmsGateway, UnitOfWork } from './ports';
++import { AuditService } from './audit-service';
+ 
+ export class NotificationService {
+   constructor(
+@@ -7,20 +9,25 @@ export class NotificationService {
+     private readonly sms: SmsGateway,
+     private readonly notifications: NotificationRepository,
+     private readonly ids: IdGenerator,
++    private readonly audit: AuditService,
++    private readonly uow: UnitOfWork,
+     private readonly now: () => Date = () => new Date(),
+   ) {}
+ 
+-  notify(recipient: Recipient, subject: string, body: string): Notification {
++  notify(actor: string, recipient: Recipient, subject: string, body: string, animalId?: string): Notification {
+     const channel = chooseChannel(recipient);
+     const ts = this.now().toISOString();
+-    const n: Notification = { id: this.ids.next(), recipient, channel, subject, body, status: 'pending', createdAt: ts, updatedAt: ts };
+-    this.notifications.save(n);
++    const n: Notification = { id: this.ids.next(), recipient, channel, subject, body, status: 'pending', createdAt: ts, updatedAt: ts, animalId };
++    this.uow.run(() => {
++      this.notifications.save(n);
++      this.audit.record(actor, 'notification', n.id, animalId, null, n);
++    });
+     if (channel === 'email') {
+-      this.sendEmail(n);
++      this.sendEmail(n, actor);
+     } else {
+       this.sms
+         .send(recipient.phone as string, smsText(subject, body))
+-        .then(({ messageId }) => this.update(n.id, { status: 'sent', providerMessageId: messageId }))
++        .then(({ messageId }) => this.update(n.id, { status: 'sent', providerMessageId: messageId }, SYSTEM_ACTOR))
+         .catch(() => this.fallBack(n.id));
+     }
+     return n;
+@@ -29,7 +36,7 @@ export class NotificationService {
+   handleDeliveryReport(messageId: string, delivered: boolean): Notification | undefined {
+     const n = this.notifications.findByProviderMessageId(messageId);
+     if (!n) return undefined;
+-    if (delivered) return this.update(n.id, { status: 'delivered' });
++    if (delivered) return this.update(n.id, { status: 'delivered' }, SYSTEM_ACTOR);
+     return this.fallBack(n.id);
+   }
+ 
+@@ -51,22 +58,29 @@ export class NotificationService {
+       createdAt: ts,
+       updatedAt: ts,
+       fallbackOf: n.id,
++      animalId: n.animalId,
+     };
+-    this.notifications.save(email);
+-    this.sendEmail(email);
+-    return this.update(n.id, { status: 'fell-back-to-email' });
++    this.uow.run(() => {
++      this.notifications.save(email);
++      this.audit.record(SYSTEM_ACTOR, 'notification', email.id, n.animalId, null, email);
++    });
++    this.sendEmail(email, SYSTEM_ACTOR);
++    return this.update(n.id, { status: 'fell-back-to-email' }, SYSTEM_ACTOR);
+   }
+ 
+-  private sendEmail(n: Notification): void {
++  private sendEmail(n: Notification, actor: string): void {
+     this.mailer.send({ to: n.recipient.email, subject: n.subject, body: n.body });
+-    this.update(n.id, { status: 'delivered' });
++    this.update(n.id, { status: 'delivered' }, actor);
+   }
+ 
+-  private update(id: string, patch: Partial<Notification>): Notification | undefined {
++  private update(id: string, patch: Partial<Notification>, actor: string): Notification | undefined {
+     const n = this.notifications.findById(id);
+     if (!n) return undefined;
+     const updated = { ...n, ...patch, updatedAt: this.now().toISOString() };
+-    this.notifications.save(updated);
+-    return updated;
++    return this.uow.run(() => {
++      this.notifications.save(updated);
++      this.audit.record(actor, 'notification', id, n.animalId, n, updated);
++      return updated;
++    });
+   }
+ }
+diff --git a/src/application/ports.ts b/src/application/ports.ts
+index badf8a6..875ffa1 100644
+--- a/src/application/ports.ts
++++ b/src/application/ports.ts
+@@ -2,6 +2,7 @@ import { Animal } from '../domain/animal';
+ import { AdoptionApplication } from '../domain/adoption-application';
+ import { FosterCarer, Placement } from '../domain/foster';
+ import { Notification } from '../domain/notification';
++import { AuditEntry } from '../domain/audit';
+ 
+ export interface AnimalRepository {
+   save(animal: Animal): void;
+@@ -52,3 +53,14 @@ export interface NotificationRepository {
+   findByProviderMessageId(messageId: string): Notification | undefined;
+   findAll(): Notification[];
+ }
++
++export interface AuditLogRepository {
++  append(entry: AuditEntry): void;
++  findByAnimal(animalId: string): AuditEntry[];
++  findByActor(actor: string, from: string, to: string): AuditEntry[];
++}
++
++/** Runs a block so that every change made in it (including audit entries) is kept, or none is. */
++export interface UnitOfWork {
++  run<T>(work: () => T): T;
++}
+diff --git a/src/config/main.ts b/src/config/main.ts
+index 3eb29b0..982ce59 100644
+--- a/src/config/main.ts
++++ b/src/config/main.ts
+@@ -1,16 +1,19 @@
+ import { AnimalService } from '../application/animal-service';
+ import { AdoptionService } from '../application/adoption-service';
+ import { FosterService } from '../application/foster-service';
++import { NotificationService } from '../application/notification-service';
++import { AuditService } from '../application/audit-service';
+ import {
+   InMemoryAnimalRepository,
+   InMemoryApplicationRepository,
++  InMemoryAuditLogRepository,
+   InMemoryCarerRepository,
+   InMemoryNotificationRepository,
+   InMemoryPlacementRepository,
+ } from '../adapters/outbound/in-memory-repositories';
++import { InMemoryUnitOfWork } from '../adapters/outbound/in-memory-unit-of-work';
+ import { FakeMailer } from '../adapters/outbound/fake-mailer';
+ import { TextBridgeSmsGateway } from '../adapters/outbound/textbridge-sms-gateway';
+-import { NotificationService } from '../application/notification-service';
+ import { UuidGenerator } from '../adapters/outbound/uuid-generator';
+ import { createHttpApp } from '../adapters/inbound/http-app';
+ 
+@@ -19,19 +22,24 @@ const animalRepo = new InMemoryAnimalRepository();
+ const applicationRepo = new InMemoryApplicationRepository();
+ const carerRepo = new InMemoryCarerRepository();
+ const placementRepo = new InMemoryPlacementRepository();
++const notificationRepo = new InMemoryNotificationRepository();
++const auditRepo = new InMemoryAuditLogRepository();
++const uow = new InMemoryUnitOfWork([animalRepo, applicationRepo, carerRepo, placementRepo, notificationRepo, auditRepo]);
++const audit = new AuditService(auditRepo, ids);
+ export const mailer = new FakeMailer();
+ const sms = new TextBridgeSmsGateway(
+   process.env.TEXTBRIDGE_URL ?? 'https://api.textbridge.example',
+   process.env.TEXTBRIDGE_API_KEY ?? '',
+   process.env.TEXTBRIDGE_CALLBACK_URL ?? 'http://localhost:3000/webhooks/textbridge',
+ );
+-const notifications = new NotificationService(mailer, sms, new InMemoryNotificationRepository(), ids);
++const notifications = new NotificationService(mailer, sms, notificationRepo, ids, audit, uow);
+ 
+ const app = createHttpApp({
+-  animals: new AnimalService(animalRepo, ids),
+-  adoptions: new AdoptionService(animalRepo, applicationRepo, notifications, ids, placementRepo, carerRepo),
+-  foster: new FosterService(carerRepo, placementRepo, animalRepo, ids),
++  animals: new AnimalService(animalRepo, ids, audit, uow),
++  adoptions: new AdoptionService(animalRepo, applicationRepo, notifications, ids, placementRepo, carerRepo, audit, uow),
++  foster: new FosterService(carerRepo, placementRepo, animalRepo, ids, audit, uow),
+   notifications,
++  audit,
+ });
+ 
+ const port = Number(process.env.PORT ?? 3000);
+diff --git a/src/domain/audit.ts b/src/domain/audit.ts
+new file mode 100644
+index 0000000..533ea8f
+--- /dev/null
++++ b/src/domain/audit.ts
+@@ -0,0 +1,14 @@
++export type AuditedEntity = 'animal' | 'application' | 'placement' | 'notification';
++
++export interface AuditEntry {
++  id: string;
++  entityType: AuditedEntity;
++  entityId: string;
++  animalId?: string;
++  actor: string;
++  at: string;
++  before: unknown;
++  after: unknown;
++}
++
++export const SYSTEM_ACTOR = 'system';
+diff --git a/src/domain/notification.ts b/src/domain/notification.ts
+index 0f89699..2ef64e2 100644
+--- a/src/domain/notification.ts
++++ b/src/domain/notification.ts
+@@ -19,6 +19,7 @@ export interface Notification {
+   createdAt: string;
+   updatedAt: string;
+   fallbackOf?: string;
++  animalId?: string;
+ }
+ 
+ export const SMS_MAX_LENGTH = 160;
