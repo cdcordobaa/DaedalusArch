@@ -67,6 +67,20 @@ export function splitPartial(violations: readonly Violation[], partial: PartialR
   return { counted, na };
 }
 
+/**
+ * Where one violation row counts in the v1.3 scoring: `not-applicable` for the N/A part of a partial rule (FF-P06),
+ * else the row's tier under the construct switches, else its rule's tier. This is the placement `computeTieredScoring`
+ * makes row by row, for callers that list findings beside the tier counts (the loop harness); such a caller checks
+ * that its blocking rows add up to `tiers.blocking.violationCount`.
+ */
+export function countedTierOf(v: Violation, style: string | undefined, resolver?: TierResolver): RuleTier | 'not-applicable' {
+  const id = String(v.functionId);
+  const resolved = (resolver?.rule ?? ruleTier)(id, style);
+  const partial = resolved.entry?.partial;
+  if (partial !== undefined && v.route !== 'neuronal' && splitPartial([v], partial).na.length > 0) return 'not-applicable';
+  return resolver?.row?.tierOf(id, v) ?? resolved.tier;
+}
+
 interface Executed {
   readonly id: string;
   dimension: Dimension;

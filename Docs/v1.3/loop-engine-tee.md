@@ -23,6 +23,13 @@ may also carry `"engine"` (the CLI flag wins). **Absent everywhere = today's beh
 | `cypher-interp` | interpreter | `evaluation.engineOfRecord: 'cypher-interp'` |
 | `both` | **Neo4j** (engine of record) | `evaluation.engineOfRecord: 'neo4j'`, `evaluation.parity`, `run.json` `parity` counts |
 
+**Amended 2026-10-16 (harness correctness fixes, review F7).** The defaults above left the engine of a live grid to
+the NEO4J_URI default and unrecorded. Now a live grid without `--engine` or a plan `engine` runs as `neo4j`
+(`liveEngine` in `main.ts`), the replay CLI defaults to `neo4j` too, and every mode sets `evaluation.engineOfRecord`
+(`neo4j` for `neo4j` and for the base wiring on Neo4j). Dry runs and the stubs still record no engine. A grid
+started before this change without an engine has no `engine` in its `schedule.json`, so resuming it now stops with
+the schedule mismatch; restart it in a fresh out-root.
+
 How the interpreter runs: the same `evaluateProject` call (same spec, same pinned per-run tsconfig, `includeViolations`,
 v1.3 scoring), with the pipeline config's `graphEngine` set to `cypher-interp` (`MemoryGraphRepository`). It does
 **not** go through the MCP server's `interp-evaluator.ts`, because that path has a result cache keyed by mtimes and

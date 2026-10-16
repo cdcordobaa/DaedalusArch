@@ -82,8 +82,18 @@ default to `bolt://localhost:7687`) would silently have moved to the interpreter
 | `scripts/v1.3/ue-baseline-live.ts` | passes its own `--engine` (default `neo4j`) to every child, now always explicitly |
 | `scripts/lib/generators/arms.ts` `daedalusMcpConfig` | the `daedalus-mcp` experiment arm's server argv |
 | `tests/golden/u3-templates.test.ts` | the two CLI spawns of the golden suite |
+| `scripts/lib/loop/main.ts` `liveWiring` (`scripts/loop-harness-cli.ts`) | the Study 2 loop harness: `--engine`, else the plan's `engine`, else `neo4j` (`liveEngine`); never the NEO4J_URI default |
+| `scripts/lib/loop/engine-tee.ts` `evaluatorForEngine` | every loop snapshot records the engine it was evaluated on (`evaluation.engineOfRecord`; Neo4j under `both`), in every mode |
+| `scripts/loop-replay-cli.ts` | the loop replay: `--engine` (default `neo4j`); a snapshot recorded on another engine fails the replay |
+| `scripts/v1.3/study2-analyse.ts` | the Study 2 analysis: `--engine` (default `neo4j`); stops before it reads a number when any evaluated snapshot of the out-root (or the pilot out-root) records another engine or none |
 
 `scripts/so1-layered-acceptance.ts` only records a command string; it spawns nothing.
+
+The loop harness is not a CLI child, so `--engine` on the CLI children above never reached it: without `--engine`
+or a plan `engine` it used to inherit the §2 default, which is `cypher-interp` when `NEO4J_URI` is unset, and its
+records did not say which engine answered. A Study 2 run on the interpreter now has to say so (`--engine
+cypher-interp` or `"engine": "cypher-interp"` in the plan), and its records say so too. On `evaluate_project` itself
+the engine shows as `engine: "cypher-interp"` on the MCP interpreter path and is absent on Neo4j (§3).
 
 `scripts/v1.3/judge-catch-run.ts` is a hash-frozen operator (`Docs/v1.3/judge-catch-frozen.md`), so it is left
 byte-identical. It already passes `--neo4j-uri` on every call, which resolves to `neo4j` (rule 2 above), and its

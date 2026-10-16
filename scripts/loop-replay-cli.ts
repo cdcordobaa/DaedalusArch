@@ -2,14 +2,15 @@
  * Loop replay (v1.3): the firewall-in-the-loop harness end to end with a scripted agent, no LLM
  * (`scripts/lib/loop/replay.ts`; report `Docs/v1.3/loop-replay.md`). Entry file.
  *
- * Usage (repository root; needs a scratch Neo4j 5.26 + APOC, the evaluator replaces the graph):
+ * Usage (repository root; needs a scratch Neo4j 5.26 + APOC unless `--engine cypher-interp`, the evaluator replaces the graph):
  *   NEO4J_PASSWORD=... [NEO4J_URI=bolt://localhost:7687] npx tsx scripts/loop-replay-cli.ts [--report <file.json>]
  *                                                       [--engine neo4j|cypher-interp|both]
  *
  * Runs the three tapes under none, daedalus-mcp and gate twice, into two fresh directories outside the repository,
  * verifies the second against the first byte for byte (timing fields aside) and runs every check of
  * `replay-verify.ts` on the first. Prints a summary; `--report` also writes the full verification as JSON.
- * `--engine` (`Docs/v1.3/loop-engine-tee.md`): absent = the default wiring. `both` keeps Neo4j as the engine of record,
+ * `--engine` (`Docs/v1.3/loop-engine-tee.md`): absent = `neo4j`, never the NEO4J_URI default; every snapshot must
+ * record that engine (`engineOfRecord`, Neo4j under `both`) or the replay fails. `both` keeps Neo4j as the engine of record,
  * checks every snapshot on the in-process interpreter, prints a per-snapshot parity table and fails unless every
  * snapshot is `identical`. `cypher-interp` needs no Neo4j.
  * Exit codes: 0 every check passed, 1 a check failed, 2 usage or engine error. Never reads .env.
@@ -43,7 +44,7 @@ function parityTable(result: ReplayResult): ParityRow[] {
   return rows;
 }
 
-async function once(repoRoot: string, label: string, engine: LoopEngine | undefined): Promise<{ outRoot: string; result: ReplayResult }> {
+async function once(repoRoot: string, label: string, engine: LoopEngine): Promise<{ outRoot: string; result: ReplayResult }> {
   const base = scratchDir(`loop-replay-${label}-`);
   const env: NodeJS.ProcessEnv = {
     NEO4J_URI: process.env.NEO4J_URI ?? 'bolt://localhost:7687',
@@ -60,7 +61,7 @@ async function once(repoRoot: string, label: string, engine: LoopEngine | undefi
     evaluateDeps: buildContext({}, env).evaluateDeps,
     tapes: REPLAY_TAPES,
     log: (l) => process.stdout.write(`[${label}] ${l}\n`),
-    ...(engine !== undefined ? { engine } : {}),
+    engine,
   });
   if (!r.success) throw new Error(r.errors.map((e) => `${e.code}: ${e.message}`).join('\n'));
   return { outRoot, result: r.data };
@@ -71,10 +72,10 @@ async function main(argv: readonly string[], repoRoot: string): Promise<number> 
   const reportFile = i >= 0 ? argv[i + 1] : undefined;
   const e = argv.indexOf('--engine');
   const engineArg = e >= 0 ? argv[e + 1] : undefined;
-  const engine = engineArg !== undefined ? parseLoopEngine(engineArg) : undefined;
+  const engine = engineArg !== undefined ? parseLoopEngine(engineArg) : 'neo4j';
   if (
     (i >= 0 && reportFile === undefined) ||
-    (e >= 0 && engine === undefined) ||
+    engine === undefined ||
     argv.some((a, j) => a.startsWith('--') && a !== '--report' && a !== '--engine' && j !== i + 1 && j !== e + 1)
   ) {
     process.stderr.write('usage: npx tsx scripts/loop-replay-cli.ts [--report <file.json>] [--engine neo4j|cypher-interp|both]\n');
@@ -96,15 +97,26 @@ async function main(argv: readonly string[], repoRoot: string): Promise<number> 
   for (const m of v.mcp) if (m.unfollowed) failures.push(`mcp ${m.taskId} step ${String(m.step)}: feedback without a scripted fix`);
   const parity = engine === 'both' ? parityTable(a.result) : undefined;
   for (const p of parity ?? []) if (p.status !== 'identical') failures.push(`parity ${p.runId} ${p.turnId}: ${p.status}`);
+  for (const o of v.outcomes) if (o.unscoredSteps.length > 0) failures.push(`unscored ${o.runId}: steps ${o.unscoredSteps.join(', ')}`);
+  const ofRecord = engine === 'both' ? 'neo4j' : engine;
+  for (const run of a.result.runs) {
+    if (run.result.kind !== 'completed') continue;
+    for (const step of run.result.steps) {
+      for (const t of step.turns) {
+        const got = t.snapshot.evaluation?.engineOfRecord ?? 'not recorded';
+        if (got !== ofRecord) failures.push(`engine ${run.runId} ${t.turnId}: ${got} (expected ${ofRecord})`);
+      }
+    }
+  }
   const summary = {
     reproducible: repro,
     gate: v.gate,
     consistency: { snapshots: v.consistency.length, equal: v.consistency.filter((c) => c.equal).length },
     labels: v.labels,
     mcp: v.mcp,
-    outcomes: v.outcomes.map((o) => ({ runId: o.runId, newBlocking: o.newBlocking.map((s) => s.count), advisorySlopePerKloc: o.advisorySlopePerKloc, advisorySlopePerKlocWithoutCv05: o.advisorySlopePerKlocWithoutCv05, gateRepair: o.gateRepair })),
+    outcomes: v.outcomes.map((o) => ({ runId: o.runId, newBlocking: o.newBlocking.map((s) => s.count), unscoredSteps: o.unscoredSteps, advisorySlopePerKloc: o.advisorySlopePerKloc, advisorySlopePerKlocWithoutCv05: o.advisorySlopePerKlocWithoutCv05, gateRepair: o.gateRepair })),
     latency: v.latency,
-    ...(engine !== undefined ? { engine } : {}),
+    engine,
     ...(parity !== undefined
       ? { parity: { snapshots: parity.length, identical: parity.filter((p) => p.status === 'identical').length, rows: parity } }
       : {}),
@@ -113,7 +125,7 @@ async function main(argv: readonly string[], repoRoot: string): Promise<number> 
   process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`);
   if (reportFile !== undefined) {
     fs.mkdirSync(path.dirname(path.resolve(reportFile)), { recursive: true });
-    fs.writeFileSync(reportFile, `${JSON.stringify({ ...v, reproducible: repro, ...(parity !== undefined ? { parity } : {}), failures }, null, 2)}\n`);
+    fs.writeFileSync(reportFile, `${JSON.stringify({ engine, ...v, reproducible: repro, ...(parity !== undefined ? { parity } : {}), failures }, null, 2)}\n`);
   }
   return failures.length === 0 ? 0 : 1;
 }

@@ -25,7 +25,9 @@
  *
  * `--engine` (or the plan's `engine`; the flag wins) picks the evaluator's graph engine (`engine-tee.ts`,
  * `Docs/v1.3/loop-engine-tee.md`): `both` keeps Neo4j as the engine of record, re-evaluates every snapshot on the
- * in-process interpreter and records parity. Absent = the default wiring, unchanged. A dry run ignores it (stubs).
+ * in-process interpreter and records parity. Absent = `neo4j`, the reference engine: a live grid never inherits the
+ * NEO4J_URI default of `engine-default.ts`, and every evaluation records its engine (`engineOfRecord`). A dry run
+ * ignores it (stubs).
  */
 import * as crypto from 'node:crypto';
 import * as fs from 'node:fs';
@@ -289,6 +291,11 @@ function dryRunWiring(loaded: LoadedPlan, repoRoot: string): DomainResult<Wiring
   });
 }
 
+/** The engine of a live grid: `--engine`, else the plan's `engine`, else `neo4j` (never the NEO4J_URI default). */
+export function liveEngine(flag: LoopEngine | undefined, plan: LoopEngine | undefined): LoopEngine {
+  return flag ?? plan ?? 'neo4j';
+}
+
 async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs, deps: LoopMainDeps): Promise<DomainResult<Wiring>> {
   const { plan } = loaded;
   if (isInsideOrEqual(repoRoot, plan.outRoot)) return DomainResult.fail([{ code: 'LOOP_PLAN_INVALID', message: 'outRoot must lie outside the repository' }]);
@@ -317,7 +324,7 @@ async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs
     agents.set(agentKey(a.adapterId, a.modelId), agent);
   }
   const evaluateDeps = await deps.evaluateDeps();
-  const engine = args.engine ?? plan.engine;
+  const engine = liveEngine(args.engine, plan.engine);
   const onMismatch = (runId: string | undefined, _dir: string, p: { status: string; diff?: unknown; checkError?: unknown }): void => {
     deps.err(`PARITY ${p.status} ${runId ?? '?'}: ${JSON.stringify(p.diff ?? p.checkError ?? {})}\n`);
   };
@@ -437,7 +444,7 @@ export async function main(argv: readonly string[], repoRoot: string, depsIn?: L
     wiring = live.data;
   }
   // The evaluator engine of a live grid (a dry run evaluates with stubs, so it has none).
-  const engine = args.data.dryRun ? undefined : (args.data.engine ?? loaded.data.plan.engine);
+  const engine = args.data.dryRun ? undefined : liveEngine(args.data.engine, loaded.data.plan.engine);
   const grid = await runLoopGrid(loaded.data, wiring, {
     dryRun: args.data.dryRun,
     now: deps.now,
