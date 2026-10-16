@@ -31,6 +31,9 @@
 \newcommand{\todo}[1]{\textcolor{blue}{[TODO: #1]}}
 % \devset{}: marks a v1.3 development-set figure (cases the v1.3 changes were made against; not a validity estimate).
 \newcommand{\devset}{\textsuperscript{\textsf{\tiny[dev]}}}
+% \explor{}: marks a v1.3 exploratory figure on human-written code outside the development set (no pre-registration,
+% no hold-out; not a validity estimate).
+\newcommand{\explor}{\textsuperscript{\textsf{\tiny[expl]}}}
 
 \newcommand{\tool}{DaedalusArch}
 \newcommand{\dc}{dependency-cruiser}
@@ -47,7 +50,7 @@
 
 \title{A Spec-Driven Neuro-Symbolic Architectural Firewall for TypeScript}
 \author{\todo{author list and affiliations}}
-\date{Draft, 2026-10-11; v1.3 section added 2026-10-15}
+\date{Draft, 2026-10-11; v1.3 section added 2026-10-15; v1.3 evidence extended 2026-10-16}
 
 \begin{document}
 \maketitle
@@ -81,8 +84,16 @@ A v1.3 revision, measured only on a development set so far, adds a priori blocki
 defects that the new measurements exposed, and reports graph fidelity as agreement with the TypeScript compiler
 (Jaccard 0.988 on 72 generated projects, 0.913 on seven real ones, every disagreement explained); an independent
 checker finds 0 incorrect findings among 2668 checkable ones, and a generic graph extension expresses 25 of 27
-designer-planted architectural facts that the earlier graph cannot express at all (0 of 27). A sealed hold-out run
-and human labels are still pending.
+designer-planted architectural facts that the earlier graph cannot express at all (0 of 27). Rules remain Cypher
+text; an in-process interpreter runs the same text and matches Neo4j on 65,254 real-graph statements and on 836,000
+fuzzed statements with no mismatch. On rules that dependency-cruiser, eslint-plugin-boundaries and ArchUnitTS can
+express, agreement is $\kappa = 1.000$ on the reference set and 0.913 to 1.000 on 29 open-source projects, with no
+disagreement traced to our tool. On 15 human-written projects all 283 blocking findings are correct, and a negative
+control rejects all 500 falsified ones. Verdicts are invariant in 637 of 655 semantics-preserving transformations.
+We also report the limits: the development sets detect only 33\% of rule mutants, and two exploratory searches for
+external validity (developer fixes and known groups) found no robust signal. A sealed hold-out run and human labels
+are still pending.
+% src abstract v1.3 additions: Docs/v1.3/cypher-interpreter.md (65,254); Docs/v1.3/cypher-interp-fuzz.md (836,000, 0 mismatches); Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md §0 (kappa table; 14 wild + 15 external = 29 projects); origin/v1.3-external-correctness:Docs/DiagnosticRuns/v1.3-external-correctness-2026-10-16.md §3 (283/283; control 500); origin/v1.3-metamorphic:Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md (637 of 655); origin/v1.3-rule-mutation:Docs/DiagnosticRuns/v1.3-rule-mutation-2026-10-16.md §1 (90/273 = 33%); origin/v1.3-validity-fixes-mined:Docs/DiagnosticRuns/v1.3-validity-fixes-mined-2026-10-16.md "Verdict"; origin/v1.3-known-groups:Docs/DiagnosticRuns/v1.3-known-groups-2026-10-16.md §1
 % src abstract v1.3: Docs/DiagnosticRuns/v1.3-graph-fidelity-2026-10-14.md (Jaccard 0.988341 E1 tsc; 0.913217 SO4 scoped tsc; extractor-bug 0); Docs/DiagnosticRuns/v1.3-labelling-2026-10-15.md (2,668 checkable, 0 incorrect); Docs/DiagnosticRuns/apg2-scope-2026-10-15.md (25/27); Docs/DiagnosticRuns/apg2-ablation-2026-10-15.md (v1.3 graph 0/27); Section 7 of this paper (eleven defects, Table v13-defects)
 % src abstract SO4: results/so4-heldout/agg/prf_overall.csv (labelled), results/so4-heldout/agg-corrected/prf_overall.csv (precision 1.000)
 % src abstract judge robustness: results/judge-robustness/summary.json (agreement 0.94, kappa 0.766355, registeredVerdictChanges 0); ADR-038 in Docs/ADR.md
@@ -139,6 +150,11 @@ checked by others. We make the following contributions:
         fidelity reported as agreement with two other extractors, an independent correctness checker, an opt-in
         graph extension (APG v2) for facts no import graph holds, and eleven defects found and fixed with their
         effects attributed. All v1.3 figures are development-set figures; the hold-out run is pending.
+  \item \textbf{Evidence about the evidence} (Sections~\ref{sec:v13-interp} to~\ref{sec:v13-null}): differential
+        testing of a second Cypher engine against Neo4j, convergent agreement with three independent checkers,
+        correctness on human-written code with a negative control, metamorphic invariance, a mutation analysis
+        that measures how much the test oracle can detect, a replication package checked number by number, and
+        two null results reported as such.
 \end{enumerate}
 
 We state the positioning plainly. On the rules both tools can express, \tool{} does not detect more than \dc{}:
@@ -964,7 +980,7 @@ is a sketch of the trade-off, not a measurement of it.
 % src: Docs/DiagnosticRuns/llm-review-pilot-2026-10-11.md "Reading" (n is 5 seeds and 2 pairs; TV-111..113); Docs/ADR.md ADR-036 item 7 (exploratory)
 
 % =====================================================================================================================
-\section{Version 1.3: Fidelity, Development-Set Validation and Defects Fixed}\label{sec:v13}
+\section{Version 1.3: Fidelity, Validation Evidence and Defects Fixed}\label{sec:v13}
 
 % Provenance for this section: every number carries a "% src:" comment naming a committed file on branch v1.3.
 % Every figure marked \devset{} comes from the v1.3 development set (the cases the v1.3 changes were made against);
@@ -1201,6 +1217,202 @@ Several of these defects were invisible to the registered v1.2E evaluation: barr
 seeded recall there, and the package-alias defect was found only because a judge experiment expected a symbolic
 finding that did not appear. % src: Docs/DiagnosticRuns/v1.3-judge-catch-2026-10-15.md §4 ("Unexpected miss"); Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md §4
 
+\subsection{One rule text, two engines}\label{sec:v13-interp}
+
+% Provenance for the subsections from sec:v13-interp to sec:v13-null: paths without a branch prefix are on origin/v1.3. A path written
+% "origin/<branch>:<path>" is on the head branch of a pull request that was not merged into v1.3 when this text was
+% written; it was read with `git show` and the PR number is given. Figures marked \explor{} come from human-written
+% code outside the development set; they are exploratory (no pre-registration, no hold-out) and are not validity
+% estimates either.
+A rule in \tool{} is its Cypher text, and v1.3 keeps it that way: an in-process, read-only Cypher interpreter runs
+the same compiled string that Neo4j would receive, so the tool can run without a database server and no rule is
+rewritten in TypeScript. Neo4j stays the reference engine for every reported number.
+% src: Docs/v1.3/cypher-interpreter.md, "Decision this spike serves" ("The Cypher template text stays the one canonical definition of every rule"); PR #128 (merged)
+We test the claim that the two engines are interchangeable in three ways. First, on the 71 reference variants the
+interpreter reproduces the committed Neo4j run byte for byte (raw outputs and both reports; only elapsed times
+differ). Second, a differential run over 79 real and generated projects compares every catalogue template, in every
+compiled form and binding, against live Neo4j 5.26.24 with APOC: of 65,254 statements, 0 differ in content, 0 differ
+in error behaviour and 0 are unsupported; 763 differ only in row order, which Cypher does not define without
+\texttt{ORDER BY}. Third, a differential fuzz on 2,000 random adversarial graphs (59,637 nodes, 67,200 edges) runs
+836,000 statements: 821,236 are equal, 13,215 fall into three documented semantic quirks, 1,549 time out on Neo4j and
+are not compared, and none is a mismatch with the final code. A rejection fuzz sends 3,000 queries over 59
+unsupported constructs, and the interpreter rejects all 3,000 rather than return rows.
+% src: Docs/v1.3/cypher-interpreter.md, results table (71 variants byte-identical; 65,254 statements, 79 projects, 0 content / 0 error / 0 unsupported, 763 order) and §4 ("equal 64,491, order 763")
+% src: Docs/v1.3/cypher-interp-fuzz.md, results table ("836,000 statements ... 821,236 equal, 13,215 documented quirks (T20 8,763, T8 4,257, T2 195), 1,549 Neo4j timeouts (not compared), 0 mismatches with the final code"; rejection fuzz 3,000/3,000); PR #183 (merged)
+The fuzz was not a formality: it found ten interpreter defects (for example, an error in one conjunct of a
+\texttt{WHERE} surfacing although another conjunct had already rejected the row), each fixed with a regression case
+whose expected value is Neo4j's live answer. The real-graph parity run was repeated after the fixes with the same
+result. Two qualifications apply. The fuzz graphs are random, so they exercise the query semantics, not the shapes of
+real architectures; and on the largest projects one blocking cycle query (\ff{FF-S02}) does not finish within 20 to 25
+minutes on the interpreter, which then falls back to Neo4j (Section~\ref{sec:v13-limits}).
+% src: Docs/v1.3/cypher-interp-fuzz.md (fixes F1 to F10; regression tests 33/33 against live Neo4j; parity re-run 65,254, 0 content / error / unsupported); Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md §0 ("Our FF-S02 cycle rule did not finish ... The interpreter ran past 20 minutes"); origin/v1.3-external-set-2:Docs/DiagnosticRuns/v1.3-external-set-2-2026-10-16.md (PR #181, not merged; bank-server FF-S02 killed after 25 minutes, Neo4j in 47 s)
+On one variant a warm in-process evaluation takes 149\,ms against 728\,ms on Neo4j.
+% src: Docs/v1.3/cypher-interpreter.md, results table and §6 (results/v1.3-cypher-interp/bench.md)
+
+\subsection{Convergent agreement with three independent checkers}\label{sec:v13-convergent}
+
+Section~\ref{sec:rq5} compared the registered instrument with \dc{}. For v1.3 we repeated the comparison at the
+v1.3 rule set and added two further tools, eslint-plugin-boundaries 7.2.0 and ArchUnitTS 2.5.4, with every rule
+that a tool can express translated from the compiled rule parameters. All four engines ran on the 71 reference
+variants, on 15 human-written external projects and on 14 further open-source projects (the ``wild'' set); findings
+are keyed on (rule, file, target).
+% src: Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md, introduction and §1.1 (dependency-cruiser 18.4.0, eslint-plugin-boundaries 7.2.0, ArchUnitTS 2.5.4), §1.3 (corpora); PR #166 (merged)
+
+\begin{table}[t]
+\centering\small
+\caption{Cohen's $\kappa$ between \tool{} v1.3 and each independent tool, pooled over the rules both can express.
+Reference: \devset{}; external and wild: \explor{}.}
+\label{tab:v13-convergent}
+\begin{tabular}{lccc}
+\toprule
+Tool & Reference (71) & External (15) & Wild (14) \\
+\midrule
+\dc{} 18.4.0 & 1.000 & 0.961 & 0.913 \\
+eslint-plugin-boundaries 7.2.0 & 1.000 & 0.930 & 1.000 \\
+ArchUnitTS 2.5.4 & 1.000 & 0.918 & 0.950 \\
+\midrule
+Disagreements with any tool & 0 & 94 & 159 \\
+\quad of which a defect of \tool{} & 0 & 0 & 0 \\
+\bottomrule
+\end{tabular}
+% src: Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md §0, "Results in one screen" table (kappa rows; disagreements 0 / 94 / 159; "of which classed our bug" 0 / 0 / 0)
+\end{table}
+
+Table~\ref{tab:v13-convergent} gives the result. On the reference set all four tools produce the same keys, and
+scored against the author and blind manifests every tool has the same true positives, false negatives and false
+positives on every rule it can express; the misses of the blind manifest are therefore shared by the rule
+definitions, not caused by our extraction. On the external and wild sets every one of the 253 disagreements has a
+classified mechanical cause: differences in rule definition (\dc{}'s orphan rule counts package imports, our cycle
+rule has a length bound of 10), barrel and alias resolution, and two defects in the other tools
+(eslint-plugin-boundaries leaves files matched by a negated extglob unchecked, and ArchUnitTS records no edge for
+\texttt{export \ldots{} from}). None was a defect of \tool{}. On the import-direction rules that define the styles,
+\tool{} and \dc{} share 722 findings across the three corpora with no disagreement. \explor{}
+% src: Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md §0 ("Every one of the 253 disagreements has a mechanical cause outside our rule logic"; "The reference set agrees perfectly"; definition differences; two defects in the external tools); line 290 ("722 shared findings, 0 disagreements")
+Agreement is convergent evidence, not correctness: tools that share a rule definition share its blind spots. The
+comparison also bounds what it can support. Of the 89 rule-by-style rows that the v1.3 presets compile, 57 rows (21
+distinct rules, four of them blocking) cannot be expressed in any of the three tools, so for those rules this
+comparison says nothing.
+% src: Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md §0 ("57 rows (21 distinct rules) cannot be expressed in any of the three tools. Four of those rules are blocking in v1.3, in 7 style rows")
+
+\subsection{Correctness on human-written code}\label{sec:v13-external}
+
+The development-set correctness figure of Section~\ref{sec:v13-correct} is on code generated by language models.
+We applied the same deterministic checker, unchanged, to an external set of 15 public TypeScript back ends written
+by people (three per style, each pinned to its last commit before 2023). The pass criterion and the analysis were
+committed before the checker ran. All 283 blocking findings received a label with the checker's evidence, and all
+283 are correct (precision of correctness 1.000, Wilson 95\% [0.987, 1.000]; per style 27/27, 12/12, 78/78, 4/4 and
+162/162). \explor{}
+% src: origin/v1.3-external-correctness:Docs/DiagnosticRuns/v1.3-external-correctness-2026-10-16.md (PR #167, not merged) §1, §3 table (283/283, 1.000 [0.987, 1.000]; clean-architecture 27, layered 12, nestjs 78, hexagonal 4, ddd 162)
+Because every label was \emph{correct}, we added a negative control, fixed before it ran, to check that the checker
+does not accept everything: 500 findings were altered so that their claims became false (a moved line, a swapped
+target, a broken cycle), and the checker labelled all 500 incorrect.
+% src: same file, §1a and §3 ("500 perturbed findings, all incorrect: line 217/217, target 222/222, cycle 61/61; 5 line perturbations skipped")
+The figure has clear limits. Correct is not meaningful; 6 of the 283 findings lie in test or mock files, which a
+reader may not want reported. Three repositories contribute 214 of the 283 findings, so the pooled interval, which
+treats findings as independent, is too narrow. Recall on these projects was not measured.
+% src: same file, §4 ("6 of the 283 sit in test or mock files"; "3 contribute 214 of 283"); PR #167 body ("Recall on these repositories was not measured")
+A second wave of 20 human-written projects under the same protocol brings the external set to 35 projects and 625
+blocking findings, which are not yet labelled. On the pooled set the literal graph view agrees with the TypeScript
+compiler on 7,948 of 8,057 import edges (coverage 0.986, confirmation 1.000), and the 109 missing edges are explained
+(106 \texttt{baseUrl} bare imports in one project that the extractor classes as external, and 3 \texttt{typeof
+import()} type queries). The default graph, which barrel routing reshapes, has coverage 0.850.
+\explor{}
+% src: origin/v1.3-external-set-2:Docs/DiagnosticRuns/v1.3-external-set-2-2026-10-16.md (PR #181, not merged) §5 pooled table (35 projects, 625 blocking), "Graph fidelity, pooled" table (default 6845/8057 = 0.850; literal 7948/8057 = 0.986, 7948/7948 = 1.000) and following paragraph (109 missing: felixle 106 baseUrl, ts-seed 3 type queries)
+30 of the 35 projects fail the v1.3 verdict. We do not read this as a property of the projects: one Claude-family
+session selected the projects and wrote every specification, and on the first wave a blind second specification
+author flips 5 of 15 verdicts (verdict $\kappa = 0.21$). Verdicts depend on who writes the specification.
+% src: origin/v1.3-external-set-2:Docs/DiagnosticRuns/v1.3-external-set-2-2026-10-16.md §5 (30 fail, 0.857 (0.706 to 0.937); "a blind second spec author (PR #186, unmerged) flips 5 of 15 verdicts (verdict kappa 0.21)")
+
+\subsection{Metamorphic invariance}\label{sec:v13-metamorphic}
+
+A verdict should depend on the architecture, not on the surface form of the code. We applied nine
+semantics-preserving transformations to each of the 71 reference variants (each transformed project must
+type-check) and compared the blocking findings before and after, keyed on (rule, source layer, target layer).
+Over the 655 applicable cases, 637 are invariant (0.973). Renaming (with the specification following the rename),
+reordering, reformatting, switching between default and named exports, \texttt{import type}, path aliases and
+splitting a file are invariant on all 71 variants. \devset{}
+% src: origin/v1.3-metamorphic:Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md (PR #185, not merged) §1 and line 98 ("637 of 655 applicable cases are invariant (0.973)"); origin/v1.3-metamorphic:results/v1.3-metamorphic/summary.md (per-transformation table)
+The 18 changes come from three transformations: adding barrels (67/71 invariant), removing barrels (15/16) and
+merging two files of one layer (58/71). We traced each change. One is a defect: a barrel that belongs to no layer
+hides what it re-exports from the literal-view layer rules. A fix exists behind an option that is off by default,
+because it adds a false positive on a DDD case; the full fix needs a change to the edge-view design. The other 17
+are intended construct choices: barrels and merges that create module cycles (4 and 13 cases; the cycle rule works
+on files), and a DDD context whose declared public API is its barrel (1 case). Two probes show where the rules are
+deliberately bound to names: opaque identifiers that drop role words leave 61 of 71 verdicts unchanged, and a
+rename that leaves the DDD specification stale leaves 68 of 71. \devset{}
+% src: origin/v1.3-metamorphic:Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md §1 (barrel-add 67/71, barrel-remove 15/16, merge 58/71; MT-B1 tool bug; 4 barrel-induced cycles; 1 DDD public API; 13 merge cycles; opaque names 61/71; rename-spec-stale 68/71; option OFF, FF-DS02 false positive on DDD g02)
+These are development-set figures: the transformations were applied to the same reference variants that the v1.3
+changes were made against, although nothing was tuned on them.
+
+\subsection{How strong is the test oracle? Rule mutation}\label{sec:v13-mutation}
+
+The figures above test the tool against the reference set. We also asked the reverse question: if a rule's Cypher
+were subtly wrong, would the reference set, a second development set and the unit tests notice? Eight mutation
+operators applied in memory to the 22 scored rules give 290 mutants, of which 273 can be measured on the
+interpreter. The two development sets detect a change in an expected finding for 90 of the 273 (33\%), or 130
+(48\%) when changes that only add or remove false positives on clean and near-miss cases are counted.
+\devset{}
+% src: origin/v1.3-rule-mutation:Docs/DiagnosticRuns/v1.3-rule-mutation-2026-10-16.md (PR #190, not merged) §1 ("On the 22 scored rules there are 290 mutants; 273 can be measured ... 90 of the 273 (33%) ... 130 (48%)"); origin/v1.3-rule-mutation:results/v1.3-rule-mutation/rule-mutation-2026-10-16.json
+The split by operator is clear. Mutants that invert a rule are caught: a flipped comparison (28/29), a removed
+\texttt{NOT} (20/21), a swapped layer parameter (9/9). Mutants that loosen or tighten a rule are rarely caught:
+a dropped \texttt{WHERE} conjunct (9/67, or 41/67 counting false positives), a widened or narrowed label or type
+(22/80). Changes to \texttt{ORDER BY} (0/59) and \texttt{DISTINCT} (0/2) are never caught. Most survivors are
+equivalent mutants, but 14 are real blind spots, each listed with the smallest case that would expose it: for
+example re-export-only violations, the cycle-length bound, and role-named classes outside their layer.
+% src: origin/v1.3-rule-mutation:Docs/DiagnosticRuns/v1.3-rule-mutation-2026-10-16.md §1 (per-operator counts; "§6 group A, 14 items")
+The unit tests do not close the gap. They fail on 116 of the 273 mutants, but every failure comes from a test that
+asserts on the template text or uses a stub repository; no unit test runs a template against a graph, so the tests
+cannot tell a wrong edit from a correct refactoring. 106 of the 273 mutants survive both the sets and the unit tests.
+We report this as a limitation of our test oracle: the reference-set results of Table~\ref{tab:v13-devset} show
+that the rules find what was planted, but a set that misses two thirds of plausible rule faults is weak evidence
+that the rules are free of such faults.
+% src: same file §1 ("The unit tests fail on 116 of the 273 ... Every such failure comes from a test that asserts on the template text, or that runs the evaluator over a stub repository"; "Mutants that survive both the sets and the unit tests: 106 of 273")
+
+\subsection{Replication package}\label{sec:v13-replication}
+
+A replication package lets a reader regenerate the v1.3 results without a database, a model or credentials. Its
+first part rests on an audit of the 15 v1.3 result reports then committed: 531 headline numbers were re-derived from
+the raw outputs and 482 matched; no headline result was overturned, and the mismatches were typographical errors,
+miscounts and stale numbers, with two of medium severity. Its smoke script regenerates the offline deterministic
+results from a clean export and compares them byte for byte (160 identical, 4 known divergences on the run of
+2026-10-15).
+% src: Docs/DiagnosticRuns/v1.3-repro-audit-2026-10-16.md (summary: "No headline result is overturned"; totals row 531 / 482); replication/smoke-2026-10-15.txt (160 IDENTICAL, 4 KNOWN, "SMOKE: OK"); replication/README.md; PR #117 (merged)
+A second part extends the check to every number stated in the v1.3 reports: of 5,154 registered numbers, 4,587
+reproduce and equal the stated value and 58 reproduce with a different value; the remainder need a model, a Neo4j
+server or inputs that are sealed or outside the repository, or cannot be checked. No conclusion depends on the 58,
+which are typographical errors, swapped labels, rounding and stale counts. The same run found that the first
+part's smoke script no longer reproduces two of its outputs at the current head, because later commits changed the
+scripts that produce them; the package records this rather than hiding it.
+% src: origin/v1.3-replication-2:Docs/v1.3/replication-2.md (PR #215, not merged) §2 table (5,154; yes 4,587; no 58; needs-LLM 6; needs-Neo4j 235; needs-external 148; not-checkable 120) and "No headline result is overturned"; §4 item 1 ("replication/smoke.sh exits 1 at the v1.3 head")
+The audits were run by sessions of the same project with the same tooling; they show internal consistency between
+reports and raw data, not independent replication.
+
+\subsection{Null results}\label{sec:v13-null}
+
+Two exploratory studies looked for external validity signals and did not find them. We report both.
+
+\emph{Developer fixes.} If blocking findings matter, maintainers should remove the flagged dependencies more often,
+or sooner, than unflagged ones. Over 36 project histories (up to 200 commit pairs each, protocol committed before
+any run) the pooled removal rate of blocking findings is 2.65 times that of unflagged cross-layer edges (95\% CI
+1.97 to 3.56), but 48 of the 74 credited removals come from one commit that enabled a lint rule against import
+cycles. Without that commit the ratio is 0.93 (0.61 to 1.43); counting one credit per fixing commit it is 1.00.
+Dependency-direction findings are removed less often than unflagged edges (rate ratios 0.65, 0.38 and 0), and
+one-year survival is 0.71 for blocking findings against 0.75 for unflagged cross-layer edges. Only the cycle rule
+stays above baseline (2.7 times without the one commit). The method cannot separate two readings: the findings do
+not match what these projects intend, or they are right and the debt is tolerated. Either way, developer behaviour
+does not validate the dependency-direction rules. \explor{}
+% src: origin/v1.3-validity-fixes-mined:Docs/DiagnosticRuns/v1.3-validity-fixes-mined-2026-10-16.md (PR #168, not merged), "Verdict" (2.65x, 95% CI 1.97-3.56; 74 credited removals; amplication PR #93; 0.93 (0.61-1.43); 1.00 (0.56-1.80); rate ratios 0.65, 0.38 and 0; survival 0.76 / 0.71 vs 0.75; FF-S02 2.7x (1.5-5.1)) and §1 (36 projects, up to 200 commits)
+
+\emph{Known groups.} We expected showcase repositories (templates, samples, boilerplates) to have fewer blocking
+findings per thousand lines than application repositories. With the test and its reading fixed before the data were
+opened, the hypothesis is not supported on the external set (Cliff's $\delta = -0.18$, exact one-sided
+$p = 0.811$), and on the wild set the point estimate is in the opposite direction ($\delta = -0.58$,
+$p = 0.951$). The group rule is crude and the external set was selected for repositories that claim a style, so many
+``application'' repositories are themselves teaching examples; the null shows that this split does not separate the
+groups, not that no split can. The blocking count also correlates with size ($\rho = 0.68$ with lines of code,
+$n = 15$). \explor{}
+% src: origin/v1.3-known-groups:Docs/DiagnosticRuns/v1.3-known-groups-2026-10-16.md (PR #198, not merged) §1 table (K-1 delta -0.18, p 0.811; K-4 wild delta -0.58, p 0.951) and "Reading this null honestly"; PR #198 body and report §2 (B vs LOC rho 0.68 [0.19, 0.96])
+
 \subsection{Honest limits of the v1.3 evidence}\label{sec:v13-limits}
 
 \begin{itemize}
@@ -1216,6 +1428,22 @@ finding that did not appear. % src: Docs/DiagnosticRuns/v1.3-judge-catch-2026-10
         no measurement on large or real projects.
   \item \textbf{Generated code never breaks the blocking rules.} With 0 blocking findings in 65 E1 cells, the E1
         data cannot test the blocking tier at all.
+  \item \textbf{A weak test oracle.} The two development sets detect 90 of 273 measurable rule mutants (33\%), and
+        the unit tests check template text rather than behaviour (Section~\ref{sec:v13-mutation}). Perfect
+        reference-set scores are therefore weak evidence that the rules are free of faults.
+  \item \textbf{Exploratory, single-author external evidence.} The external and wild projects are human-written,
+        but one Claude-family session selected them and wrote every specification; a second specification author
+        flips 5 of 15 verdicts on the first wave. The second wave is unlabelled.
+  \item \textbf{No external validity signal yet.} Developer fixes do not single out blocking findings once one
+        commit is removed, and a known-groups test is null (Section~\ref{sec:v13-null}).
+  \item \textbf{Engine limits.} The blocking cycle query does not finish on the interpreter on the largest projects,
+        and on Neo4j it hit the transaction timeout on three of them, so those verdicts are computed without it.
+        The convergent and mutation runs could not run \ff{FF-P05} on the interpreter; support for its
+        \texttt{CALL \{ \ldots{} UNION \ldots{} \}} form was added later and has not been checked live.
+        % src: Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md §0 ("Rules that did not run"); origin/v1.3-rule-mutation:Docs/DiagnosticRuns/v1.3-rule-mutation-2026-10-16.md §1, §4.1 (PR #190); Docs/v1.3/npx-mode.md status table ("done, not checked live")
+  \item \textbf{Unmerged evidence.} The external-correctness, second-wave, metamorphic, mutation, part-two
+        replication, developer-fix and known-groups reports are on pull requests that await the author's review.
+        Their numbers may change before they are merged.
   \item \textbf{No human labels and no Study 2.} Usefulness to architects, and the firewall inside a generation
         loop, are still not evaluated.
 \end{itemize}
@@ -1350,6 +1578,15 @@ enrichments, and the graph-fidelity disagreements have not been adjudicated by a
 run and the human labels exist, these figures support only the claim that each change does what its stated reason
 says on the development set. % src: Docs/DiagnosticRuns/v1.3-reference-after-fixes-2026-10-15.md (banner); Docs/DiagnosticRuns/apg2-ablation-2026-10-15.md ("Notes and limits"); Docs/DiagnosticRuns/v1.3-graph-fidelity-2026-10-14.md ("The human_verdict column is empty")
 
+\paragraph{Strength of the oracle and of the external evidence.}
+The rule-mutation analysis shows that the development sets detect a third of plausible rule faults, so agreement
+with them is weaker evidence than the perfect scores suggest. Convergent agreement cannot reveal a fault that all
+four tools share, and it covers only the rules the other tools can express. The external projects are human-written,
+but their selection and specifications come from one Claude-family author, and verdict-level results change with
+the specification author. The developer-fix and known-groups studies were designed to provide external signals and
+did not; we have no evidence yet that the blocking findings predict what maintainers or architects would change.
+% src: subsections sec:v13-convergent to sec:v13-null of this paper and the sources cited there
+
 \paragraph{Other threats.}
 We follow the usual construct, internal and external validity categories \citeneeded{wohlin2012experimentation}; the
 full register is \texttt{Docs/threats-to-validity.md}.
@@ -1377,8 +1614,12 @@ work: seed the untested rules, model dynamic imports, widen \edge{FLOWS\_TO}, re
 validate the judge against human labels, audit the labels, and extend the corpus beyond NestJS.
 The v1.3 revision addresses several of these on a development set: dynamic imports are modelled, eleven defects
 were fixed with their effects attributed, graph fidelity is reported as agreement with the compiler, and no
-checkable finding was incorrect. Its validity rests on the sealed hold-out run, the human labels and the
-generation-loop study (Study 2), none of which has been run.
+checkable finding was incorrect. Later v1.3 work adds evidence of a different kind: a second Cypher engine
+that agrees with Neo4j on every compared statement, agreement with three independent checkers on the rules they
+share, correct blocking findings on human-written code, and verdicts that survive semantics-preserving
+transformations. It also adds evidence against over-reading these results: the test oracle misses most mutants that
+loosen a rule, and two searches for external validity were null. Its validity rests on the sealed hold-out run, the
+human labels and the generation-loop study (Study 2), none of which has been run.
 
 \paragraph{Data availability.}
 Code, specifications, run records, reports, cassettes and every aggregate table are in the project repository at tag
