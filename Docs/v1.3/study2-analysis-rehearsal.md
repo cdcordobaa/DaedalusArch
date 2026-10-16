@@ -211,6 +211,30 @@ fixing that value.
 | A24 | memo §5 | **A blocking primary but a Study 2 floor** (the pilot found erosion, Study 2 does not). The memo forbids switching, so the contrast is degenerate. | (a) report a degenerate null; (b) switch anyway. | The script warns (T1). | State (a) explicitly. |
 | A25 | readiness gate D11c | **`taskProfiles` with `daedalus-mcp`**: the harness refuses per-task specs with the MCP arm. So `evaluatorSpec` per step is absent, and the spec of record must come from the plan. | (a) one spec for every task; (b) a harness change. | Not measured. | Decide before the freeze; the analysis records the spec from the plan. |
 
+### 5b. Status after the determinism pack (A1 job, `Docs/v1.3/study2-analysis-determinism.md`)
+
+"Mechanical" means the code no longer lets a seed or an analyst move the number once the plan file is fixed. It
+does **not** mean the item is decided: every author decision below stays open, and the plan file leaves its two
+author slots `null`.
+
+| # | Status | What the code now does (with `--plan`) | What remains for the author |
+|---|---|---|---|
+| A1 | Mechanical support; **author decision** | Both decisions are computed for every contrast; `inference.disagreement` flags a CI and a p that disagree; the slot `confirmatoryInference` (`sign-flip` / `bootstrap` / `both-agree`) names the rule. | Fill the slot. |
+| A2 | Mechanical support; **author decision** | Task-level tests are exact (6 ≤ 20 units) and seed-free. | Block or task as the confirmatory unit. |
+| A3 | Mechanical support; **author decision** | Raw and per-KLOC are reported side by side (T2b), each with its own Holm. T2 uses the slot `primaryScale`; while it is empty T2 shows raw, labelled as a placeholder. | Fill the slot. |
+| A4 | Author decision | Unchanged (OLS on 1..k). `--outcome newIdentitiesFromStep2` reports the memo's step-2..k count beside it, with the step-1 level apart. | Slope definition. |
+| A5, A6 | Author decision | Unchanged. | — |
+| A7 | Partly mechanical | `newIdentitiesFromStep2` uses the memo identity (rule, template, file, target; cycles by file set) from `scripts/lib/loop/pilot-metrics.ts`. The T1 switch rule still uses the rehearsal's rule + file + target identity (unchanged, OFF-by-default rule). | Confirm which identity the switch rule uses. |
+| A8 | Author decision | Unchanged. | — |
+| A9 | Partly mechanical | `distinctViolatingEdges` counts and reports steps whose listing is capped. The identity count still sees listed findings only. | — |
+| A10, A11 | Author decision | Unchanged. | — |
+| A12 | **Mechanical** (seed); author decision (flips) | The Monte Carlo seed is read from the plan file and printed in every caption; the test has its own generator (its p no longer depends on the number of bootstrap draws); up to 20 units the test is exact; a Monte Carlo p within 3 SE of α or α/2 is flagged. | Number of flips (the plan keeps 9999, the status quo). |
+| A13 | Mechanical (seed, resamples); author decision (method) | Seed and resamples come from the plan and are printed. | Percentile vs BCa; one vs two stages. |
+| A14–A25 | Author decision | Unchanged. | — |
+
+New outcome (not in the A-list): `distinctViolatingEdges` (#161 §3.7.3, FF-S03 re-scoring FF-S01's upward edges).
+Whether it replaces, or sits beside, the blocking count is an author decision.
+
 ## 6. Not computable from the step records
 
 The analysis lists these in every report:
