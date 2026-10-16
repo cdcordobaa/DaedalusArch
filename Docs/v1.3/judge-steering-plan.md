@@ -28,6 +28,8 @@ Twins are not used. FF-N01 (module) units are not used, because the steering com
 
 **Draw.** Within each pool, the item ids are sorted (code-unit order). Then 20 are drawn with `mulberry32(uint32(sha256('daedalus-v1.3-judge-steering-20261016|seed')))`.pickDistinct and `…|clean`. `uint32` is the first 4 bytes of the digest, big-endian, as in the CHECK-2 seeding. No item is replaced after the draw.
 
+**Draw result** (the draw only; no verdict exists). Seeds: LOGIC-IN-CONTROLLER 9, FRAMEWORK-LEAK 6, PERSIST-IN-DOMAIN 5, REPO-BYPASS 0. None of the 3 FF-N02 REPO-BYPASS seeds (MO-DF01) was drawn, so this test says nothing about that family. Seeds by style: layered 11, hexagonal 3, ddd 2, clean-architecture 2, nestjs 2. Clean units: 20 across 9 of the 10 bases (none from layered-warehouse).
+
 **Code.** The `none` variant of each item is the unit file exactly as CHECK-2's `seed` phase produces it (deterministic; the CHECK-2 seed manifest is `fbae6cf4…`). Seed units come from the seeded copy; clean units come from the base.
 
 ## 4. Variants (exact texts)
