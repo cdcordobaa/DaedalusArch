@@ -5,11 +5,12 @@
  * repository or is read.
  */
 import { execSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import {
-  checkStructure, determinismDiff, freezeCheck, holdoutMain, locationProblems, parseHoldoutArgs, treeSha256,
+  FROZEN_PATHS, checkStructure, dependencyCheck, determinismDiff, freezeCheck, holdoutMain, locationProblems, parseHoldoutArgs, treeSha256,
 } from '../../../../scripts/v1.3/lib/holdout-run-main.js';
 import type { GitRunner, NodeSpawner } from '../../../../scripts/v1.3/lib/holdout-run-main.js';
 import { applyRuleIdMap, loadReference, loadRuleIdMap } from '../../../../scripts/v1.3/lib/reference-model.js';
@@ -159,6 +160,62 @@ describe('freezeCheck', () => {
   });
 });
 
+describe('dependencyCheck', () => {
+  function project(lock: unknown, installed: Readonly<Record<string, string>>): string {
+    const root = path.join(tmp, 'deps-project');
+    fs.mkdirSync(root, { recursive: true });
+    fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify({ dependencies: { a: '^1.0.0' }, devDependencies: { b: '^2.0.0' } }));
+    fs.writeFileSync(path.join(root, 'package-lock.json'), JSON.stringify(lock));
+    for (const [name, version] of Object.entries(installed)) {
+      fs.mkdirSync(path.join(root, 'node_modules', name), { recursive: true });
+      fs.writeFileSync(path.join(root, 'node_modules', name, 'package.json'), JSON.stringify({ name, version }));
+    }
+    return root;
+  }
+  const lock = {
+    lockfileVersion: 3,
+    packages: {
+      '': { name: 'p' },
+      'node_modules/a': { version: '1.2.0' },
+      'node_modules/b': { version: '2.0.1', dev: true },
+      'node_modules/fsevents': { version: '2.3.3', optional: true },
+    },
+  };
+
+  it('the frozen paths cover the dependency manifests and the TypeScript configs', () => {
+    expect(FROZEN_PATHS).toEqual(expect.arrayContaining(['package.json', 'package-lock.json', 'tsconfig*.json']));
+  });
+
+  it('passes when every installed version equals the lockfile, and records the lockfile hash and direct versions', () => {
+    const root = project(lock, { a: '1.2.0', b: '2.0.1' });
+    const r = dependencyCheck(root);
+    expect(r.problems).toEqual([]);
+    expect(r.checked).toBe(2);
+    expect(r.direct).toEqual({ a: '1.2.0', b: '2.0.1' });
+    expect(r.lockfileSha256).toBe(createHash('sha256').update(fs.readFileSync(path.join(root, 'package-lock.json'))).digest('hex'));
+  });
+
+  it('names a version drift and a missing non-optional package', () => {
+    const r = dependencyCheck(project(lock, { a: '1.3.0' }));
+    expect(r.problems).toEqual([
+      'node_modules/a is 1.3.0, package-lock.json has 1.2.0',
+      'node_modules/b is in package-lock.json (2.0.1) but not installed',
+    ]);
+    expect(r.direct.b).toBe('not installed');
+  });
+
+  it('refuses a missing or v1 lockfile', () => {
+    const root = project({ lockfileVersion: 1, dependencies: {} }, {});
+    expect(dependencyCheck(root).problems[0]).toMatch(/no packages map/);
+    fs.rmSync(path.join(root, 'package-lock.json'));
+    expect(dependencyCheck(root)).toMatchObject({ lockfileSha256: '', problems: [expect.stringMatching(/cannot read/)] });
+  });
+
+  it('holds the repository itself: node_modules matches package-lock.json', () => {
+    expect(dependencyCheck(ROOT).problems).toEqual([]);
+  });
+});
+
 describe('holdoutMain', () => {
   it('a dry run prints the structure and never spawns', async () => {
     const t = io();
@@ -205,6 +262,16 @@ describe('holdoutMain', () => {
     const prov = JSON.parse(fs.readFileSync(path.join(out, 'holdout-run-provenance.json'), 'utf8')) as Record<string, unknown>;
     expect(prov).toMatchObject({ standIn: false, mode: 'live', commit: 'a'.repeat(40), neo4j: 'bolt://localhost:7687', started: '2026-10-15T12:00:00.000Z' });
     expect(JSON.stringify(prov)).not.toContain('pw');
+    expect(prov.lockfileSha256).toMatch(/^[0-9a-f]{64}$/);
+    expect(prov.frozenPaths).toEqual(expect.arrayContaining(['package-lock.json']));
+    expect((prov.dependencies as Record<string, string>).typescript).toMatch(/^\d+\.\d+\.\d+/);
+
+    // A dependency drift stops the run before anything is spawned.
+    t = io();
+    const drift = () => ({ lockfileSha256: 'f'.repeat(64), direct: {}, checked: 1, problems: ['node_modules/x is 2.0.0, package-lock.json has 1.0.0'] });
+    const never: NodeSpawner = () => { throw new Error('must not run'); };
+    expect(await holdoutMain(['--holdout', h, '--commit', 'HEAD', '--out', path.join(tmp, 'run-drift')], ROOT, t.io, { git: cleanGit, spawnNode: never, dependencies: drift })).toBe(1);
+    expect(t.err.join('')).toMatch(/dependencies: node_modules\/x is 2.0.0/);
 
     // The hold-out is run once: a second live run into the same directory is refused.
     t = io();

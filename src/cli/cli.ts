@@ -14,6 +14,7 @@ import type { ScoringMode } from '../shared/types/evaluation.js';
 import { generateReport } from '../report/report-generator.js';
 import { graphInputFromApg, writeArchitectReport } from '../report/architect/index.js';
 import { formatActionableHuman } from '../scoring-engine/report-formatter.js';
+import { buildReportFixHints, formatFixHintsHuman } from '../fix-hints/index.js';
 import { runBatch } from './batch-runner.js';
 import { requireEnvForCli } from './require-env.js';
 import { ENGINE_OPTION_HELP, resolveEngineForCli } from './engine-default.js';
@@ -35,6 +36,9 @@ import { runCheck, neo4jEngine, lexicalEngine, formatGateHuman, formatGateJSON, 
 import type { GateEngine } from '../ci-gate/index.js';
 import { defaultPropose, inferredBanner, inferredSpecFile, labelJsonReport, runInit } from './init-command.js';
 import type { InferredSpecFile } from './init-command.js';
+import { defaultPresetsDir, formatProposalHuman, proposeRules, summariseProposal } from '../rule-mining/index.js';
+import { ISE_STYLES } from '../ise/index.js';
+import type { IseStyle } from '../ise/index.js';
 
 // Load .env before anything else
 loadDotenv();
@@ -149,7 +153,7 @@ function withLLMOptions(command: Command): Command {
     .option('--cassette-omit-prompt', 'Record cassettes without prompts (corpus runs)', false)
     .option('--cassette-project-id <id>', 'Project id written on every judge cassette entry (repetition reliability)')
     .option('--judge-cli <path>', 'Judge CLI binary (default ~/.firewall/judge-cli/node_modules/.bin/claude when present, else claude)')
-    .option('--judge-version <v>', 'Judge rubric version: v1 (frozen, default) | v2 (v1.3 development)');
+    .option('--judge-version <v>', 'Judge rubric version: v1 (frozen, default) | v2 (v1.3 development, revision v2.1) | v2.2 (v1.3 development)');
 }
 
 /** The argv `parseLLMOptions` reads, rebuilt from the parsed options (so `main(argv)` tests work). */
@@ -217,13 +221,18 @@ withLLMOptions(program
   .option('--instrument <version>', 'Symbolic instrument: v2 (role exemptions, default) | v1 (ADR-026)', 'v2')
   .option('--neural-aggregation <rule>', 'Neural aggregation of the AHS: registered (default, primary) | proportional (ADR-028 sensitivity variant)', 'registered')
   .option('--tsconfig <path>', 'Explicit tsconfig for APG extraction; the project\'s own tsconfig.json is then ignored (ADR-032)')
+  .option('--resolved-edges-in-literal-view', 'Off by default. Keep an import\'s edge to the declaring file in the literal view when it goes through a barrel (MT-B1, Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md)', false)
+  .option('--literal-through-layerless-barrels', 'Off by default. At graph build, an import through barrels that belong to no layer (and are no declared DDD public API) also keeps its edge to the declaring file in the literal view (MT-B1 fix, Docs/DiagnosticRuns/v1.3-mtb1-fix-2026-10-16.md)', false)
   .option('--scoring <mode>', 'Scoring mode: v1.3 (rule tiers, default; verdict from blocking rules) | v1.2e (the registered Study 1 scoring)', 'v1.3')
   .option('--html <out.html>', 'Also write a self-contained architect HTML report (layer diagram, findings in plain language, filters)')
+  .option('--hints', 'Add a deterministic fix hint to every blocking finding (json: `fixHints`; human: a Fix hints section). Off by default: the output is then unchanged', false)
   .option('--engine <name>', ENGINE_OPTION_HELP)
   .action(async (projectArg: string | undefined, opts: LLMCliOpts & {
     engine?: string;
     project?: string;
     tsconfig?: string;
+    resolvedEdgesInLiteralView: boolean;
+    literalThroughLayerlessBarrels: boolean;
     spec?: string;
     fromInferred: boolean;
     format: string;
@@ -238,6 +247,7 @@ withLLMOptions(program
     instrument: string;
     neuralAggregation: string;
     scoring: string;
+    hints: boolean;
     html?: string;
   }, cmd: Command) => {
     const project = opts.project ?? projectArg;
@@ -303,6 +313,8 @@ withLLMOptions(program
       llmConfig,
       ...(graphMode !== 'full' && { graphMode }),
       ...(opts.tsconfig !== undefined && { tsconfigPath: opts.tsconfig }),
+      ...(opts.resolvedEdgesInLiteralView && { resolvedEdgesInLiteralView: true }),
+      ...(opts.literalThroughLayerlessBarrels && { literalThroughLayerlessBarrels: true }),
       instrumentVersion,
       neuralAggregation,
       scoringMode,
@@ -352,13 +364,19 @@ withLLMOptions(program
         exitVerdict = comparison.newViolations.length === 0 ? 'pass' : report.verdict;
       }
 
+      // Fix hints (Docs/v1.3/fix-hints.md): only with --hints, so the default output is byte-identical.
+      const fixHints = opts.hints
+        ? buildReportFixHints(report.violations, context.getParsedSpec(), opts.project, context.getApgResult())
+        : undefined;
+
       // Route output: machine-readable to stdout, human to stderr
       switch (format) {
         case 'json':
-          process.stdout.write((inferred !== undefined ? labelJsonReport(formatJSON(report), inferred.proposal) : formatJSON(report)) + '\n');
+          process.stdout.write((inferred !== undefined ? labelJsonReport(formatJSON(fixHints === undefined ? report : { ...report, fixHints }), inferred.proposal) : formatJSON(fixHints === undefined ? report : { ...report, fixHints })) + '\n');
           break;
         case 'human':
           process.stderr.write(formatHuman(report) + '\n');
+          if (fixHints !== undefined) process.stderr.write(formatFixHintsHuman(fixHints) + '\n');
           break;
         case 'csv':
           process.stdout.write(csvHeader() + '\n');
@@ -588,6 +606,50 @@ program
       for (const r of rejected) process.stderr.write(`  - [CYPHER_INTERP_UNSUPPORTED] ${r}\n`);
       process.stderr.write(`cypher-interp: ${String(queries.length - rejected.length)}/${String(queries.length)} compiled queries parse\n`);
       if (rejected.length > 0) process.exitCode = 1;
+    }
+  });
+
+// ── mine-rules command ───────────────────────────────────────────────────────
+
+program
+  .command('mine-rules')
+  .description('PROPOSE the implicit rules of a project that has no spec: mined from its graph (deterministic, no LLM, no Neo4j), each with evidence, confidence and exceptions (candidate violations), plus a spec that compiles to the existing templates. Proposals to review, not a spec.')
+  .option('--project <path>', 'Path to the TypeScript project (its src/ and tsconfig.json are read)', '.')
+  .option('--out <path>', 'Write the proposed spec YAML to this file')
+  .option('--format <fmt>', 'Output format: human | json', 'human')
+  .option('--min-confidence <n>', 'Leave rules below this confidence (0-1) out of the proposed spec (they are still reported)', '0')
+  .option('--style <style>', `Skip the style classification and use this style (${ISE_STYLES.join(', ')})`)
+  .option('--max-exceptions <n>', 'Exceptions listed per rule in the human output', '5')
+  .action(async (opts: { project: string; out?: string; format: string; minConfidence: string; style?: string; maxExceptions: string }) => {
+    const minConfidence = Number(opts.minConfidence);
+    if (!Number.isFinite(minConfidence) || minConfidence < 0 || minConfidence > 1) {
+      process.stderr.write('Error: --min-confidence takes a number between 0 and 1\n');
+      process.exitCode = 2;
+      return;
+    }
+    if (opts.style !== undefined && !(ISE_STYLES as readonly string[]).includes(opts.style)) {
+      process.stderr.write(`Error: --style takes one of ${ISE_STYLES.join(', ')}\n`);
+      process.exitCode = 2;
+      return;
+    }
+    if (opts.format !== 'human' && opts.format !== 'json') {
+      process.stderr.write('Error: --format takes human or json\n');
+      process.exitCode = 2;
+      return;
+    }
+    try {
+      const proposal = await proposeRules(path.resolve(opts.project), {
+        presetsDir: defaultPresetsDir(), minConfidence, ...(opts.style !== undefined ? { style: opts.style as IseStyle } : {}),
+      });
+      if (opts.out !== undefined) fs.writeFileSync(opts.out, proposal.specYaml);
+      process.stdout.write(opts.format === 'json'
+        ? JSON.stringify(summariseProposal(proposal, { includeSpec: opts.out === undefined }), null, 2) + '\n'
+        : formatProposalHuman(proposal, Number(opts.maxExceptions) || 5));
+      if (opts.out !== undefined) process.stderr.write(`Proposed spec written to ${opts.out}\n`);
+      process.exitCode = 0;
+    } catch (e: unknown) {
+      process.stderr.write(`Error: ${e instanceof Error ? e.message : String(e)}\n`);
+      process.exitCode = 2;
     }
   });
 

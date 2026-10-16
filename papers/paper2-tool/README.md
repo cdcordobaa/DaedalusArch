@@ -1,8 +1,8 @@
 # Paper 2 (tool and approach): A Spec-Driven Neuro-Symbolic Architectural Firewall for TypeScript
 
-Draft of 2026-10-11, written from the committed files at `v1.2e` (`c8848bc0`). Target: ECSA or ICSA tool/approach
+Draft of 2026-10-11, written from the committed files at `v1.2e` (`c8848bc0`); v1.3 evidence added 2026-10-15 and 2026-10-16 (see `REVISION-NOTES.md`). Target: ECSA 2027 research track (see `../STATUS.md`); originally ECSA or ICSA tool/approach
 track. Plain `article` class, 10 pt; about 7 200 words of body text plus 7 tables, 2 listings and 1 figure, which
-should come to roughly 12 pages. Not compiled yet: the drafting container had no TeX installation.
+should come to roughly 12 pages. Now compiles to 24 pages in this class (TeX Live, 2026-10-16).
 
 ```
 pdflatex main && bibtex main && pdflatex main && pdflatex main

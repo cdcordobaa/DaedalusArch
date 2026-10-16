@@ -22,11 +22,17 @@ import { ProjectView } from './project-files.js';
 import { explainFinding } from './explain-finding.js';
 import { inferProjectSpec, isIseStyle } from './infer-spec.js';
 import { specRuleMeta } from './rule-meta.js';
+import { NO_ROOT_NOTE } from './interp-check.js';
+import type { FastRulesEngine, InterpEvaluator } from './interp-check.js';
+import { interpCheckDiff, interpCheckFile, interpCheckImport } from './interp-tools.js';
+import type { InterpInput } from './interp-tools.js';
 import { proposeWithBuiltinPresets } from '../ise/propose.js';
 import type { SpecProposal } from '../ise/propose.js';
 import type { NeuralService } from './neural-service.js';
 import { explainAndFix, reviewUnit } from './neural-tools.js';
 import type { ExplainAndFixArgs, ExplainAndFixResult, FixHintSource, ReviewUnitArgs, ReviewUnitResult } from './neural-tools.js';
+import { defaultPresetsDir, proposeRules, summariseProposal } from '../rule-mining/index.js';
+import type { ProposalSummary } from '../rule-mining/index.js';
 import type {
   ArchitectureSpecView,
   CheckImportResult,
@@ -55,6 +61,8 @@ export interface ServerContext {
   readonly defaultSpecPath?: string | undefined;
   /** Default project for `evaluate_project` and the root file paths are made relative to. */
   readonly defaultProjectPath?: string | undefined;
+  /** Default for the `hints` argument of check_file, check_diff and explain_violation (`--hints` or `DAEDALUS_HINTS=1`). */
+  readonly hints?: boolean | undefined;
   readonly env: NodeJS.ProcessEnv;
   readonly evaluateDeps: EvaluateDeps;
   readonly loadSpec: (specPath: string) => Promise<ToolOutcome<LoadedSpec>>;
@@ -62,12 +70,21 @@ export interface ServerContext {
   readonly proposeSpec?: (projectDir: string) => Promise<SpecProposal>;
   /** The tool's canonical presets (`presets/`), read by `infer_spec`. */
   readonly presetsDir?: string | undefined;
+  /**
+   * `cypher-interp`: check_file, check_diff and check_import answer with the compiled rules on the project graph
+   * (Docs/v1.3/mcp-interp-parity.md). Absent or `fast`: the fast path, unchanged.
+   */
+  readonly fastRulesEngine?: FastRulesEngine | undefined;
+  /** The evaluator (and its state cache) the cypher-interp engine uses; required when that engine is selected. */
+  readonly interp?: InterpEvaluator | undefined;
   /** The neural arm (`--neural`); absent means off: no neural tool is registered (v1.3, neural-arm-agent-tools.md). */
   readonly neural?: NeuralService | undefined;
   /** Deterministic fix hints for `explain_and_fix` (the fix-hints feature's `buildFixHint`, when the build has it). */
   readonly fixHints?: FixHintSource | undefined;
   /** Graph engine of `evaluate_project` and the template checks; absent = `neo4j` (the reference engine). */
   readonly graphEngine?: GraphEngine | undefined;
+  /** Register the opt-in `propose_rules` tool (rule mining). Off by default. */
+  readonly ruleMining?: boolean | undefined;
 }
 
 const ok = <T>(data: T): ToolOutcome<T> => ({ ok: true, data });
@@ -117,6 +134,30 @@ export function toProjectRelative(ctx: ServerContext, filePath: string): string 
   return normalisePath(filePath);
 }
 
+/** The interpreter input when the cypher-interp engine is on and a project root is configured; else undefined. */
+function interpInput(ctx: ServerContext, loaded: LoadedSpec): InterpInput | undefined {
+  if (ctx.fastRulesEngine !== 'cypher-interp' || ctx.interp === undefined || ctx.defaultProjectPath === undefined) return undefined;
+  return { spec: loaded.spec, specPath: loaded.specPath, root: path.resolve(ctx.defaultProjectPath), evaluator: ctx.interp };
+}
+
+function interpFailedNote(e: unknown): string {
+  return `fast-rules-engine cypher-interp failed (${e instanceof Error ? e.message : String(e)}); answered on the fast path`;
+}
+
+/** The interp answer, or the fast-path answer with the reason when the evaluation fails (never an exception). */
+async function orFast<T extends { readonly notes: readonly string[] }>(fast: T, interp: () => Promise<T>): Promise<T> {
+  try {
+    return await interp();
+  } catch (e) {
+    return { ...fast, notes: [...fast.notes, interpFailedNote(e)] };
+  }
+}
+
+/** The fast-path answer with the no-root note, when the cypher-interp engine is on but cannot run. */
+function noRoot<T extends { readonly notes: readonly string[] }>(ctx: ServerContext, result: T): T {
+  return ctx.fastRulesEngine === 'cypher-interp' ? { ...result, notes: [...result.notes, NO_ROOT_NOTE] } : result;
+}
+
 export async function getArchitectureSpec(
   ctx: ServerContext,
   args: { readonly spec?: string | undefined },
@@ -160,12 +201,19 @@ export async function checkImportTool(
     return { ...v, tier: meta.tier, construct: meta.construct, source: meta.source, edgeView: meta.edgeView };
   });
   const blocking = violations.some((v) => v.tier === 'blocking');
-  return ok({ ...res, violations, blockingVerdict: blocking ? 'block' : res.verdict === 'unknown' ? 'unknown' : 'pass' });
+  const fast: CheckImportResult = { ...res, violations, blockingVerdict: blocking ? 'block' : res.verdict === 'unknown' ? 'unknown' : 'pass' };
+  const interp = interpInput(ctx, loaded.data);
+  if (interp === undefined) return ok(noRoot(ctx, fast));
+  return ok(await orFast(fast, () => interpCheckImport(interp, fast, {
+    from: toProjectRelative(ctx, args.from),
+    module: args.module,
+    ...(args.resolvedPath !== undefined ? { resolvedPath: toProjectRelative(ctx, args.resolvedPath) } : {}),
+  })));
 }
 
 export async function explainViolationTool(
   ctx: ServerContext,
-  args: { readonly rule: string; readonly spec?: string | undefined },
+  args: { readonly rule: string; readonly spec?: string | undefined; readonly hints?: boolean | undefined },
 ): Promise<ToolOutcome<RuleExplanation>> {
   // The spec only adds context; an unreadable default spec must not block the catalogue answer.
   const specPath = args.spec ?? ctx.defaultSpecPath;
@@ -174,6 +222,7 @@ export async function explainViolationTool(
   const explanation = explainViolation(
     args.rule,
     loaded?.ok === true ? loaded.data.spec : undefined,
+    { hints: args.hints ?? ctx.hints === true },
   );
   if (explanation === undefined) {
     return fail(
@@ -207,26 +256,38 @@ export async function evaluateProjectTool(
 
 export async function checkFileTool(
   ctx: ServerContext,
-  args: { readonly path: string; readonly content: string; readonly spec?: string | undefined; readonly templates?: boolean | undefined },
+  args: {
+    readonly path: string;
+    readonly content: string;
+    readonly spec?: string | undefined;
+    readonly templates?: boolean | undefined;
+    readonly hints?: boolean | undefined;
+  },
 ): Promise<ToolOutcome<FileCheckResult>> {
   const loaded = await specFor(ctx, args.spec);
   if (!loaded.ok) return loaded;
   const rel = toProjectRelative(ctx, args.path);
+  const hints = args.hints ?? ctx.hints === true;
   const fast = checkSource(loaded.data.spec, {
     path: rel,
     content: args.content,
     view: new ProjectView({ root: ctx.defaultProjectPath, overrides: new Map([[rel, args.content]]) }),
+    ...(hints ? { hints } : {}),
   });
-  if (args.templates !== true) return ok(fast);
-  const templates = await templateCheck({
-    spec: loaded.data.spec,
-    specPath: loaded.data.specPath,
-    projectRoot: ctx.defaultProjectPath,
-    before: new Map(),
-    after: new Map([[rel, args.content]]),
-    interp: interpOf(ctx),
-  });
-  return ok({ ...fast, templates });
+  const templates = args.templates === true
+    ? await templateCheck({
+      spec: loaded.data.spec,
+      specPath: loaded.data.specPath,
+      projectRoot: ctx.defaultProjectPath,
+      before: new Map(),
+      after: new Map([[rel, args.content]]),
+      interp: interpOf(ctx),
+    })
+    : undefined;
+  const withTemplates = (r: FileCheckResult): FileCheckResult => (templates === undefined ? r : { ...r, templates });
+  const interp = interpInput(ctx, loaded.data);
+  if (interp !== undefined) return ok(withTemplates(await orFast(fast, () => interpCheckFile(interp, rel, args.content))));
+  return ok(withTemplates(noRoot(ctx, fast)));
 }
 
 /** The in-process evaluator when the server runs on cypher-interp (template checks never touch Neo4j). */
@@ -236,26 +297,39 @@ function interpOf(ctx: ServerContext): ServerContext['evaluateDeps']['interp'] {
 
 export async function checkDiffTool(
   ctx: ServerContext,
-  args: { readonly diff: string; readonly spec?: string | undefined; readonly templates?: boolean | undefined },
+  args: { readonly diff: string; readonly spec?: string | undefined; readonly templates?: boolean | undefined; readonly hints?: boolean | undefined },
 ): Promise<ToolOutcome<DiffCheckResult>> {
   const loaded = await specFor(ctx, args.spec);
   if (!loaded.ok) return loaded;
-  const result = checkDiff(loaded.data.spec, args.diff, { projectRoot: ctx.defaultProjectPath });
+  const hints = args.hints ?? ctx.hints === true;
+  const result = checkDiff(loaded.data.spec, args.diff, { projectRoot: ctx.defaultProjectPath, ...(hints ? { hints } : {}) });
   if (result.files.length === 0 && result.skipped.length === 0) {
     return fail('No file found in the diff: pass unified diff text (git diff or diff -u output).');
   }
-  if (args.templates !== true) return ok(result);
-  const { before, after, unreadable } = diffOverrides(args.diff, ctx.defaultProjectPath);
-  const templates = await templateCheck({
-    spec: loaded.data.spec,
-    specPath: loaded.data.specPath,
-    projectRoot: ctx.defaultProjectPath,
-    before,
-    after,
-    interp: interpOf(ctx),
-  });
-  const note = unreadable.length > 0 ? { reason: `not rebuilt from the diff, evaluated as on disk: ${unreadable.join(', ')}` } : {};
-  return ok({ ...result, templates: { ...templates, ...(templates.reason === undefined ? note : {}) } });
+  let templates: DiffCheckResult['templates'];
+  if (args.templates === true) {
+    const { before, after, unreadable } = diffOverrides(args.diff, ctx.defaultProjectPath);
+    const checked = await templateCheck({
+      spec: loaded.data.spec,
+      specPath: loaded.data.specPath,
+      projectRoot: ctx.defaultProjectPath,
+      before,
+      after,
+      interp: interpOf(ctx),
+    });
+    const note = unreadable.length > 0 ? { reason: `not rebuilt from the diff, evaluated as on disk: ${unreadable.join(', ')}` } : {};
+    templates = { ...checked, ...(checked.reason === undefined ? note : {}) };
+  }
+  const withTemplates = (r: DiffCheckResult): DiffCheckResult => (templates === undefined ? r : { ...r, templates });
+  if (ctx.fastRulesEngine !== 'cypher-interp') return ok(withTemplates(result));
+  const interp = interpInput(ctx, loaded.data);
+  if (interp === undefined) return ok(withTemplates({ ...result, files: result.files.map((f) => noRoot(ctx, f)) }));
+  try {
+    return ok(withTemplates(await interpCheckDiff(interp, args.diff)));
+  } catch (e) {
+    const note = interpFailedNote(e);
+    return ok(withTemplates({ ...result, files: result.files.map((f) => ({ ...f, notes: [...f.notes, note] })) }));
+  }
 }
 
 export async function suggestPlacementTool(
@@ -358,4 +432,25 @@ export async function explainAndFixTool(
     loaded.data.spec,
     args,
   );
+}
+
+/**
+ * `propose_rules`: the implicit rules of a project that has no spec, mined from its graph (src/rule-mining). Every rule
+ * is labelled a proposal. Reads the project through a snapshot (src/ and tsconfig.json); no Neo4j, no LLM, no writes.
+ */
+export async function proposeRulesTool(
+  ctx: ServerContext,
+  args: { readonly project?: string | undefined; readonly minConfidence?: number | undefined; readonly includeSpec?: boolean | undefined; readonly maxExceptions?: number | undefined },
+): Promise<ToolOutcome<ProposalSummary>> {
+  const project = args.project ?? ctx.defaultProjectPath;
+  if (project === undefined) {
+    return fail('No project configured: pass `project` or start the server with --project <path>.');
+  }
+  if (!fs.existsSync(path.join(path.resolve(project), 'src'))) return fail(`No src/ directory under ${path.resolve(project)}: rule mining reads src/ and tsconfig.json.`);
+  try {
+    const proposal = await proposeRules(path.resolve(project), { presetsDir: ctx.presetsDir ?? defaultPresetsDir(), ...(args.minConfidence !== undefined && { minConfidence: args.minConfidence }) });
+    return ok(summariseProposal(proposal, { includeSpec: args.includeSpec ?? true, maxExceptions: args.maxExceptions ?? 20 }));
+  } catch (e: unknown) {
+    return fail(`Rule mining failed: ${e instanceof Error ? e.message : String(e)}`);
+  }
 }

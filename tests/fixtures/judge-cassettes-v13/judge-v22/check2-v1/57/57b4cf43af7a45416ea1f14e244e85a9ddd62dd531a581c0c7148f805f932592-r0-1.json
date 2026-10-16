@@ -1,0 +1,51 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9780,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "57b4cf43af7a45416ea1f14e244e85a9ddd62dd531a581c0c7148f805f932592-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "src/business/model/Vehicle.ts: `@Entity()` on `export class Vehicle` marks the domain class as a TypeORM entity, which is persistence mapping (infrastructure).",
+      "src/business/model/Vehicle.ts: `@Column()` on the `plate` property defines how that field maps to a database column, which is persistence mapping (infrastructure).",
+      "src/business/model/Vehicle.ts: serviceDue(), takeOutOfService() and returnToService() are business rules and belong in the domain layer."
+    ],
+    "pass": false,
+    "reasoning": "This file is in the domain (business) layer, and most of it is genuine domain behaviour: the service-interval constant, serviceDue(), takeOutOfService() and returnToService() all belong there. The problem is that the class also maps itself to the database. The TypeORM decorators @Entity() on the class and @Column() on the plate field describe how the class is stored. That is persistence work, which belongs to the infrastructure kind (src/persistence/**). Whether the import of 'typeorm' is allowed is a separate rule, checked by other tools, so it isn't judged here. The decorators themselves are the misplaced responsibility.",
+    "violations": [
+      {
+        "filePath": "src/business/model/Vehicle.ts",
+        "message": "The domain class Vehicle carries TypeORM mapping (`@Entity()` on the class, `@Column()` on `plate`). That is persistence work, which belongs to the infrastructure kind (src/persistence/**). Move the mapping into a persistence-layer entity or schema, and keep Vehicle free of persistence code."
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**\n- business (kind: domain): src/business/**\n- presentation (kind: presentation): src/presentation/**\n\n## Unit\nKind: file\nId: src/business/model/Vehicle.ts\nLayer: business\nUnit files:\n- src/business/model/Vehicle.ts\n\n## Source\n=====SOURCE-BEGIN src/business/model/Vehicle.ts=====\nimport { Entity, Column } from 'typeorm';\n\nexport const SERVICE_INTERVAL_KM = 15_000;\n\n@Entity()\nexport class Vehicle {\n  @Column()\n  plate: string;\n  model: string;\n  odometerKm: number;\n  inService: boolean;\n  lastServiceKm: number;\n\n  constructor(plate: string, model: string, odometerKm: number, inService: boolean, lastServiceKm: number) {\n    this.plate = plate;\n    this.model = model;\n    this.odometerKm = odometerKm;\n    this.inService = inService;\n    this.lastServiceKm = lastServiceKm;\n  }\n\n  serviceDue(): boolean {\n    return this.odometerKm - this.lastServiceKm >= SERVICE_INTERVAL_KM;\n  }\n\n  takeOutOfService(): void {\n    this.inService = false;\n  }\n\n  returnToService(): void {\n    this.inService = true;\n    this.lastServiceKm = this.odometerKm;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/business/model/Vehicle.ts\",\"to\":\"typeorm\",\"type\":\"IMPORTS\"},{\"from\":\"src/business/services/MaintenanceService.ts\",\"to\":\"src/business/model/Vehicle.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/business/services/MileageService.ts\",\"to\":\"src/business/model/Vehicle.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"business\",\"name\":\"Vehicle\",\"path\":\"src/business/model/Vehicle.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/model/Vehicle.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/services/MaintenanceService.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/services/MileageService.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"typeorm\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T03:11:57.750Z",
+  "repetition": 0,
+  "requestHash": "57b4cf43af7a45416ea1f14e244e85a9ddd62dd531a581c0c7148f805f932592",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":747}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"This file is in the domain (business) layer, and most of it is genuine domain behaviour: the service-interval constant, serviceDue(), takeOutOfService() and returnToService() all belong there. The problem is that the class also maps itself to the database. The TypeORM decorators @Entity() on the class and @Column() on the plate field describe how the class is stored. That is persistence work, which belongs to the infrastructure kind (src/persistence/**). Whether the import of 'typeorm' is allowed is a separate rule, checked by other tools, so it isn't judged here. The decorators themselves are the misplaced responsibility.\\\",\\\"evidence\\\":[\\\"src/business/model/Vehicle.ts: `@Entity()` on `export class Vehicle` marks the domain class as a TypeORM entity, which is persistence mapping (infrastructure).\\\",\\\"src/business/model/Vehicle.ts: `@Column()` on the `plate` property defines how that field maps to a database column, which is persistence mapping (infrastructure).\\\",\\\"src/business/model/Vehicle.ts: serviceDue(), takeOutOfService() and returnToService() are business rules and belong in the domain layer.\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/business/model/Vehicle.ts\\\",\\\"message\\\":\\\"The domain class Vehicle carries TypeORM mapping (`@Entity()` on the class, `@Column()` on `plate`). That is persistence work, which belongs to the infrastructure kind (src/persistence/**). Move the mapping into a persistence-layer entity or schema, and keep Vehicle free of persistence code.\\\"}]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"src/business/model/Vehicle.ts: `@Entity()` on `export class Vehicle` marks the domain class as a TypeORM entity, which is persistence mapping (infrastructure).\",\"src/business/model/Vehicle.ts: `@Column()` on the `plate` property defines how that field maps to a database column, which is persistence mapping (infrastructure).\",\"src/business/model/Vehicle.ts: serviceDue(), takeOutOfService() and returnToService() are business rules and belong in the domain layer.\"],\"pass\":false,\"reasoning\":\"This file is in the domain (business) layer, and most of it is genuine domain behaviour: the service-interval constant, serviceDue(), takeOutOfService() and returnToService() all belong there. The problem is that the class also maps itself to the database. The TypeORM decorators @Entity() on the class and @Column() on the plate field describe how the class is stored. That is persistence work, which belongs to the infrastructure kind (src/persistence/**). Whether the import of 'typeorm' is allowed is a separate rule, checked by other tools, so it isn't judged here. The decorators themselves are the misplaced responsibility.\",\"violations\":[{\"filePath\":\"src/business/model/Vehicle.ts\",\"message\":\"The domain class Vehicle carries TypeORM mapping (`@Entity()` on the class, `@Column()` on `plate`). That is persistence work, which belongs to the infrastructure kind (src/persistence/**). Move the mapping into a persistence-layer entity or schema, and keep Vehicle free of persistence code.\"}]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/business/model/Vehicle.ts",
+  "usage": {
+    "inputTokens": 2561,
+    "outputTokens": 747
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
