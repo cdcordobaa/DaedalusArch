@@ -90,4 +90,61 @@ tapes are scripted and the probe trees come from one Claude session, so nothing 
 
 ## 5. Results
 
-(Added after the run.)
+> **Development-set banner.** The replay tapes are scripted and the probe trees come from one Claude session. Nothing
+> here is a validity estimate, and nothing compares arms.
+
+Outputs: `results/v1.3-snapshot-measures/loop-replay/` and `results/v1.3-snapshot-measures/floor-probe/` (one JSON per
+snapshot, `summary.json`, `summary.md` with the per-snapshot table).
+
+**Stores.**
+- Loop replay: produced on this branch's base by `runReplay` exactly as `scripts/loop-replay-cli.ts` does (one
+  replay, scratch Neo4j 5.26.24 + APOC 5.26.24 core from the release tarballs). The interpreter could not be used: on
+  the replay path `--engine cypher-interp` does not receive the harness tsconfig (every evaluation fails with "No
+  tsconfig.json found"), so rule 8's one Neo4j was used. The log matched `loop-replay.md` §2 (repairs at market 2,
+  shelter 3, relief 2, each 2→0 / 2→0 / 1→0). 9 runs, 39 snapshots.
+- Floor probe: `results/v1.3-floor-probe` as committed (#161). 6 tasks × 2 arms, 56 snapshots.
+
+**Pass criterion (§4).**
+
+| Item | Result |
+|---|---|
+| 1. Coverage | **Pass.** 39/39 replay and 56/56 probe snapshots have a measures file with every §2 field; 0 not measured; `heldOut` null with its reason in all 95. |
+| 2. Reproducibility | **Pass.** Two runs per store into two directories: `diff -r` empty (41 and 58 files). |
+| 3. Agreement reported | **Pass.** In every file and in both summaries. |
+| 4. No regression | **Pass.** `ue-baseline-live --engine cypher-interp`: `raw/`, `report.json`, `report.md` identical to `results/v1.3-reference/after-member-facts` (elapsedMs aside; it did not differ either). `jest --maxWorkers=2 tests/unit/scripts/v1.3`: 24/24 suites, 393/393 tests. The scorer only reads the stores. |
+
+**Agreement, tool vs dependency-cruiser (distinct keys, summed over snapshots).**
+
+| Store | Compared keys both | Tool only | depcruise only | Tool blocking rows with no translated counterpart |
+|---|---|---|---|---|
+| Loop replay | 4 (FF-S01 2, FF-S04 2; clean-arch) | 0 | 0 | 9: FF-S01 3, FF-S04 3 (hexagonal), FF-DS02 3 (DDD) |
+| Floor probe | 96 (FF-S01 31, FF-S03 65; layered) | 0 | 0 | 0 |
+
+Where both tools have the rule, they agree key for key: 100 of 100 keys, no one-sided key, so no reason class was
+needed. The figure that matters for D16 is the last column.
+
+**Finding: dependency-cruiser is blind to the blocking direction rules of hexagonal and DDD specs.** The ADR-030
+translation (v1.0.0) translates FF-S01/S03/S04 only through the classic templates in `CYPHER_TEMPLATES`. The v1.3
+hexagonal preset and the frozen DDD specs bind FF-S01/S03/S04 to the graph templates (`dependency-direction-graph`,
+`layer-skip-graph`, `core-isolation`), which the translator reports as "inactive: no template", and FF-DS02 is not in
+the translated set. On those specs dependency-cruiser checks only FF-S02, FF-P01 and FF-C04. So for 2 of the pilot's 3
+styles (hexagonal, DDD) the "dependency-cruiser under the same spec" measure of outline §4/§7 cannot see a single
+direction violation; in the replay, 9 of 13 tool blocking rows had no counterpart. Closing this needs a new translation
+version (ADR-030 bump, a registered artefact) or a different independent measure for these styles: an author decision,
+not done here.
+
+**Gaming guards.**
+- Unmatched (layer-coverage) share: 0 in all 95 snapshots.
+- `import()` and `require()`: 0 in all 95.
+- Barrels: 26 in the replay (the DDD tapes' `index.ts` files, 2 per relief snapshot); 0 in the probe.
+- Re-exports: the probe's layered `tool`-arm trees each carry one `export * from '../persistence/<entities>'` in a
+  business file (youth-league, market-vendors, hive-health, every step); the `none` trees have none. That is the shape
+  of the probe's fix (entity types moved down to persistence and re-exported upward), legal under the layered
+  direction. Reported as the guard is meant to report it; whether it counts as gaming is a reading for the author.
+- Import kinds totals: replay static 110, type-only 362, re-export 52; probe static 1741, type-only 0, re-export 14.
+
+**What is not done.**
+- Held-out rule counts: a field only (author decision, job G1, gate D16).
+- No change to the live loop: the measures are not in `StepRecord`; D13's "recorded per step" is met post hoc, not
+  in the record. Wiring the scorer into the loop (off by default) is a follow-up if the author wants it in the record.
+- Gate lines D13 and D16 are not marked green here; this gives the tooling, and D16 has the blind spot above.

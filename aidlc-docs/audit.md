@@ -1557,3 +1557,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: v1.3 CONSTRUCTION — single unit, code generation and build/test in one PR into v1.3.
 
 ---
+
+## v1.3 CONSTRUCTION — snapshot measures and gaming guards (night backlog job #9 D1, scheduled task)
+**Timestamp**: 2026-10-16T08:30:00Z
+**User Input**: (scheduled task, no one present) "Build a post-hoc scorer that computes the Study 2 independent measures and gaming guards (dependency-cruiser under the ADR-030 translation, import kinds, barrels, layer-coverage share, LOC, files) for every snapshot of a loop store, so gate lines D13 and D16 can be verified without changing the live loop; run it on the #142 replay store and #161's probe snapshots; report tool vs dependency-cruiser agreement; byte-reproducible. Branch v1.3-snapshot-measures, one PR into v1.3, not merged."
+**AI Response**: "Branch v1.3-snapshot-measures from origin/v1.3 5f52a9f6. Definitions and pass criterion committed first (Docs/v1.3/snapshot-measures.md), then scripts/v1.3/snapshot-measures.ts + lib + 7 unit tests. Replay store: 39 snapshots; probe: 56; all measured, two runs byte-identical, 71 reference results identical, 24/24 v1.3 unit suites pass. Where both tools have the rule they agree on 100/100 keys. Finding: ADR-030 v1.0.0 has no rule for the graph templates the hexagonal preset and frozen DDD specs use for FF-S01/S03/S04 (and FF-DS02 is untranslated), so dependency-cruiser cannot see direction violations in 2 of 3 pilot styles (9 of 13 replay tool rows had no counterpart). Options taken under delegation: (1) scratch Neo4j 5.26.24 + APOC for the replay store, because the interpreter path does not pass the harness tsconfig on the replay; (2) agreement keyed on rule id under the same spec, with a new 'rule-semantics' reason class beside the graph-fidelity classes; (3) a probe-store adapter (none: step-NN.json, tool: step-NN.post.json); (4) measures not wired into StepRecord (post hoc only); (5) held-out rules left as a null field (author decision, G1). No translation version bump, no template, tier, preset, prompt-frame or sealed file touched; no LLM call; no construct switch read."
+**Context**: v1.3 CONSTRUCTION, Study 2 readiness tooling (D13, D16); AI-DLC gates not run interactively (scheduled task; the stored backlog job is the requirements).
+
+---
