@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "nestjs",
+  "variant": "v31-domain-reexports-express-types",
+  "kind": "violation",
+  "plants": "FF-P01",
+  "description": "A new src/domain/inbound-request.ts re-exports Request and Response from express under domain names (export type ... from, no import statement).",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P01",
+      "ruleName": "domain-purity",
+      "file": "src/domain/inbound-request.ts",
+      "target": "express",
+      "reason": "The domain depends on express through a type re-export."
+    }
+  ]
+}

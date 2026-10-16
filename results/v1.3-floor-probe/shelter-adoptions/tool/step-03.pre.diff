@@ -1,0 +1,355 @@
+diff --git a/src/adapters/inbound/http-app.ts b/src/adapters/inbound/http-app.ts
+index 0c406b3..c6e3f0b 100644
+--- a/src/adapters/inbound/http-app.ts
++++ b/src/adapters/inbound/http-app.ts
+@@ -2,11 +2,13 @@ import express, { NextFunction, Request, Response } from 'express';
+ import { AnimalService, NotFoundError } from '../../application/animal-service';
+ import { AdoptionService } from '../../application/adoption-service';
+ import { FosterService } from '../../application/foster-service';
++import { NotificationService } from '../../application/notification-service';
+ 
+ export interface HttpDeps {
+   animals: AnimalService;
+   adoptions: AdoptionService;
+   foster: FosterService;
++  notifications: NotificationService;
+ }
+ 
+ export function createHttpApp(deps: HttpDeps): express.Express {
+@@ -49,6 +51,15 @@ export function createHttpApp(deps: HttpDeps): express.Express {
+   app.post('/placements/:id/end', (req, res) => {
+     res.json(deps.foster.endPlacement(req.params.id));
+   });
++  app.get('/notifications', (_req, res) => {
++    res.json(deps.notifications.list());
++  });
++  // TextBridge delivery report webhook
++  app.post('/webhooks/textbridge', (req, res) => {
++    const { messageId, status } = req.body as { messageId: string; status: string };
++    deps.notifications.handleDeliveryReport(messageId, status === 'delivered');
++    res.status(204).end();
++  });
+ 
+   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+     const status = err instanceof NotFoundError ? 404 : 400;
+diff --git a/src/adapters/outbound/in-memory-repositories.ts b/src/adapters/outbound/in-memory-repositories.ts
+index 9681e76..3a2e1f4 100644
+--- a/src/adapters/outbound/in-memory-repositories.ts
++++ b/src/adapters/outbound/in-memory-repositories.ts
+@@ -1,6 +1,13 @@
+ import { Animal } from '../../domain/animal';
+ import { AdoptionApplication } from '../../domain/adoption-application';
+-import { AnimalRepository, ApplicationRepository, CarerRepository, PlacementRepository } from '../../application/ports';
++import {
++  AnimalRepository,
++  ApplicationRepository,
++  CarerRepository,
++  NotificationRepository,
++  PlacementRepository,
++} from '../../application/ports';
++import { Notification } from '../../domain/notification';
+ import { FosterCarer, Placement, isActive } from '../../domain/foster';
+ 
+ export class InMemoryAnimalRepository implements AnimalRepository {
+@@ -57,3 +64,19 @@ export class InMemoryPlacementRepository implements PlacementRepository {
+     return [...this.items.values()].find((p) => p.animalId === animalId && isActive(p));
+   }
+ }
++
++export class InMemoryNotificationRepository implements NotificationRepository {
++  private readonly items = new Map<string, Notification>();
++  save(n: Notification): void {
++    this.items.set(n.id, n);
++  }
++  findById(id: string): Notification | undefined {
++    return this.items.get(id);
++  }
++  findByProviderMessageId(messageId: string): Notification | undefined {
++    return [...this.items.values()].find((n) => n.providerMessageId === messageId);
++  }
++  findAll(): Notification[] {
++    return [...this.items.values()];
++  }
++}
+diff --git a/src/adapters/outbound/textbridge-sms-gateway.ts b/src/adapters/outbound/textbridge-sms-gateway.ts
+new file mode 100644
+index 0000000..91beece
+--- /dev/null
++++ b/src/adapters/outbound/textbridge-sms-gateway.ts
+@@ -0,0 +1,16 @@
++import { SmsGateway } from '../../application/ports';
++
++export class TextBridgeSmsGateway implements SmsGateway {
++  constructor(private readonly baseUrl: string, private readonly apiKey: string, private readonly callbackUrl: string) {}
++
++  async send(phone: string, text: string): Promise<{ messageId: string }> {
++    const res = await fetch(`${this.baseUrl}/messages`, {
++      method: 'POST',
++      headers: { 'content-type': 'application/json', authorization: `Bearer ${this.apiKey}` },
++      body: JSON.stringify({ to: phone, text, statusCallback: this.callbackUrl }),
++    });
++    if (!res.ok) throw new Error(`TextBridge responded ${res.status}`);
++    const json = (await res.json()) as { id: string };
++    return { messageId: json.id };
++  }
++}
+diff --git a/src/application/adoption-service.ts b/src/application/adoption-service.ts
+index 04d7f18..9f2da8a 100644
+--- a/src/application/adoption-service.ts
++++ b/src/application/adoption-service.ts
+@@ -1,13 +1,14 @@
+ import { markAdopted } from '../domain/animal';
+ import { AdoptionApplication, Applicant, decide } from '../domain/adoption-application';
+-import { AnimalRepository, ApplicationRepository, CarerRepository, IdGenerator, Mailer, PlacementRepository } from './ports';
++import { AnimalRepository, ApplicationRepository, CarerRepository, IdGenerator, PlacementRepository } from './ports';
++import { NotificationService } from './notification-service';
+ import { NotFoundError } from './animal-service';
+ 
+ export class AdoptionService {
+   constructor(
+     private readonly animals: AnimalRepository,
+     private readonly applications: ApplicationRepository,
+-    private readonly mailer: Mailer,
++    private readonly notifications: NotificationService,
+     private readonly ids: IdGenerator,
+     private readonly placements: PlacementRepository,
+     private readonly carers: CarerRepository,
+@@ -44,11 +45,11 @@ export class AdoptionService {
+       this.placements.save({ ...placement, endedAt: at });
+       const carer = this.carers.findById(placement.carerId);
+       if (carer) {
+-        this.mailer.send({
+-          to: carer.email,
+-          subject: `${animal.name} has been adopted`,
+-          body: `Dear ${carer.name}, ${animal.name} has been adopted. Thank you for fostering! The placement has ended.`,
+-        });
++        this.notifications.notify(
++          carer,
++          `${animal.name} has been adopted`,
++          `Dear ${carer.name}, ${animal.name} has been adopted. Thank you for fostering! The placement has ended.`,
++        );
+       }
+     }
+     for (const other of this.applications.findByAnimal(animal.id)) {
+@@ -82,10 +83,10 @@ export class AdoptionService {
+ 
+   private notify(app: AdoptionApplication, animalName: string): void {
+     const outcome = app.status === 'approved' ? 'approved' : 'not successful';
+-    this.mailer.send({
+-      to: app.applicant.email,
+-      subject: `Your adoption application for ${animalName}`,
+-      body: `Dear ${app.applicant.name}, your application to adopt ${animalName} was ${outcome}.`,
+-    });
++    this.notifications.notify(
++      app.applicant,
++      `Your adoption application for ${animalName}`,
++      `Dear ${app.applicant.name}, your application to adopt ${animalName} was ${outcome}.`,
++    );
+   }
+ }
+diff --git a/src/application/notification-service.ts b/src/application/notification-service.ts
+new file mode 100644
+index 0000000..bafe3df
+--- /dev/null
++++ b/src/application/notification-service.ts
+@@ -0,0 +1,72 @@
++import { Notification, Recipient, chooseChannel, smsText } from '../domain/notification';
++import { IdGenerator, Mailer, NotificationRepository, SmsGateway } from './ports';
++
++export class NotificationService {
++  constructor(
++    private readonly mailer: Mailer,
++    private readonly sms: SmsGateway,
++    private readonly notifications: NotificationRepository,
++    private readonly ids: IdGenerator,
++    private readonly now: () => Date = () => new Date(),
++  ) {}
++
++  notify(recipient: Recipient, subject: string, body: string): Notification {
++    const channel = chooseChannel(recipient);
++    const ts = this.now().toISOString();
++    const n: Notification = { id: this.ids.next(), recipient, channel, subject, body, status: 'pending', createdAt: ts, updatedAt: ts };
++    this.notifications.save(n);
++    if (channel === 'email') {
++      this.sendEmail(n);
++    } else {
++      this.sms
++        .send(recipient.phone as string, smsText(subject, body))
++        .then(({ messageId }) => this.update(n.id, { status: 'sent', providerMessageId: messageId }))
++        .catch(() => this.fallBack(n.id));
++    }
++    return n;
++  }
++
++  handleDeliveryReport(messageId: string, delivered: boolean): Notification | undefined {
++    const n = this.notifications.findByProviderMessageId(messageId);
++    if (!n) return undefined;
++    if (delivered) return this.update(n.id, { status: 'delivered' });
++    return this.fallBack(n.id);
++  }
++
++  list(): Notification[] {
++    return this.notifications.findAll();
++  }
++
++  private fallBack(id: string): Notification | undefined {
++    const n = this.notifications.findById(id);
++    if (!n) return undefined;
++    const ts = this.now().toISOString();
++    const email: Notification = {
++      id: this.ids.next(),
++      recipient: n.recipient,
++      channel: 'email',
++      subject: n.subject,
++      body: n.body,
++      status: 'pending',
++      createdAt: ts,
++      updatedAt: ts,
++      fallbackOf: n.id,
++    };
++    this.notifications.save(email);
++    this.sendEmail(email);
++    return this.update(n.id, { status: 'fell-back-to-email' });
++  }
++
++  private sendEmail(n: Notification): void {
++    this.mailer.send({ to: n.recipient.email, subject: n.subject, body: n.body });
++    this.update(n.id, { status: 'delivered' });
++  }
++
++  private update(id: string, patch: Partial<Notification>): Notification | undefined {
++    const n = this.notifications.findById(id);
++    if (!n) return undefined;
++    const updated = { ...n, ...patch, updatedAt: this.now().toISOString() };
++    this.notifications.save(updated);
++    return updated;
++  }
++}
+diff --git a/src/application/ports.ts b/src/application/ports.ts
+index 6935942..badf8a6 100644
+--- a/src/application/ports.ts
++++ b/src/application/ports.ts
+@@ -1,6 +1,7 @@
+ import { Animal } from '../domain/animal';
+ import { AdoptionApplication } from '../domain/adoption-application';
+ import { FosterCarer, Placement } from '../domain/foster';
++import { Notification } from '../domain/notification';
+ 
+ export interface AnimalRepository {
+   save(animal: Animal): void;
+@@ -40,3 +41,14 @@ export interface PlacementRepository {
+   findActiveByCarer(carerId: string): Placement[];
+   findActiveByAnimal(animalId: string): Placement | undefined;
+ }
++
++export interface SmsGateway {
++  send(phone: string, text: string): Promise<{ messageId: string }>;
++}
++
++export interface NotificationRepository {
++  save(n: Notification): void;
++  findById(id: string): Notification | undefined;
++  findByProviderMessageId(messageId: string): Notification | undefined;
++  findAll(): Notification[];
++}
+diff --git a/src/config/main.ts b/src/config/main.ts
+index 4f28ebf..3eb29b0 100644
+--- a/src/config/main.ts
++++ b/src/config/main.ts
+@@ -5,9 +5,12 @@ import {
+   InMemoryAnimalRepository,
+   InMemoryApplicationRepository,
+   InMemoryCarerRepository,
++  InMemoryNotificationRepository,
+   InMemoryPlacementRepository,
+ } from '../adapters/outbound/in-memory-repositories';
+ import { FakeMailer } from '../adapters/outbound/fake-mailer';
++import { TextBridgeSmsGateway } from '../adapters/outbound/textbridge-sms-gateway';
++import { NotificationService } from '../application/notification-service';
+ import { UuidGenerator } from '../adapters/outbound/uuid-generator';
+ import { createHttpApp } from '../adapters/inbound/http-app';
+ 
+@@ -17,11 +20,18 @@ const applicationRepo = new InMemoryApplicationRepository();
+ const carerRepo = new InMemoryCarerRepository();
+ const placementRepo = new InMemoryPlacementRepository();
+ export const mailer = new FakeMailer();
++const sms = new TextBridgeSmsGateway(
++  process.env.TEXTBRIDGE_URL ?? 'https://api.textbridge.example',
++  process.env.TEXTBRIDGE_API_KEY ?? '',
++  process.env.TEXTBRIDGE_CALLBACK_URL ?? 'http://localhost:3000/webhooks/textbridge',
++);
++const notifications = new NotificationService(mailer, sms, new InMemoryNotificationRepository(), ids);
+ 
+ const app = createHttpApp({
+   animals: new AnimalService(animalRepo, ids),
+-  adoptions: new AdoptionService(animalRepo, applicationRepo, mailer, ids, placementRepo, carerRepo),
++  adoptions: new AdoptionService(animalRepo, applicationRepo, notifications, ids, placementRepo, carerRepo),
+   foster: new FosterService(carerRepo, placementRepo, animalRepo, ids),
++  notifications,
+ });
+ 
+ const port = Number(process.env.PORT ?? 3000);
+diff --git a/src/domain/adoption-application.ts b/src/domain/adoption-application.ts
+index d3fea1e..cb89ffd 100644
+--- a/src/domain/adoption-application.ts
++++ b/src/domain/adoption-application.ts
+@@ -1,6 +1,7 @@
+ export type ApplicationStatus = 'open' | 'approved' | 'rejected';
+ 
+ export interface Applicant {
++  preferredChannel?: 'email' | 'sms';
+   name: string;
+   email: string;
+   phone?: string;
+diff --git a/src/domain/foster.ts b/src/domain/foster.ts
+index 079986b..37d646e 100644
+--- a/src/domain/foster.ts
++++ b/src/domain/foster.ts
+@@ -2,6 +2,8 @@ export interface FosterCarer {
+   id: string;
+   name: string;
+   email: string;
++  phone?: string;
++  preferredChannel?: 'email' | 'sms';
+   capacity: number;
+   species: string[];
+ }
+diff --git a/src/domain/notification.ts b/src/domain/notification.ts
+new file mode 100644
+index 0000000..0f89699
+--- /dev/null
++++ b/src/domain/notification.ts
+@@ -0,0 +1,33 @@
++export type Channel = 'email' | 'sms';
++export type DeliveryStatus = 'pending' | 'sent' | 'delivered' | 'failed' | 'fell-back-to-email';
++
++export interface Recipient {
++  name: string;
++  email: string;
++  phone?: string;
++  preferredChannel?: Channel;
++}
++
++export interface Notification {
++  id: string;
++  recipient: Recipient;
++  channel: Channel;
++  subject: string;
++  body: string;
++  status: DeliveryStatus;
++  providerMessageId?: string;
++  createdAt: string;
++  updatedAt: string;
++  fallbackOf?: string;
++}
++
++export const SMS_MAX_LENGTH = 160;
++
++export function smsText(subject: string, body: string): string {
++  const text = `${subject}: ${body}`;
++  return text.length <= SMS_MAX_LENGTH ? text : text.slice(0, SMS_MAX_LENGTH - 1) + '…';
++}
++
++export function chooseChannel(r: Recipient): Channel {
++  return r.preferredChannel === 'sms' && r.phone ? 'sms' : 'email';
++}

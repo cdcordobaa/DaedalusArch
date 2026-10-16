@@ -12,22 +12,30 @@ import type { NeuralAggregation } from '../scoring-engine/neural-aggregation.js'
 import { parseScoringMode, SCORING_MODES } from '../scoring-engine/tiered-scoring.js';
 import type { ScoringMode } from '../shared/types/evaluation.js';
 import { generateReport } from '../report/report-generator.js';
+import { graphInputFromApg, writeArchitectReport } from '../report/architect/index.js';
 import { formatActionableHuman } from '../scoring-engine/report-formatter.js';
+import { buildReportFixHints, formatFixHintsHuman } from '../fix-hints/index.js';
 import { runBatch } from './batch-runner.js';
 import { requireEnvForCli } from './require-env.js';
-import { GRAPH_ENGINES, parseGraphEngine } from '../cypher-interp/engine.js';
+import { ENGINE_OPTION_HELP, resolveEngineForCli } from './engine-default.js';
+import type { GraphEngine } from '../cypher-interp/engine.js';
+import { CypherSyntaxError, CypherUnsupportedError, parseCypher } from '../cypher-interp/parse.js';
 import { handleDrift } from './drift-handler.js';
 import { parseSpec, validateSpecAgainstProject } from '../spec-parser/index.js';
 import { compileFunctions, compilerInputFromSpec, V13_COMPILE_OPTIONS } from '../fitness-compiler/index.js';
 import { createBaseline, saveBaseline } from '../baseline/index.js';
 import { loadBaseline, compareBaseline } from '../baseline/index.js';
 import * as path from 'node:path';
+import * as fs from 'node:fs';
 import type { LLMProviderConfig } from '../shared/types/llm-config.js';
 import { parseLLMOptions } from './llm-options.js';
 import { JUDGE_RUN_INCOMPLETE } from '../llm-critic/judge-stage.js';
 import { GRAPH_MODES } from '../apg-extractor/types.js';
 import type { GraphMode } from '../apg-extractor/types.js';
-import * as fs from 'node:fs';
+import { runCheck, neo4jEngine, lexicalEngine, formatGateHuman, formatGateJSON, formatGateMarkdown } from '../ci-gate/index.js';
+import type { GateEngine } from '../ci-gate/index.js';
+import { defaultPropose, inferredBanner, inferredSpecFile, labelJsonReport, runInit } from './init-command.js';
+import type { InferredSpecFile } from './init-command.js';
 import { defaultPresetsDir, formatProposalHuman, proposeRules, summariseProposal } from '../rule-mining/index.js';
 import { ISE_STYLES } from '../ise/index.js';
 import type { IseStyle } from '../ise/index.js';
@@ -54,6 +62,25 @@ function resolveGraphMode(value: string): GraphMode | undefined {
   process.stderr.write(`Error: --graph-mode must be one of ${GRAPH_MODES.join(' | ')}\n`);
   process.exitCode = 2;
   return undefined;
+}
+
+/** `functionId name: reason` for every compiled query the interpreter's parser refuses. */
+function interpreterRejections(queries: readonly { functionId: unknown; name: string; cypher: string }[]): string[] {
+  const out: string[] = [];
+  for (const q of queries) {
+    try {
+      parseCypher(q.cypher);
+    } catch (err) {
+      if (!(err instanceof CypherUnsupportedError) && !(err instanceof CypherSyntaxError)) throw err;
+      out.push(`${String(q.functionId)} ${q.name}: ${err.message}`);
+    }
+  }
+  return out;
+}
+
+/** The command's graph engine (`engine-default.ts`): prints the one engine line; undefined (exit 2) for an unknown value. */
+function engineFor(flag: string | undefined, cmd: Command): GraphEngine | undefined {
+  return resolveEngineForCli({ flag, neo4jUriFlag: cmd.getOptionValueSource('neo4jUri') === 'cli', env: process.env });
 }
 
 /** `--neural-aggregation` value (ADR-028): `registered` (default) or `proportional`; anything else exits 2. */
@@ -177,8 +204,11 @@ program
 withLLMOptions(program
   .command('evaluate')
   .description('Evaluate a single TypeScript project for architectural compliance'))
-  .requiredOption('--project <path>', 'Path to TypeScript project')
-  .requiredOption('--spec <path>', 'Path to AoC YAML spec')
+  .argument('[project]', 'Path to TypeScript project (same as --project)')
+  .option('--project <path>', 'Path to TypeScript project (or the positional argument)')
+  // Required unless --from-inferred (checked in the action, with commander's own message).
+  .option('--spec <path>', 'Path to AoC YAML spec (required unless --from-inferred)')
+  .option('--from-inferred', 'Evaluate under the spec ISE infers from the project (`firewall init`), labelled "inferred spec, not author-declared"; excludes --spec', false)
   .option('--format <fmt>', 'Output format: json | human | csv', 'human')
   .option('--verbose', 'Enable verbose logging', false)
   .option('--neo4j-uri <uri>', 'Neo4j bolt URI', process.env['NEO4J_URI'] ?? 'bolt://localhost:7687')
@@ -192,12 +222,15 @@ withLLMOptions(program
   .option('--neural-aggregation <rule>', 'Neural aggregation of the AHS: registered (default, primary) | proportional (ADR-028 sensitivity variant)', 'registered')
   .option('--tsconfig <path>', 'Explicit tsconfig for APG extraction; the project\'s own tsconfig.json is then ignored (ADR-032)')
   .option('--scoring <mode>', 'Scoring mode: v1.3 (rule tiers, default; verdict from blocking rules) | v1.2e (the registered Study 1 scoring)', 'v1.3')
-  .option('--engine <name>', 'Graph engine: neo4j (default, the reference engine) | cypher-interp (in-process Cypher interpreter, no Neo4j server; v1.3 spike)', 'neo4j')
-  .action(async (opts: LLMCliOpts & {
-    engine: string;
-    project: string;
+  .option('--html <out.html>', 'Also write a self-contained architect HTML report (layer diagram, findings in plain language, filters)')
+  .option('--hints', 'Add a deterministic fix hint to every blocking finding (json: `fixHints`; human: a Fix hints section). Off by default: the output is then unchanged', false)
+  .option('--engine <name>', ENGINE_OPTION_HELP)
+  .action(async (projectArg: string | undefined, opts: LLMCliOpts & {
+    engine?: string;
+    project?: string;
     tsconfig?: string;
-    spec: string;
+    spec?: string;
+    fromInferred: boolean;
     format: string;
     verbose: boolean;
     neo4jUri: string;
@@ -210,7 +243,26 @@ withLLMOptions(program
     instrument: string;
     neuralAggregation: string;
     scoring: string;
-  }) => {
+    hints: boolean;
+    html?: string;
+  }, cmd: Command) => {
+    const project = opts.project ?? projectArg;
+    if (project === undefined || (opts.project !== undefined && projectArg !== undefined && opts.project !== projectArg)) {
+      process.stderr.write(project === undefined
+        ? "error: required option '--project <path>' not specified (or pass the project as the first argument)\n"
+        : 'error: the positional project and --project differ; pass one\n');
+      process.exitCode = 2;
+      return;
+    }
+    opts.project = project;
+    if (opts.fromInferred && opts.spec !== undefined) {
+      process.stderr.write('Error: --spec and --from-inferred are mutually exclusive\n');
+      process.exitCode = 2;
+      return;
+    }
+    if (!opts.fromInferred && opts.spec === undefined) {
+      cmd.error("error: required option '--spec <path>' not specified");
+    }
     const evaluationMode = resolveEvaluationMode(opts.symbolicOnly, opts.neuronalOnly);
     const graphMode = resolveGraphMode(opts.graphMode);
     if (graphMode === undefined) return;
@@ -220,12 +272,8 @@ withLLMOptions(program
     if (instrumentVersion === undefined) return;
     const neuralAggregation = resolveNeuralAggregation(opts.neuralAggregation);
     if (neuralAggregation === undefined) return;
-    const graphEngine = parseGraphEngine(opts.engine);
-    if (graphEngine === undefined) {
-      process.stderr.write(`Error: --engine must be one of ${GRAPH_ENGINES.join(' | ')}\n`);
-      process.exitCode = 2;
-      return;
-    }
+    const graphEngine = engineFor(opts.engine, cmd);
+    if (graphEngine === undefined) return;
     // BR-U3-80: no default password; stop before any connection. The in-process engine opens none and reads none.
     const neo4jPassword = graphEngine === 'cypher-interp' ? '' : requireEnvForCli('NEO4J_PASSWORD');
     if (neo4jPassword === undefined) return;
@@ -233,9 +281,22 @@ withLLMOptions(program
     const llmConfig = llmConfigFor(evaluationMode, opts.project, opts);
     if (llmConfig === null) return;
 
+    // --from-inferred: the ISE proposal in a temporary file (never written into the project).
+    let inferred: InferredSpecFile | undefined;
+    if (opts.fromInferred) {
+      try {
+        inferred = await inferredSpecFile(opts.project, defaultPropose);
+      } catch (e: unknown) {
+        process.stderr.write(`Error: cannot infer a spec for ${opts.project}: ${e instanceof Error ? e.message : String(e)}\n`);
+        process.exitCode = 2;
+        return;
+      }
+      process.stderr.write(inferredBanner(inferred.proposal) + '\n');
+    }
+
     const config: PipelineConfig = {
       projectPath: opts.project,
-      specFilePath: opts.spec,
+      specFilePath: inferred?.specPath ?? opts.spec ?? '',
       neo4jUri: opts.neo4jUri,
       neo4jUser: process.env['NEO4J_USER'] ?? 'neo4j',
       neo4jPassword,
@@ -254,7 +315,7 @@ withLLMOptions(program
       ...(graphEngine !== 'neo4j' && { graphEngine }),
     };
 
-    const { executor, cleanup } = createPipeline(config);
+    const { executor, context, cleanup } = createPipeline(config);
 
     // Graceful shutdown on signals
     const onSignal = (): void => {
@@ -272,7 +333,8 @@ withLLMOptions(program
       const result = await executor.execute();
 
       if (!result.success) {
-        process.stderr.write(`Error: ${result.errors.map((e) => e.message).join('; ')}\n`);
+        inferred?.dispose();
+        process.stderr.write(`Error: ${result.errors.map((e) => e.message).join('; ')}${inferred !== undefined ? ' (under the inferred spec)' : ''}\n`);
         process.exit(exitCodeFromErrors(result.errors));
       }
 
@@ -296,18 +358,47 @@ withLLMOptions(program
         exitVerdict = comparison.newViolations.length === 0 ? 'pass' : report.verdict;
       }
 
+      // Fix hints (Docs/v1.3/fix-hints.md): only with --hints, so the default output is byte-identical.
+      const fixHints = opts.hints
+        ? buildReportFixHints(report.violations, context.getParsedSpec(), opts.project, context.getApgResult())
+        : undefined;
+
       // Route output: machine-readable to stdout, human to stderr
       switch (format) {
         case 'json':
-          process.stdout.write(formatJSON(report) + '\n');
+          process.stdout.write((inferred !== undefined ? labelJsonReport(formatJSON(fixHints === undefined ? report : { ...report, fixHints }), inferred.proposal) : formatJSON(fixHints === undefined ? report : { ...report, fixHints })) + '\n');
           break;
         case 'human':
           process.stderr.write(formatHuman(report) + '\n');
+          if (fixHints !== undefined) process.stderr.write(formatFixHintsHuman(fixHints) + '\n');
           break;
         case 'csv':
           process.stdout.write(csvHeader() + '\n');
           process.stdout.write(formatCSV(report) + '\n');
           break;
+      }
+      if (inferred !== undefined && format !== 'json') process.stderr.write(`${inferredBanner(inferred.proposal).split('\n')[0] ?? ''}\n`);
+
+      // Architect HTML report: only with --html, so the default outputs stay as they were.
+      if (opts.html !== undefined) {
+        try {
+          const apg = (() => {
+            try { return context.getApgResult(); } catch { return undefined; }
+          })();
+          const written = writeArchitectReport({
+            report,
+            spec: context.getParsedSpec(),
+            ...(apg !== undefined && { graph: graphInputFromApg(apg) }),
+            projectRoot: path.resolve(opts.project),
+            projectName: path.basename(path.resolve(opts.project)),
+            specPath: config.specFilePath,
+          }, opts.html);
+          process.stderr.write(`HTML report written to ${written}\n`);
+        } catch (err: unknown) {
+          process.stderr.write(`Error writing HTML report: ${err instanceof Error ? err.message : String(err)}\n`);
+          process.exitCode = 2;
+          return;
+        }
       }
 
       // Print stage timings in verbose mode
@@ -321,10 +412,28 @@ withLLMOptions(program
 
       process.exitCode = exitCodeFromVerdict(exitVerdict);
     } finally {
+      inferred?.dispose();
       process.removeListener('SIGINT', onSignal);
       process.removeListener('SIGTERM', onSignal);
       await cleanup();
     }
+  });
+
+// ── init command ─────────────────────────────────────────────────────────────
+
+program
+  .command('init')
+  .description('Zero-config onboarding: infer a spec (style and layer map) from a project that has none, and write it commented with confidence and evidence; never overwrites a spec')
+  .requiredOption('--project <path>', 'Path to TypeScript project (needs src/ and tsconfig.json)')
+  .option('-o, --out <path>', 'Spec file to write (default <project>/firewall.spec.yaml); refused if it exists')
+  .option('--print', 'Print the proposed spec to stdout and write nothing', false)
+  .option('--format <fmt>', 'Summary format: human (stderr) | json (the whole proposal on stdout)', 'human')
+  .action(async (opts: { project: string; out?: string; print: boolean; format: string }) => {
+    process.exitCode = await runInit(opts, {
+      propose: defaultPropose,
+      out: (t) => process.stdout.write(t),
+      err: (t) => process.stderr.write(t),
+    });
   });
 
 // ── batch command ────────────────────────────────────────────────────────────
@@ -339,6 +448,7 @@ program
   .option('--neo4j-uri <uri>', 'Neo4j bolt URI', process.env['NEO4J_URI'] ?? 'bolt://localhost:7687')
   .option('--symbolic-only', 'Run symbolic evaluation only', false)
   .option('--neuronal-only', 'Run neuronal evaluation only', false)
+  .option('--engine <name>', ENGINE_OPTION_HELP)
   .action(async (opts: {
     dir: string;
     spec: string;
@@ -347,7 +457,10 @@ program
     neo4jUri: string;
     symbolicOnly: boolean;
     neuronalOnly: boolean;
-  }) => {
+    engine?: string;
+  }, cmd: Command) => {
+    const graphEngine = engineFor(opts.engine, cmd);
+    if (graphEngine === undefined) return;
     // FR-16 (reduced): batch is symbolic-only; without a flag it runs symbolic-only, and
     // `--neuronal-only` reaches runBatch's mode guard, which exits 2 (BR-U3-82).
     const evaluationMode: EvaluationMode = opts.neuronalOnly
@@ -362,6 +475,7 @@ program
       neo4jUri: opts.neo4jUri,
       symbolicOnly: opts.symbolicOnly,
       neuronalOnly: opts.neuronalOnly,
+      graphEngine,
     };
 
     const exitCode = await runBatch(batchOpts, evaluationMode);
@@ -380,6 +494,7 @@ program
   .option('--format <fmt>', 'Output format: json | human', 'human')
   .option('--neo4j-uri <uri>', 'Neo4j bolt URI', process.env['NEO4J_URI'] ?? 'bolt://localhost:7687')
   .option('--persist', 'Save new snapshot after evaluation', false)
+  .option('--engine <name>', `${ENGINE_OPTION_HELP} Used by the latest-vs-current mode only (--from/--to read snapshots).`)
   .action(async (opts: {
     project?: string;
     spec?: string;
@@ -388,7 +503,14 @@ program
     format: string;
     neo4jUri: string;
     persist: boolean;
-  }) => {
+    engine?: string;
+  }, cmd: Command) => {
+    // Only the latest-vs-current mode evaluates; snapshot-vs-snapshot opens no graph and prints no engine line.
+    let graphEngine: GraphEngine | undefined;
+    if (opts.from === undefined && opts.to === undefined) {
+      graphEngine = engineFor(opts.engine, cmd);
+      if (graphEngine === undefined) return;
+    }
     const driftOpts: DriftOptions = {
       project: opts.project,
       spec: opts.spec,
@@ -397,6 +519,7 @@ program
       format: opts.format as 'json' | 'human',
       neo4jUri: opts.neo4jUri,
       persist: opts.persist,
+      ...(graphEngine !== undefined && { graphEngine }),
     };
 
     const exitCode = await handleDrift(driftOpts);
@@ -411,13 +534,17 @@ program
   .requiredOption('--spec <path>', 'Path to AoC YAML spec')
   .option('--project <path>', 'Path to TypeScript project (for directory checks)', '.')
   .option('--rules <set>', 'Rule set the template check accepts: v1.3 (default; adds the v1.3 extension templates) | v1.2e (frozen templates only)', 'v1.3')
+  .option('--engine <name>', `${ENGINE_OPTION_HELP} validate never connects; with cypher-interp it also parses every compiled query with the interpreter (subset check).`)
   .action(async (opts: {
     spec: string;
     project: string;
     rules: string;
-  }) => {
+    engine?: string;
+  }, cmd: Command) => {
     const rules = resolveScoringMode(opts.rules, '--rules');
     if (rules === undefined) return;
+    const graphEngine = engineFor(opts.engine, cmd);
+    if (graphEngine === undefined) return;
     const parseResult = await parseSpec({ specFilePath: opts.spec });
     if (!parseResult.success) {
       process.stderr.write(`Spec parse error: ${parseResult.errors.map((e) => e.message).join('; ')}\n`);
@@ -465,6 +592,14 @@ program
     );
     for (const d of disabledFunctions) {
       process.stderr.write(`  Disabled: ${String(d.id)} ${d.name}: ${d.reason ?? ''}\n`);
+    }
+    if (graphEngine === 'cypher-interp') {
+      // The compiled text is the rule; the interpreter must accept it as is (Docs/v1.3/cypher-interpreter.md §3).
+      const queries = [...compiled.data.symbolicQueries, ...compiled.data.hybridPairs.map((h) => h.symbolicQuery)];
+      const rejected = interpreterRejections(queries);
+      for (const r of rejected) process.stderr.write(`  - [CYPHER_INTERP_UNSUPPORTED] ${r}\n`);
+      process.stderr.write(`cypher-interp: ${String(queries.length - rejected.length)}/${String(queries.length)} compiled queries parse\n`);
+      if (rejected.length > 0) process.exitCode = 1;
     }
   });
 
@@ -522,15 +657,19 @@ program
   .option('-o, --output <path>', 'Output file path', 'baseline_violations.json')
   .option('--verbose', 'Enable verbose logging', false)
   .option('--neo4j-uri <uri>', 'Neo4j bolt URI', process.env['NEO4J_URI'] ?? 'bolt://localhost:7687')
+  .option('--engine <name>', ENGINE_OPTION_HELP)
   .action(async (opts: {
     spec: string;
     project: string;
     output: string;
     verbose: boolean;
     neo4jUri: string;
-  }) => {
-    // BR-U3-80: no default password; stop before any connection.
-    const neo4jPassword = requireEnvForCli('NEO4J_PASSWORD');
+    engine?: string;
+  }, cmd: Command) => {
+    const graphEngine = engineFor(opts.engine, cmd);
+    if (graphEngine === undefined) return;
+    // BR-U3-80: no default password; stop before any connection. The in-process engine opens none and reads none.
+    const neo4jPassword = graphEngine === 'cypher-interp' ? '' : requireEnvForCli('NEO4J_PASSWORD');
     if (neo4jPassword === undefined) return;
 
     const config: PipelineConfig = {
@@ -545,6 +684,7 @@ program
       diff: false,
       verbose: opts.verbose,
       apgStorePath: process.env['APG_STORE_PATH'] ?? '.apg-store',
+      ...(graphEngine !== 'neo4j' && { graphEngine }),
     };
 
     const { executor, cleanup } = createPipeline(config);
@@ -593,6 +733,7 @@ withLLMOptions(program
   .option('--neo4j-uri <uri>', 'Neo4j bolt URI', process.env['NEO4J_URI'] ?? 'bolt://localhost:7687')
   .option('--symbolic-only', 'Run symbolic evaluation only', false)
   .option('--neuronal-only', 'Run neuronal evaluation only', false)
+  .option('--engine <name>', ENGINE_OPTION_HELP)
   .action(async (opts: LLMCliOpts & {
     project: string;
     spec: string;
@@ -601,10 +742,13 @@ withLLMOptions(program
     neo4jUri: string;
     symbolicOnly: boolean;
     neuronalOnly: boolean;
-  }) => {
+    engine?: string;
+  }, cmd: Command) => {
     const evaluationMode = resolveEvaluationMode(opts.symbolicOnly, opts.neuronalOnly);
-    // BR-U3-80: no default password; stop before any connection.
-    const neo4jPassword = requireEnvForCli('NEO4J_PASSWORD');
+    const graphEngine = engineFor(opts.engine, cmd);
+    if (graphEngine === undefined) return;
+    // BR-U3-80: no default password; stop before any connection. The in-process engine opens none and reads none.
+    const neo4jPassword = graphEngine === 'cypher-interp' ? '' : requireEnvForCli('NEO4J_PASSWORD');
     if (neo4jPassword === undefined) return;
     // U4 C9 hunk: judge options parsed before any connection (no key fallback, D-U0-8)
     const llmConfig = llmConfigFor(evaluationMode, opts.project, opts);
@@ -623,6 +767,7 @@ withLLMOptions(program
       verbose: opts.verbose,
       apgStorePath: process.env['APG_STORE_PATH'] ?? '.apg-store',
       llmConfig,
+      ...(graphEngine !== 'neo4j' && { graphEngine }),
     };
 
     const { executor, context, cleanup } = createPipeline(config);
@@ -678,6 +823,91 @@ withLLMOptions(program
       process.removeListener('SIGINT', onSignal);
       process.removeListener('SIGTERM', onSignal);
       await cleanup();
+    }
+  });
+
+// ── check command (diff-aware PR gate, Docs/v1.3/ci-gate.md) ────────────────
+
+program
+  .command('check')
+  .description('Diff-aware gate: evaluate two commits, report findings new in head, fixed and unchanged; exit 1 only on new blocking findings')
+  .requiredOption('--base <ref>', 'Base commit (the pull request base)')
+  .requiredOption('--head <ref>', 'Head commit (the pull request head)')
+  .requiredOption('--spec <path>', 'AoC YAML spec, relative to the repository root (read from the base commit unless --spec-from head)')
+  .option('--project <dir>', 'Project directory relative to the repository root', '.')
+  .option('--repo <path>', 'Git repository', '.')
+  .option('--engine <name>', 'Engine: neo4j (full symbolic pipeline; needs NEO4J_PASSWORD) | lexical (in-process, no database; import and naming rules only)', 'neo4j')
+  .option('--spec-from <commit>', 'Commit the spec is read from: base | head', 'base')
+  .option('--format <fmt>', 'Output format: human | markdown | json', 'human')
+  .option('--out <path>', 'Write the --format output to this file instead of the terminal')
+  .option('--json-out <path>', 'Also write the JSON result to this file')
+  .option('--neo4j-uri <uri>', 'Neo4j bolt URI (neo4j engine)', process.env.NEO4J_URI ?? 'bolt://localhost:7687')
+  .option('--verbose', 'Enable verbose logging', false)
+  .action(async (opts: {
+    base: string;
+    head: string;
+    spec: string;
+    project: string;
+    repo: string;
+    engine: string;
+    specFrom: string;
+    format: string;
+    out?: string;
+    jsonOut?: string;
+    neo4jUri: string;
+    verbose: boolean;
+  }) => {
+    if (opts.engine !== 'neo4j' && opts.engine !== 'lexical') {
+      process.stderr.write('Error: --engine must be one of neo4j | lexical\n');
+      process.exitCode = 2;
+      return;
+    }
+    if (opts.specFrom !== 'base' && opts.specFrom !== 'head') {
+      process.stderr.write('Error: --spec-from must be one of base | head\n');
+      process.exitCode = 2;
+      return;
+    }
+    if (!['human', 'markdown', 'json'].includes(opts.format)) {
+      process.stderr.write('Error: --format must be one of human | markdown | json\n');
+      process.exitCode = 2;
+      return;
+    }
+    let engine: GateEngine;
+    if (opts.engine === 'neo4j') {
+      // BR-U3-80: no default password; stop before any connection.
+      const neo4jPassword = requireEnvForCli('NEO4J_PASSWORD');
+      if (neo4jPassword === undefined) return;
+      engine = neo4jEngine({
+        neo4jUri: opts.neo4jUri,
+        neo4jUser: process.env.NEO4J_USER ?? 'neo4j',
+        neo4jPassword,
+        apgStorePath: process.env.APG_STORE_PATH ?? '.apg-store',
+        verbose: opts.verbose,
+        makePipeline: createPipeline,
+      });
+    } else {
+      engine = lexicalEngine();
+    }
+    try {
+      const result = await runCheck({
+        repo: opts.repo,
+        base: opts.base,
+        head: opts.head,
+        spec: opts.spec,
+        project: opts.project,
+        specFrom: opts.specFrom,
+        engine,
+        ...(opts.verbose ? { log: (t: string) => { process.stderr.write(t); } } : {}),
+      });
+      const text = opts.format === 'json' ? formatGateJSON(result) + '\n' : opts.format === 'markdown' ? formatGateMarkdown(result) : formatGateHuman(result) + '\n';
+      if (opts.out !== undefined) fs.writeFileSync(opts.out, text);
+      else if (opts.format === 'human') process.stderr.write(text);
+      else process.stdout.write(text);
+      if (opts.jsonOut !== undefined) fs.writeFileSync(opts.jsonOut, formatGateJSON(result) + '\n');
+      process.exitCode = result.verdict === 'fail' ? 1 : 0;
+    } catch (err) {
+      process.stderr.write(`Error: ${err instanceof Error ? err.message : String(err)}\n`);
+      process.exitCode = 2;
     }
   });
 

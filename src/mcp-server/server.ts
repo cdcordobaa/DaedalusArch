@@ -1,9 +1,10 @@
 /**
- * MCP server wiring: registers the ten DaedalusArch tools (MCP v2: the eight v1 tools with v1.3 fields added, plus
- * `infer_spec` and `explain_finding`) on an `McpServer`, and `propose_rules` (rule mining) only when the context opts
- * in (`ruleMining`: `--rule-mining` or `DAEDALUS_RULE_MINING=1`; off by default). Transport-agnostic (`main.ts`
+ * MCP server wiring: registers the eleven DaedalusArch tools (MCP v2: the eight v1 tools with v1.3 fields added, plus
+ * `infer_spec` and `explain_finding`; then `propose_spec`) on an `McpServer`, plus the two neural-arm tools
+ * (`review_unit`, `explain_and_fix`) when the server runs with `--neural` (Docs/v1.3/neural-arm-agent-tools.md), and
+ * `propose_rules` (rule mining) only with `--rule-mining` / `DAEDALUS_RULE_MINING=1` (off by default). Transport-agnostic (`main.ts`
  * connects stdio; the tests connect an in-memory pair). Tools only read the spec and, for `evaluate_project`,
- * run the existing pipeline; none writes to the project under evaluation.
+ * run the existing pipeline; `propose_spec` reads the project's source; none writes to the project under evaluation.
  */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult, ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
@@ -13,14 +14,18 @@ import {
   checkFileTool,
   checkImportTool,
   evaluateProjectTool,
+  explainAndFixTool,
   explainFindingTool,
   explainViolationTool,
   getArchitectureSpec,
   inferSpecTool,
   proposeRulesTool,
+  proposeSpecTool,
+  reviewUnitTool,
   suggestPlacementTool,
   whichLayerTool,
 } from './tools.js';
+import { REVIEW_JUDGE_VERSIONS } from './neural-review.js';
 import type { ServerContext, ToolOutcome } from './tools.js';
 
 export const SERVER_NAME = 'daedalus-arch';
@@ -38,6 +43,7 @@ export const TOOL_NAMES: readonly string[] = Object.freeze([
   'suggest_placement',
   'infer_spec',
   'explain_finding',
+  'propose_spec',
 ]);
 
 /** Opt-in tools, registered after `TOOL_NAMES` only when the context enables them (`ServerContext.ruleMining`). */
@@ -50,13 +56,30 @@ export function toolNamesFor(ctx: Pick<ServerContext, 'ruleMining'>): readonly s
 
 /** Tools that read only the spec: instant, no graph, no database (the set an experiment arm may allow-list). */
 export const SPEC_TOOL_NAMES: readonly string[] = Object.freeze(
-  TOOL_NAMES.filter((n) => n !== 'evaluate_project'),
+  TOOL_NAMES.filter((n) => n !== 'evaluate_project' && n !== 'propose_spec'),
 );
+
+/**
+ * Neural-arm tools (v1.3, Docs/v1.3/neural-arm-agent-tools.md), registered after `TOOL_NAMES` only when the server
+ * runs with `--neural`. They call an LLM, so they are never spec tools and no experiment arm allow-lists them.
+ */
+export const NEURAL_TOOL_NAMES: readonly string[] = Object.freeze(['review_unit', 'explain_and_fix']);
+
+/** Sentence added to the symbolic tools' descriptions when the neural arm is on (absent otherwise: byte-identical). */
+export const NEURAL_FOLLOW_UP =
+  ' When the result has no blocking finding, call review_unit on the files you changed for the semantic risks rules cannot see; call explain_and_fix on a blocking finding whose fix is unclear.';
 
 const specArg = z
   .string()
   .optional()
   .describe("Path to the firewall spec YAML; defaults to the server's configured spec.");
+
+const hintsArg = z
+  .boolean()
+  .optional()
+  .describe(
+    "Attach a deterministic fix hint to each blocking violation: what is wrong, the edge and the allowed-dependency rule it breaks, the target layer and folder, and the minimal structural fix. Defaults to the server's --hints setting (off).",
+  );
 
 function toResult<T extends object>(outcome: ToolOutcome<T>): CallToolResult {
   if (!outcome.ok) return { isError: true, content: [{ type: 'text', text: outcome.message }] };
@@ -124,10 +147,20 @@ const checkFileShape = {
     .describe('Path of the file, relative to the project root (decides its layer).'),
   content: z.string().describe('The full proposed content of the file.'),
   spec: specArg,
+  templates: z
+    .boolean()
+    .optional()
+    .describe('Also run the compiled rule templates on the whole project before and after the change (in-process interpreter, no database; about a second or more) and report what the change introduces. Needs a project root and the cypher-interp engine.'),
+  hints: hintsArg,
 };
 const checkDiffShape = {
   diff: z.string().min(1).describe('A unified diff (git diff or diff -u output).'),
   spec: specArg,
+  templates: z
+    .boolean()
+    .optional()
+    .describe('Also run the compiled rule templates on the whole project before and after the diff (in-process interpreter, no database; about a second or more) and report what it introduces. Needs a project root and the cypher-interp engine.'),
+  hints: hintsArg,
 };
 const placementShape = {
   purpose: z
@@ -144,6 +177,12 @@ const proposeShape = {
   project: z
     .string()
     .optional()
+    .describe("Project root (needs src/ and tsconfig.json); defaults to the server's configured project."),
+};
+const proposeRulesShape = {
+  project: z
+    .string()
+    .optional()
     .describe("Project root (its src/ and tsconfig.json are read); defaults to the server's configured project."),
   minConfidence: z.number().min(0).max(1).optional().describe('Leave rules below this confidence (0-1) out of the proposed spec; they are still listed.'),
   includeSpec: z.boolean().optional().describe('Include the proposed spec YAML (default true).'),
@@ -152,6 +191,7 @@ const proposeShape = {
 const explainShape = {
   rule: z.string().min(1).describe('Rule id, rule name or violation type.'),
   spec: specArg,
+  hints: hintsArg,
 };
 const inferShape = {
   project: z
@@ -178,9 +218,50 @@ const explainFindingShape = {
   spec: specArg,
 };
 
+const waitShape = {
+  wait: z.boolean().optional().describe('Wait for the judge up to waitMs (default true). false: start the job and return `pending` with a jobId at once.'),
+  waitMs: z.number().int().min(0).max(120_000).optional().describe("Latency budget of this call in ms (default: the server's, 20000); past it the answer is `pending` with a jobId."),
+  jobId: z.string().min(1).optional().describe('Poll a job an earlier call returned as `pending`.'),
+};
+const reviewUnitShape = {
+  path: z.string().min(1).optional().describe('A file (judged for FF-N02, intent alignment) or a directory (its source files judged as one module for FF-N01, integrity); project-relative.'),
+  paths: z.array(z.string().min(1)).max(12).optional().describe('The files of one module unit (FF-N01), project-relative.'),
+  content: z.string().optional().describe('Proposed content of the single `path`, reviewed before it is written.'),
+  judgeVersion: z.enum(REVIEW_JUDGE_VERSIONS as unknown as [string, ...string[]]).optional().describe('v1 (default: the frozen judge), v2 (opt-in: framework, transport and persistence leaks named per layer kind) or v2.2 (only when the build carries it).'),
+  function: z.enum(['FF-N01', 'FF-N02']).optional().describe('Override the rubric: FF-N02 for one file, FF-N01 for a module (the default follows the unit).'),
+  ...waitShape,
+  spec: specArg,
+};
+const findingShape = z
+  .object({
+    ruleId: z.string().optional(),
+    rule: z.string().optional(),
+    ruleName: z.string().optional(),
+    file: z.string().optional(),
+    filePath: z.string().optional(),
+    line: z.number().int().positive().optional(),
+    message: z.string().optional(),
+    reason: z.string().optional(),
+    subject: z.string().optional(),
+    target: z.string().optional(),
+    severity: z.string().optional(),
+    tier: z.string().optional(),
+    fix: z.string().optional(),
+    hint: z.unknown().optional(),
+  })
+  .passthrough()
+  .describe('The finding as a symbolic tool reported it (a check_file / check_diff violation, or an evaluate_project row): ruleId or rule, file or filePath, and line, reason or message, target when present.');
+const explainAndFixShape = {
+  finding: findingShape,
+  content: z.string().optional().describe("The file's proposed content, when it is not on disk yet."),
+  ...waitShape,
+  spec: specArg,
+};
+
 export function createServer(ctx: ServerContext): McpServer {
   const server = new McpServer({ name: SERVER_NAME, version: SERVER_VERSION });
   const register = server.registerTool.bind(server) as unknown as RegisterTool;
+  const followUp = ctx.neural !== undefined ? NEURAL_FOLLOW_UP : '';
 
   register(
     'get_architecture_spec',
@@ -223,7 +304,7 @@ export function createServer(ctx: ServerContext): McpServer {
     {
       title: 'Evaluate a project (symbolic-only)',
       description:
-        'Runs the existing symbolic-only firewall pipeline on a project and returns the AHS, the verdict and the violations grouped by rule. Slow (extracts and ingests the whole project) and needs Neo4j via NEO4J_URI, NEO4J_USER and NEO4J_PASSWORD; it replaces the graph in that database, so point it at a scratch instance. Fails with a clear message when Neo4j is unreachable.',
+        'Runs the existing symbolic-only firewall pipeline on a project and returns the AHS, the verdict and the violations grouped by rule. Takes seconds (extracts the whole project). Engine: the in-process Cypher interpreter (no database) unless the server runs on Neo4j (--engine neo4j or NEO4J_URI set); on Neo4j it replaces the graph in that database, so point it at a scratch instance, and fails with a clear message when Neo4j is unreachable.' + followUp,
       inputSchema: evaluateShape,
       annotations: {
         readOnlyHint: false,
@@ -252,7 +333,7 @@ export function createServer(ctx: ServerContext): McpServer {
     {
       title: 'Check a proposed file against the architecture rules',
       description:
-        'Checks one file before you write it against the v1.3 rules the spec makes active: layer direction and skipping (also over allowed_dependencies for hexagonal/ddd), core isolation, domain purity (through barrels), repository/port placement, constructor-injected infrastructure in the domain, DDD context isolation, aggregate boundary, value-object immutability, naming, and (with a project root) import cycles. Act on blockingVerdict: "block" means a blocking-tier violation. Each violation carries ruleId, tier (blocking/advisory), construct, literature source, file:line, reason and a concrete fix; hints (APG v2 and cheap proxies) are advisory. notChecked lists rules only evaluate_project decides. Fast (no graph database).',
+        'Checks one file before you write it against the v1.3 rules the spec makes active: layer direction and skipping (also over allowed_dependencies for hexagonal/ddd), core isolation, domain purity (through barrels), repository/port placement, constructor-injected infrastructure in the domain, DDD context isolation, aggregate boundary, value-object immutability, naming, and (with a project root) import cycles. Act on blockingVerdict: "block" means a blocking-tier violation. Each violation carries ruleId, tier (blocking/advisory), construct, literature source, file:line, reason and a concrete fix; hints (APG v2 and cheap proxies) are advisory. notChecked lists rules only evaluate_project decides. Fast (no graph database). With templates: true, also the compiled rule templates on the whole project (templates.introduced, templates.blockingVerdict).' + followUp,
       inputSchema: checkFileShape,
       annotations: readOnly,
     },
@@ -264,7 +345,7 @@ export function createServer(ctx: ServerContext): McpServer {
     {
       title: 'Check a unified diff against the architecture rules',
       description:
-        'The check_file rules over a unified diff (git diff or diff -u). New files are checked whole; with a project root a modified file is rebuilt from the diff and the project and only what the change introduces is reported (else its added lines are checked). Act on blockingVerdict: "block" means a blocking-tier violation; each violation has ruleId, tier, construct, source, file:line, reason and fix; hints are advisory. Fast (no graph database).',
+        'The check_file rules over a unified diff (git diff or diff -u). New files are checked whole; with a project root a modified file is rebuilt from the diff and the project and only what the change introduces is reported (else its added lines are checked). Act on blockingVerdict: "block" means a blocking-tier violation; each violation has ruleId, tier, construct, source, file:line, reason and fix; hints are advisory. Fast (no graph database). With templates: true, also the compiled rule templates on the whole project (templates.introduced, templates.blockingVerdict).' + followUp,
       inputSchema: checkDiffShape,
       annotations: readOnly,
     },
@@ -307,17 +388,69 @@ export function createServer(ctx: ServerContext): McpServer {
     async (args) => toResult(await explainFindingTool(ctx, z.object(explainFindingShape).parse(args))),
   );
 
+  register(
+    'propose_spec',
+    {
+      title: 'Propose a spec for a project without one',
+      description:
+        'Zero-config onboarding: infers the architecture style and the layer map from the code (ISE) and returns the spec `firewall init` would write: the commented YAML (every inferred mapping with its confidence and evidence), the mappings as data, files without a layer, and the ambiguous folders as questions to put to the user. It is an inferred spec, not author-declared: confirm it with the user before relying on it. Reads only src/ and tsconfig.json; writes nothing; no database. Takes seconds (builds the import graph).',
+      inputSchema: proposeShape,
+      annotations: readOnly,
+    },
+    async (args) => toResult(await proposeSpecTool(ctx, z.object(proposeShape).parse(args))),
+  );
+  if (ctx.neural !== undefined) registerNeuralTools(register, ctx);
   if (ctx.ruleMining === true) register(
     'propose_rules',
     {
       title: 'Propose the implicit architecture rules of a project (proposals)',
       description:
         'For a project with no spec: mines the dependency rules its code already follows from its graph (deterministic, no LLM, no Neo4j) and returns them as PROPOSALS, each with evidence counts, a confidence (high/medium/low) and its exceptions (candidate violations, not confirmed ones), plus a proposed spec that compiles to the existing templates. Rule kinds: layer direction, rare and unobserved layer pairs, acyclicity, component direction, public-API use, port implementation, interface injection, framework-free core. Review before adopting. Takes seconds (extracts the project graph twice).',
-      inputSchema: proposeShape,
+      inputSchema: proposeRulesShape,
       annotations: readOnly,
     },
-    async (args) => toResult(await proposeRulesTool(ctx, z.object(proposeShape).parse(args))),
+    async (args) => toResult(await proposeRulesTool(ctx, z.object(proposeRulesShape).parse(args))),
   );
 
   return server;
+}
+
+const neuralAnnotations: ToolAnnotations = {
+  readOnlyHint: true,
+  destructiveHint: false,
+  idempotentHint: true,
+  // The judge is an external model (Claude CLI, agy, Gemini API).
+  openWorldHint: true,
+};
+
+/** The neural-arm tools; their descriptions say WHEN an agent should call them (after a clean symbolic pass). */
+function registerNeuralTools(register: RegisterTool, ctx: ServerContext): void {
+  register(
+    'review_unit',
+    {
+      title: 'Review a unit with the architecture judge (neural, advisory)',
+      description:
+        'Runs the LLM architecture judge on demand over one file (FF-N02: does every responsibility, signature and annotation belong to its layer?) or one module: a directory or a list of files (FF-N01: one concern, each business rule in one place, no bypass of the module\'s own abstractions). '
+        + 'WHEN: after check_file or check_diff is clean on code you wrote or changed, to catch what the symbolic rules cannot see: business logic in a controller or an infrastructure adapter, the same business rule or validation written twice, framework, transport or ORM types leaking into domain or application signatures, persistence reached around the repository. Not for what check_file already reports. '
+        + 'Advisory and never blocking: status pass, fail, inconclusive (invalid or ungrounded answer: do not act on it alone), error, pending or not-configured; a fail carries violations and citations checked against the shown code (file, lines, excerpt). '
+        + 'Cached by content hash and judge version, so an unchanged unit is answered at once. A cache miss is slow (20-90 s with the Claude judge): the call answers within waitMs (default 20 s) or returns pending with a jobId; keep working and call again with {jobId}. judgeVersion: v1 (frozen, default) or v2.',
+      inputSchema: reviewUnitShape,
+      annotations: neuralAnnotations,
+    },
+    async (args) => toResult(await reviewUnitTool(ctx, z.object(reviewUnitShape).parse(args) as Parameters<typeof reviewUnitTool>[1])),
+  );
+
+  register(
+    'explain_and_fix',
+    {
+      title: 'Explain a finding and how to fix it (neural, advisory)',
+      description:
+        'Turns one symbolic finding (a violation from check_file, check_diff or evaluate_project) into one actionable message: the deterministic fix hint when the build has one (else the finding\'s own fix), the judge\'s explanation of why this code breaks the rule (kept only when every line it cites exists in the shown code), and the numbered code excerpt around the finding. '
+        + 'WHEN: a blocking finding whose fix is not obvious from its fix field, or code you did not write. '
+        + 'status: explained (the judge confirms), disputed (the judge thinks the rule misfired here; the finding still stands), unexplained (no judge answer: hint and excerpt only) or pending (call again with {jobId}). Never changes a verdict; same latency and caching as review_unit.',
+      inputSchema: explainAndFixShape,
+      annotations: neuralAnnotations,
+    },
+    async (args) => toResult(await explainAndFixTool(ctx, z.object(explainAndFixShape).parse(args) as Parameters<typeof explainAndFixTool>[1])),
+  );
 }

@@ -1,0 +1,39 @@
+--- a/src/common/filters/domain-error.filter.ts
++++ b/src/common/filters/domain-error.filter.ts
+@@ -1,5 +1,6 @@
+ import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/common';
+ import { DomainError, DomainErrorKind } from '../../domain/domain-error';
++import { REQUEST_ID_HEADER } from '../interceptors/request-id.interceptor';
+ 
+ const STATUS: Record<DomainErrorKind, HttpStatus> = {
+   'not-found': HttpStatus.NOT_FOUND,
+@@ -15,6 +16,8 @@
+ @Catch(DomainError)
+ export class DomainErrorFilter implements ExceptionFilter<DomainError> {
+   catch(exception: DomainError, host: ArgumentsHost): void {
+-    host.switchToHttp().getResponse<JsonResponse>().status(STATUS[exception.kind]).json({ message: exception.message });
++    const http = host.switchToHttp();
++    const requestId = http.getRequest<{ headers: Record<string, string | undefined> }>().headers[REQUEST_ID_HEADER];
++    http.getResponse<JsonResponse>().status(STATUS[exception.kind]).json({ message: exception.message, requestId });
+   }
+ }
+--- /dev/null
++++ b/src/common/interceptors/request-id.interceptor.ts
+@@ -0,0 +1,17 @@
++import { ExecutionContext, Injectable } from '@nestjs/common';
++
++export const REQUEST_ID_HEADER = 'x-request-id';
++
++@Injectable()
++export class RequestIdInterceptor {
++  private counter = 0;
++
++  intercept(context: ExecutionContext, next: { handle(): unknown }): unknown {
++    const request = context.switchToHttp().getRequest<{ headers: Record<string, string | undefined> }>();
++    if (request.headers[REQUEST_ID_HEADER] === undefined) {
++      this.counter += 1;
++      request.headers[REQUEST_ID_HEADER] = `rq-${this.counter}`;
++    }
++    return next.handle();
++  }
++}

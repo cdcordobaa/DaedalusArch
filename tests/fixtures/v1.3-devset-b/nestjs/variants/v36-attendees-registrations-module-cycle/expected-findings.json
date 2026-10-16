@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "nestjs",
+  "variant": "v36-attendees-registrations-module-cycle",
+  "kind": "violation",
+  "plants": "FF-S02",
+  "description": "AttendeesModule adds RegistrationsModule to its imports, while RegistrationsModule already imports AttendeesModule.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "file": "src/attendees/attendees.module.ts",
+      "target": "src/registrations/registrations.module.ts",
+      "reason": "Two-file import cycle between the attendees and registrations module files (\"src/attendees/...\" sorts before \"src/registrations/...\")."
+    }
+  ]
+}
