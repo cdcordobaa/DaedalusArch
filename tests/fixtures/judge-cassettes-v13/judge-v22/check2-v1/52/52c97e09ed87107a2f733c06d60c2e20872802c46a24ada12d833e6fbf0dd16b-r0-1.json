@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6826,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "52c97e09ed87107a2f733c06d60c2e20872802c46a24ada12d833e6fbf0dd16b-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/claims/api/ClaimController.ts: FileClaimBody interface is a transport request DTO, a presentation concern.",
+      "ClaimController.file() parses body.incidentOn into a Date, passes the call to this.fileClaim.file(...) and returns { claimId }. This is input mapping and use-case invocation only.",
+      "ClaimController.settle() passes the call to this.settleClaim.settle(claimId) and wraps the result as { paidCents }. This is response shaping only.",
+      "The file has no validation rules, calculations, persistence or framework-agnostic domain logic."
+    ],
+    "pass": true,
+    "reasoning": "ClaimController sits in the api (presentation) layer. All it does is map transport input to application calls and shape the responses. It defines a request body DTO (FileClaimBody). It converts the incidentOn string to a Date, which is input parsing. Its two handler methods, file() and settle(), pass work to the FileClaim and SettleClaim application use cases and wrap the results in response objects. The file has no business rules, no persistence and no orchestration of domain logic. Every responsibility it carries belongs in the presentation layer.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/*/domain/**, src/shared-kernel/**\n- application (kind: application): src/*/application/**\n- infrastructure (kind: infrastructure): src/*/infrastructure/**, src/*/acl/**\n- api (kind: presentation): src/*/api/**\n- composition (kind: application): src/main.ts\n\n## Unit\nKind: file\nId: src/claims/api/ClaimController.ts\nLayer: api\nUnit files:\n- src/claims/api/ClaimController.ts\n\n## Source\n=====SOURCE-BEGIN src/claims/api/ClaimController.ts=====\nimport { FileClaim } from '../application/FileClaim';\nimport { SettleClaim } from '../application/SettleClaim';\n\nexport interface FileClaimBody {\n  policyNumber: string;\n  peril: string;\n  incidentOn: string;\n  claimedCents: number;\n}\n\nexport class ClaimController {\n  constructor(\n    private readonly fileClaim: FileClaim,\n    private readonly settleClaim: SettleClaim,\n  ) {}\n\n  async file(body: FileClaimBody): Promise<{ claimId: string }> {\n    const policyNumber = body.policyNumber;\n    const claimId = await this.fileClaim.file(policyNumber, body.peril, new Date(body.incidentOn), body.claimedCents);\n    return { claimId };\n  }\n\n  async settle(claimId: string): Promise<{ paidCents: number }> {\n    return { paidCents: await this.settleClaim.settle(claimId) };\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ClaimController@src/claims/api/ClaimController.ts\",\"to\":\"FileClaim@src/claims/application/FileClaim.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"ClaimController@src/claims/api/ClaimController.ts\",\"to\":\"SettleClaim@src/claims/application/SettleClaim.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/claims/api/ClaimController.ts\",\"to\":\"src/claims/application/FileClaim.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/claims/api/ClaimController.ts\",\"to\":\"src/claims/application/SettleClaim.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/main.ts\",\"to\":\"src/claims/api/ClaimController.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"api\",\"name\":\"ClaimController\",\"path\":\"src/claims/api/ClaimController.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"FileClaim\",\"path\":\"src/claims/application/FileClaim.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"SettleClaim\",\"path\":\"src/claims/application/SettleClaim.ts\"},{\"kind\":\"File\",\"layer\":\"api\",\"path\":\"src/claims/api/ClaimController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/claims/application/FileClaim.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/claims/application/SettleClaim.ts\"},{\"kind\":\"File\",\"layer\":\"composition\",\"path\":\"src/main.ts\"},{\"kind\":\"Interface\",\"layer\":\"api\",\"name\":\"FileClaimBody\",\"path\":\"src/claims/api/ClaimController.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T02:53:43.042Z",
+  "repetition": 0,
+  "requestHash": "52c97e09ed87107a2f733c06d60c2e20872802c46a24ada12d833e6fbf0dd16b",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":505}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"ClaimController sits in the api (presentation) layer. All it does is map transport input to application calls and shape the responses. It defines a request body DTO (FileClaimBody). It converts the incidentOn string to a Date, which is input parsing. Its two handler methods, file() and settle(), pass work to the FileClaim and SettleClaim application use cases and wrap the results in response objects. The file has no business rules, no persistence and no orchestration of domain logic. Every responsibility it carries belongs in the presentation layer.\\\",\\\"evidence\\\":[\\\"src/claims/api/ClaimController.ts: FileClaimBody interface is a transport request DTO, a presentation concern.\\\",\\\"ClaimController.file() parses body.incidentOn into a Date, passes the call to this.fileClaim.file(...) and returns { claimId }. This is input mapping and use-case invocation only.\\\",\\\"ClaimController.settle() passes the call to this.settleClaim.settle(claimId) and wraps the result as { paidCents }. This is response shaping only.\\\",\\\"The file has no validation rules, calculations, persistence or framework-agnostic domain logic.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/claims/api/ClaimController.ts: FileClaimBody interface is a transport request DTO, a presentation concern.\",\"ClaimController.file() parses body.incidentOn into a Date, passes the call to this.fileClaim.file(...) and returns { claimId }. This is input mapping and use-case invocation only.\",\"ClaimController.settle() passes the call to this.settleClaim.settle(claimId) and wraps the result as { paidCents }. This is response shaping only.\",\"The file has no validation rules, calculations, persistence or framework-agnostic domain logic.\"],\"pass\":true,\"reasoning\":\"ClaimController sits in the api (presentation) layer. All it does is map transport input to application calls and shape the responses. It defines a request body DTO (FileClaimBody). It converts the incidentOn string to a Date, which is input parsing. Its two handler methods, file() and settle(), pass work to the FileClaim and SettleClaim application use cases and wrap the results in response objects. The file has no business rules, no persistence and no orchestration of domain logic. Every responsibility it carries belongs in the presentation layer.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/claims/api/ClaimController.ts",
+  "usage": {
+    "inputTokens": 2899,
+    "outputTokens": 505
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
