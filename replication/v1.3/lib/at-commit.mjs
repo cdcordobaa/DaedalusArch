@@ -10,16 +10,21 @@ import { dirname, join } from 'node:path';
 
 const trees = new Map();
 
-/** Absolute path of a scratch export of `commit`, created once per run. */
-export function treeAt(ctx, commit) {
-  if (trees.has(commit)) return trees.get(commit);
+/**
+ * Absolute path of a scratch export of `commit`, created once per run. `{ git: true }` also makes it an (empty) git
+ * work tree, for tests that need one (the ISO-04 test in llm-options.test.ts, replication-2 §3.3).
+ */
+export function treeAt(ctx, commit, o = {}) {
+  const key = `${commit}${o.git ? ':git' : ''}`;
+  if (trees.has(key)) return trees.get(key);
   execSync(`git -C "${ctx.repo}" cat-file -e ${commit}^{tree}`, { env: ctx.env, stdio: 'pipe' });
-  const dir = ctx.out(`tree-at-${commit}`);
+  const dir = ctx.out(`tree-at-${key.replace(':', '-')}`);
   execSync(`git -C "${ctx.repo}" archive ${commit} | tar -x -C "${dir}"`, { env: ctx.env, stdio: 'pipe' });
   symlinkSync(join(ctx.repo, 'node_modules'), join(dir, 'node_modules'));
   const dc = 'experiments/tool-comparison/depcruise/node_modules';
   if (existsSync(join(ctx.repo, dc)) && existsSync(join(dir, dirname(dc)))) symlinkSync(join(ctx.repo, dc), join(dir, dc));
-  trees.set(commit, dir);
+  if (o.git) execSync('git init -q .', { cwd: dir, env: ctx.env, stdio: 'pipe' });
+  trees.set(key, dir);
   return dir;
 }
 
