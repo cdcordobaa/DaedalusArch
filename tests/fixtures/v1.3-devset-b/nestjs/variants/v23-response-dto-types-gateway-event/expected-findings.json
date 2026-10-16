@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "nestjs",
+  "variant": "v23-response-dto-types-gateway-event",
+  "kind": "violation",
+  "plants": "FF-S01",
+  "description": "RegistrationResponseDto (application) gets an event field typed with RegistrationEvent from a new RegistrationsGateway (src/gateways, presentation) through an import type; the module registers the gateway.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/registrations/dto/registration-response.dto.ts",
+      "target": "src/gateways/registrations.gateway.ts",
+      "reason": "Application imports presentation (a type-only import of the gateway file)."
+    }
+  ]
+}

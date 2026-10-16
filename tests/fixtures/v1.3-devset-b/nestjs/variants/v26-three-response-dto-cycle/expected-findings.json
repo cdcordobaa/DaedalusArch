@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "nestjs",
+  "variant": "v26-three-response-dto-cycle",
+  "kind": "violation",
+  "plants": "FF-S02",
+  "description": "A new AttendeeResponseDto lists RegistrationResponseDto[], RegistrationResponseDto gets an optional workshop (WorkshopResponseDto) and WorkshopResponseDto an optional attendees list (AttendeeResponseDto[]), all through import type: a three-file cycle across three modules.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "file": "src/attendees/dto/attendee-response.dto.ts",
+      "target": "src/registrations/dto/registration-response.dto.ts",
+      "reason": "Three-file import cycle attendee-response -> registration-response -> workshop-response -> attendee-response; the smallest path is the attendees DTO and the next file is the registrations DTO."
+    }
+  ]
+}
