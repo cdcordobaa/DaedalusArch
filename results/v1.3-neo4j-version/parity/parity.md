@@ -1,4 +1,6 @@
-# cypher-interp parity against Neo4j 5.26.24 + APOC
+# cypher-interp parity against Neo4j 2025.12.1 + APOC 2025.12.1 core
+
+> Header corrected by hand: `scripts/v1.3/memory-parity.ts` hard-codes "Neo4j 5.26.24" in this title; this sweep ran against Neo4j 2025.12.1 Community + APOC 2025.12.1 core (see `../run-provenance.json`). The body below is the harness output, unchanged.
 
 Statements: 70560 (equal 69886, order 674, content 0, error 0, unsupported 0, both-error 0); projects: 79.
 
