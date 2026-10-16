@@ -13,9 +13,9 @@ Each PR got a review comment with its verdict and per-check findings. Every HOLD
 
 ## Outcome
 
-- **53 PRs reviewed** (49 open at the start, plus #195–#198 opened during the review).
+- **56 PRs reviewed** (49 open at the start, plus #195–#201 opened during the review).
 - **OK to merge: 2.** #135 (opt-in `includeViolations` fix, plus a test added during review) and #138 (additive `check` subcommand and GitHub Action).
-- **HOLD: 51.** Most are held because the author marked them do-not-merge-before-review. The substantive findings are below.
+- **HOLD: 54.** Most are held because the author marked them do-not-merge-before-review. The substantive findings are below.
 - **#143 was merged into v1.3 by the late train at 07:52 UTC, before its HOLD was posted** (merge `dffb1db8`). The findings now apply to v1.3 itself:
   - the MCP `check_file`, `check_diff` and `explain_violation` schemas gain an agent-settable `hints` parameter without `--hints`;
   - `schemas/report.schema.json`, which is marked FROZEN at U3-R10, gains `fixHints`.
@@ -26,7 +26,7 @@ Each PR got a review comment with its verdict and per-check findings. Every HOLD
 
 | Check | PRs |
 |---|---|
-| (1) Wrong numbers | #133 (11 fail / 4 pass, not 10/5), #147 (2,668 vs 2,669), #165 (unanimous vs average, v2.1), #168 (8,319 / 536, not 7,904 / 526), #176 (7 spec-only rows, not 6), #186 (A fails 11/15, not 10), #188 (3 verdict flips, not 1), #190 (116/273, not 129/273), #192 (step 3.2 wrong about #191 `src/`), #193 (#131 recorded as merged) |
+| (1) Wrong numbers | #133 (11 fail / 4 pass, not 10/5), #147 (2,668 vs 2,669), #165 (unanimous vs average, v2.1), #168 (8,319 / 536, not 7,904 / 526), #176 (7 spec-only rows, not 6), #186 (A fails 11/15, not 10), #188 (3 verdict flips, not 1), #190 (116/273, not 129/273), #192 (step 3.2 wrong about #191 `src/`), #201 (sweep cell 0.74 mis-cited), #193 (#131 recorded as merged) |
 | (2) Overclaiming | #131, #145 ("held out" probes are in-repo transforms), #160 ("proven", "confirms" on synthetic data), #169 ("SO1 met", "no benchmark exists"), #180 (title), #186, #188 / #192 ("byte-identical"), #195 ("instrument is reliable") |
 | (3) Sealed / credential access | #174 (unsealer is built to read the sealed task file; author-run only, not wired in), #156 (hard-coded local paths with the username) |
 | (4) Ungated default changes | #143 (merged), #145 (`propose_rules` MCP tool), #151 (30 s interp timeout), #159 and #170 (several MCP and CLI defaults), #164 (`--expect-sha256` widened), #171, #180 (loop gate-arm stop and resume moves), #188 (accelerated engine and memory guard on by default) |
@@ -91,3 +91,6 @@ Each PR got a review comment with its verdict and per-check findings. Every HOLD
 | #196 | HOLD | Clean: call log OFF by default, no frozen edits, no secrets; HOLD only because author marked do-not-merge-before-review |
 | #197 | HOLD | Checks clear; all recomputed counts match (39/56 snapshots, 100/100 keys, 9/13 rows); HOLD only for author do-not-merge |
 | #198 | HOLD | Checks clear; deltas, exact p's, Spearman rho and B=283 recompute from per-repo.csv; HOLD for author do-not-merge + #133 dependency |
+| #199 | HOLD | Author marked do-not-merge-before-review; otherwise clean: 39/39 parity matches JSON, --engine is opt-in, no frozen/sealed touch |
+| #200 | HOLD | Author marked do-not-merge-before-review; otherwise clean: demo table matches JSON, runner off by default, minimal env to child procs |
+| #201 | HOLD | Author marked do-not-merge; sealed-list domain check still pending (author); no sealed reads; one mis-cited sweep cell |
