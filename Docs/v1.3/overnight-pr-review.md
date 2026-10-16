@@ -13,9 +13,9 @@ Each PR got a review comment with its verdict and per-check findings. Every HOLD
 
 ## Outcome
 
-- **65 PRs reviewed**: 49 open at the start, #195–#201 opened during the first pass, and #203–#210 and #212 caught by the 09:12 sweep.
+- **66 PRs reviewed**: 49 open at the start, #195–#201 opened during the first pass, and #203–#210, #212 and #213 caught by the 09:12 sweep.
 - **OK to merge: 2.** #135 (opt-in `includeViolations` fix, plus a test added during review) and #138 (additive `check` subcommand and GitHub Action).
-- **HOLD: 63.** Most are held because the author marked them do-not-merge-before-review. The substantive findings are below.
+- **HOLD: 64.** Most are held because the author marked them do-not-merge-before-review. The substantive findings are below.
 - **#143 was merged into v1.3 by the late train at 07:52 UTC, before its HOLD was posted** (merge `dffb1db8`). The findings now apply to v1.3 itself:
   - the MCP `check_file`, `check_diff` and `explain_violation` schemas gain an agent-settable `hints` parameter without `--hints`;
   - `schemas/report.schema.json`, which is marked FROZEN at U3-R10, gains `fixHints`.
@@ -97,7 +97,7 @@ Each PR got a review comment with its verdict and per-check findings. Every HOLD
 
 ## Pre-train sweep (09:12 UTC)
 
-A second pass ran at 09:12 UTC. All 9 PRs opened after the first pass (#203–#210, #212) were given `[hold]` before the 09:30 train, then reviewed. Other changes since the first pass:
+A second pass ran at 09:12 UTC. All 10 PRs opened after the first pass (#203–#210, #212, #213) were given `[hold]` before the 09:30 train, then reviewed. Other changes since the first pass:
 
 - #135, #138 and #202 merged, as expected.
 - #193 merged at 08:21, after its `:31` error was corrected (`f02417c6`).
@@ -113,4 +113,5 @@ A second pass ran at 09:12 UTC. All 9 PRs opened after the first pass (#203–#2
 | #208 | HOLD | Author do-not-merge (prep only, no judge run). Checks clean: --strip-comments OFF by default, numbers match, no sealed/third-party. |
 | #209 | HOLD | Author do-not-merge; numbers recompute exactly, but report draws an unsupported "therefore" about Study 2's hexagonal floor from 6 non-hexagonal repos. |
 | #210 | HOLD | Author do-not-merge; otherwise clean: gate.shownRules is opt-in, the default path is unchanged, 13 tests as stated, no frozen edits. |
+| #213 | HOLD | Opened 09:15; merges held #133 and #139 branches (lands both unreviewed) and amends the FROZEN report schema; quick review only |
 | #212 | HOLD | Author do-not-merge; bundles 3 unmerged [hold] branches (#133, #139, view-coverage) incl. #133's 10/5 vs 11/4 verdict error; no vendored source. |
