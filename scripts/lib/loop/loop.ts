@@ -292,7 +292,7 @@ class LoopRun {
     if (resolved.ref !== undefined) this.lastSpecRef = resolved.ref;
     const ev =
       resolved.evaluator !== null
-        ? await resolved.evaluator.evaluate(this.workDir)
+        ? await resolved.evaluator.evaluate(this.workDir, this.runId)
         : DomainResult.fail<StepEvaluation>([resolved.error ?? { code: 'LOOP_NO_EVALUATOR', message: 'no evaluator' }]);
     const firstError = ev.success ? undefined : ev.errors[0];
     return DomainResult.ok({
@@ -353,8 +353,12 @@ class LoopRun {
     let outcome: RepairOutcome | undefined;
     if (this.spec.arm === 'gate') {
       const ev = first.data.snapshot.evaluation;
-      if (ev === null || ev.blockingViolationCount === 0) {
-        repair = { attempted: false, blockingBefore: ev?.blockingViolationCount ?? null, blockingAfter: null, cleared: null };
+      if (ev === null) {
+        // The gate saw nothing: recorded as a harness failure, never as a step with no blocking findings (R01).
+        repair = { attempted: false, blockingBefore: null, blockingAfter: null, cleared: null, skipped: 'evaluation-failed' };
+        this.ctx.log?.(`${this.runId}: step ${String(stepIndex + 1)} GATE NOT APPLIED: the snapshot has no evaluation (${first.data.snapshot.evaluationError?.code ?? 'unknown'})`);
+      } else if (ev.blockingViolationCount === 0) {
+        repair = { attempted: false, blockingBefore: 0, blockingAfter: null, cleared: null };
       } else {
         const fix = await this.turn(stepIndex, 'repair', repairPrompt(ev.blockingFindings, ev.blockingViolationCount, tcCommand), first.data.snapshot.commit);
         if (!fix.success) return DomainResult.fail(fix.errors);
@@ -437,6 +441,13 @@ export function describeStep(r: StepRecord): string {
   const ahs = ev?.ahs !== undefined && ev.ahs !== null ? ev.ahs.toFixed(3) : 'n/a';
   const repair = r.repair?.attempted === true ? ` repair ${String(r.repair.blockingBefore)}→${String(r.repair.blockingAfter)}` : '';
   return `${last?.result.status ?? 'n/a'} files=${String(last?.snapshot.sourceFiles.length ?? 0)} loc=${String(last?.snapshot.loc ?? 0)} blocking=${blocking} ahs=${ahs}${repair}`;
+}
+
+/** Gate steps whose snapshot had no evaluation, so the gate was not applied (R01: a harness failure to report). */
+export function gateEvaluationFailures(results: readonly LoopRunResult[]): number {
+  let n = 0;
+  for (const r of results) if (r.kind === 'completed') for (const s of r.steps) if (s.repair?.skipped === 'evaluation-failed') n++;
+  return n;
 }
 
 /** Runs (or resumes) one loop run. */

@@ -5,7 +5,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { DomainResult } from '../../../../src/shared/errors/domain-result.js';
-import { RESTARTS_LOG, RUN_JSON, WORK_DIR, readStepRecords, runDirFor, runLoop, stepRecordPath } from '../../../../scripts/lib/loop/loop.js';
+import { RESTARTS_LOG, RUN_JSON, WORK_DIR, gateEvaluationFailures, readStepRecords, runDirFor, runLoop, stepRecordPath } from '../../../../scripts/lib/loop/loop.js';
 import { loopRunId } from '../../../../scripts/lib/loop/plan.js';
 import { MAX_REPAIR_FINDINGS, repairPrompt, sha256, stepPrompt } from '../../../../scripts/lib/loop/prompts.js';
 import { SNAPSHOT_GIT_DIR, WorkTreeSnapshots } from '../../../../scripts/lib/loop/snapshot.js';
@@ -135,7 +135,16 @@ describe('multi-step loop (dry run)', () => {
     expect(s2?.turns).toHaveLength(1);
     expect(s2?.turns[0]?.snapshot.evaluation).toBeNull();
     expect(s2?.turns[0]?.snapshot.evaluationError).toEqual({ code: 'NEO4J_UNREACHABLE', message: 'down' });
-    expect(s2?.repair).toEqual({ attempted: false, blockingBefore: null, blockingAfter: null, cleared: null });
+    // R01: the gate did not see the snapshot, which is not "no blocking findings": the record says so explicitly.
+    expect(s2?.repair).toEqual({ attempted: false, blockingBefore: null, blockingAfter: null, cleared: null, skipped: 'evaluation-failed' });
+    expect(r.data.steps[0]?.repair).toEqual({ attempted: false, blockingBefore: 0, blockingAfter: null, cleared: null });
+  });
+
+  it('R01: the grid summary counts gate steps whose evaluation failed', async () => {
+    const failing: StepEvaluator = { id: 'down', evaluate: () => Promise.resolve(DomainResult.fail([{ code: 'PIPELINE_FAILED', message: 'No tsconfig.json found' }])) };
+    const r = await runLoop(context(out, stubAgent(), { evaluator: failing }), spec('gate'));
+    if (!r.success || r.data.kind !== 'completed') throw new Error('expected completion');
+    expect(gateEvaluationFailures([r.data])).toBe(3);
   });
 
   it('an agent failure stops the run without a step record', async () => {

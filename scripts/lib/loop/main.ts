@@ -41,8 +41,8 @@ import { checkSkeletonIntact, ensureHarness, prepareCellDir } from '../generator
 import type { SkeletonInstall } from '../generators/skeleton.js';
 import { CODEX_CLI_ADAPTER_ID_VALUE } from '../generators/types.js';
 import { ClaudeStepAgent, CodexStepAgent } from './agents.js';
-import { firewallEvaluator, harnessTypechecker } from './evaluator.js';
-import { runLoop } from './loop.js';
+import { harnessTypechecker, loopEvaluatorOf } from './evaluator.js';
+import { gateEvaluationFailures, runLoop } from './loop.js';
 import type { LoopContext, LoopRunResult, TaskProfile } from './loop.js';
 import { loadLoopPlan, loopRunId, planCallBudget, scheduleLoopRuns } from './plan.js';
 import type { LoadedPlan, LocalOverrides } from './plan.js';
@@ -295,7 +295,7 @@ async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs
     agents.set(agentKey(a.adapterId, a.modelId), agent);
   }
   const evaluateDeps = await deps.evaluateDeps();
-  const evaluatorOf = (specFile: string): StepEvaluator => firewallEvaluator(specFile, deps.parentEnv, evaluateDeps);
+  const evaluatorOf: (specFile: string) => StepEvaluator = loopEvaluatorOf(plan.harnessRoot, deps.parentEnv, evaluateDeps);
   const profiles = buildProfiles(loaded, repoRoot, evaluatorOf, iseDddFreezer(repoRoot));
   if (!profiles.success) return DomainResult.fail(profiles.errors);
   return DomainResult.ok({
@@ -375,6 +375,8 @@ export function gridSummary(loaded: LoadedPlan, results: readonly LoopRunResult[
     skipped: results.length - completed.length,
     callBudget: planCallBudget(loaded.plan, loaded.tasks.tasks),
     turnsThisInvocation: { step: stepTurns, repair: repairTurns, repairsCleared },
+    // R01: gate steps the gate could not judge (no evaluation); non-zero means the gate arm did not run as designed.
+    gateStepsWithoutEvaluation: gateEvaluationFailures(results),
   };
 }
 

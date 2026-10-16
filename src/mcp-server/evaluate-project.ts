@@ -35,6 +35,11 @@ export interface EvaluateInput {
   readonly specPath: string;
   /** FR-V6 scoring mode; default `v1.3`. */
   readonly scoringMode?: ScoringMode;
+  /**
+   * Explicit tsconfig for the extractor (ADR-032; absent = `<project>/tsconfig.json`). The loop harness passes the
+   * pinned per-run tsconfig, because the agent's work tree has none of its own (R01).
+   */
+  readonly tsconfigPath?: string;
 }
 
 /** The Neo4j settings from the environment (the CLI's variables); throws `MissingEnvError` for no password. */
@@ -152,6 +157,7 @@ export async function evaluateProject(
     verbose: false,
     apgStorePath: neo4j.apgStorePath,
     scoringMode,
+    ...(input.tsconfigPath !== undefined ? { tsconfigPath: path.resolve(input.tsconfigPath) } : {}),
   };
   const { executor, cleanup } = deps.makePipeline(config);
   try {

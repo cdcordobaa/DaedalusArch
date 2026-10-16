@@ -12,6 +12,7 @@
  * later must take the experiment's cassette directory and mode the way `run-experiment.ts` passes them (BR-U5b-56,
  * ADR-028); the plan's `cassette` block is recorded for that purpose.
  */
+import * as path from 'node:path';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import type { ProcessRunner } from '../../../src/shared/interfaces/process-runner.js';
 import { evaluateProject } from '../../../src/mcp-server/evaluate-project.js';
@@ -62,14 +63,39 @@ export function toStepEvaluation(r: EvaluateProjectResult): DomainResult<StepEva
   });
 }
 
-export function firewallEvaluator(specPath: string, env: NodeJS.ProcessEnv, deps: EvaluateDeps): StepEvaluator {
+/**
+ * Where the extractor finds the tsconfig of a snapshot. The work tree has no tsconfig of its own (the harness keeps
+ * the pinned per-run tsconfig outside the cwd, BR-U5a-42), so without one `evaluate_project` fails every snapshot
+ * with `TSCONFIG_NOT_FOUND`, or scores the file set of a tsconfig the agent wrote (R01, post-merge review 2026-10-16).
+ */
+export type SnapshotTsconfig = (projectDir: string, runId: string | undefined) => string | undefined;
+
+/**
+ * The live wiring: the pinned per-run tsconfig (`<H>/runs/<runId>/tsconfig.json`, the file `harnessTypechecker`
+ * writes and the prompts' type-check command names). It is (re)written here for the snapshot's directory, so the
+ * evaluation never depends on the type-check having run first.
+ */
+export function harnessSnapshotTsconfig(harnessRoot: string): SnapshotTsconfig {
+  return (projectDir, runId) => (runId === undefined ? undefined : writeHarnessTsconfig(harnessRoot, runId, path.resolve(projectDir)));
+}
+
+export function firewallEvaluator(specPath: string, env: NodeJS.ProcessEnv, deps: EvaluateDeps, tsconfigOf?: SnapshotTsconfig): StepEvaluator {
   return {
     id: 'daedalus-evaluate-project/v1.3',
-    evaluate: async (projectDir) => {
-      const r = await evaluateProject({ projectPath: projectDir, specPath, scoringMode: 'v1.3' }, env, deps);
+    evaluate: async (projectDir, runId) => {
+      const tsconfigPath = tsconfigOf?.(projectDir, runId);
+      if (tsconfigOf !== undefined && tsconfigPath === undefined) {
+        return DomainResult.fail([{ code: 'LOOP_EVAL_NO_TSCONFIG', message: 'no loop run id: the pinned harness tsconfig of the snapshot cannot be named' }]);
+      }
+      const r = await evaluateProject({ projectPath: projectDir, specPath, scoringMode: 'v1.3', ...(tsconfigPath !== undefined ? { tsconfigPath } : {}) }, env, deps);
       return r.success ? toStepEvaluation(r.data) : DomainResult.fail(r.errors);
     },
   };
+}
+
+/** The loop's evaluator per spec file (live wiring): `firewallEvaluator` with the pinned harness tsconfig (R01). */
+export function loopEvaluatorOf(harnessRoot: string, env: NodeJS.ProcessEnv, deps: EvaluateDeps): (specFile: string) => StepEvaluator {
+  return (specFile) => firewallEvaluator(specFile, env, deps, harnessSnapshotTsconfig(harnessRoot));
 }
 
 export function harnessTypechecker(runner: ProcessRunner, harnessRoot: string): StepTypechecker {
@@ -82,3 +108,4 @@ export function harnessTypechecker(runner: ProcessRunner, harnessRoot: string): 
     },
   };
 }
+
