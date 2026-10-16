@@ -487,7 +487,8 @@ The Operations stage will eventually include:
 - **MANDATORY**: Record every user response with timestamp after receiving it
 - **CRITICAL**: ALWAYS append changes to EDIT audit.md file, NEVER use tools and commands that completely overwrite its contents
 - **CRITICAL**: Using file writing tools and commands that overwrite contents of the entire audit.md and cause duplication
-- Use ISO 8601 format for timestamps (YYYY-MM-DDTHH:MM:SSZ)
+- Use ISO 8601 format for timestamps (YYYY-MM-DDTHH:MM:SSZ). Use the real time of the event; never a placeholder such as T00:00:00Z or T12:00:00Z. If the time is unknown, use the commit time and say so
+- **PRIVACY**: never log account billing, credit balances, spend figures or personal absolute paths (`/Users/<name>`, `/Volumes/<volume>`); record the decision only, and use repo-relative paths. The repository is public
 - Include stage context for each entry
 
 ### Audit Log Format:

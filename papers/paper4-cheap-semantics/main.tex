@@ -8,10 +8,14 @@
 % Style rules for editors: no em dashes; the circular result (11/11) is never quoted without its circularity caveat.
 %
 % v1.3 refresh (2026-10-16, branch v1.3-paper1-4-refresh from origin/v1.3 at e9fd61b7): adds the batch-2 proxies
-% (PR #110), the guard-unit and same-component fixes for duplicated rules, the advisory post-filters (PR #139, [hold])
-% and their out-of-sample run (PR #213, [hold]), the blind-miss classification (PR #134) and the in-process Cypher
-% interpreter (PR #128, fuzz PR #183). Reports on [hold] branches are cited as "git show origin/<branch>:<path>"; if
-% such a PR changes in review or closes unmerged, the sentence that cites it must be re-checked or removed.
+% (PR #110), the guard-unit and same-component fixes for duplicated rules, the advisory post-filters (PR #139, [hold], open; pinned to its branch tip SHA)
+% and their out-of-sample run (PR #213, [hold], open; pinned to its branch tip SHA), the blind-miss classification (PR #134) and the in-process Cypher
+% interpreter (PR #128, fuzz PR #183).
+% Pinned [hold] citations (updated 2026-10-16): a report that exists only on an unmerged PR branch is cited as
+% "git show <sha>:<path>", where <sha> is that branch's tip on 2026-10-16, so a rebase or branch deletion cannot change
+% the source. Such a report has not passed review and is not on v1.3; a sentence that rests on it is provisional and
+% must be re-checked against the merged file, or removed, before submission (papers/STATUS.md, "Submission gate").
+% A report whose PR has since merged is cited by its plain v1.3 path.
 
 \documentclass[10pt,a4paper]{article}
 
@@ -54,7 +58,7 @@ their volume, not their relevance, could be checked. Finally, the symbolic rules
 in-process interpreter runs the unchanged rule text about five times faster than a graph database with identical
 results. All figures are development data. We describe an unbiased follow-up.
 \end{abstract}
-% src (abstract, v1.3 refresh): Docs/DiagnosticRuns/v1.3-fieldstate-cheapfix-2026-10-16.md §B.3 ("Projected, not measured ... 9/9 against 1/9"), §B.4 (8 new clean flags); Docs/DiagnosticRuns/cheap2-2026-10-15.md §1 (29/29), §3 (0/3); git show origin/v1.3-advisory-noise:Docs/DiagnosticRuns/v1.3-advisory-noise-2026-10-16.md Summary (PR #139); git show origin/v1.3-advisory-filter-oos:Docs/DiagnosticRuns/v1.3-advisory-filter-oos-2026-10-16.md §5 ("No relevance") (PR #213); Docs/v1.3/cypher-interpreter.md §0 (149 ms vs 728 ms; byte-identical)
+% src (abstract, v1.3 refresh): Docs/DiagnosticRuns/v1.3-fieldstate-cheapfix-2026-10-16.md §B.3 ("Projected, not measured ... 9/9 against 1/9"), §B.4 (8 new clean flags); Docs/DiagnosticRuns/cheap2-2026-10-15.md §1 (29/29), §3 (0/3); git show afb44917:Docs/DiagnosticRuns/v1.3-advisory-noise-2026-10-16.md Summary (PR #139); git show d5170b93:Docs/DiagnosticRuns/v1.3-advisory-filter-oos-2026-10-16.md §5 ("No relevance") (PR #213); Docs/v1.3/cypher-interpreter.md §0 (149 ms vs 728 ms; byte-identical)
 % src (abstract): Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §2 (11/11, 9/11, 0/11; banner "CIRCULAR BY CONSTRUCTION"), §4 (6/6); Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md §5 (clones 1/9, shared-literals 2/9, judge 9/9); "ten proxies": Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §1 ("All ten proxies then ran"); judge agreement for the analogues derived, see Table 1 note
 
 \section{Question}
@@ -167,8 +171,8 @@ statements. No relevance label
 exists for those projects, so whether the removed rows were the right ones is unknown. One option, collapsing
 test-pairing findings into one row per untested project, does not transfer (0.07 and 0.00 against 0.69 to 0.78):
 it fits agent-generated projects with no tests, not real ones. \devset{}
-% src: git show origin/v1.3-advisory-noise:Docs/DiagnosticRuns/v1.3-advisory-noise-2026-10-16.md Summary (191 of 252; 163/191 = 0.85 [0.80, 0.90]; 1/61 = 0.02 [0.00, 0.09]; "These are in-sample numbers"), §4 table (proposed set; cv05-rollup 0.69 dev / 0.78 E1 derived from 1,606 -> 490 and 1,428 -> 314), §6 (blocking byte-identical); PR #139, [hold]
-% src: git show origin/v1.3-advisory-filter-oos:Docs/DiagnosticRuns/v1.3-advisory-filter-oos-2026-10-16.md Summary table (proposed 428/955 = 0.45 [0.42, 0.48], 643/1,939 = 0.33 [0.31, 0.35]; cv05-rollup 67/955 = 0.07, 0/1,939 = 0.00; "Removed rows are true statements": 31/31), §3, §5 ("No relevance"); criterion fixed before any number: Docs/DiagnosticRuns/v1.3-advisory-filter-oos-criterion-2026-10-16.md (same branch); PR #213, [hold]
+% src: git show afb44917:Docs/DiagnosticRuns/v1.3-advisory-noise-2026-10-16.md Summary (191 of 252; 163/191 = 0.85 [0.80, 0.90]; 1/61 = 0.02 [0.00, 0.09]; "These are in-sample numbers"), §4 table (proposed set; cv05-rollup 0.69 dev / 0.78 E1 derived from 1,606 -> 490 and 1,428 -> 314), §6 (blocking byte-identical); PR #139, [hold], open; pinned to its branch tip SHA
+% src: git show d5170b93:Docs/DiagnosticRuns/v1.3-advisory-filter-oos-2026-10-16.md Summary table (proposed 428/955 = 0.45 [0.42, 0.48], 643/1,939 = 0.33 [0.31, 0.35]; cv05-rollup 67/955 = 0.07, 0/1,939 = 0.00; "Removed rows are true statements": 31/31), §3, §5 ("No relevance"); criterion fixed before any number: Docs/DiagnosticRuns/v1.3-advisory-filter-oos-criterion-2026-10-16.md (same branch); PR #213, [hold], open; pinned to its branch tip SHA
 
 \textbf{The facts are present; the definitions differ.} Against a manifest written blind to the tool, the v1.3
 rules miss 14 expected blocking violations on the reference set. Every one was opened: none is a missing edge or
@@ -179,12 +183,15 @@ in the facts a deterministic extractor can compute. \devset{}
 
 \textbf{Cheap rules.} The symbolic rules are Cypher queries run on a graph database. An in-process interpreter
 executes the same query text, with no rule re-implemented. On the 71 reference variants its output is byte-identical
-to the database run; in a differential run against Neo4j over 65,254 statements on 79 project graphs it differs in
+to the database run for every rule that returns rows there; this says nothing about FF-P05 (controller-no-entity),
+which returns no row on those variants on either engine, and whose current text uses a subquery form added to the
+interpreter after the parity sweep below. In a differential run against Neo4j over 65,254 statements on 79 project graphs it differs in
 no content (763 differences in row order, all from two documented engine behaviours). A warm evaluation of one
 variant takes 149\,ms against 728\,ms. A differential fuzz on 2,000 generated adversarial graphs (836,000 statements)
 found ten interpreter defects, all fixed, after which no content differs; the batch-2 proxy templates add 84,000
 statements with no difference. The interpreter is not the engine of record, and on the three largest open-source
 projects one cycle query did not finish in 20 minutes on either engine. \devset{}
+% src (FF-P05 scope): Docs/DiagnosticRuns/v1.3-rule-mutation-2026-10-16.md §4.1 (FF-P05 "finds nothing on Neo4j either"; PR #190); Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md line 331 (the CALL {} subquery; PR #166); Docs/v1.3/cypher-interpreter.md lines 147-149 ("Not yet covered by the live parity run"); Docs/v1.3/cypher-interp-fuzz.md lines 94-95 (CALL {} added after the fuzz, "a compiler option the parity harness does not sweep")
 % src: Docs/v1.3/cypher-interpreter.md §0 table (byte-identical 71 files; 65,254 statements, 79 projects, 0 content; 763 order, T1/T2; 149 ms vs 728 ms; "Neo4j stays the reference engine"); Docs/v1.3/cypher-interp-fuzz.md §0 (2,000 graphs, 836,000 statements, 0 mismatches with the final code; ten bugs F1-F10; cheap2 supplement 84,000 statements, 0 mismatches)
 % src: Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md §0 ("Our FF-S02 cycle rule did not finish on the 3 largest wild repositories ... on Neo4j the query hit the transaction timeout")
 

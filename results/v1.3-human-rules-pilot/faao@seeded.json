@@ -1,0 +1,563 @@
+{
+ "id": "faao",
+ "repo": "azu/faao",
+ "sha": "9574fc49616f459e313805ded703607c25f88b05",
+ "licence": "MIT",
+ "ruleFile": ".dependency-cruiser.json",
+ "root": ".",
+ "depcruise": {
+  "version": "18.4.0",
+  "wallMs": 2662,
+  "tsPreCompilationDeps": false,
+  "layerRules": [
+   {
+    "name": "domain-not-to-depend-on-infra",
+    "severity": "error",
+    "comment": "Don't allow dependencies from domain to infra",
+    "from": {
+     "path": "^src/domain"
+    },
+    "to": {
+     "path": "^src/infra"
+    }
+   },
+   {
+    "name": "domain-not-to-depend-on-store",
+    "severity": "error",
+    "comment": "Don't allow dependencies from domain to store",
+    "from": {
+     "path": "^src/domain"
+    },
+    "to": {
+     "path": "^src/store"
+    }
+   },
+   {
+    "name": "domain-not-to-depend-on-component",
+    "severity": "error",
+    "comment": "Don't allow dependencies from domain to component",
+    "from": {
+     "path": "^src/domain"
+    },
+    "to": {
+     "path": "^src/component"
+    }
+   },
+   {
+    "name": "store-not-to-depend-on-component",
+    "severity": "error",
+    "comment": "Don't allow dependencies from store to component",
+    "from": {
+     "path": "^src/store"
+    },
+    "to": {
+     "path": "^src/component"
+    }
+   }
+  ],
+  "excludedRules": [
+   {
+    "name": "not-to-test",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "not-to-spec",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "no-deprecated-core",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "no-deprecated-npm",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "not-to-unresolvable",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "not-to-dev-dep",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "no-non-package-json",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "optional-deps-used",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "peer-deps-used",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "no-duplicate-dep-types",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "no-circular",
+    "reason": "dependency-cruiser recommended preset"
+   }
+  ],
+  "layerViolationsAll": 16,
+  "layerViolationsInScope": 16,
+  "otherViolations": 611
+ },
+ "scope": {
+  "files": 197,
+  "localEdges": 546
+ },
+ "translation": {
+  "atoms": [
+   {
+    "name": "atom-01",
+    "label": "to:domain-not-to-depend-on-component; to:store-not-to-depend-on-component",
+    "files": 40
+   },
+   {
+    "name": "atom-02",
+    "label": "to:domain-not-to-depend-on-store; from:store-not-to-depend-on-component",
+    "files": 14
+   },
+   {
+    "name": "atom-03",
+    "label": "to:domain-not-to-depend-on-infra",
+    "files": 14
+   },
+   {
+    "name": "atom-04",
+    "label": "from:domain-not-to-depend-on-infra; from:domain-not-to-depend-on-store; from:domain-not-to-depend-on-component",
+    "files": 64
+   }
+  ],
+  "forbiddenPairs": 4,
+  "allowedPairs": 8,
+  "selfForbidden": [],
+  "unconstrainedFiles": 65,
+  "inexpressibleEdges": []
+ },
+ "theirs": [
+  "src/domain/App/Activity/ForecastUserMoving.ts|src/component/container/AppContainer.tsx",
+  "src/domain/App/Activity/ForecastUserMoving.ts|src/infra/api/GitHubClient.ts",
+  "src/domain/App/Activity/ForecastUserMoving.ts|src/store/AppMainColumnStore/AppMainColumnStore.ts",
+  "src/domain/GitHubSearchList/GitHubSearchList.ts|src/component/container/AppContainer.tsx",
+  "src/domain/GitHubSearchList/GitHubSearchList.ts|src/infra/api/GitHubClient.ts",
+  "src/domain/GitHubSearchList/GitHubSearchList.ts|src/store/AppMainColumnStore/AppMainColumnStore.ts",
+  "src/domain/GitHubSearchList/queries/SinceDate.ts|src/component/container/AppContainer.tsx",
+  "src/domain/GitHubSearchList/queries/SinceDate.ts|src/infra/api/GitHubClient.ts",
+  "src/domain/GitHubSearchList/queries/SinceDate.ts|src/store/AppMainColumnStore/AppMainColumnStore.ts",
+  "src/domain/GitHubSetting/GitHubSettingUser.ts|src/component/container/AppContainer.tsx",
+  "src/domain/GitHubSetting/GitHubSettingUser.ts|src/infra/api/GitHubClient.ts",
+  "src/domain/GitHubSetting/GitHubSettingUser.ts|src/store/AppMainColumnStore/AppMainColumnStore.ts",
+  "src/store/AppMainColumnStore/AppMainColumnStore.ts|src/component/container/AppContainer.tsx",
+  "src/store/GitHubSearchListStore/GitHubSearchListStore.ts|src/component/container/SearchListPanelContainer/SearchListPanelContainer.tsx",
+  "src/store/GitHubUserStore/GitHubUserStore.ts|src/component/container/AppContainer.tsx",
+  "src/store/ProfileStore/ProfileStore.ts|src/component/container/SearchListPanelContainer/SearchListPanelContainer.tsx"
+ ],
+ "resolved": {
+  "label": "resolved-atoms",
+  "ourFindingsS01S03": 17,
+  "ourKeysInScope": 17,
+  "ourKeysCompared": 17,
+  "typeOnlyDropped": 0,
+  "confusion": {
+   "both": 16,
+   "oursOnly": 1,
+   "theirsOnly": 0,
+   "neither": 530,
+   "kappa": 0.9687553550008576,
+   "observedAgreement": 0.9981718464351006
+  },
+  "flagged": [
+   "src/domain/App/Activity/ForecastUserMoving.ts|src/component/container/AppContainer.tsx",
+   "src/domain/App/Activity/ForecastUserMoving.ts|src/infra/api/GitHubClient.ts",
+   "src/domain/App/Activity/ForecastUserMoving.ts|src/store/AppMainColumnStore/AppMainColumnStore.ts",
+   "src/domain/App/Activity/GitHubActiveItemService.ts|src/store/GitHubSearchStreamStore/GitHubSearchStreamStateItem.ts",
+   "src/domain/GitHubSearchList/GitHubSearchList.ts|src/component/container/AppContainer.tsx",
+   "src/domain/GitHubSearchList/GitHubSearchList.ts|src/infra/api/GitHubClient.ts",
+   "src/domain/GitHubSearchList/GitHubSearchList.ts|src/store/AppMainColumnStore/AppMainColumnStore.ts",
+   "src/domain/GitHubSearchList/queries/SinceDate.ts|src/component/container/AppContainer.tsx",
+   "src/domain/GitHubSearchList/queries/SinceDate.ts|src/infra/api/GitHubClient.ts",
+   "src/domain/GitHubSearchList/queries/SinceDate.ts|src/store/AppMainColumnStore/AppMainColumnStore.ts",
+   "src/domain/GitHubSetting/GitHubSettingUser.ts|src/component/container/AppContainer.tsx",
+   "src/domain/GitHubSetting/GitHubSettingUser.ts|src/infra/api/GitHubClient.ts",
+   "src/domain/GitHubSetting/GitHubSettingUser.ts|src/store/AppMainColumnStore/AppMainColumnStore.ts",
+   "src/store/AppMainColumnStore/AppMainColumnStore.ts|src/component/container/AppContainer.tsx",
+   "src/store/GitHubSearchListStore/GitHubSearchListStore.ts|src/component/container/SearchListPanelContainer/SearchListPanelContainer.tsx",
+   "src/store/GitHubUserStore/GitHubUserStore.ts|src/component/container/AppContainer.tsx",
+   "src/store/ProfileStore/ProfileStore.ts|src/component/container/SearchListPanelContainer/SearchListPanelContainer.tsx"
+  ],
+  "oursOnly": [
+   "src/domain/App/Activity/GitHubActiveItemService.ts|src/store/GitHubSearchStreamStore/GitHubSearchStreamStateItem.ts"
+  ],
+  "theirsOnly": [],
+  "ourFailedFunctions": [],
+  "ourFileNodes": 197,
+  "ourWallMs": 35054
+ },
+ "idiomatic": {
+  "label": "idiomatic",
+  "ourFindingsS01S03": 17,
+  "ourKeysInScope": 17,
+  "ourKeysCompared": 17,
+  "typeOnlyDropped": 0,
+  "confusion": {
+   "both": 16,
+   "oursOnly": 1,
+   "theirsOnly": 0,
+   "neither": 530,
+   "kappa": 0.9687553550008576,
+   "observedAgreement": 0.9981718464351006
+  },
+  "flagged": [
+   "src/domain/App/Activity/ForecastUserMoving.ts|src/component/container/AppContainer.tsx",
+   "src/domain/App/Activity/ForecastUserMoving.ts|src/infra/api/GitHubClient.ts",
+   "src/domain/App/Activity/ForecastUserMoving.ts|src/store/AppMainColumnStore/AppMainColumnStore.ts",
+   "src/domain/App/Activity/GitHubActiveItemService.ts|src/store/GitHubSearchStreamStore/GitHubSearchStreamStateItem.ts",
+   "src/domain/GitHubSearchList/GitHubSearchList.ts|src/component/container/AppContainer.tsx",
+   "src/domain/GitHubSearchList/GitHubSearchList.ts|src/infra/api/GitHubClient.ts",
+   "src/domain/GitHubSearchList/GitHubSearchList.ts|src/store/AppMainColumnStore/AppMainColumnStore.ts",
+   "src/domain/GitHubSearchList/queries/SinceDate.ts|src/component/container/AppContainer.tsx",
+   "src/domain/GitHubSearchList/queries/SinceDate.ts|src/infra/api/GitHubClient.ts",
+   "src/domain/GitHubSearchList/queries/SinceDate.ts|src/store/AppMainColumnStore/AppMainColumnStore.ts",
+   "src/domain/GitHubSetting/GitHubSettingUser.ts|src/component/container/AppContainer.tsx",
+   "src/domain/GitHubSetting/GitHubSettingUser.ts|src/infra/api/GitHubClient.ts",
+   "src/domain/GitHubSetting/GitHubSettingUser.ts|src/store/AppMainColumnStore/AppMainColumnStore.ts",
+   "src/store/AppMainColumnStore/AppMainColumnStore.ts|src/component/container/AppContainer.tsx",
+   "src/store/GitHubSearchListStore/GitHubSearchListStore.ts|src/component/container/SearchListPanelContainer/SearchListPanelContainer.tsx",
+   "src/store/GitHubUserStore/GitHubUserStore.ts|src/component/container/AppContainer.tsx",
+   "src/store/ProfileStore/ProfileStore.ts|src/component/container/SearchListPanelContainer/SearchListPanelContainer.tsx"
+  ],
+  "oursOnly": [
+   "src/domain/App/Activity/GitHubActiveItemService.ts|src/store/GitHubSearchStreamStore/GitHubSearchStreamStateItem.ts"
+  ],
+  "theirsOnly": [],
+  "ourFailedFunctions": [],
+  "ourFileNodes": 197,
+  "ourWallMs": 34429
+ },
+ "seeds": [
+  {
+   "from": "src/domain/App/Activity/ForecastUserMoving.ts",
+   "to": "src/infra/api/GitHubClient.ts",
+   "forbidden": true,
+   "rules": [
+    "domain-not-to-depend-on-infra"
+   ],
+   "theirs": true,
+   "oursResolved": true,
+   "oursIdiomatic": true
+  },
+  {
+   "from": "src/domain/GitHubSearchList/GitHubSearchList.ts",
+   "to": "src/infra/api/GitHubClient.ts",
+   "forbidden": true,
+   "rules": [
+    "domain-not-to-depend-on-infra"
+   ],
+   "theirs": true,
+   "oursResolved": true,
+   "oursIdiomatic": true
+  },
+  {
+   "from": "src/domain/GitHubSearchList/queries/SinceDate.ts",
+   "to": "src/infra/api/GitHubClient.ts",
+   "forbidden": true,
+   "rules": [
+    "domain-not-to-depend-on-infra"
+   ],
+   "theirs": true,
+   "oursResolved": true,
+   "oursIdiomatic": true
+  },
+  {
+   "from": "src/domain/GitHubSetting/GitHubSettingUser.ts",
+   "to": "src/infra/api/GitHubClient.ts",
+   "forbidden": true,
+   "rules": [
+    "domain-not-to-depend-on-infra"
+   ],
+   "theirs": true,
+   "oursResolved": true,
+   "oursIdiomatic": true
+  },
+  {
+   "from": "src/domain/App/Activity/ForecastUserMoving.ts",
+   "to": "src/store/AppMainColumnStore/AppMainColumnStore.ts",
+   "forbidden": true,
+   "rules": [
+    "domain-not-to-depend-on-store"
+   ],
+   "theirs": true,
+   "oursResolved": true,
+   "oursIdiomatic": true
+  },
+  {
+   "from": "src/domain/GitHubSearchList/GitHubSearchList.ts",
+   "to": "src/store/AppMainColumnStore/AppMainColumnStore.ts",
+   "forbidden": true,
+   "rules": [
+    "domain-not-to-depend-on-store"
+   ],
+   "theirs": true,
+   "oursResolved": true,
+   "oursIdiomatic": true
+  },
+  {
+   "from": "src/domain/GitHubSearchList/queries/SinceDate.ts",
+   "to": "src/store/AppMainColumnStore/AppMainColumnStore.ts",
+   "forbidden": true,
+   "rules": [
+    "domain-not-to-depend-on-store"
+   ],
+   "theirs": true,
+   "oursResolved": true,
+   "oursIdiomatic": true
+  },
+  {
+   "from": "src/domain/GitHubSetting/GitHubSettingUser.ts",
+   "to": "src/store/AppMainColumnStore/AppMainColumnStore.ts",
+   "forbidden": true,
+   "rules": [
+    "domain-not-to-depend-on-store"
+   ],
+   "theirs": true,
+   "oursResolved": true,
+   "oursIdiomatic": true
+  },
+  {
+   "from": "src/domain/App/Activity/ForecastUserMoving.ts",
+   "to": "src/component/container/AppContainer.tsx",
+   "forbidden": true,
+   "rules": [
+    "domain-not-to-depend-on-component"
+   ],
+   "theirs": true,
+   "oursResolved": true,
+   "oursIdiomatic": true
+  },
+  {
+   "from": "src/domain/GitHubSearchList/GitHubSearchList.ts",
+   "to": "src/component/container/AppContainer.tsx",
+   "forbidden": true,
+   "rules": [
+    "domain-not-to-depend-on-component"
+   ],
+   "theirs": true,
+   "oursResolved": true,
+   "oursIdiomatic": true
+  },
+  {
+   "from": "src/domain/GitHubSearchList/queries/SinceDate.ts",
+   "to": "src/component/container/AppContainer.tsx",
+   "forbidden": true,
+   "rules": [
+    "domain-not-to-depend-on-component"
+   ],
+   "theirs": true,
+   "oursResolved": true,
+   "oursIdiomatic": true
+  },
+  {
+   "from": "src/domain/GitHubSetting/GitHubSettingUser.ts",
+   "to": "src/component/container/AppContainer.tsx",
+   "forbidden": true,
+   "rules": [
+    "domain-not-to-depend-on-component"
+   ],
+   "theirs": true,
+   "oursResolved": true,
+   "oursIdiomatic": true
+  },
+  {
+   "from": "src/store/AppMainColumnStore/AppMainColumnStore.ts",
+   "to": "src/component/container/AppContainer.tsx",
+   "forbidden": true,
+   "rules": [
+    "store-not-to-depend-on-component"
+   ],
+   "theirs": true,
+   "oursResolved": true,
+   "oursIdiomatic": true
+  },
+  {
+   "from": "src/store/GitHubSearchListStore/GitHubSearchListStore.ts",
+   "to": "src/component/container/SearchListPanelContainer/SearchListPanelContainer.tsx",
+   "forbidden": true,
+   "rules": [
+    "store-not-to-depend-on-component"
+   ],
+   "theirs": true,
+   "oursResolved": true,
+   "oursIdiomatic": true
+  },
+  {
+   "from": "src/store/GitHubUserStore/GitHubUserStore.ts",
+   "to": "src/component/container/AppContainer.tsx",
+   "forbidden": true,
+   "rules": [
+    "store-not-to-depend-on-component"
+   ],
+   "theirs": true,
+   "oursResolved": true,
+   "oursIdiomatic": true
+  },
+  {
+   "from": "src/store/ProfileStore/ProfileStore.ts",
+   "to": "src/component/container/SearchListPanelContainer/SearchListPanelContainer.tsx",
+   "forbidden": true,
+   "rules": [
+    "store-not-to-depend-on-component"
+   ],
+   "theirs": true,
+   "oursResolved": true,
+   "oursIdiomatic": true
+  },
+  {
+   "from": "src/component/container/AppContainer.tsx",
+   "to": "src/component/container/AppMainColumn/GitHubSearchStreamContainer/GitHubSearchStreamCommandBarContainer/GitHubSearchStreamCommandBarContainer.tsx",
+   "forbidden": false,
+   "rules": [],
+   "theirs": false,
+   "oursResolved": false,
+   "oursIdiomatic": false
+  },
+  {
+   "from": "src/component/container/AppMainColumn/GitHubUserEventContainer/GitHubUserEventContainerCommandBarContainer/GitHubUserEventContainerCommandBarContainer.tsx",
+   "to": "src/infra/repository/EntityMap.ts",
+   "forbidden": false,
+   "rules": [],
+   "theirs": false,
+   "oursResolved": false,
+   "oursIdiomatic": false
+  },
+  {
+   "from": "src/component/container/AppMobileNav/AppMobileNav.tsx",
+   "to": "src/domain/GitHubSearchList/queries/GitHubSearchQuery.ts",
+   "forbidden": false,
+   "rules": [],
+   "theirs": false,
+   "oursResolved": false,
+   "oursIdiomatic": false
+  },
+  {
+   "from": "src/component/container/ProfileContainer/ProfileContainer.tsx",
+   "to": "src/component/project/FaaoQuerySettingPanel/FaaoQuerySettingPanel.tsx",
+   "forbidden": false,
+   "rules": [],
+   "theirs": false,
+   "oursResolved": false,
+   "oursIdiomatic": false
+  },
+  {
+   "from": "src/component/project/EmptySearchResultList/EmptySearchResultList.tsx",
+   "to": "src/infra/repository/NullableBaseRepository.ts",
+   "forbidden": false,
+   "rules": [],
+   "theirs": false,
+   "oursResolved": false,
+   "oursIdiomatic": false
+  },
+  {
+   "from": "src/component/project/IframeBrowser/IframeBrowser.tsx",
+   "to": "src/domain/GitHubSearchList/queries/FaaoSearchQueryParams.ts",
+   "forbidden": false,
+   "rules": [],
+   "theirs": false,
+   "oursResolved": false,
+   "oursIdiomatic": false
+  },
+  {
+   "from": "src/component/project/SearchListSettingPanel/SearchListSettingPanel.tsx",
+   "to": "src/component/container/AppMenuColumn/GitHubSettingContainer/GitHubSettingContainer.tsx",
+   "forbidden": false,
+   "rules": [],
+   "theirs": false,
+   "oursResolved": false,
+   "oursIdiomatic": false
+  },
+  {
+   "from": "src/component/ui-kit/Grid/GridCell.tsx",
+   "to": "src/domain/GitHubUser/GitHubUserProfile.ts",
+   "forbidden": false,
+   "rules": [],
+   "theirs": false,
+   "oursResolved": false,
+   "oursIdiomatic": false
+  },
+  {
+   "from": "src/domain/App/NotificationActivity.ts",
+   "to": "src/domain/GitHubSearchList/queries/GitHubSearchQueryFactory.ts",
+   "forbidden": false,
+   "rules": [],
+   "theirs": false,
+   "oursResolved": false,
+   "oursIdiomatic": false
+  },
+  {
+   "from": "src/domain/GitHubSearchList/queries/GitHubReceivedEventsForUserQuery.ts",
+   "to": "src/domain/GitHubSearchStream/GitHubSearchResultItem.ts",
+   "forbidden": false,
+   "rules": [],
+   "theirs": false,
+   "oursResolved": false,
+   "oursIdiomatic": false
+  },
+  {
+   "from": "src/domain/GitHubSearchStream/GitHubSearchStreamFactory.ts",
+   "to": "src/domain/GitHubSearchList/queries/GitHubSearchQuery.ts",
+   "forbidden": false,
+   "rules": [],
+   "theirs": false,
+   "oursResolved": false,
+   "oursIdiomatic": false
+  },
+  {
+   "from": "src/domain/GitHubUser/GitHubUserActivityEventFactory.ts",
+   "to": "src/domain/App/Activity/GitHubActiveItem.ts",
+   "forbidden": false,
+   "rules": [],
+   "theirs": false,
+   "oursResolved": false,
+   "oursIdiomatic": false
+  },
+  {
+   "from": "src/infra/api/GitHubClient.ts",
+   "to": "src/component/container/QuickIssueContainer/QuickIssueContainer.tsx",
+   "forbidden": false,
+   "rules": [],
+   "theirs": false,
+   "oursResolved": false,
+   "oursIdiomatic": false
+  },
+  {
+   "from": "src/infra/repository/GitHubSettingsRepository.ts",
+   "to": "src/component/project/GitHubSettingList/GitHubSettingList.tsx",
+   "forbidden": false,
+   "rules": [],
+   "theirs": false,
+   "oursResolved": false,
+   "oursIdiomatic": false
+  },
+  {
+   "from": "src/infra/repository/__tests__/GitHubSearchStreamRepository-test.ts",
+   "to": "src/component/project/IframeBrowser/IframeBrowser.tsx",
+   "forbidden": false,
+   "rules": [],
+   "theirs": false,
+   "oursResolved": false,
+   "oursIdiomatic": false
+  },
+  {
+   "from": "src/store/GitHubSearchStreamStore/GitHubSearchStreamStore.ts",
+   "to": "src/infra/repository/NullableBaseRepository.ts",
+   "forbidden": false,
+   "rules": [],
+   "theirs": false,
+   "oursResolved": false,
+   "oursIdiomatic": false
+  }
+ ]
+}

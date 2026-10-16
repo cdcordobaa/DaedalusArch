@@ -40,9 +40,10 @@ Needs `pgfplots` (with the `patterns` TikZ library) and `lmodern`.
   in Section 3.2 and in the threats.
 - **Threats**: a new paragraph on the v1.3 validity evidence (convergent #166, external correctness #167,
   metamorphic #185) and the two nulls (fixes mined #168, known groups #198).
-- **Dependency on open PRs.** #167, #168, #185 and #198 are on hold for the author's review; their `% src:` comments
-  use `git show origin/<branch>:<path>`. If one changes in review, re-check the sentence; if one closes unmerged,
-  remove it. #120, #134 and #166 are merged.
+- **Dependency on open PRs.** #167 and #198 are on hold for the author's review; their `% src:` comments
+  use `git show <sha>:<path>`, pinned to each branch tip on 2026-10-16 (`23adb369`, `ba1c6327`). If one changes in
+  review, re-check the sentence; if one closes unmerged, remove it. #120, #134, #166, #168 and #185 are merged
+  (#168 and #185 are now cited by their v1.3 paths). See the submission gate in `papers/STATUS.md`.
 
 ## Framing (keep it)
 
