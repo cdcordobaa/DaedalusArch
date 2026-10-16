@@ -1505,3 +1505,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: CONSTRUCTION, v1.3 validity cycle. Autonomous under the standing delegation; author decisions are listed in §6 of the plan.
 
 ---
+
+## v1.3 Construction — N2 symbolic–neural complementarity matrix (scheduled task)
+**Timestamp**: 2026-10-16T12:00:00Z
+**User Input**: "Scheduled routine: run night-backlog job #2 (N2): a 2x2 per planted seed (does the symbolic arm flag the seeded unit; did the judge fail it) over rounds 1, 2, DUP v2 and CHECK, with no LLM call. The classification rule is to be committed first; Wilson CIs; the judge false-fail cost on symbolic-pass clean units; a diagnostic doc; a PR into v1.3, not merged."
+**AI Response**: "Branch v1.3-complementarity-matrix. The rule and the analysis (scripts/v1.3/complementarity.ts plus a unit test) were committed before any run. The non-E1 seeds were re-materialised with the frozen seed scripts unchanged, and the manifests are identical to the committed ones (r1 125/125, r2 9 hand-planted, dv2 2 fixture). All 55 judged copies are byte-identical to the committed diffs. The E1 rows use the committed round reports (Neo4j), because ../daedalus-e1-outcomes is absent. Headline (v1 judge, 35 de-duplicated seeds): the symbolic arm sees 9/35; judge catch given symbolic-blind is 22/26 = 0.85 [0.66, 0.94]; on the restricted FRAMEWORK-LEAK + PERSIST cut it is 8/12 = 0.67 [0.39, 0.86]. Judge false fail on symbolic-pass clean units is 3/60 = 0.05 [0.02, 0.14]; twins: symbolic 0/55 alarms, judge 10/55. CHECK-2 symbolic side fixed before v2.2: 25/40 visible. Reference set byte-identical on cypher-interp (71/71, report.json, report.md). Options taken under delegation: (1) E1 fallback to the recorded reports, kept apart in every table; (2) pooled seeds de-duplicated by base plus diff (all 9 DUP v2 seeds duplicate r1/r2 seeds); (3) clean-unit files taken from the recorded judge report's filePaths; (4) CHECK-2 classified on the symbolic side only, from the unmerged prep branch read-only, judge cells left pending; (5) a --no-e1 flag first added to two hash-frozen seed scripts was reverted and replaced by a shadow repository root."
+**Context**: v1.3 SO3 framing, development-set evidence only. No Study 2 material touched, no construct switch, no LLM call.
+
+---

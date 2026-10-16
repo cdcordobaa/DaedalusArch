@@ -25,9 +25,7 @@
  * The frozen operators (`Docs/v1.3/judge-catch-frozen.md`) are used unchanged.
  *
  * Usage (repository root):
- *   npx tsx scripts/v1.3/judge-catch2-seed.ts --out <dir> [--count-only] [--e1 <dir>] [--no-e1]
- * `--no-e1` (off by default) skips the E1 stratum, for a checkout without `../daedalus-e1-outcomes`: only the
- * hand-planted rows are produced (they use no random stream, so they are the same rows as in a full run).
+ *   npx tsx scripts/v1.3/judge-catch2-seed.ts --out <dir> [--count-only] [--e1 <dir>]
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -123,7 +121,7 @@ function touchedSrc(touched: readonly string[]): string[] {
 export async function main(argv: readonly string[], repoRoot: string): Promise<number> {
   const outArg = argOf(argv, '--out');
   if (outArg === undefined) {
-    process.stderr.write('usage: judge-catch2-seed.ts --out <dir> [--count-only] [--e1 <dir>] [--no-e1]\n');
+    process.stderr.write('usage: judge-catch2-seed.ts --out <dir> [--count-only] [--e1 <dir>]\n');
     return 2;
   }
   const out = path.resolve(outArg);
@@ -136,7 +134,7 @@ export async function main(argv: readonly string[], repoRoot: string): Promise<n
   const opById = new Map(ops.map((o) => [o.id, o]));
 
   // ── Stratum 1: E1 cells ──────────────────────────────────────────────────────
-  const cells = argv.includes('--no-e1') ? [] : acceptedCells(repoRoot);
+  const cells = acceptedCells(repoRoot);
   const e1Bases = new Map<string, SeedBase>();
   const table: { baseId: string; cell: string; operatorId: string; candidates: number; eligible: number; rejected: Record<string, number> }[] = [];
   const sitesOf = new Map<string, MutationSite[]>(); // `${cellId}|${opId}`

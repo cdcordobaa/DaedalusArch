@@ -15,9 +15,7 @@
  *   file first). The twin does not touch the second service, so two twins on one rule would be one edit: a rule is used
  *   for at most one twin per cell.
  *
- * Usage (repository root): npx tsx scripts/v1.3/judge-catch-v2-seed.ts --out <dir> [--e1 <dir>] [--no-e1]
- * `--no-e1` (off by default) skips the E1 stratum, for a checkout without `../daedalus-e1-outcomes`: only the fixture
- * rows are produced (they are drawn before the E1 sampling stream, so they are the same rows as in a full run).
+ * Usage (repository root): npx tsx scripts/v1.3/judge-catch-v2-seed.ts --out <dir> [--e1 <dir>]
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -51,7 +49,7 @@ const ruleKey = (s: MutationSite): string => `${s.detail.sourceFile ?? ''}|${s.d
 export async function main(argv: readonly string[], repoRoot: string): Promise<number> {
   const outArg = argOf(argv, '--out');
   if (outArg === undefined) {
-    process.stderr.write('usage: judge-catch-v2-seed.ts --out <dir> [--e1 <dir>] [--no-e1]\n');
+    process.stderr.write('usage: judge-catch-v2-seed.ts --out <dir> [--e1 <dir>]\n');
     return 2;
   }
   const out = path.resolve(outArg);
@@ -108,7 +106,7 @@ export async function main(argv: readonly string[], repoRoot: string): Promise<n
   }
 
   // ── E1 cells (round 2 bases and sampling) ──
-  const cells = argv.includes('--no-e1') ? [] : acceptedCells(repoRoot);
+  const cells = acceptedCells(repoRoot);
   const bases = new Map<string, SeedBase>();
   const sitesOf = new Map<string, MutationSite[]>();
   for (const c of cells) {

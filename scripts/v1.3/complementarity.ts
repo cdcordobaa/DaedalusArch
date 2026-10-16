@@ -28,9 +28,12 @@
  * seeds can be the same edit); the first occurrence in round order r1, r2, dv2 is kept.
  *
  * Usage (repository root):
- *   npx tsx scripts/v1.3/judge-catch-seed.ts  --out <work>/r1
- *   npx tsx scripts/v1.3/judge-catch2-seed.ts --out <work>/r2 --no-e1
- *   npx tsx scripts/v1.3/judge-catch-v2-seed.ts --out <work>/dv2 --no-e1
+ *   npx tsx scripts/v1.3/complementarity.ts prepare --work <work> [--e1 <dir>]
+ *     runs the frozen seed scripts unchanged: judge-catch-seed.ts → <work>/r1, judge-catch2-seed.ts → <work>/r2,
+ *     judge-catch-v2-seed.ts → <work>/dv2. Without the E1 outcomes directory (default ../daedalus-e1-outcomes) the
+ *     last two run from a shadow repository root (`<work>/shadow`: symlinks to the checkout, with an empty
+ *     results/e1-grid/runs), so they produce only their non-E1 rows (hand-planted, fixture); those use no random
+ *     stream after the E1 one, and `main` checks them field for field against the committed manifests.
  *   (optional, from a read-only checkout of v1.3-judge-v22-prep) judge-v22-check2.ts seed --out <work>/c2 --check
  *   npx tsx scripts/v1.3/complementarity.ts --work <work> [--check2-repo <v22 checkout>] [--out <dir>]
  * Writes `<out>/symbolic.json` (compact symbolic findings per evaluated project), `<out>/rows.csv`,
@@ -226,19 +229,21 @@ function evaluateSymbolic(repoRoot: string, p: Project, cacheDir: string): Repor
   return rep;
 }
 
-function hunksOf(a: string, b: string): string {
-  const r = spawnSync('diff', ['-ruN', '-x', 'node_modules', path.basename(a), path.basename(b)], { cwd: path.dirname(a), encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
-  return r.stdout;
-}
-
-/** Byte check of a re-materialised copy against the committed diff (hunks only). */
-function copyMatchesDiff(baseDir: string, copyDir: string, committedDiff: string, tmp: string): boolean {
-  fs.rmSync(tmp, { recursive: true, force: true });
-  fs.mkdirSync(tmp, { recursive: true });
-  fs.symlinkSync(baseDir, path.join(tmp, 'a'));
-  fs.symlinkSync(copyDir, path.join(tmp, 'b'));
-  const d = hunksOf(path.join(tmp, 'a'), path.join(tmp, 'b'));
-  return diffBody(d) === diffBody(committedDiff);
+/**
+ * Byte check of a re-materialised copy: the committed diff, applied to the base with no fuzz (`patch -F0`, strip
+ * level 1 or 2 as the diff's paths need), must give a tree identical to the copy (`diff -r`, node_modules excluded).
+ * Hunk text itself is not compared: the committed diffs were written by another `diff` build, whose hunk layout differs.
+ */
+function copyMatchesDiff(baseDir: string, copyDir: string, diffPath: string, tmp: string): boolean {
+  for (const strip of ['-p1', '-p2']) {
+    fs.rmSync(tmp, { recursive: true, force: true });
+    fs.cpSync(baseDir, tmp, { recursive: true, filter: (src) => path.basename(src) !== 'node_modules' });
+    const p = spawnSync('patch', ['-s', '-F0', strip, '-d', tmp, '-i', diffPath], { encoding: 'utf8' });
+    if (p.status !== 0) continue;
+    const d = spawnSync('diff', ['-r', '-x', 'node_modules', '-x', '*.orig', tmp, copyDir], { encoding: 'utf8' });
+    return d.status === 0;
+  }
+  return false;
 }
 
 // ── Main ────────────────────────────────────────────────────────────────────────
@@ -279,13 +284,45 @@ interface OutClean {
   judgeV21Fail: boolean | null;
 }
 
+/** A repository root that sees the checkout but no E1 run (the seed scripts then skip their E1 stratum). */
+function shadowRoot(repoRoot: string, dest: string): string {
+  fs.rmSync(dest, { recursive: true, force: true });
+  fs.mkdirSync(path.join(dest, 'results/e1-grid/runs'), { recursive: true });
+  for (const e of fs.readdirSync(repoRoot)) if (e !== 'results') fs.symlinkSync(path.join(repoRoot, e), path.join(dest, e));
+  for (const e of fs.readdirSync(path.join(repoRoot, 'results'))) if (e !== 'e1-grid') fs.symlinkSync(path.join(repoRoot, 'results', e), path.join(dest, 'results', e));
+  return dest;
+}
+
+function prepare(argv: readonly string[], repoRoot: string, work: string): number {
+  const e1 = path.resolve(repoRoot, argOf(argv, '--e1') ?? '../daedalus-e1-outcomes');
+  const haveE1 = fs.existsSync(e1);
+  const root = haveE1 ? repoRoot : shadowRoot(repoRoot, path.join(work, 'shadow'));
+  const runs: [string, string, string, readonly string[]][] = [
+    ['r1', repoRoot, 'judge-catch-seed.ts', []],
+    ['r2', root, 'judge-catch2-seed.ts', haveE1 ? ['--e1', e1] : []],
+    ['dv2', root, 'judge-catch-v2-seed.ts', haveE1 ? ['--e1', e1] : []],
+  ];
+  for (const [round, cwd, script, extra] of runs) {
+    const out = path.join(work, round);
+    fs.rmSync(out, { recursive: true, force: true });
+    const r = spawnSync('npx', ['tsx', path.join(cwd, 'scripts/v1.3', script), '--out', out, ...extra], { cwd, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
+    if (r.status !== 0) {
+      process.stderr.write(`${script} exited ${String(r.status)}: ${r.stderr.slice(-800)}\n`);
+      return 1;
+    }
+    process.stderr.write(`${round}: ${script} done${haveE1 || round === 'r1' ? '' : ' (no E1 stratum)'}\n`);
+  }
+  return 0;
+}
+
 export function main(argv: readonly string[], repoRoot: string): number {
   const workArg = argOf(argv, '--work');
   if (workArg === undefined) {
-    process.stderr.write('usage: complementarity.ts --work <dir> [--check2-repo <dir>] [--out <dir>]\n');
+    process.stderr.write('usage: complementarity.ts [prepare] --work <dir> [--e1 <dir>] [--check2-repo <dir>] [--out <dir>]\n');
     return 2;
   }
   const work = path.resolve(workArg);
+  if (argv[0] === 'prepare') return prepare(argv, repoRoot, work);
   const out = path.resolve(repoRoot, argOf(argv, '--out') ?? 'results/v1.3-complementarity');
   const check2Repo = argOf(argv, '--check2-repo');
   const cacheDir = path.join(work, 'symbolic-cache');
@@ -341,7 +378,7 @@ export function main(argv: readonly string[], repoRoot: string): number {
 
     const scores = readJson<{ rows: ScoreRow[]; cleanUnits: CleanUnit[] }>(path.join(resDir, 'scores.json'));
     const recorded = (id: string): ReportLike | null => {
-      const p = path.join(resDir, 'reports', `${safe(id)}.json`);
+      const p = path.join(resDir, 'reports', `${safe(id.replace(/^base:/, 'base__'))}.json`);
       return fs.existsSync(p) ? readJson<ReportLike>(p) : null;
     };
     const baseSpec = new Map<string, string>();
@@ -381,7 +418,7 @@ export function main(argv: readonly string[], repoRoot: string): number {
         const rb = recorded(`base:${m.baseId}`);
         const rs = recorded(m.rowId);
         if (rb !== null && rs !== null) recordedVisible = classifySeed(symbolicFindings(rb), symbolicFindings(rs), files).visible;
-        if (diffText !== '') copyByteCheck = copyMatchesDiff(baseDir(m.baseId), path.join(work, round, m.copyDir ?? ''), diffText, path.join(work, 'diffcheck'));
+        if (diffText !== '') copyByteCheck = copyMatchesDiff(baseDir(m.baseId), path.join(work, round, m.copyDir ?? ''), diffPath, path.join(work, 'diffcheck'));
       }
       const family = (m.positiveId ?? m.operatorId).replace(/2$/, '');
       outRows.push({
