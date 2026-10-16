@@ -42,7 +42,7 @@ A null or failing result is reported as such in the PR.
 
 ## 5. Result (2026-10-16, after the code)
 
-Code: `scripts/lib/loop/isolation.ts` (new), `agents.ts` (`ClaudeStepAgent.probe`, isolated env, `before` check, `env-<turnId>.json`), `plan.ts` (`adapters[].cliVersion`, `generatorIsolation`, `--claude-config-dir` fill), `main.ts` (for a plan with a pin or isolation only: the probe runs before the skeleton install and a mismatch exits 1; a plan without them keeps the E1 order, the E1 `isAvailable` check and prints nothing new). Tests: `tests/unit/scripts/loop/isolation.test.ts` (19 tests).
+Code: `scripts/lib/loop/isolation.ts` (new), `agents.ts` (`ClaudeStepAgent.probe`, isolated env, `before` check, `env-<turnId>.json`), `plan.ts` (`adapters[].cliVersion`, `generatorIsolation`, `--claude-config-dir` fill), `main.ts` (for a plan with a pin or isolation only: the probe runs before the skeleton install and a mismatch exits 1; a plan without them keeps the E1 order, the E1 `isAvailable` check and prints nothing new). Tests: `tests/unit/scripts/loop/isolation.test.ts` (20 tests).
 
 | Criterion | Result |
 |---|---|
