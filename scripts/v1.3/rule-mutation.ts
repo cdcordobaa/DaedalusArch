@@ -993,9 +993,14 @@ async function main(argv: readonly string[]): Promise<number> {
       for (const t of readJson<JestOutcome>(f).failing) if (!baseFail.has(t)) textPins.add(t);
     }
 
+    // Rules the keys score: the template names of every style's scopeRules (reference and devset-b).
+    const scopeOf = new Map<string, string[]>();
+    for (const { set, refs } of loadSets(repoRoot, devset)) {
+      for (const ref of refs) for (const r of ref.descriptor.scopeRules) scopeOf.set(r.ruleName, [...(scopeOf.get(r.ruleName) ?? []), `${set}:${ref.style}:${r.ruleId}${r.blockingCandidate ? ' (blocking)' : ''}`]);
+    }
     const rows = mutants.map((m): Record<string, unknown> => {
       const exercisedIn = Object.entries(baseline.exercised).filter(([, v]) => v.includes(`${m.catalogue}/${m.name}`)).map(([k]) => k);
-      const row: Record<string, unknown> = { id: m.id, catalogue: m.catalogue, file: m.file, rule: m.name, operator: m.operator, site: m.site, description: m.description, valid: m.valid, ...(m.invalidReason !== undefined ? { invalidReason: m.invalidReason } : {}), exercisedIn };
+      const row: Record<string, unknown> = { id: m.id, catalogue: m.catalogue, file: m.file, rule: m.name, inScope: scopeOf.get(m.name) ?? [], operator: m.operator, site: m.site, description: m.description, valid: m.valid, ...(m.invalidReason !== undefined ? { invalidReason: m.invalidReason } : {}), exercisedIn };
       if (m.valid !== true) return { ...row, status: 'stillborn' };
       // Reference / devset outcome.
       let ref: Record<string, unknown> = { status: exercisedIn.length === 0 ? 'not-exercised' : 'not-run' };
@@ -1019,7 +1024,7 @@ async function main(argv: readonly string[]): Promise<number> {
           const probeCases = Object.keys(r.findings ?? {}).filter((k) => k.startsWith('probe:'));
           const probeDiff = probeCases.filter((k) => (r.findings?.[k] ?? []).map(fKey).sort().join('\n') !== (baseline.findings[k] ?? []).map(fKey).sort().join('\n')
             || (r.errors ?? {})[k] !== baseline.errors[k]);
-          ref = { status: errs.filter((k) => !k.startsWith('probe:')).length > 0 ? 'errored' : anyStrict ? 'killed' : anyBroad ? 'killed-fp-only' : 'survived', perKey,
+          ref = { status: anyStrict ? 'killed' : anyBroad ? 'killed-fp-only' : errs.filter((k) => !k.startsWith('probe:')).length > 0 ? 'errored' : 'survived', perKey,
             probe: probeCases.length === 0 ? 'not-applicable' : probeDiff.length > 0 ? `differs on ${probeDiff.map((k) => k.slice('probe:golden/'.length)).join(', ')}` : 'no difference', ...(errs.length > 0 ? { errors: errs.slice(0, 3).map((k) => `${k}: ${(r.errors ?? {})[k] ?? ''}`) } : {}), ms: r.ms };
         }
       }
@@ -1088,6 +1093,9 @@ async function main(argv: readonly string[]): Promise<number> {
       textPinningTests: [...textPins].sort(),
       shadowed: fs.existsSync(path.join(work, 'shadowed.json')) ? readJson<string[]>(path.join(work, 'shadowed.json')) : [],
       totals: tally(() => 'all').all,
+      totalsInScope: tally((r) => ((r.inScope as string[]).length > 0 ? 'in-scope' : 'out-of-scope')),
+      byOperatorInScope: Object.fromEntries(Object.entries(tally((r) => `${(r.inScope as string[]).length > 0 ? 'in' : 'out'}|${String(r.operator)}`)).filter(([k]) => k.startsWith('in|')).map(([k, v]) => [k.slice(3), v])),
+      scopeOf: Object.fromEntries(scopeOf),
       byOperator: tally((r) => String(r.operator)),
       byRule: tally((r) => `${String(r.catalogue)}/${String(r.rule)}`),
       controls,
