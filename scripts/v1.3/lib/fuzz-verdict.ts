@@ -5,8 +5,8 @@
  * - `ok`: equal, or both failed with the same Neo4j status code;
  * - `quirk:<id>`: a difference the interpreter documents as Neo4j-unspecified (row order without ORDER BY, T1; order
  *   among rows tied on every ORDER BY key, T8; which tied rows survive a LIMIT, T8; float accumulation order, T2; a
- *   data error Neo4j raised in a predicate whose outcome did not matter, T20: `suppressed` is the interpreter's count
- *   of such errors for the statement, `evalDiagnostics.suppressed`);
+ *   data error Neo4j's plan reached and the interpreter's did not, T20: `strictCode` is the interpreter's error code
+ *   for the statement in strict mode, `evalDiagnostics.strict`);
  * - `timeout`: Neo4j hit the per-statement timeout (an enumeration too large to compare; not a verdict);
  * - `mismatch:<kind>`: anything else (content, order outside ties, an error on one side, a different error code,
  *   `unsupported`). Every mismatch is minimised and classified by hand.
@@ -25,7 +25,7 @@ export function errCode(r: DomainResult<QueryResult>): string {
   return r.success ? '' : (r.errors[0]?.code ?? '');
 }
 
-export function verdictOf(text: string, ref: DomainResult<QueryResult>, cand: DomainResult<QueryResult>, suppressed?: ReadonlyMap<string, number>): { verdict: Verdict; detail?: string } {
+export function verdictOf(text: string, ref: DomainResult<QueryResult>, cand: DomainResult<QueryResult>, strictCode?: string): { verdict: Verdict; detail?: string } {
   if (!ref.success && ref.errors.some((e) => TIMEOUT_RE.test(e.code) || TIMEOUT_RE.test(e.message))) return { verdict: 'timeout' };
   const { klass, detail } = classify(ref, cand, false, text);
   switch (klass) {
@@ -34,9 +34,11 @@ export function verdictOf(text: string, ref: DomainResult<QueryResult>, cand: Do
     case 'both-error':
       return errCode(ref) === errCode(cand) ? { verdict: 'ok' } : { verdict: 'mismatch:error-code', ...(detail !== undefined ? { detail } : {}) };
     case 'error':
-      // Trap T20: Neo4j raised a data error in a predicate the interpreter evaluated too, held back and dropped because
-      // another conjunct already rejected the row. Whether Neo4j raises it depends on its plan's predicate order.
-      if (!ref.success && cand.success && (suppressed?.get(errCode(ref)) ?? 0) > 0) return { verdict: 'quirk:T20-plan-order-error', ...(detail !== undefined ? { detail } : {}) };
+      // Trap T20: Neo4j raised a data error the interpreter did not, and the interpreter in strict mode (every
+      // predicate over every candidate, errors raised eagerly) raises the same code: the error is reachable in some
+      // evaluation order, and whether Neo4j reaches it depends on its plan (which end it expands from, which conjunct
+      // it tests first, which path an EXISTS finds first).
+      if (!ref.success && cand.success && strictCode !== undefined && strictCode === errCode(ref)) return { verdict: 'quirk:T20-plan-order-error', ...(detail !== undefined ? { detail } : {}) };
       return { verdict: 'mismatch:error', ...(detail !== undefined ? { detail } : {}) };
     case 'unsupported':
       return { verdict: `mismatch:${klass}`, ...(detail !== undefined ? { detail } : {}) };

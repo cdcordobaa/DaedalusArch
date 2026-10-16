@@ -214,4 +214,16 @@ export const REGRESSION_CASES: readonly RegressionCase[] = [
     params: { flag: 'yes' },
     expect: { error: SYNTAX_ERROR },
   },
+  {
+    finding: 'F7', title: 'NONE over nodes(p) is pushed into the expansion too (no-cyclic-deps, v1.3 + exclude, fuzz seed 21)',
+    nodes: [
+      { id: 'f3', label: 'File', props: { name: 'FooController.tsx', filePath: 'src/$z/FooController.tsx' } },
+      { id: 'f5', label: 'File', props: { name: 'DomainEvent.spec.ts', filePath: 'src/^c/DomainEvent.spec.ts' } },
+      { id: 'f6', label: 'File', props: { name: '.ts', filePath: 'test/.ts' } },
+    ],
+    edges: [{ type: 'IMPORTS', from: 'f3', to: 'f6' }, { type: 'IMPORTS', from: 'f6', to: 'f5', props: { viaReExport: 'layer' } }],
+    query: "MATCH p = (f:File)-[_ev0:IMPORTS|RE_EXPORTS*2..10]->(f)\nWHERE ALL(_evr IN _ev0 WHERE NOT coalesce(_evr.viaReExport, false)) AND ALL(n IN nodes(p) WHERE n.filePath >= f.filePath)\n  AND size(apoc.coll.toSet(nodes(p)[1..])) = length(p) AND NONE(n IN nodes(p) WHERE ANY(ep IN $excludePatterns WHERE n.filePath =~ ep))\nWITH DISTINCT [n IN nodes(p) | n.filePath] AS cycle, relationships(p)[0].line AS firstLine\nWITH cycle, min(firstLine) AS line\nRETURN cycle, cycle[1] AS target, line\nORDER BY cycle\nLIMIT 101",
+    params: { excludePatterns: ['.*\\.spec\\.ts$', '^__no_such_path__$'] },
+    expect: [],
+  },
 ];

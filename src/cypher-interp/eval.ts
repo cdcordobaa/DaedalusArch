@@ -25,10 +25,40 @@ export type Row = ReadonlyMap<string, Value>;
  * plan-order difference (Neo4j raised an error the interpreter could prove irrelevant, trap T20) from a missed error.
  * With `enabled`, a WHERE also evaluates the conjuncts after the first false one, only to count their errors.
  */
-export const evalDiagnostics = { suppressed: new Map<string, number>(), enabled: false };
+export const evalDiagnostics = { suppressed: new Map<string, number>(), enabled: false, strict: false };
 
+/**
+ * Drops a held-back data error. In `strict` mode (diagnostics only, never in a normal run) it is raised instead, the
+ * anchor pre-filter is off and every pattern predicate is first evaluated over every relationship of its types: the
+ * interpreter then fails iff some evaluation order reaches a data error, which is how the fuzz harness tells Neo4j
+ * reaching one in its plan's order (trap T20) from an error the interpreter misses.
+ */
 function suppress(err: CypherRuntimeError): void {
+  if (evalDiagnostics.strict) throw err;
   evalDiagnostics.suppressed.set(err.code, (evalDiagnostics.suppressed.get(err.code) ?? 0) + 1);
+}
+
+/** Strict mode: every pattern predicate of a MATCH over every relationship of its types (see `suppress`). */
+function strictScan(clause: Extract<Clause, { k: 'match' }>, pushed: ReadonlyMap<RelPattern, Pushdown>, row: Row, ctx: Ctx): void {
+  const attempt = (e: Expr, r: Row): void => {
+    try {
+      predicate(e, r, ctx, 'WHERE');
+    } catch (err) {
+      if (err instanceof CypherSyntaxError) return; // reads a variable not bound at this point
+      throw err;
+    }
+  };
+  for (const part of clause.patterns) {
+    for (const rel of part.rels) {
+      const quants = [...(pushed.get(rel)?.rels ?? [])];
+      if (quants.length === 0 && (rel.where === undefined || rel.variable === undefined)) continue;
+      for (const r of ctx.graph.relationships) {
+        if (rel.types !== undefined && !labelMatches(rel.types, (l) => r.type === l)) continue;
+        if (rel.where !== undefined && rel.variable !== undefined) attempt(rel.where, bind(row, rel.variable, r));
+        for (const q of quants) if (q.where !== undefined) attempt(q.where, bind(row, q.v, r));
+      }
+    }
+  }
 }
 
 interface Ctx {
@@ -48,7 +78,8 @@ interface Ctx {
  * Filters of a MATCH's WHERE applied inside a variable-length expansion instead of after it, as Neo4j's planner does
  * (fuzz finding F2): a conjunct `ALL(x IN r WHERE p)` over the segment's relationship list, or `ALL(x IN
  * relationships(path) WHERE p)` / `ALL(x IN nodes(path) WHERE p)` for a path made of that one segment, prunes every
- * partial path at the first node or relationship for which `p` is not true (nodes are checked first, F4). The conjunct stays in the WHERE, so the rows are unchanged; only the enumeration of
+ * partial path at the first node or relationship for which `p` is not true (nodes are checked first, F4); `NONE(…)`
+ * likewise where `p` is not false (F7: the exclude form of no-cyclic-deps). The conjunct stays in the WHERE, so the rows are unchanged; only the enumeration of
  * paths the WHERE would reject is skipped. `reach`: the segment sits in an existential MATCH (see `Ctx.existential`)
  * and only its end nodes matter, so it is a breadth-first reachability search (each end node once) rather than an
  * enumeration of every trail.
@@ -183,6 +214,7 @@ function* matchClause(clause: Extract<Clause, { k: 'match' }>, rows: Iterable<Ro
     ...(early.length > 0 ? { early } : {}),
   };
   for (const r of rows) {
+    if (evalDiagnostics.strict) strictScan(clause, pushed, r, ctx);
     let any = false;
     for (const m0 of matchParts(clause.patterns, 0, r, new Set(), ctx)) {
       const pending = m0.get(PENDING) as unknown as CypherRuntimeError | undefined;
@@ -216,7 +248,7 @@ function pushdowns(clause: Extract<Clause, { k: 'match' }>, existential: boolean
   for (const part of clause.patterns) {
     for (const rel of part.rels) {
       if (rel.range === undefined) continue;
-      const quants = cs.filter((c): c is Extract<Expr, { k: 'quant' }> => c.k === 'quant' && c.q === 'all' && c.where !== undefined && !hasSubquery(c.where));
+      const quants = cs.filter((c): c is Extract<Expr, { k: 'quant' }> => c.k === 'quant' && (c.q === 'all' || c.q === 'none') && c.where !== undefined && !hasSubquery(c.where));
       const ofPath = (fn: string) => (c: Extract<Expr, { k: 'quant' }>): boolean => part.pathVariable !== undefined && part.rels.length === 1 && c.list.k === 'fn'
         && c.list.name.toLowerCase() === fn && c.list.args.length === 1 && c.list.args[0]?.k === 'var' && c.list.args[0].name === part.pathVariable;
       const rels = quants.filter((c) => (rel.variable !== undefined && c.list.k === 'var' && c.list.name === rel.variable) || ofPath('relationships')(c));
@@ -282,15 +314,16 @@ function isExpr(v: unknown): v is Expr {
 function rejects(q: Extract<Expr, { k: 'quant' }>, x: Value, row: Row, ctx: Ctx): boolean {
   const where = q.where;
   if (where === undefined) return false;
-  let ok: boolean;
+  let v: boolean | null;
   try {
-    ok = predicate(where, bind(row, q.v, x), ctx, 'WHERE') === true;
+    v = predicate(where, bind(row, q.v, x), ctx, 'WHERE');
   } catch (e) {
     // A variable the predicate reads is not bound yet at this point of the expansion: do not push it.
     if (e instanceof CypherSyntaxError) return false;
     throw e;
   }
-  return !ok;
+  // ALL needs p true for every element, NONE needs it false: anything else makes the quantifier false or null.
+  return q.q === 'none' ? v !== false : v !== true;
 }
 
 function* matchParts(parts: readonly PatternPart[], i: number, row: Row, used: ReadonlySet<GraphRel>, ctx: Ctx): Generator<Row> {
@@ -319,7 +352,7 @@ function* matchPart(part: PatternPart, row: Row, used: ReadonlySet<GraphRel>, ct
     // Neo4j filters the anchor with the WHERE conjuncts it can already decide before expanding from it (fuzz finding
     // F4: `ctrl.layer = $controllerLayer` rejects the anchor before a relationship predicate can raise an error). The
     // conjuncts stay in the WHERE; this only skips expansions it would reject.
-    for (const c of ctx.early ?? []) {
+    for (const c of evalDiagnostics.strict ? [] : ctx.early ?? []) {
       if (![...c.vars].every((v) => r0?.has(v) === true)) continue;
       const ok = tryPredicate(c.expr, r0, ctx);
       if (ok === false) continue next;
@@ -383,7 +416,10 @@ function* expand(part: PatternPart, at: number, node: GraphNode, step: 1 | -1, r
   const dir = relPat.direction === 'both' ? 'both' : step === 1 ? relPat.direction : relPat.direction === 'out' ? 'in' : 'out';
   for (const [rels, end, err] of traverse(relPat, dir, node, row, used, ctx)) {
     const r1 = bindNode(nextPat, end, row, ctx);
-    if (r1 === undefined) continue;
+    if (r1 === undefined) {
+      if (err !== undefined) suppress(err);
+      continue;
+    }
     let r2 = bindRel(relPat, rels, r1);
     if (r2 === undefined) continue;
     if (err !== undefined) r2 = withPending(r2, err);

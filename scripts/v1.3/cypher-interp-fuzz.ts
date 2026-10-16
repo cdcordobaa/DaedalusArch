@@ -18,6 +18,7 @@
  * Usage (repository root, NEO4J_URI / NEO4J_PASSWORD in the environment; holds the cross-process Neo4j lock):
  *   node --import tsx scripts/v1.3/cypher-interp-fuzz.ts --from 1 --count 2000 [--reject 3000] [--shrink-per 2]
  *     [--only <template substring>] --out results/v1.3-cypher-interp/fuzz
+ *   ... --recheck <fuzz-mismatches.jsonl> --out <dir>   replays every minimised repro with the current interpreter
  * Writes <out>/fuzz-summary.json, <out>/fuzz-mismatches.json (every mismatch, minimised repros) and <out>/fuzz.md.
  */
 import * as fs from 'node:fs';
@@ -143,10 +144,24 @@ async function runStatement(neo: GraphRepository, cand: GraphRepository, s: Stat
     if (trace) process.stderr.write(' timeout\n');
     return { verdict: 'timeout', ref };
   }
-  evalDiagnostics.suppressed.clear();
   const c = await cand.executeQuery(s.text, p);
   if (trace) process.stderr.write(` interp ${String(Math.round(performance.now() - t1))} ms\n`);
-  return { ...verdictOf(s.text, ref, c, evalDiagnostics.suppressed), ref };
+  return { ...verdictOf(s.text, ref, c, await strictCode(cand, s.text, p, ref, c)), ref };
+}
+
+/**
+ * When only Neo4j failed: the interpreter's error code for the same statement in strict mode (`evalDiagnostics`),
+ * i.e. whether some evaluation order reaches a data error with Neo4j's code (trap T20).
+ */
+async function strictCode(cand: GraphRepository, text: string, p: Record<string, unknown>, ref: DomainResult<QueryResult>, c: DomainResult<QueryResult>): Promise<string | undefined> {
+  if (ref.success || !c.success) return undefined;
+  evalDiagnostics.strict = true;
+  try {
+    const r = await cand.executeQuery(text, p);
+    return r.success ? undefined : r.errors[0]?.code;
+  } finally {
+    evalDiagnostics.strict = false;
+  }
 }
 
 /** Greedy minimisation: keep the first one-step reduction that reproduces the same verdict, until none does. */
@@ -173,6 +188,34 @@ async function shrink(neo: GraphRepository, p0: FuzzProject, s: Statement, verdi
   }
   const { cand } = await ingestBoth(neo, p);
   return { size: sizeOf(p), steps, verdict: last.verdict, ...(last.detail !== undefined ? { detail: last.detail } : {}), project: jsonable(p), params: jsonable(statementParams(s.text, paramsFor(p, cand)[s.binding])) };
+}
+
+/** Inverse of `jsonable`. */
+function unjson(v: unknown): unknown {
+  if (Array.isArray(v)) return v.map(unjson);
+  if (v !== null && typeof v === 'object') {
+    const o = v as Record<string, unknown>;
+    if (typeof o.$int === 'string' && Object.keys(o).length === 1) return BigInt(o.$int);
+    if (o.$float === '-0' && Object.keys(o).length === 1) return -0;
+    return Object.fromEntries(Object.entries(o).map(([k, x]) => [k, unjson(x)]));
+  }
+  return v;
+}
+
+/** Replays every minimised repro of a fuzz-mismatches.jsonl with the current interpreter; returns the verdicts now. */
+async function recheck(neo: GraphRepository, file: string): Promise<{ seed: number; label: string; was: Verdict; now: Verdict; detail?: string }[]> {
+  const out: { seed: number; label: string; was: Verdict; now: Verdict; detail?: string }[] = [];
+  for (const line of fs.readFileSync(file, 'utf8').split('\n').filter((l) => l.trim() !== '')) {
+    const m = JSON.parse(line) as Mismatch;
+    if (m.minimised === undefined) continue;
+    const p = unjson(m.minimised.project) as FuzzProject;
+    const { cand } = await ingestBoth(neo, p);
+    const s: Statement = { label: m.label, binding: m.binding as Statement['binding'], text: m.text };
+    const r = await runStatement(neo, cand, s, paramsFor(p, cand)[s.binding]);
+    out.push({ seed: m.seed, label: m.label, was: m.verdict, now: r.verdict, ...(r.detail !== undefined ? { detail: r.detail.slice(0, 300) } : {}) });
+    process.stdout.write(`${String(m.seed)} ${m.label} (${m.binding}): ${m.verdict} -> ${r.verdict}\n`);
+  }
+  return out;
 }
 
 /** JSON with INTEGERs kept apart from FLOATs (`{"$int": "…"}`) and -0.0 kept. */
@@ -317,6 +360,12 @@ async function main(): Promise<number> {
   try {
     const result: Record<string, unknown> = {};
     let failing = 0;
+    const recheckFile = opt('--recheck');
+    if (recheckFile !== undefined) {
+      const r = await recheck(neo, recheckFile);
+      fs.writeFileSync(path.join(outDir, 'fuzz-recheck.json'), JSON.stringify(r, null, 1) + '\n');
+      return r.every((x) => !isMismatch(x.now)) ? 0 : 1;
+    }
     if (count > 0) {
       const g = await graphFuzz(neo);
       result.graph = g.summary;
