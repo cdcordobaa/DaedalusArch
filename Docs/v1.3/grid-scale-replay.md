@@ -97,6 +97,12 @@ before; on evaluates). Whether the loop harness's own live wiring (`main.ts`) sh
 `cypher-interp` loop is the author's decision; this branch does not change that wiring. `includeViolations` was dropped
 on the same path too; `v1.3` fixed that independently (`bba3cfc8`, merged in `cd0762c2`).
 
+> **Correction, 2026-10-16 (post-merge review item 4).** The `EvaluateDeps.interpTsconfig` opt-in described above no
+> longer exists. Since `89c9b5b3` (loop harness correctness before Study 2) `evaluate_project` on `cypher-interp`
+> always threads `tsconfigPath` and keys its cache on it, so the pass-through is the default and there is no flag to
+> turn on. The loop's live wiring names the pinned harness tsconfig for every snapshot (`harnessSnapshotTsconfig`,
+> R01). The paragraph above describes this branch as it was written, not the current code.
+
 **F2, not fixed (proposal).** An evaluator that fails on every snapshot does not stop or warn the grid: by design the
 loop records the error on the snapshot and goes on (`loop.ts` header). At Study 2 scale a misconfigured evaluator
 (F1 was one) would burn the whole grid with no outcome. Proposal for the author: the grid summary counts
