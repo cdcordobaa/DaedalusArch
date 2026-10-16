@@ -1535,6 +1535,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 
 ---
 
+## v1.3 — judge v2.2 and CHECK-2 preparation (scheduled task)
+**Timestamp**: 2026-10-16T02:30:00Z
+**User Input**: "(scheduled task) Implement judge v2.2 as a new selectable version (style and allowed dependencies in the prompt; domain I/O clause scoped to direct clients; constructor-wiring exemption for any allowed layer) with v1 and v2.1 unchanged; build a fresh CHECK-2 set (≥6 layered bases plus clean, NestJS, hexagonal and DDD; FRAMEWORK-LEAK, PERSIST-IN-DOMAIN, REPO-BYPASS and LOGIC-IN-CONTROLLER seeds with paired twins from the existing operators); commit manifest and split before any run; a one-command local runner (v1 and v2.2, 3 runs, majority, cassettes, budget printed first); a plan doc with the decision rule fixed in advance. No judge or LLM call."
+**AI Response**: "Branch v1.3-judge-v22-prep from origin/v1.3-judge-v2 (origin/v1.3 lacks the judge-v2 code). judge-v22.ts and context-v22.ts; --judge-version v2.2; v1 and v2.1 prompts byte-identical (hash test). Ten new bases in tests/fixtures/v1.3-check2 (written for CHECK-2, no comments in sources); 40 seeds and 40 twins from the unchanged AP operators and MO-DF01; manifest, split and harvested prompts committed; runner scripts/v1.3/judge-v22-check2-local.sh; plan Docs/v1.3/judge-v22-plan.md. Mock evaluations only (local Neo4j, mock provider). The AI-DLC approval gates were not run interactively: scheduled task with no one present; the work is code, tests, fixtures and a plan document, and the open choice (running the judge) is left to the author."
+**Context**: v1.3 development (judge v2.2). No judge call; no registered artefact touched.
 ## v1.3 threats register, role separation, seed floor (scheduled task, documentation only)
 **Timestamp**: 2026-10-16T00:00:00Z
 **User Input**: "(scheduled task) Write a full v1.3 threats-to-validity register, a role-separation plan before the hold-out run, and a seed-floor plan; list cross-document number inconsistencies; no code changes, no re-scoring, no sealed directory opened."
