@@ -8,8 +8,8 @@
  *   --dry-run          report every precondition; write nothing; the engine probe is optional (skipped without
  *                      --probe-engine). Before the freeze most checks are UNMET by design.
  *   (default, strict)  the same checks; the engine probe is required (NEO4J_URI, NEO4J_PASSWORD).
- *   --write-manifest   write the manifest to --manifest (runbook step 6) instead of comparing with it.
- *   --run-tests        run the full jest suite (--maxWorkers=2) and write its summary to --tests (runbook step 5).
+ *   --write-manifest   write the manifest to --manifest (runbook step 7) instead of comparing with it.
+ *   --run-tests        run the full jest suite (--maxWorkers=2) and write its summary to --tests (runbook step 4).
  * Options: --commit <sha> (the freeze commit X; default HEAD)  --answers <file>  --manifest <file>  --tests <file>
  *   --probe-engine  --json
  * Exit codes: 0 every precondition met, 1 a precondition unmet, 2 usage or environment.
@@ -144,7 +144,7 @@ export function sealedRows(text: string): Map<string, string> {
   return out;
 }
 
-/** The rows the freeze adds to sealed-hashes.md (runbook step 7). */
+/** The rows the freeze adds to sealed-hashes.md (runbook step 8). */
 export const FREEZE_ROWS = {
   commit: 'v1.3 freeze commit X (tool)',
   prespec: `${PRESPEC} (frozen)`,
