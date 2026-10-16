@@ -244,7 +244,7 @@ export function runRows(runs: readonly LoadedRun[], o: Pick<AnalysisOptions, 'mi
     const tc = rows.map((s) => s.typecheckErrors).filter((x): x is number => x !== null);
     // Memo §3 count: identities first seen at step 2..k (earlier repair turns count as seen); null when a step lacks
     // an evaluation, since a finding could then be first seen on the unevaluated step.
-    const newIds = steps.length === 0 || rows.some((s) => s.evaluationError) ? null : runOutcomes(steps).newBlocking.reduce((a, x) => a + x.count, 0);
+    const newIds = steps.length === 0 || rows.some((s) => s.evaluationError) ? null : runOutcomes(steps).newBlockingTotal;
     const metrics: Record<MetricId, number | null> = {
       blockingSlope: slope((s) => s.blocking),
       blockingPerKlocSlope: slope(perKloc((s) => s.blocking)),

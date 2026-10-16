@@ -27,15 +27,15 @@ Seed 20261016. Planned design: 6 tasks × 3 models × 3 replicates × 3 arms, k 
 | expected | daedalus-mcp − none: estimate has the planted sign (less erosion) | PASS | estimate -0.632 |
 | expected | daedalus-mcp − none: 95% CI of the relative reduction covers the planted reduction | PASS | planted 0.250, estimate 0.542, CI [-0.104, 0.770] |
 | floor | switch rule: pilot primary outcome is zero → pre-committed fallback triggered | PASS | Pilot memo §3: the primary outcome is ZERO (no new blocking finding after step 1 in any of 3 tasks). Per memo §5 the PRE-COMMITTED FALLBACK applies: the Study 2 primary outcome moves to the advisory-tier erosion rate (per-run slope of advisory findings per KLOC, FF-CV05 excluded). |
-| floor | primary outcome moved to the advisory-tier erosion rate | PASS | advisoryTotalPerKlocSlope |
+| floor | primary outcome moved to the advisory-tier erosion rate | PASS | advisoryExclCv05PerKlocSlope |
 | floor | the report says so (statement names the fallback) | PASS | T1 of report.md |
-| floor | v1.3 format: the report says the defined fallback is NOT computable (no per-rule advisory counts) | PASS | The memo §5 fallback outcome (advisory per KLOC WITHOUT FF-CV05) is NOT computable from these step records: the v1.3 `StepEvaluation` has only `advisoryViolationCount`, no per-rule advisory counts (readiness gate S6; PR #142 proposes `advisoryByRule`). The table below uses ALL advisory rules, FF-CV05 included, as a labelled surrogate; it is not the pre-committed outcome. |
-| floor-advisory-by-rule | switch rule: pilot primary outcome is zero → pre-committed fallback triggered | PASS | Pilot memo §3: the primary outcome is ZERO (no new blocking finding after step 1 in any of 3 tasks). Per memo §5 the PRE-COMMITTED FALLBACK applies: the Study 2 primary outcome moves to the advisory-tier erosion rate (per-run slope of advisory findings per KLOC, FF-CV05 excluded). |
-| floor-advisory-by-rule | primary outcome moved to the advisory-tier erosion rate | PASS | advisoryExclCv05PerKlocSlope |
-| floor-advisory-by-rule | the report says so (statement names the fallback) | PASS | T1 of report.md |
-| floor-advisory-by-rule | fallback outcome computed as defined (FF-CV05 excluded) | PASS | advisoryByRule present on every evaluated step |
-| floor-advisory-by-rule | gate − none: 95% CI of the mean slope difference covers the generating value | PASS | truth -0.100, estimate 0.173, CI [-0.547, 0.851] |
-| floor-advisory-by-rule | daedalus-mcp − none: 95% CI of the mean slope difference covers the generating value | PASS | truth -0.018, estimate 0.033, CI [-0.896, 0.790] |
+| floor | fallback outcome computed as defined (FF-CV05 excluded) | PASS | advisoryByRule present on every evaluated step |
+| floor | gate − none: 95% CI of the mean slope difference covers the generating value | PASS | truth -0.100, estimate 0.173, CI [-0.547, 0.851] |
+| floor | daedalus-mcp − none: 95% CI of the mean slope difference covers the generating value | PASS | truth -0.018, estimate 0.033, CI [-0.896, 0.790] |
+| floor-pre-142 | switch rule: pilot primary outcome is zero → pre-committed fallback triggered | PASS | Pilot memo §3: the primary outcome is ZERO (no new blocking finding after step 1 in any of 3 tasks). Per memo §5 the PRE-COMMITTED FALLBACK applies: the Study 2 primary outcome moves to the advisory-tier erosion rate (per-run slope of advisory findings per KLOC, FF-CV05 excluded). |
+| floor-pre-142 | primary outcome moved to the advisory-tier erosion rate | PASS | advisoryTotalPerKlocSlope |
+| floor-pre-142 | the report says so (statement names the fallback) | PASS | T1 of report.md |
+| floor-pre-142 | pre-#142 records: the report says the defined fallback is NOT computable (no per-rule advisory counts) | PASS | The memo §5 fallback outcome (advisory per KLOC WITHOUT FF-CV05) is NOT computable from these step records: these records carry only `advisoryViolationCount`, no `advisoryByRule` (records written before PR #142, or by an evaluator that omits it; readiness gate S6). The table below uses ALL advisory rules, FF-CV05 included, as a labelled surrogate; it is not the pre-committed outcome. |
 
 ## Power at the planned N (power simulation, design B, 400 simulated studies, block-level sign-flip, Holm)
 
@@ -45,6 +45,19 @@ Seed 20261016. Planned design: 6 tasks × 3 models × 3 replicates × 3 arms, k 
 | small | blocking | 0.09 | 0.04 | 0.11 | 0.03 |
 | expected | blocking | 0.54 | 0.17 | 0.55 | 0.03 |
 | floor | advisory-per-kloc | 0.05 | 0.02 | 0.06 | 0.03 |
+
+## Monte Carlo seed sensitivity (scenario expected, data seed 20261016, analysis seeds 1–8, 9999 flips)
+
+| Analysis seed | gate Holm p | gate rejected | mcp Holm p | mcp rejected |
+|---|---|---|---|---|
+| 1 | 0.0086 | yes | 0.0526 | no |
+| 2 | 0.0068 | yes | 0.0461 | yes |
+| 3 | 0.0058 | yes | 0.0504 | no |
+| 4 | 0.0076 | yes | 0.0500 | yes |
+| 5 | 0.0074 | yes | 0.0494 | yes |
+| 6 | 0.0088 | yes | 0.0516 | no |
+| 7 | 0.0068 | yes | 0.0500 | yes |
+| 8 | 0.0062 | yes | 0.0494 | yes |
 
 ## Calibration per scale and inference method (plan mode; 200 synthetic studies per scenario; 999 resamples, 1999 flips; exact sign-flip at ≤ 20 units)
 
@@ -64,8 +77,8 @@ Rates over the simulated studies. Under `null` every rate is the test size. Cove
 | expected | raw | daedalus-mcp − none | 0.21 | 0.23 | 0.13 | 0.11 | 0.98 |
 | expected | perKloc | gate − none | 0.28 | 0.37 | 0.20 | 0.17 | n/a |
 | expected | perKloc | daedalus-mcp − none | 0.10 | 0.13 | 0.07 | 0.07 | n/a |
-| floor | advisory | gate − none | 0.04 | 0.04 | 0.01 | 0.04 | 0.99 |
-| floor | advisory | daedalus-mcp − none | 0.03 | 0.04 | 0.02 | 0.02 | 0.97 |
+| floor | advisory | gate − none | 0.04 | 0.05 | 0.02 | 0.04 | 0.99 |
+| floor | advisory | daedalus-mcp − none | 0.03 | 0.05 | 0.03 | 0.04 | 0.97 |
 
 ## Decision stability across 10 seeds (scenario null; seeds 20261016..20261025; same data)
 

@@ -5,7 +5,7 @@
   {
    "id": "null",
    "label": "no effect",
-   "advisoryByRule": false,
+   "advisoryByRule": true,
    "checks": [
     {
      "name": "switch rule: pilot shows erosion → primary stays blocking",
@@ -42,7 +42,7 @@
   {
    "id": "small",
    "label": "small effect (gate 0.2, mcp 0.1)",
-   "advisoryByRule": false,
+   "advisoryByRule": true,
    "checks": [
     {
      "name": "switch rule: pilot shows erosion → primary stays blocking",
@@ -84,7 +84,7 @@
   {
    "id": "expected",
    "label": "expected effect (gate halves the slope, mcp quarters it)",
-   "advisoryByRule": false,
+   "advisoryByRule": true,
    "checks": [
     {
      "name": "switch rule: pilot shows erosion → primary stays blocking",
@@ -126,33 +126,6 @@
   {
    "id": "floor",
    "label": "floor: zero blocking findings everywhere; expected effect on the advisory rules",
-   "advisoryByRule": false,
-   "checks": [
-    {
-     "name": "switch rule: pilot primary outcome is zero → pre-committed fallback triggered",
-     "pass": true,
-     "detail": "Pilot memo §3: the primary outcome is ZERO (no new blocking finding after step 1 in any of 3 tasks). Per memo §5 the PRE-COMMITTED FALLBACK applies: the Study 2 primary outcome moves to the advisory-tier erosion rate (per-run slope of advisory findings per KLOC, FF-CV05 excluded)."
-    },
-    {
-     "name": "primary outcome moved to the advisory-tier erosion rate",
-     "pass": true,
-     "detail": "advisoryTotalPerKlocSlope"
-    },
-    {
-     "name": "the report says so (statement names the fallback)",
-     "pass": true,
-     "detail": "T1 of report.md"
-    },
-    {
-     "name": "v1.3 format: the report says the defined fallback is NOT computable (no per-rule advisory counts)",
-     "pass": true,
-     "detail": "The memo §5 fallback outcome (advisory per KLOC WITHOUT FF-CV05) is NOT computable from these step records: the v1.3 `StepEvaluation` has only `advisoryViolationCount`, no per-rule advisory counts (readiness gate S6; PR #142 proposes `advisoryByRule`). The table below uses ALL advisory rules, FF-CV05 included, as a labelled surrogate; it is not the pre-committed outcome."
-    }
-   ]
-  },
-  {
-   "id": "floor-advisory-by-rule",
-   "label": "floor: zero blocking findings everywhere; expected effect on the advisory rules",
    "advisoryByRule": true,
    "checks": [
     {
@@ -184,6 +157,33 @@
      "name": "daedalus-mcp − none: 95% CI of the mean slope difference covers the generating value",
      "pass": true,
      "detail": "truth -0.018, estimate 0.033, CI [-0.896, 0.790]"
+    }
+   ]
+  },
+  {
+   "id": "floor-pre-142",
+   "label": "floor: zero blocking findings everywhere; expected effect on the advisory rules",
+   "advisoryByRule": false,
+   "checks": [
+    {
+     "name": "switch rule: pilot primary outcome is zero → pre-committed fallback triggered",
+     "pass": true,
+     "detail": "Pilot memo §3: the primary outcome is ZERO (no new blocking finding after step 1 in any of 3 tasks). Per memo §5 the PRE-COMMITTED FALLBACK applies: the Study 2 primary outcome moves to the advisory-tier erosion rate (per-run slope of advisory findings per KLOC, FF-CV05 excluded)."
+    },
+    {
+     "name": "primary outcome moved to the advisory-tier erosion rate",
+     "pass": true,
+     "detail": "advisoryTotalPerKlocSlope"
+    },
+    {
+     "name": "the report says so (statement names the fallback)",
+     "pass": true,
+     "detail": "T1 of report.md"
+    },
+    {
+     "name": "pre-#142 records: the report says the defined fallback is NOT computable (no per-rule advisory counts)",
+     "pass": true,
+     "detail": "The memo §5 fallback outcome (advisory per KLOC WITHOUT FF-CV05) is NOT computable from these step records: these records carry only `advisoryViolationCount`, no `advisoryByRule` (records written before PR #142, or by an evaluator that omits it; readiness gate S6). The table below uses ALL advisory rules, FF-CV05 included, as a labelled surrogate; it is not the pre-committed outcome."
     }
    ]
   }
@@ -223,6 +223,144 @@
   }
  ],
  "calibration": [],
+ "seedSensitivity": [
+  {
+   "analysisSeed": 1,
+   "contrasts": [
+    {
+     "arm": "gate",
+     "p": 0.0043,
+     "holmP": 0.0086,
+     "reject": true
+    },
+    {
+     "arm": "daedalus-mcp",
+     "p": 0.0526,
+     "holmP": 0.0526,
+     "reject": false
+    }
+   ]
+  },
+  {
+   "analysisSeed": 2,
+   "contrasts": [
+    {
+     "arm": "gate",
+     "p": 0.0034,
+     "holmP": 0.0068,
+     "reject": true
+    },
+    {
+     "arm": "daedalus-mcp",
+     "p": 0.0461,
+     "holmP": 0.0461,
+     "reject": true
+    }
+   ]
+  },
+  {
+   "analysisSeed": 3,
+   "contrasts": [
+    {
+     "arm": "gate",
+     "p": 0.0029,
+     "holmP": 0.0058,
+     "reject": true
+    },
+    {
+     "arm": "daedalus-mcp",
+     "p": 0.0504,
+     "holmP": 0.0504,
+     "reject": false
+    }
+   ]
+  },
+  {
+   "analysisSeed": 4,
+   "contrasts": [
+    {
+     "arm": "gate",
+     "p": 0.0038,
+     "holmP": 0.0076,
+     "reject": true
+    },
+    {
+     "arm": "daedalus-mcp",
+     "p": 0.05,
+     "holmP": 0.05,
+     "reject": true
+    }
+   ]
+  },
+  {
+   "analysisSeed": 5,
+   "contrasts": [
+    {
+     "arm": "gate",
+     "p": 0.0037,
+     "holmP": 0.0074,
+     "reject": true
+    },
+    {
+     "arm": "daedalus-mcp",
+     "p": 0.0494,
+     "holmP": 0.0494,
+     "reject": true
+    }
+   ]
+  },
+  {
+   "analysisSeed": 6,
+   "contrasts": [
+    {
+     "arm": "gate",
+     "p": 0.0044,
+     "holmP": 0.0088,
+     "reject": true
+    },
+    {
+     "arm": "daedalus-mcp",
+     "p": 0.0516,
+     "holmP": 0.0516,
+     "reject": false
+    }
+   ]
+  },
+  {
+   "analysisSeed": 7,
+   "contrasts": [
+    {
+     "arm": "gate",
+     "p": 0.0034,
+     "holmP": 0.0068,
+     "reject": true
+    },
+    {
+     "arm": "daedalus-mcp",
+     "p": 0.05,
+     "holmP": 0.05,
+     "reject": true
+    }
+   ]
+  },
+  {
+   "analysisSeed": 8,
+   "contrasts": [
+    {
+     "arm": "gate",
+     "p": 0.0031,
+     "holmP": 0.0062,
+     "reject": true
+    },
+    {
+     "arm": "daedalus-mcp",
+     "p": 0.0494,
+     "holmP": 0.0494,
+     "reject": true
+    }
+   ]
+  }
+ ],
  "plan": {
   "schema": "study2-analysis-plan/v0-tooling",
   "seed": 20261016,
@@ -379,18 +517,18 @@
    "arms": [
     {
      "arm": "gate",
-     "signFlipHolm": 0.035,
-     "signFlipUnadjusted": 0.045,
-     "bootstrap": 0.01,
-     "disagree": 0.045,
+     "signFlipHolm": 0.04,
+     "signFlipUnadjusted": 0.05,
+     "bootstrap": 0.02,
+     "disagree": 0.04,
      "cover": 0.995
     },
     {
      "arm": "daedalus-mcp",
-     "signFlipHolm": 0.025,
-     "signFlipUnadjusted": 0.04,
-     "bootstrap": 0.02,
-     "disagree": 0.02,
+     "signFlipHolm": 0.03,
+     "signFlipUnadjusted": 0.05,
+     "bootstrap": 0.025,
+     "disagree": 0.035,
      "cover": 0.97
     }
    ]

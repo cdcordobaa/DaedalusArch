@@ -73,7 +73,7 @@ try {
     const loaded = loadOutRoot(path.join(dir, 'study2'));
     const decision = pilotSwitch(loadOutRoot(path.join(dir, 'pilot')).runs, null);
     const report = analyse(loaded.runs, loaded.scheduled, decision, aOpts);
-    if (plan !== undefined && !byRule && (s.id === 'null' || s.id === 'expected')) {
+    if (plan !== undefined && id === s.id && (s.id === 'null' || s.id === 'expected')) {
       stability.push({ scenario: s.id, rows: seedStability(loaded.runs, loaded.scheduled, decision, aOpts, Array.from({ length: stabilitySeeds }, (_, i) => plan.seed + i)) });
     }
     const checks = scenarioChecks(s, report, study.truth, byRule);

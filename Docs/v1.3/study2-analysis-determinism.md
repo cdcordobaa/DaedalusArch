@@ -96,6 +96,15 @@ What the numbers say (synthetic; exploratory; nothing here is a finding about ag
 5. `newIdentitiesFromStep2` drops runs with any unevaluated step (44 of 54 blocks in `expected`), because a finding
    could first appear on the unevaluated step. That rule is a choice taken under delegation and is listed in the PR.
 
+### Rebase onto v1.3 after #160 merged (2026-10-16, 14:30 UTC)
+
+#160 landed in `v1.3` with changes of its own: the generator now writes `advisoryByRule` by default, the old records
+are the `floor-pre-142` variant, and the rehearsal prints a seed-sensitivity table. The A1 commits were replayed on
+top. Results regenerated: every `null`, `small` and `expected` number above is unchanged; the `floor` scenario now
+computes the memo §5 fallback as defined (Holm sign-flip rejects 0.04 / 0.03, bootstrap 0.02 / 0.03 over 200
+studies). P6 re-checked against the committed `v1.3` rehearsal: byte-identical. `newIdentitiesFromStep2` now takes
+the run total from `pilot-metrics.ts` (`newBlockingTotal`), still null for a run with any unevaluated step.
+
 ## 4. Not done
 
 - No author slot was filled; no A-item was decided (`study2-analysis-rehearsal.md` §5b marks which are now mechanical).
