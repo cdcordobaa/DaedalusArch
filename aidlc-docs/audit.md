@@ -1500,3 +1500,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 evidence unit outside the study stages; exploratory, no labels.
 
 ---
+
+## v1.3 EVIDENCE — validity fixes mined: results
+**Timestamp**: 2026-10-16T06:30:00Z
+**User Input**: (none; scheduled task continued)
+**AI Response**: "36 histories walked (7,904 snapshots; 5,175 live cycle-parity checks, 0 mismatches). Report Docs/DiagnosticRuns/v1.3-validity-fixes-mined-2026-10-16.md. Verdict: no robust validity signal. Pooled blocking removal rate 2.65x the unflagged cross-layer baseline, but 48 of 74 credited removals are one amplication commit (PR #93, import/no-cycle lint); without it 0.93, per commit 1.00, sign test 6/21 repositories. Dependency-direction rules are removed less often than baseline (FF-S01 0.65x, FF-S03 layered 0.38x, FF-S04 0); FF-S02 cycles 14.6x raw, about 3.9x length-adjusted, 2.7x without the one commit. Only 14 blocking fix commits exist (task asked for 20; all 14 listed). Sensitivity rows labelled post hoc."
+**Context**: v1.3 evidence unit; PR into v1.3, not merged.
+
+---

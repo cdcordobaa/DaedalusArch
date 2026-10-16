@@ -127,13 +127,20 @@ function aggregateRepo(id: string, style: string, pairs: readonly PairRecord[]):
   return a;
 }
 
-function survival(lin: readonly Lineage[], grid: readonly { date: string }[], pick: (l: Lineage) => boolean): { obs: SurvivalObs[]; inPlace: number; ended: number } {
+/**
+ * Kaplan-Meier inputs from the grid lineages. `truncated[i]`: grid snapshot i holds the FF-S02 row cap (100 cycles); a
+ * FF-S02 lineage whose birth or end touches such a snapshot (or the one before) is dropped, since a capped list can gain
+ * or lose a cycle without the code changing (the pair-level rule of protocol.md, applied to the grid).
+ */
+function survival(lin: readonly Lineage[], grid: readonly { date: string }[], pick: (l: Lineage) => boolean, truncated: readonly boolean[]): { obs: SurvivalObs[]; inPlace: number; ended: number } {
   const last = grid.at(-1)?.date ?? '';
+  const capped = (i: number): boolean => truncated[i] === true || truncated[i - 1] === true;
   const obs: SurvivalObs[] = [];
   let inPlace = 0;
   let ended = 0;
   for (const l of lin) {
     if (l.born === 0 || !pick(l)) continue;
+    if (l.functionId === 'FF-S02' && (capped(l.born) || (l.ended !== null && capped(l.ended)))) continue;
     const b = grid[l.born]?.date;
     if (b === undefined) continue;
     if (l.ended !== null) {
@@ -159,6 +166,8 @@ function main(): void {
     pairsBy.set(e.id, pairs);
     linBy.set(e.id, readGz(path.join(dir, 'lineages.json.gz')));
   }
+  const truncBy = new Map<string, boolean[]>();
+  for (const [id, ps] of pairsBy) truncBy.set(id, ps.map((p) => (p.childByRule['FF-S02'] ?? 0) >= S02_CAP));
   const aggs = have.map((e) => aggregateRepo(e.id, e.style, pairsBy.get(e.id) ?? []));
   const long = new Set(have.filter((e) => (walkBy.get(e.id)?.firstParentCommitsTouchingRoot ?? 0) >= 300).map((e) => e.id));
 
@@ -264,8 +273,8 @@ function main(): void {
   // Survival per rule, pooled over repositories.
   const survBy = (pick: (l: Lineage) => boolean): { obs: SurvivalObs[]; inPlace: number; ended: number } => {
     const out = { obs: [] as SurvivalObs[], inPlace: 0, ended: 0 };
-    for (const [, g] of linBy) {
-      const s = survival(g.lineages, g.grid, pick);
+    for (const [id, g] of linBy) {
+      const s = survival(g.lineages, g.grid, pick, truncBy.get(id) ?? []);
       out.obs.push(...s.obs); out.inPlace += s.inPlace; out.ended += s.ended;
     }
     return out;
@@ -292,6 +301,8 @@ function main(): void {
   const survRows: unknown[] = [];
   const sg: [string, (l: Lineage) => boolean][] = [
     ['blocking, edge-shaped findings', (l) => l.kind === 'finding' && l.tier === 'blocking' && l.edgeShaped === true],
+    ['blocking, edge-shaped, without FF-S02 cycles', (l) => l.kind === 'finding' && l.tier === 'blocking' && l.edgeShaped === true && l.functionId !== 'FF-S02'],
+    ['blocking FF-S02 cycles only', (l) => l.kind === 'finding' && l.functionId === 'FF-S02'],
     ['advisory, edge-shaped findings', (l) => l.kind === 'finding' && l.tier === 'advisory' && l.edgeShaped === true],
     ['advisory, file-level findings', (l) => l.kind === 'finding' && l.tier === 'advisory' && l.edgeShaped !== true],
     ['unflagged cross-layer import edges', (l) => l.kind === 'edge' && l.edgeKind === 'crossLayer'],
@@ -306,6 +317,89 @@ function main(): void {
   }
   summary.survival = survRows;
   lines.push('');
+
+  // ── Sensitivity (post hoc; not in protocol.md): clustering by commit, cycles, one repository at a time ──
+  {
+    interface Ev { repo: string; sha: string; rule: string }
+    const evs: Ev[] = [];
+    for (const e of have) {
+      for (const p of pairsBy.get(e.id) ?? []) {
+        if (!p.parentOk || !p.childOk) continue;
+        const trunc = (p.exposedByRule['FF-S02'] ?? 0) >= S02_CAP || (p.childByRule['FF-S02'] ?? 0) >= S02_CAP;
+        for (const f of p.disappeared) {
+          if (f.cause !== FIX || !f.edgeShaped || ruleTier(f.functionId, e.style).tier !== 'blocking' || (f.functionId === 'FF-S02' && trunc)) continue;
+          evs.push({ repo: e.id, sha: p.sha, rule: f.functionId });
+        }
+      }
+    }
+    const expBy = (pred: (rule: string) => boolean, repos: readonly RepoAgg[]): number => {
+      let n = 0;
+      for (const a of repos) for (const [k, r] of a.byRule) if (r.tier === 'blocking' && pred(k.split(' ')[0] ?? k)) n += r.edgeExposed;
+      return n;
+    };
+    const baseOf = (repos: readonly RepoAgg[]): { exposed: number; fixed: number } => sum(repos, (a) => a.base.crossLayer);
+    const byCommit = new Map<string, number>();
+    for (const x of evs) byCommit.set(`${x.repo}:${x.sha}`, (byCommit.get(`${x.repo}:${x.sha}`) ?? 0) + 1);
+    const top = [...byCommit].sort((a, b) => b[1] - a[1])[0];
+    const rows: [string, number, number, { exposed: number; fixed: number }][] = [];
+    const b0 = baseOf(aggs);
+    rows.push(['primary: all blocking edge-shaped', evs.length, expBy(() => true, aggs), b0]);
+    rows.push(['without FF-S02 (cycles)', evs.filter((x) => x.rule !== 'FF-S02').length, expBy((r) => r !== 'FF-S02', aggs), b0]);
+    rows.push(['FF-S02 only', evs.filter((x) => x.rule === 'FF-S02').length, expBy((r) => r === 'FF-S02', aggs), b0]);
+    if (top !== undefined) rows.push([`without the largest fix commit (${top[0].replace(':', ' ').slice(0, 40)}, ${String(top[1])} findings)`, evs.length - top[1], expBy(() => true, aggs), b0]);
+    if (top !== undefined) {
+      const topS02 = evs.filter((x) => x.rule === 'FF-S02' && `${x.repo}:${x.sha}` === top[0]).length;
+      rows.push(['FF-S02 without the largest fix commit', evs.filter((x) => x.rule === 'FF-S02').length - topS02, expBy((r) => r === 'FF-S02', aggs), b0]);
+    }
+    rows.push(['one credit per fix commit (distinct commits / exposures)', byCommit.size, expBy(() => true, aggs), { exposed: b0.exposed, fixed: sum(aggs, (a) => a.base.crossLayer).fixCommits }]);
+    lines.push('## Sensitivity (post hoc)', '', 'Not in protocol.md: added after the pooled ratio turned out to rest on few commits. Baseline: unflagged cross-layer import edges (for the per-commit row, distinct commits that removed at least one such edge).', '',
+      '| variant | credited | exposures | rate [Wilson 95%] | RR vs baseline [95%] |', '|---|---:|---:|---|---|');
+    const sensRows: unknown[] = [];
+    for (const [name, k, n, b] of rows) {
+      const rr = rateRatio(k, n, b.fixed, b.exposed);
+      lines.push(`| ${name} | ${String(k)} | ${String(n)} | ${ci(wilson(k, n))} | ${num(rr.p)} [${num(rr.lo)}, ${num(rr.hi)}] |`);
+      sensRows.push({ variant: name, credited: k, exposures: n, rate: wilson(k, n), rateRatio: rr });
+    }
+    // Leave one repository out.
+    const loo: { id: string; rr: number }[] = [];
+    for (const a of aggs) {
+      const rest = aggs.filter((x) => x.id !== a.id);
+      const k = evs.filter((x) => x.repo !== a.id).length;
+      const b = baseOf(rest);
+      loo.push({ id: a.id, rr: rateRatio(k, expBy(() => true, rest), b.fixed, b.exposed).p });
+    }
+    loo.sort((x, y) => x.rr - y.rr);
+    const lo = loo[0];
+    const hi = loo.at(-1);
+    if (lo !== undefined && hi !== undefined) lines.push('', `Leave one repository out: RR from ${num(lo.rr)} (without ${lo.id}) to ${num(hi.rr)} (without ${hi.id}).`);
+    // Cycle length: a cycle of L edges is credited when any one of them goes. Expected credit under a per-edge rate p.
+    let wsum = 0;
+    let lsum = 0;
+    const lens: number[] = [];
+    for (const [id, g] of linBy) {
+      const last = g.grid.length - 1;
+      const tr = truncBy.get(id) ?? [];
+      for (const l of g.lineages) {
+        if (l.functionId !== 'FF-S02') continue;
+        const L = (l.key.split('#cycle#')[1] ?? '').split('>').length;
+        let alive = 0;
+        for (let i = l.born; i <= (l.ended === null ? last : l.ended - 1); i++) if (tr[i] !== true) alive++;
+        wsum += alive; lsum += alive * L; lens.push(L);
+      }
+    }
+    const meanL = wsum > 0 ? lsum / wsum : Number.NaN;
+    const s02 = rows[2];
+    const pCross = b0.exposed > 0 ? b0.fixed / b0.exposed : Number.NaN;
+    const bAll = sum(aggs, (a) => a.base.all);
+    const pAll = bAll.exposed > 0 ? bAll.fixed / bAll.exposed : Number.NaN;
+    const exp = (p: number): number => 1 - (1 - p) ** meanL;
+    if (s02 !== undefined) {
+      const obsRate = s02[2] > 0 ? s02[1] / s02[2] : Number.NaN;
+      lines.push('', `Cycle length: exposure-weighted mean cycle length ${num(meanL)} files (median lineage ${String(median(lens))}). If each edge went at the per-edge baseline rate p, a cycle would be credited at about 1-(1-p)^L: ${pct(exp(pCross))} (cross-layer p) or ${pct(exp(pAll))} (all unflagged p), against the observed ${pct(obsRate)}; length-adjusted ratio ${num(obsRate / exp(pCross))} and ${num(obsRate / exp(pAll))}.`, '');
+      summary.cycleLength = { meanL, expectedCross: exp(pCross), expectedAll: exp(pAll), observed: obsRate };
+    }
+    summary.sensitivity = { rows: sensRows, leaveOneOut: loo, topCommit: top };
+  }
 
   // ── Examples: blocking FIXED-BY-DEV commits, spread over repositories and rules ──
   interface Ex { id: string; repo: string; sha: string; rule: string; file: string; target: string; message: string; arch: boolean; date: string }
@@ -335,7 +429,7 @@ function main(): void {
       if (x !== undefined) { picked.push(x); usedRules.add(x.rule); }
     }
   }
-  lines.push('## Example fix commits (blocking tier, FIXED-BY-DEV)', '', `${String(pool.length)} distinct commits in the pool; 20 shown, round-robin over repositories.`, '',
+  lines.push('## Example fix commits (blocking tier, FIXED-BY-DEV)', '', `${String(pool.length)} distinct commits in the pool; ${String(Math.min(20, pool.length))} shown, round-robin over repositories.`, '',
     '| # | repository | commit | date | rule | finding (file -> target) | commit message | arch words |', '|---:|---|---|---|---|---|---|---|');
   picked.forEach((x, i) => {
     const tgt = x.rule === 'FF-S02' ? `cycle ${x.file.split(',').length - 1} files` : x.target;
