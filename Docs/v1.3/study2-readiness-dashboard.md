@@ -5,7 +5,7 @@
 **Evidence base.**
 - Statuses were taken on `origin/v1.3` at `890a570c`, after merge train MT5 (11:20 to 11:48 UTC).
 - `Docs/v1.3/merge-train-mt5.md` does not exist. The MT5 contents were read from the GitHub PR list. Merged: #226, #218, #130, #230, #136, #146, #147, #187, #192, #194, #195, #227, #201, #169, #172, #177, #178, #149, #190, #154, #131, #155, #160 (and #219 at 11:04).
-- 52 PRs into `v1.3` are still open.
+- MT5 kept merging after the snapshot: #162, #165, #168, #175 and #179 landed by 12:00 (tip `a9773a46`). Only #175 moves a line (V11, still AMBER). 47 PRs into `v1.3` are still open.
 - Commands re-run for this dashboard at `890a570c` (cloud container, no model, no Neo4j):
   - `sha256sum` of the two sealed docs: both match;
   - `npx jest tests/unit/scripts/loop`: 4 suites, 53 tests, all passed;
@@ -153,7 +153,7 @@ Not asked here, because they do not block the run:
 | V8 | Per-snapshot coverage ≥ 0.95 for the view of record, pooled ≥ 0.98; import-kind counts per step; adjudication complete | #149 (default views 1.000/1.000 vs tsc on 15 repos), #131 (adjudication prep: 2,135 rows, `human_verdict` empty) | **RED**: no fidelity run on any loop snapshot; adjudication empty | v1.3 (#149, #131) | Rehearsal stage V8 (author); adjudication oracle per AD4 |
 | V9 | `check_file` / `check_diff` agree 100 % with the full evaluation on blocking findings, per Study 2 style | `Docs/v1.3/loop-replay.md:135-139` (gap); #176 (interp parity, hexagonal and DDD) | **RED**: the hexagonal and DDD rules are still missing from the MCP tools on `v1.3` | open #176 | Fix #176's 6 vs 7 row count, merge, run `mcp-consistency.ts` (agent) |
 | V10 [W for (b)] | (a) a non-Claude generator passes S4; (b) the external set labelled as its own arm; (c) the task writer does not run or score | #133 (external set), #204 (non-Claude manifest harness, no run) | **RED**: (a) has no adapter until Codex returns (about 11-09); (b) unlabelled; (c) no role matrix | open #133, #204 | AD5 (author); role matrix in the go commit (agent draft) |
-| V11 | Zero answer-bearing terms in every model- or rater-facing input; unsealer signs "clean" | #175 (leakage census, scrubbed copy); #174 (unsealer) | **AMBER**: the census exists but is not merged; the sealed tasks are not checkable from the repo | open #175, #174 | Merge #175 (agent); unsealer scan (author) |
+| V11 | Zero answer-bearing terms in every model- or rater-facing input; unsealer signs "clean" | #175 (leakage census, scrubbed copy); #174 (unsealer) | **AMBER**: the census and scrubbed-copy generator are on `v1.3` (#175, merged after MT5); the sealed tasks are not checkable from the repo | v1.3 (#175); open #174 | Run the scrubbed copy on rehearsal inputs (agent); unsealer scan (author) |
 
 ### 3.2 S: Study 1 incident controls
 
@@ -204,7 +204,7 @@ Not asked here, because they do not block the run:
 | R-02 | Pilot T1, DDD freezer (#170) | Freezer handles an empty aggregate list; pilot DDD re-scored with no new generation | #170; probe 3 (#227). Floor-escape §3.1 says "the T1 freezer fix is merged (#142)". That is inaccurate: #142 only rejects the spec cleanly at freeze, and probe 3 hit T1 after #142. | **RED** | open #170 | AD2 → fix on the development set (agent) |
 | R-03 | SO5 floor effect (gap plan SO5; floor-escape §1; G4) | A measurable primary outcome: ≥ 1.5 new distinct blocking edges per later step at k = 6 for slope power 0.80 (`study2-task-design.md` §5) | E1 0/65; pilot 0/8; probe 1: Hexagonal 0/14 steps, Layered set at step 1; probe 2 1/24; precedent 0/8; probe 3 0/8 | **RED**: task design alone did not lift it (#227) | v1.3 (#161, #201, #226, #227); open #170, #182, #189 | AD1 → amendment and the validation pilot under its pre-committed rule (agent + author) |
 | R-04 | Freeze F1–F14 (freeze runbook #164) | `freeze-check.ts` 14/14 OK | #164 dry run: 9/14 unmet (F1–F4, F8–F12) | **RED** | open #164 | AD8 (Q10) → merge #164 (agent); freeze (author) |
-| R-05 | Merge queue for gate-bearing PRs (hold-queue triage) | Every PR named in §3.1–§3.3 merged or rejected before the candidate run commit | 52 open; FIX-FIRST: #133, #188, #196, #203 | **RED** | — | AD8 → merge in the triage §4 order (agent) |
+| R-05 | Merge queue for gate-bearing PRs (hold-queue triage) | Every PR named in §3.1–§3.3 merged or rejected before the candidate run commit | 47 open; FIX-FIRST: #133, #188, #196, #203 | **RED** | — | AD8 → merge in the triage §4 order (agent) |
 | R-06 | #143 `hints` on the default MCP tools (night plan §6.8; HQ-Q1) | No agent-settable parameter on the default arm surface | Merged `dffb1db8` before its HOLD | **RED** | v1.3 | AD7 (author) → gate or revert (agent) |
 | R-07 | Dress rehearsal (`study2-dress-rehearsal.md`, #146) | Stages 1–23 pass at the candidate run commit; report `v1.3-study2-rehearsal-<date>.md` | Plan only; entry conditions §1.2 mostly unmet | **RED** | v1.3 (plan) | After §1 steps 1–10 (author) |
 | R-08 | Validation pilot (floor-escape §4) | Per style: mean distinct blocking edges at step 4 ≥ 1.5, ≥ 2/3 runs with Y ≥ 1, unmapped ≤ 10 %, 0 evaluation errors | Not run; prerequisites include a layered preset slot, a layered frame, L3/L4 slots and the attention sentence | **RED** | v1.3 (design) | If AD1 = B: agent builds the prerequisites, author runs 36 turns |
@@ -228,7 +228,6 @@ Not asked here, because they do not block the run:
 | #176 MCP interp parity | V1 (job) | V9 | MERGE-NOW |
 | #173 tunables manifest | T1 | S11 | MERGE-NOW |
 | #174 unsealer | T2 | S14, V11, D2 | HQ-Q11 |
-| #175 leakage census | L1 | V11 | MERGE-NOW |
 | #196 MCP call log | S3 | D6 | FIX-FIRST |
 | #197 snapshot measures | D1 (job) | D13, D16 | MERGE-NOW |
 | #200 acceptance runner | D2 (job) | D12 | MERGE-NOW |
