@@ -114,8 +114,8 @@ function* filter(rows: Iterable<Row>, where: Expr, ctx: Ctx): Generator<Row> {
 function predicateHolds(where: Expr | undefined, row: Row, ctx: Ctx, pending?: CypherRuntimeError): boolean {
   let err = pending;
   const cs = conjuncts(where);
-  for (let i = 0; i < cs.length; i++) {
-    const ok = tryPredicate(cs[i] as Expr, row, ctx);
+  for (const [i, c0] of cs.entries()) {
+    const ok = tryPredicate(c0, row, ctx);
     if (ok === false) {
       if (err !== undefined) suppress(err);
       if (evalDiagnostics.enabled) {
