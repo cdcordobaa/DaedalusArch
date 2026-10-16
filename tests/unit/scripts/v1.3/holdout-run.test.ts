@@ -10,7 +10,7 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import {
-  FROZEN_PATHS, checkStructure, dependencyCheck, determinismDiff, freezeCheck, holdoutMain, locationProblems, parseHoldoutArgs, treeSha256,
+  FROZEN_PATHS, checkStructure, dependencyCheck, determinismDiff, freezeCheck, holdoutMain, locationProblems, parseHoldoutArgs, sealedTreeSha256, treeSha256,
 } from '../../../../scripts/v1.3/lib/holdout-run-main.js';
 import type { GitRunner, NodeSpawner } from '../../../../scripts/v1.3/lib/holdout-run-main.js';
 import { applyRuleIdMap, loadReference, loadRuleIdMap } from '../../../../scripts/v1.3/lib/reference-model.js';
@@ -59,6 +59,9 @@ describe('parseHoldoutArgs', () => {
     expect(parseHoldoutArgs(['--holdout', 'h', '--out', 'o'])).toMatch(/--commit/);
     expect(parseHoldoutArgs(['--holdout', 'h', '--commit', 'x'])).toMatch(/--out/);
     expect(parseHoldoutArgs(['--commit', 'x'])).toMatch(/--holdout/);
+    expect(parseHoldoutArgs(['--dry-run', '--holdout', 'h'])).toMatchObject({ engine: 'neo4j' });
+    expect(parseHoldoutArgs(['--dry-run', '--holdout', 'h', '--engine', 'cypher-interp'])).toMatchObject({ engine: 'cypher-interp' });
+    expect(parseHoldoutArgs(['--dry-run', '--holdout', 'h', '--engine', 'memory'])).toMatch(/--engine takes/);
     expect(parseHoldoutArgs(['--holdout', 'h', '--commit', 'x', '--out', 'o', '--from-raw', 'r', '--deferred', 'FF-DS01', '--no-correctness', '--style', 'ddd'])).toMatchObject({
       mode: 'from-raw', fromRaw: 'r', deferred: ['FF-DS01'], correctness: false, styles: ['ddd'],
     });
@@ -86,6 +89,24 @@ describe('location and tree hash', () => {
     fs.writeFileSync(path.join(d, 'b', 'c.json'), '{}\n');
     const shell = execSync('(find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum) | sha256sum', { cwd: d, encoding: 'utf8' }).split(' ')[0];
     expect(treeSha256(d)).toEqual({ sha256: shell, files: 2 });
+  });
+
+  it('also hashes the tree as sealed-hashes.md does (from the parent, files named <dir>/<path>), a different value', () => {
+    const d = path.join(tmp, 'v1.3-holdout');
+    fs.mkdirSync(path.join(d, 'b'), { recursive: true });
+    fs.writeFileSync(path.join(d, 'a.txt'), 'one\n');
+    fs.writeFileSync(path.join(d, 'b', 'c.json'), '{}\n');
+    const shell = execSync('find v1.3-holdout -type f | LC_ALL=C sort | xargs sha256sum | sha256sum', { cwd: tmp, encoding: 'utf8' }).split(' ')[0];
+    expect(sealedTreeSha256(d)).toBe(shell);
+    expect(sealedTreeSha256(d)).not.toBe(treeSha256(d).sha256);
+    // Each option checks its own method only: --expect-sha256 the runner hash, --expect-sealed-sha256 the sealed one.
+    const hashProblems = (o: { expectSha256?: string; expectSealedSha256?: string }): string[] =>
+      checkStructure(ROOT, { holdout: d, standIn: false, deferred: [], ...o }).problems.filter((p) => p.includes('expect-'));
+    expect(hashProblems({ expectSealedSha256: shell ?? '' })).toEqual([]);
+    expect(hashProblems({ expectSha256: treeSha256(d).sha256, expectSealedSha256: shell ?? '' })).toEqual([]);
+    expect(hashProblems({ expectSha256: shell ?? '' })[0]).toMatch(/does not match --expect-sha256/);
+    expect(hashProblems({ expectSealedSha256: treeSha256(d).sha256 })[0]).toMatch(/does not match --expect-sealed-sha256/);
+    expect(parseHoldoutArgs(['--holdout', 'h', '--dry-run', '--expect-sealed-sha256', 'abc'])).toMatch(/64 hex/);
   });
 });
 
@@ -277,6 +298,15 @@ describe('holdoutMain', () => {
     t = io();
     expect(await holdoutMain(['--holdout', h, '--commit', 'HEAD', '--out', out], ROOT, t.io, { git: cleanGit, spawnNode })).toBe(1);
     expect(t.err.join('')).toMatch(/run once/);
+
+    // The engine cross-check: no Neo4j needed, the engine is passed on, and every output is headed as a cross-check.
+    const out2 = path.join(tmp, 'interp');
+    calls.length = 0;
+    t = io();
+    expect(await holdoutMain(['--holdout', h, '--commit', 'HEAD', '--out', out2, '--no-correctness', '--engine', 'cypher-interp', '--determinism', out], ROOT, { ...t.io, env: {} }, { git: cleanGit, spawnNode })).toBe(0);
+    expect(calls[0]?.slice(-2)).toEqual(['--engine', 'cypher-interp']);
+    expect(fs.readFileSync(path.join(out2, 'holdout-scores.md'), 'utf8')).toMatch(/^# ENGINE CROSS-CHECK \(cypher-interp\)[^\n]*\n[\s\S]*Determinism repeat: identical raw rows/);
+    expect(JSON.parse(fs.readFileSync(path.join(out2, 'holdout-run-provenance.json'), 'utf8'))).toMatchObject({ engine: 'cypher-interp', neo4j: null });
   }, 120_000);
 
   it('from-raw scores a saved run with the correctness check, and flags a non-identical repeat', async () => {

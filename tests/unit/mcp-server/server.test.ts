@@ -325,11 +325,9 @@ describe('spec loader', () => {
 describe('path and argument handling', () => {
   it('makes absolute paths project-relative and leaves relative ones alone', () => {
     const ctx = context();
-    expect(toProjectRelative(ctx, path.join(PROJECT, 'src', 'a.ts'))).toBe('src/a.ts');
-    expect(toProjectRelative(ctx, './src/a.ts')).toBe('src/a.ts');
-    expect(toProjectRelative({ ...ctx, defaultProjectPath: undefined }, 'src/a.ts')).toBe(
-      'src/a.ts',
-    );
+    expect(toProjectRelative(ctx, path.join(PROJECT, 'src', 'a.ts'))).toEqual({ ok: true, data: 'src/a.ts' });
+    expect(toProjectRelative(ctx, './src/a.ts')).toEqual({ ok: true, data: 'src/a.ts' });
+    expect(toProjectRelative({ ...ctx, defaultProjectPath: undefined }, 'src/a.ts')).toEqual({ ok: true, data: 'src/a.ts' });
   });
 
   it('parses --spec and --project in both forms and ignores unknown flags', () => {

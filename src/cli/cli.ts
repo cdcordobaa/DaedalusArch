@@ -3,7 +3,8 @@ import { parseInstrumentVersion } from '../fitness-compiler/role-exemptions.js';
 import type { InstrumentVersion } from '../fitness-compiler/role-exemptions.js';
 import { config as loadDotenv } from 'dotenv';
 import { createPipeline } from '../pipeline/pipeline-factory.js';
-import type { PipelineConfig, OutputFormat } from '../pipeline/types.js';
+import type { PipelineConfig, OutputFormat, ExtractorDefaults } from '../pipeline/types.js';
+import { EXTRACTOR_DEFAULTS } from '../pipeline/types.js';
 import type { BatchOptions, DriftOptions } from '../pipeline/types.js';
 import type { EvaluationMode } from '../shared/types/enums.js';
 import { formatJSON, formatHuman, formatCSV, csvHeader } from '../scoring-engine/index.js';
@@ -20,6 +21,7 @@ import { requireEnvForCli } from './require-env.js';
 import { ENGINE_OPTION_HELP, resolveEngineForCli } from './engine-default.js';
 import type { GraphEngine } from '../cypher-interp/engine.js';
 import { CypherSyntaxError, CypherUnsupportedError, parseCypher } from '../cypher-interp/parse.js';
+import { EMPTY_AGGREGATE_POLICIES, parseEmptyAggregatePolicy } from '../fitness-compiler/empty-aggregates.js';
 import { handleDrift } from './drift-handler.js';
 import { parseSpec, validateSpecAgainstProject } from '../spec-parser/index.js';
 import { compileFunctions, compilerInputFromSpec, V13_COMPILE_OPTIONS } from '../fitness-compiler/index.js';
@@ -32,6 +34,8 @@ import { parseLLMOptions } from './llm-options.js';
 import { JUDGE_RUN_INCOMPLETE } from '../llm-critic/judge-stage.js';
 import { GRAPH_MODES } from '../apg-extractor/types.js';
 import type { GraphMode } from '../apg-extractor/types.js';
+import { ADVISORY_FILTER_OPTIONS, parseAdvisoryFilterOptions } from '../advisory-filter/advisory-filter.js';
+import type { AdvisoryFilterOption } from '../advisory-filter/advisory-filter.js';
 import { runCheck, neo4jEngine, lexicalEngine, formatGateHuman, formatGateJSON, formatGateMarkdown } from '../ci-gate/index.js';
 import type { GateEngine } from '../ci-gate/index.js';
 import { defaultPropose, inferredBanner, inferredSpecFile, labelJsonReport, runInit } from './init-command.js';
@@ -64,6 +68,43 @@ function resolveGraphMode(value: string): GraphMode | undefined {
   return undefined;
 }
 
+/** The scale flags of `evaluate` (Docs/v1.3/scale.md); absent flags leave the run as it was. */
+interface ScaleCliOpts {
+  readonly maxFiles?: string;
+  readonly memoryLimitMb?: string;
+  readonly queryEngine: string;
+  readonly skipExcludedSources: boolean;
+}
+
+type ScaleConfig = Pick<PipelineConfig, 'maxFiles' | 'memoryLimitMb' | 'queryEngine' | 'sourceScope'>;
+
+function positiveInt(flag: string, value: string): number | undefined {
+  if (/^[1-9][0-9]*$/.test(value)) return Number(value);
+  process.stderr.write(`Error: ${flag} must be a positive integer\n`);
+  process.exitCode = 2;
+  return undefined;
+}
+
+/** `--max-files`, `--memory-limit-mb`, `--query-engine`, `--skip-excluded-sources`; an invalid value exits 2. */
+function resolveScaleOptions(opts: ScaleCliOpts): ScaleConfig | undefined {
+  if (!(QUERY_ENGINES as readonly string[]).includes(opts.queryEngine)) {
+    process.stderr.write(`Error: --query-engine must be one of ${QUERY_ENGINES.join(' | ')}\n`);
+    process.exitCode = 2;
+    return undefined;
+  }
+  const maxFiles = opts.maxFiles !== undefined ? positiveInt('--max-files', opts.maxFiles) : undefined;
+  if (opts.maxFiles !== undefined && maxFiles === undefined) return undefined;
+  const memoryLimitMb = opts.memoryLimitMb !== undefined ? positiveInt('--memory-limit-mb', opts.memoryLimitMb) : undefined;
+  if (opts.memoryLimitMb !== undefined && memoryLimitMb === undefined) return undefined;
+  return {
+    ...(maxFiles !== undefined && { maxFiles }),
+    ...(memoryLimitMb !== undefined && { memoryLimitMb }),
+    ...(opts.queryEngine === 'neo4j' && { queryEngine: 'neo4j' as const }),
+    ...(opts.skipExcludedSources && { sourceScope: 'analysed' as const }),
+  };
+}
+
+const QUERY_ENGINES = ['accelerated', 'neo4j'] as const;
 /** `functionId name: reason` for every compiled query the interpreter's parser refuses. */
 function interpreterRejections(queries: readonly { functionId: unknown; name: string; cypher: string }[]): string[] {
   const out: string[] = [];
@@ -221,14 +262,22 @@ withLLMOptions(program
   .option('--instrument <version>', 'Symbolic instrument: v2 (role exemptions, default) | v1 (ADR-026)', 'v2')
   .option('--neural-aggregation <rule>', 'Neural aggregation of the AHS: registered (default, primary) | proportional (ADR-028 sensitivity variant)', 'registered')
   .option('--tsconfig <path>', 'Explicit tsconfig for APG extraction; the project\'s own tsconfig.json is then ignored (ADR-032)')
+  .option('--scoring <mode>', 'Scoring mode: v1.3 (rule tiers, default; verdict from blocking rules) | v1.2e (the registered Study 1 scoring; on the default v1.3 graph its universal metrics count both re-export edge views, so pair it with --extractor v1.2e for the v1.2E graph)', 'v1.3')
+  .option('--extractor <defaults>', 'Extractor defaults: v1.3 (default; literal and resolved re-export edges, dynamic imports, module wiring, member facts) | v1.2e (the registered v1.2E graph)', 'v1.3')
   .option('--resolved-edges-in-literal-view', 'Off by default. Keep an import\'s edge to the declaring file in the literal view when it goes through a barrel (MT-B1, Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md)', false)
   .option('--literal-through-layerless-barrels', 'Off by default. At graph build, an import through barrels that belong to no layer (and are no declared DDD public API) also keeps its edge to the declaring file in the literal view (MT-B1 fix, Docs/DiagnosticRuns/v1.3-mtb1-fix-2026-10-16.md)', false)
-  .option('--scoring <mode>', 'Scoring mode: v1.3 (rule tiers, default; verdict from blocking rules) | v1.2e (the registered Study 1 scoring)', 'v1.3')
+  .option('--advisory-filter <options>', `Advisory post-filters, off by default (comma list, all or none): ${ADVISORY_FILTER_OPTIONS.join(', ')}. Matched advisory rows move to advisoryFilter.suppressed; blocking rows never change`, 'none')
   .option('--html <out.html>', 'Also write a self-contained architect HTML report (layer diagram, findings in plain language, filters)')
   .option('--hints', 'Add a deterministic fix hint to every blocking finding (json: `fixHints`; human: a Fix hints section). Off by default: the output is then unchanged', false)
   .option('--engine <name>', ENGINE_OPTION_HELP)
-  .action(async (projectArg: string | undefined, opts: LLMCliOpts & {
+  .option('--empty-aggregates <policy>', 'A ddd spec with no aggregate (loop-pilot T1): fail (default, BR-SPEC-10) | not-applicable (FF-DT01/02 disabled, recorded) | exclude (FF-DT01/02 not scored, recorded) | vacuous (FF-DT01/02 run on an empty list)', 'fail')
+  .option('--max-files <n>', 'Stop with PROJECT_TOO_LARGE before parsing when more than n source files remain after the exclusions')
+  .option('--memory-limit-mb <n>', 'Stop with MEMORY_LIMIT_EXCEEDED when resident memory passes n MB (the heap guard is always on)')
+  .option('--query-engine <engine>', 'accelerated (default: the bounded cycle queries answered in memory, same rows) | neo4j (every query on Neo4j)', 'accelerated')
+  .option('--skip-excluded-sources', 'Load only the analysed files and declaration files into ts-morph (faster, less memory; output not guaranteed identical)', false)
+  .action(async (projectArg: string | undefined, opts: LLMCliOpts & ScaleCliOpts & {
     engine?: string;
+    emptyAggregates: string;
     project?: string;
     tsconfig?: string;
     resolvedEdgesInLiteralView: boolean;
@@ -247,6 +296,8 @@ withLLMOptions(program
     instrument: string;
     neuralAggregation: string;
     scoring: string;
+    advisoryFilter: string;
+    extractor: string;
     hints: boolean;
     html?: string;
   }, cmd: Command) => {
@@ -268,16 +319,38 @@ withLLMOptions(program
       cmd.error("error: required option '--spec <path>' not specified");
     }
     const evaluationMode = resolveEvaluationMode(opts.symbolicOnly, opts.neuronalOnly);
+    let advisoryFilter: AdvisoryFilterOption[];
+    try {
+      advisoryFilter = parseAdvisoryFilterOptions(opts.advisoryFilter);
+    } catch (e) {
+      process.stderr.write(`Error: --advisory-filter: ${e instanceof Error ? e.message : String(e)}\n`);
+      process.exitCode = 2;
+      return;
+    }
     const graphMode = resolveGraphMode(opts.graphMode);
     if (graphMode === undefined) return;
     const scoringMode = resolveScoringMode(opts.scoring, '--scoring');
     if (scoringMode === undefined) return;
+    if (!(EXTRACTOR_DEFAULTS as readonly string[]).includes(opts.extractor)) {
+      process.stderr.write(`Error: --extractor must be one of ${EXTRACTOR_DEFAULTS.join(' | ')}\n`);
+      process.exitCode = 2;
+      return;
+    }
+    const extractorDefaults = opts.extractor as ExtractorDefaults;
     const instrumentVersion = resolveInstrument(opts.instrument);
     if (instrumentVersion === undefined) return;
     const neuralAggregation = resolveNeuralAggregation(opts.neuralAggregation);
     if (neuralAggregation === undefined) return;
     const graphEngine = engineFor(opts.engine, cmd);
     if (graphEngine === undefined) return;
+    const emptyAggregates = parseEmptyAggregatePolicy(opts.emptyAggregates);
+    if (emptyAggregates === undefined) {
+      process.stderr.write(`Error: --empty-aggregates must be one of ${EMPTY_AGGREGATE_POLICIES.join(' | ')}\n`);
+      process.exitCode = 2;
+      return;
+    }
+    const scale = resolveScaleOptions(opts);
+    if (scale === undefined) return;
     // BR-U3-80: no default password; stop before any connection. The in-process engine opens none and reads none.
     const neo4jPassword = graphEngine === 'cypher-interp' ? '' : requireEnvForCli('NEO4J_PASSWORD');
     if (neo4jPassword === undefined) return;
@@ -299,6 +372,7 @@ withLLMOptions(program
     }
 
     const config: PipelineConfig = {
+      ...scale,
       projectPath: opts.project,
       specFilePath: inferred?.specPath ?? opts.spec ?? '',
       neo4jUri: opts.neo4jUri,
@@ -318,7 +392,10 @@ withLLMOptions(program
       instrumentVersion,
       neuralAggregation,
       scoringMode,
+      ...(advisoryFilter.length > 0 && { advisoryFilter }),
+      ...(extractorDefaults !== 'v1.3' && { extractorDefaults }),
       ...(graphEngine !== 'neo4j' && { graphEngine }),
+      ...(emptyAggregates !== 'fail' && { emptyAggregates }),
     };
 
     const { executor, context, cleanup } = createPipeline(config);
@@ -540,11 +617,13 @@ program
   .requiredOption('--spec <path>', 'Path to AoC YAML spec')
   .option('--project <path>', 'Path to TypeScript project (for directory checks)', '.')
   .option('--rules <set>', 'Rule set the template check accepts: v1.3 (default; adds the v1.3 extension templates) | v1.2e (frozen templates only)', 'v1.3')
+  .option('--reject-empty-aggregates', 'Reject a ddd spec that keeps FF-DT01/FF-DT02 with no aggregate declared (loop-pilot T1 option b; off by default)', false)
   .option('--engine <name>', `${ENGINE_OPTION_HELP} validate never connects; with cypher-interp it also parses every compiled query with the interpreter (subset check).`)
   .action(async (opts: {
     spec: string;
     project: string;
     rules: string;
+    rejectEmptyAggregates: boolean;
     engine?: string;
   }, cmd: Command) => {
     const rules = resolveScoringMode(opts.rules, '--rules');
@@ -558,7 +637,7 @@ program
       return;
     }
 
-    const report = validateSpecAgainstProject(parseResult.data, opts.project, { rules });
+    const report = validateSpecAgainstProject(parseResult.data, opts.project, { rules, ...(opts.rejectEmptyAggregates && { rejectEmptyAggregates: true }) });
 
     if (report.valid) {
       process.stderr.write(

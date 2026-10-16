@@ -367,8 +367,25 @@ export interface EvaluationReport {
   readonly neuralResults?: readonly NeuralResultRow[];
   /** v1.3 scoring mode only (FR-V6, Docs/v1.3/rule-tiers.md): the tiered verdict; absent in the v1.2E mode. */
   readonly tiers?: TieredScoring;
+  /**
+   * Advisory post-filters (proposal, off by default; Docs/DiagnosticRuns/v1.3-advisory-noise-2026-10-16.md): present only
+   * when an option is on. The rows the options removed from `violations`; scores, tiers and the verdict are pre-filter.
+   */
+  readonly advisoryFilter?: AdvisoryFilterSection;
   /** `firewall evaluate --hints` only (Docs/v1.3/fix-hints.md): a deterministic fix hint per blocking violation; absent otherwise. */
   readonly fixHints?: readonly import('../../fix-hints/types.js').ReportFixHint[];
+}
+
+/** One advisory row an advisory post-filter option removed from `violations`. */
+export interface SuppressedAdvisoryRow {
+  readonly option: string;
+  readonly reason: string;
+  readonly violation: Violation;
+}
+
+export interface AdvisoryFilterSection {
+  readonly options: readonly string[];
+  readonly suppressed: readonly SuppressedAdvisoryRow[];
 }
 
 /** Scoring mode: `v1.2e` (the registered Study 1 scoring, unchanged) or `v1.3` (rule tiers, FR-V6). */

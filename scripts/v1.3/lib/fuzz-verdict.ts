@@ -42,6 +42,9 @@ export function verdictOf(text: string, ref: DomainResult<QueryResult>, cand: Do
       return { verdict: 'mismatch:error', ...(detail !== undefined ? { detail } : {}) };
     case 'unsupported':
       return { verdict: `mismatch:${klass}`, ...(detail !== undefined ? { detail } : {}) };
+    case 'float-drift':
+      // Trap T2 on a named averageInstability text, within FLOAT_DRIFT_MAX_ULPS (memory-sweep.ts, #151).
+      return { verdict: 'quirk:T2-float-order', ...(detail !== undefined ? { detail } : {}) };
     case 'order':
     case 'content': {
       if (detail === 'float accumulation order (<= 4 ULP)') return { verdict: 'quirk:T2-float-order', detail };

@@ -1,17 +1,33 @@
 {
  "unit": "v1.3 spike: in-process Cypher interpreter (Docs/v1.3/cypher-interpreter.md). The reference-set live run with --engine cypher-interp, compared with results/v1.3-reference/after-member-facts (Neo4j). Development-set check of engine equivalence, not a validity estimate; nothing tuned",
- "branch": "v1.3-cypher-interp from origin/v1.3 dc1a1c4a (no I2 memory-engine branch or PR exists; see the design doc \u00a71)",
- "command": "env -u NEO4J_URI -u NEO4J_USER -u NEO4J_PASSWORD node --import tsx scripts/v1.3/ue-baseline-live.ts --engine cypher-interp --out <dir>  (no Neo4j variable set: no server, no credentials, no lock)",
- "reference_rerun": "the same command without --engine, against Neo4j 5.26.24 Community + APOC 5.26.24 core (tarball, bolt 127.0.0.1:7687, credentials from a 0600 env file, not printed), first reproduced after-member-facts byte for byte (raw/ 71 files, report.json, report.md)",
+ "branch": "v1.3-interp-review-fixes at eb86da35: the review fixes merged with origin/v1.3 9768def4 (includes #183 interp-fuzz and the reconciled CALL { } from v1.3-npx), the cheap2 templates and the FF-P05 signature-types rewrite",
+ "previous": {
+  "branch": "v1.3-cypher-interp from origin/v1.3 dc1a1c4a (no I2 memory-engine branch or PR exists; see the design doc §1)",
+  "wall": {
+   "neo4j": "3m26.8s (CLI per variant: median 2710 ms)",
+   "cypher-interp": "2m49.9s (run2; CLI per variant: median about 2330 ms)"
+  },
+  "note": "the spike committed only this provenance file; the outputs below are committed by the review-fix branch"
+ },
+ "command": "env -u NEO4J_URI -u NEO4J_USER -u NEO4J_PASSWORD node --import tsx scripts/v1.3/ue-baseline-live.ts --engine cypher-interp --keep-cli --out results/v1.3-cypher-interp/ue-baseline-live  (no Neo4j variable set: no server, no credentials, no lock)",
+ "control": "node --import tsx scripts/v1.3/ue-baseline-live.ts --keep-cli --out results/v1.3-cypher-interp/neo4j-control, against Neo4j 5.26.24 Community + APOC 5.26.24 core (tarball plus labs/apoc-5.26.24-core.jar in plugins/, bolt 127.0.0.1:7687, credentials generated into a 0600 env file, never printed)",
+ "comparison": "node --import tsx scripts/v1.3/cypher-interp-compare-runs.ts --neo4j results/v1.3-cypher-interp/neo4j-control --interp results/v1.3-cypher-interp/ue-baseline-live --out results/v1.3-cypher-interp/ue-baseline-live  (engine-comparison.md / .json)",
+ "committed": {
+  "raw/": "71 tool outputs (findings), replayable with --from-raw",
+  "evidence/": "71 full violation lists (elapsedMs is run-specific)",
+  "cli/": "71 whole CLI JSON results, run-volatile fields removed",
+  "report.json, report.md": "the reference comparison"
+ },
  "wall": {
-  "neo4j": "3m26.8s (CLI per variant: median 2710 ms)",
-  "cypher-interp": "2m49.9s (run2; CLI per variant: median about 2330 ms)"
+  "cypher-interp": "3m46.6s",
+  "neo4j-control": "4m15.2s"
  },
  "result": {
   "files": 73,
   "identicalToReference": 73,
   "identicalToNeo4jRerun": 73,
-  "evidenceViolationsIdentical": "71/71 (only elapsedMs differs)"
+  "evidenceViolationsIdentical": "71/71 (only elapsedMs differs)",
+  "cliResultIdentical": "71/71 whole result; AHS (ahsDeterministic, blockingAhs), verdicts, per-dimension scores, universal metrics, tiers, function results, graph stats, warnings each 71/71"
  },
  "files": [
   {
@@ -451,22 +467,6 @@
    "sha256": "687daba66a285ae7fa8f1ec6bc70a989373361ef71038b34ff0cbf49c1df8be9",
    "identicalToReference": true,
    "identicalToNeo4jRerun": true
-  }
- ],
- "runs": [
-  {
-   "attempt": "run1",
-   "code": "before the apoc.coll.indexOf / apoc.coll.sort(null) fixes (T6, T7)",
-   "wall": "2m51.0s",
-   "result": "73/73 files byte-identical",
-   "kept": false
-  },
-  {
-   "attempt": "run2",
-   "code": "the branch head as committed",
-   "wall": "2m49.9s",
-   "result": "73/73 files byte-identical",
-   "kept": true
   }
  ]
 }

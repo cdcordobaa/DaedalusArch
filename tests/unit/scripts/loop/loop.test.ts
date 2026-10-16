@@ -5,13 +5,13 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { DomainResult } from '../../../../src/shared/errors/domain-result.js';
-import { RESTARTS_LOG, RUN_JSON, WORK_DIR, readStepRecords, runDirFor, runLoop, stepRecordPath } from '../../../../scripts/lib/loop/loop.js';
+import { RESTARTS_LOG, RUN_JSON, WORK_DIR, gateEvaluationFailures, readStepRecords, runDirFor, runLoop, stepRecordPath } from '../../../../scripts/lib/loop/loop.js';
 import { loopRunId } from '../../../../scripts/lib/loop/plan.js';
 import { MAX_REPAIR_FINDINGS, repairPrompt, sha256, stepPrompt } from '../../../../scripts/lib/loop/prompts.js';
 import { SNAPSHOT_GIT_DIR, WorkTreeSnapshots } from '../../../../scripts/lib/loop/snapshot.js';
 import { stubEvaluator } from '../../../../scripts/lib/loop/stub.js';
 import { runOutcomes } from '../../../../scripts/lib/loop/pilot-metrics.js';
-import type { BlockingFinding, StepAgent, StepEvaluator, StepRecord, TurnInput } from '../../../../scripts/lib/loop/types.js';
+import type { BlockingFinding, StepAgent, StepEvaluation, StepEvaluator, StepRecord, TurnInput } from '../../../../scripts/lib/loop/types.js';
 import { DEMO_TASK, context, spec, stubAgent, tmpRoot } from './helpers.js';
 
 let out: string;
@@ -121,22 +121,67 @@ describe('multi-step loop (dry run)', () => {
     expect(prompts.gate).toEqual(prompts.none);
   });
 
-  it('an evaluator failure is recorded on the snapshot; the gate then attempts no repair', async () => {
+  /** An evaluator that fails on its `failOn`-th call (1-based) and otherwise is the stub. */
+  function flakyEvaluator(failOn: number, code = 'NEO4J_UNREACHABLE'): StepEvaluator {
     let calls = 0;
-    const flaky: StepEvaluator = {
+    return {
       id: 'flaky',
       evaluate: (dir: string) => {
         calls++;
-        return calls === 2 ? Promise.resolve(DomainResult.fail([{ code: 'NEO4J_UNREACHABLE', message: 'down' }])) : stubEvaluator().evaluate(dir);
+        return calls === failOn ? Promise.resolve(DomainResult.fail<StepEvaluation>([{ code, message: 'down' }])) : stubEvaluator().evaluate(dir);
       },
     };
-    const r = await runLoop(context(out, stubAgent(), { evaluator: flaky }), spec('gate'));
+  }
+
+  it('none: an evaluator failure is recorded on the snapshot and the run goes on (the commit can be re-scored)', async () => {
+    const r = await runLoop(context(out, stubAgent(), { evaluator: flakyEvaluator(2) }), spec('none'));
     if (!r.success || r.data.kind !== 'completed') throw new Error('expected completion');
     const s2 = r.data.steps[1];
     expect(s2?.turns).toHaveLength(1);
     expect(s2?.turns[0]?.snapshot.evaluation).toBeNull();
     expect(s2?.turns[0]?.snapshot.evaluationError).toEqual({ code: 'NEO4J_UNREACHABLE', message: 'down' });
-    expect(s2?.repair).toEqual({ attempted: false, blockingBefore: null, blockingAfter: null, cleared: null });
+    expect(s2?.repair).toBeNull();
+  });
+
+  it('gate: an unscored step-turn snapshot stops the run (the gate cannot decide), and a resume reruns the step with its repair', async () => {
+    // Loop fault drills D4a/D4b (Docs/v1.3/loop-fault-drills.md): recording the error and going on ran the step
+    // without the gate (no repair), so the gate arm silently became `none` for that step and every later one.
+    const first = await runLoop(context(out, stubAgent(), { evaluator: flakyEvaluator(2) }), spec('gate'));
+    expect(first.success ? [] : first.errors.map((e) => e.code)).toEqual(['LOOP_GATE_UNSCORED']);
+    if (!first.success) expect(first.errors[0]?.message).toContain('NEO4J_UNREACHABLE');
+    const runDir = runDirFor(out, loopRunId(spec('gate')));
+    expect(readStepRecords(runDir, 3)).toHaveLength(1);
+    const second = await runLoop(context(out, stubAgent()), spec('gate'));
+    if (!second.success || second.data.kind !== 'completed') throw new Error('expected completion');
+    expect(second.data.resumedFromStep).toBe(1);
+    expect(second.data.steps[1]?.repair).toEqual({ attempted: true, blockingBefore: 1, blockingAfter: 0, cleared: true });
+    const log = snapsOf(loopRunId(spec('gate'))).log();
+    expect(log.success && log.data).toEqual(['base: skeleton', 'step-01 gate', 'step-02 gate', 'step-02-repair gate', 'step-03 gate']);
+  });
+
+  it('gate: an unscored repair snapshot is recorded (the gate has acted) and the run goes on', async () => {
+    // Calls: step 1, step 2, step-2 repair (fails), step 3.
+    const r = await runLoop(context(out, stubAgent(), { evaluator: flakyEvaluator(3) }), spec('gate'));
+    if (!r.success || r.data.kind !== 'completed') throw new Error('expected completion');
+    expect(r.data.steps[1]?.repair).toEqual({ attempted: true, blockingBefore: 1, blockingAfter: null, cleared: null });
+    expect(r.data.steps[1]?.turns[1]?.snapshot.evaluationError?.code).toBe('NEO4J_UNREACHABLE');
+  });
+
+  it('R01: the grid summary counts gate steps whose evaluation failed', async () => {
+    // The first snapshot is evaluated (a run with no evaluated snapshot fails with LOOP_EVAL_ALL_FAILED, F24); the
+    // other two fail evaluation. Only a spec that was not frozen lets the gate arm go on (any other failure stops the
+    // run with LOOP_GATE_UNSCORED, #180), so the failure here is LOOP_SPEC_NOT_FROZEN.
+    let calls = 0;
+    const failing: StepEvaluator = {
+      id: 'down',
+      evaluate: (dir: string) => {
+        calls++;
+        return calls === 1 ? stubEvaluator().evaluate(dir) : Promise.resolve(DomainResult.fail([{ code: 'LOOP_SPEC_NOT_FROZEN', message: 'no frozen spec' }]));
+      },
+    };
+    const r = await runLoop(context(out, stubAgent(), { evaluator: failing }), spec('gate'));
+    if (!r.success || r.data.kind !== 'completed') throw new Error('expected completion');
+    expect(gateEvaluationFailures([r.data])).toBe(2);
   });
 
   it('a step whose evaluation failed is unscored in the outcomes: a null count and total, never 0 (F18)', async () => {
@@ -165,15 +210,16 @@ describe('multi-step loop (dry run)', () => {
   });
 
   it('a run in which every snapshot failed evaluation fails and is never marked complete (F24)', async () => {
+    // The none arm: in the gate arm the first unscored step-turn snapshot already stops the run (LOOP_GATE_UNSCORED).
     const down: StepEvaluator = { id: 'down', evaluate: () => Promise.resolve(DomainResult.fail([{ code: 'TSCONFIG_NOT_FOUND', message: 'no tsconfig' }])) };
-    const r = await runLoop(context(out, stubAgent(), { evaluator: down }), spec('gate'));
+    const r = await runLoop(context(out, stubAgent(), { evaluator: down }), spec('none'));
     expect(r.success ? [] : r.errors.map((e) => e.code)).toEqual(['LOOP_EVAL_ALL_FAILED']);
     expect(r.success ? '' : r.errors[0]?.message).toContain('all 3 snapshots failed evaluation (TSCONFIG_NOT_FOUND)');
-    const runDir = runDirFor(out, loopRunId(spec('gate')));
+    const runDir = runDirFor(out, loopRunId(spec('none')));
     expect(readStepRecords(runDir, 3)).toHaveLength(3);
     expect((JSON.parse(fs.readFileSync(path.join(runDir, RUN_JSON), 'utf8')) as { completedAt?: string }).completedAt).toBeUndefined();
     // A rerun with the same evaluator does not turn it into a completed run.
-    const again = await runLoop(context(out, stubAgent(), { evaluator: down }), spec('gate'));
+    const again = await runLoop(context(out, stubAgent(), { evaluator: down }), spec('none'));
     expect(again.success ? [] : again.errors.map((e) => e.code)).toEqual(['LOOP_EVAL_ALL_FAILED']);
   });
 
@@ -243,6 +289,55 @@ describe('resume', () => {
     expect(line.discardedHead).toBe(stray.data);
     const files = snaps.files(r.data.steps[2]?.finalCommit ?? '');
     expect(files.success && files.data.includes('src/stray.ts')).toBe(false);
+  });
+
+  it('a truncated step record: the resume says which record it could not read and sets it and the later ones aside', async () => {
+    const steps = await completed('gate');
+    const runDir = runDirFor(out, loopRunId(spec('gate')));
+    const f = stepRecordPath(runDir, 1);
+    const bytes = fs.readFileSync(f);
+    fs.writeFileSync(f, bytes.subarray(0, Math.floor(bytes.length / 2)));
+    const third = fs.readFileSync(stepRecordPath(runDir, 2), 'utf8');
+    const r = await runLoop(context(out, stubAgent()), spec('gate'));
+    if (!r.success || r.data.kind !== 'completed') throw new Error('expected completion');
+    expect(r.data.resumedFromStep).toBe(1);
+    const lines = fs.readFileSync(path.join(runDir, RESTARTS_LOG), 'utf8').trim().split('\n');
+    expect(lines).toHaveLength(1);
+    expect(JSON.parse(lines[0] ?? '{}')).toMatchObject({
+      resumeAtStep: 2,
+      restoredTo: steps[0]?.finalCommit,
+      records: [
+        { file: 'steps/step-02.json', state: 'unreadable' },
+        { file: 'steps/step-03.json', state: 'after-gap' },
+      ],
+      setAside: 'discarded/restart-1',
+    });
+    // The records the rerun replaces are kept, byte for byte, with the turn records of the discarded steps.
+    const aside = path.join(runDir, 'discarded', 'restart-1');
+    expect(fs.readFileSync(path.join(aside, 'steps', 'step-02.json')).equals(bytes.subarray(0, Math.floor(bytes.length / 2)))).toBe(true);
+    expect(fs.readFileSync(path.join(aside, 'steps', 'step-03.json'), 'utf8')).toBe(third);
+    expect(fs.existsSync(path.join(aside, 'turns', 'step-02', 'prompt-step-02-repair.txt'))).toBe(true);
+  });
+
+  it('turn records of a discarded partial step do not survive into its rerun', async () => {
+    // Stop inside the gate's step-2 repair turn: the step turn's prompt, report and envelope and the repair prompt
+    // are on disk. The rerun of step 2 is clean (no repair), so a stale repair prompt would be left beside it.
+    const inner = stubAgent();
+    const crashInRepair: StepAgent = {
+      adapterId: inner.adapterId,
+      modelId: inner.modelId,
+      runTurn: (input: TurnInput) => (input.kind === 'repair' ? Promise.resolve(DomainResult.fail([{ code: 'GEN_USAGE_LIMIT_PERSISTS', message: 'stopped' }])) : inner.runTurn(input)),
+    };
+    await runLoop(context(out, crashInRepair), spec('gate'));
+    const runDir = runDirFor(out, loopRunId(spec('gate')));
+    const turnDir = path.join(runDir, 'turns', 'step-02');
+    expect(fs.existsSync(path.join(turnDir, 'prompt-step-02-repair.txt'))).toBe(true);
+    const clean: StepEvaluator = { id: 'clean', evaluate: (dir: string) => stubEvaluator().evaluate(dir).then((e) => (e.success ? DomainResult.ok({ ...e.data, blockingViolationCount: 0, blockingFindings: [], blockingByRule: {} }) : e)) };
+    const r = await runLoop(context(out, stubAgent(), { evaluator: clean }), spec('gate'));
+    if (!r.success || r.data.kind !== 'completed') throw new Error('expected completion');
+    expect(r.data.steps[1]?.turns.map((t) => t.turnId)).toEqual(['step-02']);
+    expect(fs.readdirSync(turnDir).sort()).toEqual(['envelope-step-02.json', 'prompt-step-02.txt']);
+    expect(fs.existsSync(path.join(runDir, 'discarded', 'restart-1', 'turns', 'step-02', 'prompt-step-02-repair.txt'))).toBe(true);
   });
 
   it('a complete run is skipped without calling the agent', async () => {

@@ -3,7 +3,7 @@ import { SourceFile, SyntaxKind, Node } from 'ts-morph';
 import type { APGEdge, APGNode, FlowsToStats, ImportResolutionStats } from '../shared/types/apg.js';
 import type { ExtractorWarning } from '../shared/types/apg.js';
 import type { EdgeType } from '../shared/types/enums.js';
-import type { ExtractorOptions, NodeLookup } from './types.js';
+import type { ExtractorOptions, FileCheckpoint, NodeLookup } from './types.js';
 import { DEFAULT_OPTIONS, DI_DECORATORS, PRIMITIVE_TYPES } from './types.js';
 import { generateEdgeId, normalizeFilePath } from './id-generator.js';
 import { ImportEdgeMerger } from './import-edge-merger.js';
@@ -51,6 +51,7 @@ export function extractEdges(
   lookup: NodeLookup,
   projectRoot: string,
   options: ExtractorOptions = {},
+  checkpoint?: FileCheckpoint,
 ): EdgeExtractionResult {
   const opts = { ...DEFAULT_OPTIONS, ...options };
   const edgeSet = new Map<string, APGEdge>(); // key=(type+sourceId+targetId) for dedup, non-import types only
@@ -75,7 +76,9 @@ export function extractEdges(
   const importCtx = buildImportResolutionContext(project, lookup, projectRoot, opts, addWarning, packages);
   const merger = new ImportEdgeMerger();
 
+  let done = 0;
   for (const sf of sourceFiles) {
+    if (checkpoint !== undefined) checkpoint(done++, sourceFiles.length);
     const filePath = normalizeFilePath(sf.getFilePath(), projectRoot);
     const fileNodeId = lookup.fileNodes.get(filePath);
     if (!fileNodeId) continue;

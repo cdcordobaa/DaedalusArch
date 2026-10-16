@@ -271,8 +271,9 @@ export interface FileCheckResult {
   /** v1 contract: the import-rule and naming-rule violations, now with their v1.3 fields. Every one is also in `findings`. */
   readonly violations: readonly FileViolation[];
   /**
-   * Same checks on `require()` and `import()` calls. The frozen firewall counts these calls but does not model them
-   * as edges (BR-U2-25), so they never lower the score; they are listed so the agent can avoid them anyway.
+   * Kept for the v1 contract; always empty since 2026-10-16. It listed rule hits of `require()` and `import()` calls
+   * as unscored, but the v1.3 extractor models string-literal calls as IMPORTS edges (`dynamicImports`) and evaluate
+   * scores them, so they are now in `violations` and `findings` like static imports (R03, post-merge review).
    */
   readonly advisories: readonly FileViolation[];
   /** Imports the spec alone cannot place (path aliases); `verdict` is `unknown` when there are any and no violation. */

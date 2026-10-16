@@ -313,6 +313,14 @@ export interface ReplayOptions {
   readonly log?: (line: string) => void;
   /** The evaluator's graph engine (`engine-tee.ts`); absent = `evaluateDeps` as given, unchanged. */
   readonly engine?: LoopEngine;
+  /** Fault-drill hooks (`scripts/v1.3/loop-fault-drills.ts`); absent in the replay itself, which they leave unchanged. */
+  readonly decorate?: ReplayDecorators;
+}
+
+/** Wraps the replay's agent and type-check of record (the fault drills inject their faults here). */
+export interface ReplayDecorators {
+  readonly agent?: (scripted: ScriptedStepAgent) => StepAgent;
+  readonly typechecker?: (inner: StepTypechecker) => StepTypechecker;
 }
 
 export interface ReplayRun {
@@ -378,10 +386,10 @@ export async function runReplay(o: ReplayOptions): Promise<DomainResult<ReplayRe
   const ctx: LoopContext = {
     outRoot: o.outRoot,
     tasks,
-    agent,
+    agent: o.decorate?.agent?.(agent) ?? agent,
     evaluator: { id: 'no-spec', evaluate: () => Promise.resolve(DomainResult.fail([{ code: 'LOOP_NO_SPEC', message: 'every replay task has a profile' }])) },
     profiles,
-    typechecker,
+    typechecker: o.decorate?.typechecker?.(typechecker) ?? typechecker,
     // The dry-run skeleton plus the `node_modules` symlink the E1 skeleton has (here: the repository's install).
     prepareWorkDir: (cwd) => {
       const r = prepareDryRunWorkDir(cwd);
