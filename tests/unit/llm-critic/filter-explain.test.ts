@@ -132,9 +132,10 @@ describe('filter-and-explain grounding against what the prompt showed (R19, R20)
     const n = (r.shown[0]?.content ?? '').split('\n').length;
     expect(n).toBeGreaterThan(100);
     expect(n).toBeLessThan(3000);
-    // The last line counted as shown has its number label in the prompt; the next one does not.
-    expect(r.prompt).toContain(`${String(n).padStart(4, ' ')}| `);
-    expect(r.prompt).not.toContain(`${String(n + 1).padStart(4, ' ')}| `);
+    // The last line counted as shown is complete in the prompt; the next one is not (v1.3: a partly shown line is not counted).
+    const full = (k: number): string => `${String(k).padStart(4, ' ')}| export const value${String(k - 1)} = 'xxxxxxxxxxxxxxxxxxxx';\n`;
+    expect(r.prompt).toContain(full(n));
+    expect(r.prompt).not.toContain(full(n + 1));
   });
 
   it('R19: a citation of a dropped file or of lines past the cut is ungrounded', () => {
