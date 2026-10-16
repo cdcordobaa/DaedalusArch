@@ -1629,3 +1629,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: v1.3 link-1 adjudication preparation; no baseline or frozen artefact changed.
 
 ---
+
+## v1.3 CONSTRUCTION — hexagonal/DDD mutation operators (scheduled task)
+**Timestamp**: 2026-10-16T00:00:00Z
+**User Input**: (scheduled task, no live user) "Design and implement mutation operators for every blocking hexagonal and DDD rule, run them on the hexagonal and DDD reference projects and the real projects available, measure site feasibility, compile success, recall with Wilson CI and false fires on near-miss twins; write Docs/v1.3/operator-catalogue-hexddd.md and a DiagnosticRuns report; one PR into v1.3, not merged."
+**AI Response**: "Branch v1.3-operators-hexddd from origin/v1.3. Separate DRAFT registry scripts/lib/mutation/hexddd/ (12 operators, 13 twins), catalogue Docs/v1.3/operator-catalogue-hexddd.md (frozen Docs/operator-catalogue.md untouched), runner scripts/v1.3/operators-hexddd-run.ts, real-project specs under experiments/v1.3-operators-hexddd/. Engine: no cypher-interp on v1.3, so Neo4j 5.26.0 + APOC 5.26.0 from the tarballs. No Cypher template, tier or preset edited. Approval gates of the AI-DLC workflow were not held: the task was scheduled with no reviewer present; the PR is the review point."
+**Context**: v1.3 — SO4 operator coverage for the hexagonal and DDD libraries; development data only.
+
+---
