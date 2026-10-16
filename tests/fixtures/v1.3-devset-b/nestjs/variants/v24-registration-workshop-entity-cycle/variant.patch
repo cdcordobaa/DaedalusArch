@@ -1,0 +1,38 @@
+--- a/src/domain/registration.ts
++++ b/src/domain/registration.ts
+@@ -1,4 +1,5 @@
+ import { DomainError } from './domain-error';
++import type { Workshop } from './workshop';
+ 
+ export class Registration {
+   private cancelledAt: Date | undefined;
+@@ -14,6 +15,10 @@
+     return this.cancelledAt === undefined;
+   }
+ 
++  isFor(workshop: Workshop): boolean {
++    return workshop.id === this.workshopId;
++  }
++
+   cancel(at: Date): void {
+     if (!this.isActive) throw new DomainError('conflict', `Registration ${this.id} is already cancelled`);
+     this.cancelledAt = at;
+--- a/src/domain/workshop.ts
++++ b/src/domain/workshop.ts
+@@ -1,4 +1,5 @@
+ import { DomainError } from './domain-error';
++import { Registration } from './registration';
+ 
+ export class Workshop {
+   constructor(
+@@ -15,6 +16,10 @@
+     return this.capacity - this.seatsTaken;
+   }
+ 
++  activeRegistrations(registrations: readonly Registration[]): Registration[] {
++    return registrations.filter((r) => r.isActive && r.isFor(this));
++  }
++
+   takeSeat(): void {
+     if (this.seatsLeft === 0) throw new DomainError('conflict', `Workshop "${this.title}" is full`);
+     this.seatsTaken += 1;

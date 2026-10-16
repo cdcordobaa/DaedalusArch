@@ -1,0 +1,134 @@
+--- a/src/business/ServiceFactory.ts
++++ b/src/business/ServiceFactory.ts
+@@ -3,11 +3,13 @@
+ import { OrderGateway } from '../persistence/OrderGateway';
+ import { ProductGateway } from '../persistence/ProductGateway';
+ import { CatalogService } from './services/CatalogService';
++import { CustomerService } from './services/CustomerService';
+ import { OrderService } from './services/OrderService';
+ 
+ export interface BusinessServices {
+   catalog: CatalogService;
+   orders: OrderService;
++  customers: CustomerService;
+ }
+ 
+ /**
+@@ -17,9 +19,12 @@
+ export function createServices(): BusinessServices {
+   const db = new InMemoryDatabase();
+   const products = new ProductGateway(db);
+-  new CustomerGateway(db).insert({ id: 'c-1', name: 'Grace', email: 'grace@example.org', loyaltyTier: 'gold' });
++  const orders = new OrderGateway(db);
++  const customers = new CustomerGateway(db);
++  customers.insert({ id: 'c-1', name: 'Grace', email: 'grace@example.org', loyaltyTier: 'gold' });
+   return {
+     catalog: new CatalogService(products),
+-    orders: new OrderService(new OrderGateway(db), products, new CustomerGateway(db)),
++    orders: new OrderService(orders, products, customers),
++    customers: new CustomerService(customers, orders),
+   };
+ }
+--- /dev/null
++++ b/src/business/services/CustomerService.ts
+@@ -0,0 +1,25 @@
++import { CustomerGateway } from '../../persistence/CustomerGateway';
++import { OrderGateway } from '../../persistence/OrderGateway';
++import { BusinessError } from '../errors/BusinessError';
++import { Customer } from '../model/Customer';
++import { Order } from '../model/Order';
++import { toCustomer, toOrder } from './RecordMapping';
++
++export interface OrderHistory {
++  customer: Customer;
++  orders: Order[];
++}
++
++export class CustomerService {
++  constructor(
++    private readonly customers: CustomerGateway,
++    private readonly orders: OrderGateway,
++  ) {}
++
++  history(customerId: string): OrderHistory {
++    const record = this.customers.findById(customerId);
++    if (record === undefined) throw new BusinessError('NOT_FOUND', `No customer ${customerId}`);
++    const orders = this.orders.findByCustomer(customerId).map(toOrder);
++    return { customer: toCustomer(record), orders: orders.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()) };
++  }
++}
+--- a/src/presentation/Router.ts
++++ b/src/presentation/Router.ts
+@@ -1,4 +1,5 @@
+ import { CatalogController } from './http/CatalogController';
++import { CustomerController } from './http/CustomerController';
+ import { HttpRequest, HttpResponse } from './http/HttpTypes';
+ import { OrderController } from './http/OrderController';
+ 
+@@ -7,12 +8,13 @@
+ export class Router {
+   private readonly routes = new Map<string, Handler>();
+ 
+-  constructor(catalog: CatalogController, orders: OrderController) {
++  constructor(catalog: CatalogController, orders: OrderController, customers: CustomerController) {
+     this.routes.set('GET /products', () => catalog.list());
+     this.routes.set('POST /products', (r) => catalog.create(r));
+     this.routes.set('POST /orders', (r) => orders.place(r));
+     this.routes.set('GET /orders/:id', (r) => orders.show(r));
+     this.routes.set('POST /orders/:id/cancel', (r) => orders.cancel(r));
++    this.routes.set('GET /customers/:id/orders', (r) => customers.history(r));
+   }
+ 
+   handle(route: string, request: HttpRequest): HttpResponse {
+--- a/src/presentation/app.ts
++++ b/src/presentation/app.ts
+@@ -1,9 +1,14 @@
+ import { createServices } from '../business/ServiceFactory';
+ import { CatalogController } from './http/CatalogController';
++import { CustomerController } from './http/CustomerController';
+ import { OrderController } from './http/OrderController';
+ import { Router } from './Router';
+ 
+ export function createApp(): Router {
+   const services = createServices();
+-  return new Router(new CatalogController(services.catalog), new OrderController(services.orders));
++  return new Router(
++    new CatalogController(services.catalog),
++    new OrderController(services.orders),
++    new CustomerController(services.customers),
++  );
+ }
+--- /dev/null
++++ b/src/presentation/http/CustomerController.ts
+@@ -0,0 +1,16 @@
++import { CustomerService } from '../../business/services/CustomerService';
++import { renderHistory } from '../views/CustomerView';
++import { errorResponse } from './ErrorHandling';
++import { HttpRequest, HttpResponse } from './HttpTypes';
++
++export class CustomerController {
++  constructor(private readonly customers: CustomerService) {}
++
++  history(request: HttpRequest): HttpResponse {
++    try {
++      return { status: 200, body: renderHistory(this.customers.history(String(request.params['id']))) };
++    } catch (error) {
++      return errorResponse(error);
++    }
++  }
++}
+--- /dev/null
++++ b/src/presentation/views/CustomerView.ts
+@@ -0,0 +1,12 @@
++import { OrderHistory } from '../../business/services/CustomerService';
++import { renderOrder, OrderViewModel } from './OrderView';
++
++export interface OrderHistoryViewModel {
++  customer: string;
++  tier: string;
++  orders: OrderViewModel[];
++}
++
++export function renderHistory(history: OrderHistory): OrderHistoryViewModel {
++  return { customer: history.customer.name, tier: history.customer.loyaltyTier, orders: history.orders.map(renderOrder) };
++}

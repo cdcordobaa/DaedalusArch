@@ -1,0 +1,19 @@
+--- a/src/workshops/in-memory-workshop.repository.ts
++++ b/src/workshops/in-memory-workshop.repository.ts
+@@ -1,9 +1,14 @@
+ import { Injectable } from '@nestjs/common';
+ import { Workshop } from '../domain/workshop';
+-import { WorkshopRepository } from '../domain/workshop-repository';
++
++export interface WorkshopStore {
++  findById(id: string): Promise<Workshop | undefined>;
++  findAll(): Promise<Workshop[]>;
++  save(workshop: Workshop): Promise<void>;
++}
+ 
+ @Injectable()
+-export class InMemoryWorkshopRepository implements WorkshopRepository {
++export class InMemoryWorkshopRepository implements WorkshopStore {
+   private readonly rows = new Map<string, Workshop>();
+ 
+   async findById(id: string): Promise<Workshop | undefined> {

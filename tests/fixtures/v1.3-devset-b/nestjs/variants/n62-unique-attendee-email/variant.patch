@@ -1,0 +1,94 @@
+--- a/src/attendees/attendees.controller.ts
++++ b/src/attendees/attendees.controller.ts
+@@ -1,5 +1,6 @@
+ import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+ import { AttendeesService } from './attendees.service';
++import { AttendeeResponseDto } from './dto/attendee-response.dto';
+ import { CreateAttendeeDto } from './dto/create-attendee.dto';
+ 
+ @Controller('attendees')
+@@ -7,12 +8,12 @@
+   constructor(private readonly attendeesService: AttendeesService) {}
+ 
+   @Post()
+-  create(@Body() dto: CreateAttendeeDto): Promise<{ id: string; name: string }> {
++  create(@Body() dto: CreateAttendeeDto): Promise<AttendeeResponseDto> {
+     return this.attendeesService.create(dto);
+   }
+ 
+   @Get(':id')
+-  findOne(@Param('id') id: string): Promise<{ id: string; name: string }> {
++  findOne(@Param('id') id: string): Promise<AttendeeResponseDto> {
+     return this.attendeesService.findOne(id);
+   }
+ }
+--- a/src/attendees/attendees.service.ts
++++ b/src/attendees/attendees.service.ts
+@@ -2,6 +2,7 @@
+ import { Attendee } from '../domain/attendee';
+ import { ATTENDEE_REPOSITORY, AttendeeRepository } from '../domain/attendee-repository';
+ import { DomainError } from '../domain/domain-error';
++import { AttendeeResponseDto } from './dto/attendee-response.dto';
+ import { CreateAttendeeDto } from './dto/create-attendee.dto';
+ 
+ @Injectable()
+@@ -10,16 +11,19 @@
+ 
+   constructor(@Inject(ATTENDEE_REPOSITORY) private readonly attendees: AttendeeRepository) {}
+ 
+-  async create(dto: CreateAttendeeDto): Promise<{ id: string; name: string }> {
++  async create(dto: CreateAttendeeDto): Promise<AttendeeResponseDto> {
++    if ((await this.attendees.findByEmail(dto.email)) !== undefined) {
++      throw new DomainError('conflict', `An attendee with e-mail ${dto.email} already exists`);
++    }
+     this.sequence += 1;
+     const attendee = new Attendee(`at-${this.sequence}`, dto.name, dto.email);
+     await this.attendees.save(attendee);
+-    return { id: attendee.id, name: attendee.name };
++    return AttendeeResponseDto.from(attendee);
+   }
+ 
+-  async findOne(id: string): Promise<{ id: string; name: string }> {
++  async findOne(id: string): Promise<AttendeeResponseDto> {
+     const attendee = await this.attendees.findById(id);
+     if (attendee === undefined) throw new DomainError('not-found', `No attendee ${id}`);
+-    return { id: attendee.id, name: attendee.name };
++    return AttendeeResponseDto.from(attendee);
+   }
+ }
+--- /dev/null
++++ b/src/attendees/dto/attendee-response.dto.ts
+@@ -0,0 +1,11 @@
++import { Attendee } from '../../domain/attendee';
++
++export class AttendeeResponseDto {
++  id!: string;
++  name!: string;
++  email!: string;
++
++  static from(attendee: Attendee): AttendeeResponseDto {
++    return Object.assign(new AttendeeResponseDto(), { id: attendee.id, name: attendee.name, email: attendee.email });
++  }
++}
+--- a/src/attendees/in-memory-attendee.repository.ts
++++ b/src/attendees/in-memory-attendee.repository.ts
+@@ -10,6 +10,10 @@
+     return this.rows.get(id);
+   }
+ 
++  async findByEmail(email: string): Promise<Attendee | undefined> {
++    return [...this.rows.values()].find((a) => a.email === email);
++  }
++
+   async save(attendee: Attendee): Promise<void> {
+     this.rows.set(attendee.id, attendee);
+   }
+--- a/src/domain/attendee-repository.ts
++++ b/src/domain/attendee-repository.ts
+@@ -4,5 +4,6 @@
+ 
+ export interface AttendeeRepository {
+   findById(id: string): Promise<Attendee | undefined>;
++  findByEmail(email: string): Promise<Attendee | undefined>;
+   save(attendee: Attendee): Promise<void>;
+ }
