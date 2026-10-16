@@ -241,8 +241,9 @@ advice: a paper that fails a line is not ready, whatever its rating above.
    | 4 | #213 | `d5170b93` | `Docs/DiagnosticRuns/v1.3-advisory-filter-oos-2026-10-16.md` (and its criterion file) |
 
    Merged since they were first cited, and now cited by their v1.3 path: #165, #168, #179, #190, #191, #215.
-2. **Every source is public and in the tree.** `npm run lint:citations` passes: no citation of removed internal
-   communications (`Docs/reports/`, `Docs/presentation-kit/`, `director-email*`) and no personal absolute path.
+2. **Every source is public and in the tree.** `npm run lint:citations` passes: no citation of the internal
+   communications removed from the public tree by #132 (the patterns are in `scripts/lint-citations.sh`) and no
+   personal absolute path.
 3. **Every claim the 2026-10-16 merge-wave review flagged as overstated is qualified** (interval wording, distinct
    findings vs snapshot rows, byte-identity scope, reproducibility caveats); re-read the `% src:` comment of each.
 
