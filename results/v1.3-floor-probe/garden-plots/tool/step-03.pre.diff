@@ -1,0 +1,317 @@
+diff --git a/src/adapters/inbound/http.ts b/src/adapters/inbound/http.ts
+index 755795c..2710456 100644
+--- a/src/adapters/inbound/http.ts
++++ b/src/adapters/inbound/http.ts
+@@ -1,8 +1,9 @@
+ import express, { NextFunction, Request, Response } from 'express';
+ import { GardenService } from '../../application/garden-service';
+ import { WaterService } from '../../application/water-service';
++import { WorkDayService } from '../../application/work-day-service';
+ 
+-export function createApp(garden: GardenService, water: WaterService): express.Express {
++export function createApp(garden: GardenService, water: WaterService, workDays: WorkDayService): express.Express {
+   const app = express();
+   app.use(express.json());
+ 
+@@ -44,6 +45,18 @@ export function createApp(garden: GardenService, water: WaterService): express.E
+     const { meterId, litres, time } = req.body as { meterId: string; litres: number; time: string };
+     res.status(201).json(water.recordReading(meterId, Number(litres), time));
+   });
++  app.post('/work-days', (req, res) => {
++    res.status(201).json(workDays.schedule(req.body.date, req.body.description ?? ''));
++  });
++  app.get('/work-days', (_req, res) => {
++    res.json(workDays.list());
++  });
++  app.post('/work-days/:id/sign-ups', (req, res) => {
++    res.json(workDays.signUp(req.params.id, req.body.gardenerId));
++  });
++  app.post('/work-days/:id/present', (req, res) => {
++    res.json(workDays.markPresent(req.params.id, req.body.gardenerId));
++  });
+ 
+   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+     res.status(400).json({ error: err.message });
+diff --git a/src/adapters/outbound/in-memory.ts b/src/adapters/outbound/in-memory.ts
+index 1ea2b56..0b5daf2 100644
+--- a/src/adapters/outbound/in-memory.ts
++++ b/src/adapters/outbound/in-memory.ts
+@@ -6,7 +6,9 @@ import {
+   PlotRepository,
+   ReadingRepository,
+   WaitingList,
++  WorkDayRepository,
+ } from '../../application/ports';
++import { WorkDay } from '../../domain/work-day';
+ import { MeterReading } from '../../domain/water';
+ 
+ export class InMemoryPlotRepository implements PlotRepository {
+@@ -86,3 +88,16 @@ export class InMemoryReadingRepository implements ReadingRepository {
+     return this.readings.filter((r) => r.plotNumber === plotNumber);
+   }
+ }
++
++export class InMemoryWorkDayRepository implements WorkDayRepository {
++  private readonly items = new Map<string, WorkDay>();
++  save(d: WorkDay): void {
++    this.items.set(d.id, d);
++  }
++  find(id: string): WorkDay | undefined {
++    return this.items.get(id);
++  }
++  all(): WorkDay[] {
++    return [...this.items.values()].sort((a, b) => a.date.localeCompare(b.date));
++  }
++}
+diff --git a/src/application/email-layout.ts b/src/application/email-layout.ts
+new file mode 100644
+index 0000000..b8267e1
+--- /dev/null
++++ b/src/application/email-layout.ts
+@@ -0,0 +1,14 @@
++export const GARDEN_NAME = process.env.GARDEN_NAME ?? 'Greenfield Community Garden';
++
++export interface EmailContent {
++  subject: string;
++  body: string;
++}
++
++/** The one e-mail layout every garden e-mail uses. */
++export function layoutEmail(gardenerName: string, subject: string, paragraphs: string[]): EmailContent {
++  return {
++    subject: `[${GARDEN_NAME}] ${subject}`,
++    body: [`Dear ${gardenerName},`, '', ...paragraphs, '', 'Happy gardening,', `The ${GARDEN_NAME} team`].join('\n'),
++  };
++}
+diff --git a/src/application/garden-service.ts b/src/application/garden-service.ts
+index b2e6fd5..e6f0f2c 100644
+--- a/src/application/garden-service.ts
++++ b/src/application/garden-service.ts
+@@ -1,6 +1,8 @@
+ import { randomUUID } from 'node:crypto';
+ import { Allocation, Gardener, Plot, feeFor, isActive, isPaymentOverdue } from '../domain/garden';
+-import { AllocationRepository, Clock, GardenerRepository, PaymentProvider, PlotRepository, WaitingList } from './ports';
++import { attendedInPastYear, feeWithSurcharge } from '../domain/work-day';
++import { AllocationRepository, Clock, GardenerRepository, Mailer, PaymentProvider, PlotRepository, WaitingList, WorkDayRepository } from './ports';
++import { layoutEmail } from './email-layout';
+ 
+ export class GardenService {
+   constructor(
+@@ -10,6 +12,8 @@ export class GardenService {
+     private readonly waitingList: WaitingList,
+     private readonly payments: PaymentProvider,
+     private readonly clock: Clock,
++    private readonly workDays: WorkDayRepository,
++    private readonly mailer: Mailer,
+   ) {}
+ 
+   definePlot(plot: Plot): Plot {
+@@ -54,7 +58,7 @@ export class GardenService {
+       plotNumber,
+       gardenerId,
+       allocatedAt: this.clock.now().toISOString(),
+-      fee: feeFor(plot),
++      fee: feeWithSurcharge(feeFor(plot), attendedInPastYear(this.workDays.all(), gardenerId, this.clock.now())),
+       status: 'awaiting-payment',
+       paymentRef: randomUUID(),
+     };
+@@ -65,6 +69,14 @@ export class GardenService {
+     );
+     this.waitingList.remove(gardenerId);
+     this.allocations.save(allocation);
++    const gardener = this.gardeners.find(gardenerId);
++    if (gardener) {
++      const mail = layoutEmail(gardener.name, `Plot ${plotNumber} is offered to you`, [
++        `Plot ${plotNumber} (${plot.sizeM2} m2${plot.raisedBed ? ', raised bed' : ''}) is now yours.`,
++        `Please pay the yearly fee of ${allocation.fee} within 14 days: ${allocation.paymentLink}`,
++      ]);
++      this.mailer.send(gardener.email, mail.subject, mail.body);
++    }
+     return allocation;
+   }
+ 
+diff --git a/src/application/ports.ts b/src/application/ports.ts
+index c51b1aa..a8398aa 100644
+--- a/src/application/ports.ts
++++ b/src/application/ports.ts
+@@ -1,4 +1,5 @@
+ import { Allocation, Gardener, Plot } from '../domain/garden';
++import { WorkDay } from '../domain/work-day';
+ import { MeterReading } from '../domain/water';
+ 
+ export interface PlotRepository {
+@@ -48,3 +49,9 @@ export interface ReadingRepository {
+ export interface Mailer {
+   send(to: string, subject: string, body: string): void;
+ }
++
++export interface WorkDayRepository {
++  save(d: WorkDay): void;
++  find(id: string): WorkDay | undefined;
++  all(): WorkDay[];
++}
+diff --git a/src/application/water-service.ts b/src/application/water-service.ts
+index 1b79a1e..c0a7009 100644
+--- a/src/application/water-service.ts
++++ b/src/application/water-service.ts
+@@ -1,4 +1,5 @@
+ import { MeterReading, WEEKLY_WARNING_LITRES, weekStart, weeklyUse } from '../domain/water';
++import { layoutEmail } from './email-layout';
+ import { AllocationRepository, GardenerRepository, Mailer, MeterRepository, ReadingRepository } from './ports';
+ 
+ export class WaterService {
+@@ -37,10 +38,9 @@ export class WaterService {
+     const gardener = allocation ? this.gardeners.find(allocation.gardenerId) : undefined;
+     if (!gardener) return;
+     this.warned.add(key);
+-    this.mailer.send(
+-      gardener.email,
+-      `High water use on plot ${plotNumber}`,
+-      `Hi ${gardener.name}, your plot used ${used} litres in the week of ${week}, above the ${WEEKLY_WARNING_LITRES} litre limit.`,
+-    );
++    const mail = layoutEmail(gardener.name, `High water use on plot ${plotNumber}`, [
++      `Your plot used ${used} litres in the week of ${week}, above the ${WEEKLY_WARNING_LITRES} litre limit.`,
++    ]);
++    this.mailer.send(gardener.email, mail.subject, mail.body);
+   }
+ }
+diff --git a/src/application/work-day-service.ts b/src/application/work-day-service.ts
+new file mode 100644
+index 0000000..9ee988c
+--- /dev/null
++++ b/src/application/work-day-service.ts
+@@ -0,0 +1,62 @@
++import { randomUUID } from 'node:crypto';
++import { WorkDay } from '../domain/work-day';
++import { Clock, GardenerRepository, Mailer, WorkDayRepository } from './ports';
++import { layoutEmail } from './email-layout';
++
++export class WorkDayService {
++  constructor(
++    private readonly workDays: WorkDayRepository,
++    private readonly gardeners: GardenerRepository,
++    private readonly mailer: Mailer,
++    private readonly clock: Clock,
++  ) {}
++
++  schedule(date: string, description: string): WorkDay {
++    const d: WorkDay = { id: randomUUID(), date, description, signedUp: [], present: [] };
++    this.workDays.save(d);
++    return d;
++  }
++
++  list(): WorkDay[] {
++    return this.workDays.all();
++  }
++
++  signUp(workDayId: string, gardenerId: string): WorkDay {
++    const d = this.get(workDayId);
++    if (!this.gardeners.find(gardenerId)) throw new Error('Unknown gardener');
++    if (!d.signedUp.includes(gardenerId)) d.signedUp.push(gardenerId);
++    this.workDays.save(d);
++    return d;
++  }
++
++  markPresent(workDayId: string, gardenerId: string): WorkDay {
++    const d = this.get(workDayId);
++    if (!d.present.includes(gardenerId)) d.present.push(gardenerId);
++    this.workDays.save(d);
++    return d;
++  }
++
++  /** Sends the reminder for tomorrow's work days. */
++  sendReminders(): number {
++    const tomorrow = new Date(this.clock.now().getTime() + 24 * 3600 * 1000).toISOString().slice(0, 10);
++    let sent = 0;
++    for (const d of this.workDays.all().filter((w) => w.date === tomorrow)) {
++      for (const id of d.signedUp) {
++        const g = this.gardeners.find(id);
++        if (!g) continue;
++        const mail = layoutEmail(g.name, 'Work day tomorrow', [
++          `This is a reminder that you signed up for the work day tomorrow (${d.date}): ${d.description}.`,
++        ]);
++        this.mailer.send(g.email, mail.subject, mail.body);
++        sent++;
++      }
++    }
++    return sent;
++  }
++
++  private get(id: string): WorkDay {
++    const d = this.workDays.find(id);
++    if (!d) throw new Error(`Work day ${id} not found`);
++    return d;
++  }
++}
+diff --git a/src/config/main.ts b/src/config/main.ts
+index 2bee83c..daf2c9b 100644
+--- a/src/config/main.ts
++++ b/src/config/main.ts
+@@ -6,24 +6,31 @@ import {
+   InMemoryPlotRepository,
+   InMemoryReadingRepository,
+   InMemoryWaitingList,
++  InMemoryWorkDayRepository,
+ } from '../adapters/outbound/in-memory';
+ import { PayBeeClient } from '../adapters/outbound/paybee';
+ import { SystemClock } from '../adapters/outbound/system-clock';
+ import { FakeMailer } from '../adapters/outbound/fake-mailer';
+ import { WaterService } from '../application/water-service';
++import { WorkDayService } from '../application/work-day-service';
+ import { createApp } from '../adapters/inbound/http';
+ 
+ const gardeners = new InMemoryGardenerRepository();
+ const allocations = new InMemoryAllocationRepository();
+ export const mailer = new FakeMailer();
++const workDayRepo = new InMemoryWorkDayRepository();
++const clock = new SystemClock();
+ const garden = new GardenService(
+   new InMemoryPlotRepository(),
+   gardeners,
+   allocations,
+   new InMemoryWaitingList(),
+   new PayBeeClient(process.env.PAYBEE_URL ?? 'https://api.paybee.example', process.env.PAYBEE_KEY ?? '', process.env.PAYBEE_WEBHOOK ?? ''),
+-  new SystemClock(),
++  clock,
++  workDayRepo,
++  mailer,
+ );
++const workDays = new WorkDayService(workDayRepo, gardeners, mailer, clock);
+ const water = new WaterService(new InMemoryMeterRepository(), new InMemoryReadingRepository(), allocations, gardeners, mailer);
+ 
+ // check for overdue payments every hour
+@@ -31,4 +38,7 @@ setInterval(() => {
+   garden.releaseOverdue().catch((e) => console.error('release failed', e));
+ }, 60 * 60 * 1000);
+ 
+-createApp(garden, water).listen(Number(process.env.PORT ?? 3000), () => console.log('garden service up'));
++// work-day reminders once a day
++setInterval(() => workDays.sendReminders(), 24 * 60 * 60 * 1000);
++
++createApp(garden, water, workDays).listen(Number(process.env.PORT ?? 3000), () => console.log('garden service up'));
+diff --git a/src/domain/work-day.ts b/src/domain/work-day.ts
+new file mode 100644
+index 0000000..49d469e
+--- /dev/null
++++ b/src/domain/work-day.ts
+@@ -0,0 +1,20 @@
++export interface WorkDay {
++  id: string;
++  date: string; // YYYY-MM-DD
++  description: string;
++  signedUp: string[];
++  present: string[];
++}
++
++export const MIN_WORK_DAYS_PER_YEAR = 2;
++export const SURCHARGE_RATE = 0.2;
++
++export function attendedInPastYear(days: WorkDay[], gardenerId: string, now: Date): number {
++  const yearAgo = new Date(now.getTime() - 365 * 24 * 3600 * 1000).toISOString().slice(0, 10);
++  const today = now.toISOString().slice(0, 10);
++  return days.filter((d) => d.date >= yearAgo && d.date <= today && d.present.includes(gardenerId)).length;
++}
++
++export function feeWithSurcharge(baseFee: number, attended: number): number {
++  return attended < MIN_WORK_DAYS_PER_YEAR ? Math.round(baseFee * (1 + SURCHARGE_RATE) * 100) / 100 : baseFee;
++}

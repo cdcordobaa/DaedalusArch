@@ -1,0 +1,62 @@
+--- a/src/business/ServiceFactory.ts
++++ b/src/business/ServiceFactory.ts
+@@ -4,10 +4,12 @@
+ import { ProductGateway } from '../persistence/ProductGateway';
+ import { CatalogService } from './services/CatalogService';
+ import { OrderService } from './services/OrderService';
++import { RestockService } from './services/RestockService';
+ 
+ export interface BusinessServices {
+   catalog: CatalogService;
+   orders: OrderService;
++  restock: RestockService;
+ }
+ 
+ /**
+@@ -17,9 +19,11 @@
+ export function createServices(): BusinessServices {
+   const db = new InMemoryDatabase();
+   const products = new ProductGateway(db);
++  const orders = new OrderGateway(db);
+   new CustomerGateway(db).insert({ id: 'c-1', name: 'Grace', email: 'grace@example.org', loyaltyTier: 'gold' });
+   return {
+     catalog: new CatalogService(products),
+-    orders: new OrderService(new OrderGateway(db), products, new CustomerGateway(db)),
++    orders: new OrderService(orders, products, new CustomerGateway(db)),
++    restock: new RestockService(products, orders),
+   };
+ }
+--- /dev/null
++++ b/src/business/services/RestockService.ts
+@@ -0,0 +1,31 @@
++import { OrderGateway } from '../../persistence/OrderGateway';
++import { ProductGateway } from '../../persistence/ProductGateway';
++import { Product } from '../model/Product';
++import { toProduct } from './RecordMapping';
++
++export class RestockService {
++  constructor(
++    private readonly products: ProductGateway,
++    private readonly orders: OrderGateway,
++    private readonly threshold = 5,
++  ) {}
++
++  productsToReorder(): Product[] {
++    return this.products
++      .findAll()
++      .map(toProduct)
++      .filter((product) => product.stock < this.threshold);
++  }
++
++  restock(sku: string, quantity: number): void {
++    const row = this.products.findBySku(sku);
++    if (row !== undefined) this.products.updateStock(sku, row.stock + quantity);
++  }
++
++  openDemand(customerId: string): number {
++    return this.orders
++      .findByCustomer(customerId)
++      .filter((row) => row.status === 'placed')
++      .reduce((sum, row) => sum + row.lines.reduce((n, line) => n + line.quantity, 0), 0);
++  }
++}
