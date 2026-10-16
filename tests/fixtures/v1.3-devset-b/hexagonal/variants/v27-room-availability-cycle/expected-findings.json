@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "variant": "v27-room-availability-cycle",
+  "kind": "violation",
+  "plants": "FF-S02",
+  "description": "Room (domain model) imports AvailabilityChecker (domain service) for isFreeFor(stay, bookings), while AvailabilityChecker already imports Room.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "file": "src/domain/model/Room.ts",
+      "target": "src/domain/services/AvailabilityChecker.ts",
+      "reason": "Two-file import cycle Room -> AvailabilityChecker -> Room across the model and services folders."
+    }
+  ]
+}

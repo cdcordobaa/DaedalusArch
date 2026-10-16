@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "style": "layered",
+  "variant": "v21-order-record-reuses-business-status",
+  "kind": "violation",
+  "plants": "FF-S01",
+  "description": "OrderRecord (persistence/records) types its status column as Order['status'] through an import type of the business Order model.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/persistence/records/OrderRecord.ts",
+      "target": "src/business/model/Order.ts",
+      "reason": "A lower layer (persistence) imports an upper one (business) (type-only import of the Order model into a record)."
+    },
+    {
+      "ruleId": "FF-S03",
+      "ruleName": "no-layer-skip",
+      "file": "src/persistence/records/OrderRecord.ts",
+      "target": "src/business/model/Order.ts",
+      "reason": "persistence > business is not an allowed transition (only business > persistence and presentation > business are)."
+    }
+  ]
+}

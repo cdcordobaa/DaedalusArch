@@ -1,0 +1,32 @@
+--- a/src/business/model/Customer.ts
++++ b/src/business/model/Customer.ts
+@@ -6,6 +6,10 @@
+     readonly loyaltyTier: 'standard' | 'gold',
+   ) {}
+ 
++  openOrders<T extends { customerId: string; status: string }>(orders: readonly T[]): T[] {
++    return orders.filter((order) => order.customerId === this.id && order.status === 'placed');
++  }
++
+   get isGold(): boolean {
+     return this.loyaltyTier === 'gold';
+   }
+--- a/src/business/model/Order.ts
++++ b/src/business/model/Order.ts
+@@ -1,4 +1,5 @@
+ import { BusinessError } from '../errors/BusinessError';
++import type { Customer } from './Customer';
+ import { Money } from './Money';
+ import { OrderLine } from './OrderLine';
+ 
+@@ -18,6 +19,10 @@
+     return this.orderStatus;
+   }
+ 
++  isPlacedBy(customer: Customer): boolean {
++    return this.customerId === customer.id;
++  }
++
+   subtotal(): Money {
+     return this.lines.reduce((sum, line) => sum.add(line.total()), Money.zero());
+   }

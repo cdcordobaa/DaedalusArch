@@ -1,0 +1,19 @@
+{
+  "answer": {
+    "inputTokens": 290,
+    "outputTokens": 20,
+    "servedModel": "fake-gemini",
+    "text": "{\"choice\":\"A\",\"reason\":\"fake google answer\"}"
+  },
+  "failedAttempts": [],
+  "itemKey": "e758fa06b756b58107abd909",
+  "key": "baedcfeb95a750fe2ad7295457ab1bfbba21fea56d074bca2fb3bc0c120049bf",
+  "model": "fake-gemini",
+  "provider": "fake",
+  "request": {
+    "prompt": "## Architectural style\n- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.\n\n## Code excerpt\nFile: src/email/email.service.ts\n```ts\n   33      }\n   34    }\n   35  \n   36>   async sendFromTemplate<C>(\n   37      template: EmailTemplate<C>,\n   38      emailInfo: Partial<Email> & { to: EmailData[] },\n   39      settings: sg.MailDataRequired['mailSettings'] = {},\n   40    ) {\n   41      if (!emailInfo.to) {\n   42        throw new Error('emailInfo.to is required')\n   43      }\n   44  \n```\n\n## Reported finding\nThe public param type of `EmailService.sendFromTemplate` (layer application) exposes `EmailTemplate`, a type declared in the infrastructure layer (src/email/template.interface.ts).\n\n## Question\nWould an architect following this style want this changed?\nA. no\nB. uncertain\nC. yes\n\nReply with JSON only: {\"choice\": \"<letter>\", \"reason\": \"<one sentence>\"}",
+    "system": "You are a software architect reviewing a TypeScript code base against an architectural style. Judge only from the material in the message: the style definition, the code excerpt and the reported finding. You have no tools. Reply with one JSON object and nothing else.",
+    "temperature": 0
+  },
+  "runIndex": 1
+}

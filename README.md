@@ -4,6 +4,32 @@ An architectural firewall for TypeScript: a YAML spec (layers, fitness functions
 architecture property graph, scored as an Architecture Health Score (AHS) and turned into a verdict. See
 `Docs/` for the requirements, the registered instrument and the experiment plans.
 
+**Using it on your own code?** Start with the [user guide](docs/guide/README.md). It covers the quick start with no
+database, writing a spec, reading a report, the MCP server for coding agents, the CI gate, the HTML report and zero-config
+init.
+
+## Quick start without a database (npx)
+
+No Neo4j server, no Docker, no credentials: when `NEO4J_URI` is not set, every command runs the rule templates on
+the in-process Cypher interpreter (`--engine cypher-interp`). The Cypher template text is still the only definition
+of each rule; the interpreter executes it unchanged. Details, limits and the parity evidence:
+[`Docs/v1.3/npx-mode.md`](Docs/v1.3/npx-mode.md).
+
+```bash
+# from a checkout (or a published/packed tarball: npm install daedalus-arch-<version>.tgz)
+npm ci && npm run build && npm install -g .     # or: npm pack, then install the .tgz anywhere
+
+npx daedalus evaluate path/to/project --spec path/to/spec.yaml          # human report on stderr
+npx daedalus evaluate path/to/project --spec path/to/spec.yaml --format json --symbolic-only
+npx daedalus validate --spec path/to/spec.yaml --project path/to/project  # also parses every compiled query
+npx daedalus-mcp --spec path/to/spec.yaml --project path/to/project      # MCP server on stdio, no database
+```
+
+Every evaluating command prints one stderr line naming the engine, e.g.
+`daedalus: graph engine cypher-interp (in-process, no database) [NEO4J_URI is not set; ...]`.
+Set `NEO4J_URI` (or pass `--engine neo4j`) to use Neo4j, which stays **the reference engine for reported numbers**;
+study and experiment scripts always pass `--engine neo4j` explicitly.
+
 ## MCP server (v1.3 prototype)
 
 > **Prototype.** Groundwork for a "firewall in the loop" experiment (design in
@@ -18,21 +44,24 @@ writes code.
 | `get_architecture_spec` | The spec as data: layers (inner to outer), globs, which layers each may and may not import, forbidden packages, every rule with status and description | spec |
 | `which_layer` | The layer of a file path, plus the layers and packages a file there may and may not import | spec |
 | `check_import` | Would an import from file A to module B break a rule? Rule id, severity and reason. Spec-based and instant, no graph (covers FF-S01, FF-S03, FF-S04, FF-P01; not cycles or class-level rules) | spec |
-| `evaluate_project` | The existing symbolic-only pipeline on a project: AHS, verdict, violations by rule. Slow, and it **replaces the graph in the Neo4j database**, so use a scratch instance | spec, Neo4j |
+| `evaluate_project` | The existing symbolic-only pipeline on a project: AHS, verdict, violations by rule. On the in-process interpreter by default (no database; unchanged projects answered from a cache); on Neo4j (`--engine neo4j` or `NEO4J_URI` set) it **replaces the graph in the database**, so use a scratch instance | spec (Neo4j only with `--engine neo4j`) |
 | `explain_violation` | A rule's intent and fix guidance, from the rule template and the report catalogue (by rule id, rule name or violation type) | none (spec adds context) |
 | `check_file` | A proposed file (path + content) against every import rule (FF-S01, FF-S03, FF-S04, FF-P01) and the class naming rules (FF-CV02..04 when active): verdict, one-line summary, violations with rule id, line, reason and a concrete fix. Instant, no graph | spec |
 | `check_diff` | The `check_file` rules over a unified diff: new files whole, modified files on their added lines (new-file line numbers) | spec |
 | `suggest_placement` | Where a new class or module goes, from its purpose ("repository for orders"): layer, a path the spec maps to that layer, a class name that passes the naming rules, what it may import | spec |
 
-Without Neo4j every tool but `evaluate_project` works. `evaluate_project` returns an error result
-(`NEO4J_UNREACHABLE` or `CONFIG_MISSING_ENV`) that says what to fix.
+Without Neo4j every tool works: the server picks the in-process interpreter when `NEO4J_URI` is not set
+(`--engine neo4j|cypher-interp` overrides). `check_file` and `check_diff` also take `templates: true`, which runs the
+compiled rule templates on the whole project before and after the change and reports what it introduces
+(`templates.introduced`, `templates.blockingVerdict`). On the Neo4j engine, `evaluate_project` returns an error
+result (`NEO4J_UNREACHABLE` or `CONFIG_MISSING_ENV`) that says what to fix.
 
 ### Try it in three commands
 
 ```bash
 npm ci
-export NEO4J_PASSWORD=choose-a-password && docker compose up -d     # optional: only evaluate_project needs Neo4j
-npm run mcp -- --spec specs/clean-arch.yaml --project fixtures/variant-a-structural   # speaks MCP on stdio
+npm run mcp -- --spec specs/clean-arch.yaml --project fixtures/variant-a-structural   # speaks MCP on stdio, no database
+# optional, the reference engine: export NEO4J_PASSWORD=... NEO4J_URI=bolt://localhost:7687 && docker compose up -d
 ```
 
 To poke at it by hand, use the MCP inspector: `npx @modelcontextprotocol/inspector npm run mcp -- --spec specs/clean-arch.yaml`.

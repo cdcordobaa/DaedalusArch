@@ -1,0 +1,36 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7987,
+  "effort": "high",
+  "functionId": "filter-explain",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "7c201aa130812654df03e16b074f54b7a14d832dffb2fdd87e86b1bdbd8aa55c-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "## Finding\nRule: FF-CV05\nRule intent: Each source file has a paired test file.\nType: MISSING_TEST_FILE\nSeverity: advisory; tier: advisory (unscored)\nFile: src/business/services/PricingPolicy.ts\nMessage: Violation in src/business/services/PricingPolicy.ts\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**\n- business (kind: domain): src/business/**\n- presentation (kind: presentation): src/presentation/**\n\n## Source (line-numbered)\n=====SOURCE-BEGIN src/business/services/PricingPolicy.ts (layer business)=====\n1| import { Customer } from '../model/Customer';\n2| import { Money } from '../model/Money';\n3| \n4| /** Gold customers get 10 % off orders of 100 EUR or more. */\n5| export class PricingPolicy {\n6|   discountFor(customer: Customer, subtotal: Money): Money {\n7|     return customer.isGold && subtotal.cents >= 10_000 ? subtotal.percent(10) : Money.zero();\n8|   }\n9| }\n=====SOURCE-END=====\n\n## Instructions\nDecide confirm or dismiss. Confirm: the cited code has the problem the rule is meant to catch, in this project and layer model. Dismiss: the rule fired, but the code does not have that problem (a false positive of the rule's mechanism, a threshold artefact on sound code, or a case the style allows). Measurements stated in the finding (counts, ratios, missing files) are correct as measurements; judge what they mean for this code. explanation: one paragraph that justifies the decision from the code, citing file paths and line numbers exactly as numbered below. fix: one concrete change: for a confirm, how to fix the code; for a dismiss, what (if anything) the rule or its configuration should change. citations: the line ranges your explanation relies on; every one must name a file shown below and lines that exist.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T00:00:28.259Z",
+  "repetition": 0,
+  "requestHash": "7c201aa130812654df03e16b074f54b7a14d832dffb2fdd87e86b1bdbd8aa55c",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":609}},\"result\":\"{\\\"decision\\\":\\\"confirm\\\",\\\"explanation\\\":\\\"src/business/services/PricingPolicy.ts is in the domain layer and holds real business logic, not boilerplate. PricingPolicy.discountFor (lines 5-8) applies a pricing rule with two conditions: the customer must be gold, and the subtotal must be at least 10_000 cents (line 7). When both hold, it returns a 10% discount; otherwise it returns Money.zero(). The comment on line 4 states the rule. A rule like this is exactly where boundary mistakes slip in, such as >= versus >, cents versus euros, or a non-gold customer above the threshold. The finding says the paired test file is missing, and I take that measurement as correct. So nothing checks this rule, and that is the gap FF-CV05 exists to catch. The tier is advisory, but the finding is a real instance of the problem and not a false positive of the rule's mechanism.\\\",\\\"fix\\\":\\\"Add a test file such as src/business/services/PricingPolicy.test.ts. It should cover these cases: a gold customer at exactly 10_000 cents gets 10% off; a gold customer at 9_999 cents gets Money.zero(); a non-gold customer above the threshold gets Money.zero(); and a gold customer well above the threshold gets the correct 10% amount.\\\",\\\"citations\\\":[{\\\"filePath\\\":\\\"src/business/services/PricingPolicy.ts\\\",\\\"startLine\\\":4,\\\"endLine\\\":8}]}\",\"structured_output\":{\"citations\":[{\"endLine\":8,\"filePath\":\"src/business/services/PricingPolicy.ts\",\"startLine\":4}],\"decision\":\"confirm\",\"explanation\":\"src/business/services/PricingPolicy.ts is in the domain layer and holds real business logic, not boilerplate. PricingPolicy.discountFor (lines 5-8) applies a pricing rule with two conditions: the customer must be gold, and the subtotal must be at least 10_000 cents (line 7). When both hold, it returns a 10% discount; otherwise it returns Money.zero(). The comment on line 4 states the rule. A rule like this is exactly where boundary mistakes slip in, such as >= versus >, cents versus euros, or a non-gold customer above the threshold. The finding says the paired test file is missing, and I take that measurement as correct. So nothing checks this rule, and that is the gap FF-CV05 exists to catch. The tier is advisory, but the finding is a real instance of the problem and not a false positive of the rule's mechanism.\",\"fix\":\"Add a test file such as src/business/services/PricingPolicy.test.ts. It should cover these cases: a gold customer at exactly 10_000 cents gets 10% off; a gold customer at 9_999 cents gets Money.zero(); a non-gold customer above the threshold gets Money.zero(); and a gold customer well above the threshold gets the correct 10% amount.\"}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "61e1258635dab5c8",
+  "usage": {
+    "inputTokens": 2079,
+    "outputTokens": 609
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
