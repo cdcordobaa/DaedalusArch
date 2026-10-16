@@ -15,7 +15,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { createPipeline } from '../pipeline/pipeline-factory.js';
 import type { PipelineBundle } from '../pipeline/pipeline-factory.js';
-import type { PipelineConfig } from '../pipeline/types.js';
+import type { ExtractorDefaults, PipelineConfig } from '../pipeline/types.js';
 import type { DomainResult } from '../shared/errors/domain-result.js';
 import { DomainResult as Result } from '../shared/errors/domain-result.js';
 import type { EvaluationReport, ScoringMode } from '../shared/types/evaluation.js';
@@ -35,6 +35,8 @@ export interface InterpEvaluateInput {
   readonly overrides?: ReadonlyMap<string, string | null>;
   /** Explicit tsconfig for the extractor (absent = `<project>/tsconfig.json`); part of the cache key with its mtime. */
   readonly tsconfigPath?: string;
+  /** Extractor defaults (`PipelineConfig.extractorDefaults`; absent = the pipeline's default); part of the cache key. */
+  readonly extractorDefaults?: ExtractorDefaults;
 }
 
 export type InterpEvaluator = (input: InterpEvaluateInput) => Promise<DomainResult<InterpEvaluation>>;
@@ -111,7 +113,7 @@ export function createInterpEvaluator(deps: InterpEvaluatorDeps = {}): InterpEva
         tsconfigKey = `${tsconfigPath}@missing`;
       }
     }
-    const key = [projectPath, projectFingerprint(projectPath), specPath, String(specMtime), input.scoringMode, overridesKey(input.overrides), tsconfigKey].join('|');
+    const key = [projectPath, projectFingerprint(projectPath), specPath, String(specMtime), input.scoringMode, overridesKey(input.overrides), tsconfigKey, input.extractorDefaults ?? ''].join('|');
     const hit = cache.get(key);
     if (hit !== undefined) {
       cache.delete(key);
@@ -133,6 +135,7 @@ export function createInterpEvaluator(deps: InterpEvaluatorDeps = {}): InterpEva
       scoringMode: input.scoringMode,
       graphEngine: 'cypher-interp',
       ...(tsconfigPath !== undefined && { tsconfigPath }),
+      ...(input.extractorDefaults !== undefined && { extractorDefaults: input.extractorDefaults }),
       ...(input.overrides !== undefined && input.overrides.size > 0 && { sourceOverrides: input.overrides }),
     };
     const { executor, cleanup } = makePipeline(config);
