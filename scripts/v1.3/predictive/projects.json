@@ -1,0 +1,1034 @@
+{
+ "_doc": "v1.3-validity-predictive corpus and layer maps. Written from folder listings at T (git ls-tree) only, before any tool run. p = path prefix of the source tree inside the project path. Layers: d=domain, i=infrastructure, a=application, pr=presentation; dirs take priority over pats (preset semantics). Unmapped folders are listed in 'unmapped' with the reason.",
+ "T": "2025-04-01T00:00:00Z",
+ "T_alt": "2024-10-01T00:00:00Z",
+ "projects": [
+  {
+   "id": "hoppscotch-backend",
+   "repo": "hoppscotch/hoppscotch",
+   "root": "packages/hoppscotch-backend",
+   "p": "src/",
+   "framework": "NestJS",
+   "d": {
+    "dirs": [
+     "types/**"
+    ]
+   },
+   "i": {
+    "dirs": [
+     "prisma/**",
+     "pubsub/**",
+     "mailer/**",
+     "posthog/**"
+    ]
+   },
+   "a": {
+    "dirs": []
+   },
+   "pr": {
+    "dirs": [
+     "guards/**",
+     "decorators/**",
+     "interceptors/**",
+     "*/guards/**",
+     "*/decorators/**",
+     "*/resolvers/**"
+    ]
+   },
+   "unmapped": "utils.ts, errors.ts, main.ts at root; feature folders are mapped by file pattern"
+  },
+  {
+   "id": "immich-server",
+   "repo": "immich-app/immich",
+   "root": "server",
+   "p": "src/",
+   "framework": "NestJS",
+   "d": {
+    "dirs": [
+     "entities/**"
+    ]
+   },
+   "i": {
+    "dirs": [
+     "repositories/**",
+     "schema/**",
+     "emails/**",
+     "sql-tools/**",
+     "workers/**"
+    ]
+   },
+   "a": {
+    "dirs": [
+     "services/**",
+     "dtos/**",
+     "cores/**"
+    ]
+   },
+   "pr": {
+    "dirs": [
+     "controllers/**",
+     "middleware/**",
+     "commands/**"
+    ]
+   },
+   "unmapped": "utils/, bin/, root files"
+  },
+  {
+   "id": "hedgedoc-backend",
+   "repo": "hedgedoc/hedgedoc",
+   "root": "backend",
+   "p": "src/",
+   "framework": "NestJS",
+   "d": {
+    "dirs": []
+   },
+   "i": {
+    "dirs": [
+     "media/backends/**",
+     "logger/**"
+    ]
+   },
+   "a": {
+    "dirs": [
+     "realtime/realtime-note/**",
+     "permissions/**"
+    ]
+   },
+   "pr": {
+    "dirs": [
+     "api/**",
+     "realtime/websocket/**"
+    ]
+   },
+   "unmapped": "config/, utils/, errors/; feature folders by pattern (*.entity.ts domain, *.service.ts application)"
+  },
+  {
+   "id": "medplum-server",
+   "repo": "medplum/medplum",
+   "root": "packages/server",
+   "p": "src/",
+   "framework": "Express",
+   "d": {
+    "dirs": []
+   },
+   "i": {
+    "dirs": [
+     "fhir/lookups/**",
+     "cloud/**",
+     "email/**",
+     "workers/**",
+     "keyvalue/**"
+    ],
+    "pats": [
+     "src/database.ts",
+     "src/redis.ts"
+    ]
+   },
+   "a": {
+    "dirs": [
+     "fhir/*.ts",
+     "subscriptions/**",
+     "seeds/**"
+    ]
+   },
+   "pr": {
+    "dirs": [
+     "fhir/operations/**",
+     "auth/**",
+     "oauth/**",
+     "admin/**",
+     "scim/**",
+     "agent/**",
+     "fhircast/**",
+     "dicom/**",
+     "hl7/**"
+    ],
+    "pats": [
+     "src/app.ts",
+     "**/routes.ts"
+    ]
+   },
+   "unmapped": "util/, config/, otel/, root helpers"
+  },
+  {
+   "id": "outline-server",
+   "repo": "outline/outline",
+   "root": ".",
+   "p": "server/",
+   "framework": "Koa",
+   "d": {
+    "dirs": [
+     "models/**"
+    ]
+   },
+   "i": {
+    "dirs": [
+     "storage/**",
+     "emails/**",
+     "logging/**"
+    ]
+   },
+   "a": {
+    "dirs": [
+     "commands/**",
+     "queues/**",
+     "policies/**"
+    ]
+   },
+   "pr": {
+    "dirs": [
+     "routes/**",
+     "presenters/**",
+     "middlewares/**",
+     "collaboration/**",
+     "services/**"
+    ]
+   },
+   "unmapped": "utils/, editor/, scripts/, root files; services/ are the web/worker/collaboration servers"
+  },
+  {
+   "id": "infisical-backend",
+   "repo": "Infisical/infisical",
+   "root": "backend",
+   "p": "src/",
+   "framework": "Fastify",
+   "d": {
+    "dirs": [
+     "db/schemas/**"
+    ]
+   },
+   "i": {
+    "dirs": [
+     "queue/**",
+     "keystore/**",
+     "lib/knex/**",
+     "db/*.ts"
+    ],
+    "pats": [
+     "**/*-dal.ts",
+     "**/*-queue.ts"
+    ]
+   },
+   "a": {
+    "dirs": [],
+    "pats": [
+     "**/*-service.ts",
+     "**/*-fns.ts"
+    ]
+   },
+   "pr": {
+    "dirs": [
+     "server/routes/**",
+     "ee/routes/**",
+     "server/plugins/**"
+    ]
+   },
+   "unmapped": "lib/ (except knex), *-types.ts and other helpers in services/"
+  },
+  {
+   "id": "vendure-core",
+   "repo": "vendure-ecommerce/vendure",
+   "root": "packages/core",
+   "p": "src/",
+   "framework": "NestJS",
+   "d": {
+    "dirs": [
+     "entity/**",
+     "event-bus/events/**"
+    ]
+   },
+   "i": {
+    "dirs": [
+     "connection/**",
+     "job-queue/**",
+     "cache/**",
+     "event-bus/*.ts",
+     "plugin/**",
+     "worker/**"
+    ]
+   },
+   "a": {
+    "dirs": [
+     "service/**",
+     "data-import/**"
+    ]
+   },
+   "pr": {
+    "dirs": [
+     "api/**"
+    ]
+   },
+   "unmapped": "config/ (strategy plug points), common/, i18n/, process-context/, health-check/, testing/, cli/"
+  },
+  {
+   "id": "logto-core",
+   "repo": "logto-io/logto",
+   "root": "packages/core",
+   "p": "src/",
+   "framework": "Koa",
+   "d": {
+    "dirs": []
+   },
+   "i": {
+    "dirs": [
+     "queries/**",
+     "database/**",
+     "caches/**",
+     "sso/**",
+     "workers/**"
+    ]
+   },
+   "a": {
+    "dirs": [
+     "libraries/**",
+     "event-listeners/**",
+     "oidc/**",
+     "saml-application/**"
+    ]
+   },
+   "pr": {
+    "dirs": [
+     "routes/**",
+     "routes-me/**",
+     "middleware/**"
+    ]
+   },
+   "unmapped": "utils/, tenants/, env-set/, errors/, i18n/, test-utils/"
+  },
+  {
+   "id": "directus-api",
+   "repo": "directus/directus",
+   "root": "api",
+   "p": "src/",
+   "framework": "Express",
+   "d": {
+    "dirs": [
+     "types/**"
+    ]
+   },
+   "i": {
+    "dirs": [
+     "database/**",
+     "storage/**",
+     "auth/drivers/**",
+     "redis/**",
+     "bus/**",
+     "lock/**"
+    ]
+   },
+   "a": {
+    "dirs": [
+     "services/**",
+     "operations/**",
+     "permissions/**"
+    ]
+   },
+   "pr": {
+    "dirs": [
+     "controllers/**",
+     "middleware/**",
+     "websocket/**",
+     "cli/**"
+    ]
+   },
+   "unmapped": "utils/, extensions/, telemetry/, metrics/, logger/, request/, schedules/"
+  },
+  {
+   "id": "unleash-lib",
+   "repo": "Unleash/unleash",
+   "root": ".",
+   "p": "src/lib/",
+   "framework": "Express",
+   "d": {
+    "dirs": [
+     "types/**",
+     "domain/**"
+    ]
+   },
+   "i": {
+    "dirs": [
+     "db/**",
+     "addons/**"
+    ],
+    "pats": [
+     "**/*-store.ts",
+     "**/*-read-model.ts"
+    ]
+   },
+   "a": {
+    "dirs": [
+     "services/**"
+    ],
+    "pats": [
+     "**/*-service.ts"
+    ]
+   },
+   "pr": {
+    "dirs": [
+     "routes/**",
+     "middleware/**",
+     "openapi/**"
+    ],
+    "pats": [
+     "**/*-controller.ts"
+    ]
+   },
+   "unmapped": "util/, error/, users/, features/ files outside the store/service/controller patterns"
+  },
+  {
+   "id": "growthbook-backend",
+   "repo": "growthbook/growthbook",
+   "root": "packages/back-end",
+   "p": "src/",
+   "framework": "Express",
+   "d": {
+    "dirs": [
+     "types/**",
+     "validators/**"
+    ]
+   },
+   "i": {
+    "dirs": [
+     "models/**",
+     "integrations/**",
+     "init/**"
+    ]
+   },
+   "a": {
+    "dirs": [
+     "services/**",
+     "queryRunners/**",
+     "jobs/**",
+     "events/**"
+    ]
+   },
+   "pr": {
+    "dirs": [
+     "controllers/**",
+     "routers/**",
+     "api/**",
+     "middleware/**",
+     "scim/**"
+    ]
+   },
+   "unmapped": "util/, enterprise/, scripts/; models/ are Mongoose data access, hence infrastructure"
+  },
+  {
+   "id": "novu-api",
+   "repo": "novuhq/novu",
+   "root": "apps/api",
+   "p": "src/",
+   "framework": "NestJS",
+   "d": {
+    "dirs": []
+   },
+   "i": {
+    "dirs": []
+   },
+   "a": {
+    "dirs": [
+     "app/*/usecases/**",
+     "app/*/dtos/**"
+    ]
+   },
+   "pr": {
+    "dirs": []
+   },
+   "unmapped": "app/shared/, config/; repositories live in the external @novu/dal package; feature folders by pattern"
+  },
+  {
+   "id": "teable-backend",
+   "repo": "teableio/teable",
+   "root": "apps/nestjs-backend",
+   "p": "src/",
+   "framework": "NestJS",
+   "d": {
+    "dirs": []
+   },
+   "i": {
+    "dirs": [
+     "db-provider/**",
+     "share-db/**",
+     "cache/**",
+     "global/knex/**"
+    ]
+   },
+   "a": {
+    "dirs": [
+     "event-emitter/**"
+    ]
+   },
+   "pr": {
+    "dirs": [
+     "ws/**"
+    ]
+   },
+   "unmapped": "utils/, configs/, types/, logger/, tracing/, filter/; features/ by pattern"
+  },
+  {
+   "id": "budibase-server",
+   "repo": "Budibase/budibase",
+   "root": "packages/server",
+   "p": "src/",
+   "framework": "Koa",
+   "d": {
+    "dirs": [
+     "definitions/**"
+    ]
+   },
+   "i": {
+    "dirs": [
+     "db/**",
+     "integrations/**",
+     "jsRunner/**",
+     "threads/**"
+    ]
+   },
+   "a": {
+    "dirs": [
+     "sdk/**",
+     "automations/**",
+     "events/**",
+     "appMigrations/**"
+    ]
+   },
+   "pr": {
+    "dirs": [
+     "api/**",
+     "middleware/**",
+     "websockets/**"
+    ]
+   },
+   "unmapped": "utilities/, constants/, startup/"
+  },
+  {
+   "id": "ghostfolio-api",
+   "repo": "ghostfolio/ghostfolio",
+   "root": "apps/api",
+   "p": "src/",
+   "framework": "NestJS",
+   "d": {
+    "dirs": [
+     "models/**"
+    ]
+   },
+   "i": {
+    "dirs": [
+     "services/prisma/**",
+     "services/data-provider/**",
+     "services/queues/**",
+     "services/twitter-bot/**"
+    ]
+   },
+   "a": {
+    "dirs": [
+     "services/**",
+     "events/**"
+    ]
+   },
+   "pr": {
+    "dirs": [
+     "guards/**",
+     "interceptors/**",
+     "decorators/**",
+     "middlewares/**"
+    ]
+   },
+   "unmapped": "helper/, environments/, validators/; app/ feature folders by pattern"
+  },
+  {
+   "id": "misskey-backend",
+   "repo": "misskey-dev/misskey",
+   "root": "packages/backend",
+   "p": "src/",
+   "framework": "NestJS",
+   "d": {
+    "dirs": [
+     "models/**"
+    ]
+   },
+   "i": {
+    "dirs": [
+     "daemons/**"
+    ]
+   },
+   "a": {
+    "dirs": [
+     "core/**",
+     "queue/**"
+    ]
+   },
+   "pr": {
+    "dirs": [
+     "server/**",
+     "boot/**"
+    ]
+   },
+   "unmapped": "misc/, root files; models/ are TypeORM entities (preset src/models/** -> domain)"
+  },
+  {
+   "id": "affine-server",
+   "repo": "toeverything/AFFiNE",
+   "root": "packages/backend/server",
+   "p": "src/",
+   "framework": "NestJS",
+   "d": {
+    "dirs": []
+   },
+   "i": {
+    "dirs": [
+     "models/**",
+     "base/cache/**",
+     "base/prisma/**",
+     "base/redis/**",
+     "base/storage/**",
+     "base/job/**",
+     "base/mutex/**",
+     "base/event/**",
+     "mails/**"
+    ]
+   },
+   "a": {
+    "dirs": []
+   },
+   "pr": {
+    "dirs": [
+     "base/graphql/**",
+     "base/guard/**",
+     "base/websocket/**",
+     "middleware/**",
+     "data/commands/**"
+    ]
+   },
+   "unmapped": "base/ helpers (config, error, helpers, logger, metrics, utils, nestjs, throttler), seed/; core/ and plugins/ by pattern; models/ are Prisma-backed data access"
+  },
+  {
+   "id": "activepieces-api",
+   "repo": "activepieces/activepieces",
+   "root": "packages/server/api",
+   "p": "src/",
+   "framework": "Fastify",
+   "d": {
+    "pats": [
+     "**/*-entity.ts",
+     "**/*.entity.ts"
+    ]
+   },
+   "i": {
+    "dirs": [
+     "app/database/**",
+     "app/workers/**"
+    ],
+    "pats": [
+     "**/*-repo.ts"
+    ]
+   },
+   "a": {
+    "dirs": [],
+    "pats": [
+     "**/*-service.ts",
+     "**/*.service.ts"
+    ]
+   },
+   "pr": {
+    "dirs": [],
+    "pats": [
+     "**/*-controller.ts",
+     "**/*.controller.ts",
+     "**/*-module.ts",
+     "**/*.module.ts"
+    ]
+   },
+   "unmapped": "app/helper/, app/core/; feature folders by pattern"
+  },
+  {
+   "id": "calcom-api-v2",
+   "repo": "calcom/cal.com",
+   "root": "apps/api/v2",
+   "p": "src/",
+   "framework": "NestJS",
+   "d": {
+    "dirs": []
+   },
+   "i": {
+    "dirs": [
+     "modules/prisma/**",
+     "modules/redis/**"
+    ]
+   },
+   "a": {
+    "dirs": [
+     "**/inputs/**",
+     "**/outputs/**"
+    ]
+   },
+   "pr": {
+    "dirs": [
+     "filters/**",
+     "middleware/**"
+    ]
+   },
+   "unmapped": "lib/, config/; modules/ and ee/ by pattern"
+  },
+  {
+   "id": "hive-api",
+   "repo": "graphql-hive/console",
+   "root": "packages/services/api",
+   "p": "src/",
+   "framework": "graphql-modules",
+   "d": {
+    "dirs": []
+   },
+   "i": {
+    "dirs": [
+     "modules/shared/providers/**"
+    ]
+   },
+   "a": {
+    "dirs": [
+     "modules/*/providers/**"
+    ]
+   },
+   "pr": {
+    "dirs": [
+     "modules/*/resolvers/**"
+    ],
+    "pats": [
+     "**/module.graphql.ts",
+     "**/module.graphql.mappers.ts",
+     "**/resolvers.ts"
+    ]
+   },
+   "unmapped": "shared/, modules/*/lib/, module index files"
+  },
+  {
+   "id": "langfuse-worker",
+   "repo": "langfuse/langfuse",
+   "root": "worker",
+   "p": "src/",
+   "framework": "Express + BullMQ",
+   "d": {
+    "dirs": [
+     "interfaces/**"
+    ]
+   },
+   "i": {
+    "dirs": []
+   },
+   "a": {
+    "dirs": [
+     "services/**",
+     "features/**",
+     "ee/**"
+    ]
+   },
+   "pr": {
+    "dirs": [
+     "queues/**",
+     "api/**"
+    ]
+   },
+   "unmapped": "utils/, constants/, scripts/, backgroundMigrations/; data access is in the external @langfuse/shared package"
+  },
+  {
+   "id": "postiz-nestjs-libs",
+   "repo": "gitroomhq/postiz-app",
+   "root": "libraries/nestjs-libraries",
+   "p": "src/",
+   "framework": "NestJS",
+   "d": {
+    "dirs": []
+   },
+   "i": {
+    "dirs": [
+     "integrations/**",
+     "upload/**",
+     "emails/**",
+     "redis/**",
+     "bull-mq-transport-new/**",
+     "openai/**",
+     "short-linking/**",
+     "track/**"
+    ]
+   },
+   "a": {
+    "dirs": [
+     "dtos/**",
+     "services/**",
+     "agent/**"
+    ]
+   },
+   "pr": {
+    "dirs": [
+     "throttler/**"
+    ]
+   },
+   "unmapped": "user/, crypto/; database/prisma by pattern (*.repository.ts / *.service.ts)"
+  },
+  {
+   "id": "tooljet-server",
+   "repo": "ToolJet/ToolJet",
+   "root": "server",
+   "p": "src/",
+   "framework": "NestJS",
+   "d": {
+    "dirs": [
+     "entities/**"
+    ]
+   },
+   "i": {
+    "dirs": []
+   },
+   "a": {
+    "dirs": [
+     "dto/**",
+     "services/**",
+     "schedulers/**",
+     "events/**"
+    ]
+   },
+   "pr": {
+    "dirs": []
+   },
+   "unmapped": "helpers/, constants/, migration-helpers/; modules/ by pattern"
+  },
+  {
+   "id": "lightdash-backend",
+   "repo": "lightdash/lightdash",
+   "root": "packages/backend",
+   "p": "src/",
+   "framework": "Express + tsoa",
+   "d": {
+    "dirs": [
+     "database/entities/**",
+     "ee/database/entities/**"
+    ]
+   },
+   "i": {
+    "dirs": [
+     "models/**",
+     "ee/models/**",
+     "clients/**",
+     "ee/clients/**",
+     "projectAdapters/**",
+     "dbt/**",
+     "analytics/**",
+     "database/*.ts"
+    ]
+   },
+   "a": {
+    "dirs": [
+     "services/**",
+     "ee/services/**",
+     "scheduler/**",
+     "ee/scheduler/**"
+    ]
+   },
+   "pr": {
+    "dirs": [
+     "controllers/**",
+     "ee/controllers/**",
+     "routers/**",
+     "middlewares/**"
+    ]
+   },
+   "unmapped": "utils/, config/, logging/, generated/, root files; models/ are Knex data access"
+  },
+  {
+   "id": "medusa-core",
+   "repo": "medusajs/medusa",
+   "root": "packages/medusa",
+   "p": "src/",
+   "framework": "Medusa (Express)",
+   "d": {
+    "dirs": [
+     "types/**"
+    ]
+   },
+   "i": {
+    "dirs": [
+     "loaders/**",
+     "modules/**",
+     "instrumentation/**"
+    ]
+   },
+   "a": {
+    "dirs": [
+     "subscribers/**",
+     "core-flows/**"
+    ]
+   },
+   "pr": {
+    "dirs": [
+     "api/**",
+     "commands/**"
+    ]
+   },
+   "unmapped": "utils/, migration-scripts/; business logic is in external @medusajs/* packages"
+  },
+  {
+   "id": "nocodb-server",
+   "repo": "nocodb/nocodb",
+   "root": "packages/nocodb",
+   "p": "src/",
+   "framework": "NestJS",
+   "d": {
+    "dirs": [
+     "interface/**",
+     "types/**"
+    ]
+   },
+   "i": {
+    "dirs": [
+     "models/**",
+     "db/**",
+     "meta/**",
+     "plugins/**",
+     "cache/**",
+     "redis/**",
+     "providers/**"
+    ]
+   },
+   "a": {
+    "dirs": [
+     "services/**",
+     "modules/jobs/**",
+     "version-upgrader/**"
+    ]
+   },
+   "pr": {
+    "dirs": [
+     "controllers/**",
+     "guards/**",
+     "gateways/**",
+     "filters/**",
+     "interceptors/**",
+     "middlewares/**",
+     "decorators/**"
+    ]
+   },
+   "unmapped": "helpers/, utils/, run/, constants/, schema/; models/ are active-record data access"
+  },
+  {
+   "id": "n8n-cli",
+   "repo": "n8n-io/n8n",
+   "root": "packages/cli",
+   "p": "src/",
+   "framework": "Express (custom DI)",
+   "d": {
+    "dirs": [
+     "databases/entities/**"
+    ]
+   },
+   "i": {
+    "dirs": [
+     "databases/**",
+     "scaling/**",
+     "task-runners/**"
+    ]
+   },
+   "a": {
+    "dirs": [
+     "services/**",
+     "eventbus/**",
+     "events/**",
+     "executions/**",
+     "workflows/**",
+     "credentials/**",
+     "license/**",
+     "execution-lifecycle/**"
+    ]
+   },
+   "pr": {
+    "dirs": [
+     "controllers/**",
+     "public-api/**",
+     "webhooks/**",
+     "middlewares/**",
+     "commands/**",
+     "push/**"
+    ]
+   },
+   "unmapped": "errors/, utils/, config/, decorators/, *.ee folders by pattern"
+  }
+ ],
+ "excluded_candidates": [
+  {
+   "id": "brocoders-nestjs",
+   "repo": "brocoders/nestjs-boilerplate",
+   "reason": "9 non-bot commits touching src/ in [T, T+12m) (< 50); the rest are renovate"
+  },
+  {
+   "id": "podkrepi-api",
+   "repo": "podkrepi-bg/api",
+   "reason": "24 commits touching apps/api in [T, T+12m) (< 50)"
+  },
+  {
+   "id": "standardnotes-auth",
+   "repo": "standardnotes/server",
+   "reason": "2 commits touching packages/auth in [T, T+12m)"
+  },
+  {
+   "id": "etherpad",
+   "repo": "ether/etherpad-lite",
+   "reason": "30 commits touching src/node in [T, T+12m)"
+  },
+  {
+   "id": "reactive-resume",
+   "repo": "amruthpillai/reactive-resume",
+   "reason": "85 commits touching apps/server before T (< 300)"
+  },
+  {
+   "id": "awesome-nest-boilerplate",
+   "repo": "NarHakobyan/awesome-nest-boilerplate",
+   "reason": "19 commits in [T, T+12m)"
+  },
+  {
+   "id": "domain-driven-hexagon",
+   "repo": "Sairyss/domain-driven-hexagon",
+   "reason": "no commits after 2024-10"
+  },
+  {
+   "id": "twenty-server",
+   "repo": "twentyhq/twenty",
+   "reason": "1,994 source files at T (> 1,500 cap)"
+  },
+  {
+   "id": "amplication-server",
+   "repo": "amplication/amplication",
+   "reason": "6 commits in [T, T+12m) (archived)"
+  },
+  {
+   "id": "v1.3-external (all 15)",
+   "repo": "results/v1.3-external/selection.json",
+   "reason": "pinned before 2023 and essentially inactive after the pin (0-63 commits, the 63 being a rewrite); none has a year of maintenance history after any usable T"
+  },
+  {
+   "id": "mikro-orm-realworld",
+   "repo": "mikro-orm/nestjs-realworld-example-app",
+   "reason": "41 source files at T (< 50); 231 of 238 window commits are renovate[bot]"
+  },
+  {
+   "id": "clean-ts-api",
+   "repo": "rmanguinho/clean-ts-api",
+   "reason": "0 commits in [T, T+12m)"
+  },
+  {
+   "id": "bitloops-ddd-backend",
+   "repo": "bitloops/ddd-hexagonal-cqrs-es-eda",
+   "reason": "14 commits touching backend/ before T"
+  },
+  {
+   "id": "ts-express-starter-prisma",
+   "repo": "ljlm0402/typescript-express-starter",
+   "reason": "templates/prisma-postgresql does not exist at T"
+  }
+ ],
+ "inclusion_rule": [
+  "TypeScript backend package, one analysis root per repository",
+  "analysis root exists at T with 50..1500 non-test, non-migration .ts source files",
+  "at least 300 commits touching the root before T (all authors)",
+  "at least 50 non-bot commits touching the root in [T, T+12 months)",
+  "history continues at least 12 months after T"
+ ]
+}
