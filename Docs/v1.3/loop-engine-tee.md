@@ -1,7 +1,6 @@
 # Loop evaluator engine tee (`--engine both`): design and pass criterion
 
-Backlog job #16 (E1), gate line D8. Status: **design and pass criterion committed before any number was computed**
-(rules block, rule 11). Results are appended in §6 by a later commit of the same branch.
+Backlog job #16 (E1), gate line D8. Status: design and pass criterion committed first (rules block, rule 11, commit `393984c9`); results in §6.
 
 ## 1. Why
 
@@ -80,4 +79,18 @@ evaluator of record only.
 
 ## 6. Results
 
-(appended after the run)
+Run on 2026-10-16 in a cloud container: Neo4j 5.26.24 community + APOC 5.26.24 core from the tarballs (one instance),
+`npx tsx scripts/loop-replay-cli.ts --engine both --report …`. Per-snapshot table:
+`results/v1.3-loop-engine-tee/replay-parity.json`.
+
+| criterion (§4) | result |
+|---|---|
+| 1. `engineOfRecord`, `parity`, diff, no stop, `run.json` counts | met: 19 unit tests (`tests/unit/scripts/loop/engine-tee.test.ts`), including a stub pair that diverges on one snapshot of a gate run: the run completes, `run.json` `parity` = `{ snapshots: 4, identical: 3, order: 0, divergent: 1, checkFailed: 0 }` |
+| 2. #142 replay on both engines | **39 of 39 snapshots `identical`** (0 `order`, 0 `divergent`, 0 `check-failed`); 9 runs, 3 tasks × 3 arms, the 3 gate repair turns included. The 39 snapshots hold 13 blocking findings in all, so the comparison is not only over clean trees. Each completed `run.json` carries its counts (e.g. shelter-adoptions/gate: 5 of 5 identical) |
+| 3. replay checks in `both` mode | met: replay A vs B reproducible (timing fields aside), consistency against a fresh checkout 39/39 equal, the 8 new blocking findings labelled `correct`, gate repairs exact; `failures: []`, exit 0 |
+| 4. default unchanged | met: the replay without `--engine` exits 0 with `failures: []`, and no output file contains `engineOfRecord` or `parity`; the existing loop tests pass unchanged (72/72 in `tests/unit/scripts/loop` with the new file); the rule-3 diff of the 71 reference variants (`ue-baseline-live --engine cypher-interp`) is byte-identical on `raw/`, `report.json` and `report.md` |
+
+The pass criterion is met. Scope of the evidence: 39 snapshots from 3 scripted pilot tapes, not agent-written code.
+It shows the tee works and the engines agree on these trees; Study 2's own snapshots get the same check as they are
+written. The recorded `durationMs` of the two engines is the pipeline's own figure and is not a speed comparison
+(none was intended, kill list 13).
