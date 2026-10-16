@@ -1,0 +1,645 @@
+# PROPOSED rules, mined from the code (daedalus mine-rules; src/rule-mining). Not a reviewed spec: review before use.
+# style: nestjs (ISE, confidence 0.75); layers: ISE preset-first
+# mined rules: 199 (196 emitted)
+# MR-001 [layer-unobserved, low 0.47] domain must not depend on infrastructure (no import between them either way) -- not emitted: style nestjs orders its layers totally: dependency-direction allows every inward import, and no-layer-skip applies to the layered style only
+# MR-002 [layer-direction, high 0.85] domain must not depend on application (6 edges application -> domain; 0/265 domain files import application)
+# MR-003 [layer-direction, high 0.93] domain must not depend on presentation (14 edges presentation -> domain; 0/265 domain files import presentation)
+# MR-004 [layer-unobserved, low 0.47] infrastructure must not depend on domain (no import between them either way) -- not emitted: style nestjs orders its layers totally: dependency-direction allows every inward import, and no-layer-skip applies to the layered style only
+# MR-005 [layer-direction, medium 0.74] infrastructure must not depend on application (47 edges application -> infrastructure; 2/16 infrastructure files import application) -- 4 exception(s): src/email/template.interface.ts -> src/person/dto/create-person.dto.ts, src/email/template.interface.ts -> src/support/dto/create-inquiry.dto.ts, src/email/template.interface.ts -> src/support/dto/create-request.dto.ts, ...
+# MR-006 [layer-direction, high 0.85] infrastructure must not depend on presentation (51 edges presentation -> infrastructure; 1/16 infrastructure files import presentation) -- 1 exception(s): src/config/validation.config.ts -> src/app/app.module.ts
+# MR-007 [layer-direction, high 0.99] application must not depend on presentation (253 edges presentation -> application; 0/158 application files import presentation)
+# MR-008 [acyclic-files, high 0.92] no file lies on an import cycle (530/576 files do not) -- 128 exception(s): src/app/app.module.ts -> src/config/validation.config.ts, src/campaign/campaign.module.ts -> src/vault/vault.module.ts, src/campaign/campaign.service.ts -> src/notifications/notifications.service.ts, ...
+# MR-009 [component-direction, low 0.33] folder component health must not depend on app (1 imports app -> health; 0/2 files import back)
+# MR-010 [component-direction, low 0.44] folder component donation-wish must not depend on app (1 imports app -> donation-wish; 0/7 files import back)
+# MR-011 [component-direction, medium 0.59] folder component person must not depend on vault (2 imports vault -> person; 0/8 files import back)
+# MR-012 [component-direction, medium 0.59] folder component person must not depend on campaign-news-file (2 imports campaign-news-file -> person; 0/8 files import back)
+# MR-013 [component-direction, low 0.44] folder component person must not depend on irregularity (1 imports irregularity -> person; 0/8 files import back)
+# MR-014 [component-direction, medium 0.67] folder component person must not depend on donations (3 imports donations -> person; 0/8 files import back)
+# MR-015 [component-direction, low 0.44] folder component person must not depend on app (1 imports app -> person; 0/8 files import back)
+# MR-016 [component-direction, medium 0.59] folder component person must not depend on campaign-news (2 imports campaign-news -> person; 0/8 files import back)
+# MR-017 [component-direction, medium 0.59] folder component person must not depend on notifications (2 imports notifications -> person; 0/8 files import back)
+# MR-018 [component-direction, medium 0.59] folder component person must not depend on auth (2 imports auth -> person; 0/8 files import back)
+# MR-019 [component-direction, medium 0.71] folder component person must not depend on account (4 imports account -> person; 0/8 files import back)
+# MR-020 [component-direction, medium 0.59] folder component person must not depend on irregularity-file (2 imports irregularity-file -> person; 0/8 files import back)
+# MR-021 [component-direction, low 0.44] folder component person must not depend on email (1 imports email -> person; 0/8 files import back)
+# MR-022 [component-direction, medium 0.59] folder component person must not depend on campaign-file (2 imports campaign-file -> person; 0/8 files import back)
+# MR-023 [component-direction, medium 0.59] folder component person must not depend on affiliate (2 imports affiliate -> person; 0/8 files import back)
+# MR-024 [component-direction, medium 0.67] folder component person must not depend on stripe (3 imports stripe -> person; 0/8 files import back)
+# MR-025 [component-direction, medium 0.59] folder component person must not depend on campaign-application (2 imports campaign-application -> person; 0/8 files import back)
+# MR-026 [component-direction, medium 0.59] folder component person must not depend on bank-transactions-file (2 imports bank-transactions-file -> person; 0/8 files import back)
+# MR-027 [component-direction, medium 0.67] folder component person must not depend on campaign (3 imports campaign -> person; 0/8 files import back)
+# MR-028 [component-direction, low 0.42] folder component coordinator must not depend on app (1 imports app -> coordinator; 0/5 files import back)
+# MR-029 [component-direction, low 0.44] folder component vault must not depend on tasks (1 imports tasks -> vault; 0/7 files import back)
+# MR-030 [component-direction, medium 0.70] folder component vault must not depend on donations (4 imports donations -> vault; 0/7 files import back)
+# MR-031 [component-direction, low 0.44] folder component vault must not depend on app (1 imports app -> vault; 0/7 files import back)
+# MR-032 [component-direction, low 0.44] folder component vault must not depend on campaign-file (1 imports campaign-file -> vault; 0/7 files import back)
+# MR-033 [component-direction, medium 0.58] folder component vault must not depend on bank-transactions-file (2 imports bank-transactions-file -> vault; 0/7 files import back)
+# MR-034 [component-direction, medium 0.64] folder component export must not depend on donations (4 imports donations -> export; 0/4 files import back)
+# MR-035 [component-direction, low 0.40] folder component export must not depend on app (1 imports app -> export; 0/4 files import back)
+# MR-036 [component-direction, medium 0.60] folder component export must not depend on bank-transactions (3 imports bank-transactions -> export; 0/4 files import back)
+# MR-037 [component-direction, low 0.40] folder component export must not depend on bank-transactions-file (1 imports bank-transactions-file -> export; 0/4 files import back)
+# MR-038 [component-direction, low 0.40] folder component tasks must not depend on app (1 imports app -> tasks; 0/4 files import back)
+# MR-039 [component-direction, low 0.38] folder component sockets must not depend on vault (1 imports vault -> sockets; 0/3 files import back)
+# MR-040 [component-direction, medium 0.50] folder component sockets must not depend on donations (2 imports donations -> sockets; 0/3 files import back)
+# MR-041 [component-direction, low 0.38] folder component sockets must not depend on app (1 imports app -> sockets; 0/3 files import back)
+# MR-042 [component-direction, medium 0.50] folder component sockets must not depend on notifications (2 imports notifications -> sockets; 0/3 files import back)
+# MR-043 [component-direction, low 0.38] folder component sockets must not depend on campaign-file (1 imports campaign-file -> sockets; 0/3 files import back)
+# MR-044 [component-direction, low 0.38] folder component sockets must not depend on bank-transactions-file (1 imports bank-transactions-file -> sockets; 0/3 files import back)
+# MR-045 [component-direction, medium 0.50] folder component sockets must not depend on campaign (2 imports campaign -> sockets; 0/3 files import back)
+# MR-046 [component-direction, low 0.42] folder component campaign-news-file must not depend on app (1 imports app -> campaign-news-file; 0/5 files import back)
+# MR-047 [component-direction, low 0.33] folder component logger must not depend on app (1 imports app -> logger; 0/2 files import back)
+# MR-048 [component-direction, low 0.43] folder component irregularity must not depend on app (1 imports app -> irregularity; 0/6 files import back)
+# MR-049 [component-direction, medium 0.72] folder component donations must not depend on tasks (3 imports tasks -> donations; 0/21 files import back)
+# MR-050 [component-direction, low 0.48] folder component donations must not depend on app (1 imports app -> donations; 0/21 files import back)
+# MR-051 [component-direction, medium 0.64] folder component donations must not depend on paypal (2 imports paypal -> donations; 0/21 files import back)
+# MR-052 [component-direction, medium 0.72] folder component donations must not depend on bank-transactions (3 imports bank-transactions -> donations; 0/21 files import back)
+# MR-053 [component-direction, medium 0.61] folder component donations must not depend on affiliate (4 imports affiliate -> donations; 1/21 files import back) -- 1 exception(s): src/donations/donations.service.ts -> src/affiliate/dto/create-affiliate-donation.dto.ts
+# MR-054 [component-direction, medium 0.74] folder component donations must not depend on stripe (9 imports stripe -> donations; 1/21 files import back) -- 1 exception(s): src/donations/helpers/payment-intent-helpers.ts -> src/stripe/stripe-metadata.interface.ts
+# MR-055 [component-direction, medium 0.65] folder component donations must not depend on bank-transactions-file (5 imports bank-transactions-file -> donations; 1/21 files import back) -- 1 exception(s): src/donations/donations.service.ts -> src/bank-transactions-file/dto/bank-transactions-import-status.dto.ts
+# MR-056 [component-direction, high 0.76] folder component donations must not depend on iris-pay (4 imports iris-pay -> donations; 0/21 files import back)
+# MR-057 [component-direction, medium 0.56] folder component campaign-news must not depend on campaign-news-file (2 imports campaign-news-file -> campaign-news; 0/5 files import back)
+# MR-058 [component-direction, low 0.42] folder component campaign-news must not depend on app (1 imports app -> campaign-news; 0/5 files import back)
+# MR-059 [component-direction, medium 0.56] folder component campaign-news must not depend on campaign (2 imports campaign -> campaign-news; 0/5 files import back)
+# MR-060 [component-direction, low 0.44] folder component expenses must not depend on app (1 imports app -> expenses; 0/7 files import back)
+# MR-061 [component-direction, low 0.44] folder component common must not depend on donation-wish (1 imports donation-wish -> common; 0/7 files import back)
+# MR-062 [component-direction, medium 0.58] folder component common must not depend on person (2 imports person -> common; 0/7 files import back)
+# MR-063 [component-direction, low 0.44] folder component common must not depend on tasks (1 imports tasks -> common; 0/7 files import back)
+# MR-064 [component-direction, medium 0.58] folder component common must not depend on campaign-news-file (2 imports campaign-news-file -> common; 0/7 files import back)
+# MR-065 [component-direction, medium 0.66] folder component common must not depend on donations (3 imports donations -> common; 0/7 files import back)
+# MR-066 [component-direction, medium 0.58] folder component common must not depend on expenses (2 imports expenses -> common; 0/7 files import back)
+# MR-067 [component-direction, low 0.44] folder component common must not depend on notifications (1 imports notifications -> common; 0/7 files import back)
+# MR-068 [component-direction, medium 0.58] folder component common must not depend on irregularity-file (2 imports irregularity-file -> common; 0/7 files import back)
+# MR-069 [component-direction, medium 0.58] folder component common must not depend on campaign-file (2 imports campaign-file -> common; 0/7 files import back)
+# MR-070 [component-direction, low 0.44] folder component common must not depend on bank-transactions (1 imports bank-transactions -> common; 0/7 files import back)
+# MR-071 [component-direction, low 0.44] folder component common must not depend on stripe (1 imports stripe -> common; 0/7 files import back)
+# MR-072 [component-direction, medium 0.58] folder component common must not depend on campaign-application (2 imports campaign-application -> common; 0/7 files import back)
+# MR-073 [component-direction, medium 0.66] folder component common must not depend on bank-transactions-file (3 imports bank-transactions-file -> common; 0/7 files import back)
+# MR-074 [component-direction, low 0.44] folder component common must not depend on campaign (1 imports campaign -> common; 0/7 files import back)
+# MR-075 [component-direction, low 0.42] folder component city must not depend on app (1 imports app -> city; 0/5 files import back)
+# MR-076 [component-direction, low 0.46] folder component notifications must not depend on donations (1 imports donations -> notifications; 0/12 files import back)
+# MR-077 [component-direction, low 0.46] folder component notifications must not depend on app (1 imports app -> notifications; 0/12 files import back)
+# MR-078 [component-direction, medium 0.69] folder component notifications must not depend on campaign-news (3 imports campaign-news -> notifications; 0/12 files import back)
+# MR-079 [component-direction, low 0.46] folder component notifications must not depend on campaign-file (1 imports campaign-file -> notifications; 0/12 files import back)
+# MR-080 [component-direction, low 0.46] folder component notifications must not depend on bank-transactions-file (1 imports bank-transactions-file -> notifications; 0/12 files import back)
+# MR-081 [component-direction, low 0.47] folder component auth must not depend on vault (1 imports vault -> auth; 0/14 files import back)
+# MR-082 [component-direction, medium 0.62] folder component auth must not depend on campaign-news-file (2 imports campaign-news-file -> auth; 0/14 files import back)
+# MR-083 [component-direction, low 0.47] folder component auth must not depend on donations (1 imports donations -> auth; 0/14 files import back)
+# MR-084 [component-direction, low 0.47] folder component auth must not depend on app (1 imports app -> auth; 0/14 files import back)
+# MR-085 [component-direction, medium 0.62] folder component auth must not depend on campaign-news (2 imports campaign-news -> auth; 0/14 files import back)
+# MR-086 [component-direction, low 0.47] folder component auth must not depend on expenses (1 imports expenses -> auth; 0/14 files import back)
+# MR-087 [component-direction, medium 0.75] folder component auth must not depend on account (4 imports account -> auth; 0/14 files import back)
+# MR-088 [component-direction, low 0.47] folder component auth must not depend on campaign-file (1 imports campaign-file -> auth; 0/14 files import back)
+# MR-089 [component-direction, low 0.47] folder component auth must not depend on bank-transactions (1 imports bank-transactions -> auth; 0/14 files import back)
+# MR-090 [component-direction, low 0.47] folder component auth must not depend on affiliate (1 imports affiliate -> auth; 0/14 files import back)
+# MR-091 [component-direction, medium 0.62] folder component auth must not depend on stripe (2 imports stripe -> auth; 0/14 files import back)
+# MR-092 [component-direction, low 0.47] folder component auth must not depend on organizer (1 imports organizer -> auth; 0/14 files import back)
+# MR-093 [component-direction, medium 0.62] folder component auth must not depend on recurring-donation (2 imports recurring-donation -> auth; 0/14 files import back)
+# MR-094 [component-direction, low 0.47] folder component auth must not depend on campaign-application (1 imports campaign-application -> auth; 0/14 files import back)
+# MR-095 [component-direction, low 0.47] folder component auth must not depend on bank-transactions-file (1 imports bank-transactions-file -> auth; 0/14 files import back)
+# MR-096 [component-direction, medium 0.62] folder component auth must not depend on document (2 imports document -> auth; 0/14 files import back)
+# MR-097 [component-direction, low 0.47] folder component auth must not depend on campaign (1 imports campaign -> auth; 0/14 files import back)
+# MR-098 [component-direction, low 0.38] folder component paypal must not depend on app (1 imports app -> paypal; 0/3 files import back)
+# MR-099 [component-direction, low 0.42] folder component statistics must not depend on app (1 imports app -> statistics; 0/5 files import back)
+# MR-100 [component-direction, medium 0.53] folder component config must not depend on app (4 imports app -> config; 1/9 files import back) -- 1 exception(s): src/config/validation.config.ts -> src/app/app.module.ts
+# MR-101 [component-direction, medium 0.60] folder component config must not depend on auth (2 imports auth -> config; 0/9 files import back)
+# MR-102 [component-direction, low 0.40] folder component account must not depend on app (1 imports app -> account; 0/4 files import back)
+# MR-103 [component-direction, low 0.43] folder component campaign-types must not depend on app (1 imports app -> campaign-types; 0/6 files import back)
+# MR-104 [component-direction, low 0.43] folder component irregularity-file must not depend on app (1 imports app -> irregularity-file; 0/6 files import back)
+# MR-105 [component-direction, medium 0.67] folder component email must not depend on tasks (4 imports tasks -> email; 0/5 files import back)
+# MR-106 [component-direction, low 0.42] folder component email must not depend on donations (1 imports donations -> email; 0/5 files import back)
+# MR-107 [component-direction, medium 0.56] folder component email must not depend on app (2 imports app -> email; 0/5 files import back)
+# MR-108 [component-direction, medium 0.63] folder component email must not depend on campaign-news (3 imports campaign-news -> email; 0/5 files import back)
+# MR-109 [component-direction, medium 0.67] folder component email must not depend on notifications (4 imports notifications -> email; 0/5 files import back)
+# MR-110 [component-direction, medium 0.67] folder component email must not depend on auth (4 imports auth -> email; 0/5 files import back)
+# MR-111 [component-direction, medium 0.56] folder component email must not depend on bank-transactions (2 imports bank-transactions -> email; 0/5 files import back)
+# MR-112 [component-direction, medium 0.67] folder component email must not depend on stripe (4 imports stripe -> email; 0/5 files import back)
+# MR-113 [component-direction, medium 0.69] folder component email must not depend on campaign-application (5 imports campaign-application -> email; 0/5 files import back)
+# MR-114 [component-direction, medium 0.56] folder component email must not depend on info-request (2 imports info-request -> email; 0/5 files import back)
+# MR-115 [component-direction, low 0.50] folder component domain must not depend on campaign-news (1 imports campaign-news -> domain; 0/259 files import back)
+# MR-116 [component-direction, low 0.50] folder component domain must not depend on account (1 imports account -> domain; 0/259 files import back)
+# MR-117 [component-direction, medium 0.66] folder component domain must not depend on document (2 imports document -> domain; 0/259 files import back)
+# MR-118 [component-direction, low 0.42] folder component campaign-file must not depend on app (1 imports app -> campaign-file; 0/5 files import back)
+# MR-119 [component-direction, low 0.44] folder component bank-transactions must not depend on app (1 imports app -> bank-transactions; 0/7 files import back)
+# MR-120 [component-direction, low 0.44] folder component affiliate must not depend on app (1 imports app -> affiliate; 0/7 files import back)
+# MR-121 [component-direction, medium 0.58] folder component affiliate must not depend on bank-transactions (2 imports bank-transactions -> affiliate; 0/7 files import back)
+# MR-122 [component-direction, low 0.47] folder component stripe must not depend on app (1 imports app -> stripe; 0/14 files import back)
+# MR-123 [component-direction, low 0.33] folder component s3 must not depend on campaign-news-file (2 imports campaign-news-file -> s3; 0/1 files import back)
+# MR-124 [component-direction, low 0.25] folder component s3 must not depend on irregularity (1 imports irregularity -> s3; 0/1 files import back)
+# MR-125 [component-direction, low 0.33] folder component s3 must not depend on expenses (2 imports expenses -> s3; 0/1 files import back)
+# MR-126 [component-direction, low 0.33] folder component s3 must not depend on irregularity-file (2 imports irregularity-file -> s3; 0/1 files import back)
+# MR-127 [component-direction, low 0.33] folder component s3 must not depend on campaign-file (2 imports campaign-file -> s3; 0/1 files import back)
+# MR-128 [component-direction, low 0.33] folder component s3 must not depend on campaign-application (2 imports campaign-application -> s3; 0/1 files import back)
+# MR-129 [component-direction, low 0.33] folder component s3 must not depend on bank-transactions-file (2 imports bank-transactions-file -> s3; 0/1 files import back)
+# MR-130 [component-direction, low 0.43] folder component withdrawal must not depend on app (1 imports app -> withdrawal; 0/6 files import back)
+# MR-131 [component-direction, low 0.43] folder component country must not depend on app (1 imports app -> country; 0/6 files import back)
+# MR-132 [component-direction, low 0.43] folder component organizer must not depend on app (1 imports app -> organizer; 0/6 files import back)
+# MR-133 [component-direction, medium 0.57] folder component organizer must not depend on campaign-application (2 imports campaign-application -> organizer; 0/6 files import back)
+# MR-134 [component-direction, low 0.43] folder component recurring-donation must not depend on app (1 imports app -> recurring-donation; 0/6 files import back)
+# MR-135 [component-direction, low 0.43] folder component campaign-application must not depend on app (1 imports app -> campaign-application; 0/6 files import back)
+# MR-136 [component-direction, low 0.43] folder component info-request must not depend on app (1 imports app -> info-request; 0/6 files import back)
+# MR-137 [component-direction, medium 0.64] folder component prisma must not depend on health (3 imports health -> prisma; 0/6 files import back)
+# MR-138 [component-direction, medium 0.57] folder component prisma must not depend on donation-wish (2 imports donation-wish -> prisma; 0/6 files import back)
+# MR-139 [component-direction, medium 0.57] folder component prisma must not depend on person (2 imports person -> prisma; 0/6 files import back)
+# MR-140 [component-direction, medium 0.57] folder component prisma must not depend on coordinator (2 imports coordinator -> prisma; 0/6 files import back)
+# MR-141 [component-direction, medium 0.57] folder component prisma must not depend on vault (2 imports vault -> prisma; 0/6 files import back)
+# MR-142 [component-direction, medium 0.57] folder component prisma must not depend on export (2 imports export -> prisma; 0/6 files import back)
+# MR-143 [component-direction, medium 0.57] folder component prisma must not depend on tasks (2 imports tasks -> prisma; 0/6 files import back)
+# MR-144 [component-direction, medium 0.57] folder component prisma must not depend on campaign-news-file (2 imports campaign-news-file -> prisma; 0/6 files import back)
+# MR-145 [component-direction, medium 0.57] folder component prisma must not depend on irregularity (2 imports irregularity -> prisma; 0/6 files import back)
+# MR-146 [component-direction, medium 0.64] folder component prisma must not depend on donations (3 imports donations -> prisma; 0/6 files import back)
+# MR-147 [component-direction, medium 0.64] folder component prisma must not depend on app (3 imports app -> prisma; 0/6 files import back)
+# MR-148 [component-direction, medium 0.57] folder component prisma must not depend on campaign-news (2 imports campaign-news -> prisma; 0/6 files import back)
+# MR-149 [component-direction, medium 0.57] folder component prisma must not depend on expenses (2 imports expenses -> prisma; 0/6 files import back)
+# MR-150 [component-direction, medium 0.57] folder component prisma must not depend on city (2 imports city -> prisma; 0/6 files import back)
+# MR-151 [component-direction, medium 0.64] folder component prisma must not depend on notifications (3 imports notifications -> prisma; 0/6 files import back)
+# MR-152 [component-direction, medium 0.57] folder component prisma must not depend on auth (2 imports auth -> prisma; 0/6 files import back)
+# MR-153 [component-direction, medium 0.57] folder component prisma must not depend on statistics (2 imports statistics -> prisma; 0/6 files import back)
+# MR-154 [component-direction, low 0.43] folder component prisma must not depend on config (1 imports config -> prisma; 0/6 files import back)
+# MR-155 [component-direction, low 0.43] folder component prisma must not depend on account (1 imports account -> prisma; 0/6 files import back)
+# MR-156 [component-direction, medium 0.57] folder component prisma must not depend on campaign-types (2 imports campaign-types -> prisma; 0/6 files import back)
+# MR-157 [component-direction, medium 0.57] folder component prisma must not depend on irregularity-file (2 imports irregularity-file -> prisma; 0/6 files import back)
+# MR-158 [component-direction, medium 0.57] folder component prisma must not depend on campaign-file (2 imports campaign-file -> prisma; 0/6 files import back)
+# MR-159 [component-direction, medium 0.57] folder component prisma must not depend on bank-transactions (2 imports bank-transactions -> prisma; 0/6 files import back)
+# MR-160 [component-direction, medium 0.57] folder component prisma must not depend on affiliate (2 imports affiliate -> prisma; 0/6 files import back)
+# MR-161 [component-direction, medium 0.57] folder component prisma must not depend on stripe (2 imports stripe -> prisma; 0/6 files import back)
+# MR-162 [component-direction, medium 0.57] folder component prisma must not depend on withdrawal (2 imports withdrawal -> prisma; 0/6 files import back)
+# MR-163 [component-direction, medium 0.57] folder component prisma must not depend on country (2 imports country -> prisma; 0/6 files import back)
+# MR-164 [component-direction, medium 0.57] folder component prisma must not depend on organizer (2 imports organizer -> prisma; 0/6 files import back)
+# MR-165 [component-direction, medium 0.57] folder component prisma must not depend on recurring-donation (2 imports recurring-donation -> prisma; 0/6 files import back)
+# MR-166 [component-direction, medium 0.57] folder component prisma must not depend on campaign-application (2 imports campaign-application -> prisma; 0/6 files import back)
+# MR-167 [component-direction, medium 0.64] folder component prisma must not depend on info-request (3 imports info-request -> prisma; 0/6 files import back)
+# MR-168 [component-direction, medium 0.64] folder component prisma must not depend on support (3 imports support -> prisma; 0/6 files import back)
+# MR-169 [component-direction, medium 0.57] folder component prisma must not depend on bank-transactions-file (2 imports bank-transactions-file -> prisma; 0/6 files import back)
+# MR-170 [component-direction, medium 0.57] folder component prisma must not depend on document (2 imports document -> prisma; 0/6 files import back)
+# MR-171 [component-direction, medium 0.57] folder component prisma must not depend on beneficiary (2 imports beneficiary -> prisma; 0/6 files import back)
+# MR-172 [component-direction, medium 0.57] folder component prisma must not depend on benefactor (2 imports benefactor -> prisma; 0/6 files import back)
+# MR-173 [component-direction, medium 0.64] folder component prisma must not depend on campaign (3 imports campaign -> prisma; 0/6 files import back)
+# MR-174 [component-direction, medium 0.57] folder component prisma must not depend on bankaccount (2 imports bankaccount -> prisma; 0/6 files import back)
+# MR-175 [component-direction, medium 0.57] folder component prisma must not depend on company (2 imports company -> prisma; 0/6 files import back)
+# MR-176 [component-direction, medium 0.64] folder component prisma must not depend on iris-pay (3 imports iris-pay -> prisma; 0/6 files import back)
+# MR-177 [component-direction, medium 0.57] folder component prisma must not depend on transfer (2 imports transfer -> prisma; 0/6 files import back)
+# MR-178 [component-direction, low 0.44] folder component support must not depend on app (1 imports app -> support; 0/7 files import back)
+# MR-179 [component-direction, medium 0.70] folder component support must not depend on info-request (4 imports info-request -> support; 0/7 files import back)
+# MR-180 [component-direction, low 0.44] folder component bank-transactions-file must not depend on tasks (1 imports tasks -> bank-transactions-file; 0/8 files import back)
+# MR-181 [component-direction, low 0.44] folder component bank-transactions-file must not depend on app (1 imports app -> bank-transactions-file; 0/8 files import back)
+# MR-182 [component-direction, low 0.43] folder component document must not depend on app (1 imports app -> document; 0/6 files import back)
+# MR-183 [component-direction, low 0.42] folder component beneficiary must not depend on app (1 imports app -> beneficiary; 0/5 files import back)
+# MR-184 [component-direction, low 0.43] folder component benefactor must not depend on app (1 imports app -> benefactor; 0/6 files import back)
+# MR-185 [component-direction, low 0.46] folder component campaign must not depend on app (1 imports app -> campaign; 0/10 files import back)
+# MR-186 [component-direction, medium 0.61] folder component campaign must not depend on paypal (2 imports paypal -> campaign; 0/10 files import back)
+# MR-187 [component-direction, medium 0.61] folder component campaign must not depend on campaign-file (2 imports campaign-file -> campaign; 0/10 files import back)
+# MR-188 [component-direction, medium 0.61] folder component campaign must not depend on bank-transactions (2 imports bank-transactions -> campaign; 0/10 files import back)
+# MR-189 [component-direction, medium 0.61] folder component campaign must not depend on affiliate (2 imports affiliate -> campaign; 0/10 files import back)
+# MR-190 [component-direction, medium 0.68] folder component campaign must not depend on stripe (3 imports stripe -> campaign; 0/10 files import back)
+# MR-191 [component-direction, medium 0.61] folder component campaign must not depend on bank-transactions-file (2 imports bank-transactions-file -> campaign; 0/10 files import back)
+# MR-192 [component-direction, medium 0.61] folder component campaign must not depend on iris-pay (2 imports iris-pay -> campaign; 0/10 files import back)
+# MR-193 [component-direction, low 0.43] folder component bankaccount must not depend on app (1 imports app -> bankaccount; 0/6 files import back)
+# MR-194 [component-direction, low 0.43] folder component company must not depend on app (1 imports app -> company; 0/6 files import back)
+# MR-195 [component-direction, medium 0.61] folder component iris-pay must not depend on tasks (2 imports tasks -> iris-pay; 0/11 files import back)
+# MR-196 [component-direction, low 0.46] folder component iris-pay must not depend on app (1 imports app -> iris-pay; 0/11 files import back)
+# MR-197 [component-direction, low 0.43] folder component transfer must not depend on app (1 imports app -> transfer; 0/6 files import back)
+# MR-198 [core-package-free, high 0.91] domain (a core layer: it may depend on no other layer) imports none of @aws-sdk/client-s3, @golevelup/nestjs-stripe, @golevelup/nestjs-webhooks, @keycloak/keycloak-admin-client, @nestjs/axios, @nestjs/cache-manager, @nestjs/common, @nestjs/config, @nestjs/core, @nestjs/jwt, @nestjs/mapped-types, @nestjs/platform-express, @nestjs/schedule, @nestjs/swagger, @nestjs/terminus, @ntegral/nestjs-sentry, @sendgrid/client, @sendgrid/helpers, @sendgrid/mail, @sentry/node, axios, class-transformer, class-validator, cron, crypto, express, fs, handlebars, helmet, jest-extended, jest-mock-extended, joi, keycloak-connect, luxon, mjml, multer, nest-keycloak-connect, path, rxjs, stream, stripe -- 28 exception(s): src/common/files.ts -> @nestjs/common, src/common/files.ts -> path, src/common/uploaded-file.decorator.ts -> @nestjs/common, ...
+# MR-199 [core-package-free, high 0.88] infrastructure (a core layer: it may depend on no other layer) imports none of @aws-sdk/client-s3, @golevelup/nestjs-stripe, @golevelup/nestjs-webhooks, @keycloak/keycloak-admin-client, @nestjs/axios, @nestjs/cache-manager, @nestjs/config, @nestjs/jwt, @nestjs/mapped-types, @nestjs/platform-express, @nestjs/schedule, @nestjs/swagger, @nestjs/terminus, @ntegral/nestjs-sentry, @sendgrid/client, @sendgrid/helpers, @sendgrid/mail, axios, class-transformer, class-validator, cron, crypto, express, fs, handlebars, keycloak-connect, luxon, mjml, multer, nest-keycloak-connect, path, rxjs, stream, stripe -- 7 exception(s): src/config/swagger.config.ts -> @nestjs/swagger, src/config/validation.config.ts -> class-validator, src/email/template.service.spec-adapter.ts -> fs, ... -- not emitted: domain-purity checks the domain-kind layer only (domain), not infrastructure
+# note: not mined as allowed but allowed by the nestjs order: infrastructure>domain
+
+spec_version: "1.0.0"
+
+architecture:
+  style: nestjs
+
+  layers:
+    # Layer order (inner → outer): domain → infrastructure → application → presentation
+    #
+    # NestJS dependency flow: Controller → Service → Repository → ORM/DB
+    # This maps to: presentation → application → infrastructure → domain
+    #
+    # Unlike clean-architecture (where infrastructure is outer and depends on
+    # application interfaces), NestJS treats infrastructure as an inner data-access
+    # layer that application services call directly.
+
+    - name: domain
+      directories:
+        - src/domain/**
+        - src/common/files.ts
+        - src/common/mapChunk.ts
+        - src/common/money.ts
+        - src/common/uploaded-file.decorator.ts
+        - src/environments/**
+      roles:
+        - entity
+        - value-object
+        - domain-service
+        - repository-interface
+
+    - name: infrastructure
+      directories:
+        - src/prisma/**
+        - src/config/configuration.ts
+        - src/config/cors.config.ts
+        - src/config/exceptions.config.ts
+        - src/config/helmet.config.ts
+        - src/config/shutdown.config.ts
+        - src/config/swagger.config.ts
+        - src/config/validation.config.ts
+        - src/email/email.interface.ts
+        - src/email/template.interface.ts
+        - src/email/template.service.spec-adapter.ts
+      file_patterns: []
+      roles:
+        - repository-impl
+        - orm-entity
+        - external-service
+        - middleware
+        - worker
+
+    - name: application
+      directories:
+        - src/notifications/helpers/truncateNameToBytes.ts
+        - src/notifications/marketing_templates/scripts/delete-templates.ts
+        - src/notifications/marketing_templates/scripts/upload-templates.ts
+        - src/notifications/marketing_templates/template.type.ts
+        - src/notifications/providers/notifications.interface.providers.ts
+        - src/notifications/providers/notifications.sendgrid.provider.ts
+        - src/notifications/providers/notifications.sendgrid.types.ts
+      file_patterns:
+        - "**/*.service.ts"
+        - "**/dto/**"
+        - "**/*.dto.ts"
+      roles:
+        - use-case
+        - dto
+        - application-service
+        - processor
+
+    - name: presentation
+      directories: []
+      file_patterns:
+        - "**/*.controller.ts"
+        - "**/*.module.ts"
+        - "**/*.guard.ts"
+      roles:
+        - controller
+        - module
+        - gateway
+        - guard
+        - interceptor
+      decorators:
+        - "@Controller"
+        - "@Module"
+
+fitness_functions:
+
+  # ── STRUCTURAL ──
+
+  # mined: MR-002 high 0.85, 0 exceptions; MR-003 high 0.93, 0 exceptions; MR-005 medium 0.74, 4 exceptions; MR-006 high 0.85, 1 exception; MR-007 high 0.99, 0 exceptions
+  - id: FF-S01
+    name: dependency-direction
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: true
+
+  # mined: MR-008 high 0.92, 128 exceptions
+  - id: FF-S02
+    name: no-cyclic-deps
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: true
+
+  # mined: MR-198 high 0.91, 28 exceptions
+  - id: FF-P01
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+    forbidden_imports:
+      - "@aws-sdk/client-s3"
+      - "@golevelup/nestjs-stripe"
+      - "@golevelup/nestjs-webhooks"
+      - "@keycloak/keycloak-admin-client"
+      - "@nestjs/axios"
+      - "@nestjs/cache-manager"
+      - "@nestjs/common"
+      - "@nestjs/config"
+      - "@nestjs/core"
+      - "@nestjs/jwt"
+      - "@nestjs/mapped-types"
+      - "@nestjs/platform-express"
+      - "@nestjs/schedule"
+      - "@nestjs/swagger"
+      - "@nestjs/terminus"
+      - "@ntegral/nestjs-sentry"
+      - "@sendgrid/client"
+      - "@sendgrid/helpers"
+      - "@sendgrid/mail"
+      - "@sentry/node"
+      - axios
+      - class-transformer
+      - class-validator
+      - cron
+      - crypto
+      - express
+      - fs
+      - handlebars
+      - helmet
+      - jest-extended
+      - jest-mock-extended
+      - joi
+      - keycloak-connect
+      - luxon
+      - mjml
+      - multer
+      - nest-keycloak-connect
+      - path
+      - rxjs
+      - stream
+      - stripe
+  # mined: MR-009 low 0.33, 0 exceptions; MR-010 low 0.44, 0 exceptions; MR-011 medium 0.59, 0 exceptions; MR-012 medium 0.59, 0 exceptions; MR-013 low 0.44, 0 exceptions; MR-014 medium 0.67, 0 exceptions; MR-015 low 0.44, 0 exceptions; MR-016 medium 0.59, 0 exceptions; MR-017 medium 0.59, 0 exceptions; MR-018 medium 0.59, 0 exceptions; MR-019 medium 0.71, 0 exceptions; MR-020 medium 0.59, 0 exceptions; MR-021 low 0.44, 0 exceptions; MR-022 medium 0.59, 0 exceptions; MR-023 medium 0.59, 0 exceptions; MR-024 medium 0.67, 0 exceptions; MR-025 medium 0.59, 0 exceptions; MR-026 medium 0.59, 0 exceptions; MR-027 medium 0.67, 0 exceptions; MR-028 low 0.42, 0 exceptions; MR-029 low 0.44, 0 exceptions; MR-030 medium 0.70, 0 exceptions; MR-031 low 0.44, 0 exceptions; MR-032 low 0.44, 0 exceptions; MR-033 medium 0.58, 0 exceptions; MR-034 medium 0.64, 0 exceptions; MR-035 low 0.40, 0 exceptions; MR-036 medium 0.60, 0 exceptions; MR-037 low 0.40, 0 exceptions; MR-038 low 0.40, 0 exceptions; MR-039 low 0.38, 0 exceptions; MR-040 medium 0.50, 0 exceptions; MR-041 low 0.38, 0 exceptions; MR-042 medium 0.50, 0 exceptions; MR-043 low 0.38, 0 exceptions; MR-044 low 0.38, 0 exceptions; MR-045 medium 0.50, 0 exceptions; MR-046 low 0.42, 0 exceptions; MR-047 low 0.33, 0 exceptions; MR-048 low 0.43, 0 exceptions; MR-049 medium 0.72, 0 exceptions; MR-050 low 0.48, 0 exceptions; MR-051 medium 0.64, 0 exceptions; MR-052 medium 0.72, 0 exceptions; MR-053 medium 0.61, 1 exception; MR-054 medium 0.74, 1 exception; MR-055 medium 0.65, 1 exception; MR-056 high 0.76, 0 exceptions; MR-057 medium 0.56, 0 exceptions; MR-058 low 0.42, 0 exceptions; MR-059 medium 0.56, 0 exceptions; MR-060 low 0.44, 0 exceptions; MR-061 low 0.44, 0 exceptions; MR-062 medium 0.58, 0 exceptions; MR-063 low 0.44, 0 exceptions; MR-064 medium 0.58, 0 exceptions; MR-065 medium 0.66, 0 exceptions; MR-066 medium 0.58, 0 exceptions; MR-067 low 0.44, 0 exceptions; MR-068 medium 0.58, 0 exceptions; MR-069 medium 0.58, 0 exceptions; MR-070 low 0.44, 0 exceptions; MR-071 low 0.44, 0 exceptions; MR-072 medium 0.58, 0 exceptions; MR-073 medium 0.66, 0 exceptions; MR-074 low 0.44, 0 exceptions; MR-075 low 0.42, 0 exceptions; MR-076 low 0.46, 0 exceptions; MR-077 low 0.46, 0 exceptions; MR-078 medium 0.69, 0 exceptions; MR-079 low 0.46, 0 exceptions; MR-080 low 0.46, 0 exceptions; MR-081 low 0.47, 0 exceptions; MR-082 medium 0.62, 0 exceptions; MR-083 low 0.47, 0 exceptions; MR-084 low 0.47, 0 exceptions; MR-085 medium 0.62, 0 exceptions; MR-086 low 0.47, 0 exceptions; MR-087 medium 0.75, 0 exceptions; MR-088 low 0.47, 0 exceptions; MR-089 low 0.47, 0 exceptions; MR-090 low 0.47, 0 exceptions; MR-091 medium 0.62, 0 exceptions; MR-092 low 0.47, 0 exceptions; MR-093 medium 0.62, 0 exceptions; MR-094 low 0.47, 0 exceptions; MR-095 low 0.47, 0 exceptions; MR-096 medium 0.62, 0 exceptions; MR-097 low 0.47, 0 exceptions; MR-098 low 0.38, 0 exceptions; MR-099 low 0.42, 0 exceptions; MR-100 medium 0.53, 1 exception; MR-101 medium 0.60, 0 exceptions; MR-102 low 0.40, 0 exceptions; MR-103 low 0.43, 0 exceptions; MR-104 low 0.43, 0 exceptions; MR-105 medium 0.67, 0 exceptions; MR-106 low 0.42, 0 exceptions; MR-107 medium 0.56, 0 exceptions; MR-108 medium 0.63, 0 exceptions; MR-109 medium 0.67, 0 exceptions; MR-110 medium 0.67, 0 exceptions; MR-111 medium 0.56, 0 exceptions; MR-112 medium 0.67, 0 exceptions; MR-113 medium 0.69, 0 exceptions; MR-114 medium 0.56, 0 exceptions; MR-115 low 0.50, 0 exceptions; MR-116 low 0.50, 0 exceptions; MR-117 medium 0.66, 0 exceptions; MR-118 low 0.42, 0 exceptions; MR-119 low 0.44, 0 exceptions; MR-120 low 0.44, 0 exceptions; MR-121 medium 0.58, 0 exceptions; MR-122 low 0.47, 0 exceptions; MR-123 low 0.33, 0 exceptions; MR-124 low 0.25, 0 exceptions; MR-125 low 0.33, 0 exceptions; MR-126 low 0.33, 0 exceptions; MR-127 low 0.33, 0 exceptions; MR-128 low 0.33, 0 exceptions; MR-129 low 0.33, 0 exceptions; MR-130 low 0.43, 0 exceptions; MR-131 low 0.43, 0 exceptions; MR-132 low 0.43, 0 exceptions; MR-133 medium 0.57, 0 exceptions; MR-134 low 0.43, 0 exceptions; MR-135 low 0.43, 0 exceptions; MR-136 low 0.43, 0 exceptions; MR-137 medium 0.64, 0 exceptions; MR-138 medium 0.57, 0 exceptions; MR-139 medium 0.57, 0 exceptions; MR-140 medium 0.57, 0 exceptions; MR-141 medium 0.57, 0 exceptions; MR-142 medium 0.57, 0 exceptions; MR-143 medium 0.57, 0 exceptions; MR-144 medium 0.57, 0 exceptions; MR-145 medium 0.57, 0 exceptions; MR-146 medium 0.64, 0 exceptions; MR-147 medium 0.64, 0 exceptions; MR-148 medium 0.57, 0 exceptions; MR-149 medium 0.57, 0 exceptions; MR-150 medium 0.57, 0 exceptions; MR-151 medium 0.64, 0 exceptions; MR-152 medium 0.57, 0 exceptions; MR-153 medium 0.57, 0 exceptions; MR-154 low 0.43, 0 exceptions; MR-155 low 0.43, 0 exceptions; MR-156 medium 0.57, 0 exceptions; MR-157 medium 0.57, 0 exceptions; MR-158 medium 0.57, 0 exceptions; MR-159 medium 0.57, 0 exceptions; MR-160 medium 0.57, 0 exceptions; MR-161 medium 0.57, 0 exceptions; MR-162 medium 0.57, 0 exceptions; MR-163 medium 0.57, 0 exceptions; MR-164 medium 0.57, 0 exceptions; MR-165 medium 0.57, 0 exceptions; MR-166 medium 0.57, 0 exceptions; MR-167 medium 0.64, 0 exceptions; MR-168 medium 0.64, 0 exceptions; MR-169 medium 0.57, 0 exceptions; MR-170 medium 0.57, 0 exceptions; MR-171 medium 0.57, 0 exceptions; MR-172 medium 0.57, 0 exceptions; MR-173 medium 0.64, 0 exceptions; MR-174 medium 0.57, 0 exceptions; MR-175 medium 0.57, 0 exceptions; MR-176 medium 0.64, 0 exceptions; MR-177 medium 0.57, 0 exceptions; MR-178 low 0.44, 0 exceptions; MR-179 medium 0.70, 0 exceptions; MR-180 low 0.44, 0 exceptions; MR-181 low 0.44, 0 exceptions; MR-182 low 0.43, 0 exceptions; MR-183 low 0.42, 0 exceptions; MR-184 low 0.43, 0 exceptions; MR-185 low 0.46, 0 exceptions; MR-186 medium 0.61, 0 exceptions; MR-187 medium 0.61, 0 exceptions; MR-188 medium 0.61, 0 exceptions; MR-189 medium 0.61, 0 exceptions; MR-190 medium 0.68, 0 exceptions; MR-191 medium 0.61, 0 exceptions; MR-192 medium 0.61, 0 exceptions; MR-193 low 0.43, 0 exceptions; MR-194 low 0.43, 0 exceptions; MR-195 medium 0.61, 0 exceptions; MR-196 low 0.46, 0 exceptions; MR-197 low 0.43, 0 exceptions (APG v2: evaluated on a graph extracted with V13_APG2_OPTIONS)
+  - id: FF-A01
+    name: component-adp-cycle
+    dimension: structural
+    severity: advisory
+    route: symbolic
+    validated: false
+
+  # not mined: switched off (the style template would otherwise add them)
+  - id: FF-S03
+    name: no-layer-skip
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    # NestJS *.module.ts files are DI wiring — they import from all layers by design
+    exclude_paths:
+      - "**/*.module.ts"
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-S04
+    name: no-domain-outward-dep
+    dimension: structural
+    severity: major
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P02
+    name: dependency-inversion
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+    threshold: 0.85
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P03
+    name: repository-pattern
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P04
+    name: use-case-isolation
+    dimension: pattern
+    severity: major
+    route: symbolic
+    validated: true
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P05
+    name: controller-no-entity
+    dimension: pattern
+    severity: major
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P06
+    name: domain-state-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C01
+    name: domain-stability
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    threshold: 0.3
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C02
+    name: module-fan-out
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    threshold: 12
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C03
+    name: component-instability
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    threshold: 0.8
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C04
+    name: no-orphan-files
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C05
+    name: max-fan-in
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    validated: false
+    threshold: 20
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C06
+    name: abstraction-ratio
+    dimension: coupling
+    severity: advisory
+    route: symbolic
+    validated: false
+    threshold: 0.3
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-SO01
+    name: single-responsibility-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    validated: true
+    max_public_methods: 10
+    max_dependencies: 5
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-SO02
+    name: interface-segregation-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    validated: true
+    max_interface_methods: 5
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-SO03
+    name: inheritance-depth
+    dimension: solid
+    severity: minor
+    route: symbolic
+    validated: false
+    max_depth: 3
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-CV01
+    name: naming-conventions
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+    validated: true
+
+  - id: FF-CV02
+    name: naming-services
+    dimension: convention
+    severity: minor
+    route: symbolic
+    validated: false
+    pattern: "*Service|*UseCase"
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-CV03
+    name: naming-repos
+    dimension: convention
+    severity: minor
+    route: symbolic
+    validated: false
+    pattern: "*Repository|*Repo"
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-CV04
+    name: naming-controllers
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+    validated: false
+    pattern: "*Controller"
+
+  - id: FF-CV05
+    name: test-file-pairing
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-CV06
+    name: no-index-logic
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-N01
+    name: architectural-integrity
+    dimension: integrity
+    severity: major
+    route: neuronal
+    validated: false
+    semantic_criteria:
+      rule: "The module's files form one coherent unit with a consistent abstraction and boundary."
+      rubric:
+        pass: "The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place."
+        fail: "The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions."
+        evidence_required: "Name each file involved and cite the declarations that show the split, the duplication or the bypass."
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-N02
+    name: intent-alignment
+    dimension: semantic
+    severity: major
+    route: neuronal
+    validated: false
+    semantic_criteria:
+      rule: "The unit's responsibilities match the role of its declared layer."
+      rubric:
+        pass: "Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given."
+        fail: "The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file."
+        evidence_required: "Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to."
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+default_exclude_paths:
+  - "node_modules/**"
+  - "dist/**"
+  - "**/*.spec.ts"
+  - "**/*.test.ts"
+  - "test/**"
+  - "src/generated/**"
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70

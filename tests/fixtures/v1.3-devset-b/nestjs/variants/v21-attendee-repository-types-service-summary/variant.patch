@@ -1,0 +1,51 @@
+--- a/src/attendees/attendees.service.ts
++++ b/src/attendees/attendees.service.ts
+@@ -4,20 +4,25 @@
+ import { DomainError } from '../domain/domain-error';
+ import { CreateAttendeeDto } from './dto/create-attendee.dto';
+ 
++export interface AttendeeSummary {
++  id: string;
++  name: string;
++}
++
+ @Injectable()
+ export class AttendeesService {
+   private sequence = 0;
+ 
+   constructor(@Inject(ATTENDEE_REPOSITORY) private readonly attendees: AttendeeRepository) {}
+ 
+-  async create(dto: CreateAttendeeDto): Promise<{ id: string; name: string }> {
++  async create(dto: CreateAttendeeDto): Promise<AttendeeSummary> {
+     this.sequence += 1;
+     const attendee = new Attendee(`at-${this.sequence}`, dto.name, dto.email);
+     await this.attendees.save(attendee);
+     return { id: attendee.id, name: attendee.name };
+   }
+ 
+-  async findOne(id: string): Promise<{ id: string; name: string }> {
++  async findOne(id: string): Promise<AttendeeSummary> {
+     const attendee = await this.attendees.findById(id);
+     if (attendee === undefined) throw new DomainError('not-found', `No attendee ${id}`);
+     return { id: attendee.id, name: attendee.name };
+--- a/src/attendees/in-memory-attendee.repository.ts
++++ b/src/attendees/in-memory-attendee.repository.ts
+@@ -1,6 +1,7 @@
+ import { Injectable } from '@nestjs/common';
+ import { Attendee } from '../domain/attendee';
+ import { AttendeeRepository } from '../domain/attendee-repository';
++import type { AttendeeSummary } from './attendees.service';
+ 
+ @Injectable()
+ export class InMemoryAttendeeRepository implements AttendeeRepository {
+@@ -10,6 +11,10 @@
+     return this.rows.get(id);
+   }
+ 
++  async listSummaries(): Promise<AttendeeSummary[]> {
++    return [...this.rows.values()].map((a) => ({ id: a.id, name: a.name }));
++  }
++
+   async save(attendee: Attendee): Promise<void> {
+     this.rows.set(attendee.id, attendee);
+   }

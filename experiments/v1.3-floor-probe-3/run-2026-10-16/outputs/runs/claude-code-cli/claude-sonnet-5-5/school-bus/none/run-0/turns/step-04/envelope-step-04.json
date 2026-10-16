@@ -1,0 +1,107 @@
+{
+  "duration_api_ms": 32970,
+  "stop_reason": "end_turn",
+  "session_id": "c50e2506-1139-4e17-94c9-ece882a179de",
+  "total_cost_usd": 0.09526309999999999,
+  "usage": {
+    "input_tokens": 10,
+    "cache_creation_input_tokens": 14212,
+    "cache_read_input_tokens": 46051,
+    "output_tokens": 3379,
+    "output_tokens_details": {
+      "thinking_tokens": 233
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 14212,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 423,
+        "cache_read_input_tokens": 17278,
+        "cache_creation_input_tokens": 2846,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 2846
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "modelUsage": {
+    "claude-sonnet-5-5": {
+      "inputTokens": 10,
+      "outputTokens": 3379,
+      "cacheReadInputTokens": 46051,
+      "cacheCreationInputTokens": 14212,
+      "webSearchRequests": 0,
+      "costUSD": 0.09526309999999999,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "thinkingTokens": 233,
+      "canonicalModel": "claude-sonnet-5-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01CqAn4cZrzvY1X8m6YUbq2v",
+      "tool_input": {
+        "command": "find . -path ./node_modules -prune -o -type f -print | head -100 && wc -l $(find src -name '*.ts')"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subagent_stats": {
+    "spawned": 0,
+    "requested": {
+      "background": 0,
+      "foreground": 0,
+      "unset": 0
+    },
+    "started_in_background": 0,
+    "max_depth": 0,
+    "spawned_by_subagents": 0,
+    "completed": 0,
+    "failed": 0,
+    "killed": {
+      "parent": 0,
+      "user": 0,
+      "system": 0
+    },
+    "refused": {
+      "depth_limit": 0,
+      "concurrency_limit": 0,
+      "budget": 0
+    },
+    "by_type": {}
+  },
+  "safety_stops": 0,
+  "is_error": false,
+  "num_turns": 13,
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "I made both changes, and the type-check you specified passes with no errors. I haven't run the service or tested either change.\n\n- **Positions with a wrong clock:** `recordPosition` in `src/application/busTrackingService.ts` now ignores any position whose time is more than 5 minutes ahead of or behind our own clock. A skipped position doesn't update the bus's progress and sends no delay e-mail. The webhook still answers `202` with `linked: true`, so the GPS unit isn't told anything went wrong.\n- **Mute delay messages:** `POST /routes/:id/delay-mutes` stops delay e-mails for that route for the rest of today and returns `201` with `{ muted: true, date }`. An unknown route gives `404`. The mute is stored under today's date, so it lapses at midnight UTC. Bus positions keep being recorded while delays are muted. Cancellation and missing-pupil e-mails are unaffected.\n\nI stored the mute using the existing `markCancelled`/`isCancelled` methods, with a `delays-muted` key, so no new interface or repository code was needed. If you'd rather have dedicated mute methods, that's a small follow-up.\n\nI couldn't run my first command to list the files because it needed approval that this session couldn't give. I used the file tools instead.",
+  "ttft_ms": 2971,
+  "type": "result",
+  "duration_ms": 34332,
+  "uuid": "22e87627-9e1b-4d65-a19e-e9b387f7b1a1",
+  "ttft_stream_ms": 1746,
+  "time_to_request_ms": 288,
+  "first_content_frame_ms": 1747,
+  "queued_turn_count": 0,
+  "result_index": 0
+}

@@ -1,0 +1,574 @@
+# PROPOSED rules, mined from the code (daedalus mine-rules; src/rule-mining). Not a reviewed spec: review before use.
+# style: nestjs (ISE, confidence 0.75); layers: ISE preset-first
+# mined rules: 116 (112 emitted)
+# MR-001 [layer-unobserved, low 0.25] domain must not depend on infrastructure (no import between them either way) -- not emitted: style nestjs orders its layers totally: dependency-direction allows every inward import, and no-layer-skip applies to the layered style only
+# MR-002 [layer-direction, low 0.40] domain must not depend on application (4 edges application -> domain; 0/1 domain files import application)
+# MR-003 [layer-direction, low 0.25] domain must not depend on presentation (1 edges presentation -> domain; 0/1 domain files import presentation)
+# MR-004 [layer-unobserved, low 0.25] infrastructure must not depend on domain (no import between them either way) -- not emitted: style nestjs orders its layers totally: dependency-direction allows every inward import, and no-layer-skip applies to the layered style only
+# MR-005 [layer-direction, medium 0.74] infrastructure must not depend on application (60 edges application -> infrastructure; 8/58 infrastructure files import application) -- 8 exception(s): src/errors/error-mapping.ts -> src/logger/console-logger.service.ts, src/media/backends/azure-backend.ts -> src/logger/console-logger.service.ts, src/media/backends/filesystem-backend.ts -> src/logger/console-logger.service.ts, ...
+# MR-006 [layer-direction, high 0.91] infrastructure must not depend on presentation (46 edges presentation -> infrastructure; 1/58 infrastructure files import presentation) -- 2 exception(s): src/utils/swagger.ts -> src/api/private/private-api.module.ts, src/utils/swagger.ts -> src/api/public/public-api.module.ts
+# MR-007 [layer-direction, high 0.98] application must not depend on presentation (166 edges presentation -> application; 0/72 application files import presentation)
+# MR-008 [layer-rare-edge, low 0.48] presentation should not depend on domain (1/54 presentation files imports it; nothing goes back) -- 1 exception(s): src/app.module.ts -> src/events.ts -- not emitted: style nestjs orders its layers totally: dependency-direction allows every inward import, and no-layer-skip applies to the layered style only
+# MR-009 [acyclic-files, high 0.97] no file lies on an import cycle (198/203 files do not) -- 6 exception(s): src/notes/note.module.ts -> src/permissions/permissions.module.ts, src/notes/note.module.ts -> src/realtime/realtime-note/realtime-note.module.ts, src/permissions/permissions.module.ts -> src/notes/note.module.ts, ...
+# MR-010 [component-direction, high 0.83] folder component media must not depend on api (11 imports api -> media; 0/10 files import back)
+# MR-011 [component-direction, medium 0.61] folder component media must not depend on media-redirect (2 imports media-redirect -> media; 0/10 files import back)
+# MR-012 [component-direction, low 0.44] folder component monitoring must not depend on api (2 imports api -> monitoring; 0/2 files import back)
+# MR-013 [component-direction, low 0.45] folder component database must not depend on monitoring (1 imports monitoring -> database; 0/9 files import back)
+# MR-014 [component-direction, low 0.45] folder component database must not depend on config (1 imports config -> database; 0/9 files import back)
+# MR-015 [component-direction, medium 0.64] folder component logger must not depend on media (6 imports media -> logger; 0/3 files import back)
+# MR-016 [component-direction, medium 0.50] folder component logger must not depend on monitoring (2 imports monitoring -> logger; 0/3 files import back)
+# MR-017 [component-direction, medium 0.72] folder component logger must not depend on api (22 imports api -> logger; 0/3 files import back)
+# MR-018 [component-direction, low 0.38] folder component logger must not depend on frontend-config (1 imports frontend-config -> logger; 0/3 files import back)
+# MR-019 [component-direction, low 0.38] folder component logger must not depend on revisions (1 imports revisions -> logger; 0/3 files import back)
+# MR-020 [component-direction, low 0.38] folder component logger must not depend on errors (1 imports errors -> logger; 0/3 files import back)
+# MR-021 [component-direction, medium 0.63] folder component logger must not depend on auth (5 imports auth -> logger; 0/3 files import back)
+# MR-022 [component-direction, low 0.38] folder component logger must not depend on sessions (1 imports sessions -> logger; 0/3 files import back)
+# MR-023 [component-direction, low 0.38] folder component logger must not depend on groups (1 imports groups -> logger; 0/3 files import back)
+# MR-024 [component-direction, low 0.38] folder component logger must not depend on explore (1 imports explore -> logger; 0/3 files import back)
+# MR-025 [component-direction, low 0.38] folder component logger must not depend on users (1 imports users -> logger; 0/3 files import back)
+# MR-026 [component-direction, medium 0.50] folder component logger must not depend on realtime (2 imports realtime -> logger; 0/3 files import back)
+# MR-027 [component-direction, low 0.38] folder component logger must not depend on media-redirect (1 imports media-redirect -> logger; 0/3 files import back)
+# MR-028 [component-direction, medium 0.50] folder component logger must not depend on permissions (2 imports permissions -> logger; 0/3 files import back)
+# MR-029 [component-direction, low 0.38] folder component logger must not depend on notes (1 imports notes -> logger; 0/3 files import back)
+# MR-030 [component-direction, medium 0.50] folder component logger must not depend on message (2 imports message -> logger; 0/3 files import back)
+# MR-031 [component-direction, low 0.38] folder component logger must not depend on api-token (1 imports api-token -> logger; 0/3 files import back)
+# MR-032 [component-direction, low 0.38] folder component logger must not depend on alias (1 imports alias -> logger; 0/3 files import back)
+# MR-033 [component-direction, medium 0.65] folder component api must not depend on media-redirect (2 imports media-redirect -> api; 0/40 files import back)
+# MR-034 [component-direction, low 0.49] folder component api must not depend on security (1 imports security -> api; 0/40 files import back)
+# MR-035 [component-direction, low 0.44] folder component frontend-config must not depend on api (2 imports api -> frontend-config; 0/2 files import back)
+# MR-036 [component-direction, low 0.38] folder component revisions must not depend on database (1 imports database -> revisions; 0/3 files import back)
+# MR-037 [component-direction, medium 0.60] folder component revisions must not depend on api (4 imports api -> revisions; 0/3 files import back)
+# MR-038 [component-direction, medium 0.50] folder component revisions must not depend on explore (2 imports explore -> revisions; 0/3 files import back)
+# MR-039 [component-direction, medium 0.50] folder component revisions must not depend on realtime (2 imports realtime -> revisions; 0/3 files import back)
+# MR-040 [component-direction, medium 0.50] folder component revisions must not depend on notes (2 imports notes -> revisions; 0/3 files import back)
+# MR-041 [component-direction, medium 0.64] folder component errors must not depend on media (6 imports media -> errors; 0/3 files import back)
+# MR-042 [component-direction, medium 0.68] folder component errors must not depend on api (9 imports api -> errors; 0/3 files import back)
+# MR-043 [component-direction, low 0.38] folder component errors must not depend on revisions (1 imports revisions -> errors; 0/3 files import back)
+# MR-044 [component-direction, medium 0.56] folder component errors must not depend on auth (3 imports auth -> errors; 0/3 files import back)
+# MR-045 [component-direction, low 0.38] folder component errors must not depend on groups (1 imports groups -> errors; 0/3 files import back)
+# MR-046 [component-direction, low 0.38] folder component errors must not depend on users (1 imports users -> errors; 0/3 files import back)
+# MR-047 [component-direction, low 0.38] folder component errors must not depend on media-redirect (1 imports media-redirect -> errors; 0/3 files import back)
+# MR-048 [component-direction, low 0.38] folder component errors must not depend on permissions (1 imports permissions -> errors; 0/3 files import back)
+# MR-049 [component-direction, low 0.38] folder component errors must not depend on notes (1 imports notes -> errors; 0/3 files import back)
+# MR-050 [component-direction, low 0.38] folder component errors must not depend on api-token (1 imports api-token -> errors; 0/3 files import back)
+# MR-051 [component-direction, low 0.38] folder component errors must not depend on alias (1 imports alias -> errors; 0/3 files import back)
+# MR-052 [component-direction, low 0.40] folder component sessions must not depend on api (1 imports api -> sessions; 0/4 files import back)
+# MR-053 [component-direction, medium 0.53] folder component sessions must not depend on auth (2 imports auth -> sessions; 0/4 files import back)
+# MR-054 [component-direction, medium 0.60] folder component sessions must not depend on realtime (3 imports realtime -> sessions; 0/4 files import back)
+# MR-055 [component-direction, medium 0.56] folder component groups must not depend on api (5 imports api -> groups; 0/2 files import back)
+# MR-056 [component-direction, low 0.44] folder component groups must not depend on explore (2 imports explore -> groups; 0/2 files import back)
+# MR-057 [component-direction, low 0.44] folder component groups must not depend on permissions (2 imports permissions -> groups; 0/2 files import back)
+# MR-058 [component-direction, low 0.44] folder component groups must not depend on notes (2 imports notes -> groups; 0/2 files import back)
+# MR-059 [component-direction, low 0.44] folder component explore must not depend on api (2 imports api -> explore; 0/2 files import back)
+# MR-060 [component-direction, high 0.82] folder component config must not depend on media (6 imports media -> config; 0/23 files import back)
+# MR-061 [component-direction, medium 0.72] folder component config must not depend on logger (3 imports logger -> config; 0/23 files import back)
+# MR-062 [component-direction, high 0.77] folder component config must not depend on api (4 imports api -> config; 0/23 files import back)
+# MR-063 [component-direction, high 0.77] folder component config must not depend on frontend-config (4 imports frontend-config -> config; 0/23 files import back)
+# MR-064 [component-direction, low 0.48] folder component config must not depend on revisions (1 imports revisions -> config; 0/23 files import back)
+# MR-065 [component-direction, high 0.80] folder component config must not depend on auth (5 imports auth -> config; 0/23 files import back)
+# MR-066 [component-direction, low 0.48] folder component config must not depend on sessions (1 imports sessions -> config; 0/23 files import back)
+# MR-067 [component-direction, low 0.48] folder component config must not depend on realtime (1 imports realtime -> config; 0/23 files import back)
+# MR-068 [component-direction, low 0.48] folder component config must not depend on permissions (1 imports permissions -> config; 0/23 files import back)
+# MR-069 [component-direction, low 0.48] folder component config must not depend on security (1 imports security -> config; 0/23 files import back)
+# MR-070 [component-direction, low 0.48] folder component config must not depend on notes (1 imports notes -> config; 0/23 files import back)
+# MR-071 [component-direction, low 0.48] folder component config must not depend on utils (1 imports utils -> config; 0/23 files import back)
+# MR-072 [component-direction, low 0.48] folder component config must not depend on message (1 imports message -> config; 0/23 files import back)
+# MR-073 [component-direction, low 0.48] folder component config must not depend on alias (1 imports alias -> config; 0/23 files import back)
+# MR-074 [component-direction, medium 0.74] folder component users must not depend on api (12 imports api -> users; 0/4 files import back)
+# MR-075 [component-direction, medium 0.53] folder component users must not depend on auth (2 imports auth -> users; 0/4 files import back)
+# MR-076 [component-direction, medium 0.53] folder component users must not depend on groups (2 imports groups -> users; 0/4 files import back)
+# MR-077 [component-direction, medium 0.60] folder component users must not depend on realtime (3 imports realtime -> users; 0/4 files import back)
+# MR-078 [component-direction, medium 0.53] folder component users must not depend on permissions (2 imports permissions -> users; 0/4 files import back)
+# MR-079 [component-direction, low 0.40] folder component users must not depend on notes (1 imports notes -> users; 0/4 files import back)
+# MR-080 [component-direction, low 0.40] folder component users must not depend on api-token (1 imports api-token -> users; 0/4 files import back)
+# MR-081 [component-direction, low 0.49] folder component dtos must not depend on media (1 imports media -> dtos; 0/50 files import back)
+# MR-082 [component-direction, low 0.49] folder component dtos must not depend on monitoring (1 imports monitoring -> dtos; 0/50 files import back)
+# MR-083 [component-direction, high 0.96] folder component dtos must not depend on api (56 imports api -> dtos; 0/50 files import back)
+# MR-084 [component-direction, medium 0.73] folder component dtos must not depend on frontend-config (3 imports frontend-config -> dtos; 0/50 files import back)
+# MR-085 [component-direction, medium 0.65] folder component dtos must not depend on revisions (2 imports revisions -> dtos; 0/50 files import back)
+# MR-086 [component-direction, high 0.78] folder component dtos must not depend on auth (4 imports auth -> dtos; 0/50 files import back)
+# MR-087 [component-direction, low 0.49] folder component dtos must not depend on sessions (1 imports sessions -> dtos; 0/50 files import back)
+# MR-088 [component-direction, low 0.49] folder component dtos must not depend on groups (1 imports groups -> dtos; 0/50 files import back)
+# MR-089 [component-direction, low 0.49] folder component dtos must not depend on explore (1 imports explore -> dtos; 0/50 files import back)
+# MR-090 [component-direction, medium 0.65] folder component dtos must not depend on users (2 imports users -> dtos; 0/50 files import back)
+# MR-091 [component-direction, low 0.49] folder component dtos must not depend on permissions (1 imports permissions -> dtos; 0/50 files import back)
+# MR-092 [component-direction, medium 0.65] folder component dtos must not depend on notes (2 imports notes -> dtos; 0/50 files import back)
+# MR-093 [component-direction, low 0.49] folder component dtos must not depend on utils (1 imports utils -> dtos; 0/50 files import back)
+# MR-094 [component-direction, medium 0.65] folder component dtos must not depend on api-token (2 imports api-token -> dtos; 0/50 files import back)
+# MR-095 [component-direction, medium 0.65] folder component dtos must not depend on alias (2 imports alias -> dtos; 0/50 files import back)
+# MR-096 [component-direction, medium 0.56] folder component permissions must not depend on media (2 imports media -> permissions; 0/5 files import back)
+# MR-097 [component-direction, medium 0.57] folder component permissions must not depend on api (17 imports api -> permissions; 1/5 files import back) -- 2 exception(s): src/permissions/permissions.guard.ts -> src/api/utils/extract-note-id-from-request.ts, src/permissions/permissions.guard.ts -> src/api/utils/request.type.ts
+# MR-098 [component-direction, medium 0.56] folder component permissions must not depend on explore (2 imports explore -> permissions; 0/5 files import back)
+# MR-099 [component-direction, medium 0.67] folder component permissions must not depend on realtime (4 imports realtime -> permissions; 0/5 files import back)
+# MR-100 [component-direction, medium 0.61] folder component notes must not depend on api (12 imports api -> notes; 0/2 files import back)
+# MR-101 [component-direction, low 0.44] folder component utils must not depend on media (1 imports media -> utils; 0/7 files import back)
+# MR-102 [component-direction, low 0.44] folder component utils must not depend on monitoring (1 imports monitoring -> utils; 0/7 files import back)
+# MR-103 [component-direction, medium 0.70] folder component utils must not depend on database (4 imports database -> utils; 0/7 files import back)
+# MR-104 [component-direction, low 0.44] folder component utils must not depend on frontend-config (1 imports frontend-config -> utils; 0/7 files import back)
+# MR-105 [component-direction, low 0.44] folder component utils must not depend on revisions (1 imports revisions -> utils; 0/7 files import back)
+# MR-106 [component-direction, medium 0.66] folder component utils must not depend on auth (3 imports auth -> utils; 0/7 files import back)
+# MR-107 [component-direction, low 0.44] folder component utils must not depend on users (1 imports users -> utils; 0/7 files import back)
+# MR-108 [component-direction, low 0.44] folder component utils must not depend on notes (1 imports notes -> utils; 0/7 files import back)
+# MR-109 [component-direction, medium 0.66] folder component utils must not depend on message (3 imports message -> utils; 0/7 files import back)
+# MR-110 [component-direction, medium 0.58] folder component utils must not depend on api-token (2 imports api-token -> utils; 0/7 files import back)
+# MR-111 [component-direction, medium 0.53] folder component alias must not depend on api (4 imports api -> alias; 0/2 files import back)
+# MR-112 [component-direction, low 0.44] folder component alias must not depend on revisions (2 imports revisions -> alias; 0/2 files import back)
+# MR-113 [component-direction, low 0.33] folder component alias must not depend on realtime (1 imports realtime -> alias; 0/2 files import back)
+# MR-114 [component-direction, low 0.44] folder component alias must not depend on notes (2 imports notes -> alias; 0/2 files import back)
+# MR-115 [core-package-free, medium 0.50] domain (a core layer: it may depend on no other layer) imports none of @azure/storage-blob, @fastify/cookie, @fastify/csrf-protection, @fastify/multipart, @fastify/rate-limit, @fastify/session, @fastify/static, @hedgedoc/commons, @hedgedoc/database, @jest/globals, @mrdrogdrog/optional, @nestjs/common, @nestjs/config, @nestjs/core, @nestjs/event-emitter, @nestjs/platform-fastify, @nestjs/platform-ws, @nestjs/schedule, @nestjs/swagger, @nestjs/websockets, @node-rs/argon2, @zxcvbn-ts/core, @zxcvbn-ts/language-common, @zxcvbn-ts/language-en, base32-encode, cli-color, crypto, diff, fastify, fs, http, jose, knex, knex-mock-client, ldapauth-fork, luxon, minio, nest-knexjs, nestjs-zod, openid-client, path, pg, process, rxjs, stream, tls, ts-mockery, url, util, uuid, ws, zod
+# MR-116 [core-package-free, high 0.90] infrastructure (a core layer: it may depend on no other layer) imports none of @fastify/cookie, @fastify/csrf-protection, @fastify/multipart, @fastify/rate-limit, @fastify/static, @hedgedoc/database, @mrdrogdrog/optional, @nestjs/core, @nestjs/event-emitter, @nestjs/platform-fastify, @nestjs/platform-ws, @nestjs/schedule, @nestjs/swagger, @nestjs/websockets, @zxcvbn-ts/core, @zxcvbn-ts/language-common, @zxcvbn-ts/language-en, base32-encode, cli-color, crypto, diff, eventemitter2, fastify, http, jose, ldapauth-fork, luxon, nest-knexjs, nestjs-zod, openid-client, path, rxjs, url, util, uuid, ws -- 26 exception(s): src/database/seeds/01_user.ts -> @hedgedoc/database, src/database/seeds/02_api_token.ts -> @hedgedoc/database, src/database/seeds/02_api_token.ts -> crypto, ... -- not emitted: domain-purity checks the domain-kind layer only (domain), not infrastructure
+# note: not mined as allowed but allowed by the nestjs order: infrastructure>domain
+
+spec_version: "1.0.0"
+
+architecture:
+  style: nestjs
+
+  layers:
+    # Layer order (inner → outer): domain → infrastructure → application → presentation
+    #
+    # NestJS dependency flow: Controller → Service → Repository → ORM/DB
+    # This maps to: presentation → application → infrastructure → domain
+    #
+    # Unlike clean-architecture (where infrastructure is outer and depends on
+    # application interfaces), NestJS treats infrastructure as an inner data-access
+    # layer that application services call directly.
+
+    - name: domain
+      directories:
+        - src/events.ts
+      roles:
+        - entity
+        - value-object
+        - domain-service
+        - repository-interface
+
+    - name: infrastructure
+      directories:
+        - src/config/**
+        - src/database/**
+        - src/errors/**
+        - src/media/backends/azure-backend.ts
+        - src/media/backends/filesystem-backend.ts
+        - src/media/backends/imgur-backend.ts
+        - src/media/backends/s3-backend.ts
+        - src/media/backends/webdav-backend.ts
+        - src/media/media-backend.interface.ts
+        - src/media/media-response.interface.ts
+        - src/media/multer-file.interface.ts
+        - src/realtime/realtime-note/realtime-connection.ts
+        - src/realtime/realtime-note/realtime-note-store.ts
+        - src/realtime/realtime-note/realtime-note.ts
+        - src/realtime/realtime-note/realtime-user-status-adapter.ts
+        - src/realtime/realtime-note/test-utils/mock-connection.ts
+        - src/realtime/realtime-note/test-utils/mock-message-transporter.ts
+        - src/realtime/websocket/backend-websocket-adapter.ts
+        - src/realtime/websocket/utils/extract-note-id-from-request-url.ts
+        - src/utils/**
+      file_patterns: []
+      roles:
+        - repository-impl
+        - orm-entity
+        - external-service
+        - middleware
+        - worker
+
+    - name: application
+      directories:
+        - src/migrate.ts
+        - src/security/**
+      file_patterns:
+        - "**/*.service.ts"
+        - "**/*.dto.ts"
+      roles:
+        - use-case
+        - dto
+        - application-service
+        - processor
+
+    - name: presentation
+      directories:
+        - src/app-init.ts
+      file_patterns:
+        - "**/*.controller.ts"
+        - "**/*.module.ts"
+        - "**/*.guard.ts"
+        - "**/*.interceptor.ts"
+        - "**/*.gateway.ts"
+      roles:
+        - controller
+        - module
+        - gateway
+        - guard
+        - interceptor
+      decorators:
+        - "@Controller"
+        - "@Module"
+
+fitness_functions:
+
+  # ── STRUCTURAL ──
+
+  # mined: MR-002 low 0.40, 0 exceptions; MR-003 low 0.25, 0 exceptions; MR-005 medium 0.74, 8 exceptions; MR-006 high 0.91, 2 exceptions; MR-007 high 0.98, 0 exceptions
+  - id: FF-S01
+    name: dependency-direction
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: true
+
+  # mined: MR-009 high 0.97, 6 exceptions
+  - id: FF-S02
+    name: no-cyclic-deps
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: true
+
+  # mined: MR-115 medium 0.50, 0 exceptions
+  - id: FF-P01
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+    forbidden_imports:
+      - "@azure/storage-blob"
+      - "@fastify/cookie"
+      - "@fastify/csrf-protection"
+      - "@fastify/multipart"
+      - "@fastify/rate-limit"
+      - "@fastify/session"
+      - "@fastify/static"
+      - "@hedgedoc/commons"
+      - "@hedgedoc/database"
+      - "@jest/globals"
+      - "@mrdrogdrog/optional"
+      - "@nestjs/common"
+      - "@nestjs/config"
+      - "@nestjs/core"
+      - "@nestjs/event-emitter"
+      - "@nestjs/platform-fastify"
+      - "@nestjs/platform-ws"
+      - "@nestjs/schedule"
+      - "@nestjs/swagger"
+      - "@nestjs/websockets"
+      - "@node-rs/argon2"
+      - "@zxcvbn-ts/core"
+      - "@zxcvbn-ts/language-common"
+      - "@zxcvbn-ts/language-en"
+      - base32-encode
+      - cli-color
+      - crypto
+      - diff
+      - fastify
+      - fs
+      - http
+      - jose
+      - knex
+      - knex-mock-client
+      - ldapauth-fork
+      - luxon
+      - minio
+      - nest-knexjs
+      - nestjs-zod
+      - openid-client
+      - path
+      - pg
+      - process
+      - rxjs
+      - stream
+      - tls
+      - ts-mockery
+      - url
+      - util
+      - uuid
+      - ws
+      - zod
+  # mined: MR-010 high 0.83, 0 exceptions; MR-011 medium 0.61, 0 exceptions; MR-012 low 0.44, 0 exceptions; MR-013 low 0.45, 0 exceptions; MR-014 low 0.45, 0 exceptions; MR-015 medium 0.64, 0 exceptions; MR-016 medium 0.50, 0 exceptions; MR-017 medium 0.72, 0 exceptions; MR-018 low 0.38, 0 exceptions; MR-019 low 0.38, 0 exceptions; MR-020 low 0.38, 0 exceptions; MR-021 medium 0.63, 0 exceptions; MR-022 low 0.38, 0 exceptions; MR-023 low 0.38, 0 exceptions; MR-024 low 0.38, 0 exceptions; MR-025 low 0.38, 0 exceptions; MR-026 medium 0.50, 0 exceptions; MR-027 low 0.38, 0 exceptions; MR-028 medium 0.50, 0 exceptions; MR-029 low 0.38, 0 exceptions; MR-030 medium 0.50, 0 exceptions; MR-031 low 0.38, 0 exceptions; MR-032 low 0.38, 0 exceptions; MR-033 medium 0.65, 0 exceptions; MR-034 low 0.49, 0 exceptions; MR-035 low 0.44, 0 exceptions; MR-036 low 0.38, 0 exceptions; MR-037 medium 0.60, 0 exceptions; MR-038 medium 0.50, 0 exceptions; MR-039 medium 0.50, 0 exceptions; MR-040 medium 0.50, 0 exceptions; MR-041 medium 0.64, 0 exceptions; MR-042 medium 0.68, 0 exceptions; MR-043 low 0.38, 0 exceptions; MR-044 medium 0.56, 0 exceptions; MR-045 low 0.38, 0 exceptions; MR-046 low 0.38, 0 exceptions; MR-047 low 0.38, 0 exceptions; MR-048 low 0.38, 0 exceptions; MR-049 low 0.38, 0 exceptions; MR-050 low 0.38, 0 exceptions; MR-051 low 0.38, 0 exceptions; MR-052 low 0.40, 0 exceptions; MR-053 medium 0.53, 0 exceptions; MR-054 medium 0.60, 0 exceptions; MR-055 medium 0.56, 0 exceptions; MR-056 low 0.44, 0 exceptions; MR-057 low 0.44, 0 exceptions; MR-058 low 0.44, 0 exceptions; MR-059 low 0.44, 0 exceptions; MR-060 high 0.82, 0 exceptions; MR-061 medium 0.72, 0 exceptions; MR-062 high 0.77, 0 exceptions; MR-063 high 0.77, 0 exceptions; MR-064 low 0.48, 0 exceptions; MR-065 high 0.80, 0 exceptions; MR-066 low 0.48, 0 exceptions; MR-067 low 0.48, 0 exceptions; MR-068 low 0.48, 0 exceptions; MR-069 low 0.48, 0 exceptions; MR-070 low 0.48, 0 exceptions; MR-071 low 0.48, 0 exceptions; MR-072 low 0.48, 0 exceptions; MR-073 low 0.48, 0 exceptions; MR-074 medium 0.74, 0 exceptions; MR-075 medium 0.53, 0 exceptions; MR-076 medium 0.53, 0 exceptions; MR-077 medium 0.60, 0 exceptions; MR-078 medium 0.53, 0 exceptions; MR-079 low 0.40, 0 exceptions; MR-080 low 0.40, 0 exceptions; MR-081 low 0.49, 0 exceptions; MR-082 low 0.49, 0 exceptions; MR-083 high 0.96, 0 exceptions; MR-084 medium 0.73, 0 exceptions; MR-085 medium 0.65, 0 exceptions; MR-086 high 0.78, 0 exceptions; MR-087 low 0.49, 0 exceptions; MR-088 low 0.49, 0 exceptions; MR-089 low 0.49, 0 exceptions; MR-090 medium 0.65, 0 exceptions; MR-091 low 0.49, 0 exceptions; MR-092 medium 0.65, 0 exceptions; MR-093 low 0.49, 0 exceptions; MR-094 medium 0.65, 0 exceptions; MR-095 medium 0.65, 0 exceptions; MR-096 medium 0.56, 0 exceptions; MR-097 medium 0.57, 2 exceptions; MR-098 medium 0.56, 0 exceptions; MR-099 medium 0.67, 0 exceptions; MR-100 medium 0.61, 0 exceptions; MR-101 low 0.44, 0 exceptions; MR-102 low 0.44, 0 exceptions; MR-103 medium 0.70, 0 exceptions; MR-104 low 0.44, 0 exceptions; MR-105 low 0.44, 0 exceptions; MR-106 medium 0.66, 0 exceptions; MR-107 low 0.44, 0 exceptions; MR-108 low 0.44, 0 exceptions; MR-109 medium 0.66, 0 exceptions; MR-110 medium 0.58, 0 exceptions; MR-111 medium 0.53, 0 exceptions; MR-112 low 0.44, 0 exceptions; MR-113 low 0.33, 0 exceptions; MR-114 low 0.44, 0 exceptions (APG v2: evaluated on a graph extracted with V13_APG2_OPTIONS)
+  - id: FF-A01
+    name: component-adp-cycle
+    dimension: structural
+    severity: advisory
+    route: symbolic
+    validated: false
+
+  # not mined: switched off (the style template would otherwise add them)
+  - id: FF-S03
+    name: no-layer-skip
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    # NestJS *.module.ts files are DI wiring — they import from all layers by design
+    exclude_paths:
+      - "**/*.module.ts"
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-S04
+    name: no-domain-outward-dep
+    dimension: structural
+    severity: major
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P02
+    name: dependency-inversion
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+    threshold: 0.85
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P03
+    name: repository-pattern
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P04
+    name: use-case-isolation
+    dimension: pattern
+    severity: major
+    route: symbolic
+    validated: true
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P05
+    name: controller-no-entity
+    dimension: pattern
+    severity: major
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P06
+    name: domain-state-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C01
+    name: domain-stability
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    threshold: 0.3
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C02
+    name: module-fan-out
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    threshold: 12
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C03
+    name: component-instability
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    threshold: 0.8
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C04
+    name: no-orphan-files
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C05
+    name: max-fan-in
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    validated: false
+    threshold: 20
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C06
+    name: abstraction-ratio
+    dimension: coupling
+    severity: advisory
+    route: symbolic
+    validated: false
+    threshold: 0.3
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-SO01
+    name: single-responsibility-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    validated: true
+    max_public_methods: 10
+    max_dependencies: 5
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-SO02
+    name: interface-segregation-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    validated: true
+    max_interface_methods: 5
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-SO03
+    name: inheritance-depth
+    dimension: solid
+    severity: minor
+    route: symbolic
+    validated: false
+    max_depth: 3
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-CV01
+    name: naming-conventions
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+    validated: true
+
+  - id: FF-CV02
+    name: naming-services
+    dimension: convention
+    severity: minor
+    route: symbolic
+    validated: false
+    pattern: "*Service|*UseCase"
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-CV03
+    name: naming-repos
+    dimension: convention
+    severity: minor
+    route: symbolic
+    validated: false
+    pattern: "*Repository|*Repo"
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-CV04
+    name: naming-controllers
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+    validated: false
+    pattern: "*Controller"
+
+  - id: FF-CV05
+    name: test-file-pairing
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-CV06
+    name: no-index-logic
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-N01
+    name: architectural-integrity
+    dimension: integrity
+    severity: major
+    route: neuronal
+    validated: false
+    semantic_criteria:
+      rule: "The module's files form one coherent unit with a consistent abstraction and boundary."
+      rubric:
+        pass: "The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place."
+        fail: "The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions."
+        evidence_required: "Name each file involved and cite the declarations that show the split, the duplication or the bypass."
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-N02
+    name: intent-alignment
+    dimension: semantic
+    severity: major
+    route: neuronal
+    validated: false
+    semantic_criteria:
+      rule: "The unit's responsibilities match the role of its declared layer."
+      rubric:
+        pass: "Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given."
+        fail: "The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file."
+        evidence_required: "Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to."
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+default_exclude_paths:
+  - "node_modules/**"
+  - "dist/**"
+  - "**/*.spec.ts"
+  - "**/*.test.ts"
+  - "test/**"
+  - "src/generated/**"
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70

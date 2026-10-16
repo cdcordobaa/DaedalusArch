@@ -15,7 +15,9 @@ It is not a pre-registration of Study 2. It covers only the validation of the to
 | Presets, templates, specs | as at `<FREEZE_SHA>`, sha256 of each listed in the freeze commit |
 | Matching | `scripts/v1.3/lib/compare.ts` at `<FREEZE_SHA>` |
 
-**How the freeze works.** Commit X holds the tool. Commit Y fills `<FREEZE_SHA>` = X in this file and records the file's hash. The run uses the code at X. Before the run, `git diff X Y -- src scripts presets specs` must be empty. Construct decisions that change code (`Docs/v1.3/construct-decisions.md`) must be merged before X, including their single development-set runs (Q16, Q25). Nothing merges between X and the run.
+**How the freeze works.** Commit X holds the tool. Commit Y fills `<FREEZE_SHA>` = X in this file and records the file's hash. The run uses the code at X. Before the run, `git diff X Y -- src scripts presets specs package.json package-lock.json 'tsconfig*.json'` must be empty, and every package installed under `node_modules` must have its `package-lock.json` version. The run's provenance records the sha256 of `package-lock.json` and the installed version of each direct dependency. Construct decisions that change code (`Docs/v1.3/construct-decisions.md`) must be merged before X, including their single development-set runs (Q16, Q25). Nothing merges between X and the run.
+
+*Amended 2026-10-16 (before the freeze; review finding F19):* the frozen paths now include the dependency manifests and the TypeScript configs, and `holdout-run.ts` checks the installed dependency versions against the lockfile and records the lockfile hash. Before this amendment a changed lockfile, `package.json` or `node_modules` passed the freeze check.
 
 ### Known limitations of the hold-out (added 2026-10-16, after the adversarial review)
 

@@ -368,7 +368,7 @@ AHS = 0.35 * (1 - 0.25)    structural
 
 **Engine path**:
 ```
-/Volumes/Life-OS/Users/Arkatechie/Development/Archi-Firewall/DaedalusArch
+<workspace>/DaedalusArch
 ```
 
 All CLI commands run from this directory with `--project` pointing at the target.
