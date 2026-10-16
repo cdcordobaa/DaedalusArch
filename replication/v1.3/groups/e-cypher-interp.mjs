@@ -201,7 +201,7 @@ console.log(JSON.stringify(o));
       n('e-ci-census-mw', 117, 'module-wiring templates', '1'),
       n('e-ci-census-ddd', 117, 'DDD templates', '7'),
       n('e-ci-census-apg2', 117, 'APG v2 templates', '9'),
-      n('e-ci-census-univ', 117, 'distinct universal-metric texts', '11'),
+      n('e-ci-census-univ', 118, 'distinct universal-metric texts', '11'),
       n('e-ci-census-judge', 118, 'judge graph-view queries', '4'),
       n('e-ci-census-verify', 118, 'ingestion verification counts (verifyIngestion queries)', '4'),
       n('e-ci-baselines', 32, 'ablation baselines from v13-in-memory-baselines.ts (imported by scripts/apg2-ablation.ts)', '3'),
@@ -211,6 +211,9 @@ console.log(JSON.stringify(o));
       n('e-ci-cli-pw', 336, "unconditional requireEnvForCli('NEO4J_PASSWORD') calls left in src/cli/cli.ts", 'two'),
       n('e-ci-apg2-per-project', 290, 'APG v2 templates per project', '9'),
       n('e-ci-mir-templates-s6', 291, 'templates in the mirror comparison', '9'),
+      n('e-ci-apg2-mirrors', 31, 'APG v2 templates with a hand mirror (APG2_IN_MEMORY)', '9'),
+      n('e-ci-apoc', 86, 'APOC functions built in (functions.ts)', 'three'),
+      n('e-ci-index', 98, 'CREATE INDEX statements of the ingestion', 'two'),
     ],
     async run(ctx) {
       const r = tsx(ctx, 'e-ci-code', `
@@ -220,9 +223,10 @@ const { V13_EXTENSION_TEMPLATE_CATALOGUES: C } = await import(R + '/src/fitness-
 const { UNIVERSAL_METRIC_QUERIES: U, UNIVERSAL_METRIC_QUERIES_LITERAL: L } = await import(R + '/src/scoring-engine/universal-metrics.ts');
 const { JUDGE_GRAPH_QUERIES } = await import(R + '/src/llm-critic/judge-graph.ts');
 const { APG2_TEMPLATES } = await import(R + '/src/fitness-compiler/apg2-templates.ts');
+const { APG2_IN_MEMORY } = await import(R + '/src/fitness-compiler/apg2-in-memory.ts');
 const sz = (k) => C.get(k).size;
 console.log(JSON.stringify({ frozen: CYPHER_TEMPLATES.size, hex: sz('hexagonal'), mw: sz('module-wiring'), ddd: sz('ddd'), apg2: sz('apg2'),
-  univ: new Set([...Object.values(U), ...Object.values(L)]).size, judge: Object.keys(JUDGE_GRAPH_QUERIES).length, apg2t: APG2_TEMPLATES.size ?? Object.keys(APG2_TEMPLATES).length }));
+  univ: new Set([...Object.values(U), ...Object.values(L)]).size, judge: Object.keys(JUDGE_GRAPH_QUERIES).length, apg2t: APG2_TEMPLATES.size ?? Object.keys(APG2_TEMPLATES).length, mirrors: APG2_IN_MEMORY.size }));
 `);
       const all = r.frozen + r.hex + r.mw + r.ddd + r.apg2;
       const ing = ctx.read('src/neo4j-ingestion/graph-ingester.ts');
@@ -235,11 +239,14 @@ console.log(JSON.stringify({ frozen: CYPHER_TEMPLATES.size, hex: sz('hexagonal')
       const lines = ctx.read('src/fitness-compiler/apg2-in-memory.ts').split('\n').length - 1;
       const cli = ctx.read('src/cli/cli.ts').split('\n').filter((l) => l.includes("requireEnvForCli('NEO4J_PASSWORD')") && !l.includes('cypher-interp')).length;
       const words = ['zero', 'one', 'two', 'three', 'four', 'five'];
+      const apoc = new Set(ctx.read('src/cypher-interp/functions.ts').match(/'apoc\.[A-Za-z.]+'/g) ?? []).size;
+      const idx = (ctx.read('src/neo4j-ingestion/graph-ingester.ts').match(/CREATE INDEX/g) ?? []).length;
       return {
         'e-ci-census-all': String(all), 'e-ci-census-frozen': String(r.frozen), 'e-ci-census-hex': String(r.hex), 'e-ci-census-mw': String(r.mw),
         'e-ci-census-ddd': String(r.ddd), 'e-ci-census-apg2': String(r.apg2), 'e-ci-census-univ': String(r.univ), 'e-ci-census-judge': String(r.judge),
         'e-ci-census-verify': String(verify), 'e-ci-baselines': String(baselines), 'e-ci-gen-size': mb, 'e-ci-gen-size-s8': mb,
         'e-ci-mirror-lines': `${lines} lines`, 'e-ci-cli-pw': words[cli] ?? String(cli), 'e-ci-apg2-per-project': String(r.apg2t), 'e-ci-mir-templates-s6': String(r.apg2t),
+        'e-ci-apg2-mirrors': String(r.mirrors), 'e-ci-apoc': words[apoc], 'e-ci-index': words[idx],
       };
     },
   },
@@ -253,9 +260,14 @@ console.log(JSON.stringify({ frozen: CYPHER_TEMPLATES.size, hex: sz('hexagonal')
       n('e-ci-par-order', 16, 'statements classed order', '763'),
       n('e-ci-par-result', 173, 'parity result line', '65,254 statements: equal 64,491, order 763, content 0, error 0, unsupported 0, both-error 0'),
       n('e-ci-par-order-s4', 245, 'order statements (explanation)', '763'),
-      n('e-ci-par-order-t1', 246, 'order statements from the ingestion verification n.type, count(*) (T1)', '252'),
-      n('e-ci-par-order-t2', 247, 'order statements from averageInstability in both universal-metric sets (T2)', '511'),
+      n('e-ci-par-order-t1', 245, 'order statements from the ingestion verification n.type, count(*) (T1)', '252'),
+      n('e-ci-par-order-t2', 246, 'order statements from averageInstability in both universal-metric sets (T2)', '511'),
       n('e-ci-par-projects', 157, 'projects in the parity run', '79'),
+      n('e-ci-par-proj-ref', 157, 'reference variants among the parity projects', '71'),
+      n('e-ci-par-proj-fix', 158, 'APG v2 fixture projects among the parity projects', '7'),
+      n('e-ci-par-proj-syn', 158, 'synthetic APG projects among the parity projects', 'one'),
+      n('e-ci-par-earlier-zero', 175, 'content/error/unsupported counts in every (earlier) run', '0', { needs: 'not-checkable', note: 'earlier runs are not committed; the committed run has 0 (e-ci-par-summary)' }),
+      n('e-ci-par-wall', 154, 'parity run wall time', '4.5 min', { needs: 'not-checkable', note: 'machine-dependent and needs Neo4j; the committed timings sum the statements only' }),
       n('e-ci-par-judge', 341, 'judge-graph:* statements equal', '1,516'),
       n('e-ci-par-earlier', 174, 'order count of an earlier full run', '816', { needs: 'not-checkable', note: 'the earlier run is not committed' }),
       ...parityCells,
@@ -276,6 +288,9 @@ console.log(JSON.stringify({ frozen: CYPHER_TEMPLATES.size, hex: sz('hexagonal')
         'e-ci-par-order-t1': String(ne.filter((e) => e.klass === 'order' && e.label === 'ingest-verify').length),
         'e-ci-par-order-t2': String(ne.filter((e) => e.klass === 'order' && /averageInstability/.test(e.label)).length),
         'e-ci-par-projects': String(projects),
+        'e-ci-par-proj-ref': String([...new Set(by.timings.map((t) => t.project))].filter((p) => !/^(apg2-fixture|synthetic)\//.test(p)).length),
+        'e-ci-par-proj-fix': String([...new Set(by.timings.map((t) => t.project))].filter((p) => p.startsWith('apg2-fixture/')).length),
+        'e-ci-par-proj-syn': ['no', 'one', 'two'][[...new Set(by.timings.map((t) => t.project))].filter((p) => p.startsWith('synthetic/')).length],
         'e-ci-par-judge': comma(by.rows.filter((r) => r.template.startsWith('judge-graph:')).reduce((s, r) => s + r.equal, 0)),
       };
       for (const r of by.rows) {

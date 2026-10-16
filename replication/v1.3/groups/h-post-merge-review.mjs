@@ -509,7 +509,7 @@ const construct = {
   title: 'R10/R30/R31: construct-switch effects (Q24 B, Q5 B, Q5 B + Q24 B, Q13 C) re-scored offline',
   needs: 'offline',
   basis: 'regenerated',
-  slow: false,
+  slow: true, // the --effects pass re-extracts every variant graph: ~30 s idle, ~10 min on a loaded machine
   how: 'node --import tsx scripts/v1.3/construct-rescore.ts --base results/v1.3-reference/after-member-facts --effects <out>/effects.md; and --answers {"Q5":"B","Q24":"B"} --style hexagonal --out <out>/q5q24 (blocking = rules with blockingCandidate)',
   numbers: [
     N('h-pmr-r10-l168-rows', 168, 'Q24 B rows added on hexagonal (development set)', 'reports 17 rows'),
