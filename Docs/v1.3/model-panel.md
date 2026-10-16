@@ -193,17 +193,17 @@ The size comes from the dry run's rendered prompts (characters ÷ 4).
 
 **Calls.** 100 items × 2 runs = 200 calls, plus at most one re-ask and one retry per run. The worst case is 800; expect about 210.
 
-**Input tokens per call.** About 60 system tokens plus 350–500 prompt tokens: wild items average about 355, reference decoys about 490, and the largest item about 725. Plan on **≈ 600 input tokens per call**, so **≈ 0.13 M input tokens** per 100 items per vendor.
+**Input tokens per call.** About 65 system tokens plus 350–500 prompt tokens: wild items average about 355, reference decoys about 490, and the largest item about 725. Plan on **≈ 600 input tokens per call**, so **≈ 0.13 M input tokens** per 100 items per vendor.
 
-**Output tokens per call.** The visible answer is about 40 tokens. Reasoning models add hidden reasoning tokens, billed as output, typically 200–2,000 per call. That gives **≈ 0.05–0.42 M output tokens** per 100 items per vendor.
+**Output tokens per call.** The visible answer is about 40 tokens. Reasoning models add hidden reasoning tokens, billed as output, typically 200–2,000 per call. That gives **≈ 0.05–0.43 M output tokens** per 100 items per vendor.
 
-**Formula.** cost = 0.13 × P_in + (0.05 … 0.42) × P_out, with P in US$ per million tokens from the vendor's price page **on the run date**. The prices below are assumptions for illustration, not quotes. The run's actual tokens are in table 6 of the report.
+**Formula.** cost = 0.13 × P_in + (0.05 … 0.43) × P_out, with P in US$ per million tokens from the vendor's price page **on the run date**. The prices below are assumptions for illustration, not quotes. The run's actual tokens are in table 6 of the report.
 
 | Assumed list price (in / out, $/M) | Per 100 items per vendor |
 |---|---|
-| 1.25 / 10 (mid tier) | ≈ $0.7 – $4.4 |
-| 2.50 / 15 | ≈ $1.1 – $6.6 |
-| 15 / 75 (premium tier) | ≈ $5.7 – $33 |
+| 1.25 / 10 (mid tier) | ≈ $0.7 – $4.5 |
+| 2.50 / 15 | ≈ $1.1 – $6.8 |
+| 15 / 75 (premium tier) | ≈ $5.7 – $34 |
 
 **Subscription routes.** Claude via the CLI and Codex via a ChatGPT login have no marginal cost, but they count against plan usage limits. The CLIs also add their own harness prompt per call, which is larger for Codex than for Claude with `--tools ""`. A run of 300 targets plus 30 decoys is 660 calls per vendor at minimum.
 
