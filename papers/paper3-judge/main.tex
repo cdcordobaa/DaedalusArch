@@ -1,9 +1,11 @@
-% main.tex: "When the Judge Cannot Rule: Lessons from Using an LLM-as-Judge inside an Architectural Conformance Gate"
+% main.tex: "When the Judge Cannot Rule: A Pre-Registered, Falsifiable Evaluation of an LLM Architectural Judge inside a
+% Neuro-Symbolic Firewall" (earlier title: "... Lessons from Using an LLM-as-Judge inside an Architectural Conformance Gate")
 % Workshop paper draft (LLM4Code or an AI-for-SE workshop), about 6 pages in this class.
 %
 % Provenance convention: every number in this file carries a LaTeX comment "% src: <path>" naming the committed
 % file it was read from (paths relative to the repository root, at branch v1.2e, commit b7034682; Lessons 8 and 9
-% added in the 2026-10-12 revision from files at 8fbe079e). Where a number
+% added in the 2026-10-12 revision from files at 8fbe079e; Section 5 from files on branch v1.3 and, where marked
+% "git show origin/<branch>:<path>", from committed files on open pull-request branches into v1.3). Where a number
 % was derived (a sum, a difference, a count of rows), the comment says "derived" and how. Nothing here comes from an
 % uncommitted file. A path of the form "git show <sha>:<path>" names a committed file at an earlier commit.
 %
@@ -30,6 +32,8 @@
 \newcommand{\citeneeded}[1]{\cite{#1}\textsuperscript{\textcolor{red}{\tiny[verify]}}}
 % \todo{...}: an open item for the authors (also listed in README.md).
 \newcommand{\todo}[1]{\textcolor{blue}{[TODO: #1]}}
+% \devset{}: marks a v1.3 development-set figure (construct sensitivity on planted cases; not a validity estimate).
+\newcommand{\devset}{\textsuperscript{\textsf{\tiny[dev]}}}
 
 \newcommand{\tool}{DaedalusArch}
 \newcommand{\ff}[1]{\texttt{\small #1}}
@@ -38,32 +42,38 @@
 
 \setlist{itemsep=1pt,topsep=3pt}
 
-\title{When the Judge Cannot Rule:\\Lessons from Using an LLM-as-Judge inside an Architectural Conformance Gate}
+\title{When the Judge Cannot Rule:\\A Pre-Registered, Falsifiable Evaluation of an LLM Architectural Judge inside a Neuro-Symbolic Firewall}
 \author{\todo{author list and affiliations}}
-\date{Draft, 2026-10-11}
+\date{Draft, 2026-10-11; v1.3 section added 2026-10-15; CHECK-2, unanimity and complementarity added 2026-10-16}
 
 \begin{document}
 \maketitle
 
 % =====================================================================================================================
 \begin{abstract}
-LLM judges are increasingly placed inside software quality gates, next to deterministic rules. We report ten
-lessons from one such gate: \tool{}, an architectural conformance checker for TypeScript whose score combines 25
-symbolic fitness functions with two rubric-driven LLM judge functions. The evaluation was pre-registered and every
-judge call was recorded. On nine real projects the judge failed about a fifth of the units it saw, yet under the
-registered weight of 8\% it changed no verdict; on 65 agent-generated projects it changed none either. We show why
-with a simple algebraic bound and a judge-blind decomposition, and we show that the aggregation rule and the weight,
-not the judge, decide whether it matters: with a weight of 2/7 and an any-fail rule it moves 8 of 9 real-project
-verdicts. A clean judge dimension even raises the composite score. Coding the judge's rationales over-counts
-criteria because the judge names criteria while negating them. Most judge failures coincide with rule findings, a
-self-preference signal turns out to be confounded with code quality, and a cross-family LLM panel agrees with the
-judge on 34 of 36 items (weighted agreement 0.982) with an AC1 of 0.98 but a $\kappa$ of 0, because the judge never failed a sampled generated
-unit. Replaying 100 recorded units with a second model of the same vendor changes no verdict (agreement 0.94,
-$\kappa = 0.77$); the frozen judge is slightly stricter. Our synthetic judge probes place no seed in real or
-generated code, so the judge's detection rate could not be measured. We close with operational lessons on CLI
-isolation, an unblockable web-search tool and fail-closed guards, and with recommendations for anyone who puts an
-LLM judge inside a gate.
+LLM judges are increasingly placed inside software quality gates, next to deterministic rules. We report a
+pre-registered evaluation of such a judge, followed by a series of falsification tests whose decision rules were
+committed before any number was computed. The judge sits inside \tool{}, a neuro-symbolic architectural firewall for
+TypeScript that combines 25 symbolic fitness functions with two rubric-driven LLM judge functions. In the registered
+study (nine real projects, 65 agent-generated projects, every call recorded) the judge failed about a fifth of the
+real-project units it saw, yet under the registered weight of 8\% it changed no verdict. A simple algebraic bound
+explains why: the aggregation rule and the weight, not the judge, decide whether it matters. A cross-family LLM panel
+agreed with the judge on 34 of 36 items with a $\kappa$ of 0, because the judge never failed a sampled generated
+unit, and synthetic probes could place no seed, so the registered study could not measure what the judge catches.
+The follow-up tests address this on development data. On planted anti-patterns whose twins behave as intended, the
+judge caught 16 of 21 seeds. On ten unseen bases in five architectural styles, the frozen judge and a revised rubric
+both caught 40 of 40 seeds; the revision halved false fails (16 to 8 of 48 clean units) but failed its pre-fixed
+adoption rule, and was not adopted. One judge function did not discriminate at all on these bases, because of a
+defect in how the bases were built. Run-to-run unanimity did not predict correctness (null), and on seeds the
+symbolic rules did not flag the judge caught 22 of 26. An exploratory second-vendor rater agreed with the revised
+judge on 134 of 137 units ($\kappa = 0.954$). We report the negative results beside the positive ones and argue for a
+layered gate in which rules decide and the judge interprets.
 \end{abstract}
+% src (abstract, v1.3 additions): 16/21: Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md header note (FRAMEWORK-LEAK + PERSIST-IN-DOMAIN, both rounds pooled, [0.55, 0.89]);
+% 40/40, 16->8 of 48, D1 NOT CANDIDATE, FF-N01 base effect, 134/137, kappa 0.954: git show origin/v1.3-judge-v22-run:Docs/DiagnosticRuns/v1.3-judge-v22-check2-2026-10-16.md §0, §2, §6 (PR #191, open at the time of writing);
+% unanimity null: git show origin/v1.3-judge-selective-prediction:Docs/DiagnosticRuns/v1.3-judge-selective-2026-10-16.md §4 (PR #165, open);
+% 22/26: git show origin/v1.3-complementarity-matrix:Docs/DiagnosticRuns/v1.3-complementarity-2026-10-16.md §2 (PR #179, open).
+% src (abstract, v1.3): Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md §3 ("Pooled across rounds": 30/35, 4/50), §4 (confound), §5 (proxies 2/9, judge 9/9); Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §2 (the two judge misses caught by proxies)
 % src (abstract): 25 symbolic functions: src/fitness-compiler/cypher-templates.ts (header comment, "25 symbolic fitness functions"); the 2 judge functions:
 % src/llm-critic/rubric.ts (FF-N01, FF-N02). Every other number is repeated with its source in the body:
 % "a fifth" = 73/331 (Sec. 4.1); 65 cells (Sec. 2); 8 of 9 (Sec. 4.2); weighted agreement 0.982, 34 of 36 items, AC1 0.98, kappa 0 (Sec. 4.7);
@@ -86,13 +96,24 @@ irrelevant. This paper reports what we learned from one such gate, \tool{}, duri
 \cite{nosek2018prereg}. Every judge call was recorded in a cassette, so every reading below was recomputed from
 the same calls with no new judge call.
 
-Our contribution is a set of ten lessons, each with its evidence: (1) the judge was inert, and a simple bound
-shows why; (2) aggregation and weight decide whether it matters; (3) a clean judge dimension inflates the
-composite score; (4) keyword coding of judge rationales misleads; (5) most judge failures overlap with rule
-findings; (6) a self-preference signal is confounded with code quality; (7) validating the judge with an LLM panel
-gives high agreement but leaves fail detection untested; (8) the verdicts are robust to the judge model, with
-the frozen judge slightly stricter; (9) synthetic judge probes may have no construct validity, because they find
-no site in real or generated code; (10) isolating CLI-based judges and labellers is harder than it looks. Section~\ref{sec:recs} turns them into recommendations.
+We frame the work as a falsifiable evaluation of a neural architectural judge inside a neuro-symbolic firewall. The
+first study was pre-registered. The follow-up tests were run on development data and are not pre-registrations, but
+each one committed its decision rule before any judge call or any number was computed, so each could fail, and two
+did. We report the failures with the same weight as the successes.
+
+The contribution is a set of fifteen lessons, each with its evidence. Ten come from the registered study: (1) the
+judge was inert, and a simple bound shows why; (2) aggregation and weight decide whether it matters; (3) a clean judge
+dimension inflates the composite score; (4) keyword coding of judge rationales misleads; (5) most judge failures
+overlap with rule findings; (6) a self-preference signal is confounded with code quality; (7) validating the judge with
+an LLM panel gives high agreement but leaves fail detection untested; (8) the verdicts are robust to the judge model;
+(9) synthetic judge probes may have no construct validity, because they find no site in real or generated code;
+(10) isolating CLI-based judges and labellers is harder than it looks. Five come from the follow-up
+(Section~\ref{sec:v13}): (11) the judge catches most planted anti-patterns, but a twin that adds a member confounds
+the catch; (12) deterministic proxies, the judge and the symbolic rules see different things; (13) on unseen bases a
+rubric revision halves false fails yet fails its pre-fixed adoption rule, and a base-construction defect removes one
+judge function's evidence; (14) run-to-run unanimity is not a usable confidence signal; (15) the judge's catches
+complement the symbolic rules mainly where the rules are blind, at a measurable cost on near-misses.
+Section~\ref{sec:recs} turns them into recommendations.
 
 % =====================================================================================================================
 \section{The Gate and the Judge}\label{sec:gate}
@@ -461,6 +482,280 @@ Agentic CLIs are built to act, and a judge or labeller must not; the safest conf
 offered, and where a CLI is unavoidable, a guard that inspects what the model actually did.
 
 % =====================================================================================================================
+\section{v1.3: Measuring What the Judge Catches}\label{sec:v13}
+
+% Provenance for this section: every number carries a "% src:" comment naming a committed file on branch v1.3.
+% Every figure marked \devset{} is a v1.3 development-set figure: construct sensitivity on planted anti-patterns,
+% not a validity estimate. Nothing here is pre-registered (author decision); Lessons 13 to 15 rest on decision rules
+% committed before any call or number, which is what the text claims and no more.
+
+Lessons 1 to 10 come from Study 1, the registered v1.2E evaluation. Study 1 left the central question open: its
+robustness check showed that the judge's unit verdicts barely depend on the model (agreement 0.94, $\kappa = 0.77$,
+no verdict change; Lesson 8), and its panel check showed that the judge does not fail sound code (AC1 0.98 on 36
+generated units; Lesson 7); but the panel failed only 2 of those units and the probes meant to test fail detection
+placed no seed (Lesson 9). So Study 1 never measured whether the judge \emph{catches} a violation.
+% src: results/judge-robustness/summary.json; results/e1-grid/label-plan-p4-api/labelling.json; Docs/reports/director-report-2026-10.md §4.8.5 ("The judge's fail detection is barely tested on E1"), §4.10, §4.11
+The v1.3 catch test does. Its frozen anti-pattern operators were hashed before any judge call; the judge prompt,
+rubric and parameters were unchanged from Study 1; each target unit was judged three times with a majority vote; and
+every call was recorded and replayed with identical verdicts. % src: Docs/DiagnosticRuns/v1.3-judge-catch-2026-10-15.md §0, §2 (replay 51/51 identical); Docs/v1.3/judge-catch-frozen.md
+A \emph{catch} is a failing target unit (a construct-matching message in two runs would also count, but it never
+added a catch); each positive seed has a \emph{twin}, a near-identical edit that should stay clean, and each base
+is judged unmodified as a clean control. \textbf{All figures in this section are development-set figures}
+(\devset{}): they measure construct sensitivity on planted, textbook anti-patterns, not detection on naturally
+occurring code. % src: Docs/DiagnosticRuns/v1.3-judge-catch-2026-10-15.md §3 (Rules; "The construct-flag clause added no catch"); banner "DEVELOPMENT-SET NUMBERS"
+
+\subsection{Lesson 11: the judge catches most planted anti-patterns, with a confound}\label{sec:l11}
+
+\begin{table}[t]
+\centering\small
+\caption{\devset{} Judge catch test. Cells are $k/n$ with Wilson 95\% intervals. Twin false fail is the share of
+twins whose target unit fails.}
+\label{tab:catch}
+\begin{tabular}{llcc}
+\toprule
+Round & Seeds & Catch & Twin false fail \\
+\midrule
+1: one NestJS fixture & 11 & 9/11 = 0.82 [0.52, 0.95] & 3/33 = 0.09 [0.03, 0.24] \\
+2: generated cells, hand-planted & 24 & 21/24 = 0.88 [0.69, 0.96] & 5/14 = 0.36 [0.16, 0.61] \\
+DUP-RULE v2 (valid twin) & 9 & 9/9 = 1.00 [0.70, 1.00] & 2/9 = 0.22 [0.06, 0.55] \\
+\midrule
+Pooled, DUP-RULE v1 twin & 35 & 30/35 = 0.86 [0.71, 0.94] & 8/47 = 0.17 [0.09, 0.30] \\
+Pooled, DUP-RULE v2 twin & 35 & 30/35 = 0.86 [0.71, 0.94] & \textbf{4/50 = 0.08 [0.03, 0.19]} \\
+\bottomrule
+\end{tabular}
+% src: round 1: Docs/DiagnosticRuns/v1.3-judge-catch-2026-10-15.md §3 (Pooled row: 9/11 [0.52, 0.95]; 3/33 [0.03, 0.24])
+% src: round 2: Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md §3 (Pooled combined: 21/24 [0.69, 0.96]; 5/14 [0.16, 0.61])
+% src: DUP-RULE v2 and pooled rows: Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md §3 (combined 9/9 [0.70, 1.00], twin 2/9 [0.06, 0.55]; "Pooled across rounds" table: 30/35 [0.71, 0.94]; 8/47 [0.09, 0.30]; 4/50 [0.03, 0.19])
+\end{table}
+
+Table~\ref{tab:catch} gives the three rounds. Pooled over all strata, the judge fails 30 of 35 seeded units
+(Wilson lower bound 0.71). By operator: repository bypass 4/4, persistence in the domain 4/4, fat controller 1/1,
+duplicated rule 9/9, framework leak 12/17. Clean controls fail rarely (1 of 24 units in round 2; 2 of 14 in the
+DUP-RULE v2 run, both on real duplications in the generated code). \devset{}
+% src: Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md §3 ("FRAMEWORK-LEAK 12/17, PERSIST-IN-DOMAIN 4/4, REPO-BYPASS 4/4, FAT-CONTROLLER 1/1"; DUP-RULE 9/9; clean controls 2/14 and their reasons); Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md §3 (clean controls combined 1/24)
+The pooled 30 of 35 is a count, not a construct-sensitivity estimate: it includes the nine duplicated-rule seeds,
+whose catch is confounded (below). Restricted to the two operators whose twins behave as intended, framework leak and
+persistence in the domain, the judge caught 16 of 21 seeds (0.76 [0.55, 0.89]); in neither round does the lower bound
+reach the 0.80 target. \devset{}
+% src: Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md header note (2026-10-16: "the defensible judge-catch claim", round 2 13/16 [0.57, 0.93], both rounds 16/21 = 0.76 [0.55, 0.89]; "Neither lower bound reaches 0.80")
+The misses have a pattern: an unused optional framework parameter (\texttt{request?: Request}) passed in every run,
+and a framework decorator on a domain service passed as ``a pure business rule''. Every framework leak that used the
+framework type in a signature was caught. % src: Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md §3 Reading (FRAMEWORK-LEAK misses; hexagonal v07 @Injectable; "Every hand-planted framework leak that uses the type in a signature was caught")
+
+\paragraph{The confound on DUP-RULE.}
+The duplicated-rule pair failed as a control. In its first version the twin moved the rule into a helper and gave the
+second service a forwarding \texttt{validate} method; the judge failed that twin 6 of 6 times, citing the foreign
+method as a misplaced responsibility. A redesigned twin (v2) relocates the rule once, in the lowest layer its names
+allow, and leaves the second service untouched; its false-fail rate fell to 2 of 9 (1 of 9 paired with the base),
+and the pooled twin false-fail rate halved from 0.17 to 0.08. % src: Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md §3 Reading ("The DUP-RULE twin is not a neutral control", 5/5 on E1); Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md §0, §3 ("v1 twin ... 6/6", "v2 ... 2/9", "Paired 1/9"; pooled 8/47 -> 4/50)
+The positive is still confounded. Every v2 seed run names the copy (``duplicates the rule''), but every one also says
+the method does not belong to the second service, and round 2 showed that the foreign method alone, without
+any duplication, fails 5 of 5. A v2 catch is thus consistent with both cues; the test shows the judge is not fooled by
+the relocation machinery, not that duplication alone suffices. Isolating duplication needs a positive whose copy
+sits where the rule plausibly applies, and no such place exists in the generated projects. % src: Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md §4 ("The positive is still confounded, and the judge's own words show it"; "Isolating duplication would need a positive whose copy sits where the rule plausibly applies. In the E1 cells no such place exists"); Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md §3 (5/5)
+The same eight generated seeds, judged again with fresh calls, gave identical verdicts. % src: Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md §4 ("Test-retest on identical code ... 8/8 fail in both rounds")
+\emph{Lesson:} a twin that adds any new member is not a neutral control for a judge that reads responsibilities; build
+twins that change nothing but the construct, and read the judge's stated reasons before crediting a catch.
+
+\subsection{Lesson 12: cheap proxies, the judge and the rules see different things}\label{sec:l12}
+
+v1.3 also built deterministic ``cheap semantic proxies'': type-checker and token-level detectors for clones, shared
+literals, ORM handles outside repositories, framework types in core signatures, persistence decorators in the
+domain and logic density in controllers. They run in 71 to 99\,ms per reference project with no model call; the
+judge needed 261 calls for the round-1 seeds. % src: Docs/v1.3/cheap-semantics-design.md ("Purpose", "The proxies"); Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §5 ("Proxies: 71 to 99 ms per project"; "The judge round-1 needed 261 live calls")
+Table~\ref{tab:threeway} compares the three instruments on the same seeds.
+
+\begin{table}[t]
+\centering\small
+\caption{\devset{} Three-way comparison. ``Symbolic'' is any new v1.3 rule finding on an edited file (round 1 and
+DUP-RULE) or the expected rule (hand-written analogues).}
+\label{tab:threeway}
+\begin{tabular}{lcccc}
+\toprule
+Seed set & $n$ & Cheap proxy & Judge & Symbolic \\
+\midrule
+Round-1 seeds (proxies written after) & 11 & 11/11 & 9/11 & 0/11 \\
+Hand-written analogues (before) & 6 & 6/6 & 6/6$^{a}$ & 6/6$^{a}$ \\
+DUP-RULE v2 seeds & 9 & 2/9 & 9/9 & 0/9 \\
+\bottomrule
+\end{tabular}
+
+\smallskip\footnotesize $^{a}$ Derived: the six analogues are among the round-2 hand-planted variants; the judge's
+only hand-planted miss (a decorator in a hexagonal domain service) is not one of them, and every hand-planted
+variant carries its expected symbolic finding.
+% src row 1: Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §2 (Pooled: 11/11, 9/11, 0/11) and banner ("CIRCULAR BY CONSTRUCTION")
+% src row 2: Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §4 (6/6 [0.61, 1.00]: clean-architecture v04, v10; layered v07, v08; nestjs v05, v06); judge and symbolic derived from Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md §1b (mapping), §3 Reading (hand-planted miss is hexagonal v07; "Every hand-planted variant has its expected symbolic finding: FF-P01 on 7, FF-S01 on hexagonal v04")
+% src row 3: Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md §5 (judge 9/9; clones 1/9; shared-literals 2/9; either 2/9; symbolic 0/9)
+\end{table}
+
+The first row is circular by construction: each proxy was written after the operators and the judge's round-1
+results were read, and each operator has a designated proxy, so 11 of 11 shows only that the proxies implement what
+they were written to detect. It does show one complementarity: the proxies flag both framework leaks the judge missed,
+because the type checker resolves the parameter's type whatever the method body says. % src: Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md banner, §2 Reading ("The two judge misses are both caught")
+On the less circular hand-written analogues all three instruments agree. On duplicated rules in generated code the
+order reverses: the judge fails all nine seeds, the proxies flag two, the symbolic rules none. The clone proxy misses
+because its filters, added to silence false flags on clean code, drop bare guards and ignore clones inside one
+component; the judge's catch carries the confound above. % src: Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md §5 ("Why the clone proxy misses the E1 seeds"; "Three-way reading")
+The proxies also miss what their package and role tables do not name, such as a dependency-injection decorator or a
+serialisation library in the domain. % src: Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §4 (three misses; "the catalogue-coverage limit")
+\emph{Lesson:} where an anti-pattern is a type or call fact, a deterministic proxy finds it faster and more reliably
+than the judge; where it is a judgement about responsibility or duplication, the judge sees what the proxies'
+filters remove.
+
+\subsection{Lesson 13: a falsification test on unseen bases, and what it falsified}\label{sec:l13}
+
+Rounds 1 and 2 reuse the projects the judge's operators were written against. CHECK-2 is the decisive test of the
+neural arm: ten new bases that no judge had seen, two in each of five styles (layered, clean architecture, NestJS,
+hexagonal and, for the first time, domain-driven design), with 40 seeds in four families, 40 twins and 48 clean units.
+It compares the frozen judge (v1) with a rubric revision (v2.2) that tells the judge the declared style and which
+dependencies the layer model allows. The items, the prompts and a seven-part decision rule were committed before any
+call; nothing was tuned on CHECK-2; each unit was judged three times per judge with a majority vote, 828 recorded
+calls in total. The work is development data and is not a pre-registration. \devset{}
+% src: git show origin/v1.3-judge-v22-run:Docs/DiagnosticRuns/v1.3-judge-v22-check2-2026-10-16.md banner ("The plan, the items, the prompts and the decision rule were fixed and committed before any call (Docs/v1.3/judge-v22-plan.md, PR #141, commit b04121dd)"), §1 (828 judge calls, 3 runs per unit, majority vote), §3 (families), §4 (styles; "ddd (first judged run)"), §8 ("ten fresh bases in five styles, which no judge had seen")
+
+\begin{table}[t]
+\centering\small
+\caption{\devset{} CHECK-2: judge v1 against v2.2 on ten unseen bases (majority of three runs; Wilson 95\%
+intervals). Paired catch counts a seed only if its base's clean unit passes.}
+\label{tab:check2}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Judge & Catch & Paired catch & Twin false fail & Clean false fail \\
+\midrule
+v1 (frozen) & 40/40 [0.91, 1.00] & 27/40 = 0.68 & 12/40 = 0.30 & 16/48 = 0.33 [0.22, 0.47] \\
+v2.2        & 40/40 [0.91, 1.00] & 33/40 = 0.82 & 7/40 = 0.17  & 8/48 = 0.17 [0.09, 0.30] \\
+\midrule
+\multicolumn{5}{l}{\emph{Exploratory, not pre-specified:}} \\
+Second vendor, v2.2 prompt (1 run) & 40/40 & 34/40 = 0.85 & 7/40 = 0.17 & 6/48 = 0.13 [0.06, 0.25] \\
+\bottomrule
+\end{tabular}
+% src: git show origin/v1.3-judge-v22-run:Docs/DiagnosticRuns/v1.3-judge-v22-check2-2026-10-16.md §2 (main table rows v1, v2.2), §6 (Gemini v2.2 row)
+\end{table}
+
+\paragraph{Sensitivity held.} Both judges caught all 40 seeds (Table~\ref{tab:check2}), including the four seeds on
+the first judged domain-driven base and the eight seeds in which a domain object reaches persistence on a
+non-layered style. Every one of the 13 verdicts that changed went from fail under v1 to pass under v2.2; none went
+the other way. \devset{}
+% src: git show origin/v1.3-judge-v22-run:Docs/DiagnosticRuns/v1.3-judge-v22-check2-2026-10-16.md §0 (D6 8/8), §2 ("All 13 items whose verdict changed went from fail under v1 to pass under v2.2"), §4 (ddd 4/4)
+
+\paragraph{The revision failed its adoption rule.} v2.2 halved the clean false fails and cut the twin false fails
+from 12 to 7, but every interval overlaps v1's. The decision rule required, among six other checks, at most one false
+fail on the 21 layered business-layer clean units, the construct the revision was written for. v2.2 had 7; v1 had
+10. The other six checks passed and this one did not, so v2.2 was declared not a candidate and v1 stayed the default.
+The rule was applied unchanged after the results came in. \devset{}
+% src: git show origin/v1.3-judge-v22-run:Docs/DiagnosticRuns/v1.3-judge-v22-check2-2026-10-16.md §0 (decision table D0-D6; D1 "v2.2 false fails <= 1": v1 10/21, v2.2 7/21, NO; "Pre-fixed decision rule (plan §5): NOT CANDIDATE"), §8 ("the rule was fixed before the data and applied unchanged")
+
+\paragraph{A base-construction defect.} The seven false fails that sank v2.2 are mostly not the judge's error alone.
+Every layered base was built with one business service that injects the ORM client and queries it directly, beside
+services that go through gateways; the plan placed it there on purpose, because the repository-bypass operator needs
+a host. Under the integrity function (\ff{FF-N01}), which is judged per directory, that service makes every clean
+business-layer directory fail: both Claude judges, and the second-vendor rater, failed all six such units in three of
+three runs. The design flagged the grey zone but did not foresee that these units would count towards the adoption
+rule. The same defect empties the integrity function's seed evidence: the repository-bypass ``catches'' and the
+failing twins on those bases are the base's verdict, not the seed's (paired catch 3 of 10, all from the three seeds
+on other styles). CHECK-2 therefore provides \emph{no usable evidence for \ff{FF-N01}}. On the intent function
+(\ff{FF-N02}), v2.2 removed three of v1's four layered false fails; the one left traces to a second slip in one base,
+whose domain error type carries HTTP status codes. \devset{}
+% src: git show origin/v1.3-judge-v22-run:Docs/DiagnosticRuns/v1.3-judge-v22-check2-2026-10-16.md §0 ("Why D1 fails": FF-N02 15 units v1 4, v2.2 1; FF-N01 6 units 6/6 for v1, v2.2 and Gemini; "Plan §3.1 put that service there on purpose"; "Plan §7 flagged this grey zone"; fleet FleetError "construction slip"), §3 Reading ("CHECK-2 therefore has no usable FF-N01 evidence"; REPO-BYPASS paired 3/10 = the three MO-DF01 seeds), §8 ("FF-N01 did not discriminate")
+
+\paragraph{A second vendor, exploratory.} After the rule was fixed we added a rater from another vendor, given exactly
+the v2.2 prompts, persona and output schema, one run per item. It agreed with Claude v2.2 on 134 of 137 units with a
+verdict from both (observed agreement 0.978, Cohen's $\kappa = 0.954$); all three disagreements are Claude fails that
+the other rater passed, and it reproduced the integrity-function failures on all six layered directories. On these
+items the false-fail pattern follows the prompt, the rubric and the bases more than the vendor. The agreement is not
+independent validation: both raters read the same prompt, built from the same graph, on author-written items; and
+the rater's model and command-line version differ from the frozen labeller route. \devset{}
+% src: git show origin/v1.3-judge-v22-run:Docs/DiagnosticRuns/v1.3-judge-v22-check2-2026-10-16.md §6 (EXPLORATORY, NOT PRE-REGISTERED; 137 units, 1 invalid; agreement 0.978; kappa 0.954; confusion 81/0/3/53; three disagreements; FF-N01 6/6; "Agreement is therefore not independent validation"; deviations 1-3)
+\emph{Lesson:} a pre-fixed adoption rule can and should reject an apparently better judge; and a falsification test is
+only as good as its clean controls, so audit the bases for the construct before the run, not after.
+
+\subsection{Lesson 14: run-to-run unanimity is not a confidence signal}\label{sec:l14}
+
+Every verdict is a majority of three runs. If unanimous verdicts were more accurate than split ones, an agent-facing
+tool could report a confidence and abstain on split verdicts. We tested this on the 63 held-out items of the earlier
+rubric comparison, using only recorded calls, with a rule committed before any number was computed: unanimous
+accuracy at least 0.90, its Wilson lower bound at least 0.80, and coverage at least 0.60. \devset{}
+% src: git show origin/v1.3-judge-selective-prediction:Docs/DiagnosticRuns/v1.3-judge-selective-2026-10-16.md §1 (rule committed in 742264d5 before any number), §2 (63 CHECK items, cassettes, no LLM call)
+Neither judge met it. For v1, unanimous accuracy was 53/60 = 0.883 (lower bound 0.778); for the v2.1 rubric it was
+54/60 = 0.900 (lower bound 0.7985, short by 0.0015). Coverage was 60 of 63 for both, so almost every verdict is
+unanimous and the split column has no power. The errors are systematic: the unanimous wrong verdicts are the same few
+units judged three times the same way (two entity files on one fixture, the duplicated-rule twins, and v1's one missed
+seed, which received no fail vote). Repeating a call cannot reveal an error the model makes every time. \devset{}
+% src: git show origin/v1.3-judge-selective-prediction:Docs/DiagnosticRuns/v1.3-judge-selective-2026-10-16.md §3 (decision table: v1 0.883 / 0.778 / 0.95; v2.1 0.900 / 0.7985 / 0.95), §4 ("The errors are systematic, not stochastic"; AdvanceOrderUseCase.ts 0/3 fail)
+\emph{Lesson:} test self-consistency as a confidence signal before exposing it; with few runs and high agreement it is
+a null result, which we report as one.
+
+\subsection{Lesson 15: where the judge complements the rules, and at what cost}\label{sec:l15}
+
+The layered design assumes that the judge adds value where the rules are blind. We measured this on the 35
+de-duplicated seeds of the earlier rounds, with a rule committed before any number: a seed is \emph{symbolic-visible}
+if the seeded copy has a new blocking or advisory finding on an edited file, and \emph{symbolic-blind} otherwise.
+\devset{}
+% src: git show origin/v1.3-complementarity-matrix:Docs/DiagnosticRuns/v1.3-complementarity-2026-10-16.md §0 (rule committed in cb9f16a6 before any number), §2 (n = 35 de-duplicated seeds)
+
+\begin{table}[t]
+\centering\small
+\caption{\devset{} Symbolic--neural complementarity on 35 planted seeds (frozen judge v1).}
+\label{tab:complement}
+\begin{tabular}{lcc}
+\toprule
+ & Judge catch & Judge miss \\
+\midrule
+Symbolic-visible & 8 & 1 \\
+Symbolic-blind   & 22 & 4 \\
+\bottomrule
+\end{tabular}
+% src: git show origin/v1.3-complementarity-matrix:Docs/DiagnosticRuns/v1.3-complementarity-2026-10-16.md §2 (2x2 headline)
+\end{table}
+
+The rules saw 9 of 35 seeds (0.26 [0.14, 0.42]), all through blocking rules. On the 26 seeds they did not flag, the
+judge caught 22 (0.85 [0.66, 0.94]); four framework-leak seeds were missed by both (Table~\ref{tab:complement}).
+Without the confounded duplicated-rule seeds the blind catch falls to 8 of 12 (0.67 [0.39, 0.86]), all on one
+construct. ``Blind'' means that the rules as configured for that specification did not flag the seed, not that no rule
+could: the split follows how a seed was planted (hand-planted seeds were all visible, operator seeds almost all
+blind) as much as the construct. On CHECK-2, fixed before the v2.2 run, the rules saw 25 of 40 seeds, none of the ten
+logic-in-controller seeds and all ten persistence-in-domain seeds. \devset{}
+% src: git show origin/v1.3-complementarity-matrix:Docs/DiagnosticRuns/v1.3-complementarity-2026-10-16.md §2 (9/35 [0.14, 0.42]; 22/26 [0.66, 0.94]; restricted cut 8/12 [0.39, 0.86]), §2a, §4 (four seeds both miss, all FRAMEWORK-LEAK), §5 (CHECK-2 symbolic: 25/40; LOGIC-IN-CONTROLLER 0/10; PERSIST-IN-DOMAIN 10/10), §6 ("Structurally cannot see")
+The cost is on near-misses. On clean units the rules passed, the judge false-failed 2 of 48 distinct units
+(0.04 [0.01, 0.14]); on the 55 twins the rules raised no alarm, while the judge failed 10 (0.18 [0.10, 0.30]).
+\devset{}
+% src: git show origin/v1.3-complementarity-matrix:Docs/DiagnosticRuns/v1.3-complementarity-2026-10-16.md §3 (2/48 de-duplicated headline; twins 0/55 symbolic, 10/55 judge)
+\emph{Lesson:} measure the judge conditionally on what the rules already see: what it adds to a rule-based gate is
+its catch where the rules are blind, and what it costs is its false fails where the rules pass.
+
+\subsection{A layered neuro-symbolic gate}\label{sec:layered}
+
+These results suggest a division of labour, which v1.3 adopts as a design and has not yet evaluated end to end.
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Symbolic rules decide.} Only rules that state a defining constraint of the style as a structural
+        fact can block; on the v1.3 development set an independent checker found none of their checkable findings
+        incorrect. % src: Docs/v1.3/rule-tiers.md (Principle); Docs/DiagnosticRuns/v1.3-labelling-2026-10-15.md §2 (54 of 54 blocking checkable findings correct)
+  \item \textbf{Cheap proxies propose.} Deterministic detectors emit candidate sites with evidence, in
+        milliseconds, and give no verdict. % src: Docs/v1.3/cheap-semantics-design.md ("A proxy proposes candidate sites. It does not give a verdict. The later LLM pass is meant to verify the candidates.")
+  \item \textbf{The judge interprets.} It reads the candidates and the units no catalogue covers, and in v1.3 it is
+        reported but does not block. Asked to confirm or dismiss the rule findings on the reference projects, with
+        cited evidence, it confirmed 65 of 66 findings the manifests expect and every blocking-tier one; its one
+        dismissal was a plausible, well-cited and wrong rationalisation of a planted layer skip.\devset{}
+        % src: Docs/DiagnosticRuns/v1.3-judge-v2-2026-10-16.md §4 (FR-V8: 65/66 [0.92, 1.00]; 52/52 blocking; FF-S03 layered v09 dismissal "plausible, well-cited rationalisation")
+        % caveat: Docs/v1.3/post-merge-review-2026-10-16.md R26: 3 of the 66 rows are FF-P06 field-half findings that rule-tiers.md reports N/A; excluding them gives 62/63 and 49/49 blocking. Footnote below. % src: Docs/v1.3/rule-tiers.md ("In v1.3 the LLM judge dimensions (FF-N01, FF-N02) are reported and do not block")
+\end{enumerate}
+(Three of the 66 findings belong to a rule half that the tier table reports as not applicable; without them the
+count is 62 of 63, and 49 of 49 blocking.) This keeps the judge out of the verdict until its validity is shown, which is Lesson 1's warning turned into a
+design rule. Whether the judge verifies a proxy's candidate better than it judges blind has not been measured.
+% src: Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §7 ("Not measured ... Whether the LLM pass, given the proxy's candidate and evidence, verifies better than it judges blind")
+
+\subsection{Threat: same-vendor correlation}\label{sec:samevendor}
+
+The frozen judge and the alternative judge of Lesson 8 are two models of one vendor, and in round 2 fourteen of the
+sixteen operator seeds sit in code generated by models of that same vendor. Shared training can make the judge and
+the generator wrong in the same way, and the two judges wrong together: their agreement is model stability, not
+validity, and a blind spot shared with the generator would lower the catch rate on its code without showing up in
+any agreement figure. The Study 1 panel barely tested fail detection, and the planned cross-vendor meaningfulness
+labeller stopped at its usage limit before producing labels. The exploratory second-vendor rater on CHECK-2
+(Lesson 13) agreed with the judge almost unit for unit, but it read the same prompt and was not pre-specified, so it
+narrows this threat without closing it. Human labels are the missing control. % src: Docs/reports/director-report-2026-10.md §4.10 Limits ("shared training can make both wrong in the same way (TV-114)"); Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md §1a Spread (sonnet 8, opus 4, haiku 2, gpt-5.6-terra 2; 14 of 16 derived); Docs/DiagnosticRuns/v1.3-labelling-2026-10-15.md §3 (Codex labeller usage limit)
+% =====================================================================================================================
 \section{Recommendations for LLM-Judge Gates}\label{sec:recs}
 
 \begin{enumerate}[leftmargin=*]
@@ -483,6 +778,16 @@ offered, and where a CLI is unavoidable, a guard that inspects what the model ac
   \item \textbf{Replay with another model.} Recorded prompts make a model swap cheap; report agreement, its
         direction and the verdict impact (Lesson 8).
   \item \textbf{Count probe sites before freezing a probe}, on real and on generated code (Lesson 9).
+  \item \textbf{Build twins that change only the construct}, and read the judge's reasons before crediting a catch
+        (Lesson 11).
+  \item \textbf{Let cheap deterministic proxies propose and the judge interpret}, and keep the judge out of the
+        blocking verdict until its catches are validated by humans (Lesson 12, Section~\ref{sec:layered}).
+  \item \textbf{Fix the adoption rule before the run and apply it unchanged}, even when the challenger looks
+        better; audit the clean bases for the construct before the run (Lesson 13).
+  \item \textbf{Do not expose run agreement as confidence} without a test; systematic errors are unanimous
+        (Lesson 14).
+  \item \textbf{Report the judge's catch conditional on the rules}, together with its false fails on near-misses the
+        rules pass (Lesson 15).
 \end{enumerate}
 
 % =====================================================================================================================
@@ -499,6 +804,15 @@ generation, and the panel route changed between label sets.
 units), two rubrics, nine real projects and two generation tasks; the bound argument generalises, the counts do
 not. The judge has no seeded ground truth, because its probes could not be placed (Lesson 9).
 % src: Docs/ADR.md ADR-038 Consequences (TV-114); Docs/DiagnosticRuns/judge-probe-e1-site-count.md
+\emph{Development data (v1.3).} The catch test and the three-way comparison use planted, textbook anti-patterns on
+development data with no pre-registration; ten of the eleven round-1 seeds sit on one small fixture, the cheap
+proxies were written after the round-1 results were read, and the duplicated-rule catch is confounded
+(Lesson 11). The judge and its generators share a vendor (Section~\ref{sec:samevendor}). The CHECK-2 bases, seeds
+and twins were written by the same team that wrote the rubric, knowing the constructs; one design choice in the
+layered bases made the integrity function uninformative (Lesson 13). Items share code across rounds and twins, so
+the Wilson intervals, which assume independent items, are too narrow. Part of the follow-up evidence sits on
+pull-request branches that were still under review when this draft was written.
+% src: Docs/DiagnosticRuns/v1.3-judge-catch-2026-10-15.md banner; Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md banner
 \emph{Conclusion.} Validation samples are small ($n = 36$ on the headline) and its intervals are wide; the
 self-preference check is one test.
 % src: results/e1-grid/label-plan-p4-api/labelling.json (headline n 36)
@@ -512,7 +826,11 @@ the judge failed about a fifth of real-project units, explained them well, mostl
 and with a second model of its own vendor, yet the registered weight and aggregation left it no verdict to move, and a clean judge dimension made scores
 look better. Whether the judge ``matters'' was settled by configuration choices that can be analysed before any call
 is made. We recommend that gate designers make those choices explicit, register them with a sensitivity set, report
-the judge-blind decomposition, and validate the judge where it is supposed to act: on the units it fails.
+the judge-blind decomposition, and validate the judge where it is supposed to act: on the units it fails. Our follow-up
+tests, each with a rule fixed in advance, show a judge that catches every planted anti-pattern on ten unseen bases and
+most seeds the rules cannot see, but that also fails near-misses and clean code at rates a rubric revision could
+halve and still not bring under its own pre-fixed bound. Two of the tests came out negative, and one was weakened by
+how its bases were built. Until human labels exist, the judge should interpret and the rules should decide.
 
 \paragraph{Data availability.} \todo{repository tag or DOI for the replication package (specs, recorded cassettes,
 aggregate tables, scripts).}

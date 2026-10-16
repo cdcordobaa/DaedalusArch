@@ -1,0 +1,230 @@
+% main.tex: "How Much Architectural Semantics Is Cheaply Computable? Deterministic Proxies vs an LLM Judge"
+% Extended abstract (about 2 pages in this class). Target: a short-paper, NIER or workshop track (see papers/STATUS.md).
+%
+% Provenance convention: every number carries a LaTeX comment "% src: <path>" naming the committed file on branch v1.3
+% it was read from. Derived numbers say how. Every figure is a v1.3 DEVELOPMENT-SET figure, marked \devset{}; none is
+% a validity estimate. Nothing here is pre-registered (author decision). No sealed file was read.
+%
+% Style rules for editors: no em dashes; the circular result (11/11) is never quoted without its circularity caveat.
+%
+% v1.3 refresh (2026-10-16, branch v1.3-paper1-4-refresh from origin/v1.3 at e9fd61b7): adds the batch-2 proxies
+% (PR #110), the guard-unit and same-component fixes for duplicated rules, the advisory post-filters (PR #139, [hold])
+% and their out-of-sample run (PR #213, [hold]), the blind-miss classification (PR #134) and the in-process Cypher
+% interpreter (PR #128, fuzz PR #183). Reports on [hold] branches are cited as "git show origin/<branch>:<path>"; if
+% such a PR changes in review or closes unmerged, the sentence that cites it must be re-checked or removed.
+
+\documentclass[10pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=2.0cm]{geometry}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\citeneeded}[1]{\cite{#1}\textsuperscript{\textcolor{red}{\tiny[verify]}}}
+\newcommand{\todo}[1]{\textcolor{blue}{[TODO: #1]}}
+\newcommand{\devset}{\textsuperscript{\textsf{\tiny[dev]}}}
+\newcommand{\tool}{DaedalusArch}
+
+\setlist{itemsep=1pt,topsep=2pt}
+
+\title{How Much Architectural Semantics Is Cheaply Computable?\\
+\large Deterministic Proxies vs an LLM Judge (Extended Abstract)}
+\author{\todo{author list and affiliations}}
+\date{Draft, 2026-10-16 (v1.3 refresh)}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Architecture gates increasingly add an LLM judge for properties that structural rules cannot state, such as a
+duplicated business rule or persistence leaking into the domain. Before paying for a judge, how much of that
+semantics can deterministic code analysis compute? We built ten cheap proxies over an architectural property graph
+and the TypeScript type checker and compared them with a frozen LLM judge and with symbolic layer rules on planted
+anti-patterns. On seeds the proxies were designed against, they catch 11 of 11 against the judge's 9 of 11 and the
+rules' 0 of 11, a circular result by construction. On six less circular hand-written analogues all three catch 6 of
+6. On duplicated rules in generated code the proxies catch 1 to 2 of 9 and the judge 9 of 9; a later change to
+the clone units is projected, not measured, to close that gap at the cost of new flags on clean code. A second batch
+of seven proxies catches all 29 of its own planted cases but none of three independent analogues. Cheap source facts
+also reproduce much of the judge's relevance filtering of advisory findings in sample, though out of sample only
+their volume, not their relevance, could be checked. Finally, the symbolic rules themselves become cheap: an
+in-process interpreter runs the unchanged rule text about five times faster than a graph database with identical
+results. All figures are development data. We describe an unbiased follow-up.
+\end{abstract}
+% src (abstract, v1.3 refresh): Docs/DiagnosticRuns/v1.3-fieldstate-cheapfix-2026-10-16.md §B.3 ("Projected, not measured ... 9/9 against 1/9"), §B.4 (8 new clean flags); Docs/DiagnosticRuns/cheap2-2026-10-15.md §1 (29/29), §3 (0/3); git show origin/v1.3-advisory-noise:Docs/DiagnosticRuns/v1.3-advisory-noise-2026-10-16.md Summary (PR #139); git show origin/v1.3-advisory-filter-oos:Docs/DiagnosticRuns/v1.3-advisory-filter-oos-2026-10-16.md §5 ("No relevance") (PR #213); Docs/v1.3/cypher-interpreter.md §0 (149 ms vs 728 ms; byte-identical)
+% src (abstract): Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §2 (11/11, 9/11, 0/11; banner "CIRCULAR BY CONSTRUCTION"), §4 (6/6); Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md §5 (clones 1/9, shared-literals 2/9, judge 9/9); "ten proxies": Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §1 ("All ten proxies then ran"); judge agreement for the analogues derived, see Table 1 note
+
+\section{Question}
+
+An LLM judge can read intent, but it is slow, costs money per unit, varies between runs and shares blind spots with
+the models that write the code. A deterministic proxy is the opposite: milliseconds, free, repeatable, but blind to
+anything outside its tables. We ask: \emph{for which architectural anti-patterns does a cheap proxy suffice, and
+where is the judge needed?} The answer decides how to layer a gate: rules decide, proxies propose candidates, the
+judge interprets \citeneeded{garcez2023neurosymbolic}.
+% src: Docs/v1.3/cheap-semantics-design.md ("Purpose": "A proxy proposes candidate sites. It does not give a verdict.")
+
+\section{Instruments}
+
+\textbf{Cheap proxies.} Ten deterministic detectors over the extracted graph and a type-checked project, with no LLM,
+database or network: token clones with Type-2 normalisation \citeneeded{roy2007clones,kamiya2002ccfinder}, literals
+shared across components \citeneeded{fowler1999refactoring}, name-versus-behaviour roles, LCOM4 cohesion, logic
+density, direct ORM access outside repositories, framework types in core signatures, vocabulary leakage,
+dependency communities (a diagnostic) and stored documentation text. Packages are identified through the type checker, never by import text alone.
+% src: Docs/v1.3/cheap-semantics-design.md ("Placement and contract"; "The proxies"; "An import line alone is never enough"); Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §5 table columns
+\textbf{Judge.} A frozen LLM judge with an unchanged rubric, three runs per unit and a majority vote, recorded and
+replayed \citeneeded{zheng2023judging}. \textbf{Rules.} The v1.3 symbolic fitness functions of \tool{}.
+% src: Docs/DiagnosticRuns/v1.3-judge-catch-2026-10-15.md §0
+\textbf{Seeds.} Five frozen anti-pattern operators (repository bypass, fat controller, persistence in the domain,
+duplicated rule, framework leak), each with a twin that should stay clean, plus hand-written violation variants of
+five reference projects. % src: Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §1; Docs/v1.3/judge-catch-frozen.md
+
+\section{Results (development data)}
+
+\begin{table}[h]
+\centering\small
+\caption{\devset{} Catch by instrument. Wilson 95\% intervals where the source gives them.}
+\label{tab:results}
+\begin{tabular}{lcccc}
+\toprule
+Seed set & $n$ & Cheap proxy & LLM judge & Symbolic rules \\
+\midrule
+(a) Operator seeds (circular) & 11 & 11/11 [0.74, 1.00] & 9/11 & 0/11 \\
+(b) Hand-written analogues & 6 & 6/6 [0.61, 1.00] & 6/6$^{*}$ & 6/6$^{*}$ \\
+(c) Duplicated rule, v2 & 9 & 1/9 clones, 2/9 any & 9/9 [0.70, 1.00] & 0/9 \\
+\bottomrule
+\end{tabular}
+
+\smallskip\footnotesize $^{*}$ Derived from the round-2 judge catch test: the six analogues are among its
+hand-planted variants, its only hand-planted miss is not one of them, and each carries its expected rule finding.
+% src (a): Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §2, §3 (Pooled 11/11 = 1.00 [0.74, 1.00]; judge 9/11; symbolic 0/11)
+% src (b): Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §4 (6/6 [0.61, 1.00]); judge and rules derived from Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md §1b, §3 Reading
+% src (c): Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md §3 (judge 9/9 [0.70, 1.00]), §5 (clones 1/9, shared-literals 2/9, either 2/9, symbolic 0/9)
+\end{table}
+
+\textbf{(a) is circular by construction.} The proxies were written after the operators and the judge's first results
+were read, and each operator has a designated proxy; 11 of 11 shows only that they implement what they were written to
+detect. It still shows one complementarity: the proxies catch both framework leaks the judge missed (an unused
+optional \texttt{request?: Request} parameter), because the type checker resolves the type whatever the body says.
+Twin false flags were 2 of 42, both inherited from the base (0 of 42 paired). \devset{}
+% src: Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md banner, §2 Reading, §3 (twin 2/42 raw, 0/42 paired)
+
+\textbf{(b) is less circular} and all three instruments agree: the persistence decorators and framework types are
+type-checker facts, and the rules also see the package import. The proxies miss what their tables do not name: a
+dependency-injection decorator in the domain, a serialisation library in a value object, and a fat application
+service (density is measured only on controllers and adapters). \devset{}
+% src: Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §4 (three misses; "the catalogue-coverage limit")
+
+\textbf{(c) is where the proxies fail.} Five of the eight generated duplications are bare guards, which the clone
+filter drops; the other three are exact clones inside one component, which the cross-component rule ignores. Both
+filters were added to silence false flags on clean code. The judge catches all nine, but its catch is confounded: every
+run also calls the copied method a misplaced responsibility, and a foreign method alone fails five of five.
+\devset{} % src: Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md §5 ("Why the clone proxy misses the E1 seeds"; post-hoc diagnostic), §4 (confound); Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md §3 (5/5)
+
+\textbf{A fix for (c), projected but not measured.} A later change adds two default clone units: a top-level guard
+(an \texttt{if} that only throws), keyed by its normalised condition, error type and message, with trivial null
+checks excluded by a rule fixed before any run; and a separate advisory kind for clone pairs inside one component.
+On the committed seed diffs, all nine copied rules become clone units (four before), so the projected catch is 9 of 9
+against 1 of 9. The E1 cells were not available to re-run, so this is a projection from a necessary condition, not a
+catch rate. The cost was measured: the guard units add no flag on the five clean projects (25 guard units, 0 pairs),
+but the same-component kind adds 8 flags (4 pairs, all whole-body Type-2 clones such as two look-up-or-throw
+controllers) to the previous 10. The fix trades the filter that hid the defect for flags that are true clones but not
+duplicated rules. The judge's confound in (c) is untouched. \devset{}
+% src: Docs/DiagnosticRuns/v1.3-fieldstate-cheapfix-2026-10-16.md §B.1 (guard rule, "fixed before any evaluation run"), §B.2, §B.3 (before 4/9 units, after 9/9; "Projected, not measured ... 9/9 against 1/9"; "The E1 catch rate is not measured here"), §B.4 (clean flags 10 -> 18; 25 guard units, 0 guard pairs, 15 trivial checks excluded), §B.5 ("the AP-DUP-RULE judge confound ... which this does not address")
+
+\textbf{Cost and precision.} The proxies take 71 to 99\,ms per reference project; the judge needed 261 calls for
+the 11 round-1 seeds. On the five clean reference projects the proxies raise 14 defect flags, down from 101 before one
+revision made on those same projects, so 14 is a tuned-on-development figure; several of the remaining flags are
+arguably true duplications. \devset{}
+% src: Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §5 (runtime; 261 calls; 14 flags; arguably true), §6 (101 -> 14; "The reported precision is therefore a tuned-on-dev number")
+
+\section{Further v1.3 results}
+
+\textbf{A second batch of proxies.} Seven further proxies read error flow, reachability from entry points, vendor
+SDK spread, test topology, configuration reads, co-change in the version history and agent provenance per step. On
+fixtures written together with them they catch 29 of 29 planted cases and flag 0 of 34 near misses, which shows only
+that each implements its definition. On the clean reference projects and their 14 near-miss variants they raise no
+false flag, after one exemption for test composition roots made on those projects. For three of them (SDK spread,
+configuration, co-change) that zero is uninformative: the reference projects have no vendors, no environment reads
+and almost no history. The independent test is three hand-written violation variants written before the proxies;
+the batch catches 0 of 3. Each miss lies outside a catalogue (a project error type, not a framework exception;
+framework-free controllers that are not recognised as HTTP entry points). The natural extensions were not applied,
+to keep these analogues as independent evidence. \devset{}
+% src: Docs/DiagnosticRuns/cheap2-2026-10-15.md banner, §1 ("29 of 29 planted cases caught, 0 of 34 near misses flagged"), §2 (0 false flags; first run 2 unreachable-module flags, test-support exemption; "Precision is untested for three proxies"), §3 ("Catch on the independent analogues: 0/3"; "Not applied"); PR #110, merged
+
+\textbf{Cheap relevance.} A judge can also act as a filter, dismissing advisory findings that are true but not
+worth reading. On the reference set, the v1.3 judge dismissed 191 of 252 advisory rows it saw. Four deterministic
+options read only the finding, the file's own source and the layer model (no logic in the file, composition roots,
+instability outside the domain, imports of type-only targets); together they remove 163 of the 191 dismissed rows
+(0.85 [0.80, 0.90]) and 1 of the 61 confirmed rows (0.02 [0.00, 0.09]), and never touch a blocking row. These are
+in-sample figures: the options were written after reading the dismissals, and the judge's verdicts are one model's
+single run, not labels. Out of sample, on 15 external and 11 current open-source projects, the per-file options remove
+a similar or larger share of advisory volume (0.45 [0.42, 0.48] and 0.33 [0.31, 0.35] for the proposed set, against
+0.33 in sample). In a seeded sample of 40 removed rows, all 31 that a deterministic check can test are true
+statements. No relevance label
+exists for those projects, so whether the removed rows were the right ones is unknown. One option, collapsing
+test-pairing findings into one row per untested project, does not transfer (0.07 and 0.00 against 0.69 to 0.78):
+it fits agent-generated projects with no tests, not real ones. \devset{}
+% src: git show origin/v1.3-advisory-noise:Docs/DiagnosticRuns/v1.3-advisory-noise-2026-10-16.md Summary (191 of 252; 163/191 = 0.85 [0.80, 0.90]; 1/61 = 0.02 [0.00, 0.09]; "These are in-sample numbers"), §4 table (proposed set; cv05-rollup 0.69 dev / 0.78 E1 derived from 1,606 -> 490 and 1,428 -> 314), §6 (blocking byte-identical); PR #139, [hold]
+% src: git show origin/v1.3-advisory-filter-oos:Docs/DiagnosticRuns/v1.3-advisory-filter-oos-2026-10-16.md Summary table (proposed 428/955 = 0.45 [0.42, 0.48], 643/1,939 = 0.33 [0.31, 0.35]; cv05-rollup 67/955 = 0.07, 0/1,939 = 0.00; "Removed rows are true statements": 31/31), §3, §5 ("No relevance"); criterion fixed before any number: Docs/DiagnosticRuns/v1.3-advisory-filter-oos-criterion-2026-10-16.md (same branch); PR #213, [hold]
+
+\textbf{The facts are present; the definitions differ.} Against a manifest written blind to the tool, the v1.3
+rules miss 14 expected blocking violations on the reference set. Every one was opened: none is a missing edge or
+fact (the graph agrees with the blind reader on every file edge and every file's layer), and every one is a
+difference in what the rule is defined to cover. For cheap semantics this places the limit in the definitions, not
+in the facts a deterministic extractor can compute. \devset{}
+% src: Docs/DiagnosticRuns/v1.3-blind-misses-2026-10-16.md Summary (50/64; class table: extractor gap 0, rule/construct gap 14; "Edges and layers ... recall 1.00 ... accuracy 1.00, 2014 files"); PR #134, merged
+
+\textbf{Cheap rules.} The symbolic rules are Cypher queries run on a graph database. An in-process interpreter
+executes the same query text, with no rule re-implemented. On the 71 reference variants its output is byte-identical
+to the database run; in a differential run against Neo4j over 65,254 statements on 79 project graphs it differs in
+no content (763 differences in row order, all from two documented engine behaviours). A warm evaluation of one
+variant takes 149\,ms against 728\,ms. A differential fuzz on 2,000 generated adversarial graphs (836,000 statements)
+found ten interpreter defects, all fixed, after which no content differs; the batch-2 proxy templates add 84,000
+statements with no difference. The interpreter is not the engine of record, and on the three largest open-source
+projects one cycle query did not finish in 20 minutes on either engine. \devset{}
+% src: Docs/v1.3/cypher-interpreter.md §0 table (byte-identical 71 files; 65,254 statements, 79 projects, 0 content; 763 order, T1/T2; 149 ms vs 728 ms; "Neo4j stays the reference engine"); Docs/v1.3/cypher-interp-fuzz.md §0 (2,000 graphs, 836,000 statements, 0 mismatches with the final code; ten bugs F1-F10; cheap2 supplement 84,000 statements, 0 mismatches)
+% src: Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md §0 ("Our FF-S02 cycle rule did not finish on the 3 largest wild repositories ... on Neo4j the query hit the transaction timeout")
+
+\section{Reading}
+
+Cheaply computable: anti-patterns that reduce to a resolved type, a decorator's package, or a call receiver (framework
+types in signatures, ORM mapping in the domain, ORM handles outside repositories). Not cheaply computable:
+judgements about responsibility and intent, and duplication whose copy is short, guard-shaped or local, where any
+filter that keeps clean code quiet also hides the defect. A proxy's recall is bounded by its catalogue, as the second
+batch's 0 of 3 shows again; a judge's attribution is bounded by what else it notices. The v1.3 results add two
+readings. First, relevance is partly cheap: a few source facts reproduce most of one judge's dismissals in sample,
+but the evidence that they keep doing so is volume, not relevance. Second, once the facts are extracted, evaluating
+the rules is cheap too, so the cost of a layered gate lies almost entirely in the judge. Neither proxies nor judge
+have been measured on code nobody designed for.
+
+\section{Design of an unbiased follow-up}
+
+The follow-up removes the three sources of bias above. It is an informal design; whether to register it is an author
+decision.
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Freeze before seeing positives.} Hash the proxies, thresholds and package tables before any seed is
+        built or read; no definitional change after the freeze.
+  \item \textbf{Seeds the proxy author never saw.} Positives from a label-free survey of real code and real fix
+        commits, and from a second author's operators, written blind to the proxy tables; include anti-patterns
+        outside every catalogue to measure the coverage limit.
+  \item \textbf{Twins that change only the construct.} No added member, so a responsibility cue cannot stand in for
+        the construct; for duplication, place the copy where the rule plausibly applies.
+  \item \textbf{Human ground truth.} At least 30 items labelled by humans blind to instrument and rule, with
+        agreement reported; a cross-vendor judge arm to measure same-vendor correlation.
+  \item \textbf{Held-out precision.} Report false flags on a corpus of real projects not used for tuning.
+  \item \textbf{Measure what is now projected.} Re-run the frozen duplicated-rule harness on the E1 cells with the
+        guard units, and label the relevance of the rows the advisory filters remove out of sample.
+  \item \textbf{A verification arm.} Give the judge each proxy candidate with its evidence and compare with blind
+        judging, to test the layered gate directly.
+\end{enumerate}
+% src: Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §7 (threats and "Not measured"); Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md §4 ("Isolating duplication would need a positive whose copy sits where the rule plausibly applies"); Docs/v1.3/validation-protocol.md §3 (author audit >= 30 items)
+
+\paragraph{Data availability.} \todo{repository tag or DOI}.
+
+\bibliographystyle{plain}
+\bibliography{refs}
+
+\end{document}

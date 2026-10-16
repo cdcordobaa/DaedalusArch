@@ -7,6 +7,7 @@ import type { GraphRepository } from '../shared/interfaces/graph-repository.js';
 import type { APGResult } from '../shared/types/apg.js';
 import type { CycleMetricTiming } from './universal-metrics.js';
 import type { NeuralAggregation } from './neural-aggregation.js';
+import type { TierResolver } from './tiered-scoring.js';
 
 /** domain-entities.md §4.1 (U3-owned). */
 export interface ScoringInput {
@@ -34,6 +35,8 @@ export interface ScoringInput {
   readonly scoringMode?: ScoringMode;
   /** The spec's `architecture.style`; read only in the v1.3 mode (style-dependent tiers). */
   readonly style?: string;
+  /** v1.3 construct switches: a switch-aware tier lookup (absent at the status quo; `ruleTier` applies). */
+  readonly tierResolver?: TierResolver;
 }
 
 export type ScoringErrorCode =

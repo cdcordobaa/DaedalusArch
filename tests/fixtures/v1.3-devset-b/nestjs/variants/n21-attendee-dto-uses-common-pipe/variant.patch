@@ -1,0 +1,43 @@
+--- a/src/attendees/attendees.service.ts
++++ b/src/attendees/attendees.service.ts
+@@ -12,7 +12,8 @@
+ 
+   async create(dto: CreateAttendeeDto): Promise<{ id: string; name: string }> {
+     this.sequence += 1;
+-    const attendee = new Attendee(`at-${this.sequence}`, dto.name, dto.email);
++    const clean = CreateAttendeeDto.normalise(dto);
++    const attendee = new Attendee(`at-${this.sequence}`, clean.name, clean.email);
+     await this.attendees.save(attendee);
+     return { id: attendee.id, name: attendee.name };
+   }
+--- a/src/attendees/dto/create-attendee.dto.ts
++++ b/src/attendees/dto/create-attendee.dto.ts
+@@ -1,4 +1,13 @@
++import { collapseWhitespace } from '../../common/pipes/trim.pipe';
++
+ export class CreateAttendeeDto {
+   name!: string;
+   email!: string;
++
++  static normalise(dto: CreateAttendeeDto): CreateAttendeeDto {
++    return Object.assign(new CreateAttendeeDto(), {
++      name: collapseWhitespace(dto.name),
++      email: dto.email.trim().toLowerCase(),
++    });
++  }
+ }
+--- /dev/null
++++ b/src/common/pipes/trim.pipe.ts
+@@ -0,0 +1,12 @@
++import { Injectable } from '@nestjs/common';
++
++export function collapseWhitespace(value: string): string {
++  return value.trim().replace(/\s+/g, ' ');
++}
++
++@Injectable()
++export class TrimPipe {
++  transform(value: unknown): unknown {
++    return typeof value === 'string' ? collapseWhitespace(value) : value;
++  }
++}

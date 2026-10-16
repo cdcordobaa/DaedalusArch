@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "case": "case-04b-control-clean-notification",
+  "writtenAt": "2026-10-15",
+  "writtenBefore": "any ontology pipeline code, prompt or run (committed in the first commit of branch v1.3-ontology)",
+  "planted": "control",
+  "description": "A notification service that only formats and sends (date formatting, no pricing or business rule). The near-miss of case-02.",
+  "expect": {
+    "ruleDuplications": [],
+    "misplacedResponsibilities": [],
+    "conceptFragmentations": [],
+    "capabilityScatter": []
+  },
+  "forbid": {
+    "misplacedResponsibilities": [
+      {
+        "file": "src/notifications/application/shipment-notification.service.ts",
+        "class": "ShipmentNotificationService"
+      },
+      {
+        "file": "src/shipping/domain/shipment.ts",
+        "class": "Shipment"
+      }
+    ],
+    "ruleDuplications": [],
+    "conceptFragmentations": [],
+    "capabilityScatter": []
+  },
+  "cheapExpectation": {
+    "misplacedResponsibilities": "no-flag"
+  }
+}

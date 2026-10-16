@@ -12,6 +12,11 @@
  * confinement, the skeleton install is prepared (`ensureHarness`), and every snapshot is type-checked with the E1
  * type-check of record and evaluated by `evaluate_project` (v1.3 scoring) on a scratch Neo4j.
  *
+ * A plan with `taskProfiles` gives each task its style frame and its spec (`style.ts`, `specs.ts`). In a dry run the
+ * stub generator writes each task's style layout, the stub firewall stands in for every spec, the static spec files
+ * are still read and hashed, and the DDD spec is really inferred by the ISE and frozen after step 1 (no model, no
+ * Neo4j), so the dry run exercises the whole per-task path.
+ *
  * The grid writes `<outRoot>/schedule.json` (the plan and tasks file sha256 and the seeded order). Re-running the same
  * plan resumes: complete runs are skipped, a run stopped mid-step restarts that step from the last snapshot. A
  * schedule.json from a different plan or tasks file stops the grid. Exit codes: 0 grid completed, 1 a CLI is not
@@ -36,12 +41,17 @@ import { checkSkeletonIntact, ensureHarness, prepareCellDir } from '../generator
 import type { SkeletonInstall } from '../generators/skeleton.js';
 import { CODEX_CLI_ADAPTER_ID_VALUE } from '../generators/types.js';
 import { ClaudeStepAgent, CodexStepAgent } from './agents.js';
-import { firewallEvaluator, harnessTypechecker } from './evaluator.js';
+import { firewallEvaluator, harnessSnapshotTsconfig, harnessTypechecker } from './evaluator.js';
 import { runLoop } from './loop.js';
-import type { LoopContext, LoopRunResult } from './loop.js';
-import { loadLoopPlan, loopRunId, scheduleLoopRuns } from './plan.js';
+import type { LoopContext, LoopRunResult, TaskProfile } from './loop.js';
+import { loadLoopPlan, loopRunId, planCallBudget, scheduleLoopRuns } from './plan.js';
 import type { LoadedPlan, LocalOverrides } from './plan.js';
-import { StubStepAgent, stubEvaluator, stubTypechecker } from './stub.js';
+import { iseDddFreezer } from './specs.js';
+import type { SpecFreezer } from './specs.js';
+import { styleFrame } from './style.js';
+import type { LoopStyle } from './style.js';
+import { CLEAN_STUB_LAYOUT, StubStepAgent, layoutStubScript, stubEvaluator, stubTypechecker } from './stub.js';
+import type { StubLayout } from './stub.js';
 import type { StepAgent, StepEvaluator, StepTypechecker } from './types.js';
 
 export const LOOP_SCHEDULE_JSON = 'schedule.json';
@@ -181,6 +191,7 @@ export function prepareDryRunWorkDir(cwd: string): DomainResult<void> {
 interface Wiring {
   readonly agents: ReadonlyMap<string, StepAgent>;
   readonly evaluator: StepEvaluator;
+  readonly profiles?: ReadonlyMap<string, TaskProfile>;
   readonly typechecker: StepTypechecker;
   readonly prepareWorkDir: LoopContext['prepareWorkDir'];
   readonly skeletonIntact: LoopContext['skeletonIntact'];
@@ -190,11 +201,72 @@ function agentKey(adapterId: string, modelId: string): string {
   return `${adapterId}/${modelId}`;
 }
 
-function dryRunWiring(loaded: LoadedPlan): Wiring {
+/** An evaluator for a task that has neither a profile nor a default spec (never reached: the plan check forbids it). */
+function noSpecEvaluator(): StepEvaluator {
+  return { id: 'no-spec', evaluate: () => Promise.resolve(DomainResult.fail([{ code: 'LOOP_NO_SPEC', message: 'the plan names no spec for this task' }])) };
+}
+
+/** The per-task frames and evaluations of a plan; `evaluatorOf` builds the evaluator of a spec file (absolute path). */
+export function buildProfiles(
+  loaded: LoadedPlan,
+  repoRoot: string,
+  evaluatorOf: (specFile: string) => StepEvaluator,
+  freeze: SpecFreezer,
+): DomainResult<ReadonlyMap<string, TaskProfile> | undefined> {
+  const entries = loaded.plan.taskProfiles;
+  if (entries === undefined) return DomainResult.ok(undefined);
+  const out = new Map<string, TaskProfile>();
+  for (const [taskId, p] of Object.entries(entries)) {
+    const contexts = p.contexts ?? [];
+    let frame;
+    try {
+      frame = styleFrame(repoRoot, p.style, contexts);
+    } catch (e) {
+      return DomainResult.fail([{ code: 'LOOP_STYLE_PRESET', message: `${taskId}: ${e instanceof Error ? e.message : String(e)}` }]);
+    }
+    if ((p.specMode ?? 'static') === 'ise-step1') {
+      out.set(taskId, { frame, evaluation: { kind: 'frozen-after-step-1', contexts, freeze, evaluatorFor: evaluatorOf } });
+      continue;
+    }
+    const specPath = p.evaluatorSpec ?? '';
+    const abs = path.resolve(repoRoot, specPath);
+    if (!fs.existsSync(abs)) return DomainResult.fail([{ code: 'LOOP_PLAN_INVALID', message: `${taskId}: evaluator spec ${specPath} not found` }]);
+    out.set(taskId, { frame, evaluation: { kind: 'static', specPath, specSha256: sha256File(abs), evaluator: evaluatorOf(abs) } });
+  }
+  return DomainResult.ok(out);
+}
+
+/** Where the dry-run stub writes a step of a task of the given style (DDD: the declared contexts in turn, one folder per aggregate, every context at step 1). */
+export function stubLayoutFor(style: LoopStyle | undefined, contextRoots: readonly string[], stepIndex: number): StubLayout {
+  if (style === 'hexagonal') return { domain: 'src/domain', application: 'src/application', infrastructure: 'src/adapters/outbound' };
+  if (style === 'ddd' && contextRoots.length > 0) {
+    const roots = contextRoots.map((r) => r.replace(/\/$/, ''));
+    const root = roots[stepIndex % roots.length] ?? '';
+    const also = stepIndex === 0 ? roots.filter((r) => r !== root).map((r) => `${r}/domain`) : [];
+    return { domain: `${root}/domain`, application: `${root}/application`, infrastructure: `${root}/infrastructure`, aggregateFolders: true, ...(also.length > 0 ? { alsoDomains: also } : {}) };
+  }
+  return CLEAN_STUB_LAYOUT;
+}
+
+function dryRunWiring(loaded: LoadedPlan, repoRoot: string): DomainResult<Wiring> {
   const tasks = new Map(loaded.tasks.tasks.map((t) => [t.id, t]));
+  const profiles = loaded.plan.taskProfiles ?? {};
+  const script = layoutStubScript((taskId, stepIndex) => {
+    const p = profiles[taskId];
+    return stubLayoutFor(p?.style, (p?.contexts ?? []).map((c) => c.root), stepIndex);
+  });
   const agents = new Map<string, StepAgent>();
-  for (const a of loaded.plan.adapters) agents.set(agentKey(a.adapterId, a.modelId), new StubStepAgent(tasks, { adapterId: a.adapterId, modelId: a.modelId }));
-  return { agents, evaluator: stubEvaluator(), typechecker: stubTypechecker(), prepareWorkDir: prepareDryRunWorkDir, skeletonIntact: () => true };
+  for (const a of loaded.plan.adapters) agents.set(agentKey(a.adapterId, a.modelId), new StubStepAgent(tasks, { adapterId: a.adapterId, modelId: a.modelId, script }));
+  const built = buildProfiles(loaded, repoRoot, () => stubEvaluator(), iseDddFreezer(repoRoot));
+  if (!built.success) return DomainResult.fail(built.errors);
+  return DomainResult.ok({
+    agents,
+    evaluator: stubEvaluator(),
+    ...(built.data !== undefined ? { profiles: built.data } : {}),
+    typechecker: stubTypechecker(),
+    prepareWorkDir: prepareDryRunWorkDir,
+    skeletonIntact: () => true,
+  });
 }
 
 async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs, deps: LoopMainDeps): Promise<DomainResult<Wiring>> {
@@ -225,9 +297,13 @@ async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs
     agents.set(agentKey(a.adapterId, a.modelId), agent);
   }
   const evaluateDeps = await deps.evaluateDeps();
+  const evaluatorOf = (specFile: string): StepEvaluator => firewallEvaluator(specFile, deps.parentEnv, evaluateDeps, harnessSnapshotTsconfig(plan.harnessRoot));
+  const profiles = buildProfiles(loaded, repoRoot, evaluatorOf, iseDddFreezer(repoRoot));
+  if (!profiles.success) return DomainResult.fail(profiles.errors);
   return DomainResult.ok({
     agents,
-    evaluator: firewallEvaluator(path.resolve(repoRoot, plan.evaluatorSpec), deps.parentEnv, evaluateDeps),
+    evaluator: plan.evaluatorSpec !== undefined ? evaluatorOf(path.resolve(repoRoot, plan.evaluatorSpec)) : noSpecEvaluator(),
+    ...(profiles.data !== undefined ? { profiles: profiles.data } : {}),
     typechecker: harnessTypechecker(deps.runner, plan.harnessRoot),
     prepareWorkDir: (cwd) => prepareCellDir(install, repoRoot, cwd),
     skeletonIntact: (cwd) => checkSkeletonIntact(install, repoRoot, cwd).skeletonIntact,
@@ -261,6 +337,7 @@ export async function runLoopGrid(
         tasks,
         agent,
         evaluator: wiring.evaluator,
+        ...(wiring.profiles !== undefined ? { profiles: wiring.profiles } : {}),
         typechecker: wiring.typechecker,
         prepareWorkDir: wiring.prepareWorkDir,
         skeletonIntact: wiring.skeletonIntact,
@@ -275,6 +352,32 @@ export async function runLoopGrid(
     results.push(r.data);
   }
   return DomainResult.ok(results);
+}
+
+/** The final console summary: runs, the planned call budget and the turns this invocation ran. */
+export function gridSummary(loaded: LoadedPlan, results: readonly LoopRunResult[], dryRun: boolean): Record<string, unknown> {
+  const completed = results.filter((r) => r.kind === 'completed');
+  let stepTurns = 0;
+  let repairTurns = 0;
+  let repairsCleared = 0;
+  for (const r of completed) {
+    for (const s of r.steps.slice(r.resumedFromStep)) {
+      for (const t of s.turns) {
+        if (t.kind === 'step') stepTurns++;
+        else repairTurns++;
+      }
+      if (s.repair?.cleared === true) repairsCleared++;
+    }
+  }
+  return {
+    outRoot: loaded.plan.outRoot,
+    dryRun,
+    runs: results.length,
+    completed: completed.length,
+    skipped: results.length - completed.length,
+    callBudget: planCallBudget(loaded.plan, loaded.tasks.tasks),
+    turnsThisInvocation: { step: stepTurns, repair: repairTurns, repairsCleared },
+  };
 }
 
 export async function main(argv: readonly string[], repoRoot: string, depsIn?: LoopMainDeps): Promise<number> {
@@ -293,8 +396,11 @@ export async function main(argv: readonly string[], repoRoot: string, depsIn?: L
   if (!loaded.success) return report(deps, loaded.errors);
   if (!path.isAbsolute(loaded.data.plan.outRoot)) return report(deps, [{ code: 'LOOP_PLAN_INVALID', message: 'outRoot must be absolute' }]);
   let wiring: Wiring;
-  if (args.data.dryRun) wiring = dryRunWiring(loaded.data);
-  else {
+  if (args.data.dryRun) {
+    const dry = dryRunWiring(loaded.data, repoRoot);
+    if (!dry.success) return report(deps, dry.errors);
+    wiring = dry.data;
+  } else {
     const live = await liveWiring(loaded.data, repoRoot, args.data, deps);
     if (!live.success) {
       const unavailable = live.errors.some((e) => e.code === 'LOOP_CLI_UNAVAILABLE');
@@ -313,7 +419,6 @@ export async function main(argv: readonly string[], repoRoot: string, depsIn?: L
     },
   });
   if (!grid.success) return report(deps, grid.errors);
-  const completed = grid.data.filter((r) => r.kind === 'completed').length;
-  deps.out(`${JSON.stringify({ outRoot: loaded.data.plan.outRoot, dryRun: args.data.dryRun, runs: grid.data.length, completed, skipped: grid.data.length - completed }, null, 2)}\n`);
+  deps.out(`${JSON.stringify(gridSummary(loaded.data, grid.data, args.data.dryRun), null, 2)}\n`);
   return 0;
 }

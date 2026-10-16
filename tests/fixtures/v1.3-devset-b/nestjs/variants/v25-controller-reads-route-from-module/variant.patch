@@ -1,0 +1,25 @@
+--- a/src/registrations/registrations.controller.ts
++++ b/src/registrations/registrations.controller.ts
+@@ -2,9 +2,10 @@
+ import { ApiKeyGuard } from '../common/guards/api-key.guard';
+ import { RegisterAttendeeDto } from './dto/register-attendee.dto';
+ import { RegistrationResponseDto } from './dto/registration-response.dto';
++import { REGISTRATIONS_ROUTE } from './registrations.module';
+ import { RegistrationsService } from './registrations.service';
+ 
+-@Controller('registrations')
++@Controller(REGISTRATIONS_ROUTE)
+ @UseGuards(ApiKeyGuard)
+ export class RegistrationsController {
+   constructor(private readonly registrationsService: RegistrationsService) {}
+--- a/src/registrations/registrations.module.ts
++++ b/src/registrations/registrations.module.ts
+@@ -6,6 +6,8 @@
+ import { RegistrationsController } from './registrations.controller';
+ import { RegistrationsService } from './registrations.service';
+ 
++export const REGISTRATIONS_ROUTE = 'registrations';
++
+ @Module({
+   imports: [WorkshopsModule, AttendeesModule],
+   controllers: [RegistrationsController],

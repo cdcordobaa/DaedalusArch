@@ -4,6 +4,37 @@ An architectural firewall for TypeScript: a YAML spec (layers, fitness functions
 architecture property graph, scored as an Architecture Health Score (AHS) and turned into a verdict. See
 `Docs/` for the requirements, the registered instrument and the experiment plans.
 
+**Artifact evaluators:** start with [`ARTIFACT.md`](ARTIFACT.md). It has a 15-minute check that needs no database
+(`npm ci && npm run artifact:kick`) and the full-reproduction path, both with expected outputs.
+
+**Using it on your own code?** Start with the [user guide](docs/guide/README.md). It covers the quick start with no
+database, writing a spec, reading a report, the MCP server for coding agents, the CI gate, the HTML report and zero-config
+init.
+
+## Quick start without a database (npx)
+
+No Neo4j server, no Docker, no credentials: when `NEO4J_URI` is not set, every command runs the rule templates on
+the in-process Cypher interpreter (`--engine cypher-interp`). The Cypher template text is still the only definition
+of each rule; the interpreter executes it unchanged. Details, limits and the parity evidence:
+[`Docs/v1.3/npx-mode.md`](Docs/v1.3/npx-mode.md).
+
+```bash
+# from a checkout (or a published/packed tarball: npm install daedalus-arch-<version>.tgz)
+npm ci && npm run build && npm install -g .     # or: npm pack, then install the .tgz anywhere
+
+npx daedalus evaluate path/to/project --spec path/to/spec.yaml          # human report on stderr
+npx daedalus evaluate path/to/project --spec path/to/spec.yaml --format json --symbolic-only
+npx daedalus validate --spec path/to/spec.yaml --project path/to/project  # also parses every compiled query
+npx daedalus-mcp --spec path/to/spec.yaml --project path/to/project      # MCP server on stdio, no database
+```
+
+Every evaluating command prints one stderr line naming the engine, e.g.
+`daedalus: graph engine cypher-interp (in-process, no database) [NEO4J_URI is not set; ...]`.
+Inside the checkout itself, `node dist/cli/bin.js …` (or `npm start -- …`) is faster than `npx daedalus`, which
+re-runs the build on every call there.
+Set `NEO4J_URI` (or pass `--engine neo4j`) to use Neo4j, which stays **the reference engine for reported numbers**;
+study and experiment scripts always pass `--engine neo4j` explicitly.
+
 ## MCP server (v1.3 prototype)
 
 > **Prototype.** Groundwork for a "firewall in the loop" experiment (design in
@@ -18,21 +49,24 @@ writes code.
 | `get_architecture_spec` | The spec as data: layers (inner to outer), globs, which layers each may and may not import, forbidden packages, every rule with status and description | spec |
 | `which_layer` | The layer of a file path, plus the layers and packages a file there may and may not import | spec |
 | `check_import` | Would an import from file A to module B break a rule? Rule id, severity and reason. Spec-based and instant, no graph (covers FF-S01, FF-S03, FF-S04, FF-P01; not cycles or class-level rules) | spec |
-| `evaluate_project` | The existing symbolic-only pipeline on a project: AHS, verdict, violations by rule. Slow, and it **replaces the graph in the Neo4j database**, so use a scratch instance | spec, Neo4j |
+| `evaluate_project` | The existing symbolic-only pipeline on a project: AHS, verdict, violations by rule. On the in-process interpreter by default (no database; unchanged projects answered from a cache); on Neo4j (`--engine neo4j` or `NEO4J_URI` set) it **replaces the graph in the database**, so use a scratch instance | spec (Neo4j only with `--engine neo4j`) |
 | `explain_violation` | A rule's intent and fix guidance, from the rule template and the report catalogue (by rule id, rule name or violation type) | none (spec adds context) |
 | `check_file` | A proposed file (path + content) against every import rule (FF-S01, FF-S03, FF-S04, FF-P01) and the class naming rules (FF-CV02..04 when active): verdict, one-line summary, violations with rule id, line, reason and a concrete fix. Instant, no graph | spec |
 | `check_diff` | The `check_file` rules over a unified diff: new files whole, modified files on their added lines (new-file line numbers) | spec |
 | `suggest_placement` | Where a new class or module goes, from its purpose ("repository for orders"): layer, a path the spec maps to that layer, a class name that passes the naming rules, what it may import | spec |
 
-Without Neo4j every tool but `evaluate_project` works. `evaluate_project` returns an error result
-(`NEO4J_UNREACHABLE` or `CONFIG_MISSING_ENV`) that says what to fix.
+Without Neo4j every tool works: the server picks the in-process interpreter when `NEO4J_URI` is not set
+(`--engine neo4j|cypher-interp` overrides). `check_file` and `check_diff` also take `templates: true`, which runs the
+compiled rule templates on the whole project before and after the change and reports what it introduces
+(`templates.introduced`, `templates.blockingVerdict`). On the Neo4j engine, `evaluate_project` returns an error
+result (`NEO4J_UNREACHABLE` or `CONFIG_MISSING_ENV`) that says what to fix.
 
 ### Try it in three commands
 
 ```bash
 npm ci
-export NEO4J_PASSWORD=choose-a-password && docker compose up -d     # optional: only evaluate_project needs Neo4j
-npm run mcp -- --spec specs/clean-arch.yaml --project fixtures/variant-a-structural   # speaks MCP on stdio
+npm run mcp -- --spec specs/clean-arch.yaml --project fixtures/variant-a-structural   # speaks MCP on stdio, no database
+# optional, the reference engine: export NEO4J_PASSWORD=... NEO4J_URI=bolt://localhost:7687 && docker compose up -d
 ```
 
 To poke at it by hand, use the MCP inspector: `npx @modelcontextprotocol/inspector npm run mcp -- --spec specs/clean-arch.yaml`.
@@ -229,3 +263,33 @@ npx tsx scripts/generator/arms-dry-run.ts            # first cell per arm; --all
 ```
 
 The pre-registration draft is `Docs/prereg-drafts/firewall-in-the-loop.md` (DRAFT, not registered).
+
+## Ontology v0: grounded semantic layer (v1.3, running it live locally)
+
+`src/apg-enrich/ontology/` builds a separate `Sem*` layer over the APG: capabilities, business rules,
+responsibilities and business concepts, each with provenance (model, prompt hash, run id, temperature), a confidence
+and evidence that a grounding validator checked against the APG and the source. The cheap proxies propose, the model
+interprets, deterministic checks verify. Design and threats: `Docs/v1.3/ontology-v0-design.md`.
+
+The model is reached only through the judge's isolated Claude CLI route: the pinned CLI version, the dedicated
+config dir (default `~/.firewall/judge-claude-config`), the allow-listed child environment, the neutral cwd and the
+init probe. Credentials are never read. A cloud session cannot run that route, so everything in the repository is
+tested with a mock provider and recorded-fixture cassettes. The live run is local only:
+
+```bash
+npx tsx scripts/v1.3/ontology-run.ts --fixtures --estimate               # calls and prompt tokens per case; calls nothing
+npx tsx scripts/v1.3/ontology-run.ts --fixtures --budget 120             # live record into tests/fixtures/v1.3-ontology/cassettes-claude-cli/
+npx tsx scripts/v1.3/ontology-run.ts --fixtures --replay                 # replay the live cassettes (no call) and re-score
+npx tsx scripts/v1.3/ontology-run.ts --project <dir> --spec <spec.yaml> --estimate
+npx tsx scripts/v1.3/ontology-run.ts --project <dir> --spec <spec.yaml> --budget 200 --cassettes <dir>
+```
+
+- `--budget` caps provider calls per project. Cache hits are free.
+- A usage-limit or auth stop ends the run with exit code 4. Every answer recorded so far stays in the cassettes, so
+  the same command resumes from there.
+- `--judge-outcomes <json>` (`{"<case>": {"source": "...", "failedFiles": [...]}}`) adds the judge's outcome on the
+  same items to the score table.
+- Results go to `results/v1.3-ontology/<provider>[-replay]/`: one `result.json` per project and `scores.json`.
+- The mock fixture run is `--provider mock`. Its answers are hand-written, so its scores check the plumbing only.
+
+Tests: `npx jest tests/unit/apg-enrich/ontology tests/unit/scripts/ontology-run.test.ts`.

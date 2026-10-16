@@ -2,7 +2,7 @@
 
 > **Written 2026-10-16, before any v2.2 judge call.** This is development-set work and not a pre-registration. The manifest, the split and the harvested prompts of CHECK-2 were committed before any judge run (§3.6). The decision rule (§5) is fixed here and in code (`decide` in `scripts/v1.3/judge-v22-check2.ts`, pinned by a unit test). No judge or LLM call was made to prepare this. The only model involved was the `mock` provider.
 
-Context: `Docs/DiagnosticRuns/v1.3-judge-v2-2026-10-16.md` §8 and §9 (PR #126, branch `v1.3-judge-v2`). This branch, `v1.3-judge-v22-prep`, is cut from `origin/v1.3-judge-v2` @ `5f636af3`, because `origin/v1.3` does not contain the judge-v2 code.
+Context: `Docs/DiagnosticRuns/v1.3-judge-v2-2026-10-16.md` §8 and §9 (PR #126, branch `v1.3-judge-v2`). This branch, `v1.3-judge-v22-prep`, was cut from `origin/v1.3-judge-v2` @ `5f636af3`, because `origin/v1.3` did not yet contain the judge-v2 code; #126 has since been merged into `v1.3`, and `v1.3` is merged into this branch.
 
 ## 1. Why a v2.2
 
@@ -148,13 +148,18 @@ Items: **138** (50 seed units, 40 twin units, 48 clean units); targets: 90 (40 s
 | `results/v1.3-judge-v22/check2-split.json` | `7660dee4e12e81b30eb4855d9fe2f6a71c4be1a206e2c5690687314145eeb351` |
 | CHECK-2 item list (`itemsSha256` in the split) | `1c104ce17f2d2bc41933360f72d86ac8d851d61f672464141f4140d79bdd11c8` |
 | `results/v1.3-judge-v22/prompts/check2-v1.json` | `65b0d39869b6664c3877308a321ccf0ee1b5b850411924349da81032e734a65e` |
-| `results/v1.3-judge-v22/prompts/check2-v2.2.json` | `1b1d26656d8aae7c2d257355a991c3734914d59516e74f83b2846f09ab94fd57` |
+| `results/v1.3-judge-v22/prompts/check2-v2.2.json` | `27dcd514e5a6f48996d3dd6ea533e25380fbbce887b07a33e1a6c0bed690a872` |
 
 Seed salt: `daedalus-v1.3-judge-v22-check2-20261016`; apply seed `20261015`.
 
 **Reproducibility.** `seed --check` regenerates the manifest byte for byte; this was verified in a second, independent seeding run.
 
 **How the prompts were harvested.** The prompts are the product path's own: a mock `firewall evaluate` per target, with the target units selected through a crafted baseline report (as in the judge-catch rounds), Neo4j graph view, cheap flags (v2.2), and `runIndex` 0 of the mock cassette. They were harvested locally with a throwaway Neo4j 5.26 and the mock provider.
+
+**Re-harvest after merging `origin/v1.3` (2026-10-16, still before any judge call).** The merge brought new cheap-proxy code, so seed, plan and both harvests were re-run with `--check` on the merged tree.
+- The seed manifest, the split and all 138 v1 prompts are identical.
+- 19 v2.2 prompts differ, only in the `## Candidate flags` section: new `clones/same-component-exact-structural` flags. They are 7 clean units, 8 seed units and 4 twin units, all on files whose base code carries the flagged clone, so the flags are no seed-only cue.
+- The v2.2 prompts were re-harvested from the merged code; the hash above is the new file's. The superseded v2.2 file was never judged.
 
 **Prompt scan.** No prompt contains a work-dir path, a row id, an operator id, a base id or a `[REDACTED]` marker. All 138 v2.2 prompts carry the style line; no v1 prompt does. The cheap flags were available for every v2.2 target.
 

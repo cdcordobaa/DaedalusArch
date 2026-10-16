@@ -75,7 +75,7 @@ async function call(client: Client, name: string, args: Record<string, unknown> 
 }
 
 describe('MCP server over an in-memory transport', () => {
-  it('exposes exactly the eight tools, each with a description and an input schema', async () => {
+  it('exposes exactly the eleven tools (the eight v1 tools first, then the MCP v2 tools, then propose_spec), each with a description and an input schema', async () => {
     const { client, close } = await connect(context());
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name)).toEqual([...TOOL_NAMES]);
@@ -88,9 +88,13 @@ describe('MCP server over an in-memory transport', () => {
       'check_file',
       'check_diff',
       'suggest_placement',
+      'infer_spec',
+      'explain_finding',
+      'propose_spec',
     ]);
     expect(SPEC_TOOL_NAMES).not.toContain('evaluate_project');
-    expect(SPEC_TOOL_NAMES).toHaveLength(7);
+    expect(SPEC_TOOL_NAMES).not.toContain('propose_spec');
+    expect(SPEC_TOOL_NAMES).toHaveLength(9);
     for (const tool of tools) {
       expect(tool.description?.length).toBeGreaterThan(40);
       expect(tool.inputSchema.type).toBe('object');
@@ -257,6 +261,34 @@ describe('v1.3 loop tools over an in-memory transport', () => {
     expect(missing.isError).toBe(true);
     await close();
   });
+
+  it('propose_spec returns the inferred proposal for the configured or given project, without a spec', async () => {
+    const proposeSpec = jest.fn().mockResolvedValue({ label: 'inferred spec, not author-declared', style: 'layered', questions: [], yaml: '# y\n' });
+    const { client, close } = await connect(context({ defaultSpecPath: undefined, proposeSpec }));
+    const res = await call(client, 'propose_spec', {});
+    expect(res.isError).toBe(false);
+    expect(res.structured).toMatchObject({ label: 'inferred spec, not author-declared', style: 'layered' });
+    expect(proposeSpec).toHaveBeenCalledWith(path.resolve(PROJECT));
+    await call(client, 'propose_spec', { project: '/other' });
+    expect(proposeSpec).toHaveBeenLastCalledWith(path.resolve('/other'));
+    proposeSpec.mockRejectedValueOnce(new Error('no src/'));
+    const bad = await call(client, 'propose_spec', {});
+    expect(bad.isError).toBe(true);
+    expect(bad.text).toMatch(/Cannot infer a spec .*no src\//);
+    await close();
+    const none = await connect(context({ defaultProjectPath: undefined, proposeSpec }));
+    const missing = await call(none.client, 'propose_spec', {});
+    expect(missing.text).toMatch(/No project configured/);
+    await none.close();
+  });
+
+  it('propose_spec infers a real reference project end to end', async () => {
+    const { client, close } = await connect(context({ defaultProjectPath: path.resolve('tests/fixtures/v1.3-reference/hexagonal/project') }));
+    const res = await call(client, 'propose_spec', {});
+    expect(res.structured).toMatchObject({ style: 'hexagonal', check: { valid: true, compiles: true } });
+    expect(String(res.structured?.yaml)).toMatch(/^# INFERRED SPEC, NOT AUTHOR-DECLARED/);
+    await close();
+  }, 60_000);
 
   it('the loop tools report a missing spec like the others', async () => {
     const { client, close } = await connect(context({ defaultSpecPath: undefined }));

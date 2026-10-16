@@ -66,3 +66,23 @@ Numbering follows the review's Section 11 (prioritised list), with the Section 3
 | m11 | | No screenshot or report excerpt added and Figure 1 is still ASCII art; this needs a new artefact from a tool run. |
 | 15 to 20 | Section 7, M2, M3, M7, M9 | New experiments (human audit of labels and judge, per-edge ablation, seeds for untested rules, architect-written specs, a second semantic baseline, scale run, E1 gate). Out of scope for a text revision; their absence is now stated in the text and threats. The LLM-review pilot (Section 6.7) is a partial answer to the "why not an LLM" question but not to item 19. |
 | M2 (usefulness) | | No user or architect study exists; the conclusion now names accuracy and usefulness of the broader rules as the open question. |
+
+## Revision of 2026-10-16 (branch `v1.3-paper2-update`)
+
+Brings the paper to the later v1.3 evidence. Every new number carries a `% src:` comment. Reports on unmerged pull
+requests are cited as `origin/<branch>:<path>` with the PR number; their numbers must be re-checked after merge.
+
+| Change | Source |
+|---|---|
+| Section 7.7, one rule text, two engines: byte-identity on 71 variants, 65,254-statement parity, 836,000-statement differential fuzz, ten interpreter defects found | #128, #183 (merged) |
+| Section 7.8, convergent agreement with dependency-cruiser, eslint-plugin-boundaries and ArchUnitTS (Table `tab:v13-convergent`) | #166 (merged) |
+| Section 7.9, correctness on 15 human-written projects (283/283, negative control 500/500); wave 2 fidelity and the spec-author caveat | #167, #181 (not merged) |
+| Section 7.10, metamorphic invariance 637/655 | #185 (not merged) |
+| Section 7.11, rule mutation as a limit of the test oracle | #190 (not merged) |
+| Section 7.12, replication package (audit, smoke run, number-level part 2 and its finding that the smoke script drifted) | #117 (merged), #215 (not merged) |
+| Section 7.13, null results: developer-fix mining and known groups | #168, #198 (not merged) |
+| Abstract, contribution 7, limits list, a new threats paragraph, conclusion | as above |
+| New marker `\explor{}` for exploratory figures on human-written code | |
+
+Compiles with TeX Live (`pdflatex`, `bibtex`): 24 pages, no errors, no undefined references. Target venue recorded
+in `papers/STATUS.md` (ECSA 2027 research track, verified dates); the paper must come down to 16 + 2 LNCS pages.

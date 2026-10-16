@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { realpathSync } from 'node:fs';
 import { extractAndEnrich } from '../../../../src/apg-enrich/cheap/index.js';
-import type { CheapEnrichment, CheapFlag, CheapOptions, ProxyId } from '../../../../src/apg-enrich/cheap/index.js';
+import type { CheapEnrichment, CheapFlag, CheapOptions, ContextProxyId, ProxyId } from '../../../../src/apg-enrich/cheap/index.js';
 import type { LayerDefinition, LayerModel } from '../../../../src/shared/types/spec.js';
 import type { APGResult } from '../../../../src/shared/types/apg.js';
 
@@ -59,7 +59,7 @@ export interface Fixture {
 }
 
 /** Writes `files` (project-relative) plus tsconfig and vendor typings, extracts and runs `proxies`. */
-export async function runOn(files: Record<string, string>, proxies: readonly ProxyId[], options: Partial<CheapOptions> = {}, layerModel: LayerModel = LAYERS): Promise<Fixture> {
+export async function runOn(files: Record<string, string>, proxies: readonly ContextProxyId[], options: Partial<CheapOptions> = {}, layerModel: LayerModel = LAYERS): Promise<Fixture> {
   const root = realpathSync(mkdtempSync(join(tmpdir(), 'cheap-proxy-')));
   const all: Record<string, string> = {
     'tsconfig.json': JSON.stringify({

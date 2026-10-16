@@ -1,0 +1,353 @@
+{
+  "case": "case-03-concept-fragmentation",
+  "note": "Hand-written scripted mock answers (NOT model output). They exercise the ontology pipeline, the grounding validator, the cache and the scorer on the planted cases; they were written after expected-semantic.json and say nothing about what a model would answer. Planted hallucinations are marked 'planted-hallucination'.",
+  "responses": [
+    {
+      "pass": "responsibility",
+      "item": "Client",
+      "answer": {
+        "responsibilities": [
+          {
+            "name": "Represent a sales customer and decide VIP status",
+            "description": "Represent a sales customer and decide VIP status",
+            "naturalLayer": "domain",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "Client.isVip",
+                "quote": "return this.lifetimeSpend > 10000;"
+              }
+            ]
+          }
+        ],
+        "concepts": [
+          {
+            "name": "Customer",
+            "relation": "defines",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "Client",
+                "quote": "export class Client {"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "responsibility",
+      "item": "Buyer",
+      "answer": {
+        "responsibilities": [
+          {
+            "name": "Label a billing customer",
+            "description": "Label a billing customer",
+            "naturalLayer": "domain",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "Buyer.label",
+                "quote": "return `${this.displayName} <${this.emailAddress}>`;"
+              }
+            ]
+          }
+        ],
+        "concepts": [
+          {
+            "name": "Customer",
+            "relation": "defines",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "Buyer",
+                "quote": "export class Buyer {"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "responsibility",
+      "item": "AccountHolder",
+      "answer": {
+        "responsibilities": [
+          {
+            "name": "Hold an account owner's identity",
+            "description": "Hold an account owner's identity",
+            "naturalLayer": "domain",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "AccountHolder",
+                "quote": "readonly contactEmail: string,"
+              }
+            ]
+          }
+        ],
+        "concepts": [
+          {
+            "name": "Customer account",
+            "relation": "defines",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "AccountHolder",
+                "quote": "export class AccountHolder {"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "responsibility",
+      "item": "QuoteService",
+      "answer": {
+        "responsibilities": [
+          {
+            "name": "Quote prices for customers",
+            "description": "Quote prices for customers",
+            "naturalLayer": "application",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "QuoteService.quoteFor",
+                "quote": "return client.isVip() ? listPrice * 0.95 : listPrice;"
+              }
+            ]
+          }
+        ],
+        "concepts": [
+          {
+            "name": "Customer",
+            "relation": "uses",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "QuoteService.quoteFor",
+                "quote": "quoteFor(client: Client, listPrice: number): number {"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "responsibility",
+      "item": "StatementService",
+      "answer": {
+        "responsibilities": [
+          {
+            "name": "Build statement headers",
+            "description": "Build statement headers",
+            "naturalLayer": "application",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "StatementService.header",
+                "quote": "return `Statement for ${buyer.label()}"
+              }
+            ]
+          }
+        ],
+        "concepts": [
+          {
+            "name": "Customer",
+            "relation": "uses",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "StatementService.header",
+                "quote": "header(buyer: Buyer): string {"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "responsibility",
+      "item": "PasswordPolicy",
+      "answer": {
+        "responsibilities": [
+          {
+            "name": "Validate password strength",
+            "description": "Validate password strength",
+            "naturalLayer": "domain",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "PasswordPolicy.accepts",
+                "quote": "return candidate.length >= 12 && /[0-9]/.test(candidate);"
+              }
+            ]
+          }
+        ],
+        "concepts": [
+          {
+            "name": "Password",
+            "relation": "defines",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "PasswordPolicy",
+                "quote": "export class PasswordPolicy {"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "rules",
+      "item": "Client",
+      "answer": {
+        "rules": [
+          {
+            "statement": "Customers whose lifetime spend exceeds 10000 are VIP",
+            "subject": "lifetime spend",
+            "operator": ">",
+            "threshold": 10000,
+            "unit": "currency units",
+            "enforcedBy": "Client.isVip",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "Client.isVip",
+                "quote": "this.lifetimeSpend > 10000"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "rules",
+      "item": "QuoteService",
+      "answer": {
+        "rules": [
+          {
+            "statement": "VIP customers get a 5% discount on the list price",
+            "subject": "list price",
+            "operator": "other",
+            "threshold": null,
+            "unit": null,
+            "enforcedBy": "QuoteService.quoteFor",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "QuoteService.quoteFor",
+                "quote": "client.isVip() ? listPrice * 0.95 : listPrice"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "rules",
+      "item": "PasswordPolicy",
+      "answer": {
+        "rules": [
+          {
+            "statement": "Passwords need at least 12 characters and a digit",
+            "subject": "password length",
+            "operator": ">=",
+            "threshold": 12,
+            "unit": "characters",
+            "enforcedBy": "PasswordPolicy.accepts",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "PasswordPolicy.accepts",
+                "quote": "candidate.length >= 12"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "capability",
+      "item": "component:sales",
+      "answer": {
+        "capabilities": [
+          {
+            "name": "Sales quoting",
+            "description": "Sales quoting",
+            "realizedBy": [
+              "Client",
+              "QuoteService"
+            ],
+            "confidence": 0.8,
+            "evidence": [
+              {
+                "node": "QuoteService",
+                "quote": "export class QuoteService {"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "capability",
+      "item": "component:billing",
+      "answer": {
+        "capabilities": [
+          {
+            "name": "Billing statements",
+            "description": "Billing statements",
+            "realizedBy": [
+              "Buyer",
+              "StatementService"
+            ],
+            "confidence": 0.8,
+            "evidence": [
+              {
+                "node": "StatementService",
+                "quote": "export class StatementService {"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "capability",
+      "item": "component:accounts",
+      "answer": {
+        "capabilities": [
+          {
+            "name": "Account management",
+            "description": "Account management",
+            "realizedBy": [
+              "AccountHolder",
+              "PasswordPolicy"
+            ],
+            "confidence": 0.8,
+            "evidence": [
+              {
+                "node": "AccountHolder",
+                "quote": "export class AccountHolder {"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "adjudicate",
+      "contains": [
+        "Customer account"
+      ],
+      "answer": {
+        "same": true,
+        "confidence": 0.8,
+        "rationale": "An account holder is the customer who owns the account."
+      }
+    }
+  ]
+}

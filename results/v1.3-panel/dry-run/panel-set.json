@@ -1,0 +1,366 @@
+{
+  "schemaVersion": 1,
+  "seed": 20261016,
+  "items": [
+    {
+      "id": "P001",
+      "key": "ef2e54110abe1105fd30b08a",
+      "style": "hexagonal",
+      "styleDefinition": "- Core isolation, dependency direction: The application core communicates with the outside only through ports. It does not depend on adapters, UI or databases. (Cockburn, \"Hexagonal Architecture\" (2005))\n- Port-adapter: Each external actor talks to the application through a port. Adapters convert between the port and the technology; secondary (driven) adapters implement ports the core defines. (Cockburn 2005)",
+      "file": "src/domain/services/AvailabilityChecker.ts",
+      "claim": "A domain class in src/domain/services/AvailabilityChecker.ts holds src/adapters/outbound/persistence/InMemoryBookingRepository.ts (adapters-outbound) (line 1)",
+      "excerpt": "    1 | import { InMemoryBookingRepository } from '../../adapters/outbound/persistence/InMemoryBookingRepository';\n    2 | import { Booking } from '../model/Booking';\n    3 | import { DateRange } from '../model/DateRange';\n    4 | import { Room } from '../model/Room';\n    5 | \n    6 | export class AvailabilityChecker {\n    7 |   private readonly history = new InMemoryBookingRepository();\n    8 | \n    9 |   async isAvailableNow(room: Room, stay: DateRange): Promise<boolean> {\n   10 |     return this.isAvailable(room, stay, await this.history.findByRoom(room.id));\n   11 |   }\n   12 | \n   13 |   isAvailable(room: Room, stay: DateRange, bookings: readonly Booking[]): boolean {\n   14 |     return !bookings.some((b) => b.isActive && b.roomId === room.id && b.stay.overlaps(stay));\n   15 |   }\n   16 | }"
+    },
+    {
+      "id": "P002",
+      "key": "9f151cd29673b7f6007c7f25",
+      "style": "none declared",
+      "styleDefinition": "- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.",
+      "file": "src/team/team-member.resolver.ts",
+      "claim": "Component `team` lies far from the main sequence: abstractness 0.00, instability 0.09, distance 0.91.",
+      "excerpt": "    1> import { Resolver, ResolveField, Parent } from '@nestjs/graphql';\n    2  import { TeamMember } from './team.model';\n    3  import { UserService } from 'src/user/user.service';\n    4  import { User } from '../user/user.model';\n    5  import { throwErr } from 'src/utils';\n    6  import { USER_NOT_FOUND } from 'src/errors';\n    7  import * as O from 'fp-ts/Option';\n    8  \n    9  @Resolver(() => TeamMember)"
+    },
+    {
+      "id": "P003",
+      "key": "ceba59c0ea55525c1fd861a8",
+      "style": "none declared",
+      "styleDefinition": "- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.",
+      "file": "src/api/private/private-api.module.ts",
+      "claim": "Component `api` depends on `users` (12 import(s)), and `users` depends back on `api` (directly or transitively): a dependency cycle between folder components.",
+      "excerpt": "   15  import { NoteModule } from '../../notes/note.module';\n   16  import { PermissionsModule } from '../../permissions/permissions.module';\n   17  import { RevisionsModule } from '../../revisions/revisions.module';\n   18> import { UsersModule } from '../../users/users.module';\n   19  import { AliasController } from './alias/alias.controller';\n   20  import { ApiTokensController } from './api-tokens/api-tokens.controller';\n   21  import { AuthController } from './auth/auth.controller';\n   22  import { GuestController } from './auth/guest/guest.controller';\n   23  import { LdapController } from './auth/ldap/ldap.controller';\n   24  import { LocalController } from './auth/local/local.controller';\n   25  import { OidcController } from './auth/oidc/oidc.controller';\n   26  import { ConfigController } from './config/config.controller';"
+    },
+    {
+      "id": "P004",
+      "key": "e13ce315cb42ba3b1b6f12b1",
+      "style": "none declared",
+      "styleDefinition": "- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.",
+      "file": "src/modules/user/commands/create-user/create-user.message.controller.ts",
+      "claim": "Component `presentation` publishes on channel `CreateUserCommand` (cqrs-command) and component `application` (src/modules/user/commands/create-user/create-user.service.ts) subscribes to it: a run-time coupling with no declared dependency.",
+      "excerpt": "    1  import { Controller } from '@nestjs/common';\n    2  import { MessagePattern } from '@nestjs/microservices';\n    3  import { CommandBus } from '@nestjs/cqrs';\n    4> import { CreateUserCommand } from './create-user.command';\n    5  import { CreateUserRequestDto } from './create-user.request.dto';\n    6  import { IdResponse } from '@libs/api/id.response.dto';\n    7  \n    8  @Controller()\n    9  export class CreateUserMessageController {\n   10    constructor(private readonly commandBus: CommandBus) {}\n   11  \n   12    @MessagePattern('user.create')"
+    },
+    {
+      "id": "P005",
+      "key": "6687fdfab612d8f2d7b27b33",
+      "style": "none declared",
+      "styleDefinition": "- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.",
+      "file": "src/util/auditevent.ts",
+      "claim": "Component `util` (instability 0.04) depends on the less stable component `fhir` (instability 0.48).",
+      "excerpt": "   29  import type { BotExecutionRequest } from '../bots/types';\n   30  import { getConfig } from '../config/loader';\n   31  import { AuthenticatedRequestContext, buildTracingExtension, tryGetRequestContext } from '../context';\n   32> import type { SystemRepository } from '../fhir/repo';\n   33  import { getProjectSystemRepo } from '../fhir/repo';\n   34  import { globalLogger } from '../logger';\n   35  "
+    },
+    {
+      "id": "P006",
+      "key": "0f122ba4f74f52d07a8919c6",
+      "style": "ddd",
+      "styleDefinition": "- Aggregate boundary: Objects outside the aggregate may hold references only to the root. Inner entities are reached through the root. (Evans, *Domain-Driven Design* (2003), ch. 6 \"Aggregates\"; Vernon, *Implementing DDD* (2013), ch. 10)\n- Repository only for aggregate roots: Repositories are provided only for aggregate roots that actually need direct access. (Evans 2003, ch. 6 \"Repositories\"; Vernon 2013, ch. 12)\n- Value-object immutability: A value object is treated as immutable. Replace it rather than modify it. (Evans 2003, ch. 5 \"Value Objects\"; Vernon 2013, ch. 6)\n- Isolated domain: Domain code is separated from UI, application and infrastructure concerns. (Evans 2003, ch. 4 \"Isolating the Domain\" (Layered Architecture))\n- Bounded-context isolation: Each model applies within an explicit boundary. Integration across contexts is explicit, through a published interface, or translated by an anticorruption layer. (Evans 2003, ch. 14 \"Maintaining Model Integrity\" (Bounded Context, Context Map, Anticorruption Layer); Vernon 2013, ch. 2–3)",
+      "file": "src/ordering/application/GetOrderSummary.ts",
+      "claim": "src/ordering/application/GetOrderSummary.ts imports src/ordering/domain/order/OrderLine.ts, an inner entity of an aggregate (line 4)",
+      "excerpt": "    1 | import type { OrderSummary, OrderSummaryQuery } from '../contracts/OrderSummary.js';\n    2 | import type { OrderRepository } from '../domain/order/OrderRepository.js';\n    3 | import { OrderId } from '../domain/order/value-objects/OrderId.js';\n    4 | import type { OrderLine } from '../domain/order/OrderLine.js';\n    5 | \n    6 | \n    7 | export class GetOrderSummary implements OrderSummaryQuery {\n    8 |   constructor(private readonly orders: OrderRepository) {}\n    9 | \n   10 |   async summaryOf(orderId: string): Promise<OrderSummary | null> {\n   11 |     const order = await this.orders.byId(new OrderId(orderId));\n   12 |     if (order === null) return null;\n   13 |     const total = order.total();\n   14 |     return { orderId, customerId: order.customerId.value, totalCents: total.cents, currency: total.currency, lineCount: order.lineCount() };\n   15 |   }\n   16 | \n   17 | \n   18 |   describeLine(line: OrderLine): string {\n   19 |     return `${String(line.lineNo)} ${line.productId} ${String(line.subtotal().cents)}`;"
+    },
+    {
+      "id": "P007",
+      "key": "7b8cf89a553b0154b5a7af11",
+      "style": "hexagonal",
+      "styleDefinition": "- Core isolation, dependency direction: The application core communicates with the outside only through ports. It does not depend on adapters, UI or databases. (Cockburn, \"Hexagonal Architecture\" (2005))\n- Port-adapter: Each external actor talks to the application through a port. Adapters convert between the port and the technology; secondary (driven) adapters implement ports the core defines. (Cockburn 2005)",
+      "file": "src/domain/model/Booking.ts",
+      "claim": "src/domain/model/Booking.ts (domain) imports against the allowed direction from src/application/ports/out/BookingRepository.ts (application) (line 1)",
+      "excerpt": "    1 | import { BookingError } from '../errors/BookingError';\n    2 | import { DateRange } from './DateRange';\n    3 | import { Money } from './Money';\n    4 | \n    5 | export type BookingStatus = 'confirmed' | 'cancelled';\n    6 | \n    7 | export class Booking {\n    8 |   private bookingStatus: BookingStatus = 'confirmed';\n    9 | \n   10 |   constructor(\n   11 |     readonly id: string,\n   12 |     readonly roomId: string,\n   13 |     readonly guestId: string,\n   14 |     readonly stay: DateRange,\n   15 |     readonly total: Money,\n   16 |     readonly paymentRef: string,"
+    },
+    {
+      "id": "P008",
+      "key": "aa1d662b275c653216c1ff75",
+      "style": "none declared",
+      "styleDefinition": "- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.",
+      "file": "src/lib/bounded-contexts/marketing/marketing/application/command-handlers/create-user.command-handler.ts",
+      "claim": "Class `CreateUserCommandHandler` is not cohesive: its 3 methods fall into 3 groups that share no field or call: {execute} {command} {boundedContext}.",
+      "excerpt": "   19    Application.Repo.Errors.Unexpected\n   20  >;\n   21  \n   22> export class CreateUserCommandHandler\n   23    implements Application.ICommandHandler<CreateUserCommand, void>\n   24  {\n   25    constructor(\n   26      @Inject(UserWriteRepoPortToken)\n   27      private userRepo: UserWriteRepoPort,\n   28    ) {}\n   29  \n   30    get command() {"
+    },
+    {
+      "id": "P009",
+      "key": "d4a15892be850d3c30cbd72c",
+      "style": "none declared",
+      "styleDefinition": "- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.",
+      "file": "src/services/metadata.service.ts",
+      "claim": "`MetadataService.getDates` in the application layer performs fs I/O or side effects directly (fs:stats.mtime.getTime).",
+      "excerpt": " 1052        const earliestDate = DateTime.fromMillis(\n 1053          Math.min(\n 1054            asset.fileCreatedAt.getTime(),\n 1055>           stats.birthtimeMs ? Math.min(stats.mtimeMs, stats.birthtimeMs) : stats.mtime.getTime(),\n 1056          ),\n 1057        );\n 1058        this.logger.debug(\n 1059          `No exif date time found, falling back on ${earliestDate.toISO()}, earliest of file creation and modification for asset ${asset.id}: ${asset.originalPath}`,\n 1060        );\n 1061        dateTimeOriginal = localDateTime = earliestDate;\n 1062      }\n 1063  "
+    },
+    {
+      "id": "P010",
+      "key": "4cfd3682b5fe349b19c39edd",
+      "style": "nestjs",
+      "styleDefinition": "- Dependency direction: Source-code dependencies point only inward. Nothing in an inner circle knows anything about an outer circle. (Martin, *Clean Architecture* (2017), ch. 22 \"The Clean Architecture\", the Dependency Rule)\n- Domain purity: Entities and use cases do not depend on frameworks, databases or the UI. (Martin 2017, ch. 22; ch. 32 \"Frameworks are details\")\n- Repository / gateway placement: The data-access interface is owned by the inner layer, and the implementation lives in the outer layer (dependency inversion across the boundary). (Martin 2017, ch. 22 (interface adapters); ch. 11 (DIP))\n- Acyclic dependencies: The component dependency graph has no cycles. (Martin 2017, ch. 14 \"Component Coupling\", ADP)\n- Module boundaries and DI: Providers are encapsulated in modules. Other modules use only what a module exports. (NestJS documentation, \"Modules\", \"Providers\")",
+      "file": "src/workshops/dto/workshop-response.dto.ts",
+      "claim": "src/workshops/dto/workshop-response.dto.ts (application) imports from src/workshops/workshops.controller.ts (presentation) (line 1)",
+      "excerpt": "    1 | import { Workshop } from '../../domain/workshop';\n    2 | \n    3 | export class WorkshopResponseDto {\n    4 |   id!: string;\n    5 |   title!: string;\n    6 |   seatsLeft!: number;\n    7 |   startsAt!: string;\n    8 | \n    9 |   static from(workshop: Workshop): WorkshopResponseDto {\n   10 |     return Object.assign(new WorkshopResponseDto(), {\n   11 |       id: workshop.id,\n   12 |       title: workshop.title,\n   13 |       seatsLeft: workshop.seatsLeft,\n   14 |       startsAt: workshop.startsAt.toISOString(),\n   15 |     });\n   16 |   }"
+    },
+    {
+      "id": "P011",
+      "key": "bc9b7cbb67cca669db99ab34",
+      "style": "clean-architecture",
+      "styleDefinition": "- Dependency direction: Source-code dependencies point only inward. Nothing in an inner circle knows anything about an outer circle. (Martin, *Clean Architecture* (2017), ch. 22 \"The Clean Architecture\", the Dependency Rule)\n- Domain purity: Entities and use cases do not depend on frameworks, databases or the UI. (Martin 2017, ch. 22; ch. 32 \"Frameworks are details\")\n- Repository / gateway placement: The data-access interface is owned by the inner layer, and the implementation lives in the outer layer (dependency inversion across the boundary). (Martin 2017, ch. 22 (interface adapters); ch. 11 (DIP))\n- Acyclic dependencies: The component dependency graph has no cycles. (Martin 2017, ch. 14 \"Component Coupling\", ADP)",
+      "file": "src/domain/services/LoanPolicy.ts",
+      "claim": "Domain file src/domain/services/LoanPolicy.ts imports from src/infrastructure/http/LoanController.ts in infrastructure (line 4)",
+      "excerpt": "    1 | import { Loan } from '../entities/Loan';\n    2 | import { Member } from '../entities/Member';\n    3 | import { DomainError } from '../errors/DomainError';\n    4 | import { SystemClock } from '../../infrastructure/system/SystemClock';\n    5 | \n    6 | export class LoanPolicy {\n    7 |   private readonly clock = new SystemClock();\n    8 | \n    9 |   isOverdueToday(loan: Loan): boolean {\n   10 |     return loan.isOverdue(this.clock.now());\n   11 |   }\n   12 | \n   13 |   assertCanBorrow(member: Member, activeLoans: readonly Loan[], now: Date): void {\n   14 |     if (activeLoans.some((loan) => loan.isOverdue(now))) {\n   15 |       throw new DomainError('OVERDUE_LOANS', `${member.name} has overdue loans`);\n   16 |     }\n   17 |     if (activeLoans.length >= member.maxActiveLoans) {\n   18 |       throw new DomainError('LOAN_LIMIT', `${member.name} reached the limit of ${member.maxActiveLoans} loans`);\n   19 |     }"
+    },
+    {
+      "id": "P012",
+      "key": "a6c2f08b49f287a0f9baf8f7",
+      "style": "ddd",
+      "styleDefinition": "- Aggregate boundary: Objects outside the aggregate may hold references only to the root. Inner entities are reached through the root. (Evans, *Domain-Driven Design* (2003), ch. 6 \"Aggregates\"; Vernon, *Implementing DDD* (2013), ch. 10)\n- Repository only for aggregate roots: Repositories are provided only for aggregate roots that actually need direct access. (Evans 2003, ch. 6 \"Repositories\"; Vernon 2013, ch. 12)\n- Value-object immutability: A value object is treated as immutable. Replace it rather than modify it. (Evans 2003, ch. 5 \"Value Objects\"; Vernon 2013, ch. 6)\n- Isolated domain: Domain code is separated from UI, application and infrastructure concerns. (Evans 2003, ch. 4 \"Isolating the Domain\" (Layered Architecture))\n- Bounded-context isolation: Each model applies within an explicit boundary. Integration across contexts is explicit, through a published interface, or translated by an anticorruption layer. (Evans 2003, ch. 14 \"Maintaining Model Integrity\" (Bounded Context, Context Map, Anticorruption Layer); Vernon 2013, ch. 2–3)",
+      "file": "src/ordering/domain/order/OrderLineRepository.ts",
+      "claim": "Repository src/ordering/domain/order/OrderLineRepository.ts imports src/ordering/domain/order/OrderLine.ts, an inner entity of an aggregate (line 1)",
+      "excerpt": "    1 | import type { OrderLine } from './OrderLine.js';\n    2 | \n    3 | \n    4 | export interface OrderLineRepository {\n    5 |   byProduct(productId: string): Promise<OrderLine[]>;\n    6 |   save(line: OrderLine): Promise<void>;\n    7 | }\n    8 | "
+    },
+    {
+      "id": "P013",
+      "key": "bd8459f1b4c1e9b001fc9010",
+      "style": "ddd",
+      "styleDefinition": "- Aggregate boundary: Objects outside the aggregate may hold references only to the root. Inner entities are reached through the root. (Evans, *Domain-Driven Design* (2003), ch. 6 \"Aggregates\"; Vernon, *Implementing DDD* (2013), ch. 10)\n- Repository only for aggregate roots: Repositories are provided only for aggregate roots that actually need direct access. (Evans 2003, ch. 6 \"Repositories\"; Vernon 2013, ch. 12)\n- Value-object immutability: A value object is treated as immutable. Replace it rather than modify it. (Evans 2003, ch. 5 \"Value Objects\"; Vernon 2013, ch. 6)\n- Isolated domain: Domain code is separated from UI, application and infrastructure concerns. (Evans 2003, ch. 4 \"Isolating the Domain\" (Layered Architecture))\n- Bounded-context isolation: Each model applies within an explicit boundary. Integration across contexts is explicit, through a published interface, or translated by an anticorruption layer. (Evans 2003, ch. 14 \"Maintaining Model Integrity\" (Bounded Context, Context Map, Anticorruption Layer); Vernon 2013, ch. 2–3)",
+      "file": "src/billing/application/ports/OrderSource.ts",
+      "claim": "src/billing/application/ports/OrderSource.ts (application) imports against the allowed direction from src/billing/acl/OrderingAcl.ts (infrastructure)",
+      "excerpt": "    1 | \n    2 | export interface BillableOrder {\n    3 |   readonly orderId: string;\n    4 |   readonly amountCents: number;\n    5 |   readonly currency: string;\n    6 | }\n    7 | \n    8 | export interface OrderSource {\n    9 |   billableOrder(orderId: string): Promise<BillableOrder | null>;\n   10 | }\n   11 | "
+    },
+    {
+      "id": "P014",
+      "key": "e758fa06b756b58107abd909",
+      "style": "none declared",
+      "styleDefinition": "- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.",
+      "file": "src/email/email.service.ts",
+      "claim": "The public param type of `EmailService.sendFromTemplate` (layer application) exposes `EmailTemplate`, a type declared in the infrastructure layer (src/email/template.interface.ts).",
+      "excerpt": "   33      }\n   34    }\n   35  \n   36>   async sendFromTemplate<C>(\n   37      template: EmailTemplate<C>,\n   38      emailInfo: Partial<Email> & { to: EmailData[] },\n   39      settings: sg.MailDataRequired['mailSettings'] = {},\n   40    ) {\n   41      if (!emailInfo.to) {\n   42        throw new Error('emailInfo.to is required')\n   43      }\n   44  "
+    },
+    {
+      "id": "P015",
+      "key": "48fe3dc78d78aebe489fa4e4",
+      "style": "none declared",
+      "styleDefinition": "- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.",
+      "file": "src/utils/standardLogger.ts",
+      "claim": "`standardLogger.ts` in the application layer performs clock I/O or side effects directly (Date.now()).",
+      "excerpt": "  318  \n  320    generateRequestId(): string {\n  321>     return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\n  322    },\n  323  \n  327    sanitizeContext(context: LogContext): LogContext {\n  328      const sanitized = { ...context };\n  329  "
+    },
+    {
+      "id": "P016",
+      "key": "a5a63244f0e8c816422a7acc",
+      "style": "hexagonal",
+      "styleDefinition": "- Core isolation, dependency direction: The application core communicates with the outside only through ports. It does not depend on adapters, UI or databases. (Cockburn, \"Hexagonal Architecture\" (2005))\n- Port-adapter: Each external actor talks to the application through a port. Adapters convert between the port and the technology; secondary (driven) adapters implement ports the core defines. (Cockburn 2005)",
+      "file": "src/domain/services/AvailabilityChecker.ts",
+      "claim": "Core file src/domain/services/AvailabilityChecker.ts imports from src/adapters/outbound/persistence/InMemoryBookingRepository.ts in adapters-outbound (line 1)",
+      "excerpt": "    1 | import { InMemoryBookingRepository } from '../../adapters/outbound/persistence/InMemoryBookingRepository';\n    2 | import { Booking } from '../model/Booking';\n    3 | import { DateRange } from '../model/DateRange';\n    4 | import { Room } from '../model/Room';\n    5 | \n    6 | export class AvailabilityChecker {\n    7 |   private readonly history = new InMemoryBookingRepository();\n    8 | \n    9 |   async isAvailableNow(room: Room, stay: DateRange): Promise<boolean> {\n   10 |     return this.isAvailable(room, stay, await this.history.findByRoom(room.id));\n   11 |   }\n   12 | \n   13 |   isAvailable(room: Room, stay: DateRange, bookings: readonly Booking[]): boolean {\n   14 |     return !bookings.some((b) => b.isActive && b.roomId === room.id && b.stay.overlaps(stay));\n   15 |   }\n   16 | }"
+    },
+    {
+      "id": "P017",
+      "key": "09e748273556e1a373218a1b",
+      "style": "layered",
+      "styleDefinition": "- Acyclic dependencies: The component dependency graph has no cycles. (Martin 2017, ch. 14 \"Component Coupling\", ADP)\n- Downward-only, no skipping when strict: A higher layer uses services of lower layers, and lower layers do not use upper ones. Strict layering also forbids skipping a layer. (Fowler, *Patterns of Enterprise Application Architecture* (2002), ch. 1 \"Layering\"; Buschmann et al., *POSA vol. 1* (1996), Layers pattern)",
+      "file": "src/presentation/http/CatalogController.ts",
+      "claim": "src/presentation/http/CatalogController.ts (presentation) skips layers to import src/persistence/records/ProductRecord.ts (persistence) (line 2)",
+      "excerpt": "    1 | import { CatalogService } from '../../business/services/CatalogService';\n    2 | import { ProductGateway } from '../../persistence/ProductGateway';\n    3 | import { renderProduct } from '../views/ProductView';\n    4 | import { errorResponse } from './ErrorHandling';\n    5 | import { HttpRequest, HttpResponse } from './HttpTypes';\n    6 | \n    7 | export class CatalogController {\n    8 |   constructor(\n    9 |     private readonly catalog: CatalogService,\n   10 |     private readonly products: ProductGateway,\n   11 |   ) {}\n   12 | \n   13 |   stock(request: HttpRequest): HttpResponse {\n   14 |     const row = this.products.findBySku(String(request.params['sku']));\n   15 |     return row === undefined ? { status: 404, body: null } : { status: 200, body: { stock: row.stock } };\n   16 |   }\n   17 | "
+    },
+    {
+      "id": "P018",
+      "key": "43e20cf2f34fc024150099dc",
+      "style": "nestjs",
+      "styleDefinition": "- Dependency direction: Source-code dependencies point only inward. Nothing in an inner circle knows anything about an outer circle. (Martin, *Clean Architecture* (2017), ch. 22 \"The Clean Architecture\", the Dependency Rule)\n- Domain purity: Entities and use cases do not depend on frameworks, databases or the UI. (Martin 2017, ch. 22; ch. 32 \"Frameworks are details\")\n- Repository / gateway placement: The data-access interface is owned by the inner layer, and the implementation lives in the outer layer (dependency inversion across the boundary). (Martin 2017, ch. 22 (interface adapters); ch. 11 (DIP))\n- Acyclic dependencies: The component dependency graph has no cycles. (Martin 2017, ch. 14 \"Component Coupling\", ADP)\n- Module boundaries and DI: Providers are encapsulated in modules. Other modules use only what a module exports. (NestJS documentation, \"Modules\", \"Providers\")",
+      "file": "src/domain/registration-policy.ts",
+      "claim": "src/domain/registration-policy.ts (domain) imports from src/registrations/in-memory-registration.repository.ts (infrastructure) (line 5)",
+      "excerpt": "    1 | import { Attendee } from './attendee';\n    2 | import { DomainError } from './domain-error';\n    3 | import { Registration } from './registration';\n    4 | import { Workshop } from './workshop';\n    5 | import { InMemoryRegistrationRepository } from '../registrations/in-memory-registration.repository';\n    6 | \n    7 | \n    8 | export class RegistrationPolicy {\n    9 |   private readonly history = new InMemoryRegistrationRepository();\n   10 | \n   11 |   async registrationsOf(attendee: Attendee): Promise<Registration[]> {\n   12 |     return this.history.findByAttendee(attendee.id);\n   13 |   }\n   14 | \n   15 |   assertCanRegister(workshop: Workshop, attendee: Attendee, existing: readonly Registration[], now: Date): void {\n   16 |     if (workshop.startsAt.getTime() <= now.getTime()) {\n   17 |       throw new DomainError('conflict', `Workshop \"${workshop.title}\" has already started`);\n   18 |     }\n   19 |     if (existing.some((r) => r.isActive && r.workshopId === workshop.id && r.attendeeId === attendee.id)) {\n   20 |       throw new DomainError('conflict', `${attendee.name} is already registered`);"
+    },
+    {
+      "id": "P019",
+      "key": "40b37e34810595fe8f4c6895",
+      "style": "clean-architecture",
+      "styleDefinition": "- Dependency direction: Source-code dependencies point only inward. Nothing in an inner circle knows anything about an outer circle. (Martin, *Clean Architecture* (2017), ch. 22 \"The Clean Architecture\", the Dependency Rule)\n- Domain purity: Entities and use cases do not depend on frameworks, databases or the UI. (Martin 2017, ch. 22; ch. 32 \"Frameworks are details\")\n- Repository / gateway placement: The data-access interface is owned by the inner layer, and the implementation lives in the outer layer (dependency inversion across the boundary). (Martin 2017, ch. 22 (interface adapters); ch. 11 (DIP))\n- Acyclic dependencies: The component dependency graph has no cycles. (Martin 2017, ch. 14 \"Component Coupling\", ADP)",
+      "file": "src/domain/entities/Member.ts",
+      "claim": "Domain file src/domain/entities/Member.ts imports forbidden package express (line 1)",
+      "excerpt": "    1 | import type { Request } from 'express';\n    2 | import { DomainError } from '../errors/DomainError';\n    3 | \n    4 | export class Member {\n    5 |   constructor(\n    6 |     readonly id: string,\n    7 |     readonly name: string,\n    8 |     readonly email: string,\n    9 |     readonly maxActiveLoans: number,\n   10 |   ) {\n   11 |     if (!email.includes('@')) throw new DomainError('INVALID_MEMBER', `Invalid e-mail: ${email}`);\n   12 |     if (maxActiveLoans < 1) throw new DomainError('INVALID_MEMBER', 'A member may borrow at least one book');\n   13 |   }\n   14 | \n   15 |   static fromRequest(request: Request): Member {\n   16 |     const body = request.body;"
+    },
+    {
+      "id": "P020",
+      "key": "6d653aba01b844cbcda54bb5",
+      "style": "clean-architecture",
+      "styleDefinition": "- Dependency direction: Source-code dependencies point only inward. Nothing in an inner circle knows anything about an outer circle. (Martin, *Clean Architecture* (2017), ch. 22 \"The Clean Architecture\", the Dependency Rule)\n- Domain purity: Entities and use cases do not depend on frameworks, databases or the UI. (Martin 2017, ch. 22; ch. 32 \"Frameworks are details\")\n- Repository / gateway placement: The data-access interface is owned by the inner layer, and the implementation lives in the outer layer (dependency inversion across the boundary). (Martin 2017, ch. 22 (interface adapters); ch. 11 (DIP))\n- Acyclic dependencies: The component dependency graph has no cycles. (Martin 2017, ch. 14 \"Component Coupling\", ADP)",
+      "file": "src/application/ports/Clock.ts",
+      "claim": "Domain file src/application/ports/Clock.ts imports from src/domain/entities/Loan.ts in domain",
+      "excerpt": "    1 | export interface Clock {\n    2 |   now(): Date;\n    3 | }\n    4 | "
+    },
+    {
+      "id": "P021",
+      "key": "85b942c01fa6c27b521f49f2",
+      "style": "ddd",
+      "styleDefinition": "- Aggregate boundary: Objects outside the aggregate may hold references only to the root. Inner entities are reached through the root. (Evans, *Domain-Driven Design* (2003), ch. 6 \"Aggregates\"; Vernon, *Implementing DDD* (2013), ch. 10)\n- Repository only for aggregate roots: Repositories are provided only for aggregate roots that actually need direct access. (Evans 2003, ch. 6 \"Repositories\"; Vernon 2013, ch. 12)\n- Value-object immutability: A value object is treated as immutable. Replace it rather than modify it. (Evans 2003, ch. 5 \"Value Objects\"; Vernon 2013, ch. 6)\n- Isolated domain: Domain code is separated from UI, application and infrastructure concerns. (Evans 2003, ch. 4 \"Isolating the Domain\" (Layered Architecture))\n- Bounded-context isolation: Each model applies within an explicit boundary. Integration across contexts is explicit, through a published interface, or translated by an anticorruption layer. (Evans 2003, ch. 14 \"Maintaining Model Integrity\" (Bounded Context, Context Map, Anticorruption Layer); Vernon 2013, ch. 2–3)",
+      "file": "src/billing/application/IssueInvoice.ts",
+      "claim": "src/billing/application/IssueInvoice.ts imports src/ordering/domain/order/Order.ts, which is not in the public API of its bounded context (line 7)",
+      "excerpt": "    1 | import { Money } from '../../shared-kernel/value-objects/Money.js';\n    2 | import { Invoice } from '../domain/invoice/Invoice.js';\n    3 | import type { InvoiceRepository } from '../domain/invoice/InvoiceRepository.js';\n    4 | import { InvoiceId } from '../domain/invoice/value-objects/InvoiceId.js';\n    5 | import type { OrderSource } from './ports/OrderSource.js';\n    6 | \n    7 | import type { Order } from '../../ordering/domain/order/Order.js';\n    8 | \n    9 | \n   10 | export class IssueInvoice {\n   11 |   constructor(private readonly orders: OrderSource, private readonly invoices: InvoiceRepository, private readonly taxRate: number) {}\n   12 | \n   13 |   async execute(invoiceId: string, orderId: string): Promise<void> {\n   14 |     const order = await this.orders.billableOrder(orderId);\n   15 |     if (order === null) throw new Error('Unknown order');\n   16 |     const invoice = new Invoice(new InvoiceId(invoiceId), order.orderId, order.currency);\n   17 |     invoice.charge(`order ${order.orderId}`, Money.of(order.amountCents, order.currency));\n   18 |     invoice.issue(this.taxRate);\n   19 |     await this.invoices.save(invoice);\n   20 |   }\n   21 | \n   22 |   async executeFor(invoiceId: string, order: Order): Promise<void> {"
+    },
+    {
+      "id": "P022",
+      "key": "b9f1ddaf062de24e8a3d761c",
+      "style": "none declared",
+      "styleDefinition": "- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.",
+      "file": "src/media/media.service.ts",
+      "claim": "`MediaService.getFileResponse` in the application layer performs db I/O or side effects directly (knex:this.knex(TableMediaUpload).select(FieldNameMediaUpload.b..., knex:this.knex(TableMediaUpload).select, knex:this.knex).",
+      "excerpt": "  174          'getFileResponse',\n  175        );\n  176      }\n  177>     const mediaUpload = await this.knex(TableMediaUpload)\n  178        .select(\n  179          FieldNameMediaUpload.backendType,\n  180          FieldNameMediaUpload.backendData,\n  181          FieldNameMediaUpload.fileName,\n  182        )\n  183        .where(FieldNameMediaUpload.uuid, uuid)\n  184        .first();\n  185  "
+    },
+    {
+      "id": "P023",
+      "key": "f8a2ef5ece65014ef70745f4",
+      "style": "layered",
+      "styleDefinition": "- Acyclic dependencies: The component dependency graph has no cycles. (Martin 2017, ch. 14 \"Component Coupling\", ADP)\n- Downward-only, no skipping when strict: A higher layer uses services of lower layers, and lower layers do not use upper ones. Strict layering also forbids skipping a layer. (Fowler, *Patterns of Enterprise Application Architecture* (2002), ch. 1 \"Layering\"; Buschmann et al., *POSA vol. 1* (1996), Layers pattern)",
+      "file": "src/presentation/Router.ts",
+      "claim": "Circular dependency between src/presentation/Router.ts, src/presentation/http/OrderController.ts (line 3)",
+      "excerpt": "    1 | import { CatalogController } from './http/CatalogController';\n    2 | import { HttpRequest, HttpResponse } from './http/HttpTypes';\n    3 | import { OrderController } from './http/OrderController';\n    4 | \n    5 | type Handler = (request: HttpRequest) => HttpResponse;\n    6 | \n    7 | export class Router {\n    8 |   private readonly routes = new Map<string, Handler>();\n    9 | \n   10 |   constructor(catalog: CatalogController, orders: OrderController) {\n   11 |     this.routes.set('GET /products', () => catalog.list());\n   12 |     this.routes.set('POST /products', (r) => catalog.create(r));\n   13 |     this.routes.set('POST /orders', (r) => orders.place(r));\n   14 |     this.routes.set('GET /orders/:id', (r) => orders.show(r));\n   15 |     this.routes.set('POST /orders/:id/cancel', (r) => orders.cancel(r));\n   16 |   }\n   17 | \n   18 |   handle(route: string, request: HttpRequest): HttpResponse {"
+    },
+    {
+      "id": "P024",
+      "key": "8ab95aa73f7cd307da807d44",
+      "style": "layered",
+      "styleDefinition": "- Acyclic dependencies: The component dependency graph has no cycles. (Martin 2017, ch. 14 \"Component Coupling\", ADP)\n- Downward-only, no skipping when strict: A higher layer uses services of lower layers, and lower layers do not use upper ones. Strict layering also forbids skipping a layer. (Fowler, *Patterns of Enterprise Application Architecture* (2002), ch. 1 \"Layering\"; Buschmann et al., *POSA vol. 1* (1996), Layers pattern)",
+      "file": "src/persistence/ProductGateway.ts",
+      "claim": "src/persistence/ProductGateway.ts (persistence) imports from src/business/services/OrderService.ts (business) (line 1)",
+      "excerpt": "    1 | import { InMemoryDatabase } from './Database';\n    2 | import { ProductRecord } from './records/ProductRecord';\n    3 | \n    4 | \n    5 | export class ProductGateway {\n    6 |   constructor(private readonly db: InMemoryDatabase) {}\n    7 | \n    8 |   findBySku(sku: string): ProductRecord | undefined {\n    9 |     return this.db.table<ProductRecord>('products').get(sku);\n   10 |   }\n   11 | \n   12 |   findAll(): ProductRecord[] {\n   13 |     return [...this.db.table<ProductRecord>('products').values()];\n   14 |   }\n   15 | \n   16 |   insert(record: ProductRecord): void {"
+    },
+    {
+      "id": "P025",
+      "key": "d8b0d85e7b962db694546d9e",
+      "style": "none declared",
+      "styleDefinition": "- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.",
+      "file": "src/bank-transactions-file/bank-transactions-file.module.ts",
+      "claim": "Component `bank-transactions-file` depends on `notifications` (1 import(s)), and `notifications` depends back on `bank-transactions-file` (directly or transitively): a dependency cycle between folder components.",
+      "excerpt": "   11  import { StripeConfigFactory } from '../donations/helpers/stripe-config-factory'\n   12  import { ExportService } from '../export/export.service'\n   13  import { NotificationModule } from '../sockets/notifications/notification.module'\n   14> import { MarketingNotificationsModule } from '../notifications/notifications.module'\n   15  import { PrismaModule } from '../prisma/prisma.module'\n   16  \n   17  @Module({\n   18    imports: [\n   19      StripeModule.forRootAsync({\n   20        inject: [ConfigService],\n   21        useFactory: StripeConfigFactory.useFactory,\n   22      }),"
+    },
+    {
+      "id": "P026",
+      "key": "78fe333753843ea7bb7c1430",
+      "style": "none declared",
+      "styleDefinition": "- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.",
+      "file": "src/donations/donations.service.ts",
+      "claim": "body clone (near, similarity 0.81) of CountryService.getCountryById in component country (other end: src/country/country.service.ts:23)",
+      "excerpt": "  453  \n  456>   async getPaymentById(id: string): Promise<PaymentWithDonation> {\n  457      try {\n  458        const donation = await this.prisma.payment.findFirstOrThrow({\n  459          where: { id },\n  460          include: { donations: true },\n  461        })\n  462        return donation\n  463      } catch (err) {\n  464        const msg = 'No Donation record with ID: ' + id"
+    },
+    {
+      "id": "P027",
+      "key": "9d84dc157b72315282c39b69",
+      "style": "none declared",
+      "styleDefinition": "- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.",
+      "file": "src/workers/subscription-failure-tracker.ts",
+      "claim": "By its dependencies this file belongs with another component than the folder it sits in: src/workers/subscription-failure-tracker.ts (component workers) clusters with community 0 whose majority component is auth.",
+      "excerpt": "    1> \n    3  import { generateId } from '@medplum/core';\n    4  import type { Project } from '@medplum/fhirtypes';\n    5  import { getConfig } from '../config/loader';\n    6  import type { SubscriptionAutoDisableTrigger } from '../config/types';\n    7  import type { SystemRepository } from '../fhir/repo';\n    8  import { globalLogger } from '../logger';\n    9  import { getCacheRedis } from '../redis';"
+    },
+    {
+      "id": "P028",
+      "key": "5582a504d7b29a518cdf6427",
+      "style": "none declared",
+      "styleDefinition": "- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.",
+      "file": "src/migrations/data/v22.ts",
+      "claim": "This file imports `src/workers/post-deploy-migration.ts`, an internal file of component `workers`, instead of going through that component's public entry point.",
+      "excerpt": "    1  \n    3  import type { PoolClient } from 'pg';\n    4> import { prepareCustomMigrationJobData, runCustomMigration } from '../../workers/post-deploy-migration';\n    5  import * as fns from '../migrate-functions';\n    6  import type { MigrationActionResult } from '../types';\n    7  import type { CustomPostDeployMigration } from './types';\n    8  \n    9  export const migration: CustomPostDeployMigration = {\n   10    type: 'custom',\n   11    prepareJobData: prepareCustomMigrationJobData,\n   12    run: async (repo, job, jobData) => runCustomMigration(repo, job, jobData, callback),"
+    },
+    {
+      "id": "P029",
+      "key": "d83ce3ee05d7ef7f28151cb9",
+      "style": "ddd",
+      "styleDefinition": "- Aggregate boundary: Objects outside the aggregate may hold references only to the root. Inner entities are reached through the root. (Evans, *Domain-Driven Design* (2003), ch. 6 \"Aggregates\"; Vernon, *Implementing DDD* (2013), ch. 10)\n- Repository only for aggregate roots: Repositories are provided only for aggregate roots that actually need direct access. (Evans 2003, ch. 6 \"Repositories\"; Vernon 2013, ch. 12)\n- Value-object immutability: A value object is treated as immutable. Replace it rather than modify it. (Evans 2003, ch. 5 \"Value Objects\"; Vernon 2013, ch. 6)\n- Isolated domain: Domain code is separated from UI, application and infrastructure concerns. (Evans 2003, ch. 4 \"Isolating the Domain\" (Layered Architecture))\n- Bounded-context isolation: Each model applies within an explicit boundary. Integration across contexts is explicit, through a published interface, or translated by an anticorruption layer. (Evans 2003, ch. 14 \"Maintaining Model Integrity\" (Bounded Context, Context Map, Anticorruption Layer); Vernon 2013, ch. 2–3)",
+      "file": "src/ordering/application/GetOrderSummary.ts",
+      "claim": "src/ordering/application/GetOrderSummary.ts imports src/ordering/domain/customer/Customer.ts, an inner entity of an aggregate (line 4)",
+      "excerpt": "    1 | import type { OrderSummary, OrderSummaryQuery } from '../contracts/OrderSummary.js';\n    2 | import type { OrderRepository } from '../domain/order/OrderRepository.js';\n    3 | import { OrderId } from '../domain/order/value-objects/OrderId.js';\n    4 | import type { OrderLine } from '../domain/order/OrderLine.js';\n    5 | \n    6 | \n    7 | export class GetOrderSummary implements OrderSummaryQuery {\n    8 |   constructor(private readonly orders: OrderRepository) {}\n    9 | \n   10 |   async summaryOf(orderId: string): Promise<OrderSummary | null> {\n   11 |     const order = await this.orders.byId(new OrderId(orderId));\n   12 |     if (order === null) return null;\n   13 |     const total = order.total();\n   14 |     return { orderId, customerId: order.customerId.value, totalCents: total.cents, currency: total.currency, lineCount: order.lineCount() };\n   15 |   }\n   16 | \n   17 | \n   18 |   describeLine(line: OrderLine): string {\n   19 |     return `${String(line.lineNo)} ${line.productId} ${String(line.subtotal().cents)}`;"
+    },
+    {
+      "id": "P030",
+      "key": "9f5cb273bc142729dd5ee749",
+      "style": "none declared",
+      "styleDefinition": "- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.",
+      "file": "src/pubsub/topicsDefs.ts",
+      "claim": "Component `pubsub` (instability 0.03) depends on the less stable component `user-collection` (instability 0.31).",
+      "excerpt": "   21  } from 'src/team-request/team-request.model';\n   22  import { TeamInvitation } from 'src/team-invitation/team-invitation.model';\n   23  import { InvitedUser } from '../admin/invited-user.model';\n   24> import {\n   25    UserCollection,\n   26    UserCollectionDuplicatedData,\n   27    UserCollectionRemovedData,\n   28    UserCollectionReorderData,\n   29  } from 'src/user-collection/user-collections.model';\n   30  import { Shortcode } from 'src/shortcode/shortcode.model';\n   31  import { UserCollectionSortData } from 'src/orchestration/sort/sort.model';\n   32  "
+    },
+    {
+      "id": "P031",
+      "key": "d3278e02935485aa4606969d",
+      "style": "none declared",
+      "styleDefinition": "- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.",
+      "file": "src/utils/asset.util.ts",
+      "claim": "literal \"-90\" also used in component(s) (root), services (other end: src/services/metadata.service.ts:1128)",
+      "excerpt": "  210  \n  211  const isFlipped = (orientation?: string | null) => {\n  212    const value = Number(orientation);\n  213>   return value && [5, 6, 7, 8, -90, 90].includes(value);\n  214  };\n  215  \n  216  export const getDimensions = ({\n  217    exifImageHeight: height,\n  218    exifImageWidth: width,\n  219    orientation,\n  220  }: {\n  221    exifImageHeight: number | null;"
+    },
+    {
+      "id": "P032",
+      "key": "0f1b0e84ba9f5b1bfef2738e",
+      "style": "none declared",
+      "styleDefinition": "- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.",
+      "file": "src/features/ai/credentials.ts",
+      "claim": "`encryptCredential` in the business layer performs random I/O or side effects directly (crypto:randomBytes).",
+      "excerpt": "   45  }\n   46  \n   47  export function encryptCredential(apiKey: string): StoredCredentialFields {\n   48> \tconst iv = randomBytes(IV_BYTES);\n   49  \tconst salt = encode(randomBytes(SALT_BYTES));\n   50  \tconst cipher = createCipheriv(CIPHER, getEncryptionKey(), iv);\n   51  \n   52  \tconst ciphertext = Buffer.concat([cipher.update(apiKey, \"utf8\"), cipher.final()]);\n   53  \tconst authTag = cipher.getAuthTag();\n   54  \tconst payload = [CREDENTIAL_VERSION, encode(iv), encode(authTag), encode(ciphertext)].join(\".\");\n   55  \n   56  \treturn {"
+    },
+    {
+      "id": "P033",
+      "key": "d6d3a1d0622c44a0fe3e270a",
+      "style": "layered",
+      "styleDefinition": "- Acyclic dependencies: The component dependency graph has no cycles. (Martin 2017, ch. 14 \"Component Coupling\", ADP)\n- Downward-only, no skipping when strict: A higher layer uses services of lower layers, and lower layers do not use upper ones. Strict layering also forbids skipping a layer. (Fowler, *Patterns of Enterprise Application Architecture* (2002), ch. 1 \"Layering\"; Buschmann et al., *POSA vol. 1* (1996), Layers pattern)",
+      "file": "src/persistence/records/CustomerRecord.ts",
+      "claim": "src/persistence/records/CustomerRecord.ts (persistence) imports from src/business/services/RecordMapping.ts (business)",
+      "excerpt": "    1 | export interface CustomerRecord {\n    2 |   id: string;\n    3 |   name: string;\n    4 |   email: string;\n    5 |   loyaltyTier: 'standard' | 'gold';\n    6 | }\n    7 | "
+    },
+    {
+      "id": "P034",
+      "key": "243e855b6fa31d912bcbb557",
+      "style": "ddd",
+      "styleDefinition": "- Aggregate boundary: Objects outside the aggregate may hold references only to the root. Inner entities are reached through the root. (Evans, *Domain-Driven Design* (2003), ch. 6 \"Aggregates\"; Vernon, *Implementing DDD* (2013), ch. 10)\n- Repository only for aggregate roots: Repositories are provided only for aggregate roots that actually need direct access. (Evans 2003, ch. 6 \"Repositories\"; Vernon 2013, ch. 12)\n- Value-object immutability: A value object is treated as immutable. Replace it rather than modify it. (Evans 2003, ch. 5 \"Value Objects\"; Vernon 2013, ch. 6)\n- Isolated domain: Domain code is separated from UI, application and infrastructure concerns. (Evans 2003, ch. 4 \"Isolating the Domain\" (Layered Architecture))\n- Bounded-context isolation: Each model applies within an explicit boundary. Integration across contexts is explicit, through a published interface, or translated by an anticorruption layer. (Evans 2003, ch. 14 \"Maintaining Model Integrity\" (Bounded Context, Context Map, Anticorruption Layer); Vernon 2013, ch. 2–3)",
+      "file": "src/ordering/domain/customer/Customer.ts",
+      "claim": "src/ordering/domain/customer/Customer.ts (domain) imports against the allowed direction from src/ordering/application/PlaceOrder.ts (application) (line 3)",
+      "excerpt": "    1 | import { CustomerId } from './value-objects/CustomerId.js';\n    2 | \n    3 | import type { PlaceOrderCommand } from '../../application/PlaceOrder.js';\n    4 | \n    5 | \n    6 | export class Customer {\n    7 |   private active = true;\n    8 | \n    9 |   constructor(readonly id: CustomerId, readonly name: string) {}\n   10 | \n   11 |   canOrder(): boolean {\n   12 |     return this.active;\n   13 |   }\n   14 | \n   15 |   deactivate(): void {\n   16 |     this.active = false;\n   17 |   }\n   18 | "
+    },
+    {
+      "id": "P035",
+      "key": "2187849ce44ee8088944ff95",
+      "style": "none declared",
+      "styleDefinition": "- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.",
+      "file": "src/fhir/rewrite.ts",
+      "claim": "This adapter method holds business logic that belongs in a service or the domain: adapter method Rewriter.rewriteAttachmentUrl: 4 branches, 3 comparisons, 0 arithmetic, 0 validation throws.",
+      "excerpt": "  164  \n  167>   async rewriteAttachmentUrl([key, value]: [string, any]): Promise<string | boolean | undefined> {\n  168      if ((key !== 'url' && key !== 'path') || typeof value !== 'string') {\n  169  \n  170        return undefined;\n  171      }\n  172  \n  173      const { id, versionId } = normalizeBinaryUrl(value);\n  174      if (!id) {\n  175  "
+    },
+    {
+      "id": "P036",
+      "key": "7251cbd4b3a74ffe06aad7bc",
+      "style": "clean-architecture",
+      "styleDefinition": "- Dependency direction: Source-code dependencies point only inward. Nothing in an inner circle knows anything about an outer circle. (Martin, *Clean Architecture* (2017), ch. 22 \"The Clean Architecture\", the Dependency Rule)\n- Domain purity: Entities and use cases do not depend on frameworks, databases or the UI. (Martin 2017, ch. 22; ch. 32 \"Frameworks are details\")\n- Repository / gateway placement: The data-access interface is owned by the inner layer, and the implementation lives in the outer layer (dependency inversion across the boundary). (Martin 2017, ch. 22 (interface adapters); ch. 11 (DIP))\n- Acyclic dependencies: The component dependency graph has no cycles. (Martin 2017, ch. 14 \"Component Coupling\", ADP)",
+      "file": "src/domain/entities/Loan.ts",
+      "claim": "src/domain/entities/Loan.ts (domain) imports from src/application/ports/Clock.ts (application) (line 1)",
+      "excerpt": "    1 | import { Clock } from '../../application/ports/Clock';\n    2 | import { DomainError } from '../errors/DomainError';\n    3 | import { LoanPeriod } from '../value-objects/LoanPeriod';\n    4 | \n    5 | const DAY_MS = 24 * 60 * 60 * 1000;\n    6 | \n    7 | export class Loan {\n    8 |   private returnedAt: Date | undefined;\n    9 | \n   10 |   private constructor(\n   11 |     readonly id: string,\n   12 |     readonly bookId: string,\n   13 |     readonly memberId: string,\n   14 |     readonly borrowedAt: Date,\n   15 |     readonly dueAt: Date,\n   16 |   ) {}"
+    },
+    {
+      "id": "P037",
+      "key": "31554964b73155895fde1744",
+      "style": "hexagonal",
+      "styleDefinition": "- Core isolation, dependency direction: The application core communicates with the outside only through ports. It does not depend on adapters, UI or databases. (Cockburn, \"Hexagonal Architecture\" (2005))\n- Port-adapter: Each external actor talks to the application through a port. Adapters convert between the port and the technology; secondary (driven) adapters implement ports the core defines. (Cockburn 2005)",
+      "file": "src/domain/model/Money.ts",
+      "claim": "src/domain/model/Money.ts (domain) imports against the allowed direction from src/adapters/outbound/persistence/InMemoryRoomRepository.ts (adapters-outbound) (line 1)",
+      "excerpt": "    1 | import { BookingError } from '../errors/BookingError';\n    2 | \n    3 | export class Money {\n    4 |   private constructor(readonly cents: number) {}\n    5 | \n    6 |   static ofCents(cents: number): Money {\n    7 |     if (!Number.isInteger(cents) || cents < 0) throw new BookingError('invalid', `Invalid amount: ${cents}`);\n    8 |     return new Money(cents);\n    9 |   }\n   10 | \n   11 |   times(factor: number): Money {\n   12 |     return Money.ofCents(this.cents * factor);\n   13 |   }\n   14 | \n   15 |   add(other: Money): Money {\n   16 |     return new Money(this.cents + other.cents);"
+    },
+    {
+      "id": "P038",
+      "key": "984a1af8626eac220a699ebd",
+      "style": "none declared",
+      "styleDefinition": "- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.",
+      "file": "src/controllers/tag.controller.ts",
+      "claim": "Class `TagController` has too broad a responsibility: it performs 0 kind(s) of I/O and depends on 4 other components.",
+      "excerpt": "   16  import { TagService } from 'src/services/tag.service.js';\n   17  import { UUIDParamDto } from 'src/validation.js';\n   18  \n   19> @ApiTags(ApiTag.Tags)\n   20  @Controller('tags')\n   21  export class TagController {\n   22    constructor(private service: TagService) {}\n   23  \n   24    @Post()\n   25    @Authenticated({ permission: Permission.TagCreate })\n   26    @Endpoint({\n   27      summary: 'Create a tag',"
+    },
+    {
+      "id": "P039",
+      "key": "c9b77450ba3ca9761d2485d3",
+      "style": "none declared",
+      "styleDefinition": "- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.",
+      "file": "src/Infra/InversifyExpressUtils/AnnotatedSubscriptionInvitesController.ts",
+      "claim": "Class `AnnotatedSubscriptionInvitesController` is not cohesive: its 5 methods fall into 5 groups that share no field or call: {acceptInvite} {declineInvite} {inviteToSubscriptionSharing} {cancelSubscriptionSharing} {listInvites}.",
+      "excerpt": "   13  import { SubscriptionInvitesController } from '../../Controller/SubscriptionInvitesController'\n   14  import { BaseSubscriptionInvitesController } from './Base/BaseSubscriptionInvitesController'\n   15  \n   16> @controller('/subscription-invites')\n   17  export class AnnotatedSubscriptionInvitesController extends BaseSubscriptionInvitesController {\n   18    constructor(\n   19      @inject(TYPES.Auth_SubscriptionInvitesController)\n   20      override subscriptionInvitesController: SubscriptionInvitesController,\n   21    ) {\n   22      super(subscriptionInvitesController)\n   23    }\n   24  "
+    },
+    {
+      "id": "P040",
+      "key": "4dca826a8f00a58f65eed548",
+      "style": "none declared",
+      "styleDefinition": "- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.",
+      "file": "src/fhir/fhirquota.ts",
+      "claim": "Component `fhir` depends on `config` (40 import(s)), and `config` depends back on `fhir` (directly or transitively): a dependency cycle between folder components.",
+      "excerpt": "    5  import type { Response } from 'express';\n    6  import type Redis from 'ioredis';\n    7  import { RateLimiterRedis, RateLimiterRes } from 'rate-limiter-flexible';\n    8> import { getConfig } from '../config/loader';\n    9  import type { AuthState } from '../oauth/middleware';\n   10  \n   11  export const FHIR_RATE_LIMIT_MEMBERSHIP_PREFIX = 'medplum:rl:fhir:membership:';\n   12  export const FHIR_RATE_LIMIT_PROJECT_PREFIX = 'medplum:rl:fhir:project:';\n   13  export const FHIR_RATE_LIMIT_ACTIVE_PREFIX = 'medplum:rl:fhir:active:';\n   14  export const FHIR_RATE_LIMIT_DURATION = 60;\n   15  export const FHIR_RATE_LIMIT_ACTIVE_TTL = 120;\n   16  "
+    }
+  ]
+}

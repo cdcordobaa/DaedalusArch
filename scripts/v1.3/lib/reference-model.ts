@@ -32,6 +32,13 @@ import { ruleTier } from '../../../src/scoring-engine/rule-tiers.js';
 import type { RuleTier } from '../../../src/scoring-engine/rule-tiers.js';
 
 export const REFERENCE_ROOT = 'tests/fixtures/v1.3-reference';
+/**
+ * The development-set expansion (devset-b): the same five styles and on-disk formats, a copy of each clean project,
+ * and new variants only. Kept apart so the 71 cases under REFERENCE_ROOT and their results stay unchanged. Each style
+ * directory also holds `devset-b.json` (the role of every variant: violation, look-alike or clean; read by
+ * scripts/v1.3/devset-b-score.ts, not by this loader).
+ */
+export const DEVSET_B_ROOT = 'tests/fixtures/v1.3-devset-b';
 /** Styles stored in the patch format (U-C2). */
 export const PATCH_REFERENCE_STYLES = ['clean-architecture', 'layered', 'nestjs', 'hexagonal'] as const;
 /** Styles stored in the overlay format (U-C1). */
@@ -155,12 +162,12 @@ function getValidators(repoRoot: string): Validators {
   return validators;
 }
 
-function check<T>(validate: ValidateFunction, value: unknown, label: string): T {
+function check(validate: ValidateFunction, value: unknown, label: string): unknown {
   if (!validate(value)) {
     const detail = (validate.errors ?? []).map((e) => `${e.instancePath || '/'} ${e.message ?? ''}`).join('; ');
     throw new Error(`${label}: schema violation: ${detail}`);
   }
-  return value as T;
+  return value;
 }
 
 function readJson(file: string): unknown {
@@ -168,15 +175,15 @@ function readJson(file: string): unknown {
 }
 
 export function validateVariantManifest(repoRoot: string, value: unknown, label = 'expected-findings.json'): VariantManifest {
-  return check<VariantManifest>(getValidators(repoRoot).findings, value, label);
+  return check(getValidators(repoRoot).findings, value, label) as VariantManifest;
 }
 
 export function validateReferenceDescriptor(repoRoot: string, value: unknown, label = 'reference.json'): ReferenceDescriptor {
-  return check<ReferenceDescriptor>(getValidators(repoRoot).reference, value, label);
+  return check(getValidators(repoRoot).reference, value, label) as ReferenceDescriptor;
 }
 
 export function validateExpectedGraph(repoRoot: string, value: unknown, label = 'expected-graph.json'): ExpectedGraph {
-  return check<ExpectedGraph>(getValidators(repoRoot).graph, value, label);
+  return check(getValidators(repoRoot).graph, value, label) as ExpectedGraph;
 }
 
 /** The scope rules with `blockingCandidate` and `tier` taken from the v1.3 tiers under `style`. */
@@ -259,7 +266,7 @@ const SEVERITIES = new Set(['critical', 'major', 'minor', 'advisory']);
 /** The overlay format (U-C1) read into the common model. Nothing on disk is rewritten. */
 function loadOverlayReference(repoRoot: string, style: ReferenceStyle, dir: string): LoadedReference {
   const v = getValidators(repoRoot);
-  const graphJson = check<DddGraphJson>(v.dddGraph, readJson(path.join(dir, 'expected-graph.json')), `${style}/expected-graph.json`);
+  const graphJson = check(v.dddGraph, readJson(path.join(dir, 'expected-graph.json')), `${style}/expected-graph.json`) as DddGraphJson;
   const specRel = graphJson.spec;
   const specPath = path.resolve(repoRoot, specRel);
   const preset = YAML.parse(fs.readFileSync(specPath, 'utf8')) as {
@@ -276,7 +283,7 @@ function loadOverlayReference(repoRoot: string, style: ReferenceStyle, dir: stri
     ruleId: f.rule, ruleName: f.name, file: f.file, reason: f.reason, ...(f.target !== undefined ? { target: f.target } : {}),
   });
   const readFindings = (file: string, id: string): DddFindingsJson => {
-    const m = check<DddFindingsJson>(v.dddFindings, readJson(file), `${style}/${id}/expected-findings.json`);
+    const m = check(v.dddFindings, readJson(file), `${style}/${id}/expected-findings.json`) as DddFindingsJson;
     if (m.variant !== id) throw new Error(`${style}/${id}: manifest names variant ${m.variant}`);
     if (m.spec !== specRel) throw new Error(`${style}/${id}: manifest names spec ${m.spec}, expected-graph.json ${specRel}`);
     return m;
@@ -293,7 +300,7 @@ function loadOverlayReference(repoRoot: string, style: ReferenceStyle, dir: stri
   }];
   for (const id of fs.readdirSync(path.join(dir, 'variants')).sort()) {
     const vdir = path.join(dir, 'variants', id);
-    const meta = check<DddVariantJson>(v.dddVariant, readJson(path.join(vdir, 'variant.json')), `${style}/${id}/variant.json`);
+    const meta = check(v.dddVariant, readJson(path.join(vdir, 'variant.json')), `${style}/${id}/variant.json`) as DddVariantJson;
     if (meta.id !== id) throw new Error(`${style}/${id}: variant.json names variant ${meta.id}`);
     const findings = readFindings(path.join(vdir, 'expected-findings.json'), id);
     variants.push({
@@ -342,6 +349,72 @@ export function loadReference(repoRoot: string, style: ReferenceStyle, root: str
 
 export function loadAllReferences(repoRoot: string, styles: readonly ReferenceStyle[] = REFERENCE_STYLES, root: string = REFERENCE_ROOT): LoadedReference[] {
   return styles.map((s) => loadReference(repoRoot, s, root));
+}
+
+// ── Rule-id mapping (hold-out manifests written with provisional ids) ─────────
+
+/**
+ * Maps rule ids written in a manifest to the ids of the frozen spec, per style. A value is the frozen id, or
+ * `{ ruleId, name }` when the manifest also carries a provisional rule name: then the manifest's name must equal
+ * `name` and is replaced by the compared rule's name. Example (hold-out DDD manifests with provisional ids):
+ *   { "schemaVersion": 1, "styles": { "ddd": { "FF-D01": "FF-DT01", "FF-M01": { "ruleId": "FF-DS01", "name": "modules" } } } }
+ * The mapping is applied in memory after the schema check; nothing on disk is rewritten.
+ */
+export interface RuleIdMapFile {
+  readonly schemaVersion: 1;
+  readonly note?: string;
+  readonly styles: Readonly<Record<string, Readonly<Record<string, string | { readonly ruleId: string; readonly name?: string }>>>>;
+}
+
+const RULE_ID_PATTERN = /^FF-[A-Z]+[0-9]{2}$/;
+
+/** Reads and checks a rule-id mapping file (see `RuleIdMapFile`). */
+export function loadRuleIdMap(file: string): RuleIdMapFile {
+  const raw = readJson(file) as Partial<RuleIdMapFile> | null;
+  if (raw === null || typeof raw !== 'object' || raw.schemaVersion !== 1 || typeof raw.styles !== 'object' || raw.styles === null) {
+    throw new Error(`${file}: not a rule-id map (schemaVersion 1, styles: { <style>: { <id>: <id> } })`);
+  }
+  for (const [style, entries] of Object.entries(raw.styles)) {
+    if (!isReferenceStyle(style)) throw new Error(`${file}: unknown style ${style}`);
+    for (const [from, to] of Object.entries(entries)) {
+      const id = typeof to === 'string' ? to : to.ruleId;
+      if (!RULE_ID_PATTERN.test(from) || !RULE_ID_PATTERN.test(id)) throw new Error(`${file}: ${style}: ${from} -> ${String(id)} is not a rule id pair`);
+    }
+  }
+  return raw as RuleIdMapFile;
+}
+
+/**
+ * The reference with its manifest rule ids (expected findings and planted rule) mapped by `map`. Ids the map does
+ * not name are kept. Returns the mapped reference and the ids that were mapped (`from -> to`, with counts).
+ */
+export function applyRuleIdMap(ref: LoadedReference, map: RuleIdMapFile | undefined): { ref: LoadedReference; mapped: Record<string, number> } {
+  const entries = map?.styles[ref.style];
+  const mapped: Record<string, number> = {};
+  if (entries === undefined) return { ref, mapped };
+  const lookup = (id: string): { ruleId: string; name?: string } | undefined => {
+    const e = entries[id];
+    if (e === undefined) return undefined;
+    return typeof e === 'string' ? { ruleId: e } : e;
+  };
+  const nameOf = new Map(ref.descriptor.scopeRules.map((r) => [r.ruleId, r.ruleName]));
+  const variants = ref.variants.map((v): LoadedVariant => {
+    const expectedFindings = v.manifest.expectedFindings.map((f): ExpectedFinding => {
+      const e = lookup(f.ruleId);
+      if (e === undefined) return f;
+      const k = `${f.ruleId} -> ${e.ruleId}`;
+      mapped[k] = (mapped[k] ?? 0) + 1;
+      let ruleName = f.ruleName;
+      if (e.name !== undefined) {
+        if (f.ruleName !== e.name) throw new Error(`${ref.style}/${v.manifest.variant}: ${f.ruleId} is named ${f.ruleName}, the map expects ${e.name}`);
+        ruleName = nameOf.get(e.ruleId) ?? f.ruleName;
+      }
+      return { ...f, ruleId: e.ruleId, ruleName };
+    });
+    const plants = v.manifest.plants === null ? null : lookup(v.manifest.plants)?.ruleId ?? v.manifest.plants;
+    return { ...v, manifest: { ...v.manifest, plants, expectedFindings } };
+  });
+  return { ref: { ...ref, variants }, mapped };
 }
 
 export function isReferenceStyle(value: string): value is ReferenceStyle {

@@ -1,5 +1,7 @@
 # ADR draft: scope of the APG v2 templates (composition roots, ACL, tests, one edge one rule)
 
+> **Note (2026-10-16): the "Predicted before the re-measure" figures are a post-hoc account, not a prediction.** This draft was committed (`ccfe6f90`, 2026-10-15 13:53:46 -05:00) after `Docs/DiagnosticRuns/apg2-live-2026-10-15.md` (`cca3b866`, 13:42:04) had already enumerated every false-alarm row that the changes remove. The code change followed at 14:05:24 (`33ec13ef`) and the re-measure at 14:06:55 (`53a610d9`). The "predicted" counts (0 blocking, 21 advisory) restate a list already in hand; they are not a forecast and should not be cited as evidence that the changes were made on construct alone.
+
 **Date**: 2026-10-15. **Status**: Draft, for the author. Branch `v1.3-apg2-scope`, base `origin/v1.3` at `95637b7`.
 
 **Written and committed before any re-measure.** The live run of `Docs/DiagnosticRuns/apg2-live-2026-10-15.md` (§2.3, §2.4) named the false alarms. Each change below is decided on the construct of the rule, with a literature reason. The numbers in that run are why the scope was looked at; they are not the reason for any change. The minimum type count of change 5 is fixed here, before the fixture components' type counts are looked at.

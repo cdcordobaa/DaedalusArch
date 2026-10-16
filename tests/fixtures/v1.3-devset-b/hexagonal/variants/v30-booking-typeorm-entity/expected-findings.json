@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "variant": "v30-booking-typeorm-entity",
+  "kind": "violation",
+  "plants": "FF-P01",
+  "description": "Booking (domain entity) is decorated with @Entity and its status field with @Column from typeorm.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P01",
+      "ruleName": "domain-purity",
+      "file": "src/domain/model/Booking.ts",
+      "target": "typeorm",
+      "reason": "The core imports a persistence framework package (typeorm is forbidden by the hexagonal preset)."
+    }
+  ]
+}
