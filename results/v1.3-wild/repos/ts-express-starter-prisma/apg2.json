@@ -1,0 +1,1184 @@
+{
+ "id": "ts-express-starter-prisma",
+ "stats": {
+  "signatureUses": 70,
+  "components": 16,
+  "componentSource": "declared",
+  "dependsOn": 31,
+  "deepImports": 0,
+  "exportsSymbol": 0,
+  "channels": 0,
+  "async": {
+   "publishes": 0,
+   "subscribes": 0,
+   "dynamicNames": 0
+  },
+  "io": {
+   "byCategory": {
+    "db": 21,
+    "http-out": 0,
+    "fs": 2,
+    "env": 7,
+    "clock": 6,
+    "random": 1,
+    "process": 13
+   }
+  },
+  "timingsMs": {
+   "typeFlow": 22.8,
+   "components": 6.8,
+   "async": 88.4,
+   "io": 79.2
+  }
+ },
+ "params": {
+  "domainLayer": "domain",
+  "applicationLayers": [
+   "application",
+   "config"
+  ],
+  "infraLayer": "adapters-outbound",
+  "controllerLayer": "adapters-inbound",
+  "threshold": 0.7,
+  "allowedAsync": [
+   "application->domain",
+   "adapters-inbound->application",
+   "adapters-inbound->domain",
+   "adapters-outbound->application",
+   "adapters-outbound->domain",
+   "config->domain",
+   "config->application",
+   "config->adapters-inbound",
+   "config->adapters-outbound"
+  ],
+  "compositionRootLayers": [
+   "config"
+  ],
+  "compositionRootPatterns": [
+   "^(?:.*/)?(?:main|bootstrap|composition-root|compositionRoot|container|di)\\.(?:ts|tsx|mts|cts)$",
+   "^(?:.*/)?[^/]+\\.(?:module|container)\\.(?:ts|tsx|mts|cts)$"
+  ],
+  "testPatterns": [
+   "^(?:.*/)?[^/]*\\.(?:spec|test)\\.(?:ts|tsx|mts|cts)$",
+   "^(?:.*/)?(?:__tests__|__mocks__|test|tests)/.*$",
+   "^(?:.*/)?[Tt]est[A-Z._-][^/]*$"
+  ],
+  "aclPatterns": [],
+  "minTypes": 4
+ },
+ "components": [
+  {
+   "name": "domain",
+   "kind": "layer"
+  },
+  {
+   "name": "application",
+   "kind": "layer"
+  },
+  {
+   "name": "adapters-inbound",
+   "kind": "layer"
+  },
+  {
+   "name": "adapters-outbound",
+   "kind": "layer"
+  },
+  {
+   "name": "config",
+   "kind": "layer"
+  },
+  {
+   "name": "config",
+   "kind": "folder"
+  },
+  {
+   "name": "controllers",
+   "kind": "folder"
+  },
+  {
+   "name": "dtos",
+   "kind": "folder"
+  },
+  {
+   "name": "entities",
+   "kind": "folder"
+  },
+  {
+   "name": "exceptions",
+   "kind": "folder"
+  },
+  {
+   "name": "interfaces",
+   "kind": "folder"
+  },
+  {
+   "name": "middlewares",
+   "kind": "folder"
+  },
+  {
+   "name": "repositories",
+   "kind": "folder"
+  },
+  {
+   "name": "routes",
+   "kind": "folder"
+  },
+  {
+   "name": "services",
+   "kind": "folder"
+  },
+  {
+   "name": "utils",
+   "kind": "folder"
+  }
+ ],
+ "parseCoverage": {
+  "total": 34,
+  "parsed": 34
+ },
+ "importResolution": {
+  "resolvedInternal": 71,
+  "external": 56,
+  "externalOutOfRootAlias": 0,
+  "unresolved": 7,
+  "droppedNoFileNode": 0,
+  "unsupportedDynamic": 0
+ },
+ "counts": {
+  "boundary-type-leak": 0,
+  "component-adp-cycle": 19,
+  "component-sdp-violation": 6,
+  "component-main-sequence-distance": 0,
+  "deep-import-declared-api": 0,
+  "deep-import-inferred-api": 0,
+  "undeclared-async-coupling": 0,
+  "io-outside-adapters": 19,
+  "nondeterminism-in-core": 10
+ },
+ "rows": {
+  "boundary-type-leak": [],
+  "component-adp-cycle": [
+   {
+    "component": "config",
+    "target": "controllers",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "config",
+    "_file": "src/config/container.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/config/container.ts",
+      "target": "src/controllers/auth.controller.ts",
+      "line": 12
+     },
+     {
+      "file": "src/config/container.ts",
+      "target": "src/controllers/user.controller.ts",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "component": "config",
+    "target": "repositories",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "config",
+    "_file": "src/config/container.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/config/container.ts",
+      "target": "src/repositories/user.repository.ts",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "component": "config",
+    "target": "routes",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "config",
+    "_file": "src/config/container.ts",
+    "_line": 16,
+    "_evidence": [
+     {
+      "file": "src/config/container.ts",
+      "target": "src/routes/auth.route.ts",
+      "line": 16
+     },
+     {
+      "file": "src/config/container.ts",
+      "target": "src/routes/user.route.ts",
+      "line": 17
+     }
+    ]
+   },
+   {
+    "component": "config",
+    "target": "services",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "config",
+    "_file": "src/config/container.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/config/container.ts",
+      "target": "src/services/auth.service.ts",
+      "line": 8
+     },
+     {
+      "file": "src/config/container.ts",
+      "target": "src/services/user.service.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "component": "config",
+    "target": "utils",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "config",
+    "_file": "src/config/database.ts",
+    "_line": 2,
+    "_evidence": [
+     {
+      "file": "src/config/database.ts",
+      "target": "src/utils/logger.ts",
+      "line": 2
+     }
+    ]
+   },
+   {
+    "component": "controllers",
+    "target": "middlewares",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "controllers",
+    "_file": "src/controllers/user.controller.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/controllers/user.controller.ts",
+      "target": "src/middlewares/auth.middleware.ts",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "component": "controllers",
+    "target": "services",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "controllers",
+    "_file": "src/controllers/auth.controller.ts",
+    "_line": 3,
+    "_evidence": [
+     {
+      "file": "src/controllers/auth.controller.ts",
+      "target": "src/services/auth.service.ts",
+      "line": 3
+     },
+     {
+      "file": "src/controllers/user.controller.ts",
+      "target": "src/services/user.service.ts",
+      "line": 3
+     },
+     {
+      "file": "src/controllers/users.controller.ts",
+      "target": "src/services/users.service.ts",
+      "line": 4
+     }
+    ]
+   },
+   {
+    "component": "controllers",
+    "target": "utils",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "controllers",
+    "_file": "src/controllers/auth.controller.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/controllers/auth.controller.ts",
+      "target": "src/utils/logger.ts",
+      "line": 11
+     },
+     {
+      "file": "src/controllers/user.controller.ts",
+      "target": "src/utils/logger.ts",
+      "line": 12
+     },
+     {
+      "file": "src/controllers/users.controller.ts",
+      "target": "src/utils/asyncHandler.ts",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "component": "middlewares",
+    "target": "config",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "middlewares",
+    "_file": "src/middlewares/auth.middleware.ts",
+    "_line": 4,
+    "_evidence": [
+     {
+      "file": "src/middlewares/auth.middleware.ts",
+      "target": "src/config/env.ts",
+      "line": 4
+     },
+     {
+      "file": "src/middlewares/error.middleware.ts",
+      "target": "src/config/env.ts",
+      "line": 4
+     }
+    ]
+   },
+   {
+    "component": "middlewares",
+    "target": "repositories",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "middlewares",
+    "_file": "src/middlewares/auth.middleware.ts",
+    "_line": 6,
+    "_evidence": [
+     {
+      "file": "src/middlewares/auth.middleware.ts",
+      "target": "src/repositories/user.repository.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "component": "middlewares",
+    "target": "utils",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "middlewares",
+    "_file": "src/middlewares/auth.middleware.ts",
+    "_line": 7,
+    "_evidence": [
+     {
+      "file": "src/middlewares/auth.middleware.ts",
+      "target": "src/utils/logger.ts",
+      "line": 7
+     },
+     {
+      "file": "src/middlewares/error.middleware.ts",
+      "target": "src/utils/logger.ts",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "component": "repositories",
+    "target": "config",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "repositories",
+    "_file": "src/repositories/user.repository.ts",
+    "_line": 4,
+    "_evidence": [
+     {
+      "file": "src/repositories/user.repository.ts",
+      "target": "src/config/database.ts",
+      "line": 4
+     },
+     {
+      "file": "src/repositories/users.repository.ts",
+      "target": "src/config/database.ts",
+      "line": 4
+     }
+    ]
+   },
+   {
+    "component": "repositories",
+    "target": "utils",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "repositories",
+    "_file": "src/repositories/user.repository.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/repositories/user.repository.ts",
+      "target": "src/utils/logger.ts",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "component": "routes",
+    "target": "controllers",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "routes",
+    "_file": "src/routes/auth.route.ts",
+    "_line": 3,
+    "_evidence": [
+     {
+      "file": "src/routes/auth.route.ts",
+      "target": "src/controllers/auth.controller.ts",
+      "line": 3
+     },
+     {
+      "file": "src/routes/user.route.ts",
+      "target": "src/controllers/user.controller.ts",
+      "line": 3
+     },
+     {
+      "file": "src/routes/users.route.ts",
+      "target": "src/controllers/users.controller.ts",
+      "line": 3
+     }
+    ]
+   },
+   {
+    "component": "routes",
+    "target": "middlewares",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "routes",
+    "_file": "src/routes/auth.route.ts",
+    "_line": 6,
+    "_evidence": [
+     {
+      "file": "src/routes/auth.route.ts",
+      "target": "src/middlewares/validation.middleware.ts",
+      "line": 6
+     },
+     {
+      "file": "src/routes/user.route.ts",
+      "target": "src/middlewares/auth.middleware.ts",
+      "line": 6
+     },
+     {
+      "file": "src/routes/user.route.ts",
+      "target": "src/middlewares/validation.middleware.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "services",
+    "target": "config",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "services",
+    "_file": "src/services/auth.service.ts",
+    "_line": 3,
+    "_evidence": [
+     {
+      "file": "src/services/auth.service.ts",
+      "target": "src/config/env.ts",
+      "line": 3
+     }
+    ]
+   },
+   {
+    "component": "services",
+    "target": "repositories",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "services",
+    "_file": "src/services/auth.service.ts",
+    "_line": 6,
+    "_evidence": [
+     {
+      "file": "src/services/auth.service.ts",
+      "target": "src/repositories/user.repository.ts",
+      "line": 6
+     },
+     {
+      "file": "src/services/user.service.ts",
+      "target": "src/repositories/user.repository.ts",
+      "line": 9
+     },
+     {
+      "file": "src/services/users.service.ts",
+      "target": "src/repositories/users.repository.ts",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "component": "services",
+    "target": "utils",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "services",
+    "_file": "src/services/auth.service.ts",
+    "_line": 7,
+    "_evidence": [
+     {
+      "file": "src/services/auth.service.ts",
+      "target": "src/utils/hash.ts",
+      "line": 7
+     },
+     {
+      "file": "src/services/auth.service.ts",
+      "target": "src/utils/logger.ts",
+      "line": 8
+     },
+     {
+      "file": "src/services/user.service.ts",
+      "target": "src/utils/logger.ts",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "component": "utils",
+    "target": "config",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "utils",
+    "_file": "src/utils/logger.ts",
+    "_line": 4,
+    "_evidence": [
+     {
+      "file": "src/utils/logger.ts",
+      "target": "src/config/env.ts",
+      "line": 4
+     }
+    ]
+   }
+  ],
+  "component-sdp-violation": [
+   {
+    "component": "config",
+    "target": "controllers",
+    "kind": "folder",
+    "fromInstability": 0.25,
+    "toInstability": 0.429,
+    "filePath": "config",
+    "_file": "src/config/container.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/config/container.ts",
+      "target": "src/controllers/auth.controller.ts",
+      "line": 12
+     },
+     {
+      "file": "src/config/container.ts",
+      "target": "src/controllers/user.controller.ts",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "component": "config",
+    "target": "repositories",
+    "kind": "folder",
+    "fromInstability": 0.25,
+    "toInstability": 0.286,
+    "filePath": "config",
+    "_file": "src/config/container.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/config/container.ts",
+      "target": "src/repositories/user.repository.ts",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "component": "config",
+    "target": "routes",
+    "kind": "folder",
+    "fromInstability": 0.25,
+    "toInstability": 0.75,
+    "filePath": "config",
+    "_file": "src/config/container.ts",
+    "_line": 16,
+    "_evidence": [
+     {
+      "file": "src/config/container.ts",
+      "target": "src/routes/auth.route.ts",
+      "line": 16
+     },
+     {
+      "file": "src/config/container.ts",
+      "target": "src/routes/user.route.ts",
+      "line": 17
+     }
+    ]
+   },
+   {
+    "component": "config",
+    "target": "services",
+    "kind": "folder",
+    "fromInstability": 0.25,
+    "toInstability": 0.429,
+    "filePath": "config",
+    "_file": "src/config/container.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/config/container.ts",
+      "target": "src/services/auth.service.ts",
+      "line": 8
+     },
+     {
+      "file": "src/config/container.ts",
+      "target": "src/services/user.service.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "component": "utils",
+    "target": "config",
+    "kind": "folder",
+    "fromInstability": 0.1,
+    "toInstability": 0.25,
+    "filePath": "utils",
+    "_file": "src/utils/logger.ts",
+    "_line": 4,
+    "_evidence": [
+     {
+      "file": "src/utils/logger.ts",
+      "target": "src/config/env.ts",
+      "line": 4
+     }
+    ]
+   },
+   {
+    "component": "config",
+    "target": "application",
+    "kind": "layer",
+    "fromInstability": 0.3,
+    "toInstability": 0.833,
+    "filePath": "config",
+    "_file": "src/server.ts",
+    "_line": 4,
+    "_evidence": [
+     {
+      "file": "src/server.ts",
+      "target": "src/utils/logger.ts",
+      "line": 4
+     },
+     {
+      "file": "src/server.ts",
+      "target": "src/app.ts",
+      "line": 5
+     },
+     {
+      "file": "src/server.ts",
+      "target": "src/routes/auth.route.ts",
+      "line": 6
+     }
+    ]
+   }
+  ],
+  "component-main-sequence-distance": [],
+  "deep-import-declared-api": [],
+  "deep-import-inferred-api": [],
+  "undeclared-async-coupling": [],
+  "io-outside-adapters": [
+   {
+    "filePath": "src/config/database.ts",
+    "member": "PrismaDatabaseConnection",
+    "layer": "config",
+    "category": "db",
+    "apis": [
+     "@prisma/client:PrismaClient"
+    ],
+    "line": 16,
+    "lines": [
+     16
+    ],
+    "_file": "src/config/database.ts",
+    "_line": 16,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/config/database.ts",
+    "member": "PrismaDatabaseConnection.connect",
+    "layer": "config",
+    "category": "db",
+    "apis": [
+     "@prisma/client:this.client.$connect"
+    ],
+    "line": 27,
+    "lines": [
+     27
+    ],
+    "_file": "src/config/database.ts",
+    "_line": 27,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/config/database.ts",
+    "member": "PrismaDatabaseConnection.disconnect",
+    "layer": "config",
+    "category": "db",
+    "apis": [
+     "@prisma/client:this.client.$disconnect"
+    ],
+    "line": 41,
+    "lines": [
+     41
+    ],
+    "_file": "src/config/database.ts",
+    "_line": 41,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/repositories/user.repository.ts",
+    "member": "UserRepository.count",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "@prisma/client:this.prisma.user.count"
+    ],
+    "line": 129,
+    "lines": [
+     129
+    ],
+    "_file": "src/repositories/user.repository.ts",
+    "_line": 129,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/repositories/user.repository.ts",
+    "member": "UserRepository.create",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "@prisma/client:this.prisma.user.create"
+    ],
+    "line": 186,
+    "lines": [
+     186
+    ],
+    "_file": "src/repositories/user.repository.ts",
+    "_line": 186,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/repositories/user.repository.ts",
+    "member": "UserRepository.delete",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "@prisma/client:this.prisma.user.delete"
+    ],
+    "line": 238,
+    "lines": [
+     238
+    ],
+    "_file": "src/repositories/user.repository.ts",
+    "_line": 238,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/repositories/user.repository.ts",
+    "member": "UserRepository.findAll",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "@prisma/client:this.prisma.user.findMany",
+     "@prisma/client:users.map"
+    ],
+    "line": 54,
+    "lines": [
+     54,
+     60
+    ],
+    "_file": "src/repositories/user.repository.ts",
+    "_line": 54,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/repositories/user.repository.ts",
+    "member": "UserRepository.findAllPaginated",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "@prisma/client:this.prisma.user.count",
+     "@prisma/client:this.prisma.user.findMany",
+     "@prisma/client:users.map"
+    ],
+    "line": 87,
+    "lines": [
+     87,
+     91,
+     103
+    ],
+    "_file": "src/repositories/user.repository.ts",
+    "_line": 87,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/repositories/user.repository.ts",
+    "member": "UserRepository.findByEmail",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "@prisma/client:this.prisma.user.findUnique"
+    ],
+    "line": 165,
+    "lines": [
+     165
+    ],
+    "_file": "src/repositories/user.repository.ts",
+    "_line": 165,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/repositories/user.repository.ts",
+    "member": "UserRepository.findById",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "@prisma/client:this.prisma.user.findUnique"
+    ],
+    "line": 144,
+    "lines": [
+     144
+    ],
+    "_file": "src/repositories/user.repository.ts",
+    "_line": 144,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/repositories/user.repository.ts",
+    "member": "UserRepository.update",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "@prisma/client:this.prisma.user.update"
+    ],
+    "line": 211,
+    "lines": [
+     211
+    ],
+    "_file": "src/repositories/user.repository.ts",
+    "_line": 211,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/repositories/users.repository.ts",
+    "member": "UsersRepository",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "@prisma/client:PrismaClient"
+    ],
+    "line": 21,
+    "lines": [
+     21
+    ],
+    "_file": "src/repositories/users.repository.ts",
+    "_line": 21,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/repositories/users.repository.ts",
+    "member": "UsersRepository.delete",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "@prisma/client:this.prisma.user.delete"
+    ],
+    "line": 120,
+    "lines": [
+     120
+    ],
+    "_file": "src/repositories/users.repository.ts",
+    "_line": 120,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/repositories/users.repository.ts",
+    "member": "UsersRepository.findAll",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "@prisma/client:this.prisma.user.findMany"
+    ],
+    "line": 29,
+    "lines": [
+     29
+    ],
+    "_file": "src/repositories/users.repository.ts",
+    "_line": 29,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/repositories/users.repository.ts",
+    "member": "UsersRepository.findByEmail",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "@prisma/client:this.prisma.user.findUnique"
+    ],
+    "line": 58,
+    "lines": [
+     58
+    ],
+    "_file": "src/repositories/users.repository.ts",
+    "_line": 58,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/repositories/users.repository.ts",
+    "member": "UsersRepository.findById",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "@prisma/client:this.prisma.user.findUnique"
+    ],
+    "line": 46,
+    "lines": [
+     46
+    ],
+    "_file": "src/repositories/users.repository.ts",
+    "_line": 46,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/repositories/users.repository.ts",
+    "member": "UsersRepository.save",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "@prisma/client:this.prisma.user.create"
+    ],
+    "line": 70,
+    "lines": [
+     70
+    ],
+    "_file": "src/repositories/users.repository.ts",
+    "_line": 70,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/repositories/users.repository.ts",
+    "member": "UsersRepository.update",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "@prisma/client:this.prisma.user.update"
+    ],
+    "line": 93,
+    "lines": [
+     93
+    ],
+    "_file": "src/repositories/users.repository.ts",
+    "_line": 93,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/utils/logger.ts",
+    "member": "logger.ts",
+    "layer": "application",
+    "category": "fs",
+    "apis": [
+     "fs:existsSync",
+     "fs:mkdirSync"
+    ],
+    "line": 17,
+    "lines": [
+     17,
+     18
+    ],
+    "_file": "src/utils/logger.ts",
+    "_line": 17,
+    "_importGraphSees": true
+   }
+  ],
+  "nondeterminism-in-core": [
+   {
+    "filePath": "src/config/env.ts",
+    "member": "env.ts",
+    "layer": "config",
+    "category": "process",
+    "apis": [
+     "process.exit"
+    ],
+    "line": 121,
+    "lines": [
+     121
+    ],
+    "_file": "src/config/env.ts",
+    "_line": 121,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/config/env.ts",
+    "member": "parseEnvironmentConfig",
+    "layer": "config",
+    "category": "env",
+    "apis": [
+     "process.env"
+    ],
+    "line": 79,
+    "lines": [
+     79,
+     80,
+     81,
+     82,
+     83,
+     84,
+     85
+    ],
+    "_file": "src/config/env.ts",
+    "_line": 79,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/config/env.ts",
+    "member": "parseEnvironmentConfig",
+    "layer": "config",
+    "category": "process",
+    "apis": [
+     "process.exit"
+    ],
+    "line": 102,
+    "lines": [
+     102
+    ],
+    "_file": "src/config/env.ts",
+    "_line": 102,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/middlewares/error.middleware.ts",
+    "member": "error.middleware.ts",
+    "layer": "application",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 82,
+    "lines": [
+     82
+    ],
+    "_file": "src/middlewares/error.middleware.ts",
+    "_line": 82,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/server.ts",
+    "member": "bootstrap",
+    "layer": "config",
+    "category": "process",
+    "apis": [
+     "process.exit",
+     "process.on"
+    ],
+    "line": 44,
+    "lines": [
+     44,
+     47,
+     54,
+     59,
+     60,
+     63,
+     65,
+     68,
+     70,
+     82
+    ],
+    "_file": "src/server.ts",
+    "_line": 44,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/services/users.service.ts",
+    "member": "UsersService.createUser",
+    "layer": "application",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 27,
+    "lines": [
+     27
+    ],
+    "_file": "src/services/users.service.ts",
+    "_line": 27,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/utils/logger.ts",
+    "member": "logger.ts",
+    "layer": "application",
+    "category": "process",
+    "apis": [
+     "process.cwd"
+    ],
+    "line": 12,
+    "lines": [
+     12
+    ],
+    "_file": "src/utils/logger.ts",
+    "_line": 12,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/utils/standardLogger.ts",
+    "member": "LogPerformance",
+    "layer": "application",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 272,
+    "lines": [
+     272,
+     282,
+     297
+    ],
+    "_file": "src/utils/standardLogger.ts",
+    "_line": 272,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/utils/standardLogger.ts",
+    "member": "standardLogger.ts",
+    "layer": "application",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 321,
+    "lines": [
+     321
+    ],
+    "_file": "src/utils/standardLogger.ts",
+    "_line": 321,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/utils/standardLogger.ts",
+    "member": "standardLogger.ts",
+    "layer": "application",
+    "category": "random",
+    "apis": [
+     "Math.random()"
+    ],
+    "line": 321,
+    "lines": [
+     321
+    ],
+    "_file": "src/utils/standardLogger.ts",
+    "_line": 321,
+    "_importGraphSees": false
+   }
+  ]
+ }
+}

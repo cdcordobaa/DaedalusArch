@@ -1,0 +1,43 @@
+{
+  "$id": "https://daedalusarch/v1.3/reference.schema.json",
+  "title": "Reference project descriptor (FR-V3)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "style", "spec", "project", "canonicalSource", "styleDefinition", "authored", "writtenBeforeToolRun", "scopeRules", "notApplicable", "noViolatingVariant", "outOfScope", "variants"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "style": { "type": "string", "enum": ["clean-architecture", "layered", "nestjs", "hexagonal"] },
+    "spec": { "const": "spec.yaml" },
+    "project": { "type": "string", "minLength": 10 },
+    "canonicalSource": { "type": "string", "minLength": 10 },
+    "styleDefinition": { "type": "array", "minItems": 3, "items": { "type": "string", "minLength": 10 } },
+    "authored": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+    "writtenBeforeToolRun": { "const": true },
+    "scopeRules": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["ruleId", "ruleName", "severity", "blockingCandidate"],
+        "properties": {
+          "ruleId": { "type": "string", "pattern": "^FF-[A-Z]+[0-9]{2}$" },
+          "ruleName": { "type": "string" },
+          "severity": { "type": "string", "enum": ["critical", "major", "minor", "advisory"] },
+          "blockingCandidate": { "type": "boolean" }
+        }
+      }
+    },
+    "notApplicable": { "$ref": "#/definitions/ruleReasons" },
+    "noViolatingVariant": { "$ref": "#/definitions/ruleReasons" },
+    "outOfScope": { "type": "string" },
+    "variants": { "type": "array", "minItems": 2, "items": { "type": "string" }, "uniqueItems": true }
+  },
+  "definitions": {
+    "ruleReasons": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["ruleId", "reason"],
+        "properties": { "ruleId": { "type": "string", "pattern": "^FF-[A-Z]+[0-9]{2}$" }, "reason": { "type": "string", "minLength": 5 } }
+      }
+    }
+  }
+}

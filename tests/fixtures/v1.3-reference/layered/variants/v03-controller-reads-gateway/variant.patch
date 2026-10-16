@@ -1,0 +1,49 @@
+--- a/src/business/ServiceFactory.ts
++++ b/src/business/ServiceFactory.ts
+@@ -8,6 +8,7 @@
+ export interface BusinessServices {
+   catalog: CatalogService;
+   orders: OrderService;
++  products: ProductGateway;
+ }
+ 
+ /**
+@@ -21,5 +22,6 @@
+   return {
+     catalog: new CatalogService(products),
+     orders: new OrderService(new OrderGateway(db), products, new CustomerGateway(db)),
++    products,
+   };
+ }
+--- a/src/presentation/app.ts
++++ b/src/presentation/app.ts
+@@ -5,5 +5,5 @@
+ 
+ export function createApp(): Router {
+   const services = createServices();
+-  return new Router(new CatalogController(services.catalog), new OrderController(services.orders));
++  return new Router(new CatalogController(services.catalog, services.products), new OrderController(services.orders));
+ }
+--- a/src/presentation/http/CatalogController.ts
++++ b/src/presentation/http/CatalogController.ts
+@@ -1,10 +1,19 @@
+ import { CatalogService } from '../../business/services/CatalogService';
++import { ProductGateway } from '../../persistence/ProductGateway';
+ import { renderProduct } from '../views/ProductView';
+ import { errorResponse } from './ErrorHandling';
+ import { HttpRequest, HttpResponse } from './HttpTypes';
+ 
+ export class CatalogController {
+-  constructor(private readonly catalog: CatalogService) {}
++  constructor(
++    private readonly catalog: CatalogService,
++    private readonly products: ProductGateway,
++  ) {}
++
++  stock(request: HttpRequest): HttpResponse {
++    const row = this.products.findBySku(String(request.params['sku']));
++    return row === undefined ? { status: 404, body: null } : { status: 200, body: { stock: row.stock } };
++  }
+ 
+   list(): HttpResponse {
+     return { status: 200, body: this.catalog.listProducts().map(renderProduct) };

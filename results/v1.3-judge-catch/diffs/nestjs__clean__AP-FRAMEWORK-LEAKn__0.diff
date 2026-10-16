@@ -1,0 +1,21 @@
+diff -ruN bases/nestjs__clean/src/attendees/attendees.service.ts copies/nestjs__clean__AP-FRAMEWORK-LEAKn__0/src/attendees/attendees.service.ts
+--- bases/nestjs__clean/src/attendees/attendees.service.ts	2026-10-15 11:50:59
++++ copies/nestjs__clean__AP-FRAMEWORK-LEAKn__0/src/attendees/attendees.service.ts	2026-10-15 11:51:09
+@@ -10,7 +10,7 @@
+ 
+   constructor(@Inject(ATTENDEE_REPOSITORY) private readonly attendees: AttendeeRepository) {}
+ 
+-  async create(dto: CreateAttendeeDto): Promise<{ id: string; name: string }> {
++  async create(dto: CreateAttendeeDto, context?: CreateContextDto): Promise<{ id: string; name: string }> {
+     this.sequence += 1;
+     const attendee = new Attendee(`at-${this.sequence}`, dto.name, dto.email);
+     await this.attendees.save(attendee);
+@@ -22,4 +22,8 @@
+     if (attendee === undefined) throw new DomainError('not-found', `No attendee ${id}`);
+     return { id: attendee.id, name: attendee.name };
+   }
++}
++
++export interface CreateContextDto {
++  readonly requestId?: string;
+ }

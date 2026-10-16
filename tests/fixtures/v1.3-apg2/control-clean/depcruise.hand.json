@@ -1,0 +1,8 @@
+{"forbidden":[
+  {"name":"H-presentation-no-persistence-model","severity":"error","from":{"path":"^src/presentation/"},"to":{"path":"^src/infrastructure/.*\\.(record|row)\\.ts$"}},
+  {"name":"H-folder-cycle","severity":"error","scope":"folder","comment":"ADP at folder level","from":{"path":"^src/[^/]+$"},"to":{"circular":true}},
+  {"name":"H-folder-sdp","severity":"error","scope":"folder","comment":"SDP at folder level","from":{"path":"^src/[^/]+$"},"to":{"moreUnstable":true}},
+  {"name":"H-module-cycle","severity":"error","from":{},"to":{"circular":true}},
+  {"name":"H-deep-import","severity":"error","from":{"path":"^src/([^/]+)/"},"to":{"path":"^src/application/","pathNot":["^src/$1/","^src/[^/]+/index\\.ts$"]}},
+  {"name":"H-core-no-io-packages","severity":"error","from":{"path":"^src/(domain|application)/"},"to":{"path":["(^|/)node_modules/(@types/)?(fs|axios|typeorm|pg|node-fetch|got|undici)(/|$)","^(fs|axios|typeorm|pg|http|https|child_process)(/|$)"]}}
+],"options":{"tsPreCompilationDeps":true,"tsConfig":{"fileName":"tsconfig.json"},"doNotFollow":{"path":"node_modules"},"enhancedResolveOptions":{"extensions":[".ts",".tsx",".d.ts",".js",".jsx",".json"]}}}

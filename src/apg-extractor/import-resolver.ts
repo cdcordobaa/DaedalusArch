@@ -14,7 +14,7 @@ import { Node, SyntaxKind, ts } from 'ts-morph';
 import type {
   ExportDeclaration, ImportDeclaration, ImportEqualsDeclaration, Project, SourceFile, Symbol as MorphSymbol,
 } from 'ts-morph';
-import type { ExtractorOptions, NodeLookup } from './types.js';
+import type { ExtractorOptions, NodeLookup, ReExportEdgesMode } from './types.js';
 import { DEFAULT_OPTIONS } from './types.js';
 import { normalizeFilePath } from './id-generator.js';
 import {
@@ -37,7 +37,11 @@ export type SpecifierClass = 'relative' | 'alias-or-bare' | 'node-builtin';
 export type ModuleResolution =
   | { readonly kind: 'project-file'; readonly sourceFile: SourceFile; readonly fileNodeId: string }
   | { readonly kind: 'no-file-node'; readonly reason: 'excluded-or-skipped' | 'outside-root' }
-  | { readonly kind: 'package'; readonly root: PackageRoot; readonly outOfRootAlias: boolean }
+  | {
+    readonly kind: 'package'; readonly root: PackageRoot; readonly outOfRootAlias: boolean;
+    /** v1.3 `aliasDeclarationPackages` only: a bare specifier that `paths` maps to a declaration file without a File node. */
+    readonly declarationAlias?: true;
+  }
   | { readonly kind: 'unresolved' };
 
 /** One `compilerOptions.paths` key or the `baseUrl` (`domain-entities.md` §2.5). */
@@ -49,7 +53,8 @@ export interface AliasRule {
   readonly targetsIntoNodeModules: boolean;
 }
 
-export type AddWarning = (filePath: string, code: string, message: string) => void;
+/** `severity: 'info'` marks a warning that records a decision rather than a lost fact (v1.3 F-P01-ALIAS). */
+export type AddWarning = (filePath: string, code: string, message: string, severity?: 'info') => void;
 
 /** `domain-entities.md` §2.5. Internal to C1. */
 export interface ImportResolutionContext {
@@ -65,6 +70,16 @@ export interface ImportResolutionContext {
   readonly isInstalledPackage: (fromDir: string, root: string) => boolean;
   readonly project: Project;
   readonly host: ts.ModuleResolutionHost;
+  /** ADR-V13-01 (`ExtractorOptions.reExportEdges`). */
+  readonly reExportEdges: ReExportEdgesMode;
+  /** `ExtractorOptions.resolvedEdgesInLiteralView` (MT-B1): resolved occurrences through a re-export are not marked. */
+  readonly resolvedEdgesInLiteralView: boolean;
+  /** `reExportEdges: 'both'` only: per-file `export … from` targets, filled lazily (barrel-path search). */
+  readonly reExportAdjacency: Map<string, readonly SourceFile[]>;
+  /** v1.3 F-P01-ALIAS (`ExtractorOptions.aliasDeclarationPackages`). */
+  readonly aliasDeclarationPackages: boolean;
+  /** Memo of `ts.resolveModuleName` per containing directory and specifier (scale.md §5); absent = no memo. */
+  readonly moduleResolutions?: Map<string, ts.ResolvedModuleFull | undefined>;
 }
 
 // ── Classification (BR-U2-01) ────────────────────────────────────────────────
@@ -161,6 +176,11 @@ export function buildImportResolutionContext(
     isInstalledPackage: makeIsInstalledPackage(host),
     project,
     host,
+    reExportEdges: opts.reExportEdges ?? DEFAULT_OPTIONS.reExportEdges,
+    resolvedEdgesInLiteralView: opts.resolvedEdgesInLiteralView ?? DEFAULT_OPTIONS.resolvedEdgesInLiteralView,
+    reExportAdjacency: new Map(),
+    aliasDeclarationPackages: opts.aliasDeclarationPackages ?? DEFAULT_OPTIONS.aliasDeclarationPackages,
+    moduleResolutions: new Map(),
   };
 }
 
@@ -190,6 +210,10 @@ function looksLikeProjectAlias(specifier: string, ctx: ImportResolutionContext):
   const candidate = join(base.key, segment);
   if (ctx.host.directoryExists?.(candidate) === true) return true;
   return ['', '.ts', '.tsx', '.d.ts', '.js'].some(ext => ctx.host.fileExists(candidate + ext));
+}
+
+function isDeclarationFile(file: string): boolean {
+  return /\.d\.[cm]?ts$/.test(file);
 }
 
 function fileResolution(file: string, ctx: ImportResolutionContext): ModuleResolution {
@@ -223,8 +247,29 @@ export function resolveModule(
     ctx.addWarning(fromPath, 'EXTRACTOR_002', `Unresolvable import: ${specifier}`);
   } else if (result.kind === 'no-file-node') {
     ctx.addWarning(fromPath, 'EXTRACTOR_008', `Import target outside the extracted set: ${specifier}`);
+  } else if (result.kind === 'package' && result.declarationAlias === true) {
+    ctx.addWarning(
+      fromPath, 'EXTRACTOR_008',
+      `Import target outside the extracted set: ${specifier} (a declaration file reached through tsconfig paths; recorded as Package ${result.root.name})`,
+      'info',
+    );
   }
   return result;
+}
+
+/**
+ * `ts.resolveModuleName(...).resolvedModule`, memoised per containing directory and specifier. TypeScript resolves a
+ * module name from the containing file's directory only (its own resolution cache is keyed the same way), and the
+ * file system does not change during one extraction, so the memo returns what a fresh call would (scale.md §5).
+ */
+function resolvedModuleOf(specifier: string, containingFile: string, ctx: ImportResolutionContext): ts.ResolvedModuleFull | undefined {
+  const memo = ctx.moduleResolutions;
+  if (memo === undefined) return ts.resolveModuleName(specifier, containingFile, ctx.compilerOptions, ctx.host).resolvedModule;
+  const key = `${dirname(containingFile)}\u0000${specifier}`;
+  if (memo.has(key)) return memo.get(key);
+  const resolved = ts.resolveModuleName(specifier, containingFile, ctx.compilerOptions, ctx.host).resolvedModule;
+  memo.set(key, resolved);
+  return resolved;
 }
 
 function resolveModuleSilently(specifier: string, fromSourceFile: SourceFile, ctx: ImportResolutionContext): ModuleResolution {
@@ -233,7 +278,7 @@ function resolveModuleSilently(specifier: string, fromSourceFile: SourceFile, ct
   // 1. Built-in (BR-U2-03, 04).
   if (cls === 'node-builtin') return { kind: 'package', root: builtinRoot(specifier), outOfRootAlias: false };
 
-  const resolved = ts.resolveModuleName(specifier, fromSourceFile.getFilePath(), ctx.compilerOptions, ctx.host).resolvedModule;
+  const resolved = resolvedModuleOf(specifier, fromSourceFile.getFilePath(), ctx);
 
   // 2. Relative (BR-U2-09 S-4, 12, 13).
   if (cls === 'relative') {
@@ -254,7 +299,17 @@ function resolveModuleSilently(specifier: string, fromSourceFile: SourceFile, ct
     if (resolved.isExternalLibraryImport === true || hasNodeModulesSegment(file)) {
       return { kind: 'package', root: packageRootForSpecifier(specifier, ctx.aliasRules), outOfRootAlias: false };
     }
-    if (isUnderRoot(ctx.projectRoot, file)) return fileResolution(file, ctx);
+    if (isUnderRoot(ctx.projectRoot, file)) {
+      const asFile = fileResolution(file, ctx);
+      // v1.3 F-P01-ALIAS: `paths` maps a bare specifier onto a local declaration stub (`typeorm` ->
+      // `vendor/typeorm.d.ts`). The specifier names a package, whatever file the checker reads; dropping the import
+      // would hide it from every package-based rule (FF-P01 domain-purity and others).
+      if (asFile.kind === 'no-file-node' && ctx.aliasDeclarationPackages && isDeclarationFile(file)
+        && matchPathsRule(ctx.aliasRules, specifier) !== undefined) {
+        return { kind: 'package', root: packageRootForSpecifier(specifier, ctx.aliasRules), outOfRootAlias: false, declarationAlias: true };
+      }
+      return asFile;
+    }
     const viaAlias = matchPathsRule(ctx.aliasRules, specifier) !== undefined || baseUrlRule(ctx.aliasRules) !== undefined;
     return { kind: 'package', root: packageRootForSpecifier(specifier, ctx.aliasRules), outOfRootAlias: viaAlias };
   }
@@ -351,6 +406,8 @@ function followExportedName(
   specifier: string,
   warnFile: string,
   ctx: ImportResolutionContext,
+  /** ADR-V13-01: receives the file of every alias declaration crossed, in order. Does not change the result. */
+  hopFiles?: SourceFile[],
 ): NameTarget {
   let sym: MorphSymbol | undefined = moduleFile.getExportSymbols().find(s => s.getName() === name);
   let hops = 0;
@@ -368,6 +425,7 @@ function followExportedName(
       return { kind: 'fallback' };
     }
     visited.add(key);
+    hopFiles?.push(decl.getSourceFile());
     const hopSpecifier = moduleSpecifierOfAlias(decl);
     if (hopSpecifier !== undefined) {
       hops++;
@@ -449,25 +507,140 @@ export function resolveImportTargets(
     return { occurrences: [occurrence(moduleTarget, [], false)], outcome: 'resolvedInternal', outOfRootAlias: false };
   }
 
-  const routed = new Map<string, { target: OccurrenceTarget; specs: NameSpec[] }>();
+  const both = ctx.reExportEdges === 'both';
+  const moduleKey = targetKey(moduleTarget, ctx);
+  const routed = new Map<string, { target: OccurrenceTarget; specs: NameSpec[]; barrels: string[] }>();
+  // ADR-V13-01: the literal occurrence is a re-export hop when no spec of the statement routes to the module file
+  // (the resolved-only graph then has no edge to it).
+  let allHops = true;
   for (const spec of specs) {
     let target: OccurrenceTarget | undefined;
+    const hopFiles: SourceFile[] | undefined = both ? [] : undefined;
     if (spec.name === '*') {
       target = moduleTarget;
     } else {
-      const followed = followExportedName(spec.name, resolution.sourceFile, specifier, warnFile, ctx);
+      const followed = followExportedName(spec.name, resolution.sourceFile, specifier, warnFile, ctx, hopFiles);
       if (followed.kind === 'dropped') continue;
       target = followed.kind === 'target' ? followed.target : moduleTarget;
     }
     const key = targetKey(target, ctx);
+    if (key === moduleKey) allHops = false;
+    const barrels = both && key !== moduleKey
+      ? reExportBarrelPath(resolution.sourceFile, hopFiles ?? [], target, ctx)
+      : [];
     const slot = routed.get(key);
-    if (slot === undefined) routed.set(key, { target, specs: [spec] });
-    else slot.specs.push(spec);
+    if (slot === undefined) {
+      routed.set(key, { target, specs: [spec], barrels });
+    } else {
+      slot.specs.push(spec);
+      slot.barrels.push(...barrels);
+    }
   }
 
   const occurrences = [...routed.values()].map(({ target, specs: routedSpecs }) =>
     occurrence(target, routedSpecs.map(s => s.name), statementTypeOnly || allTypeMarked(routedSpecs)));
-  return { occurrences, outcome: outcomeOf(occurrences), outOfRootAlias: false };
+  if (!both) return { occurrences, outcome: outcomeOf(occurrences), outOfRootAlias: false };
+
+  // `reExportEdges: 'both'`: the literal occurrence to the module file carries every name of the statement; each
+  // target reached through a re-export gets its resolved occurrence with `viaReExport`. The partition outcome is the
+  // resolved-only one, so the statement counters do not change between the modes.
+  const literal: ImportOccurrence = {
+    ...occurrence(moduleTarget, specs.map(s => s.name), statementTypeOnly || allTypeMarked(specs)),
+    ...(allHops ? { reExportHop: true } : {}),
+  };
+  const resolvedViaReExport = [...routed.entries()]
+    .filter(([key]) => key !== moduleKey)
+    .map(([, { target, specs: routedSpecs, barrels }]): ImportOccurrence => ({
+      ...occurrence(target, routedSpecs.map(s => s.name), statementTypeOnly || allTypeMarked(routedSpecs)),
+      // MT-B1 (OFF by default): unmarked, the resolved edge is in the literal view too.
+      ...(ctx.resolvedEdgesInLiteralView ? {} : { viaReExport: true, reExportBarrels: [...new Set(barrels)] }),
+    }));
+  return { occurrences: [literal, ...resolvedViaReExport], outcome: outcomeOf(occurrences), outOfRootAlias: false };
+}
+
+// ── Re-export barrel path (ADR-V13-01) ───────────────────────────────────────
+
+/** Project files named by the `export … from` statements of one file (named, `*` and `* as ns`), cached. */
+function reExportTargetsOf(sf: SourceFile, ctx: ImportResolutionContext): readonly SourceFile[] {
+  const cacheKey = sf.getFilePath();
+  const cached = ctx.reExportAdjacency.get(cacheKey);
+  if (cached !== undefined) return cached;
+  const targets: SourceFile[] = [];
+  for (const decl of sf.getExportDeclarations()) {
+    const spec = decl.getModuleSpecifierValue();
+    if (spec === undefined) continue;
+    const r = resolveModuleSilently(spec, sf, ctx);
+    if (r.kind === 'project-file' && !targets.includes(r.sourceFile)) targets.push(r.sourceFile);
+  }
+  ctx.reExportAdjacency.set(cacheKey, targets);
+  return targets;
+}
+
+/**
+ * Files strictly between `from` and `to` on a shortest `export … from` path (breadth-first; the visited set guards
+ * against re-export cycles, the depth against long chains); `[]` when `to` is a direct re-export target or no such
+ * path exists. It fills in the files an `export *` chain crosses, which the checker skips (it resolves an
+ * `export *` name to its declaration directly).
+ */
+function reExportIntermediates(from: SourceFile, to: SourceFile, ctx: ImportResolutionContext): SourceFile[] {
+  if (from === to) return [];
+  const parent = new Map<SourceFile, SourceFile>();
+  const visited = new Set<SourceFile>([from]);
+  let frontier: SourceFile[] = [from];
+  let depth = 0;
+  while (frontier.length > 0 && depth <= ctx.maxBarrelDepth) {
+    const next: SourceFile[] = [];
+    for (const f of frontier) {
+      for (const t of reExportTargetsOf(f, ctx)) {
+        if (visited.has(t)) continue;
+        visited.add(t);
+        parent.set(t, f);
+        if (t === to) {
+          const path: SourceFile[] = [];
+          for (let p = parent.get(t); p !== undefined && p !== from; p = parent.get(p)) path.unshift(p);
+          return path;
+        }
+        next.push(t);
+      }
+    }
+    frontier = next;
+    depth++;
+  }
+  return [];
+}
+
+/**
+ * The re-export files an import crosses from its module file to `target`, import side first, as File node paths:
+ * the module file, the files of the alias declarations followed (`hopFiles`), and the files an `export *` chain
+ * crosses between them. The declaring file itself is not listed.
+ */
+function reExportBarrelPath(
+  moduleFile: SourceFile,
+  hopFiles: readonly SourceFile[],
+  target: OccurrenceTarget,
+  ctx: ImportResolutionContext,
+): string[] {
+  const declaring = target.kind === 'file' ? sourceFileOfNode(target.fileNodeId, ctx) : undefined;
+  const chain: SourceFile[] = [];
+  for (const f of [moduleFile, ...hopFiles, ...(declaring !== undefined ? [declaring] : [])]) {
+    if (chain[chain.length - 1] !== f) chain.push(f);
+  }
+  const files: SourceFile[] = [];
+  chain.forEach((f, i) => {
+    const prev = i > 0 ? chain[i - 1] : undefined;
+    if (prev !== undefined) files.push(...reExportIntermediates(prev, f, ctx));
+    files.push(f);
+  });
+  const paths = files.filter(f => f !== declaring).map(f => normalizeFilePath(f.getFilePath(), ctx.projectRoot));
+  return [...new Set(paths)];
+}
+
+/** The source file of a File node (reverse of `lookup.fileNodes`). */
+function sourceFileOfNode(fileNodeId: string, ctx: ImportResolutionContext): SourceFile | undefined {
+  for (const [path, id] of ctx.lookup.fileNodes) {
+    if (id === fileNodeId) return ctx.project.getSourceFile(join(ctx.projectRoot, path));
+  }
+  return undefined;
 }
 
 /**
@@ -508,17 +681,93 @@ export function resolveReExportTargets(statement: ExportDeclaration, ctx: Import
   };
 }
 
+/** One `import()` or `require()` call; `specifier` is set only for a string-literal first argument. */
+export interface DynamicImportCall {
+  /** The call's start line, as ts-morph's `getStartLineNumber()` gives it. */
+  readonly line: number;
+  readonly specifier: string | undefined;
+}
+
 /**
- * `import()` and `require()` call occurrences in one file (BR-U2-25). Import-equals
- * declarations, `import('x').T` type references and `require.resolve()` are not calls
- * of this form and are not counted.
+ * One scan per source file text, shared by the two callers (resolution and the unsupported count). Keyed by the
+ * compiler node, which ts-morph replaces when a file's text changes, so an edited file is scanned again.
  */
-export function countUnsupportedDynamicImports(sf: SourceFile): number {
-  let count = 0;
-  for (const call of sf.getDescendantsOfKind(SyntaxKind.CallExpression)) {
-    const callee = call.getExpression();
-    if (callee.getKind() === SyntaxKind.ImportKeyword) count++;
-    else if (Node.isIdentifier(callee) && callee.getText() === 'require') count++;
+const dynamicImportScans = new WeakMap<ts.SourceFile, readonly DynamicImportCall[]>();
+
+/**
+ * The `import(...)` and `require(...)` call expressions of a file, in source order. `import x = require()`
+ * declarations, `import('x').T` type references and `require.resolve()` are not calls of this form.
+ *
+ * Scale (Docs/v1.3/scale.md §5): the scan walks the compiler tree in the order of ts-morph's
+ * `getDescendantsOfKind(CallExpression)` (pre-order `forEachChild`) but wraps no node, and it runs once per file.
+ * The line is ts-morph's: one plus the number of `\n` before the call's start.
+ */
+export function findDynamicImportCalls(sf: SourceFile): readonly DynamicImportCall[] {
+  const root = sf.compilerNode;
+  const cached = dynamicImportScans.get(root);
+  if (cached !== undefined) return cached;
+  const text = root.getFullText();
+  const newlines: number[] = [];
+  for (let i = text.indexOf('\n'); i >= 0; i = text.indexOf('\n', i + 1)) newlines.push(i);
+  const lineAt = (pos: number): number => {
+    let lo = 0;
+    let hi = newlines.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >>> 1;
+      if ((newlines[mid] ?? pos) < pos) lo = mid + 1;
+      else hi = mid;
+    }
+    return lo + 1;
+  };
+  const calls: DynamicImportCall[] = [];
+  const visit = (node: ts.Node): void => {
+    if (ts.isCallExpression(node)) {
+      const callee = node.expression;
+      const isDynamic = callee.kind === ts.SyntaxKind.ImportKeyword
+        // ts-morph's Identifier.getText() is the identifier's `text` (escapes resolved), not its source slice.
+        || (ts.isIdentifier(callee) && callee.text === 'require');
+      if (isDynamic) {
+        const arg = node.arguments[0];
+        const literal = arg !== undefined && (ts.isStringLiteral(arg) || ts.isNoSubstitutionTemplateLiteral(arg));
+        calls.push({ line: lineAt(node.getStart(root)), specifier: literal ? arg.text : undefined });
+      }
+    }
+    node.forEachChild(visit);
+  };
+  root.forEachChild(visit);
+  dynamicImportScans.set(root, calls);
+  return calls;
+}
+
+/**
+ * Counts `import()` / `require()` calls that are not modelled (BR-U2-25). With `modelLiterals` (the v1.3
+ * `dynamicImports` option) the string-literal calls are modelled by {@link resolveDynamicImportTargets} and
+ * are not counted; the remaining calls (computed specifiers) still are.
+ */
+export function countUnsupportedDynamicImports(sf: SourceFile, modelLiterals = false): number {
+  const calls = findDynamicImportCalls(sf);
+  return modelLiterals ? calls.filter(c => c.specifier === undefined).length : calls.length;
+}
+
+/**
+ * v1.3 (`dynamicImports`): IMPORTS occurrences of the string-literal `import()` / `require()` calls of one file,
+ * resolved like static imports (`resolveModule`) but to the module itself (no per-name barrel routing). They carry
+ * `dynamic: true`, names `['*']` and the call's line. They are outside the statement partition counters.
+ */
+export function resolveDynamicImportTargets(sf: SourceFile, ctx: ImportResolutionContext): ImportOccurrence[] {
+  const sourceFileNodeId = sourceFileNodeIdOf(sf, ctx);
+  const occurrences: ImportOccurrence[] = [];
+  for (const { line, specifier } of findDynamicImportCalls(sf)) {
+    if (specifier === undefined) continue;
+    const resolution = resolveModule(specifier, sf, ctx);
+    let target: OccurrenceTarget;
+    if (resolution.kind === 'project-file') target = { kind: 'file', fileNodeId: resolution.fileNodeId };
+    else if (resolution.kind === 'package') target = { kind: 'package', root: resolution.root };
+    else continue;
+    occurrences.push({
+      edgeType: 'IMPORTS', sourceFileNodeId, target, specifier, line,
+      names: ['*'], isTypeOnly: false, dynamic: true,
+    });
   }
-  return count;
+  return occurrences;
 }

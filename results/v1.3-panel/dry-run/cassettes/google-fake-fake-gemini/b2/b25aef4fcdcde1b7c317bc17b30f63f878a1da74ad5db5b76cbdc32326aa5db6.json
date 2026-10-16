@@ -1,0 +1,19 @@
+{
+  "answer": {
+    "inputTokens": 282,
+    "outputTokens": 20,
+    "servedModel": "fake-gemini",
+    "text": "{\"choice\":\"B\",\"reason\":\"fake google answer\"}"
+  },
+  "failedAttempts": [],
+  "itemKey": "6687fdfab612d8f2d7b27b33",
+  "key": "b25aef4fcdcde1b7c317bc17b30f63f878a1da74ad5db5b76cbdc32326aa5db6",
+  "model": "fake-gemini",
+  "provider": "fake",
+  "request": {
+    "prompt": "## Architectural style\n- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.\n\n## Code excerpt\nFile: src/util/auditevent.ts\n```ts\n   29  import type { BotExecutionRequest } from '../bots/types';\n   30  import { getConfig } from '../config/loader';\n   31  import { AuthenticatedRequestContext, buildTracingExtension, tryGetRequestContext } from '../context';\n   32> import type { SystemRepository } from '../fhir/repo';\n   33  import { getProjectSystemRepo } from '../fhir/repo';\n   34  import { globalLogger } from '../logger';\n   35  \n```\n\n## Reported finding\nComponent `util` (instability 0.04) depends on the less stable component `fhir` (instability 0.48).\n\n## Question\nWould an architect following this style want this changed?\nA. uncertain\nB. yes\nC. no\n\nReply with JSON only: {\"choice\": \"<letter>\", \"reason\": \"<one sentence>\"}",
+    "system": "You are a software architect reviewing a TypeScript code base against an architectural style. Judge only from the material in the message: the style definition, the code excerpt and the reported finding. You have no tools. Reply with one JSON object and nothing else.",
+    "temperature": 0
+  },
+  "runIndex": 1
+}

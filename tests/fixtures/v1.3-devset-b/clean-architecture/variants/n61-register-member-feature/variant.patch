@@ -1,0 +1,103 @@
+--- /dev/null
++++ b/src/application/dto/MemberDto.ts
+@@ -0,0 +1,12 @@
++import { Member } from '../../domain/entities/Member';
++
++export interface MemberDto {
++  id: string;
++  name: string;
++  email: string;
++  maxActiveLoans: number;
++}
++
++export function toMemberDto(member: Member): MemberDto {
++  return { id: member.id, name: member.name, email: member.email, maxActiveLoans: member.maxActiveLoans };
++}
+--- /dev/null
++++ b/src/application/use-cases/RegisterMemberUseCase.ts
+@@ -0,0 +1,23 @@
++import { Member } from '../../domain/entities/Member';
++import { MemberRepository } from '../../domain/repositories/MemberRepository';
++import { MemberDto, toMemberDto } from '../dto/MemberDto';
++import { IdGenerator } from '../ports/IdGenerator';
++
++export interface RegisterMemberCommand {
++  name: string;
++  email: string;
++  maxActiveLoans: number;
++}
++
++export class RegisterMemberUseCase {
++  constructor(
++    private readonly members: MemberRepository,
++    private readonly ids: IdGenerator,
++  ) {}
++
++  async execute(command: RegisterMemberCommand): Promise<MemberDto> {
++    const member = new Member(this.ids.next('member'), command.name, command.email, command.maxActiveLoans);
++    await this.members.save(member);
++    return toMemberDto(member);
++  }
++}
+--- a/src/infrastructure/http/ErrorMapper.ts
++++ b/src/infrastructure/http/ErrorMapper.ts
+@@ -7,6 +7,7 @@
+   LOAN_NOT_FOUND: 404,
+   INVALID_ISBN: 400,
+   INVALID_BOOK: 400,
++  INVALID_MEMBER: 400,
+ };
+ 
+ export function toErrorResponse(error: unknown): HttpResponse {
+--- /dev/null
++++ b/src/infrastructure/http/MemberController.ts
+@@ -0,0 +1,20 @@
++import { RegisterMemberUseCase } from '../../application/use-cases/RegisterMemberUseCase';
++import { toErrorResponse } from './ErrorMapper';
++import { HttpRequest, HttpResponse, created } from './HttpTypes';
++
++export class MemberController {
++  constructor(private readonly registerMember: RegisterMemberUseCase) {}
++
++  async register(request: HttpRequest): Promise<HttpResponse> {
++    try {
++      const member = await this.registerMember.execute({
++        name: String(request.body['name']),
++        email: String(request.body['email']),
++        maxActiveLoans: Number(request.body['maxActiveLoans'] ?? 3),
++      });
++      return created(member);
++    } catch (error) {
++      return toErrorResponse(error);
++    }
++  }
++}
+--- a/src/infrastructure/main.ts
++++ b/src/infrastructure/main.ts
+@@ -1,9 +1,11 @@
+ import { BorrowBookUseCase } from '../application/use-cases/BorrowBookUseCase';
+ import { ListOverdueLoansUseCase } from '../application/use-cases/ListOverdueLoansUseCase';
+ import { RegisterBookUseCase } from '../application/use-cases/RegisterBookUseCase';
++import { RegisterMemberUseCase } from '../application/use-cases/RegisterMemberUseCase';
+ import { ReturnBookUseCase } from '../application/use-cases/ReturnBookUseCase';
+ import { BookController } from './http/BookController';
+ import { LoanController } from './http/LoanController';
++import { MemberController } from './http/MemberController';
+ import { InMemoryBookRepository } from './persistence/InMemoryBookRepository';
+ import { InMemoryLoanRepository } from './persistence/InMemoryLoanRepository';
+ import { InMemoryMemberRepository } from './persistence/InMemoryMemberRepository';
+@@ -14,6 +16,7 @@
+   books: BookController;
+   loans: LoanController;
+   members: InMemoryMemberRepository;
++  memberDesk: MemberController;
+ }
+ 
+ /** Composition root (Martin 2017, ch. 26 "The Main Component"): the only place that knows every concrete class. */
+@@ -32,5 +35,6 @@
+       new ListOverdueLoansUseCase(loans, clock),
+     ),
+     members,
++    memberDesk: new MemberController(new RegisterMemberUseCase(members, ids)),
+   };
+ }

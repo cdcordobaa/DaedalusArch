@@ -1,0 +1,32 @@
+diff -ruN bases/antipattern-nest/src/order/order.controller.ts copies/antipattern-nest__AP-FAT-CONTROLLER__0/src/order/order.controller.ts
+--- bases/antipattern-nest/src/order/order.controller.ts	2026-10-15 11:50:59
++++ copies/antipattern-nest__AP-FAT-CONTROLLER__0/src/order/order.controller.ts	2026-10-15 11:51:02
+@@ -1,4 +1,4 @@
+-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
++import { Body, Controller, Get, Param, Post, BadRequestException } from '@nestjs/common';
+ import { CreateOrderDto } from './dto/create-order.dto';
+ import { OrderEntity } from './order.entity';
+ import { OrderService } from './order.service';
+@@ -9,6 +9,9 @@
+ 
+   @Post()
+   create(@Body() dto: CreateOrderDto): Promise<OrderEntity> {
++    if (dto.quantity <= 0) {
++          throw new BadRequestException('Quantity must be positive');
++        }
+     return this.orderService.create(dto.customerId, dto.quantity, dto.unitPrice);
+   }
+ 
+diff -ruN bases/antipattern-nest/src/order/order.service.ts copies/antipattern-nest__AP-FAT-CONTROLLER__0/src/order/order.service.ts
+--- bases/antipattern-nest/src/order/order.service.ts	2026-10-15 11:50:59
++++ copies/antipattern-nest__AP-FAT-CONTROLLER__0/src/order/order.service.ts	2026-10-15 11:51:02
+@@ -11,9 +11,6 @@
+   ) {}
+ 
+   async create(customerId: string, quantity: number, unitPrice: number): Promise<OrderEntity> {
+-    if (quantity <= 0) {
+-      throw new BadRequestException('Quantity must be positive');
+-    }
+     const order = this.orderRepository.create({ customerId, quantity, total: quantity * unitPrice });
+     return this.orderRepository.save(order);
+   }

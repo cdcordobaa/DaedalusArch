@@ -1,0 +1,27 @@
+--- a/src/infrastructure/http/LoanController.ts
++++ b/src/infrastructure/http/LoanController.ts
+@@ -1,3 +1,4 @@
++import type { LoanDto } from '../../application/dto/LoanDto';
+ import { BorrowBookUseCase } from '../../application/use-cases/BorrowBookUseCase';
+ import { ListOverdueLoansUseCase } from '../../application/use-cases/ListOverdueLoansUseCase';
+ import { ReturnBookUseCase } from '../../application/use-cases/ReturnBookUseCase';
+@@ -17,7 +18,7 @@
+         bookId: String(request.body['bookId']),
+         memberId: String(request.body['memberId']),
+       });
+-      return created(loan);
++      return created(this.withLinks(loan));
+     } catch (error) {
+       return toErrorResponse(error);
+     }
+@@ -31,6 +32,10 @@
+     }
+   }
+ 
++  private withLinks(loan: LoanDto): LoanDto & { links: { self: string } } {
++    return { ...loan, links: { self: `/loans/${loan.id}` } };
++  }
++
+   async overdue(): Promise<HttpResponse> {
+     return ok(await this.listOverdue.execute());
+   }

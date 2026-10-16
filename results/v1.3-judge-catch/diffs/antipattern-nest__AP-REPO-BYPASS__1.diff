@@ -1,0 +1,20 @@
+diff -ruN bases/antipattern-nest/src/invoice/invoice.service.ts copies/antipattern-nest__AP-REPO-BYPASS__1/src/invoice/invoice.service.ts
+--- bases/antipattern-nest/src/invoice/invoice.service.ts	2026-10-15 11:50:59
++++ copies/antipattern-nest__AP-REPO-BYPASS__1/src/invoice/invoice.service.ts	2026-10-15 11:51:00
+@@ -1,6 +1,6 @@
+ import { Injectable } from '@nestjs/common';
+ import { InjectRepository } from '@nestjs/typeorm';
+-import { Repository } from 'typeorm';
++import { Repository, getRepository } from 'typeorm';
+ import { InvoiceEntity } from './invoice.entity';
+ 
+ @Injectable()
+@@ -16,6 +16,7 @@
+   }
+ 
+   countFor(orderId: string): Promise<number> {
+-    return this.invoiceRepository.count({ where: { orderId } });
++    const invoiceRepository = getRepository(InvoiceEntity);
++    return invoiceRepository.count({ where: { orderId } });
+   }
+ }

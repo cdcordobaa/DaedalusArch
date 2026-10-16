@@ -88,7 +88,7 @@ describe('spec-parser', () => {
       const tmpPath = path.resolve(__dirname, '../../../.tmp-unknown-style.yaml');
       fs.writeFileSync(tmpPath, `spec_version: "1.0.0"
 architecture:
-  style: hexagonal
+  style: onion
   layers:
     - name: domain
       directories: [src/domain/**]

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "v01-domain-imports-application-port",
+  "kind": "violation",
+  "plants": "FF-S01",
+  "description": "Loan (domain entity) imports the application port Clock to offer isOverdueNow(clock).",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/domain/entities/Loan.ts",
+      "target": "src/application/ports/Clock.ts",
+      "reason": "Domain imports an application-layer module: the dependency points outward (Dependency Rule)."
+    },
+    {
+      "ruleId": "FF-S04",
+      "ruleName": "no-domain-outward-dep",
+      "file": "src/domain/entities/Loan.ts",
+      "target": "src/application/ports/Clock.ts",
+      "reason": "A domain file imports a file of another layer."
+    }
+  ]
+}

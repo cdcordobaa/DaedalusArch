@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "v10-domain-entity-type-imports-express",
+  "kind": "violation",
+  "plants": "FF-P01",
+  "description": "Member gets a static fromRequest(request: express.Request) factory (type-only import).",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P01",
+      "ruleName": "domain-purity",
+      "file": "src/domain/entities/Member.ts",
+      "target": "express",
+      "reason": "The domain imports the web framework express (a type-only import is still a source dependency)."
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "variant": "v01-domain-uses-outbound-adapter-constant",
+  "kind": "violation",
+  "plants": "FF-S01",
+  "description": "PriceCalculator (domain) imports PAYMENT_FEE_CENTS from FakePaymentGateway (outbound adapter).",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction-graph",
+      "file": "src/domain/services/PriceCalculator.ts",
+      "target": "src/adapters/outbound/payment/FakePaymentGateway.ts",
+      "reason": "domain > adapters-outbound is not allowed and adapters-outbound > domain is: an allowed edge run backwards."
+    },
+    {
+      "ruleId": "FF-S04",
+      "ruleName": "core-isolation",
+      "file": "src/domain/services/PriceCalculator.ts",
+      "target": "src/adapters/outbound/payment/FakePaymentGateway.ts",
+      "reason": "The core imports a file outside the domain layer."
+    }
+  ]
+}

@@ -1,0 +1,679 @@
+[
+ {
+  "seed": 95,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\"fs\")",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt",
+  "minimised": {
+   "size": "2 nodes, 2 edges, 0 layers",
+   "steps": 37,
+   "verdict": "mismatch:error",
+   "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\"a\")",
+   "project": {
+    "id": "fuzz/95",
+    "seed": 95,
+    "apg": {
+     "nodes": [
+      {
+       "id": "file:3",
+       "type": "File",
+       "name": "..spec.ts",
+       "filePath": "src/a|b/..spec.ts",
+       "decorators": [],
+       "properties": {}
+      },
+      {
+       "id": "file:4",
+       "type": "File",
+       "name": "ünï.ts",
+       "filePath": "src/dömain/ünï.ts",
+       "decorators": [],
+       "properties": {
+        "isBarrel": false
+       }
+      }
+     ],
+     "edges": [
+      {
+       "id": "e26",
+       "type": "IMPORTS",
+       "sourceId": "file:4",
+       "targetId": "file:3",
+       "properties": {}
+      },
+      {
+       "id": "e43",
+       "type": "IMPORTS",
+       "sourceId": "file:4",
+       "targetId": "file:3",
+       "properties": {
+        "viaReExport": "a",
+        "positions": [
+         23,
+         28
+        ]
+       }
+      }
+     ]
+    },
+    "layerModel": {
+     "layers": []
+    }
+   },
+   "params": {}
+  }
+ },
+ {
+  "seed": 96,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: Long(2)",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt",
+  "minimised": {
+   "size": "4 nodes, 3 edges, 0 layers",
+   "steps": 52,
+   "verdict": "mismatch:error",
+   "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: Long(2)",
+   "project": {
+    "id": "fuzz/96",
+    "seed": 96,
+    "apg": {
+     "nodes": [
+      {
+       "id": "file:0",
+       "type": "File",
+       "name": "Foo.spec.test.ts",
+       "filePath": "src/ws dir/Foo.spec.test.ts",
+       "decorators": [],
+       "properties": {}
+      },
+      {
+       "id": "file:4",
+       "type": "File",
+       "name": "Foo.spec.test.ts",
+       "filePath": "src/ws dir/Foo.spec.test.ts",
+       "decorators": [],
+       "properties": {
+        "isBarrel": false
+       }
+      },
+      {
+       "id": "file:5",
+       "type": "File",
+       "name": "$",
+       "filePath": "src/(x)/Foo.test.test.ts",
+       "decorators": [],
+       "properties": {}
+      },
+      {
+       "id": "file:6",
+       "type": "File",
+       "name": "OrderPlacedEvent",
+       "filePath": "src/ws dir/Foo.spec.test.ts",
+       "decorators": [],
+       "properties": {}
+      }
+     ],
+     "edges": [
+      {
+       "id": "e30",
+       "type": "IMPORTS",
+       "sourceId": "file:4",
+       "targetId": "file:6",
+       "properties": {}
+      },
+      {
+       "id": "e32",
+       "type": "RE_EXPORTS",
+       "sourceId": "file:4",
+       "targetId": "file:0",
+       "properties": {
+        "viaReExport": {
+         "$int": "2"
+        }
+       }
+      },
+      {
+       "id": "e35",
+       "type": "IMPORTS",
+       "sourceId": "file:5",
+       "targetId": "file:0",
+       "properties": {}
+      }
+     ]
+    },
+    "layerModel": {
+     "layers": []
+    }
+   },
+   "params": {}
+  }
+ },
+ {
+  "seed": 98,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\"FooController\")",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 136,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\"[\")",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 156,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\"set\")",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 198,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\"fs\")",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 209,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\"A\")",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 218,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\" \")",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 350,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\"😀\")",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 363,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: Long(1)",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 377,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\"a\")",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 378,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\"set\")",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 454,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\"\n\")",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 474,
+  "label": "universal-literal:cyclicDependencyCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "interp: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: Double (NOT)",
+  "text": "MATCH (f:File) WHERE EXISTS { MATCH p = (f)-[:IMPORTS|RE_EXPORTS*2..10]->(f) WHERE ALL(r IN relationships(p) WHERE NOT coalesce(r.viaReExport, false)) } RETURN count(f) AS cnt",
+  "minimised": {
+   "size": "3 nodes, 4 edges, 0 layers",
+   "steps": 57,
+   "verdict": "mismatch:error",
+   "detail": "interp: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: Double (NOT)",
+   "project": {
+    "id": "fuzz/474",
+    "seed": 474,
+    "apg": {
+     "nodes": [
+      {
+       "id": "file:0",
+       "type": "File",
+       "name": "x*.TS",
+       "filePath": "src/(x)/x*.TS",
+       "decorators": [],
+       "properties": {}
+      },
+      {
+       "id": "package:0",
+       "type": "Package",
+       "name": "@nestjs/common",
+       "filePath": null,
+       "decorators": [],
+       "properties": {}
+      },
+      {
+       "id": "component:1",
+       "type": "Component",
+       "name": "A",
+       "filePath": "scripts",
+       "decorators": [],
+       "properties": {}
+      }
+     ],
+     "edges": [
+      {
+       "id": "e21",
+       "type": "IMPORTS",
+       "sourceId": "component:1",
+       "targetId": "package:0",
+       "properties": {
+        "viaReExport": 3
+       }
+      },
+      {
+       "id": "e26",
+       "type": "IMPORTS",
+       "sourceId": "file:0",
+       "targetId": "component:1",
+       "properties": {
+        "publicSurface": false,
+        "kind": "",
+        "component": "\""
+       }
+      },
+      {
+       "id": "e27",
+       "type": "IMPORTS",
+       "sourceId": "file:0",
+       "targetId": "file:0",
+       "properties": {
+        "apis": 0,
+        "reExportBarrels": [
+         "Ω"
+        ]
+       }
+      },
+      {
+       "id": "e30",
+       "type": "IMPORTS",
+       "sourceId": "file:0",
+       "targetId": "file:0",
+       "properties": {
+        "reExportHop": true,
+        "positions": false,
+        "inferred": "😀",
+        "publicSurface": "'",
+        "transport": 1
+       }
+      }
+     ]
+    },
+    "layerModel": {
+     "layers": []
+    }
+   },
+   "params": {}
+  }
+ },
+ {
+  "seed": 565,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: Long(9007199254740993)",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 693,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: Double(1.000000e-01)",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 758,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: Double(1.000000e+308)",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 766,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: Long(0)",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 803,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\"\\\")",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 834,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\"Entity\")",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 890,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\"fs\")",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 895,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: Double(1.000000e+308)",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 909,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\"FooService\")",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 913,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\"日本\")",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 1048,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\"module\")",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt",
+  "minimised": {
+   "size": "2 nodes, 2 edges, 0 layers",
+   "steps": 32,
+   "verdict": "mismatch:error",
+   "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\"module\")",
+   "project": {
+    "id": "fuzz/1048",
+    "seed": 1048,
+    "apg": {
+     "nodes": [
+      {
+       "id": "file:0",
+       "type": "File",
+       "name": "express",
+       "filePath": "src/a+b.ts",
+       "decorators": [],
+       "properties": {}
+      },
+      {
+       "id": "file:1",
+       "type": "File",
+       "name": "a+b.ts",
+       "filePath": "src/a+b.ts",
+       "decorators": [],
+       "properties": {
+        "isBarrel": false
+       }
+      }
+     ],
+     "edges": [
+      {
+       "id": "e16",
+       "type": "RE_EXPORTS",
+       "sourceId": "file:0",
+       "targetId": "file:1",
+       "properties": {
+        "viaReExport": "module"
+       }
+      },
+      {
+       "id": "e22",
+       "type": "IMPORTS",
+       "sourceId": "file:0",
+       "targetId": "file:1",
+       "properties": {}
+      }
+     ]
+    },
+    "layerModel": {
+     "layers": []
+    }
+   },
+   "params": {}
+  }
+ },
+ {
+  "seed": 1104,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: Double(1.000000e+00)",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt",
+  "minimised": {
+   "size": "3 nodes, 3 edges, 0 layers",
+   "steps": 46,
+   "verdict": "mismatch:error",
+   "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: Double(1.000000e+00)",
+   "project": {
+    "id": "fuzz/1104",
+    "seed": 1104,
+    "apg": {
+     "nodes": [
+      {
+       "id": "file:0",
+       "type": "File",
+       "name": "FooRepository.test.ts",
+       "filePath": "src/a.b/FooRepository.test.ts",
+       "decorators": [],
+       "properties": {}
+      },
+      {
+       "id": "file:15",
+       "type": "File",
+       "name": "set.js",
+       "filePath": "src/dömain/set.js",
+       "decorators": [],
+       "properties": {
+        "isBarrel": false
+       }
+      },
+      {
+       "id": "file:16",
+       "type": "File",
+       "name": "FooRepository.ts",
+       "filePath": "src/日本/FooRepository.ts",
+       "decorators": [],
+       "properties": {}
+      }
+     ],
+     "edges": [
+      {
+       "id": "e5",
+       "type": "RE_EXPORTS",
+       "sourceId": "file:0",
+       "targetId": "file:15",
+       "properties": {
+        "viaReExport": 1
+       }
+      },
+      {
+       "id": "e17",
+       "type": "IMPORTS",
+       "sourceId": "file:0",
+       "targetId": "file:16",
+       "properties": {}
+      },
+      {
+       "id": "e18",
+       "type": "IMPORTS",
+       "sourceId": "file:16",
+       "targetId": "file:15",
+       "properties": {}
+      }
+     ]
+    },
+    "layerModel": {
+     "layers": []
+    }
+   },
+   "params": {}
+  }
+ },
+ {
+  "seed": 1127,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\"\\\")",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 1137,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: Double(0.000000e+00)",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 1139,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\"x y\")",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 1153,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\" \")",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 1245,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: Double(1.000000e+00)",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 1274,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\"Controller\")",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 1521,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: Long(-1)",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 1542,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\"1\")",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 1603,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: Double(1.000000e+308)",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 1645,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: Double(1.000000e+20)",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 1710,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: Double(2.000000e+00)",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 1907,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: Long(1)",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 1945,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\"module\")",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 1964,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: String(\".*\")",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ },
+ {
+  "seed": 1991,
+  "label": "universal-literal:orphanFileCount",
+  "binding": "none",
+  "verdict": "mismatch:error",
+  "detail": "neo4j only: Neo.ClientError.Statement.TypeError: Don't know how to treat that as a predicate: Double(3.000000e-01)",
+  "text": "MATCH (f:File)\nWHERE NOT EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT EXISTS { MATCH (:File)-[r:IMPORTS|RE_EXPORTS]->(f) WHERE NOT coalesce(r.viaReExport, false) }\n  AND NOT f.isBarrel\nRETURN count(f) AS cnt"
+ }
+]

@@ -2,6 +2,7 @@ import type { APGResult } from '../shared/types/apg.js';
 import type { ParsedSpec } from '../shared/types/spec.js';
 import type { ActionableViolation } from '../shared/taxonomy/violation-types.js';
 import type { CytoscapeGraphData, CytoscapeNode, CytoscapeEdge } from './types.js';
+import { isResolvedReExportEdge } from '../shared/apg-edge-view.js';
 
 const DEFAULT_LAYER_COLORS: Record<string, string> = {
   domain: '#6366f1',
@@ -89,10 +90,11 @@ export function buildGraphData(
     },
   }));
 
-  // Filter to IMPORTS edges between File nodes
+  // Filter to IMPORTS edges between File nodes, in the literal edge view (v1.3: the module graph the import statements
+  // state; Docs/v1.3/edge-views.md, addendum 2026-10-15). A no-op on a v1.2E graph.
   const fileNodeIds = new Set(fileNodes.map((n) => n.id));
   const importEdges = apgResult.edges.filter(
-    (e) => e.type === 'IMPORTS' && fileNodeIds.has(e.sourceId) && fileNodeIds.has(e.targetId),
+    (e) => e.type === 'IMPORTS' && !isResolvedReExportEdge(e) && fileNodeIds.has(e.sourceId) && fileNodeIds.has(e.targetId),
   );
 
   // Build lookup from node ID to file path

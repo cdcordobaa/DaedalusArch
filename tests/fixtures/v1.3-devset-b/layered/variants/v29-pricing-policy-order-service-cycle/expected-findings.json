@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "layered",
+  "variant": "v29-pricing-policy-order-service-cycle",
+  "kind": "violation",
+  "plants": "FF-S02",
+  "description": "PricingPolicy imports the OrderItem type from OrderService (import type) for isBulk(); OrderService already imports PricingPolicy.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "file": "src/business/services/OrderService.ts",
+      "target": "src/business/services/PricingPolicy.ts",
+      "reason": "Two-file import cycle OrderService -> PricingPolicy -> OrderService (the type-only back edge still counts)."
+    }
+  ]
+}

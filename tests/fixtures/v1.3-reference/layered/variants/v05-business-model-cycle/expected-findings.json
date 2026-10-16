@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "layered",
+  "variant": "v05-business-model-cycle",
+  "kind": "violation",
+  "plants": "FF-S02",
+  "description": "Customer and Order import each other (Customer.openOrders, Order.isPlacedBy).",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "file": "src/business/model/Customer.ts",
+      "target": "src/business/model/Order.ts",
+      "reason": "Two-file import cycle Customer -> Order -> Customer."
+    }
+  ]
+}

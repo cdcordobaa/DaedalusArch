@@ -1,0 +1,20 @@
+diff -ruN bases/antipattern-nest/src/order/order.service.ts copies/antipattern-nest__AP-FRAMEWORK-LEAK__3/src/order/order.service.ts
+--- bases/antipattern-nest/src/order/order.service.ts	2026-10-15 11:50:59
++++ copies/antipattern-nest__AP-FRAMEWORK-LEAK__3/src/order/order.service.ts	2026-10-15 11:51:08
+@@ -2,6 +2,7 @@
+ import { InjectRepository } from '@nestjs/typeorm';
+ import { Repository } from 'typeorm';
+ import { OrderEntity } from './order.entity';
++import { Request } from 'express';
+ 
+ @Injectable()
+ export class OrderService {
+@@ -18,7 +19,7 @@
+     return this.orderRepository.save(order);
+   }
+ 
+-  async findOne(id: string): Promise<OrderEntity> {
++  async findOne(id: string, request?: Request): Promise<OrderEntity> {
+     const order = await this.orderRepository.findOne({ where: { id } });
+     if (order === null) {
+       throw new NotFoundException(`Order ${id} not found`);

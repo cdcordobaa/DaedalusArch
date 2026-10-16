@@ -1,0 +1,2438 @@
+{
+  "schemaVersion": 1,
+  "probe": "v1.3-stage0-orm-probe",
+  "engine": "cypher-interp",
+  "scoring": "v1.3",
+  "fixtures": "fixtures/v1.3-stage0-orm-probe",
+  "prediction": {
+    "statement": "Only decorated-domain-class is blocking (floor-escape design section 3.6).",
+    "blockingCases": [
+      "decorated-domain-class"
+    ],
+    "holds": true
+  },
+  "summary": [
+    {
+      "case": "control",
+      "layout": "clean",
+      "graphBlocking": 0,
+      "graphBlockingByRule": {},
+      "advisoryDeltaVsControl": {},
+      "checkCorrect": "n/a (no blocking finding)",
+      "checkFile": "pass,pass",
+      "checkFileAdvisory": [],
+      "checkFileTemplates": "pass,pass",
+      "checkImport": "pass"
+    },
+    {
+      "case": "control",
+      "layout": "hexagonal",
+      "graphBlocking": 0,
+      "graphBlockingByRule": {},
+      "advisoryDeltaVsControl": {},
+      "checkCorrect": "n/a (no blocking finding)",
+      "checkFile": "pass,pass",
+      "checkFileAdvisory": [],
+      "checkFileTemplates": "pass,pass",
+      "checkImport": "pass"
+    },
+    {
+      "case": "decorated-domain-class",
+      "layout": "clean",
+      "graphBlocking": 1,
+      "graphBlockingByRule": {
+        "FF-P01": 1
+      },
+      "advisoryDeltaVsControl": {
+        "FF-C06": -1,
+        "FF-CV05": -1
+      },
+      "checkCorrect": "correct",
+      "checkFile": "block",
+      "checkFileAdvisory": [],
+      "checkFileTemplates": "block",
+      "checkImport": "block"
+    },
+    {
+      "case": "decorated-domain-class",
+      "layout": "hexagonal",
+      "graphBlocking": 1,
+      "graphBlockingByRule": {
+        "FF-P01": 1
+      },
+      "advisoryDeltaVsControl": {
+        "FF-C06": -1,
+        "FF-CV05": -1
+      },
+      "checkCorrect": "correct",
+      "checkFile": "block",
+      "checkFileAdvisory": [],
+      "checkFileTemplates": "block",
+      "checkImport": "block"
+    },
+    {
+      "case": "version-column",
+      "layout": "clean",
+      "graphBlocking": 0,
+      "graphBlockingByRule": {},
+      "advisoryDeltaVsControl": {},
+      "checkCorrect": "n/a (no blocking finding)",
+      "checkFile": "pass",
+      "checkFileAdvisory": [],
+      "checkFileTemplates": "pass",
+      "checkImport": "pass"
+    },
+    {
+      "case": "version-column",
+      "layout": "hexagonal",
+      "graphBlocking": 0,
+      "graphBlockingByRule": {},
+      "advisoryDeltaVsControl": {},
+      "checkCorrect": "n/a (no blocking finding)",
+      "checkFile": "pass",
+      "checkFileAdvisory": [],
+      "checkFileTemplates": "pass",
+      "checkImport": "pass"
+    },
+    {
+      "case": "datasource-in-use-case",
+      "layout": "clean",
+      "graphBlocking": 0,
+      "graphBlockingByRule": {},
+      "advisoryDeltaVsControl": {},
+      "checkCorrect": "n/a (no blocking finding)",
+      "checkFile": "pass",
+      "checkFileAdvisory": [
+        "CHEAP.repository-bypass"
+      ],
+      "checkFileTemplates": "pass",
+      "checkImport": "pass"
+    },
+    {
+      "case": "datasource-in-use-case",
+      "layout": "hexagonal",
+      "graphBlocking": 0,
+      "graphBlockingByRule": {},
+      "advisoryDeltaVsControl": {},
+      "checkCorrect": "n/a (no blocking finding)",
+      "checkFile": "pass",
+      "checkFileAdvisory": [
+        "CHEAP.repository-bypass"
+      ],
+      "checkFileTemplates": "pass",
+      "checkImport": "pass"
+    },
+    {
+      "case": "repository-without-port",
+      "layout": "clean",
+      "graphBlocking": 0,
+      "graphBlockingByRule": {},
+      "advisoryDeltaVsControl": {
+        "FF-CV05": -2
+      },
+      "checkCorrect": "n/a (no blocking finding)",
+      "checkFile": "pass",
+      "checkFileAdvisory": [],
+      "checkFileTemplates": "pass",
+      "checkImport": "pass"
+    },
+    {
+      "case": "repository-without-port",
+      "layout": "hexagonal",
+      "graphBlocking": 0,
+      "graphBlockingByRule": {},
+      "advisoryDeltaVsControl": {
+        "FF-CV05": -2
+      },
+      "checkCorrect": "n/a (no blocking finding)",
+      "checkFile": "pass",
+      "checkFileAdvisory": [],
+      "checkFileTemplates": "pass",
+      "checkImport": "pass"
+    },
+    {
+      "case": "querybuilder-in-logic",
+      "layout": "clean",
+      "graphBlocking": 0,
+      "graphBlockingByRule": {},
+      "advisoryDeltaVsControl": {
+        "FF-CV03": 1,
+        "FF-CV05": 1
+      },
+      "checkCorrect": "n/a (no blocking finding)",
+      "checkFile": "pass",
+      "checkFileAdvisory": [
+        "CHEAP.repository-bypass",
+        "FF-CV03"
+      ],
+      "checkFileTemplates": "pass",
+      "checkImport": "pass"
+    },
+    {
+      "case": "querybuilder-in-logic",
+      "layout": "hexagonal",
+      "graphBlocking": 0,
+      "graphBlockingByRule": {},
+      "advisoryDeltaVsControl": {
+        "FF-CV03": 1,
+        "FF-CV05": 1
+      },
+      "checkCorrect": "n/a (no blocking finding)",
+      "checkFile": "pass",
+      "checkFileAdvisory": [
+        "CHEAP.repository-bypass",
+        "FF-CV03"
+      ],
+      "checkFileTemplates": "pass",
+      "checkImport": "pass"
+    }
+  ],
+  "rows": [
+    {
+      "case": "control",
+      "layout": "clean",
+      "spec": "specs/clean-arch.yaml",
+      "construct": "none (TypeORM only in the persistence adapter behind a domain port)",
+      "graph": {
+        "verdict": "pass",
+        "blockingCount": 0,
+        "blockingByRule": {},
+        "advisoryCount": 9,
+        "advisoryByRule": {
+          "FF-C03": 1,
+          "FF-C06": 1,
+          "FF-CV05": 7
+        },
+        "advisoryDeltaVsControl": {},
+        "blockingFindings": [],
+        "parseCoverage": {
+          "total": 7,
+          "parsed": 7,
+          "percentage": 100,
+          "skipped": []
+        }
+      },
+      "checkCorrect": [],
+      "files": [
+        {
+          "file": "src/application/use-cases/place-order.ts",
+          "layer": "application",
+          "checkFile": {
+            "verdict": "clean",
+            "blockingVerdict": "pass",
+            "blockingCount": 0,
+            "advisoryCount": 0,
+            "findings": [],
+            "hints": [],
+            "notChecked": [
+              {
+                "ruleId": "FF-P02",
+                "ruleName": "dependency-inversion",
+                "tier": "advisory",
+                "reason": "a ratio over every injected dependency of a class, read from the graph"
+              },
+              {
+                "ruleId": "FF-P04",
+                "ruleName": "use-case-isolation",
+                "tier": "advisory",
+                "reason": "reads CONSTRUCTOR_INJECTS paths across files"
+              },
+              {
+                "ruleId": "FF-P05",
+                "ruleName": "controller-no-entity",
+                "tier": "advisory",
+                "reason": "reads CONSTRUCTOR_INJECTS paths across files"
+              },
+              {
+                "ruleId": "FF-C01",
+                "ruleName": "domain-stability",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C02",
+                "ruleName": "module-fan-out",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C03",
+                "ruleName": "component-instability",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C04",
+                "ruleName": "no-orphan-files",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C05",
+                "ruleName": "max-fan-in",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C06",
+                "ruleName": "abstraction-ratio",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-SO01",
+                "ruleName": "single-responsibility-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO02",
+                "ruleName": "interface-segregation-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO03",
+                "ruleName": "inheritance-depth",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-CV05",
+                "ruleName": "test-file-pairing",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-CV06",
+                "ruleName": "no-index-logic",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-N01",
+                "ruleName": "architectural-integrity",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              },
+              {
+                "ruleId": "FF-N02",
+                "ruleName": "intent-alignment",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              }
+            ]
+          },
+          "checkFileTemplates": {
+            "status": "checked",
+            "blockingVerdict": "pass",
+            "clearedCount": 0,
+            "introduced": []
+          },
+          "checkImport": []
+        },
+        {
+          "file": "src/infrastructure/persistence/order.orm-entity.ts",
+          "layer": "infrastructure",
+          "checkFile": {
+            "verdict": "clean",
+            "blockingVerdict": "pass",
+            "blockingCount": 0,
+            "advisoryCount": 0,
+            "findings": [],
+            "hints": [],
+            "notChecked": [
+              {
+                "ruleId": "FF-P02",
+                "ruleName": "dependency-inversion",
+                "tier": "advisory",
+                "reason": "a ratio over every injected dependency of a class, read from the graph"
+              },
+              {
+                "ruleId": "FF-P04",
+                "ruleName": "use-case-isolation",
+                "tier": "advisory",
+                "reason": "reads CONSTRUCTOR_INJECTS paths across files"
+              },
+              {
+                "ruleId": "FF-P05",
+                "ruleName": "controller-no-entity",
+                "tier": "advisory",
+                "reason": "reads CONSTRUCTOR_INJECTS paths across files"
+              },
+              {
+                "ruleId": "FF-C01",
+                "ruleName": "domain-stability",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C02",
+                "ruleName": "module-fan-out",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C03",
+                "ruleName": "component-instability",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C04",
+                "ruleName": "no-orphan-files",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C05",
+                "ruleName": "max-fan-in",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C06",
+                "ruleName": "abstraction-ratio",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-SO01",
+                "ruleName": "single-responsibility-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO02",
+                "ruleName": "interface-segregation-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO03",
+                "ruleName": "inheritance-depth",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-CV05",
+                "ruleName": "test-file-pairing",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-CV06",
+                "ruleName": "no-index-logic",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-N01",
+                "ruleName": "architectural-integrity",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              },
+              {
+                "ruleId": "FF-N02",
+                "ruleName": "intent-alignment",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              }
+            ]
+          },
+          "checkFileTemplates": {
+            "status": "checked",
+            "blockingVerdict": "pass",
+            "clearedCount": 0,
+            "introduced": []
+          },
+          "checkImport": [
+            {
+              "line": 1,
+              "module": "typeorm",
+              "verdict": "allowed",
+              "blockingVerdict": "pass",
+              "fromLayer": "infrastructure",
+              "violations": [],
+              "notes": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "control",
+      "layout": "hexagonal",
+      "spec": "presets/hexagonal.yaml",
+      "construct": "none (TypeORM only in the persistence adapter behind a domain port)",
+      "graph": {
+        "verdict": "pass",
+        "blockingCount": 0,
+        "blockingByRule": {},
+        "advisoryCount": 9,
+        "advisoryByRule": {
+          "FF-C03": 1,
+          "FF-C06": 1,
+          "FF-CV05": 7
+        },
+        "advisoryDeltaVsControl": {},
+        "blockingFindings": [],
+        "parseCoverage": {
+          "total": 7,
+          "parsed": 7,
+          "percentage": 100,
+          "skipped": []
+        }
+      },
+      "checkCorrect": [],
+      "files": [
+        {
+          "file": "src/application/use-cases/place-order.ts",
+          "layer": "application",
+          "checkFile": {
+            "verdict": "clean",
+            "blockingVerdict": "pass",
+            "blockingCount": 0,
+            "advisoryCount": 0,
+            "findings": [],
+            "hints": [],
+            "notChecked": [
+              {
+                "ruleId": "FF-P02",
+                "ruleName": "port-dependency-inversion",
+                "tier": "advisory",
+                "reason": "a ratio over every injected dependency of a class, read from the graph"
+              },
+              {
+                "ruleId": "FF-C02",
+                "ruleName": "module-fan-out",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C03",
+                "ruleName": "component-instability",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C04",
+                "ruleName": "no-orphan-files",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C05",
+                "ruleName": "max-fan-in",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C06",
+                "ruleName": "abstraction-ratio",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-SO01",
+                "ruleName": "single-responsibility-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO02",
+                "ruleName": "interface-segregation-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO03",
+                "ruleName": "inheritance-depth",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-CV05",
+                "ruleName": "test-file-pairing",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-CV06",
+                "ruleName": "no-index-logic",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-N01",
+                "ruleName": "architectural-integrity",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              },
+              {
+                "ruleId": "FF-N02",
+                "ruleName": "intent-alignment",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              }
+            ]
+          },
+          "checkFileTemplates": {
+            "status": "checked",
+            "blockingVerdict": "pass",
+            "clearedCount": 0,
+            "introduced": []
+          },
+          "checkImport": []
+        },
+        {
+          "file": "src/adapters/outbound/persistence/order.orm-entity.ts",
+          "layer": "adapters-outbound",
+          "checkFile": {
+            "verdict": "clean",
+            "blockingVerdict": "pass",
+            "blockingCount": 0,
+            "advisoryCount": 0,
+            "findings": [],
+            "hints": [],
+            "notChecked": [
+              {
+                "ruleId": "FF-P02",
+                "ruleName": "port-dependency-inversion",
+                "tier": "advisory",
+                "reason": "a ratio over every injected dependency of a class, read from the graph"
+              },
+              {
+                "ruleId": "FF-C02",
+                "ruleName": "module-fan-out",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C03",
+                "ruleName": "component-instability",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C04",
+                "ruleName": "no-orphan-files",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C05",
+                "ruleName": "max-fan-in",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C06",
+                "ruleName": "abstraction-ratio",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-SO01",
+                "ruleName": "single-responsibility-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO02",
+                "ruleName": "interface-segregation-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO03",
+                "ruleName": "inheritance-depth",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-CV05",
+                "ruleName": "test-file-pairing",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-CV06",
+                "ruleName": "no-index-logic",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-N01",
+                "ruleName": "architectural-integrity",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              },
+              {
+                "ruleId": "FF-N02",
+                "ruleName": "intent-alignment",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              }
+            ]
+          },
+          "checkFileTemplates": {
+            "status": "checked",
+            "blockingVerdict": "pass",
+            "clearedCount": 0,
+            "introduced": []
+          },
+          "checkImport": [
+            {
+              "line": 1,
+              "module": "typeorm",
+              "verdict": "allowed",
+              "blockingVerdict": "pass",
+              "fromLayer": "adapters-outbound",
+              "violations": [],
+              "notes": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "decorated-domain-class",
+      "layout": "clean",
+      "spec": "specs/clean-arch.yaml",
+      "construct": "@Entity/@Column/@PrimaryGeneratedColumn on the domain Order (typeorm imported in src/domain)",
+      "graph": {
+        "verdict": "fail",
+        "blockingCount": 1,
+        "blockingByRule": {
+          "FF-P01": 1
+        },
+        "advisoryCount": 7,
+        "advisoryByRule": {
+          "FF-C03": 1,
+          "FF-CV05": 6
+        },
+        "advisoryDeltaVsControl": {
+          "FF-C06": -1,
+          "FF-CV05": -1
+        },
+        "blockingFindings": [
+          {
+            "key": "46f023c6e7fcb03030a01060",
+            "ruleId": "FF-P01",
+            "template": "domain-purity",
+            "file": "src/domain/entities/order.ts",
+            "line": 1,
+            "target": "typeorm",
+            "message": "Domain file src/domain/entities/order.ts imports forbidden package typeorm"
+          }
+        ],
+        "parseCoverage": {
+          "total": 6,
+          "parsed": 6,
+          "percentage": 100,
+          "skipped": []
+        }
+      },
+      "checkCorrect": [
+        {
+          "key": "46f023c6e7fcb03030a01060",
+          "ruleId": "FF-P01",
+          "verdict": "correct",
+          "reason": "'typeorm' at line 1 imports typeorm (forbidden by 'typeorm')"
+        }
+      ],
+      "files": [
+        {
+          "file": "src/domain/entities/order.ts",
+          "layer": "domain",
+          "checkFile": {
+            "verdict": "violations",
+            "blockingVerdict": "block",
+            "blockingCount": 1,
+            "advisoryCount": 0,
+            "findings": [
+              {
+                "ruleId": "FF-P01",
+                "tier": "blocking",
+                "line": 1,
+                "subject": "import \"typeorm\""
+              }
+            ],
+            "hints": [],
+            "notChecked": [
+              {
+                "ruleId": "FF-P02",
+                "ruleName": "dependency-inversion",
+                "tier": "advisory",
+                "reason": "a ratio over every injected dependency of a class, read from the graph"
+              },
+              {
+                "ruleId": "FF-P04",
+                "ruleName": "use-case-isolation",
+                "tier": "advisory",
+                "reason": "reads CONSTRUCTOR_INJECTS paths across files"
+              },
+              {
+                "ruleId": "FF-P05",
+                "ruleName": "controller-no-entity",
+                "tier": "advisory",
+                "reason": "reads CONSTRUCTOR_INJECTS paths across files"
+              },
+              {
+                "ruleId": "FF-C01",
+                "ruleName": "domain-stability",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C02",
+                "ruleName": "module-fan-out",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C03",
+                "ruleName": "component-instability",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C04",
+                "ruleName": "no-orphan-files",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C05",
+                "ruleName": "max-fan-in",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C06",
+                "ruleName": "abstraction-ratio",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-SO01",
+                "ruleName": "single-responsibility-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO02",
+                "ruleName": "interface-segregation-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO03",
+                "ruleName": "inheritance-depth",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-CV05",
+                "ruleName": "test-file-pairing",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-CV06",
+                "ruleName": "no-index-logic",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-N01",
+                "ruleName": "architectural-integrity",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              },
+              {
+                "ruleId": "FF-N02",
+                "ruleName": "intent-alignment",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              }
+            ]
+          },
+          "checkFileTemplates": {
+            "status": "checked",
+            "blockingVerdict": "block",
+            "clearedCount": 0,
+            "introduced": [
+              {
+                "ruleId": "FF-P01",
+                "ruleName": "domain-purity",
+                "tier": "blocking",
+                "construct": "Framework-free domain",
+                "source": "Martin 2017, ch. 22; ch. 32 \"Frameworks are details\". Entities and use cases do not depend on frameworks, databases or the UI.",
+                "severity": "critical",
+                "type": "DOMAIN_PURITY_VIOLATION",
+                "filePath": "src/domain/entities/order.ts",
+                "line": 1,
+                "target": "typeorm",
+                "message": "Domain file src/domain/entities/order.ts imports forbidden package typeorm"
+              }
+            ]
+          },
+          "checkImport": [
+            {
+              "line": 1,
+              "module": "typeorm",
+              "verdict": "violation",
+              "blockingVerdict": "block",
+              "fromLayer": "domain",
+              "violations": [
+                {
+                  "ruleId": "FF-P01",
+                  "ruleName": "domain-purity",
+                  "tier": "blocking"
+                }
+              ],
+              "notes": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "decorated-domain-class",
+      "layout": "hexagonal",
+      "spec": "presets/hexagonal.yaml",
+      "construct": "@Entity/@Column/@PrimaryGeneratedColumn on the domain Order (typeorm imported in src/domain)",
+      "graph": {
+        "verdict": "fail",
+        "blockingCount": 1,
+        "blockingByRule": {
+          "FF-P01": 1
+        },
+        "advisoryCount": 7,
+        "advisoryByRule": {
+          "FF-C03": 1,
+          "FF-CV05": 6
+        },
+        "advisoryDeltaVsControl": {
+          "FF-C06": -1,
+          "FF-CV05": -1
+        },
+        "blockingFindings": [
+          {
+            "key": "268a89270c149ff1127a60b2",
+            "ruleId": "FF-P01",
+            "template": "domain-purity",
+            "file": "src/domain/entities/order.ts",
+            "line": 1,
+            "target": "typeorm",
+            "message": "Domain file src/domain/entities/order.ts imports forbidden package typeorm"
+          }
+        ],
+        "parseCoverage": {
+          "total": 6,
+          "parsed": 6,
+          "percentage": 100,
+          "skipped": []
+        }
+      },
+      "checkCorrect": [
+        {
+          "key": "268a89270c149ff1127a60b2",
+          "ruleId": "FF-P01",
+          "verdict": "correct",
+          "reason": "'typeorm' at line 1 imports typeorm (forbidden by 'typeorm')"
+        }
+      ],
+      "files": [
+        {
+          "file": "src/domain/entities/order.ts",
+          "layer": "domain",
+          "checkFile": {
+            "verdict": "violations",
+            "blockingVerdict": "block",
+            "blockingCount": 1,
+            "advisoryCount": 0,
+            "findings": [
+              {
+                "ruleId": "FF-P01",
+                "tier": "blocking",
+                "line": 1,
+                "subject": "import \"typeorm\""
+              }
+            ],
+            "hints": [],
+            "notChecked": [
+              {
+                "ruleId": "FF-P02",
+                "ruleName": "port-dependency-inversion",
+                "tier": "advisory",
+                "reason": "a ratio over every injected dependency of a class, read from the graph"
+              },
+              {
+                "ruleId": "FF-C02",
+                "ruleName": "module-fan-out",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C03",
+                "ruleName": "component-instability",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C04",
+                "ruleName": "no-orphan-files",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C05",
+                "ruleName": "max-fan-in",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C06",
+                "ruleName": "abstraction-ratio",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-SO01",
+                "ruleName": "single-responsibility-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO02",
+                "ruleName": "interface-segregation-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO03",
+                "ruleName": "inheritance-depth",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-CV05",
+                "ruleName": "test-file-pairing",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-CV06",
+                "ruleName": "no-index-logic",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-N01",
+                "ruleName": "architectural-integrity",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              },
+              {
+                "ruleId": "FF-N02",
+                "ruleName": "intent-alignment",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              }
+            ]
+          },
+          "checkFileTemplates": {
+            "status": "checked",
+            "blockingVerdict": "block",
+            "clearedCount": 0,
+            "introduced": [
+              {
+                "ruleId": "FF-P01",
+                "ruleName": "domain-purity",
+                "tier": "blocking",
+                "construct": "Framework-free domain",
+                "source": "Martin 2017, ch. 22; ch. 32 \"Frameworks are details\". Entities and use cases do not depend on frameworks, databases or the UI. (Clean row; the Hexagonal preset composes it)",
+                "severity": "critical",
+                "type": "DOMAIN_PURITY_VIOLATION",
+                "filePath": "src/domain/entities/order.ts",
+                "line": 1,
+                "target": "typeorm",
+                "message": "Domain file src/domain/entities/order.ts imports forbidden package typeorm"
+              }
+            ]
+          },
+          "checkImport": [
+            {
+              "line": 1,
+              "module": "typeorm",
+              "verdict": "violation",
+              "blockingVerdict": "block",
+              "fromLayer": "domain",
+              "violations": [
+                {
+                  "ruleId": "FF-P01",
+                  "ruleName": "domain-purity",
+                  "tier": "blocking"
+                }
+              ],
+              "notes": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "version-column",
+      "layout": "clean",
+      "spec": "specs/clean-arch.yaml",
+      "construct": "@VersionColumn() on the persistence entity OrderRecord; domain unchanged",
+      "graph": {
+        "verdict": "pass",
+        "blockingCount": 0,
+        "blockingByRule": {},
+        "advisoryCount": 9,
+        "advisoryByRule": {
+          "FF-C03": 1,
+          "FF-C06": 1,
+          "FF-CV05": 7
+        },
+        "advisoryDeltaVsControl": {},
+        "blockingFindings": [],
+        "parseCoverage": {
+          "total": 7,
+          "parsed": 7,
+          "percentage": 100,
+          "skipped": []
+        }
+      },
+      "checkCorrect": [],
+      "files": [
+        {
+          "file": "src/infrastructure/persistence/order.orm-entity.ts",
+          "layer": "infrastructure",
+          "checkFile": {
+            "verdict": "clean",
+            "blockingVerdict": "pass",
+            "blockingCount": 0,
+            "advisoryCount": 0,
+            "findings": [],
+            "hints": [],
+            "notChecked": [
+              {
+                "ruleId": "FF-P02",
+                "ruleName": "dependency-inversion",
+                "tier": "advisory",
+                "reason": "a ratio over every injected dependency of a class, read from the graph"
+              },
+              {
+                "ruleId": "FF-P04",
+                "ruleName": "use-case-isolation",
+                "tier": "advisory",
+                "reason": "reads CONSTRUCTOR_INJECTS paths across files"
+              },
+              {
+                "ruleId": "FF-P05",
+                "ruleName": "controller-no-entity",
+                "tier": "advisory",
+                "reason": "reads CONSTRUCTOR_INJECTS paths across files"
+              },
+              {
+                "ruleId": "FF-C01",
+                "ruleName": "domain-stability",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C02",
+                "ruleName": "module-fan-out",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C03",
+                "ruleName": "component-instability",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C04",
+                "ruleName": "no-orphan-files",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C05",
+                "ruleName": "max-fan-in",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C06",
+                "ruleName": "abstraction-ratio",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-SO01",
+                "ruleName": "single-responsibility-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO02",
+                "ruleName": "interface-segregation-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO03",
+                "ruleName": "inheritance-depth",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-CV05",
+                "ruleName": "test-file-pairing",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-CV06",
+                "ruleName": "no-index-logic",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-N01",
+                "ruleName": "architectural-integrity",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              },
+              {
+                "ruleId": "FF-N02",
+                "ruleName": "intent-alignment",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              }
+            ]
+          },
+          "checkFileTemplates": {
+            "status": "checked",
+            "blockingVerdict": "pass",
+            "clearedCount": 0,
+            "introduced": []
+          },
+          "checkImport": [
+            {
+              "line": 1,
+              "module": "typeorm",
+              "verdict": "allowed",
+              "blockingVerdict": "pass",
+              "fromLayer": "infrastructure",
+              "violations": [],
+              "notes": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "version-column",
+      "layout": "hexagonal",
+      "spec": "presets/hexagonal.yaml",
+      "construct": "@VersionColumn() on the persistence entity OrderRecord; domain unchanged",
+      "graph": {
+        "verdict": "pass",
+        "blockingCount": 0,
+        "blockingByRule": {},
+        "advisoryCount": 9,
+        "advisoryByRule": {
+          "FF-C03": 1,
+          "FF-C06": 1,
+          "FF-CV05": 7
+        },
+        "advisoryDeltaVsControl": {},
+        "blockingFindings": [],
+        "parseCoverage": {
+          "total": 7,
+          "parsed": 7,
+          "percentage": 100,
+          "skipped": []
+        }
+      },
+      "checkCorrect": [],
+      "files": [
+        {
+          "file": "src/adapters/outbound/persistence/order.orm-entity.ts",
+          "layer": "adapters-outbound",
+          "checkFile": {
+            "verdict": "clean",
+            "blockingVerdict": "pass",
+            "blockingCount": 0,
+            "advisoryCount": 0,
+            "findings": [],
+            "hints": [],
+            "notChecked": [
+              {
+                "ruleId": "FF-P02",
+                "ruleName": "port-dependency-inversion",
+                "tier": "advisory",
+                "reason": "a ratio over every injected dependency of a class, read from the graph"
+              },
+              {
+                "ruleId": "FF-C02",
+                "ruleName": "module-fan-out",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C03",
+                "ruleName": "component-instability",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C04",
+                "ruleName": "no-orphan-files",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C05",
+                "ruleName": "max-fan-in",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C06",
+                "ruleName": "abstraction-ratio",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-SO01",
+                "ruleName": "single-responsibility-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO02",
+                "ruleName": "interface-segregation-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO03",
+                "ruleName": "inheritance-depth",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-CV05",
+                "ruleName": "test-file-pairing",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-CV06",
+                "ruleName": "no-index-logic",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-N01",
+                "ruleName": "architectural-integrity",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              },
+              {
+                "ruleId": "FF-N02",
+                "ruleName": "intent-alignment",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              }
+            ]
+          },
+          "checkFileTemplates": {
+            "status": "checked",
+            "blockingVerdict": "pass",
+            "clearedCount": 0,
+            "introduced": []
+          },
+          "checkImport": [
+            {
+              "line": 1,
+              "module": "typeorm",
+              "verdict": "allowed",
+              "blockingVerdict": "pass",
+              "fromLayer": "adapters-outbound",
+              "violations": [],
+              "notes": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "datasource-in-use-case",
+      "layout": "clean",
+      "spec": "specs/clean-arch.yaml",
+      "construct": "PlaceOrderUseCase injects DataSource and calls dataSource.transaction",
+      "graph": {
+        "verdict": "pass",
+        "blockingCount": 0,
+        "blockingByRule": {},
+        "advisoryCount": 9,
+        "advisoryByRule": {
+          "FF-C03": 1,
+          "FF-C06": 1,
+          "FF-CV05": 7
+        },
+        "advisoryDeltaVsControl": {},
+        "blockingFindings": [],
+        "parseCoverage": {
+          "total": 7,
+          "parsed": 7,
+          "percentage": 100,
+          "skipped": []
+        }
+      },
+      "checkCorrect": [],
+      "files": [
+        {
+          "file": "src/application/use-cases/place-order.ts",
+          "layer": "application",
+          "checkFile": {
+            "verdict": "clean",
+            "blockingVerdict": "pass",
+            "blockingCount": 0,
+            "advisoryCount": 0,
+            "findings": [],
+            "hints": [
+              {
+                "ruleId": "CHEAP.repository-bypass",
+                "tier": "advisory",
+                "line": 19,
+                "subject": "PlaceOrderUseCase: this.dataSource.transaction"
+              }
+            ],
+            "notChecked": [
+              {
+                "ruleId": "FF-P02",
+                "ruleName": "dependency-inversion",
+                "tier": "advisory",
+                "reason": "a ratio over every injected dependency of a class, read from the graph"
+              },
+              {
+                "ruleId": "FF-P04",
+                "ruleName": "use-case-isolation",
+                "tier": "advisory",
+                "reason": "reads CONSTRUCTOR_INJECTS paths across files"
+              },
+              {
+                "ruleId": "FF-P05",
+                "ruleName": "controller-no-entity",
+                "tier": "advisory",
+                "reason": "reads CONSTRUCTOR_INJECTS paths across files"
+              },
+              {
+                "ruleId": "FF-C01",
+                "ruleName": "domain-stability",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C02",
+                "ruleName": "module-fan-out",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C03",
+                "ruleName": "component-instability",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C04",
+                "ruleName": "no-orphan-files",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C05",
+                "ruleName": "max-fan-in",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C06",
+                "ruleName": "abstraction-ratio",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-SO01",
+                "ruleName": "single-responsibility-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO02",
+                "ruleName": "interface-segregation-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO03",
+                "ruleName": "inheritance-depth",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-CV05",
+                "ruleName": "test-file-pairing",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-CV06",
+                "ruleName": "no-index-logic",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-N01",
+                "ruleName": "architectural-integrity",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              },
+              {
+                "ruleId": "FF-N02",
+                "ruleName": "intent-alignment",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              }
+            ]
+          },
+          "checkFileTemplates": {
+            "status": "checked",
+            "blockingVerdict": "pass",
+            "clearedCount": 0,
+            "introduced": []
+          },
+          "checkImport": [
+            {
+              "line": 1,
+              "module": "typeorm",
+              "verdict": "allowed",
+              "blockingVerdict": "pass",
+              "fromLayer": "application",
+              "violations": [],
+              "notes": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "datasource-in-use-case",
+      "layout": "hexagonal",
+      "spec": "presets/hexagonal.yaml",
+      "construct": "PlaceOrderUseCase injects DataSource and calls dataSource.transaction",
+      "graph": {
+        "verdict": "pass",
+        "blockingCount": 0,
+        "blockingByRule": {},
+        "advisoryCount": 9,
+        "advisoryByRule": {
+          "FF-C03": 1,
+          "FF-C06": 1,
+          "FF-CV05": 7
+        },
+        "advisoryDeltaVsControl": {},
+        "blockingFindings": [],
+        "parseCoverage": {
+          "total": 7,
+          "parsed": 7,
+          "percentage": 100,
+          "skipped": []
+        }
+      },
+      "checkCorrect": [],
+      "files": [
+        {
+          "file": "src/application/use-cases/place-order.ts",
+          "layer": "application",
+          "checkFile": {
+            "verdict": "clean",
+            "blockingVerdict": "pass",
+            "blockingCount": 0,
+            "advisoryCount": 0,
+            "findings": [],
+            "hints": [
+              {
+                "ruleId": "CHEAP.repository-bypass",
+                "tier": "advisory",
+                "line": 19,
+                "subject": "PlaceOrderUseCase: this.dataSource.transaction"
+              }
+            ],
+            "notChecked": [
+              {
+                "ruleId": "FF-P02",
+                "ruleName": "port-dependency-inversion",
+                "tier": "advisory",
+                "reason": "a ratio over every injected dependency of a class, read from the graph"
+              },
+              {
+                "ruleId": "FF-C02",
+                "ruleName": "module-fan-out",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C03",
+                "ruleName": "component-instability",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C04",
+                "ruleName": "no-orphan-files",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C05",
+                "ruleName": "max-fan-in",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C06",
+                "ruleName": "abstraction-ratio",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-SO01",
+                "ruleName": "single-responsibility-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO02",
+                "ruleName": "interface-segregation-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO03",
+                "ruleName": "inheritance-depth",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-CV05",
+                "ruleName": "test-file-pairing",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-CV06",
+                "ruleName": "no-index-logic",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-N01",
+                "ruleName": "architectural-integrity",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              },
+              {
+                "ruleId": "FF-N02",
+                "ruleName": "intent-alignment",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              }
+            ]
+          },
+          "checkFileTemplates": {
+            "status": "checked",
+            "blockingVerdict": "pass",
+            "clearedCount": 0,
+            "introduced": []
+          },
+          "checkImport": [
+            {
+              "line": 1,
+              "module": "typeorm",
+              "verdict": "allowed",
+              "blockingVerdict": "pass",
+              "fromLayer": "application",
+              "violations": [],
+              "notes": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "repository-without-port",
+      "layout": "clean",
+      "spec": "specs/clean-arch.yaml",
+      "construct": "PlaceOrderUseCase injects Repository<Order> from typeorm; no port interface, EntitySchema mapping in persistence",
+      "graph": {
+        "verdict": "pass",
+        "blockingCount": 0,
+        "blockingByRule": {},
+        "advisoryCount": 7,
+        "advisoryByRule": {
+          "FF-C03": 1,
+          "FF-C06": 1,
+          "FF-CV05": 5
+        },
+        "advisoryDeltaVsControl": {
+          "FF-CV05": -2
+        },
+        "blockingFindings": [],
+        "parseCoverage": {
+          "total": 5,
+          "parsed": 5,
+          "percentage": 100,
+          "skipped": []
+        }
+      },
+      "checkCorrect": [],
+      "files": [
+        {
+          "file": "src/application/use-cases/place-order.ts",
+          "layer": "application",
+          "checkFile": {
+            "verdict": "clean",
+            "blockingVerdict": "pass",
+            "blockingCount": 0,
+            "advisoryCount": 0,
+            "findings": [],
+            "hints": [],
+            "notChecked": [
+              {
+                "ruleId": "FF-P02",
+                "ruleName": "dependency-inversion",
+                "tier": "advisory",
+                "reason": "a ratio over every injected dependency of a class, read from the graph"
+              },
+              {
+                "ruleId": "FF-P04",
+                "ruleName": "use-case-isolation",
+                "tier": "advisory",
+                "reason": "reads CONSTRUCTOR_INJECTS paths across files"
+              },
+              {
+                "ruleId": "FF-P05",
+                "ruleName": "controller-no-entity",
+                "tier": "advisory",
+                "reason": "reads CONSTRUCTOR_INJECTS paths across files"
+              },
+              {
+                "ruleId": "FF-C01",
+                "ruleName": "domain-stability",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C02",
+                "ruleName": "module-fan-out",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C03",
+                "ruleName": "component-instability",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C04",
+                "ruleName": "no-orphan-files",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C05",
+                "ruleName": "max-fan-in",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C06",
+                "ruleName": "abstraction-ratio",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-SO01",
+                "ruleName": "single-responsibility-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO02",
+                "ruleName": "interface-segregation-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO03",
+                "ruleName": "inheritance-depth",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-CV05",
+                "ruleName": "test-file-pairing",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-CV06",
+                "ruleName": "no-index-logic",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-N01",
+                "ruleName": "architectural-integrity",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              },
+              {
+                "ruleId": "FF-N02",
+                "ruleName": "intent-alignment",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              }
+            ]
+          },
+          "checkFileTemplates": {
+            "status": "checked",
+            "blockingVerdict": "pass",
+            "clearedCount": 0,
+            "introduced": []
+          },
+          "checkImport": [
+            {
+              "line": 1,
+              "module": "typeorm",
+              "verdict": "allowed",
+              "blockingVerdict": "pass",
+              "fromLayer": "application",
+              "violations": [],
+              "notes": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "repository-without-port",
+      "layout": "hexagonal",
+      "spec": "presets/hexagonal.yaml",
+      "construct": "PlaceOrderUseCase injects Repository<Order> from typeorm; no port interface, EntitySchema mapping in persistence",
+      "graph": {
+        "verdict": "pass",
+        "blockingCount": 0,
+        "blockingByRule": {},
+        "advisoryCount": 7,
+        "advisoryByRule": {
+          "FF-C03": 1,
+          "FF-C06": 1,
+          "FF-CV05": 5
+        },
+        "advisoryDeltaVsControl": {
+          "FF-CV05": -2
+        },
+        "blockingFindings": [],
+        "parseCoverage": {
+          "total": 5,
+          "parsed": 5,
+          "percentage": 100,
+          "skipped": []
+        }
+      },
+      "checkCorrect": [],
+      "files": [
+        {
+          "file": "src/application/use-cases/place-order.ts",
+          "layer": "application",
+          "checkFile": {
+            "verdict": "clean",
+            "blockingVerdict": "pass",
+            "blockingCount": 0,
+            "advisoryCount": 0,
+            "findings": [],
+            "hints": [],
+            "notChecked": [
+              {
+                "ruleId": "FF-P02",
+                "ruleName": "port-dependency-inversion",
+                "tier": "advisory",
+                "reason": "a ratio over every injected dependency of a class, read from the graph"
+              },
+              {
+                "ruleId": "FF-C02",
+                "ruleName": "module-fan-out",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C03",
+                "ruleName": "component-instability",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C04",
+                "ruleName": "no-orphan-files",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C05",
+                "ruleName": "max-fan-in",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C06",
+                "ruleName": "abstraction-ratio",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-SO01",
+                "ruleName": "single-responsibility-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO02",
+                "ruleName": "interface-segregation-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO03",
+                "ruleName": "inheritance-depth",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-CV05",
+                "ruleName": "test-file-pairing",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-CV06",
+                "ruleName": "no-index-logic",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-N01",
+                "ruleName": "architectural-integrity",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              },
+              {
+                "ruleId": "FF-N02",
+                "ruleName": "intent-alignment",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              }
+            ]
+          },
+          "checkFileTemplates": {
+            "status": "checked",
+            "blockingVerdict": "pass",
+            "clearedCount": 0,
+            "introduced": []
+          },
+          "checkImport": [
+            {
+              "line": 1,
+              "module": "typeorm",
+              "verdict": "allowed",
+              "blockingVerdict": "pass",
+              "fromLayer": "application",
+              "violations": [],
+              "notes": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "querybuilder-in-logic",
+      "layout": "clean",
+      "spec": "specs/clean-arch.yaml",
+      "construct": "OrderReportService (application) runs the large-order rule as manager.createQueryBuilder() SQL",
+      "graph": {
+        "verdict": "pass",
+        "blockingCount": 0,
+        "blockingByRule": {},
+        "advisoryCount": 11,
+        "advisoryByRule": {
+          "FF-C03": 1,
+          "FF-C06": 1,
+          "FF-CV03": 1,
+          "FF-CV05": 8
+        },
+        "advisoryDeltaVsControl": {
+          "FF-CV03": 1,
+          "FF-CV05": 1
+        },
+        "blockingFindings": [],
+        "parseCoverage": {
+          "total": 8,
+          "parsed": 8,
+          "percentage": 100,
+          "skipped": []
+        }
+      },
+      "checkCorrect": [],
+      "files": [
+        {
+          "file": "src/application/services/order-report.service.ts",
+          "layer": "application",
+          "checkFile": {
+            "verdict": "violations",
+            "blockingVerdict": "pass",
+            "blockingCount": 0,
+            "advisoryCount": 1,
+            "findings": [
+              {
+                "ruleId": "FF-CV03",
+                "tier": "advisory",
+                "line": 4,
+                "subject": "class OrderReportService"
+              }
+            ],
+            "hints": [
+              {
+                "ruleId": "CHEAP.repository-bypass",
+                "tier": "advisory",
+                "line": 8,
+                "subject": "OrderReportService: this.manager.createQueryBuilder.select.from.where.andWhere.getRawOne"
+              },
+              {
+                "ruleId": "CHEAP.repository-bypass",
+                "tier": "advisory",
+                "line": 8,
+                "subject": "OrderReportService: this.manager.createQueryBuilder.select.from.where.andWhere"
+              },
+              {
+                "ruleId": "CHEAP.repository-bypass",
+                "tier": "advisory",
+                "line": 8,
+                "subject": "OrderReportService: this.manager.createQueryBuilder.select.from.where"
+              },
+              {
+                "ruleId": "CHEAP.repository-bypass",
+                "tier": "advisory",
+                "line": 8,
+                "subject": "OrderReportService: this.manager.createQueryBuilder.select.from"
+              },
+              {
+                "ruleId": "CHEAP.repository-bypass",
+                "tier": "advisory",
+                "line": 8,
+                "subject": "OrderReportService: this.manager.createQueryBuilder.select"
+              },
+              {
+                "ruleId": "CHEAP.repository-bypass",
+                "tier": "advisory",
+                "line": 8,
+                "subject": "OrderReportService: this.manager.createQueryBuilder"
+              }
+            ],
+            "notChecked": [
+              {
+                "ruleId": "FF-P02",
+                "ruleName": "dependency-inversion",
+                "tier": "advisory",
+                "reason": "a ratio over every injected dependency of a class, read from the graph"
+              },
+              {
+                "ruleId": "FF-P04",
+                "ruleName": "use-case-isolation",
+                "tier": "advisory",
+                "reason": "reads CONSTRUCTOR_INJECTS paths across files"
+              },
+              {
+                "ruleId": "FF-P05",
+                "ruleName": "controller-no-entity",
+                "tier": "advisory",
+                "reason": "reads CONSTRUCTOR_INJECTS paths across files"
+              },
+              {
+                "ruleId": "FF-C01",
+                "ruleName": "domain-stability",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C02",
+                "ruleName": "module-fan-out",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C03",
+                "ruleName": "component-instability",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C04",
+                "ruleName": "no-orphan-files",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C05",
+                "ruleName": "max-fan-in",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C06",
+                "ruleName": "abstraction-ratio",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-SO01",
+                "ruleName": "single-responsibility-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO02",
+                "ruleName": "interface-segregation-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO03",
+                "ruleName": "inheritance-depth",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-CV05",
+                "ruleName": "test-file-pairing",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-CV06",
+                "ruleName": "no-index-logic",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-N01",
+                "ruleName": "architectural-integrity",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              },
+              {
+                "ruleId": "FF-N02",
+                "ruleName": "intent-alignment",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              }
+            ]
+          },
+          "checkFileTemplates": {
+            "status": "checked",
+            "blockingVerdict": "pass",
+            "clearedCount": 0,
+            "introduced": [
+              {
+                "ruleId": "FF-C04",
+                "ruleName": "no-orphan-files",
+                "tier": "advisory",
+                "construct": "no-orphan-files",
+                "source": "Project convention (connectivity of modules)",
+                "severity": "minor",
+                "type": "ORPHAN_FILE",
+                "filePath": "src/application/services/order-report.service.ts",
+                "message": "Violation in src/application/services/order-report.service.ts"
+              },
+              {
+                "ruleId": "FF-CV03",
+                "ruleName": "naming-repos",
+                "tier": "advisory",
+                "construct": "Naming convention (repositories)",
+                "source": "Project naming convention",
+                "severity": "minor",
+                "type": "NAMING_CONVENTION",
+                "filePath": "src/application/services/order-report.service.ts",
+                "message": "Violation in src/application/services/order-report.service.ts"
+              },
+              {
+                "ruleId": "FF-CV05",
+                "ruleName": "test-file-pairing",
+                "tier": "advisory",
+                "construct": "test-file-pairing",
+                "source": "Project convention",
+                "severity": "advisory",
+                "type": "MISSING_TEST_FILE",
+                "filePath": "src/application/services/order-report.service.ts",
+                "message": "Violation in src/application/services/order-report.service.ts"
+              }
+            ]
+          },
+          "checkImport": [
+            {
+              "line": 1,
+              "module": "typeorm",
+              "verdict": "allowed",
+              "blockingVerdict": "pass",
+              "fromLayer": "application",
+              "violations": [],
+              "notes": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "querybuilder-in-logic",
+      "layout": "hexagonal",
+      "spec": "presets/hexagonal.yaml",
+      "construct": "OrderReportService (application) runs the large-order rule as manager.createQueryBuilder() SQL",
+      "graph": {
+        "verdict": "pass",
+        "blockingCount": 0,
+        "blockingByRule": {},
+        "advisoryCount": 11,
+        "advisoryByRule": {
+          "FF-C03": 1,
+          "FF-C06": 1,
+          "FF-CV03": 1,
+          "FF-CV05": 8
+        },
+        "advisoryDeltaVsControl": {
+          "FF-CV03": 1,
+          "FF-CV05": 1
+        },
+        "blockingFindings": [],
+        "parseCoverage": {
+          "total": 8,
+          "parsed": 8,
+          "percentage": 100,
+          "skipped": []
+        }
+      },
+      "checkCorrect": [],
+      "files": [
+        {
+          "file": "src/application/services/order-report.service.ts",
+          "layer": "application",
+          "checkFile": {
+            "verdict": "violations",
+            "blockingVerdict": "pass",
+            "blockingCount": 0,
+            "advisoryCount": 1,
+            "findings": [
+              {
+                "ruleId": "FF-CV03",
+                "tier": "advisory",
+                "line": 4,
+                "subject": "class OrderReportService"
+              }
+            ],
+            "hints": [
+              {
+                "ruleId": "CHEAP.repository-bypass",
+                "tier": "advisory",
+                "line": 8,
+                "subject": "OrderReportService: this.manager.createQueryBuilder.select.from.where.andWhere.getRawOne"
+              },
+              {
+                "ruleId": "CHEAP.repository-bypass",
+                "tier": "advisory",
+                "line": 8,
+                "subject": "OrderReportService: this.manager.createQueryBuilder.select.from.where.andWhere"
+              },
+              {
+                "ruleId": "CHEAP.repository-bypass",
+                "tier": "advisory",
+                "line": 8,
+                "subject": "OrderReportService: this.manager.createQueryBuilder.select.from.where"
+              },
+              {
+                "ruleId": "CHEAP.repository-bypass",
+                "tier": "advisory",
+                "line": 8,
+                "subject": "OrderReportService: this.manager.createQueryBuilder.select.from"
+              },
+              {
+                "ruleId": "CHEAP.repository-bypass",
+                "tier": "advisory",
+                "line": 8,
+                "subject": "OrderReportService: this.manager.createQueryBuilder.select"
+              },
+              {
+                "ruleId": "CHEAP.repository-bypass",
+                "tier": "advisory",
+                "line": 8,
+                "subject": "OrderReportService: this.manager.createQueryBuilder"
+              }
+            ],
+            "notChecked": [
+              {
+                "ruleId": "FF-P02",
+                "ruleName": "port-dependency-inversion",
+                "tier": "advisory",
+                "reason": "a ratio over every injected dependency of a class, read from the graph"
+              },
+              {
+                "ruleId": "FF-C02",
+                "ruleName": "module-fan-out",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C03",
+                "ruleName": "component-instability",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C04",
+                "ruleName": "no-orphan-files",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C05",
+                "ruleName": "max-fan-in",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-C06",
+                "ruleName": "abstraction-ratio",
+                "tier": "advisory",
+                "reason": "a metric over the whole graph"
+              },
+              {
+                "ruleId": "FF-SO01",
+                "ruleName": "single-responsibility-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO02",
+                "ruleName": "interface-segregation-proxy",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-SO03",
+                "ruleName": "inheritance-depth",
+                "tier": "advisory",
+                "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+              },
+              {
+                "ruleId": "FF-CV05",
+                "ruleName": "test-file-pairing",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-CV06",
+                "ruleName": "no-index-logic",
+                "tier": "advisory",
+                "reason": "reads every file of the project"
+              },
+              {
+                "ruleId": "FF-N01",
+                "ruleName": "architectural-integrity",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              },
+              {
+                "ruleId": "FF-N02",
+                "ruleName": "intent-alignment",
+                "tier": "advisory",
+                "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+              }
+            ]
+          },
+          "checkFileTemplates": {
+            "status": "checked",
+            "blockingVerdict": "pass",
+            "clearedCount": 0,
+            "introduced": [
+              {
+                "ruleId": "FF-C04",
+                "ruleName": "no-orphan-files",
+                "tier": "advisory",
+                "construct": "no-orphan-files",
+                "source": "Project convention (connectivity of modules)",
+                "severity": "minor",
+                "type": "ORPHAN_FILE",
+                "filePath": "src/application/services/order-report.service.ts",
+                "message": "Violation in src/application/services/order-report.service.ts"
+              },
+              {
+                "ruleId": "FF-CV03",
+                "ruleName": "naming-repos",
+                "tier": "advisory",
+                "construct": "Naming convention (repositories)",
+                "source": "Project naming convention",
+                "severity": "minor",
+                "type": "NAMING_CONVENTION",
+                "filePath": "src/application/services/order-report.service.ts",
+                "message": "Violation in src/application/services/order-report.service.ts"
+              },
+              {
+                "ruleId": "FF-CV05",
+                "ruleName": "test-file-pairing",
+                "tier": "advisory",
+                "construct": "test-file-pairing",
+                "source": "Project convention",
+                "severity": "advisory",
+                "type": "MISSING_TEST_FILE",
+                "filePath": "src/application/services/order-report.service.ts",
+                "message": "Violation in src/application/services/order-report.service.ts"
+              }
+            ]
+          },
+          "checkImport": [
+            {
+              "line": 1,
+              "module": "typeorm",
+              "verdict": "allowed",
+              "blockingVerdict": "pass",
+              "fromLayer": "application",
+              "violations": [],
+              "notes": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "v09-dto-depends-on-http-adapter",
+  "kind": "violation",
+  "plants": "FF-S01",
+  "description": "The LoanDto module imports HttpResponse/ok from the HTTP adapter to add toLoanResponse().",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/application/dto/LoanDto.ts",
+      "target": "src/infrastructure/http/HttpTypes.ts",
+      "reason": "Application imports an infrastructure module: the dependency points outward."
+    }
+  ]
+}

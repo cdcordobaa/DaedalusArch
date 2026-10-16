@@ -1,0 +1,66 @@
+{
+  "proxy": "config-surface",
+  "planted": [
+    {
+      "id": "P1",
+      "kind": "env-read-outside-config",
+      "file": "src/orders/domain/tax.ts",
+      "className": "TaxPolicy",
+      "methodName": "rate"
+    },
+    {
+      "id": "P2",
+      "kind": "env-read-outside-config",
+      "file": "src/orders/application/feature-flags.ts",
+      "className": "OrderFeatures",
+      "methodName": "expressShipping"
+    },
+    {
+      "id": "P3",
+      "kind": "env-read-outside-config",
+      "file": "src/shipping/presentation/shipping.controller.ts",
+      "className": "ShippingController",
+      "methodName": "key"
+    },
+    {
+      "id": "P4",
+      "kind": "env-read-outside-config",
+      "file": "src/orders/application/region.ts",
+      "methodName": "currentRegion"
+    },
+    {
+      "id": "P5",
+      "kind": "env-key-shared",
+      "file": "src/billing/infrastructure/billing.db.ts"
+    }
+  ],
+  "nearMisses": [
+    {
+      "id": "N1",
+      "file": "src/config/app.config.ts",
+      "note": "config module"
+    },
+    {
+      "id": "N2",
+      "file": "src/orders/infrastructure/order.db.ts",
+      "note": "infrastructure"
+    },
+    {
+      "id": "N3",
+      "file": "src/main.ts",
+      "note": "composition root"
+    },
+    {
+      "id": "N4",
+      "file": "src/billing/infrastructure/billing.db.ts",
+      "className": "BillingDb",
+      "methodName": "cache",
+      "note": "REDIS_URL read in exactly 2 components"
+    },
+    {
+      "id": "N5",
+      "file": "src/shipping/application/shipping.settings.ts",
+      "note": "a Settings class"
+    }
+  ]
+}

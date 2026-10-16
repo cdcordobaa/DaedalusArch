@@ -24,12 +24,18 @@ interface Run extends EdgeExtractionResult {
   readonly sourceFiles: readonly SourceFile[];
 }
 
+/**
+ * v1.3: these tests pin the frozen v1.2E partition, so the run passes the v1.3 extractor features off explicitly
+ * (they are on by default on the v1.3 branch; `tests/unit/apg-extractor/v13-*.test.ts` cover the on behaviour).
+ */
+const V12E_FLAGS = { dynamicImports: false, moduleWiring: false, reExportEdges: 'resolved-only' } as const;
+
 function run(files: Record<string, string>): Run {
   const project = new Project({ useInMemoryFileSystem: true, skipFileDependencyResolution: true, compilerOptions: { strict: false } });
   for (const [fp, content] of Object.entries(files)) project.createSourceFile(fp, content);
   const sourceFiles = nodeFiles(project);
   const { nodes, lookup } = extractNodes(sourceFiles, ROOT);
-  return { ...extractEdges(sourceFiles, lookup, ROOT), nodes, sourceFiles };
+  return { ...extractEdges(sourceFiles, lookup, ROOT, V12E_FLAGS), nodes, sourceFiles };
 }
 
 /** Counted statements (BR-U2-14): import declarations, `import x = require()`, `export … from`. */

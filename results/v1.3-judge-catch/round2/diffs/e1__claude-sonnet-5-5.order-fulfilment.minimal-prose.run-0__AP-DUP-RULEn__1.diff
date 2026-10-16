@@ -1,0 +1,46 @@
+diff -ruN -x node_modules a/src/application/AdvanceOrderUseCase.ts b/src/application/AdvanceOrderUseCase.ts
+--- a/src/application/AdvanceOrderUseCase.ts	2026-10-15 12:42:23
++++ b/src/application/AdvanceOrderUseCase.ts	2026-10-15 12:42:03
+@@ -1,6 +1,7 @@
+ import { DomainError } from "../domain/DomainError";
+ import { OrderRepository } from "../domain/OrderRepository";
+-import { OrderDto, toOrderDto } from "./dto";
++import { OrderDto, toOrderDto, PlaceOrderCommand } from "./dto";
++import { assertExecuteRule } from "./PlaceOrderUseCase";
+ 
+ export class AdvanceOrderUseCase {
+   constructor(private readonly orders: OrderRepository) {}
+@@ -11,5 +12,9 @@
+     order.advance();
+     await this.orders.save(order);
+     return toOrderDto(order);
++  }
++
++  validateExecute(command: PlaceOrderCommand): void {
++    assertExecuteRule(command);
+   }
+ }
+diff -ruN -x node_modules a/src/application/PlaceOrderUseCase.ts b/src/application/PlaceOrderUseCase.ts
+--- a/src/application/PlaceOrderUseCase.ts	2026-10-15 12:42:23
++++ b/src/application/PlaceOrderUseCase.ts	2026-10-15 12:42:03
+@@ -14,13 +14,17 @@
+   ) {}
+ 
+   async execute(command: PlaceOrderCommand): Promise<OrderDto> {
+-    if (typeof command.customerId !== "string" || command.customerId === "") {
+-      throw new DomainError("invalid", "Customer id is required");
+-    }
++    assertExecuteRule(command);
+     const lines = command.lines.map((l) => OrderLine.create(l.productId, l.quantity));
+     const order = new Order(this.ids.next(), command.customerId, lines);
+     await this.stock.reserve(order.lines);
+     await this.orders.save(order);
+     return toOrderDto(order);
+   }
++}
++
++export function assertExecuteRule(command: PlaceOrderCommand): void {
++  if (typeof command.customerId !== "string" || command.customerId === "") {
++        throw new DomainError("invalid", "Customer id is required");
++      }
+ }

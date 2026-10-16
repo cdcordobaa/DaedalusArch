@@ -1,0 +1,19 @@
+diff -ruN -x node_modules a/src/business/services/OrderService.ts b/src/business/services/OrderService.ts
+--- a/src/business/services/OrderService.ts	2026-10-15 12:42:23
++++ b/src/business/services/OrderService.ts	2026-10-15 12:42:20
+@@ -1,3 +1,4 @@
++import type { Request } from 'express';
+ import { CustomerGateway } from '../../persistence/CustomerGateway';
+ import { OrderGateway } from '../../persistence/OrderGateway';
+ import { ProductGateway } from '../../persistence/ProductGateway';
+@@ -40,6 +41,10 @@
+     const draft = new Order(this.nextId(), customerId, lines, new Date(), this.pricing.discountFor(toCustomer(customerRecord), sumOf(lines)));
+     this.orders.save(toOrderRecord(draft));
+     return draft;
++  }
++
++  placeOrderFromRequest(request: Request): Order {
++    return this.placeOrder(String(request.body['customerId']), (request.body['items'] as OrderItem[] | undefined) ?? []);
+   }
+ 
+   cancelOrder(orderId: string): Order {

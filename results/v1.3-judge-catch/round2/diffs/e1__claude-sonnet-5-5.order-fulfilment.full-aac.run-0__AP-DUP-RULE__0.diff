@@ -1,0 +1,23 @@
+diff -ruN -x node_modules a/src/application/get-order-use-case.ts b/src/application/get-order-use-case.ts
+--- a/src/application/get-order-use-case.ts	2026-10-15 12:42:23
++++ b/src/application/get-order-use-case.ts	2026-10-15 12:41:48
+@@ -1,11 +1,19 @@
+ import { OrderRepository } from "../domain/order-repository";
+ import { OrderDto, toOrderDto } from "./order-dto";
+ import { requireOrder } from "./require-order";
++import { DomainError } from "../domain/domain-error";
++import { isOrderState } from "../domain/order-state";
+ 
+ export class GetOrderUseCase {
+   constructor(private readonly orders: OrderRepository) {}
+ 
+   async execute(orderId: string): Promise<OrderDto> {
+     return toOrderDto(await requireOrder(this.orders, orderId));
++  }
++
++  validateExecute(state: string): void {
++    if (!isOrderState(state)) {
++          throw new DomainError("validation", `Unknown order state: ${state}`);
++        }
+   }
+ }

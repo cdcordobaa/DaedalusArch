@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "style": "layered",
+  "variant": "v01-gateway-returns-business-money",
+  "kind": "violation",
+  "plants": "FF-S01",
+  "description": "ProductGateway (persistence) imports Money (business) to add priceOf().",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/persistence/ProductGateway.ts",
+      "target": "src/business/model/Money.ts",
+      "reason": "A lower layer imports an upper one."
+    },
+    {
+      "ruleId": "FF-S03",
+      "ruleName": "no-layer-skip",
+      "file": "src/persistence/ProductGateway.ts",
+      "target": "src/business/model/Money.ts",
+      "reason": "persistence > business is not an allowed transition (only business > persistence and presentation > business are)."
+    }
+  ]
+}

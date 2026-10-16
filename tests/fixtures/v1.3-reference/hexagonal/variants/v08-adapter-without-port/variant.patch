@@ -1,0 +1,15 @@
+--- a/src/adapters/outbound/payment/FakePaymentGateway.ts
++++ b/src/adapters/outbound/payment/FakePaymentGateway.ts
+@@ -1,11 +1,10 @@
+-import { PaymentGateway } from '../../../application/ports/out/PaymentGateway';
+ import { BookingError } from '../../../domain/errors/BookingError';
+ import { Money } from '../../../domain/model/Money';
+ 
+ export const PAYMENT_FEE_CENTS = 150;
+ 
+ /** Driven adapter standing in for a card processor; declines charges above a fixed limit. */
+-export class FakePaymentGateway implements PaymentGateway {
++export class FakePaymentGateway {
+   private readonly charges = new Map<string, number>();
+ 
+   async charge(guestId: string, amount: Money): Promise<string> {

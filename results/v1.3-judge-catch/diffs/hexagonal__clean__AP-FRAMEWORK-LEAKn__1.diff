@@ -1,0 +1,21 @@
+diff -ruN bases/hexagonal__clean/src/application/services/CancelBookingService.ts copies/hexagonal__clean__AP-FRAMEWORK-LEAKn__1/src/application/services/CancelBookingService.ts
+--- bases/hexagonal__clean/src/application/services/CancelBookingService.ts	2026-10-15 11:50:59
++++ copies/hexagonal__clean__AP-FRAMEWORK-LEAKn__1/src/application/services/CancelBookingService.ts	2026-10-15 11:51:11
+@@ -14,7 +14,7 @@
+     private readonly notifications: NotificationSender,
+   ) {}
+ 
+-  async cancel(bookingId: string): Promise<BookingView> {
++  async cancel(bookingId: string, context?: CancelContextDto): Promise<BookingView> {
+     const booking = await this.bookings.findById(bookingId);
+     if (booking === undefined) throw new BookingError('not-found', `No booking ${bookingId}`);
+     booking.cancel();
+@@ -24,4 +24,8 @@
+     if (guest !== undefined) await this.notifications.send(guest.email, `Booking ${booking.id} is cancelled`);
+     return toBookingView(booking);
+   }
++}
++
++export interface CancelContextDto {
++  readonly requestId?: string;
+ }

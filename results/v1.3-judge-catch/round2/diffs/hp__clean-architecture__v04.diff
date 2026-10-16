@@ -1,0 +1,12 @@
+diff -ruN -x node_modules a/src/domain/entities/Book.ts b/src/domain/entities/Book.ts
+--- a/src/domain/entities/Book.ts	2026-10-15 12:42:23
++++ b/src/domain/entities/Book.ts	2026-10-15 12:42:19
+@@ -1,6 +1,8 @@
++import { Entity } from 'typeorm';
+ import { DomainError } from '../errors/DomainError';
+ import { Isbn } from '../value-objects/Isbn';
+ 
++@Entity('books')
+ export class Book {
+   constructor(
+     readonly id: string,

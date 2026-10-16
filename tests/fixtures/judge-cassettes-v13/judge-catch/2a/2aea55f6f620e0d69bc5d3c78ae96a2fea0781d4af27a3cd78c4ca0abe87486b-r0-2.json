@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 12689,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "2aea55f6f620e0d69bc5d3c78ae96a2fea0781d4af27a3cd78c4ca0abe87486b-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.72,
+    "evidence": [
+      "src/invoice/invoice.service.ts: issue() calls this.invoiceRepository.create(...) and save(...), which coordinates persistence through an injected repository instead of implementing it",
+      "src/invoice/invoice.service.ts: countFor() calls this.invoiceRepository.count({ where: { orderId } }), a simple query through the repository with no custom persistence logic",
+      "src/invoice/invoice.service.ts: the file has no HTTP or controller decorators and no transport handling",
+      "src/invoice/invoice.service.ts: IssueContextDto is a DTO interface, which the layer model assigns to the application layer"
+    ],
+    "pass": true,
+    "reasoning": "InvoiceService is an application service that coordinates use cases. issue() creates and saves an invoice, and countFor() counts invoices for an order, both by calling an injected Repository<InvoiceEntity>. The service does not build SQL, manage connections or transactions, or define table mappings, so the persistence work stays in the ORM and repository. There are no transport or HTTP concerns and no business rules that belong in the domain. IssueContextDto is a DTO, which the layer model places in the application layer. The TypeORM-specific where-object in countFor() is coupling to the ORM's API, not persistence work done in the service, and dependency direction is out of scope. Every responsibility fits the application layer.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/invoice/invoice.service.ts\nLayer: application\nUnit files:\n- src/invoice/invoice.service.ts\n\n## Source\n=====SOURCE-BEGIN src/invoice/invoice.service.ts=====\nimport { Injectable } from '@nestjs/common';\nimport { InjectRepository } from '@nestjs/typeorm';\nimport { Repository } from 'typeorm';\nimport { InvoiceEntity } from './invoice.entity';\n\n@Injectable()\nexport class InvoiceService {\n  constructor(\n    @InjectRepository(InvoiceEntity)\n    private readonly invoiceRepository: Repository<InvoiceEntity>,\n  ) {}\n\n  async issue(orderId: string, amount: number, context?: IssueContextDto): Promise<InvoiceEntity> {\n    const invoice = this.invoiceRepository.create({ orderId, amount });\n    return this.invoiceRepository.save(invoice);\n  }\n\n  countFor(orderId: string): Promise<number> {\n    return this.invoiceRepository.count({ where: { orderId } });\n  }\n}\n\nexport interface IssueContextDto {\n  readonly requestId?: string;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/invoice/invoice.service.ts\",\"to\":\"src/invoice/invoice.entity.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"InvoiceService\",\"path\":\"src/invoice/invoice.service.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/invoice/invoice.service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/invoice/invoice.entity.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"IssueContextDto\",\"path\":\"src/invoice/invoice.service.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T17:15:37.062Z",
+  "repetition": 0,
+  "requestHash": "2aea55f6f620e0d69bc5d3c78ae96a2fea0781d4af27a3cd78c4ca0abe87486b",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":1153}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.72,\\\"reasoning\\\":\\\"InvoiceService is an application service that coordinates use cases. issue() creates and saves an invoice, and countFor() counts invoices for an order, both by calling an injected Repository<InvoiceEntity>. The service does not build SQL, manage connections or transactions, or define table mappings, so the persistence work stays in the ORM and repository. There are no transport or HTTP concerns and no business rules that belong in the domain. IssueContextDto is a DTO, which the layer model places in the application layer. The TypeORM-specific where-object in countFor() is coupling to the ORM's API, not persistence work done in the service, and dependency direction is out of scope. Every responsibility fits the application layer.\\\",\\\"evidence\\\":[\\\"src/invoice/invoice.service.ts: issue() calls this.invoiceRepository.create(...) and save(...), which coordinates persistence through an injected repository instead of implementing it\\\",\\\"src/invoice/invoice.service.ts: countFor() calls this.invoiceRepository.count({ where: { orderId } }), a simple query through the repository with no custom persistence logic\\\",\\\"src/invoice/invoice.service.ts: the file has no HTTP or controller decorators and no transport handling\\\",\\\"src/invoice/invoice.service.ts: IssueContextDto is a DTO interface, which the layer model assigns to the application layer\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.72,\"evidence\":[\"src/invoice/invoice.service.ts: issue() calls this.invoiceRepository.create(...) and save(...), which coordinates persistence through an injected repository instead of implementing it\",\"src/invoice/invoice.service.ts: countFor() calls this.invoiceRepository.count({ where: { orderId } }), a simple query through the repository with no custom persistence logic\",\"src/invoice/invoice.service.ts: the file has no HTTP or controller decorators and no transport handling\",\"src/invoice/invoice.service.ts: IssueContextDto is a DTO interface, which the layer model assigns to the application layer\"],\"pass\":true,\"reasoning\":\"InvoiceService is an application service that coordinates use cases. issue() creates and saves an invoice, and countFor() counts invoices for an order, both by calling an injected Repository<InvoiceEntity>. The service does not build SQL, manage connections or transactions, or define table mappings, so the persistence work stays in the ORM and repository. There are no transport or HTTP concerns and no business rules that belong in the domain. IssueContextDto is a DTO, which the layer model places in the application layer. The TypeORM-specific where-object in countFor() is coupling to the ORM's API, not persistence work done in the service, and dependency direction is out of scope. Every responsibility fits the application layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/invoice/invoice.service.ts",
+  "usage": {
+    "inputTokens": 2746,
+    "outputTokens": 1153
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

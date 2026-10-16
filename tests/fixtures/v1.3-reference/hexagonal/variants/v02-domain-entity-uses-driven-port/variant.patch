@@ -1,0 +1,18 @@
+--- a/src/domain/model/Booking.ts
++++ b/src/domain/model/Booking.ts
+@@ -1,3 +1,4 @@
++import { NotificationSender } from '../../application/ports/out/NotificationSender';
+ import { BookingError } from '../errors/BookingError';
+ import { DateRange } from './DateRange';
+ import { Money } from './Money';
+@@ -24,6 +25,10 @@
+     return this.bookingStatus === 'confirmed';
+   }
+ 
++  async announceTo(sender: NotificationSender, email: string): Promise<void> {
++    await sender.send(email, `Booking ${this.id} is ${this.bookingStatus}`);
++  }
++
+   cancel(): void {
+     if (!this.isActive) throw new BookingError('invalid', `Booking ${this.id} is already cancelled`);
+     this.bookingStatus = 'cancelled';

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "variant": "v08-adapter-without-port",
+  "kind": "violation",
+  "plants": "FF-P03",
+  "description": "FakePaymentGateway no longer declares implements PaymentGateway.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P03",
+      "ruleName": "port-adapter-pattern",
+      "file": "src/adapters/outbound/payment/FakePaymentGateway.ts",
+      "reason": "An outbound adapter implements no port of the domain or application layer."
+    }
+  ]
+}

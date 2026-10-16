@@ -1,0 +1,29 @@
+{
+ "harness": "scripts/v1.3/graph-fidelity.ts",
+ "extractors": {
+  "apg-v12e-default": {
+   "branch": "v1.2e",
+   "commit": "c63fa0d (origin/v1.2e, branch base of v1.3-fidelity)",
+   "options": "DEFAULT_OPTIONS + spec default_exclude_paths"
+  },
+  "apg-v13-dynamicImports": {
+   "branch": "v1.3-extractor-fixes",
+   "commit": "f44e1025f59607ec294633ffb239a7a25c3e4b32",
+   "options": "DEFAULT_OPTIONS + spec default_exclude_paths + dynamicImports: true (moduleWiring off)"
+  }
+ },
+ "dependencyCruiser": {
+  "version": "18.4.0",
+  "install": "experiments/tool-comparison/depcruise (pinned, npm ci --ignore-scripts)",
+  "config": "options only: tsPreCompilationDeps true, doNotFollow+exclude node_modules, tsConfig = the project tsconfig"
+ },
+ "typescript": "5.9.3",
+ "seed": 20261014,
+ "layerSampleSeed": 20261015,
+ "agreementSample": 50,
+ "layerSample": 40,
+ "corpora": {
+  "e1": "../daedalus-e1-outcomes, 72 cells of experiments/e1-grid/plan.json, pinned per-run tsconfig of Docs/generator-protocol.md §3 (ADR-032), spec specs/clean-arch.yaml",
+  "so4": "../daedalus-so4/bases/*.json (7 held-out bases), tsconfig and spec as recorded there; overlays not applied (base dirs read as-is)"
+ }
+}

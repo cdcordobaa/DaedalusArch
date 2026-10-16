@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "v33-typeorm-book-repository-without-port",
+  "kind": "violation",
+  "plants": "FF-P03",
+  "description": "A new infrastructure TypeOrmBookRepository wraps a typeorm Repository<Book> with findById/save but declares no implements BookRepository.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P03",
+      "ruleName": "repository-pattern",
+      "file": "src/infrastructure/persistence/TypeOrmBookRepository.ts",
+      "reason": "An infrastructure repository implements no domain repository interface."
+    }
+  ]
+}

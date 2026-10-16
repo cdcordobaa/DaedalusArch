@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8509,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "b07984d2277ee02ef35cb3e84ab533b66386555d80206da7521c06f1ee5214c7-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.88,
+    "evidence": [
+      "receive(): forwards dto.sku, dto.bin and dto.quantity to this.receiving.receive and maps the result to { bin: bin.code, quantity: bin.quantity }, which is response shaping only",
+      "pick(): passes straight through to this.receiving.pick(dto.sku, dto.quantity); the reorder decision is made in the business layer",
+      "count(): calls this.counts.count(dto.bin, dto.counted, dto.expected) and turns a nullable discrepancy into { ok, delta }, which is presentation mapping",
+      "No persistence, storage or domain-rule logic appears in the file"
+    ],
+    "pass": true,
+    "reasoning": "StockController is a thin presentation adapter. Each method takes a request DTO, passes its fields to an injected business service (ReceivingService or CycleCountService), and shapes the result into a response object. The file holds no business rules: the reorder decision comes back from ReceivingService.pick, and the count discrepancy is worked out in CycleCountService.count. It holds no persistence or framework logic either. The `ok: d === null` and `delta: d?.delta ?? 0` expressions only translate the service result into a response, which is normal presentation work.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**\n- business (kind: domain): src/business/**\n- presentation (kind: presentation): src/presentation/**\n\n## Unit\nKind: file\nId: src/presentation/controllers/StockController.ts\nLayer: presentation\nUnit files:\n- src/presentation/controllers/StockController.ts\n\n## Source\n=====SOURCE-BEGIN src/presentation/controllers/StockController.ts=====\nimport { CycleCountService } from '../../business/services/CycleCountService';\nimport { ReceivingService } from '../../business/services/ReceivingService';\nimport { CountDto, PickDto, ReceiveDto } from '../dto/requests';\n\nexport class StockController {\n  constructor(\n    private readonly receiving: ReceivingService,\n    private readonly counts: CycleCountService,\n  ) {}\n\n  async receive(dto: ReceiveDto): Promise<{ bin: string; quantity: number }> {\n    const sku = dto.sku;\n    const bin = await this.receiving.receive(sku, dto.bin, dto.quantity);\n    return { bin: bin.code, quantity: bin.quantity };\n  }\n\n  async pick(dto: PickDto): Promise<{ picked: number; reorder: boolean }> {\n    return this.receiving.pick(dto.sku, dto.quantity);\n  }\n\n  async count(dto: CountDto): Promise<{ ok: boolean; delta: number }> {\n    const d = await this.counts.count(dto.bin, dto.counted, dto.expected);\n    return { ok: d === null, delta: d?.delta ?? 0 };\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"StockController@src/presentation/controllers/StockController.ts\",\"to\":\"CycleCountService@src/business/services/CycleCountService.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"StockController@src/presentation/controllers/StockController.ts\",\"to\":\"ReceivingService@src/business/services/ReceivingService.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/main.ts\",\"to\":\"src/presentation/controllers/StockController.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/presentation/controllers/StockController.ts\",\"to\":\"src/business/services/CycleCountService.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/presentation/controllers/StockController.ts\",\"to\":\"src/business/services/ReceivingService.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/presentation/controllers/StockController.ts\",\"to\":\"src/presentation/dto/requests.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/presentation/controllers/routes.ts\",\"to\":\"src/presentation/controllers/StockController.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"business\",\"name\":\"CycleCountService\",\"path\":\"src/business/services/CycleCountService.ts\"},{\"kind\":\"Class\",\"layer\":\"business\",\"name\":\"ReceivingService\",\"path\":\"src/business/services/ReceivingService.ts\"},{\"kind\":\"Class\",\"layer\":\"presentation\",\"name\":\"StockController\",\"path\":\"src/presentation/controllers/StockController.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/services/CycleCountService.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/services/ReceivingService.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/presentation/controllers/StockController.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/presentation/controllers/routes.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/presentation/dto/requests.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/main.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T03:30:19.097Z",
+  "repetition": 0,
+  "requestHash": "b07984d2277ee02ef35cb3e84ab533b66386555d80206da7521c06f1ee5214c7",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":574}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.88,\\\"reasoning\\\":\\\"StockController is a thin presentation adapter. Each method takes a request DTO, passes its fields to an injected business service (ReceivingService or CycleCountService), and shapes the result into a response object. The file holds no business rules: the reorder decision comes back from ReceivingService.pick, and the count discrepancy is worked out in CycleCountService.count. It holds no persistence or framework logic either. The `ok: d === null` and `delta: d?.delta ?? 0` expressions only translate the service result into a response, which is normal presentation work.\\\",\\\"evidence\\\":[\\\"receive(): forwards dto.sku, dto.bin and dto.quantity to this.receiving.receive and maps the result to { bin: bin.code, quantity: bin.quantity }, which is response shaping only\\\",\\\"pick(): passes straight through to this.receiving.pick(dto.sku, dto.quantity); the reorder decision is made in the business layer\\\",\\\"count(): calls this.counts.count(dto.bin, dto.counted, dto.expected) and turns a nullable discrepancy into { ok, delta }, which is presentation mapping\\\",\\\"No persistence, storage or domain-rule logic appears in the file\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.88,\"evidence\":[\"receive(): forwards dto.sku, dto.bin and dto.quantity to this.receiving.receive and maps the result to { bin: bin.code, quantity: bin.quantity }, which is response shaping only\",\"pick(): passes straight through to this.receiving.pick(dto.sku, dto.quantity); the reorder decision is made in the business layer\",\"count(): calls this.counts.count(dto.bin, dto.counted, dto.expected) and turns a nullable discrepancy into { ok, delta }, which is presentation mapping\",\"No persistence, storage or domain-rule logic appears in the file\"],\"pass\":true,\"reasoning\":\"StockController is a thin presentation adapter. Each method takes a request DTO, passes its fields to an injected business service (ReceivingService or CycleCountService), and shapes the result into a response object. The file holds no business rules: the reorder decision comes back from ReceivingService.pick, and the count discrepancy is worked out in CycleCountService.count. It holds no persistence or framework logic either. The `ok: d === null` and `delta: d?.delta ?? 0` expressions only translate the service result into a response, which is normal presentation work.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/presentation/controllers/StockController.ts",
+  "usage": {
+    "inputTokens": 3054,
+    "outputTokens": 574
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,23 @@
+diff -ruN a/src/application/usecases/ListOrdersByStatusUseCase.ts b/src/application/usecases/ListOrdersByStatusUseCase.ts
+--- a/src/application/usecases/ListOrdersByStatusUseCase.ts
++++ b/src/application/usecases/ListOrdersByStatusUseCase.ts
+@@ -1,6 +1,6 @@
+ import { OrderStatus } from '../../domain/entities/Order';
+ import { OrderRepository } from '../../domain/repositories/OrderRepository';
+-import { OrderDto } from '../dtos/OrderDto';
++import { OrderDto, CreateOrderRequest } from '../dtos/OrderDto';
+ 
+ export class ListOrdersByStatusUseCase {
+   constructor(private orderRepository: OrderRepository) {}
+@@ -13,5 +13,11 @@
+       lines: order.lines,
+       createdAt: order.createdAt.toISOString()
+     }));
++  }
++
++  validateExecute(request: CreateOrderRequest): void {
++    if (request.lines.length === 0) {
++          throw new Error('Order must contain at least one line');
++        }
+   }
+ }

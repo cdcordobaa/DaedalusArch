@@ -1,0 +1,25 @@
+diff -ruN a/src/order/order.service.ts b/src/order/order.service.ts
+--- a/src/order/order.service.ts
++++ b/src/order/order.service.ts
+@@ -11,9 +11,7 @@
+   ) {}
+ 
+   async create(customerId: string, quantity: number, unitPrice: number): Promise<OrderEntity> {
+-    if (quantity <= 0) {
+-      throw new BadRequestException('Quantity must be positive');
+-    }
++    assertCreateRule(quantity);
+     const order = this.orderRepository.create({ customerId, quantity, total: quantity * unitPrice });
+     return this.orderRepository.save(order);
+   }
+@@ -25,4 +23,10 @@
+     }
+     return order;
+   }
++}
++
++function assertCreateRule(quantity: number): void {
++  if (quantity <= 0) {
++        throw new BadRequestException('Quantity must be positive');
++      }
+ }

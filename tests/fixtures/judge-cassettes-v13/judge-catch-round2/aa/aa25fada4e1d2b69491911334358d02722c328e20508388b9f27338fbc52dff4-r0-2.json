@@ -1,0 +1,50 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7462,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "aa25fada4e1d2b69491911334358d02722c328e20508388b9f27338fbc52dff4-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "src/business/model/Order.ts: `@Entity('orders')` on `export class Order` maps the domain class to the 'orders' database table, which is persistence (infrastructure) work.",
+      "src/business/model/Order.ts: the constructor invariant, subtotal(), total() and cancel() are domain logic and fit the business layer."
+    ],
+    "pass": false,
+    "reasoning": "Order.ts belongs to the business layer, which is a domain layer. Most of the file is domain logic: the constructor requires at least one order line, and subtotal(), total(), cancel() and the status getter hold the order's business rules. However, the class has a TypeORM `@Entity('orders')` decorator. That decorator maps the domain model to the 'orders' database table, and table mapping is a persistence (infrastructure) job. This is a problem with what the file does, not with which files it imports (import rules are checked by other tools). The table mapping should move to the persistence layer, for example a separate ORM entity or schema plus a mapper.",
+    "violations": [
+      {
+        "filePath": "src/business/model/Order.ts",
+        "message": "The class decorator `@Entity('orders')` on `Order` maps the domain entity to the 'orders' database table. ORM table mapping is persistence (infrastructure) work and should live in src/persistence/**, not in the business (domain) model."
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**\n- business (kind: domain): src/business/**\n- presentation (kind: presentation): src/presentation/**\n\n## Unit\nKind: file\nId: src/business/model/Order.ts\nLayer: business\nUnit files:\n- src/business/model/Order.ts\n\n## Source\n=====SOURCE-BEGIN src/business/model/Order.ts=====\nimport { Entity } from 'typeorm';\nimport { BusinessError } from '../errors/BusinessError';\nimport { Money } from './Money';\nimport { OrderLine } from './OrderLine';\n\n@Entity('orders')\nexport class Order {\n  constructor(\n    readonly id: string,\n    readonly customerId: string,\n    readonly lines: readonly OrderLine[],\n    readonly createdAt: Date,\n    readonly discount: Money,\n    private orderStatus: 'placed' | 'cancelled' = 'placed',\n  ) {\n    if (lines.length === 0) throw new BusinessError('INVALID', 'An order needs at least one line');\n  }\n\n  get status(): 'placed' | 'cancelled' {\n    return this.orderStatus;\n  }\n\n  subtotal(): Money {\n    return this.lines.reduce((sum, line) => sum.add(line.total()), Money.zero());\n  }\n\n  total(): Money {\n    return this.subtotal().subtract(this.discount);\n  }\n\n  cancel(): void {\n    if (this.orderStatus === 'cancelled') throw new BusinessError('CONFLICT', `Order ${this.id} is already cancelled`);\n    this.orderStatus = 'cancelled';\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"Order@src/business/model/Order.ts\",\"to\":\"Money@src/business/model/Money.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/business/model/Order.ts\",\"to\":\"src/business/errors/BusinessError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/business/model/Order.ts\",\"to\":\"src/business/model/Money.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/business/model/Order.ts\",\"to\":\"src/business/model/OrderLine.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/business/model/Order.ts\",\"to\":\"typeorm\",\"type\":\"IMPORTS\"},{\"from\":\"src/business/services/OrderService.ts\",\"to\":\"src/business/model/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/business/services/RecordMapping.ts\",\"to\":\"src/business/model/Order.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/presentation/views/OrderView.ts\",\"to\":\"src/business/model/Order.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"business\",\"name\":\"Money\",\"path\":\"src/business/model/Money.ts\"},{\"kind\":\"Class\",\"layer\":\"business\",\"name\":\"Order\",\"path\":\"src/business/model/Order.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/errors/BusinessError.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/model/Money.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/model/Order.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/model/OrderLine.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/services/OrderService.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/services/RecordMapping.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/presentation/views/OrderView.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"typeorm\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T18:09:21.430Z",
+  "repetition": 0,
+  "requestHash": "aa25fada4e1d2b69491911334358d02722c328e20508388b9f27338fbc52dff4",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":633}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"Order.ts belongs to the business layer, which is a domain layer. Most of the file is domain logic: the constructor requires at least one order line, and subtotal(), total(), cancel() and the status getter hold the order's business rules. However, the class has a TypeORM `@Entity('orders')` decorator. That decorator maps the domain model to the 'orders' database table, and table mapping is a persistence (infrastructure) job. This is a problem with what the file does, not with which files it imports (import rules are checked by other tools). The table mapping should move to the persistence layer, for example a separate ORM entity or schema plus a mapper.\\\",\\\"evidence\\\":[\\\"src/business/model/Order.ts: `@Entity('orders')` on `export class Order` maps the domain class to the 'orders' database table, which is persistence (infrastructure) work.\\\",\\\"src/business/model/Order.ts: the constructor invariant, subtotal(), total() and cancel() are domain logic and fit the business layer.\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/business/model/Order.ts\\\",\\\"message\\\":\\\"The class decorator `@Entity('orders')` on `Order` maps the domain entity to the 'orders' database table. ORM table mapping is persistence (infrastructure) work and should live in src/persistence/**, not in the business (domain) model.\\\"}]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"src/business/model/Order.ts: `@Entity('orders')` on `export class Order` maps the domain class to the 'orders' database table, which is persistence (infrastructure) work.\",\"src/business/model/Order.ts: the constructor invariant, subtotal(), total() and cancel() are domain logic and fit the business layer.\"],\"pass\":false,\"reasoning\":\"Order.ts belongs to the business layer, which is a domain layer. Most of the file is domain logic: the constructor requires at least one order line, and subtotal(), total(), cancel() and the status getter hold the order's business rules. However, the class has a TypeORM `@Entity('orders')` decorator. That decorator maps the domain model to the 'orders' database table, and table mapping is a persistence (infrastructure) job. This is a problem with what the file does, not with which files it imports (import rules are checked by other tools). The table mapping should move to the persistence layer, for example a separate ORM entity or schema plus a mapper.\",\"violations\":[{\"filePath\":\"src/business/model/Order.ts\",\"message\":\"The class decorator `@Entity('orders')` on `Order` maps the domain entity to the 'orders' database table. ORM table mapping is persistence (infrastructure) work and should live in src/persistence/**, not in the business (domain) model.\"}]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/business/model/Order.ts",
+  "usage": {
+    "inputTokens": 3022,
+    "outputTokens": 633
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

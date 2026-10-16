@@ -26,6 +26,14 @@ export interface ImportOccurrence {
   readonly names: readonly string[];
   /** Decided per target from the specifiers routed to it (Q7 A). */
   readonly isTypeOnly: boolean;
+  /** v1.3 `dynamicImports`: the occurrence is an `import()` / `require()` call. Absent = a static statement. */
+  readonly dynamic?: boolean;
+  /** v1.3 `reExportEdges: 'both'`: a resolved occurrence that reaches its target through re-export file(s). */
+  readonly viaReExport?: boolean;
+  /** With `viaReExport`: the re-export files crossed (relative paths). */
+  readonly reExportBarrels?: readonly string[];
+  /** v1.3 `reExportEdges: 'both'`: a literal occurrence whose names are all re-exported by its target. */
+  readonly reExportHop?: boolean;
 }
 
 interface SlotOccurrence {
@@ -34,6 +42,10 @@ interface SlotOccurrence {
   readonly seq: number;
   readonly names: readonly string[];
   readonly isTypeOnly: boolean;
+  readonly dynamic: boolean;
+  readonly viaReExport: boolean;
+  readonly reExportBarrels: readonly string[];
+  readonly reExportHop: boolean;
 }
 
 interface MergeSlot {
@@ -152,6 +164,10 @@ export class ImportEdgeMerger {
       seq: this.seq++,
       names: occ.names,
       isTypeOnly: occ.isTypeOnly,
+      dynamic: occ.dynamic === true,
+      viaReExport: occ.viaReExport === true,
+      reExportBarrels: occ.reExportBarrels ?? [],
+      reExportHop: occ.reExportHop === true,
     });
   }
 
@@ -160,8 +176,22 @@ export class ImportEdgeMerger {
       .sort((a, b) => a.firstSeen - b.firstSeen)
       .map(slot => {
         const { names, ...common } = fromOccurrences(slot.occurrences);
+        // `dynamic: true` only when no static statement reaches the target: the edge then exists because of the call.
+        const dynamic = slot.occurrences.every(o => o.dynamic);
+        // ADR-V13-01: an edge is `viaReExport` (or `reExportHop`) only when no other occurrence reaches the target,
+        // so a direct import of the same file keeps the edge in both views.
+        const viaReExport = slot.occurrences.every(o => o.viaReExport);
+        const reExportHop = slot.occurrences.every(o => o.reExportHop);
         const properties: ImportEdgeProperties | ReExportEdgeProperties = slot.edgeType === 'IMPORTS'
-          ? { ...common, importedNames: names }
+          ? {
+            ...common,
+            importedNames: names,
+            ...(dynamic ? { dynamic: true as const } : {}),
+            ...(viaReExport
+              ? { viaReExport: true as const, reExportBarrels: sortedNames(slot.occurrences.flatMap(o => [...o.reExportBarrels])) }
+              : {}),
+            ...(reExportHop ? { reExportHop: true as const } : {}),
+          }
           : { ...common, exportedNames: names };
         return {
           id: generateEdgeId(slot.edgeType, slot.sourceId, slot.targetId),

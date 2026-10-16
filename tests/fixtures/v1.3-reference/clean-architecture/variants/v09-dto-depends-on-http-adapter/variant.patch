@@ -1,0 +1,19 @@
+--- a/src/application/dto/LoanDto.ts
++++ b/src/application/dto/LoanDto.ts
+@@ -1,4 +1,5 @@
+ import { Loan } from '../../domain/entities/Loan';
++import { HttpResponse, ok } from '../../infrastructure/http/HttpTypes';
+ 
+ export interface LoanDto {
+   id: string;
+@@ -6,6 +7,10 @@
+   memberId: string;
+   dueAt: string;
+   overdue: boolean;
++}
++
++export function toLoanResponse(loan: Loan, now: Date): HttpResponse {
++  return ok(toLoanDto(loan, now));
+ }
+ 
+ export function toLoanDto(loan: Loan, now: Date): LoanDto {

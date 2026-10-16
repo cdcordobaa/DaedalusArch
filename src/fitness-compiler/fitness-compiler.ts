@@ -8,6 +8,7 @@ import type { FirewallContext } from '../shared/context/firewall-context.js';
 import { DomainResult } from '../shared/errors/domain-result.js';
 import type { CompilerInput, CompilerError, CompilerWarning, CypherTemplate, LayerKindBinding } from './types.js';
 import { CYPHER_TEMPLATES } from './cypher-templates.js';
+import { V13_CYPHER_TEMPLATES } from './v13-templates.js';
 import { bindLayerParams } from './layer-binding.js';
 import { isTemplateApplicable } from './template-applicability.js';
 import { hasExcludeMarker, replaceExcludeMarkers } from './exclude-injector.js';
@@ -17,6 +18,21 @@ import type { InstrumentVersion } from './role-exemptions.js';
 import { compilerInputFromSpec } from './compiler-input.js';
 import { compilePattern } from './pattern-compiler.js';
 import { checkBoundParameters } from './bound-param-checker.js';
+import { compileHexagonalFunctions } from './hexagonal-compiler.js';
+import { HEXAGONAL_STYLE } from './hexagonal-templates.js';
+import { applyV13Rewrites } from './v13-rewrites.js';
+import type { V13RewriteFlags } from './v13-rewrites.js';
+import { applySignatureTypes } from './v13-signature-types.js';
+import { v13InapplicableReason } from './v13-applicability.js';
+import { compileDddFunctions } from './ddd-compiler.js';
+import { DDD_STYLE } from './ddd-templates.js';
+import { CONSTRUCT_ANSWERS } from '../shared/construct-switches.js';
+import type { ConstructAnswers } from '../shared/construct-switches.js';
+import { applyConstructCompileOverlays, constructApplicability, constructSwitchesActive, CONSTRUCT_TEMPLATES } from '../construct-switches/compile.js';
+import type { EmptyAggregatePolicy } from './empty-aggregates.js';
+import {
+  aggregateRulesWithoutAggregates, EMPTY_AGGREGATES_REASON, EXCLUDED_AGGREGATE_RULES, excludeAggregateRules, excludedAggregateRulesMessage,
+} from './empty-aggregates.js';
 
 // ── Standalone Function ───────────────────────────────────────────────────────
 
@@ -40,10 +56,114 @@ export function filterEnabled(
 /** Compiler options: `instrumentVersion` 1 drops the role exemptions (ADR-026); default `INSTRUMENT_VERSION`. */
 export interface CompileOptions {
   readonly instrumentVersion?: InstrumentVersion;
+  /** v1.3, OFF by default: also resolve the `V13_CYPHER_TEMPLATES` (module-wiring examples). */
+  readonly v13Templates?: boolean;
+  /**
+   * v1.3 (ADR-V13-01), OFF by default so the compiled text of the frozen catalogue stays byte-identical: rewrite each
+   * query to read its template's edge view (literal or resolved, `edge-views.ts`, `Docs/v1.3/edge-views.md`). On a
+   * graph extracted with `reExportEdges: 'resolved-only'` the rewrite does not change any row.
+   */
+  readonly edgeViews?: boolean;
+  /**
+   * v1.3 fix round, OFF by default: the v1.3 style-applicability table (`v13-applicability.ts`, ADR-V13-02 draft):
+   * FF-P06 domain-state-purity applies only to styles with an isolated domain (not `layered`).
+   */
+  readonly styleApplicability?: boolean;
+  /** v1.3 fix round, OFF by default: role detection by the class name's last camel-case token(s) (`v13-role-names.ts`). */
+  readonly roleTokens?: boolean;
+  /**
+   * v1.3, OFF by default: FF-DT03 value-object-immutability (ddd style) reads the extractor's class-member facts
+   * (`ExtractorOptions.memberFacts`) instead of the setter-name proxy (`DDD_MEMBER_FACT_TEMPLATES`).
+   */
+  readonly memberFacts?: boolean;
+  /**
+   * v1.3 field-level state, OFF by default and OFF in `V13_COMPILE_OPTIONS` (construct question Q8 is open; the Q8
+   * construct switch decides how FLOWS_TO rows are scored, not which fact feeds the field half): FF-P06
+   * domain-state-purity reads its field half from HOLDS_STATE_OF instead of FLOWS_TO (`applyFieldState`,
+   * `v13-rewrites.ts`). Needs a graph extracted with `ExtractorOptions.fieldState`
+   * (`V13_FIELD_STATE_OPTIONS`); on any other graph the field half returns no row.
+   */
+  readonly fieldState?: boolean;
+  /**
+   * v1.3, absent by default: the construct-decision answers (`src/shared/construct-switches.ts`). Read by the compile
+   * hook (`src/construct-switches/compile.ts`: preset additions, layer order, applicability, carrier functions). At the
+   * status quo (every question at A) the hook is the identity.
+   */
+  readonly constructSwitches?: ConstructAnswers;
+  /**
+   * v1.3 fix batch, OFF by default: FF-P05 controller-no-entity also reads the APG v2 SIGNATURE_USES edge (a public
+   * controller method that takes or returns a domain class; `v13-signature-types.ts`, `Docs/v1.3/ffp05-type-edges.md`).
+   */
+  readonly signatureTypes?: boolean;
+  /**
+   * Loop-pilot tool defect T1, `fail` (the status quo) by default and absent from `V13_COMPILE_OPTIONS`: what a `ddd`
+   * spec with an empty `architecture.ddd.aggregates` does to FF-DT01/FF-DT02 (`empty-aggregates.ts`): `fail`
+   * (BR-SPEC-10), `not-applicable` (option a), `exclude` (option c) or `vacuous` (option d).
+   */
+  readonly emptyAggregates?: EmptyAggregatePolicy;
 }
 
-export function compileFunctions(input: CompilerInput, options: CompileOptions = {}): DomainResult<CompiledFunctions> {
+/** The v1.3 compile options for the pipeline (the frozen v1.2E reproduction passes `{}`). */
+export const V13_COMPILE_OPTIONS: Readonly<CompileOptions> = Object.freeze({
+  edgeViews: true, styleApplicability: true, roleTokens: true, memberFacts: true, signatureTypes: true, constructSwitches: CONSTRUCT_ANSWERS,
+});
+
+function rewriteFlags(options: CompileOptions): V13RewriteFlags {
+  return {
+    edgeViews: options.edgeViews === true, roleTokens: options.roleTokens === true, memberFacts: options.memberFacts === true,
+    signatureTypes: options.signatureTypes === true,
+    ...(options.fieldState === true ? { fieldState: true } : {}),
+  };
+}
+
+type TemplateCatalogue = ReadonlyMap<string, CypherTemplate>;
+
+export function compileFunctions(rawInput: CompilerInput, options: CompileOptions = {}): DomainResult<CompiledFunctions> {
+  // v1.3 construct switches: the spec as the chosen options declare it (identity at the status quo).
+  const overlaid = applyConstructCompileOverlays(rawInput, options.constructSwitches);
+  // Loop-pilot T1 (`empty-aggregates.ts`): only a non-default policy on a ddd spec with no aggregate changes the input.
+  const t1 = emptyAggregateInput(overlaid, options.emptyAggregates);
+  if (t1.warnings.length > 0) {
+    const compiled = compileStyle(t1.input, options);
+    return compiled.success ? DomainResult.ok({ ...compiled.data, warnings: [...compiled.data.warnings, ...t1.warnings] }) : compiled;
+  }
+  return compileStyle(t1.input, options);
+}
+
+/** The input under an empty-aggregates policy, and the warnings that record it; the identity for `fail` or no policy. */
+function emptyAggregateInput(input: CompilerInput, policy: EmptyAggregatePolicy | undefined): { readonly input: CompilerInput; readonly warnings: readonly CompilerWarning[] } {
+  if (policy === undefined || policy === 'fail' || policy === 'vacuous') return { input, warnings: [] };
+  if (policy === 'exclude') {
+    const { input: rest, excluded } = excludeAggregateRules(input);
+    return excluded.length === 0 ? { input, warnings: [] } : { input: rest, warnings: [{ code: EXCLUDED_AGGREGATE_RULES, message: excludedAggregateRulesMessage(excluded) }] };
+  }
+  const rules = aggregateRulesWithoutAggregates(input);
+  if (rules.length === 0) return { input, warnings: [] };
+  const ids = new Set(rules.map((f) => String(f.id)));
+  return {
+    input: { ...input, fitnessFunctions: input.fitnessFunctions.map((f) => (ids.has(String(f.id)) ? { ...f, enabled: false, disabledReason: EMPTY_AGGREGATES_REASON } : f)) },
+    warnings: rules.map((f) => ({ code: 'COMPILER_004', message: `${String(f.id)} (${f.name}) disabled: ${EMPTY_AGGREGATES_REASON}`, functionId: String(f.id) })),
+  };
+}
+
+function compileStyle(input: CompilerInput, options: CompileOptions): DomainResult<CompiledFunctions> {
+  // v1.3: the hexagonal style has its own graph-based templates; every other style takes the path below unchanged.
+  if (input.style === HEXAGONAL_STYLE) {
+    return compileHexagonalFunctions(input, (rest) => compileFunctionsCore(rest, options), rewriteFlags(options));
+  }
+  if (input.style === DDD_STYLE) {
+    return compileDddFunctions(input, (rest) => compileFunctionsCore(rest, options), rewriteFlags(options), options.emptyAggregates === 'vacuous');
+  }
+  return compileFunctionsCore(input, options);
+}
+
+function compileFunctionsCore(input: CompilerInput, options: CompileOptions): DomainResult<CompiledFunctions> {
   const instrumentVersion = options.instrumentVersion ?? INSTRUMENT_VERSION;
+  const base: TemplateCatalogue = options.v13Templates === true
+    ? new Map([...CYPHER_TEMPLATES, ...V13_CYPHER_TEMPLATES])
+    : CYPHER_TEMPLATES;
+  // v1.3 construct switches: the carrier template of the switch-declared rules (only when a switch is set).
+  const templates: TemplateCatalogue = constructSwitchesActive(options.constructSwitches) ? new Map([...base, ...CONSTRUCT_TEMPLATES]) : base;
   const { fitnessFunctions, adrRules, layerModel } = input;
   const symbolicQueries: CypherQuery[] = [];
   const neuronalInstructions: NeuronalInstruction[] = [];
@@ -74,21 +194,28 @@ export function compileFunctions(input: CompilerInput, options: CompileOptions =
   const binding = bindLayerParams(layerModel.layers);
 
   // C7: exclude_paths needs an exclude anchor in the template (BR-U1-32); always fatal.
-  const anchorErrors = checkExcludeAnchors(enabledFunctions, input.style, binding, layerModel);
+  const anchorErrors = checkExcludeAnchors(enabledFunctions, input.style, binding, layerModel, templates);
   if (anchorErrors.length > 0) return DomainResult.fail<CompiledFunctions>(anchorErrors);
 
   // Compile enabled fitness functions by route
   for (const ff of enabledFunctions) {
     // C5: applicability (style, layer kinds, no-layer-skip layer count) for symbolic/hybrid functions
     // with a template; a disabled function is skipped downstream (BR-U1-10, BR-U1-15, BR-U1-18).
-    const template = ff.route === 'neuronal' ? undefined : CYPHER_TEMPLATES.get(ff.name);
+    const template = ff.route === 'neuronal' ? undefined : templates.get(ff.name);
     if (template) {
       const applicability = isTemplateApplicable(template, input.style, binding, layerModel);
-      if (!applicability.applicable) {
-        disabledFunctions.push({ id: ff.id, name: ff.name, reason: applicability.reason });
+      // v1.3 (ADR-V13-02 draft): the style-applicability table, after the frozen checks.
+      // v1.3 construct switches (Q1, Q10): lift or add a style inapplicability.
+      const switched = applicability.applicable ? constructApplicability(template.functionName, input.style, options.constructSwitches) : undefined;
+      const v13Reason = applicability.applicable && options.styleApplicability === true && typeof switched !== 'object'
+        ? v13InapplicableReason(template.functionName, input.style)
+        : undefined;
+      const reason = !applicability.applicable ? applicability.reason : v13Reason ?? (typeof switched === 'string' ? switched : undefined);
+      if (reason !== undefined) {
+        disabledFunctions.push({ id: ff.id, name: ff.name, reason });
         warnings.push({
           code: 'COMPILER_004',
-          message: `${String(ff.id)} (${ff.name}) disabled: ${applicability.reason}`,
+          message: `${String(ff.id)} (${ff.name}) disabled: ${reason}`,
           functionId: String(ff.id),
         });
         continue;
@@ -97,7 +224,7 @@ export function compileFunctions(input: CompilerInput, options: CompileOptions =
 
     switch (ff.route) {
       case 'symbolic': {
-        const result = compileSymbolic(ff, layerModel, binding, warnings, instrumentVersion);
+        const result = compileSymbolic(ff, layerModel, binding, warnings, instrumentVersion, templates, rewriteFlags(options));
         if (result) symbolicQueries.push(result);
         break;
       }
@@ -107,7 +234,7 @@ export function compileFunctions(input: CompilerInput, options: CompileOptions =
         break;
       }
       case 'hybrid': {
-        const sym = compileSymbolic(ff, layerModel, binding, warnings, instrumentVersion);
+        const sym = compileSymbolic(ff, layerModel, binding, warnings, instrumentVersion, templates, rewriteFlags(options));
         const neur = compileNeuronal(ff, false);
         if (sym && neur) {
           hybridPairs.push({ functionId: ff.id, symbolicQuery: sym, neuronalInstruction: neur });
@@ -130,6 +257,16 @@ export function compileFunctions(input: CompilerInput, options: CompileOptions =
     const neur = compileADRNeuronal(adr);
     if (adr.symbolicRule) {
       const sym = compileADRSymbolic(adr);
+      // v1.3 (R12, post-merge review 2026-10-16): ADR queries are not rewritten to an edge view (edge-views.md), so
+      // on the v1.3 graph a query over IMPORTS reads the literal barrel edge and the resolved edge together. The
+      // text stays as written; the author is told to choose a view.
+      if (options.edgeViews === true && readsImportsWithoutView(sym.cypher)) {
+        warnings.push({
+          code: 'COMPILER_005',
+          message: `ADR "${adr.title}": its query reads IMPORTS on a graph that holds both re-export views (literal edges to a barrel and resolved viaReExport edges); add NOT coalesce(r.viaReExport, false) for the literal view or NOT coalesce(r.reExportHop, false) for the resolved view`,
+          functionId: adrId,
+        });
+      }
       hybridPairs.push({ functionId: adr.id as import('../shared/types/value-objects.js').FunctionId, symbolicQuery: sym, neuronalInstruction: neur });
     } else {
       neuronalInstructions.push(neur);
@@ -162,11 +299,12 @@ function checkExcludeAnchors(
   style: string | undefined,
   binding: LayerKindBinding,
   layerModel: LayerModel,
+  templates: TemplateCatalogue = CYPHER_TEMPLATES,
 ): CompilerError[] {
   const errors: CompilerError[] = [];
   for (const ff of functions) {
     if (ff.route === 'neuronal' || ff.excludePaths.length === 0) continue;
-    const template = CYPHER_TEMPLATES.get(ff.name);
+    const template = templates.get(ff.name);
     if (!template || !isTemplateApplicable(template, style, binding, layerModel).applicable) continue;
     if (!hasExcludeMarker(template.template)) {
       errors.push(compilerError('COMPILATION_FAILED', `${String(ff.id)}: exclude_paths not supported by template ${template.functionName}`));
@@ -183,8 +321,10 @@ function compileSymbolic(
   binding: LayerKindBinding,
   warnings: CompilerWarning[],
   instrumentVersion: InstrumentVersion = INSTRUMENT_VERSION,
+  templates: TemplateCatalogue = CYPHER_TEMPLATES,
+  rewrites: V13RewriteFlags = { edgeViews: false, roleTokens: false },
 ): CypherQuery | undefined {
-  const template = CYPHER_TEMPLATES.get(ff.name);
+  const template = templates.get(ff.name);
 
   if (!template) {
     if (ff.route === 'neuronal') {
@@ -195,12 +335,14 @@ function compileSymbolic(
     return undefined;
   }
 
-  const params = buildParams(ff, layerModel, binding);
+  const params = buildParams(ff, layerModel, binding, templates);
   // C9: excludePatterns is appended to the map last (BR-U1-32, NFR-02): the function's own exclude_paths, then
   // the template's instrument v2 role exemptions (ADR-026).
   const excludePatterns = [...ff.excludePaths.map((g) => globToRegex(g)), ...roleExemptionPatterns(template.functionName, instrumentVersion)];
   if (excludePatterns.length > 0) params.excludePatterns = excludePatterns;
-  const cypher = instantiateTemplate(template, params);
+  const source = rewrites.signatureTypes === true ? applySignatureTypes(template) : template;
+  const instantiated = instantiateTemplate(source, params);
+  const cypher = applyV13Rewrites(template.functionName, instantiated, rewrites);
 
   return {
     functionId: ff.id,
@@ -239,6 +381,11 @@ function compileNeuronal(
 }
 
 // ── ADR Compilation ───────────────────────────────────────────────────────────
+
+/** An IMPORTS relationship pattern in the text, and no edge-view property named anywhere (R12). */
+function readsImportsWithoutView(cypher: string): boolean {
+  return /\[[^\]]*:\s*(?:[A-Z_]+\s*\|\s*)*IMPORTS\b/.test(cypher) && !/\b(?:viaReExport|reExportHop)\b/.test(cypher);
+}
 
 function compileADRSymbolic(adr: ADRRule): CypherQuery {
   const rule = adr.symbolicRule!;
@@ -311,6 +458,7 @@ export function buildParams(
   ff: FitnessFunction,
   layerModel: LayerModel,
   binding: LayerKindBinding,
+  templates: TemplateCatalogue = CYPHER_TEMPLATES,
 ): Record<string, unknown> {
   const candidates: Record<string, unknown> = {};
   const layers = layerModel.layers;
@@ -358,7 +506,7 @@ export function buildParams(
   candidates.infraPattern = '.*';
 
   // Restriction (BR-U1-33): only the template's declared parameters, required first, in declared order.
-  const template = CYPHER_TEMPLATES.get(ff.name);
+  const template = templates.get(ff.name);
   const params: Record<string, unknown> = {};
   if (!template) return params;
   for (const name of [...template.requiredParams, ...template.optionalParams]) {

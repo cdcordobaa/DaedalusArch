@@ -1,0 +1,50 @@
+commit 549bde5 teammate
+teammate: invoice CSV export on Invoice; concrete fee schedule in GenerateInvoice (seeded defects, probe 6)
+
+
+diff --git a/src/application/generate-invoice.ts b/src/application/generate-invoice.ts
+index c35fa9e..02a9865 100644
+--- a/src/application/generate-invoice.ts
++++ b/src/application/generate-invoice.ts
+@@ -4,7 +4,7 @@ import type { AppointmentNotifier } from "./appointment-notifier.js";
+ import type { AppointmentRepository } from "./ports/appointment-repository.js";
+ import type { Clock } from "./ports/clock.js";
+ import type { DoctorRepository } from "./ports/doctor-repository.js";
+-import type { FeeSchedule } from "./ports/fee-schedule.js";
++import { StaticFeeSchedule } from "../adapters/outbound/static-fee-schedule.js";
+ import type { InvoiceRepository } from "./ports/invoice-repository.js";
+ import type { PatientRepository } from "./ports/patient-repository.js";
+ 
+@@ -18,7 +18,7 @@ export class GenerateInvoiceUseCase {
+     private readonly appointments: AppointmentRepository,
+     private readonly doctors: DoctorRepository,
+     private readonly patients: PatientRepository,
+-    private readonly fees: FeeSchedule,
++    private readonly fees: StaticFeeSchedule,
+     private readonly clock: Clock,
+     private readonly notifier: AppointmentNotifier,
+   ) {}
+diff --git a/src/domain/invoice.ts b/src/domain/invoice.ts
+index 6b5e181..2ad6f79 100644
+--- a/src/domain/invoice.ts
++++ b/src/domain/invoice.ts
+@@ -2,6 +2,7 @@ import type { Appointment } from "./appointment.js";
+ import type { Doctor } from "./doctor.js";
+ import { InvalidStateError } from "./errors.js";
+ import type { Money } from "./money.js";
++import { toCsv } from "../adapters/inbound/csv.js";
+ 
+ /** Share of the base fee billed for a late cancellation that staff overrode. */
+ export const LATE_CANCELLATION_FEE_RATE = 0.5;
+@@ -41,6 +42,11 @@ export class Invoice {
+     );
+   }
+ 
++  /** One-line CSV export used by accounting (reuses the report CSV writer). */
++  asCsv(): string {
++    return toCsv(["invoice", "appointment", "date", "total_cents"], [[this.id, this.appointmentId, this.appointmentDate, this.total.cents]]);
++  }
++
+   get total(): Money {
+     const currency = this.lines[0]!.amount.currency;
+     return { cents: this.lines.reduce((sum, line) => sum + line.amount.cents, 0), currency };

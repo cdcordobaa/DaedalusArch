@@ -1,4 +1,4 @@
-import type { EvaluationReport, ReportScoring } from '../shared/types/evaluation.js';
+import type { EvaluationReport, ReportScoring, TieredScoring } from '../shared/types/evaluation.js';
 import type { FitnessFunction } from '../shared/types/spec.js';
 import type { Dimension } from '../shared/types/enums.js';
 import { formatAllActionableViolations } from '../report/actionable-formatter.js';
@@ -51,11 +51,33 @@ export function formatJSON(report: EvaluationReport): string {
 /**
  * Format report as human-readable summary for CLI / PR comments.
  */
+function tierLines(t: TieredScoring): string[] {
+  const ahs = t.blockingAhs === null ? 'n/a' : t.blockingAhs.toFixed(3);
+  const rows = (rules: TieredScoring['blocking']['rules']): string[] =>
+    rules.filter((r) => r.violated).map((r) => `    ${String(r.functionId).padEnd(8)} ${r.name}: ${String(r.violationCount)}${r.judge === true ? ' (judge)' : ''}`);
+  const lines = [
+    `  v1.3 scoring:        ${t.verdict.toUpperCase()} (${t.verdictRule}; v1.2E verdict ${t.v12eVerdict})`,
+    `  Blocking AHS:        ${ahs}  (${String(t.blocking.violatedRules)} of ${String(t.blocking.rules.length)} blocking rules violated, ${String(t.blocking.violationCount)} violations)`,
+    ...rows(t.blocking.rules),
+    `  Advisory findings:   ${String(t.advisory.violationCount)} in ${String(t.advisory.violatedRules)} of ${String(t.advisory.rules.length)} rules`,
+    ...rows(t.advisory.rules),
+  ];
+  for (const na of t.notApplicable) {
+    const edges = na.flowsToEdges === null ? 'unknown' : String(na.flowsToEdges);
+    lines.push(`  N/A: ${String(na.functionId)} ${na.part}: ${String(na.naRows)} of ${String(na.totalRows)} rows (FLOWS_TO edges in graph: ${edges})`);
+  }
+  lines.push('');
+  return lines;
+}
+
 export function formatHuman(report: EvaluationReport): string {
   const lines: string[] = headerBox(report);
   lines.push(`  Verdict:             ${report.verdict}`);
   lines.push(`  Mode:                ${report.evaluationMode}`);
   lines.push('');
+
+  // v1.3 tiers (FR-V6): present only in the v1.3 scoring mode, so the v1.2E output is unchanged.
+  if (report.tiers !== undefined) lines.push(...tierLines(report.tiers));
 
   // Per-dimension breakdown
   lines.push('  Per-Dimension Breakdown:');

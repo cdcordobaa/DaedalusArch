@@ -3,17 +3,20 @@ import { SourceFile, SyntaxKind, Node } from 'ts-morph';
 import type { APGEdge, APGNode, FlowsToStats, ImportResolutionStats } from '../shared/types/apg.js';
 import type { ExtractorWarning } from '../shared/types/apg.js';
 import type { EdgeType } from '../shared/types/enums.js';
-import type { ExtractorOptions, NodeLookup } from './types.js';
+import type { ExtractorOptions, FileCheckpoint, NodeLookup } from './types.js';
 import { DEFAULT_OPTIONS, DI_DECORATORS, PRIMITIVE_TYPES } from './types.js';
 import { generateEdgeId, normalizeFilePath } from './id-generator.js';
 import { ImportEdgeMerger } from './import-edge-merger.js';
 import { deriveFlowsToEdges, emptyFlowsToTally } from './flows-to-deriver.js';
+import { deriveHoldsStateOfEdges } from './field-state.js';
 import { PackageNodeRegistry } from './package-node-factory.js';
 import { restrictToGraphMode } from './graph-mode.js';
+import { extractModuleWiringEdges } from './nest-module-extractor.js';
 import {
   buildImportResolutionContext,
   countUnsupportedDynamicImports,
   importEqualsSpecifier,
+  resolveDynamicImportTargets,
   resolveImportTargets,
   resolveReExportTargets,
 } from './import-resolver.js';
@@ -48,6 +51,7 @@ export function extractEdges(
   lookup: NodeLookup,
   projectRoot: string,
   options: ExtractorOptions = {},
+  checkpoint?: FileCheckpoint,
 ): EdgeExtractionResult {
   const opts = { ...DEFAULT_OPTIONS, ...options };
   const edgeSet = new Map<string, APGEdge>(); // key=(type+sourceId+targetId) for dedup, non-import types only
@@ -64,15 +68,17 @@ export function extractEdges(
     if (!edgeSet.has(key)) edgeSet.set(key, edge);
   };
 
-  const addWarning = (filePath: string, code: string, message: string): void => {
-    warnings.push({ filePath, code, message });
+  const addWarning = (filePath: string, code: string, message: string, severity?: 'info'): void => {
+    warnings.push({ filePath, code, message, ...(severity !== undefined ? { severity } : {}) });
   };
 
   const packages = new PackageNodeRegistry();
   const importCtx = buildImportResolutionContext(project, lookup, projectRoot, opts, addWarning, packages);
   const merger = new ImportEdgeMerger();
 
+  let done = 0;
   for (const sf of sourceFiles) {
+    if (checkpoint !== undefined) checkpoint(done++, sourceFiles.length);
     const filePath = normalizeFilePath(sf.getFilePath(), projectRoot);
     const fileNodeId = lookup.fileNodes.get(filePath);
     if (!fileNodeId) continue;
@@ -97,8 +103,17 @@ export function extractEdges(
       if (resolution.outOfRootAlias) counts.externalOutOfRootAlias++;
     }
 
-    // import() / require() calls are counted, not modelled (BR-U2-25).
-    const dynamic = countUnsupportedDynamicImports(sf);
+    // v1.3 `dynamicImports` (ON by default in v1.3): string-literal import() / require() calls become IMPORTS
+    // occurrences (dynamic = true), after the file's static statements.
+    if (opts.dynamicImports) {
+      for (const occ of resolveDynamicImportTargets(sf, importCtx)) {
+        merger.add(occ, occ.target.kind === 'file' ? occ.target.fileNodeId : packages.getOrCreate(occ.target.root).id);
+      }
+    }
+
+    // import() / require() calls are counted, not modelled (BR-U2-25); with `dynamicImports` only the
+    // computed-specifier calls remain unmodelled.
+    const dynamic = countUnsupportedDynamicImports(sf, opts.dynamicImports);
     if (dynamic > 0) {
       counts.unsupportedDynamic += dynamic;
       addWarning(filePath, 'EXTRACTOR_009', `Unsupported dynamic import(s): ${String(dynamic)}`);
@@ -243,6 +258,11 @@ export function extractEdges(
       // FLOWS_TO (Class → Class | Interface), D8 scope (FR-21; BR-U2-27..29)
       for (const edge of deriveFlowsToEdges(cls, clsNodeId, lookup, projectRoot, addWarning, flowsTo)) addEdge(edge);
 
+      // v1.3 `fieldState` (OFF in the v1.2E and v1.3 defaults): HOLDS_STATE_OF (Class → Class | Interface).
+      if (opts.fieldState) {
+        for (const edge of deriveHoldsStateOfEdges(cls, clsNodeId, lookup, projectRoot)) addEdge(edge);
+      }
+
       // CALLS (cross-boundary Method → Method)
       for (const method of cls.getMethods()) {
         const qualifiedName = `${clsName}.${method.getName()}`;
@@ -287,6 +307,11 @@ export function extractEdges(
           addEdge(buildEdge('CALLS', sourceMethodId, targetMethodId, { callCount }));
         }
       }
+    }
+
+    // v1.3 `moduleWiring` (ON by default in v1.3): @Module metadata edges, after every v1.2E edge of the file.
+    if (opts.moduleWiring) {
+      for (const edge of extractModuleWiringEdges(sf.getClasses(), filePath, projectRoot, lookup, addWarning)) addEdge(edge);
     }
 
     // CONTAINS (Interface → Method), one per own method-signature name, after the class edges

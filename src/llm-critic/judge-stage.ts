@@ -18,6 +18,8 @@ import { judgeProvenanceOf, provenanceWarning } from './provenance.js';
 import { wrapJudgeProvider } from './provider-factory.js';
 import type { JudgeRunSettings, NeuronalRunOptions, RunCompleteness, RunManifest } from './types.js';
 import { DEFAULT_NEURONAL_RUN_OPTIONS } from './types.js';
+import { JUDGE_V2_REVISION } from './judge-v2.js';
+import { JUDGE_V22_REVISION } from './judge-v22.js';
 
 /**
  * The judge stage of a pipeline run (U4 plan Step 25, C9 hunks; BR-U4-AGG-03, SEL-07, CAS-10,
@@ -147,6 +149,11 @@ export async function prepareJudgeStage(
       cassette: run.cassette,
       ...(baseline !== undefined ? { baseline } : {}),
       evaluatorSpecLayers: spec?.layerModel.layers ?? [],
+      ...(run.judgeVersion !== undefined ? { judgeVersion: run.judgeVersion } : {}),
+      // v2.2 renders the style and the allowed dependencies; v1 and v2 never read them.
+      ...(run.judgeVersion === 'v2.2' && spec?.style !== undefined ? { evaluatorSpecStyle: spec.style } : {}),
+      ...(run.judgeVersion === 'v2.2' && spec?.layerModel.allowedDependencies !== undefined
+        ? { evaluatorSpecAllowedDependencies: spec.layerModel.allowedDependencies } : {}),
     },
     excludePaths,
   });
@@ -173,9 +180,13 @@ export function finishJudgeStage(
   }
   clearRunManifest(run.cassette.dir, settings.projectRoot, settings.specSha);
   if (outcome.output !== undefined) holder.output = outcome.output;
-  holder.judge = judgeProvenanceOf(provider, {
+  const provenance = judgeProvenanceOf(provider, {
     runsPerUnit: DEFAULT_NEURONAL_RUN_OPTIONS.runsPerEvaluation, repetition: run.repetition, seededList: DEFAULT_NEURONAL_RUN_OPTIONS.seededList,
   });
+  // v1.3: a v2 or v2.2 run says so; a v1 report is unchanged (no field).
+  holder.judge = run.judgeVersion === 'v2' ? { ...provenance, judgeVersion: 'v2', judgeRevision: JUDGE_V2_REVISION }
+    : run.judgeVersion === 'v2.2' ? { ...provenance, judgeVersion: 'v2.2', judgeRevision: JUDGE_V22_REVISION }
+      : provenance;
   const mixed = provenanceWarning(holder.judge);
   return DomainResult.ok(undefined, mixed !== undefined ? [mixed] : undefined);
 }

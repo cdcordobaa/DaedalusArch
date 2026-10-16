@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "style": "layered",
+  "spec": "spec.yaml",
+  "project": "Orders: catalogue, customers, orders with discounts.",
+  "canonicalSource": "Fowler, M. (2002). Patterns of Enterprise Application Architecture. Addison-Wesley. Ch. 1 (Layering: presentation, domain, data source), Service Layer, Table Data Gateway, Money. Closed layering as in Buschmann, F. et al. (1996), Pattern-Oriented Software Architecture Vol. 1, \"Layers\".",
+  "styleDefinition": [
+    "Three layers, closed (strict): presentation -> business -> persistence. Each layer uses only the layer directly below it.",
+    "Persistence (Table Data Gateways and plain records) knows nothing about the layers above; it returns rows, the business layer maps them.",
+    "The business layer (domain model, Service Layer) may hold and call persistence gateways: that is the normal downward dependency.",
+    "Presentation (controllers, views, router) sees business services and model objects only, never persistence; the business layer builds its own lower layer (ServiceFactory) so presentation never has to name it.",
+    "The business layer depends on no web or persistence framework.",
+    "No dependency cycles."
+  ],
+  "authored": "2026-10-14",
+  "writtenBeforeToolRun": true,
+  "scopeRules": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-S03",
+      "ruleName": "no-layer-skip",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-P01",
+      "ruleName": "domain-purity",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-P06",
+      "ruleName": "domain-state-purity",
+      "severity": "critical",
+      "blockingCandidate": true
+    }
+  ],
+  "notApplicable": [
+    {
+      "ruleId": "FF-S04",
+      "reason": "Clean and NestJS only"
+    },
+    {
+      "ruleId": "FF-P02",
+      "reason": "Clean and NestJS only"
+    },
+    {
+      "ruleId": "FF-P03",
+      "reason": "Clean and NestJS only"
+    },
+    {
+      "ruleId": "FF-P04",
+      "reason": "Clean and NestJS only"
+    },
+    {
+      "ruleId": "FF-P05",
+      "reason": "Clean and NestJS only"
+    }
+  ],
+  "noViolatingVariant": [
+    {
+      "ruleId": "FF-P06",
+      "reason": "No style-valid violation exists: in closed layering the business layer holding a persistence gateway is the intended dependency, so the template's binding (domain kind = business, infrastructure kind = persistence) has no violating case in this style. See RDQ-1."
+    }
+  ],
+  "outOfScope": "Coupling metrics (FF-C*), SOLID proxies (FF-SO*), naming and convention rules (FF-CV*) and the neuronal functions (FF-N*) are not compared: they are threshold proxies or conventions (FR-V6 makes them advisory), and they say nothing about whether a planted architectural violation is caught. The runner lists their rows separately as unscored.",
+  "variants": [
+    "clean",
+    "n01-controller-parses-money",
+    "n02-reporting-service-reads-database",
+    "n03-views-import-model-barrel",
+    "v01-gateway-returns-business-money",
+    "v02-service-renders-view",
+    "v03-controller-reads-gateway",
+    "v04-view-types-persistence-record",
+    "v05-business-model-cycle",
+    "v06-router-controller-cycle",
+    "v07-business-model-typeorm-decorator",
+    "v08-business-service-takes-express-request",
+    "v09-presentation-root-builds-database"
+  ]
+}

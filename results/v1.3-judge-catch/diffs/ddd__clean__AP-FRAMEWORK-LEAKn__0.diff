@@ -1,0 +1,21 @@
+diff -ruN bases/ddd__clean/src/billing/application/IssueInvoice.ts copies/ddd__clean__AP-FRAMEWORK-LEAKn__0/src/billing/application/IssueInvoice.ts
+--- bases/ddd__clean/src/billing/application/IssueInvoice.ts	2026-10-15 11:50:59
++++ copies/ddd__clean__AP-FRAMEWORK-LEAKn__0/src/billing/application/IssueInvoice.ts	2026-10-15 11:51:12
+@@ -8,7 +8,7 @@
+ export class IssueInvoice {
+   constructor(private readonly orders: OrderSource, private readonly invoices: InvoiceRepository, private readonly taxRate: number) {}
+ 
+-  async execute(invoiceId: string, orderId: string): Promise<void> {
++  async execute(invoiceId: string, orderId: string, context?: ExecuteContextDto): Promise<void> {
+     const order = await this.orders.billableOrder(orderId);
+     if (order === null) throw new Error('Unknown order');
+     const invoice = new Invoice(new InvoiceId(invoiceId), order.orderId, order.currency);
+@@ -16,4 +16,8 @@
+     invoice.issue(this.taxRate);
+     await this.invoices.save(invoice);
+   }
++}
++
++export interface ExecuteContextDto {
++  readonly requestId?: string;
+ }

@@ -1,0 +1,45 @@
+diff -ruN -x node_modules a/src/application/create-project-use-case.ts b/src/application/create-project-use-case.ts
+--- a/src/application/create-project-use-case.ts	2026-10-15 12:42:23
++++ b/src/application/create-project-use-case.ts	2026-10-15 12:42:09
+@@ -11,11 +11,15 @@
+   ) {}
+ 
+   async execute(dto: CreateProjectDto): Promise<Project> {
+-    if (typeof dto.name !== "string" || dto.name.trim() === "") {
+-      throw new ValidationError("name is required");
+-    }
++    assertExecuteRule(dto);
+     const project = new Project(this.ids.next(), dto.name.trim());
+     await this.projects.save(project);
+     return project;
+   }
++}
++
++export function assertExecuteRule(dto: CreateProjectDto): void {
++  if (typeof dto.name !== "string" || dto.name.trim() === "") {
++        throw new ValidationError("name is required");
++      }
+ }
+diff -ruN -x node_modules a/src/application/list-tasks-use-case.ts b/src/application/list-tasks-use-case.ts
+--- a/src/application/list-tasks-use-case.ts	2026-10-15 12:42:23
++++ b/src/application/list-tasks-use-case.ts	2026-10-15 12:42:09
+@@ -3,7 +3,8 @@
+ import { Task } from "../domain/task";
+ import { TaskRepository } from "../domain/task-repository";
+ import { parseTaskStatus } from "../domain/task-status";
+-import { ListTasksDto } from "./dtos";
++import { ListTasksDto, CreateProjectDto } from "./dtos";
++import { assertExecuteRule } from "./create-project-use-case";
+ 
+ export class ListTasksUseCase {
+   constructor(
+@@ -19,5 +20,9 @@
+       status: dto.status === undefined ? undefined : parseTaskStatus(dto.status),
+       assigneeId: dto.assigneeId,
+     });
++  }
++
++  validateExecute(dto: CreateProjectDto): void {
++    assertExecuteRule(dto);
+   }
+ }

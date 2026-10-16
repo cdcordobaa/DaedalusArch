@@ -20,6 +20,63 @@ export const SPEC_SCHEMA_V1 = {
       required: ['layers'],
       properties: {
         style: { type: 'string' },
+        // v1.3: the allowed-dependency graph of the hexagonal style; read by that style only.
+        allowed_dependencies: {
+          type: 'array',
+          items: {
+            type: 'object',
+            required: ['from', 'to'],
+            properties: {
+              from: { type: 'string', minLength: 1 },
+              to: { type: 'array', items: { type: 'string', minLength: 1 }, minItems: 1 },
+            },
+            additionalProperties: false,
+          },
+        },
+        // v1.3: declarations of the ddd style (contexts, aggregates, tactical roles); read by that style only.
+        ddd: {
+          type: 'object',
+          required: ['source_root', 'contexts'],
+          properties: {
+            source_root: { type: 'string', minLength: 1 },
+            contexts: {
+              type: 'array',
+              minItems: 1,
+              items: {
+                type: 'object',
+                required: ['name', 'root'],
+                properties: {
+                  name: { type: 'string', minLength: 1 },
+                  root: { type: 'string', minLength: 1 },
+                  public_api: { type: 'array', items: { type: 'string', minLength: 1 } },
+                  acl: { type: 'array', items: { type: 'string', minLength: 1 } },
+                },
+                additionalProperties: false,
+              },
+            },
+            outside_contexts: { type: 'array', items: { type: 'string', minLength: 1 } },
+            aggregates: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['name', 'context', 'module', 'root'],
+                properties: {
+                  name: { type: 'string', minLength: 1 },
+                  context: { type: 'string', minLength: 1 },
+                  module: { type: 'string', minLength: 1 },
+                  root: { type: 'string', minLength: 1 },
+                  inner_entities: { type: 'array', items: { type: 'string', minLength: 1 } },
+                },
+                additionalProperties: false,
+              },
+            },
+            value_objects: { type: 'array', items: { type: 'string', minLength: 1 } },
+            repositories: { type: 'array', items: { type: 'string', minLength: 1 } },
+            domain_event_types: { type: 'array', items: { type: 'string', minLength: 1 } },
+            application_services: { type: 'array', items: { type: 'string', minLength: 1 } },
+          },
+          additionalProperties: false,
+        },
         layers: {
           type: 'array',
           minItems: 2,
@@ -62,6 +119,8 @@ export const SPEC_SCHEMA_V1 = {
           pattern: { type: 'string', pattern: PATTERN_GRAMMAR },
           // FR-33 judge unit for neuronal/hybrid functions (BR-U1-04, BR-U1-26)
           judge_unit: { type: 'string', enum: ['file', 'class', 'module'] },
+          // v1.3 rule tier; read by the ddd style only (another style ignores it with SPEC_001)
+          tier: { type: 'string', enum: ['blocking', 'advisory'] },
           semantic_criteria: {
             type: 'object',
             required: ['rule', 'rubric'],

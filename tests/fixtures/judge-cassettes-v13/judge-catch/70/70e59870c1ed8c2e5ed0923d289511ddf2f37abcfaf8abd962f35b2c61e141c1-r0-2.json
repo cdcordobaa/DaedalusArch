@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6446,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "70e59870c1ed8c2e5ed0923d289511ddf2f37abcfaf8abd962f35b2c61e141c1-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/entities/Loan.ts: Loan.close(at) enforces the 'already returned' invariant by throwing DomainError('LOAN_CLOSED'). This is a domain business rule.",
+      "src/domain/entities/Loan.ts: isOverdue(now) and daysOverdue(now) are pure domain calculations. Time is passed in as a parameter, so the file does not depend on a system clock.",
+      "src/domain/entities/Loan.ts: static open(...) works out dueAt through LoanPeriod.dueDateFrom, which is a domain value object.",
+      "src/domain/entities/Loan.ts: the file has no database, HTTP, framework or serialization code."
+    ],
+    "pass": true,
+    "reasoning": "Loan.ts is a pure domain entity. It holds loan state (id, bookId, memberId, borrowedAt, dueAt, returnedAt). It enforces invariants: a loan that is already closed cannot be closed again, and close() throws DomainError in that case. It also contains domain logic for being active, being overdue and counting days overdue. A static factory works out the due date from a LoanPeriod value object. The file has no persistence, transport, framework, serialization or orchestration logic. Every responsibility fits the domain layer.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/entities/Loan.ts\nLayer: domain\nUnit files:\n- src/domain/entities/Loan.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/entities/Loan.ts=====\nimport { DomainError } from '../errors/DomainError';\nimport { LoanPeriod } from '../value-objects/LoanPeriod';\n\nconst DAY_MS = 24 * 60 * 60 * 1000;\n\nexport class Loan {\n  private returnedAt: Date | undefined;\n\n  private constructor(\n    readonly id: string,\n    readonly bookId: string,\n    readonly memberId: string,\n    readonly borrowedAt: Date,\n    readonly dueAt: Date,\n  ) {}\n\n  static open(id: string, bookId: string, memberId: string, borrowedAt: Date, period: LoanPeriod): Loan {\n    return new Loan(id, bookId, memberId, borrowedAt, period.dueDateFrom(borrowedAt));\n  }\n\n  get isActive(): boolean {\n    return this.returnedAt === undefined;\n  }\n\n  close(at: Date): void {\n    if (!this.isActive) throw new DomainError('LOAN_CLOSED', `Loan ${this.id} is already returned`);\n    this.returnedAt = at;\n  }\n\n  isOverdue(now: Date): boolean {\n    return this.isActive && now.getTime() > this.dueAt.getTime();\n  }\n\n  daysOverdue(now: Date): number {\n    if (!this.isOverdue(now)) return 0;\n    return Math.ceil((now.getTime() - this.dueAt.getTime()) / DAY_MS);\n  }\n\n  hasReturnedAt(): boolean {\n    return this.returnedAt !== undefined;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/dto/LoanDto.ts\",\"to\":\"src/domain/entities/Loan.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/BorrowBookUseCase.ts\",\"to\":\"src/domain/entities/Loan.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/entities/Loan.ts\",\"to\":\"src/domain/errors/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/entities/Loan.ts\",\"to\":\"src/domain/value-objects/LoanPeriod.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/repositories/LoanRepository.ts\",\"to\":\"src/domain/entities/Loan.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/services/FineCalculator.ts\",\"to\":\"src/domain/entities/Loan.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/services/LoanPolicy.ts\",\"to\":\"src/domain/entities/Loan.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/persistence/InMemoryLoanRepository.ts\",\"to\":\"src/domain/entities/Loan.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Loan\",\"path\":\"src/domain/entities/Loan.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto/LoanDto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/BorrowBookUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Loan.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors/DomainError.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/LoanRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/services/FineCalculator.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/services/LoanPolicy.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/value-objects/LoanPeriod.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/persistence/InMemoryLoanRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T17:06:39.277Z",
+  "repetition": 0,
+  "requestHash": "70e59870c1ed8c2e5ed0923d289511ddf2f37abcfaf8abd962f35b2c61e141c1",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":542}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"Loan.ts is a pure domain entity. It holds loan state (id, bookId, memberId, borrowedAt, dueAt, returnedAt). It enforces invariants: a loan that is already closed cannot be closed again, and close() throws DomainError in that case. It also contains domain logic for being active, being overdue and counting days overdue. A static factory works out the due date from a LoanPeriod value object. The file has no persistence, transport, framework, serialization or orchestration logic. Every responsibility fits the domain layer.\\\",\\\"evidence\\\":[\\\"src/domain/entities/Loan.ts: Loan.close(at) enforces the 'already returned' invariant by throwing DomainError('LOAN_CLOSED'). This is a domain business rule.\\\",\\\"src/domain/entities/Loan.ts: isOverdue(now) and daysOverdue(now) are pure domain calculations. Time is passed in as a parameter, so the file does not depend on a system clock.\\\",\\\"src/domain/entities/Loan.ts: static open(...) works out dueAt through LoanPeriod.dueDateFrom, which is a domain value object.\\\",\\\"src/domain/entities/Loan.ts: the file has no database, HTTP, framework or serialization code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/entities/Loan.ts: Loan.close(at) enforces the 'already returned' invariant by throwing DomainError('LOAN_CLOSED'). This is a domain business rule.\",\"src/domain/entities/Loan.ts: isOverdue(now) and daysOverdue(now) are pure domain calculations. Time is passed in as a parameter, so the file does not depend on a system clock.\",\"src/domain/entities/Loan.ts: static open(...) works out dueAt through LoanPeriod.dueDateFrom, which is a domain value object.\",\"src/domain/entities/Loan.ts: the file has no database, HTTP, framework or serialization code.\"],\"pass\":true,\"reasoning\":\"Loan.ts is a pure domain entity. It holds loan state (id, bookId, memberId, borrowedAt, dueAt, returnedAt). It enforces invariants: a loan that is already closed cannot be closed again, and close() throws DomainError in that case. It also contains domain logic for being active, being overdue and counting days overdue. A static factory works out the due date from a LoanPeriod value object. The file has no persistence, transport, framework, serialization or orchestration logic. Every responsibility fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/entities/Loan.ts",
+  "usage": {
+    "inputTokens": 3254,
+    "outputTokens": 542
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,160 @@
+{
+  "forbidden": [
+    {
+      "name": "FF-S01--domain--application--00",
+      "severity": "error",
+      "comment": "T2 dependency-direction",
+      "from": {
+        "path": [
+          "^src\\/domain(?:\\/|$)"
+        ]
+      },
+      "to": {
+        "path": [
+          "^src\\/application(?:\\/|$)"
+        ],
+        "pathNot": [
+          "^src\\/domain(?:\\/|$)",
+          "(^|/)node_modules/"
+        ]
+      }
+    },
+    {
+      "name": "FF-S01--domain--infrastructure--00",
+      "severity": "error",
+      "comment": "T2 dependency-direction",
+      "from": {
+        "path": [
+          "^src\\/domain(?:\\/|$)"
+        ]
+      },
+      "to": {
+        "path": [
+          "^src\\/infrastructure(?:\\/|$)"
+        ],
+        "pathNot": [
+          "^src\\/domain(?:\\/|$)",
+          "^src\\/application(?:\\/|$)",
+          "(^|/)node_modules/"
+        ]
+      }
+    },
+    {
+      "name": "FF-S01--application--infrastructure--00",
+      "severity": "error",
+      "comment": "T2 dependency-direction",
+      "from": {
+        "path": [
+          "^src\\/application(?:\\/|$)"
+        ],
+        "pathNot": [
+          "^src\\/domain(?:\\/|$)"
+        ]
+      },
+      "to": {
+        "path": [
+          "^src\\/infrastructure(?:\\/|$)"
+        ],
+        "pathNot": [
+          "^src\\/domain(?:\\/|$)",
+          "^src\\/application(?:\\/|$)",
+          "(^|/)node_modules/"
+        ]
+      }
+    },
+    {
+      "name": "FF-S02--cycle",
+      "severity": "error",
+      "comment": "T6 no-cyclic-deps",
+      "from": {},
+      "to": {
+        "circular": true
+      }
+    },
+    {
+      "name": "FF-S04--domain--application--00",
+      "severity": "error",
+      "comment": "T4 no-domain-outward-dep",
+      "from": {
+        "path": [
+          "^src\\/domain(?:\\/|$)"
+        ]
+      },
+      "to": {
+        "path": [
+          "^src\\/application(?:\\/|$)"
+        ],
+        "pathNot": [
+          "^src\\/domain(?:\\/|$)",
+          "(^|/)node_modules/"
+        ]
+      }
+    },
+    {
+      "name": "FF-S04--domain--infrastructure--00",
+      "severity": "error",
+      "comment": "T4 no-domain-outward-dep",
+      "from": {
+        "path": [
+          "^src\\/domain(?:\\/|$)"
+        ]
+      },
+      "to": {
+        "path": [
+          "^src\\/infrastructure(?:\\/|$)"
+        ],
+        "pathNot": [
+          "^src\\/domain(?:\\/|$)",
+          "^src\\/application(?:\\/|$)",
+          "(^|/)node_modules/"
+        ]
+      }
+    },
+    {
+      "name": "FF-P01--domain--packages--0",
+      "severity": "error",
+      "comment": "T5 domain-purity",
+      "from": {
+        "path": [
+          "^src\\/domain(?:\\/|$)"
+        ]
+      },
+      "to": {
+        "path": [
+          "(^|/)node_modules/fs(/|$)|^fs(/|$)|(^|/)node_modules/@types/fs(/|$)",
+          "(^|/)node_modules/axios(/|$)|^axios(/|$)|(^|/)node_modules/@types/axios(/|$)",
+          "(^|/)node_modules/typeorm(/|$)|^typeorm(/|$)|(^|/)node_modules/@types/typeorm(/|$)",
+          "(^|/)node_modules/pg(/|$)|^pg(/|$)|(^|/)node_modules/@types/pg(/|$)"
+        ]
+      }
+    }
+  ],
+  "options": {
+    "tsPreCompilationDeps": true,
+    "doNotFollow": {
+      "path": "node_modules"
+    },
+    "exclude": {
+      "path": [
+        "(?:^|\\/)dist(?:\\/|$)",
+        "(?:^|\\/)build(?:\\/|$)",
+        "(?:^|\\/)[^/]*\\.d\\.ts$",
+        "(?:^|\\/)[^/]*\\.spec\\.ts$",
+        "(?:^|\\/)[^/]*\\.test\\.ts$"
+      ]
+    },
+    "tsConfig": {
+      "fileName": "tsconfig.json"
+    },
+    "enhancedResolveOptions": {
+      "extensions": [
+        ".ts",
+        ".tsx",
+        ".d.ts",
+        ".js",
+        ".jsx",
+        ".json"
+      ]
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import type { CompiledFunctions, EvaluationResults } from '../shared/types/evaluation.js';
+import type { CompiledFunctions, EvaluationResults, ScoringMode } from '../shared/types/evaluation.js';
 import type { ScoringWeights, ConfidenceThresholds, VerdictThresholds, FitnessFunction } from '../shared/types/spec.js';
 import type { FunctionId } from '../shared/types/value-objects.js';
 import type { EvaluationMode } from '../shared/types/enums.js';
@@ -7,6 +7,7 @@ import type { GraphRepository } from '../shared/interfaces/graph-repository.js';
 import type { APGResult } from '../shared/types/apg.js';
 import type { CycleMetricTiming } from './universal-metrics.js';
 import type { NeuralAggregation } from './neural-aggregation.js';
+import type { TierResolver } from './tiered-scoring.js';
 
 /** domain-entities.md §4.1 (U3-owned). */
 export interface ScoringInput {
@@ -27,6 +28,15 @@ export interface ScoringInput {
   readonly onCycleMetricTiming?: (timing: CycleMetricTiming) => void;
   /** ADR-028: neural aggregation of the AHS fields (default `registered`); stamped in judge modes. */
   readonly neuralAggregation?: NeuralAggregation;
+  /**
+   * FR-V6: `v1.2e` (default here, the registered scoring, byte-identical) or `v1.3` (rule tiers: the report gains
+   * `tiers` and its `verdict` comes from the blocking rules). The v1.3 entrypoints (CLI `evaluate`, MCP) pass `v1.3`.
+   */
+  readonly scoringMode?: ScoringMode;
+  /** The spec's `architecture.style`; read only in the v1.3 mode (style-dependent tiers). */
+  readonly style?: string;
+  /** v1.3 construct switches: a switch-aware tier lookup (absent at the status quo; `ruleTier` applies). */
+  readonly tierResolver?: TierResolver;
 }
 
 export type ScoringErrorCode =

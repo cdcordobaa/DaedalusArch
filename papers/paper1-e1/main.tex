@@ -1,0 +1,1139 @@
+% main.tex: "Do Specifications Make LLMs Better Architects? A Pre-Registered Factorial Study of Architectural
+% Conformance in LLM-Generated TypeScript"
+% Empirical paper draft, target ESEM, MSR or EMSE (about 10-12 pages in this class).
+%
+% Provenance convention: every number carries a LaTeX comment "% src: <path>" naming the committed file it was read
+% from (paths relative to the repository root, branch v1.2e at b7034682). Where a number was derived (a sum, a mean
+% over rows, a ratio), the comment says "derived" and how. Nothing here comes from an uncommitted file.
+%
+% v1.3 refresh (2026-10-16, branch v1.3-paper1-4-refresh from origin/v1.3 at e9fd61b7): Section 9 (the floor), the
+% v1.3 validity paragraph of Section 11 and the sentences that cite them read committed files on origin/v1.3. Where a
+% report sits on a PR branch that is not merged (marked [hold]), the comment gives a pinned "git show <sha>:<path>"
+% and the PR number. Merged into v1.3: #110, #120, #134, #166, #168, #185. On hold: #167, #198, #139, #213.
+% Pinned [hold] citations (updated 2026-10-16): a report that exists only on an unmerged PR branch is cited as
+% "git show <sha>:<path>", where <sha> is that branch's tip on 2026-10-16, so a rebase or branch deletion cannot change
+% the source. Such a report has not passed review and is not on v1.3; a sentence that rests on it is provisional and
+% must be re-checked against the merged file, or removed, before submission (papers/STATUS.md, "Submission gate").
+% A report whose PR has since merged is cited by its plain v1.3 path.
+%   S1RR        = Docs/DiagnosticRuns/v1.3-study1-rerun-2026-10-15.md (results/v1.3-study1-rerun/e1/by_level_model.csv)
+%   ADD         = Docs/v1.3/study1-addenda.md
+%   REFMF       = Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md ("Correction (2026-10-16)")
+%   NARECOUNT   = scripts/v1.3/ffp06-na-recount.mjs (PR #120)
+%
+% Abbreviations used in the comments:
+%   ADR.md      = "Docs/ADR <U+2014> Architectural Decision Records Firewall Tech.md" (its real name contains an em dash,
+%                 which this draft does not reproduce)
+%   GRID        = results/e1-grid/agg/so5_grid.csv
+%   TESTS       = results/e1-grid/agg/so5_tests.csv
+%   SIZE        = Docs/DiagnosticRuns/e1-size-analysis-2026-10-10.md
+%   STESTS      = results/e1-grid/agg-size/size_tests.csv
+%   SFUNC       = results/e1-grid/agg-size/size_functions.csv
+%   AGGR        = results/e1-grid/agg-proportional/ahs_by_aggregation.csv
+%   JSUM        = results/e1-grid/judge-diagnostics/judge_summary.csv
+%   P4          = results/e1-grid/label-plan-p4-api/labelling.json (field "agreement" unless stated)
+%   PLAN        = Docs/analysis-plan.md
+%   GENP        = Docs/generator-protocol.md
+%   TTV         = Docs/threats-to-validity.md
+%
+% Style rules for editors: no em dashes anywhere (not as a character, not as "---"); every reading is labelled
+% pre-registered or post-hoc; do not claim that specifications make architecture worse.
+
+\documentclass[10pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=2.0cm]{geometry}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.17}
+\usetikzlibrary{patterns}
+\usepackage[hidelinks]{hyperref}
+
+% \citeneeded{key}: a citation written from general knowledge that must be checked before submission.
+\newcommand{\citeneeded}[1]{\cite{#1}\textsuperscript{\textcolor{red}{\tiny[verify]}}}
+% \todo{...}: an open item for the authors (also listed in README.md).
+\newcommand{\todo}[1]{\textcolor{blue}{[TODO: #1]}}
+
+% Registration-status tags, used on every reading.
+\newcommand{\regC}{\textsf{\scriptsize[reg-conf]}}  % pre-registered, confirmatory
+\newcommand{\regX}{\textsf{\scriptsize[reg-expl]}}  % pre-registered, exploratory or descriptive
+\newcommand{\ph}{\textsf{\scriptsize[post-hoc]}}    % decided after the E1 results were known
+
+\newcommand{\tool}{DaedalusArch}
+\newcommand{\ff}[1]{\texttt{\small #1}}
+\newcommand{\lev}[1]{\texttt{\small #1}}
+\newcommand{\AHSc}{\mathrm{AHS}_{\mathrm{comb}}}
+\newcommand{\AHSd}{\mathrm{AHS}_{\mathrm{det}}}
+\newcommand{\AHSn}{\mathrm{AHS}_{\mathrm{neur}}}
+
+\setlist{itemsep=1pt,topsep=3pt}
+
+\title{Do Specifications Make LLMs Better Architects?\\[2pt]
+\large A Pre-Registered Factorial Study of Architectural Conformance in LLM-Generated TypeScript}
+\author{\todo{author list and affiliations}}
+\date{Draft, 2026-10-16 (v1.3 refresh)}
+
+\begin{document}
+\maketitle
+
+% =====================================================================================================================
+\begin{abstract}
+\textbf{Context.} Spec-driven development asks coding agents to follow a written architecture, but it is not known
+whether a specification changes the architecture an agent builds, or by how much a machine-readable specification
+differs from prose. \textbf{Objective.} We test whether the specification level (none, a short prose description,
+or a full Architecture-as-Code (AaC) specification) and the model change the architectural conformance of
+TypeScript services generated by LLM agents. \textbf{Method.} A pre-registered factorial experiment: three Claude
+models $\times$ three specification levels $\times$ two tasks $\times$ three runs (54 cells), plus an exploratory
+18-cell arm with one OpenAI model through the Codex CLI. Each project is scored by a neuro-symbolic conformance
+instrument against a clean-architecture specification; an LLM judge contributes 8\% of the score and is checked
+against a model panel from another vendor. \textbf{Results.} Specification level has a registered effect on the
+Architectural Health Score (Holm $p = 0.0003$), but in the reverse direction: projects built without a specification
+score best. A post-hoc analysis explains why. Without a specification, models build small, flat projects (about 9
+files against 27 to 30) where coupling and dependency-inversion rules have little to check; findings per file do not
+differ between levels. Two rules, module fan-out and dependency inversion, carry the gap. Between the two
+specification styles, which produce projects of the same size, the full AaC specification beats the short prose one
+(Cliff's $\delta = 0.52$; $0.47$ after a size adjustment), so the vague specification is the worst case. Model size
+has no effect. The exploratory Codex arm prefers the prose specification. The judge changes no verdict at its 8\%
+weight; a registered self-preference check is positive ($p = 0.014$) but is carried by the weakest model's cells;
+on a 36-item sample the judge's weighted agreement with the panel is 0.982 (AC1 0.98; 34 of 36 items agree), and both disagreements are
+lenient; replacing the judge model on 100 recorded units changes no verdict ($\kappa = 0.77$).
+% src: P4 headline row (percentAgreement 0.982301, AC1 0.981985); results/e1-grid/label-plan-p4-api/labels.json joined with results/e1-grid/label-plan-p4/judge-verdicts.json (36 decided E1 items: 34 agree, 2 judge pass / panel fail; derived)
+% src: results/judge-robustness/summary.json (units 100, kappa 0.766355, registeredVerdictChanges 0); ADR.md ADR-038
+A post-hoc re-reading with a later instrument version, which separates blocking dependency rules from advisory
+metrics, finds no blocking violation in any of the 65 projects: the agents did not break an explicit dependency
+rule at any level, and the whole specification-level effect lies in advisory metrics.
+% src: S1RR §1 (0 of 65 accepted cells, 0 of 72; "The direction lives entirely in the advisory tier"); ADD A1 ("Related finding")
+\textbf{Conclusion.} A specification changes how much structure an agent builds, and scores that reward
+small structures can make that change look like a loss. At equal size, a precise AaC specification gives more
+conformant code than prose. In single-shot generation of small services, the agents stay above the floor that
+explicit dependency rules set, so whether a specification prevents violations has to be tested where violations
+occur, such as multi-step work by an agent on a growing code base.
+\end{abstract}
+
+% =====================================================================================================================
+\section{Introduction}\label{sec:intro}
+
+Coding agents built on large language models (LLMs) now generate whole services from a task description
+\citeneeded{chen2021codex,jimenez2024swebench}. A growing practice, spec-driven development, puts a written
+specification in front of the agent so that the generated code follows an intended design
+\citeneeded{speckit2025,kiro2025}. For architecture this raises a measurable question: does a specification change
+the architecture an agent builds, and does the form of the specification matter? A specification can be a short
+prose paragraph (``use clean architecture; dependencies point inward'') or a machine-readable Architecture-as-Code
+(AaC) document that lists layers, roles, fitness functions and thresholds \citeneeded{ford2017evolutionary}. The two
+cost the author very different amounts of effort, and practitioners need to know whether the extra precision pays.
+
+Functional correctness of generated code is well studied \citeneeded{chen2021codex,liu2023evalplus}; architectural
+conformance is not. Architecture conformance checking has a long history for human-written code
+\citeneeded{murphy1995reflexion,knodel2007comparison,passos2010static}, and architecture erosion is a known cost
+\citeneeded{desilva2012erosion}. Generated code adds two new questions: whether the specification the agent reads
+changes conformance, and whether an LLM used as a judge of that code is biased toward code from its own model family
+\citeneeded{panickssery2024self,wataoka2024selfpref}.
+
+We report E1, a pre-registered factorial experiment. Three Claude models generate two Express services at three
+specification levels, three times each; an added arm runs one OpenAI model through the Codex CLI. A neuro-symbolic
+conformance instrument, \tool{}, described in a companion paper \cite{daedalus2026tool}, scores every project
+against a clean-architecture AaC specification. The analysis plan, the seeds, the generator protocol and the
+prompt templates were registered and hash-checked before any cell ran. We ask:
+
+\begin{description}[leftmargin=1.2cm,style=sameline]
+  \item[RQ1] Does the specification level (none, minimal prose, full AaC) change architectural conformance?
+  \item[RQ2] Do model capability (Haiku, Sonnet, Opus) and vendor (the exploratory Codex arm) matter?
+  \item[RQ3] Which failure families drive the differences?
+  \item[RQ4] What does an LLM judge add to the conformance score, and is it biased?
+\end{description}
+
+\paragraph{Findings in brief.} The registered test finds a specification-level effect, but the projects built with
+no specification score best. Our post-hoc size analysis shows that this is an effect of the specification on how
+much structure the agent builds: without a specification the agents write about 9 files, with one they write 27 to
+30, and two rules that need structure to fire (module fan-out and dependency inversion) almost never fire on the
+small projects. Findings per file are the same at every level. Between the two specification styles, which give
+projects of the same size, the full AaC specification beats the prose one. The model has no effect. The LLM judge
+does not move any verdict, a registered self-preference check is positive but confounded, and a cross-vendor panel
+agrees with the judge on almost every sampled item.
+
+One result frames all of these. When the 65 projects are re-read with a later version of the instrument that
+separates blocking dependency rules (direction, cycles, domain purity, the repository and port patterns) from
+advisory metrics, not one project has a blocking violation, at any level, for any model or vendor. The differences
+above are differences in coupling metrics inside a band where the defining rules of the style always hold. We report
+this floor as a result in its own right (Section~\ref{sec:floor}): in this setting, current agents rarely violate
+explicit dependency rules, so a study of whether a specification prevents architectural violations needs a setting
+in which violations occur. % src: S1RR §1 ("No blocking finding in any cell"); ADD A1
+
+\paragraph{Contributions.}
+\begin{enumerate}
+  \item A pre-registered $3 \times 3 \times 2 \times 3$ experiment on specification level and model for agentic
+        generation of TypeScript services, with an exploratory second-vendor arm (Sections~\ref{sec:design}
+        and~\ref{sec:analysis}).
+  \item Evidence that a registered conformance score can reverse the apparent effect of a specification through
+        project size, and a decomposition that locates the reversal in two rules (Section~\ref{sec:results}).
+  \item A size-matched comparison of prose and AaC specifications that favours AaC, and practical guidance on what to
+        put in a specification (Section~\ref{sec:discussion}).
+  \item A registered analysis of an LLM judge inside a conformance score: its effect on verdicts, a self-preference
+        check, and judge-versus-panel agreement with a judge from another vendor.
+  \item A floor result: under a tiered re-reading, none of the 65 generated projects breaks a blocking
+        dependency rule, together with the evidence that this zero is not an instrument blind spot
+        (Section~\ref{sec:floor}).
+  \item A replication package with every generated tree's hash, every judge and labeller call as a replayable
+        cassette, and scripts that regenerate every table and figure from the committed records
+        (Section~\ref{sec:conclusion}); checks that need the generated trees themselves cannot be re-run from it.
+\end{enumerate}
+
+Throughout, every reading carries one of three tags: \regC{} for the registered confirmatory tests, \regX{} for
+registered exploratory or descriptive outcomes, and \ph{} for analyses decided after the E1 results were known.
+
+% =====================================================================================================================
+\section{Background}\label{sec:background}
+
+\paragraph{Architecture as code and fitness functions.} An architectural fitness function is an executable check of
+an architectural property, such as dependency direction or coupling \citeneeded{ford2017evolutionary,ford2022evolutionary2}.
+Architecture-as-Code expresses the intended architecture as a versioned, machine-readable document from which such
+checks are derived. Clean architecture \citeneeded{martin2017clean} is a common target: a domain layer with
+entities and repository interfaces, an application layer with use cases, and an infrastructure layer with
+controllers and adapters, with dependencies pointing inward.
+
+\paragraph{Conformance checking.} Static conformance checkers compare the implemented dependency structure with an
+intended one \citeneeded{murphy1995reflexion,koschke2003hierarchical,terra2009dcl}. In TypeScript, tools such as
+dependency-cruiser express path-based import rules \citeneeded{depcruise}. \tool{} \cite{daedalus2026tool} compiles an
+AaC specification into graph queries over a property graph of the project and adds rules that path patterns cannot
+express (dependency inversion, coupling metrics, SOLID proxies, conventions), plus an LLM judge for two semantic
+properties. Section~\ref{sec:instrument} summarises what E1 needs from it.
+
+\paragraph{Spec-driven generation.} Spec-driven tools ask the developer to write a specification, then have an
+agent plan and implement against it \citeneeded{speckit2025,kiro2025}. Whether the form of the specification matters
+has, to our knowledge, not been tested under a registered design \citeneeded{dhar2024adr,jahic2024practice}.
+
+\paragraph{LLM judges.} LLMs are widely used as evaluators. They show position and verbosity biases
+\citeneeded{wang2023fair,zheng2023judging} and can prefer their own generations
+\citeneeded{panickssery2024self,wataoka2024selfpref}. In E1 the judge is a Claude model and three of the four
+generators are Claude models, so self-preference is a registered concern.
+
+% =====================================================================================================================
+\section{Study Design}\label{sec:design}
+
+\subsection{Factors and grid}
+
+The registered grid crosses three factors and replicates each cell three times
+(Table~\ref{tab:grid}). % src: experiments/e1-grid/generator-plan.json; experiments/e1-grid/plan.json
+\emph{Model} has three Claude levels: \texttt{claude-haiku-4-5}, \texttt{claude-sonnet-5-5} and
+\texttt{claude-opus-5-5}, run through the Claude Code CLI (version 2.1.294).
+% src: experiments/e1-grid/generator-plan.json (adapters); GENP §10 (CLI 2.1.294)
+\emph{Specification level} has three levels (Section~\ref{sec:levels}). \emph{Task} is a blocking factor with two
+levels, \texttt{task-management} and \texttt{order-fulfilment}. The three runs are replicates: the Claude Code
+headless mode exposes no temperature or seed, so run-to-run variation is part of the within-cell variance
+(a declared deviation). % src: PLAN §6 ("The generator ... has no temperature or seed setting"); TTV TV-78
+This gives $3 \times 3 \times 2 \times 3 = 54$ Claude cells. % src: GENP §9 ("E1 = 3 models x 2 tasks x 3 levels x 3 runs = 54")
+
+\begin{table}[t]
+\centering\small
+\caption{The E1 grid. All four arms share the prompt templates, the skeleton, the type-check of record and the
+evaluation. The Codex arm was added before any of its cells ran and is exploratory.}
+\label{tab:grid}
+\begin{tabularx}{\linewidth}{@{}lXr@{}}
+\toprule
+Factor & Levels & $n$ \\
+\midrule
+Model (registered) & \texttt{claude-haiku-4-5}, \texttt{claude-sonnet-5-5}, \texttt{claude-opus-5-5} (Claude Code CLI 2.1.294) & 3 \\
+Model (exploratory arm) & \texttt{gpt-5.6-terra} (Codex CLI 0.162.1, reasoning effort \texttt{medium}) & 1 \\
+Specification level & \lev{none}, \lev{minimal-prose}, \lev{full-aac} & 3 \\
+Task (block) & \texttt{task-management}, \texttt{order-fulfilment} & 2 \\
+Runs (replicates) & 0, 1, 2 & 3 \\
+\midrule
+Cells & 54 Claude + 18 Codex & 72 \\
+\bottomrule
+\end{tabularx}
+% src: experiments/e1-grid/generator-plan.json; experiments/e1-grid/generator-plan-codex.json (cliVersion 0.162.1,
+%      reasoningEffort medium); experiments/e1-grid/plan.json (e1.models, specLevels, tasks, runs 3); GENP §10
+\end{table}
+
+\subsection{Tasks and specification levels}\label{sec:levels}
+
+Both tasks ask for an Express REST API with in-memory storage. \texttt{task-management} has projects, tasks with a
+status, assignment and filtering, and two business rules (a task cannot be completed twice; only existing users can
+be assignees). \texttt{order-fulfilment} has orders that reserve stock, a five-state life cycle in a fixed order, and
+cancellation that releases stock. % src: scripts/generator/prompts/minimal-prose.md (task sections)
+Every prompt has the same four parts: the task brief, one sentence that fixes the folder layout (\texttt{src/domain},
+\texttt{src/application}, \texttt{src/infrastructure}), an environment paragraph (available packages, no network,
+the compiler options and the exact type-check command), and a level block. % src: GENP §5
+The level block differs:
+\begin{itemize}
+  \item \lev{none}: no block. The agent still sees the three folder names, so \lev{none} means ``no
+        specification beyond a three-folder layout hint'', not ``no architectural guidance''. All 65 accepted cells,
+        including all 21 \lev{none} cells, use exactly those three folders. Claims about agents that receive no
+        architectural guidance at all are therefore not tested by E1. % src: ADD A1 (GENP line 75; Docs/DiagnosticRuns/ise-e1-ics-2026-10-15.md, PR #100: "all 65 accepted cells, including all 21 none cells, use exactly those three folders")
+  \item \lev{minimal-prose}: about 140 words of prose derived from the clean-architecture preset, naming every layer
+        and role and the dependency direction, with no rule identifier and no number. % src: GENP §5
+  \item \lev{full-aac}: the clean-architecture preset verbatim, a 307-line YAML document with layers, roles, fitness
+        functions, thresholds and weights. % src: GENP §5 ("the preset verbatim"); presets/clean-architecture.yaml (wc -l = 307)
+\end{itemize}
+The \lev{full-aac} preset carries the same rules, thresholds and weights as the specification the instrument
+evaluates with (\texttt{specs/clean-arch.yaml}); apart from comments and quoting, the two files differ only in a
+\texttt{default\_exclude\_paths} block (\texttt{node\_modules}, \texttt{dist}, spec and test files) that the preset carries.
+% src: derived, diff of presets/clean-architecture.yaml and specs/clean-arch.yaml with comment and blank lines removed
+% (besides comments and quoting, only the preset's default_exclude_paths block, 5 lines, differs; spec_version 1.0.0 in both; 27 FF ids, weights and thresholds equal); experiments/e1-grid/plan.json (specPath specs/clean-arch.yaml)
+At \lev{full-aac} the agent therefore sees the test it will be scored against. This confound was declared before
+the run (Section~\ref{sec:threats}). % src: PLAN §10 B5
+The three template files differ in length by more than an order of magnitude (21, 25 and 637 lines).
+% src: derived, wc -l scripts/generator/prompts/{none,minimal-prose,full-aac}.md (21, 25, 637; two task sections each)
+
+\subsection{Generation protocol}
+
+The generator protocol was frozen on 2026-10-08, after confinement probes and a three-cell pilot that is not part of
+E1. % src: GENP header ("FROZEN 2026-10-08") and §10
+Each cell is one headless agent call in a fresh directory outside the repository, with the tools Read, Write, Edit,
+Glob, Grep and Bash, where Bash is restricted by an allow rule to one exact type-check command.
+% src: GENP §1
+The directory holds a read-only skeleton with exactly four pinned packages (\texttt{express} 5.2.1,
+\texttt{@types/express} 5.0.6, \texttt{@types/node} 22.19.15, \texttt{typescript} 5.9.3).
+% src: GENP §4 (skeleton table)
+The type-check of record uses a pinned strict tsconfig kept outside the tree. % src: GENP §3
+The protocol assigns each run one status in a fixed order; a run that fails the type-check is
+\texttt{failed-typecheck}, is recorded and is never replaced. % src: GENP §7 (status order; "Failed generations are recorded and never replaced")
+A run must also be model-valid: the pinned model must produce the largest share of output tokens.
+% src: GENP §6 (model-usage rule)
+The 54 Claude cells ran in an order drawn from a registered seed (20261008), blocked by run index.
+% src: experiments/e1-grid/generator-plan.json (orderSeed 20261008); GENP §9
+Usage-limit pauses consume no attempt and resume the same cell. % src: GENP §8
+
+\paragraph{The Codex arm.} After the Claude grid was registered and before any E1 cell ran, an 18-cell arm was added:
+\texttt{gpt-5.6-terra} through the Codex CLI 0.162.1, the strongest coding model generally available on the
+author's plan, with its own plan file and order seed (20261010). % src: ADR.md ADR-029 items 1-3; experiments/e1-grid/generator-plan-codex.json
+It shares the prompt templates, skeleton, tsconfig, status order and evaluation, but its harness, tools and
+confinement mechanism differ: the Codex agent may run any command inside an OS sandbox, while the Claude agent may run
+only the type-check. % src: PLAN §10 B10; ADR.md ADR-029 item 4
+Every registered test stays on the 54 Claude cells; the Codex cells enter only the vendor families.
+% src: PLAN §6.1 ("Registered analyses unchanged")
+
+\subsection{Pre-registration}
+
+The analysis plan, generator plans, prompt templates and seeds are registered artefacts whose hashes are recorded
+in \texttt{corpus/prereg.json}; a run is refused when a registered file has changed. % src: PLAN header; GENP §11
+Every amendment is a dated version bump with a reason. Table~\ref{tab:timeline} lists those that touch E1.
+
+\begin{table}[t]
+\centering\small
+\caption{Registration timeline for E1 (all dates 2026). ``Before'' and ``after'' refer to the first E1 generation.}
+\label{tab:timeline}
+\begin{tabularx}{\linewidth}{@{}llX@{}}
+\toprule
+Date & Version & Change \\
+\midrule
+10-08 & v1, P-2 & Analysis plan; co-primary $\AHSd$ for the model effect; directional self-preference check; descriptive pairwise intervals (before) \\
+10-09 & v4 (P-U6) & Stratified permutation; size and density columns; open-coding procedure (before) \\
+10-10 & v14--v17 & Proportional judge aggregation, judge diagnostics, judge-weighted variant as registered sensitivity analyses (before) \\
+10-10 & v18 & Codex arm, vendor contrast and vendor self-preference check (before any Codex cell) \\
+10-10 & v20 & ADR-032: pinned tsconfig for extraction, operational and post-hoc (after generation, during the judge pass) \\
+10-11 & v22, v23 & ADR-034 and ADR-035: labeller route for the judge-vs-panel sample (after E1 scoring, before labelling) \\
+10-11 & v25 & ADR-038: judge model robustness, Sonnet against Opus on recorded judge units (after E1 scoring, before any Sonnet call) \\
+\bottomrule
+\end{tabularx}
+% src: PLAN header amendments (v1, P-2, P-U6 v4, v14, v15, v17, v18); ADR.md ADR-032 (prereg v20), ADR-034, ADR-035 (prereg v23);
+%      aidlc-docs/audit.md entries "go E1", "P4 labelling stop and ADR-034", "P4 stop rule fired; ADR-035"
+%      ADR.md ADR-038 (prereg v25, "registered before it runs", date 2026-10-11)
+\end{table}
+
+% =====================================================================================================================
+\section{Instrument}\label{sec:instrument}
+
+\tool{} is described and validated in the companion paper \cite{daedalus2026tool}; we summarise what E1 uses.
+
+\paragraph{Pipeline.} The instrument extracts an Architectural Property Graph (APG) from the TypeScript project
+(files, classes, interfaces, imports, re-exports, constructor injection, inheritance, calls), loads it into a graph
+database and runs one compiled query per symbolic fitness function. Two neural functions, \ff{FF-N01}
+(architectural integrity) and \ff{FF-N02} (intent alignment), are judged by an isolated LLM on a capped sample of
+units; each unit is judged three times and decided by majority. % src: papers/paper2-tool/main.tex §3.4 ("The isolated judge")
+In E1 the judge is \texttt{claude-opus-5-5}. % src: experiments/e1-grid/plan.json (judge.model)
+The clean-architecture specification declares 27 fitness functions. % src: derived, grep -c "id: FF-" specs/clean-arch.yaml = 27
+E1 ran in full mode (symbolic and neural) with instrument version 2. % src: SIZE header ("Instrument: v2 (B8)"); ADR.md ADR-029 / director report §4.8.1
+
+\paragraph{Score.} Each function belongs to one of seven dimensions. A dimension's Architectural Violation Ratio
+$\mathrm{AVR}_d$ is the confidence-weighted share of its executed functions that fail, and
+\begin{equation}
+  \mathrm{AHS} = \sum_d w_d\,(1 - \mathrm{AVR}_d).
+\end{equation}
+$\AHSd$ uses the five symbolic dimensions; $\AHSc$ adds the two judge dimensions. The full-mode weights are
+structural 0.32, coupling 0.18, pattern 0.27, SOLID 0.10, convention 0.05, semantic 0.04 and integrity 0.04, so the
+judge carries $W_n = 0.08$ in total. The verdict is \emph{pass} at $\geq 0.80$, \emph{warning} at $\geq 0.65$,
+\emph{soft-block} at $\geq 0.50$ and \emph{hard-block} below.
+% src: specs/clean-arch.yaml (scoring.full_mode_weights, scoring.thresholds); papers/paper2-tool/main.tex §3.5
+A neural function fails under the registered rule when strictly more than half of its valid units fail.
+% src: PLAN §12.1
+Two properties of the score matter for what follows. First, a function counts once in its dimension when it fires,
+however many findings it produces: the AHS measures \emph{which} functions fire, not how many findings there are.
+% src: SIZE §5 ("Why counts do not move the AHS")
+Second, with $W_n = 0.08$ the judge can lower $\AHSc$ by at most 0.08 relative to its judge-blind value and can
+never raise it. % src: papers/paper2-tool/main.tex §3.5; ADR.md ADR-028 review fixes
+
+\paragraph{Validity evidence from the companion study.} On 73 seeded held-out violations in seven open-source
+projects, the symbolic path reaches recall 0.918 and labelled precision 0.957. % src: ADR.md ADR-033 item 1
+Precision on unseeded real findings is much less certain: 0.328 under the registered rule (\texttt{uncertain} labels
+counted as not real; Wilson-Kish 95\% interval 0.132 to 0.609), 0.608 with \texttt{uncertain} excluded and 0.789
+with \texttt{uncertain} counted as real, the last two post-hoc. % src: results/so4-heldout/agg/precision_baseline.csv (v2 overall); ADR.md ADR-033 item 4
+We return to this range in Section~\ref{sec:threats}.
+
+% =====================================================================================================================
+\section{Analysis}\label{sec:analysis}
+
+\paragraph{Unit and outcomes.} The unit of analysis is one valid cell: an accepted evaluation of a generation with
+status \texttt{ok}. The primary outcome is $\AHSc$ \regC{}. For the model effect, $\AHSd$ is co-primary \regC{},
+because a model effect seen only in the judge-bearing field could be judge self-preference.
+% src: PLAN §6 (Unit of analysis; Primary outcome; Co-primary)
+Registered exploratory outcomes \regX{} include $\AHSn$, each dimension's AVR, the judge fail share, the valid-generation
+yield and deterministic violations per 1\,000 lines of code (KLOC). Lines of code, all violations per KLOC and the
+latencies are registered descriptive columns. % src: PLAN §3 (SO5 row) and "SO5 size, density and latency definitions"
+
+\paragraph{Tests.} Each outcome gets three permutation tests (10\,000 permutations, registered seed 5103): model,
+specification level and their interaction. The statistic is the between-level sum of squares of the tested factor;
+model labels are permuted within (task, specification level) and specification labels within (task, model), so an
+unequal number of valid runs per cell cannot carry one factor's effect into the other's test. The three tests of an
+outcome form one Holm family \citeneeded{holm1979}, at $\alpha = 0.05$.
+% src: PLAN §6 (Tests; Strata; Holm families; Significance level); experiments/e1-grid/plan.json (seeds.permutation 5103)
+Pairwise differences carry a cluster-bootstrap 95\% interval (runs resampled within cells, seed 5102) and Cliff's
+$\delta$ \citeneeded{cliff1993}. The intervals have no multiplicity control and are descriptive only; inference
+rests on the Holm-corrected $p$ values and $\delta$. % src: PLAN §6 (Effect sizes); experiments/e1-grid/plan.json (seeds.bootstrap 5102)
+We use permutation tests because 47 cells with unequal replication give no reason to trust a parametric model
+\citeneeded{good2005permutation}.
+
+\paragraph{Self-preference checks.} The registered directional check \regC{} computes, per valid cell,
+$d = \AHSn - \AHSd$ and tests one-sided whether mean $d$ is larger for cells written by the judge's own model
+(\texttt{claude-opus-5-5}) than for the other Claude cells (family of one, $\alpha = 0.05$). The registered vendor
+check \regC{} does the same for Claude-written against GPT-written cells. A positive result is to be reported as
+evidence of self-preference; a null vendor result is not evidence of its absence, because power is low.
+% src: PLAN §6 (Directional self-preference check) and §6.1 (Vendor self-preference check)
+
+\paragraph{The judge readings.} Three judge sensitivity analyses were registered before E1 \regX{}: a proportional
+aggregation (a neural dimension's AVR equals the weighted share of failing units), an any-fail companion, and a
+judge-weighted variant that gives the judge dimensions 2/7 of the weight. They are descriptive, with no test.
+% src: PLAN §12.2, §12.3, §12.5; AGGR column reading = pre-registered on all 65 rows
+
+\paragraph{Judge versus panel.} A stratified sample of judge units (population P4) is labelled by a panel model of
+another vendor, \texttt{gemini-3.1-pro-preview} at temperature 0 with tools off, two runs per item, with the same
+persona and prompts as the other labelling populations. % src: ADR.md ADR-035 items 1-2; Docs/labeller-route.md
+The registered headline is weighted judge-vs-panel agreement on the E1 units, with Cohen's $\kappa$
+\citeneeded{cohen1960} and Gwet's AC1 \citeneeded{gwet2008} and weighted item-bootstrap intervals, reported per
+source and per generator model. % src: PLAN §3 (SO3 neural row); P4 (ciMethod weighted-item-bootstrap)
+The route was changed once before labelling the reported answers: the first route (a CLI agent) stopped on a
+registered rule because it used a web-search tool on 2 of 10 items, and the author moved P4 to the API with tools
+off (ADR-034, ADR-035). The 8 answers of the stopped route are kept apart and are not used here.
+% src: ADR.md ADR-035 Context and item 4; aidlc-docs/audit.md "P4 stop rule fired"
+
+\paragraph{The post-hoc size analysis.} After the E1 results were known, we ran a diagnostic analysis on the
+committed data, with no new run or model call. % src: SIZE header and §1
+It first reproduces all 27 registered rows of the primary, co-primary and density families to the last printed
+digit. % src: SIZE §2 ("All 27 registered rows ... equal the committed so5_tests.csv rows"); STESTS column reproduces_registered
+It then adds tests on file count, LOC, findings per file, density without one rule, and $\AHSc$ residualised on
+$\ln(\mathrm{LOC})$, each with the registered procedure in its own Holm family of three, with no correction across
+families; and a split of the AHS gap by function. Every one of these readings is \ph{}.
+% src: SIZE §3 ("The post-hoc rows each use their own Holm family of three") and §8
+
+% =====================================================================================================================
+\section{Results}\label{sec:results}
+
+\subsection{Yield and the shape of the data}
+
+Of the 72 cells, 65 were evaluated. The 7 others are \texttt{claude-haiku-4-5} generations that failed the
+type-check of record (3 at \lev{none}, 2 at \lev{minimal-prose}, 2 at \lev{full-aac}); they are recorded and never
+replaced. % src: GRID (status, generation_status; derived counts by spec_level)
+Opus, Sonnet and the Codex model produced 18 of 18 valid cells each, giving 47 valid Claude cells and 18 valid Codex
+cells. % src: GRID (derived counts of status = accepted by requested_model_id)
+Valid-generation yield differs by model \regX{} (Holm $p = 0.004$; Haiku minus Opus $-0.39$) but not by
+specification level (Holm $p = 1.000$). % src: TESTS family secondary:valid_generation_yield (model p_holm 0.004200; spec-level p_holm 1.000000; haiku-opus -0.388889)
+
+\textbf{Every evaluated cell passes.} The lowest $\AHSc$ is 0.852 and the highest 0.988, against the 0.80 pass
+threshold, and the structural dimension (dependency direction and cycles) is clean in every cell.
+% src: GRID (derived min/max of ahs_combined over accepted rows); TESTS family secondary:avr_structural (all statistics 0)
+E1 is therefore a study of differences inside the pass band. No agent at any level produced an inward-dependency
+violation that the instrument detects. Section~\ref{sec:floor} examines this floor with a later instrument version
+and asks whether it is real or a blind spot.
+
+\subsection{RQ1: Specification level}\label{sec:rq1}
+
+\paragraph{Registered result.} On the 47 valid Claude cells, specification level has an effect on $\AHSc$ \regC{}
+(Holm $p = 0.0003$), and so does the model $\times$ level interaction (Holm $p = 0.026$).
+% src: TESTS family primary:ahsCombined (spec-level p_holm 0.000300; model×spec-level p_holm 0.026397)
+The direction is the reverse of the hypothesis: \lev{none} scores best (mean 0.951), \lev{minimal-prose} worst
+(0.887) and \lev{full-aac} in between (0.920) (Table~\ref{tab:levels}, Figure~\ref{fig:ahs}).
+% src: SIZE §3 (per-level table, "all" rows); derived check: mean ahs_combined of accepted Claude rows in GRID by spec_level
+All three pairwise contrasts are large (Table~\ref{tab:pairs}). The same order holds for $\AHSd$ (\regX{} for the
+level effect, Holm $p = 0.0003$). % src: TESTS family co-primary:ahsDeterministic (spec-level p_holm 0.000300, exploratory true)
+
+\begin{table}[t]
+\centering\small
+\caption{Per-level means over valid cells. Density is deterministic violations per KLOC. Claude rows pool the three
+models; Codex rows are the exploratory arm. Tags give the status of each column.}
+\label{tab:levels}
+\begin{tabular}{@{}llrrrrrr@{}}
+\toprule
+Arm & Level & Valid & $\AHSc$ & Files & LOC & Viol./KLOC & Viol./file \\
+ & & & \regC{} & desc. & \regX{} desc. & \regX{} & \ph{} \\
+\midrule
+Claude & \lev{none}          & 15 & 0.951 &  9.1 & 411 & 27.0 & 1.14 \\
+Claude & \lev{minimal-prose} & 16 & 0.887 & 27.4 & 551 & 58.1 & 1.15 \\
+Claude & \lev{full-aac}      & 16 & 0.920 & 29.6 & 600 & 57.0 & 1.15 \\
+\midrule
+Codex  & \lev{none}          &  6 & 0.926 &  6.3 & 254 & 32.0 & 1.31 \\
+Codex  & \lev{minimal-prose} &  6 & 0.957 & 10.5 & 274 & 43.5 & 1.13 \\
+Codex  & \lev{full-aac}      &  6 & 0.942 & 13.3 & 320 & 48.4 & 1.19 \\
+\bottomrule
+\end{tabular}
+% src: SIZE §3 (Claude "all" rows) and §7 (Codex table); results/e1-grid/agg-size/size_levels.csv;
+%      derived check of Valid, AHS, Files, LOC from GRID (accepted rows, means by arm and spec_level)
+\end{table}
+
+\begin{table}[t]
+\centering\small
+\caption{Specification-level contrasts on the Claude arm (row level minus column level). Differences are means with
+the descriptive cluster-bootstrap 95\% interval; $\delta$ is Cliff's delta. The LOC-adjusted row is \ph{}.}
+\label{tab:pairs}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Outcome & full-aac $-$ none & minimal-prose $-$ none & full-aac $-$ minimal-prose \\
+\midrule
+$\AHSc$ \regC{}            & $-0.031$, $\delta\,{-0.54}$ & $-0.064$, $\delta\,{-0.93}$ & $+0.033$, $\delta$ 0.52 \\
+\quad 95\% interval (desc.) & [$-0.044$, $-0.019$] & [$-0.071$, $-0.058$] & [0.019, 0.047] \\
+$\AHSc$ resid.\ $\ln$ LOC \ph{} & $-0.023$, $\delta\,{-0.28}$ & $-0.057$, $\delta\,{-0.87}$ & $+0.034$, $\delta$ 0.47 \\
+\quad 95\% interval (desc.) & [$-0.036$, $-0.010$] & [$-0.064$, $-0.051$] & [0.020, 0.049] \\
+Files \ph{}                & $+20.5$, $\delta$ 1.00 & $+18.3$, $\delta$ 1.00 & $+2.2$, $\delta$ 0.12 \\
+Viol./KLOC \regX{}         & $+30.0$, $\delta$ 0.97 & $+31.1$, $\delta$ 0.97 & $-1.1$, $\delta\,{-0.09}$ \\
+Viol./file \ph{}           & $+0.010$, $\delta$ 0.08 & $+0.013$, $\delta$ 0.00 & $-0.003$, $\delta\,{-0.02}$ \\
+\bottomrule
+\end{tabular}
+% src: TESTS family primary:ahsCombined (spec-level pairs: -0.031333 [-0.043646,-0.018958] d -0.541667;
+%      -0.064083 [-0.070833,-0.057583] d -0.925; +0.032750 [0.019123,0.046875] d 0.519531);
+%      STESTS outcomes ahsCombined_resid_lnloc, files, violations_deterministic_per_file; TESTS family secondary:violations_per_kloc;
+%      SIZE §3 test table
+\end{table}
+
+\begin{figure}[t]
+\centering
+\input{figures/fig-ahs-by-level.tex}
+\caption{$\AHSc$ per valid cell (small marks) and per model and level (large marks), by specification level. The
+dashed line is the pass threshold, below the plotted range. Text alternative: Table~\ref{tab:levels} gives the
+per-level means; on Claude models \lev{none} is highest and \lev{minimal-prose} lowest; on the Codex model
+\lev{minimal-prose} is highest and \lev{none} lowest. Generated from \texttt{results/e1-grid/agg/so5\_grid.csv} by
+\texttt{figures/make\_figures.py}.}
+\label{fig:ahs}
+\end{figure}
+
+\paragraph{Without a specification, agents build small, flat projects \ph{}.} On the Claude arm the mean file count
+is 9.1 at \lev{none}, 27.4 at \lev{minimal-prose} and 29.6 at \lev{full-aac}; \lev{none} differs from each other
+level with $\delta \geq 0.99$ (Holm $p = 0.0003$). % src: SIZE §3; STESTS outcome files (spec-level p_holm 0.000300; delta 0.995833, 1.000000)
+The \lev{none} files are about twice as long (about 45 against 20 LOC per file). % src: SIZE §6 ("45 vs 20 LOC per file")
+The agents are told the three folder names at every level, so the \lev{none} projects are layered, but thinly: few
+files, few interfaces and few modules per layer.
+
+\paragraph{Findings per file do not differ \ph{}.} Deterministic findings per file are 1.14, 1.15 and 1.15 across
+the levels (Holm $p = 0.95$), and still show no level effect without the test-file-pairing rule (Holm $p = 0.77$).
+% src: SIZE §3 (Viol./file column); STESTS outcomes violations_deterministic_per_file (spec-level p_holm 0.948705) and
+%      violations_per_file_excl_fpat_pattern (p_holm 0.774823)
+Per KLOC, the registered exploratory density, \lev{none} has about half the findings of the other levels (27.0
+against 58.1 and 57.0; Holm $p = 0.0003$) \regX{}, because its files are longer.
+% src: TESTS family secondary:violations_per_kloc (spec-level p_holm 0.000300); SIZE §3
+The density result follows the AHS result in direction, but per file the three levels look the same.
+
+\paragraph{Size is on the causal path \ph{}.} The specification causes the size difference, so size is a mediator,
+not an outside confounder, and no adjustment for file count is identifiable. % src: SIZE §6 ("Size as a mechanism, not a confounder")
+Adjusting the AHS for $\ln(\mathrm{LOC})$ leaves the level effect (Holm $p = 0.0003$) and shrinks the
+\lev{full-aac} versus \lev{none} gap from $\delta = -0.54$ to $-0.28$ (Table~\ref{tab:pairs}).
+% src: STESTS outcome ahsCombined_resid_lnloc (spec-level p_holm 0.000300); SIZE §3
+Within a level, size does not predict the AHS consistently: at \lev{full-aac} the larger projects score
+\emph{higher} (files-AHS Pearson $r = +0.59$), while at the other levels the correlation is weakly negative
+($r = -0.26$ and $-0.25$; Figure~\ref{fig:files}). These correlations are descriptive.
+% src: SIZE §4 (table); results/e1-grid/agg-size/size_correlations.csv
+
+
+\paragraph{The size-matched contrast: AaC beats prose \regC{} / \ph{}.} \lev{full-aac} and \lev{minimal-prose} give
+projects of nearly the same size (files $\delta = 0.12$, LOC $\delta = 0.19$, both \ph{}) and the same density
+($\delta = -0.09$, \regX{}). % src: STESTS outcomes files (full-aac-minimal-prose delta 0.121094) and loc (delta 0.19); TESTS secondary:violations_per_kloc (delta -0.085938)
+On the registered primary field, \lev{full-aac} still scores higher by $+0.033$ ($\delta = 0.52$), and after the
+LOC adjustment by $+0.034$ ($\delta = 0.47$, \ph{}). % src: TESTS primary:ahsCombined spec-level:full-aac-minimal-prose (0.032750, delta 0.519531); STESTS ahsCombined_resid_lnloc (SIZE §3: +0.034, delta 0.47)
+The pairwise difference itself is a registered descriptive contrast; reading it as \emph{the} clean comparison is a
+post-hoc choice made after the size result. It is the one specification contrast that size cannot explain, and it
+favours the AaC specification. The vague prose specification is the worst level on the registered outcome.
+
+\paragraph{Answer to RQ1.} Specification level changes the registered conformance score \regC{}. Against no
+specification, both specification levels score lower, because they make the agent build more structure for the
+rules to check \ph{}. Between the two specification styles at equal size, full AaC is better than minimal prose.
+
+\subsection{RQ2: Model capability and vendor}\label{sec:rq2}
+
+\paragraph{No model effect \regC{}.} The model main effect is not significant on $\AHSc$ (Holm $p = 0.438$) nor on
+the co-primary $\AHSd$ (Holm $p = 0.753$). % src: TESTS families primary:ahsCombined (model p_holm 0.437956) and co-primary:ahsDeterministic (model p_holm 0.753225)
+Mean $\AHSc$ differs by at most 0.014 between models (Haiku 0.910, Sonnet 0.920, Opus 0.924).
+% src: TESTS primary:ahsCombined model pairs (largest |diff| 0.014030); SIZE §3 (model "all" rows)
+Model size matters for whether a project type-checks (yield, above), not for the conformance of projects that do.
+The interaction (Holm $p = 0.026$) reflects Haiku's different order (\lev{none} 0.929 $>$ \lev{minimal-prose} 0.910
+$>$ \lev{full-aac} 0.895) against Opus and Sonnet (\lev{none} $>$ \lev{full-aac} $>$ \lev{minimal-prose}), on 3 or 4
+Haiku cells per level; we do not interpret it further. % src: SIZE §3 (haiku-4-5 rows; opus, sonnet rows); GRID (Haiku valid cells 3/4/4)
+
+\paragraph{The model effect lives only in the judge field \regX{}.} $\AHSn$ shows a large model effect (Holm
+$p = 0.0003$; Haiku $-0.22$ against each of the others), while $\AHSd$ shows none. Under the registered rule, a model
+effect seen only in the judge-bearing field is not read as a model effect. % src: TESTS family secondary:ahsNeuronal (model p_holm 0.000300; haiku-opus -0.222727); PLAN §6 (Co-primary)
+
+\paragraph{The Codex arm reverses the order (exploratory).} On \texttt{gpt-5.6-terra}, \lev{minimal-prose} is best
+(0.957) and \lev{none} worst (0.926) (Table~\ref{tab:levels}); the level test, \ph{} as a family of one, gives
+$p = 0.028$. % src: SIZE §7; STESTS arm codex outcome ahsCombined spec-level (p_holm 0.027697)
+Codex projects are smaller (6 to 13 files) and grow less with the specification. On \lev{none}, Codex loses AHS
+through two SOLID proxies (\ff{FF-SO01} and \ff{FF-SO02}, each firing in 2 of 6 cells) and through judge integrity.
+% src: SIZE §7
+Per file, \lev{none} is the \emph{worst} Codex level (1.31 findings per file; \ph{} $p = 0.002$).
+% src: SIZE §7 table; STESTS arm codex outcome violations_deterministic_per_file (p 0.0019)
+The registered exploratory vendor contrast \regX{} favours \texttt{gpt-5.6-terra} over every Claude model on $\AHSc$
+($p = 0.012$; differences $+0.018$ to $+0.032$, $\delta$ 0.22 to 0.61) and on $\AHSd$ ($p = 0.004$).
+% src: TESTS families vendor:ahsCombined (p 0.012199; model:gpt-5.6-terra-* 0.017889..0.031919, delta 0.216..0.606) and vendor:ahsDeterministic (p 0.004100)
+With one OpenAI model, vendor, model, harness, confinement and time are the same contrast, so this is not a vendor
+effect in general. % src: PLAN §10 B10
+The arm shows that the Claude-arm direction is not universal; with 6 cells per level it supports no claim.
+
+\paragraph{Answer to RQ2.} Within the Claude family, model capability has no registered effect on conformance. The
+exploratory second-vendor arm orders the levels differently and prefers minimal prose.
+
+\subsection{RQ3: Failure families}\label{sec:rq3}
+
+\paragraph{The registered profile is dominated by one rule \regX{}.} Counted by registered rule family on the Claude
+arm, the symbolic findings are 1\,003 test-file-pairing findings (\ff{FF-CV05}, family FPAT-PATTERN), 154 coupling
+findings and 51 SOLID-family findings: \ff{FF-CV05} makes 83\% of the 1\,208 findings.
+% src: results/e1-grid/agg/so5_patterns.csv (basis = symbolic; derived sums by code over Claude run ids: 1003, 154, 51);
+%      SIZE §5 ("FF-CV05 produces 1 003 of the 1 208 symbolic findings (83 %)")
+It fires once per source file without a test file (0.96 findings per file on the Claude arm, 1.00 on Codex), so
+raw counts mostly count files. % src: SIZE §5
+The label-dependent family counts are not available, because the labelling population for E1 findings was dropped
+before the run; the profile is therefore unlabelled and unweighted. % src: PLAN §6 (Family counts; "P3 is out of live labelling")
+
+\paragraph{\ff{FF-CV05} does not move the AHS \ph{}.} \ff{FF-CV05} fires in all 47 Claude cells and costs each the
+same 0.0125 of AHS, so it contributes nothing to any level contrast. % src: SFUNC rows FF-CV05 (cells_fired = n_valid; ahs_deficit_mean 0.012500 at every level)
+This is the score property of Section~\ref{sec:instrument} at work: the AHS counts firing functions, not findings.
+
+\paragraph{Two functions carry the gap \ph{}.} Splitting the AHS deficit by function
+(Table~\ref{tab:decomp}, Figure~\ref{fig:firing}) shows that \ff{FF-C02} (module fan-out) and \ff{FF-P02}
+(dependency inversion) carry most of every contrast, followed by \ff{FF-C06} (abstraction ratio).
+\ff{FF-C02} fires in 0 of 15 \lev{none} cells, 15 of 16 \lev{minimal-prose} cells and 5 of 16 \lev{full-aac}
+cells; \ff{FF-P02} fires in 2, 11 and 6. % src: SFUNC (cells_fired for FF-C02, FF-P02 by spec_level)
+The judge dimensions show no level effect. % src: TESTS families secondary:fpat_FPAT-SEMANTIC (spec p_holm 1.0), secondary:fpat_FPAT-INTEGRITY (0.437), secondary:judge_fail_share (0.550)
+The registered exploratory dimension tests agree: the level effect is significant on the coupling AVR (Holm
+$p = 0.0003$) and the pattern AVR (Holm $p = 0.009$) \regX{}. % src: TESTS secondary:avr_coupling (spec p_holm 0.000300), secondary:avr_pattern (0.009199)
+Within a level, firing does not track size: in \lev{full-aac}, cells where \ff{FF-C02} fired average 24 files and
+cells where it did not average 32. % src: SIZE §5 (last paragraph)
+
+\begin{table}[t]
+\centering\small
+\caption{Split of the $\AHSc$ gap by function, Claude arm \ph{}. Each entry is the function's contribution to the
+mean AHS difference (``prose'' = \lev{minimal-prose}, ``AaC'' = \lev{full-aac}); the rows sum to the gap up to rounding.}
+\label{tab:decomp}
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+Function & Dimension & prose $-$ none & AaC $-$ none & prose $-$ AaC \\
+ & & (gap 0.064) & (gap 0.031) & (gap 0.033) \\
+\midrule
+\ff{FF-C02} module fan-out          & coupling   & $+0.028$ & $+0.009$ & $+0.019$ \\
+\ff{FF-P02} dependency inversion    & pattern    & $+0.025$ & $+0.011$ & $+0.014$ \\
+\ff{FF-C06} abstraction ratio       & coupling   & $+0.008$ & $+0.004$ & $+0.004$ \\
+\ff{FF-C03} component instability   & coupling   & $+0.004$ & $+0.004$ & $0$ \\
+\ff{FF-C04} orphan files            & coupling   & $0$      & $+0.002$ & $-0.002$ \\
+\ff{FF-CV05} test-file pairing      & convention & $0$      & $0$      & $0$ \\
+Judge integrity                     & integrity  & $0$      & $+0.002$ & $-0.002$ \\
+\bottomrule
+\end{tabular}
+% src: SIZE §5 ("Contribution to the AHS gap" table), computed from SFUNC ahs_deficit_mean and
+%      results/e1-grid/agg-size/size_dimensions.csv
+\end{table}
+
+\begin{figure}[t]
+\centering
+\begin{minipage}[t]{0.49\linewidth}\centering
+\input{figures/fig-files-ahs.tex}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\linewidth}\centering
+\input{figures/fig-firing.tex}
+\end{minipage}
+\caption{Left: file count against $\AHSc$ per valid Claude cell, by specification level (descriptive). Right: share
+of valid Claude cells in which each function fires, by level \ph{}. Text alternative: \lev{none} cells have 4 to
+15 files and high scores, \lev{minimal-prose} cells 16 to 40 and \lev{full-aac} cells 15 to 50; within
+\lev{full-aac} larger projects score higher. \ff{FF-C02} fires in 0\%, 94\% and 31\% of cells at \lev{none},
+\lev{minimal-prose} and \lev{full-aac}; \ff{FF-P02} in 13\%, 69\% and 38\%; \ff{FF-CV05} fires everywhere.
+Generated by \texttt{figures/make\_figures.py} from \texttt{so5\_grid.csv} and \texttt{size\_functions.csv}.}
+% src: file ranges derived from GRID (accepted Claude rows: none 4-15, minimal-prose 16-40, full-aac 15-50);
+%      firing shares from SFUNC fire_rate (FF-C02 0, 0.9375, 0.3125; FF-P02 0.1333, 0.6875, 0.375)
+\label{fig:files}\label{fig:firing}
+\end{figure}
+
+\paragraph{Answer to RQ3.} Module fan-out and dependency inversion drive the level differences. They need modules
+and abstractions to fire; the small \lev{none} projects rarely give them any, and the AaC specification avoids them
+more often than prose does. The most frequent finding, missing test files, is constant across levels and inert in the
+score.
+
+\subsection{RQ4: The LLM judge}\label{sec:rq4}
+
+\paragraph{What the judge sees.} Across the 65 evaluated cells, the judge decided 300 integrity units (36 failing)
+and 933 intent-alignment units (19 failing), with no invalid, split or unstable unit.
+% src: JSUM rows FF-N01,* (300 valid, 36 fail) and FF-N02,* (933 valid, 19 fail; units_invalid, units_split_vote, units_unstable 0)
+Every failing unit is on a file that a symbolic rule also flags. % src: JSUM column units_fail_rules_also_flag (36 and 19)
+Fails concentrate on two generators: Haiku (33 of 209 valid units) and \texttt{gpt-5.6-terra} (18 of 230), against
+Opus (2 of 450) and Sonnet (2 of 344). % src: derived, sums of units_fail and units_valid in JSUM by generator prefix of project_id
+Under the registered coding frame, none of the seven judge criteria reaches the pre-declared discrimination
+threshold of 0.3 when pooled (highest 0.258). % src: results/e1-grid/judge-diagnostics/judge_discrimination.csv (project_id *, max discrimination 0.258378, JC-N02-TRANSPORT)
+
+\paragraph{At its registered weight the judge is inert \regX{}.} Under the registered weights ($W_n = 0.08$) the
+judge changes no verdict and no ``judge mattered'' flag in any of the 65 cells, under the registered, proportional and
+any-fail aggregations; its effect on $\AHSc$ ranges from $-0.029$ to 0 under the registered rule.
+% src: AGGR (judge_mattered_registered, judge_mattered_proportional, verdict_changed, any_fail_changed: 0 of 65;
+%      delta_judge_registered min -0.029, max 0); all rows reading = pre-registered
+Only the most aggressive registered variant, judge weight 2/7 with any-fail aggregation, moves 8 cells from pass to
+warning: 6 Haiku cells and 2 Codex cells. % src: AGGR judge_mattered_jw_any_fail (8 true: 6 claude-haiku-4-5/order-fulfilment, 2 gpt-5.6-terra)
+The judge cannot explain the level effect of RQ1: the judge families show no level effect (Section~\ref{sec:rq3}).
+
+\paragraph{Self-preference \regC{}.} The registered directional check is positive: mean $d$ is larger for
+Opus-written cells than for the other Claude cells by $+0.083$ (one-sided $p = 0.014$, $\delta = 0.20$).
+% src: TESTS effect directional:claude-opus-5-5-vs-others (statistic 0.083048, p 0.013699, cliffs_delta 0.197318)
+The registered wording reports this as evidence of judge self-preference. The pattern behind it calls for care.
+Mean $d$ is $+0.083$ for Opus, $+0.088$ for Sonnet and $-0.144$ for Haiku, and $\AHSn$ is 1.000 in every Opus and
+Sonnet cell. % src: derived from GRID (mean of ahs_neuronal - ahs_deterministic over accepted rows by model: 0.083, 0.088, -0.144;
+%      ahs_neuronal values: opus {1.000}, sonnet {1.000}, haiku {0.650, 1.000})
+The contrast is therefore carried by the Haiku cells: the judge treats Opus and Sonnet code alike and finds more
+problems in Haiku code than the rules do. The data cannot separate a preference for the judge's own model from a
+judge that responds to lower-quality code, and Haiku's lower yield points to the second. The registered vendor check
+is not significant ($+0.033$, $p = 0.173$, $\delta = 0.28$); by registration, that null is not evidence of no
+cross-vendor self-preference. % src: TESTS effect directional:anthropic-vs-other-vendor (0.033035, p 0.172683, delta 0.275414); PLAN §6.1
+
+\paragraph{Judge versus panel \regC{} / \regX{}.} The panel labelled all 46 sampled items (38 E1 units and 8 fixture
+units) twice, with 92 calls, no retry and no tool use; replay is byte-identical. % src: aidlc-docs/audit.md "P4 labelled on the Gemini API" entry
+Panel run-versus-run agreement is 0.957 [0.855, 0.988] ($\kappa = 0.777$, AC1 $= 0.955$), above the registered
+$\kappa \geq 0.60$ taxonomy rule; the two runs disagree on 2 items, which become \texttt{uncertain}.
+% src: P4 agreement row comparison run-vs-run (percentAgreement 0.9565, ci [0.8547, 0.9880], cohensKappa 0.7767, gwetAc1 0.9548, uncertain 2)
+On the registered headline, the 36 E1 items with a decided panel label, weighted agreement is 0.982 [0.949, 1.000]
+and AC1 is 0.982 [0.947, 1.000] (Table~\ref{tab:p4}). % src: P4 row judge-vs-panel source e1 headline true (n 36, 0.982, ci [0.949,1.000], AC1 0.982 [0.947,1.000])
+Cohen's $\kappa$ is 0, because the judge said \emph{pass} on all 36 decided items: with one category on one side, $\kappa$ is
+undefined in spirit and 0 by formula, the high-agreement paradox \citeneeded{feinstein1990paradox}; AC1 is the
+registered companion for this case. % src: P4 (cohensKappa 0 on the headline row); aidlc-docs/audit.md ("The judge said pass on all 36 E1 pairs, so kappa is 0 by prevalence")
+Both disagreements are the judge saying \emph{pass} where the panel said \emph{fail} on both runs, on
+\ff{FF-N01} integrity units of \texttt{order-fulfilment}/\lev{none} projects (one Sonnet, one Codex). The judge's
+errors in this sample are lenient. % src: aidlc-docs/audit.md (P4 entry: "The 2 disagreements are judge pass against panel fail (both runs) on FF-N01 order-fulfilment/none (sonnet, gpt)");
+%      derived from P4 labels (sonnet item fail/fail, gpt item fail/fail)
+On the 8 fixture items, which include 2 judge fails, judge and panel agree on all 8.
+% src: P4 row source fixture (n 8, percentAgreement 1); aidlc-docs/audit.md ("Fixtures: n 8, all agree (2 fail, 6 pass)")
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\caption{Judge (\texttt{claude-opus-5-5}) versus panel (\texttt{gemini-3.1-pro-preview}). Weighted agreement with
+weighted item-bootstrap intervals where the registered rule computes one; ``counts'' rows have too few items.}
+\label{tab:p4}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Row & $n$ & Agreement & $\kappa$ & AC1 \\
+\midrule
+E1, headline \regC{}                      & 36 & 0.982 [0.949, 1.000] & 0.000 & 0.982 [0.947, 1.000] \\
+E1, \texttt{uncertain} as a category \regX{} & 38 & 0.965 [0.920, 0.993] & 0.192 & 0.964 [0.916, 0.993] \\
+Fixtures \regX{}                           & 8  & 1.000 (counts) & 1.000 & 1.000 \\
+Pooled \regX{}                             & 44 & 0.984 [0.956, 1.000] & 0.742 & 0.983 [0.951, 1.000] \\
+\midrule
+E1, Haiku-written \regX{}                  & 8  & 1.000 (counts) & n/a & 1.000 \\
+E1, Opus-written \regX{}                   & 9  & 1.000 (counts) & n/a & 1.000 \\
+E1, Sonnet-written \regX{}                 & 9  & 0.968 (counts) & 0.000 & 0.967 \\
+E1, GPT-written \regX{}                    & 10 & 0.953 [0.809, 1.000] & 0.000 & 0.951 [0.770, 1.000] \\
+Panel run vs run \regX{}                   & 46 & 0.957 [0.855, 0.988] & 0.777 & 0.955 [0.886, 1.000] \\
+\bottomrule
+\end{tabular}
+% src: P4 agreement rows (judge-vs-panel: source e1 headline; source e1 uncertainAsCategory true; source fixture;
+%      source all; per generatorModel; run-vs-run). Per-model rows use ciMethod counts-only except gpt-5.6-terra.
+\end{table}
+
+\paragraph{What the agreement does not show.} The P4 frame holds 425 E1 judge verdicts, 20 of them \emph{fail}.
+The registered stratified draw took 38 E1 units, of which the judge failed one, and on that unit the two panel runs
+split, so it is \texttt{uncertain} and leaves the headline. % src: derived from results/e1-grid/label-plan-p4/judge-verdicts.json
+% (source e1: 405 pass, 20 fail) joined to P4 labels on (projectId, functionId, unitId): E1 judge pass 36 decided + 1 uncertain, judge fail 1 uncertain
+The headline therefore validates the judge's passes on E1 code and says nothing about its fails there; on fixtures its
+2 fails were confirmed. The planned half-width for the E1 headline was $\pm 0.186$ at 50\% agreement, so the interval
+is narrow only because agreement is near 1. % src: results/e1-grid/label-plan-p4/label-plan-summary.json (precision row "P4 judge-vs-panel agreement, E1 headline": halfWidthAt50 0.186)
+
+\paragraph{Robustness to the judge model \ph{}.} A separate check, registered after the E1 results were known but
+before any of its calls (ADR-038), replayed 100 recorded judge units, 50 of them from E1 cells, through the same
+pinned route with only the model changed from \texttt{claude-opus-5-5} to \texttt{claude-sonnet-5-5}; each unit was
+again judged three times. Over all 100 units the two models agree on 94\% of unit verdicts, Cohen's
+$\kappa = 0.766$ [0.565, 0.926] and AC1 0.931, above the pre-declared floor of 0.60 for reading the verdicts as robust
+to the judge model. % src: ADR.md ADR-038 Decision items 1-4; results/judge-robustness/agreement.csv (row all, primary: agreement 0.940000, kappa 0.766355 [0.565170, 0.925651], ac1 0.931232); results/judge-robustness/summary.json (units 100, calls 300, interpretation "model-robust (kappa >= 0.60)")
+On the 50 E1 units, which include 6 Opus fails, the two models agree on every verdict; all six disagreements are on
+real-project units where Opus failed and Sonnet passed, so Opus is slightly the stricter judge (18 against 12 failing
+units of 100). Substituting the Sonnet votes changes no function, project or cell verdict in any of the 41 affected
+reports. % src: results/judge-robustness/agreement.csv (E1 row: n 50, agreement 1.000000); results/judge-robustness/units.csv (E1: 6 fail/fail, 44 pass/pass, derived); results/judge-robustness/transition.csv (opus fail / sonnet pass 6); results/judge-robustness/fail-rates.csv (18 and 12); results/judge-robustness/summary.json (reportsAffected 41, functionVerdictChanges 0, registeredVerdictChanges 0, anyFailVerdictChanges 0)
+This is agreement between two models of one vendor, a reliability check, not validation: it shows that the judge's
+null effect on E1 verdicts does not hinge on the model chosen, not that the judge is right.
+
+\paragraph{Answer to RQ4.} At an 8\% weight the judge adds diagnostic text but no verdict change, and it does not
+contribute to the specification effect. The registered self-preference check is positive, but it is carried by the
+weakest model's cells and confounded with code quality. A panel from another vendor agrees with the judge on 34 of 36
+sampled E1 units (weighted agreement 0.982), and where they disagree the judge is the lenient one. Replacing the judge model changes no verdict.
+
+% =====================================================================================================================
+\section{The Floor: No Blocking Violation in 65 Projects \ph{}}\label{sec:floor}
+
+\paragraph{Re-reading.} After E1, a later development version of the instrument (v1.3) split the symbolic rules
+into two tiers. A \emph{blocking} rule states a defining constraint of the style and alone decides the verdict; for
+clean architecture these are dependency direction (\ff{FF-S01}), no cycles (\ff{FF-S02}), no outward dependency of
+the domain (\ff{FF-S04}), domain purity (\ff{FF-P01}), the repository pattern (\ff{FF-P03}) and domain-state purity
+(\ff{FF-P06}). Every metric with a threshold (module fan-out, instability, abstraction ratio, the dependency-inversion
+ratio, the SOLID proxies) and the test-pairing convention became \emph{advisory}: reported, but outside the verdict.
+% src: S1RR §1 "What changed and why" (6 blocking rules FF-S01, S02, S04, P01, P03, P06; FF-P02, C02, C03, C06, CV05, SO01, SO02 advisory); Docs/v1.3/rule-tiers.md
+We re-ran the symbolic part of v1.3 on all 72 E1 trees with the pinned per-run tsconfig of the generator protocol and
+the registered specification. No judge was called. This re-reading is post-hoc and descriptive: it tests no
+hypothesis, and v1.3 verdicts are not comparable with the registered E1 scores. Two full passes gave byte-identical
+reports for all 72 cells, and v1.3 reproduces the registered deterministic score of every accepted cell (65 of 65).
+The byte-identity is as reported by the run: the second pass's outputs are not committed, so the reproducibility audit
+could not check it from the repository.
+% src: Docs/DiagnosticRuns/v1.3-repro-audit-2026-10-16.md §2 row E-6 ("144/144 and 326/326 byte-identity claims"; second-pass outputs not committed; missing raw file)
+% src: S1RR "Instrument and procedure", "Reproducibility" (144/144 byte-identical), "What changed and why" (ahsDeterministic reproduced 65/65); header banner ("DESCRIPTIVE, v1.3 DEVELOPMENT INSTRUMENT, NOT A REGISTERED RESULT")
+
+\paragraph{Result.} No cell has a blocking finding: 0 of the 65 accepted cells and 0 of all 72, including the 7
+Haiku cells that failed the type-check (Table~\ref{tab:floor}). The blocking view therefore shows no level effect and
+no model effect. The registered direction of RQ1 has nothing to act on there; it lies entirely in advisory rules. Module
+fan-out, for example, fires in 0 of 15 Claude \lev{none} cells and in 15 of 16 \lev{minimal-prose} cells. The
+advisory findings are true statements about the code: all 1,184 E1 findings that a deterministic checker can test
+(all of them test-pairing findings) are correct, but they are metric and convention findings, not violations of a
+defining constraint. The per-finding verdicts are committed; re-running the check needs the generated trees, which
+are outside the repository, so the audit could not re-derive it.
+% src: S1RR §1 headline table (Any blocking 0/15, 0/16, 0/16 Claude; 0/6 each Codex; "The count is 0 of 65 accepted cells, and 0 of all 72"; GEN-TYPECHECK cells "also have 0 blocking findings"; "C02 fires in 0/15 none cells and 15/16 minimal-prose cells")
+% src: results/v1.3-labelling/e1/correctness-all/correctness.json summary (FF-CV05 n 1184, correct 1184; every other rule notCheckable); Docs/DiagnosticRuns/v1.3-repro-audit-2026-10-16.md §2 row E-9 (E1 correctness needs ../daedalus-e1-outcomes; missing raw file)
+% src: Docs/DiagnosticRuns/v1.3-labelling-2026-10-15.md line 6 ("1,184 of 1,428 E1 findings" checkable, all correct), line 30 ("The E1 cells still have no blocking-tier finding under v1.3")
+The floor was already present in the registered data: the structural dimension was clean in every cell
+(Section~\ref{sec:results}), and no rule that v1.3 treats as blocking fired in any E1 cell under the registered
+instrument either. v1.3 does not hide a signal that the registered instrument saw.
+% src: S1RR §1 ("The blocking rules never fired in Study 1 either"; v12e_share_cells_any_v13_blocking_rule = 0 everywhere)
+
+\begin{table}[t]
+\centering\small
+\caption{\ph{} E1 re-read with the v1.3 tiers (symbolic only, 65 accepted cells). Files are means per cell.
+Any blocking: cells with at least one blocking finding. Advisory share: advisory over all symbolic findings.
+The registered $\AHSc$ is shown for reference only; it is not comparable with the v1.3 columns.}
+\label{tab:floor}
+\begin{tabular}{llrrrrr}
+\toprule
+Arm & Level & $n$ & Files & Any blocking & Advisory share & Registered $\AHSc$ \\
+\midrule
+Claude & \lev{none}          & 15 &  9.1 & 0/15 & 1.000 & 0.951 \\
+Claude & \lev{minimal-prose} & 16 & 27.4 & 0/16 & 1.000 & 0.887 \\
+Claude & \lev{full-aac}      & 16 & 29.6 & 0/16 & 1.000 & 0.920 \\
+Codex  & \lev{none}          &  6 &  6.3 & 0/6  & 1.000 & 0.926 \\
+Codex  & \lev{minimal-prose} &  6 & 10.5 & 0/6  & 1.000 & 0.957 \\
+Codex  & \lev{full-aac}      &  6 & 13.3 & 0/6  & 1.000 & 0.942 \\
+\bottomrule
+\end{tabular}
+% src: S1RR §1 headline table (rows "Claude arm" none/minimal-prose/full-aac and gpt-5.6-terra); results/v1.3-study1-rerun/e1/by_level_model.csv
+\end{table}
+
+\paragraph{Is the zero real?} A zero from a detector is informative only if the detector fires when a violation is
+present. Five pieces of evidence, all gathered for v1.3 and none on E1 code, bear on this; all but the fourth are
+development data, gathered on cases the v1.3 changes were made against.
+\begin{itemize}
+  \item \emph{Planted violations.} On the 71-variant v1.3 reference set (five projects, five styles), blocking recall
+        against the author's manifests is 54/54 = 1.00 [0.93, 1.00], with precision 54/54. Three further
+        \ff{FF-P06} rows come from the field-initialiser half of that rule, which the tier table declares N/A; they
+        are reported N/A and their recall is not estimated. An earlier count of 57/57 included them in error.
+        Against a manifest written blind to the tool, recall is 50/64 = 0.78 [0.67, 0.86] and precision
+        50/54 = 0.93 [0.82, 0.97]. Every one of the 14 blind misses is a difference in rule definition, not a
+        missing edge or fact in the extracted graph.
+        % src: REFMF "Correction (2026-10-16)" table (pooled author 54/54 = 1.00 [0.93, 1.00] recall and precision; blind 50/64 = 0.78 [0.67, 0.86], 50/54 = 0.93 [0.82, 0.97]; "quote 54/54 with '3 FF-P06 field-initialiser rows reported N/A (recall unestimated)', not 57/57"); NARECOUNT; Docs/DiagnosticRuns/v1.3-blind-misses-2026-10-16.md Summary table (extractor gap 0, rule/construct gap 14; PR #134, merged)
+  \item \emph{Seeded held-out projects.} On the 73 seeded violations of the companion study's seven held-out projects,
+        v1.3 recalls 73/73. This is a development reading: those seeds were known while v1.3 was built, and one
+        operator (dynamic imports) motivated a v1.3 change.
+        % src: S1RR §2 table (Total recall v1.3 73/73 = 1.000), §3 ("SO4 is a development reading ... MO-X01 motivated dynamicImports")
+  \item \emph{The same rules fire on human-written code.} All seven held-out base projects fail the v1.3 blocking
+        verdict, and 11 of 15 external, human-written TypeScript back ends written before 2023 have at least one
+        blocking finding. These projects are larger and older than the E1 services, so the contrast with E1 is
+        descriptive and confounded with size.
+        % src: S1RR §2 "Context only, not scored" ("Each fails the v1.3 blocking verdict"); git show 23adb369:Docs/DiagnosticRuns/v1.3-external-correctness-2026-10-16.md §3 ("4 of the 15 repositories have no blocking finding"; PR #167, [hold], open; pinned to its branch tip SHA)
+  \item \emph{Findings on human code are correct.} All 283 blocking findings on those 15 projects are correct by a
+        deterministic source-level check (1.000 [0.987, 1.000], findings clustered in a few projects), and a negative
+        control of 500 perturbed findings is rejected 500 times out of 500.
+        % src: git show 23adb369:Docs/DiagnosticRuns/v1.3-external-correctness-2026-10-16.md §3 (283/283, Wilson [0.987, 1.000]; control 500 perturbed, all incorrect; ddd-forum 92, neoteric 72, finance 50 of 283); PR #167, [hold], open; pinned to its branch tip SHA
+  \item \emph{The rules fire on agent-style code with a different layout.} In a small feasibility probe, one Claude
+        session implemented six multi-step tasks by hand under a minimal prompt. In the layered style, every one of
+        14 steps had a blocking finding (dependency direction and layer skips); in the hexagonal style none of 14
+        steps did. The layered tasks produced 24 distinct blocking findings, all correct: 13 at the first step and 11
+        added later, in only 4 of the 11 later steps. A finding persists once made, so the same 24 appear as 96 rows
+        across the 14 step snapshots; the 14 of 14 is mostly a step-1 level, not new violations at every step. This is
+        one agent and a handful of tasks, so the figures are counts, not rates.
+        % src: Docs/DiagnosticRuns/v1.3-floor-probe-2026-10-16.md §0 (14/28: hexagonal 0/14, layered 14/14; 96/96 snapshot rows correct; new blocking finding in 4 of 22 later steps, all layered; "one Claude session ... by hand"), §3.1 (market 4, league 2, hive 2 and 3), §3.2, §3.3 (the later findings replicate two step-1 habits), §5 items 3-4; distinct findings derived: identity (rule, file, target) over blockingFindings in results/v1.3-floor-probe/{market-vendors,youth-league,hive-health}/none/step-*.json = 6 + 5 + 13 = 24, step 1 = 4 + 3 + 6 = 13
+\end{itemize}
+Taken together, the instrument fires on planted and on human-written violations of the rules it states, and its
+blocking findings are correct where they can be checked. We therefore read the E1 zero as a property of the generated
+code, not of the instrument, with two limits. First, the reference set and the external specifications were written
+by the instrument's authors. Second, the floor covers only constraints the rules can state. Semantic violations
+(business logic in the wrong layer, a duplicated business rule) are judged by the LLM judge, which the v1.3 re-reading
+did not call. On planted anti-patterns the frozen v1.3 judge catches 16 of 21 = 0.76 [0.55, 0.89] in the two operators
+whose controls behave as intended. The interval contains the 0.80 target, but its lower bound does not reach it, so
+the catch rate is not shown to meet the target and E1 gives no comparable
+floor for semantic violations.
+% src: Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md header note (16/21 = 0.76 [0.55, 0.89]; "Neither lower bound reaches 0.80"; restricted to FRAMEWORK-LEAK and PERSIST-IN-DOMAIN); S1RR "Instrument and procedure" ("No judge was called")
+
+\paragraph{What the floor means.} The agents in E1 receive a short brief, a folder layout and, at two levels, a
+specification; they write a small service in one session. In that setting they do not break the defining rules of
+clean architecture, with or without a specification, and with every model we tested. The question ``does a
+specification prevent architectural violations?'' cannot be answered where there are no violations to prevent. Two
+conditions under which violations do appear are suggested by the evidence above: other styles (the layered probe)
+and longer histories (the human-written projects). Both point to multi-step work by an agent on a growing code base,
+with and without the instrument's feedback in the loop. That is the design of our planned second study, whose primary
+outcome is the slope of blocking violations over steps. The layered and hexagonal probe also warns that the floor can
+recur there: an agent's default layout may already satisfy a style's defining rules.
+% src: Docs/v1.3/study2-outline.md §4 ("Erosion slope ... the slope of blocking violations ... This is the main contrast between arms"), Q1; Docs/DiagnosticRuns/v1.3-floor-probe-2026-10-16.md §0 ("Floor risk for Study 2's primary outcome: Real for hexagonal")
+
+% =====================================================================================================================
+\section{Discussion}\label{sec:discussion}
+
+\subsection{What specifications do to LLM architecture}
+
+The registered result, taken alone, says that a specification makes generated architecture worse. We think that
+reading is wrong, and the data show why. A specification changes \emph{how much} architecture the agent builds.
+Without one, the agents produce a working service in about nine files: about three per layer, few interfaces,
+few modules that import many others. With a specification, they produce three times as many files, with repository
+interfaces, use cases, DTOs and adapters, as the specification asks. This richer structure gives the coupling and
+dependency-inversion rules places to fire; a nine-file project gives them almost nothing to check. Per file, the
+generated code is equally conformant at every level. The conformance score registers the change in structure, and
+because it rewards structures that trigger fewer rules, it ranks the smallest projects first. That a small project
+scores well does not show that its design is better: the \lev{none} projects contain the fewest of the elements that
+clean architecture prescribes (repository interfaces, use cases, adapters), and so the fewest places where its rules
+can be checked.
+
+The comparison that size cannot explain is between the two specification styles. They produce projects of the same
+size and the same finding density, yet the full AaC specification leads to fewer firings of module fan-out and
+dependency inversion. The likely mechanism is that the AaC document names these properties as checkable functions
+with thresholds, while the prose names the layers, the dependency direction and coding against abstractions,
+but says nothing about fan-out or abstraction ratios and gives no number. % src: scripts/generator/prompts/minimal-prose.md (architecture paragraph) That explanation is a hypothesis: at \lev{full-aac} the agent sees the evaluator's own rules, so the
+advantage could be ``knowing the test'' rather than ``understanding the architecture'' (Section~\ref{sec:threats}).
+Either way, for a team that evaluates generated code against an AaC specification, giving the agent that
+specification helps, and giving it a vague paraphrase is the worst option we tested.
+
+The Codex arm is a warning against generalising the direction. Its agent builds smaller projects that grow less with
+the specification, scores worst without one and best with prose. With one model, 18 cells and a different harness,
+we cannot say whether this is a property of the vendor, of the model or of the harness.
+
+Model capability did not matter for conformance among projects that compile. It did matter for whether they
+compile: Haiku lost 7 of 18 cells to the type-check. A practitioner choosing between Claude tiers for this kind of
+task gains reliability, not architecture, from the larger models.
+
+\subsection{Measuring generated architecture}
+
+E1 has three lessons for anyone who scores generated code. First, a score built from rule firings is not
+size-neutral: when a treatment changes size, report size beside the score and add a per-file reading. Second, a
+rule that fires everywhere (here, missing test files) dominates finding counts while contributing nothing to
+contrasts; counts by family mostly count files. Both were visible only because the analysis kept per-function
+detail, and both were found after the registered tests. We report them as post-hoc and recommend that future
+designs register a size-normalised and a per-file outcome in advance. Third, found with a later instrument version, a score that mixes
+defining constraints with metric thresholds can show a large effect when no defining constraint is ever broken.
+Reporting the two tiers apart (Section~\ref{sec:floor}) shows at once that every E1 difference is a difference in
+metrics, and that the specification effect of RQ1 is an effect on coupling style, not on rule violations.
+
+On the judge, E1 replicates the companion study: with an 8\% weight and a majority rule, the judge cannot move a
+verdict in a pass band this wide \cite{daedalus2026tool}. A judge earns its place in such a score only if its weight
+is large enough to matter and its fails are validated; E1 validates its passes but not its fails. Its verdicts do
+not hinge on the judge model: a second Claude model agrees on every sampled E1 unit and changes no verdict.
+% src: results/judge-robustness/agreement.csv (E1 row: n 50, agreement 1.000000); results/judge-robustness/summary.json (registeredVerdictChanges 0)
+
+\subsection{Practical guidance: what to put in a specification}
+
+These recommendations follow from E1's evidence and are bounded by its scope (two Express tasks, mostly one vendor,
+clean architecture). They are hypotheses for practice, not established rules.
+\begin{enumerate}
+  \item \textbf{If you will check the architecture, give the agent the checkable specification.} The full AaC
+        document gave more conformant code than prose at equal size (\regC{} contrast, post-hoc reading). A paraphrase
+        that names layers but not the measured properties was the worst level.
+  \item \textbf{Name the coupling and inversion properties you care about, with limits.} The gap between prose and
+        AaC sits in module fan-out and dependency inversion. The prose asked agents to code against abstractions
+        but gave no fan-out limit and no check. A prose specification
+        should at least say that use cases depend on interfaces, that no module imports many others, and what the
+        limit is.
+  \item \textbf{Expect a specification to make the project bigger.} A layered specification roughly triples the
+        file count here. Budget review effort and evaluation accordingly, and do not compare scores across projects
+        of different size without a per-file view.
+  \item \textbf{Ask for tests explicitly if you want them.} The test-file-pairing rule fired in every cell, about
+        once per source file, even at \lev{full-aac}, whose preset lists that rule. The task briefs and the prose
+        level never mention tests; listing a rule among 27 was not enough to make the agents write them.
+  \item \textbf{Do not expect a larger model to fix architecture.} Within one vendor, a larger model raised the
+        chance of a compiling project, not its conformance.
+\end{enumerate}
+
+% =====================================================================================================================
+\section{Threats to Validity}\label{sec:threats}
+
+We follow the registered threats register (\texttt{Docs/threats-to-validity.md}) and the analysis plan's reporting
+duties; the most important threats are below \citeneeded{wohlin2012experimentation,sallou2024breaking}.
+
+\paragraph{Construct validity.}
+\emph{The \lev{full-aac} level shows the evaluator specification.} The agent receives a preset with the same rules,
+thresholds and weights the instrument uses, so the level is confounded with knowledge of the test and with prompt
+length (21 to 637 template lines). % src: PLAN §10 B5; GENP §5; derived wc -l of the templates
+The size-matched AaC advantage may partly measure ``teaching to the test''. A fourth level that gives an equally
+long, equally precise specification of a \emph{different} rule set would separate the two.
+\emph{The AHS rewards small structures} (Section~\ref{sec:discussion}); we report per-file and size-adjusted readings,
+all post-hoc. \emph{Instrument precision on real code is uncertain}: 0.328 to 0.789 depending on how
+\texttt{uncertain} labels count, with wide intervals; for the test-file-pairing rule, 2 of 6 sampled real findings
+were judged real and 3 were uncertain, while all 3 sampled dependency-inversion findings were judged real.
+% src: results/so4-heldout/agg/precision_baseline.csv (v2 overall 0.327901 [0.132388, 0.609359]; function FF-CV05 n 6, tp 2, uncertain 3;
+%      function FF-P02 n 3, tp 3); ADR.md ADR-033 item 4 (0.608, 0.789)
+Those figures come from real projects, not from E1 code, and E1 findings were not labelled.
+\emph{Circularity.} The specification, the rules, the prompt levels and the instrument were written by the same
+author, and the prose level was derived from the same preset. The study measures conformance to this author's
+rendering of clean architecture. % src: TTV §2.8; Docs/threats-to-validity.md TV-12 (circularity)
+\emph{All cells pass}: the study measures differences inside the pass band, never a blocking violation
+(Section~\ref{sec:floor}). \emph{The \lev{none} level is not specification-free}: every prompt fixes the three
+folder names, so the contrast is a folder hint against a folder hint with prose or with a full AaC specification.
+% src: ADD A1
+\emph{The rule set is one author's}: of the rule-by-style rows the v1.3 presets compile, 57 of 89 cannot be expressed
+in any of three independent tools, among them the blocking repository-pattern and domain-state-purity rules, so the
+E1 zero on those two rules rests on our instrument alone.
+% src: Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md §0 ("57 rows (21 distinct rules) cannot be expressed in any of the three tools. Four of those rules are blocking ... FF-P03 ... FF-P06"); PR #166, merged
+
+\paragraph{Internal validity.}
+\emph{The ADR-032 fix.} The first judge pass found that the extractor had no registered way to read an E1 tree's
+tsconfig; 9 Haiku trees held an agent-written one and 63 held none. The fix, decided during the run, makes the
+instrument read the pinned per-run tsconfig of the generator protocol for every cell and ignore any agent-written one;
+all pass-1 records were discarded and the evaluation re-ran on every cell under prereg v20. It changes how files are
+located, not any rule, weight or threshold, but it is a post-hoc operational deviation.
+% src: ADR.md ADR-032 (Context, Decision items 1-4, Classification); GENP §3 (Evaluation note)
+\emph{Usage-limit handling.} In the re-run, one usage window was classified as a transport error instead of the
+registered pause; the same command was re-run with cassettes reused and no cell was lost.
+% src: aidlc-docs/audit.md ("go E1" entry); TTV TV-38
+\emph{Seven Haiku cells were not run} because their generations failed the type-check. The failed cells are not
+random: the surviving Haiku cells are the ones that compiled, so Haiku's conformance is measured on a selected
+subset (3 or 4 cells per level). % src: GRID; SIZE §3 (haiku valid/coords 3/6, 4/6, 4/6)
+\emph{Judge self-preference} is confounded with code quality (Section~\ref{sec:rq4}).
+
+\paragraph{Statistical conclusion validity.}
+\emph{$n = 3$ per cell.} Three replicates of a stochastic generator, no temperature or seed control, and 47 valid
+Claude cells in all. The pairwise intervals resample three runs within each cell and are descriptive only.
+% src: PLAN §6 (Effect sizes); TTV TV-78
+\emph{Post-hoc families.} The size analysis adds many tests, each in its own Holm family, with no correction across
+families, chosen after the registered results were known. % src: SIZE §3, §8
+\emph{The judge-versus-panel headline} rests on 36 items with no judge fail among them (the one sampled judge fail
+was \texttt{uncertain}); $\kappa$ is uninformative and
+the judge's fails on E1 code are not validated. The model-robustness check compares two Claude models and is
+reliability evidence only.
+
+\paragraph{External validity.}
+\emph{Two tasks}, both small in-memory Express services, as a blocking factor, not a sample of tasks.
+\emph{Single-vendor confirmatory tests}: every registered test is on Claude models judged by a Claude model; the
+Codex arm is one model, exploratory, and differs in harness, confinement, reasoning settings and time.
+% src: PLAN §10 B5, B10; TTV TV-80, TV-100
+\emph{One architecture style} (clean architecture) and one language. \emph{Model generation} is confounded with tier
+(Haiku 4.5 against two 5.5 models). % src: PLAN §10 B5
+The models and CLIs are pinned versions that will change.
+
+\paragraph{Validity evidence for the instrument (v1.3, exploratory).} After E1, five studies tested the v1.3
+instrument without human raters. None was pre-registered, and only the first is merged at the time of writing; the
+others are under review, so their figures may change. They concern the instrument, not E1 itself, and they bear on
+the floor of Section~\ref{sec:floor} more than on the registered contrasts.
+\begin{itemize}
+  \item \emph{Convergent.} On every rule that dependency-cruiser, eslint-plugin-boundaries or ArchUnitTS can also
+        express, Cohen's $\kappa$ between our findings and each tool is 1.000 on the 71 reference variants, 0.918 to
+        0.961 on 15 external human-written projects and 0.913 to 1.000 on 14 current open-source projects. All 253
+        disagreements were traced to a cause outside our rule logic (definition differences, alias or barrel
+        resolution, two defects in the other tools); none was classed as our defect. Four blocking rules have no
+        counterpart in any of the three tools (see Construct validity).
+        % src: Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md §0 table (kappa rows; 0 + 94 + 159 = 253 disagreements, 0 "our bug"); PR #166, merged
+  \item \emph{External correctness.} All 283 blocking findings on the 15 external projects are correct by a
+        deterministic check that reads the source, not the graph; a negative control of 500 perturbed findings is
+        rejected every time. Correct is not the same as meaningful: the check shares the specification with the tool,
+        and all 15 specifications were written by one session.
+        % src: git show 23adb369:Docs/DiagnosticRuns/v1.3-external-correctness-2026-10-16.md §3, §4 ("Correct is not meaningful"; "All 15 specs were written by one session"); PR #167, [hold], open; pinned to its branch tip SHA
+  \item \emph{Metamorphic.} Under nine semantics-preserving transformations of the reference variants (renaming,
+        reordering, reformatting, export style, type-only imports, path aliases, splitting and merging files, adding
+        and removing barrel files), the blocking verdict is unchanged in 637 of 655 applicable cases (0.973). Six
+        transformations change nothing in all 71 variants. Of the 18 changed cases, one is an instrument defect (a barrel
+        file outside every layer hides an edge), fixed behind an option that is off by default; the others are
+        intended consequences of rule definitions, mainly a merge that creates a real module cycle (13 cases). These
+        are development data.
+        % src: Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md §1 ("Six of the nine transformations are invariant"; MT-B1 "tool bug"), §3.1 ("637 of 655 applicable cases are invariant (0.973)"), §3.3 (MT-M1, 13 cases); PR #185, merged into v1.3
+  \item \emph{Developer behaviour (null).} In 36 open-source histories, maintainers did not remove dependencies
+        flagged by blocking rules more often than unflagged cross-layer dependencies. A pooled rate ratio of 2.65
+        [1.97, 3.56] rests on one commit that enabled an import-cycle lint; without it the ratio is 0.93 [0.61, 1.43],
+        and with one credit per fixing commit 1.00 [0.56, 1.80]. Dependency-direction findings were removed less often
+        than the baseline. The method cannot tell wrong findings from tolerated debt.
+        % src: Docs/DiagnosticRuns/v1.3-validity-fixes-mined-2026-10-16.md "Verdict" (2.65x, 95% CI 1.97-3.56; 0.93 (0.61-1.43); 1.00 (0.56-1.80); rate ratios 0.65, 0.38 and 0; "this method cannot separate them"); PR #168, merged into v1.3
+  \item \emph{Known groups (null).} Blocking findings per thousand lines are not lower in showcase repositories
+        (boilerplates, samples) than in application repositories (15 external projects; Cliff's $\delta = -0.18$,
+        exact one-sided $p = 0.81$), and the density still correlates with project size (Spearman
+        $\rho = 0.39$ [$-0.19$, 0.85]). The grouping by repository name is crude, and several ``application''
+        repositories are themselves teaching references.
+        % src: git show ba1c6327:Docs/DiagnosticRuns/v1.3-known-groups-2026-10-16.md §1 (K-1: delta -0.18, p 0.811, "not supported"; "Reading this null honestly"), §2 (B/KLOC rho vs LOC 0.39 [-0.19, 0.85]); PR #198, [hold], open; pinned to its branch tip SHA
+\end{itemize}
+The first three support the claim that the blocking rules detect what they state, and do so stably; the two nulls
+show that we have no evidence yet that what they state is what maintainers act on. For E1 this means that the floor
+is a floor of rule violations as the specification defines them, and no stronger claim.
+
+\paragraph{Reliability.} Every generated tree is identified by its git tree hash, every judge and labeller call is
+stored as a cassette and replays without a model call, and the aggregation is byte-identical across reruns.
+% src: GENP §7 (treeSha); TTV TV-81; SIZE header ("Two runs give the same bytes")
+The size analysis reproduces every registered row it overlaps.
+
+% =====================================================================================================================
+\section{Related Work}\label{sec:related}
+
+\paragraph{Quality of LLM-generated code.} Benchmarks such as HumanEval and SWE-bench measure functional correctness
+of generated code \citeneeded{chen2021codex,jimenez2024swebench}, and stricter test suites show that correctness is
+overestimated \citeneeded{liu2023evalplus}. Studies of generated code's maintainability and smells exist
+\citeneeded{siddiq2024quality}; we are not aware of a registered factorial study of architectural conformance of
+whole agent-generated services. \todo{search 2025--2026 work on architecture-level quality of agent-generated code
+and on specification or prompt form as a factor; position against it.}
+
+\paragraph{LLMs and software architecture.} Work on LLMs for architecture has studied design decision generation
+\citeneeded{dhar2024adr} and the state of practice \citeneeded{jahic2024practice}. Spec-driven tools make the
+specification an input to the agent \citeneeded{speckit2025,kiro2025}; prompt-pattern catalogues treat the prompt's
+form as a design choice \citeneeded{white2023prompt}. E1 is, to our knowledge, the first test of whether the
+specification's form changes architectural conformance under pre-registration. \todo{verify this priority claim.}
+
+\paragraph{Architecture conformance checking.} Reflexion models and their successors compare intended and implemented
+structure \citeneeded{murphy1995reflexion,koschke2003hierarchical}; surveys compare static approaches
+\citeneeded{knodel2007comparison,passos2010static}, and erosion is a well-documented cost
+\citeneeded{desilva2012erosion,rosik2011drift}. Fitness functions make conformance continuous
+\citeneeded{ford2017evolutionary}. Our instrument and its validation are in the companion paper
+\cite{daedalus2026tool}.
+
+\paragraph{LLM-as-a-judge.} LLM judges are biased by position and verbosity \citeneeded{wang2023fair,zheng2023judging}
+and can favour their own outputs \citeneeded{panickssery2024self,wataoka2024selfpref}. Our self-preference check
+follows that concern; our result shows how such a check can be confounded with quality when the judge's family also
+contains the weakest generator.
+
+\paragraph{Method.} We follow guidance on experimentation and empirical standards in software engineering
+\citeneeded{kitchenham2002guidelines,wohlin2012experimentation,ralph2020standards} and on pre-registration
+\citeneeded{nosek2018prereg}; threats specific to LLM-based studies follow \citeneeded{sallou2024breaking}.
+
+% =====================================================================================================================
+\section{Conclusion and Open Data}\label{sec:conclusion}
+
+In a pre-registered experiment with three Claude models, three specification levels and two tasks, the
+specification level changed the architectural conformance of agent-generated TypeScript services, and the model did
+not. The registered direction favoured no specification, but a post-hoc analysis traced this to project size: with a
+specification, agents build about three times as many files, and the two rules that need structure, module fan-out
+and dependency inversion, then fire. Findings per file did not differ. At equal size, a full AaC specification gave
+better conformance than a short prose one, which was the worst level. An exploratory second-vendor arm reversed the
+order of levels. The LLM judge, at its 8\% weight, changed no verdict; a positive self-preference check was carried
+by the weakest model's cells; and a cross-vendor panel agreed with the judge's passes on 34 of 36 sampled units (weighted agreement 0.982).
+Re-read with a later instrument that separates blocking rules from advisory metrics, none of the 65 projects broke
+a blocking dependency rule. The agents in this setting stay above the floor that explicit dependency rules set, and
+every specification effect we observed is an effect on coupling metrics.
+
+Next steps are a study of agents in a multi-step loop, where violations can accumulate and the instrument's feedback
+can be tested against their slope. For the questions of E1 itself, they are a registered replication with a size-normalised primary outcome, a fourth level that gives a precise
+specification of a different rule set to separate understanding from knowing the test, more tasks and vendors, and a
+judge-validation sample stratified on judge fails.
+
+\paragraph{Open data.} The replication package contains the registered plans, generator protocol, prompt templates
+and seeds (\texttt{experiments/e1-grid/}, \texttt{Docs/}), the hash ledger (\texttt{corpus/prereg.json}), every
+evaluation record and aggregate table (\texttt{results/e1-grid/}), all judge and labeller cassettes, the post-hoc size
+analysis and its producer (\texttt{scripts/e1-size-analysis-cli.ts}), and the script that generates this paper's
+figures from the committed CSVs (\texttt{papers/paper1-e1/figures/make\_figures.py}). Every number in this paper
+carries a source-path comment in the \LaTeX{} source. The generated project trees live outside the repository and are
+identified by their tree hashes. A reproducibility audit of the v1.3 reports
+(\texttt{Docs/DiagnosticRuns/v1.3-repro-audit-2026-10-16.md}) lists what can and cannot be re-derived from the
+package; two Section~\ref{sec:floor} claims are in the second group (the second-pass byte-identity and the E1
+correctness re-check, rows E-6 and E-9), because they need the uncommitted second-pass outputs or the generated trees. \todo{archive DOI; decide whether to publish the generated trees.}
+
+\bibliographystyle{plain}
+\bibliography{refs}
+
+\end{document}

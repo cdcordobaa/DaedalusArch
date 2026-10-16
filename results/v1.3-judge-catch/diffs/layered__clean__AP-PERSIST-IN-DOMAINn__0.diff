@@ -1,0 +1,14 @@
+diff -ruN bases/layered__clean/src/business/services/OrderService.ts copies/layered__clean__AP-PERSIST-IN-DOMAINn__0/src/business/services/OrderService.ts
+--- bases/layered__clean/src/business/services/OrderService.ts	2026-10-15 11:50:59
++++ copies/layered__clean__AP-PERSIST-IN-DOMAINn__0/src/business/services/OrderService.ts	2026-10-15 11:51:03
+@@ -63,6 +63,10 @@
+     this.sequence += 1;
+     return `ord-${this.sequence}`;
+   }
++
++  hasPricing(): boolean {
++    return this.pricing !== undefined;
++  }
+ }
+ 
+ function sumOf(lines: readonly OrderLine[]): Money {

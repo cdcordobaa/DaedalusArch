@@ -1,0 +1,19 @@
+diff -ruN -x node_modules a/src/application/catalogue-service.ts b/src/application/catalogue-service.ts
+--- a/src/application/catalogue-service.ts	2026-10-15 12:42:22
++++ b/src/application/catalogue-service.ts	2026-10-15 12:41:45
+@@ -1,4 +1,4 @@
+-import { CreateProductDto, ProductDto } from "./dtos";
++import { CreateProductDto, ProductDto, PlaceOrderDto } from "./dtos";
+ import { DomainError } from "../domain/errors";
+ import { Product } from "../domain/product";
+ import { ProductRepository } from "../domain/repositories";
+@@ -19,5 +19,9 @@
+ 
+   private toDto(product: Product): ProductDto {
+     return { id: product.id, name: product.name, stock: product.stock };
++  }
++
++  validateCombineItems(items: PlaceOrderDto["items"]): void {
++    if (!Array.isArray(items) || items.length === 0) throw new DomainError("An order requires at least one item");
+   }
+ }

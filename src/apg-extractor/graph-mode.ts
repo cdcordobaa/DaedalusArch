@@ -30,7 +30,7 @@ export interface GraphView {
 export function restrictToGraphMode(view: GraphView, mode: GraphMode): GraphView {
   const allowed = edgeTypesOf(mode);
   if (allowed === undefined) return view;
-  const edges = view.edges.filter((e) => allowed.includes(e.type));
+  const edges = view.edges.filter((e) => (allowed as readonly string[]).includes(e.type));
   const targets = new Set(edges.map((e) => e.targetId));
   return { edges, packageNodes: view.packageNodes.filter((n) => targets.has(n.id)) };
 }

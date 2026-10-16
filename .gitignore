@@ -8,6 +8,8 @@ pnpm-lock.yaml
 dist/
 build/
 out/
+# Fixture source directories named like build output (e.g. hexagonal application/ports/out) are source, not output.
+!tests/fixtures/**/ports/out/
 .next/
 .cache/
 
@@ -49,4 +51,14 @@ APG_Store/
 logs/
 tests/cassettes/
 *.jsonl
+# The SDD demo transcript is the replay input of `npm run demo:sdd` (Docs/v1.3/sdd-demo.md)
+!examples/sdd-library-loans/transcript/transcript.jsonl
 .firewall/
+
+# Internal communications live in the private thesis repo, never here
+Docs/reports/
+Docs/presentation-kit/
+Docs/v1.3/director-email*
+
+# Python bytecode caches (compiled .pyc must not be committed)
+__pycache__/

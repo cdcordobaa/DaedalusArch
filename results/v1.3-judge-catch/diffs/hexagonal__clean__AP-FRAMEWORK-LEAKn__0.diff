@@ -1,0 +1,21 @@
+diff -ruN bases/hexagonal__clean/src/application/services/BookRoomService.ts copies/hexagonal__clean__AP-FRAMEWORK-LEAKn__0/src/application/services/BookRoomService.ts
+--- bases/hexagonal__clean/src/application/services/BookRoomService.ts	2026-10-15 11:50:59
++++ copies/hexagonal__clean__AP-FRAMEWORK-LEAKn__0/src/application/services/BookRoomService.ts	2026-10-15 11:51:11
+@@ -23,7 +23,7 @@
+     private readonly notifications: NotificationSender,
+   ) {}
+ 
+-  async book(command: BookRoomCommand): Promise<BookingView> {
++  async book(command: BookRoomCommand, context?: BookContextDto): Promise<BookingView> {
+     const room = await this.rooms.findById(command.roomId);
+     if (room === undefined) throw new BookingError('not-found', `No room ${command.roomId}`);
+     const guest = await this.guests.findById(command.guestId);
+@@ -41,4 +41,8 @@
+     await this.notifications.send(guest.email, `Room ${room.number} is booked (${booking.id})`);
+     return toBookingView(booking);
+   }
++}
++
++export interface BookContextDto {
++  readonly requestId?: string;
+ }

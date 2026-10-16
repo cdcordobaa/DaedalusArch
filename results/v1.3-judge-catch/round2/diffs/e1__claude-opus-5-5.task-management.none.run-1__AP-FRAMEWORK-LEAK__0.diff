@@ -1,0 +1,20 @@
+diff -ruN -x node_modules a/src/application/task-service.ts b/src/application/task-service.ts
+--- a/src/application/task-service.ts	2026-10-15 12:42:23
++++ b/src/application/task-service.ts	2026-10-15 12:42:12
+@@ -9,6 +9,7 @@
+ } from "../domain";
+ import { TaskDto, toTaskDto } from "./dto";
+ import { Clock, IdGenerator } from "./ports";
++import { Request } from "express";
+ 
+ export interface CreateTaskCommand {
+   projectId: string;
+@@ -61,7 +62,7 @@
+     return toTaskDto(task);
+   }
+ 
+-  markDone(projectId: string, taskId: string): TaskDto {
++  markDone(projectId: string, taskId: string, request?: Request): TaskDto {
+     const task = this.requireTask(projectId, taskId);
+     task.markDone(this.clock.now());
+     this.tasks.save(task);

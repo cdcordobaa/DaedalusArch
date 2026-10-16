@@ -31,8 +31,10 @@ interface Harness {
 function harness(project: Project, root: string, nodeFiles: SourceFile[], opts: ExtractorOptions = {}): Harness {
   const warnings: Warning[] = [];
   const { lookup } = extractNodes(nodeFiles, root);
+  // v1.3: these cases pin the v1.2E per-name barrel routing (BR-U2-24), so re-export edges default to the frozen
+  // 'resolved-only' mode here; `v13-reexport-edges.test.ts` covers 'both' (ADR-V13-01).
   const ctx = buildImportResolutionContext(
-    project, lookup, root, opts,
+    project, lookup, root, { reExportEdges: 'resolved-only', ...opts },
     (filePath, code, message) => { warnings.push({ filePath, code, message }); },
     new PackageNodeRegistry(),
   );

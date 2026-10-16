@@ -1,0 +1,21 @@
+diff -ruN bases/antipattern-nest/src/invoice/invoice.service.ts copies/antipattern-nest__AP-DUP-RULE__0/src/invoice/invoice.service.ts
+--- bases/antipattern-nest/src/invoice/invoice.service.ts	2026-10-15 11:50:59
++++ copies/antipattern-nest__AP-DUP-RULE__0/src/invoice/invoice.service.ts	2026-10-15 11:51:07
+@@ -1,4 +1,4 @@
+-import { Injectable } from '@nestjs/common';
++import { Injectable, BadRequestException } from '@nestjs/common';
+ import { InjectRepository } from '@nestjs/typeorm';
+ import { Repository } from 'typeorm';
+ import { InvoiceEntity } from './invoice.entity';
+@@ -17,5 +17,11 @@
+ 
+   countFor(orderId: string): Promise<number> {
+     return this.invoiceRepository.count({ where: { orderId } });
++  }
++
++  validateCreate(quantity: number): void {
++    if (quantity <= 0) {
++          throw new BadRequestException('Quantity must be positive');
++        }
+   }
+ }

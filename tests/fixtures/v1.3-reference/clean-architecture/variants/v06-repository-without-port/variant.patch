@@ -1,0 +1,11 @@
+--- a/src/infrastructure/persistence/InMemoryLoanRepository.ts
++++ b/src/infrastructure/persistence/InMemoryLoanRepository.ts
+@@ -1,7 +1,6 @@
+ import { Loan } from '../../domain/entities/Loan';
+-import { LoanRepository } from '../../domain/repositories/LoanRepository';
+ 
+-export class InMemoryLoanRepository implements LoanRepository {
++export class InMemoryLoanRepository {
+   private readonly rows = new Map<string, Loan>();
+ 
+   async findById(id: string): Promise<Loan | undefined> {
