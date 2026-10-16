@@ -51,6 +51,7 @@ export default tseslint.config(
     // anti-patterns and their own ambient typings), not code of this repository. tests/fixtures/v1.3-devset-b: the same
     // for the devset-b reference variants (copies of the reference projects plus planted variants).
     // src/cypher-interp/generated: ANTLR output (scripts/v1.3/gen-cypher-parser.sh), not hand-written.
-    ignores: ['dist/**', 'node_modules/**', 'coverage/**', '*.cjs', '*.mjs', 'tests/fixtures/v1.3-cheap2/**', 'tests/fixtures/v1.3-devset-b/**', 'src/cypher-interp/generated/**'],
+    // tests/fixtures/loop-acceptance: plain-JS demo services the acceptance runner starts (not TypeScript of this repo).
+    ignores: ['dist/**', 'node_modules/**', 'coverage/**', '*.cjs', '*.mjs', 'tests/fixtures/v1.3-cheap2/**', 'tests/fixtures/v1.3-devset-b/**', 'tests/fixtures/loop-acceptance/**', 'src/cypher-interp/generated/**'],
   },
 );

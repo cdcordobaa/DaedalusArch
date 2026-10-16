@@ -114,3 +114,39 @@ The runner supports (a) and (b) as is (per-task `startCommand`/`buildCommand`/`p
 Write the per-step acceptance tests together with the sealed tasks, hash them with the tasks (outline §8.9), keep them
 outside every agent cwd (`<H>/acceptance/`), and never show them to an agent. This repository never holds them. The
 runner and the demo tests here are for the pilot tasks only.
+
+## 6. Results (computed after §3 was committed)
+
+Code: `scripts/lib/loop/acceptance.ts` (runner), wired in `loop.ts` (`LoopContext.acceptance`), `plan.ts` (plan block
+`acceptance`, per-task `acceptance` in the tasks file) and `main.ts` (a runner only when `acceptance.enabled`). Demo:
+`npx tsx scripts/v1.3/acceptance-demo.ts --out Docs/v1.3/acceptance-checks-demo.json` (repository root; ~30 s; no
+LLM, no Neo4j). Tests: `jest --maxWorkers=2 tests/unit/scripts/loop` (63 passed, 10 of them new in
+`acceptance.test.ts`).
+
+| Source | Steps | Status | Passed | Failed | Errors |
+|---|---|---|---|---|---|
+| Replay tapes (`none` arm through `runLoop`), 3 tasks | 1–4 each | `no-start-command` on all 12 | 0 | 0 | 1 per file not run (1..4) |
+| Reference service, `market-vendors` | 1 / 2 / 3 / 4 | `ran` | 4 / 8 / 9 / 11 | 0 | 0 |
+| Reference service, `shelter-adoptions` | 1 / 2 / 3 / 4 | `ran` | 2 / 4 / 5 / 6 | 0 | 0 |
+| Reference service, `relief-volunteers` | 1 / 2 / 3 / 4 | `ran` | 2 / 4 / 5 / 7 | 0 | 0 |
+| Mutilated `market-vendors` (settlement route removed, a step-2 feature) | 1 / 2 / 3 / 4 | `ran` | 4 / 5 / 6 / 8 | 0 / 3 / 3 / 3 | 0 |
+| Mutilated `shelter-adoptions` (TextBridge webhook removed, step 3) | 1 / 2 / 3 / 4 | `ran` | 2 / 4 / 4 / 5 | 0 / 0 / 1 / 1 | 0 |
+| Mutilated `relief-volunteers` (impact report removed, step 4) | 1 / 2 / 3 / 4 | `ran` | 2 / 4 / 5 / 6 | 0 / 0 / 0 / 1 | 0 |
+
+Against §3:
+1. **Met.** No `acceptance` field without a runner (unit test). The loop dry runs of `experiments/loop-demo/plan.dry-run.json`
+   and `experiments/loop-pilot/plan.json` on this branch and on untouched `origin/v1.3` (same paths) give identical
+   files (57 and 165 files) after normalising the clock fields and the clock-dated snapshot commit shas.
+2. **Met.** Unit tests cover start-command discovery, the readiness wait (`service-not-ready` after 1.5 s), the
+   out-of-cwd run (the snapshot is unchanged and the scratch copy is removed) and the counts.
+3. **Met, with the tapes as expected:** the tapes implement no HTTP surface (no listener, no start script; the
+   skeleton `package.json` has none), so all 12 tape steps record `no-start-command` and 0 passed. That shows the record
+   is honest, not that the tapes have the features. All reference-service tests pass; each mutilated copy fails from
+   the step of the removed feature onwards and not before. Two demo runs gave byte-identical JSON.
+4. **Met for the interpreter and the dry runs.** Rule-3 diff of the 71 reference results (`--engine cypher-interp`):
+   0 of 71 `raw/` files, `report.json` and `report.md` differ after removing `elapsedMs`. The loop replay itself
+   (`tests/integration/loop`, Neo4j) was **not** run here: no Neo4j was started. The disabled path adds no field and
+   no call, and the pilot-plan dry run, which uses the same `runLoop`, profiles and frozen DDD spec, is byte-identical.
+
+**Not done.** No network sandbox for the service (§2, Isolation). No live snapshot was checked (no live pilot exists).
+The HTTP-contract decision of §4 is the author's. No acceptance test was written or guessed for any sealed task.
