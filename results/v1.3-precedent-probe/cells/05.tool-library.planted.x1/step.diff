@@ -1,0 +1,136 @@
+diff --git a/src/adapters/inbound/http-routes.ts b/src/adapters/inbound/http-routes.ts
+index 9e423df..8a70b14 100644
+--- a/src/adapters/inbound/http-routes.ts
++++ b/src/adapters/inbound/http-routes.ts
+@@ -1,12 +1,14 @@
+ import { Router, type Request, type Response } from 'express';
+ import type { LendTool } from '../../application/lend-tool';
+ import type { RegisterTool } from '../../application/register-tool';
++import type { ReportDamage } from '../../application/report-damage';
+ import type { ReturnTool } from '../../application/return-tool';
+ 
+ export interface ToolLibraryUseCases {
+   readonly registerTool: RegisterTool;
+   readonly lendTool: LendTool;
+   readonly returnTool: ReturnTool;
++  readonly reportDamage: ReportDamage;
+ }
+ 
+ function fail(res: Response, e: unknown): void {
+@@ -38,5 +40,13 @@ export function toolRoutes(uc: ToolLibraryUseCases): Router {
+       fail(res, e);
+     }
+   });
++  r.post('/tools/:id/damage', async (req: Request, res: Response) => {
++    try {
++      const body = req.body as { whatIsBroken: string; repairFeeCents: number };
++      res.json(await uc.reportDamage.execute(String(req.params.id), body));
++    } catch (e) {
++      fail(res, e);
++    }
++  });
+   return r;
+ }
+diff --git a/src/adapters/outbound/in-memory-loan-repository.ts b/src/adapters/outbound/in-memory-loan-repository.ts
+index b100b66..57ed8e1 100644
+--- a/src/adapters/outbound/in-memory-loan-repository.ts
++++ b/src/adapters/outbound/in-memory-loan-repository.ts
+@@ -8,6 +8,11 @@ export class InMemoryLoanRepository implements LoanRepository {
+     return [...this.rows.values()].find((l) => l.toolId === toolId && isOpen(l));
+   }
+ 
++  async findLastByTool(toolId: string): Promise<Loan | undefined> {
++    const loans = [...this.rows.values()].filter((l) => l.toolId === toolId);
++    return loans.sort((a, b) => b.lentAt.getTime() - a.lentAt.getTime())[0];
++  }
++
+   async save(loan: Loan): Promise<void> {
+     this.rows.set(loan.id, loan);
+   }
+diff --git a/src/application/ports/loan-repository.ts b/src/application/ports/loan-repository.ts
+index 3dff8dd..35bf82a 100644
+--- a/src/application/ports/loan-repository.ts
++++ b/src/application/ports/loan-repository.ts
+@@ -2,5 +2,6 @@ import type { Loan } from '../../domain/loan';
+ 
+ export interface LoanRepository {
+   findOpenByTool(toolId: string): Promise<Loan | undefined>;
++  findLastByTool(toolId: string): Promise<Loan | undefined>;
+   save(loan: Loan): Promise<void>;
+ }
+diff --git a/src/application/report-damage.ts b/src/application/report-damage.ts
+new file mode 100644
+index 0000000..53ce912
+--- /dev/null
++++ b/src/application/report-damage.ts
+@@ -0,0 +1,33 @@
++import type { Damage, Loan } from '../domain/loan';
++import type { LoanRepository } from './ports/loan-repository';
++import type { Mailer } from './ports/mailer';
++import type { MemberRepository } from './ports/member-repository';
++import type { ToolRepository } from './ports/tool-repository';
++
++export class ReportDamage {
++  constructor(
++    private readonly tools: ToolRepository,
++    private readonly members: MemberRepository,
++    private readonly loans: LoanRepository,
++    private readonly mailer: Mailer,
++  ) {}
++
++  async execute(toolId: string, damage: Damage): Promise<Loan> {
++    if (damage.repairFeeCents < 0) throw new Error('repair fee must not be negative');
++    const tool = await this.tools.findById(toolId);
++    if (tool === undefined) throw new Error(`unknown tool ${toolId}`);
++    const loan = await this.loans.findLastByTool(toolId);
++    if (loan === undefined) throw new Error(`${tool.name} has no loan to charge`);
++    const member = await this.members.findById(loan.memberId);
++    if (member === undefined) throw new Error(`unknown member ${loan.memberId}`);
++    loan.damage = damage;
++    await this.loans.save(loan);
++    const fee = (damage.repairFeeCents / 100).toFixed(2);
++    await this.mailer.send(
++      member.email,
++      `${tool.name} came back damaged`,
++      `Hi ${member.name}, when ${tool.name} was returned we found: ${damage.whatIsBroken}. Repair fee: ${fee} EUR.`,
++    );
++    return loan;
++  }
++}
+diff --git a/src/config/main.ts b/src/config/main.ts
+index fe78635..550c676 100644
+--- a/src/config/main.ts
++++ b/src/config/main.ts
+@@ -6,6 +6,7 @@ import { InMemoryMemberRepository } from '../adapters/outbound/in-memory-member-
+ import { InMemoryToolRepository } from '../adapters/outbound/in-memory-tool-repository';
+ import { LendTool } from '../application/lend-tool';
+ import { RegisterTool } from '../application/register-tool';
++import { ReportDamage } from '../application/report-damage';
+ import { ReturnTool } from '../application/return-tool';
+ 
+ export function buildApp(): express.Express {
+@@ -20,6 +21,7 @@ export function buildApp(): express.Express {
+       registerTool: new RegisterTool(tools),
+       lendTool: new LendTool(tools, members, loans, mailer),
+       returnTool: new ReturnTool(tools, loans),
++      reportDamage: new ReportDamage(tools, members, loans, mailer),
+     }),
+   );
+   return app;
+diff --git a/src/domain/loan.ts b/src/domain/loan.ts
+index feab13d..02a0c9d 100644
+--- a/src/domain/loan.ts
++++ b/src/domain/loan.ts
+@@ -7,6 +7,12 @@ export interface Loan {
+   readonly lentAt: Date;
+   readonly dueAt: Date;
+   returnedAt?: Date;
++  damage?: Damage;
++}
++
++export interface Damage {
++  readonly whatIsBroken: string;
++  readonly repairFeeCents: number;
+ }
+ 
+ export function dueDate(lentAt: Date): Date {

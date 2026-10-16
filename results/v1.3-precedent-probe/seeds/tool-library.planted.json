@@ -1,0 +1,30 @@
+{
+  "spec": "presets/hexagonal.yaml",
+  "engine": "cypher-interp",
+  "scoringMode": "v1.3",
+  "instrumentVersion": 2,
+  "typecheckErrors": 0,
+  "typecheckSample": [],
+  "verdict": "fail",
+  "blockingViolationCount": 1,
+  "advisoryViolationCount": 16,
+  "blockingByRule": {
+    "FF-S01": 1
+  },
+  "advisoryByRule": {
+    "FF-CV05": 15,
+    "FF-P02": 1
+  },
+  "blockingFindings": [
+    {
+      "rule": "FF-S01",
+      "template": "dependency-direction-graph",
+      "file": "src/application/lend-tool.ts",
+      "line": 4,
+      "target": "src/adapters/outbound/console-mailer.ts",
+      "message": "src/application/lend-tool.ts (application) imports against the allowed direction from src/adapters/outbound/console-mailer.ts (adapters-outbound)"
+    }
+  ],
+  "srcFiles": 16,
+  "loc": 224
+}

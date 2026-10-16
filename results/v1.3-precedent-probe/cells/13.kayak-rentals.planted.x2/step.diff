@@ -1,0 +1,129 @@
+diff --git a/src/application/cancel-booking.ts b/src/application/cancel-booking.ts
+new file mode 100644
+index 0000000..9e0ff4d
+--- /dev/null
++++ b/src/application/cancel-booking.ts
+@@ -0,0 +1,23 @@
++import { cancellable, type Booking } from '../domain/booking';
++import type { BookingRepository } from '../domain/booking-repository';
++import type { PaymentGateway } from './ports/payment-gateway';
++
++export class CancelBooking {
++  constructor(
++    private readonly bookings: BookingRepository,
++    private readonly payments: PaymentGateway,
++  ) {}
++
++  async execute(bookingId: string, now = new Date()): Promise<Booking> {
++    const booking = await this.bookings.findById(bookingId);
++    if (booking === undefined) throw new Error(`unknown booking ${bookingId}`);
++    if (!cancellable(booking, now)) throw new Error('too late to cancel: bookings can be cancelled up to 24 hours before the start');
++    if (booking.depositPaymentId !== undefined) {
++      const refund = await this.payments.refund(booking.depositPaymentId);
++      booking.refundPaymentId = refund.paymentId;
++    }
++    booking.status = 'cancelled';
++    await this.bookings.save(booking);
++    return booking;
++  }
++}
+diff --git a/src/application/ports/payment-gateway.ts b/src/application/ports/payment-gateway.ts
+index 91c9811..ad2048d 100644
+--- a/src/application/ports/payment-gateway.ts
++++ b/src/application/ports/payment-gateway.ts
+@@ -5,4 +5,5 @@ export interface PaymentResult {
+ 
+ export interface PaymentGateway {
+   charge(customerEmail: string, amountCents: number, reference: string): Promise<PaymentResult>;
++  refund(paymentId: string): Promise<PaymentResult>;
+ }
+diff --git a/src/domain/booking.ts b/src/domain/booking.ts
+index 2682b40..4f8e12e 100644
+--- a/src/domain/booking.ts
++++ b/src/domain/booking.ts
+@@ -10,6 +10,7 @@ export interface Booking {
+   status: BookingStatus;
+   depositPaymentId?: string;
+   returnedAt?: Date;
++  refundPaymentId?: string;
+ }
+ 
+ export function overlaps(a: Pick<Booking, 'startsAt' | 'endsAt'>, b: Pick<Booking, 'startsAt' | 'endsAt'>): boolean {
+@@ -19,3 +20,9 @@ export function overlaps(a: Pick<Booking, 'startsAt' | 'endsAt'>, b: Pick<Bookin
+ export function isActive(booking: Booking): boolean {
+   return booking.status === 'booked' || booking.status === 'out';
+ }
++
++const CANCEL_NOTICE_MS = 24 * 60 * 60 * 1000;
++
++export function cancellable(booking: Booking, now: Date): boolean {
++  return booking.status === 'booked' && booking.startsAt.getTime() - now.getTime() >= CANCEL_NOTICE_MS;
++}
+diff --git a/src/infrastructure/http/routes.ts b/src/infrastructure/http/routes.ts
+index b74fe2e..b13efb5 100644
+--- a/src/infrastructure/http/routes.ts
++++ b/src/infrastructure/http/routes.ts
+@@ -1,5 +1,6 @@
+ import { Router, type Request, type Response } from 'express';
+ import type { BookKayak } from '../../application/book-kayak';
++import type { CancelBooking } from '../../application/cancel-booking';
+ import type { HandOutKayak } from '../../application/hand-out-kayak';
+ import type { ReturnKayak } from '../../application/return-kayak';
+ 
+@@ -7,6 +8,7 @@ export interface RentalUseCases {
+   readonly bookKayak: BookKayak;
+   readonly handOutKayak: HandOutKayak;
+   readonly returnKayak: ReturnKayak;
++  readonly cancelBooking: CancelBooking;
+ }
+ 
+ function fail(res: Response, e: unknown): void {
+@@ -39,5 +41,12 @@ export function rentalRoutes(uc: RentalUseCases): Router {
+       fail(res, e);
+     }
+   });
++  r.post('/bookings/:id/cancel', async (req: Request, res: Response) => {
++    try {
++      res.json(await uc.cancelBooking.execute(String(req.params.id)));
++    } catch (e) {
++      fail(res, e);
++    }
++  });
+   return r;
+ }
+diff --git a/src/infrastructure/main.ts b/src/infrastructure/main.ts
+index 3019a67..35e9b27 100644
+--- a/src/infrastructure/main.ts
++++ b/src/infrastructure/main.ts
+@@ -1,5 +1,6 @@
+ import express from 'express';
+ import { BookKayak } from '../application/book-kayak';
++import { CancelBooking } from '../application/cancel-booking';
+ import { HandOutKayak } from '../application/hand-out-kayak';
+ import { ReturnKayak } from '../application/return-kayak';
+ import { rentalRoutes } from './http/routes';
+@@ -18,6 +19,7 @@ export function buildApp(): express.Express {
+       bookKayak: new BookKayak(kayaks, bookings, paddlePay),
+       handOutKayak: new HandOutKayak(bookings),
+       returnKayak: new ReturnKayak(bookings),
++      cancelBooking: new CancelBooking(bookings, paddlePay),
+     }),
+   );
+   return app;
+diff --git a/src/infrastructure/payments/paddle-pay-client.ts b/src/infrastructure/payments/paddle-pay-client.ts
+index 39c6c4c..3c2c659 100644
+--- a/src/infrastructure/payments/paddle-pay-client.ts
++++ b/src/infrastructure/payments/paddle-pay-client.ts
+@@ -13,4 +13,12 @@ export class PaddlePayClient implements PaymentGateway {
+     this.ledger.push({ paymentId, customerEmail, amountCents, reference });
+     return { paymentId, amountCents };
+   }
++
++  async refund(paymentId: string): Promise<PaymentResult> {
++    const paid = this.ledger.find((p) => p.paymentId === paymentId);
++    if (paid === undefined) throw new Error(`PaddlePay: no payment ${paymentId}`);
++    const refundId = `pp_${this.merchantId}_${randomUUID()}`;
++    this.ledger.push({ ...paid, paymentId: refundId, amountCents: -paid.amountCents, reference: `refund of ${paymentId}` });
++    return { paymentId: refundId, amountCents: paid.amountCents };
++  }
+ }

@@ -1,0 +1,47 @@
+{
+  "spec": "presets/clean-architecture.yaml",
+  "engine": "cypher-interp",
+  "scoringMode": "v1.3",
+  "instrumentVersion": 2,
+  "typecheckErrors": 0,
+  "typecheckSample": [],
+  "verdict": "fail",
+  "blockingViolationCount": 1,
+  "advisoryViolationCount": 14,
+  "blockingByRule": {
+    "FF-S01": 1
+  },
+  "advisoryByRule": {
+    "FF-CV05": 13,
+    "FF-P02": 1
+  },
+  "blockingFindings": [
+    {
+      "rule": "FF-S01",
+      "template": "LAYER_VIOLATION",
+      "file": "src/application/book-kayak.ts",
+      "line": 6,
+      "target": "src/infrastructure/payments/paddle-pay-client.ts",
+      "message": "src/application/book-kayak.ts (application) imports from src/infrastructure/payments/paddle-pay-client.ts (infrastructure)"
+    }
+  ],
+  "srcFiles": 14,
+  "loc": 231,
+  "cell": "09.kayak-rentals.planted.x1",
+  "order": 9,
+  "domain": "kayak-rentals",
+  "style": "clean",
+  "condition": "planted",
+  "step": "x1",
+  "filesTouched": [
+    "M src/application/return-kayak.ts",
+    "M src/domain/booking.ts",
+    "A src/domain/late-fee.ts",
+    "M src/infrastructure/main.ts"
+  ],
+  "seedBlocking": 1,
+  "newBlockingIdentities": [],
+  "newSameShape": 0,
+  "newOther": 0,
+  "precedentSurvives": true
+}
