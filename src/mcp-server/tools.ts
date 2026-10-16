@@ -13,7 +13,9 @@ import type { EvaluateDeps } from './evaluate-project.js';
 import { explainViolation } from './rule-explainer.js';
 import { buildSpecView, whichLayer } from './spec-view.js';
 import { checkSource } from './file-check.js';
-import { checkDiff } from './diff-check.js';
+import { checkDiff, diffOverrides } from './diff-check.js';
+import { templateCheck } from './template-check.js';
+import type { GraphEngine } from '../cypher-interp/engine.js';
 import { suggestPlacement } from './placement.js';
 import { normalisePath } from './layer-resolver.js';
 import { ProjectView } from './project-files.js';
@@ -71,6 +73,8 @@ export interface ServerContext {
   readonly neural?: NeuralService | undefined;
   /** Deterministic fix hints for `explain_and_fix` (the fix-hints feature's `buildFixHint`, when the build has it). */
   readonly fixHints?: FixHintSource | undefined;
+  /** Graph engine of `evaluate_project` and the template checks; absent = `neo4j` (the reference engine). */
+  readonly graphEngine?: GraphEngine | undefined;
 }
 
 const ok = <T>(data: T): ToolOutcome<T> => ({ ok: true, data });
@@ -241,7 +245,7 @@ export async function evaluateProjectTool(
 
 export async function checkFileTool(
   ctx: ServerContext,
-  args: { readonly path: string; readonly content: string; readonly spec?: string | undefined },
+  args: { readonly path: string; readonly content: string; readonly spec?: string | undefined; readonly templates?: boolean | undefined },
 ): Promise<ToolOutcome<FileCheckResult>> {
   const loaded = await specFor(ctx, args.spec);
   if (!loaded.ok) return loaded;
@@ -251,14 +255,30 @@ export async function checkFileTool(
     content: args.content,
     view: new ProjectView({ root: ctx.defaultProjectPath, overrides: new Map([[rel, args.content]]) }),
   });
+  const templates = args.templates === true
+    ? await templateCheck({
+      spec: loaded.data.spec,
+      specPath: loaded.data.specPath,
+      projectRoot: ctx.defaultProjectPath,
+      before: new Map(),
+      after: new Map([[rel, args.content]]),
+      interp: interpOf(ctx),
+    })
+    : undefined;
+  const withTemplates = (r: FileCheckResult): FileCheckResult => (templates === undefined ? r : { ...r, templates });
   const interp = interpInput(ctx, loaded.data);
-  if (interp !== undefined) return ok(await orFast(fast, () => interpCheckFile(interp, rel, args.content)));
-  return ok(noRoot(ctx, fast));
+  if (interp !== undefined) return ok(withTemplates(await orFast(fast, () => interpCheckFile(interp, rel, args.content))));
+  return ok(withTemplates(noRoot(ctx, fast)));
+}
+
+/** The in-process evaluator when the server runs on cypher-interp (template checks never touch Neo4j). */
+function interpOf(ctx: ServerContext): ServerContext['evaluateDeps']['interp'] {
+  return ctx.graphEngine === 'cypher-interp' ? ctx.evaluateDeps.interp : undefined;
 }
 
 export async function checkDiffTool(
   ctx: ServerContext,
-  args: { readonly diff: string; readonly spec?: string | undefined },
+  args: { readonly diff: string; readonly spec?: string | undefined; readonly templates?: boolean | undefined },
 ): Promise<ToolOutcome<DiffCheckResult>> {
   const loaded = await specFor(ctx, args.spec);
   if (!loaded.ok) return loaded;
@@ -266,14 +286,29 @@ export async function checkDiffTool(
   if (result.files.length === 0 && result.skipped.length === 0) {
     return fail('No file found in the diff: pass unified diff text (git diff or diff -u output).');
   }
-  if (ctx.fastRulesEngine !== 'cypher-interp') return ok(result);
+  let templates: DiffCheckResult['templates'];
+  if (args.templates === true) {
+    const { before, after, unreadable } = diffOverrides(args.diff, ctx.defaultProjectPath);
+    const checked = await templateCheck({
+      spec: loaded.data.spec,
+      specPath: loaded.data.specPath,
+      projectRoot: ctx.defaultProjectPath,
+      before,
+      after,
+      interp: interpOf(ctx),
+    });
+    const note = unreadable.length > 0 ? { reason: `not rebuilt from the diff, evaluated as on disk: ${unreadable.join(', ')}` } : {};
+    templates = { ...checked, ...(checked.reason === undefined ? note : {}) };
+  }
+  const withTemplates = (r: DiffCheckResult): DiffCheckResult => (templates === undefined ? r : { ...r, templates });
+  if (ctx.fastRulesEngine !== 'cypher-interp') return ok(withTemplates(result));
   const interp = interpInput(ctx, loaded.data);
-  if (interp === undefined) return ok({ ...result, files: result.files.map((f) => noRoot(ctx, f)) });
+  if (interp === undefined) return ok(withTemplates({ ...result, files: result.files.map((f) => noRoot(ctx, f)) }));
   try {
-    return ok(await interpCheckDiff(interp, args.diff));
+    return ok(withTemplates(await interpCheckDiff(interp, args.diff)));
   } catch (e) {
     const note = interpFailedNote(e);
-    return ok({ ...result, files: result.files.map((f) => ({ ...f, notes: [...f.notes, note] })) });
+    return ok(withTemplates({ ...result, files: result.files.map((f) => ({ ...f, notes: [...f.notes, note] })) }));
   }
 }
 
