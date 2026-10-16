@@ -31,6 +31,7 @@ import type { SpecProposal } from '../ise/propose.js';
 import type { NeuralService } from './neural-service.js';
 import { explainAndFix, reviewUnit } from './neural-tools.js';
 import type { ExplainAndFixArgs, ExplainAndFixResult, FixHintSource, ReviewUnitArgs, ReviewUnitResult } from './neural-tools.js';
+import type { CallLogger } from './call-log.js';
 import { defaultPresetsDir, proposeRules, summariseProposal } from '../rule-mining/index.js';
 import type { ProposalSummary } from '../rule-mining/index.js';
 import type {
@@ -83,6 +84,8 @@ export interface ServerContext {
   readonly fixHints?: FixHintSource | undefined;
   /** Graph engine of `evaluate_project` and the template checks; absent = `neo4j` (the reference engine). */
   readonly graphEngine?: GraphEngine | undefined;
+  /** Call log (`--call-log`, Docs/v1.3/mcp-call-log.md); absent means off: handlers are registered unwrapped. */
+  readonly callLog?: CallLogger | undefined;
   /** Register the opt-in `propose_rules` tool (rule mining). Off by default. */
   readonly ruleMining?: boolean | undefined;
 }

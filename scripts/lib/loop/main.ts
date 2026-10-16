@@ -5,7 +5,7 @@
  *   npx tsx scripts/loop-harness-cli.ts --plan <plan.json> [--dry-run] [--binary <abs>] [--harness-root <abs>]
  *                                       [--out-root <abs>] [--codex-home <abs>] [--codex-user-home <abs>]
  *                                       [--claude-config-dir <abs>]
- *                                       [--engine neo4j|cypher-interp|both]
+ *                                       [--engine neo4j|cypher-interp|both] [--call-log]
  *   npx tsx scripts/loop-harness-cli.ts --help
  *
  * `--dry-run` replaces the generator, the firewall and the type-check with the stubs of `stub.ts`: the whole loop
@@ -77,13 +77,14 @@ export const LOOP_USAGE = [
   'usage: npx tsx scripts/loop-harness-cli.ts --plan <plan.json> [--dry-run] [--binary <abs>] [--harness-root <abs>]',
   '                                          [--out-root <abs>] [--codex-home <abs>] [--codex-user-home <abs>]',
   '                                          [--claude-config-dir <abs>]',
-  '                                          [--engine neo4j|cypher-interp|both]',
+  '                                          [--engine neo4j|cypher-interp|both] [--call-log]',
   '       npx tsx scripts/loop-harness-cli.ts --help',
   '',
   'Runs the multi-step firewall-in-the-loop grid: each run applies the k steps of a task to one work directory under',
   'an arm (none | daedalus-mcp | gate), snapshotting, type-checking and evaluating after every step. Re-running the',
   'same plan resumes. --dry-run uses a stub generator, stub firewall and stub type-check (no model, no Neo4j).',
   'Plan fields "<local>" (binary, harnessRoot, outRoot) come from --binary, --harness-root and --out-root.',
+  '--call-log (off by default): daedalus-mcp turns log their MCP calls under calls/ and steps get a process block.',
   '--engine (or the plan\'s "engine") picks the evaluator\'s graph engine; both = Neo4j of record plus an',
   'interpreter parity check on every snapshot. Absent = the default wiring.',
   '',
@@ -120,6 +121,8 @@ export function defaultLoopDeps(): LoopMainDeps {
 interface ParsedArgs {
   readonly help: boolean;
   readonly dryRun: boolean;
+  /** `--call-log`: MCP call logs and the step `process` block (Docs/v1.3/mcp-call-log.md); off by default. */
+  readonly callLog: boolean;
   readonly plan?: string;
   readonly local: LocalOverrides;
   readonly codexHomes: CodexHomes;
@@ -130,6 +133,7 @@ interface ParsedArgs {
 export function parseLoopArgs(argv: readonly string[]): DomainResult<ParsedArgs> {
   let help = false;
   let dryRun = false;
+  let callLog = false;
   let plan: string | undefined;
   let engine: string | undefined;
   const local: { binary?: string; harnessRoot?: string; outRoot?: string; claudeConfigDir?: string } = {};
@@ -154,6 +158,7 @@ export function parseLoopArgs(argv: readonly string[]): DomainResult<ParsedArgs>
     const setter = set[a];
     if (a === '--help' || a === '-h') help = true;
     else if (a === '--dry-run') dryRun = true;
+    else if (a === '--call-log') callLog = true;
     else if (setter !== undefined && v !== undefined) {
       setter(v);
       i++;
@@ -162,7 +167,7 @@ export function parseLoopArgs(argv: readonly string[]): DomainResult<ParsedArgs>
   if (!help && plan === undefined) return DomainResult.fail([{ code: 'LOOP_USAGE', message: '--plan <file> is required' }]);
   const parsedEngine = engine !== undefined ? parseLoopEngine(engine) : undefined;
   if (engine !== undefined && parsedEngine === undefined) return DomainResult.fail([{ code: 'LOOP_USAGE', message: `--engine must be neo4j, cypher-interp or both, not ${JSON.stringify(engine)}` }]);
-  return DomainResult.ok({ help, dryRun, local, codexHomes: homes, ...(plan !== undefined ? { plan } : {}), ...(parsedEngine !== undefined ? { engine: parsedEngine } : {}) });
+  return DomainResult.ok({ help, dryRun, callLog, local, codexHomes: homes, ...(plan !== undefined ? { plan } : {}), ...(parsedEngine !== undefined ? { engine: parsedEngine } : {}) });
 }
 
 function sha256File(file: string): string {
@@ -378,7 +383,7 @@ async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs
 export async function runLoopGrid(
   loaded: LoadedPlan,
   wiring: Wiring,
-  options: { readonly dryRun: boolean; readonly now: () => Date; readonly planSha256: string; readonly tasksSha256: string; readonly log?: (line: string) => void; readonly engine?: LoopEngine },
+  options: { readonly dryRun: boolean; readonly now: () => Date; readonly planSha256: string; readonly tasksSha256: string; readonly log?: (line: string) => void; readonly engine?: LoopEngine; readonly callLog?: boolean },
 ): Promise<DomainResult<readonly LoopRunResult[]>> {
   const { plan } = loaded;
   const specs = scheduleLoopRuns(plan, loaded.tasks.tasks);
@@ -410,6 +415,7 @@ export async function runLoopGrid(
         now: options.now,
         dryRun: options.dryRun,
         ...(options.log !== undefined ? { log: options.log } : {}),
+        ...(options.callLog === true ? { callLog: true } : {}),
         ...(plan.acceptance?.enabled === true ? { acceptance: acceptanceRunner(plan.acceptance) } : {}),
       },
       spec,
@@ -481,6 +487,7 @@ export async function main(argv: readonly string[], repoRoot: string, depsIn?: L
   const engine = args.data.dryRun ? undefined : liveEngine(args.data.engine, loaded.data.plan.engine);
   const grid = await runLoopGrid(loaded.data, wiring, {
     dryRun: args.data.dryRun,
+    ...(args.data.callLog ? { callLog: true } : {}),
     now: deps.now,
     planSha256: sha256File(planFile),
     tasksSha256: sha256File(loaded.data.tasksPath),
