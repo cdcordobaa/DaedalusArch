@@ -1,0 +1,513 @@
+{
+  "style": "layered",
+  "variant": "v06-router-controller-cycle",
+  "elapsedMs": 2379,
+  "violations": [
+    {
+      "id": "v-cbee760ee6dab8b3",
+      "type": "CYCLIC_DEPENDENCY",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S02",
+      "route": "symbolic",
+      "filePath": "src/presentation/Router.ts,src/presentation/http/OrderController.ts,src/presentation/Router.ts",
+      "message": "Circular dependency: src/presentation/Router.ts,src/presentation/http/OrderController.ts,src/presentation/Router.ts",
+      "deterministic": true,
+      "target": "src/presentation/http/OrderController.ts",
+      "line": 3,
+      "discriminator": [
+        "[\"src/presentation/Router.ts\",\"src/presentation/http/OrderController.ts\",\"src/presentation/Router.ts\"]"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-b4281e4af8d69acb",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/business/services/OrderService.ts",
+      "message": "Violation in src/business/services/OrderService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8181818181818182"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-8f1a80d1fb01836e",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/business/model/Money.ts",
+      "message": "Violation in src/business/model/Money.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    }
+  ],
+  "advisoryFilter": {
+    "options": [
+      "cv05-no-logic",
+      "cv05-no-branching",
+      "composition-roots",
+      "c03-core-only",
+      "c02-abstract-imports",
+      "c02-size-scaled",
+      "c04-entry-points",
+      "so-framework-members",
+      "cv05-rollup"
+    ],
+    "suppressed": [
+      {
+        "option": "composition-roots",
+        "reason": "class-free file without control flow that instantiates classes from 2 layers (business, persistence)",
+        "violation": {
+          "id": "v-c859167166e49071",
+          "type": "INSTABILITY_VIOLATION",
+          "dimension": "coupling",
+          "severity": "major",
+          "functionId": "FF-C03",
+          "route": "symbolic",
+          "filePath": "src/business/ServiceFactory.ts",
+          "message": "Violation in src/business/ServiceFactory.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "evidence": [
+            "instability=0.8571428571428571"
+          ],
+          "tag": "topological"
+        }
+      },
+      {
+        "option": "composition-roots",
+        "reason": "class-free file without control flow that instantiates classes from 2 layers (business, persistence)",
+        "violation": {
+          "id": "v-c64d740e28f33087",
+          "type": "MISSING_TEST_FILE",
+          "dimension": "convention",
+          "severity": "advisory",
+          "functionId": "FF-CV05",
+          "route": "symbolic",
+          "filePath": "src/business/ServiceFactory.ts",
+          "message": "Violation in src/business/ServiceFactory.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "tag": "pattern-proxy"
+        }
+      },
+      {
+        "option": "cv05-no-logic",
+        "reason": "no runtime logic (data classes, enums, constant data)",
+        "violation": {
+          "id": "v-45fcf3537907549d",
+          "type": "MISSING_TEST_FILE",
+          "dimension": "convention",
+          "severity": "advisory",
+          "functionId": "FF-CV05",
+          "route": "symbolic",
+          "filePath": "src/business/errors/BusinessError.ts",
+          "message": "Violation in src/business/errors/BusinessError.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "tag": "pattern-proxy"
+        }
+      },
+      {
+        "option": "cv05-no-branching",
+        "reason": "no control flow, no callbacks, function bodies of at most two statements",
+        "violation": {
+          "id": "v-051d43c9a00a8e36",
+          "type": "MISSING_TEST_FILE",
+          "dimension": "convention",
+          "severity": "advisory",
+          "functionId": "FF-CV05",
+          "route": "symbolic",
+          "filePath": "src/business/model/Customer.ts",
+          "message": "Violation in src/business/model/Customer.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "tag": "pattern-proxy"
+        }
+      },
+      {
+        "option": "cv05-no-branching",
+        "reason": "no control flow, no callbacks, function bodies of at most two statements",
+        "violation": {
+          "id": "v-96990e808b599484",
+          "type": "MISSING_TEST_FILE",
+          "dimension": "convention",
+          "severity": "advisory",
+          "functionId": "FF-CV05",
+          "route": "symbolic",
+          "filePath": "src/business/model/OrderLine.ts",
+          "message": "Violation in src/business/model/OrderLine.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "tag": "pattern-proxy"
+        }
+      },
+      {
+        "option": "cv05-no-branching",
+        "reason": "no control flow, no callbacks, function bodies of at most two statements",
+        "violation": {
+          "id": "v-e22c23147fa82d7e",
+          "type": "MISSING_TEST_FILE",
+          "dimension": "convention",
+          "severity": "advisory",
+          "functionId": "FF-CV05",
+          "route": "symbolic",
+          "filePath": "src/persistence/CustomerGateway.ts",
+          "message": "Violation in src/persistence/CustomerGateway.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "tag": "pattern-proxy"
+        }
+      },
+      {
+        "option": "cv05-no-logic",
+        "reason": "type declarations only",
+        "violation": {
+          "id": "v-54674e9bfb2d8ad2",
+          "type": "MISSING_TEST_FILE",
+          "dimension": "convention",
+          "severity": "advisory",
+          "functionId": "FF-CV05",
+          "route": "symbolic",
+          "filePath": "src/persistence/records/CustomerRecord.ts",
+          "message": "Violation in src/persistence/records/CustomerRecord.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "tag": "pattern-proxy"
+        }
+      },
+      {
+        "option": "cv05-no-logic",
+        "reason": "type declarations only",
+        "violation": {
+          "id": "v-b9d809d0723efad9",
+          "type": "MISSING_TEST_FILE",
+          "dimension": "convention",
+          "severity": "advisory",
+          "functionId": "FF-CV05",
+          "route": "symbolic",
+          "filePath": "src/persistence/records/OrderRecord.ts",
+          "message": "Violation in src/persistence/records/OrderRecord.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "tag": "pattern-proxy"
+        }
+      },
+      {
+        "option": "cv05-no-logic",
+        "reason": "type declarations only",
+        "violation": {
+          "id": "v-33b0a46c4e6ddfe4",
+          "type": "MISSING_TEST_FILE",
+          "dimension": "convention",
+          "severity": "advisory",
+          "functionId": "FF-CV05",
+          "route": "symbolic",
+          "filePath": "src/persistence/records/ProductRecord.ts",
+          "message": "Violation in src/persistence/records/ProductRecord.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "tag": "pattern-proxy"
+        }
+      },
+      {
+        "option": "cv05-no-branching",
+        "reason": "no control flow, no callbacks, function bodies of at most two statements",
+        "violation": {
+          "id": "v-3111c51d1915688e",
+          "type": "MISSING_TEST_FILE",
+          "dimension": "convention",
+          "severity": "advisory",
+          "functionId": "FF-CV05",
+          "route": "symbolic",
+          "filePath": "src/presentation/app.ts",
+          "message": "Violation in src/presentation/app.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "tag": "pattern-proxy"
+        }
+      },
+      {
+        "option": "cv05-no-logic",
+        "reason": "type declarations only",
+        "violation": {
+          "id": "v-5905bcda1f8de060",
+          "type": "MISSING_TEST_FILE",
+          "dimension": "convention",
+          "severity": "advisory",
+          "functionId": "FF-CV05",
+          "route": "symbolic",
+          "filePath": "src/presentation/http/HttpTypes.ts",
+          "message": "Violation in src/presentation/http/HttpTypes.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "tag": "pattern-proxy"
+        }
+      },
+      {
+        "option": "cv05-no-branching",
+        "reason": "no control flow, no callbacks, function bodies of at most two statements",
+        "violation": {
+          "id": "v-189e47d27f861fa3",
+          "type": "MISSING_TEST_FILE",
+          "dimension": "convention",
+          "severity": "advisory",
+          "functionId": "FF-CV05",
+          "route": "symbolic",
+          "filePath": "src/presentation/views/ProductView.ts",
+          "message": "Violation in src/presentation/views/ProductView.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "tag": "pattern-proxy"
+        }
+      },
+      {
+        "option": "cv05-rollup",
+        "reason": "project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Money.ts) stands for the project",
+        "violation": {
+          "id": "v-084e93ea440dd1b0",
+          "type": "MISSING_TEST_FILE",
+          "dimension": "convention",
+          "severity": "advisory",
+          "functionId": "FF-CV05",
+          "route": "symbolic",
+          "filePath": "src/business/model/Order.ts",
+          "message": "Violation in src/business/model/Order.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "tag": "pattern-proxy"
+        }
+      },
+      {
+        "option": "cv05-rollup",
+        "reason": "project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Money.ts) stands for the project",
+        "violation": {
+          "id": "v-2eee26bde3206f77",
+          "type": "MISSING_TEST_FILE",
+          "dimension": "convention",
+          "severity": "advisory",
+          "functionId": "FF-CV05",
+          "route": "symbolic",
+          "filePath": "src/business/model/Product.ts",
+          "message": "Violation in src/business/model/Product.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "tag": "pattern-proxy"
+        }
+      },
+      {
+        "option": "cv05-rollup",
+        "reason": "project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Money.ts) stands for the project",
+        "violation": {
+          "id": "v-5c079cd9aff53a56",
+          "type": "MISSING_TEST_FILE",
+          "dimension": "convention",
+          "severity": "advisory",
+          "functionId": "FF-CV05",
+          "route": "symbolic",
+          "filePath": "src/business/services/CatalogService.ts",
+          "message": "Violation in src/business/services/CatalogService.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "tag": "pattern-proxy"
+        }
+      },
+      {
+        "option": "cv05-rollup",
+        "reason": "project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Money.ts) stands for the project",
+        "violation": {
+          "id": "v-13af275dddb64da1",
+          "type": "MISSING_TEST_FILE",
+          "dimension": "convention",
+          "severity": "advisory",
+          "functionId": "FF-CV05",
+          "route": "symbolic",
+          "filePath": "src/business/services/OrderService.ts",
+          "message": "Violation in src/business/services/OrderService.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "tag": "pattern-proxy"
+        }
+      },
+      {
+        "option": "cv05-rollup",
+        "reason": "project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Money.ts) stands for the project",
+        "violation": {
+          "id": "v-159669bf1369c26c",
+          "type": "MISSING_TEST_FILE",
+          "dimension": "convention",
+          "severity": "advisory",
+          "functionId": "FF-CV05",
+          "route": "symbolic",
+          "filePath": "src/business/services/PricingPolicy.ts",
+          "message": "Violation in src/business/services/PricingPolicy.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "tag": "pattern-proxy"
+        }
+      },
+      {
+        "option": "cv05-rollup",
+        "reason": "project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Money.ts) stands for the project",
+        "violation": {
+          "id": "v-38b826c003f3980b",
+          "type": "MISSING_TEST_FILE",
+          "dimension": "convention",
+          "severity": "advisory",
+          "functionId": "FF-CV05",
+          "route": "symbolic",
+          "filePath": "src/business/services/RecordMapping.ts",
+          "message": "Violation in src/business/services/RecordMapping.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "tag": "pattern-proxy"
+        }
+      },
+      {
+        "option": "cv05-rollup",
+        "reason": "project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Money.ts) stands for the project",
+        "violation": {
+          "id": "v-0aad35d21e80d222",
+          "type": "MISSING_TEST_FILE",
+          "dimension": "convention",
+          "severity": "advisory",
+          "functionId": "FF-CV05",
+          "route": "symbolic",
+          "filePath": "src/persistence/Database.ts",
+          "message": "Violation in src/persistence/Database.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "tag": "pattern-proxy"
+        }
+      },
+      {
+        "option": "cv05-rollup",
+        "reason": "project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Money.ts) stands for the project",
+        "violation": {
+          "id": "v-403ab3ec850af3d4",
+          "type": "MISSING_TEST_FILE",
+          "dimension": "convention",
+          "severity": "advisory",
+          "functionId": "FF-CV05",
+          "route": "symbolic",
+          "filePath": "src/persistence/OrderGateway.ts",
+          "message": "Violation in src/persistence/OrderGateway.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "tag": "pattern-proxy"
+        }
+      },
+      {
+        "option": "cv05-rollup",
+        "reason": "project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Money.ts) stands for the project",
+        "violation": {
+          "id": "v-713efb3b16d66030",
+          "type": "MISSING_TEST_FILE",
+          "dimension": "convention",
+          "severity": "advisory",
+          "functionId": "FF-CV05",
+          "route": "symbolic",
+          "filePath": "src/persistence/ProductGateway.ts",
+          "message": "Violation in src/persistence/ProductGateway.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "tag": "pattern-proxy"
+        }
+      },
+      {
+        "option": "cv05-rollup",
+        "reason": "project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Money.ts) stands for the project",
+        "violation": {
+          "id": "v-99c22536d4734f7d",
+          "type": "MISSING_TEST_FILE",
+          "dimension": "convention",
+          "severity": "advisory",
+          "functionId": "FF-CV05",
+          "route": "symbolic",
+          "filePath": "src/presentation/Router.ts",
+          "message": "Violation in src/presentation/Router.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "tag": "pattern-proxy"
+        }
+      },
+      {
+        "option": "cv05-rollup",
+        "reason": "project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Money.ts) stands for the project",
+        "violation": {
+          "id": "v-2befb50045a882e0",
+          "type": "MISSING_TEST_FILE",
+          "dimension": "convention",
+          "severity": "advisory",
+          "functionId": "FF-CV05",
+          "route": "symbolic",
+          "filePath": "src/presentation/http/CatalogController.ts",
+          "message": "Violation in src/presentation/http/CatalogController.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "tag": "pattern-proxy"
+        }
+      },
+      {
+        "option": "cv05-rollup",
+        "reason": "project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Money.ts) stands for the project",
+        "violation": {
+          "id": "v-ad6a8a44b45a1d1e",
+          "type": "MISSING_TEST_FILE",
+          "dimension": "convention",
+          "severity": "advisory",
+          "functionId": "FF-CV05",
+          "route": "symbolic",
+          "filePath": "src/presentation/http/ErrorHandling.ts",
+          "message": "Violation in src/presentation/http/ErrorHandling.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "tag": "pattern-proxy"
+        }
+      },
+      {
+        "option": "cv05-rollup",
+        "reason": "project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Money.ts) stands for the project",
+        "violation": {
+          "id": "v-f5ef28dc78d611cd",
+          "type": "MISSING_TEST_FILE",
+          "dimension": "convention",
+          "severity": "advisory",
+          "functionId": "FF-CV05",
+          "route": "symbolic",
+          "filePath": "src/presentation/http/OrderController.ts",
+          "message": "Violation in src/presentation/http/OrderController.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "tag": "pattern-proxy"
+        }
+      },
+      {
+        "option": "cv05-rollup",
+        "reason": "project-level: FF-CV05 fires on 26 of 27 source files; one row (src/business/model/Money.ts) stands for the project",
+        "violation": {
+          "id": "v-9932d8e7ba3ef9c4",
+          "type": "MISSING_TEST_FILE",
+          "dimension": "convention",
+          "severity": "advisory",
+          "functionId": "FF-CV05",
+          "route": "symbolic",
+          "filePath": "src/presentation/views/OrderView.ts",
+          "message": "Violation in src/presentation/views/OrderView.ts",
+          "deterministic": true,
+          "discriminator": [],
+          "tag": "pattern-proxy"
+        }
+      }
+    ]
+  }
+}
