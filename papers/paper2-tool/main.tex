@@ -99,7 +99,7 @@ control rejects all 500 falsified ones. Verdicts are invariant in 637 of 655 sem
 We also report the limits: the development sets detect only 33\% of rule mutants, and two exploratory searches for
 external validity (developer fixes and known groups) found no robust signal. A sealed hold-out run and human labels
 are still pending.
-% src abstract v1.3 additions: Docs/v1.3/cypher-interpreter.md (65,254); Docs/v1.3/cypher-interp-fuzz.md (836,000, 0 mismatches); Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md §0 (kappa table; 14 wild + 15 external = 29 projects); git show 23adb369:Docs/DiagnosticRuns/v1.3-external-correctness-2026-10-16.md §3 (283/283; control 500); git show 6efd7520:Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md (637 of 655); Docs/DiagnosticRuns/v1.3-rule-mutation-2026-10-16.md §1 (90/273 = 33%); Docs/DiagnosticRuns/v1.3-validity-fixes-mined-2026-10-16.md "Verdict"; git show ba1c6327:Docs/DiagnosticRuns/v1.3-known-groups-2026-10-16.md §1
+% src abstract v1.3 additions: Docs/v1.3/cypher-interpreter.md (65,254); Docs/v1.3/cypher-interp-fuzz.md (836,000, 0 mismatches); Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md §0 (kappa table; 14 wild + 15 external = 29 projects); git show 23adb369:Docs/DiagnosticRuns/v1.3-external-correctness-2026-10-16.md §3 (283/283; control 500); Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md (637 of 655); Docs/DiagnosticRuns/v1.3-rule-mutation-2026-10-16.md §1 (90/273 = 33%); Docs/DiagnosticRuns/v1.3-validity-fixes-mined-2026-10-16.md "Verdict"; git show ba1c6327:Docs/DiagnosticRuns/v1.3-known-groups-2026-10-16.md §1
 % src abstract v1.3: Docs/DiagnosticRuns/v1.3-graph-fidelity-2026-10-14.md (Jaccard 0.988341 E1 tsc; 0.913217 SO4 scoped tsc; extractor-bug 0); Docs/DiagnosticRuns/v1.3-labelling-2026-10-15.md (2,668 checkable, 0 incorrect); Docs/DiagnosticRuns/apg2-scope-2026-10-15.md (25/27); Docs/DiagnosticRuns/apg2-ablation-2026-10-15.md (v1.3 graph 0/27); Section 7 of this paper (eleven defects, Table v13-defects)
 % src abstract SO4: results/so4-heldout/agg/prf_overall.csv (labelled), results/so4-heldout/agg-corrected/prf_overall.csv (precision 1.000)
 % src abstract judge robustness: results/judge-robustness/summary.json (agreement 0.94, kappa 0.766355, registeredVerdictChanges 0); ADR-038 in Docs/ADR.md
@@ -1229,7 +1229,7 @@ finding that did not appear. % src: Docs/DiagnosticRuns/v1.3-judge-catch-2026-10
 
 % Provenance for the subsections from sec:v13-interp to sec:v13-null: paths without a branch prefix are on origin/v1.3. A path written
 % "git show <sha>:<path>" is on the head branch of a pull request that is not merged into v1.3 (pinned to the branch
-% tip on 2026-10-16; see the header note); the PR number is given. Reports from #190, #168 and #215, which have since
+% tip on 2026-10-16; see the header note); the PR number is given. Reports from #190, #168, #185 and #215, which have since
 % merged, are cited by their v1.3 paths. Figures marked \explor{} come from human-written
 % code outside the development set; they are exploratory (no pre-registration, no hold-out) and are not validity
 % estimates either.
@@ -1340,7 +1340,7 @@ type-check) and compared the blocking findings before and after, keyed on (rule,
 Over the 655 applicable cases, 637 are invariant (0.973). Renaming (with the specification following the rename),
 reordering, reformatting, switching between default and named exports, \texttt{import type}, path aliases and
 splitting a file are invariant on all 71 variants. \devset{}
-% src: git show 6efd7520:Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md (PR #185, [hold], open; pinned to its branch tip SHA) §1 and line 98 ("637 of 655 applicable cases are invariant (0.973)"); git show 6efd7520:results/v1.3-metamorphic/summary.md (per-transformation table)
+% src: Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md (PR #185, merged into v1.3) §1 and line 98 ("637 of 655 applicable cases are invariant (0.973)"); results/v1.3-metamorphic/summary.md (per-transformation table)
 The 18 changes come from three transformations: adding barrels (67/71 invariant), removing barrels (15/16) and
 merging two files of one layer (58/71). We traced each change. One is a defect: a barrel that belongs to no layer
 hides what it re-exports from the literal-view layer rules. A fix exists behind an option that is off by default,
@@ -1349,7 +1349,7 @@ are intended construct choices: barrels and merges that create module cycles (4 
 on files), and a DDD context whose declared public API is its barrel (1 case). Two probes show where the rules are
 deliberately bound to names: opaque identifiers that drop role words leave 61 of 71 verdicts unchanged, and a
 rename that leaves the DDD specification stale leaves 68 of 71. \devset{}
-% src: git show 6efd7520:Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md §1 (barrel-add 67/71, barrel-remove 15/16, merge 58/71; MT-B1 tool bug; 4 barrel-induced cycles; 1 DDD public API; 13 merge cycles; opaque names 61/71; rename-spec-stale 68/71; option OFF, FF-DS02 false positive on DDD g02)
+% src: Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md §1 (barrel-add 67/71, barrel-remove 15/16, merge 58/71; MT-B1 tool bug; 4 barrel-induced cycles; 1 DDD public API; 13 merge cycles; opaque names 61/71; rename-spec-stale 68/71; option OFF, FF-DS02 false positive on DDD g02)
 These are development-set figures: the transformations were applied to the same reference variants that the v1.3
 changes were made against, although nothing was tuned on them.
 

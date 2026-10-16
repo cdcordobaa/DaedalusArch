@@ -48,8 +48,9 @@ not a blind spot (reference recall 54/54 + 3 N/A, blind 50/64; SO4 73/73 as a de
 blocking findings on human code) and states that the semantic side is not covered (judge 16/21, not re-run on E1).
 
 **Dependency on open PRs.** The threats paragraph and the floor bullets cite reports on hold: #167 (external
-correctness), #185 (metamorphic), #198 (known groups, null). Their `% src:` comments use `git show <sha>:<path>`,
-pinned to the branch tips of 2026-10-16. #168 (fixes mined, null) has merged and is cited by its v1.3 path. These
+correctness) and #198 (known groups, null). Their `% src:` comments use `git show <sha>:<path>`, pinned to the
+branch tips of 2026-10-16. #168 (fixes mined, null) and #185 (metamorphic) have merged and are cited by their v1.3
+paths. These
 sentences are provisional: see the submission gate below.
 
 **Still missing.** Citation verification (`paper1-e1/README.md` item 1); the author audit (P4 has no panel-vs-audit
@@ -112,7 +113,7 @@ the paper (*[dev]* = development set; *[expl]* = exploratory, human-written code
   (`Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md`; #166 merged);
 - external human-written set: 283/283 blocking findings correct, negative control 500/500 rejected *[expl]*
   (#167, not merged); wave 2 brings 35 projects, unlabelled (#181, not merged);
-- metamorphic invariance 637/655 *[dev]* (#185, not merged);
+- metamorphic invariance 637/655 *[dev]* (#185, merged into v1.3 on 2026-10-16);
 - rule mutation: development sets kill 90/273 (33%), stated as a limit of the oracle *[dev]* (#190, not merged);
 - replication: 531-row audit and 160-file smoke run (#117 merged); 5,154 numbers, 4,587 reproduce, 58 differ (#215,
   not merged);
@@ -234,13 +235,12 @@ advice: a paper that fails a line is not ready, whatever its rating above.
    | Paper | PR | Branch tip pinned | Report |
    |---|---|---|---|
    | 1, 2 | #167 | `23adb369` | `Docs/DiagnosticRuns/v1.3-external-correctness-2026-10-16.md` |
-   | 1, 2 | #185 | `6efd7520` | `Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md` (and `results/v1.3-metamorphic/summary.md`) |
    | 1, 2 | #198 | `ba1c6327` | `Docs/DiagnosticRuns/v1.3-known-groups-2026-10-16.md` |
    | 2 | #181 | `b1d05f7a` | `Docs/DiagnosticRuns/v1.3-external-set-2-2026-10-16.md` |
    | 4 | #139 | `afb44917` | `Docs/DiagnosticRuns/v1.3-advisory-noise-2026-10-16.md` |
    | 4 | #213 | `d5170b93` | `Docs/DiagnosticRuns/v1.3-advisory-filter-oos-2026-10-16.md` (and its criterion file) |
 
-   Merged since they were first cited, and now cited by their v1.3 path: #165, #168, #179, #190, #191, #215.
+   Merged since they were first cited, and now cited by their v1.3 path: #165, #168, #179, #185, #190, #191, #215.
 2. **Every source is public and in the tree.** `npm run lint:citations` passes: no citation of the internal
    communications removed from the public tree by #132 (the patterns are in `scripts/lint-citations.sh`) and no
    personal absolute path.

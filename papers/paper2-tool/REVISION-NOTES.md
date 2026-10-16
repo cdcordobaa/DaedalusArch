@@ -79,7 +79,7 @@ v1.3 path. See the submission gate in `papers/STATUS.md`.)
 | Section 7.7, one rule text, two engines: byte-identity on 71 variants, 65,254-statement parity, 836,000-statement differential fuzz, ten interpreter defects found | #128, #183 (merged) |
 | Section 7.8, convergent agreement with dependency-cruiser, eslint-plugin-boundaries and ArchUnitTS (Table `tab:v13-convergent`) | #166 (merged) |
 | Section 7.9, correctness on 15 human-written projects (283/283, negative control 500/500); wave 2 fidelity and the spec-author caveat | #167, #181 (not merged) |
-| Section 7.10, metamorphic invariance 637/655 | #185 (not merged) |
+| Section 7.10, metamorphic invariance 637/655 | #185 (merged into v1.3 later on 2026-10-16) |
 | Section 7.11, rule mutation as a limit of the test oracle | #190 (not merged) |
 | Section 7.12, replication package (audit, smoke run, number-level part 2 and its finding that the smoke script drifted) | #117 (merged), #215 (not merged) |
 | Section 7.13, null results: developer-fix mining and known groups | #168, #198 (not merged) |
