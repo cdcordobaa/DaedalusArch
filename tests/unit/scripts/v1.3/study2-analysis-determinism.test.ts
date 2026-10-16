@@ -181,7 +181,7 @@ describe('analyse in plan mode (planned N, expected scenario)', () => {
 
   it('every table caption carries outcome, scale, inference and seed; a CLI seed is flagged', () => {
     const md = renderReport(reps[0] ?? (undefined as never), 't');
-    const tables = md.split('\n').filter((l) => /^#{2,3} T\d/.test(l)).length;
+    const tables = md.split('\n').filter((l) => /^#{2,3} (T\d|Not computable)/.test(l)).length;
     const captions = md.split('\n').filter((l) => /^\*Outcome: .* · scale: .* · inference: .* · seed \d+ \(plan\)\.\*$/.test(l)).length;
     expect(captions).toBe(tables);
     expect(md).toContain('UNFILLED (A3)');
