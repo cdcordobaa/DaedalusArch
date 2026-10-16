@@ -1,0 +1,26 @@
+--- a/src/presentation/http/CatalogController.ts
++++ b/src/presentation/http/CatalogController.ts
+@@ -1,5 +1,5 @@
+ import { CatalogService } from '../../business/services/CatalogService';
+-import { renderProduct } from '../views/ProductView';
++import { renderProduct } from '../views';
+ import { errorResponse } from './ErrorHandling';
+ import { HttpRequest, HttpResponse } from './HttpTypes';
+ 
+--- a/src/presentation/http/OrderController.ts
++++ b/src/presentation/http/OrderController.ts
+@@ -1,5 +1,5 @@
+ import { OrderItem, OrderService } from '../../business/services/OrderService';
+-import { renderOrder } from '../views/OrderView';
++import { renderOrder } from '../views';
+ import { errorResponse } from './ErrorHandling';
+ import { HttpRequest, HttpResponse } from './HttpTypes';
+ 
+--- /dev/null
++++ b/src/presentation/views/index.ts
+@@ -0,0 +1,5 @@
++export { renderOrder } from './OrderView';
++export type { OrderViewModel } from './OrderView';
++export { renderProduct } from './ProductView';
++export type { ProductViewModel } from './ProductView';
++export type { ProductRecord } from '../../persistence/records/ProductRecord';
