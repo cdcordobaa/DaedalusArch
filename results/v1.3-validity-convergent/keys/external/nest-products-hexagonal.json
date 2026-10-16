@@ -1,0 +1,134 @@
+{
+ "corpus": "external",
+ "id": "nest-products-hexagonal",
+ "style": "hexagonal",
+ "programFiles": 24,
+ "ourFileNodes": 24,
+ "ourFailedFunctions": [],
+ "rules": [
+  {
+   "id": "FF-S01",
+   "template": "dependency-direction-graph",
+   "kind": "layer-edge",
+   "view": "literal"
+  },
+  {
+   "id": "FF-S02",
+   "template": "no-cyclic-deps",
+   "kind": "cycle",
+   "view": "literal"
+  },
+  {
+   "id": "FF-S03",
+   "template": "layer-skip-graph",
+   "kind": "layer-edge",
+   "view": "literal"
+  },
+  {
+   "id": "FF-S04",
+   "template": "core-isolation",
+   "kind": "layer-edge",
+   "view": "literal"
+  },
+  {
+   "id": "FF-P01",
+   "template": "domain-purity",
+   "kind": "package",
+   "view": "resolved"
+  },
+  {
+   "id": "FF-C04",
+   "template": "no-orphan-files",
+   "kind": "orphan",
+   "view": "literal"
+  },
+  {
+   "id": "FF-C05",
+   "template": "max-fan-in",
+   "kind": "fan-in",
+   "view": "literal"
+  }
+ ],
+ "universe": {
+  "edges": 51,
+  "packages": 34
+ },
+ "unresolved": [
+  "src/app.module.ts|@nestjs/common",
+  "src/application/application.module.ts|@nestjs/common",
+  "src/application/application.module.ts|@nestjs/mongoose",
+  "src/application/createProduct.usecase.ts|@nestjs/common",
+  "src/application/createProduct.usecase.ts|typescript-optional",
+  "src/application/deleteProduct.usecase.ts|@nestjs/common",
+  "src/application/deleteProduct.usecase.ts|typescript-optional",
+  "src/application/factory/product.factory.ts|@nestjs/common",
+  "src/application/getAllProducts.usecase.ts|@nestjs/common",
+  "src/application/getProduct.usecase.ts|@nestjs/common",
+  "src/application/getProduct.usecase.ts|typescript-optional",
+  "src/application/updateProduct.usecase.ts|@nestjs/common",
+  "src/application/updateProduct.usecase.ts|typescript-optional",
+  "src/domain/domain.module.ts|@nestjs/common",
+  "src/domain/ports/product.repository.ts|typescript-optional",
+  "src/infrastructure/adapters/repository/entity/product.entity.ts|mongoose",
+  "src/infrastructure/adapters/repository/product.repository.mongo.ts|@nestjs/common",
+  "src/infrastructure/adapters/repository/product.repository.mongo.ts|@nestjs/mongoose",
+  "src/infrastructure/adapters/repository/product.repository.mongo.ts|mongoose",
+  "src/infrastructure/adapters/repository/product.repository.mongo.ts|typescript-optional",
+  "src/infrastructure/adapters/repository/schema/product.schema.ts|mongoose",
+  "src/infrastructure/config.module.ts|@nestjs/common",
+  "src/infrastructure/config.service.ts|dotenv",
+  "src/infrastructure/controllers/product.controller.ts|@nestjs/common",
+  "src/infrastructure/exceptions/http-exception.filter.ts|@nestjs/common",
+  "src/infrastructure/exceptions/http-exception.filter.ts|express",
+  "src/infrastructure/infrastructure.module.ts|@nestjs/common",
+  "src/infrastructure/infrastructure.module.ts|@nestjs/mongoose",
+  "src/infrastructure/mapper/product.mapper.ts|typescript-optional",
+  "src/main.ts|@nestjs/core",
+  "test/src/products/products.e2e-spec.ts|@nestjs/common",
+  "test/src/products/products.e2e-spec.ts|@nestjs/testing",
+  "test/src/products/products.e2e-spec.ts|supertest",
+  "test/src/products/products.e2e-spec.ts|testcontainers"
+ ],
+ "barrels": [],
+ "tools": {
+  "ours": {
+   "keys": [
+    "FF-P01|src/domain/domain.module.ts|@nestjs/common",
+    "FF-S01|src/application/application.module.ts|src/infrastructure/adapters/repository/product.repository.mongo.ts",
+    "FF-S01|src/application/application.module.ts|src/infrastructure/adapters/repository/schema/product.schema.ts"
+   ],
+   "outOfScope": 0,
+   "wallMs": 2460,
+   "errors": 0
+  },
+  "depcruise": {
+   "keys": [
+    "FF-P01|src/domain/domain.module.ts|@nestjs/common",
+    "FF-S01|src/application/application.module.ts|src/infrastructure/adapters/repository/product.repository.mongo.ts",
+    "FF-S01|src/application/application.module.ts|src/infrastructure/adapters/repository/schema/product.schema.ts"
+   ],
+   "outOfScope": 0,
+   "wallMs": 998,
+   "errors": 0
+  },
+  "boundaries": {
+   "keys": [
+    "FF-P01|src/domain/domain.module.ts|@nestjs/common",
+    "FF-S01|src/application/application.module.ts|src/infrastructure/adapters/repository/product.repository.mongo.ts",
+    "FF-S01|src/application/application.module.ts|src/infrastructure/adapters/repository/schema/product.schema.ts"
+   ],
+   "outOfScope": 0,
+   "wallMs": 2934,
+   "errors": 0
+  },
+  "archunit": {
+   "keys": [
+    "FF-S01|src/application/application.module.ts|src/infrastructure/adapters/repository/product.repository.mongo.ts",
+    "FF-S01|src/application/application.module.ts|src/infrastructure/adapters/repository/schema/product.schema.ts"
+   ],
+   "outOfScope": 0,
+   "wallMs": 797,
+   "errors": 0
+  }
+ }
+}

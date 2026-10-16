@@ -1,0 +1,162 @@
+{
+ "corpus": "external",
+ "id": "conduit-ports-adapters",
+ "style": "hexagonal",
+ "programFiles": 37,
+ "ourFileNodes": 37,
+ "ourFailedFunctions": [],
+ "rules": [
+  {
+   "id": "FF-S01",
+   "template": "dependency-direction-graph",
+   "kind": "layer-edge",
+   "view": "literal"
+  },
+  {
+   "id": "FF-S02",
+   "template": "no-cyclic-deps",
+   "kind": "cycle",
+   "view": "literal"
+  },
+  {
+   "id": "FF-S03",
+   "template": "layer-skip-graph",
+   "kind": "layer-edge",
+   "view": "literal"
+  },
+  {
+   "id": "FF-S04",
+   "template": "core-isolation",
+   "kind": "layer-edge",
+   "view": "literal"
+  },
+  {
+   "id": "FF-P01",
+   "template": "domain-purity",
+   "kind": "package",
+   "view": "resolved"
+  },
+  {
+   "id": "FF-C04",
+   "template": "no-orphan-files",
+   "kind": "orphan",
+   "view": "literal"
+  },
+  {
+   "id": "FF-C05",
+   "template": "max-fan-in",
+   "kind": "fan-in",
+   "view": "literal"
+  }
+ ],
+ "universe": {
+  "edges": 61,
+  "packages": 43
+ },
+ "unresolved": [
+  "src/config/module-alias.ts|module-alias",
+  "src/config/tests/fixtures/index.ts|fp-ts/TaskEither",
+  "src/config/tests/fixtures/index.ts|fp-ts/function",
+  "src/core/article/types.ts|io-ts",
+  "src/core/article/types.ts|io-ts-types",
+  "src/core/article/use-cases/add-comment-to-an-article.test.ts.ts|fp-ts/function",
+  "src/core/article/use-cases/add-comment-to-an-article.ts|fp-ts/Either",
+  "src/core/article/use-cases/add-comment-to-an-article.ts|fp-ts/TaskEither",
+  "src/core/article/use-cases/add-comment-to-an-article.ts|fp-ts/function",
+  "src/core/article/use-cases/add-comment-to-an-article.ts|io-ts/PathReporter",
+  "src/core/article/use-cases/register-article.ts|fp-ts/Either",
+  "src/core/article/use-cases/register-article.ts|fp-ts/TaskEither",
+  "src/core/article/use-cases/register-article.ts|fp-ts/function",
+  "src/core/article/use-cases/validate-article.ts|fp-ts/Either",
+  "src/core/article/use-cases/validate-article.ts|fp-ts/function",
+  "src/core/article/use-cases/validate-article.ts|io-ts/lib/PathReporter",
+  "src/core/comment/types.ts|io-ts",
+  "src/core/comment/types.ts|io-ts-types",
+  "src/core/profile/types.ts|io-ts",
+  "src/core/tag/types.ts|io-ts",
+  "src/core/types/date.ts|io-ts",
+  "src/core/types/date.ts|io-ts-types",
+  "src/core/types/email.ts|io-ts",
+  "src/core/types/email.ts|io-ts-types",
+  "src/core/types/password.ts|io-ts",
+  "src/core/types/password.ts|io-ts-types",
+  "src/core/types/positive.ts|io-ts",
+  "src/core/types/positive.ts|io-ts-types",
+  "src/core/types/slug.ts|io-ts",
+  "src/core/types/slug.ts|io-ts-types",
+  "src/core/types/url.ts|fp-ts/Either",
+  "src/core/types/url.ts|fp-ts/lib/function",
+  "src/core/types/url.ts|io-ts",
+  "src/core/types/url.ts|io-ts-types",
+  "src/core/user/types.ts|io-ts",
+  "src/core/user/use-cases/register-user.ts|fp-ts/Either",
+  "src/core/user/use-cases/register-user.ts|fp-ts/TaskEither",
+  "src/core/user/use-cases/register-user.ts|fp-ts/function",
+  "src/core/user/use-cases/validate-user.ts|fp-ts/Either",
+  "src/core/user/use-cases/validate-user.ts|fp-ts/function",
+  "src/core/user/use-cases/validate-user.ts|io-ts/PathReporter",
+  "src/helpers/env.ts|fp-ts/Either",
+  "src/helpers/env.ts|fp-ts/function",
+  "src/helpers/env.ts|io-ts-types",
+  "src/helpers/env.ts|io-ts/PathReporter",
+  "src/index.ts|dotenv/config",
+  "src/ports/db-in-memory/article.ts|slugify",
+  "src/ports/db-in-memory/article.ts|uuid",
+  "src/ports/db-in-memory/user.ts|argon2",
+  "src/ports/db-in-memory/user.ts|uuid",
+  "src/ports/express/server.ts|cors",
+  "src/ports/express/server.ts|express",
+  "src/ports/express/server.ts|fp-ts/Either",
+  "src/ports/express/server.ts|fp-ts/TaskEither",
+  "src/ports/express/server.ts|fp-ts/function",
+  "src/ports/jwt/jose.ts|jose"
+ ],
+ "barrels": [
+  "src/core/types/index.ts",
+  "src/helpers/index.ts",
+  "src/ports/adapters/db/index.ts",
+  "src/ports/db-in-memory/index.ts"
+ ],
+ "tools": {
+  "ours": {
+   "keys": [
+    "FF-S01|src/core/article/use-cases/add-comment-to-an-article.test.ts.ts|src/config/tests/fixtures/index.ts",
+    "FF-S03|src/ports/express/server.ts|src/ports/adapters/db/index.ts",
+    "FF-S03|src/ports/express/server.ts|src/ports/adapters/jwt.ts"
+   ],
+   "outOfScope": 0,
+   "wallMs": 2380,
+   "errors": 0
+  },
+  "depcruise": {
+   "keys": [
+    "FF-S01|src/core/article/use-cases/add-comment-to-an-article.test.ts.ts|src/config/tests/fixtures/index.ts",
+    "FF-S03|src/ports/express/server.ts|src/ports/adapters/db/index.ts",
+    "FF-S03|src/ports/express/server.ts|src/ports/adapters/jwt.ts"
+   ],
+   "outOfScope": 0,
+   "wallMs": 957,
+   "errors": 0
+  },
+  "boundaries": {
+   "keys": [
+    "FF-S01|src/core/article/use-cases/add-comment-to-an-article.test.ts.ts|src/config/tests/fixtures/index.ts",
+    "FF-S03|src/ports/express/server.ts|src/ports/adapters/db/index.ts",
+    "FF-S03|src/ports/express/server.ts|src/ports/adapters/jwt.ts"
+   ],
+   "outOfScope": 0,
+   "wallMs": 3411,
+   "errors": 0
+  },
+  "archunit": {
+   "keys": [
+    "FF-S01|src/core/article/use-cases/add-comment-to-an-article.test.ts.ts|src/config/tests/fixtures/index.ts",
+    "FF-S03|src/ports/express/server.ts|src/ports/adapters/db/index.ts",
+    "FF-S03|src/ports/express/server.ts|src/ports/adapters/jwt.ts"
+   ],
+   "outOfScope": 0,
+   "wallMs": 956,
+   "errors": 0
+  }
+ }
+}

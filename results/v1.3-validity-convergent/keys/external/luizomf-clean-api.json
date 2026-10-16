@@ -1,0 +1,159 @@
+{
+ "corpus": "external",
+ "id": "luizomf-clean-api",
+ "style": "clean-architecture",
+ "programFiles": 125,
+ "ourFileNodes": 125,
+ "ourFailedFunctions": [
+  {
+   "functionId": "FF-P05",
+   "name": "controller-no-entity",
+   "code": "EVAL_001",
+   "message": "Query failed for FF-P05 (controller-no-entity): cypher-interp: unsupported: clause subqueryClause"
+  }
+ ],
+ "rules": [
+  {
+   "id": "FF-S01",
+   "template": "dependency-direction",
+   "kind": "layer-edge",
+   "view": "literal"
+  },
+  {
+   "id": "FF-S02",
+   "template": "no-cyclic-deps",
+   "kind": "cycle",
+   "view": "literal"
+  },
+  {
+   "id": "FF-S04",
+   "template": "no-domain-outward-dep",
+   "kind": "layer-edge",
+   "view": "literal"
+  },
+  {
+   "id": "FF-P01",
+   "template": "domain-purity",
+   "kind": "package",
+   "view": "resolved"
+  },
+  {
+   "id": "FF-C04",
+   "template": "no-orphan-files",
+   "kind": "orphan",
+   "view": "literal"
+  },
+  {
+   "id": "FF-C05",
+   "template": "max-fan-in",
+   "kind": "fan-in",
+   "view": "literal"
+  }
+ ],
+ "universe": {
+  "edges": 331,
+  "packages": 25
+ },
+ "unresolved": [
+  "src/common/adapters/sanitizers/generic/generic-string-sanitizer-adapter.ts|sanitize-html",
+  "src/common/adapters/security/bcrypt-adapter.ts|bcrypt",
+  "src/common/adapters/security/jwt-token-adapter.ts|jsonwebtoken",
+  "src/common/adapters/validators/email-validator-adapter.ts|validator",
+  "src/infrastructure/express/adapters/express-middleware-adapter.ts|express",
+  "src/infrastructure/express/adapters/express-route-adapter.ts|express",
+  "src/infrastructure/express/middlewares/rate-limit.ts|express-rate-limit",
+  "src/infrastructure/express/routes/refresh-token.ts|express",
+  "src/infrastructure/express/routes/sign-in.ts|express",
+  "src/infrastructure/express/routes/user.ts|express",
+  "src/infrastructure/express/server.ts|express",
+  "src/infrastructure/express/setup/setup-app.ts|express",
+  "src/infrastructure/express/setup/setup-async-errors.ts|express",
+  "src/infrastructure/express/setup/setup-global-middlewares.ts|express",
+  "src/infrastructure/express/setup/setup-global-middlewares.ts|helmet",
+  "src/infrastructure/express/setup/setup-routes.ts|express",
+  "src/infrastructure/knex/connection.ts|knex",
+  "src/infrastructure/knex/knexfile.ts|dotenv",
+  "src/infrastructure/knex/migrations/20201119051948_create_users.ts|knex",
+  "src/infrastructure/knex/migrations/20201202132246_create_token.ts|knex",
+  "src/infrastructure/knex/migrations/20201206220538_create_roles.ts|knex",
+  "src/infrastructure/knex/migrations/20201206220633_create_user_roles.ts|knex",
+  "src/infrastructure/knex/seeds/01_users.ts|knex",
+  "src/infrastructure/knex/seeds/02_roles.ts|knex",
+  "src/infrastructure/knex/seeds/03_user_roles.ts|knex"
+ ],
+ "barrels": [],
+ "tools": {
+  "ours": {
+   "keys": [
+    "FF-C04|src/infrastructure/knex/migrations/20201119051948_create_users.ts|",
+    "FF-C04|src/infrastructure/knex/migrations/20201202132246_create_token.ts|",
+    "FF-C04|src/infrastructure/knex/migrations/20201206220538_create_roles.ts|",
+    "FF-C04|src/infrastructure/knex/migrations/20201206220633_create_user_roles.ts|",
+    "FF-C04|src/infrastructure/knex/seeds/02_roles.ts|",
+    "FF-C04|src/infrastructure/knex/seeds/03_user_roles.ts|",
+    "FF-C05|src/domain/models/user/user.ts|",
+    "FF-S01|src/infrastructure/express/routes/refresh-token.ts|src/main/factories/controllers/token/refresh-token-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/sign-in.ts|src/main/factories/controllers/sign-in/sign-in-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/controllers/user/create-user-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/controllers/user/delete-user-by-id-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/controllers/user/find-all-users-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/controllers/user/find-user-by-id-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/controllers/user/update-user-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/middlewares/authentication/is-authenticated-middleware-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/middlewares/authentication/logged-user-is-target-user-middleware-factory.ts"
+   ],
+   "outOfScope": 0,
+   "wallMs": 3240,
+   "errors": 0
+  },
+  "depcruise": {
+   "keys": [
+    "FF-C05|src/domain/models/user/user.ts|",
+    "FF-S01|src/infrastructure/express/routes/refresh-token.ts|src/main/factories/controllers/token/refresh-token-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/sign-in.ts|src/main/factories/controllers/sign-in/sign-in-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/controllers/user/create-user-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/controllers/user/delete-user-by-id-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/controllers/user/find-all-users-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/controllers/user/find-user-by-id-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/controllers/user/update-user-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/middlewares/authentication/is-authenticated-middleware-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/middlewares/authentication/logged-user-is-target-user-middleware-factory.ts"
+   ],
+   "outOfScope": 0,
+   "wallMs": 1210,
+   "errors": 0
+  },
+  "boundaries": {
+   "keys": [
+    "FF-S01|src/infrastructure/express/routes/refresh-token.ts|src/main/factories/controllers/token/refresh-token-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/sign-in.ts|src/main/factories/controllers/sign-in/sign-in-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/controllers/user/create-user-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/controllers/user/delete-user-by-id-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/controllers/user/find-all-users-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/controllers/user/find-user-by-id-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/controllers/user/update-user-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/middlewares/authentication/is-authenticated-middleware-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/middlewares/authentication/logged-user-is-target-user-middleware-factory.ts"
+   ],
+   "outOfScope": 0,
+   "wallMs": 3704,
+   "errors": 0
+  },
+  "archunit": {
+   "keys": [
+    "FF-S01|src/infrastructure/express/routes/refresh-token.ts|src/main/factories/controllers/token/refresh-token-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/sign-in.ts|src/main/factories/controllers/sign-in/sign-in-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/controllers/user/create-user-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/controllers/user/delete-user-by-id-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/controllers/user/find-all-users-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/controllers/user/find-user-by-id-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/controllers/user/update-user-controller-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/middlewares/authentication/is-authenticated-middleware-factory.ts",
+    "FF-S01|src/infrastructure/express/routes/user.ts|src/main/factories/middlewares/authentication/logged-user-is-target-user-middleware-factory.ts"
+   ],
+   "outOfScope": 0,
+   "wallMs": 1031,
+   "errors": 0
+  }
+ }
+}

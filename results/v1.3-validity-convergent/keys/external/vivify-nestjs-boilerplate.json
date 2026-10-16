@@ -1,0 +1,170 @@
+{
+ "corpus": "external",
+ "id": "vivify-nestjs-boilerplate",
+ "style": "nestjs",
+ "programFiles": 33,
+ "ourFileNodes": 33,
+ "ourFailedFunctions": [
+  {
+   "functionId": "FF-P05",
+   "name": "controller-no-entity",
+   "code": "EVAL_001",
+   "message": "Query failed for FF-P05 (controller-no-entity): cypher-interp: unsupported: clause subqueryClause"
+  }
+ ],
+ "rules": [
+  {
+   "id": "FF-S01",
+   "template": "dependency-direction",
+   "kind": "layer-edge",
+   "view": "literal"
+  },
+  {
+   "id": "FF-S02",
+   "template": "no-cyclic-deps",
+   "kind": "cycle",
+   "view": "literal"
+  },
+  {
+   "id": "FF-S04",
+   "template": "no-domain-outward-dep",
+   "kind": "layer-edge",
+   "view": "literal"
+  },
+  {
+   "id": "FF-P01",
+   "template": "domain-purity",
+   "kind": "package",
+   "view": "resolved"
+  },
+  {
+   "id": "FF-C04",
+   "template": "no-orphan-files",
+   "kind": "orphan",
+   "view": "literal"
+  },
+  {
+   "id": "FF-C05",
+   "template": "max-fan-in",
+   "kind": "fan-in",
+   "view": "literal"
+  }
+ ],
+ "universe": {
+  "edges": 55,
+  "packages": 53
+ },
+ "unresolved": [
+  "src/main.hmr.ts|@nestjs/common",
+  "src/main.hmr.ts|@nestjs/core",
+  "src/main.ts|@nestjs/common",
+  "src/main.ts|@nestjs/core",
+  "src/main.ts|class-validator",
+  "src/migrations/1611484925515-CreateUsersTable.ts|typeorm",
+  "src/modules/auth/auth.controller.ts|@nestjs/common",
+  "src/modules/auth/auth.controller.ts|@nestjs/passport",
+  "src/modules/auth/auth.controller.ts|@nestjs/swagger",
+  "src/modules/auth/auth.module.ts|@nestjs/common",
+  "src/modules/auth/auth.module.ts|@nestjs/jwt",
+  "src/modules/auth/auth.module.ts|@nestjs/passport",
+  "src/modules/auth/auth.service.ts|@nestjs/common",
+  "src/modules/auth/auth.service.ts|@nestjs/jwt",
+  "src/modules/auth/jwt-guard.ts|@nestjs/common",
+  "src/modules/auth/jwt-guard.ts|@nestjs/passport",
+  "src/modules/auth/jwt.strategy.ts|@nestjs/common",
+  "src/modules/auth/jwt.strategy.ts|@nestjs/passport",
+  "src/modules/auth/jwt.strategy.ts|passport-jwt",
+  "src/modules/auth/login.payload.ts|@nestjs/swagger",
+  "src/modules/auth/login.payload.ts|class-validator",
+  "src/modules/auth/register.payload.ts|@nestjs/swagger",
+  "src/modules/auth/register.payload.ts|class-validator",
+  "src/modules/common/common.module.ts|@nestjs/common",
+  "src/modules/common/decorator/current-user.decorator.ts|@nestjs/common",
+  "src/modules/common/transformer/abstract-transform.pipe.ts|@nestjs/common",
+  "src/modules/common/validator/exists.validator.ts|@nestjs/common",
+  "src/modules/common/validator/exists.validator.ts|@nestjs/typeorm",
+  "src/modules/common/validator/exists.validator.ts|class-validator",
+  "src/modules/common/validator/exists.validator.ts|typeorm",
+  "src/modules/common/validator/same-as.validator.ts|class-validator",
+  "src/modules/common/validator/unique.validator.ts|@nestjs/common",
+  "src/modules/common/validator/unique.validator.ts|@nestjs/typeorm",
+  "src/modules/common/validator/unique.validator.ts|class-validator",
+  "src/modules/common/validator/unique.validator.ts|typeorm",
+  "src/modules/config/config.module.ts|@nestjs/common",
+  "src/modules/config/config.service.ts|dotenv",
+  "src/modules/main/app.controller.ts|@nestjs/common",
+  "src/modules/main/app.controller.ts|@nestjs/passport",
+  "src/modules/main/app.controller.ts|@nestjs/swagger",
+  "src/modules/main/app.module.ts|@nestjs/common",
+  "src/modules/main/app.module.ts|@nestjs/typeorm",
+  "src/modules/main/app.service.ts|@nestjs/common",
+  "src/modules/user/password.transformer.ts|typeorm",
+  "src/modules/user/user.entity.ts|typeorm",
+  "src/modules/user/user.module.ts|@nestjs/common",
+  "src/modules/user/user.module.ts|@nestjs/typeorm",
+  "src/modules/user/user.service.ts|@nestjs/common",
+  "src/modules/user/user.service.ts|@nestjs/typeorm",
+  "src/modules/user/user.service.ts|typeorm",
+  "src/swagger/index.ts|@nestjs/common",
+  "src/swagger/index.ts|@nestjs/swagger",
+  "src/utils/Hash.ts|bcrypt"
+ ],
+ "barrels": [
+  "src/modules/auth/index.ts",
+  "src/modules/common/index.ts",
+  "src/modules/config/index.ts",
+  "src/modules/user/index.ts"
+ ],
+ "tools": {
+  "ours": {
+   "keys": [
+    "FF-C04|src/migrations/1611484925515-CreateUsersTable.ts|",
+    "FF-P01|src/modules/user/user.entity.ts|typeorm",
+    "FF-S01|src/modules/config/index.ts|src/modules/config/config.module.ts",
+    "FF-S01|src/modules/user/user.entity.ts|src/modules/user/password.transformer.ts",
+    "FF-S02|src/modules/auth/auth.controller.ts|src/modules/auth/index.ts",
+    "FF-S02|src/modules/auth/auth.module.ts|src/modules/auth/auth.controller.ts",
+    "FF-S02|src/modules/auth/index.ts|src/modules/auth/auth.controller.ts",
+    "FF-S02|src/modules/auth/index.ts|src/modules/auth/auth.module.ts",
+    "FF-S04|src/modules/user/user.entity.ts|src/modules/user/password.transformer.ts"
+   ],
+   "outOfScope": 0,
+   "wallMs": 3000,
+   "errors": 0
+  },
+  "depcruise": {
+   "keys": [
+    "FF-P01|src/modules/user/user.entity.ts|typeorm",
+    "FF-S01|src/modules/config/index.ts|src/modules/config/config.module.ts",
+    "FF-S01|src/modules/user/user.entity.ts|src/modules/user/password.transformer.ts",
+    "FF-S02|src/modules/auth/auth.controller.ts|src/modules/auth/index.ts",
+    "FF-S02|src/modules/auth/auth.module.ts|src/modules/auth/auth.controller.ts",
+    "FF-S02|src/modules/auth/index.ts|src/modules/auth/auth.controller.ts",
+    "FF-S02|src/modules/auth/index.ts|src/modules/auth/auth.module.ts",
+    "FF-S04|src/modules/user/user.entity.ts|src/modules/user/password.transformer.ts"
+   ],
+   "outOfScope": 0,
+   "wallMs": 1271,
+   "errors": 0
+  },
+  "boundaries": {
+   "keys": [
+    "FF-P01|src/modules/user/user.entity.ts|typeorm",
+    "FF-S01|src/modules/user/user.entity.ts|src/modules/user/password.transformer.ts",
+    "FF-S04|src/modules/user/user.entity.ts|src/modules/user/password.transformer.ts"
+   ],
+   "outOfScope": 0,
+   "wallMs": 2773,
+   "errors": 0
+  },
+  "archunit": {
+   "keys": [
+    "FF-S01|src/modules/user/user.entity.ts|src/modules/user/password.transformer.ts",
+    "FF-S04|src/modules/user/user.entity.ts|src/modules/user/password.transformer.ts"
+   ],
+   "outOfScope": 0,
+   "wallMs": 852,
+   "errors": 0
+  }
+ }
+}
