@@ -1519,6 +1519,14 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 
 ---
 
+## v1.3 CONSTRUCTION — night plan tracker update (scheduled task)
+**Timestamp**: 2026-10-16T05:00:00Z
+**User Input**: "scheduled tracker update"
+**AI Response**: "Night plan tracker refreshed from the PR list into v1.3 and the remote branches: 15 [x], 31 [~], 6 [ ], 3 [!]; no PR marked hold. Merge shas added to every merged item. Newly [x]: A4 model panel (#153, e46aa6b8), Y4 loop replay (#142, c4076100), local post-merge review (#152, 50a32841). B1 and B2 moved to [~] with PRs #161 and #160. PR numbers filled in: G2 #149, A1 #168, A3 #166, A5 #147, Y1 #162, J4 #150, X3 #183, Z1 #151, D1 #155, D2 #154. J5 has branch v1.3-scale and no PR; A2 has branch v1.3-validity-predictive and no PR; C1, W3-2 and W3-3 have no branch."
+**Context**: CONSTRUCTION, v1.3 validity cycle; tracker-only update, docs only.
+
+---
+
 ## v1.3 — differential fuzz of the Cypher interpreter (scheduled task)
 **Timestamp**: 2026-10-16T04:55:00Z
 **User Input**: "Scheduled task: differential fuzz parity of the in-process Cypher interpreter (PR #128) against live Neo4j 5.26.24 + APOC: a seeded adversarial APG generator; thousands of graphs × every template in every compiled form and binding of the parity harness, rows compared exactly; minimise, classify and fix every mismatch (regression test each, never change template text); fuzz the rejection path; write Docs/v1.3/cypher-interp-fuzz.md; re-run the 71-reference byte-identity check. Branch v1.3-interp-fuzz, one PR into v1.3, not merged."
