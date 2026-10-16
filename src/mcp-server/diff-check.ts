@@ -3,6 +3,7 @@
  * whole; a modified or renamed file is checked on its added lines only, with the new-file line numbers, so existing
  * code is not re-reported. Deleted and non-source files are skipped with a reason. Pure.
  */
+import * as path from 'node:path';
 import type { ParsedSpec } from '../shared/types/spec.js';
 import { blockingSummaryOf, checkSource } from './file-check.js';
 import { normalisePath, resolveLayer } from './layer-resolver.js';
@@ -213,13 +214,37 @@ export interface CheckDiffOptions {
   readonly projectRoot?: string | undefined;
 }
 
+/**
+ * `git diff` prints paths relative to the git top level; the spec's globs and the project view are relative to the
+ * project root. In a monorepo (project root `/repo/packages/app`) a diff path reads `packages/app/src/...`. When a
+ * path is neither a project file nor in a layer, but drops to one after removing a tail of the root's own path
+ * (`packages/app/`), that prefix is removed from every path of the diff (R22, post-merge review 2026-10-16).
+ */
+export function gitRootOffset(spec: ParsedSpec, root: string | undefined, paths: readonly string[], view: ProjectView): string | undefined {
+  if (root === undefined) return undefined;
+  const segments = path.resolve(root).split(path.sep).filter((x) => x !== '');
+  const known = (p: string): boolean => view.read(p) !== undefined || resolveLayer(spec, p) !== undefined;
+  for (const p of paths) {
+    if (known(p)) return undefined;
+    for (let k = segments.length; k >= 1; k--) {
+      const prefix = `${segments.slice(-k).join('/')}/`;
+      if (p.startsWith(prefix) && known(p.slice(prefix.length))) return prefix;
+    }
+  }
+  return undefined;
+}
+
 export function checkDiff(spec: ParsedSpec, diff: string, options: CheckDiffOptions = {}): DiffCheckResult {
   const files: DiffCheckResult['files'][number][] = [];
   const skipped: { path: string; reason: string }[] = [];
   const disk = new ProjectView({ root: options.projectRoot });
 
+  const parsed = parseUnifiedDiffWithHunks(diff);
+  const offset = gitRootOffset(spec, options.projectRoot, parsed.flatMap((f) => [f.newPath, f.oldPath].filter((p): p is string => p !== null && SOURCE_FILE_RE.test(p))), disk);
+  const strip = (p: string | null): string | null => (p !== null && offset !== undefined && p.startsWith(offset) ? p.slice(offset.length) : p);
   const planned: Planned[] = [];
-  for (const f of parseUnifiedDiffWithHunks(diff)) {
+  for (const raw of parsed) {
+    const f: DiffFileWithHunks = offset === undefined ? raw : { ...raw, oldPath: strip(raw.oldPath), newPath: strip(raw.newPath) };
     if (f.newPath === null) {
       if (f.oldPath !== null) skipped.push({ path: f.oldPath, reason: 'deleted' });
       continue;
