@@ -345,22 +345,29 @@ FIX.push(
   nf(108, 'pooled-n', 'pooled author precision denominator after fixes', 'pools 56 rows', (X) => `pools ${P(blk(X.scF, NORM, 'pooled'))[1]} rows`),
 );
 // raw/ diff, baseline (= barrels-only, doc §4) -> after-fixes; re-derived from the committed raw rows.
-const dsel = (D, s, rule, re) => D.filter((d) => d.style === s);
+const dcount = (X, s, pred, side = 'removed') => X.diff.filter((d) => d.style === s).reduce((a, d) => a + d[side].filter(pred).length, 0);
+const isP06 = (r) => r.startsWith('FF-P06|');
+const isCsv = (r) => r.startsWith('FF-P03|') && r.includes('CsvReportWriter.ts');
+const isGw = (r) => r.startsWith('FF-P03|') && r.includes('GatewayRetryPolicy.ts');
+const isDs02 = (r) => r.startsWith('FF-DS02|src/billing/api/InvoiceController.ts|src/ordering/application/GetOrderSummary.ts');
 FIX.push(
-  nf(116, 'diff-p06', 'FF-P06 rows removed in layered', '−53', (X) => `−${X.diff.filter((d) => d.style === 'layered').reduce((a, d) => a + d.removed.filter((r) => r.startsWith('FF-P06|')).length, 0)}`, { basis: 're-derived' }),
-  nf(116, 'diff-p06-shape', 'layered variants with FF-P06 rows removed; rows per variant', 'all 13 variants; 4 per variant', (X) => {
-    const L = X.diff.filter((d) => d.style === 'layered'); const per = new Set(L.map((d) => d.removed.filter((r) => r.startsWith('FF-P06|')).length));
+  nf(116, 'diff-p06', 'FF-P06 rows removed in layered', '−53', (X) => `−${dcount(X, 'layered', isP06)}`, { basis: 're-derived' }),
+  nf(116, 'diff-p06-shape', 'layered variants with FF-P06 rows removed; rows per variant (without the n02 SalesReportService row)', 'all 13 variants; 4 per variant', (X) => {
+    const L = X.diff.filter((d) => d.style === 'layered'); const per = new Set(L.map((d) => d.removed.filter((r) => isP06(r) && !r.includes('SalesReportService')).length));
     return `all ${L.length} variants; ${[...per].sort().join('/')} per variant`;
-  }, { basis: 're-derived', known: { actual: 'all 13 variants; 4/5 per variant', note: 'Not a mismatch in substance: the doc itself says "4 per variant, plus SalesReportService -> Database on n02", so n02 loses 5; this check counts n02 separately.' } }),
-  nf(117, 'diff-csv', 'FF-P03 CsvReportWriter.ts removed (clean n02)', '−1', (X) => `−${X.diff.filter((d) => d.style === 'clean-architecture').reduce((a, d) => a + d.removed.filter((r) => r.startsWith('FF-P03|') && r.includes('CsvReportWriter.ts')).length, 0)}`, { basis: 're-derived' }),
-  nf(118, 'diff-gateway', 'FF-P03 GatewayRetryPolicy.ts removed (hexagonal n03)', '−1', (X) => `−${X.diff.filter((d) => d.style === 'hexagonal').reduce((a, d) => a + d.removed.filter((r) => r.startsWith('FF-P03|') && r.includes('GatewayRetryPolicy.ts')).length, 0)}`, { basis: 're-derived' }),
-  nf(119, 'diff-ds02', 'FF-DS02 InvoiceController -> GetOrderSummary added (ddd g03)', '+1', (X) => `+${X.diff.filter((d) => d.style === 'ddd').reduce((a, d) => a + d.added.filter((r) => r.startsWith('FF-DS02|src/billing/api/InvoiceController.ts|src/ordering/application/GetOrderSummary.ts')).length, 0)}`, { basis: 're-derived' }),
-  nf(120, 'diff-other', 'any other row change, any variant', '0', (X) => String(X.diff.reduce((a, d) => a + d.removed.length + d.added.length, 0) - 53 - 1 - 1 - 1 - (X.diff.filter((d) => d.style === 'layered').reduce((a, d) => a + d.removed.filter((r) => r.startsWith('FF-P06|')).length, 0) - 53)), { basis: 're-derived' }),
+  }, { basis: 're-derived' }),
+  nf(117, 'diff-csv', 'FF-P03 CsvReportWriter.ts removed (clean n02)', '−1', (X) => `−${dcount(X, 'clean-architecture', isCsv)}`, { basis: 're-derived' }),
+  nf(118, 'diff-gateway', 'FF-P03 GatewayRetryPolicy.ts removed (hexagonal n03)', '−1', (X) => `−${dcount(X, 'hexagonal', isGw)}`, { basis: 're-derived' }),
+  nf(119, 'diff-ds02', 'FF-DS02 InvoiceController -> GetOrderSummary added (ddd g03)', '+1', (X) => `+${dcount(X, 'ddd', isDs02, 'added')}`, { basis: 're-derived' }),
+  nf(120, 'diff-other', 'any other row change, any variant', '0', (X) => {
+    const total = X.diff.reduce((a, d) => a + d.removed.length + d.added.length, 0);
+    return String(total - dcount(X, 'layered', isP06) - dcount(X, 'clean-architecture', isCsv) - dcount(X, 'hexagonal', isGw) - dcount(X, 'ddd', isDs02, 'added'));
+  }, { basis: 're-derived' }),
   nf(136, 'fix2', 'FF-S02 literal misses and FPs that became matches (fix 2)', '5 FF-S02 misses and 5 FF-S02 false positives became 5 matches', (X) => {
-    const c = sum(STY.map((s) => rule(X.scB, LIT, s, 'FF-S02')).filter(Boolean)); const a = sum(STY.map((s) => rule(X.scF, LIT, s, 'FF-S02')).filter(Boolean));
+    const c = sum(STY.map((s) => rule(X.scB, LIT, s, 'FF-S02')).filter(Boolean)); const a = sum(STY.map((s) => rule(X.scF, NORM, s, 'FF-S02')).filter(Boolean)); // after fix 2 the runner view is the cycle-normalised one
     return `${c.fn} FF-S02 misses and ${c.fp} FF-S02 false positives became ${a.tp} matches`;
   }),
-  nf(139, 'fix3-rows', 'FF-P06 rows removed by fix 3', '53 rows removed', (X) => `${X.diff.filter((d) => d.style === 'layered').reduce((a, d) => a + d.removed.filter((r) => r.startsWith('FF-P06|')).length, 0)} rows removed`, { basis: 're-derived' }),
+  nf(139, 'fix3-rows', 'FF-P06 rows removed by fix 3', '53 rows removed', (X) => `${dcount(X, 'layered', isP06)} rows removed`, { basis: 're-derived' }),
   nf(139, 'fix3-nm', 'layered near-misses silent after fix 3', "layered's three near-misses are silent", (X) => { const x = X.scF.nearMiss.find((y) => y.style === 'layered'); return `layered's ${word(x.nearMisses)} near-misses are ${x.withAnyScoredFp === 0 ? 'silent' : 'not silent'}`; }),
   nf(140, 'fix3-prec-auth', 'layered blocking precision author, baseline -> after fixes', '11/64 → 11/11', (X) => [P(blk(X.scB, NORM, 'layered')), P(blk(X.scF, NORM, 'layered'))]),
   nf(140, 'fix3-prec-blind', 'layered blocking precision blind expanded, baseline -> after fixes', '7/64 → 7/11', (X) => [P(bx(X.adjB, X.scB, 'layered')), P(bx(X.adjF, X.scF, 'layered'))], { basis: 're-derived' }),
@@ -632,7 +639,7 @@ for (const [line, s, vals] of [
   [169, 'nestjs', ['908', '1.000', '1.000', '(none)', '408/408']], [170, 'hexagonal', ['1069', '1.000', '1.000 (0.947 counting the 60)', '(none)', '378/378']],
   [171, 'ddd', ['954', '0.984', '0.984', '16/16', '467/467']],
 ]) ['both', 'recall', 'precision', 'via', 'layers'].forEach((k, j) => EXT.push(xb(line, `bgt-${k}-${s}`, `blind graph per style: ${k}, ${s}`, vals[j], null, ext())));
-for (const [line, s, to, bo] of [[167, 'clean-architecture', '0', '0'], [168, 'layered', '2', '2'], [169, 'nestjs', '0', '0'], [170, 'hexagonal', '0 (', '0'], [171, 'ddd', '16', '16']]) {
+for (const [line, s, to, bo] of [[167, 'clean-architecture', '0', '0'], [168, 'layered', '2', '2'], [169, 'nestjs', '0', '0'], [170, 'hexagonal', '0 (+60 excluded)', '0'], [171, 'ddd', '16', '16']]) {
   EXT.push(xb(line, `bgt-toolonly-${s}`, `blind graph per style: tool only, ${s}`, to, null, ext()), xb(line, `bgt-blindonly-${s}`, `blind graph per style: blind only, ${s}`, bo, null, ext()));
 }
 EXT.push(

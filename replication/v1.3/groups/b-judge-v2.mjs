@@ -107,14 +107,18 @@ const CALLS = [
 ];
 
 const scoreNumbers = [
-  { id: 'b-v2-check-partial', doc: D, line: 3, what: 'CHECK items fully judged when session 1 stopped (all 3 runs recorded before session 2)', stated: '41 of 63 items' },
+  { id: 'b-v2-check-partial', doc: D, line: 3, what: 'CHECK items judged when session 1 stopped ((ledger attempts + hits) / 3 runs)', stated: '41 of 63 items' },
   { id: 'b-v2-check-complete', doc: D, line: 3, what: 'CHECK items with 3 valid runs', stated: '63/63' },
   { id: 'b-v2-fe-prompts-hdr', doc: D, line: 3, what: 'FE prompts', stated: '114 prompts' },
+  { id: 'b-v2-frozensha', doc: D, line: 10, what: 'FROZEN_SHA256 = computeFrozenSha256() at HEAD', stated: 'f8b2dabb…' },
+  { id: 'b-v2-v1graph-items4', doc: D, line: 94, what: 'antipattern-nest items replaced by the current-graph re-judgement', stated: 'the 4 `antipattern-nest` items' },
+  { id: 'b-v2-hp-four', doc: D, line: 223, what: 'hand-planted CHECK seeds v1 caught and v2.1 keeps', stated: 'the four hand-planted ones' },
   { id: 'b-v2-v1graph-items', doc: D, line: 39, what: 'CHECK items re-judged with v1 on the current graph', stated: '4 CHECK items' },
   { id: 'b-v2-v1graph-twins', doc: D, line: 39, what: 'of which PERSIST-IN-DOMAINn twins', stated: 'two PERSIST-IN-DOMAINn twins' },
   { id: 'b-v2-v1graph-calls', doc: D, line: 39, what: 'v1 current-graph calls', stated: '12 calls' },
   { id: 'b-v2-v1graph-fail', doc: D, line: 39, what: 'v1 current-graph items still failing', stated: 'All 4 still fail' },
-  { id: 'b-v2-tune-changed', doc: D, line: 40, what: 'TUNE items on round-1 antipattern-nest targets (prompt changed by the alias fix)', stated: '28 changed TUNE items' },
+  { id: 'b-v2-tune-changed', doc: D, line: 40, what: 'TUNE items whose v1 prompt changed with the alias fix', stated: '28 changed TUNE items', needs: 'needs-Neo4j',
+    note: 'which items changed needs the current-graph v1 harvest (Neo4j); 30 TUNE items sit on round-1 antipattern-nest targets, so 2 of them kept their prompt' },
   { id: 'b-v2-split-items', doc: D, line: 43, what: 'split items (regenerated split)', stated: '168 items: 45 seeds, 61 twins and 62 clean-control units' },
   { id: 'b-v2-split-clusters', doc: D, line: 48, what: 'clusters', stated: '44 clusters' },
   { id: 'b-v2-split-tune', doc: D, line: 49, what: 'TUNE items (share)', stated: 'TUNE: 105 items (62.5%)' },
@@ -206,13 +210,15 @@ const scoreNumbers = [
 
 async function scoreValues(ctx) {
   const R = rebuilt(ctx);
-  for (const [l, s] of Object.entries(R.stats)) if (s.unmatched) throw new Error(`${l}: ${s.unmatched} verdict runs without a cassette entry`);
+  if (!R.planSame) throw new Error('filter-explain plan.json regenerated differently');
+  for (const [l, s] of Object.entries(R.stats)) if (s.unmatched || !s.sameAsCommitted) throw new Error(`${l}: ${s.unmatched} verdict runs without a cassette entry, or a rebuilt verdict differs from the committed one`);
   const out = {};
   const ledger = ctx.json(`${RES}/call-ledger.json`);
   const ph = ledger.phases;
   const chk = R.stats['check-v2.1'].verdicts;
-  const s2 = ph.filter((p) => p.label === 'check-v2.1')[1].at;
-  out['b-v2-check-partial'] = `${chk.filter((v) => v.runs.length === 3 && v.runs.every((r) => r.recordedAt < s2)).length} of ${chk.length} items`;
+  // session 1 judged (attempts + hits) runs, 3 per item (ledger); recordedAt cannot tell, because session 2 answered
+  // byte-identical prompts of unjudged items from entries stored in session 1
+  out['b-v2-check-partial'] = `${(ph.filter((p) => p.label === 'check-v2.1')[0].judgeAttempts + ph.filter((p) => p.label === 'check-v2.1')[0].hits) / 3} of ${chk.length} items`;
   out['b-v2-check-complete'] = `${chk.filter((v) => v.runs.filter((r) => r.valid).length === 3).length}/${chk.length}`;
   const plan = JSON.parse(readFileSync(join(R.root, RES, 'filter-explain/plan.json'), 'utf8'));
   out['b-v2-fe-prompts-hdr'] = `${plan.selected.length} prompts`;
@@ -220,10 +226,11 @@ async function scoreValues(ctx) {
   const split = R.split;
   const item = (id) => split.items.find((i) => i.itemId === id);
   out['b-v2-v1graph-items'] = `${ov.length} CHECK items`;
+  out['b-v2-v1graph-items4'] = `the ${ov.filter((v) => item(v.itemId)?.baseId === 'antipattern-nest').length} \`antipattern-nest\` items`;
+  out['b-v2-frozensha'] = `${ctx.sh(`${tsx} --eval "import {computeFrozenSha256} from './src/llm-critic/frozen.ts'; console.log(computeFrozenSha256())"`).trim().slice(0, 8)}…`;
   out['b-v2-v1graph-twins'] = `${word(ov.filter((v) => item(v.itemId)?.operatorId === 'AP-PERSIST-IN-DOMAINn').length)} PERSIST-IN-DOMAINn twins`;
   out['b-v2-v1graph-calls'] = `${ph.find((p) => p.label === 'check-v1-current-graph').judgeAttempts} calls`;
   out['b-v2-v1graph-fail'] = ov.every((v) => v.verdict === 'fail') ? `All ${ov.length} still fail` : `${ov.filter((v) => v.verdict === 'fail').length} fail`;
-  out['b-v2-tune-changed'] = `${split.items.filter((i) => i.split === 'TUNE' && i.round === 'r1' && i.baseId === 'antipattern-nest').length} changed TUNE items`;
   const c = split.counts;
   const all = (k) => c.TUNE[k] + c.CHECK[k];
   out['b-v2-split-items'] = `${split.items.length} items: ${all('seed')} seeds, ${all('twin')} twins and ${all('clean')} clean-control units`;
@@ -283,6 +290,8 @@ async function scoreValues(ctx) {
   out['b-v2-fln-all'] = `All ${fln.length} FRAMEWORK-LEAKn twins`;
   out['b-v2-hp-yes'] = `yes, ${short(fam('hand-planted', 'v2')[0])}`;
   out['b-v2-hp-v1'] = `v1 also caught all ${num(fam('hand-planted', 'v1')[0])[0]}`;
+  const hpC = seedsC.filter((i) => i.operatorId.startsWith('HP:'));
+  out['b-v2-hp-four'] = hpC.every((i) => fails(i.itemId) >= 2) ? `the ${word(hpC.length)} hand-planted ones` : 'lost one';
   out['b-v2-hp-paired'] = `stays at ${short(rowOf(R.check, 'v2')[1])}`;
   out['b-v2-seeds-333'] = seedsC.every((i) => fails(i.itemId) === 3) ? `All ${seedsC.length} CHECK seeds fail in 3 of 3` : `${seedsC.filter((i) => fails(i.itemId) === 3).length} of ${seedsC.length}`;
   const differ = R.check.split('\n').filter((l) => /^- (seed|twin|clean) /.test(l)).length;
@@ -297,7 +306,7 @@ async function scoreValues(ctx) {
   out['b-v2-r-tune-ptw'] = `${short(t21v[3])} (v1 ${short(t20v1[3])})`;
   out['b-v2-r-check'] = `${short(v2c[0])} against ${short(v1c[0])}`;
   out['b-v2-r-check-clean'] = `${short(v2c[4])} against ${short(v1c[4])}`;
-  const layered = chkItems.filter((i) => i.baseId === 'layered/clean' && i.unitId === 'src/business/services/OrderService.ts');
+  const layered = chkItems.filter((i) => i.kind !== 'seed' && i.baseId === 'layered/clean' && i.unitId === 'src/business/services/OrderService.ts');
   const layeredClean = layered.filter((i) => i.kind === 'clean' && vmap.get(i.itemId).verdict === 'fail').length;
   out['b-v2-r-check-layered'] = `${layeredClean === 2 ? 'Two' : layeredClean} of the ${word(num(v2c[4])[0])}`;
   const lf = [...new Set(layered.map((i) => fails(i.itemId)))];
@@ -374,7 +383,7 @@ const jestNumbers = [
   { id: 'b-v2-jest-judgev2', doc: D, line: 26, what: 'tests/unit/llm-critic/judge-v2.test.ts passing tests', stated: '(10)' },
   { id: 'b-v2-jest-fe', doc: D, line: 26, what: 'tests/unit/llm-critic/filter-explain.test.ts passing tests', stated: '(4)' },
   { id: 'b-v2-jest-dirs', doc: D, line: 27, what: 'tests/unit/llm-critic + tests/unit/cli suites and tests, all passing', stated: '30 suites, 610 tests',
-    known: { actual: '31 suites, 615 tests', note: 'new: later commits added 1 suite and 5 tests to these two directories; all 615 pass at HEAD (with a minimal environment, run in a git work tree).' } },
+    known: { actual: '31 suites, 615 tests', note: 'new: 31 suites / 615 tests, all passing at HEAD (minimal environment, git work tree); the doc\'s own commit 205a73bd already has 31 suites / 615 tests in these directories, so the stated count was probably taken earlier on the branch.' } },
   { id: 'b-v2-jest-ap', doc: D3x(), line: 37, what: 'tests/unit/scripts/mutation/antipatterns.test.ts passing / total', stated: '21/21' },
 ];
 function D3x() { return 'Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md'; }

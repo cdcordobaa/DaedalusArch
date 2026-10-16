@@ -61,7 +61,7 @@ export default [{
     n('jaccard-case02', 222, 'case-02 pass (a) mean Jaccard (planted disagreement)', '0.875'),
     // §11 threats
     n('budget-default-2', 266, 'default budget (repeat of §7)', 'default budget of 200'),
-    n('case-sizes', 270, 'classes per planted case (min to max)', '2 to 6 classes'),
+    n('case-sizes', 269, 'classes per planted case (min to max)', '2 to 6 classes'),
     n('decimal-50-5000', 272, 'equalUpToDecimalScale(50, 5000) holds', '50 match 5000'),
     n('decimal-5-500', 273, 'equalUpToDecimalScale(5, 500) holds', '5 and 500 match'),
   ],

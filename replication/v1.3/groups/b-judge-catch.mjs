@@ -60,6 +60,9 @@ export function entriesOf(ctx, round) {
   });
 }
 const safe = (id) => id.replace(/[/:]/g, '__');
+/** The valid cassette runs of one judged unit of one target. */
+export const runsFor = (ctx, round, id, fn, unit) => (entriesOf(ctx, round).get(id) ?? []).filter((e) => e.functionId === fn && e.unitId === unit && e.outcome.kind === 'valid' && e.parsedVerdict);
+const textOf = (e) => [e.parsedVerdict.reasoning, ...(e.parsedVerdict.violations ?? []).map((v) => v.message)].join(' ');
 export const report = (ctx, round, id) => { const f = `${ROUND[round].res}/reports/${safe(id)}.json`; return ctx.exists(f) ? ctx.json(f) : null; };
 export const plan = (ctx, round) => ctx.json(`${ROUND[round].res}/plan.json`);
 export const manifest = (ctx, round) => once(`man:${round}`, () => ctx.json(`${ROUND[round].res}/seed-manifest.json`));
@@ -422,6 +425,7 @@ const r2Scores = [
   { id: 'b-r2-hex07-runs', doc: D2, line: 156, what: 'runs passing hexagonal v07', stated: '3' },
   { id: 'b-r2-pd-hp', doc: D2, line: 158, what: 'hand-planted PERSIST-IN-DOMAIN seeds, all caught', stated: '3' },
   { id: 'b-r2-clean-low', doc: D2, line: 159, what: 'clean false fails (units)', stated: '1/24' },
+  { id: 'b-r2-clean-dto', doc: D2, line: 159, what: 'failing runs on the haiku usecases clean unit citing the Order->OrderDto mapping', stated: 'All 3 runs', basis: 'replayed' },
   { id: 'b-r2-s2-e1', doc: D2, line: 161, what: 'S2 on E1 seeds', stated: '0/16' },
   { id: 'b-r2-hp-ffp01', doc: D2, line: 162, what: 'hand-planted seeds with the expected FF-P01 row', stated: '7' },
   { id: 'b-r2-hp-blocking', doc: D2, line: 162, what: 'hand-planted seeds failing the blocking verdict (base passes)', stated: 'Each one', note: '8/8 hand-planted copies' },
@@ -541,6 +545,8 @@ async function r2ScoreValues(ctx) {
   const pdhp = rows.filter((r) => r.role === 'seed' && r.stratum === 'hand-planted' && r.positiveId === 'AP-PERSIST-IN-DOMAIN');
   out['b-r2-pd-hp'] = pdhp.every((r) => r.catch) ? String(pdhp.length) : `${pdhp.filter((r) => r.catch).length} of ${pdhp.length}`;
   out['b-r2-clean-low'] = short(R.clean.combined.unitFalseFail);
+  const dto = runsFor(ctx, 'r2', 'base:e1/claude-haiku-4-5.order-fulfilment.minimal-prose.run-2', 'FF-N01', 'src/application/usecases').filter((e) => !e.parsedVerdict.pass && /OrderDto/.test(textOf(e)));
+  out['b-r2-clean-dto'] = `All ${dto.length} runs`;
   out['b-r2-s2-e1'] = short(R.pooled.operator.symbolicS2);
   const hp = rows.filter((r) => r.role === 'seed' && r.stratum === 'hand-planted');
   out['b-r2-hp-ffp01'] = String(hp.filter((r) => (r.symbolicNewRows ?? []).some((k) => k.startsWith('FF-P01|'))).length);
@@ -660,6 +666,10 @@ const dv2Scores = [
   { id: 'b-dv2-host-own', doc: D3, line: 88, what: 'twin false fail, own-file host (paired)', stated: 'own file 1/5 (paired 0/5)' },
   ...['fixture', 'e1', 'combined', 'paired'].map((c, i) => ({ id: `b-dv2-v1twin-${c}`, doc: D3, line: 94, what: `v1 AP-DUP-RULEn twin false fail, ${c}`, stated: ['1/1', '5/5', '6/6 = 1.00 [0.61, 1.00]', '5/6'][i] })),
   ...['fixture', 'e1', 'combined', 'paired'].map((c, i) => ({ id: `b-dv2-v2twin-${c}`, doc: D3, line: 95, what: `v2 AP-DUP-RULE2n twin false fail, ${c}`, stated: ['0/1', '2/8', '2/9 = 0.22 [0.06, 0.55]', '1/9'][i] })),
+  { id: 'b-dv2-both-cells', doc: D3, line: 97, what: 'E1 cells with both a v1 and a v2 twin', stated: 'the 5 E1 cells' },
+  { id: 'b-dv2-stock-runs', doc: D3, line: 111, what: 'runs failing sonnet full-aac run-1 src/domain that cite StockAllocationService.reserve', stated: 'All 3 runs', basis: 'replayed' },
+  { id: 'b-dv2-inline-runs', doc: D3, line: 136, what: 'runs on the sonnet full-aac run-1 twin citing the inline isOrderStatus check of AdvanceOrderUseCase', stated: 'all 3 runs', basis: 'replayed' },
+  { id: 'b-dv2-belong', doc: D3, line: 142, what: 'seeds whose first-run violation says the method does not belong (regex belong|not fit|does not match|puts…in|unrelated)', stated: 'All 9 also say', basis: 'replayed' },
   { id: 'b-dv2-both-v1', doc: D3, line: 98, what: 'v1 twins failing on the 5 E1 cells with both twins', stated: 'v1 failed 5/5' },
   { id: 'b-dv2-both-v2', doc: D3, line: 99, what: 'v2 twins failing on those cells', stated: 'v2 failed 1/5' },
   ...[['fixture', 105, '0/2', '0/1'], ['e1', 106, '2/12 = 0.17 [0.05, 0.45]', '2/8 = 0.25 [0.07, 0.59]'], ['combined', 107, '2/14 = 0.14 [0.04, 0.40]', '2/9 = 0.22 [0.06, 0.55]']]
@@ -714,6 +724,13 @@ async function dv2ScoreValues(ctx) {
   const v2tw = V.rows.filter((r) => r.role === 'twin');
   const cells = new Set(v1t2.map((r) => r.baseId));
   const both = v2tw.filter((r) => cells.has(r.baseId));
+  out['b-dv2-both-cells'] = `the ${cells.size} E1 cells`;
+  const sfa1 = 'e1/claude-sonnet-5-5.order-fulfilment.full-aac.run-1';
+  out['b-dv2-stock-runs'] = `All ${runsFor(ctx, 'dv2', `base:${sfa1}`, 'FF-N01', 'src/domain').filter((e) => !e.parsedVerdict.pass && /StockAllocationService/.test(textOf(e)) && /reserve/.test(textOf(e))).length} runs`;
+  out['b-dv2-inline-runs'] = `all ${runsFor(ctx, 'dv2', 'e1__claude-sonnet-5-5.order-fulfilment.full-aac.run-1__AP-DUP-RULE2n__0', 'FF-N01', 'src/application').filter((e) => /isOrderStatus/.test(textOf(e)) && /AdvanceOrderUseCase/.test(textOf(e))).length} runs`;
+  const firstRun = V.rows.filter((r) => r.role === 'seed').map((r) => (entriesOf(ctx, 'dv2').get(r.rowId) ?? []).find((e) => e.runIndex === 0 && e.parsedVerdict));
+  const belong = firstRun.filter((e) => e && (e.parsedVerdict.violations ?? []).some((v) => /belong|not fit|n't fit|does not match|puts .* (in|into|inside) |unrelated/i.test(v.message))).length;
+  out['b-dv2-belong'] = belong === firstRun.length ? `All ${belong} also say` : `${belong} of ${firstRun.length}`;
   out['b-dv2-both-v1'] = `v1 failed ${v1t2.filter((r) => r.unitFail).length}/${v1t2.length}`;
   out['b-dv2-both-v2'] = `v2 failed ${both.filter((r) => r.unitFail).length}/${both.length}`;
   for (const s of ['fixture', 'e1', 'combined']) {
