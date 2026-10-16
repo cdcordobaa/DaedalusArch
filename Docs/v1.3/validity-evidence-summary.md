@@ -31,7 +31,7 @@ Main source files:
 - Strategy memo: [VS] `Docs/v1.3/validity-strategy.md` (VSM).
 - External set: [EX] `Docs/DiagnosticRuns/v1.3-external-set-2026-10-16.md` (EXR).
 - Fidelity adjudication: [FA] `Docs/DiagnosticRuns/v1.3-fidelity-adjudication-prep-2026-10-16.md` (FAR).
-- Analysis rehearsal: [AR] `Docs/v1.3/study2-analysis-rehearsal.md` (ARD) and `results/v1.3-study2-rehearsal/summary.md` (ARS).
+- Analysis rehearsal: [AR] `Docs/v1.3/study2-analysis-rehearsal.md` (ARD) and `results/v1.3-study2-rehearsal/summary.md` (ARS). Line numbers are at branch head `437badb4`.
 - Readiness: [RG] `Docs/v1.3/study2-readiness-gate.md` (GATE) and `Docs/v1.3/study2-dress-rehearsal.md` (DRP).
 
 **What "Data" means in the tables.** *Dev* is data the v1.3 rules were tuned on: the 71-case reference set and the E1/SO4 corpora. *Independent* is code the rules were not tuned on: the external set and the wild set. Independent code still has one AI analyst's layer mapping, and that is noted where it applies. *Synthetic* is generated telemetry, not data.
@@ -134,9 +134,9 @@ This is not a validity type, but it decides whether Study 2's outcome can show a
 |---|---|---|---|---|
 | Floor probe, `none` arm | Steps with a blocking finding: "**14 / 28 (50 %)**: hexagonal **0 / 14**, layered **14 / 14**". New findings after step 1: "**4 / 22**, all layered". "None of the targeted pressures … caused a violation in either style" | FP:15-16, :19 | one Claude session wrote both the tasks and the code; "not blind to the rules" (FP:222-224) | **negative**: "**Study 2's primary outcome is at real risk of a floor effect.**" (FP:183) |
 | Analysis script on synthetic telemetry | "30/30 checks pass at seed 20261016" (commit `83caae9c`); all CIs cover the planted values | [AR] ARS:9-38 | **synthetic** | strong for the script, says nothing about the instrument |
-| Power at the planned N | expected effect: gate 0.54, mcp 0.17 (blocking); floor fallback 0.05 / 0.02 | [AR] ARS:42-47 | synthetic | **negative**: "At the planned N, Study 2 is underpowered for the expected effect" (ARD:152-153) |
-| Seed sensitivity | mcp rejection: "Holm p 0.0461–0.0526 over 8 analysis seeds … The decision flips on 3 of 8 seeds" | [AR] ARD:117 | synthetic | — |
-| Fallback outcome | FF-CV05 "about 80 % of the advisory total"; "The fallback outcome has no power (≈ 0.05)" | [AR] ARD:155-160 | synthetic | negative |
+| Power at the planned N | expected effect: gate 0.54, mcp 0.17 (blocking); floor fallback 0.05 / 0.02 | [AR] ARS:42-47 | synthetic | **negative**: "At the planned N, Study 2 is underpowered for the expected effect" (ARD:158-159) |
+| Seed sensitivity | mcp rejection: "Holm p 0.0461–0.0526 over 8 analysis seeds … The decision flips on 3 of 8 seeds" | [AR] ARD:199 | synthetic | — |
+| Fallback outcome | FF-CV05 "about 80 % of the advisory total"; "The fallback outcome has no power (≈ 0.05)" | [AR] ARD:163-167 | synthetic | negative |
 
 ---
 
@@ -156,7 +156,7 @@ This is not a validity type, but it decides whether Study 2's outcome can show a
 5. **The graph that scoring actually uses loses edges through "barrel" files.** Coverage is 0.926 on human code, below our own 0.95 bar ([EX] EXR:170). This is fixable, either by scoring on the literal view or by fixing routing.
 6. **The rules do not match any single consistent reading of the architecture styles.** An independent reader's expectations cannot be reproduced by any one set of construct decisions (BM:164-165). The author must decide the 25 construct questions; the trade-offs are now quantified (BM:132-146).
 7. **We have no validity figure on data the tool was not tuned on, yet.** The sealed hold-out has not been run ([VS] VSM:120). The 283 findings on human code are unlabelled ([EX] EXR:196). The cross-vendor model panel and the bug-churn study are not finished (MP:3; [PV] PVP:135).
-8. **Study 2, as designed, risks measuring nothing.** In a probe, hexagonal-style code never produced a blocking violation (FP:15). At the planned size, the study has about 54 % power for the main contrast and 17 % for the MCP arm ([AR] ARS:45).
+8. **Study 2, as designed, risks measuring nothing.** In a probe, hexagonal-style code never produced a blocking violation (FP:15). At the planned size, the study has about 54 % power for the main contrast and 17 % for the MCP arm ([AR] ARS:46).
 
 **Bottom line.** The instrument is reliable on engine parity, but it has no human inter-rater or repeat-run reliability yet, and two engine defects are open (CV:40-41, :331). It is mechanically correct, mostly on development data, and it agrees with independent tools. Whether its findings are *meaningful* is still unshown. One behavioural test came back null. Four steps would close the main gaps:
 - run the sealed hold-out once;
@@ -182,7 +182,7 @@ Of these four, only the labelling needs a person, for about 3–5 hours ([VS] VS
 | G8 | Developer-fix evidence is null | Weakens the "meaningful" claim | Report it as is. Optional: re-run on repositories that enforce rules in CI (maintainer-written rules, [VS] VSM:246-249), where removals are not incidental | no |
 | G9 | FF-S02 drops out on large cyclic code; FF-P05 fails on cypher-interp | Silent loss of a blocking rule (CV:330) | Fix both defects before the freeze commit. Neo4j stays the engine of record (GATE:355-356) | no |
 | G10 | Hexagonal floor effect in Study 2's outcome | The primary contrast may be unmeasurable | Wait for the loop pilot; FP:214-216 already states the rule ("If its hexagonal `none` run is also all zeros, redesign or drop the hexagonal tasks") | author decision |
-| G11 | Study 2 underpowered (gate 0.54, mcp 0.17) | D3 cannot pass | Re-run the power simulation with pilot θ; consider fewer arms or more replicates ([AR] ARD:152-153) | author decision |
+| G11 | Study 2 underpowered (gate 0.54, mcp 0.17) | D3 cannot pass | Re-run the power simulation with pilot θ; consider fewer arms or more replicates ([AR] ARD:158-159) | author decision |
 | G12 | Same-vendor threat in specs and adjudication | All layer maps and proposals are Claude-made ([EX] EXR:185; [FA] FAR:3) | A blind human-written spec for the 15 external pins ([EX] EXR:186). This could be done together with G2 | yes |
 | G13 | Content: eight blocking rules have no source row | Content validity is unsupported for those rules | Add source rows or demote them to advisory ([VS] VSM:78-79). The optional architect rating takes about 2 h each (VSM:80-82) | optional |
 
@@ -203,15 +203,15 @@ Of these four, only the labelling needs a person, for about 3–5 hours ([VS] VS
 | V10 Same-vendor threat | RED (GATE:40) | **RED** | (a) No non-Claude generator was run. (b) External set still unlabelled ([EX] EXR:147). The panel's leave-one-vendor-out reading (MP:132) covers raters only, and has not run. (c) Unchanged |
 | V11 Label leakage | UNKNOWN (GATE:41) | **UNKNOWN** | The panel's blinding check passed on the dry run, 40/40 items (MP:51), but no real data has gone through it. `Docs/v1.3/night-backlog-2026-10-16.md:531` notes it is unrecorded whether the blind-manifest writer saw scrubbed source |
 | S5 No-layout-hint arm | RED (GATE:47) | **RED** | The floor probe always gave the folder sentence (FP:50-55). Floor probe 2 (PR #182, unmerged) studies layout sentences as levers; it is not summarised here |
-| S6 FF-CV05 excluded; per-rule advisory | RED (GATE:48) | **RED, prerequisite merged** | PR #142 is now in v1.3 (`c4076100`), and `advisoryByRule` is written by `scripts/lib/loop/evaluator.ts:39-41`. [AR] confirms the fallback is not computable without it, and computable with it ([AR] `results/v1.3-study2-rehearsal/floor/report.md:25`). It still needs rehearsal step records |
+| S6 FF-CV05 excluded; per-rule advisory | RED (GATE:48) | **RED, prerequisite merged** | PR #142 is now in v1.3 (`c4076100`), and `advisoryByRule` is written by `scripts/lib/loop/evaluator.ts:39-41`. [AR] shows, on synthetic records, that the fallback is not computable without it and computable with it ([AR] `results/v1.3-study2-rehearsal/floor/report.md:25`). It still needs rehearsal step records |
 | S7 Live evaluator, zero errors | RED (GATE:49) | **RED** | The tsconfig fix landed with PR #142. The floor probe scored hand-written snapshots with `evaluate` (FP:62-63), but these were not loop snapshots, and a zero error count is not stated |
 | S8 Every model tier live | RED (GATE:50) | **RED** | The floor probe used one session, "no second model" (FP:220-221) |
 | S15 Model labeller routes | UNKNOWN (GATE:57) | **UNKNOWN** | The panel design sets tools off per route (MP:61-74) and states quota and resume rules (MP:187, :208). No route was probed live |
 | D1 Outcome variance (no floor) | RED (GATE:59) | **RED, negative evidence** | Hexagonal `none` 0/14 steps with a blocking finding (FP:15). Layered shows a step-1 level effect, not a slope (FP:22). No slope SD or θ. The pilot still decides (FP:214-216) |
-| D3 Power | RED (GATE:61) | **RED, confirmed** | [AR] reproduces power 0.54 for gate and 0.17 for mcp at the working grid ([AR] ARS:45; ARD:152-153). The task-level test "can never reject" (ARD:182) |
+| D3 Power | RED (GATE:61) | **RED, reproduced on synthetic data** | [AR] reproduces power 0.54 for gate and 0.17 for mcp at the working grid ([AR] ARS:46; ARD:158-159). The task-level test "can never reject" (ARD:189) |
 | D6 Telemetry incl. MCP call log | RED (GATE:65) | **RED** | [AR] lists "MCP tool calls per step" as not computable |
 | D9 Analysis script end to end | RED (GATE:68) | **RED, synthetic half done** | `scripts/v1.3/study2-analyse.ts` produces T0–T11 and F1–F2 on synthetic out-roots, with planted effects recovered (30/30, [AR] ARS:9-38). It is unmerged (PR #160), and DRP:103 also requires the real rehearsal out-root. 7 items are not computable (GLMM, Q4 measures, D13 guards, MCP calls, acceptance checks, judge dimensions) |
-| D11 Arm set | RED (GATE:69) | **RED** | [AR] flags D11b and D11c ambiguities among its 25 listed ambiguities (ARD:179-205) |
+| D11 Arm set | RED (GATE:69) | **RED** | [AR] flags D11b and D11c ambiguities among its 25 listed ambiguities (ARD:186-212) |
 | D13 Gaming guards | RED (GATE:71) | **RED** | Not computable in [AR]. Floor probe: FF-S03 double-counts upward edges, "31 of the 65" (FP:177-179) |
 | D16 Q4 independent measures | RED (GATE:74) | **RED** | dependency-cruiser now agrees with the tool on every import-direction key in three corpora ("722 shared findings, 0 disagreements", CV:290). This supports using it as the independent measure, but nothing computes it per step, and [AR] lists it as not computable |
 
