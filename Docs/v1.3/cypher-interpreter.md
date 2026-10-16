@@ -20,10 +20,10 @@ easier to interpret (`git diff origin/v1.3 -- src/fitness-compiler` is empty).
 | Differential parity against live Neo4j 5.26.24 + APOC (`memory-parity.ts`) | **72,388 statements, 81 projects: 0 content, 0 error, 0 unsupported**; 360 `order` (all the ingestion verification counts, trap T1), 206 `float-drift` (only the two named `averageInstability` texts, ≤ 5 ULP observed, bound 16 ULP, both values recorded; T2). Table in §4
 | Coverage | per template, statements non-empty on both engines, per binding (§4.2). 14 catalogue templates were **thin** (< 50 non-empty) in the first run, and the 7 `cheap2` templates (merged from `v1.3`) have no rows on any real graph; two synthetic graphs now give each of these 21 ≥ 4 non-empty comparisons per binding, but 19 stay under 50 in total and stay flagged |
 | Order guard (`tests/unit/cypher-interp/template-order.test.ts`) | every catalogue template, every compiled text: ends in `RETURN … ORDER BY` over projected columns; no ORDER BY key tie on any row of the synthetic and APG v2 fixture graphs under the three bindings. One stated precondition: the aggregate templates need non-overlapping aggregates (§4.4) |
-| Unsupported syntax (`tests/unit/cypher-interp/unsupported-and-timeout.test.ts`) | 50 forms (writes, `COUNT { }`, `COLLECT { }`, map projections, Cypher-25-only forms, Java-only regex, every CALL procedure, correlated / OPTIONAL / IN TRANSACTIONS subqueries) fail with `CypherInterp.Unsupported` and a message naming the construct |
+| Unsupported syntax (`tests/unit/cypher-interp/unsupported-and-timeout.test.ts`) | 50 forms (writes, `COUNT { }`, `COLLECT { }`, map projections, Cypher-25-only forms, Java-only regex, every CALL procedure, scoped / OPTIONAL / IN TRANSACTIONS subqueries, `CALL { }` ending in `RETURN *`) fail with `CypherInterp.Unsupported` and a message naming the construct |
 | Query timeout (NFR-07) | honoured: `timeoutMs` (else 30 s, the Neo4j repository's default) bounds every read; past it the query fails with `Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration` (§3.1) |
 | APG v2 hand mirrors vs interpreter on the same graphs (no Neo4j) | 9 templates × 78 projects: rows and row order identical (`results/v1.3-cypher-interp/mirrors/mirrors.json`; not re-run by the review fixes) |
-| `CALL { … UNION … }` (§3) | supported, uncorrelated form only: `v1.3` compiles FF-P05 `controller-no-entity` into it (a82c3bb5), which the spike rejected, so on `v1.3` before this fix `--engine cypher-interp` failed FF-P05 in the pipeline on 28 projects (56 `unsupported` in a first parity run of the merged state) |
+| `CALL { … UNION … }` (§3) | supported (importing `WITH` too, from `v1.3-npx`; only the uncorrelated form is checked live): `v1.3` compiles FF-P05 `controller-no-entity` into it (a82c3bb5), which the spike rejected, so on `v1.3` before this fix `--engine cypher-interp` failed FF-P05 in the pipeline on 28 projects (56 `unsupported` in a first parity run of the merged state) |
 | Unit tests (`jest --maxWorkers=2`) | `tests/unit/cypher-interp` 240, `tests/unit/scripts/memory-sweep.test.ts` 8 |
 | Licence | generated parser keeps Neo4j's Apache-2.0 header plus attribution; `NOTICE`, `licenses/Apache-2.0.txt`; `LICENSE` (MIT, matching `package.json`) added (§2.1) |
 | Warm in-process evaluation, one variant | 149 ms (interp) vs 728 ms (Neo4j); graph stages ≈20 ms vs ≈600 ms (§6; not re-measured) |
@@ -188,9 +188,12 @@ rewrites), 11 distinct universal-metric texts, 4 judge graph-view queries, 4 ing
 ingestion writes.
 
 **Clauses**: `MATCH`, `OPTIONAL MATCH` (WHERE inside the optional match), `WHERE`, `WITH [DISTINCT] … [ORDER BY] [SKIP]
-[LIMIT] [WHERE]`, `RETURN [DISTINCT] … [ORDER BY] [SKIP] [LIMIT]`, `UNWIND`, `WITH *` / `RETURN *`, and the uncorrelated
-subquery `CALL { q [UNION [ALL] q]... }` (each branch a read query ending in RETURN that sees no outer variable; added
-by the review fixes for the v1.3 FF-P05 rewrite; UNION keeps the first of equivalent rows, as Neo4j's Distinct does).
+[LIMIT] [WHERE]`, `RETURN [DISTINCT] … [ORDER BY] [SKIP] [LIMIT]`, `UNWIND`, `WITH *` / `RETURN *`, and the returning unit
+subquery `CALL { q [UNION [ALL] q]... }` (each part a read query ending in RETURN with the same column set, in any
+order; a part that starts with an importing `WITH` sees the outer row through it, any other part sees no outer
+variable and is computed once; UNION keeps the first of equivalent rows, as Neo4j's Distinct does). Added twice, by
+the review fixes (uncorrelated form, checked live) and on `v1.3-npx` (importing `WITH`); merged into one
+implementation in the round-2 merge of `v1.3` into this branch.
 
 **Patterns**: node labels and label expressions (`:A:B`, `:A|B`, `!`, `%`, `IS`), inline property maps, inline
 `WHERE` in node and relationship patterns, relationship type alternatives (`[:IMPORTS|RE_EXPORTS]`), directions
@@ -210,9 +213,13 @@ the non-aggregate items; aggregates inside larger expressions (`toFloat(count(x)
 isEmpty range split substring left right replace toLower toUpper trim ltrim rtrim toString toInteger toFloat toBoolean
 abs sign ceil floor sqrt`, and `apoc.coll.indexOf`, `apoc.coll.toSet`, `apoc.coll.sort` as built-ins.
 
+**Added on `v1.3-npx`** (`Docs/v1.3/npx-mode.md` §4.1): the importing-`WITH` form of `CALL { }` above. It is not
+covered by the live parity run below (no catalogue template uses it).
+
 **Rejected with `CypherUnsupportedError`** (never a silent answer): every write clause (CREATE, MERGE, SET, DELETE,
-REMOVE, FOREACH, LOAD CSV) outside the recognised ingestion shapes, `CALL` of any procedure (GDS included), correlated
-(`CALL (x) { }`, importing `WITH`), `OPTIONAL` and `IN TRANSACTIONS` subqueries, `UNION` outside `CALL { }`,
+REMOVE, FOREACH, LOAD CSV) outside the recognised ingestion shapes, `CALL` of any procedure (GDS included), scoped
+(`CALL (x) { }`), `OPTIONAL` and `IN TRANSACTIONS` subqueries, `CALL { }` parts that do not end in `RETURN` with named
+columns, `UNION` outside `CALL { }`,
 quantified path patterns and `shortestPath`, match modes, hints, `COUNT { }` / `COLLECT { }` subqueries, pattern
 comprehensions and pattern expressions, map projections, type predicates, `split` with a list of delimiters, WHERE
 inside a variable-length relationship, `stDev`/`percentile*`, any function outside the table above, Java-only regex
@@ -224,7 +231,7 @@ Each rejection is pinned by `tests/unit/cypher-interp/unsupported-and-timeout.te
 DELETE / DETACH DELETE, REMOVE, FOREACH, LOAD CSV, `COUNT { }`, `COLLECT { }`, three map projections, `||`, `WHEN`
 branches, `NEXT`, `FILTER`, `LET`, comma lists in `CASE`, type predicates, twelve Java-only regex constructs, CALL of
 `db.labels`, `apoc.help` and of the name `apoc.coll.sort` (the three apoc.coll built-ins are functions, never
-procedures), correlated, OPTIONAL and IN TRANSACTIONS subqueries, other APOC and GDS functions, UNION outside
+procedures), scoped, OPTIONAL and IN TRANSACTIONS subqueries, a `CALL { }` ending in `RETURN *`, other APOC and GDS functions, UNION outside
 `CALL { }`, quantified path patterns); the supported `CALL { … UNION … }` form and its three syntax errors (mixed
 UNION / UNION ALL, different column names, an outer variable redeclared) have tests with Neo4j's answers: the error code
 is `CypherInterp.Unsupported` and the message names the construct (`MERGE (write clause)`, `COUNT { } subquery`, `map

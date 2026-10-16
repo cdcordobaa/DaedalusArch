@@ -98,37 +98,46 @@ function runClause(clause: Clause, rows: Iterable<Row>, ctx: Ctx): Iterable<Row>
       return where === undefined ? projected : filter(projected, where, ctx);
     }
     case 'return': return project(clause.projection, rows, ctx);
-    case 'subquery': return subquery(clause, rows, ctx);
+    case 'call': return callSubquery(clause, rows, ctx);
   }
 }
 
 /**
- * Uncorrelated `CALL { ... }`: the branches see no outer variable, so their rows are computed once and joined to
- * every input row. UNION keeps the first of equivalent rows, branch by branch (Neo4j's Distinct over the Union).
+ * `CALL { ... }` (unit subquery, returning). Per incoming row: each part runs on that row when it starts with `WITH`
+ * (the importing WITH; its projection decides what is visible) and on an empty row otherwise; parts' rows are
+ * concatenated in part order, `UNION` drops repeated rows (equivalence, first seen kept), `UNION ALL` keeps them. The
+ * returned columns join the outer row; a column that rebinds an outer variable is an error, as in Neo4j. When no part
+ * imports (uncorrelated), the parts' rows are computed once and joined to every incoming row.
  */
-function* subquery(clause: Extract<Clause, { k: 'subquery' }>, rows: Iterable<Row>, ctx: Ctx): Generator<Row> {
-  let inner: Row[] | undefined;
-  for (const r of rows) {
-    if (inner === undefined) {
-      inner = [];
-      const seen = new Set<string>();
-      for (const b of clause.branches) {
-        for (const row of runClauses(b.clauses, [new Map()], ctx)) {
-          tick(ctx);
-          const out = new Map<string, Value>(clause.columns.map((c) => [c, row.get(c) ?? null]));
-          if (!clause.all) {
-            const k = [...out.values()].map(equivalenceKey).join('\u0000');
-            if (seen.has(k)) continue;
-            seen.add(k);
-          }
-          inner.push(out);
+function* callSubquery(clause: Extract<Clause, { k: 'call' }>, rows: Iterable<Row>, ctx: Ctx): Generator<Row> {
+  const { columns } = clause;
+  const correlated = clause.parts.some((p) => p.clauses[0]?.k === 'with');
+  const innerRows = (outer: Row): Row[] => {
+    const out: Row[] = [];
+    const seen = new Set<string>();
+    for (const part of clause.parts) {
+      const input: Row = part.clauses[0]?.k === 'with' ? outer : new Map();
+      for (const r of runClauses(part.clauses, [input], ctx)) {
+        tick(ctx);
+        if (!clause.unionAll && clause.parts.length > 1) {
+          const key = columns.map((c) => equivalenceKey(r.get(c) ?? null)).join('\u0000');
+          if (seen.has(key)) continue;
+          seen.add(key);
         }
+        out.push(new Map<string, Value>(columns.map((c) => [c, r.get(c) ?? null])));
       }
     }
-    for (const c of clause.columns) if (r.has(c)) throw new CypherSyntaxError(`Variable \`${c}\` already declared in outer scope`);
-    for (const row of inner) {
-      const m = new Map(r);
-      for (const [k, v] of row) m.set(k, v);
+    return out;
+  };
+  let cached: Row[] | undefined;
+  for (const outer of rows) {
+    for (const c of columns) {
+      if (outer.has(c)) throw new CypherSyntaxError(`Variable \`${c}\` already declared in outer scope`);
+    }
+    const inner = correlated ? innerRows(outer) : (cached ??= innerRows(outer));
+    for (const r of inner) {
+      const m = new Map(outer);
+      for (const [k, v] of r) m.set(k, v);
       yield m;
     }
   }

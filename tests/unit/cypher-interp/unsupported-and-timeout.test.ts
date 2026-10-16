@@ -57,11 +57,12 @@ const UNSUPPORTED: readonly (readonly [string, string, RegExp])[] = [
   ['\\x{41} escape', "RETURN 'A' =~ '\\\\x{41}' AS x", /Java-only regular expression/],
   ['class intersection &&', "RETURN 'x' =~ '[a-z&&[^e]]' AS x", /Java-only regular expression/],
   ['(?i) over non-ASCII letters', "RETURN 'É' =~ '(?i)é' AS x", /Java-only regular expression/],
-  // CALL: no procedure at all (the three apoc.coll functions are built-ins, not procedures), no CALL subqueries.
+  // CALL: no procedure at all (the three apoc.coll functions are built-ins, not procedures); of the CALL { } subqueries
+  // only the returning unit form (importing WITH allowed, merged from v1.3's npx branch) runs.
   ['CALL db.labels()', 'CALL db.labels() YIELD label RETURN label', /CALL procedure/],
   ['CALL apoc.help()', "CALL apoc.help('coll')", /CALL procedure/],
   ['CALL of an apoc.coll function name', 'CALL apoc.coll.sort([2, 1])', /CALL procedure/],
-  ['CALL { } subquery importing with WITH', 'MATCH (n) CALL { WITH n RETURN n.x AS x } RETURN x', /importing variables with WITH \(correlated\)/],
+  ['CALL { } subquery ending in RETURN *', 'MATCH (n) CALL { MATCH (m) RETURN * } RETURN n', /does not end in RETURN with named columns/],
   ['scoped CALL subquery', 'MATCH (n) CALL (n) { RETURN 1 AS one } RETURN one', /scoped CALL \( \) \{ \} subquery/],
   ['OPTIONAL CALL subquery', 'OPTIONAL CALL { RETURN 1 AS one } RETURN one', /OPTIONAL CALL \{ \} subquery/],
   ['CALL subquery in transactions', 'CALL { MATCH (n) RETURN n.x AS x } IN TRANSACTIONS RETURN x', /CALL \{ \} IN TRANSACTIONS/],

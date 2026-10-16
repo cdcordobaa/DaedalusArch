@@ -91,10 +91,12 @@ export type Clause =
   | { readonly k: 'with'; readonly projection: Projection; readonly where: Expr | undefined }
   | { readonly k: 'return'; readonly projection: Projection }
   /**
-   * Uncorrelated `CALL { branch [UNION [ALL] branch]... }`: each branch is a read query ending in RETURN that sees no
-   * outer variable; `all` false = UNION (distinct). The v1.3 FF-P05 rewrite (`v13-signature-types.ts`) emits it.
+   * `CALL { part [UNION [ALL] part]* }`: a returning unit subquery, run per incoming row. A part that starts with `WITH`
+   * imports from the outer row through that projection; any other part sees no outer variable. `columns` is the
+   * first part's RETURN columns (every part returns the same set). The v1.3 FF-P05 rewrite (`v13-signature-types.ts`)
+   * emits it.
    */
-  | { readonly k: 'subquery'; readonly branches: readonly Query[]; readonly all: boolean; readonly columns: readonly string[] };
+  | { readonly k: 'call'; readonly parts: readonly Query[]; readonly unionAll: boolean; readonly columns: readonly string[] };
 
 export interface Query {
   readonly clauses: readonly Clause[];

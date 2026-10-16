@@ -5,7 +5,8 @@
  *
  * Two error classes, never a guess:
  * - `CypherSyntaxError`: the text does not parse under Neo4j's grammar (Neo4j would reject it too);
- * - `CypherUnsupportedError`: valid Cypher outside the interpreter's subset (writes, CALL, UNION, GDS, QPP, ...).
+ * - `CypherUnsupportedError`: valid Cypher outside the interpreter's subset (writes, procedure CALL, top-level UNION,
+ *   GDS, QPP, ...). `CALL { ... [UNION [ALL] ...] }` returning unit subqueries are in the subset.
  */
 import { BaseErrorListener, CharStream, CommonTokenStream, ParserRuleContext, TerminalNode } from 'antlr4ng';
 import type { ParseTree, RecognitionException, Recognizer, Token, ATNSimulator } from 'antlr4ng';
@@ -114,43 +115,42 @@ class Builder {
   }
 
   queryWithLocalDefinitions(c: Ctx): Query {
+    const { parts, all } = this.unionParts(c);
+    if (parts.length !== 1) throw new CypherUnsupportedError(`UNION${all ? ' ALL' : ''} outside a CALL { } subquery`);
+    return parts[0] as Query;
+  }
+
+  /** The `singleQuery` parts of a query body and whether they are joined by `UNION ALL` (mixing is an error). */
+  unionParts(c: Ctx): { parts: Query[]; all: boolean } {
     if (rule(c, 'localDefinition') !== undefined) throw new CypherUnsupportedError('DEFINE');
     const next = need(c, 'nextStatement');
     const regs = rules(next, 'regularQuery');
     if (regs.length !== 1) throw new CypherUnsupportedError('NEXT');
-    const { branches, all } = this.union(regs[0] as Ctx);
-    if (branches.length !== 1) throw new CypherUnsupportedError(`UNION${all ? ' ALL' : ''} outside a CALL { } subquery`);
-    return branches[0] as Query;
-  }
-
-  /** The branches of a `regularQuery` (one, or several joined by UNION / UNION ALL, not mixed). */
-  union(reg: Ctx): { branches: Query[]; all: boolean } {
-    const union = rule(reg, 'union');
+    const union = rule(regs[0] as Ctx, 'union');
     if (union === undefined) throw new CypherUnsupportedError('WHEN query');
     const alls = kids(union).filter((k) => isTok(k, 'ALL')).length;
     const unions = kids(union).filter((k) => isTok(k, 'UNION')).length;
     if (alls !== 0 && alls !== unions) throw new CypherSyntaxError('Invalid combination of UNION and UNION ALL');
-    const branches = rules(union, 'singleQuery').map((single) => {
+    const parts = rules(union, 'singleQuery').map((single) => {
       if (rule(single, 'clause') === undefined) throw new CypherUnsupportedError('braced query');
       return { clauses: rules(single, 'clause').map((cl) => this.clause(cl)) };
     });
-    return { branches, all: unions > 0 && alls === unions };
+    return { parts, all: unions > 0 && alls === unions };
   }
 
-  /** `CALL { ... }`: only the uncorrelated read form (no scope, no importing WITH, no OPTIONAL, no IN TRANSACTIONS). */
+  /**
+   * `CALL { part [UNION [ALL] part]* }`: returning unit subqueries; a part may import outer variables with a leading
+   * `WITH`. OPTIONAL, scoped `CALL ( ) { }` and IN TRANSACTIONS stay rejected. Parts must end in RETURN with named
+   * columns, the same set in every part (any order, as Neo4j accepts).
+   */
   subqueryClause(c: Ctx): Clause {
     if (hasTok(c, 'OPTIONAL')) throw new CypherUnsupportedError('OPTIONAL CALL { } subquery');
     if (rule(c, 'subqueryScope') !== undefined) throw new CypherUnsupportedError('scoped CALL ( ) { } subquery (correlated)');
     if (rule(c, 'subqueryInTransactionsParameters') !== undefined) throw new CypherUnsupportedError('CALL { } IN TRANSACTIONS');
-    const q = need(c, 'queryWithLocalDefinitions');
-    if (rule(q, 'localDefinition') !== undefined) throw new CypherUnsupportedError('DEFINE');
-    const regs = rules(need(q, 'nextStatement'), 'regularQuery');
-    if (regs.length !== 1) throw new CypherUnsupportedError('NEXT');
-    const { branches, all } = this.union(regs[0] as Ctx);
+    const { parts, all } = this.unionParts(need(c, 'queryWithLocalDefinitions'));
     let columns: string[] | undefined;
-    for (const b of branches) {
-      if (b.clauses[0]?.k === 'with') throw new CypherUnsupportedError('CALL { } subquery importing variables with WITH (correlated)');
-      const last = b.clauses[b.clauses.length - 1];
+    for (const p of parts) {
+      const last = p.clauses[p.clauses.length - 1];
       if (last?.k !== 'return' || last.projection.star) throw new CypherUnsupportedError('CALL { } subquery that does not end in RETURN with named columns');
       const cols = last.projection.items.map((i) => i.alias);
       if (columns === undefined) columns = cols;
@@ -158,7 +158,7 @@ class Builder {
         throw new CypherSyntaxError('All sub queries in an UNION must have the same return column names');
       }
     }
-    return { k: 'subquery', branches, all, columns: columns ?? [] };
+    return { k: 'call', parts, unionAll: all, columns: columns ?? [] };
   }
 
   clause(c: Ctx): Clause {
