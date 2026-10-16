@@ -9,12 +9,16 @@ import type { DriftThresholds } from '../../shared/types/drift.js';
 import { DomainResult } from '../../shared/errors/domain-result.js';
 import { ingestAPG } from '../../neo4j-ingestion/index.js';
 import { toPipelineError, toPipelineWarning } from './map-helpers.js';
+import { MemoryLimitError } from '../../shared/process/memory-guard.js';
+import type { MemoryGuard } from '../../shared/process/memory-guard.js';
 
 export interface IngestCommandConfig {
   readonly mode: PipelineMode;
   readonly commitSha?: CommitSha;
   readonly apgStorePath?: string;
   readonly driftThresholds?: DriftThresholds;
+  /** Checked before the ingestion builds its write batches (Docs/v1.3/scale.md §6). */
+  readonly memoryGuard?: MemoryGuard;
 }
 
 export class IngestCommand implements PipelineCommand {
@@ -29,6 +33,12 @@ export class IngestCommand implements PipelineCommand {
   async execute(context: FirewallContext): Promise<DomainResultType<void>> {
     const apgResult = context.getApgResult();
     const parsedSpec = context.getParsedSpec();
+    try {
+      this.config.memoryGuard?.check('graph ingestion', `${String(apgResult.nodes.length)} nodes, ${String(apgResult.edges.length)} edges`);
+    } catch (e) {
+      if (!(e instanceof MemoryLimitError)) throw e;
+      return DomainResult.fail([toPipelineError({ code: e.code, message: e.message }, this.name, true)]);
+    }
 
     const input = {
       apgResult,

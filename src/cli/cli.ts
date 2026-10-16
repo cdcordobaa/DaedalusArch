@@ -51,6 +51,44 @@ function resolveGraphMode(value: string): GraphMode | undefined {
   return undefined;
 }
 
+/** The scale flags of `evaluate` (Docs/v1.3/scale.md); absent flags leave the run as it was. */
+interface ScaleCliOpts {
+  readonly maxFiles?: string;
+  readonly memoryLimitMb?: string;
+  readonly queryEngine: string;
+  readonly skipExcludedSources: boolean;
+}
+
+type ScaleConfig = Pick<PipelineConfig, 'maxFiles' | 'memoryLimitMb' | 'queryEngine' | 'sourceScope'>;
+
+function positiveInt(flag: string, value: string): number | undefined {
+  if (/^[1-9][0-9]*$/.test(value)) return Number(value);
+  process.stderr.write(`Error: ${flag} must be a positive integer\n`);
+  process.exitCode = 2;
+  return undefined;
+}
+
+/** `--max-files`, `--memory-limit-mb`, `--query-engine`, `--skip-excluded-sources`; an invalid value exits 2. */
+function resolveScaleOptions(opts: ScaleCliOpts): ScaleConfig | undefined {
+  if (!(QUERY_ENGINES as readonly string[]).includes(opts.queryEngine)) {
+    process.stderr.write(`Error: --query-engine must be one of ${QUERY_ENGINES.join(' | ')}\n`);
+    process.exitCode = 2;
+    return undefined;
+  }
+  const maxFiles = opts.maxFiles !== undefined ? positiveInt('--max-files', opts.maxFiles) : undefined;
+  if (opts.maxFiles !== undefined && maxFiles === undefined) return undefined;
+  const memoryLimitMb = opts.memoryLimitMb !== undefined ? positiveInt('--memory-limit-mb', opts.memoryLimitMb) : undefined;
+  if (opts.memoryLimitMb !== undefined && memoryLimitMb === undefined) return undefined;
+  return {
+    ...(maxFiles !== undefined && { maxFiles }),
+    ...(memoryLimitMb !== undefined && { memoryLimitMb }),
+    ...(opts.queryEngine === 'neo4j' && { queryEngine: 'neo4j' as const }),
+    ...(opts.skipExcludedSources && { sourceScope: 'analysed' as const }),
+  };
+}
+
+const QUERY_ENGINES = ['accelerated', 'neo4j'] as const;
+
 /** `--neural-aggregation` value (ADR-028): `registered` (default) or `proportional`; anything else exits 2. */
 function resolveNeuralAggregation(value: string): NeuralAggregation | undefined {
   const v = parseNeuralAggregation(value);
@@ -184,7 +222,11 @@ withLLMOptions(program
   .option('--neural-aggregation <rule>', 'Neural aggregation of the AHS: registered (default, primary) | proportional (ADR-028 sensitivity variant)', 'registered')
   .option('--tsconfig <path>', 'Explicit tsconfig for APG extraction; the project\'s own tsconfig.json is then ignored (ADR-032)')
   .option('--scoring <mode>', 'Scoring mode: v1.3 (rule tiers, default; verdict from blocking rules) | v1.2e (the registered Study 1 scoring)', 'v1.3')
-  .action(async (opts: LLMCliOpts & {
+  .option('--max-files <n>', 'Stop with PROJECT_TOO_LARGE before parsing when more than n source files remain after the exclusions')
+  .option('--memory-limit-mb <n>', 'Stop with MEMORY_LIMIT_EXCEEDED when resident memory passes n MB (the heap guard is always on)')
+  .option('--query-engine <engine>', 'accelerated (default: the bounded cycle queries answered in memory, same rows) | neo4j (every query on Neo4j)', 'accelerated')
+  .option('--skip-excluded-sources', 'Load only the analysed files and declaration files into ts-morph (faster, less memory; output not guaranteed identical)', false)
+  .action(async (opts: LLMCliOpts & ScaleCliOpts & {
     project: string;
     tsconfig?: string;
     spec: string;
@@ -210,6 +252,8 @@ withLLMOptions(program
     if (instrumentVersion === undefined) return;
     const neuralAggregation = resolveNeuralAggregation(opts.neuralAggregation);
     if (neuralAggregation === undefined) return;
+    const scale = resolveScaleOptions(opts);
+    if (scale === undefined) return;
     // BR-U3-80: no default password; stop before any connection.
     const neo4jPassword = requireEnvForCli('NEO4J_PASSWORD');
     if (neo4jPassword === undefined) return;
@@ -218,6 +262,7 @@ withLLMOptions(program
     if (llmConfig === null) return;
 
     const config: PipelineConfig = {
+      ...scale,
       projectPath: opts.project,
       specFilePath: opts.spec,
       neo4jUri: opts.neo4jUri,

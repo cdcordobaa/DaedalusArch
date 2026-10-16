@@ -5,6 +5,7 @@ import type { GraphMode } from '../apg-extractor/types.js';
 import type { InstrumentVersion } from '../fitness-compiler/role-exemptions.js';
 import type { NeuralAggregation } from '../scoring-engine/neural-aggregation.js';
 import type { ScoringMode } from '../shared/types/evaluation.js';
+import type { AccelerationEvent } from '../graph-accelerator/accelerated-repository.js';
 
 export interface PipelineConfig {
   readonly projectPath: string;
@@ -33,7 +34,22 @@ export interface PipelineConfig {
    * command and the MCP `evaluate_project` tool pass `v1.3` unless told otherwise.
    */
   readonly scoringMode?: ScoringMode | undefined;
+  /**
+   * Scale (Docs/v1.3/scale.md §3): `accelerated` (default) answers the bounded cycle queries in memory with the same
+   * rows; `neo4j` sends every query to Neo4j.
+   */
+  readonly queryEngine?: QueryEngine | undefined;
+  /** Scale (`--max-files`): fail with `PROJECT_TOO_LARGE` above this many analysable source files; absent = no cap. */
+  readonly maxFiles?: number | undefined;
+  /** Scale (`--memory-limit-mb`): an RSS budget for the memory guard, in MB; the heap budget applies regardless. */
+  readonly memoryLimitMb?: number | undefined;
+  /** Scale (`--skip-excluded-sources` = `analysed`): which tsconfig files ts-morph loads; absent = `tsconfig`. */
+  readonly sourceScope?: 'tsconfig' | 'analysed' | undefined;
+  /** Called once per recognised cycle query with the engine that answered it (profiling only). */
+  readonly onAcceleration?: ((event: AccelerationEvent) => void) | undefined;
 }
+
+export type QueryEngine = 'accelerated' | 'neo4j';
 
 export type OutputFormat = 'json' | 'human' | 'csv';
 

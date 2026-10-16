@@ -3,7 +3,7 @@ import type { FirewallContext } from '../../shared/context/firewall-context.js';
 import type { DomainResult as DomainResultType } from '../../shared/errors/domain-result.js';
 import { DomainResult } from '../../shared/errors/domain-result.js';
 import { extractAPG } from '../../apg-extractor/index.js';
-import type { GraphMode } from '../../apg-extractor/types.js';
+import type { ExtractionLimits, GraphMode } from '../../apg-extractor/types.js';
 import { toPipelineError, toPipelineWarning } from './map-helpers.js';
 
 export class ExtractCommand implements PipelineCommand {
@@ -16,13 +16,15 @@ export class ExtractCommand implements PipelineCommand {
     private readonly graphMode?: GraphMode,
     /** ADR-032: explicit tsconfig (the project's own `tsconfig.json` is then ignored); absent = `<project>/tsconfig.json`. */
     private readonly tsconfigPath?: string,
+    /** Scale controls: `--max-files`, the memory guard, `--skip-excluded-sources` (Docs/v1.3/scale.md §5, §6). */
+    private readonly limits: ExtractionLimits = {},
   ) {}
 
   async execute(context: FirewallContext): Promise<DomainResultType<void>> {
     const result = await extractAPG(this.projectPath, {
       excludePatterns: this.excludePatterns,
       ...(this.graphMode !== undefined && { graphMode: this.graphMode }),
-    }, this.tsconfigPath);
+    }, this.tsconfigPath, this.limits);
 
     if (!result.success) {
       return DomainResult.fail<void>(

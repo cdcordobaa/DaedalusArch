@@ -12,7 +12,7 @@
 import { dirname, isAbsolute, join, relative } from 'node:path';
 import { Node, SyntaxKind, ts } from 'ts-morph';
 import type {
-  CallExpression, ExportDeclaration, ImportDeclaration, ImportEqualsDeclaration, Project, SourceFile, Symbol as MorphSymbol,
+  ExportDeclaration, ImportDeclaration, ImportEqualsDeclaration, Project, SourceFile, Symbol as MorphSymbol,
 } from 'ts-morph';
 import type { ExtractorOptions, NodeLookup, ReExportEdgesMode } from './types.js';
 import { DEFAULT_OPTIONS } from './types.js';
@@ -76,6 +76,8 @@ export interface ImportResolutionContext {
   readonly reExportAdjacency: Map<string, readonly SourceFile[]>;
   /** v1.3 F-P01-ALIAS (`ExtractorOptions.aliasDeclarationPackages`). */
   readonly aliasDeclarationPackages: boolean;
+  /** Memo of `ts.resolveModuleName` per containing directory and specifier (scale.md §5); absent = no memo. */
+  readonly moduleResolutions?: Map<string, ts.ResolvedModuleFull | undefined>;
 }
 
 // ── Classification (BR-U2-01) ────────────────────────────────────────────────
@@ -175,6 +177,7 @@ export function buildImportResolutionContext(
     reExportEdges: opts.reExportEdges ?? DEFAULT_OPTIONS.reExportEdges,
     reExportAdjacency: new Map(),
     aliasDeclarationPackages: opts.aliasDeclarationPackages ?? DEFAULT_OPTIONS.aliasDeclarationPackages,
+    moduleResolutions: new Map(),
   };
 }
 
@@ -251,13 +254,28 @@ export function resolveModule(
   return result;
 }
 
+/**
+ * `ts.resolveModuleName(...).resolvedModule`, memoised per containing directory and specifier. TypeScript resolves a
+ * module name from the containing file's directory only (its own resolution cache is keyed the same way), and the
+ * file system does not change during one extraction, so the memo returns what a fresh call would (scale.md §5).
+ */
+function resolvedModuleOf(specifier: string, containingFile: string, ctx: ImportResolutionContext): ts.ResolvedModuleFull | undefined {
+  const memo = ctx.moduleResolutions;
+  if (memo === undefined) return ts.resolveModuleName(specifier, containingFile, ctx.compilerOptions, ctx.host).resolvedModule;
+  const key = `${dirname(containingFile)}\u0000${specifier}`;
+  if (memo.has(key)) return memo.get(key);
+  const resolved = ts.resolveModuleName(specifier, containingFile, ctx.compilerOptions, ctx.host).resolvedModule;
+  memo.set(key, resolved);
+  return resolved;
+}
+
 function resolveModuleSilently(specifier: string, fromSourceFile: SourceFile, ctx: ImportResolutionContext): ModuleResolution {
   const cls = classifySpecifier(specifier);
 
   // 1. Built-in (BR-U2-03, 04).
   if (cls === 'node-builtin') return { kind: 'package', root: builtinRoot(specifier), outOfRootAlias: false };
 
-  const resolved = ts.resolveModuleName(specifier, fromSourceFile.getFilePath(), ctx.compilerOptions, ctx.host).resolvedModule;
+  const resolved = resolvedModuleOf(specifier, fromSourceFile.getFilePath(), ctx);
 
   // 2. Relative (BR-U2-09 S-4, 12, 13).
   if (cls === 'relative') {
@@ -662,25 +680,59 @@ export function resolveReExportTargets(statement: ExportDeclaration, ctx: Import
 
 /** One `import()` or `require()` call; `specifier` is set only for a string-literal first argument. */
 export interface DynamicImportCall {
-  readonly call: CallExpression;
+  /** The call's start line, as ts-morph's `getStartLineNumber()` gives it. */
+  readonly line: number;
   readonly specifier: string | undefined;
 }
 
 /**
+ * One scan per source file text, shared by the two callers (resolution and the unsupported count). Keyed by the
+ * compiler node, which ts-morph replaces when a file's text changes, so an edited file is scanned again.
+ */
+const dynamicImportScans = new WeakMap<ts.SourceFile, readonly DynamicImportCall[]>();
+
+/**
  * The `import(...)` and `require(...)` call expressions of a file, in source order. `import x = require()`
  * declarations, `import('x').T` type references and `require.resolve()` are not calls of this form.
+ *
+ * Scale (Docs/v1.3/scale.md §5): the scan walks the compiler tree in the order of ts-morph's
+ * `getDescendantsOfKind(CallExpression)` (pre-order `forEachChild`) but wraps no node, and it runs once per file.
+ * The line is ts-morph's: one plus the number of `\n` before the call's start.
  */
-export function findDynamicImportCalls(sf: SourceFile): DynamicImportCall[] {
+export function findDynamicImportCalls(sf: SourceFile): readonly DynamicImportCall[] {
+  const root = sf.compilerNode;
+  const cached = dynamicImportScans.get(root);
+  if (cached !== undefined) return cached;
+  const text = root.getFullText();
+  const newlines: number[] = [];
+  for (let i = text.indexOf('\n'); i >= 0; i = text.indexOf('\n', i + 1)) newlines.push(i);
+  const lineAt = (pos: number): number => {
+    let lo = 0;
+    let hi = newlines.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >>> 1;
+      if ((newlines[mid] ?? pos) < pos) lo = mid + 1;
+      else hi = mid;
+    }
+    return lo + 1;
+  };
   const calls: DynamicImportCall[] = [];
-  for (const call of sf.getDescendantsOfKind(SyntaxKind.CallExpression)) {
-    const callee = call.getExpression();
-    const isDynamic = callee.getKind() === SyntaxKind.ImportKeyword
-      || (Node.isIdentifier(callee) && callee.getText() === 'require');
-    if (!isDynamic) continue;
-    const arg = call.getArguments()[0];
-    const literal = arg !== undefined && (Node.isStringLiteral(arg) || Node.isNoSubstitutionTemplateLiteral(arg));
-    calls.push({ call, specifier: literal ? arg.getLiteralText() : undefined });
-  }
+  const visit = (node: ts.Node): void => {
+    if (ts.isCallExpression(node)) {
+      const callee = node.expression;
+      const isDynamic = callee.kind === ts.SyntaxKind.ImportKeyword
+        // ts-morph's Identifier.getText() is the identifier's `text` (escapes resolved), not its source slice.
+        || (ts.isIdentifier(callee) && callee.text === 'require');
+      if (isDynamic) {
+        const arg = node.arguments[0];
+        const literal = arg !== undefined && (ts.isStringLiteral(arg) || ts.isNoSubstitutionTemplateLiteral(arg));
+        calls.push({ line: lineAt(node.getStart(root)), specifier: literal ? arg.text : undefined });
+      }
+    }
+    node.forEachChild(visit);
+  };
+  root.forEachChild(visit);
+  dynamicImportScans.set(root, calls);
   return calls;
 }
 
@@ -702,7 +754,7 @@ export function countUnsupportedDynamicImports(sf: SourceFile, modelLiterals = f
 export function resolveDynamicImportTargets(sf: SourceFile, ctx: ImportResolutionContext): ImportOccurrence[] {
   const sourceFileNodeId = sourceFileNodeIdOf(sf, ctx);
   const occurrences: ImportOccurrence[] = [];
-  for (const { call, specifier } of findDynamicImportCalls(sf)) {
+  for (const { line, specifier } of findDynamicImportCalls(sf)) {
     if (specifier === undefined) continue;
     const resolution = resolveModule(specifier, sf, ctx);
     let target: OccurrenceTarget;
@@ -710,7 +762,7 @@ export function resolveDynamicImportTargets(sf: SourceFile, ctx: ImportResolutio
     else if (resolution.kind === 'package') target = { kind: 'package', root: resolution.root };
     else continue;
     occurrences.push({
-      edgeType: 'IMPORTS', sourceFileNodeId, target, specifier, line: call.getStartLineNumber(),
+      edgeType: 'IMPORTS', sourceFileNodeId, target, specifier, line,
       names: ['*'], isTypeOnly: false, dynamic: true,
     });
   }

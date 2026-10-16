@@ -1,17 +1,18 @@
 import { existsSync } from 'node:fs';
-import { resolve, join, relative } from 'node:path';
-import { Project } from 'ts-morph';
+import { dirname, resolve, join, relative } from 'node:path';
+import { Project, ts } from 'ts-morph';
 import picomatch from 'picomatch';
 import type { APGResult } from '../shared/types/apg.js';
 import type { DomainResult } from '../shared/errors/domain-result.js';
 import { DomainResult as DR } from '../shared/errors/domain-result.js';
 import type { PipelineStage } from '../shared/interfaces/pipeline-stage.js';
 import type { FirewallContext } from '../shared/context/firewall-context.js';
-import type { ExtractorOptions, ExtractorError } from './types.js';
+import type { ExtractionLimits, ExtractorOptions, ExtractorError, FileCheckpoint } from './types.js';
 import { DEFAULT_OPTIONS, DEFAULT_EXCLUDE_PATTERNS } from './types.js';
 import { extractNodes } from './node-extractor.js';
 import { extractEdges } from './edge-extractor.js';
 import { extractApg2 } from './apg2/index.js';
+import { MemoryLimitError } from '../shared/process/memory-guard.js';
 
 /**
  * Standalone extraction function.
@@ -25,6 +26,8 @@ export async function extractAPG(
    * `tsconfig.json` (if any) is ignored. E1 cells pass the pinned per-run tsconfig of `Docs/generator-protocol.md` §3.
    */
   tsconfigOverride?: string,
+  /** Scale controls (`--max-files`, the memory guard, `--skip-excluded-sources`); absent = the extraction as before. */
+  limits: ExtractionLimits = {},
 ): Promise<DomainResult<APGResult>> {
   const opts = { ...DEFAULT_OPTIONS, ...options };
   const absoluteProjectPath = resolve(projectPath);
@@ -38,35 +41,69 @@ export async function extractAPG(
     return DR.fail<APGResult>([makeError('TSCONFIG_NOT_FOUND', `No tsconfig.json found at: ${tsconfigPath}`)]);
   }
 
-  try {
-    // ── 1. Initialize ts-morph Project (lenient mode) ────────────────────────
-    const project = new Project({
-      tsConfigFilePath: tsconfigPath,
-      skipAddingFilesFromTsConfig: false,
-      skipFileDependencyResolution: opts.lenientMode,
-    });
+  const guard = limits.memoryGuard;
 
-    // ── 2. Collect source files (apply exclusion patterns) ───────────────────
+  try {
     const allExcludes = [...DEFAULT_EXCLUDE_PATTERNS, ...opts.excludePatterns];
     const isExcluded = picomatch(allExcludes, { dot: true });
-    const sourceFiles = project.getSourceFiles().filter(sf => {
-      // Match against relative path so patterns like "test/**" don't
-      // accidentally match project directory names in the absolute path.
-      const relPath = relative(absoluteProjectPath, sf.getFilePath());
-      return !isExcluded(relPath);
-    });
+    // Match against relative path so patterns like "test/**" don't
+    // accidentally match project directory names in the absolute path.
+    const analysed = (filePath: string): boolean => !isExcluded(relative(absoluteProjectPath, filePath));
+
+    // ── 0. Scale pre-flight (scale.md §6): the tsconfig's file list, counted before any file is parsed ──
+    let tsconfigFiles: readonly string[] | undefined;
+    if (limits.maxFiles !== undefined || limits.sourceScope === 'analysed') {
+      tsconfigFiles = tsconfigFileNames(tsconfigPath);
+      if (limits.maxFiles !== undefined) {
+        const count = tsconfigFiles.filter((f) => !f.endsWith('.d.ts') && analysed(f)).length;
+        if (count > limits.maxFiles) return DR.fail<APGResult>([tooLarge(count, limits.maxFiles, absoluteProjectPath)]);
+      }
+    }
+
+    // ── 1. Initialize ts-morph Project (lenient mode) ────────────────────────
+    let project: Project;
+    if (limits.sourceScope === 'analysed' && tsconfigFiles !== undefined) {
+      // `--skip-excluded-sources`: the analysed files and every declaration file, in the tsconfig's order.
+      project = new Project({
+        tsConfigFilePath: tsconfigPath,
+        skipAddingFilesFromTsConfig: true,
+        skipFileDependencyResolution: opts.lenientMode,
+      });
+      const load = tsconfigFiles.filter((f) => f.endsWith('.d.ts') || analysed(f));
+      load.forEach((f, i) => {
+        if (guard !== undefined && i % CHECKPOINT_EVERY === 0) guard.check('source loading', `${String(i)} of ${String(load.length)} files`);
+        project.addSourceFileAtPath(f);
+      });
+    } else {
+      project = new Project({
+        tsConfigFilePath: tsconfigPath,
+        skipAddingFilesFromTsConfig: false,
+        skipFileDependencyResolution: opts.lenientMode,
+      });
+    }
+    guard?.check('source loading');
+
+    // ── 2. Collect source files (apply exclusion patterns) ───────────────────
+    const sourceFiles = project.getSourceFiles().filter(sf => analysed(sf.getFilePath()));
 
     if (sourceFiles.length === 0) {
       return DR.fail<APGResult>([makeError('EMPTY_PROJECT', `No .ts source files found in: ${absoluteProjectPath}`)]);
     }
 
     const totalFiles = sourceFiles.length;
+    if (limits.maxFiles !== undefined && totalFiles > limits.maxFiles) {
+      return DR.fail<APGResult>([tooLarge(totalFiles, limits.maxFiles, absoluteProjectPath)]);
+    }
+    const checkpoint = (stage: string): FileCheckpoint | undefined => guard === undefined ? undefined : (done: number, total: number): void => {
+      if (done % CHECKPOINT_EVERY === 0) guard.check(stage, `${String(done)} of ${String(total)} files`);
+    };
 
     // ── 3. Node extraction pass ───────────────────────────────────────────────
-    const { nodes, lookup, skipped } = extractNodes(sourceFiles, absoluteProjectPath, opts);
+    const { nodes, lookup, skipped } = extractNodes(sourceFiles, absoluteProjectPath, opts, checkpoint('node extraction'));
 
     // ── 4. Edge extraction pass ───────────────────────────────────────────────
-    const { edges, warnings, packageNodes, importResolution, flowsTo } = extractEdges(sourceFiles, lookup, absoluteProjectPath, opts);
+    const { edges, warnings, packageNodes, importResolution, flowsTo } = extractEdges(sourceFiles, lookup, absoluteProjectPath, opts, checkpoint('edge extraction'));
+    guard?.check('edge extraction');
 
     // ── 5. Parse coverage ────────────────────────────────────────────────────
     const parsedFiles = totalFiles - skipped.length;
@@ -95,8 +132,27 @@ export async function extractAPG(
     return DR.ok<APGResult>({ nodes: v13Nodes, edges, parseCoverage, warnings, importResolution, flowsTo });
 
   } catch (err) {
+    if (err instanceof MemoryLimitError) return DR.fail<APGResult>([makeError('MEMORY_LIMIT_EXCEEDED', err.message)]);
     return DR.fromError<APGResult>(err);
   }
+}
+
+/** Memory guard checkpoint interval, in files. */
+const CHECKPOINT_EVERY = 25;
+
+/** The tsconfig's file list as ts-morph resolves it (`include`, `files`, `exclude`, `extends`), without parsing a file. */
+function tsconfigFileNames(tsconfigPath: string): readonly string[] {
+  const read = ts.readConfigFile(tsconfigPath, (file) => ts.sys.readFile(file));
+  const parsed = ts.parseJsonConfigFileContent(read.config ?? {}, ts.sys, dirname(tsconfigPath), undefined, tsconfigPath);
+  return parsed.fileNames.filter((f) => ts.sys.fileExists(f));
+}
+
+function tooLarge(count: number, maxFiles: number, projectPath: string): ExtractorError {
+  return makeError(
+    'PROJECT_TOO_LARGE',
+    `Project too large: ${String(count)} source files to analyse in ${projectPath} after the exclusions, over --max-files ${String(maxFiles)}. `
+    + 'Narrow exclude_paths in the spec, point --project or --tsconfig at one package, or raise --max-files.',
+  );
 }
 
 /**

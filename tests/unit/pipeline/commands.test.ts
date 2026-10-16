@@ -86,7 +86,7 @@ describe('ExtractCommand', () => {
     const result = await cmd.execute(context);
 
     expect(result.success).toBe(true);
-    expect(mockExtractAPG).toHaveBeenCalledWith('/my/project', { excludePatterns: [] }, undefined);
+    expect(mockExtractAPG).toHaveBeenCalledWith('/my/project', { excludePatterns: [] }, undefined, {});
     expect(context.getApgResult()).toBe(apg);
   });
 
@@ -94,7 +94,14 @@ describe('ExtractCommand', () => {
     mockExtractAPG.mockResolvedValue(DomainResult.ok(stubApgResult()));
     const cmd = new ExtractCommand('/my/project', [], undefined, '/pinned/tsconfig.json');
     await cmd.execute(context);
-    expect(mockExtractAPG).toHaveBeenLastCalledWith('/my/project', { excludePatterns: [] }, '/pinned/tsconfig.json');
+    expect(mockExtractAPG).toHaveBeenLastCalledWith('/my/project', { excludePatterns: [] }, '/pinned/tsconfig.json', {});
+  });
+
+  it('scale: passes the extraction limits through to extractAPG', async () => {
+    mockExtractAPG.mockResolvedValue(DomainResult.ok(stubApgResult()));
+    const limits = { maxFiles: 5000, sourceScope: 'analysed' as const };
+    await new ExtractCommand('/my/project', [], undefined, undefined, limits).execute(context);
+    expect(mockExtractAPG).toHaveBeenLastCalledWith('/my/project', { excludePatterns: [] }, undefined, limits);
   });
 
   it('maps errors with stage name', async () => {

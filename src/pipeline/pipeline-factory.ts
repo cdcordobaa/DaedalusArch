@@ -11,6 +11,9 @@ import { ScrubbingFirewallContext } from './scrubbing-context.js';
 import { neo4jScrubPolicy } from '../shared/errors/scrub.js';
 import { runId as makeRunId } from '../shared/types/value-objects.js';
 import { Neo4jRepository } from '../neo4j-ingestion/neo4j-repository.js';
+import { AcceleratedGraphRepository } from '../graph-accelerator/accelerated-repository.js';
+import { MemoryGuard } from '../shared/process/memory-guard.js';
+import type { ExtractionLimits } from '../apg-extractor/types.js';
 import { FileSystemSnapshotStore } from '../neo4j-ingestion/fs-snapshot-store.js';
 import * as path from 'node:path';
 import { createLLMProvider } from '../llm-critic/provider-factory.js';
@@ -82,7 +85,7 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
   // ------------------------------------------------------------------
   // 2. Instantiate infrastructure services
   // ------------------------------------------------------------------
-  const graphRepo: GraphRepository = new Neo4jRepository({
+  const neo4jRepo: GraphRepository = new Neo4jRepository({
     neo4jUri: config.neo4jUri,
     neo4jUser: config.neo4jUser,
     neo4jPassword: config.neo4jPassword,
@@ -90,6 +93,11 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
     // v1.3 fix round: one run at a time per Neo4j database (ingestion wipes it); released by `cleanup`.
     lock: true,
   });
+  // Scale (Docs/v1.3/scale.md §3): the bounded cycle queries are answered in memory from a mirror of the ingested
+  // graph, with the same rows; `queryEngine: 'neo4j'` sends every query to Neo4j.
+  const graphRepo: GraphRepository = config.queryEngine === 'neo4j'
+    ? neo4jRepo
+    : new AcceleratedGraphRepository(neo4jRepo, config.onAcceleration);
 
   const snapshotStore: SnapshotStore = new FileSystemSnapshotStore(
     config.apgStorePath,
@@ -141,9 +149,16 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
   }
 
   // ---- Stage 1: Extract APG + Parse Spec (parallel) -------------------
+  // Scale (Docs/v1.3/scale.md §6): the memory guard is always on (heap budget); `memoryLimitMb` adds an RSS budget.
+  const memoryGuard = new MemoryGuard(config.memoryLimitMb !== undefined ? { rssLimitMb: config.memoryLimitMb } : {});
+  const limits: ExtractionLimits = {
+    memoryGuard,
+    ...(config.maxFiles !== undefined && { maxFiles: config.maxFiles }),
+    ...(config.sourceScope !== undefined && { sourceScope: config.sourceScope }),
+  };
   commands.push(
     new ParallelCommand([
-      new ExtractCommand(config.projectPath, specExcludePaths, config.graphMode, config.tsconfigPath),
+      new ExtractCommand(config.projectPath, specExcludePaths, config.graphMode, config.tsconfigPath, limits),
       new ParseCommand(config.specFilePath),
     ]),
   );
@@ -153,6 +168,7 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
     mode: config.pipelineMode,
     apgStorePath: config.apgStorePath,
     ...(config.commitSha !== undefined && { commitSha: config.commitSha }),
+    memoryGuard,
   };
   commands.push(new IngestCommand(graphRepo, snapshotStore, ingestConfig));
 
