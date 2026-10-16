@@ -311,7 +311,7 @@ describeU3('U3-R9 one assembly point (BR-U3-50, 55, 56, 64)', () => {
       const out = spawnSync(path.join(REPO_ROOT, 'node_modules', '.bin', 'tsx'), [
         path.join(REPO_ROOT, 'bin', 'firewall.ts'), 'evaluate',
         '--project', c.projectPath, '--spec', c.specPath, '--symbolic-only', '--format', 'json', '--neo4j-uri', neo4j.uri,
-        '--scoring', 'v1.2e',
+        '--scoring', 'v1.2e', '--engine', 'neo4j',
       ], {
         cwd: REPO_ROOT,
         encoding: 'utf8',
@@ -336,7 +336,7 @@ describeU3('U3-R9 one assembly point (BR-U3-50, 55, 56, 64)', () => {
     try {
       const out = spawnSync(path.join(REPO_ROOT, 'node_modules', '.bin', 'tsx'), [
         path.join(REPO_ROOT, 'bin', 'firewall.ts'), 'evaluate',
-        '--project', c.projectPath, '--spec', c.specPath, '--symbolic-only', '--format', 'json', '--neo4j-uri', neo4j.uri,
+        '--project', c.projectPath, '--spec', c.specPath, '--symbolic-only', '--format', 'json', '--neo4j-uri', neo4j.uri, '--engine', 'neo4j',
       ], {
         cwd: REPO_ROOT,
         encoding: 'utf8',
