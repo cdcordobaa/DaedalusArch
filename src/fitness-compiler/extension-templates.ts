@@ -13,6 +13,7 @@ import { DDD_TEMPLATES } from './ddd-templates.js';
 import { V13_CYPHER_TEMPLATES } from './v13-templates.js';
 import { APG2_TEMPLATES } from './apg2-templates.js';
 import { CHEAP2_TEMPLATES } from './cheap2-templates.js';
+import { CONSTRUCT_TEMPLATES } from '../construct-switches/compile.js';
 
 export const V13_EXTENSION_TEMPLATE_CATALOGUES: ReadonlyMap<string, ReadonlyMap<string, CypherTemplate>> = new Map([
   ['hexagonal', HEXAGONAL_TEMPLATES],
@@ -33,9 +34,11 @@ export function v13ExtensionCatalogueOf(name: string): string | undefined {
 }
 
 /**
- * A style-library template (hexagonal or DDD) by name, for lookups that fall back from `CYPHER_TEMPLATES`.
+ * A style-library template (hexagonal or DDD, or the construct-switch carrier) by name, for lookups that fall back from `CYPHER_TEMPLATES`.
  * The module-wiring example templates are reached only through `CompileOptions.v13Templates`, not here.
  */
 export function getExtensionTemplate(name: string): CypherTemplate | undefined {
-  return HEXAGONAL_TEMPLATES.get(name) ?? DDD_TEMPLATES.get(name);
+  // The construct-switch carrier (only compiled while a switch is set) is found too, so its function result gets the
+  // template's tag like any other row; without it a report with a carrier rule fails the schema (R09).
+  return HEXAGONAL_TEMPLATES.get(name) ?? DDD_TEMPLATES.get(name) ?? CONSTRUCT_TEMPLATES.get(name);
 }

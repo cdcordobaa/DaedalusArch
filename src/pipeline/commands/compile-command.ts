@@ -10,6 +10,9 @@ import type { InstrumentVersion } from '../../fitness-compiler/role-exemptions.j
 import { compileFactsOf } from '../../scoring-engine/report-builder.js';
 import type { CompileFacts } from '../../scoring-engine/report-builder.js';
 import { toPipelineError, toPipelineWarning } from './map-helpers.js';
+import { CONSTRUCT_ANSWERS } from '../../shared/construct-switches.js';
+import { applyConstructCompileOverlays } from '../../construct-switches/compile.js';
+import type { ConstructAnswers } from '../../shared/construct-switches.js';
 
 /**
  * Run-scoped holder for the declared-side counts (BR-U3-52), written by `CompileCommand` next to the
@@ -26,13 +29,20 @@ export class CompileCommand implements PipelineCommand {
   constructor(
     private readonly factsHolder: CompileFactsHolder = {},
     private readonly instrumentVersion: InstrumentVersion = INSTRUMENT_VERSION,
+    /**
+     * The construct-switch answers the compile overlays read; undefined = none (the v1.2e scoring mode, where the row
+     * stage and the tier overrides do not run either, R30). Absent constructor argument = the switch file.
+     */
+    private readonly constructAnswers: ConstructAnswers | undefined = CONSTRUCT_ANSWERS,
   ) {}
 
   async execute(context: FirewallContext): Promise<DomainResultType<void>> {
     const parsedSpec = context.getParsedSpec();
 
     // v1.3 edge views (ADR-V13-01): a no-op on a v1.2E graph, so the frozen results are unchanged.
-    const result = compileFunctions(compilerInputFromSpec(parsedSpec), { ...V13_COMPILE_OPTIONS, instrumentVersion: this.instrumentVersion });
+    const { constructSwitches: _fromFile, ...v13 } = { ...V13_COMPILE_OPTIONS };
+    const options = { ...v13, ...(this.constructAnswers !== undefined ? { constructSwitches: this.constructAnswers } : {}), instrumentVersion: this.instrumentVersion };
+    const result = compileFunctions(compilerInputFromSpec(parsedSpec), options);
 
     if (!result.success) {
       return DomainResult.fail<void>(
@@ -42,7 +52,10 @@ export class CompileCommand implements PipelineCommand {
 
     context.setCompiledFunctions(result.data);
     // BR-U3-52: declared, adrDerived and dropped ids by id sets, computed where the spec is at hand.
-    this.factsHolder.facts = compileFactsOf(parsedSpec.fitnessFunctions, result.data, this.instrumentVersion);
+    // The declared side is the spec as the switches declare it: a carrier rule a switch adds (Q5 D, Q16 B, Q17 C) is
+    // declared by the switch, so identity I1 holds (R09); at the status quo the overlay is the spec itself.
+    const declared = applyConstructCompileOverlays(compilerInputFromSpec(parsedSpec), this.constructAnswers).fitnessFunctions;
+    this.factsHolder.facts = compileFactsOf(declared, result.data, this.instrumentVersion);
 
     // Compiler warnings travel in CompiledFunctions.warnings; route them to the context so
     // COMPILER_004 for style- and kind-disabled functions reaches the report (BR-U3-56, ADR-016 c).

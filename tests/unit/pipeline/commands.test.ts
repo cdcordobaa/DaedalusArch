@@ -28,6 +28,7 @@ jest.mock('../../../src/fitness-compiler/index.js', () => ({
 import { ExtractCommand } from '../../../src/pipeline/commands/extract-command.js';
 import { ParseCommand } from '../../../src/pipeline/commands/parse-command.js';
 import { CompileCommand } from '../../../src/pipeline/commands/compile-command.js';
+import { CONSTRUCT_ANSWERS } from '../../../src/shared/construct-switches.js';
 import type { CompileFactsHolder } from '../../../src/pipeline/commands/compile-command.js';
 
 // ---------------------------------------------------------------------------
@@ -219,7 +220,7 @@ describe('CompileCommand', () => {
         layerModel: expect.any(Object),
         scoringWeights: expect.any(Object),
       }),
-      { instrumentVersion: 2 }, // ADR-026 default
+      { instrumentVersion: 2, constructSwitches: CONSTRUCT_ANSWERS }, // ADR-026 default; the switch file (R30: explicit)
     );
     expect(context.getCompiledFunctions()).toBe(compiled);
   });

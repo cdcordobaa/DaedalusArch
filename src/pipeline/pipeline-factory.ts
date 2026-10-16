@@ -163,11 +163,13 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
   // ---- Stage 3: Compile fitness functions -----------------------------
   // CompileCommand records the declared-side counts that AssembleReportCommand reads (BR-U3-52).
   const compileFacts: CompileFactsHolder = {};
-  commands.push(new CompileCommand(compileFacts, config.instrumentVersion));
+  // v1.3 construct switches apply in the v1.3 scoring mode only: compile overlays, row stage and tiers together (R30).
+  const constructAnswers = config.scoringMode === 'v1.3' ? config.constructAnswers ?? CONSTRUCT_ANSWERS : undefined;
+  commands.push(new CompileCommand(compileFacts, config.instrumentVersion, constructAnswers));
 
   // ---- Stage 4: Evaluate (mode-dependent) -----------------------------
   // v1.3 construct switches: the row stage runs in the v1.3 scoring mode only, and only when a switch is set.
-  const rowStage = config.scoringMode === 'v1.3' ? constructRowTransform(CONSTRUCT_ANSWERS) : undefined;
+  const rowStage = constructAnswers !== undefined ? constructRowTransform(constructAnswers) : undefined;
   switch (config.evaluationMode) {
     case 'full':
       commands.push(
@@ -288,7 +290,7 @@ class LazyScoreCommand implements PipelineCommand {
     const parsedSpec = context.getParsedSpec();
 
     // v1.3 construct switches: the switch-aware tiers (absent at the status quo).
-    const tiers = this.config.scoringMode === 'v1.3' ? constructTierResolver(CONSTRUCT_ANSWERS, parsedSpec.style, parsedSpec.layerModel) : undefined;
+    const tiers = this.config.scoringMode === 'v1.3' ? constructTierResolver(this.config.constructAnswers ?? CONSTRUCT_ANSWERS, parsedSpec.style, parsedSpec.layerModel) : undefined;
     const scoreCmd = new ScoreCommand(this.graphRepository, {
       scoringWeights: parsedSpec.scoringWeights,
       ...(parsedSpec.fullModeWeights !== undefined && { fullModeWeights: parsedSpec.fullModeWeights }),
