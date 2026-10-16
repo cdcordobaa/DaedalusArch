@@ -14,6 +14,7 @@ import type { ScoringMode } from '../shared/types/evaluation.js';
 import { generateReport } from '../report/report-generator.js';
 import { graphInputFromApg, writeArchitectReport } from '../report/architect/index.js';
 import { formatActionableHuman } from '../scoring-engine/report-formatter.js';
+import { buildReportFixHints, formatFixHintsHuman } from '../fix-hints/index.js';
 import { runBatch } from './batch-runner.js';
 import { requireEnvForCli } from './require-env.js';
 import { ENGINE_OPTION_HELP, resolveEngineForCli } from './engine-default.js';
@@ -221,6 +222,7 @@ withLLMOptions(program
   .option('--tsconfig <path>', 'Explicit tsconfig for APG extraction; the project\'s own tsconfig.json is then ignored (ADR-032)')
   .option('--scoring <mode>', 'Scoring mode: v1.3 (rule tiers, default; verdict from blocking rules) | v1.2e (the registered Study 1 scoring)', 'v1.3')
   .option('--html <out.html>', 'Also write a self-contained architect HTML report (layer diagram, findings in plain language, filters)')
+  .option('--hints', 'Add a deterministic fix hint to every blocking finding (json: `fixHints`; human: a Fix hints section). Off by default: the output is then unchanged', false)
   .option('--advisory-filter <options>', `Advisory post-filters, off by default (comma list, all or none): ${ADVISORY_FILTER_OPTIONS.join(', ')}. Matched advisory rows move to advisoryFilter.suppressed; blocking rows never change`, 'none')
   .option('--engine <name>', ENGINE_OPTION_HELP)
   .action(async (projectArg: string | undefined, opts: LLMCliOpts & {
@@ -241,6 +243,7 @@ withLLMOptions(program
     instrument: string;
     neuralAggregation: string;
     scoring: string;
+    hints: boolean;
     html?: string;
     advisoryFilter: string;
   }, cmd: Command) => {
@@ -365,13 +368,19 @@ withLLMOptions(program
         exitVerdict = comparison.newViolations.length === 0 ? 'pass' : report.verdict;
       }
 
+      // Fix hints (Docs/v1.3/fix-hints.md): only with --hints, so the default output is byte-identical.
+      const fixHints = opts.hints
+        ? buildReportFixHints(report.violations, context.getParsedSpec(), opts.project, context.getApgResult())
+        : undefined;
+
       // Route output: machine-readable to stdout, human to stderr
       switch (format) {
         case 'json':
-          process.stdout.write((inferred !== undefined ? labelJsonReport(formatJSON(report), inferred.proposal) : formatJSON(report)) + '\n');
+          process.stdout.write((inferred !== undefined ? labelJsonReport(formatJSON(fixHints === undefined ? report : { ...report, fixHints }), inferred.proposal) : formatJSON(fixHints === undefined ? report : { ...report, fixHints })) + '\n');
           break;
         case 'human':
           process.stderr.write(formatHuman(report) + '\n');
+          if (fixHints !== undefined) process.stderr.write(formatFixHintsHuman(fixHints) + '\n');
           break;
         case 'csv':
           process.stdout.write(csvHeader() + '\n');

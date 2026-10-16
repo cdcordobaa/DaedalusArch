@@ -186,6 +186,8 @@ interface Planned {
 export interface CheckDiffOptions {
   /** Project root: modified files are rebuilt whole and reported as a delta; barrels, entry files and cycles are read. */
   readonly projectRoot?: string | undefined;
+  /** Attach a deterministic fix hint to each blocking import violation (Docs/v1.3/fix-hints.md). Off by default. */
+  readonly hints?: boolean;
 }
 
 export function checkDiff(spec: ParsedSpec, diff: string, options: CheckDiffOptions = {}): DiffCheckResult {
@@ -230,7 +232,7 @@ export function checkDiff(spec: ParsedSpec, diff: string, options: CheckDiffOpti
     let basis: 'whole-file' | 'delta' | 'added-lines';
     if (whole !== undefined) {
       const g = lazyAfter();
-      const next = checkSource(spec, { path: newPath, content: whole.newText, view: viewAfter, ...(g !== undefined ? { graph: g } : {}) });
+      const next = checkSource(spec, { path: newPath, content: whole.newText, view: viewAfter, ...(g !== undefined ? { graph: g } : {}), ...(options.hints === true ? { hints: true } : {}) });
       if (whole.oldText === null) {
         result = next;
         basis = 'whole-file';
@@ -271,6 +273,7 @@ export function checkDiff(spec: ParsedSpec, diff: string, options: CheckDiffOpti
         path: newPath,
         content: f.added.map((a) => a.text).join('\n'),
         lineOf: (l) => lines[l - 1] ?? l,
+        ...(options.hints === true ? { hints: true } : {}),
       });
       basis = 'added-lines';
     }
