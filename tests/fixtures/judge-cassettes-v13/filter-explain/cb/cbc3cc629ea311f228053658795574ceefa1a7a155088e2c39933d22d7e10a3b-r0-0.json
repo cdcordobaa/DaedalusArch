@@ -1,0 +1,36 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 10437,
+  "effort": "high",
+  "functionId": "filter-explain",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "cbc3cc629ea311f228053658795574ceefa1a7a155088e2c39933d22d7e10a3b-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "## Finding\nRule: FF-P03\nRule intent: Repository implementations implement a port declared in the core; the core owns the interface.\nType: REPOSITORY_PATTERN_VIOLATION\nSeverity: critical; tier: blocking\nFile: src/infrastructure/persistence/InMemoryLoanRepository.ts\nMessage: Violation in src/infrastructure/persistence/InMemoryLoanRepository.ts\nDiscriminator: InMemoryLoanRepository\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Source (line-numbered)\n=====SOURCE-BEGIN src/infrastructure/persistence/InMemoryLoanRepository.ts (layer infrastructure)=====\n 1| import { Loan } from '../../domain/entities/Loan';\n 2| \n 3| export class InMemoryLoanRepository {\n 4|   private readonly rows = new Map<string, Loan>();\n 5| \n 6|   async findById(id: string): Promise<Loan | undefined> {\n 7|     return this.rows.get(id);\n 8|   }\n 9| \n10|   async findActiveByMember(memberId: string): Promise<Loan[]> {\n11|     return [...this.rows.values()].filter((loan) => loan.isActive && loan.memberId === memberId);\n12|   }\n13| \n14|   async findActive(): Promise<Loan[]> {\n15|     return [...this.rows.values()].filter((loan) => loan.isActive);\n16|   }\n17| \n18|   async save(loan: Loan): Promise<void> {\n19|     this.rows.set(loan.id, loan);\n20|   }\n21| }\n=====SOURCE-END=====\n\n## Instructions\nDecide confirm or dismiss. Confirm: the cited code has the problem the rule is meant to catch, in this project and layer model. Dismiss: the rule fired, but the code does not have that problem (a false positive of the rule's mechanism, a threshold artefact on sound code, or a case the style allows). Measurements stated in the finding (counts, ratios, missing files) are correct as measurements; judge what they mean for this code. explanation: one paragraph that justifies the decision from the code, citing file paths and line numbers exactly as numbered below. fix: one concrete change: for a confirm, how to fix the code; for a dismiss, what (if anything) the rule or its configuration should change. citations: the line ranges your explanation relies on; every one must name a file shown below and lines that exist.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T00:00:24.797Z",
+  "repetition": 0,
+  "requestHash": "cbc3cc629ea311f228053658795574ceefa1a7a155088e2c39933d22d7e10a3b",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":818}},\"result\":\"{\\\"decision\\\":\\\"confirm\\\",\\\"explanation\\\":\\\"`InMemoryLoanRepository` is declared at src/infrastructure/persistence/InMemoryLoanRepository.ts line 3 with no `implements` clause. Its only import is the `Loan` entity (line 1). No repository port from the domain or application layer is referenced. The class defines its own persistence surface: `findById` (lines 6-8), `findActiveByMember` (lines 10-12), `findActive` (lines 14-16) and `save` (lines 18-20). That means infrastructure, not the core, decides what the repository contract is. TypeScript's structural typing might let this class happen to match some core interface, but nothing in the code says so. If the contract drifts, the compiler won't flag it here, and the dependency-inversion link the rule requires is missing from the source. That is the exact problem FF-P03 exists to catch: a repository implementation that doesn't visibly implement a port owned by the core.\\\",\\\"fix\\\":\\\"Declare a `LoanRepository` port in the core, for example `src/application/ports/LoanRepository.ts` or `src/domain/repositories/LoanRepository.ts`. It should list `findById`, `findActiveByMember`, `findActive` and `save`, all typed in terms of `Loan`. Then change line 3 to `export class InMemoryLoanRepository implements LoanRepository`, import the interface, and have application services depend on `LoanRepository` instead of the concrete class.\\\",\\\"citations\\\":[{\\\"filePath\\\":\\\"src/infrastructure/persistence/InMemoryLoanRepository.ts\\\",\\\"startLine\\\":1,\\\"endLine\\\":3},{\\\"filePath\\\":\\\"src/infrastructure/persistence/InMemoryLoanRepository.ts\\\",\\\"startLine\\\":6,\\\"endLine\\\":20}]}\",\"structured_output\":{\"citations\":[{\"endLine\":3,\"filePath\":\"src/infrastructure/persistence/InMemoryLoanRepository.ts\",\"startLine\":1},{\"endLine\":20,\"filePath\":\"src/infrastructure/persistence/InMemoryLoanRepository.ts\",\"startLine\":6}],\"decision\":\"confirm\",\"explanation\":\"`InMemoryLoanRepository` is declared at src/infrastructure/persistence/InMemoryLoanRepository.ts line 3 with no `implements` clause. Its only import is the `Loan` entity (line 1). No repository port from the domain or application layer is referenced. The class defines its own persistence surface: `findById` (lines 6-8), `findActiveByMember` (lines 10-12), `findActive` (lines 14-16) and `save` (lines 18-20). That means infrastructure, not the core, decides what the repository contract is. TypeScript's structural typing might let this class happen to match some core interface, but nothing in the code says so. If the contract drifts, the compiler won't flag it here, and the dependency-inversion link the rule requires is missing from the source. That is the exact problem FF-P03 exists to catch: a repository implementation that doesn't visibly implement a port owned by the core.\",\"fix\":\"Declare a `LoanRepository` port in the core, for example `src/application/ports/LoanRepository.ts` or `src/domain/repositories/LoanRepository.ts`. It should list `findById`, `findActiveByMember`, `findActive` and `save`, all typed in terms of `Loan`. Then change line 3 to `export class InMemoryLoanRepository implements LoanRepository`, import the interface, and have application services depend on `LoanRepository` instead of the concrete class.\"}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "6064c370cbf427cb",
+  "usage": {
+    "inputTokens": 2298,
+    "outputTokens": 818
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

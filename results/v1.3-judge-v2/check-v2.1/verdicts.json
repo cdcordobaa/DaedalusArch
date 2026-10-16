@@ -4,7 +4,7 @@
   "judgeVersion": "v2",
   "revision": "v2.1",
   "judgeV2Sha256": "0add6562061d6eb7b2466cbeb5c1d194e896c91b77f337fd6239584ff40145f3",
-  "complete": false,
+  "complete": true,
   "verdicts": [
     {
       "itemId": "dv2|base:e1/claude-sonnet-5-5.order-fulfilment.minimal-prose.run-0|FF-N01|src/application",
@@ -1490,113 +1490,889 @@
     },
     {
       "itemId": "r2|base:e1/claude-sonnet-5-5.order-fulfilment.none.run-1|FF-N02|src/application/order-service.ts",
-      "runs": [],
-      "verdict": "invalid"
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.88,
+          "violations": [],
+          "reasoning": "src/application/order-service.ts fits the application layer. OrderService coordinates use cases: it places, gets, lists, advances and cancels orders, and it reports stock levels. It does this through injected repository ports (ProductRepository, OrderRepository) and domain functions (reserve, release, dispatch, nextState, assertCancellable, toStockLevel). No method takes or returns a request, response, HTTP context or status code, and nothing comes from a web or transport package. The only error thrown is DomainError, which the project declares in src/domain/errors, so it is not an HTTP error. The class has no framework decorators or base classes, and its constructor parameters are injected repositories, which the rubric treats as normal wiring. randomUUID from node:crypto is a plain runtime utility, not a delivery, transport or persistence concern. Some input checks in placeOrder, such as requiring a positive whole-number quantity, could arguably live in the domain. The Fail criteria for an application file don't cover that, though. They only cover delivery-layer types appearing in signatures or thrown. There were no candidate flags to check."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.88,
+          "violations": [],
+          "reasoning": "src/application/order-service.ts is an application service. It handles use cases (place, get, list, advance and cancel orders, and query stock levels), and it delegates domain rules to domain functions: reserve, release, dispatch, nextState and assertCancellable. No method signature takes or returns a request, a response, an HTTP context or a status code. The only error it throws is DomainError, which the project declares itself in src/domain/errors, so it is not an HTTP or transport error. Its constructor parameters are the injected ports ProductRepository and OrderRepository. That is acceptable dependency wiring for an application file. The file uses randomUUID from node:crypto, which is a standard-library utility and not a web, transport or framework type. It has no framework decorators or base classes. The rule against carrying business rules applies only to infrastructure and presentation files, so the input checks and the all-or-nothing reservation rollback in this application file are fine. There were no candidate flags to check."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.9,
+          "violations": [],
+          "reasoning": "src/application/order-service.ts is an application service. It coordinates domain operations (reserve, release, dispatch, nextState, assertCancellable) through repository ports that are injected in the constructor. Its method signatures take only plain values or project domain types (OrderLine[], string, optional status string) and return domain types (Order, Order[], StockLevel, StockLevel[]). Nothing in it comes from a web or transport package: no request, response, HTTP context, status code or HTTP error. The only thing it throws is DomainError, which the project declares itself. The only external import is randomUUID from node:crypto, which is ID generation and not a delivery concern. The constructor parameters are ProductRepository and OrderRepository, which is allowed dependency wiring. The use-case steps (merging duplicate lines, rolling back reservations so the order is all-or-nothing, validating input) are normal application-layer work."
+        }
+      ],
+      "verdict": "pass"
     },
     {
       "itemId": "r2|base:e1/claude-sonnet-5-5.task-management.minimal-prose.run-0|FF-N01|src/application",
-      "runs": [],
-      "verdict": "invalid"
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.72,
+          "violations": [],
+          "reasoning": "The seven files form one concern: application use cases for the task, project and user service, plus the DTOs and mapper they share. Every use case reaches persistence only through domain ports injected in its constructor (TaskRepository, ProjectRepository, UserRepository, IdGenerator). No file uses a database, ORM or query client directly. The one non-trivial rule here is parsing task status. It lives in one place, the domain's parseTaskStatus, which both CreateTaskUseCase and ListTasksUseCase call instead of copying it. CreateProjectUseCase and CreateUserUseCase each run the same small check that a name is a non-empty string. It is a minor look-alike guard for two different entities (project names and user names), not one rule or invariant written out twice, so I did not count it as a violation. It is still a reasonable candidate for a shared helper or a check in the domain entity. CreateTaskUseCase and ListTasksUseCase both check that the project exists. Both do it with a call to the same repository port, so this is the module using its abstraction, not a duplicated rule. dtos.ts holds all the input DTOs plus the TaskResponseDto mapper that the controller uses. No candidate flags were raised."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.68,
+          "violations": [],
+          "reasoning": "All seven files serve one concern: application use cases for the users/projects/tasks domain, plus their DTOs. Each use case gets its persistence only through the domain repository ports it injects (TaskRepository, UserRepository, ProjectRepository) and gets ids through the IdGenerator port. No file uses a database, ORM or query client directly. Shared domain rules go through single definitions: status parsing calls the domain's parseTaskStatus in both CreateTaskUseCase and ListTasksUseCase, and state changes go through the Task methods assignTo and markDone. The task response mapping lives only in dtos.ts as toTaskResponse. There is a borderline case: CreateProjectUseCase and CreateUserUseCase each write the same non-empty name check. These guard different entities and are simple input checks, so I judged them coincidental, not one rule copied. The project-existence check in CreateTaskUseCase and ListTasksUseCase is a per-use-case precondition built on the repository port, not a copied invariant. No candidate flags were raised."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.7,
+          "violations": [],
+          "reasoning": "All seven files serve one concern: application use cases for task management, plus their DTO contracts and response mapping in dtos.ts. Every use case gets persistence through constructor-injected ports from the domain (TaskRepository, ProjectRepository, UserRepository, IdGenerator). No file uses a database, ORM or query client directly. Task-status parsing has one home: the domain's parseTaskStatus, called from both create-task and list-tasks. State changes go through Task methods (assignTo, markDone) instead of being written out in the use cases. The non-empty name check in CreateProjectUseCase and CreateUserUseCase looks the same but checks input for two different entities. The not-found guards are one-line repository lookups that throw, not a business rule copied out. I judged neither to be a copied invariant. A stricter reading could count the identical name check as a duplicated validation, which is why confidence is moderate."
+        }
+      ],
+      "verdict": "pass"
     },
     {
       "itemId": "r2|base:e1/gpt-5.6-terra.order-fulfilment.minimal-prose.run-2|FF-N02|src/application/catalogue-service.ts",
-      "runs": [],
-      "verdict": "invalid"
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.9,
+          "violations": [],
+          "reasoning": "src/application/catalogue-service.ts fits the application layer. CatalogueService coordinates a use case: it checks the repository for a duplicate id, creates a domain Product, saves it and maps it to an application DTO. All signatures use types the project declares itself (CreateProductDto, ProductDto, Product, ProductRepository). None of them is a request, response, HTTP context, status code or web-framework type. The error it throws is the project's own DomainError, not an HTTP error. The constructor parameter is an injected repository, which is ordinary dependency wiring. The file has no framework decorators or base classes. It does no direct I/O: persistence goes through the repository abstraction. No candidate flags were raised, and I found no violations of my own."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.9,
+          "violations": [],
+          "reasoning": "CatalogueService is a typical application service. It orchestrates the domain Product entity and the ProductRepository port, and it maps entities to application DTOs. Its signatures use only project-declared types: CreateProductDto and ProductDto from ./dtos, plus Product and DomainError. It has no request, response, HTTP context, status code or HTTP error type. The only error it throws is the project's own DomainError, not a transport error. The injected repository arrives through the constructor, which counts as allowed dependency wiring. The duplicate-id check is coordination logic that belongs in the application layer. The deterministic checks raised no candidate flags."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.9,
+          "violations": [],
+          "reasoning": "CatalogueService is a regular application service. Its constructor injects a ProductRepository, which is dependency wiring and allowed for an application file. Its public methods take and return types the project declares itself (CreateProductDto, ProductDto from ./dtos), and the private helper maps a domain Product to a DTO. It throws DomainError, a project-declared domain error, not an HTTP error. No request, response, HTTP context, status code, framework decorator or base class appears anywhere. It coordinates the work (check for an existing product, build it, save it, return it as a DTO), which is the application layer's job. The duplicate-id check is a use-case decision that fits the application layer."
+        }
+      ],
+      "verdict": "pass"
     },
     {
       "itemId": "r2|base:layered/clean|FF-N02|src/business/services/OrderService.ts",
-      "runs": [],
-      "verdict": "invalid"
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.62,
+          "violations": [
+            {
+              "filePath": "src/business/services/OrderService.ts",
+              "message": "This domain-layer class performs persistence I/O. It is built around the infrastructure gateways OrderGateway, ProductGateway and CustomerGateway (src/persistence) and calls findById, findBySku, updateStock and save on them in placeOrder, cancelOrder and getOrder. It also converts persistence records (toOrderRecord, toOrder, toProduct, toCustomer). That transaction-script and persistence work belongs to the application or infrastructure layer, not the domain."
+            }
+          ],
+          "reasoning": "The unit sits in the 'business' layer, which is declared as domain kind. The rubric says a domain file must not carry persistence or I/O, meaning queries or database clients. The exception for constructor parameters as dependency wiring covers application files only. OrderService takes three concrete persistence gateways as constructor parameters: OrderGateway, ProductGateway and CustomerGateway, all from src/persistence (infrastructure). Each method then reads and writes through them: findById, findBySku, updateStock and save. It also converts persistence records to and from domain objects (toOrderRecord, toProduct, toCustomer, toOrder). The class header describes it as a Fowler Service Layer of transaction scripts. That is application or persistence-orchestration work, not a domain role. The domain logic itself (Order.cancel, Product.reserve, PricingPolicy.discountFor, Money) is delegated correctly. The file has no HTTP or framework types, decorators or base classes. The import direction is out of scope and is not counted here. What counts is the persistence I/O the file performs."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.6,
+          "violations": [
+            {
+              "filePath": "src/business/services/OrderService.ts",
+              "message": "A domain-layer class takes persistence gateways (OrderGateway, ProductGateway, CustomerGateway from src/persistence, infrastructure) as constructor parameters. The rubric excuses injected repositories only in application files."
+            },
+            {
+              "filePath": "src/business/services/OrderService.ts",
+              "message": "placeOrder, cancelOrder and getOrder read and write data directly (findById, findBySku, updateStock, save(toOrderRecord(...))). This persistence I/O belongs to the infrastructure layer, not a domain file."
+            }
+          ],
+          "reasoning": "The file is in the business layer (kind: domain). The rubric says a domain file must not carry persistence or I/O, such as database or ORM clients or queries. OrderService is a transaction script: its constructor takes OrderGateway, ProductGateway and CustomerGateway from src/persistence (infrastructure). Its methods query and write through them (findById, findBySku, updateStock, save) and map entities to persistence records with toOrderRecord. The rubric excuses injected repositories only for application files, not domain files. The rest of the file fits a domain layer: stock reservation, cancellation, discount pricing and money totals are business rules, and it has no HTTP, framework or ORM types, decorators or base classes. Confidence is moderate because the class says it follows Fowler's Service Layer, a style where the business layer normally calls data gateways."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.65,
+          "violations": [],
+          "reasoning": "OrderService.ts (business layer, domain kind) has no HTTP or transport types in any signature or throw; its only error is the project's own BusinessError. It has no framework or ORM decorators, base classes or DI annotations, and no direct I/O: no SQL, DB or ORM clients, HTTP calls or file access. It reaches persistence only through injected gateway objects that the project declares itself (OrderGateway, ProductGateway, CustomerGateway), the same way a domain service calls a repository. The fact that these gateway types live in src/persistence is an import-direction issue, which is out of scope here. The other declarations are domain logic: stock reservation, order cancellation, discount computation and money summation. A stricter reading could count the gateway calls (save, updateStock) as persistence in a domain file, which is why confidence is moderate."
+        }
+      ],
+      "verdict": "fail"
     },
     {
       "itemId": "r2|base:nestjs/clean|FF-N02|src/domain/attendee.ts",
-      "runs": [],
-      "verdict": "invalid"
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.95,
+          "violations": [],
+          "reasoning": "src/domain/attendee.ts declares a plain Attendee entity. The class has readonly fields for id, name and email, all typed as string. Its constructor enforces one domain invariant, that the e-mail must contain '@', and it throws a DomainError if that check fails. DomainError is a type the project declares in src/domain/domain-error.ts, so it is not a framework type or an HTTP error. The file has no decorators, base classes, framework or ORM types, HTTP request/response/status types, or persistence or I/O operations. Everything in the file fits the domain layer."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.95,
+          "violations": [],
+          "reasoning": "src/domain/attendee.ts holds a plain domain entity, Attendee. It has readonly fields typed as strings and a constructor that checks a domain invariant: the e-mail must contain '@'. When the check fails it throws DomainError, which the project defines in src/domain/domain-error.ts, so it is not a framework or HTTP type. The file has no decorators, no framework base classes, no request, response or status-code types, and no persistence or I/O. Every declaration fits the domain layer."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.95,
+          "violations": [],
+          "reasoning": "src/domain/attendee.ts holds one plain domain entity, Attendee. It has readonly id, name and email fields and one invariant: the email must contain '@'. When the check fails, the constructor throws DomainError, which the project declares itself in src/domain/domain-error.ts. The file uses no framework or ORM decorators, base classes or types. It has no HTTP request, response, status code or HTTP error, and does no persistence or I/O. Everything in it fits the domain layer. The deterministic checks raised no flags."
+        }
+      ],
+      "verdict": "pass"
     },
     {
       "itemId": "r2|e1__claude-opus-5-5.order-fulfilment.minimal-prose.run-0__AP-FRAMEWORK-LEAK__0|FF-N02|src/application/AdvanceOrderUseCase.ts",
-      "runs": [],
-      "verdict": "invalid"
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.95,
+          "violations": [
+            {
+              "filePath": "src/application/AdvanceOrderUseCase.ts",
+              "message": "AdvanceOrderUseCase.execute declares the parameter `request?: Request`, where Request is Express's HTTP request type from the 'express' package. That type belongs to the delivery/web layer, not the application layer. Optional and unused parameters still count. Remove the parameter and have the controller pass only the values the use case needs."
+            }
+          ],
+          "reasoning": "AdvanceOrderUseCase sits in the application layer. Its public method execute takes an optional parameter `request?: Request` typed with Express's Request. The rubric fails any application file whose method signature includes an HTTP request type from a web or transport package, even if the parameter is optional or unused, as it is here. The candidate flag is confirmed by the source. Everything else fits the application role: the constructor injects domain ports (OrderRepository, StockReservationService, Clock) as dependency wiring, and the method orchestrates domain behaviour and returns an application DTO."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.95,
+          "violations": [
+            {
+              "filePath": "src/application/AdvanceOrderUseCase.ts",
+              "message": "AdvanceOrderUseCase.execute has a parameter `request?: Request` typed with Request from the 'express' package. That is an HTTP request type from the web/delivery layer, and it appears in an application-layer method signature. The rubric counts this even though the parameter is optional and unused."
+            }
+          ],
+          "reasoning": "AdvanceOrderUseCase sits in the application layer, but its public method execute takes a parameter typed with Express's HTTP Request. That is a transport/delivery-layer type. The rubric says this fails even when the parameter is optional or unused, and here it is both. The constructor parameters (OrderRepository, StockReservationService, Clock) are injected dependencies, which is allowed. The rest of the method only orchestrates the domain: it loads the order, advances it, dispatches stock, saves it and maps it to a DTO. It contains no business rules that belong elsewhere. The candidate flag is confirmed."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.96,
+          "violations": [
+            {
+              "filePath": "src/application/AdvanceOrderUseCase.ts",
+              "message": "AdvanceOrderUseCase.execute (line 18) declares the parameter `request?: Request` with the HTTP Request type from the 'express' package. HTTP request types belong to the delivery/infrastructure layer and must not appear in an application use case signature, even when the parameter is optional or unused."
+            }
+          ],
+          "reasoning": "This is an application-layer use case, and its execute method signature takes an HTTP request type from Express: `request?: Request`. Under the rubric, an HTTP request from a web package in any application method signature is a failure, even when the parameter is optional or unused, as it is here. The candidate flag is correct. The constructor parameters (OrderRepository, StockReservationService, Clock) are dependency wiring, which the rubric allows. The return type OrderDto is a type the project declares itself. The rest of the method only coordinates domain objects (loadOrder, advanceTo, dispatch, save, toOrderDto), which fits the application layer."
+        }
+      ],
+      "verdict": "fail"
     },
     {
       "itemId": "r2|e1__claude-opus-5-5.order-fulfilment.minimal-prose.run-0__AP-FRAMEWORK-LEAKn__0|FF-N02|src/application/AdvanceOrderUseCase.ts",
-      "runs": [],
-      "verdict": "invalid"
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.85,
+          "violations": [],
+          "reasoning": "AdvanceOrderUseCase is an application use case. The constructor takes domain ports (OrderRepository, StockReservationService, Clock), which is normal dependency wiring. execute() takes primitives, a domain OrderStatus and an optional ExecuteContextDto. That DTO is declared in this file and only holds an optional requestId, so it's the project's own type and not an HTTP request or context from a web package. The return type is the application-layer OrderDto. The method loads the order, calls the domain method advanceTo, dispatches stock when the order ships, saves it and maps the result to a DTO. That is application-level orchestration. The rules about which status transitions are allowed stay inside the domain. The file has no framework decorators or base classes, throws no HTTP errors, uses no status codes and does no direct I/O."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.88,
+          "violations": [],
+          "reasoning": "The application file has only use-case coordination: its constructor injects domain ports (OrderRepository, StockReservationService, Clock), and execute() loads the order, calls order.advanceTo for the domain rule, dispatches stock when the order is shipped, saves and returns an OrderDto. The optional ExecuteContextDto parameter is a type the project declares in this file (readonly requestId?: string). It is not a request, response or HTTP context from a web or transport package, and a project-declared type is not a framework type. Nothing in the file carries status codes, HTTP errors, decorators or framework base classes. There were no candidate flags."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.85,
+          "violations": [],
+          "reasoning": "AdvanceOrderUseCase is an application-layer use case. It loads an order, calls the domain transition order.advanceTo, dispatches stock when the target is 'shipped', saves the order and returns a DTO. That is orchestration, which is the application layer's job. The constructor injects a repository, a stock reservation service and a clock, all domain abstractions. The rubric treats these as dependency wiring, not misplaced responsibilities. The optional parameter context?: ExecuteContextDto is a type the project declares in this same file. It holds only an optional requestId string, so it is not a request, response or HTTP context from a web or transport package. No HTTP status codes or HTTP errors are thrown, and no framework decorators or base classes appear. No candidate flags were raised, and none were found."
+        }
+      ],
+      "verdict": "pass"
     },
     {
       "itemId": "r2|e1__claude-opus-5-5.task-management.none.run-1__AP-FRAMEWORK-LEAK__0|FF-N02|src/application/task-service.ts",
-      "runs": [],
-      "verdict": "invalid"
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.96,
+          "violations": [
+            {
+              "filePath": "src/application/task-service.ts",
+              "message": "TaskService.markDone has the parameter `request?: Request`, where Request is imported from the 'express' package. This puts an HTTP request type from the delivery/web layer into an application-layer method signature. It is still a violation even though it is optional and unused."
+            }
+          ],
+          "reasoning": "This is an application-layer file, but TaskService.markDone has an optional parameter `request?: Request`, and that Request type is imported from the express package. An HTTP request type belongs to the web or delivery layer. The rubric counts it as a violation in an application method signature even when the parameter is optional or unused, and here it is unused. The candidate flag is correct. Nothing else is out of place. The constructor parameters (repositories, IdGenerator, Clock) are dependency wiring. NotFoundError comes from the project's own domain, so it is not an HTTP error from a framework. CreateTaskCommand and TaskDto are types the project declares itself."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.96,
+          "violations": [
+            {
+              "filePath": "src/application/task-service.ts",
+              "message": "TaskService.markDone(projectId, taskId, request?: Request) takes `Request` from the express package, an HTTP request type that belongs to the delivery/presentation layer. It appears in an application-layer method signature. The parameter is optional and unused, but the rubric still counts it as a violation."
+            }
+          ],
+          "reasoning": "The rule fails. This is an application-layer file, but TaskService.markDone takes an optional parameter `request?: Request`, and `Request` is imported from the express web framework. That is an HTTP request type, which belongs to the delivery/presentation layer. The rubric says this counts as a violation even when the parameter is optional or unused, and here it is unused. The candidate flag is correct. Everything else in the file fits the application layer. The constructor injects repositories, an IdGenerator and a Clock, which is normal dependency wiring. NotFoundError comes from the project's own domain, not from an HTTP package. CreateTaskCommand and TaskDto are types the project declares itself. The methods coordinate work and leave business rules to the entities, for example task.markDone and task.assignTo."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.96,
+          "violations": [
+            {
+              "filePath": "src/application/task-service.ts",
+              "message": "TaskService.markDone has the parameter `request?: Request`, where Request is the express package's HTTP request type. That type belongs to the web/delivery layer and must not appear in an application-layer method signature, even as an optional, unused parameter."
+            }
+          ],
+          "reasoning": "src/application/task-service.ts is in the application layer. Its method TaskService.markDone takes an optional, unused parameter `request?: Request`, and that Request type comes from the express package. An Express Request is an HTTP request object from the web/delivery layer. The rubric says this must not appear in an application method signature, even when the parameter is optional or unused. The candidate flag is confirmed by the source. The rest of the file is fine: the constructor parameters are injected repositories and ports, which is allowed dependency wiring, and NotFoundError comes from the project's own domain, not from an HTTP package."
+        }
+      ],
+      "verdict": "fail"
     },
     {
       "itemId": "r2|e1__claude-opus-5-5.task-management.none.run-1__AP-FRAMEWORK-LEAKn__0|FF-N02|src/application/task-service.ts",
-      "runs": [],
-      "verdict": "invalid"
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.82,
+          "violations": [],
+          "reasoning": "TaskService is an application service. It coordinates domain entities through injected repository ports (allowed constructor wiring) and returns application DTOs. Method signatures use primitives, CreateTaskCommand, TaskFilter and TaskDto. The only thrown error is NotFoundError from the domain module, which is not an HTTP error. The optional `context?: MarkDoneContextDto` parameter on markDone may look like a request context, but MarkDoneContextDto is a plain interface declared in this same application file. It comes from no web or transport package and no delivery layer, and the rubric says a project-declared type is not a framework type whatever its name. The file has no decorators, framework base classes, HTTP status codes or response objects. No business rule is misplaced: the invariants (assignTo, markDone) are delegated to the Task domain entity."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.8,
+          "violations": [],
+          "reasoning": "The file passes: every declaration fits the application layer. The constructor injects repositories from the domain and IdGenerator and Clock from the application's own ports, which the rubric counts as dependency wiring. The methods take plain values, the project's own CreateTaskCommand and the domain's TaskFilter, and they return TaskDto. The only thing thrown is the domain's NotFoundError, not an HTTP error. Domain rules stay on the Task entity (assignTo, markDone), and storage goes through the injected repositories, so the service only orchestrates. The optional, unused markDone parameter 'context?: MarkDoneContextDto' sounds like a request context, but this same file declares it as an interface with one optional requestId string. It doesn't come from a web or transport package or from the delivery layer, and the rubric says a type the project declares itself is not a framework type, whatever its name. No candidate flags were raised."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.82,
+          "violations": [],
+          "reasoning": "The file fits the application layer. TaskService works with command objects, domain repositories and application ports. Its public methods return application DTOs. The only error it throws is the domain's NotFoundError, not an HTTP error. The one possible problem is the optional `context?: MarkDoneContextDto` parameter on markDone, which carries a `requestId`. That type is declared in this same application file. It does not come from a web or transport package or from a delivery layer, and the rubric says a type the project declares itself is not a framework type, whatever its name. It also holds no HTTP request, response, status or framework object, only an optional string. The parameter is unused, which is a code smell but not a layer-role violation. The constructor parameters (repositories, IdGenerator, Clock) are normal dependency wiring. The file has no framework decorators, base classes or direct I/O. There were no candidate flags to check."
+        }
+      ],
+      "verdict": "pass"
     },
     {
       "itemId": "r2|e1__claude-sonnet-5-5.order-fulfilment.minimal-prose.run-0__AP-DUP-RULE__0|FF-N01|src/application",
-      "runs": [],
-      "verdict": "invalid"
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.8,
+          "violations": [
+            {
+              "filePath": "src/application/AdvanceOrderUseCase.ts",
+              "message": "validateExecute(status) copies the order-status check from ListOrdersByStatusUseCase.execute: the same isOrderStatus guard, error code and message ('invalid', 'Unknown order state'). It also doesn't belong here, because AdvanceOrderUseCase.execute takes an orderId and never validates a status."
+            }
+          ],
+          "reasoning": "Most of the module holds together. Each use case handles one order or stock operation and reaches persistence only through the injected domain ports (OrderRepository, ProductRepository, StockReservationService). All of them map results through the shared mappers in dto.ts. The exception is AdvanceOrderUseCase.validateExecute(status: unknown), which copies the order-status check from ListOrdersByStatusUseCase.execute. Both contain the same line: `if (!isOrderStatus(status)) throw new DomainError(\"invalid\", \"Unknown order state\")`. Both call the shared predicate isOrderStatus, but the rest of the line is copied: the guard, the error code and the message. The method also has nothing to do with AdvanceOrderUseCase. That class's execute takes an orderId and never validates a status, so validateExecute is a misplaced copy of another use case's input check. A misplaced copy like this weakens the module's cohesion."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.8,
+          "violations": [
+            {
+              "filePath": "src/application/AdvanceOrderUseCase.ts",
+              "message": "validateExecute copies the order-status validation (isOrderStatus guard plus DomainError(\"invalid\", \"Unknown order state\")) from ListOrdersByStatusUseCase.execute instead of using one shared definition. execute(orderId) never calls it, so it also does not fit this use case."
+            }
+          ],
+          "reasoning": "The module covers one concern: use cases for orders and stock, plus their DTO mappers. Every use case reaches persistence only through the domain ports OrderRepository and ProductRepository. However, the status validation appears twice as the same statement: `if (!isOrderStatus(status)) throw new DomainError(\"invalid\", \"Unknown order state\")`. It is in ListOrdersByStatusUseCase.execute, and AdvanceOrderUseCase.validateExecute is a word-for-word copy. Both call the shared isOrderStatus predicate, but each writes out its own copy of the guard, the error code and the message. They do not call one shared definition. validateExecute also does not fit its class: it checks a `status` argument, but AdvanceOrderUseCase.execute takes only an orderId and never calls it. It is a copied piece of another use case's rule, not part of advancing an order."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.8,
+          "violations": [
+            {
+              "filePath": "src/application/AdvanceOrderUseCase.ts",
+              "message": "validateExecute(status) copies the order-status guard from ListOrdersByStatusUseCase.execute word for word: `if (!isOrderStatus(status)) throw new DomainError(\"invalid\", \"Unknown order state\")`. The validation now lives in two places, and the method has nothing to do with this use case's execute(orderId)."
+            }
+          ],
+          "reasoning": "The module is mostly coherent. Each use case orchestrates domain objects through injected ports (OrderRepository, ProductRepository, StockReservationService, IdGenerator), dto.ts holds the shared mappers, and no file reaches persistence directly. But one validation is copied word for word. AdvanceOrderUseCase.validateExecute(status: unknown) repeats the status guard from ListOrdersByStatusUseCase.execute: `if (!isOrderStatus(status)) throw new DomainError(\"invalid\", \"Unknown order state\");`. The isOrderStatus predicate is shared, but the guard (its error code and message) is written out in two places instead of coming from one shared definition. The method also has nothing to do with AdvanceOrderUseCase's job: execute(orderId) never takes or validates a status. That makes the class less cohesive and means the rule has to be kept in sync in two files."
+        }
+      ],
+      "verdict": "fail"
     },
     {
       "itemId": "r2|e1__claude-sonnet-5-5.order-fulfilment.minimal-prose.run-0__AP-DUP-RULEn__1|FF-N01|src/application",
-      "runs": [],
-      "verdict": "invalid"
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.72,
+          "violations": [],
+          "reasoning": "All six files cover one concern: application use cases for orders and stock, plus their DTOs and mappers in dto.ts. Persistence goes only through the domain ports OrderRepository and ProductRepository; no file uses a database, ORM or query client directly. The customer-id rule is defined once, as assertExecuteRule in PlaceOrderUseCase.ts. AdvanceOrderUseCase.validateExecute calls that function rather than copying it, so there is no duplication. Mapping to DTOs always goes through the shared toOrderDto and toStockLevelDto in dto.ts. The 'not found' check in AdvanceOrderUseCase and CancelOrderUseCase is a small, ordinary guard, not a duplicated business rule. One smell: AdvanceOrderUseCase has a validateExecute method that takes a PlaceOrderCommand, and assertExecuteRule lives in a use-case file rather than a shared validation or DTO file. Because the rule is still reused through a call to a single definition, this is a design smell and not a rubric failure."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.72,
+          "violations": [],
+          "reasoning": "All files serve one concern: order and stock use cases plus their DTO mappers. Every use case reaches persistence only through the domain ports OrderRepository, ProductRepository, StockReservationService and IdGenerator. No database, ORM or query client is used directly. Order and stock-level mapping is done once, in dto.ts (toOrderDto, toStockLevelDto), and every use case reuses those functions. The customer-id validation is defined once, as assertExecuteRule in PlaceOrderUseCase.ts. AdvanceOrderUseCase.validateExecute calls that function rather than copying it, which the rubric explicitly allows. Validating a PlaceOrderCommand inside AdvanceOrderUseCase is a slightly misplaced, unused helper. It is still a call to the shared definition, though, so it is neither a duplicate rule nor a bypass, and it does not split the module into unrelated concerns. ListOrdersByStatusUseCase checks status with the domain's isOrderStatus instead of writing its own check."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.7,
+          "violations": [],
+          "reasoning": "The files in src/application are all use cases for orders and stock, plus their DTOs. Each use case gets its domain ports through the constructor (OrderRepository, ProductRepository, StockReservationService, IdGenerator). Each one returns results through the shared mappers in dto.ts (toOrderDto, toStockLevelDto). No file uses a database, ORM or query client directly. Persistence goes only through the injected repository ports.\n\nThe customerId validation is defined once, as assertExecuteRule in PlaceOrderUseCase.ts. AdvanceOrderUseCase.validateExecute calls that function and does not copy it, so it is not duplication under the rubric.\n\nOne oddity: validateExecute on AdvanceOrderUseCase takes a PlaceOrderCommand, which has nothing to do with advancing an order. That is a cohesion smell. But it delegates to the single shared rule rather than copying or bypassing it, so it does not meet a fail condition.\n\nNo deterministic flags were raised, and I found no violation they missed."
+        }
+      ],
+      "verdict": "pass"
     },
     {
       "itemId": "r2|e1__claude-sonnet-5-5.order-fulfilment.minimal-prose.run-2__AP-DUP-RULE__0|FF-N01|src/application",
-      "runs": [],
-      "verdict": "invalid"
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.8,
+          "violations": [
+            {
+              "filePath": "src/application/get-order-use-case.ts",
+              "message": "GetOrderUseCase.validateExecute copies the order-state validation `if (!isOrderState(state)) throw new ValidationError(\"Unknown order state\")` from ListOrdersByStateUseCase.execute, so the same rule is written in two places. The method also checks a state filter, which has nothing to do with looking up an order by id, so this class mixes two concerns."
+            }
+          ],
+          "reasoning": "Most of the module holds together. Each use case works on orders or products through injected domain ports (OrderRepository, ProductRepository, StockReservationService, IdGenerator) and returns shared mappers from dtos.ts. No file uses a database or ORM directly. One file breaks the rule. GetOrderUseCase.validateExecute(state) repeats the order-state check from ListOrdersByStateUseCase.execute: `if (!isOrderState(state)) throw new ValidationError(\"Unknown order state\")`, with the same error message. Both call isOrderState, but the guard-and-throw is written out in both files instead of being defined once. The method also doesn't fit its class. GetOrderUseCase looks up one order by id, yet validateExecute checks an order-state filter, which belongs to listing by state. This is both a duplicated validation and a cohesion problem."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.8,
+          "violations": [
+            {
+              "filePath": "src/application/get-order-use-case.ts",
+              "message": "GetOrderUseCase.validateExecute(state) is a state check unrelated to fetching an order by id. It copies ListOrdersByStateUseCase's guard word for word: `if (!isOrderState(state)) throw new ValidationError(\"Unknown order state\")`. The order-state validation rule therefore exists in two places instead of being defined once and called."
+            }
+          ],
+          "reasoning": "Most of the module holds together. Each use case uses a domain port (OrderRepository, ProductRepository, StockReservationService or IdGenerator) and maps its result through the shared helpers in dtos.ts (toOrderDto, toStockLevelDto). No file goes around a repository to reach persistence.\n\nThe problem is GetOrderUseCase.validateExecute(state). It is a method that checks an order state on a use case that only fetches one order by id. Its body, `if (!isOrderState(state)) throw new ValidationError(\"Unknown order state\")`, matches the guard at the start of ListOrdersByStateUseCase.execute. Both call the shared isOrderState predicate, but the guard around it (the check, the error type and the message) is written out twice instead of being defined once. This guard is misplaced in GetOrderUseCase, and it repeats the same rule in a second place. Both are fail conditions under the rubric."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.72,
+          "violations": [
+            {
+              "filePath": "src/application/get-order-use-case.ts",
+              "message": "GetOrderUseCase.validateExecute duplicates the order-state validation (`if (!isOrderState(state)) throw new ValidationError(\"Unknown order state\")`) already in ListOrdersByStateUseCase.execute. It also adds a state-filtering concern that has nothing to do with fetching an order by id."
+            }
+          ],
+          "reasoning": "Most of the module holds together. Each use case works through the domain ports (OrderRepository, ProductRepository, StockReservationService, IdGenerator) and maps results with the shared toOrderDto/toStockLevelDto in dtos.ts. No file touches persistence directly.\n\nThe problem is GetOrderUseCase. Besides fetching an order by id, it has a public method validateExecute(state: unknown) that checks the order state. That check has nothing to do with fetching an order by id. It is also a copy of the guard at the top of ListOrdersByStateUseCase.execute: `if (!isOrderState(state)) throw new ValidationError(\"Unknown order state\")`. Both use the shared isOrderState predicate, but the rule itself (reject an unknown state with a ValidationError and this exact message) is written out in two places instead of living in one shared definition. That breaks the 'each rule or invariant in one place' requirement. It also puts an unrelated concern inside GetOrderUseCase."
+        }
+      ],
+      "verdict": "fail"
     },
     {
       "itemId": "r2|e1__claude-sonnet-5-5.order-fulfilment.none.run-1__AP-FRAMEWORK-LEAK__0|FF-N02|src/application/order-service.ts",
-      "runs": [],
-      "verdict": "invalid"
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.95,
+          "violations": [
+            {
+              "filePath": "src/application/order-service.ts",
+              "message": "OrderService.listOrders takes the parameter `request?: Request`, where Request is an express HTTP request type. HTTP request types belong to the delivery/infrastructure layer and must not appear in an application-layer method signature, even when optional or unused."
+            }
+          ],
+          "reasoning": "The candidate flag holds up against the source. OrderService.listOrders in the application file declares an optional parameter `request?: Request`, and Request comes from the express web framework. The rubric says a request type from a web or transport package must not appear in an application-layer method signature, even when the parameter is optional or unused. That makes it a delivery-layer concern that has leaked into the application layer. The rest of the file fits the application role. The constructor injects ProductRepository and OrderRepository, which is dependency wiring. DomainError is a type the project declares itself. randomUUID from node:crypto only generates IDs and is not a web or delivery concern."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.95,
+          "violations": [
+            {
+              "filePath": "src/application/order-service.ts",
+              "message": "OrderService.listOrders(status?: string, request?: Request) declares a parameter typed as the express `Request` (an HTTP request type from the express web framework). That type belongs to the delivery/infrastructure layer and must not appear in an application-layer method signature, even as an optional, unused parameter."
+            }
+          ],
+          "reasoning": "The flag is correct. In this application-layer file, OrderService.listOrders declares an optional parameter `request?: Request`, and `Request` comes from the express web framework. Under the rubric, an HTTP request type in an application method signature is a violation even when the parameter is optional or unused. That type belongs to the delivery (infrastructure/presentation) layer. Nothing else in the file is misplaced. The constructor injects repository ports, which counts as allowed wiring. Using node:crypto randomUUID is not a transport concern. DomainError is a type the project declares itself."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.95,
+          "violations": [
+            {
+              "filePath": "src/application/order-service.ts",
+              "message": "OrderService.listOrders(status?: string, request?: Request) takes express's Request type, an HTTP request from a web framework that belongs to the delivery/infrastructure layer, as a parameter in an application-layer method signature. The rubric counts this as misplaced even though the parameter is optional and unused."
+            }
+          ],
+          "reasoning": "The candidate flag holds up. In the application-layer OrderService, the listOrders method takes an optional `request?: Request` parameter, and that type is imported from the express web framework. The rubric says a request type from a web or transport package in any application signature is a violation, even when the parameter is optional or unused. Everything else in the file fits an application service. The constructor injects repository ports, which is allowed wiring. The class coordinates domain functions and only throws the project's own DomainError. randomUUID from node:crypto creates an ID and is not a transport concern."
+        }
+      ],
+      "verdict": "fail"
     },
     {
       "itemId": "r2|e1__claude-sonnet-5-5.order-fulfilment.none.run-1__AP-FRAMEWORK-LEAKn__0|FF-N02|src/application/order-service.ts",
-      "runs": [],
-      "verdict": "invalid"
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.82,
+          "violations": [],
+          "reasoning": "src/application/order-service.ts fits its application layer. OrderService coordinates use cases: it validates and merges order lines, reserves stock all-or-nothing with rollback, and calls domain functions (reserve, release, dispatch, nextState, assertCancellable) and repository ports. The constructor injects ProductRepository and OrderRepository from ./ports, which is dependency wiring the rubric allows. No signature takes or returns a request, response, HTTP context or status code from a web or transport package or the delivery layer. The errors thrown are the project's own DomainError. listOrders has an optional, unused parameter context?: ListOrdersContextDto. That type is declared in this same application file and holds only requestId?: string. It is a project-declared type, not a framework or delivery-layer type, so under the rubric it is not misplaced. node:crypto randomUUID is a standard-library utility, not a framework dependency."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.8,
+          "violations": [],
+          "reasoning": "src/application/order-service.ts is an application service that coordinates domain functions (reserve, release, dispatch, nextState, assertCancellable) through injected repository ports. Its signatures use only project-declared types and plain primitives. The one parameter that looks like request context, ListOrdersContextDto, is declared in this same file and holds only an optional requestId string. It does not come from a web or transport package or from the delivery layer, and the rubric says a project-declared type is not a framework type. The file has no HTTP request or response, status code or HTTP error, and the only error thrown is the project's DomainError. Constructor parameters are injected repository ports, which counts as dependency wiring. randomUUID from node:crypto is a standard-library ID generator, not delivery or persistence code. No candidate flags were given and no violations were found."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.82,
+          "violations": [],
+          "reasoning": "src/application/order-service.ts fits the application layer. The one context-like parameter, `context?: ListOrdersContextDto` in listOrders, uses an interface declared in this same application file. It has a single optional `requestId` string. It doesn't come from a web or transport package or from the infrastructure layer, and the rubric says types the project declares itself don't count as framework types. The constructor only takes the application-layer repository ports, which is allowed dependency wiring. Errors thrown are the project's own DomainError, with no HTTP status codes or HTTP errors. The methods orchestrate the use case and hand the domain work to domain functions (reserve, release, dispatch, nextState, assertCancellable). randomUUID from node:crypto creates IDs and does no I/O. Return types are domain types (Order, StockLevel), not transport responses."
+        }
+      ],
+      "verdict": "pass"
     },
     {
       "itemId": "r2|e1__claude-sonnet-5-5.task-management.minimal-prose.run-0__AP-DUP-RULE__0|FF-N01|src/application",
-      "runs": [],
-      "verdict": "invalid"
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.88,
+          "violations": [
+            {
+              "filePath": "src/application/list-tasks-use-case.ts",
+              "message": "ListTasksUseCase.validateExecute(dto: CreateProjectDto) is a copy of the project-name validation in CreateProjectUseCase.execute instead of a call to one shared definition. It is also a create-project concern inside the list-tasks use case, which mixes two unrelated concerns in one class."
+            },
+            {
+              "filePath": "src/application/create-user-use-case.ts",
+              "message": "CreateUserUseCase.execute repeats the same 'name is required' check (typeof name !== 'string' || name.trim() === '') that appears in CreateProjectUseCase and ListTasksUseCase.validateExecute, so the rule exists as several copies rather than one shared definition."
+            }
+          ],
+          "reasoning": "Most of the module holds together: each use case handles one operation and reaches persistence only through the domain ports (TaskRepository, ProjectRepository, UserRepository, IdGenerator). The problem is ListTasksUseCase in src/application/list-tasks-use-case.ts. It declares a method `validateExecute(dto: CreateProjectDto): void` that is a copy of the name check in CreateProjectUseCase.execute (src/application/create-project-use-case.ts): `typeof dto.name !== \"string\" || dto.name.trim() === \"\"` throwing `ValidationError(\"name is required\")`. So one validation rule exists in two places as a copy, not a call to one shared definition. It also puts a create-project concern inside the list-tasks use case. ListTasksUseCase never uses this method, and it takes the CreateProjectDto type, which has nothing to do with listing tasks. A smaller issue: CreateUserUseCase repeats the same name check word for word. It applies to a different entity, but it is still a copy of the rule."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.88,
+          "violations": [
+            {
+              "filePath": "src/application/list-tasks-use-case.ts",
+              "message": "ListTasksUseCase.validateExecute(dto: CreateProjectDto) copies the project-name validation from CreateProjectUseCase.execute (typeof name !== 'string' || name.trim() === '' → ValidationError('name is required')). It does not call a shared definition, and it puts a project-creation concern into the task-listing use case."
+            },
+            {
+              "filePath": "src/application/create-user-use-case.ts",
+              "message": "CreateUserUseCase.execute writes out the same name-required check as CreateProjectUseCase.execute and ListTasksUseCase.validateExecute instead of using one shared validation."
+            }
+          ],
+          "reasoning": "Most of the module is cohesive. Each use case orchestrates domain entities through the domain repository ports (TaskRepository, ProjectRepository, UserRepository) and IdGenerator, and none of them touch persistence directly. The exception is ListTasksUseCase. Besides its own execute(ListTasksDto), it declares an unrelated method, validateExecute(dto: CreateProjectDto). That method copies the project-name validation that CreateProjectUseCase.execute already performs: typeof dto.name !== \"string\" || dto.name.trim() === \"\" → ValidationError(\"name is required\"). This is a copy of the rule rather than a call to one shared definition, and it puts a project-creation concern inside the task-listing use case. That is both duplication and a split of concerns. The same name-required check also appears in CreateUserUseCase, which strengthens the duplication finding. Because the user and project name rules may be meant to differ, the clearest violation is the copy in list-tasks-use-case.ts."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.85,
+          "violations": [
+            {
+              "filePath": "src/application/list-tasks-use-case.ts",
+              "message": "ListTasksUseCase.validateExecute(dto: CreateProjectDto) copies the project-name validation from CreateProjectUseCase.execute instead of calling one shared definition. It also puts project-creation input validation inside the task-listing use case, which mixes unrelated concerns, and execute never calls it."
+            }
+          ],
+          "reasoning": "Most of the module holds together. Each use case reaches persistence only through the domain repository ports (TaskRepository, ProjectRepository, UserRepository) and gets ids from IdGenerator. Status parsing goes through the shared parseTaskStatus. However, src/application/list-tasks-use-case.ts declares ListTasksUseCase.validateExecute(dto: CreateProjectDto). This method copies the project-name check from CreateProjectUseCase.execute line for line: the same `typeof dto.name !== \"string\" || dto.name.trim() === \"\"` test and the same ValidationError(\"name is required\"). It does not call a shared definition. It also puts project-creation validation inside the task-listing use case, so that file mixes two unrelated concerns. ListTasksUseCase.execute never calls this method, and it only exists to import CreateProjectDto into an unrelated use case. CreateUserUseCase has a similar name check, but it validates a different entity's input inside that entity's own use case. That is a weaker case, so it is not the main finding here."
+        }
+      ],
+      "verdict": "fail"
     },
     {
       "itemId": "r2|e1__claude-sonnet-5-5.task-management.minimal-prose.run-0__AP-DUP-RULEn__0|FF-N01|src/application",
-      "runs": [],
-      "verdict": "invalid"
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.85,
+          "violations": [
+            {
+              "filePath": "src/application/create-user-use-case.ts",
+              "message": "CreateUserUseCase.execute repeats the \"name is required\" check (typeof dto.name !== \"string\" || dto.name.trim() === \"\" → ValidationError) inline. The same rule already exists as assertExecuteRule in create-project-use-case.ts, so it is now in two places."
+            },
+            {
+              "filePath": "src/application/list-tasks-use-case.ts",
+              "message": "ListTasksUseCase.validateExecute(dto: CreateProjectDto) validates project creation by calling assertExecuteRule from create-project-use-case.ts. That concern doesn't belong in a task-listing use case and goes against the one-use-case-per-file structure."
+            }
+          ],
+          "reasoning": "Most of the unit is cohesive: each use case reaches persistence only through the domain repository ports (`TaskRepository`, `ProjectRepository`, `UserRepository`), and `dtos.ts` holds the shared DTO shapes. It fails on two points.\n\n1. **Duplicated rule.** The \"name is required\" check is written out twice. `assertExecuteRule(dto)` in `create-project-use-case.ts` holds it as a shared exported function. `CreateUserUseCase.execute` in `create-user-use-case.ts` repeats the same check inline: `typeof dto.name !== \"string\" || dto.name.trim() === \"\"` followed by `throw new ValidationError(\"name is required\")`. It does not call the shared function.\n\n2. **Mixed concern.** `ListTasksUseCase` in `list-tasks-use-case.ts` has a method `validateExecute(dto: CreateProjectDto)` that calls `assertExecuteRule` from the create-project use case. Validating project creation does not belong in a use case that lists tasks. It pulls another use case's rule into this class and couples it to `CreateProjectDto`, which goes against the one-use-case-per-file structure the rest of the module follows.\n\nNo candidate flags were given, so these findings come from reading the source directly."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.85,
+          "violations": [
+            {
+              "filePath": "src/application/create-user-use-case.ts",
+              "message": "`CreateUserUseCase.execute` copies the name-required check (`typeof dto.name !== \"string\" || dto.name.trim() === \"\"`, `ValidationError(\"name is required\")`) that `assertExecuteRule` in create-project-use-case.ts already defines, instead of using one shared definition."
+            },
+            {
+              "filePath": "src/application/list-tasks-use-case.ts",
+              "message": "`ListTasksUseCase.validateExecute(dto: CreateProjectDto)` calls `assertExecuteRule` to validate project-creation input. That is an unrelated concern inside the list-tasks query use case, and it couples this use case to CreateProjectUseCase's module."
+            }
+          ],
+          "reasoning": "The module is a set of use cases that all go through the domain repository ports (TaskRepository, ProjectRepository, UserRepository, IdGenerator). No file reaches the database directly. It still fails the rubric for two reasons.\n\n1. The same validation is copied rather than shared. In create-project-use-case.ts, the exported `assertExecuteRule` checks `typeof dto.name !== \"string\" || dto.name.trim() === \"\"` and throws `ValidationError(\"name is required\")`. `CreateUserUseCase.execute` in create-user-use-case.ts writes out the exact same check and message inline instead of calling one shared definition.\n\n2. A concern sits in the wrong file. `ListTasksUseCase` in list-tasks-use-case.ts is the query use case for listing tasks. It also declares `validateExecute(dto: CreateProjectDto)`, which calls `assertExecuteRule` from create-project-use-case.ts. Validating a project-creation DTO has nothing to do with listing tasks. It mixes the project-creation concern into the list-tasks use case and couples the two use cases to each other, when each should be a separate entry point.\n\nThe title check in CreateTaskUseCase validates a different field, so it isn't counted as a duplicate."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.85,
+          "violations": [
+            {
+              "filePath": "src/application/create-user-use-case.ts",
+              "message": "CreateUserUseCase.execute copies the name-required validation (typeof name !== 'string' || name.trim() === '' → ValidationError('name is required')) that is already defined as assertExecuteRule in create-project-use-case.ts, so the same rule lives in two places."
+            },
+            {
+              "filePath": "src/application/list-tasks-use-case.ts",
+              "message": "ListTasksUseCase.validateExecute(dto: CreateProjectDto) calls assertExecuteRule from create-project-use-case.ts. Validating a create-project request has nothing to do with listing tasks and couples this use case to another use case's internal rule."
+            }
+          ],
+          "reasoning": "Most use cases are consistent: they reach persistence only through the domain repository ports (`TaskRepository`, `UserRepository`, `ProjectRepository`), and no file uses a database or ORM directly. Two problems remain.\n\n1. **Duplicated rule.** `create-user-use-case.ts` (`CreateUserUseCase.execute`) writes out the same name-required check that `create-project-use-case.ts` already exports as `assertExecuteRule`. Both use the same condition, `typeof dto.name !== \"string\" || dto.name.trim() === \"\"`, and throw the same `ValidationError(\"name is required\")`. This is a copy, not a call to the shared definition.\n\n2. **Wrong concern in a use case.** `list-tasks-use-case.ts` declares `ListTasksUseCase.validateExecute(dto: CreateProjectDto)`, which calls `assertExecuteRule` from `create-project-use-case.ts`. Validating a create-project request has nothing to do with listing tasks. It mixes an unrelated concern into this use case and couples it to another use case's internal rule.\n\nThe title check in `CreateTaskUseCase` has a similar shape but applies to a different field, so I did not count it as a duplicate."
+        }
+      ],
+      "verdict": "fail"
     },
     {
       "itemId": "r2|e1__gpt-5.6-terra.order-fulfilment.minimal-prose.run-2__AP-FRAMEWORK-LEAK__0|FF-N02|src/application/catalogue-service.ts",
-      "runs": [],
-      "verdict": "invalid"
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.95,
+          "violations": [
+            {
+              "filePath": "src/application/catalogue-service.ts",
+              "message": "CatalogueService.addProduct(input: CreateProductDto, request?: Request) takes an express Request, an HTTP request type from the web/delivery layer, in an application-layer method signature. The parameter is optional and unused, but it still ties the use case to the transport. Remove it."
+            }
+          ],
+          "reasoning": "This is an application-layer file, but it has an HTTP request type from the express package in a public method signature. CatalogueService.addProduct takes an optional parameter `request?: Request`. The rubric says this fails even when the parameter is optional or unused. The candidate flag is confirmed by the source. Nothing else is misplaced. The constructor takes an injected ProductRepository, which is normal dependency wiring. DTO mapping and DomainError come from the project's own code."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.95,
+          "violations": [
+            {
+              "filePath": "src/application/catalogue-service.ts",
+              "message": "CatalogueService.addProduct has the parameter `request?: Request`, typed with Request from the 'express' web framework package. That is an HTTP request type from the delivery/transport layer, and it appears in an application-layer method signature. The rubric forbids this even though the parameter is optional and unused."
+            }
+          ],
+          "reasoning": "This file belongs to the application layer. CatalogueService.addProduct has an optional, unused parameter `request?: Request`, and that type is imported from the web framework package `express`. Express's Request is an HTTP request type from the delivery/transport layer. The rubric says it must not appear in an application method signature, even when the parameter is optional or unused. The candidate flag is correct. Nothing else is wrong: the constructor injects ProductRepository, which is normal dependency wiring. DomainError and the DTOs are types the project declares itself. Keeping the duplicate-id check and the DTO mapping here fits the application layer."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.95,
+          "violations": [
+            {
+              "filePath": "src/application/catalogue-service.ts",
+              "message": "CatalogueService.addProduct takes a parameter `request?: Request`. `Request` is the Express HTTP request type (package express), which belongs to the web/delivery layer, so it should not appear in an application-layer method signature. The rubric counts this even though the parameter is optional and unused."
+            }
+          ],
+          "reasoning": "This file is in the application layer, but CatalogueService.addProduct takes an Express `Request` as its parameter `request?: Request`. That is an HTTP request type from a web framework, which belongs to the delivery layer. The rubric says this fails even though the parameter is optional and never used. The candidate flag is correct. The rest of the file fits the application layer: the constructor takes a ProductRepository the project declares itself, the methods use the project's own DTOs and DomainError, and it maps domain objects to DTOs."
+        }
+      ],
+      "verdict": "fail"
     },
     {
       "itemId": "r2|e1__gpt-5.6-terra.order-fulfilment.minimal-prose.run-2__AP-FRAMEWORK-LEAKn__0|FF-N02|src/application/catalogue-service.ts",
-      "runs": [],
-      "verdict": "invalid"
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.86,
+          "violations": [],
+          "reasoning": "CatalogueService is a normal application service. Its only constructor parameter is ProductRepository, a domain port, which counts as dependency wiring. Its methods take and return application DTOs (CreateProductDto, ProductDto) that the project declares itself. The optional `context?: AddProductContextDto` parameter is also declared in this file: an interface with a single optional `requestId?: string` field. It is not a request, response or HTTP context type from a web or transport package or from the delivery layer, and the rubric says a type the project declares itself is not a framework type, whatever its name. The thrown error is DomainError from src/domain/errors, not an HTTP error or status code. The class has no decorators, no framework base class and no direct I/O: persistence goes through the injected repository port. Each method's work fits the application layer: it coordinates the domain Product entity and the repository and maps results to DTOs. No candidate flags were raised."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.85,
+          "violations": [],
+          "reasoning": "CatalogueService does application-layer work. It gets ProductRepository, a domain port, through its constructor, which is dependency wiring. It checks that a product id is unique through that port, builds a domain Product, saves it, and maps it to the project's own DTOs. Its signatures use only project types: CreateProductDto, ProductDto and AddProductContextDto. AddProductContextDto is a plain interface declared in this file, with one optional `requestId` string. It is not a request, response or HTTP context from a web or transport package. The rubric says a type the project declares is not a framework type, whatever its name. The code throws only DomainError, a project domain error, so no HTTP error or status code appears. There are no framework decorators, base classes, ORM types or direct I/O in the file."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": true,
+          "confidence": 0.86,
+          "violations": [],
+          "reasoning": "CatalogueService is an application service. It takes an injected ProductRepository, a domain port, through its constructor, which counts as dependency wiring. It coordinates domain objects (Product, DomainError) and maps them to the application's own DTOs. The optional `context?: AddProductContextDto` parameter could look like a request context. However, AddProductContextDto is declared in this same file as a plain interface with only an optional requestId string. It does not come from a web or transport package or from the delivery layer, and under the rubric a type the project declares itself is not a framework type. No HTTP request, response, status code or HTTP error appears in any signature or throw. The file has no framework decorators, no ORM base classes and no direct I/O. The duplicate-id check is application-level orchestration that goes through the repository port. No candidate flags were raised."
+        }
+      ],
+      "verdict": "pass"
     },
     {
       "itemId": "r2|hp__clean-architecture__v04|FF-N02|src/domain/entities/Book.ts",
-      "runs": [],
-      "verdict": "invalid"
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.96,
+          "violations": [
+            {
+              "filePath": "src/domain/entities/Book.ts",
+              "message": "Domain class Book has the TypeORM persistence-mapping decorator `@Entity('books')`, from the 'typeorm' package. ORM entity mapping belongs to the infrastructure layer, not the domain layer."
+            }
+          ],
+          "reasoning": "The file is in the domain layer, and the rubric does not allow ORM decorators in domain files, even when the class logic is pure. The Book class has the TypeORM `@Entity('books')` decorator on it. That is a persistence mapping, and persistence mapping belongs to the infrastructure layer. The candidate flag is confirmed. The rest of the file fits the domain layer: the invariants on title and copies, and the checkOut/checkIn behaviour. It only uses the project's own DomainError and Isbn types."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.95,
+          "violations": [
+            {
+              "filePath": "src/domain/entities/Book.ts",
+              "message": "The domain entity Book is decorated with @Entity('books') from the 'typeorm' package (line 5). This is an ORM persistence-mapping decorator, so it belongs to the infrastructure layer. A domain file must not carry ORM decorators or mapping."
+            }
+          ],
+          "reasoning": "The domain entity Book carries the TypeORM persistence-mapping decorator @Entity('books'), which is imported from the 'typeorm' package. ORM mapping belongs to the infrastructure layer. The rubric fails a domain file that carries an ORM decorator even when the class logic is pure. The flagged candidate is confirmed. Everything else in the file fits the domain: the invariants in the constructor, checkOut and checkIn, and DomainError and Isbn, which the project declares itself."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.96,
+          "violations": [
+            {
+              "filePath": "src/domain/entities/Book.ts",
+              "message": "Domain entity Book has the TypeORM decorator @Entity('books') from package 'typeorm'. This decorator maps the class to a database table, which belongs in the infrastructure layer, not the domain. The table mapping should move to a separate ORM entity or schema in infrastructure."
+            }
+          ],
+          "reasoning": "Book.ts is a domain entity. Its constructor checks (title is not empty, copy count is not negative) and its checkOut/checkIn logic belong in the domain. Its errors are the project's own DomainError, and there is no HTTP or I/O code. But the class has the TypeORM decorator @Entity('books'), imported from the 'typeorm' package. That decorator maps the class to a database table, which is an infrastructure concern. The rubric says a domain file must not carry ORM decorators, even when the class logic is pure. The candidate flag is confirmed by the source."
+        }
+      ],
+      "verdict": "fail"
     },
     {
       "itemId": "r2|hp__clean-architecture__v10|FF-N02|src/domain/entities/Member.ts",
-      "runs": [],
-      "verdict": "invalid"
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.97,
+          "violations": [
+            {
+              "filePath": "src/domain/entities/Member.ts",
+              "message": "Domain entity Member declares `static fromRequest(request: Request): Member`, where Request comes from the 'express' package. This puts an HTTP request type and request-body parsing, which are delivery/presentation-layer work, inside a domain file. The mapping should move to the delivery layer, which would then call the Member constructor."
+            }
+          ],
+          "reasoning": "This domain entity has a static factory, Member.fromRequest(request: Request), that takes an express HTTP Request as its parameter and reads request.body. That is a transport or delivery-layer type in a domain signature, and the rubric says this fails. Turning a request into an entity belongs in the presentation or delivery layer, not in the domain. The candidate flag is confirmed. The rest of the class is fine for a domain entity: the constructor invariants (email must contain '@', maxActiveLoans must be at least 1) are domain rules, and they throw the project's own DomainError."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.97,
+          "violations": [
+            {
+              "filePath": "src/domain/entities/Member.ts",
+              "message": "Domain entity Member declares `static fromRequest(request: Request): Member`. Its parameter is typed with `Request` from the 'express' web framework, and the method parses the HTTP request body. Mapping HTTP requests belongs to the delivery/presentation layer, not the domain. Move this factory to a controller or mapper and have it call the Member constructor."
+            }
+          ],
+          "reasoning": "The candidate flag is correct. The domain entity Member has a static factory, fromRequest(request: Request), and its parameter is typed with Express's HTTP Request. Turning an HTTP request body into a domain entity is the delivery or presentation layer's job. The rubric says an HTTP request type in any domain function signature is a failure. The constructor checks (email format and the minimum value for maxActiveLoans) are proper domain rules, and DomainError is a type the project declares itself, so neither is a problem."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.97,
+          "violations": [
+            {
+              "filePath": "src/domain/entities/Member.ts",
+              "message": "Domain entity Member declares `static fromRequest(request: Request): Member`, where Request comes from the 'express' web package. It reads request.body to build the entity. Mapping an HTTP request is a delivery/presentation job and does not belong in a domain file. Move this mapping into a controller or request mapper in the delivery layer."
+            }
+          ],
+          "reasoning": "The candidate flag holds up against the source. The domain entity Member declares a static factory `fromRequest(request: Request): Member`. That method takes the Express HTTP `Request` type as a parameter and reads `request.body`, so it parses the HTTP request payload. Mapping a transport request into an entity is a job for the delivery/presentation layer (a controller or request mapper), not the domain. The rubric says a domain file fails if a request type from a web package appears in any method signature. The constructor invariants (email format, maxActiveLoans >= 1) are proper domain rules. They throw the project's own DomainError, which is fine."
+        }
+      ],
+      "verdict": "fail"
     },
     {
       "itemId": "r2|hp__layered__v08|FF-N02|src/business/services/OrderService.ts",
-      "runs": [],
-      "verdict": "invalid"
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.92,
+          "violations": [
+            {
+              "filePath": "src/business/services/OrderService.ts",
+              "message": "Domain method placeOrderFromRequest(request: Request) takes Express's Request type (package 'express') and reads request.body. Handling HTTP requests is presentation/delivery work and does not belong in a domain-layer file."
+            },
+            {
+              "filePath": "src/business/services/OrderService.ts",
+              "message": "Domain class OrderService does persistence I/O directly: it calls OrderGateway.save/findById, ProductGateway.findBySku/updateStock and CustomerGateway.findById from src/persistence (infrastructure) inside placeOrder, cancelOrder and getOrder. Persistence access is not part of a domain layer's role."
+            }
+          ],
+          "reasoning": "src/business/services/OrderService.ts is in the business layer, which is a domain layer. The method placeOrderFromRequest(request: Request) takes Express's Request type (imported from 'express') and reads request.body inside the method. That is web-delivery handling inside a domain file, and the rubric names exactly this case. The candidate flag is confirmed.\n\nThere is a second problem the flags did not raise. The domain class does persistence work directly. It is built with persistence gateways from src/persistence (OrderGateway, ProductGateway, CustomerGateway), and placeOrder, cancelOrder and getOrder call this.orders.save, this.orders.findById, this.products.findBySku, this.products.updateStock and this.customers.findById. The rubric's exemption for injected constructor parameters covers application files only, not domain files, so these gateway calls count as persistence I/O in a domain file. Import direction itself is out of scope here. The finding is about what the class does."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.93,
+          "violations": [
+            {
+              "filePath": "src/business/services/OrderService.ts",
+              "message": "Domain method `placeOrderFromRequest(request: Request): Order` takes `Request` from the 'express' web package and reads `request.body`. Parsing an HTTP request is a presentation/delivery job and belongs in the presentation layer, for example OrderController."
+            },
+            {
+              "filePath": "src/business/services/OrderService.ts",
+              "message": "A domain file does persistence I/O. OrderService calls the persistence gateways directly (`customers.findById`, `products.findBySku`, `products.updateStock`, `orders.save`, `orders.findById`) and maps records with toOrderRecord/toOrder. That data-access orchestration belongs to an application or infrastructure layer, not the domain layer."
+            }
+          ],
+          "reasoning": "The file is in the business layer, which is a domain layer. The candidate flag is correct. `placeOrderFromRequest(request: Request): Order` takes the Express `Request` type in a public method signature and reads `request.body`. That is a delivery-layer HTTP concern sitting in a domain file. There is a second problem the flags did not raise. OrderService is a Fowler-style transaction script, and it does persistence I/O itself. It takes the persistence gateways (OrderGateway, ProductGateway, CustomerGateway) as constructor parameters and calls `findById`, `findBySku`, `updateStock` and `save` on them. The rubric allows injected repositories as constructor wiring only in application files. In a domain file, persistence and I/O are explicitly a failure. The rest of the file fits the domain layer: the pricing calls, `sumOf`, the `OrderItem` interface and the `BusinessError` throws."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.9,
+          "violations": [
+            {
+              "filePath": "src/business/services/OrderService.ts",
+              "message": "In a domain file, the method `placeOrderFromRequest(request: Request)` takes express's HTTP `Request` type and parses `request.body`. This is delivery-layer (presentation) request handling and should live in the controller."
+            },
+            {
+              "filePath": "src/business/services/OrderService.ts",
+              "message": "This domain file does persistence I/O through infrastructure gateways from src/persistence: `customers.findById`, `products.findBySku`, `products.updateStock`, `orders.save` and `orders.findById` in placeOrder, cancelOrder and getOrder. That is application or infrastructure work, not domain work."
+            }
+          ],
+          "reasoning": "This file is declared in the business layer, which has the domain kind. It fails the rule in two ways. First, the candidate flag is correct. The method `placeOrderFromRequest(request: Request)` takes the `Request` type from the express web package and reads `request.body`. That is delivery-layer request handling (turning a request into input), and it belongs in the presentation layer, e.g. `OrderController`. Second, the flag misses persistence I/O in this file. OrderService takes three persistence-layer gateways (`OrderGateway`, `ProductGateway`, `CustomerGateway`) and calls `findById`, `findBySku`, `updateStock` and `save` on them, which are reads and writes to storage. The rubric treats constructor-injected repositories as acceptable only in application files, not domain files. The file is a Fowler-style Service Layer (one transaction script per use case), which is an application-layer role inside a layer declared as domain."
+        }
+      ],
+      "verdict": "fail"
     },
     {
       "itemId": "r2|hp__nestjs__v06|FF-N02|src/domain/attendee.ts",
-      "runs": [],
-      "verdict": "invalid"
+      "runs": [
+        {
+          "runIndex": 0,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.96,
+          "violations": [
+            {
+              "filePath": "src/domain/attendee.ts",
+              "message": "Domain entity Attendee has a static factory `fromRequest(id: string, request: Request): Attendee` that takes the express HTTP Request type and reads request.body. Request handling belongs to the presentation layer. Have the controller or a DTO map the request to plain values instead."
+            }
+          ],
+          "reasoning": "src/domain/attendee.ts is in the domain layer. Its static factory Attendee.fromRequest takes an Express Request as a parameter and reads request.body inside a domain entity. The rubric says a request type from a web or transport package must not appear in any domain signature. Turning an HTTP request into an entity is a delivery-layer (presentation) job. The candidate flag is correct. The rest of the class is fine for the domain layer: the email check is a domain rule and DomainError is the project's own type."
+        },
+        {
+          "runIndex": 1,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.97,
+          "violations": [
+            {
+              "filePath": "src/domain/attendee.ts",
+              "message": "Domain entity Attendee declares static fromRequest(id: string, request: Request) with Request from the 'express' package and reads request.body. The HTTP request type and payload parsing belong to the presentation/delivery layer, not to a domain file."
+            }
+          ],
+          "reasoning": "src/domain/attendee.ts is in the domain layer, but the static factory Attendee.fromRequest takes a parameter of type Request, which is imported from the 'express' package. That is the HTTP request type of a web framework, and it belongs to the presentation (delivery) layer. Its body also reads request.body['name'] and request.body['email'], so this domain entity is parsing transport payloads. The candidate flag is confirmed. The email invariant in the constructor and the project-declared DomainError are both fine for the domain layer."
+        },
+        {
+          "runIndex": 2,
+          "valid": true,
+          "pass": false,
+          "confidence": 0.97,
+          "violations": [
+            {
+              "filePath": "src/domain/attendee.ts",
+              "message": "Domain entity Attendee declares `static fromRequest(id: string, request: Request): Attendee`. Its parameter type is the HTTP Request from the 'express' web package, and it reads request.body. HTTP request mapping belongs to the presentation layer (a controller or DTO), not the domain. Remove fromRequest and build Attendee from plain values in the controller or application layer."
+            }
+          ],
+          "reasoning": "src/domain/attendee.ts sits in the domain layer, but its static factory Attendee.fromRequest takes an Express HTTP Request as a parameter and reads request.body. That puts a delivery/transport concern (parsing an HTTP request) inside a domain entity. The rubric fails this even if the parameter were optional or unused. The candidate flag at line 13 is confirmed. The rest of the file is fine for the domain layer: the constructor's e-mail invariant is a domain rule, and DomainError is declared by the project itself, not a framework type."
+        }
+      ],
+      "verdict": "fail"
     }
   ]
 }

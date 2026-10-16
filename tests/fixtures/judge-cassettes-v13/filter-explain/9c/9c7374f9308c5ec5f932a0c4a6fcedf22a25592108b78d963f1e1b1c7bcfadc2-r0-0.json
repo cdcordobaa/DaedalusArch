@@ -1,0 +1,36 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 12314,
+  "effort": "high",
+  "functionId": "filter-explain",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "9c7374f9308c5ec5f932a0c4a6fcedf22a25592108b78d963f1e1b1c7bcfadc2-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "## Finding\nRule: FF-DT04\nRule intent: The domain is framework-free.\nType: DOMAIN_PURITY_VIOLATION\nSeverity: critical; tier: blocking\nFile: src/billing/domain/invoice/value-objects/InvoiceId.ts\nTarget: class-transformer\nReported lines: 1\nMessage: Domain file src/billing/domain/invoice/value-objects/InvoiceId.ts imports forbidden package class-transformer\nDiscriminator: IMPORTS\n\n## Layer model\n- domain (kind: domain): src/*/domain/**, src/shared-kernel/**\n- application (kind: application): src/*/application/**\n- infrastructure (kind: infrastructure): src/*/infrastructure/**, src/*/acl/**\n- api (kind: presentation): src/*/api/**\n- composition (kind: application): src/main.ts\n\n## Source (line-numbered)\n=====SOURCE-BEGIN src/billing/domain/invoice/value-objects/InvoiceId.ts (layer domain)=====\n 1| import { plainToInstance } from 'class-transformer';\n 2| \n 3| // VIOLATION (framework-free domain): the domain uses a framework serialisation library.\n 4| export class InvoiceId {\n 5|   constructor(readonly value: string) {\n 6|     if (value.length === 0) throw new Error('InvoiceId is empty');\n 7|   }\n 8| \n 9|   static fromPlain(raw: { value: string }): InvoiceId {\n10|     return plainToInstance(InvoiceId, raw);\n11|   }\n12| }\n=====SOURCE-END=====\n\n## Instructions\nDecide confirm or dismiss. Confirm: the cited code has the problem the rule is meant to catch, in this project and layer model. Dismiss: the rule fired, but the code does not have that problem (a false positive of the rule's mechanism, a threshold artefact on sound code, or a case the style allows). Measurements stated in the finding (counts, ratios, missing files) are correct as measurements; judge what they mean for this code. explanation: one paragraph that justifies the decision from the code, citing file paths and line numbers exactly as numbered below. fix: one concrete change: for a confirm, how to fix the code; for a dismiss, what (if anything) the rule or its configuration should change. citations: the line ranges your explanation relies on; every one must name a file shown below and lines that exist.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T00:01:17.199Z",
+  "repetition": 0,
+  "requestHash": "9c7374f9308c5ec5f932a0c4a6fcedf22a25592108b78d963f1e1b1c7bcfadc2",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":826}},\"result\":\"{\\\"decision\\\":\\\"confirm\\\",\\\"explanation\\\":\\\"src/billing/domain/invoice/value-objects/InvoiceId.ts sits under src/*/domain/**, so it belongs to the domain layer. Line 1 imports `plainToInstance` from `class-transformer`, which is a serialisation framework library, and line 10 actually calls it inside the value object's `fromPlain` factory (lines 9-11). That is not a stray type-only or unused import. The domain value object depends at runtime on a framework, which is exactly what a framework-free domain rule exists to prevent. Turning plain objects into instances is a persistence/transport concern, and it belongs in infrastructure or at the API edge. There is also a practical problem: class-transformer builds the instance with its own mechanism instead of the constructor's validated path. That can bypass or break the invariant check on line 6, so the coupling hurts correctness as well as purity. This is a real violation, not a false positive.\\\",\\\"fix\\\":\\\"Remove the class-transformer import and the `plainToInstance` call from the domain. Write `fromPlain` as `static fromPlain(raw: { value: string }): InvoiceId { return new InvoiceId(raw.value); }` so construction always goes through the validating constructor. Any class-transformer-based mapping that is still needed should move to a mapper or DTO in src/billing/infrastructure/** or src/billing/api/**.\\\",\\\"citations\\\":[{\\\"filePath\\\":\\\"src/billing/domain/invoice/value-objects/InvoiceId.ts\\\",\\\"startLine\\\":1,\\\"endLine\\\":1},{\\\"filePath\\\":\\\"src/billing/domain/invoice/value-objects/InvoiceId.ts\\\",\\\"startLine\\\":5,\\\"endLine\\\":7},{\\\"filePath\\\":\\\"src/billing/domain/invoice/value-objects/InvoiceId.ts\\\",\\\"startLine\\\":9,\\\"endLine\\\":11}]}\",\"structured_output\":{\"citations\":[{\"endLine\":1,\"filePath\":\"src/billing/domain/invoice/value-objects/InvoiceId.ts\",\"startLine\":1},{\"endLine\":7,\"filePath\":\"src/billing/domain/invoice/value-objects/InvoiceId.ts\",\"startLine\":5},{\"endLine\":11,\"filePath\":\"src/billing/domain/invoice/value-objects/InvoiceId.ts\",\"startLine\":9}],\"decision\":\"confirm\",\"explanation\":\"src/billing/domain/invoice/value-objects/InvoiceId.ts sits under src/*/domain/**, so it belongs to the domain layer. Line 1 imports `plainToInstance` from `class-transformer`, which is a serialisation framework library, and line 10 actually calls it inside the value object's `fromPlain` factory (lines 9-11). That is not a stray type-only or unused import. The domain value object depends at runtime on a framework, which is exactly what a framework-free domain rule exists to prevent. Turning plain objects into instances is a persistence/transport concern, and it belongs in infrastructure or at the API edge. There is also a practical problem: class-transformer builds the instance with its own mechanism instead of the constructor's validated path. That can bypass or break the invariant check on line 6, so the coupling hurts correctness as well as purity. This is a real violation, not a false positive.\",\"fix\":\"Remove the class-transformer import and the `plainToInstance` call from the domain. Write `fromPlain` as `static fromPlain(raw: { value: string }): InvoiceId { return new InvoiceId(raw.value); }` so construction always goes through the validating constructor. Any class-transformer-based mapping that is still needed should move to a mapper or DTO in src/billing/infrastructure/** or src/billing/api/**.\"}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "74cd45f34b6393b2",
+  "usage": {
+    "inputTokens": 2240,
+    "outputTokens": 826
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
