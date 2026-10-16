@@ -1,0 +1,206 @@
+{
+ "id": "clean-ts-api",
+ "stats": {
+  "signatureUses": 0,
+  "components": 9,
+  "componentSource": "declared",
+  "dependsOn": 14,
+  "deepImports": 0,
+  "exportsSymbol": 0,
+  "channels": 0,
+  "async": {
+   "publishes": 0,
+   "subscribes": 0,
+   "dynamicNames": 0
+  },
+  "io": {
+   "byCategory": {
+    "db": 10,
+    "http-out": 0,
+    "fs": 2,
+    "env": 3,
+    "clock": 3,
+    "random": 0,
+    "process": 0
+   }
+  },
+  "timingsMs": {
+   "typeFlow": 24.5,
+   "components": 10.7,
+   "async": 94.5,
+   "io": 58
+  }
+ },
+ "params": {
+  "domainLayer": "domain",
+  "applicationLayers": [
+   "application"
+  ],
+  "infraLayer": "infrastructure",
+  "controllerLayer": "infrastructure",
+  "threshold": 0.7,
+  "allowedAsync": [],
+  "compositionRootLayers": [],
+  "compositionRootPatterns": [
+   "^(?:.*/)?(?:main|bootstrap|composition-root|compositionRoot|container|di)\\.(?:ts|tsx|mts|cts)$",
+   "^(?:.*/)?[^/]+\\.(?:module|container)\\.(?:ts|tsx|mts|cts)$"
+  ],
+  "testPatterns": [
+   "^(?:.*/)?[^/]*\\.(?:spec|test)\\.(?:ts|tsx|mts|cts)$",
+   "^(?:.*/)?(?:__tests__|__mocks__|test|tests)/.*$",
+   "^(?:.*/)?[Tt]est[A-Z._-][^/]*$"
+  ],
+  "aclPatterns": [],
+  "minTypes": 4
+ },
+ "components": [
+  {
+   "name": "domain",
+   "kind": "layer"
+  },
+  {
+   "name": "application",
+   "kind": "layer"
+  },
+  {
+   "name": "infrastructure",
+   "kind": "layer"
+  },
+  {
+   "name": "data",
+   "kind": "folder"
+  },
+  {
+   "name": "domain",
+   "kind": "folder"
+  },
+  {
+   "name": "infra",
+   "kind": "folder"
+  },
+  {
+   "name": "main",
+   "kind": "folder"
+  },
+  {
+   "name": "presentation",
+   "kind": "folder"
+  },
+  {
+   "name": "validation",
+   "kind": "folder"
+  }
+ ],
+ "parseCoverage": {
+  "total": 180,
+  "parsed": 180
+ },
+ "importResolution": {
+  "resolvedInternal": 327,
+  "external": 39,
+  "externalOutOfRootAlias": 0,
+  "unresolved": 0,
+  "droppedNoFileNode": 0,
+  "unsupportedDynamic": 1
+ },
+ "counts": {
+  "boundary-type-leak": 0,
+  "component-adp-cycle": 0,
+  "component-sdp-violation": 2,
+  "component-main-sequence-distance": 0,
+  "deep-import-declared-api": 0,
+  "deep-import-inferred-api": 0,
+  "undeclared-async-coupling": 0,
+  "io-outside-adapters": 0,
+  "nondeterminism-in-core": 2
+ },
+ "rows": {
+  "boundary-type-leak": [],
+  "component-adp-cycle": [],
+  "component-sdp-violation": [
+   {
+    "component": "infra",
+    "target": "data",
+    "kind": "folder",
+    "fromInstability": 0.35,
+    "toInstability": 0.484,
+    "filePath": "infra",
+    "_file": "src/infra/cryptography/bcrypt-adapter.ts",
+    "_line": 1,
+    "_evidence": [
+     {
+      "file": "src/infra/cryptography/bcrypt-adapter.ts",
+      "target": "src/data/protocols/index.ts",
+      "line": 1
+     },
+     {
+      "file": "src/infra/cryptography/jwt-adapter.ts",
+      "target": "src/data/protocols/index.ts",
+      "line": 1
+     },
+     {
+      "file": "src/infra/db/mongodb/account-mongo-repository.ts",
+      "target": "src/data/protocols/db/index.ts",
+      "line": 2
+     }
+    ]
+   },
+   {
+    "component": "infra",
+    "target": "validation",
+    "kind": "folder",
+    "fromInstability": 0.35,
+    "toInstability": 0.5,
+    "filePath": "infra",
+    "_file": "src/infra/validators/email-validator-adapter.ts",
+    "_line": 1,
+    "_evidence": [
+     {
+      "file": "src/infra/validators/email-validator-adapter.ts",
+      "target": "src/validation/protocols/index.ts",
+      "line": 1
+     }
+    ]
+   }
+  ],
+  "component-main-sequence-distance": [],
+  "deep-import-declared-api": [],
+  "deep-import-inferred-api": [],
+  "undeclared-async-coupling": [],
+  "io-outside-adapters": [],
+  "nondeterminism-in-core": [
+   {
+    "filePath": "src/presentation/controllers/add-survey-controller.ts",
+    "member": "AddSurveyController.handle",
+    "layer": "application",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 19,
+    "lines": [
+     19
+    ],
+    "_file": "src/presentation/controllers/add-survey-controller.ts",
+    "_line": 19,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/presentation/controllers/save-survey-result-controller.ts",
+    "member": "SaveSurveyResultController.handle",
+    "layer": "application",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 23,
+    "lines": [
+     23
+    ],
+    "_file": "src/presentation/controllers/save-survey-result-controller.ts",
+    "_line": 23,
+    "_importGraphSees": false
+   }
+  ]
+ }
+}

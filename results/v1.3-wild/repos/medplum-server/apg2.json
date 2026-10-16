@@ -1,0 +1,4149 @@
+{
+ "id": "medplum-server",
+ "stats": {
+  "signatureUses": 891,
+  "components": 28,
+  "componentSource": "declared",
+  "dependsOn": 113,
+  "deepImports": 79,
+  "exportsSymbol": 3,
+  "channels": 0,
+  "async": {
+   "publishes": 0,
+   "subscribes": 0,
+   "dynamicNames": 11
+  },
+  "io": {
+   "byCategory": {
+    "db": 6613,
+    "http-out": 9,
+    "fs": 32,
+    "env": 18,
+    "clock": 204,
+    "random": 49,
+    "process": 11
+   }
+  },
+  "timingsMs": {
+   "typeFlow": 343.8,
+   "components": 15.8,
+   "async": 2036.9,
+   "io": 2102.8
+  }
+ },
+ "params": {
+  "domainLayer": "business",
+  "applicationLayers": [],
+  "infraLayer": "persistence",
+  "controllerLayer": "presentation",
+  "threshold": 0.7,
+  "allowedAsync": [],
+  "compositionRootLayers": [],
+  "compositionRootPatterns": [
+   "^(?:.*/)?(?:main|bootstrap|composition-root|compositionRoot|container|di)\\.(?:ts|tsx|mts|cts)$",
+   "^(?:.*/)?[^/]+\\.(?:module|container)\\.(?:ts|tsx|mts|cts)$"
+  ],
+  "testPatterns": [
+   "^(?:.*/)?[^/]*\\.(?:spec|test)\\.(?:ts|tsx|mts|cts)$",
+   "^(?:.*/)?(?:__tests__|__mocks__|test|tests)/.*$",
+   "^(?:.*/)?[Tt]est[A-Z._-][^/]*$"
+  ],
+  "aclPatterns": [],
+  "minTypes": 4
+ },
+ "components": [
+  {
+   "name": "persistence",
+   "kind": "layer"
+  },
+  {
+   "name": "business",
+   "kind": "layer"
+  },
+  {
+   "name": "presentation",
+   "kind": "layer"
+  },
+  {
+   "name": "admin",
+   "kind": "folder"
+  },
+  {
+   "name": "agent",
+   "kind": "folder"
+  },
+  {
+   "name": "ai",
+   "kind": "folder"
+  },
+  {
+   "name": "auth",
+   "kind": "folder"
+  },
+  {
+   "name": "bots",
+   "kind": "folder"
+  },
+  {
+   "name": "cds",
+   "kind": "folder"
+  },
+  {
+   "name": "cloud",
+   "kind": "folder"
+  },
+  {
+   "name": "config",
+   "kind": "folder"
+  },
+  {
+   "name": "dicom",
+   "kind": "folder"
+  },
+  {
+   "name": "email",
+   "kind": "folder"
+  },
+  {
+   "name": "fhir",
+   "kind": "folder"
+  },
+  {
+   "name": "fhircast",
+   "kind": "folder"
+  },
+  {
+   "name": "hl7",
+   "kind": "folder"
+  },
+  {
+   "name": "keyvalue",
+   "kind": "folder"
+  },
+  {
+   "name": "mcp",
+   "kind": "folder"
+  },
+  {
+   "name": "migrations",
+   "kind": "folder"
+  },
+  {
+   "name": "oauth",
+   "kind": "folder"
+  },
+  {
+   "name": "otel",
+   "kind": "folder"
+  },
+  {
+   "name": "scim",
+   "kind": "folder"
+  },
+  {
+   "name": "seeds",
+   "kind": "folder"
+  },
+  {
+   "name": "storage",
+   "kind": "folder"
+  },
+  {
+   "name": "util",
+   "kind": "folder"
+  },
+  {
+   "name": "webhook",
+   "kind": "folder"
+  },
+  {
+   "name": "workers",
+   "kind": "folder"
+  },
+  {
+   "name": "ws",
+   "kind": "folder"
+  }
+ ],
+ "parseCoverage": {
+  "total": 491,
+  "parsed": 491
+ },
+ "importResolution": {
+  "resolvedInternal": 2128,
+  "external": 1347,
+  "externalOutOfRootAlias": 0,
+  "unresolved": 0,
+  "droppedNoFileNode": 3,
+  "unsupportedDynamic": 0
+ },
+ "counts": {
+  "boundary-type-leak": 8,
+  "component-adp-cycle": 91,
+  "component-sdp-violation": 28,
+  "component-main-sequence-distance": 4,
+  "deep-import-declared-api": 0,
+  "deep-import-inferred-api": 76,
+  "undeclared-async-coupling": 0,
+  "io-outside-adapters": 2,
+  "nondeterminism-in-core": 20
+ },
+ "rows": {
+  "boundary-type-leak": [
+   {
+    "filePath": "src/app.ts",
+    "member": "initApp",
+    "leakedType": "MedplumServerConfig",
+    "target": "src/config/types.ts",
+    "fromLayer": "presentation",
+    "toLayer": "persistence",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/app.ts",
+    "_line": 180,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/app.ts",
+    "member": "initAppServices",
+    "leakedType": "MedplumServerConfig",
+    "target": "src/config/types.ts",
+    "fromLayer": "presentation",
+    "toLayer": "persistence",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/app.ts",
+    "_line": 287,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/async-batch.ts",
+    "member": "asyncBatchHandler",
+    "leakedType": "MedplumServerConfig",
+    "target": "src/config/types.ts",
+    "fromLayer": "presentation",
+    "toLayer": "persistence",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/async-batch.ts",
+    "_line": 16,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/scim/utils.ts",
+    "member": "deleteScimUser",
+    "leakedType": "Repository",
+    "target": "src/fhir/repo.ts",
+    "fromLayer": "presentation",
+    "toLayer": "persistence",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/scim/utils.ts",
+    "_line": 236,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/scim/utils.ts",
+    "member": "patchScimUser",
+    "leakedType": "Repository",
+    "target": "src/fhir/repo.ts",
+    "fromLayer": "presentation",
+    "toLayer": "persistence",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/scim/utils.ts",
+    "_line": 202,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/scim/utils.ts",
+    "member": "readScimUser",
+    "leakedType": "Repository",
+    "target": "src/fhir/repo.ts",
+    "fromLayer": "presentation",
+    "toLayer": "persistence",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/scim/utils.ts",
+    "_line": 119,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/scim/utils.ts",
+    "member": "searchScimUsers",
+    "leakedType": "Repository",
+    "target": "src/fhir/repo.ts",
+    "fromLayer": "presentation",
+    "toLayer": "persistence",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/scim/utils.ts",
+    "_line": 22,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/scim/utils.ts",
+    "member": "updateScimUser",
+    "leakedType": "Repository",
+    "target": "src/fhir/repo.ts",
+    "fromLayer": "presentation",
+    "toLayer": "persistence",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/scim/utils.ts",
+    "_line": 169,
+    "_importGraphSees": true
+   }
+  ],
+  "component-adp-cycle": [
+   {
+    "component": "admin",
+    "target": "auth",
+    "kind": "folder",
+    "imports": 6,
+    "filePath": "admin",
+    "_file": "src/admin/invite.ts",
+    "_line": 31,
+    "_evidence": [
+     {
+      "file": "src/admin/invite.ts",
+      "target": "src/auth/resetpassword.ts",
+      "line": 31
+     },
+     {
+      "file": "src/admin/invite.ts",
+      "target": "src/auth/utils.ts",
+      "line": 32
+     },
+     {
+      "file": "src/admin/project.ts",
+      "target": "src/auth/resetpassword.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "cloud",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "admin",
+    "_file": "src/admin/super.ts",
+    "_line": 20,
+    "_evidence": [
+     {
+      "file": "src/admin/super.ts",
+      "target": "src/cloud/aws/deploy.ts",
+      "line": 20
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "config",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "admin",
+    "_file": "src/admin/invite.ts",
+    "_line": 33,
+    "_evidence": [
+     {
+      "file": "src/admin/invite.ts",
+      "target": "src/config/loader.ts",
+      "line": 33
+     },
+     {
+      "file": "src/admin/super.ts",
+      "target": "src/config/loader.ts",
+      "line": 21
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "email",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "admin",
+    "_file": "src/admin/invite.ts",
+    "_line": 36,
+    "_evidence": [
+     {
+      "file": "src/admin/invite.ts",
+      "target": "src/email/email.ts",
+      "line": 36
+     },
+     {
+      "file": "src/admin/project.ts",
+      "target": "src/email/email.ts",
+      "line": 15
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "fhir",
+    "kind": "folder",
+    "imports": 12,
+    "filePath": "admin",
+    "_file": "src/admin/bot.ts",
+    "_line": 6,
+    "_evidence": [
+     {
+      "file": "src/admin/bot.ts",
+      "target": "src/fhir/operations/botinit.ts",
+      "line": 6
+     },
+     {
+      "file": "src/admin/client.ts",
+      "target": "src/fhir/repo.ts",
+      "line": 9
+     },
+     {
+      "file": "src/admin/invite.ts",
+      "target": "src/fhir/repo.ts",
+      "line": 37
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "migrations",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "admin",
+    "_file": "src/admin/super.ts",
+    "_line": 33,
+    "_evidence": [
+     {
+      "file": "src/admin/super.ts",
+      "target": "src/migrations/migrate.ts",
+      "line": 33
+     },
+     {
+      "file": "src/admin/super.ts",
+      "target": "src/migrations/migration-utils.ts",
+      "line": 34
+     },
+     {
+      "file": "src/admin/super.ts",
+      "target": "src/migrations/migration-versions.ts",
+      "line": 35
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "oauth",
+    "kind": "folder",
+    "imports": 6,
+    "filePath": "admin",
+    "_file": "src/admin/client.ts",
+    "_line": 10,
+    "_evidence": [
+     {
+      "file": "src/admin/client.ts",
+      "target": "src/oauth/keys.ts",
+      "line": 10
+     },
+     {
+      "file": "src/admin/invite.ts",
+      "target": "src/oauth/keys.ts",
+      "line": 41
+     },
+     {
+      "file": "src/admin/project.ts",
+      "target": "src/oauth/middleware.ts",
+      "line": 18
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "seeds",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "admin",
+    "_file": "src/admin/super.ts",
+    "_line": 38,
+    "_evidence": [
+     {
+      "file": "src/admin/super.ts",
+      "target": "src/seeds/searchparameters.ts",
+      "line": 38
+     },
+     {
+      "file": "src/admin/super.ts",
+      "target": "src/seeds/structuredefinitions.ts",
+      "line": 39
+     },
+     {
+      "file": "src/admin/super.ts",
+      "target": "src/seeds/valuesets.ts",
+      "line": 40
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "util",
+    "kind": "folder",
+    "imports": 5,
+    "filePath": "admin",
+    "_file": "src/admin/bot.ts",
+    "_line": 7,
+    "_evidence": [
+     {
+      "file": "src/admin/bot.ts",
+      "target": "src/util/validator.ts",
+      "line": 7
+     },
+     {
+      "file": "src/admin/client.ts",
+      "target": "src/util/validator.ts",
+      "line": 11
+     },
+     {
+      "file": "src/admin/invite.ts",
+      "target": "src/util/validator.ts",
+      "line": 42
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "workers",
+    "kind": "folder",
+    "imports": 5,
+    "filePath": "admin",
+    "_file": "src/admin/super.ts",
+    "_line": 42,
+    "_evidence": [
+     {
+      "file": "src/admin/super.ts",
+      "target": "src/workers/base.ts",
+      "line": 42
+     },
+     {
+      "file": "src/admin/super.ts",
+      "target": "src/workers/cron.ts",
+      "line": 43
+     },
+     {
+      "file": "src/admin/super.ts",
+      "target": "src/workers/lambda-cleaner.ts",
+      "line": 44
+     }
+    ]
+   },
+   {
+    "component": "ai",
+    "target": "util",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "ai",
+    "_file": "src/ai/openai.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/ai/openai.ts",
+      "target": "src/util/url.ts",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "component": "auth",
+    "target": "config",
+    "kind": "folder",
+    "imports": 9,
+    "filePath": "auth",
+    "_file": "src/auth/external.ts",
+    "_line": 19,
+    "_evidence": [
+     {
+      "file": "src/auth/external.ts",
+      "target": "src/config/loader.ts",
+      "line": 19
+     },
+     {
+      "file": "src/auth/google.ts",
+      "target": "src/config/loader.ts",
+      "line": 11
+     },
+     {
+      "file": "src/auth/method.ts",
+      "target": "src/config/loader.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "auth",
+    "target": "email",
+    "kind": "folder",
+    "imports": 6,
+    "filePath": "auth",
+    "_file": "src/auth/newuser.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/auth/newuser.ts",
+      "target": "src/email/email.ts",
+      "line": 12
+     },
+     {
+      "file": "src/auth/resetpassword.ts",
+      "target": "src/email/email.ts",
+      "line": 9
+     },
+     {
+      "file": "src/auth/utils.ts",
+      "target": "src/email/email.ts",
+      "line": 28
+     }
+    ]
+   },
+   {
+    "component": "auth",
+    "target": "fhir",
+    "kind": "folder",
+    "imports": 40,
+    "filePath": "auth",
+    "_file": "src/auth/changepassword.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/auth/changepassword.ts",
+      "target": "src/fhir/outcomes.ts",
+      "line": 11
+     },
+     {
+      "file": "src/auth/changepassword.ts",
+      "target": "src/fhir/repo.ts",
+      "line": 12
+     },
+     {
+      "file": "src/auth/clientinfo.ts",
+      "target": "src/fhir/repo.ts",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "component": "auth",
+    "target": "oauth",
+    "kind": "folder",
+    "imports": 22,
+    "filePath": "auth",
+    "_file": "src/auth/clientinfo.ts",
+    "_line": 7,
+    "_evidence": [
+     {
+      "file": "src/auth/clientinfo.ts",
+      "target": "src/oauth/utils.ts",
+      "line": 7
+     },
+     {
+      "file": "src/auth/exchange.ts",
+      "target": "src/oauth/token.ts",
+      "line": 6
+     },
+     {
+      "file": "src/auth/external.ts",
+      "target": "src/oauth/clients.ts",
+      "line": 23
+     }
+    ]
+   },
+   {
+    "component": "auth",
+    "target": "util",
+    "kind": "folder",
+    "imports": 18,
+    "filePath": "auth",
+    "_file": "src/auth/changepassword.ts",
+    "_line": 13,
+    "_evidence": [
+     {
+      "file": "src/auth/changepassword.ts",
+      "target": "src/util/validator.ts",
+      "line": 13
+     },
+     {
+      "file": "src/auth/exchange.ts",
+      "target": "src/util/validator.ts",
+      "line": 7
+     },
+     {
+      "file": "src/auth/external.ts",
+      "target": "src/util/url.ts",
+      "line": 26
+     }
+    ]
+   },
+   {
+    "component": "bots",
+    "target": "cloud",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "bots",
+    "_file": "src/bots/execute.ts",
+    "_line": 4,
+    "_evidence": [
+     {
+      "file": "src/bots/execute.ts",
+      "target": "src/cloud/aws/execute.ts",
+      "line": 4
+     },
+     {
+      "file": "src/bots/execute.ts",
+      "target": "src/cloud/aws/executestreaming.ts",
+      "line": 5
+     },
+     {
+      "file": "src/bots/execute.ts",
+      "target": "src/cloud/fission/execute.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "component": "bots",
+    "target": "config",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "bots",
+    "_file": "src/bots/execute.ts",
+    "_line": 7,
+    "_evidence": [
+     {
+      "file": "src/bots/execute.ts",
+      "target": "src/config/loader.ts",
+      "line": 7
+     },
+     {
+      "file": "src/bots/vmcontext.ts",
+      "target": "src/config/loader.ts",
+      "line": 15
+     }
+    ]
+   },
+   {
+    "component": "bots",
+    "target": "fhir",
+    "kind": "folder",
+    "imports": 5,
+    "filePath": "bots",
+    "_file": "src/bots/utils.ts",
+    "_line": 38,
+    "_evidence": [
+     {
+      "file": "src/bots/utils.ts",
+      "target": "src/fhir/outcomes.ts",
+      "line": 38
+     },
+     {
+      "file": "src/bots/utils.ts",
+      "target": "src/fhir/projectmembership.ts",
+      "line": 39
+     },
+     {
+      "file": "src/bots/utils.ts",
+      "target": "src/fhir/repo.ts",
+      "line": 40
+     }
+    ]
+   },
+   {
+    "component": "bots",
+    "target": "oauth",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "bots",
+    "_file": "src/bots/utils.ts",
+    "_line": 44,
+    "_evidence": [
+     {
+      "file": "src/bots/utils.ts",
+      "target": "src/oauth/keys.ts",
+      "line": 44
+     }
+    ]
+   },
+   {
+    "component": "bots",
+    "target": "otel",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "bots",
+    "_file": "src/bots/execute.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/bots/execute.ts",
+      "target": "src/otel/otel.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "component": "bots",
+    "target": "storage",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "bots",
+    "_file": "src/bots/utils.ts",
+    "_line": 45,
+    "_evidence": [
+     {
+      "file": "src/bots/utils.ts",
+      "target": "src/storage/loader.ts",
+      "line": 45
+     },
+     {
+      "file": "src/bots/vmcontext.ts",
+      "target": "src/storage/loader.ts",
+      "line": 17
+     }
+    ]
+   },
+   {
+    "component": "bots",
+    "target": "util",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "bots",
+    "_file": "src/bots/execute.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/bots/execute.ts",
+      "target": "src/util/auditevent.ts",
+      "line": 9
+     },
+     {
+      "file": "src/bots/vmcontext.ts",
+      "target": "src/util/console.ts",
+      "line": 18
+     },
+     {
+      "file": "src/bots/vmcontext.ts",
+      "target": "src/util/streams.ts",
+      "line": 19
+     }
+    ]
+   },
+   {
+    "component": "cloud",
+    "target": "bots",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "cloud",
+    "_file": "src/cloud/aws/deploy.ts",
+    "_line": 19,
+    "_evidence": [
+     {
+      "file": "src/cloud/aws/deploy.ts",
+      "target": "src/bots/utils.ts",
+      "line": 19
+     },
+     {
+      "file": "src/cloud/aws/execute.ts",
+      "target": "src/bots/types.ts",
+      "line": 7
+     },
+     {
+      "file": "src/cloud/aws/executestreaming.ts",
+      "target": "src/bots/types.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "component": "cloud",
+    "target": "config",
+    "kind": "folder",
+    "imports": 15,
+    "filePath": "cloud",
+    "_file": "src/cloud/aws/config.ts",
+    "_line": 7,
+    "_evidence": [
+     {
+      "file": "src/cloud/aws/config.ts",
+      "target": "src/config/types.ts",
+      "line": 7
+     },
+     {
+      "file": "src/cloud/aws/config.ts",
+      "target": "src/config/utils.ts",
+      "line": 8
+     },
+     {
+      "file": "src/cloud/aws/deploy.ts",
+      "target": "src/config/loader.ts",
+      "line": 20
+     }
+    ]
+   },
+   {
+    "component": "cloud",
+    "target": "email",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "cloud",
+    "_file": "src/cloud/aws/email.ts",
+    "_line": 7,
+    "_evidence": [
+     {
+      "file": "src/cloud/aws/email.ts",
+      "target": "src/email/utils.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "cloud",
+    "target": "fhir",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "cloud",
+    "_file": "src/cloud/aws/config.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/cloud/aws/config.ts",
+      "target": "src/fhir/sharding.ts",
+      "line": 9
+     },
+     {
+      "file": "src/cloud/aws/textract.ts",
+      "target": "src/fhir/repo.ts",
+      "line": 15
+     }
+    ]
+   },
+   {
+    "component": "cloud",
+    "target": "storage",
+    "kind": "folder",
+    "imports": 7,
+    "filePath": "cloud",
+    "_file": "src/cloud/aws/storage.ts",
+    "_line": 20,
+    "_evidence": [
+     {
+      "file": "src/cloud/aws/storage.ts",
+      "target": "src/storage/base.ts",
+      "line": 20
+     },
+     {
+      "file": "src/cloud/aws/storage.ts",
+      "target": "src/storage/types.ts",
+      "line": 22
+     },
+     {
+      "file": "src/cloud/aws/textract.ts",
+      "target": "src/storage/loader.ts",
+      "line": 17
+     }
+    ]
+   },
+   {
+    "component": "cloud",
+    "target": "util",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "cloud",
+    "_file": "src/cloud/aws/execute.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/cloud/aws/execute.ts",
+      "target": "src/util/tracing.ts",
+      "line": 9
+     },
+     {
+      "file": "src/cloud/fission/execute.ts",
+      "target": "src/util/tracing.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "component": "config",
+    "target": "cloud",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "config",
+    "_file": "src/config/loader.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/config/loader.ts",
+      "target": "src/cloud/aws/config.ts",
+      "line": 8
+     },
+     {
+      "file": "src/config/loader.ts",
+      "target": "src/cloud/azure/config.ts",
+      "line": 9
+     },
+     {
+      "file": "src/config/loader.ts",
+      "target": "src/cloud/gcp/config.ts",
+      "line": 10
+     }
+    ]
+   },
+   {
+    "component": "config",
+    "target": "fhir",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "config",
+    "_file": "src/config/loader.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/config/loader.ts",
+      "target": "src/fhir/sharding.ts",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "component": "email",
+    "target": "cloud",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "email",
+    "_file": "src/email/email.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/email/email.ts",
+      "target": "src/cloud/aws/email.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "component": "email",
+    "target": "config",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "email",
+    "_file": "src/email/email.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/email/email.ts",
+      "target": "src/config/loader.ts",
+      "line": 9
+     },
+     {
+      "file": "src/email/email.ts",
+      "target": "src/config/types.ts",
+      "line": 10
+     },
+     {
+      "file": "src/email/utils.ts",
+      "target": "src/config/loader.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "component": "email",
+    "target": "fhir",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "email",
+    "_file": "src/email/email.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/email/email.ts",
+      "target": "src/fhir/repo.ts",
+      "line": 11
+     },
+     {
+      "file": "src/email/routes.ts",
+      "target": "src/fhir/outcomes.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "component": "email",
+    "target": "oauth",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "email",
+    "_file": "src/email/routes.ts",
+    "_line": 10,
+    "_evidence": [
+     {
+      "file": "src/email/routes.ts",
+      "target": "src/oauth/middleware.ts",
+      "line": 10
+     }
+    ]
+   },
+   {
+    "component": "email",
+    "target": "storage",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "email",
+    "_file": "src/email/email.ts",
+    "_line": 13,
+    "_evidence": [
+     {
+      "file": "src/email/email.ts",
+      "target": "src/storage/loader.ts",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "component": "email",
+    "target": "util",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "email",
+    "_file": "src/email/routes.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/email/routes.ts",
+      "target": "src/util/validator.ts",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "component": "fhir",
+    "target": "admin",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "fhir",
+    "_file": "src/fhir/operations/projectinit.ts",
+    "_line": 23,
+    "_evidence": [
+     {
+      "file": "src/fhir/operations/projectinit.ts",
+      "target": "src/admin/client.ts",
+      "line": 23
+     }
+    ]
+   },
+   {
+    "component": "fhir",
+    "target": "ai",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "fhir",
+    "_file": "src/fhir/operations/ai.ts",
+    "_line": 7,
+    "_evidence": [
+     {
+      "file": "src/fhir/operations/ai.ts",
+      "target": "src/ai/openai.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "fhir",
+    "target": "auth",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "fhir",
+    "_file": "src/fhir/operations/projectinit.ts",
+    "_line": 24,
+    "_evidence": [
+     {
+      "file": "src/fhir/operations/projectinit.ts",
+      "target": "src/auth/newuser.ts",
+      "line": 24
+     },
+     {
+      "file": "src/fhir/operations/projectinit.ts",
+      "target": "src/auth/utils.ts",
+      "line": 25
+     },
+     {
+      "file": "src/fhir/operations/smarthealthlinks.ts",
+      "target": "src/auth/utils.ts",
+      "line": 35
+     }
+    ]
+   },
+   {
+    "component": "fhir",
+    "target": "bots",
+    "kind": "folder",
+    "imports": 7,
+    "filePath": "fhir",
+    "_file": "src/fhir/precommit.ts",
+    "_line": 18,
+    "_evidence": [
+     {
+      "file": "src/fhir/precommit.ts",
+      "target": "src/bots/execute.ts",
+      "line": 18
+     },
+     {
+      "file": "src/fhir/operations/custom.ts",
+      "target": "src/bots/execute.ts",
+      "line": 14
+     },
+     {
+      "file": "src/fhir/operations/custom.ts",
+      "target": "src/bots/utils.ts",
+      "line": 15
+     }
+    ]
+   },
+   {
+    "component": "fhir",
+    "target": "cloud",
+    "kind": "folder",
+    "imports": 5,
+    "filePath": "fhir",
+    "_file": "src/fhir/routes.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/fhir/routes.ts",
+      "target": "src/cloud/aws/textract.ts",
+      "line": 9
+     },
+     {
+      "file": "src/fhir/operations/binary-scan.ts",
+      "target": "src/cloud/aws/storage.ts",
+      "line": 8
+     },
+     {
+      "file": "src/fhir/operations/deploy.ts",
+      "target": "src/cloud/aws/deploy.ts",
+      "line": 17
+     }
+    ]
+   },
+   {
+    "component": "fhir",
+    "target": "config",
+    "kind": "folder",
+    "imports": 40,
+    "filePath": "fhir",
+    "_file": "src/fhir/fhirquota.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/fhir/fhirquota.ts",
+      "target": "src/config/loader.ts",
+      "line": 8
+     },
+     {
+      "file": "src/fhir/job.ts",
+      "target": "src/config/loader.ts",
+      "line": 8
+     },
+     {
+      "file": "src/fhir/metadata.ts",
+      "target": "src/config/capabilitystatement.ts",
+      "line": 22
+     }
+    ]
+   },
+   {
+    "component": "fhir",
+    "target": "email",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "fhir",
+    "_file": "src/fhir/operations/update-user-email.ts",
+    "_line": 19,
+    "_evidence": [
+     {
+      "file": "src/fhir/operations/update-user-email.ts",
+      "target": "src/email/email.ts",
+      "line": 19
+     }
+    ]
+   },
+   {
+    "component": "fhir",
+    "target": "migrations",
+    "kind": "folder",
+    "imports": 6,
+    "filePath": "fhir",
+    "_file": "src/fhir/operations/db-column-statistics.ts",
+    "_line": 7,
+    "_evidence": [
+     {
+      "file": "src/fhir/operations/db-column-statistics.ts",
+      "target": "src/migrations/migrate-utils.ts",
+      "line": 7
+     },
+     {
+      "file": "src/fhir/operations/db-configure-indexes.ts",
+      "target": "src/migrations/migration-utils.ts",
+      "line": 9
+     },
+     {
+      "file": "src/fhir/operations/dbindexes.ts",
+      "target": "src/migrations/migrate-utils.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "fhir",
+    "target": "oauth",
+    "kind": "folder",
+    "imports": 10,
+    "filePath": "fhir",
+    "_file": "src/fhir/accesspolicy.ts",
+    "_line": 29,
+    "_evidence": [
+     {
+      "file": "src/fhir/accesspolicy.ts",
+      "target": "src/oauth/middleware.ts",
+      "line": 29
+     },
+     {
+      "file": "src/fhir/binary.ts",
+      "target": "src/oauth/middleware.ts",
+      "line": 11
+     },
+     {
+      "file": "src/fhir/fhirquota.ts",
+      "target": "src/oauth/middleware.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "component": "fhir",
+    "target": "otel",
+    "kind": "folder",
+    "imports": 5,
+    "filePath": "fhir",
+    "_file": "src/fhir/batch-telemetry.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/fhir/batch-telemetry.ts",
+      "target": "src/otel/otel.ts",
+      "line": 5
+     },
+     {
+      "file": "src/fhir/repo.ts",
+      "target": "src/otel/otel.ts",
+      "line": 79
+     },
+     {
+      "file": "src/fhir/repository/row-builder.ts",
+      "target": "src/otel/otel.ts",
+      "line": 27
+     }
+    ]
+   },
+   {
+    "component": "fhir",
+    "target": "storage",
+    "kind": "folder",
+    "imports": 18,
+    "filePath": "fhir",
+    "_file": "src/fhir/binary.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/fhir/binary.ts",
+      "target": "src/storage/loader.ts",
+      "line": 12
+     },
+     {
+      "file": "src/fhir/binary.ts",
+      "target": "src/storage/types.ts",
+      "line": 13
+     },
+     {
+      "file": "src/fhir/repo.ts",
+      "target": "src/storage/base.ts",
+      "line": 86
+     }
+    ]
+   },
+   {
+    "component": "fhir",
+    "target": "util",
+    "kind": "folder",
+    "imports": 32,
+    "filePath": "fhir",
+    "_file": "src/fhir/repo.ts",
+    "_line": 88,
+    "_evidence": [
+     {
+      "file": "src/fhir/repo.ts",
+      "target": "src/util/auditevent.ts",
+      "line": 88
+     },
+     {
+      "file": "src/fhir/repo.ts",
+      "target": "src/util/patch.ts",
+      "line": 105
+     },
+     {
+      "file": "src/fhir/smart.ts",
+      "target": "src/util/url.ts",
+      "line": 26
+     }
+    ]
+   },
+   {
+    "component": "fhir",
+    "target": "workers",
+    "kind": "folder",
+    "imports": 9,
+    "filePath": "fhir",
+    "_file": "src/fhir/repo.ts",
+    "_line": 106,
+    "_evidence": [
+     {
+      "file": "src/fhir/repo.ts",
+      "target": "src/workers/index.ts",
+      "line": 106
+     },
+     {
+      "file": "src/fhir/repo.ts",
+      "target": "src/workers/subscription.ts",
+      "line": 107
+     },
+     {
+      "file": "src/fhir/operations/export.ts",
+      "target": "src/workers/bulk-export.ts",
+      "line": 22
+     }
+    ]
+   },
+   {
+    "component": "fhir",
+    "target": "ws",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "fhir",
+    "_file": "src/fhir/repo.ts",
+    "_line": 108,
+    "_evidence": [
+     {
+      "file": "src/fhir/repo.ts",
+      "target": "src/ws/subscriptions.ts",
+      "line": 108
+     }
+    ]
+   },
+   {
+    "component": "fhircast",
+    "target": "config",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "fhircast",
+    "_file": "src/fhircast/routes.ts",
+    "_line": 29,
+    "_evidence": [
+     {
+      "file": "src/fhircast/routes.ts",
+      "target": "src/config/loader.ts",
+      "line": 29
+     }
+    ]
+   },
+   {
+    "component": "fhircast",
+    "target": "fhir",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "fhircast",
+    "_file": "src/fhircast/routes.ts",
+    "_line": 31,
+    "_evidence": [
+     {
+      "file": "src/fhircast/routes.ts",
+      "target": "src/fhir/outcomes.ts",
+      "line": 31
+     }
+    ]
+   },
+   {
+    "component": "fhircast",
+    "target": "oauth",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "fhircast",
+    "_file": "src/fhircast/routes.ts",
+    "_line": 33,
+    "_evidence": [
+     {
+      "file": "src/fhircast/routes.ts",
+      "target": "src/oauth/middleware.ts",
+      "line": 33
+     }
+    ]
+   },
+   {
+    "component": "fhircast",
+    "target": "util",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "fhircast",
+    "_file": "src/fhircast/routes.ts",
+    "_line": 36,
+    "_evidence": [
+     {
+      "file": "src/fhircast/routes.ts",
+      "target": "src/util/validator.ts",
+      "line": 36
+     }
+    ]
+   },
+   {
+    "component": "migrations",
+    "target": "config",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "migrations",
+    "_file": "src/migrations/migration-utils.ts",
+    "_line": 7,
+    "_evidence": [
+     {
+      "file": "src/migrations/migration-utils.ts",
+      "target": "src/config/loader.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "migrations",
+    "target": "fhir",
+    "kind": "folder",
+    "imports": 17,
+    "filePath": "migrations",
+    "_file": "src/migrations/migrate-functions.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/migrations/migrate-functions.ts",
+      "target": "src/fhir/sql.ts",
+      "line": 5
+     },
+     {
+      "file": "src/migrations/migrate-utils.ts",
+      "target": "src/fhir/sql.ts",
+      "line": 4
+     },
+     {
+      "file": "src/migrations/migrate.ts",
+      "target": "src/fhir/lookups/util.ts",
+      "line": 20
+     }
+    ]
+   },
+   {
+    "component": "migrations",
+    "target": "seeds",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "migrations",
+    "_file": "src/migrations/data/v31.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/migrations/data/v31.ts",
+      "target": "src/seeds/valuesets.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "component": "migrations",
+    "target": "util",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "migrations",
+    "_file": "src/migrations/migration-utils.ts",
+    "_line": 15,
+    "_evidence": [
+     {
+      "file": "src/migrations/migration-utils.ts",
+      "target": "src/util/version.ts",
+      "line": 15
+     }
+    ]
+   },
+   {
+    "component": "migrations",
+    "target": "workers",
+    "kind": "folder",
+    "imports": 57,
+    "filePath": "migrations",
+    "_file": "src/migrations/migration-utils.ts",
+    "_line": 16,
+    "_evidence": [
+     {
+      "file": "src/migrations/migration-utils.ts",
+      "target": "src/workers/post-deploy-migration.ts",
+      "line": 16
+     },
+     {
+      "file": "src/migrations/migration-utils.ts",
+      "target": "src/workers/utils.ts",
+      "line": 17
+     },
+     {
+      "file": "src/migrations/data/types.ts",
+      "target": "src/workers/base.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "oauth",
+    "target": "auth",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "oauth",
+    "_file": "src/oauth/token.ts",
+    "_line": 34,
+    "_evidence": [
+     {
+      "file": "src/oauth/token.ts",
+      "target": "src/auth/me.ts",
+      "line": 34
+     },
+     {
+      "file": "src/oauth/token.ts",
+      "target": "src/auth/utils.ts",
+      "line": 35
+     },
+     {
+      "file": "src/oauth/utils.ts",
+      "target": "src/auth/me.ts",
+      "line": 42
+     }
+    ]
+   },
+   {
+    "component": "oauth",
+    "target": "config",
+    "kind": "folder",
+    "imports": 7,
+    "filePath": "oauth",
+    "_file": "src/oauth/authorize.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/oauth/authorize.ts",
+      "target": "src/config/loader.ts",
+      "line": 8
+     },
+     {
+      "file": "src/oauth/clients.ts",
+      "target": "src/config/loader.ts",
+      "line": 6
+     },
+     {
+      "file": "src/oauth/introspect.ts",
+      "target": "src/config/loader.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "oauth",
+    "target": "fhir",
+    "kind": "folder",
+    "imports": 12,
+    "filePath": "oauth",
+    "_file": "src/oauth/authorize.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/oauth/authorize.ts",
+      "target": "src/fhir/repo.ts",
+      "line": 9
+     },
+     {
+      "file": "src/oauth/introspect.ts",
+      "target": "src/fhir/repo.ts",
+      "line": 9
+     },
+     {
+      "file": "src/oauth/keys.ts",
+      "target": "src/fhir/repo.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "component": "oauth",
+    "target": "fhircast",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "oauth",
+    "_file": "src/oauth/token.ts",
+    "_line": 39,
+    "_evidence": [
+     {
+      "file": "src/oauth/token.ts",
+      "target": "src/fhircast/utils.ts",
+      "line": 39
+     }
+    ]
+   },
+   {
+    "component": "oauth",
+    "target": "util",
+    "kind": "folder",
+    "imports": 6,
+    "filePath": "oauth",
+    "_file": "src/oauth/authorize.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/oauth/authorize.ts",
+      "target": "src/util/url.ts",
+      "line": 11
+     },
+     {
+      "file": "src/oauth/introspect.ts",
+      "target": "src/util/url.ts",
+      "line": 11
+     },
+     {
+      "file": "src/oauth/middleware.ts",
+      "target": "src/util/url.ts",
+      "line": 19
+     }
+    ]
+   },
+   {
+    "component": "otel",
+    "target": "config",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "otel",
+    "_file": "src/otel/otel.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/otel/otel.ts",
+      "target": "src/config/types.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "component": "otel",
+    "target": "workers",
+    "kind": "folder",
+    "imports": 5,
+    "filePath": "otel",
+    "_file": "src/otel/otel.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/otel/otel.ts",
+      "target": "src/workers/batch.ts",
+      "line": 11
+     },
+     {
+      "file": "src/otel/otel.ts",
+      "target": "src/workers/cron.ts",
+      "line": 12
+     },
+     {
+      "file": "src/otel/otel.ts",
+      "target": "src/workers/download.ts",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "component": "seeds",
+    "target": "fhir",
+    "kind": "folder",
+    "imports": 6,
+    "filePath": "seeds",
+    "_file": "src/seeds/searchparameters.ts",
+    "_line": 3,
+    "_evidence": [
+     {
+      "file": "src/seeds/searchparameters.ts",
+      "target": "src/fhir/operations/rebuild-base-definitions.ts",
+      "line": 3
+     },
+     {
+      "file": "src/seeds/searchparameters.ts",
+      "target": "src/fhir/repo.ts",
+      "line": 4
+     },
+     {
+      "file": "src/seeds/structuredefinitions.ts",
+      "target": "src/fhir/operations/rebuild-base-definitions.ts",
+      "line": 3
+     }
+    ]
+   },
+   {
+    "component": "storage",
+    "target": "cloud",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "storage",
+    "_file": "src/storage/loader.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/storage/loader.ts",
+      "target": "src/cloud/aws/storage.ts",
+      "line": 5
+     },
+     {
+      "file": "src/storage/loader.ts",
+      "target": "src/cloud/azure/storage.ts",
+      "line": 6
+     },
+     {
+      "file": "src/storage/loader.ts",
+      "target": "src/cloud/gcp/storage.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "storage",
+    "target": "config",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "storage",
+    "_file": "src/storage/loader.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/storage/loader.ts",
+      "target": "src/config/loader.ts",
+      "line": 8
+     },
+     {
+      "file": "src/storage/presign.ts",
+      "target": "src/config/loader.ts",
+      "line": 6
+     },
+     {
+      "file": "src/storage/routes.ts",
+      "target": "src/config/loader.ts",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "component": "storage",
+    "target": "fhir",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "storage",
+    "_file": "src/storage/routes.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/storage/routes.ts",
+      "target": "src/fhir/repo.ts",
+      "line": 12
+     },
+     {
+      "file": "src/storage/routes.ts",
+      "target": "src/fhir/sharding.ts",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "component": "util",
+    "target": "bots",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "util",
+    "_file": "src/util/auditevent.ts",
+    "_line": 29,
+    "_evidence": [
+     {
+      "file": "src/util/auditevent.ts",
+      "target": "src/bots/types.ts",
+      "line": 29
+     }
+    ]
+   },
+   {
+    "component": "util",
+    "target": "config",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "util",
+    "_file": "src/util/auditevent.ts",
+    "_line": 30,
+    "_evidence": [
+     {
+      "file": "src/util/auditevent.ts",
+      "target": "src/config/loader.ts",
+      "line": 30
+     },
+     {
+      "file": "src/util/url.ts",
+      "target": "src/config/loader.ts",
+      "line": 8
+     },
+     {
+      "file": "src/util/url.ts",
+      "target": "src/config/utils.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "component": "util",
+    "target": "fhir",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "util",
+    "_file": "src/util/auditevent.ts",
+    "_line": 32,
+    "_evidence": [
+     {
+      "file": "src/util/auditevent.ts",
+      "target": "src/fhir/repo.ts",
+      "line": 32
+     },
+     {
+      "file": "src/util/validator.ts",
+      "target": "src/fhir/outcomes.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "component": "workers",
+    "target": "bots",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "workers",
+    "_file": "src/workers/cron.ts",
+    "_line": 18,
+    "_evidence": [
+     {
+      "file": "src/workers/cron.ts",
+      "target": "src/bots/execute.ts",
+      "line": 18
+     },
+     {
+      "file": "src/workers/subscription.ts",
+      "target": "src/bots/execute.ts",
+      "line": 39
+     }
+    ]
+   },
+   {
+    "component": "workers",
+    "target": "cloud",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "workers",
+    "_file": "src/workers/dispatch.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/workers/dispatch.ts",
+      "target": "src/cloud/aws/deploy.ts",
+      "line": 8
+     },
+     {
+      "file": "src/workers/dispatch.ts",
+      "target": "src/cloud/aws/lambda.ts",
+      "line": 9
+     },
+     {
+      "file": "src/workers/lambda-cleaner.ts",
+      "target": "src/cloud/aws/lambda.ts",
+      "line": 10
+     }
+    ]
+   },
+   {
+    "component": "workers",
+    "target": "config",
+    "kind": "folder",
+    "imports": 11,
+    "filePath": "workers",
+    "_file": "src/workers/dispatch.ts",
+    "_line": 10,
+    "_evidence": [
+     {
+      "file": "src/workers/dispatch.ts",
+      "target": "src/config/loader.ts",
+      "line": 10
+     },
+     {
+      "file": "src/workers/download.ts",
+      "target": "src/config/loader.ts",
+      "line": 18
+     },
+     {
+      "file": "src/workers/index.ts",
+      "target": "src/config/types.ts",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "component": "workers",
+    "target": "fhir",
+    "kind": "folder",
+    "imports": 28,
+    "filePath": "workers",
+    "_file": "src/workers/base.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/workers/base.ts",
+      "target": "src/fhir/operations/utils/asyncjobexecutor.ts",
+      "line": 5
+     },
+     {
+      "file": "src/workers/base.ts",
+      "target": "src/fhir/repo.ts",
+      "line": 6
+     },
+     {
+      "file": "src/workers/base.ts",
+      "target": "src/fhir/sharding.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "component": "workers",
+    "target": "migrations",
+    "kind": "folder",
+    "imports": 6,
+    "filePath": "workers",
+    "_file": "src/workers/post-deploy-migration.ts",
+    "_line": 15,
+    "_evidence": [
+     {
+      "file": "src/workers/post-deploy-migration.ts",
+      "target": "src/migrations/data/types.ts",
+      "line": 15
+     },
+     {
+      "file": "src/workers/post-deploy-migration.ts",
+      "target": "src/migrations/migrate.ts",
+      "line": 23
+     },
+     {
+      "file": "src/workers/post-deploy-migration.ts",
+      "target": "src/migrations/migration-utils.ts",
+      "line": 24
+     }
+    ]
+   },
+   {
+    "component": "workers",
+    "target": "oauth",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "workers",
+    "_file": "src/workers/batch.ts",
+    "_line": 24,
+    "_evidence": [
+     {
+      "file": "src/workers/batch.ts",
+      "target": "src/oauth/middleware.ts",
+      "line": 24
+     },
+     {
+      "file": "src/workers/bulk-export.ts",
+      "target": "src/oauth/middleware.ts",
+      "line": 14
+     },
+     {
+      "file": "src/workers/set-accounts.ts",
+      "target": "src/oauth/middleware.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "component": "workers",
+    "target": "otel",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "workers",
+    "_file": "src/workers/batch.ts",
+    "_line": 25,
+    "_evidence": [
+     {
+      "file": "src/workers/batch.ts",
+      "target": "src/otel/otel.ts",
+      "line": 25
+     },
+     {
+      "file": "src/workers/subscription.ts",
+      "target": "src/otel/otel.ts",
+      "line": 52
+     },
+     {
+      "file": "src/workers/utils.ts",
+      "target": "src/otel/otel.ts",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "component": "workers",
+    "target": "storage",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "workers",
+    "_file": "src/workers/dicom.ts",
+    "_line": 13,
+    "_evidence": [
+     {
+      "file": "src/workers/dicom.ts",
+      "target": "src/storage/loader.ts",
+      "line": 13
+     },
+     {
+      "file": "src/workers/download.ts",
+      "target": "src/storage/loader.ts",
+      "line": 21
+     }
+    ]
+   },
+   {
+    "component": "workers",
+    "target": "util",
+    "kind": "folder",
+    "imports": 6,
+    "filePath": "workers",
+    "_file": "src/workers/download.ts",
+    "_line": 22,
+    "_evidence": [
+     {
+      "file": "src/workers/download.ts",
+      "target": "src/util/tracing.ts",
+      "line": 22
+     },
+     {
+      "file": "src/workers/download.ts",
+      "target": "src/util/url.ts",
+      "line": 23
+     },
+     {
+      "file": "src/workers/subscription.ts",
+      "target": "src/util/auditevent.ts",
+      "line": 56
+     }
+    ]
+   },
+   {
+    "component": "workers",
+    "target": "ws",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "workers",
+    "_file": "src/workers/subscription.ts",
+    "_line": 59,
+    "_evidence": [
+     {
+      "file": "src/workers/subscription.ts",
+      "target": "src/ws/subscriptions.ts",
+      "line": 59
+     }
+    ]
+   },
+   {
+    "component": "ws",
+    "target": "bots",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "ws",
+    "_file": "src/ws/agent.ts",
+    "_line": 13,
+    "_evidence": [
+     {
+      "file": "src/ws/agent.ts",
+      "target": "src/bots/execute.ts",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "component": "ws",
+    "target": "config",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "ws",
+    "_file": "src/ws/ai-realtime.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/ws/ai-realtime.ts",
+      "target": "src/config/loader.ts",
+      "line": 8
+     },
+     {
+      "file": "src/ws/routes.ts",
+      "target": "src/config/loader.ts",
+      "line": 8
+     },
+     {
+      "file": "src/ws/subscriptions.ts",
+      "target": "src/config/loader.ts",
+      "line": 21
+     }
+    ]
+   },
+   {
+    "component": "ws",
+    "target": "fhir",
+    "kind": "folder",
+    "imports": 5,
+    "filePath": "ws",
+    "_file": "src/ws/agent.ts",
+    "_line": 14,
+    "_evidence": [
+     {
+      "file": "src/ws/agent.ts",
+      "target": "src/fhir/operations/utils/agentcallback.ts",
+      "line": 14
+     },
+     {
+      "file": "src/ws/subscriptions.ts",
+      "target": "src/fhir/operations/getwsbindingtoken.ts",
+      "line": 23
+     },
+     {
+      "file": "src/ws/subscriptions.ts",
+      "target": "src/fhir/repository/resource-cache.ts",
+      "line": 24
+     }
+    ]
+   },
+   {
+    "component": "ws",
+    "target": "fhircast",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "ws",
+    "_file": "src/ws/fhircast.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/ws/fhircast.ts",
+      "target": "src/fhircast/utils.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "component": "ws",
+    "target": "oauth",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "ws",
+    "_file": "src/ws/agent.ts",
+    "_line": 17,
+    "_evidence": [
+     {
+      "file": "src/ws/agent.ts",
+      "target": "src/oauth/utils.ts",
+      "line": 17
+     },
+     {
+      "file": "src/ws/ai-realtime.ts",
+      "target": "src/oauth/utils.ts",
+      "line": 11
+     },
+     {
+      "file": "src/ws/subscriptions.ts",
+      "target": "src/oauth/keys.ts",
+      "line": 29
+     }
+    ]
+   },
+   {
+    "component": "ws",
+    "target": "otel",
+    "kind": "folder",
+    "imports": 5,
+    "filePath": "ws",
+    "_file": "src/ws/agent.ts",
+    "_line": 18,
+    "_evidence": [
+     {
+      "file": "src/ws/agent.ts",
+      "target": "src/otel/otel.ts",
+      "line": 18
+     },
+     {
+      "file": "src/ws/ai-realtime.ts",
+      "target": "src/otel/otel.ts",
+      "line": 12
+     },
+     {
+      "file": "src/ws/echo.ts",
+      "target": "src/otel/otel.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "component": "ws",
+    "target": "util",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "ws",
+    "_file": "src/ws/routes.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/ws/routes.ts",
+      "target": "src/util/url.ts",
+      "line": 12
+     },
+     {
+      "file": "src/ws/subscriptions.ts",
+      "target": "src/util/url.ts",
+      "line": 41
+     }
+    ]
+   }
+  ],
+  "component-sdp-violation": [
+   {
+    "component": "admin",
+    "target": "auth",
+    "kind": "folder",
+    "fromInstability": 0.625,
+    "toInstability": 0.758,
+    "filePath": "admin",
+    "_file": "src/admin/invite.ts",
+    "_line": 31,
+    "_evidence": [
+     {
+      "file": "src/admin/invite.ts",
+      "target": "src/auth/resetpassword.ts",
+      "line": 31
+     },
+     {
+      "file": "src/admin/invite.ts",
+      "target": "src/auth/utils.ts",
+      "line": 32
+     },
+     {
+      "file": "src/admin/project.ts",
+      "target": "src/auth/resetpassword.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "component": "admin",
+    "target": "migrations",
+    "kind": "folder",
+    "fromInstability": 0.625,
+    "toInstability": 0.868,
+    "filePath": "admin",
+    "_file": "src/admin/super.ts",
+    "_line": 33,
+    "_evidence": [
+     {
+      "file": "src/admin/super.ts",
+      "target": "src/migrations/migrate.ts",
+      "line": 33
+     },
+     {
+      "file": "src/admin/super.ts",
+      "target": "src/migrations/migration-utils.ts",
+      "line": 34
+     },
+     {
+      "file": "src/admin/super.ts",
+      "target": "src/migrations/migration-versions.ts",
+      "line": 35
+     }
+    ]
+   },
+   {
+    "component": "bots",
+    "target": "cloud",
+    "kind": "folder",
+    "fromInstability": 0.176,
+    "toInstability": 0.583,
+    "filePath": "bots",
+    "_file": "src/bots/execute.ts",
+    "_line": 4,
+    "_evidence": [
+     {
+      "file": "src/bots/execute.ts",
+      "target": "src/cloud/aws/execute.ts",
+      "line": 4
+     },
+     {
+      "file": "src/bots/execute.ts",
+      "target": "src/cloud/aws/executestreaming.ts",
+      "line": 5
+     },
+     {
+      "file": "src/bots/execute.ts",
+      "target": "src/cloud/fission/execute.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "component": "bots",
+    "target": "fhir",
+    "kind": "folder",
+    "fromInstability": 0.176,
+    "toInstability": 0.479,
+    "filePath": "bots",
+    "_file": "src/bots/utils.ts",
+    "_line": 38,
+    "_evidence": [
+     {
+      "file": "src/bots/utils.ts",
+      "target": "src/fhir/outcomes.ts",
+      "line": 38
+     },
+     {
+      "file": "src/bots/utils.ts",
+      "target": "src/fhir/projectmembership.ts",
+      "line": 39
+     },
+     {
+      "file": "src/bots/utils.ts",
+      "target": "src/fhir/repo.ts",
+      "line": 40
+     }
+    ]
+   },
+   {
+    "component": "config",
+    "target": "cloud",
+    "kind": "folder",
+    "fromInstability": 0.011,
+    "toInstability": 0.583,
+    "filePath": "config",
+    "_file": "src/config/loader.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/config/loader.ts",
+      "target": "src/cloud/aws/config.ts",
+      "line": 8
+     },
+     {
+      "file": "src/config/loader.ts",
+      "target": "src/cloud/azure/config.ts",
+      "line": 9
+     },
+     {
+      "file": "src/config/loader.ts",
+      "target": "src/cloud/gcp/config.ts",
+      "line": 10
+     }
+    ]
+   },
+   {
+    "component": "config",
+    "target": "fhir",
+    "kind": "folder",
+    "fromInstability": 0.011,
+    "toInstability": 0.479,
+    "filePath": "config",
+    "_file": "src/config/loader.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/config/loader.ts",
+      "target": "src/fhir/sharding.ts",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "component": "email",
+    "target": "cloud",
+    "kind": "folder",
+    "fromInstability": 0.273,
+    "toInstability": 0.583,
+    "filePath": "email",
+    "_file": "src/email/email.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/email/email.ts",
+      "target": "src/cloud/aws/email.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "component": "email",
+    "target": "fhir",
+    "kind": "folder",
+    "fromInstability": 0.273,
+    "toInstability": 0.479,
+    "filePath": "email",
+    "_file": "src/email/email.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/email/email.ts",
+      "target": "src/fhir/repo.ts",
+      "line": 11
+     },
+     {
+      "file": "src/email/routes.ts",
+      "target": "src/fhir/outcomes.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "component": "fhir",
+    "target": "admin",
+    "kind": "folder",
+    "fromInstability": 0.479,
+    "toInstability": 0.625,
+    "filePath": "fhir",
+    "_file": "src/fhir/operations/projectinit.ts",
+    "_line": 23,
+    "_evidence": [
+     {
+      "file": "src/fhir/operations/projectinit.ts",
+      "target": "src/admin/client.ts",
+      "line": 23
+     }
+    ]
+   },
+   {
+    "component": "fhir",
+    "target": "ai",
+    "kind": "folder",
+    "fromInstability": 0.479,
+    "toInstability": 0.5,
+    "filePath": "fhir",
+    "_file": "src/fhir/operations/ai.ts",
+    "_line": 7,
+    "_evidence": [
+     {
+      "file": "src/fhir/operations/ai.ts",
+      "target": "src/ai/openai.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "fhir",
+    "target": "auth",
+    "kind": "folder",
+    "fromInstability": 0.479,
+    "toInstability": 0.758,
+    "filePath": "fhir",
+    "_file": "src/fhir/operations/projectinit.ts",
+    "_line": 24,
+    "_evidence": [
+     {
+      "file": "src/fhir/operations/projectinit.ts",
+      "target": "src/auth/newuser.ts",
+      "line": 24
+     },
+     {
+      "file": "src/fhir/operations/projectinit.ts",
+      "target": "src/auth/utils.ts",
+      "line": 25
+     },
+     {
+      "file": "src/fhir/operations/smarthealthlinks.ts",
+      "target": "src/auth/utils.ts",
+      "line": 35
+     }
+    ]
+   },
+   {
+    "component": "fhir",
+    "target": "cloud",
+    "kind": "folder",
+    "fromInstability": 0.479,
+    "toInstability": 0.583,
+    "filePath": "fhir",
+    "_file": "src/fhir/routes.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/fhir/routes.ts",
+      "target": "src/cloud/aws/textract.ts",
+      "line": 9
+     },
+     {
+      "file": "src/fhir/operations/binary-scan.ts",
+      "target": "src/cloud/aws/storage.ts",
+      "line": 8
+     },
+     {
+      "file": "src/fhir/operations/deploy.ts",
+      "target": "src/cloud/aws/deploy.ts",
+      "line": 17
+     }
+    ]
+   },
+   {
+    "component": "fhir",
+    "target": "migrations",
+    "kind": "folder",
+    "fromInstability": 0.479,
+    "toInstability": 0.868,
+    "filePath": "fhir",
+    "_file": "src/fhir/operations/db-column-statistics.ts",
+    "_line": 7,
+    "_evidence": [
+     {
+      "file": "src/fhir/operations/db-column-statistics.ts",
+      "target": "src/migrations/migrate-utils.ts",
+      "line": 7
+     },
+     {
+      "file": "src/fhir/operations/db-configure-indexes.ts",
+      "target": "src/migrations/migration-utils.ts",
+      "line": 9
+     },
+     {
+      "file": "src/fhir/operations/dbindexes.ts",
+      "target": "src/migrations/migrate-utils.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "fhir",
+    "target": "ws",
+    "kind": "folder",
+    "fromInstability": 0.479,
+    "toInstability": 0.75,
+    "filePath": "fhir",
+    "_file": "src/fhir/repo.ts",
+    "_line": 108,
+    "_evidence": [
+     {
+      "file": "src/fhir/repo.ts",
+      "target": "src/ws/subscriptions.ts",
+      "line": 108
+     }
+    ]
+   },
+   {
+    "component": "fhircast",
+    "target": "fhir",
+    "kind": "folder",
+    "fromInstability": 0.333,
+    "toInstability": 0.479,
+    "filePath": "fhircast",
+    "_file": "src/fhircast/routes.ts",
+    "_line": 31,
+    "_evidence": [
+     {
+      "file": "src/fhircast/routes.ts",
+      "target": "src/fhir/outcomes.ts",
+      "line": 31
+     }
+    ]
+   },
+   {
+    "component": "oauth",
+    "target": "auth",
+    "kind": "folder",
+    "fromInstability": 0.143,
+    "toInstability": 0.758,
+    "filePath": "oauth",
+    "_file": "src/oauth/token.ts",
+    "_line": 34,
+    "_evidence": [
+     {
+      "file": "src/oauth/token.ts",
+      "target": "src/auth/me.ts",
+      "line": 34
+     },
+     {
+      "file": "src/oauth/token.ts",
+      "target": "src/auth/utils.ts",
+      "line": 35
+     },
+     {
+      "file": "src/oauth/utils.ts",
+      "target": "src/auth/me.ts",
+      "line": 42
+     }
+    ]
+   },
+   {
+    "component": "oauth",
+    "target": "fhir",
+    "kind": "folder",
+    "fromInstability": 0.143,
+    "toInstability": 0.479,
+    "filePath": "oauth",
+    "_file": "src/oauth/authorize.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/oauth/authorize.ts",
+      "target": "src/fhir/repo.ts",
+      "line": 9
+     },
+     {
+      "file": "src/oauth/introspect.ts",
+      "target": "src/fhir/repo.ts",
+      "line": 9
+     },
+     {
+      "file": "src/oauth/keys.ts",
+      "target": "src/fhir/repo.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "component": "oauth",
+    "target": "fhircast",
+    "kind": "folder",
+    "fromInstability": 0.143,
+    "toInstability": 0.333,
+    "filePath": "oauth",
+    "_file": "src/oauth/token.ts",
+    "_line": 39,
+    "_evidence": [
+     {
+      "file": "src/oauth/token.ts",
+      "target": "src/fhircast/utils.ts",
+      "line": 39
+     }
+    ]
+   },
+   {
+    "component": "otel",
+    "target": "workers",
+    "kind": "folder",
+    "fromInstability": 0.067,
+    "toInstability": 0.195,
+    "filePath": "otel",
+    "_file": "src/otel/otel.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/otel/otel.ts",
+      "target": "src/workers/batch.ts",
+      "line": 11
+     },
+     {
+      "file": "src/otel/otel.ts",
+      "target": "src/workers/cron.ts",
+      "line": 12
+     },
+     {
+      "file": "src/otel/otel.ts",
+      "target": "src/workers/download.ts",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "component": "storage",
+    "target": "cloud",
+    "kind": "folder",
+    "fromInstability": 0.103,
+    "toInstability": 0.583,
+    "filePath": "storage",
+    "_file": "src/storage/loader.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/storage/loader.ts",
+      "target": "src/cloud/aws/storage.ts",
+      "line": 5
+     },
+     {
+      "file": "src/storage/loader.ts",
+      "target": "src/cloud/azure/storage.ts",
+      "line": 6
+     },
+     {
+      "file": "src/storage/loader.ts",
+      "target": "src/cloud/gcp/storage.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "storage",
+    "target": "fhir",
+    "kind": "folder",
+    "fromInstability": 0.103,
+    "toInstability": 0.479,
+    "filePath": "storage",
+    "_file": "src/storage/routes.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/storage/routes.ts",
+      "target": "src/fhir/repo.ts",
+      "line": 12
+     },
+     {
+      "file": "src/storage/routes.ts",
+      "target": "src/fhir/sharding.ts",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "component": "util",
+    "target": "bots",
+    "kind": "folder",
+    "fromInstability": 0.045,
+    "toInstability": 0.176,
+    "filePath": "util",
+    "_file": "src/util/auditevent.ts",
+    "_line": 29,
+    "_evidence": [
+     {
+      "file": "src/util/auditevent.ts",
+      "target": "src/bots/types.ts",
+      "line": 29
+     }
+    ]
+   },
+   {
+    "component": "util",
+    "target": "fhir",
+    "kind": "folder",
+    "fromInstability": 0.045,
+    "toInstability": 0.479,
+    "filePath": "util",
+    "_file": "src/util/auditevent.ts",
+    "_line": 32,
+    "_evidence": [
+     {
+      "file": "src/util/auditevent.ts",
+      "target": "src/fhir/repo.ts",
+      "line": 32
+     },
+     {
+      "file": "src/util/validator.ts",
+      "target": "src/fhir/outcomes.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "component": "workers",
+    "target": "cloud",
+    "kind": "folder",
+    "fromInstability": 0.195,
+    "toInstability": 0.583,
+    "filePath": "workers",
+    "_file": "src/workers/dispatch.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/workers/dispatch.ts",
+      "target": "src/cloud/aws/deploy.ts",
+      "line": 8
+     },
+     {
+      "file": "src/workers/dispatch.ts",
+      "target": "src/cloud/aws/lambda.ts",
+      "line": 9
+     },
+     {
+      "file": "src/workers/lambda-cleaner.ts",
+      "target": "src/cloud/aws/lambda.ts",
+      "line": 10
+     }
+    ]
+   },
+   {
+    "component": "workers",
+    "target": "fhir",
+    "kind": "folder",
+    "fromInstability": 0.195,
+    "toInstability": 0.479,
+    "filePath": "workers",
+    "_file": "src/workers/base.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/workers/base.ts",
+      "target": "src/fhir/operations/utils/asyncjobexecutor.ts",
+      "line": 5
+     },
+     {
+      "file": "src/workers/base.ts",
+      "target": "src/fhir/repo.ts",
+      "line": 6
+     },
+     {
+      "file": "src/workers/base.ts",
+      "target": "src/fhir/sharding.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "component": "workers",
+    "target": "migrations",
+    "kind": "folder",
+    "fromInstability": 0.195,
+    "toInstability": 0.868,
+    "filePath": "workers",
+    "_file": "src/workers/post-deploy-migration.ts",
+    "_line": 15,
+    "_evidence": [
+     {
+      "file": "src/workers/post-deploy-migration.ts",
+      "target": "src/migrations/data/types.ts",
+      "line": 15
+     },
+     {
+      "file": "src/workers/post-deploy-migration.ts",
+      "target": "src/migrations/migrate.ts",
+      "line": 23
+     },
+     {
+      "file": "src/workers/post-deploy-migration.ts",
+      "target": "src/migrations/migration-utils.ts",
+      "line": 24
+     }
+    ]
+   },
+   {
+    "component": "workers",
+    "target": "ws",
+    "kind": "folder",
+    "fromInstability": 0.195,
+    "toInstability": 0.75,
+    "filePath": "workers",
+    "_file": "src/workers/subscription.ts",
+    "_line": 59,
+    "_evidence": [
+     {
+      "file": "src/workers/subscription.ts",
+      "target": "src/ws/subscriptions.ts",
+      "line": 59
+     }
+    ]
+   },
+   {
+    "component": "persistence",
+    "target": "business",
+    "kind": "layer",
+    "fromInstability": 0.085,
+    "toInstability": 0.862,
+    "filePath": "persistence",
+    "_file": "src/oauth/token.ts",
+    "_line": 34,
+    "_evidence": [
+     {
+      "file": "src/oauth/token.ts",
+      "target": "src/auth/me.ts",
+      "line": 34
+     },
+     {
+      "file": "src/oauth/token.ts",
+      "target": "src/auth/utils.ts",
+      "line": 35
+     },
+     {
+      "file": "src/oauth/utils.ts",
+      "target": "src/auth/me.ts",
+      "line": 42
+     }
+    ]
+   }
+  ],
+  "component-main-sequence-distance": [
+   {
+    "component": "auth",
+    "kind": "folder",
+    "abstractness": 1,
+    "instability": 0.758,
+    "distance": 0.758,
+    "filePath": "auth",
+    "_file": "src/auth/changepassword.ts",
+    "_line": 1,
+    "_evidence": {
+     "files": 26,
+     "sample": [
+      "src/auth/changepassword.ts",
+      "src/auth/clientinfo.ts",
+      "src/auth/exchange.ts",
+      "src/auth/external.ts",
+      "src/auth/google.ts"
+     ]
+    }
+   },
+   {
+    "component": "migrations",
+    "kind": "folder",
+    "abstractness": 0.944,
+    "instability": 0.868,
+    "distance": 0.812,
+    "filePath": "migrations",
+    "_file": "src/migrations/migrate-functions.ts",
+    "_line": 1,
+    "_evidence": {
+     "files": 185,
+     "sample": [
+      "src/migrations/migrate-functions.ts",
+      "src/migrations/migrate-main.ts",
+      "src/migrations/migrate-utils.ts",
+      "src/migrations/migrate.ts",
+      "src/migrations/migration-utils.ts"
+     ]
+    }
+   },
+   {
+    "component": "scim",
+    "kind": "folder",
+    "abstractness": 1,
+    "instability": 1,
+    "distance": 1,
+    "filePath": "scim",
+    "_file": "src/scim/routes.ts",
+    "_line": 1,
+    "_evidence": {
+     "files": 3,
+     "sample": [
+      "src/scim/routes.ts",
+      "src/scim/types.ts",
+      "src/scim/utils.ts"
+     ]
+    }
+   },
+   {
+    "component": "ws",
+    "kind": "folder",
+    "abstractness": 1,
+    "instability": 0.75,
+    "distance": 0.75,
+    "filePath": "ws",
+    "_file": "src/ws/agent.ts",
+    "_line": 1,
+    "_evidence": {
+     "files": 6,
+     "sample": [
+      "src/ws/agent.ts",
+      "src/ws/ai-realtime.ts",
+      "src/ws/echo.ts",
+      "src/ws/fhircast.ts",
+      "src/ws/routes.ts"
+     ]
+    }
+   }
+  ],
+  "deep-import-declared-api": [],
+  "deep-import-inferred-api": [
+   {
+    "filePath": "src/admin/super.ts",
+    "target": "src/workers/base.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 42,
+    "_file": "src/admin/super.ts",
+    "_line": 42
+   },
+   {
+    "filePath": "src/admin/super.ts",
+    "target": "src/workers/cron.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 43,
+    "_file": "src/admin/super.ts",
+    "_line": 43
+   },
+   {
+    "filePath": "src/admin/super.ts",
+    "target": "src/workers/lambda-cleaner.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 44,
+    "_file": "src/admin/super.ts",
+    "_line": 44
+   },
+   {
+    "filePath": "src/admin/super.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 46,
+    "_file": "src/admin/super.ts",
+    "_line": 46
+   },
+   {
+    "filePath": "src/admin/super.ts",
+    "target": "src/workers/reindex.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 47,
+    "_file": "src/admin/super.ts",
+    "_line": 47
+   },
+   {
+    "filePath": "src/async-batch.ts",
+    "target": "src/workers/batch.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 14,
+    "_file": "src/async-batch.ts",
+    "_line": 14
+   },
+   {
+    "filePath": "src/fhir/operations/export.ts",
+    "target": "src/workers/bulk-export.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 22,
+    "_file": "src/fhir/operations/export.ts",
+    "_line": 22
+   },
+   {
+    "filePath": "src/fhir/operations/groupexport.ts",
+    "target": "src/workers/bulk-export.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 10,
+    "_file": "src/fhir/operations/groupexport.ts",
+    "_line": 10
+   },
+   {
+    "filePath": "src/fhir/operations/projectarchive.ts",
+    "target": "src/workers/bulk-export.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 17,
+    "_file": "src/fhir/operations/projectarchive.ts",
+    "_line": 17
+   },
+   {
+    "filePath": "src/fhir/operations/set-accounts.ts",
+    "target": "src/workers/base.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 22,
+    "_file": "src/fhir/operations/set-accounts.ts",
+    "_line": 22
+   },
+   {
+    "filePath": "src/fhir/operations/set-accounts.ts",
+    "target": "src/workers/set-accounts.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 23,
+    "_file": "src/fhir/operations/set-accounts.ts",
+    "_line": 23
+   },
+   {
+    "filePath": "src/fhir/operations/set-accounts.ts",
+    "target": "src/workers/utils.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 24,
+    "_file": "src/fhir/operations/set-accounts.ts",
+    "_line": 24
+   },
+   {
+    "filePath": "src/fhir/operations/utils/asyncjobexecutor.ts",
+    "target": "src/workers/utils.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 16,
+    "_file": "src/fhir/operations/utils/asyncjobexecutor.ts",
+    "_line": 16
+   },
+   {
+    "filePath": "src/fhir/repo.ts",
+    "target": "src/workers/subscription.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 107,
+    "_file": "src/fhir/repo.ts",
+    "_line": 107
+   },
+   {
+    "filePath": "src/migrations/data/types.ts",
+    "target": "src/workers/base.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 7,
+    "_file": "src/migrations/data/types.ts",
+    "_line": 7
+   },
+   {
+    "filePath": "src/migrations/data/v1.ts",
+    "target": "src/workers/reindex.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v1.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v10.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v10.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v11.ts",
+    "target": "src/workers/reindex.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 3,
+    "_file": "src/migrations/data/v11.ts",
+    "_line": 3
+   },
+   {
+    "filePath": "src/migrations/data/v12.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v12.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v13.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v13.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v14.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v14.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v15.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v15.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v16.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v16.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v17.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v17.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v18.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v18.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v19.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v19.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v2.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v2.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v20.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v20.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v21.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v21.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v22.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v22.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v23.ts",
+    "target": "src/workers/reindex.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v23.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v24.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 5,
+    "_file": "src/migrations/data/v24.ts",
+    "_line": 5
+   },
+   {
+    "filePath": "src/migrations/data/v25.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 7,
+    "_file": "src/migrations/data/v25.ts",
+    "_line": 7
+   },
+   {
+    "filePath": "src/migrations/data/v26.ts",
+    "target": "src/workers/reindex.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v26.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v27.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v27.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v28.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v28.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v29.ts",
+    "target": "src/workers/reindex.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v29.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v3.ts",
+    "target": "src/workers/reindex.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v3.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v30.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v30.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v31.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 9,
+    "_file": "src/migrations/data/v31.ts",
+    "_line": 9
+   },
+   {
+    "filePath": "src/migrations/data/v32.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 9,
+    "_file": "src/migrations/data/v32.ts",
+    "_line": 9
+   },
+   {
+    "filePath": "src/migrations/data/v33.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 9,
+    "_file": "src/migrations/data/v33.ts",
+    "_line": 9
+   },
+   {
+    "filePath": "src/migrations/data/v34.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 9,
+    "_file": "src/migrations/data/v34.ts",
+    "_line": 9
+   },
+   {
+    "filePath": "src/migrations/data/v35.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 9,
+    "_file": "src/migrations/data/v35.ts",
+    "_line": 9
+   },
+   {
+    "filePath": "src/migrations/data/v36.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 9,
+    "_file": "src/migrations/data/v36.ts",
+    "_line": 9
+   },
+   {
+    "filePath": "src/migrations/data/v37.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 9,
+    "_file": "src/migrations/data/v37.ts",
+    "_line": 9
+   },
+   {
+    "filePath": "src/migrations/data/v38.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 9,
+    "_file": "src/migrations/data/v38.ts",
+    "_line": 9
+   },
+   {
+    "filePath": "src/migrations/data/v39.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 9,
+    "_file": "src/migrations/data/v39.ts",
+    "_line": 9
+   },
+   {
+    "filePath": "src/migrations/data/v4.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v4.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v40.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 9,
+    "_file": "src/migrations/data/v40.ts",
+    "_line": 9
+   },
+   {
+    "filePath": "src/migrations/data/v41.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 9,
+    "_file": "src/migrations/data/v41.ts",
+    "_line": 9
+   },
+   {
+    "filePath": "src/migrations/data/v42.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 9,
+    "_file": "src/migrations/data/v42.ts",
+    "_line": 9
+   },
+   {
+    "filePath": "src/migrations/data/v43.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 9,
+    "_file": "src/migrations/data/v43.ts",
+    "_line": 9
+   },
+   {
+    "filePath": "src/migrations/data/v44.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 9,
+    "_file": "src/migrations/data/v44.ts",
+    "_line": 9
+   },
+   {
+    "filePath": "src/migrations/data/v45.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 9,
+    "_file": "src/migrations/data/v45.ts",
+    "_line": 9
+   },
+   {
+    "filePath": "src/migrations/data/v46.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 9,
+    "_file": "src/migrations/data/v46.ts",
+    "_line": 9
+   },
+   {
+    "filePath": "src/migrations/data/v47.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 9,
+    "_file": "src/migrations/data/v47.ts",
+    "_line": 9
+   },
+   {
+    "filePath": "src/migrations/data/v48.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 9,
+    "_file": "src/migrations/data/v48.ts",
+    "_line": 9
+   },
+   {
+    "filePath": "src/migrations/data/v49.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 8,
+    "_file": "src/migrations/data/v49.ts",
+    "_line": 8
+   },
+   {
+    "filePath": "src/migrations/data/v49.ts",
+    "target": "src/workers/utils.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 9,
+    "_file": "src/migrations/data/v49.ts",
+    "_line": 9
+   },
+   {
+    "filePath": "src/migrations/data/v5.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v5.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v50.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 9,
+    "_file": "src/migrations/data/v50.ts",
+    "_line": 9
+   },
+   {
+    "filePath": "src/migrations/data/v51.ts",
+    "target": "src/workers/cron.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 5,
+    "_file": "src/migrations/data/v51.ts",
+    "_line": 5
+   },
+   {
+    "filePath": "src/migrations/data/v51.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 6,
+    "_file": "src/migrations/data/v51.ts",
+    "_line": 6
+   },
+   {
+    "filePath": "src/migrations/data/v52.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 9,
+    "_file": "src/migrations/data/v52.ts",
+    "_line": 9
+   },
+   {
+    "filePath": "src/migrations/data/v6.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v6.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v7.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v7.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v8.ts",
+    "target": "src/workers/reindex.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v8.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/data/v9.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v9.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/migrations/migration-utils.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 16,
+    "_file": "src/migrations/migration-utils.ts",
+    "_line": 16
+   },
+   {
+    "filePath": "src/migrations/migration-utils.ts",
+    "target": "src/workers/utils.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 17,
+    "_file": "src/migrations/migration-utils.ts",
+    "_line": 17
+   },
+   {
+    "filePath": "src/otel/otel.ts",
+    "target": "src/workers/batch.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 11,
+    "_file": "src/otel/otel.ts",
+    "_line": 11
+   },
+   {
+    "filePath": "src/otel/otel.ts",
+    "target": "src/workers/cron.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 12,
+    "_file": "src/otel/otel.ts",
+    "_line": 12
+   },
+   {
+    "filePath": "src/otel/otel.ts",
+    "target": "src/workers/download.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 13,
+    "_file": "src/otel/otel.ts",
+    "_line": 13
+   },
+   {
+    "filePath": "src/otel/otel.ts",
+    "target": "src/workers/set-accounts.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 14,
+    "_file": "src/otel/otel.ts",
+    "_line": 14
+   },
+   {
+    "filePath": "src/otel/otel.ts",
+    "target": "src/workers/subscription.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 15,
+    "_file": "src/otel/otel.ts",
+    "_line": 15
+   }
+  ],
+  "undeclared-async-coupling": [],
+  "io-outside-adapters": [
+   {
+    "filePath": "src/auth/utils.ts",
+    "member": "verifyRecaptcha",
+    "layer": "business",
+    "category": "http-out",
+    "apis": [
+     "fetch()"
+    ],
+    "line": 434,
+    "lines": [
+     434
+    ],
+    "_file": "src/auth/utils.ts",
+    "_line": 434,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/healthcheck.ts",
+    "member": "testPostgres",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "pg:pool.query"
+    ],
+    "line": 124,
+    "lines": [
+     124
+    ],
+    "_file": "src/healthcheck.ts",
+    "_line": 124,
+    "_importGraphSees": true
+   }
+  ],
+  "nondeterminism-in-core": [
+   {
+    "filePath": "src/admin/super.ts",
+    "member": "super.ts",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 661,
+    "lines": [
+     661,
+     667,
+     708,
+     715,
+     735,
+     738
+    ],
+    "_file": "src/admin/super.ts",
+    "_line": 661,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/auth/external.ts",
+    "member": "externalCallbackHandler",
+    "layer": "business",
+    "category": "random",
+    "apis": [
+     "crypto:randomUUID"
+    ],
+    "line": 122,
+    "lines": [
+     122
+    ],
+    "_file": "src/auth/external.ts",
+    "_line": 122,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/auth/google.ts",
+    "member": "googleHandler",
+    "layer": "business",
+    "category": "random",
+    "apis": [
+     "crypto:randomUUID"
+    ],
+    "line": 144,
+    "lines": [
+     144
+    ],
+    "_file": "src/auth/google.ts",
+    "_line": 144,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/auth/login.ts",
+    "member": "loginHandler",
+    "layer": "business",
+    "category": "random",
+    "apis": [
+     "crypto:randomUUID"
+    ],
+    "line": 42,
+    "lines": [
+     42
+    ],
+    "_file": "src/auth/login.ts",
+    "_line": 42,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/auth/me.ts",
+    "member": "getSessions",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 185,
+    "lines": [
+     185
+    ],
+    "_file": "src/auth/me.ts",
+    "_line": 185,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/auth/mfalimit.ts",
+    "member": "assertMfaLoginActive",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 130,
+    "lines": [
+     130
+    ],
+    "_file": "src/auth/mfalimit.ts",
+    "_line": 130,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/auth/newuser.ts",
+    "member": "newUserHandler",
+    "layer": "business",
+    "category": "random",
+    "apis": [
+     "crypto:randomUUID"
+    ],
+    "line": 104,
+    "lines": [
+     104
+    ],
+    "_file": "src/auth/newuser.ts",
+    "_line": 104,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/auth/preauthorize.ts",
+    "member": "preAuthorizeHandler",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "Date.now()",
+     "new Date()"
+    ],
+    "line": 47,
+    "lines": [
+     47,
+     55
+    ],
+    "_file": "src/auth/preauthorize.ts",
+    "_line": 47,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/auth/preauthorize.ts",
+    "member": "preAuthorizeHandler",
+    "layer": "business",
+    "category": "random",
+    "apis": [
+     "crypto:randomUUID"
+    ],
+    "line": 57,
+    "lines": [
+     57
+    ],
+    "_file": "src/auth/preauthorize.ts",
+    "_line": 57,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/auth/register.ts",
+    "member": "registerNew",
+    "layer": "business",
+    "category": "random",
+    "apis": [
+     "crypto:randomUUID"
+    ],
+    "line": 65,
+    "lines": [
+     65
+    ],
+    "_file": "src/auth/register.ts",
+    "_line": 65,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/auth/securityrequest.ts",
+    "member": "getSecurityRequestExpiration",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 41,
+    "lines": [
+     41
+    ],
+    "_file": "src/auth/securityrequest.ts",
+    "_line": 41,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/auth/securityrequest.ts",
+    "member": "isSecurityRequestExpired",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 59,
+    "lines": [
+     59
+    ],
+    "_file": "src/auth/securityrequest.ts",
+    "_line": 59,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/auth/utils.ts",
+    "member": "sendMfaEmailCode",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 210,
+    "lines": [
+     210
+    ],
+    "_file": "src/auth/utils.ts",
+    "_line": 210,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/auth/utils.ts",
+    "member": "sendMfaEmailCode",
+    "layer": "business",
+    "category": "random",
+    "apis": [
+     "crypto:randomInt"
+    ],
+    "line": 208,
+    "lines": [
+     208
+    ],
+    "_file": "src/auth/utils.ts",
+    "_line": 208,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/auth/utils.ts",
+    "member": "verifyEmailMfaCode",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 250,
+    "lines": [
+     250
+    ],
+    "_file": "src/auth/utils.ts",
+    "_line": 250,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/dicom/wado-rs.ts",
+    "member": "handleRetrieveInstanceFrame",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 101,
+    "lines": [
+     101
+    ],
+    "_file": "src/dicom/wado-rs.ts",
+    "_line": 101,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/healthcheck.ts",
+    "member": "healthcheckHandler",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 22,
+    "lines": [
+     22,
+     24,
+     33,
+     38,
+     48,
+     50
+    ],
+    "_file": "src/healthcheck.ts",
+    "_line": 22,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/healthcheck.ts",
+    "member": "healthcheckHandler",
+    "layer": "business",
+    "category": "process",
+    "apis": [
+     "process.platform",
+     "process.version"
+    ],
+    "line": 67,
+    "lines": [
+     67,
+     68
+    ],
+    "_file": "src/healthcheck.ts",
+    "_line": 67,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/ratelimit.ts",
+    "member": "rateLimitHandler",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 82,
+    "lines": [
+     82
+    ],
+    "_file": "src/ratelimit.ts",
+    "_line": 82,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/seed.ts",
+    "member": "seedDatabase",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 32,
+    "lines": [
+     32,
+     34,
+     37,
+     39,
+     42,
+     44
+    ],
+    "_file": "src/seed.ts",
+    "_line": 32,
+    "_importGraphSees": false
+   }
+  ]
+ }
+}
