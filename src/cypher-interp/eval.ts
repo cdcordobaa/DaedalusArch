@@ -213,27 +213,46 @@ function* matchClause(clause: Extract<Clause, { k: 'match' }>, rows: Iterable<Ro
     graph: ctx0.graph, params: ctx0.params, ...(ctx0.aggregates !== undefined ? { aggregates: ctx0.aggregates } : {}), ...(pushed.size > 0 ? { pushed } : {}),
     ...(early.length > 0 ? { early } : {}),
   };
-  for (const r of rows) {
-    if (evalDiagnostics.strict) strictScan(clause, pushed, r, ctx);
-    let any = false;
-    for (const m0 of matchParts(clause.patterns, 0, r, new Set(), ctx)) {
-      const pending = m0.get(PENDING) as unknown as CypherRuntimeError | undefined;
-      let m = m0;
-      if (pending !== undefined) {
-        const copy = new Map(m0);
-        copy.delete(PENDING);
-        m = copy;
+  // In an existential MATCH a row's data error is held back (F8): EXISTS is true as soon as any row qualifies, in
+  // whatever order Neo4j finds them, so the error is raised only if the match runs out of rows without one.
+  let held: CypherRuntimeError | undefined;
+  let done = false;
+  try {
+    for (const r of rows) {
+      if (evalDiagnostics.strict) strictScan(clause, pushed, r, ctx);
+      let any = false;
+      for (const m0 of matchParts(clause.patterns, 0, r, new Set(), ctx)) {
+        const pending = m0.get(PENDING) as unknown as CypherRuntimeError | undefined;
+        let m = m0;
+        if (pending !== undefined) {
+          const copy = new Map(m0);
+          copy.delete(PENDING);
+          m = copy;
+        }
+        let holds: boolean;
+        try {
+          holds = predicateHolds(clause.where, m, ctx, pending);
+        } catch (e) {
+          if (ctx0.existential !== true || evalDiagnostics.strict || !(e instanceof CypherRuntimeError)) throw e;
+          held ??= e;
+          continue;
+        }
+        if (!holds) continue;
+        any = true;
+        yield m;
       }
-      if (!predicateHolds(clause.where, m, ctx, pending)) continue;
-      any = true;
-      yield m;
+      if (!any && clause.optional) {
+        const out = new Map(r);
+        for (const v of patternVariables(clause.patterns)) if (!out.has(v)) out.set(v, null);
+        yield out;
+      }
     }
-    if (!any && clause.optional) {
-      const out = new Map(r);
-      for (const v of patternVariables(clause.patterns)) if (!out.has(v)) out.set(v, null);
-      yield out;
-    }
+    done = true;
+  } finally {
+    // Stopped early: a row qualified, the held error did not matter.
+    if (!done && held !== undefined) suppress(held);
   }
+  if (held !== undefined) throw held;
 }
 
 function conjuncts(e: Expr | undefined): Expr[] {

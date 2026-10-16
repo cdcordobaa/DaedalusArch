@@ -226,4 +226,18 @@ export const REGRESSION_CASES: readonly RegressionCase[] = [
     params: { excludePatterns: ['.*\\.spec\\.ts$', '^__no_such_path__$'] },
     expect: [],
   },
+  {
+    finding: 'F8', title: 'EXISTS is true when one candidate row qualifies, even if another raises a data error (orphanFileCount, literal view, fuzz seed 21)',
+    nodes: [{ id: 'a', label: 'File', props: { name: 'a.ts', isBarrel: false } }, { id: 'b', label: 'File', props: { name: 'b.ts' } }, { id: 'c', label: 'File', props: { name: 'c.ts' } }],
+    edges: [{ type: 'IMPORTS', from: 'a', to: 'b', props: { viaReExport: 'Event' } }, { type: 'IMPORTS', from: 'a', to: 'c' }],
+    query: "MATCH (f:File {name: 'a.ts'}) WHERE EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) } RETURN f.name AS n",
+    expect: [{ n: 'a.ts' }],
+  },
+  {
+    finding: 'F8', title: 'EXISTS raises the data error when no candidate row qualifies',
+    nodes: [{ id: 'a', label: 'File', props: { name: 'a.ts' } }, { id: 'b', label: 'File', props: { name: 'b.ts' } }],
+    edges: [{ type: 'IMPORTS', from: 'a', to: 'b', props: { viaReExport: 'Event' } }],
+    query: "MATCH (f:File {name: 'a.ts'}) WHERE EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) } RETURN f.name AS n",
+    expect: { error: TYPE_ERROR },
+  },
 ];
