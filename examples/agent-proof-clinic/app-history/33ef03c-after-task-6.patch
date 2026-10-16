@@ -1,0 +1,197 @@
+commit 33ef03c agentproof
+after task 6
+
+
+diff --git a/src/adapters/inbound/invoices-handler.ts b/src/adapters/inbound/invoices-handler.ts
+index 1938900..4babd29 100644
+--- a/src/adapters/inbound/invoices-handler.ts
++++ b/src/adapters/inbound/invoices-handler.ts
+@@ -1,18 +1,32 @@
+ import type { GenerateInvoiceUseCase } from "../../application/generate-invoice.js";
++import type { ListPatientInvoicesUseCase } from "../../application/list-patient-invoices.js";
+ import type { Invoice } from "../../domain/invoice.js";
+ import { formatAmount } from "../../domain/money.js";
+ import { csvResponse, toCsv } from "./csv.js";
+ import { routeNotFound, toErrorResponse } from "./error-responses.js";
+ import type { HttpHandler, HttpRequest, HttpResponse } from "./http.js";
+ 
++export interface InvoiceUseCases {
++  generate: GenerateInvoiceUseCase;
++  listForPatient: ListPatientInvoicesUseCase;
++}
++
+ const INVOICE_PATH = /^\/invoices\/([^/]+?)(\.csv)?$/;
+ 
+-export function createInvoicesHandler(generateInvoice: GenerateInvoiceUseCase): HttpHandler {
++export function createInvoicesHandler(useCases: InvoiceUseCases): HttpHandler {
+   return async (request: HttpRequest): Promise<HttpResponse> => {
+-    const match = request.method === "GET" ? INVOICE_PATH.exec(request.path) : null;
+-    if (!match) return routeNotFound();
++    if (request.method !== "GET") return routeNotFound();
++    const url = new URL(request.path, "http://localhost");
+     try {
+-      const invoice = await generateInvoice.execute(decodeURIComponent(match[1]!));
++      if (url.pathname === "/invoices") {
++        const patientId = url.searchParams.get("patientId");
++        if (!patientId) return { status: 400, body: { error: "patientId query parameter is required" } };
++        const invoices = await useCases.listForPatient.execute(patientId);
++        return { status: 200, body: { patientId, invoices: invoices.map(toSummaryDto) } };
++      }
++      const match = INVOICE_PATH.exec(url.pathname);
++      if (!match) return routeNotFound();
++      const invoice = await useCases.generate.execute(decodeURIComponent(match[1]!));
+       return match[2] ? csvResponse(invoiceCsv(invoice)) : { status: 200, body: toDto(invoice) };
+     } catch (error) {
+       return toErrorResponse(error);
+@@ -20,6 +34,16 @@ export function createInvoicesHandler(generateInvoice: GenerateInvoiceUseCase):
+   };
+ }
+ 
++function toSummaryDto(invoice: Invoice) {
++  return {
++    id: invoice.id,
++    appointmentId: invoice.appointmentId,
++    appointmentDate: invoice.appointmentDate,
++    total: formatAmount(invoice.total),
++    currency: invoice.total.currency,
++  };
++}
++
+ function toDto(invoice: Invoice) {
+   return {
+     id: invoice.id,
+@@ -50,3 +74,14 @@ function invoiceCsv(invoice: Invoice): string {
+     ],
+   );
+ }
++
++/**
++ * One-line CSV export used by accounting (formerly `Invoice.asCsv()`; moved here because
++ * CSV is a presentation concern and the domain may not import adapters).
++ */
++export function toAccountingCsv(invoice: Invoice): string {
++  return toCsv(
++    ["invoice", "appointment", "date", "total_cents"],
++    [[invoice.id, invoice.appointmentId, invoice.appointmentDate, invoice.total.cents]],
++  );
++}
+diff --git a/src/adapters/outbound/in-memory-invoice-repository.ts b/src/adapters/outbound/in-memory-invoice-repository.ts
+index 737cb3a..0d00b44 100644
+--- a/src/adapters/outbound/in-memory-invoice-repository.ts
++++ b/src/adapters/outbound/in-memory-invoice-repository.ts
+@@ -13,4 +13,8 @@ export class InMemoryInvoiceRepository implements InvoiceRepository {
+   async findByAppointmentId(appointmentId: string): Promise<Invoice | undefined> {
+     return this.byAppointmentId.get(appointmentId);
+   }
++
++  async findByPatientId(patientId: string): Promise<Invoice[]> {
++    return [...this.byAppointmentId.values()].filter((invoice) => invoice.patientId === patientId);
++  }
+ }
+diff --git a/src/application/generate-invoice.ts b/src/application/generate-invoice.ts
+index 02a9865..c35fa9e 100644
+--- a/src/application/generate-invoice.ts
++++ b/src/application/generate-invoice.ts
+@@ -4,7 +4,7 @@ import type { AppointmentNotifier } from "./appointment-notifier.js";
+ import type { AppointmentRepository } from "./ports/appointment-repository.js";
+ import type { Clock } from "./ports/clock.js";
+ import type { DoctorRepository } from "./ports/doctor-repository.js";
+-import { StaticFeeSchedule } from "../adapters/outbound/static-fee-schedule.js";
++import type { FeeSchedule } from "./ports/fee-schedule.js";
+ import type { InvoiceRepository } from "./ports/invoice-repository.js";
+ import type { PatientRepository } from "./ports/patient-repository.js";
+ 
+@@ -18,7 +18,7 @@ export class GenerateInvoiceUseCase {
+     private readonly appointments: AppointmentRepository,
+     private readonly doctors: DoctorRepository,
+     private readonly patients: PatientRepository,
+-    private readonly fees: StaticFeeSchedule,
++    private readonly fees: FeeSchedule,
+     private readonly clock: Clock,
+     private readonly notifier: AppointmentNotifier,
+   ) {}
+diff --git a/src/application/list-patient-invoices.ts b/src/application/list-patient-invoices.ts
+new file mode 100644
+index 0000000..4a22f1c
+--- /dev/null
++++ b/src/application/list-patient-invoices.ts
+@@ -0,0 +1,14 @@
++import type { Invoice } from "../domain/invoice.js";
++import type { InvoiceRepository } from "./ports/invoice-repository.js";
++
++/** Read-only: a patient's issued invoices, newest issued first. */
++export class ListPatientInvoicesUseCase {
++  constructor(private readonly invoices: InvoiceRepository) {}
++
++  async execute(patientId: string): Promise<Invoice[]> {
++    const invoices = await this.invoices.findByPatientId(patientId);
++    return invoices.sort(
++      (a, b) => b.issuedAt.getTime() - a.issuedAt.getTime() || b.appointmentDate.localeCompare(a.appointmentDate),
++    );
++  }
++}
+diff --git a/src/application/ports/invoice-repository.ts b/src/application/ports/invoice-repository.ts
+index 6aaaa84..850ab52 100644
+--- a/src/application/ports/invoice-repository.ts
++++ b/src/application/ports/invoice-repository.ts
+@@ -4,4 +4,5 @@ export interface InvoiceRepository {
+   /** Stores the invoice unless one already exists for its appointment; returns whether it was added. */
+   addIfAbsent(invoice: Invoice): Promise<boolean>;
+   findByAppointmentId(appointmentId: string): Promise<Invoice | undefined>;
++  findByPatientId(patientId: string): Promise<Invoice[]>;
+ }
+diff --git a/src/config/composition-root.ts b/src/config/composition-root.ts
+index 766121c..00fdb0f 100644
+--- a/src/config/composition-root.ts
++++ b/src/config/composition-root.ts
+@@ -17,6 +17,7 @@ import { CancelAppointmentUseCase } from "../application/cancel-appointment.js";
+ import { CompleteAppointmentUseCase } from "../application/complete-appointment.js";
+ import { DoctorUtilizationReportUseCase } from "../application/doctor-utilization-report.js";
+ import { GenerateInvoiceUseCase } from "../application/generate-invoice.js";
++import { ListPatientInvoicesUseCase } from "../application/list-patient-invoices.js";
+ import { GetAppointmentUseCase } from "../application/get-appointment.js";
+ import type { Clock } from "../application/ports/clock.js";
+ import type { DoctorRepository } from "../application/ports/doctor-repository.js";
+@@ -67,13 +68,14 @@ export function createApp(options: AppOptions = {}): App {
+     complete: new CompleteAppointmentUseCase(appointments, clock, lock),
+   });
+   const reportsHandler = createReportsHandler(new DoctorUtilizationReportUseCase(appointments, doctors));
+-  const invoicesHandler = createInvoicesHandler(
+-    new GenerateInvoiceUseCase(invoices, appointments, doctors, patients, fees, clock, notifier),
+-  );
++  const invoicesHandler = createInvoicesHandler({
++    generate: new GenerateInvoiceUseCase(invoices, appointments, doctors, patients, fees, clock, notifier),
++    listForPatient: new ListPatientInvoicesUseCase(invoices),
++  });
+   const handle = createRouter([
+     ["/appointments", appointmentsHandler],
+     ["/reports/", reportsHandler],
+-    ["/invoices/", invoicesHandler],
++    ["/invoices", invoicesHandler],
+   ]);
+ 
+   return { handle, patients, doctors };
+diff --git a/src/domain/invoice.ts b/src/domain/invoice.ts
+index 2ad6f79..6b5e181 100644
+--- a/src/domain/invoice.ts
++++ b/src/domain/invoice.ts
+@@ -2,7 +2,6 @@ import type { Appointment } from "./appointment.js";
+ import type { Doctor } from "./doctor.js";
+ import { InvalidStateError } from "./errors.js";
+ import type { Money } from "./money.js";
+-import { toCsv } from "../adapters/inbound/csv.js";
+ 
+ /** Share of the base fee billed for a late cancellation that staff overrode. */
+ export const LATE_CANCELLATION_FEE_RATE = 0.5;
+@@ -42,11 +41,6 @@ export class Invoice {
+     );
+   }
+ 
+-  /** One-line CSV export used by accounting (reuses the report CSV writer). */
+-  asCsv(): string {
+-    return toCsv(["invoice", "appointment", "date", "total_cents"], [[this.id, this.appointmentId, this.appointmentDate, this.total.cents]]);
+-  }
+-
+   get total(): Money {
+     const currency = this.lines[0]!.amount.currency;
+     return { cents: this.lines.reduce((sum, line) => sum + line.amount.cents, 0), currency };

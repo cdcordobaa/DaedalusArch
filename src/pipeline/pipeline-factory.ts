@@ -11,6 +11,9 @@ import { ScrubbingFirewallContext } from './scrubbing-context.js';
 import { neo4jScrubPolicy } from '../shared/errors/scrub.js';
 import { runId as makeRunId } from '../shared/types/value-objects.js';
 import { Neo4jRepository } from '../neo4j-ingestion/neo4j-repository.js';
+import { AcceleratedGraphRepository } from '../graph-accelerator/accelerated-repository.js';
+import { MemoryGuard } from '../shared/process/memory-guard.js';
+import type { ExtractionLimits } from '../apg-extractor/types.js';
 import { MemoryGraphRepository } from '../cypher-interp/repository.js';
 import { FileSystemSnapshotStore } from '../neo4j-ingestion/fs-snapshot-store.js';
 import * as path from 'node:path';
@@ -34,6 +37,7 @@ import { SnapshotLoadCommand } from './commands/snapshot-load-command.js';
 import { DriftDetectCommand } from './commands/drift-detect-command.js';
 import { AssembleReportCommand } from './commands/assemble-report-command.js';
 import type { AssembleReportConfig } from './commands/assemble-report-command.js';
+import { fsProjectView } from '../advisory-filter/project-view.js';
 import { NO_JUDGE } from '../scoring-engine/report-builder.js';
 import type { JudgeProvenance } from '../shared/types/evaluation.js';
 import type { CompileFactsHolder } from './commands/compile-command.js';
@@ -84,16 +88,23 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
   // 2. Instantiate infrastructure services
   // ------------------------------------------------------------------
   // v1.3 spike: `cypher-interp` answers the same Cypher text in process (Docs/v1.3/cypher-interpreter.md).
-  const graphRepo: GraphRepository = config.graphRepository ?? (config.graphEngine === 'cypher-interp'
-    ? new MemoryGraphRepository()
-    : new Neo4jRepository({
+  // Scale (Docs/v1.3/scale.md §3): on Neo4j the bounded cycle queries are answered in memory from a mirror of the
+  // ingested graph, with the same rows; `queryEngine: 'neo4j'` sends every query to Neo4j. The in-process engine and
+  // an injected repository are used as they are.
+  const neo4jRepo = (): GraphRepository => {
+    const repo = new Neo4jRepository({
       neo4jUri: config.neo4jUri,
       neo4jUser: config.neo4jUser,
       neo4jPassword: config.neo4jPassword,
       apgStorePath: config.apgStorePath,
       // v1.3 fix round: one run at a time per Neo4j database (ingestion wipes it); released by `cleanup`.
       lock: true,
-    }));
+    });
+    return config.queryEngine === 'neo4j' ? repo : new AcceleratedGraphRepository(repo, config.onAcceleration);
+  };
+  const graphRepo: GraphRepository = config.graphRepository ?? (config.graphEngine === 'cypher-interp'
+    ? new MemoryGraphRepository()
+    : neo4jRepo());
 
   const snapshotStore: SnapshotStore = new FileSystemSnapshotStore(
     config.apgStorePath,
@@ -145,9 +156,16 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
   }
 
   // ---- Stage 1: Extract APG + Parse Spec (parallel) -------------------
+  // Scale (Docs/v1.3/scale.md §6): the memory guard is always on (heap budget); `memoryLimitMb` adds an RSS budget.
+  const memoryGuard = new MemoryGuard(config.memoryLimitMb !== undefined ? { rssLimitMb: config.memoryLimitMb } : {});
+  const limits: ExtractionLimits = {
+    memoryGuard,
+    ...(config.maxFiles !== undefined && { maxFiles: config.maxFiles }),
+    ...(config.sourceScope !== undefined && { sourceScope: config.sourceScope }),
+  };
   commands.push(
     new ParallelCommand([
-      new ExtractCommand(config.projectPath, specExcludePaths, config.graphMode, config.tsconfigPath, config.sourceOverrides),
+      new ExtractCommand(config.projectPath, specExcludePaths, config.graphMode, config.tsconfigPath, config.sourceOverrides, config.resolvedEdgesInLiteralView === true, config.extractorDefaults, limits),
       new ParseCommand(config.specFilePath),
     ]),
   );
@@ -157,17 +175,21 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
     mode: config.pipelineMode,
     apgStorePath: config.apgStorePath,
     ...(config.commitSha !== undefined && { commitSha: config.commitSha }),
+    memoryGuard,
+    ...(config.literalThroughLayerlessBarrels === true && { literalThroughLayerlessBarrels: true }),
   };
   commands.push(new IngestCommand(graphRepo, snapshotStore, ingestConfig));
 
   // ---- Stage 3: Compile fitness functions -----------------------------
   // CompileCommand records the declared-side counts that AssembleReportCommand reads (BR-U3-52).
   const compileFacts: CompileFactsHolder = {};
-  commands.push(new CompileCommand(compileFacts, config.instrumentVersion));
+  // v1.3 construct switches apply in the v1.3 scoring mode only: compile overlays, row stage and tiers together (R30).
+  const constructAnswers = config.scoringMode === 'v1.3' ? config.constructAnswers ?? CONSTRUCT_ANSWERS : undefined;
+  commands.push(new CompileCommand(compileFacts, config.instrumentVersion, constructAnswers, config.emptyAggregates));
 
   // ---- Stage 4: Evaluate (mode-dependent) -----------------------------
   // v1.3 construct switches: the row stage runs in the v1.3 scoring mode only, and only when a switch is set.
-  const rowStage = config.scoringMode === 'v1.3' ? constructRowTransform(CONSTRUCT_ANSWERS) : undefined;
+  const rowStage = constructAnswers !== undefined ? constructRowTransform(constructAnswers) : undefined;
   switch (config.evaluationMode) {
     case 'full':
       commands.push(
@@ -220,6 +242,15 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
     timingSource: () => withSubStages(executor.getTimings(), subStages),
     compileFacts,
     scrubPolicy,
+    ...(config.advisoryFilter !== undefined && config.advisoryFilter.length > 0 && {
+      advisoryFilter: {
+        options: config.advisoryFilter,
+        view: (context) => {
+          const spec = context.getParsedSpec();
+          return fsProjectView({ projectDir: config.projectPath, layerModel: spec.layerModel, functions: spec.fitnessFunctions });
+        },
+      },
+    }),
   };
   commands.push(new AssembleReportCommand(judgeStage === undefined ? assembleConfig : {
     ...assembleConfig,
@@ -288,7 +319,7 @@ class LazyScoreCommand implements PipelineCommand {
     const parsedSpec = context.getParsedSpec();
 
     // v1.3 construct switches: the switch-aware tiers (absent at the status quo).
-    const tiers = this.config.scoringMode === 'v1.3' ? constructTierResolver(CONSTRUCT_ANSWERS, parsedSpec.style, parsedSpec.layerModel) : undefined;
+    const tiers = this.config.scoringMode === 'v1.3' ? constructTierResolver(this.config.constructAnswers ?? CONSTRUCT_ANSWERS, parsedSpec.style, parsedSpec.layerModel) : undefined;
     const scoreCmd = new ScoreCommand(this.graphRepository, {
       scoringWeights: parsedSpec.scoringWeights,
       ...(parsedSpec.fullModeWeights !== undefined && { fullModeWeights: parsedSpec.fullModeWeights }),

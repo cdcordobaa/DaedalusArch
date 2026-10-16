@@ -1,0 +1,45 @@
+diff --git a/scripts/lib/loop/replay.ts b/scripts/lib/loop/replay.ts
+index 64231243..eaea7bee 100644
+--- a/scripts/lib/loop/replay.ts
++++ b/scripts/lib/loop/replay.ts
+@@ -29,6 +29,9 @@ import ts from 'typescript';
+ import { DomainResult } from '../../../src/shared/errors/domain-result.js';
+ import { checkDiffTool, checkFileTool, createSpecLoader } from '../../../src/mcp-server/tools.js';
+ import type { ServerContext } from '../../../src/mcp-server/tools.js';
++import { InterpEvaluator } from '../../../src/mcp-server/interp-check.js';
++// V1 probe only (not committed): the tools on the compiled rules when DAEDALUS_FAST_RULES_ENGINE=cypher-interp.
++const PROBE_INTERP = process.env.DAEDALUS_FAST_RULES_ENGINE === 'cypher-interp' ? new InterpEvaluator() : undefined;
+ import type { EvaluateDeps } from '../../../src/mcp-server/evaluate-project.js';
+ import { writeHarnessTsconfig } from '../generators/harness-tsconfig.js';
+ import { CLAUDE_CODE_ADAPTER_ID } from '../generators/types.js';
+@@ -180,7 +183,7 @@ export class ScriptedStepAgent implements StepAgent {
+     timings: ReplayTiming['toolCalls'][number][],
+   ): Promise<boolean> {
+     const specPath = this.toolSpecOf(input.runId, input.taskId);
+-    const ctx: ServerContext = { defaultSpecPath: specPath ?? undefined, defaultProjectPath: input.cwd, env: {}, evaluateDeps: this.evaluateDeps, loadSpec: this.loadSpec };
++    const ctx: ServerContext = { defaultSpecPath: specPath ?? undefined, defaultProjectPath: input.cwd, env: {}, evaluateDeps: this.evaluateDeps, loadSpec: this.loadSpec, ...(PROBE_INTERP !== undefined && { fastRulesEngine: 'cypher-interp' as const, interp: PROBE_INTERP }) };
+     let reported = false;
+     const record = (tool: ToolCallRecord['tool'], paths: readonly string[], ms: number, r: Awaited<ReturnType<typeof checkFileTool>> | Awaited<ReturnType<typeof checkDiffTool>>): void => {
+       timings.push({ tool, phase, ms });
+
+--- probe-replay.ts (new file, repository root of the merged worktree)
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { createPipeline } from './src/pipeline/pipeline-factory.js';
+import { MemoryGraphRepository } from './src/cypher-interp/repository.js';
+import { REPLAY_TAPES } from './scripts/lib/loop/replay-tapes.js';
+import { runReplay } from './scripts/lib/loop/replay.js';
+import { mcpFeedback } from './scripts/lib/loop/replay-verify.js';
+
+async function main(): Promise<void> {
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'v1-replay-'));
+  const evalEnv: NodeJS.ProcessEnv = { NEO4J_URI: 'bolt://unused', NEO4J_USER: 'unused', NEO4J_PASSWORD: 'unused', APG_STORE_PATH: path.join(base, 'apg-store') };
+  const evaluateDeps = { makeGraph: () => new MemoryGraphRepository(), makePipeline: (c: Parameters<typeof createPipeline>[0]) => createPipeline({ ...c, graphEngine: 'cypher-interp' }) };
+  const r = await runReplay({ repoRoot: process.cwd(), outRoot: path.join(base, 'out'), harnessRoot: path.join(base, 'harness'), evaluatorEnv: evalEnv, evaluateDeps, tapes: REPLAY_TAPES });
+  if (!r.success) throw new Error(r.errors.map((e) => `${e.code}: ${e.message}`).join('; '));
+  const rows = mcpFeedback(r.data, REPLAY_TAPES);
+  process.stdout.write(`${JSON.stringify(rows.map((m) => ({ task: m.taskId, step: m.step, tool: m.toolReported, full: m.fullBlocking, fix: m.fixApplied, unfollowed: m.unfollowed, errors: m.toolErrors })), null, 1)}\n`);
+  process.stdout.write(`engine=${process.env.DAEDALUS_FAST_RULES_ENGINE ?? 'fast'} base=${base}\n`);
+}
+void main().catch((e: unknown) => { process.stderr.write(`${e instanceof Error ? e.stack ?? e.message : String(e)}\n`); process.exitCode = 2; });

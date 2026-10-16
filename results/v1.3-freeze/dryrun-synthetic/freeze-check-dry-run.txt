@@ -1,0 +1,69 @@
+v1.3 freeze check (DRY RUN: nothing written) at X = 4067285d2bfd83e0133106093b87e027c12182a0
+[UNMET] F1 Construct answers file committed, 25 of 25 answered
+        no answers file Docs/v1.3/construct-answers.json (runbook step 1: commit the author's answers there)
+[UNMET] F2 Answers applied: switch file equals the rendering of the answers file
+        src/shared/construct-switches.ts cannot be checked without a valid answers file (every switch reads A today, which is not an answer)
+[UNMET] F3 construct-decisions.md answered, and equal to the answers file
+        Docs/v1.3/construct-decisions.md: [Answer]: empty for all 25 questions
+[UNMET] F4 ADR-V13-03 accepted with an entry per answer that owes one (ADR-V13-02 when Q1 A)
+        Docs/v1.3/adr-v13.md: no "## ADR-V13-03" section (runbook step 2)
+[ OK  ] F5 No tier override in force is marked unsigned
+[ OK  ] F6 Rule tiers and rule sources at their sealed hashes
+        rule-tiers.md and style-rule-sources.md equal their sealed rows
+[ OK  ] F7 Working tree equals HEAD in src, scripts, presets, specs, nothing untracked
+        X = 4067285d2bfd83e0133106093b87e027c12182a0 (HEAD 4067285d2bfd83e0133106093b87e027c12182a0)
+[UNMET] F8 Development-set re-run and re-score with the answers, at code equal to X
+        no development-set re-run in results/v1.3-reference/after-construct-answers (runbook step 3)
+[UNMET] F9 Full test suite green (jest --maxWorkers=2) at code equal to X
+        no test-suite summary results/v1.3-freeze/test-suite.json (runbook step 4: freeze-check.ts --run-tests)
+[UNMET] F10 Byte-identity manifest committed and equal to the recomputed one
+        no manifest results/v1.3-freeze/manifest.json (runbook step 7: freeze-check.ts --write-manifest)
+[UNMET] F11 Hold-out prespec frozen (placeholders filled, X named)
+        Docs/v1.3/holdout-prespec.md: placeholders not filled: <FREEZE_SHA>, <HOLDOUT_PATH>, <N_PER_STYLE>
+        Docs/v1.3/holdout-prespec.md: status is still "draft"
+[UNMET] F12 sealed-hashes.md records X, the frozen prespec, the manifest and the answers
+        Docs/v1.3/sealed-hashes.md: no row "v1.3 freeze commit X (tool)"
+        Docs/v1.3/sealed-hashes.md: no row "Docs/v1.3/holdout-prespec.md (frozen)"
+        Docs/v1.3/sealed-hashes.md: no row "results/v1.3-freeze/manifest.json (byte-identity manifest)"
+        Docs/v1.3/sealed-hashes.md: no row "Docs/v1.3/construct-answers.json (construct answers)"
+[ OK  ] F13 The hold-out has not been run (no results/v1.3-holdout/run-1)
+[SKIP ] F14 Reference engine reachable: Neo4j 5.26.x with APOC
+        dry run without --probe-engine
+FREEZE PRECONDITIONS NOT MET: 9 of 14 unmet (F1, F2, F3, F4, F8, F9, F10, F11, F12)
+manifest (sha256):
+  commit 4067285d2bfd83e0133106093b87e027c12182a0
+  tree src bcf9e252142b13740e75bc2f0659c0b263dec4b4
+  tree scripts 8c63593b5dec080bef0ead445191b5555121ad8b
+  tree presets 38e91ce00c38fae90e046150ebf127c7f04d29c3
+  tree specs bec950b09592cbdd9fab56699b7e63049bd2c69e
+  engine neo4j 5.26.x + apoc-core 5.26; cross-check cypher-interp; node 22
+  answers Docs/v1.3/construct-answers.json (absent) (0 of 25 answered); deferred rules: FF-DS01
+  compiled clean-architecture d7a97caa59535d7e8c98291213fa17d3ca3de9955efbb5efc7e779bf6c3f5524 (22 functions, disabled: FF-CV01, FF-CV04, FF-S03)
+  compiled layered 6a5134fd8867897cca2b98fab7db6bfbe46d0fef6268844327ac35d0b8ab8c30 (15 functions, disabled: FF-CV01, FF-CV04, FF-S04, FF-P02, FF-P03, FF-P04, FF-P05, FF-P06, FF-C01, FF-CV02)
+  compiled nestjs 116b6ad008a18bca76bc348dbd35e21cb6d0d756ccb042b9bdd843f5cf1016d7 (22 functions, disabled: FF-CV01, FF-CV04, FF-S03)
+  compiled hexagonal f90d7a4af3499bc51b6df0121932af2ec6a1a49bcfb655af72e0c656cb251ae0 (20 functions, disabled: FF-CV01, FF-CV04)
+  compiled ddd 8fd346385392268a0f24a66dd28f506e44d542c6074cb84c2eaab47510d35955 (10 functions, disabled: none)
+  tiers clean-architecture d84170db6888ec6accddb6291139ae7af453e230fef5deaf4537fbdb45decacb (blocking: FF-P01, FF-P03, FF-P06, FF-S01, FF-S02, FF-S04)
+  tiers layered 225c3307fb4cb4c5c0355bf9a34800a9f52231e0bc4fe241dd802cb9ab27ac3c (blocking: FF-P01, FF-S01, FF-S02, FF-S03)
+  tiers nestjs d84170db6888ec6accddb6291139ae7af453e230fef5deaf4537fbdb45decacb (blocking: FF-P01, FF-P03, FF-P06, FF-S01, FF-S02, FF-S04)
+  tiers hexagonal 92df849b2895cb3bfc1fe04e45fb134e3868ddbfb57afb71807c8a47629b05fe (blocking: FF-P01, FF-P03, FF-P06, FF-S01, FF-S02, FF-S04)
+  tiers ddd be0015901662af059c4b209521fbe322e79975afa6bf37440824c683f7556359 (blocking: FF-DS01, FF-DS02, FF-DT01, FF-DT02, FF-DT03, FF-DT04, FF-S01)
+  file Docs/v1.3/holdout-prespec.md 149da77c4e3b8e66d15cb6c9355c438379efdbc3e79ab91f99651cf56d92dd11
+  file Docs/v1.3/rule-tiers.md 290794e0bf8edc0d02b631b576b1181cb3e9fb603af3b4fd110a61b60543f27a
+  file Docs/v1.3/style-rule-sources.md 7ce49c630178bad9effd27ae4acce6286effcffd2099b6d353023fca23715c28
+  file presets/clean-architecture.yaml 285447919fcedee05b8c0a5b01a61a82a36e2c0a482010b3b305863ae2dddf68
+  file presets/ddd.yaml ce28a78582a92571c5c8ff2c9144eb2161c580e140db3af880d451737b6260f7
+  file presets/hexagonal.yaml d085d6b9badca2e79ade19b12fcfff96d1317df139d646772871266f0ed20ab7
+  file presets/layered.yaml f0d9045de2364b8dae1ca56b584efd67fb035d9807b983ce4e6f8a7e334eade8
+  file presets/nestjs.yaml 0172db1cb6160d5e92959ef9188be5e7bfdd9667e20ee8b34eecb3753e30997f
+  file scripts/v1.3/lib/compare.ts dc6e128b6f29d1c57679fe1053b7d8cdb3fb23ce1bd4e4accc62608f6c6e22e3
+  file scripts/v1.3/lib/holdout-run-main.ts 452d526813c9b932c5d2e125b11cec962202cbb8d4fbb2197ccb7d7bee46d08e
+  file scripts/v1.3/lib/holdout-score.ts facb3c1e3907d8d26ed0ef98ad6345ecd4316e7aaf2452b7761e57c5ddbb4b5c
+  file specs/.gitkeep e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  file specs/clean-arch.yaml 91bd152e0ae58dcc28a35f2ebc6fe264bf9ff7cd11a2fa6a8094ef54fcd6f6a8
+  file specs/daedalus-arch.yaml ecad7116bf77a86e2ff853568caca51bb8ef6aaeb420cf04816905abaeac9ee5
+  file src/fitness-compiler/cypher-templates.ts 6e3a313db87d0d82530508d892106e3eb343e1bd08a9908acdc5e92f541c0c5d
+  file src/fitness-compiler/v13-templates.ts f2da2f083dcdc456869df2d335e8edae2aa8140c0612839f5ce2b42e27c28719
+  file src/scoring-engine/rule-tiers.ts 305a0e3dd38ab1ae855eab4531f6214563ef033e33024bbe4665a1c9a2d8ce84
+  (202 files hashed in all; manifest sha256 00791767ef1c7e3cfd0c48f63fedd57be2450b73a86998936fca6de7c1fdd448)
+FREEZE CHECK FAILED: F1, F2, F3, F4, F8, F9, F10, F11, F12 unmet
