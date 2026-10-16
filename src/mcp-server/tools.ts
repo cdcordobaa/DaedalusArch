@@ -239,9 +239,9 @@ export async function checkImportTool(
   const interp = interpInput(ctx, loaded.data);
   if (interp === undefined) return ok(noRoot(ctx, fast));
   return ok(await orFast(fast, () => interpCheckImport(interp, fast, {
-    from: toProjectRelative(ctx, args.from),
+    from: from.data,
     module: args.module,
-    ...(args.resolvedPath !== undefined ? { resolvedPath: toProjectRelative(ctx, args.resolvedPath) } : {}),
+    ...(resolved !== undefined ? { resolvedPath: resolved.data } : {}),
   })));
 }
 
