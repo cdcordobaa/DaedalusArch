@@ -877,8 +877,13 @@ export function evaluate(e: Expr, row: Row, ctx: Ctx): Value {
     }
     case 'exists': {
       const existential = e.query.clauses.every((c) => c.k === 'match' && !c.optional);
-      for (const _ of runClauses(e.query.clauses, [row], { graph: ctx.graph, params: ctx.params, existential })) return true;
-      return false;
+      let found = false;
+      for (const _ of runClauses(e.query.clauses, [row], { graph: ctx.graph, params: ctx.params, existential })) {
+        found = true;
+        // Strict mode (diagnostics) visits every row, as an EXISTS whose plan finds the qualifying row last would.
+        if (!evalDiagnostics.strict) break;
+      }
+      return found;
     }
     case 'listComp': {
       const l0 = evaluate(e.list, row, ctx);
