@@ -1645,3 +1645,19 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: CONSTRUCTION, v1.3 validity cycle, SO3. Development-set evidence only. The AI-DLC approval gates were not run interactively: the request came from a scheduled task with no one present, and the stored prompt served as the requirements.
 
 ---
+
+## v1.3 EVIDENCE — validity from developer behaviour, fixes mined (scheduled task)
+**Timestamp**: 2026-10-16T02:40:00Z
+**User Input**: "Scheduled task: measure validity without human raters, using developer behaviour as ground truth. Corpus of 20-40 public TypeScript backends with long histories (the pinned v1.3-wild and v1.3-external projects plus more); layer specs written and committed before any run; walk up to 200 evenly spaced commits per repository, tool on each commit and its parent (--symbolic-only, --engine cypher-interp); FIXED-BY-DEV disappearances (edge removed, not file deletion or mass rename) with commit messages; introductions and survival; per rule fix rate, median survival, architecture words in fix messages; baselines: random unflagged import edges and advisory-tier findings; report Docs/DiagnosticRuns/v1.3-validity-fixes-mined-2026-10-16.md with Wilson CIs, effect sizes, threats and 20 example fix commits. Branch v1.3-validity-fixes-mined from origin/v1.3, one PR into v1.3, not merged. Never read secrets, never touch main or v1.2e, never edit Cypher templates or tiers, jest --maxWorkers=2."
+**AI Response**: "Corpus (36: 14 wild + 15 external pinned, 7 added), 21 new layer specs plus the 15 external specs verbatim, protocol (definitions and thresholds) committed before any corpus run. Runtime calibration (on ToolJet, excluded by the size rule) showed the interpreter enumerating every trail for the two `*2..10` cycle queries (110 s of a 112 s snapshot); a harness GraphRepository (scripts/v1.3/lib/fast-cycles.ts) answers exactly those two texts with an equivalent bounded search, everything else by the interpreter, with parity checks (unit tests on random graphs; live on every snapshot of at most 100 files). No template, tier or src/ file changed. The AI-DLC approval gates were not run interactively: scheduled task, no one present; the stored prompt served as the requirements."
+**Context**: v1.3 evidence unit outside the study stages; exploratory, no labels.
+
+---
+
+## v1.3 EVIDENCE — validity fixes mined: results
+**Timestamp**: 2026-10-16T06:30:00Z
+**User Input**: (none; scheduled task continued)
+**AI Response**: "36 histories walked (7,904 snapshots; 5,175 live cycle-parity checks, 0 mismatches). Report Docs/DiagnosticRuns/v1.3-validity-fixes-mined-2026-10-16.md. Verdict: no robust validity signal. Pooled blocking removal rate 2.65x the unflagged cross-layer baseline, but 48 of 74 credited removals are one amplication commit (PR #93, import/no-cycle lint); without it 0.93, per commit 1.00, sign test 6/21 repositories. Dependency-direction rules are removed less often than baseline (FF-S01 0.65x, FF-S03 layered 0.38x, FF-S04 0); FF-S02 cycles 14.6x raw, about 3.9x length-adjusted, 2.7x without the one commit. Only 14 blocking fix commits exist (task asked for 20; all 14 listed). Sensitivity rows labelled post hoc."
+**Context**: v1.3 evidence unit; PR into v1.3, not merged.
+
+---
