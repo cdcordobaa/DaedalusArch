@@ -1,0 +1,41 @@
+--- a/src/domain/registration-policy.ts
++++ b/src/domain/registration-policy.ts
+@@ -1,10 +1,17 @@
+ import { Attendee } from './attendee';
+ import { DomainError } from './domain-error';
+ import { Registration } from './registration';
++import { RegistrationRepository } from './registration-repository';
+ import { Workshop } from './workshop';
+ 
+ /** Domain service: rules that span a workshop, an attendee and their existing registrations. */
+ export class RegistrationPolicy {
++  constructor(private readonly registrations: RegistrationRepository) {}
++
++  async activeCountFor(attendee: Attendee): Promise<number> {
++    return (await this.registrations.findByAttendee(attendee.id)).filter((r) => r.isActive).length;
++  }
++
+   assertCanRegister(workshop: Workshop, attendee: Attendee, existing: readonly Registration[], now: Date): void {
+     if (workshop.startsAt.getTime() <= now.getTime()) {
+       throw new DomainError('conflict', `Workshop "${workshop.title}" has already started`);
+--- a/src/registrations/registrations.service.ts
++++ b/src/registrations/registrations.service.ts
+@@ -10,14 +10,16 @@
+ 
+ @Injectable()
+ export class RegistrationsService {
+-  private readonly policy = new RegistrationPolicy();
++  private readonly policy: RegistrationPolicy;
+   private sequence = 0;
+ 
+   constructor(
+     @Inject(WORKSHOP_REPOSITORY) private readonly workshops: WorkshopRepository,
+     @Inject(ATTENDEE_REPOSITORY) private readonly attendees: AttendeeRepository,
+     @Inject(REGISTRATION_REPOSITORY) private readonly registrations: RegistrationRepository,
+-  ) {}
++  ) {
++    this.policy = new RegistrationPolicy(registrations);
++  }
+ 
+   async register(dto: RegisterAttendeeDto): Promise<RegistrationResponseDto> {
+     const workshop = await this.workshops.findById(dto.workshopId);

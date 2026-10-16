@@ -1,0 +1,4 @@
+{ "variant": "v25-billing-barrel-republishes-order-placed", "spec": "presets/ddd.yaml", "findings": [
+  { "rule": "FF-DS02", "name": "context-isolation", "file": "src/billing/index.ts", "target": "src/ordering/domain/order/events/OrderPlaced.ts",
+    "reason": "A billing file re-exports an ordering file outside ordering's declared public API; the re-exporting file is billing's barrel, not billing's anti-corruption layer, and a re-export counts like an import." }
+] }

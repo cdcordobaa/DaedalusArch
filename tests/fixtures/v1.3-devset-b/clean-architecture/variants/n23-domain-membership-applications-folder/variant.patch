@@ -1,0 +1,30 @@
+--- /dev/null
++++ b/src/domain/applications/MembershipApplication.ts
+@@ -0,0 +1,12 @@
++import { DomainError } from '../errors/DomainError';
++
++export class MembershipApplication {
++  constructor(
++    readonly applicantName: string,
++    readonly email: string,
++    readonly submittedAt: Date,
++    readonly referees: readonly string[],
++  ) {
++    if (applicantName.trim().length === 0) throw new DomainError('INVALID_APPLICATION', 'An application needs a name');
++  }
++}
+--- /dev/null
++++ b/src/domain/services/MembershipApproval.ts
+@@ -0,0 +1,12 @@
++import { MembershipApplication } from '../applications/MembershipApplication';
++import { Member } from '../entities/Member';
++import { DomainError } from '../errors/DomainError';
++
++export class MembershipApproval {
++  approve(application: MembershipApplication, memberId: string): Member {
++    if (application.referees.length === 0) {
++      throw new DomainError('NO_REFEREE', `${application.applicantName} needs at least one referee`);
++    }
++    return new Member(memberId, application.applicantName, application.email, 3);
++  }
++}
