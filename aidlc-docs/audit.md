@@ -1721,3 +1721,10 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: v1.3 evidence unit outside the study stages; no instrument change.
 
 ---
+## v1.3 — P1 reference-engine version independence (scheduled task)
+**Timestamp**: 2026-10-16T09:45:00Z
+**User Input**: (scheduled task, no one present) "Night backlog job #26 (P1): show that the 71 reference results do not depend on the Neo4j version: run ue-baseline-live on the latest Neo4j 2025.x Community with its matching APOC core, diff raw/, report.json and report.md against results/v1.3-reference/after-member-facts, classify any divergence with the interpreter doc's trap classes; optional order-class parity check; report and one PR into v1.3, not merged."
+**AI Response**: "Branch v1.3-neo4j-version-independence from origin/v1.3 dffb1db8. Pass criterion committed first. Neo4j 2025.12.1 Community + bundled APOC 2025.12.1 core (sha256 recorded; database default CYPHER 5). Result PASS: raw/ 71/71, report.json, report.md byte-identical to the 5.26.24 reference, evidence 71/71 identical without elapsedMs; cypher-interp control also 73/73 identical. Optional parity sweep vs 2025.12.1: 70,560 statements, 0 content/error/unsupported, 674 order (T1 ingest-verify, T2 averageInstability only), as on 5.26.24. No code changed; no jest run. Options taken under delegation: 2025.12.1 chosen as 'latest 2025.x' (2025.12.2+ not on dist.neo4j.org); the bundled labs APOC jar used as 'matching APOC core'; Cypher 25 mode and 2026.x left out of scope. The AI-DLC approval gates were not run interactively: the request came from a scheduled task with no one present and its scope (one diagnostic run, a report, an unmerged PR) needs no registered-artefact decision."
+**Context**: v1.3 development-set engine check; no template, tier, preset, spec or sealed material touched.
+
+---
