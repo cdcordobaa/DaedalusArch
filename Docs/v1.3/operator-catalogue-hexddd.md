@@ -60,7 +60,7 @@ Expected templates name the template whose row the application must produce; the
 
 ## 2. Site rules and edits
 
-**Roles come from the spec, never from names** (`hexddd/common.ts`): the core is the `domain`-kind layer; the use-case layers are the `application`-kind layers some allowed edge points to (the composition root is the application-kind layer no edge points to, as in `Docs/v1.3-hexagonal-notes.md` §3); inbound adapters are the `presentation`-kind layer; outbound adapters the `infrastructure`-kind layer. DDD roles are the `architecture.ddd` declarations matched with picomatch. The one name heuristic is the adapter-role list of `port-adapter-pattern` itself (`Repository`, `Repo`, `Adapter`, `Gateway`), used by MO-H04 so that the template can see the class at all.
+**Roles come from the spec, never from names** (`hexddd/common.ts`): the core is the `domain`-kind layer; the use-case layers are the `application`-kind layers some allowed edge points to (the composition root is the application-kind layer no edge points to, as in `Docs/v1.3-hexagonal-notes.md` §3); inbound adapters are the `presentation`-kind layer; outbound adapters the `infrastructure`-kind layer. DDD roles are the `architecture.ddd` declarations matched with picomatch. The one name heuristic is the adapter-role rule of `port-adapter-pattern` itself, as v1.3 compiles it: the class name ends with `Repository`, `Repo`, `Adapter` or `Gateway`, optionally followed by `Impl` (`src/fitness-compiler/v13-role-names.ts`). MO-H04 uses it so that the template can see the class at all.
 
 **Import edits** (MO-H01/H03/H07, MO-D01/D05 and twins): `import { S } from '<relative path>';` after the existing imports, and `export const sRef = S;` (a value) or `export type SRef = S;` (a type) at the end of the file, so the import is used and the edge is a real, non-type-only IMPORTS edge. S is the target's first exported class, else first exported function or variable, else first exported interface or type alias without a required type parameter. A site is dropped when S is already a name in the source file.
 
@@ -108,7 +108,7 @@ Every application is type-checked with the base's own tsc (`--noEmit`); any erro
 1. **Optional injected parameters are invisible to FF-P06 and FF-P02.** The extractor resolves a constructor parameter's type symbol (`src/apg-extractor/edge-extractor.ts`); the type of `x?: T` under `strict` is `T | undefined`, a union with no symbol, so no CONSTRUCTOR_INJECTS edge is written. Found in the first trial run of MO-H06 (all `optional`-form seeds missed FF-P06 while S01 and S04 fired). The operators therefore prefer the `default-new` form; rows record the form, and the run reports FF-P06 hits per form. This is an extractor gap, not an operator defect, and is not fixed here (the extractor is shared with the frozen instrument).
 2. **MO-H03 seeds an advisory rule.** In both libraries an adapter-to-adapter import is reported only by `layer-skip-graph`, sealed advisory (`Docs/v1.3/rule-tiers.md`; the DDD notes propose an ADR to make it blocking). Its recall is reported separately and does not enter the blocking figures.
 3. **FF-P06's field half** (FLOWS_TO / HOLDS_STATE_OF) is N/A under the sealed tiers, so no operator plants a field-held adapter.
-4. **MO-H04 depends on the adapter-role names**: an outbound class named otherwise is not checked by the template and is not a site.
+4. **MO-H04 depends on the adapter-role names**: an outbound class named otherwise (for example `SqlRepositoryBase`, where the role word is not the last token) is not checked by the v1.3 template and is not a site.
 5. **FF-DS02 deep imports of published files** (probe g03, `Docs/v1.3-ddd-notes.md` §6 M2) are not seeded: MO-D05 targets unpublished files only, so its recall does not measure that gap.
 6. **DDD sites need declarations.** On a spec without inner entities (DDH, bitloops) MO-D01 and MO-D02 have no site; without an ACL folder MO-D05a has none.
 7. **Real-project specs are author-written** (§5) and were written by the operator author before any operator ran, but after the projects' layouts were read. They are development data, not registered specs.
@@ -125,3 +125,4 @@ Every application is type-checked with the base's own tsc (`--noEmit`); any erro
 ## 6. Change log
 
 - 2026-10-16: first version (25 entries).
+- 2026-10-16: MO-H04 sites follow the v1.3 suffix role rule instead of the frozen substring test (one first-run seed, `SqlRepositoryBase` on DDH, was outside the template's selection).

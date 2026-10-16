@@ -443,6 +443,15 @@ export const MO_H06N = op(
 /** The adapter-role name parts of `port-adapter-pattern` (`src/fitness-compiler/hexagonal-templates.ts`). */
 export const ADAPTER_ROLES: readonly string[] = ['Repository', 'Repo', 'Adapter', 'Gateway'];
 
+/**
+ * A class the v1.3 compile of `port-adapter-pattern` selects: its name ENDS with a role word, or with the role word and
+ * `Impl` (`src/fitness-compiler/v13-role-names.ts`). The first run used the frozen substring test and seeded
+ * `SqlRepositoryBase`, which the v1.3 query never checks (an operator defect, recorded in the run report).
+ */
+export function hasAdapterRole(name: string): boolean {
+  return ADAPTER_ROLES.some((r) => name.endsWith(r) || name.endsWith(`${r}Impl`));
+}
+
 /** `implements` entries of a class whose interface is declared in a core or use-case file. */
 function portClauses(h: ProjectHandle, r: HexRoles, cls: ClassDeclaration): { text: string; index: number }[] {
   return cls.getImplements().flatMap((e, index) => {
@@ -459,7 +468,7 @@ function adapterSites(h: ProjectHandle, s: ParsedSpec): MutationSite[] {
   for (const sf of filesIn(h, roles, [roles.outbound])) {
     for (const c of sf.getClasses()) {
       const name = c.getName();
-      if (name === undefined || !ADAPTER_ROLES.some((x) => name.includes(x))) continue;
+      if (name === undefined || !hasAdapterRole(name)) continue;
       const ports = portClauses(h, roles, c).map((p) => p.text).join('\n');
       out.push({ filePath: relOf(h, sf), line: c.getStartLineNumber(), kind: 'implements-clause', detail: { class: name, ports } });
     }
