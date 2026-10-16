@@ -6,6 +6,8 @@ import type { InstrumentVersion } from '../fitness-compiler/role-exemptions.js';
 import type { NeuralAggregation } from '../scoring-engine/neural-aggregation.js';
 import type { ScoringMode } from '../shared/types/evaluation.js';
 import type { AdvisoryFilterOption } from '../advisory-filter/advisory-filter.js';
+import type { GraphRepository } from '../shared/interfaces/graph-repository.js';
+import type { GraphEngine } from '../cypher-interp/engine.js';
 
 export interface PipelineConfig {
   readonly projectPath: string;
@@ -39,6 +41,15 @@ export interface PipelineConfig {
    * advisory rows they match move from `violations` to `advisoryFilter.suppressed`. Blocking rows never change.
    */
   readonly advisoryFilter?: readonly AdvisoryFilterOption[] | undefined;
+  /**
+   * Graph engine (v1.3 spike, Docs/v1.3/cypher-interpreter.md): `neo4j` (default, the reference engine) or
+   * `cypher-interp` (the in-process Cypher interpreter over an in-memory graph; no server, no credentials).
+   */
+  readonly graphEngine?: GraphEngine | undefined;
+  /** Harness injection (the parity tee): this repository is used instead of the one `graphEngine` selects. */
+  readonly graphRepository?: GraphRepository | undefined;
+  /** v1.3 npx mode (MCP template checks): in-memory file contents for extraction (absolute path; `null` = removed). */
+  readonly sourceOverrides?: ReadonlyMap<string, string | null> | undefined;
 }
 
 export type OutputFormat = 'json' | 'human' | 'csv';
@@ -63,6 +74,8 @@ export interface BatchOptions {
   readonly neo4jUri: string;
   readonly symbolicOnly: boolean;
   readonly neuronalOnly: boolean;
+  /** Graph engine of every project's pipeline; absent = `neo4j` (the CLI passes its resolved default). */
+  readonly graphEngine?: GraphEngine | undefined;
 }
 
 export interface DriftOptions {
@@ -73,6 +86,8 @@ export interface DriftOptions {
   readonly format: 'json' | 'human';
   readonly neo4jUri: string;
   readonly persist: boolean;
+  /** Graph engine of the fresh evaluation (latest-vs-current); absent = `neo4j`. */
+  readonly graphEngine?: GraphEngine | undefined;
 }
 
 // Moved to C10 (FR-14); re-exported here for existing importers

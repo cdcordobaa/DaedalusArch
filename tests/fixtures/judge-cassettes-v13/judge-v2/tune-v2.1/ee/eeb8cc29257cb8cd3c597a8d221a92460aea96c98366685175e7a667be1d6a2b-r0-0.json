@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7182,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "eeb8cc29257cb8cd3c597a8d221a92460aea96c98366685175e7a667be1d6a2b-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/business/model/Order.ts: class Order has no decorators or base class; its constructor fields are string, Date, readonly OrderLine[], Money and a status union, all plain or domain types",
+      "src/business/model/Order.ts: the constructor enforces the invariant 'An order needs at least one line' via BusinessError from ../errors/BusinessError, a project-declared domain error",
+      "src/business/model/Order.ts: subtotal() and total() are domain calculations built on Money",
+      "src/business/model/Order.ts: cancel() enforces a state-transition rule; its 'CONFLICT' code is a project domain code, not an HTTP status"
+    ],
+    "pass": true,
+    "reasoning": "Order.ts is a plain domain entity. It has no framework decorators, base classes or ORM mappings, and no persistence or I/O. None of its signatures use request, response or HTTP types. It owns domain invariants: an order needs at least one line, and an order can't be cancelled twice. It also owns domain calculations (subtotal and total). It throws BusinessError, which the project declares in src/business/errors, so it's a domain error, not an HTTP error. Its 'INVALID' and 'CONFLICT' codes are domain error categories, not HTTP status codes. Every dependency is a domain type from the same layer. No candidate flags were raised, and checking the source found no violation.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities, signatures and annotations match the role of its declared layer.\n\n## Rubric\nPass: Every declaration in the file belongs to the role and kind of its declared layer, including its parameter, return and field types, its decorators and base classes, and its statements, and agrees with any ADR prose given.\nFail: The file carries something that belongs to a different layer kind. In a domain or application file: a request, response, HTTP context, status code or HTTP error, from a web or transport package or from the delivery layer, in any method or function signature (parameter or return) or thrown, even when the parameter is optional or unused. In a domain file also: any framework or ORM type, decorator or base class (dependency injection, routing, persistence mapping), even when the class logic is pure; or persistence or I/O (queries, database or ORM clients, HTTP or file access). In an infrastructure or presentation file: a business rule, that is a domain invariant, calculation or decision that the domain or application layer should own. Constructor parameters of an application file are dependency wiring: an injected repository, client or service there is not by itself misplaced. A type the project declares itself is not a framework type, whatever its name.\nEvidence required: Name the file and cite the signature, decorator, declaration or statement that carries the misplaced responsibility, its package or origin, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**\n- business (kind: domain): src/business/**\n- presentation (kind: presentation): src/presentation/**\n\n## Unit\nKind: file\nId: src/business/model/Order.ts\nLayer: business\nUnit files:\n- src/business/model/Order.ts\n\n## Source\n=====SOURCE-BEGIN src/business/model/Order.ts=====\nimport { BusinessError } from '../errors/BusinessError';\nimport { Money } from './Money';\nimport { OrderLine } from './OrderLine';\n\nexport class Order {\n  constructor(\n    readonly id: string,\n    readonly customerId: string,\n    readonly lines: readonly OrderLine[],\n    readonly createdAt: Date,\n    readonly discount: Money,\n    private orderStatus: 'placed' | 'cancelled' = 'placed',\n  ) {\n    if (lines.length === 0) throw new BusinessError('INVALID', 'An order needs at least one line');\n  }\n\n  get status(): 'placed' | 'cancelled' {\n    return this.orderStatus;\n  }\n\n  subtotal(): Money {\n    return this.lines.reduce((sum, line) => sum.add(line.total()), Money.zero());\n  }\n\n  total(): Money {\n    return this.subtotal().subtract(this.discount);\n  }\n\n  cancel(): void {\n    if (this.orderStatus === 'cancelled') throw new BusinessError('CONFLICT', `Order ${this.id} is already cancelled`);\n    this.orderStatus = 'cancelled';\n  }\n}\n\n=====SOURCE-END=====\n\n## Neighbourhood\nsrc/business/model/Order.ts (layer business, kind domain)\n  imports: src/business/errors/BusinessError.ts (layer business, kind domain); src/business/model/Money.ts (layer business, kind domain); src/business/model/OrderLine.ts (layer business, kind domain)\n  imported by: src/business/services/OrderService.ts (layer business, kind domain); src/business/services/RecordMapping.ts (layer business, kind domain); src/presentation/views/OrderView.ts (layer presentation, kind presentation)\n  types: Order injects Money in src/business/model/Money.ts (layer business, kind domain)\n\n## Candidate flags\nCandidates proposed by deterministic checks; verify, don't trust. Each line is a tool observation with its location, not a finding.\n(none)\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric. Check each candidate flag against the source: a flag the source does not support must not count against the unit, and a violation the flags miss counts as much as one they name. Judge what each declaration is, not only what it does at run time.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T21:08:11.587Z",
+  "repetition": 0,
+  "requestHash": "eeb8cc29257cb8cd3c597a8d221a92460aea96c98366685175e7a667be1d6a2b",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":630}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"Order.ts is a plain domain entity. It has no framework decorators, base classes or ORM mappings, and no persistence or I/O. None of its signatures use request, response or HTTP types. It owns domain invariants: an order needs at least one line, and an order can't be cancelled twice. It also owns domain calculations (subtotal and total). It throws BusinessError, which the project declares in src/business/errors, so it's a domain error, not an HTTP error. Its 'INVALID' and 'CONFLICT' codes are domain error categories, not HTTP status codes. Every dependency is a domain type from the same layer. No candidate flags were raised, and checking the source found no violation.\\\",\\\"evidence\\\":[\\\"src/business/model/Order.ts: class Order has no decorators or base class; its constructor fields are string, Date, readonly OrderLine[], Money and a status union, all plain or domain types\\\",\\\"src/business/model/Order.ts: the constructor enforces the invariant 'An order needs at least one line' via BusinessError from ../errors/BusinessError, a project-declared domain error\\\",\\\"src/business/model/Order.ts: subtotal() and total() are domain calculations built on Money\\\",\\\"src/business/model/Order.ts: cancel() enforces a state-transition rule; its 'CONFLICT' code is a project domain code, not an HTTP status\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/business/model/Order.ts: class Order has no decorators or base class; its constructor fields are string, Date, readonly OrderLine[], Money and a status union, all plain or domain types\",\"src/business/model/Order.ts: the constructor enforces the invariant 'An order needs at least one line' via BusinessError from ../errors/BusinessError, a project-declared domain error\",\"src/business/model/Order.ts: subtotal() and total() are domain calculations built on Money\",\"src/business/model/Order.ts: cancel() enforces a state-transition rule; its 'CONFLICT' code is a project domain code, not an HTTP status\"],\"pass\":true,\"reasoning\":\"Order.ts is a plain domain entity. It has no framework decorators, base classes or ORM mappings, and no persistence or I/O. None of its signatures use request, response or HTTP types. It owns domain invariants: an order needs at least one line, and an order can't be cancelled twice. It also owns domain calculations (subtotal and total). It throws BusinessError, which the project declares in src/business/errors, so it's a domain error, not an HTTP error. Its 'INVALID' and 'CONFLICT' codes are domain error categories, not HTTP status codes. Every dependency is a domain type from the same layer. No candidate flags were raised, and checking the source found no violation.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/business/model/Order.ts",
+  "usage": {
+    "inputTokens": 2936,
+    "outputTokens": 630
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

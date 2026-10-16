@@ -1,0 +1,19 @@
+{
+  "answer": {
+    "inputTokens": 355,
+    "outputTokens": 20,
+    "servedModel": "fake-gemini",
+    "text": "{\"choice\":\"C\",\"reason\":\"fake google answer\"}"
+  },
+  "failedAttempts": [],
+  "itemKey": "8ab95aa73f7cd307da807d44",
+  "key": "657a1d31f2b026bae49123bd295234b951e98a7698a9ad8721a627076475ffc3",
+  "model": "fake-gemini",
+  "provider": "fake",
+  "request": {
+    "prompt": "## Architectural style\n- Acyclic dependencies: The component dependency graph has no cycles. (Martin 2017, ch. 14 \"Component Coupling\", ADP)\n- Downward-only, no skipping when strict: A higher layer uses services of lower layers, and lower layers do not use upper ones. Strict layering also forbids skipping a layer. (Fowler, *Patterns of Enterprise Application Architecture* (2002), ch. 1 \"Layering\"; Buschmann et al., *POSA vol. 1* (1996), Layers pattern)\n\n## Code excerpt\nFile: src/persistence/ProductGateway.ts\n```ts\n    1 | import { InMemoryDatabase } from './Database';\n    2 | import { ProductRecord } from './records/ProductRecord';\n    3 | \n    4 | \n    5 | export class ProductGateway {\n    6 |   constructor(private readonly db: InMemoryDatabase) {}\n    7 | \n    8 |   findBySku(sku: string): ProductRecord | undefined {\n    9 |     return this.db.table<ProductRecord>('products').get(sku);\n   10 |   }\n   11 | \n   12 |   findAll(): ProductRecord[] {\n   13 |     return [...this.db.table<ProductRecord>('products').values()];\n   14 |   }\n   15 | \n   16 |   insert(record: ProductRecord): void {\n```\n\n## Reported finding\nsrc/persistence/ProductGateway.ts (persistence) imports from src/business/services/OrderService.ts (business) (line 1)\n\n## Question\nWould an architect following this style want this changed?\nA. uncertain\nB. yes\nC. no\n\nReply with JSON only: {\"choice\": \"<letter>\", \"reason\": \"<one sentence>\"}",
+    "system": "You are a software architect reviewing a TypeScript code base against an architectural style. Judge only from the material in the message: the style definition, the code excerpt and the reported finding. You have no tools. Reply with one JSON object and nothing else.",
+    "temperature": 0
+  },
+  "runIndex": 1
+}

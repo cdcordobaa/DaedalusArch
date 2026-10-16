@@ -1,0 +1,36 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8984,
+  "effort": "high",
+  "functionId": "filter-explain",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "c285fe58753b6a1762ce9c36f56afcc34a4365d69d04d95e4f74ce9faf590e6e-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "## Finding\nRule: FF-C01\nRule intent: Domain files are stable: few outgoing dependencies relative to incoming ones (instability threshold).\nType: INSTABILITY_VIOLATION\nSeverity: major; tier: advisory (unscored)\nFile: src/domain/services/LoanPolicy.ts\nMessage: Violation in src/domain/services/LoanPolicy.ts\nEvidence: instability=0.5\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Source (line-numbered)\n=====SOURCE-BEGIN src/domain/services/LoanPolicy.ts (layer domain)=====\n 1| import { Loan } from '../entities/Loan';\n 2| import { Member } from '../entities/Member';\n 3| import { DomainError } from '../errors/DomainError';\n 4| import { SystemClock } from '../../infrastructure/system/SystemClock';\n 5| \n 6| export class LoanPolicy {\n 7|   private readonly clock = new SystemClock();\n 8| \n 9|   isOverdueToday(loan: Loan): boolean {\n10|     return loan.isOverdue(this.clock.now());\n11|   }\n12| \n13|   assertCanBorrow(member: Member, activeLoans: readonly Loan[], now: Date): void {\n14|     if (activeLoans.some((loan) => loan.isOverdue(now))) {\n15|       throw new DomainError('OVERDUE_LOANS', `${member.name} has overdue loans`);\n16|     }\n17|     if (activeLoans.length >= member.maxActiveLoans) {\n18|       throw new DomainError('LOAN_LIMIT', `${member.name} reached the limit of ${member.maxActiveLoans} loans`);\n19|     }\n20|   }\n21| }\n=====SOURCE-END=====\n\n## Instructions\nDecide confirm or dismiss. Confirm: the cited code has the problem the rule is meant to catch, in this project and layer model. Dismiss: the rule fired, but the code does not have that problem (a false positive of the rule's mechanism, a threshold artefact on sound code, or a case the style allows). Measurements stated in the finding (counts, ratios, missing files) are correct as measurements; judge what they mean for this code. explanation: one paragraph that justifies the decision from the code, citing file paths and line numbers exactly as numbered below. fix: one concrete change: for a confirm, how to fix the code; for a dismiss, what (if anything) the rule or its configuration should change. citations: the line ranges your explanation relies on; every one must name a file shown below and lines that exist.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T00:04:31.455Z",
+  "repetition": 0,
+  "requestHash": "c285fe58753b6a1762ce9c36f56afcc34a4365d69d04d95e4f74ce9faf590e6e",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":770}},\"result\":\"{\\\"decision\\\":\\\"confirm\\\",\\\"explanation\\\":\\\"This is a real problem, not just a number over a threshold. Three of the four outgoing dependencies in src/domain/services/LoanPolicy.ts are fine because they stay inside the domain: the Loan and Member entities and DomainError (lines 1-3). The fourth is not. Line 4 imports SystemClock from src/infrastructure/system/SystemClock, which takes the domain file outside its own layer and into the infrastructure layer. Line 7 then creates that concrete class directly (`new SystemClock()`), and line 10 relies on it in isOverdueToday. So a domain service is coupled to an infrastructure detail. This is the kind of unstable outgoing dependency the instability rule is meant to catch, and it pushes the measured instability up to 0.5. The class already shows the cleaner pattern: assertCanBorrow (lines 13-20) takes `now: Date` as a parameter and depends on nothing outside the domain. Only the clock-based path makes the class depend on infrastructure.\\\",\\\"fix\\\":\\\"Remove the infrastructure import from LoanPolicy.ts. Change isOverdueToday to take `now: Date` as a parameter, the same way assertCanBorrow does, and drop the `clock` field. Alternatively, define a `Clock` interface in src/domain (for example src/domain/ports/Clock.ts) and pass it in through the LoanPolicy constructor. The application or composition root would then supply the infrastructure SystemClock, which implements that interface.\\\",\\\"citations\\\":[{\\\"filePath\\\":\\\"src/domain/services/LoanPolicy.ts\\\",\\\"startLine\\\":4,\\\"endLine\\\":4},{\\\"filePath\\\":\\\"src/domain/services/LoanPolicy.ts\\\",\\\"startLine\\\":7,\\\"endLine\\\":11},{\\\"filePath\\\":\\\"src/domain/services/LoanPolicy.ts\\\",\\\"startLine\\\":13,\\\"endLine\\\":20}]}\",\"structured_output\":{\"citations\":[{\"endLine\":4,\"filePath\":\"src/domain/services/LoanPolicy.ts\",\"startLine\":4},{\"endLine\":11,\"filePath\":\"src/domain/services/LoanPolicy.ts\",\"startLine\":7},{\"endLine\":20,\"filePath\":\"src/domain/services/LoanPolicy.ts\",\"startLine\":13}],\"decision\":\"confirm\",\"explanation\":\"This is a real problem, not just a number over a threshold. Three of the four outgoing dependencies in src/domain/services/LoanPolicy.ts are fine because they stay inside the domain: the Loan and Member entities and DomainError (lines 1-3). The fourth is not. Line 4 imports SystemClock from src/infrastructure/system/SystemClock, which takes the domain file outside its own layer and into the infrastructure layer. Line 7 then creates that concrete class directly (`new SystemClock()`), and line 10 relies on it in isOverdueToday. So a domain service is coupled to an infrastructure detail. This is the kind of unstable outgoing dependency the instability rule is meant to catch, and it pushes the measured instability up to 0.5. The class already shows the cleaner pattern: assertCanBorrow (lines 13-20) takes `now: Date` as a parameter and depends on nothing outside the domain. Only the clock-based path makes the class depend on infrastructure.\",\"fix\":\"Remove the infrastructure import from LoanPolicy.ts. Change isOverdueToday to take `now: Date` as a parameter, the same way assertCanBorrow does, and drop the `clock` field. Alternatively, define a `Clock` interface in src/domain (for example src/domain/ports/Clock.ts) and pass it in through the LoanPolicy constructor. The application or composition root would then supply the infrastructure SystemClock, which implements that interface.\"}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "e3a5810318c0d83c",
+  "usage": {
+    "inputTokens": 2347,
+    "outputTokens": 770
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
