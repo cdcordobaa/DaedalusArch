@@ -1,0 +1,133 @@
+{
+ "id": "reactive-resume-api",
+ "repo": "amruthpillai/reactive-resume",
+ "pin": "8da9d9da475da3372fed2ea527494e195fb18abb",
+ "root": "packages/api",
+ "universe": 127,
+ "eligible": 124,
+ "declaredRefactors": 2,
+ "controlPool": 76,
+ "cap": 10,
+ "caliper": 1.5,
+ "k": 3,
+ "allMatches": [
+  {
+   "sha": "6d8d8f6e559de20958ceda64a46ee0abb9858f90",
+   "index": 20,
+   "kind": "squash",
+   "pr": 3062,
+   "families": [
+    "B"
+   ],
+   "phrases": {
+    "B": "Decouple"
+   },
+   "subject": "feat: add AI agent workspace (#3062)"
+  },
+  {
+   "sha": "8c40313980c4e384f042696c72044bd908948d1b",
+   "index": 108,
+   "kind": "squash",
+   "pr": 3541,
+   "families": [
+    "G"
+   ],
+   "phrases": {
+    "G": "restructure"
+   },
+   "subject": "feat(deploy): support Vercel Hobby alongside Docker (#3541)"
+  }
+ ],
+ "sets": [
+  {
+   "refactor": {
+    "sha": "6d8d8f6e559de20958ceda64a46ee0abb9858f90",
+    "parent": "22c60c64b6e6f5500c20d85a93711cfb07136609",
+    "index": 20,
+    "date": "2026-05-14T13:00:04.000Z",
+    "kind": "squash",
+    "pr": 3062,
+    "families": [
+     "B"
+    ],
+    "phrases": {
+     "B": "Decouple"
+    },
+    "files": 30,
+    "lines": 5874,
+    "subject": "feat: add AI agent workspace (#3062)",
+    "message": "feat: add AI agent workspace (#3062)\n\n* chore(ai): remove local AI store now that providers live server-side\n\nThe Zustand-based useAIStore has been replaced by the server-side\naiProviders oRPC router (encrypted credentials persisted in DB).\nDelete the dead store + tests, drop the ./store export, and remove\nzustand/immer deps which are no longer referenced anywhere in\npackages/ai/src/.\n\n* feat(agent): archive/delete actions and read-only state for agent threads\n\n- Backend: mark archived threads as read-only in threads.get and reject\n  messages.send with CONFLICT when the thread is archived.\n- Frontend: render archived threads in the sidebar with muted styling and\n  an Archived badge; add a per-thread dropdown menu in the chat header\n  with Archive (non-destructive) and Delete (with confirmation); show a\n  read-only banner above the message list that disambiguates archived\n  vs. missing-resource causes; suppress the Retry and Stop buttons in\n  read-only mode.\n- Tests: new packages/api/src/services/agent.test.ts covering the\n  archived-thread isReadOnly flag and the archived-thread send refusal.\n\n* fix(agent): abort run on archive and verify ownership before deleting thread\n\n- threads.archive: before flipping status, abort any in-flight run controller\n  and clear the active-run state on the thread; cleanup failures are logged\n  but do not block the status update.\n- threads.delete: assert thread ownership via getThread before destructive\n  work so an authenticated user cannot wip"
+   },
+   "controls": [
+    {
+     "sha": "d2ffbf9618d0afce6a6570a2d2c34d1be9e599a6",
+     "parent": "4ac19f81b3d290dd063764ff6b0fa3dd94d34632",
+     "index": 64,
+     "date": "2026-07-30T10:39:15.000Z",
+     "kind": "squash",
+     "pr": 3274,
+     "distance": 0.4517,
+     "files": 38,
+     "lines": 4704,
+     "subject": "feat: add semantic CSS stylesheets (#3274)"
+    },
+    {
+     "sha": "ba4bec2bd8fef665629d5a4092e1ecfcd5c6880e",
+     "parent": "b128f97df6d0e32b2ab3d3282f6e80813e869ca2",
+     "index": 113,
+     "date": "2026-10-08T14:01:41.000Z",
+     "kind": "direct",
+     "distance": 0.7493,
+     "files": 55,
+     "lines": 6879,
+     "subject": "feat(career): add career and application workspaces"
+    },
+    {
+     "sha": "6e447d1bcc56355dc5d4e277f8b215e3c9dbe3b7",
+     "parent": "148d564fe8f5dc56b5e97b6b328d4b2f1d0685c4",
+     "index": 1,
+     "date": "2026-05-07T13:14:21.000Z",
+     "kind": "direct",
+     "distance": 1.0708,
+     "files": 22,
+     "lines": 2713,
+     "subject": "Merge branch 'main' of github.com:amruthpillai/reactive-resume"
+    }
+   ]
+  },
+  {
+   "refactor": {
+    "sha": "8c40313980c4e384f042696c72044bd908948d1b",
+    "parent": "73ed3f9b0331d9ae4f97040d2684d06d0357e1ff",
+    "index": 108,
+    "date": "2026-09-26T00:37:22.000Z",
+    "kind": "squash",
+    "pr": 3541,
+    "families": [
+     "G"
+    ],
+    "phrases": {
+     "G": "restructure"
+    },
+    "files": 22,
+    "lines": 1761,
+    "subject": "feat(deploy): support Vercel Hobby alongside Docker (#3541)",
+    "message": "feat(deploy): support Vercel Hobby alongside Docker (#3541)\n\n* feat(deploy): support Vercel Hobby alongside Docker\n\n* fix(deploy): include PDFKit runtime font assets\n\n* docs(deploy): document Vercel and Docker setup\n\n* docs(deploy): record storage persistence checks\n\n* refactor(deploy): drop scheduled staging cleanup\n\nStaging uploads are deleted after finalization and expired ones are swept\non each new upload, so the Vercel cron job, its route, and CRON_SECRET are\nno longer needed. The Deploy with Vercel wizard now asks for two secrets.\n\n* docs(deploy): restructure Vercel guides\n\nSplit the Vercel page into a how-to with its environment reference, move the\nlarge RPC staging protocol to an API reference page, and move CI deployment\nchecks to the contributing section. Point Deploy with Vercel buttons at main.\n\n* chore: remove agent planning records and fix web app description\n\nDelete superpowers plans/specs, ADRs, issue plans, execution briefs, domain\ncontext maps, and Europass research. Describe apps/web as a TanStack Router\nSPA served by apps/server.\n\n* refactor(deploy): simplify Vercel support code\n\n- Share one Redis client and key namespace through @reactive-resume/db/redis\n  for API and auth instead of a second auth-only client.\n- Drop the auth seeding retry; the provider already treats concurrent inserts\n  as no-ops and deployment preparation seeds before runtime.\n- Detect staging support from POST /api/storage/stage (404 on Docker) instead\n  of a separate GET probe.\n- Rea"
+   },
+   "controls": [
+    {
+     "sha": "90105cb1480f636899ae50687ece102c2689f66a",
+     "parent": "73daf22b2f8df55f0041c48c2e119fa215064cc0",
+     "index": 56,
+     "date": "2026-07-08T17:08:31.000Z",
+     "kind": "direct",
+     "distance": 0.9037,
+     "files": 15,
+     "lines": 1025,
+     "subject": "chore: integrate improve-integration"
+    }
+   ]
+  }
+ ],
+ "seconds": 1
+}

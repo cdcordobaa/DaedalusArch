@@ -10,6 +10,7 @@
  * The spec is read from the base commit by default: a pull request that loosens the spec does not loosen its own gate.
  * `specFrom: 'head'` reads it from the head commit instead (a PR that is meant to change the spec).
  */
+import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -32,7 +33,11 @@ export interface CheckOptions {
   readonly project?: string;
   readonly specFrom?: 'base' | 'head';
   readonly engine: GateEngine;
-  /** Evaluations keyed by `<sha>:<project>:<spec>` (a caller that checks many pairs evaluates each commit once). */
+  /**
+   * Evaluations keyed by `<sha>:<project>:<spec path>:<spec sha256>:<engine>` (a caller that checks many pairs
+   * evaluates each commit once per spec). The spec's content hash is part of the key, so a cache shared along a chain
+   * whose spec changes never serves findings computed under another spec.
+   */
   readonly cache?: Map<string, EngineEvaluation>;
   readonly log?: (text: string) => void;
 }
@@ -74,9 +79,10 @@ export async function runCheck(opts: CheckOptions): Promise<GateResult> {
     };
     const specPath = path.join(treeOf(opts.specFrom === 'head' ? headSha : baseSha), spec);
     const parsedSpec = await loadSpec(specPath);
+    const specSha256 = createHash('sha256').update(fs.readFileSync(specPath)).digest('hex');
 
     const evaluate = async (ref: string, sha: string): Promise<CommitEvaluation & { readonly blockingNotExecuted: readonly string[] }> => {
-      const key = `${sha}:${project}:${spec}:${opts.specFrom ?? 'base'}:${opts.engine.name}`;
+      const key = `${sha}:${project}:${spec}:${specSha256}:${opts.engine.name}`;
       let evaluation = opts.cache?.get(key);
       if (evaluation === undefined) {
         const projectDir = path.join(treeOf(sha), project);

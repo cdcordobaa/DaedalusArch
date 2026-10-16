@@ -1,0 +1,192 @@
+{
+ "id": "faao",
+ "repo": "azu/faao",
+ "sha": "9574fc49616f459e313805ded703607c25f88b05",
+ "licence": "MIT",
+ "ruleFile": ".dependency-cruiser.json",
+ "root": ".",
+ "depcruise": {
+  "version": "18.4.0",
+  "wallMs": 2716,
+  "tsPreCompilationDeps": false,
+  "layerRules": [
+   {
+    "name": "domain-not-to-depend-on-infra",
+    "severity": "error",
+    "comment": "Don't allow dependencies from domain to infra",
+    "from": {
+     "path": "^src/domain"
+    },
+    "to": {
+     "path": "^src/infra"
+    }
+   },
+   {
+    "name": "domain-not-to-depend-on-store",
+    "severity": "error",
+    "comment": "Don't allow dependencies from domain to store",
+    "from": {
+     "path": "^src/domain"
+    },
+    "to": {
+     "path": "^src/store"
+    }
+   },
+   {
+    "name": "domain-not-to-depend-on-component",
+    "severity": "error",
+    "comment": "Don't allow dependencies from domain to component",
+    "from": {
+     "path": "^src/domain"
+    },
+    "to": {
+     "path": "^src/component"
+    }
+   },
+   {
+    "name": "store-not-to-depend-on-component",
+    "severity": "error",
+    "comment": "Don't allow dependencies from store to component",
+    "from": {
+     "path": "^src/store"
+    },
+    "to": {
+     "path": "^src/component"
+    }
+   }
+  ],
+  "excludedRules": [
+   {
+    "name": "not-to-test",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "not-to-spec",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "no-deprecated-core",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "no-deprecated-npm",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "not-to-unresolvable",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "not-to-dev-dep",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "no-non-package-json",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "optional-deps-used",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "peer-deps-used",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "no-duplicate-dep-types",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "no-circular",
+    "reason": "dependency-cruiser recommended preset"
+   }
+  ],
+  "layerViolationsAll": 0,
+  "layerViolationsInScope": 0,
+  "otherViolations": 496
+ },
+ "scope": {
+  "files": 197,
+  "localEdges": 514
+ },
+ "translation": {
+  "atoms": [
+   {
+    "name": "atom-01",
+    "label": "to:domain-not-to-depend-on-component; to:store-not-to-depend-on-component",
+    "files": 40
+   },
+   {
+    "name": "atom-02",
+    "label": "to:domain-not-to-depend-on-store; from:store-not-to-depend-on-component",
+    "files": 14
+   },
+   {
+    "name": "atom-03",
+    "label": "to:domain-not-to-depend-on-infra",
+    "files": 14
+   },
+   {
+    "name": "atom-04",
+    "label": "from:domain-not-to-depend-on-infra; from:domain-not-to-depend-on-store; from:domain-not-to-depend-on-component",
+    "files": 64
+   }
+  ],
+  "forbiddenPairs": 4,
+  "allowedPairs": 8,
+  "selfForbidden": [],
+  "unconstrainedFiles": 65,
+  "inexpressibleEdges": []
+ },
+ "theirs": [],
+ "resolved": {
+  "label": "resolved-atoms",
+  "ourFindingsS01S03": 1,
+  "ourKeysInScope": 1,
+  "ourKeysCompared": 1,
+  "typeOnlyDropped": 0,
+  "confusion": {
+   "both": 0,
+   "oursOnly": 1,
+   "theirsOnly": 0,
+   "neither": 514,
+   "kappa": 0,
+   "observedAgreement": 0.9980582524271845
+  },
+  "flagged": [
+   "src/domain/App/Activity/GitHubActiveItemService.ts|src/store/GitHubSearchStreamStore/GitHubSearchStreamStateItem.ts"
+  ],
+  "oursOnly": [
+   "src/domain/App/Activity/GitHubActiveItemService.ts|src/store/GitHubSearchStreamStore/GitHubSearchStreamStateItem.ts"
+  ],
+  "theirsOnly": [],
+  "ourFailedFunctions": [],
+  "ourFileNodes": 197,
+  "ourWallMs": 20382
+ },
+ "idiomatic": {
+  "label": "idiomatic",
+  "ourFindingsS01S03": 1,
+  "ourKeysInScope": 1,
+  "ourKeysCompared": 1,
+  "typeOnlyDropped": 0,
+  "confusion": {
+   "both": 0,
+   "oursOnly": 1,
+   "theirsOnly": 0,
+   "neither": 514,
+   "kappa": 0,
+   "observedAgreement": 0.9980582524271845
+  },
+  "flagged": [
+   "src/domain/App/Activity/GitHubActiveItemService.ts|src/store/GitHubSearchStreamStore/GitHubSearchStreamStateItem.ts"
+  ],
+  "oursOnly": [
+   "src/domain/App/Activity/GitHubActiveItemService.ts|src/store/GitHubSearchStreamStore/GitHubSearchStreamStateItem.ts"
+  ],
+  "theirsOnly": [],
+  "ourFailedFunctions": [],
+  "ourFileNodes": 197,
+  "ourWallMs": 21006
+ }
+}

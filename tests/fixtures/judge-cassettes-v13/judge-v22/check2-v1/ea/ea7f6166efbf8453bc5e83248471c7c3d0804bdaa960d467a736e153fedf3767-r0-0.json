@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6281,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "ea7f6166efbf8453bc5e83248471c7c3d0804bdaa960d467a736e153fedf3767-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/domain/model/Spot.ts: class Spot holds only entity state (code, level, electric, hourlyRateCents) and a constructor.",
+      "src/domain/model/Spot.ts: priceFor(hours) computes base = hours * hourlyRateCents and applies a 0.8 multiplier for hours >= 8. This is pure business logic, which belongs in the domain layer.",
+      "src/domain/model/Spot.ts: no database, HTTP, framework, serialization or other I/O code appears anywhere in the file."
+    ],
+    "pass": true,
+    "reasoning": "src/domain/model/Spot.ts is a plain domain entity. It holds spot attributes (code, level, electric, hourlyRateCents) and one business rule, priceFor(hours), which applies a 20% discount when a stay is 8 hours or longer. Pricing logic like this belongs in the domain layer. The file has no persistence, transport, framework or I/O code, so every responsibility it carries fits the domain layer's role.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- adapters-inbound (kind: presentation): src/adapters/inbound/**\n- adapters-outbound (kind: infrastructure): src/adapters/outbound/**\n- config (kind: application): src/config/**\n\n## Unit\nKind: file\nId: src/domain/model/Spot.ts\nLayer: domain\nUnit files:\n- src/domain/model/Spot.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/model/Spot.ts=====\nexport class Spot {\n  code: string;\n  level: number;\n  electric: boolean;\n  hourlyRateCents: number;\n\n  constructor(code: string, level: number, electric: boolean, hourlyRateCents: number) {\n    this.code = code;\n    this.level = level;\n    this.electric = electric;\n    this.hourlyRateCents = hourlyRateCents;\n  }\n\n  priceFor(hours: number): number {\n    const base = hours * this.hourlyRateCents;\n    return hours >= 8 ? Math.round(base * 0.8) : base;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/adapters/outbound/persistence/InMemorySpotRepository.ts\",\"to\":\"src/domain/model/Spot.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/ports/out/SpotRepository.ts\",\"to\":\"src/domain/model/Spot.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Spot\",\"path\":\"src/domain/model/Spot.ts\"},{\"kind\":\"File\",\"layer\":\"adapters-outbound\",\"path\":\"src/adapters/outbound/persistence/InMemorySpotRepository.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports/out/SpotRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/model/Spot.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T02:28:07.810Z",
+  "repetition": 0,
+  "requestHash": "ea7f6166efbf8453bc5e83248471c7c3d0804bdaa960d467a736e153fedf3767",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":459}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"src/domain/model/Spot.ts is a plain domain entity. It holds spot attributes (code, level, electric, hourlyRateCents) and one business rule, priceFor(hours), which applies a 20% discount when a stay is 8 hours or longer. Pricing logic like this belongs in the domain layer. The file has no persistence, transport, framework or I/O code, so every responsibility it carries fits the domain layer's role.\\\",\\\"evidence\\\":[\\\"src/domain/model/Spot.ts: class Spot holds only entity state (code, level, electric, hourlyRateCents) and a constructor.\\\",\\\"src/domain/model/Spot.ts: priceFor(hours) computes base = hours * hourlyRateCents and applies a 0.8 multiplier for hours >= 8. This is pure business logic, which belongs in the domain layer.\\\",\\\"src/domain/model/Spot.ts: no database, HTTP, framework, serialization or other I/O code appears anywhere in the file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/domain/model/Spot.ts: class Spot holds only entity state (code, level, electric, hourlyRateCents) and a constructor.\",\"src/domain/model/Spot.ts: priceFor(hours) computes base = hours * hourlyRateCents and applies a 0.8 multiplier for hours >= 8. This is pure business logic, which belongs in the domain layer.\",\"src/domain/model/Spot.ts: no database, HTTP, framework, serialization or other I/O code appears anywhere in the file.\"],\"pass\":true,\"reasoning\":\"src/domain/model/Spot.ts is a plain domain entity. It holds spot attributes (code, level, electric, hourlyRateCents) and one business rule, priceFor(hours), which applies a 20% discount when a stay is 8 hours or longer. Pricing logic like this belongs in the domain layer. The file has no persistence, transport, framework or I/O code, so every responsibility it carries fits the domain layer's role.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/model/Spot.ts",
+  "usage": {
+    "inputTokens": 2428,
+    "outputTokens": 459
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

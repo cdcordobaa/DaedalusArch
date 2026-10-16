@@ -1,7 +1,8 @@
 /**
  * MCP server wiring: registers the eleven DaedalusArch tools (MCP v2: the eight v1 tools with v1.3 fields added, plus
  * `infer_spec` and `explain_finding`; then `propose_spec`) on an `McpServer`, plus the two neural-arm tools
- * (`review_unit`, `explain_and_fix`) when the server runs with `--neural` (Docs/v1.3/neural-arm-agent-tools.md). Transport-agnostic (`main.ts`
+ * (`review_unit`, `explain_and_fix`) when the server runs with `--neural` (Docs/v1.3/neural-arm-agent-tools.md), and
+ * `propose_rules` (rule mining) only with `--rule-mining` / `DAEDALUS_RULE_MINING=1` (off by default). Transport-agnostic (`main.ts`
  * connects stdio; the tests connect an in-memory pair). Tools only read the spec and, for `evaluate_project`,
  * run the existing pipeline; `propose_spec` reads the project's source; none writes to the project under evaluation.
  */
@@ -18,6 +19,7 @@ import {
   explainViolationTool,
   getArchitectureSpec,
   inferSpecTool,
+  proposeRulesTool,
   proposeSpecTool,
   reviewUnitTool,
   suggestPlacementTool,
@@ -43,6 +45,14 @@ export const TOOL_NAMES: readonly string[] = Object.freeze([
   'explain_finding',
   'propose_spec',
 ]);
+
+/** Opt-in tools, registered after `TOOL_NAMES` only when the context enables them (`ServerContext.ruleMining`). */
+export const RULE_MINING_TOOL_NAMES: readonly string[] = Object.freeze(['propose_rules']);
+
+/** The tools a server built from `ctx` registers, in registration order. */
+export function toolNamesFor(ctx: Pick<ServerContext, 'ruleMining'>): readonly string[] {
+  return ctx.ruleMining === true ? [...TOOL_NAMES, ...RULE_MINING_TOOL_NAMES] : TOOL_NAMES;
+}
 
 /** Tools that read only the spec: instant, no graph, no database (the set an experiment arm may allow-list). */
 export const SPEC_TOOL_NAMES: readonly string[] = Object.freeze(
@@ -168,6 +178,15 @@ const proposeShape = {
     .string()
     .optional()
     .describe("Project root (needs src/ and tsconfig.json); defaults to the server's configured project."),
+};
+const proposeRulesShape = {
+  project: z
+    .string()
+    .optional()
+    .describe("Project root (its src/ and tsconfig.json are read); defaults to the server's configured project."),
+  minConfidence: z.number().min(0).max(1).optional().describe('Leave rules below this confidence (0-1) out of the proposed spec; they are still listed.'),
+  includeSpec: z.boolean().optional().describe('Include the proposed spec YAML (default true).'),
+  maxExceptions: z.number().int().min(0).optional().describe('Exceptions listed per rule (default 20).'),
 };
 const explainShape = {
   rule: z.string().min(1).describe('Rule id, rule name or violation type.'),
@@ -381,6 +400,17 @@ export function createServer(ctx: ServerContext): McpServer {
     async (args) => toResult(await proposeSpecTool(ctx, z.object(proposeShape).parse(args))),
   );
   if (ctx.neural !== undefined) registerNeuralTools(register, ctx);
+  if (ctx.ruleMining === true) register(
+    'propose_rules',
+    {
+      title: 'Propose the implicit architecture rules of a project (proposals)',
+      description:
+        'For a project with no spec: mines the dependency rules its code already follows from its graph (deterministic, no LLM, no Neo4j) and returns them as PROPOSALS, each with evidence counts, a confidence (high/medium/low) and its exceptions (candidate violations, not confirmed ones), plus a proposed spec that compiles to the existing templates. Rule kinds: layer direction, rare and unobserved layer pairs, acyclicity, component direction, public-API use, port implementation, interface injection, framework-free core. Review before adopting. Takes seconds (extracts the project graph twice).',
+      inputSchema: proposeRulesShape,
+      annotations: readOnly,
+    },
+    async (args) => toResult(await proposeRulesTool(ctx, z.object(proposeRulesShape).parse(args))),
+  );
 
   return server;
 }

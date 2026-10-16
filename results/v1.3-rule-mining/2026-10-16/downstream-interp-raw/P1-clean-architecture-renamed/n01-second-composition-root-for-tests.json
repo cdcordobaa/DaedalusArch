@@ -1,0 +1,123 @@
+{
+ "minedSpec": "# PROPOSED rules, mined from the code (daedalus mine-rules; src/rule-mining). Not a reviewed spec: review before use.\n# style: clean-architecture (ISE, confidence 1.00); layers: ISE preset-first\n# mined rules: 9 (9 emitted)\n# MR-001 [layer-direction, high 0.87] domain must not depend on application (17 edges application -> domain; 0/11 domain files import application)\n# MR-002 [layer-direction, high 0.83] domain must not depend on infrastructure (10 edges infrastructure -> domain; 0/11 domain files import infrastructure)\n# MR-003 [layer-direction, high 0.82] application must not depend on infrastructure (12 edges infrastructure -> application; 0/8 application files import infrastructure)\n# MR-004 [acyclic-files, high 0.97] no file lies on an import cycle (29/29 files do not)\n# MR-005 [component-direction, high 0.87] folder component kernel must not depend on orchestration (17 imports orchestration -> kernel; 0/11 files import back)\n# MR-006 [component-direction, high 0.80] folder component kernel must not depend on platform (7 imports platform -> kernel; 0/11 files import back)\n# MR-007 [component-direction, high 0.81] folder component orchestration must not depend on platform (10 imports platform -> orchestration; 0/8 files import back)\n# MR-008 [port-implementation, high 0.75] every *Repository class in infrastructure implements an interface declared in another layer (3/3)\n# MR-009 [inject-abstractions, high 0.88] classes of application inject interfaces across layers, not concrete classes (7/7)\n\nspec_version: \"1.0.0\"\n\narchitecture:\n  style: clean-architecture\n\n  layers:\n    - name: domain\n      directories:\n        - src/kernel/**\n      roles:\n        - entity\n        - value-object\n        - domain-service\n        - repository-interface\n\n    - name: application\n      directories:\n        - src/orchestration/**\n      roles:\n        - use-case\n        - dto\n        - application-service\n\n    - name: infrastructure\n      directories:\n        - src/platform/**\n      roles:\n        - repository-impl\n        - controller\n        - middleware\n        - orm-entity\n\nfitness_functions:\n\n  # ── STRUCTURAL ──\n\n  # mined: MR-001 high 0.87, 0 exceptions; MR-002 high 0.83, 0 exceptions; MR-003 high 0.82, 0 exceptions\n  - id: FF-S01\n    name: dependency-direction\n    dimension: structural\n    severity: critical\n    route: symbolic\n    validated: true\n\n  # mined: MR-004 high 0.97, 0 exceptions\n  - id: FF-S02\n    name: no-cyclic-deps\n    dimension: structural\n    severity: critical\n    route: symbolic\n    validated: true\n\n  # mined: MR-009 high 0.88, 0 exceptions\n  - id: FF-P02\n    name: dependency-inversion\n    dimension: pattern\n    severity: critical\n    route: symbolic\n    validated: true\n    threshold: 0.85\n\n  # mined: MR-008 high 0.75, 0 exceptions\n  - id: FF-P03\n    name: repository-pattern\n    dimension: pattern\n    severity: critical\n    route: symbolic\n    validated: true\n  # mined: MR-005 high 0.87, 0 exceptions; MR-006 high 0.80, 0 exceptions; MR-007 high 0.81, 0 exceptions (APG v2: evaluated on a graph extracted with V13_APG2_OPTIONS)\n  - id: FF-A01\n    name: component-adp-cycle\n    dimension: structural\n    severity: advisory\n    route: symbolic\n    validated: false\n\n  # not mined: switched off (the style template would otherwise add them)\n  - id: FF-S03\n    name: no-layer-skip\n    dimension: structural\n    severity: critical\n    route: symbolic\n    validated: false\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-S04\n    name: no-domain-outward-dep\n    dimension: structural\n    severity: major\n    route: symbolic\n    validated: false\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-P01\n    name: domain-purity\n    dimension: pattern\n    severity: critical\n    route: symbolic\n    validated: true\n    forbidden_imports:\n      - \"@nestjs/*\"\n      - typeorm\n      - express\n      - prisma\n      - \"@prisma/*\"\n      - sequelize\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-P04\n    name: use-case-isolation\n    dimension: pattern\n    severity: major\n    route: symbolic\n    validated: true\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-P05\n    name: controller-no-entity\n    dimension: pattern\n    severity: major\n    route: symbolic\n    validated: false\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-P06\n    name: domain-state-purity\n    dimension: pattern\n    severity: critical\n    route: symbolic\n    validated: false\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-C01\n    name: domain-stability\n    dimension: coupling\n    severity: major\n    route: symbolic\n    validated: true\n    threshold: 0.3\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-C02\n    name: module-fan-out\n    dimension: coupling\n    severity: major\n    route: symbolic\n    validated: true\n    threshold: 10\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-C03\n    name: component-instability\n    dimension: coupling\n    severity: major\n    route: symbolic\n    validated: true\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-C04\n    name: no-orphan-files\n    dimension: coupling\n    severity: minor\n    route: symbolic\n    validated: false\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-C05\n    name: max-fan-in\n    dimension: coupling\n    severity: minor\n    route: symbolic\n    validated: false\n    threshold: 15\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-C06\n    name: abstraction-ratio\n    dimension: coupling\n    severity: advisory\n    route: symbolic\n    validated: false\n    threshold: 0.3\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-SO01\n    name: single-responsibility-proxy\n    dimension: solid\n    severity: major\n    route: symbolic\n    validated: true\n    max_public_methods: 10\n    max_dependencies: 5\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-SO02\n    name: interface-segregation-proxy\n    dimension: solid\n    severity: major\n    route: symbolic\n    validated: true\n    max_interface_methods: 5\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-SO03\n    name: inheritance-depth\n    dimension: solid\n    severity: minor\n    route: symbolic\n    validated: false\n    max_depth: 3\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-CV01\n    name: naming-conventions\n    dimension: convention\n    severity: minor\n    route: symbolic\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n    validated: true\n\n  - id: FF-CV02\n    name: naming-services\n    dimension: convention\n    severity: minor\n    route: symbolic\n    validated: false\n    pattern: \"*Service|*UseCase\"\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-CV03\n    name: naming-repos\n    dimension: convention\n    severity: minor\n    route: symbolic\n    validated: false\n    pattern: \"*Repository|*Repo\"\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-CV04\n    name: naming-controllers\n    dimension: convention\n    severity: minor\n    route: symbolic\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n    validated: false\n    pattern: \"*Controller\"\n\n  - id: FF-CV05\n    name: test-file-pairing\n    dimension: convention\n    severity: advisory\n    route: symbolic\n    validated: false\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-CV06\n    name: no-index-logic\n    dimension: convention\n    severity: advisory\n    route: symbolic\n    validated: false\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-N01\n    name: architectural-integrity\n    dimension: integrity\n    severity: major\n    route: neuronal\n    validated: false\n    semantic_criteria:\n      rule: \"The module's files form one coherent unit with a consistent abstraction and boundary.\"\n      rubric:\n        pass: \"The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place.\"\n        fail: \"The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions.\"\n        evidence_required: \"Name each file involved and cite the declarations that show the split, the duplication or the bypass.\"\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\n  - id: FF-N02\n    name: intent-alignment\n    dimension: semantic\n    severity: major\n    route: neuronal\n    validated: false\n    semantic_criteria:\n      rule: \"The unit's responsibilities match the role of its declared layer.\"\n      rubric:\n        pass: \"Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\"\n        fail: \"The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\"\n        evidence_required: \"Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\"\n    enabled: false\n    reason: \"not mined: rule mining proposes only the rules the code follows\"\n\ndefault_exclude_paths:\n  - \"node_modules/**\"\n  - \"dist/**\"\n  - \"**/*.spec.ts\"\n  - \"**/*.test.ts\"\n\nscoring:\n  weights:\n    structural: 0.35\n    coupling: 0.20\n    pattern: 0.30\n    solid: 0.10\n    convention: 0.05\n\n  full_mode_weights:\n    structural: 0.32\n    coupling: 0.18\n    pattern: 0.27\n    solid: 0.10\n    convention: 0.05\n    semantic: 0.04\n    integrity: 0.04\n\n  thresholds:\n    pass: 0.80\n    warning: 0.65\n    soft_block: 0.50\n\nconfidence_thresholds:\n  high: 0.85\n  medium: 0.60\n  icc_minimum: 0.70\n",
+ "minedStyle": "clean-architecture",
+ "trueFindings": [
+  {
+   "ruleId": "FF-C03",
+   "file": "src/platform/http/LoanController.ts"
+  },
+  {
+   "ruleId": "FF-C03",
+   "file": "src/platform/testing/TestLibraryApp.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/kernel/entities/Book.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/kernel/entities/Loan.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/kernel/entities/Member.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/kernel/errors/DomainError.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/kernel/repositories/BookRepository.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/kernel/repositories/LoanRepository.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/kernel/repositories/MemberRepository.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/kernel/services/FineCalculator.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/kernel/services/LoanPolicy.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/kernel/value-objects/Isbn.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/kernel/value-objects/LoanPeriod.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/orchestration/ports/Clock.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/orchestration/ports/IdGenerator.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/orchestration/use-cases/BorrowBookUseCase.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/orchestration/use-cases/ListOverdueLoansUseCase.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/orchestration/use-cases/RegisterBookUseCase.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/orchestration/use-cases/ReturnBookUseCase.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/platform/http/BookController.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/platform/http/ErrorMapper.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/platform/http/HttpTypes.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/platform/http/LoanController.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/platform/persistence/InMemoryBookRepository.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/platform/persistence/InMemoryLoanRepository.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/platform/persistence/InMemoryMemberRepository.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/platform/system/SequentialIdGenerator.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/platform/system/SystemClock.ts"
+  },
+  {
+   "ruleId": "FF-CV05",
+   "file": "src/platform/testing/TestLibraryApp.ts"
+  }
+ ],
+ "minedFindings": []
+}

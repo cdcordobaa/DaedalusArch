@@ -7,6 +7,7 @@ import type { VCRMode } from '../shared/types/llm-config.js';
 import type { JudgeUnitKind } from '../shared/types/enums.js';
 import type { JudgeGraphView } from './judge-graph.js';
 import type { JudgeVersion } from './judge-v2.js';
+import type { AllowedDependency } from '../shared/types/spec.js';
 import type { CheapFlag } from '../apg-enrich/cheap/types.js';
 import {
   DEFAULT_CASSETTE_DIR, EXCERPT_MAX_NODES, JUDGE_EFFORT, JUDGE_MAX_TOKENS, JUDGE_MODEL, JUDGE_TIMEOUT_MS,
@@ -37,8 +38,11 @@ export interface NeuronalRunOptions {
   readonly cassette: { readonly mode: VCRMode; readonly dir: string; readonly omitPrompt: boolean };
   readonly baseline?: readonly BaselineSelection[];        // variant run (BR-U4-SEL-07)
   readonly evaluatorSpecLayers: readonly LayerDefinition[]; // layer model and module roots (CTX-07, SEL-03)
-  /** Rubric and prompt version (v1.3): `v1` is the frozen judge and the default; `v2` is `judge-v2.ts`. */
+  /** Rubric and prompt version (v1.3): `v1` is the frozen judge and the default; `v2` is `judge-v2.ts` (v2.1); `v2.2` is `judge-v22.ts`. */
   readonly judgeVersion: JudgeVersion;
+  /** Judge v2.2 only: the evaluation spec's style and allowed-dependency graph, for the layer model section. */
+  readonly evaluatorSpecStyle?: string;
+  readonly evaluatorSpecAllowedDependencies?: readonly AllowedDependency[];
 }
 
 /** The judge run settings the CLI parses (`parseLLMOptions().run`, DE §5.6); the C9 hunks pass them on. */

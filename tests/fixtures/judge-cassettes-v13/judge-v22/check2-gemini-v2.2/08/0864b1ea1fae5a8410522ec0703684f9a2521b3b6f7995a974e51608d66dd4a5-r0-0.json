@@ -1,0 +1,31 @@
+{
+  "attempts": 2,
+  "cliVersion": "1.3.6",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 487237,
+  "effort": null,
+  "functionId": "FF-N02",
+  "ignoredOptions": [],
+  "isolationProbeSha256": "d68c66d27818a8985e559c413f44be9c1f9c04a809ce77369abdb4acca0710db",
+  "key": "0864b1ea1fae5a8410522ec0703684f9a2521b3b6f7995a974e51608d66dd4a5-r0-0",
+  "model": "gemini-4-argon-high",
+  "outcome": {
+    "cause": "TIMEOUT",
+    "kind": "invalid"
+  },
+  "parsedVerdict": null,
+  "prompt": "## Rule\nThe unit's responsibilities, signatures and annotations match the role of its declared layer.\n\n## Rubric\nPass: Every declaration in the file belongs to the role and kind of its declared layer, including its parameter, return and field types, its decorators and base classes, and its statements, and agrees with any ADR prose given. Calls into a layer that the layer model lets this layer depend on are part of that role.\nFail: The file carries something that belongs to a different layer kind. In a domain or application file: a request, response, HTTP context, status code or HTTP error, from a web or transport package or from the delivery layer, in any method or function signature (parameter or return) or thrown, even when the parameter is optional or unused. In a domain file also: any framework or ORM type, decorator or base class (dependency injection, routing, persistence mapping), even when the class logic is pure; or direct I/O, that is a database, ORM, query, HTTP or file client that the file itself creates, imports from a package or obtains from a global accessor, or persistence or I/O done through a class of a layer that the layer model does not let this layer depend on. A call to a class or interface of a layer that this layer may depend on is not misplaced I/O, whatever that layer does behind it. In an infrastructure or presentation file: a business rule, that is a domain invariant, calculation or decision that the domain or application layer should own. Constructor parameters of any file are dependency wiring when their types come from the file's own layer or from a layer it may depend on: an injected repository, gateway, client or service there is not by itself misplaced. A type the project declares itself is not a framework type, whatever its name.\nEvidence required: Name the file and cite the signature, decorator, declaration or statement that carries the misplaced responsibility, its package or origin, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\nStyle: layered. Closed layering: layers are listed bottom-up and each layer may depend only on the layer listed directly before it.\n- persistence (kind: infrastructure; may depend on: no other layer): src/persistence/**\n- business (kind: domain; may depend on: persistence): src/business/**\n- presentation (kind: presentation; may depend on: business): src/presentation/**\n\n## Unit\nKind: file\nId: src/business/services/VisitNotesService.ts\nLayer: business\nUnit files:\n- src/business/services/VisitNotesService.ts\n\n## Source\n=====SOURCE-BEGIN src/business/services/VisitNotesService.ts=====\nimport { PrismaService } from '../../persistence/PrismaService';\n\nexport interface VisitNote {\n  author: string;\n  text: string;\n  writtenAt: Date;\n}\n\nexport class VisitNotesService {\n  constructor(private readonly prisma: PrismaService) {}\n\n  async write(appointmentId: string, author: string, text: string): Promise<VisitNote> {\n    const row = await this.prisma.visitNote.create({\n      data: { id: `${appointmentId}:${Date.now()}`, appointmentId, author, text: text.trim(), writtenAt: new Date() },\n    });\n    return { author: row.author, text: row.text, writtenAt: row.writtenAt };\n  }\n\n  async notesFor(appointmentId: string): Promise<VisitNote[]> {\n    const rows = await this.prisma.visitNote.findMany({ where: { appointmentId } });\n    return rows.sort((a, b) => a.writtenAt.getTime() - b.writtenAt.getTime()).map((r) => ({ author: r.author, text: r.text, writtenAt: r.writtenAt }));\n  }\n}\n\n=====SOURCE-END=====\n\n## Neighbourhood\nsrc/business/services/VisitNotesService.ts (layer business, kind domain)\n  imports: src/persistence/PrismaService.ts (layer persistence, kind infrastructure)\n  imported by: src/main.ts (unlayered); src/presentation/controllers/AppointmentsController.ts (layer presentation, kind presentation)\n  types: VisitNotesService injects PrismaService in src/persistence/PrismaService.ts (layer persistence, kind infrastructure); VisitNotesService is injected into AppointmentsController in src/presentation/controllers/AppointmentsController.ts (layer presentation, kind presentation)\n\n## Candidate flags\nCandidates proposed by deterministic checks; verify, don't trust. Each line is a tool observation with its location, not a finding.\n- name-behaviour/domain-does-io at src/business/services/VisitNotesService.ts:13-15: domain class VisitNotesService calls @prisma/client create (db)\n- name-behaviour/domain-does-io at src/business/services/VisitNotesService.ts:20: domain class VisitNotesService calls @prisma/client findMany (db)\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric. Check each candidate flag against the source: a flag the source does not support must not count against the unit, and a violation the flags miss counts as much as one they name. Judge what each declaration is, not only what it does at run time.\n",
+  "provider": "agy",
+  "recordedAt": "2026-10-16T05:12:03.501Z",
+  "repetition": 0,
+  "requestHash": "0864b1ea1fae5a8410522ec0703684f9a2521b3b6f7995a974e51608d66dd4a5",
+  "response": "LLM_CLI_TIMEOUT: agy timed out after 243697 ms",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/business/services/VisitNotesService.ts",
+  "usage": {
+    "inputTokens": 0,
+    "outputTokens": 0
+  },
+  "usedOptions": {}
+}

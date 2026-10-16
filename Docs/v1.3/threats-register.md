@@ -2,7 +2,7 @@
 
 **2026-10-16. Status: draft, for the author.** This register covers the v1.3 validation of the instrument: the reference (development) set, the sealed hold-out, the blind manifests, the graph-fidelity harness, the labelling harness and the judge catch test. It does **not** replace `Docs/threats-to-validity.md`, the registered v1.2E register. Editing that file would break the pre-registration hash gate (`Docs/v1.3/study1-addenda.md` line 3). Study 1 items found during v1.3 are cross-referenced here (V13-TV-C5) and stay in the addenda.
 
-It was written after the adversarial review of 2026-10-15. The blocking findings of that review were fixed in PR #120: 54/54 + 3 N/A, the late hashes, the ported v1.2e-only docs, the "met" wording and the 16/21 judge qualification. Corrected numbers are in `Docs/presentation-kit/NUMBERS.md` and in the "Correction (2026-10-16)" section of `Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md`. This register re-scores nothing and changes no results document. Inconsistencies between documents are listed in Appendix A and left unfixed.
+It was written after the adversarial review of 2026-10-15. The blocking findings of that review were fixed in PR #120: 54/54 + 3 N/A, the late hashes, the ported v1.2e-only docs, the "met" wording and the 16/21 judge qualification. Corrected numbers are in the "Correction (2026-10-16)" section of `Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md`. This register re-scores nothing and changes no results document. Inconsistencies between documents are listed in Appendix A and left unfixed.
 
 **Sealed material.** No sealed directory was opened to write this register. Statements about the hold-out and the blind manifests come from committed documents only.
 
@@ -31,7 +31,7 @@ It was written after the adversarial review of 2026-10-15. The blocking findings
 | V13-TV-C1 | Rule sources are unverified paraphrases | High | Medium |
 | V13-TV-C2 | FLOWS_TO gap: FF-P06 has no estimable half on the dev set | High (for FF-P06) | High |
 | V13-TV-C3 | DUP-RULE seeds confounded with the twin's cue | Medium | Medium |
-| V13-TV-C4 | DDD style never judged | Medium | High (judge claim excludes DDD) |
+| V13-TV-C4 | DDD style not judged in the catch rounds; first judged in CHECK-2 (#191, open, dev) | Medium | Medium (DDD n = 4 seeds, 6 clean units; not in the 16/21 claim) |
 | V13-TV-C5 | Study 1 `none` arm had a folder-layout hint | Medium (Study 1) | Declared |
 | V13-TV-C6 | Graph fidelity is unadjudicated agreement, not precision | High (for M7) | Medium |
 | V13-TV-C7 | Rules stricter than, or different from, their sources | Medium | Medium |
@@ -48,7 +48,7 @@ It was written after the adversarial review of 2026-10-15. The blocking findings
 | V13-TV-R2 | κ gate defined three ways; the gate cannot be passed on its lower bound | Medium | Medium |
 | V13-TV-R3 | Judge stochasticity and a single judge model | Medium | Medium |
 | V13-TV-R4 | Symbolic determinism (mitigated) | Low | Low |
-| V13-TV-D1 | Role overlap: author is preset author, adjudicator, rater and ADR approver; director proposed as rater | High | Medium after `role-separation-plan.md` |
+| V13-TV-D1 | Role overlap: author is preset author, adjudicator, rater and ADR approver; independent second rater not yet named | High | Medium after `role-separation-plan.md` |
 | V13-TV-D2 | Four scoring views; the headline view differs between documents | Medium | Low if the prespec rule is applied |
 | V13-TV-D3 | Construct decisions taken with their row impacts visible | Medium | Medium |
 | V13-TV-D4 | No pre-registration of v1.3; prespec still a draft with placeholders | Medium | Low once frozen |
@@ -118,7 +118,6 @@ It was written after the adversarial review of 2026-10-15. The blocking findings
 - **Evidence.**
   - `Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md:54`, `:140`, `:175`
   - `Docs/v1.3/judge-catch-frozen.md:49`
-  - `Docs/presentation-kit/NUMBERS.md:76`, `:135`
 - **Severity.** Medium. It inflates the pooled judge figure, and it is construct-invalid for DUP-RULE.
 - **Mitigation done.** The judge claim is qualified to 13/16 (round 2) and 16/21 (both rounds), on FRAMEWORK-LEAK and PERSIST-IN-DOMAIN only (PR #120).
 - **Mitigation planned.**
@@ -127,18 +126,20 @@ It was written after the adversarial review of 2026-10-15. The blocking findings
 - **Residual.** Medium. The judge's sensitivity to duplication is unmeasured.
 - **Thesis.** Ch7: report DUP-RULE separately as "confounded, not interpretable". The pooled judge figure is 16/21, with the qualification. Note that 16/21 = 0.76 is below the requirements' ≥ 0.80 judge target (`aidlc-docs/inception/requirements/v1.3-validity-requirements.md:47`).
 
-### V13-TV-C4: The DDD style was never judged
+### V13-TV-C4: The DDD style was not judged in the catch rounds (first judged in CHECK-2, #191)
+
+> **Update (2026-10-16).** DDD has now been judged once. PR #191 (judge v2.2 vs v1 on CHECK-2, still open, development set) ran a DDD base: v1 catches 4/4 DDD seeds, with a clean false fail of 1/6 = 0.17 [0.03, 0.56] (`src/claims/application/FileClaim.ts`); v2.2 catches 4/4 with 0/6 (`v1.3-judge-v22-run:Docs/DiagnosticRuns/v1.3-judge-v22-check2-2026-10-16.md:122-125`). The description below is kept as written: it is still true of judge-catch rounds 1 and 2 and of the defensible 16/21, which contain no DDD seed. Cite the DDD figures only once #191 is merged, and as n = 4, not as coverage of the style.
 
 - **Description.** `presets/ddd.yaml` declares neither FF-N01 nor FF-N02. The 9 DDD twin copies were seeded but not judged. The hexagonal layer globs do not cover the DDD layout, so a borrowed config would give DDD files no layer kind. Every judge figure covers four styles, and in practice mostly one NestJS fixture plus E1.
 - **Evidence.**
   - `Docs/DiagnosticRuns/v1.3-judge-catch-2026-10-15.md:47`
   - `Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md:96-97`
-  - `Docs/presentation-kit/NUMBERS.md:76`
 - **Severity.** Medium. The judge is non-blocking in v1.3 (`rule-tiers.md:13`), so no verdict depends on it.
 - **Mitigation done.** Stated in the qualified judge row.
 - **Mitigation planned.** Either add FF-N01/FF-N02 to a DDD judging config and run the frozen operators on the DDD project (a new development round), or scope the judge claim to "not evaluated on DDD".
-- **Residual.** High for any claim that the judge covers five styles.
-- **Thesis.** Ch7: the judge table has a DDD row reading "not evaluated (no judge dimensions in the DDD preset)".
+- **Mitigation done (2026-10-16, open PR #191).** The first DDD judged run, on CHECK-2 (see the update above).
+- **Residual.** Medium: DDD rests on 4 seeds and 6 clean units, from one development run on an unmerged PR. High for any claim that the 16/21 judge figure covers five styles.
+- **Thesis.** Ch7: the judge table has a DDD row reading "not in the catch rounds; CHECK-2 (#191): v1 4/4, clean false fail 1/6, development set".
 
 ### V13-TV-C5: The Study 1 `none` arm had a folder-layout hint (cross-reference)
 
@@ -165,7 +166,6 @@ It was written after the adversarial review of 2026-10-15. The blocking findings
   - `Docs/DiagnosticRuns/v1.3-graph-fidelity-2026-10-14.md:19`, `:85-91`, `:115`, `:127`
   - `results/v1.3-fidelity/e1/adjudication.csv` (`human_verdict` column empty, 89/89)
   - `results/v1.3-fidelity/so4/adjudication.csv` (empty, 2046/2046)
-  - `Docs/presentation-kit/NUMBERS.md:18`, `:24-33`
 - **Severity.** High for M7 (`holdout-prespec.md:48`). Agreement figures are fine as agreement.
 - **Mitigation done.** Every disagreement is classified by reason. "Agreement, not precision" is stated in the fidelity doc.
 - **Mitigation planned.** The independent rater adjudicates the 39 E1 rows, the 218 SO4 barrel rows and the 100 agreement samples (`role-separation-plan.md`, §3). Only then quote a precision.
@@ -220,7 +220,6 @@ It was written after the adversarial review of 2026-10-15. The blocking findings
   - `Docs/v1.3/sealed-hashes.md:30`
   - `Docs/v1.3-reference-notes.md:222`
   - `Docs/v1.3/judge-catch-frozen.md:35`
-  - `Docs/presentation-kit/NUMBERS.md:131`
   - `aidlc-docs/audit.md:1483` (Study 2 tasks known to the coordinator)
 - **Severity.** High.
 - **Mitigation done.**
@@ -261,7 +260,6 @@ It was written after the adversarial review of 2026-10-15. The blocking findings
 - **Severity.** High if a development figure is quoted as validity. Otherwise low.
 - **Mitigation done.**
   - Every development page carries the "DEVELOPMENT-SET NUMBERS" banner.
-  - The NUMBERS kit marks Dev.
   - The prespec forbids citing development figures as validity (`holdout-prespec.md:102`).
 - **Mitigation planned.** Hold the rule in the thesis text: no development figure without "Dev".
 - **Residual.** Low, if the labelling holds.
@@ -317,7 +315,6 @@ It was written after the adversarial review of 2026-10-15. The blocking findings
 - **Description.** The 5 clean variants and 14 near-misses are the cases that fixes 3 and 4 were tuned against: 5/14 → 0/14 near-misses with a blocking false positive, and 4/5 → 5/5 clean passes. They no longer estimate a false-alarm rate. The judge negative control (twins) was also revised after seeing failures (DUP-RULE v2).
 - **Evidence.**
   - `Docs/DiagnosticRuns/v1.3-reference-after-fixes-2026-10-15.md:69-80`, `:116-118`
-  - `Docs/presentation-kit/NUMBERS.md:46-48`, `:77`
   - `Docs/v1.3/judge-catch-frozen.md:49`
 - **Severity.** Medium.
 - **Mitigation done.** Labelled Dev.
@@ -332,7 +329,6 @@ It was written after the adversarial review of 2026-10-15. The blocking findings
 - **Description.** The v1.3 SO4 recall of 73/73 = 1.000 (from 67/73) comes from 6 MO-X01 seeds. MO-X01 motivated `dynamicImports`. The bases and operators were known while v1.3 was built. Twin specificity fell from 68/73 to 67/73. The match uses the v1.2E keys.
 - **Evidence.**
   - `Docs/DiagnosticRuns/v1.3-study1-rerun-2026-10-15.md:136-141`, `:166-167`
-  - `Docs/presentation-kit/NUMBERS.md:100-101`
 - **Severity.** Medium.
 - **Mitigation done.** The rerun page says it is "not a held-out estimate".
 - **Mitigation planned.** In the thesis, quote SO4 under v1.3 only as S1→v1.3 (descriptive). Do not put it on a slide next to validity figures.
@@ -348,7 +344,6 @@ It was written after the adversarial review of 2026-10-15. The blocking findings
 - **Description.** The extractor, the checker, every corpus and every reference project are TypeScript. The `LanguageExtractor` interface exists, but no second extractor does.
 - **Evidence.**
   - `aidlc-docs/inception/plans/v1.2-pending-units-plan.md:45`
-  - `Docs/v1.3/director-email-draft.md:51` ("validated on greenfield TypeScript code")
 - **Severity.** Medium.
 - **Mitigation done.** The scope is stated in the thesis core.
 - **Mitigation planned.** None for v1.3.
@@ -379,7 +374,6 @@ It was written after the adversarial review of 2026-10-15. The blocking findings
 - **Evidence.**
   - `Docs/v1.3/validation-protocol.md:18`
   - `Docs/v1.3/holdout-prespec.md:27`
-  - `Docs/presentation-kit/NUMBERS.md:51`, `:131`
   - `aidlc-docs/inception/requirements/v1.3-validity-requirements.md:27`
 - **Severity.** High. Real codebases have barrels, path aliases, monorepos and generated code at scales the references lack (compare SO4's `${configDir}` and out-of-root findings, `v1.3-graph-fidelity-2026-10-14.md:107`, `:124`).
 - **Mitigation done.** SO4 and E1 graph agreement as partial brownfield evidence.
@@ -393,7 +387,6 @@ It was written after the adversarial review of 2026-10-15. The blocking findings
 - **Evidence.**
   - `Docs/v1.3/labelling.md:57`
   - `Docs/v1.3/study1-addenda.md:9-11`
-  - `Docs/presentation-kit/NUMBERS.md:24`, `:99`, `:134`
 - **Severity.** Medium.
 - **Mitigation done.** Declared as development data.
 - **Mitigation planned.** None for v1.3.
@@ -455,7 +448,6 @@ It was written after the adversarial review of 2026-10-15. The blocking findings
 - **Evidence.**
   - `Docs/DiagnosticRuns/v1.3-judge-catch-2026-10-15.md:117`
   - `Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md:54`
-  - `Docs/presentation-kit/NUMBERS.md:135`
 - **Severity.** Medium. Wilson intervals assume independence, so they are too narrow.
 - **Mitigation done.** Stated.
 - **Mitigation planned.**
@@ -492,7 +484,6 @@ It was written after the adversarial review of 2026-10-15. The blocking findings
   - The two-human protocol is defined, but nothing is labelled.
   - The reference adjudication sheet (39 rows) and the fidelity sheets are empty.
 - **Evidence.**
-  - `Docs/presentation-kit/NUMBERS.md:45`, `:52`, `:132`
   - `results/v1.3-reference/after-member-facts/adjudication.csv` (`adjudication` empty, 39/39)
   - `Docs/v1.3/human-labelling-protocol.md:3`
 - **Severity.** High. M3 and the human reference do not exist yet.
@@ -549,11 +540,10 @@ It was written after the adversarial review of 2026-10-15. The blocking findings
   - **Decider**: answers the 25 construct questions and approves the ADRs (ADR-V13-01 "author: 'yes A'"; ADR-V13-02 "Draft, for the author");
   - **Classifier** of hold-out defects (`holdout-prespec.md:89`).
 
-  The director, who examines and supervises the thesis, is proposed as the 30-item rater and as the independent second rater. That conflicts with the protocol's own qualification ("no part in … writing the thesis").
+  The independent second rater, the primary human reference, is not yet named. Whoever it is must meet the protocol's own qualification ("no part in … writing the thesis", `human-labelling-protocol.md:52`).
 - **Evidence.**
   - `Docs/v1.3/validation-protocol.md:17`, `:32-33`
   - `Docs/v1.3/human-labelling-protocol.md:44-48`, `:52`
-  - `Docs/v1.3/director-email-draft.md:28`, `:63`
   - `Docs/v1.3/labelling.md:142`
   - `Docs/v1.3/adr-v13.md:7`
   - `Docs/v1.3/adr-v13-02-draft.md:3`
@@ -569,9 +559,8 @@ It was written after the adversarial review of 2026-10-15. The blocking findings
 
 ### V13-TV-D2: Four scoring views; the headline view differs between documents
 
-- **Description.** The development set is scored four ways: author literal, author cycle-normalised, blind expanded and blind primary. The NUMBERS kit headlines the author cycle-normalised view (54/54). The prespec says the literal figures are primary, and that the pass decision uses the blind manifest. Choosing the view after seeing all four is a forking path.
+- **Description.** The development set is scored four ways: author literal, author cycle-normalised, blind expanded and blind primary. Summaries headline the author cycle-normalised view (54/54; for example `papers/STATUS.md`). The prespec says the literal figures are primary, and that the pass decision uses the blind manifest. Choosing the view after seeing all four is a forking path.
 - **Evidence.**
-  - `Docs/presentation-kit/NUMBERS.md:42-44`
   - `Docs/v1.3/holdout-prespec.md:55-56`
   - `Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md:22`
 - **Severity.** Medium.
@@ -616,15 +605,15 @@ Found while writing this register. **None is fixed here.** Each needs a dated co
 
 | # | What disagrees | Where | Note |
 |---|---|---|---|
-| A1 | "No style has more than 15 expected blocking findings" / "the largest blocking cell is 15 expected findings", against blind (expanded) hexagonal n = 18 (corrected) or 19 (uncorrected), and nestjs 13/14 | `Docs/presentation-kit/NUMBERS.md:137`; `Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md:43`; `Docs/DiagnosticRuns/v1.3-reference-baseline-2026-10-15.md:57` vs `:33`, and after-member-facts `:18`, `:154` | True only in the author view (max 13 uncorrected, 12 corrected). The conclusion (no lower bound reaches 0.90) still holds. |
+| A1 | "No style has more than 15 expected blocking findings" / "the largest blocking cell is 15 expected findings", against blind (expanded) hexagonal n = 18 (corrected) or 19 (uncorrected), and nestjs 13/14 | `Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md:43`; `Docs/DiagnosticRuns/v1.3-reference-baseline-2026-10-15.md:57` vs `:33`, and after-member-facts `:18`, `:154` | True only in the author view (max 13 uncorrected, 12 corrected). The conclusion (no lower bound reaches 0.90) still holds. |
 | A2 | §5 "Against the exit targets" quotes blind recall clean 0.87, nestjs 0.79, hexagonal 0.68, against the corrected table's 0.86, 0.77, 0.67 | `Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md:181` vs `:15-18` | The correction says the tables below were left as written, but §5 is prose and carries no marker. |
 | A3 | κ gate definition: unspecified κ, author vs Gemini / "κ (three-way) ≥ 0.60 with n ≥ 30" / "κ ≥ 0.60 on the binary split" | `Docs/v1.3/validation-protocol.md:32`; `Docs/v1.3/labelling.md:142`; `Docs/v1.3/human-labelling-protocol.md:61` | Three gates on the same name. |
-| A4 | Director's rating load and role: "30 items rated independently" (an audit), against "independent rater … the primary human reference" with 60 or 120 items plus 20 cases | `Docs/v1.3/validation-protocol.md:33`; `Docs/v1.3/labelling.md:142` vs `Docs/v1.3/director-email-draft.md:28-31`; `Docs/v1.3/human-labelling-protocol.md:28-31`, `:44` | Also conflicts with the qualification at `human-labelling-protocol.md:52` (V13-TV-D1). |
+| A4 | Second-rater load and role: "30 items rated independently" (an audit), against "an independent rater" who is "the primary human reference" with 60 or 120 items plus 20 cases | `Docs/v1.3/validation-protocol.md:33`; `Docs/v1.3/labelling.md:142` vs `Docs/v1.3/human-labelling-protocol.md:28-31`, `:44` | Also conflicts with the qualification at `human-labelling-protocol.md:52` (V13-TV-D1). |
 | A5 | "Nothing else under `daedalus-sealed/` was opened", against construct-decisions citing `daedalus-sealed/v1.3-blind/blind-out/summary.md` | `Docs/DiagnosticRuns/v1.3-reference-after-fixes-2026-10-15.md:30`; `…after-member-facts-2026-10-15.md:101` vs `Docs/v1.3/construct-decisions.md:12` | Not a number, but a factual statement that disagrees. Different agents, so both may be true of their own unit; the register cannot tell. |
 | A6 | DDD README: "the blind re-derivation is still to be done", against blind DDD scores of 9/9 | `tests/fixtures/v1.3-reference/ddd/README.md:51-52` vs `Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md:19` | Stale README. |
 | A7 | DDD blocking n: development 9/9 counts FF-DS01 (deferred tier, Q15) as a blocking TP; the prespec rule would exclude it (8/8) | `results/v1.3-reference/after-member-facts/scores.json` (ddd FF-DS01 tp 1); `Docs/v1.3/holdout-prespec.md:57` | The pooled 54/54 becomes 53/53 under the hold-out rule. |
-| A8 | Headline view: NUMBERS headlines the author cycle-normalised 54/54; the prespec makes literal figures primary (author literal 49/54) and the blind manifest the pass reference (50/64 recall) | `Docs/presentation-kit/NUMBERS.md:42-44` vs `Docs/v1.3/holdout-prespec.md:55-56`; after-member-facts `:22` | V13-TV-D2. |
+| A8 | Headline view: summaries headline the author cycle-normalised 54/54 (`papers/STATUS.md`); the prespec makes literal figures primary (author literal 49/54) and the blind manifest the pass reference (50/64 recall) | `papers/STATUS.md` vs `Docs/v1.3/holdout-prespec.md:55-56`; after-member-facts `:22` | V13-TV-D2. |
 | A9 | Seed floor: the protocol requires ≥ 20 planted violations per style; the counts are 10, 9, 10, 11, 12 (expected blocking findings 12, 11, 10, 12, 9). No document reports the floor as met or missed. | `Docs/v1.3/validation-protocol.md:51`; manifests (V13-TV-S2) | |
-| A10 | Judge target: requirements set catch ≥ 0.80 per operator; the qualified defensible figure is 16/21 = 0.76, and FRAMEWORK-LEAK pooled is 12/17 = 0.71. No document reads these against the target. | `aidlc-docs/inception/requirements/v1.3-validity-requirements.md:47`; `Docs/presentation-kit/NUMBERS.md:76`, `:78` | Development, construct sensitivity. A reading, not a recount. |
+| A10 | Judge target: requirements set catch ≥ 0.80 per operator; the qualified defensible figure is 16/21 = 0.76, and FRAMEWORK-LEAK pooled is 12/17 = 0.71. No document reads these against the target. | `aidlc-docs/inception/requirements/v1.3-validity-requirements.md:47`; `Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md` header note (16/21 = 0.76); `Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md:129` (FRAMEWORK-LEAK 12/17) | Development, construct sensitivity. A reading, not a recount. |
 
 Checked and consistent: the corrected pooled sums (54 = 12+11+10+12+9; 50/64 and 50/54 per style); 71 = 5 + 14 + 52 variants; the judge sums (9/11 + 21/24 = 30/35; 13/16 + 3/5 = 16/21; 2/4 + 10/13 = 12/17; 3/33 + 5/14 = 8/47); the SO4 per-operator sums (73, 67/73); the fidelity row counts (39 + 50 = 89; 1996 + 50 = 2046; 218+202+329+2 = 751; 218+308+639+2+829 = 1996); and the Wilson thresholds in `holdout-prespec.md:73` (35, 53, 69).

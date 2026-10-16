@@ -15,6 +15,20 @@
 > still open is cited `branch:path` and is **not on `v1.3` yet**. Nothing is estimated here. Where no run exists, the
 > text says **pending**.
 
+> **Amendment, 2026-10-16 (declared deviation).** The author switched Study 2's primary outcome to the level outcome Y
+> (distinct blocking violating edges at step k = 4), as a formally declared, dated deviation: `Docs/v1.3/study2-deviation-2026-10-16.md`.
+> That record is the single source for the protocol and wins where this outline disagrees. In this file:
+> - the primary outcome is **Y**; the memo §5 outcomes (§4) stay as **registered secondaries**, and the §5 branch is the
+>   **zero branch** on the PR #229 re-score;
+> - the arms are **`none`** and **`daedalus-mcp`**; `gate` and the placebo are dropped (§3);
+> - **k = 4** (T6), counted **one per distinct edge** (A26);
+> - if neither confirmatory stratum passes the validation pilot, **Study 2 does not run** (§4.3);
+> - the order is validation pilot → freeze → hold-out → dress rehearsal → pre-registration → gate → run (§9).
+>
+> Passages that state the earlier protocol are kept for the record and marked **superseded**.
+
+<!-- study2-protocol: primary=Y-distinct-blocking-edges-at-step-k; k=4; arms=none,daedalus-mcp; unit=distinct-edge; fallback=do-not-run; order=freeze,hold-out,dress-rehearsal,pre-registration,gate,run; generators=claude-sonnet-5-5,codex-pin -->
+
 Status words used below:
 
 - **Defined**: written down here as the proposal for the pre-registration.
@@ -25,9 +39,9 @@ Status words used below:
 
 | Topic | v1 (2026-10-15) | v2 (this file) |
 |---|---|---|
-| Floor effect | Not anticipated. Primary outcome = blocking violations per step. | Four probes and the pilot found almost no blocking erosion (§1). The primary outcome follows the pilot memo's pre-committed rule, and that rule's decision is **pending** (§4). |
-| Arms | `none`, `daedalus-mcp` (7 tools), `gate`; placebo open | Same three arms. `daedalus-mcp` uses the 9 spec-only tools the harness allow-lists. The neural MCP tools are **not** part of it (§3). |
-| Task design | Sealed tasks, k ≈ 4–6 | Requirements written from the floor evidence (§5). The task-design guide is **pending**. |
+| Floor effect | Not anticipated. Primary outcome = blocking violations per step. | Four probes and the pilot found almost no blocking erosion (§1). ~~The primary outcome follows the pilot memo's rule~~ (superseded 2026-10-16): the primary outcome is Y, the level at step k, by the declared deviation; the memo §5 outcomes are secondary (§4). |
+| Arms | `none`, `daedalus-mcp` (7 tools), `gate`; placebo open | Two arms, `none` and `daedalus-mcp` (`gate` dropped, superseded 2026-10-16; the original v2 text said three arms). `daedalus-mcp` uses the 9 spec-only tools the harness allow-lists. The neural MCP tools are **not** part of it (§3). |
+| Task design | Sealed tasks, k ≈ 4–6 (v1, superseded) | Requirements written from the floor evidence (§5). k = 4 by the deviation record. The task-design guide is merged (#201). |
 | Sample size | Working grid 6 × 3 × 3, normal approximation | Power simulation (PR #119) figures. No option reaches 0.80 for `gate` under the base assumptions. Final N **pending** (§6). |
 | Analysis | Two candidates, many open points | Candidate 1 is confirmatory. A fix for each of the 25 ambiguities found by the rehearsal (PR #160), plus one more (§7). |
 | Go/no-go | Nine prerequisites | The 42-line readiness gate (PR #146) is the only go criterion (§9). |
@@ -48,7 +62,7 @@ Status words used below:
 | **Validity strategy** | PR #147, `v1.3-validity-strategy:Docs/v1.3/validity-strategy.md` | open | Reliability and mechanical correctness are strongly evidenced. Construct and criterion validity are moderate, and they depend on the unrun sealed hold-out. Predictive validity and judge validity are not yet evidenced. |
 | Convergent validity | PR #166 (merged), `Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md` | merged | κ against dependency-cruiser: 1.000 / 0.961 / 0.913 (reference / external / wild). 0 of 253 disagreements are classed as our bug. 4 blocking rules (7 style rows) cannot be expressed in any of the three tools. |
 | Fixes mined | PR #168, `v1.3-validity-fixes-mined:Docs/DiagnosticRuns/v1.3-validity-fixes-mined-2026-10-16.md` | open | **No robust validity signal.** The pooled ratio 2.65 rests on one commit; without it, 0.93 (0.61–1.43). Blocking findings mostly survive in human projects. |
-| Predictive validity | branch `v1.3-validity-predictive`, `Docs/v1.3/predictive-validity-prespec.md` | prespec only | Analysis pre-specified; **no result yet (pending)**. |
+| Predictive validity | `git show 0cd79b88:Docs/v1.3/predictive-validity-prespec.md`, addenda through `879c3abe`; first exposure output `f47f590c` (branch `v1.3-validity-predictive`, which has never had a PR; pinned 2026-10-16) | prespec only | Analysis committed before the first exposure output on an unmerged branch, not registered or reviewed; **no result yet (pending)**. |
 | **Judge v2.2 CHECK-2** | PR #191, `v1.3-judge-v22-run:Docs/DiagnosticRuns/v1.3-judge-v22-check2-2026-10-16.md` | ran; open | **NOT CANDIDATE.** Check D1 fails: layered business clean units false-fail 7 / 21 against a rule of ≤ 1. **v1 stays the frozen judge.** Both judges catch 40 / 40. Clean false fails: v1 16 / 48, v2.2 8 / 48. |
 | **Neural MCP tools** | PR #157 (merged), `Docs/v1.3/neural-arm-agent-tools.md` | merged | `review_unit` and `explain_and_fix` exist behind `--neural`, OFF by default. "No experiment arm allow-lists them" (`src/mcp-server/server.ts`, `NEURAL_TOOL_NAMES`). |
 | **Power simulation** | PR #119 (merged), `Docs/v1.3/study2-power-notes.md` | merged | Option B (working grid): `gate` 0.54, `mcp` at a quarter reduction 0.18. No option reaches 0.80 for `gate` at base assumptions; under Poisson counts B reaches 0.94. A task-level test with 6 tasks has power 0. |
@@ -60,7 +74,7 @@ Status words used below:
 
 Defined:
 
-1. **The run starts** with the first Study 2 model call at the commit the author signed as "go" (§9). Before that, only the loop pilot and the one dress rehearsal (`v1.3-study2-readiness:Docs/v1.3/study2-dress-rehearsal.md`) may run loops. Neither uses a sealed task.
+1. **The run starts** with the first Study 2 model call at the commit the author signed as "go" (§9). Before that, only the loop pilot, the validation pilot (`floor-escape-design-2026-10-16.md` §4, development tasks only) and the one dress rehearsal (`Docs/v1.3/study2-dress-rehearsal.md`) may run loops. None uses a sealed task. Floor probe 3 ran loops before the validation pilot was added to this list; it is reported as an exploratory probe and as a departure from the rule as it then stood (deviation record §6).
 2. **An interruption is resumed, never restarted.** Usage limits, crashes and machine loss are resumed from the harness state on the same out-root (`--resume`). No run directory is deleted or regenerated.
 3. **A step that cannot be scored is re-scored, not regenerated.** Every step commit is kept in `snapshots.git`. Scoring is deterministic, so a scoring defect found after the run is fixed on the development set and the kept snapshots are re-scored. A re-score is reported as such, with the defect and the fix.
 4. **A failed or degenerate study is reported, not repeated.** A null, a floor, a budget stop at a complete block, or a defect that leaves an arm uninterpretable is the result of Study 2. A second Study 2 on the same question would be a new study with its own pre-registration, and the thesis would report both.
@@ -74,7 +88,7 @@ Defined:
 |---|---|---|---|
 | `none` | The E1 confinement argv. Styled step frame **with** the layout sentence. No MCP server. | Snapshot, type-check, score. The agent sees nothing. | Defined. The no-layout-hint question (gate S5) is an **author decision**. Recommendation, from probe 2's pre-stated rule: keep the layout sentence and record "no spec" as not tested by Study 2. |
 | `daedalus-mcp` | The DaedalusArch MCP server with the **9 spec-only tools** the harness allow-lists (`scripts/lib/generators/arms.ts`, `DAEDALUS_ARM_TOOLS`, pinned equal to `SPEC_TOOL_NAMES`): `get_architecture_spec`, `which_layer`, `check_import`, `explain_violation`, `check_file`, `check_diff`, `suggest_placement`, `infer_spec`, `explain_finding`. `evaluate_project` is denied. One matched tool sentence in the prompt. | Same as `none`. | Defined, **conditional on §3.3**. v1 listed 7 tools; the harness now allows 9 (MCP v2). |
-| `gate` | The `none` argv. | Score. If there are **blocking** findings, one repair turn with them (at most 40). Then snapshot, type-check, score again. The outcome is the post-repair snapshot. | Defined for the **positive** branch of §4. Under the **zero** branch it is an **author decision** (§3.4). |
+| ~~`gate`~~ | The `none` argv. | Score. If there are **blocking** findings, one repair turn with them (at most 40). Then snapshot, type-check, score again. The outcome is the post-repair snapshot. | **Dropped** (superseded 2026-10-16, deviation record §2). |
 
 Not in Study 2:
 
@@ -109,7 +123,9 @@ If §4 lands on the advisory outcome, the gate as designed reacts only to blocki
 - (b) show it the advisory subset;
 - (c) drop it.
 
-**Recommendation: (c).** Option (b) designs a new treatment after the pilot has been seen, and advisory feedback is mostly FF-CV05 noise. If `gate` is dropped, Holm runs over one contrast.
+**Recommendation: (c).** Option (b) designs a new treatment after the pilot has been seen, and advisory feedback is mostly FF-CV05 noise.
+
+**Decided 2026-10-16: (c), `gate` is dropped** whichever branch §4 gives (deviation record §2). The self-review placebo goes with it. Holm runs over H1–H3 of `floor-escape-design-2026-10-16.md` §3.5, less any contrast demoted by the power rule (deviation record §5).
 
 ## 4. Primary outcome under the floor evidence
 
@@ -118,11 +134,12 @@ If §4 lands on the advisory outcome, the gate as designed reacts only to blocki
 `Docs/v1.3/pilot-outcome-memo.md` §5 fixed the rule before any pilot run:
 
 - **Positive branch.** At least one new blocking finding, labelled `correct`, in the `none` arm after step 1, in any pilot task. Then Study 2 keeps blocking violations per step and their slope as the primary outcome.
-- **Zero branch.** No new blocking finding in the `none` arm in **any** of the 3 tasks. Then the primary outcome moves to the advisory-tier erosion rate: the per-run OLS slope of advisory findings per KLOC, with FF-CV05 excluded.
+- **Zero branch.** No new blocking finding in the `none` arm in **any** of the 3 tasks. Then the memo's outcome is the advisory-tier erosion rate: the per-run OLS slope of advisory findings per KLOC, with FF-CV05 excluded (a registered secondary since the deviation; superseded as primary).
 - No other pilot result may change the primary outcome.
 
-### 4.2 Where the decision stands: PENDING
+### 4.2 Where the decision stands: zero branch on the #229 re-score (final after the T1 fix); primary switched to Y by the deviation
 
+<!-- superseded:start -->
 The pilot ran (PR #170). Clean and hexagonal `none` had 0 new blocking findings. DDD is unscored (T1). Neither branch's condition is met. **The decision is still pending.** Until it is taken, the pilot report fixes the default: Study 2 keeps the blocking outcome.
 
 What resolves it:
@@ -133,14 +150,17 @@ What resolves it:
 4. Apply §5 mechanically. If DDD `none` has 0 new blocking findings at steps 2–4, the zero branch applies. If it has 1 or more labelled `correct`, the positive branch applies.
 
 v2 does **not** amend §5. That includes adding tasks, swapping in the new task designs (§5) or counting probe results. Those were seen after the memo was fixed, and the memo allows no other input.
+<!-- superseded:end -->
+
+**Superseded 2026-10-16.** The §5 branch is recorded from the PR #229 offline re-score: DDD `none` has 1 blocking finding at every step and 0 new, so **the zero branch** applies under every T1 option that scores (a, c, d); option b leaves it undetermined. Pilot T1 is still open (#229 unmerged; author decision AD2), and the branch is final after the chosen option is merged and the 8 snapshots are re-scored on `v1.3` with Neo4j. Independently of the branch, the author switched the primary outcome to Y by a declared deviation (`Docs/v1.3/study2-deviation-2026-10-16.md`). The memo §5 outcomes remain registered secondaries, and the branch is reported beside the result.
 
 ### 4.3 The outcome under each branch (defined, so both are ready before the decision)
 
 **Positive branch: primary = blocking erosion slope.**
 
-- Per run, the OLS slope of the step's raw `blockingViolationCount` on steps 1..k (A3, A4). Blocking means `Docs/v1.3/rule-tiers.md` at its sealed hash.
+- (Registered secondary since the deviation.) Per run, the OLS slope of the step's raw `blockingViolationCount` on steps 1..k (A3, A4). Blocking means `Docs/v1.3/rule-tiers.md` at its sealed hash.
 - Reported beside it: the step-1 blocking count on its own, and the count of **new** blocking identities at steps ≥ 2. Probe 1 showed layered findings are a step-1 level that later steps copy. A slope alone would mix that level into "erosion".
-- If any Study 2 style is layered, the FF-S01/FF-S03 double count (probe 1 §3.7.3) is an **author decision** before the freeze: keep the raw count (as the tiers define it) and report distinct violating edges as a sensitivity, or change the count. Recommendation: keep raw and report the sensitivity. Changing the count changes the construct.
+- ~~The FF-S01/FF-S03 double count was an author decision (raw count with a distinct-edge sensitivity was recommended).~~ Superseded 2026-10-16: the primary Y counts **one per distinct edge** (FF-S01 and FF-S03 on the same edge count once); the raw per-rule count is the sensitivity. This changes the construct of the count, and the deviation record says so.
 - **Known risk:** the slope may be ~0 in every arm (§11, R1).
 
 **Zero branch: primary = advisory erosion rate.**
@@ -151,7 +171,7 @@ v2 does **not** amend §5. That includes adding tasks, swapping in the new task 
   - Power is ≈ 0.05 under the base assumptions (rehearsal §3.2).
   - The pilot's `none` slopes without FF-CV05 were **negative** in both scored tasks (−0.50, −0.58).
   - Gate line D1 requires, under the advisory branch, that "the pilot shows the advisory density growing per step". The line has no waiver. **Unless the DDD runs change that picture, D1 cannot turn green under the zero branch, and Study 2 does not start (§9).**
-  - The gap plan's Decision 5 lists the options: (a) run anyway, with the null pre-declared as interpretable; (c) do not run, and report the design and the readiness evidence. It advises against (b), amending the memo. Choosing between (a) and (c) is an **author decision**. Under the current gate text, (a) needs D1 to be green, so as written only (c) is open.
+  - The gap plan's Decision 5 listed the options: (a) run anyway, with the null pre-declared as interpretable; (b) amend the memo; (c) do not run. Superseded 2026-10-16: the author took a declared deviation to the level outcome Y instead of running this branch as the primary. If the validation pilot passes no confirmatory stratum, Study 2 does **not** run (option (c)), because D1 blocks this branch.
 
 Under either branch: the judge dimensions, cost, repair success and the guards are secondary (§8).
 
@@ -168,7 +188,7 @@ The task-design guide (`v1.3-task-design`) is **pending**. These requirements co
 | T3 | **Prefer styles whose defining rules conflict with an agent's default layout** (strict layering, DDD context isolation), or report the expected zeros for the others as such. | Probe 1 §5.1. |
 | T4 | **Plain product language.** Never name a layer, port, interface or pattern. No answer-carrying names or comments. Banned-term audit with zero hits. | `Docs/v1.3/pilot-tasks.md` §1; gate D2, V11; unsealer audit (PR #174). |
 | T5 | **Same frame in every arm**, with the layout sentence (S5 recommendation). | Probe 2: without it, 19 / 28 hexagonal files fell outside every glob; "spec only" carries the layout too. |
-| T6 | **k as large as the tasks allow** (k = 6 if possible). One more step buys more power per turn than one more replicate. | Power notes reading 4: option E (k = 6) 0.71 against B 0.54. |
+| T6 | **k = 4**, and every defining pressure of the style falls in steps 1–4 (superseded 2026-10-16; the slope-model text asked for k = 6). | Level simulation §4.3: under the measured plateau k = 6 adds 50 % of the turns for no power; blocks beat steps. Probe 3: k = 4 cut the step-5 pressure, so tasks must place it earlier. |
 | T7 | **Each step must leave a scoreable tree for every style.** In particular, a DDD step 1 must yield a spec the pipeline accepts (aggregates present), or the D15 rule decides in advance what happens. | Pilot T1; gate D15. |
 | T8 | **Per-step acceptance checks** (small behavioural tests, never shown to the agent), written and sealed with the tasks. Without them, only LOC and file trajectories guard against feature dropping. **Author decision** (D12 has a [W]). | v1 §4; gate D12. |
 | T9 | **Do not rely on brownfield precedent seeding** as a lever. | Precedent probe: 0 / 8 against 0 / 8. |
@@ -199,8 +219,8 @@ Further readings from the same notes:
 ### 6.2 What is fixed and what is pending
 
 - **Defined: the confirmatory unit is the block** (task × model × replicate). The task-level forest plot is descriptive (A2).
-- **Defined: if `gate` is dropped (§3.4), Holm runs over one contrast.** Power must then be recomputed for that design.
-- **Pending: the final grid** (gap plan Decision 7, gate D3). Gate D3 requires power ≥ 0.80 for each confirmatory contrast, with budgeted N ≥ 1.1 × required N. **No option in the table meets that** for `gate` at the base assumptions, and `mcp` is below it everywhere.
+- **Defined (amended 2026-10-16): `gate` is dropped (§3.4).** Holm runs over H1–H3 of the floor-escape design. Power comes from the level-outcome simulation (`level-power-sim-2026-10-16.md`); the grid and the power rule are in the deviation record §5 (24 blocks, RR ≤ 0.25, contrasts below 0.80 demoted to secondary before the pre-registration).
+- **Pending: the final grid** (gap plan Decision 7, gate D3). Gate D3 requires power ≥ 0.80 for each confirmatory contrast, with budgeted N ≥ 1.1 × required N. The slope-model table above (superseded as the sizing basis on 2026-10-16) met that for no contrast. The proposed grid is now 4 tasks × 3 replicates × 2 generators = 24 blocks at k = 4 (deviation record §5), re-checked with the validation pilot's dispersion.
 - **Pending, and possibly not obtainable: the pilot's θ and slope SD.** D3 says to re-run the simulation "with the pilot's θ, slope SD and erosion rate". The two scored pilot tasks had a blocking count of 0 at every step, so they carry no information on blocking dispersion. The dress rehearsal "estimates no arm effect, and … informs nothing about erosion". Unless the DDD runs show blocking counts, the power re-run must rest on stated assumptions. The pre-registration must say which, and that the pilot could not supply them.
 - **Budget evidence (not a budget).** The pilot measured 6.34 USD API-equivalent for 24 Sonnet step turns (0.15–0.42 USD per turn), about 10× below v1's guess. It also ran under the subscription login with no usage-limit pause. Other models and the MCP and repair turns are not measured (gate D4, **pending**). The gap plan concludes that budget is less binding than assumed, so the largest grid that passes D3 is preferred.
 
@@ -220,7 +240,7 @@ Confirmatory analysis (defined): **outline candidate 1**. One OLS slope per run,
 | A8 | `check-correct` labels for "new" | Label file format `{identity: label}`. Labels are complete **before** any branch or count is computed. `not-checkable` counts only with the author's one-line confirmation. `incorrect` is logged as a tool defect and not counted. | Defined |
 | A9 | Findings beyond the listing cap | Use the uncapped findings list (PR #142, per the dress-rehearsal entry list). Assert, per step, listed findings = `blockingViolationCount`, and flag any step where they differ. **Pending:** confirm on a real record. | Defined; check pending |
 | A10 | Fallback not computable | `advisoryByRule` is on `v1.3` (PR #142). Compute the fallback as defined. Re-run the rehearsal on the new format. | Code done; rehearsal re-run pending |
-| A11 | `gate` under the advisory branch | Recommendation: drop it (§3.4). | Author decision |
+| A11 | `gate` under the advisory branch | Dropped (§3.4). | Decided 2026-10-16 |
 | A12 | Monte Carlo precision of the sign-flip p | **99 999 flips** (the rehearsal's minimum), seed fixed in the pre-registration. If the p lies within its Monte Carlo SE of the Holm threshold, report that, and use the exact test where it is feasible. | Defined; seed value pending |
 | A13 | Bootstrap details | Two stages (tasks, then blocks within tasks), percentile, **4 999 resamples** (the rehearsal's minimum), seed fixed in the pre-registration. Over-coverage (0.97–0.99 in rehearsal) is stated. | Defined; seed value pending |
 | A14 | Effect size | Report the **mean difference and d_z**. Report the relative reduction (1 − mean arm / mean `none`) only when the CI of the `none` mean slope excludes 0. | Defined |
@@ -235,7 +255,7 @@ Confirmatory analysis (defined): **outline candidate 1**. One OLS slope per run,
 | A23 | Steps that fail type-check | **Included**, with the type-check guard reported. | Defined |
 | A24 | Blocking primary, but Study 2 at the floor | **Report a degenerate null.** No switch after the run. The report states that the contrast had nothing to detect. | Defined |
 | A25 | `taskProfiles` with `daedalus-mcp` | Harness change, or one style per server configuration, decided before the freeze (§3.3). | Pending |
-| A26 *(added by v2)* | FF-S01/FF-S03 double count in layered | Raw count, with a distinct-edge sensitivity, if any style is layered (§4.3). | Author decision |
+| A26 *(added by v2; amended 2026-10-16)* | FF-S01/FF-S03 double count in layered | **One count per distinct edge** for the primary Y; the raw per-rule count is a sensitivity (§4.3; deviation record §2). Superseded text: raw count with a distinct-edge sensitivity. | Decided 2026-10-16 |
 
 Items the step records cannot give (rehearsal §6) need a harness field or a fixed re-scoring script, run over the kept snapshots **before any arm comparison is read**. They are: held-out rules and dependency-cruiser (Q4, gate D16); layer coverage, dynamic imports and barrels (D13); the MCP call log (D6); acceptance checks (D12); and the judge dimensions. **Pending.**
 
@@ -254,7 +274,7 @@ As in v1 §4, with these changes:
 
 - **The gate is on an open PR (#146).** Merging it into `v1.3` comes first (gap plan P0).
 - **Status at its writing: NO-GO** (1 green, 1 partly green, 32 red, 8 unknown, at `4339bad5`).
-- **The gate's order:** pilot → instrument freeze and hold-out → dress rehearsal → pre-registration → gate → Study 2.
+- **The gate's order:** pilot → instrument freeze and hold-out → dress rehearsal → pre-registration → gate → Study 2. Amended 2026-10-16: the validation pilot runs before the freeze, so the canonical order is validation pilot → freeze → hold-out → dress rehearsal → pre-registration → gate → Study 2 (deviation record §6).
 
 Tonight's evidence touches these lines. Each stays at its recorded status until it is re-verified at the run commit (gate rule 3).
 
@@ -294,7 +314,7 @@ Each risk names the event that would tempt a second run, and the mitigation that
 | # | Risk | Why it would tempt a re-run | Mitigation |
 |---|---|---|---|
 | R1 | **Floor in every arm.** No arm produces blocking erosion, so the contrast is degenerate. | "The tasks were too easy; run again with harder ones." | Task requirements T1–T3 before sealing; the pilot decision (§4) taken first; A24: a degenerate null is the pre-declared result. Gate D1 stops a run that the pilot shows is at the floor. |
-| R2 | **The primary outcome is changed after data are seen.** | Re-running "with the right outcome". | Memo §5 is applied mechanically (§4.2). v2 amends nothing. Gate rule 1: criteria cannot be relaxed after data. |
+| R2 | **The primary outcome is changed after data are seen.** | Re-running "with the right outcome". | Superseded 2026-10-16: the outcome was changed once, before any Study 2 task was written or run, by a declared and dated deviation with its timeline; the memo §5 branch is recorded and its outcomes stay registered secondaries. After the pre-registration no further switch is allowed. Gate rule 1: criteria cannot be relaxed after data. |
 | R3 | **Runs or steps cannot be scored** (a T1-like freeze or pipeline failure on real trees). | Lost cells look like a failed study. | Gate D15 and S7 (0 evaluation errors on real trees in the dress rehearsal); task requirement T7; keep every snapshot; re-score, never regenerate (§2.3). |
 | R4 | **Telemetry is missing** (advisory per rule, coverage, call log, Q4 measures, pause time). | Tables cannot be produced. | Gates S6, D6, D13, D16, S1 must be green in the dress rehearsal; fixed re-scoring scripts are hashed before the run; the analysis script reads only the out-root. |
 | R5 | **Interruption mid-run** (usage limit, crash, machine loss). | Restarting from scratch "for cleanliness". | Resume on the same out-root (§2.2); gate D14 live resume; finish the #180 fault drills (11 / 13 today) to 13 / 13; usage-limit pause policy (S1). |
@@ -312,16 +332,16 @@ Each risk names the event that would tempt a second run, and the mitigation that
 | R17 | **The judge changes, or is questioned.** | Secondary outcomes are disputed. | v1 frozen (V7). The judge is never primary. No v2.3 or CHECK-3 (gap plan Decision 2). |
 | R18 | **The engine of record differs from the interpreter.** | Numbers do not reproduce. | Neo4j is the engine of record; interpreter parity on Study 2 snapshots (gate D8). |
 | R19 | **Construct decisions answered after the data.** | Re-scoring "with the right construct". | Gate V1: Q1–Q25 answered before the freeze; ADRs merged. |
-| R20 | **Critique on vendor or same-agent grounds.** | "Replicate with a non-Claude generator". | Gate V10 ([W] only for b): a non-Claude generator inside the single run; limits stated. A replication would be a separate, labelled study. |
+| R20 | **Critique on vendor or same-agent grounds.** | "Replicate with a non-Claude generator". | Gate V10 ([W] only for b): the Codex pin runs beside Sonnet 5.5 inside the single run, which is scheduled after about 2026-11-09; no V10(a) waiver. A replication would be a separate, labelled study. |
 | R21 | **The decision flips on the Monte Carlo seed.** | Re-running the analysis until it "settles". | A12: fixed seed, 99 999 flips, rule for p near α. |
-| R22 | **The DDD pilot decision is never reached.** | Running Study 2 with the outcome undecided, then switching. | Fix T1 and score DDD before the pre-registration (§4.2). Until then the blocking default holds, and no outcome switch is allowed after the Study 2 data. |
+| R22 | **The DDD pilot decision is never reached.** | Running Study 2 with the outcome undecided, then switching. | Superseded 2026-10-16: the branch is recorded (zero, PR #229) and the primary is Y by the declared deviation. Fix T1 and re-score DDD on `v1.3` before the pre-registration. No outcome switch is allowed after the pre-registration. |
 
 ## 12. Pending items (summary)
 
-1. DDD pilot scoring after the T1 fix → memo §5 branch (§4.2).
+1. DDD pilot re-score on `v1.3` after the T1 fix → memo §5 branch confirmed (§4.2; zero on #229), reported beside the primary Y.
 2. The task-design guide (`v1.3-task-design`) and the author's decision on the task set (§5).
 3. A power re-run, its source for θ, and the grid (§6.2).
-4. Arm-set decisions: S5, placebo, `gate` under the zero branch, per-task MCP spec (§3).
+4. Arm-set decisions: S5 and the per-task MCP spec (§3). `gate` and the placebo are dropped (decided 2026-10-16).
 5. MCP tool fixes and agreement (V9), confinement (S4), call log (D6) (§3.3).
 6. A rehearsal re-run on the post-#142 record format, plus the A7 and A9 checks (§7).
 7. The sealed hold-out run and the FR-V11 report (V3, V4); the predictive-validity result.
