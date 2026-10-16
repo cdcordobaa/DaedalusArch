@@ -1484,3 +1484,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 — requirements revision 1; Gate 2 (first fidelity result) is now a human gate.
 
 ---
+
+## v1.3 CONSTRUCTION — loop replay (scheduled task, no live user)
+**Timestamp**: 2026-10-16T01:40:00Z
+**User Input**: (scheduled task prompt) Prove the firewall-in-the-loop harness end to end without any LLM: a deterministic scripted agent replaying recorded edits for at least 2 pilot tasks under none / daedalus-mcp / gate, on the in-process engine or Neo4j 5.26 + APOC; assert memo-defined metrics, per-step latency, gate exactness, consistency with a full evaluation, byte reproducibility; jest integration test, npm script, Docs/v1.3/loop-replay.md; one PR into v1.3, not merged.
+**AI Response**: "Branch v1.3-loop-replay from origin/v1.3. `--engine cypher-interp` is not on v1.3, so Neo4j 5.26.24 + APOC 5.26.24 from the tarball. Scripted agent and tapes for market-vendors, shelter-adoptions and relief-volunteers; replay CLI (npm run loop:replay) and jest test (npm run test:loop-replay). Plumbing bugs found and fixed: missing tsconfig for the live evaluator, DDD freeze accepting an uncompilable spec, report/template not persisted for the memo §3 labelling, advisory counts per rule missing for memo §4, non-deterministic snapshot commit dates for the replay. Tool gap recorded, not fixed: check_file/check_diff do not check the hexagonal graph or DDD context rules. No LLM called. Interactive approval gates were not run: no live user."
+**Context**: v1.3 loop pilot readiness; the pilot itself has not run and still needs the author's go.
+
+---

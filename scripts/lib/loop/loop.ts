@@ -102,6 +102,8 @@ export interface LoopContext {
   readonly now: () => Date;
   readonly dryRun: boolean;
   readonly log?: (line: string) => void;
+  /** Pins the snapshot commits' dates (`WorkTreeSnapshots`); the loop replay sets it, live runs do not. */
+  readonly snapshotDate?: string;
 }
 
 export type LoopRunResult =
@@ -157,8 +159,9 @@ function copyTree(from: string, to: string): void {
   fs.cpSync(from, to, { recursive: true, verbatimSymlinks: true });
 }
 
-function identity(f: Pick<BlockingFinding, 'ruleId' | 'filePath' | 'target'>): string {
-  return `${f.ruleId}\u0000${f.filePath}\u0000${f.target ?? ''}`;
+/** Rule id, template (when the evaluator reports it), file and target; lines ignored (memo §3). */
+function identity(f: Pick<BlockingFinding, 'ruleId' | 'template' | 'filePath' | 'target'>): string {
+  return `${f.ruleId}\u0000${f.template ?? ''}\u0000${f.filePath}\u0000${f.target ?? ''}`;
 }
 
 /**
@@ -218,7 +221,7 @@ class LoopRun {
     this.runId = loopRunId(spec);
     this.runDir = runDirFor(ctx.outRoot, this.runId);
     this.workDir = path.join(this.runDir, WORK_DIR);
-    this.snaps = new WorkTreeSnapshots(path.join(this.runDir, SNAPSHOT_GIT_DIR), this.workDir);
+    this.snaps = new WorkTreeSnapshots(path.join(this.runDir, SNAPSHOT_GIT_DIR), this.workDir, ctx.snapshotDate);
     this.profile = ctx.profiles?.get(task.id);
   }
 
@@ -292,9 +295,19 @@ class LoopRun {
     if (resolved.ref !== undefined) this.lastSpecRef = resolved.ref;
     const ev =
       resolved.evaluator !== null
-        ? await resolved.evaluator.evaluate(this.workDir)
+        ? await resolved.evaluator.evaluate(this.workDir, this.runId)
         : DomainResult.fail<StepEvaluation>([resolved.error ?? { code: 'LOOP_NO_EVALUATOR', message: 'no evaluator' }]);
     const firstError = ev.success ? undefined : ev.errors[0];
+    let evaluation: StepEvaluation | null = null;
+    if (ev.success) {
+      const { reportViolations, ...rest } = ev.data;
+      evaluation = rest;
+      if (reportViolations !== undefined) {
+        const turnId = `step-${pad(stepIndex + 1)}${kind === 'repair' ? '-repair' : ''}`;
+        const file = path.join(this.runDir, TURNS_DIR, `step-${pad(stepIndex + 1)}`, `report-${turnId}.json`);
+        writeJsonAtomic(file, { schema: 'loop-snapshot-report/v1', runId: this.runId, turnId, commit, violations: reportViolations });
+      }
+    }
     return DomainResult.ok({
       commit,
       sourceFiles: sourceFilePaths(this.workDir),
@@ -303,7 +316,7 @@ class LoopRun {
       diff: diff.data,
       skeletonIntact: this.ctx.skeletonIntact(this.workDir),
       typecheck: tc.data,
-      evaluation: ev.success ? ev.data : null,
+      evaluation,
       ...(firstError !== undefined ? { evaluationError: { code: firstError.code, message: firstError.message } } : {}),
     });
   }

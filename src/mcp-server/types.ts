@@ -9,7 +9,7 @@ import type {
   Route,
   LayerKind,
 } from '../shared/types/enums.js';
-import type { ViolationType } from '../shared/taxonomy/violation-types.js';
+import type { Violation, ViolationType } from '../shared/taxonomy/violation-types.js';
 import type { ScoringMode, TieredScoring } from '../shared/types/evaluation.js';
 
 // ── Rules ────────────────────────────────────────────────────────────────────
@@ -157,6 +157,11 @@ export interface EvaluateProjectResult {
   readonly scoringMode: ScoringMode;
   /** v1.3 mode only: blocking and advisory counts per rule, N/A parts with denominators; `ahs` stays the v1.2E AHS. */
   readonly tiers?: TieredScoring;
+  /**
+   * Every violation of the report, uncapped, as the pipeline produced it (type, discriminator, evidence). Present only
+   * when the caller asks (`includeViolations`; the loop harness does, the MCP tool does not).
+   */
+  readonly violations?: readonly Violation[];
 }
 
 // ── Environment ──────────────────────────────────────────────────────────────
