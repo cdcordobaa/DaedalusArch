@@ -7,7 +7,9 @@
  *                             every patch or overlay applied to a temporary copy, counts, location, tree hash);
  *                             the tool is not run and Neo4j is not needed
  *   (default, live)           dry-run checks, then the freeze check (the working tree's src/ scripts/ presets/
- *                             specs/ equal --commit, nothing untracked), then the prespec §2 pipeline:
+ *                             specs/, package.json, package-lock.json and tsconfig*.json equal --commit, nothing
+ *                             untracked) and the dependency check (every installed package at its lockfile
+ *                             version), then the prespec §2 pipeline:
  *                             `ue-baseline-live.ts --root <holdout>` (validate-reference live, Neo4j, cross-process
  *                             lock), `ue-graph.ts --root <holdout>`, `check-correct` on the blocking findings, then
  *                             the scoring of prespec §3–§5
@@ -53,9 +55,15 @@ export interface HoldoutDeps {
   readonly git?: GitRunner;
   /** Clock for the provenance file. */
   readonly now?: () => Date;
+  /** The dependency check; defaults to `dependencyCheck(repoRoot)`. */
+  readonly dependencies?: (repoRoot: string) => DependencyCheck;
 }
 
-export const FROZEN_PATHS = ['src', 'scripts', 'presets', 'specs'] as const;
+/**
+ * The paths that must equal the frozen commit. The dependency manifests and the TypeScript configs are part of the
+ * instrument: a changed lockfile or compiler option runs different code under the same commit.
+ */
+export const FROZEN_PATHS = ['src', 'scripts', 'presets', 'specs', 'package.json', 'package-lock.json', 'tsconfig*.json'] as const;
 
 export interface HoldoutArgs {
   readonly mode: 'dry-run' | 'live' | 'from-raw';
@@ -305,6 +313,75 @@ export function freezeCheck(git: GitRunner, commit: string): { sha: string; head
   return { sha, head, problems };
 }
 
+// ── Dependency check ──────────────────────────────────────────────────────────
+
+export interface DependencyCheck {
+  /** sha256 of package-lock.json as it is on disk ('' when it cannot be read). */
+  readonly lockfileSha256: string;
+  /** Installed version of each direct dependency of package.json (dependencies and devDependencies), by name. */
+  readonly direct: Readonly<Record<string, string>>;
+  /** Number of lockfile packages compared with node_modules. */
+  readonly checked: number;
+  readonly problems: readonly string[];
+}
+
+interface LockPackage {
+  readonly version?: string;
+  readonly optional?: boolean;
+  readonly link?: boolean;
+}
+
+function installedVersion(repoRoot: string, key: string): string | undefined {
+  try {
+    const v = readJson<{ version?: unknown }>(path.join(repoRoot, key, 'package.json')).version;
+    return typeof v === 'string' ? v : '';
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Compares every package of package-lock.json (lockfile v2/v3 `packages` map) with the package.json installed under
+ * node_modules: a missing non-optional package or a different version is a problem. A missing optional package
+ * (another platform's binary) is not.
+ */
+export function dependencyCheck(repoRoot: string): DependencyCheck {
+  const lockFile = path.join(repoRoot, 'package-lock.json');
+  let raw: Buffer;
+  try { raw = fs.readFileSync(lockFile); } catch {
+    return { lockfileSha256: '', direct: {}, checked: 0, problems: [`cannot read ${lockFile}`] };
+  }
+  const lockfileSha256 = createHash('sha256').update(raw).digest('hex');
+  let packages: Record<string, LockPackage>;
+  try {
+    const parsed = JSON.parse(raw.toString('utf8')) as { packages?: Record<string, LockPackage> };
+    if (parsed.packages === undefined || typeof parsed.packages !== 'object') throw new Error('no packages map (lockfile v2 or v3 expected)');
+    packages = parsed.packages;
+  } catch (e) {
+    return { lockfileSha256, direct: {}, checked: 0, problems: [`package-lock.json: ${e instanceof Error ? e.message : String(e)}`] };
+  }
+  const problems: string[] = [];
+  let checked = 0;
+  for (const [key, entry] of Object.entries(packages)) {
+    if (key === '' || !key.startsWith('node_modules/') || entry.link === true || entry.version === undefined) continue;
+    const got = installedVersion(repoRoot, key);
+    if (got === undefined) {
+      if (entry.optional !== true) problems.push(`${key} is in package-lock.json (${entry.version}) but not installed`);
+      continue;
+    }
+    checked += 1;
+    if (got !== entry.version) problems.push(`${key} is ${got === '' ? 'installed without a version' : got}, package-lock.json has ${entry.version}`);
+  }
+  const direct: Record<string, string> = {};
+  try {
+    const pkg = readJson<{ dependencies?: Record<string, string>; devDependencies?: Record<string, string> }>(path.join(repoRoot, 'package.json'));
+    for (const name of Object.keys({ ...pkg.dependencies, ...pkg.devDependencies }).sort()) direct[name] = installedVersion(repoRoot, `node_modules/${name}`) ?? 'not installed';
+  } catch (e) {
+    problems.push(`package.json: ${e instanceof Error ? e.message : String(e)}`);
+  }
+  return { lockfileSha256, direct, checked, problems };
+}
+
 // ── Run outputs ───────────────────────────────────────────────────────────────
 
 function readJson<T>(file: string): T {
@@ -386,6 +463,11 @@ export async function holdoutMain(argv: readonly string[], repoRoot: string, io:
   for (const p of freeze.problems) io.err(`freeze: ${p}\n`);
   if (freeze.problems.length > 0) return 1;
   io.out(`freeze: working tree equals ${freeze.sha} in ${FROZEN_PATHS.join(', ')} (HEAD ${freeze.head})\n`);
+  const depCheck = (deps.dependencies ?? dependencyCheck)(repoRoot);
+  for (const p of depCheck.problems.slice(0, 20)) io.err(`dependencies: ${p}\n`);
+  if (depCheck.problems.length > 20) io.err(`dependencies: … ${String(depCheck.problems.length - 20)} more\n`);
+  if (depCheck.problems.length > 0) return 1;
+  io.out(`dependencies: ${String(depCheck.checked)} installed packages match package-lock.json (sha256 ${depCheck.lockfileSha256})\n`);
 
   const outDir = path.resolve(repoRoot, args.out ?? '');
   const runDir = args.mode === 'from-raw' ? path.resolve(repoRoot, args.fromRaw ?? '') : outDir;
@@ -448,6 +530,7 @@ export async function holdoutMain(argv: readonly string[], repoRoot: string, io:
     idMap: args.idMap ?? null, idsMapped: Object.fromEntries(structure.styles.map((s) => [s.style, s.mappedIds])),
     deferredRules: args.deferred, graphAdjudication: args.graphAdjudication ?? null, correctness: correctness === undefined ? 'skipped' : `${String(correctness.length)} blocking findings checked`,
     neo4j: args.mode === 'live' ? uri.replace(/\/\/[^@/]*@/, '//') : null,
+    lockfileSha256: depCheck.lockfileSha256, dependencies: depCheck.direct, dependenciesChecked: depCheck.checked,
     node: process.version, started, ended: now().toISOString(),
   }, null, 2) + '\n');
   io.out(`${claimLines(scores).join('\n')}\n`);
