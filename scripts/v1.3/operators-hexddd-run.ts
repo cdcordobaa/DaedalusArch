@@ -16,6 +16,7 @@
  * Usage (repository root; Neo4j 5.26 + APOC at NEO4J_URI):
  *   npx tsx scripts/v1.3/operators-hexddd-run.ts --prepare --ext <dir>
  *   NEO4J_URI=… NEO4J_USER=… NEO4J_PASSWORD=… npx tsx scripts/v1.3/operators-hexddd-run.ts --ext <dir> --work <dir> --out <dir> [--k 10] [--k-twin 6] [--only MO-H01,…] [--bases …]
+ *   npx tsx scripts/v1.3/operators-hexddd-run.ts --merge <run dir>,<run dir>,… --out <dir>   (one report from per-base runs)
  * Writes `<out>/run.json` (feasibility table, every row with its diff, summary) and prints the summary table.
  */
 import { spawnSync } from 'node:child_process';
@@ -53,7 +54,7 @@ interface Project {
   readonly styles: readonly ('hexagonal' | 'ddd')[];
 }
 
-interface Base {
+export interface Base {
   readonly baseId: string;
   readonly kind: 'reference' | 'real';
   readonly style: 'hexagonal' | 'ddd';
@@ -132,7 +133,7 @@ function bases(repoRoot: string, ext: string, work: string): Base[] {
   return out;
 }
 
-async function contextOf(compiled: CompiledSpec, base: Base, handle: ProjectHandle): Promise<PreconditionContext> {
+export async function contextOf(compiled: CompiledSpec, base: Base, handle: ProjectHandle): Promise<PreconditionContext> {
   const prepared = makePreparedBase({
     projectId: base.baseId,
     baseKind: 'fixture',
@@ -158,7 +159,7 @@ async function contextOf(compiled: CompiledSpec, base: Base, handle: ProjectHand
   };
 }
 
-function templateIds(compiled: CompiledSpec): TemplateIds {
+export function templateIds(compiled: CompiledSpec): TemplateIds {
   return new Map([...compiled.enabled.entries()].map(([t, fs_]) => [t, fs_.map((f) => f.functionId)]));
 }
 
@@ -180,6 +181,8 @@ export async function main(argv: readonly string[], repoRoot: string): Promise<n
     prepare(repoRoot, ext);
     return 0;
   }
+  const mergeDirs = arg(argv, '--merge');
+  if (mergeDirs !== undefined) return merge(repoRoot, mergeDirs.split(',').map((d) => path.resolve(d)), path.resolve(arg(argv, '--out') ?? 'results/v1.3-operators-hexddd'));
   const work = path.resolve(arg(argv, '--work') ?? path.join(ext, '..', 'operators-hexddd-work'));
   const out = path.resolve(arg(argv, '--out') ?? 'results/v1.3-operators-hexddd');
   const k = Number(arg(argv, '--k') ?? '10');
@@ -240,20 +243,49 @@ export async function main(argv: readonly string[], repoRoot: string): Promise<n
     }
   }
 
-  const byStyle = summarise(rows, cells, ops);
+  writeReport(repoRoot, path.join(out, countOnly ? 'feasibility.json' : 'run.json'), { k, kTwin, bases: baseInfo, cells, rows }, ops);
+  return 0;
+}
+
+interface RunParts {
+  readonly k: number;
+  readonly kTwin: number;
+  readonly bases: readonly Record<string, unknown>[];
+  readonly cells: readonly FeasibilityCell[];
+  readonly rows: readonly RunRow[];
+}
+
+/** Summarises the parts (by style, and by style and base kind), writes the report and prints the summary table. */
+function writeReport(repoRoot: string, file: string, parts: RunParts, ops: readonly MutationOperator[]): void {
+  const byStyle = summarise(parts.rows, parts.cells, ops);
   const kindOf = (baseId: string): string => (baseId.startsWith('ref-') ? 'reference' : 'real');
   const byKind = summarise(
-    rows.map((r) => ({ ...r, style: `${r.style}/${r.baseKind}` })),
-    cells.map((c) => ({ ...c, style: `${c.style}/${kindOf(c.baseId)}` })),
+    parts.rows.map((r) => ({ ...r, style: `${r.style}/${r.baseKind}` })),
+    parts.cells.map((c) => ({ ...c, style: `${c.style}/${kindOf(c.baseId)}` })),
     ops,
   );
   const catalogueVersion = fs.existsSync(path.join(repoRoot, HEXDDD_CATALOGUE_PATH)) ? catalogueVersionOf(fs.readFileSync(path.join(repoRoot, HEXDDD_CATALOGUE_PATH))) : null;
-  const report = { generatedAt: new Date().toISOString(), catalogueVersion, masterSeed: MASTER_SEED, k, kTwin, bases: baseInfo, cells, summary: byStyle, summaryByKind: byKind, rows };
-  fs.writeFileSync(path.join(out, countOnly ? 'feasibility.json' : 'run.json'), `${JSON.stringify(report, null, 2)}\n`);
+  const report = { generatedAt: new Date().toISOString(), catalogueVersion, masterSeed: MASTER_SEED, ...parts, summary: byStyle, summaryByKind: byKind };
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, `${JSON.stringify(report, null, 2)}\n`);
   process.stdout.write('| Operator | Style | Sites (eligible/candidates) | Applied | Compiled | Evaluated | Hits | Rate [95% Wilson] |\n|---|---|---|---|---|---|---|---|\n');
   for (const s of byStyle) {
     process.stdout.write(`| ${s.operatorId} | ${s.style} | ${String(s.eligible)}/${String(s.candidates)} | ${String(s.applied)} | ${String(s.compiled)} | ${String(s.evaluated)} | ${String(s.hits)} | ${fmtRate(s.rate, s.low, s.high)} |\n`);
   }
+}
+
+/** `--merge a,b,… --out <dir>`: one report from per-base runs (each base runs in its own process to bound memory). */
+function merge(repoRoot: string, dirs: readonly string[], out: string): number {
+  const parts = dirs.map((d) => JSON.parse(fs.readFileSync(path.join(d, 'run.json'), 'utf8')) as RunParts);
+  const first = parts[0];
+  if (first === undefined) return 2;
+  writeReport(repoRoot, path.join(out, 'run.json'), {
+    k: first.k,
+    kTwin: first.kTwin,
+    bases: parts.flatMap((p) => p.bases),
+    cells: parts.flatMap((p) => p.cells),
+    rows: parts.flatMap((p) => p.rows),
+  }, HEXDDD_OPERATORS);
   return 0;
 }
 

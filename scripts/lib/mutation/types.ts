@@ -187,7 +187,6 @@ export type PreconditionReason =
   | 'cycle-cap'
   // v1.3 DRAFT hexagonal / DDD operators (`Docs/v1.3/operator-catalogue-hexddd.md`).
   | 'layer-pair'
-  | 'published'
   | 'no-port'
   | 'ddd-boundary';
 
