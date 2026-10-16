@@ -383,7 +383,7 @@ export async function runFreezeChecks(o: FreezeOptions, deps: FreezeDeps = {}): 
   const manifest = await buildManifest(root, git, x === '' ? 'HEAD' : x, o.answers);
   {
     const p: string[] = [];
-    if (o.writeManifest) { /* written by the entry after the checks */ } else if (!exists(root, o.manifest)) p.push(`no manifest ${o.manifest} (runbook step 5: freeze-check.ts --write-manifest)`);
+    if (o.writeManifest) { /* written by the entry after the checks */ } else if (!exists(root, o.manifest)) p.push(`no manifest ${o.manifest} (runbook step 7: freeze-check.ts --write-manifest)`);
     else if (read(root, o.manifest) !== renderManifest(manifest)) {
       const committed = JSON.parse(read(root, o.manifest)) as FreezeManifest;
       const diff = Object.keys({ ...committed.files, ...manifest.files }).filter((f) => committed.files[f] !== manifest.files[f]);
