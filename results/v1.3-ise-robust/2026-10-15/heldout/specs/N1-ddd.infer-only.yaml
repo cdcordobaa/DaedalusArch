@@ -1,0 +1,251 @@
+# ISE-inferred spec (exploratory prototype, src/ise). Review before use.
+# style: ddd (classified, confidence 0.75); layer mapping: infer-only
+# evidence: +4 2 bounded-context-like folders (src/indigo/billing/, src/indigo/ordering/) each with its own domain layer; +1 shared kernel next to the contexts; +1 context boundary directories (acl / contracts)
+# units: src/indigo/billing/=- (public-api), src/indigo/billing/acl/=infrastructure (token+structure), src/indigo/billing/api/=api (token+structure), src/indigo/billing/contracts/=- (public-api), src/indigo/billing/jasper/=infrastructure (structure), src/indigo/billing/orchid/=application (structure), src/indigo/billing/prairie/=domain (structure), src/indigo/main.ts=composition (token+structure), src/indigo/ordering/=- (public-api), src/indigo/ordering/api/=api (token+structure), src/indigo/ordering/contracts/=- (public-api), src/indigo/ordering/jasper/=infrastructure (structure), src/indigo/ordering/orchid/=application (structure), src/indigo/ordering/prairie/=domain (structure), src/indigo/shared-kernel/=domain (token+structure)
+
+spec_version: "1.0.0"
+
+architecture:
+  style: ddd
+
+  layers:
+    - name: domain
+      kind: domain
+      directories:
+        - src/indigo/billing/prairie/**
+        - src/indigo/ordering/prairie/**
+        - src/indigo/shared-kernel/**
+      roles:
+        - aggregate
+        - entity
+        - value-object
+        - domain-event
+        - repository-interface
+
+    - name: application
+      kind: application
+      directories:
+        - src/indigo/billing/orchid/**
+        - src/indigo/ordering/orchid/**
+      roles:
+        - application-service
+        - port
+
+    - name: infrastructure
+      kind: infrastructure
+      directories:
+        - src/indigo/billing/acl/**
+        - src/indigo/billing/jasper/**
+        - src/indigo/ordering/jasper/**
+      roles:
+        - repository
+        - anti-corruption-layer
+
+    - name: api
+      kind: presentation
+      directories:
+        - src/indigo/billing/api/**
+        - src/indigo/ordering/api/**
+      roles:
+        - controller
+
+    # Composition root, outside every context. kind application is only a placeholder for the kind resolver.
+    - name: composition
+      kind: application
+      directories:
+        - src/indigo/main.ts
+      roles:
+        - composition-root
+
+  # Layering inside each context (`from` may import each layer in `to`); cross-context imports are FF-DS02's.
+  allowed_dependencies:
+    - from: application
+      to: [ domain ]
+    - from: infrastructure
+      to: [ application, domain ]
+    - from: api
+      to: [ application, domain ]
+    - from: composition
+      to: [ domain, application, infrastructure, api ]
+
+  ddd:
+    source_root: src/indigo/
+    contexts:
+      - name: billing
+        root: src/indigo/billing/
+        public_api:
+          - src/indigo/billing/index.ts
+          - src/indigo/billing/contracts/**
+        acl:
+          - src/indigo/billing/acl/**
+      - name: ordering
+        root: src/indigo/ordering/
+        public_api:
+          - src/indigo/ordering/index.ts
+          - src/indigo/ordering/contracts/**
+        acl: []
+    outside_contexts:
+      - src/indigo/main.ts
+      - src/indigo/shared-kernel/**
+    aggregates:
+      - name: Invoice
+        context: billing
+        module: src/indigo/billing/prairie/invoice/**
+        root: src/indigo/billing/prairie/invoice/Invoice.ts
+        inner_entities:
+          - src/indigo/billing/prairie/invoice/InvoiceLine.ts
+      - name: Customer
+        context: ordering
+        module: src/indigo/ordering/prairie/customer/**
+        root: src/indigo/ordering/prairie/customer/Customer.ts
+        inner_entities: []
+      - name: Order
+        context: ordering
+        module: src/indigo/ordering/prairie/order/**
+        root: src/indigo/ordering/prairie/order/Order.ts
+        inner_entities:
+          - src/indigo/ordering/prairie/order/OrderLine.ts
+    value_objects:
+      - src/indigo/**/value-objects/**
+    repositories:
+      - src/indigo/*/jasper/**/*Repository.ts
+      - src/indigo/*/prairie/**/*Repository.ts
+    domain_event_types:
+      - DomainEvent
+    application_services:
+      - src/indigo/*/orchid/*.ts
+
+fitness_functions:
+
+  # ── STRATEGIC ──
+
+  - id: FF-DS01
+    name: bounded-context-modules
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DS02
+    name: context-isolation
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # ── TACTICAL ──
+
+  - id: FF-DT01
+    name: aggregate-boundary
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DT02
+    name: repository-aggregate-root
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Blocking per the sealed Docs/v1.3/rule-tiers.md. The check is still a method-name proxy (the extractor sees no
+  # readonly, accessors or visibility); see Docs/v1.3-ddd-notes.md §2 for the proposed ADR.
+  - id: FF-DT03
+    name: value-object-immutability
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Framework-free domain: the existing domain-purity template, unchanged, with the DDD package list.
+  - id: FF-DT04
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+    forbidden_imports:
+      - "@nestjs/*"
+      - typeorm
+      - express
+      - prisma
+      - "@prisma/*"
+      - sequelize
+      - mongoose
+      - "@mikro-orm/*"
+      - class-validator
+      - class-transformer
+      - inversify
+      - tsyringe
+
+  # Advisory per the sealed Docs/v1.3/rule-tiers.md (placement guideline).
+  - id: FF-DT05
+    name: domain-event-placement
+    dimension: pattern
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+  # Advisory heuristic: more methods than the threshold in an application service.
+  - id: FF-DT06
+    name: application-service-thin
+    dimension: pattern
+    severity: advisory
+    route: symbolic
+    validated: false
+    tier: advisory
+    threshold: 3
+
+  # ── LAYERING INSIDE EACH CONTEXT (hexagonal templates) ──
+
+  - id: FF-S01
+    name: dependency-direction-graph
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Advisory per the sealed Docs/v1.3/rule-tiers.md (hexagonal does not define strict layering).
+  - id: FF-S03
+    name: layer-skip-graph
+    dimension: structural
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70
