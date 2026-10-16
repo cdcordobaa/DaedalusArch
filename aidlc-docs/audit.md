@@ -1535,6 +1535,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 
 ---
 
+## v1.3 threats register, role separation, seed floor (scheduled task, documentation only)
+**Timestamp**: 2026-10-16T00:00:00Z
+**User Input**: "(scheduled task) Write a full v1.3 threats-to-validity register, a role-separation plan before the hold-out run, and a seed-floor plan; list cross-document number inconsistencies; no code changes, no re-scoring, no sealed directory opened."
+**AI Response**: "Added Docs/v1.3/threats-register.md (31 threats across construct, internal, external, conclusion, reliability and researcher degrees of freedom; Appendix A lists 10 inconsistencies, none fixed), Docs/v1.3/role-separation-plan.md (role matrix; independent R1 not the director; Gemini/Codex as non-Claude key writers K-G/K-X; order of work before freeze) and Docs/v1.3/seed-floor-plan.md (planted variants per style 10/9/10/11/12 vs floor 20; 48 named variants, not created). Branch v1.3-threats, one PR into v1.3, not merged."
+**Context**: v1.3 validity cycle, after PR #120; documentation only.
 ## v1.3 — blind misses diagnosis (v1.3-blind-misses)
 **Timestamp**: 2026-10-16T12:00:00Z
 **User Input**: "Classify every blind miss (14) and blind false alarm (4) of the after-member-facts run as extractor gap, rule/construct gap (mapped to Q1–Q25), key error or layer mapping; fix extractor gaps with tests (behind an off-by-default option if default results change); put construct gaps behind a switch only if none exists; re-score author and blind views; write Docs/DiagnosticRuns/v1.3-blind-misses-2026-10-16.md; one PR into v1.3, not merged."
@@ -1572,5 +1577,55 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **User Input**: "(Owner review on PR #160, verdict HOLD.) Numbers match the results; the doc overclaims on synthetic data ('proven', 'confirms'); 30/30 checks are five sets, not four scenarios; the A12 seed range is not in a committed result file."
 **AI Response**: "Reworded to 'rehearsed'/'reproduces' with a scope note (the synthetic data come from the power model, so only pipeline execution and recovery of planted values are shown); stated the five check sets; the rehearsal now writes the A12 seed-sensitivity table to summary.md/json. While merging the foreman's update (#142 now in v1.3), the generator default became advisoryByRule on (the current harness format); the old records are the labelled floor-pre-142 variant; the floor scenario now computes the memo §5 fallback as defined; finding #1 and A10 updated. 30/30 checks still pass; 75 loop/power/rehearsal tests pass. The PR stays on hold for the author; not merged."
 **Context**: CONSTRUCTION, v1.3 readiness (gate D9). Not a pre-registration.
+## v1.3 DOGFOOD — DaedalusArch on its own src/ (scheduled task)
+**Timestamp**: 2026-10-16T02:20:00Z
+**User Input**: "Scheduled task: dogfood the tool on its own src/. Recover the intended architecture from the aidlc design artefacts and the README, write a spec (hexagonal or layered) with the allowed dependencies, and commit it with a rationale before any run. Run ISE spec inference blind and compare it with the declared spec. Run evaluate --symbolic-only --engine cypher-interp with the declared spec, plus the APG v2 templates, the cheap proxies and rule mining. Triage every defining-rule finding as real debt, spec too strict or tool false positive, with file:line issues for the false positives. Do not change src/. Add an npm self-check script and an optional CI example. Write Docs/v1.3/dogfood.md. Branch v1.3-dogfood from v1.3; one PR, not merged."
+**AI Response**: "Declared spec specs/dogfood/daedalus-self.yaml (hexagonal, one layer per module, 52 allowed edges from the v1.2E dependency matrix and the v1.3 design notes), committed with RATIONALE.md (c78fb2b3) before any run. ISE: no style evidence (five-way 0.20 tie), so it defaulted to clean-architecture; 8 of 19 units are mapped differently, and the inferred spec finds 0 direction/skip rows because it is fitted to the import graph. Declared spec: verdict fail; 49 defining-rule rows triaged as 29 real debt, 20 spec too strict, 0 tool false positives. The rows matched the independently mined import graph 44/44. APG v2 on the interpreter equals the mirrors 9/9; it found 8 modules in one SCC. Ten tool issues in advisory rules, APG v2 and the proxies (T1-T10), and eight lessons. Revised spec, npm run self-check (known-findings gate, in-process engine), inert CI example. No src/ change, no template or tier change. The AI-DLC approval gates were not run interactively: the request came from a scheduled task with no one present, and the stored prompt served as the requirements."
+**Context**: v1.3 dogfood, outside the v1.3 study stages. Not a registered artefact.
+
+## v1.3 Notion ideas triage (scheduled routine)
+**Timestamp**: 2026-10-16T00:00:00Z
+**User Input**: "Scheduled task: triage every idea, decision, promise and conflict in the Notion thesis hub and its linked pages against origin/v1.3; write Docs/v1.3/research/notion-ideas-triage.md; insert a status callout at the top of the hub (insert only); open one PR into v1.3, do not merge."
+**AI Response**: "Fetched the hub, the 18 pages it mentions, its Next Actions DB, long-term ideas, the v1.3 brief and the roadmap (read-only). Classified 597 page rows: 263 DONE, 147 SUPERSEDED, 95 OPEN, 43 OUT, 49 UNCLEAR. Wrote the triage with per-page tables, 17 ranked open items mapped to the night backlog/plan or NEW, and 16 groups of now-wrong statements. Documentation only; no code, template, preset or sealed file touched. Option taken under delegation: the AI-DLC stage workflow was not run because this is a documentation triage, not a development task."
+**Context**: v1.3 validity cycle, documentation triage
+
+---
+## v1.3 CONSTRUCTION — night plan tracker update (scheduled task)
+**Timestamp**: 2026-10-16T10:30:00Z
+**User Input**: "scheduled tracker update"
+**AI Response**: "Night plan tracker refreshed from the PR list into v1.3 (all states) and the remote branches; hold reasons taken from the W3-1 review verdicts (Docs/v1.3/overnight-pr-review.md). 28 [x], 4 [~], 0 [ ], 63 [!]. Newly [x] with merge shas: A3 #166 db75b708, X2 #137 92d7a411, B1 #161 6384b821, J1 #134 a893b0eb, J2 #143 dffb1db8 (merged before its HOLD), I3b #135 3292ebed, J6 #138 2f1a3a4e, J7 #140 8c6abe09, J4 #150 5f52a9f6, X3 #183 9768def4, merge trains, W3-1 review (#202, #214). Moved to [!] (PR titled [hold]): R1, X1, G2, A1, A5, R2, Y5, Y1, X4, J3, G1, B2, Y2, Y3, J5, Z1, D1, D2. PR numbers filled in: C1 #195, W3-3 #201, W3-2 #212, J5 #188, P1 #192, judge v2.2 run #191, pilot run #170. New section 7 lists the other PRs into v1.3 (38 held, #215 open). A2 still has a branch and no PR. aidlc-state Current Stage: next author gate is reverting or gating #143."
+**Context**: CONSTRUCTION, v1.3 validity cycle; tracker-only update, docs only.
+
+---
+
+## v1.3 RESEARCH — research gaps and evidence map (scheduled task)
+**Timestamp**: 2026-10-16T12:00:00Z
+**User Input**: "Scheduled task: write Docs/v1.3/research/research-gaps-and-evidence.md: an evidence map with 1–3 verified published precedents for each validity and backlog job, a gap analysis, a master's vs doctoral scope separation (doctoral agenda kept separate), and Related-work / Future-work paragraphs using verified citations only. Documentation only; one PR into v1.3, not merged."
+**AI Response**: "Wrote the memo on branch v1.3-research-gaps. 52 DOIs checked against Crossref and 47 arXiv IDs against the arXiv API on 2026-10-16. Preprints are marked as such, venues not confirmed by a record are flagged, and one wrong DOI (Kapus & Cadar) was replaced by the verified one. Full texts not re-read. No code, rule, template, preset, result or registered artefact changed; no LLM judge call; no Study 2 or hold-out material touched. Options taken under delegation: ranking of master's work (hold-out first, Study 2 last); 7 doctoral RQs; status figures from open PRs (#161, #165, #166, #167) quoted as claims, not reviewed results."
+**Context**: v1.3 research memo, outside the study stages. AI-DLC approval gates not run interactively (scheduled task, documentation only).
+
+---
+
+## v1.3 research — tool landscape (scheduled task)
+**Timestamp**: 2026-10-16T04:25:00Z
+**User Input**: "Scheduled task: write Docs/v1.3/research/tool-landscape.md, a verified comparison of architecture-conformance, graph-query, smell-research, AI-reviewer/SDD and MCP code-quality tools against DaedalusArch (capability matrix, positioning incl. precise jQAssistant differences, cheap comparison experiments mapped to backlog jobs). Documentation only; no code, no LLM-judge calls; branch v1.3-research-tools; one PR into v1.3, not merged."
+**AI Response**: "Wrote Docs/v1.3/research/tool-landscape.md. Facts were verified online from official docs, registries and papers (accessed 2026-10-16), with unverified items marked. Key corrections to the 2026-10-10 Notion landscape: Sonar acquired Structure101 (2024-10-15) and no longer sells it; Sonar Architecture supports TypeScript; Sonargraph's Zügel MCP server checks proposed dependencies against its architecture DSL (Java/Python/C#, not TS); jQAssistant's jMolecules plugin ships hexagonal/DDD/onion rule packs (Java, annotation-driven, hard-coded Cypher). Proposed new backlog jobs J2–J6 (jQAssistant arm, expressibility matrix, community MCP servers, Sonar arm, Semgrep/CodeQL translation). Options taken under delegation: no AI-DLC stage gates were run, because this is a documentation-only scheduled task with no one present; and the night-backlog rule 7 ('no literature review') was read as overridden by this task's explicit request for a tool comparison."
+**Context**: v1.3 research note, outside the study stages; no frozen artefact touched.
+
+---
+
+## v1.3 research — distinction readiness (2026-10-16)
+**Timestamp**: 2026-10-16T09:30:00Z
+**User Input**: "Scheduled routine: research and verify online the UNAL rules for merit distinctions (Meritoria / Laureada) of master's theses, translate them into evaluable evidence, map the thesis's current evidence, and list the smallest ranked set of actions that raise the distinction case. Documentation only; keep doctoral-scale ideas as Future Work."
+**AI Response**: "Wrote Docs/v1.3/research/distinction-readiness.md. Verified Acuerdo 008/2008 CSU Art. 31 and 57 d–e, Acuerdo 033/2008 CSU Art. 21, Acuerdo 056/2012 CSU Art. 7, Acuerdo 054/2012 CA Arts. 1–2 and Acuerdo 104/2020 CF Ingeniería Arts. 27–32 from official texts (legal.unal.edu.co is behind a reCAPTCHA; read via pre-captcha Wayback snapshots and official PDFs). Key finding: the Meritoria needs a first-author indexed-journal article accepted or published, or an oral talk at an international congress (Art. 30 c), and Art. 32 makes a submitted indexed-journal article a degree requirement. Acuerdo 034/2023 CSU could not be read; it is listed as the main open question for the programme secretary. Option taken under delegation: recommend Paper 1 to EMSE rather than the MSR 2027 deadline of 23 Oct 2026."
+**Context**: Research note, no code or result changed. No AI-DLC stage advanced.
+
+---
+
+## v1.3 CONSTRUCTION — fidelity adjudication prep (scheduled run)
+**Timestamp**: 2026-10-16T00:00:00Z
+**User Input**: (scheduled task, no live user) "Pre-adjudicate every graph-fidelity and reference disagreement row with evidence (new columns proposed_verdict/proposed_class/evidence; never fill human_verdict/adjudication), compute the proposed-not-adjudicated precision/recall per project set, build a seeded author review sheet, add dynamic-import reference cases tested in jest, and write the diagnostic run; one PR into v1.3, not merged."
+**AI Response**: "Branch v1.3-fidelity-adjudication. 2,516 sheet rows proposed (results/v1.3-fidelity-adjudication-prep/), 0 unverified, 0 edge-level tool-bugs; review sheet 235 items (seed 20261016); fixture fixtures/unit/v13-dynamic-imports found one gap (type-position import('x').T has no APG edge). Report: Docs/DiagnosticRuns/v1.3-fidelity-adjudication-prep-2026-10-16.md. AI-DLC approval gates not run: unattended scheduled task with an explicit specification; the author reviews in the PR."
+**Context**: v1.3 link-1 adjudication preparation; no baseline or frozen artefact changed.
 
 ---
