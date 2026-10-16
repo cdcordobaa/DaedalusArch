@@ -11,6 +11,7 @@ import type {
 } from '../shared/types/enums.js';
 import type { Violation, ViolationType } from '../shared/taxonomy/violation-types.js';
 import type { ScoringMode, TieredScoring } from '../shared/types/evaluation.js';
+import type { FixHint } from '../fix-hints/types.js';
 import type { RuleTier } from '../scoring-engine/rule-tiers.js';
 import type { EdgeView } from '../fitness-compiler/edge-views.js';
 
@@ -146,6 +147,8 @@ export interface RuleExplanation {
   readonly applicableStyles: readonly string[] | null;
   /** Rule-specific context from the spec, when one was supplied. */
   readonly specContext: readonly string[];
+  /** With hints on: the fix-hint family of the rule and whether it is blocking for the spec's style (Docs/v1.3/fix-hints.md). */
+  readonly fixHint?: { readonly family: string; readonly blocking: boolean; readonly template: string };
 }
 
 // ── evaluate_project ─────────────────────────────────────────────────────────
@@ -238,6 +241,11 @@ export interface FileViolation {
   readonly target?: string;
   /** Resolved view: the barrels an import went through to reach `target`. */
   readonly viaBarrels?: readonly string[];
+  /**
+   * Deterministic fix hint (Docs/v1.3/fix-hints.md): only when hints are on (`hints: true` or the server's `--hints`)
+   * and the rule is blocking under the v1.3 tiers for the spec's style. Spec-only: no graph facts.
+   */
+  readonly hint?: FixHint;
 }
 
 /** An active v1.3 rule the fast path does not decide, and why (run evaluate_project for it). */

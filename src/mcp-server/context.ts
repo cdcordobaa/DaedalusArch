@@ -21,6 +21,8 @@ export interface McpArgs {
   readonly project?: string;
   /** `--fast-rules-engine fast|cypher-interp` (Docs/v1.3/mcp-interp-parity.md); absent = `DAEDALUS_FAST_RULES_ENGINE`, else `fast`. */
   readonly fastRulesEngine?: string;
+  /** `--hints`: fix hints on by default in check_file, check_diff and explain_violation. */
+  readonly hints?: boolean;
   /** Neural arm flags (`--neural ...`); absent when no neural flag is given. */
   readonly neural?: NeuralArgs;
   /** `--engine neo4j|cypher-interp`; absent = the NEO4J_URI default (`engine-default.ts`). */
@@ -34,11 +36,15 @@ const FLAGS: Readonly<Record<string, 'spec' | 'project' | 'engine' | 'fastRulesE
  * the neural flags (`neural-context.ts`); unknown flags are ignored. Pure.
  */
 export function parseArgs(argv: readonly string[]): McpArgs {
-  const out: { spec?: string; project?: string; engine?: string; fastRulesEngine?: string; neural?: NeuralArgs } = {};
+  const out: { spec?: string; project?: string; engine?: string; fastRulesEngine?: string; hints?: boolean; neural?: NeuralArgs } = {};
   const neural = parseNeuralArgs(argv);
   if (neural !== undefined) out.neural = neural;
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i] ?? '';
+    if (arg === '--hints') {
+      out.hints = true;
+      continue;
+    }
     const [flag, inline] = arg.split('=', 2);
     const value = inline ?? argv[i + 1];
     const key = flag === undefined ? undefined : FLAGS[flag];
@@ -90,6 +96,7 @@ export function buildContext(args: McpArgs, env: NodeJS.ProcessEnv): ServerConte
     presetsDir: presetsDirFrom(env, realEntry(process.argv[1]), process.cwd()),
     defaultSpecPath: args.spec ?? env.DAEDALUS_SPEC,
     defaultProjectPath: args.project ?? env.DAEDALUS_PROJECT,
+    ...(args.hints === true || env.DAEDALUS_HINTS === '1' ? { hints: true } : {}),
     env,
     loadSpec: createSpecLoader(),
     evaluateDeps: {
