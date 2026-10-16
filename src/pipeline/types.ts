@@ -5,6 +5,7 @@ import type { GraphMode } from '../apg-extractor/types.js';
 import type { InstrumentVersion } from '../fitness-compiler/role-exemptions.js';
 import type { NeuralAggregation } from '../scoring-engine/neural-aggregation.js';
 import type { ScoringMode } from '../shared/types/evaluation.js';
+import type { AdvisoryFilterOption } from '../advisory-filter/advisory-filter.js';
 
 export interface PipelineConfig {
   readonly projectPath: string;
@@ -33,6 +34,11 @@ export interface PipelineConfig {
    * command and the MCP `evaluate_project` tool pass `v1.3` unless told otherwise.
    */
   readonly scoringMode?: ScoringMode | undefined;
+  /**
+   * Advisory post-filter options (proposal, OFF by default; Docs/DiagnosticRuns/v1.3-advisory-noise-2026-10-16.md):
+   * advisory rows they match move from `violations` to `advisoryFilter.suppressed`. Blocking rows never change.
+   */
+  readonly advisoryFilter?: readonly AdvisoryFilterOption[] | undefined;
 }
 
 export type OutputFormat = 'json' | 'human' | 'csv';

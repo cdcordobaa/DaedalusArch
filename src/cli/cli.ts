@@ -26,6 +26,8 @@ import { parseLLMOptions } from './llm-options.js';
 import { JUDGE_RUN_INCOMPLETE } from '../llm-critic/judge-stage.js';
 import { GRAPH_MODES } from '../apg-extractor/types.js';
 import type { GraphMode } from '../apg-extractor/types.js';
+import { ADVISORY_FILTER_OPTIONS, parseAdvisoryFilterOptions } from '../advisory-filter/advisory-filter.js';
+import type { AdvisoryFilterOption } from '../advisory-filter/advisory-filter.js';
 
 // Load .env before anything else
 loadDotenv();
@@ -184,6 +186,7 @@ withLLMOptions(program
   .option('--neural-aggregation <rule>', 'Neural aggregation of the AHS: registered (default, primary) | proportional (ADR-028 sensitivity variant)', 'registered')
   .option('--tsconfig <path>', 'Explicit tsconfig for APG extraction; the project\'s own tsconfig.json is then ignored (ADR-032)')
   .option('--scoring <mode>', 'Scoring mode: v1.3 (rule tiers, default; verdict from blocking rules) | v1.2e (the registered Study 1 scoring)', 'v1.3')
+  .option('--advisory-filter <options>', `Advisory post-filters, off by default (comma list, all or none): ${ADVISORY_FILTER_OPTIONS.join(', ')}. Matched advisory rows move to advisoryFilter.suppressed; blocking rows never change`, 'none')
   .action(async (opts: LLMCliOpts & {
     project: string;
     tsconfig?: string;
@@ -200,8 +203,17 @@ withLLMOptions(program
     instrument: string;
     neuralAggregation: string;
     scoring: string;
+    advisoryFilter: string;
   }) => {
     const evaluationMode = resolveEvaluationMode(opts.symbolicOnly, opts.neuronalOnly);
+    let advisoryFilter: AdvisoryFilterOption[];
+    try {
+      advisoryFilter = parseAdvisoryFilterOptions(opts.advisoryFilter);
+    } catch (e) {
+      process.stderr.write(`Error: --advisory-filter: ${e instanceof Error ? e.message : String(e)}\n`);
+      process.exitCode = 2;
+      return;
+    }
     const graphMode = resolveGraphMode(opts.graphMode);
     if (graphMode === undefined) return;
     const scoringMode = resolveScoringMode(opts.scoring, '--scoring');
@@ -235,6 +247,7 @@ withLLMOptions(program
       instrumentVersion,
       neuralAggregation,
       scoringMode,
+      ...(advisoryFilter.length > 0 && { advisoryFilter }),
     };
 
     const { executor, cleanup } = createPipeline(config);
