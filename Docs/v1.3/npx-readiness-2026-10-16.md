@@ -60,7 +60,7 @@ Not fixed (out of scope: a src change, or a decision for the author):
 
 - `daedalus --version` prints `1.0.0`, but the package is `0.1.0`. The string is hard-coded at `src/cli/cli.ts:197`.
 - There is no `LICENSE` file. `package.json` says MIT, but the tarball carries no licence text.
-- `npm warn deprecated node-domexception@1.0.0` appears on install. It comes from a transitive dependency of `openai@4`.
+- `npm warn deprecated node-domexception@1.0.0` appeared on install. It came from a transitive dependency of `openai@4`, and it is gone since `openai` moved to devDependencies (§7).
 
 ## 4. Per-project results
 
@@ -140,3 +140,42 @@ python3 -I <repo>/scripts/v1.3/npx-readiness.py --app /tmp/app --repo <repo> --e
 
 `results/v1.3-external*/` live on the branches of PRs #133 and #181, which are not merged. Raw per-project results
 from this run: `results/v1.3-npx-readiness/run.json`. No third-party source is committed.
+
+## 7. Addendum: unused runtime dependencies moved to devDependencies; AHS on five projects
+
+A second run of the same task (session 01NfLMeo) found this branch already pushed, with no PR. It merged
+`origin/v1.3` (2db99b81) into the branch, keeping its history, and added one more packaging change.
+
+**`openai`, `chalk`, `ora`, `p-limit` and `ajv-formats` moved from `dependencies` to `devDependencies`.** No file
+under `src/` imports them, neither statically nor through `import()`. `openai` and `ajv-formats` are used only by
+`scripts/`, which run from the repository, where `npm ci` still installs devDependencies. The lockfile resolves the
+same versions; only `dev` flags changed.
+
+| measure | before the move (A) | after the move (B) |
+|---|---|---|
+| `node_modules` after `npm install <tgz>` into an empty project | 92.9 MB, 170 top-level entries | **79.1 MB**, 130 top-level entries |
+| `npm install <tgz>`, warm npm cache | 9.1 s | 4.8 s |
+| cold `npx --yes --package <tgz> daedalus-arch --version`, empty npm cache | 13.9 s | 11.1 s, 11.7 s |
+| 35 external projects, `evaluate`: median / max wall, median / max peak RSS | 3.3 s / 43.2 s, 237 / 279 MB | 3.3 s / 46.0 s, 236 / 279 MB |
+| MCP stdio `initialize` + `tools/list` (11 tools) | 1.47 s | 1.77 s |
+
+**No behaviour change.** For both tarballs, the 36 reports (the reference project plus 35 external projects) were
+compared with `runId`, `durationMs`, `timings` and per-function `executionTimeMs` removed. They are byte-identical,
+36 of 36. `git diff origin/v1.3 -- src` is empty. The cold `npx` rows were measured on the same tarball contents one
+base earlier (ae0c8d57). The other rows come from this branch.
+
+**AHS on five wave-2 projects.** §4 calls each run "identical" on its findings (rule, file, target, line and
+message) and its verdict, and that holds for 35 of 35. `ahsDeterministic` is also identical for 30 of 35. On
+nutes-template-base (0.508 vs 0.488), felixle-node-core (0.421 vs 0.401), staart-api (0.604 vs 0.584),
+saluki-nestjs-template (0.721 vs 0.711) and monstarlab-nestjs-starter (0.475 vs 0.435), the committed wave-2 report
+lists `FF-P05 … cypher-interp: unsupported: clause subqueryClause` under `functionExecution.failed`. The current
+interpreter runs FF-P05's `CALL { … UNION … }`, and FF-P05 finds 0 violations there. The pattern dimension therefore
+counts 6 functions instead of 5, and AHS rises. The cause is the tool version: wave 2 ran on 50a32841. It is not an
+npx effect.
+
+**One-liner.** The line in §1 is unchanged. Adding `--engine cypher-interp` makes it independent of a `NEO4J_URI`
+that might be set in the caller's shell:
+`npx daedalus-arch evaluate . --spec architecture.yaml --engine cypher-interp`.
+
+Data: `results/v1.3-npx-readiness/dep-trim.json`, with both tarballs' runs, the A vs B comparison and the five AHS
+rows.
