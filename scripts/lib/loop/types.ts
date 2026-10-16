@@ -206,8 +206,8 @@ export interface StepEvaluation {
    */
   readonly advisoryByRule?: Readonly<Record<string, number>>;
   /**
-   * The listed blocking findings: every one when the evaluator returns the report's violations (the live
-   * evaluator), else each rule capped as `evaluate_project` caps it.
+   * The blocking findings: every report row the v1.3 scoring counts as blocking (FF-P06's N/A rows and rows a
+   * construct switch moves to advisory are left out), so the list has exactly `blockingViolationCount` entries.
    */
   readonly blockingFindings: readonly BlockingFinding[];
   readonly durationMs: number;
@@ -218,8 +218,8 @@ export interface StepEvaluation {
    */
   readonly reportViolations?: readonly unknown[];
   /**
-   * The graph engine this evaluation was recorded on. Absent in the default mode (no `--engine`), so default records
-   * are unchanged; `neo4j` under `--engine both`, `cypher-interp` under `--engine cypher-interp`
+   * The graph engine this evaluation was recorded on: set by every live evaluator (`evaluatorForEngine`; `neo4j`
+   * under `--engine both`). Absent from the stub and from records written before 2026-10-16
    * (`Docs/v1.3/loop-engine-tee.md`).
    */
   readonly engineOfRecord?: 'neo4j' | 'cypher-interp';

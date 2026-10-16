@@ -4,10 +4,12 @@
  * compiled templates before and after the change and report what it introduces. No NEO4J variable is read.
  */
 import * as fs from 'node:fs';
+import * as os from 'node:os';
 import * as path from 'node:path';
 import { buildContext, parseArgs, serverEngine } from '../../../src/mcp-server/context.js';
 import { checkDiffTool, checkFileTool, evaluateProjectTool } from '../../../src/mcp-server/tools.js';
 import { createInterpEvaluator, projectFingerprint } from '../../../src/mcp-server/interp-evaluator.js';
+import { evaluateProject } from '../../../src/mcp-server/evaluate-project.js';
 import { CLEAN_ARCH_SPEC, FIXTURES } from './helpers.js';
 
 const PROJECT = path.join(FIXTURES, 'correct-reference');
@@ -129,5 +131,36 @@ describe('createInterpEvaluator', () => {
   it('fails cleanly on a missing spec', async () => {
     const res = await createInterpEvaluator()({ projectPath: PROJECT, specPath: '/nonexistent/spec.yaml', scoringMode: 'v1.3' });
     expect(res.success).toBe(false);
+  });
+});
+
+describe('evaluate_project on cypher-interp: explicit tsconfig and uncapped violations (loop harness path)', () => {
+  it('a work tree without its own tsconfig is evaluated with the given tsconfigPath, and includeViolations lists the findings', async () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'interp-tsconfig-'));
+    try {
+      const work = path.join(tmp, 'work');
+      for (const [rel, text] of Object.entries({
+        'src/domain/item.ts': "import { ItemStore } from '../infrastructure/item-store';\n\nexport interface Item {\n  readonly id: string;\n}\n\nexport function saveItem(item: Item): void {\n  new ItemStore().put(item.id);\n}\n",
+        'src/application/item-service.ts': "import type { Item } from '../domain/item';\n\nexport class ItemService {\n  list(): readonly Item[] {\n    return [];\n  }\n}\n",
+        'src/infrastructure/item-store.ts': 'export class ItemStore {\n  put(_id: string): void {}\n}\n',
+      })) {
+        fs.mkdirSync(path.dirname(path.join(work, rel)), { recursive: true });
+        fs.writeFileSync(path.join(work, rel), text);
+      }
+      const tsconfig = path.join(tmp, 'harness', 'tsconfig.json');
+      fs.mkdirSync(path.dirname(tsconfig), { recursive: true });
+      fs.writeFileSync(tsconfig, JSON.stringify({ compilerOptions: { strict: true, target: 'ES2022', module: 'commonjs', noEmit: true }, include: [`${work}/src/**/*.ts`] }));
+      const deps = ctx().evaluateDeps;
+      const without = await evaluateProject({ projectPath: work, specPath: CLEAN_ARCH_SPEC, scoringMode: 'v1.3' }, NO_DB, deps);
+      expect(without.success).toBe(false);
+      const res = await evaluateProject({ projectPath: work, specPath: CLEAN_ARCH_SPEC, scoringMode: 'v1.3', tsconfigPath: tsconfig, includeViolations: true }, NO_DB, deps);
+      expect(res.success).toBe(true);
+      if (!res.success) return;
+      expect(res.data.engine).toBe('cypher-interp');
+      expect(res.data.tiers?.blocking.violationCount ?? 0).toBeGreaterThan(0);
+      expect(res.data.violations?.some((v) => v.filePath.endsWith('domain/item.ts'))).toBe(true);
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
   });
 });
