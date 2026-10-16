@@ -1,0 +1,153 @@
+% main.tex: "How Much Architectural Semantics Is Cheaply Computable? Deterministic Proxies vs an LLM Judge"
+% Extended abstract (about 2 pages in this class). Target: a short-paper, NIER or workshop track (see papers/STATUS.md).
+%
+% Provenance convention: every number carries a LaTeX comment "% src: <path>" naming the committed file on branch v1.3
+% it was read from. Derived numbers say how. Every figure is a v1.3 DEVELOPMENT-SET figure, marked \devset{}; none is
+% a validity estimate. Nothing here is pre-registered (author decision). No sealed file was read.
+%
+% Style rules for editors: no em dashes; the circular result (11/11) is never quoted without its circularity caveat.
+
+\documentclass[10pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=2.0cm]{geometry}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\citeneeded}[1]{\cite{#1}\textsuperscript{\textcolor{red}{\tiny[verify]}}}
+\newcommand{\todo}[1]{\textcolor{blue}{[TODO: #1]}}
+\newcommand{\devset}{\textsuperscript{\textsf{\tiny[dev]}}}
+\newcommand{\tool}{DaedalusArch}
+
+\setlist{itemsep=1pt,topsep=2pt}
+
+\title{How Much Architectural Semantics Is Cheaply Computable?\\
+\large Deterministic Proxies vs an LLM Judge (Extended Abstract)}
+\author{\todo{author list and affiliations}}
+\date{Draft, 2026-10-15}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Architecture gates increasingly add an LLM judge for properties that structural rules cannot state, such as a
+duplicated business rule or persistence leaking into the domain. Before paying for a judge, how much of that
+semantics can deterministic code analysis compute? We built ten cheap proxies over an architectural property graph
+and the TypeScript type checker and compared them with a frozen LLM judge and with symbolic layer rules on planted
+anti-patterns. On seeds the proxies were designed against, they catch 11 of 11 against the judge's 9 of 11 and the
+rules' 0 of 11, a circular result by construction. On six less circular hand-written analogues all three catch 6 of
+6. On duplicated rules in generated code the proxies catch 1 to 2 of 9 and the judge 9 of 9. All figures are
+development data. We describe an unbiased follow-up.
+\end{abstract}
+% src (abstract): Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §2 (11/11, 9/11, 0/11; banner "CIRCULAR BY CONSTRUCTION"), §4 (6/6); Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md §5 (clones 1/9, shared-literals 2/9, judge 9/9); "ten proxies": Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §1 ("All ten proxies then ran"); judge agreement for the analogues derived, see Table 1 note
+
+\section{Question}
+
+An LLM judge can read intent, but it is slow, costs money per unit, varies between runs and shares blind spots with
+the models that write the code. A deterministic proxy is the opposite: milliseconds, free, repeatable, but blind to
+anything outside its tables. We ask: \emph{for which architectural anti-patterns does a cheap proxy suffice, and
+where is the judge needed?} The answer decides how to layer a gate: rules decide, proxies propose candidates, the
+judge interprets \citeneeded{garcez2023neurosymbolic}.
+% src: Docs/v1.3/cheap-semantics-design.md ("Purpose": "A proxy proposes candidate sites. It does not give a verdict.")
+
+\section{Instruments}
+
+\textbf{Cheap proxies.} Ten deterministic detectors over the extracted graph and a type-checked project, with no LLM,
+database or network: token clones with Type-2 normalisation \citeneeded{roy2007clones,kamiya2002ccfinder}, literals
+shared across components \citeneeded{fowler1999refactoring}, name-versus-behaviour roles, LCOM4 cohesion, logic
+density, direct ORM access outside repositories, framework types in core signatures, vocabulary leakage,
+dependency communities (a diagnostic) and stored documentation text. Packages are identified through the type checker, never by import text alone.
+% src: Docs/v1.3/cheap-semantics-design.md ("Placement and contract"; "The proxies"; "An import line alone is never enough"); Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §5 table columns
+\textbf{Judge.} A frozen LLM judge with an unchanged rubric, three runs per unit and a majority vote, recorded and
+replayed \citeneeded{zheng2023judging}. \textbf{Rules.} The v1.3 symbolic fitness functions of \tool{}.
+% src: Docs/DiagnosticRuns/v1.3-judge-catch-2026-10-15.md §0
+\textbf{Seeds.} Five frozen anti-pattern operators (repository bypass, fat controller, persistence in the domain,
+duplicated rule, framework leak), each with a twin that should stay clean, plus hand-written violation variants of
+five reference projects. % src: Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §1; Docs/v1.3/judge-catch-frozen.md
+
+\section{Results (development data)}
+
+\begin{table}[h]
+\centering\small
+\caption{\devset{} Catch by instrument. Wilson 95\% intervals where the source gives them.}
+\label{tab:results}
+\begin{tabular}{lcccc}
+\toprule
+Seed set & $n$ & Cheap proxy & LLM judge & Symbolic rules \\
+\midrule
+(a) Operator seeds (circular) & 11 & 11/11 [0.74, 1.00] & 9/11 & 0/11 \\
+(b) Hand-written analogues & 6 & 6/6 [0.61, 1.00] & 6/6$^{*}$ & 6/6$^{*}$ \\
+(c) Duplicated rule, v2 & 9 & 1/9 clones, 2/9 any & 9/9 [0.70, 1.00] & 0/9 \\
+\bottomrule
+\end{tabular}
+
+\smallskip\footnotesize $^{*}$ Derived from the round-2 judge catch test: the six analogues are among its
+hand-planted variants, its only hand-planted miss is not one of them, and each carries its expected rule finding.
+% src (a): Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §2, §3 (Pooled 11/11 = 1.00 [0.74, 1.00]; judge 9/11; symbolic 0/11)
+% src (b): Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §4 (6/6 [0.61, 1.00]); judge and rules derived from Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md §1b, §3 Reading
+% src (c): Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md §3 (judge 9/9 [0.70, 1.00]), §5 (clones 1/9, shared-literals 2/9, either 2/9, symbolic 0/9)
+\end{table}
+
+\textbf{(a) is circular by construction.} The proxies were written after the operators and the judge's first results
+were read, and each operator has a designated proxy; 11 of 11 shows only that they implement what they were written to
+detect. It still shows one complementarity: the proxies catch both framework leaks the judge missed (an unused
+optional \texttt{request?: Request} parameter), because the type checker resolves the type whatever the body says.
+Twin false flags were 2 of 42, both inherited from the base (0 of 42 paired). \devset{}
+% src: Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md banner, §2 Reading, §3 (twin 2/42 raw, 0/42 paired)
+
+\textbf{(b) is less circular} and all three instruments agree: the persistence decorators and framework types are
+type-checker facts, and the rules also see the package import. The proxies miss what their tables do not name: a
+dependency-injection decorator in the domain, a serialisation library in a value object, and a fat application
+service (density is measured only on controllers and adapters). \devset{}
+% src: Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §4 (three misses; "the catalogue-coverage limit")
+
+\textbf{(c) is where the proxies fail.} Five of the eight generated duplications are bare guards, which the clone
+filter drops; the other three are exact clones inside one component, which the cross-component rule ignores. Both
+filters were added to silence false flags on clean code. The judge catches all nine, but its catch is confounded: every
+run also calls the copied method a misplaced responsibility, and a foreign method alone fails five of five.
+\devset{} % src: Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md §5 ("Why the clone proxy misses the E1 seeds"; post-hoc diagnostic), §4 (confound); Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md §3 (5/5)
+
+\textbf{Cost and precision.} The proxies take 71 to 99\,ms per reference project; the judge needed 261 calls for
+the 11 round-1 seeds. On the five clean reference projects the proxies raise 14 defect flags, down from 101 before one
+revision made on those same projects, so 14 is a tuned-on-development figure; several of the remaining flags are
+arguably true duplications. \devset{}
+% src: Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §5 (runtime; 261 calls; 14 flags; arguably true), §6 (101 -> 14; "The reported precision is therefore a tuned-on-dev number")
+
+\section{Reading}
+
+Cheaply computable: anti-patterns that reduce to a resolved type, a decorator's package, or a call receiver (framework
+types in signatures, ORM mapping in the domain, ORM handles outside repositories). Not cheaply computable:
+judgements about responsibility and intent, and duplication whose copy is short, guard-shaped or local, where any
+filter that keeps clean code quiet also hides the defect. A proxy's recall is bounded by its catalogue; a judge's
+attribution is bounded by what else it notices. Neither has been measured on code nobody designed for.
+
+\section{Design of an unbiased follow-up}
+
+The follow-up removes the three sources of bias above. It is an informal design; whether to register it is an author
+decision.
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Freeze before seeing positives.} Hash the proxies, thresholds and package tables before any seed is
+        built or read; no definitional change after the freeze.
+  \item \textbf{Seeds the proxy author never saw.} Positives from a label-free survey of real code and real fix
+        commits, and from a second author's operators, written blind to the proxy tables; include anti-patterns
+        outside every catalogue to measure the coverage limit.
+  \item \textbf{Twins that change only the construct.} No added member, so a responsibility cue cannot stand in for
+        the construct; for duplication, place the copy where the rule plausibly applies.
+  \item \textbf{Human ground truth.} At least 30 items labelled by humans blind to instrument and rule, with
+        agreement reported; a cross-vendor judge arm to measure same-vendor correlation.
+  \item \textbf{Held-out precision.} Report false flags on a corpus of real projects not used for tuning.
+  \item \textbf{A verification arm.} Give the judge each proxy candidate with its evidence and compare with blind
+        judging, to test the layered gate directly.
+\end{enumerate}
+% src: Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md §7 (threats and "Not measured"); Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md §4 ("Isolating duplication would need a positive whose copy sits where the rule plausibly applies"); Docs/v1.3/validation-protocol.md §3 (author audit >= 30 items)
+
+\paragraph{Data availability.} \todo{repository tag or DOI}.
+
+\bibliographystyle{plain}
+\bibliography{refs}
+
+\end{document}

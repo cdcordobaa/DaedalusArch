@@ -1,5 +1,5 @@
 import { inferDddBlock } from '../../../src/ise/ddd-inferrer.js';
-import { graph } from './helpers.js';
+import { dddShaped, graph } from './helpers.js';
 
 describe('ISE DDD block inferrer', () => {
   const o = 'src/ordering/';
@@ -39,5 +39,17 @@ describe('ISE DDD block inferrer', () => {
     expect(ddd.repositories).toEqual(['src/*/domain/**/*Repository.ts', 'src/*/infrastructure/**/*Repository.ts']);
     expect(ddd.application_services).toEqual(['src/*/application/*.ts']);
     expect(ddd.domain_event_types).toEqual(['DomainEvent']);
+  });
+
+  it('finds aggregates and application services in renamed layer folders (structural domain / application)', () => {
+    for (const between of ['', 'mod']) {
+      const b = inferDddBlock(dddShaped('kernel', 'orchestration', 'platform', between));
+      const L = (ctx: string): string => `src/${ctx}/${between === '' ? '' : `${between}/`}`;
+      expect(b.contexts.map((c) => c.name)).toEqual(['billing', 'ordering']);
+      expect(b.aggregates.map((a) => [a.name, a.root])).toEqual([['Invoice', `${L('billing')}kernel/invoice/Invoice.ts`], ['Order', `${L('ordering')}kernel/order/Order.ts`]]);
+      const rel = between === '' ? '' : `${between}/`;
+      expect(b.application_services).toEqual([`src/*/${rel}orchestration/*.ts`]);
+      expect(b.repositories).toEqual([`src/*/${rel}kernel/**/*Repository.ts`, `src/*/${rel}platform/**/*Repository.ts`]);
+    }
   });
 });

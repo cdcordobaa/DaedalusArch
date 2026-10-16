@@ -7,8 +7,10 @@
  * fresh neutral directory). Ground truth (expected-graph.json, the spec, expected-findings.json) is read here, by the
  * evaluator, and never passed to src/ise.
  *
- * Usage (repository root): npx tsx scripts/v1.3/ise-measure.ts [--out results/v1.3-ise/2026-10-15] [--target id,id]
- * Writes <out>/measure.json, <out>/measure.md and <out>/specs/<target>.yaml (+ <target>.infer-only.yaml).
+ * Usage (repository root): npx tsx scripts/v1.3/ise-measure.ts [--out results/v1.3-ise/2026-10-15] [--set dev|heldout|all] [--target id,id]
+ * `--set dev` (default) is the prototype's targets (P1-P5: the development probe); `heldout` the probes of
+ * `lib/ise-probes.ts`. Writes <out>/measure.json, <out>/measure.md and <out>/specs/<target>.yaml (+ .infer-only.yaml),
+ * and for a set with held-out probes <out>/probes.json (their definitions).
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -23,11 +25,12 @@ import type { IseGraph } from '../../src/ise/graph-view.js';
 import { loadIsePreset } from '../../src/ise/preset.js';
 import type { IsePreset } from '../../src/ise/preset.js';
 import { snapshotSource } from '../../src/ise/snapshot.js';
-import { boundedContexts, classifyStyle } from '../../src/ise/style-classifier.js';
+import { detectContexts } from '../../src/ise/contexts.js';
+import { classifyStyle } from '../../src/ise/style-classifier.js';
 import type { IseStyle } from '../../src/ise/style-classifier.js';
-import { detectSourceRoot, unitStructure } from '../../src/ise/units.js';
+import { unitStructure } from '../../src/ise/units.js';
 import { dddBlockDiff, fileSpecDiff, globDiff, layerAccuracy, newRows, touches } from './lib/ise-compare.js';
-import { ISE_TARGETS, materialiseTarget, renamedExpectedLayers, renamedFindings, trueSpecText } from './lib/ise-targets.js';
+import { materialiseTarget, targetSet, renamedExpectedLayers, renamedFindings, trueSpecText } from './lib/ise-targets.js';
 import type { IseTarget } from './lib/ise-targets.js';
 import { makeTempRoot } from './lib/materialise.js';
 import { loadAllReferences } from './lib/reference-model.js';
@@ -117,7 +120,7 @@ async function measureTarget(ref: LoadedReference, target: IseTarget, work: stri
   const trueDdd = (YAML.parse(truthText) as { architecture: { ddd?: Record<string, unknown> } }).architecture.ddd;
 
   // Option 1 rules mined on clean; Option 3 recomputed on each variant's own graph.
-  const contexts = new Set(boundedContexts(files, detectSourceRoot(files)));
+  const contexts = new Set(detectContexts(inf.graph).contexts.map((c) => c.root));
   const mvStructure = unitStructure(inf.graph, (id) => contexts.has(id));
   const rules = mineRules(inf.graph, mvStructure);
   const cleanDeviations = applyRules(rules, inf.graph, mvStructure.units);
@@ -221,7 +224,7 @@ async function run(): Promise<void> {
   const work = makeTempRoot('v13-ise-');
   const results: TargetResult[] = [];
   try {
-    for (const t of ISE_TARGETS.filter((x) => only === undefined || only.has(x.id))) {
+    for (const t of targetSet(argv).filter((x) => only === undefined || only.has(x.id))) {
       const ref = refs.find((r) => r.style === t.style);
       if (ref === undefined) throw new Error(`no reference ${t.style}`);
       results.push(await measureTarget(ref, t, work, specsDir));
@@ -229,6 +232,8 @@ async function run(): Promise<void> {
   } finally {
     fs.rmSync(work, { recursive: true, force: true });
   }
+  const probes = targetSet(argv).flatMap((t) => (t.probe !== undefined && (only === undefined || only.has(t.id)) ? [t.probe] : []));
+  if (probes.length > 0) fs.writeFileSync(path.join(out, 'probes.json'), JSON.stringify(probes, null, 1) + '\n');
   fs.writeFileSync(path.join(out, 'measure.json'), JSON.stringify(results, null, 1) + '\n');
   fs.writeFileSync(path.join(out, 'measure.md'), renderMeasure(results));
   process.stdout.write(`wrote ${path.join(out, 'measure.md')}\n`);

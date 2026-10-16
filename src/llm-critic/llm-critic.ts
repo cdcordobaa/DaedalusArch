@@ -23,6 +23,10 @@ import {
 } from './aggregation.js';
 import type { JudgeCallResult } from './cassette-provider.js';
 import { CassetteLLMProvider, knownSecretsFrom } from './cassette-provider.js';
+import type { CheapFlag } from '../apg-enrich/cheap/types.js';
+import type { LayerDefinition } from '../shared/types/spec.js';
+import { JUDGE_V2_PERSONA, rubricV2Of } from './judge-v2.js';
+import { candidateFlagsOf, constructPromptV2, renderCandidateFlags, renderNeighbourhood } from './context-v2.js';
 
 /**
  * C7 LLM critic (U4 plan Step 21, U4-K4; BLM §2, §5, §7.2, §8, §9; BR-U4-CTX-01, SEL-05,
@@ -79,6 +83,8 @@ interface PlannedCall {
   readonly unit: SelectedUnit;
   readonly runIndex: number;
   readonly prompt: string;
+  /** Judge v2: the v2 persona (part of the request key); absent for v1, which keeps the frozen persona. */
+  readonly systemPrompt?: string;
 }
 
 /** One function after selection and context assembly, before any call. */
@@ -130,10 +136,28 @@ export async function evaluateNeuronal(input: NeuronalEvalInput): Promise<Domain
     view = loaded.data;
   }
 
+  // Judge v2 (v1.3 development): the cheap-proxy flags, computed once per run.
+  const v2 = opts.judgeVersion === 'v2';
+  let cheapFlags: readonly CheapFlag[] = [];
+  if (v2) {
+    if (input.cheapFlags !== undefined) cheapFlags = input.cheapFlags;
+    else {
+      const computed = await computeCheapFlags(projectRoot, opts.evaluatorSpecLayers);
+      if (computed.ok) cheapFlags = computed.flags;
+      else {
+        warnings.push({
+          code: 'JUDGE_V2_FLAGS_UNAVAILABLE', stage: STAGE, context: {},
+          message: `Judge v2: the cheap-proxy flags could not be computed; units are judged with no candidate flag (${scrubSecrets(computed.message, secrets)})`,
+        });
+      }
+    }
+  }
+
   // 1. Plan: candidates, units, selection, unit source and prompts (no call yet).
   const planned: PlannedFunction[] = [];
   const calls: PlannedCall[] = [];
-  for (const instruction of instructions) {
+  for (const instruction0 of instructions) {
+    const instruction = v2 ? withV2Rubric(instruction0) : instruction0;
     const functionId = String(instruction.functionId);
     const baseline = resolveBaselineSelection(instruction.functionId, opts.baseline);
     if (!baseline.success) return DomainResult.fail(baseline.errors);
@@ -181,9 +205,14 @@ export async function evaluateNeuronal(input: NeuronalEvalInput): Promise<Domain
         input.adrProse?.[functionId],
         opts.tokenBudget,
       );
-      const prompt = constructPrompt(packet);
+      const prompt = v2
+        ? constructPromptV2(packet, {
+          neighbourhood: renderNeighbourhood(unit.filePaths, view, opts.evaluatorSpecLayers),
+          candidateFlags: renderCandidateFlags(candidateFlagsOf(unit.filePaths, cheapFlags)),
+        })
+        : constructPrompt(packet);
       for (let runIndex = 0; runIndex < opts.runsPerEvaluation; runIndex++) {
-        fnCalls.push({ fn: fnIndex, unitIndex, functionId, unit, runIndex, prompt });
+        fnCalls.push({ fn: fnIndex, unitIndex, functionId, unit, runIndex, prompt, ...(v2 ? { systemPrompt: JUDGE_V2_PERSONA } : {}) });
       }
     }
     if (contextError !== undefined) {
@@ -262,8 +291,39 @@ function criticFailure(instruction: NeuronalInstruction, message: string, secret
 function callContext(
   call: PlannedCall,
   opts: NeuronalRunOptions,
-): { runIndex: number; repetition: number; functionId: string; unitId: string } {
-  return { runIndex: call.runIndex, repetition: opts.repetition, functionId: call.functionId, unitId: call.unit.id };
+): { runIndex: number; repetition: number; functionId: string; unitId: string; systemPrompt?: string } {
+  return {
+    runIndex: call.runIndex, repetition: opts.repetition, functionId: call.functionId, unitId: call.unit.id,
+    ...(call.systemPrompt !== undefined ? { systemPrompt: call.systemPrompt } : {}),
+  };
+}
+
+/** The instruction with the v2 rubric of its function (`judge-v2.ts`); unchanged for a function v2 does not define. */
+export function withV2Rubric(instruction: NeuronalInstruction): NeuronalInstruction {
+  const v2 = rubricV2Of(String(instruction.functionId));
+  if (v2 === undefined) return instruction;
+  return {
+    ...instruction,
+    semanticCriteria: {
+      ...instruction.semanticCriteria,
+      rule: v2.rule,
+      rubric: { ...instruction.semanticCriteria.rubric, pass: v2.pass, fail: v2.fail, evidenceRequired: v2.evidenceRequired },
+    },
+  };
+}
+
+/** The cheap proxies over the project (pass 0.5), for the v2 candidate flags; loaded lazily so v1 never imports them. */
+async function computeCheapFlags(
+  projectRoot: string,
+  layers: readonly LayerDefinition[],
+): Promise<{ readonly ok: true; readonly flags: readonly CheapFlag[] } | { readonly ok: false; readonly message: string }> {
+  try {
+    const cheap = await import('../apg-enrich/cheap/index.js');
+    const { enrichment } = await cheap.extractAndEnrich(projectRoot, { layerModel: { layers } });
+    return { ok: true, flags: enrichment.flags };
+  } catch (e) {
+    return { ok: false, message: e instanceof Error ? e.message : String(e) };
+  }
 }
 
 interface PoolOutcome {

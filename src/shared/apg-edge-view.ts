@@ -11,8 +11,8 @@ import type { APGEdge } from './types/apg.js';
 /** True for a resolved re-export IMPORTS edge (`viaReExport: true`), which the literal view drops. */
 export function isResolvedReExportEdge(edge: Pick<APGEdge, 'type' | 'properties'>): boolean {
   // Snapshot and test edges may lack `properties` at run time, whatever the type says.
-  const props: Readonly<Record<string, unknown>> | undefined = edge.properties;
-  return edge.type === 'IMPORTS' && props?.viaReExport === true;
+  const props: unknown = edge.properties;
+  return edge.type === 'IMPORTS' && typeof props === 'object' && props !== null && 'viaReExport' in props && props.viaReExport === true;
 }
 
 /** The edges of the literal view, in their original order. */

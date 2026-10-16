@@ -39,13 +39,13 @@ describe('v1.2E compile is unchanged', () => {
   it.each(SPECS)('%s: without options every query is the frozen template text (no v1.3 rewrite)', async (spec) => {
     const c = await compile(spec, {});
     for (const q of c.symbolicQueries) {
-      expect(q.cypher).not.toMatch(/viaReExport|reExportHop|ENDS WITH role|\(Repository\|Repo\)/);
+      expect(q.cypher).not.toMatch(/viaReExport|reExportHop|ENDS WITH role|SIGNATURE_USES|\(Repository\|Repo\)/);
     }
   });
 
   it('V13_COMPILE_OPTIONS turns every v1.3 rewrite on', () => {
     // The construct switches (src/shared/construct-switches.ts) ride along; at the status quo they change nothing.
-    expect(V13_COMPILE_OPTIONS).toEqual({ edgeViews: true, styleApplicability: true, roleTokens: true, memberFacts: true, constructSwitches: CONSTRUCT_ANSWERS });
+    expect(V13_COMPILE_OPTIONS).toEqual({ edgeViews: true, styleApplicability: true, roleTokens: true, memberFacts: true, signatureTypes: true, constructSwitches: CONSTRUCT_ANSWERS });
   });
 });
 

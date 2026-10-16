@@ -106,6 +106,7 @@ interface LLMCliOpts {
   cassetteOmitPrompt?: boolean;
   cassetteProjectId?: string;
   judgeCli?: string;
+  judgeVersion?: string;
 }
 
 function withLLMOptions(command: Command): Command {
@@ -120,7 +121,8 @@ function withLLMOptions(command: Command): Command {
     .option('--judge-baseline-report <path>', 'Baseline report whose neuralResults[].selection a variant reuses')
     .option('--cassette-omit-prompt', 'Record cassettes without prompts (corpus runs)', false)
     .option('--cassette-project-id <id>', 'Project id written on every judge cassette entry (repetition reliability)')
-    .option('--judge-cli <path>', 'Judge CLI binary (default ~/.firewall/judge-cli/node_modules/.bin/claude when present, else claude)');
+    .option('--judge-cli <path>', 'Judge CLI binary (default ~/.firewall/judge-cli/node_modules/.bin/claude when present, else claude)')
+    .option('--judge-version <v>', 'Judge rubric version: v1 (frozen, default) | v2 (v1.3 development)');
 }
 
 /** The argv `parseLLMOptions` reads, rebuilt from the parsed options (so `main(argv)` tests work). */
@@ -130,6 +132,7 @@ function llmArgv(opts: LLMCliOpts): string[] {
     ['--cassette-mode', opts.cassetteMode], ['--cassette-dir', opts.cassetteDir], ['--judge-repetition', opts.judgeRepetition],
     ['--judge-config-dir', opts.judgeConfigDir], ['--judge-baseline-report', opts.judgeBaselineReport],
     ['--cassette-project-id', opts.cassetteProjectId], ['--judge-cli', opts.judgeCli],
+    ['--judge-version', opts.judgeVersion],
   ];
   const argv = pairs.flatMap(([name, value]) => (value === undefined ? [] : [`${name}=${value}`]));
   if (opts.cassetteOmitPrompt === true) argv.push('--cassette-omit-prompt');

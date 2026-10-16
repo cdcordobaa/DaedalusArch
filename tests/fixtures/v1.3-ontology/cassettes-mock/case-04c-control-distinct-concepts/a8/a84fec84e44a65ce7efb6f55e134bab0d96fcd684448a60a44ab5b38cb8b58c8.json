@@ -1,0 +1,45 @@
+{
+  "itemId": "4f48286f1a24f502",
+  "itemName": "Invoice",
+  "key": "a84fec84e44a65ce7efb6f55e134bab0d96fcd684448a60a44ab5b38cb8b58c8",
+  "parts": {
+    "model": "mock-ontology",
+    "pass": "rules",
+    "promptHash": "8d1e0e4290223a56295b679b348287ae73265204ebdbc55aaa2d55bcd88f1f9a",
+    "promptVersion": "ontology-v0.1",
+    "provider": "mock",
+    "runIndex": 0,
+    "schemaHash": "c3f8aec88fa6ccad475e6e4464d21b697a253f9d37cf5ad755b84638db034426",
+    "systemHash": "1c83830bfa99ad49d460d30b4c3202dea92d0aeeb55aa17addec0d18e16c9cd5"
+  },
+  "prompt": "## Task\nExtract the business rules enforced by the candidate methods below. A business rule is a policy of the business domain (a threshold, an eligibility condition, a limit, a rate), not a technical check (a null check, formatting, parsing). State each rule in plain business language with the subject it constrains, the comparison operator and threshold normalised to the most natural business unit, and the unit. Write the rule as the business would state it, independent of how the code is shaped (`!(a < b)` states `a >= b`).\nSet enforcedBy to the node id of the method that enforces the rule. Cite that method and quote the code that enforces it. Return an empty list when the candidates enforce no business rule.\n\n## Class\nClass Invoice (node 4f48286f1a24f502), file src/billing/domain/invoice.ts, lines 1-12.\nComponent: billing. Declared layer: domain (kind domain).\nCandidate methods (proposed by the cheap proxies):\n- isOverdue (node fb5d35ccb24a51e1, lines 9-11, logic density 1)\n\n## Source\n=====SOURCE-BEGIN src/billing/domain/invoice.ts\n 1| export class Invoice {\n 2|   constructor(\n 3|     readonly id: string,\n 4|     readonly createdAt: Date,\n 5|     readonly total: number,\n 6|     readonly dueDate: Date,\n 7|   ) {}\n 8| \n 9|   isOverdue(today: Date): boolean {\n10|     return today.getTime() > this.dueDate.getTime();\n11|   }\n12| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-15T00:00:00.000Z",
+  "resolvedModel": "mock-ontology",
+  "response": {
+    "rules": [
+      {
+        "confidence": 0.85,
+        "enforcedBy": "fb5d35ccb24a51e1",
+        "evidence": [
+          {
+            "endLine": 10,
+            "file": "src/billing/domain/invoice.ts",
+            "nodeId": "fb5d35ccb24a51e1",
+            "quote": "today.getTime() > this.dueDate.getTime()",
+            "startLine": 10
+          }
+        ],
+        "operator": ">",
+        "statement": "An invoice is overdue once its due date has passed",
+        "subject": "due date",
+        "threshold": null,
+        "unit": null
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 343,
+    "outputTokens": 89
+  }
+}

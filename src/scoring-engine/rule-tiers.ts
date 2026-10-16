@@ -15,6 +15,12 @@ export const RULE_TIERS_DOC = 'Docs/v1.3/rule-tiers.md';
 export interface PartialRule {
   /** Rows with this `relType` (the third discriminator of `domain-state-purity`) are reported N/A. */
   readonly naRelType: 'FLOWS_TO';
+  /**
+   * Every `relType` of the N/A part: the sealed FLOWS_TO rows, and the HOLDS_STATE_OF rows of the field-state variant
+   * of the same field half (`CompileOptions.fieldState`, `src/fitness-compiler/v13-rewrites.ts`). Reading the field
+   * half from a wider fact makes it measurable; it does not move it out of N/A (that needs an ADR, rule-tiers.md).
+   */
+  readonly naRelTypes: readonly string[];
   /** The part reported N/A, as the report names it. */
   readonly naPart: string;
   readonly reason: string;
@@ -58,6 +64,7 @@ export const RULE_TIERS: ReadonlyMap<string, RuleTierEntry> = new Map([
   entry('FF-P06', 'blocking', 'Core isolation of state; only the constructor-injection half is valid', {
     partial: {
       naRelType: 'FLOWS_TO',
+      naRelTypes: ['FLOWS_TO', 'HOLDS_STATE_OF'],
       naPart: 'FLOWS_TO field rows',
       reason: 'The field half needs FLOWS_TO, which is near-empty (rule-tiers.md, finding 9); reported N/A with its denominator',
     },
