@@ -26,8 +26,8 @@ import { GENERATOR_ADAPTER_IDS } from '../generators/types.js';
 import type { GeneratorAdapterId } from '../generators/types.js';
 import { CONTEXT_ROOT_RE, LOOP_STYLES } from './style.js';
 import type { LoopContextDecl, LoopStyle } from './style.js';
-import { LOOP_ARMS } from './types.js';
-import type { LoopArm, LoopRunSpec, LoopTask, LoopTasksFile } from './types.js';
+import { LOOP_ARMS, parseLoopEngine } from './types.js';
+import type { LoopArm, LoopEngine, LoopRunSpec, LoopTask, LoopTasksFile } from './types.js';
 
 /** A task's style and evaluator spec. */
 export interface TaskProfilePlan {
@@ -73,6 +73,11 @@ export interface LoopPlanFile {
   readonly taskProfiles?: Readonly<Record<string, TaskProfilePlan>>;
   /** The recorded call budget; checked against `planCallBudget`. */
   readonly callBudget?: CallBudget;
+  /**
+   * The evaluator's graph engine (`Docs/v1.3/loop-engine-tee.md`); `--engine` overrides it. Absent = the default
+   * wiring, unchanged.
+   */
+  readonly engine?: LoopEngine;
   /** Recorded for a judge-mode evaluator (the symbolic evaluator makes no model call). */
   readonly cassette?: { readonly dir: string; readonly mode: 'record' | 'replay' };
 }
@@ -129,6 +134,7 @@ export function validatePlan(raw: unknown): DomainResult<LoopPlanFile> {
   };
   for (const k of ['description', 'tasksFile', 'outRoot', 'binary', 'harnessRoot']) str(k);
   if (raw.evaluatorSpec !== undefined) str('evaluatorSpec');
+  if (raw.engine !== undefined && parseLoopEngine(raw.engine) === undefined) errors.push(err('LOOP_PLAN_INVALID', 'engine must be neo4j, cypher-interp or both'));
   if (raw.evaluatorSpec === undefined && raw.taskProfiles === undefined) errors.push(err('LOOP_PLAN_INVALID', 'evaluatorSpec must be a non-empty string (or every task needs a taskProfiles entry)'));
   if (raw.taskProfiles !== undefined) errors.push(...validateProfiles(raw.taskProfiles));
   if (raw.taskProfiles !== undefined && Array.isArray(raw.arms) && raw.arms.includes('daedalus-mcp')) {

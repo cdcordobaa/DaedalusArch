@@ -2,10 +2,11 @@
  * MCP v2 consistency check: check_diff's blocking answer against the full evaluation, on every variant of the five
  * v1.3 reference projects, in three tool configurations (`CONSISTENCY_MODES`). Entry file.
  *
- *   npx tsx scripts/v1.3/mcp-consistency.ts [--out results/v1.3-reference/mcp-v2] [--check]
+ *   npx tsx scripts/v1.3/mcp-consistency.ts [--out results/v1.3-reference/mcp-v2] [--check] [--fast-rules-engine fast|cypher-interp]
  *
  * Writes consistency.json and consistency.md to --out. `--check` exits 1 when a disagreement is not explained by a
- * documented limit, or when the raw and evidence files of the reference run disagree.
+ * documented limit, or when the raw and evidence files of the reference run disagree. `--fast-rules-engine cypher-interp`
+ * runs the tools with the compiled rules on the project graph (Docs/v1.3/mcp-interp-parity.md; OFF by default).
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -25,9 +26,12 @@ import {
 import type { ConsistencyMode, VariantComparison } from './lib/mcp-consistency.js';
 import { checkDiffTool, createSpecLoader } from '../../src/mcp-server/tools.js';
 import type { ServerContext } from '../../src/mcp-server/tools.js';
+import { InterpEvaluator, parseFastRulesEngine } from '../../src/mcp-server/interp-check.js';
+import type { FastRulesEngine } from '../../src/mcp-server/interp-check.js';
 
-function context(specPath: string, projectPath: string | undefined): ServerContext {
+function context(specPath: string, projectPath: string | undefined, engine: FastRulesEngine, interp: InterpEvaluator | undefined): ServerContext {
   return {
+    ...(engine === 'cypher-interp' && { fastRulesEngine: engine, interp }),
     defaultSpecPath: specPath,
     defaultProjectPath: projectPath,
     env: {},
@@ -88,6 +92,10 @@ async function main(argv: readonly string[]): Promise<number> {
   const outIdx = argv.indexOf('--out');
   const outDir = path.resolve(repo, outIdx >= 0 ? argv[outIdx + 1] ?? '' : 'results/v1.3-reference/mcp-v2');
   const check = argv.includes('--check');
+  const engineIdx = argv.indexOf('--fast-rules-engine');
+  const engine = engineIdx >= 0 ? parseFastRulesEngine(argv[engineIdx + 1]) : 'fast';
+  if (engine === undefined) throw new Error('--fast-rules-engine must be fast or cypher-interp');
+  const interp = engine === 'cypher-interp' ? new InterpEvaluator() : undefined;
   const tmp = makeTempRoot('mcp-consistency-');
   const rows: VariantComparison[] = [];
   const problems: string[] = [];
@@ -107,7 +115,7 @@ async function main(argv: readonly string[]): Promise<number> {
         const full = id === 'clean' ? blockingDelta(cleanFull.findings, [], ref.style) : blockingDelta(fullRead.findings, cleanFull.findings, ref.style);
         for (const mode of CONSISTENCY_MODES) {
           const root: Record<ConsistencyMode, string | undefined> = { 'after-write': m.projectDir, 'before-write': clean.projectDir, 'spec-only': undefined };
-          const ctx = context(ref.specPath, root[mode]);
+          const ctx = context(ref.specPath, root[mode], engine, interp);
           const meta = { style: ref.style, variant: id, kind: v.manifest.kind, plants: v.manifest.plants, mode };
           if (id === 'clean') {
             // The clean variant has no diff: the tool's answer is "nothing to check"; the full evaluation must be silent.

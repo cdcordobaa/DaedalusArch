@@ -1,0 +1,212 @@
+{
+  "transform": "rename-opaque",
+  "style": "hexagonal",
+  "variant": "v04-use-case-throws-http-error",
+  "candidate": "opaque names",
+  "candidatesTried": 1,
+  "applied": true,
+  "transformed": true,
+  "note": "42 declarations, 30 files renamed",
+  "tscOk": true,
+  "tscDiagnostics": [],
+  "candidateErrors": [],
+  "origCanon": {},
+  "newCanon": {
+    "src/adapters/inbound/cli/m001.ts": "src/adapters/inbound/cli/BookingCli.ts",
+    "src/adapters/inbound/http/m002.ts": "src/adapters/inbound/http/BookingController.ts",
+    "src/adapters/inbound/http/m003.ts": "src/adapters/inbound/http/HttpTypes.ts",
+    "src/adapters/inbound/http/m004.ts": "src/adapters/inbound/http/RoomController.ts",
+    "src/adapters/outbound/notification/m005.ts": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts",
+    "src/adapters/outbound/payment/m006.ts": "src/adapters/outbound/payment/FakePaymentGateway.ts",
+    "src/adapters/outbound/persistence/m007.ts": "src/adapters/outbound/persistence/InMemoryBookingRepository.ts",
+    "src/adapters/outbound/persistence/m008.ts": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts",
+    "src/adapters/outbound/persistence/m009.ts": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+    "src/application/ports/in/m010.ts": "src/application/ports/in/BookingView.ts",
+    "src/application/ports/in/m011.ts": "src/application/ports/in/BookRoom.ts",
+    "src/application/ports/in/m012.ts": "src/application/ports/in/CancelBooking.ts",
+    "src/application/ports/in/m013.ts": "src/application/ports/in/FindAvailableRooms.ts",
+    "src/application/ports/out/m014.ts": "src/application/ports/out/BookingRepository.ts",
+    "src/application/ports/out/m015.ts": "src/application/ports/out/GuestRepository.ts",
+    "src/application/ports/out/m016.ts": "src/application/ports/out/NotificationSender.ts",
+    "src/application/ports/out/m017.ts": "src/application/ports/out/PaymentGateway.ts",
+    "src/application/ports/out/m018.ts": "src/application/ports/out/RoomRepository.ts",
+    "src/application/services/m019.ts": "src/application/services/BookRoomService.ts",
+    "src/application/services/m020.ts": "src/application/services/CancelBookingService.ts",
+    "src/application/services/m021.ts": "src/application/services/FindAvailableRoomsService.ts",
+    "src/config/m022.ts": "src/config/container.ts",
+    "src/domain/errors/m023.ts": "src/domain/errors/BookingError.ts",
+    "src/domain/model/m024.ts": "src/domain/model/Booking.ts",
+    "src/domain/model/m025.ts": "src/domain/model/DateRange.ts",
+    "src/domain/model/m026.ts": "src/domain/model/Guest.ts",
+    "src/domain/model/m027.ts": "src/domain/model/Money.ts",
+    "src/domain/model/m028.ts": "src/domain/model/Room.ts",
+    "src/domain/services/m029.ts": "src/domain/services/AvailabilityChecker.ts",
+    "src/domain/services/m030.ts": "src/domain/services/PriceCalculator.ts"
+  },
+  "specReplaced": [],
+  "summary": {
+    "verdict": "fail",
+    "blockingRules": [
+      "FF-P01",
+      "FF-P03",
+      "FF-P06",
+      "FF-S01",
+      "FF-S02",
+      "FF-S04"
+    ],
+    "blocking": [
+      {
+        "ruleId": "FF-S01",
+        "file": "src/application/services/m020.ts",
+        "target": "src/adapters/inbound/http/m003.ts"
+      }
+    ],
+    "advisory": [
+      {
+        "ruleId": "FF-C02",
+        "file": "src/application/services/m019.ts"
+      },
+      {
+        "ruleId": "FF-C02",
+        "file": "src/config/m022.ts"
+      },
+      {
+        "ruleId": "FF-C03",
+        "file": "src/application/services/m019.ts"
+      },
+      {
+        "ruleId": "FF-C03",
+        "file": "src/application/services/m020.ts"
+      },
+      {
+        "ruleId": "FF-C03",
+        "file": "src/application/services/m021.ts"
+      },
+      {
+        "ruleId": "FF-C03",
+        "file": "src/config/m022.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/adapters/inbound/cli/m001.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/adapters/inbound/http/m002.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/adapters/inbound/http/m003.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/adapters/inbound/http/m004.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/adapters/outbound/notification/m005.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/adapters/outbound/payment/m006.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/adapters/outbound/persistence/m007.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/adapters/outbound/persistence/m008.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/adapters/outbound/persistence/m009.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/ports/in/m010.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/ports/in/m011.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/ports/in/m012.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/ports/in/m013.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/ports/out/m014.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/ports/out/m015.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/ports/out/m016.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/ports/out/m017.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/ports/out/m018.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/services/m019.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/services/m020.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/services/m021.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/config/m022.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/errors/m023.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/model/m024.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/model/m025.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/model/m026.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/model/m027.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/model/m028.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/services/m029.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/services/m030.ts"
+      }
+    ],
+    "rows": 37
+  }
+}
