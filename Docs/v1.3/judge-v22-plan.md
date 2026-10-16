@@ -2,7 +2,7 @@
 
 > **Written 2026-10-16, before any v2.2 judge call.** This is development-set work and not a pre-registration. The manifest, the split and the harvested prompts of CHECK-2 were committed before any judge run (§3.6). The decision rule (§5) is fixed here and in code (`decide` in `scripts/v1.3/judge-v22-check2.ts`, pinned by a unit test). No judge or LLM call was made to prepare this. The only model involved was the `mock` provider.
 
-Context: `Docs/DiagnosticRuns/v1.3-judge-v2-2026-10-16.md` §8 and §9 (PR #126, branch `v1.3-judge-v2`). This branch, `v1.3-judge-v22-prep`, is cut from `origin/v1.3-judge-v2` @ `5f636af3`, because `origin/v1.3` does not contain the judge-v2 code.
+Context: `Docs/DiagnosticRuns/v1.3-judge-v2-2026-10-16.md` §8 and §9 (PR #126, branch `v1.3-judge-v2`). This branch, `v1.3-judge-v22-prep`, was cut from `origin/v1.3-judge-v2` @ `5f636af3`, because `origin/v1.3` did not yet contain the judge-v2 code; #126 has since been merged into `v1.3`, and `v1.3` is merged into this branch.
 
 ## 1. Why a v2.2
 
