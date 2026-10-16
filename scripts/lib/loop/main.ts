@@ -44,7 +44,7 @@ import { ClaudeStepAgent, CodexStepAgent } from './agents.js';
 import { firewallEvaluator, harnessTypechecker } from './evaluator.js';
 import { runLoop } from './loop.js';
 import type { LoopContext, LoopRunResult, TaskProfile } from './loop.js';
-import { loadLoopPlan, loopRunId, planCallBudget, scheduleLoopRuns } from './plan.js';
+import { loadLoopPlan, loopRunId, planCallBudget, scheduleLoopRuns, SPEC_SHA_ENV } from './plan.js';
 import type { LoadedPlan, LocalOverrides } from './plan.js';
 import { iseDddFreezer } from './specs.js';
 import type { SpecFreezer } from './specs.js';
@@ -390,7 +390,7 @@ export async function main(argv: readonly string[], repoRoot: string, depsIn?: L
     return 0;
   }
   const planFile = path.resolve(repoRoot, args.data.plan ?? '');
-  const loaded = loadLoopPlan(planFile, repoRoot, args.data.local);
+  const loaded = loadLoopPlan(planFile, repoRoot, args.data.local, { requireSpecSha256: deps.parentEnv[SPEC_SHA_ENV] === '1' });
   if (!loaded.success) return report(deps, loaded.errors);
   if (!path.isAbsolute(loaded.data.plan.outRoot)) return report(deps, [{ code: 'LOOP_PLAN_INVALID', message: 'outRoot must be absolute' }]);
   let wiring: Wiring;
