@@ -2,7 +2,10 @@
 /**
  * Stdio entry of the DaedalusArch MCP prototype (`daedalus-arch-mcp`).
  *
- *   daedalus-arch-mcp --spec <spec.yaml> [--project <dir>]
+ *   daedalus-arch-mcp --spec <spec.yaml> [--project <dir>] [--neural claude-cli|mock|ensemble ...]
+ *
+ * `--neural` turns on the neural-arm tools (review_unit, explain_and_fix); off by default. Flags:
+ * `neural-context.ts`, Docs/v1.3/neural-arm-agent-tools.md.
  *
  * Environment: DAEDALUS_SPEC / DAEDALUS_PROJECT (defaults for the flags); NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
  * for `evaluate_project` only. stdout carries the protocol, so diagnostics go to stderr.
