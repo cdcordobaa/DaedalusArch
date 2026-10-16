@@ -1505,3 +1505,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: CONSTRUCTION, v1.3 validity cycle. Autonomous under the standing delegation; author decisions are listed in §6 of the plan.
 
 ---
+
+## v1.3 research — distinction readiness (2026-10-16)
+**Timestamp**: 2026-10-16T09:30:00Z
+**User Input**: "Scheduled routine: research and verify online the UNAL rules for merit distinctions (Meritoria / Laureada) of master's theses, translate them into evaluable evidence, map the thesis's current evidence, and list the smallest ranked set of actions that raise the distinction case. Documentation only; keep doctoral-scale ideas as Future Work."
+**AI Response**: "Wrote Docs/v1.3/research/distinction-readiness.md. Verified Acuerdo 008/2008 CSU Art. 31 and 57 d–e, Acuerdo 033/2008 CSU Art. 21, Acuerdo 056/2012 CSU Art. 7, Acuerdo 054/2012 CA Arts. 1–2 and Acuerdo 104/2020 CF Ingeniería Arts. 27–32 from official texts (legal.unal.edu.co is behind a reCAPTCHA; read via pre-captcha Wayback snapshots and official PDFs). Key finding: the Meritoria needs a first-author indexed-journal article accepted or published, or an oral talk at an international congress (Art. 30 c), and Art. 32 makes a submitted indexed-journal article a degree requirement. Acuerdo 034/2023 CSU could not be read; it is listed as the main open question for the programme secretary. Option taken under delegation: recommend Paper 1 to EMSE rather than the MSR 2027 deadline of 23 Oct 2026."
+**Context**: Research note, no code or result changed. No AI-DLC stage advanced.
+
+---
