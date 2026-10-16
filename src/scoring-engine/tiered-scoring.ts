@@ -46,7 +46,7 @@ export interface TieredScoringInput {
 export interface TierResolver {
   readonly rule: (ruleId: string, style: string | undefined) => ResolvedTier;
   readonly row?: {
-    readonly tierOf: (ruleId: string, row: { readonly filePath: string; readonly target?: string }) => RuleTier | undefined;
+    readonly tierOf: (ruleId: string, row: { readonly filePath: string; readonly target?: string; readonly discriminator?: readonly string[] }) => RuleTier | undefined;
     readonly label: (ruleId: string) => string;
   };
 }
