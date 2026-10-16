@@ -137,7 +137,7 @@ function normalise(raw: Report, runId: string, projectPath: string, absDir: stri
 function evaluate(project: string, spec: string, tsconfig: string | undefined): Report {
   const uri = process.env.NEO4J_URI;
   if (uri === undefined || process.env.NEO4J_PASSWORD === undefined) throw new Error('Neo4j env not loaded (set -a; . ~/.daedalus-bt.env; set +a)');
-  const args = [CLI_ENTRY, 'evaluate', '--project', project, '--spec', spec, '--format', 'json', '--symbolic-only', '--neo4j-uri', uri];
+  const args = [CLI_ENTRY, 'evaluate', '--project', project, '--spec', spec, '--format', 'json', '--symbolic-only', '--neo4j-uri', uri, '--engine', 'neo4j'];
   if (tsconfig !== undefined) args.push('--tsconfig', tsconfig);
   const res = spawnSync(TSX, args, { cwd: REPO, env: childEnv(), encoding: 'utf8', maxBuffer: 1 << 30, timeout: 1_800_000 });
   const start = res.stdout.indexOf('{');
