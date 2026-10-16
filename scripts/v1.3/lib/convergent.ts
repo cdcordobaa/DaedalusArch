@@ -144,7 +144,7 @@ export function forbiddenPairs(template: string, params: Readonly<Record<string,
   switch (template) {
     case 'dependency-direction': {
       const order = strs(params.layerOrder);
-      all((a, b) => order.indexOf(a) >= 0 && order.indexOf(b) >= 0 && order.indexOf(a) < order.indexOf(b));
+      all((a, b) => order.includes(a) && order.includes(b) && order.indexOf(a) < order.indexOf(b));
       break;
     }
     case 'no-layer-skip': {

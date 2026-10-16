@@ -225,7 +225,11 @@ function runArchunit(p: Project, ir: Ir, work: string, scope: ReadonlySet<string
   const keys = new Set<string>(); let outOfScope = 0;
   try {
     const d = JSON.parse(String(r.stdout)) as { findings: [string, string, string][]; errors: unknown[] };
-    for (const e of d.errors) errors.push(JSON.stringify(e).slice(0, 400));
+    for (const e of d.errors) {
+      errors.push(JSON.stringify(e).slice(0, 400));
+      const id = (e as { id?: string; error?: string }).error !== undefined ? (e as { id?: string }).id : undefined;
+      if (id !== undefined && !notComputed.includes(id)) notComputed.push(id);
+    }
     for (const [id, file, target] of d.findings) {
       const unit = unitOf(ir, id);
       if (!inScope(scope, unit, file, target)) { outOfScope++; continue; }

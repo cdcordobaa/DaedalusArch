@@ -85,6 +85,8 @@ interface Ctx {
   extglobFiles: (f: string) => boolean;
 }
 
+const k2HasEdge = (c: Ctx, f: string): boolean => c.k.universe.edges.some((e) => e.startsWith(`${f}|`) || e.endsWith(`|${f}`));
+
 /** Edges inside a strongly connected component (Tarjan), i.e. edges that lie on some cycle. */
 function edgesOnCycles(edges: readonly [string, string][]): Set<string> {
   const adj = new Map<string, string[]>();
@@ -123,6 +125,7 @@ function classify(c: Ctx, rule: { kind: RuleKind; view: string }, side: 'ours-on
     return { cls: 'translation gap', why: 'the cycle dependency-cruiser reports is longer than 10 modules; our no-cyclic-deps enumerates simple cycles of length 2..10 (MAX_CYCLE_LENGTH, BR-U1-28)' };
   }
   if (rule.kind === 'orphan' && side === 'ours-only' && c.pkgFiles.has(file)) return { cls: 'translation gap', why: 'orphan definitions differ: the file imports only packages; ours counts file-to-file IMPORTS/RE_EXPORTS only, dependency-cruiser counts a package import as a dependency' };
+  if (rule.kind === 'orphan' && side === 'ours-only' && !k2HasEdge(c, file)) return { cls: 'translation gap', why: 'scope: the file\'s only imports go to files outside the analysed file set; ours has no File node for them, dependency-cruiser still counts the dependency' };
   if (rule.kind === 'orphan' && side === 'tool-only' && c.barrels.has(file)) return { cls: 'translation gap', why: 'orphan definitions differ: ours never reports a barrel (NOT f.isBarrel); dependency-cruiser does' };
   if (rule.kind === 'fan-in') return { cls: 'translation gap', why: 'fan-in definitions differ: ours counts distinct importers over IMPORTS (re-exports excluded); dependency-cruiser counts every dependent module' };
   if (rule.view === 'resolved') {
@@ -180,6 +183,18 @@ function parseCsv(text: string): Record<string, string>[] {
   return body.filter((r) => r.length === head.length).map((r) => Object.fromEntries(head.map((h, i) => [h, r[i] ?? ''])));
 }
 
+/**
+ * Rules an engine did not compute on a project: our tool's failed functions (a query error or a Neo4j transaction
+ * timeout), an ArchUnitTS run bounded by its timeout, and an ArchUnitTS check that threw (e.g. a stack overflow in its
+ * cycle enumeration). Such a rule is left out of that engine's pairs on that project; it is never a disagreement.
+ */
+function notComputedOf(k: KeysFile, e: EngineName): Set<string> {
+  const out = new Set(k.tools[e].notComputed ?? []);
+  if (e === 'ours') for (const f of k.ourFailedFunctions as { functionId?: string }[]) if (typeof f.functionId === 'string') out.add(f.functionId);
+  for (const m of k.tools[e].errors) { const x = /"id":"([^"]+)","op":"[^"]+","error"/.exec(m); if (x?.[1] !== undefined) out.add(x[1]); }
+  return out;
+}
+
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 const all = readKeys();
@@ -208,7 +223,7 @@ for (const k of all) {
     cells.set(cellKey, byPair);
     for (const [a, b] of pairs) {
       if (!can(a, r.kind) || !can(b, r.kind)) continue;
-      if ((k.tools[a].notComputed ?? []).includes(r.id) || (k.tools[b].notComputed ?? []).includes(r.id)) { notComputed.push({ corpus: k.corpus, project: k.id, rule: r.id, pair: `${a}~${b}` }); continue; }
+      if (notComputedOf(k, a).has(r.id) || notComputedOf(k, b).has(r.id)) { notComputed.push({ corpus: k.corpus, project: k.id, rule: r.id, pair: `${a}~${b}` }); continue; }
       const u = universeSize(k, r.kind, new Set([...sets[a], ...sets[b]]), r.id);
       const cell = byPair.get(`${a}~${b}`) ?? { tables: [], projects: 0, style: new Set<string>() };
       cell.tables.push(table(sets[a], sets[b], u)); cell.projects++; cell.style.add(k.style);
@@ -233,7 +248,7 @@ for (const k of all) {
   writeJson(path.join(OUT, 'keys', k.corpus, `${k.id.replace('/', '__')}.json`), {
     corpus: k.corpus, id: k.id, style: k.style, programFiles: k.programFiles, ourFileNodes: k.ourFileNodes, ourFailedFunctions: k.ourFailedFunctions,
     rules: k.rules, universe: { edges: k.universe.edges.length, packages: k.universe.packages.length }, unresolved: k.unresolved, barrels: k.barrels,
-    tools: Object.fromEntries(ENGINES.map((e) => [e, { keys: k.tools[e].keys, outOfScope: k.tools[e].outOfScope, wallMs: k.tools[e].wallMs, errors: k.tools[e].errors.length, notComputed: k.tools[e].notComputed ?? [] }])),
+    tools: Object.fromEntries(ENGINES.map((e) => [e, { keys: k.tools[e].keys, outOfScope: k.tools[e].outOfScope, wallMs: k.tools[e].wallMs, errors: k.tools[e].errors.length, notComputed: [...notComputedOf(k, e)] }])),
   });
 }
 
