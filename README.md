@@ -4,6 +4,10 @@ An architectural firewall for TypeScript: a YAML spec (layers, fitness functions
 architecture property graph, scored as an Architecture Health Score (AHS) and turned into a verdict. See
 `Docs/` for the requirements, the registered instrument and the experiment plans.
 
+**Using it on your own code?** Start with the [user guide](docs/guide/README.md). It covers the quick start with no
+database, writing a spec, reading a report, the MCP server for coding agents, the CI gate, the HTML report and zero-config
+init.
+
 ## MCP server (v1.3 prototype)
 
 > **Prototype.** Groundwork for a "firewall in the loop" experiment (design in
