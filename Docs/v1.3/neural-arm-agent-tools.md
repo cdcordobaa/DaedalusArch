@@ -160,7 +160,7 @@ With the 20 s default an agent on the Claude route usually sees `pending` on a c
   - the token cap (default 2M);
   - the dollar ceiling (`--gemini-max-usd`, default and hard maximum **$5**: `effectiveCap` clamps any larger value).
 
-  After a call, the reported usage is charged; a failed call is charged at the worst case. `--gemini-ledger <file>` persists the ledger, so the cap holds across server restarts.
+  After a call, the reported usage is charged; a failed call is charged at the worst case. `--gemini-ledger <file>` persists the ledger, so the cap holds across server restarts. A missing ledger file starts at zero; an unreadable or malformed one stops the rater instead of resetting it. The file is replaced atomically (temp file plus rename). Each call holds its worst-case cost until it settles, so concurrent calls in one server cannot together cross the cap.
 - **Combination** (`combineVerdicts`). With n valid raters out of t configured, f of them failing:
   - `fail-if-both`: the unit fails when f = n. Every valid rater fails; with two raters, both.
   - `fail-if-either`: the unit fails when f ≥ 1.
