@@ -27,8 +27,8 @@ const PARENT: NodeJS.ProcessEnv = {
   USER: 'author',
   PATH: '/usr/bin:/bin',
   LANG: 'en_US.UTF-8',
-  ANTHROPIC_API_KEY: 'sk-ant-secret',
-  GITHUB_TOKEN: 'ghp_secret',
+  ANTHROPIC_API_KEY: 'fake-anthropic-secret',
+  GITHUB_TOKEN: 'fake-github-secret',
   NEO4J_PASSWORD: 'pw',
   CLAUDE_CONFIG_DIR: '/home/author/.claude',
 };
