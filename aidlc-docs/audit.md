@@ -1535,6 +1535,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 
 ---
 
+## v1.3 threats register, role separation, seed floor (scheduled task, documentation only)
+**Timestamp**: 2026-10-16T00:00:00Z
+**User Input**: "(scheduled task) Write a full v1.3 threats-to-validity register, a role-separation plan before the hold-out run, and a seed-floor plan; list cross-document number inconsistencies; no code changes, no re-scoring, no sealed directory opened."
+**AI Response**: "Added Docs/v1.3/threats-register.md (31 threats across construct, internal, external, conclusion, reliability and researcher degrees of freedom; Appendix A lists 10 inconsistencies, none fixed), Docs/v1.3/role-separation-plan.md (role matrix; independent R1 not the director; Gemini/Codex as non-Claude key writers K-G/K-X; order of work before freeze) and Docs/v1.3/seed-floor-plan.md (planted variants per style 10/9/10/11/12 vs floor 20; 48 named variants, not created). Branch v1.3-threats, one PR into v1.3, not merged."
+**Context**: v1.3 validity cycle, after PR #120; documentation only.
 ## v1.3 — blind misses diagnosis (v1.3-blind-misses)
 **Timestamp**: 2026-10-16T12:00:00Z
 **User Input**: "Classify every blind miss (14) and blind false alarm (4) of the after-member-facts run as extractor gap, rule/construct gap (mapped to Q1–Q25), key error or layer mapping; fix extractor gaps with tests (behind an off-by-default option if default results change); put construct gaps behind a switch only if none exists; re-score author and blind views; write Docs/DiagnosticRuns/v1.3-blind-misses-2026-10-16.md; one PR into v1.3, not merged."
