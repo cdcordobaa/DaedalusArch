@@ -16,12 +16,15 @@ export class ExtractCommand implements PipelineCommand {
     private readonly graphMode?: GraphMode,
     /** ADR-032: explicit tsconfig (the project's own `tsconfig.json` is then ignored); absent = `<project>/tsconfig.json`. */
     private readonly tsconfigPath?: string,
+    /** MT-B1 (OFF by default): `ExtractorOptions.resolvedEdgesInLiteralView`. */
+    private readonly resolvedEdgesInLiteralView = false,
   ) {}
 
   async execute(context: FirewallContext): Promise<DomainResultType<void>> {
     const result = await extractAPG(this.projectPath, {
       excludePatterns: this.excludePatterns,
       ...(this.graphMode !== undefined && { graphMode: this.graphMode }),
+      ...(this.resolvedEdgesInLiteralView && { resolvedEdgesInLiteralView: true }),
     }, this.tsconfigPath);
 
     if (!result.success) {
