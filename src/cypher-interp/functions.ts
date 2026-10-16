@@ -36,6 +36,29 @@ function codePoints(s: string): string[] {
   return Array.from(s); // code points, as Neo4j counts them (not UTF-16 units, not grapheme clusters)
 }
 
+/**
+ * Java `Character.isWhitespace`: Unicode Zs, Zl and Zp except the no-break spaces U+00A0, U+2007 and U+202F, plus
+ * U+0009-U+000D and U+001C-U+001F. Neo4j trims strings by this test, code point by code point; JavaScript's
+ * `String.prototype.trim` set differs (it strips the no-break spaces and U+FEFF, and keeps U+001C-U+001F).
+ */
+const UNICODE_SEPARATOR = /^[\p{Zs}\p{Zl}\p{Zp}]$/u;
+const JAVA_NON_BREAKING = new Set(['\u00A0', '\u2007', '\u202F']);
+
+function isJavaWhitespace(ch: string): boolean {
+  const cp = ch.charCodeAt(0);
+  if ((cp >= 0x09 && cp <= 0x0d) || (cp >= 0x1c && cp <= 0x1f)) return true;
+  return UNICODE_SEPARATOR.test(ch) && !JAVA_NON_BREAKING.has(ch);
+}
+
+/** Strip leading and/or trailing Java whitespace (every whitespace character is a single UTF-16 unit). */
+function javaTrim(s: string, start = true, end = true): string {
+  let i = 0;
+  let j = s.length;
+  if (start) while (i < j && isJavaWhitespace(s.charAt(i))) i++;
+  if (end) while (j > i && isJavaWhitespace(s.charAt(j - 1))) j--;
+  return s.slice(i, j);
+}
+
 const INT64_MAX = 2n ** 63n - 1n;
 const INT64_MIN = -(2n ** 63n);
 
@@ -53,11 +76,12 @@ function toIntegerOf(v: Value): Value {
   if (typeof v === 'number') return javaLongCast(v); // FloatingPointValue.longValue(): a Java (long) cast
   if (typeof v === 'boolean') return v ? 1n : 0n;
   if (typeof v === 'string') {
-    const t = v.trim();
+    const t = javaTrim(v);
     if (/^[+-]?\d+$/.test(t)) {
       try { return checkedInt(BigInt(t)); } catch { return null; }
     }
-    const d = Number(t);
+    // JS Number() would also skip whitespace Java keeps (a no-break space): such a string does not parse.
+    const d = t === t.trim() ? Number(t) : Number.NaN;
     return t !== '' && Number.isFinite(d) ? checkedInt(BigInt(Math.trunc(d))) : null;
   }
   throw new CypherRuntimeError(`Invalid input for function 'toInteger()': ${typeName(v)}`);
@@ -68,7 +92,7 @@ function toFloatOf(v: Value): Value {
   if (typeof v === 'number') return v;
   if (typeof v === 'bigint') return Number(v);
   if (typeof v === 'string') {
-    const t = v.trim();
+    const t = javaTrim(v);
     if (t === '' || !/^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?[fFdD]?$|^[+-]?(NaN|Infinity)$/.test(t)) return null;
     return Number(t.replace(/[fFdD]$/, ''));
   }
@@ -180,9 +204,9 @@ const FUNCTIONS: ReadonlyMap<string, Fn> = new Map<string, Fn>([
   }],
   ['tolower', (a) => { arity('toLower', a, 1); const s = a[0] as Value; return s === null ? null : str('toLower', s).toLowerCase(); }],
   ['toupper', (a) => { arity('toUpper', a, 1); const s = a[0] as Value; return s === null ? null : str('toUpper', s).toUpperCase(); }],
-  ['trim', (a) => { arity('trim', a, 1); const s = a[0] as Value; return s === null ? null : str('trim', s).trim(); }],
-  ['ltrim', (a) => { arity('ltrim', a, 1); const s = a[0] as Value; return s === null ? null : str('ltrim', s).trimStart(); }],
-  ['rtrim', (a) => { arity('rtrim', a, 1); const s = a[0] as Value; return s === null ? null : str('rtrim', s).trimEnd(); }],
+  ['trim', (a) => { arity('trim', a, 1); const s = a[0] as Value; return s === null ? null : javaTrim(str('trim', s)); }],
+  ['ltrim', (a) => { arity('ltrim', a, 1); const s = a[0] as Value; return s === null ? null : javaTrim(str('ltrim', s), true, false); }],
+  ['rtrim', (a) => { arity('rtrim', a, 1); const s = a[0] as Value; return s === null ? null : javaTrim(str('rtrim', s), false, true); }],
   ['tostring', (a) => { arity('toString', a, 1); const v = a[0] as Value; return v === null ? null : scalarToString(v); }],
   ['tointeger', (a) => { arity('toInteger', a, 1); return toIntegerOf(a[0] as Value); }],
   ['tofloat', (a) => { arity('toFloat', a, 1); return toFloatOf(a[0] as Value); }],
