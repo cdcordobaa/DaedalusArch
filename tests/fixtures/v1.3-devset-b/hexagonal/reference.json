@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "spec": "spec.yaml",
+  "project": "Hotel room booking: rooms, guests, bookings, payment and notification ports.",
+  "canonicalSource": "Cockburn, A. (2005). Hexagonal architecture (Ports and Adapters). alistair.cockburn.us/hexagonal-architecture. Allowed-dependency graph from presets/hexagonal.yaml and Docs/v1.3-hexagonal-notes.md.",
+  "styleDefinition": [
+    "The application (domain + application layers) is the inside of the hexagon; it talks to the outside only through ports it owns (driving ports in application/ports/in, driven ports in application/ports/out).",
+    "Allowed dependencies (preset): application -> domain; adapters-inbound -> application, domain; adapters-outbound -> application, domain; config -> every layer. Everything else across layers is a violation.",
+    "The domain depends on nothing outside itself and on no framework.",
+    "Driven (outbound) adapters implement a port declared inside the hexagon; driving (inbound) adapters call driving ports.",
+    "Use cases receive driven ports (interfaces), never adapter classes.",
+    "Inbound and outbound adapters never import each other; only the composition root (config) knows both.",
+    "No dependency cycles."
+  ],
+  "authored": "2026-10-16",
+  "writtenBeforeToolRun": true,
+  "scopeRules": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction-graph",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-S03",
+      "ruleName": "layer-skip-graph",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-S04",
+      "ruleName": "core-isolation",
+      "severity": "major",
+      "blockingCandidate": false
+    },
+    {
+      "ruleId": "FF-P01",
+      "ruleName": "domain-purity",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-P02",
+      "ruleName": "port-dependency-inversion",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-P03",
+      "ruleName": "port-adapter-pattern",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-P06",
+      "ruleName": "domain-state-purity",
+      "severity": "critical",
+      "blockingCandidate": true
+    }
+  ],
+  "notApplicable": [
+    {
+      "ruleId": "FF-P04",
+      "reason": "dropped from the hexagonal library (subsumed by the graph)"
+    },
+    {
+      "ruleId": "FF-P05",
+      "reason": "dropped (inbound adapters may name domain types)"
+    }
+  ],
+  "noViolatingVariant": [],
+  "outOfScope": "Coupling metrics (FF-C*), SOLID proxies (FF-SO*), naming and convention rules (FF-CV*) and the neuronal functions (FF-N*) are not compared: they are threshold proxies or conventions (FR-V6 makes them advisory), and they say nothing about whether a planted architectural violation is caught. The runner lists their rows separately as unscored.",
+  "variants": [
+    "clean",
+    "v21-driven-port-returns-adapter-type",
+    "v22-cli-bootstraps-from-container",
+    "v23-outbound-adapter-reads-config-settings",
+    "v24-port-barrel-reexports-default-adapter",
+    "v25-driving-port-type-cycle",
+    "v26-http-links-routes-cycle",
+    "v27-room-availability-cycle",
+    "v28-domain-error-extends-http-error",
+    "v29-money-reads-config-locale",
+    "v30-booking-typeorm-entity",
+    "v31-date-range-from-express-request",
+    "v32-sms-adapter-without-port",
+    "v33-guest-repository-implements-generic-store",
+    "v34-booking-repository-typed-factory-only",
+    "v35-loyalty-policy-injects-booking-store",
+    "v36-guest-entity-takes-outbox",
+    "n21-route-table-under-inbound-config-folder",
+    "n22-room-and-booking-share-occupancy",
+    "n23-domain-owned-clock-port",
+    "n24-typeorm-guest-repository-with-row-entity",
+    "n25-adapters-implement-ports-via-barrel",
+    "n26-price-calculator-injects-domain-rates-port",
+    "n61-get-booking-use-case",
+    "n62-cancellation-audit-trail"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "variant": "v21-driven-port-returns-adapter-type",
+  "kind": "violation",
+  "plants": "FF-S01",
+  "description": "The driven port NotificationSender (application) type-imports OutboxEntry from OutboxNotificationAdapter (outbound adapter) and returns it from send(); the adapter already imports the port, so the two files form a cycle.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction-graph",
+      "file": "src/application/ports/out/NotificationSender.ts",
+      "target": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts",
+      "reason": "application > adapters-outbound is not allowed and adapters-outbound > application is: an allowed edge run backwards (a port naming an adapter type)."
+    },
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "file": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts",
+      "target": "src/application/ports/out/NotificationSender.ts",
+      "reason": "Two-file import cycle OutboxNotificationAdapter -> NotificationSender -> OutboxNotificationAdapter."
+    }
+  ]
+}

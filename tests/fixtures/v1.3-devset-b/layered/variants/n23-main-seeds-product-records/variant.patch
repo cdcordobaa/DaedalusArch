@@ -1,0 +1,16 @@
+--- a/src/main.ts
++++ b/src/main.ts
+@@ -1,3 +1,13 @@
++import type { ProductRecord } from './persistence/records/ProductRecord';
+ import { createApp } from './presentation/app';
+ 
++const seed: ProductRecord[] = [
++  { sku: 'mug-01', name: 'Stoneware mug', priceCents: 1200, stock: 30 },
++  { sku: 'mug-02', name: 'Enamel mug', priceCents: 900, stock: 12 },
++];
++
+ export const app = createApp();
++
++for (const row of seed) {
++  app.handle('POST /products', { params: {}, body: { ...row } });
++}

@@ -1,0 +1,45 @@
+--- /dev/null
++++ b/src/application/ports/out/index.ts
+@@ -0,0 +1,6 @@
++export type { BookingRepository } from './BookingRepository';
++export type { GuestRepository } from './GuestRepository';
++export type { NotificationSender } from './NotificationSender';
++export type { PaymentGateway } from './PaymentGateway';
++export type { RoomRepository } from './RoomRepository';
++export { InMemoryBookingRepository as DefaultBookingRepository } from '../../../adapters/outbound/persistence/InMemoryBookingRepository';
+--- a/src/application/services/CancelBookingService.ts
++++ b/src/application/services/CancelBookingService.ts
+@@ -1,10 +1,7 @@
+ import { BookingError } from '../../domain/errors/BookingError';
+ import { CancelBooking } from '../ports/in/CancelBooking';
+ import { BookingView, toBookingView } from '../ports/in/BookingView';
+-import { BookingRepository } from '../ports/out/BookingRepository';
+-import { GuestRepository } from '../ports/out/GuestRepository';
+-import { NotificationSender } from '../ports/out/NotificationSender';
+-import { PaymentGateway } from '../ports/out/PaymentGateway';
++import type { BookingRepository, GuestRepository, NotificationSender, PaymentGateway } from '../ports/out';
+ 
+ export class CancelBookingService implements CancelBooking {
+   constructor(
+--- a/src/config/container.ts
++++ b/src/config/container.ts
+@@ -3,9 +3,9 @@
+ import { RoomController } from '../adapters/inbound/http/RoomController';
+ import { OutboxNotificationAdapter } from '../adapters/outbound/notification/OutboxNotificationAdapter';
+ import { FakePaymentGateway } from '../adapters/outbound/payment/FakePaymentGateway';
+-import { InMemoryBookingRepository } from '../adapters/outbound/persistence/InMemoryBookingRepository';
+ import { InMemoryGuestRepository } from '../adapters/outbound/persistence/InMemoryGuestRepository';
+ import { InMemoryRoomRepository } from '../adapters/outbound/persistence/InMemoryRoomRepository';
++import { DefaultBookingRepository } from '../application/ports/out';
+ import { BookRoomService } from '../application/services/BookRoomService';
+ import { CancelBookingService } from '../application/services/CancelBookingService';
+ import { FindAvailableRoomsService } from '../application/services/FindAvailableRoomsService';
+@@ -19,7 +19,7 @@
+ /** Composition root: the one place that plugs concrete adapters into the ports. */
+ export function createContainer(): Container {
+   const rooms = new InMemoryRoomRepository();
+-  const bookings = new InMemoryBookingRepository();
++  const bookings = new DefaultBookingRepository();
+   const guests = new InMemoryGuestRepository();
+   const payments = new FakePaymentGateway();
+   const notifications = new OutboxNotificationAdapter();

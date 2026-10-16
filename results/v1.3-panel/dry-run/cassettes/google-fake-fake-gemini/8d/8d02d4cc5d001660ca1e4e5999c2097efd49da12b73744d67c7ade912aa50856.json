@@ -1,0 +1,19 @@
+{
+  "answer": {
+    "inputTokens": 500,
+    "outputTokens": 20,
+    "servedModel": "fake-gemini",
+    "text": "{\"choice\":\"A\",\"reason\":\"fake google answer\"}"
+  },
+  "failedAttempts": [],
+  "itemKey": "243e855b6fa31d912bcbb557",
+  "key": "8d02d4cc5d001660ca1e4e5999c2097efd49da12b73744d67c7ade912aa50856",
+  "model": "fake-gemini",
+  "provider": "fake",
+  "request": {
+    "prompt": "## Architectural style\n- Aggregate boundary: Objects outside the aggregate may hold references only to the root. Inner entities are reached through the root. (Evans, *Domain-Driven Design* (2003), ch. 6 \"Aggregates\"; Vernon, *Implementing DDD* (2013), ch. 10)\n- Repository only for aggregate roots: Repositories are provided only for aggregate roots that actually need direct access. (Evans 2003, ch. 6 \"Repositories\"; Vernon 2013, ch. 12)\n- Value-object immutability: A value object is treated as immutable. Replace it rather than modify it. (Evans 2003, ch. 5 \"Value Objects\"; Vernon 2013, ch. 6)\n- Isolated domain: Domain code is separated from UI, application and infrastructure concerns. (Evans 2003, ch. 4 \"Isolating the Domain\" (Layered Architecture))\n- Bounded-context isolation: Each model applies within an explicit boundary. Integration across contexts is explicit, through a published interface, or translated by an anticorruption layer. (Evans 2003, ch. 14 \"Maintaining Model Integrity\" (Bounded Context, Context Map, Anticorruption Layer); Vernon 2013, ch. 2–3)\n\n## Code excerpt\nFile: src/ordering/domain/customer/Customer.ts\n```ts\n    1 | import { CustomerId } from './value-objects/CustomerId.js';\n    2 | \n    3 | import type { PlaceOrderCommand } from '../../application/PlaceOrder.js';\n    4 | \n    5 | \n    6 | export class Customer {\n    7 |   private active = true;\n    8 | \n    9 |   constructor(readonly id: CustomerId, readonly name: string) {}\n   10 | \n   11 |   canOrder(): boolean {\n   12 |     return this.active;\n   13 |   }\n   14 | \n   15 |   deactivate(): void {\n   16 |     this.active = false;\n   17 |   }\n   18 | \n```\n\n## Reported finding\nsrc/ordering/domain/customer/Customer.ts (domain) imports against the allowed direction from src/ordering/application/PlaceOrder.ts (application) (line 3)\n\n## Question\nWould an architect following this style want this changed?\nA. yes\nB. no\nC. uncertain\n\nReply with JSON only: {\"choice\": \"<letter>\", \"reason\": \"<one sentence>\"}",
+    "system": "You are a software architect reviewing a TypeScript code base against an architectural style. Judge only from the material in the message: the style definition, the code excerpt and the reported finding. You have no tools. Reply with one JSON object and nothing else.",
+    "temperature": 0
+  },
+  "runIndex": 0
+}

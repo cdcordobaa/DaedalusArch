@@ -1,0 +1,48 @@
+--- a/src/domain/registration-policy.ts
++++ b/src/domain/registration-policy.ts
+@@ -1,3 +1,4 @@
++import type { SystemClock } from '../infrastructure/system-clock';
+ import { Attendee } from './attendee';
+ import { DomainError } from './domain-error';
+ import { Registration } from './registration';
+@@ -5,6 +6,12 @@
+ 
+ /** Domain service: rules that span a workshop, an attendee and their existing registrations. */
+ export class RegistrationPolicy {
++  constructor(private readonly clock: SystemClock) {}
++
++  hasStarted(workshop: Workshop): boolean {
++    return workshop.startsAt.getTime() <= this.clock.now().getTime();
++  }
++
+   assertCanRegister(workshop: Workshop, attendee: Attendee, existing: readonly Registration[], now: Date): void {
+     if (workshop.startsAt.getTime() <= now.getTime()) {
+       throw new DomainError('conflict', `Workshop "${workshop.title}" has already started`);
+--- /dev/null
++++ b/src/infrastructure/system-clock.ts
+@@ -0,0 +1,8 @@
++import { Injectable } from '@nestjs/common';
++
++@Injectable()
++export class SystemClock {
++  now(): Date {
++    return new Date();
++  }
++}
+--- a/src/registrations/registrations.service.ts
++++ b/src/registrations/registrations.service.ts
+@@ -5,12 +5,13 @@
+ import { RegistrationPolicy } from '../domain/registration-policy';
+ import { REGISTRATION_REPOSITORY, RegistrationRepository } from '../domain/registration-repository';
+ import { WORKSHOP_REPOSITORY, WorkshopRepository } from '../domain/workshop-repository';
++import { SystemClock } from '../infrastructure/system-clock';
+ import { RegisterAttendeeDto } from './dto/register-attendee.dto';
+ import { RegistrationResponseDto } from './dto/registration-response.dto';
+ 
+ @Injectable()
+ export class RegistrationsService {
+-  private readonly policy = new RegistrationPolicy();
++  private readonly policy = new RegistrationPolicy(new SystemClock());
+   private sequence = 0;
+ 
+   constructor(
