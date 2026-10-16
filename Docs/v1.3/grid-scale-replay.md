@@ -49,6 +49,84 @@ Reported without a threshold: wall time per lane and for the kill/resume, disk (
 run, lane out-roots, harness roots), step record size, `evaluate_project` duration, analysis runtime, and the same
 figures extrapolated to the live grid.
 
-## 3. Results
+## 3. Results (2026-10-16, this container)
 
-Pending (filled after the run).
+**Pass: P1–P7 all hold** (`grid-scale-replay.ts verify`, exit 0; the analysis script exit 0). Recorded after one
+defect was fixed (F1) and the kill was redone (F3); both are below.
+
+| Id | Result |
+|---|---|
+| P1 | 162 / 162 runs complete, 5 step records each (810 steps, 864 snapshots: 810 step turns + 54 repair turns). |
+| P2 | 54 blocks, 81 runs per lane; both lanes' `schedule.json` equal their share of the seeded order and both executed in that order. |
+| P3 (S9) | No nested or shared root; 0 records name another lane's root; every run's pinned tsconfig is in its own lane's harness root. |
+| P4 | 0 turn problems. One run was cut mid-run by the kill (`book-club/daedalus-mcp/run-1`, one `restarts.jsonl` line: killed inside step 1, resumed at step 1 from the base commit); its snapshot history is the base commit plus exactly its recorded turns. |
+| P5 | 18 task × arm groups, each with one signature across its 9 runs (the interrupted run included). |
+| P6 | 0 evaluator errors; gate: a repair at step 3 only, always cleared; `none` and `daedalus-mcp`: blocking (FF-S01, FF-S04) from step 3 on. |
+| P7 | Analysis script (#160 branch, read-only) exit 0 in **3.0 s** on the merged out-root; it saw 162 runs, 54 blocks, 0 missing steps, and flagged the input `synthetic: true` (dry-run records). |
+
+Measures (no threshold; stub trees of 14–80 LOC, so the sizes are a floor, not a forecast):
+
+| Measure | Value |
+|---|---|
+| Wall time, lane 2 (81 runs, uninterrupted, parallel to lane 1) | 64.8 s |
+| Wall time, lane 1 | 27.3 s to the kill (32 runs complete) + 40.4 s resume (32 skipped, 1 resumed, 48 fresh) |
+| Harness cost per run / per snapshot (generator, git, interpreter, records) | about 0.8 s / about 0.15 s |
+| Out-roots | 6.84 MB + 6.88 MB = 13.7 MB for 162 runs (about 85 KB per run) |
+| Snapshot stores (`snapshots.git`) | 5.6 MB total; 6.5 KB per snapshot; 34.6 KB per run |
+| Step records | 2.56 MB total; median 2.75 KB, max 6.27 KB (the gate's repaired step, which carries the findings) |
+| Harness roots | 61 KB each (pinned per-run tsconfigs) |
+| `evaluate_project` reported duration | median 1 ms, p95 6 ms (the evaluation stage only; extraction is in the 0.15 s per snapshot) |
+| Analysis runtime | 3.0 s; output 87 KB (report and figures, not committed) |
+
+What this says for the live grid: harness overhead is about 2 minutes for all 162 runs, negligible next to model
+turns, and disk is not a constraint at any plausible tree size (100 times the stub's per-snapshot size would still be
+under 1 GB of snapshot stores). Not exercised: the interruption archive (`interruptions/`, a full copy of the work
+tree per interrupted turn), the skeleton install and E1 type-check, real MCP tool calls in the `daedalus-mcp` arm, and
+the Neo4j evaluator.
+
+## 4. Defects and gaps found
+
+**F1, fixed (pure bug, test added).** `evaluate_project` on `cypher-interp` dropped `tsconfigPath` and
+`includeViolations` (`src/mcp-server/evaluate-project.ts`, `interp-evaluator.ts`); the Neo4j path honours both. A loop
+work tree has no tsconfig of its own (the pinned one lies in the harness root), so on the interpreter **every
+snapshot failed with `PIPELINE_FAILED: No tsconfig.json found`**, the gate never fired, and every run still
+"completed". The fix passes both inputs through and adds the tsconfig path and mtime to the interpreter's cache key.
+Test: `tests/unit/mcp-server/npx-mode.test.ts` (fails before, passes after). Calls without these inputs are unchanged.
+
+**F2, not fixed (proposal).** An evaluator that fails on every snapshot does not stop or warn the grid: by design the
+loop records the error on the snapshot and goes on (`loop.ts` header). At Study 2 scale a misconfigured evaluator
+(F1 was one) would burn the whole grid with no outcome. Proposal for the author: the grid summary counts
+`evaluationError` snapshots, and the grid stops after N consecutive ones (N set before the run). Behaviour change of
+the harness, so left to the author.
+
+**F3, not fixed (proposal).** Nothing stops two processes from running on the same out-root. The first kill of this
+run signalled the `npx`/`tsx` process, but `tsx` runs the script in a child `node`, which kept going; the "resume"
+then ran beside it. Both exited as if complete, and one run (`fake-model-b/todo-list/none/run-1`) came out corrupted:
+its snapshot history holds steps 3–5 twice and its step-2 record carries a later tree's evaluation. Only the history
+check of `verify` caught it (P4, P5, P6 all failed on that copy). Proposals: (a) an exclusive lock file in the out-root
+(`O_EXCL`, pid inside, refused while that pid lives); (b) operator note in the runbook: stop a lane by its process
+group (`kill -- -<pgid>`, start it under `setsid`), never by the `npx` pid. The redone kill used (b).
+
+**F4, gap (tooling here, not in the harness).** The harness has no lane concept. Cutting the plan file into lane plans
+(say one per model) would change the arm orders, because the seeded generator is consumed block by block over the
+whole schedule. The driver here keeps the seeded order (block b to lane `b mod n`) and adds the merge step the analysis
+needs. If Study 2 runs two lanes, `--lane i/n` and a merge could move into `loop-harness-cli.ts` (author decision).
+
+**F5, note.** Turn ids are fixed per step (`step-03`, `step-03-repair`), and a turn that runs again overwrites its
+envelope, so envelopes cannot show a duplicate turn. The snapshot history can, and `verify` checks it.
+
+## 5. How to reproduce
+
+```
+G=<scratch dir outside the repo>
+npx tsx scripts/v1.3/grid-scale-replay.ts run --plan experiments/grid-scale/plan.json --lane 2/2 --harness-root $G/h2 --out-root $G/o2 &
+setsid npx tsx scripts/v1.3/grid-scale-replay.ts run --plan experiments/grid-scale/plan.json --lane 1/2 --harness-root $G/h1 --out-root $G/o1 &
+# at ~32 completed runs of lane 1: kill -9 -- -<pgid of lane 1>; then rerun the lane-1 command (it resumes)
+npx tsx scripts/v1.3/grid-scale-replay.ts merge --plan experiments/grid-scale/plan.json --lanes $G/o1,$G/o2 --out $G/merged
+npx tsx scripts/v1.3/grid-scale-replay.ts verify --plan experiments/grid-scale/plan.json --lanes $G/o1,$G/o2 --harness-roots $G/h1,$G/h2 --merged $G/merged
+# analysis: from a worktree of origin/v1.3-study2-analysis-rehearsal
+npx tsx scripts/v1.3/study2-analyse.ts --out-root $G/merged --out $G/analysis --primary blocking --reason "stub scale test"
+```
+
+The author still has to confirm that the six made-up task domains do not overlap the sealed list (backlog §3); this
+session never read that list.

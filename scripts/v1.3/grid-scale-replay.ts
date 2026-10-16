@@ -21,7 +21,7 @@ import { harnessTsconfigPath, typecheckCommand } from '../lib/generators/argv.js
 import { isInsideOrEqual } from '../lib/generators/config.js';
 import { writeHarnessTsconfig } from '../lib/generators/harness-tsconfig.js';
 import { firewallEvaluator } from '../lib/loop/evaluator.js';
-import { RESTARTS_LOG, runLoop } from '../lib/loop/loop.js';
+import { RESTARTS_LOG, runLoop, stepRecordPath } from '../lib/loop/loop.js';
 import { claimSchedule, prepareDryRunWorkDir } from '../lib/loop/main.js';
 import { loadLoopPlan, loopRunId } from '../lib/loop/plan.js';
 import { StubStepAgent, stubTypechecker } from '../lib/loop/stub.js';
@@ -198,7 +198,7 @@ function verify(): void {
   checks.merged_out_root = { pass: linked === full.length, detail: { linked } };
 
   // Measures (no threshold).
-  const stepSizes = all.flatMap((r) => r.steps.map((s) => fs.statSync(path.join(r.dir, 'steps', `step-${String(s.stepIndex).padStart(2, '0')}.json`)).size)).sort((a, b) => a - b);
+  const stepSizes = all.flatMap((r) => r.steps.map((s) => fs.statSync(stepRecordPath(r.dir, s.stepIndex)).size)).sort((a, b) => a - b);
   const snapshots = all.reduce((n, r) => n + r.steps.reduce((m, s) => m + s.turns.length, 0), 0);
   const gitBytes = all.reduce((n, r) => n + diskBytes(path.join(r.dir, 'snapshots.git')), 0);
   const laneBytes = lanes.map((l) => diskBytes(l));

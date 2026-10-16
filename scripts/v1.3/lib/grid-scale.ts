@@ -15,7 +15,8 @@
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { RUN_JSON, readStepRecords, runDirFor } from '../../lib/loop/loop.js';
+import { RUN_JSON, TURNS_DIR, readStepRecords, runDirFor, stepRecordPath } from '../../lib/loop/loop.js';
+import { SNAPSHOT_GIT_DIR, WorkTreeSnapshots } from '../../lib/loop/snapshot.js';
 import { LOOP_SCHEDULE_JSON } from '../../lib/loop/main.js';
 import { loopRunId, scheduleLoopRuns } from '../../lib/loop/plan.js';
 import type { LoopPlanFile } from '../../lib/loop/plan.js';
@@ -138,23 +139,30 @@ export interface TurnCheck {
 }
 
 /**
- * Per run: every step has one step turn and at most one repair turn, turn ids are unique in the run, and each turn
- * has exactly one envelope on disk (a duplicate envelope or turn id is the sign of a double-run turn after resume).
+ * Per run: every step has one step turn and at most one repair turn, turn ids are unique in the run, each turn has
+ * exactly one envelope on disk, and the snapshot history from the root to HEAD is the base commit followed by exactly
+ * the recorded turns in order (a turn run twice after a resume would show as an extra commit on the branch; a
+ * discarded partial step is reset away and is not on it).
  */
 export function checkTurns(r: LoadedLaneRun): TurnCheck[] {
   const out: TurnCheck[] = [];
   const ids = new Set<string>();
+  const want = ['base: skeleton'];
   for (const s of r.steps) {
     const kinds = s.turns.map((t) => t.kind);
     if (kinds.filter((k) => k === 'step').length !== 1 || kinds.filter((k) => k === 'repair').length > 1) out.push({ runId: r.run.runId, problem: `step ${String(s.stepIndex + 1)} turns ${kinds.join(',')}` });
     for (const t of s.turns) {
       if (ids.has(t.turnId)) out.push({ runId: r.run.runId, problem: `turn ${t.turnId} recorded twice` });
       ids.add(t.turnId);
+      want.push(`${t.turnId} ${r.run.spec.arm}`);
     }
-    const turnDir = path.join(r.dir, 'turns', `step-${String(s.stepIndex).padStart(2, '0')}`);
+    const turnDir = path.join(r.dir, TURNS_DIR, path.basename(stepRecordPath(r.dir, s.stepIndex), '.json'));
     const envelopes = fs.existsSync(turnDir) ? fs.readdirSync(turnDir).filter((f) => f.startsWith('envelope-')) : [];
     if (envelopes.length !== s.turns.length) out.push({ runId: r.run.runId, problem: `step ${String(s.stepIndex + 1)}: ${String(envelopes.length)} envelopes for ${String(s.turns.length)} turns` });
   }
+  const log = new WorkTreeSnapshots(path.join(r.dir, SNAPSHOT_GIT_DIR), path.join(r.dir, 'work')).log();
+  if (!log.success) out.push({ runId: r.run.runId, problem: `snapshot log: ${log.errors.map((e) => e.message).join('; ')}` });
+  else if (JSON.stringify(log.data) !== JSON.stringify(want)) out.push({ runId: r.run.runId, problem: `snapshot history ${JSON.stringify(log.data)} is not ${JSON.stringify(want)}` });
   return out;
 }
 
