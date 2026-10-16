@@ -587,6 +587,25 @@ export function analyse(rows: readonly OutRow[], clean: readonly OutClean[], che
       judgeFalseFailGivenSymbolicBlockingFinding: rate(cleanJ.filter((c) => !c.symbolicPass && c.judgeV1Fail === true).length, cleanJ.filter((c) => !c.symbolicPass).length).text,
       v21FalseFailGivenSymbolicPass: Object.fromEntries(['TUNE', 'CHECK'].map((sp) => [sp, rate(cleanV21.filter((c) => c.split === sp && c.judgeV21Fail === true).length, cleanV21.filter((c) => c.split === sp).length).text])),
       failing: cleanPass.filter((c) => c.judgeV1Fail === true).map((c) => `${c.round} ${c.baseId} ${c.fn} ${c.unit}`),
+      // Added at review (PR #179): the same (base, function, unit) is judged in more than one round; count it once,
+      // as failing when any round's v1 majority failed it. The per-round counts above are kept.
+      distinct: (() => {
+        const byUnit = new Map<string, { pass: boolean; fails: number; rounds: number }>();
+        for (const c of cleanJ) {
+          const k = `${c.baseId}|${c.fn}|${c.unit}`;
+          const u = byUnit.get(k) ?? { pass: c.symbolicPass, fails: 0, rounds: 0 };
+          byUnit.set(k, { pass: u.pass, fails: u.fails + (c.judgeV1Fail === true ? 1 : 0), rounds: u.rounds + 1 });
+        }
+        const units = [...byUnit.values()];
+        const pass = units.filter((u) => u.pass);
+        return {
+          units: units.length,
+          judgedInMoreThanOneRound: units.filter((u) => u.rounds > 1).length,
+          roundsDisagree: units.filter((u) => u.fails > 0 && u.fails < u.rounds).length,
+          symbolicPass: pass.length,
+          judgeFalseFailGivenSymbolicPass: rate(pass.filter((u) => u.fails > 0).length, pass.length),
+        };
+      })(),
     },
     bothMiss: seeds.filter((r) => !r.visible && r.judgeV1Catch === false).map((r) => `${r.round} ${r.rowId}`),
     judgeOnly: seeds.filter((r) => !r.visible && r.judgeV1Catch === true).map((r) => `${r.round} ${r.rowId}`),

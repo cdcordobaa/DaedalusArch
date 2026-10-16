@@ -1513,3 +1513,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: v1.3 SO3 framing, development-set evidence only. No Study 2 material touched, no construct switch, no LLM call.
 
 ---
+
+## v1.3 Construction — N2 review follow-up (PR #179)
+**Timestamp**: 2026-10-16T08:20:00Z
+**User Input**: "Author review (HOLD): the numbers reconcile, but clean units are not de-duplicated the way seeds are (12 duplicate base/unit/function rows across r2/dv2), and the line 'structurally cannot see' overclaims against §6."
+**AI Response**: "Added a distinct-unit count of clean units (any-round fail) alongside the per-round count: 2/48 = 0.04 [0.01, 0.14] (50 distinct units, 12 judged twice, 0 round disagreements), now the headline cost figure; per-round 3/60 kept. Replaced the 'structurally cannot see' wording with the §6 definition. No other number changed (rows.csv, clean-units.csv, symbolic.json byte-identical)."
+**Context**: v1.3 SO3 framing, development-set evidence; review fix under delegation.
+
+---
