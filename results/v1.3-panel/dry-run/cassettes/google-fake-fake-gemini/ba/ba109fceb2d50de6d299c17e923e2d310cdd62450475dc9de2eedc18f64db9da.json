@@ -1,0 +1,19 @@
+{
+  "answer": {
+    "inputTokens": 294,
+    "outputTokens": 20,
+    "servedModel": "fake-gemini",
+    "text": "{\"choice\":\"B\",\"reason\":\"fake google answer\"}"
+  },
+  "failedAttempts": [],
+  "itemKey": "6d653aba01b844cbcda54bb5",
+  "key": "ba109fceb2d50de6d299c17e923e2d310cdd62450475dc9de2eedc18f64db9da",
+  "model": "fake-gemini",
+  "provider": "fake",
+  "request": {
+    "prompt": "## Architectural style\n- Dependency direction: Source-code dependencies point only inward. Nothing in an inner circle knows anything about an outer circle. (Martin, *Clean Architecture* (2017), ch. 22 \"The Clean Architecture\", the Dependency Rule)\n- Domain purity: Entities and use cases do not depend on frameworks, databases or the UI. (Martin 2017, ch. 22; ch. 32 \"Frameworks are details\")\n- Repository / gateway placement: The data-access interface is owned by the inner layer, and the implementation lives in the outer layer (dependency inversion across the boundary). (Martin 2017, ch. 22 (interface adapters); ch. 11 (DIP))\n- Acyclic dependencies: The component dependency graph has no cycles. (Martin 2017, ch. 14 \"Component Coupling\", ADP)\n\n## Code excerpt\nFile: src/application/ports/Clock.ts\n```ts\n    1 | export interface Clock {\n    2 |   now(): Date;\n    3 | }\n    4 | \n```\n\n## Reported finding\nDomain file src/application/ports/Clock.ts imports from src/domain/entities/Loan.ts in domain\n\n## Question\nWould an architect following this style want this changed?\nA. yes\nB. no\nC. uncertain\n\nReply with JSON only: {\"choice\": \"<letter>\", \"reason\": \"<one sentence>\"}",
+    "system": "You are a software architect reviewing a TypeScript code base against an architectural style. Judge only from the material in the message: the style definition, the code excerpt and the reported finding. You have no tools. Reply with one JSON object and nothing else.",
+    "temperature": 0
+  },
+  "runIndex": 0
+}
