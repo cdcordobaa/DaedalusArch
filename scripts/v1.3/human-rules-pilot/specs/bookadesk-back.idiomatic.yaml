@@ -1,0 +1,33 @@
+# Idiomatic translation of TalanLabs/bookadesk back/.dependency-cruiser.js (rules no-dep-from-domain,
+# no-dep-from-usecase), written by hand as a spec author would, with globs instead of resolved file lists.
+# Judgement calls (see Docs/v1.3/research/external-labelled-datasets.md, pilot section):
+#  J1 the regex "src/domain" (unanchored) becomes the glob src/domain/**;
+#  J2 "to: src, pathNot: src/domain" (everything else in src) becomes a catch-all layer src/** listed LAST,
+#     so the first-match annotator gives domain and usecase files their own layer first;
+#  J3 the usecase rule's pathNot on spec/.d.ts sources is dropped: our extractor excludes those files anyway;
+#  J4 kinds: domain=domain, usecase=application, rest=infrastructure; an empty presentation placeholder
+#     satisfies the hexagonal binder (it holds no file and has no edge).
+architecture:
+  style: hexagonal
+  layers:
+    - name: domain
+      kind: domain
+      roles: [entity]
+      directories: ["src/domain/**"]
+    - name: usecase
+      kind: application
+      roles: [use-case]
+      directories: ["src/usecase/**"]
+    - name: rest-of-src
+      kind: infrastructure
+      roles: [adapter]
+      directories: ["src/**"]
+    - name: placeholder-presentation
+      kind: presentation
+      roles: [placeholder]
+      directories: ["__no_such_dir__/**"]
+  allowed_dependencies:
+    - from: usecase
+      to: [domain]
+    - from: rest-of-src
+      to: [domain, usecase]

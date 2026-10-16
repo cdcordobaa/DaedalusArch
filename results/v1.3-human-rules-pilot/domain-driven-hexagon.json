@@ -1,0 +1,228 @@
+{
+ "id": "domain-driven-hexagon",
+ "repo": "Sairyss/domain-driven-hexagon",
+ "sha": "5c2d15a7e2d69e83dfddf28468ee9f30e02c30de",
+ "licence": "MIT",
+ "ruleFile": ".dependency-cruiser.js",
+ "root": ".",
+ "depcruise": {
+  "version": "18.4.0",
+  "wallMs": 1366,
+  "tsPreCompilationDeps": true,
+  "layerRules": [
+   {
+    "name": "no-domain-to-api-deps",
+    "severity": "error",
+    "comment": "Domain layer cannot depend on api layer",
+    "from": {
+     "path": "domain|entity\\.ts$|aggregate\\.ts$|domain-event\\.ts$|value-object\\.ts$"
+    },
+    "to": {
+     "path": "controller|dtos|request|response|dto\\.ts$|controller\\.ts$|resolver\\.ts$"
+    }
+   },
+   {
+    "name": "no-domain-to-app-deps",
+    "severity": "error",
+    "comment": "Domain layer cannot depend on application layer",
+    "from": {
+     "path": "domain|entity\\.ts$|aggregate\\.ts$|domain-event\\.ts$|value-object\\.ts$"
+    },
+    "to": {
+     "path": "application|\\.service\\.ts$",
+     "pathNot": "AppRequestContext\\.ts"
+    }
+   },
+   {
+    "name": "no-domain-to-infra-deps",
+    "severity": "error",
+    "comment": "Domain layer cannot depend on infrastructure layer",
+    "from": {
+     "path": "domain|entity\\.ts$|aggregate\\.ts$|domain-event\\.ts$|value-object\\.ts$"
+    },
+    "to": {
+     "path": "infrastructure|infra|database|repository",
+     "pathNot": "port\\.ts$"
+    }
+   },
+   {
+    "name": "no-infra-to-api-deps",
+    "severity": "error",
+    "comment": "Infrastructure layer cannot depend on api layer",
+    "from": {
+     "path": "infrastructure|infra|database|repository"
+    },
+    "to": {
+     "path": "controller|dtos|request|response|dto\\.ts$|controller\\.ts$|resolver\\.ts$"
+    }
+   },
+   {
+    "name": "no-command-query-to-api-deps",
+    "severity": "error",
+    "comment": "Commands and Queries cannot depend on api layer",
+    "from": {
+     "path": "query-handler\\.ts$|command-handler\\.ts$|command\\.ts$|service\\.ts$"
+    },
+    "to": {
+     "path": "controller|dtos|request|response|dto\\.ts$|controller\\.ts$|resolver\\.ts$"
+    }
+   }
+  ],
+  "excludedRules": [
+   {
+    "name": "no-orphans",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "no-deprecated-core",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "not-to-deprecated",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "no-non-package-json",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "not-to-unresolvable",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "no-duplicate-dep-types",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "not-to-test",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "not-to-spec",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "not-to-dev-dep",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "optional-deps-used",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "peer-deps-used",
+    "reason": "dependency-cruiser recommended preset"
+   }
+  ],
+  "layerViolationsAll": 0,
+  "layerViolationsInScope": 0,
+  "otherViolations": 99
+ },
+ "scope": {
+  "files": 82,
+  "localEdges": 180
+ },
+ "translation": {
+  "atoms": [
+   {
+    "name": "atom-01",
+    "label": "from:no-command-query-to-api-deps",
+    "files": 2
+   },
+   {
+    "name": "atom-02",
+    "label": "from:no-infra-to-api-deps",
+    "files": 3
+   },
+   {
+    "name": "atom-03",
+    "label": "to:no-domain-to-infra-deps; from:no-infra-to-api-deps",
+    "files": 4
+   },
+   {
+    "name": "atom-04",
+    "label": "to:no-domain-to-app-deps",
+    "files": 2
+   },
+   {
+    "name": "atom-05",
+    "label": "to:no-domain-to-app-deps; from:no-command-query-to-api-deps",
+    "files": 2
+   },
+   {
+    "name": "atom-06",
+    "label": "to:no-domain-to-api-deps; to:no-infra-to-api-deps; to:no-command-query-to-api-deps",
+    "files": 21
+   },
+   {
+    "name": "atom-07",
+    "label": "from:no-domain-to-api-deps; from:no-domain-to-app-deps; from:no-domain-to-infra-deps",
+    "files": 12
+   },
+   {
+    "name": "atom-08",
+    "label": "from:no-domain-to-api-deps; from:no-domain-to-app-deps; to:no-domain-to-app-deps; from:no-domain-to-infra-deps",
+    "files": 1
+   }
+  ],
+  "forbiddenPairs": 13,
+  "allowedPairs": 43,
+  "selfForbidden": [
+   {
+    "atom": "atom-08",
+    "rules": [
+     "no-domain-to-app-deps"
+    ]
+   }
+  ],
+  "unconstrainedFiles": 35,
+  "inexpressibleEdges": []
+ },
+ "theirs": [],
+ "resolved": {
+  "label": "resolved-atoms",
+  "ourFindingsS01S03": 0,
+  "ourKeysInScope": 0,
+  "ourKeysCompared": 0,
+  "typeOnlyDropped": 0,
+  "confusion": {
+   "both": 0,
+   "oursOnly": 0,
+   "theirsOnly": 0,
+   "neither": 180,
+   "kappa": null,
+   "observedAgreement": 1
+  },
+  "flagged": [],
+  "oursOnly": [],
+  "theirsOnly": [],
+  "ourFailedFunctions": [],
+  "ourFileNodes": 95,
+  "ourWallMs": 4690
+ },
+ "idiomatic": {
+  "label": "idiomatic",
+  "ourFindingsS01S03": 1,
+  "ourKeysInScope": 1,
+  "ourKeysCompared": 1,
+  "typeOnlyDropped": 0,
+  "confusion": {
+   "both": 0,
+   "oursOnly": 1,
+   "theirsOnly": 0,
+   "neither": 179,
+   "kappa": 0,
+   "observedAgreement": 0.9944444444444445
+  },
+  "flagged": [
+   "src/libs/application/interceptors/exception.interceptor.ts|src/libs/api/api-error.response.ts"
+  ],
+  "oursOnly": [
+   "src/libs/application/interceptors/exception.interceptor.ts|src/libs/api/api-error.response.ts"
+  ],
+  "theirsOnly": [],
+  "ourFailedFunctions": [],
+  "ourFileNodes": 95,
+  "ourWallMs": 4498
+ }
+}

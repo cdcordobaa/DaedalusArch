@@ -6,7 +6,8 @@ export type ValidationErrorCode =
   | 'INVALID_GLOB_PATTERN'
   | 'UNKNOWN_DIMENSION'
   | 'UNKNOWN_SEVERITY'
-  | 'UNKNOWN_ROUTE';
+  | 'UNKNOWN_ROUTE'
+  | 'DDD_NO_AGGREGATES'; // loop-pilot T1 option b (opt-in, SpecValidationOptions.rejectEmptyAggregates)
 
 export interface ValidationError {
   readonly code: ValidationErrorCode;

@@ -9,6 +9,8 @@
  *   --dynamic-extractor <path to src/apg-extractor/index.ts of a tree with the v1.3 `dynamicImports` option>
  *   --depcruise <bin>   (default: experiments/tool-comparison/depcruise/node_modules/.bin/depcruise, the pinned 18.4.0)
  *   --seed <n>          (default 20261014) for the adjudication and layer samples
+ *   --mtb1              also measure the v1.3 literal view after the MT-B1 graph-build step (`liftLayerlessBarrelEdges`,
+ *                       needs --spec; Docs/DiagnosticRuns/v1.3-mtb1-fix-2026-10-16.md)
  *   --views             also measure the v1.3 graph (ADR-V13-01) in its literal view (no `viaReExport` edges) and its
  *                       resolved view (no `reExportHop` edges)
  *
@@ -24,6 +26,9 @@ import { pathToFileURL } from 'node:url';
 import { extractAPG, V12E_DEFAULT_OPTIONS, V13_DEFAULT_OPTIONS } from '../../src/apg-extractor/index.js';
 import { parseSpec, specExcludePathsFromYaml } from '../../src/spec-parser/index.js';
 import type { LayerModel } from '../../src/shared/types/spec.js';
+import type { APGEdge, APGNode } from '../../src/shared/types/apg.js';
+import { annotateNodes } from '../../src/neo4j-ingestion/layer-annotator.js';
+import { liftLayerlessBarrelEdges } from '../../src/neo4j-ingestion/layerless-barrel-edges.js';
 import { harnessTsconfigText } from '../lib/generators/harness-tsconfig.js';
 import {
   agreement, agreementStratum, classify, cmp, depcruiseConfig, depcruiseEdges, isByDesign, microAgreement,
@@ -34,6 +39,7 @@ import type {
   Agreement, ApgEdgeInfo, ApgLike, ClassifyContext, DcEdgeInfo, DcModule, EdgeKey, RefOccurrence,
 } from './lib/graph-fidelity.js';
 import { assignLayers } from './lib/layer-assignment.js';
+import { DYNAMIC_IMPORTS_VARIANT_OPTIONS } from './lib/fidelity-variants.js';
 import { must } from './lib/must.js';
 import type { LayerAssignment } from './lib/layer-assignment.js';
 
@@ -52,6 +58,8 @@ interface Variant {
   readonly dynamicOption: boolean;
   /** ADR-V13-01 views: keep only the edges of one view before the projection. */
   readonly edgeFilter?: (e: ApgLike['edges'][number]) => boolean;
+  /** Applied to the edges before `edgeFilter`, with the project's layer model (the variant needs a spec). */
+  readonly graphBuild?: (apg: ApgLike, model: LayerModel) => ApgLike['edges'];
 }
 
 interface ProjectInput {
@@ -125,7 +133,15 @@ async function measure(input: ProjectInput, variants: readonly Variant[], depcru
     if (!res.success || res.data === undefined) {
       return { summary: { id: input.id, ok: false, error: `${v.name}: ${(res.errors ?? []).map((e) => e.message).join('; ')}`, meta: input.meta } };
     }
-    apg[v.name] = projectApg(v.edgeFilter !== undefined ? { ...res.data, edges: res.data.edges.filter(v.edgeFilter) } : res.data);
+    let data = res.data;
+    if (v.graphBuild !== undefined) {
+      const parsed = input.specPath !== undefined ? await parseSpec({ specFilePath: input.specPath }) : undefined;
+      if (parsed === undefined || !parsed.success) {
+        return { summary: { id: input.id, ok: false, error: `${v.name}: needs a parseable --spec`, meta: input.meta } };
+      }
+      data = { ...data, edges: v.graphBuild(data, parsed.data.layerModel) };
+    }
+    apg[v.name] = projectApg(v.edgeFilter !== undefined ? { ...data, edges: data.edges.filter(v.edgeFilter) } : data);
   }
   const apgOf = (name: string): ReturnType<typeof projectApg> => must(apg[name], `APG edges of ${name}`);
   const apgFiles = new Set(apgOf(baseVariant(variants).name).files);
@@ -505,10 +521,22 @@ async function main(): Promise<void> {
       { name: 'apg-v13-resolved', extract: extractAPG as unknown as ExtractFn, options: v13, dynamicOption: true, edgeFilter: (e) => !flag(e, 'reExportHop') },
     );
   }
+  if (argv.includes('--mtb1')) {
+    const flag = (e: ApgLike['edges'][number], key: string): boolean => e.type === 'IMPORTS' && (e.properties as Record<string, unknown>)[key] === true;
+    variants.push({
+      name: 'apg-v13-literal-mtb1', extract: extractAPG as unknown as ExtractFn, options: { ...V13_DEFAULT_OPTIONS }, dynamicOption: true,
+      graphBuild: (g, model) => {
+        const nodes = g.nodes as unknown as APGNode[];
+        return liftLayerlessBarrelEdges(nodes, g.edges as unknown as APGEdge[], annotateNodes(nodes, model).annotations, model).edges as unknown as ApgLike['edges'];
+      },
+      edgeFilter: (e) => !flag(e, 'viaReExport'),
+    });
+  }
   const dyn = arg('dynamic-extractor', argv);
   if (dyn !== undefined) {
     const mod = (await import(pathToFileURL(resolve(dyn)).href)) as { extractAPG: ExtractFn };
-    variants.push({ name: 'apg-v13-dynamicImports', extract: mod.extractAPG, options: { dynamicImports: true }, dynamicOption: true });
+    // R11: the v1.2E options plus dynamicImports only (on this branch `{ dynamicImports: true }` means the v1.3 defaults).
+    variants.push({ name: 'apg-v13-dynamicImports', extract: mod.extractAPG, options: { ...DYNAMIC_IMPORTS_VARIANT_OPTIONS }, dynamicOption: true });
   }
   const tmp = mkdtempSync(join(tmpdir(), 'gf-tsconfig-'));
   try {

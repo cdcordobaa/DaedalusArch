@@ -1,0 +1,32 @@
+architecture:
+  style: hexagonal
+  layers:
+    - name: config
+      kind: application
+      directories: [src/main.ts, src/app.module.ts, "src/configs/**", "src/modules/*/*.module.ts"]
+      roles: [composition-root, module]
+    - name: adapters-inbound
+      kind: presentation
+      directories: ["src/modules/*/commands/**/*controller.ts", "src/modules/*/commands/**/*resolver.ts", "src/modules/*/queries/**/*controller.ts", "src/modules/*/queries/**/*resolver.ts", "src/modules/*/commands/**/*.dto.ts", "src/modules/*/queries/**/*.dto.ts", "src/modules/*/dtos/**", "src/libs/api/**"]
+      roles: [controller]
+    - name: application
+      kind: application
+      directories: ["src/modules/*/commands/**", "src/modules/*/queries/**", "src/modules/*/application/**", "src/modules/*/*.di-tokens.ts", "src/modules/*/database/*.port.ts", "src/libs/application/**"]
+      roles: [use-case, port]
+    - name: domain
+      kind: domain
+      directories: ["src/modules/*/domain/**", "src/libs/ddd/**", "src/libs/exceptions/**", "src/libs/types/**", src/libs/guard.ts, "src/libs/ports/**", "src/libs/decorators/**", "src/libs/utils/**"]
+      roles: [entity, value-object, port]
+    - name: adapters-outbound
+      kind: infrastructure
+      directories: ["src/modules/*/database/**", "src/libs/db/**"]
+      roles: [repository]
+  allowed_dependencies:
+    - from: application
+      to: [domain]
+    - from: adapters-inbound
+      to: [application, domain]
+    - from: adapters-outbound
+      to: [application, domain]
+    - from: config
+      to: [domain, application, adapters-inbound, adapters-outbound]

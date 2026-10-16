@@ -2,10 +2,11 @@
 
 *A Pre-Registered Factorial Study of Architectural Conformance in LLM-Generated TypeScript*
 
-Draft of 2026-10-11, written from the committed files at `v1.2e` (`b7034682`). Target: ESEM, MSR or EMSE. Plain
-`article` class, 10 pt, 2.0 cm margins. It compiles to 13 pages: about 11.5 pages of body text with 7 tables and 2
-figures, then the references. For a venue template (ACM `acmart` for ESEM or MSR, Springer `svjour3` for EMSE),
-convert the class and check the page count again.
+Draft of 2026-10-11, written from the committed files at `v1.2e` (`b7034682`); refreshed on 2026-10-16 with the
+v1.3 evidence (branch `v1.3-paper1-4-refresh`, see below). Target: MSR, ESEM or EMSE. Plain `article` class, 10 pt,
+2.0 cm margins. It compiles to 16 pages (pdflatex + bibtex, TeX Live from the container's apt, no undefined
+references): body text with 8 tables and 2 figures, then the references. For a venue template (IEEE for MSR, ACM
+`acmart` for ESEM, Springer `svjour3` for EMSE), convert the class and check the page count again.
 
 ```
 python3 papers/paper1-e1/figures/make_figures.py      # from the repository root; stdlib only
@@ -26,6 +27,24 @@ Needs `pgfplots` (with the `patterns` TikZ library) and `lmodern`.
   series also differ by marker or pattern.
 - `figures/fig-*.tex`: the generated figures. Do not edit them by hand.
 
+## v1.3 refresh (2026-10-16)
+
+- **New Section 7, "The Floor"** (post-hoc): under the v1.3 tiers, 0 of 65 accepted cells (0 of 72) has a blocking
+  finding; the RQ1 effect lies entirely in advisory metrics (`Docs/DiagnosticRuns/v1.3-study1-rerun-2026-10-15.md`).
+  The section gives the evidence that the zero is not a blind spot, and frames the floor as the motivation for
+  Study 2 (`Docs/v1.3/study2-outline.md` §4).
+- **Corrected figures**: reference-set blocking recall is quoted as 54/54 with 3 FF-P06 field-initialiser rows N/A,
+  not 57/57 (PR #120, `scripts/v1.3/ffp06-na-recount.mjs`); the judge claim is the defensible 16/21 = 0.76
+  [0.55, 0.89] (`Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md` header note).
+- **Study 1 addendum A1** (`Docs/v1.3/study1-addenda.md`): the `none` level carries the three-folder sentence; stated
+  in Section 3.2 and in the threats.
+- **Threats**: a new paragraph on the v1.3 validity evidence (convergent #166, external correctness #167,
+  metamorphic #185) and the two nulls (fixes mined #168, known groups #198).
+- **Dependency on open PRs.** #167 and #198 are on hold for the author's review; their `% src:` comments
+  use `git show <sha>:<path>`, pinned to each branch tip on 2026-10-16 (`23adb369`, `ba1c6327`). If one changes in
+  review, re-check the sentence; if one closes unmerged, remove it. #120, #134, #166, #168 and #185 are merged
+  (#168 and #185 are now cited by their v1.3 paths). See the submission gate in `papers/STATUS.md`.
+
 ## Framing (keep it)
 
 - The registered spec-level effect is real (Holm p 0.0003), but its direction runs through project size. The paper
@@ -34,6 +53,8 @@ Needs `pgfplots` (with the `patterns` TikZ library) and `lmodern`.
   LOC-adjusted readings, the function-level decomposition and the Codex spec-level test are all post-hoc. The
   `full-aac − minimal-prose` difference is a registered descriptive contrast, but calling it *the* size-matched
   comparison is a post-hoc choice, and the text says so.
+- The floor (Section 7) is post-hoc and descriptive. Do not read it as a test, and do not compare v1.3 verdicts
+  with the registered scores.
 - The judge's self-preference result is reported in the registered wording, together with the confound: the Haiku
   cells carry it, and Opus and Sonnet both have `ahsNeuronal` = 1.000 in every cell.
 
@@ -71,8 +92,9 @@ Needs `pgfplots` (with the `patterns` TikZ library) and `lmodern`.
    an LLM, so RQ4's validation is LLM against LLM, across vendors.
 9. **The "knowing the test" confound** (full-aac shows the evaluator spec) is the main threat to the AaC-beats-prose
    reading. The Discussion proposes a fourth level as future work; a reviewer may ask for it now.
-10. **Venue fit.** ESEM and MSR favour shorter papers (ESEM full papers have a 10-page limit plus references in
-    `acmart`). Shortening candidates: the timeline table (Table 2), the per-model P4 rows (Table 6) and the
+10. **Venue fit.** ESEM and MSR favour shorter papers (MSR 2027: 10 pages plus 2 of references, IEEE template,
+    double-anonymous, checked on 2027.msrconf.org on 2026-10-16; ESEM full papers have had a 10-page limit plus
+    references in `acmart`). Shortening candidates: the timeline table (Table 2), the per-model P4 rows (Table 6) and the
     Related Work paragraph on method. For EMSE the length is fine, and the Codex arm could get an appendix with the
     per-cell table.
 11. **Model identifiers are named in the text** (Claude, GPT and Gemini model ids, CLI versions), because the

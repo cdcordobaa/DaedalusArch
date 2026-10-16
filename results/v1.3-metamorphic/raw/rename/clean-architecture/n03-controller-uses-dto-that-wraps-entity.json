@@ -1,0 +1,172 @@
+{
+  "transform": "rename",
+  "style": "clean-architecture",
+  "variant": "n03-controller-uses-dto-that-wraps-entity",
+  "candidate": "Acme prefix",
+  "candidatesTried": 1,
+  "applied": true,
+  "transformed": true,
+  "note": "43 declarations, 28 files renamed",
+  "tscOk": true,
+  "tscDiagnostics": [],
+  "candidateErrors": [],
+  "origCanon": {},
+  "newCanon": {
+    "src/application/dto/AcmeBookDto.ts": "src/application/dto/BookDto.ts",
+    "src/application/dto/AcmeLoanDto.ts": "src/application/dto/LoanDto.ts",
+    "src/application/ports/AcmeClock.ts": "src/application/ports/Clock.ts",
+    "src/application/ports/AcmeIdGenerator.ts": "src/application/ports/IdGenerator.ts",
+    "src/application/use-cases/AcmeBorrowBookUseCase.ts": "src/application/use-cases/BorrowBookUseCase.ts",
+    "src/application/use-cases/AcmeListOverdueLoansUseCase.ts": "src/application/use-cases/ListOverdueLoansUseCase.ts",
+    "src/application/use-cases/AcmeRegisterBookUseCase.ts": "src/application/use-cases/RegisterBookUseCase.ts",
+    "src/application/use-cases/AcmeReturnBookUseCase.ts": "src/application/use-cases/ReturnBookUseCase.ts",
+    "src/domain/entities/AcmeBook.ts": "src/domain/entities/Book.ts",
+    "src/domain/entities/AcmeLoan.ts": "src/domain/entities/Loan.ts",
+    "src/domain/entities/AcmeMember.ts": "src/domain/entities/Member.ts",
+    "src/domain/errors/AcmeDomainError.ts": "src/domain/errors/DomainError.ts",
+    "src/domain/repositories/AcmeBookRepository.ts": "src/domain/repositories/BookRepository.ts",
+    "src/domain/repositories/AcmeLoanRepository.ts": "src/domain/repositories/LoanRepository.ts",
+    "src/domain/repositories/AcmeMemberRepository.ts": "src/domain/repositories/MemberRepository.ts",
+    "src/domain/services/AcmeFineCalculator.ts": "src/domain/services/FineCalculator.ts",
+    "src/domain/services/AcmeLoanPolicy.ts": "src/domain/services/LoanPolicy.ts",
+    "src/domain/value-objects/AcmeIsbn.ts": "src/domain/value-objects/Isbn.ts",
+    "src/domain/value-objects/AcmeLoanPeriod.ts": "src/domain/value-objects/LoanPeriod.ts",
+    "src/infrastructure/http/AcmeBookController.ts": "src/infrastructure/http/BookController.ts",
+    "src/infrastructure/http/AcmeErrorMapper.ts": "src/infrastructure/http/ErrorMapper.ts",
+    "src/infrastructure/http/AcmeHttpTypes.ts": "src/infrastructure/http/HttpTypes.ts",
+    "src/infrastructure/http/AcmeLoanController.ts": "src/infrastructure/http/LoanController.ts",
+    "src/infrastructure/persistence/AcmeInMemoryBookRepository.ts": "src/infrastructure/persistence/InMemoryBookRepository.ts",
+    "src/infrastructure/persistence/AcmeInMemoryLoanRepository.ts": "src/infrastructure/persistence/InMemoryLoanRepository.ts",
+    "src/infrastructure/persistence/AcmeInMemoryMemberRepository.ts": "src/infrastructure/persistence/InMemoryMemberRepository.ts",
+    "src/infrastructure/system/AcmeSequentialIdGenerator.ts": "src/infrastructure/system/SequentialIdGenerator.ts",
+    "src/infrastructure/system/AcmeSystemClock.ts": "src/infrastructure/system/SystemClock.ts"
+  },
+  "specReplaced": [],
+  "summary": {
+    "verdict": "pass",
+    "blockingRules": [
+      "FF-P01",
+      "FF-P03",
+      "FF-P06",
+      "FF-S01",
+      "FF-S02",
+      "FF-S04"
+    ],
+    "blocking": [],
+    "advisory": [
+      {
+        "ruleId": "FF-C03",
+        "file": "src/application/use-cases/AcmeBorrowBookUseCase.ts"
+      },
+      {
+        "ruleId": "FF-C03",
+        "file": "src/infrastructure/http/AcmeLoanController.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/ports/AcmeClock.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/ports/AcmeIdGenerator.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/use-cases/AcmeBorrowBookUseCase.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/use-cases/AcmeListOverdueLoansUseCase.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/use-cases/AcmeRegisterBookUseCase.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/use-cases/AcmeReturnBookUseCase.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/entities/AcmeBook.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/entities/AcmeLoan.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/entities/AcmeMember.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/errors/AcmeDomainError.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/repositories/AcmeBookRepository.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/repositories/AcmeLoanRepository.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/repositories/AcmeMemberRepository.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/services/AcmeFineCalculator.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/services/AcmeLoanPolicy.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/value-objects/AcmeIsbn.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/value-objects/AcmeLoanPeriod.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/infrastructure/http/AcmeBookController.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/infrastructure/http/AcmeErrorMapper.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/infrastructure/http/AcmeHttpTypes.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/infrastructure/http/AcmeLoanController.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/infrastructure/persistence/AcmeInMemoryBookRepository.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/infrastructure/persistence/AcmeInMemoryLoanRepository.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/infrastructure/persistence/AcmeInMemoryMemberRepository.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/infrastructure/system/AcmeSequentialIdGenerator.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/infrastructure/system/AcmeSystemClock.ts"
+      }
+    ],
+    "rows": 28
+  }
+}

@@ -123,4 +123,21 @@ describe('author audit', () => {
     expect(rows.every((r) => r.meaningful === 'yes')).toBe(true);
     expect(parseAnswerTable(sheet).every((r) => r.meaningful === '')).toBe(true);
   });
+
+  it("R29: correctness agreement maps only yes/no; other answers ('uncertain', 'n/a', 'y') are left out and reported", () => {
+    const key = auditKey(selectAudit(items, 30, 5));
+    // 25 'yes' (with case and whitespace variants), 5 other answers; the checker marks every item correct.
+    const other = ['uncertain', 'n/a', 'y', 'unsure', 'maybe'];
+    const answers = parseCsv(['auditId,meaningful,correct,note', ...key.map((k, i) => `${k.auditId},yes,${i < 25 ? (i % 2 === 0 ? ' YES ' : 'yes') : other[i - 25] ?? ''},`)].join('\n'));
+    const report = auditAgreement(key, answers, new Map(key.map((k) => [k.key, 'yes'])), new Map(key.map((k) => [k.key, 'correct'])));
+    expect(report.correctness?.n).toBe(25);
+    expect(report.correctness?.observed).toBe(1);
+    expect(report.correctnessUnmatched).toEqual(key.slice(25).map((k) => k.auditId));
+    // 'no' (any case) still maps to incorrect.
+    const withNo = parseCsv(['auditId,meaningful,correct,note', ...key.map((k, i) => `${k.auditId},yes,${i === 0 ? 'No' : 'yes'},`)].join('\n'));
+    const r2 = auditAgreement(key, withNo, new Map(key.map((k) => [k.key, 'yes'])), new Map(key.map((k) => [k.key, 'correct'])));
+    expect(r2.correctness?.n).toBe(30);
+    expect(r2.correctness?.table).toEqual([[29, 0], [1, 0]]);
+    expect(r2.correctnessUnmatched).toEqual([]);
+  });
 });

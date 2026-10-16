@@ -1,0 +1,81 @@
+{
+  "description": "Rule-gap fixture suite (Docs/v1.3/rule-gap-catalogue.md). Each case names a rule-gap template, a kind (violating: at least one row matches; clean and look-alike: no row matches) and the row fields that identify it. Every template has at least one case of each kind.",
+  "projects": {
+    "layers": {
+      "layers": [
+        { "name": "domain", "directories": ["src/domain/**"], "kind": "domain" },
+        { "name": "application", "directories": ["src/application/**"], "kind": "application" },
+        { "name": "presentation", "directories": ["src/presentation/**"], "kind": "presentation" }
+      ],
+      "forbiddenImports": ["@nestjs/*", "typeorm", "express"]
+    },
+    "ddd": {
+      "layers": [
+        { "name": "domain", "directories": ["src/*/domain/**"], "kind": "domain" },
+        { "name": "application", "directories": ["src/*/application/**"], "kind": "application" }
+      ],
+      "forbiddenImports": [],
+      "ddd": {
+        "sourceRoot": "src/",
+        "contexts": [{ "name": "ordering", "root": "src/ordering/", "publicApi": [], "acl": [] }],
+        "outsideContexts": [],
+        "aggregates": [
+          { "name": "Order", "context": "ordering", "module": "src/ordering/domain/order/**", "root": "src/ordering/domain/order/Order.ts", "innerEntities": ["src/ordering/domain/order/OrderLine.ts"] },
+          { "name": "Customer", "context": "ordering", "module": "src/ordering/domain/customer/**", "root": "src/ordering/domain/customer/Customer.ts", "innerEntities": [] },
+          { "name": "Shipment", "context": "ordering", "module": "src/ordering/domain/shipment/**", "root": "src/ordering/domain/shipment/Shipment.ts", "innerEntities": [] }
+        ],
+        "valueObjects": ["src/**/value-objects/**"],
+        "repositories": ["src/*/domain/**/*Repository.ts"],
+        "domainEventTypes": [],
+        "applicationServices": ["src/*/application/*.ts"]
+      }
+    },
+    "nest": { "layers": [], "forbiddenImports": [] }
+  },
+  "cases": [
+    { "id": "G1-V", "kind": "violating", "project": "layers", "template": "use-case-framework-free", "match": { "source": "src/application/use-cases/CreateOrder.ts", "target": "typeorm" } },
+    { "id": "G1-C", "kind": "clean", "project": "layers", "template": "use-case-framework-free", "match": { "source": "src/application/use-cases/ListOrders.ts" } },
+    { "id": "G1-L1", "kind": "look-alike", "project": "layers", "template": "use-case-framework-free", "match": { "target": "@nestjsx/crud" } },
+    { "id": "G1-L2", "kind": "look-alike", "project": "layers", "template": "use-case-framework-free", "match": { "source": "src/application/main.ts" } },
+
+    { "id": "G2-V1", "kind": "violating", "project": "layers", "template": "controller-bypasses-application", "match": { "controller": "OrderController", "dependency": "OrderRepository" } },
+    { "id": "G2-V2", "kind": "violating", "project": "nest", "template": "controller-bypasses-application", "match": { "controller": "OrdersController", "dependency": "OrdersRepository" } },
+    { "id": "G2-C1", "kind": "clean", "project": "layers", "template": "controller-bypasses-application", "match": { "controller": "CatalogController" } },
+    { "id": "G2-C2", "kind": "clean", "project": "nest", "template": "controller-bypasses-application", "match": { "controller": "BillingController" } },
+    { "id": "G2-L1", "kind": "look-alike", "project": "layers", "template": "controller-bypasses-application", "match": { "dependency": "RepositoryLinkFormatter" } },
+    { "id": "G2-L2", "kind": "look-alike", "project": "layers", "template": "controller-bypasses-application", "match": { "controller": "OrderPresenter" } },
+
+    { "id": "G3-V", "kind": "violating", "project": "layers", "template": "use-case-exposes-entity", "match": { "member": "GetOrder.execute", "entity": "Order" } },
+    { "id": "G3-C", "kind": "clean", "project": "layers", "template": "use-case-exposes-entity", "match": { "member": "ListOrders.one" } },
+    { "id": "G3-L1", "kind": "look-alike", "project": "layers", "template": "use-case-exposes-entity", "match": { "member": "GetOrder.load" } },
+    { "id": "G3-L2", "kind": "look-alike", "project": "layers", "template": "use-case-exposes-entity", "match": { "member": "OrderReader.read" } },
+    { "id": "G3-L3", "kind": "look-alike", "project": "layers", "template": "use-case-exposes-entity", "match": { "entity": "Money" } },
+
+    { "id": "G4-V1", "kind": "violating", "project": "ddd", "template": "aggregate-reference-by-identity", "match": { "class": "Order", "heldType": "Customer", "field": "buyer" } },
+    { "id": "G4-V2", "kind": "violating", "project": "ddd", "template": "aggregate-reference-by-identity", "match": { "class": "Shipment", "heldType": "Order", "field": "order" } },
+    { "id": "G4-C", "kind": "clean", "project": "ddd", "template": "aggregate-reference-by-identity", "match": { "class": "Order", "heldType": "CustomerId" } },
+    { "id": "G4-L1", "kind": "look-alike", "project": "ddd", "template": "aggregate-reference-by-identity", "match": { "class": "Customer" } },
+    { "id": "G4-L2", "kind": "look-alike", "project": "ddd", "template": "aggregate-reference-by-identity", "match": { "heldType": "OrderLine" } },
+
+    { "id": "G5-V", "kind": "violating", "project": "ddd", "template": "aggregate-holds-service", "match": { "class": "OrderLine", "dependency": "PricingService" } },
+    { "id": "G5-C", "kind": "clean", "project": "ddd", "template": "aggregate-holds-service", "match": { "class": "Order" } },
+    { "id": "G5-L", "kind": "look-alike", "project": "ddd", "template": "aggregate-holds-service", "match": { "dependency": "ServiceLevel" } },
+
+    { "id": "G6-V1", "kind": "violating", "project": "layers", "template": "service-stateless", "match": { "class": "PricingService" } },
+    { "id": "G6-V2", "kind": "violating", "project": "ddd", "template": "service-stateless", "match": { "class": "PlaceOrderService" } },
+    { "id": "G6-C1", "kind": "clean", "project": "layers", "template": "service-stateless", "match": { "class": "DiscountService" } },
+    { "id": "G6-C2", "kind": "clean", "project": "ddd", "template": "service-stateless", "match": { "class": "PricingService" } },
+    { "id": "G6-L", "kind": "look-alike", "project": "layers", "template": "service-stateless", "match": { "class": "Order" } },
+
+    { "id": "G7-V1", "kind": "violating", "project": "nest", "template": "nest-provider-not-visible", "match": { "consumer": "InvoiceService", "dependency": "OrdersRepository" } },
+    { "id": "G7-V2", "kind": "violating", "project": "nest", "template": "nest-provider-not-visible", "match": { "consumer": "ReportsService", "dependency": "OrdersService" } },
+    { "id": "G7-C", "kind": "clean", "project": "nest", "template": "nest-provider-not-visible", "match": { "consumer": "BillingService" } },
+    { "id": "G7-L1", "kind": "look-alike", "project": "nest", "template": "nest-provider-not-visible", "match": { "consumer": "NotificationsService" } },
+    { "id": "G7-L2", "kind": "look-alike", "project": "nest", "template": "nest-provider-not-visible", "match": { "consumer": "AuditService" } },
+    { "id": "G7-L3", "kind": "look-alike", "project": "nest", "template": "nest-provider-not-visible", "match": { "dependency": "FormatterService" } },
+
+    { "id": "G8-V", "kind": "violating", "project": "nest", "template": "nest-provider-multiple-modules", "match": { "provider": "FormatterService", "modules": ["BillingModule", "ReportsModule"] } },
+    { "id": "G8-C", "kind": "clean", "project": "nest", "template": "nest-provider-multiple-modules", "match": { "provider": "ClockService" } },
+    { "id": "G8-L", "kind": "look-alike", "project": "nest", "template": "nest-provider-multiple-modules", "match": { "provider": "OrdersService" } }
+  ]
+}

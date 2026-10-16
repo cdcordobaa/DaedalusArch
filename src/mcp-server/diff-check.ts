@@ -3,6 +3,7 @@
  * whole; a modified or renamed file is checked on its added lines only, with the new-file line numbers, so existing
  * code is not re-reported. Deleted and non-source files are skipped with a reason. Pure.
  */
+import * as path from 'node:path';
 import type { ParsedSpec } from '../shared/types/spec.js';
 import { blockingSummaryOf, checkSource } from './file-check.js';
 import { normalisePath, resolveLayer } from './layer-resolver.js';
@@ -28,7 +29,7 @@ export interface DiffFileWithHunks extends DiffFile {
   readonly hunks: readonly DiffHunk[];
 }
 
-const SOURCE_FILE_RE = /\.(?:[cm]?[jt]sx?)$/;
+export const SOURCE_FILE_RE = /\.(?:[cm]?[jt]sx?)$/;
 const HUNK_RE = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/;
 
 function stripPrefix(raw: string): string | null {
@@ -57,6 +58,16 @@ export function parseUnifiedDiffWithHunks(diff: string): readonly DiffFileWithHu
   let newLine = 0;
   let oldLeft = 0;
   let newLeft = 0;
+  // A `diff --git` section whose `rename from` / `rename to` lines are not followed by ---/+++ lines (a 100%-similarity
+  // move: git prints no hunk) is kept as a renamed entry with no hunks (R07, post-merge review 2026-10-16).
+  let section: { renameFrom?: string; renameTo?: string; sawFileHeader: boolean } | undefined;
+  const closeSection = (): void => {
+    if (section !== undefined && !section.sawFileHeader && section.renameFrom !== undefined && section.renameTo !== undefined) {
+      current = { oldPath: normalisePath(section.renameFrom), newPath: normalisePath(section.renameTo), added: [], hunks: [] };
+      files.push(current);
+    }
+    section = undefined;
+  };
   for (const line of diff.split(/\r?\n/)) {
     if (current !== undefined && (oldLeft > 0 || newLeft > 0)) {
       const body = current.hunks[current.hunks.length - 1]?.lines;
@@ -77,7 +88,21 @@ export function parseUnifiedDiffWithHunks(diff: string): readonly DiffFileWithHu
       // '\ No newline at end of file' changes no counter.
       continue;
     }
+    if (line.startsWith('diff --git ')) {
+      closeSection();
+      section = { sawFileHeader: false };
+      continue;
+    }
+    if (section !== undefined && line.startsWith('rename from ')) {
+      section.renameFrom = line.slice('rename from '.length);
+      continue;
+    }
+    if (section !== undefined && line.startsWith('rename to ')) {
+      section.renameTo = line.slice('rename to '.length);
+      continue;
+    }
     if (line.startsWith('--- ')) {
+      if (section !== undefined) section.sawFileHeader = true;
       current = { oldPath: stripPrefix(line.slice(4)), newPath: null, added: [], hunks: [] };
       files.push(current);
       continue;
@@ -94,6 +119,7 @@ export function parseUnifiedDiffWithHunks(diff: string): readonly DiffFileWithHu
       current.hunks.push({ oldStart: Number(hunk[1]), newStart: newLine, lines: [] });
     }
   }
+  closeSection();
   return files;
 }
 
@@ -145,7 +171,7 @@ export function applyHunks(from: string, hunks: readonly DiffHunk[], direction: 
 }
 
 /** Old and new contents of a modified file: the project holds either side (agent edited already, or not yet). */
-function rebuild(view: ProjectView, f: DiffFileWithHunks): { oldText: string; newText: string } | undefined {
+export function rebuild(view: ProjectView, f: DiffFileWithHunks): { oldText: string; newText: string } | undefined {
   if (!view.hasRoot || f.newPath === null || f.oldPath === null) return undefined;
   const onDiskNew = view.read(f.newPath);
   if (onDiskNew !== undefined) {
@@ -190,13 +216,37 @@ export interface CheckDiffOptions {
   readonly hints?: boolean;
 }
 
+/**
+ * `git diff` prints paths relative to the git top level; the spec's globs and the project view are relative to the
+ * project root. In a monorepo (project root `/repo/packages/app`) a diff path reads `packages/app/src/...`. When a
+ * path is neither a project file nor in a layer, but drops to one after removing a tail of the root's own path
+ * (`packages/app/`), that prefix is removed from every path of the diff (R22, post-merge review 2026-10-16).
+ */
+export function gitRootOffset(spec: ParsedSpec, root: string | undefined, paths: readonly string[], view: ProjectView): string | undefined {
+  if (root === undefined) return undefined;
+  const segments = path.resolve(root).split(path.sep).filter((x) => x !== '');
+  const known = (p: string): boolean => view.read(p) !== undefined || resolveLayer(spec, p) !== undefined;
+  for (const p of paths) {
+    if (known(p)) return undefined;
+    for (let k = segments.length; k >= 1; k--) {
+      const prefix = `${segments.slice(-k).join('/')}/`;
+      if (p.startsWith(prefix) && known(p.slice(prefix.length))) return prefix;
+    }
+  }
+  return undefined;
+}
+
 export function checkDiff(spec: ParsedSpec, diff: string, options: CheckDiffOptions = {}): DiffCheckResult {
   const files: DiffCheckResult['files'][number][] = [];
   const skipped: { path: string; reason: string }[] = [];
   const disk = new ProjectView({ root: options.projectRoot });
 
+  const parsed = parseUnifiedDiffWithHunks(diff);
+  const offset = gitRootOffset(spec, options.projectRoot, parsed.flatMap((f) => [f.newPath, f.oldPath].filter((p): p is string => p !== null && SOURCE_FILE_RE.test(p))), disk);
+  const strip = (p: string | null): string | null => (p !== null && offset !== undefined && p.startsWith(offset) ? p.slice(offset.length) : p);
   const planned: Planned[] = [];
-  for (const f of parseUnifiedDiffWithHunks(diff)) {
+  for (const raw of parsed) {
+    const f: DiffFileWithHunks = offset === undefined ? raw : { ...raw, oldPath: strip(raw.oldPath), newPath: strip(raw.newPath) };
     if (f.newPath === null) {
       if (f.oldPath !== null) skipped.push({ path: f.oldPath, reason: 'deleted' });
       continue;
@@ -284,6 +334,10 @@ export function checkDiff(spec: ParsedSpec, diff: string, options: CheckDiffOpti
         notes.push(
           `moved from ${from ?? 'no layer'} to ${result.layer ?? 'no layer'}: unchanged imports are not in the diff, so run check_file on the whole file`,
         );
+        // A pure move (no hunk) across layers was not checked at all: unknown, not pass (R07).
+        if (f.hunks.length === 0 && result.blockingVerdict === 'pass') {
+          result = { ...result, blockingVerdict: 'unknown', blockingSummary: blockingSummaryOf('unknown', result.findings, result.hints.length) };
+        }
       }
     }
     if (basis === 'added-lines' && change !== 'added') notes.push('only added lines were checked');

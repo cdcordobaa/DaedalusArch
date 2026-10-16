@@ -1,0 +1,160 @@
+{
+ "id": "bookadesk-back",
+ "repo": "TalanLabs/bookadesk",
+ "sha": "d362aadba4b86fa76eb9e74da2543dc9e8c0403a",
+ "licence": "GPL-3.0",
+ "ruleFile": ".dependency-cruiser.js",
+ "root": "back",
+ "depcruise": {
+  "version": "18.4.0",
+  "wallMs": 1243,
+  "tsPreCompilationDeps": true,
+  "layerRules": [
+   {
+    "name": "no-dep-from-domain",
+    "severity": "error",
+    "comment": "don't allow dependencies from domain to other modules",
+    "from": {
+     "path": "src/domain"
+    },
+    "to": {
+     "path": "src",
+     "pathNot": "src/domain"
+    }
+   },
+   {
+    "name": "no-dep-from-usecase",
+    "severity": "error",
+    "comment": "usecase should depend only on domain",
+    "from": {
+     "path": "src/usecase",
+     "pathNot": "\\.spec\\.(js|ts)$|\\.d\\.ts$"
+    },
+    "to": {
+     "path": "src",
+     "pathNot": "src/domain|src/usecase"
+    }
+   }
+  ],
+  "excludedRules": [
+   {
+    "name": "no-circular",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "no-orphans",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "no-deprecated-core",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "not-to-deprecated",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "no-non-package-json",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "not-to-unresolvable",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "no-duplicate-dep-types",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "not-to-spec",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "not-to-dev-dep",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "optional-deps-used",
+    "reason": "dependency-cruiser recommended preset"
+   },
+   {
+    "name": "peer-deps-used",
+    "reason": "dependency-cruiser recommended preset"
+   }
+  ],
+  "layerViolationsAll": 0,
+  "layerViolationsInScope": 0,
+  "otherViolations": 37
+ },
+ "scope": {
+  "files": 47,
+  "localEdges": 126
+ },
+ "translation": {
+  "atoms": [
+   {
+    "name": "atom-01",
+    "label": "to:no-dep-from-domain; to:no-dep-from-usecase",
+    "files": 21
+   },
+   {
+    "name": "atom-02",
+    "label": "to:no-dep-from-domain; from:no-dep-from-usecase",
+    "files": 24
+   },
+   {
+    "name": "atom-03",
+    "label": "from:no-dep-from-domain",
+    "files": 2
+   }
+  ],
+  "forbiddenPairs": 3,
+  "allowedPairs": 3,
+  "selfForbidden": [],
+  "unconstrainedFiles": 0,
+  "inexpressibleEdges": []
+ },
+ "theirs": [],
+ "resolved": {
+  "label": "resolved-atoms",
+  "ourFindingsS01S03": 0,
+  "ourKeysInScope": 0,
+  "ourKeysCompared": 0,
+  "typeOnlyDropped": 0,
+  "confusion": {
+   "both": 0,
+   "oursOnly": 0,
+   "theirsOnly": 0,
+   "neither": 126,
+   "kappa": null,
+   "observedAgreement": 1
+  },
+  "flagged": [],
+  "oursOnly": [],
+  "theirsOnly": [],
+  "ourFailedFunctions": [],
+  "ourFileNodes": 47,
+  "ourWallMs": 3368
+ },
+ "idiomatic": {
+  "label": "idiomatic",
+  "ourFindingsS01S03": 0,
+  "ourKeysInScope": 0,
+  "ourKeysCompared": 0,
+  "typeOnlyDropped": 0,
+  "confusion": {
+   "both": 0,
+   "oursOnly": 0,
+   "theirsOnly": 0,
+   "neither": 126,
+   "kappa": null,
+   "observedAgreement": 1
+  },
+  "flagged": [],
+  "oursOnly": [],
+  "theirsOnly": [],
+  "ourFailedFunctions": [],
+  "ourFileNodes": 47,
+  "ourWallMs": 3142
+ }
+}

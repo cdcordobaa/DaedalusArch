@@ -94,7 +94,22 @@ export function parseAnswersDocument(doc: unknown): ParsedAnswers {
     answered.add(q);
     chosen.push({ Q: q, option: o });
   }
-  return { answers: constructAnswersOf(chosen.map((c) => ({ ...c, kinds: {} }))), answered, notes, warnings };
+  const answers = constructAnswersOf(chosen.map((c) => ({ ...c, kinds: {} })));
+  warnings.push(...combinationWarnings(answers));
+  return { answers, answered, notes, warnings };
+}
+
+/**
+ * Answer combinations the documents call incoherent (R31, post-merge review 2026-10-16): Q13 C reorders the nestjs
+ * layers and is coherent only with Q25 B (answer sheet, Q13; construct-switches.md); without it every `*.module.ts`
+ * that wires a repository becomes an FF-S01 row.
+ */
+export function combinationWarnings(answers: ConstructAnswers): string[] {
+  const out: string[] = [];
+  if (answers.Q13 === 'C' && answers.Q25 !== 'B') {
+    out.push('Q13 C without Q25 B: the answer sheet calls this incoherent (C is only coherent together with Q25 B); answer Q25 B, or say why not in the ADR');
+  }
+  return out;
 }
 
 export function kindsOf(q: ConstructQuestionId): Partial<Record<ConstructOption, ConstructOptionKind>> {
@@ -160,6 +175,7 @@ export function signOffLines(parsed: Pick<ParsedAnswers, 'answers' | 'answered'>
     `No-code (status quo or confirmation): ${noCode.join(', ')}`,
     ...(unanswered.length > 0 ? [`Unanswered, left at A: ${unanswered.join(', ')}`] : []),
     ...(caveat.length > 0 ? [`${caveat.join(' and ')} B: one development-set run before the hold-out, no second tuning loop; surprises go into an ADR, not code.`] : []),
+    ...combinationWarnings(parsed.answers).map((w) => `Combination: ${w}`),
     'Next:',
     `  offline preview (no Neo4j): ${CONSTRUCT_PREVIEW_COMMAND}`,
     '  development-set re-run (after the ADRs are signed; Neo4j, one run):',
