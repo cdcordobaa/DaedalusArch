@@ -93,13 +93,43 @@ async function specFor(
   return ctx.loadSpec(specPath);
 }
 
-/** A file path as the spec's globs see it: project-relative POSIX. Absolute paths are made relative to the project. */
-export function toProjectRelative(ctx: ServerContext, filePath: string): string {
-  const root = ctx.defaultProjectPath;
-  if (root !== undefined && path.isAbsolute(filePath)) {
-    return normalisePath(path.relative(path.resolve(root), filePath));
+/** The realpath of `p`; for a path that does not exist yet, the realpath of its nearest existing ancestor plus the rest. */
+function realpathLoose(p: string): string {
+  const rest: string[] = [];
+  let cur = path.resolve(p);
+  for (;;) {
+    try {
+      return path.join(fs.realpathSync(cur), ...rest.reverse());
+    } catch {
+      const parent = path.dirname(cur);
+      if (parent === cur) return path.resolve(p);
+      rest.push(path.basename(cur));
+      cur = parent;
+    }
   }
-  return normalisePath(filePath);
+}
+
+/**
+ * A file path as the spec's globs see it: project-relative POSIX. An absolute path is made relative to the project
+ * root with symlinks resolved on both sides (macOS /tmp -> /private/tmp). A path that leaves the root, or an absolute
+ * path with no project configured, is refused: it would otherwise match no layer glob and pass every layer rule
+ * (R05, post-merge review 2026-10-16).
+ */
+export function toProjectRelative(ctx: ServerContext, filePath: string): ToolOutcome<string> {
+  const root = ctx.defaultProjectPath;
+  let rel: string;
+  if (path.isAbsolute(filePath)) {
+    if (root === undefined) {
+      return fail(`An absolute path (${filePath}) needs a project root: start the server with --project <path>, or pass a project-relative path.`);
+    }
+    rel = path.relative(realpathLoose(root), realpathLoose(filePath));
+    if (path.isAbsolute(rel)) return fail(`The path ${filePath} is outside the project root ${root}.`);
+  } else {
+    rel = filePath;
+  }
+  const posix = path.posix.normalize(rel.replace(/\\/g, '/'));
+  if (posix === '..' || posix.startsWith('../')) return fail(`The path ${filePath} is outside the project root${root !== undefined ? ` ${root}` : ''}.`);
+  return ok(normalisePath(posix));
 }
 
 export async function getArchitectureSpec(
@@ -117,7 +147,9 @@ export async function whichLayerTool(
 ): Promise<ToolOutcome<WhichLayerResult>> {
   const loaded = await specFor(ctx, args.spec);
   if (!loaded.ok) return loaded;
-  return ok(whichLayer(loaded.data.spec, toProjectRelative(ctx, args.path)));
+  const rel = toProjectRelative(ctx, args.path);
+  if (!rel.ok) return rel;
+  return ok(whichLayer(loaded.data.spec, rel.data));
 }
 
 export async function checkImportTool(
@@ -132,12 +164,14 @@ export async function checkImportTool(
   const loaded = await specFor(ctx, args.spec);
   if (!loaded.ok) return loaded;
   const spec = loaded.data.spec;
+  const from = toProjectRelative(ctx, args.from);
+  if (!from.ok) return from;
+  const resolved = args.resolvedPath !== undefined ? toProjectRelative(ctx, args.resolvedPath) : undefined;
+  if (resolved !== undefined && !resolved.ok) return resolved;
   const res = checkImport(spec, {
-    fromFile: toProjectRelative(ctx, args.from),
+    fromFile: from.data,
     module: args.module,
-    ...(args.resolvedPath !== undefined
-      ? { resolvedPath: toProjectRelative(ctx, args.resolvedPath) }
-      : {}),
+    ...(resolved !== undefined ? { resolvedPath: resolved.data } : {}),
   });
   // MCP v2: each hit with its v1.3 tier, construct and source; the blocking answer.
   const violations = res.violations.map((v) => {
@@ -196,7 +230,9 @@ export async function checkFileTool(
 ): Promise<ToolOutcome<FileCheckResult>> {
   const loaded = await specFor(ctx, args.spec);
   if (!loaded.ok) return loaded;
-  const rel = toProjectRelative(ctx, args.path);
+  const relOutcome = toProjectRelative(ctx, args.path);
+  if (!relOutcome.ok) return relOutcome;
+  const rel = relOutcome.data;
   return ok(
     checkSource(loaded.data.spec, {
       path: rel,
@@ -259,9 +295,11 @@ export async function explainFindingTool(
   const parsed = args.location !== undefined ? parseLocationArg(args.location) : undefined;
   const file = args.file ?? parsed?.file;
   const line = args.line ?? parsed?.line;
+  const rel = file !== undefined ? toProjectRelative(ctx, file) : undefined;
+  if (rel !== undefined && !rel.ok) return rel;
   const res = explainFinding(
     loaded?.ok === true ? loaded.data.spec : undefined,
-    { rule: args.rule, ...(file !== undefined ? { file: toProjectRelative(ctx, file) } : {}), ...(line !== undefined ? { line } : {}) },
+    { rule: args.rule, ...(rel !== undefined ? { file: rel.data } : {}), ...(line !== undefined ? { line } : {}) },
     new ProjectView({ root: ctx.defaultProjectPath }),
   );
   if (res === undefined) {
