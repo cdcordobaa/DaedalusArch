@@ -229,6 +229,7 @@ Flags (`src/mcp-server/neural-context.ts`):
 | `--neural off\|claude-cli\|mock\|ensemble` | The arm (env `DAEDALUS_NEURAL`; a flag wins). |
 | `--neural-cassettes <dir>` | The cassette root (default `.firewall/cassettes/mcp-neural`). |
 | `--neural-wait-ms <ms>` | The latency budget of one call. |
+| `--strip-comments` | Show the judge the code without comments (`review_unit`, `explain_and_fix`), line for line. OFF by default; with it off, prompts and cache keys are byte-identical. Why: an agent can steer the judge with a comment in its own code (`Docs/v1.3/judge-steering-plan.md`). |
 | `--judge-cli <path>`, `--claude-config-dir <dir>` | The Claude route. |
 | `--ensemble-raters <list>`, `--ensemble-rule <rule>` | The ensemble. |
 | `--agy-model <name>`, `--agy-home <dir>` | The `agy` rater. |

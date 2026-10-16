@@ -157,6 +157,7 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
     mode: config.pipelineMode,
     apgStorePath: config.apgStorePath,
     ...(config.commitSha !== undefined && { commitSha: config.commitSha }),
+    ...(config.literalThroughLayerlessBarrels === true && { literalThroughLayerlessBarrels: true }),
   };
   commands.push(new IngestCommand(graphRepo, snapshotStore, ingestConfig));
 
