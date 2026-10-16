@@ -1685,3 +1685,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: v1.3 SO3 framing, development-set evidence; review fix under delegation.
 
 ---
+
+## v1.3 Construction — floor probe 2, layout and style sentences as levers (scheduled task, backlog job #5 F1)
+**Timestamp**: 2026-10-16T05:05:00Z
+**User Input**: "Scheduled task: execute job #5 (F1) of Docs/v1.3/night-backlog-2026-10-16.md under its standard rules block: a one-session feasibility probe of three prompt-frame conditions (style + layout, style only, spec only) on the hexagonal and Clean floor, with this session as the coding agent, all code written before any scoring, plan and reading committed first; PR into v1.3, not merged."
+**AI Response**: "Plan, frames (rendered by hand; C1 byte-identical to stepPrompt) and seeded order committed first (349f2805). 2 pilot tasks × 3 conditions × 4 steps = 24 steps, all committed to an external git store before the first evaluation, then scored with evaluate --symbolic-only --engine cypher-interp --scoring v1.3 and check-correct --tiers blocking. Result: steps with a correct blocking finding C1 1/8 (one FF-S02 cycle, market-vendors step 4), C2 0/8, C3 0/8. Pre-stated reading: keep the frame, move the lever to task design (W3-3). Side finding: without the layout sentence 19/28 hexagonal files matched no layer glob, so C2's zero is partly invisibility (a by-hand edge listing shows all edges inward anyway); C3 adopted the spec's globs, so 'spec only' is a layout hint. Options taken under delegation: (1) the Clean task is market-vendors in its pilot style, because #161 has no Clean task among its new tasks; (2) the plan's 'from 0/8 to >= 3/8' threshold is applied to the 8 steps per condition of both floor styles together, since the design has one hexagonal task (4 steps); (3) the AI-DLC approval gates were not run interactively (scheduled task, no one present); the stored prompt served as the requirements. No frame, spec, preset, tier table or template changed; no src/ code changed; no LLM call."
+**Context**: CONSTRUCTION, v1.3 validity cycle; exploratory probe, development tasks only. Report: Docs/DiagnosticRuns/v1.3-floor-probe-2-2026-10-16.md.
+
+---
