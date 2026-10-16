@@ -37,6 +37,8 @@ export interface EvaluateDeps {
   readonly graphEngine?: GraphEngine;
   /** Required for `cypher-interp`: the in-process pipeline with its result cache. */
   readonly interp?: InterpEvaluator;
+  /** ADR-032: server-wide explicit tsconfig for extraction (`--tsconfig`); a per-call `tsconfigPath` wins; absent = `<project>/tsconfig.json`. */
+  readonly tsconfigPath?: string;
 }
 
 export interface EvaluateInput {
@@ -171,7 +173,10 @@ export async function evaluateProject(
     verbose: false,
     apgStorePath: neo4j.apgStorePath,
     scoringMode,
-    ...(input.tsconfigPath !== undefined ? { tsconfigPath: path.resolve(input.tsconfigPath) } : {}),
+    // Per-call tsconfig (loop harness) wins over the server-wide one (deps, ADR-032).
+    ...(input.tsconfigPath !== undefined
+      ? { tsconfigPath: path.resolve(input.tsconfigPath) }
+      : deps.tsconfigPath !== undefined ? { tsconfigPath: deps.tsconfigPath } : {}),
     ...(input.extractorDefaults !== undefined ? { extractorDefaults: input.extractorDefaults } : {}),
   };
   const { executor, cleanup } = deps.makePipeline(config);
@@ -217,7 +222,8 @@ async function evaluateInProcess(
   if (deps.interp === undefined) return failure('ENGINE_UNAVAILABLE', 'cypher-interp selected but no in-process evaluator is wired.');
   const specPath = input.specPath;
   // The explicit tsconfig and the uncapped violations reach the interpreter path exactly as the Neo4j path above.
-  const res = await deps.interp({ projectPath, specPath, scoringMode, ...(input.tsconfigPath !== undefined ? { tsconfigPath: input.tsconfigPath } : {}) });
+  const tsconfigPath = input.tsconfigPath ?? deps.tsconfigPath;
+  const res = await deps.interp({ projectPath, specPath, scoringMode, ...(tsconfigPath !== undefined ? { tsconfigPath } : {}) });
   if (!res.success) {
     const [first] = res.errors;
     return failure('PIPELINE_FAILED', res.errors.map((e) => e.message).join('; ') || (first?.code ?? 'evaluation failed'));
