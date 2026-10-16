@@ -1,0 +1,14 @@
+--- a/src/domain/entities/Loan.ts
++++ b/src/domain/entities/Loan.ts
+@@ -1,9 +1,11 @@
++import * as orm from 'typeorm';
+ import { DomainError } from '../errors/DomainError';
+ import { LoanPeriod } from '../value-objects/LoanPeriod';
+ 
+ const DAY_MS = 24 * 60 * 60 * 1000;
+ 
+ export class Loan {
++  @orm.Column({ nullable: true })
+   private returnedAt: Date | undefined;
+ 
+   private constructor(

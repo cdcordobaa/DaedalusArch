@@ -1,0 +1,8 @@
+{ "variant": "v32-order-repository-saves-lines", "spec": "presets/ddd.yaml", "findings": [
+  { "rule": "FF-DT02", "name": "repository-aggregate-root", "file": "src/ordering/domain/order/OrderRepository.ts", "target": "src/ordering/domain/order/OrderLine.ts",
+    "reason": "The repository interface imports OrderLine, an inner entity, giving direct access to an object reachable only by traversal from the root." },
+  { "rule": "FF-DT02", "name": "repository-aggregate-root", "file": "src/ordering/infrastructure/InMemoryOrderRepository.ts", "target": "src/ordering/domain/order/OrderLine.ts",
+    "reason": "The repository implementation (matched by src/*/infrastructure/**/*Repository.ts) imports the inner entity OrderLine." },
+  { "rule": "FF-DT01", "name": "aggregate-boundary", "file": "src/ordering/infrastructure/InMemoryOrderRepository.ts", "target": "src/ordering/domain/order/OrderLine.ts",
+    "reason": "An infrastructure file outside the Order aggregate module imports OrderLine, a declared inner entity of Order." }
+] }

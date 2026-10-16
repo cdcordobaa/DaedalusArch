@@ -1,0 +1,43 @@
+--- a/src/infrastructure/main.ts
++++ b/src/infrastructure/main.ts
+@@ -4,6 +4,7 @@
+ import { ReturnBookUseCase } from '../application/use-cases/ReturnBookUseCase';
+ import { BookController } from './http/BookController';
+ import { LoanController } from './http/LoanController';
++import { CachingBookRepository } from './persistence/CachingBookRepository';
+ import { InMemoryBookRepository } from './persistence/InMemoryBookRepository';
+ import { InMemoryLoanRepository } from './persistence/InMemoryLoanRepository';
+ import { InMemoryMemberRepository } from './persistence/InMemoryMemberRepository';
+@@ -18,7 +19,7 @@
+ 
+ /** Composition root (Martin 2017, ch. 26 "The Main Component"): the only place that knows every concrete class. */
+ export function createLibraryApp(): LibraryApp {
+-  const books = new InMemoryBookRepository();
++  const books = new CachingBookRepository(new InMemoryBookRepository());
+   const members = new InMemoryMemberRepository();
+   const loans = new InMemoryLoanRepository();
+   const clock = new SystemClock();
+--- /dev/null
++++ b/src/infrastructure/persistence/CachingBookRepository.ts
+@@ -0,0 +1,21 @@
++import { Book } from '../../domain/entities/Book';
++import type { BookRepository as BookCatalogue } from '../../domain/repositories/BookRepository';
++
++export class CachingBookRepository implements BookCatalogue {
++  private readonly cache = new Map<string, Book>();
++
++  constructor(private readonly source: BookCatalogue) {}
++
++  async findById(id: string): Promise<Book | undefined> {
++    const hit = this.cache.get(id);
++    if (hit !== undefined) return hit;
++    const book = await this.source.findById(id);
++    if (book !== undefined) this.cache.set(id, book);
++    return book;
++  }
++
++  async save(book: Book): Promise<void> {
++    await this.source.save(book);
++    this.cache.set(book.id, book);
++  }
++}
