@@ -1,0 +1,51 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9930,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "22e736a031e8f8391fa75ed191f76540b29b3a17bc2d148d34f5b8820df82998-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.75,
+    "evidence": [
+      "src/claims/api/ClaimController.ts, ClaimController.file(): `if (body.claimedCents <= 0) { throw new DomainError('invalid', 'The claimed amount must be positive'); }` is a business invariant about claims and belongs in the domain layer.",
+      "src/claims/api/ClaimController.ts, ClaimController.settle(): only delegates to SettleClaim and maps the result, which fits the presentation role.",
+      "Turning `incidentOn` into a Date and building the response objects is normal presentation work."
+    ],
+    "pass": false,
+    "reasoning": "ClaimController is in the api layer, which is a presentation layer. Its job should be to translate requests (parse the body, convert types, call the use case and map the result). The `settle` method does only that, and so does most of `file`. But `file` also enforces a business invariant: a claim's amount must be positive. It does this by throwing a `DomainError` with a business message. That rule is not a transport-level check like shape, type or format. It is a domain rule about claims and belongs in the domain layer (the Claim entity or a value object such as Money) or in the FileClaim use case. Using `DomainError` in the controller shows the check is meant as a domain rule. Keeping it in the controller means other entry points to FileClaim can skip it.",
+    "violations": [
+      {
+        "filePath": "src/claims/api/ClaimController.ts",
+        "message": "ClaimController.file() enforces the business rule that claimedCents must be positive and throws a DomainError. This is a domain responsibility (Claim entity, Money value object, or the FileClaim use case), not a presentation one."
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/*/domain/**, src/shared-kernel/**\n- application (kind: application): src/*/application/**\n- infrastructure (kind: infrastructure): src/*/infrastructure/**, src/*/acl/**\n- api (kind: presentation): src/*/api/**\n- composition (kind: application): src/main.ts\n\n## Unit\nKind: file\nId: src/claims/api/ClaimController.ts\nLayer: api\nUnit files:\n- src/claims/api/ClaimController.ts\n\n## Source\n=====SOURCE-BEGIN src/claims/api/ClaimController.ts=====\nimport { FileClaim } from '../application/FileClaim';\nimport { SettleClaim } from '../application/SettleClaim';\nimport { DomainError } from '../../shared-kernel/DomainError';\n\nexport interface FileClaimBody {\n  policyNumber: string;\n  peril: string;\n  incidentOn: string;\n  claimedCents: number;\n}\n\nexport class ClaimController {\n  constructor(\n    private readonly fileClaim: FileClaim,\n    private readonly settleClaim: SettleClaim,\n  ) {}\n\n  async file(body: FileClaimBody): Promise<{ claimId: string }> {\n    if (body.claimedCents <= 0) {\n      throw new DomainError('invalid', 'The claimed amount must be positive');\n    }\n    const claimId = await this.fileClaim.file(body.policyNumber, body.peril, new Date(body.incidentOn), body.claimedCents);\n    return { claimId };\n  }\n\n  async settle(claimId: string): Promise<{ paidCents: number }> {\n    return { paidCents: await this.settleClaim.settle(claimId) };\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ClaimController@src/claims/api/ClaimController.ts\",\"to\":\"FileClaim@src/claims/application/FileClaim.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"ClaimController@src/claims/api/ClaimController.ts\",\"to\":\"SettleClaim@src/claims/application/SettleClaim.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/claims/api/ClaimController.ts\",\"to\":\"src/claims/application/FileClaim.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/claims/api/ClaimController.ts\",\"to\":\"src/claims/application/SettleClaim.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/claims/api/ClaimController.ts\",\"to\":\"src/shared-kernel/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/main.ts\",\"to\":\"src/claims/api/ClaimController.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"api\",\"name\":\"ClaimController\",\"path\":\"src/claims/api/ClaimController.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"FileClaim\",\"path\":\"src/claims/application/FileClaim.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"SettleClaim\",\"path\":\"src/claims/application/SettleClaim.ts\"},{\"kind\":\"File\",\"layer\":\"api\",\"path\":\"src/claims/api/ClaimController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/claims/application/FileClaim.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/claims/application/SettleClaim.ts\"},{\"kind\":\"File\",\"layer\":\"composition\",\"path\":\"src/main.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/shared-kernel/DomainError.ts\"},{\"kind\":\"Interface\",\"layer\":\"api\",\"name\":\"FileClaimBody\",\"path\":\"src/claims/api/ClaimController.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T02:54:08.943Z",
+  "repetition": 0,
+  "requestHash": "22e736a031e8f8391fa75ed191f76540b29b3a17bc2d148d34f5b8820df82998",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":807}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.75,\\\"reasoning\\\":\\\"ClaimController is in the api layer, which is a presentation layer. Its job should be to translate requests (parse the body, convert types, call the use case and map the result). The `settle` method does only that, and so does most of `file`. But `file` also enforces a business invariant: a claim's amount must be positive. It does this by throwing a `DomainError` with a business message. That rule is not a transport-level check like shape, type or format. It is a domain rule about claims and belongs in the domain layer (the Claim entity or a value object such as Money) or in the FileClaim use case. Using `DomainError` in the controller shows the check is meant as a domain rule. Keeping it in the controller means other entry points to FileClaim can skip it.\\\",\\\"evidence\\\":[\\\"src/claims/api/ClaimController.ts, ClaimController.file(): `if (body.claimedCents <= 0) { throw new DomainError('invalid', 'The claimed amount must be positive'); }` is a business invariant about claims and belongs in the domain layer.\\\",\\\"src/claims/api/ClaimController.ts, ClaimController.settle(): only delegates to SettleClaim and maps the result, which fits the presentation role.\\\",\\\"Turning `incidentOn` into a Date and building the response objects is normal presentation work.\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/claims/api/ClaimController.ts\\\",\\\"message\\\":\\\"ClaimController.file() enforces the business rule that claimedCents must be positive and throws a DomainError. This is a domain responsibility (Claim entity, Money value object, or the FileClaim use case), not a presentation one.\\\"}]}\",\"structured_output\":{\"confidence\":0.75,\"evidence\":[\"src/claims/api/ClaimController.ts, ClaimController.file(): `if (body.claimedCents <= 0) { throw new DomainError('invalid', 'The claimed amount must be positive'); }` is a business invariant about claims and belongs in the domain layer.\",\"src/claims/api/ClaimController.ts, ClaimController.settle(): only delegates to SettleClaim and maps the result, which fits the presentation role.\",\"Turning `incidentOn` into a Date and building the response objects is normal presentation work.\"],\"pass\":false,\"reasoning\":\"ClaimController is in the api layer, which is a presentation layer. Its job should be to translate requests (parse the body, convert types, call the use case and map the result). The `settle` method does only that, and so does most of `file`. But `file` also enforces a business invariant: a claim's amount must be positive. It does this by throwing a `DomainError` with a business message. That rule is not a transport-level check like shape, type or format. It is a domain rule about claims and belongs in the domain layer (the Claim entity or a value object such as Money) or in the FileClaim use case. Using `DomainError` in the controller shows the check is meant as a domain rule. Keeping it in the controller means other entry points to FileClaim can skip it.\",\"violations\":[{\"filePath\":\"src/claims/api/ClaimController.ts\",\"message\":\"ClaimController.file() enforces the business rule that claimedCents must be positive and throws a DomainError. This is a domain responsibility (Claim entity, Money value object, or the FileClaim use case), not a presentation one.\"}]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/claims/api/ClaimController.ts",
+  "usage": {
+    "inputTokens": 3043,
+    "outputTokens": 807
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

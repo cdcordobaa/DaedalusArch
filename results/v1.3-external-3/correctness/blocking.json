@@ -1,0 +1,4716 @@
+{
+  "schemaVersion": 1,
+  "seed": 20261016,
+  "cap": 9007199254740991,
+  "tiers": "blocking",
+  "excludedNotApplicable": {},
+  "rules": [],
+  "items": [
+    {
+      "key": "d8d53c2c06c06411caa1f771",
+      "projectId": "leal32b-webapi",
+      "style": "clean-architecture",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/core/3.infra/persistence/mongodb/base/mongodb-fixture.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "target": "src/core/4.main/container/index.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/core/3.infra/persistence/mongodb/base/mongodb-fixture.ts (infrastructure) imports from src/core/4.main/container/index.ts (main)",
+      "violationId": "v-ed164e30046ad9c5",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "3449e83786423eefe76ea3fd",
+      "projectId": "leal32b-webapi",
+      "style": "clean-architecture",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/core/3.infra/persistence/postgres/base/postgres-fixture.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "target": "src/core/4.main/container/index.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/core/3.infra/persistence/postgres/base/postgres-fixture.ts (infrastructure) imports from src/core/4.main/container/index.ts (main)",
+      "violationId": "v-89e723429bb92e62",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "b912bcd44e265eabc9a62ce9",
+      "projectId": "leal32b-webapi",
+      "style": "clean-architecture",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/modules/user/3.infra/persistence/mongodb/repositories/mongodb-user-repository.ts",
+      "line": 6,
+      "lines": [
+        6
+      ],
+      "target": "src/core/4.main/container/index.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/user/3.infra/persistence/mongodb/repositories/mongodb-user-repository.ts (infrastructure) imports from src/core/4.main/container/index.ts (main)",
+      "violationId": "v-2054ab7a5537c619",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "cfe85210a6b36a509c1dc08e",
+      "projectId": "leal32b-webapi",
+      "style": "clean-architecture",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/modules/user/3.infra/persistence/postgres/repositories/postgres-user-repository.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "target": "src/core/4.main/container/index.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/user/3.infra/persistence/postgres/repositories/postgres-user-repository.ts (infrastructure) imports from src/core/4.main/container/index.ts (main)",
+      "violationId": "v-309a26de9261a78e",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "7304aa036a67d896d085548b",
+      "projectId": "leal32b-webapi",
+      "style": "clean-architecture",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/core/0.domain/base/aggregate-root.ts,src/core/0.domain/events/domain-events.ts,src/core/0.domain/base/aggregate-root.ts",
+      "line": 3,
+      "target": "src/core/0.domain/events/domain-events.ts",
+      "discriminator": [
+        "[\"src/core/0.domain/base/aggregate-root.ts\",\"src/core/0.domain/events/domain-events.ts\",\"src/core/0.domain/base/aggregate-root.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/core/0.domain/base/aggregate-root.ts,src/core/0.domain/events/domain-events.ts,src/core/0.domain/base/aggregate-root.ts",
+      "violationId": "v-0d0d297600947ba2",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "d0966c18b298b41e41db622a",
+      "projectId": "leal32b-webapi",
+      "style": "clean-architecture",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/core/4.main/container/index.ts,src/core/4.main/container/persistence/make-mongodb.ts,src/modules/user/3.infra/persistence/mongodb/repositories/mongodb-user-repository.ts,src/core/4.main/container/index.ts",
+      "line": 10,
+      "target": "src/core/4.main/container/persistence/make-mongodb.ts",
+      "discriminator": [
+        "[\"src/core/4.main/container/index.ts\",\"src/core/4.main/container/persistence/make-mongodb.ts\",\"src/modules/user/3.infra/persistence/mongodb/repositories/mongodb-user-repository.ts\",\"src/core/4.main/container/index.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/core/4.main/container/index.ts,src/core/4.main/container/persistence/make-mongodb.ts,src/modules/user/3.infra/persistence/mongodb/repositories/mongodb-user-repository.ts,src/core/4.main/container/index.ts",
+      "violationId": "v-343a6252a7b0c7cd",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "e8b18de81c2ab61cd5681534",
+      "projectId": "leal32b-webapi",
+      "style": "clean-architecture",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/core/4.main/container/index.ts,src/core/4.main/container/persistence/make-postgres.ts,src/modules/user/3.infra/persistence/postgres/repositories/postgres-user-repository.ts,src/core/4.main/container/index.ts",
+      "line": 11,
+      "target": "src/core/4.main/container/persistence/make-postgres.ts",
+      "discriminator": [
+        "[\"src/core/4.main/container/index.ts\",\"src/core/4.main/container/persistence/make-postgres.ts\",\"src/modules/user/3.infra/persistence/postgres/repositories/postgres-user-repository.ts\",\"src/core/4.main/container/index.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/core/4.main/container/index.ts,src/core/4.main/container/persistence/make-postgres.ts,src/modules/user/3.infra/persistence/postgres/repositories/postgres-user-repository.ts,src/core/4.main/container/index.ts",
+      "violationId": "v-d0f185f1060dd3a1",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "6f83fdde3380baaa5e18b03c",
+      "projectId": "leal32b-webapi",
+      "style": "clean-architecture",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/core/4.main/setup/fixtures/index.ts,src/core/4.main/setup/fixtures/make-mongodb-fixtures.ts,src/core/4.main/setup/fixtures/index.ts",
+      "line": 3,
+      "target": "src/core/4.main/setup/fixtures/make-mongodb-fixtures.ts",
+      "discriminator": [
+        "[\"src/core/4.main/setup/fixtures/index.ts\",\"src/core/4.main/setup/fixtures/make-mongodb-fixtures.ts\",\"src/core/4.main/setup/fixtures/index.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/core/4.main/setup/fixtures/index.ts,src/core/4.main/setup/fixtures/make-mongodb-fixtures.ts,src/core/4.main/setup/fixtures/index.ts",
+      "violationId": "v-779feef0e7458def",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "223c9851a25d2d035b5202e0",
+      "projectId": "leal32b-webapi",
+      "style": "clean-architecture",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/core/4.main/setup/fixtures/index.ts,src/core/4.main/setup/fixtures/make-postgres-fixtures.ts,src/core/4.main/setup/fixtures/index.ts",
+      "line": 4,
+      "target": "src/core/4.main/setup/fixtures/make-postgres-fixtures.ts",
+      "discriminator": [
+        "[\"src/core/4.main/setup/fixtures/index.ts\",\"src/core/4.main/setup/fixtures/make-postgres-fixtures.ts\",\"src/core/4.main/setup/fixtures/index.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/core/4.main/setup/fixtures/index.ts,src/core/4.main/setup/fixtures/make-postgres-fixtures.ts,src/core/4.main/setup/fixtures/index.ts",
+      "violationId": "v-1fdbba938c9f89f8",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "47a54e3837a043988931fe29",
+      "projectId": "cersouza-boilerplate",
+      "style": "clean-architecture",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/api/controllers/CustomerController.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "target": "src/infra/injections.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/api/controllers/CustomerController.ts (presentation) imports from src/infra/injections.ts (infrastructure)",
+      "violationId": "v-f29366c68c81a74c",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "6bb273227522d3159f7ca252",
+      "projectId": "cartaxo-ts-boilerplate",
+      "style": "clean-architecture",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/microservices/users/services/users.service.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "target": "src/microservices/users/repositories/users.repository.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/microservices/users/services/users.service.ts (application) imports from src/microservices/users/repositories/users.repository.ts (infrastructure)",
+      "violationId": "v-9299a5e203c82ca7",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "4cac7838a34fc7cf3b257653",
+      "projectId": "cartaxo-ts-boilerplate",
+      "style": "clean-architecture",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/utils/base/services/base-service.ts",
+      "line": 7,
+      "lines": [
+        7
+      ],
+      "target": "src/utils/base/repositories/base-repository.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/utils/base/services/base-service.ts (application) imports from src/utils/base/repositories/base-repository.ts (infrastructure)",
+      "violationId": "v-e26e43aeead03476",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "63faa1973cb5d8812a8ec8e2",
+      "projectId": "cartaxo-ts-boilerplate",
+      "style": "clean-architecture",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/utils/base/services/base-service.ts",
+      "line": 8,
+      "lines": [
+        8
+      ],
+      "target": "src/utils/base/repositories/mongo-base-repository.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/utils/base/services/base-service.ts (application) imports from src/utils/base/repositories/mongo-base-repository.ts (infrastructure)",
+      "violationId": "v-cacf287824f1faef",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "948ad06c7bdf65fd74f318ab",
+      "projectId": "cartaxo-ts-boilerplate",
+      "style": "clean-architecture",
+      "ruleId": "FF-P03",
+      "template": "repository-pattern",
+      "type": "REPOSITORY_PATTERN_VIOLATION",
+      "tier": "blocking",
+      "file": "src/microservices/users/repositories/users.repository.ts",
+      "discriminator": [
+        "UsersRepository"
+      ],
+      "evidence": [],
+      "message": "Violation in src/microservices/users/repositories/users.repository.ts",
+      "violationId": "v-e7747fce930ac9ed",
+      "rule": "FF-P03/repository-pattern",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "bfb4ec7f6d9c9f2968f4ee25",
+      "projectId": "cartaxo-ts-boilerplate",
+      "style": "clean-architecture",
+      "ruleId": "FF-P03",
+      "template": "repository-pattern",
+      "type": "REPOSITORY_PATTERN_VIOLATION",
+      "tier": "blocking",
+      "file": "src/utils/base/repositories/base-repository.ts",
+      "discriminator": [
+        "BaseRepository"
+      ],
+      "evidence": [],
+      "message": "Violation in src/utils/base/repositories/base-repository.ts",
+      "violationId": "v-23722502ec112741",
+      "rule": "FF-P03/repository-pattern",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "53f021c854b92ca75fee01cc",
+      "projectId": "cartaxo-ts-boilerplate",
+      "style": "clean-architecture",
+      "ruleId": "FF-P03",
+      "template": "repository-pattern",
+      "type": "REPOSITORY_PATTERN_VIOLATION",
+      "tier": "blocking",
+      "file": "src/utils/base/repositories/mongo-base-repository.ts",
+      "discriminator": [
+        "MongoBaseRepository"
+      ],
+      "evidence": [],
+      "message": "Violation in src/utils/base/repositories/mongo-base-repository.ts",
+      "violationId": "v-77e60c258e954f21",
+      "rule": "FF-P03/repository-pattern",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "cced3a8024a04ddc34533e8b",
+      "projectId": "devnica-clean-backend",
+      "style": "clean-architecture",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/infrastructure/express/api/routes/auth.router.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "target": "src/factories/auth/auth-controller-factory.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/infrastructure/express/api/routes/auth.router.ts (infrastructure) imports from src/factories/auth/auth-controller-factory.ts (main)",
+      "violationId": "v-c163f92a4f5baf2e",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "797aa8687cc346055adb8a68",
+      "projectId": "devnica-clean-backend",
+      "style": "clean-architecture",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/infrastructure/express/api/routes/auth.router.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "target": "src/factories/middlewares/request-parser-middleware-factory.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/infrastructure/express/api/routes/auth.router.ts (infrastructure) imports from src/factories/middlewares/request-parser-middleware-factory.ts (main)",
+      "violationId": "v-75cb5842247dd779",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "4a2923268760062885cdcc6e",
+      "projectId": "devnica-clean-backend",
+      "style": "clean-architecture",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/infrastructure/express/api/routes/user.router.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "target": "src/factories/auth/user-controller-factory.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/infrastructure/express/api/routes/user.router.ts (infrastructure) imports from src/factories/auth/user-controller-factory.ts (main)",
+      "violationId": "v-4e9f3c3d4394eb52",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "066d4214fe6eea3a02e81865",
+      "projectId": "devnica-clean-backend",
+      "style": "clean-architecture",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/infrastructure/express/api/routes/user.router.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "target": "src/factories/middlewares/auth-middleware-factory.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/infrastructure/express/api/routes/user.router.ts (infrastructure) imports from src/factories/middlewares/auth-middleware-factory.ts (main)",
+      "violationId": "v-bb9b28ecb1921284",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "d413f143926b2f5fe81908ba",
+      "projectId": "q00-api-server",
+      "style": "layered",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/model/APIlogs.ts,src/model/Users.ts,src/model/index.ts,src/model/APIlogs.ts",
+      "line": 3,
+      "target": "src/model/Users.ts",
+      "discriminator": [
+        "[\"src/model/APIlogs.ts\",\"src/model/Users.ts\",\"src/model/index.ts\",\"src/model/APIlogs.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/model/APIlogs.ts,src/model/Users.ts,src/model/index.ts,src/model/APIlogs.ts",
+      "violationId": "v-b4f3a4014cc81d9f",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "1a90dfdbac3e8e0bfd958f60",
+      "projectId": "q00-api-server",
+      "style": "layered",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/model/ExampleBoardComments.ts,src/model/ExampleBoardDepthComments.ts,src/model/ExampleBoardComments.ts",
+      "line": 5,
+      "target": "src/model/ExampleBoardDepthComments.ts",
+      "discriminator": [
+        "[\"src/model/ExampleBoardComments.ts\",\"src/model/ExampleBoardDepthComments.ts\",\"src/model/ExampleBoardComments.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/model/ExampleBoardComments.ts,src/model/ExampleBoardDepthComments.ts,src/model/ExampleBoardComments.ts",
+      "violationId": "v-7f608c8a60b9a6a8",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "8c0c1d925bce043172dda6a3",
+      "projectId": "q00-api-server",
+      "style": "layered",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/model/ExampleBoardComments.ts,src/model/ExampleBoardDepthComments.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoardComments.ts",
+      "line": 5,
+      "target": "src/model/ExampleBoardDepthComments.ts",
+      "discriminator": [
+        "[\"src/model/ExampleBoardComments.ts\",\"src/model/ExampleBoardDepthComments.ts\",\"src/model/Users.ts\",\"src/model/index.ts\",\"src/model/ExampleBoardComments.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/model/ExampleBoardComments.ts,src/model/ExampleBoardDepthComments.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoardComments.ts",
+      "violationId": "v-1d854e341968cddb",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "4fd7299367437dc5bd07f586",
+      "projectId": "q00-api-server",
+      "style": "layered",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/model/ExampleBoardComments.ts,src/model/ExampleBoardDepthComments.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoards.ts,src/model/ExampleBoardComments.ts",
+      "line": 5,
+      "target": "src/model/ExampleBoardDepthComments.ts",
+      "discriminator": [
+        "[\"src/model/ExampleBoardComments.ts\",\"src/model/ExampleBoardDepthComments.ts\",\"src/model/Users.ts\",\"src/model/index.ts\",\"src/model/ExampleBoards.ts\",\"src/model/ExampleBoardComments.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/model/ExampleBoardComments.ts,src/model/ExampleBoardDepthComments.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoards.ts,src/model/ExampleBoardComments.ts",
+      "violationId": "v-13bc97eb53b73d4b",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "7b8e6a64b27c298054fae0a0",
+      "projectId": "q00-api-server",
+      "style": "layered",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/model/ExampleBoardComments.ts,src/model/ExampleBoards.ts,src/model/ExampleBoardComments.ts",
+      "line": 3,
+      "target": "src/model/ExampleBoards.ts",
+      "discriminator": [
+        "[\"src/model/ExampleBoardComments.ts\",\"src/model/ExampleBoards.ts\",\"src/model/ExampleBoardComments.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/model/ExampleBoardComments.ts,src/model/ExampleBoards.ts,src/model/ExampleBoardComments.ts",
+      "violationId": "v-759e90d4bece46b9",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "4a71d0a2c0a225b5c6f032af",
+      "projectId": "q00-api-server",
+      "style": "layered",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/model/ExampleBoardComments.ts,src/model/ExampleBoards.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoardComments.ts",
+      "line": 3,
+      "target": "src/model/ExampleBoards.ts",
+      "discriminator": [
+        "[\"src/model/ExampleBoardComments.ts\",\"src/model/ExampleBoards.ts\",\"src/model/Users.ts\",\"src/model/index.ts\",\"src/model/ExampleBoardComments.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/model/ExampleBoardComments.ts,src/model/ExampleBoards.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoardComments.ts",
+      "violationId": "v-8ef011b97a1b2802",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "a462c706ba35b9458d34e59c",
+      "projectId": "q00-api-server",
+      "style": "layered",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/model/ExampleBoardComments.ts,src/model/ExampleBoards.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoardDepthComments.ts,src/model/ExampleBoardComments.ts",
+      "line": 3,
+      "target": "src/model/ExampleBoards.ts",
+      "discriminator": [
+        "[\"src/model/ExampleBoardComments.ts\",\"src/model/ExampleBoards.ts\",\"src/model/Users.ts\",\"src/model/index.ts\",\"src/model/ExampleBoardDepthComments.ts\",\"src/model/ExampleBoardComments.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/model/ExampleBoardComments.ts,src/model/ExampleBoards.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoardDepthComments.ts,src/model/ExampleBoardComments.ts",
+      "violationId": "v-78d34bf5b2ce082b",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "cf5236a2d893576cd74208a8",
+      "projectId": "q00-api-server",
+      "style": "layered",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/model/ExampleBoardComments.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoardComments.ts",
+      "line": 4,
+      "target": "src/model/Users.ts",
+      "discriminator": [
+        "[\"src/model/ExampleBoardComments.ts\",\"src/model/Users.ts\",\"src/model/index.ts\",\"src/model/ExampleBoardComments.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/model/ExampleBoardComments.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoardComments.ts",
+      "violationId": "v-3a2a93f5752542a9",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "63fad352d23f38e77c083636",
+      "projectId": "q00-api-server",
+      "style": "layered",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/model/ExampleBoardComments.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoardDepthComments.ts,src/model/ExampleBoardComments.ts",
+      "line": 4,
+      "target": "src/model/Users.ts",
+      "discriminator": [
+        "[\"src/model/ExampleBoardComments.ts\",\"src/model/Users.ts\",\"src/model/index.ts\",\"src/model/ExampleBoardDepthComments.ts\",\"src/model/ExampleBoardComments.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/model/ExampleBoardComments.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoardDepthComments.ts,src/model/ExampleBoardComments.ts",
+      "violationId": "v-3f2d6eb5c05a25eb",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "9d3d20e6f679476a80a25c18",
+      "projectId": "q00-api-server",
+      "style": "layered",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/model/ExampleBoardComments.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoards.ts,src/model/ExampleBoardComments.ts",
+      "line": 4,
+      "target": "src/model/Users.ts",
+      "discriminator": [
+        "[\"src/model/ExampleBoardComments.ts\",\"src/model/Users.ts\",\"src/model/index.ts\",\"src/model/ExampleBoards.ts\",\"src/model/ExampleBoardComments.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/model/ExampleBoardComments.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoards.ts,src/model/ExampleBoardComments.ts",
+      "violationId": "v-7d3c08aa0e7fd254",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "c07e0513fbcb0ffb385e1e86",
+      "projectId": "q00-api-server",
+      "style": "layered",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/model/ExampleBoardDepthComments.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoardDepthComments.ts",
+      "line": 4,
+      "target": "src/model/Users.ts",
+      "discriminator": [
+        "[\"src/model/ExampleBoardDepthComments.ts\",\"src/model/Users.ts\",\"src/model/index.ts\",\"src/model/ExampleBoardDepthComments.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/model/ExampleBoardDepthComments.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoardDepthComments.ts",
+      "violationId": "v-fcc2c335e61fe418",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "72cbb902e68743c8dcb9c2af",
+      "projectId": "q00-api-server",
+      "style": "layered",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/model/ExampleBoards.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoards.ts",
+      "line": 4,
+      "target": "src/model/Users.ts",
+      "discriminator": [
+        "[\"src/model/ExampleBoards.ts\",\"src/model/Users.ts\",\"src/model/index.ts\",\"src/model/ExampleBoards.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/model/ExampleBoards.ts,src/model/Users.ts,src/model/index.ts,src/model/ExampleBoards.ts",
+      "violationId": "v-6dac8fc0a06820bd",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "d4a8c302b507da1f90d87700",
+      "projectId": "q00-api-server",
+      "style": "layered",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/model/UserAccounts.ts,src/model/Users.ts,src/model/UserAccounts.ts",
+      "line": 3,
+      "target": "src/model/Users.ts",
+      "discriminator": [
+        "[\"src/model/UserAccounts.ts\",\"src/model/Users.ts\",\"src/model/UserAccounts.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/model/UserAccounts.ts,src/model/Users.ts,src/model/UserAccounts.ts",
+      "violationId": "v-a34f2acc64a2dfd2",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "4d737f884a8c4b32c7b701a9",
+      "projectId": "q00-api-server",
+      "style": "layered",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/model/UserAccounts.ts,src/model/Users.ts,src/model/index.ts,src/model/UserAccounts.ts",
+      "line": 3,
+      "target": "src/model/Users.ts",
+      "discriminator": [
+        "[\"src/model/UserAccounts.ts\",\"src/model/Users.ts\",\"src/model/index.ts\",\"src/model/UserAccounts.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/model/UserAccounts.ts,src/model/Users.ts,src/model/index.ts,src/model/UserAccounts.ts",
+      "violationId": "v-3be603a784d1540f",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "fc3f1492b69dc531d53843e8",
+      "projectId": "q00-api-server",
+      "style": "layered",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/model/Users.ts,src/model/index.ts,src/model/Users.ts",
+      "line": 12,
+      "target": "src/model/index.ts",
+      "discriminator": [
+        "[\"src/model/Users.ts\",\"src/model/index.ts\",\"src/model/Users.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/model/Users.ts,src/model/index.ts,src/model/Users.ts",
+      "violationId": "v-f11b6d6bed828a92",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "0a9cf4a4f508f2e74334a0c0",
+      "projectId": "q00-api-server",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/controller/BaseAuthController.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "target": "src/model/Enum.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controller/BaseAuthController.ts (presentation) skips layers to import src/model/Enum.ts (persistence)",
+      "violationId": "v-19c8edfa5d9e7077",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "8fadbd81ef7d458fbd6be55d",
+      "projectId": "q00-api-server",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/controller/BaseCommentController.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "target": "src/model/index.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controller/BaseCommentController.ts (presentation) skips layers to import src/model/index.ts (persistence)",
+      "violationId": "v-cb4e6cca773b6580",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "398c463458ecbb4a8dcd2b99",
+      "projectId": "q00-api-server",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/controller/ExampleBoardCommentController.ts",
+      "line": 14,
+      "lines": [
+        14
+      ],
+      "target": "src/model/index.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controller/ExampleBoardCommentController.ts (presentation) skips layers to import src/model/index.ts (persistence)",
+      "violationId": "v-37e89dc97319e005",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "16016ef98cbb6a82a647bf65",
+      "projectId": "q00-api-server",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/controller/ExampleBoardController.ts",
+      "line": 18,
+      "lines": [
+        18
+      ],
+      "target": "src/model/index.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controller/ExampleBoardController.ts (presentation) skips layers to import src/model/index.ts (persistence)",
+      "violationId": "v-ca27f3d6e778156c",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "35c446612d2a7606cb57625d",
+      "projectId": "q00-api-server",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/controller/ExampleBoardDepthCommentController.ts",
+      "line": 14,
+      "lines": [
+        14
+      ],
+      "target": "src/model/index.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controller/ExampleBoardDepthCommentController.ts (presentation) skips layers to import src/model/index.ts (persistence)",
+      "violationId": "v-6dfeae12c947e4aa",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "11dfbdfa9172eb379f31e043",
+      "projectId": "q00-api-server",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/controller/UserController.ts",
+      "line": 12,
+      "lines": [
+        12
+      ],
+      "target": "src/model/index.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controller/UserController.ts (presentation) skips layers to import src/model/index.ts (persistence)",
+      "violationId": "v-d4556ef864ee8506",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "f2cd9bc64f025d6317dacb53",
+      "projectId": "q00-api-server",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/dto/UserDTO.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "target": "src/model/Enum.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/dto/UserDTO.ts (presentation) skips layers to import src/model/Enum.ts (persistence)",
+      "violationId": "v-5712e2f5d1a2c76c",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "c45632010f63e9aaf8c0271d",
+      "projectId": "q00-api-server",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/middleware/WriteLog.ts",
+      "line": 6,
+      "lines": [
+        6
+      ],
+      "target": "src/model/Enum.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/middleware/WriteLog.ts (presentation) skips layers to import src/model/Enum.ts (persistence)",
+      "violationId": "v-8469a95440c7682c",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "c45cb0b9dfc54744ca0381e3",
+      "projectId": "q00-api-server",
+      "style": "layered",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "tier": "blocking",
+      "file": "src/service/BaseBoardService.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "target": "typeorm",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Domain file src/service/BaseBoardService.ts imports forbidden package typeorm",
+      "violationId": "v-21cd149666fbefb1",
+      "rule": "FF-P01/domain-purity",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "7c0ee845205216a2fac239e8",
+      "projectId": "q00-api-server",
+      "style": "layered",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "tier": "blocking",
+      "file": "src/service/BaseService.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "target": "typeorm",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Domain file src/service/BaseService.ts imports forbidden package typeorm",
+      "violationId": "v-57dc083d4e1a368a",
+      "rule": "FF-P01/domain-purity",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "a29aee0002e9451d924317e7",
+      "projectId": "bymi15-express-typeorm",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/api/middlewares/attachUser.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "target": "src/api/entities/User.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/api/middlewares/attachUser.ts (presentation) skips layers to import src/api/entities/User.ts (persistence)",
+      "violationId": "v-4c898e6a7fbe61c7",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "2fa9102b68e3f72f0438cb71",
+      "projectId": "bymi15-express-typeorm",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/api/middlewares/checkRole.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "target": "src/api/entities/User.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/api/middlewares/checkRole.ts (presentation) skips layers to import src/api/entities/User.ts (persistence)",
+      "violationId": "v-bd8e9c9e3426d034",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "2c79cfebf38bb79de836566b",
+      "projectId": "bymi15-express-typeorm",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/api/routes/company.ts",
+      "line": 6,
+      "lines": [
+        6
+      ],
+      "target": "src/api/entities/Company.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/api/routes/company.ts (presentation) skips layers to import src/api/entities/Company.ts (persistence)",
+      "violationId": "v-70879f578fc358c0",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "64f789558e0e6dc18ff222f8",
+      "projectId": "bymi15-express-typeorm",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/api/routes/jobApplication.ts",
+      "line": 6,
+      "lines": [
+        6
+      ],
+      "target": "src/api/entities/JobApplication.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/api/routes/jobApplication.ts (presentation) skips layers to import src/api/entities/JobApplication.ts (persistence)",
+      "violationId": "v-c8fd34e7846bae0d",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "274421ad3ef727c705c580bd",
+      "projectId": "bymi15-express-typeorm",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/api/routes/jobApplication.ts",
+      "line": 8,
+      "lines": [
+        8
+      ],
+      "target": "src/api/entities/User.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/api/routes/jobApplication.ts (presentation) skips layers to import src/api/entities/User.ts (persistence)",
+      "violationId": "v-a4b8127e9e6ad396",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "b6b553c57b440687d6a5845c",
+      "projectId": "bymi15-express-typeorm",
+      "style": "layered",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "tier": "blocking",
+      "file": "src/api/services/CRUD.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "target": "typeorm",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Domain file src/api/services/CRUD.ts imports forbidden package typeorm",
+      "violationId": "v-b19052b8b996b1d6",
+      "rule": "FF-P01/domain-purity",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "c7178d172ef8fbec1509f733",
+      "projectId": "bymi15-express-typeorm",
+      "style": "layered",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "tier": "blocking",
+      "file": "src/api/services/CompanyService.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "target": "typeorm",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Domain file src/api/services/CompanyService.ts imports forbidden package typeorm",
+      "violationId": "v-d95ededfe39eb0d1",
+      "rule": "FF-P01/domain-purity",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "2ba2e0f40922ee59ccbc2f17",
+      "projectId": "bymi15-express-typeorm",
+      "style": "layered",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "tier": "blocking",
+      "file": "src/api/services/JobApplicationService.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "target": "typeorm",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Domain file src/api/services/JobApplicationService.ts imports forbidden package typeorm",
+      "violationId": "v-286638ec731660bd",
+      "rule": "FF-P01/domain-purity",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "727dcab27bc4a19713d39b13",
+      "projectId": "bymi15-express-typeorm",
+      "style": "layered",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "tier": "blocking",
+      "file": "src/api/services/UserService.ts",
+      "line": 6,
+      "lines": [
+        6
+      ],
+      "target": "typeorm",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Domain file src/api/services/UserService.ts imports forbidden package typeorm",
+      "violationId": "v-cf5e482a6b58d916",
+      "rule": "FF-P01/domain-purity",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "3bbc1eef1d1c9b2bb1a31423",
+      "projectId": "pallavi-twitter-backend",
+      "style": "layered",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/controllers/access/login.controller.ts",
+      "line": 7,
+      "lines": [
+        7
+      ],
+      "target": "src/middlewares/asyncHandler.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controllers/access/login.controller.ts (business) imports from src/middlewares/asyncHandler.ts (presentation)",
+      "violationId": "v-5a028cc425688f5c",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "79865176e37f81e8f96cd05c",
+      "projectId": "pallavi-twitter-backend",
+      "style": "layered",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/controllers/access/signup.controller.ts",
+      "line": 9,
+      "lines": [
+        9
+      ],
+      "target": "src/middlewares/asyncHandler.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controllers/access/signup.controller.ts (business) imports from src/middlewares/asyncHandler.ts (presentation)",
+      "violationId": "v-e851a6020cc8d8b2",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "65b463dae9889a78e043943f",
+      "projectId": "pallavi-twitter-backend",
+      "style": "layered",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/controllers/access/token.controller.ts",
+      "line": 8,
+      "lines": [
+        8
+      ],
+      "target": "src/middlewares/asyncHandler.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controllers/access/token.controller.ts (business) imports from src/middlewares/asyncHandler.ts (presentation)",
+      "violationId": "v-e018ab7e10de6294",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "9b6ab92cf69a28593385b5fe",
+      "projectId": "pallavi-twitter-backend",
+      "style": "layered",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/controllers/follow/follow.controller.ts",
+      "line": 6,
+      "lines": [
+        6
+      ],
+      "target": "src/middlewares/asyncHandler.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controllers/follow/follow.controller.ts (business) imports from src/middlewares/asyncHandler.ts (presentation)",
+      "violationId": "v-c1c5d369a02ac99e",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "9e533aff3161346f0668454d",
+      "projectId": "pallavi-twitter-backend",
+      "style": "layered",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/controllers/follow/followers.controller.ts",
+      "line": 5,
+      "lines": [
+        5
+      ],
+      "target": "src/middlewares/asyncHandler.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controllers/follow/followers.controller.ts (business) imports from src/middlewares/asyncHandler.ts (presentation)",
+      "violationId": "v-1b2777de148461be",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "c68d80235a1c1e8658f9390d",
+      "projectId": "pallavi-twitter-backend",
+      "style": "layered",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/controllers/follow/followings.controller.ts",
+      "line": 5,
+      "lines": [
+        5
+      ],
+      "target": "src/middlewares/asyncHandler.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controllers/follow/followings.controller.ts (business) imports from src/middlewares/asyncHandler.ts (presentation)",
+      "violationId": "v-1d5ec4853ca80574",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "014f05e3f5b19dc6a4e8cc04",
+      "projectId": "pallavi-twitter-backend",
+      "style": "layered",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/controllers/follow/unfollow.controller.ts",
+      "line": 6,
+      "lines": [
+        6
+      ],
+      "target": "src/middlewares/asyncHandler.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controllers/follow/unfollow.controller.ts (business) imports from src/middlewares/asyncHandler.ts (presentation)",
+      "violationId": "v-d629d4aa0a01d9c8",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "25001ad97e8af122f4457398",
+      "projectId": "pallavi-twitter-backend",
+      "style": "layered",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/controllers/like/like.controller.ts",
+      "line": 8,
+      "lines": [
+        8
+      ],
+      "target": "src/middlewares/asyncHandler.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controllers/like/like.controller.ts (business) imports from src/middlewares/asyncHandler.ts (presentation)",
+      "violationId": "v-eb412c08b9460f77",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "6b0dde24f8b7510a6ca2366f",
+      "projectId": "pallavi-twitter-backend",
+      "style": "layered",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/controllers/profile/profile.controller.ts",
+      "line": 6,
+      "lines": [
+        6
+      ],
+      "target": "src/middlewares/asyncHandler.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controllers/profile/profile.controller.ts (business) imports from src/middlewares/asyncHandler.ts (presentation)",
+      "violationId": "v-1a6b9187c1a4ce44",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "99052b3265097aeaf6daf928",
+      "projectId": "pallavi-twitter-backend",
+      "style": "layered",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/controllers/tweet/feed.controller.ts",
+      "line": 6,
+      "lines": [
+        6
+      ],
+      "target": "src/middlewares/asyncHandler.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controllers/tweet/feed.controller.ts (business) imports from src/middlewares/asyncHandler.ts (presentation)",
+      "violationId": "v-da8955e767094b4d",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "860167aebb36955770009044",
+      "projectId": "pallavi-twitter-backend",
+      "style": "layered",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/controllers/tweet/tweet.controller.ts",
+      "line": 8,
+      "lines": [
+        8
+      ],
+      "target": "src/middlewares/asyncHandler.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controllers/tweet/tweet.controller.ts (business) imports from src/middlewares/asyncHandler.ts (presentation)",
+      "violationId": "v-8681d0c0849721d6",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "1b66ffad4b5b0d80a715aaee",
+      "projectId": "pallavi-twitter-backend",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/controllers/access/login.controller.ts",
+      "line": 7,
+      "lines": [
+        7
+      ],
+      "target": "src/middlewares/asyncHandler.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controllers/access/login.controller.ts (business) skips layers to import src/middlewares/asyncHandler.ts (presentation)",
+      "violationId": "v-5413e5fea9c9ecb3",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "b153cac3cd8bb0703735e088",
+      "projectId": "pallavi-twitter-backend",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/controllers/access/signup.controller.ts",
+      "line": 9,
+      "lines": [
+        9
+      ],
+      "target": "src/middlewares/asyncHandler.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controllers/access/signup.controller.ts (business) skips layers to import src/middlewares/asyncHandler.ts (presentation)",
+      "violationId": "v-a4e82eafe31ad9a2",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "c060e44731c3b8982aa6886f",
+      "projectId": "pallavi-twitter-backend",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/controllers/access/token.controller.ts",
+      "line": 8,
+      "lines": [
+        8
+      ],
+      "target": "src/middlewares/asyncHandler.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controllers/access/token.controller.ts (business) skips layers to import src/middlewares/asyncHandler.ts (presentation)",
+      "violationId": "v-f2c45150d68c53b7",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "625045d67898b1a0373c4594",
+      "projectId": "pallavi-twitter-backend",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/controllers/follow/follow.controller.ts",
+      "line": 6,
+      "lines": [
+        6
+      ],
+      "target": "src/middlewares/asyncHandler.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controllers/follow/follow.controller.ts (business) skips layers to import src/middlewares/asyncHandler.ts (presentation)",
+      "violationId": "v-48eef545e9a95abe",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "43cf78f5cd68cc7d5e82caea",
+      "projectId": "pallavi-twitter-backend",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/controllers/follow/followers.controller.ts",
+      "line": 5,
+      "lines": [
+        5
+      ],
+      "target": "src/middlewares/asyncHandler.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controllers/follow/followers.controller.ts (business) skips layers to import src/middlewares/asyncHandler.ts (presentation)",
+      "violationId": "v-2fe35106ac6aae41",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "9bbf80277c00fa517e0785e2",
+      "projectId": "pallavi-twitter-backend",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/controllers/follow/followings.controller.ts",
+      "line": 5,
+      "lines": [
+        5
+      ],
+      "target": "src/middlewares/asyncHandler.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controllers/follow/followings.controller.ts (business) skips layers to import src/middlewares/asyncHandler.ts (presentation)",
+      "violationId": "v-fecb2d73eb6c93d7",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "4bbb35ac3b4bacfd49949e45",
+      "projectId": "pallavi-twitter-backend",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/controllers/follow/unfollow.controller.ts",
+      "line": 6,
+      "lines": [
+        6
+      ],
+      "target": "src/middlewares/asyncHandler.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controllers/follow/unfollow.controller.ts (business) skips layers to import src/middlewares/asyncHandler.ts (presentation)",
+      "violationId": "v-4a8a9e3f8483b1f4",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "9d9ecb42d485abf2e3686601",
+      "projectId": "pallavi-twitter-backend",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/controllers/like/like.controller.ts",
+      "line": 8,
+      "lines": [
+        8
+      ],
+      "target": "src/middlewares/asyncHandler.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controllers/like/like.controller.ts (business) skips layers to import src/middlewares/asyncHandler.ts (presentation)",
+      "violationId": "v-3b4d7ca905f49c1a",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "65fe2f11f9a6d90b5c3162ff",
+      "projectId": "pallavi-twitter-backend",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/controllers/profile/profile.controller.ts",
+      "line": 6,
+      "lines": [
+        6
+      ],
+      "target": "src/middlewares/asyncHandler.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controllers/profile/profile.controller.ts (business) skips layers to import src/middlewares/asyncHandler.ts (presentation)",
+      "violationId": "v-cd82d2dfe9b2a5ca",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "6ce48cb948f96ea1d537f44d",
+      "projectId": "pallavi-twitter-backend",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/controllers/tweet/feed.controller.ts",
+      "line": 6,
+      "lines": [
+        6
+      ],
+      "target": "src/middlewares/asyncHandler.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controllers/tweet/feed.controller.ts (business) skips layers to import src/middlewares/asyncHandler.ts (presentation)",
+      "violationId": "v-3fa4dbef445c10a9",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "1433bd2dc99e488de05b6ca7",
+      "projectId": "pallavi-twitter-backend",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/controllers/tweet/tweet.controller.ts",
+      "line": 8,
+      "lines": [
+        8
+      ],
+      "target": "src/middlewares/asyncHandler.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/controllers/tweet/tweet.controller.ts (business) skips layers to import src/middlewares/asyncHandler.ts (presentation)",
+      "violationId": "v-9cb3c15ee721dc9d",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "af7ddcf5b1c2ae835f8785a5",
+      "projectId": "pallavi-twitter-backend",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/middlewares/apikey.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "target": "src/database/repository/ApiKeyRepo.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/middlewares/apikey.ts (presentation) skips layers to import src/database/repository/ApiKeyRepo.ts (persistence)",
+      "violationId": "v-53ee11e235886ad9",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "16a563cf66180f3700be7775",
+      "projectId": "pallavi-twitter-backend",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/middlewares/authentication.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "target": "src/database/repository/UserRepo.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/middlewares/authentication.ts (presentation) skips layers to import src/database/repository/UserRepo.ts (persistence)",
+      "violationId": "v-f029ff367ee61b95",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "50b5a6217d3be41ae76a5301",
+      "projectId": "firmanjs-express-template",
+      "style": "layered",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "type": "LAYER_SKIP",
+      "tier": "blocking",
+      "file": "src/transport/rest/handler/auth_handler.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "target": "src/db/models/Users.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/transport/rest/handler/auth_handler.ts (presentation) skips layers to import src/db/models/Users.ts (persistence)",
+      "violationId": "v-9b7eceb46239e4b6",
+      "rule": "FF-S03/no-layer-skip",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "e049a44fa4ad63e83e2560b1",
+      "projectId": "firmanjs-express-template",
+      "style": "layered",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "tier": "blocking",
+      "file": "src/usecase/country_usecase.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "target": "express",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Domain file src/usecase/country_usecase.ts imports forbidden package express",
+      "violationId": "v-705d94cb1343a32f",
+      "rule": "FF-P01/domain-purity",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "552e4a4ce2cffec169401de2",
+      "projectId": "firmanjs-express-template",
+      "style": "layered",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "tier": "blocking",
+      "file": "src/usecase/users_usecase.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "target": "express",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Domain file src/usecase/users_usecase.ts imports forbidden package express",
+      "violationId": "v-ec6dbccf012e6dd2",
+      "rule": "FF-P01/domain-purity",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "56e98d6849b58aace5705e67",
+      "projectId": "neosoft-rest-nestjs",
+      "style": "nestjs",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/core/auth/jwt.strategy.ts",
+      "line": 6,
+      "lines": [
+        6
+      ],
+      "target": "src/feature/users/services/users.service.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/core/auth/jwt.strategy.ts (infrastructure) imports from src/feature/users/services/users.service.ts (application)",
+      "violationId": "v-22e4fcf6d6d82e4d",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "d9e0ec7b69ee80e3963fdbac",
+      "projectId": "neosoft-rest-nestjs",
+      "style": "nestjs",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/feature/users/repository/db/user.repository.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "target": "src/feature/users/dto/create.user.dto.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/feature/users/repository/db/user.repository.ts (infrastructure) imports from src/feature/users/dto/create.user.dto.ts (application)",
+      "violationId": "v-db4a5fdff8da9ab6",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "cf8b80b8003885872f03c6de",
+      "projectId": "neosoft-rest-nestjs",
+      "style": "nestjs",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/feature/users/repository/db/user.repository.ts",
+      "line": 5,
+      "lines": [
+        5
+      ],
+      "target": "src/feature/users/dto/update.user.dto.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/feature/users/repository/db/user.repository.ts (infrastructure) imports from src/feature/users/dto/update.user.dto.ts (application)",
+      "violationId": "v-985e8c9911016cf5",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "392447f507f6093a7e9f5e07",
+      "projectId": "neosoft-rest-nestjs",
+      "style": "nestjs",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/feature/users/repository/user.repository.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "target": "src/feature/users/dto/create.user.dto.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/feature/users/repository/user.repository.ts (infrastructure) imports from src/feature/users/dto/create.user.dto.ts (application)",
+      "violationId": "v-e9e6dca586515c64",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "6638ebd9298e553f3bbb41c6",
+      "projectId": "neosoft-rest-nestjs",
+      "style": "nestjs",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/feature/users/repository/user.repository.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "target": "src/feature/users/dto/update.user.dto.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/feature/users/repository/user.repository.ts (infrastructure) imports from src/feature/users/dto/update.user.dto.ts (application)",
+      "violationId": "v-7d168dcb470d61bc",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "555ea91489be815290e8ead5",
+      "projectId": "neosoft-rest-nestjs",
+      "style": "nestjs",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "tier": "blocking",
+      "file": "src/feature/users/entities/user.entity.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "target": "typeorm",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Domain file src/feature/users/entities/user.entity.ts imports forbidden package typeorm",
+      "violationId": "v-64f48d9695f280be",
+      "rule": "FF-P01/domain-purity",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "4d68bb6a022676ee58bc7fcf",
+      "projectId": "ruslanguns-nestjs-starter",
+      "style": "nestjs",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/modules/auth/strategies/jwt.strategy.ts",
+      "line": 6,
+      "lines": [
+        6
+      ],
+      "target": "src/modules/auth/auth.service.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/auth/strategies/jwt.strategy.ts (infrastructure) imports from src/modules/auth/auth.service.ts (application)",
+      "violationId": "v-a065923b7febb086",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "8b6c3e260758e41acc309769",
+      "projectId": "ruslanguns-nestjs-starter",
+      "style": "nestjs",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/modules/auth/strategies/local.strategy.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "target": "src/modules/auth/auth.service.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/auth/strategies/local.strategy.ts (infrastructure) imports from src/modules/auth/auth.service.ts (application)",
+      "violationId": "v-b6f1a2eefae73969",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "f115726611170e13f94bd9c8",
+      "projectId": "ruslanguns-nestjs-starter",
+      "style": "nestjs",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/modules/users/dto/index.ts,src/modules/users/dto/update-contact-phone.dto.ts,src/modules/users/dto/index.ts",
+      "line": 8,
+      "target": "src/modules/users/dto/update-contact-phone.dto.ts",
+      "discriminator": [
+        "[\"src/modules/users/dto/index.ts\",\"src/modules/users/dto/update-contact-phone.dto.ts\",\"src/modules/users/dto/index.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/modules/users/dto/index.ts,src/modules/users/dto/update-contact-phone.dto.ts,src/modules/users/dto/index.ts",
+      "violationId": "v-9566589a907bdce3",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "fa87709df96bf72b1dc596f8",
+      "projectId": "ruslanguns-nestjs-starter",
+      "style": "nestjs",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/modules/users/dto/index.ts,src/modules/users/dto/update-user-metadata.dto.ts,src/modules/users/dto/index.ts",
+      "line": 9,
+      "target": "src/modules/users/dto/update-user-metadata.dto.ts",
+      "discriminator": [
+        "[\"src/modules/users/dto/index.ts\",\"src/modules/users/dto/update-user-metadata.dto.ts\",\"src/modules/users/dto/index.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/modules/users/dto/index.ts,src/modules/users/dto/update-user-metadata.dto.ts,src/modules/users/dto/index.ts",
+      "violationId": "v-86d0f9969eabf4fa",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "8def43a199c03ef28eb17cee",
+      "projectId": "ruslanguns-nestjs-starter",
+      "style": "nestjs",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/contact-address.entity.ts,src/modules/users/entities/contact-info.entity.ts,src/modules/users/entities/contact-address.entity.ts",
+      "line": 5,
+      "target": "src/modules/users/entities/contact-info.entity.ts",
+      "discriminator": [
+        "[\"src/modules/users/entities/contact-address.entity.ts\",\"src/modules/users/entities/contact-info.entity.ts\",\"src/modules/users/entities/contact-address.entity.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/modules/users/entities/contact-address.entity.ts,src/modules/users/entities/contact-info.entity.ts,src/modules/users/entities/contact-address.entity.ts",
+      "violationId": "v-6831cdeb88c1ed03",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "4cfa4efc7d353fc065186172",
+      "projectId": "ruslanguns-nestjs-starter",
+      "style": "nestjs",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/contact-address.entity.ts,src/modules/users/entities/contact-info.entity.ts,src/modules/users/entities/user.entity.ts,src/modules/users/entities/user-metadata.entity.ts,src/modules/users/entities/index.ts,src/modules/users/entities/contact-address.entity.ts",
+      "line": 5,
+      "target": "src/modules/users/entities/contact-info.entity.ts",
+      "discriminator": [
+        "[\"src/modules/users/entities/contact-address.entity.ts\",\"src/modules/users/entities/contact-info.entity.ts\",\"src/modules/users/entities/user.entity.ts\",\"src/modules/users/entities/user-metadata.entity.ts\",\"src/modules/users/entities/index.ts\",\"src/modules/users/entities/contact-address.entity.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/modules/users/entities/contact-address.entity.ts,src/modules/users/entities/contact-info.entity.ts,src/modules/users/entities/user.entity.ts,src/modules/users/entities/user-metadata.entity.ts,src/modules/users/entities/index.ts,src/modules/users/entities/contact-address.entity.ts",
+      "violationId": "v-b668b5c9d533b41e",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "02700025082e97b33d00084d",
+      "projectId": "ruslanguns-nestjs-starter",
+      "style": "nestjs",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/contact-info.entity.ts,src/modules/users/entities/contact-phone.entity.ts,src/modules/users/entities/contact-info.entity.ts",
+      "line": 9,
+      "target": "src/modules/users/entities/contact-phone.entity.ts",
+      "discriminator": [
+        "[\"src/modules/users/entities/contact-info.entity.ts\",\"src/modules/users/entities/contact-phone.entity.ts\",\"src/modules/users/entities/contact-info.entity.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/modules/users/entities/contact-info.entity.ts,src/modules/users/entities/contact-phone.entity.ts,src/modules/users/entities/contact-info.entity.ts",
+      "violationId": "v-897d98b12bfa8a77",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "4b6423aedc76f74881f00278",
+      "projectId": "ruslanguns-nestjs-starter",
+      "style": "nestjs",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/contact-info.entity.ts,src/modules/users/entities/user.entity.ts,src/modules/users/entities/contact-info.entity.ts",
+      "line": 7,
+      "target": "src/modules/users/entities/user.entity.ts",
+      "discriminator": [
+        "[\"src/modules/users/entities/contact-info.entity.ts\",\"src/modules/users/entities/user.entity.ts\",\"src/modules/users/entities/contact-info.entity.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/modules/users/entities/contact-info.entity.ts,src/modules/users/entities/user.entity.ts,src/modules/users/entities/contact-info.entity.ts",
+      "violationId": "v-9945b34d158b7edc",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "b1dccd652a7fdb5a5cf31e78",
+      "projectId": "ruslanguns-nestjs-starter",
+      "style": "nestjs",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/contact-info.entity.ts,src/modules/users/entities/user.entity.ts,src/modules/users/entities/user-metadata.entity.ts,src/modules/users/entities/index.ts,src/modules/users/entities/contact-info.entity.ts",
+      "line": 7,
+      "target": "src/modules/users/entities/user.entity.ts",
+      "discriminator": [
+        "[\"src/modules/users/entities/contact-info.entity.ts\",\"src/modules/users/entities/user.entity.ts\",\"src/modules/users/entities/user-metadata.entity.ts\",\"src/modules/users/entities/index.ts\",\"src/modules/users/entities/contact-info.entity.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/modules/users/entities/contact-info.entity.ts,src/modules/users/entities/user.entity.ts,src/modules/users/entities/user-metadata.entity.ts,src/modules/users/entities/index.ts,src/modules/users/entities/contact-info.entity.ts",
+      "violationId": "v-9c35c15e47cca075",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "7664ba90e7f6fc2a30cc5143",
+      "projectId": "ruslanguns-nestjs-starter",
+      "style": "nestjs",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/contact-info.entity.ts,src/modules/users/entities/user.entity.ts,src/modules/users/entities/user-metadata.entity.ts,src/modules/users/entities/index.ts,src/modules/users/entities/contact-phone.entity.ts,src/modules/users/entities/contact-info.entity.ts",
+      "line": 7,
+      "target": "src/modules/users/entities/user.entity.ts",
+      "discriminator": [
+        "[\"src/modules/users/entities/contact-info.entity.ts\",\"src/modules/users/entities/user.entity.ts\",\"src/modules/users/entities/user-metadata.entity.ts\",\"src/modules/users/entities/index.ts\",\"src/modules/users/entities/contact-phone.entity.ts\",\"src/modules/users/entities/contact-info.entity.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/modules/users/entities/contact-info.entity.ts,src/modules/users/entities/user.entity.ts,src/modules/users/entities/user-metadata.entity.ts,src/modules/users/entities/index.ts,src/modules/users/entities/contact-phone.entity.ts,src/modules/users/entities/contact-info.entity.ts",
+      "violationId": "v-aac0da82980e6ed9",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "32c6d6a1dac6135226455118",
+      "projectId": "ruslanguns-nestjs-starter",
+      "style": "nestjs",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/index.ts,src/modules/users/entities/user-metadata.entity.ts,src/modules/users/entities/index.ts",
+      "line": 2,
+      "target": "src/modules/users/entities/user-metadata.entity.ts",
+      "discriminator": [
+        "[\"src/modules/users/entities/index.ts\",\"src/modules/users/entities/user-metadata.entity.ts\",\"src/modules/users/entities/index.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/modules/users/entities/index.ts,src/modules/users/entities/user-metadata.entity.ts,src/modules/users/entities/index.ts",
+      "violationId": "v-29763367641014a4",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "ad8f9d5ad3bb915f24882aa5",
+      "projectId": "ruslanguns-nestjs-starter",
+      "style": "nestjs",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/index.ts,src/modules/users/entities/user.entity.ts,src/modules/users/entities/user-metadata.entity.ts,src/modules/users/entities/index.ts",
+      "line": 1,
+      "target": "src/modules/users/entities/user.entity.ts",
+      "discriminator": [
+        "[\"src/modules/users/entities/index.ts\",\"src/modules/users/entities/user.entity.ts\",\"src/modules/users/entities/user-metadata.entity.ts\",\"src/modules/users/entities/index.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/modules/users/entities/index.ts,src/modules/users/entities/user.entity.ts,src/modules/users/entities/user-metadata.entity.ts,src/modules/users/entities/index.ts",
+      "violationId": "v-32a92f9b3aaa5784",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "1b36d81d963f314eea6314ae",
+      "projectId": "ruslanguns-nestjs-starter",
+      "style": "nestjs",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "tier": "blocking",
+      "file": "src/common/abstracts/entities/base.entity.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "target": "typeorm",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Domain file src/common/abstracts/entities/base.entity.ts imports forbidden package typeorm",
+      "violationId": "v-ec7838489880bec1",
+      "rule": "FF-P01/domain-purity",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "53c7b63c34397a9241ff2fa4",
+      "projectId": "ruslanguns-nestjs-starter",
+      "style": "nestjs",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "tier": "blocking",
+      "file": "src/common/abstracts/entities/metadata.base.entity.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "target": "typeorm",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Domain file src/common/abstracts/entities/metadata.base.entity.ts imports forbidden package typeorm",
+      "violationId": "v-f334f81d9a159b94",
+      "rule": "FF-P01/domain-purity",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "52a37fd0debc0ff7c1a6fb89",
+      "projectId": "ruslanguns-nestjs-starter",
+      "style": "nestjs",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/contact-address.entity.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "target": "typeorm",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Domain file src/modules/users/entities/contact-address.entity.ts imports forbidden package typeorm",
+      "violationId": "v-7432b68876046cd0",
+      "rule": "FF-P01/domain-purity",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "f55e154a1fb57db19598cfd8",
+      "projectId": "ruslanguns-nestjs-starter",
+      "style": "nestjs",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/contact-info.entity.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "target": "typeorm",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Domain file src/modules/users/entities/contact-info.entity.ts imports forbidden package typeorm",
+      "violationId": "v-f71bb9a217d99a62",
+      "rule": "FF-P01/domain-purity",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "ebba3185d0b3fb636bfe74be",
+      "projectId": "ruslanguns-nestjs-starter",
+      "style": "nestjs",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/contact-phone.entity.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "target": "typeorm",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Domain file src/modules/users/entities/contact-phone.entity.ts imports forbidden package typeorm",
+      "violationId": "v-e143ac2801a1f832",
+      "rule": "FF-P01/domain-purity",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "cd0ca0a6444bc7265be2bba5",
+      "projectId": "ruslanguns-nestjs-starter",
+      "style": "nestjs",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/user-metadata.entity.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "target": "typeorm",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Domain file src/modules/users/entities/user-metadata.entity.ts imports forbidden package typeorm",
+      "violationId": "v-1d69fd2e21af6f22",
+      "rule": "FF-P01/domain-purity",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "3431a40cc0a8ecd303458a3c",
+      "projectId": "ruslanguns-nestjs-starter",
+      "style": "nestjs",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "tier": "blocking",
+      "file": "src/modules/users/entities/user.entity.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "target": "typeorm",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Domain file src/modules/users/entities/user.entity.ts imports forbidden package typeorm",
+      "violationId": "v-7d86ab43ba7107c4",
+      "rule": "FF-P01/domain-purity",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "a352644ad244c94bd0c60ca5",
+      "projectId": "surgeharb-nestjs",
+      "style": "nestjs",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/auth/jwt.strategy.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "target": "src/auth/auth.service.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/auth/jwt.strategy.ts (infrastructure) imports from src/auth/auth.service.ts (application)",
+      "violationId": "v-8fc170f0a38bed94",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "f833466ca224b7741b26e0d5",
+      "projectId": "innei-nest-http",
+      "style": "nestjs",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/common/filters/any-exception.filter.ts",
+      "line": 20,
+      "lines": [
+        20
+      ],
+      "target": "src/common/interceptors/logging.interceptor.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/common/filters/any-exception.filter.ts (infrastructure) imports from src/common/interceptors/logging.interceptor.ts (presentation)",
+      "violationId": "v-83a01f1372271058",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "1becb2cda4a94b4fef176d87",
+      "projectId": "innei-nest-http",
+      "style": "nestjs",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/modules/auth/jwt.strategy.ts",
+      "line": 6,
+      "lines": [
+        6
+      ],
+      "target": "src/modules/auth/auth.module.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/auth/jwt.strategy.ts (infrastructure) imports from src/modules/auth/auth.module.ts (presentation)",
+      "violationId": "v-a749ecd2094cb665",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "bb26c2bd71d342b92101ad0e",
+      "projectId": "innei-nest-http",
+      "style": "nestjs",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/modules/auth/jwt.strategy.ts",
+      "line": 7,
+      "lines": [
+        7
+      ],
+      "target": "src/modules/auth/auth.service.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/auth/jwt.strategy.ts (infrastructure) imports from src/modules/auth/auth.service.ts (application)",
+      "violationId": "v-d99b9bea1957305c",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "7cfc57a2d04803ccbb28e83d",
+      "projectId": "innei-nest-http",
+      "style": "nestjs",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/modules/auth/auth.module.ts,src/modules/auth/jwt.strategy.ts,src/modules/auth/auth.module.ts",
+      "line": 9,
+      "target": "src/modules/auth/jwt.strategy.ts",
+      "discriminator": [
+        "[\"src/modules/auth/auth.module.ts\",\"src/modules/auth/jwt.strategy.ts\",\"src/modules/auth/auth.module.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/modules/auth/auth.module.ts,src/modules/auth/jwt.strategy.ts,src/modules/auth/auth.module.ts",
+      "violationId": "v-5fe451928560154c",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "b21b5a805e69a3d1836d8eec",
+      "projectId": "tannergabriel-nest-graphql",
+      "style": "nestjs",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "type": "LAYER_VIOLATION",
+      "tier": "blocking",
+      "file": "src/auth/strategy/jwt.strategy.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "target": "src/auth/auth.service.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/auth/strategy/jwt.strategy.ts (infrastructure) imports from src/auth/auth.service.ts (application)",
+      "violationId": "v-1ceb6020a41da221",
+      "rule": "FF-S01/dependency-direction",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "356b7562f4b8c05197defbbd",
+      "projectId": "nalhin-movies",
+      "style": "hexagonal",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.entity.ts,src/movie/adapter/out/persistance/movie/movie.entity.ts,src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.entity.ts",
+      "line": 10,
+      "target": "src/movie/adapter/out/persistance/movie/movie.entity.ts",
+      "discriminator": [
+        "[\"src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.entity.ts\",\"src/movie/adapter/out/persistance/movie/movie.entity.ts\",\"src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.entity.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.entity.ts,src/movie/adapter/out/persistance/movie/movie.entity.ts,src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.entity.ts",
+      "violationId": "v-c37a05191bd2a744",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "96ef45607b944fc3f727b22d",
+      "projectId": "nalhin-movies",
+      "style": "hexagonal",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/movie/adapter/out/persistance/movie-rating/movie-rating.entity.ts,src/movie/adapter/out/persistance/movie/movie.entity.ts,src/movie/adapter/out/persistance/movie-rating/movie-rating.entity.ts",
+      "line": 11,
+      "target": "src/movie/adapter/out/persistance/movie/movie.entity.ts",
+      "discriminator": [
+        "[\"src/movie/adapter/out/persistance/movie-rating/movie-rating.entity.ts\",\"src/movie/adapter/out/persistance/movie/movie.entity.ts\",\"src/movie/adapter/out/persistance/movie-rating/movie-rating.entity.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/movie/adapter/out/persistance/movie-rating/movie-rating.entity.ts,src/movie/adapter/out/persistance/movie/movie.entity.ts,src/movie/adapter/out/persistance/movie-rating/movie-rating.entity.ts",
+      "violationId": "v-304bda171cd590f4",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "81a45054662fac7468e2170b",
+      "projectId": "nalhin-movies",
+      "style": "hexagonal",
+      "ruleId": "FF-P03",
+      "template": "port-adapter-pattern",
+      "type": "CUSTOM_port-adapter-pattern",
+      "tier": "blocking",
+      "file": "src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.repository.ts",
+      "discriminator": [
+        "MovieFavouriteByUserRepository"
+      ],
+      "evidence": [],
+      "message": "Violation in src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.repository.ts",
+      "violationId": "v-c0280cfb85cab2d2",
+      "rule": "FF-P03/port-adapter-pattern",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "3e8409452c1c0a0dbba78ce1",
+      "projectId": "nalhin-movies",
+      "style": "hexagonal",
+      "ruleId": "FF-P03",
+      "template": "port-adapter-pattern",
+      "type": "CUSTOM_port-adapter-pattern",
+      "tier": "blocking",
+      "file": "src/movie/adapter/out/persistance/movie-rating/movie-rating.repository.ts",
+      "discriminator": [
+        "MovieRatingRepository"
+      ],
+      "evidence": [],
+      "message": "Violation in src/movie/adapter/out/persistance/movie-rating/movie-rating.repository.ts",
+      "violationId": "v-5656cbcc786966a0",
+      "rule": "FF-P03/port-adapter-pattern",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "b9ab9c4cd855cdc3c3ec6000",
+      "projectId": "nalhin-movies",
+      "style": "hexagonal",
+      "ruleId": "FF-P03",
+      "template": "port-adapter-pattern",
+      "type": "CUSTOM_port-adapter-pattern",
+      "tier": "blocking",
+      "file": "src/movie/adapter/out/persistance/movie/movie.repository.ts",
+      "discriminator": [
+        "MovieRepository"
+      ],
+      "evidence": [],
+      "message": "Violation in src/movie/adapter/out/persistance/movie/movie.repository.ts",
+      "violationId": "v-d6fecf84b4d3a81d",
+      "rule": "FF-P03/port-adapter-pattern",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "b859e443ad88995dd469d361",
+      "projectId": "nalhin-movies",
+      "style": "hexagonal",
+      "ruleId": "FF-P03",
+      "template": "port-adapter-pattern",
+      "type": "CUSTOM_port-adapter-pattern",
+      "tier": "blocking",
+      "file": "src/user/adapter/out/persistance/database/user.repository.ts",
+      "discriminator": [
+        "UserRepository"
+      ],
+      "evidence": [],
+      "message": "Violation in src/user/adapter/out/persistance/database/user.repository.ts",
+      "violationId": "v-98d185720cd2e015",
+      "rule": "FF-P03/port-adapter-pattern",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "4749c85c636db19f39f55ccf",
+      "projectId": "hexagonal-banking",
+      "style": "hexagonal",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/core/domain/account/account-service.adapter.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "target": "src/core/use-case/account/close-account.port.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/core/domain/account/account-service.adapter.ts (domain) imports against the allowed direction from src/core/use-case/account/close-account.port.ts (application)",
+      "violationId": "v-3d580b5254146622",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "3c64ff2198d466ee18c5aa1f",
+      "projectId": "hexagonal-banking",
+      "style": "hexagonal",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/core/domain/account/account-service.adapter.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "target": "src/core/use-case/account/open-account.port.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/core/domain/account/account-service.adapter.ts (domain) imports against the allowed direction from src/core/use-case/account/open-account.port.ts (application)",
+      "violationId": "v-fb496ad3ba11a7d3",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "faa32b19912f19ddcfb7ba10",
+      "projectId": "hexagonal-banking",
+      "style": "hexagonal",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/core/domain/account/account-service.adapter.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "target": "src/core/use-case/account/perform-debit.port.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/core/domain/account/account-service.adapter.ts (domain) imports against the allowed direction from src/core/use-case/account/perform-debit.port.ts (application)",
+      "violationId": "v-5fabab3d9f952c27",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "6cf7e7c4ec2f4340f83102e1",
+      "projectId": "hexagonal-banking",
+      "style": "hexagonal",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/core/domain/account/account-service.adapter.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "target": "src/core/use-case/account/view-current-balance.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/core/domain/account/account-service.adapter.ts (domain) imports against the allowed direction from src/core/use-case/account/view-current-balance.ts (application)",
+      "violationId": "v-a2123bd6c109644d",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "9c0165689f625b833a33aff4",
+      "projectId": "hexagonal-banking",
+      "style": "hexagonal",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/core/domain/account/account.aggregate.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "target": "src/core/use-case/account/open-account.port.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/core/domain/account/account.aggregate.ts (domain) imports against the allowed direction from src/core/use-case/account/open-account.port.ts (application)",
+      "violationId": "v-0f78c14516dec9ae",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "8171c51ee8ae89a71a70c614",
+      "projectId": "hexagonal-banking",
+      "style": "hexagonal",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/core/domain/account-holder/account-holder.aggregate.ts,src/core/domain/account/events/account-closed.event.ts,src/core/domain/account-holder/account-holder.aggregate.ts",
+      "line": 1,
+      "target": "src/core/domain/account/events/account-closed.event.ts",
+      "discriminator": [
+        "[\"src/core/domain/account-holder/account-holder.aggregate.ts\",\"src/core/domain/account/events/account-closed.event.ts\",\"src/core/domain/account-holder/account-holder.aggregate.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/core/domain/account-holder/account-holder.aggregate.ts,src/core/domain/account/events/account-closed.event.ts,src/core/domain/account-holder/account-holder.aggregate.ts",
+      "violationId": "v-a98587259793f8b1",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "42e1f78c10cb3d3a98b0efa1",
+      "projectId": "hexagonal-banking",
+      "style": "hexagonal",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/core/domain/account-holder/account-holder.aggregate.ts,src/core/domain/account/events/account-opened.event.ts,src/core/domain/account-holder/account-holder.aggregate.ts",
+      "line": 4,
+      "target": "src/core/domain/account/events/account-opened.event.ts",
+      "discriminator": [
+        "[\"src/core/domain/account-holder/account-holder.aggregate.ts\",\"src/core/domain/account/events/account-opened.event.ts\",\"src/core/domain/account-holder/account-holder.aggregate.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/core/domain/account-holder/account-holder.aggregate.ts,src/core/domain/account/events/account-opened.event.ts,src/core/domain/account-holder/account-holder.aggregate.ts",
+      "violationId": "v-f4e59c1de2bc9523",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "27e958e563f7f5e0e15d3155",
+      "projectId": "hexagonal-banking",
+      "style": "hexagonal",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/core/domain/account/account.aggregate.ts,src/core/use-case/account/open-account.port.ts,src/core/domain/account/account.aggregate.ts",
+      "line": 1,
+      "target": "src/core/use-case/account/open-account.port.ts",
+      "discriminator": [
+        "[\"src/core/domain/account/account.aggregate.ts\",\"src/core/use-case/account/open-account.port.ts\",\"src/core/domain/account/account.aggregate.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/core/domain/account/account.aggregate.ts,src/core/use-case/account/open-account.port.ts,src/core/domain/account/account.aggregate.ts",
+      "violationId": "v-e7d3b226e53660a7",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "1094bbe035adc7b4725d7a57",
+      "projectId": "hexagonal-banking",
+      "style": "hexagonal",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/infrastructure/repository/postgresql/account-repository.adapter.ts,src/infrastructure/repository/postgresql/account.row-mapper.ts,src/infrastructure/repository/postgresql/account-repository.adapter.ts",
+      "line": 6,
+      "target": "src/infrastructure/repository/postgresql/account.row-mapper.ts",
+      "discriminator": [
+        "[\"src/infrastructure/repository/postgresql/account-repository.adapter.ts\",\"src/infrastructure/repository/postgresql/account.row-mapper.ts\",\"src/infrastructure/repository/postgresql/account-repository.adapter.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/infrastructure/repository/postgresql/account-repository.adapter.ts,src/infrastructure/repository/postgresql/account.row-mapper.ts,src/infrastructure/repository/postgresql/account-repository.adapter.ts",
+      "violationId": "v-276811c09d3c27e1",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "1c7c3495d7d31484213de8bc",
+      "projectId": "hexagonal-banking",
+      "style": "hexagonal",
+      "ruleId": "FF-S04",
+      "template": "core-isolation",
+      "type": "CUSTOM_core-isolation",
+      "tier": "blocking",
+      "file": "src/core/domain/account/account-service.adapter.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "target": "src/core/use-case/account/close-account.port.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Core file src/core/domain/account/account-service.adapter.ts imports from src/core/use-case/account/close-account.port.ts in application",
+      "violationId": "v-373572680112ef9b",
+      "rule": "FF-S04/core-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "8bd0aa232fdd4555bddd690e",
+      "projectId": "hexagonal-banking",
+      "style": "hexagonal",
+      "ruleId": "FF-S04",
+      "template": "core-isolation",
+      "type": "CUSTOM_core-isolation",
+      "tier": "blocking",
+      "file": "src/core/domain/account/account-service.adapter.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "target": "src/core/use-case/account/open-account.port.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Core file src/core/domain/account/account-service.adapter.ts imports from src/core/use-case/account/open-account.port.ts in application",
+      "violationId": "v-bc2e4d3b69fa9120",
+      "rule": "FF-S04/core-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "6a22fc4435949c114b1207fc",
+      "projectId": "hexagonal-banking",
+      "style": "hexagonal",
+      "ruleId": "FF-S04",
+      "template": "core-isolation",
+      "type": "CUSTOM_core-isolation",
+      "tier": "blocking",
+      "file": "src/core/domain/account/account-service.adapter.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "target": "src/core/use-case/account/perform-debit.port.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Core file src/core/domain/account/account-service.adapter.ts imports from src/core/use-case/account/perform-debit.port.ts in application",
+      "violationId": "v-e9825429668eba3a",
+      "rule": "FF-S04/core-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "ea7e4189a9f2bd569552c02b",
+      "projectId": "hexagonal-banking",
+      "style": "hexagonal",
+      "ruleId": "FF-S04",
+      "template": "core-isolation",
+      "type": "CUSTOM_core-isolation",
+      "tier": "blocking",
+      "file": "src/core/domain/account/account-service.adapter.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "target": "src/core/use-case/account/view-current-balance.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Core file src/core/domain/account/account-service.adapter.ts imports from src/core/use-case/account/view-current-balance.ts in application",
+      "violationId": "v-6ea70fbf4705e75c",
+      "rule": "FF-S04/core-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "e941bf6d99c8be645be35571",
+      "projectId": "hexagonal-banking",
+      "style": "hexagonal",
+      "ruleId": "FF-S04",
+      "template": "core-isolation",
+      "type": "CUSTOM_core-isolation",
+      "tier": "blocking",
+      "file": "src/core/domain/account/account.aggregate.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "target": "src/core/use-case/account/open-account.port.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Core file src/core/domain/account/account.aggregate.ts imports from src/core/use-case/account/open-account.port.ts in application",
+      "violationId": "v-1007e4aa1f0451f0",
+      "rule": "FF-S04/core-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "1ef91e8314775997a8ed05f6",
+      "projectId": "twiddlle-nest-hexagonal",
+      "style": "hexagonal",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/article/application/query/get-article-counts-by-user-id.query-handler.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "target": "src/modules/article/infrastructure/persistence/article.repository.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/article/application/query/get-article-counts-by-user-id.query-handler.ts (application) imports against the allowed direction from src/modules/article/infrastructure/persistence/article.repository.ts (adapters-outbound)",
+      "violationId": "v-8b4bf142da574435",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "1274676c1d1c09860b947172",
+      "projectId": "twiddlle-nest-hexagonal",
+      "style": "hexagonal",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/user/application/query/get-user-by-id.query-handler.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "target": "src/modules/user/infrastructure/persistence/user-repository.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/user/application/query/get-user-by-id.query-handler.ts (application) imports against the allowed direction from src/modules/user/infrastructure/persistence/user-repository.ts (adapters-outbound)",
+      "violationId": "v-b693ae3880de89ab",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "e86e64bc7aff3ed4a41ff955",
+      "projectId": "canario-hexagonal-express",
+      "style": "hexagonal",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/apps/cart/back/routes/carts.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "target": "src/apps/cart/back/dependencyInjection/index.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/apps/cart/back/routes/carts.ts (adapters-inbound) imports against the allowed direction from src/apps/cart/back/dependencyInjection/index.ts (config)",
+      "violationId": "v-d2e74eebe97b4d9b",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "544e99e0cc91389ed72dc736",
+      "projectId": "canario-hexagonal-express",
+      "style": "hexagonal",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "target": "src/contexts/cartsMs/cart/application/read/countById/cartCountByIdQuery.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts (domain) imports against the allowed direction from src/contexts/cartsMs/cart/application/read/countById/cartCountByIdQuery.ts (application)",
+      "violationId": "v-e5874d9dda1d7ded",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "ec9409ba1abca2daf10a6300",
+      "projectId": "canario-hexagonal-express",
+      "style": "hexagonal",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "target": "src/contexts/cartsMs/cart/application/read/countById/cartCountByIdResponse.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts (domain) imports against the allowed direction from src/contexts/cartsMs/cart/application/read/countById/cartCountByIdResponse.ts (application)",
+      "violationId": "v-cab1d87a017aa341",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "9478cb50e15dd19fadab68ea",
+      "projectId": "canario-hexagonal-express",
+      "style": "hexagonal",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "type": "CYCLIC_DEPENDENCY",
+      "tier": "blocking",
+      "file": "src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCart.ts,src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCartItem.ts,src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCart.ts",
+      "line": 2,
+      "target": "src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCartItem.ts",
+      "discriminator": [
+        "[\"src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCart.ts\",\"src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCartItem.ts\",\"src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCart.ts\"]"
+      ],
+      "evidence": [],
+      "message": "Circular dependency: src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCart.ts,src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCartItem.ts,src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCart.ts",
+      "violationId": "v-1b51cc3ff4ce43b6",
+      "rule": "FF-S02/no-cyclic-deps",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "8882d4a38346145d095078d4",
+      "projectId": "canario-hexagonal-express",
+      "style": "hexagonal",
+      "ruleId": "FF-S04",
+      "template": "core-isolation",
+      "type": "CUSTOM_core-isolation",
+      "tier": "blocking",
+      "file": "src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "target": "src/contexts/cartsMs/cart/application/read/countById/cartCountByIdQuery.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Core file src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts imports from src/contexts/cartsMs/cart/application/read/countById/cartCountByIdQuery.ts in application",
+      "violationId": "v-4c143867a010bf5d",
+      "rule": "FF-S04/core-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "7dc4a582362916aa45adb0bd",
+      "projectId": "canario-hexagonal-express",
+      "style": "hexagonal",
+      "ruleId": "FF-S04",
+      "template": "core-isolation",
+      "type": "CUSTOM_core-isolation",
+      "tier": "blocking",
+      "file": "src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "target": "src/contexts/cartsMs/cart/application/read/countById/cartCountByIdResponse.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Core file src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts imports from src/contexts/cartsMs/cart/application/read/countById/cartCountByIdResponse.ts in application",
+      "violationId": "v-6d98f29856670c8b",
+      "rule": "FF-S04/core-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "a659746b73e4b26e22684708",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/domain/Attendee.ts",
+      "line": 6,
+      "lines": [
+        6
+      ],
+      "target": "src/modules/users/domain/UserEmail.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/domain/Attendee.ts (src/modules/meetings/) imports src/modules/users/domain/UserEmail.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-846d036750c2e4be",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "1439a231873d17fff2d8ada9",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/domain/Attendee.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "target": "src/modules/users/domain/UserFullName.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/domain/Attendee.ts (src/modules/meetings/) imports src/modules/users/domain/UserFullName.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-01829aefd00fa35d",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "940c4dc04f416455874ab1fe",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/domain/Attendee.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "target": "src/modules/users/domain/UserName.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/domain/Attendee.ts (src/modules/meetings/) imports src/modules/users/domain/UserName.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-dbc6f99046012ac3",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "5c111f018c55c5291eff0c65",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/domain/Attendees.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "target": "src/modules/users/domain/UserName.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/domain/Attendees.ts (src/modules/meetings/) imports src/modules/users/domain/UserName.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-7234b9b20ec2aa32",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "3e87fda361a17d43c85041dd",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/domain/Meeting.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "target": "src/modules/users/domain/UserName.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/domain/Meeting.ts (src/modules/meetings/) imports src/modules/users/domain/UserName.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-c0e28b08493e71c9",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "d8c04584bee18d7dc5acade0",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/domain/events/AttendeeJoined.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "target": "src/modules/users/domain/UserName.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/domain/events/AttendeeJoined.ts (src/modules/meetings/) imports src/modules/users/domain/UserName.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-9314ee3caf8ebee3",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "55464a3806606820a18e488f",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/domain/events/AttendeeLeft.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "target": "src/modules/users/domain/UserName.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/domain/events/AttendeeLeft.ts (src/modules/meetings/) imports src/modules/users/domain/UserName.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-3f4e92da89b056b6",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "b63f29fc14f50fff60ec9fb7",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/mappers/AttendeeMap.ts",
+      "line": 8,
+      "lines": [
+        8
+      ],
+      "target": "src/modules/users/domain/UserEmail.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/mappers/AttendeeMap.ts (src/modules/meetings/) imports src/modules/users/domain/UserEmail.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-6f3ef1faee780127",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "9db5f38ff5a5c968e8e34f46",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/mappers/AttendeeMap.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "target": "src/modules/users/domain/UserFullName.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/mappers/AttendeeMap.ts (src/modules/meetings/) imports src/modules/users/domain/UserFullName.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-1b4cc9e91da9b634",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "95dbcfb9c9f976ddfcf5d0e4",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/mappers/AttendeeMap.ts",
+      "line": 5,
+      "lines": [
+        5
+      ],
+      "target": "src/modules/users/domain/UserName.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/mappers/AttendeeMap.ts (src/modules/meetings/) imports src/modules/users/domain/UserName.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-aae52b8475718371",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "f546925996a471c711d871f1",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/mappers/MeetingMap.ts",
+      "line": 5,
+      "lines": [
+        5
+      ],
+      "target": "src/modules/users/domain/UserName.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/mappers/MeetingMap.ts (src/modules/meetings/) imports src/modules/users/domain/UserName.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-8addeb6da9530883",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "3a6eb1f2d33434e9791d062f",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/repos/AttendeeRepo.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "target": "src/modules/users/domain/UserName.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/repos/AttendeeRepo.ts (src/modules/meetings/) imports src/modules/users/domain/UserName.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-575416fbfc76f2f1",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "b26dd6c4b14f29e3182cf278",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/repos/MeetingRepo.ts",
+      "line": 6,
+      "lines": [
+        6
+      ],
+      "target": "src/modules/users/domain/UserName.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/repos/MeetingRepo.ts (src/modules/meetings/) imports src/modules/users/domain/UserName.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-b475435a6d0a5c5a",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "f2a54445592730069fe0ddee",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/repos/implementations/DynamoDBAttendeeRepo.ts",
+      "line": 9,
+      "lines": [
+        9
+      ],
+      "target": "src/modules/users/domain/UserName.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/repos/implementations/DynamoDBAttendeeRepo.ts (src/modules/meetings/) imports src/modules/users/domain/UserName.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-c31a7b4bf73a303b",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "f31723e0311e4ba50bb53a0d",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/repos/implementations/DynamoDBMeetingRepo.ts",
+      "line": 19,
+      "lines": [
+        19
+      ],
+      "target": "src/modules/users/domain/UserName.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/repos/implementations/DynamoDBMeetingRepo.ts (src/modules/meetings/) imports src/modules/users/domain/UserName.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-00f172e7d35ebeb8",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "933b8739298f1b4a9be10598",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/createMeeting/CreateMeetingUseCase.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "target": "src/modules/users/domain/UserName.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/usecase/createMeeting/CreateMeetingUseCase.ts (src/modules/meetings/) imports src/modules/users/domain/UserName.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-a77bd38b9b752fdc",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "ac6b297a1d5b4479788791e2",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/editMeeting/EditMeetingUseCase.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "target": "src/modules/users/domain/UserName.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/usecase/editMeeting/EditMeetingUseCase.ts (src/modules/meetings/) imports src/modules/users/domain/UserName.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-cbdc2443df794d67",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "318cdf20306bc5f430ef6704",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/emailJoinedAttendee/EmailJoinedAttendeeUseCase.ts",
+      "line": 8,
+      "lines": [
+        8
+      ],
+      "target": "src/modules/users/domain/User.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/usecase/emailJoinedAttendee/EmailJoinedAttendeeUseCase.ts (src/modules/meetings/) imports src/modules/users/domain/User.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-ff20566b7b077705",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "45683af46b213170c6d9d20f",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/emailJoinedAttendee/EmailJoinedAttendeeUseCase.ts",
+      "line": 6,
+      "lines": [
+        6
+      ],
+      "target": "src/modules/users/domain/UserName.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/usecase/emailJoinedAttendee/EmailJoinedAttendeeUseCase.ts (src/modules/meetings/) imports src/modules/users/domain/UserName.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-ca2eab053cf443a7",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "50099fea7b8da5d5ec82c9f0",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/emailJoinedAttendee/EmailJoinedAttendeeUseCase.ts",
+      "line": 7,
+      "lines": [
+        7
+      ],
+      "target": "src/modules/users/repos/UserRepo.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/usecase/emailJoinedAttendee/EmailJoinedAttendeeUseCase.ts (src/modules/meetings/) imports src/modules/users/repos/UserRepo.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-38bd4ef972141a2e",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "8834eac8289021b57566d50c",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/emailJoinedAttendee/index.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "target": "src/modules/users/repos/implementations/DynamoDBUserRepo.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/usecase/emailJoinedAttendee/index.ts (src/modules/meetings/) imports src/modules/users/repos/implementations/DynamoDBUserRepo.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-ba96af69045c57b0",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "bf26e3c8aca8e8ff45f1f624",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/getAttendance/GetAttendanceUseCase.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "target": "src/modules/users/domain/UserName.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/usecase/getAttendance/GetAttendanceUseCase.ts (src/modules/meetings/) imports src/modules/users/domain/UserName.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-066bdad67ccdb056",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "2d29ab9e2a54995c429c3f27",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/joinMeeting/JoinMeetingUseCase.ts",
+      "line": 5,
+      "lines": [
+        5
+      ],
+      "target": "src/modules/users/domain/UserName.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/usecase/joinMeeting/JoinMeetingUseCase.ts (src/modules/meetings/) imports src/modules/users/domain/UserName.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-8cb726f95ba0ffb8",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "9cf281d9c81933218fb95730",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/leaveMeeting/LeaveMeetingUseCase.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "target": "src/modules/users/domain/UserName.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/usecase/leaveMeeting/LeaveMeetingUseCase.ts (src/modules/meetings/) imports src/modules/users/domain/UserName.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-e92657c1d59d06db",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "d284356f8ac047ab1ee194a8",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/listRegisteredMeetings/ListRegisteredMeetingsUseCase.ts",
+      "line": 5,
+      "lines": [
+        5
+      ],
+      "target": "src/modules/users/domain/UserName.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/usecase/listRegisteredMeetings/ListRegisteredMeetingsUseCase.ts (src/modules/meetings/) imports src/modules/users/domain/UserName.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-592e29a0c0738833",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "a3dd696243dc38b5e42ec308",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/meetingChangePropagator/MeetingChangePropagatorUseCase.ts",
+      "line": 10,
+      "lines": [
+        10
+      ],
+      "target": "src/modules/users/domain/UserName.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/usecase/meetingChangePropagator/MeetingChangePropagatorUseCase.ts (src/modules/meetings/) imports src/modules/users/domain/UserName.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-36054b31fb05a687",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "57e9417a995d9b12ea2268ee",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/persistAttendee/PersistAttendeeUseCase.ts",
+      "line": 12,
+      "lines": [
+        12
+      ],
+      "target": "src/modules/users/domain/User.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/usecase/persistAttendee/PersistAttendeeUseCase.ts (src/modules/meetings/) imports src/modules/users/domain/User.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-b9aa0d86989d062e",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "a2372194a2fb9bac9eebad52",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/persistAttendee/PersistAttendeeUseCase.ts",
+      "line": 10,
+      "lines": [
+        10
+      ],
+      "target": "src/modules/users/domain/UserName.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/usecase/persistAttendee/PersistAttendeeUseCase.ts (src/modules/meetings/) imports src/modules/users/domain/UserName.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-765d9b602996af44",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "3f7b639e2f0035f3734bbbd6",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/persistAttendee/PersistAttendeeUseCase.ts",
+      "line": 11,
+      "lines": [
+        11
+      ],
+      "target": "src/modules/users/repos/UserRepo.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/usecase/persistAttendee/PersistAttendeeUseCase.ts (src/modules/meetings/) imports src/modules/users/repos/UserRepo.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-d0db04d77c6fe77c",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "d45f127bfb763e8c07dc83b5",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/persistAttendee/index.ts",
+      "line": 6,
+      "lines": [
+        6
+      ],
+      "target": "src/modules/users/repos/implementations/DynamoDBUserRepo.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/usecase/persistAttendee/index.ts (src/modules/meetings/) imports src/modules/users/repos/implementations/DynamoDBUserRepo.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-c0c516ffe217cfdc",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "271e95cbaeda827467c0d610",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/removeAttendee/RemoveAttendeeUseCase.ts",
+      "line": 7,
+      "lines": [
+        7
+      ],
+      "target": "src/modules/users/domain/UserName.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/usecase/removeAttendee/RemoveAttendeeUseCase.ts (src/modules/meetings/) imports src/modules/users/domain/UserName.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-4fdcf8a33fda2b8c",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "a858ffeead25927affb4545f",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/meetings/listeners/OnAttendeeJoined.ts",
+      "line": 5,
+      "lines": [
+        5
+      ],
+      "target": "src/shared/infra/brokers/MessageBroker.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/listeners/OnAttendeeJoined.ts (application) imports against the allowed direction from src/shared/infra/brokers/MessageBroker.ts (infrastructure)",
+      "violationId": "v-daddcf79275eead9",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "ccbb6e80c0cbdfcd945870ad",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/meetings/listeners/OnAttendeeLeft.ts",
+      "line": 5,
+      "lines": [
+        5
+      ],
+      "target": "src/shared/infra/brokers/MessageBroker.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/listeners/OnAttendeeLeft.ts (application) imports against the allowed direction from src/shared/infra/brokers/MessageBroker.ts (infrastructure)",
+      "violationId": "v-0e15f9422f9e42b8",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "55e0ee267c79db672a880b5b",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/meetings/listeners/OnMeetingChanged.ts",
+      "line": 5,
+      "lines": [
+        5
+      ],
+      "target": "src/shared/infra/brokers/MessageBroker.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/listeners/OnMeetingChanged.ts (application) imports against the allowed direction from src/shared/infra/brokers/MessageBroker.ts (infrastructure)",
+      "violationId": "v-551e85632c6c2cbb",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "ed00981188f45c04f9af3f16",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/meetings/listeners/OnMeetingCreated.ts",
+      "line": 5,
+      "lines": [
+        5
+      ],
+      "target": "src/shared/infra/brokers/MessageBroker.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/listeners/OnMeetingCreated.ts (application) imports against the allowed direction from src/shared/infra/brokers/MessageBroker.ts (infrastructure)",
+      "violationId": "v-67dff7aea6fe1691",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "fe79aa011470b991664ff8ad",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/emailJoinedAttendee/EmailJoinedAttendeeUseCase.ts",
+      "line": 11,
+      "lines": [
+        11
+      ],
+      "target": "src/shared/infra/emailService/EmailMessage.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/usecase/emailJoinedAttendee/EmailJoinedAttendeeUseCase.ts (application) imports against the allowed direction from src/shared/infra/emailService/EmailMessage.ts (infrastructure)",
+      "violationId": "v-e4028d82618222e1",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "f7e8961c2d05057fd0b455e9",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/emailJoinedAttendee/EmailJoinedAttendeeUseCase.ts",
+      "line": 10,
+      "lines": [
+        10
+      ],
+      "target": "src/shared/infra/queues/JobQueue.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/usecase/emailJoinedAttendee/EmailJoinedAttendeeUseCase.ts (application) imports against the allowed direction from src/shared/infra/queues/JobQueue.ts (infrastructure)",
+      "violationId": "v-8139c30393462d75",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "dc88a19083fd63ad35ebcebe",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/emailSender/EmailSenderUseCase.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "target": "src/shared/infra/emailService/EmailMessage.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/usecase/emailSender/EmailSenderUseCase.ts (application) imports against the allowed direction from src/shared/infra/emailService/EmailMessage.ts (infrastructure)",
+      "violationId": "v-372c55bb9a1ecf5b",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "460e82165a702a1c31a31a3e",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/emailSender/EmailSenderUseCase.ts",
+      "line": 5,
+      "lines": [
+        5
+      ],
+      "target": "src/shared/infra/emailService/EmailService.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/usecase/emailSender/EmailSenderUseCase.ts (application) imports against the allowed direction from src/shared/infra/emailService/EmailService.ts (infrastructure)",
+      "violationId": "v-520323bd68525173",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "4c686001ed2ed52383439014",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/getMeeting/GetMeetingUseCase.ts",
+      "line": 12,
+      "lines": [
+        12
+      ],
+      "target": "src/modules/meetings/mappers/AttendeeDetailsMap.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/usecase/getMeeting/GetMeetingUseCase.ts (application) imports against the allowed direction from src/modules/meetings/mappers/AttendeeDetailsMap.ts (infrastructure)",
+      "violationId": "v-2ffb2b5b34220fa4",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "4bb7732ca218ef98a0ad8d98",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/listMeetings/ListMeetingsUseCase.ts",
+      "line": 12,
+      "lines": [
+        12
+      ],
+      "target": "src/modules/meetings/mappers/MeetingItemViewMap.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/usecase/listMeetings/ListMeetingsUseCase.ts (application) imports against the allowed direction from src/modules/meetings/mappers/MeetingItemViewMap.ts (infrastructure)",
+      "violationId": "v-10836e8171d46612",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "33fafe6446c6e1b9249a6d08",
+      "projectId": "meetinger",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/meetings/usecase/listRegisteredMeetings/ListRegisteredMeetingsUseCase.ts",
+      "line": 7,
+      "lines": [
+        7
+      ],
+      "target": "src/modules/meetings/mappers/RegisteredMeetingMap.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/meetings/usecase/listRegisteredMeetings/ListRegisteredMeetingsUseCase.ts (application) imports against the allowed direction from src/modules/meetings/mappers/RegisteredMeetingMap.ts (infrastructure)",
+      "violationId": "v-0d7432eee56a86ab",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "f9d309ce2891859f2dd8c580",
+      "projectId": "ddd-libellis",
+      "style": "ddd",
+      "ruleId": "FF-DT01",
+      "template": "aggregate-boundary",
+      "type": "CUSTOM_aggregate-boundary",
+      "tier": "blocking",
+      "file": "src/election-system/tests/core/application/factories/TestUpdateMasterBallotDataFactory.model.ts",
+      "line": 5,
+      "lines": [
+        5
+      ],
+      "target": "src/election-system/core/domain/model/master-ballot-aggregate/Choice.model.ts",
+      "discriminator": [
+        "MasterBallot",
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/election-system/tests/core/application/factories/TestUpdateMasterBallotDataFactory.model.ts imports src/election-system/core/domain/model/master-ballot-aggregate/Choice.model.ts, an inner entity of aggregate MasterBallot",
+      "violationId": "v-13757cb170a7810f",
+      "rule": "FF-DT01/aggregate-boundary",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "835dd3766876831233997e74",
+      "projectId": "ddd-libellis",
+      "style": "ddd",
+      "ruleId": "FF-DT01",
+      "template": "aggregate-boundary",
+      "type": "CUSTOM_aggregate-boundary",
+      "tier": "blocking",
+      "file": "src/election-system/tests/core/application/factories/TestUpdateMasterBallotDataFactory.model.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "target": "src/election-system/core/domain/model/master-ballot-aggregate/Question.model.ts",
+      "discriminator": [
+        "MasterBallot",
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/election-system/tests/core/application/factories/TestUpdateMasterBallotDataFactory.model.ts imports src/election-system/core/domain/model/master-ballot-aggregate/Question.model.ts, an inner entity of aggregate MasterBallot",
+      "violationId": "v-a9564bcf63823f84",
+      "rule": "FF-DT01/aggregate-boundary",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "9758f46516f7cf69c1cc3330",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "style": "ddd",
+      "ruleId": "FF-DT04",
+      "template": "domain-purity",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "tier": "blocking",
+      "file": "src/app/validation/domain-validator.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "target": "class-validator",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Domain file src/app/validation/domain-validator.ts imports forbidden package class-validator",
+      "violationId": "v-9218d30f753ff7a0",
+      "rule": "FF-DT04/domain-purity",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "42b9ff07b7b0dd5efd645559",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "style": "ddd",
+      "ruleId": "FF-DT04",
+      "template": "domain-purity",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "tier": "blocking",
+      "file": "src/iam/role/models/role.validator.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "target": "class-validator",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Domain file src/iam/role/models/role.validator.ts imports forbidden package class-validator",
+      "violationId": "v-612413abcb2b40cf",
+      "rule": "FF-DT04/domain-purity",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "71d4c616393bb6f7fab76554",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "style": "ddd",
+      "ruleId": "FF-DT04",
+      "template": "domain-purity",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "tier": "blocking",
+      "file": "src/iam/user/models/user.validator.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "target": "class-validator",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "Domain file src/iam/user/models/user.validator.ts imports forbidden package class-validator",
+      "violationId": "v-a0d761fddee2a638",
+      "rule": "FF-DT04/domain-purity",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "0afe3f837e652069f788d874",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/app/application.controller.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "target": "src/app/application-container.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/app/application.controller.ts (api) imports against the allowed direction from src/app/application-container.ts (composition)",
+      "violationId": "v-c08be3d5c0eb5d6a",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "dedcc779f8392fdcec6b83f4",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/event-store/brokers/event-source-broker.ts",
+      "line": 8,
+      "lines": [
+        8
+      ],
+      "target": "src/app/application-container.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/event-store/brokers/event-source-broker.ts (api) imports against the allowed direction from src/app/application-container.ts (composition)",
+      "violationId": "v-9b44175385b9160d",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "6cb5cdf8e863960c7fe873bb",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/event-store/brokers/queue-broker.ts",
+      "line": 6,
+      "lines": [
+        6
+      ],
+      "target": "src/app/application-container.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/event-store/brokers/queue-broker.ts (api) imports against the allowed direction from src/app/application-container.ts (composition)",
+      "violationId": "v-ed79dc7422f86fec",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "a34854b35ae2797c79a40ad3",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/event-store/dynamo-kinesis-adaptor.ts",
+      "line": 7,
+      "lines": [
+        7
+      ],
+      "target": "src/app/application-container.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/event-store/dynamo-kinesis-adaptor.ts (api) imports against the allowed direction from src/app/application-container.ts (composition)",
+      "violationId": "v-3cc4b64b22a1109c",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "4d265d5a3d809250a9164c05",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/event-store/projections/repository/projection-repository.interface.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "target": "src/event-store/projections/projection.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/event-store/projections/repository/projection-repository.interface.ts (application) imports against the allowed direction from src/event-store/projections/projection.ts (infrastructure)",
+      "violationId": "v-0b299e0a4c1b3a97",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "1ab0b763802d426568ee9177",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/iam/role/controllers/role-controller.ts",
+      "line": 9,
+      "lines": [
+        9
+      ],
+      "target": "src/app/application-container.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/iam/role/controllers/role-controller.ts (api) imports against the allowed direction from src/app/application-container.ts (composition)",
+      "violationId": "v-d5a476a99b869686",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "de1748df6c2c9d66e9282403",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/iam/role/services/role.service.ts",
+      "line": 5,
+      "lines": [
+        5
+      ],
+      "target": "src/app/repository/dynamo-set-validation.repository.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/iam/role/services/role.service.ts (application) imports against the allowed direction from src/app/repository/dynamo-set-validation.repository.ts (infrastructure)",
+      "violationId": "v-723119f60e270a06",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "4d8778e924d8b5654013bdd6",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/iam/role/services/role.service.ts",
+      "line": 8,
+      "lines": [
+        8
+      ],
+      "target": "src/event-store/publisher/dynamo-event-publisher.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/iam/role/services/role.service.ts (application) imports against the allowed direction from src/event-store/publisher/dynamo-event-publisher.ts (infrastructure)",
+      "violationId": "v-4d258fa1c957c4ec",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "c9241b39add94cc471d86e74",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/iam/user/controllers/user-controller.ts",
+      "line": 9,
+      "lines": [
+        9
+      ],
+      "target": "src/app/application-container.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/iam/user/controllers/user-controller.ts (api) imports against the allowed direction from src/app/application-container.ts (composition)",
+      "violationId": "v-9dd3fb285b6750d4",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "0b9be06a3ad863b63c1cccf5",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/iam/user/services/user.service.ts",
+      "line": 5,
+      "lines": [
+        5
+      ],
+      "target": "src/app/repository/dynamo-set-validation.repository.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/iam/user/services/user.service.ts (application) imports against the allowed direction from src/app/repository/dynamo-set-validation.repository.ts (infrastructure)",
+      "violationId": "v-07ebe06c1b936741",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "29c5a568332af8ba447b9850",
+      "projectId": "dlydiard-ddd-cqrs-es",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/iam/user/services/user.service.ts",
+      "line": 8,
+      "lines": [
+        8
+      ],
+      "target": "src/event-store/publisher/dynamo-event-publisher.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/iam/user/services/user.service.ts (application) imports against the allowed direction from src/event-store/publisher/dynamo-event-publisher.ts (infrastructure)",
+      "violationId": "v-53da459dc13c665d",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "955bc30ccce0ba96d0db2f7b",
+      "projectId": "lucashang-ddd-payday",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/accounts/useCases/createAccount/CreateAccountUseCase.ts",
+      "line": 9,
+      "lines": [
+        9
+      ],
+      "target": "src/modules/users/repositories/IUserRepository.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/accounts/useCases/createAccount/CreateAccountUseCase.ts (src/modules/accounts/) imports src/modules/users/repositories/IUserRepository.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-b54c517e13ff99ef",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "213495eae4b42897b21d5683",
+      "projectId": "lucashang-ddd-payday",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/accounts/useCases/createAccount/index.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "target": "src/modules/users/repositories/implementations/fake/fakeUserRepository.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/accounts/useCases/createAccount/index.ts (src/modules/accounts/) imports src/modules/users/repositories/implementations/fake/fakeUserRepository.ts, which is not in the public API of src/modules/users/",
+      "violationId": "v-869b6fea3cd985f4",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "714cc217521192aafcf1ce1a",
+      "projectId": "lucashang-ddd-payday",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/users/useCases/createUser/CreateUserUseCase.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "target": "src/modules/accounts/useCases/createAccount/CreateAccountUseCase.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/users/useCases/createUser/CreateUserUseCase.ts (src/modules/users/) imports src/modules/accounts/useCases/createAccount/CreateAccountUseCase.ts, which is not in the public API of src/modules/accounts/",
+      "violationId": "v-01ffd065fa7df17a",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "81cf3c8baa313b1b1693a8f6",
+      "projectId": "lucashang-ddd-payday",
+      "style": "ddd",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "type": "CUSTOM_context-isolation",
+      "tier": "blocking",
+      "file": "src/modules/users/useCases/createUser/index.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "target": "src/modules/accounts/useCases/createAccount/index.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/users/useCases/createUser/index.ts (src/modules/users/) imports src/modules/accounts/useCases/createAccount/index.ts, which is not in the public API of src/modules/accounts/",
+      "violationId": "v-5774874ec8293f9d",
+      "rule": "FF-DS02/context-isolation",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "80bffdf978e38cd2e230c478",
+      "projectId": "lucashang-ddd-payday",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/accounts/infra/http/routes/index.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "target": "src/modules/accounts/useCases/deposit/index.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/accounts/infra/http/routes/index.ts (api) imports against the allowed direction from src/modules/accounts/useCases/deposit/index.ts (composition)",
+      "violationId": "v-686c88c5e186a5ef",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "fb499d74c8ac995a07b35cc4",
+      "projectId": "lucashang-ddd-payday",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/accounts/infra/http/routes/index.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "target": "src/modules/accounts/useCases/withdraw/index.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/accounts/infra/http/routes/index.ts (api) imports against the allowed direction from src/modules/accounts/useCases/withdraw/index.ts (composition)",
+      "violationId": "v-b7f0c76f7ba979b0",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "9910d9194a6d19ead80b56af",
+      "projectId": "lucashang-ddd-payday",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/accounts/useCases/createAccount/CreateAccountUseCase.ts",
+      "line": 7,
+      "lines": [
+        7
+      ],
+      "target": "src/modules/accounts/mappers/accountMap.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/accounts/useCases/createAccount/CreateAccountUseCase.ts (application) imports against the allowed direction from src/modules/accounts/mappers/accountMap.ts (infrastructure)",
+      "violationId": "v-d691cdabd9bc343c",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "6fa2224d75b1a9ecdc2578cd",
+      "projectId": "lucashang-ddd-payday",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/accounts/useCases/deposit/DepositDTOValidation.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "target": "src/shared/validators/implementations/MyDtoValidator.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/accounts/useCases/deposit/DepositDTOValidation.ts (application) imports against the allowed direction from src/shared/validators/implementations/MyDtoValidator.ts (infrastructure)",
+      "violationId": "v-e0c3a5f9f1942413",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "479ef2b7c84866f6e3197b1a",
+      "projectId": "lucashang-ddd-payday",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/accounts/useCases/deposit/DepositUseCase.ts",
+      "line": 6,
+      "lines": [
+        6
+      ],
+      "target": "src/modules/accounts/mappers/accountMap.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/accounts/useCases/deposit/DepositUseCase.ts (application) imports against the allowed direction from src/modules/accounts/mappers/accountMap.ts (infrastructure)",
+      "violationId": "v-0910015bfb6daaea",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "e7e0b26b893fad033acd9f30",
+      "projectId": "lucashang-ddd-payday",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/accounts/useCases/withdraw/WithdrawDTOValidation.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "target": "src/shared/validators/implementations/MyDtoValidator.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/accounts/useCases/withdraw/WithdrawDTOValidation.ts (application) imports against the allowed direction from src/shared/validators/implementations/MyDtoValidator.ts (infrastructure)",
+      "violationId": "v-4a34aa895c93c2a7",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "f1d86e01deeca40d8f6f9dda",
+      "projectId": "lucashang-ddd-payday",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/accounts/useCases/withdraw/WithdrawUseCase.ts",
+      "line": 6,
+      "lines": [
+        6
+      ],
+      "target": "src/modules/accounts/mappers/accountMap.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/accounts/useCases/withdraw/WithdrawUseCase.ts (application) imports against the allowed direction from src/modules/accounts/mappers/accountMap.ts (infrastructure)",
+      "violationId": "v-b0563f81f43535da",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "d82e2f7bb30ecb243c667902",
+      "projectId": "lucashang-ddd-payday",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/users/infra/http/routes/index.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "target": "src/modules/users/useCases/createUser/index.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/users/infra/http/routes/index.ts (api) imports against the allowed direction from src/modules/users/useCases/createUser/index.ts (composition)",
+      "violationId": "v-09ecd2dcc8f5be8e",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    },
+    {
+      "key": "0e96e1efd3c7558e91d1a5dc",
+      "projectId": "lucashang-ddd-payday",
+      "style": "ddd",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "type": "CUSTOM_dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/modules/users/useCases/createUser/CreateUserUseCase.ts",
+      "line": 7,
+      "lines": [
+        7
+      ],
+      "target": "src/modules/users/mappers/userMap.ts",
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "evidence": [],
+      "message": "src/modules/users/useCases/createUser/CreateUserUseCase.ts (application) imports against the allowed direction from src/modules/users/mappers/userMap.ts (infrastructure)",
+      "violationId": "v-90ad94803951841e",
+      "rule": "FF-S01/dependency-direction-graph",
+      "inclusionProbability": 1
+    }
+  ]
+}

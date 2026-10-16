@@ -278,8 +278,8 @@ export interface JudgeProvenance extends ProviderDescription {
   readonly configListingSha256?: string;    // claude-cli
   readonly provenanceMixed?: boolean;       // replay found differing values across entries (BR-U4-CAS-10)
   readonly seededList?: readonly string[];  // sorted; [] in every reported run (BR-U4-SEL-06)
-  readonly judgeVersion?: 'v2';             // v1.3: set only on a judge v2 run (v1 is the frozen default)
-  readonly judgeRevision?: string;          // v1.3: the v2 text revision (`JUDGE_V2_REVISION`)
+  readonly judgeVersion?: 'v2' | 'v2.2';    // v1.3: set only on a judge v2 or v2.2 run (v1 is the frozen default)
+  readonly judgeRevision?: string;          // v1.3: the text revision (`JUDGE_V2_REVISION`, `JUDGE_V22_REVISION`)
 }
 
 // Types referenced by NeuralResultRow, verbatim from U4 DE §2.2 and §4.2 (C10 row 14 needs them;
@@ -430,8 +430,11 @@ export interface TieredScoring {
   readonly scoringMode: 'v1.3';
   readonly tierTable: string;
   readonly style: string | null;
-  /** `fail` iff a blocking rule has at least one applicable violation. */
-  readonly verdict: 'pass' | 'fail';
+  /**
+   * `fail` iff a blocking rule has at least one applicable violation; otherwise `incomplete` iff a blocking rule failed
+   * to execute (`blockingNotExecuted` non-empty; fail-closed, 2026-10-16); otherwise `pass`.
+   */
+  readonly verdict: 'pass' | 'fail' | 'incomplete';
   readonly verdictRule: 'any-blocking-violation';
   /** The v1.2E verdict of the same run (the report's v1.2E AHS fields are unchanged). */
   readonly v12eVerdict: import('./enums.js').OverallVerdict;
@@ -440,7 +443,7 @@ export interface TieredScoring {
   readonly blocking: TierGroup;
   readonly advisory: TierGroup;
   readonly notApplicable: readonly NotApplicablePart[];
-  /** Blocking rules that failed to execute (FR-13); they do not count, as in v1.2E. */
+  /** Blocking rules that failed to execute (FR-13); they add no violation, but make a non-failing verdict `incomplete`. */
   readonly blockingNotExecuted: readonly FunctionId[];
 }
 

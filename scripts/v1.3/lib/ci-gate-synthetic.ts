@@ -25,6 +25,7 @@ import * as path from 'node:path';
 import { runCheck } from '../../../src/ci-gate/run-check.js';
 import type { GateEngine } from '../../../src/ci-gate/engines.js';
 import type { GateFinding, GateResult } from '../../../src/ci-gate/types.js';
+import type { EngineEvaluation } from '../../../src/ci-gate/engines.js';
 import { compareVariant } from './compare.js';
 import type { ActualFinding, Mismatch } from './compare.js';
 import { materialiseVariant } from './materialise.js';
@@ -197,7 +198,7 @@ export async function runSynthetic(
   const cases: SyntheticCase[] = [];
   for (const ref of refs) {
     const r = buildStyleRepo(ref, workRoot);
-    const cache = new Map<string, readonly GateFinding[]>();
+    const cache = new Map<string, EngineEvaluation>();
     const check = (base: string, head: string): Promise<GateResult> =>
       runCheck({ repo: r.repo, base, head, spec: 'spec.yaml', project: 'project', engine, cache });
     for (const v of ref.variants) {

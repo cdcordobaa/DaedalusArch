@@ -3,7 +3,8 @@ import { parseInstrumentVersion } from '../fitness-compiler/role-exemptions.js';
 import type { InstrumentVersion } from '../fitness-compiler/role-exemptions.js';
 import { config as loadDotenv } from 'dotenv';
 import { createPipeline } from '../pipeline/pipeline-factory.js';
-import type { PipelineConfig, OutputFormat } from '../pipeline/types.js';
+import type { PipelineConfig, OutputFormat, ExtractorDefaults } from '../pipeline/types.js';
+import { EXTRACTOR_DEFAULTS } from '../pipeline/types.js';
 import type { BatchOptions, DriftOptions } from '../pipeline/types.js';
 import type { EvaluationMode } from '../shared/types/enums.js';
 import { formatJSON, formatHuman, formatCSV, csvHeader } from '../scoring-engine/index.js';
@@ -20,6 +21,7 @@ import { requireEnvForCli } from './require-env.js';
 import { ENGINE_OPTION_HELP, resolveEngineForCli } from './engine-default.js';
 import type { GraphEngine } from '../cypher-interp/engine.js';
 import { CypherSyntaxError, CypherUnsupportedError, parseCypher } from '../cypher-interp/parse.js';
+import { EMPTY_AGGREGATE_POLICIES, parseEmptyAggregatePolicy } from '../fitness-compiler/empty-aggregates.js';
 import { handleDrift } from './drift-handler.js';
 import { parseSpec, validateSpecAgainstProject } from '../spec-parser/index.js';
 import { compileFunctions, compilerInputFromSpec, V13_COMPILE_OPTIONS } from '../fitness-compiler/index.js';
@@ -38,6 +40,9 @@ import { runCheck, neo4jEngine, lexicalEngine, formatGateHuman, formatGateJSON, 
 import type { GateEngine } from '../ci-gate/index.js';
 import { defaultPropose, inferredBanner, inferredSpecFile, labelJsonReport, runInit } from './init-command.js';
 import type { InferredSpecFile } from './init-command.js';
+import { defaultPresetsDir, formatProposalHuman, proposeRules, summariseProposal } from '../rule-mining/index.js';
+import { ISE_STYLES } from '../ise/index.js';
+import type { IseStyle } from '../ise/index.js';
 
 // Load .env before anything else
 loadDotenv();
@@ -152,7 +157,7 @@ function withLLMOptions(command: Command): Command {
     .option('--cassette-omit-prompt', 'Record cassettes without prompts (corpus runs)', false)
     .option('--cassette-project-id <id>', 'Project id written on every judge cassette entry (repetition reliability)')
     .option('--judge-cli <path>', 'Judge CLI binary (default ~/.firewall/judge-cli/node_modules/.bin/claude when present, else claude)')
-    .option('--judge-version <v>', 'Judge rubric version: v1 (frozen, default) | v2 (v1.3 development)');
+    .option('--judge-version <v>', 'Judge rubric version: v1 (frozen, default) | v2 (v1.3 development, revision v2.1) | v2.2 (v1.3 development)');
 }
 
 /** The argv `parseLLMOptions` reads, rebuilt from the parsed options (so `main(argv)` tests work). */
@@ -220,15 +225,22 @@ withLLMOptions(program
   .option('--instrument <version>', 'Symbolic instrument: v2 (role exemptions, default) | v1 (ADR-026)', 'v2')
   .option('--neural-aggregation <rule>', 'Neural aggregation of the AHS: registered (default, primary) | proportional (ADR-028 sensitivity variant)', 'registered')
   .option('--tsconfig <path>', 'Explicit tsconfig for APG extraction; the project\'s own tsconfig.json is then ignored (ADR-032)')
-  .option('--scoring <mode>', 'Scoring mode: v1.3 (rule tiers, default; verdict from blocking rules) | v1.2e (the registered Study 1 scoring)', 'v1.3')
+  .option('--scoring <mode>', 'Scoring mode: v1.3 (rule tiers, default; verdict from blocking rules) | v1.2e (the registered Study 1 scoring; on the default v1.3 graph its universal metrics count both re-export edge views, so pair it with --extractor v1.2e for the v1.2E graph)', 'v1.3')
+  .option('--extractor <defaults>', 'Extractor defaults: v1.3 (default; literal and resolved re-export edges, dynamic imports, module wiring, member facts) | v1.2e (the registered v1.2E graph)', 'v1.3')
+  .option('--resolved-edges-in-literal-view', 'Off by default. Keep an import\'s edge to the declaring file in the literal view when it goes through a barrel (MT-B1, Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md)', false)
+  .option('--literal-through-layerless-barrels', 'Off by default. At graph build, an import through barrels that belong to no layer (and are no declared DDD public API) also keeps its edge to the declaring file in the literal view (MT-B1 fix, Docs/DiagnosticRuns/v1.3-mtb1-fix-2026-10-16.md)', false)
   .option('--advisory-filter <options>', `Advisory post-filters, off by default (comma list, all or none): ${ADVISORY_FILTER_OPTIONS.join(', ')}. Matched advisory rows move to advisoryFilter.suppressed; blocking rows never change`, 'none')
   .option('--html <out.html>', 'Also write a self-contained architect HTML report (layer diagram, findings in plain language, filters)')
   .option('--hints', 'Add a deterministic fix hint to every blocking finding (json: `fixHints`; human: a Fix hints section). Off by default: the output is then unchanged', false)
   .option('--engine <name>', ENGINE_OPTION_HELP)
+  .option('--empty-aggregates <policy>', 'A ddd spec with no aggregate (loop-pilot T1): fail (default, BR-SPEC-10) | not-applicable (FF-DT01/02 disabled, recorded) | exclude (FF-DT01/02 not scored, recorded) | vacuous (FF-DT01/02 run on an empty list)', 'fail')
   .action(async (projectArg: string | undefined, opts: LLMCliOpts & {
     engine?: string;
+    emptyAggregates: string;
     project?: string;
     tsconfig?: string;
+    resolvedEdgesInLiteralView: boolean;
+    literalThroughLayerlessBarrels: boolean;
     spec?: string;
     fromInferred: boolean;
     format: string;
@@ -244,6 +256,7 @@ withLLMOptions(program
     neuralAggregation: string;
     scoring: string;
     advisoryFilter: string;
+    extractor: string;
     hints: boolean;
     html?: string;
   }, cmd: Command) => {
@@ -277,12 +290,24 @@ withLLMOptions(program
     if (graphMode === undefined) return;
     const scoringMode = resolveScoringMode(opts.scoring, '--scoring');
     if (scoringMode === undefined) return;
+    if (!(EXTRACTOR_DEFAULTS as readonly string[]).includes(opts.extractor)) {
+      process.stderr.write(`Error: --extractor must be one of ${EXTRACTOR_DEFAULTS.join(' | ')}\n`);
+      process.exitCode = 2;
+      return;
+    }
+    const extractorDefaults = opts.extractor as ExtractorDefaults;
     const instrumentVersion = resolveInstrument(opts.instrument);
     if (instrumentVersion === undefined) return;
     const neuralAggregation = resolveNeuralAggregation(opts.neuralAggregation);
     if (neuralAggregation === undefined) return;
     const graphEngine = engineFor(opts.engine, cmd);
     if (graphEngine === undefined) return;
+    const emptyAggregates = parseEmptyAggregatePolicy(opts.emptyAggregates);
+    if (emptyAggregates === undefined) {
+      process.stderr.write(`Error: --empty-aggregates must be one of ${EMPTY_AGGREGATE_POLICIES.join(' | ')}\n`);
+      process.exitCode = 2;
+      return;
+    }
     // BR-U3-80: no default password; stop before any connection. The in-process engine opens none and reads none.
     const neo4jPassword = graphEngine === 'cypher-interp' ? '' : requireEnvForCli('NEO4J_PASSWORD');
     if (neo4jPassword === undefined) return;
@@ -318,11 +343,15 @@ withLLMOptions(program
       llmConfig,
       ...(graphMode !== 'full' && { graphMode }),
       ...(opts.tsconfig !== undefined && { tsconfigPath: opts.tsconfig }),
+      ...(opts.resolvedEdgesInLiteralView && { resolvedEdgesInLiteralView: true }),
+      ...(opts.literalThroughLayerlessBarrels && { literalThroughLayerlessBarrels: true }),
       instrumentVersion,
       neuralAggregation,
       scoringMode,
       ...(advisoryFilter.length > 0 && { advisoryFilter }),
+      ...(extractorDefaults !== 'v1.3' && { extractorDefaults }),
       ...(graphEngine !== 'neo4j' && { graphEngine }),
+      ...(emptyAggregates !== 'fail' && { emptyAggregates }),
     };
 
     const { executor, context, cleanup } = createPipeline(config);
@@ -544,11 +573,13 @@ program
   .requiredOption('--spec <path>', 'Path to AoC YAML spec')
   .option('--project <path>', 'Path to TypeScript project (for directory checks)', '.')
   .option('--rules <set>', 'Rule set the template check accepts: v1.3 (default; adds the v1.3 extension templates) | v1.2e (frozen templates only)', 'v1.3')
+  .option('--reject-empty-aggregates', 'Reject a ddd spec that keeps FF-DT01/FF-DT02 with no aggregate declared (loop-pilot T1 option b; off by default)', false)
   .option('--engine <name>', `${ENGINE_OPTION_HELP} validate never connects; with cypher-interp it also parses every compiled query with the interpreter (subset check).`)
   .action(async (opts: {
     spec: string;
     project: string;
     rules: string;
+    rejectEmptyAggregates: boolean;
     engine?: string;
   }, cmd: Command) => {
     const rules = resolveScoringMode(opts.rules, '--rules');
@@ -562,7 +593,7 @@ program
       return;
     }
 
-    const report = validateSpecAgainstProject(parseResult.data, opts.project, { rules });
+    const report = validateSpecAgainstProject(parseResult.data, opts.project, { rules, ...(opts.rejectEmptyAggregates && { rejectEmptyAggregates: true }) });
 
     if (report.valid) {
       process.stderr.write(
@@ -610,6 +641,50 @@ program
       for (const r of rejected) process.stderr.write(`  - [CYPHER_INTERP_UNSUPPORTED] ${r}\n`);
       process.stderr.write(`cypher-interp: ${String(queries.length - rejected.length)}/${String(queries.length)} compiled queries parse\n`);
       if (rejected.length > 0) process.exitCode = 1;
+    }
+  });
+
+// ── mine-rules command ───────────────────────────────────────────────────────
+
+program
+  .command('mine-rules')
+  .description('PROPOSE the implicit rules of a project that has no spec: mined from its graph (deterministic, no LLM, no Neo4j), each with evidence, confidence and exceptions (candidate violations), plus a spec that compiles to the existing templates. Proposals to review, not a spec.')
+  .option('--project <path>', 'Path to the TypeScript project (its src/ and tsconfig.json are read)', '.')
+  .option('--out <path>', 'Write the proposed spec YAML to this file')
+  .option('--format <fmt>', 'Output format: human | json', 'human')
+  .option('--min-confidence <n>', 'Leave rules below this confidence (0-1) out of the proposed spec (they are still reported)', '0')
+  .option('--style <style>', `Skip the style classification and use this style (${ISE_STYLES.join(', ')})`)
+  .option('--max-exceptions <n>', 'Exceptions listed per rule in the human output', '5')
+  .action(async (opts: { project: string; out?: string; format: string; minConfidence: string; style?: string; maxExceptions: string }) => {
+    const minConfidence = Number(opts.minConfidence);
+    if (!Number.isFinite(minConfidence) || minConfidence < 0 || minConfidence > 1) {
+      process.stderr.write('Error: --min-confidence takes a number between 0 and 1\n');
+      process.exitCode = 2;
+      return;
+    }
+    if (opts.style !== undefined && !(ISE_STYLES as readonly string[]).includes(opts.style)) {
+      process.stderr.write(`Error: --style takes one of ${ISE_STYLES.join(', ')}\n`);
+      process.exitCode = 2;
+      return;
+    }
+    if (opts.format !== 'human' && opts.format !== 'json') {
+      process.stderr.write('Error: --format takes human or json\n');
+      process.exitCode = 2;
+      return;
+    }
+    try {
+      const proposal = await proposeRules(path.resolve(opts.project), {
+        presetsDir: defaultPresetsDir(), minConfidence, ...(opts.style !== undefined ? { style: opts.style as IseStyle } : {}),
+      });
+      if (opts.out !== undefined) fs.writeFileSync(opts.out, proposal.specYaml);
+      process.stdout.write(opts.format === 'json'
+        ? JSON.stringify(summariseProposal(proposal, { includeSpec: opts.out === undefined }), null, 2) + '\n'
+        : formatProposalHuman(proposal, Number(opts.maxExceptions) || 5));
+      if (opts.out !== undefined) process.stderr.write(`Proposed spec written to ${opts.out}\n`);
+      process.exitCode = 0;
+    } catch (e: unknown) {
+      process.stderr.write(`Error: ${e instanceof Error ? e.message : String(e)}\n`);
+      process.exitCode = 2;
     }
   });
 

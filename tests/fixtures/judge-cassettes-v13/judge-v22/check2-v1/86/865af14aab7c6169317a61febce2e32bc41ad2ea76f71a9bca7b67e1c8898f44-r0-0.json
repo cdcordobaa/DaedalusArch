@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 15677,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "865af14aab7c6169317a61febce2e32bc41ad2ea76f71a9bca7b67e1c8898f44-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.7,
+    "evidence": [
+      "src/adapters/outbound/payment/CardPaymentAdapter.ts: class CardPaymentAdapter implements PaymentPort, an outbound port, which fits the infrastructure layer",
+      "authorise() stores reference -> amountCents in an in-memory Map, simulating gateway authorisation (infrastructure)",
+      "refund() removes the authorisation from the Map (infrastructure)",
+      "`if (amountCents <= 0) return false;` is a small guard like a gateway decline, not a domain policy",
+      "`private readonly held = new Spot('u5a', 0, false, 0);` is never used: dead code, with no business logic attached"
+    ],
+    "pass": true,
+    "reasoning": "CardPaymentAdapter implements the outbound PaymentPort and its job is infrastructure work: authorise() and refund() record and remove card authorisations in an in-memory Map, standing in for a payment gateway. The guard `if (amountCents <= 0) return false;` is a small input check that mirrors a gateway turning down a bad amount. It is not a real business or domain policy. The field `held = new Spot('u5a', 0, false, 0)` creates a domain object that nothing uses. That is dead code and a smell, but it adds no domain behaviour or business rules to this file. Import direction is out of scope. No responsibility clearly belongs to a different layer kind, so the unit passes, with moderate confidence because of these two borderline points.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- adapters-inbound (kind: presentation): src/adapters/inbound/**\n- adapters-outbound (kind: infrastructure): src/adapters/outbound/**\n- config (kind: application): src/config/**\n\n## Unit\nKind: file\nId: src/adapters/outbound/payment/CardPaymentAdapter.ts\nLayer: adapters-outbound\nUnit files:\n- src/adapters/outbound/payment/CardPaymentAdapter.ts\n\n## Source\n=====SOURCE-BEGIN src/adapters/outbound/payment/CardPaymentAdapter.ts=====\nimport { PaymentPort } from '../../../application/ports/out/PaymentPort';\nimport { Spot } from '../../../domain/model/Spot';\n\nexport class CardPaymentAdapter implements PaymentPort {\n  private readonly held = new Spot('u5a', 0, false, 0);\n  private readonly authorised = new Map<string, number>();\n\n  async authorise(reference: string, amountCents: number): Promise<boolean> {\n    if (amountCents <= 0) return false;\n    this.authorised.set(reference, amountCents);\n    return true;\n  }\n\n  async refund(reference: string): Promise<void> {\n    this.authorised.delete(reference);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CardPaymentAdapter@src/adapters/outbound/payment/CardPaymentAdapter.ts\",\"to\":\"PaymentPort@src/application/ports/out/PaymentPort.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"CardPaymentAdapter@src/adapters/outbound/payment/CardPaymentAdapter.ts\",\"to\":\"Spot@src/domain/model/Spot.ts\",\"type\":\"FLOWS_TO\"},{\"from\":\"src/adapters/outbound/payment/CardPaymentAdapter.ts\",\"to\":\"src/application/ports/out/PaymentPort.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/adapters/outbound/payment/CardPaymentAdapter.ts\",\"to\":\"src/domain/model/Spot.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/config/container.ts\",\"to\":\"src/adapters/outbound/payment/CardPaymentAdapter.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"adapters-outbound\",\"name\":\"CardPaymentAdapter\",\"path\":\"src/adapters/outbound/payment/CardPaymentAdapter.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Spot\",\"path\":\"src/domain/model/Spot.ts\"},{\"kind\":\"File\",\"layer\":\"adapters-outbound\",\"path\":\"src/adapters/outbound/payment/CardPaymentAdapter.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports/out/PaymentPort.ts\"},{\"kind\":\"File\",\"layer\":\"config\",\"path\":\"src/config/container.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/model/Spot.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"PaymentPort\",\"path\":\"src/application/ports/out/PaymentPort.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T03:02:16.824Z",
+  "repetition": 0,
+  "requestHash": "865af14aab7c6169317a61febce2e32bc41ad2ea76f71a9bca7b67e1c8898f44",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":1233}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.7,\\\"reasoning\\\":\\\"CardPaymentAdapter implements the outbound PaymentPort and its job is infrastructure work: authorise() and refund() record and remove card authorisations in an in-memory Map, standing in for a payment gateway. The guard `if (amountCents <= 0) return false;` is a small input check that mirrors a gateway turning down a bad amount. It is not a real business or domain policy. The field `held = new Spot('u5a', 0, false, 0)` creates a domain object that nothing uses. That is dead code and a smell, but it adds no domain behaviour or business rules to this file. Import direction is out of scope. No responsibility clearly belongs to a different layer kind, so the unit passes, with moderate confidence because of these two borderline points.\\\",\\\"evidence\\\":[\\\"src/adapters/outbound/payment/CardPaymentAdapter.ts: class CardPaymentAdapter implements PaymentPort, an outbound port, which fits the infrastructure layer\\\",\\\"authorise() stores reference -> amountCents in an in-memory Map, simulating gateway authorisation (infrastructure)\\\",\\\"refund() removes the authorisation from the Map (infrastructure)\\\",\\\"`if (amountCents <= 0) return false;` is a small guard like a gateway decline, not a domain policy\\\",\\\"`private readonly held = new Spot('u5a', 0, false, 0);` is never used: dead code, with no business logic attached\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.7,\"evidence\":[\"src/adapters/outbound/payment/CardPaymentAdapter.ts: class CardPaymentAdapter implements PaymentPort, an outbound port, which fits the infrastructure layer\",\"authorise() stores reference -> amountCents in an in-memory Map, simulating gateway authorisation (infrastructure)\",\"refund() removes the authorisation from the Map (infrastructure)\",\"`if (amountCents <= 0) return false;` is a small guard like a gateway decline, not a domain policy\",\"`private readonly held = new Spot('u5a', 0, false, 0);` is never used: dead code, with no business logic attached\"],\"pass\":true,\"reasoning\":\"CardPaymentAdapter implements the outbound PaymentPort and its job is infrastructure work: authorise() and refund() record and remove card authorisations in an in-memory Map, standing in for a payment gateway. The guard `if (amountCents <= 0) return false;` is a small input check that mirrors a gateway turning down a bad amount. It is not a real business or domain policy. The field `held = new Spot('u5a', 0, false, 0)` creates a domain object that nothing uses. That is dead code and a smell, but it adds no domain behaviour or business rules to this file. Import direction is out of scope. No responsibility clearly belongs to a different layer kind, so the unit passes, with moderate confidence because of these two borderline points.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/adapters/outbound/payment/CardPaymentAdapter.ts",
+  "usage": {
+    "inputTokens": 2876,
+    "outputTokens": 1233
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

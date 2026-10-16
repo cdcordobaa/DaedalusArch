@@ -8,6 +8,7 @@ import { DomainResult } from '../shared/errors/domain-result.js';
 import type { IngestionInput, IngestionError } from './types.js';
 import { DEFAULT_DRIFT_THRESHOLDS } from './types.js';
 import { annotateNodes } from './layer-annotator.js';
+import { liftLayerlessBarrelEdges } from './layerless-barrel-edges.js';
 import { ensureIndexes, ingestNodes, ingestEdges, verifyIngestion } from './graph-ingester.js';
 import { computeDelta, computeDeltaStats } from './delta-computer.js';
 import { detectDrift } from './drift-detector.js';
@@ -46,7 +47,11 @@ export async function ingestAPG(
   warnings.push(...(nodeResult.warnings ?? [])); // INGEST_002 (BR-U2-35)
 
   // 4. Ingest edges
-  const edgeResult = await ingestEdges(input.apgResult.edges, graphRepo);
+  // MT-B1 (OFF by default): the graph gets the lifted edges; the snapshot below keeps the extractor's APG.
+  const edges = input.literalThroughLayerlessBarrels === true
+    ? liftLayerlessBarrelEdges(input.apgResult.nodes, input.apgResult.edges, annotations, input.layerModel).edges
+    : input.apgResult.edges;
+  const edgeResult = await ingestEdges(edges, graphRepo);
   if (!edgeResult.success) {
     return DomainResult.fail<IngestionResult>([ingestionError('INGESTION_FAILED', `Edge ingestion failed: ${edgeResult.errors[0]?.message}`)]);
   }
