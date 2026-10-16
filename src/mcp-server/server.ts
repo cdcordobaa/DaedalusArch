@@ -64,6 +64,13 @@ const specArg = z
   .optional()
   .describe("Path to the firewall spec YAML; defaults to the server's configured spec.");
 
+const hintsArg = z
+  .boolean()
+  .optional()
+  .describe(
+    "Attach a deterministic fix hint to each blocking violation: what is wrong, the edge and the allowed-dependency rule it breaks, the target layer and folder, and the minimal structural fix. Defaults to the server's --hints setting (off).",
+  );
+
 function toResult<T extends object>(outcome: ToolOutcome<T>): CallToolResult {
   if (!outcome.ok) return { isError: true, content: [{ type: 'text', text: outcome.message }] };
   return {
@@ -134,6 +141,7 @@ const checkFileShape = {
     .boolean()
     .optional()
     .describe('Also run the compiled rule templates on the whole project before and after the change (in-process interpreter, no database; about a second or more) and report what the change introduces. Needs a project root and the cypher-interp engine.'),
+  hints: hintsArg,
 };
 const checkDiffShape = {
   diff: z.string().min(1).describe('A unified diff (git diff or diff -u output).'),
@@ -142,6 +150,7 @@ const checkDiffShape = {
     .boolean()
     .optional()
     .describe('Also run the compiled rule templates on the whole project before and after the diff (in-process interpreter, no database; about a second or more) and report what it introduces. Needs a project root and the cypher-interp engine.'),
+  hints: hintsArg,
 };
 const placementShape = {
   purpose: z
@@ -163,6 +172,7 @@ const proposeShape = {
 const explainShape = {
   rule: z.string().min(1).describe('Rule id, rule name or violation type.'),
   spec: specArg,
+  hints: hintsArg,
 };
 const inferShape = {
   project: z

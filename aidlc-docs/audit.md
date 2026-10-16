@@ -1562,3 +1562,10 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: v1.3 spike follow-up, outside the v1.3 study stages. Development-set evidence only.
 
 ---
+## v1.3 CONSTRUCTION — night plan tracker update (scheduled task)
+**Timestamp**: 2026-10-16T10:30:00Z
+**User Input**: "scheduled tracker update"
+**AI Response**: "Night plan tracker refreshed from the PR list into v1.3 (all states) and the remote branches; hold reasons taken from the W3-1 review verdicts (Docs/v1.3/overnight-pr-review.md). 28 [x], 4 [~], 0 [ ], 63 [!]. Newly [x] with merge shas: A3 #166 db75b708, X2 #137 92d7a411, B1 #161 6384b821, J1 #134 a893b0eb, J2 #143 dffb1db8 (merged before its HOLD), I3b #135 3292ebed, J6 #138 2f1a3a4e, J7 #140 8c6abe09, J4 #150 5f52a9f6, X3 #183 9768def4, merge trains, W3-1 review (#202, #214). Moved to [!] (PR titled [hold]): R1, X1, G2, A1, A5, R2, Y5, Y1, X4, J3, G1, B2, Y2, Y3, J5, Z1, D1, D2. PR numbers filled in: C1 #195, W3-3 #201, W3-2 #212, J5 #188, P1 #192, judge v2.2 run #191, pilot run #170. New section 7 lists the other PRs into v1.3 (38 held, #215 open). A2 still has a branch and no PR. aidlc-state Current Stage: next author gate is reverting or gating #143."
+**Context**: CONSTRUCTION, v1.3 validity cycle; tracker-only update, docs only.
+
+---
