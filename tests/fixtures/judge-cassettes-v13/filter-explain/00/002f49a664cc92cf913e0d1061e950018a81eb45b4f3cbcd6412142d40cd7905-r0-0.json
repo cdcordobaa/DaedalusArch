@@ -1,0 +1,36 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9624,
+  "effort": "high",
+  "functionId": "filter-explain",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "002f49a664cc92cf913e0d1061e950018a81eb45b4f3cbcd6412142d40cd7905-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "## Finding\nRule: FF-P03\nRule intent: Repository implementations implement a port declared in the core; the core owns the interface.\nType: CUSTOM_port-adapter-pattern\nSeverity: critical; tier: blocking\nFile: src/adapters/outbound/payment/FakePaymentGateway.ts\nMessage: Violation in src/adapters/outbound/payment/FakePaymentGateway.ts\nDiscriminator: FakePaymentGateway\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- adapters-inbound (kind: presentation): src/adapters/inbound/**\n- adapters-outbound (kind: infrastructure): src/adapters/outbound/**\n- config (kind: application): src/config/**\n\n## Source (line-numbered)\n=====SOURCE-BEGIN src/adapters/outbound/payment/FakePaymentGateway.ts (layer adapters-outbound)=====\n 1| import { BookingError } from '../../../domain/errors/BookingError';\n 2| import { Money } from '../../../domain/model/Money';\n 3| \n 4| export const PAYMENT_FEE_CENTS = 150;\n 5| \n 6| /** Driven adapter standing in for a card processor; declines charges above a fixed limit. */\n 7| export class FakePaymentGateway {\n 8|   private readonly charges = new Map<string, number>();\n 9| \n10|   async charge(guestId: string, amount: Money): Promise<string> {\n11|     if (amount.cents > 500_000) throw new BookingError('payment-declined', `Charge for ${guestId} declined`);\n12|     const ref = `pay-${this.charges.size + 1}`;\n13|     this.charges.set(ref, amount.cents);\n14|     return ref;\n15|   }\n16| \n17|   async refund(paymentRef: string): Promise<void> {\n18|     this.charges.delete(paymentRef);\n19|   }\n20| }\n=====SOURCE-END=====\n\n## Instructions\nDecide confirm or dismiss. Confirm: the cited code has the problem the rule is meant to catch, in this project and layer model. Dismiss: the rule fired, but the code does not have that problem (a false positive of the rule's mechanism, a threshold artefact on sound code, or a case the style allows). Measurements stated in the finding (counts, ratios, missing files) are correct as measurements; judge what they mean for this code. explanation: one paragraph that justifies the decision from the code, citing file paths and line numbers exactly as numbered below. fix: one concrete change: for a confirm, how to fix the code; for a dismiss, what (if anything) the rule or its configuration should change. citations: the line ranges your explanation relies on; every one must name a file shown below and lines that exist.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T23:59:55.032Z",
+  "repetition": 0,
+  "requestHash": "002f49a664cc92cf913e0d1061e950018a81eb45b4f3cbcd6412142d40cd7905",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":813}},\"result\":\"{\\\"decision\\\":\\\"confirm\\\",\\\"explanation\\\":\\\"src/adapters/outbound/payment/FakePaymentGateway.ts is a driven adapter in the adapters-outbound (infrastructure) layer. The doc comment on line 6 says so. The class declaration on line 7 has no `implements` clause, and the file imports nothing from a core port (lines 1-2 import only the domain's BookingError and Money). So nothing shows the core owning the contract for charge/refund (lines 10-19). The adapter defines its own public shape, and application code can only depend on it through the concrete class or by structural coincidence. That is the dependency-inversion gap FF-P03 is meant to catch. TypeScript's structural typing could let the class satisfy some port by accident, but the rule asks for a port declared in the core that this adapter implements, and this file names none. It also exports a business-looking constant, PAYMENT_FEE_CENTS (line 4), from the adapter. That suggests contract details sit here rather than in the core.\\\",\\\"fix\\\":\\\"Declare a `PaymentGateway` port interface in the core (e.g. src/application/ports/PaymentGateway.ts) with `charge(guestId: string, amount: Money): Promise<string>` and `refund(paymentRef: string): Promise<void>`. Import it here and declare `export class FakePaymentGateway implements PaymentGateway`. Have application services depend only on the port. Move PAYMENT_FEE_CENTS into the domain or application layer if it is a business rule.\\\",\\\"citations\\\":[{\\\"filePath\\\":\\\"src/adapters/outbound/payment/FakePaymentGateway.ts\\\",\\\"startLine\\\":1,\\\"endLine\\\":7},{\\\"filePath\\\":\\\"src/adapters/outbound/payment/FakePaymentGateway.ts\\\",\\\"startLine\\\":10,\\\"endLine\\\":19}]}\",\"structured_output\":{\"citations\":[{\"endLine\":7,\"filePath\":\"src/adapters/outbound/payment/FakePaymentGateway.ts\",\"startLine\":1},{\"endLine\":19,\"filePath\":\"src/adapters/outbound/payment/FakePaymentGateway.ts\",\"startLine\":10}],\"decision\":\"confirm\",\"explanation\":\"src/adapters/outbound/payment/FakePaymentGateway.ts is a driven adapter in the adapters-outbound (infrastructure) layer. The doc comment on line 6 says so. The class declaration on line 7 has no `implements` clause, and the file imports nothing from a core port (lines 1-2 import only the domain's BookingError and Money). So nothing shows the core owning the contract for charge/refund (lines 10-19). The adapter defines its own public shape, and application code can only depend on it through the concrete class or by structural coincidence. That is the dependency-inversion gap FF-P03 is meant to catch. TypeScript's structural typing could let the class satisfy some port by accident, but the rule asks for a port declared in the core that this adapter implements, and this file names none. It also exports a business-looking constant, PAYMENT_FEE_CENTS (line 4), from the adapter. That suggests contract details sit here rather than in the core.\",\"fix\":\"Declare a `PaymentGateway` port interface in the core (e.g. src/application/ports/PaymentGateway.ts) with `charge(guestId: string, amount: Money): Promise<string>` and `refund(paymentRef: string): Promise<void>`. Import it here and declare `export class FakePaymentGateway implements PaymentGateway`. Have application services depend only on the port. Move PAYMENT_FEE_CENTS into the domain or application layer if it is a business rule.\"}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "4b0d965ef0d8c21f",
+  "usage": {
+    "inputTokens": 2368,
+    "outputTokens": 813
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

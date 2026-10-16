@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6986,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "514619d39eb3ee6fd6fb37c9e34a78c201c61c5ebe0a1a696f42344189dd9d91-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/application/use-cases/ListOverdueLoansUseCase.ts: the constructor injects LoanRepository (domain port) and Clock (application port, src/application/ports/Clock.ts). No framework DI decorator is used.",
+      "src/application/use-cases/ListOverdueLoansUseCase.ts: execute(): Promise<LoanDto[]> returns a DTO type the project declares itself in src/application/dto/LoanDto.ts.",
+      "src/application/use-cases/ListOverdueLoansUseCase.ts: the overdue decision is delegated to the domain via loan.isOverdue(now), so the use case only orchestrates."
+    ],
+    "pass": true,
+    "reasoning": "This application-layer use case fits its layer's role. Its dependencies come in through the constructor: LoanRepository, a domain-layer port, and Clock, an application-layer port. The execute method returns the project-declared LoanDto[] type. The method only coordinates work: it reads the current time from the clock, fetches active loans from the repository, uses the domain method loan.isOverdue to filter them, and maps the results to DTOs. No signature uses a framework, web or transport type. There are no decorators, no base class, no HTTP request, response or status code, and no direct I/O or database client. The overdue rule itself lives in the domain entity, so this file isn't taking on business logic.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities, signatures and annotations match the role of its declared layer.\n\n## Rubric\nPass: Every declaration in the file belongs to the role and kind of its declared layer, including its parameter, return and field types, its decorators and base classes, and its statements, and agrees with any ADR prose given.\nFail: The file carries something that belongs to a different layer kind. In a domain or application file: a type of a web, transport or framework package in any signature (parameter, return or field), even when the parameter is optional or unused; or a request, response, status code or HTTP error of the delivery layer. In a domain file also: a framework or ORM decorator or base class (dependency injection, routing, persistence mapping), even when the class logic is pure; or persistence or I/O (queries, database or ORM clients, HTTP or file access). In an infrastructure or presentation file: a business rule, that is a domain invariant, calculation or decision that the domain or application layer should own. A type the project declares itself is not a framework type, whatever its name.\nEvidence required: Name the file and cite the signature, decorator, declaration or statement that carries the misplaced responsibility, its package or origin, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/use-cases/ListOverdueLoansUseCase.ts\nLayer: application\nUnit files:\n- src/application/use-cases/ListOverdueLoansUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/use-cases/ListOverdueLoansUseCase.ts=====\nimport { LoanRepository } from '../../domain/repositories/LoanRepository';\nimport { LoanDto, toLoanDto } from '../dto/LoanDto';\nimport { Clock } from '../ports/Clock';\n\nexport class ListOverdueLoansUseCase {\n  constructor(\n    private readonly loans: LoanRepository,\n    private readonly clock: Clock,\n  ) {}\n\n  async execute(): Promise<LoanDto[]> {\n    const now = this.clock.now();\n    const active = await this.loans.findActive();\n    return active.filter((loan) => loan.isOverdue(now)).map((loan) => toLoanDto(loan, now));\n  }\n}\n\n=====SOURCE-END=====\n\n## Neighbourhood\nsrc/application/use-cases/ListOverdueLoansUseCase.ts (layer application, kind application)\n  imports: src/application/dto/LoanDto.ts (layer application, kind application); src/application/ports/Clock.ts (layer application, kind application); src/domain/repositories/LoanRepository.ts (layer domain, kind domain)\n  imported by: src/infrastructure/http/LoanController.ts (layer infrastructure, kind infrastructure); src/infrastructure/main.ts (layer infrastructure, kind infrastructure)\n  types: ListOverdueLoansUseCase injects Clock in src/application/ports/Clock.ts (layer application, kind application); ListOverdueLoansUseCase injects LoanRepository in src/domain/repositories/LoanRepository.ts (layer domain, kind domain); ListOverdueLoansUseCase is injected into LoanController in src/infrastructure/http/LoanController.ts (layer infrastructure, kind infrastructure)\n\n## Candidate flags\nCandidates proposed by deterministic checks; verify, don't trust. Each line is a tool observation with its location, not a finding.\n(none)\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric. Check each candidate flag against the source: a flag the source does not support must not count against the unit, and a violation the flags miss counts as much as one they name. Judge what each declaration is, not only what it does at run time.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T20:54:09.353Z",
+  "repetition": 0,
+  "requestHash": "514619d39eb3ee6fd6fb37c9e34a78c201c61c5ebe0a1a696f42344189dd9d91",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":578}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"This application-layer use case fits its layer's role. Its dependencies come in through the constructor: LoanRepository, a domain-layer port, and Clock, an application-layer port. The execute method returns the project-declared LoanDto[] type. The method only coordinates work: it reads the current time from the clock, fetches active loans from the repository, uses the domain method loan.isOverdue to filter them, and maps the results to DTOs. No signature uses a framework, web or transport type. There are no decorators, no base class, no HTTP request, response or status code, and no direct I/O or database client. The overdue rule itself lives in the domain entity, so this file isn't taking on business logic.\\\",\\\"evidence\\\":[\\\"src/application/use-cases/ListOverdueLoansUseCase.ts: the constructor injects LoanRepository (domain port) and Clock (application port, src/application/ports/Clock.ts). No framework DI decorator is used.\\\",\\\"src/application/use-cases/ListOverdueLoansUseCase.ts: execute(): Promise<LoanDto[]> returns a DTO type the project declares itself in src/application/dto/LoanDto.ts.\\\",\\\"src/application/use-cases/ListOverdueLoansUseCase.ts: the overdue decision is delegated to the domain via loan.isOverdue(now), so the use case only orchestrates.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/application/use-cases/ListOverdueLoansUseCase.ts: the constructor injects LoanRepository (domain port) and Clock (application port, src/application/ports/Clock.ts). No framework DI decorator is used.\",\"src/application/use-cases/ListOverdueLoansUseCase.ts: execute(): Promise<LoanDto[]> returns a DTO type the project declares itself in src/application/dto/LoanDto.ts.\",\"src/application/use-cases/ListOverdueLoansUseCase.ts: the overdue decision is delegated to the domain via loan.isOverdue(now), so the use case only orchestrates.\"],\"pass\":true,\"reasoning\":\"This application-layer use case fits its layer's role. Its dependencies come in through the constructor: LoanRepository, a domain-layer port, and Clock, an application-layer port. The execute method returns the project-declared LoanDto[] type. The method only coordinates work: it reads the current time from the clock, fetches active loans from the repository, uses the domain method loan.isOverdue to filter them, and maps the results to DTOs. No signature uses a framework, web or transport type. There are no decorators, no base class, no HTTP request, response or status code, and no direct I/O or database client. The overdue rule itself lives in the domain entity, so this file isn't taking on business logic.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/use-cases/ListOverdueLoansUseCase.ts",
+  "usage": {
+    "inputTokens": 2887,
+    "outputTokens": 578
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
