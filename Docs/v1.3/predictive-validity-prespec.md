@@ -131,3 +131,7 @@ Two properties of the tool's output, seen in the reports' `functionResults` / `f
 ### Addendum 4 (2026-10-16, 9 of 54 tool runs done, before any outcome model)
 
 **Run-time cap.** FF-S02 under cypher-interp is a relationship-unique depth-first enumeration of all import trails of length 2..10 from every file. On dense feature-module graphs its cost grows exponentially: hedgedoc-backend (163 files) 2 min, medplum-server 14.5 min, and several mid-size projects over 30 min. Every run therefore gets a **4-hour wall-clock cap**. A project/snapshot that exceeds it is re-run with the reference engine, Neo4j 5.26.24 Community + APOC 5.26.24 core (local tarball, 127.0.0.1). There, FF-S02 fails on the tool's fixed client transaction timeout, and all other rules run, FF-P05 included. For such a project, E1 is the blocking rules **without FF-S02**, and the report lists it. The primary M1 is then also reported (a) restricted to projects with complete cypher-interp runs and (b) with E1 without FF-S02 on every project (R10), so that the exposure is the same everywhere. No template, tier or engine code is changed.
+
+### Addendum 5 (2026-10-16, 18 of 27 T runs done, no T_alt run started, before any outcome model)
+
+The cap of Addendum 4 is lowered to **1 hour for the T_alt snapshot** (R1 only), to keep the compute budget bounded; the 4-hour cap stays for T. The fallback for a capped run is the same (Neo4j run, E1 without FF-S02 for that project/snapshot). A watchdog enforces both caps, including on the three T runs started before the capped queue existed.
