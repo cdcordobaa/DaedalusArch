@@ -1,0 +1,3310 @@
+{
+ "schema": "study2-analysis/v0-rehearsal",
+ "synthetic": true,
+ "options": {
+  "seed": 20261016,
+  "resamples": 4999,
+  "flips": 9999,
+  "alpha": 0.05,
+  "minStepsForSlope": 3
+ },
+ "arms": [
+  "none",
+  "daedalus-mcp",
+  "gate"
+ ],
+ "design": {
+  "runs": 162,
+  "blocks": 54,
+  "tasks": 6,
+  "models": [
+   "claude-code-cli/synth-model-a",
+   "claude-code-cli/synth-model-b",
+   "codex-cli/synth-model-c"
+  ],
+  "k": [
+   5
+  ]
+ },
+ "switch": {
+  "source": "pilot",
+  "perTask": [
+   {
+    "taskId": "synth-pilot-task-1",
+    "newBlockingAfterStep1": 0,
+    "unlabelled": 0,
+    "excludedByLabel": 0
+   },
+   {
+    "taskId": "synth-pilot-task-2",
+    "newBlockingAfterStep1": 0,
+    "unlabelled": 0,
+    "excludedByLabel": 0
+   },
+   {
+    "taskId": "synth-pilot-task-3",
+    "newBlockingAfterStep1": 0,
+    "unlabelled": 0,
+    "excludedByLabel": 0
+   }
+  ],
+  "erosion": false,
+  "primary": "advisory-per-kloc",
+  "fallbackTriggered": true,
+  "statement": "Pilot memo §3: the primary outcome is ZERO (no new blocking finding after step 1 in any of 3 tasks). Per memo §5 the PRE-COMMITTED FALLBACK applies: the Study 2 primary outcome moves to the advisory-tier erosion rate (per-run slope of advisory findings per KLOC, FF-CV05 excluded).",
+  "provisional": true
+ },
+ "primaryMetric": "advisoryTotalPerKlocSlope",
+ "primaryDefinitionMet": false,
+ "primaryNotes": [
+  "The memo §5 fallback outcome (advisory per KLOC WITHOUT FF-CV05) is NOT computable from these step records: the v1.3 `StepEvaluation` has only `advisoryViolationCount`, no per-rule advisory counts (readiness gate S6; PR #142 proposes `advisoryByRule`). The table below uses ALL advisory rules, FF-CV05 included, as a labelled surrogate; it is not the pre-committed outcome.",
+  "Under the advisory branch the `gate` arm still shows blocking findings only; whether `gate` gets the advisory subset or is dropped is undecided (memo §5, readiness gate D11b). The gate contrast is computed as designed and must be read with that caveat."
+ ],
+ "confirmatory": [
+  {
+   "metric": "advisoryTotalPerKlocSlope",
+   "arm": "gate",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0.4733252674085024,
+   "meanReference": 0.23124542495160866,
+   "meanDiff": 0.24207984245689382,
+   "ci": {
+    "low": -0.8112060202365371,
+    "high": 1.3099616984026308
+   },
+   "sdDiff": 3.0327628025605065,
+   "dz": 0.07982155487152184,
+   "relativeReduction": -1.0468524620867736,
+   "relativeReductionCi": {
+    "low": -18.065266368896292,
+    "high": 2.716628943998323
+   },
+   "p": 0.5561,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 0.34739636600306006,
+     "ci": {
+      "low": -1.4613142739724592,
+      "high": 2.3044385819447917
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": -1.4879485650181197,
+     "ci": {
+      "low": -3.413725763466643,
+      "high": 0.06523328803192854
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 1.691103895994633,
+     "ci": {
+      "low": -0.8548011907525954,
+      "high": 4.223306038566849
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": -0.1580595527591546,
+     "ci": {
+      "low": -1.6698446319796956,
+      "high": 1.4305295835599452
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 0.5408099524606813,
+     "ci": {
+      "low": -0.961878601743975,
+      "high": 1.9194809871960485
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0.5191769580602626,
+     "ci": {
+      "low": -1.2585765709602466,
+      "high": 2.2941407309112654
+     }
+    }
+   ],
+   "taskLevelP": 0.5625,
+   "taskLevelMinP": 0.03125,
+   "holmP": 1,
+   "holmReject": false
+  },
+  {
+   "metric": "advisoryTotalPerKlocSlope",
+   "arm": "daedalus-mcp",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0.04148200305373553,
+   "meanReference": 0.23124542495160866,
+   "meanDiff": -0.18976342189787296,
+   "ci": {
+    "low": -1.3141435849663912,
+    "high": 1.0827908339560133
+   },
+   "sdDiff": 3.267169980484292,
+   "dz": -0.05808189443199535,
+   "relativeReduction": 0.8206148162178075,
+   "relativeReductionCi": {
+    "low": -9.36166994010094,
+    "high": 7.864225636816574
+   },
+   "p": 0.6735,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": -1.0929070021412346,
+     "ci": {
+      "low": -2.7213993977987103,
+      "high": 0.5277614365181258
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": -0.8388355473370935,
+     "ci": {
+      "low": -2.3205456762417693,
+      "high": 0.6280715418429018
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 0.7651259968059121,
+     "ci": {
+      "low": -1.9286899493381606,
+      "high": 3.940437508968512
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": -1.0995910496166226,
+     "ci": {
+      "low": -2.359921703146197,
+      "high": 0.14493680212690174
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": -0.9202580234884109,
+     "ci": {
+      "low": -2.621868261558703,
+      "high": 0.7562168759741047
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 2.0478850943902116,
+     "ci": {
+      "low": -0.49820654069697284,
+      "high": 4.221913970445304
+     }
+    }
+   ],
+   "taskLevelP": 0.71875,
+   "taskLevelMinP": 0.03125,
+   "holmP": 1,
+   "holmReject": false
+  }
+ ],
+ "floorCheck": {
+  "noneSteps": 270,
+  "noneStepsWithBlocking": 0,
+  "allStudyBlockingZero": true
+ },
+ "secondaryContrasts": [
+  {
+   "metric": "advisoryTotalPerKlocSlope",
+   "arm": "gate",
+   "reference": "daedalus-mcp",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0.4733252674085024,
+   "meanReference": 0.04148200305373553,
+   "meanDiff": 0.43184326435476694,
+   "ci": {
+    "low": -0.8339272449322408,
+    "high": 1.5861783680032777
+   },
+   "sdDiff": 3.246744044358146,
+   "dz": 0.13300810241114608,
+   "relativeReduction": -10.410376369611654,
+   "relativeReductionCi": {
+    "low": -38.77418369960001,
+    "high": 3.1152074802751746
+   },
+   "p": 0.3292,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 1.4403033681442947,
+     "ci": {
+      "low": -0.4183220221275038,
+      "high": 2.9786705076587108
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": -0.6491130176810258,
+     "ci": {
+      "low": -2.3404686205783536,
+      "high": 0.9364128545408674
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 0.9259778991887211,
+     "ci": {
+      "low": -1.4477467257926813,
+      "high": 3.5600976021621746
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0.941531496857468,
+     "ci": {
+      "low": -0.63112401882469,
+      "high": 2.531586571317637
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 1.4610679759490925,
+     "ci": {
+      "low": -0.6654577860703562,
+      "high": 3.201896285447015
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": -1.528708136329949,
+     "ci": {
+      "low": -3.804234556917935,
+      "high": 0.49695724738168345
+     }
+    }
+   ],
+   "taskLevelP": 0.40625,
+   "taskLevelMinP": 0.03125
+  }
+ ],
+ "secondaryOutcomes": [
+  {
+   "metric": "blockingSlope",
+   "arm": "gate",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0,
+   "meanReference": 0,
+   "meanDiff": 0,
+   "ci": {
+    "low": 0,
+    "high": 0
+   },
+   "sdDiff": 0,
+   "dz": null,
+   "relativeReduction": null,
+   "relativeReductionCi": {
+    "low": null,
+    "high": null
+   },
+   "p": 1,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    }
+   ],
+   "taskLevelP": 1,
+   "taskLevelMinP": 0.03125
+  },
+  {
+   "metric": "blockingSlope",
+   "arm": "daedalus-mcp",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0,
+   "meanReference": 0,
+   "meanDiff": 0,
+   "ci": {
+    "low": 0,
+    "high": 0
+   },
+   "sdDiff": 0,
+   "dz": null,
+   "relativeReduction": null,
+   "relativeReductionCi": {
+    "low": null,
+    "high": null
+   },
+   "p": 1,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    }
+   ],
+   "taskLevelP": 1,
+   "taskLevelMinP": 0.03125
+  },
+  {
+   "metric": "blockingPerKlocSlope",
+   "arm": "gate",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0,
+   "meanReference": 0,
+   "meanDiff": 0,
+   "ci": {
+    "low": 0,
+    "high": 0
+   },
+   "sdDiff": 0,
+   "dz": null,
+   "relativeReduction": null,
+   "relativeReductionCi": {
+    "low": null,
+    "high": null
+   },
+   "p": 1,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    }
+   ],
+   "taskLevelP": 1,
+   "taskLevelMinP": 0.03125
+  },
+  {
+   "metric": "blockingPerKlocSlope",
+   "arm": "daedalus-mcp",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0,
+   "meanReference": 0,
+   "meanDiff": 0,
+   "ci": {
+    "low": 0,
+    "high": 0
+   },
+   "sdDiff": 0,
+   "dz": null,
+   "relativeReduction": null,
+   "relativeReductionCi": {
+    "low": null,
+    "high": null
+   },
+   "p": 1,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    }
+   ],
+   "taskLevelP": 1,
+   "taskLevelMinP": 0.03125
+  },
+  {
+   "metric": "ahsAtK",
+   "arm": "gate",
+   "reference": "none",
+   "blocks": 51,
+   "tasks": 6,
+   "meanArm": 0.7283137254901959,
+   "meanReference": 0.7465098039215686,
+   "meanDiff": -0.01819607843137255,
+   "ci": {
+    "low": -0.06449674074074077,
+    "high": 0.023362833333333315
+   },
+   "sdDiff": 0.1116460513601521,
+   "dz": -0.1629800446114744,
+   "relativeReduction": 0.024374868669888916,
+   "relativeReductionCi": {
+    "low": -0.031666612274055934,
+    "high": 0.08896294686290777
+   },
+   "p": 0.2496,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 8,
+     "meanDiff": -0.014500000000000013,
+     "ci": {
+      "low": -0.08202500000000004,
+      "high": 0.060999999999999985
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 7,
+     "meanDiff": 0.02685714285714285,
+     "ci": {
+      "low": -0.04399999999999996,
+      "high": 0.09942857142857142
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": -0.10533333333333333,
+     "ci": {
+      "low": -0.18579999999999997,
+      "high": -0.03155555555555556
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0.0026666666666666566,
+     "ci": {
+      "low": -0.056911111111111114,
+      "high": 0.06088888888888883
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": -0.015111111111111112,
+     "ci": {
+      "low": -0.07379999999999999,
+      "high": 0.0591555555555555
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0.006666666666666685,
+     "ci": {
+      "low": -0.05468888888888888,
+      "high": 0.08357777777777776
+     }
+    }
+   ],
+   "taskLevelP": 0.5625,
+   "taskLevelMinP": 0.03125
+  },
+  {
+   "metric": "ahsAtK",
+   "arm": "daedalus-mcp",
+   "reference": "none",
+   "blocks": 53,
+   "tasks": 6,
+   "meanArm": 0.7366037735849058,
+   "meanReference": 0.7452075471698114,
+   "meanDiff": -0.008603773584905673,
+   "ci": {
+    "low": -0.056528301886792455,
+    "high": 0.036545500725689385
+   },
+   "sdDiff": 0.13385042450187587,
+   "dz": -0.06427901605037564,
+   "relativeReduction": 0.011545472959286984,
+   "relativeReductionCi": {
+    "low": -0.050387175886538425,
+    "high": 0.07649085047951466
+   },
+   "p": 0.6409,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 8,
+     "meanDiff": 0.00949999999999998,
+     "ci": {
+      "low": -0.06002500000000004,
+      "high": 0.066
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 0.0431111111111111,
+     "ci": {
+      "low": -0.03155555555555557,
+      "high": 0.1338
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": -0.05733333333333336,
+     "ci": {
+      "low": -0.15560000000000002,
+      "high": 0.036444444444444425
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0.029777777777777768,
+     "ci": {
+      "low": -0.030666666666666682,
+      "high": 0.08846666666666664
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": -0.020888888888888908,
+     "ci": {
+      "low": -0.1062888888888889,
+      "high": 0.05697777777777767
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": -0.05377777777777775,
+     "ci": {
+      "low": -0.1467333333333333,
+      "high": 0.036000000000000046
+     }
+    }
+   ],
+   "taskLevelP": 0.625,
+   "taskLevelMinP": 0.03125
+  },
+  {
+   "metric": "ahsSlope",
+   "arm": "gate",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": -0.047311111111111116,
+   "meanReference": -0.045572486772486764,
+   "meanDiff": -0.0017386243386243378,
+   "ci": {
+    "low": -0.01248941798941798,
+    "high": 0.008360370370370365
+   },
+   "sdDiff": 0.023872673678353957,
+   "dz": -0.07282905811261513,
+   "relativeReduction": null,
+   "relativeReductionCi": {
+    "low": null,
+    "high": null
+   },
+   "p": 0.6021,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": -0.002965079365079367,
+     "ci": {
+      "low": -0.01706666666666667,
+      "high": 0.011125396825396828
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 0.015111111111111106,
+     "ci": {
+      "low": 0.0005311111111111047,
+      "high": 0.029691111111111095
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": -0.020799999999999992,
+     "ci": {
+      "low": -0.0352111111111111,
+      "high": -0.006560000000000009
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0.0027555555555555575,
+     "ci": {
+      "low": -0.009824444444444434,
+      "high": 0.014355555555555547
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": -0.0031111111111111105,
+     "ci": {
+      "low": -0.014493333333333313,
+      "high": 0.012540000000000003
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": -0.0014222222222222214,
+     "ci": {
+      "low": -0.014891111111111105,
+      "high": 0.014179999999999993
+     }
+    }
+   ],
+   "taskLevelP": 0.59375,
+   "taskLevelMinP": 0.03125
+  },
+  {
+   "metric": "ahsSlope",
+   "arm": "daedalus-mcp",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": -0.04697460317460318,
+   "meanReference": -0.045572486772486764,
+   "meanDiff": -0.0014021164021164035,
+   "ci": {
+    "low": -0.011644021164021164,
+    "high": 0.007758359788359779
+   },
+   "sdDiff": 0.026909542764199147,
+   "dz": -0.0521048021663824,
+   "relativeReduction": null,
+   "relativeReductionCi": {
+    "low": null,
+    "high": null
+   },
+   "p": 0.7036,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 0.004990476190476182,
+     "ci": {
+      "low": -0.005555555555555567,
+      "high": 0.014951111111111104
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 0.007930158730158732,
+     "ci": {
+      "low": -0.009939682539682549,
+      "high": 0.026974920634920636
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": -0.012488888888888895,
+     "ci": {
+      "low": -0.031822222222222224,
+      "high": 0.0037777777777777675
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0.007866666666666664,
+     "ci": {
+      "low": -0.005377777777777781,
+      "high": 0.020491111111111095
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": -0.0034666666666666682,
+     "ci": {
+      "low": -0.021382222222222226,
+      "high": 0.014224444444444442
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": -0.013244444444444439,
+     "ci": {
+      "low": -0.03182222222222221,
+      "high": 0.005600000000000006
+     }
+    }
+   ],
+   "taskLevelP": 0.71875,
+   "taskLevelMinP": 0.03125
+  },
+  {
+   "metric": "ahsAuc",
+   "arm": "gate",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0.8327283950617285,
+   "meanReference": 0.8359413580246915,
+   "meanDiff": -0.0032129629629629648,
+   "ci": {
+    "low": -0.026858487654321014,
+    "high": 0.01964490740740741
+   },
+   "sdDiff": 0.06227419096413536,
+   "dz": -0.05159381299410792,
+   "relativeReduction": 0.0038435267403866824,
+   "relativeReductionCi": {
+    "low": -0.02288490112167966,
+    "high": 0.031117439244457316
+   },
+   "p": 0.713,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": -0.002462962962963,
+     "ci": {
+      "low": -0.03207777777777784,
+      "high": 0.027861111111111093
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 0.028296296296296288,
+     "ci": {
+      "low": -0.015425925925925867,
+      "high": 0.07614166666666661
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": -0.045222222222222226,
+     "ci": {
+      "low": -0.08496111111111111,
+      "high": -0.009772222222222246
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0.005277777777777801,
+     "ci": {
+      "low": -0.03239166666666667,
+      "high": 0.0461277777777778
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 0.001111111111111149,
+     "ci": {
+      "low": -0.026002777777777774,
+      "high": 0.04057500000000003
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": -0.006277777777777802,
+     "ci": {
+      "low": -0.04028055555555567,
+      "high": 0.03194722222222223
+     }
+    }
+   ],
+   "taskLevelP": 0.71875,
+   "taskLevelMinP": 0.03125
+  },
+  {
+   "metric": "ahsAuc",
+   "arm": "daedalus-mcp",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0.8272407407407407,
+   "meanReference": 0.8359413580246915,
+   "meanDiff": -0.008700617283950617,
+   "ci": {
+    "low": -0.034407870370370394,
+    "high": 0.016987500000000034
+   },
+   "sdDiff": 0.07119347498271816,
+   "dz": -0.12221088078735651,
+   "relativeReduction": 0.010408167032804894,
+   "relativeReductionCi": {
+    "low": -0.019078702128755752,
+    "high": 0.04158347110639085
+   },
+   "p": 0.3749,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 0.006629629629629628,
+     "ci": {
+      "low": -0.028159259259259266,
+      "high": 0.04646666666666664
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 0.005944444444444443,
+     "ci": {
+      "low": -0.04545555555555557,
+      "high": 0.060633333333333275
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": -0.04883333333333336,
+     "ci": {
+      "low": -0.10196944444444447,
+      "high": -0.00031111111111118095
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0.01888888888888893,
+     "ci": {
+      "low": -0.01645,
+      "high": 0.054694444444444455
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": -0.020055555555555542,
+     "ci": {
+      "low": -0.06206944444444445,
+      "high": 0.019674999999999998
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": -0.014777777777777803,
+     "ci": {
+      "low": -0.05555833333333339,
+      "high": 0.030002777777777753
+     }
+    }
+   ],
+   "taskLevelP": 0.46875,
+   "taskLevelMinP": 0.03125
+  },
+  {
+   "metric": "blockingAhsAtK",
+   "arm": "gate",
+   "reference": "none",
+   "blocks": 51,
+   "tasks": 6,
+   "meanArm": 1,
+   "meanReference": 1,
+   "meanDiff": 0,
+   "ci": {
+    "low": 0,
+    "high": 0
+   },
+   "sdDiff": 0,
+   "dz": null,
+   "relativeReduction": 0,
+   "relativeReductionCi": {
+    "low": 0,
+    "high": 0
+   },
+   "p": 1,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 8,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 7,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    }
+   ],
+   "taskLevelP": 1,
+   "taskLevelMinP": 0.03125
+  },
+  {
+   "metric": "blockingAhsAtK",
+   "arm": "daedalus-mcp",
+   "reference": "none",
+   "blocks": 53,
+   "tasks": 6,
+   "meanArm": 1,
+   "meanReference": 1,
+   "meanDiff": 0,
+   "ci": {
+    "low": 0,
+    "high": 0
+   },
+   "sdDiff": 0,
+   "dz": null,
+   "relativeReduction": 0,
+   "relativeReductionCi": {
+    "low": 0,
+    "high": 0
+   },
+   "p": 1,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 8,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    }
+   ],
+   "taskLevelP": 1,
+   "taskLevelMinP": 0.03125
+  },
+  {
+   "metric": "blockingAhsSlope",
+   "arm": "gate",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0,
+   "meanReference": 0,
+   "meanDiff": 0,
+   "ci": {
+    "low": 0,
+    "high": 0
+   },
+   "sdDiff": 0,
+   "dz": null,
+   "relativeReduction": null,
+   "relativeReductionCi": {
+    "low": null,
+    "high": null
+   },
+   "p": 1,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    }
+   ],
+   "taskLevelP": 1,
+   "taskLevelMinP": 0.03125
+  },
+  {
+   "metric": "blockingAhsSlope",
+   "arm": "daedalus-mcp",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0,
+   "meanReference": 0,
+   "meanDiff": 0,
+   "ci": {
+    "low": 0,
+    "high": 0
+   },
+   "sdDiff": 0,
+   "dz": null,
+   "relativeReduction": null,
+   "relativeReductionCi": {
+    "low": null,
+    "high": null
+   },
+   "p": 1,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    }
+   ],
+   "taskLevelP": 1,
+   "taskLevelMinP": 0.03125
+  },
+  {
+   "metric": "blockingAhsAuc",
+   "arm": "gate",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 1,
+   "meanReference": 1,
+   "meanDiff": 0,
+   "ci": {
+    "low": 0,
+    "high": 0
+   },
+   "sdDiff": 0,
+   "dz": null,
+   "relativeReduction": 0,
+   "relativeReductionCi": {
+    "low": 0,
+    "high": 0
+   },
+   "p": 1,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    }
+   ],
+   "taskLevelP": 1,
+   "taskLevelMinP": 0.03125
+  },
+  {
+   "metric": "blockingAhsAuc",
+   "arm": "daedalus-mcp",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 1,
+   "meanReference": 1,
+   "meanDiff": 0,
+   "ci": {
+    "low": 0,
+    "high": 0
+   },
+   "sdDiff": 0,
+   "dz": null,
+   "relativeReduction": 0,
+   "relativeReductionCi": {
+    "low": 0,
+    "high": 0
+   },
+   "p": 1,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": 0,
+      "high": 0
+     }
+    }
+   ],
+   "taskLevelP": 1,
+   "taskLevelMinP": 0.03125
+  },
+  {
+   "metric": "locAtK",
+   "arm": "gate",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 2009.388888888889,
+   "meanReference": 1996.0185185185185,
+   "meanDiff": 13.37037037037037,
+   "ci": {
+    "low": -250.4824074074074,
+    "high": 288.17222222222216
+   },
+   "sdDiff": 727.4310003275885,
+   "dz": 0.01838025924706152,
+   "relativeReduction": -0.0066985202022544765,
+   "relativeReductionCi": {
+    "low": -0.15651195434850523,
+    "high": 0.11847824383369898
+   },
+   "p": 0.8947,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 86.77777777777777,
+     "ci": {
+      "low": -353.6333333333333,
+      "high": 540.8222222222222
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": -370.8888888888889,
+     "ci": {
+      "low": -936.7611111111111,
+      "high": 199.38888888888886
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 504.6666666666667,
+     "ci": {
+      "low": 143.19444444444446,
+      "high": 922.111111111111
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": -36.22222222222222,
+     "ci": {
+      "low": -503.90555555555557,
+      "high": 421.461111111111
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": -27.77777777777778,
+     "ci": {
+      "low": -303.7944444444444,
+      "high": 259.0333333333333
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": -76.33333333333333,
+     "ci": {
+      "low": -486.31666666666666,
+      "high": 333.8888888888888
+     }
+    }
+   ],
+   "taskLevelP": 0.875,
+   "taskLevelMinP": 0.03125
+  },
+  {
+   "metric": "locAtK",
+   "arm": "daedalus-mcp",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 2012.1851851851852,
+   "meanReference": 1996.0185185185185,
+   "meanDiff": 16.166666666666668,
+   "ci": {
+    "low": -239.82129629629628,
+    "high": 278.0444444444444
+   },
+   "sdDiff": 758.5258232442069,
+   "dz": 0.021313271310292387,
+   "relativeReduction": -0.00809945725286454,
+   "relativeReductionCi": {
+    "low": -0.15494304724911737,
+    "high": 0.10502728113160006
+   },
+   "p": 0.8741,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": -169.44444444444446,
+     "ci": {
+      "low": -521.5833333333334,
+      "high": 200.79999999999998
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": -130.33333333333334,
+     "ci": {
+      "low": -733.8555555555555,
+      "high": 472.8111111111111
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 405.8888888888889,
+     "ci": {
+      "low": 36.88333333333333,
+      "high": 835.1333333333332
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": -251.11111111111111,
+     "ci": {
+      "low": -657.1222222222223,
+      "high": 135.93333333333328
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 230.88888888888889,
+     "ci": {
+      "low": -250.08888888888887,
+      "high": 754.1777777777777
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 11.11111111111111,
+     "ci": {
+      "low": -404.3166666666666,
+      "high": 413.9555555555555
+     }
+    }
+   ],
+   "taskLevelP": 0.90625,
+   "taskLevelMinP": 0.03125
+  },
+  {
+   "metric": "filesAtK",
+   "arm": "gate",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 57.425925925925924,
+   "meanReference": 57.03703703703704,
+   "meanDiff": 0.3888888888888889,
+   "ci": {
+    "low": -7.372222222222222,
+    "high": 8.185185185185185
+   },
+   "sdDiff": 20.813109680948564,
+   "dz": 0.018684804666400295,
+   "relativeReduction": -0.006818181818181834,
+   "relativeReductionCi": {
+    "low": -0.16139892885542062,
+    "high": 0.11739839856978627
+   },
+   "p": 0.8937,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 2.5555555555555554,
+     "ci": {
+      "low": -9.555555555555555,
+      "high": 15.555555555555555
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": -10.666666666666666,
+     "ci": {
+      "low": -26.45,
+      "high": 5.666666666666667
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 14.444444444444445,
+     "ci": {
+      "low": 4.3277777777777775,
+      "high": 26.555555555555557
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": -1.1111111111111112,
+     "ci": {
+      "low": -14.894444444444444,
+      "high": 12.227777777777773
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": -0.6666666666666666,
+     "ci": {
+      "low": -9.222222222222221,
+      "high": 7.00555555555555
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": -2.2222222222222223,
+     "ci": {
+      "low": -14.333333333333334,
+      "high": 10.444444444444445
+     }
+    }
+   ],
+   "taskLevelP": 0.875,
+   "taskLevelMinP": 0.03125
+  },
+  {
+   "metric": "filesAtK",
+   "arm": "daedalus-mcp",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 57.48148148148148,
+   "meanReference": 57.03703703703704,
+   "meanDiff": 0.4444444444444444,
+   "ci": {
+    "low": -7.057407407407407,
+    "high": 8.020370370370369
+   },
+   "sdDiff": 21.76171700588042,
+   "dz": 0.02042322507568439,
+   "relativeReduction": -0.007792207792207684,
+   "relativeReductionCi": {
+    "low": -0.16522981312774937,
+    "high": 0.1184726663113953
+   },
+   "p": 0.8842,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": -4.777777777777778,
+     "ci": {
+      "low": -14.88888888888889,
+      "high": 5.888888888888889
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": -3.888888888888889,
+     "ci": {
+      "low": -22.666666666666668,
+      "high": 12.449999999999996
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 11.777777777777779,
+     "ci": {
+      "low": 1.6666666666666667,
+      "high": 25.672222222222217
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": -7.333333333333333,
+     "ci": {
+      "low": -20,
+      "high": 4.555555555555555
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 6.666666666666667,
+     "ci": {
+      "low": -6.666666666666667,
+      "high": 22.11111111111111
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0.2222222222222222,
+     "ci": {
+      "low": -12,
+      "high": 11.89444444444444
+     }
+    }
+   ],
+   "taskLevelP": 0.90625,
+   "taskLevelMinP": 0.03125
+  },
+  {
+   "metric": "typecheckErrorsPerStep",
+   "arm": "gate",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0.18888888888888888,
+   "meanReference": 0.13333333333333336,
+   "meanDiff": 0.055555555555555566,
+   "ci": {
+    "low": -0.02592592592592593,
+    "high": 0.13703703703703707
+   },
+   "sdDiff": 0.25599724841288535,
+   "dz": 0.21701622146325866,
+   "relativeReduction": -0.4166666666666663,
+   "relativeReductionCi": {
+    "low": -1.393214285714286,
+    "high": 0.14316109422492357
+   },
+   "p": 0.1488,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 0.15555555555555556,
+     "ci": {
+      "low": -6.1679056923619804e-18,
+      "high": 0.3111111111111111
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 0.02222222222222223,
+     "ci": {
+      "low": -0.17777777777777778,
+      "high": 0.2222222222222222
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": 0.08888888888888889,
+     "ci": {
+      "low": -0.08888888888888889,
+      "high": 0.2444444444444444
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": -0.19999999999999998,
+      "high": 0.17777777777777776
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": -0.022222222222222223,
+     "ci": {
+      "low": -0.13333333333333333,
+      "high": 0.1111111111111111
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0.08888888888888889,
+     "ci": {
+      "low": 0,
+      "high": 0.15666666666666565
+     }
+    }
+   ],
+   "taskLevelP": 0.1875,
+   "taskLevelMinP": 0.03125
+  },
+  {
+   "metric": "typecheckErrorsPerStep",
+   "arm": "daedalus-mcp",
+   "reference": "none",
+   "blocks": 54,
+   "tasks": 6,
+   "meanArm": 0.18888888888888886,
+   "meanReference": 0.13333333333333336,
+   "meanDiff": 0.055555555555555566,
+   "ci": {
+    "low": -0.033333333333333326,
+    "high": 0.1444444444444445
+   },
+   "sdDiff": 0.25599724841288535,
+   "dz": 0.21701622146325866,
+   "relativeReduction": -0.4166666666666661,
+   "relativeReductionCi": {
+    "low": -1.5658026755852832,
+    "high": 0.17507352941176435
+   },
+   "p": 0.1418,
+   "taskEffects": [
+    {
+     "taskId": "synth-task-1",
+     "blocks": 9,
+     "meanDiff": 0.11111111111111113,
+     "ci": {
+      "low": -0.044444444444444446,
+      "high": 0.28888888888888886
+     }
+    },
+    {
+     "taskId": "synth-task-2",
+     "blocks": 9,
+     "meanDiff": 0.022222222222222237,
+     "ci": {
+      "low": -0.2222222222222222,
+      "high": 0.2222222222222222
+     }
+    },
+    {
+     "taskId": "synth-task-3",
+     "blocks": 9,
+     "meanDiff": -0.04444444444444445,
+     "ci": {
+      "low": -0.17777777777777778,
+      "high": 0.08888888888888889
+     }
+    },
+    {
+     "taskId": "synth-task-4",
+     "blocks": 9,
+     "meanDiff": 0.06666666666666668,
+     "ci": {
+      "low": -0.13333333333333336,
+      "high": 0.24444444444444446
+     }
+    },
+    {
+     "taskId": "synth-task-5",
+     "blocks": 9,
+     "meanDiff": 0,
+     "ci": {
+      "low": -0.06666666666666668,
+      "high": 0.06666666666666668
+     }
+    },
+    {
+     "taskId": "synth-task-6",
+     "blocks": 9,
+     "meanDiff": 0.17777777777777778,
+     "ci": {
+      "low": 0.044444444444444446,
+      "high": 0.3122222222222213
+     }
+    }
+   ],
+   "taskLevelP": 0.1875,
+   "taskLevelMinP": 0.03125
+  }
+ ],
+ "perModel": [
+  {
+   "model": "claude-code-cli/synth-model-a",
+   "contrasts": [
+    {
+     "metric": "advisoryTotalPerKlocSlope",
+     "arm": "gate",
+     "reference": "none",
+     "blocks": 18,
+     "tasks": 6,
+     "meanArm": 0.8613119814668162,
+     "meanReference": 0.5571546590215117,
+     "meanDiff": 0.30415732244530463,
+     "ci": {
+      "low": -2.052637771322598,
+      "high": 2.5709800550097195
+     },
+     "sdDiff": 3.867839389920709,
+     "dz": 0.0786375264800072,
+     "relativeReduction": -0.545911835287302,
+     "relativeReductionCi": {
+      "low": -21.40693055322032,
+      "high": 2.6798106712883016
+     },
+     "p": 0.7385,
+     "taskEffects": [
+      {
+       "taskId": "synth-task-1",
+       "blocks": 3,
+       "meanDiff": 0.15134235671163543,
+       "ci": {
+        "low": -1.2896723451436207,
+        "high": 2.108682688833544
+       }
+      },
+      {
+       "taskId": "synth-task-2",
+       "blocks": 3,
+       "meanDiff": -4.463375851587184,
+       "ci": {
+        "low": -8.008090528417302,
+        "high": -1.8483295855970765
+       }
+      },
+      {
+       "taskId": "synth-task-3",
+       "blocks": 3,
+       "meanDiff": 1.3637983072334274,
+       "ci": {
+        "low": -4.710177353610535,
+        "high": 7.659102817563049
+       }
+      },
+      {
+       "taskId": "synth-task-4",
+       "blocks": 3,
+       "meanDiff": 1.3952161686708273,
+       "ci": {
+        "low": -2.572704057510189,
+        "high": 3.8874902228077786
+       }
+      },
+      {
+       "taskId": "synth-task-5",
+       "blocks": 3,
+       "meanDiff": 0.13235915837649737,
+       "ci": {
+        "low": -3.488051196194316,
+        "high": 2.848401002419807
+       }
+      },
+      {
+       "taskId": "synth-task-6",
+       "blocks": 3,
+       "meanDiff": 3.2456037952666246,
+       "ci": {
+        "low": 1.4909840400549748,
+        "high": 4.199399901806132
+       }
+      }
+     ],
+     "taskLevelP": 0.65625,
+     "taskLevelMinP": 0.03125
+    },
+    {
+     "metric": "advisoryTotalPerKlocSlope",
+     "arm": "daedalus-mcp",
+     "reference": "none",
+     "blocks": 18,
+     "tasks": 6,
+     "meanArm": -0.4665423934789492,
+     "meanReference": 0.5571546590215117,
+     "meanDiff": -1.0236970525004612,
+     "ci": {
+      "low": -3.1172454011447828,
+      "high": 1.7034101041978884
+     },
+     "sdDiff": 3.4042410171187636,
+     "dz": -0.300712272530834,
+     "relativeReduction": 1.8373660453603708,
+     "relativeReductionCi": {
+      "low": -2.564620119916831,
+      "high": 10.891900875362627
+     },
+     "p": 0.2005,
+     "taskEffects": [
+      {
+       "taskId": "synth-task-1",
+       "blocks": 3,
+       "meanDiff": -2.7851125589080987,
+       "ci": {
+        "low": -4.049569294187745,
+        "high": -1.7279524295535202
+       }
+      },
+      {
+       "taskId": "synth-task-2",
+       "blocks": 3,
+       "meanDiff": -1.0855171776358834,
+       "ci": {
+        "low": -2.8855019212357917,
+        "high": 0.7783840269709117
+       }
+      },
+      {
+       "taskId": "synth-task-3",
+       "blocks": 3,
+       "meanDiff": -3.327754637636786,
+       "ci": {
+        "low": -5.135328069895113,
+        "high": -0.5020252454870299
+       }
+      },
+      {
+       "taskId": "synth-task-4",
+       "blocks": 3,
+       "meanDiff": -0.25921214693403843,
+       "ci": {
+        "low": -1.4648256321041677,
+        "high": 1.402616159863905
+       }
+      },
+      {
+       "taskId": "synth-task-5",
+       "blocks": 3,
+       "meanDiff": -3.632605609166763,
+       "ci": {
+        "low": -5.7497293755560746,
+        "high": -2.525486477046803
+       }
+      },
+      {
+       "taskId": "synth-task-6",
+       "blocks": 3,
+       "meanDiff": 4.948019815278806,
+       "ci": {
+        "low": 2.586476999871862,
+        "high": 6.942924181053662
+       }
+      }
+     ],
+     "taskLevelP": 0.5,
+     "taskLevelMinP": 0.03125
+    }
+   ]
+  },
+  {
+   "model": "claude-code-cli/synth-model-b",
+   "contrasts": [
+    {
+     "metric": "advisoryTotalPerKlocSlope",
+     "arm": "gate",
+     "reference": "none",
+     "blocks": 18,
+     "tasks": 6,
+     "meanArm": 0.8148804951859443,
+     "meanReference": 0.5236183450999294,
+     "meanDiff": 0.2912621500860149,
+     "ci": {
+      "low": -1.361607452942334,
+      "high": 2.0686354499757895
+     },
+     "sdDiff": 2.991172182247121,
+     "dz": 0.09737391642469874,
+     "relativeReduction": -0.5562489412597438,
+     "relativeReductionCi": {
+      "low": -12.418691530393755,
+      "high": 1.7928646857284718
+     },
+     "p": 0.6861,
+     "taskEffects": [
+      {
+       "taskId": "synth-task-1",
+       "blocks": 3,
+       "meanDiff": 3.142338187535992,
+       "ci": {
+        "low": 0.8564709214169928,
+        "high": 5.91222370067754
+       }
+      },
+      {
+       "taskId": "synth-task-2",
+       "blocks": 3,
+       "meanDiff": -0.29163858306276375,
+       "ci": {
+        "low": -0.8838976443615625,
+        "high": 0.5749551865153526
+       }
+      },
+      {
+       "taskId": "synth-task-3",
+       "blocks": 3,
+       "meanDiff": 2.549469970741754,
+       "ci": {
+        "low": -1.9043058442043295,
+        "high": 6.804942211124747
+       }
+      },
+      {
+       "taskId": "synth-task-4",
+       "blocks": 3,
+       "meanDiff": -1.9264577706844266,
+       "ci": {
+        "low": -3.7285304773757795,
+        "high": 0.9145965016590482
+       }
+      },
+      {
+       "taskId": "synth-task-5",
+       "blocks": 3,
+       "meanDiff": -0.7814533511935092,
+       "ci": {
+        "low": -1.9532375715915602,
+        "high": 1.2777853871786062
+       }
+      },
+      {
+       "taskId": "synth-task-6",
+       "blocks": 3,
+       "meanDiff": -0.9446855528209563,
+       "ci": {
+        "low": -3.6244368156697693,
+        "high": 2.2313502248978465
+       }
+      }
+     ],
+     "taskLevelP": 0.78125,
+     "taskLevelMinP": 0.03125
+    },
+    {
+     "metric": "advisoryTotalPerKlocSlope",
+     "arm": "daedalus-mcp",
+     "reference": "none",
+     "blocks": 18,
+     "tasks": 6,
+     "meanArm": 0.7524499545449961,
+     "meanReference": 0.5236183450999294,
+     "meanDiff": 0.22883160944506667,
+     "ci": {
+      "low": -1.88330696255291,
+      "high": 2.8300134967637334
+     },
+     "sdDiff": 3.6227053711098463,
+     "dz": 0.06316594533741014,
+     "relativeReduction": -0.43701984773164404,
+     "relativeReductionCi": {
+      "low": -15.650485944322005,
+      "high": 1.991287604622761
+     },
+     "p": 0.8154,
+     "taskEffects": [
+      {
+       "taskId": "synth-task-1",
+       "blocks": 3,
+       "meanDiff": 1.916688542932511,
+       "ci": {
+        "low": 1.0036223795899406,
+        "high": 2.5274726030678973
+       }
+      },
+      {
+       "taskId": "synth-task-2",
+       "blocks": 3,
+       "meanDiff": -1.7721375587652595,
+       "ci": {
+        "low": -4.195923631933889,
+        "high": -0.2506787631725995
+       }
+      },
+      {
+       "taskId": "synth-task-3",
+       "blocks": 3,
+       "meanDiff": 5.007231057924683,
+       "ci": {
+        "low": 2.137208401477699,
+        "high": 10.679598163273079
+       }
+      },
+      {
+       "taskId": "synth-task-4",
+       "blocks": 3,
+       "meanDiff": -1.581933913741948,
+       "ci": {
+        "low": -2.9923633402822785,
+        "high": 0.8127733164063856
+       }
+      },
+      {
+       "taskId": "synth-task-5",
+       "blocks": 3,
+       "meanDiff": -0.17567088973946543,
+       "ci": {
+        "low": -3.2011982437547055,
+        "high": 2.6593434627891464
+       }
+      },
+      {
+       "taskId": "synth-task-6",
+       "blocks": 3,
+       "meanDiff": -2.021187581940121,
+       "ci": {
+        "low": -4.946309458424748,
+        "high": 1.8091438948230651
+       }
+      }
+     ],
+     "taskLevelP": 0.90625,
+     "taskLevelMinP": 0.03125
+    }
+   ]
+  },
+  {
+   "model": "codex-cli/synth-model-c",
+   "contrasts": [
+    {
+     "metric": "advisoryTotalPerKlocSlope",
+     "arm": "gate",
+     "reference": "none",
+     "blocks": 18,
+     "tasks": 6,
+     "meanArm": -0.2562166744272533,
+     "meanReference": -0.38703672926661503,
+     "meanDiff": 0.13082005483936185,
+     "ci": {
+      "low": -1.2466105941767767,
+      "high": 1.4391015893950645
+     },
+     "sdDiff": 2.178987423091904,
+     "dz": 0.06003708578259389,
+     "relativeReduction": null,
+     "relativeReductionCi": {
+      "low": -26.321909807465147,
+      "high": 39.72513793339742
+     },
+     "p": 0.8034,
+     "taskEffects": [
+      {
+       "taskId": "synth-task-1",
+       "blocks": 3,
+       "meanDiff": -2.251491446238447,
+       "ci": {
+        "low": -4.402174804453204,
+        "high": -0.8528777120629419
+       }
+      },
+      {
+       "taskId": "synth-task-2",
+       "blocks": 3,
+       "meanDiff": 0.2911687395955891,
+       "ci": {
+        "low": -1.627138960979245,
+        "high": 1.5417866265720466
+       }
+      },
+      {
+       "taskId": "synth-task-3",
+       "blocks": 3,
+       "meanDiff": 1.1600434100087182,
+       "ci": {
+        "low": -1.5159527542792006,
+        "high": 4.164306757955538
+       }
+      },
+      {
+       "taskId": "synth-task-4",
+       "blocks": 3,
+       "meanDiff": 0.0570629437361355,
+       "ci": {
+        "low": -1.2636442715776492,
+        "high": 1.2639459582484585
+       }
+      },
+      {
+       "taskId": "synth-task-5",
+       "blocks": 3,
+       "meanDiff": 2.271524050199056,
+       "ci": {
+        "low": 1.4449479263092997,
+        "high": 2.7945148621109173
+       }
+      },
+      {
+       "taskId": "synth-task-6",
+       "blocks": 3,
+       "meanDiff": -0.7433873682648805,
+       "ci": {
+        "low": -3.228223877674534,
+        "high": 1.4269495500344356
+       }
+      }
+     ],
+     "taskLevelP": 0.78125,
+     "taskLevelMinP": 0.03125
+    },
+    {
+     "metric": "advisoryTotalPerKlocSlope",
+     "arm": "daedalus-mcp",
+     "reference": "none",
+     "blocks": 18,
+     "tasks": 6,
+     "meanArm": -0.16146155190484018,
+     "meanReference": -0.38703672926661503,
+     "meanDiff": 0.22557517736177488,
+     "ci": {
+      "low": -1.4868644728051474,
+      "high": 1.809972695215111
+     },
+     "sdDiff": 2.7315972027001463,
+     "dz": 0.08257995620247265,
+     "relativeReduction": null,
+     "relativeReductionCi": {
+      "low": -25.302430696512577,
+      "high": 93.07145287486584
+     },
+     "p": 0.7199,
+     "taskEffects": [
+      {
+       "taskId": "synth-task-1",
+       "blocks": 3,
+       "meanDiff": -2.4102969904481166,
+       "ci": {
+        "low": -4.751796365756852,
+        "high": 0.46428636633855147
+       }
+      },
+      {
+       "taskId": "synth-task-2",
+       "blocks": 3,
+       "meanDiff": 0.3411480943898623,
+       "ci": {
+        "low": -3.58232701564261,
+        "high": 2.72889552404973
+       }
+      },
+      {
+       "taskId": "synth-task-3",
+       "blocks": 3,
+       "meanDiff": 0.615901570129839,
+       "ci": {
+        "low": -1.9019703235748306,
+        "high": 2.1542738584390286
+       }
+      },
+      {
+       "taskId": "synth-task-4",
+       "blocks": 3,
+       "meanDiff": -1.4576270881738813,
+       "ci": {
+        "low": -3.8432552779843525,
+        "high": 1.6444766025662316
+       }
+      },
+      {
+       "taskId": "synth-task-5",
+       "blocks": 3,
+       "meanDiff": 1.0475024284409964,
+       "ci": {
+        "low": 0.8968196862080506,
+        "high": 1.2780662041863025
+       }
+      },
+      {
+       "taskId": "synth-task-6",
+       "blocks": 3,
+       "meanDiff": 3.2168230498319494,
+       "ci": {
+        "low": 1.5245221037159922,
+        "high": 4.688774842323335
+       }
+      }
+     ],
+     "taskLevelP": 0.8125,
+     "taskLevelMinP": 0.03125
+    }
+   ]
+  }
+ ],
+ "repair": {
+  "gateSteps": 270,
+  "failingSteps": 0,
+  "repairsWithOutcome": 0,
+  "cleared": 0,
+  "clearedShare": null,
+  "clearedWilson": {
+   "low": null,
+   "high": null
+  },
+  "clearedShareClusterCi": {
+   "low": null,
+   "high": null
+  },
+  "meanReduction": {
+   "n": 0,
+   "mean": null,
+   "ci": {
+    "low": null,
+    "high": null
+   }
+  },
+  "introducedFindings": 0,
+  "repairEvaluationFailed": 0
+ },
+ "cost": [
+  {
+   "arm": "none",
+   "steps": 270,
+   "stepsWithCost": 180,
+   "costPerStepUsd": {
+    "n": 180,
+    "mean": 3.2061338888888895,
+    "ci": {
+     "low": 2.961806722222221,
+     "high": 3.4918558611111057
+    }
+   },
+   "costPerRunUsd": {
+    "n": 36,
+    "mean": 16.030669444444445,
+    "ci": {
+     "low": 14.890889861111107,
+     "high": 17.130875138888886
+    }
+   },
+   "inputTokensPerStep": {
+    "n": 270,
+    "mean": 64235.36666666667,
+    "ci": {
+     "low": 60923.48944444445,
+     "high": 67707.45370370371
+    }
+   },
+   "outputTokensPerStep": {
+    "n": 270,
+    "mean": 10466.407407407407,
+    "ci": {
+     "low": 9869.618333333334,
+     "high": 11126.875185185185
+    }
+   },
+   "wallMinutesPerStep": {
+    "n": 270,
+    "mean": 4.3302818518518515,
+    "ci": {
+     "low": 3.990885481481481,
+     "high": 4.658449608024692
+    }
+   },
+   "agentTurnsPerStep": {
+    "n": 270,
+    "mean": 15.066666666666666,
+    "ci": {
+     "low": 14.47388888888889,
+     "high": 15.671296296296296
+    }
+   },
+   "repairTurns": 0,
+   "repairCostUsd": 0,
+   "usageLimitInterruptions": 0
+  },
+  {
+   "arm": "daedalus-mcp",
+   "steps": 270,
+   "stepsWithCost": 180,
+   "costPerStepUsd": {
+    "n": 180,
+    "mean": 3.224034444444446,
+    "ci": {
+     "low": 3.0316911666666693,
+     "high": 3.407037138888887
+    }
+   },
+   "costPerRunUsd": {
+    "n": 36,
+    "mean": 16.120172222222223,
+    "ci": {
+     "low": 15.318101250000003,
+     "high": 16.922875277777784
+    }
+   },
+   "inputTokensPerStep": {
+    "n": 270,
+    "mean": 63293.2,
+    "ci": {
+     "low": 60147.30962962963,
+     "high": 66847.03074074074
+    }
+   },
+   "outputTokensPerStep": {
+    "n": 270,
+    "mean": 9906.533333333333,
+    "ci": {
+     "low": 9349.977037037037,
+     "high": 10500.617592592593
+    }
+   },
+   "wallMinutesPerStep": {
+    "n": 270,
+    "mean": 4.347778827160492,
+    "ci": {
+     "low": 4.1039291111111105,
+     "high": 4.608280848765433
+    }
+   },
+   "agentTurnsPerStep": {
+    "n": 270,
+    "mean": 15.07037037037037,
+    "ci": {
+     "low": 14.518333333333334,
+     "high": 15.67074074074074
+    }
+   },
+   "repairTurns": 0,
+   "repairCostUsd": 0,
+   "usageLimitInterruptions": 0
+  },
+  {
+   "arm": "gate",
+   "steps": 270,
+   "stepsWithCost": 180,
+   "costPerStepUsd": {
+    "n": 180,
+    "mean": 3.317177777777778,
+    "ci": {
+     "low": 3.025180055555556,
+     "high": 3.612645611111112
+    }
+   },
+   "costPerRunUsd": {
+    "n": 36,
+    "mean": 16.585888888888892,
+    "ci": {
+     "low": 15.129159999999999,
+     "high": 18.048035555555558
+    }
+   },
+   "inputTokensPerStep": {
+    "n": 270,
+    "mean": 63313.248148148145,
+    "ci": {
+     "low": 60423.982777777775,
+     "high": 66429.27481481481
+    }
+   },
+   "outputTokensPerStep": {
+    "n": 270,
+    "mean": 9817.644444444444,
+    "ci": {
+     "low": 9205.813148148149,
+     "high": 10452.355185185186
+    }
+   },
+   "wallMinutesPerStep": {
+    "n": 270,
+    "mean": 4.232138641975309,
+    "ci": {
+     "low": 3.967152277777777,
+     "high": 4.51184639814815
+    }
+   },
+   "agentTurnsPerStep": {
+    "n": 270,
+    "mean": 15.022222222222222,
+    "ci": {
+     "low": 14.514444444444443,
+     "high": 15.537037037037036
+    }
+   },
+   "repairTurns": 0,
+   "repairCostUsd": 0,
+   "usageLimitInterruptions": 0
+  }
+ ],
+ "guards": [
+  {
+   "arm": "none",
+   "steps": 270,
+   "evaluationErrors": 2,
+   "stepsWithTypecheckErrors": 35,
+   "meanTypecheckErrors": 0.13333333333333333,
+   "skeletonBroken": 1,
+   "nonCompletedTurns": 12,
+   "meanLocStep1": 598.8148148148148,
+   "meanLocStepK": 1996.0185185185185,
+   "meanFilesStepK": 57.03703703703704,
+   "runsWithLocDrop": 0
+  },
+  {
+   "arm": "daedalus-mcp",
+   "steps": 270,
+   "evaluationErrors": 4,
+   "stepsWithTypecheckErrors": 47,
+   "meanTypecheckErrors": 0.18888888888888888,
+   "skeletonBroken": 1,
+   "nonCompletedTurns": 10,
+   "meanLocStep1": 603.6481481481482,
+   "meanLocStepK": 2012.1851851851852,
+   "meanFilesStepK": 57.48148148148148,
+   "runsWithLocDrop": 0
+  },
+  {
+   "arm": "gate",
+   "steps": 270,
+   "evaluationErrors": 3,
+   "stepsWithTypecheckErrors": 49,
+   "meanTypecheckErrors": 0.18888888888888888,
+   "skeletonBroken": 1,
+   "nonCompletedTurns": 8,
+   "meanLocStep1": 602.8888888888889,
+   "meanLocStepK": 2009.388888888889,
+   "meanFilesStepK": 57.425925925925924,
+   "runsWithLocDrop": 0
+  }
+ ],
+ "missing": [
+  {
+   "model": "claude-code-cli/synth-model-a",
+   "arm": "none",
+   "runsScheduled": 18,
+   "runsFound": 18,
+   "runsComplete": 18,
+   "stepsExpected": 90,
+   "stepsRecorded": 90,
+   "stepsWithoutOutcome": 0,
+   "runsWithoutSlope": 0
+  },
+  {
+   "model": "claude-code-cli/synth-model-a",
+   "arm": "daedalus-mcp",
+   "runsScheduled": 18,
+   "runsFound": 18,
+   "runsComplete": 18,
+   "stepsExpected": 90,
+   "stepsRecorded": 90,
+   "stepsWithoutOutcome": 0,
+   "runsWithoutSlope": 0
+  },
+  {
+   "model": "claude-code-cli/synth-model-a",
+   "arm": "gate",
+   "runsScheduled": 18,
+   "runsFound": 18,
+   "runsComplete": 18,
+   "stepsExpected": 90,
+   "stepsRecorded": 90,
+   "stepsWithoutOutcome": 1,
+   "runsWithoutSlope": 0
+  },
+  {
+   "model": "claude-code-cli/synth-model-b",
+   "arm": "none",
+   "runsScheduled": 18,
+   "runsFound": 18,
+   "runsComplete": 18,
+   "stepsExpected": 90,
+   "stepsRecorded": 90,
+   "stepsWithoutOutcome": 0,
+   "runsWithoutSlope": 0
+  },
+  {
+   "model": "claude-code-cli/synth-model-b",
+   "arm": "daedalus-mcp",
+   "runsScheduled": 18,
+   "runsFound": 18,
+   "runsComplete": 18,
+   "stepsExpected": 90,
+   "stepsRecorded": 90,
+   "stepsWithoutOutcome": 2,
+   "runsWithoutSlope": 0
+  },
+  {
+   "model": "claude-code-cli/synth-model-b",
+   "arm": "gate",
+   "runsScheduled": 18,
+   "runsFound": 18,
+   "runsComplete": 18,
+   "stepsExpected": 90,
+   "stepsRecorded": 90,
+   "stepsWithoutOutcome": 2,
+   "runsWithoutSlope": 0
+  },
+  {
+   "model": "codex-cli/synth-model-c",
+   "arm": "none",
+   "runsScheduled": 18,
+   "runsFound": 18,
+   "runsComplete": 18,
+   "stepsExpected": 90,
+   "stepsRecorded": 90,
+   "stepsWithoutOutcome": 2,
+   "runsWithoutSlope": 0
+  },
+  {
+   "model": "codex-cli/synth-model-c",
+   "arm": "daedalus-mcp",
+   "runsScheduled": 18,
+   "runsFound": 18,
+   "runsComplete": 18,
+   "stepsExpected": 90,
+   "stepsRecorded": 90,
+   "stepsWithoutOutcome": 2,
+   "runsWithoutSlope": 0
+  },
+  {
+   "model": "codex-cli/synth-model-c",
+   "arm": "gate",
+   "runsScheduled": 18,
+   "runsFound": 18,
+   "runsComplete": 18,
+   "stepsExpected": 90,
+   "stepsRecorded": 90,
+   "stepsWithoutOutcome": 0,
+   "runsWithoutSlope": 0
+  }
+ ],
+ "trajectories": {
+  "blocking": [
+   {
+    "arm": "none",
+    "step": 1,
+    "n": 53,
+    "mean": 0,
+    "low": 0,
+    "high": 0
+   },
+   {
+    "arm": "none",
+    "step": 2,
+    "n": 54,
+    "mean": 0,
+    "low": 0,
+    "high": 0
+   },
+   {
+    "arm": "none",
+    "step": 3,
+    "n": 54,
+    "mean": 0,
+    "low": 0,
+    "high": 0
+   },
+   {
+    "arm": "none",
+    "step": 4,
+    "n": 53,
+    "mean": 0,
+    "low": 0,
+    "high": 0
+   },
+   {
+    "arm": "none",
+    "step": 5,
+    "n": 54,
+    "mean": 0,
+    "low": 0,
+    "high": 0
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 1,
+    "n": 52,
+    "mean": 0,
+    "low": 0,
+    "high": 0
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 2,
+    "n": 53,
+    "mean": 0,
+    "low": 0,
+    "high": 0
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 3,
+    "n": 54,
+    "mean": 0,
+    "low": 0,
+    "high": 0
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 4,
+    "n": 54,
+    "mean": 0,
+    "low": 0,
+    "high": 0
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 5,
+    "n": 53,
+    "mean": 0,
+    "low": 0,
+    "high": 0
+   },
+   {
+    "arm": "gate",
+    "step": 1,
+    "n": 54,
+    "mean": 0,
+    "low": 0,
+    "high": 0
+   },
+   {
+    "arm": "gate",
+    "step": 2,
+    "n": 54,
+    "mean": 0,
+    "low": 0,
+    "high": 0
+   },
+   {
+    "arm": "gate",
+    "step": 3,
+    "n": 54,
+    "mean": 0,
+    "low": 0,
+    "high": 0
+   },
+   {
+    "arm": "gate",
+    "step": 4,
+    "n": 54,
+    "mean": 0,
+    "low": 0,
+    "high": 0
+   },
+   {
+    "arm": "gate",
+    "step": 5,
+    "n": 51,
+    "mean": 0,
+    "low": 0,
+    "high": 0
+   }
+  ],
+  "primary": [
+   {
+    "arm": "none",
+    "step": 1,
+    "n": 53,
+    "mean": 31.611360116934748,
+    "low": 29.354348844121017,
+    "high": 33.868371389748475
+   },
+   {
+    "arm": "none",
+    "step": 2,
+    "n": 54,
+    "mean": 31.80869616387072,
+    "low": 29.59331652231094,
+    "high": 34.024075805430506
+   },
+   {
+    "arm": "none",
+    "step": 3,
+    "n": 54,
+    "mean": 30.221125564022163,
+    "low": 28.468587621288545,
+    "high": 31.97366350675578
+   },
+   {
+    "arm": "none",
+    "step": 4,
+    "n": 53,
+    "mean": 32.541142657428125,
+    "low": 30.853000457224184,
+    "high": 34.22928485763207
+   },
+   {
+    "arm": "none",
+    "step": 5,
+    "n": 54,
+    "mean": 32.350535227800414,
+    "low": 30.335034233640165,
+    "high": 34.36603622196066
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 1,
+    "n": 52,
+    "mean": 32.77505494521134,
+    "low": 29.779909850837562,
+    "high": 35.77020003958511
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 2,
+    "n": 53,
+    "mean": 32.07340982513529,
+    "low": 29.637534146423384,
+    "high": 34.5092855038472
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 3,
+    "n": 54,
+    "mean": 34.15360960942058,
+    "low": 31.16343128588814,
+    "high": 37.14378793295302
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 4,
+    "n": 54,
+    "mean": 33.01943873591704,
+    "low": 30.73281035126076,
+    "high": 35.306067120573324
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 5,
+    "n": 53,
+    "mean": 32.437829406681566,
+    "low": 30.47015573651491,
+    "high": 34.40550307684822
+   },
+   {
+    "arm": "gate",
+    "step": 1,
+    "n": 54,
+    "mean": 30.813370136474788,
+    "low": 28.272686411675718,
+    "high": 33.35405386127386
+   },
+   {
+    "arm": "gate",
+    "step": 2,
+    "n": 54,
+    "mean": 32.43204159414055,
+    "low": 30.37225659193824,
+    "high": 34.49182659634286
+   },
+   {
+    "arm": "gate",
+    "step": 3,
+    "n": 54,
+    "mean": 32.427259560918664,
+    "low": 30.081151245859388,
+    "high": 34.77336787597794
+   },
+   {
+    "arm": "gate",
+    "step": 4,
+    "n": 54,
+    "mean": 31.830380278552248,
+    "low": 29.95479148207032,
+    "high": 33.705969075034176
+   },
+   {
+    "arm": "gate",
+    "step": 5,
+    "n": 51,
+    "mean": 33.89915899637698,
+    "low": 31.369587375097495,
+    "high": 36.42873061765647
+   }
+  ],
+  "ahs": [
+   {
+    "arm": "none",
+    "step": 1,
+    "n": 53,
+    "mean": 0.9253584905660382,
+    "low": 0.9190615657507044,
+    "high": 0.9316554153813721
+   },
+   {
+    "arm": "none",
+    "step": 2,
+    "n": 54,
+    "mean": 0.880740740740741,
+    "low": 0.8707430119907241,
+    "high": 0.890738469490758
+   },
+   {
+    "arm": "none",
+    "step": 3,
+    "n": 54,
+    "mean": 0.8431851851851851,
+    "low": 0.8301080371256218,
+    "high": 0.8562623332447485
+   },
+   {
+    "arm": "none",
+    "step": 4,
+    "n": 53,
+    "mean": 0.7873962264150943,
+    "low": 0.7708438494707767,
+    "high": 0.803948603359412
+   },
+   {
+    "arm": "none",
+    "step": 5,
+    "n": 54,
+    "mean": 0.7439999999999999,
+    "low": 0.7236355640840532,
+    "high": 0.7643644359159466
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 1,
+    "n": 52,
+    "mean": 0.9211538461538461,
+    "low": 0.9125651879860047,
+    "high": 0.9297425043216875
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 2,
+    "n": 53,
+    "mean": 0.8771320754716982,
+    "low": 0.8649548986661499,
+    "high": 0.8893092522772466
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 3,
+    "n": 54,
+    "mean": 0.8224444444444444,
+    "low": 0.8033307762424473,
+    "high": 0.8415581126464415
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 4,
+    "n": 54,
+    "mean": 0.7800000000000004,
+    "low": 0.7582169633183993,
+    "high": 0.8017830366816014
+   },
+   {
+    "arm": "daedalus-mcp",
+    "step": 5,
+    "n": 53,
+    "mean": 0.7366037735849055,
+    "low": 0.7091833714588696,
+    "high": 0.7640241757109414
+   },
+   {
+    "arm": "gate",
+    "step": 1,
+    "n": 54,
+    "mean": 0.9255555555555556,
+    "low": 0.9177666280337226,
+    "high": 0.9333444830773886
+   },
+   {
+    "arm": "gate",
+    "step": 2,
+    "n": 54,
+    "mean": 0.8768148148148147,
+    "low": 0.8659635381486759,
+    "high": 0.8876660914809535
+   },
+   {
+    "arm": "gate",
+    "step": 3,
+    "n": 54,
+    "mean": 0.8325185185185183,
+    "low": 0.8179414822900565,
+    "high": 0.8470955547469802
+   },
+   {
+    "arm": "gate",
+    "step": 4,
+    "n": 54,
+    "mean": 0.7884444444444445,
+    "low": 0.7683350626408043,
+    "high": 0.8085538262480847
+   },
+   {
+    "arm": "gate",
+    "step": 5,
+    "n": 51,
+    "mean": 0.728313725490196,
+    "low": 0.705871067454315,
+    "high": 0.750756383526077
+   }
+  ]
+ },
+ "notComputable": [
+  {
+   "item": "GLMM (outline §5 candidate 2)",
+   "reason": "Not implemented: the outline leaves the choice between candidates 1 and 2 to registration, and a negative-binomial GLMM with crossed random slopes needs an R/Python fit outside this TypeScript toolchain. Listed as an open decision (rehearsal doc §5)."
+  },
+  {
+   "item": "Held-out rule violations (Q4)",
+   "reason": "Not in the step record. `holdout-run.ts` (PR #119) scores the hold-out REFERENCE set for the validity gate, not loop snapshots; a held-out-rule score per snapshot needs a re-scoring pass over the kept commits."
+  },
+  {
+   "item": "Dependency-cruiser violations (Q4)",
+   "reason": "Not in the step record; needs the ADR-030 translation run over every snapshot commit."
+  },
+  {
+   "item": "Layer-coverage share, dynamic imports, barrels (gaming guards)",
+   "reason": "Not in the step record (`sourceFiles` lists files but not their layer match); readiness gate D13."
+  },
+  {
+   "item": "MCP tool calls per step, first call before or after the first write (process)",
+   "reason": "The call log is not part of the step record (readiness gate D6)."
+  },
+  {
+   "item": "Per-step acceptance checks (feature completeness)",
+   "reason": "Not adopted yet (outline §4); only LOC and file trajectories are reported."
+  },
+  {
+   "item": "Judge dimensions FF-N01, FF-N02",
+   "reason": "Scored offline after the runs (memo §4); not in the step record."
+  }
+ ]
+}

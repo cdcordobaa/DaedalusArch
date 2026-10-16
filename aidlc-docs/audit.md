@@ -1505,3 +1505,10 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: CONSTRUCTION, v1.3 validity cycle. Autonomous under the standing delegation; author decisions are listed in §6 of the plan.
 
 ---
+## v1.3 Construction — B2 Study 2 analysis rehearsal (scheduled routine)
+**Timestamp**: 2026-10-16T03:20:00Z
+**User Input**: "(Scheduled task, stored prompt.) Study 2 must run exactly once, so prove its analysis before any real data exist: a synthetic loop-telemetry generator in the harness's exact format (4 scenarios, fixed seed), an analysis script that produces every planned table and figure from raw telemetry including the pilot memo's switch rule, assertions (planted effect recovered, null under no effect, fallback under a floor), power at the planned N, the list of analysis ambiguities, and Docs/v1.3/study2-analysis-rehearsal.md. One PR into v1.3, not merged; no pre-registration documents."
+**AI Response**: "Branch v1.3-study2-analysis-rehearsal. Added scripts/v1.3/{study2-synth,study2-analyse,study2-rehearsal}.ts with libs, a format-conformance test against the real harness dry run, and results/v1.3-study2-rehearsal/. 30/30 checks pass (seed 20261016). Power at the planned N: gate 0.54, mcp 0.17 for the expected effect; the whole pipeline over 200 seeds rejects at 0.60/0.20 and holds size 0.04. Findings: the memo §5 fallback (advisory without FF-CV05) is not computable from v1.3 step records; the fallback has power ≈ 0.05; the gate arm never fires under a floor; the sign-flip test and the cluster-bootstrap CI disagree in 13 % of studies; 25 ambiguities listed (A1–A25) for the author to fix before the plan is locked. AI-DLC approval gates are deferred to PR review (no live user in a scheduled run)."
+**Context**: CONSTRUCTION, v1.3 readiness (gate line D9). Not a pre-registration; synthetic data only; no sealed task used.
+
+---

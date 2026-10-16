@@ -1,0 +1,275 @@
+{
+ "note": "SYNTHETIC rehearsal; not a pre-registration.",
+ "seed": 20261016,
+ "checks": [
+  {
+   "id": "null",
+   "label": "no effect",
+   "advisoryByRule": false,
+   "checks": [
+    {
+     "name": "switch rule: pilot shows erosion → primary stays blocking",
+     "pass": true,
+     "detail": "Pilot memo §3: erosion EXISTS (new blocking findings after step 1 in 3 of 3 tasks). Per memo §5 the Study 2 primary outcome stays the blocking erosion slope."
+    },
+    {
+     "name": "null: no confirmatory contrast rejected under Holm",
+     "pass": true,
+     "detail": "gate: Holm p 1.000; daedalus-mcp: Holm p 1.000"
+    },
+    {
+     "name": "null: gate − none CI contains 0",
+     "pass": true,
+     "detail": "CI [-0.300, 0.534]"
+    },
+    {
+     "name": "null: daedalus-mcp − none CI contains 0",
+     "pass": true,
+     "detail": "CI [-0.426, 0.341]"
+    },
+    {
+     "name": "gate − none: 95% CI of the mean slope difference covers the generating value",
+     "pass": true,
+     "detail": "truth 0.086, estimate 0.105, CI [-0.300, 0.534]"
+    },
+    {
+     "name": "daedalus-mcp − none: 95% CI of the mean slope difference covers the generating value",
+     "pass": true,
+     "detail": "truth -0.049, estimate -0.039, CI [-0.426, 0.341]"
+    }
+   ]
+  },
+  {
+   "id": "small",
+   "label": "small effect (gate 0.2, mcp 0.1)",
+   "advisoryByRule": false,
+   "checks": [
+    {
+     "name": "switch rule: pilot shows erosion → primary stays blocking",
+     "pass": true,
+     "detail": "Pilot memo §3: erosion EXISTS (new blocking findings after step 1 in 3 of 3 tasks). Per memo §5 the Study 2 primary outcome stays the blocking erosion slope."
+    },
+    {
+     "name": "gate − none: 95% CI of the mean slope difference covers the generating value",
+     "pass": true,
+     "detail": "truth -0.090, estimate -0.094, CI [-0.593, 0.361]"
+    },
+    {
+     "name": "gate − none: estimate has the planted sign (less erosion)",
+     "pass": true,
+     "detail": "estimate -0.094"
+    },
+    {
+     "name": "gate − none: 95% CI of the relative reduction covers the planted reduction",
+     "pass": true,
+     "detail": "planted 0.200, estimate 0.112, CI [-0.634, 0.508]"
+    },
+    {
+     "name": "daedalus-mcp − none: 95% CI of the mean slope difference covers the generating value",
+     "pass": true,
+     "detail": "truth -0.214, estimate -0.101, CI [-0.689, 0.374]"
+    },
+    {
+     "name": "daedalus-mcp − none: estimate has the planted sign (less erosion)",
+     "pass": true,
+     "detail": "estimate -0.101"
+    },
+    {
+     "name": "daedalus-mcp − none: 95% CI of the relative reduction covers the planted reduction",
+     "pass": true,
+     "detail": "planted 0.100, estimate 0.120, CI [-0.801, 0.541]"
+    }
+   ]
+  },
+  {
+   "id": "expected",
+   "label": "expected effect (gate halves the slope, mcp quarters it)",
+   "advisoryByRule": false,
+   "checks": [
+    {
+     "name": "switch rule: pilot shows erosion → primary stays blocking",
+     "pass": true,
+     "detail": "Pilot memo §3: erosion EXISTS (new blocking findings after step 1 in 2 of 3 tasks). Per memo §5 the Study 2 primary outcome stays the blocking erosion slope."
+    },
+    {
+     "name": "gate − none: 95% CI of the mean slope difference covers the generating value",
+     "pass": true,
+     "detail": "truth -0.510, estimate -0.705, CI [-1.942, 0.061]"
+    },
+    {
+     "name": "gate − none: estimate has the planted sign (less erosion)",
+     "pass": true,
+     "detail": "estimate -0.705"
+    },
+    {
+     "name": "gate − none: 95% CI of the relative reduction covers the planted reduction",
+     "pass": true,
+     "detail": "planted 0.500, estimate 0.604, CI [-0.125, 0.789]"
+    },
+    {
+     "name": "daedalus-mcp − none: 95% CI of the mean slope difference covers the generating value",
+     "pass": true,
+     "detail": "truth -0.287, estimate -0.632, CI [-1.848, 0.060]"
+    },
+    {
+     "name": "daedalus-mcp − none: estimate has the planted sign (less erosion)",
+     "pass": true,
+     "detail": "estimate -0.632"
+    },
+    {
+     "name": "daedalus-mcp − none: 95% CI of the relative reduction covers the planted reduction",
+     "pass": true,
+     "detail": "planted 0.250, estimate 0.542, CI [-0.104, 0.770]"
+    }
+   ]
+  },
+  {
+   "id": "floor",
+   "label": "floor: zero blocking findings everywhere; expected effect on the advisory rules",
+   "advisoryByRule": false,
+   "checks": [
+    {
+     "name": "switch rule: pilot primary outcome is zero → pre-committed fallback triggered",
+     "pass": true,
+     "detail": "Pilot memo §3: the primary outcome is ZERO (no new blocking finding after step 1 in any of 3 tasks). Per memo §5 the PRE-COMMITTED FALLBACK applies: the Study 2 primary outcome moves to the advisory-tier erosion rate (per-run slope of advisory findings per KLOC, FF-CV05 excluded)."
+    },
+    {
+     "name": "primary outcome moved to the advisory-tier erosion rate",
+     "pass": true,
+     "detail": "advisoryTotalPerKlocSlope"
+    },
+    {
+     "name": "the report says so (statement names the fallback)",
+     "pass": true,
+     "detail": "T1 of report.md"
+    },
+    {
+     "name": "v1.3 format: the report says the defined fallback is NOT computable (no per-rule advisory counts)",
+     "pass": true,
+     "detail": "The memo §5 fallback outcome (advisory per KLOC WITHOUT FF-CV05) is NOT computable from these step records: the v1.3 `StepEvaluation` has only `advisoryViolationCount`, no per-rule advisory counts (readiness gate S6; PR #142 proposes `advisoryByRule`). The table below uses ALL advisory rules, FF-CV05 included, as a labelled surrogate; it is not the pre-committed outcome."
+    }
+   ]
+  },
+  {
+   "id": "floor-advisory-by-rule",
+   "label": "floor: zero blocking findings everywhere; expected effect on the advisory rules",
+   "advisoryByRule": true,
+   "checks": [
+    {
+     "name": "switch rule: pilot primary outcome is zero → pre-committed fallback triggered",
+     "pass": true,
+     "detail": "Pilot memo §3: the primary outcome is ZERO (no new blocking finding after step 1 in any of 3 tasks). Per memo §5 the PRE-COMMITTED FALLBACK applies: the Study 2 primary outcome moves to the advisory-tier erosion rate (per-run slope of advisory findings per KLOC, FF-CV05 excluded)."
+    },
+    {
+     "name": "primary outcome moved to the advisory-tier erosion rate",
+     "pass": true,
+     "detail": "advisoryExclCv05PerKlocSlope"
+    },
+    {
+     "name": "the report says so (statement names the fallback)",
+     "pass": true,
+     "detail": "T1 of report.md"
+    },
+    {
+     "name": "fallback outcome computed as defined (FF-CV05 excluded)",
+     "pass": true,
+     "detail": "advisoryByRule present on every evaluated step"
+    },
+    {
+     "name": "gate − none: 95% CI of the mean slope difference covers the generating value",
+     "pass": true,
+     "detail": "truth -0.100, estimate 0.173, CI [-0.547, 0.851]"
+    },
+    {
+     "name": "daedalus-mcp − none: 95% CI of the mean slope difference covers the generating value",
+     "pass": true,
+     "detail": "truth -0.018, estimate 0.033, CI [-0.896, 0.790]"
+    }
+   ]
+  }
+ ],
+ "power": [
+  {
+   "scenario": "null",
+   "outcome": "blocking",
+   "powerGate": 0.0425,
+   "powerMcp": 0.0425,
+   "powerAny": 0.0675,
+   "mcSe": 0.025
+  },
+  {
+   "scenario": "small",
+   "outcome": "blocking",
+   "powerGate": 0.09,
+   "powerMcp": 0.0375,
+   "powerAny": 0.1075,
+   "mcSe": 0.025
+  },
+  {
+   "scenario": "expected",
+   "outcome": "blocking",
+   "powerGate": 0.5425,
+   "powerMcp": 0.165,
+   "powerAny": 0.5525,
+   "mcSe": 0.025
+  },
+  {
+   "scenario": "floor",
+   "outcome": "advisory-per-kloc",
+   "powerGate": 0.05,
+   "powerMcp": 0.0175,
+   "powerAny": 0.0575,
+   "mcSe": 0.025
+  }
+ ],
+ "calibration": [
+  {
+   "scenario": "null",
+   "sims": 200,
+   "rejectGate": 0.045,
+   "rejectMcp": 0.02,
+   "coverGate": 0.985,
+   "coverMcp": 0.975,
+   "coverRelGate": 0.975,
+   "meanEstGate": 0.010505415793151627,
+   "meanTruthGate": -0.0022116592366384314,
+   "signFlipVsBootstrapDisagree": 0.04
+  },
+  {
+   "scenario": "small",
+   "sims": 200,
+   "rejectGate": 0.145,
+   "rejectMcp": 0.075,
+   "coverGate": 0.99,
+   "coverMcp": 0.985,
+   "coverRelGate": 0.97,
+   "meanEstGate": -0.28192801180301186,
+   "meanTruthGate": -0.2632549720387754,
+   "signFlipVsBootstrapDisagree": 0.07
+  },
+  {
+   "scenario": "expected",
+   "sims": 200,
+   "rejectGate": 0.6,
+   "rejectMcp": 0.2,
+   "coverGate": 0.99,
+   "coverMcp": 0.985,
+   "coverRelGate": 0.995,
+   "meanEstGate": -0.6683971527249831,
+   "meanTruthGate": -0.6590558171771899,
+   "signFlipVsBootstrapDisagree": 0.13
+  },
+  {
+   "scenario": "floor",
+   "sims": 200,
+   "rejectGate": 0.03,
+   "rejectMcp": 0.025,
+   "coverGate": 0.995,
+   "coverMcp": 0.97,
+   "coverRelGate": 0.99,
+   "meanEstGate": -0.38894044496008134,
+   "meanTruthGate": -0.33591576603259066,
+   "signFlipVsBootstrapDisagree": 0.045
+  }
+ ]
+}
