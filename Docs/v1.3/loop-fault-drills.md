@@ -1,4 +1,4 @@
-# v1.3 loop fault drills: the harness survives the faults Study 1 met and resumes to the same bytes
+# v1.3 loop fault drills: 11 of 13 scripted faults resume to the same bytes; 2 do not, and some call sites are not drilled
 
 **2026-10-16. Status: done; development evidence only. 11 of 13 drills pass; the two that do not are reported below and not fixed.** Backlog job #7 (S1). No LLM, judge or other model was called. The pilot and the dress rehearsal have not run. Nothing under the sealed directory was read, and no Study 2 task is named or derived here: the drills use only the three pilot replay tapes of PR #142.
 
