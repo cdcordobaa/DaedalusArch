@@ -12,6 +12,7 @@ import type { ComponentDeclaration } from '../../../src/apg-extractor/index.js';
 import type { LayerDefinition, LayerModel } from '../../../src/shared/types/spec.js';
 import type { LayerKind } from '../../../src/shared/types/enums.js';
 import type { APGEdge, APGNode, APGResult } from '../../../src/shared/types/apg.js';
+import type { GraphRepository } from '../../../src/shared/interfaces/graph-repository.js';
 import { loadAllReferences } from './reference-model.js';
 import { materialiseVariant } from './materialise.js';
 
@@ -76,6 +77,48 @@ export interface SyntheticProject {
   readonly layerModel: LayerModel;
   /** Sweep parameters that override the generic binding (applied before the `low` / `high` bindings). */
   readonly params?: Readonly<Record<string, unknown>>;
+  /** Cheap-proxy facts to write after `ingestAPG` (`writeCheapFacts`). */
+  readonly cheapFacts?: CheapFacts;
+}
+
+/**
+ * Cheap-proxy facts (batch 2) in the graph layout `src/fitness-compiler/cheap2-templates.ts` specifies: a virtual node
+ * labelled with its kind (`EntryPoint`, `EnvKey`, ...) carrying `id`, `name` and its properties; a cheap edge as a
+ * relationship of its own type between nodes, its properties copied as they are. (Node facts, `cheap.<key>`, are
+ * ordinary APG node properties and go through `ingestAPG`.) No persistence unit writes these yet, so the cheap2
+ * templates return rows only on graphs built this way.
+ */
+export interface CheapFacts {
+  readonly nodes: readonly { readonly type: string; readonly props: Readonly<Record<string, unknown>> }[];
+  readonly edges: readonly { readonly type: string; readonly sourceId: string; readonly targetId: string; readonly props: Readonly<Record<string, unknown>> }[];
+}
+
+/**
+ * Writes cheap facts with exactly the statement shapes of `graph-ingester.ts` (one UNWIND-CREATE per node type and
+ * per edge type), which Neo4j runs as Cypher and the interpreter's repository applies by shape; through a `ParityTee`
+ * both engines receive the same writes. Throws if a write fails or creates fewer elements than given.
+ */
+export async function writeCheapFacts(repo: GraphRepository, facts: CheapFacts): Promise<void> {
+  for (const type of [...new Set(facts.nodes.map((n) => n.type))]) {
+    const batch = facts.nodes.filter((n) => n.type === type).map((n) => ({ ...n.props }));
+    const r = await repo.executeQuery(`
+      UNWIND $batch AS node
+      CREATE (n:APGNode:${type})
+      SET n = node
+    `, { batch });
+    if (!r.success || r.data.summary.counters.nodesCreated !== batch.length) throw new Error(`cheap facts: ${type} nodes not written`);
+  }
+  for (const type of [...new Set(facts.edges.map((e) => e.type))]) {
+    const batch = facts.edges.filter((e) => e.type === type).map((e) => ({ sourceId: e.sourceId, targetId: e.targetId, props: { ...e.props } }));
+    const r = await repo.executeQuery(`
+      UNWIND $batch AS edge
+      MATCH (src:APGNode {id: edge.sourceId})
+      MATCH (tgt:APGNode {id: edge.targetId})
+      CREATE (src)-[r:${type}]->(tgt)
+      SET r = edge.props
+    `, { batch });
+    if (!r.success || r.data.summary.counters.relationshipsCreated !== batch.length) throw new Error(`cheap facts: ${type} edges not written`);
+  }
 }
 
 /** Every synthetic graph the parity sweep runs: the shapes graph, then the graphs built for the thin templates. */
@@ -92,6 +135,16 @@ export const THIN_TEMPLATES = [
   'boundary-type-leak', 'component-adp-cycle', 'component-main-sequence-distance', 'deep-import-declared-api', 'deep-import-inferred-api',
   'domain-event-placement', 'inheritance-depth', 'io-outside-adapters', 'module-domain-imports-infrastructure', 'naming-controllers',
   'no-index-logic', 'no-orphan-files', 'repository-aggregate-root', 'undeclared-async-coupling',
+] as const;
+
+/**
+ * The batch-2 cheap-proxy templates (`cheap2` catalogue), which arrived in `v1.3` after the first parity run and read
+ * facts no persistence unit writes yet: zero rows on every real graph. `thinTemplateProject` writes such facts
+ * (`cheapFacts`) so they are compared on rows too; they are held to the same per-binding minimum.
+ */
+export const CHEAP2_COVERED_TEMPLATES = [
+  'framework-exception-in-core', 'endpoint-bypasses-application', 'vendor-sdk-outside-adapters', 'untested-component',
+  'env-read-outside-config', 'hidden-coupling', 'agent-reimplementation',
 ] as const;
 
 /**
@@ -132,12 +185,13 @@ export function thinTemplateProject(variant: 'a' | 'b'): SyntheticProject {
   const invoice = file('domain/billing/Invoice.ts');
   file('domain/events/DomainEvent.ts');
   const barrel = file('domain/index.ts', { isBarrel: true });
-  const service = file('application/OrderService.ts');
-  const handler = file('application/ShipOrderHandler.ts');
+  // Cheap node facts (`cheap.<key>`): vendor SDKs outside adapters, untested components.
+  const service = file('application/OrderService.ts', { 'cheap.vendorSdkOutsideAdapters': extra ? ['stripe', 'aws-sdk'] : ['stripe'], 'cheap.component': 'Orders', 'cheap.componentUntested': true });
+  const handler = file('application/ShipOrderHandler.ts', { 'cheap.vendorSdkOutsideAdapters': ['@sendgrid/mail'], 'cheap.component': 'Shipping', 'cheap.componentUntested': true });
   const repo = file('infrastructure/OrderRepository.ts');
   const invRepo = file('infrastructure/InvoiceRepository.ts');
   const db = file('infrastructure/Db.ts');
-  const ctrl = file('presentation/OrdersController.ts');
+  const ctrl = file('presentation/OrdersController.ts', { 'cheap.component': 'Shipping', 'cheap.componentUntested': true });
   file('domain/orphan/Clock.ts');
   file('application/orphan/Unused.ts');
   if (extra) {
@@ -279,9 +333,39 @@ export function thinTemplateProject(variant: 'a' | 'b'): SyntheticProject {
   edge('PUBLISHES', invoiceC, `channel:${variant}:billing`);
   edge('SUBSCRIBES', total, `channel:${variant}:billing`);
 
+  // Cheap edges and virtual nodes (batch 2), in the layout cheap2-templates.ts specifies.
+  const v = (id: string): string => `cheap:${variant}:${id}`;
+  const cheapFacts: CheapFacts = {
+    nodes: [
+      { type: 'EntryPoint', props: { id: v('ep:post-orders'), name: 'POST /orders', entryKind: 'http', file: f('presentation/OrdersController.ts') } },
+      { type: 'EntryPoint', props: { id: v('ep:invoice-paid'), name: 'invoice.paid', entryKind: 'message', file: f('application/ShipOrderHandler.ts') } },
+      { type: 'EntryPoint', props: { id: v('ep:cron'), name: 'nightly', entryKind: 'cron', file: f('infrastructure/Db.ts') } },
+      { type: 'EnvKey', props: { id: v('env:DB_URL'), name: 'DB_URL' } },
+      { type: 'EnvKey', props: { id: v('env:STRIPE_KEY'), name: 'STRIPE_KEY' } },
+      { type: 'ErrorType', props: { id: v('err:HttpException'), name: 'HttpException' } },
+      { type: 'ErrorType', props: { id: v('err:NotFoundException'), name: 'NotFoundException' } },
+    ],
+    edges: [
+      { type: 'THROWS', sourceId: place, targetId: v('err:HttpException'), props: { direct: true, frameworkHttp: true, unit: 'OrderService.place', errorType: 'HttpException', module: '@nestjs/common' } },
+      { type: 'THROWS', sourceId: total, targetId: v('err:NotFoundException'), props: { direct: true, frameworkHttp: true, unit: 'Order.total', errorType: 'NotFoundException', module: '@nestjs/common' } },
+      { type: 'THROWS', sourceId: save, targetId: v('err:HttpException'), props: { direct: true, frameworkHttp: true, unit: 'OrderRepository.save', errorType: 'HttpException', module: '@nestjs/common' } },
+      { type: 'REACHES', sourceId: v('ep:post-orders'), targetId: save, props: { withoutCore: true, infrastructure: true, unit: 'OrderRepository.save', depth: 2 } },
+      { type: 'REACHES', sourceId: v('ep:invoice-paid'), targetId: repoC, props: { withoutCore: true, infrastructure: true, unit: 'OrderRepository', depth: 1 } },
+      { type: 'REACHES', sourceId: v('ep:cron'), targetId: save, props: { withoutCore: true, infrastructure: true, unit: 'OrderRepository.save', depth: 1 } },
+      { type: 'READS_ENV', sourceId: total, targetId: v('env:DB_URL'), props: { outsideConfig: true, via: 'process.env', lines: [11] } },
+      { type: 'READS_ENV', sourceId: place, targetId: v('env:STRIPE_KEY'), props: { outsideConfig: true, via: 'process.env', lines: [21, 22] } },
+      { type: 'READS_ENV', sourceId: save, targetId: v('env:DB_URL'), props: { outsideConfig: false, via: 'ConfigService', lines: [4] } },
+      { type: 'CO_CHANGES_WITH', sourceId: ctrl, targetId: db, props: { hiddenCoupling: true, support: 6, confidence: 0.75, reverseConfidence: 0.5 } },
+      { type: 'CO_CHANGES_WITH', sourceId: invoice, targetId: handler, props: { hiddenCoupling: true, support: 4, confidence: 0.8, reverseConfidence: 0.4 } },
+      { type: 'CO_CHANGES_WITH', sourceId: order, targetId: orderItem, props: { hiddenCoupling: false, support: 9, confidence: 0.9, reverseConfidence: 0.9 } },
+      { type: 'REIMPLEMENTS', sourceId: ship, targetId: place, props: { via: 'clone', step: 3, existingSince: 1 } },
+      { type: 'REIMPLEMENTS', sourceId: invoiceC, targetId: orderC, props: { via: 'name', step: 5, existingSince: 2 } },
+    ],
+  };
+
   const roots = [`${root}/domain/order/`, `${root}/domain/billing/`];
   return {
-    kind: 'synthetic', id: `synthetic/thin-${variant}`, apg: { nodes, edges } as unknown as APGResult, layerModel,
+    kind: 'synthetic', id: `synthetic/thin-${variant}`, apg: { nodes, edges } as unknown as APGResult, layerModel, cheapFacts,
     params: {
       aggregates: [
         { name: 'OrderAggregate', innerEntities: [`${roots[0] ?? ''}OrderItem\\.ts$`], module: `${roots[0] ?? ''}.*` },

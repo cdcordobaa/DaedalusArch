@@ -44,7 +44,7 @@ import type { SnapshotStore } from '../../src/shared/interfaces/snapshot-store.j
 import { acquireNeo4jLock } from '../../src/shared/process/neo4j-lock.js';
 import { scrubSecrets } from '../../src/shared/errors/scrub.js';
 import { makeTempRoot } from './lib/materialise.js';
-import { apg2FixtureProjects, referenceProjects, syntheticProjects } from './lib/memory-projects.js';
+import { apg2FixtureProjects, referenceProjects, syntheticProjects, writeCheapFacts } from './lib/memory-projects.js';
 import { FLOAT_DRIFT_MAX_ULPS, FLOAT_DRIFT_TEMPLATES, ParityTee, paramNames, sweepTexts } from './lib/memory-sweep.js';
 import type { ParityClass, ParityEntry } from './lib/memory-sweep.js';
 import { permissive, sweepParams } from './lib/memory-bindings.js';
@@ -202,7 +202,8 @@ async function main(): Promise<number> {
       tee.phase = 'sweep:synthetic';
       const ing = await ingestAPG({ apgResult: syn.apg, layerModel: syn.layerModel, mode: 'stateless' }, tee, nullStore);
       if (!ing.success) throw new Error(`${syn.id}: ingest failed: ${ing.errors.map((e) => e.message).join('; ')}`);
-      for (const e of tee.entries) if (e.label === '?') e.label = FIXED_LABELS.get(e.cypher) ?? 'other';
+      if (syn.cheapFacts !== undefined) await writeCheapFacts(tee, syn.cheapFacts);
+      for (const e of tee.entries) if (e.label === '?') e.label = e.write ? 'ingest' : FIXED_LABELS.get(e.cypher) ?? 'other';
       const a2 = apg2Params(syn.layerModel);
       const filePaths = cand.graph.nodesWithLabel('File').map((n) => String(n.properties.get('filePath') ?? ''));
       const sparams = { ...sweepParams(syn.layerModel, new Map(), a2, filePaths), ...syn.params };

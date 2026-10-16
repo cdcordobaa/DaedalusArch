@@ -11,7 +11,8 @@
  * 2. Dynamically, on the synthetic parity graphs and the APG v2 fixture graphs, under the sweep's three bindings: no
  *    two returned rows share their ORDER BY key, so the keys are unique at the row grain on every row the templates
  *    produce there; and every template produced rows somewhere, so the check is not vacuous. The thin templates of
- *    the parity run return rows in at least 3 statements per binding on the synthetic graphs.
+ *    the parity run, and the cheap2 templates (whose facts no persistence unit writes yet), return rows in at least 3
+ *    statements per binding on the synthetic graphs.
  *
  * Row-grain preconditions the keys rely on (true of every graph the extractor emits; stated, not enforced):
  * - one edge per (source, target, type) between two files (the extractor merges repeated imports into `lines`);
@@ -34,7 +35,8 @@ import type { LayerModel } from '../../../src/shared/types/spec.js';
 import type { APGResult } from '../../../src/shared/types/apg.js';
 import { paramNames, sweepTexts } from '../../../scripts/v1.3/lib/memory-sweep.js';
 import { SWEEP_BINDINGS, bindingParams, sweepParams } from '../../../scripts/v1.3/lib/memory-bindings.js';
-import { THIN_TEMPLATES, apg2FixtureProjects, syntheticProjects, thinTemplateProject } from '../../../scripts/v1.3/lib/memory-projects.js';
+import { CHEAP2_COVERED_TEMPLATES, THIN_TEMPLATES, apg2FixtureProjects, syntheticProjects, thinTemplateProject, writeCheapFacts } from '../../../scripts/v1.3/lib/memory-projects.js';
+import type { CheapFacts } from '../../../scripts/v1.3/lib/memory-projects.js';
 
 jest.setTimeout(240_000);
 
@@ -83,10 +85,11 @@ interface Graph {
 
 const nullStore = {} as SnapshotStore;
 
-async function ingest(id: string, apg: APGResult, layerModel: LayerModel, extra: Readonly<Record<string, unknown>> = {}, allowedAsync?: readonly string[]): Promise<Graph> {
+async function ingest(id: string, apg: APGResult, layerModel: LayerModel, extra: Readonly<Record<string, unknown>> = {}, allowedAsync?: readonly string[], cheapFacts?: CheapFacts): Promise<Graph> {
   const repo = new MemoryGraphRepository();
   const r = await ingestAPG({ apgResult: apg, layerModel, mode: 'stateless' }, repo, nullStore);
   if (!r.success) throw new Error(`${id}: ${r.errors.map((e) => e.message).join('; ')}`);
+  if (cheapFacts !== undefined) await writeCheapFacts(repo, cheapFacts);
   const a2 = apg2Params(layerModel, allowedAsync !== undefined ? { allowedAsync: [...allowedAsync] } : undefined);
   const files = repo.graph.nodesWithLabel('File').map((n) => {
     const fp = n.properties.get('filePath');
@@ -103,7 +106,7 @@ function keyOf(v: unknown): string {
 describe('catalogue templates: ORDER BY keys are unique at the row grain', () => {
   const graphs: Graph[] = [];
   beforeAll(async () => {
-    for (const s of syntheticProjects()) graphs.push(await ingest(s.id, s.apg, s.layerModel, s.params));
+    for (const s of syntheticProjects()) graphs.push(await ingest(s.id, s.apg, s.layerModel, s.params, undefined, s.cheapFacts));
     for (const f of apg2FixtureProjects(process.cwd())) {
       const v2 = await extractAPG(f.dir, { ...V13_APG2_OPTIONS, components: f.components });
       if (!v2.success) throw new Error(`${f.id}: extraction failed`);
@@ -137,9 +140,9 @@ describe('catalogue templates: ORDER BY keys are unique at the row grain', () =>
     expect([...rowsPerTemplate].filter(([, n]) => n === 0).map(([name]) => name)).toEqual([]);
   });
 
-  it('gives every thin template at least 3 non-empty statements per binding on the synthetic graphs', async () => {
+  it('gives every thin template and every cheap2 template at least 3 non-empty statements per binding on the synthetic graphs', async () => {
     const short: string[] = [];
-    for (const name of THIN_TEMPLATES) {
+    for (const name of [...THIN_TEMPLATES, ...CHEAP2_COVERED_TEMPLATES]) {
       for (const binding of SWEEP_BINDINGS) {
         let n = 0;
         for (const g of graphs.filter((x) => x.id.startsWith('synthetic/'))) {
