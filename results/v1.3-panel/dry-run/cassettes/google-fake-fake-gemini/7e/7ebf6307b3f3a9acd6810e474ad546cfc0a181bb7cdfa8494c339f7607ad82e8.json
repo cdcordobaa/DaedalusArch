@@ -1,0 +1,19 @@
+{
+  "answer": {
+    "inputTokens": 316,
+    "outputTokens": 20,
+    "servedModel": "fake-gemini",
+    "text": "{\"choice\":\"C\",\"reason\":\"fake google answer\"}"
+  },
+  "failedAttempts": [],
+  "itemKey": "9d84dc157b72315282c39b69",
+  "key": "7ebf6307b3f3a9acd6810e474ad546cfc0a181bb7cdfa8494c339f7607ad82e8",
+  "model": "fake-gemini",
+  "provider": "fake",
+  "request": {
+    "prompt": "## Architectural style\n- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.\n\n## Code excerpt\nFile: src/workers/subscription-failure-tracker.ts\n```ts\n    1> \n    3  import { generateId } from '@medplum/core';\n    4  import type { Project } from '@medplum/fhirtypes';\n    5  import { getConfig } from '../config/loader';\n    6  import type { SubscriptionAutoDisableTrigger } from '../config/types';\n    7  import type { SystemRepository } from '../fhir/repo';\n    8  import { globalLogger } from '../logger';\n    9  import { getCacheRedis } from '../redis';\n```\n\n## Reported finding\nBy its dependencies this file belongs with another component than the folder it sits in: src/workers/subscription-failure-tracker.ts (component workers) clusters with community 0 whose majority component is auth.\n\n## Question\nWould an architect following this style want this changed?\nA. uncertain\nB. no\nC. yes\n\nReply with JSON only: {\"choice\": \"<letter>\", \"reason\": \"<one sentence>\"}",
+    "system": "You are a software architect reviewing a TypeScript code base against an architectural style. Judge only from the material in the message: the style definition, the code excerpt and the reported finding. You have no tools. Reply with one JSON object and nothing else.",
+    "temperature": 0
+  },
+  "runIndex": 1
+}
