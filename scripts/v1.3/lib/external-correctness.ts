@@ -104,3 +104,62 @@ export function markdownTable(title: string, rows: readonly GroupRow[]): string 
   const body = rows.map((r) => `| ${r.group} | ${String(r.n)} | ${String(r.correct)} | ${String(r.incorrect)} | ${String(r.notCheckable)} | ${pct(r.precision)} | ${r.wilsonLow === null ? 'n/a' : `[${pct(r.wilsonLow)}, ${pct(r.wilsonHigh)}]`} | ${pct(r.notCheckableShare)} |`);
   return [head, ...body].join('\n');
 }
+
+// ── Negative control: perturbed claims must come out incorrect ──────────────
+
+/** The statements the perturbations need from the source: every import or re-export of a file. */
+export interface ImportLister {
+  imports(file: string): readonly { readonly startLine: number; readonly resolvedFile?: string; readonly packageRoot?: string }[];
+}
+
+export type ControlKind = 'line' | 'target' | 'cycle';
+
+export interface ControlItem { readonly kind: ControlKind; readonly finding: SampledFinding; readonly perturbation: string }
+
+function cycleFiles(f: Finding): string[] | undefined {
+  for (const d of f.discriminator) {
+    try {
+      const v = JSON.parse(d) as unknown;
+      if (Array.isArray(v) && v.length >= 2 && v.every((x): x is string => typeof x === 'string')) return v;
+    } catch { /* not a JSON list */ }
+  }
+  return undefined;
+}
+
+/**
+ * Perturbs each finding so its claim is false, without reading any rule text:
+ *  - `line`: an edge finding's line moved to another import/re-export statement of the same file that reaches
+ *    neither the target file nor the target package (skipped when the file has no such statement);
+ *  - `target`: an edge finding's target replaced by its own file (a file never imports itself);
+ *  - `cycle`: a cycle's second file replaced by a project file (from the other findings) that the first file does
+ *    not import (skipped when none).
+ * Every item is expected to come out `incorrect`.
+ */
+export function controlItems(items: readonly SampledFinding[], facts: (projectId: string) => ImportLister): { items: ControlItem[]; skipped: string[] } {
+  const out: ControlItem[] = [];
+  const skipped: string[] = [];
+  const filesOf = new Map<string, string[]>();
+  for (const f of items) filesOf.set(f.projectId, [...new Set([...(filesOf.get(f.projectId) ?? []), f.file, ...(f.target !== undefined && f.target.includes('/') ? [f.target] : [])])].sort());
+  for (const f of items) {
+    const ring = cycleFiles(f);
+    if (ring !== undefined) {
+      const src = facts(f.projectId);
+      const first = ring[0] ?? '';
+      const reached = new Set(src.imports(first).map((s) => s.resolvedFile));
+      const swap = (filesOf.get(f.projectId) ?? []).find((x) => !ring.includes(x) && !reached.has(x));
+      if (swap === undefined) { skipped.push(`cycle ${f.key}: no unimported project file`); continue; }
+      const moved = [...ring];
+      moved[1] = swap;
+      if (moved.length > 2 && moved[moved.length - 1] === ring[1]) moved[moved.length - 1] = swap;
+      out.push({ kind: 'cycle', perturbation: `${ring[1] ?? ''} -> ${swap}`, finding: { ...f, discriminator: [JSON.stringify(moved)], message: '' } });
+      continue;
+    }
+    if (f.target === undefined || f.line === undefined) { skipped.push(`${f.key}: not an edge finding`); continue; }
+    out.push({ kind: 'target', perturbation: `${f.target} -> ${f.file}`, finding: { ...f, target: f.file } });
+    const other = facts(f.projectId).imports(f.file).find((s) => s.startLine !== f.line && s.resolvedFile !== f.target && s.packageRoot !== f.target);
+    if (other === undefined) { skipped.push(`line ${f.key}: no other statement in ${f.file}`); continue; }
+    const { lines: _drop, ...rest } = f;
+    out.push({ kind: 'line', perturbation: `line ${String(f.line)} -> ${String(other.startLine)}`, finding: { ...rest, line: other.startLine } });
+  }
+  return { items: out, skipped };
+}
