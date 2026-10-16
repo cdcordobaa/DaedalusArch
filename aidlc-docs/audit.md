@@ -1492,3 +1492,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 spike, outside the v1.3 study stages. Development-set evidence only.
 
 ---
+
+## v1.3 SPIKE — independent multi-vendor model panel for the meaningful label (scheduled task)
+**Timestamp**: 2026-10-16T12:00:00Z
+**User Input**: "Scheduled task: replace or calibrate the author/director 'meaningful' labels with an independent multi-vendor model panel (Gemini via GEMINI_API_KEY with tools off, OpenAI/Codex via env, Claude via the CLI with an isolated config dir reusing the judge isolation pattern). One shared prompt and schema, cassettes for every call, blinding through the label scrubber, decoys from the reference manifests to measure each rater. Statistics: per-rater decoy accuracy, pairwise and Fleiss/Krippendorff agreement, majority with confidence, and an authority rule fixed in a committed doc before any data. Dry run end to end with fake adapters on 40 items; no real model call. Docs/v1.3/model-panel.md with design, rule, cost per 100 items per vendor, local run command, and how it complements developer-fix and predictive-validity evidence. Branch v1.3-model-panel from origin/v1.3; one PR, not merged."
+**AI Response**: "Docs/v1.3/model-panel.md (rule panel-authority-v1) committed first. scripts/v1.3/lib/panel/ (items, prompt, adapters, run, stats, main) and scripts/v1.3/model-panel.ts; ProviderId widened with claude-cli, openai-api, fake. Dry run: 40 items (20 wild targets, 10 known-correct and 10 known-wrong reference decoys), three fake raters, 240 calls recorded then replayed identically, no item withheld by the blinding check; results/v1.3-panel/dry-run/ (not a result). 30 new unit tests; tests/unit/scripts/v1.3 367/367 pass. No real model called, no key read. The AI-DLC approval gates were not run interactively: the request came from a scheduled task with no one present; the stored prompt served as the requirements."
+**Context**: v1.3 spike, outside the v1.3 study stages. Harness only; no labels produced.
+
+---
