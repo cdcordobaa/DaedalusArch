@@ -1484,3 +1484,45 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 — requirements revision 1; Gate 2 (first fidelity result) is now a human gate.
 
 ---
+
+## v1.3 SPIKE — in-process Cypher interpreter (scheduled task)
+**Timestamp**: 2026-10-15T23:20:00Z
+**User Input**: "Scheduled task: build a read-only, in-process Cypher interpreter so the tool runs without a Neo4j server (npx, fast MCP loop, tests without Docker). The template text stays the one definition of every rule; no rule re-implemented by hand; Neo4j stays the reference engine. Parse with a maintained openCypher grammar from npm (pinned), add an engine option `cypher-interp`, run differential parity against live Neo4j 5.26.24 + APOC over every template, project and arm, run the reference set and diff it against after-member-facts (target byte-identical), unit tests, a design document with a recommendation on the hand mirrors and an npx plan. Branch v1.3-cypher-interp from I2's branch, or from v1.3 if none; one PR."
+**AI Response**: "I2's memory-engine branch does not exist on the remote, so the branch is cut from origin/v1.3 (dc1a1c4a) and the minimum harness was built here. Parser: Neo4j's Cypher 25 grammar from @neo4j-cypher/language-support 2.0.0-next.38, generated with antlr-ng 1.0.10, runtime antlr4ng 3.0.16 (all exact). src/cypher-interp/ (parse, values, eval, functions, graph, repository with an ingestion adapter, driver-shaped records); PipelineConfig.graphEngine, `firewall evaluate --engine cypher-interp`, ue-baseline-live --engine. Results: ue-baseline-live --engine cypher-interp with no Neo4j variable set is byte-identical to results/v1.3-reference/after-member-facts (raw 71/71, report.json, report.md); memory-parity over 79 projects (71 reference variants × arms v1.3 and v1.2e, 7 APG v2 fixtures, 1 synthetic APG), 65,254 statements: 0 content, 0 error, 0 unsupported, 763 order (Neo4j label-scan order after id reuse; last-bit avg accumulation order); APG v2 hand mirrors equal to the interpreter on 9 templates × 78 projects; 29 unit tests, also checked live. Docs/v1.3/cypher-interpreter.md recommends replacing the hand mirrors with the interpreter, keeping the parity harness as the guard. No template text, frozen v1.2E artefact or results baseline changed. The AI-DLC approval gates were not run interactively: the request came from a scheduled task with no one present; the stored prompt served as the requirements, and its scope (a spike on its own branch, a PR into v1.3) needs no registered-artefact decision."
+**Context**: v1.3 spike, outside the v1.3 study stages. Development-set evidence only.
+
+---
+
+## v1.3 Construction — night plan (2026-10-16)
+**Timestamp**: 2026-10-16T01:55:00Z
+**User Input**: "The author wants all remaining subscription usage spent tonight on closing the thesis gaps (SO3 neuro-symbolic, SO4 validity, SO5 spec level), never on side tracks (frontend dropped). The overriding constraint is that Study 2 must run exactly once ('I don't want to ruin a third study'). Human labels by the author or director carry little authority, so validity must rest on non-human evidence. Cloud work must bill the subscription, not the $250 credit. The plan is to be tracked in AI-DLC."
+**AI Response**: "Wrote construction/plans/v1.3-night-2026-10-16-plan.md, tracking about 40 jobs across three usage windows with a pass criterion each.
+- Validity without raters: developer-fix mining, predictive bug-fix churn, convergent agreement with three external checkers, a cross-vendor model panel, a methods memo, an external human-written set, and graph-fidelity adjudication prep.
+- Readiness: a go/no-go gate, a floor-effect probe, an analysis rehearsal on synthetic data, a no-LLM loop replay, and task design.
+- Tool behaviour: blind-key misses, fix hints, warning noise, npx, CI gate, HTML report, init, rule mining, rule gaps, scale, interpreter fuzz and review fixes, dogfooding, and a spec-driven OpenSpec/AI-DLC demo.
+- Quality: a local multi-agent post-merge review, merge trains at 02:47, 04:17 and 09:30 UTC, and an adversarial review of open PRs at 07:50 that holds failing PRs before the morning train.
+Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, jest with no new failures, byte-identical reference results on Neo4j and the in-process engine). Billing finding: `claude --cloud` sessions drew on the cloud credit ($250 → $186), so further jobs are routines only."
+**Context**: CONSTRUCTION, v1.3 validity cycle. Autonomous under the standing delegation; author decisions are listed in §6 of the plan.
+## v1.3 SPIKE — independent multi-vendor model panel for the meaningful label (scheduled task)
+**Timestamp**: 2026-10-16T12:00:00Z
+**User Input**: "Scheduled task: replace or calibrate the author/director 'meaningful' labels with an independent multi-vendor model panel (Gemini via GEMINI_API_KEY with tools off, OpenAI/Codex via env, Claude via the CLI with an isolated config dir reusing the judge isolation pattern). One shared prompt and schema, cassettes for every call, blinding through the label scrubber, decoys from the reference manifests to measure each rater. Statistics: per-rater decoy accuracy, pairwise and Fleiss/Krippendorff agreement, majority with confidence, and an authority rule fixed in a committed doc before any data. Dry run end to end with fake adapters on 40 items; no real model call. Docs/v1.3/model-panel.md with design, rule, cost per 100 items per vendor, local run command, and how it complements developer-fix and predictive-validity evidence. Branch v1.3-model-panel from origin/v1.3; one PR, not merged."
+**AI Response**: "Docs/v1.3/model-panel.md (rule panel-authority-v1) committed first. scripts/v1.3/lib/panel/ (items, prompt, adapters, run, stats, main) and scripts/v1.3/model-panel.ts; ProviderId widened with claude-cli, openai-api, fake. Dry run: 40 items (20 wild targets, 10 known-correct and 10 known-wrong reference decoys), three fake raters, 240 calls recorded then replayed identically, no item withheld by the blinding check; results/v1.3-panel/dry-run/ (not a result). 30 new unit tests; tests/unit/scripts/v1.3 367/367 pass. No real model called, no key read. The AI-DLC approval gates were not run interactively: the request came from a scheduled task with no one present; the stored prompt served as the requirements."
+**Context**: v1.3 spike, outside the v1.3 study stages. Harness only; no labels produced.
+
+---
+
+## v1.3 CONSTRUCTION — loop replay (scheduled task, no live user)
+**Timestamp**: 2026-10-16T01:40:00Z
+**User Input**: (scheduled task prompt) Prove the firewall-in-the-loop harness end to end without any LLM: a deterministic scripted agent replaying recorded edits for at least 2 pilot tasks under none / daedalus-mcp / gate, on the in-process engine or Neo4j 5.26 + APOC; assert memo-defined metrics, per-step latency, gate exactness, consistency with a full evaluation, byte reproducibility; jest integration test, npm script, Docs/v1.3/loop-replay.md; one PR into v1.3, not merged.
+**AI Response**: "Branch v1.3-loop-replay from origin/v1.3. `--engine cypher-interp` is not on v1.3, so Neo4j 5.26.24 + APOC 5.26.24 from the tarball. Scripted agent and tapes for market-vendors, shelter-adoptions and relief-volunteers; replay CLI (npm run loop:replay) and jest test (npm run test:loop-replay). Plumbing bugs found and fixed: missing tsconfig for the live evaluator, DDD freeze accepting an uncompilable spec, report/template not persisted for the memo §3 labelling, advisory counts per rule missing for memo §4, non-deterministic snapshot commit dates for the replay. Tool gap recorded, not fixed: check_file/check_diff do not check the hexagonal graph or DDD context rules. No LLM called. Interactive approval gates were not run: no live user."
+**Context**: v1.3 loop pilot readiness; the pilot itself has not run and still needs the author's go.
+
+---
+
+## v1.3 CONSTRUCTION — night plan tracker update (scheduled task)
+**Timestamp**: 2026-10-16T05:00:00Z
+**User Input**: "scheduled tracker update"
+**AI Response**: "Night plan tracker refreshed from the PR list into v1.3 and the remote branches: 15 [x], 31 [~], 6 [ ], 3 [!]; no PR marked hold. Merge shas added to every merged item. Newly [x]: A4 model panel (#153, e46aa6b8), Y4 loop replay (#142, c4076100), local post-merge review (#152, 50a32841). B1 and B2 moved to [~] with PRs #161 and #160. PR numbers filled in: G2 #149, A1 #168, A3 #166, A5 #147, Y1 #162, J4 #150, X3 #183, Z1 #151, D1 #155, D2 #154. J5 has branch v1.3-scale and no PR; A2 has branch v1.3-validity-predictive and no PR; C1, W3-2 and W3-3 have no branch."
+**Context**: CONSTRUCTION, v1.3 validity cycle; tracker-only update, docs only.
+
+---

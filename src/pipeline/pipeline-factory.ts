@@ -11,6 +11,7 @@ import { ScrubbingFirewallContext } from './scrubbing-context.js';
 import { neo4jScrubPolicy } from '../shared/errors/scrub.js';
 import { runId as makeRunId } from '../shared/types/value-objects.js';
 import { Neo4jRepository } from '../neo4j-ingestion/neo4j-repository.js';
+import { MemoryGraphRepository } from '../cypher-interp/repository.js';
 import { FileSystemSnapshotStore } from '../neo4j-ingestion/fs-snapshot-store.js';
 import * as path from 'node:path';
 import { createLLMProvider } from '../llm-critic/provider-factory.js';
@@ -83,14 +84,17 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
   // ------------------------------------------------------------------
   // 2. Instantiate infrastructure services
   // ------------------------------------------------------------------
-  const graphRepo: GraphRepository = new Neo4jRepository({
-    neo4jUri: config.neo4jUri,
-    neo4jUser: config.neo4jUser,
-    neo4jPassword: config.neo4jPassword,
-    apgStorePath: config.apgStorePath,
-    // v1.3 fix round: one run at a time per Neo4j database (ingestion wipes it); released by `cleanup`.
-    lock: true,
-  });
+  // v1.3 spike: `cypher-interp` answers the same Cypher text in process (Docs/v1.3/cypher-interpreter.md).
+  const graphRepo: GraphRepository = config.graphRepository ?? (config.graphEngine === 'cypher-interp'
+    ? new MemoryGraphRepository()
+    : new Neo4jRepository({
+      neo4jUri: config.neo4jUri,
+      neo4jUser: config.neo4jUser,
+      neo4jPassword: config.neo4jPassword,
+      apgStorePath: config.apgStorePath,
+      // v1.3 fix round: one run at a time per Neo4j database (ingestion wipes it); released by `cleanup`.
+      lock: true,
+    }));
 
   const snapshotStore: SnapshotStore = new FileSystemSnapshotStore(
     config.apgStorePath,

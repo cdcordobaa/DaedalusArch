@@ -9,8 +9,10 @@ import type {
   Route,
   LayerKind,
 } from '../shared/types/enums.js';
-import type { ViolationType } from '../shared/taxonomy/violation-types.js';
+import type { Violation, ViolationType } from '../shared/taxonomy/violation-types.js';
 import type { ScoringMode, TieredScoring } from '../shared/types/evaluation.js';
+import type { RuleTier } from '../scoring-engine/rule-tiers.js';
+import type { EdgeView } from '../fitness-compiler/edge-views.js';
 
 // ── Rules ────────────────────────────────────────────────────────────────────
 
@@ -31,6 +33,16 @@ export interface RuleView {
   readonly excludePaths: readonly string[];
   /** True when `check_import` evaluates this rule without the graph (the four import-edge rules). */
   readonly checkedByCheckImport: boolean;
+  // ── MCP v2 (v1.3) fields ──
+  /** Status under the v1.3 compile options (style applicability, ADR-V13-02 draft); `status` stays the v1.2E one. */
+  readonly v13Status: RuleStatus;
+  readonly v13StatusReason?: string;
+  readonly tier: RuleTier;
+  readonly construct: string;
+  readonly source: string;
+  readonly edgeView: EdgeView;
+  /** True when check_file / check_diff decide this rule (v1.3 active and covered by the fast path). */
+  readonly checkedByFastPath: boolean;
 }
 
 /** A rule that an import would break. */
@@ -40,6 +52,11 @@ export interface RuleHit {
   readonly severity: Severity;
   readonly violationType: ViolationType;
   readonly reason: string;
+  // ── MCP v2 (v1.3) fields, set by check_import ──
+  readonly tier?: RuleTier;
+  readonly construct?: string;
+  readonly source?: string;
+  readonly edgeView?: EdgeView;
 }
 
 // ── get_architecture_spec / which_layer ──────────────────────────────────────
@@ -104,6 +121,8 @@ export interface CheckImportResult {
   readonly violations: readonly RuleHit[];
   readonly checkedRules: readonly string[];
   readonly notes: readonly string[];
+  /** MCP v2: `block` when a violation is blocking under v1.3. */
+  readonly blockingVerdict?: BlockingVerdict;
 }
 
 // ── explain_violation ────────────────────────────────────────────────────────
@@ -157,6 +176,11 @@ export interface EvaluateProjectResult {
   readonly scoringMode: ScoringMode;
   /** v1.3 mode only: blocking and advisory counts per rule, N/A parts with denominators; `ahs` stays the v1.2E AHS. */
   readonly tiers?: TieredScoring;
+  /**
+   * Every violation of the report, uncapped, as the pipeline produced it (type, discriminator, evidence). Present only
+   * when the caller asks (`includeViolations`; the loop harness does, the MCP tool does not).
+   */
+  readonly violations?: readonly Violation[];
 }
 
 // ── Environment ──────────────────────────────────────────────────────────────
@@ -182,16 +206,54 @@ export interface FileViolation {
   readonly subject: string;
   readonly reason: string;
   readonly fix: string;
+  // ── MCP v2 (v1.3) fields ──
+  /** Same as `rule`: the spec id, or `APG2.<template>` / `CHEAP.<proxy>` for a hint. */
+  readonly ruleId: string;
+  /** v1.3 tier (Docs/v1.3/rule-tiers.md, by the spec's style): only `blocking` findings fail a v1.3 verdict. */
+  readonly tier: RuleTier;
+  /** `table` (rule-tiers.md), `untiered-default` (not in the table: advisory), `hint` (APG v2 / cheap proxy: advisory by design). */
+  readonly tierSource: 'table' | 'untiered-default' | 'hint';
+  /** APG v2 hints only: the tier APG2_TEMPLATE_TIERS proposes, not in force until an ADR adds it to the sealed table. */
+  readonly candidateTier?: RuleTier;
+  /** The architectural construct the rule encodes. */
+  readonly construct: string;
+  /** Literature source line (Docs/v1.3/style-rule-sources.md where it has a row). */
+  readonly source: string;
+  /** Edge view the full evaluation reads for the rule (ADR-V13-01, Docs/v1.3/edge-views.md). */
+  readonly edgeView: EdgeView;
+  /** `spec`: a spec fitness function; `apg2` / `cheap`: an advisory hint. */
+  readonly check: 'spec' | 'apg2' | 'cheap';
+  /** Project-relative path of the checked file. */
+  readonly file: string;
+  /** `file:line`. */
+  readonly location: string;
+  /** The imported file or package, or the class the finding is about, when there is one. */
+  readonly target?: string;
+  /** Resolved view: the barrels an import went through to reach `target`. */
+  readonly viaBarrels?: readonly string[];
 }
+
+/** An active v1.3 rule the fast path does not decide, and why (run evaluate_project for it). */
+export interface NotChecked {
+  readonly ruleId: string;
+  readonly ruleName: string;
+  readonly tier: RuleTier;
+  readonly reason: string;
+}
+
+/** `block`: at least one blocking finding; `pass`: none; `unknown`: none found, but some imports could not be placed. */
+export type BlockingVerdict = 'block' | 'pass' | 'unknown';
 
 export type FileVerdict = 'clean' | 'violations' | 'unknown';
 
 export interface FileCheckResult {
   readonly path: string;
   readonly layer: string | null;
+  /** v1 contract: from `violations` (the import and naming rules). The v1.3 answer is `blockingVerdict`. */
   readonly verdict: FileVerdict;
-  /** One line an agent can act on without reading the rest. */
+  /** One line an agent can act on without reading the rest (v1 contract; see `blockingSummary`). */
   readonly summary: string;
+  /** v1 contract: the import-rule and naming-rule violations, now with their v1.3 fields. Every one is also in `findings`. */
   readonly violations: readonly FileViolation[];
   /**
    * Same checks on `require()` and `import()` calls. The frozen firewall counts these calls but does not model them
@@ -202,6 +264,24 @@ export interface FileCheckResult {
   readonly unresolved: readonly { readonly line: number; readonly specifier: string }[];
   readonly checkedRules: readonly string[];
   readonly notes: readonly string[];
+  // ── MCP v2 (v1.3) fields ──
+  /**
+   * Every spec-rule finding of the v1.3 fast path: `violations` plus the rules v1 did not check (allowed-dependency
+   * layering, DDD rules, repository/port placement, injected infrastructure in the domain, cycles). Line order.
+   */
+  readonly findings: readonly FileViolation[];
+  /** The answer an agent acts on: `block` when any finding is blocking under v1.3. */
+  readonly blockingVerdict: BlockingVerdict;
+  readonly blockingCount: number;
+  readonly advisoryCount: number;
+  /** One line on the blocking answer. */
+  readonly blockingSummary: string;
+  /** APG v2 fast checks and cheap-proxy hints: always advisory. */
+  readonly hints: readonly FileViolation[];
+  /** Active v1.3 rules the fast path does not decide. */
+  readonly notChecked: readonly NotChecked[];
+  /** The project root was read (barrels followed, cycles checked, entry files found). */
+  readonly projectAware: boolean;
 }
 
 export interface DiffCheckResult {
@@ -209,8 +289,18 @@ export interface DiffCheckResult {
   readonly summary: string;
   readonly files: readonly (FileCheckResult & {
     readonly change: 'added' | 'modified' | 'renamed';
+    /**
+     * `whole-file`: an added file, checked whole; `delta`: a modified file rebuilt from the diff and the project, and
+     * reported as what the new content has that the old does not; `added-lines`: only the added lines were readable.
+     */
+    readonly basis: 'whole-file' | 'delta' | 'added-lines';
   })[];
   readonly skipped: readonly { readonly path: string; readonly reason: string }[];
+  // ── MCP v2 (v1.3) fields ──
+  readonly blockingVerdict: BlockingVerdict;
+  readonly blockingCount: number;
+  readonly advisoryCount: number;
+  readonly blockingSummary: string;
 }
 
 // ── suggest_placement (v1.3 loop) ────────────────────────────────────────────
@@ -233,4 +323,73 @@ export interface PlacementResult {
   /** Best first; a split concern (an interface and its implementation) returns one entry per part. */
   readonly placements: readonly Placement[];
   readonly notes: readonly string[];
+}
+
+// ── infer_spec (MCP v2) ──────────────────────────────────────────────────────
+
+export interface InferSpecResult {
+  readonly projectPath: string;
+  /** Always `proposed`: an agent or a human must confirm the spec before it is used. */
+  readonly status: 'proposed';
+  readonly style: string;
+  readonly styleSource: 'classified' | 'forced';
+  /** The classifier's confidence in `style` (0..1). */
+  readonly confidence: number;
+  /** Confidence under 0.5, or the runner-up within 0.1. */
+  readonly lowConfidence: boolean;
+  readonly ranked: readonly { readonly style: string; readonly confidence: number; readonly points: number; readonly evidence: readonly string[] }[];
+  readonly mappingMode: string;
+  readonly layers: readonly { readonly name: string; readonly directories: readonly string[]; readonly filePatterns: readonly string[] }[];
+  /** Per source unit: the layer, how it was decided and with what confidence (the evidence of the mapping). */
+  readonly units: readonly { readonly unit: string; readonly layer: string | null; readonly source: string; readonly confidence: number }[];
+  /** ddd only: the inferred `architecture.ddd` block. */
+  readonly ddd?: Readonly<Record<string, unknown>>;
+  /** The proposed spec (a preset parameterised with the inferred globs). */
+  readonly specYaml: string;
+  /** The repository's spec validator on the proposal, against the project. */
+  readonly validation: { readonly valid: boolean; readonly errors: readonly string[]; readonly warnings: readonly string[] };
+  /** Style-free majority-vote rules the project follows (ISE option 1), strongest first. */
+  readonly ruleCandidates: readonly { readonly id: string; readonly statement: string; readonly support: number; readonly instances: number; readonly mapsTo: readonly string[] }[];
+  /** What to check before confirming. */
+  readonly review: readonly string[];
+  readonly durationMs: number;
+}
+
+// ── explain_finding (MCP v2) ─────────────────────────────────────────────────
+
+export interface FindingExplanation {
+  readonly ruleId: string;
+  readonly ruleName: string;
+  readonly tier: RuleTier;
+  readonly tierSource: 'table' | 'untiered-default' | 'hint';
+  readonly candidateTier?: RuleTier;
+  readonly construct: string;
+  readonly literature: {
+    readonly source: string;
+    /** `style`: the spec style's own row of Docs/v1.3/style-rule-sources.md; `composed`: a composed style's row; `other`: outside the table. */
+    readonly row: 'style' | 'composed' | 'other';
+  };
+  /** What the rule detects and why it is a violation (template and catalogue text). */
+  readonly detects: string;
+  readonly intent: string;
+  readonly fix: string;
+  /** A minimal violating and compliant pair for the construct. */
+  readonly example: { readonly violating: string; readonly compliant: string; readonly note: string };
+  readonly howChecked: {
+    /** The full evaluation (evaluate_project): template, edge view and graph facts read. */
+    readonly fullEvaluation: string;
+    readonly edgeView: EdgeView;
+    /** check_file / check_diff: what the fast path reads, or why it leaves the rule to evaluate_project. */
+    readonly fastPath: string;
+    readonly checkedByFastPath: boolean;
+  };
+  /** The location asked about, as the spec sees it. */
+  readonly location?: {
+    readonly file: string;
+    readonly line?: number;
+    readonly layer: string | null;
+    /** The source line, when the project root is configured and the file exists. */
+    readonly text?: string;
+  };
+  readonly specContext: readonly string[];
 }

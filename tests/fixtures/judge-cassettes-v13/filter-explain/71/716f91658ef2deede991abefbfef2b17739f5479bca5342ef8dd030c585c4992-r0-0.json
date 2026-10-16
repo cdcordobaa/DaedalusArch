@@ -1,0 +1,36 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 10307,
+  "effort": "high",
+  "functionId": "filter-explain",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "716f91658ef2deede991abefbfef2b17739f5479bca5342ef8dd030c585c4992-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "## Finding\nRule: FF-CV05\nRule intent: Each source file has a paired test file.\nType: MISSING_TEST_FILE\nSeverity: advisory; tier: advisory (unscored)\nFile: src/presentation/views/OrderView.ts\nMessage: Violation in src/presentation/views/OrderView.ts\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**\n- business (kind: domain): src/business/**\n- presentation (kind: presentation): src/presentation/**\n\n## Source (line-numbered)\n=====SOURCE-BEGIN src/presentation/views/OrderView.ts (layer presentation)=====\n 1| import { Order } from '../../business/model';\n 2| \n 3| export interface OrderViewModel {\n 4|   id: string;\n 5|   status: string;\n 6|   lines: { sku: string; quantity: number; total: string }[];\n 7|   discount: string;\n 8|   total: string;\n 9| }\n10| \n11| export function renderOrder(order: Order): OrderViewModel {\n12|   return {\n13|     id: order.id,\n14|     status: order.status,\n15|     lines: order.lines.map((line) => ({ sku: line.sku, quantity: line.quantity, total: line.total().format() })),\n16|     discount: order.discount.format(),\n17|     total: order.total().format(),\n18|   };\n19| }\n=====SOURCE-END=====\n\n## Instructions\nDecide confirm or dismiss. Confirm: the cited code has the problem the rule is meant to catch, in this project and layer model. Dismiss: the rule fired, but the code does not have that problem (a false positive of the rule's mechanism, a threshold artefact on sound code, or a case the style allows). Measurements stated in the finding (counts, ratios, missing files) are correct as measurements; judge what they mean for this code. explanation: one paragraph that justifies the decision from the code, citing file paths and line numbers exactly as numbered below. fix: one concrete change: for a confirm, how to fix the code; for a dismiss, what (if anything) the rule or its configuration should change. citations: the line ranges your explanation relies on; every one must name a file shown below and lines that exist.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T23:58:19.791Z",
+  "repetition": 0,
+  "requestHash": "716f91658ef2deede991abefbfef2b17739f5479bca5342ef8dd030c585c4992",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":772}},\"result\":\"{\\\"decision\\\":\\\"confirm\\\",\\\"explanation\\\":\\\"src/presentation/views/OrderView.ts has no paired test file, and the finding's measurement is taken as correct. The file is more than type declarations. Lines 3-9 do only declare the `OrderViewModel` interface, but `renderOrder` (lines 11-19) is an exported function with real logic. It maps a domain `Order` into a presentation model. It turns each order line into a sku/quantity/formatted-total record (line 15). It also formats the discount and the order total by calling domain methods (`line.total().format()`, `order.discount.format()`, `order.total().format()` on lines 15-17). This is the boundary between the business layer and the presentation layer. If the mapping drops a field, swaps a value or formats something wrong, users see bad data and nothing catches it. A function like this is exactly what the rule is meant to cover, so this is a genuine gap and not a false positive on a declaration-only file. The rule is advisory, so this is a low-severity finding, but it is real.\\\",\\\"fix\\\":\\\"Add src/presentation/views/OrderView.test.ts, using the project's existing test naming convention. It should build an `Order` fixture with at least two lines and a non-zero discount, call `renderOrder`, and check four things: `id` and `status` are copied over; each entry in `lines` has the right sku and quantity and a formatted total; `discount` equals `order.discount.format()`; and `total` equals `order.total().format()`. Also add a case with an empty `lines` array.\\\",\\\"citations\\\":[{\\\"filePath\\\":\\\"src/presentation/views/OrderView.ts\\\",\\\"startLine\\\":11,\\\"endLine\\\":19},{\\\"filePath\\\":\\\"src/presentation/views/OrderView.ts\\\",\\\"startLine\\\":15,\\\"endLine\\\":17}]}\",\"structured_output\":{\"citations\":[{\"endLine\":19,\"filePath\":\"src/presentation/views/OrderView.ts\",\"startLine\":11},{\"endLine\":17,\"filePath\":\"src/presentation/views/OrderView.ts\",\"startLine\":15}],\"decision\":\"confirm\",\"explanation\":\"src/presentation/views/OrderView.ts has no paired test file, and the finding's measurement is taken as correct. The file is more than type declarations. Lines 3-9 do only declare the `OrderViewModel` interface, but `renderOrder` (lines 11-19) is an exported function with real logic. It maps a domain `Order` into a presentation model. It turns each order line into a sku/quantity/formatted-total record (line 15). It also formats the discount and the order total by calling domain methods (`line.total().format()`, `order.discount.format()`, `order.total().format()` on lines 15-17). This is the boundary between the business layer and the presentation layer. If the mapping drops a field, swaps a value or formats something wrong, users see bad data and nothing catches it. A function like this is exactly what the rule is meant to cover, so this is a genuine gap and not a false positive on a declaration-only file. The rule is advisory, so this is a low-severity finding, but it is real.\",\"fix\":\"Add src/presentation/views/OrderView.test.ts, using the project's existing test naming convention. It should build an `Order` fixture with at least two lines and a non-zero discount, call `renderOrder`, and check four things: `id` and `status` are copied over; each entry in `lines` has the right sku and quantity and a formatted total; `discount` equals `order.discount.format()`; and `total` equals `order.total().format()`. Also add a case with an empty `lines` array.\"}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "08c353c15845657b",
+  "usage": {
+    "inputTokens": 2161,
+    "outputTokens": 772
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
