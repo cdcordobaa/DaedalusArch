@@ -25,6 +25,7 @@ import {
 } from './tools.js';
 import { REVIEW_JUDGE_VERSIONS } from './neural-review.js';
 import type { ServerContext, ToolOutcome } from './tools.js';
+import { withCallLog } from './call-log.js';
 
 export const SERVER_NAME = 'daedalus-arch';
 export const SERVER_VERSION = '0.2.0';
@@ -231,7 +232,12 @@ const explainAndFixShape = {
 
 export function createServer(ctx: ServerContext): McpServer {
   const server = new McpServer({ name: SERVER_NAME, version: SERVER_VERSION });
-  const register = server.registerTool.bind(server) as unknown as RegisterTool;
+  const registerTool = server.registerTool.bind(server) as unknown as RegisterTool;
+  // Call log (`--call-log`, off by default): the same registration with each handler wrapped (call-log.ts).
+  const logger = ctx.callLog;
+  let seq = 0;
+  const register: RegisterTool =
+    logger === undefined ? registerTool : (name, config, handler) => registerTool(name, config, withCallLog(logger, name, handler, () => ++seq));
   const followUp = ctx.neural !== undefined ? NEURAL_FOLLOW_UP : '';
 
   register(

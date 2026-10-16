@@ -8,6 +8,7 @@
  *   steps/step-NN.json   one record per finished step (written atomically, in step order)
  *   turns/step-NN/       scrubbed envelopes of the step's turns
  *   restarts.jsonl       one line per resume that discarded a partial step
+ *   calls/<turnId>.jsonl MCP call log of a `daedalus-mcp` turn, only with `callLog` on (`process-metrics.ts`)
  * Archived interrupted trees go to `<outRoot>/interruptions/<runId>/<turnId>/<n>/` (as the E1 grid does).
  *
  * Per step: the step turn runs (arm `none` / `daedalus-mcp` / `gate`), the tree is committed, measured (files, LOC,
@@ -34,6 +35,8 @@ import { treeLoc } from '../so5-size.js';
 import { loopRunId } from './plan.js';
 import { MAX_REPAIR_FINDINGS, repairPrompt, sha256, stepPrompt } from './prompts.js';
 import { WorkTreeSnapshots, SNAPSHOT_GIT_DIR } from './snapshot.js';
+import { callLogPathFor, earliestWriteSince, stepProcess } from './process-metrics.js';
+import type { TurnCallLog } from './process-metrics.js';
 import { FROZEN_SPEC_FILE, FROZEN_SPEC_RECORD, ISE_RAW_FILE, SPEC_DIR } from './specs.js';
 import type { FrozenSpecRecord, SpecFreezer } from './specs.js';
 import type { LoopContextDecl, StyleFrame } from './style.js';
@@ -104,6 +107,11 @@ export interface LoopContext {
   readonly log?: (line: string) => void;
   /** Pins the snapshot commits' dates (`WorkTreeSnapshots`); the loop replay sets it, live runs do not. */
   readonly snapshotDate?: string;
+  /**
+   * MCP call log (Docs/v1.3/mcp-call-log.md), off by default. When on, every `daedalus-mcp` turn gets a log path under
+   * `calls/` and the step record a `process` block; other arms and the default are unchanged.
+   */
+  readonly callLog?: boolean;
 }
 
 export type LoopRunResult =
@@ -212,6 +220,7 @@ class LoopRun {
   readonly snaps: WorkTreeSnapshots;
   private readonly profile: TaskProfile | undefined;
   private lastSpecRef: StepSpecRef | undefined;
+  private readonly callLogs = new Map<string, TurnCallLog>();
 
   constructor(
     private readonly ctx: LoopContext,
@@ -326,6 +335,10 @@ class LoopRun {
     const recordDir = path.join(this.runDir, TURNS_DIR, `step-${pad(stepIndex + 1)}`);
     fs.mkdirSync(recordDir, { recursive: true });
     fs.writeFileSync(path.join(recordDir, `prompt-${turnId}.txt`), prompt);
+    const callLogPath = this.callLogOn() ? callLogPathFor(this.runDir, turnId) : undefined;
+    // A log left by a discarded partial step belongs to that attempt, not to this one.
+    if (callLogPath !== undefined) fs.rmSync(callLogPath, { force: true });
+    const turnStartedMs = Date.now();
     const result = await this.ctx.agent.runTurn({
       runId: this.runId,
       turnId,
@@ -336,6 +349,7 @@ class LoopRun {
       cwd: this.workDir,
       prompt,
       recordDir,
+      ...(callLogPath !== undefined ? { callLogPath } : {}),
       changedFiles: () => this.snaps.changedCount(),
       restore: () => this.snaps.restore(base),
       archive: (index) => {
@@ -349,11 +363,16 @@ class LoopRun {
       },
     });
     if (!result.success) return DomainResult.fail(result.errors);
+    if (callLogPath !== undefined) this.callLogs.set(turnId, { logPath: callLogPath, firstWriteBoundMs: earliestWriteSince(this.workDir, turnStartedMs) });
     const commit = this.snaps.commit(`${turnId} ${this.spec.arm}`);
     if (!commit.success) return DomainResult.fail(commit.errors);
     const snapshot = await this.measure(commit.data, base, stepIndex, kind);
     if (!snapshot.success) return DomainResult.fail(snapshot.errors);
     return DomainResult.ok({ turnId, kind, promptSha256: sha256(prompt), result: result.data, snapshot: snapshot.data });
+  }
+
+  private callLogOn(): boolean {
+    return this.ctx.callLog === true && this.spec.arm === 'daedalus-mcp';
   }
 
   private async step(stepIndex: number, start: string): Promise<DomainResult<StepRecord>> {
@@ -379,6 +398,8 @@ class LoopRun {
       }
     }
     const last = turns[turns.length - 1] ?? first.data;
+    const callLogs = turns.map((t) => this.callLogs.get(t.turnId)).filter((t): t is TurnCallLog => t !== undefined);
+    const processBlock = this.callLogOn() ? stepProcess(this.runDir, callLogs) : undefined;
     return DomainResult.ok({
       schema: 'loop-step/v1',
       runId: this.runId,
@@ -391,6 +412,7 @@ class LoopRun {
       repair,
       ...(outcome !== undefined ? { repairOutcome: outcome } : {}),
       ...(this.lastSpecRef !== undefined ? { evaluatorSpec: this.lastSpecRef } : {}),
+      ...(processBlock !== undefined ? { process: processBlock } : {}),
       finalCommit: last.snapshot.commit,
       cost: {
         costUsd: sumOrNull(turns.map((t) => t.result.usage.costUsd)),

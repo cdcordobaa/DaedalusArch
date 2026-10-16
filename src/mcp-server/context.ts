@@ -12,6 +12,7 @@ import type { ServerContext } from './tools.js';
 import { buildNeuralService, parseNeuralArgs } from './neural-context.js';
 import type { NeuralArgs } from './neural-context.js';
 import { createInterpEvaluator } from './interp-evaluator.js';
+import { fileCallLogger } from './call-log.js';
 import { resolveEngine } from '../cli/engine-default.js';
 import type { ResolvedEngine } from '../cli/engine-default.js';
 
@@ -22,16 +23,18 @@ export interface McpArgs {
   readonly neural?: NeuralArgs;
   /** `--engine neo4j|cypher-interp`; absent = the NEO4J_URI default (`engine-default.ts`). */
   readonly engine?: string;
+  /** `--call-log <abs path>` (Docs/v1.3/mcp-call-log.md); absent = off (DAEDALUS_CALL_LOG is read by `callLogPath`). */
+  readonly callLog?: string;
 }
 
-const FLAGS: Readonly<Record<string, 'spec' | 'project' | 'engine'>> = { '--spec': 'spec', '--project': 'project', '--engine': 'engine' };
+const FLAGS: Readonly<Record<string, 'spec' | 'project' | 'engine' | 'callLog'>> = { '--spec': 'spec', '--project': 'project', '--engine': 'engine', '--call-log': 'callLog' };
 
 /**
- * `--spec <path>`, `--project <path>` and `--engine <name>` (also `--flag=value`), plus the neural flags
+ * `--spec <path>`, `--project <path>`, `--engine <name>` and `--call-log <path>` (also `--flag=value`), plus the neural flags
  * (`neural-context.ts`); unknown flags are ignored. Pure.
  */
 export function parseArgs(argv: readonly string[]): McpArgs {
-  const out: { spec?: string; project?: string; engine?: string; neural?: NeuralArgs } = {};
+  const out: { spec?: string; project?: string; engine?: string; callLog?: string; neural?: NeuralArgs } = {};
   const neural = parseNeuralArgs(argv);
   if (neural !== undefined) out.neural = neural;
   for (let i = 0; i < argv.length; i++) {
@@ -45,6 +48,12 @@ export function parseArgs(argv: readonly string[]): McpArgs {
     }
   }
   return out;
+}
+
+/** The call log path: `--call-log`, else DAEDALUS_CALL_LOG; undefined = off. */
+export function callLogPath(args: McpArgs, env: NodeJS.ProcessEnv): string | undefined {
+  const p = args.callLog ?? env.DAEDALUS_CALL_LOG;
+  return p === undefined || p === '' ? undefined : p;
 }
 
 /** The server's engine: `--engine`, else neo4j when NEO4J_URI is set, else cypher-interp. Undefined = unknown value. */
@@ -79,12 +88,16 @@ export function buildContext(args: McpArgs, env: NodeJS.ProcessEnv): ServerConte
   // Off unless `--neural` or DAEDALUS_NEURAL names a provider: the default server is unchanged.
   const neural = buildNeuralService(args.neural ?? parseNeuralArgs([], env), env);
   const graphEngine = serverEngine(args, env)?.engine ?? 'neo4j';
+  const projectPath = args.project ?? env.DAEDALUS_PROJECT;
+  // Off unless a call-log path is given; `main.ts` refuses a relative path or one inside the project first.
+  const logPath = callLogPath(args, env);
   return {
     ...(neural !== undefined ? { neural } : {}),
+    ...(logPath !== undefined ? { callLog: fileCallLogger(logPath, projectPath) } : {}),
     graphEngine,
     presetsDir: presetsDirFrom(env, realEntry(process.argv[1]), process.cwd()),
     defaultSpecPath: args.spec ?? env.DAEDALUS_SPEC,
-    defaultProjectPath: args.project ?? env.DAEDALUS_PROJECT,
+    defaultProjectPath: projectPath,
     env,
     loadSpec: createSpecLoader(),
     evaluateDeps: {

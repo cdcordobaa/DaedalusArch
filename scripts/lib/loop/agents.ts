@@ -224,7 +224,7 @@ export class ClaudeStepAgent implements StepAgent {
     const planned = this.plan(input);
     if (!planned.success) return DomainResult.fail(planned.errors);
     writeHarnessTsconfig(this.config.harnessRoot, input.runId, input.cwd);
-    if (planned.data.mcpConfigPath !== null) writeMcpConfig(planned.data.mcpConfigPath, planned.data.mcpConfig);
+    if (planned.data.mcpConfigPath !== null) writeMcpConfig(planned.data.mcpConfigPath, withCallLogArg(planned.data.mcpConfig, input.callLogPath));
     const secrets = this.deps.knownSecrets ?? [];
     return driveTurn(
       input,
@@ -245,6 +245,17 @@ export class ClaudeStepAgent implements StepAgent {
   }
 }
 
+/**
+ * The MCP config with `--call-log <path>` appended to the DaedalusArch server's arguments (Docs/v1.3/mcp-call-log.md);
+ * the config unchanged when the turn has no call-log path (the default).
+ */
+export function withCallLogArg(config: unknown, callLogPath: string | undefined): unknown {
+  if (callLogPath === undefined || !isRecord(config) || !isRecord(config.mcpServers)) return config;
+  const server = config.mcpServers[DAEDALUS_MCP_SERVER];
+  if (!isRecord(server) || !Array.isArray(server.args)) return config;
+  return { ...config, mcpServers: { ...config.mcpServers, [DAEDALUS_MCP_SERVER]: { ...server, args: [...(server.args as unknown[]), '--call-log', callLogPath] } } };
+}
+
 /** TOML basic string (JSON escaping is a subset of TOML's for these values). */
 function tomlString(s: string): string {
   return JSON.stringify(s);
@@ -256,16 +267,17 @@ function tomlArray(items: readonly string[]): string {
 
 /**
  * The Codex argument set with the DaedalusArch server added as `-c` overrides before the trailing `-` (prompt on
- * stdin): `command`, `args` (`--spec`, `--project` absolute), `enabled_tools` (the spec-only tools, exact names) and
+ * stdin): `command`, `args` (`--spec`, `--project` absolute, and `--call-log` when the turn has a log path), `enabled_tools` (the spec-only tools, exact names) and
  * `disabled_tools` (`evaluate_project`).
  */
-export function withCodexMcpServer(base: readonly string[], input: DaedalusServerInput, cwd: string): readonly string[] {
+export function withCodexMcpServer(base: readonly string[], input: DaedalusServerInput, cwd: string, callLogPath?: string): readonly string[] {
   const key = `mcp_servers.${DAEDALUS_MCP_SERVER}`;
+  const serverArgs = [input.serverEntry, '--spec', input.specPath, '--project', cwd, ...(callLogPath !== undefined ? ['--call-log', callLogPath] : [])];
   const extra = [
     '-c',
     `${key}.command=${tomlString(input.nodeBinary)}`,
     '-c',
-    `${key}.args=${tomlArray([input.serverEntry, '--spec', input.specPath, '--project', cwd])}`,
+    `${key}.args=${tomlArray(serverArgs)}`,
     '-c',
     `${key}.enabled_tools=${tomlArray(DAEDALUS_ARM_TOOLS)}`,
     '-c',
@@ -296,7 +308,7 @@ export class CodexStepAgent implements StepAgent {
   }
 
   /** The argument set and stdin prompt of one turn (no process is spawned). */
-  plan(input: Pick<TurnInput, 'runId' | 'cwd' | 'prompt' | 'arm'>): DomainResult<{ args: readonly string[]; prompt: string }> {
+  plan(input: Pick<TurnInput, 'runId' | 'cwd' | 'prompt' | 'arm' | 'callLogPath'>): DomainResult<{ args: readonly string[]; prompt: string }> {
     const arm = generatorArmFor(input.arm);
     const denies = codexReadDenies(this.config, input.cwd, path.dirname(path.resolve(this.deps.repoRoot)));
     const base = buildCodexArgs(this.config, input.cwd, denies);
@@ -307,7 +319,7 @@ export class CodexStepAgent implements StepAgent {
     }
     const errors = checkDaedalusInput(this.deps.daedalus, { runId: input.runId, outputDir: input.cwd });
     if (errors.length > 0) return DomainResult.fail(errors);
-    return DomainResult.ok({ args: withCodexMcpServer(base, this.deps.daedalus, input.cwd), prompt });
+    return DomainResult.ok({ args: withCodexMcpServer(base, this.deps.daedalus, input.cwd, input.callLogPath), prompt });
   }
 
   async runTurn(input: TurnInput): Promise<DomainResult<TurnResult>> {
