@@ -75,6 +75,9 @@ function workspacePackageFile(clone: string, spec: string): string | undefined {
 async function main(): Promise<void> {
   const id = arg('id');
   const label = arg('label');
+  // prespec addendum 4: cypher-interp unless a capped run falls back to the Neo4j reference engine
+  const ei = process.argv.indexOf('--engine');
+  const engine = ei >= 0 ? (process.argv[ei + 1] ?? 'cypher-interp') : 'cypher-interp';
   const clone = fs.realpathSync(arg('snapshot'));
   const sel = JSON.parse(fs.readFileSync(path.join(OUT, 'selection.json'), 'utf8')) as { entries: (Entry & Record<string, { sha: string }>)[] };
   const e = sel.entries.find((x) => x.id === id);
@@ -105,7 +108,7 @@ async function main(): Promise<void> {
   const spec = path.join(OUT, 'specs', `${id}.yaml`);
   const t0 = Date.now();
   const run = spawnSync('npx', ['tsx', 'bin/firewall.ts', 'evaluate', '--project', project, '--spec', spec, '--tsconfig', harness,
-    '--symbolic-only', '--engine', 'cypher-interp', '--format', 'json'],
+    '--symbolic-only', '--engine', engine, '--format', 'json', ...(engine === 'neo4j' ? ['--neo4j-uri', 'bolt://127.0.0.1:7687'] : [])],
   { cwd: REPO, encoding: 'utf8', maxBuffer: 1 << 30, env: { ...process.env, APG_STORE_PATH: path.join(clone, '.apg-store') } });
   const wallMs = Date.now() - t0;
   if (run.status !== 0 && run.status !== 1) throw new Error(`evaluate exit ${String(run.status)}: ${run.stderr.slice(0, 2000)}`);
@@ -167,6 +170,7 @@ async function main(): Promise<void> {
     id, label, sha: head, sourceDir: e.sourceDir, programFiles: program.length, apgFiles: fileOf.size,
     mapped: report.layerAnnotation.mapped, unmapped: report.layerAnnotation.unmapped, verdict: report.verdict,
     violations: report.violations.length, blockingRules: [...blocking], unattributedViolations: unattributed,
+    engine, failedFunctions: (report as unknown as { functionExecution: { failed: { functionId: string }[] } }).functionExecution.failed.map((f) => f.functionId),
     parseCoverage: report.parseCoverage, importResolution: report.importResolution, evaluateWallMs: wallMs, evaluateExit: run.status,
     tsconfigNotes: flat.notes.map((n) => n.split(posix(clone) + '/').join('')),
   };

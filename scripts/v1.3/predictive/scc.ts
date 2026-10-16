@@ -14,8 +14,8 @@ import { specExcludePathsFromYaml } from '../../../src/spec-parser/index.js';
 
 const OUT = path.join(process.cwd(), 'results/v1.3-validity-predictive');
 const i = process.argv.indexOf('--snapshots');
-const SNAP = process.argv[i + 1];
-if (i < 0 || SNAP === undefined) throw new Error('--snapshots is required');
+const SNAP: string = process.argv[i + 1] ?? '';
+if (i < 0 || SNAP === '') throw new Error('--snapshots is required');
 const sel = JSON.parse(fs.readFileSync(path.join(OUT, 'selection.json'), 'utf8')) as { entries: { id: string; root: string }[] };
 
 /** Component size per node (iterative Tarjan). */
@@ -54,30 +54,34 @@ export function sccSizes(nodes: readonly string[], adj: ReadonlyMap<string, read
   return size;
 }
 
-for (const f of fs.readdirSync(path.join(OUT, 'exposure')).filter((x) => /\.(T|T_alt)\.csv$/.test(x)).sort()) {
-  const target = path.join(OUT, 'exposure', f.replace(/\.csv$/, '.scc.csv'));
-  if (fs.existsSync(target)) continue;
-  const key = f.replace(/\.csv$/, '');
-  const id = key.replace(/\.(T|T_alt)$/, '');
-  const e = sel.entries.find((x) => x.id === id)!;
-  const project = path.join(SNAP, key, e.root);
-  const harness = path.join(project, 'tsconfig.predictive.json');
-  if (!fs.existsSync(harness)) { process.stderr.write(`${key}: snapshot missing\n`); continue; }
-  const excludes = specExcludePathsFromYaml(fs.readFileSync(path.join(OUT, 'specs', `${id}.yaml`), 'utf8'));
-  const apg = await extractAPG(project, { excludePatterns: excludes }, harness);
-  if (!apg.success) throw new Error(`${key}: extractAPG failed`);
-  const fileOf = new Map<string, string>();
-  for (const n of apg.data.nodes) if (n.type === 'File') fileOf.set(n.id, path.isAbsolute(n.filePath) ? path.relative(project, n.filePath) : n.filePath);
-  const adj = new Map<string, string[]>();
-  for (const ed of apg.data.edges) {
-    if (ed.type !== 'IMPORTS' && ed.type !== 'RE_EXPORTS') continue;
-    const s = fileOf.get(ed.sourceId);
-    const t = fileOf.get(ed.targetId);
-    if (s === undefined || t === undefined || s === t) continue;
-    (adj.get(s) ?? adj.set(s, []).get(s)!).push(t);
+async function main(): Promise<void> {
+  for (const f of fs.readdirSync(path.join(OUT, 'exposure')).filter((x) => /\.(T|T_alt)\.csv$/.test(x)).sort()) {
+    const target = path.join(OUT, 'exposure', f.replace(/\.csv$/, '.scc.csv'));
+    if (fs.existsSync(target)) continue;
+    const key = f.replace(/\.csv$/, '');
+    const id = key.replace(/\.(T|T_alt)$/, '');
+    const e = sel.entries.find((x) => x.id === id)!;
+    const project = path.join(SNAP, key, e.root);
+    const harness = path.join(project, 'tsconfig.predictive.json');
+    if (!fs.existsSync(harness)) { process.stderr.write(`${key}: snapshot missing\n`); continue; }
+    const excludes = specExcludePathsFromYaml(fs.readFileSync(path.join(OUT, 'specs', `${id}.yaml`), 'utf8'));
+    const apg = await extractAPG(project, { excludePatterns: excludes }, harness);
+    if (!apg.success) throw new Error(`${key}: extractAPG failed`);
+    const fileOf = new Map<string, string>();
+    for (const n of apg.data.nodes) if (n.type === 'File') fileOf.set(n.id, path.isAbsolute(n.filePath) ? path.relative(project, n.filePath) : n.filePath);
+    const adj = new Map<string, string[]>();
+    for (const ed of apg.data.edges) {
+      if (ed.type !== 'IMPORTS' && ed.type !== 'RE_EXPORTS') continue;
+      const s = fileOf.get(ed.sourceId);
+      const t = fileOf.get(ed.targetId);
+      if (s === undefined || t === undefined || s === t) continue;
+      (adj.get(s) ?? adj.set(s, []).get(s)!).push(t);
+    }
+    const files = fs.readFileSync(path.join(OUT, 'exposure', f), 'utf8').trim().split('\n').slice(1).map((l) => JSON.parse(l.slice(0, l.indexOf('",') + 1)) as string);
+    const sizes = sccSizes([...fileOf.values()].sort(), adj);
+    fs.writeFileSync(target, ['file,scc_size', ...files.map((x) => `${JSON.stringify(x)},${String(sizes.get(x) ?? 1)}`)].join('\n') + '\n');
+    process.stdout.write(`${key}\t${String(files.filter((x) => (sizes.get(x) ?? 1) > 1).length)} files on cycles\n`);
   }
-  const files = fs.readFileSync(path.join(OUT, 'exposure', f), 'utf8').trim().split('\n').slice(1).map((l) => JSON.parse(l.slice(0, l.indexOf('",') + 1)) as string);
-  const sizes = sccSizes([...fileOf.values()].sort(), adj);
-  fs.writeFileSync(target, ['file,scc_size', ...files.map((x) => `${JSON.stringify(x)},${String(sizes.get(x) ?? 1)}`)].join('\n') + '\n');
-  process.stdout.write(`${key}\t${String(files.filter((x) => (sizes.get(x) ?? 1) > 1).length)} files on cycles\n`);
 }
+
+main().catch((err: unknown) => { process.stderr.write(`${String(err)}\n`); process.exit(2); });
