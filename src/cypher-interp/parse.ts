@@ -5,7 +5,8 @@
  *
  * Two error classes, never a guess:
  * - `CypherSyntaxError`: the text does not parse under Neo4j's grammar (Neo4j would reject it too);
- * - `CypherUnsupportedError`: valid Cypher outside the interpreter's subset (writes, CALL, UNION, GDS, QPP, ...).
+ * - `CypherUnsupportedError`: valid Cypher outside the interpreter's subset (writes, procedure CALL, top-level UNION,
+ *   GDS, QPP, ...). `CALL { ... [UNION [ALL] ...] }` returning unit subqueries are in the subset.
  */
 import { checkStaticTypes } from './typecheck.js';
 import { simplifyQuery } from './simplify.js';
@@ -101,6 +102,13 @@ class Builder {
   }
 
   queryWithLocalDefinitions(c: Ctx): Query {
+    const { parts } = this.unionParts(c);
+    if (parts.length !== 1) throw new CypherUnsupportedError('UNION outside CALL { }');
+    return parts[0] as Query;
+  }
+
+  /** The `singleQuery` parts of a query body and whether they are joined by `UNION ALL` (mixing is an error). */
+  unionParts(c: Ctx): { parts: Query[]; all: boolean } {
     if (rule(c, 'localDefinition') !== undefined) throw new CypherUnsupportedError('DEFINE');
     const next = need(c, 'nextStatement');
     const regs = rules(next, 'regularQuery');
@@ -109,10 +117,25 @@ class Builder {
     const union = rule(reg, 'union');
     if (union === undefined) throw new CypherUnsupportedError('WHEN query');
     const singles = rules(union, 'singleQuery');
-    if (singles.length !== 1) throw new CypherUnsupportedError('UNION');
-    const single = singles[0] as Ctx;
-    if (rule(single, 'clause') === undefined) throw new CypherUnsupportedError('braced query');
-    return { clauses: rules(single, 'clause').map((cl) => this.clause(cl)) };
+    const alls = kids(union).filter((k) => isTok(k, 'ALL')).length;
+    const unions = kids(union).filter((k) => isTok(k, 'UNION')).length;
+    if (alls !== 0 && alls !== unions) throw new CypherSyntaxError('Invalid combination of UNION and UNION ALL');
+    const parts = singles.map((single) => {
+      if (rule(single, 'clause') === undefined) throw new CypherUnsupportedError('braced query');
+      return { clauses: rules(single, 'clause').map((cl) => this.clause(cl)) };
+    });
+    return { parts, all: alls > 0 };
+  }
+
+  subqueryClause(c: Ctx): Clause {
+    if (hasTok(c, 'OPTIONAL')) throw new CypherUnsupportedError('OPTIONAL CALL');
+    if (rule(c, 'subqueryScope') !== undefined) throw new CypherUnsupportedError('CALL (scope) { }');
+    if (rule(c, 'subqueryInTransactionsParameters') !== undefined) throw new CypherUnsupportedError('CALL { } IN TRANSACTIONS');
+    const { parts, all } = this.unionParts(need(c, 'queryWithLocalDefinitions'));
+    for (const p of parts) {
+      if (p.clauses[p.clauses.length - 1]?.k !== 'return') throw new CypherUnsupportedError('unit subquery without RETURN');
+    }
+    return { k: 'call', parts, unionAll: all };
   }
 
   clause(c: Ctx): Clause {
@@ -125,6 +148,7 @@ class Builder {
       }
       case 'returnClause': return { k: 'return', projection: this.returnBody(need(inner, 'returnBody'), 'RETURN') };
       case 'unwindClause': return { k: 'unwind', expr: this.expression(need(inner, 'expression')), alias: this.variable(need(inner, 'variable')) };
+      case 'subqueryClause': return this.subqueryClause(inner);
       default: throw new CypherUnsupportedError(`clause ${ruleOf(inner) ?? '?'}`);
     }
   }

@@ -29,7 +29,8 @@ const CONSTRUCTS: readonly [string, (v: string, l: string, r: Rand) => string][]
   ['FOREACH', (v, l) => `FOREACH (${v} IN [${l}] | CREATE (:X))`],
   ['LOAD CSV', (v) => `LOAD CSV FROM 'file:///x.csv' AS ${v} RETURN ${v}`],
   ['CALL procedure', (_v, _l, r) => pick(r, ['CALL db.labels()', 'CALL db.labels() YIELD label RETURN label', 'CALL dbms.components()'])],
-  ['CALL subquery', (v) => `CALL { MATCH (${v}) RETURN ${v} } RETURN ${v}`],
+  // A returning `CALL { ... RETURN ... }` is in the subset since v1.3-npx (#135); a unit subquery without RETURN is not.
+  ['CALL unit subquery without RETURN', (v) => `MATCH (${v}) CALL { WITH ${v} MATCH (${v})-->(m) } RETURN ${v}`],
   ['CALL subquery (scoped)', (v) => `MATCH (${v}) CALL (${v}) { RETURN 1 AS one } RETURN one`],
   ['UNION', (v) => `MATCH (${v}:File) RETURN ${v}.name AS a UNION MATCH (${v}:Class) RETURN ${v}.name AS a`],
   ['UNION ALL', (v, l) => `RETURN ${l} AS ${v} UNION ALL RETURN ${l} AS ${v}`],

@@ -1,0 +1,307 @@
+diff --git a/src/business/market-service.ts b/src/business/market-service.ts
+new file mode 100644
+index 0000000..0a27b12
+--- /dev/null
++++ b/src/business/market-service.ts
+@@ -0,0 +1,50 @@
++import { randomUUID } from 'node:crypto';
++import { Booking, BusinessError, MarketDay, Pitch, PitchSize, Vendor } from './models';
++import { bookingRepository, marketDayRepository, pitchRepository, vendorRepository } from '../persistence/repositories';
++
++const SIZES: PitchSize[] = ['small', 'medium', 'large'];
++
++export const marketService = {
++  defineMarketDay(date: string): MarketDay {
++    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new BusinessError('date must be YYYY-MM-DD');
++    if (marketDayRepository.findByDate(date)) throw new BusinessError('market day already exists');
++    return marketDayRepository.save({ id: randomUUID(), date });
++  },
++
++  listMarketDays(): MarketDay[] {
++    return marketDayRepository.all();
++  },
++
++  definePitch(number: number, size: PitchSize, hasPower: boolean): Pitch {
++    if (!SIZES.includes(size)) throw new BusinessError(`size must be one of ${SIZES.join(', ')}`);
++    if (pitchRepository.find(number)) throw new BusinessError(`pitch ${number} already exists`);
++    return pitchRepository.save({ number, size, hasPower });
++  },
++
++  listPitches(): Pitch[] {
++    return pitchRepository.all();
++  },
++
++  registerVendor(businessName: string, contact: string, products: string[]): Vendor {
++    if (!businessName || !contact) throw new BusinessError('businessName and contact are required');
++    return vendorRepository.save({ id: randomUUID(), businessName, contact, products: products ?? [] });
++  },
++
++  listVendors(): Vendor[] {
++    return vendorRepository.all();
++  },
++
++  book(vendorId: string, marketDayId: string, pitchNumber: number): Booking {
++    if (!vendorRepository.find(vendorId)) throw new BusinessError('unknown vendor', 404);
++    if (!marketDayRepository.find(marketDayId)) throw new BusinessError('unknown market day', 404);
++    if (!pitchRepository.find(pitchNumber)) throw new BusinessError('unknown pitch', 404);
++    const dayBookings = bookingRepository.forDay(marketDayId);
++    if (dayBookings.some((b) => b.pitchNumber === pitchNumber)) throw new BusinessError('pitch already booked for this market day', 409);
++    if (dayBookings.some((b) => b.vendorId === vendorId)) throw new BusinessError('vendor already holds a pitch on this market day', 409);
++    return bookingRepository.save({ id: randomUUID(), vendorId, marketDayId, pitchNumber });
++  },
++
++  bookingsForDay(marketDayId: string): Booking[] {
++    return bookingRepository.forDay(marketDayId);
++  },
++};
+diff --git a/src/business/models.ts b/src/business/models.ts
+new file mode 100644
+index 0000000..5368016
+--- /dev/null
++++ b/src/business/models.ts
+@@ -0,0 +1,48 @@
++export interface MarketDay {
++  id: string;
++  date: string; // YYYY-MM-DD
++}
++
++export type PitchSize = 'small' | 'medium' | 'large';
++
++export interface Pitch {
++  number: number;
++  size: PitchSize;
++  hasPower: boolean;
++}
++
++export interface Vendor {
++  id: string;
++  businessName: string;
++  contact: string;
++  products: string[];
++}
++
++export interface Booking {
++  id: string;
++  marketDayId: string;
++  pitchNumber: number;
++  vendorId: string;
++}
++
++export interface ReaderLink {
++  readerId: string;
++  marketDayId: string;
++  vendorId: string;
++}
++
++export interface CardSale {
++  id: string;
++  readerId: string;
++  vendorId: string;
++  marketDayId: string;
++  amount: number;
++  time: string;
++  provider: 'paylane';
++}
++
++export class BusinessError extends Error {
++  constructor(message: string, readonly status = 400) {
++    super(message);
++  }
++}
+diff --git a/src/business/sales-service.ts b/src/business/sales-service.ts
+new file mode 100644
+index 0000000..22df75e
+--- /dev/null
++++ b/src/business/sales-service.ts
+@@ -0,0 +1,41 @@
++import { randomUUID } from 'node:crypto';
++import { BusinessError, CardSale, ReaderLink } from './models';
++import {
++  bookingRepository,
++  cardSaleRepository,
++  marketDayRepository,
++  readerLinkRepository,
++  vendorRepository,
++} from '../persistence/repositories';
++
++export const salesService = {
++  linkReader(readerId: string, marketDayId: string, vendorId: string): ReaderLink {
++    if (!marketDayRepository.find(marketDayId)) throw new BusinessError('unknown market day', 404);
++    if (!vendorRepository.find(vendorId)) throw new BusinessError('unknown vendor', 404);
++    return readerLinkRepository.save({ readerId, marketDayId, vendorId });
++  },
++
++  /** A PayLane card sale: accepted only from a reader linked to a vendor with a booking that day. */
++  recordPayLaneSale(readerId: string, amount: number, time: string): CardSale {
++    if (!(amount > 0)) throw new BusinessError('amount must be positive');
++    const day = marketDayRepository.findByDate(time.slice(0, 10));
++    if (!day) throw new BusinessError('no market day on the sale date', 422);
++    const link = readerLinkRepository.find(day.id, readerId);
++    if (!link) throw new BusinessError('reader is not linked to a vendor for this market day', 422);
++    const booked = bookingRepository.forDay(day.id).some((b) => b.vendorId === link.vendorId);
++    if (!booked) throw new BusinessError('vendor has no booking on this market day', 422);
++    return cardSaleRepository.save({
++      id: randomUUID(),
++      readerId,
++      vendorId: link.vendorId,
++      marketDayId: day.id,
++      amount,
++      time,
++      provider: 'paylane',
++    });
++  },
++
++  salesForVendor(vendorId: string, marketDayId?: string): CardSale[] {
++    return marketDayId ? cardSaleRepository.forVendorAndDay(vendorId, marketDayId) : cardSaleRepository.forVendor(vendorId);
++  },
++};
+diff --git a/src/persistence/repositories.ts b/src/persistence/repositories.ts
+new file mode 100644
+index 0000000..c41aa00
+--- /dev/null
++++ b/src/persistence/repositories.ts
+@@ -0,0 +1,41 @@
++import { Booking, CardSale, MarketDay, Pitch, ReaderLink, Vendor } from '../business/models';
++import { bookings, cardSales, marketDays, pitches, readerLinks, vendors } from './store';
++
++export const marketDayRepository = {
++  save: (d: MarketDay) => marketDays.upsert(d),
++  find: (id: string) => marketDays.get(id),
++  findByDate: (date: string) => marketDays.where((d) => d.date === date)[0],
++  all: () => marketDays.all().sort((a, b) => a.date.localeCompare(b.date)),
++};
++
++export const pitchRepository = {
++  save: (p: Pitch) => pitches.upsert(p),
++  find: (n: number) => pitches.get(String(n)),
++  all: () => pitches.all().sort((a, b) => a.number - b.number),
++};
++
++export const vendorRepository = {
++  save: (v: Vendor) => vendors.upsert(v),
++  find: (id: string) => vendors.get(id),
++  all: () => vendors.all(),
++};
++
++export const bookingRepository = {
++  save: (b: Booking) => bookings.upsert(b),
++  find: (id: string) => bookings.get(id),
++  delete: (id: string) => bookings.delete(id),
++  forDay: (marketDayId: string) => bookings.where((b) => b.marketDayId === marketDayId),
++  forVendor: (vendorId: string) => bookings.where((b) => b.vendorId === vendorId),
++};
++
++export const readerLinkRepository = {
++  save: (l: ReaderLink) => readerLinks.upsert(l),
++  find: (marketDayId: string, readerId: string) => readerLinks.get(`${marketDayId}|${readerId}`),
++};
++
++export const cardSaleRepository = {
++  save: (s: CardSale) => cardSales.upsert(s),
++  forVendorAndDay: (vendorId: string, marketDayId: string) =>
++    cardSales.where((s) => s.vendorId === vendorId && s.marketDayId === marketDayId),
++  forVendor: (vendorId: string) => cardSales.where((s) => s.vendorId === vendorId),
++};
+diff --git a/src/persistence/store.ts b/src/persistence/store.ts
+new file mode 100644
+index 0000000..df953f8
+--- /dev/null
++++ b/src/persistence/store.ts
+@@ -0,0 +1,30 @@
++import { Booking, CardSale, MarketDay, Pitch, ReaderLink, Vendor } from '../business/models';
++
++/** In-memory tables. */
++export class Table<T> {
++  private readonly rows = new Map<string, T>();
++  constructor(private readonly keyOf: (row: T) => string) {}
++  upsert(row: T): T {
++    this.rows.set(this.keyOf(row), row);
++    return row;
++  }
++  get(key: string): T | undefined {
++    return this.rows.get(key);
++  }
++  delete(key: string): void {
++    this.rows.delete(key);
++  }
++  where(pred: (row: T) => boolean): T[] {
++    return [...this.rows.values()].filter(pred);
++  }
++  all(): T[] {
++    return [...this.rows.values()];
++  }
++}
++
++export const marketDays = new Table<MarketDay>((d) => d.id);
++export const pitches = new Table<Pitch>((p) => String(p.number));
++export const vendors = new Table<Vendor>((v) => v.id);
++export const bookings = new Table<Booking>((b) => b.id);
++export const readerLinks = new Table<ReaderLink>((l) => `${l.marketDayId}|${l.readerId}`);
++export const cardSales = new Table<CardSale>((s) => s.id);
+diff --git a/src/presentation/routes.ts b/src/presentation/routes.ts
+new file mode 100644
+index 0000000..2589df5
+--- /dev/null
++++ b/src/presentation/routes.ts
+@@ -0,0 +1,42 @@
++import { Router } from 'express';
++import { marketService } from '../business/market-service';
++import { salesService } from '../business/sales-service';
++
++export const router = Router();
++
++router.post('/market-days', (req, res) => {
++  res.status(201).json(marketService.defineMarketDay(req.body.date));
++});
++router.get('/market-days', (_req, res) => {
++  res.json(marketService.listMarketDays());
++});
++router.post('/pitches', (req, res) => {
++  res.status(201).json(marketService.definePitch(Number(req.body.number), req.body.size, !!req.body.hasPower));
++});
++router.get('/pitches', (_req, res) => {
++  res.json(marketService.listPitches());
++});
++router.post('/vendors', (req, res) => {
++  res.status(201).json(marketService.registerVendor(req.body.businessName, req.body.contact, req.body.products));
++});
++router.get('/vendors', (_req, res) => {
++  res.json(marketService.listVendors());
++});
++router.post('/market-days/:dayId/bookings', (req, res) => {
++  res.status(201).json(marketService.book(req.body.vendorId, req.params.dayId, Number(req.body.pitchNumber)));
++});
++router.get('/market-days/:dayId/bookings', (req, res) => {
++  res.json(marketService.bookingsForDay(req.params.dayId));
++});
++router.post('/market-days/:dayId/readers', (req, res) => {
++  res.status(201).json(salesService.linkReader(req.body.readerId, req.params.dayId, req.body.vendorId));
++});
++router.get('/vendors/:vendorId/sales', (req, res) => {
++  const day = typeof req.query.marketDayId === 'string' ? req.query.marketDayId : undefined;
++  res.json(salesService.salesForVendor(req.params.vendorId, day));
++});
++// PayLane webhook
++router.post('/webhooks/paylane', (req, res) => {
++  const { readerId, amount, time } = req.body as { readerId: string; amount: number; time: string };
++  res.status(201).json(salesService.recordPayLaneSale(readerId, Number(amount), time));
++});
+diff --git a/src/presentation/server.ts b/src/presentation/server.ts
+new file mode 100644
+index 0000000..4390727
+--- /dev/null
++++ b/src/presentation/server.ts
+@@ -0,0 +1,13 @@
++import express, { NextFunction, Request, Response } from 'express';
++import { BusinessError } from '../business/models';
++import { router } from './routes';
++
++const app = express();
++app.use(express.json());
++app.use(router);
++app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
++  const status = err instanceof BusinessError ? err.status : 500;
++  res.status(status).json({ error: err.message });
++});
++
++app.listen(Number(process.env.PORT ?? 3000), () => console.log('market service listening'));

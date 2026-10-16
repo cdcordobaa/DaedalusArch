@@ -144,8 +144,12 @@ the non-aggregate items; aggregates inside larger expressions (`toFloat(count(x)
 isEmpty range split substring left right replace toLower toUpper trim ltrim rtrim toString toInteger toFloat toBoolean
 abs sign ceil floor sqrt`, and `apoc.coll.indexOf`, `apoc.coll.toSet`, `apoc.coll.sort` as built-ins.
 
+**Added on `v1.3-npx`** (`Docs/v1.3/npx-mode.md` §4.1): `CALL { part (UNION [ALL] part)* }` returning unit
+subqueries (importing `WITH` allowed), for FF-P05's signature-types text on v1.3. Not yet covered by the live parity
+run below.
+
 **Rejected with `CypherUnsupportedError`** (never a silent answer): every write clause (CREATE, MERGE, SET, DELETE,
-REMOVE, FOREACH, LOAD CSV) outside the recognised ingestion shapes, `CALL` (procedures, GDS, subqueries), `UNION`,
+REMOVE, FOREACH, LOAD CSV) outside the recognised ingestion shapes, `CALL` (procedures, GDS; subqueries other than the returning `CALL { }` form above), `UNION` outside `CALL { }`,
 quantified path patterns and `shortestPath`, match modes, hints, `COUNT { }` / `COLLECT { }` subqueries, pattern
 comprehensions and pattern expressions, map projections, type predicates, `split` with a list of delimiters, WHERE
 inside a variable-length relationship, `stDev`/`percentile*`, any function outside the table above, Java-only regex

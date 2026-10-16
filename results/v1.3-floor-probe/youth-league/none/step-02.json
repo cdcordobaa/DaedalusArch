@@ -1,0 +1,89 @@
+{
+  "spec": "presets/layered.yaml",
+  "engine": "cypher-interp",
+  "scoringMode": "v1.3",
+  "instrumentVersion": 2,
+  "typecheckErrors": 0,
+  "typecheckSample": [],
+  "verdict": "fail",
+  "blockingAhs": 0.641,
+  "ahsV12e": 0.71,
+  "blockingViolationCount": 5,
+  "advisoryViolationCount": 11,
+  "blockingByRule": {
+    "FF-P01": 0,
+    "FF-S01": 1,
+    "FF-S02": 0,
+    "FF-S03": 4
+  },
+  "advisoryByRule": {
+    "FF-C02": 0,
+    "FF-C03": 1,
+    "FF-C04": 0,
+    "FF-C05": 0,
+    "FF-C06": 0,
+    "FF-CV03": 0,
+    "FF-CV05": 10,
+    "FF-CV06": 0,
+    "FF-SO01": 0,
+    "FF-SO02": 0,
+    "FF-SO03": 0
+  },
+  "blockingFindings": [
+    {
+      "rule": "FF-S01",
+      "file": "src/persistence/repositories.ts",
+      "line": 1,
+      "target": "src/business/entities.ts",
+      "message": "src/persistence/repositories.ts (persistence) imports from src/business/entities.ts (business)"
+    },
+    {
+      "rule": "FF-S03",
+      "file": "src/persistence/repositories.ts",
+      "line": 1,
+      "target": "src/business/entities.ts",
+      "message": "src/persistence/repositories.ts (persistence) skips layers to import src/business/entities.ts (business)"
+    },
+    {
+      "rule": "FF-S03",
+      "file": "src/presentation/server.ts",
+      "line": 4,
+      "target": "src/persistence/fake-mailer.ts",
+      "message": "src/presentation/server.ts (presentation) skips layers to import src/persistence/fake-mailer.ts (persistence)"
+    },
+    {
+      "rule": "FF-S03",
+      "file": "src/presentation/server.ts",
+      "line": 2,
+      "target": "src/persistence/repositories.ts",
+      "message": "src/presentation/server.ts (presentation) skips layers to import src/persistence/repositories.ts (persistence)"
+    },
+    {
+      "rule": "FF-S03",
+      "file": "src/presentation/server.ts",
+      "line": 3,
+      "target": "src/persistence/weather-client.ts",
+      "message": "src/presentation/server.ts (presentation) skips layers to import src/persistence/weather-client.ts (persistence)"
+    }
+  ],
+  "srcFiles": 10,
+  "loc": 324,
+  "layerAnnotation": {
+    "mapped": 10,
+    "unmapped": 0,
+    "unmappedFiles": []
+  },
+  "arm": "none",
+  "step": 2,
+  "commit": "step 2 weather",
+  "filesTouched": [
+    "M src/business/entities.ts",
+    "M src/business/fixture-service.ts",
+    "A src/business/weather-service.ts",
+    "A src/persistence/fake-mailer.ts",
+    "M src/persistence/repositories.ts",
+    "A src/persistence/weather-client.ts",
+    "M src/presentation/controllers.ts",
+    "M src/presentation/server.ts"
+  ]
+}

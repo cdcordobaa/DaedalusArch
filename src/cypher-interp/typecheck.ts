@@ -53,6 +53,17 @@ function clauseScope(c: Clause, scope: Map<string, Static>): Map<string, Static>
       if (c.k === 'with' && c.where !== undefined) check(c.where, next);
       return next;
     }
+    case 'call': {
+      // A part that starts with WITH imports the outer variables through it; any other part sees none. The returned
+      // columns join the outer scope.
+      const next = new Map(scope);
+      for (const part of c.parts) {
+        let inner = new Map<string, Static>(part.clauses[0]?.k === 'with' ? scope : []);
+        for (const pc of part.clauses) inner = clauseScope(pc, inner);
+        for (const [k, v] of inner) next.set(k, v);
+      }
+      return next;
+    }
   }
 }
 
