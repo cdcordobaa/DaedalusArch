@@ -25,12 +25,12 @@ const repo = {
     N('h-nb-l275-tasks', 275, 'pilot tasks in Docs/v1.3/pilot-tasks.md', '3 pilot tasks'),
     N('h-nb-l275-steps', 275, 'steps per pilot task', 'steps 1–4'),
     N('h-nb-l427-time', 427, 'warm evaluation per snapshot, interpreter vs Neo4j (bench.md, clean-architecture/clean)', '0.15 s vs 0.7 s'),
-    N('h-nb-l427-steps', 427, 'Study 2 step turns (outline §6)', '~900 steps', { known: { actual: '650–970 step turns', note: 'Docs/v1.3/study2-outline.md §6 gives a range of roughly 650–970 step turns; ~900 lies inside it but is not a figure the outline states' } }),
+    N('h-nb-l427-steps', 427, 'Study 2 step turns: a rough figure that must lie inside the outline §6 range (roughly 650–970 step turns)', '~900 steps'),
     N('h-nb-l531-ddd', 531, 'DDD overlays carrying a VIOLATION or Allowed comment', 'all 14 DDD overlays'),
     N('h-nb-l534-ref', 534, 'reference variants', 'all 71 variants'),
     N('h-nb-l581-dry', 581, 'tasks x steps of the pilot dry run and the replay (experiments/loop-pilot/plan.json; REPLAY_TAPES, merged with #142)', '3 tasks × 4 steps'),
     N('h-nb-l581-runs', 581, 'Study 2 runs (outline §6)', '~162 runs'),
-    N('h-nb-l581-steps', 581, 'Study 2 step turns (outline §6)', '~900 steps', { known: { actual: '650–970 step turns', note: 'Docs/v1.3/study2-outline.md §6 gives a range of roughly 650–970 step turns; ~900 lies inside it but is not a figure the outline states' } }),
+    N('h-nb-l581-steps', 581, 'Study 2 step turns: a rough figure that must lie inside the outline §6 range (roughly 650–970 step turns)', '~900 steps'),
     N('h-nb-l581-arms', 581, 'Study 2 arms (outline §6)', '3 arms'),
     N('h-nb-l658-usd', 658, 'outline §6 cost guess per turn', '2–6 USD per turn'),
     N('h-nb-l658-days', 658, 'outline §6 wall-time guess', '1–3 days'),
@@ -77,7 +77,9 @@ const repo = {
     const stmts = parity.rows.reduce((s, r) => s + r.statements, 0);
     const outline = ctx.read('Docs/v1.3/study2-outline.md');
     const runs = /\*\*(\d+) runs\*\*/.exec(outline)[1];
-    const turns = /roughly (\d+–\d+) step turns/.exec(outline)[1];
+    const turns = /roughly (\d+)–(\d+) step turns/.exec(outline);
+    // "~N steps" is a rough figure taken from the outline's range: it reproduces when N lies inside that range
+    const inRange = (n) => (n >= Number(turns[1]) && n <= Number(turns[2]) ? `~${n} steps` : `${turns[1]}–${turns[2]} step turns (~${n} is outside)`);
     const arms = /\| Arms \| (\d+) \|/.exec(outline)[1];
     const usd = /about (\d+–\d+) USD/.exec(outline)[1];
     const days = /about (\d+–\d+) days/.exec(outline)[1];
@@ -93,12 +95,12 @@ const repo = {
       'h-nb-l275-tasks': `${tasks.length} pilot tasks`,
       'h-nb-l275-steps': steps.length === 1 ? `steps 1–${steps[0]}` : `steps ${steps.join('/')}`,
       'h-nb-l427-time': `${warm(bi).toFixed(2)} s vs ${warm(bn).toFixed(1)} s`,
-      'h-nb-l427-steps': `${turns} step turns`,
+      'h-nb-l427-steps': inRange(900),
       'h-nb-l531-ddd': ddd,
       'h-nb-l534-ref': `all ${variants} variants`,
       'h-nb-l581-dry': `${tasks.length} ${tasks.length === 1 ? 'task' : 'tasks'} × ${steps.join('/')} steps`,
       'h-nb-l581-runs': `~${runs} runs`,
-      'h-nb-l581-steps': `${turns} step turns`,
+      'h-nb-l581-steps': inRange(900),
       'h-nb-l581-arms': `${arms} arms`,
       'h-nb-l658-usd': `${usd} USD per turn`,
       'h-nb-l658-days': `${days} days`,

@@ -44,8 +44,7 @@ numbers.push(
   n('other4', 50, 'SO4 scoped vs tsc: the other four projects', 'The other four: 1.0 / 1.0'),
   n('ghost-dc', 51, 'ghostfolio-test apgConfirmedByRef vs dependency-cruiser', 'confirms only 0.1896'),
   n('miss-e1', 53, 'E1 projects that miss the 0.95 raw agreement target (any metric, either reference)', 'missed** in 1 E1 project'),
-  n('miss-so4', 53, 'SO4 projects that miss the 0.95 raw agreement target (any metric; tsc - dependency-cruiser)', 'in 2–3 SO4 projects', {
-    known: { actual: 'in 4–5 SO4 projects', note: 'Audit finding A-1: 2–3 is the scoped count (tsc 2, dependency-cruiser 2–3); on raw agreement 4 projects miss 0.95 against tsc and 5 against dependency-cruiser.' } }),
+  n('miss-so4', 53, 'SO4 projects that miss the 0.95 raw agreement target (any metric; tsc - dependency-cruiser)', 'in 4–5 SO4 projects'),
 );
 // Disagreement classes table, lines 61-72.
 const CLS = [
@@ -76,10 +75,8 @@ numbers.push(
   n('adj-so4-barrel', 88, 'SO4 rows suggested exists-via-barrel', '138 are `exists-via-barrel`'),
   n('adj-so4-else', 88, 'SO4 rows suggested exists-resolves-elsewhere (ghostfolio JSON require)', 'The remaining 6'),
   n('adj-samples', 89, 'agreement samples per corpus, all exists-resolves-to-target', 'all 50 of each corpus'),
-  n('tm-routed', 98, 'opus task-management/none/run-1: routed edges to declaring files', 'become 28 edges', {
-    known: { actual: 'become 23 edges', note: 'Audit finding A-2: this project has 23 routed (missing-in-ref) edges; 28 is the E1 corpus total (it adds order-fulfilment run-1).' } }),
-  n('tm-dropped', 98, 'opus task-management/none/run-1: barrel edges that disappear', 'the 11 edges to the barrels disappear', {
-    known: { actual: 'the 9 edges to the barrels disappear', note: 'Audit finding A-2: this project has 9 missing-in-apg barrel edges; 11 is the E1 corpus total.' } }),
+  n('tm-routed', 98, 'opus task-management/none/run-1: routed edges to declaring files', 'become 23 edges'),
+  n('tm-dropped', 98, 'opus task-management/none/run-1: barrel edges that disappear', 'the 9 edges to the barrels disappear'),
   n('so4-barrel-rows', 104, 'SO4 barrel rows (missing-in-apg + missing-in-ref)', '80 + 138'),
   n('ghost-alias', 107, 'ghostfolio @ghostfolio/api/* edges missing from dependency-cruiser (path-alias)', 'Every one of the 829'),
   n('ghost-dc-2', 107, 'ghostfolio-test apgConfirmedByRef vs dependency-cruiser (repeat)', 'confirms only 0.1896'),

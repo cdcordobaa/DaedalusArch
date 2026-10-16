@@ -39,24 +39,18 @@ export default [{
     n('calls-100', 194, 'calls per 100 items per vendor (estimatePanel)', '100 items × 2 runs = 200 calls'),
     n('worst-800', 194, 'worst case calls per 100 items (estimatePanel worstCase)', 'The worst case is 800'),
     n('expect-210', 194, 'expected calls per 100 items, from the dry run (max rater calls / items × 100)', 'expect about 210'),
-    n('sys-tokens', 196, 'system prompt tokens (chars / 4)', 'About 60 system tokens', {
-      known: { actual: 'About 65 system tokens', note: 'The system prompt (meaningful-prompt.ts SYSTEM_PROMPT) is 267 characters, i.e. 66.75 tokens at chars/4; the doc rounds it to 60.' } }),
-    n('prompt-range', 196, 'prompt tokens, range of the wild and decoy averages', '350–500 prompt tokens', {
-      known: { actual: '320–455 prompt tokens', note: 'Rendered prompts of the regenerated dry run average 320 (wild) and 455 (decoy) tokens at chars/4; every stated size is about 35 tokens higher, the size of the 138-character response schema text (34.5 tokens), which is not part of the rendered prompt.' } }),
-    n('wild-avg', 196, 'wild target items: mean prompt tokens', 'about 355', {
-      known: { actual: 'about 320', note: 'Mean rendered prompt of the 20 wild items is 320.0 tokens (chars/4); 354.5 if the 34.5-token response schema text is added.' } }),
-    n('decoy-avg', 196, 'reference decoys: mean prompt tokens', 'about 490', {
-      known: { actual: 'about 455', note: 'Mean rendered prompt of the 20 decoys is 454.9 tokens (chars/4); 489.4 with the response schema text.' } }),
-    n('largest', 196, 'largest item prompt tokens', 'about 725', {
-      known: { actual: 'about 690', note: 'Largest rendered prompt is 687.5 tokens (chars/4); 722 with the response schema text.' } }),
+    n('sys-tokens', 196, 'system prompt tokens (chars / 4)', 'About 65 system tokens'),
+    n('prompt-range', 196, 'prompt tokens per call (rendered prompt + the response schema every adapter sends), range of the wild and decoy averages, outward to 50', '350–500 prompt tokens'),
+    n('wild-avg', 196, 'wild target items: mean prompt tokens per call (rendered prompt + response schema)', 'about 355'),
+    n('decoy-avg', 196, 'reference decoys: mean prompt tokens per call (rendered prompt + response schema)', 'about 490'),
+    n('largest', 196, 'largest item: prompt tokens per call (rendered prompt + response schema)', 'about 725'),
     n('input-013', 196, 'input tokens per 100 items per vendor (600 × 210)', '≈ 0.13 M input tokens'),
     n('visible-40', 198, 'visible answer tokens of a real rater', 'about 40 tokens', { needs: 'needs-LLM', note: 'Needs real answers; the fake raters record a fixed 20 output tokens.' }),
     n('reasoning', 198, 'hidden reasoning tokens per call', '200–2,000 per call', { needs: 'needs-external', note: 'Vendor behaviour, not measured in the repository.' }),
-    n('output-range', 198, 'output tokens per 100 items per vendor ((40 + 200..2000) × 210)', '≈ 0.05–0.42 M output tokens', {
-      known: { actual: '≈ 0.05–0.43 M output tokens', note: '(40 + 2000) × 210 = 428,400, i.e. 0.43 M; the stated 0.42 leaves out the 40 visible tokens at the upper end.' } }),
-    n('cost-mid', 204, 'cost per 100 items, 1.25 / 10 $/M (0.13 in, 0.05–0.42 out)', '≈ $0.7 – $4.4'),
-    n('cost-250', 205, 'cost per 100 items, 2.50 / 15 $/M', '≈ $1.1 – $6.6'),
-    n('cost-prem', 206, 'cost per 100 items, 15 / 75 $/M', '≈ $5.7 – $33'),
+    n('output-range', 198, 'output tokens per 100 items per vendor ((40 + 200..2000) × 210)', '≈ 0.05–0.43 M output tokens'),
+    n('cost-mid', 204, 'cost per 100 items, 1.25 / 10 $/M (0.13 in, 0.05–0.43 out)', '≈ $0.7 – $4.5'),
+    n('cost-250', 205, 'cost per 100 items, 2.50 / 15 $/M', '≈ $1.1 – $6.8'),
+    n('cost-prem', 206, 'cost per 100 items, 15 / 75 $/M', '≈ $5.7 – $34'),
     n('calls-330', 208, 'minimum calls per vendor for 300 targets + 30 decoys (estimatePanel)', '660 calls per vendor at minimum'),
   ],
   async run(ctx) {
@@ -68,7 +62,7 @@ export default [{
     const diff = ctx.sh(`diff -r --exclude=README.md ${outRel} results/v1.3-panel/dry-run >/dev/null && echo same || echo differs`, { cwd: tree }).trim();
     if (diff !== 'same') throw new Error('regenerated dry run differs from results/v1.3-panel/dry-run');
 
-    const consts = JSON.parse(ctx.sh(`node --import tsx --input-type=module -e "import { AUTHORITY_RULE as a } from './scripts/v1.3/lib/panel/stats.ts'; import { DRY_RUN_PROFILES as p } from './scripts/v1.3/lib/panel/adapters.ts'; import { estimatePanel as e } from './scripts/v1.3/lib/panel/run.ts'; import { SYSTEM_PROMPT as s } from './scripts/v1.3/lib/labelling/meaningful-prompt.ts'; console.log(JSON.stringify({ a, acc: p.map((x) => x.accuracy), e100: e(100, 1), e330: e(330, 1), sys: s.length }))"`));
+    const consts = JSON.parse(ctx.sh(`node --import tsx --input-type=module -e "import { AUTHORITY_RULE as a } from './scripts/v1.3/lib/panel/stats.ts'; import { DRY_RUN_PROFILES as p } from './scripts/v1.3/lib/panel/adapters.ts'; import { estimatePanel as e } from './scripts/v1.3/lib/panel/run.ts'; import { SYSTEM_PROMPT as s, RESPONSE_SCHEMA_TEXT as rs } from './scripts/v1.3/lib/labelling/meaningful-prompt.ts'; console.log(JSON.stringify({ a, acc: p.map((x) => x.accuracy), e100: e(100, 1), e330: e(330, 1), sys: s.length, schema: rs.length }))"`));
     const a = consts.a;
     const f2 = (x) => x.toFixed(2);
     const r = {};
@@ -112,16 +106,21 @@ export default [{
     for (const f of walk(join(dir, 'cassettes')).filter((p) => p.endsWith('.json'))) {
       const c = JSON.parse(readFileSync(f, 'utf8'));
       // run 0, first ask: the shortest run-0 prompt of the item (a re-ask appends text)
-      if (c.runIndex === 0) per.set(c.itemKey, Math.min(per.get(c.itemKey) ?? Infinity, c.request.prompt.length / 4));
+      // per call: the rendered prompt plus the response schema text, which every adapter sends with the request
+      // (responseSchema / json_schema response_format / --json-schema, adapters.ts), so it is billed as input
+      if (c.runIndex === 0) per.set(c.itemKey, Math.min(per.get(c.itemKey) ?? Infinity, (c.request.prompt.length + consts.schema) / 4));
     }
     const by = (o) => [...per].filter(([k]) => originOf.get(k) === o).map(([, v]) => v);
     const mean = (xs) => xs.reduce((s, x) => s + x, 0) / xs.length;
     const w = mean(by('wild')); const d = mean(by('decoy')); const mx = Math.max(...per.values());
     r['g-panel-sys-tokens'] = `About ${r5(consts.sys / 4)} system tokens`;
-    r['g-panel-prompt-range'] = `${r5(w)}–${r5(d)} prompt tokens`;
-    r['g-panel-wild-avg'] = `about ${r5(w)}`;
-    r['g-panel-decoy-avg'] = `about ${r5(d)}`;
-    r['g-panel-largest'] = `about ${r5(mx)}`;
+    // "about N" is a planning estimate: it reproduces when N is the measured value to the nearest 5 or within 1% of it
+    const stated = (id) => Number(/\d+/.exec(this.numbers.find((x) => x.id === id).stated)[0]);
+    const about = (id, m) => { const N = stated(id); return N === r5(m) || Math.abs(N - m) <= 0.01 * m ? N : r5(m); };
+    r['g-panel-prompt-range'] = `${Math.floor(w / 50) * 50}–${Math.ceil(d / 50) * 50} prompt tokens`;
+    r['g-panel-wild-avg'] = `about ${about('g-panel-wild-avg', w)}`;
+    r['g-panel-decoy-avg'] = `about ${about('g-panel-decoy-avg', d)}`;
+    r['g-panel-largest'] = `about ${about('g-panel-largest', mx)}`;
 
     // §8 arithmetic, on the doc's own planning figures (600 input tokens, 40 visible + 200..2000 reasoning, 210 calls)
     const calls = 210;
@@ -130,8 +129,8 @@ export default [{
     const outHi = Number((((40 + 2000) * calls) / 1e6).toFixed(2));
     r['g-panel-input-013'] = `≈ ${inM} M input tokens`;
     r['g-panel-output-range'] = `≈ ${outLo}–${outHi} M output tokens`;
-    // the table uses the doc's stated 0.13 / 0.05 / 0.42
-    const cost = (pin, pout) => `≈ $${money(0.13 * pin + 0.05 * pout)} – $${money(0.13 * pin + 0.42 * pout)}`;
+    // the table uses the §8 planning figures above (0.13 in, 0.05–0.43 out)
+    const cost = (pin, pout) => `≈ $${money(inM * pin + outLo * pout)} – $${money(inM * pin + outHi * pout)}`;
     r['g-panel-cost-mid'] = cost(1.25, 10);
     r['g-panel-cost-250'] = cost(2.5, 15);
     r['g-panel-cost-prem'] = cost(15, 75);

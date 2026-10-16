@@ -25,12 +25,11 @@ const DOC42 = {
   layered: ['13', '13 / 13 / 13', '13 / 13 / 13', '11 / 11', '4/4'],
   nestjs: ['14', '14 / 14 / 14', '14 / 14 / 14', '13 / 13', '4/4'],
   hexagonal: ['15', '15 / 15 / 15', '15 / 15 / 15', '14 / 14', '4/4'],
-  ddd: ['15', '15 / 15 / 15', '15 / 15 / 15', '13 / 15', '3/3'],
+  ddd: ['15', '15 / 15 / 15', '15 / 15 / 15', '13 / 13', '3/3'],
   all: ['71', '71 / 71 / 71', '71 / 71 / 71', '64 / 64', '19/19'],
 };
 const COLS42 = ['variants', 'after', 'before', 'speconly', 'silent'];
-const table42 = STYLES.flatMap(([st, line]) => COLS42.map((c, j) => n(`e-mcp-c-${st}-${c}`, line, `consistency per style: ${st}, ${c}`, DOC42[st][j],
-  st === 'ddd' && c === 'speconly' ? { known: { actual: '13 / 13', note: 'the cell is "answer / rules"; check_diff agrees on 13 of 15 DDD variants for both (the doc wrote 13/15, i.e. 13 of 15, in this cell; line 83 says so)' } } : {})));
+const table42 = STYLES.flatMap(([st, line]) => COLS42.map((c, j) => n(`e-mcp-c-${st}-${c}`, line, `consistency per style: ${st}, ${c}`, DOC42[st][j])));
 
 // §4.3 table (lines 91-95): variants where both block, per style and rule (after-write).
 const DOC43 = {
@@ -192,8 +191,8 @@ export default [
       n('e-mcp-l-sum-diff', 14, 'summary: check_diff in process', 'check_diff p50 14 ms / p95 40 ms'),
       n('e-mcp-l-sum-stdio', 14, 'summary: p95 over stdio, check_file and check_diff', 'p95 13 ms and 36 ms'),
       n('e-mcp-l-machine', 185, 'machine of the committed run', '4 vCPU Xeon 2.1 GHz'),
-      n('e-mcp-l-orders', 201, 'check_file / check_diff margin under the 1 s target, cold calls included', 'about two orders of magnitude', {
-        known: { actual: '1000 ms / 130.1 ms = 7.7x (worst cold call); 1000 ms / 45.2 ms = 22.1x (worst warm p95)', note: 'the worst check_file/check_diff p95 (45.2 ms) and cold call (130.1 ms over stdio) are about one order of magnitude under 1 s, not two; only the p50s (6 to 19 ms) are near two' } }),
+      n('e-mcp-l-orders', 201, 'check_file / check_diff margin under the 1 s target, cold calls included (round(log10(1000 ms / worst cold call)); worst p95, worst cold call)', 'about one order of magnitude under the 1 s target, cold calls included (worst p95 45.2 ms, worst cold call 130.1 ms'),
+      n('e-mcp-l-orders-p50', 201, 'check_file / check_diff p50 range and its margin under 1 s (round(log10(1000 ms / worst p50)))', 'the p50s, 6 to 19 ms, are about two orders under it'),
     ],
     async run(ctx) {
       const l = ctx.json('results/v1.3-reference/mcp-v2/latency.json');
@@ -214,7 +213,10 @@ export default [
       r['e-mcp-l-machine'] = `${l.env.cpus} vCPU ${cpu} ${ghz} GHz`;
       const fd = l.table.filter((x) => /check_file|check_diff/.test(x.tool));
       const worstCold = Math.max(...fd.map((x) => x.coldMax ?? 0)); const worstP95 = Math.max(...fd.map((x) => x.p95));
-      r['e-mcp-l-orders'] = `1000 ms / ${worstCold.toFixed(1)} ms = ${(1000 / worstCold).toFixed(1)}x (worst cold call); 1000 ms / ${worstP95.toFixed(1)} ms = ${(1000 / worstP95).toFixed(1)}x (worst warm p95)`;
+      const ORD = ['zero orders', 'one order', 'two orders', 'three orders'];
+      r['e-mcp-l-orders'] = `about ${ORD[Math.round(Math.log10(1000 / worstCold))]} of magnitude under the 1 s target, cold calls included (worst p95 ${worstP95.toFixed(1)} ms, worst cold call ${worstCold.toFixed(1)} ms`;
+      const p50s = fd.map((x) => x.p50);
+      r['e-mcp-l-orders-p50'] = `the p50s, ${f0(Math.min(...p50s))} to ${f0(Math.max(...p50s))} ms, are about ${ORD[Math.round(Math.log10(1000 / Math.max(...p50s)))]} under it`;
       return r;
     },
   },
@@ -224,7 +226,7 @@ export default [
     needs: 'offline', basis: 're-derived', slow: false,
     how: 'TOOL_NAMES / SPEC_TOOL_NAMES (server.ts), APG2_HINT_NAMES / CHEAP_HINT_NAMES (fast-hints.ts), IMPORT_RULE_NAMES; inferSpecTool on each materialised clean reference project',
     numbers: [
-      n('e-mcp-k-hints-apg2', 11, 'APG v2 templates with a fast hint', 'three', { known: { actual: 'five', note: 'APG2_HINT_NAMES has five names (boundary-type-leak, io-outside-adapters, nondeterminism-in-core, deep-import-declared-api, deep-import-inferred-api), as the doc\'s own section 6 table lists; "three" counts the three checks (type leak, I/O, deep import) that produce them' } }),
+      n('e-mcp-k-hints-apg2', 11, 'APG v2 templates with a fast hint', 'five'),
       n('e-mcp-k-hints-cheap', 11, 'cheap proxies with a hint', 'two'),
       n('e-mcp-k-new', 12, 'new tools', 'Two'),
       n('e-mcp-k-tools', 19, 'tools', 'Ten'),

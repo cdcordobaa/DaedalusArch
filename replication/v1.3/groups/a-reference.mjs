@@ -178,9 +178,8 @@ for (const [line, s, lit, norm, dist, blind] of [
   BASE.push(nb(line, `prec-blind-${s}`, `blocking precision, blind expanded (from adjudication.csv), ${s}`, blind, (X) => P(bx(X.adj, X.sc, s)), { basis: 're-derived' }));
 }
 BASE.push(
-  nb(57, 'max-cell', 'largest expected blocking cell (author or blind expanded)', 'the largest blocking cell is 15 expected findings',
-    (X) => `the largest blocking cell is ${maxCell(X.sc, X.adj)} expected findings`,
-    { known: { actual: 'the largest blocking cell is 19 expected findings', note: 'Audit finding B-1: the largest author cell is 13 (clean, hexagonal) and the largest blind-expanded cell is 19 (hexagonal 13/19, the doc\'s own table); no view has 15. The conclusion holds (19/19 has a Wilson lower bound of 0.83).' } }),
+  nb(57, 'max-cell', 'largest expected blocking cell (author or blind expanded)', 'the largest blocking cell is 19 expected findings',
+    (X) => `the largest blocking cell is ${maxCell(X.sc, X.adj)} expected findings`),
   nb(57, 'variants', 'violation variants per style (min to max)', '9 to 12 violation variants', (X) => { const ns = STY.map((s) => sv(X.sc, LIT, s).plantedDetected.n); return `${Math.min(...ns)} to ${Math.max(...ns)} violation variants`; }),
 );
 const RCOL = [['cases', 1], ['planted', 2], ['silent', 3], ['brec', 4], ['bprec', 5], ['arec', 7], ['aprec', 8]];
@@ -241,10 +240,10 @@ BASE.push(
   nb(189, 'ffp06-share', 'FF-P06 layered share of the author-literal blocking FPs', '53 of the 60 blocking false positives', (X) => `${rule(X.sc, LIT, 'layered', 'FF-P06').fp} of the ${blk(X.sc, LIT, 'pooled').fp} blocking false positives`),
   nb(189, 'layered-prec', 'layered blocking precision, author literal (repeat)', 'Layered blocking precision is 0.14', (X) => P(blk(X.sc, LIT, 'layered'))),
   nb(193, 'cycles', 'planted cycles missed under the literal key', 'all five planted cycles', (X) => `all ${word(sum(STY.map((s) => rule(X.sc, LIT, s, 'FF-S02')).filter(Boolean)).fn)} planted cycles`),
-  nb(193, 'cycle-cost', 'cost of the literal cycle key on blocking recall', '1 to 2 points of blocking recall in four styles', (X) => {
+  nb(193, 'cycle-cost', 'cost of the literal cycle key on blocking recall', '8 to 18 points of blocking recall in four styles', (X) => {
     const d = STY.map((s) => Math.round(100 * (Number(f2(R(blk(X.sc, NORM, s))[0] / R(blk(X.sc, NORM, s))[1])) - Number(f2(R(blk(X.sc, LIT, s))[0] / R(blk(X.sc, LIT, s))[1]))))).filter((x) => x > 0);
     return `${Math.min(...d)} to ${Math.max(...d)} points of blocking recall in ${word(d.length)} styles`;
-  }, { known: { actual: '8 to 18 points of blocking recall in four styles', note: 'Audit finding B-3: the literal key costs 1 to 2 findings per style, which is 8 to 18 percentage points of recall (0.92/0.82/0.91/0.92 -> 1.00), not 1 to 2 points.' } }),
+  }),
   nb(197, 'name-fp-styles', 'near-miss styles with a new non-FF-P06 (name-heuristic) false positive', 'three of the four near-miss styles', (X) => {
     const st = X.sc.nearMiss.filter((x) => x.style !== 'ddd');
     const k = st.filter((x) => x.detail.some((d) => d.rows.some((r) => !r.alsoOnClean && r.ruleId !== 'FF-P06'))).length;
@@ -262,8 +261,7 @@ const nf = mk('a-reff', F);
 const FIX = [
   nf(5, 'cases', 'reference cases', '71-case', (X) => `${X.nF}-case`),
   nf(5, 'projects', 'reference projects', 'five reference projects', (X) => `${word(readdirSync(X.rawF).length)} reference projects`),
-  nf(5, 'max-cell', 'largest expected blocking cell (author or blind expanded)', 'no style has more than 15 expected blocking findings', (X) => `no style has more than ${maxCell(X.scF, X.adjF)} expected blocking findings`,
-    { known: { actual: 'no style has more than 19 expected blocking findings', note: 'Audit finding B-1: author cells are at most 13; blind-expanded hexagonal has 19 expected blocking findings (13/19 in the doc\'s own table).' } }),
+  nf(5, 'max-cell', 'largest expected blocking cell (author or blind expanded)', 'no style has more than 19 expected blocking findings', (X) => `no style has more than ${maxCell(X.scF, X.adjF)} expected blocking findings`),
   nf(16, 'adj-rows', 'adjudication.csv rows, after vs baseline (committed)', '40 rows, down from 96', (X) => `${X.adjF.length} rows, down from ${X.adjB.length}`, { basis: 're-derived' }),
   nf(25, 'raw-files', 'raw/ files of the run', '(71 files)', (X) => `(${X.nF} files)`),
 ];
@@ -339,8 +337,7 @@ FIX.push(
   nf(103, 'target-auth-prec', 'author blocking precision, every style (after fixes)', 'in every style (1.00)', (X) => `in every style (${[...new Set(STY.map((s) => f2(P(blk(X.scF, NORM, s))[0] / P(blk(X.scF, NORM, s))[1])))].join('/')})`),
   nf(104, 'target-blind-layered-prec', 'layered blind-expanded blocking precision after fixes', 'layered (0.64, 7/11)', (X) => { const [k, n] = P(bx(X.adjF, X.scF, 'layered')); return `layered (${f2(k / n)}, ${k}/${n})`; }, { basis: 're-derived' }),
   nf(104, 'layered-4', 'layered "tool + author, blind silent" rows after fixes', "Layered's 4 rows", (X) => `Layered's ${pattern(X.adjF, 'tool + author, blind silent', 'layered')} rows`, { basis: 're-derived' }),
-  nf(108, 'max-cell-2', 'largest expected blocking cell (repeat)', 'the largest blocking cell has 15 expected findings', (X) => `the largest blocking cell has ${maxCell(X.scF, X.adjF)} expected findings`,
-    { known: { actual: 'the largest blocking cell has 19 expected findings', note: 'Audit finding B-1: author cells are at most 13; blind-expanded hexagonal has 19.' } }),
+  nf(108, 'max-cell-2', 'largest expected blocking cell (repeat)', 'the largest blocking cell has 19 expected findings', (X) => `the largest blocking cell has ${maxCell(X.scF, X.adjF)} expected findings`),
   nf(108, 'pooled-lb', 'pooled author precision Wilson lower bound after fixes', 'lower bound is 0.94', (X) => { const [k, n] = P(blk(X.scF, NORM, 'pooled')); return `lower bound is ${f2(wilson(k, n)[0])}`; }),
   nf(108, 'pooled-n', 'pooled author precision denominator after fixes', 'pools 56 rows', (X) => `pools ${P(blk(X.scF, NORM, 'pooled'))[1]} rows`),
 );
@@ -385,8 +382,7 @@ const nm2 = mk('a-refm', M);
 const AMF = [
   nm2(43, 'cases', 'reference cases', '71-case', (X) => `${X.nM}-case`),
   nm2(43, 'projects', 'reference projects', 'five reference projects', (X) => `${word(readdirSync(X.rawM).length)} reference projects`),
-  nm2(43, 'max-cell', 'largest expected blocking cell', 'No style has more than 15 expected blocking findings', (X) => `No style has more than ${maxCell(X.scM, X.adjM)} expected blocking findings`,
-    { known: { actual: 'No style has more than 19 expected blocking findings', note: 'Audit finding B-1: author cells are at most 13; blind-expanded hexagonal has 19.' } }),
+  nm2(43, 'max-cell', 'largest expected blocking cell', 'No style has more than 19 expected blocking findings', (X) => `No style has more than ${maxCell(X.scM, X.adjM)} expected blocking findings`),
   nm2(55, 'adj-rows', 'adjudication.csv rows, this run vs after-fixes (committed)', '39 rows, down from 40', (X) => `${X.adjM.length} rows, down from ${X.adjF.length}`, { basis: 're-derived' }),
   nm2(96, 'raw-files', 'raw/ files (regenerated with --engine cypher-interp, byte-identical to the committed run)', 'raw/` (71 files)', (X) => `raw/\` (${X.nM} files)`),
   nm2(97, 'evidence-71', 'cases whose evidence violations are identical (interpreter run vs committed run1)', 'identical for 71/71 cases', (X) => `identical for ${X.evSame}/${X.nM} cases`, { note: 'The doc compares run1 with run2 (run2 not committed); here the regenerated interpreter run is compared with the committed run1.' }),
@@ -418,10 +414,8 @@ const AMF = [
   nm2(123, 'bprec-after', 'pooled blocking precision blind expanded, this run', '53/57 = 0.93 [0.83, 0.97]', (X) => P(bx(X.adjM, X.scM, 'pooled')), { basis: 're-derived' }),
   nm2(126, 'adj-before', 'adjudication rows, after-fixes (committed)', '40', (X) => String(X.adjF.length), { basis: 're-derived' }),
   nm2(126, 'adj-after', 'adjudication rows, this run (committed)', '39', (X) => String(X.adjM.length), { basis: 're-derived' }),
-  nm2(127, 'mism-before', 'runner report.md mismatch rows, after-fixes (validate-reference --from-raw at HEAD)', '1 (g01 FF-DT03 missed)', (X) => (X.repF.mismatches === 1 ? '1 (g01 FF-DT03 missed)' : String(X.repF.mismatches)),
-    { known: { actual: '5', note: 'Audit finding B-6: the whole report.md has 5 mismatch rows before and 4 after; "1 -> none" holds for the ddd section only.' } }),
-  nm2(127, 'mism-after', 'runner report.md mismatch rows, this run (interpreter run report.md)', '**none**', (X) => (X.repM.mismatches === 0 ? '**none**' : String(X.repM.mismatches)),
-    { known: { actual: '4', note: 'Audit finding B-6: 4 mismatch rows remain in the whole report (FF-P05 clean v07, nestjs v09; advisory FPs FF-P02 n03, FF-P04 v07); the ddd section has none.' } }),
+  nm2(127, 'mism-before', 'runner report.md mismatch rows, after-fixes, whole report (validate-reference --from-raw at HEAD)', '5', (X) => String(X.repF.mismatches)),
+  nm2(127, 'mism-after', 'runner report.md mismatch rows, this run, whole report (interpreter run report.md)', '**4**', (X) => `**${X.repM.mismatches}**`),
   nm2(132, 'negctl', 'clean variants passing', '5/5 clean variants pass', (X) => `${negPass(X.scM)}/${X.scM.negativeControl.length} clean variants pass`),
   nm2(133, 'nm-any', 'near-misses with any scored FP', '1/14 with any scored false positive', (X) => nmAll(X.scM, 'withAnyScoredFp')),
   nm2(133, 'nm-blk', 'near-misses with a blocking FP', '0/14 with a blocking false positive', (X) => nmAll(X.scM, 'withBlockingFp')),

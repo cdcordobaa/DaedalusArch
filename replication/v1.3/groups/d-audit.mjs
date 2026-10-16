@@ -5,9 +5,11 @@
 // replication/smoke.sh at HEAD.
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { treeAt } from '../lib/at-commit.mjs';
 
 const DOC = 'Docs/DiagnosticRuns/v1.3-repro-audit-2026-10-16.md';
 const APX = 'Docs/DiagnosticRuns/v1.3-repro-audit-2026-10-16';
+const AUDIT_COMMIT = 'b1d97881'; // the only commit of the audit doc: its "at HEAD" means this tree
 const n = (id, line, what, stated, extra = {}) => ({ id: `d-audit-${id}`, doc: DOC, line, what, stated, ...extra });
 const RAW = { basis: 're-derived' };
 
@@ -84,7 +86,7 @@ const numbers = [
   n('a1-raw', 75, 'A-1: SO4 projects below 0.95 raw coverage, tsc / dependency-cruiser', 'Raw: 4 projects against tsc, 5 against dependency-cruiser', RAW),
   n('a1-scoped', 75, 'A-1: SO4 projects below 0.95, scoped (min–max over tsc/dc, coverage/confirmation)', '2–3 is the **scoped** count', RAW),
   n('a2', 76, 'A-2: barrel edges routed / dropped, opus task-management none run-1', '23 and 9', RAW),
-  n('a3-head', 77, 'A-3: unit tests run by the ISE prototype §7 jest command at HEAD', '49 at HEAD', { basis: 'regenerated', known: { actual: '93 at HEAD', note: 'the §7 command `npx jest tests/unit/ise tests/unit/scripts/v1.3/ise-` now runs 93 tests (14 suites, all pass): later ISE commits added suites after the audit counted 49, so the audit\'s "at HEAD" figure is itself stale.' } }),
+  n('a3-head', 77, 'A-3: unit tests run by the ISE prototype §7 jest command at the audit\'s HEAD (its commit)', '49 at HEAD', { basis: 'regenerated', note: `"HEAD" is the audit's own commit ${AUDIT_COMMIT}; later ISE commits added suites (93 tests at the replication-2 HEAD)` }),
   n('a4', 78, 'A-4: none cells at 1.00 with the +2 dependency-inversion points / on tokens alone', '15 have the +2. 4 cells reach 1.00 on tokens alone', RAW),
   n('b1-wilson', 80, 'B-1: Wilson lower bound of 19/19', '0.83', RAW),
   n('d3', 92, 'D-3: passing judge runs that name the construct', 'All 15 passing runs', { needs: 'not-checkable', note: 'a reading of the cassette texts; the appendix gives 6 + 3 runs for round 2 and "every passing run" for round 1 without a count.' }),
@@ -248,8 +250,8 @@ async function run(ctx) {
   out['d-audit-hand-toolgraphs'] = /tool-graphs\.json ×3 \(at 89e79f49, 3e8d4b48, 3e2c96ae\)/.test(b) ? '×3' : 'not in appendix B';
   out['d-audit-hand-reports'] = /report\.\* metrics and comparisons ×4/.test(b) ? '×4' : 'not in appendix B';
 
-  // ISE unit tests (A-3), in the scratch export
-  const j = ctx.sh('npx jest --maxWorkers=2 --forceExit tests/unit/ise tests/unit/scripts/v1.3/ise- 2>&1', { cwd: ctx.tree() });
+  // ISE unit tests (A-3), in a scratch export of the audit's commit (the doc's "at HEAD")
+  const j = ctx.sh('npx jest --maxWorkers=2 --forceExit tests/unit/ise tests/unit/scripts/v1.3/ise- 2>&1', { cwd: treeAt(ctx, AUDIT_COMMIT) });
   out['d-audit-a3-head'] = `${(j.match(/Tests:\s+(?:\d+ \w+, )*(\d+) total/) ?? [])[1]} at HEAD`;
 
   return out;

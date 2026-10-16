@@ -142,10 +142,8 @@ export default [{
   how: 'npx tsx scripts/loop-harness-cli.ts --plan experiments/loop-pilot/plan.json --dry-run --out-root <scratch> (in a scratch export of HEAD)',
   numbers: [
     r('dry-runs', 101, 'dry run: runs completed, step turns', '6 runs complete, 24 step turns'),
-    r('dry-repairs', 101, 'dry run: repair turns', '4 repair turns', {
-      known: { actual: '6 repair turns', note: 'The dry run at HEAD (and at the doc\'s own commit b5a18385) runs 6 repair turns: the stub plants a blocking import at steps 2 and 4 in each of the 3 gate runs.' } }),
-    r('dry-cleared', 101, 'dry run: repair turns that cleared every blocking finding', 'all 4 cleared', {
-      known: { actual: 'all 6 cleared', note: 'Same cause: 6 repair turns, all cleared (turnsThisInvocation.repairsCleared = 6).' } }),
+    r('dry-repairs', 101, 'dry run: repair turns', '6 repair turns'),
+    r('dry-cleared', 101, 'dry run: repair turns that cleared every blocking finding', 'all 6 cleared'),
     r('dry-outcome', 101, 'dry run: repairOutcome per repair (removed, introduced)', '`repairOutcome` removed 1, introduced 0'),
     r('dry-budget', 101, 'dry run summary: callBudget printed', '`callBudget` `{ runs: 6, stepTurns: 24, maxRepairTurns: 12, maxCalls: 36 }`'),
   ],

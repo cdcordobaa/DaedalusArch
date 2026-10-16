@@ -382,8 +382,7 @@ async function scoreValues(ctx) {
 const jestNumbers = [
   { id: 'b-v2-jest-judgev2', doc: D, line: 26, what: 'tests/unit/llm-critic/judge-v2.test.ts passing tests', stated: '(10)' },
   { id: 'b-v2-jest-fe', doc: D, line: 26, what: 'tests/unit/llm-critic/filter-explain.test.ts passing tests', stated: '(4)' },
-  { id: 'b-v2-jest-dirs', doc: D, line: 27, what: 'tests/unit/llm-critic + tests/unit/cli suites and tests, all passing', stated: '30 suites, 610 tests',
-    known: { actual: '31 suites, 615 tests', note: 'new: 31 suites / 615 tests, all passing at HEAD (minimal environment, git work tree); the doc\'s own commit 205a73bd already has 31 suites / 615 tests in these directories, so the stated count was probably taken earlier on the branch.' } },
+  { id: 'b-v2-jest-dirs', doc: D, line: 27, what: 'tests/unit/llm-critic + tests/unit/cli suites and tests, all passing', stated: '31 suites, 615 tests' },
   { id: 'b-v2-jest-ap', doc: D3x(), line: 37, what: 'tests/unit/scripts/mutation/antipatterns.test.ts passing / total', stated: '21/21' },
 ];
 function D3x() { return 'Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md'; }
