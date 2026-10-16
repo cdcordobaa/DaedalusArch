@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "variant": "v24-port-barrel-reexports-default-adapter",
+  "kind": "violation",
+  "plants": "FF-S01",
+  "description": "A new barrel application/ports/out/index.ts re-exports the driven ports and also InMemoryBookingRepository as DefaultBookingRepository; CancelBookingService and the container import through the barrel.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction-graph",
+      "file": "src/application/ports/out/index.ts",
+      "target": "src/adapters/outbound/persistence/InMemoryBookingRepository.ts",
+      "reason": "The application-layer barrel re-exports an outbound adapter: application > adapters-outbound is the reverse of an allowed edge."
+    }
+  ]
+}
