@@ -50,8 +50,11 @@ compared; its report is not written.
 
 `parity.status`:
 - `identical`: every row above equal.
-- `order`: everything equal except `ahs`/`blockingAhs`, which differ by at most 4 ULP (the interpreter doc's trap T2,
-  the class the 65k-statement sweep calls `order`). Reported separately; it is **not** counted as identical.
+- `order`: everything equal except `ahs`/`blockingAhs`, which differ by at most 4 ULP (`ORDER_ULP`, the tee's own
+  bound on two scores). Reported separately; it is **not** counted as identical. *Reworded 2026-10-16 (post-merge
+  review item 7):* this used to be labelled "trap T2, the class the 65k-statement sweep calls `order`". Since #151 the
+  sweep's float class is `float-drift`, 16 ULP on the two named `averageInstability` texts only, and its `order`
+  class means row order (trap T1). The tee's 4-ULP bound is a separate, stricter rule; its value is unchanged.
 - `divergent`: anything else. `parity.diff` holds a compact summary: findings only on Neo4j / only on the interpreter
   (at most 20 each, plus totals), per-rule count differences, and the scalar fields that differ.
 - `check-failed`: the interpreter evaluation returned an error (code and message recorded).
