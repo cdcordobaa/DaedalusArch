@@ -8,22 +8,30 @@ import * as path from 'node:path';
 import { createPipeline } from '../pipeline/pipeline-factory.js';
 import { Neo4jRepository } from '../neo4j-ingestion/neo4j-repository.js';
 import { createSpecLoader } from './tools.js';
+import { GRAPH_ENGINES, parseGraphEngine } from '../cypher-interp/engine.js';
 import type { ServerContext } from './tools.js';
 
 export interface McpArgs {
   readonly spec?: string;
   readonly project?: string;
+  /** `--engine neo4j|cypher-interp` for `evaluate_project`; default neo4j. */
+  readonly engine?: string;
+  /** `--tsconfig <path>`: explicit tsconfig for `evaluate_project` extraction (ADR-032). */
+  readonly tsconfig?: string;
 }
 
-/** `--spec <path>` and `--project <path>` (also `--flag=value`); unknown flags are ignored. Pure. */
+const FLAGS = { '--spec': 'spec', '--project': 'project', '--engine': 'engine', '--tsconfig': 'tsconfig' } as const;
+
+/** `--spec`, `--project`, `--engine` and `--tsconfig` (also `--flag=value`); unknown flags are ignored. Pure. */
 export function parseArgs(argv: readonly string[]): McpArgs {
-  const out: { spec?: string; project?: string } = {};
+  const out: { spec?: string; project?: string; engine?: string; tsconfig?: string } = {};
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i] ?? '';
     const [flag, inline] = arg.split('=', 2);
     const value = inline ?? argv[i + 1];
-    if ((flag === '--spec' || flag === '--project') && value !== undefined && value !== '') {
-      out[flag === '--spec' ? 'spec' : 'project'] = value;
+    const key = flag !== undefined && flag in FLAGS ? FLAGS[flag as keyof typeof FLAGS] : undefined;
+    if (key !== undefined && value !== undefined && value !== '') {
+      out[key] = value;
       if (inline === undefined) i++;
     }
   }
@@ -44,6 +52,10 @@ export function presetsDirFrom(env: NodeJS.ProcessEnv, entry: string | undefined
 }
 
 export function buildContext(args: McpArgs, env: NodeJS.ProcessEnv): ServerContext {
+  const engineName = args.engine ?? env.DAEDALUS_ENGINE ?? 'neo4j';
+  const graphEngine = parseGraphEngine(engineName);
+  if (graphEngine === undefined) throw new Error(`--engine must be one of ${GRAPH_ENGINES.join(' | ')}, got ${engineName}`);
+  const tsconfigPath = args.tsconfig ?? env.DAEDALUS_TSCONFIG;
   return {
     presetsDir: presetsDirFrom(env, process.argv[1], process.cwd()),
     defaultSpecPath: args.spec ?? env.DAEDALUS_SPEC,
@@ -59,6 +71,8 @@ export function buildContext(args: McpArgs, env: NodeJS.ProcessEnv): ServerConte
           apgStorePath: n.apgStorePath,
         }),
       makePipeline: createPipeline,
+      graphEngine,
+      ...(tsconfigPath !== undefined && tsconfigPath !== '' && { tsconfigPath: path.resolve(tsconfigPath) }),
     },
   };
 }

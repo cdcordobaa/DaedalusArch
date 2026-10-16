@@ -1,0 +1,502 @@
+commit 989c248 agentproof
+after task 1
+
+
+diff --git a/src/adapters/inbound/appointments-handler.ts b/src/adapters/inbound/appointments-handler.ts
+new file mode 100644
+index 0000000..783e7af
+--- /dev/null
++++ b/src/adapters/inbound/appointments-handler.ts
+@@ -0,0 +1,60 @@
++import type { BookAppointmentUseCase } from "../../application/book-appointment.js";
++import type { GetAppointmentUseCase } from "../../application/get-appointment.js";
++import type { Appointment } from "../../domain/appointment.js";
++import { DomainError, NotFoundError, SlotUnavailableError } from "../../domain/errors.js";
++import type { HttpHandler, HttpRequest, HttpResponse } from "./http.js";
++
++const APPOINTMENT_PATH = /^\/appointments\/([^/]+)$/;
++
++export function createAppointmentsHandler(
++  bookAppointment: BookAppointmentUseCase,
++  getAppointment: GetAppointmentUseCase,
++): HttpHandler {
++  return async (request: HttpRequest): Promise<HttpResponse> => {
++    try {
++      if (request.method === "POST" && request.path === "/appointments") {
++        const command = parseBookRequest(request.body);
++        if (typeof command === "string") return { status: 400, body: { error: command } };
++        const appointment = await bookAppointment.execute(command);
++        return { status: 201, body: toDto(appointment) };
++      }
++      const match = request.method === "GET" ? APPOINTMENT_PATH.exec(request.path) : null;
++      if (match) {
++        const appointment = await getAppointment.execute(decodeURIComponent(match[1]!));
++        return { status: 200, body: toDto(appointment) };
++      }
++      return { status: 404, body: { error: "Route not found" } };
++    } catch (error) {
++      return toErrorResponse(error);
++    }
++  };
++}
++
++function parseBookRequest(body: unknown): { patientId: string; doctorId: string; start: Date } | string {
++  if (typeof body !== "object" || body === null) return "Body must be a JSON object";
++  const { patientId, doctorId, start } = body as Record<string, unknown>;
++  if (typeof patientId !== "string" || !patientId) return "patientId is required";
++  if (typeof doctorId !== "string" || !doctorId) return "doctorId is required";
++  if (typeof start !== "string") return "start is required (ISO-8601 string)";
++  const startDate = new Date(start);
++  if (Number.isNaN(startDate.getTime())) return "start must be a valid ISO-8601 date";
++  return { patientId, doctorId, start: startDate };
++}
++
++function toDto(appointment: Appointment) {
++  return {
++    id: appointment.id,
++    patientId: appointment.patientId,
++    doctorId: appointment.doctorId,
++    start: appointment.slot.start.toISOString(),
++    end: appointment.slot.end.toISOString(),
++    status: appointment.status,
++  };
++}
++
++function toErrorResponse(error: unknown): HttpResponse {
++  if (error instanceof NotFoundError) return { status: 404, body: { error: error.message } };
++  if (error instanceof SlotUnavailableError) return { status: 409, body: { error: error.message } };
++  if (error instanceof DomainError) return { status: 422, body: { error: error.message } };
++  return { status: 500, body: { error: "Internal server error" } };
++}
+diff --git a/src/adapters/inbound/http.ts b/src/adapters/inbound/http.ts
+new file mode 100644
+index 0000000..db23a71
+--- /dev/null
++++ b/src/adapters/inbound/http.ts
+@@ -0,0 +1,12 @@
++export interface HttpRequest {
++  method: string;
++  path: string;
++  body?: unknown;
++}
++
++export interface HttpResponse {
++  status: number;
++  body: unknown;
++}
++
++export type HttpHandler = (request: HttpRequest) => Promise<HttpResponse>;
+diff --git a/src/adapters/outbound/in-memory-appointment-repository.ts b/src/adapters/outbound/in-memory-appointment-repository.ts
+new file mode 100644
+index 0000000..2b5372f
+--- /dev/null
++++ b/src/adapters/outbound/in-memory-appointment-repository.ts
+@@ -0,0 +1,19 @@
++import type { AppointmentRepository } from "../../application/ports/appointment-repository.js";
++import type { Appointment } from "../../domain/appointment.js";
++import type { TimeSlot } from "../../domain/time-slot.js";
++
++export class InMemoryAppointmentRepository implements AppointmentRepository {
++  private readonly byId = new Map<string, Appointment>();
++
++  async save(appointment: Appointment): Promise<void> {
++    this.byId.set(appointment.id, appointment);
++  }
++
++  async findById(id: string): Promise<Appointment | undefined> {
++    return this.byId.get(id);
++  }
++
++  async findBySlot(slot: TimeSlot): Promise<Appointment[]> {
++    return [...this.byId.values()].filter((a) => a.slot.equals(slot));
++  }
++}
+diff --git a/src/adapters/outbound/in-memory-doctor-repository.ts b/src/adapters/outbound/in-memory-doctor-repository.ts
+new file mode 100644
+index 0000000..1c0941f
+--- /dev/null
++++ b/src/adapters/outbound/in-memory-doctor-repository.ts
+@@ -0,0 +1,14 @@
++import type { DoctorRepository } from "../../application/ports/doctor-repository.js";
++import type { Doctor } from "../../domain/doctor.js";
++
++export class InMemoryDoctorRepository implements DoctorRepository {
++  private readonly byId = new Map<string, Doctor>();
++
++  async save(doctor: Doctor): Promise<void> {
++    this.byId.set(doctor.id, doctor);
++  }
++
++  async findById(id: string): Promise<Doctor | undefined> {
++    return this.byId.get(id);
++  }
++}
+diff --git a/src/adapters/outbound/in-memory-patient-repository.ts b/src/adapters/outbound/in-memory-patient-repository.ts
+new file mode 100644
+index 0000000..fcd7d7d
+--- /dev/null
++++ b/src/adapters/outbound/in-memory-patient-repository.ts
+@@ -0,0 +1,14 @@
++import type { PatientRepository } from "../../application/ports/patient-repository.js";
++import type { Patient } from "../../domain/patient.js";
++
++export class InMemoryPatientRepository implements PatientRepository {
++  private readonly byId = new Map<string, Patient>();
++
++  async save(patient: Patient): Promise<void> {
++    this.byId.set(patient.id, patient);
++  }
++
++  async findById(id: string): Promise<Patient | undefined> {
++    return this.byId.get(id);
++  }
++}
+diff --git a/src/adapters/outbound/system-clock.ts b/src/adapters/outbound/system-clock.ts
+new file mode 100644
+index 0000000..13fb257
+--- /dev/null
++++ b/src/adapters/outbound/system-clock.ts
+@@ -0,0 +1,7 @@
++import type { Clock } from "../../application/ports/clock.js";
++
++export class SystemClock implements Clock {
++  now(): Date {
++    return new Date();
++  }
++}
+diff --git a/src/adapters/outbound/uuid-id-generator.ts b/src/adapters/outbound/uuid-id-generator.ts
+new file mode 100644
+index 0000000..3902421
+--- /dev/null
++++ b/src/adapters/outbound/uuid-id-generator.ts
+@@ -0,0 +1,8 @@
++import { randomUUID } from "node:crypto";
++import type { IdGenerator } from "../../application/ports/id-generator.js";
++
++export class UuidIdGenerator implements IdGenerator {
++  next(): string {
++    return randomUUID();
++  }
++}
+diff --git a/src/application/book-appointment.ts b/src/application/book-appointment.ts
+new file mode 100644
+index 0000000..b4a8297
+--- /dev/null
++++ b/src/application/book-appointment.ts
+@@ -0,0 +1,52 @@
++import { Appointment } from "../domain/appointment.js";
++import { NotFoundError } from "../domain/errors.js";
++import { TimeSlot } from "../domain/time-slot.js";
++import type { AppointmentRepository } from "./ports/appointment-repository.js";
++import type { Clock } from "./ports/clock.js";
++import type { DoctorRepository } from "./ports/doctor-repository.js";
++import type { IdGenerator } from "./ports/id-generator.js";
++import type { PatientRepository } from "./ports/patient-repository.js";
++
++export interface BookAppointmentCommand {
++  patientId: string;
++  doctorId: string;
++  start: Date;
++}
++
++export class BookAppointmentUseCase {
++  constructor(
++    private readonly appointments: AppointmentRepository,
++    private readonly patients: PatientRepository,
++    private readonly doctors: DoctorRepository,
++    private readonly ids: IdGenerator,
++    private readonly clock: Clock,
++  ) {}
++
++  // Bookings run one at a time so the slot-conflict check and the save cannot interleave.
++  private queue: Promise<unknown> = Promise.resolve();
++
++  execute(command: BookAppointmentCommand): Promise<Appointment> {
++    const result = this.queue.then(() => this.book(command));
++    this.queue = result.catch(() => undefined);
++    return result;
++  }
++
++  private async book(command: BookAppointmentCommand): Promise<Appointment> {
++    const slot = TimeSlot.startingAt(command.start);
++    const patient = await this.patients.findById(command.patientId);
++    if (!patient) throw new NotFoundError("Patient", command.patientId);
++    const doctor = await this.doctors.findById(command.doctorId);
++    if (!doctor) throw new NotFoundError("Doctor", command.doctorId);
++
++    const appointment = Appointment.book({
++      id: this.ids.next(),
++      patientId: patient.id,
++      doctorId: doctor.id,
++      slot,
++      now: this.clock.now(),
++      existing: await this.appointments.findBySlot(slot),
++    });
++    await this.appointments.save(appointment);
++    return appointment;
++  }
++}
+diff --git a/src/application/get-appointment.ts b/src/application/get-appointment.ts
+new file mode 100644
+index 0000000..79a88a8
+--- /dev/null
++++ b/src/application/get-appointment.ts
+@@ -0,0 +1,13 @@
++import type { Appointment } from "../domain/appointment.js";
++import { NotFoundError } from "../domain/errors.js";
++import type { AppointmentRepository } from "./ports/appointment-repository.js";
++
++export class GetAppointmentUseCase {
++  constructor(private readonly appointments: AppointmentRepository) {}
++
++  async execute(id: string): Promise<Appointment> {
++    const appointment = await this.appointments.findById(id);
++    if (!appointment) throw new NotFoundError("Appointment", id);
++    return appointment;
++  }
++}
+diff --git a/src/application/ports/appointment-repository.ts b/src/application/ports/appointment-repository.ts
+new file mode 100644
+index 0000000..7d93ee1
+--- /dev/null
++++ b/src/application/ports/appointment-repository.ts
+@@ -0,0 +1,8 @@
++import type { Appointment } from "../../domain/appointment.js";
++import type { TimeSlot } from "../../domain/time-slot.js";
++
++export interface AppointmentRepository {
++  save(appointment: Appointment): Promise<void>;
++  findById(id: string): Promise<Appointment | undefined>;
++  findBySlot(slot: TimeSlot): Promise<Appointment[]>;
++}
+diff --git a/src/application/ports/clock.ts b/src/application/ports/clock.ts
+new file mode 100644
+index 0000000..89d4db7
+--- /dev/null
++++ b/src/application/ports/clock.ts
+@@ -0,0 +1,3 @@
++export interface Clock {
++  now(): Date;
++}
+diff --git a/src/application/ports/doctor-repository.ts b/src/application/ports/doctor-repository.ts
+new file mode 100644
+index 0000000..fa8e7e9
+--- /dev/null
++++ b/src/application/ports/doctor-repository.ts
+@@ -0,0 +1,6 @@
++import type { Doctor } from "../../domain/doctor.js";
++
++export interface DoctorRepository {
++  save(doctor: Doctor): Promise<void>;
++  findById(id: string): Promise<Doctor | undefined>;
++}
+diff --git a/src/application/ports/id-generator.ts b/src/application/ports/id-generator.ts
+new file mode 100644
+index 0000000..aa0d481
+--- /dev/null
++++ b/src/application/ports/id-generator.ts
+@@ -0,0 +1,3 @@
++export interface IdGenerator {
++  next(): string;
++}
+diff --git a/src/application/ports/patient-repository.ts b/src/application/ports/patient-repository.ts
+new file mode 100644
+index 0000000..ee19619
+--- /dev/null
++++ b/src/application/ports/patient-repository.ts
+@@ -0,0 +1,6 @@
++import type { Patient } from "../../domain/patient.js";
++
++export interface PatientRepository {
++  save(patient: Patient): Promise<void>;
++  findById(id: string): Promise<Patient | undefined>;
++}
+diff --git a/src/config/composition-root.ts b/src/config/composition-root.ts
+new file mode 100644
+index 0000000..7212a79
+--- /dev/null
++++ b/src/config/composition-root.ts
+@@ -0,0 +1,40 @@
++import { createAppointmentsHandler } from "../adapters/inbound/appointments-handler.js";
++import type { HttpHandler } from "../adapters/inbound/http.js";
++import { InMemoryAppointmentRepository } from "../adapters/outbound/in-memory-appointment-repository.js";
++import { InMemoryDoctorRepository } from "../adapters/outbound/in-memory-doctor-repository.js";
++import { InMemoryPatientRepository } from "../adapters/outbound/in-memory-patient-repository.js";
++import { SystemClock } from "../adapters/outbound/system-clock.js";
++import { UuidIdGenerator } from "../adapters/outbound/uuid-id-generator.js";
++import { BookAppointmentUseCase } from "../application/book-appointment.js";
++import { GetAppointmentUseCase } from "../application/get-appointment.js";
++import type { Clock } from "../application/ports/clock.js";
++import type { DoctorRepository } from "../application/ports/doctor-repository.js";
++import type { PatientRepository } from "../application/ports/patient-repository.js";
++
++export interface App {
++  handle: HttpHandler;
++  patients: PatientRepository;
++  doctors: DoctorRepository;
++}
++
++export function createApp(options: { clock?: Clock } = {}): App {
++  const appointments = new InMemoryAppointmentRepository();
++  const patients = new InMemoryPatientRepository();
++  const doctors = new InMemoryDoctorRepository();
++  const clock = options.clock ?? new SystemClock();
++
++  const bookAppointment = new BookAppointmentUseCase(
++    appointments,
++    patients,
++    doctors,
++    new UuidIdGenerator(),
++    clock,
++  );
++  const getAppointment = new GetAppointmentUseCase(appointments);
++
++  return {
++    handle: createAppointmentsHandler(bookAppointment, getAppointment),
++    patients,
++    doctors,
++  };
++}
+diff --git a/src/domain/appointment.ts b/src/domain/appointment.ts
+new file mode 100644
+index 0000000..e1a7f26
+--- /dev/null
++++ b/src/domain/appointment.ts
+@@ -0,0 +1,43 @@
++import { DomainError, SlotUnavailableError } from "./errors.js";
++import { TimeSlot } from "./time-slot.js";
++
++export type AppointmentStatus = "booked";
++
++export class Appointment {
++  private constructor(
++    readonly id: string,
++    readonly patientId: string,
++    readonly doctorId: string,
++    readonly slot: TimeSlot,
++    readonly status: AppointmentStatus,
++  ) {}
++
++  /**
++   * Books a slot. `existing` are the doctor's and patient's current appointments;
++   * neither may already hold the same slot.
++   */
++  static book(params: {
++    id: string;
++    patientId: string;
++    doctorId: string;
++    slot: TimeSlot;
++    now: Date;
++    existing: readonly Appointment[];
++  }): Appointment {
++    const { id, patientId, doctorId, slot, now, existing } = params;
++    if (!id) throw new DomainError("Appointment id is required");
++    if (slot.start.getTime() <= now.getTime()) {
++      throw new DomainError("Cannot book a slot in the past");
++    }
++    for (const other of existing) {
++      if (!other.slot.equals(slot)) continue;
++      if (other.doctorId === doctorId) {
++        throw new SlotUnavailableError("Doctor is already booked for this slot");
++      }
++      if (other.patientId === patientId) {
++        throw new SlotUnavailableError("Patient already has an appointment in this slot");
++      }
++    }
++    return new Appointment(id, patientId, doctorId, slot, "booked");
++  }
++}
+diff --git a/src/domain/doctor.ts b/src/domain/doctor.ts
+new file mode 100644
+index 0000000..c1ac97d
+--- /dev/null
++++ b/src/domain/doctor.ts
+@@ -0,0 +1,12 @@
++import { DomainError } from "./errors.js";
++
++export class Doctor {
++  constructor(
++    readonly id: string,
++    readonly name: string,
++    readonly specialty: string,
++  ) {
++    if (!id) throw new DomainError("Doctor id is required");
++    if (!name.trim()) throw new DomainError("Doctor name is required");
++  }
++}
+diff --git a/src/domain/errors.ts b/src/domain/errors.ts
+new file mode 100644
+index 0000000..c019357
+--- /dev/null
++++ b/src/domain/errors.ts
+@@ -0,0 +1,20 @@
++export class DomainError extends Error {
++  constructor(message: string) {
++    super(message);
++    this.name = "DomainError";
++  }
++}
++
++export class NotFoundError extends DomainError {
++  constructor(entity: string, id: string) {
++    super(`${entity} ${id} not found`);
++    this.name = "NotFoundError";
++  }
++}
++
++export class SlotUnavailableError extends DomainError {
++  constructor(message: string) {
++    super(message);
++    this.name = "SlotUnavailableError";
++  }
++}
+diff --git a/src/domain/patient.ts b/src/domain/patient.ts
+new file mode 100644
+index 0000000..bc0b9ff
+--- /dev/null
++++ b/src/domain/patient.ts
+@@ -0,0 +1,11 @@
++import { DomainError } from "./errors.js";
++
++export class Patient {
++  constructor(
++    readonly id: string,
++    readonly name: string,
++  ) {
++    if (!id) throw new DomainError("Patient id is required");
++    if (!name.trim()) throw new DomainError("Patient name is required");
++  }
++}
+diff --git a/src/domain/time-slot.ts b/src/domain/time-slot.ts
+new file mode 100644
+index 0000000..21130f3
+--- /dev/null
++++ b/src/domain/time-slot.ts
+@@ -0,0 +1,27 @@
++import { DomainError } from "./errors.js";
++
++export const SLOT_MINUTES = 30;
++const SLOT_MS = SLOT_MINUTES * 60 * 1000;
++
++/** A 30-minute slot, aligned to :00 or :30 (UTC). Immutable value object. */
++export class TimeSlot {
++  private constructor(readonly start: Date) {}
++
++  static startingAt(start: Date): TimeSlot {
++    if (Number.isNaN(start.getTime())) {
++      throw new DomainError("Slot start is not a valid date");
++    }
++    if (start.getTime() % SLOT_MS !== 0) {
++      throw new DomainError(`Slot start must be aligned to a ${SLOT_MINUTES}-minute boundary`);
++    }
++    return new TimeSlot(new Date(start.getTime()));
++  }
++
++  get end(): Date {
++    return new Date(this.start.getTime() + SLOT_MS);
++  }
++
++  equals(other: TimeSlot): boolean {
++    return this.start.getTime() === other.start.getTime();
++  }
++}

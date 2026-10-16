@@ -17,6 +17,7 @@ import type { PipelineConfig } from '../pipeline/types.js';
 import type { PipelineBundle } from '../pipeline/pipeline-factory.js';
 import { MissingEnvError, requireEnv } from '../cli/require-env.js';
 import type { EvaluateProjectResult, Neo4jEnv, RuleViolationGroup } from './types.js';
+import type { GraphEngine } from '../cypher-interp/engine.js';
 
 /** Violations listed per rule; `count` always holds the full number. */
 export const MAX_LISTED_PER_RULE = 25;
@@ -28,6 +29,10 @@ export interface EvaluateDeps {
   readonly makeGraph: (env: Neo4jEnv) => GraphRepository;
   readonly makePipeline: (config: PipelineConfig) => Pick<PipelineBundle, 'executor' | 'cleanup'>;
   readonly connectTimeoutMs?: number;
+  /** `cypher-interp` runs the pipeline in process (no Neo4j, no credentials); default `neo4j`. */
+  readonly graphEngine?: GraphEngine;
+  /** ADR-032: explicit tsconfig for extraction; absent = `<project>/tsconfig.json`. */
+  readonly tsconfigPath?: string;
 }
 
 export interface EvaluateInput {
@@ -104,9 +109,12 @@ export async function evaluateProject(
     return failure('SPEC_NOT_FOUND', `Spec file not found: ${input.specPath}`);
   }
 
+  const inProcess = deps.graphEngine === 'cypher-interp';
   let neo4j: Neo4jEnv;
   try {
-    neo4j = neo4jEnvFrom(env);
+    neo4j = inProcess
+      ? { uri: '', user: '', password: '', apgStorePath: env.APG_STORE_PATH ?? '.apg-store' }
+      : neo4jEnvFrom(env);
   } catch (err) {
     if (err instanceof MissingEnvError) {
       return failure(
@@ -122,12 +130,14 @@ export async function evaluateProject(
     neo4jPassword: neo4j.password,
   });
 
-  const graph = deps.makeGraph(neo4j);
-  let up: boolean;
-  try {
-    up = await reachable(graph, deps.connectTimeoutMs ?? DEFAULT_CONNECT_TIMEOUT_MS);
-  } finally {
-    await graph.close().catch(() => undefined);
+  let up = true;
+  if (!inProcess) {
+    const graph = deps.makeGraph(neo4j);
+    try {
+      up = await reachable(graph, deps.connectTimeoutMs ?? DEFAULT_CONNECT_TIMEOUT_MS);
+    } finally {
+      await graph.close().catch(() => undefined);
+    }
   }
   if (!up) {
     return failure(
@@ -152,6 +162,8 @@ export async function evaluateProject(
     verbose: false,
     apgStorePath: neo4j.apgStorePath,
     scoringMode,
+    ...(inProcess && { graphEngine: 'cypher-interp' as const }),
+    ...(deps.tsconfigPath !== undefined && { tsconfigPath: deps.tsconfigPath }),
   };
   const { executor, cleanup } = deps.makePipeline(config);
   try {
