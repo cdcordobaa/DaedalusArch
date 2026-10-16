@@ -65,6 +65,45 @@ function runClause(clause: Clause, rows: Iterable<Row>, ctx: Ctx): Iterable<Row>
       return where === undefined ? projected : filter(projected, where, ctx);
     }
     case 'return': return project(clause.projection, rows, ctx);
+    case 'call': return callSubquery(clause, rows, ctx);
+  }
+}
+
+/**
+ * `CALL { ... }` (unit subquery, returning). Per incoming row: each part runs on that row when it starts with `WITH`
+ * (the importing WITH; its projection decides what is visible) and on an empty row otherwise; parts' rows are
+ * concatenated in part order, `UNION` drops repeated rows (equivalence, first seen kept), `UNION ALL` keeps them. The
+ * returned columns join the outer row; a column that rebinds an outer variable is an error, as in Neo4j.
+ */
+function* callSubquery(clause: Extract<Clause, { k: 'call' }>, rows: Iterable<Row>, ctx: Ctx): Generator<Row> {
+  const columnSets = clause.parts.map((p) => {
+    const last = p.clauses[p.clauses.length - 1];
+    return last?.k === 'return' && !last.projection.star ? returnColumns(last.projection) : undefined;
+  });
+  const first = columnSets[0];
+  if (columnSets.some((c) => c === undefined || first === undefined || c.length !== first.length || c.some((x, i) => x !== first[i]))) {
+    if (columnSets.some((c) => c === undefined)) throw new CypherUnsupportedError('RETURN * in CALL { }');
+    throw new CypherSyntaxError('All sub queries in an UNION must have the same return column names');
+  }
+  const columns = first ?? [];
+  for (const outer of rows) {
+    for (const c of columns) {
+      if (outer.has(c)) throw new CypherSyntaxError(`Variable \`${c}\` already declared in outer scope`);
+    }
+    const seen = new Set<string>();
+    for (const part of clause.parts) {
+      const input: Row = part.clauses[0]?.k === 'with' ? outer : new Map();
+      for (const r of runClauses(part.clauses, [input], ctx)) {
+        if (!clause.unionAll && clause.parts.length > 1) {
+          const key = columns.map((c) => equivalenceKey(r.get(c) ?? null)).join('\u0000');
+          if (seen.has(key)) continue;
+          seen.add(key);
+        }
+        const out = new Map(outer);
+        for (const c of columns) out.set(c, r.get(c) ?? null);
+        yield out;
+      }
+    }
   }
 }
 

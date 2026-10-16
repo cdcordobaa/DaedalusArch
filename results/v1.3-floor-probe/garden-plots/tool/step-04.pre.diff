@@ -1,0 +1,177 @@
+diff --git a/src/adapters/inbound/http.ts b/src/adapters/inbound/http.ts
+index 2710456..8e02a12 100644
+--- a/src/adapters/inbound/http.ts
++++ b/src/adapters/inbound/http.ts
+@@ -2,8 +2,14 @@ import express, { NextFunction, Request, Response } from 'express';
+ import { GardenService } from '../../application/garden-service';
+ import { WaterService } from '../../application/water-service';
+ import { WorkDayService } from '../../application/work-day-service';
++import { DashboardService } from '../../application/dashboard-service';
+ 
+-export function createApp(garden: GardenService, water: WaterService, workDays: WorkDayService): express.Express {
++export function createApp(
++  garden: GardenService,
++  water: WaterService,
++  workDays: WorkDayService,
++  dashboard: DashboardService,
++): express.Express {
+   const app = express();
+   app.use(express.json());
+ 
+@@ -57,6 +63,9 @@ export function createApp(garden: GardenService, water: WaterService, workDays:
+   app.post('/work-days/:id/present', (req, res) => {
+     res.json(workDays.markPresent(req.params.id, req.body.gardenerId));
+   });
++  app.get('/dashboard', (_req, res) => {
++    res.json(dashboard.build());
++  });
+ 
+   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+     res.status(400).json({ error: err.message });
+diff --git a/src/adapters/outbound/in-memory.ts b/src/adapters/outbound/in-memory.ts
+index 0b5daf2..dd6cc35 100644
+--- a/src/adapters/outbound/in-memory.ts
++++ b/src/adapters/outbound/in-memory.ts
+@@ -87,6 +87,9 @@ export class InMemoryReadingRepository implements ReadingRepository {
+   forPlot(plotNumber: number): MeterReading[] {
+     return this.readings.filter((r) => r.plotNumber === plotNumber);
+   }
++  between(from: string, to: string): MeterReading[] {
++    return this.readings.filter((r) => r.time >= from && r.time < to);
++  }
+ }
+ 
+ export class InMemoryWorkDayRepository implements WorkDayRepository {
+diff --git a/src/application/dashboard-service.ts b/src/application/dashboard-service.ts
+new file mode 100644
+index 0000000..7e4c1de
+--- /dev/null
++++ b/src/application/dashboard-service.ts
+@@ -0,0 +1,71 @@
++import {
++  AllocationRepository,
++  Clock,
++  GardenerRepository,
++  PlotRepository,
++  ReadingRepository,
++  WaitingList,
++  WorkDayRepository,
++} from './ports';
++
++export interface DashboardRow {
++  plotNumber: number;
++  gardener: string | null;
++  feePaid: boolean | null;
++  waterThisMonthLitres: number;
++  workDaysThisYear: number;
++}
++
++export interface Dashboard {
++  generatedAt: string;
++  plots: DashboardRow[];
++  waitingListLength: number;
++}
++
++/** Builds the committee dashboard in one pass over each store. */
++export class DashboardService {
++  constructor(
++    private readonly plots: PlotRepository,
++    private readonly allocations: AllocationRepository,
++    private readonly gardeners: GardenerRepository,
++    private readonly readings: ReadingRepository,
++    private readonly workDays: WorkDayRepository,
++    private readonly waitingList: WaitingList,
++    private readonly clock: Clock,
++  ) {}
++
++  build(): Dashboard {
++    const now = this.clock.now();
++    const year = now.getUTCFullYear();
++    const monthStart = new Date(Date.UTC(year, now.getUTCMonth(), 1)).toISOString();
++    const nextMonth = new Date(Date.UTC(year, now.getUTCMonth() + 1, 1)).toISOString();
++
++    const allocationByPlot = new Map(this.allocations.active().map((a) => [a.plotNumber, a]));
++    const gardenerById = new Map(this.gardeners.all().map((g) => [g.id, g]));
++
++    const waterByPlot = new Map<number, number>();
++    for (const r of this.readings.between(monthStart, nextMonth)) {
++      waterByPlot.set(r.plotNumber, (waterByPlot.get(r.plotNumber) ?? 0) + r.litres);
++    }
++
++    const attendance = new Map<string, number>();
++    for (const d of this.workDays.all()) {
++      if (!d.date.startsWith(String(year))) continue;
++      for (const id of d.present) attendance.set(id, (attendance.get(id) ?? 0) + 1);
++    }
++
++    const rows: DashboardRow[] = this.plots.all().map((p) => {
++      const a = allocationByPlot.get(p.number);
++      const g = a ? gardenerById.get(a.gardenerId) : undefined;
++      return {
++        plotNumber: p.number,
++        gardener: g?.name ?? null,
++        feePaid: a ? a.status === 'paid' : null,
++        waterThisMonthLitres: waterByPlot.get(p.number) ?? 0,
++        workDaysThisYear: g ? attendance.get(g.id) ?? 0 : 0,
++      };
++    });
++
++    return { generatedAt: now.toISOString(), plots: rows, waitingListLength: this.waitingList.all().length };
++  }
++}
+diff --git a/src/application/ports.ts b/src/application/ports.ts
+index a8398aa..c5103d9 100644
+--- a/src/application/ports.ts
++++ b/src/application/ports.ts
+@@ -44,6 +44,7 @@ export interface MeterRepository {
+ export interface ReadingRepository {
+   add(r: MeterReading): void;
+   forPlot(plotNumber: number): MeterReading[];
++  between(from: string, to: string): MeterReading[];
+ }
+ 
+ export interface Mailer {
+diff --git a/src/config/main.ts b/src/config/main.ts
+index daf2c9b..36c3198 100644
+--- a/src/config/main.ts
++++ b/src/config/main.ts
+@@ -13,6 +13,7 @@ import { SystemClock } from '../adapters/outbound/system-clock';
+ import { FakeMailer } from '../adapters/outbound/fake-mailer';
+ import { WaterService } from '../application/water-service';
+ import { WorkDayService } from '../application/work-day-service';
++import { DashboardService } from '../application/dashboard-service';
+ import { createApp } from '../adapters/inbound/http';
+ 
+ const gardeners = new InMemoryGardenerRepository();
+@@ -20,18 +21,22 @@ const allocations = new InMemoryAllocationRepository();
+ export const mailer = new FakeMailer();
+ const workDayRepo = new InMemoryWorkDayRepository();
+ const clock = new SystemClock();
++const plots = new InMemoryPlotRepository();
++const waitingList = new InMemoryWaitingList();
++const readings = new InMemoryReadingRepository();
+ const garden = new GardenService(
+-  new InMemoryPlotRepository(),
++  plots,
+   gardeners,
+   allocations,
+-  new InMemoryWaitingList(),
++  waitingList,
+   new PayBeeClient(process.env.PAYBEE_URL ?? 'https://api.paybee.example', process.env.PAYBEE_KEY ?? '', process.env.PAYBEE_WEBHOOK ?? ''),
+   clock,
+   workDayRepo,
+   mailer,
+ );
+ const workDays = new WorkDayService(workDayRepo, gardeners, mailer, clock);
+-const water = new WaterService(new InMemoryMeterRepository(), new InMemoryReadingRepository(), allocations, gardeners, mailer);
++const dashboard = new DashboardService(plots, allocations, gardeners, readings, workDayRepo, waitingList, clock);
++const water = new WaterService(new InMemoryMeterRepository(), readings, allocations, gardeners, mailer);
+ 
+ // check for overdue payments every hour
+ setInterval(() => {
+@@ -41,4 +46,4 @@ setInterval(() => {
+ // work-day reminders once a day
+ setInterval(() => workDays.sendReminders(), 24 * 60 * 60 * 1000);
+ 
+-createApp(garden, water, workDays).listen(Number(process.env.PORT ?? 3000), () => console.log('garden service up'));
++createApp(garden, water, workDays, dashboard).listen(Number(process.env.PORT ?? 3000), () => console.log('garden service up'));

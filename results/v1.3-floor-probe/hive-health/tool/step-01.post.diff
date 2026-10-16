@@ -1,0 +1,135 @@
+diff --git a/src/business/container.ts b/src/business/container.ts
+new file mode 100644
+index 0000000..6d8c648
+--- /dev/null
++++ b/src/business/container.ts
+@@ -0,0 +1,10 @@
++import { InMemoryDb } from '../persistence/db';
++import { HiveRepository, InspectionRepository } from '../persistence/hive-repository';
++import { ApiaryService } from './apiary-service';
++
++/** Builds the business services with their persistence. */
++export function createServices() {
++  const db = new InMemoryDb();
++  const apiaries = new ApiaryService(new HiveRepository(db), new InspectionRepository(db));
++  return { apiaries };
++}
+diff --git a/src/business/model.ts b/src/business/model.ts
+index f32622b..6d37d34 100644
+--- a/src/business/model.ts
++++ b/src/business/model.ts
+@@ -1,33 +1,6 @@
+-export interface Member {
+-  id: string;
+-  name: string;
+-  phone?: string;
+-}
+-
+-export interface Apiary {
+-  id: string;
+-  name: string;
+-  region: string;
+-  ownerId: string;
+-}
++import { Member, Apiary, Hive, Inspection } from '../persistence/model';
+ 
+-export interface Hive {
+-  id: string;
+-  apiaryId: string;
+-  ownerId: string;
+-  label: string;
+-}
+-
+-export interface Inspection {
+-  id: string;
+-  hiveId: string;
+-  date: string;
+-  queenSeen: boolean;
+-  broodFrames: number;
+-  temperament: number;
+-  varroaPer100: number;
+-  recordedBy: string;
+-}
++export * from '../persistence/model';
+ 
+ export const VARROA_THRESHOLD = 3;
+ 
+diff --git a/src/persistence/db.ts b/src/persistence/db.ts
+index b48b4a5..f293543 100644
+--- a/src/persistence/db.ts
++++ b/src/persistence/db.ts
+@@ -1,4 +1,4 @@
+-import { Apiary, Hive, Inspection, Member } from '../business/model';
++import { Apiary, Hive, Inspection, Member } from './model';
+ 
+ /** The in-memory database. */
+ export class InMemoryDb {
+diff --git a/src/persistence/hive-repository.ts b/src/persistence/hive-repository.ts
+index 30427d6..bba6a1b 100644
+--- a/src/persistence/hive-repository.ts
++++ b/src/persistence/hive-repository.ts
+@@ -1,4 +1,4 @@
+-import { Apiary, Hive, Inspection, Member } from '../business/model';
++import { Apiary, Hive, Inspection, Member } from './model';
+ import { InMemoryDb } from './db';
+ 
+ export class HiveRepository {
+diff --git a/src/persistence/model.ts b/src/persistence/model.ts
+new file mode 100644
+index 0000000..21d90d0
+--- /dev/null
++++ b/src/persistence/model.ts
+@@ -0,0 +1,31 @@
++/** Records stored by the persistence layer. The business layer re-exports them. */
++export interface Member {
++  id: string;
++  name: string;
++  phone?: string;
++}
++
++export interface Apiary {
++  id: string;
++  name: string;
++  region: string;
++  ownerId: string;
++}
++
++export interface Hive {
++  id: string;
++  apiaryId: string;
++  ownerId: string;
++  label: string;
++}
++
++export interface Inspection {
++  id: string;
++  hiveId: string;
++  date: string;
++  queenSeen: boolean;
++  broodFrames: number;
++  temperament: number;
++  varroaPer100: number;
++  recordedBy: string;
++}
+diff --git a/src/presentation/app.ts b/src/presentation/app.ts
+index 43a8231..5db6aca 100644
+--- a/src/presentation/app.ts
++++ b/src/presentation/app.ts
+@@ -1,14 +1,11 @@
+ import express from 'express';
+-import { InMemoryDb } from '../persistence/db';
+-import { HiveRepository, InspectionRepository } from '../persistence/hive-repository';
+-import { ApiaryService } from '../business/apiary-service';
+ import { apiRouter, errorHandler } from './api';
++import { createServices } from '../business/container';
+ 
+-const db = new InMemoryDb();
+-const apiaries = new ApiaryService(new HiveRepository(db), new InspectionRepository(db));
++const services = createServices();
+ 
+ const app = express();
+ app.use(express.json());
+-app.use(apiRouter(apiaries));
++app.use(apiRouter(services.apiaries));
+ app.use(errorHandler);
+ app.listen(Number(process.env.PORT ?? 3000), () => console.log('beekeepers service listening'));
