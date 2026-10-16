@@ -14,6 +14,5 @@ Four small services, each in two versions that differ in one use case only:
 
 In `planted/` that use case takes the concrete adapter class (one blocking FF-S01 finding); in `control/` it takes the
 port interface (0 blocking findings). Seed check records: `results/v1.3-precedent-probe/seeds/`. The trees type-check
-with `typescript 5.9.3`, `express 5.2.1`, `@types/express 5.0.3`, `@types/node 22.15.30` and the harness compiler
-options (`results/v1.3-precedent-probe/scripts/mktsconfig.sh`). They have no `package.json` on purpose: they are not
+with the E1 skeleton pins (`scripts/generator/skeleton/package.json`) and the harness compiler options (`results/v1.3-precedent-probe/scripts/mktsconfig.sh`). They have no `package.json` on purpose: they are not
 part of the repository build.

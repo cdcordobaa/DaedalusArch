@@ -1,0 +1,110 @@
+diff --git a/src/application/reschedule-rehearsal.ts b/src/application/reschedule-rehearsal.ts
+new file mode 100644
+index 0000000..b015d86
+--- /dev/null
++++ b/src/application/reschedule-rehearsal.ts
+@@ -0,0 +1,26 @@
++import { involves, reschedule, type Rehearsal } from '../domain/rehearsal';
++import type { RehearsalRepository } from '../domain/rehearsal-repository';
++import type { SingerRepository } from '../domain/singer-repository';
++import type { SmsSender } from './ports/sms-sender';
++
++export class RescheduleRehearsal {
++  constructor(
++    private readonly rehearsals: RehearsalRepository,
++    private readonly singers: SingerRepository,
++    private readonly sms: SmsSender,
++  ) {}
++
++  async execute(rehearsalId: string, leaderId: string, newStart: Date, now = new Date()): Promise<Rehearsal> {
++    const leader = await this.singers.findById(leaderId);
++    if (leader === undefined || leader.isSectionLeader !== true) throw new Error('only a section leader can move a rehearsal');
++    const rehearsal = await this.rehearsals.findById(rehearsalId);
++    if (rehearsal === undefined) throw new Error(`unknown rehearsal ${rehearsalId}`);
++    if (!involves(rehearsal, leader.section)) throw new Error(`this rehearsal is not for the ${leader.section} section`);
++    reschedule(rehearsal, newStart, now);
++    await this.rehearsals.save(rehearsal);
++    for (const singer of await this.singers.findBySection(leader.section)) {
++      await this.sms.send(singer.phone, `Your ${leader.section} rehearsal has moved to ${newStart.toDateString()} (${rehearsal.venue}).`);
++    }
++    return rehearsal;
++  }
++}
+diff --git a/src/domain/rehearsal.ts b/src/domain/rehearsal.ts
+index 9dc06f3..7060e0d 100644
+--- a/src/domain/rehearsal.ts
++++ b/src/domain/rehearsal.ts
+@@ -12,3 +12,9 @@ export interface Rehearsal {
+ export function involves(rehearsal: Rehearsal, section: Section): boolean {
+   return rehearsal.sections.includes(section);
+ }
++
++export function reschedule(rehearsal: Rehearsal, newStart: Date, now: Date): void {
++  if (rehearsal.cancelled) throw new Error('a cancelled rehearsal cannot be moved');
++  if (newStart.getTime() <= now.getTime()) throw new Error('a rehearsal can only be moved to a future date');
++  rehearsal.startsAt = newStart;
++}
+diff --git a/src/domain/singer.ts b/src/domain/singer.ts
+index 8052bc7..80230b4 100644
+--- a/src/domain/singer.ts
++++ b/src/domain/singer.ts
+@@ -5,4 +5,5 @@ export interface Singer {
+   readonly name: string;
+   readonly section: Section;
+   readonly phone: string;
++  readonly isSectionLeader?: boolean;
+ }
+diff --git a/src/infrastructure/http/routes.ts b/src/infrastructure/http/routes.ts
+index 2e47727..1a5a80d 100644
+--- a/src/infrastructure/http/routes.ts
++++ b/src/infrastructure/http/routes.ts
+@@ -1,6 +1,7 @@
+ import { Router, type Request, type Response } from 'express';
+ import type { CancelRehearsal } from '../../application/cancel-rehearsal';
+ import type { RecordAttendance } from '../../application/record-attendance';
++import type { RescheduleRehearsal } from '../../application/reschedule-rehearsal';
+ import type { ScheduleRehearsal } from '../../application/schedule-rehearsal';
+ import type { Section } from '../../domain/singer';
+ 
+@@ -8,6 +9,7 @@ export interface ChoirUseCases {
+   readonly scheduleRehearsal: ScheduleRehearsal;
+   readonly recordAttendance: RecordAttendance;
+   readonly cancelRehearsal: CancelRehearsal;
++  readonly rescheduleRehearsal: RescheduleRehearsal;
+ }
+ 
+ function fail(res: Response, e: unknown): void {
+@@ -40,5 +42,13 @@ export function choirRoutes(uc: ChoirUseCases): Router {
+       fail(res, e);
+     }
+   });
++  r.post('/rehearsals/:id/reschedule', async (req: Request, res: Response) => {
++    try {
++      const b = req.body as { leaderId: string; startsAt: string };
++      res.json(await uc.rescheduleRehearsal.execute(String(req.params.id), b.leaderId, new Date(b.startsAt)));
++    } catch (e) {
++      fail(res, e);
++    }
++  });
+   return r;
+ }
+diff --git a/src/infrastructure/main.ts b/src/infrastructure/main.ts
+index 07796b9..35a8e51 100644
+--- a/src/infrastructure/main.ts
++++ b/src/infrastructure/main.ts
+@@ -1,6 +1,7 @@
+ import express from 'express';
+ import { CancelRehearsal } from '../application/cancel-rehearsal';
+ import { RecordAttendance } from '../application/record-attendance';
++import { RescheduleRehearsal } from '../application/reschedule-rehearsal';
+ import { ScheduleRehearsal } from '../application/schedule-rehearsal';
+ import { choirRoutes } from './http/routes';
+ import { InMemoryRehearsalRepository } from './persistence/in-memory-rehearsal-repository';
+@@ -18,6 +19,7 @@ export function buildApp(): express.Express {
+       scheduleRehearsal: new ScheduleRehearsal(rehearsals),
+       recordAttendance: new RecordAttendance(rehearsals),
+       cancelRehearsal: new CancelRehearsal(rehearsals, singers, sms),
++      rescheduleRehearsal: new RescheduleRehearsal(rehearsals, singers, sms),
+     }),
+   );
+   return app;
