@@ -34,7 +34,9 @@ interface Walk { id: string; url: string; firstParentCommitsTouchingRoot: number
 const pct = (x: number): string => (Number.isFinite(x) ? `${(100 * x).toFixed(x < 0.001 && x > 0 ? 3 : 2)}%` : 'n/a');
 const ci = (w: Interval): string => (Number.isFinite(w.p) ? `${pct(w.p)} [${pct(w.lo)}, ${pct(w.hi)}]` : 'n/a');
 const num = (x: number, d = 2): string => (Number.isFinite(x) ? x.toFixed(d) : 'n/a');
-const rr = (w: Interval): string => (Number.isFinite(w.p) ? `${num(w.p)} [${num(w.lo)}, ${num(w.hi)}]` : 'n/a');
+/** A rate ratio; with a zero numerator the continuity-corrected point is not shown (0, with the corrected upper bound). */
+const rrK = (w: Interval, k: number): string => (!Number.isFinite(w.p) ? 'n/a' : k === 0 ? `0 [0, ${num(w.hi)}]` : `${num(w.p)} [${num(w.lo)}, ${num(w.hi)}]`);
+const rr = (w: Interval): string => rrK(w, 1);
 const days = (a: string, b: string): number => (Date.parse(b) - Date.parse(a)) / 86_400_000;
 const cell = (s: string): string => s.replace(/\|/g, '/').replace(/\n/g, ' ');
 const subject = (m: string): string => cell((m.split('\n')[0] ?? '').slice(0, 100));
@@ -254,12 +256,12 @@ function main(): void {
     '|---|---:|---:|---|---|---|---|---|---|---:|---|---|---|---|'];
   const rateRow = (s: Record<string, unknown>): string => {
     const x = s as { label: string; exposed: number; credited: number; rate: Interval; vsCross: Interval; bootCross: { lo: number; hi: number }; vsPkg: Interval; bootPkg: { lo: number; hi: number }; cohenHCross: number; cohenHPkg: number; fixCommits: number; withoutTop: Interval; perCommit: Interval; sign: { pos: number; n: number; p: number }; arch: { k: number; n: number }; archRate: Interval };
-    return `| ${x.label} | ${String(x.exposed)} | ${String(x.credited)} | ${ci(x.rate)} | ${rr(x.vsCross)} | [${num(x.bootCross.lo)}, ${num(x.bootCross.hi)}] | ${rr(x.vsPkg)} | [${num(x.bootPkg.lo)}, ${num(x.bootPkg.hi)}] | ${num(x.cohenHCross, 3)} / ${num(x.cohenHPkg, 3)} | ${String(x.fixCommits)} | ${rr(x.withoutTop)} | ${rr(x.perCommit)} | ${String(x.sign.pos)}/${String(x.sign.n)} (p=${num(x.sign.p, 3)}) | ${String(x.arch.k)}/${String(x.arch.n)} (${ci(x.archRate)}) |`;
+    return `| ${x.label} | ${String(x.exposed)} | ${String(x.credited)} | ${ci(x.rate)} | ${rrK(x.vsCross, x.credited)} | [${num(x.bootCross.lo)}, ${num(x.bootCross.hi)}] | ${rrK(x.vsPkg, x.credited)} | [${num(x.bootPkg.lo)}, ${num(x.bootPkg.hi)}] | ${num(x.cohenHCross, 3)} / ${num(x.cohenHPkg, 3)} | ${String(x.fixCommits)} | ${rr(x.withoutTop)} | ${rr(x.perCommit)} | ${String(x.sign.pos)}/${String(x.sign.n)} (p=${num(x.sign.p, 3)}) | ${String(x.arch.k)}/${String(x.arch.n)} (${ci(x.archRate)}) |`;
   };
   const touchedHeader = ['| group | exposures in touched pairs | credited | rate [Wilson 95%] | vs (a) cross-layer touched: RR [95%] | vs (b) pkg touched: RR [95%] |', '|---|---:|---:|---|---|---|'];
   const touchedRow = (s: Record<string, unknown>): string => {
     const x = s as { label: string; touched: number; creditedTouched: number; rateTouched: Interval; touchedVsCross: Interval; touchedVsPkg: Interval };
-    return `| ${x.label} | ${String(x.touched)} | ${String(x.creditedTouched)} | ${ci(x.rateTouched)} | ${rr(x.touchedVsCross)} | ${rr(x.touchedVsPkg)} |`;
+    return `| ${x.label} | ${String(x.touched)} | ${String(x.creditedTouched)} | ${ci(x.rateTouched)} | ${rrK(x.touchedVsCross, x.creditedTouched)} | ${rrK(x.touchedVsPkg, x.creditedTouched)} |`;
   };
 
   // ── Groups ──
@@ -294,7 +296,7 @@ function main(): void {
     const w0 = wilson(seen.credited, seen.exposed);
     const ratio = rateRatio(inv.credited, inv.exposed, seen.credited, seen.exposed);
     visSummary.push({ rule: r, invisible: { exposed: inv.exposed, credited: inv.credited, rate: w1 }, seen: { exposed: seen.exposed, credited: seen.credited, rate: w0 }, ratio });
-    visRows.push(`| ${r} | ${String(inv.exposed)} | ${String(inv.credited)} | ${ci(w1)} | ${String(seen.exposed)} | ${String(seen.credited)} | ${ci(w0)} | ${rr(ratio)} |`);
+    visRows.push(`| ${r} | ${String(inv.exposed)} | ${String(inv.credited)} | ${ci(w1)} | ${String(seen.exposed)} | ${String(seen.credited)} | ${ci(w0)} | ${rrK(ratio, inv.credited)} |`);
   }
   summary.invisibleVsSeen = visSummary;
   lines.push('## Within a rule: import-graph-invisible vs visible items', '', '| rule | invisible exposures | credited | rate | visible exposures | credited | rate | RR invisible / visible |', '|---|---:|---:|---|---:|---:|---|---|', ...visRows, '');
