@@ -30,6 +30,21 @@ export class CypherUnsupportedError extends Error {
   }
 }
 
+/** Grammar clause rules → the Cypher a reader recognises, for `CypherUnsupportedError` messages. */
+const CLAUSE_NAMES: Readonly<Record<string, string>> = {
+  createClause: 'CREATE (write clause)', mergeClause: 'MERGE (write clause)', setClause: 'SET (write clause)', deleteClause: 'DELETE / DETACH DELETE (write clause)',
+  removeClause: 'REMOVE (write clause)', foreachClause: 'FOREACH (write clause)', loadCSVClause: 'LOAD CSV', callClause: 'CALL procedure',
+  subqueryClause: 'CALL { } subquery', insertClause: 'INSERT (write clause)', finishClause: 'FINISH', useClause: 'USE', orderBySkipLimitClause: 'standalone ORDER BY / SKIP / LIMIT',
+  filterClause: 'FILTER (Cypher 25 only)', letClause: 'LET (Cypher 25 only)', showIndexCommand: 'SHOW', terminateCommand: 'TERMINATE',
+};
+
+/** Grammar expression rules → the Cypher a reader recognises. */
+const EXPRESSION_NAMES: Readonly<Record<string, string>> = {
+  countExpression: 'COUNT { } subquery', collectExpression: 'COLLECT { } subquery', mapProjection: 'map projection',
+  patternComprehension: 'pattern comprehension', shortestPathExpression: 'shortestPath', patternExpression: 'pattern expression',
+  normalizeFunction: 'normalize()', trimFunction: 'trim(... FROM ...)',
+};
+
 class ThrowingListener extends BaseErrorListener {
   readonly errors: string[] = [];
   override syntaxError<T extends ATNSimulator>(_r: Recognizer<T>, _s: Token | null, line: number, column: number, msg: string, _e: RecognitionException | null): void {
@@ -123,7 +138,10 @@ class Builder {
       }
       case 'returnClause': return { k: 'return', projection: this.returnBody(need(inner, 'returnBody'), 'RETURN') };
       case 'unwindClause': return { k: 'unwind', expr: this.expression(need(inner, 'expression')), alias: this.variable(need(inner, 'variable')) };
-      default: throw new CypherUnsupportedError(`clause ${ruleOf(inner) ?? '?'}`);
+      default: {
+        const r = ruleOf(inner) ?? '?';
+        throw new CypherUnsupportedError(`${CLAUSE_NAMES[r] ?? `clause ${r}`} (${r}); the interpreter runs read-only MATCH / OPTIONAL MATCH / WITH / UNWIND / RETURN queries`);
+      }
     }
   }
 
@@ -422,7 +440,10 @@ class Builder {
       case 'listComprehension': return this.listComprehension(inner);
       case 'listItemsPredicate': return this.listItemsPredicate(inner);
       case 'reduceExpression': return this.reduceExpression(inner);
-      default: throw new CypherUnsupportedError(`expression ${ruleOf(inner) ?? '?'}`);
+      default: {
+        const r = ruleOf(inner) ?? '?';
+        throw new CypherUnsupportedError(EXPRESSION_NAMES[r] !== undefined ? `${EXPRESSION_NAMES[r]} (${r})` : `expression ${r}`);
+      }
     }
   }
 

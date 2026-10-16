@@ -24,6 +24,36 @@ interface Ctx {
   readonly params: ReadonlyMap<string, Value>;
   /** Aggregate results of the group being projected, by AST node. */
   readonly aggregates?: ReadonlyMap<Expr, Value>;
+  /** The query's deadline (NFR-07), shared by every nested scope of one query. */
+  readonly budget: Budget;
+}
+
+/**
+ * NFR-07 for the interpreter: evaluation is synchronous, so the timeout is cooperative. `tick` runs on every node scan
+ * step, relationship expansion step and input row; every 1024 ticks it reads the clock and, past the deadline, throws
+ * Neo4j's client-configured timeout error. A query cannot outrun its deadline by more than 1024 steps plus one sort.
+ */
+interface Budget {
+  readonly deadline: number;
+  readonly timeoutMs: number;
+  n: number;
+}
+
+export const QUERY_TIMEOUT_CODE = 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration';
+
+function tick(ctx: Ctx): void {
+  const b = ctx.budget;
+  if ((++b.n & 1023) !== 0 || !Number.isFinite(b.deadline)) return;
+  if (performance.now() > b.deadline) {
+    throw new CypherRuntimeError(`The transaction has been terminated: it ran longer than its configured timeout of ${String(b.timeoutMs)} ms`, QUERY_TIMEOUT_CODE);
+  }
+}
+
+export interface ExecuteOptions {
+  /** Abort with `QUERY_TIMEOUT_CODE` once evaluation has run this long (absent or <= 0: no limit). */
+  readonly timeoutMs?: number;
+  /** `performance.now()` at which the clock started (default: now); lets the caller count parsing in. */
+  readonly startedAt?: number;
 }
 
 export interface QueryOutput {
@@ -31,13 +61,16 @@ export interface QueryOutput {
   readonly rows: readonly (readonly Value[])[];
 }
 
-export function executeQuery(query: Query, graph: MemoryGraph, params: ReadonlyMap<string, Value>): QueryOutput {
-  const ctx: Ctx = { graph, params };
+export function executeQuery(query: Query, graph: MemoryGraph, params: ReadonlyMap<string, Value>, options: ExecuteOptions = {}): QueryOutput {
+  const timeoutMs = options.timeoutMs ?? 0;
+  const deadline = timeoutMs > 0 ? (options.startedAt ?? performance.now()) + timeoutMs : Infinity;
+  const ctx: Ctx = { graph, params, budget: { deadline, timeoutMs, n: 0 } };
   const last = query.clauses[query.clauses.length - 1];
   if (last?.k !== 'return') throw new CypherSyntaxError('Query cannot conclude with ' + (last?.k.toUpperCase() ?? 'nothing') + ' (must be a RETURN clause)');
   const rows: (readonly Value[])[] = [];
   let columns: string[] = [];
   for (const row of runClauses(query.clauses, [new Map()], ctx)) {
+    tick(ctx);
     if (columns.length === 0) columns = [...row.keys()];
     rows.push(columns.map((c) => row.get(c) ?? null));
   }
@@ -69,7 +102,10 @@ function runClause(clause: Clause, rows: Iterable<Row>, ctx: Ctx): Iterable<Row>
 }
 
 function* filter(rows: Iterable<Row>, where: Expr, ctx: Ctx): Generator<Row> {
-  for (const r of rows) if (evaluate(where, r, ctx) === true) yield r;
+  for (const r of rows) {
+    tick(ctx);
+    if (evaluate(where, r, ctx) === true) yield r;
+  }
 }
 
 function* unwind(expr: Expr, alias: string, rows: Iterable<Row>, ctx: Ctx): Generator<Row> {
@@ -77,7 +113,10 @@ function* unwind(expr: Expr, alias: string, rows: Iterable<Row>, ctx: Ctx): Gene
     const v = evaluate(expr, r, ctx);
     if (v === null) continue;
     const items = isList(v) ? v : [v];
-    for (const item of items) yield bind(r, alias, item);
+    for (const item of items) {
+      tick(ctx);
+      yield bind(r, alias, item);
+    }
   }
 }
 
@@ -207,8 +246,18 @@ function* expand(part: PatternPart, at: number, node: GraphNode, step: 1 | -1, r
 
 /** Relationships leaving `n` in direction `dir` (a self-loop once for an undirected pattern), in creation order. */
 function* adjacent(n: GraphNode, dir: 'out' | 'in' | 'both', ctx: Ctx): Generator<[GraphRel, GraphNode]> {
-  if (dir !== 'in') for (const r of ctx.graph.outgoing(n)) yield [r, r.end];
-  if (dir !== 'out') for (const r of ctx.graph.incoming(n)) if (dir === 'in' || r.start !== r.end) yield [r, r.start];
+  if (dir !== 'in') {
+    for (const r of ctx.graph.outgoing(n)) {
+      tick(ctx);
+      yield [r, r.end];
+    }
+  }
+  if (dir !== 'out') {
+    for (const r of ctx.graph.incoming(n)) {
+      tick(ctx);
+      if (dir === 'in' || r.start !== r.end) yield [r, r.start];
+    }
+  }
 }
 
 function* traverse(p: RelPattern, dir: 'out' | 'in' | 'both', from: GraphNode, row: Row, used: ReadonlySet<GraphRel>, ctx: Ctx): Generator<[readonly GraphRel[], GraphNode]> {
@@ -268,7 +317,10 @@ function* candidateNodes(p: NodePattern, row: Row, ctx: Ctx): Generator<GraphNod
     return;
   }
   const first = p.label !== undefined ? firstRequiredLabel(p.label) : undefined;
-  yield* first !== undefined ? ctx.graph.nodesWithLabel(first) : ctx.graph.nodes;
+  for (const n of first !== undefined ? ctx.graph.nodesWithLabel(first) : ctx.graph.nodes) {
+    tick(ctx);
+    yield n;
+  }
 }
 
 /** A label every match must carry, when the expression requires one (an index for the scan). */
@@ -454,6 +506,7 @@ function eagerProject(p: Projection, rows: Iterable<Row>, ctx: Ctx, hasAgg: bool
     const keyItems = p.items.filter((i) => !containsAggregate(i.expr));
     const groups = new Map<string, { row: Row; keys: Value[]; states: AggState[] }>();
     for (const r of rows) {
+      tick(ctx);
       const keys = keyItems.map((i) => evaluate(i.expr, r, ctx));
       const gk = keys.map(equivalenceKey).join('\u0000');
       let g = groups.get(gk);
@@ -478,6 +531,7 @@ function eagerProject(p: Projection, rows: Iterable<Row>, ctx: Ctx, hasAgg: bool
     }
   } else {
     for (const r of rows) {
+      tick(ctx);
       const out = projectRow(p, r, ctx);
       projected.push({ out, scope: p.distinct ? out : mergeScope(out, r) });
     }

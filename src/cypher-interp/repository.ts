@@ -40,16 +40,36 @@ function propertiesOf(v: Value): Map<string, Value> {
   return out;
 }
 
+/** The default read timeout when a caller passes none: the same 30 s as `Neo4jRepository`'s config default (BR-U2-38). */
+export const DEFAULT_INTERP_QUERY_TIMEOUT_MS = 30_000;
+
+export interface MemoryGraphRepositoryOptions {
+  /** Read timeout when a query passes no `timeoutMs` (NFR-07); <= 0 disables it. */
+  readonly queryTimeoutMs?: number;
+}
+
 export class MemoryGraphRepository implements GraphRepository {
   readonly graph = new MemoryGraph();
+  private readonly queryTimeoutMs: number;
   /** Nodes by their `id` property (the ingestion's `MATCH (:APGNode {id})`), in creation order. */
   private readonly byApgId = new Map<string, GraphNode[]>();
 
-  executeQuery(cypher: string, params?: Record<string, unknown>, _options?: QueryOptions): Promise<DomainResult<QueryResult>> {
-    return Promise.resolve(this.run(cypher, params ?? {}));
+  constructor(options: MemoryGraphRepositoryOptions = {}) {
+    this.queryTimeoutMs = options.queryTimeoutMs ?? DEFAULT_INTERP_QUERY_TIMEOUT_MS;
   }
 
-  private run(cypher: string, params: Record<string, unknown>): DomainResult<QueryResult> {
+  /**
+   * NFR-07: `options.timeoutMs` (else the constructor's default) bounds a read, parsing included; past it the query
+   * fails with Neo4j's code `Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration`. Evaluation is
+   * synchronous, so the check is cooperative (`eval.ts` `tick`): it cannot pre-empt one long sort or a single huge
+   * function call, and it blocks the event loop while it runs. The ingestion writes are not timed (they are linear).
+   */
+  executeQuery(cypher: string, params?: Record<string, unknown>, options?: QueryOptions): Promise<DomainResult<QueryResult>> {
+    return Promise.resolve(this.run(cypher, params ?? {}, options?.timeoutMs ?? this.queryTimeoutMs));
+  }
+
+  private run(cypher: string, params: Record<string, unknown>, timeoutMs: number): DomainResult<QueryResult> {
+    const startedAt = performance.now();
     try {
       if (WIPE.test(cypher)) {
         const nodesDeleted = this.graph.nodes.length;
@@ -65,7 +85,7 @@ export class MemoryGraphRepository implements GraphRepository {
       if (edge !== null) return DomainResult.ok({ records: [], summary: { counters: this.ingestEdges(edge[1] ?? '', params) } });
       const query = parseCypher(cypher);
       const p = new Map<string, Value>(Object.entries(params).map(([k, v]) => [k, fromDriver(v)]));
-      const out = executeQuery(query, this.graph, p);
+      const out = executeQuery(query, this.graph, p, { timeoutMs, startedAt });
       const records = out.rows.map((row) => {
         const obj: Record<string, unknown> = {};
         out.columns.forEach((c, i) => { obj[c] = toDriver(row[i] ?? null); });
