@@ -9,7 +9,8 @@
  *                   [--max-output-tokens N] [--thinking low|high]
  *           agy:    --model "<agy model>" [--agy-served-model <id>] [--agy-home ~/.firewall/labeller-agy-home]
  *                   [--agy-version x.y.z] [--agy-binary agy] [--max-calls 20]
- *           openai: --model <id> --usd-per-mtok-in <x> --usd-per-mtok-out <y> [--max-usd 5]
+ *           openai: --model <id> --usd-per-mtok-in <x> --usd-per-mtok-out <y> [--max-usd 5] [--env-file .env]
+ *           (gemini/openai: the key is the one line of --env-file if given, else the process environment)
  *   compare --a <dir> --b <dir> --out <report.md> [--label-a A] [--label-b B] [--banner text] [--mapping <file>]
  *   export-author --key <dir>/blind-key.json --out <dir>     the author manifests of those cases, same layout
  *

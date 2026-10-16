@@ -94,9 +94,11 @@ Each written case also carries `provenance`, which `ue-score.ts` ignores:
 | `--adapter` | Route | Credential | Isolation | Cost guard |
 |---|---|---|---|---|
 | `fake` | Deterministic stub with an oracle (tests, dry run) | none | n/a | n/a |
-| `gemini` | Gemini API, U4's `GeminiProvider`: no tools, temperature 0, `OUTPUT_SCHEMA` as `responseSchema`, the system prompt as `systemInstruction` | `GEMINI_API_KEY` from the environment, or only that one line of `--env-file <path>`. It is scrubbed from every error and cassette. | API call, no tool field | `--max-usd` (default 5) with the author's `--usd-per-mtok-in` and `--usd-per-mtok-out`. Before each call the worst case is `(prompt chars / 3) × in + max output tokens × out`. A call that would push the ledger past the cap is not made (`TM_BUDGET`, a stop). The ledger is written next to the cassettes. |
+| `gemini` | Gemini API, U4's `GeminiProvider`: no tools, temperature 0, `OUTPUT_SCHEMA` as `responseSchema`, the system prompt as `systemInstruction` | With `--env-file <path>`, the `GEMINI_API_KEY` line of that file (`readEnvVar` scans the file and keeps only that line); otherwise `GEMINI_API_KEY` from the process environment. It is scrubbed from every error and cassette. | API call, no tool field | `--max-usd` (default 5) with the author's `--usd-per-mtok-in` and `--usd-per-mtok-out`. Before each call the worst case is `(prompt chars / 3) × in + max output tokens × out`. A call that would push the ledger past the cap is not made (`TM_BUDGET`, a stop). The ledger is written next to the cassettes. |
 | `agy` | Antigravity CLI headless, the v1.2 labeller route's pieces (`src/llm-critic/agy-cli-provider.ts`): stream-json, `--json-schema`, `--sandbox`, `--disable-slash-commands`, prompt on stdin, a fresh empty cwd outside any repository, `env -i`-style child env with `HOME` = the dedicated home and no API key passed | The subscription login in `HOME=~/.firewall/labeller-agy-home` | The labeller's home check (`settings.json` strict, deny rules, no rules, skills, plugins or MCP) plus `agy mcp list` and `agy plugin list` empty. A completed tool step is invalid (`LLM_CLI_TOOL_USE`, retried once). The init event's model must equal `--agy-served-model` (default: the `--model` value). | Counted in invocations (`--max-calls`, default 20); no dollars on the subscription |
-| `openai` | Chat Completions, strict `json_schema`, no `tools` field | `OPENAI_API_KEY` | API call | `--max-usd` as for `gemini` |
+| `openai` | Chat Completions, non-strict `json_schema` (`strict: false`: strict mode needs every property required), no `tools` field; the strict parse after the call is the check | With `--env-file <path>`, the `OPENAI_API_KEY` line of that file; otherwise `OPENAI_API_KEY` from the process environment | API call | `--max-usd` as for `gemini` |
+
+**What the harness reads that is secret, and when.** Nothing on `build`, `compare`, `export-author` or `--adapter fake`: no adapter is constructed. `--adapter` has no default. `gemini` and `openai` read one key, from `--env-file` if given, else from the process environment. `agy` passes no key to its child (`buildAgyChildEnv` allow-list); like the v1.2 labeller it holds the values of the parent's secret-named variables (`knownSecretsFrom(process.env)`) in memory, only to scrub them from errors and output. This is opt-in per run and needs the author's sign-off.
 
 The agy version pin defaults to the labeller's `AGY_PINNED_VERSION` (1.3.2). A newer local agy stops the pre-flight with `LLM_CLI_VERSION_DRIFT`, unless the author pins the version they run with `--agy-version <x.y.z>`. That version is then written into every case's provenance. The v1.2 labeller module is not edited.
 
@@ -141,7 +143,7 @@ npx tsx scripts/v1.3/third-manifest.ts run --adapter agy \
   --cassettes results/v1.3-third-manifest/<set>/cassettes
 ```
 
-API route (Gemini, $5 cap). Only the `GEMINI_API_KEY` line of `.env` is read. The prices are the author's, from the current Gemini price page, in USD per million tokens. Without them the adapter does not start.
+API route (Gemini, $5 cap). With `--env-file .env`, the file is scanned and only its `GEMINI_API_KEY` line is kept; without `--env-file`, the key comes from the process environment. The prices are the author's, from the current Gemini price page, in USD per million tokens. Without them the adapter does not start.
 
 ```bash
 npx tsx scripts/v1.3/third-manifest.ts run --adapter gemini --model <pinned gemini model id> --thinking high \
