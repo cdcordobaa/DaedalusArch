@@ -89,7 +89,12 @@ export type Clause =
   | { readonly k: 'match'; readonly optional: boolean; readonly patterns: readonly PatternPart[]; readonly where: Expr | undefined }
   | { readonly k: 'unwind'; readonly expr: Expr; readonly alias: string }
   | { readonly k: 'with'; readonly projection: Projection; readonly where: Expr | undefined }
-  | { readonly k: 'return'; readonly projection: Projection };
+  | { readonly k: 'return'; readonly projection: Projection }
+  /**
+   * `CALL { part [UNION [ALL] part]* }`: a returning unit subquery, run once per incoming row. A part that starts with
+   * `WITH` imports from the outer row through that projection; any other part sees no outer variable.
+   */
+  | { readonly k: 'call'; readonly parts: readonly Query[]; readonly unionAll: boolean };
 
 export interface Query {
   readonly clauses: readonly Clause[];

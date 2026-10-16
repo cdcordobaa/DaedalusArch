@@ -13,13 +13,18 @@ import type { EvaluateDeps } from './evaluate-project.js';
 import { explainViolation } from './rule-explainer.js';
 import { buildSpecView, whichLayer } from './spec-view.js';
 import { checkSource } from './file-check.js';
-import { checkDiff } from './diff-check.js';
+import { checkDiff, diffOverrides } from './diff-check.js';
+import { templateCheck } from './template-check.js';
+import type { GraphEngine } from '../cypher-interp/engine.js';
 import { suggestPlacement } from './placement.js';
 import { normalisePath } from './layer-resolver.js';
 import { ProjectView } from './project-files.js';
 import { explainFinding } from './explain-finding.js';
 import { inferProjectSpec, isIseStyle } from './infer-spec.js';
 import { specRuleMeta } from './rule-meta.js';
+import type { NeuralService } from './neural-service.js';
+import { explainAndFix, reviewUnit } from './neural-tools.js';
+import type { ExplainAndFixArgs, ExplainAndFixResult, FixHintSource, ReviewUnitArgs, ReviewUnitResult } from './neural-tools.js';
 import type {
   ArchitectureSpecView,
   CheckImportResult,
@@ -53,6 +58,12 @@ export interface ServerContext {
   readonly loadSpec: (specPath: string) => Promise<ToolOutcome<LoadedSpec>>;
   /** The tool's canonical presets (`presets/`), read by `infer_spec`. */
   readonly presetsDir?: string | undefined;
+  /** The neural arm (`--neural`); absent means off: no neural tool is registered (v1.3, neural-arm-agent-tools.md). */
+  readonly neural?: NeuralService | undefined;
+  /** Deterministic fix hints for `explain_and_fix` (the fix-hints feature's `buildFixHint`, when the build has it). */
+  readonly fixHints?: FixHintSource | undefined;
+  /** Graph engine of `evaluate_project` and the template checks; absent = `neo4j` (the reference engine). */
+  readonly graphEngine?: GraphEngine | undefined;
 }
 
 const ok = <T>(data: T): ToolOutcome<T> => ({ ok: true, data });
@@ -226,25 +237,38 @@ export async function evaluateProjectTool(
 
 export async function checkFileTool(
   ctx: ServerContext,
-  args: { readonly path: string; readonly content: string; readonly spec?: string | undefined },
+  args: { readonly path: string; readonly content: string; readonly spec?: string | undefined; readonly templates?: boolean | undefined },
 ): Promise<ToolOutcome<FileCheckResult>> {
   const loaded = await specFor(ctx, args.spec);
   if (!loaded.ok) return loaded;
   const relOutcome = toProjectRelative(ctx, args.path);
   if (!relOutcome.ok) return relOutcome;
   const rel = relOutcome.data;
-  return ok(
-    checkSource(loaded.data.spec, {
-      path: rel,
-      content: args.content,
-      view: new ProjectView({ root: ctx.defaultProjectPath, overrides: new Map([[rel, args.content]]) }),
-    }),
-  );
+  const fast = checkSource(loaded.data.spec, {
+    path: rel,
+    content: args.content,
+    view: new ProjectView({ root: ctx.defaultProjectPath, overrides: new Map([[rel, args.content]]) }),
+  });
+  if (args.templates !== true) return ok(fast);
+  const templates = await templateCheck({
+    spec: loaded.data.spec,
+    specPath: loaded.data.specPath,
+    projectRoot: ctx.defaultProjectPath,
+    before: new Map(),
+    after: new Map([[rel, args.content]]),
+    interp: interpOf(ctx),
+  });
+  return ok({ ...fast, templates });
+}
+
+/** The in-process evaluator when the server runs on cypher-interp (template checks never touch Neo4j). */
+function interpOf(ctx: ServerContext): ServerContext['evaluateDeps']['interp'] {
+  return ctx.graphEngine === 'cypher-interp' ? ctx.evaluateDeps.interp : undefined;
 }
 
 export async function checkDiffTool(
   ctx: ServerContext,
-  args: { readonly diff: string; readonly spec?: string | undefined },
+  args: { readonly diff: string; readonly spec?: string | undefined; readonly templates?: boolean | undefined },
 ): Promise<ToolOutcome<DiffCheckResult>> {
   const loaded = await specFor(ctx, args.spec);
   if (!loaded.ok) return loaded;
@@ -252,7 +276,18 @@ export async function checkDiffTool(
   if (result.files.length === 0 && result.skipped.length === 0) {
     return fail('No file found in the diff: pass unified diff text (git diff or diff -u output).');
   }
-  return ok(result);
+  if (args.templates !== true) return ok(result);
+  const { before, after, unreadable } = diffOverrides(args.diff, ctx.defaultProjectPath);
+  const templates = await templateCheck({
+    spec: loaded.data.spec,
+    specPath: loaded.data.specPath,
+    projectRoot: ctx.defaultProjectPath,
+    before,
+    after,
+    interp: interpOf(ctx),
+  });
+  const note = unreadable.length > 0 ? { reason: `not rebuilt from the diff, evaluated as on disk: ${unreadable.join(', ')}` } : {};
+  return ok({ ...result, templates: { ...templates, ...(templates.reason === undefined ? note : {}) } });
 }
 
 export async function suggestPlacementTool(
@@ -313,4 +348,38 @@ export async function explainFindingTool(
 function parseLocationArg(location: string): { file: string; line?: number } {
   const m = /^(.*?):(\d+)(?::\d+)?$/.exec(location.trim());
   return m === null ? { file: location.trim() } : { file: m[1] ?? location, line: Number(m[2]) };
+}
+
+/**
+ * Project-relative path for the neural tools, which take a plain string and confine every read to the project root
+ * themselves (`readProjectFile`, `sourceFilesUnder`): a path `toProjectRelative` refuses (R05/R06) falls back to the
+ * normalised path as given, which those reads then reject.
+ */
+function neuralRelative(ctx: ServerContext, p: string): string {
+  const rel = toProjectRelative(ctx, p);
+  return rel.ok ? rel.data : normalisePath(path.posix.normalize(p.replace(/\\/g, '/')));
+}
+
+/** `review_unit` (neural arm): the judge on demand over one file or module unit; advisory, never blocking. */
+export async function reviewUnitTool(
+  ctx: ServerContext,
+  args: ReviewUnitArgs & { readonly spec?: string | undefined },
+): Promise<ToolOutcome<ReviewUnitResult>> {
+  const loaded = await specFor(ctx, args.spec);
+  if (!loaded.ok) return loaded;
+  return reviewUnit({ neural: ctx.neural, defaultProjectPath: ctx.defaultProjectPath, toProjectRelative: (p) => neuralRelative(ctx, p) }, loaded.data.spec, args);
+}
+
+/** `explain_and_fix` (neural arm): fix hint + judge explanation + code excerpt for one symbolic finding. */
+export async function explainAndFixTool(
+  ctx: ServerContext,
+  args: ExplainAndFixArgs & { readonly spec?: string | undefined },
+): Promise<ToolOutcome<ExplainAndFixResult>> {
+  const loaded = await specFor(ctx, args.spec);
+  if (!loaded.ok) return loaded;
+  return explainAndFix(
+    { neural: ctx.neural, fixHints: ctx.fixHints, defaultProjectPath: ctx.defaultProjectPath, toProjectRelative: (p) => neuralRelative(ctx, p) },
+    loaded.data.spec,
+    args,
+  );
 }

@@ -147,7 +147,7 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
   // ---- Stage 1: Extract APG + Parse Spec (parallel) -------------------
   commands.push(
     new ParallelCommand([
-      new ExtractCommand(config.projectPath, specExcludePaths, config.graphMode, config.tsconfigPath, config.extractorDefaults),
+      new ExtractCommand(config.projectPath, specExcludePaths, config.graphMode, config.tsconfigPath, config.sourceOverrides, config.extractorDefaults),
       new ParseCommand(config.specFilePath),
     ]),
   );

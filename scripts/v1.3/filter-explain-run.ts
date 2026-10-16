@@ -16,14 +16,15 @@
  *                          Writes results/v1.3-judge-v2/filter-explain/plan.json (no call).
  *   record [--budget n]    one FE call per selected distinct prompt (one init probe), cassettes in
  *                          tests/fixtures/judge-cassettes-v13/filter-explain; shares the judge-v2 call ledger.
- *   score [--na-partial] [--bare-lines longest|finding-file]
+ *   score [--na-partial] [--bare-lines attributed|longest|finding-file]
  *                          confirm / dismiss / rejected per label, precision and recall before and after, grounding.
  *                          Grounding counts only the files and lines each prompt rendered (R19; the same as the full
  *                          files for every committed prompt, none of which was truncated).
  *                          --na-partial (opt-in, R26): rows of a partial rule's N/A half (FF-P06 FLOWS_TO /
  *                          HOLDS_STATE_OF field rows, rule-tiers.md) are labelled 'n/a' and left out of the true/false
  *                          counts. Off by default because it changes the committed scores.json (66 -> 63 true rows).
- *                          --bare-lines finding-file (opt-in, R20): see `GroundingOptions.bareLines`.
+ *                          --bare-lines (R20): see `GroundingOptions.bareLines`; default 'attributed' (v1.3's rule);
+ *                          'longest' is the pre-R20 heuristic the committed judge-v2 figures used.
  */
 import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
@@ -35,9 +36,9 @@ import { disposeJudgeProvider } from '../../src/llm-critic/judge-stage.js';
 import { renderLayerModel } from '../../src/llm-critic/context-assembler.js';
 import {
   FE_PERSONA, FE_REVISION, FE_SCHEMA_TEXT, answerOfResponse, computeFilterExplainSha256,
-  createFilterExplainProvider, findingKept, outcomeOf, renderFilterExplainPrompt, shownLineCounts,
+  createFilterExplainProvider, findingKept, outcomeOf, renderFilterExplainPrompt,
 } from '../../src/llm-critic/filter-explain.js';
-import type { FilterExplainOutcome, GroundingOptions, ShownFile, ShownLines, SymbolicFinding } from '../../src/llm-critic/filter-explain.js';
+import type { FilterExplainOutcome, GroundingOptions, ShownFile, SymbolicFinding } from '../../src/llm-critic/filter-explain.js';
 import { RULE_TIERS } from '../../src/scoring-engine/rule-tiers.js';
 import { relTypeOf } from '../../src/scoring-engine/tiered-scoring.js';
 import type { Violation as TaxonomyViolation } from '../../src/shared/taxonomy/violation-types.js';
@@ -74,8 +75,8 @@ export interface FilterExplainPlan {
   readonly feRevision: string;
   readonly feSha256: string;
   readonly rows: readonly Row[];
-  /** `shown`: the files and line counts the prompt rendered (R19); absent in plans written before it. */
-  readonly prompts: Readonly<Record<string, { prompt: string; files: ShownFile[]; shown?: readonly ShownLines[] }>>;
+  /** `files`: the files as the prompt rendered them (R19; plans written before it hold the full files). */
+  readonly prompts: Readonly<Record<string, { prompt: string; files: readonly ShownFile[] }>>;
   readonly selected: readonly string[];   // prompt shas
   readonly skipped: readonly { rowId: string; reason: string }[];
 }
@@ -115,7 +116,7 @@ async function plan(argv: readonly string[]): Promise<number> {
   const report = readJson<{ comparisons: Comparison[] }>(path.join(REPO, INPUT, 'report.json'));
   const comps = new Map(report.comparisons.map((c) => [`${c.style}/${c.variant}`, c]));
   const rows: Row[] = [];
-  const prompts: Record<string, { prompt: string; files: ShownFile[]; shown: readonly ShownLines[] }> = {};
+  const prompts: Record<string, { prompt: string; files: readonly ShownFile[] }> = {};
   const skipped: { rowId: string; reason: string }[] = [];
   for (const ref of loadAllReferences(REPO)) {
     const parsed = await parseSpec({ specFilePath: ref.specPath });
@@ -151,10 +152,10 @@ async function plan(argv: readonly string[]): Promise<number> {
         };
         const shown: ShownFile[] = files.map((f) => ({ path: f, content: fs.readFileSync(path.join(mat.projectDir, f), 'utf8') }));
         const layers = Object.fromEntries(assignLayers(files, model).assignments.map((a) => [a.file, a.layer]));
-        const rendered = renderFilterExplainPrompt({ finding, files: shown, layerModel: layerText, fileLayers: layers });
-        const prompt = rendered.prompt;
+        // R19: ground against the files as the prompt rendered them (a truncated or omitted file is cut there too).
+        const { prompt, shown: rendered } = renderFilterExplainPrompt({ finding, files: shown, layerModel: layerText, fileLayers: layers });
         const promptSha = sha(prompt);
-        prompts[promptSha] = { prompt, files: shown, shown: rendered.shown };
+        prompts[promptSha] = { prompt, files: rendered };
         rows.push({ rowId, style: ref.style, variant: v.manifest.variant, label, tier, finding, files, promptSha });
       });
     }
@@ -286,8 +287,11 @@ export function scoreFilterExplain(
   for (const s of p.selected) {
     const ans = a[s];
     const pr = p.prompts[s];
-    // R19: ground against what the prompt rendered (identical to the full files when nothing was truncated).
-    const shown = pr?.shown ?? shownLineCounts(pr?.files ?? []);
+    // R19: ground against what the prompt rendered (identical to the full files when nothing was truncated). The
+    // source budget depends on the files alone and re-rendering already-cut files leaves them as they are, so this also
+    // covers plans written before R19, which stored the full files.
+    const finding = p.rows.find((r) => r.promptSha === s)?.finding;
+    const shown = finding === undefined ? (pr?.files ?? []) : renderFilterExplainPrompt({ finding, files: pr?.files ?? [], layerModel: '' }).shown;
     outcome.set(s, ans === undefined ? { status: 'invalid', cause: 'NOT_RUN' } : outcomeOf(ans.valid ? answerOfResponse(ans.response) : null, shown, 'PARSE_FAILURE', grounding));
   }
   const judged = p.rows.filter((r) => selected.has(r.promptSha));
@@ -346,9 +350,9 @@ export function scoreFilterExplain(
 function score(argv: readonly string[]): number {
   const p = readJson<FilterExplainPlan>(path.join(REPO, OUT, 'plan.json'));
   const a = readJson<{ answers: Record<string, { valid: boolean; response: string }> }>(path.join(REPO, OUT, 'answers.json')).answers;
-  const bare = arg(argv, '--bare-lines', 'longest');
-  if (bare !== 'longest' && bare !== 'finding-file') {
-    process.stderr.write('--bare-lines must be longest or finding-file\n');
+  const bare = arg(argv, '--bare-lines', 'attributed');
+  if (bare !== 'attributed' && bare !== 'longest' && bare !== 'finding-file') {
+    process.stderr.write('--bare-lines must be attributed, longest or finding-file\n');
     return 2;
   }
   const { rows, summary, md } = scoreFilterExplain(p, a, { naPartial: argv.includes('--na-partial'), bareLines: bare });
