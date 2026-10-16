@@ -64,11 +64,13 @@ describe('format: the synthetic records are the harness records', () => {
   });
 
   it('the step records have the same key paths and value types as a harness dry run', () => {
-    const synth = generateStudy({ ...PLANNED_DESIGN, tasks: 2, replicates: 1 }, scenario('expected'), { seed: 3, evalFailureRate: 0 });
+    // #142 (merged into v1.3) made `advisoryByRule` part of the harness step record, so compare with it on.
+    const synth = generateStudy({ ...PLANNED_DESIGN, tasks: 2, replicates: 1 }, scenario('expected'), { seed: 3, evalFailureRate: 0, advisoryByRule: true });
     const s = merged(synth.runs.flatMap((r) => r.steps));
     const h = merged(harness);
-    // Paths the dry run cannot show: the stub type-check never reports a code; the stub costs are never null.
-    const onlyInSynth = new Set(['turns[].snapshot.typecheck.codes[]']);
+    // Paths the dry run cannot show: the stub type-check never reports a code; the stub costs are never null; the stub
+    // evaluator's advisoryByRule is empty in this dry run (no advisory row), so it has no <rule> key.
+    const onlyInSynth = new Set(['turns[].snapshot.typecheck.codes[]', 'turns[].snapshot.evaluation.advisoryByRule.<rule>']);
     for (const [p, types] of s) {
       if (onlyInSynth.has(p)) continue;
       expect([p, h.has(p)]).toEqual([p, true]);

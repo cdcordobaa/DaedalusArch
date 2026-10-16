@@ -78,8 +78,8 @@ export const PILOT_DESIGN: SynthDesign = { tasks: 3, models: [{ adapterId: 'clau
 export interface SynthOptions {
   readonly seed: number;
   /**
-   * Adds `advisoryByRule` to every evaluation. This is NOT the v1.3 harness format: it is the field PR #142 proposes
-   * (readiness gate S6). Off by default.
+   * Adds `advisoryByRule` to every evaluation: the field PR #142 added to the harness step record (readiness gate S6;
+   * #142 is merged into v1.3, so harness records now carry it). Off by default, so the committed rehearsal is unchanged.
    */
   readonly advisoryByRule?: boolean;
   /** Probability that a snapshot's evaluation fails (recorded as `evaluationError`, outcome missing). */
