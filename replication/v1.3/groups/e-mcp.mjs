@@ -265,8 +265,11 @@ try {
   }
 } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
 const NEW = ['infer_spec', 'explain_finding'];
-console.log(JSON.stringify({ tools: TOOL_NAMES.length, v1: TOOL_NAMES.filter((t) => !NEW.includes(t)).length, newT: TOOL_NAMES.filter((t) => NEW.includes(t)).length,
-  v1spec: SPEC_TOOL_NAMES.filter((t) => !NEW.includes(t)).length, apg2: APG2_HINT_NAMES.length, cheap: CHEAP_HINT_NAMES.length, imp: IMPORT_RULE_NAMES.length, infer }));
+// Tools added after the doc (d44b13b2): propose_spec (#150, Docs/v1.3/init-infer.md). The doc counts the MCP v2 set.
+const LATER = ['propose_spec'];
+const TOOLS = TOOL_NAMES.filter((t) => !LATER.includes(t));
+console.log(JSON.stringify({ tools: TOOLS.length, v1: TOOLS.filter((t) => !NEW.includes(t)).length, newT: TOOLS.filter((t) => NEW.includes(t)).length,
+  v1spec: SPEC_TOOL_NAMES.filter((t) => !NEW.includes(t) && !LATER.includes(t)).length, apg2: APG2_HINT_NAMES.length, cheap: CHEAP_HINT_NAMES.length, imp: IMPORT_RULE_NAMES.length, infer }));
 `);
       const ok = r.infer.filter((x) => x.inferred === x.style && x.valid).length;
       const conf = r.infer.map((x) => x.confidence); const src = r.infer.map((x) => x.src);

@@ -3,6 +3,11 @@
 // tests the doc cites (jest, targeted files only).
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { readAt } from '../lib/at-commit.mjs';
+
+// The doc's fixture recount (line 72) is over the fixtures/ rows of the v1.2E byte-identity list as it was at the doc's
+// commit; later changes added rows to that list (the stage0 ORM probes of #235, MT-B1), so the list is read at it.
+const FIXTURE_LIST_COMMIT = '037e8c9e';
 
 const DOC = 'Docs/DiagnosticRuns/v1.3-fieldstate-cheapfix-2026-10-16.md';
 const WORD = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
@@ -64,10 +69,11 @@ const FIXTURE_PROBE = `
 import * as fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
 const R = process.argv[2];
+const LIST = process.argv[3];
 void (async () => {
   const { extractAPG } = await import(pathToFileURL(R + '/src/apg-extractor/index.ts').href);
   const { V13_FIELD_STATE_OPTIONS } = await import(pathToFileURL(R + '/src/apg-extractor/types.ts').href);
-  const pinned = JSON.parse(fs.readFileSync(R + '/tests/fixtures/v1.3-byte-identity/v12e-hashes.json', 'utf8')).v12e;
+  const pinned = JSON.parse(fs.readFileSync(LIST, 'utf8')).v12e;
   const all = Object.keys(pinned).filter((p) => p.startsWith('fixtures/'));
   const projs = all.filter((p) => !p.startsWith('fixtures/unit/ap-hosts/'));
   const c: Record<string, number> = {}; const src: Record<string, number> = {};
@@ -155,7 +161,9 @@ export default [
       // fixtures (line 72)
       const pf = join(out, 'fixture-probe.ts');
       writeFileSync(pf, FIXTURE_PROBE);
-      const fx = JSON.parse(ctx.sh(`npx tsx "${pf}" "${ctx.repo}"`).trim().split('\n').pop());
+      const lf = join(out, 'v12e-hashes-at-doc.json');
+      writeFileSync(lf, readAt(ctx, FIXTURE_LIST_COMMIT, 'tests/fixtures/v1.3-byte-identity/v12e-hashes.json'));
+      const fx = JSON.parse(ctx.sh(`npx tsx "${pf}" "${ctx.repo}" "${lf}"`).trim().split('\n').pop());
       r['c-fs-fixtures-n'] = String(fx.n);
       r['c-fs-fixtures-flows'] = `FLOWS_TO is ${fx.flows}`;
       r['c-fs-fixtures-holds'] = `HOLDS_STATE_OF ${fx.holds}${fx.src.initializer === fx.holds ? ' (all `initializer`)' : ` (${JSON.stringify(fx.src)})`}`;

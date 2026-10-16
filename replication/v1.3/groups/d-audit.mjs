@@ -223,24 +223,29 @@ async function run(ctx) {
   const via = ga.reduce((a, r) => a + (r.viaReExport.inTool ?? 0), 0); const viaN = ga.reduce((a, r) => a + (r.viaReExport.refEdges ?? 0), 0);
   out['d-audit-blind-barrel'] = `${via}/${viaN}`;
 
-  // §4 personal-path scan
-  const files = (dir, filt = () => true) => ctx.ls(dir).filter(filt).map((f) => `${dir}/${f}`);
-  const count = (f, re) => (ctx.read(f).match(re) ?? []).length;
-  const lines = (f, re) => ctx.read(f).split('\n').filter((l) => re.test(l)).length;
+  // §4 personal-path scan, over the tree at the audit's commit: the scan describes the committed files as the audit
+  // found them; 85d988ec (F15, #159) later rewrote those paths to repo-relative ones, so HEAD has none of them.
+  const at = treeAt(ctx, AUDIT_COMMIT);
+  const atRead = (f) => readFileSync(join(at, f), 'utf8');
+  const atLs = (d) => readdirSync(join(at, d)).sort();
+  const atExists = (d) => { try { readdirSync(join(at, d)); return true; } catch { return false; } };
+  const files = (dir, filt = () => true) => atLs(dir).filter(filt).map((f) => `${dir}/${f}`);
+  const count = (f, re) => (atRead(f).match(re) ?? []).length;
+  const lines = (f, re) => atRead(f).split('\n').filter((l) => re.test(l)).length;
   const VOL = /\/Volumes\//g; const VOL1 = /\/Volumes\//;
   const fid = [...files('results/v1.3-fidelity/e1/projects', (f) => f.endsWith('.json')), ...files('results/v1.3-fidelity/so4/projects', (f) => f.endsWith('.json'))];
-  const fidHit = fid.filter((f) => VOL1.test(ctx.read(f)));
+  const fidHit = fid.filter((f) => VOL1.test(atRead(f)));
   out['d-audit-p-fid-files'] = `(${fidHit.length} files)`;
   out['d-audit-p-fid-occ'] = String(fidHit.reduce((a, f) => a + count(f, VOL), 0));
   out['d-audit-p-e1jobs'] = `${lines('results/v1.3-labelling/e1/jobs.json', VOL1)} lines`;
   out['d-audit-p-refjobs'] = `${lines('results/v1.3-labelling/reference/jobs.json', /\/Volumes\/|\/private\/tmp\//)} lines`;
-  const gh = files('results/v1.3-study1-rerun/so4/case/reports', (f) => f.endsWith('.json')).filter((f) => VOL1.test(ctx.read(f)));
+  const gh = files('results/v1.3-study1-rerun/so4/case/reports', (f) => f.endsWith('.json')).filter((f) => VOL1.test(atRead(f)));
   out['d-audit-p-ghost-files'] = gh.every((f) => /ghostfolio-test/.test(f)) ? `(${gh.length} files)` : `(${gh.length} files, not all ghostfolio)`;
   const per = [...new Set(gh.map((f) => lines(f, VOL1)))];
   out['d-audit-p-ghost-lines'] = per.length === 1 ? `${per[0]} lines each` : per.join('/');
-  const v2 = files('results/so4-heldout/v2/case/reports', (f) => f.endsWith('.json')).filter((f) => VOL1.test(ctx.read(f)));
+  const v2 = files('results/so4-heldout/v2/case/reports', (f) => f.endsWith('.json')).filter((f) => VOL1.test(atRead(f)));
   out['d-audit-p-ghost-v2'] = v2.length === 0 ? 'the v2 reports have none' : `${v2.length} v2 reports`;
-  const bar = ctx.ls('results/v1.3-barrels/fidelity').flatMap((d) => (ctx.exists(`results/v1.3-barrels/fidelity/${d}/projects`) ? files(`results/v1.3-barrels/fidelity/${d}/projects`, (f) => f.endsWith('.json')) : [])).filter((f) => VOL1.test(ctx.read(f)));
+  const bar = atLs('results/v1.3-barrels/fidelity').flatMap((d) => (atExists(`results/v1.3-barrels/fidelity/${d}/projects`) ? files(`results/v1.3-barrels/fidelity/${d}/projects`, (f) => f.endsWith('.json')) : [])).filter((f) => VOL1.test(atRead(f)));
   out['d-audit-p-barrels-files'] = `(${bar.length} files)`;
   out['d-audit-p-barrels-occ'] = String(bar.reduce((a, f) => a + count(f, VOL), 0));
   out['d-audit-paths-total'] = `About ${fidHit.length + 1 + 1 + gh.length + bar.length}`;
