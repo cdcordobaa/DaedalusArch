@@ -8,6 +8,7 @@ import { DEFAULT_OPTIONS, DI_DECORATORS, PRIMITIVE_TYPES } from './types.js';
 import { generateEdgeId, normalizeFilePath } from './id-generator.js';
 import { ImportEdgeMerger } from './import-edge-merger.js';
 import { deriveFlowsToEdges, emptyFlowsToTally } from './flows-to-deriver.js';
+import { deriveHoldsStateOfEdges } from './field-state.js';
 import { PackageNodeRegistry } from './package-node-factory.js';
 import { restrictToGraphMode } from './graph-mode.js';
 import { extractModuleWiringEdges } from './nest-module-extractor.js';
@@ -253,6 +254,11 @@ export function extractEdges(
 
       // FLOWS_TO (Class → Class | Interface), D8 scope (FR-21; BR-U2-27..29)
       for (const edge of deriveFlowsToEdges(cls, clsNodeId, lookup, projectRoot, addWarning, flowsTo)) addEdge(edge);
+
+      // v1.3 `fieldState` (OFF in the v1.2E and v1.3 defaults): HOLDS_STATE_OF (Class → Class | Interface).
+      if (opts.fieldState) {
+        for (const edge of deriveHoldsStateOfEdges(cls, clsNodeId, lookup, projectRoot)) addEdge(edge);
+      }
 
       // CALLS (cross-boundary Method → Method)
       for (const method of cls.getMethods()) {

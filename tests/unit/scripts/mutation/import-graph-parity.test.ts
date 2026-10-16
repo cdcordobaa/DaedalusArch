@@ -11,6 +11,8 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { DEFAULT_EXCLUDE_PATTERNS } from '../../../../src/apg-extractor/types.js';
+import { extractAPG, V12E_DEFAULT_OPTIONS, V13_DEFAULT_OPTIONS } from '../../../../src/apg-extractor/index.js';
+import type { ExtractorOptions } from '../../../../src/apg-extractor/index.js';
 import { compareImportGraphs } from '../../../../scripts/lib/import-graph-parity.js';
 import {
   IMPORT_GRAPH_EXCLUDE_PATTERNS,
@@ -74,8 +76,8 @@ function edgesFrom(g: ImportGraph, source: string): string[] {
   return g.edges.filter((e) => e.source === source).map((e) => `${e.type} ${e.target} typeOnly=${String(e.isTypeOnly)}`);
 }
 
-async function expectParity(dir: string, layers: readonly LayerDirs[] = []): Promise<void> {
-  const r = await compareImportGraphs(dir, 'tsconfig.json', layers);
+async function expectParity(dir: string, layers: readonly LayerDirs[] = [], extractorOptions: ExtractorOptions = {}): Promise<void> {
+  const r = await compareImportGraphs(dir, 'tsconfig.json', layers, extractorOptions);
   expect({ onlyInBuilder: r.onlyInBuilder, onlyInExtractor: r.onlyInExtractor }).toEqual({ onlyInBuilder: [], onlyInExtractor: [] });
   expect(r.equal).toBe(true);
 }
@@ -137,8 +139,77 @@ describe('import graph — F-BARREL shape (BR-U2-15, 20, 22..24)', () => {
     });
   });
 
-  it('parity with extractAPG', async () => {
-    await expectParity(dir);
+  it('parity with extractAPG under the v1.2E options (one resolved edge per declaring file, none to the barrel)', async () => {
+    await expectParity(dir, [], V12E_DEFAULT_OPTIONS);
+  });
+
+  /** The extractor's File→File import edges with their ADR-V13-01 view marks (`hop` = reExportHop, `via` = viaReExport). */
+  async function extractorEdges(options: ExtractorOptions): Promise<string[]> {
+    const r = await extractAPG(dir, options);
+    if (!r.success) throw new Error(r.errors.map((e) => e.message).join('; '));
+    const files = new Map(r.data.nodes.filter((n) => n.type === 'File').map((n) => [n.id, n.filePath]));
+    const out: string[] = [];
+    for (const e of r.data.edges) {
+      const source = files.get(e.sourceId);
+      const target = files.get(e.targetId);
+      if ((e.type !== 'IMPORTS' && e.type !== 'RE_EXPORTS') || source === undefined || target === undefined) continue;
+      const p = e.properties;
+      const marks = [
+        `typeOnly=${String(p.isTypeOnly === true)}`,
+        ...(p.reExportHop === true ? ['hop'] : []),
+        ...(p.viaReExport === true ? [`via=${JSON.stringify(p.reExportBarrels)}`] : []),
+      ];
+      out.push(`${e.type} ${source} -> ${target} ${marks.join(' ')}`);
+    }
+    return out.sort();
+  }
+
+  it('v1.2E options: the old shape, edge for edge', async () => {
+    expect(await extractorEdges(V12E_DEFAULT_OPTIONS)).toEqual([
+      'IMPORTS src/p.ts -> src/application/a.ts typeOnly=false',
+      'IMPORTS src/p.ts -> src/infrastructure/i.ts typeOnly=false',
+      'IMPORTS src/q.ts -> src/application/a.ts typeOnly=false',
+      'IMPORTS src/r.ts -> src/application/a.ts typeOnly=true',
+      'IMPORTS src/s.ts -> src/index.ts typeOnly=false',
+      'IMPORTS src/t.ts -> src/index.ts typeOnly=false',
+      'RE_EXPORTS src/index.ts -> src/application/a.ts typeOnly=false',
+      'RE_EXPORTS src/index.ts -> src/infrastructure/i.ts typeOnly=false',
+    ]);
+  });
+
+  it('v1.3 (ADR-V13-01, edge-views.md): the literal edge to the barrel plus the resolved viaReExport edge per declaring file', async () => {
+    const v13 = await extractorEdges(V13_DEFAULT_OPTIONS);
+    expect(v13).toEqual([
+      'IMPORTS src/p.ts -> src/application/a.ts typeOnly=false via=["src/index.ts"]',
+      'IMPORTS src/p.ts -> src/index.ts typeOnly=false hop',
+      'IMPORTS src/p.ts -> src/infrastructure/i.ts typeOnly=false via=["src/index.ts"]',
+      'IMPORTS src/q.ts -> src/application/a.ts typeOnly=false via=["src/index.ts"]',
+      'IMPORTS src/q.ts -> src/index.ts typeOnly=false hop',
+      'IMPORTS src/r.ts -> src/application/a.ts typeOnly=true via=["src/index.ts"]',
+      'IMPORTS src/r.ts -> src/index.ts typeOnly=true hop',
+      // An unresolved name keeps the literal edge in both views; namespace and side-effect imports have no resolved edge.
+      'IMPORTS src/s.ts -> src/index.ts typeOnly=false',
+      'IMPORTS src/t.ts -> src/index.ts typeOnly=false',
+      'RE_EXPORTS src/index.ts -> src/application/a.ts typeOnly=false',
+      'RE_EXPORTS src/index.ts -> src/infrastructure/i.ts typeOnly=false',
+    ]);
+    // The extractor's default is the v1.3 graph.
+    expect(await extractorEdges({})).toEqual(v13);
+  });
+
+  it('v1.3: the resolved view is the v1.2E graph; the builder differs only by the literal hop edges', async () => {
+    const strip = (x: string): string => x.replace(/ via=.*$/, '');
+    const resolved = (await extractorEdges(V13_DEFAULT_OPTIONS)).filter((x) => !x.endsWith(' hop')).map(strip);
+    expect(resolved).toEqual(await extractorEdges(V12E_DEFAULT_OPTIONS));
+    const r = await compareImportGraphs(dir, 'tsconfig.json', [], V13_DEFAULT_OPTIONS);
+    expect({ onlyInBuilder: r.onlyInBuilder, onlyInExtractor: r.onlyInExtractor }).toEqual({
+      onlyInBuilder: [],
+      onlyInExtractor: [
+        'edge IMPORTS src/p.ts -> src/index.ts typeOnly=false',
+        'edge IMPORTS src/q.ts -> src/index.ts typeOnly=false',
+        'edge IMPORTS src/r.ts -> src/index.ts typeOnly=true',
+      ],
+    });
   });
 
   it('IMPORTS from p.ts go to a.ts and i.ts, none to index.ts', () => {

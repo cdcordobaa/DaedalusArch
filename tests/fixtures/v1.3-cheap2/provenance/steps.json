@@ -1,0 +1,77 @@
+{
+ "description": "Synthetic agent history (made up, not a study task): replayed by the provenance test into a git repository, one commit per step, with the loop-harness trailers. P = planted re-implementation, N = near miss.",
+ "steps": [
+  {
+   "message": "step 1: todos",
+   "trailers": {
+    "Turn": "step-01",
+    "Step": "1",
+    "Step-Id": "todos",
+    "Arm": "none",
+    "Model": "demo-model",
+    "Adapter": "demo-adapter",
+    "Task": "demo-task",
+    "Prompt-Sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+   },
+   "files": {
+    "src/todos/domain/todo.ts": "export class Todo {\n  constructor(readonly id: string, readonly due: number, public done = false) {}\n}\n",
+    "src/todos/domain/todo-repository.ts": "import { Todo } from './todo';\n\nexport interface TodoRepository {\n  save(t: Todo): void;\n  findById(id: string): Todo | undefined;\n  findAll(): Todo[];\n}\n",
+    "src/todos/infrastructure/in-memory-todo.repository.ts": "import { Todo } from '../domain/todo';\nimport { TodoRepository } from '../domain/todo-repository';\n\nexport class InMemoryTodoRepository implements TodoRepository {\n  private readonly todos = new Map<string, Todo>();\n\n  save(t: Todo): void {\n    this.todos.set(t.id, t);\n  }\n\n  findById(id: string): Todo | undefined {\n    return this.todos.get(id);\n  }\n\n  findAll(): Todo[] {\n    return [...this.todos.values()];\n  }\n}\n",
+    "src/todos/application/todo.service.ts": "import { Todo } from '../domain/todo';\nimport { TodoRepository } from '../domain/todo-repository';\n\nexport class TodoService {\n  constructor(private readonly repo: TodoRepository) {}\n\n  overdue(now: number): Todo[] {\n    const all = this.repo.findAll();\n    const out: Todo[] = [];\n    for (const t of all) {\n      if (!t.done && t.due < now && t.due > 0) {\n        out.push(t);\n      }\n    }\n    return out;\n  }\n\n  complete(id: string): void {\n    const t = this.repo.findById(id);\n    if (t !== undefined) t.done = true;\n  }\n}\n\nexport function isLate(t: Todo, now: number): boolean {\n  if (t.done) {\n    return false;\n  }\n  const late = t.due < now && t.due > 0;\n  return late && now - t.due > 1000;\n}\n"
+   }
+  },
+  {
+   "message": "step 2: tags",
+   "trailers": {
+    "Turn": "step-02",
+    "Step": "2",
+    "Step-Id": "tags",
+    "Arm": "none",
+    "Model": "demo-model",
+    "Adapter": "demo-adapter",
+    "Task": "demo-task",
+    "Prompt-Sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+   },
+   "files": {
+    "src/tags/application/tag.service.ts": "import { Todo } from '../../todos/domain/todo';\n\ninterface TodoSource {\n  list(): Todo[];\n}\n\nexport class TagService {\n  private readonly tags = new Map<string, string[]>();\n\n  constructor(private readonly source: TodoSource) {}\n\n  tag(id: string, tag: string): void {\n    this.tags.set(id, [...(this.tags.get(id) ?? []), tag]);\n  }\n\n  /** PLANTED P1: a clone of TodoService.overdue instead of a call to it. */\n  overdueTagged(now: number): Todo[] {\n    const all = this.source.list();\n    const out: Todo[] = [];\n    for (const t of all) {\n      if (!t.done && t.due < now && t.due > 0) {\n        out.push(t);\n      }\n    }\n    return out;\n  }\n}\n",
+    "src/tags/infrastructure/in-memory-tag.repository.ts": "/** NEAR-MISS N2: the members of InMemoryTodoRepository, but another concept (tag). */\nexport class InMemoryTagRepository {\n  private readonly tags = new Map<string, string>();\n\n  save(t: string): void {\n    this.tags.set(t, t);\n  }\n\n  findById(id: string): string | undefined {\n    return this.tags.get(id);\n  }\n\n  findAll(): string[] {\n    return [...this.tags.values()];\n  }\n}\n"
+   }
+  },
+  {
+   "message": "step 3: due dates",
+   "trailers": {
+    "Turn": "step-03",
+    "Step": "3",
+    "Step-Id": "due-dates",
+    "Arm": "none",
+    "Model": "demo-model",
+    "Adapter": "demo-adapter",
+    "Task": "demo-task",
+    "Prompt-Sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+   },
+   "files": {
+    "src/todos/domain/todo.ts": "import { InMemoryTodoRepository } from '../infrastructure/in-memory-todo.repository';\n\nexport class Todo {\n  static readonly store = new InMemoryTodoRepository();\n\n  constructor(readonly id: string, readonly due: number, public done = false) {}\n}\n",
+    "src/reports/infrastructure/todo.store.ts": "import { Todo } from '../../todos/domain/todo';\n\n/** PLANTED P2: the concept and members of InMemoryTodoRepository, written again. */\nexport class TodoStore {\n  private readonly todos: Todo[] = [];\n\n  save(t: Todo): void {\n    this.todos.push(t);\n  }\n\n  findById(id: string): Todo | undefined {\n    return this.todos.find((x) => x.id === id);\n  }\n\n  findAll(): Todo[] {\n    return this.todos;\n  }\n}\n",
+    "src/todos/infrastructure/postgres-todo.repository.ts": "import { Todo } from '../domain/todo';\nimport { TodoRepository } from '../domain/todo-repository';\n\n/** NEAR-MISS N1: a second adapter of the same port. */\nexport class PostgresTodoRepository implements TodoRepository {\n  private readonly todos: Todo[] = [];\n\n  save(t: Todo): void {\n    this.todos.push(t);\n  }\n\n  findById(id: string): Todo | undefined {\n    return this.todos.find((x) => x.id === id);\n  }\n\n  findAll(): Todo[] {\n    return this.todos;\n  }\n}\n"
+   }
+  },
+  {
+   "message": "step 4: reports",
+   "trailers": {
+    "Turn": "step-04",
+    "Step": "4",
+    "Step-Id": "reports",
+    "Arm": "none",
+    "Model": "demo-model",
+    "Adapter": "demo-adapter",
+    "Task": "demo-task",
+    "Prompt-Sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+   },
+   "files": {
+    "src/todos/application/todo-query.service.ts": "import { Todo } from '../domain/todo';\nimport { TodoService } from './todo.service';\n\n/** NEAR-MISS N3: similar vocabulary, but it reuses TodoService. */\nexport class TodoQueryService {\n  constructor(private readonly todos: TodoService) {}\n\n  overdue(now: number): Todo[] {\n    return this.todos.overdue(now);\n  }\n}\n",
+    "src/reports/domain/overdue.ts": "import { Todo } from '../../todos/domain/todo';\n\n/** PLANTED P3: a clone of isLate (step 1). */\nexport function isBehind(item: Todo, at: number): boolean {\n  if (item.done) {\n    return false;\n  }\n  const behind = item.due < at && item.due > 0;\n  return behind && at - item.due > 1000;\n}\n",
+    "src/tags/application/tag.service.ts": "import { Todo } from '../../todos/domain/todo';\n\ninterface TodoSource {\n  list(): Todo[];\n}\n\n// Tags of todo items.\nexport class TagService {\n  private readonly tags = new Map<string, string[]>();\n\n  constructor(private readonly source: TodoSource) {}\n\n  tag(id: string, tag: string): void {\n    this.tags.set(id, [...(this.tags.get(id) ?? []), tag]);\n  }\n\n  /** PLANTED P1: a clone of TodoService.overdue instead of a call to it. */\n  overdueTagged(now: number): Todo[] {\n    const all = this.source.list();\n    const out: Todo[] = [];\n    for (const t of all) {\n      if (!t.done && t.due < now && t.due > 0) {\n        out.push(t);\n      }\n    }\n    return out;\n  }\n}\n"
+   }
+  }
+ ]
+}

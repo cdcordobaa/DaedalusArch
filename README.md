@@ -229,3 +229,33 @@ npx tsx scripts/generator/arms-dry-run.ts            # first cell per arm; --all
 ```
 
 The pre-registration draft is `Docs/prereg-drafts/firewall-in-the-loop.md` (DRAFT, not registered).
+
+## Ontology v0: grounded semantic layer (v1.3, running it live locally)
+
+`src/apg-enrich/ontology/` builds a separate `Sem*` layer over the APG: capabilities, business rules,
+responsibilities and business concepts, each with provenance (model, prompt hash, run id, temperature), a confidence
+and evidence that a grounding validator checked against the APG and the source. The cheap proxies propose, the model
+interprets, deterministic checks verify. Design and threats: `Docs/v1.3/ontology-v0-design.md`.
+
+The model is reached only through the judge's isolated Claude CLI route: the pinned CLI version, the dedicated
+config dir (default `~/.firewall/judge-claude-config`), the allow-listed child environment, the neutral cwd and the
+init probe. Credentials are never read. A cloud session cannot run that route, so everything in the repository is
+tested with a mock provider and recorded-fixture cassettes. The live run is local only:
+
+```bash
+npx tsx scripts/v1.3/ontology-run.ts --fixtures --estimate               # calls and prompt tokens per case; calls nothing
+npx tsx scripts/v1.3/ontology-run.ts --fixtures --budget 120             # live record into tests/fixtures/v1.3-ontology/cassettes-claude-cli/
+npx tsx scripts/v1.3/ontology-run.ts --fixtures --replay                 # replay the live cassettes (no call) and re-score
+npx tsx scripts/v1.3/ontology-run.ts --project <dir> --spec <spec.yaml> --estimate
+npx tsx scripts/v1.3/ontology-run.ts --project <dir> --spec <spec.yaml> --budget 200 --cassettes <dir>
+```
+
+- `--budget` caps provider calls per project. Cache hits are free.
+- A usage-limit or auth stop ends the run with exit code 4. Every answer recorded so far stays in the cassettes, so
+  the same command resumes from there.
+- `--judge-outcomes <json>` (`{"<case>": {"source": "...", "failedFiles": [...]}}`) adds the judge's outcome on the
+  same items to the score table.
+- Results go to `results/v1.3-ontology/<provider>[-replay]/`: one `result.json` per project and `scores.json`.
+- The mock fixture run is `--provider mock`. Its answers are hand-written, so its scores check the plumbing only.
+
+Tests: `npx jest tests/unit/apg-enrich/ontology tests/unit/scripts/ontology-run.test.ts`.

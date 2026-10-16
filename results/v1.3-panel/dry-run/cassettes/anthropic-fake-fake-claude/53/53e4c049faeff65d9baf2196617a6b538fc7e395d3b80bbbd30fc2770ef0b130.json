@@ -1,0 +1,19 @@
+{
+  "answer": {
+    "inputTokens": 288,
+    "outputTokens": 20,
+    "servedModel": "fake-claude",
+    "text": "{\"choice\":\"A\",\"reason\":\"fake anthropic answer\"}"
+  },
+  "failedAttempts": [],
+  "itemKey": "78fe333753843ea7bb7c1430",
+  "key": "53e4c049faeff65d9baf2196617a6b538fc7e395d3b80bbbd30fc2770ef0b130",
+  "model": "fake-claude",
+  "provider": "fake",
+  "request": {
+    "prompt": "## Architectural style\n- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.\n\n## Code excerpt\nFile: src/donations/donations.service.ts\n```ts\n  453  \n  456>   async getPaymentById(id: string): Promise<PaymentWithDonation> {\n  457      try {\n  458        const donation = await this.prisma.payment.findFirstOrThrow({\n  459          where: { id },\n  460          include: { donations: true },\n  461        })\n  462        return donation\n  463      } catch (err) {\n  464        const msg = 'No Donation record with ID: ' + id\n```\n\n## Reported finding\nbody clone (near, similarity 0.81) of CountryService.getCountryById in component country (other end: src/country/country.service.ts:23)\n\n## Question\nWould an architect following this style want this changed?\nA. yes\nB. no\nC. uncertain\n\nReply with JSON only: {\"choice\": \"<letter>\", \"reason\": \"<one sentence>\"}",
+    "system": "You are a software architect reviewing a TypeScript code base against an architectural style. Judge only from the material in the message: the style definition, the code excerpt and the reported finding. You have no tools. Reply with one JSON object and nothing else.",
+    "temperature": 0
+  },
+  "runIndex": 0
+}

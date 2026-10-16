@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "case": "case-02-misplaced-pricing",
+  "writtenAt": "2026-10-15",
+  "writtenBefore": "any ontology pipeline code, prompt or run (committed in the first commit of branch v1.3-ontology)",
+  "planted": "misplaced-responsibility",
+  "description": "A pricing rule (10% discount for orders with more than 3 lines) is computed inside OrderNotificationService.sendConfirmation, an application-layer service of the notifications component. The structure is clean: no I/O package, no framework, no layer violation, no controller.",
+  "expect": {
+    "misplacedResponsibilities": [
+      {
+        "id": "discount-in-notifier",
+        "file": "src/notifications/application/order-notification.service.ts",
+        "class": "OrderNotificationService",
+        "method": "sendConfirmation",
+        "responsibility": "Computes the order discount and the payable amount (pricing).",
+        "naturalLayer": "domain",
+        "classLayer": "application"
+      }
+    ],
+    "ruleDuplications": [],
+    "conceptFragmentations": [],
+    "capabilityScatter": []
+  },
+  "forbid": {
+    "misplacedResponsibilities": [
+      {
+        "file": "src/ordering/domain/order.ts",
+        "class": "Order"
+      },
+      {
+        "file": "src/ordering/application/place-order.use-case.ts",
+        "class": "PlaceOrderUseCase"
+      },
+      {
+        "file": "src/notifications/infrastructure/console-mailer.ts",
+        "class": "ConsoleMailer"
+      }
+    ],
+    "ruleDuplications": [],
+    "conceptFragmentations": [],
+    "capabilityScatter": []
+  },
+  "cheapExpectation": {
+    "misplacedResponsibilities": "miss",
+    "why": "Logic density flags controllers and adapters only; a *Service in the application layer is not flagged. No I/O, framework or bypass signal."
+  }
+}

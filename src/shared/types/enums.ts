@@ -18,6 +18,10 @@ export const EDGE_TYPES = [
 // EDGE_TYPES, which the frozen v1.2E report schema, the SO2 CSV columns and the registered artefacts mirror.
 export const V13_EDGE_TYPES = ['MODULE_IMPORTS', 'MODULE_PROVIDES', 'MODULE_EXPORTS'] as const;
 
+// v1.3 field-level state facts (`fieldState` extractor option, OFF in both the v1.2E and the v1.3 defaults; ON in
+// `V13_FIELD_STATE_OPTIONS`). Kept apart from V13_EDGE_TYPES so a v1.3-default graph and its readers are unchanged.
+export const FIELD_STATE_EDGE_TYPES = ['HOLDS_STATE_OF'] as const;
+
 // APG v2 (`apg2` extractor option, OFF in both the v1.2E and the v1.3 defaults; `Docs/v1.3/apg2-design.md`). Kept
 // apart from NODE_TYPES / EDGE_TYPES for the same reason as V13_EDGE_TYPES: the frozen enumerations are mirrored by
 // the v1.2E report schema and registered artefacts.
@@ -56,6 +60,8 @@ export type NodeType = (typeof NODE_TYPES)[number];
 export type EdgeType = (typeof EDGE_TYPES)[number];
 
 export type V13EdgeType = (typeof V13_EDGE_TYPES)[number];
+
+export type FieldStateEdgeType = (typeof FIELD_STATE_EDGE_TYPES)[number];
 
 export type Apg2NodeType = (typeof APG2_NODE_TYPES)[number];
 

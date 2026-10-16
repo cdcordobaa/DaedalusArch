@@ -33,6 +33,7 @@ import { join, relative, resolve } from 'node:path';
 import { harnessTsconfigText } from '../lib/generators/harness-tsconfig.js';
 import { sourceFilePaths } from '../lib/generators/outcome.js';
 import { treeLoc } from '../lib/so5-size.js';
+import { must } from './lib/must.js';
 
 const REPO = process.cwd();
 const LABEL = 'descriptive, v1.3 development instrument, not a registered result';
@@ -50,8 +51,8 @@ function need(argv: readonly string[], name: string): string {
   if (v === undefined) throw new Error(`missing --${name}`);
   return v;
 }
-function readJson<T>(p: string): T {
-  return JSON.parse(readFileSync(p, 'utf8')) as T;
+function readJson(p: string): unknown {
+  return JSON.parse(readFileSync(p, 'utf8')) as unknown;
 }
 function writeText(p: string, t: string): void {
   mkdirSync(resolve(p, '..'), { recursive: true });
@@ -174,7 +175,7 @@ interface E1Plan { e1: { models: string[]; specLevels: string[]; tasks: { taskId
 interface E1Cell { index: number; runId: string; model: string; specLevel: string; taskId: string; runIndex: number; specPath: string; rel: string }
 
 function e1Cells(planPath: string): E1Cell[] {
-  const plan = readJson<E1Plan>(planPath);
+  const plan = readJson(planPath) as E1Plan;
   const out: E1Cell[] = [];
   let index = 0;
   for (const model of plan.e1.models) {
@@ -228,12 +229,12 @@ function runSo4(argv: readonly string[]): void {
   const caseDir = resolve(need(argv, 'case'));
   const pathsRoot = resolve(need(argv, 'paths-root'));
   const out = resolve(need(argv, 'out'));
-  const plan = readJson<{ projects: PlanEntry[] }>(resolve(REPO, arg(argv, 'plan') ?? 'experiments/so4-heldout/plan.json'));
+  const plan = readJson(resolve(REPO, arg(argv, 'plan') ?? 'experiments/so4-heldout/plan.json')) as { projects: PlanEntry[] };
   const head = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: REPO, encoding: 'utf8' }).stdout.trim();
   const recDir = join(caseDir, 'reports');
   const records = new Map<string, { file: string; rec: Record<string, unknown> }>();
   for (const f of readdirSync(recDir).filter((x) => x.endsWith('.run.json')).sort(cmp)) {
-    const rec = readJson<Record<string, unknown>>(join(recDir, f));
+    const rec = readJson(join(recDir, f)) as Record<string, unknown>;
     records.set(String(rec.projectId), { file: f, rec });
   }
   const caseOut = join(out, 'case');
@@ -295,6 +296,8 @@ interface CellRow {
   files: number;
   loc: number;
   v13: Report;
+  /** `v13.tiers`, checked present when the row is built. */
+  tiers: NonNullable<Report['tiers']>;
   v12: Report | undefined;
   blockingIds: Set<string>;
   blocking: Violation[];
@@ -309,22 +312,24 @@ function e1Aggregate(argv: readonly string[]): void {
   const status = new Map<string, string>();
   for (const line of readFileSync(resolve(REPO, 'results/e1-grid/agg/runs.csv'), 'utf8').split('\n').slice(1)) {
     const m = /^([^,]+),[^,]+,[^,]+,([^,]+),([^,]*),/.exec(line);
-    if (m !== null) status.set(m[1]!, m[2] === 'accepted' ? 'accepted' : `${m[2]!}:${m[3]!}`);
+    if (m === null) continue;
+    const [, runId = '', outcome = '', reason = ''] = m;
+    status.set(runId, outcome === 'accepted' ? 'accepted' : `${outcome}:${reason}`);
   }
   const rows: CellRow[] = [];
   for (const c of cells) {
     const p = join(run, 'reports', `${c.runId}.json`);
     if (!existsSync(p)) continue;
-    const v13 = readJson<Report>(p);
-    const size = readJson<{ files: number; loc: number }>(join(run, 'reports', `${c.runId}.size.json`));
+    const v13 = readJson(p) as Report;
+    const size = readJson(join(run, 'reports', `${c.runId}.size.json`)) as { files: number; loc: number };
     const v12p = resolve(REPO, 'results/e1-grid/reports', `${c.runId}.json`);
-    const v12 = existsSync(v12p) ? readJson<Report>(v12p) : undefined;
+    const v12 = existsSync(v12p) ? (readJson(v12p) as Report) : undefined;
     const tiers = v13.tiers;
     if (tiers === undefined) throw new Error(`${c.runId}: no tiers block (not a v1.3 report)`);
     const blockingIds = new Set(tiers.blocking.rules.map((r) => r.functionId));
     const sym = v13.violations.filter((v) => v.route !== 'neural');
     rows.push({
-      cell: c, study1Status: status.get(c.runId) ?? 'no-record', files: size.files, loc: size.loc, v13, v12, blockingIds,
+      cell: c, study1Status: status.get(c.runId) ?? 'no-record', files: size.files, loc: size.loc, v13, tiers, v12, blockingIds,
       blocking: sym.filter((v) => blockingIds.has(v.functionId)), advisory: sym.filter((v) => !blockingIds.has(v.functionId)),
       v12Sym: (v12?.violations ?? []).filter((v) => v.deterministic === true),
     });
@@ -332,7 +337,7 @@ function e1Aggregate(argv: readonly string[]): void {
 
   // Per cell.
   const cellRows = rows.map((r) => {
-    const t = r.v13.tiers!;
+    const t = r.tiers;
     const cv05 = r.v13.violations.filter((v) => v.functionId === 'FF-CV05').length;
     const v12cv05 = r.v12Sym.filter((v) => v.functionId === 'FF-CV05').length;
     return [
@@ -368,9 +373,9 @@ function e1Aggregate(argv: readonly string[]): void {
   const levelOrder = ['none', 'minimal-prose', 'full-aac', 'all'];
   const modelOrder = ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-4-5', 'all-claude', 'gpt-5.6-terra', 'all-codex'];
   const keys = [...groups.keys()].sort((x, y) => {
-    const [lx, mx] = x.split('|');
-    const [ly, my] = y.split('|');
-    return modelOrder.indexOf(mx!) - modelOrder.indexOf(my!) || levelOrder.indexOf(lx!) - levelOrder.indexOf(ly!);
+    const [lx = '', mx = ''] = x.split('|');
+    const [ly = '', my = ''] = y.split('|');
+    return modelOrder.indexOf(mx) - modelOrder.indexOf(my) || levelOrder.indexOf(lx) - levelOrder.indexOf(ly);
   });
   const aggHeader = [
     'spec_level', 'model', 'n_cells', 'mean_files', 'mean_loc',
@@ -379,8 +384,8 @@ function e1Aggregate(argv: readonly string[]): void {
     'v12e_mean_ahs_combined', 'v12e_share_cells_pass', 'v12e_mean_symbolic_per_file', 'v12e_cv05_share', 'v12e_share_cells_any_v13_blocking_rule',
   ];
   const aggRows = keys.map((k) => {
-    const g = groups.get(k)!;
-    const [level, model] = k.split('|');
+    const g = must(groups.get(k), `group ${k}`);
+    const [level = '', model = ''] = k.split('|');
     const files = g.reduce((a, r) => a + r.files, 0);
     const blocking = g.reduce((a, r) => a + r.blocking.length, 0);
     const advisory = g.reduce((a, r) => a + r.advisory.length, 0);
@@ -388,10 +393,10 @@ function e1Aggregate(argv: readonly string[]): void {
     const v12all = g.reduce((a, r) => a + r.v12Sym.length, 0);
     const v12cv05 = g.reduce((a, r) => a + r.v12Sym.filter((v) => v.functionId === 'FF-CV05').length, 0);
     return [
-      level!, model!, g.length, f3(mean(g.map((r) => r.files))), f3(mean(g.map((r) => r.loc))),
+      level, model, g.length, f3(mean(g.map((r) => r.files))), f3(mean(g.map((r) => r.loc))),
       f4(mean(g.map((r) => r.blocking.length / r.files))), f4(blocking / files), f3(mean(g.map((r) => r.blocking.length))),
-      f3(g.filter((r) => r.blocking.length > 0).length / g.length), f3(g.filter((r) => r.v13.tiers!.verdict !== 'pass').length / g.length),
-      f3(mean(g.map((r) => r.v13.tiers!.blockingAhs))), f3(advisory / (advisory + blocking)), f3(cv05 / (advisory + blocking)),
+      f3(g.filter((r) => r.blocking.length > 0).length / g.length), f3(g.filter((r) => r.tiers.verdict !== 'pass').length / g.length),
+      f3(mean(g.map((r) => r.tiers.blockingAhs))), f3(advisory / (advisory + blocking)), f3(cv05 / (advisory + blocking)),
       f4(mean(g.map((r) => (r.blocking.length + r.advisory.length) / r.files))),
       f3(mean(g.map((r) => r.v12?.ahsCombined ?? Number.NaN).filter((x) => !Number.isNaN(x)))),
       f3(g.filter((r) => r.v12?.verdict === 'pass').length / g.length),
@@ -413,13 +418,13 @@ function e1Aggregate(argv: readonly string[]): void {
     for (const k of new Set([...a.keys(), ...b.keys()])) {
       const d = (b.get(k) ?? 0) - (a.get(k) ?? 0);
       if (d === 0) continue;
-      const fid = k.split('|')[0]!;
+      const [fid = '', file = '', target = ''] = k.split('|');
       const e = perRule.get(fid) ?? { added: 0, removed: 0 };
       if (d > 0) e.added += d; else e.removed -= d;
       perRule.set(fid, e);
-      changeRows.push([r.cell.runId, fid, r.blockingIds.has(fid) ? 'blocking' : 'advisory', d > 0 ? 'added' : 'removed', Math.abs(d), k.split('|')[1]!, k.split('|')[2]!]);
+      changeRows.push([r.cell.runId, fid, r.blockingIds.has(fid) ? 'blocking' : 'advisory', d > 0 ? 'added' : 'removed', Math.abs(d), file, target]);
     }
-    const fids = new Set([...r.v12Sym.map((v) => v.functionId), ...r.v13.violations.map((v) => v.functionId), ...r.v13.tiers!.blocking.rules.map((x) => x.functionId), ...r.v13.tiers!.advisory.rules.map((x) => x.functionId)]);
+    const fids = new Set([...r.v12Sym.map((v) => v.functionId), ...r.v13.violations.map((v) => v.functionId), ...r.tiers.blocking.rules.map((x) => x.functionId), ...r.tiers.advisory.rules.map((x) => x.functionId)]);
     for (const fid of fids) {
       const e = ruleChange.get(fid) ?? { v12: 0, v13: 0, added: 0, removed: 0, cellsChanged: 0, tier: r.blockingIds.has(fid) ? 'blocking' : 'advisory' };
       e.v12 += r.v12Sym.filter((v) => v.functionId === fid).length;
@@ -455,8 +460,8 @@ interface Instance { seedId: string; operatorId: string; status: string; detecte
 function so4Aggregate(argv: readonly string[]): void {
   const run = resolve(need(argv, 'run'));
   const out = resolve(need(argv, 'out'));
-  const s13 = readJson<{ perInstance: Instance[]; twinSpecificity: { clean: number; scored: number } }>(join(run, 'score.json'));
-  const s12 = readJson<{ perInstance: Instance[]; twinSpecificity: { clean: number; scored: number } }>(resolve(REPO, 'results/so4-heldout/v2/score.json'));
+  const s13 = readJson(join(run, 'score.json')) as { perInstance: Instance[]; twinSpecificity: { clean: number; scored: number } };
+  const s12 = readJson(resolve(REPO, 'results/so4-heldout/v2/score.json')) as { perInstance: Instance[]; twinSpecificity: { clean: number; scored: number } };
   const tally = (xs: readonly Instance[]): Map<string, Record<string, number>> => {
     const m = new Map<string, Record<string, number>>();
     for (const i of xs) {
@@ -488,7 +493,8 @@ function so4Aggregate(argv: readonly string[]): void {
   const by12 = new Map(s12.perInstance.map((i) => [i.seedId, i]));
   const changed = s13.perInstance.filter((i) => {
     const o = by12.get(i.seedId);
-    return o === undefined || o.status !== i.status || o.detectedBy.join(';') !== i.detectedBy.join(';');
+    if (o === undefined) return true;
+    return o.status !== i.status || o.detectedBy.join(';') !== i.detectedBy.join(';');
   }).map((i) => {
     const o = by12.get(i.seedId);
     return [i.seedId, i.operatorId, o?.status ?? '', i.status, o?.detectedBy.join(';') ?? '', i.detectedBy.join(';'), JSON.stringify(i.undeclaredNew)];

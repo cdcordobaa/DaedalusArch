@@ -57,19 +57,19 @@ export function parseUnifiedDiff(text: string): FilePatch[] {
       i += 1;
       continue;
     }
-    if (!line.startsWith('--- ')) throw new PatchError(`line ${i + 1}: expected a "--- " file header, got "${line}"`);
+    if (!line.startsWith('--- ')) throw new PatchError(`line ${String(i + 1)}: expected a "--- " file header, got "${line}"`);
     const next = lines[i + 1] ?? '';
-    if (!next.startsWith('+++ ')) throw new PatchError(`line ${i + 2}: expected a "+++ " file header`);
+    if (!next.startsWith('+++ ')) throw new PatchError(`line ${String(i + 2)}: expected a "+++ " file header`);
     const oldPath = headerPath(line, '--- ', 'a/');
     const newPath = headerPath(next, '+++ ', 'b/');
-    if (oldPath === null && newPath === null) throw new PatchError(`line ${i + 1}: both sides are /dev/null`);
-    if (oldPath !== null && newPath !== null && oldPath !== newPath) throw new PatchError(`line ${i + 1}: renames are not supported`);
+    if (oldPath === null && newPath === null) throw new PatchError(`line ${String(i + 1)}: both sides are /dev/null`);
+    if (oldPath !== null && newPath !== null && oldPath !== newPath) throw new PatchError(`line ${String(i + 1)}: renames are not supported`);
     i += 2;
 
     const hunks: Hunk[] = [];
     while (i < lines.length && (lines[i] ?? '').startsWith('@@')) {
       const m = HUNK_HEADER.exec(lines[i] ?? '');
-      if (m === null) throw new PatchError(`line ${i + 1}: malformed hunk header`);
+      if (m === null) throw new PatchError(`line ${String(i + 1)}: malformed hunk header`);
       const oldStart = Number(m[1]);
       const oldCount = m[2] === undefined ? 1 : Number(m[2]);
       const newStart = Number(m[3]);
@@ -106,7 +106,7 @@ export function parseUnifiedDiff(text: string): FilePatch[] {
         i += 1;
       }
       if (seenOld !== oldCount || seenNew !== newCount) {
-        throw new PatchError(`hunk at old line ${oldStart}: header says -${oldCount} +${newCount}, body has -${seenOld} +${seenNew}`);
+        throw new PatchError(`hunk at old line ${String(oldStart)}: header says -${String(oldCount)} +${String(newCount)}, body has -${String(seenOld)} +${String(seenNew)}`);
       }
       hunks.push({ oldStart, oldCount, newStart, newCount, lines: body, oldNoNewline, newNoNewline });
     }
@@ -138,8 +138,8 @@ export function applyFilePatch(patch: FilePatch, oldContent: string | undefined)
   let newNoNewline = false;
   for (const h of patch.hunks) {
     const start = h.oldCount === 0 ? h.oldStart : h.oldStart - 1;
-    if (start < cursor) throw new PatchError(`${label}: overlapping or out-of-order hunk at line ${h.oldStart}`);
-    if (start > src.length) throw new PatchError(`${label}: hunk at line ${h.oldStart} is past the end of the file`);
+    if (start < cursor) throw new PatchError(`${label}: overlapping or out-of-order hunk at line ${String(h.oldStart)}`);
+    if (start > src.length) throw new PatchError(`${label}: hunk at line ${String(h.oldStart)} is past the end of the file`);
     out.push(...src.slice(cursor, start));
     cursor = start;
     for (const l of h.lines) {
@@ -147,7 +147,7 @@ export function applyFilePatch(patch: FilePatch, oldContent: string | undefined)
       const text = l.slice(1);
       if (marker === ' ' || marker === '-') {
         if (src[cursor] !== text) {
-          throw new PatchError(`${label}: line ${cursor + 1} does not match the patch (expected ${JSON.stringify(text)}, found ${JSON.stringify(src[cursor] ?? '<end of file>')})`);
+          throw new PatchError(`${label}: line ${String(cursor + 1)} does not match the patch (expected ${JSON.stringify(text)}, found ${JSON.stringify(src[cursor] ?? '<end of file>')})`);
         }
         if (marker === ' ') out.push(text);
         cursor += 1;

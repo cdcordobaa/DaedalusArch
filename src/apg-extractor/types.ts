@@ -56,6 +56,14 @@ export interface ExtractorOptions {
    */
   aliasDeclarationPackages?: boolean;
   /**
+   * v1.3 field-level state facts, OFF in both `V12E_DEFAULT_OPTIONS` and `V13_DEFAULT_OPTIONS`; ON in
+   * `V13_FIELD_STATE_OPTIONS`. Adds HOLDS_STATE_OF edges (Class → Class | Interface) for what an instance field holds:
+   * its declared type, a property-injection decorator, a `new` initialiser, or a constructor-body assignment from `new`
+   * or from a typed constructor parameter (`field-state.ts`). Written after the class's FLOWS_TO edges; FLOWS_TO is
+   * unchanged. Read by the FF-P06 field-half variant (`CompileOptions.fieldState`).
+   */
+  fieldState?: boolean;
+  /**
    * APG v2 (`Docs/v1.3/apg2-design.md`), OFF in both `V12E_DEFAULT_OPTIONS` and `V13_DEFAULT_OPTIONS`; ON in
    * `V13_APG2_OPTIONS`. Adds, after every v1.3 node and edge: SIGNATURE_USES (type flow through signatures), Component
    * nodes with BELONGS_TO / DEPENDS_ON / EXPORTS_SYMBOL / DEEP_IMPORT and Martin's metrics, Channel nodes with
@@ -173,6 +181,7 @@ export const V12E_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object
   reExportEdges: 'resolved-only',
   memberFacts: false,
   aliasDeclarationPackages: false,
+  fieldState: false,
   apg2: false,
   components: [],
 });
@@ -189,6 +198,15 @@ export const V13_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.
   reExportEdges: 'both',
   memberFacts: true,
   aliasDeclarationPackages: true,
+});
+
+/**
+ * v1.3 field-level state facts: the v1.3 defaults plus HOLDS_STATE_OF edges. Not the default, so every v1.3 graph read
+ * by the existing templates, metrics and reports is unchanged.
+ */
+export const V13_FIELD_STATE_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.freeze({
+  ...V13_DEFAULT_OPTIONS,
+  fieldState: true,
 });
 
 /**

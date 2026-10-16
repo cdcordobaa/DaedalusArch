@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6141,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "7b475cdbed45a2e2bd855be026d954f8098854ab17386a41839a942a7ba8dbcb-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.97,
+    "evidence": [
+      "src/domain/services/AvailabilityChecker.ts: `export class AvailabilityChecker` has no decorators and no base class",
+      "src/domain/services/AvailabilityChecker.ts: `isAvailable(room: Room, stay: DateRange, bookings: readonly Booking[]): boolean` uses only domain model types from ../model/* and a primitive",
+      "src/domain/services/AvailabilityChecker.ts: body `!bookings.some((b) => b.isActive && b.roomId === room.id && b.stay.overlaps(stay))` is pure, in-memory domain logic with no I/O"
+    ],
+    "pass": true,
+    "reasoning": "AvailabilityChecker is a plain domain service with no decorator, no base class and no framework or ORM types. Its only method, isAvailable(room: Room, stay: DateRange, bookings: readonly Booking[]): boolean, takes and returns only types declared in the project's domain model plus a primitive. The method body is a pure domain decision: a room is unavailable if an active booking for it overlaps the requested stay. Nothing in it does persistence or I/O, and nothing comes from HTTP or transport. This matches the domain layer role.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities, signatures and annotations match the role of its declared layer.\n\n## Rubric\nPass: Every declaration in the file belongs to the role and kind of its declared layer, including its parameter, return and field types, its decorators and base classes, and its statements, and agrees with any ADR prose given.\nFail: The file carries something that belongs to a different layer kind. In a domain or application file: a request, response, HTTP context, status code or HTTP error, from a web or transport package or from the delivery layer, in any method or function signature (parameter or return) or thrown, even when the parameter is optional or unused. In a domain file also: any framework or ORM type, decorator or base class (dependency injection, routing, persistence mapping), even when the class logic is pure; or persistence or I/O (queries, database or ORM clients, HTTP or file access). In an infrastructure or presentation file: a business rule, that is a domain invariant, calculation or decision that the domain or application layer should own. Constructor parameters of an application file are dependency wiring: an injected repository, client or service there is not by itself misplaced. A type the project declares itself is not a framework type, whatever its name.\nEvidence required: Name the file and cite the signature, decorator, declaration or statement that carries the misplaced responsibility, its package or origin, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- adapters-inbound (kind: presentation): src/adapters/inbound/**\n- adapters-outbound (kind: infrastructure): src/adapters/outbound/**\n- config (kind: application): src/config/**\n\n## Unit\nKind: file\nId: src/domain/services/AvailabilityChecker.ts\nLayer: domain\nUnit files:\n- src/domain/services/AvailabilityChecker.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/services/AvailabilityChecker.ts=====\nimport { Booking } from '../model/Booking';\nimport { DateRange } from '../model/DateRange';\nimport { Room } from '../model/Room';\n\nexport class AvailabilityChecker {\n  isAvailable(room: Room, stay: DateRange, bookings: readonly Booking[]): boolean {\n    return !bookings.some((b) => b.isActive && b.roomId === room.id && b.stay.overlaps(stay));\n  }\n}\n\n=====SOURCE-END=====\n\n## Neighbourhood\nsrc/domain/services/AvailabilityChecker.ts (layer domain, kind domain)\n  imports: src/domain/model/Booking.ts (layer domain, kind domain); src/domain/model/DateRange.ts (layer domain, kind domain); src/domain/model/Room.ts (layer domain, kind domain)\n  imported by: src/application/services/BookRoomService.ts (layer application, kind application); src/application/services/FindAvailableRoomsService.ts (layer application, kind application)\n  types: AvailabilityChecker receives flow from BookRoomService in src/application/services/BookRoomService.ts (layer application, kind application); AvailabilityChecker receives flow from FindAvailableRoomsService in src/application/services/FindAvailableRoomsService.ts (layer application, kind application)\n\n## Candidate flags\nCandidates proposed by deterministic checks; verify, don't trust. Each line is a tool observation with its location, not a finding.\n(none)\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric. Check each candidate flag against the source: a flag the source does not support must not count against the unit, and a violation the flags miss counts as much as one they name. Judge what each declaration is, not only what it does at run time.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T21:08:09.043Z",
+  "repetition": 0,
+  "requestHash": "7b475cdbed45a2e2bd855be026d954f8098854ab17386a41839a942a7ba8dbcb",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":523}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.97,\\\"reasoning\\\":\\\"AvailabilityChecker is a plain domain service with no decorator, no base class and no framework or ORM types. Its only method, isAvailable(room: Room, stay: DateRange, bookings: readonly Booking[]): boolean, takes and returns only types declared in the project's domain model plus a primitive. The method body is a pure domain decision: a room is unavailable if an active booking for it overlaps the requested stay. Nothing in it does persistence or I/O, and nothing comes from HTTP or transport. This matches the domain layer role.\\\",\\\"evidence\\\":[\\\"src/domain/services/AvailabilityChecker.ts: `export class AvailabilityChecker` has no decorators and no base class\\\",\\\"src/domain/services/AvailabilityChecker.ts: `isAvailable(room: Room, stay: DateRange, bookings: readonly Booking[]): boolean` uses only domain model types from ../model/* and a primitive\\\",\\\"src/domain/services/AvailabilityChecker.ts: body `!bookings.some((b) => b.isActive && b.roomId === room.id && b.stay.overlaps(stay))` is pure, in-memory domain logic with no I/O\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.97,\"evidence\":[\"src/domain/services/AvailabilityChecker.ts: `export class AvailabilityChecker` has no decorators and no base class\",\"src/domain/services/AvailabilityChecker.ts: `isAvailable(room: Room, stay: DateRange, bookings: readonly Booking[]): boolean` uses only domain model types from ../model/* and a primitive\",\"src/domain/services/AvailabilityChecker.ts: body `!bookings.some((b) => b.isActive && b.roomId === room.id && b.stay.overlaps(stay))` is pure, in-memory domain logic with no I/O\"],\"pass\":true,\"reasoning\":\"AvailabilityChecker is a plain domain service with no decorator, no base class and no framework or ORM types. Its only method, isAvailable(room: Room, stay: DateRange, bookings: readonly Booking[]): boolean, takes and returns only types declared in the project's domain model plus a primitive. The method body is a pure domain decision: a room is unavailable if an active booking for it overlaps the requested stay. Nothing in it does persistence or I/O, and nothing comes from HTTP or transport. This matches the domain layer role.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/services/AvailabilityChecker.ts",
+  "usage": {
+    "inputTokens": 2822,
+    "outputTokens": 523
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

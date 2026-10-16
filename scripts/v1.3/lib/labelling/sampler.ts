@@ -85,10 +85,10 @@ export function allocate(sizes: ReadonlyMap<string, number>, cap: number, tieOrd
   return out;
 }
 
-/** True for a row of a partial rule's N/A part (rule-tiers.md: FF-P06 FLOWS_TO rows). */
+/** True for a row of a partial rule's N/A part (rule-tiers.md: FF-P06 field rows, FLOWS_TO or HOLDS_STATE_OF). */
 export function notApplicable(f: Pick<Finding, 'ruleId' | 'style' | 'discriminator'>): boolean {
-  const na = ruleTier(f.ruleId, f.style).entry?.partial?.naRelType;
-  return na !== undefined && f.discriminator.includes(na);
+  const na = ruleTier(f.ruleId, f.style).entry?.partial?.naRelTypes;
+  return na?.some((t) => f.discriminator.includes(t)) === true;
 }
 
 export function sampleFindings(findings: readonly Finding[], seed: number, tiers: 'blocking' | 'all' = 'blocking', cap = PER_RULE_CAP): SampleFile {

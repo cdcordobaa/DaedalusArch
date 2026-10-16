@@ -34,6 +34,7 @@ import type {
   Agreement, ApgEdgeInfo, ApgLike, ClassifyContext, DcEdgeInfo, DcModule, EdgeKey, RefOccurrence,
 } from './lib/graph-fidelity.js';
 import { assignLayers } from './lib/layer-assignment.js';
+import { must } from './lib/must.js';
 import type { LayerAssignment } from './lib/layer-assignment.js';
 
 const REPO = process.cwd();
@@ -96,8 +97,8 @@ function need(name: string, argv: readonly string[]): string {
   return v;
 }
 
-function readJson<T>(p: string): T {
-  return JSON.parse(readFileSync(p, 'utf8')) as T;
+function readJson(p: string): unknown {
+  return JSON.parse(readFileSync(p, 'utf8')) as unknown;
 }
 
 function writeOut(p: string, text: string): void {
@@ -106,6 +107,9 @@ function writeOut(p: string, text: string): void {
 }
 
 const r4 = (x: number): number => Math.round(x * 1e6) / 1e6;
+
+/** The first extractor variant: the base the adjudication and the per-project figures read. */
+const baseVariant = (variants: readonly Variant[]): Variant => must(variants[0], 'an extractor variant');
 
 // ── Measurement of one project ───────────────────────────────────────────────
 
@@ -123,7 +127,8 @@ async function measure(input: ProjectInput, variants: readonly Variant[], depcru
     }
     apg[v.name] = projectApg(v.edgeFilter !== undefined ? { ...res.data, edges: res.data.edges.filter(v.edgeFilter) } : res.data);
   }
-  const apgFiles = new Set(apg[variants[0]!.name]!.files);
+  const apgOf = (name: string): ReturnType<typeof projectApg> => must(apg[name], `APG edges of ${name}`);
+  const apgFiles = new Set(apgOf(baseVariant(variants).name).files);
 
   // (c) TypeScript compiler reference.
   const tsc = tscReference(root, tsconfig);
@@ -150,14 +155,17 @@ async function measure(input: ProjectInput, variants: readonly Variant[], depcru
   }
 
   // Sets and evidence.
-  const sets: Record<string, Set<EdgeKey>> = { depcruise: new Set(dc.keys()), tsc: new Set(tscEdges.keys()) };
-  for (const v of variants) sets[v.name] = new Set(apg[v.name]!.edges.keys());
+  const dcSet = new Set(dc.keys());
+  const tscSet = new Set(tscEdges.keys());
+  const sets: Record<string, Set<EdgeKey>> = { depcruise: dcSet, tsc: tscSet };
+  for (const v of variants) sets[v.name] = new Set(apgOf(v.name).edges.keys());
+  const setOf = (name: string): Set<EdgeKey> => must(sets[name], `edge set ${name}`);
   const all = new Set<EdgeKey>();
   for (const s of Object.values(sets)) for (const k of s) all.add(k);
   const evidence: ProjectState['evidence'] = new Map();
   for (const k of [...all].sort(cmp)) {
     const ap: Record<string, ApgEdgeInfo | undefined> = {};
-    for (const v of variants) ap[v.name] = apg[v.name]!.edges.get(k);
+    for (const v of variants) ap[v.name] = apgOf(v.name).edges.get(k);
     evidence.set(k, { tsc: tscEdges.get(k) ?? [], dc: dc.get(k), apg: ap });
   }
   const tscBySource = new Map<string, RefOccurrence[]>();
@@ -168,7 +176,7 @@ async function measure(input: ProjectInput, variants: readonly Variant[], depcru
   const ctxByVariant = new Map<string, ClassifyContext>();
   for (const v of variants) {
     const apgBySource = new Map<string, { target: string; info: ApgEdgeInfo }[]>();
-    for (const [k, info] of apg[v.name]!.edges) {
+    for (const [k, info] of apgOf(v.name).edges) {
       const [s, t] = splitKey(k);
       const l = apgBySource.get(s);
       if (l === undefined) apgBySource.set(s, [{ target: t, info }]); else l.push({ target: t, info });
@@ -182,8 +190,8 @@ async function measure(input: ProjectInput, variants: readonly Variant[], depcru
   };
   const scoped = (s: ReadonlySet<EdgeKey>): Set<EdgeKey> => new Set([...s].filter(inScope));
   const refSet = (name: RefName, f: (s: ReadonlySet<EdgeKey>) => Set<EdgeKey>): Set<EdgeKey> => {
-    const d = f(sets.depcruise!);
-    const t = f(sets.tsc!);
+    const d = f(dcSet);
+    const t = f(tscSet);
     if (name === 'depcruise') return d;
     if (name === 'tsc') return t;
     if (name === 'union') return new Set([...d, ...t]);
@@ -193,11 +201,13 @@ async function measure(input: ProjectInput, variants: readonly Variant[], depcru
   const agreeRaw: Record<string, Record<RefName, Agreement>> = {};
   const identity = (s: ReadonlySet<EdgeKey>): Set<EdgeKey> => new Set(s);
   for (const v of variants) {
-    agree[v.name] = {} as Record<RefName, Agreement>;
-    agreeRaw[v.name] = {} as Record<RefName, Agreement>;
+    const scopedAgreement = {} as Record<RefName, Agreement>;
+    const rawAgreement = {} as Record<RefName, Agreement>;
+    agree[v.name] = scopedAgreement;
+    agreeRaw[v.name] = rawAgreement;
     for (const r of REFS) {
-      agree[v.name]![r] = agreement(scoped(sets[v.name]!), refSet(r, scoped));
-      agreeRaw[v.name]![r] = agreement(sets[v.name]!, refSet(r, identity));
+      scopedAgreement[r] = agreement(scoped(setOf(v.name)), refSet(r, scoped));
+      rawAgreement[r] = agreement(setOf(v.name), refSet(r, identity));
     }
   }
 
@@ -205,20 +215,21 @@ async function measure(input: ProjectInput, variants: readonly Variant[], depcru
   const classes: Record<string, Record<'depcruise' | 'tsc', Record<string, number>>> = {};
   const rowClass = new Map<EdgeKey, Record<string, string>>();
   for (const v of variants) {
-    classes[v.name] = { depcruise: {}, tsc: {} };
-    const ctx = ctxByVariant.get(v.name)!;
+    const variantClasses: Record<'depcruise' | 'tsc', Record<string, number>> = { depcruise: {}, tsc: {} };
+    classes[v.name] = variantClasses;
+    const ctx = must(ctxByVariant.get(v.name), `classification context of ${v.name}`);
     for (const ref of ['depcruise', 'tsc'] as const) {
-      const A = sets[v.name]!;
-      const R = sets[ref]!;
+      const A = setOf(v.name);
+      const R = setOf(ref);
       for (const k of all) {
         const inA = A.has(k);
         const inR = R.has(k);
         if (inA === inR) continue;
-        const ev = evidence.get(k)!;
+        const ev = must(evidence.get(k), `evidence of ${k}`);
         const missingSide = inA ? 'ref' : 'apg';
         const cls = classify({ key: k, tsc: ev.tsc, dc: ev.dc, apg: ev.apg[v.name] }, missingSide, ctx);
         const label = `${missingSide === 'apg' ? 'missing-in-apg' : 'missing-in-ref'}:${cls}`;
-        classes[v.name]![ref][label] = (classes[v.name]![ref][label] ?? 0) + 1;
+        variantClasses[ref][label] = (variantClasses[ref][label] ?? 0) + 1;
         const rc = rowClass.get(k) ?? {};
         rc[`${v.name}|${ref}`] = `${label}${isByDesign(cls, missingSide, v.dynamicOption) ? ' (by-design)' : ''}`;
         rowClass.set(k, rc);
@@ -236,7 +247,7 @@ async function measure(input: ProjectInput, variants: readonly Variant[], depcru
     const lines = [...new Set([...ev.tsc.map((o) => o.line), ...(firstApg?.lines ?? [])])].sort((a, b) => a - b);
     return [
       s, t, inScope(k) ? 'in-scope' : `${scopeOf(s, apgFiles)}>${scopeOf(t, apgFiles)}`,
-      ...variants.map((v) => (sets[v.name]!.has(k) ? 1 : 0)), sets.depcruise!.has(k) ? 1 : 0, sets.tsc!.has(k) ? 1 : 0,
+      ...variants.map((v) => (setOf(v.name).has(k) ? 1 : 0)), dcSet.has(k) ? 1 : 0, tscSet.has(k) ? 1 : 0,
       [...new Set(ev.tsc.map((o) => o.kind))].sort(cmp), specs, lines, ev.dc?.dependencyTypes ?? [],
       ...pairCols.map((c) => rowClass.get(k)?.[c] ?? ''),
     ];
@@ -295,7 +306,7 @@ async function runCorpus(name: string, inputs: readonly ProjectInput[], variants
     if (csv !== undefined) writeOut(join(outDir, 'projects', `${slug(input.id)}.csv`), csv);
     for (const a of assignments ?? []) layerPool.push({ project: input.id, a });
     if (state !== undefined) {
-      const base = variants[0]!.name;
+      const base = baseVariant(variants).name;
       for (const [k, ev] of state.evidence) {
         const inSets = Object.fromEntries(Object.entries(state.sets).map(([n, s]) => [n, s.has(k)]));
         const disagree = pairCols.some((c) => {
@@ -303,7 +314,7 @@ async function runCorpus(name: string, inputs: readonly ProjectInput[], variants
           return inSets[v] !== inSets[r];
         });
         if (disagree) {
-          const ctx = state.ctxByVariant.get(base)!;
+          const ctx = must(state.ctxByVariant.get(base), `classification context of ${base}`);
           const sv = suggestVerdict(state.input.root, { key: k, tsc: ev.tsc, dc: ev.dc, apg: ev.apg[base] ?? Object.values(ev.apg).find((x) => x !== undefined) }, ctx, state.compilerOptions);
           adjudication.push(adjRow('disagreement', '', input.id, k, ev, inSets, variants, state, sv, pairCols));
         } else if (inSets[base] === true && inSets.depcruise === true && inSets.tsc === true) {
@@ -315,18 +326,18 @@ async function runCorpus(name: string, inputs: readonly ProjectInput[], variants
       }
       states.set(input.id, state);
     }
-    const a = summary.agreement?.[variants[0]!.name];
+    const a = summary.agreement?.[baseVariant(variants).name];
     process.stdout.write(`${input.id}\t${String(Date.now() - t0)} ms\t${summary.ok ? `dc cov ${a?.depcruise.refCoveredByApg.toFixed(4) ?? '?'} conf ${a?.depcruise.apgConfirmedByRef.toFixed(4) ?? '?'} | tsc cov ${a?.tsc.refCoveredByApg.toFixed(4) ?? '?'} conf ${a?.tsc.apgConfirmedByRef.toFixed(4) ?? '?'}` : `ERROR ${summary.error ?? ''}`}\n`);
   }
 
   // Stratified agreement sample (seeded).
   const rnd = mulberry32(seed);
   for (const { stratum, item } of stratifiedSample(agreementPool, AGREEMENT_SAMPLE, rnd)) {
-    const state = states.get(item.project)!;
-    const ev = state.evidence.get(item.key)!;
-    const base = variants[0]!.name;
+    const state = must(states.get(item.project), `state of ${item.project}`);
+    const ev = must(state.evidence.get(item.key), `evidence of ${item.key}`);
+    const base = baseVariant(variants).name;
     const inSets = Object.fromEntries(Object.entries(state.sets).map(([n, s]) => [n, s.has(item.key)]));
-    const sv = suggestVerdict(state.input.root, { key: item.key, tsc: ev.tsc, dc: ev.dc, apg: ev.apg[base] }, state.ctxByVariant.get(base)!, state.compilerOptions);
+    const sv = suggestVerdict(state.input.root, { key: item.key, tsc: ev.tsc, dc: ev.dc, apg: ev.apg[base] }, must(state.ctxByVariant.get(base), `classification context of ${base}`), state.compilerOptions);
     adjudication.push(adjRow('agreement-sample', stratum, item.project, item.key, ev, inSets, variants, state, sv, pairCols));
   }
   const adjHeader = [
@@ -357,7 +368,7 @@ function adjRow(
     const [v, r] = c.split('|') as [string, 'depcruise' | 'tsc'];
     if (inSets[v] === inSets[r]) return '';
     const missingSide = inSets[v] === true ? 'ref' : 'apg';
-    const c_ = classify({ key: k, tsc: ev.tsc, dc: ev.dc, apg: ev.apg[v] }, missingSide, state.ctxByVariant.get(v)!);
+    const c_ = classify({ key: k, tsc: ev.tsc, dc: ev.dc, apg: ev.apg[v] }, missingSide, must(state.ctxByVariant.get(v), `classification context of ${v}`));
     return `${missingSide === 'apg' ? 'missing-in-apg' : 'missing-in-ref'}:${c_}`;
   });
   return [
@@ -397,13 +408,13 @@ function aggregate(name: string, summaries: readonly ProjectSummary[], variants:
         };
       }
     }
-    const classes: Record<string, Record<string, number>> = { depcruise: {}, tsc: {} };
+    const classes: Record<'depcruise' | 'tsc', Record<string, number>> = { depcruise: {}, tsc: {} };
     for (const s of ok) {
       for (const ref of ['depcruise', 'tsc'] as const) {
-        for (const [label, n] of Object.entries(s.classes?.[v.name]?.[ref] ?? {})) classes[ref]![label] = (classes[ref]![label] ?? 0) + n;
+        for (const [label, n] of Object.entries(s.classes?.[v.name]?.[ref] ?? {})) classes[ref][label] = (classes[ref][label] ?? 0) + n;
       }
     }
-    for (const ref of ['depcruise', 'tsc'] as const) classes[ref] = Object.fromEntries(Object.entries(classes[ref]!).sort(([a], [b]) => cmp(a, b)));
+    for (const ref of ['depcruise', 'tsc'] as const) classes[ref] = Object.fromEntries(Object.entries(classes[ref]).sort(([a], [b]) => cmp(a, b)));
     agg[v.name] = { agreement: per, disagreementClasses: classes };
   }
   out.variants = agg;
@@ -417,7 +428,7 @@ function aggregate(name: string, summaries: readonly ProjectSummary[], variants:
     inconsistencies: withLayer.reduce((n, s) => n + (s.layer?.inconsistencies.length ?? 0), 0),
   };
   out.perProject = ok.map((s) => {
-    const a = s.agreement?.[variants[0]!.name];
+    const a = s.agreement?.[baseVariant(variants).name];
     return {
       id: s.id, judged: s.meta.judged, apgEdges: a?.tsc.apgEdges, tscEdges: a?.tsc.refEdges, depcruiseEdges: a?.depcruise.refEdges,
       dc: a !== undefined ? [r4(a.depcruise.refCoveredByApg), r4(a.depcruise.apgConfirmedByRef)] : null,
@@ -433,12 +444,12 @@ function aggregate(name: string, summaries: readonly ProjectSummary[], variants:
 interface E1Plan { e1: { models: string[]; specLevels: string[]; tasks: { taskId: string; specPath: string }[]; runs: number; style: string } }
 
 function e1Inputs(outcomes: string, planPath: string, tmp: string): ProjectInput[] {
-  const plan = readJson<E1Plan>(planPath);
+  const plan = readJson(planPath) as E1Plan;
   const judged = new Map<string, string>();
   const runsDir = resolve(REPO, 'results/e1-grid/runs');
   if (existsSync(runsDir)) {
     for (const f of readdirSync(runsDir).filter((x) => x.endsWith('.run.json')).sort(cmp)) {
-      const r = readJson<{ projectId: string; status: string; reasonCode?: string }>(join(runsDir, f));
+      const r = readJson(join(runsDir, f)) as { projectId: string; status: string; reasonCode?: string };
       judged.set(r.projectId, `${r.status}${r.reasonCode !== undefined ? `:${r.reasonCode}` : ''}`);
     }
   }
@@ -468,7 +479,7 @@ function e1Inputs(outcomes: string, planPath: string, tmp: string): ProjectInput
 
 function so4Inputs(basesDir: string): ProjectInput[] {
   return readdirSync(basesDir).filter((f) => f.endsWith('.json')).sort(cmp).map((f) => {
-    const b = readJson<{ projectId: string; dir: string; tsconfigPath: string; specPath: string; overlays?: { path: string }[]; baseCommit?: string }>(join(basesDir, f));
+    const b = readJson(join(basesDir, f)) as { projectId: string; dir: string; tsconfigPath: string; specPath: string; overlays?: { path: string }[]; baseCommit?: string };
     return {
       id: b.projectId, root: b.dir, tsconfig: join(b.dir, b.tsconfigPath), specPath: resolve(REPO, b.specPath),
       meta: { baseCommit: b.baseCommit ?? null, overlaysNotApplied: (b.overlays ?? []).map((o) => o.path) },

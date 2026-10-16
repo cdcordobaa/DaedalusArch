@@ -1,0 +1,997 @@
+{
+  "schemaVersion": 1,
+  "summary": [
+    {
+      "rule": "FF-DS01/bounded-context-modules",
+      "n": 1,
+      "correct": 1,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.20654931437723745,
+      "wilsonHigh": 1
+    },
+    {
+      "rule": "FF-DS02/context-isolation",
+      "n": 2,
+      "correct": 2,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.34238022750665303,
+      "wilsonHigh": 1
+    },
+    {
+      "rule": "FF-DT01/aggregate-boundary",
+      "n": 1,
+      "correct": 1,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.20654931437723745,
+      "wilsonHigh": 1
+    },
+    {
+      "rule": "FF-DT02/repository-aggregate-root",
+      "n": 1,
+      "correct": 1,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.20654931437723745,
+      "wilsonHigh": 1
+    },
+    {
+      "rule": "FF-DT03/value-object-immutability",
+      "n": 2,
+      "correct": 2,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.34238022750665303,
+      "wilsonHigh": 1
+    },
+    {
+      "rule": "FF-DT04/domain-purity",
+      "n": 1,
+      "correct": 1,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.20654931437723745,
+      "wilsonHigh": 1
+    },
+    {
+      "rule": "FF-P01/domain-purity",
+      "n": 7,
+      "correct": 7,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.6456695649333126,
+      "wilsonHigh": 1
+    },
+    {
+      "rule": "FF-P03/port-adapter-pattern",
+      "n": 2,
+      "correct": 2,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.34238022750665303,
+      "wilsonHigh": 1
+    },
+    {
+      "rule": "FF-P03/repository-pattern",
+      "n": 2,
+      "correct": 2,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.34238022750665303,
+      "wilsonHigh": 1
+    },
+    {
+      "rule": "FF-P06/domain-state-purity",
+      "n": 3,
+      "correct": 0,
+      "incorrect": 0,
+      "notCheckable": 3,
+      "correctShare": null,
+      "wilsonLow": null,
+      "wilsonHigh": null
+    },
+    {
+      "rule": "FF-S01/dependency-direction",
+      "n": 11,
+      "correct": 11,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.7411670330319684,
+      "wilsonHigh": 1
+    },
+    {
+      "rule": "FF-S01/dependency-direction-graph",
+      "n": 6,
+      "correct": 6,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.6096657120978346,
+      "wilsonHigh": 1
+    },
+    {
+      "rule": "FF-S02/no-cyclic-deps",
+      "n": 5,
+      "correct": 5,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.5655175352168251,
+      "wilsonHigh": 1
+    },
+    {
+      "rule": "FF-S03/no-layer-skip",
+      "n": 5,
+      "correct": 5,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.5655175352168251,
+      "wilsonHigh": 1
+    },
+    {
+      "rule": "FF-S04/core-isolation",
+      "n": 3,
+      "correct": 3,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.4385029682449546,
+      "wilsonHigh": 1
+    },
+    {
+      "rule": "FF-S04/no-domain-outward-dep",
+      "n": 5,
+      "correct": 5,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.5655175352168251,
+      "wilsonHigh": 1
+    }
+  ],
+  "results": [
+    {
+      "key": "5dc11fdb172b454a8f3afe98",
+      "projectId": "clean-architecture/v01-domain-imports-application-port",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/domain/entities/Loan.ts",
+      "verdict": "correct",
+      "reason": "domain (position 0) imports application (position 1), against the spec's layer order",
+      "checks": [
+        "'../../application/ports/Clock' at line 1 resolves to src/application/ports/Clock.ts",
+        "layers by spec globs: src/domain/entities/Loan.ts -> domain; src/application/ports/Clock.ts -> application"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "12b05521f3d9da585404a075",
+      "projectId": "clean-architecture/v01-domain-imports-application-port",
+      "ruleId": "FF-S04",
+      "template": "no-domain-outward-dep",
+      "tier": "blocking",
+      "file": "src/domain/entities/Loan.ts",
+      "verdict": "correct",
+      "reason": "domain file imports application",
+      "checks": [
+        "'../../application/ports/Clock' at line 1 resolves to src/application/ports/Clock.ts",
+        "layers by spec globs: src/domain/entities/Loan.ts -> domain; src/application/ports/Clock.ts -> application"
+      ],
+      "rule": "FF-S04/no-domain-outward-dep"
+    },
+    {
+      "key": "ea60a919cf29633bb91050ea",
+      "projectId": "clean-architecture/v02-domain-uses-infrastructure-clock",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/domain/services/LoanPolicy.ts",
+      "verdict": "correct",
+      "reason": "domain (position 0) imports infrastructure (position 2), against the spec's layer order",
+      "checks": [
+        "'../../infrastructure/system/SystemClock' at line 4 resolves to src/infrastructure/system/SystemClock.ts",
+        "layers by spec globs: src/domain/services/LoanPolicy.ts -> domain; src/infrastructure/system/SystemClock.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "5f9544d2198ad626d4964025",
+      "projectId": "clean-architecture/v02-domain-uses-infrastructure-clock",
+      "ruleId": "FF-S04",
+      "template": "no-domain-outward-dep",
+      "tier": "blocking",
+      "file": "src/domain/services/LoanPolicy.ts",
+      "verdict": "correct",
+      "reason": "domain file imports infrastructure",
+      "checks": [
+        "'../../infrastructure/system/SystemClock' at line 4 resolves to src/infrastructure/system/SystemClock.ts",
+        "layers by spec globs: src/domain/services/LoanPolicy.ts -> domain; src/infrastructure/system/SystemClock.ts -> infrastructure"
+      ],
+      "rule": "FF-S04/no-domain-outward-dep"
+    },
+    {
+      "key": "bcc07589e89731e03cc0d592",
+      "projectId": "clean-architecture/v03-domain-entity-cycle",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/domain/entities/Loan.ts,src/domain/entities/Member.ts,src/domain/entities/Loan.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/domain/entities/Loan.ts:3 './Member' -> src/domain/entities/Member.ts",
+        "src/domain/entities/Member.ts:2 './Loan' -> src/domain/entities/Loan.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "4af32455f55765326a1a4218",
+      "projectId": "clean-architecture/v04-domain-entity-typeorm-decorator",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/domain/entities/Book.ts",
+      "verdict": "correct",
+      "reason": "'typeorm' at line 1 imports typeorm (forbidden by 'typeorm')",
+      "checks": [
+        "layer by spec globs: src/domain/entities/Book.ts -> domain"
+      ],
+      "rule": "FF-P01/domain-purity"
+    },
+    {
+      "key": "4cbced346a1d657039b60749",
+      "projectId": "clean-architecture/v05-use-case-injects-concrete-repository",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/application/use-cases/RegisterBookUseCase.ts",
+      "verdict": "correct",
+      "reason": "application (position 1) imports infrastructure (position 2), against the spec's layer order",
+      "checks": [
+        "'../../infrastructure/persistence/InMemoryBookRepository' at line 3 resolves to src/infrastructure/persistence/InMemoryBookRepository.ts",
+        "layers by spec globs: src/application/use-cases/RegisterBookUseCase.ts -> application; src/infrastructure/persistence/InMemoryBookRepository.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "439749703f7147136497ec83",
+      "projectId": "clean-architecture/v06-repository-without-port",
+      "ruleId": "FF-P03",
+      "template": "repository-pattern",
+      "tier": "blocking",
+      "file": "src/infrastructure/persistence/InMemoryLoanRepository.ts",
+      "verdict": "correct",
+      "reason": "InMemoryLoanRepository implements no interface",
+      "checks": [
+        "class InMemoryLoanRepository declared at src/infrastructure/persistence/InMemoryLoanRepository.ts:3"
+      ],
+      "rule": "FF-P03/repository-pattern"
+    },
+    {
+      "key": "964f959d469c7c66ca450627",
+      "projectId": "clean-architecture/v08-domain-service-holds-infrastructure-clock",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/domain/services/LoanPolicy.ts",
+      "verdict": "correct",
+      "reason": "domain (position 0) imports infrastructure (position 2), against the spec's layer order",
+      "checks": [
+        "'../../infrastructure/system/SystemClock' at line 4 resolves to src/infrastructure/system/SystemClock.ts",
+        "layers by spec globs: src/domain/services/LoanPolicy.ts -> domain; src/infrastructure/system/SystemClock.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "b13aa5718c2afdde7e22aa5a",
+      "projectId": "clean-architecture/v08-domain-service-holds-infrastructure-clock",
+      "ruleId": "FF-S04",
+      "template": "no-domain-outward-dep",
+      "tier": "blocking",
+      "file": "src/domain/services/LoanPolicy.ts",
+      "verdict": "correct",
+      "reason": "domain file imports infrastructure",
+      "checks": [
+        "'../../infrastructure/system/SystemClock' at line 4 resolves to src/infrastructure/system/SystemClock.ts",
+        "layers by spec globs: src/domain/services/LoanPolicy.ts -> domain; src/infrastructure/system/SystemClock.ts -> infrastructure"
+      ],
+      "rule": "FF-S04/no-domain-outward-dep"
+    },
+    {
+      "key": "9a4db67eb48b947a64feee34",
+      "projectId": "clean-architecture/v08-domain-service-holds-infrastructure-clock",
+      "ruleId": "FF-P06",
+      "template": "domain-state-purity",
+      "tier": "blocking",
+      "file": "src/domain/services/LoanPolicy.ts",
+      "verdict": "not-checkable",
+      "reason": "FLOWS_TO (field) half: reported N/A by rule-tiers.md (FF-P06, finding 9)",
+      "checks": [],
+      "rule": "FF-P06/domain-state-purity"
+    },
+    {
+      "key": "14dbba32eb7b12b86a84e0bd",
+      "projectId": "clean-architecture/v09-dto-depends-on-http-adapter",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/application/dto/LoanDto.ts",
+      "verdict": "correct",
+      "reason": "application (position 1) imports infrastructure (position 2), against the spec's layer order",
+      "checks": [
+        "'../../infrastructure/http/HttpTypes' at line 2 resolves to src/infrastructure/http/HttpTypes.ts",
+        "layers by spec globs: src/application/dto/LoanDto.ts -> application; src/infrastructure/http/HttpTypes.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "3fa676fa5d5d720b145a3299",
+      "projectId": "clean-architecture/v10-domain-entity-type-imports-express",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/domain/entities/Member.ts",
+      "verdict": "correct",
+      "reason": "'express' at line 1 imports express (forbidden by 'express')",
+      "checks": [
+        "layer by spec globs: src/domain/entities/Member.ts -> domain"
+      ],
+      "rule": "FF-P01/domain-purity"
+    },
+    {
+      "key": "ebf56a302bf8cbe97af55ab4",
+      "projectId": "layered/v01-gateway-returns-business-money",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/persistence/ProductGateway.ts",
+      "verdict": "correct",
+      "reason": "persistence (position 0) imports business (position 1), against the spec's layer order",
+      "checks": [
+        "'../business/model/Money' at line 1 resolves to src/business/model/Money.ts",
+        "layers by spec globs: src/persistence/ProductGateway.ts -> persistence; src/business/model/Money.ts -> business"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "002cad76db7df23a7f9b0c4c",
+      "projectId": "layered/v01-gateway-returns-business-money",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/persistence/ProductGateway.ts",
+      "verdict": "correct",
+      "reason": "persistence -> business is not the adjacent downward step (positions 0 -> 1)",
+      "checks": [
+        "'../business/model/Money' at line 1 resolves to src/business/model/Money.ts",
+        "layers by spec globs: src/persistence/ProductGateway.ts -> persistence; src/business/model/Money.ts -> business"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "f3cae2428ed2f38657bbecf6",
+      "projectId": "layered/v02-service-renders-view",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/business/services/OrderService.ts",
+      "verdict": "correct",
+      "reason": "business (position 1) imports presentation (position 2), against the spec's layer order",
+      "checks": [
+        "'../../presentation/views/OrderView' at line 8 resolves to src/presentation/views/OrderView.ts",
+        "layers by spec globs: src/business/services/OrderService.ts -> business; src/presentation/views/OrderView.ts -> presentation"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "149ffbc1f01106f4ef78e943",
+      "projectId": "layered/v02-service-renders-view",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/business/services/OrderService.ts",
+      "verdict": "correct",
+      "reason": "business -> presentation is not the adjacent downward step (positions 1 -> 2)",
+      "checks": [
+        "'../../presentation/views/OrderView' at line 8 resolves to src/presentation/views/OrderView.ts",
+        "layers by spec globs: src/business/services/OrderService.ts -> business; src/presentation/views/OrderView.ts -> presentation"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "f61700f1f2c2ca9fa7dcd7a0",
+      "projectId": "layered/v03-controller-reads-gateway",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/presentation/http/CatalogController.ts",
+      "verdict": "correct",
+      "reason": "presentation -> persistence is not the adjacent downward step (positions 2 -> 0)",
+      "checks": [
+        "'../../persistence/ProductGateway' at line 2 resolves to src/persistence/ProductGateway.ts",
+        "layers by spec globs: src/presentation/http/CatalogController.ts -> presentation; src/persistence/ProductGateway.ts -> persistence"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "20fbe3214a5b498cc005a5a3",
+      "projectId": "layered/v04-view-types-persistence-record",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/presentation/views/ProductView.ts",
+      "verdict": "correct",
+      "reason": "presentation -> persistence is not the adjacent downward step (positions 2 -> 0)",
+      "checks": [
+        "'../../persistence/records/ProductRecord' at line 2 resolves to src/persistence/records/ProductRecord.ts",
+        "layers by spec globs: src/presentation/views/ProductView.ts -> presentation; src/persistence/records/ProductRecord.ts -> persistence"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "d62d19dce1b3b3671a4fef56",
+      "projectId": "layered/v05-business-model-cycle",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/business/model/Customer.ts,src/business/model/Order.ts,src/business/model/Customer.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/business/model/Customer.ts:1 './Order' -> src/business/model/Order.ts",
+        "src/business/model/Order.ts:2 './Customer' -> src/business/model/Customer.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "cdb1e3a763055a15bbeb6325",
+      "projectId": "layered/v06-router-controller-cycle",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/presentation/Router.ts,src/presentation/http/OrderController.ts,src/presentation/Router.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/presentation/Router.ts:3 './http/OrderController' -> src/presentation/http/OrderController.ts",
+        "src/presentation/http/OrderController.ts:2 '../Router' -> src/presentation/Router.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "8aa547babf970c98ce4c1d28",
+      "projectId": "layered/v07-business-model-typeorm-decorator",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/business/model/Order.ts",
+      "verdict": "correct",
+      "reason": "'typeorm' at line 1 imports typeorm (forbidden by 'typeorm')",
+      "checks": [
+        "layer by spec globs: src/business/model/Order.ts -> business"
+      ],
+      "rule": "FF-P01/domain-purity"
+    },
+    {
+      "key": "71fb3df708e1ab211c3ad73f",
+      "projectId": "layered/v08-business-service-takes-express-request",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/business/services/OrderService.ts",
+      "verdict": "correct",
+      "reason": "'express' at line 1 imports express (forbidden by 'express')",
+      "checks": [
+        "layer by spec globs: src/business/services/OrderService.ts -> business"
+      ],
+      "rule": "FF-P01/domain-purity"
+    },
+    {
+      "key": "e7f8176efdae5c7206851ec0",
+      "projectId": "layered/v09-presentation-root-builds-database",
+      "ruleId": "FF-S03",
+      "template": "no-layer-skip",
+      "tier": "blocking",
+      "file": "src/presentation/app.ts",
+      "verdict": "correct",
+      "reason": "presentation -> persistence is not the adjacent downward step (positions 2 -> 0)",
+      "checks": [
+        "'../persistence/Database' at line 2 resolves to src/persistence/Database.ts",
+        "layers by spec globs: src/presentation/app.ts -> presentation; src/persistence/Database.ts -> persistence"
+      ],
+      "rule": "FF-S03/no-layer-skip"
+    },
+    {
+      "key": "df0cb6d3a3deeb716ca6989b",
+      "projectId": "nestjs/v01-domain-entity-imports-dto",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/domain/registration.ts",
+      "verdict": "correct",
+      "reason": "domain (position 0) imports application (position 2), against the spec's layer order",
+      "checks": [
+        "'../registrations/dto/register-attendee.dto' at line 1 resolves to src/registrations/dto/register-attendee.dto.ts",
+        "layers by spec globs: src/domain/registration.ts -> domain; src/registrations/dto/register-attendee.dto.ts -> application"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "037a3f1b28ac30c0bef2cce4",
+      "projectId": "nestjs/v01-domain-entity-imports-dto",
+      "ruleId": "FF-S04",
+      "template": "no-domain-outward-dep",
+      "tier": "blocking",
+      "file": "src/domain/registration.ts",
+      "verdict": "correct",
+      "reason": "domain file imports application",
+      "checks": [
+        "'../registrations/dto/register-attendee.dto' at line 1 resolves to src/registrations/dto/register-attendee.dto.ts",
+        "layers by spec globs: src/domain/registration.ts -> domain; src/registrations/dto/register-attendee.dto.ts -> application"
+      ],
+      "rule": "FF-S04/no-domain-outward-dep"
+    },
+    {
+      "key": "ac63aa157896edb92638c67c",
+      "projectId": "nestjs/v02-repository-builds-response-dto",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/workshops/in-memory-workshop.repository.ts",
+      "verdict": "correct",
+      "reason": "infrastructure (position 1) imports application (position 2), against the spec's layer order",
+      "checks": [
+        "'./dto/workshop-response.dto' at line 4 resolves to src/workshops/dto/workshop-response.dto.ts",
+        "layers by spec globs: src/workshops/in-memory-workshop.repository.ts -> infrastructure; src/workshops/dto/workshop-response.dto.ts -> application"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "f680671fb1c29331511a9da8",
+      "projectId": "nestjs/v03-service-imports-guard",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/registrations/registrations.service.ts",
+      "verdict": "correct",
+      "reason": "application (position 2) imports presentation (position 3), against the spec's layer order",
+      "checks": [
+        "'../common/guards/api-key.guard' at line 2 resolves to src/common/guards/api-key.guard.ts",
+        "layers by spec globs: src/registrations/registrations.service.ts -> application; src/common/guards/api-key.guard.ts -> presentation"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "d0a08c6ecf4539ce459502fc",
+      "projectId": "nestjs/v04-response-dto-cycle",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/registrations/dto/registration-response.dto.ts,src/workshops/dto/workshop-response.dto.ts,src/registrations/dto/registration-response.dto.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/registrations/dto/registration-response.dto.ts:2 '../../workshops/dto/workshop-response.dto' -> src/workshops/dto/workshop-response.dto.ts",
+        "src/workshops/dto/workshop-response.dto.ts:2 '../../registrations/dto/registration-response.dto' -> src/registrations/dto/registration-response.dto.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "4d08769ce222eeff1fb07ee8",
+      "projectId": "nestjs/v05-domain-entity-typeorm-decorator",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/domain/workshop.ts",
+      "verdict": "correct",
+      "reason": "'typeorm' at line 1 imports typeorm (forbidden by 'typeorm')",
+      "checks": [
+        "layer by spec globs: src/domain/workshop.ts -> domain"
+      ],
+      "rule": "FF-P01/domain-purity"
+    },
+    {
+      "key": "7a54aa5d3ebe1edaa3cca943",
+      "projectId": "nestjs/v06-domain-entity-type-imports-express",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/domain/attendee.ts",
+      "verdict": "correct",
+      "reason": "'express' at line 1 imports express (forbidden by 'express')",
+      "checks": [
+        "layer by spec globs: src/domain/attendee.ts -> domain"
+      ],
+      "rule": "FF-P01/domain-purity"
+    },
+    {
+      "key": "f344c7521a55e717d944baa1",
+      "projectId": "nestjs/v08-repository-without-port",
+      "ruleId": "FF-P03",
+      "template": "repository-pattern",
+      "tier": "blocking",
+      "file": "src/attendees/in-memory-attendee.repository.ts",
+      "verdict": "correct",
+      "reason": "InMemoryAttendeeRepository implements no interface",
+      "checks": [
+        "class InMemoryAttendeeRepository declared at src/attendees/in-memory-attendee.repository.ts:4"
+      ],
+      "rule": "FF-P03/repository-pattern"
+    },
+    {
+      "key": "ed6471db714b4d66559f082e",
+      "projectId": "nestjs/v10-domain-policy-holds-repository",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction",
+      "tier": "blocking",
+      "file": "src/domain/registration-policy.ts",
+      "verdict": "correct",
+      "reason": "domain (position 0) imports infrastructure (position 1), against the spec's layer order",
+      "checks": [
+        "'../registrations/in-memory-registration.repository' at line 5 resolves to src/registrations/in-memory-registration.repository.ts",
+        "layers by spec globs: src/domain/registration-policy.ts -> domain; src/registrations/in-memory-registration.repository.ts -> infrastructure"
+      ],
+      "rule": "FF-S01/dependency-direction"
+    },
+    {
+      "key": "4905eaea91431350677c7519",
+      "projectId": "nestjs/v10-domain-policy-holds-repository",
+      "ruleId": "FF-S04",
+      "template": "no-domain-outward-dep",
+      "tier": "blocking",
+      "file": "src/domain/registration-policy.ts",
+      "verdict": "correct",
+      "reason": "domain file imports infrastructure",
+      "checks": [
+        "'../registrations/in-memory-registration.repository' at line 5 resolves to src/registrations/in-memory-registration.repository.ts",
+        "layers by spec globs: src/domain/registration-policy.ts -> domain; src/registrations/in-memory-registration.repository.ts -> infrastructure"
+      ],
+      "rule": "FF-S04/no-domain-outward-dep"
+    },
+    {
+      "key": "48662e544ff22f649d136df7",
+      "projectId": "nestjs/v10-domain-policy-holds-repository",
+      "ruleId": "FF-P06",
+      "template": "domain-state-purity",
+      "tier": "blocking",
+      "file": "src/domain/registration-policy.ts",
+      "verdict": "not-checkable",
+      "reason": "FLOWS_TO (field) half: reported N/A by rule-tiers.md (FF-P06, finding 9)",
+      "checks": [],
+      "rule": "FF-P06/domain-state-purity"
+    },
+    {
+      "key": "b09680b09bf55c9118f1fd63",
+      "projectId": "hexagonal/v01-domain-uses-outbound-adapter-constant",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/domain/services/PriceCalculator.ts",
+      "verdict": "correct",
+      "reason": "domain -> adapters-outbound runs against the allowed edge adapters-outbound -> domain",
+      "checks": [
+        "'../../adapters/outbound/payment/FakePaymentGateway' at line 1 resolves to src/adapters/outbound/payment/FakePaymentGateway.ts",
+        "layers by spec globs: src/domain/services/PriceCalculator.ts -> domain; src/adapters/outbound/payment/FakePaymentGateway.ts -> adapters-outbound"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "30b40da81999a3750dc10fd7",
+      "projectId": "hexagonal/v01-domain-uses-outbound-adapter-constant",
+      "ruleId": "FF-S04",
+      "template": "core-isolation",
+      "tier": "blocking",
+      "file": "src/domain/services/PriceCalculator.ts",
+      "verdict": "correct",
+      "reason": "domain file imports adapters-outbound",
+      "checks": [
+        "'../../adapters/outbound/payment/FakePaymentGateway' at line 1 resolves to src/adapters/outbound/payment/FakePaymentGateway.ts",
+        "layers by spec globs: src/domain/services/PriceCalculator.ts -> domain; src/adapters/outbound/payment/FakePaymentGateway.ts -> adapters-outbound"
+      ],
+      "rule": "FF-S04/core-isolation"
+    },
+    {
+      "key": "efdd9a6f69f7140924cb2bc9",
+      "projectId": "hexagonal/v02-domain-entity-uses-driven-port",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/domain/model/Booking.ts",
+      "verdict": "correct",
+      "reason": "domain -> application runs against the allowed edge application -> domain",
+      "checks": [
+        "'../../application/ports/out/NotificationSender' at line 1 resolves to src/application/ports/out/NotificationSender.ts",
+        "layers by spec globs: src/domain/model/Booking.ts -> domain; src/application/ports/out/NotificationSender.ts -> application"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "d77d952c6be2dc335c1c6b8a",
+      "projectId": "hexagonal/v02-domain-entity-uses-driven-port",
+      "ruleId": "FF-S04",
+      "template": "core-isolation",
+      "tier": "blocking",
+      "file": "src/domain/model/Booking.ts",
+      "verdict": "correct",
+      "reason": "domain file imports application",
+      "checks": [
+        "'../../application/ports/out/NotificationSender' at line 1 resolves to src/application/ports/out/NotificationSender.ts",
+        "layers by spec globs: src/domain/model/Booking.ts -> domain; src/application/ports/out/NotificationSender.ts -> application"
+      ],
+      "rule": "FF-S04/core-isolation"
+    },
+    {
+      "key": "3179e9b85e7798c31d873231",
+      "projectId": "hexagonal/v03-use-case-injects-concrete-adapter",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/application/services/FindAvailableRoomsService.ts",
+      "verdict": "correct",
+      "reason": "application -> adapters-outbound runs against the allowed edge adapters-outbound -> application",
+      "checks": [
+        "'../../adapters/outbound/persistence/InMemoryRoomRepository' at line 1 resolves to src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+        "layers by spec globs: src/application/services/FindAvailableRoomsService.ts -> application; src/adapters/outbound/persistence/InMemoryRoomRepository.ts -> adapters-outbound"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "cea2d3400c108873a375f76e",
+      "projectId": "hexagonal/v04-use-case-throws-http-error",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/application/services/CancelBookingService.ts",
+      "verdict": "correct",
+      "reason": "application -> adapters-inbound runs against the allowed edge adapters-inbound -> application",
+      "checks": [
+        "'../../adapters/inbound/http/HttpTypes' at line 1 resolves to src/adapters/inbound/http/HttpTypes.ts",
+        "layers by spec globs: src/application/services/CancelBookingService.ts -> application; src/adapters/inbound/http/HttpTypes.ts -> adapters-inbound"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "f44ee2c930411785df1428d2",
+      "projectId": "hexagonal/v07-domain-service-nestjs-decorator",
+      "ruleId": "FF-P01",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/domain/services/AvailabilityChecker.ts",
+      "verdict": "correct",
+      "reason": "'@nestjs/common' at line 1 imports @nestjs/common (forbidden by '@nestjs/*')",
+      "checks": [
+        "layer by spec globs: src/domain/services/AvailabilityChecker.ts -> domain"
+      ],
+      "rule": "FF-P01/domain-purity"
+    },
+    {
+      "key": "a6ca7b6619b42e159535df42",
+      "projectId": "hexagonal/v08-adapter-without-port",
+      "ruleId": "FF-P03",
+      "template": "port-adapter-pattern",
+      "tier": "blocking",
+      "file": "src/adapters/outbound/payment/FakePaymentGateway.ts",
+      "verdict": "correct",
+      "reason": "FakePaymentGateway implements no interface declared in domain or application",
+      "checks": [
+        "class FakePaymentGateway declared at src/adapters/outbound/payment/FakePaymentGateway.ts:7"
+      ],
+      "rule": "FF-P03/port-adapter-pattern"
+    },
+    {
+      "key": "884fd6f18cbde18730222d48",
+      "projectId": "hexagonal/v09-adapter-implements-local-interface",
+      "ruleId": "FF-P03",
+      "template": "port-adapter-pattern",
+      "tier": "blocking",
+      "file": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "verdict": "correct",
+      "reason": "InMemoryRoomRepository implements no interface declared in domain or application",
+      "checks": [
+        "class InMemoryRoomRepository declared at src/adapters/outbound/persistence/InMemoryRoomRepository.ts:5"
+      ],
+      "rule": "FF-P03/port-adapter-pattern"
+    },
+    {
+      "key": "0d268cfba14a6ff1ef6b5351",
+      "projectId": "hexagonal/v10-domain-service-holds-adapter",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/domain/services/AvailabilityChecker.ts",
+      "verdict": "correct",
+      "reason": "domain -> adapters-outbound runs against the allowed edge adapters-outbound -> domain",
+      "checks": [
+        "'../../adapters/outbound/persistence/InMemoryBookingRepository' at line 1 resolves to src/adapters/outbound/persistence/InMemoryBookingRepository.ts",
+        "layers by spec globs: src/domain/services/AvailabilityChecker.ts -> domain; src/adapters/outbound/persistence/InMemoryBookingRepository.ts -> adapters-outbound"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    },
+    {
+      "key": "e462eb06bb32e6eec7dd429c",
+      "projectId": "hexagonal/v10-domain-service-holds-adapter",
+      "ruleId": "FF-S04",
+      "template": "core-isolation",
+      "tier": "blocking",
+      "file": "src/domain/services/AvailabilityChecker.ts",
+      "verdict": "correct",
+      "reason": "domain file imports adapters-outbound",
+      "checks": [
+        "'../../adapters/outbound/persistence/InMemoryBookingRepository' at line 1 resolves to src/adapters/outbound/persistence/InMemoryBookingRepository.ts",
+        "layers by spec globs: src/domain/services/AvailabilityChecker.ts -> domain; src/adapters/outbound/persistence/InMemoryBookingRepository.ts -> adapters-outbound"
+      ],
+      "rule": "FF-S04/core-isolation"
+    },
+    {
+      "key": "3205945eb5037328a7af4c1d",
+      "projectId": "hexagonal/v10-domain-service-holds-adapter",
+      "ruleId": "FF-P06",
+      "template": "domain-state-purity",
+      "tier": "blocking",
+      "file": "src/domain/services/AvailabilityChecker.ts",
+      "verdict": "not-checkable",
+      "reason": "FLOWS_TO (field) half: reported N/A by rule-tiers.md (FF-P06, finding 9)",
+      "checks": [],
+      "rule": "FF-P06/domain-state-purity"
+    },
+    {
+      "key": "629adbe57d05f44c3853feb7",
+      "projectId": "hexagonal/v11-domain-model-cycle",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/domain/model/Booking.ts,src/domain/model/Room.ts,src/domain/model/Booking.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/domain/model/Booking.ts:4 './Room' -> src/domain/model/Room.ts",
+        "src/domain/model/Room.ts:1 './Booking' -> src/domain/model/Booking.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    },
+    {
+      "key": "968e6b6f72439d4bec287be1",
+      "projectId": "ddd/g01-value-object-setter-accessor",
+      "ruleId": "FF-DT03",
+      "template": "value-object-immutability",
+      "tier": "blocking",
+      "file": "src/ordering/domain/value-objects/Quantity.ts",
+      "verdict": "correct",
+      "reason": "value object Quantity is mutable through Quantity.value (set accessor)",
+      "checks": [
+        "class Quantity declared at src/ordering/domain/value-objects/Quantity.ts:2",
+        "Quantity.value: set accessor"
+      ],
+      "rule": "FF-DT03/value-object-immutability"
+    },
+    {
+      "key": "79dcdd344228f4b636431f3e",
+      "projectId": "ddd/g03-deep-import-of-reexported-file",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/billing/api/InvoiceController.ts",
+      "verdict": "correct",
+      "reason": "billing imports src/ordering/application/GetOrderSummary.ts of ordering, which is not its public API, outside an ACL",
+      "checks": [
+        "'../../ordering/application/GetOrderSummary.js' at line 4 resolves to src/ordering/application/GetOrderSummary.ts",
+        "contexts by root: src/billing/api/InvoiceController.ts -> billing; src/ordering/application/GetOrderSummary.ts -> ordering"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "aa0370ab3262acf33781bd8a",
+      "projectId": "ddd/v01-aggregate-boundary",
+      "ruleId": "FF-DT01",
+      "template": "aggregate-boundary",
+      "tier": "blocking",
+      "file": "src/ordering/application/GetOrderSummary.ts",
+      "verdict": "correct",
+      "reason": "src/ordering/application/GetOrderSummary.ts, outside aggregate Order, references its inner entity src/ordering/domain/order/OrderLine.ts",
+      "checks": [
+        "'../domain/order/OrderLine.js' at line 4 resolves to src/ordering/domain/order/OrderLine.ts"
+      ],
+      "rule": "FF-DT01/aggregate-boundary"
+    },
+    {
+      "key": "a959086f24bece0f12537242",
+      "projectId": "ddd/v02-repository-for-inner-entity",
+      "ruleId": "FF-DT02",
+      "template": "repository-aggregate-root",
+      "tier": "blocking",
+      "file": "src/ordering/domain/order/OrderLineRepository.ts",
+      "verdict": "correct",
+      "reason": "repository src/ordering/domain/order/OrderLineRepository.ts references inner entity src/ordering/domain/order/OrderLine.ts of Order",
+      "checks": [
+        "'./OrderLine.js' at line 1 resolves to src/ordering/domain/order/OrderLine.ts"
+      ],
+      "rule": "FF-DT02/repository-aggregate-root"
+    },
+    {
+      "key": "035a8266467107c16de0940c",
+      "projectId": "ddd/v03-mutable-value-object",
+      "ruleId": "FF-DT03",
+      "template": "value-object-immutability",
+      "tier": "blocking",
+      "file": "src/ordering/domain/value-objects/Quantity.ts",
+      "verdict": "correct",
+      "reason": "value object Quantity is mutable through Quantity.value (public mutable field), Quantity.setValue (mutator method)",
+      "checks": [
+        "class Quantity declared at src/ordering/domain/value-objects/Quantity.ts:2",
+        "Quantity.value: public mutable field",
+        "Quantity.setValue: mutator method"
+      ],
+      "rule": "FF-DT03/value-object-immutability"
+    },
+    {
+      "key": "b4b00176c828828f16655c79",
+      "projectId": "ddd/v04-framework-in-domain",
+      "ruleId": "FF-DT04",
+      "template": "domain-purity",
+      "tier": "blocking",
+      "file": "src/billing/domain/invoice/value-objects/InvoiceId.ts",
+      "verdict": "correct",
+      "reason": "'class-transformer' at line 1 imports class-transformer (forbidden by 'class-transformer')",
+      "checks": [
+        "layer by spec globs: src/billing/domain/invoice/value-objects/InvoiceId.ts -> domain"
+      ],
+      "rule": "FF-DT04/domain-purity"
+    },
+    {
+      "key": "5b202d5d7f3c20ce3a308a3c",
+      "projectId": "ddd/v07-module-outside-context",
+      "ruleId": "FF-DS01",
+      "template": "bounded-context-modules",
+      "tier": "blocking",
+      "file": "src/utils/formatCurrency.ts",
+      "verdict": "correct",
+      "reason": "src/utils/formatCurrency.ts lies in no context root and matches no outside_contexts glob",
+      "checks": [],
+      "rule": "FF-DS01/bounded-context-modules"
+    },
+    {
+      "key": "6dd0d655951693cf63cea9e3",
+      "projectId": "ddd/v08-cross-context-internal-import",
+      "ruleId": "FF-DS02",
+      "template": "context-isolation",
+      "tier": "blocking",
+      "file": "src/billing/application/IssueInvoice.ts",
+      "verdict": "correct",
+      "reason": "billing imports src/ordering/domain/order/Order.ts of ordering, which is not its public API, outside an ACL",
+      "checks": [
+        "'../../ordering/domain/order/Order.js' at line 7 resolves to src/ordering/domain/order/Order.ts",
+        "contexts by root: src/billing/application/IssueInvoice.ts -> billing; src/ordering/domain/order/Order.ts -> ordering"
+      ],
+      "rule": "FF-DS02/context-isolation"
+    },
+    {
+      "key": "0e6d6ea88f71c1a68a1dfddf",
+      "projectId": "ddd/v09-domain-imports-application",
+      "ruleId": "FF-S01",
+      "template": "dependency-direction-graph",
+      "tier": "blocking",
+      "file": "src/ordering/domain/customer/Customer.ts",
+      "verdict": "correct",
+      "reason": "domain -> application runs against the allowed edge application -> domain",
+      "checks": [
+        "'../../application/PlaceOrder.js' at line 3 resolves to src/ordering/application/PlaceOrder.ts",
+        "layers by spec globs: src/ordering/domain/customer/Customer.ts -> domain; src/ordering/application/PlaceOrder.ts -> application"
+      ],
+      "rule": "FF-S01/dependency-direction-graph"
+    }
+  ]
+}

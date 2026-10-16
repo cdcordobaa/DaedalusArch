@@ -31,7 +31,9 @@ export const DAEDALUS_MCP_SERVER = 'daedalus-arch';
 
 /**
  * The DaedalusArch tools the `daedalus-mcp` arm allows: the spec-only tools of `src/mcp-server/server.ts`
- * (`SPEC_TOOL_NAMES`, pinned equal by a test). Restated here so the harness does not import the server module.
+ * (`SPEC_TOOL_NAMES`, pinned equal by a test), MCP v2: the seven v1 tools, then `infer_spec` and `explain_finding`
+ * (both read-only: `infer_spec` reads a snapshot of the cwd's `src/` and writes nothing to it). Restated here so the
+ * harness does not import the server module.
  */
 export const DAEDALUS_ARM_TOOLS: readonly string[] = Object.freeze([
   'get_architecture_spec',
@@ -41,6 +43,8 @@ export const DAEDALUS_ARM_TOOLS: readonly string[] = Object.freeze([
   'check_file',
   'check_diff',
   'suggest_placement',
+  'infer_spec',
+  'explain_finding',
 ]);
 
 /** Tools of the DaedalusArch server an arm never allows (and lists in `--disallowedTools`). */
