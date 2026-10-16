@@ -75,7 +75,7 @@ async function call(client: Client, name: string, args: Record<string, unknown> 
 }
 
 describe('MCP server over an in-memory transport', () => {
-  it('exposes exactly the eight tools, each with a description and an input schema', async () => {
+  it('exposes exactly the ten tools (the eight v1 tools first, then the MCP v2 tools), each with a description and an input schema', async () => {
     const { client, close } = await connect(context());
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name)).toEqual([...TOOL_NAMES]);
@@ -88,9 +88,11 @@ describe('MCP server over an in-memory transport', () => {
       'check_file',
       'check_diff',
       'suggest_placement',
+      'infer_spec',
+      'explain_finding',
     ]);
     expect(SPEC_TOOL_NAMES).not.toContain('evaluate_project');
-    expect(SPEC_TOOL_NAMES).toHaveLength(7);
+    expect(SPEC_TOOL_NAMES).toHaveLength(9);
     for (const tool of tools) {
       expect(tool.description?.length).toBeGreaterThan(40);
       expect(tool.inputSchema.type).toBe('object');

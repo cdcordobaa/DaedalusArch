@@ -1,0 +1,50 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7959,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "8263934d0d15977da91a220cfe486a325bfbd7aa8a9278a20f19f2693a2e4f55-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/catalogue-service.ts:5 `import { Request } from \"express\";`: the HTTP request type comes from the express web framework, which belongs to the delivery/transport layer.",
+      "src/application/catalogue-service.ts:10 `public addProduct(input: CreateProductDto, request?: Request): ProductDto`: the express Request is a parameter of an application service method. It is optional and unused, but the rubric still counts it as a violation."
+    ],
+    "pass": false,
+    "reasoning": "This is an application-layer file, but it has an HTTP request type from the express package in a public method signature. CatalogueService.addProduct takes an optional parameter `request?: Request`. The rubric says this fails even when the parameter is optional or unused. The candidate flag is confirmed by the source. Nothing else is misplaced. The constructor takes an injected ProductRepository, which is normal dependency wiring. DTO mapping and DomainError come from the project's own code.",
+    "violations": [
+      {
+        "filePath": "src/application/catalogue-service.ts",
+        "message": "CatalogueService.addProduct(input: CreateProductDto, request?: Request) takes an express Request, an HTTP request type from the web/delivery layer, in an application-layer method signature. The parameter is optional and unused, but it still ties the use case to the transport. Remove it."
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe unit's responsibilities, signatures and annotations match the role of its declared layer.\n\n## Rubric\nPass: Every declaration in the file belongs to the role and kind of its declared layer, including its parameter, return and field types, its decorators and base classes, and its statements, and agrees with any ADR prose given.\nFail: The file carries something that belongs to a different layer kind. In a domain or application file: a request, response, HTTP context, status code or HTTP error, from a web or transport package or from the delivery layer, in any method or function signature (parameter or return) or thrown, even when the parameter is optional or unused. In a domain file also: any framework or ORM type, decorator or base class (dependency injection, routing, persistence mapping), even when the class logic is pure; or persistence or I/O (queries, database or ORM clients, HTTP or file access). In an infrastructure or presentation file: a business rule, that is a domain invariant, calculation or decision that the domain or application layer should own. Constructor parameters of an application file are dependency wiring: an injected repository, client or service there is not by itself misplaced. A type the project declares itself is not a framework type, whatever its name.\nEvidence required: Name the file and cite the signature, decorator, declaration or statement that carries the misplaced responsibility, its package or origin, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/catalogue-service.ts\nLayer: application\nUnit files:\n- src/application/catalogue-service.ts\n\n## Source\n=====SOURCE-BEGIN src/application/catalogue-service.ts=====\nimport { CreateProductDto, ProductDto } from \"./dtos\";\nimport { DomainError } from \"../domain/errors\";\nimport { Product } from \"../domain/product\";\nimport { ProductRepository } from \"../domain/repositories\";\nimport { Request } from \"express\";\n\nexport class CatalogueService {\n  public constructor(private readonly products: ProductRepository) {}\n\n  public addProduct(input: CreateProductDto, request?: Request): ProductDto {\n    if (this.products.findById(input.id)) throw new DomainError(\"A product with this id already exists\");\n    const product = new Product(input.id, input.name, input.stock);\n    this.products.save(product);\n    return this.toDto(product);\n  }\n\n  public listProducts(): ProductDto[] {\n    return this.products.list().map((product) => this.toDto(product));\n  }\n\n  private toDto(product: Product): ProductDto {\n    return { id: product.id, name: product.name, stock: product.stock };\n  }\n}\n\n=====SOURCE-END=====\n\n## Neighbourhood\nsrc/application/catalogue-service.ts (layer application, kind application)\n  imports: package express; src/application/dtos.ts (layer application, kind application); src/domain/errors.ts (layer domain, kind domain); src/domain/product.ts (layer domain, kind domain); src/domain/repositories.ts (layer domain, kind domain)\n  imported by: src/infrastructure/order-controller.ts (layer infrastructure, kind infrastructure); src/infrastructure/server.ts (layer infrastructure, kind infrastructure)\n  types: CatalogueService injects ProductRepository in src/domain/repositories.ts (layer domain, kind domain); CatalogueService is injected into OrderController in src/infrastructure/order-controller.ts (layer infrastructure, kind infrastructure)\n\n## Candidate flags\nCandidates proposed by deterministic checks; verify, don't trust. Each line is a tool observation with its location, not a finding.\n- framework-in-core/framework-type-parameter at src/application/catalogue-service.ts:10: application CatalogueService.addProduct parameter request: Request<import(\"@types/express-serve-static-core\").ParamsDictionary, any, any, import(\"@types/qs\").ParsedQs, Record<string, any>> | undefined (express)\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric. Check each candidate flag against the source: a flag the source does not support must not count against the unit, and a violation the flags miss counts as much as one they name. Judge what each declaration is, not only what it does at run time.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T23:56:42.854Z",
+  "repetition": 0,
+  "requestHash": "8263934d0d15977da91a220cfe486a325bfbd7aa8a9278a20f19f2693a2e4f55",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":560}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"This is an application-layer file, but it has an HTTP request type from the express package in a public method signature. CatalogueService.addProduct takes an optional parameter `request?: Request`. The rubric says this fails even when the parameter is optional or unused. The candidate flag is confirmed by the source. Nothing else is misplaced. The constructor takes an injected ProductRepository, which is normal dependency wiring. DTO mapping and DomainError come from the project's own code.\\\",\\\"evidence\\\":[\\\"src/application/catalogue-service.ts:5 `import { Request } from \\\\\\\"express\\\\\\\";`: the HTTP request type comes from the express web framework, which belongs to the delivery/transport layer.\\\",\\\"src/application/catalogue-service.ts:10 `public addProduct(input: CreateProductDto, request?: Request): ProductDto`: the express Request is a parameter of an application service method. It is optional and unused, but the rubric still counts it as a violation.\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/application/catalogue-service.ts\\\",\\\"message\\\":\\\"CatalogueService.addProduct(input: CreateProductDto, request?: Request) takes an express Request, an HTTP request type from the web/delivery layer, in an application-layer method signature. The parameter is optional and unused, but it still ties the use case to the transport. Remove it.\\\"}]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/catalogue-service.ts:5 `import { Request } from \\\"express\\\";`: the HTTP request type comes from the express web framework, which belongs to the delivery/transport layer.\",\"src/application/catalogue-service.ts:10 `public addProduct(input: CreateProductDto, request?: Request): ProductDto`: the express Request is a parameter of an application service method. It is optional and unused, but the rubric still counts it as a violation.\"],\"pass\":false,\"reasoning\":\"This is an application-layer file, but it has an HTTP request type from the express package in a public method signature. CatalogueService.addProduct takes an optional parameter `request?: Request`. The rubric says this fails even when the parameter is optional or unused. The candidate flag is confirmed by the source. Nothing else is misplaced. The constructor takes an injected ProductRepository, which is normal dependency wiring. DTO mapping and DomainError come from the project's own code.\",\"violations\":[{\"filePath\":\"src/application/catalogue-service.ts\",\"message\":\"CatalogueService.addProduct(input: CreateProductDto, request?: Request) takes an express Request, an HTTP request type from the web/delivery layer, in an application-layer method signature. The parameter is optional and unused, but it still ties the use case to the transport. Remove it.\"}]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/catalogue-service.ts",
+  "usage": {
+    "inputTokens": 3030,
+    "outputTokens": 560
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

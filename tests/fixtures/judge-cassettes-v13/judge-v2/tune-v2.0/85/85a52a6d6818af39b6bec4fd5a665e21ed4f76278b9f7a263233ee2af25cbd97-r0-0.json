@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8158,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "85a52a6d6818af39b6bec4fd5a665e21ed4f76278b9f7a263233ee2af25cbd97-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/application/CancelOrderUseCase.ts: constructor(private catalog: Catalog, private orderRepository: OrderRepository) injects only domain types from src/domain.",
+      "src/application/CancelOrderUseCase.ts: execute(orderId: string): Order uses only a primitive and a domain return type.",
+      "src/application/CancelOrderUseCase.ts: the cancellation rule is delegated to domain canCancelOrder(order.state); the use case only coordinates the steps.",
+      "src/application/CancelOrderUseCase.ts: errors are plain built-in Error, not HTTP or framework errors; the class has no decorators or base classes."
+    ],
+    "pass": true,
+    "reasoning": "CancelOrderUseCase is a plain application-layer class. Its constructor injects Catalog and OrderRepository, both domain types from src/domain. The execute(orderId: string): Order signature uses only primitive and domain types. The class has no decorators, base classes, framework, web or transport types, HTTP request or response objects, status codes or HTTP errors. The cancellation decision is delegated to the domain function canCancelOrder. The use case only coordinates the work: it loads the order, checks the rule, releases stock and saves. The plain JavaScript Error it throws is not a delivery-layer HTTP error. Nothing in the file belongs to a different layer kind. No candidate flags were raised.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities, signatures and annotations match the role of its declared layer.\n\n## Rubric\nPass: Every declaration in the file belongs to the role and kind of its declared layer, including its parameter, return and field types, its decorators and base classes, and its statements, and agrees with any ADR prose given.\nFail: The file carries something that belongs to a different layer kind. In a domain or application file: a type of a web, transport or framework package in any signature (parameter, return or field), even when the parameter is optional or unused; or a request, response, status code or HTTP error of the delivery layer. In a domain file also: a framework or ORM decorator or base class (dependency injection, routing, persistence mapping), even when the class logic is pure; or persistence or I/O (queries, database or ORM clients, HTTP or file access). In an infrastructure or presentation file: a business rule, that is a domain invariant, calculation or decision that the domain or application layer should own. A type the project declares itself is not a framework type, whatever its name.\nEvidence required: Name the file and cite the signature, decorator, declaration or statement that carries the misplaced responsibility, its package or origin, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/CancelOrderUseCase.ts\nLayer: application\nUnit files:\n- src/application/CancelOrderUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/CancelOrderUseCase.ts=====\nimport { Order, canCancelOrder } from '../domain/Order';\nimport { Catalog } from '../domain/Catalog';\nimport { OrderRepository } from '../domain/OrderRepository';\n\nexport class CancelOrderUseCase {\n  constructor(private catalog: Catalog, private orderRepository: OrderRepository) {}\n\n  execute(orderId: string): Order {\n    const order = this.orderRepository.getById(orderId);\n    if (!order) {\n      throw new Error(`Order ${orderId} not found`);\n    }\n\n    if (!canCancelOrder(order.state)) {\n      throw new Error(`Cannot cancel order in state ${order.state}`);\n    }\n\n    // Release reserved stock\n    for (const item of order.items) {\n      this.catalog.release(item.productId, item.quantity);\n    }\n\n    this.orderRepository.save(order);\n    return order;\n  }\n}\n\n=====SOURCE-END=====\n\n## Neighbourhood\nsrc/application/CancelOrderUseCase.ts (layer application, kind application)\n  imports: src/domain/Catalog.ts (layer domain, kind domain); src/domain/Order.ts (layer domain, kind domain); src/domain/OrderRepository.ts (layer domain, kind domain)\n  imported by: src/infrastructure/dependencies.ts (layer infrastructure, kind infrastructure)\n  types: CancelOrderUseCase injects Catalog in src/domain/Catalog.ts (layer domain, kind domain); CancelOrderUseCase injects OrderRepository in src/domain/OrderRepository.ts (layer domain, kind domain)\n\n## Candidate flags\nCandidates proposed by deterministic checks; verify, don't trust. Each line is a tool observation with its location, not a finding.\n(none)\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric. Check each candidate flag against the source: a flag the source does not support must not count against the unit, and a violation the flags miss counts as much as one they name. Judge what each declaration is, not only what it does at run time.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T20:55:09.425Z",
+  "repetition": 0,
+  "requestHash": "85a52a6d6818af39b6bec4fd5a665e21ed4f76278b9f7a263233ee2af25cbd97",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":661}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"CancelOrderUseCase is a plain application-layer class. Its constructor injects Catalog and OrderRepository, both domain types from src/domain. The execute(orderId: string): Order signature uses only primitive and domain types. The class has no decorators, base classes, framework, web or transport types, HTTP request or response objects, status codes or HTTP errors. The cancellation decision is delegated to the domain function canCancelOrder. The use case only coordinates the work: it loads the order, checks the rule, releases stock and saves. The plain JavaScript Error it throws is not a delivery-layer HTTP error. Nothing in the file belongs to a different layer kind. No candidate flags were raised.\\\",\\\"evidence\\\":[\\\"src/application/CancelOrderUseCase.ts: constructor(private catalog: Catalog, private orderRepository: OrderRepository) injects only domain types from src/domain.\\\",\\\"src/application/CancelOrderUseCase.ts: execute(orderId: string): Order uses only a primitive and a domain return type.\\\",\\\"src/application/CancelOrderUseCase.ts: the cancellation rule is delegated to domain canCancelOrder(order.state); the use case only coordinates the steps.\\\",\\\"src/application/CancelOrderUseCase.ts: errors are plain built-in Error, not HTTP or framework errors; the class has no decorators or base classes.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/application/CancelOrderUseCase.ts: constructor(private catalog: Catalog, private orderRepository: OrderRepository) injects only domain types from src/domain.\",\"src/application/CancelOrderUseCase.ts: execute(orderId: string): Order uses only a primitive and a domain return type.\",\"src/application/CancelOrderUseCase.ts: the cancellation rule is delegated to domain canCancelOrder(order.state); the use case only coordinates the steps.\",\"src/application/CancelOrderUseCase.ts: errors are plain built-in Error, not HTTP or framework errors; the class has no decorators or base classes.\"],\"pass\":true,\"reasoning\":\"CancelOrderUseCase is a plain application-layer class. Its constructor injects Catalog and OrderRepository, both domain types from src/domain. The execute(orderId: string): Order signature uses only primitive and domain types. The class has no decorators, base classes, framework, web or transport types, HTTP request or response objects, status codes or HTTP errors. The cancellation decision is delegated to the domain function canCancelOrder. The use case only coordinates the work: it loads the order, checks the rule, releases stock and saves. The plain JavaScript Error it throws is not a delivery-layer HTTP error. Nothing in the file belongs to a different layer kind. No candidate flags were raised.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/CancelOrderUseCase.ts",
+  "usage": {
+    "inputTokens": 2825,
+    "outputTokens": 661
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

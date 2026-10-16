@@ -1,0 +1,36 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9881,
+  "effort": "high",
+  "functionId": "filter-explain",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "344753a7bc2840f731e50448c987c702d6a8f2879e36ad66de283c573f4e9f5b-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "## Finding\nRule: FF-CV05\nRule intent: Each source file has a paired test file.\nType: MISSING_TEST_FILE\nSeverity: advisory; tier: advisory (unscored)\nFile: src/domain/registration.ts\nMessage: Violation in src/domain/registration.ts\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Source (line-numbered)\n=====SOURCE-BEGIN src/domain/registration.ts (layer domain)=====\n 1| import { RegisterAttendeeDto } from '../registrations/dto/register-attendee.dto';\n 2| import { DomainError } from './domain-error';\n 3| \n 4| export class Registration {\n 5|   private cancelledAt: Date | undefined;\n 6| \n 7|   constructor(\n 8|     readonly id: string,\n 9|     readonly workshopId: string,\n10|     readonly attendeeId: string,\n11|     readonly registeredAt: Date,\n12|   ) {}\n13| \n14|   static fromDto(id: string, dto: RegisterAttendeeDto, at: Date): Registration {\n15|     return new Registration(id, dto.workshopId, dto.attendeeId, at);\n16|   }\n17| \n18|   get isActive(): boolean {\n19|     return this.cancelledAt === undefined;\n20|   }\n21| \n22|   cancel(at: Date): void {\n23|     if (!this.isActive) throw new DomainError('conflict', `Registration ${this.id} is already cancelled`);\n24|     this.cancelledAt = at;\n25|   }\n26| }\n=====SOURCE-END=====\n\n## Instructions\nDecide confirm or dismiss. Confirm: the cited code has the problem the rule is meant to catch, in this project and layer model. Dismiss: the rule fired, but the code does not have that problem (a false positive of the rule's mechanism, a threshold artefact on sound code, or a case the style allows). Measurements stated in the finding (counts, ratios, missing files) are correct as measurements; judge what they mean for this code. explanation: one paragraph that justifies the decision from the code, citing file paths and line numbers exactly as numbered below. fix: one concrete change: for a confirm, how to fix the code; for a dismiss, what (if anything) the rule or its configuration should change. citations: the line ranges your explanation relies on; every one must name a file shown below and lines that exist.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T00:02:15.019Z",
+  "repetition": 0,
+  "requestHash": "344753a7bc2840f731e50448c987c702d6a8f2879e36ad66de283c573f4e9f5b",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":712}},\"result\":\"{\\\"decision\\\":\\\"confirm\\\",\\\"explanation\\\":\\\"The rule wants each source file to have a matching test file, and the finding reports that src/domain/registration.ts has none. That is a real gap here. The file is not a type-only module or a barrel that re-exports other files. It is a domain entity with behaviour worth testing: the factory `fromDto` maps DTO fields onto the constructor (lines 14-16), the `isActive` getter depends on internal cancellation state (lines 18-20), and `cancel` enforces a rule that a registration can't be cancelled twice by throwing a `DomainError` with the 'conflict' code (lines 22-25). Domain-layer rules like this are exactly what unit tests should pin down. Without tests, a regression would go unnoticed, for example an inverted check on line 23 or a missing assignment on line 24. Separately, line 1 shows the domain layer importing an application DTO. That is a different layering concern and doesn't change this finding.\\\",\\\"fix\\\":\\\"Add src/domain/registration.spec.ts (or registration.test.ts, whichever the project already uses). It should cover four cases: (1) `fromDto` copies workshopId and attendeeId and sets registeredAt; (2) a new Registration has isActive === true; (3) after `cancel(at)`, isActive becomes false; (4) a second `cancel` throws a DomainError with code 'conflict'.\\\",\\\"citations\\\":[{\\\"filePath\\\":\\\"src/domain/registration.ts\\\",\\\"startLine\\\":14,\\\"endLine\\\":16},{\\\"filePath\\\":\\\"src/domain/registration.ts\\\",\\\"startLine\\\":18,\\\"endLine\\\":20},{\\\"filePath\\\":\\\"src/domain/registration.ts\\\",\\\"startLine\\\":22,\\\"endLine\\\":25}]}\",\"structured_output\":{\"citations\":[{\"endLine\":16,\"filePath\":\"src/domain/registration.ts\",\"startLine\":14},{\"endLine\":20,\"filePath\":\"src/domain/registration.ts\",\"startLine\":18},{\"endLine\":25,\"filePath\":\"src/domain/registration.ts\",\"startLine\":22}],\"decision\":\"confirm\",\"explanation\":\"The rule wants each source file to have a matching test file, and the finding reports that src/domain/registration.ts has none. That is a real gap here. The file is not a type-only module or a barrel that re-exports other files. It is a domain entity with behaviour worth testing: the factory `fromDto` maps DTO fields onto the constructor (lines 14-16), the `isActive` getter depends on internal cancellation state (lines 18-20), and `cancel` enforces a rule that a registration can't be cancelled twice by throwing a `DomainError` with the 'conflict' code (lines 22-25). Domain-layer rules like this are exactly what unit tests should pin down. Without tests, a regression would go unnoticed, for example an inverted check on line 23 or a missing assignment on line 24. Separately, line 1 shows the domain layer importing an application DTO. That is a different layering concern and doesn't change this finding.\",\"fix\":\"Add src/domain/registration.spec.ts (or registration.test.ts, whichever the project already uses). It should cover four cases: (1) `fromDto` copies workshopId and attendeeId and sets registeredAt; (2) a new Registration has isActive === true; (3) after `cancel(at)`, isActive becomes false; (4) a second `cancel` throws a DomainError with code 'conflict'.\"}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "98854119809f63fd",
+  "usage": {
+    "inputTokens": 2556,
+    "outputTokens": 712
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

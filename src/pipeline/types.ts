@@ -5,6 +5,8 @@ import type { GraphMode } from '../apg-extractor/types.js';
 import type { InstrumentVersion } from '../fitness-compiler/role-exemptions.js';
 import type { NeuralAggregation } from '../scoring-engine/neural-aggregation.js';
 import type { ScoringMode } from '../shared/types/evaluation.js';
+import type { GraphRepository } from '../shared/interfaces/graph-repository.js';
+import type { GraphEngine } from '../cypher-interp/engine.js';
 
 export interface PipelineConfig {
   readonly projectPath: string;
@@ -33,6 +35,13 @@ export interface PipelineConfig {
    * command and the MCP `evaluate_project` tool pass `v1.3` unless told otherwise.
    */
   readonly scoringMode?: ScoringMode | undefined;
+  /**
+   * Graph engine (v1.3 spike, Docs/v1.3/cypher-interpreter.md): `neo4j` (default, the reference engine) or
+   * `cypher-interp` (the in-process Cypher interpreter over an in-memory graph; no server, no credentials).
+   */
+  readonly graphEngine?: GraphEngine | undefined;
+  /** Harness injection (the parity tee): this repository is used instead of the one `graphEngine` selects. */
+  readonly graphRepository?: GraphRepository | undefined;
 }
 
 export type OutputFormat = 'json' | 'human' | 'csv';
