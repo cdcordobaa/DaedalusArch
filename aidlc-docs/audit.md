@@ -1543,3 +1543,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.3 Study 2 readiness, gate S2/S3 tooling. The gate lines stay RED until the author's live login, the MCP-attached confinement probes (S4) and the plan values.
 
 ---
+
+## v1.3 CONSTRUCTION — loop isolation PR #171, review follow-up (scheduled task, no live user)
+**Timestamp**: 2026-10-16T08:15:00Z
+**User Input**: Owner review on PR #171 (HOLD): the default path is not "exactly as today" for live runs: adapters are probed before ensureHarness, isAvailable() goes through probe(), and every unpinned Claude adapter prints LOOP_UNPINNED.
+**AI Response**: "Restored the default path: LOOP_UNPINNED removed; ClaudeStepAgent.isAvailable is the E1 body again; a plan without cliVersion or generatorIsolation runs ensureHarness first and the E1 availability check as on origin/v1.3. Only pinned or isolated plans probe before the install. Supersedes options (1) warning part and (5) of the 04:40 entry. Test added for the unpinned order."
+**Context**: v1.3 Study 2 readiness, gate S2/S3 tooling; review fix only.
+
+---

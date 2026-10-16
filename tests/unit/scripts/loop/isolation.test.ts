@@ -5,6 +5,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { DomainResult } from '../../../../src/shared/errors/domain-result.js';
+import type { ProcessResult, ProcessRunner } from '../../../../src/shared/interfaces/process-runner.js';
 import { NodeProcessRunner } from '../../../../src/shared/process/node-process-runner.js';
 import { buildGeneratorChildEnv } from '../../../../scripts/lib/generators/env.js';
 import { GENERATOR_ENV_ALLOW } from '../../../../scripts/lib/generators/types.js';
@@ -143,6 +144,50 @@ describe('P1: the Claude CLI version pin (stub binary)', () => {
     expect(stderr.join('')).toContain('LOOP_CLI_VERSION_MISMATCH');
     expect(fs.existsSync(path.join(h.tmp, 'h2', 'skeleton-install'))).toBe(false);
     expect(fs.existsSync(path.join(h.outRoot, 'schedule.json'))).toBe(false);
+  });
+});
+
+describe('P4b: an unpinned live plan keeps the E1 order (review follow-up)', () => {
+  it('installs the skeleton before any CLI call and prints no new warning', async () => {
+    const calls: string[] = [];
+    const runner: ProcessRunner = {
+      run: (command: string): Promise<DomainResult<ProcessResult>> => {
+        calls.push(command);
+        return Promise.resolve(DomainResult.fail([{ code: 'PROCESS_SPAWN_FAILED', message: `no ${command} in this test` }]));
+      },
+    };
+    const plan = path.join(h.tmp, 'plan-unpinned.json');
+    fs.writeFileSync(
+      plan,
+      JSON.stringify({
+        description: 'test plan',
+        tasksFile: path.join(REPO, 'experiments/loop-demo/demo-tasks.json'),
+        adapters: [{ adapterId: 'claude-code-cli', modelId: MODEL }],
+        arms: ['none'],
+        runs: 1,
+        orderSeed: 1,
+        outRoot: h.outRoot,
+        binary: h.binary,
+        harnessRoot: path.join(h.tmp, 'h3'),
+        allowBash: true,
+        evaluatorSpec: 'specs/clean-arch.yaml',
+      }),
+    );
+    const stderr: string[] = [];
+    const deps: LoopMainDeps = {
+      runner,
+      clock: { now: () => 0 },
+      sleep: () => Promise.resolve(),
+      now: () => new Date(0),
+      parentEnv: PARENT,
+      out: () => undefined,
+      err: (t) => stderr.push(t),
+      evaluateDeps: () => Promise.reject(new Error('not reached')),
+    };
+    expect(await main(['--plan', plan], REPO, deps)).toBe(2);
+    expect(calls.length).toBeGreaterThan(0);
+    expect(calls).not.toContain(h.binary);
+    expect(stderr.join('')).not.toContain('LOOP_UNPINNED');
   });
 });
 

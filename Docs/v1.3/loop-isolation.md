@@ -42,7 +42,7 @@ A null or failing result is reported as such in the PR.
 
 ## 5. Result (2026-10-16, after the code)
 
-Code: `scripts/lib/loop/isolation.ts` (new), `agents.ts` (`ClaudeStepAgent.probe`, isolated env, `before` check, `env-<turnId>.json`), `plan.ts` (`adapters[].cliVersion`, `generatorIsolation`, `--claude-config-dir` fill), `main.ts` (the probe runs before the skeleton install; mismatch exits 1; `LOOP_UNPINNED` warning). Tests: `tests/unit/scripts/loop/isolation.test.ts` (19 tests).
+Code: `scripts/lib/loop/isolation.ts` (new), `agents.ts` (`ClaudeStepAgent.probe`, isolated env, `before` check, `env-<turnId>.json`), `plan.ts` (`adapters[].cliVersion`, `generatorIsolation`, `--claude-config-dir` fill), `main.ts` (for a plan with a pin or isolation only: the probe runs before the skeleton install and a mismatch exits 1; a plan without them keeps the E1 order, the E1 `isAvailable` check and prints nothing new). Tests: `tests/unit/scripts/loop/isolation.test.ts` (19 tests).
 
 | Criterion | Result |
 |---|---|
@@ -54,3 +54,5 @@ Code: `scripts/lib/loop/isolation.ts` (new), `agents.ts` (`ClaudeStepAgent.probe
 | P6 bytes | See the PR body for the rule 3 reference diff. The loop dry run on the demo plan equals the `origin/v1.3-loop-replay` dry run in every file except timing fields and the commit shas that carry commit times. The Neo4j loop replay test skips here (no scratch Neo4j); `replay.ts` does not reach the changed code (its agent is the scripted one). |
 
 **Not done here.** Pause durations in the turn record (other half of S1); the live probes with the MCP server attached (S4); a real login under the isolated env (S3 pass); the pilot and Study 2 plans are not given `cliVersion` or `generatorIsolation` (author's values); the Linux credential-file allow-list question (§4).
+
+**Review follow-up (2026-10-16, owner review on PR #171).** The first version broke the line 12 promise for live runs without the new fields: it probed every adapter before the skeleton install, routed `isAvailable()` through the new probe, and printed a `LOOP_UNPINNED` warning. The fix: the warning is removed; `isAvailable()` is the E1 code again; a plan without `cliVersion` or `generatorIsolation` runs `ensureHarness` first and the E1 availability check exactly as on `origin/v1.3`; only a pinned or isolated plan probes before the install. Unit test: an unpinned live plan with an unavailable binary still installs first and exits 1 with `LOOP_CLI_UNAVAILABLE` and no new stderr line.

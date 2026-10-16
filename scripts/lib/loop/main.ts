@@ -23,8 +23,9 @@
  * schedule.json from a different plan or tasks file stops the grid. Exit codes: 0 grid completed, 1 a CLI is not
  * available or its version differs from the plan's `cliVersion`, 2 usage, plan or harness error.
  *
- * Live runs probe every adapter before the skeleton install, so a version mismatch or a failed isolation check stops
- * the grid before any work (`Docs/v1.3/loop-isolation.md`). A Claude adapter without `cliVersion` gets a warning.
+ * A live plan with `adapters[].cliVersion` or `generatorIsolation` probes every adapter before the skeleton install, so
+ * a version mismatch or a failed isolation check stops the grid before any work (`Docs/v1.3/loop-isolation.md`). Any
+ * other plan keeps the E1 order and availability check unchanged.
  */
 import * as crypto from 'node:crypto';
 import * as fs from 'node:fs';
@@ -287,6 +288,14 @@ async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs
     const problems = checkIsolationPaths(isolation, where);
     if (problems.length > 0) return DomainResult.fail(problems);
   }
+  // A plan with a pin or isolation probes its adapters before the skeleton install; any other plan keeps the old order.
+  const pinned = isolation !== undefined || plan.adapters.some((a) => a.cliVersion !== undefined);
+  let install: SkeletonInstall | undefined;
+  if (!pinned) {
+    const ready = await ensureHarness(deps.runner, repoRoot, plan.harnessRoot);
+    if (!ready.success) return DomainResult.fail(ready.errors);
+    install = ready.data.install;
+  }
   const common = { runner: deps.runner, parentEnv: deps.parentEnv, clock: deps.clock, sleep: deps.sleep, ...(plan.daedalus !== undefined ? { daedalus: plan.daedalus } : {}) };
   const agents = new Map<string, StepAgent>();
   for (const a of plan.adapters) {
@@ -304,14 +313,18 @@ async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs
     );
     if (!c.success) return DomainResult.fail(c.errors);
     const agent = new ClaudeStepAgent(c.data, { ...common, ...(a.cliVersion !== undefined ? { cliVersion: a.cliVersion } : {}), ...(isolation !== undefined ? { isolation } : {}) });
-    const probed = await agent.probe();
-    if (!probed.success) return DomainResult.fail(probed.errors);
-    if (a.cliVersion === undefined) deps.err(`LOOP_UNPINNED: ${a.adapterId}/${a.modelId} has no cliVersion; claude --version reports ${probed.data.cliVersion ?? 'no version'}\n`);
+    if (pinned) {
+      const probed = await agent.probe();
+      if (!probed.success) return DomainResult.fail(probed.errors);
+    } else if (!(await agent.isAvailable())) return DomainResult.fail([{ code: 'LOOP_CLI_UNAVAILABLE', message: 'the claude CLI is not available at the plan binary path' }]);
     agents.set(agentKey(a.adapterId, a.modelId), agent);
   }
-  const ready = await ensureHarness(deps.runner, repoRoot, plan.harnessRoot);
-  if (!ready.success) return DomainResult.fail(ready.errors);
-  const install: SkeletonInstall = ready.data.install;
+  if (install === undefined) {
+    const ready = await ensureHarness(deps.runner, repoRoot, plan.harnessRoot);
+    if (!ready.success) return DomainResult.fail(ready.errors);
+    install = ready.data.install;
+  }
+  const harness: SkeletonInstall = install;
   const evaluateDeps = await deps.evaluateDeps();
   const evaluatorOf = (specFile: string): StepEvaluator => firewallEvaluator(specFile, deps.parentEnv, evaluateDeps, harnessSnapshotTsconfig(plan.harnessRoot));
   const profiles = buildProfiles(loaded, repoRoot, evaluatorOf, iseDddFreezer(repoRoot));
@@ -321,8 +334,8 @@ async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs
     evaluator: plan.evaluatorSpec !== undefined ? evaluatorOf(path.resolve(repoRoot, plan.evaluatorSpec)) : noSpecEvaluator(),
     ...(profiles.data !== undefined ? { profiles: profiles.data } : {}),
     typechecker: harnessTypechecker(deps.runner, plan.harnessRoot),
-    prepareWorkDir: (cwd) => prepareCellDir(install, repoRoot, cwd),
-    skeletonIntact: (cwd) => checkSkeletonIntact(install, repoRoot, cwd).skeletonIntact,
+    prepareWorkDir: (cwd) => prepareCellDir(harness, repoRoot, cwd),
+    skeletonIntact: (cwd) => checkSkeletonIntact(harness, repoRoot, cwd).skeletonIntact,
   });
 }
 

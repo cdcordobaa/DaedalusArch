@@ -251,9 +251,11 @@ export class ClaudeStepAgent implements StepAgent {
     return DomainResult.ok({ cliVersion: version });
   }
 
-  /** The probe succeeded (kept for the E1 call sites). */
+  /** `<binary> --version` answers (the E1 availability check, unchanged; the unpinned, unisolated path). */
   async isAvailable(): Promise<boolean> {
-    return (await this.probe()).success;
+    const env = buildGeneratorChildEnv(this.deps.parentEnv ?? process.env);
+    const r = await this.deps.runner.run(this.config.binary, ['--version'], { env, timeoutMs: VERSION_TIMEOUT_MS });
+    return r.success && r.data.exitCode === 0 && !r.data.timedOut;
   }
 
   /** The argv, prompt and MCP config of one turn (no process is spawned). */
