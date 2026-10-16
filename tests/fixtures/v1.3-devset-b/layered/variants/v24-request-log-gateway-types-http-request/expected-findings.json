@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "style": "layered",
+  "variant": "v24-request-log-gateway-types-http-request",
+  "kind": "violation",
+  "plants": "FF-S01",
+  "description": "A new persistence RequestLogGateway stores request rows and takes the presentation HttpRequest type (import type), two layers up.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/persistence/RequestLogGateway.ts",
+      "target": "src/presentation/http/HttpTypes.ts",
+      "reason": "A lower layer (persistence) imports an upper one (presentation), two layers up."
+    },
+    {
+      "ruleId": "FF-S03",
+      "ruleName": "no-layer-skip",
+      "file": "src/persistence/RequestLogGateway.ts",
+      "target": "src/presentation/http/HttpTypes.ts",
+      "reason": "persistence > presentation is not an allowed transition (only business > persistence and presentation > business are)."
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8463,
+  "effort": "high",
+  "functionId": "filter-explain",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "49bd3b0a2776b03d4ce40edc4030b8af7b357fc438043f9cec615aae5647fc55-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "## Finding\nRule: FF-CV05\nRule intent: Each source file has a paired test file.\nType: MISSING_TEST_FILE\nSeverity: advisory; tier: advisory (unscored)\nFile: src/infrastructure/http/ErrorMapper.ts\nMessage: Violation in src/infrastructure/http/ErrorMapper.ts\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Source (line-numbered)\n=====SOURCE-BEGIN src/infrastructure/http/ErrorMapper.ts (layer infrastructure)=====\n 1| import { DomainError } from '../../domain/errors/DomainError';\n 2| import { HttpResponse, fail } from './HttpTypes';\n 3| \n 4| const STATUS_BY_CODE: Record<string, number> = {\n 5|   BOOK_NOT_FOUND: 404,\n 6|   MEMBER_NOT_FOUND: 404,\n 7|   LOAN_NOT_FOUND: 404,\n 8|   INVALID_ISBN: 400,\n 9|   INVALID_BOOK: 400,\n10| };\n11| \n12| export function toErrorResponse(error: unknown): HttpResponse {\n13|   if (error instanceof DomainError) return fail(STATUS_BY_CODE[error.code] ?? 409, error.message);\n14|   return fail(500, 'Internal error');\n15| }\n=====SOURCE-END=====\n\n## Instructions\nDecide confirm or dismiss. Confirm: the cited code has the problem the rule is meant to catch, in this project and layer model. Dismiss: the rule fired, but the code does not have that problem (a false positive of the rule's mechanism, a threshold artefact on sound code, or a case the style allows). Measurements stated in the finding (counts, ratios, missing files) are correct as measurements; judge what they mean for this code. explanation: one paragraph that justifies the decision from the code, citing file paths and line numbers exactly as numbered below. fix: one concrete change: for a confirm, how to fix the code; for a dismiss, what (if anything) the rule or its configuration should change. citations: the line ranges your explanation relies on; every one must name a file shown below and lines that exist.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T00:02:05.137Z",
+  "repetition": 0,
+  "requestHash": "49bd3b0a2776b03d4ce40edc4030b8af7b357fc438043f9cec615aae5647fc55",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":713}},\"result\":\"{\\\"decision\\\":\\\"confirm\\\",\\\"explanation\\\":\\\"src/infrastructure/http/ErrorMapper.ts has behaviour worth testing, so the missing paired test file is a real gap and not a trivial-file artefact. Lines 4-10 hold a code-to-status table: three NOT_FOUND codes map to 404 and two validation codes map to 400. Line 13 branches on `instanceof DomainError`, looks up the status, and falls back to 409 when a code has no entry. Line 14 maps every other error to a generic 500. Each of these paths could regress without anyone noticing. For example, a renamed domain error code would quietly drop from 404 to 409, and a change to the `instanceof` check could leak a 500 where a domain error was expected. This mapping sets the HTTP contract clients see, and it can be tested in isolation because it is a pure function with no I/O. A paired test is cheap here and clearly what the rule is meant to require.\\\",\\\"fix\\\":\\\"Add src/infrastructure/http/ErrorMapper.test.ts (or the project's usual test location) to test `toErrorResponse`. Cover four cases: a DomainError with a mapped NOT_FOUND code returns 404; a DomainError with INVALID_ISBN or INVALID_BOOK returns 400; a DomainError with an unmapped code returns 409 and keeps its message; and a plain Error or non-Error value returns 500 with 'Internal error'.\\\",\\\"citations\\\":[{\\\"filePath\\\":\\\"src/infrastructure/http/ErrorMapper.ts\\\",\\\"startLine\\\":4,\\\"endLine\\\":10},{\\\"filePath\\\":\\\"src/infrastructure/http/ErrorMapper.ts\\\",\\\"startLine\\\":12,\\\"endLine\\\":15}]}\",\"structured_output\":{\"citations\":[{\"endLine\":10,\"filePath\":\"src/infrastructure/http/ErrorMapper.ts\",\"startLine\":4},{\"endLine\":15,\"filePath\":\"src/infrastructure/http/ErrorMapper.ts\",\"startLine\":12}],\"decision\":\"confirm\",\"explanation\":\"src/infrastructure/http/ErrorMapper.ts has behaviour worth testing, so the missing paired test file is a real gap and not a trivial-file artefact. Lines 4-10 hold a code-to-status table: three NOT_FOUND codes map to 404 and two validation codes map to 400. Line 13 branches on `instanceof DomainError`, looks up the status, and falls back to 409 when a code has no entry. Line 14 maps every other error to a generic 500. Each of these paths could regress without anyone noticing. For example, a renamed domain error code would quietly drop from 404 to 409, and a change to the `instanceof` check could leak a 500 where a domain error was expected. This mapping sets the HTTP contract clients see, and it can be tested in isolation because it is a pure function with no I/O. A paired test is cheap here and clearly what the rule is meant to require.\",\"fix\":\"Add src/infrastructure/http/ErrorMapper.test.ts (or the project's usual test location) to test `toErrorResponse`. Cover four cases: a DomainError with a mapped NOT_FOUND code returns 404; a DomainError with INVALID_ISBN or INVALID_BOOK returns 400; a DomainError with an unmapped code returns 409 and keeps its message; and a plain Error or non-Error value returns 500 with 'Internal error'.\"}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "921b4f86a53dd9a2",
+  "usage": {
+    "inputTokens": 2220,
+    "outputTokens": 713
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

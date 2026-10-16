@@ -1,0 +1,19 @@
+{
+  "answer": {
+    "inputTokens": 365,
+    "outputTokens": 20,
+    "servedModel": "fake-claude",
+    "text": "{\"choice\":\"A\",\"reason\":\"fake anthropic answer\"}"
+  },
+  "failedAttempts": [],
+  "itemKey": "d8b0d85e7b962db694546d9e",
+  "key": "1339bc87d006910ca32f4296a205b2523264ddb4460e4d444bb81d693a5e64b5",
+  "model": "fake-claude",
+  "provider": "fake",
+  "request": {
+    "prompt": "## Architectural style\n- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.\n\n## Code excerpt\nFile: src/bank-transactions-file/bank-transactions-file.module.ts\n```ts\n   11  import { StripeConfigFactory } from '../donations/helpers/stripe-config-factory'\n   12  import { ExportService } from '../export/export.service'\n   13  import { NotificationModule } from '../sockets/notifications/notification.module'\n   14> import { MarketingNotificationsModule } from '../notifications/notifications.module'\n   15  import { PrismaModule } from '../prisma/prisma.module'\n   16  \n   17  @Module({\n   18    imports: [\n   19      StripeModule.forRootAsync({\n   20        inject: [ConfigService],\n   21        useFactory: StripeConfigFactory.useFactory,\n   22      }),\n```\n\n## Reported finding\nComponent `bank-transactions-file` depends on `notifications` (1 import(s)), and `notifications` depends back on `bank-transactions-file` (directly or transitively): a dependency cycle between folder components.\n\n## Question\nWould an architect following this style want this changed?\nA. uncertain\nB. yes\nC. no\n\nReply with JSON only: {\"choice\": \"<letter>\", \"reason\": \"<one sentence>\"}",
+    "system": "You are a software architect reviewing a TypeScript code base against an architectural style. Judge only from the material in the message: the style definition, the code excerpt and the reported finding. You have no tools. Reply with one JSON object and nothing else.",
+    "temperature": 0
+  },
+  "runIndex": 1
+}

@@ -1,0 +1,19 @@
+{
+  "answer": {
+    "inputTokens": 441,
+    "outputTokens": 20,
+    "servedModel": "fake-gemini",
+    "text": "{\"choice\":\"A\",\"reason\":\"fake google answer\"}"
+  },
+  "failedAttempts": [],
+  "itemKey": "ceba59c0ea55525c1fd861a8",
+  "key": "be7f8a6eb3b8a045cc0107d867da2933f73409c42e22664e8d33e4c5ff4179fb",
+  "model": "fake-gemini",
+  "provider": "fake",
+  "request": {
+    "prompt": "## Architectural style\n- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.\n\n## Code excerpt\nFile: src/api/private/private-api.module.ts\n```ts\n   15  import { NoteModule } from '../../notes/note.module';\n   16  import { PermissionsModule } from '../../permissions/permissions.module';\n   17  import { RevisionsModule } from '../../revisions/revisions.module';\n   18> import { UsersModule } from '../../users/users.module';\n   19  import { AliasController } from './alias/alias.controller';\n   20  import { ApiTokensController } from './api-tokens/api-tokens.controller';\n   21  import { AuthController } from './auth/auth.controller';\n   22  import { GuestController } from './auth/guest/guest.controller';\n   23  import { LdapController } from './auth/ldap/ldap.controller';\n   24  import { LocalController } from './auth/local/local.controller';\n   25  import { OidcController } from './auth/oidc/oidc.controller';\n   26  import { ConfigController } from './config/config.controller';\n```\n\n## Reported finding\nComponent `api` depends on `users` (12 import(s)), and `users` depends back on `api` (directly or transitively): a dependency cycle between folder components.\n\n## Question\nWould an architect following this style want this changed?\nA. yes\nB. no\nC. uncertain\n\nReply with JSON only: {\"choice\": \"<letter>\", \"reason\": \"<one sentence>\"}\n\nYour previous reply was not valid. Reply with exactly one JSON object: {\"choice\": \"<letter>\", \"reason\": \"<one sentence>\"}.",
+    "system": "You are a software architect reviewing a TypeScript code base against an architectural style. Judge only from the material in the message: the style definition, the code excerpt and the reported finding. You have no tools. Reply with one JSON object and nothing else.",
+    "temperature": 0
+  },
+  "runIndex": 0
+}

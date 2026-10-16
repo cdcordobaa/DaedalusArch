@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "v36-loan-renewal-injects-sequential-ids",
+  "kind": "violation",
+  "plants": "FF-P06",
+  "description": "A new domain service LoanRenewal receives the concrete SequentialIdGenerator (import type) as a constructor parameter and stores it in a private field.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/domain/services/LoanRenewal.ts",
+      "target": "src/infrastructure/system/SequentialIdGenerator.ts",
+      "reason": "The domain imports an infrastructure class (type-only import): the dependency points outward."
+    },
+    {
+      "ruleId": "FF-S04",
+      "ruleName": "no-domain-outward-dep",
+      "file": "src/domain/services/LoanRenewal.ts",
+      "target": "src/infrastructure/system/SequentialIdGenerator.ts",
+      "reason": "A domain file imports a file of another layer."
+    },
+    {
+      "ruleId": "FF-P06",
+      "ruleName": "domain-state-purity",
+      "file": "src/domain/services/LoanRenewal.ts",
+      "target": "src/infrastructure/system/SequentialIdGenerator.ts",
+      "reason": "A domain class holds infrastructure state: SequentialIdGenerator is constructor-injected and kept in a field."
+    }
+  ]
+}

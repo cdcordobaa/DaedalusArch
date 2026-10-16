@@ -1,0 +1,60 @@
+--- a/src/registrations/dto/registration-response.dto.ts
++++ b/src/registrations/dto/registration-response.dto.ts
+@@ -1,10 +1,12 @@
+ import { Registration } from '../../domain/registration';
++import { WorkshopResponseDto } from '../../workshops/dto/workshop-response.dto';
+ 
+ export class RegistrationResponseDto {
+   id!: string;
+   workshopId!: string;
+   attendeeId!: string;
+   active!: boolean;
++  workshop?: WorkshopResponseDto;
+ 
+   static from(registration: Registration): RegistrationResponseDto {
+     return Object.assign(new RegistrationResponseDto(), {
+--- /dev/null
++++ b/src/registrations/dto/registration-summary.dto.ts
+@@ -0,0 +1,15 @@
++import { Registration } from '../../domain/registration';
++
++export class RegistrationSummaryDto {
++  id!: string;
++  attendeeId!: string;
++  active!: boolean;
++
++  static from(registration: Registration): RegistrationSummaryDto {
++    return Object.assign(new RegistrationSummaryDto(), {
++      id: registration.id,
++      attendeeId: registration.attendeeId,
++      active: registration.isActive,
++    });
++  }
++}
+--- a/src/workshops/dto/workshop-response.dto.ts
++++ b/src/workshops/dto/workshop-response.dto.ts
+@@ -1,10 +1,13 @@
++import { Registration } from '../../domain/registration';
+ import { Workshop } from '../../domain/workshop';
++import { RegistrationSummaryDto } from '../../registrations/dto/registration-summary.dto';
+ 
+ export class WorkshopResponseDto {
+   id!: string;
+   title!: string;
+   seatsLeft!: number;
+   startsAt!: string;
++  registrations?: RegistrationSummaryDto[];
+ 
+   static from(workshop: Workshop): WorkshopResponseDto {
+     return Object.assign(new WorkshopResponseDto(), {
+@@ -14,4 +17,10 @@
+       startsAt: workshop.startsAt.toISOString(),
+     });
+   }
++
++  static withRegistrations(workshop: Workshop, registrations: readonly Registration[]): WorkshopResponseDto {
++    const dto = WorkshopResponseDto.from(workshop);
++    dto.registrations = registrations.map((r) => RegistrationSummaryDto.from(r));
++    return dto;
++  }
+ }
