@@ -1,0 +1,13 @@
+--- a/src/domain/errors/DomainError.ts
++++ b/src/domain/errors/DomainError.ts
+@@ -1,6 +1,8 @@
+-export class DomainError extends Error {
++import { HttpException } from '@nestjs/common';
++
++export class DomainError extends HttpException {
+   constructor(readonly code: string, message: string) {
+-    super(message);
++    super(message, 409);
+     this.name = 'DomainError';
+   }
+ }

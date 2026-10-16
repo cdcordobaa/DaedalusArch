@@ -8,6 +8,8 @@
  * - `CypherUnsupportedError`: valid Cypher outside the interpreter's subset (writes, procedure CALL, top-level UNION,
  *   GDS, QPP, ...). `CALL { ... [UNION [ALL] ...] }` returning unit subqueries are in the subset.
  */
+import { checkStaticTypes } from './typecheck.js';
+import { simplifyQuery } from './simplify.js';
 import { BaseErrorListener, CharStream, CommonTokenStream, ParserRuleContext, TerminalNode } from 'antlr4ng';
 import type { ParseTree, RecognitionException, Recognizer, Token, ATNSimulator } from 'antlr4ng';
 import { Cypher25Lexer } from './generated/Cypher25Lexer.js';
@@ -241,7 +243,9 @@ class Builder {
   properties(c: Ctx): Expr {
     const m = rule(c, 'map');
     if (m !== undefined) return this.map(m);
-    return this.parameter(need(c, 'parameter'));
+    // Every pattern here is a MATCH (or EXISTS) pattern, where Neo4j rejects a parameter map (`-[*1..$max]->` parses
+    // as one; fuzz finding F9).
+    throw new CypherSyntaxError('Parameter maps cannot be used in `MATCH` patterns (use a literal map instead)');
   }
 
   labelExpression(c: Ctx): LabelExpr {
@@ -603,7 +607,10 @@ export function parseCypher(text: string): Query {
   parser.addErrorListener(listener);
   const tree = parser.statements();
   if (listener.errors.length > 0) throw new CypherSyntaxError(`Invalid Cypher: ${listener.errors.join('; ')}`);
-  const q = new Builder(text).statements(tree);
+  const built = new Builder(text).statements(tree);
+  // Neo4j's semantic analysis runs on the query as written, its simplifications after it.
+  checkStaticTypes(built);
+  const q = simplifyQuery(built);
   cache.set(text, q);
   return q;
 }
