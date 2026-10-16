@@ -1,0 +1,19 @@
+--- /dev/null
++++ b/src/domain/express-pass.ts
+@@ -0,0 +1,16 @@
++import { DomainError } from './domain-error';
++
++export class ExpressPass {
++  constructor(
++    readonly code: string,
++    readonly attendeeId: string,
++    readonly workshopId: string,
++    readonly validUntil: Date,
++  ) {
++    if (!/^[A-Z0-9]{6}$/.test(code)) throw new DomainError('invalid', `Invalid express pass code: ${code}`);
++  }
++
++  isValidAt(at: Date): boolean {
++    return at.getTime() <= this.validUntil.getTime();
++  }
++}

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "nestjs",
+  "variant": "v22-error-filter-reads-interceptor-header",
+  "kind": "violation",
+  "plants": "FF-S01",
+  "description": "DomainErrorFilter (src/common/filters, infrastructure) imports REQUEST_ID_HEADER from a new RequestIdInterceptor (src/common/interceptors, presentation) to echo the request id in error bodies.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/common/filters/domain-error.filter.ts",
+      "target": "src/common/interceptors/request-id.interceptor.ts",
+      "reason": "Infrastructure imports presentation: the dependency points upward."
+    }
+  ]
+}
