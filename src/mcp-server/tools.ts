@@ -22,6 +22,9 @@ import { inferProjectSpec, isIseStyle } from './infer-spec.js';
 import { specRuleMeta } from './rule-meta.js';
 import { proposeWithBuiltinPresets } from '../ise/propose.js';
 import type { SpecProposal } from '../ise/propose.js';
+import type { NeuralService } from './neural-service.js';
+import { explainAndFix, reviewUnit } from './neural-tools.js';
+import type { ExplainAndFixArgs, ExplainAndFixResult, FixHintSource, ReviewUnitArgs, ReviewUnitResult } from './neural-tools.js';
 import type {
   ArchitectureSpecView,
   CheckImportResult,
@@ -57,6 +60,10 @@ export interface ServerContext {
   readonly proposeSpec?: (projectDir: string) => Promise<SpecProposal>;
   /** The tool's canonical presets (`presets/`), read by `infer_spec`. */
   readonly presetsDir?: string | undefined;
+  /** The neural arm (`--neural`); absent means off: no neural tool is registered (v1.3, neural-arm-agent-tools.md). */
+  readonly neural?: NeuralService | undefined;
+  /** Deterministic fix hints for `explain_and_fix` (the fix-hints feature's `buildFixHint`, when the build has it). */
+  readonly fixHints?: FixHintSource | undefined;
 }
 
 const ok = <T>(data: T): ToolOutcome<T> => ({ ok: true, data });
@@ -299,4 +306,28 @@ export async function explainFindingTool(
 function parseLocationArg(location: string): { file: string; line?: number } {
   const m = /^(.*?):(\d+)(?::\d+)?$/.exec(location.trim());
   return m === null ? { file: location.trim() } : { file: m[1] ?? location, line: Number(m[2]) };
+}
+
+/** `review_unit` (neural arm): the judge on demand over one file or module unit; advisory, never blocking. */
+export async function reviewUnitTool(
+  ctx: ServerContext,
+  args: ReviewUnitArgs & { readonly spec?: string | undefined },
+): Promise<ToolOutcome<ReviewUnitResult>> {
+  const loaded = await specFor(ctx, args.spec);
+  if (!loaded.ok) return loaded;
+  return reviewUnit({ neural: ctx.neural, defaultProjectPath: ctx.defaultProjectPath, toProjectRelative: (p) => toProjectRelative(ctx, p) }, loaded.data.spec, args);
+}
+
+/** `explain_and_fix` (neural arm): fix hint + judge explanation + code excerpt for one symbolic finding. */
+export async function explainAndFixTool(
+  ctx: ServerContext,
+  args: ExplainAndFixArgs & { readonly spec?: string | undefined },
+): Promise<ToolOutcome<ExplainAndFixResult>> {
+  const loaded = await specFor(ctx, args.spec);
+  if (!loaded.ok) return loaded;
+  return explainAndFix(
+    { neural: ctx.neural, fixHints: ctx.fixHints, defaultProjectPath: ctx.defaultProjectPath, toProjectRelative: (p) => toProjectRelative(ctx, p) },
+    loaded.data.spec,
+    args,
+  );
 }
