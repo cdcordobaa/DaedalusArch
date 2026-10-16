@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "variant": "v34-booking-repository-typed-factory-only",
+  "kind": "violation",
+  "plants": "FF-P03",
+  "description": "InMemoryBookingRepository drops implements BookingRepository; the port is only used as the return type of a createBookingRepository() factory in the same file.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P03",
+      "ruleName": "port-adapter-pattern",
+      "file": "src/adapters/outbound/persistence/InMemoryBookingRepository.ts",
+      "reason": "The class still imports the port but does not declare that it implements it, so the outbound repository implements no port."
+    }
+  ]
+}

@@ -199,6 +199,33 @@ describe('cypher-interp: patterns', () => {
     expect(await rows(g, 'MATCH (f:File) WHERE EXISTS { (f)-[:IMPORTS|RE_EXPORTS*2..10]->(f) } RETURN count(f) AS c')).toEqual([{ c: { int: 4 } }]);
     expect(await rows(g, "MATCH (f:File {name: 'p4.ts'}) OPTIONAL MATCH (f)-[:IMPORTS]->(o:File) RETURN f.name AS f, o.name AS o, o AS node")).toEqual([{ f: 'p4.ts', o: null, node: null }]);
   });
+  // v1.3 npx branch: CALL { } subqueries (FF-P05's signature-types text on v1.3). Not re-checked live (no Neo4j where
+  // this was written): expected values follow the Neo4j 5.26 manual (UNION = distinct, UNION ALL keeps duplicates,
+  // importing WITH, no rebinding of an outer variable). Re-run scripts/v1.3/cypher-interp-unit-live.ts with Neo4j.
+  it('runs CALL { ... UNION ... } subqueries: distinct union, UNION ALL, per outer row, importing WITH', async () => {
+    const g = await sampleGraph();
+    expect(await rows(g, `CALL {
+        MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.name = 'p1.ts' RETURN b.name AS n
+        UNION
+        MATCH (a:File)-[:RE_EXPORTS]->(b:File) RETURN b.name AS n
+      }
+      RETURN n ORDER BY n`)).toEqual([{ n: 'p1.ts' }, { n: 'p2.ts' }, { n: 'p3.ts' }, { n: 'p4.ts' }, { n: 'p5.ts' }]);
+    expect(await rows(g, `CALL { MATCH (a:File)-[:IMPORTS]->(:File {name: 'p1.ts'}) RETURN a.name AS n UNION ALL MATCH (a:File)-[:IMPORTS]->(:File {name: 'p1.ts'}) RETURN a.name AS n }
+      RETURN n, count(*) AS c ORDER BY n`)).toEqual([{ n: 'p2.ts', c: { int: 2 } }, { n: 'p5.ts', c: { int: 2 } }]);
+    expect(await rows(g, `MATCH (f:File) WHERE f.layer = 'domain'
+      CALL { WITH f MATCH (f)-[:IMPORTS]->(t:File) RETURN count(t) AS out }
+      RETURN f.name AS f, out ORDER BY f`)).toEqual([{ f: 'p1.ts', out: { int: 3 } }, { f: 'p2.ts', out: { int: 1 } }]);
+    expect(await rows(g, `CALL { MATCH (n:Nothing) RETURN n.x AS x UNION MATCH (n:Nothing) RETURN n.x AS x } RETURN x`)).toEqual([]);
+  });
+  it('rejects the CALL forms outside the subset and the errors Neo4j raises', async () => {
+    const g = await sampleGraph();
+    expect(() => parseCypher('CALL { MATCH (n) RETURN n } IN TRANSACTIONS RETURN n')).toThrow(CypherUnsupportedError);
+    expect(() => parseCypher('MATCH (f) CALL (f) { MATCH (f)-->(x) RETURN x } RETURN x')).toThrow(CypherUnsupportedError);
+    expect(() => parseCypher('OPTIONAL CALL { MATCH (n) RETURN n } RETURN n')).toThrow(CypherUnsupportedError);
+    expect(() => parseCypher('CALL { MATCH (n) RETURN n AS a UNION ALL MATCH (n) RETURN n AS a UNION MATCH (n) RETURN n AS a } RETURN a')).toThrow(CypherSyntaxError);
+    expect((await failure(g, 'CALL { MATCH (n:File) RETURN n.name AS a UNION MATCH (n:File) RETURN n.name AS b } RETURN a')).code).toBe('Neo.ClientError.Statement.SyntaxError');
+    expect((await failure(g, 'MATCH (a:File) CALL { MATCH (x:File) RETURN x AS a } RETURN a')).code).toBe('Neo.ClientError.Statement.SyntaxError');
+  });
   it('counts per label and type like the ingestion verification', async () => {
     const g = await sampleGraph();
     expect(await rows(g, 'MATCH (n:APGNode) RETURN n.type AS type, count(*) AS cnt')).toEqual([{ type: 'File', cnt: { int: 5 } }, { type: 'Class', cnt: { int: 3 } }]);

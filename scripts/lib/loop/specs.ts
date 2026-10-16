@@ -29,6 +29,10 @@ import YAML from 'yaml';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import { inferSpec } from '../../../src/ise/infer.js';
 import { validateEmittedSpec } from '../../../src/ise/spec-emitter.js';
+import { compileFunctions, V13_COMPILE_OPTIONS } from '../../../src/fitness-compiler/index.js';
+import { INSTRUMENT_VERSION } from '../../../src/fitness-compiler/role-exemptions.js';
+import { compilerInputFromSpec } from '../../../src/fitness-compiler/compiler-input.js';
+import { parseSpec } from '../../../src/spec-parser/spec-parser.js';
 import type { SpecCheck } from '../../../src/ise/spec-emitter.js';
 import type { LoopContextDecl } from './style.js';
 
@@ -190,6 +194,19 @@ export const ISE_SNAPSHOT_TSCONFIG = {
   include: ['src/**/*.ts'],
 };
 
+/**
+ * The errors of compiling the spec as the evaluator's pipeline does (`CompileCommand`: `compileFunctions` with the v1.3
+ * options), for example `BR-SPEC-10 FF-DT01: aggregates`; none: [].
+ */
+export async function compileErrors(specYaml: string, tmpDir: string): Promise<readonly string[]> {
+  const file = path.join(tmpDir, 'frozen-spec-check.yaml');
+  fs.writeFileSync(file, specYaml);
+  const parsed = await parseSpec({ specFilePath: file });
+  if (!parsed.success) return parsed.errors.map((e) => `${e.code}: ${e.message}`);
+  const compiled = compileFunctions(compilerInputFromSpec(parsed.data), { ...V13_COMPILE_OPTIONS, instrumentVersion: INSTRUMENT_VERSION });
+  return compiled.success ? [] : compiled.errors.map((e) => e.message);
+}
+
 /** The real freezer: snapshot `src/` (ISE anti-leakage boundary), infer with style ddd, constrain, validate. */
 export function iseDddFreezer(repoRoot: string): SpecFreezer {
   const presetsDir = path.resolve(repoRoot, 'presets');
@@ -209,6 +226,12 @@ export function iseDddFreezer(repoRoot: string): SpecFreezer {
       const neutral = (xs: readonly string[]): string[] => xs.map((x) => x.split(dir).join('<snapshot>'));
       const check = freezeCheck({ valid: raw.valid, errors: neutral(raw.errors), warnings: neutral(raw.warnings) });
       if (!check.valid) return DomainResult.fail([{ code: 'LOOP_SPEC_FREEZE_FAILED', message: `the constrained spec is invalid: ${check.errors.join('; ')}` }]);
+      // The validator does not compile the spec. A spec the evaluator's compiler rejects (for example no aggregate
+      // inferred: the ISE needs one sub-folder per aggregate under a context's domain folder, and FF-DT01/FF-DT02 then
+      // cannot bind `aggregates`, BR-SPEC-10) is valid for it, but the evaluator then fails every snapshot. Reject it
+      // here, so the failure is recorded once, on the freeze (found by the loop replay, Docs/v1.3/loop-replay.md).
+      const compileErr = await compileErrors(specYaml, holder);
+      if (compileErr.length > 0) return DomainResult.fail([{ code: 'LOOP_SPEC_FREEZE_FAILED', message: `the constrained spec cannot be compiled: ${compileErr.join('; ')}` }]);
       const top = inference.classification.ranked[0];
       return DomainResult.ok({
         specYaml,

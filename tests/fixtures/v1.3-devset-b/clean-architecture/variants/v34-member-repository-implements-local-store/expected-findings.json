@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "v34-member-repository-implements-local-store",
+  "kind": "violation",
+  "plants": "FF-P03",
+  "description": "InMemoryMemberRepository implements MemberStore, an interface declared in its own infrastructure file, instead of the domain MemberRepository.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P03",
+      "ruleName": "repository-pattern",
+      "file": "src/infrastructure/persistence/InMemoryMemberRepository.ts",
+      "reason": "An infrastructure repository implements an infrastructure-local interface, not the domain repository interface."
+    }
+  ]
+}

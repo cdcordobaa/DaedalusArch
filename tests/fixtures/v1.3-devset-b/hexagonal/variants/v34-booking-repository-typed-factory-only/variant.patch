@@ -1,0 +1,20 @@
+--- a/src/adapters/outbound/persistence/InMemoryBookingRepository.ts
++++ b/src/adapters/outbound/persistence/InMemoryBookingRepository.ts
+@@ -1,7 +1,7 @@
+-import { BookingRepository } from '../../../application/ports/out/BookingRepository';
++import type { BookingRepository } from '../../../application/ports/out/BookingRepository';
+ import { Booking } from '../../../domain/model/Booking';
+ 
+-export class InMemoryBookingRepository implements BookingRepository {
++export class InMemoryBookingRepository {
+   private readonly rows = new Map<string, Booking>();
+   private sequence = 0;
+ 
+@@ -26,3 +26,7 @@
+     return `bk-${this.sequence}`;
+   }
+ }
++
++export function createBookingRepository(): BookingRepository {
++  return new InMemoryBookingRepository();
++}

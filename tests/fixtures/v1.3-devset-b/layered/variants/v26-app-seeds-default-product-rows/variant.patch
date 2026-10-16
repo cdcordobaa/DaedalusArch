@@ -1,0 +1,25 @@
+--- /dev/null
++++ b/src/persistence/records/defaultProducts.ts
+@@ -0,0 +1,8 @@
++import { ProductRecord } from './ProductRecord';
++
++const defaultProducts: readonly ProductRecord[] = [
++  { sku: 'tea-001', name: 'Sencha 100 g', priceCents: 850, stock: 40 },
++  { sku: 'tea-002', name: 'Assam 250 g', priceCents: 1290, stock: 25 },
++];
++
++export default defaultProducts;
+--- a/src/presentation/app.ts
++++ b/src/presentation/app.ts
+@@ -1,9 +1,11 @@
+ import { createServices } from '../business/ServiceFactory';
++import defaultProducts from '../persistence/records/defaultProducts';
+ import { CatalogController } from './http/CatalogController';
+ import { OrderController } from './http/OrderController';
+ import { Router } from './Router';
+ 
+ export function createApp(): Router {
+   const services = createServices();
++  for (const row of defaultProducts) services.catalog.addProduct(row.sku, row.name, row.priceCents, row.stock);
+   return new Router(new CatalogController(services.catalog), new OrderController(services.orders));
+ }
