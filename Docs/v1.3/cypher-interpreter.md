@@ -2,7 +2,7 @@
 
 Branch `v1.3-cypher-interp`, 2026-10-15 (merged into `v1.3` as #128); review fixes on `v1.3-interp-review-fixes`,
 2026-10-16 (an adversarial review found the parity claim held with caveats; §0, "What may be claimed", §2.1, §3, §4
-and §5 are updated). All numbers below are for `v1.3` at `f94eb251` merged with the review fixes, which includes the
+and §5 are updated). All numbers below are for `v1.3` at `50a32841` merged with the review fixes, which includes the
 seven `cheap2` templates and the FF-P05 signature-types rewrite that arrived after the spike's base `dc1a1c4a`. Status:
 spike, development-set evidence only. Neo4j stays the reference engine for every reported number; nothing in this
 document replaces a Neo4j run in a study.
@@ -20,11 +20,11 @@ easier to interpret (`git diff origin/v1.3 -- src/fitness-compiler` is empty).
 | Differential parity against live Neo4j 5.26.24 + APOC (`memory-parity.ts`) | **72,388 statements, 81 projects: 0 content, 0 error, 0 unsupported**; 360 `order` (all the ingestion verification counts, trap T1), 206 `float-drift` (only the two named `averageInstability` texts, ≤ 5 ULP observed, bound 16 ULP, both values recorded; T2). Table in §4
 | Coverage | per template, statements non-empty on both engines, per binding (§4.2). 14 catalogue templates were **thin** (< 50 non-empty) in the first run, and the 7 `cheap2` templates (merged from `v1.3`) have no rows on any real graph; two synthetic graphs now give each of these 21 ≥ 4 non-empty comparisons per binding, but 19 stay under 50 in total and stay flagged |
 | Order guard (`tests/unit/cypher-interp/template-order.test.ts`) | every catalogue template, every compiled text: ends in `RETURN … ORDER BY` over projected columns; no ORDER BY key tie on any row of the synthetic and APG v2 fixture graphs under the three bindings. One stated precondition: the aggregate templates need non-overlapping aggregates (§4.4) |
-| Unsupported syntax (`tests/unit/cypher-interp/unsupported-and-timeout.test.ts`) | 45 forms (writes, `COUNT { }`, `COLLECT { }`, map projections, Cypher-25-only forms, Java-only regex, every CALL procedure, correlated / OPTIONAL / IN TRANSACTIONS subqueries) fail with `CypherInterp.Unsupported` and a message naming the construct |
+| Unsupported syntax (`tests/unit/cypher-interp/unsupported-and-timeout.test.ts`) | 50 forms (writes, `COUNT { }`, `COLLECT { }`, map projections, Cypher-25-only forms, Java-only regex, every CALL procedure, correlated / OPTIONAL / IN TRANSACTIONS subqueries) fail with `CypherInterp.Unsupported` and a message naming the construct |
 | Query timeout (NFR-07) | honoured: `timeoutMs` (else 30 s, the Neo4j repository's default) bounds every read; past it the query fails with `Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration` (§3.1) |
 | APG v2 hand mirrors vs interpreter on the same graphs (no Neo4j) | 9 templates × 78 projects: rows and row order identical (`results/v1.3-cypher-interp/mirrors/mirrors.json`; not re-run by the review fixes) |
 | `CALL { … UNION … }` (§3) | supported, uncorrelated form only: `v1.3` compiles FF-P05 `controller-no-entity` into it (a82c3bb5), which the spike rejected, so on `v1.3` before this fix `--engine cypher-interp` failed FF-P05 in the pipeline on 28 projects (56 `unsupported` in a first parity run of the merged state) |
-| Unit tests (`jest --maxWorkers=2`) | `tests/unit/cypher-interp` 234, `tests/unit/scripts/memory-sweep.test.ts` 7 |
+| Unit tests (`jest --maxWorkers=2`) | `tests/unit/cypher-interp` 240, `tests/unit/scripts/memory-sweep.test.ts` 8 |
 | Licence | generated parser keeps Neo4j's Apache-2.0 header plus attribution; `NOTICE`, `licenses/Apache-2.0.txt`; `LICENSE` (MIT, matching `package.json`) added (§2.1) |
 | Warm in-process evaluation, one variant | 149 ms (interp) vs 728 ms (Neo4j); graph stages ≈20 ms vs ≈600 ms (§6; not re-measured) |
 
@@ -65,10 +65,13 @@ What may **not** be claimed:
 - **Row order without ORDER BY, or under ORDER BY ties.** The interpreter's order is deterministic (creation order,
   stable sort); Neo4j's is not (T1, T8). Downstream code (report top-10, the cycle cap) is safe because every template
   orders on keys unique at the row grain, under the preconditions of §4.4.
-- **Parity on a later `v1.3`.** The evidence is for `v1.3` at `f94eb251` plus these fixes. A template or compiler
+- **Parity on a later `v1.3`.** The evidence is for `v1.3` at `50a32841` plus these fixes. A template or compiler
   rewrite added later is covered only after the harness and the order guard run on it (the order guard fails until
   every catalogue template returns rows on some test graph; that is how the `cheap2` gap was found).
 - **Anything about a study.** Reported numbers still come from Neo4j; nothing here is a validity estimate.
+- **That every post-merge review finding on the interpreter is fixed.** R15 and R17 are fixed here; R16 (`sign(NaN)`,
+  `toInteger` of non-finite or out-of-range floats) and R18 (`trim` uses JS's whitespace set, not Java's) are not, and
+  no template, universal metric or judge query reaches them today.
 - **Performance beyond §6** (single-threaded, in memory, measured on the reference projects only; a long query blocks
   the event loop until its timeout).
 
@@ -217,9 +220,9 @@ syntax (inline flags after the start, possessive quantifiers, `\p{javaX}`, `\Q�
 Cypher-25-only form listed in §2.1. Undefined variables, missing parameters, type errors and arithmetic errors fail
 with Neo4j's error codes.
 
-Each rejection is pinned by `tests/unit/cypher-interp/unsupported-and-timeout.test.ts` (45 forms: MERGE, SET, CREATE,
+Each rejection is pinned by `tests/unit/cypher-interp/unsupported-and-timeout.test.ts` (50 forms: MERGE, SET, CREATE,
 DELETE / DETACH DELETE, REMOVE, FOREACH, LOAD CSV, `COUNT { }`, `COLLECT { }`, three map projections, `||`, `WHEN`
-branches, `NEXT`, `FILTER`, `LET`, comma lists in `CASE`, type predicates, seven Java-only regex constructs, CALL of
+branches, `NEXT`, `FILTER`, `LET`, comma lists in `CASE`, type predicates, twelve Java-only regex constructs, CALL of
 `db.labels`, `apoc.help` and of the name `apoc.coll.sort` (the three apoc.coll built-ins are functions, never
 procedures), correlated, OPTIONAL and IN TRANSACTIONS subqueries, other APOC and GDS functions, UNION outside
 `CALL { }`, quantified path patterns); the supported `CALL { … UNION … }` form and its three syntax errors (mixed
@@ -260,8 +263,9 @@ classes the pair and hands Neo4j's answer back, so the pipeline under test runs 
   plus generic values), `low` and `high` (`lib/memory-bindings.ts`).
 - **Classes** (`lib/memory-sweep.ts`):
   - `equal`: same columns, same values (INTEGER and FLOAT kept apart), same row order;
-  - `order`: the same multiset of rows in a different order, values bit-identical: a genuine row-order difference of a
-    query without a complete ORDER BY (T1);
+  - `order`: the same multiset of rows in a different order, values bit-identical, for a statement whose final RETURN
+    has **no ORDER BY** (T1). The same reordering under an ORDER BY is `content` (post-merge review R17, `Docs/v1.3/
+    post-merge-review-2026-10-16.md`: before this, an ORDER BY bug that kept the multiset would have passed the gate);
   - `float-drift`: same rows in the same order, every value bit-identical except FLOATs within **16 ULP** (a true
     units-in-the-last-place distance), and **only** for a text in `FLOAT_DRIFT_TEMPLATES`, which names the two
     `averageInstability` metric texts by exact text. Both values of every drifting cell are recorded
@@ -274,7 +278,7 @@ classes the pair and hands Neo4j's answer back, so the pipeline under test runs 
 
 Result: **72,388 statements: equal 71,822, order 360, float-drift 206, content 0, error 0, unsupported 0, both-error 0**
 (`results/v1.3-cypher-interp/parity/`, Neo4j 5.26.24 Community tarball plus its bundled `labs/apoc-5.26.24-core.jar` in
-`plugins/`, 5m11s). The `order` count moves between runs with Neo4j's node-id reuse (T1): 763 `order` in the spike's run
+`plugins/`, 5m20s). The `order` count moves between runs with Neo4j's node-id reuse (T1): 763 `order` in the spike's run
 counted both families together. Earlier runs of this fix: on the spike's base, 315 `order` + 283 `float-drift` + 4
 `content` (`averageInstability` at 5 ULP under the first bound tried, 4 ULP, which §4.1 resolves), then 66,212
 statements all clean; on the merged `v1.3`, 56 `unsupported` (FF-P05's `CALL { … UNION … }`, pipeline arms only), which
@@ -425,7 +429,7 @@ same command (`results/v1.3-cypher-interp/neo4j-control/`). `scripts/v1.3/cypher
 | CLI: the whole result | 71/71 |
 
 The CLI rounds the universal metrics to 3 decimals, so T2 cannot show there; the unrounded values are compared by the
-parity harness (§4, `universal:*`). Wall time: 2m54.5s (interp), 3m18.8s (Neo4j control).
+parity harness (§4, `universal:*`). Wall time: 2m51.9s (interp), 3m17.4s (Neo4j control).
 
 ### 4.4 Order guard
 
@@ -456,7 +460,7 @@ fixed (template text is not edited by this work).
 | T9 | `SET n = map` drops nulls | `layer: null` is not stored; `n.layer IS NULL` still holds; `keys(n)` differs from the map | the adapter stores only non-null entries |
 | T10 | relationship isomorphism | within one MATCH clause no relationship binds twice, across pattern parts and inside variable-length segments; nodes may repeat (`(f)-[*2..10]->(f)`) | the same; a new MATCH (or EXISTS) starts a new scope |
 | T11 | three-valued logic everywhere | `NOT f.isBarrel` on a missing property is null and filters the row out; `[1, null] = [1, null]` is null; `2 IN [1, null]` is null; `ANY/ALL/NONE/SINGLE` return null when undecided; simple `CASE null WHEN null` never matches | the same; WHERE keeps only `true` |
-| T12 | `=~` is Java `Pattern.matches` | whole-string match, Java syntax | compiled to a JS RegExp anchored `^(?:…)$`; leading `(?i)(?s)(?m)` become flags; Java-only constructs are rejected, not approximated |
+| T12 | `=~` is Java `Pattern.matches` | whole-input match, Java syntax | compiled to a JS RegExp anchored at the input boundaries (`(?<![\s\S])…(?![\s\S])`, so `(?m)` changes only the pattern's own `^`/`$`); leading `(?i)(?s)(?m)` become flags; Java-only or differently-read constructs (`\p{…}`, `\h`, `\R`, `\x{…}`, `&&` in a class, `(?i)` over non-ASCII letters, …) are rejected, not approximated (post-merge review R15; before the fix several were silently read as JS). Residual: no `u` flag, so `.` matches one UTF-16 unit, not one code point (an astral character in a path with a `?` glob) |
 | T13 | strings count code points | `size('😀')` = 1 | code points for `size`, `substring`, `left`, `right`, `reverse` |
 | T14 | FLOAT → string uses Java formatting | `toString(1.0)` = `1.0`, `'x' + 1.0` = `x1.0`, `toString(1e20)` = `1.0E20` | `javaDoubleToString` |
 | T15 | orderability across types | `ORDER BY` / `min` / `max`: map < node < relationship < list < path < string < boolean < number < null; NaN after every number; `min(1, 'a', 2.0)` = `'a'` | the same |

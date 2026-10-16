@@ -1521,3 +1521,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: v1.3 spike follow-up; PR #151 into v1.3, left open for review.
 
 ---
+
+## v1.3 SPIKE — cypher-interp review fixes: post-merge review R15/R17 (PR #151)
+**Timestamp**: 2026-10-16T03:40:00Z
+**User Input**: "(No new user input; scheduled safety-net check-in on #151.) v1.3 gained Docs/v1.3/post-merge-review-2026-10-16.md (#152) with interpreter findings R15-R18."
+**AI Response**: "Merged v1.3 (docs only). Fixed the two findings inside this PR's brief: R15 (Java regex constructs silently read as JS; (?m) broke whole-input matching; escaped backslash over-rejected) and R17 (a reordering under ORDER BY was classed 'order'). Checked against Neo4j 5.26.24; parity and the reference set re-run on the merged state with identical results (72,388 statements, 0 content / error / unsupported; 73/73 bytes, 71/71 CLI results). R16 and R18 are recorded as not fixed (no template reaches them)."
+**Context**: v1.3 spike follow-up; PR #151 left open for review.
+
+---
