@@ -1693,3 +1693,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: CONSTRUCTION, v1.3 validity cycle; exploratory probe, development tasks only. Report: Docs/DiagnosticRuns/v1.3-floor-probe-2-2026-10-16.md.
 
 ---
+
+## v1.3 K2: spec-author reliability on the external set (scheduled routine, night backlog 2026-10-16 job #11)
+**Timestamp**: 2026-10-16T05:50:00Z
+**User Input**: "Scheduled task: execute night-backlog job #11 (K2) under the standard rules block and kill list: write 15 blind second-author specs for the external set, then measure file-to-layer, blocking-count and verdict agreement against #133's specs."
+**AI Response**: "Committed the plan and pre-stated criterion (70ca5fb2) and the 15 blind author-B specs (d37841fb) before reading anything of #133 but selection.json; then evaluated A and B at origin/v1.3 a6723c34 with cypher-interp. Pooled file-to-layer kappa 0.77, 4/15 repos >= 0.80: criterion not met. Blocking Spearman 0.58, same verdict 10/15 (verdict kappa 0.21). A's re-run reproduces #133's counts on all 15 repos. Reference baseline byte-identical. PR into v1.3, not merged."
+**Context**: CONSTRUCTION (diagnostic run, tooling + results only; no product code changed). AI-DLC interactive stages skipped: unattended routine with a fully specified job. Options taken under delegation: (1) B protocol keeps preset layer names and adds no layer; (2) DDD `architecture.ddd` blocks authored per repo from the code, globs without braces/extglobs; (3) event-sourcing-ddd declared as one context rooted at src/domain/; (4) pooled kappa over repo-qualified labels; kind basis where layer-name sets differ; (5) A re-evaluated at this branch's base so both sides share one tool commit (Neo4j not started); (6) post-hoc sensitivity kappa with excluded = unmapped, labelled post hoc; (7) raw evaluation reports committed with clone paths replaced by <clones>.
+
+---
