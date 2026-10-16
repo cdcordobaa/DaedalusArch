@@ -17,11 +17,12 @@ class should go. The server speaks MCP over stdio, so any MCP client can use it.
 | `explain_violation` | A rule's intent and fix guidance | no |
 | `explain_finding` | Construct, source, tier and a minimal violating and compliant example for a rule id | no |
 | `infer_spec` | Proposes a spec for a project with no spec (style, layer map, YAML) | no |
-| `evaluate_project` | The full rule set on the whole project | **yes on `v1.3`**, no in PR #135 |
+| `evaluate_project` | The full rule set on the whole project | no (in-process engine unless `NEO4J_URI` is set) |
 
 `check_file` and `check_diff` scan imports and class declarations lexically. They are fast (about 50 ms per file in
 testing), but they cover only the rules that can be checked from one file: layer direction and skipping, domain
-purity, and class naming. Cycles, injection and other graph rules need `evaluate_project`.
+purity, and class naming. Cycles, injection and other graph rules need `evaluate_project`, or `check_file` with
+`templates: true` (below).
 
 ## Start the server
 
@@ -30,7 +31,8 @@ Build once, then run the compiled entry:
 ```bash
 npm ci && npm run build
 node dist/mcp-server/main.js --spec specs/clean-arch.yaml --project fixtures/variant-a-structural
-# stderr: daedalus-arch MCP server ready on stdio
+# stderr: daedalus: graph engine cypher-interp (in-process, no database) [NEO4J_URI is not set; ...]
+#         daedalus-arch MCP server ready on stdio
 ```
 
 `--spec` and `--project` can also come from `DAEDALUS_SPEC` and `DAEDALUS_PROJECT`. Every tool also takes an optional
@@ -71,14 +73,20 @@ A project-level `.mcp.json` written by hand looks like this:
 Most clients (Cursor's `.cursor/mcp.json`, and others) accept the same `mcpServers` shape: a `command`, an `args`
 list and an optional `env`. Use the JSON above.
 
-## With PR #135 (`daedalus-mcp`, no database for any tool)
+## Whole-project checks without a database
 
-On branch `v1.3-npx`, `evaluate_project` uses the in-process engine when `NEO4J_URI` is not set. A repeated call on an
-unchanged project is answered from a cache. In testing, the first call on `fixtures/variant-a-structural` took about
-2 s and a repeat took a few milliseconds. `check_file` also takes `templates: true`, which runs the graph rules on the
-project with the proposed file in place (about 1–3 s).
+`evaluate_project` uses the in-process engine unless `NEO4J_URI` is set in the server's environment. Leave
+`NEO4J_URI` out of `env` in the client config unless you run Neo4j on purpose. A repeated call on an unchanged project
+is answered from a cache. In testing, the first call on `fixtures/variant-a-structural` took about 2 s, and a repeat
+took 4 ms.
 
-From the packed tarball (see [chapter 1](01-quick-start.md)):
+`check_file` also takes `templates: true`. This runs the graph rules on the project with the proposed file in place, and
+returns what the file would introduce under `templates.introduced` (about 3 s in testing).
+
+## From a packed tarball
+
+If the tool is not checked out next to your project, pack it (see [chapter 1](01-quick-start.md)) and start the server
+through `npx`:
 
 ```json
 {
@@ -95,12 +103,10 @@ From the packed tarball (see [chapter 1](01-quick-start.md)):
 }
 ```
 
-Leave `NEO4J_URI` out of `env` here. On that branch, setting it switches the server to Neo4j.
-
 ## What the agent gets back
 
 `check_file` with path `src/domain/entities/Order.ts` and content `import { Entity } from "typeorm"; export class Order {}`,
-on `specs/clean-arch.yaml` (output from branch `v1.3`, shortened):
+on `specs/clean-arch.yaml` (shortened):
 
 ```json
 {
@@ -119,7 +125,9 @@ on `specs/clean-arch.yaml` (output from branch `v1.3`, shortened):
       "reason": "domain layer domain may not import typeorm: it matches forbidden_imports entry \"typeorm\"",
       "fix": "Remove the \"typeorm\" import from domain. Keep framework code (decorators, ORM models, HTTP types) in infrastructure and map it to plain domain classes there."
     }
-  ]
+  ],
+  "blockingVerdict": "block",
+  "blockingSummary": "BLOCK: 1 blocking violation(s) of FF-P01 (v1.3 tiers); fix them before writing. 0 advisory, 0 hint(s)."
 }
 ```
 
@@ -135,8 +143,7 @@ on `specs/clean-arch.yaml` (output from branch `v1.3`, shortened):
 }
 ```
 
-On `v1.3`, `evaluate_project` without a database returns an error result that says what is missing:
-`CONFIG_MISSING_ENV: NEO4J_PASSWORD is not set. evaluate_project needs a Neo4j instance...`.
+`blockingVerdict` (`block` or `pass`) is the field to act on: it counts only blocking-tier violations.
 
 ## Try `check_file` without an MCP client
 
@@ -152,5 +159,5 @@ echo $?    # 1
 
 A line like this in your agent's instructions (for example `CLAUDE.md`) makes the tools get used:
 
-> Before creating or editing a file under `src/`, call `check_file` with the full new content. Fix every violation
-> whose tier is `blocking` before writing. Use `suggest_placement` to decide where a new class goes.
+> Before creating or editing a file under `src/`, call `check_file` with the full new content. If `blockingVerdict`
+> is `block`, fix every violation whose tier is `blocking` before writing. Use `suggest_placement` to decide where a new class goes.

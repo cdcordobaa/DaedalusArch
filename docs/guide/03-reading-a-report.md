@@ -27,7 +27,7 @@ From the [quick start](01-quick-start.md) run on `fixtures/variant-a-structural`
 
 ```
 ╔═══════════════════════════════════════════╗
-║  Architectural Health Score: 0.42 (HARD-BLOCK)║
+║  Architectural Health Score: 0.44 (HARD-BLOCK)║
 ╚═══════════════════════════════════════════╝
   Verdict:             hard-block                          <- older weighted score (v1.2E), kept for comparison
   v1.3 scoring:        FAIL (any-blocking-violation; v1.2E verdict hard-block)   <- this is the verdict that counts
@@ -35,13 +35,11 @@ From the [quick start](01-quick-start.md) run on `fixtures/variant-a-structural`
     FF-S01   dependency-direction: 2
     FF-S02   no-cyclic-deps: 2
     FF-S04   no-domain-outward-dep: 1
-  Advisory findings:   11 in 6 of 15 rules
+  Advisory findings:   11 in 6 of 16 rules
     FF-C01   domain-stability: 1
     FF-CV05  test-file-pairing: 6
     ...
   N/A: FF-P06 FLOWS_TO field rows: 0 of 0 rows (FLOWS_TO edges in graph: 1)
-  Failed to run:
-    FF-P05 controller-no-entity [EVAL_001] ... cypher-interp: unsupported: clause subqueryClause
   Top Violations:
     1. [critical] src/application/use-cases/CreateTaskUseCase.ts — ... (application) imports from src/infrastructure/repositories/InMemoryTaskRepository.ts (infrastructure)
     ...
@@ -55,9 +53,8 @@ From the [quick start](01-quick-start.md) run on `fixtures/variant-a-structural`
 - **`Blocking AHS`** is a 0–1 score over the blocking rules only. Use it to compare runs. The verdict does not use it.
 - **`N/A`** marks a rule half that cannot be checked reliably and is not scored. It is shown with its denominator, so
   you can see how much was not checked. See FLOWS_TO in [chapter 8](08-faq-and-limitations.md).
-- **`Failed to run`** lists rules whose query did not run. With `--engine cypher-interp`, FF-P05
-  (`controller-no-entity`, advisory) fails this way on `v1.3` because the in-process engine does not support one Cypher
-  clause it uses. The other rules are unaffected. FF-P05 does run on the Neo4j engine.
+- **`Failed to run`** (not in this run) lists rules whose query did not run, with the error. A rule listed there was
+  not checked, so a PASS says nothing about it.
 - **`Top Violations`** lists findings, blocking first. For graph rules some entries read only
   `Violation in <file>`. The JSON output has the target file and line for each finding.
 

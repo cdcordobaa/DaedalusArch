@@ -26,10 +26,10 @@ named next to it.
 
 | Feature | Where | Notes |
 |---|---|---|
-| In-process graph engine (no database) | merged in `v1.3` | Pass `--engine cypher-interp`. It becomes the default in PR #135 |
-| MCP v2 tools (`check_file`, `check_diff`, `infer_spec`, ...) | merged in `v1.3` | `evaluate_project` still needs Neo4j on `v1.3`. PR #135 changes that |
+| In-process graph engine (no database) | merged in `v1.3` | The default whenever `NEO4J_URI` is not set (PR #135) |
+| MCP v2 tools (`check_file`, `check_diff`, `infer_spec`, `evaluate_project`, ...) | merged in `v1.3` | All tools work without a database |
 | Hexagonal and DDD rule libraries | merged in `v1.3` | `presets/hexagonal.yaml`, `presets/ddd.yaml` |
-| `npx` packaging, `daedalus` / `daedalus-mcp` commands | available in PR #135 | Not published to npm yet: you install from a packed tarball |
+| `npx` packaging, `daedalus` / `daedalus-mcp` commands | merged in `v1.3` (PR #135) | Not published to npm yet: install from a checkout or a packed tarball |
 | CI gate (`check --base --head`) and GitHub Action | available in PR #138 | Its in-process engine is `lexical`, not `cypher-interp` (see chapter 5) |
 | HTML report (`evaluate --html`) | available in PR #140 | The PR branch predates `--engine cypher-interp` (see chapter 6) |
 | Fix hints (`--hints`) | available in PR #143 | |
@@ -39,8 +39,11 @@ named next to it.
 ## Conventions in this guide
 
 - Commands run from the root of a DaedalusArch checkout after `npm ci`, and use the repository entry point
-  `npx tsx bin/firewall.ts`. The help text calls the program `firewall`. With PR #135 you can also use the
-  `daedalus` command (chapter 1).
+  `npx tsx bin/firewall.ts`. The help text calls the program `firewall`. After a build, the same CLI is installed as
+  `daedalus` (chapter 1).
+- `--engine cypher-interp` appears on every `evaluate`. On `v1.3` it is already the default when `NEO4J_URI` is not
+  set, so the flag is optional there. It is kept so that the commands mean the same thing on every machine, including
+  one with `NEO4J_URI` in its environment or `.env`.
 - `--symbolic-only` appears on every `evaluate`. Without it, `evaluate` also runs an LLM judge, which needs a pinned
   Claude CLI install and is meant for research runs. The rules described here are all symbolic.
 - The human-readable report is written to **stderr**. JSON (`--format json`) is written to stdout.

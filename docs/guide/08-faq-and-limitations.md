@@ -9,15 +9,13 @@ with `import`, both reaching into infrastructure) produced no findings. That pro
 
 ## Do I need Neo4j?
 
-Not for the CLI: pass `--engine cypher-interp` on `v1.3`. With PR #135 that becomes the default. You need Neo4j for:
+No. On `v1.3` the CLI and the MCP server use the in-process engine (`cypher-interp`) unless `NEO4J_URI` is set. You
+still need Neo4j for:
 
-- `evaluate_project` over MCP on `v1.3` (PR #135 removes this need).
-- The CI gate's full rule set (`check --engine neo4j`). The in-process `lexical` engine covers only single-file
-  import rules.
-- The older `report` command.
-
-One rule, FF-P05 (`controller-no-entity`, advisory), does not run under `cypher-interp` on `v1.3`. The report lists it
-under "Failed to run".
+- the CI gate's full rule set (`check --engine neo4j`, PR #138). Its in-process `lexical` engine covers only
+  single-file import rules;
+- `evaluate --html` on the PR #140 branch as it stands (chapter 6);
+- the older `report` command.
 
 ## Why does a rule half say "N/A … FLOWS_TO"?
 
@@ -92,5 +90,5 @@ rule mining and `init` are deterministic.
 ## Is it fast enough for an agent loop?
 
 On the reference fixtures: about 4 s for a full CLI evaluation (most of it start-up), about 50 ms for an MCP
-`check_file` call, and about 2 s for a first `evaluate_project` on PR #135, then milliseconds from cache. These are
+`check_file` call, and about 2 s for a first `evaluate_project`, then milliseconds from cache. These are
 small projects. Large codebases will take longer.

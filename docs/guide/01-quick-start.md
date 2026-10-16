@@ -24,6 +24,10 @@ echo $?    # 1
 Output (stderr, shortened):
 
 ```
+daedalus: graph engine cypher-interp (in-process, no database) [--engine]
+╔═══════════════════════════════════════════╗
+║  Architectural Health Score: 0.44 (HARD-BLOCK)║
+╚═══════════════════════════════════════════╝
   Verdict:             hard-block
   Mode:                symbolic-only
 
@@ -32,7 +36,7 @@ Output (stderr, shortened):
     FF-S01   dependency-direction: 2
     FF-S02   no-cyclic-deps: 2
     FF-S04   no-domain-outward-dep: 1
-  Advisory findings:   11 in 6 of 15 rules
+  Advisory findings:   11 in 6 of 16 rules
     FF-C01   domain-stability: 1
     ...
   Top Violations:
@@ -58,31 +62,46 @@ echo $?    # 0
 
 On this small project a run takes about 4 seconds, most of it start-up.
 
-`--engine cypher-interp` runs the rule queries in-process. On `v1.3` the default engine is still `neo4j`. If you
-leave the flag out and have no database, the run stops with
-`Error [CONFIG_MISSING_ENV]: NEO4J_PASSWORD is not set` and exit code 2.
-
 To run against your own code, point `--project` at the folder that holds `src/` and `tsconfig.json`. Point `--spec`
 at a spec (chapter 2), or start from an inferred one (chapter 7).
 
-## With `npx` (available in PR #135)
+## Which engine runs
 
-PR #135 packages the tool. It adds the commands `daedalus` (CLI) and `daedalus-mcp` (MCP server). It also makes the
-in-process engine the default whenever `NEO4J_URI` is not set. Each run prints one line saying which engine it used:
+`--engine cypher-interp` runs the rule queries in-process, with no database. Without the flag, the tool picks:
+
+- the `neo4j` engine if you pass `--neo4j-uri` or `NEO4J_URI` is set (also from a `.env` file in the working directory);
+- otherwise `cypher-interp`.
+
+The first line of every run names the engine and the reason, for example:
 
 ```
 daedalus: graph engine cypher-interp (in-process, no database) [NEO4J_URI is not set; pass --engine neo4j for the reference engine]
 ```
 
-The package is not on the npm registry yet, so build a tarball from the branch and run that:
+If that line says `neo4j` and you have no database, the run stops with `NEO4J_PASSWORD is not set` (exit 2). Add
+`--engine cypher-interp`.
+
+## The `daedalus` command and `npx`
+
+A build installs the CLI as `daedalus` (and `daedalus-arch`), and the MCP server as `daedalus-mcp` (and
+`daedalus-arch-mcp`):
 
 ```bash
-git checkout v1.3-npx
-npm ci
+npm run build
+node dist/cli/bin.js evaluate fixtures/variant-a-structural --spec specs/clean-arch.yaml --symbolic-only
+echo $?    # 1
+```
+
+The project can be positional (as above) or given as `--project`.
+
+The package is not on the npm registry yet. To use it outside the checkout, pack it and run the tarball with `npx`:
+
+```bash
 npm pack --pack-destination /tmp/daedalus      # -> /tmp/daedalus/daedalus-arch-0.1.0.tgz (runs the build first)
 
 npx --yes --package=/tmp/daedalus/daedalus-arch-0.1.0.tgz \
-  daedalus evaluate fixtures/variant-a-structural --spec specs/clean-arch.yaml --symbolic-only
+  daedalus evaluate /path/to/DaedalusArch/fixtures/variant-a-structural \
+  --spec /path/to/DaedalusArch/specs/clean-arch.yaml --symbolic-only
 echo $?    # 1
 ```
 
@@ -91,9 +110,6 @@ Notes from testing:
 - Use `--package=<tarball> daedalus ...`. `npx ./daedalus-arch-0.1.0.tgz ...` fails with "Permission denied"
   (exit 126), because npx tries to execute the tarball itself.
 - The first run takes about 12 seconds because it installs the package. Later runs start faster.
-- The project can be positional (as above) or given as `--project`.
-- From a checkout of that branch, `npm run build && node dist/cli/bin.js evaluate ...` works the same way.
-- The CLI loads a `.env` file from the working directory. A `NEO4J_URI` there switches the default engine to Neo4j.
 
 Once the package is published, the command becomes `npx daedalus-arch ...`. That form has not been tested.
 

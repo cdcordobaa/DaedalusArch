@@ -42,8 +42,9 @@ The page is self-contained. CSS, script and SVG are inline, there are no externa
 meta tag blocks network requests. You can attach it to a ticket or open it offline. The output has no timestamp, so
 the same input gives the same file. Code excerpts skip `.env*` and secret-like files.
 
-The page does not mention rules that failed to run. With `--engine cypher-interp` that is FF-P05 (see
-[chapter 3](03-reading-a-report.md)), which still shows under "Failed to run" in the console output.
+The page does not mention rules that failed to run. In the test runs (on `v1.3` before PR #135 was merged), FF-P05
+failed under `cypher-interp` and showed only in the console's "Failed to run" list. PR #135 has since fixed that rule
+on the in-process engine.
 
 ## The older `report` command
 
