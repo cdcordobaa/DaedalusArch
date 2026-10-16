@@ -7,6 +7,7 @@
  * - `CypherSyntaxError`: the text does not parse under Neo4j's grammar (Neo4j would reject it too);
  * - `CypherUnsupportedError`: valid Cypher outside the interpreter's subset (writes, CALL, UNION, GDS, QPP, ...).
  */
+import { checkStaticTypes } from './typecheck.js';
 import { BaseErrorListener, CharStream, CommonTokenStream, ParserRuleContext, TerminalNode } from 'antlr4ng';
 import type { ParseTree, RecognitionException, Recognizer, Token, ATNSimulator } from 'antlr4ng';
 import { Cypher25Lexer } from './generated/Cypher25Lexer.js';
@@ -580,6 +581,7 @@ export function parseCypher(text: string): Query {
   const tree = parser.statements();
   if (listener.errors.length > 0) throw new CypherSyntaxError(`Invalid Cypher: ${listener.errors.join('; ')}`);
   const q = new Builder(text).statements(tree);
+  checkStaticTypes(q);
   cache.set(text, q);
   return q;
 }

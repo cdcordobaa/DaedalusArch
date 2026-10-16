@@ -19,11 +19,41 @@ import type { GraphNode, GraphRel, Value } from './values.js';
 
 export type Row = ReadonlyMap<string, Value>;
 
+/**
+ * Data errors (type, arithmetic) the interpreter held back and then dropped because the predicate's outcome did not
+ * depend on them (see `predicateHolds`), by Neo4j status code. Diagnostics only: the fuzz harness reads it to tell a
+ * plan-order difference (Neo4j raised an error the interpreter could prove irrelevant, trap T20) from a missed error.
+ */
+export const evalDiagnostics = { suppressed: new Map<string, number>() };
+
+function suppress(err: CypherRuntimeError): void {
+  evalDiagnostics.suppressed.set(err.code, (evalDiagnostics.suppressed.get(err.code) ?? 0) + 1);
+}
+
 interface Ctx {
   readonly graph: MemoryGraph;
   readonly params: ReadonlyMap<string, Value>;
   /** Aggregate results of the group being projected, by AST node. */
   readonly aggregates?: ReadonlyMap<Expr, Value>;
+  /** Set while evaluating an `EXISTS { }` made of MATCH clauses only: only whether a row exists matters. */
+  readonly existential?: boolean;
+  /** Per variable-length relationship pattern of the current MATCH: the pushed-down filters (see `pushdowns`). */
+  readonly pushed?: ReadonlyMap<RelPattern, Pushdown>;
+}
+
+/**
+ * Filters of a MATCH's WHERE applied inside a variable-length expansion instead of after it, as Neo4j's planner does
+ * (fuzz finding F2): a conjunct `ALL(x IN r WHERE p)` over the segment's relationship list, or `ALL(x IN nodes(path)
+ * WHERE p)` over the nodes of a path made of that one segment, prunes every partial path at the first relationship or
+ * node for which `p` is not true. The conjunct stays in the WHERE, so the rows are unchanged; only the enumeration of
+ * paths the WHERE would reject is skipped. `reach`: the segment sits in an existential MATCH (see `Ctx.existential`)
+ * and only its end nodes matter, so it is a breadth-first reachability search (each end node once) rather than an
+ * enumeration of every trail.
+ */
+interface Pushdown {
+  readonly rels: readonly Extract<Expr, { k: 'quant' }>[];
+  readonly nodes: readonly Extract<Expr, { k: 'quant' }>[];
+  readonly reach: boolean;
 }
 
 export interface QueryOutput {
@@ -69,7 +99,27 @@ function runClause(clause: Clause, rows: Iterable<Row>, ctx: Ctx): Iterable<Row>
 }
 
 function* filter(rows: Iterable<Row>, where: Expr, ctx: Ctx): Generator<Row> {
-  for (const r of rows) if (evaluate(where, r, ctx) === true) yield r;
+  for (const r of rows) if (predicateHolds(where, r, ctx)) yield r;
+}
+
+/**
+ * A WHERE as Neo4j filters with it: its top-level conjuncts are separate predicates, evaluated in the planner's order
+ * and stopping at the first that is not true, so a data error in one conjunct surfaces only when every other conjunct
+ * is true (fuzz finding F1; a false or a null conjunct both reject the row). `pending` is an error already raised by an
+ * inline pattern predicate of the same MATCH.
+ */
+function predicateHolds(where: Expr | undefined, row: Row, ctx: Ctx, pending?: CypherRuntimeError): boolean {
+  let err = pending;
+  for (const c of conjuncts(where)) {
+    const ok = tryPredicate(c, row, ctx);
+    if (ok === false) {
+      if (err !== undefined) suppress(err);
+      return false;
+    }
+    if (ok !== true) err ??= ok;
+  }
+  if (err !== undefined) throw err;
+  return true;
 }
 
 function* unwind(expr: Expr, alias: string, rows: Iterable<Row>, ctx: Ctx): Generator<Row> {
@@ -99,11 +149,33 @@ function patternVariables(parts: readonly PatternPart[]): string[] {
   return out;
 }
 
-function* matchClause(clause: Extract<Clause, { k: 'match' }>, rows: Iterable<Row>, ctx: Ctx): Generator<Row> {
+/**
+ * Neo4j plans a MATCH's inline `WHERE`s (node and relationship patterns) and its `WHERE` as one conjunction and
+ * evaluates it in the planner's order, so a data error in one conjunct surfaces only when no other conjunct rejects the
+ * row (fuzz finding F1: `-[i WHERE NOT i.flag]->` on a string `flag` is no error when `WHERE src.layer IS NOT NULL`
+ * already fails). An inline predicate's error is therefore carried with the partial match under `PENDING` and raised
+ * only if the rest of the conjunction holds.
+ */
+const PENDING = '\u0000pending-error';
+
+function withPending(row: Row, err: CypherRuntimeError): Row {
+  return row.has(PENDING) ? row : bind(row, PENDING, err as unknown as Value);
+}
+
+function* matchClause(clause: Extract<Clause, { k: 'match' }>, rows: Iterable<Row>, ctx0: Ctx): Generator<Row> {
+  const pushed = pushdowns(clause, ctx0.existential === true);
+  const ctx: Ctx = { graph: ctx0.graph, params: ctx0.params, ...(ctx0.aggregates !== undefined ? { aggregates: ctx0.aggregates } : {}), ...(pushed.size > 0 ? { pushed } : {}) };
   for (const r of rows) {
     let any = false;
-    for (const m of matchParts(clause.patterns, 0, r, new Set(), ctx)) {
-      if (clause.where !== undefined && evaluate(clause.where, m, ctx) !== true) continue;
+    for (const m0 of matchParts(clause.patterns, 0, r, new Set(), ctx)) {
+      const pending = m0.get(PENDING) as unknown as CypherRuntimeError | undefined;
+      let m = m0;
+      if (pending !== undefined) {
+        const copy = new Map(m0);
+        copy.delete(PENDING);
+        m = copy;
+      }
+      if (!predicateHolds(clause.where, m, ctx, pending)) continue;
       any = true;
       yield m;
     }
@@ -113,6 +185,62 @@ function* matchClause(clause: Extract<Clause, { k: 'match' }>, rows: Iterable<Ro
       yield out;
     }
   }
+}
+
+function conjuncts(e: Expr | undefined): Expr[] {
+  if (e === undefined) return [];
+  return e.k === 'bin' && e.op === 'AND' ? [...conjuncts(e.l), ...conjuncts(e.r)] : [e];
+}
+
+function pushdowns(clause: Extract<Clause, { k: 'match' }>, existential: boolean): Map<RelPattern, Pushdown> {
+  const out = new Map<RelPattern, Pushdown>();
+  const relCount = clause.patterns.reduce((n, p) => n + p.rels.length, 0);
+  const cs = conjuncts(clause.where);
+  for (const part of clause.patterns) {
+    for (const rel of part.rels) {
+      if (rel.range === undefined) continue;
+      const quants = cs.filter((c): c is Extract<Expr, { k: 'quant' }> => c.k === 'quant' && c.q === 'all' && c.where !== undefined && !hasSubquery(c.where));
+      const rels = rel.variable === undefined ? [] : quants.filter((c) => c.list.k === 'var' && c.list.name === rel.variable);
+      const nodes = part.pathVariable === undefined || part.rels.length !== 1 ? []
+        : quants.filter((c) => c.list.k === 'fn' && c.list.name.toLowerCase() === 'nodes' && c.list.args.length === 1 && c.list.args[0]?.k === 'var' && c.list.args[0].name === part.pathVariable);
+      // Reachability is exact for a directed segment with no variable, no path variable, no other relationship in the
+      // clause (isomorphism), at least 0..1 and no upper bound: a trail of length >= 1 exists iff a walk does.
+      const reach = existential && relCount === 1 && rel.variable === undefined && part.pathVariable === undefined && rel.direction !== 'both'
+        && rel.range.min <= 1 && rel.range.max === undefined;
+      if (rels.length > 0 || nodes.length > 0 || reach) out.set(rel, { rels, nodes, reach });
+    }
+  }
+  return out;
+}
+
+/** Whether an expression holds an `EXISTS { }` (whose variables a pushed-down filter could not see). */
+function hasSubquery(e: Expr): boolean {
+  if (e.k === 'exists') return true;
+  return Object.values(e).some((v) => {
+    if (Array.isArray(v)) return v.some((x) => (Array.isArray(x) ? x.some((y) => isExpr(y) && hasSubquery(y)) : isExpr(x) && hasSubquery(x)));
+    return isExpr(v) && hasSubquery(v);
+  });
+}
+
+function isExpr(v: unknown): v is Expr {
+  return typeof v === 'object' && v !== null && 'k' in v && typeof (v as { k: unknown }).k === 'string';
+}
+
+/**
+ * Whether a pushed-down filter rejects `x` (its predicate is false or null). A data error is raised at once, as Neo4j
+ * raises it from inside the expansion it pushed the predicate into (`ALL(r IN rels WHERE NOT r.flag)` on a string
+ * `flag` fails before any path is complete); deferring it would enumerate every path only to raise it at the end.
+ */
+function rejects(q: Extract<Expr, { k: 'quant' }>, x: Value, row: Row, ctx: Ctx): boolean {
+  let ok: boolean;
+  try {
+    ok = evaluate(q.where as Expr, bind(row, q.v, x), ctx) === true;
+  } catch (e) {
+    // A variable the predicate reads is not bound yet at this point of the expansion: do not push it.
+    if (e instanceof CypherSyntaxError) return false;
+    throw e;
+  }
+  return !ok;
 }
 
 function* matchParts(parts: readonly PatternPart[], i: number, row: Row, used: ReadonlySet<GraphRel>, ctx: Ctx): Generator<Row> {
@@ -194,11 +322,12 @@ function* expand(part: PatternPart, at: number, node: GraphNode, step: 1 | -1, r
   const nextPat = part.nodes[at + step] as NodePattern;
   // Leftwards the pattern direction is traversed backwards.
   const dir = relPat.direction === 'both' ? 'both' : step === 1 ? relPat.direction : relPat.direction === 'out' ? 'in' : 'out';
-  for (const [rels, end] of traverse(relPat, dir, node, row, used, ctx)) {
+  for (const [rels, end, err] of traverse(relPat, dir, node, row, used, ctx)) {
     const r1 = bindNode(nextPat, end, row, ctx);
     if (r1 === undefined) continue;
-    const r2 = bindRel(relPat, rels, r1);
+    let r2 = bindRel(relPat, rels, r1);
     if (r2 === undefined) continue;
+    if (err !== undefined) r2 = withPending(r2, err);
     const u = new Set(used);
     for (const r of rels) u.add(r);
     for (const [r3, u3, segs] of expand(part, at + step, end, step, r2, u, ctx)) yield [r3, u3, [{ rels, node: end }, ...segs]];
@@ -211,16 +340,40 @@ function* adjacent(n: GraphNode, dir: 'out' | 'in' | 'both', ctx: Ctx): Generato
   if (dir !== 'out') for (const r of ctx.graph.incoming(n)) if (dir === 'in' || r.start !== r.end) yield [r, r.start];
 }
 
-function* traverse(p: RelPattern, dir: 'out' | 'in' | 'both', from: GraphNode, row: Row, used: ReadonlySet<GraphRel>, ctx: Ctx): Generator<[readonly GraphRel[], GraphNode]> {
+function* traverse(p: RelPattern, dir: 'out' | 'in' | 'both', from: GraphNode, row: Row, used: ReadonlySet<GraphRel>, ctx: Ctx): Generator<[readonly GraphRel[], GraphNode, CypherRuntimeError?]> {
   if (p.range === undefined) {
     for (const [r, other] of adjacent(from, dir, ctx)) {
-      if (used.has(r) || !relMatches(p, r, row, ctx)) continue;
-      yield [[r], other];
+      if (used.has(r)) continue;
+      const m = relMatches(p, r, row, ctx);
+      if (m === false) continue;
+      yield m === true ? [[r], other] : [[r], other, m];
     }
     return;
   }
   if (p.where !== undefined) throw new CypherUnsupportedError('WHERE inside a variable-length relationship pattern');
   const { min, max } = p.range;
+  const push = ctx.pushed?.get(p);
+  if (push?.nodes.some((q) => rejects(q, from, row, ctx)) === true) return;
+  if (push?.reach === true) {
+    // Breadth-first: every node reachable in >= min steps, once, nearest first.
+    if (min === 0) yield [[], from];
+    const seen = new Set<GraphNode>();
+    let frontier = [from];
+    while (frontier.length > 0) {
+      const next: GraphNode[] = [];
+      for (const n of frontier) {
+        for (const [r, other] of adjacent(n, dir, ctx)) {
+          if (seen.has(other) || used.has(r) || relMatches(p, r, row, ctx) !== true) continue;
+          if (push.rels.some((q) => rejects(q, r, row, ctx)) || push.nodes.some((q) => rejects(q, other, row, ctx))) continue;
+          seen.add(other);
+          next.push(other);
+          yield [[], other];
+        }
+      }
+      frontier = next;
+    }
+    return;
+  }
   // Depth-first, a path yielded when first reached (Neo4j's var-length expand order), relationships unique.
   const path: GraphRel[] = [];
   const onPath = new Set<GraphRel>();
@@ -228,7 +381,8 @@ function* traverse(p: RelPattern, dir: 'out' | 'in' | 'both', from: GraphNode, r
     if (path.length >= min) yield [[...path], n];
     if (max !== undefined && path.length >= max) return;
     for (const [r, other] of adjacent(n, dir, ctx)) {
-      if (onPath.has(r) || used.has(r) || !relMatches(p, r, row, ctx)) continue;
+      if (onPath.has(r) || used.has(r) || relMatches(p, r, row, ctx) !== true) continue;
+      if (push !== undefined && (push.rels.some((q) => rejects(q, r, row, ctx)) || push.nodes.some((q) => rejects(q, other, row, ctx)))) continue;
       path.push(r);
       onPath.add(r);
       yield* dfs(other);
@@ -239,12 +393,13 @@ function* traverse(p: RelPattern, dir: 'out' | 'in' | 'both', from: GraphNode, r
   yield* dfs(from);
 }
 
-function relMatches(p: RelPattern, r: GraphRel, row: Row, ctx: Ctx): boolean {
+/** Whether `r` matches the relationship pattern, or the data error its inline WHERE raised (see `PENDING`). */
+function relMatches(p: RelPattern, r: GraphRel, row: Row, ctx: Ctx): boolean | CypherRuntimeError {
   if (p.types !== undefined && !labelMatches(p.types, (l) => r.type === l)) return false;
   if (p.properties !== undefined && !propertiesMatch(p.properties, r.properties, row, ctx)) return false;
   if (p.where !== undefined) {
     if (p.variable === undefined) throw new CypherUnsupportedError('WHERE in an unnamed relationship pattern');
-    if (evaluate(p.where, bind(row, p.variable, r), ctx) !== true) return false;
+    return tryPredicate(p.where, bind(row, p.variable, r), ctx);
   }
   return true;
 }
@@ -288,7 +443,11 @@ function bindNode(p: NodePattern, n: GraphNode, row: Row, ctx: Ctx): Row | undef
       if (bound !== n) return undefined;
     } else out = bind(row, p.variable, n);
   }
-  if (p.where !== undefined && evaluate(p.where, out, ctx) !== true) return undefined;
+  if (p.where !== undefined) {
+    const ok = tryPredicate(p.where, out, ctx);
+    if (ok === false) return undefined;
+    if (ok !== true) out = withPending(out, ok);
+  }
   return out;
 }
 
@@ -592,13 +751,14 @@ export function evaluate(e: Expr, row: Row, ctx: Ctx): Value {
       return fn(e.args.map((a) => evaluate(a, row, ctx)));
     }
     case 'exists': {
-      for (const _ of runClauses(e.query.clauses, [row], ctx)) return true;
+      const existential = e.query.clauses.every((c) => c.k === 'match' && !c.optional);
+      for (const _ of runClauses(e.query.clauses, [row], { graph: ctx.graph, params: ctx.params, existential })) return true;
       return false;
     }
     case 'listComp': {
-      const l = evaluate(e.list, row, ctx);
-      if (l === null) return null;
-      if (!isList(l)) throw new CypherRuntimeError(`Type mismatch: expected List but was ${typeName(l)}`);
+      const l0 = evaluate(e.list, row, ctx);
+      if (l0 === null) return null;
+      const l = traversable(l0);
       const out: Value[] = [];
       for (const item of l) {
         const r = bind(row, e.v, item);
@@ -609,9 +769,9 @@ export function evaluate(e: Expr, row: Row, ctx: Ctx): Value {
     }
     case 'quant': return quantifier(e, row, ctx);
     case 'reduce': {
-      const l = evaluate(e.list, row, ctx);
-      if (l === null) return null;
-      if (!isList(l)) throw new CypherRuntimeError(`Type mismatch: expected List but was ${typeName(l)}`);
+      const l0 = evaluate(e.list, row, ctx);
+      if (l0 === null) return null;
+      const l = traversable(l0);
       let acc = evaluate(e.init, row, ctx);
       for (const item of l) acc = evaluate(e.expr, bind(bind(row, e.acc, acc), e.v, item), ctx);
       return acc;
@@ -620,10 +780,20 @@ export function evaluate(e: Expr, row: Row, ctx: Ctx): Value {
   }
 }
 
+/**
+ * The list an iterating expression walks: Neo4j 5.26.24 treats any other non-null value as a one-element list in the
+ * quantifiers, list comprehensions, `reduce`, `IN`, `tail` and slicing (`ANY(d IN 0.5 WHERE d = 0.5)` is true,
+ * `1 IN 3` is false, `3[0..1]` is `[3]`; fuzz finding F3). `size`, `head`, `last`, `[i]` and the APOC functions
+ * still reject it.
+ */
+function traversable(v: Exclude<Value, null>): readonly Value[] {
+  return isList(v) ? v : [v];
+}
+
 function quantifier(e: Extract<Expr, { k: 'quant' }>, row: Row, ctx: Ctx): Value {
-  const l = evaluate(e.list, row, ctx);
-  if (l === null) return null;
-  if (!isList(l)) throw new CypherRuntimeError(`Type mismatch: expected List but was ${typeName(l)}`);
+  const v0 = evaluate(e.list, row, ctx);
+  if (v0 === null) return null;
+  const l = traversable(v0);
   let trues = 0;
   let nulls = 0;
   let falses = 0;
@@ -664,11 +834,11 @@ function indexValue(o: Value, i: Value): Value {
 }
 
 function sliceValue(e: Extract<Expr, { k: 'slice' }>, row: Row, ctx: Ctx): Value {
-  const o = evaluate(e.obj, row, ctx);
+  const o0 = evaluate(e.obj, row, ctx);
   const from = e.from === undefined ? undefined : evaluate(e.from, row, ctx);
   const to = e.to === undefined ? undefined : evaluate(e.to, row, ctx);
-  if (o === null || from === null || to === null) return null;
-  if (!isList(o)) throw new CypherRuntimeError(`Cannot slice ${typeName(o)}`);
+  if (o0 === null || from === null || to === null) return null;
+  const o = traversable(o0);
   const n = o.length;
   const norm = (v: Value | undefined, dflt: number): number => {
     if (v === undefined) return dflt;
@@ -688,18 +858,42 @@ function and(a: boolean | null, b: boolean | null): boolean | null {
   return true;
 }
 
+/** A boolean operand, or the data error evaluating it raised (held back until the result is known to need it). */
+function tryBool(e: Expr, what: string, row: Row, ctx: Ctx): boolean | null | CypherRuntimeError {
+  try {
+    return bool(evaluate(e, row, ctx), what);
+  } catch (err) {
+    if (err instanceof CypherRuntimeError) return err;
+    throw err;
+  }
+}
+
+/** A predicate's outcome for filtering (`true` keeps the row), or the data error it raised. */
+function tryPredicate(e: Expr, row: Row, ctx: Ctx): boolean | CypherRuntimeError {
+  try {
+    return evaluate(e, row, ctx) === true;
+  } catch (err) {
+    if (err instanceof CypherRuntimeError) return err;
+    throw err;
+  }
+}
+
 function binary(op: string, le: Expr, re: Expr, row: Row, ctx: Ctx): Value {
   if (op === 'AND' || op === 'OR' || op === 'XOR') {
-    const a = bool(evaluate(le, row, ctx), op);
-    const b = bool(evaluate(re, row, ctx), op);
-    if (op === 'AND') return and(a, b);
-    if (op === 'OR') {
-      if (a === true || b === true) return true;
-      if (a === null || b === null) return null;
-      return false;
+    // Neo4j raises an operand's data error only when the result depends on that operand: `false AND <error>` and
+    // `<error> AND false` are false, `true OR <error>` is true, in either order (5.26.24, live; fuzz finding F1).
+    const a = tryBool(le, op, row, ctx);
+    const b = tryBool(re, op, row, ctx);
+    const decided = op === 'AND' ? a === false || b === false : op === 'OR' ? a === true || b === true : false;
+    if (decided) {
+      for (const x of [a, b]) if (x instanceof CypherRuntimeError) suppress(x);
+      return op === 'AND' ? false : true;
     }
+    if (a instanceof CypherRuntimeError) throw a;
+    if (b instanceof CypherRuntimeError) throw b;
+    if (op === 'AND') return and(a, b);
     if (a === null || b === null) return null;
-    return a !== b;
+    return op === 'OR' ? a || b : a !== b;
   }
   const l = evaluate(le, row, ctx);
   const r = evaluate(re, row, ctx);
@@ -716,9 +910,8 @@ function binary(op: string, le: Expr, re: Expr, row: Row, ctx: Ctx): Value {
     case '=~': return typeof l === 'string' && typeof r === 'string' ? javaRegex(r).test(l) : null;
     case 'IN': {
       if (r === null) return null;
-      if (!isList(r)) throw new CypherRuntimeError(`Type mismatch: expected List but was ${typeName(r)} (IN)`);
       let sawNull = false;
-      for (const x of r) {
+      for (const x of traversable(r)) {
         const eq = cypherEquals(l, x);
         if (eq === true) return true;
         if (eq === null) sawNull = true;
