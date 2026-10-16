@@ -1,0 +1,113 @@
+diff --git a/src/business/apiary-service.ts b/src/business/apiary-service.ts
+index dffc235..5ad449c 100644
+--- a/src/business/apiary-service.ts
++++ b/src/business/apiary-service.ts
+@@ -32,13 +32,13 @@ export class ApiaryService {
+     return this.hives.saveHive({ id: randomUUID(), apiaryId, ownerId: memberId, label });
+   }
+ 
+-  recordInspection(memberId: string, hiveId: string, input: Omit<Inspection, 'id' | 'hiveId' | 'recordedBy'>): Inspection {
++  recordInspection(memberId: string, hiveId: string, input: Omit<Inspection, 'id' | 'hiveId' | 'recordedBy' | 'recordedAt'>): Inspection {
+     const hive = this.hives.hive(hiveId);
+     if (!hive) throw new DomainError('hive not found', 404);
+     if (hive.ownerId !== memberId) throw new DomainError('only the hive owner can record inspections', 403);
+     const inspection = { ...input, hiveId, recordedBy: memberId };
+     validateInspection(inspection);
+-    return this.inspections.save({ id: randomUUID(), ...inspection });
++    return this.inspections.save({ id: randomUUID(), ...inspection, recordedAt: new Date().toISOString() });
+   }
+ 
+   hiveView(hiveId: string): HiveView {
+diff --git a/src/business/container.ts b/src/business/container.ts
+index aed26d5..da6fde8 100644
+--- a/src/business/container.ts
++++ b/src/business/container.ts
+@@ -18,6 +18,6 @@ export function createServices() {
+   const treatments = new TreatmentService(hiveRepo, treatmentRepo, harvestRepo);
+   const reports = new ReportService(hiveRepo, inspectionRepo, treatmentRepo, harvestRepo);
+   const apiaries = new ApiaryService(hiveRepo, inspectionRepo, treatmentRepo);
+-  const scales = new ScaleService(hiveRepo, new ScaleRepository(db), new TextHiveClient());
++  const scales = new ScaleService(hiveRepo, new ScaleRepository(db), new TextHiveClient(), inspectionRepo);
+   return { treatments, reports, apiaries, scales };
+ }
+diff --git a/src/business/scale-service.ts b/src/business/scale-service.ts
+index 3fca100..fb97b5c 100644
+--- a/src/business/scale-service.ts
++++ b/src/business/scale-service.ts
+@@ -1,10 +1,24 @@
+ import { DomainError, SWARM_DROP_KG, ScaleReading, SwarmAlert, dropWithinHour } from './model';
+-import { HiveRepository } from '../persistence/hive-repository';
++import { HiveRepository, InspectionRepository } from '../persistence/hive-repository';
+ import { ScaleRepository } from '../persistence/scale-repository';
+ import { TextHiveClient } from '../persistence/texthive-client';
+ 
+ export class ScaleService {
+-  constructor(private readonly hives: HiveRepository, private readonly scales: ScaleRepository, private readonly sms: TextHiveClient) {}
++  constructor(
++    private readonly hives: HiveRepository,
++    private readonly scales: ScaleRepository,
++    private readonly sms: TextHiveClient,
++    private readonly inspections: InspectionRepository,
++    private readonly holdMs = 60 * 60 * 1000,
++  ) {}
++
++  /** HOTFIX: an inspection recorded from 2 h before to 1 h after the drop explains it. */
++  private inspectionExplains(hiveId: string, at: string): boolean {
++    const t = new Date(at).getTime();
++    return this.inspections
++      .forHive(hiveId)
++      .some((i) => i.recordedAt !== undefined && new Date(i.recordedAt).getTime() >= t - 2 * 3600000 && new Date(i.recordedAt).getTime() <= t + 3600000);
++  }
+ 
+   linkScale(memberId: string, serial: string, hiveId: string): void {
+     const hive = this.hives.hive(hiveId);
+@@ -31,11 +45,25 @@ export class ScaleService {
+     const hive = this.hives.hive(hiveId);
+     const owner = hive ? this.hives.member(hive.ownerId) : undefined;
+     const alert: SwarmAlert = { hiveId, dropKg: Math.round(drop * 10) / 10, at };
+-    if (owner?.phone) {
+-      await this.sms.sendSms(owner.phone, `Possible swarm: hive ${hive?.label} lost ${alert.dropKg} kg in the last hour.`);
+-      alert.sentTo = owner.phone;
+-    }
+     this.scales.addAlert(alert);
++    if (this.inspectionExplains(hiveId, at)) {
++      alert.cancelled = true;
++      return alert;
++    }
++    // hold the SMS for an hour: an inspection recorded in that hour cancels it
++    const phone = owner?.phone;
++    if (phone) {
++      setTimeout(() => {
++        if (this.inspectionExplains(hiveId, at)) {
++          alert.cancelled = true;
++          return;
++        }
++        this.sms
++          .sendSms(phone, `Possible swarm: hive ${hive?.label} lost ${alert.dropKg} kg in the last hour.`)
++          .then(() => (alert.sentTo = phone))
++          .catch((e) => console.error('swarm SMS failed', e));
++      }, this.holdMs);
++    }
+     return alert;
+   }
+ }
+diff --git a/src/persistence/model.ts b/src/persistence/model.ts
+index c8325a6..384cf43 100644
+--- a/src/persistence/model.ts
++++ b/src/persistence/model.ts
+@@ -28,6 +28,7 @@ export interface Inspection {
+   temperament: number;
+   varroaPer100: number;
+   recordedBy: string;
++  recordedAt?: string;
+ }
+ 
+ export interface ScaleReading {
+@@ -42,6 +43,7 @@ export interface SwarmAlert {
+   dropKg: number;
+   at: string;
+   sentTo?: string;
++  cancelled?: boolean;
+ }
+ 
+ export interface TreatmentProduct {

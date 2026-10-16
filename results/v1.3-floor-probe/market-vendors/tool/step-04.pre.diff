@@ -1,0 +1,428 @@
+diff --git a/src/business/audit-service.ts b/src/business/audit-service.ts
+new file mode 100644
+index 0000000..c57bd1c
+--- /dev/null
++++ b/src/business/audit-service.ts
+@@ -0,0 +1,29 @@
++import { randomUUID } from 'node:crypto';
++import { AuditEntry, AuditedEntity } from './models';
++import { auditRepository } from '../persistence/repositories';
++
++export const auditService = {
++  record(
++    actor: string,
++    entity: AuditedEntity,
++    entityId: string,
++    scope: { marketDayId?: string; vendorId?: string },
++    before: unknown,
++    after: unknown,
++  ): void {
++    auditRepository.append({
++      id: randomUUID(),
++      entity,
++      entityId,
++      ...scope,
++      actor,
++      at: new Date().toISOString(),
++      before: before ?? null,
++      after: after ?? null,
++    });
++  },
++
++  forMarketDay(marketDayId: string): AuditEntry[] {
++    return auditRepository.forMarketDay(marketDayId);
++  },
++};
+diff --git a/src/business/market-service.ts b/src/business/market-service.ts
+index fe88a0c..bbad1d8 100644
+--- a/src/business/market-service.ts
++++ b/src/business/market-service.ts
+@@ -1,6 +1,8 @@
+ import { randomUUID } from 'node:crypto';
+-import { Booking, BusinessError, MarketDay, Pitch, PitchSize, Vendor } from './models';
+-import { bookingRepository, marketDayRepository, pitchRepository, vendorRepository } from '../persistence/repositories';
++import { Booking, BusinessError, FeeSchedule, MarketDay, Pitch, PitchSize, Vendor } from './models';
++import { auditService } from './audit-service';
++import { inTransaction } from '../persistence/transaction';
++import { bookingRepository, feeRepository, marketDayRepository, pitchRepository, vendorRepository } from '../persistence/repositories';
+ 
+ const SIZES: PitchSize[] = ['small', 'medium', 'large'];
+ 
+@@ -34,7 +36,7 @@ export const marketService = {
+     return vendorRepository.all();
+   },
+ 
+-  book(vendorId: string, marketDayId: string, pitchNumber: number): Booking {
++  book(actor: string, vendorId: string, marketDayId: string, pitchNumber: number): Booking {
+     if (!vendorRepository.find(vendorId)) throw new BusinessError('unknown vendor', 404);
+     const day = marketDayRepository.find(marketDayId);
+     if (!day) throw new BusinessError('unknown market day', 404);
+@@ -43,24 +45,52 @@ export const marketService = {
+     const dayBookings = bookingRepository.activeForDay(marketDayId);
+     if (dayBookings.some((b) => b.pitchNumber === pitchNumber)) throw new BusinessError('pitch already booked for this market day', 409);
+     if (dayBookings.some((b) => b.vendorId === vendorId)) throw new BusinessError('vendor already holds a pitch on this market day', 409);
+-    return bookingRepository.save({ id: randomUUID(), vendorId, marketDayId, pitchNumber, feeDue: true });
++    return inTransaction(() => {
++      const booking = bookingRepository.save({ id: randomUUID(), vendorId, marketDayId, pitchNumber, feeDue: true });
++      auditService.record(actor, 'booking', booking.id, { marketDayId, vendorId }, null, booking);
++      return booking;
++    });
+   },
+ 
+-  cancelBooking(bookingId: string, now: Date = new Date()): Booking {
++  cancelBooking(actor: string, bookingId: string, now: Date = new Date()): Booking {
+     const booking = bookingRepository.find(bookingId);
+     if (!booking) throw new BusinessError('unknown booking', 404);
+     if (booking.cancelledAt) throw new BusinessError('booking already cancelled', 409);
+     const day = marketDayRepository.find(booking.marketDayId);
+     if (!day || day.status === 'settled') throw new BusinessError('market day is settled', 409);
+     const hoursBefore = (new Date(`${day.date}T00:00:00Z`).getTime() - now.getTime()) / 3600000;
+-    return bookingRepository.save({ ...booking, cancelledAt: now.toISOString(), feeDue: hoursBefore < 48 });
++    return inTransaction(() => {
++      const cancelled = bookingRepository.save({ ...booking, cancelledAt: now.toISOString(), feeDue: hoursBefore < 48 });
++      auditService.record(actor, 'booking', booking.id, { marketDayId: booking.marketDayId, vendorId: booking.vendorId }, booking, cancelled);
++      return cancelled;
++    });
+   },
+ 
+-  setCommissionRate(vendorId: string, rate: number): Vendor {
++  setCommissionRate(actor: string, vendorId: string, rate: number): Vendor {
+     const v = vendorRepository.find(vendorId);
+     if (!v) throw new BusinessError('unknown vendor', 404);
+     if (!(rate >= 0 && rate < 1)) throw new BusinessError('rate must be between 0 and 1');
+-    return vendorRepository.save({ ...v, commissionRate: rate });
++    return inTransaction(() => {
++      const updated = vendorRepository.save({ ...v, commissionRate: rate });
++      auditService.record(actor, 'commission-rate', vendorId, { vendorId }, v.commissionRate ?? null, rate);
++      return updated;
++    });
++  },
++
++  getFees(): FeeSchedule {
++    return feeRepository.get();
++  },
++
++  updateFees(actor: string, patch: Partial<FeeSchedule>): FeeSchedule {
++    const before: FeeSchedule = JSON.parse(JSON.stringify(feeRepository.get())) as FeeSchedule;
++    if (patch.defaultCommissionRate !== undefined && !(patch.defaultCommissionRate >= 0 && patch.defaultCommissionRate < 1)) {
++      throw new BusinessError('defaultCommissionRate must be between 0 and 1');
++    }
++    return inTransaction(() => {
++      const after = feeRepository.update(patch);
++      auditService.record(actor, 'fees', 'fee-schedule', {}, before, { ...after });
++      return after;
++    });
+   },
+ 
+   bookingsForDay(marketDayId: string): Booking[] {
+diff --git a/src/business/sales-service.ts b/src/business/sales-service.ts
+index 6fa24af..3773feb 100644
+--- a/src/business/sales-service.ts
++++ b/src/business/sales-service.ts
+@@ -1,5 +1,7 @@
+ import { randomUUID } from 'node:crypto';
+-import { BusinessError, CardSale, MarketDay, MerchantLink, Provider, ReaderLink } from './models';
++import { BusinessError, CardSale, MarketDay, MerchantLink, Provider, ReaderLink, SYSTEM } from './models';
++import { auditService } from './audit-service';
++import { inTransaction } from '../persistence/transaction';
+ import {
+   bookingRepository,
+   cardSaleRepository,
+@@ -36,7 +38,11 @@ function acceptSale(provider: Provider, sourceId: string, vendorId: string, day:
+     const existing = cardSaleRepository.findByExternalId(provider, externalId);
+     if (existing) return existing;
+   }
+-  return cardSaleRepository.save({ id: randomUUID(), readerId: sourceId, externalId, vendorId, marketDayId: day.id, amount, time, provider });
++  return inTransaction(() => {
++    const sale = cardSaleRepository.save({ id: randomUUID(), readerId: sourceId, externalId, vendorId, marketDayId: day.id, amount, time, provider });
++    auditService.record(SYSTEM, 'card-sale', sale.id, { marketDayId: day.id, vendorId }, null, sale);
++    return sale;
++  });
+ }
+ 
+ export const salesService = {
+diff --git a/src/business/settlement-service.ts b/src/business/settlement-service.ts
+index 647aff9..9225355 100644
+--- a/src/business/settlement-service.ts
++++ b/src/business/settlement-service.ts
+@@ -1,4 +1,6 @@
+ import { BusinessError, MarketDay, Settlement } from './models';
++import { auditService } from './audit-service';
++import { inTransaction } from '../persistence/transaction';
+ import {
+   balanceRepository,
+   bookingRepository,
+@@ -20,7 +22,11 @@ export const settlementService = {
+     return marketDayRepository.save({ ...day, status: 'closed' });
+   },
+ 
+-  settle(marketDayId: string): Settlement[] {
++  settle(actor: string, marketDayId: string): Settlement[] {
++    return inTransaction(() => this.settleInTx(actor, marketDayId));
++  },
++
++  settleInTx(actor: string, marketDayId: string): Settlement[] {
+     const day = marketDayRepository.find(marketDayId);
+     if (!day) throw new BusinessError('unknown market day', 404);
+     if (day.status !== 'closed') throw new BusinessError('only a closed market day can be settled', 409);
+@@ -55,6 +61,7 @@ export const settlementService = {
+       };
+       balanceRepository.setOwed(vendorId, settlement.carriedOut);
+       settlementRepository.save(settlement);
++      auditService.record(actor, 'settlement', `${marketDayId}|${vendorId}`, { marketDayId, vendorId }, null, settlement);
+       result.push(settlement);
+     }
+     marketDayRepository.save({ ...day, status: 'settled' });
+diff --git a/src/business/statement-service.ts b/src/business/statement-service.ts
+new file mode 100644
+index 0000000..fc5c745
+--- /dev/null
++++ b/src/business/statement-service.ts
+@@ -0,0 +1,47 @@
++import { BusinessError, Provider } from './models';
++import {
++  bookingRepository,
++  cardSaleRepository,
++  marketDayRepository,
++  pitchRepository,
++  settlementRepository,
++  vendorRepository,
++} from '../persistence/repositories';
++
++export interface MonthlyStatement {
++  vendor: string;
++  month: string;
++  bookings: { date: string; pitch: number; cancelled: boolean; feeDue: boolean }[];
++  salesByProvider: Record<Provider, number>;
++  stallFees: number;
++  commission: number;
++  payouts: number;
++  carriedBalance: number;
++}
++
++export const statementService = {
++  monthly(vendorId: string, month: string): MonthlyStatement {
++    const vendor = vendorRepository.find(vendorId);
++    if (!vendor) throw new BusinessError('unknown vendor', 404);
++    if (!/^\d{4}-\d{2}$/.test(month)) throw new BusinessError('month must be YYYY-MM');
++    const days = new Map(marketDayRepository.all().filter((d) => d.date.startsWith(month)).map((d) => [d.id, d]));
++    const bookings = bookingRepository
++      .forVendor(vendorId)
++      .filter((b) => days.has(b.marketDayId))
++      .map((b) => ({ date: days.get(b.marketDayId)?.date ?? '', pitch: pitchRepository.find(b.pitchNumber)?.number ?? b.pitchNumber, cancelled: !!b.cancelledAt, feeDue: b.feeDue }));
++    const salesByProvider: Record<Provider, number> = { paylane: 0, tillwave: 0 };
++    for (const s of cardSaleRepository.forVendor(vendorId)) if (days.has(s.marketDayId)) salesByProvider[s.provider] += s.amount;
++    const settlements = settlementRepository.forVendor(vendorId).filter((s) => days.has(s.marketDayId));
++    const sorted = settlements.sort((a, b) => (days.get(a.marketDayId)?.date ?? '').localeCompare(days.get(b.marketDayId)?.date ?? ''));
++    return {
++      vendor: vendor.businessName,
++      month,
++      bookings,
++      salesByProvider,
++      stallFees: settlements.reduce((a, s) => a + s.stallFee, 0),
++      commission: settlements.reduce((a, s) => a + s.commission, 0),
++      payouts: settlements.reduce((a, s) => a + s.payout, 0),
++      carriedBalance: sorted.length ? sorted[sorted.length - 1].carriedOut : 0,
++    };
++  },
++};
+diff --git a/src/persistence/models.ts b/src/persistence/models.ts
+index c075895..6105307 100644
+--- a/src/persistence/models.ts
++++ b/src/persistence/models.ts
+@@ -75,3 +75,19 @@ export interface Settlement {
+   payout: number;
+   carriedOut: number;
+ }
++
++export type AuditedEntity = 'booking' | 'fees' | 'commission-rate' | 'card-sale' | 'settlement';
++
++export interface AuditEntry {
++  id: string;
++  entity: AuditedEntity;
++  entityId: string;
++  marketDayId?: string;
++  vendorId?: string;
++  actor: string;
++  at: string;
++  before: unknown;
++  after: unknown;
++}
++
++export const SYSTEM = 'system';
+diff --git a/src/persistence/repositories.ts b/src/persistence/repositories.ts
+index 0cab914..4ccf479 100644
+--- a/src/persistence/repositories.ts
++++ b/src/persistence/repositories.ts
+@@ -1,5 +1,6 @@
+-import { Booking, CardSale, FeeSchedule, MarketDay, MerchantLink, Pitch, ReaderLink, Settlement, Vendor } from './models';
++import { AuditEntry, Booking, CardSale, FeeSchedule, MarketDay, MerchantLink, Pitch, ReaderLink, Settlement, Vendor } from './models';
+ import {
++  auditLog,
+   balances,
+   bookings,
+   cardSales,
+@@ -87,3 +88,8 @@ export const feeRepository = {
+   get: (): FeeSchedule => feeSchedule,
+   update: (patch: Partial<FeeSchedule>): FeeSchedule => Object.assign(feeSchedule, patch),
+ };
++
++export const auditRepository = {
++  append: (e: AuditEntry) => auditLog.upsert(e),
++  forMarketDay: (marketDayId: string) => auditLog.where((e) => e.marketDayId === marketDayId).sort((a, b) => a.at.localeCompare(b.at)),
++};
+diff --git a/src/persistence/store.ts b/src/persistence/store.ts
+index f688d17..0d35222 100644
+--- a/src/persistence/store.ts
++++ b/src/persistence/store.ts
+@@ -1,4 +1,4 @@
+-import { Booking, CardSale, FeeSchedule, MarketDay, MerchantLink, Pitch, ReaderLink, Settlement, Vendor } from './models';
++import { AuditEntry, Booking, CardSale, FeeSchedule, MarketDay, MerchantLink, Pitch, ReaderLink, Settlement, Vendor } from './models';
+ 
+ /** In-memory tables. */
+ export class Table<T> {
+@@ -11,6 +11,13 @@ export class Table<T> {
+   get(key: string): T | undefined {
+     return this.rows.get(key);
+   }
++  snapshot(): Map<string, T> {
++    return new Map(this.rows);
++  }
++  restore(state: Map<string, T>): void {
++    this.rows.clear();
++    state.forEach((v, k) => this.rows.set(k, v));
++  }
+   delete(key: string): void {
+     this.rows.delete(key);
+   }
+@@ -37,3 +44,4 @@ export const feeSchedule: FeeSchedule = {
+ };
+ export const merchantLinks = new Table<MerchantLink>((l) => `${l.marketDayId}|${l.merchantId}`);
+ export const pollState = { tillwaveCursor: undefined as string | undefined };
++export const auditLog = new Table<AuditEntry>((e) => e.id);
+diff --git a/src/persistence/transaction.ts b/src/persistence/transaction.ts
+new file mode 100644
+index 0000000..3887a1b
+--- /dev/null
++++ b/src/persistence/transaction.ts
+@@ -0,0 +1,38 @@
++import { FeeSchedule } from './models';
++import {
++  auditLog,
++  balances,
++  bookings,
++  cardSales,
++  feeSchedule,
++  marketDays,
++  merchantLinks,
++  pitches,
++  readerLinks,
++  settlements,
++  vendors,
++} from './store';
++
++const tables = [auditLog, bookings, cardSales, marketDays, merchantLinks, pitches, readerLinks, settlements, vendors];
++
++let depth = 0;
++
++/** Runs `work` so that all its writes (data and audit) are kept together or rolled back together. */
++export function inTransaction<T>(work: () => T): T {
++  if (depth > 0) return work();
++  const snaps = tables.map((t) => t.snapshot());
++  const balanceSnap = new Map(balances);
++  const feeSnap: FeeSchedule = JSON.parse(JSON.stringify(feeSchedule)) as FeeSchedule;
++  depth++;
++  try {
++    return work();
++  } catch (e) {
++    tables.forEach((t, i) => (t.restore as (s: unknown) => void)(snaps[i]));
++    balances.clear();
++    balanceSnap.forEach((v, k) => balances.set(k, v));
++    Object.assign(feeSchedule, feeSnap);
++    throw e;
++  } finally {
++    depth--;
++  }
++}
+diff --git a/src/presentation/routes.ts b/src/presentation/routes.ts
+index 550054b..c959e49 100644
+--- a/src/presentation/routes.ts
++++ b/src/presentation/routes.ts
+@@ -1,10 +1,19 @@
+-import { Router } from 'express';
++import { Request, Router } from 'express';
+ import { marketService } from '../business/market-service';
+ import { salesService } from '../business/sales-service';
+ import { settlementService } from '../business/settlement-service';
++import { auditService } from '../business/audit-service';
++import { statementService } from '../business/statement-service';
++import { BusinessError } from '../business/models';
+ 
+ export const router = Router();
+ 
++function organiser(req: Request): string {
++  const id = req.header('x-organiser-id');
++  if (!id) throw new BusinessError('x-organiser-id header is required', 401);
++  return id;
++}
++
+ router.post('/market-days', (req, res) => {
+   res.status(201).json(marketService.defineMarketDay(req.body.date));
+ });
+@@ -24,7 +33,7 @@ router.get('/vendors', (_req, res) => {
+   res.json(marketService.listVendors());
+ });
+ router.post('/market-days/:dayId/bookings', (req, res) => {
+-  res.status(201).json(marketService.book(req.body.vendorId, req.params.dayId, Number(req.body.pitchNumber)));
++  res.status(201).json(marketService.book(organiser(req), req.body.vendorId, req.params.dayId, Number(req.body.pitchNumber)));
+ });
+ router.get('/market-days/:dayId/bookings', (req, res) => {
+   res.json(marketService.bookingsForDay(req.params.dayId));
+@@ -32,27 +41,42 @@ router.get('/market-days/:dayId/bookings', (req, res) => {
+ router.post('/market-days/:dayId/readers', (req, res) => {
+   res.status(201).json(salesService.linkReader(req.body.readerId, req.params.dayId, req.body.vendorId));
+ });
++router.post('/market-days/:dayId/merchants', (req, res) => {
++  res.status(201).json(salesService.linkMerchant(req.body.merchantId, req.params.dayId, req.body.vendorId));
++});
+ router.get('/vendors/:vendorId/sales', (req, res) => {
+   const day = typeof req.query.marketDayId === 'string' ? req.query.marketDayId : undefined;
+   res.json(salesService.salesForVendor(req.params.vendorId, day));
+ });
+ router.post('/bookings/:id/cancel', (req, res) => {
+-  res.json(marketService.cancelBooking(req.params.id));
++  res.json(marketService.cancelBooking(organiser(req), req.params.id));
+ });
+ router.put('/vendors/:vendorId/commission-rate', (req, res) => {
+-  res.json(marketService.setCommissionRate(req.params.vendorId, Number(req.body.rate)));
++  res.json(marketService.setCommissionRate(organiser(req), req.params.vendorId, Number(req.body.rate)));
++});
++router.get('/fees', (_req, res) => {
++  res.json(marketService.getFees());
++});
++router.patch('/fees', (req, res) => {
++  res.json(marketService.updateFees(organiser(req), req.body));
+ });
+ router.post('/market-days/:dayId/close', (req, res) => {
+   res.json(settlementService.closeDay(req.params.dayId));
+ });
+ router.post('/market-days/:dayId/settlement', (req, res) => {
+-  res.status(201).json(settlementService.settle(req.params.dayId));
++  res.status(201).json(settlementService.settle(organiser(req), req.params.dayId));
+ });
+ router.get('/market-days/:dayId/settlement', (req, res) => {
+   res.json(settlementService.settlementsForDay(req.params.dayId));
+ });
+-router.post('/market-days/:dayId/merchants', (req, res) => {
+-  res.status(201).json(salesService.linkMerchant(req.body.merchantId, req.params.dayId, req.body.vendorId));
++router.get('/market-days/:dayId/audit', (req, res) => {
++  organiser(req);
++  res.json(auditService.forMarketDay(req.params.dayId));
++});
++router.get('/vendors/:vendorId/statements/:month', (req, res) => {
++  const statement = statementService.monthly(req.params.vendorId, req.params.month);
++  res.setHeader('content-disposition', `attachment; filename="statement-${req.params.vendorId}-${req.params.month}.json"`);
++  res.json(statement);
+ });
+ // PayLane webhook
+ router.post('/webhooks/paylane', (req, res) => {
