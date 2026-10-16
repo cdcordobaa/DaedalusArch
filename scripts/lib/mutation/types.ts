@@ -81,7 +81,12 @@ export type SiteKind =
   | 'rule-move'
   | 'orm-annotation'
   | 'rule-duplicate'
-  | 'framework-param';
+  | 'framework-param'
+  // v1.3 DRAFT hexagonal / DDD operators (`Docs/v1.3/operator-catalogue-hexddd.md`); not used by the frozen catalogue.
+  | 'constructor-injection'
+  | 'implements-clause'
+  | 'value-object-member'
+  | 'cross-context-import';
 
 export const SITE_KINDS: readonly SiteKind[] = [
   'import-edge',
@@ -100,6 +105,10 @@ export const SITE_KINDS: readonly SiteKind[] = [
   'orm-annotation',
   'rule-duplicate',
   'framework-param',
+  'constructor-injection',
+  'implements-clause',
+  'value-object-member',
+  'cross-context-import',
 ];
 
 export interface MutationSite {
@@ -175,7 +184,12 @@ export type PreconditionReason =
   | 'judge-unit-not-selected'
   | 'type-shape'
   | 'already-imported'
-  | 'cycle-cap';
+  | 'cycle-cap'
+  // v1.3 DRAFT hexagonal / DDD operators (`Docs/v1.3/operator-catalogue-hexddd.md`).
+  | 'layer-pair'
+  | 'published'
+  | 'no-port'
+  | 'ddd-boundary';
 
 export type PreconditionResult = { readonly ok: true } | { readonly ok: false; readonly reason: PreconditionReason };
 
