@@ -93,7 +93,9 @@ architecture:
         module: src/domain/user/**
         root: src/domain/user/User.ts
         inner_entities: []
-    value_objects: []
+    # The project has no value-object classes. FF-DT03 needs a non-empty pattern (BR-SPEC-10), so the
+    # conventional name is declared; it matches no file at the pin, which makes FF-DT03 vacuous here.
+    value_objects: ["src/domain/**/*ValueObject.ts"]
     repositories: ["src/domain/*/I*Repository.ts", "src/infrastructure/repositories/**"]
     domain_event_types: [IEvent, Event]
     application_services: ["src/commandHandlers/**/*.ts"]

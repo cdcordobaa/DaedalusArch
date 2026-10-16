@@ -227,3 +227,14 @@ The preset's own globs and file patterns are kept, and project globs are added. 
 - **Judgement:** event handlers that write the Redis read model are application, as the README's "event processor" description suggests, not infrastructure. Their direct Redis use will appear as findings.
 - **Aggregates:** `Book` and `User`, with no inner entities. No value-object files.
 - **Other declarations:** the event types are `IEvent` and `Event`. Repositories are `src/domain/*/I*Repository.ts` plus `src/infrastructure/repositories/**`. The application services are the command handlers.
+
+## Addendum: after `firewall validate`, before any evaluation (second commit)
+
+`firewall validate --spec <spec> --project <clone>` was run on all 15 specs after the first commit. It parses and compiles the spec and checks each layer directory exists; it does not analyse the code. Outputs are in `validate/`.
+
+- **event-sourcing-ddd: one real defect.** Compilation failed with `MISSING_REQUIRED_PARAM BR-SPEC-10 FF-DT03: valueObjectPatterns`, because `value_objects: []` is not allowed.
+  - **Fix:** the spec now declares `value_objects: ["src/domain/**/*ValueObject.ts"]`. That glob matches no file at the pin, so FF-DT03 checks nothing on this project, which matches the rationale: the project has no value objects.
+- **Ten other specs: `LAYER_DIR_NOT_FOUND` errors, left unchanged.** These are not defects:
+  - The validator strips only a trailing `/**` or `/*` and then checks that the literal path exists. A glob with a wildcard mid-path (`src/modules/*/domain/**`, `src/core/*/use-cases/**`) or a file glob (`src/application/*.ts`, `!(*.module).ts`) is reported as missing even when it matches files.
+  - The NestJS preset's own default directories (`src/domain`, `src/services`, and so on) are also reported, because these projects do not have them.
+  - `firewall evaluate` does not run this check; `ValidateSpecCommand` is not wired into the evaluate pipeline. The specs are therefore left unchanged, and the errors are reported here.
