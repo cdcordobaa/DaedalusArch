@@ -121,7 +121,7 @@ function withLLMOptions(command: Command): Command {
     .option('--cassette-omit-prompt', 'Record cassettes without prompts (corpus runs)', false)
     .option('--cassette-project-id <id>', 'Project id written on every judge cassette entry (repetition reliability)')
     .option('--judge-cli <path>', 'Judge CLI binary (default ~/.firewall/judge-cli/node_modules/.bin/claude when present, else claude)')
-    .option('--judge-version <v>', 'Judge rubric version: v1 (frozen, default) | v2 (v1.3 development)');
+    .option('--judge-version <v>', 'Judge rubric version: v1 (frozen, default) | v2 (v1.3 development, revision v2.1) | v2.2 (v1.3 development)');
 }
 
 /** The argv `parseLLMOptions` reads, rebuilt from the parsed options (so `main(argv)` tests work). */
