@@ -1,0 +1,306 @@
+diff --git a/src/business/apiary-service.ts b/src/business/apiary-service.ts
+index ca246b3..dffc235 100644
+--- a/src/business/apiary-service.ts
++++ b/src/business/apiary-service.ts
+@@ -1,13 +1,18 @@
+ import { randomUUID } from 'node:crypto';
+-import { Apiary, DomainError, Hive, Inspection, Member, needsTreatment, validateInspection } from './model';
++import { Apiary, DomainError, Hive, Inspection, Member, isFlagged, validateInspection } from './model';
+ import { HiveRepository, InspectionRepository } from '../persistence/hive-repository';
++import { TreatmentRepository } from '../persistence/treatment-repository';
+ 
+ export interface HiveView extends Hive {
+   flaggedForTreatment: boolean;
+ }
+ 
+ export class ApiaryService {
+-  constructor(private readonly hives: HiveRepository, private readonly inspections: InspectionRepository) {}
++  constructor(
++    private readonly hives: HiveRepository,
++    private readonly inspections: InspectionRepository,
++    private readonly treatments: TreatmentRepository,
++  ) {}
+ 
+   registerMember(name: string, phone?: string): Member {
+     if (!name) throw new DomainError('name is required');
+@@ -39,7 +44,7 @@ export class ApiaryService {
+   hiveView(hiveId: string): HiveView {
+     const hive = this.hives.hive(hiveId);
+     if (!hive) throw new DomainError('hive not found', 404);
+-    return { ...hive, flaggedForTreatment: needsTreatment(this.inspections.latestForHive(hiveId)) };
++    return { ...hive, flaggedForTreatment: isFlagged(this.inspections.forHive(hiveId), this.treatments.forHive(hiveId)) };
+   }
+ 
+   hivesInApiary(apiaryId: string): HiveView[] {
+diff --git a/src/business/container.ts b/src/business/container.ts
+index dc8bbf0..7fdbd31 100644
+--- a/src/business/container.ts
++++ b/src/business/container.ts
+@@ -4,12 +4,16 @@ import { ApiaryService } from './apiary-service';
+ import { ScaleRepository } from '../persistence/scale-repository';
+ import { TextHiveClient } from '../persistence/texthive-client';
+ import { ScaleService } from './scale-service';
++import { HarvestRepository, TreatmentRepository } from '../persistence/treatment-repository';
++import { TreatmentService } from './treatment-service';
+ 
+ /** Builds the business services with their persistence. */
+ export function createServices() {
+   const db = new InMemoryDb();
+   const hiveRepo = new HiveRepository(db);
+-  const apiaries = new ApiaryService(hiveRepo, new InspectionRepository(db));
++  const treatmentRepo = new TreatmentRepository(db);
++  const apiaries = new ApiaryService(hiveRepo, new InspectionRepository(db), treatmentRepo);
++  const treatments = new TreatmentService(hiveRepo, treatmentRepo, new HarvestRepository(db));
+   const scales = new ScaleService(hiveRepo, new ScaleRepository(db), new TextHiveClient());
+-  return { apiaries, scales };
++  return { apiaries, treatments, scales };
+ }
+diff --git a/src/business/model.ts b/src/business/model.ts
+index 132aa4b..2c86517 100644
+--- a/src/business/model.ts
++++ b/src/business/model.ts
+@@ -1,4 +1,4 @@
+-import { Member, Apiary, Hive, Inspection, ScaleReading, SwarmAlert } from '../persistence/model';
++import { Member, Apiary, Hive, Inspection, ScaleReading, SwarmAlert, TreatmentProduct, Treatment, Harvest } from '../persistence/model';
+ 
+ export * from '../persistence/model';
+ 
+@@ -33,3 +33,33 @@ export function validateInspection(i: Omit<Inspection, 'id'>): void {
+ export function needsTreatment(latest: Inspection | undefined): boolean {
+   return !!latest && latest.varroaPer100 > VARROA_THRESHOLD;
+ }
++
++const addDays = (date: string, days: number): string => new Date(new Date(`${date}T00:00:00Z`).getTime() + days * 86400000).toISOString().slice(0, 10);
++
++/**
++ * A hive is flagged from an inspection above the threshold until a treatment is recorded and a later
++ * inspection is at or below the threshold.
++ */
++export function isFlagged(inspections: Inspection[], treatments: Treatment[]): boolean {
++  const sorted = [...inspections].sort((a, b) => a.date.localeCompare(b.date));
++  let flaggedSince: string | undefined;
++  for (const i of sorted) {
++    if (i.varroaPer100 > VARROA_THRESHOLD) {
++      flaggedSince ??= i.date;
++    } else if (flaggedSince) {
++      const since = flaggedSince;
++      const treated = treatments.some((t) => t.startDate >= since && t.startDate <= i.date);
++      if (treated) flaggedSince = undefined;
++    }
++  }
++  return flaggedSince !== undefined;
++}
++
++/** The first date a harvest is allowed again after the treatment, or undefined if no restriction applies. */
++export function harvestAllowedFrom(t: Treatment, product: TreatmentProduct | undefined): string {
++  return addDays(t.endDate, (product?.withdrawalDays ?? 0) + 1);
++}
++
++export function harvestBlockedBy(date: string, treatments: Treatment[], products: Map<string, TreatmentProduct>): Treatment | undefined {
++  return treatments.find((t) => date >= t.startDate && date < harvestAllowedFrom(t, products.get(t.product)));
++}
+diff --git a/src/business/treatment-service.ts b/src/business/treatment-service.ts
+new file mode 100644
+index 0000000..5bb6661
+--- /dev/null
++++ b/src/business/treatment-service.ts
+@@ -0,0 +1,50 @@
++import { randomUUID } from 'node:crypto';
++import { DomainError, Harvest, Hive, Treatment, TreatmentProduct, harvestAllowedFrom, harvestBlockedBy } from './model';
++import { HiveRepository } from '../persistence/hive-repository';
++import { HarvestRepository, TreatmentRepository } from '../persistence/treatment-repository';
++
++export class TreatmentService {
++  constructor(private readonly hives: HiveRepository, private readonly treatments: TreatmentRepository, private readonly harvests: HarvestRepository) {}
++
++  defineProduct(name: string, withdrawalDays: number): TreatmentProduct {
++    if (!name || !(withdrawalDays >= 0)) throw new DomainError('name and a withdrawal period of 0 or more days are required');
++    return this.treatments.saveProduct({ name, withdrawalDays });
++  }
++
++  listProducts(): TreatmentProduct[] {
++    return [...this.treatments.products().values()];
++  }
++
++  recordTreatment(memberId: string, hiveId: string, product: string, startDate: string, endDate: string): Treatment {
++    this.ownedHive(memberId, hiveId);
++    if (!this.treatments.products().has(product)) throw new DomainError(`unknown product ${product}`);
++    if (endDate < startDate) throw new DomainError('endDate is before startDate');
++    return this.treatments.save({ id: randomUUID(), hiveId, product, startDate, endDate });
++  }
++
++  recordHarvest(memberId: string, hiveId: string, date: string, kg: number): Harvest {
++    this.ownedHive(memberId, hiveId);
++    if (!(kg > 0)) throw new DomainError('kg must be positive');
++    const blocking = harvestBlockedBy(date, this.treatments.forHive(hiveId), this.treatments.products());
++    if (blocking) {
++      const from = harvestAllowedFrom(blocking, this.treatments.products().get(blocking.product));
++      throw new DomainError(`harvest not allowed: treatment with ${blocking.product}; allowed again from ${from}`, 409);
++    }
++    return this.harvests.save({ id: randomUUID(), hiveId, date, kg });
++  }
++
++  treatmentsOf(hiveId: string): Treatment[] {
++    return this.treatments.forHive(hiveId);
++  }
++
++  harvestsOf(hiveId: string): Harvest[] {
++    return this.harvests.forHive(hiveId);
++  }
++
++  private ownedHive(memberId: string, hiveId: string): Hive {
++    const hive = this.hives.hive(hiveId);
++    if (!hive) throw new DomainError('hive not found', 404);
++    if (hive.ownerId !== memberId) throw new DomainError('only the hive owner can do this', 403);
++    return hive;
++  }
++}
+diff --git a/src/persistence/db.ts b/src/persistence/db.ts
+index ab21956..7b0133b 100644
+--- a/src/persistence/db.ts
++++ b/src/persistence/db.ts
+@@ -1,4 +1,4 @@
+-import { Apiary, Hive, Inspection, Member, ScaleReading, SwarmAlert } from './model';
++import { Apiary, Harvest, Hive, Inspection, Member, ScaleReading, SwarmAlert, Treatment, TreatmentProduct } from './model';
+ 
+ /** The in-memory database. */
+ export class InMemoryDb {
+@@ -9,4 +9,7 @@ export class InMemoryDb {
+   readonly scaleLinks = new Map<string, string>(); // serial -> hiveId
+   readonly readings: ScaleReading[] = [];
+   readonly swarmAlerts: SwarmAlert[] = [];
++  readonly products = new Map<string, TreatmentProduct>();
++  readonly treatments = new Map<string, Treatment>();
++  readonly harvests = new Map<string, Harvest>();
+ }
+diff --git a/src/persistence/model.ts b/src/persistence/model.ts
+index 724518e..c8325a6 100644
+--- a/src/persistence/model.ts
++++ b/src/persistence/model.ts
+@@ -43,3 +43,23 @@ export interface SwarmAlert {
+   at: string;
+   sentTo?: string;
+ }
++
++export interface TreatmentProduct {
++  name: string;
++  withdrawalDays: number;
++}
++
++export interface Treatment {
++  id: string;
++  hiveId: string;
++  product: string;
++  startDate: string;
++  endDate: string;
++}
++
++export interface Harvest {
++  id: string;
++  hiveId: string;
++  date: string;
++  kg: number;
++}
+diff --git a/src/persistence/treatment-repository.ts b/src/persistence/treatment-repository.ts
+new file mode 100644
+index 0000000..7c7db42
+--- /dev/null
++++ b/src/persistence/treatment-repository.ts
+@@ -0,0 +1,39 @@
++import { Harvest, Treatment, TreatmentProduct } from './model';
++import { InMemoryDb } from './db';
++
++export class TreatmentRepository {
++  constructor(private readonly db: InMemoryDb) {}
++
++  saveProduct(p: TreatmentProduct): TreatmentProduct {
++    this.db.products.set(p.name, p);
++    return p;
++  }
++  products(): Map<string, TreatmentProduct> {
++    return this.db.products;
++  }
++  save(t: Treatment): Treatment {
++    this.db.treatments.set(t.id, t);
++    return t;
++  }
++  forHive(hiveId: string): Treatment[] {
++    return [...this.db.treatments.values()].filter((t) => t.hiveId === hiveId);
++  }
++  all(): Treatment[] {
++    return [...this.db.treatments.values()];
++  }
++}
++
++export class HarvestRepository {
++  constructor(private readonly db: InMemoryDb) {}
++
++  save(h: Harvest): Harvest {
++    this.db.harvests.set(h.id, h);
++    return h;
++  }
++  forHive(hiveId: string): Harvest[] {
++    return [...this.db.harvests.values()].filter((h) => h.hiveId === hiveId);
++  }
++  all(): Harvest[] {
++    return [...this.db.harvests.values()];
++  }
++}
+diff --git a/src/presentation/api.ts b/src/presentation/api.ts
+index e9ab841..407eace 100644
+--- a/src/presentation/api.ts
++++ b/src/presentation/api.ts
+@@ -2,6 +2,7 @@ import { NextFunction, Request, Response, Router } from 'express';
+ import { ApiaryService } from '../business/apiary-service';
+ import { DomainError } from '../business/model';
+ import { ScaleService } from '../business/scale-service';
++import { TreatmentService } from '../business/treatment-service';
+ 
+ function memberId(req: Request): string {
+   const id = req.header('x-member-id');
+@@ -9,7 +10,7 @@ function memberId(req: Request): string {
+   return id;
+ }
+ 
+-export function apiRouter(apiaries: ApiaryService, scales: ScaleService): Router {
++export function apiRouter(apiaries: ApiaryService, scales: ScaleService, treatments: TreatmentService): Router {
+   const r = Router();
+   r.post('/members', (req, res) => {
+     res.status(201).json(apiaries.registerMember(req.body.name, req.body.phone));
+@@ -53,6 +54,24 @@ export function apiRouter(apiaries: ApiaryService, scales: ScaleService): Router
+     const { serial, kg, time } = req.body as { serial: string; kg: number; time: string };
+     res.status(201).json(await scales.recordReading(String(serial), Number(kg), String(time)));
+   });
++  r.post('/products', (req, res) => {
++    res.status(201).json(treatments.defineProduct(req.body.name, Number(req.body.withdrawalDays)));
++  });
++  r.get('/products', (_req, res) => {
++    res.json(treatments.listProducts());
++  });
++  r.post('/hives/:id/treatments', (req, res) => {
++    res.status(201).json(treatments.recordTreatment(memberId(req), req.params.id, req.body.product, req.body.startDate, req.body.endDate));
++  });
++  r.get('/hives/:id/treatments', (req, res) => {
++    res.json(treatments.treatmentsOf(req.params.id));
++  });
++  r.post('/hives/:id/harvests', (req, res) => {
++    res.status(201).json(treatments.recordHarvest(memberId(req), req.params.id, req.body.date, Number(req.body.kg)));
++  });
++  r.get('/hives/:id/harvests', (req, res) => {
++    res.json(treatments.harvestsOf(req.params.id));
++  });
+   return r;
+ }
+ 
+diff --git a/src/presentation/app.ts b/src/presentation/app.ts
+index 6bdfec6..66ac021 100644
+--- a/src/presentation/app.ts
++++ b/src/presentation/app.ts
+@@ -6,6 +6,6 @@ const services = createServices();
+ 
+ const app = express();
+ app.use(express.json());
+-app.use(apiRouter(services.apiaries, services.scales));
++app.use(apiRouter(services.apiaries, services.scales, services.treatments));
+ app.use(errorHandler);
+ app.listen(Number(process.env.PORT ?? 3000), () => console.log('beekeepers service listening'));

@@ -1,0 +1,98 @@
+{
+  "spec": "presets/layered.yaml",
+  "engine": "cypher-interp",
+  "scoringMode": "v1.3",
+  "instrumentVersion": 2,
+  "typecheckErrors": 0,
+  "typecheckSample": [],
+  "verdict": "fail",
+  "blockingAhs": 0.641,
+  "ahsV12e": 0.71,
+  "blockingViolationCount": 6,
+  "advisoryViolationCount": 14,
+  "blockingByRule": {
+    "FF-P01": 0,
+    "FF-S01": 3,
+    "FF-S02": 0,
+    "FF-S03": 3
+  },
+  "advisoryByRule": {
+    "FF-C02": 0,
+    "FF-C03": 2,
+    "FF-C04": 0,
+    "FF-C05": 0,
+    "FF-C06": 0,
+    "FF-CV03": 0,
+    "FF-CV05": 12,
+    "FF-CV06": 0,
+    "FF-SO01": 0,
+    "FF-SO02": 0,
+    "FF-SO03": 0
+  },
+  "blockingFindings": [
+    {
+      "rule": "FF-S01",
+      "file": "src/persistence/repositories.ts",
+      "line": 1,
+      "target": "src/business/models.ts",
+      "message": "src/persistence/repositories.ts (persistence) imports from src/business/models.ts (business)"
+    },
+    {
+      "rule": "FF-S01",
+      "file": "src/persistence/store.ts",
+      "line": 1,
+      "target": "src/business/models.ts",
+      "message": "src/persistence/store.ts (persistence) imports from src/business/models.ts (business)"
+    },
+    {
+      "rule": "FF-S01",
+      "file": "src/persistence/transaction.ts",
+      "line": 1,
+      "target": "src/business/models.ts",
+      "message": "src/persistence/transaction.ts (persistence) imports from src/business/models.ts (business)"
+    },
+    {
+      "rule": "FF-S03",
+      "file": "src/persistence/repositories.ts",
+      "line": 1,
+      "target": "src/business/models.ts",
+      "message": "src/persistence/repositories.ts (persistence) skips layers to import src/business/models.ts (business)"
+    },
+    {
+      "rule": "FF-S03",
+      "file": "src/persistence/store.ts",
+      "line": 1,
+      "target": "src/business/models.ts",
+      "message": "src/persistence/store.ts (persistence) skips layers to import src/business/models.ts (business)"
+    },
+    {
+      "rule": "FF-S03",
+      "file": "src/persistence/transaction.ts",
+      "line": 1,
+      "target": "src/business/models.ts",
+      "message": "src/persistence/transaction.ts (persistence) skips layers to import src/business/models.ts (business)"
+    }
+  ],
+  "srcFiles": 12,
+  "loc": 682,
+  "layerAnnotation": {
+    "mapped": 12,
+    "unmapped": 0,
+    "unmappedFiles": []
+  },
+  "arm": "none",
+  "step": 4,
+  "commit": "step 4 audit and statements",
+  "filesTouched": [
+    "A src/business/audit-service.ts",
+    "M src/business/market-service.ts",
+    "M src/business/models.ts",
+    "M src/business/sales-service.ts",
+    "M src/business/settlement-service.ts",
+    "A src/business/statement-service.ts",
+    "M src/persistence/repositories.ts",
+    "M src/persistence/store.ts",
+    "A src/persistence/transaction.ts",
+    "M src/presentation/routes.ts"
+  ]
+}

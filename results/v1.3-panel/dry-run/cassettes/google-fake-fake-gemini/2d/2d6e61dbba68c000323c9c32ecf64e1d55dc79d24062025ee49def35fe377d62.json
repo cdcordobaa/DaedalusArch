@@ -1,0 +1,19 @@
+{
+  "answer": {
+    "inputTokens": 517,
+    "outputTokens": 20,
+    "servedModel": "fake-gemini",
+    "text": "{\"choice\":\"B\",\"reason\":\"fake google answer\"}"
+  },
+  "failedAttempts": [],
+  "itemKey": "bc9b7cbb67cca669db99ab34",
+  "key": "2d6e61dbba68c000323c9c32ecf64e1d55dc79d24062025ee49def35fe377d62",
+  "model": "fake-gemini",
+  "provider": "fake",
+  "request": {
+    "prompt": "## Architectural style\n- Dependency direction: Source-code dependencies point only inward. Nothing in an inner circle knows anything about an outer circle. (Martin, *Clean Architecture* (2017), ch. 22 \"The Clean Architecture\", the Dependency Rule)\n- Domain purity: Entities and use cases do not depend on frameworks, databases or the UI. (Martin 2017, ch. 22; ch. 32 \"Frameworks are details\")\n- Repository / gateway placement: The data-access interface is owned by the inner layer, and the implementation lives in the outer layer (dependency inversion across the boundary). (Martin 2017, ch. 22 (interface adapters); ch. 11 (DIP))\n- Acyclic dependencies: The component dependency graph has no cycles. (Martin 2017, ch. 14 \"Component Coupling\", ADP)\n\n## Code excerpt\nFile: src/domain/services/LoanPolicy.ts\n```ts\n    1 | import { Loan } from '../entities/Loan';\n    2 | import { Member } from '../entities/Member';\n    3 | import { DomainError } from '../errors/DomainError';\n    4 | import { SystemClock } from '../../infrastructure/system/SystemClock';\n    5 | \n    6 | export class LoanPolicy {\n    7 |   private readonly clock = new SystemClock();\n    8 | \n    9 |   isOverdueToday(loan: Loan): boolean {\n   10 |     return loan.isOverdue(this.clock.now());\n   11 |   }\n   12 | \n   13 |   assertCanBorrow(member: Member, activeLoans: readonly Loan[], now: Date): void {\n   14 |     if (activeLoans.some((loan) => loan.isOverdue(now))) {\n   15 |       throw new DomainError('OVERDUE_LOANS', `${member.name} has overdue loans`);\n   16 |     }\n   17 |     if (activeLoans.length >= member.maxActiveLoans) {\n   18 |       throw new DomainError('LOAN_LIMIT', `${member.name} reached the limit of ${member.maxActiveLoans} loans`);\n   19 |     }\n```\n\n## Reported finding\nDomain file src/domain/services/LoanPolicy.ts imports from src/infrastructure/http/LoanController.ts in infrastructure (line 4)\n\n## Question\nWould an architect following this style want this changed?\nA. yes\nB. no\nC. uncertain\n\nReply with JSON only: {\"choice\": \"<letter>\", \"reason\": \"<one sentence>\"}",
+    "system": "You are a software architect reviewing a TypeScript code base against an architectural style. Judge only from the material in the message: the style definition, the code excerpt and the reported finding. You have no tools. Reply with one JSON object and nothing else.",
+    "temperature": 0
+  },
+  "runIndex": 0
+}

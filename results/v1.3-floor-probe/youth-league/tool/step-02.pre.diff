@@ -1,0 +1,259 @@
+diff --git a/src/business/container.ts b/src/business/container.ts
+index 5745236..5f0d8b3 100644
+--- a/src/business/container.ts
++++ b/src/business/container.ts
+@@ -1,14 +1,21 @@
+-import { FixtureRepository, PlayerRepository, TeamRepository } from '../persistence/repositories';
++import { FixtureRepository, PitchRepository, PlayerRepository, TeamRepository } from '../persistence/repositories';
++import { WeatherNowClient } from '../persistence/weather-client';
++import { FakeMailer } from '../persistence/fake-mailer';
+ import { TeamService } from './team-service';
+ import { FixtureService } from './fixture-service';
++import { WeatherService } from './weather-service';
+ 
+ /** Builds the business services with their persistence. */
+ export function createServices() {
+   const teamRepo = new TeamRepository();
+   const playerRepo = new PlayerRepository();
+   const fixtureRepo = new FixtureRepository();
++  const pitchRepo = new PitchRepository();
++  const mailer = new FakeMailer();
+   return {
++    mailer,
+     teams: new TeamService(teamRepo, playerRepo),
+-    fixtures: new FixtureService(fixtureRepo, teamRepo),
++    fixtures: new FixtureService(fixtureRepo, teamRepo, pitchRepo),
++    weather: new WeatherService(fixtureRepo, pitchRepo, teamRepo, new WeatherNowClient(), mailer),
+   };
+ }
+diff --git a/src/business/fixture-service.ts b/src/business/fixture-service.ts
+index 2b37826..4e91a0c 100644
+--- a/src/business/fixture-service.ts
++++ b/src/business/fixture-service.ts
+@@ -1,10 +1,16 @@
+ import { randomUUID } from 'node:crypto';
+ import { Fixture, NotFoundError, ValidationError } from './entities';
+ import { overlaps, sameDay } from './rules';
+-import { FixtureRepository, TeamRepository } from '../persistence/repositories';
++import { FixtureRepository, PitchRepository, TeamRepository } from '../persistence/repositories';
+ 
+ export class FixtureService {
+-  constructor(private readonly fixtures: FixtureRepository, private readonly teams: TeamRepository) {}
++  constructor(private readonly fixtures: FixtureRepository, private readonly teams: TeamRepository, private readonly pitches: PitchRepository) {}
++
++  registerPitch(name: string, postcode: string) {
++    if (!name || !postcode) throw new ValidationError('name and postcode are required');
++    if (this.pitches.findByName(name)) throw new ValidationError('pitch already exists');
++    return this.pitches.save({ id: randomUUID(), name, postcode });
++  }
+ 
+   schedule(input: { homeTeamId: string; awayTeamId: string; pitch: string; kickOff: string }): Fixture {
+     if (input.homeTeamId === input.awayTeamId) throw new ValidationError('a team cannot play itself');
+@@ -38,6 +44,16 @@ export class FixtureService {
+     return this.fixtures.save({ ...f, result: { homeGoals, awayGoals, recordedAt: new Date().toISOString() } });
+   }
+ 
++  postpone(fixtureId: string, newKickOff: string): Fixture {
++    const f = this.get(fixtureId);
++    if (!f.atRisk) throw new ValidationError('only an at-risk fixture can be postponed');
++    if (f.result) throw new ValidationError('fixture already played');
++    if (Number.isNaN(Date.parse(newKickOff))) throw new ValidationError('kickOff must be an ISO date-time');
++    const moved: Fixture = { ...f, kickOff: new Date(newKickOff).toISOString(), atRisk: false, postponedFrom: f.kickOff };
++    this.checkSchedulingRules(moved);
++    return this.fixtures.save(moved);
++  }
++
+   get(id: string): Fixture {
+     const f = this.fixtures.findById(id);
+     if (!f) throw new NotFoundError(`fixture ${id} not found`);
+diff --git a/src/business/weather-service.ts b/src/business/weather-service.ts
+new file mode 100644
+index 0000000..6ac7d1a
+--- /dev/null
++++ b/src/business/weather-service.ts
+@@ -0,0 +1,45 @@
++import { Fixture } from './entities';
++import { FixtureRepository, PitchRepository, TeamRepository } from '../persistence/repositories';
++import { WeatherNowClient } from '../persistence/weather-client';
++import { FakeMailer } from '../persistence/fake-mailer';
++
++export const HEAVY_RAIN_MM = 4;
++
++export class WeatherService {
++  constructor(
++    private readonly fixtures: FixtureRepository,
++    private readonly pitches: PitchRepository,
++    private readonly teams: TeamRepository,
++    private readonly weather: WeatherNowClient,
++    private readonly mailer: FakeMailer,
++  ) {}
++
++  /** Checks the forecast of every fixture on the given match day (YYYY-MM-DD). */
++  async checkMatchDay(date: string): Promise<Fixture[]> {
++    const atRisk: Fixture[] = [];
++    for (const f of this.fixtures.findAll().filter((x) => x.kickOff.startsWith(date) && !x.result)) {
++      const pitch = this.pitches.findByName(f.pitch);
++      if (!pitch) continue;
++      const forecast = await this.weather.forecast(pitch.postcode, f.kickOff.slice(0, 13) + ':00');
++      if (forecast.precipitationMm >= HEAVY_RAIN_MM && !f.atRisk) {
++        const updated = this.fixtures.save({ ...f, atRisk: true });
++        atRisk.push(updated);
++        this.notifyCoaches(updated, forecast.summary);
++      }
++    }
++    return atRisk;
++  }
++
++  private notifyCoaches(f: Fixture, summary: string): void {
++    const home = this.teams.findById(f.homeTeamId);
++    const away = this.teams.findById(f.awayTeamId);
++    for (const team of [home, away]) {
++      if (!team) continue;
++      this.mailer.send(
++        team.coachEmail,
++        `Fixture at risk: ${home?.name} v ${away?.name}`,
++        `Heavy rain is forecast for the kick-off at ${f.kickOff} on ${f.pitch} (${summary}). The league may postpone the fixture.`,
++      );
++    }
++  }
++}
+diff --git a/src/persistence/entities.ts b/src/persistence/entities.ts
+index 4898020..b5a4eb6 100644
+--- a/src/persistence/entities.ts
++++ b/src/persistence/entities.ts
+@@ -30,4 +30,12 @@ export interface Fixture {
+   pitch: string;
+   kickOff: string; // ISO date-time
+   result?: Result;
++  atRisk?: boolean;
++  postponedFrom?: string;
++}
++
++export interface Pitch {
++  id: string;
++  name: string;
++  postcode: string;
+ }
+diff --git a/src/persistence/fake-mailer.ts b/src/persistence/fake-mailer.ts
+new file mode 100644
+index 0000000..c01820f
+--- /dev/null
++++ b/src/persistence/fake-mailer.ts
+@@ -0,0 +1,14 @@
++export interface SentMail {
++  to: string;
++  subject: string;
++  body: string;
++  sentAt: string;
++}
++
++/** Fake mail provider: records the messages instead of sending them. */
++export class FakeMailer {
++  readonly sent: SentMail[] = [];
++  send(to: string, subject: string, body: string): void {
++    this.sent.push({ to, subject, body, sentAt: new Date().toISOString() });
++  }
++}
+diff --git a/src/persistence/repositories.ts b/src/persistence/repositories.ts
+index 3fed79a..bd7471a 100644
+--- a/src/persistence/repositories.ts
++++ b/src/persistence/repositories.ts
+@@ -1,4 +1,4 @@
+-import { Fixture, Player, Team } from './entities';
++import { Fixture, Pitch, Player, Team } from './entities';
+ 
+ class MemoryRepository<T extends { id: string }> {
+   protected readonly items = new Map<string, T>();
+@@ -30,3 +30,9 @@ export class FixtureRepository extends MemoryRepository<Fixture> {
+     return this.findAll().filter((f) => f.pitch === pitch);
+   }
+ }
++
++export class PitchRepository extends MemoryRepository<Pitch> {
++  findByName(name: string): Pitch | undefined {
++    return this.findAll().find((p) => p.name === name);
++  }
++}
+diff --git a/src/persistence/weather-client.ts b/src/persistence/weather-client.ts
+new file mode 100644
+index 0000000..7eade8f
+--- /dev/null
++++ b/src/persistence/weather-client.ts
+@@ -0,0 +1,19 @@
++export interface Forecast {
++  postcode: string;
++  hour: string;
++  precipitationMm: number;
++  summary: string;
++}
++
++/** Client for the WeatherNow HTTP API. */
++export class WeatherNowClient {
++  constructor(private readonly baseUrl = process.env.WEATHERNOW_URL ?? 'https://api.weathernow.example', private readonly apiKey = process.env.WEATHERNOW_KEY ?? '') {}
++
++  async forecast(postcode: string, hour: string): Promise<Forecast> {
++    const url = `${this.baseUrl}/forecast?postcode=${encodeURIComponent(postcode)}&hour=${encodeURIComponent(hour)}&key=${this.apiKey}`;
++    const res = await fetch(url);
++    if (!res.ok) throw new Error(`WeatherNow returned ${res.status}`);
++    const body = (await res.json()) as { precipitation_mm: number; summary: string };
++    return { postcode, hour, precipitationMm: body.precipitation_mm, summary: body.summary };
++  }
++}
+diff --git a/src/presentation/controllers.ts b/src/presentation/controllers.ts
+index 868b494..6117dad 100644
+--- a/src/presentation/controllers.ts
++++ b/src/presentation/controllers.ts
+@@ -1,9 +1,10 @@
+ import { NextFunction, Request, Response, Router } from 'express';
+ import { TeamService } from '../business/team-service';
+ import { FixtureService } from '../business/fixture-service';
++import { WeatherService } from '../business/weather-service';
+ import { NotFoundError, ValidationError } from '../business/entities';
+ 
+-export function buildRouter(teams: TeamService, fixtures: FixtureService): Router {
++export function buildRouter(teams: TeamService, fixtures: FixtureService, weather: WeatherService): Router {
+   const r = Router();
+   r.post('/teams', (req, res) => {
+     res.status(201).json(teams.registerTeam(req.body));
+@@ -26,6 +27,15 @@ export function buildRouter(teams: TeamService, fixtures: FixtureService): Route
+   r.put('/fixtures/:id/result', (req, res) => {
+     res.json(fixtures.recordResult(req.params.id, Number(req.body.homeGoals), Number(req.body.awayGoals)));
+   });
++  r.post('/pitches', (req, res) => {
++    res.status(201).json(fixtures.registerPitch(req.body.name, req.body.postcode));
++  });
++  r.post('/fixtures/:id/postpone', (req, res) => {
++    res.json(fixtures.postpone(req.params.id, req.body.kickOff));
++  });
++  r.post('/match-days/:date/weather-check', async (req, res) => {
++    res.json(await weather.checkMatchDay(req.params.date));
++  });
+   return r;
+ }
+ 
+diff --git a/src/presentation/server.ts b/src/presentation/server.ts
+index 3d1bb51..9d24d90 100644
+--- a/src/presentation/server.ts
++++ b/src/presentation/server.ts
+@@ -3,10 +3,20 @@ import { createServices } from '../business/container';
+ import { buildRouter, errorHandler } from './controllers';
+ 
+ const services = createServices();
++export const mailer = services.mailer;
+ 
+ const app = express();
+ app.use(express.json());
+-app.use(buildRouter(services.teams, services.fixtures));
++app.use(buildRouter(services.teams, services.fixtures, services.weather));
+ app.use(errorHandler);
+ 
++// every evening at 18:00 check tomorrow's fixtures
++setInterval(() => {
++  const now = new Date();
++  if (now.getHours() === 18 && now.getMinutes() === 0) {
++    const tomorrow = new Date(now.getTime() + 86400000).toISOString().slice(0, 10);
++    services.weather.checkMatchDay(tomorrow).catch((e) => console.error('weather check failed', e));
++  }
++}, 60000);
++
+ app.listen(Number(process.env.PORT ?? 3000), () => console.log('league service listening'));
