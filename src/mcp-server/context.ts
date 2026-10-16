@@ -10,19 +10,28 @@ import { Neo4jRepository } from '../neo4j-ingestion/neo4j-repository.js';
 import { createSpecLoader } from './tools.js';
 import type { ServerContext } from './tools.js';
 import { fastRulesEngineOf, InterpEvaluator } from './interp-check.js';
+import { buildNeuralService, parseNeuralArgs } from './neural-context.js';
+import type { NeuralArgs } from './neural-context.js';
 
 export interface McpArgs {
   readonly spec?: string;
   readonly project?: string;
   /** `--fast-rules-engine fast|cypher-interp` (Docs/v1.3/mcp-interp-parity.md); absent = `DAEDALUS_FAST_RULES_ENGINE`, else `fast`. */
   readonly fastRulesEngine?: string;
+  /** Neural arm flags (`--neural ...`); absent when no neural flag is given. */
+  readonly neural?: NeuralArgs;
 }
 
-const FLAGS: Readonly<Record<string, keyof McpArgs>> = { '--spec': 'spec', '--project': 'project', '--fast-rules-engine': 'fastRulesEngine' };
+const FLAGS: Readonly<Record<string, 'spec' | 'project' | 'fastRulesEngine'>> = { '--spec': 'spec', '--project': 'project', '--fast-rules-engine': 'fastRulesEngine' };
 
-/** `--spec <path>`, `--project <path>` and `--fast-rules-engine <name>` (also `--flag=value`); unknown flags are ignored. Pure. */
+/**
+ * `--spec <path>`, `--project <path>` and `--fast-rules-engine <name>` (also `--flag=value`), plus the neural flags
+ * (`neural-context.ts`); unknown flags are ignored. Pure.
+ */
 export function parseArgs(argv: readonly string[]): McpArgs {
-  const out: { -readonly [K in keyof McpArgs]?: string } = {};
+  const out: { spec?: string; project?: string; fastRulesEngine?: string; neural?: NeuralArgs } = {};
+  const neural = parseNeuralArgs(argv);
+  if (neural !== undefined) out.neural = neural;
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i] ?? '';
     const [flag, inline] = arg.split('=', 2);
@@ -51,8 +60,11 @@ export function presetsDirFrom(env: NodeJS.ProcessEnv, entry: string | undefined
 
 export function buildContext(args: McpArgs, env: NodeJS.ProcessEnv): ServerContext {
   const fastRulesEngine = fastRulesEngineOf(args.fastRulesEngine, env);
+  // Off unless `--neural` or DAEDALUS_NEURAL names a provider: the default server is unchanged.
+  const neural = buildNeuralService(args.neural ?? parseNeuralArgs([], env), env);
   return {
     ...(fastRulesEngine === 'cypher-interp' && { fastRulesEngine, interp: new InterpEvaluator() }),
+    ...(neural !== undefined ? { neural } : {}),
     presetsDir: presetsDirFrom(env, process.argv[1], process.cwd()),
     defaultSpecPath: args.spec ?? env.DAEDALUS_SPEC,
     defaultProjectPath: args.project ?? env.DAEDALUS_PROJECT,

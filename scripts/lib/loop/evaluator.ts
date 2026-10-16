@@ -17,6 +17,8 @@ import type { ProcessRunner } from '../../../src/shared/interfaces/process-runne
 import { evaluateProject } from '../../../src/mcp-server/evaluate-project.js';
 import type { EvaluateDeps } from '../../../src/mcp-server/evaluate-project.js';
 import type { EvaluateProjectResult } from '../../../src/mcp-server/types.js';
+import { templateOf } from '../../v1.3/lib/labelling/findings.js';
+import { harnessTsconfigPath } from '../generators/argv.js';
 import { writeHarnessTsconfig } from '../generators/harness-tsconfig.js';
 import { runHarnessTypecheck } from '../generators/skeleton.js';
 import type { BlockingFinding, StepEvaluation, StepEvaluator, StepTypechecker } from './types.js';
@@ -34,8 +36,31 @@ export function toStepEvaluation(r: EvaluateProjectResult): DomainResult<StepEva
   for (const row of tiers.blocking.rules) {
     if (row.violationCount > 0) blockingByRule[String(row.functionId)] = row.violationCount;
   }
+  const advisoryByRule: Record<string, number> = {};
+  for (const row of tiers.advisory.rules) {
+    if (row.violationCount > 0) advisoryByRule[String(row.functionId)] = row.violationCount;
+  }
   const blockingFindings: BlockingFinding[] = [];
-  for (const group of r.byRule) {
+  if (r.violations !== undefined) {
+    // The whole report (uncapped), in rule-id order as `groupByRule` lists it, each finding with its template.
+    const names = new Map(r.byRule.map((g) => [g.ruleId, g.ruleName]));
+    const rows = r.violations.filter((v) => blockingIds.has(String(v.functionId)));
+    const byRuleId = (a: (typeof rows)[number], b: (typeof rows)[number]): number => String(a.functionId).localeCompare(String(b.functionId));
+    for (const v of [...rows].sort(byRuleId)) {
+      const ruleId = String(v.functionId);
+      blockingFindings.push({
+        ruleId,
+        ruleName: names.get(ruleId) ?? ruleId,
+        template: templateOf(v.type, ruleId),
+        violationId: v.id,
+        filePath: v.filePath,
+        ...(v.line !== undefined ? { line: v.line } : {}),
+        ...(v.target !== undefined ? { target: v.target } : {}),
+        message: v.message,
+      });
+    }
+  }
+  for (const group of r.violations === undefined ? r.byRule : []) {
     if (!blockingIds.has(group.ruleId)) continue;
     for (const v of group.violations) {
       blockingFindings.push({
@@ -57,16 +82,31 @@ export function toStepEvaluation(r: EvaluateProjectResult): DomainResult<StepEva
     blockingViolationCount: tiers.blocking.violationCount,
     advisoryViolationCount: tiers.advisory.violationCount,
     blockingByRule,
+    advisoryByRule,
     blockingFindings,
     durationMs: r.durationMs,
+    ...(r.violations !== undefined ? { reportViolations: r.violations } : {}),
   });
 }
 
-export function firewallEvaluator(specPath: string, env: NodeJS.ProcessEnv, deps: EvaluateDeps): StepEvaluator {
+/**
+ * Where the extractor finds the tsconfig of a snapshot. The work tree has no tsconfig of its own (the harness keeps
+ * the pinned per-run tsconfig outside the cwd, BR-U5a-42), so without one `evaluate_project` fails every snapshot
+ * with `TSCONFIG_NOT_FOUND` (found by the loop replay, `Docs/v1.3/loop-replay.md`).
+ */
+export type SnapshotTsconfig = (projectDir: string, runId: string | undefined) => string | undefined;
+
+/** The live wiring: the per-run tsconfig `harnessTypechecker` writes before every evaluation (same file, same run). */
+export function harnessSnapshotTsconfig(harnessRoot: string): SnapshotTsconfig {
+  return (_projectDir, runId) => (runId === undefined ? undefined : harnessTsconfigPath(harnessRoot, runId));
+}
+
+export function firewallEvaluator(specPath: string, env: NodeJS.ProcessEnv, deps: EvaluateDeps, tsconfigOf?: SnapshotTsconfig): StepEvaluator {
   return {
     id: 'daedalus-evaluate-project/v1.3',
-    evaluate: async (projectDir) => {
-      const r = await evaluateProject({ projectPath: projectDir, specPath, scoringMode: 'v1.3' }, env, deps);
+    evaluate: async (projectDir, runId) => {
+      const tsconfigPath = tsconfigOf?.(projectDir, runId);
+      const r = await evaluateProject({ projectPath: projectDir, specPath, scoringMode: 'v1.3', includeViolations: true, ...(tsconfigPath !== undefined ? { tsconfigPath } : {}) }, env, deps);
       return r.success ? toStepEvaluation(r.data) : DomainResult.fail(r.errors);
     },
   };
