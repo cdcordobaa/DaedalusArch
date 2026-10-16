@@ -114,3 +114,16 @@ Every secondary analysis is exploratory and is reported as such, with its CI, wh
 ### Addendum 1 (2026-10-16, before any corpus tool run)
 
 A smoke run on the in-repo fixture `fixtures/variant-a-structural` (not a corpus project) showed that an FF-S02 cycle violation carries the whole cycle as a comma-separated `filePath`. E1 therefore attributes a cycle violation to **every distinct member file** of the cycle, not to a single file; E1n counts it once per member. Every other rule has a single `filePath`. Implemented in `scripts/v1.3/predictive/exposure.ts` (`sourceFiles`). No corpus output had been produced when this was decided.
+
+### Addendum 2 (2026-10-16, after 3 of 27 projects had exposure and history, before the full analysis)
+
+- **R8 estimator.** `PoissonBayesMixedGLM.fit_vb` diverged (coefficients of order 1e7, zero or infinite SDs) in a pipeline test. R8 now tries `fit_vb` first and, when its result is not finite, uses `fit_map` (posterior mode with Laplace SDs); the report states which one ran.
+- **Disclosure.** The pipeline test was meant to run on a within-project permutation of E1. The first test did; the GLMM debugging run that found the divergence did not, and it printed the `fit_map` E1 coefficient on the real exposure of three projects (ghostfolio-api, hoppscotch-backend, hedgedoc-backend; −0.01, SD 0.20). No other real-exposure association was looked at before the full run. The plan is unchanged by it.
+- **Exact-layer matching** uses the layer the tool's annotator gives each path (`scripts/v1.3/predictive/layers.ts`); files mapped only by decorator get the layer `decorator`.
+
+### Addendum 3 (2026-10-16, after 4 of 27 tool runs, before any outcome model)
+
+Two properties of the tool's output, seen in the reports' `functionResults` / `functionExecution` and in the template text (no outcome involved):
+
+1. **FF-S02 is capped.** The no-cyclic-deps template returns at most 100 cycles (`CYCLE_ROW_CAP`), ordered by path, and sets `truncated`. On immich-server it hit the cap. Where it does, E1 under-counts cycle members, and the ones it keeps are the alphabetically first. Two robustness checks are added: **R10**, E1 without FF-S02 (the other blocking rules are not capped on any run seen so far); **R11**, E1 with FF-S02 replaced by membership of a strongly connected component of size ≥ 2 in the file-level import graph of the same APG (an uncapped stand-in for "is on an import cycle"; it is not the tool's output). The report lists the projects where FF-S02 was truncated.
+2. **FF-P05 does not run under cypher-interp** (`unsupported: clause subqueryClause`). It is advisory, so E1 is unaffected; E2 lacks FF-P05 on every project. The Neo4j engine was tried on one snapshot (hedgedoc-backend) as a possible alternative: it ran FF-P05 but its FF-S02 query hit the transaction timeout and failed, which would remove a blocking rule. The runs therefore stay on cypher-interp, as specified.
