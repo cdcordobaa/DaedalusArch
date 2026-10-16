@@ -115,7 +115,7 @@ const smokeNumbers = SMOKE.flatMap(([line, k, outs, res]) => [
 ]);
 // smoke KNOWNs at HEAD (the committed log replication/smoke-2026-10-15.txt, commit 23e0d9ea, shows the stated values)
 const KN = {
-  'd-audit-smoke-ise-result': { actual: '11 IDENTICAL + 11 DIFF / 12 IDENTICAL / 2 IDENTICAL', note: 'at HEAD ise-measure.ts no longer reproduces measure.json, measure.md and 9 of the 20 specs (ISE commit 08c6cd8c "structure over vocabulary" postdates the audit); the committed log of the 2026-10-15 run shows 22 + 12 + 2 IDENTICAL as stated. smoke.sh exits 1 at HEAD.' },
+  'd-audit-smoke-ise-result': { actual: '11 IDENTICAL + 11 DIFF / IDENTICAL / IDENTICAL', note: 'at HEAD ise-measure.ts no longer reproduces measure.json, measure.md and 9 of the 20 specs (ISE commit 08c6cd8c "structure over vocabulary" postdates the audit); the committed log of the 2026-10-15 run shows 22 + 12 + 2 IDENTICAL as stated. smoke.sh exits 1 at HEAD.' },
   'd-audit-smoke-cheap-result': { actual: '38 IDENTICAL + 17 DIFF', note: 'at HEAD cheap-semantics-eval.ts changes rows.csv, scores.json and 15 clean-twin flags files (later cheap-proxy commits, e.g. 037e8c9e clone-unit guards); the committed 2026-10-15 log shows 55 IDENTICAL as stated. smoke.sh exits 1 at HEAD.' },
 };
 for (const x of smokeNumbers) if (KN[x.id]) x.known = KN[x.id];
