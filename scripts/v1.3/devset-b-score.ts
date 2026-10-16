@@ -16,13 +16,38 @@
  *                      set's clean project, in-sample) is excluded from every count
  *   false alarm        a tool row of a blocking rule on a look-alike or clean variant (whose manifests expect nothing)
  * FF-P06 rows from the field half (relType FLOWS_TO, the tier's N/A part) are counted like any row and flagged.
+ *
+ * Two views. `literal`: the runner's matching unchanged; an FF-S02 row matches only a manifest cycle with the same
+ * file set. `cycle-containment` (declared normalisation): the manifests name a cycle by its smallest file and the next
+ * one (the reference convention, written for 2-file cycles), while the tool's row carries the whole cycle path; a
+ * cycle row whose files include both files of an unmatched expected FF-S02 finding of the same variant is keyed to
+ * that finding. Nothing else differs between the views.
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { compareVariant } from './lib/compare.js';
+import { compareVariant, cycleFileSet } from './lib/compare.js';
 import type { ActualFinding, Mismatch, VariantComparison } from './lib/compare.js';
 import { DEVSET_B_ROOT, loadAllReferences } from './lib/reference-model.js';
-import type { LoadedReference } from './lib/reference-model.js';
+import type { ExpectedFinding, LoadedReference } from './lib/reference-model.js';
+
+type View = 'literal' | 'cycle-containment';
+const VIEWS: readonly View[] = ['literal', 'cycle-containment'];
+
+/** cycle-containment: re-keys an FF-S02 row to the expected cycle finding whose two files it contains. */
+function containCycles(expected: readonly ExpectedFinding[], actual: readonly ActualFinding[]): ActualFinding[] {
+  const open = expected.filter((e) => e.ruleId === 'FF-S02');
+  const exact = new Set(actual.filter((a) => a.ruleId === 'FF-S02').map((a) => cycleFileSet(a)));
+  const claimed = new Set<number>();
+  return actual.map((a) => {
+    if (a.ruleId !== 'FF-S02') return a;
+    const files = new Set(cycleFileSet(a).split(','));
+    const i = open.findIndex((e, j) => !claimed.has(j) && !exact.has(cycleFileSet(e)) && files.has(e.file) && e.target !== undefined && files.has(e.target));
+    if (i < 0) return a;
+    claimed.add(i);
+    const e = open[i] as ExpectedFinding;
+    return { ruleId: a.ruleId, file: e.file, ...(e.target !== undefined ? { target: e.target } : {}) };
+  });
+}
 
 type Role = 'baseline' | 'violation' | 'look-alike' | 'clean';
 interface RoleFile {
@@ -86,6 +111,7 @@ interface RuleScore {
 interface Listed { readonly style: string; readonly variant: string; readonly role: Role; readonly mismatch: Mismatch; readonly message: string; readonly flowsTo: boolean }
 
 interface StyleScore {
+  readonly view: View;
   readonly style: string;
   readonly counts: { violation: number; lookAlike: number; clean: number; blockingExpected: number; blockingPerRule: Record<string, number> };
   readonly notPlanted: readonly { ruleId: string; reason: string }[];
@@ -104,7 +130,7 @@ interface StyleScore {
   readonly variants: readonly { variant: string; role: Role; rule: string | null; matched: number; missed: number; unexpected: number; unexpectedBlocking: number }[];
 }
 
-function scoreStyle(ref: LoadedReference): StyleScore {
+function scoreStyle(ref: LoadedReference, view: View): StyleScore {
   const roles = readJson(path.join(ref.dir, 'devset-b.json')) as RoleFile;
   const roleOf = (v: string): Role => {
     const r = roles.variants[v]?.role;
@@ -118,7 +144,9 @@ function scoreStyle(ref: LoadedReference): StyleScore {
   for (const v of ref.variants) {
     const role = roleOf(v.manifest.variant);
     if (role === 'baseline') continue;
-    const c = compareVariant(ref.style, v.manifest, rawRows(ref.style, v.manifest.variant), scope, baselineActual);
+    const raw = rawRows(ref.style, v.manifest.variant);
+    const actual = view === 'literal' ? raw : containCycles(v.manifest.expectedFindings, raw);
+    const c = compareVariant(ref.style, v.manifest, actual, scope, baselineActual);
     comps.push({ c, role, rule: roles.variants[v.manifest.variant]?.rule ?? null });
   }
   const listed = (pred: (role: Role, m: Mismatch) => boolean): Listed[] =>
@@ -164,6 +192,7 @@ function scoreStyle(ref: LoadedReference): StyleScore {
   for (const id of blocking) perRule[id] = 0;
   for (const { c } of violations) for (const f of [...c.matched, ...c.mismatches.filter((m) => m.kind === 'missed')]) if (blocking.has(f.ruleId)) perRule[f.ruleId] = (perRule[f.ruleId] ?? 0) + 1;
   return {
+    view,
     style: ref.style,
     counts: {
       violation: violations.length, lookAlike: looks.length, clean: cleans.length,
@@ -191,9 +220,15 @@ function scoreStyle(ref: LoadedReference): StyleScore {
   };
 }
 
-function render(scores: readonly StyleScore[]): string {
+function render(byView: readonly (readonly StyleScore[])[]): string {
   const out: string[] = ['# v1.3 devset-b scores (development data, Claude-written)', ''];
-  out.push('Blocking rules only unless stated. `found` = recall over planted expected findings; `reports right` = precision over every tool row of the rule on devset-b variants; Wilson 95% intervals.', '');
+  out.push('Blocking rules only unless stated. `found` = recall over planted expected findings; `reports right` = precision over every tool row of the rule on devset-b variants; Wilson 95% intervals. Views: see scripts/v1.3/devset-b-score.ts (literal; cycle-containment).', '');
+  for (const scores of byView) renderView(out, scores);
+  return out.join('\n') + '\n';
+}
+
+function renderView(out: string[], scores: readonly StyleScore[]): void {
+  out.push(`# View: ${scores[0]?.view ?? ''}`, '');
   out.push('| Style | Violations | Look-alikes | Clean | Blocking expected | Found | Reports right | Planted rule detected | Look-alikes silent | Look-alike false-alarm rows | Clean silent | Clean false-alarm rows |');
   out.push('|---|---|---|---|---|---|---|---|---|---|---|---|');
   const pool = { fx: 0, fn: 0, rx: 0, rn: 0 };
@@ -203,7 +238,7 @@ function render(scores: readonly StyleScore[]): string {
   }
   out.push(`| **pooled** | | | | ${String(pool.fn)} | ${fmt(ratio(pool.fx, pool.fn))} | ${fmt(ratio(pool.rx, pool.rn))} | | | | | |`);
   for (const s of scores) {
-    out.push('', `## ${s.style}`, '');
+    out.push('', `## ${s.style} (${s.view})`, '');
     out.push('| Rule | Name | Tier | Violation variants | Look-alikes | Found | Reports right | Extra rows on violations | False alarms (look-alike) | False alarms (clean) |');
     out.push('|---|---|---|---|---|---|---|---|---|---|');
     for (const r of s.rules) {
@@ -222,11 +257,11 @@ function render(scores: readonly StyleScore[]): string {
     table('Blocking false alarms (look-alike and clean variants)', s.falseAlarms);
     table('Blocking rows beyond the manifest on violation variants', s.extras);
   }
-  return out.join('\n') + '\n';
+  out.push('');
 }
 
 const refs = loadAllReferences(ROOT, undefined, DEVSET_B_ROOT);
-const scores = refs.map(scoreStyle);
-fs.writeFileSync(path.join(BASE, 'scores.json'), JSON.stringify({ set: 'devset-b', scores }, null, 2) + '\n');
-fs.writeFileSync(path.join(BASE, 'scores.md'), render(scores));
-process.stdout.write(render(scores));
+const byView = VIEWS.map((view) => refs.map((ref) => scoreStyle(ref, view)));
+fs.writeFileSync(path.join(BASE, 'scores.json'), JSON.stringify({ set: 'devset-b', views: Object.fromEntries(VIEWS.map((v, i) => [v, byView[i]])) }, null, 2) + '\n');
+fs.writeFileSync(path.join(BASE, 'scores.md'), render(byView));
+process.stdout.write(render(byView));

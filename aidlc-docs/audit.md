@@ -1484,3 +1484,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 — requirements revision 1; Gate 2 (first fidelity result) is now a human gate.
 
 ---
+
+## v1.3 — devset-b development-set expansion (scheduled task)
+**Timestamp**: 2026-10-16T01:05:00Z
+**User Input**: (scheduled task, no one present) "Expand the v1.3 development set in a separate devset-b: at least 20 planted blocking violations per style, at least 2 per applicable blocking rule, at least 1 look-alike per blocking rule, 2 clean variants per style, author manifests in the existing schema, no label leaks in fixture source; run the unchanged tool on it and report per style and per rule with Wilson CIs; one PR into v1.3, not merged."
+**AI Response**: "Branch v1.3-devset-expansion from origin/v1.3 133c261a. Harness only: --set devset-b on validate-reference/ue-baseline-live, scripts/v1.3/devset-b-score.ts, eslint ignore for the fixture copies. 131 new variants (84 violation, 37 look-alike, 10 clean) under tests/fixtures/v1.3-devset-b, written by five Claude agents from the rule definitions, committed before the tool ran. Blocking expected findings 57 (reference) -> 116 (devset-b; 24/21/22/24/25 per style). Live run (Neo4j 5.26.24 + APOC tarball): pooled blocking found 109/116 literal, 114/116 cycle-containment (declared after seeing the literal result); 1 false alarm on 37 look-alikes, 0 on 10 clean. Real misses: 2 FF-P03 (same-file local interface); false alarm: FF-P03 aliased type-only port import; 5 literal FF-S02 misses are 3-file cycles reported in full (cycle-key convention). No tool, rule or preset change. Docs/DiagnosticRuns/v1.3-devset-b-2026-10-16.md. The AI-DLC approval gates were not run interactively: the request came from a scheduled task with no one present and its scope (fixtures, harness, a diagnostic document, a PR left unmerged) needs no registered-artefact decision."
+**Context**: v1.3 development data (Claude-written), not a validity estimate.
+
+---
