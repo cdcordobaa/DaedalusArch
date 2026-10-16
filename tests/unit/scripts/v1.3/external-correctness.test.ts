@@ -75,7 +75,8 @@ describe('external correctness: negative control', () => {
   });
 
   it('breaks a cycle with a project file the first file does not import', () => {
-    const cyc = sampled({ key: 'cy', ruleId: 'FF-S02', template: 'no-cyclic-deps', file: 'src/x.ts', target: undefined, line: undefined, discriminator: [JSON.stringify(['src/x.ts', 'src/y.ts', 'src/x.ts'])] });
+    // A cycle finding has no target or line; drop them rather than pass `undefined` (exactOptionalPropertyTypes).
+    const { target: _t, line: _l, ...cyc } = sampled({ key: 'cy', ruleId: 'FF-S02', template: 'no-cyclic-deps', file: 'src/x.ts', discriminator: [JSON.stringify(['src/x.ts', 'src/y.ts', 'src/x.ts'])] });
     const other = sampled({ key: 'o', file: 'src/z.ts', target: 'src/w.ts' });
     const c = controlItems([cyc, other], () => lister({ 'src/x.ts': [{ startLine: 1, resolvedFile: 'src/y.ts' }, { startLine: 2, resolvedFile: 'src/w.ts' }] }));
     const item = c.items.find((i) => i.kind === 'cycle');
