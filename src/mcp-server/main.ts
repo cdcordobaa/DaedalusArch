@@ -2,7 +2,10 @@
 /**
  * Stdio entry of the DaedalusArch MCP prototype (`daedalus-arch-mcp`).
  *
- *   daedalus-arch-mcp --spec <spec.yaml> [--project <dir>] [--engine neo4j|cypher-interp]
+ *   daedalus-arch-mcp --spec <spec.yaml> [--project <dir>] [--engine neo4j|cypher-interp] [--neural claude-cli|mock|ensemble ...]
+ *
+ * `--neural` turns on the neural-arm tools (review_unit, explain_and_fix); off by default. Flags:
+ * `neural-context.ts`, Docs/v1.3/neural-arm-agent-tools.md.
  *
  * Environment: DAEDALUS_SPEC / DAEDALUS_PROJECT (defaults for the flags). Engine (v1.3 npx mode): `--engine`, else
  * neo4j when NEO4J_URI is set (then NEO4J_USER, NEO4J_PASSWORD), else cypher-interp (in process, no database). Only
