@@ -191,7 +191,8 @@ WAIVED, so a waiver is visible on the sheet). Exit 0 = no FAIL hit, 1 = at least
 Calibration (2026-10-16): the pilot tasks block (12 steps) and the probe's 6 tasks (28 steps) give **0 FAIL** under
 each of the four presets (hexagonal, clean, DDD, layered); the probe's hexagonal frame gives 0 FAIL as a layout frame and 21 FAIL as a no-hint
 frame; a planted sentence ("Add a SmsAdapter behind a port in src/adapters/outbound and wire it in the composition
-root; keep the business logic in the use case") gives 10 FAIL. A grep cannot catch a hint made of ordinary words
+root; keep the business logic in the use case") gives 10 FAIL. The calibration inputs and outputs are in
+`Docs/v1.3/study2-task-design/calibration/` (`run.sh` reproduces them). A grep cannot catch a hint made of ordinary words
 (checklist items 3–6 exist for that), and it does not judge whether a step is contrived (§2.3).
 
 ## 5. The base rate the power simulation needs
@@ -258,8 +259,8 @@ Power of `gate` / `mcp`; rows are the expected blocking count at step 1 in `none
    4). The step-1 count adds variance to every later step without adding slope. Tasks should keep step 1 close to
    clean and put the pressure into the later steps, which is also what makes the outcome an erosion measure rather
    than a level (probe §4).
-4. **`mcp` at a quarter reduction is not reachable** with any task design in B, C or E at θ ≤ 5 (best 0.74, C at θ = 5,
-   slope 4). Better tasks do not fix that contrast; only a larger `mcp` effect, a larger grid or a single primary
+4. **`mcp` at a quarter reduction is not reachable** with any task design in B, C or E at θ ≤ 5 (best 0.735, C at θ = 5,
+   step-1 level 0.5, slope 2; at level 1.5 the best is 0.68, slope 4). Better tasks do not fix that contrast; only a larger `mcp` effect, a larger grid or a single primary
    contrast does (power notes §5.5).
 
 ### 5.5 Where the probe sits
