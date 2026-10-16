@@ -52,6 +52,11 @@ const UNSUPPORTED: readonly (readonly [string, string, RegExp])[] = [
   ['\\Z anchor', "RETURN 'a' =~ 'a\\\\Z' AS x", /Java-only regular expression/],
   ['\\z anchor', "RETURN 'a' =~ 'a\\\\z' AS x", /Java-only regular expression/],
   ['inline flag after the start', "RETURN 'aB' =~ 'a(?i)b' AS x", /Java-only regular expression/],
+  ['\\p{Lu} class (post-merge review R15)', "RETURN 'Order' =~ '\\\\p{Lu}.*' AS x", /Java-only regular expression/],
+  ['\\h class', "RETURN 'a' =~ '\\\\h' AS x", /Java-only regular expression/],
+  ['\\x{41} escape', "RETURN 'A' =~ '\\\\x{41}' AS x", /Java-only regular expression/],
+  ['class intersection &&', "RETURN 'x' =~ '[a-z&&[^e]]' AS x", /Java-only regular expression/],
+  ['(?i) over non-ASCII letters', "RETURN 'É' =~ '(?i)é' AS x", /Java-only regular expression/],
   // CALL: no procedure at all (the three apoc.coll functions are built-ins, not procedures), no CALL subqueries.
   ['CALL db.labels()', 'CALL db.labels() YIELD label RETURN label', /CALL procedure/],
   ['CALL apoc.help()', "CALL apoc.help('coll')", /CALL procedure/],
@@ -100,6 +105,17 @@ describe('cypher-interp: unsupported syntax is rejected with a clear error', () 
       const e = await rejection(q);
       expect(e.code).toBe('Neo.ClientError.Statement.SyntaxError');
       expect(e.message).toMatch(msg);
+    }
+  });
+
+  it('matches regexes as Java Pattern.matches: whole input under (?m), escaped backslashes are literals', async () => {
+    const repo = new MemoryGraphRepository();
+    // Expected values: Neo4j 5.26.24's answers.
+    for (const [str, re, expected] of [
+      ['a\nb', '(?m)b', false], ['a\nb', '(?m)a\nb', true], ['ab', '(?m)^ab$', true], ['\\Q', '\\\\Q', true], ['\\z', '\\\\z', true],
+    ] as const) {
+      const r = await repo.executeQuery('RETURN $s =~ $r AS m', { s: str, r: re });
+      expect(r.success && r.data.records[0]?.m).toBe(expected);
     }
   });
 

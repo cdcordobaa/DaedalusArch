@@ -41,6 +41,12 @@ describe('memory-sweep: parity classes', () => {
     expect(c.floatDrift).toBeUndefined();
   });
 
+  it('classes a reordering under an ORDER BY as content, not order (post-merge review R17)', () => {
+    const c = classify(result([{ a: 1.5 }, { a: 2.5 }]), result([{ a: 2.5 }, { a: 1.5 }]), false, 'MATCH (n) RETURN n.a AS a ORDER BY a');
+    expect(c.klass).toBe('content');
+    expect(classify(result([{ a: 1.5 }, { a: 2.5 }]), result([{ a: 2.5 }, { a: 1.5 }]), false, 'MATCH (n) WITH n ORDER BY n.a RETURN n.a AS a').klass).toBe('order');
+  });
+
   it('classes a last-bit difference on a named metric text as float-drift and records both values', () => {
     const y = nextUp(X, 1);
     const c = classify(result([{ val: X }]), result([{ val: y }]), false, AVG);

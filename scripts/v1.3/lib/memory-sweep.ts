@@ -16,11 +16,12 @@ import { replaceExcludeMarkers } from '../../../src/fitness-compiler/exclude-inj
 import { applyV13Rewrites } from '../../../src/fitness-compiler/v13-rewrites.js';
 import { applySignatureTypes } from '../../../src/fitness-compiler/v13-signature-types.js';
 import { UNIVERSAL_METRIC_QUERIES, UNIVERSAL_METRIC_QUERIES_LITERAL } from '../../../src/scoring-engine/universal-metrics.js';
+import { parseCypher } from '../../../src/cypher-interp/parse.js';
 
 /**
  * - `equal`: same columns, same values (INTEGER and FLOAT kept apart), same row order.
- * - `order`: the same multiset of rows in a different order (genuine row-order difference of a query without a
- *   complete ORDER BY; trap T1). Values are bit-identical.
+ * - `order`: the same multiset of rows in a different order, for a query whose final RETURN has no ORDER BY (trap
+ *   T1). Values are bit-identical. The same reordering under an ORDER BY is `content`.
  * - `float-drift`: same rows in the same order, every value bit-identical except FLOATs that differ by at most
  *   `FLOAT_DRIFT_MAX_ULPS` units in the last place, and ONLY for a text in `FLOAT_DRIFT_TEMPLATES` (trap T2). Both
  *   values of every drifting cell are recorded (`ParityEntry.floatDrift`).
@@ -128,7 +129,13 @@ export function classify(ref: DomainResult<QueryResult>, cand: DomainResult<Quer
   if (a.length === b.length && a.every((x, i) => x === b[i])) return { klass: 'equal' };
   const sa = [...a].sort();
   const sb = [...b].sort();
-  if (sa.length === sb.length && sa.every((x, i) => x === sb[i])) return { klass: 'order' };
+  if (sa.length === sb.length && sa.every((x, i) => x === sb[i])) {
+    // A reordering is `order` only where the query leaves the order open (post-merge review R17): under an ORDER BY,
+    // whose keys are unique at the row grain for every template (template-order.test.ts), it is an ordering bug.
+    return endsInOrderBy(cypher)
+      ? { klass: 'content', detail: `same rows in a different order under ORDER BY (${String(a.length)} rows)` }
+      : { klass: 'order' };
+  }
   // Trap T2, for the named texts only: same rows, same order, FLOATs within the ULP bound.
   if (FLOAT_DRIFT_TEMPLATES.has(cypher)) {
     const cells = floatDriftCells(ref.data, cand.data);
@@ -140,6 +147,17 @@ export function classify(ref: DomainResult<QueryResult>, cand: DomainResult<Quer
   const onlyRef = sa.filter((x) => !sb.includes(x)).slice(0, 3);
   const onlyCand = sb.filter((x) => !sa.includes(x)).slice(0, 3);
   return { klass: 'content', detail: `rows ${String(a.length)} vs ${String(b.length)}; only neo4j: ${onlyRef.join(' ')}; only interp: ${onlyCand.join(' ')}`.slice(0, 2000) };
+}
+
+/** Whether the statement's final RETURN has an ORDER BY (unparseable text: false, the parity then decides on rows). */
+export function endsInOrderBy(cypher: string): boolean {
+  try {
+    const q = parseCypher(cypher);
+    const last = q.clauses[q.clauses.length - 1];
+    return last?.k === 'return' && last.projection.orderBy.length > 0;
+  } catch {
+    return false;
+  }
 }
 
 /** Distance in units in the last place between two finite doubles of the same sign (Infinity otherwise). */

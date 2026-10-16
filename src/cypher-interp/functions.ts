@@ -235,9 +235,15 @@ export const AGGREGATES: ReadonlySet<string> = new Set(['count', 'collect', 'sum
 
 const regexCache = new Map<string, RegExp>();
 
+/** Escapes whose meaning differs between Java and JS (non-`u` mode), or that JS lacks: rejected, never approximated. */
+const JAVA_ONLY_ESCAPES = new Set(['p', 'P', 'h', 'H', 'R', 'X', 'v', 'V', 'G', 'Q', 'E', 'A', 'Z', 'z']);
+
 /**
- * Java `Pattern.matches` semantics: the whole string must match. Leading inline flags `(?i)`, `(?s)`, `(?m)`, `(?u)`
- * become JS flags; other Java-only syntax (possessive quantifiers, `\p{javaX}`, inline flags elsewhere) is rejected.
+ * Java `Pattern.matches` semantics: the whole input must match. Leading inline flags `(?i)`, `(?s)`, `(?m)`, `(?u)`
+ * become JS flags; the pattern is anchored with input-boundary lookarounds, not `^`/`$`, so `(?m)` changes only the
+ * pattern's own anchors, as in Java. Java-only or differently-read syntax is rejected (post-merge review R15): inline
+ * flags after the start, possessive quantifiers, `\p{…}` / `\P{…}`, `\h \H \R \X \v \V \G`, `\Q…\E`, `\A \Z \z`,
+ * `\x{…}`, `&&` inside a class, and `(?i)` over non-ASCII letters (ASCII-only in Java, Unicode in JS).
  */
 export function javaRegex(pattern: string): RegExp {
   const hit = regexCache.get(pattern);
@@ -250,12 +256,18 @@ export function javaRegex(pattern: string): RegExp {
     for (const f of Array.from(m[1] ?? '')) if (f !== 'u' && !flags.includes(f)) flags += f;
     body = body.slice(m[0].length);
   }
-  if (/\(\?[a-zA-Z-]+[):]/.test(body) || /[*+?}][+]/.test(body.replace(/\\./g, '')) || body.includes('\\p{java') || /\\[QEAZz]/.test(body)) {
+  const unsupported = (): never => {
     throw new CypherUnsupportedError(`Java-only regular expression syntax in ${JSON.stringify(pattern)}`);
-  }
+  };
+  // Escapes, read pairwise so an escaped backslash (`\\`) is never taken for the start of another escape.
+  const escapes = [...body.matchAll(/\\([\s\S])(?=([\s\S]?))/g)];
+  if (escapes.some((m) => JAVA_ONLY_ESCAPES.has(m[1] ?? '') || (m[1] === 'x' && m[2] === '{'))) unsupported();
+  const unescaped = body.replace(/\\[\s\S]/g, '');
+  if (/\(\?[a-zA-Z-]+[):]/.test(unescaped) || /[*+?}][+]/.test(unescaped) || /\[[^\]]*&&/.test(unescaped)) unsupported();
+  if (flags.includes('i') && /[^\x00-\x7f]/.test(body)) unsupported();
   let re: RegExp;
   try {
-    re = new RegExp(`^(?:${body})$`, flags);
+    re = new RegExp(`(?<![\\s\\S])(?:${body})(?![\\s\\S])`, flags);
   } catch (e) {
     throw new CypherRuntimeError(`Invalid Regex: ${e instanceof Error ? e.message : String(e)}`, 'Neo.ClientError.Statement.ArgumentError');
   }
