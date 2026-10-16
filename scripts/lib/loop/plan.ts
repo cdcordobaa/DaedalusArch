@@ -60,6 +60,11 @@ export interface CallBudget {
   readonly maxCalls: number;
 }
 
+/** The gate arm's held-out-rule setting. */
+export interface GatePlan {
+  readonly shownRules?: readonly string[];
+}
+
 export interface LoopPlanFile {
   readonly description: string;
   /** Repository-relative or absolute path of the tasks file. */
@@ -87,6 +92,11 @@ export interface LoopPlanFile {
   readonly taskProfiles?: Readonly<Record<string, TaskProfilePlan>>;
   /** The recorded call budget; checked against `planCallBudget`. */
   readonly callBudget?: CallBudget;
+  /**
+   * Gate arm: the blocking rules its repair feedback may show; every other blocking rule is withheld but still scored.
+   * Absent: every rule is shown (the default). `Docs/v1.3/gate-heldout-rules.md`.
+   */
+  readonly gate?: GatePlan;
   /**
    * The evaluator's graph engine (`Docs/v1.3/loop-engine-tee.md`); `--engine` overrides it. Absent = the default
    * wiring, unchanged.
@@ -225,6 +235,7 @@ export function validatePlan(raw: unknown): DomainResult<LoopPlanFile> {
   if (Array.isArray(arms) && arms.includes('daedalus-mcp') && !isRecord(raw.daedalus)) {
     errors.push(err('LOOP_PLAN_INVALID', 'the daedalus-mcp arm needs a daedalus block { nodeBinary, serverEntry, specPath }'));
   }
+  if (raw.gate !== undefined) errors.push(...validateGate(raw.gate, raw.arms));
   if (raw.acceptance !== undefined) errors.push(...validateAcceptancePlan(raw.acceptance));
   if (raw.cassette !== undefined && (!isRecord(raw.cassette) || typeof raw.cassette.dir !== 'string' || !['record', 'replay'].includes(String(raw.cassette.mode)))) {
     errors.push(err('LOOP_PLAN_INVALID', 'cassette must be { dir, mode: record | replay }'));
@@ -233,6 +244,19 @@ export function validatePlan(raw: unknown): DomainResult<LoopPlanFile> {
     errors.push(err('LOOP_PLAN_INVALID', 'specSha256 must be a lower-case 64-hex sha256'));
   }
   return errors.length > 0 ? DomainResult.fail(errors) : DomainResult.ok(raw as unknown as LoopPlanFile);
+}
+
+function validateGate(raw: unknown, arms: unknown): DomainError[] {
+  if (!isRecord(raw) || Object.keys(raw).some((k) => k !== 'shownRules')) return [err('LOOP_PLAN_INVALID', 'gate must be { shownRules? }')];
+  const errors: DomainError[] = [];
+  const shown = raw.shownRules;
+  if (shown !== undefined) {
+    if (!Array.isArray(shown) || shown.length === 0 || !shown.every((r) => typeof r === 'string' && r.trim() !== '') || new Set(shown).size !== shown.length) {
+      errors.push(err('LOOP_PLAN_INVALID', 'gate.shownRules must be a non-empty list of distinct rule ids'));
+    }
+    if (!Array.isArray(arms) || !arms.includes('gate')) errors.push(err('LOOP_PLAN_INVALID', 'gate.shownRules needs the gate arm'));
+  }
+  return errors;
 }
 
 /** `adapters[].cliVersion` and `generatorIsolation` (module header). */

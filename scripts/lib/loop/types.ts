@@ -189,6 +189,11 @@ export interface BlockingFinding {
   readonly line?: number;
   readonly target?: string;
   readonly message: string;
+  /**
+   * Gate arm with held-out rules (`plan.gate.shownRules`, `Docs/v1.3/gate-heldout-rules.md`): whether the finding's
+   * rule may be shown in the repair feedback. Absent when the plan sets no held-out rules.
+   */
+  readonly shown?: boolean;
 }
 
 /** The firewall evaluation of one snapshot (v1.3 scoring, FR-V6). */
@@ -361,6 +366,8 @@ export interface StepRecord {
   readonly repairOutcome?: RepairOutcome;
   /** The spec the step's snapshots were evaluated against, when the plan sets one per task (`specs.ts`). */
   readonly evaluatorSpec?: StepSpecRef;
+  /** Gate arm with held-out rules: blocking counts by split before and after the repair (null: no evaluation). */
+  readonly heldOut?: HeldOutCounts;
   /** `daedalus-mcp` with the call log on: tool use during the step (`process-metrics.ts`). Absent otherwise. */
   readonly process?: StepProcess;
   /** The acceptance checks of the step's final snapshot; absent unless the plan enables them. */
@@ -415,6 +422,23 @@ export interface RepairOutcome {
   readonly introducedFindings: readonly { readonly ruleId: string; readonly filePath: string; readonly target?: string }[];
 }
 
+/** Blocking counts of a gate step split into shown and withheld rules (`Docs/v1.3/gate-heldout-rules.md`). */
+export interface HeldOutCounts {
+  readonly shownBefore: number | null;
+  readonly withheldBefore: number | null;
+  /** Null when no repair ran or its evaluation failed. */
+  readonly shownAfter: number | null;
+  readonly withheldAfter: number | null;
+}
+
+/** The rule split of a run with held-out rules (`run.json`). */
+export interface HeldOutRuleSplit {
+  /** The plan's `gate.shownRules`, sorted. */
+  readonly shownRuleIds: readonly string[];
+  /** Rules with a blocking finding on some snapshot of the run that are not shown, sorted; set at completion. */
+  readonly withheldRuleIds?: readonly string[];
+}
+
 /** The evaluator spec of a step: a fixed file, or the run's spec frozen after step 1 (`spec/frozen-spec.yaml`). */
 export interface StepSpecRef {
   readonly kind: 'static' | 'frozen-after-step-1';
@@ -434,6 +458,8 @@ export interface RunRecord {
   readonly createdAt: string;
   readonly completedAt?: string;
   readonly dryRun: boolean;
+  /** Present only when the plan sets `gate.shownRules`. */
+  readonly heldOutRules?: HeldOutRuleSplit;
   /** `--engine both` only, set at completion: parity counts over every step record of the run. */
   readonly parity?: RunParityCounts;
 }

@@ -415,6 +415,7 @@ export async function runLoopGrid(
         now: options.now,
         dryRun: options.dryRun,
         ...(options.log !== undefined ? { log: options.log } : {}),
+        ...(plan.gate?.shownRules !== undefined ? { gateShownRules: plan.gate.shownRules } : {}),
         ...(options.callLog === true ? { callLog: true } : {}),
         ...(plan.acceptance?.enabled === true ? { acceptance: acceptanceRunner(plan.acceptance) } : {}),
       },
