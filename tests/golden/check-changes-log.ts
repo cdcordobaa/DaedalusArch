@@ -260,6 +260,21 @@ function snapshotCase(file: string): string {
  */
 export const LABELS_RESULTS_DIR = 'labels';
 
+/**
+ * v1.3's result folders, allowed by folder pattern in the results guard (decision 2026-10-16, decision-chronology row
+ * 15): `results/v1.3/**` and `results/v1.3-<name>/**`, where `<name>` starts with a lower-case letter or digit. Only the
+ * guard of `tests/unit/scripts/u5b/guards.test.ts` uses it. `resultsPathAllowed` (BR-U1-42 / BR-U5b-56, the v1.2E
+ * rule) is unchanged, and a folder that is a registered plan id keeps the plan's RunRecord checks.
+ */
+export const V13_RESULTS_DIR_PATTERN = /^v1\.3(?:-[a-z0-9][a-z0-9.-]*)?$/;
+
+/** Whether a `results/` path lies in a v1.3 result folder that is not a registered plan's (`V13_RESULTS_DIR_PATTERN`). */
+export function v13ResultsPath(file: string, registeredPlanIds: readonly string[]): boolean {
+  const m = /^results\/([^/]+)\/.+/.exec(file);
+  const top = m?.[1];
+  return top !== undefined && !registeredPlanIds.includes(top) && V13_RESULTS_DIR_PATTERN.test(top);
+}
+
 /** BR-U1-42 as re-scoped by Build and Test (BR-U5b-56): the only paths allowed under `results/`. */
 export function resultsPathAllowed(file: string, registeredPlanIds: readonly string[]): boolean {
   const m = /^results\/([^/]+)\/.+/.exec(file);
