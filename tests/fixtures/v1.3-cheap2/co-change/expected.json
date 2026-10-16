@@ -1,0 +1,50 @@
+{
+  "proxy": "co-change",
+  "planted": [
+    {
+      "id": "P1",
+      "kind": "hidden-coupling",
+      "file": "src/billing/invoice.ts",
+      "note": "billing ~ shipping, 4 commits, confidence 0.8"
+    },
+    {
+      "id": "P2",
+      "kind": "hidden-coupling",
+      "file": "src/catalog/product.ts",
+      "note": "catalog ~ search, 3 commits"
+    },
+    {
+      "id": "P3",
+      "kind": "hidden-coupling",
+      "file": "src/audit/audit-log.ts",
+      "note": "audit ~ users, 3 commits"
+    }
+  ],
+  "nearMisses": [
+    {
+      "id": "N1",
+      "file": "src/billing/billing.service.ts",
+      "note": "co-changes with orders/order.ts but billing imports orders"
+    },
+    {
+      "id": "N2",
+      "file": "src/catalog/category.ts",
+      "note": "support 2 < k = 3 (the large commits would add 3 more)"
+    },
+    {
+      "id": "N3",
+      "file": "src/users/profile.ts",
+      "note": "large commits are dropped"
+    },
+    {
+      "id": "N4",
+      "file": "src/metrics/meter.ts",
+      "note": "support 3 but confidence 3/9 < 0.5"
+    },
+    {
+      "id": "N4b",
+      "file": "src/reports/report.ts",
+      "note": "as N4"
+    }
+  ]
+}
