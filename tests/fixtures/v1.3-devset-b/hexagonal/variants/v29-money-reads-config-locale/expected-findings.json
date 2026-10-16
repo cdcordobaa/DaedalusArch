@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "variant": "v29-money-reads-config-locale",
+  "kind": "violation",
+  "plants": "FF-S04",
+  "description": "Money (domain value object) imports CURRENCY and MINOR_UNITS_PER_MAJOR from a new src/config/locale.ts for a format() method.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction-graph",
+      "file": "src/domain/model/Money.ts",
+      "target": "src/config/locale.ts",
+      "reason": "domain > config is not allowed and config > domain is: the core depends on the composition root."
+    },
+    {
+      "ruleId": "FF-S04",
+      "ruleName": "core-isolation",
+      "file": "src/domain/model/Money.ts",
+      "target": "src/config/locale.ts",
+      "reason": "The core imports a file outside the domain layer (the config layer)."
+    }
+  ]
+}

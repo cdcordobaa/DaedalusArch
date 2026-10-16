@@ -22,6 +22,8 @@ import { ProjectView } from './project-files.js';
 import { explainFinding } from './explain-finding.js';
 import { inferProjectSpec, isIseStyle } from './infer-spec.js';
 import { specRuleMeta } from './rule-meta.js';
+import { proposeWithBuiltinPresets } from '../ise/propose.js';
+import type { SpecProposal } from '../ise/propose.js';
 import type { NeuralService } from './neural-service.js';
 import { explainAndFix, reviewUnit } from './neural-tools.js';
 import type { ExplainAndFixArgs, ExplainAndFixResult, FixHintSource, ReviewUnitArgs, ReviewUnitResult } from './neural-tools.js';
@@ -53,9 +55,13 @@ export interface ServerContext {
   readonly defaultSpecPath?: string | undefined;
   /** Default project for `evaluate_project` and the root file paths are made relative to. */
   readonly defaultProjectPath?: string | undefined;
+  /** Default for the `hints` argument of check_file, check_diff and explain_violation (`--hints` or `DAEDALUS_HINTS=1`). */
+  readonly hints?: boolean | undefined;
   readonly env: NodeJS.ProcessEnv;
   readonly evaluateDeps: EvaluateDeps;
   readonly loadSpec: (specPath: string) => Promise<ToolOutcome<LoadedSpec>>;
+  /** ISE spec proposal for `propose_spec` (default: the tool's own presets). */
+  readonly proposeSpec?: (projectDir: string) => Promise<SpecProposal>;
   /** The tool's canonical presets (`presets/`), read by `infer_spec`. */
   readonly presetsDir?: string | undefined;
   /** The neural arm (`--neural`); absent means off: no neural tool is registered (v1.3, neural-arm-agent-tools.md). */
@@ -161,7 +167,7 @@ export async function checkImportTool(
 
 export async function explainViolationTool(
   ctx: ServerContext,
-  args: { readonly rule: string; readonly spec?: string | undefined },
+  args: { readonly rule: string; readonly spec?: string | undefined; readonly hints?: boolean | undefined },
 ): Promise<ToolOutcome<RuleExplanation>> {
   // The spec only adds context; an unreadable default spec must not block the catalogue answer.
   const specPath = args.spec ?? ctx.defaultSpecPath;
@@ -170,6 +176,7 @@ export async function explainViolationTool(
   const explanation = explainViolation(
     args.rule,
     loaded?.ok === true ? loaded.data.spec : undefined,
+    { hints: args.hints ?? ctx.hints === true },
   );
   if (explanation === undefined) {
     return fail(
@@ -203,15 +210,23 @@ export async function evaluateProjectTool(
 
 export async function checkFileTool(
   ctx: ServerContext,
-  args: { readonly path: string; readonly content: string; readonly spec?: string | undefined; readonly templates?: boolean | undefined },
+  args: {
+    readonly path: string;
+    readonly content: string;
+    readonly spec?: string | undefined;
+    readonly templates?: boolean | undefined;
+    readonly hints?: boolean | undefined;
+  },
 ): Promise<ToolOutcome<FileCheckResult>> {
   const loaded = await specFor(ctx, args.spec);
   if (!loaded.ok) return loaded;
   const rel = toProjectRelative(ctx, args.path);
+  const hints = args.hints ?? ctx.hints === true;
   const fast = checkSource(loaded.data.spec, {
     path: rel,
     content: args.content,
     view: new ProjectView({ root: ctx.defaultProjectPath, overrides: new Map([[rel, args.content]]) }),
+    ...(hints ? { hints } : {}),
   });
   if (args.templates !== true) return ok(fast);
   const templates = await templateCheck({
@@ -232,11 +247,12 @@ function interpOf(ctx: ServerContext): ServerContext['evaluateDeps']['interp'] {
 
 export async function checkDiffTool(
   ctx: ServerContext,
-  args: { readonly diff: string; readonly spec?: string | undefined; readonly templates?: boolean | undefined },
+  args: { readonly diff: string; readonly spec?: string | undefined; readonly templates?: boolean | undefined; readonly hints?: boolean | undefined },
 ): Promise<ToolOutcome<DiffCheckResult>> {
   const loaded = await specFor(ctx, args.spec);
   if (!loaded.ok) return loaded;
-  const result = checkDiff(loaded.data.spec, args.diff, { projectRoot: ctx.defaultProjectPath });
+  const hints = args.hints ?? ctx.hints === true;
+  const result = checkDiff(loaded.data.spec, args.diff, { projectRoot: ctx.defaultProjectPath, ...(hints ? { hints } : {}) });
   if (result.files.length === 0 && result.skipped.length === 0) {
     return fail('No file found in the diff: pass unified diff text (git diff or diff -u output).');
   }
@@ -265,6 +281,26 @@ export async function suggestPlacementTool(
   const loaded = await specFor(ctx, args.spec);
   if (!loaded.ok) return loaded;
   return ok(suggestPlacement(loaded.data.spec, { purpose: args.purpose, name: args.name }));
+}
+
+/**
+ * `propose_spec`: the spec `firewall init` would write for a project without one (ISE), as data plus the commented
+ * YAML. Reads only the project's src/ and tsconfig.json; writes nothing.
+ */
+export async function proposeSpecTool(
+  ctx: ServerContext,
+  args: { readonly project?: string | undefined },
+): Promise<ToolOutcome<SpecProposal>> {
+  const project = args.project ?? ctx.defaultProjectPath;
+  if (project === undefined) {
+    return fail('No project configured: pass `project` or start the server with --project <path>.');
+  }
+  const propose = ctx.proposeSpec ?? proposeWithBuiltinPresets;
+  try {
+    return ok(await propose(path.resolve(project)));
+  } catch (e: unknown) {
+    return fail(`Cannot infer a spec for ${project}: ${e instanceof Error ? e.message : String(e)}`);
+  }
 }
 
 export async function inferSpecTool(

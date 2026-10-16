@@ -1,0 +1,32 @@
+architecture:
+  style: hexagonal
+  layers:
+    - name: config
+      kind: application
+      directories: [src/main.ts, src/app.module.ts, "src/config/**", "src/bounded-contexts/*/*/*.module.ts", "src/lib/bounded-contexts/*/*/*.module.ts"]
+      roles: [composition-root, module]
+    - name: adapters-inbound
+      kind: presentation
+      directories: ["src/api/**"]
+      roles: [controller]
+    - name: application
+      kind: application
+      directories: ["src/lib/bounded-contexts/*/*/application/**", "src/lib/bounded-contexts/*/*/commands/**", "src/lib/bounded-contexts/*/*/queries/**", "src/lib/bounded-contexts/*/*/ports/**", "src/lib/bounded-contexts/*/*/dtos/**"]
+      roles: [use-case, port]
+    - name: domain
+      kind: domain
+      directories: ["src/lib/bounded-contexts/*/*/domain/**", "src/lib/bounded-contexts/*/*/structs/**", "src/lib/bounded-contexts/*/*/constants.ts"]
+      roles: [entity, value-object]
+    - name: adapters-outbound
+      kind: infrastructure
+      directories: ["src/bounded-contexts/**", "src/lib/infra/**"]
+      roles: [repository]
+  allowed_dependencies:
+    - from: application
+      to: [domain]
+    - from: adapters-inbound
+      to: [application, domain]
+    - from: adapters-outbound
+      to: [application, domain]
+    - from: config
+      to: [domain, application, adapters-inbound, adapters-outbound]

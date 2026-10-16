@@ -20,7 +20,7 @@ describe('MCP stdio smoke without a database', () => {
     });
     const failed = report.steps.filter((s) => !s.ok);
     expect(failed).toEqual([]);
-    expect(report.tools).toHaveLength(10);
+    expect(report.tools).toHaveLength(11); // TOOL_NAMES, incl. propose_spec
     expect(report.engineLine).toContain('cypher-interp');
   }, 120_000);
 });

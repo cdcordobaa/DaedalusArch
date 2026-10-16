@@ -1,0 +1,39 @@
+--- a/src/business/model/OrderLine.ts
++++ b/src/business/model/OrderLine.ts
+@@ -1,4 +1,5 @@
+ import { Money } from './Money';
++import { Product } from './Product';
+ 
+ export class OrderLine {
+   constructor(
+@@ -7,6 +8,10 @@
+     readonly unitPrice: Money,
+   ) {}
+ 
++  static of(product: Product, quantity: number): OrderLine {
++    return new OrderLine(product.sku, quantity, product.price);
++  }
++
+   total(): Money {
+     return this.unitPrice.times(this.quantity);
+   }
+--- a/src/business/model/Product.ts
++++ b/src/business/model/Product.ts
+@@ -1,5 +1,6 @@
+ import { BusinessError } from '../errors/BusinessError';
+ import { Money } from './Money';
++import type { Order } from './Order';
+ 
+ export class Product {
+   constructor(
+@@ -19,6 +20,10 @@
+     this.stockLevel -= quantity;
+   }
+ 
++  quantityIn(order: Order): number {
++    return order.lines.filter((line) => line.sku === this.sku).reduce((sum, line) => sum + line.quantity, 0);
++  }
++
+   release(quantity: number): void {
+     this.stockLevel += quantity;
+   }

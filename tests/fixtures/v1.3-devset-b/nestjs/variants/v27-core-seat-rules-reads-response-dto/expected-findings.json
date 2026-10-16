@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "style": "nestjs",
+  "variant": "v27-core-seat-rules-reads-response-dto",
+  "kind": "violation",
+  "plants": "FF-S04",
+  "description": "A new src/core/seat-rules.ts (domain by the src/core/** directory) types isNearlyFull() with WorkshopResponseDto (application) through an import type.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/core/seat-rules.ts",
+      "target": "src/workshops/dto/workshop-response.dto.ts",
+      "reason": "Domain imports an application-layer DTO: the dependency points outward."
+    },
+    {
+      "ruleId": "FF-S04",
+      "ruleName": "no-domain-outward-dep",
+      "file": "src/core/seat-rules.ts",
+      "target": "src/workshops/dto/workshop-response.dto.ts",
+      "reason": "A domain file imports a file of another layer."
+    }
+  ]
+}

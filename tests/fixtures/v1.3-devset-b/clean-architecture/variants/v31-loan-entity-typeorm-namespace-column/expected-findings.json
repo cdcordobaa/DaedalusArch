@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "v31-loan-entity-typeorm-namespace-column",
+  "kind": "violation",
+  "plants": "FF-P01",
+  "description": "Loan (domain entity) imports typeorm as a namespace (import * as orm) and decorates returnedAt with @orm.Column.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P01",
+      "ruleName": "domain-purity",
+      "file": "src/domain/entities/Loan.ts",
+      "target": "typeorm",
+      "reason": "The domain imports the persistence framework typeorm (a namespace import is still a package dependency)."
+    }
+  ]
+}

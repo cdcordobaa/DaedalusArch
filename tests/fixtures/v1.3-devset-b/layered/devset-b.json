@@ -1,0 +1,114 @@
+{
+  "style": "layered",
+  "set": "devset-b",
+  "authored": "2026-10-16",
+  "provenance": "Development data written by Claude (AI) from the rule definitions before any tool run on this set.",
+  "blockingRules": [
+    "FF-S01",
+    "FF-S02",
+    "FF-S03",
+    "FF-P01",
+    "FF-P06"
+  ],
+  "variants": {
+    "clean": {
+      "role": "baseline"
+    },
+    "v21-order-record-reuses-business-status": {
+      "role": "violation",
+      "rule": "FF-S01"
+    },
+    "v22-database-throws-business-error": {
+      "role": "violation",
+      "rule": "FF-S01"
+    },
+    "v23-business-error-builds-http-response": {
+      "role": "violation",
+      "rule": "FF-S01"
+    },
+    "v24-request-log-gateway-types-http-request": {
+      "role": "violation",
+      "rule": "FF-S01"
+    },
+    "v25-order-view-renders-line-records": {
+      "role": "violation",
+      "rule": "FF-S03"
+    },
+    "v26-app-seeds-default-product-rows": {
+      "role": "violation",
+      "rule": "FF-S03"
+    },
+    "v27-views-barrel-re-exports-product-record": {
+      "role": "violation",
+      "rule": "FF-S03"
+    },
+    "v28-router-health-route-takes-database": {
+      "role": "violation",
+      "rule": "FF-S03"
+    },
+    "v29-pricing-policy-order-service-cycle": {
+      "role": "violation",
+      "rule": "FF-S02"
+    },
+    "v30-order-line-product-order-cycle": {
+      "role": "violation",
+      "rule": "FF-S02"
+    },
+    "v31-order-product-gateway-cycle": {
+      "role": "violation",
+      "rule": "FF-S02"
+    },
+    "v32-product-gateway-reserves-order-items": {
+      "role": "violation",
+      "rule": "FF-S02"
+    },
+    "v33-business-error-extends-nest-http-exception": {
+      "role": "violation",
+      "rule": "FF-P01"
+    },
+    "v34-catalog-service-typeorm-namespace": {
+      "role": "violation",
+      "rule": "FF-P01"
+    },
+    "v35-order-service-nest-inject-decorators": {
+      "role": "violation",
+      "rule": "FF-P01"
+    },
+    "n21-order-record-business-hours-folder": {
+      "role": "look-alike",
+      "rule": "FF-S01"
+    },
+    "n22-order-checks-customer-one-way": {
+      "role": "look-alike",
+      "rule": "FF-S02"
+    },
+    "n23-main-seeds-product-records": {
+      "role": "look-alike",
+      "rule": "FF-S03"
+    },
+    "n24-controller-uses-business-inventory-gateway": {
+      "role": "look-alike",
+      "rule": "FF-S03"
+    },
+    "n25-express-adapter-in-presentation": {
+      "role": "look-alike",
+      "rule": "FF-P01"
+    },
+    "n26-restock-service-holds-gateways": {
+      "role": "look-alike",
+      "rule": "FF-P06"
+    },
+    "n61-customer-order-history": {
+      "role": "clean"
+    },
+    "n62-product-price-change": {
+      "role": "clean"
+    }
+  },
+  "notPlanted": [
+    {
+      "ruleId": "FF-P06",
+      "reason": "No style-valid violation exists in layered (reference.json noViolatingVariant, RDQ-1): the rule binds domain = business and infrastructure = persistence, and in closed layering a business class holding a persistence gateway is the intended downward dependency; business holding a presentation object is not infrastructure state and is already an FF-S01/FF-S03 defect. Only the look-alike n26 is written."
+    }
+  ]
+}

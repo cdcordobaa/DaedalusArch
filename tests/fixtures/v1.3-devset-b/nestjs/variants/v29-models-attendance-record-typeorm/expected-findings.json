@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "nestjs",
+  "variant": "v29-models-attendance-record-typeorm",
+  "kind": "violation",
+  "plants": "FF-P01",
+  "description": "A new AttendanceRecord in src/models (domain by the src/models/** directory) is mapped with @Entity, @PrimaryColumn and @Column from typeorm.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P01",
+      "ruleName": "domain-purity",
+      "file": "src/models/attendance-record.ts",
+      "target": "typeorm",
+      "reason": "A domain file imports typeorm (forbidden by the nestjs preset)."
+    }
+  ]
+}

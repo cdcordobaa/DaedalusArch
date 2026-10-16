@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "v29-http-barrel-error-mapper-cycle",
+  "kind": "violation",
+  "plants": "FF-S02",
+  "description": "A new barrel infrastructure/http/index.ts re-exports BookController and the HTTP types; ErrorMapper now imports HttpResponse and fail through that barrel, and BookController imports ErrorMapper.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "file": "src/infrastructure/http/BookController.ts",
+      "target": "src/infrastructure/http/ErrorMapper.ts",
+      "reason": "Three-file cycle BookController -> ErrorMapper -> index (re-export) -> BookController; keyed on the lexicographically smallest path (B < E < i)."
+    }
+  ]
+}

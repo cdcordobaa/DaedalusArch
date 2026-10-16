@@ -1,0 +1,47 @@
+--- a/src/persistence/OrderGateway.ts
++++ b/src/persistence/OrderGateway.ts
+@@ -1,5 +1,6 @@
+ import { InMemoryDatabase } from './Database';
+-import { OrderRecord } from './records/OrderRecord';
++import { ProductGateway } from './ProductGateway';
++import { OrderLineRecord, OrderRecord } from './records/OrderRecord';
+ 
+ /** Table Data Gateway for the orders table (lines are stored inline). */
+ export class OrderGateway {
+@@ -13,6 +14,14 @@
+     return [...this.db.table<OrderRecord>('orders').values()].filter((row) => row.customerId === customerId);
+   }
+ 
++  findAll(): OrderRecord[] {
++    return [...this.db.table<OrderRecord>('orders').values()];
++  }
++
++  findOrphanLines(products: ProductGateway): OrderLineRecord[] {
++    return this.findAll().flatMap((row) => row.lines.filter((line) => products.findBySku(line.sku) === undefined));
++  }
++
+   save(record: OrderRecord): void {
+     this.db.table<OrderRecord>('orders').set(record.id, { ...record, lines: record.lines.map((l) => ({ ...l })) });
+   }
+--- a/src/persistence/ProductGateway.ts
++++ b/src/persistence/ProductGateway.ts
+@@ -1,4 +1,5 @@
+ import { InMemoryDatabase } from './Database';
++import type { OrderGateway } from './OrderGateway';
+ import { ProductRecord } from './records/ProductRecord';
+ 
+ /** Table Data Gateway (Fowler 2002) for the products table. */
+@@ -13,6 +14,13 @@
+     return [...this.db.table<ProductRecord>('products').values()];
+   }
+ 
++  orderedQuantity(sku: string, orders: OrderGateway): number {
++    return orders
++      .findAll()
++      .filter((row) => row.status === 'placed')
++      .reduce((sum, row) => sum + row.lines.filter((line) => line.sku === sku).reduce((n, line) => n + line.quantity, 0), 0);
++  }
++
+   insert(record: ProductRecord): void {
+     this.db.table<ProductRecord>('products').set(record.sku, { ...record });
+   }
