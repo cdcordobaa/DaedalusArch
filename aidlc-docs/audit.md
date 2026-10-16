@@ -1661,3 +1661,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: v1.3 evidence unit; PR into v1.3, not merged.
 
 ---
+
+## v1.3 Construction — L1 fixture-comment leakage census and scrubbed-copy generator (V11, scheduled task)
+**Timestamp**: 2026-10-16T04:34:03Z
+**User Input**: "Scheduled routine, night backlog job #20 (L1): count answer-revealing comments in every development fixture per style and set, and provide a scrubbed-copy generator for blind writers and raters, proven by tsc on the copy and byte-identical evaluate reports on all 71 variants. Never open the sealed directory."
+**AI Response**: "Branch v1.3-fixture-leakage from origin/v1.3. Pattern set and pass criterion committed before any count (scripts/v1.3/lib/leakage-terms.ts, Docs/DiagnosticRuns/v1.3-fixture-leakage-2026-10-16.md §1). Census (scripts/v1.3/fixture-leakage-census.ts): DDD 14/14 planted variants carry an answer-revealing comment; 3/52 patch variants hit a pattern and 8/52 add an explanatory comment; no judge-catch TUNE or CHECK seed adds a comment. scrub-fixtures.ts copies a tree with every comment removed (line numbers kept, patches rewritten hunk by hunk): 71/71 variants compile and the cypher-interp reference run on the copy is byte-identical to after-member-facts (raw, report.json, report.md). Options taken under delegation: (1) the scrubber removes every comment, not only pattern hits, because the census shows explanatory comments the patterns miss; (2) 'hold-out-shaped' read as the reference formats, since the only tree in that format outside the sealed directory is the reference root; (3) CHECK/TUNE scanned as the added lines of the judge-catch seed diffs plus the antipattern-nest base; (4) variant directory names and manifests are not renamed (runners key on them), recorded as not done; (5) commentLineTexts added as a new export of excerpt-scrub.ts (stripComments unchanged). PR into v1.3, not merged."
+**Context**: CONSTRUCTION, v1.3 validity cycle, threats register V13-TV-I4. Development set only; no LLM call; sealed directory not touched.
+
+---
