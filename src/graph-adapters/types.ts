@@ -63,8 +63,8 @@ export interface FormatCapabilities {
 
 export interface AdapterReport {
   readonly format: ExternalFormat;
-  readonly nodeCountByType: Readonly<Partial<Record<NodeType, number>>>;
-  readonly edgeCountByType: Readonly<Partial<Record<EdgeType, number>>>;
+  readonly nodeCountByType: Readonly<Partial<Record<APGNode['type'], number>>>;
+  readonly edgeCountByType: Readonly<Partial<Record<APGEdge['type'], number>>>;
   /** APG edge types this export produced no edge of (including those the format can never produce). */
   readonly missingEdgeTypes: readonly EdgeType[];
   /** APG edge types the format cannot produce at all. */

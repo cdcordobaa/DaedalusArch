@@ -228,9 +228,9 @@ export function buildApg(format: ExternalFormat, graph: NormalizedGraph, options
 
   const nodes = [...apgNodes.values(), ...packages.nodes()];
   const edges = [...apgEdges.values()];
-  const nodeCountByType: Partial<Record<NodeType, number>> = {};
+  const nodeCountByType: Partial<Record<APGNode['type'], number>> = {};
   for (const n of nodes) nodeCountByType[n.type] = (nodeCountByType[n.type] ?? 0) + 1;
-  const edgeCountByType: Partial<Record<EdgeType, number>> = {};
+  const edgeCountByType: Partial<Record<APGEdge['type'], number>> = {};
   for (const e of edges) edgeCountByType[e.type] = (edgeCountByType[e.type] ?? 0) + 1;
   const caps = FORMAT_CAPABILITIES[format];
   return {
