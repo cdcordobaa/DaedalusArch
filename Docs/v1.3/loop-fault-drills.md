@@ -115,7 +115,7 @@ Code: `scripts/v1.3/loop-fault-drills.ts` (entry: `npm run loop:fault-drills -- 
 - **S1 (usage limits).**
   - The step-turn path classifies a limit, consumes no attempt, archives the partial tree, restores, pauses and resumes the same turn (D3a). A persisting limit stops the run cleanly, and the run resumes (D3b).
   - Still missing: pause times (R3), the repair-turn, judge, labeller and init-probe call sites, and a real CLI envelope from the rehearsal.
-- **D7 (reproducibility).** The deterministic replay holds under faults. An unscored snapshot is still not re-scored (R1), and a type-check crash stays in the record (R2).
+- **D7 (reproducibility).** On the scripted agent, the deterministic replay holds under the 11 drilled faults that pass (`drills.json`), not under all 13. An unscored snapshot is still not re-scored (R1), and a type-check crash stays in the record (R2).
 - **Author decision still open (#142 risk 2).** A DDD gate run whose spec cannot be frozen still runs every step without a gate. The freeze failure is recorded once, in `spec/spec.json`. F1 deliberately leaves this case alone.
 
 ## 5. Reproduce
