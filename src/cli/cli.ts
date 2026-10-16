@@ -35,6 +35,8 @@ import { runCheck, neo4jEngine, lexicalEngine, formatGateHuman, formatGateJSON, 
 import type { GateEngine } from '../ci-gate/index.js';
 import { defaultPropose, inferredBanner, inferredSpecFile, labelJsonReport, runInit } from './init-command.js';
 import type { InferredSpecFile } from './init-command.js';
+import { ADVISORY_FILTER_OPTIONS, parseAdvisoryFilterOptions } from '../advisory-filter/advisory-filter.js';
+import type { AdvisoryFilterOption } from '../advisory-filter/advisory-filter.js';
 
 // Load .env before anything else
 loadDotenv();
@@ -219,6 +221,7 @@ withLLMOptions(program
   .option('--tsconfig <path>', 'Explicit tsconfig for APG extraction; the project\'s own tsconfig.json is then ignored (ADR-032)')
   .option('--scoring <mode>', 'Scoring mode: v1.3 (rule tiers, default; verdict from blocking rules) | v1.2e (the registered Study 1 scoring)', 'v1.3')
   .option('--html <out.html>', 'Also write a self-contained architect HTML report (layer diagram, findings in plain language, filters)')
+  .option('--advisory-filter <options>', `Advisory post-filters, off by default (comma list, all or none): ${ADVISORY_FILTER_OPTIONS.join(', ')}. Matched advisory rows move to advisoryFilter.suppressed; blocking rows never change`, 'none')
   .option('--engine <name>', ENGINE_OPTION_HELP)
   .action(async (projectArg: string | undefined, opts: LLMCliOpts & {
     engine?: string;
@@ -239,6 +242,7 @@ withLLMOptions(program
     neuralAggregation: string;
     scoring: string;
     html?: string;
+    advisoryFilter: string;
   }, cmd: Command) => {
     const project = opts.project ?? projectArg;
     if (project === undefined || (opts.project !== undefined && projectArg !== undefined && opts.project !== projectArg)) {
@@ -258,6 +262,14 @@ withLLMOptions(program
       cmd.error("error: required option '--spec <path>' not specified");
     }
     const evaluationMode = resolveEvaluationMode(opts.symbolicOnly, opts.neuronalOnly);
+    let advisoryFilter: AdvisoryFilterOption[];
+    try {
+      advisoryFilter = parseAdvisoryFilterOptions(opts.advisoryFilter);
+    } catch (e) {
+      process.stderr.write(`Error: --advisory-filter: ${e instanceof Error ? e.message : String(e)}\n`);
+      process.exitCode = 2;
+      return;
+    }
     const graphMode = resolveGraphMode(opts.graphMode);
     if (graphMode === undefined) return;
     const scoringMode = resolveScoringMode(opts.scoring, '--scoring');
@@ -306,6 +318,7 @@ withLLMOptions(program
       instrumentVersion,
       neuralAggregation,
       scoringMode,
+      ...(advisoryFilter.length > 0 && { advisoryFilter }),
       ...(graphEngine !== 'neo4j' && { graphEngine }),
     };
 

@@ -34,6 +34,7 @@ import { SnapshotLoadCommand } from './commands/snapshot-load-command.js';
 import { DriftDetectCommand } from './commands/drift-detect-command.js';
 import { AssembleReportCommand } from './commands/assemble-report-command.js';
 import type { AssembleReportConfig } from './commands/assemble-report-command.js';
+import { fsProjectView } from '../advisory-filter/project-view.js';
 import { NO_JUDGE } from '../scoring-engine/report-builder.js';
 import type { JudgeProvenance } from '../shared/types/evaluation.js';
 import type { CompileFactsHolder } from './commands/compile-command.js';
@@ -220,6 +221,15 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
     timingSource: () => withSubStages(executor.getTimings(), subStages),
     compileFacts,
     scrubPolicy,
+    ...(config.advisoryFilter !== undefined && config.advisoryFilter.length > 0 && {
+      advisoryFilter: {
+        options: config.advisoryFilter,
+        view: (context) => {
+          const spec = context.getParsedSpec();
+          return fsProjectView({ projectDir: config.projectPath, layerModel: spec.layerModel, functions: spec.fitnessFunctions });
+        },
+      },
+    }),
   };
   commands.push(new AssembleReportCommand(judgeStage === undefined ? assembleConfig : {
     ...assembleConfig,

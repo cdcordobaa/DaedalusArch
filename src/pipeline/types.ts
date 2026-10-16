@@ -5,6 +5,7 @@ import type { GraphMode } from '../apg-extractor/types.js';
 import type { InstrumentVersion } from '../fitness-compiler/role-exemptions.js';
 import type { NeuralAggregation } from '../scoring-engine/neural-aggregation.js';
 import type { ScoringMode } from '../shared/types/evaluation.js';
+import type { AdvisoryFilterOption } from '../advisory-filter/advisory-filter.js';
 import type { GraphRepository } from '../shared/interfaces/graph-repository.js';
 import type { GraphEngine } from '../cypher-interp/engine.js';
 
@@ -35,6 +36,11 @@ export interface PipelineConfig {
    * command and the MCP `evaluate_project` tool pass `v1.3` unless told otherwise.
    */
   readonly scoringMode?: ScoringMode | undefined;
+  /**
+   * Advisory post-filter options (proposal, OFF by default; Docs/DiagnosticRuns/v1.3-advisory-noise-2026-10-16.md):
+   * advisory rows they match move from `violations` to `advisoryFilter.suppressed`. Blocking rows never change.
+   */
+  readonly advisoryFilter?: readonly AdvisoryFilterOption[] | undefined;
   /**
    * Graph engine (v1.3 spike, Docs/v1.3/cypher-interpreter.md): `neo4j` (default, the reference engine) or
    * `cypher-interp` (the in-process Cypher interpreter over an in-memory graph; no server, no credentials).
