@@ -1,0 +1,399 @@
+spec_version: "1.0.0"
+
+# REVISED after triage (Docs/v1.3/dogfood.md §5). Differs from the pre-registered daedalus-self.yaml ONLY by:
+#   - default_exclude_paths: the generated ANTLR parser (not hand-written architecture);
+#   - the allowed edges the triage classed "spec too strict" (marked `# triage:` below).
+# The edges classed "real debt" are deliberately NOT added, so every remaining finding is debt or a tool issue.
+#
+# DaedalusArch dogfood spec (v1.3): the tool's INTENDED architecture of its own src/, declared by hand from the
+# design artefacts before the tool was run on it. Rationale, sources and every edge's justification:
+# specs/dogfood/RATIONALE.md. Results and triage: Docs/v1.3/dogfood.md.
+#
+# Shape: ports and adapters over a shared kernel, one layer per module, so `allowed_dependencies` is the module
+# dependency graph the design documents describe (aidlc-docs/inception/application-design/v1.2E-component-dependency.md
+# §3, plus the v1.3 design notes for the modules added after v1.2E). Any cross-module import not listed is a finding:
+#   - against a listed edge         -> dependency-direction-graph (FF-S01)
+#   - no listed edge either way     -> layer-skip-graph (FF-S03): an undeclared module coupling
+#   - the kernel importing outward  -> core-isolation (FF-S04)
+# Kinds bind the templates: shared kernel = domain (the core); the pipeline stages and analysis modules = application;
+# the CLI and the MCP server = presentation (inbound adapters); the graph stores and the LLM judge = infrastructure
+# (outbound adapters). `pipeline` is the composition root (role composition-root).
+
+default_exclude_paths:
+  - "src/cypher-interp/generated/**"   # triage: generated ANTLR code (2 MB), counted by SO01 and CV03
+
+architecture:
+  style: hexagonal
+
+  layers:
+    # ── Core ─────────────────────────────────────────────────────────────────
+    - name: shared
+      kind: domain
+      directories:
+        - src/shared/**
+        - src/firewall-context/**   # a re-export shim of src/shared/context (C11); part of the kernel
+      roles:
+        - value-object
+        - port
+        - context
+
+    # ── Inbound adapters ─────────────────────────────────────────────────────
+    - name: cli
+      kind: presentation
+      directories:
+        - src/cli/**
+      roles:
+        - cli-command
+
+    - name: mcp-server
+      kind: presentation
+      directories:
+        - src/mcp-server/**
+      roles:
+        - controller
+
+    # ── Application: composition root, pipeline stages, analysis modules ──────
+    - name: pipeline
+      kind: application
+      directories:
+        - src/pipeline/**
+      roles:
+        - composition-root
+        - orchestrator
+
+    - name: apg-extractor
+      kind: application
+      directories:
+        - src/apg-extractor/**
+      roles:
+        - extractor
+
+    - name: apg-enrich
+      kind: application
+      directories:
+        - src/apg-enrich/**
+      roles:
+        - enricher
+
+    - name: ise
+      kind: application
+      directories:
+        - src/ise/**
+      roles:
+        - inferrer
+
+    - name: spec-parser
+      kind: application
+      directories:
+        - src/spec-parser/**
+      roles:
+        - parser
+
+    - name: fitness-compiler
+      kind: application
+      directories:
+        - src/fitness-compiler/**
+      roles:
+        - compiler
+
+    - name: construct-switches
+      kind: application
+      directories:
+        - src/construct-switches/**
+      roles:
+        - overlay
+
+    - name: evaluation-engine
+      kind: application
+      directories:
+        - src/evaluation-engine/**
+      roles:
+        - evaluator
+
+    - name: neuro-symbolic-router
+      kind: application
+      directories:
+        - src/neuro-symbolic-router/**
+      roles:
+        - router
+
+    - name: scoring-engine
+      kind: application
+      directories:
+        - src/scoring-engine/**
+      roles:
+        - scorer
+
+    - name: baseline
+      kind: application
+      directories:
+        - src/baseline/**
+      roles:
+        - application-service
+
+    - name: report
+      kind: application
+      directories:
+        - src/report/**
+      roles:
+        - formatter
+
+    # ── Outbound adapters ────────────────────────────────────────────────────
+    # neo4j-ingestion is listed first: the templates bind the FIRST infrastructure layer as `infraLayer`.
+    - name: neo4j-ingestion
+      kind: infrastructure
+      directories:
+        - src/neo4j-ingestion/**
+      roles:
+        - repository
+        - gateway
+
+    - name: cypher-interp
+      kind: infrastructure
+      directories:
+        - src/cypher-interp/**
+      roles:
+        - repository
+
+    - name: llm-critic
+      kind: infrastructure
+      directories:
+        - src/llm-critic/**
+      roles:
+        - gateway
+        - external-api-client
+
+  # `from` may import each layer in `to`. Every module may import the kernel. Anything else is a finding.
+  allowed_dependencies:
+    # Inbound adapters
+    - from: cli
+      # triage: + apg-extractor (the --graph-mode option values)
+      to: [shared, pipeline, spec-parser, fitness-compiler, scoring-engine, baseline, report, neo4j-ingestion, cypher-interp, llm-critic, apg-extractor]
+    - from: mcp-server
+      # triage: + apg-extractor, apg-enrich (MCP v2 fast hints), report (fix text reuse), neo4j-ingestion (the server is
+      # its own composition root: it builds the Neo4j repository for evaluate_project, as the CLI does)
+      to: [shared, pipeline, spec-parser, fitness-compiler, scoring-engine, ise, apg-extractor, apg-enrich, report, neo4j-ingestion]
+    # Composition root: wires every stage and adapter (S1 row of the v1.2E matrix, plus the v1.3 engine and switches)
+    - from: pipeline
+      to: [shared, apg-extractor, spec-parser, fitness-compiler, construct-switches, neo4j-ingestion, cypher-interp, neuro-symbolic-router, evaluation-engine, llm-critic, scoring-engine, baseline, report]
+    # Pipeline stages (v1.2E matrix §3)
+    - from: apg-extractor
+      to: [shared]
+    - from: spec-parser
+      to: [shared, fitness-compiler]
+    - from: fitness-compiler
+      to: [shared, construct-switches]
+    - from: construct-switches
+      # triage: + scoring-engine (the tier hook overrides ruleTier, construct-switches.md)
+      to: [shared, scoring-engine]
+    - from: evaluation-engine
+      to: [shared, fitness-compiler]
+    - from: neuro-symbolic-router
+      to: [shared, evaluation-engine, llm-critic]
+    - from: scoring-engine
+      # triage: + fitness-compiler (template tags and catalogue metadata, FR-29), evaluation-engine (the shared SCC
+      # cycle strategy, BR-U3-45)
+      to: [shared, report, fitness-compiler, evaluation-engine]
+    - from: baseline
+      to: [shared]
+    - from: report
+      # triage: + fitness-compiler (template tags for the dashboard cards, FR-29)
+      to: [shared, fitness-compiler]
+    # Analysis modules (v1.3 design notes)
+    - from: apg-enrich
+      to: [shared, apg-extractor, llm-critic]
+    - from: ise
+      to: [shared, apg-extractor, spec-parser]
+    # Outbound adapters implement kernel ports and depend on nothing else
+    - from: neo4j-ingestion
+      to: [shared]
+    - from: cypher-interp
+      to: [shared]
+    - from: llm-critic
+      to: [shared]
+
+fitness_functions:
+
+  # ── STRUCTURAL (defining) ──
+
+  - id: FF-S01
+    name: dependency-direction-graph
+    dimension: structural
+    severity: critical
+    route: symbolic
+
+  - id: FF-S02
+    name: no-cyclic-deps
+    dimension: structural
+    severity: critical
+    route: symbolic
+
+  - id: FF-S03
+    name: layer-skip-graph
+    dimension: structural
+    severity: critical
+    route: symbolic
+
+  - id: FF-S04
+    name: core-isolation
+    dimension: structural
+    severity: major
+    route: symbolic
+
+  # ── PATTERN ──
+
+  - id: FF-P01
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    # The kernel holds contracts only: no graph driver, parser, model SDK, CLI or MCP framework. node:child_process
+    # is NOT listed: the v1.2E design places NodeProcessRunner in the kernel on purpose (C10, U0).
+    forbidden_imports:
+      - "neo4j-driver"
+      - "ts-morph"
+      - "@anthropic-ai/*"
+      - "@google/*"
+      - "openai"
+      - "commander"
+      - "ora"
+      - "chalk"
+      - "@modelcontextprotocol/*"
+      - "antlr4ng"
+      - "ajv"
+      - "ajv-formats"
+
+  - id: FF-P02
+    name: port-dependency-inversion
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    threshold: 0.85
+
+  - id: FF-P03
+    name: port-adapter-pattern
+    dimension: pattern
+    severity: critical
+    route: symbolic
+
+  - id: FF-P06
+    name: domain-state-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+
+  # ── COUPLING (advisory metrics) ──
+
+  - id: FF-C02
+    name: module-fan-out
+    dimension: coupling
+    severity: major
+    route: symbolic
+    threshold: 15
+    exclude_paths:
+      - "src/pipeline/pipeline-factory.ts"   # composition root
+
+  - id: FF-C03
+    name: component-instability
+    dimension: coupling
+    severity: advisory
+    route: symbolic
+    threshold: 0.8
+    exclude_paths:
+      - "src/shared/**"                      # the kernel is meant to be maximally stable
+
+  - id: FF-C04
+    name: no-orphan-files
+    dimension: coupling
+    severity: advisory
+    route: symbolic
+
+  - id: FF-C05
+    name: max-fan-in
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    threshold: 20
+    exclude_paths:
+      - "src/shared/**"
+
+  - id: FF-C06
+    name: abstraction-ratio
+    dimension: coupling
+    severity: advisory
+    route: symbolic
+    threshold: 0.25
+
+  # ── SOLID (advisory proxies) ──
+
+  - id: FF-SO01
+    name: single-responsibility-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    max_public_methods: 12
+    max_dependencies: 7
+
+  - id: FF-SO02
+    name: interface-segregation-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    max_interface_methods: 7
+
+  - id: FF-SO03
+    name: inheritance-depth
+    dimension: solid
+    severity: minor
+    route: symbolic
+    max_depth: 3
+
+  # ── CONVENTION ──
+
+  - id: FF-CV02
+    name: naming-services
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "Merged in by the hexagonal style; no *Service / *UseCase naming convention is intended in this codebase"
+
+  - id: FF-CV03
+    name: naming-repos
+    dimension: convention
+    severity: minor
+    route: symbolic
+    pattern: "*Repository|*Repo|*Store"
+
+  - id: FF-CV06
+    name: no-index-logic
+    dimension: convention
+    severity: advisory
+    route: symbolic
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70

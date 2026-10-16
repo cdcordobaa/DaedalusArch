@@ -1492,3 +1492,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 spike, outside the v1.3 study stages. Development-set evidence only.
 
 ---
+
+## v1.3 DOGFOOD — DaedalusArch on its own src/ (scheduled task)
+**Timestamp**: 2026-10-16T02:20:00Z
+**User Input**: "Scheduled task: dogfood the tool on its own src/. Recover the intended architecture from the aidlc design artefacts and the README, write a spec (hexagonal or layered) with the allowed dependencies, and commit it with a rationale before any run. Run ISE spec inference blind and compare it with the declared spec. Run evaluate --symbolic-only --engine cypher-interp with the declared spec, plus the APG v2 templates, the cheap proxies and rule mining. Triage every defining-rule finding as real debt, spec too strict or tool false positive, with file:line issues for the false positives. Do not change src/. Add an npm self-check script and an optional CI example. Write Docs/v1.3/dogfood.md. Branch v1.3-dogfood from v1.3; one PR, not merged."
+**AI Response**: "Declared spec specs/dogfood/daedalus-self.yaml (hexagonal, one layer per module, 52 allowed edges from the v1.2E dependency matrix and the v1.3 design notes), committed with RATIONALE.md (c78fb2b3) before any run. ISE: no style evidence (five-way 0.20 tie), so it defaulted to clean-architecture; 8 of 19 units are mapped differently, and the inferred spec finds 0 direction/skip rows because it is fitted to the import graph. Declared spec: verdict fail; 49 defining-rule rows triaged as 29 real debt, 20 spec too strict, 0 tool false positives. The rows matched the independently mined import graph 44/44. APG v2 on the interpreter equals the mirrors 9/9; it found 8 modules in one SCC. Ten tool issues in advisory rules, APG v2 and the proxies (T1-T10), and eight lessons. Revised spec, npm run self-check (known-findings gate, in-process engine), inert CI example. No src/ change, no template or tier change. The AI-DLC approval gates were not run interactively: the request came from a scheduled task with no one present, and the stored prompt served as the requirements."
+**Context**: v1.3 dogfood, outside the v1.3 study stages. Not a registered artefact.
+
+---
