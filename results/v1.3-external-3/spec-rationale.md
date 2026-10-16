@@ -497,3 +497,7 @@ Style evidence, README: "Api de aplicação bancária aplicando clean architectu
 - **Empty declarations:** no domain-event type exists. `domain_event_types` is the preset's `DomainEvent` and matches nothing, so FF-DT05 checks nothing.
 - **Other declarations:** value objects are the four classes that extend `ValueObject` (`accountBalance`, `userAge`, `userEmail`, `userPassword`); repositories `I*Repository.ts` and `implementations/**/*Repository.ts`; application services `useCases/*/*UseCase.ts`.
 - **Note:** imports use the tsconfig aliases `@core`, `@infra`, `@modules`, `@shared` (baseUrl `src/`).
+
+## Addendum: after `firewall validate`, before any evaluation (second commit)
+
+`firewall validate` was run on all 25 specs after the first commit (`validate/<id>.txt`). 23 are valid with 0 errors. Two report `LAYER_DIR_NOT_FOUND` exactly as the ddd section predicted, and are kept unchanged (wave 2's staart-api precedent): `ddd-libellis` layer `api` (the README says there is no web API layer yet) and `miczeq-nodejs-ddd` layers `application` and `api` (globs named after the tsconfig path aliases; no such folder exists at the pin). These layers carry no file, so the rules that read them check nothing on those projects. No spec changed.
