@@ -2,7 +2,7 @@
 
 Written by the round-4 (final) foreman. **Documentation only.** Every number below is quoted exactly from the doc named next to it, or comes from a gate this run executed. Nothing was recomputed by hand. When a doc lives on an unmerged PR branch, the branch head SHA is given; that number is not yet on `v1.3`.
 
-`origin/v1.3` when the gates ran: `f66564ef`. At publication it is `9a6c2655`. The commits since are #219, #226, #218, #130 and #230, which change only `Docs/v1.3/*.md`, `papers/*` and `aidlc-docs/audit.md`. The gates were re-run on the merged result before #224 was merged.
+`origin/v1.3` when the gates ran: `f66564ef`. **This report is a snapshot of the state at about 11:00 UTC.** From 11:24 UTC, PRs were merged through the GitHub UI: #226, #218, #130 and #230; then, at 11:34, #136, #146, #147, #187, #192, #194, #195 and #227. Several of them were in the hold queue. §3's open list and mergeability are as they stood at `f66564ef`. For the current state, use `git log --first-parent origin/v1.3`. The foreman re-ran the gates on #224's merged result before merging it (§6).
 
 ## 1. What the foreman did in round 4
 
