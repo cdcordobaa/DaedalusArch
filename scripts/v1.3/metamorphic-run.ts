@@ -7,6 +7,7 @@
  * Usage (repository root; no Neo4j, no credentials):
  *   node --import tsx scripts/v1.3/metamorphic-run.ts [--transforms rename,split] [--style layered] [--variant v03-...]
  *        [--out results/v1.3-metamorphic] [--concurrency 3] [--keep] [--resolved-edges-in-literal-view]
+ *        [--literal-through-layerless-barrels]
  *   node --import tsx scripts/v1.3/metamorphic-run.ts --report [--out results/v1.3-metamorphic]   (offline: re-aggregate raw/)
  *
  * Writes <out>/raw/base/<style>/<variant>.json (the untransformed run), <out>/raw/<transform>/<style>/<variant>.json
@@ -60,8 +61,9 @@ if (!styles.every(isReferenceStyle)) {
 const onlyVariant = opt('--variant');
 const concurrency = Number(opt('--concurrency') ?? '3');
 const keep = argv.includes('--keep');
-// MT-B1 check: pass the OFF-by-default extractor option to every evaluation (base and transformed alike).
-const extraCliArgs = argv.includes('--resolved-edges-in-literal-view') ? ['--resolved-edges-in-literal-view'] : [];
+// MT-B1 checks: pass an OFF-by-default option to every evaluation (base and transformed alike): the extractor option
+// (metamorphic run) or the graph-build fix (Docs/DiagnosticRuns/v1.3-mtb1-fix-2026-10-16.md).
+const extraCliArgs = ['--resolved-edges-in-literal-view', '--literal-through-layerless-barrels'].filter((f) => argv.includes(f));
 const reportOnly = argv.includes('--report');
 
 const runner = new NodeProcessRunner();
