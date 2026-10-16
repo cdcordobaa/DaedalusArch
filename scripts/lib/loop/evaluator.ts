@@ -18,6 +18,7 @@ import type { ProcessRunner } from '../../../src/shared/interfaces/process-runne
 import { evaluateProject } from '../../../src/mcp-server/evaluate-project.js';
 import type { EvaluateDeps } from '../../../src/mcp-server/evaluate-project.js';
 import type { EvaluateProjectResult } from '../../../src/mcp-server/types.js';
+import { templateOf } from '../../v1.3/lib/labelling/findings.js';
 import { writeHarnessTsconfig } from '../generators/harness-tsconfig.js';
 import { runHarnessTypecheck } from '../generators/skeleton.js';
 import type { BlockingFinding, StepEvaluation, StepEvaluator, StepTypechecker } from './types.js';
@@ -35,8 +36,31 @@ export function toStepEvaluation(r: EvaluateProjectResult): DomainResult<StepEva
   for (const row of tiers.blocking.rules) {
     if (row.violationCount > 0) blockingByRule[String(row.functionId)] = row.violationCount;
   }
+  const advisoryByRule: Record<string, number> = {};
+  for (const row of tiers.advisory.rules) {
+    if (row.violationCount > 0) advisoryByRule[String(row.functionId)] = row.violationCount;
+  }
   const blockingFindings: BlockingFinding[] = [];
-  for (const group of r.byRule) {
+  if (r.violations !== undefined) {
+    // The whole report (uncapped), in rule-id order as `groupByRule` lists it, each finding with its template.
+    const names = new Map(r.byRule.map((g) => [g.ruleId, g.ruleName]));
+    const rows = r.violations.filter((v) => blockingIds.has(String(v.functionId)));
+    const byRuleId = (a: (typeof rows)[number], b: (typeof rows)[number]): number => String(a.functionId).localeCompare(String(b.functionId));
+    for (const v of [...rows].sort(byRuleId)) {
+      const ruleId = String(v.functionId);
+      blockingFindings.push({
+        ruleId,
+        ruleName: names.get(ruleId) ?? ruleId,
+        template: templateOf(v.type, ruleId),
+        violationId: v.id,
+        filePath: v.filePath,
+        ...(v.line !== undefined ? { line: v.line } : {}),
+        ...(v.target !== undefined ? { target: v.target } : {}),
+        message: v.message,
+      });
+    }
+  }
+  for (const group of r.violations === undefined ? r.byRule : []) {
     if (!blockingIds.has(group.ruleId)) continue;
     for (const v of group.violations) {
       blockingFindings.push({
@@ -58,8 +82,10 @@ export function toStepEvaluation(r: EvaluateProjectResult): DomainResult<StepEva
     blockingViolationCount: tiers.blocking.violationCount,
     advisoryViolationCount: tiers.advisory.violationCount,
     blockingByRule,
+    advisoryByRule,
     blockingFindings,
     durationMs: r.durationMs,
+    ...(r.violations !== undefined ? { reportViolations: r.violations } : {}),
   });
 }
 
@@ -87,7 +113,7 @@ export function firewallEvaluator(specPath: string, env: NodeJS.ProcessEnv, deps
       if (tsconfigOf !== undefined && tsconfigPath === undefined) {
         return DomainResult.fail([{ code: 'LOOP_EVAL_NO_TSCONFIG', message: 'no loop run id: the pinned harness tsconfig of the snapshot cannot be named' }]);
       }
-      const r = await evaluateProject({ projectPath: projectDir, specPath, scoringMode: 'v1.3', ...(tsconfigPath !== undefined ? { tsconfigPath } : {}) }, env, deps);
+      const r = await evaluateProject({ projectPath: projectDir, specPath, scoringMode: 'v1.3', includeViolations: true, ...(tsconfigPath !== undefined ? { tsconfigPath } : {}) }, env, deps);
       return r.success ? toStepEvaluation(r.data) : DomainResult.fail(r.errors);
     },
   };
