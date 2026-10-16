@@ -1562,3 +1562,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: v1.3 spike follow-up, outside the v1.3 study stages. Development-set evidence only.
 
 ---
+
+## v1.3 — advisory post-filters out of sample (U1, scheduled task)
+**Timestamp**: 2026-10-16T09:40:00Z
+**User Input**: (scheduled task, no one present) "Night backlog job #24 / U1: measure PR #139's advisory post-filters on data they never saw (external set #133, wild set #114), filters OFF by default; commit the pass criterion first; removal rate per option with Wilson CIs, blocking rows byte-identical on every project, a seeded 40-row check-correct sample of removed rows, an in-sample vs out-of-sample table; one PR into v1.3, not merged."
+**AI Response**: "Branch v1.3-advisory-filter-oos from origin/v1.3 9768def4 with #139 and #133 merged locally (cli.ts conflict: both sides kept). Criterion committed first (4e02383f). External 15/15 and wild 11/14 evaluated on cypher-interp (immich-server, medplum-server: 25-min cap; podkrepi-api stopped after >20 min). Blocking rows identical in all 156 set x repo cells; live = offline on all 90 external cells; external none runs equal #133's Neo4j findings exactly. Removal (ext / wild): cv05-no-logic 0.27 / 0.22, composition-roots 0.04 / 0.00, c03-core-only 0.16 / 0.10, proposed 0.45 / 0.33, cv05-rollup 0.07 / 0.00, proposed+rollup 0.48 / 0.33 against in-sample 0.18-0.90; the roll-up does not transfer. Sample: 31/31 checkable FF-CV05 removed rows correct (presentation loss, not defect), 9 not-checkable. Reference set byte-identical (elapsedMs only). Options taken under delegation: wild sets applied offline to the live none report (run time; equivalence shown on the external set); wild repos evaluated with their committed ISE-inferred specs; repos over the time cap recorded, not retried; AI-DLC approval gates not run interactively (scheduled task, the stored prompt is the specification and the unmerged PR is the review point)."
+**Context**: v1.3 exploratory diagnostic on public data; no rule, tier, template, preset, construct switch or hold-out touched.
+
+---
