@@ -68,7 +68,8 @@ Code: `scripts/v1.3/loop-fault-drills.ts` (entry: `npm run loop:fault-drills -- 
 - Fix: in the gate arm only, an evaluation failure on the step turn's snapshot is now a harness failure, `LOOP_GATE_UNSCORED`, whose message carries the underlying code. The run stops with no step record, and a resume reruns the step. The `none` and `daedalus-mcp` arms keep the old behaviour: the error is recorded and the run goes on.
 - Unchanged cases:
   - A failed evaluation of the *repair* snapshot is still recorded and the run goes on, because the gate has already acted.
-  - A spec that could not be frozen (`LOOP_SPEC_FREEZE_FAILED` / `LOOP_SPEC_NOT_FROZEN`) is excluded on purpose. It is #142's risk 2 and an author decision (see §4).
+  - A spec that could not be frozen (`LOOP_SPEC_FREEZE_FAILED`) is excluded on purpose. It is #142's risk 2 and an author decision (see §4).
+  - **Amended 2026-10-16 (post-merge review item 3):** only `LOOP_SPEC_FREEZE_FAILED` is exempt now. `LOOP_SPEC_NOT_FROZEN` (no frozen spec at a later step) and a failure with no error code used to skip the gate silently; they now stop the gate run with `LOOP_GATE_UNSCORED` like any other unscored step-turn snapshot. `gateStepsWithoutEvaluation` in the grid summary is an assertion that stays 0: a completed gate step without an evaluation fails the grid (`LOOP_GATE_NOT_APPLIED`).
 - Tests: `gate: an unscored step-turn snapshot stops the run…` and `gate: an unscored repair snapshot is recorded…`.
 - Behaviour change: the old test asserted the old gate behaviour. It now covers the `none` arm only.
 

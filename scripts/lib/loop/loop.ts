@@ -17,9 +17,10 @@
  * again; the step's outcome is the last snapshot. An evaluator failure is recorded on the snapshot (the commit is kept,
  * so it can be re-scored); a turn or snapshot failure is a harness failure and stops the run. In the `gate` arm an
  * evaluator failure on the step turn's snapshot also stops the run (`LOOP_GATE_UNSCORED`): the gate cannot decide on
- * it, and going on would run the step as `none` (loop fault drills D4, `Docs/v1.3/loop-fault-drills.md`). A spec that
- * could not be frozen is not such a failure (it is recorded once in `spec/` and holds for the whole run): the gate step
- * is then recorded with `repair.skipped = 'evaluation-failed'` (R01). A run in which every snapshot failed evaluation
+ * it, and going on would run the step as `none` (loop fault drills D4, `Docs/v1.3/loop-fault-drills.md`). The one
+ * exemption is a spec that could not be frozen (`LOOP_SPEC_FREEZE_FAILED`, recorded once in `spec/`, it holds for the
+ * whole run): the gate step is then recorded with `repair.skipped = 'evaluation-failed'` (R01). `LOOP_SPEC_NOT_FROZEN`
+ * and a failure without an error code stop the gate run like any other. A run in which every snapshot failed evaluation
  * fails at its end (`LOOP_EVAL_ALL_FAILED`) and is not marked complete.
  *
  * Per-task style and spec (`LoopContext.profiles`, optional): the task's step frames carry its style slot (`style.ts`)
@@ -91,8 +92,13 @@ export const RESTARTS_LOG = 'restarts.jsonl';
 export const LOOP_INTERRUPTIONS_DIR = 'interruptions';
 export const SPEC_READS_LOG = 'spec-reads.jsonl';
 export const DISCARDED_DIR = 'discarded';
-/** Evaluation errors that are not a failed evaluation of the snapshot but the run's spec (`specs.ts`). */
-const SPEC_ERRORS: ReadonlySet<string> = new Set(['LOOP_SPEC_FREEZE_FAILED', 'LOOP_SPEC_NOT_FROZEN']);
+/**
+ * The one evaluation error the gate arm records and goes on with: a spec that could not be frozen on step 1 (`specs.ts`).
+ * It holds for the whole run, so every snapshot is unscored and the run ends with `LOOP_EVAL_ALL_FAILED`. Any other
+ * missing evaluation (`LOOP_SPEC_NOT_FROZEN` at a later step, or a failure with no error code) stops the gate run with
+ * `LOOP_GATE_UNSCORED` (post-merge review item 3: those paths used to skip the gate silently).
+ */
+const GATE_EXEMPT_ERRORS: ReadonlySet<string> = new Set(['LOOP_SPEC_FREEZE_FAILED']);
 
 /** How a task's snapshots are evaluated (`specs.ts`). */
 export type TaskEvaluation =
@@ -491,19 +497,20 @@ class LoopRun {
     if (this.spec.arm === 'gate') {
       const ev = first.data.snapshot.evaluation;
       const failed = first.data.snapshot.evaluationError;
-      if (ev === null && failed !== undefined && !SPEC_ERRORS.has(failed.code)) {
+      if (ev === null && (failed === undefined || !GATE_EXEMPT_ERRORS.has(failed.code))) {
+        const why = failed === undefined ? 'no evaluation and no error code' : `${failed.code}: ${failed.message}`;
         return DomainResult.fail([
           {
             code: 'LOOP_GATE_UNSCORED',
-            message: `step ${String(stepIndex + 1)}: the gate cannot decide on an unscored snapshot (${failed.code}: ${failed.message}); the run stops, and a resume reruns the step`,
+            message: `step ${String(stepIndex + 1)}: the gate cannot decide on an unscored snapshot (${why}); the run stops, and a resume reruns the step`,
           },
         ]);
       }
       // With held-out rules the repair sees, and is triggered by, the shown rules' findings only (the single filter).
       const shownCount = ev === null ? 0 : shown === undefined ? ev.blockingViolationCount : splitCount(ev, isShownRule, true);
       if (ev === null) {
-        // Only a spec that was not frozen reaches here: the gate saw nothing, recorded as such, never as a step with no
-        // blocking findings (R01).
+        // Only a spec that could not be frozen reaches here: the gate saw nothing, recorded as such, never as a step with
+        // no blocking findings (R01). Such a run has no evaluated snapshot and fails with LOOP_EVAL_ALL_FAILED.
         repair = { attempted: false, blockingBefore: null, blockingAfter: null, cleared: null, skipped: 'evaluation-failed' };
         this.ctx.log?.(`${this.runId}: step ${String(stepIndex + 1)} GATE NOT APPLIED: the snapshot has no evaluation (${first.data.snapshot.evaluationError?.code ?? 'unknown'})`);
       } else if (shownCount === 0) {
@@ -711,11 +718,22 @@ export function describeStep(r: StepRecord): string {
   return `${last?.result.status ?? 'n/a'} files=${String(last?.snapshot.sourceFiles.length ?? 0)} loc=${String(last?.snapshot.loc ?? 0)} blocking=${blocking} ahs=${ahs}${repair}`;
 }
 
-/** Gate steps whose snapshot had no evaluation, so the gate was not applied (R01: a harness failure to report). */
+/**
+ * Gate steps of completed runs whose snapshot had no evaluation, so the gate was not applied (R01). Only a spec that
+ * could not be frozen skips the gate, and such a run never completes (`LOOP_EVAL_ALL_FAILED`), so this stays 0; the
+ * grid treats any other value as a harness failure (`assertGateApplied`).
+ */
 export function gateEvaluationFailures(results: readonly LoopRunResult[]): number {
   let n = 0;
   for (const r of results) if (r.kind === 'completed') for (const s of r.steps) if (s.repair?.skipped === 'evaluation-failed') n++;
   return n;
+}
+
+/** The assertion on `gateEvaluationFailures`: a completed gate step without an evaluation is a harness failure. */
+export function assertGateApplied(results: readonly LoopRunResult[]): DomainResult<void> {
+  const n = gateEvaluationFailures(results);
+  if (n === 0) return DomainResult.ok(undefined);
+  return DomainResult.fail([{ code: 'LOOP_GATE_NOT_APPLIED', message: `${String(n)} completed gate step(s) have no evaluation, so the gate was not applied (gateStepsWithoutEvaluation must be 0)` }]);
 }
 
 /** Runs (or resumes) one loop run. */

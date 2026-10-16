@@ -62,7 +62,7 @@ import { checkIsolationPaths } from './isolation.js';
 import { firewallEvaluator, harnessSnapshotTsconfig, harnessTypechecker } from './evaluator.js';
 import { evaluatorForEngine, parseLoopEngine } from './engine-tee.js';
 import type { LoopEngine } from './engine-tee.js';
-import { gateEvaluationFailures, runLoop } from './loop.js';
+import { assertGateApplied, gateEvaluationFailures, runLoop } from './loop.js';
 import type { LoopContext, LoopRunResult, TaskProfile } from './loop.js';
 import { loadLoopPlan, loopRunId, mcpSpecCheck, planCallBudget, planFrame, scheduleLoopRuns, SPEC_SHA_ENV } from './plan.js';
 import { taskFrameExtras } from './rungs.js';
@@ -490,7 +490,7 @@ export function gridSummary(loaded: LoadedPlan, results: readonly LoopRunResult[
     skipped: results.length - completed.length,
     callBudget: planCallBudget(loaded.plan, loaded.tasks.tasks),
     turnsThisInvocation: { step: stepTurns, repair: repairTurns, repairsCleared },
-    // R01: gate steps the gate could not judge (no evaluation); non-zero means the gate arm did not run as designed.
+    // R01: gate steps the gate could not judge (no evaluation). An assertion: it must be 0 (`assertGateApplied`).
     gateStepsWithoutEvaluation: gateEvaluationFailures(results),
   };
 }
@@ -539,5 +539,7 @@ export async function main(argv: readonly string[], repoRoot: string, depsIn?: L
   });
   if (!grid.success) return report(deps, grid.errors);
   deps.out(`${JSON.stringify(gridSummary(loaded.data, grid.data, args.data.dryRun), null, 2)}\n`);
+  const applied = assertGateApplied(grid.data);
+  if (!applied.success) return report(deps, applied.errors);
   return 0;
 }

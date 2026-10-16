@@ -5,7 +5,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { DomainResult } from '../../../../src/shared/errors/domain-result.js';
-import { RESTARTS_LOG, RUN_JSON, WORK_DIR, gateEvaluationFailures, readStepRecords, runDirFor, runLoop, stepRecordPath } from '../../../../scripts/lib/loop/loop.js';
+import { RESTARTS_LOG, RUN_JSON, WORK_DIR, assertGateApplied, gateEvaluationFailures, readStepRecords, runDirFor, runLoop, stepRecordPath } from '../../../../scripts/lib/loop/loop.js';
 import { loopRunId } from '../../../../scripts/lib/loop/plan.js';
 import { MAX_REPAIR_FINDINGS, repairPrompt, sha256, stepPrompt } from '../../../../scripts/lib/loop/prompts.js';
 import { SNAPSHOT_GIT_DIR, WorkTreeSnapshots } from '../../../../scripts/lib/loop/snapshot.js';
@@ -167,21 +167,49 @@ describe('multi-step loop (dry run)', () => {
     expect(r.data.steps[1]?.turns[1]?.snapshot.evaluationError?.code).toBe('NEO4J_UNREACHABLE');
   });
 
-  it('R01: the grid summary counts gate steps whose evaluation failed', async () => {
-    // The first snapshot is evaluated (a run with no evaluated snapshot fails with LOOP_EVAL_ALL_FAILED, F24); the
-    // other two fail evaluation. Only a spec that was not frozen lets the gate arm go on (any other failure stops the
-    // run with LOOP_GATE_UNSCORED, #180), so the failure here is LOOP_SPEC_NOT_FROZEN.
+  /** An evaluator that scores its first call and then fails with `code` (undefined: a failure with no error). */
+  function failingAfterFirst(code: string | undefined): StepEvaluator {
     let calls = 0;
-    const failing: StepEvaluator = {
+    return {
       id: 'down',
       evaluate: (dir: string) => {
         calls++;
-        return calls === 1 ? stubEvaluator().evaluate(dir) : Promise.resolve(DomainResult.fail([{ code: 'LOOP_SPEC_NOT_FROZEN', message: 'no frozen spec' }]));
+        if (calls === 1) return stubEvaluator().evaluate(dir);
+        // No code: an evaluator result with no error at all, which `DomainResult.fail` itself refuses to build.
+        if (code === undefined) return Promise.resolve({ success: false, errors: [] } as unknown as DomainResult<StepEvaluation>);
+        return Promise.resolve(DomainResult.fail<StepEvaluation>([{ code, message: 'no evaluation' }]));
       },
     };
-    const r = await runLoop(context(out, stubAgent(), { evaluator: failing }), spec('gate'));
-    if (!r.success || r.data.kind !== 'completed') throw new Error('expected completion');
-    expect(gateEvaluationFailures([r.data])).toBe(2);
+  }
+
+  it.each([
+    ['LOOP_SPEC_NOT_FROZEN', 'LOOP_SPEC_NOT_FROZEN'],
+    ['an empty error code', ''],
+    ['a failure with no error at all', undefined],
+  ])('gate: %s on a later step stops the run (only LOOP_SPEC_FREEZE_FAILED is exempt)', async (_label, code) => {
+    const r = await runLoop(context(out, stubAgent(), { evaluator: failingAfterFirst(code) }), spec('gate'));
+    expect(r.success ? [] : r.errors.map((e) => e.code)).toEqual(['LOOP_GATE_UNSCORED']);
+    if (!r.success) expect(r.errors[0]?.message).toContain(code === undefined ? 'no evaluation and no error code' : `${code}: no evaluation`);
+    expect(readStepRecords(runDirFor(out, loopRunId(spec('gate'))), 3)).toHaveLength(1);
+  });
+
+  it('R01: LOOP_SPEC_FREEZE_FAILED is recorded as a skipped gate, and gateStepsWithoutEvaluation is an assertion that stays 0', async () => {
+    // A real failed freeze holds for the whole run, so every snapshot is unscored and the run fails (LOOP_EVAL_ALL_FAILED):
+    // no completed run carries a skipped gate step.
+    const frozenFail: StepEvaluator = { id: 'down', evaluate: () => Promise.resolve(DomainResult.fail([{ code: 'LOOP_SPEC_FREEZE_FAILED', message: 'ise failed' }])) };
+    const all = await runLoop(context(out, stubAgent(), { evaluator: frozenFail }), spec('gate'));
+    expect(all.success ? [] : all.errors.map((e) => e.code)).toEqual(['LOOP_EVAL_ALL_FAILED']);
+    const runDir = runDirFor(out, loopRunId(spec('gate')));
+    const records = readStepRecords(runDir, 3);
+    expect(records.map((s) => s.repair?.skipped)).toEqual(['evaluation-failed', 'evaluation-failed', 'evaluation-failed']);
+    const clean = await runLoop(context(out, stubAgent()), spec('gate', 1));
+    if (!clean.success || clean.data.kind !== 'completed') throw new Error('expected completion');
+    expect(gateEvaluationFailures([clean.data])).toBe(0);
+    expect(assertGateApplied([clean.data]).success).toBe(true);
+    // A completed run that did carry one (synthetic) fails the assertion.
+    const forged = { ...clean.data, steps: clean.data.steps.map((s, i) => (i === 1 ? { ...s, repair: { attempted: false, blockingBefore: null, blockingAfter: null, cleared: null, skipped: 'evaluation-failed' as const } } : s)) };
+    const asserted = assertGateApplied([forged]);
+    expect(asserted.success ? [] : asserted.errors.map((e) => e.code)).toEqual(['LOOP_GATE_NOT_APPLIED']);
   });
 
   it('a step whose evaluation failed is unscored in the outcomes: a null count and total, never 0 (F18)', async () => {
