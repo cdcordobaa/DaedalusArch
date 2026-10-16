@@ -5,7 +5,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { DomainResult } from '../../../../src/shared/errors/domain-result.js';
-import { GATE_UNSCORED_FILE, RESTARTS_LOG, RUN_JSON, WORK_DIR, assertGateApplied, gateEvaluationFailures, readStepRecords, restartCounts, restartReasonOf, runDirFor, runLoop, stepRecordPath } from '../../../../scripts/lib/loop/loop.js';
+import { GATE_UNSCORED_FILE, RESTARTS_LOG, RUN_JSON, SPEC_READS_LOG, WORK_DIR, assertGateApplied, gateEvaluationFailures, readStepRecords, restartCounts, restartReasonOf, runDirFor, runLoop, stepRecordPath } from '../../../../scripts/lib/loop/loop.js';
 import { loopRunId } from '../../../../scripts/lib/loop/plan.js';
 import { MAX_REPAIR_FINDINGS, repairPrompt, sha256, stepPrompt } from '../../../../scripts/lib/loop/prompts.js';
 import { SNAPSHOT_GIT_DIR, WorkTreeSnapshots } from '../../../../scripts/lib/loop/snapshot.js';
@@ -432,6 +432,46 @@ describe('resume', () => {
     fs.writeFileSync(path.join(runDir, WORK_DIR, 'src', 'leftover.ts'), 'export {};\n');
     const steps = await completed('none');
     expect(steps[0]?.turns[0]?.snapshot.sourceFiles).not.toContain('leftover.ts');
+  });
+});
+
+describe('review item 11: call log and spec-read log on resume', () => {
+  let root: string;
+  beforeEach(() => {
+    root = tmpRoot();
+  });
+  afterEach(() => {
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+
+  it('run.json records --call-log, and a resume that switches it is refused', async () => {
+    const first = await runLoop(context(root, stubAgent(), { callLog: true, evaluator: { id: 'x', evaluate: () => Promise.resolve(DomainResult.fail<StepEvaluation>([{ code: 'NEO4J_UNREACHABLE', message: 'down' }])) } }), spec('gate'));
+    expect(first.success).toBe(false);
+    const runDir = runDirFor(root, loopRunId(spec('gate')));
+    expect(JSON.parse(fs.readFileSync(path.join(runDir, RUN_JSON), 'utf8'))).toMatchObject({ callLog: true });
+    const off = await runLoop(context(root, stubAgent()), spec('gate'));
+    expect(off.success ? [] : off.errors.map((e) => e.code)).toEqual(['LOOP_CALL_LOG_MISMATCH']);
+    const on = await runLoop(context(root, stubAgent(), { callLog: true }), spec('gate'));
+    expect(on.success && on.data.kind).toBe('completed');
+    // Without the flag nothing is recorded (run.json bytes as before).
+    const plain = await runLoop(context(root, stubAgent()), spec('none'));
+    expect(plain.success).toBe(true);
+    expect(fs.readFileSync(path.join(runDirFor(root, loopRunId(spec('none'))), RUN_JSON), 'utf8')).not.toContain('callLog');
+  });
+
+  it('spec-read lines of a discarded attempt move to discarded/restart-<n>/', async () => {
+    const runId = loopRunId(spec('none'));
+    const runDir = runDirFor(root, runId);
+    expect((await runLoop(context(root), spec('none'))).success).toBe(true);
+    // Simulate an L4 run's log with lines for all three steps, then a truncated step-2 record (a redraw from step 2).
+    const lines = ['step-01', 'step-02', 'step-02-repair', 'step-03'].map((turnId) => JSON.stringify({ turnId, read: false }));
+    fs.writeFileSync(path.join(runDir, SPEC_READS_LOG), `${lines.join('\n')}\n`);
+    const f = stepRecordPath(runDir, 1);
+    fs.writeFileSync(f, fs.readFileSync(f).subarray(0, 10));
+    const r = await runLoop(context(root), spec('none'));
+    expect(r.success).toBe(true);
+    expect(fs.readFileSync(path.join(runDir, SPEC_READS_LOG), 'utf8')).toBe(`${lines[0] ?? ''}\n`);
+    expect(fs.readFileSync(path.join(runDir, 'discarded', 'restart-1', SPEC_READS_LOG), 'utf8')).toBe(`${lines.slice(1).join('\n')}\n`);
   });
 });
 

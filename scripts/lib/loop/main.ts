@@ -187,6 +187,8 @@ interface ScheduleFile {
   readonly runs: readonly string[];
   /** The evaluator engine when one was chosen (absent = the default wiring); a resume must keep it. */
   readonly engine?: LoopEngine;
+  /** Present (true) only for a grid started with `--call-log`; a resume must keep it (review item 11). */
+  readonly callLog?: true;
 }
 
 /** Writes `schedule.json`, or checks that an existing one belongs to the same plan, tasks and mode. */
@@ -204,10 +206,11 @@ export function claimSchedule(outRoot: string, schedule: ScheduleFile): DomainRe
       prior.tasksSha256 === schedule.tasksSha256 &&
       prior.dryRun === schedule.dryRun &&
       prior.engine === schedule.engine &&
+      prior.callLog === schedule.callLog &&
       JSON.stringify(prior.runs) === JSON.stringify(schedule.runs);
     return same
       ? DomainResult.ok(undefined)
-      : DomainResult.fail([{ code: 'LOOP_SCHEDULE_MISMATCH', message: `${file} belongs to another plan, tasks file or mode; use a fresh outRoot` }]);
+      : DomainResult.fail([{ code: 'LOOP_SCHEDULE_MISMATCH', message: `${file} belongs to another plan, tasks file or mode (engine, --call-log); use a fresh outRoot` }]);
   }
   fs.mkdirSync(outRoot, { recursive: true });
   fs.writeFileSync(file, `${JSON.stringify(schedule, null, 2)}\n`);
@@ -433,6 +436,7 @@ export async function runLoopGrid(
     dryRun: options.dryRun,
     runs: specs.map(loopRunId),
     ...(options.engine !== undefined ? { engine: options.engine } : {}),
+    ...(options.callLog === true ? { callLog: true as const } : {}),
   });
   if (!claimed.success) return DomainResult.fail(claimed.errors);
   const tasks = new Map(loaded.tasks.tasks.map((t) => [t.id, t]));

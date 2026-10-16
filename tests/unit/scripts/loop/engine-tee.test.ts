@@ -298,4 +298,22 @@ describe('options', () => {
       fs.rmSync(out, { recursive: true, force: true });
     }
   });
+
+  it('review item 11: schedule.json records --call-log, and a resume that changes it is refused', () => {
+    const out = tmpRoot();
+    try {
+      const s = { schema: 'loop-schedule/v1' as const, planSha256: 'p', tasksSha256: 't', dryRun: false, runs: ['r'] };
+      expect(claimSchedule(out, { ...s, callLog: true }).success).toBe(true);
+      expect(JSON.parse(fs.readFileSync(path.join(out, 'schedule.json'), 'utf8'))).toMatchObject({ callLog: true });
+      expect(claimSchedule(out, { ...s, callLog: true }).success).toBe(true);
+      expect(claimSchedule(out, s).success).toBe(false);
+      const plain = tmpRoot();
+      claimSchedule(plain, s);
+      expect(fs.readFileSync(path.join(plain, 'schedule.json'), 'utf8')).not.toContain('callLog');
+      expect(claimSchedule(plain, { ...s, callLog: true }).success).toBe(false);
+      fs.rmSync(plain, { recursive: true, force: true });
+    } finally {
+      fs.rmSync(out, { recursive: true, force: true });
+    }
+  });
 });

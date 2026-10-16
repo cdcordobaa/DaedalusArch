@@ -427,6 +427,7 @@ class LoopRun {
           }
         : {}),
       ...(this.shownRules !== undefined ? { heldOutRules: { shownRuleIds: this.shownRules } } : {}),
+      ...(this.ctx.callLog === true ? { callLog: true as const } : {}),
     };
     writeJsonAtomic(path.join(this.runDir, RUN_JSON), record);
     return DomainResult.ok(record);
@@ -660,7 +661,9 @@ class LoopRun {
     }
     const unscored = path.join(this.runDir, GATE_UNSCORED_FILE);
     if (fs.existsSync(unscored)) moves.push([unscored, path.join(dest, GATE_UNSCORED_FILE)]);
-    if (moves.length === 0) return null;
+    // Review item 11: the spec-read lines of the turns that rerun belong to the discarded attempt.
+    const readsMoved = turnsToo ? this.splitSpecReads(from, path.join(dest, SPEC_READS_LOG)) : false;
+    if (moves.length === 0 && !readsMoved) return null;
     for (const [a, b] of moves) {
       fs.mkdirSync(path.dirname(b), { recursive: true });
       fs.renameSync(a, b);
@@ -676,6 +679,37 @@ class LoopRun {
     return k;
   }
 
+  /**
+   * Moves the `spec-reads.jsonl` lines of steps `from + 1` onward (their `turnId` is `step-NN[...]`) to `dest`; the
+   * earlier lines stay. Returns whether any line moved.
+   */
+  private splitSpecReads(from: number, dest: string): boolean {
+    const file = path.join(this.runDir, SPEC_READS_LOG);
+    if (!fs.existsSync(file)) return false;
+    const keep: string[] = [];
+    const moved: string[] = [];
+    for (const l of fs.readFileSync(file, 'utf8').split('\n')) {
+      if (l === '') continue;
+      let step = 0;
+      try {
+        step = Number(/^step-(\d+)/.exec(String((JSON.parse(l) as { turnId?: unknown }).turnId))?.[1] ?? '0');
+      } catch {
+        step = 0;
+      }
+      (step > from ? moved : keep).push(l);
+    }
+    if (moved.length === 0) return false;
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.appendFileSync(dest, `${moved.join('\n')}\n`);
+    if (keep.length === 0) fs.rmSync(file);
+    else {
+      const tmp = `${file}.tmp-${String(process.pid)}`;
+      fs.writeFileSync(tmp, `${keep.join('\n')}\n`);
+      fs.renameSync(tmp, file);
+    }
+    return true;
+  }
+
   async run(): Promise<DomainResult<LoopRunResult>> {
     const runFile = path.join(this.runDir, RUN_JSON);
     let record = readJsonFile(runFile) as RunRecord | null;
@@ -689,6 +723,12 @@ class LoopRun {
     if (JSON.stringify(recorded) !== JSON.stringify(this.shownRules)) {
       return DomainResult.fail([
         { code: 'LOOP_HELDOUT_MISMATCH', message: `${this.runId}: run.json records shown rules ${JSON.stringify(recorded ?? null)}, the plan ${JSON.stringify(this.shownRules ?? null)}` },
+      ]);
+    }
+    // Review item 11: the call log is part of what a run records, so a resume cannot switch it on or off.
+    if ((record.callLog === true) !== (this.ctx.callLog === true)) {
+      return DomainResult.fail([
+        { code: 'LOOP_CALL_LOG_MISMATCH', message: `${this.runId}: run.json was created ${record.callLog === true ? 'with' : 'without'} --call-log; resume it the same way` },
       ]);
     }
     const steps = this.task.steps.length;
