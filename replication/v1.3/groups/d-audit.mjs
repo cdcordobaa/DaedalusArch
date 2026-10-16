@@ -269,7 +269,7 @@ async function runSmoke(ctx) {
   const pick = (re) => Object.entries(tally).filter(([k]) => re.test(k)).map(([, v]) => v);
   const add = (list) => list.reduce((a, v) => { for (const [k, x] of Object.entries(v)) a[k] = (a[k] ?? 0) + x; return a; }, {});
   const tot = (v) => Object.values(v).reduce((a, x) => a + x, 0);
-  const verdict = (v) => (Object.keys(v).length === 1 && v.IDENTICAL ? 'IDENTICAL' : Object.entries(v).map(([k, x]) => `${x} ${k}`).join(' + '));
+  const verdict = (v) => (Object.keys(v).length === 1 && v.IDENTICAL ? 'IDENTICAL' : ['IDENTICAL', 'KNOWN', 'DIFF', 'MISSING', 'EXTRA'].filter((k) => v[k]).map((k) => `${v[k]} ${k}`).join(' + '));
   const gf = add(pick(/^graph fidelity: (clean|layered|nestjs|hexagonal|ddd)/));
   out['d-audit-smoke-gf-outputs'] = `${tot(gf)} files`;
   out['d-audit-smoke-gf-result'] = verdict(gf) === 'IDENTICAL' ? 'IDENTICAL, across two fresh exports' : verdict(gf);
