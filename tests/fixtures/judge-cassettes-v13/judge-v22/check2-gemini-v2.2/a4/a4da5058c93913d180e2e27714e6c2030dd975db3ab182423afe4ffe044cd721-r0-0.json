@@ -1,0 +1,45 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.6",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 12346,
+  "effort": null,
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "d68c66d27818a8985e559c413f44be9c1f9c04a809ce77369abdb4acca0710db",
+  "key": "a4da5058c93913d180e2e27714e6c2030dd975db3ab182423afe4ffe044cd721-r0-0",
+  "model": "gemini-4-argon-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 1,
+    "evidence": [
+      "src/domain/model/Reservation.ts declares the Reservation class with domain fields (id, spotCode, plate, from, hours, cancelled) and pure domain methods (until, clashesWith, cancel).",
+      "Reservation.cancel throws ParkingError from src/domain/errors/ParkingError.ts, which belongs to the domain layer.",
+      "No framework, ORM, transport, or direct I/O types, decorators, or calls are present in src/domain/model/Reservation.ts."
+    ],
+    "pass": true,
+    "reasoning": "The Reservation class in src/domain/model/Reservation.ts is a pure domain entity encapsulating reservation state, time-overlap calculations, and cancellation invariants using only built-in types and the domain-layer ParkingError. It contains no transport, framework, ORM, or I/O dependencies or annotations, matching the role of the domain layer.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities, signatures and annotations match the role of its declared layer.\n\n## Rubric\nPass: Every declaration in the file belongs to the role and kind of its declared layer, including its parameter, return and field types, its decorators and base classes, and its statements, and agrees with any ADR prose given. Calls into a layer that the layer model lets this layer depend on are part of that role.\nFail: The file carries something that belongs to a different layer kind. In a domain or application file: a request, response, HTTP context, status code or HTTP error, from a web or transport package or from the delivery layer, in any method or function signature (parameter or return) or thrown, even when the parameter is optional or unused. In a domain file also: any framework or ORM type, decorator or base class (dependency injection, routing, persistence mapping), even when the class logic is pure; or direct I/O, that is a database, ORM, query, HTTP or file client that the file itself creates, imports from a package or obtains from a global accessor, or persistence or I/O done through a class of a layer that the layer model does not let this layer depend on. A call to a class or interface of a layer that this layer may depend on is not misplaced I/O, whatever that layer does behind it. In an infrastructure or presentation file: a business rule, that is a domain invariant, calculation or decision that the domain or application layer should own. Constructor parameters of any file are dependency wiring when their types come from the file's own layer or from a layer it may depend on: an injected repository, gateway, client or service there is not by itself misplaced. A type the project declares itself is not a framework type, whatever its name.\nEvidence required: Name the file and cite the signature, decorator, declaration or statement that carries the misplaced responsibility, its package or origin, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\nStyle: hexagonal. Allowed dependencies are declared per layer: a layer may depend only on the layers it lists.\n- domain (kind: domain; may depend on: no other layer): src/domain/**\n- application (kind: application; may depend on: domain): src/application/**\n- adapters-inbound (kind: presentation; may depend on: domain, application): src/adapters/inbound/**\n- adapters-outbound (kind: infrastructure; may depend on: domain, application): src/adapters/outbound/**\n- config (kind: application; may depend on: domain, application, adapters-inbound, adapters-outbound): src/config/**\n\n## Unit\nKind: file\nId: src/domain/model/Reservation.ts\nLayer: domain\nUnit files:\n- src/domain/model/Reservation.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/model/Reservation.ts=====\nimport { ParkingError } from '../errors/ParkingError';\n\nexport class Reservation {\n  id: string;\n  spotCode: string;\n  plate: string;\n  from: Date;\n  hours: number;\n  cancelled: boolean;\n\n  constructor(id: string, spotCode: string, plate: string, from: Date, hours: number, cancelled = false) {\n    this.id = id;\n    this.spotCode = spotCode;\n    this.plate = plate;\n    this.from = from;\n    this.hours = hours;\n    this.cancelled = cancelled;\n  }\n\n  until(): Date {\n    return new Date(this.from.getTime() + this.hours * 3_600_000);\n  }\n\n  clashesWith(from: Date, hours: number): boolean {\n    const until = new Date(from.getTime() + hours * 3_600_000);\n    return !this.cancelled && from < this.until() && this.from < until;\n  }\n\n  cancel(now: Date): void {\n    if (this.cancelled) throw new ParkingError('invalid', `Reservation ${this.id} is already cancelled`);\n    if (now >= this.from) throw new ParkingError('invalid', 'A started reservation cannot be cancelled');\n    this.cancelled = true;\n  }\n}\n\n=====SOURCE-END=====\n\n## Neighbourhood\nsrc/domain/model/Reservation.ts (layer domain, kind domain)\n  imports: src/domain/errors/ParkingError.ts (layer domain, kind domain)\n  imported by: src/adapters/outbound/persistence/TypeOrmReservationRepository.ts (layer adapters-outbound, kind infrastructure); src/application/ports/out/ReservationRepository.ts (layer application, kind application); src/application/services/ReserveSpotService.ts (layer application, kind application)\n\n## Candidate flags\nCandidates proposed by deterministic checks; verify, don't trust. Each line is a tool observation with its location, not a finding.\n(none)\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric. Check each candidate flag against the source: a flag the source does not support must not count against the unit, and a violation the flags miss counts as much as one they name. Judge what each declaration is, not only what it does at run time.\n",
+  "provider": "agy",
+  "recordedAt": "2026-10-16T05:02:37.850Z",
+  "repetition": 0,
+  "requestHash": "a4da5058c93913d180e2e27714e6c2030dd975db3ab182423afe4ffe044cd721",
+  "resolvedModel": "gemini-4-argon-high",
+  "response": "{\"confidence\":1,\"evidence\":[\"src/domain/model/Reservation.ts declares the Reservation class with domain fields (id, spotCode, plate, from, hours, cancelled) and pure domain methods (until, clashesWith, cancel).\",\"Reservation.cancel throws ParkingError from src/domain/errors/ParkingError.ts, which belongs to the domain layer.\",\"No framework, ORM, transport, or direct I/O types, decorators, or calls are present in src/domain/model/Reservation.ts.\"],\"pass\":true,\"reasoning\":\"The Reservation class in src/domain/model/Reservation.ts is a pure domain entity encapsulating reservation state, time-overlap calculations, and cancellation invariants using only built-in types and the domain-layer ParkingError. It contains no transport, framework, ORM, or I/O dependencies or annotations, matching the role of the domain layer.\",\"violations\":[]}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/model/Reservation.ts",
+  "usage": {
+    "inputTokens": 14349,
+    "outputTokens": 546
+  },
+  "usedOptions": {
+    "model": "gemini-4-argon-high"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.6",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 76843,
+  "effort": null,
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "d68c66d27818a8985e559c413f44be9c1f9c04a809ce77369abdb4acca0710db",
+  "key": "93b12eeab91d35ad6901830652a25c90a01128794f4194bb5d3ccec05c19a905-r0-0",
+  "model": "gemini-4-argon-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/presentation/controllers/StockController.ts: in StockController.receive(dto: ReceiveDto), `if (!Number.isInteger(dto.quantity) || dto.quantity <= 0) { throw new StockError('Received quantity must be a positive whole number'); }` enforces a domain invariant and throws `StockError` from `../../business/stock/StockError` (`src/business/stock/StockError.ts`), which belongs to the `domain` (`business`) layer."
+    ],
+    "pass": false,
+    "reasoning": "`src/presentation/controllers/StockController.ts` is declared in the `presentation` layer (kind `presentation`), but `StockController.receive(dto: ReceiveDto)` enforces a domain invariant on stock quantities (`!Number.isInteger(dto.quantity) || dto.quantity <= 0`) and directly throws the domain error `StockError` (from `src/business/stock/StockError.ts`, layer `business`, kind `domain`). Domain invariants and domain error enforcement belong to the `domain` (`business`) layer rather than the `presentation` layer.",
+    "violations": [
+      {
+        "filePath": "src/presentation/controllers/StockController.ts",
+        "message": "StockController.receive enforces a domain invariant (`if (!Number.isInteger(dto.quantity) || dto.quantity <= 0)`) and throws the domain error `StockError` (from `src/business/stock/StockError.ts`, layer `business`, kind `domain`), which is a business rule belonging to the `domain` layer rather than `presentation`."
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe unit's responsibilities, signatures and annotations match the role of its declared layer.\n\n## Rubric\nPass: Every declaration in the file belongs to the role and kind of its declared layer, including its parameter, return and field types, its decorators and base classes, and its statements, and agrees with any ADR prose given. Calls into a layer that the layer model lets this layer depend on are part of that role.\nFail: The file carries something that belongs to a different layer kind. In a domain or application file: a request, response, HTTP context, status code or HTTP error, from a web or transport package or from the delivery layer, in any method or function signature (parameter or return) or thrown, even when the parameter is optional or unused. In a domain file also: any framework or ORM type, decorator or base class (dependency injection, routing, persistence mapping), even when the class logic is pure; or direct I/O, that is a database, ORM, query, HTTP or file client that the file itself creates, imports from a package or obtains from a global accessor, or persistence or I/O done through a class of a layer that the layer model does not let this layer depend on. A call to a class or interface of a layer that this layer may depend on is not misplaced I/O, whatever that layer does behind it. In an infrastructure or presentation file: a business rule, that is a domain invariant, calculation or decision that the domain or application layer should own. Constructor parameters of any file are dependency wiring when their types come from the file's own layer or from a layer it may depend on: an injected repository, gateway, client or service there is not by itself misplaced. A type the project declares itself is not a framework type, whatever its name.\nEvidence required: Name the file and cite the signature, decorator, declaration or statement that carries the misplaced responsibility, its package or origin, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\nStyle: layered. Closed layering: layers are listed bottom-up and each layer may depend only on the layer listed directly before it.\n- persistence (kind: infrastructure; may depend on: no other layer): src/persistence/**\n- business (kind: domain; may depend on: persistence): src/business/**\n- presentation (kind: presentation; may depend on: business): src/presentation/**\n\n## Unit\nKind: file\nId: src/presentation/controllers/StockController.ts\nLayer: presentation\nUnit files:\n- src/presentation/controllers/StockController.ts\n\n## Source\n=====SOURCE-BEGIN src/presentation/controllers/StockController.ts=====\nimport { CycleCountService } from '../../business/services/CycleCountService';\nimport { ReceivingService } from '../../business/services/ReceivingService';\nimport { CountDto, PickDto, ReceiveDto } from '../dto/requests';\nimport { StockError } from '../../business/stock/StockError';\n\nexport class StockController {\n  constructor(\n    private readonly receiving: ReceivingService,\n    private readonly counts: CycleCountService,\n  ) {}\n\n  async receive(dto: ReceiveDto): Promise<{ bin: string; quantity: number }> {\n    if (!Number.isInteger(dto.quantity) || dto.quantity <= 0) {\n      throw new StockError('Received quantity must be a positive whole number');\n    }\n    const bin = await this.receiving.receive(dto.sku, dto.bin, dto.quantity);\n    return { bin: bin.code, quantity: bin.quantity };\n  }\n\n  async pick(dto: PickDto): Promise<{ picked: number; reorder: boolean }> {\n    return this.receiving.pick(dto.sku, dto.quantity);\n  }\n\n  async count(dto: CountDto): Promise<{ ok: boolean; delta: number }> {\n    const d = await this.counts.count(dto.bin, dto.counted, dto.expected);\n    return { ok: d === null, delta: d?.delta ?? 0 };\n  }\n}\n\n=====SOURCE-END=====\n\n## Neighbourhood\nsrc/presentation/controllers/StockController.ts (layer presentation, kind presentation)\n  imports: src/business/services/CycleCountService.ts (layer business, kind domain); src/business/services/ReceivingService.ts (layer business, kind domain); src/business/stock/StockError.ts (layer business, kind domain); src/presentation/dto/requests.ts (layer presentation, kind presentation)\n  imported by: src/main.ts (unlayered); src/presentation/controllers/routes.ts (layer presentation, kind presentation)\n  types: StockController injects CycleCountService in src/business/services/CycleCountService.ts (layer business, kind domain); StockController injects ReceivingService in src/business/services/ReceivingService.ts (layer business, kind domain)\n\n## Candidate flags\nCandidates proposed by deterministic checks; verify, don't trust. Each line is a tool observation with its location, not a finding.\n- logic-density/controller-logic-density at src/presentation/controllers/StockController.ts:12-18: controller method StockController.receive: 1 branches, 1 comparisons, 0 arithmetic, 1 validation throws\n- name-behaviour/controller-business-logic at src/presentation/controllers/StockController.ts:12-18: controller StockController.receive has logic density 3\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric. Check each candidate flag against the source: a flag the source does not support must not count against the unit, and a violation the flags miss counts as much as one they name. Judge what each declaration is, not only what it does at run time.\n",
+  "provider": "agy",
+  "recordedAt": "2026-10-16T06:11:34.278Z",
+  "repetition": 0,
+  "requestHash": "93b12eeab91d35ad6901830652a25c90a01128794f4194bb5d3ccec05c19a905",
+  "resolvedModel": "gemini-4-argon-high",
+  "response": "{\"confidence\":0.95,\"evidence\":[\"src/presentation/controllers/StockController.ts: in StockController.receive(dto: ReceiveDto), `if (!Number.isInteger(dto.quantity) || dto.quantity <= 0) { throw new StockError('Received quantity must be a positive whole number'); }` enforces a domain invariant and throws `StockError` from `../../business/stock/StockError` (`src/business/stock/StockError.ts`), which belongs to the `domain` (`business`) layer.\"],\"pass\":false,\"reasoning\":\"`src/presentation/controllers/StockController.ts` is declared in the `presentation` layer (kind `presentation`), but `StockController.receive(dto: ReceiveDto)` enforces a domain invariant on stock quantities (`!Number.isInteger(dto.quantity) || dto.quantity <= 0`) and directly throws the domain error `StockError` (from `src/business/stock/StockError.ts`, layer `business`, kind `domain`). Domain invariants and domain error enforcement belong to the `domain` (`business`) layer rather than the `presentation` layer.\",\"violations\":[{\"filePath\":\"src/presentation/controllers/StockController.ts\",\"message\":\"StockController.receive enforces a domain invariant (`if (!Number.isInteger(dto.quantity) || dto.quantity <= 0)`) and throws the domain error `StockError` (from `src/business/stock/StockError.ts`, layer `business`, kind `domain`), which is a business rule belonging to the `domain` layer rather than `presentation`.\"}]}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/presentation/controllers/StockController.ts",
+  "usage": {
+    "inputTokens": 35338,
+    "outputTokens": 6744
+  },
+  "usedOptions": {
+    "model": "gemini-4-argon-high"
+  }
+}

@@ -166,3 +166,32 @@ raw file).
 | `known-divergences.json` | the expected `KNOWN` lines and their finding ids |
 | `expected/graph-fidelity/` | expected output of the graph-fidelity harness on the fixtures |
 | `smoke-2026-10-15.txt` | the full log of the final smoke run (commit `23e0d9ea`: 160 IDENTICAL, 4 KNOWN, exit 0, 4 min) |
+
+## 6. Part 2: number-level replication (`npm run replicate:v1.3`)
+
+Added after the results that landed on v1.3 after this package (the 54/54 FF-P06 correction, the Cypher interpreter
+and its parity claim, judge v2 CHECK and the filter, wild, MCP v2, construct switches, fieldstate/cheap-fix, model
+panel, pilot readiness, and the design docs). Write-up and full table: [`Docs/v1.3/replication-2.md`](../Docs/v1.3/replication-2.md).
+
+Every number stated in `Docs/DiagnosticRuns/v1.3-*.md` and `Docs/v1.3/*.md` that asserts a fact about a result or the
+repository is registered in `replication/v1.3/groups/*.mjs` with its doc file:line, the value as stated, and how it is
+produced. `replication/v1.3/run.mjs` runs every group whose inputs are committed (no Neo4j, no model, no network;
+API keys and `NEO4J_*` are removed from every child process) and prints a pass/fail table.
+
+```bash
+npm run replicate:v1.3                                   # every offline group (about 1.5 h; the slow ones are ap-hosts seeding, the interpreter regeneration, the smoke run)
+npm run replicate:v1.3 -- --fast                         # skip the groups marked slow
+node replication/v1.3/run.mjs --list                     # groups, number counts, what each needs
+node replication/v1.3/run.mjs --group a-ref-ffp06        # one group (the 54/54 correction)
+node replication/v1.3/run.mjs --number <id>              # the group of one number, and that row
+node replication/v1.3/run.mjs --json rows.json && node replication/v1.3/report.mjs rows.json   # the per-doc tables of replication-2.md
+```
+
+Statuses: `PASS`, `FAIL` (differs from the doc), `KNOWN` (differs, recorded in the group with the reproduced value and
+a one-line cause; it turns into `FAIL` if the reproduced value changes), `ERROR`; numbers that are not run carry
+`needs-LLM`, `needs-Neo4j`, `needs-external` (input outside the repository, e.g. the sealed manifests or
+`../daedalus-e1-outcomes`) or `not-checkable` (no committed output or log behind the number). Exit 0 iff no FAIL and no
+ERROR.
+
+Note: at the v1.3 head `smoke.sh` (§2) no longer exits 0. The ISE measure and cheap-proxy outputs changed after this
+package was built (see `Docs/v1.3/replication-2.md`, §3).

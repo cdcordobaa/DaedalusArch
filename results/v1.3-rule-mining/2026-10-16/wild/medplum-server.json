@@ -1,0 +1,2097 @@
+{
+ "id": "medplum-server",
+ "sha": "ab8adf08f9d8915534c5929752a9f14b4054a4da",
+ "label": "PROPOSED rules: mined from the code (deterministic, no LLM), not a reviewed spec. Review before use; exceptions are candidate violations, not confirmed ones.",
+ "style": "layered",
+ "styleConfidence": 0.667,
+ "layers": {
+  "business": 55,
+  "persistence": 428,
+  "presentation": 5
+ },
+ "allowedDependencies": [
+  "business>persistence",
+  "presentation>business",
+  "presentation>persistence"
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "statement": "persistence must not depend on business (231 edges business -> persistence; 7/428 persistence files import business)",
+   "subject": "persistence",
+   "object": "business",
+   "confidence": 0.925,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 428,
+    "importingFiles": 7,
+    "edges": 13,
+    "reverseEdges": 231
+   },
+   "exceptions": [
+    {
+     "file": "src/config/loader.ts",
+     "target": "src/cloud/azure/config.ts"
+    },
+    {
+     "file": "src/config/loader.ts",
+     "target": "src/cloud/gcp/config.ts"
+    },
+    {
+     "file": "src/fhir/operations/projectinit.ts",
+     "target": "src/admin/client.ts"
+    },
+    {
+     "file": "src/fhir/operations/projectinit.ts",
+     "target": "src/auth/newuser.ts"
+    },
+    {
+     "file": "src/fhir/operations/projectinit.ts",
+     "target": "src/auth/utils.ts"
+    },
+    {
+     "file": "src/fhir/operations/smarthealthlinks.ts",
+     "target": "src/auth/utils.ts"
+    },
+    {
+     "file": "src/fhir/operations/update-user-email.ts",
+     "target": "src/auth/verifyemail.ts"
+    },
+    {
+     "file": "src/oauth/token.ts",
+     "target": "src/auth/me.ts"
+    },
+    {
+     "file": "src/oauth/token.ts",
+     "target": "src/auth/utils.ts"
+    },
+    {
+     "file": "src/oauth/utils.ts",
+     "target": "src/auth/me.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "statement": "persistence must not depend on presentation (38 edges presentation -> persistence; 0/428 persistence files import presentation)",
+   "subject": "persistence",
+   "object": "presentation",
+   "confidence": 0.972,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 428,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 38
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "statement": "business must not depend on presentation (15 edges presentation -> business; 0/55 business files import presentation)",
+   "subject": "business",
+   "object": "presentation",
+   "confidence": 0.921,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 55,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 15
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-004",
+   "kind": "component-direction",
+   "statement": "folder component migrations must not depend on admin (3 imports admin -> migrations; 0/185 files import back)",
+   "subject": "folder:migrations",
+   "object": "folder:admin",
+   "confidence": 0.746,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 185,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 3
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-005",
+   "kind": "component-direction",
+   "statement": "folder component otel must not depend on ws (5 imports ws -> otel; 0/2 files import back)",
+   "subject": "folder:otel",
+   "object": "folder:ws",
+   "confidence": 0.556,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 2,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 5
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-006",
+   "kind": "component-direction",
+   "statement": "folder component otel must not depend on bots (1 imports bots -> otel; 0/2 files import back)",
+   "subject": "folder:otel",
+   "object": "folder:bots",
+   "confidence": 0.333,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 2,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-007",
+   "kind": "component-direction",
+   "statement": "folder component otel must not depend on fhir (5 imports fhir -> otel; 0/2 files import back)",
+   "subject": "folder:otel",
+   "object": "folder:fhir",
+   "confidence": 0.556,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 2,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 5
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-008",
+   "kind": "component-direction",
+   "statement": "folder component oauth must not depend on keyvalue (1 imports keyvalue -> oauth; 0/12 files import back)",
+   "subject": "folder:oauth",
+   "object": "folder:keyvalue",
+   "confidence": 0.462,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 12,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-009",
+   "kind": "component-direction",
+   "statement": "folder component oauth must not depend on mcp (1 imports mcp -> oauth; 0/12 files import back)",
+   "subject": "folder:oauth",
+   "object": "folder:mcp",
+   "confidence": 0.462,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 12,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-010",
+   "kind": "component-direction",
+   "statement": "folder component oauth must not depend on ws (4 imports ws -> oauth; 0/12 files import back)",
+   "subject": "folder:oauth",
+   "object": "folder:ws",
+   "confidence": 0.738,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 12,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 4
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-011",
+   "kind": "component-direction",
+   "statement": "folder component oauth must not depend on auth (22 imports auth -> oauth; 2/12 files import back)",
+   "subject": "folder:oauth",
+   "object": "folder:auth",
+   "confidence": 0.627,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 12,
+    "importingFiles": 2,
+    "edges": 4,
+    "reverseEdges": 22
+   },
+   "exceptions": [
+    {
+     "file": "src/oauth/token.ts",
+     "target": "src/auth/me.ts"
+    },
+    {
+     "file": "src/oauth/token.ts",
+     "target": "src/auth/utils.ts"
+    },
+    {
+     "file": "src/oauth/utils.ts",
+     "target": "src/auth/me.ts"
+    },
+    {
+     "file": "src/oauth/utils.ts",
+     "target": "src/auth/mfalimit.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-012",
+   "kind": "component-direction",
+   "statement": "folder component oauth must not depend on cds (1 imports cds -> oauth; 0/12 files import back)",
+   "subject": "folder:oauth",
+   "object": "folder:cds",
+   "confidence": 0.462,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 12,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-013",
+   "kind": "component-direction",
+   "statement": "folder component oauth must not depend on bots (1 imports bots -> oauth; 0/12 files import back)",
+   "subject": "folder:oauth",
+   "object": "folder:bots",
+   "confidence": 0.462,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 12,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-014",
+   "kind": "component-direction",
+   "statement": "folder component oauth must not depend on email (1 imports email -> oauth; 0/12 files import back)",
+   "subject": "folder:oauth",
+   "object": "folder:email",
+   "confidence": 0.462,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 12,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-015",
+   "kind": "component-direction",
+   "statement": "folder component oauth must not depend on workers (4 imports workers -> oauth; 0/12 files import back)",
+   "subject": "folder:oauth",
+   "object": "folder:workers",
+   "confidence": 0.738,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 12,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 4
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-016",
+   "kind": "component-direction",
+   "statement": "folder component oauth must not depend on admin (6 imports admin -> oauth; 0/12 files import back)",
+   "subject": "folder:oauth",
+   "object": "folder:admin",
+   "confidence": 0.791,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 12,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 6
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-017",
+   "kind": "component-direction",
+   "statement": "folder component oauth must not depend on dicom (1 imports dicom -> oauth; 0/12 files import back)",
+   "subject": "folder:oauth",
+   "object": "folder:dicom",
+   "confidence": 0.462,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 12,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-018",
+   "kind": "component-direction",
+   "statement": "folder component oauth must not depend on scim (1 imports scim -> oauth; 0/12 files import back)",
+   "subject": "folder:oauth",
+   "object": "folder:scim",
+   "confidence": 0.462,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 12,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-019",
+   "kind": "component-direction",
+   "statement": "folder component storage must not depend on bots (2 imports bots -> storage; 0/7 files import back)",
+   "subject": "folder:storage",
+   "object": "folder:bots",
+   "confidence": 0.583,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 7,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 2
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-020",
+   "kind": "component-direction",
+   "statement": "folder component storage must not depend on email (1 imports email -> storage; 0/7 files import back)",
+   "subject": "folder:storage",
+   "object": "folder:email",
+   "confidence": 0.438,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 7,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-021",
+   "kind": "component-direction",
+   "statement": "folder component storage must not depend on workers (2 imports workers -> storage; 0/7 files import back)",
+   "subject": "folder:storage",
+   "object": "folder:workers",
+   "confidence": 0.583,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 7,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 2
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-022",
+   "kind": "component-direction",
+   "statement": "folder component storage must not depend on dicom (1 imports dicom -> storage; 0/7 files import back)",
+   "subject": "folder:storage",
+   "object": "folder:dicom",
+   "confidence": 0.438,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 7,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-023",
+   "kind": "component-direction",
+   "statement": "folder component storage must not depend on fhir (18 imports fhir -> storage; 1/7 files import back)",
+   "subject": "folder:storage",
+   "object": "folder:fhir",
+   "confidence": 0.643,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 7,
+    "importingFiles": 1,
+    "edges": 2,
+    "reverseEdges": 18
+   },
+   "exceptions": [
+    {
+     "file": "src/storage/routes.ts",
+     "target": "src/fhir/repo.ts"
+    },
+    {
+     "file": "src/storage/routes.ts",
+     "target": "src/fhir/sharding.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-024",
+   "kind": "component-direction",
+   "statement": "folder component ws must not depend on workers (1 imports workers -> ws; 0/6 files import back)",
+   "subject": "folder:ws",
+   "object": "folder:workers",
+   "confidence": 0.429,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 6,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-025",
+   "kind": "component-direction",
+   "statement": "folder component auth must not depend on admin (6 imports admin -> auth; 0/26 files import back)",
+   "subject": "folder:auth",
+   "object": "folder:admin",
+   "confidence": 0.825,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 26,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 6
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-026",
+   "kind": "component-direction",
+   "statement": "folder component config must not depend on migrations (1 imports migrations -> config; 0/4 files import back)",
+   "subject": "folder:config",
+   "object": "folder:migrations",
+   "confidence": 0.4,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 4,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-027",
+   "kind": "component-direction",
+   "statement": "folder component config must not depend on otel (1 imports otel -> config; 0/4 files import back)",
+   "subject": "folder:config",
+   "object": "folder:otel",
+   "confidence": 0.4,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 4,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-028",
+   "kind": "component-direction",
+   "statement": "folder component config must not depend on mcp (1 imports mcp -> config; 0/4 files import back)",
+   "subject": "folder:config",
+   "object": "folder:mcp",
+   "confidence": 0.4,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 4,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-029",
+   "kind": "component-direction",
+   "statement": "folder component config must not depend on oauth (7 imports oauth -> config; 0/4 files import back)",
+   "subject": "folder:config",
+   "object": "folder:oauth",
+   "confidence": 0.7,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 4,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 7
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-030",
+   "kind": "component-direction",
+   "statement": "folder component config must not depend on storage (3 imports storage -> config; 0/4 files import back)",
+   "subject": "folder:config",
+   "object": "folder:storage",
+   "confidence": 0.6,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 4,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 3
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-031",
+   "kind": "component-direction",
+   "statement": "folder component config must not depend on ws (3 imports ws -> config; 0/4 files import back)",
+   "subject": "folder:config",
+   "object": "folder:ws",
+   "confidence": 0.6,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 4,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 3
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-032",
+   "kind": "component-direction",
+   "statement": "folder component config must not depend on auth (9 imports auth -> config; 0/4 files import back)",
+   "subject": "folder:config",
+   "object": "folder:auth",
+   "confidence": 0.72,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 4,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 9
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-033",
+   "kind": "component-direction",
+   "statement": "folder component config must not depend on bots (2 imports bots -> config; 0/4 files import back)",
+   "subject": "folder:config",
+   "object": "folder:bots",
+   "confidence": 0.533,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 4,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 2
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-034",
+   "kind": "component-direction",
+   "statement": "folder component config must not depend on cloud (15 imports cloud -> config; 1/4 files import back)",
+   "subject": "folder:config",
+   "object": "folder:cloud",
+   "confidence": 0.474,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 4,
+    "importingFiles": 1,
+    "edges": 3,
+    "reverseEdges": 15
+   },
+   "exceptions": [
+    {
+     "file": "src/config/loader.ts",
+     "target": "src/cloud/aws/config.ts"
+    },
+    {
+     "file": "src/config/loader.ts",
+     "target": "src/cloud/azure/config.ts"
+    },
+    {
+     "file": "src/config/loader.ts",
+     "target": "src/cloud/gcp/config.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-035",
+   "kind": "component-direction",
+   "statement": "folder component config must not depend on email (4 imports email -> config; 0/4 files import back)",
+   "subject": "folder:config",
+   "object": "folder:email",
+   "confidence": 0.64,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 4,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 4
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-036",
+   "kind": "component-direction",
+   "statement": "folder component config must not depend on util (3 imports util -> config; 0/4 files import back)",
+   "subject": "folder:config",
+   "object": "folder:util",
+   "confidence": 0.6,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 4,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 3
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-037",
+   "kind": "component-direction",
+   "statement": "folder component config must not depend on workers (11 imports workers -> config; 0/4 files import back)",
+   "subject": "folder:config",
+   "object": "folder:workers",
+   "confidence": 0.733,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 4,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 11
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-038",
+   "kind": "component-direction",
+   "statement": "folder component config must not depend on fhircast (1 imports fhircast -> config; 0/4 files import back)",
+   "subject": "folder:config",
+   "object": "folder:fhircast",
+   "confidence": 0.4,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 4,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-039",
+   "kind": "component-direction",
+   "statement": "folder component config must not depend on admin (2 imports admin -> config; 0/4 files import back)",
+   "subject": "folder:config",
+   "object": "folder:admin",
+   "confidence": 0.533,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 4,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 2
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-040",
+   "kind": "component-direction",
+   "statement": "folder component config must not depend on scim (1 imports scim -> config; 0/4 files import back)",
+   "subject": "folder:config",
+   "object": "folder:scim",
+   "confidence": 0.4,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 4,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-041",
+   "kind": "component-direction",
+   "statement": "folder component config must not depend on fhir (40 imports fhir -> config; 1/4 files import back)",
+   "subject": "folder:config",
+   "object": "folder:fhir",
+   "confidence": 0.571,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 4,
+    "importingFiles": 1,
+    "edges": 1,
+    "reverseEdges": 40
+   },
+   "exceptions": [
+    {
+     "file": "src/config/loader.ts",
+     "target": "src/fhir/sharding.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-042",
+   "kind": "component-direction",
+   "statement": "folder component bots must not depend on webhook (2 imports webhook -> bots; 0/4 files import back)",
+   "subject": "folder:bots",
+   "object": "folder:webhook",
+   "confidence": 0.533,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 4,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 2
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-043",
+   "kind": "component-direction",
+   "statement": "folder component bots must not depend on ws (1 imports ws -> bots; 0/4 files import back)",
+   "subject": "folder:bots",
+   "object": "folder:ws",
+   "confidence": 0.4,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 4,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-044",
+   "kind": "component-direction",
+   "statement": "folder component bots must not depend on cds (2 imports cds -> bots; 0/4 files import back)",
+   "subject": "folder:bots",
+   "object": "folder:cds",
+   "confidence": 0.533,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 4,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 2
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-045",
+   "kind": "component-direction",
+   "statement": "folder component bots must not depend on workers (2 imports workers -> bots; 0/4 files import back)",
+   "subject": "folder:bots",
+   "object": "folder:workers",
+   "confidence": 0.533,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 4,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 2
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-046",
+   "kind": "component-direction",
+   "statement": "folder component cloud must not depend on workers (3 imports workers -> cloud; 0/17 files import back)",
+   "subject": "folder:cloud",
+   "object": "folder:workers",
+   "confidence": 0.708,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 17,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 3
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-047",
+   "kind": "component-direction",
+   "statement": "folder component cloud must not depend on admin (1 imports admin -> cloud; 0/17 files import back)",
+   "subject": "folder:cloud",
+   "object": "folder:admin",
+   "confidence": 0.472,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 17,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-048",
+   "kind": "component-direction",
+   "statement": "folder component email must not depend on auth (6 imports auth -> email; 0/3 files import back)",
+   "subject": "folder:email",
+   "object": "folder:auth",
+   "confidence": 0.643,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 3,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 6
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-049",
+   "kind": "component-direction",
+   "statement": "folder component email must not depend on admin (2 imports admin -> email; 0/3 files import back)",
+   "subject": "folder:email",
+   "object": "folder:admin",
+   "confidence": 0.5,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 3,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 2
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-050",
+   "kind": "component-direction",
+   "statement": "folder component util must not depend on migrations (1 imports migrations -> util; 0/17 files import back)",
+   "subject": "folder:util",
+   "object": "folder:migrations",
+   "confidence": 0.472,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 17,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-051",
+   "kind": "component-direction",
+   "statement": "folder component util must not depend on oauth (6 imports oauth -> util; 0/17 files import back)",
+   "subject": "folder:util",
+   "object": "folder:oauth",
+   "confidence": 0.81,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 17,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 6
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-052",
+   "kind": "component-direction",
+   "statement": "folder component util must not depend on ws (2 imports ws -> util; 0/17 files import back)",
+   "subject": "folder:util",
+   "object": "folder:ws",
+   "confidence": 0.63,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 17,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 2
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-053",
+   "kind": "component-direction",
+   "statement": "folder component util must not depend on auth (18 imports auth -> util; 0/17 files import back)",
+   "subject": "folder:util",
+   "object": "folder:auth",
+   "confidence": 0.895,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 17,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 18
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-054",
+   "kind": "component-direction",
+   "statement": "folder component util must not depend on bots (4 imports bots -> util; 1/17 files import back)",
+   "subject": "folder:util",
+   "object": "folder:bots",
+   "confidence": 0.593,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 17,
+    "importingFiles": 1,
+    "edges": 1,
+    "reverseEdges": 4
+   },
+   "exceptions": [
+    {
+     "file": "src/util/auditevent.ts",
+     "target": "src/bots/types.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-055",
+   "kind": "component-direction",
+   "statement": "folder component util must not depend on cloud (2 imports cloud -> util; 0/17 files import back)",
+   "subject": "folder:util",
+   "object": "folder:cloud",
+   "confidence": 0.63,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 17,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 2
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-056",
+   "kind": "component-direction",
+   "statement": "folder component util must not depend on email (1 imports email -> util; 0/17 files import back)",
+   "subject": "folder:util",
+   "object": "folder:email",
+   "confidence": 0.472,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 17,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-057",
+   "kind": "component-direction",
+   "statement": "folder component util must not depend on workers (6 imports workers -> util; 0/17 files import back)",
+   "subject": "folder:util",
+   "object": "folder:workers",
+   "confidence": 0.81,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 17,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 6
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-058",
+   "kind": "component-direction",
+   "statement": "folder component util must not depend on fhircast (1 imports fhircast -> util; 0/17 files import back)",
+   "subject": "folder:util",
+   "object": "folder:fhircast",
+   "confidence": 0.472,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 17,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-059",
+   "kind": "component-direction",
+   "statement": "folder component util must not depend on ai (1 imports ai -> util; 0/17 files import back)",
+   "subject": "folder:util",
+   "object": "folder:ai",
+   "confidence": 0.472,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 17,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-060",
+   "kind": "component-direction",
+   "statement": "folder component util must not depend on admin (5 imports admin -> util; 0/17 files import back)",
+   "subject": "folder:util",
+   "object": "folder:admin",
+   "confidence": 0.787,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 17,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 5
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-061",
+   "kind": "component-direction",
+   "statement": "folder component util must not depend on scim (1 imports scim -> util; 0/17 files import back)",
+   "subject": "folder:util",
+   "object": "folder:scim",
+   "confidence": 0.472,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 17,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-062",
+   "kind": "component-direction",
+   "statement": "folder component util must not depend on fhir (32 imports fhir -> util; 2/17 files import back)",
+   "subject": "folder:util",
+   "object": "folder:fhir",
+   "confidence": 0.762,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 17,
+    "importingFiles": 2,
+    "edges": 2,
+    "reverseEdges": 32
+   },
+   "exceptions": [
+    {
+     "file": "src/util/auditevent.ts",
+     "target": "src/fhir/repo.ts"
+    },
+    {
+     "file": "src/util/validator.ts",
+     "target": "src/fhir/outcomes.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-063",
+   "kind": "component-direction",
+   "statement": "folder component seeds must not depend on migrations (1 imports migrations -> seeds; 0/3 files import back)",
+   "subject": "folder:seeds",
+   "object": "folder:migrations",
+   "confidence": 0.375,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 3,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-064",
+   "kind": "component-direction",
+   "statement": "folder component seeds must not depend on admin (3 imports admin -> seeds; 0/3 files import back)",
+   "subject": "folder:seeds",
+   "object": "folder:admin",
+   "confidence": 0.563,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 3,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 3
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-065",
+   "kind": "component-direction",
+   "statement": "folder component workers must not depend on migrations (57 imports migrations -> workers; 2/15 files import back)",
+   "subject": "folder:workers",
+   "object": "folder:migrations",
+   "confidence": 0.724,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 15,
+    "importingFiles": 2,
+    "edges": 6,
+    "reverseEdges": 57
+   },
+   "exceptions": [
+    {
+     "file": "src/workers/post-deploy-migration.ts",
+     "target": "src/migrations/data/types.ts"
+    },
+    {
+     "file": "src/workers/post-deploy-migration.ts",
+     "target": "src/migrations/migrate.ts"
+    },
+    {
+     "file": "src/workers/post-deploy-migration.ts",
+     "target": "src/migrations/migration-utils.ts"
+    },
+    {
+     "file": "src/workers/post-deploy-migration.ts",
+     "target": "src/migrations/types.ts"
+    },
+    {
+     "file": "src/workers/reindex.ts",
+     "target": "src/migrations/data/types.ts"
+    },
+    {
+     "file": "src/workers/reindex.ts",
+     "target": "src/migrations/migration-utils.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-066",
+   "kind": "component-direction",
+   "statement": "folder component workers must not depend on admin (5 imports admin -> workers; 0/15 files import back)",
+   "subject": "folder:workers",
+   "object": "folder:admin",
+   "confidence": 0.781,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 15,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 5
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-067",
+   "kind": "component-direction",
+   "statement": "folder component fhircast must not depend on ws (1 imports ws -> fhircast; 0/2 files import back)",
+   "subject": "folder:fhircast",
+   "object": "folder:ws",
+   "confidence": 0.333,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 2,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-068",
+   "kind": "component-direction",
+   "statement": "folder component agent must not depend on ws (1 imports ws -> agent; 0/1 files import back)",
+   "subject": "folder:agent",
+   "object": "folder:ws",
+   "confidence": 0.25,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 1,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-069",
+   "kind": "component-direction",
+   "statement": "folder component agent must not depend on fhir (1 imports fhir -> agent; 0/1 files import back)",
+   "subject": "folder:agent",
+   "object": "folder:fhir",
+   "confidence": 0.25,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 1,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-070",
+   "kind": "component-direction",
+   "statement": "folder component ai must not depend on fhir (1 imports fhir -> ai; 0/1 files import back)",
+   "subject": "folder:ai",
+   "object": "folder:fhir",
+   "confidence": 0.25,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 1,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-071",
+   "kind": "component-direction",
+   "statement": "folder component admin must not depend on scim (2 imports scim -> admin; 0/7 files import back)",
+   "subject": "folder:admin",
+   "object": "folder:scim",
+   "confidence": 0.583,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 7,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 2
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-072",
+   "kind": "component-direction",
+   "statement": "folder component fhir must not depend on webhook (2 imports webhook -> fhir; 0/138 files import back)",
+   "subject": "folder:fhir",
+   "object": "folder:webhook",
+   "confidence": 0.662,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 138,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 2
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-073",
+   "kind": "component-direction",
+   "statement": "folder component fhir must not depend on keyvalue (1 imports keyvalue -> fhir; 0/138 files import back)",
+   "subject": "folder:fhir",
+   "object": "folder:keyvalue",
+   "confidence": 0.496,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 138,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-074",
+   "kind": "component-direction",
+   "statement": "folder component fhir must not depend on ws (5 imports ws -> fhir; 1/138 files import back)",
+   "subject": "folder:fhir",
+   "object": "folder:ws",
+   "confidence": 0.704,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 138,
+    "importingFiles": 1,
+    "edges": 1,
+    "reverseEdges": 5
+   },
+   "exceptions": [
+    {
+     "file": "src/fhir/repo.ts",
+     "target": "src/ws/subscriptions.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-075",
+   "kind": "component-direction",
+   "statement": "folder component fhir must not depend on auth (40 imports auth -> fhir; 3/138 files import back)",
+   "subject": "folder:fhir",
+   "object": "folder:auth",
+   "confidence": 0.863,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 138,
+    "importingFiles": 3,
+    "edges": 4,
+    "reverseEdges": 40
+   },
+   "exceptions": [
+    {
+     "file": "src/fhir/operations/projectinit.ts",
+     "target": "src/auth/newuser.ts"
+    },
+    {
+     "file": "src/fhir/operations/projectinit.ts",
+     "target": "src/auth/utils.ts"
+    },
+    {
+     "file": "src/fhir/operations/smarthealthlinks.ts",
+     "target": "src/auth/utils.ts"
+    },
+    {
+     "file": "src/fhir/operations/update-user-email.ts",
+     "target": "src/auth/verifyemail.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-076",
+   "kind": "component-direction",
+   "statement": "folder component fhir must not depend on seeds (6 imports seeds -> fhir; 0/138 files import back)",
+   "subject": "folder:fhir",
+   "object": "folder:seeds",
+   "confidence": 0.851,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 138,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 6
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-077",
+   "kind": "component-direction",
+   "statement": "folder component fhir must not depend on workers (28 imports workers -> fhir; 6/138 files import back)",
+   "subject": "folder:fhir",
+   "object": "folder:workers",
+   "confidence": 0.7,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 138,
+    "importingFiles": 6,
+    "edges": 9,
+    "reverseEdges": 28
+   },
+   "exceptions": [
+    {
+     "file": "src/fhir/operations/export.ts",
+     "target": "src/workers/bulk-export.ts"
+    },
+    {
+     "file": "src/fhir/operations/groupexport.ts",
+     "target": "src/workers/bulk-export.ts"
+    },
+    {
+     "file": "src/fhir/operations/projectarchive.ts",
+     "target": "src/workers/bulk-export.ts"
+    },
+    {
+     "file": "src/fhir/operations/set-accounts.ts",
+     "target": "src/workers/base.ts"
+    },
+    {
+     "file": "src/fhir/operations/set-accounts.ts",
+     "target": "src/workers/set-accounts.ts"
+    },
+    {
+     "file": "src/fhir/operations/set-accounts.ts",
+     "target": "src/workers/utils.ts"
+    },
+    {
+     "file": "src/fhir/operations/utils/asyncjobexecutor.ts",
+     "target": "src/workers/utils.ts"
+    },
+    {
+     "file": "src/fhir/repo.ts",
+     "target": "src/workers/index.ts"
+    },
+    {
+     "file": "src/fhir/repo.ts",
+     "target": "src/workers/subscription.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-078",
+   "kind": "component-direction",
+   "statement": "folder component fhir must not depend on fhircast (1 imports fhircast -> fhir; 0/138 files import back)",
+   "subject": "folder:fhir",
+   "object": "folder:fhircast",
+   "confidence": 0.496,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 138,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-079",
+   "kind": "component-direction",
+   "statement": "folder component fhir must not depend on admin (12 imports admin -> fhir; 1/138 files import back)",
+   "subject": "folder:fhir",
+   "object": "folder:admin",
+   "confidence": 0.845,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 138,
+    "importingFiles": 1,
+    "edges": 1,
+    "reverseEdges": 12
+   },
+   "exceptions": [
+    {
+     "file": "src/fhir/operations/projectinit.ts",
+     "target": "src/admin/client.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-080",
+   "kind": "component-direction",
+   "statement": "folder component fhir must not depend on dicom (3 imports dicom -> fhir; 0/138 files import back)",
+   "subject": "folder:fhir",
+   "object": "folder:dicom",
+   "confidence": 0.745,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 138,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 3
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-081",
+   "kind": "component-direction",
+   "statement": "folder component fhir must not depend on scim (1 imports scim -> fhir; 0/138 files import back)",
+   "subject": "folder:fhir",
+   "object": "folder:scim",
+   "confidence": 0.496,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 138,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-082",
+   "kind": "core-package-free",
+   "statement": "persistence (a core layer: it may depend on no other layer) imports none of @azure/identity, @azure/keyvault-secrets, @azure/storage-blob, @google-cloud/secret-manager, @google-cloud/storage, @modelcontextprotocol/sdk, bcrypt, bowser, compression, console, cors, crypto, dcmjs, dicomweb-multipart-parser, events, express, express-validator, fs, hibp, http, jose, json-schema, nodemailer, openapi3-ts, os, otplib, path, qrcode, rate-limiter-flexible, stream, zod",
+   "subject": "persistence",
+   "confidence": 0.918,
+   "level": "high",
+   "evidence": {
+    "coreFiles": 424,
+    "packages": 31
+   },
+   "exceptions": [
+    {
+     "file": "src/bots/utils.ts",
+     "target": "crypto"
+    },
+    {
+     "file": "src/bots/utils.ts",
+     "target": "express"
+    },
+    {
+     "file": "src/bots/utils.ts",
+     "target": "path"
+    },
+    {
+     "file": "src/cloud/aws/email.ts",
+     "target": "nodemailer"
+    },
+    {
+     "file": "src/cloud/aws/storage.ts",
+     "target": "crypto"
+    },
+    {
+     "file": "src/cloud/aws/storage.ts",
+     "target": "stream"
+    },
+    {
+     "file": "src/cloud/aws/textract.ts",
+     "target": "stream"
+    },
+    {
+     "file": "src/config/loader.ts",
+     "target": "crypto"
+    },
+    {
+     "file": "src/config/loader.ts",
+     "target": "fs"
+    },
+    {
+     "file": "src/config/loader.ts",
+     "target": "os"
+    }
+   ],
+   "params": {
+    "forbidden_imports": [
+     "@azure/identity",
+     "@azure/keyvault-secrets",
+     "@azure/storage-blob",
+     "@google-cloud/secret-manager",
+     "@google-cloud/storage",
+     "@modelcontextprotocol/sdk",
+     "bcrypt",
+     "bowser",
+     "compression",
+     "console",
+     "cors",
+     "crypto",
+     "dcmjs",
+     "dicomweb-multipart-parser",
+     "events",
+     "express",
+     "express-validator",
+     "fs",
+     "hibp",
+     "http",
+     "jose",
+     "json-schema",
+     "nodemailer",
+     "openapi3-ts",
+     "os",
+     "otplib",
+     "path",
+     "qrcode",
+     "rate-limiter-flexible",
+     "stream",
+     "zod"
+    ]
+   },
+   "compilesTo": null,
+   "notRepresentable": "domain-purity checks the domain-kind layer only (business), not persistence",
+   "status": "proposal"
+  }
+ ],
+ "counts": {
+  "rules": 82,
+  "high": 15,
+  "medium": 35,
+  "low": 32,
+  "exceptions": 174,
+  "notRepresentable": 1
+ },
+ "spec": {
+  "valid": true,
+  "errors": [],
+  "compiled": [
+   "dependency-direction",
+   "no-layer-skip"
+  ]
+ }
+}

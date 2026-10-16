@@ -21,7 +21,7 @@
  * | `--cassette-omit-prompt`        | off                                       |
  * | `--cassette-project-id <id>`    | none (entries carry no `projectId`)       |
  * | `--judge-cli <path>`            | `~/.firewall/judge-cli/node_modules/.bin/claude` when it exists, else `claude` |
- * | `--judge-version <v>`           | `v1` (the frozen judge; `v2` is the v1.3 development rubric, `judge-v2.ts`) |
+ * | `--judge-version <v>`           | `v1` (the frozen judge; `v2` is the v1.3 development rubric v2.1, `judge-v2.ts`; `v2.2` is `judge-v22.ts`) |
  *
  * The judge binary is the pinned CLI installed under its own prefix (ADR-022 item 5; ADR-018 pin), so the author's
  * own `claude` install can update without moving the judge. `ClaudeCliProvider` still refuses any other version

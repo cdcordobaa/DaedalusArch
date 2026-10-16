@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 14514,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "865af14aab7c6169317a61febce2e32bc41ad2ea76f71a9bca7b67e1c8898f44-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.6,
+    "evidence": [
+      "src/adapters/outbound/payment/CardPaymentAdapter.ts: class CardPaymentAdapter implements PaymentPort (outbound port implementation, infrastructure role)",
+      "authorise(): 'if (amountCents <= 0) return false; this.authorised.set(reference, amountCents);' acts as a stand-in card gateway declining invalid amounts",
+      "refund(): 'this.authorised.delete(reference);' removes the gateway-side authorisation state",
+      "private readonly held = new Spot('u5a', 0, false, 0); is never read or changed by any method, so it is dead code with no behaviour"
+    ],
+    "pass": true,
+    "reasoning": "CardPaymentAdapter implements the application's outbound PaymentPort and acts as a stand-in card gateway. authorise() keeps the authorisation in an in-memory map and refund() removes it, both of which are infrastructure work. Rejecting amounts of zero or less is how a real card gateway behaves, not a pricing or reservation business rule. The field 'held = new Spot(...)' creates a domain entity with hard-coded values but no method ever reads or changes it, so it adds no behaviour. It looks like dead code: worth removing, but not a misplaced responsibility under this rule. If it were used to hold or reserve a spot, that would be domain or application logic inside an infrastructure adapter. Confidence is moderate because the amount check and the stray domain object are borderline.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- adapters-inbound (kind: presentation): src/adapters/inbound/**\n- adapters-outbound (kind: infrastructure): src/adapters/outbound/**\n- config (kind: application): src/config/**\n\n## Unit\nKind: file\nId: src/adapters/outbound/payment/CardPaymentAdapter.ts\nLayer: adapters-outbound\nUnit files:\n- src/adapters/outbound/payment/CardPaymentAdapter.ts\n\n## Source\n=====SOURCE-BEGIN src/adapters/outbound/payment/CardPaymentAdapter.ts=====\nimport { PaymentPort } from '../../../application/ports/out/PaymentPort';\nimport { Spot } from '../../../domain/model/Spot';\n\nexport class CardPaymentAdapter implements PaymentPort {\n  private readonly held = new Spot('u5a', 0, false, 0);\n  private readonly authorised = new Map<string, number>();\n\n  async authorise(reference: string, amountCents: number): Promise<boolean> {\n    if (amountCents <= 0) return false;\n    this.authorised.set(reference, amountCents);\n    return true;\n  }\n\n  async refund(reference: string): Promise<void> {\n    this.authorised.delete(reference);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CardPaymentAdapter@src/adapters/outbound/payment/CardPaymentAdapter.ts\",\"to\":\"PaymentPort@src/application/ports/out/PaymentPort.ts\",\"type\":\"IMPLEMENTS\"},{\"from\":\"CardPaymentAdapter@src/adapters/outbound/payment/CardPaymentAdapter.ts\",\"to\":\"Spot@src/domain/model/Spot.ts\",\"type\":\"FLOWS_TO\"},{\"from\":\"src/adapters/outbound/payment/CardPaymentAdapter.ts\",\"to\":\"src/application/ports/out/PaymentPort.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/adapters/outbound/payment/CardPaymentAdapter.ts\",\"to\":\"src/domain/model/Spot.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/config/container.ts\",\"to\":\"src/adapters/outbound/payment/CardPaymentAdapter.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"adapters-outbound\",\"name\":\"CardPaymentAdapter\",\"path\":\"src/adapters/outbound/payment/CardPaymentAdapter.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Spot\",\"path\":\"src/domain/model/Spot.ts\"},{\"kind\":\"File\",\"layer\":\"adapters-outbound\",\"path\":\"src/adapters/outbound/payment/CardPaymentAdapter.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports/out/PaymentPort.ts\"},{\"kind\":\"File\",\"layer\":\"config\",\"path\":\"src/config/container.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/model/Spot.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"PaymentPort\",\"path\":\"src/application/ports/out/PaymentPort.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T03:02:42.712Z",
+  "repetition": 0,
+  "requestHash": "865af14aab7c6169317a61febce2e32bc41ad2ea76f71a9bca7b67e1c8898f44",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":1349}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.6,\\\"reasoning\\\":\\\"CardPaymentAdapter implements the application's outbound PaymentPort and acts as a stand-in card gateway. authorise() keeps the authorisation in an in-memory map and refund() removes it, both of which are infrastructure work. Rejecting amounts of zero or less is how a real card gateway behaves, not a pricing or reservation business rule. The field 'held = new Spot(...)' creates a domain entity with hard-coded values but no method ever reads or changes it, so it adds no behaviour. It looks like dead code: worth removing, but not a misplaced responsibility under this rule. If it were used to hold or reserve a spot, that would be domain or application logic inside an infrastructure adapter. Confidence is moderate because the amount check and the stray domain object are borderline.\\\",\\\"evidence\\\":[\\\"src/adapters/outbound/payment/CardPaymentAdapter.ts: class CardPaymentAdapter implements PaymentPort (outbound port implementation, infrastructure role)\\\",\\\"authorise(): 'if (amountCents <= 0) return false; this.authorised.set(reference, amountCents);' acts as a stand-in card gateway declining invalid amounts\\\",\\\"refund(): 'this.authorised.delete(reference);' removes the gateway-side authorisation state\\\",\\\"private readonly held = new Spot('u5a', 0, false, 0); is never read or changed by any method, so it is dead code with no behaviour\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.6,\"evidence\":[\"src/adapters/outbound/payment/CardPaymentAdapter.ts: class CardPaymentAdapter implements PaymentPort (outbound port implementation, infrastructure role)\",\"authorise(): 'if (amountCents <= 0) return false; this.authorised.set(reference, amountCents);' acts as a stand-in card gateway declining invalid amounts\",\"refund(): 'this.authorised.delete(reference);' removes the gateway-side authorisation state\",\"private readonly held = new Spot('u5a', 0, false, 0); is never read or changed by any method, so it is dead code with no behaviour\"],\"pass\":true,\"reasoning\":\"CardPaymentAdapter implements the application's outbound PaymentPort and acts as a stand-in card gateway. authorise() keeps the authorisation in an in-memory map and refund() removes it, both of which are infrastructure work. Rejecting amounts of zero or less is how a real card gateway behaves, not a pricing or reservation business rule. The field 'held = new Spot(...)' creates a domain entity with hard-coded values but no method ever reads or changes it, so it adds no behaviour. It looks like dead code: worth removing, but not a misplaced responsibility under this rule. If it were used to hold or reserve a spot, that would be domain or application logic inside an infrastructure adapter. Confidence is moderate because the amount check and the stray domain object are borderline.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/adapters/outbound/payment/CardPaymentAdapter.ts",
+  "usage": {
+    "inputTokens": 2876,
+    "outputTokens": 1349
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
