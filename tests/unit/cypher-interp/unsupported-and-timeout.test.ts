@@ -56,13 +56,15 @@ const UNSUPPORTED: readonly (readonly [string, string, RegExp])[] = [
   ['CALL db.labels()', 'CALL db.labels() YIELD label RETURN label', /CALL procedure/],
   ['CALL apoc.help()', "CALL apoc.help('coll')", /CALL procedure/],
   ['CALL of an apoc.coll function name', 'CALL apoc.coll.sort([2, 1])', /CALL procedure/],
-  ['CALL { } subquery', 'CALL { MATCH (n) RETURN n } RETURN n', /CALL \{ \} subquery/],
-  ['scoped CALL subquery', 'MATCH (n) CALL (n) { RETURN 1 AS one } RETURN one', /CALL \{ \} subquery/],
+  ['CALL { } subquery importing with WITH', 'MATCH (n) CALL { WITH n RETURN n.x AS x } RETURN x', /importing variables with WITH \(correlated\)/],
+  ['scoped CALL subquery', 'MATCH (n) CALL (n) { RETURN 1 AS one } RETURN one', /scoped CALL \( \) \{ \} subquery/],
+  ['OPTIONAL CALL subquery', 'OPTIONAL CALL { RETURN 1 AS one } RETURN one', /OPTIONAL CALL \{ \} subquery/],
+  ['CALL subquery in transactions', 'CALL { MATCH (n) RETURN n.x AS x } IN TRANSACTIONS RETURN x', /CALL \{ \} IN TRANSACTIONS/],
   ['another APOC function', "RETURN apoc.text.join(['a'], ',') AS x", /function apoc\.text\.join\(\)/],
   ['an apoc.coll function outside the three', 'RETURN apoc.coll.sum([1, 2]) AS x', /function apoc\.coll\.sum\(\)/],
   ['a GDS function', 'RETURN gds.version() AS x', /function gds\.version\(\)/],
   // Other read forms outside the subset.
-  ['UNION', 'MATCH (n) RETURN n UNION MATCH (n) RETURN n', /UNION/],
+  ['UNION outside CALL { }', 'MATCH (n) RETURN n UNION MATCH (n) RETURN n', /UNION outside a CALL \{ \} subquery/],
   ['quantified path pattern', 'MATCH (a)((x)-->(y)){1,3}(b) RETURN a', /quantified path pattern/],
 ];
 
@@ -72,6 +74,33 @@ describe('cypher-interp: unsupported syntax is rejected with a clear error', () 
     expect(e.code).toBe('CypherInterp.Unsupported');
     expect(e.message).toMatch(/^cypher-interp: unsupported: /);
     expect(e.message).toMatch(message);
+  });
+
+  it('runs an uncorrelated CALL { … UNION … } subquery (the v1.3 FF-P05 rewrite) as Neo4j does', async () => {
+    const repo = new MemoryGraphRepository();
+    const run = async (q: string): Promise<unknown[]> => {
+      const r = await repo.executeQuery(q);
+      if (!r.success) throw new Error(r.errors.map((e) => e.message).join('; '));
+      return r.data.records.map((x) => Object.values(x).map((v) => String(v)).join(','));
+    };
+    // Expected rows: Neo4j 5.26.24's answers to the same text.
+    expect(await run('CALL { UNWIND [1, 2, 2, 1.0] AS x RETURN x UNION UNWIND [2, 3, 1] AS x RETURN x } RETURN x')).toEqual(['1', '2', '3']);
+    expect(await run('CALL { UNWIND [1, 2, 2] AS x RETURN x UNION ALL UNWIND [2, 3] AS x RETURN x } RETURN x')).toEqual(['1', '2', '2', '2', '3']);
+    expect(await run('CALL { RETURN 1 AS a, 2 AS b UNION RETURN 2 AS b, 1 AS a UNION RETURN 3 AS a, 4 AS b } RETURN a, b')).toEqual(['1,2', '3,4']);
+    expect(await run('UNWIND [10, 20] AS o CALL { UNWIND [1, 2] AS x RETURN x UNION UNWIND [2] AS x RETURN x } RETURN o, x')).toEqual(['10,1', '10,2', '20,1', '20,2']);
+    expect(await run('CALL { UNWIND [3, 1, 2] AS x RETURN x ORDER BY x DESC LIMIT 2 UNION UNWIND [5] AS x RETURN x } RETURN x ORDER BY x')).toEqual(['2', '3', '5']);
+  });
+
+  it('fails a malformed CALL { } UNION with Neo4j\'s syntax errors', async () => {
+    for (const [q, msg] of [
+      ['CALL { RETURN 1 AS a UNION RETURN 2 AS b } RETURN a', /same return column names/],
+      ['CALL { RETURN 1 AS a UNION RETURN 2 AS a UNION ALL RETURN 3 AS a } RETURN a', /Invalid combination of UNION and UNION ALL/],
+      ['WITH 1 AS a CALL { RETURN 2 AS a } RETURN a', /already declared in outer scope/],
+    ] as const) {
+      const e = await rejection(q);
+      expect(e.code).toBe('Neo.ClientError.Statement.SyntaxError');
+      expect(e.message).toMatch(msg);
+    }
   });
 
   it('runs the three apoc.coll built-ins as functions', async () => {

@@ -89,7 +89,12 @@ export type Clause =
   | { readonly k: 'match'; readonly optional: boolean; readonly patterns: readonly PatternPart[]; readonly where: Expr | undefined }
   | { readonly k: 'unwind'; readonly expr: Expr; readonly alias: string }
   | { readonly k: 'with'; readonly projection: Projection; readonly where: Expr | undefined }
-  | { readonly k: 'return'; readonly projection: Projection };
+  | { readonly k: 'return'; readonly projection: Projection }
+  /**
+   * Uncorrelated `CALL { branch [UNION [ALL] branch]... }`: each branch is a read query ending in RETURN that sees no
+   * outer variable; `all` false = UNION (distinct). The v1.3 FF-P05 rewrite (`v13-signature-types.ts`) emits it.
+   */
+  | { readonly k: 'subquery'; readonly branches: readonly Query[]; readonly all: boolean; readonly columns: readonly string[] };
 
 export interface Query {
   readonly clauses: readonly Clause[];

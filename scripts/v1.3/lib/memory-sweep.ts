@@ -14,6 +14,7 @@ import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import type { CypherTemplate } from '../../../src/fitness-compiler/types.js';
 import { replaceExcludeMarkers } from '../../../src/fitness-compiler/exclude-injector.js';
 import { applyV13Rewrites } from '../../../src/fitness-compiler/v13-rewrites.js';
+import { applySignatureTypes } from '../../../src/fitness-compiler/v13-signature-types.js';
 import { UNIVERSAL_METRIC_QUERIES, UNIVERSAL_METRIC_QUERIES_LITERAL } from '../../../src/scoring-engine/universal-metrics.js';
 
 /**
@@ -218,7 +219,7 @@ export class ParityTee implements GraphRepository {
   }
 }
 
-/** The four texts the compiler can emit for a template: exclude marker off/on × v1.2E text / v1.3 rewrites. */
+/** The texts the compiler can emit for a template: exclude marker off/on × v1.2E text / v1.3 rewrites (/ FF-P05 signature types). */
 export function sweepTexts(t: CypherTemplate): { readonly variant: string; readonly text: string; readonly excludes: boolean }[] {
   const out: { variant: string; text: string; excludes: boolean }[] = [];
   for (const excludes of [false, true]) {
@@ -226,6 +227,12 @@ export function sweepTexts(t: CypherTemplate): { readonly variant: string; reado
     out.push({ variant: `v1.2e${excludes ? '+exclude' : ''}`, text: base, excludes });
     const v13 = applyV13Rewrites(t.functionName, base, { edgeViews: true, roleTokens: true });
     if (v13 !== base) out.push({ variant: `v1.3${excludes ? '+exclude' : ''}`, text: v13, excludes });
+    // The v1.3 FF-P05 signature-types rewrite (CALL { … UNION … }; fitness-compiler.ts applies it before instantiation).
+    const sig = applySignatureTypes(t);
+    if (sig !== t) {
+      const sigText = applyV13Rewrites(t.functionName, replaceExcludeMarkers(sig.template, excludes), { edgeViews: true, roleTokens: true, signatureTypes: true });
+      out.push({ variant: `v1.3+signature${excludes ? '+exclude' : ''}`, text: sigText, excludes });
+    }
   }
   return out;
 }

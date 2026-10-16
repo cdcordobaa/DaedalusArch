@@ -98,6 +98,39 @@ function runClause(clause: Clause, rows: Iterable<Row>, ctx: Ctx): Iterable<Row>
       return where === undefined ? projected : filter(projected, where, ctx);
     }
     case 'return': return project(clause.projection, rows, ctx);
+    case 'subquery': return subquery(clause, rows, ctx);
+  }
+}
+
+/**
+ * Uncorrelated `CALL { ... }`: the branches see no outer variable, so their rows are computed once and joined to
+ * every input row. UNION keeps the first of equivalent rows, branch by branch (Neo4j's Distinct over the Union).
+ */
+function* subquery(clause: Extract<Clause, { k: 'subquery' }>, rows: Iterable<Row>, ctx: Ctx): Generator<Row> {
+  let inner: Row[] | undefined;
+  for (const r of rows) {
+    if (inner === undefined) {
+      inner = [];
+      const seen = new Set<string>();
+      for (const b of clause.branches) {
+        for (const row of runClauses(b.clauses, [new Map()], ctx)) {
+          tick(ctx);
+          const out = new Map<string, Value>(clause.columns.map((c) => [c, row.get(c) ?? null]));
+          if (!clause.all) {
+            const k = [...out.values()].map(equivalenceKey).join('\u0000');
+            if (seen.has(k)) continue;
+            seen.add(k);
+          }
+          inner.push(out);
+        }
+      }
+    }
+    for (const c of clause.columns) if (r.has(c)) throw new CypherSyntaxError(`Variable \`${c}\` already declared in outer scope`);
+    for (const row of inner) {
+      const m = new Map(r);
+      for (const [k, v] of row) m.set(k, v);
+      yield m;
+    }
   }
 }
 

@@ -118,14 +118,47 @@ class Builder {
     const next = need(c, 'nextStatement');
     const regs = rules(next, 'regularQuery');
     if (regs.length !== 1) throw new CypherUnsupportedError('NEXT');
-    const reg = regs[0] as Ctx;
+    const { branches, all } = this.union(regs[0] as Ctx);
+    if (branches.length !== 1) throw new CypherUnsupportedError(`UNION${all ? ' ALL' : ''} outside a CALL { } subquery`);
+    return branches[0] as Query;
+  }
+
+  /** The branches of a `regularQuery` (one, or several joined by UNION / UNION ALL, not mixed). */
+  union(reg: Ctx): { branches: Query[]; all: boolean } {
     const union = rule(reg, 'union');
     if (union === undefined) throw new CypherUnsupportedError('WHEN query');
-    const singles = rules(union, 'singleQuery');
-    if (singles.length !== 1) throw new CypherUnsupportedError('UNION');
-    const single = singles[0] as Ctx;
-    if (rule(single, 'clause') === undefined) throw new CypherUnsupportedError('braced query');
-    return { clauses: rules(single, 'clause').map((cl) => this.clause(cl)) };
+    const alls = kids(union).filter((k) => isTok(k, 'ALL')).length;
+    const unions = kids(union).filter((k) => isTok(k, 'UNION')).length;
+    if (alls !== 0 && alls !== unions) throw new CypherSyntaxError('Invalid combination of UNION and UNION ALL');
+    const branches = rules(union, 'singleQuery').map((single) => {
+      if (rule(single, 'clause') === undefined) throw new CypherUnsupportedError('braced query');
+      return { clauses: rules(single, 'clause').map((cl) => this.clause(cl)) };
+    });
+    return { branches, all: unions > 0 && alls === unions };
+  }
+
+  /** `CALL { ... }`: only the uncorrelated read form (no scope, no importing WITH, no OPTIONAL, no IN TRANSACTIONS). */
+  subqueryClause(c: Ctx): Clause {
+    if (hasTok(c, 'OPTIONAL')) throw new CypherUnsupportedError('OPTIONAL CALL { } subquery');
+    if (rule(c, 'subqueryScope') !== undefined) throw new CypherUnsupportedError('scoped CALL ( ) { } subquery (correlated)');
+    if (rule(c, 'subqueryInTransactionsParameters') !== undefined) throw new CypherUnsupportedError('CALL { } IN TRANSACTIONS');
+    const q = need(c, 'queryWithLocalDefinitions');
+    if (rule(q, 'localDefinition') !== undefined) throw new CypherUnsupportedError('DEFINE');
+    const regs = rules(need(q, 'nextStatement'), 'regularQuery');
+    if (regs.length !== 1) throw new CypherUnsupportedError('NEXT');
+    const { branches, all } = this.union(regs[0] as Ctx);
+    let columns: string[] | undefined;
+    for (const b of branches) {
+      if (b.clauses[0]?.k === 'with') throw new CypherUnsupportedError('CALL { } subquery importing variables with WITH (correlated)');
+      const last = b.clauses[b.clauses.length - 1];
+      if (last?.k !== 'return' || last.projection.star) throw new CypherUnsupportedError('CALL { } subquery that does not end in RETURN with named columns');
+      const cols = last.projection.items.map((i) => i.alias);
+      if (columns === undefined) columns = cols;
+      else if (cols.length !== columns.length || cols.some((x) => !(columns ?? []).includes(x))) {
+        throw new CypherSyntaxError('All sub queries in an UNION must have the same return column names');
+      }
+    }
+    return { k: 'subquery', branches, all, columns: columns ?? [] };
   }
 
   clause(c: Ctx): Clause {
@@ -138,6 +171,7 @@ class Builder {
       }
       case 'returnClause': return { k: 'return', projection: this.returnBody(need(inner, 'returnBody'), 'RETURN') };
       case 'unwindClause': return { k: 'unwind', expr: this.expression(need(inner, 'expression')), alias: this.variable(need(inner, 'variable')) };
+      case 'subqueryClause': return this.subqueryClause(inner);
       default: {
         const r = ruleOf(inner) ?? '?';
         throw new CypherUnsupportedError(`${CLAUSE_NAMES[r] ?? `clause ${r}`} (${r}); the interpreter runs read-only MATCH / OPTIONAL MATCH / WITH / UNWIND / RETURN queries`);
