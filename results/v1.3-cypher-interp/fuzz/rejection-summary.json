@@ -3,12 +3,12 @@
   "rejection": {
    "queries": 3000,
    "notRejected": [],
-   "neo4jAcceptedReadOnly": 1686,
+   "neo4jAcceptedReadOnly": 1662,
    "byConstructAndCode": {
     "CALL apoc procedure: CypherInterp.Unsupported": 50,
     "CALL procedure: CypherInterp.Unsupported": 51,
     "CALL subquery (scoped): CypherInterp.Unsupported": 51,
-    "CALL subquery: CypherInterp.Unsupported": 51,
+    "CALL unit subquery without RETURN: CypherInterp.Unsupported": 51,
     "COLLECT subquery: CypherInterp.Unsupported": 51,
     "COUNT subquery: CypherInterp.Unsupported": 51,
     "CREATE INDEX (other shape): CypherInterp.Unsupported": 50,
@@ -29,10 +29,10 @@
     "Java regex \\A \\Z \\z: Neo.ClientError.Statement.SyntaxError": 1,
     "Java regex \\Q..\\E: CypherInterp.Unsupported": 48,
     "Java regex \\Q..\\E: Neo.ClientError.Statement.SyntaxError": 3,
-    "Java regex \\p{javaX}: CypherInterp.Unsupported": 49,
-    "Java regex \\p{javaX}: Neo.ClientError.Statement.SyntaxError": 2,
-    "Java regex inline flag mid-pattern: CypherInterp.Unsupported": 50,
-    "Java regex inline flag mid-pattern: Neo.ClientError.Statement.SyntaxError": 1,
+    "Java regex \\p{javaX}: CypherInterp.Unsupported": 50,
+    "Java regex \\p{javaX}: Neo.ClientError.Statement.SyntaxError": 1,
+    "Java regex inline flag mid-pattern: CypherInterp.Unsupported": 48,
+    "Java regex inline flag mid-pattern: Neo.ClientError.Statement.SyntaxError": 3,
     "Java regex possessive: CypherInterp.Unsupported": 50,
     "Java regex possessive: Neo.ClientError.Statement.SyntaxError": 1,
     "LOAD CSV: CypherInterp.Unsupported": 51,
@@ -47,8 +47,8 @@
     "UNION ALL: CypherInterp.Unsupported": 51,
     "UNION: CypherInterp.Unsupported": 51,
     "USE: CypherInterp.Unsupported": 51,
-    "WHERE in variable-length: CypherInterp.Unsupported": 43,
-    "WHERE in variable-length: Neo.ClientError.Statement.SyntaxError": 8,
+    "WHERE in variable-length: CypherInterp.Unsupported": 46,
+    "WHERE in variable-length: Neo.ClientError.Statement.SyntaxError": 5,
     "allShortestPaths: CypherInterp.Unsupported": 51,
     "dynamic label: CypherInterp.Unsupported": 50,
     "hint: CypherInterp.Unsupported": 51,
@@ -67,8 +67,8 @@
     "quantified relationship: CypherInterp.Unsupported": 51,
     "shortestPath: CypherInterp.Unsupported": 51,
     "simple CASE comma list: CypherInterp.Unsupported": 51,
-    "split with list: CypherInterp.Unsupported": 49,
-    "split with list: Neo.ClientError.Statement.SyntaxError": 2,
+    "split with list: CypherInterp.Unsupported": 50,
+    "split with list: Neo.ClientError.Statement.SyntaxError": 1,
     "stDev: CypherInterp.Unsupported": 49,
     "stDev: Neo.ClientError.Statement.SyntaxError": 2,
     "type predicate: CypherInterp.Unsupported": 51,
@@ -79,28 +79,43 @@
    "mutants": 3000,
    "graph": "seed 2 (21 nodes, 15 edges, 1 layers)",
    "tally": {
-    "both error, different code": 9,
+    "both error, different code": 11,
     "both error, same code": 2772,
     "empty mutant (skipped)": 10,
-    "interp unsupported": 28,
-    "mismatch:interp rows, neo4j error": 13,
-    "ok": 163,
-    "quirk:T20-plan-order-error": 2,
+    "interp unsupported": 32,
+    "mismatch:interp rows, neo4j error": 18,
+    "ok": 152,
+    "quirk:T1-no-order-by": 1,
+    "quirk:T20-plan-order-error": 1,
     "quirk:T8-order-by-tie": 3
    },
    "disagreements": [
     {
-     "base": "nondeterminism-in-core [v1.2e]",
+     "base": "deep-import-declared-api [v1.2e]",
      "verdict": "mismatch:interp rows, neo4j error",
-     "text": "MATCH (m)-[r:PERFORMS_IO]->(io:IOCategory)\nWHERE (m.layer = $domainLayer OR m.layer IN $applicationLayers)\n  AND io.name IN ['clock', 'random', 'env', r]\n  AND NONE(sp IN $testPatterns WHERE m + 1.filePath =~ sp) \nRETURN m.filePath AS filePath, m.name AS member, r.layer AS layer, io.name AS category, m.apis AS apis, 'process'.line AS line, r.lines AS lines\nORDER BY filePath, member, category",
-     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected Map, Node, Relationship, Point, Duration, Date, Time, LocalTime, LocalDateTime or DateTime but was Integer (line 4, column 42 (offset: 195))\n\"  AND NONE(sp IN $testPatterns WHE",
+     "text": "MATCH (s:File)-[d:DEEP_IMPORT]->(tf:File)\nWHERE d.publicApiDeclared = true\n  AND (s.layer IS NULL OR NOT s.layer IN $compositionRootLayers) AND NONE(sp IN $compositionRootPatterns WHERE s.filePath =~ sp)\n  AND NONE(sp IN $testPatterns WHERE s.filePath <> -sp)\n  AND NOT (d.kind = 'module' AND ANY(sp IN $aclPatterns WHERE s.filePath =~ sp)) \nRETURN s.filePath AS filePath, tf.filePath AS target, d.component AS component, d.kind AS kind, d.line AS line\nORDER BY filePath, target",
+     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected Float or Integer but was String (line 4, column 53 (offset: 256))\n\"  AND NONE(sp IN $testPatterns WHERE s.filePath <> -sp)\"\n                                                    ",
      "interp": "0 rows"
     },
     {
-     "base": "component-main-sequence-distance [v1.2e]",
+     "base": "controller-no-entity [v1.2e]",
      "verdict": "mismatch:interp rows, neo4j error",
-     "text": "MATCH (c IS NULL:Component)\nWHERE c.kind <> 'layer' AND c.typeCount >= $minTypes\n  AND c.distance IS NOT NULL AND c.distance > $threshold\nRETURN c.name AS component, c.kind AS kind, c.abstractness AS abstractness, c.instability AS instability, c.distance AS distance, c.name AS filePath\nORDER BY kind, component",
-     "neo4j": "Neo.ClientError.Statement.SyntaxError: Invalid input 'NULL': expected an identifier, '$', '%' or '(' (line 1, column 13 (offset: 12))\n\"MATCH (c IS NULL:Component)\"\n             ^",
+     "text": "MATCH (ctrl:Class)-[:IMPORTS|CONSTRUCTOR_INJECTS*1..2]->(entity:Class)\nWHERE ctrl.layer = $controllerLayer AND entity.layer = $domainLayer\n  AND ANY(role IN $entityRoles WHERE entity.name CONTAINS role[0]) \nRETURN ctrl.name AS controller, entity.name AS entity, ctrl.filePath AS filePath\nORDER BY filePath, controller, entity",
+     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected List<T> but was String (line 3, column 59 (offset: 197))\n\"  AND ANY(role IN $entityRoles WHERE entity.name CONTAINS role[0])\"\n                                                  ",
+     "interp": "0 rows"
+    },
+    {
+     "base": "no-cyclic-deps [v1.3]",
+     "verdict": "both error, different code",
+     "text": "MATCH p = (f:File)-[_ev0:IMPORTS|RE_EXPORTS*2..10]->(f)\nWHERE ALL(_evr IN _ev0 WHERE NOT coalesce(_evr.viaReExport, false)) AND ALL(n IN nodes(p) WHERE n.filePath >= f.filePath)\n  AND size(apoc.coll.toSet(nodes(p)[['a', 1]..])) = length(p) \nWITH DISTINCT [n IN nodes(p) | n.filePath] AS cycle, relationships(p)[0].line AS firstLine\nWITH cycle, min(firstLine) AS line\nRETURN cycle, cycle[1] AS target, line\nORDER BY cycle\nLIMIT 101",
+     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected Integer but was List<T> (line 3, column 37 (offset: 214))\n\"  AND size(apoc.coll.toSet(nodes(p)[['a', 1]..])) = length(p)\"\n                                     ^",
+     "interp": "Neo.ClientError.Statement.TypeError: List slice bound must be an Integer, got List"
+    },
+    {
+     "base": "naming-controllers [v1.2e+exclude]",
+     "verdict": "mismatch:interp rows, neo4j error",
+     "text": "MATCH (c:Class)\nWHERE c.layer = $controllerLayer\n  AND ANY(dec IN c.decorators WHERE dec CONTAINS 'Controller')\n  AND NOT c.name =~ $pattern AND NONE(ep IN $excludePatterns WHERE c.filePath =~ ep)\nRETURN c + 1.name AS class, c.filePath AS filePath\nORDER BY filePath, class",
+     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected Map, Node, Relationship, Point, Duration, Date, Time, LocalTime, LocalDateTime or DateTime but was Integer (line 5, column 12 (offset: 208))\n\"RETURN c + 1.name AS class, c.file",
      "interp": "0 rows"
     },
     {
@@ -111,39 +126,11 @@
      "interp": "Neo.ClientError.Statement.TypeError: avg() of a Node"
     },
     {
-     "base": "no-layer-skip [v1.3+exclude]",
+     "base": "core-isolation [v1.2e]",
      "verdict": "mismatch:interp rows, neo4j error",
-     "text": "MATCH (src:File)-[i:IMPORTS|RE_EXPORTS WHERE NOT coalesce(i.viaReExport, false)]->(tgt:File)\nWHERE src.layer IS NOT NULL AND tgt.layer IS NOT NULL\n  AND src.layer <> tgt.layer\n  AND NOT (src.layer + '>' AND true + tgt.layer) IN $allowedTransitions AND NONE(ep IN $excludePatterns WHERE src.filePath =~ ep)\nRETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tgt.layer AS tgtLayer,\n       type(i) AS relType,\n       CASE type(i) WHEN 'IMPORTS' THEN 'import' ELSE 're-export' END AS verb,\n       i.line AS line, i.lines AS lines, coalesce(i.isTypeOnly, false) AS isTypeOnly\nORDER BY source, target, relType",
-     "neo4j": "Neo.ClientError.Statement.SyntaxError: Coercion of list to boolean is not allowed. Please use `NOT isEmpty(...)` instead. (line 4, column 37 (offset: 212))\n\"  AND NOT (src.layer + '>' AND true + tgt.layer) IN $allowedTransitions AND NONE(e",
+     "text": "MATCH (src:File)-[i:IMPORTS|RE_EXPORTS]->(tgt:File)\nWHERE src.layer = $domainLayer AND tgt.layer IS NOT NULL AND tgt.layer <> $domainLayer \nRETURN src.filePath AS source, tgt.filePath AS target, tgt.layer AS violatingLayer,\n       type(i) AS relType,\n       CASE type(i) WHEN 'IMPORTS' THEN 'imports' ELSE 're-exports' END AS verb,\n       i.line AS line, i[0].lines AS lines, coalesce(i.isTypeOnly, false) AS isTypeOnly\nORDER BY source, target, relType",
+     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: node or relationship property key must be given as String, but was Integer (line 6, column 26 (offset: 357))\n\"       i.line AS line, i[0].lines AS lines, coalesce(i.isTypeOnly, false) A",
      "interp": "0 rows"
-    },
-    {
-     "base": "context-isolation [v1.3]",
-     "verdict": "both error, different code",
-     "text": "MATCH (src:File)-[i:IMPORTS|RE_EXPORTS WHERE NOT coalesce(i.viaReExport, false)]->(tgt:File)\nWITH src, tgt, i,\n     [r IN $contextRoots WHERE src.filePath STARTS WITH r] AS srcCtx,\n     [r IN $contextRoots WHERE tgt.filePath STARTS WITH r] AS tgtCtx\nWHERE size(srcCtx) > 0 AND size(tgtCtx) > 0 AND srcCtx[0] <> tgtCtx[0]\n  AND NONE(p IN $publicApiPatterns WHERE tgt.filePath =~ p)\n  AND NOT EXISTS {\n    MATCH (api:File)-[:RE_EXPORTS*1..]->(tgt)\n    WHERE api.filePath STARTS WITH tgtCtx[0] AND ANY(p IN $publicApiPatterns WHERE api.filePath =~ p)\n  }\n  AND NONE(p IN $aclPatterns WHERE src.filePath =~ p) \nRETURN src.filePath AS source, tgt.filePath AS target, srcCtx[0] AS sourceContext, tgtCtx[0] AS targetContext,\n       size(i) AS relType,\n       CASE type(i) WHEN 'IMPORTS' THEN 'imports' ELSE 're-exports' END AS verb,\n       i.line [0]AS line, i.lines AS lines, coalesce(i.isTypeOnly, false) AS isTypeOnly\nORDER BY source, target, relType",
-     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected String or List<T> but was Relationship (line 13, column 13 (offset: 730))\n\"       size(i) AS relType,\"\n             ^",
-     "interp": "Neo.ClientError.Statement.TypeError: size() expects a String or List, got Relationship"
-    },
-    {
-     "base": "no-cyclic-deps [v1.3+exclude]",
-     "verdict": "both error, different code",
-     "text": "MATCH p = (f:File)-[_ev0:IMPORTS|RE_EXPORTS*2..10]->(f)\nWHERE ALL(_evr IN _ev0 WHERE NOT coalesce(_evr.viaReExport, false)) AND ALL(n IN nodes(p) WHERE n.filePath >= f.filePath)\n  AND size(apoc.coll.toSet(nodes(p)[1..])) = length(p) AND NONE(n IN nodes(p) WHERE ANY(ep IN $excludePatterns WHERE n.filePath =~ ep))\nWITH DISTINCT [n IN nodes(p) | n.filePath] AS cycle, relationships(p)[0].line AS firstLine\nWITH cycle, min(firstLine) AS line\nRETURN cycle, cycle[1.name] AS target, line\nORDER BY cycle\nLIMIT 101",
-     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected Map, Node, Relationship, Point, Duration, Date, Time, LocalTime, LocalDateTime or DateTime but was Integer (line 6, column 21 (offset: 460))\n\"RETURN cycle, cycle[1.name] AS tar",
-     "interp": "Neo.ClientError.Statement.TypeError: Type mismatch: expected a map but was Long (property name)"
-    },
-    {
-     "base": "dependency-direction-graph [v1.3]",
-     "verdict": "mismatch:interp rows, neo4j error",
-     "text": "MATCH (src:File)-[i:IMPORTS|RE_EXPORTS WHERE NOT coalesce(i.viaReExport, false)]->(tgt:File)\nWHERE src.layer IS NOT NULL AND tgt.layer IS NOT NULL\n  AND src.layer <> tgt.layer\n  AND NOT (src.layer + '>' + tgt.layer) IN $allowedDependencies\n  AND (tgt.layer + '>' + src.layer) IN $allowedDependencies \nRETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tgt.layer AS tgtLayer,\n       type(i) AS relType,\n       CASE type(i) WHEN 'IMPORTS' THEN 'imports' ELSE 're-exports' END [0]AS verb,\n       i.line AS line, i.lines AS lines, coalesce(i.isTypeOnly, false) AS isTypeOnly\nORDER BY source, target, relType",
-     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected List<T> but was String (line 8, column 8 (offset: 436))\n\"       CASE type(i) WHEN 'IMPORTS' THEN 'imports' ELSE 're-exports' END [0]AS verb,\"\n        ^",
-     "interp": "0 rows"
-    },
-    {
-     "base": "judge-graph:edges",
-     "verdict": "mismatch:interp rows, neo4j error",
-     "text": "MATCH (a)-[r:IMPORTS|RE_EXPORTS|CONSTRUCTOR_INJECTS|FLOWS_TO|EXTENDS|IMPLEMENTS]->(b) WHERE NOT coalesce(r.viaReExport, false) WITH type(r) AS type, CASE WHEN a:File THEN a.filePath WHEN a:Class OR a:Interface THEN a.name + '@' .name+ a.filePath WHEN a:Package THEN a.name ELSE null END AS from, CASE WHEN b:File THEN b.filePath WHEN b:Class OR b:Interface THEN b.name + '@' + b.filePath WHEN b:Package THEN b.name ELSE null END AS to WHERE from IS NOT NULL AND to IS NOT NULL RETURN DISTINCT type, from, to ORDER BY type, from, to",
-     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected Map, Node, Relationship, Point, Duration, Date, Time, LocalTime, LocalDateTime or DateTime but was String (line 1, column 225 (offset: 224))\n\"MATCH (a)-[r:IMPORTS|RE_EXPORTS|CO",
-     "interp": "6 rows"
     },
     {
      "base": "universal-literal:abstractionRatio",
@@ -153,39 +140,88 @@
      "interp": "Neo.ClientError.Statement.TypeError: avg() of a Node"
     },
     {
-     "base": "bounded-context-modules [v1.2e]",
+     "base": "component-sdp-violation [v1.2e+exclude]",
      "verdict": "mismatch:interp rows, neo4j error",
-     "text": "MATCH (f:File)\nWHERE f.filePath STARTS WITH $sourceRoot\n  AND NONE(r IN NOT $contextRoots WHERE f.filePath STARTS WITH r)\n  AND NONE(p IN $outsidePatterns WHERE f.filePath =~ p) \nRETURN f.filePath AS filePath\nORDER BY filePath",
-     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected List<T> but was Boolean (line 3, column 17 (offset: 72))\n\"  AND NONE(r IN NOT $contextRoots WHERE f.filePath STARTS WITH r)\"\n                 ^",
+     "text": "MATCH (a:Component)-[d:DEPENDS_ON]->(b:Component)\nWHERE a.instability IS NOT NULL AND b.instability IS NOT  AND a.instability < b.instability\nRETURN a.name ",
+     "neo4j": "Neo.ClientError.Statement.SyntaxError: Invalid input 'AND': expected '::', 'NFC', 'NFD', 'NFKC', 'NFKD', 'NORMALIZED', 'NULL' or 'TYPED' (line 2, column 59 (offset: 108))\n\"WHERE a.instability IS NOT NULL AND b.instability IS NOT  AND a.ins",
      "interp": "0 rows"
     },
     {
-     "base": "dependency-direction-graph [v1.3]",
+     "base": "naming-conventions [v1.2e+exclude]",
      "verdict": "mismatch:interp rows, neo4j error",
-     "text": "MATCH (src:File)-[i:IMPORTS|RE_EXPORTS WHERE NOT coalesce(i.viaReExport, false)]->(tgt:File)\nWHERE src.layer IS NOT NULL AND tgt.layer IS NOT NULL\n  AND src.layer <> tgt.layer\n  AND NOT (src.layer + '>' + tgt.layer) IN $allowedDependencies\n  AND (tgt.layer % '>' + src.layer) IN $allowedDependencies \nRETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tgt.layer AS tgtLayer,\n       type(i) AS relType,\n       CASE type(i) WHEN 'IMPORTS' THEN 'imports' ELSE 're-exports' END AS verb,\n       i.line AS line, i.lines AS lines, coalesce(i.isTypeOnly, false) AS isTypeOnly\nORDER BY source, target, relType",
-     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected Float or Integer but was String (line 5, column 20 (offset: 259))\n\"  AND (tgt.layer % '>' + src.layer) IN $allowedDependencies\"\n                    ^",
+     "text": "MATCH (c:Class)\nWHERE c.layer IS NOT NULL\nWITH c, c.layer AS layer,\n     CASE\n       WHEN c.layer = $domainLayer THEN $domainPattern\n       WHEN c.layer IN $applicationLayers THEN $applicationPattern\n       WHEN c.layer = $infraLayer THEN $infraPattern\n       ELSE '.*'\n     END AS expectedPattern\nWHERE NOT c.name =~ expectedPattern [1..]AND NONE(ep IN $excludePatterns WHERE c.filePath =~ ep)\nRETURN c.name AS class, c.filePath AS filePath, layer, expectedPattern\nORDER BY filePath, class",
+     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected String but was List<T> (line 10, column 37 (offset: 334))\n\"WHERE NOT c.name =~ expectedPattern [1..]AND NONE(ep IN $excludePatterns WHERE c.filePath =~ ep)\"\n                   ",
      "interp": "0 rows"
     },
     {
-     "base": "domain-purity [v1.2e+exclude]",
+     "base": "aggregate-boundary [v1.2e]",
      "verdict": "mismatch:interp rows, neo4j error",
-     "text": "MATCH (src:File)-[i:IMPORTS|RE_EXPORTS]->(p:Package)\nWHERE src.layer = $domainLayer\n  AND ANY(fp IN $forbiddenImports WHERE p.name = fp OR (fp ENDS WITH '/*' AND p.name STARTS WITH left(fp, size(fp) - 1))) AND NONE(ep IN $excludePatterns WHERE src.filePath =~ ep)\nRETURN src.filePath AS source, p.name AS target, type(i) AS relType,\n       CASE type(i) WHEN 'IMPORTS' THEN 'imports' ELSE 're-exports' END AS verb,\n       i.line AS line, i.lines IS NOT lines, coalesce(i.isTypeOnly, false) AS isTypeOnly\nORDER BY source, target, relType",
-     "neo4j": "Neo.ClientError.Statement.SyntaxError: Invalid input 'lines': expected '::', 'NFC', 'NFD', 'NFKC', 'NFKD', 'NORMALIZED', 'NULL' or 'TYPED' (line 6, column 39 (offset: 452))\n\"       i.line AS line, i.lines IS NOT lines, coalesce(i.isTypeOnl",
+     "text": "UNWIND $aggregates AS agg\nMATCH (src:File)-[i:IMPORTS|RE_EXPORTS]->(tgt:File)\nWHERE ANY(p IN agg.innerEntities WHERE tgt.filePath =~ p)\n  AND  src.filePath =~ agg.module \nRETURN src.filePath AS source, tgt.filePath AS target, agg.name AS aggregate,\n       type(i) AS relType,\n       CASE type(i) WHEN 'IMPORTS' THEN 'imports' ELSE 're-exports' END AS verb,\n       i.line AS line, i.lines AS lines, coalesce(i.isTypeOnly, false) AS isTypeOnly\nORDER BY source, target- relType",
+     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected Float, Integer or Duration but was String (line 9, column 26 (offset: 467))\n\"ORDER BY source, target- relType\"\n                          ^",
      "interp": "0 rows"
     },
     {
-     "base": "dependency-direction-graph [v1.3+exclude]",
-     "verdict": "mismatch:interp rows, neo4j error",
-     "text": "MATCH (src:File)-[i:IMPORTS|RE_EXPORTS WHERE NOT coalesce(i.viaReExport, false)]->(tgt:File)\nWHERE src.layer IS NOT NULL AND tgt.layer IS NOT NULL\n  AND src.layer <> tgt.layer\n  AND NOT (src.layer + '>' + tgt.layer) IN $allowedDependencies\n  AND (tgt.layer + '>' + src.layer) IN $allowedDependencies AND NONE(ep IN $excludePatterns WHERE src.filePath =~ ep)\nRETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tgt.layer AS tgtLayer,\n       type(i) [1..]AS relType,\n       CASE type(i) WHEN 'IMPORTS' THEN 'imports' ELSE 're-exports' END AS verb,\n       i.line AS line, i.lines AS lines, coalesce(i.isTypeOnly, false) AS isTypeOnly\nORDER BY source, target, relType",
-     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected List<T> but was String (line 7, column 8 (offset: 466))\n\"       type(i) [1..]AS relType,\"\n        ^",
-     "interp": "0 rows"
-    },
-    {
-     "base": "no-cyclic-deps [v1.2e]",
+     "base": "module-fan-out [v1.2e+exclude]",
      "verdict": "both error, different code",
-     "text": "MATCH p = (f:File)-[:IMPORTS|RE_EXPORTS*2..10]->(f)\nWHERE ALL(n IN nodes(p) WHERE n.filePath >= f.filePath)\n  AND size(apoc.coll.toSet(nodes(p)[1..])) = length(p) \n[0]WITH DISTINCT [n IN nodes(p) | n.filePath] AS cycle, relationships(p)[0].line AS firstLine\nWITH cycle, min(firstLine) AS line\nRETURN cycle, cycle[1] AS target, line\nORDER BY cycle\nLIMIT 101",
-     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected List<T> but was Integer (line 3, column 46 (offset: 153))\n\"  AND size(apoc.coll.toSet(nodes(p)[1..])) = length(p)\"\n                                              ^",
-     "interp": "Neo.ClientError.Statement.TypeError: Cannot index Long with Long"
+     "text": "MATCH (f:File)-[:IMPORTS]->(dep:File)\nWITH f, count(DISTINCT dep) AS fanOut\nWHERE fanOut > $threshold AND NONE(ep IN $excludePatterns WHERE -f.filePath =~ ep)\nRETURN f.filePath AS filePath, f.name AS name, fanOut\nORDER BY filePath",
+     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected String but was Float or Integer (line 3, column 65 (offset: 140))\n\"WHERE fanOut > $threshold AND NONE(ep IN $excludePatterns WHERE -f.filePath =~ ep)\"\n                         ",
+     "interp": "Neo.ClientError.Statement.TypeError: Cannot negate String"
+    },
+    {
+     "base": "aggregate-boundary [v1.3]",
+     "verdict": "mismatch:interp rows, neo4j error",
+     "text": "UNWIND $aggregates AS agg\nMATCH (src:File)-[i:IMPORTS|RE_EXPORTS WHERE NOT coalesce(i.reExportHop, false)]->(tgt:File)\nWHERE ANY(p IN agg.innerEntities WHERE tgt.filePath =~ p)\n  AND NOT src.filePath =~ agg.module \nRETURN src.filePath AS source, tgt.filePath AS target, agg.name AS aggregate,\n       type(i) AS relType,\n       CASE type(i) WHEN 'IMPORTS' THEN 'imports' ELSE 're-exports' END AS verb,\n       i.line AS line, i.lines AS lines, coalesce(i + 1.isTypeOnly, false) AS isTypeOnly\nORDER BY source, target, relType",
+     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected Map, Node, Relationship, Point, Duration, Date, Time, LocalTime, LocalDateTime or DateTime but was Integer (line 8, column 55 (offset: 455))\n\"       i.line AS line, i.lines AS ",
+     "interp": "0 rows"
+    },
+    {
+     "base": "value-object-immutability [v1.2e]",
+     "verdict": "mismatch:interp rows, neo4j error",
+     "text": "MATCH (c:Class)-[:CONTAINS]->(m:Method)\nWHERE ANY(p IN $valueObjectPatterns WHERE c.filePath AND true =~ p)\n  AND coalesce(m.isStatic, false) = false\n  AND max(split(m.name, '.')) =~ $setterPattern \nRETURN c.filePath AS filePath, c.name AS class, m.name AS method\nORDER BY filePath, class, method",
+     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected String but was Boolean (line 2, column 58 (offset: 97))\n\"WHERE ANY(p IN $valueObjectPatterns WHERE c.filePath AND true =~ p)\"\n                                                  ",
+     "interp": "0 rows"
+    },
+    {
+     "base": "boundary-type-leak [v1.2e+exclude]",
+     "verdict": "mismatch:interp rows, neo4j error",
+     "text": "MATCH (m)-[u:SIGNATURE_USES]->(ty)\nWHERE u.publicSurface = true\n  AND (m.layer = $controllerLayer OR m.layer IN $applicationLayers)\n  AND ty.layer = $infraLayer AND m.layer <> ty.ENDS\n  AND (m.layer IS NULL OR NOT m.layer IN $compositionRootLayers) AND NONE(sp IN NOT $compositionRootPatterns WHERE m.filePath =~ sp)\n  AND NONE(sp IN $testPatterns WHERE m.filePath =~ sp) AND NONE(ep IN $excludePatterns WHERE m.filePath =~ ep)\nRETURN m.filePath AS filePath, m.name AS member, ty.name AS leakedType, ty.filePath AS target,\n       m.layer AS fromLayer, ty.layer AS toLayer, u.positions AS positions, u.inferred AS inferred\nORDER BY filePath, member, leakedType",
+     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected List<T> but was Boolean (line 5, column 81 (offset: 264))\n\"  AND (m.layer IS NULL OR NOT m.layer IN $compositionRootLayers) AND NONE(sp IN NOT $compositionRootPatterns WHERE m.",
+     "interp": "0 rows"
+    },
+    {
+     "base": "single-responsibility-proxy [v1.2e]",
+     "verdict": "mismatch:interp rows, neo4j error",
+     "text": "MATCH (c:Class)\nOPTIONAL MATCH (filePath)-[:CONTAINS]->(m:Method)\nOPTIONAL MATCH (c)-[:CONSTRUCTOR_INJECTS]->(dep)\nWITH c, count(DISTINCT m) AS methodCount, count(DISTINCT -dep) AS depCount\nWHERE (methodCount > $maxPublicMethods OR depCount > $maxDependencies) \nRETURN c.name AS class, c.c AS filePath, methodCount, depCount\nORDER BY filePath, class",
+     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected Float or Integer but was Node (line 4, column 59 (offset: 173))\n\"WITH c, count(DISTINCT m) AS methodCount, count(DISTINCT -dep) AS depCount\"\n                                   ",
+     "interp": "0 rows"
+    },
+    {
+     "base": "port-dependency-inversion [v1.2e+exclude]",
+     "verdict": "mismatch:interp rows, neo4j error",
+     "text": "MATCH (c:Class)-[:CONSTRUCTOR_INJECTS]->(dep)\nWHERE c.layer IN $applicationLayers\nWITH c, count(CASE WHEN dep:Interface THEN 1 END) AS interfaceDeps, count(dep) AS totalDeps\nWHERE totalDeps > 0 AND NONE(ep IN $excludePatterns =~ c.filePath WHERE ep)\nWITH c, toFloat(interfaceDeps) / totalDeps AS ratio\nWHERE ratio < $threshold\nRETURN c.name AS class, c.filePath AS filePath, ratio\nORDER BY filePath, class",
+     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected List<T> but was Boolean (line 4, column 53 (offset: 226))\n\"WHERE totalDeps > 0 AND NONE(ep IN $excludePatterns =~ c.filePath WHERE ep)\"\n                                        ",
+     "interp": "0 rows"
+    },
+    {
+     "base": "no-cyclic-deps [v1.3]",
+     "verdict": "both error, different code",
+     "text": "MATCH p = (f:File)-[_ev0:IMPORTS|RE_EXPORTS*2..10]->(f)\nWHERE ALL(_evr IN _ev0 WHERE NOT coalesce(_evr.viaReExport, false)) AND ALL(n IN nodes(p) WHERE n.filePath >= f.filePath)\n  AND size(apoc.coll.toSet(nodes(p)[1..[0]])) = length(p) \nWITH DISTINCT [n IN nodes(p) | n.filePath] AS cycle, relationships(p)[0].line AS firstLine\nWITH cycle, min(firstLine) AS line\nRETURN cycle, cycle[1] AS target, line\nORDER BY cycle\nLIMIT 101",
+     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected Integer but was List<Integer> (line 3, column 40 (offset: 217))\n\"  AND size(apoc.coll.toSet(nodes(p)[1..[0]])) = length(p)\"\n                                        ^",
+     "interp": "Neo.ClientError.Statement.TypeError: List slice bound must be an Integer, got List"
+    },
+    {
+     "base": "untested-component [v1.2e+exclude]",
+     "verdict": "mismatch:interp rows, neo4j error",
+     "text": "MATCH (f:File)\nWHERE f.`cheap.componentUntested` = 1 AND NONE(ep IN $excludePatterns WHERE f.filePath =~ ep)\nWITH f.`cheap.component` AS component, min(f.filePath) AS filePath, count(f) AS files\nRETURN filePath, component, files\n[0]ORDER BY component",
+     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected List<T> but was Integer (line 4, column 29 (offset: 223))\n\"RETURN filePath, component, files\"\n                             ^",
+     "interp": "0 rows"
+    },
+    {
+     "base": "universal:averageInstability",
+     "verdict": "mismatch:interp rows, neo4j error",
+     "text": "MATCH (f:File)\n      OPTIONAL MATCH (f)-[:IMPORTS]->(out:File)\n      OPTIONAL MATCH (f)<-[:IMPORTS]-(inc:File)\n      WITH f, count(DISTINCT out) AS fo, collect(DISTINCT inc) AS fi\n      WHERE fo + fi > 0\n      RETURN avg((fo) / (fo + fi)) AS val",
+     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected Float or Integer but was List<Any> (line 6, column 29 (offset: 232))\n\"      RETURN avg((fo) / (fo + fi)) AS val\"\n                             ^",
+     "interp": "1 rows"
     },
     {
      "base": "no-cyclic-deps [v1.2e+exclude]",
@@ -195,25 +231,18 @@
      "interp": "Neo.ClientError.Statement.TypeError: List index must be an Integer, got Double"
     },
     {
-     "base": "no-index-logic [v1.2e]",
+     "base": "component-instability [v1.3]",
      "verdict": "both error, different code",
-     "text": "MATCH (f:File)\nWHERE  + 1f.isBarrel = true OR f.name IN ['index.ts', 'index.tsx']\nMATCH (f)-[:DECLARES]->(decl)\nWHERE NOT decl:Function OR decl.name IS NOT NULL\nWITH f, count(decl) AS declCount\nWHERE declCount > 0 \nRETURN f.filePath AS filePath, declCount\nORDER BY filePath",
-     "neo4j": "Neo.ClientError.Statement.SyntaxError: invalid literal number (line 2, column 10 (offset: 24))\n\"WHERE  + 1f.isBarrel = true OR f.name IN ['index.ts', 'index.tsx']\"\n          ^",
-     "interp": "Neo.ClientError.Statement.TypeError: Type mismatch: expected a map but was Double (property isBarrel)"
+     "text": "MATCH (f:File)\nWHERE f.layer IS NOT NULL\nOPTIONAL MATCH (f)<-[_ev0:IMPORTS WHERE NOT coalesce(_ev0.viaReExport, false)]-(incoming:File)\nOPTIONAL MATCH (f)-[_ev1:IMPORTS WHERE NOT coalesce(_ev1.viaReExport, false)]->(outgoing:File)\nWITH f, count(DISTINCT incoming) AS fanIn, count(DISTINCT outgoing) AS fanOut\nWHERE fanIn + fanOut > 0\nWITH f, fanIn, fanOut, toBoolean(fanOut) / (fanIn + fanOut) AS instability\nWHERE instability > $threshold \nRETURN f.filePath AS filePath, f.layer AS layer, f.name AS name, instability\nORDER BY filePath",
+     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected Float, Integer or Duration but was Boolean (line 7, column 24 (offset: 357))\n\"WITH f, fanIn, fanOut, toBoolean(fanOut) / (fanIn + fanOut) AS instability\"\n                      ",
+     "interp": "Neo.ClientError.Statement.TypeError: Cannot apply / to Boolean and Long"
     },
     {
-     "base": "context-isolation [v1.2e+exclude]",
-     "verdict": "mismatch:interp rows, neo4j error",
-     "text": "MATCH (src:File)-[i:IMPORTS|RE_EXPORTS]->(tgt:File)\nWITH src, tgt, i,\n     [r IN $contextRoots WHERE src.filePath STARTS WITH r] AS srcCtx,\n     [r IN $contextRoots WHERE tgt.filePath STARTS WITH r] AS tgtCtx\nWHERE size(srcCtx) > 0 AND size(tgtCtx) > 0 AND srcCtx[0] <> tgtCtx[0]\n  AND NONE(p IN $publicApiPatterns WHERE tgt.filePath =~ p)\n  AND NOT EXISTS {\n    MATCH (api:File)-[:RE_EXPORTS*1..]->(tgt)\n    WHERE api.filePath STARTS WITH tgtCtx[0] AND ANY(p IN $publicApiPatterns WHERE false.filePath =~ p)\n  }\n  AND NONE(p IN $aclPatterns WHERE src.filePath =~ p) AND NONE(ep IN $excludePatterns WHERE src.filePath =~ ep)\nRETURN src.filePath AS source, tgt.filePath AS target, srcCtx[0] AS sourceContext, tgtCtx[0] AS targetContext,\n       type(i) AS relType,\n       CASE type(i) WHEN 'IMPORTS' THEN 'imports' ELSE 're-exports' END AS verb,\n       i.line AS line, i.lines AS lines, coalesce(i.isTypeOnly, false) AS isTypeOnly\nORDER BY source, target, relType",
-     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected Map, Node, Relationship, Point, Duration, Date, Time, LocalTime, LocalDateTime or DateTime but was Boolean (line 9, column 84 (offset: 488))\n\"    WHERE api.filePath STARTS WITH",
-     "interp": "2 rows"
-    },
-    {
-     "base": "dependency-inversion [v1.2e]",
-     "verdict": "mismatch:interp rows, neo4j error",
-     "text": "MATCH (c:Class)-[:CONSTRUCTOR_INJECTS]->(dep)\nWHERE c.layer IN $applicationLayers\nWITH c, count(CASE WHEN dep:Interface THEN 1 END) AS interfaceDeps, count(dep) AS totalDeps\nWHERE totalDeps > 0 \nWITH c, toBoolean(interfaceDeps) / totalDeps AS ratio\nWHERE ratio < $threshold\nRETURN c.name AS class, c.filePath AS filePath, ratio\nORDER BY filePath, class",
-     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected Float, Integer or Duration but was Boolean (line 5, column 9 (offset: 203))\n\"WITH c, toBoolean(interfaceDeps) / totalDeps AS ratio\"\n         ^",
-     "interp": "0 rows"
+     "base": "no-cyclic-deps [v1.2e]",
+     "verdict": "both error, different code",
+     "text": "MATCH p = (f:File)-[:IMPORTS|RE_EXPORTS*2..10]->(f)\nWHERE ALL(n IN nodes(p) WHERE n.filePath >= f.filePath)\n  AND size(apoc.coll.toSet(nodes(p)[1..])) = length(p) \nWITH DISTINCT [n IN nodes(p) | n.filePath] AS cycle, relationships(p)[0].line AS firstLine\nWITH cycle, min(firstLine) AS line\nRETURN cycle, cycle + 1[1] AS target, line\nORDER BY cycle\nLIMIT 101",
+     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected List<T> but was Integer (line 6, column 23 (offset: 312))\n\"RETURN cycle, cycle + 1[1] AS target, line\"\n                       ^",
+     "interp": "Neo.ClientError.Statement.TypeError: Cannot index Long with Long"
     },
     {
      "base": "universal-literal:cyclicDependencyCount",
@@ -223,13 +252,6 @@
      "interp": "Neo.ClientError.Statement.TypeError: sum() of a Node"
     },
     {
-     "base": "module-fan-out [v1.2e+exclude]",
-     "verdict": "mismatch:interp rows, neo4j error",
-     "text": "MATCH (f:File)-[:IMPORTS]->(dep:File)\nWITH f, count(DISTINCT dep) AS fanOut\nWHERE fanOut > $threshold AND NONE(ep IN $excludePatterns WHERE f.filePath =~ false)\nRETURN f.filePath AS filePath, f.name AS name, fanOut\nORDER BY filePath",
-     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected String but was Boolean (line 3, column 79 (offset: 154))\n\"WHERE fanOut > $threshold AND NONE(ep IN $excludePatterns WHERE f.filePath =~ false)\"\n                                ",
-     "interp": "0 rows"
-    },
-    {
      "base": "no-cyclic-deps [v1.2e]",
      "verdict": "both error, different code",
      "text": "MATCH p = (f:File)-[:IMPORTS|RE_EXPORTS*2..10]->(f)\nWHERE ALL(n IN nodes(p) WHERE n.filePath >= f.filePath)\n  AND size(apoc.coll.toSet(nodes(p)[1..])) = length(p) \nWITH DISTINCT [n IN nodes(p) | n.filePath] AS cycle, relationships(p)['x'].line AS firstLine\nWITH DISTINCT cycle, min(firstLine) AS line\nRETURN cycle, cycle[1] AS target, line\nORDER BY cycle\nLIMIT 101",
@@ -237,10 +259,38 @@
      "interp": "Neo.ClientError.Statement.TypeError: List index must be an Integer, got String"
     },
     {
-     "base": "domain-event-placement [v1.2e+exclude]",
+     "base": "repository-aggregate-root [v1.3+exclude]",
      "verdict": "mismatch:interp rows, neo4j error",
-     "text": "MATCH (c:Class)-[:IMPLEMENTS|EXTENDS*1..]->(e)\nWHERE e.name IN $domainEventTypes\n  [0]AND (c.layer IS NULL OR NOT c.layer IN $domainLayers) AND NONE(ep IN $excludePatterns WHERE c.filePath =~ ep)\nRETURN DISTINCT c.filePath AS filePath, c.name AS class, c.layer AS layer\nORDER BY filePath, class",
-     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected List<T> but was String (line 3, column 4 (offset: 84))\n\"  [0]AND (c.layer IS NULL OR NOT c.layer IN $domainLayers) AND NONE(ep IN $excludePatterns WHERE c.filePath =~ ep)\"\n    ",
+     "text": "UNWIND $aggregates AS agg\nMATCH (src:File)-[i:IMPORTS|RE_EXPORTS WHERE NOT coalesce(i.reExportHop, false)]->(tgt:File)\nWHERE ANY(p IN $repositoryPatterns WHERE src.filePath =~ p)\n  AND ANY(p IN agg.innerEntities WHERE tgt.filePath [1..]=~ p) AND NONE(ep IN $excludePatterns WHERE src.filePath =~ ep)\nRETURN src.filePath AS source, tgt.filePath AS target, agg.name AS aggregate,\n       type(i) AS relType,\n       CASE type(i) WHEN 'IMPORTS' THEN 'imports' ELSE 're-exports' END AS verb,\n       i.line AS line, i.lines AS lines, coalesce(i.isTypeOnly, false) AS isTypeOnly\nORDER BY source, target, relType",
+     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected String but was List<Boolean>, List<Float>, List<Integer>, List<Number>, List<Point>, List<String>, List<Duration>, List<Date>, List<Time>, List<LocalTime>, List<LocalDateTime> ",
+     "interp": "0 rows"
+    },
+    {
+     "base": "boundary-type-leak [v1.2e+exclude]",
+     "verdict": "mismatch:interp rows, neo4j error",
+     "text": "MATCH (m)-[u:SIGNATURE_USES]->(ty)\nWHERE u.publicSurface = true\n  AND (m.layer = $controllerLayer OR m.layer IN $applicationLayers)\n  AND ty.layer = $infraLayer AND m.layer <> ty.layer\n  AND (m.layer IS NULL OR NOT m.layer IN $compositionRootLayers) AND NONE(sp IN $compositionRootPatterns WHERE false.filePath =~ sp)\n  AND NONE(sp IN $testPatterns WHERE m.filePath =~ sp) AND NONE(ep IN $excludePatterns WHERE m.filePath =~ ep)\nRETURN m.filePath AS filePath, m.name AS member, ty.name AS leakedType, ty.filePath AS target,\n       m.layer AS fromLayer, ty.layer AS toLayer, u.positions AS positions, u.inferred AS inferred\nORDER BY filePath, member, leakedType",
+     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected Map, Node, Relationship, Point, Duration, Date, Time, LocalTime, LocalDateTime or DateTime but was Boolean (line 5, column 112 (offset: 296))\n\"  AND (m.layer IS NULL OR NOT m.l",
+     "interp": "0 rows"
+    },
+    {
+     "base": "judge-graph:edges",
+     "verdict": "both error, different code",
+     "text": "MATCH (a)-[r:IMPORTS|RE_EXPORTS|CONSTRUCTOR_INJECTS|FLOWS_TO|EXTENDS|IMPLEMENTS]->(b) WHERE NOT coalesce(r.viaReExport, false) WITH size(r) AS type, CASE WHEN a:File THEN a.filePath WHEN a:Class OR a:Interface THEN a.name + '@' + a.filePath WHEN a:Package THEN a.name ELSE null END AS from, CASE WHEN b:File THEN b.filePath WHEN b:Class OR b:Interface THEN b.name + '@' + b.filePath WHEN b:Package THEN b.name ELSE null END AS to WHERE from IS NOT NULL AND to IS NOT NULL RETURN DISTINCT type, from, to ORDER BY type, from, to",
+     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected String or List<T> but was Relationship (line 1, column 138 (offset: 137))\n\"MATCH (a)-[r:IMPORTS|RE_EXPORTS|CONSTRUCTOR_INJECTS|FLOWS_TO|EXTENDS|IMPLEMENTS]->(b) WHERE NOT coale",
+     "interp": "Neo.ClientError.Statement.TypeError: size() expects a String or List, got Relationship"
+    },
+    {
+     "base": "component-instability [v1.3]",
+     "verdict": "mismatch:interp rows, neo4j error",
+     "text": "MATCH (f:File)\nWHERE f.layer IS NOT NULL\nOPTIONAL MATCH (f)<-[_ev0:IMPORTS WHERE NOT coalesce(_ev0.viaReExport, false)]-(incoming:File)\nOPTIONAL MATCH (f)-[_ev1:IMPORTS WHERE NOT coalesce(_ev1.viaReExport, false)]->(outgoing:File)\nWITH f, collect(DISTINCT incoming) AS fanIn, count(DISTINCT outgoing) AS fanOut\nWHERE fanIn + fanOut > 0\nWITH f, fanIn, fanOut, toFloat(fanOut) / (fanIn + fanOut) AS instability\nWHERE instability > $threshold \nRETURN f.filePath AS filePath, f.layer AS layer, f.name AS name, instability\nORDER BY filePath",
+     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected Float or Integer but was List<Any> (line 7, column 49 (offset: 384))\n\"WITH f, fanIn, fanOut, toFloat(fanOut) / (fanIn + fanOut) AS instability\"\n                                ",
+     "interp": "0 rows"
+    },
+    {
+     "base": "dependency-direction-graph [v1.2e]",
+     "verdict": "mismatch:interp rows, neo4j error",
+     "text": "MATCH (src:File)-[i:IMPORTS|RE_EXPORTS]->(tgt:File)\nWHERE src.layer IS NOT NULL AND tgt.layer IS NOT NULL\n  AND src.layer <> tgt.layer\n  AND NOT (src.layer + '>' + tgt.layer) IN $allowedDependencies\n  AND (tgt.layer + + '>' + src.layer) IN $allowedDependencies \nRETURN src.filePath AS source, tgt.filePath AS target, src.layer AS srcLayer, tgt.layer AS tgtLayer,\n       type(i) AS relType,\n       CASE type(i) WHEN 'IMPORTS' THEN 'imports' ELSE 're-exports' END AS verb,\n       i.line AS line, i.lines AS lines, coalesce(i.isTypeOnly, false) AS isTypeOnly\nORDER BY source, target, relType",
+     "neo4j": "Neo.ClientError.Statement.SyntaxError: Type mismatch: expected Float or Integer but was String (line 5, column 22 (offset: 220))\n\"  AND (tgt.layer + + '>' + src.layer) IN $allowedDependencies\"\n                      ^",
      "interp": "0 rows"
     }
    ]

@@ -13,10 +13,10 @@ odd, and queries it is not meant to accept. Neo4j stays the reference engine. No
 | Graph fuzz, final run (seeds 1-2000) | 2,000 graphs (59,637 nodes, 67,200 edges), 836,000 statements, 342,220 Neo4j rows, 0 ingestion differences: **821,236 equal**, 13,215 documented quirks (T20 8,763, T8 4,257, T2 195), 1,549 Neo4j timeouts (not compared), **0 mismatches** with the final code (41 as run, all in `universal-literal:orphanFileCount`/`cyclicDependencyCount`; replayed: 9 equal, 32 T20; they led to F10; §8) |
 | Development fuzz runs (before and between the fixes) | about 170 graphs and two 3,000-query rejection runs; 34 minimised mismatches and 139 rows-where-Neo4j-errors mutants → 9 interpreter bugs (F1-F9), all fixed; F10 came from the final run |
 | Supplement: the 7 cheap2 templates merged into `v1.3` after the branch point | seeds 1-2000 with `--cheap2` (the cheap-proxy facts those templates read, which no pipeline writes yet): 84,000 statements, 75,504 Neo4j rows, **0 mismatches** (102 T8 ties), 0 ingestion differences (`cheap2-supplement.json`) |
-| Rejection fuzz, 3,000 queries built around 59 unsupported constructs | **3,000/3,000 rejected** (`CypherInterp.Unsupported` or a syntax error), **0 returned rows**; Neo4j accepted 1,686 of them in a read transaction (they are valid Neo4j, outside the subset) |
-| Mutation fuzz, 3,000 random mutants of the template texts | 2,772 both fail with the same code, 168 same rows (163 equal, 3 T8, 2 T20), 28 rejected as unsupported, 10 empty (skipped); 22 differ, all Neo4j compile-time checks the interpreter does not make (T21: 19, T22: 3; §6). Before F9: 139 mutants returned rows where Neo4j failed |
+| Rejection fuzz, 3,000 queries built around 59 unsupported constructs | **3,000/3,000 rejected** (`CypherInterp.Unsupported` or a syntax error), **0 returned rows**; Neo4j accepted 1,662 of them in a read transaction (they are valid Neo4j, outside the subset) |
+| Mutation fuzz, 3,000 random mutants of the template texts | 2,772 both fail with the same code, 157 same rows (152 equal, 3 T8, 1 T1, 1 T20), 32 rejected as unsupported, 10 empty (skipped); 29 differ, all Neo4j compile-time checks the interpreter does not make (T21: 28, T22: 1; §6). Before F9: 139 mutants returned rows where Neo4j failed |
 | Regression tests (`tests/unit/cypher-interp/fuzz-regressions.test.ts`) | 33 cases, one or more per finding; every expectation is Neo4j's live answer (`scripts/v1.3/cypher-interp-fuzz-live.ts`: 33/33; two F8/F10 cases are plan-order dependent in Neo4j and marked `neo4jMayRaise`, §6 T20) |
-| Unit tests, `jest tests/unit/cypher-interp --maxWorkers=2` | 62/62 (29 existing + 33 new) |
+| Unit tests, `jest tests/unit/cypher-interp --maxWorkers=2` | 69/69 (36 existing, of which 7 came with `CALL { }` from `v1.3-npx`, + 33 new) |
 | 71-reference byte-identity, `ue-baseline-live --engine cypher-interp` vs `results/v1.3-reference/after-member-facts` | **73/73 files identical** (raw 71, `report.json`, `report.md`), with the final interpreter (`results/v1.3-cypher-interp/fuzz/reference-check.json`, sha256 per file) |
 | Real-graph parity re-run (`memory-parity.ts`, 79 projects), after all fixes | 65,254 statements: **0 content, 0 error, 0 unsupported**; 759 `order`, all `ingest-verify` (T1) and `averageInstability` (T2) as in PR #128 (`results/v1.3-cypher-interp/fuzz/parity-rerun/parity.md`) |
 
@@ -91,6 +91,13 @@ each fuzz graph (`withCheapOverlay`: EntryPoint and EnvKey nodes, THROWS, REACHE
 REIMPLEMENTS relationships, the dotted `cheap.*` File properties, all with the same adversarial values), written with
 the ingestion's own statement shapes on both engines; the cheap2 statements were then fuzzed over the same 2,000 seeds.
 
+**Merges of `v1.3` during review.** `v1.3-npx` (#135) added returning `CALL { … [UNION [ALL] …] }` subqueries to the
+interpreter (for FF-P05's signature-types text, a compiler option the parity harness does not sweep). After merging it,
+the harness's 164 texts are byte-identical to the ones fuzzed (sha256 per text), the static scope check
+(`typecheck.ts`) learnt the `call` clause, the rejection list replaced "CALL subquery" by a unit subquery without
+RETURN (still unsupported), and the rejection/mutation fuzz, the live regression cases, the unit tests and the
+reference set were re-run on the merged head (numbers in §0 are from that run).
+
 ## 4. Rejection fuzz
 
 1. **Unsupported constructs** (`lib/fuzz-reject.ts`, 59 constructs): every write clause, `CALL` (procedures,
@@ -106,7 +113,7 @@ the ingestion's own statement shapes on both engines; the cheap2 statements were
    same rows; when both fail, the codes are compared.
 
 Results (`results/v1.3-cypher-interp/fuzz/rejection-summary.json`): every one of the 3,000 constructed queries was
-rejected, none returned rows. Of the 3,000 mutants, 22 differ from Neo4j, all on Neo4j compile-time analysis (§6 T21,
+rejected, none returned rows. Of the 3,000 mutants, 29 differ from Neo4j, all on Neo4j compile-time analysis (§6 T21,
 T22). The first rejection run found F9 (139 mutants returned rows where Neo4j failed) and two harness bugs (H2, H3).
 
 ## 5. Findings and fixes
@@ -138,8 +145,8 @@ reference set and the real-graph parity are unchanged, §0).
 | T2 | `avg`/`sum` over unordered rows differ in the last bits | 195 (`averageInstability`, both metric sets) |
 | T8 | rows tied on every ORDER BY key come back in an unspecified order; which tied rows a LIMIT keeps is unspecified. Duplicate paths and names make full-key ties common in fuzz graphs, never in the reference projects | 4,257, in 15 families (context-isolation 1,917, module-fan-out 918, max-fan-in 844, …); `T8-limit-tie` did not occur |
 | T20 (new) | **plan-order data errors**: whether Neo4j raises a type error in a predicate depends on its plan (expansion direction from label statistics, conjunct order, EXISTS row order); the same template text on graphs differing in one node flips. The interpreter raises only errors no order avoids; strict mode proves each T20 error reachable | 8,763 in 16 families (layer-skip-graph 1,162, dependency-direction-graph 1,135, no-orphan-files 1,333, …); each one strict-verified. The same F8/F10 regression case gave rows on one 5.26.24 instance and the error on another |
-| T21 (new) | Neo4j's semantic analysis infers types beyond literals (`true + x`, `m + 1.filePath`, `toBoolean(n) / m`, `avg(node)`, `size(rel)`, a regex `=~ false`) and rejects them when planning; the interpreter checks literals, pattern variables and their aliases only, so on such a query it may return rows (when no row reaches the expression) or a runtime TypeError instead of a SyntaxError | mutation fuzz only: 19 (11 return rows where Neo4j fails, 8 fail with TypeError where Neo4j gives SyntaxError); no template is affected |
-| T22 (new) | grammar: the interpreter parses with Neo4j's Cypher 25 grammar (T18); a few Cypher 5 syntax errors parse there (`(c IS NULL:Label)`, a property after whitespace and `.`), giving rows or a different error | mutation fuzz only: 3 (`IS NULL:` label, a property after `.`, `1f`) |
+| T21 (new) | Neo4j's semantic analysis infers types beyond literals (`true + x`, `m + 1.filePath`, `toBoolean(n) / m`, `avg(node)`, `size(rel)`, a regex `=~ false`) and rejects them when planning; the interpreter checks literals, pattern variables and their aliases only, so on such a query it may return rows (when no row reaches the expression) or a runtime TypeError instead of a SyntaxError | mutation fuzz only: 28 (18 return rows where Neo4j fails, 10 fail with a TypeError where Neo4j gives a SyntaxError); no template is affected |
+| T22 (new) | grammar: the interpreter parses with Neo4j's Cypher 25 grammar (T18); a few Cypher 5 syntax errors parse there (`(c IS NULL:Label)`, a property after whitespace and `.`), giving rows or a different error | mutation fuzz only: 1 in the final mutant set (`IS NOT` with nothing after it); earlier sets also showed `(c IS NULL:Label)`, a property after `.` and `1f` |
 | timeout | Neo4j needs more than 3 s for no-cyclic-deps [v1.2e] on the densest ring graphs (the v1.2E text has no relationship predicate to push down); not compared | 1,549 (no-cyclic-deps 1,547, port-adapter-pattern 1, cyclicDependencyCount 1) |
 
 ## 7. Harness bugs found
