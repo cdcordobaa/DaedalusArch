@@ -1,0 +1,19 @@
+{
+  "answer": {
+    "inputTokens": 438,
+    "outputTokens": 20,
+    "servedModel": "fake-claude",
+    "text": "{\"choice\":\"C\",\"reason\":\"fake anthropic answer\"}"
+  },
+  "failedAttempts": [],
+  "itemKey": "a6c2f08b49f287a0f9baf8f7",
+  "key": "0cfafa74e2e1d9515a6ee2149d51ab4ae537454acd867870fd28eaa4e53ff52b",
+  "model": "fake-claude",
+  "provider": "fake",
+  "request": {
+    "prompt": "## Architectural style\n- Aggregate boundary: Objects outside the aggregate may hold references only to the root. Inner entities are reached through the root. (Evans, *Domain-Driven Design* (2003), ch. 6 \"Aggregates\"; Vernon, *Implementing DDD* (2013), ch. 10)\n- Repository only for aggregate roots: Repositories are provided only for aggregate roots that actually need direct access. (Evans 2003, ch. 6 \"Repositories\"; Vernon 2013, ch. 12)\n- Value-object immutability: A value object is treated as immutable. Replace it rather than modify it. (Evans 2003, ch. 5 \"Value Objects\"; Vernon 2013, ch. 6)\n- Isolated domain: Domain code is separated from UI, application and infrastructure concerns. (Evans 2003, ch. 4 \"Isolating the Domain\" (Layered Architecture))\n- Bounded-context isolation: Each model applies within an explicit boundary. Integration across contexts is explicit, through a published interface, or translated by an anticorruption layer. (Evans 2003, ch. 14 \"Maintaining Model Integrity\" (Bounded Context, Context Map, Anticorruption Layer); Vernon 2013, ch. 2–3)\n\n## Code excerpt\nFile: src/ordering/domain/order/OrderLineRepository.ts\n```ts\n    1 | import type { OrderLine } from './OrderLine.js';\n    2 | \n    3 | \n    4 | export interface OrderLineRepository {\n    5 |   byProduct(productId: string): Promise<OrderLine[]>;\n    6 |   save(line: OrderLine): Promise<void>;\n    7 | }\n    8 | \n```\n\n## Reported finding\nRepository src/ordering/domain/order/OrderLineRepository.ts imports src/ordering/domain/order/OrderLine.ts, an inner entity of an aggregate (line 1)\n\n## Question\nWould an architect following this style want this changed?\nA. yes\nB. no\nC. uncertain\n\nReply with JSON only: {\"choice\": \"<letter>\", \"reason\": \"<one sentence>\"}",
+    "system": "You are a software architect reviewing a TypeScript code base against an architectural style. Judge only from the material in the message: the style definition, the code excerpt and the reported finding. You have no tools. Reply with one JSON object and nothing else.",
+    "temperature": 0
+  },
+  "runIndex": 0
+}
