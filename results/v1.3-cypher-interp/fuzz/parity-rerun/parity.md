@@ -1,0 +1,70 @@
+# cypher-interp parity against Neo4j 5.26.24 + APOC
+
+Statements: 65254 (equal 64495, order 759, content 0, error 0, unsupported 0, both-error 0); projects: 79.
+
+| template / query family | statements | projects | equal | order | content | error | unsupported | both-error | Neo4j rows |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| abstraction-ratio | 870 | 79 | 870 | 0 | 0 | 0 | 0 | 0 | 486 |
+| aggregate-boundary | 1546 | 79 | 1546 | 0 | 0 | 0 | 0 | 0 | 302 |
+| application-service-thin | 788 | 79 | 788 | 0 | 0 | 0 | 0 | 0 | 2068 |
+| boundary-type-leak | 758 | 79 | 758 | 0 | 0 | 0 | 0 | 0 | 132 |
+| bounded-context-modules | 788 | 79 | 788 | 0 | 0 | 0 | 0 | 0 | 176 |
+| component-adp-cycle | 758 | 79 | 758 | 0 | 0 | 0 | 0 | 0 | 42 |
+| component-instability | 1628 | 79 | 1628 | 0 | 0 | 0 | 0 | 0 | 17028 |
+| component-main-sequence-distance | 758 | 79 | 758 | 0 | 0 | 0 | 0 | 0 | 102 |
+| component-sdp-violation | 758 | 79 | 758 | 0 | 0 | 0 | 0 | 0 | 82 |
+| context-isolation | 1546 | 79 | 1546 | 0 | 0 | 0 | 0 | 0 | 35028 |
+| controller-no-entity | 1572 | 79 | 1572 | 0 | 0 | 0 | 0 | 0 | 1632 |
+| core-isolation | 1546 | 79 | 1546 | 0 | 0 | 0 | 0 | 0 | 3118 |
+| deep-import-declared-api | 758 | 79 | 758 | 0 | 0 | 0 | 0 | 0 | 26 |
+| deep-import-inferred-api | 758 | 79 | 758 | 0 | 0 | 0 | 0 | 0 | 6 |
+| dependency-direction | 1598 | 79 | 1598 | 0 | 0 | 0 | 0 | 0 | 394 |
+| dependency-direction-graph | 1576 | 79 | 1576 | 0 | 0 | 0 | 0 | 0 | 292 |
+| dependency-inversion | 814 | 79 | 814 | 0 | 0 | 0 | 0 | 0 | 582 |
+| domain-event-placement | 788 | 79 | 788 | 0 | 0 | 0 | 0 | 0 | 14 |
+| domain-purity | 1658 | 79 | 1658 | 0 | 0 | 0 | 0 | 0 | 200 |
+| domain-stability | 1572 | 79 | 1572 | 0 | 0 | 0 | 0 | 0 | 5214 |
+| domain-state-purity | 844 | 79 | 844 | 0 | 0 | 0 | 0 | 0 | 578 |
+| ingest | 4146 | 79 | 4146 | 0 | 0 | 0 | 0 | 0 | 0 |
+| ingest-verify | 884 | 79 | 614 | 270 | 0 | 0 | 0 | 0 | 3704 |
+| inheritance-depth | 870 | 79 | 870 | 0 | 0 | 0 | 0 | 0 | 26 |
+| interface-segregation-proxy | 870 | 79 | 870 | 0 | 0 | 0 | 0 | 0 | 1312 |
+| io-outside-adapters | 758 | 79 | 758 | 0 | 0 | 0 | 0 | 0 | 18 |
+| judge-graph:classes | 379 | 79 | 379 | 0 | 0 | 0 | 0 | 0 | 7380 |
+| judge-graph:edges | 379 | 79 | 379 | 0 | 0 | 0 | 0 | 0 | 33113 |
+| judge-graph:files | 379 | 79 | 379 | 0 | 0 | 0 | 0 | 0 | 10691 |
+| judge-graph:interfaces | 379 | 79 | 379 | 0 | 0 | 0 | 0 | 0 | 3685 |
+| layer-skip-graph | 1576 | 79 | 1576 | 0 | 0 | 0 | 0 | 0 | 8268 |
+| max-fan-in | 1628 | 79 | 1628 | 0 | 0 | 0 | 0 | 0 | 29382 |
+| module-domain-imports-infrastructure | 758 | 79 | 758 | 0 | 0 | 0 | 0 | 0 | 6 |
+| module-fan-out | 1628 | 79 | 1628 | 0 | 0 | 0 | 0 | 0 | 25512 |
+| naming-controllers | 758 | 79 | 758 | 0 | 0 | 0 | 0 | 0 | 4 |
+| naming-conventions | 758 | 79 | 758 | 0 | 0 | 0 | 0 | 0 | 5562 |
+| naming-repos | 870 | 79 | 870 | 0 | 0 | 0 | 0 | 0 | 1518 |
+| naming-services | 844 | 79 | 844 | 0 | 0 | 0 | 0 | 0 | 580 |
+| no-cyclic-deps | 1628 | 79 | 1628 | 0 | 0 | 0 | 0 | 0 | 166 |
+| no-domain-outward-dep | 1572 | 79 | 1572 | 0 | 0 | 0 | 0 | 0 | 3122 |
+| no-index-logic | 870 | 79 | 870 | 0 | 0 | 0 | 0 | 0 | 6 |
+| no-layer-skip | 1542 | 79 | 1542 | 0 | 0 | 0 | 0 | 0 | 19462 |
+| no-orphan-files | 1628 | 79 | 1628 | 0 | 0 | 0 | 0 | 0 | 114 |
+| nondeterminism-in-core | 758 | 79 | 758 | 0 | 0 | 0 | 0 | 0 | 308 |
+| port-adapter-pattern | 1546 | 79 | 1546 | 0 | 0 | 0 | 0 | 0 | 1346 |
+| port-dependency-inversion | 788 | 79 | 788 | 0 | 0 | 0 | 0 | 0 | 578 |
+| repository-aggregate-root | 1546 | 79 | 1546 | 0 | 0 | 0 | 0 | 0 | 34 |
+| repository-pattern | 1572 | 79 | 1572 | 0 | 0 | 0 | 0 | 0 | 66 |
+| single-responsibility-proxy | 870 | 79 | 870 | 0 | 0 | 0 | 0 | 0 | 4988 |
+| test-file-pairing | 870 | 79 | 870 | 0 | 0 | 0 | 0 | 0 | 23212 |
+| undeclared-async-coupling | 758 | 79 | 758 | 0 | 0 | 0 | 0 | 0 | 30 |
+| universal-literal:averageInstability | 450 | 79 | 207 | 243 | 0 | 0 | 0 | 0 | 450 |
+| universal-literal:cyclicDependencyCount | 450 | 79 | 450 | 0 | 0 | 0 | 0 | 0 | 450 |
+| universal-literal:maxFanIn | 450 | 79 | 450 | 0 | 0 | 0 | 0 | 0 | 450 |
+| universal-literal:maxFanOut | 450 | 79 | 450 | 0 | 0 | 0 | 0 | 0 | 450 |
+| universal-literal:orphanFileCount | 450 | 79 | 450 | 0 | 0 | 0 | 0 | 0 | 450 |
+| universal:abstractionRatio | 900 | 79 | 900 | 0 | 0 | 0 | 0 | 0 | 900 |
+| universal:averageInstability | 450 | 79 | 204 | 246 | 0 | 0 | 0 | 0 | 450 |
+| universal:cyclicDependencyCount | 450 | 79 | 450 | 0 | 0 | 0 | 0 | 0 | 450 |
+| universal:maxFanIn | 450 | 79 | 450 | 0 | 0 | 0 | 0 | 0 | 450 |
+| universal:maxFanOut | 450 | 79 | 450 | 0 | 0 | 0 | 0 | 0 | 450 |
+| universal:orphanFileCount | 450 | 79 | 450 | 0 | 0 | 0 | 0 | 0 | 450 |
+| use-case-isolation | 1572 | 79 | 1572 | 0 | 0 | 0 | 0 | 0 | 76 |
+| value-object-immutability | 788 | 79 | 788 | 0 | 0 | 0 | 0 | 0 | 2220 |

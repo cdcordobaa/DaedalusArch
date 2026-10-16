@@ -1,0 +1,274 @@
+diff --git a/src/business/apiary-service.ts b/src/business/apiary-service.ts
+new file mode 100644
+index 0000000..ca246b3
+--- /dev/null
++++ b/src/business/apiary-service.ts
+@@ -0,0 +1,62 @@
++import { randomUUID } from 'node:crypto';
++import { Apiary, DomainError, Hive, Inspection, Member, needsTreatment, validateInspection } from './model';
++import { HiveRepository, InspectionRepository } from '../persistence/hive-repository';
++
++export interface HiveView extends Hive {
++  flaggedForTreatment: boolean;
++}
++
++export class ApiaryService {
++  constructor(private readonly hives: HiveRepository, private readonly inspections: InspectionRepository) {}
++
++  registerMember(name: string, phone?: string): Member {
++    if (!name) throw new DomainError('name is required');
++    return this.hives.saveMember({ id: randomUUID(), name, phone });
++  }
++
++  registerApiary(memberId: string, name: string, region: string): Apiary {
++    this.requireMember(memberId);
++    if (!name || !region) throw new DomainError('name and region are required');
++    return this.hives.saveApiary({ id: randomUUID(), name, region, ownerId: memberId });
++  }
++
++  addHive(memberId: string, apiaryId: string, label: string): Hive {
++    const apiary = this.hives.apiary(apiaryId);
++    if (!apiary) throw new DomainError('apiary not found', 404);
++    if (apiary.ownerId !== memberId) throw new DomainError('only the apiary owner can add hives', 403);
++    return this.hives.saveHive({ id: randomUUID(), apiaryId, ownerId: memberId, label });
++  }
++
++  recordInspection(memberId: string, hiveId: string, input: Omit<Inspection, 'id' | 'hiveId' | 'recordedBy'>): Inspection {
++    const hive = this.hives.hive(hiveId);
++    if (!hive) throw new DomainError('hive not found', 404);
++    if (hive.ownerId !== memberId) throw new DomainError('only the hive owner can record inspections', 403);
++    const inspection = { ...input, hiveId, recordedBy: memberId };
++    validateInspection(inspection);
++    return this.inspections.save({ id: randomUUID(), ...inspection });
++  }
++
++  hiveView(hiveId: string): HiveView {
++    const hive = this.hives.hive(hiveId);
++    if (!hive) throw new DomainError('hive not found', 404);
++    return { ...hive, flaggedForTreatment: needsTreatment(this.inspections.latestForHive(hiveId)) };
++  }
++
++  hivesInApiary(apiaryId: string): HiveView[] {
++    return this.hives.hivesIn(apiaryId).map((h) => this.hiveView(h.id));
++  }
++
++  inspectionsOf(hiveId: string): Inspection[] {
++    return this.inspections.forHive(hiveId);
++  }
++
++  flaggedHives(): HiveView[] {
++    return this.hives.allHives().map((h) => this.hiveView(h.id)).filter((h) => h.flaggedForTreatment);
++  }
++
++  private requireMember(id: string): Member {
++    const m = this.hives.member(id);
++    if (!m) throw new DomainError('member not found', 404);
++    return m;
++  }
++}
+diff --git a/src/business/model.ts b/src/business/model.ts
+new file mode 100644
+index 0000000..f32622b
+--- /dev/null
++++ b/src/business/model.ts
+@@ -0,0 +1,49 @@
++export interface Member {
++  id: string;
++  name: string;
++  phone?: string;
++}
++
++export interface Apiary {
++  id: string;
++  name: string;
++  region: string;
++  ownerId: string;
++}
++
++export interface Hive {
++  id: string;
++  apiaryId: string;
++  ownerId: string;
++  label: string;
++}
++
++export interface Inspection {
++  id: string;
++  hiveId: string;
++  date: string;
++  queenSeen: boolean;
++  broodFrames: number;
++  temperament: number;
++  varroaPer100: number;
++  recordedBy: string;
++}
++
++export const VARROA_THRESHOLD = 3;
++
++export class DomainError extends Error {
++  constructor(message: string, readonly status = 400) {
++    super(message);
++  }
++}
++
++export function validateInspection(i: Omit<Inspection, 'id'>): void {
++  if (!/^\d{4}-\d{2}-\d{2}/.test(i.date)) throw new DomainError('date must be YYYY-MM-DD');
++  if (!(Number.isInteger(i.temperament) && i.temperament >= 1 && i.temperament <= 5)) throw new DomainError('temperament must be 1 to 5');
++  if (!(i.broodFrames >= 0)) throw new DomainError('broodFrames must be 0 or more');
++  if (!(i.varroaPer100 >= 0)) throw new DomainError('varroaPer100 must be 0 or more');
++}
++
++export function needsTreatment(latest: Inspection | undefined): boolean {
++  return !!latest && latest.varroaPer100 > VARROA_THRESHOLD;
++}
+diff --git a/src/persistence/db.ts b/src/persistence/db.ts
+new file mode 100644
+index 0000000..b48b4a5
+--- /dev/null
++++ b/src/persistence/db.ts
+@@ -0,0 +1,9 @@
++import { Apiary, Hive, Inspection, Member } from '../business/model';
++
++/** The in-memory database. */
++export class InMemoryDb {
++  readonly members = new Map<string, Member>();
++  readonly apiaries = new Map<string, Apiary>();
++  readonly hives = new Map<string, Hive>();
++  readonly inspections = new Map<string, Inspection>();
++}
+diff --git a/src/persistence/hive-repository.ts b/src/persistence/hive-repository.ts
+new file mode 100644
+index 0000000..30427d6
+--- /dev/null
++++ b/src/persistence/hive-repository.ts
+@@ -0,0 +1,53 @@
++import { Apiary, Hive, Inspection, Member } from '../business/model';
++import { InMemoryDb } from './db';
++
++export class HiveRepository {
++  constructor(private readonly db: InMemoryDb) {}
++
++  saveMember(m: Member): Member {
++    this.db.members.set(m.id, m);
++    return m;
++  }
++  member(id: string): Member | undefined {
++    return this.db.members.get(id);
++  }
++  saveApiary(a: Apiary): Apiary {
++    this.db.apiaries.set(a.id, a);
++    return a;
++  }
++  apiary(id: string): Apiary | undefined {
++    return this.db.apiaries.get(id);
++  }
++  apiariesOf(ownerId: string): Apiary[] {
++    return [...this.db.apiaries.values()].filter((a) => a.ownerId === ownerId);
++  }
++  saveHive(h: Hive): Hive {
++    this.db.hives.set(h.id, h);
++    return h;
++  }
++  hive(id: string): Hive | undefined {
++    return this.db.hives.get(id);
++  }
++  hivesIn(apiaryId: string): Hive[] {
++    return [...this.db.hives.values()].filter((h) => h.apiaryId === apiaryId);
++  }
++  allHives(): Hive[] {
++    return [...this.db.hives.values()];
++  }
++}
++
++export class InspectionRepository {
++  constructor(private readonly db: InMemoryDb) {}
++
++  save(i: Inspection): Inspection {
++    this.db.inspections.set(i.id, i);
++    return i;
++  }
++  forHive(hiveId: string): Inspection[] {
++    return [...this.db.inspections.values()].filter((i) => i.hiveId === hiveId).sort((a, b) => a.date.localeCompare(b.date));
++  }
++  latestForHive(hiveId: string): Inspection | undefined {
++    const all = this.forHive(hiveId);
++    return all[all.length - 1];
++  }
++}
+diff --git a/src/presentation/api.ts b/src/presentation/api.ts
+new file mode 100644
+index 0000000..049d288
+--- /dev/null
++++ b/src/presentation/api.ts
+@@ -0,0 +1,51 @@
++import { NextFunction, Request, Response, Router } from 'express';
++import { ApiaryService } from '../business/apiary-service';
++import { DomainError } from '../business/model';
++
++function memberId(req: Request): string {
++  const id = req.header('x-member-id');
++  if (!id) throw new DomainError('x-member-id header is required', 401);
++  return id;
++}
++
++export function apiRouter(apiaries: ApiaryService): Router {
++  const r = Router();
++  r.post('/members', (req, res) => {
++    res.status(201).json(apiaries.registerMember(req.body.name, req.body.phone));
++  });
++  r.post('/apiaries', (req, res) => {
++    res.status(201).json(apiaries.registerApiary(memberId(req), req.body.name, req.body.region));
++  });
++  r.post('/apiaries/:id/hives', (req, res) => {
++    res.status(201).json(apiaries.addHive(memberId(req), req.params.id, req.body.label));
++  });
++  r.get('/apiaries/:id/hives', (req, res) => {
++    res.json(apiaries.hivesInApiary(req.params.id));
++  });
++  r.get('/hives/flagged', (_req, res) => {
++    res.json(apiaries.flaggedHives());
++  });
++  r.get('/hives/:id', (req, res) => {
++    res.json(apiaries.hiveView(req.params.id));
++  });
++  r.post('/hives/:id/inspections', (req, res) => {
++    const b = req.body;
++    res.status(201).json(
++      apiaries.recordInspection(memberId(req), req.params.id, {
++        date: String(b.date),
++        queenSeen: !!b.queenSeen,
++        broodFrames: Number(b.broodFrames),
++        temperament: Number(b.temperament),
++        varroaPer100: Number(b.varroaPer100),
++      }),
++    );
++  });
++  r.get('/hives/:id/inspections', (req, res) => {
++    res.json(apiaries.inspectionsOf(req.params.id));
++  });
++  return r;
++}
++
++export function errorHandler(err: Error, _req: Request, res: Response, _next: NextFunction): void {
++  res.status(err instanceof DomainError ? err.status : 500).json({ error: err.message });
++}
+diff --git a/src/presentation/app.ts b/src/presentation/app.ts
+new file mode 100644
+index 0000000..43a8231
+--- /dev/null
++++ b/src/presentation/app.ts
+@@ -0,0 +1,14 @@
++import express from 'express';
++import { InMemoryDb } from '../persistence/db';
++import { HiveRepository, InspectionRepository } from '../persistence/hive-repository';
++import { ApiaryService } from '../business/apiary-service';
++import { apiRouter, errorHandler } from './api';
++
++const db = new InMemoryDb();
++const apiaries = new ApiaryService(new HiveRepository(db), new InspectionRepository(db));
++
++const app = express();
++app.use(express.json());
++app.use(apiRouter(apiaries));
++app.use(errorHandler);
++app.listen(Number(process.env.PORT ?? 3000), () => console.log('beekeepers service listening'));

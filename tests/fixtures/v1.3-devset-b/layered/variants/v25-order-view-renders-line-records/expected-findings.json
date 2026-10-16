@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "layered",
+  "variant": "v25-order-view-renders-line-records",
+  "kind": "violation",
+  "plants": "FF-S03",
+  "description": "OrderView (presentation) gets renderLineRows() over persistence OrderLineRecord rows (import type from persistence/records/OrderRecord).",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S03",
+      "ruleName": "no-layer-skip",
+      "file": "src/presentation/views/OrderView.ts",
+      "target": "src/persistence/records/OrderRecord.ts",
+      "reason": "Presentation depends on a persistence record type, skipping the business layer."
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+--- a/src/business/ServiceFactory.ts
++++ b/src/business/ServiceFactory.ts
+@@ -8,6 +8,7 @@
+ export interface BusinessServices {
+   catalog: CatalogService;
+   orders: OrderService;
++  database: InMemoryDatabase;
+ }
+ 
+ /**
+@@ -21,5 +22,6 @@
+   return {
+     catalog: new CatalogService(products),
+     orders: new OrderService(new OrderGateway(db), products, new CustomerGateway(db)),
++    database: db,
+   };
+ }
+--- a/src/presentation/Router.ts
++++ b/src/presentation/Router.ts
+@@ -1,3 +1,4 @@
++import type { InMemoryDatabase } from '../persistence/Database';
+ import { CatalogController } from './http/CatalogController';
+ import { HttpRequest, HttpResponse } from './http/HttpTypes';
+ import { OrderController } from './http/OrderController';
+@@ -7,12 +8,13 @@
+ export class Router {
+   private readonly routes = new Map<string, Handler>();
+ 
+-  constructor(catalog: CatalogController, orders: OrderController) {
++  constructor(catalog: CatalogController, orders: OrderController, database: InMemoryDatabase) {
+     this.routes.set('GET /products', () => catalog.list());
+     this.routes.set('POST /products', (r) => catalog.create(r));
+     this.routes.set('POST /orders', (r) => orders.place(r));
+     this.routes.set('GET /orders/:id', (r) => orders.show(r));
+     this.routes.set('POST /orders/:id/cancel', (r) => orders.cancel(r));
++    this.routes.set('GET /health', () => ({ status: 200, body: { products: database.table('products').size } }));
+   }
+ 
+   handle(route: string, request: HttpRequest): HttpResponse {
+--- a/src/presentation/app.ts
++++ b/src/presentation/app.ts
+@@ -5,5 +5,5 @@
+ 
+ export function createApp(): Router {
+   const services = createServices();
+-  return new Router(new CatalogController(services.catalog), new OrderController(services.orders));
++  return new Router(new CatalogController(services.catalog), new OrderController(services.orders), services.database);
+ }
