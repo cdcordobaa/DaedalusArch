@@ -12,6 +12,8 @@
  */
 import type { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import type { GeneratorAdapterId, GenerationAttempt, GenerationInterruption } from '../generators/types.js';
+import type { SpecRung } from './prompts.js';
+import type { ReadLogMethod, SpecReadLog } from './rungs.js';
 
 export type { DomainResult };
 
@@ -224,6 +226,8 @@ export interface TurnRecord {
   readonly promptSha256: string;
   readonly result: TurnResult;
   readonly snapshot: SnapshotMeasure;
+  /** L4 frames only: whether the agent opened the placed spec file during the turn (`rungs.ts`). */
+  readonly specRead?: SpecReadLog;
 }
 
 /** `steps/step-<nn>.json` of a loop run: the step's turn(s) and its final snapshot. */
@@ -297,4 +301,10 @@ export interface RunRecord {
   readonly createdAt: string;
   readonly completedAt?: string;
   readonly dryRun: boolean;
+  /** Present only when the plan sets frame extras (`plan.ts` `frame`): the rung, the attention flag and the L4 spec. */
+  readonly frame?: {
+    readonly specRung: SpecRung;
+    readonly attention: boolean;
+    readonly placedSpec?: { readonly file: string; readonly source: string; readonly sha256: string; readonly readLogMethod: ReadLogMethod };
+  };
 }

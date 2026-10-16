@@ -179,6 +179,8 @@ node Docs/v1.3/study2-task-design/hint-audit.mjs --preset presets/ddd.yaml --tas
 # a frame of a layout arm (layout words become WARN) vs a no-hint arm (they FAIL)
 node Docs/v1.3/study2-task-design/hint-audit.mjs --preset presets/hexagonal.yaml --frame <frame.txt> --frame-may-name-layout
 node Docs/v1.3/study2-task-design/hint-audit.mjs --preset presets/hexagonal.yaml --frame <frame.txt>
+# a frame of a spec rung (floor-escape design §3.3): L2 = --frame-may-name-layout; L3/L4 also FAIL on fix instructions
+node Docs/v1.3/study2-task-design/hint-audit.mjs --preset presets/hexagonal.yaml --frame <frame.txt> --frame-rung L3
 # any text, from stdin; machine-readable output
 echo "<prompt>" | node Docs/v1.3/study2-task-design/hint-audit.mjs --preset presets/layered.yaml --json -
 ```
@@ -186,7 +188,9 @@ echo "<prompt>" | node Docs/v1.3/study2-task-design/hint-audit.mjs --preset pres
 What it greps: the generic FAIL and WARN lists of §3.1; the layer names of the preset's `architecture.layers` (split
 on `-`, ordinary words as WARN); every `src/…` directory and context root in the preset as a folder pattern; any
 `src/` path, glob or file name; role-suffixed identifiers; `--term` extra FAIL terms; `--allow` waivers (printed as
-WAIVED, so a waiver is visible on the sheet). Exit 0 = no FAIL hit, 1 = at least one, 2 = usage error.
+WAIVED, so a waiver is visible on the sheet); persistence words (2026-10-16, floor-escape design §3.6): `orm`,
+`typeorm` FAIL, `database`, `table`, `column` (and plurals) WARN; in an L3/L4 frame (`--frame-rung`), fix instructions
+(`move`, `refactor`, `break the cycle`, …) FAIL. Exit 0 = no FAIL hit, 1 = at least one, 2 = usage error.
 
 Calibration (2026-10-16): the pilot tasks block (12 steps) and the probe's 6 tasks (28 steps) give **0 FAIL** under
 each of the four presets (hexagonal, clean, DDD, layered); the probe's hexagonal frame gives 0 FAIL as a layout frame and 21 FAIL as a no-hint

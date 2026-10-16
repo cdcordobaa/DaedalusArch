@@ -41,15 +41,18 @@ export class WorkTreeSnapshots {
   /**
    * `fixedDate` (a git date, e.g. `2026-10-16T00:00:00Z`) pins the author and committer dates, so the same trees give
    * the same commit shas (the loop replay checks runs byte for byte); without it git uses the clock.
+   * `ignoreCtime` (L4 runs only, `rungs.ts`): git compares no change time, so its own status calls do not read a file
+   * whose access time the harness has just set. Commit contents do not depend on it.
    */
   constructor(
     readonly gitDir: string,
     readonly workTree: string,
     readonly fixedDate?: string,
+    readonly ignoreCtime = false,
   ) {}
 
   private git(args: readonly string[]): DomainResult<string> {
-    const r = spawnSync('git', [...IDENTITY, `--git-dir=${this.gitDir}`, `--work-tree=${this.workTree}`, ...args], {
+    const r = spawnSync('git', [...IDENTITY, ...(this.ignoreCtime ? ['-c', 'core.trustctime=false'] : []), `--git-dir=${this.gitDir}`, `--work-tree=${this.workTree}`, ...args], {
       cwd: this.workTree,
       env: gitEnv(this.fixedDate),
       encoding: 'utf8',

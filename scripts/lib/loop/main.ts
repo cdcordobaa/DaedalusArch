@@ -17,6 +17,9 @@
  * are still read and hashed, and the DDD spec is really inferred by the ISE and frozen after step 1 (no model, no
  * Neo4j), so the dry run exercises the whole per-task path.
  *
+ * A plan with `frame` (off by default) gives every task's frames its spec rung and the attention sentence
+ * (`plan.ts`, `rungs.ts`); the L3/L4 rule sentences are read from each task's static evaluator spec, also in a dry run.
+ *
  * The grid writes `<outRoot>/schedule.json` (the plan and tasks file sha256 and the seeded order). Re-running the same
  * plan resumes: complete runs are skipped, a run stopped mid-step restarts that step from the last snapshot. A
  * schedule.json from a different plan or tasks file stops the grid. Exit codes: 0 grid completed, 1 a CLI is not
@@ -44,7 +47,9 @@ import { ClaudeStepAgent, CodexStepAgent } from './agents.js';
 import { firewallEvaluator, harnessSnapshotTsconfig, harnessTypechecker } from './evaluator.js';
 import { runLoop } from './loop.js';
 import type { LoopContext, LoopRunResult, TaskProfile } from './loop.js';
-import { loadLoopPlan, loopRunId, planCallBudget, scheduleLoopRuns } from './plan.js';
+import { loadLoopPlan, loopRunId, planCallBudget, planFrame, scheduleLoopRuns } from './plan.js';
+import { taskFrameExtras } from './rungs.js';
+import type { TaskFrameExtras } from './rungs.js';
 import type { LoadedPlan, LocalOverrides } from './plan.js';
 import { iseDddFreezer } from './specs.js';
 import type { SpecFreezer } from './specs.js';
@@ -192,6 +197,7 @@ interface Wiring {
   readonly agents: ReadonlyMap<string, StepAgent>;
   readonly evaluator: StepEvaluator;
   readonly profiles?: ReadonlyMap<string, TaskProfile>;
+  readonly frameExtras?: ReadonlyMap<string, TaskFrameExtras>;
   readonly typechecker: StepTypechecker;
   readonly prepareWorkDir: LoopContext['prepareWorkDir'];
   readonly skeletonIntact: LoopContext['skeletonIntact'];
@@ -236,6 +242,33 @@ export function buildProfiles(
   return DomainResult.ok(out);
 }
 
+/**
+ * The per-task frame extras of a plan (`plan.ts` `frame`); `undefined` when the plan keeps today's frames (no `frame`,
+ * or L2 without attention). The L3/L4 sentences come from each task's static spec: its profile's, else the plan's.
+ */
+export function buildFrameExtras(loaded: LoadedPlan, repoRoot: string): DomainResult<ReadonlyMap<string, TaskFrameExtras> | undefined> {
+  const { specRung, attention } = planFrame(loaded.plan);
+  if (specRung === 'L2' && !attention) return DomainResult.ok(undefined);
+  const out = new Map<string, TaskFrameExtras>();
+  for (const t of loaded.tasks.tasks) {
+    const p = loaded.plan.taskProfiles?.[t.id];
+    try {
+      if (specRung === 'L2') {
+        out.set(t.id, taskFrameExtras(specRung, attention));
+        continue;
+      }
+      if (p !== undefined && (p.specMode ?? 'static') !== 'static') throw new Error(`an ${specRung} frame needs a static spec`);
+      const source = p?.evaluatorSpec ?? loaded.plan.evaluatorSpec;
+      if (source === undefined) throw new Error('no evaluator spec');
+      const text = fs.readFileSync(path.resolve(repoRoot, source), 'utf8');
+      out.set(t.id, taskFrameExtras(specRung, attention, { source, text }));
+    } catch (e) {
+      return DomainResult.fail([{ code: 'LOOP_FRAME_EXTRAS', message: `${t.id}: ${e instanceof Error ? e.message : String(e)}` }]);
+    }
+  }
+  return DomainResult.ok(out);
+}
+
 /** Where the dry-run stub writes a step of a task of the given style (DDD: the declared contexts in turn, one folder per aggregate, every context at step 1). */
 export function stubLayoutFor(style: LoopStyle | undefined, contextRoots: readonly string[], stepIndex: number): StubLayout {
   if (style === 'hexagonal') return { domain: 'src/domain', application: 'src/application', infrastructure: 'src/adapters/outbound' };
@@ -259,10 +292,13 @@ function dryRunWiring(loaded: LoadedPlan, repoRoot: string): DomainResult<Wiring
   for (const a of loaded.plan.adapters) agents.set(agentKey(a.adapterId, a.modelId), new StubStepAgent(tasks, { adapterId: a.adapterId, modelId: a.modelId, script }));
   const built = buildProfiles(loaded, repoRoot, () => stubEvaluator(), iseDddFreezer(repoRoot));
   if (!built.success) return DomainResult.fail(built.errors);
+  const extras = buildFrameExtras(loaded, repoRoot);
+  if (!extras.success) return DomainResult.fail(extras.errors);
   return DomainResult.ok({
     agents,
     evaluator: stubEvaluator(),
     ...(built.data !== undefined ? { profiles: built.data } : {}),
+    ...(extras.data !== undefined ? { frameExtras: extras.data } : {}),
     typechecker: stubTypechecker(),
     prepareWorkDir: prepareDryRunWorkDir,
     skeletonIntact: () => true,
@@ -300,10 +336,13 @@ async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs
   const evaluatorOf = (specFile: string): StepEvaluator => firewallEvaluator(specFile, deps.parentEnv, evaluateDeps, harnessSnapshotTsconfig(plan.harnessRoot));
   const profiles = buildProfiles(loaded, repoRoot, evaluatorOf, iseDddFreezer(repoRoot));
   if (!profiles.success) return DomainResult.fail(profiles.errors);
+  const extras = buildFrameExtras(loaded, repoRoot);
+  if (!extras.success) return DomainResult.fail(extras.errors);
   return DomainResult.ok({
     agents,
     evaluator: plan.evaluatorSpec !== undefined ? evaluatorOf(path.resolve(repoRoot, plan.evaluatorSpec)) : noSpecEvaluator(),
     ...(profiles.data !== undefined ? { profiles: profiles.data } : {}),
+    ...(extras.data !== undefined ? { frameExtras: extras.data } : {}),
     typechecker: harnessTypechecker(deps.runner, plan.harnessRoot),
     prepareWorkDir: (cwd) => prepareCellDir(install, repoRoot, cwd),
     skeletonIntact: (cwd) => checkSkeletonIntact(install, repoRoot, cwd).skeletonIntact,
@@ -338,6 +377,7 @@ export async function runLoopGrid(
         agent,
         evaluator: wiring.evaluator,
         ...(wiring.profiles !== undefined ? { profiles: wiring.profiles } : {}),
+        ...(wiring.frameExtras !== undefined ? { frameExtras: wiring.frameExtras } : {}),
         typechecker: wiring.typechecker,
         prepareWorkDir: wiring.prepareWorkDir,
         skeletonIntact: wiring.skeletonIntact,
