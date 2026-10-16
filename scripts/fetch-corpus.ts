@@ -20,6 +20,8 @@ import type { ProcessRunner } from '../src/shared/interfaces/process-runner.js';
 import { buildChildEnv, NodeProcessRunner } from '../src/shared/process/node-process-runner.js';
 import { CORPUS_FILE, loadCorpus, sha256Hex } from './lib/corpus.js';
 import type { CorpusEntry } from './lib/corpus.js';
+import { installLockfile, isLockfilePolicy } from './lib/lockfiles.js';
+import type { LockfileInstall, LockInstallOptions } from './lib/lockfiles.js';
 
 export const FETCH_SHA_MISMATCH = 'FETCH_SHA_MISMATCH';
 export const OVERLAY_CHECK_FAILED = 'OVERLAY_CHECK_FAILED';
@@ -52,6 +54,8 @@ export interface FetchOptions {
   readonly check?: boolean;
   /** Skip the install policy (tests, `--no-install`); the record says `skipped:<policy>`. */
   readonly skipInstall?: boolean;
+  /** pnpm / yarn policies only: replaces the pinned `npm exec` launcher (tests run a local binary). */
+  readonly launch?: LockInstallOptions['launch'];
 }
 
 const fail = (projectId: string, code: FetchCode, detail: string): FetchOutcome => ({ ok: false, projectId, code, detail });
@@ -115,6 +119,11 @@ export async function fetchEntry(entry: CorpusEntry, dest: string, o: FetchOptio
       const n = await run(o, 'npm', ['ci', '--ignore-scripts', '--no-audit', '--no-fund'], dest, {}, 1_800_000);
       if (n.code !== 0) return fail(id, INSTALL_FAILED, `npm ci: ${n.stderr.trim().slice(-300)}`);
     }
+  } else if (isLockfilePolicy(entry.install.policy)) {
+    // v1.3 (scripts/lib/lockfiles.ts): pinned pnpm / yarn, lock hash-checked before and after, scripts ignored.
+    const r = await installLockfile(entry.install as LockfileInstall, dest, { runner: o.runner, env: o.env, ...(o.skipInstall === true ? { skipInstall: true } : {}), ...(o.launch !== undefined ? { launch: o.launch } : {}) });
+    if (!r.ok) return fail(id, r.code, r.detail);
+    if (r.skipped) installPolicy = `skipped:${entry.install.policy}`;
   }
   let hash: string;
   try {

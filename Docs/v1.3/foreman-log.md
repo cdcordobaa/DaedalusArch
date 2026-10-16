@@ -108,3 +108,53 @@ Round 2 overlapped the end of round 1 (until 06:50) and the late merge train, wh
 Non-hold PRs #202–#210 all merge cleanly. #206 conflicted and is fixed above. Every `[hold]` PR was left as it is.
 
 The `audit.md` recommendation above still stands: almost every re-merge tonight was caused by that file alone.
+
+## 2026-10-16, 08:55–09:25 UTC (scheduled run, round 3)
+
+Round 3 worked through the `[hold]` PRs that the 07:50 adversarial review left (`Docs/v1.3/overnight-pr-review.md`, branch `v1.3-overnight-review`). It merged nothing into `v1.3`, did not force-push, and did not touch `main` or `v1.2e`. It read no `.env`, secret or sealed directory. It edited no title, template, tier or frozen file.
+
+**No hold was removed.** Every one of the 52 open `[hold]` PRs (#130–#201) is held at least partly because the author marked it do-not-merge-before-review. That mark is the author's decision, and the foreman cannot clear it, even where a Claude session on the PR says it wrote the mark itself (#162). So none of these PRs enters the 09:30 train from this run.
+
+### Gates
+
+- `tsc --noEmit`, `-p tsconfig.u0-tests.json` and `-p tsconfig.scripts.json`.
+- `jest --maxWorkers=2` on the affected suites.
+- `ue-baseline-live --engine cypher-interp` with no Neo4j variables; `raw/` (71 files), `report.json` and `report.md` diffed against `results/v1.3-reference/after-member-facts`.
+
+**v1.3 itself at f0939a48:** tsc clean and byte-identical (71/71).
+
+### Pushed in round 3 (doc-only; one PR comment each)
+
+| PR | Head | Change | Gates |
+|---|---|---|---|
+| #188 scale | 3516de6a | `scale.md` names all three default verdict flips (amplication, payload, typeorm, per `profiles.json`). The byte-identical claim is limited to the 71 refs and 5 goldens. Appended an `audit.md` correction: the guard threshold is 95%, not 92%. | tsc ×3; jest 94/94 (6 suites). **Byte gate not run:** the branch predates `--engine cypher-interp` and no Neo4j is available. Pushed because the diff is Markdown only (`scale.md`, `audit.md`). |
+| #192 gap-plan | 64ab48e2 | `:251` names all 3 flips. `:195` "confirms" → "gives, on synthetic data". Two citations into #160 re-pointed. | tsc ×3; bytes 71/71 |
+| #195 validity-synthesis | 32cba511 | "RED, confirmed" → "reproduced on synthetic data". "[AR] confirms" → "shows, on synthetic records". [AR] line citations re-pinned to #160 head 437badb4. | tsc ×3; bytes 71/71 |
+| #171 loop-isolation-pins | 38ccfea4 | `loop-isolation.md:45`: 19 → 20 tests. PR body: test counts updated, stale `LOOP_UNPINNED` claim removed. | tsc ×3; jest 73/73; bytes 71/71 |
+| #180 loop-fault-drills | 63505167 | `loop-fault-drills.md:118`: replay "holds under faults" → "holds under the 11 of 13 drilled faults that pass". | tsc ×3; jest 57/57; bytes 71/71 |
+| #182 floor-probe-2 | e6d8b3de | `__pycache__/` added to `.gitignore`; the `.pyc` was already removed. | tsc ×3; bytes 71/71 |
+
+### Already fixed before round 3 (re-verified against committed results; comment only)
+
+The cited numbers and wording were already corrected on these heads, mostly by author sessions between 08:06 and 08:20. Each was recomputed from the PR's own result files:
+
+#131, #133 (11 fail / 4 pass), #145, #147 (2,669), #154 (transcript now tracked), #155, #160, #162 (frozen `types.ts` restored, third-party notice added), #165, #168 (8,319 / 536), #169, #176 (7 rows), #179, #186 (A 11/15), #190 (116/273), #201 (0.735).
+
+### Still blocked: author decisions (the foreman did not change code)
+
+- **#143 (already in v1.3, merge dffb1db8):** agent-settable MCP `hints` without `--hints`, and `fixHints` in the FROZEN report schema. Revert it or gate it.
+- **#188:** `--query-engine accelerated` is the ungated default for the CLI, MCP and batch. `MemoryGuard` is always on, with a runtime `--expose-gc`. The title still says "outputs byte-identical".
+- **#180:** the gate arm now stops with `LOOP_GATE_UNSCORED`, and resume moves records to `discarded/`, with no flag. The `canonicalTree` comparer change needs review.
+- **#171:** accept code fix ffd4f192 (unpinned plans back on the old path). The Linux `.credentials.json` allow-list question is open.
+- **#145:** `propose_rules` is now gated behind `--rule-mining` / `DAEDALUS_RULE_MINING`. Is that acceptable? Results size is also open.
+- **#156:** all cited items are open:
+  - transcripts `task{1..6}.jsonl` not committed;
+  - "proof" title on N = 1;
+  - hard-coded local paths containing the username (`run-task.sh:4`, `firewall-cli.cjs:2`);
+  - untested `DAEDALUS_ENGINE` / `DAEDALUS_TSCONFIG` in `src/mcp-server/context.ts`.
+- **Not reworked this round:** #139, #159, #164, #170, #151, #174 and #191 have frozen-schema, default-change, sealed-tool or pinning findings that need the author. Their earlier decision items are listed above.
+
+### Notes
+
+- **#193 (round-1 foreman log) was merged into v1.3 at 08:34 with `[hold]` still in its title.** The `#131 merged` error it was held for had already been corrected on this branch (line 31). Check whether whatever merged it honours `[hold]`.
+- Round 3 workers only commented on, and pushed to, the PRs listed above. Worktrees for this run are under the session scratchpad and are not in the repo.

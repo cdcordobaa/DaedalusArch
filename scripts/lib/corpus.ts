@@ -14,6 +14,7 @@ import { Ajv } from 'ajv';
 import type { ValidateFunction } from 'ajv';
 import { parse as parseYaml } from 'yaml';
 import type { CorpusTier } from './mutation/types.js';
+import type { LockfileInstall } from './lockfiles.js';
 
 export const CORPUS_SCHEMA = 'scripts/lib/schemas/corpus.schema.json';
 export const CORPUS_FILE = 'corpus/corpus.json';
@@ -64,7 +65,7 @@ export interface CandidateAttributes {
 }
 
 export interface CorpusOverlay { readonly path: string; readonly patchFile: string; readonly sha256: string }
-export type CorpusInstall = { readonly policy: 'none' } | { readonly policy: 'npm-ci-ignore-scripts'; readonly lockSha256: string };
+export type CorpusInstall = { readonly policy: 'none' } | { readonly policy: 'npm-ci-ignore-scripts'; readonly lockSha256: string } | LockfileInstall;
 export interface CorpusTsc { readonly kind: 'project' | 'repo-pinned'; readonly tscPath: string; readonly tscVersion: string }
 
 export interface CorpusEntry extends CorpusCandidate {
