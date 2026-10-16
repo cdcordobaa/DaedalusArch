@@ -1,0 +1,271 @@
+diff --git a/src/adapters/inbound/daily-scheduler.ts b/src/adapters/inbound/daily-scheduler.ts
+new file mode 100644
+index 0000000..3680c81
+--- /dev/null
++++ b/src/adapters/inbound/daily-scheduler.ts
+@@ -0,0 +1,15 @@
++/** Runs a job every day at the given local hour. */
++export function scheduleDaily(hour: number, job: () => Promise<unknown>): void {
++  const scheduleNext = (): void => {
++    const now = new Date();
++    const next = new Date(now);
++    next.setHours(hour, 0, 0, 0);
++    if (next <= now) next.setDate(next.getDate() + 1);
++    setTimeout(() => {
++      job()
++        .catch((e) => console.error('scheduled job failed', e))
++        .finally(scheduleNext);
++    }, next.getTime() - now.getTime());
++  };
++  scheduleNext();
++}
+diff --git a/src/adapters/inbound/donation-routes.ts b/src/adapters/inbound/donation-routes.ts
+new file mode 100644
+index 0000000..9aa8cf9
+--- /dev/null
++++ b/src/adapters/inbound/donation-routes.ts
+@@ -0,0 +1,18 @@
++import { Router } from 'express';
++import { DonationImportService } from '../../application/donation-import-service';
++
++export function donationRoutes(service: DonationImportService): Router {
++  const r = Router();
++  r.put('/category-mappings/:productCode', (req, res) => {
++    service.setMapping(req.params.productCode, req.body.category);
++    res.sendStatus(204);
++  });
++  r.get('/category-mappings', (_req, res) => {
++    res.json(service.listMappings());
++  });
++  // manual trigger, for staff
++  r.post('/donations/import', async (_req, res) => {
++    res.json(await service.importYesterday());
++  });
++  return r;
++}
+diff --git a/src/adapters/outbound/freshlink-client.ts b/src/adapters/outbound/freshlink-client.ts
+new file mode 100644
+index 0000000..434e14e
+--- /dev/null
++++ b/src/adapters/outbound/freshlink-client.ts
+@@ -0,0 +1,27 @@
++import { DonatedProduct } from '../../domain/donation';
++import { DonationFeed } from '../../application/ports';
++
++interface FreshLinkProduct {
++  product_code: string;
++  name: string;
++  quantity: number;
++  best_before: string;
++}
++
++export class FreshLinkClient implements DonationFeed {
++  constructor(private readonly baseUrl: string, private readonly token: string) {}
++
++  async donatedOn(date: string): Promise<DonatedProduct[]> {
++    const res = await fetch(`${this.baseUrl}/donations?date=${encodeURIComponent(date)}`, {
++      headers: { authorization: `Bearer ${this.token}`, accept: 'application/json' },
++    });
++    if (!res.ok) throw new Error(`FreshLink returned ${res.status}`);
++    const body = (await res.json()) as { products: FreshLinkProduct[] };
++    return body.products.map((p) => ({
++      productCode: p.product_code,
++      name: p.name,
++      quantity: Number(p.quantity),
++      bestBefore: p.best_before.slice(0, 10),
++    }));
++  }
++}
+diff --git a/src/adapters/outbound/memory-store.ts b/src/adapters/outbound/memory-store.ts
+index 4d176af..4cea3de 100644
+--- a/src/adapters/outbound/memory-store.ts
++++ b/src/adapters/outbound/memory-store.ts
+@@ -1,7 +1,14 @@
+ import { Household } from '../../domain/household';
+ import { InventoryItem } from '../../domain/inventory';
+ import { Pickup, SlotBooking } from '../../domain/pickup';
+-import { BookingRepository, HouseholdRepository, InventoryRepository, PickupRepository } from '../../application/ports';
++import {
++  BookingRepository,
++  CategoryMappingRepository,
++  HouseholdRepository,
++  ImportLog,
++  InventoryRepository,
++  PickupRepository,
++} from '../../application/ports';
+ 
+ export class MemoryHouseholdRepository implements HouseholdRepository {
+   private readonly data = new Map<string, Household>();
+@@ -54,3 +61,26 @@ export class MemoryPickupRepository implements PickupRepository {
+     return [...this.data];
+   }
+ }
++
++export class MemoryCategoryMappingRepository implements CategoryMappingRepository {
++  private readonly data = new Map<string, string>();
++  set(productCode: string, category: string): void {
++    this.data.set(productCode, category);
++  }
++  categoryFor(productCode: string): string | undefined {
++    return this.data.get(productCode);
++  }
++  all(): Record<string, string> {
++    return Object.fromEntries(this.data);
++  }
++}
++
++export class MemoryImportLog implements ImportLog {
++  private readonly keys = new Set<string>();
++  has(key: string): boolean {
++    return this.keys.has(key);
++  }
++  add(key: string): void {
++    this.keys.add(key);
++  }
++}
+diff --git a/src/application/donation-import-service.ts b/src/application/donation-import-service.ts
+new file mode 100644
+index 0000000..9028e53
+--- /dev/null
++++ b/src/application/donation-import-service.ts
+@@ -0,0 +1,50 @@
++import { randomUUID } from 'node:crypto';
++import { UNSORTED, donationKey } from '../domain/donation';
++import { InventoryItem } from '../domain/inventory';
++import { CategoryMappingRepository, DonationFeed, ImportLog, InventoryRepository } from './ports';
++
++export interface ImportResult {
++  date: string;
++  added: number;
++  skippedDuplicates: number;
++  unsorted: number;
++}
++
++export class DonationImportService {
++  constructor(
++    private readonly feed: DonationFeed,
++    private readonly mappings: CategoryMappingRepository,
++    private readonly inventory: InventoryRepository,
++    private readonly log: ImportLog,
++    private readonly now: () => Date = () => new Date(),
++  ) {}
++
++  setMapping(productCode: string, category: string): void {
++    if (!productCode || !category) throw new Error('productCode and category are required');
++    this.mappings.set(productCode, category);
++  }
++
++  listMappings(): Record<string, string> {
++    return this.mappings.all();
++  }
++
++  async importYesterday(): Promise<ImportResult> {
++    const yesterday = new Date(this.now().getTime() - 24 * 3600 * 1000).toISOString().slice(0, 10);
++    const products = await this.feed.donatedOn(yesterday);
++    const result: ImportResult = { date: yesterday, added: 0, skippedDuplicates: 0, unsorted: 0 };
++    for (const p of products) {
++      const key = donationKey(yesterday, p);
++      if (this.log.has(key)) {
++        result.skippedDuplicates++;
++        continue;
++      }
++      this.log.add(key);
++      const category = this.mappings.categoryFor(p.productCode) ?? UNSORTED;
++      if (category === UNSORTED) result.unsorted++;
++      const item: InventoryItem = { id: randomUUID(), name: p.name, category, quantity: p.quantity, bestBefore: p.bestBefore };
++      this.inventory.save(item);
++      result.added++;
++    }
++    return result;
++  }
++}
+diff --git a/src/application/ports.ts b/src/application/ports.ts
+index 743ba06..4395e5e 100644
+--- a/src/application/ports.ts
++++ b/src/application/ports.ts
+@@ -1,6 +1,7 @@
+ import { Household } from '../domain/household';
+ import { InventoryItem } from '../domain/inventory';
+ import { Pickup, SlotBooking } from '../domain/pickup';
++import { DonatedProduct } from '../domain/donation';
+ 
+ export interface HouseholdRepository {
+   save(h: Household): void;
+@@ -25,3 +26,19 @@ export interface PickupRepository {
+   save(p: Pickup): void;
+   list(): Pickup[];
+ }
++
++export interface DonationFeed {
++  /** Products donated on the given day (YYYY-MM-DD). */
++  donatedOn(date: string): Promise<DonatedProduct[]>;
++}
++
++export interface CategoryMappingRepository {
++  set(productCode: string, category: string): void;
++  categoryFor(productCode: string): string | undefined;
++  all(): Record<string, string>;
++}
++
++export interface ImportLog {
++  has(key: string): boolean;
++  add(key: string): void;
++}
+diff --git a/src/config/main.ts b/src/config/main.ts
+index a49b911..f5c511a 100644
+--- a/src/config/main.ts
++++ b/src/config/main.ts
+@@ -1,12 +1,18 @@
+ import { FoodBankService } from '../application/food-bank-service';
++import { DonationImportService } from '../application/donation-import-service';
+ import {
+   MemoryBookingRepository,
++  MemoryCategoryMappingRepository,
+   MemoryHouseholdRepository,
++  MemoryImportLog,
+   MemoryInventoryRepository,
+   MemoryPickupRepository,
+ } from '../adapters/outbound/memory-store';
++import { FreshLinkClient } from '../adapters/outbound/freshlink-client';
+ import { foodBankRoutes } from '../adapters/inbound/routes';
++import { donationRoutes } from '../adapters/inbound/donation-routes';
+ import { createServer } from '../adapters/inbound/server';
++import { scheduleDaily } from '../adapters/inbound/daily-scheduler';
+ 
+ const households = new MemoryHouseholdRepository();
+ const inventory = new MemoryInventoryRepository();
+@@ -14,5 +20,15 @@ const bookings = new MemoryBookingRepository();
+ const pickups = new MemoryPickupRepository();
+ 
+ const foodBank = new FoodBankService(households, inventory, bookings, pickups);
++const donations = new DonationImportService(
++  new FreshLinkClient(process.env.FRESHLINK_URL ?? 'https://api.freshlink.example', process.env.FRESHLINK_TOKEN ?? ''),
++  new MemoryCategoryMappingRepository(),
++  inventory,
++  new MemoryImportLog(),
++);
+ 
+-createServer(foodBankRoutes(foodBank)).listen(Number(process.env.PORT ?? 3000), () => console.log('food bank service listening'));
++scheduleDaily(6, () => donations.importYesterday());
++
++createServer(foodBankRoutes(foodBank), donationRoutes(donations)).listen(Number(process.env.PORT ?? 3000), () =>
++  console.log('food bank service listening'),
++);
+diff --git a/src/domain/donation.ts b/src/domain/donation.ts
+new file mode 100644
+index 0000000..5bf6c19
+--- /dev/null
++++ b/src/domain/donation.ts
+@@ -0,0 +1,12 @@
++export const UNSORTED = 'unsorted';
++
++export interface DonatedProduct {
++  productCode: string;
++  name: string;
++  quantity: number;
++  bestBefore: string;
++}
++
++export function donationKey(feedDate: string, p: DonatedProduct): string {
++  return `${feedDate}|${p.productCode}|${p.bestBefore}`;
++}

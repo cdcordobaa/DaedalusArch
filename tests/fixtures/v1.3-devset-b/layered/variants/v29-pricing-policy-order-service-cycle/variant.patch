@@ -1,0 +1,17 @@
+--- a/src/business/services/PricingPolicy.ts
++++ b/src/business/services/PricingPolicy.ts
+@@ -1,9 +1,14 @@
+ import { Customer } from '../model/Customer';
+ import { Money } from '../model/Money';
++import type { OrderItem } from './OrderService';
+ 
+ /** Gold customers get 10 % off orders of 100 EUR or more. */
+ export class PricingPolicy {
+   discountFor(customer: Customer, subtotal: Money): Money {
+     return customer.isGold && subtotal.cents >= 10_000 ? subtotal.percent(10) : Money.zero();
+   }
++
++  isBulk(items: readonly OrderItem[]): boolean {
++    return items.reduce((sum, item) => sum + item.quantity, 0) >= 50;
++  }
+ }

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "layered",
+  "variant": "v26-app-seeds-default-product-rows",
+  "kind": "violation",
+  "plants": "FF-S03",
+  "description": "presentation/app.ts default-imports a new persistence module records/defaultProducts.ts and seeds the catalogue from its rows.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S03",
+      "ruleName": "no-layer-skip",
+      "file": "src/presentation/app.ts",
+      "target": "src/persistence/records/defaultProducts.ts",
+      "reason": "Presentation imports a persistence module (default import), skipping the business layer."
+    }
+  ]
+}

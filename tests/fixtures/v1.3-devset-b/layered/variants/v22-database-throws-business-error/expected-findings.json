@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "style": "layered",
+  "variant": "v22-database-throws-business-error",
+  "kind": "violation",
+  "plants": "FF-S01",
+  "description": "InMemoryDatabase (persistence) imports BusinessError from business/errors to throw NOT_FOUND from a new row() lookup.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/persistence/Database.ts",
+      "target": "src/business/errors/BusinessError.ts",
+      "reason": "A lower layer (persistence) imports an upper one (business)."
+    },
+    {
+      "ruleId": "FF-S03",
+      "ruleName": "no-layer-skip",
+      "file": "src/persistence/Database.ts",
+      "target": "src/business/errors/BusinessError.ts",
+      "reason": "persistence > business is not an allowed transition (only business > persistence and presentation > business are)."
+    }
+  ]
+}

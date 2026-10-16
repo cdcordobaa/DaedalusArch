@@ -5,6 +5,9 @@
  *
  * Note for callers: the pipeline ingests the project's graph into Neo4j and clears the previous one (as the CLI
  * does), so the target database must be a scratch instance.
+ *
+ * v1.3 npx mode: with `graphEngine: 'cypher-interp'` the same pipeline runs on the in-process Cypher interpreter
+ * (`interp-evaluator.ts`): no database, no credentials, the template text executed unchanged.
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -17,6 +20,8 @@ import type { PipelineConfig } from '../pipeline/types.js';
 import type { PipelineBundle } from '../pipeline/pipeline-factory.js';
 import { MissingEnvError, requireEnv } from '../cli/require-env.js';
 import type { EvaluateProjectResult, Neo4jEnv, RuleViolationGroup } from './types.js';
+import type { GraphEngine } from '../cypher-interp/engine.js';
+import type { InterpEvaluator } from './interp-evaluator.js';
 
 /** Violations listed per rule; `count` always holds the full number. */
 export const MAX_LISTED_PER_RULE = 25;
@@ -28,6 +33,10 @@ export interface EvaluateDeps {
   readonly makeGraph: (env: Neo4jEnv) => GraphRepository;
   readonly makePipeline: (config: PipelineConfig) => Pick<PipelineBundle, 'executor' | 'cleanup'>;
   readonly connectTimeoutMs?: number;
+  /** Absent = `neo4j` (the reference engine). */
+  readonly graphEngine?: GraphEngine;
+  /** Required for `cypher-interp`: the in-process pipeline with its result cache. */
+  readonly interp?: InterpEvaluator;
 }
 
 export interface EvaluateInput {
@@ -110,6 +119,7 @@ export async function evaluateProject(
   if (!fs.existsSync(input.specPath)) {
     return failure('SPEC_NOT_FOUND', `Spec file not found: ${input.specPath}`);
   }
+  if (deps.graphEngine === 'cypher-interp') return evaluateInProcess(projectPath, input.specPath, scoringMode, deps, input.includeViolations === true);
 
   let neo4j: Neo4jEnv;
   try {
@@ -192,4 +202,37 @@ export async function evaluateProject(
   } finally {
     await cleanup();
   }
+}
+
+/** The cypher-interp path: no connection, no credential; the report summarised exactly as on Neo4j. */
+async function evaluateInProcess(
+  projectPath: string,
+  specPath: string,
+  scoringMode: ScoringMode,
+  deps: EvaluateDeps,
+  includeViolations = false,
+): Promise<DomainResult<EvaluateProjectResult>> {
+  if (deps.interp === undefined) return failure('ENGINE_UNAVAILABLE', 'cypher-interp selected but no in-process evaluator is wired.');
+  const res = await deps.interp({ projectPath, specPath, scoringMode });
+  if (!res.success) {
+    const [first] = res.errors;
+    return failure('PIPELINE_FAILED', res.errors.map((e) => e.message).join('; ') || (first?.code ?? 'evaluation failed'));
+  }
+  const { report, latencyMs, cache } = res.data;
+  return Result.ok({
+    projectPath,
+    specPath,
+    evaluationMode: 'symbolic-only',
+    ahs: report.ahsDeterministic ?? null,
+    verdict: report.verdict,
+    violationCount: report.violations.length,
+    byRule: groupByRule(report),
+    durationMs: report.durationMs,
+    scoringMode,
+    ...(report.tiers !== undefined && { tiers: report.tiers }),
+    ...(includeViolations && { violations: report.violations }),
+    engine: 'cypher-interp',
+    latencyMs,
+    cache,
+  });
 }
