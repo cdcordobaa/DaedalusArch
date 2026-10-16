@@ -77,12 +77,12 @@ These figures come from merged PR #166. The doc reports that "No LLM was called"
 
 | Evidence | Numbers as reported | Source | Data | Strength |
 |---|---|---|---|---|
-| κ vs dependency-cruiser | reference "**1.000** (55 shared findings, 0 disagreements)"; external "**0.961** (301 / 21 / 3)"; wild "**0.913** (663 / 123 / 0)" | CV:17 | reference = dev; external and wild = **independent** | strong on the keys compared |
-| κ vs eslint-plugin-boundaries | reference "**1.000** (46 / 0 / 0)"; external "**0.930** (211 / 27 / 4)"; wild "**1.000** (439 / 0 / 0)" | CV:18 | as above | strong |
-| κ vs ArchUnitTS | reference "**1.000** (48 / 0 / 0)"; external "**0.918** (221 / 39 / 0)"; wild "**0.950** (348 / 36 / 0)" | CV:19 | as above | strong |
-| Import-direction rules (FF-S01, S03, S04, DS02) against the tool without a defect there | 1.000 / 1.000 / 1.000 | CV:20 | all three | strong |
+| κ vs dependency-cruiser | reference "**1.000** (55 shared findings, 0 disagreements)"; external "**0.961** (301 / 21 / 3)"; wild "**0.913** (663 / 123 / 0)" | CV:17 | reference = dev; external and wild = **independent** | moderate: strong agreement on the keys compared, but the translation is the tool author's (CV:355) and the disagreement classes are post hoc (CV:361) |
+| κ vs eslint-plugin-boundaries | reference "**1.000** (46 / 0 / 0)"; external "**0.930** (211 / 27 / 4)"; wild "**1.000** (439 / 0 / 0)" | CV:18 | as above | moderate (same caveats) |
+| κ vs ArchUnitTS | reference "**1.000** (48 / 0 / 0)"; external "**0.918** (221 / 39 / 0)"; wild "**0.950** (348 / 36 / 0)" | CV:19 | as above | moderate (same caveats) |
+| Import-direction rules (FF-S01, S03, S04, DS02) against the tool without a defect there | 1.000 / 1.000 / 1.000 | CV:20 | all three | moderate (same caveats) |
 | Disagreements | "0 / 94 / 159"; classed our bug "0 / **0** / **0**". "**Every one of the 253 disagreements has a mechanical cause outside our rule logic.**" | CV:21-22, :27 | — | moderate: "**The disagreement classes are post hoc**" (CV:361) |
-| Tool placement | "Our tool sits **inside** the cluster of external tools … ours~ArchUnitTS (0.918) lies between depcruise~ArchUnitTS (0.912) and boundaries~ArchUnitTS (0.923)" | CV:257 | external | strong (an MTMM-style reading) |
+| Tool placement | "Our tool sits **inside** the cluster of external tools … ours~ArchUnitTS (0.918) lies between depcruise~ArchUnitTS (0.912) and boundaries~ArchUnitTS (0.923)" | CV:257 | external | moderate (an MTMM-style reading; same caveats) |
 | Low per-rule κ (negative rows) | external FF-S02 vs ArchUnitTS **0.382**; FF-C04 vs dc **0.218**; FF-S01 graph vs boundaries **0.823**. Wild FF-S02 vs ArchUnitTS **0.611**; FF-C04 vs dc **0.279** | CV:263-284 | independent | explained as re-export and translation gaps (CV:338-344) |
 | Defects the run exposed | "**Our FF-S02 cycle rule did not finish** on the 3 largest wild repositories (immich, medplum, podkrepi)"; "**A blocking rule silently drops out of the v1.3 verdict on large, densely cyclic code.** … This is our defect"; "**FF-P05 fails on cypher-interp** on all 36 clean and nestjs projects" | CV:40, :330, :41 | wild, all | **negative** (instrument defects) |
 | Null findings | "**No view-choice disagreement.** … on this evidence the view choice is untested, not confirmed" | CV:348 | — | null |
@@ -147,7 +147,7 @@ This is not a validity type, but it decides whether Study 2's outcome can show a
 **What held up**
 
 1. **It reads code the way other tools do.** On 29 real open-source projects (15 pre-2023 human-written, 14 wild), the tool was compared with three established architecture checkers. Agreement was high: κ 0.913–1.000 (CV:15-19). In all 253 disagreements, none was traced to a fault in our rules (CV:22, :27). We sit inside the cluster of established tools, not outside it (CV:257). That classification was made after the fact, by the tool's author.
-2. **Its findings are mechanically correct.** Every checkable finding points at code that really breaks the stated rule. The count is 2,669 earlier ([VS] VSM:90) and 96/96 in last night's probe (FP:18).
+2. **Its findings are mechanically correct.** Every checkable finding points at code that really breaks the stated rule. This rests mostly on development data: 2,669 findings earlier ([VS] VSM:90) and 96/96 in last night's probe (FP:18).
 3. **Its import graph is exact in the literal view.** On 15 independent human-written projects it matched the TypeScript compiler at 1.000 ([EX] EXR:170).
 
 **What did not hold up, or is not yet known**
@@ -158,13 +158,13 @@ This is not a validity type, but it decides whether Study 2's outcome can show a
 7. **We have no validity figure on data the tool was not tuned on, yet.** The sealed hold-out has not been run ([VS] VSM:120). The 283 findings on human code are unlabelled ([EX] EXR:196). The cross-vendor model panel and the bug-churn study are not finished (MP:3; [PV] PVP:135).
 8. **Study 2, as designed, risks measuring nothing.** In a probe, hexagonal-style code never produced a blocking violation (FP:15). At the planned size, the study has about 54 % power for the main contrast and 17 % for the MCP arm ([AR] ARS:45).
 
-**Bottom line.** The instrument is reliable and mechanically correct, and it agrees with independent tools. Whether its findings are *meaningful* is still unshown. One behavioural test came back null. Four steps would close the main gaps:
+**Bottom line.** The instrument is reliable on engine parity, but it has no human inter-rater or repeat-run reliability yet, and two engine defects are open (CV:40-41, :331). It is mechanically correct, mostly on development data, and it agrees with independent tools. Whether its findings are *meaningful* is still unshown. One behavioural test came back null. Four steps would close the main gaps:
 - run the sealed hold-out once;
 - have one independent developer label the external-set findings;
 - run the model panel;
 - finish the churn study.
 
-Only the second needs a person, for about 3–5 hours ([VS] VSM:360).
+Of these four, only the labelling needs a person, for about 3–5 hours ([VS] VSM:360). The gap table in §3 lists further human steps: G3, G12 and the optional G13.
 
 ---
 
