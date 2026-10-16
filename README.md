@@ -4,6 +4,9 @@ An architectural firewall for TypeScript: a YAML spec (layers, fitness functions
 architecture property graph, scored as an Architecture Health Score (AHS) and turned into a verdict. See
 `Docs/` for the requirements, the registered instrument and the experiment plans.
 
+**Artifact evaluators:** start with [`ARTIFACT.md`](ARTIFACT.md). It has a 15-minute check that needs no database
+(`npm ci && npm run artifact:kick`) and the full-reproduction path, both with expected outputs.
+
 ## Quick start without a database (npx)
 
 No Neo4j server, no Docker, no credentials: when `NEO4J_URI` is not set, every command runs the rule templates on
@@ -23,6 +26,8 @@ npx daedalus-mcp --spec path/to/spec.yaml --project path/to/project      # MCP s
 
 Every evaluating command prints one stderr line naming the engine, e.g.
 `daedalus: graph engine cypher-interp (in-process, no database) [NEO4J_URI is not set; ...]`.
+Inside the checkout itself, `node dist/cli/bin.js …` (or `npm start -- …`) is faster than `npx daedalus`, which
+re-runs the build on every call there.
 Set `NEO4J_URI` (or pass `--engine neo4j`) to use Neo4j, which stays **the reference engine for reported numbers**;
 study and experiment scripts always pass `--engine neo4j` explicitly.
 
