@@ -2,7 +2,10 @@
 /**
  * Stdio entry of the DaedalusArch MCP prototype (`daedalus-arch-mcp`).
  *
- *   daedalus-arch-mcp --spec <spec.yaml> [--project <dir>] [--engine neo4j|cypher-interp] [--neural claude-cli|mock|ensemble ...]
+ *   daedalus-arch-mcp --spec <spec.yaml> [--project <dir>] [--engine neo4j|cypher-interp] [--neural claude-cli|mock|ensemble ...] [--call-log <abs path>]
+ *
+ * `--call-log <abs path>` (or DAEDALUS_CALL_LOG) appends one JSONL line per tool call, outside the project; off by
+ * default (Docs/v1.3/mcp-call-log.md).
  *
  * `--neural` turns on the neural-arm tools (review_unit, explain_and_fix); off by default. Flags:
  * `neural-context.ts`, Docs/v1.3/neural-arm-agent-tools.md.
@@ -13,7 +16,8 @@
  * so diagnostics go to stderr.
  */
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { buildContext, parseArgs, serverEngine } from './context.js';
+import { buildContext, callLogPath, parseArgs, serverEngine } from './context.js';
+import { checkCallLogPath } from './call-log.js';
 import { createServer } from './server.js';
 import { engineLine } from '../cli/engine-default.js';
 import { GRAPH_ENGINES } from '../cypher-interp/engine.js';
@@ -24,6 +28,14 @@ async function main(): Promise<void> {
   if (engine === undefined) {
     process.stderr.write(`Error: --engine must be one of ${GRAPH_ENGINES.join(' | ')}\n`);
     process.exit(2);
+  }
+  const logPath = callLogPath(args, process.env);
+  if (logPath !== undefined) {
+    const bad = checkCallLogPath(logPath, args.project ?? process.env.DAEDALUS_PROJECT);
+    if (bad !== null) {
+      process.stderr.write(`Error: ${bad}\n`);
+      process.exit(2);
+    }
   }
   process.stderr.write(engineLine(engine));
   const server = createServer(buildContext(args, process.env));

@@ -220,6 +220,33 @@ describe('CLI', () => {
       expect(config.graphMode).toBe('ast-only');
     });
 
+    it('scale flags: absent by default, so the pipeline config is as before (Docs/v1.3/scale.md)', async () => {
+      const program = loadProgram();
+      await program.parseAsync(['node', 'firewall', 'evaluate', '--project', '/p', '--spec', 's.yaml', '--symbolic-only']);
+      const config = firstPipelineConfig();
+      expect([config.maxFiles, config.memoryLimitMb, config.queryEngine, config.sourceScope]).toEqual([undefined, undefined, undefined, undefined]);
+    });
+
+    it('scale flags: --max-files, --memory-limit-mb, --query-engine neo4j and --skip-excluded-sources reach the pipeline', async () => {
+      const program = loadProgram();
+      await program.parseAsync([
+        'node', 'firewall', 'evaluate', '--project', '/p', '--spec', 's.yaml', '--symbolic-only',
+        '--max-files', '8000', '--memory-limit-mb', '3072', '--query-engine', 'neo4j', '--skip-excluded-sources',
+      ]);
+      const config = firstPipelineConfig();
+      expect([config.maxFiles, config.memoryLimitMb, config.queryEngine, config.sourceScope]).toEqual([8000, 3072, 'neo4j', 'analysed']);
+    });
+
+    it.each([
+      ['--max-files', '0'], ['--max-files', '1e4'], ['--memory-limit-mb', '-1'], ['--query-engine', 'cypher-interp'],
+    ])('scale flags: %s %s exits 2 before any pipeline is built', async (flag, value) => {
+      const program = loadProgram();
+      await program.parseAsync(['node', 'firewall', 'evaluate', '--project', '/p', '--spec', 's.yaml', '--symbolic-only', flag, value]);
+      expect(createPipeline).not.toHaveBeenCalled();
+      expect(process.exitCode).toBe(2);
+      process.exitCode = undefined;
+    });
+
     it('an unknown --graph-mode exits 2 before any pipeline is built', async () => {
       const program = loadProgram();
       await program.parseAsync([

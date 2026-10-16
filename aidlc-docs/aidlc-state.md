@@ -11,7 +11,7 @@
 ## Workspace State
 - **Existing Code**: Yes — 106 TypeScript files under `src/` plus `tests/` (npm build). NOTE: originally recorded as No on 2026-03-27 when the workspace was empty; the project is brownfield in fact as of v1.0 Construction. Reverse Engineering remains SKIPPED (artifacts exist under `inception/reverse-engineering/`).
 - **Reverse Engineering Needed**: No (greenfield project with comprehensive PRD + ADR)
-- **Workspace Root**: /Volumes/Life-OS/Users/Arkatechie/Development/Archi-Firewall/DaedalusArch
+- **Workspace Root**: <workspace>/DaedalusArch
 
 ## Pre-existing Artifacts
 - **PRD**: `Docs/PRD — Architectural Firewall Spec-Driven Compliance.md` (13 segments, comprehensive)

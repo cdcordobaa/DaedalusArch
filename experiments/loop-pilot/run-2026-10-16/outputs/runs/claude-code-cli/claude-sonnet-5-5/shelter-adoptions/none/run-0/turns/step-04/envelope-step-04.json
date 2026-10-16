@@ -1,0 +1,121 @@
+{
+  "duration_api_ms": 95753,
+  "stop_reason": "end_turn",
+  "session_id": "72d734af-ce2d-485a-82e9-889d7cc5f151",
+  "total_cost_usd": 0.3327007,
+  "usage": {
+    "input_tokens": 22,
+    "cache_creation_input_tokens": 33242,
+    "cache_read_input_tokens": 207987,
+    "output_tokens": 17889,
+    "output_tokens_details": {
+      "thinking_tokens": 1444
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 33242,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 681,
+        "cache_read_input_tokens": 34655,
+        "cache_creation_input_tokens": 4499,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 4499
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "modelUsage": {
+    "claude-sonnet-5-5": {
+      "inputTokens": 22,
+      "outputTokens": 17889,
+      "cacheReadInputTokens": 207987,
+      "cacheCreationInputTokens": 33242,
+      "webSearchRequests": 0,
+      "costUSD": 0.3327007,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "thinkingTokens": 1444,
+      "canonicalModel": "claude-sonnet-5-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01VZKCWz7QHcoJDExyNASvjx",
+      "tool_input": {
+        "command": "find . -path ./node_modules -prune -o -type f -print | head -100 && cat package.json && wc -l $(find src -name '*.ts')"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_017PY8LKUJpacGkCV93VNpGG",
+      "tool_input": {
+        "command": "cat >> application/ports.ts <<'EOF'\n\nexport interface AuditedChange {\n  readonly entityType: AuditEntityType;\n  readonly entity: { readonly id: string };\n  readonly animalId?: string;\n}\n\n/** Saves entities and their audit entries as one atomic unit: all of them or none. */\nexport interface AuditedStore {\n  commit(actor: string, at: Date, changes: AuditedChange[]): Promise<void>;\n}\n\nexport interface AuditLog {\n  findByAnimal(animalId: string): Promise<AuditEntry[]>;\n  findByActor(actor: string, fromMs?: number, toMs?: number): Promise<AuditEntry[]>;\n}\nEOF\nsed -i '4a import type { AuditEntityType, AuditEntry } from \"../domain/audit.js\";' application/ports.ts\ncat >> adapters/outbound/in-memory-repositories.ts <<'EOF'\n\ninterface Snapshottable {\n  snapshot(): () => void;\n}\n\nfunction snapshotOf<T>(items: Map<string, T>): () => void {\n  const copy = new Map(items);\n  return () => {\n    items.clear();\n    for (const [k, v] of copy) items.set(k, v);\n  };\n}\n\nexport class InMemoryAuditStore implements AuditedStore, AuditLog {\n  private entries: AuditEntry[] = [];\n  private readonly stores: Record<AuditEntityType, { repo: Snapshottable; find(id: string): Promise<unknown>; save(e: never): Promise<void> }>;\n\n  constructor(\n    animals: InMemoryAnimalRepository,\n    applications: InMemoryApplicationRepository,\n    placements: InMemoryPlacementRepository,\n    notifications: InMemoryNotificationRepository,\n    private readonly ids: IdGenerator,\n  ) {\n    const wrap = <T extends { id: string }>(\n      r: Snapshottable & { findById(id: string): Promise<T | undefined>; save(e: T): Promise<void> },\n    ) => ({\n      repo: r as Snapshottable,\n      find: (id: string) => r.findById(id),\n      save: (e: never) => r.save(e as T),\n    });\n    this.stores = {\n      animal: wrap(animals),\n      application: wrap(applications),\n      placement: wrap(placements),\n      notification: wrap(notifications),\n    };\n  }\n\n  private lock: Promise<unknown> = Promise.resolve();\n\n  commit(actor: string, at: Date, changes: AuditedChange[]): Promise<void> {\n    const run = this.lock.then(() => this.apply(actor, at, changes));\n    this.lock = run.catch(() => undefined);\n    return run;\n  }\n\n  private async apply(actor: string, at: Date, changes: AuditedChange[]): Promise<void> {\n    const restores = Object.values(this.stores).map((s) => s.repo.snapshot());\n    const previousEntries = this.entries;\n    try {\n      const added: AuditEntry[] = [];\n      for (const c of changes) {\n        const store = this.stores[c.entityType];\n        const before = (await store.find(c.entity.id)) ?? null;\n        await store.save(c.entity as never);\n        added.push({\n          id: this.ids.next(),\n          entityType: c.entityType,\n          entityId: c.entity.id,\n          ...(c.animalId === undefined ? {} : { animalId: c.animalId }),\n          actor,\n          at: at.toISOString(),\n          before: before === null ? null : structuredClone(before),\n          after: structuredClone(c.entity),\n        });\n      }\n      this.entries = [...previousEntries, ...added];\n    } catch (err) {\n      for (const restore of restores) restore();\n      this.entries = previousEntries;\n      throw err;\n    }\n  }\n\n  async findByAnimal(animalId: string): Promise<AuditEntry[]> {\n    return this.entries.filter((e) => e.animalId === animalId);\n  }\n\n  async findByActor(actor: string, fromMs?: number, toMs?: number): Promise<AuditEntry[]> {\n    return this.entries.filter((e) => {\n      const t = Date.parse(e.at);\n      return e.actor === actor && (fromMs === undefined || t >= fromMs) && (toMs === undefined || t <= toMs);\n    });\n  }\n}\nEOF\npython3 - <<'EOF'\nimport re\np='adapters/outbound/in-memory-repositories.ts'\ns=open(p).read()\ns=s.replace(\"  PlacementRepository,\\n} from\",\"  PlacementRepository,\\n  AuditedChange,\\n  AuditedStore,\\n  AuditLog,\\n  IdGenerator,\\n} from\",1)\ns=s.replace('import type { Notification }','import type { AuditEntityType, AuditEntry } from \"../../domain/audit.js\";\\nimport type { Notification }',1)\n# add snapshot to the four repos\nfor cls in [\"Notification\",\"Placement\",\"Animal\",\"Application\"]:\n    s=s.replace(\"export class InMemory%sRepository implements %sRepository {\\n  private readonly items = new Map<string, \"%(cls,cls),\n      \"export class InMemory%sRepository implements %sRepository, Snapshottable {\\n  private readonly items = new Map<string, \"%(cls,cls),1)\n    m=re.search(r\"export class InMemory%sRepository.*?\\n  private readonly items[^\\n]*\\n\"%cls,s,re.S)\n    s=s[:m.end()]+\"\\n  snapshot(): () => void {\\n    return snapshotOf(this.items);\\n  }\\n\"+s[m.end():]\nopen(p,'w').write(s)\nEOF"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01DZqHLb57jehPcNreb7M7sk",
+      "tool_input": {
+        "command": "cd /root/pilot/out/runs/claude-code-cli/claude-sonnet-5-5/shelter-adoptions/none/run-0/work/src/application && cp shelter-service.ts /tmp/ss.bak && sed -i \\\n -e 's/await this\\.notifications\\.save(\\(.*\\));$/await this.saveNotification(actor, \\1);/' \\\n -e 's/this\\.fallbackToEmail(\\(updated\\|failed\\))/this.fallbackToEmail(actor, \\1)/' \\\n -e 's/private async fallbackToEmail(failed/private async fallbackToEmail(actor: string, failed/' \\\n -e 's/await this\\.sendEmail(/await this.sendEmail(actor, /' \\\n -e 's/this\\.sendEmail(r\\.name/this.sendEmail(actor, r.name/' \\\n -e 's/private async sendEmail(/private async sendEmail(\\n    actor: string,/' \\\n -e 's/private async sendSms(r/private async sendSms(actor: string, r/' \\\n -e 's/await this\\.sendSms(r,/await this.sendSms(actor, r,/' \\\n -e 's/private dispatch(r: Recipient/private dispatch(actor: string, r: Recipient/' \\\n -e 's/await this\\.dispatch(/await this.dispatch(actor, /' \\\n -e 's/private async notify(application/private async notify(actor: string, application/' \\\n -e 's/await this\\.notify(/await this.notify(actor, /' \\\n shelter-service.ts && grep -n \"actor\" shelter-service.ts"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subagent_stats": {
+    "spawned": 0,
+    "requested": {
+      "background": 0,
+      "foreground": 0,
+      "unset": 0
+    },
+    "started_in_background": 0,
+    "max_depth": 0,
+    "spawned_by_subagents": 0,
+    "completed": 0,
+    "failed": 0,
+    "killed": {
+      "parent": 0,
+      "user": 0,
+      "system": 0
+    },
+    "refused": {
+      "depth_limit": 0,
+      "concurrency_limit": 0,
+      "budget": 0
+    },
+    "by_type": {}
+  },
+  "safety_stops": 0,
+  "is_error": false,
+  "num_turns": 30,
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "The audit trail is in and the project type-checks with your exact `tsc` command with no errors. I haven't run the service or exercised the endpoints, so none of it has been tested at runtime.\n\n**What gets recorded**\n- Every save of an animal, application, foster placement or notification now writes an audit entry. It holds the actor, timestamp, and the before and after values. `before` is `null` when the entity is created.\n- The actor comes from the `x-staff-id` request header. Delivery-report webhooks are recorded as `system`.\n- If a mutating request has no header, the actor is recorded as `unknown` rather than rejecting the request, so existing clients keep working. If you'd rather return 400 for a missing header, that's a small change.\n- Foster carers are not audited, since you didn't list them.\n\n**Endpoints**\n- `GET /animals/:id/audit` returns the animal's own changes plus those of its applications and placements. It returns 404 for an unknown animal.\n- `GET /staff/:staffId/audit?from=&to=` returns every change that staff member made. `from` and `to` are optional, inclusive, and a bad date returns 400.\n- Notifications aren't linked to an animal, so they don't appear in an animal's trail. They do appear under the staff member who triggered them, or under `system`.\n\n**Atomicity**\n- A new `AuditedStore` port saves the entities and their audit entries as one unit. The in-memory adapter snapshots state first and restores it if anything fails.\n- Approving an application is now a single commit covering the approved application, the adopted animal and any applications rejected as a result. Previously these were separate saves.\n\n**Code layout**\n- New domain file `src/domain/audit.ts`; the new ports are in `src/application/ports.ts`.\n- The in-memory adapter and its wiring in `src/config/main.ts` now include the audit store.\n- The service methods that change data take the actor as their first argument.\n\nI rewrote `in-memory-repositories.ts` and `shelter-service.ts` in full rather than patching them. Only the audit-related behaviour should differ.",
+  "ttft_ms": 2219,
+  "type": "result",
+  "duration_ms": 97326,
+  "uuid": "de24fc95-88f5-4752-bc00-b6661e392ed1",
+  "ttft_stream_ms": 1187,
+  "time_to_request_ms": 241,
+  "first_content_frame_ms": 1188,
+  "queued_turn_count": 0,
+  "result_index": 0
+}

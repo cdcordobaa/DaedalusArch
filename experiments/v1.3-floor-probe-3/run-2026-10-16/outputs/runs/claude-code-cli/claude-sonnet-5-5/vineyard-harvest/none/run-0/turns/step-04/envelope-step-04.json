@@ -1,0 +1,114 @@
+{
+  "duration_api_ms": 60853,
+  "stop_reason": "end_turn",
+  "session_id": "fc774fa0-0514-47be-aedc-26c757462137",
+  "total_cost_usd": 0.1669376,
+  "usage": {
+    "input_tokens": 18,
+    "cache_creation_input_tokens": 21050,
+    "cache_read_input_tokens": 135916,
+    "output_tokens": 6911,
+    "output_tokens_details": {
+      "thinking_tokens": 950
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 21050,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 511,
+        "cache_read_input_tokens": 26687,
+        "cache_creation_input_tokens": 275,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 275
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "modelUsage": {
+    "claude-sonnet-5-5": {
+      "inputTokens": 18,
+      "outputTokens": 6911,
+      "cacheReadInputTokens": 135916,
+      "cacheCreationInputTokens": 21050,
+      "webSearchRequests": 0,
+      "costUSD": 0.1669376,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "thinkingTokens": 950,
+      "canonicalModel": "claude-sonnet-5-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01SWDjQADAVDsuRt9Lmx7frG",
+      "tool_input": {
+        "command": "find . -path ./node_modules -prune -o -type f -print | head -100 && wc -l $(find src -name '*.ts')"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01Pgvgt6k2NJ3crBtD8RyAD9",
+      "tool_input": {
+        "command": "cd /tmp/claude-0/-home-user-DaedalusArch/a83fccad-843c-5015-8db8-a37911ed0199/scratchpad/out/runs/claude-code-cli/claude-sonnet-5-5/vineyard-harvest/none/run-0/work/src/cellar && python3 -I - <<'E'\nimport re\ndef sub(p,a,b):\n    s=open(p).read(); assert a in s; open(p,'w').write(s.replace(a,b,1))\nsub('domain/ports.ts','  latest(tag: number)','  replaceForTag(w: Weighing): void;\\n  latest(tag: number)')\nsub('infrastructure/in-memory.ts','  hasRef(','''  replaceForTag(w: Weighing): void {\n    for (let i = this.items.length - 1; i >= 0; i--) if (this.items[i]!.tag === w.tag) this.items.splice(i, 1);\n    this.items.push(w);\n  }\n  hasRef(''')\nsub('application/cellar-service.ts','''  recordWeighing(w: Weighing): Weighing {\n    this.weighings.save(w);\n    return w;\n  }\n''','''  /** A bin already weighed ignores further weighings (weighbridge resends); returns the weighing that counts. */\n  recordWeighing(w: Weighing): Weighing {\n    const existing = this.weighings.latest(w.tag);\n    if (existing) return existing;\n    this.weighings.save(w);\n    return w;\n  }\n\n  /** Cellar staff correction: replaces the bin's weight, including in intake decisions already made. */\n  correctWeighing(tag: number, grossKg: number, weighedAt: string = new Date().toISOString()): Weighing {\n    const w = newWeighing(tag, grossKg, weighedAt);\n    this.weighings.replaceForTag(w);\n    for (const d of this.intakes.list()) if (d.tag === tag) this.intakes.save({ ...d, grossKg });\n    return w;\n  }\n''')\nsub('application/cellar-service.ts','''    this.weighings.save({ ...newWeighing''','''    if (this.weighings.latest(tag)) return;\n    this.weighings.save({ ...newWeighing''')\nsub('api/router.ts','''  r.post(\"/bins/:tag/sugar\"''','''  // Cellar staff correction of a bin's weight; replaces the first weighing.\n  r.put(\"/bins/:tag/weighing\", (req, res) => {\n    const b = req.body ?? {};\n    const time = b.time === undefined ? undefined : str(b.time, \"time\");\n    res.json(svc.correctWeighing(Number(req.params.tag), num(b.grossKg, \"grossKg\"), time));\n  });\n\n  r.post(\"/bins/:tag/sugar\"''')\nE\ncd ..; /tmp/claude-0/-home-user-DaedalusArch/a83fccad-843c-5015-8db8-a37911ed0199/scratchpad/harness/bin/tsc --noEmit --incremental false -p /tmp/claude-0/-home-user-DaedalusArch/a83fccad-843c-5015-8db8-a37911ed0199/scratchpad/harness/runs/claude-code-cli/claude-sonnet-5-5/vineyard-harvest/none/run-0/tsconfig.json"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subagent_stats": {
+    "spawned": 0,
+    "requested": {
+      "background": 0,
+      "foreground": 0,
+      "unset": 0
+    },
+    "started_in_background": 0,
+    "max_depth": 0,
+    "spawned_by_subagents": 0,
+    "completed": 0,
+    "failed": 0,
+    "killed": {
+      "parent": 0,
+      "user": 0,
+      "system": 0
+    },
+    "refused": {
+      "depth_limit": 0,
+      "concurrency_limit": 0,
+      "budget": 0
+    },
+    "by_type": {}
+  },
+  "safety_stops": 0,
+  "is_error": false,
+  "num_turns": 22,
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "A bin that has already been weighed now ignores any further weighing, unless cellar staff enter it as a correction. The type-check you specified passes with no errors. I haven't run the service or tested the new behaviour.\n\n- **Resent weighings:** a second weighing for a tag is ignored. This covers the ScaleLink webhook, which returns the weighing that counts and still replies 202. It also covers WeighWell chip weighings, including ones released when a chip is linked later. The change is in `src/cellar/application/cellar-service.ts`.\n- **Corrections:** `PUT /cellar/bins/:tag/weighing` takes `{ grossKg, time? }` and replaces the bin's first weight. It also updates the weight on any intake decision already made for that bin, because pay reads the weight stored on the decision. The endpoint is in `src/cellar/api/router.ts`.\n- **Pay statements:** I didn't add a recalculation step. Unapproved weeks are computed from the current weights every time they're requested, so they pick up the fix and any correction straight away. Approved weeks stay frozen, as before.\n\n- **Existing double counts:** weighings that were already stored twice are still stored twice. The service holds its data in memory, so a restart clears them. If it hasn't been restarted, a correction on an affected bin resets it to a single weight.\n- **One weighing per tag:** I treat a bin tag as one bin, because the existing pay lookup already finds weights by tag alone. If tags get reused on different days, a later day's weighing for the same tag would be ignored.",
+  "ttft_ms": 2817,
+  "type": "result",
+  "duration_ms": 62322,
+  "uuid": "e3bb681e-dc57-42bb-a92e-3a54d16e309d",
+  "ttft_stream_ms": 1574,
+  "time_to_request_ms": 190,
+  "first_content_frame_ms": 1574,
+  "queued_turn_count": 0,
+  "result_index": 0
+}

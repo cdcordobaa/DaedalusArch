@@ -1,0 +1,42 @@
+{
+  "style": "ddd",
+  "variant": "g03-deep-import-of-reexported-file",
+  "elapsedMs": 2632,
+  "violations": [
+    {
+      "id": "v-29c08679530a37d5",
+      "type": "CUSTOM_context-isolation",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-DS02",
+      "route": "symbolic",
+      "filePath": "src/billing/api/InvoiceController.ts",
+      "message": "src/billing/api/InvoiceController.ts (src/billing/) imports src/ordering/application/GetOrderSummary.ts, which is not in the public API of src/ordering/",
+      "deterministic": true,
+      "target": "src/ordering/application/GetOrderSummary.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "isTypeOnly": true,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    }
+  ],
+  "advisoryFilter": {
+    "options": [
+      "cv05-no-logic",
+      "cv05-no-branching",
+      "composition-roots",
+      "c03-core-only",
+      "c02-abstract-imports",
+      "c02-size-scaled",
+      "c04-entry-points",
+      "so-framework-members",
+      "cv05-rollup"
+    ],
+    "suppressed": []
+  }
+}

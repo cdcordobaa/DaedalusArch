@@ -33,6 +33,21 @@ export class CypherUnsupportedError extends Error {
   }
 }
 
+/** Grammar clause rules → the Cypher a reader recognises, for `CypherUnsupportedError` messages. */
+const CLAUSE_NAMES: Readonly<Record<string, string>> = {
+  createClause: 'CREATE (write clause)', mergeClause: 'MERGE (write clause)', setClause: 'SET (write clause)', deleteClause: 'DELETE / DETACH DELETE (write clause)',
+  removeClause: 'REMOVE (write clause)', foreachClause: 'FOREACH (write clause)', loadCSVClause: 'LOAD CSV', callClause: 'CALL procedure',
+  subqueryClause: 'CALL { } subquery', insertClause: 'INSERT (write clause)', finishClause: 'FINISH', useClause: 'USE', orderBySkipLimitClause: 'standalone ORDER BY / SKIP / LIMIT',
+  filterClause: 'FILTER (Cypher 25 only)', letClause: 'LET (Cypher 25 only)', showIndexCommand: 'SHOW', terminateCommand: 'TERMINATE',
+};
+
+/** Grammar expression rules → the Cypher a reader recognises. */
+const EXPRESSION_NAMES: Readonly<Record<string, string>> = {
+  countExpression: 'COUNT { } subquery', collectExpression: 'COLLECT { } subquery', mapProjection: 'map projection',
+  patternComprehension: 'pattern comprehension', shortestPathExpression: 'shortestPath', patternExpression: 'pattern expression',
+  normalizeFunction: 'normalize()', trimFunction: 'trim(... FROM ...)',
+};
+
 class ThrowingListener extends BaseErrorListener {
   readonly errors: string[] = [];
   override syntaxError<T extends ATNSimulator>(_r: Recognizer<T>, _s: Token | null, line: number, column: number, msg: string, _e: RecognitionException | null): void {
@@ -102,8 +117,8 @@ class Builder {
   }
 
   queryWithLocalDefinitions(c: Ctx): Query {
-    const { parts } = this.unionParts(c);
-    if (parts.length !== 1) throw new CypherUnsupportedError('UNION outside CALL { }');
+    const { parts, all } = this.unionParts(c);
+    if (parts.length !== 1) throw new CypherUnsupportedError(`UNION${all ? ' ALL' : ''} outside a CALL { } subquery`);
     return parts[0] as Query;
   }
 
@@ -113,29 +128,39 @@ class Builder {
     const next = need(c, 'nextStatement');
     const regs = rules(next, 'regularQuery');
     if (regs.length !== 1) throw new CypherUnsupportedError('NEXT');
-    const reg = regs[0] as Ctx;
-    const union = rule(reg, 'union');
+    const union = rule(regs[0] as Ctx, 'union');
     if (union === undefined) throw new CypherUnsupportedError('WHEN query');
-    const singles = rules(union, 'singleQuery');
     const alls = kids(union).filter((k) => isTok(k, 'ALL')).length;
     const unions = kids(union).filter((k) => isTok(k, 'UNION')).length;
     if (alls !== 0 && alls !== unions) throw new CypherSyntaxError('Invalid combination of UNION and UNION ALL');
-    const parts = singles.map((single) => {
+    const parts = rules(union, 'singleQuery').map((single) => {
       if (rule(single, 'clause') === undefined) throw new CypherUnsupportedError('braced query');
       return { clauses: rules(single, 'clause').map((cl) => this.clause(cl)) };
     });
-    return { parts, all: alls > 0 };
+    return { parts, all: unions > 0 && alls === unions };
   }
 
+  /**
+   * `CALL { part [UNION [ALL] part]* }`: returning unit subqueries; a part may import outer variables with a leading
+   * `WITH`. OPTIONAL, scoped `CALL ( ) { }` and IN TRANSACTIONS stay rejected. Parts must end in RETURN with named
+   * columns, the same set in every part (any order, as Neo4j accepts).
+   */
   subqueryClause(c: Ctx): Clause {
-    if (hasTok(c, 'OPTIONAL')) throw new CypherUnsupportedError('OPTIONAL CALL');
-    if (rule(c, 'subqueryScope') !== undefined) throw new CypherUnsupportedError('CALL (scope) { }');
+    if (hasTok(c, 'OPTIONAL')) throw new CypherUnsupportedError('OPTIONAL CALL { } subquery');
+    if (rule(c, 'subqueryScope') !== undefined) throw new CypherUnsupportedError('scoped CALL ( ) { } subquery (correlated)');
     if (rule(c, 'subqueryInTransactionsParameters') !== undefined) throw new CypherUnsupportedError('CALL { } IN TRANSACTIONS');
     const { parts, all } = this.unionParts(need(c, 'queryWithLocalDefinitions'));
+    let columns: string[] | undefined;
     for (const p of parts) {
-      if (p.clauses[p.clauses.length - 1]?.k !== 'return') throw new CypherUnsupportedError('unit subquery without RETURN');
+      const last = p.clauses[p.clauses.length - 1];
+      if (last?.k !== 'return' || last.projection.star) throw new CypherUnsupportedError('CALL { } subquery that does not end in RETURN with named columns');
+      const cols = last.projection.items.map((i) => i.alias);
+      if (columns === undefined) columns = cols;
+      else if (cols.length !== columns.length || cols.some((x) => !(columns ?? []).includes(x))) {
+        throw new CypherSyntaxError('All sub queries in an UNION must have the same return column names');
+      }
     }
-    return { k: 'call', parts, unionAll: all };
+    return { k: 'call', parts, unionAll: all, columns: columns ?? [] };
   }
 
   clause(c: Ctx): Clause {
@@ -149,7 +174,10 @@ class Builder {
       case 'returnClause': return { k: 'return', projection: this.returnBody(need(inner, 'returnBody'), 'RETURN') };
       case 'unwindClause': return { k: 'unwind', expr: this.expression(need(inner, 'expression')), alias: this.variable(need(inner, 'variable')) };
       case 'subqueryClause': return this.subqueryClause(inner);
-      default: throw new CypherUnsupportedError(`clause ${ruleOf(inner) ?? '?'}`);
+      default: {
+        const r = ruleOf(inner) ?? '?';
+        throw new CypherUnsupportedError(`${CLAUSE_NAMES[r] ?? `clause ${r}`} (${r}); the interpreter runs read-only MATCH / OPTIONAL MATCH / WITH / UNWIND / RETURN queries`);
+      }
     }
   }
 
@@ -450,7 +478,10 @@ class Builder {
       case 'listComprehension': return this.listComprehension(inner);
       case 'listItemsPredicate': return this.listItemsPredicate(inner);
       case 'reduceExpression': return this.reduceExpression(inner);
-      default: throw new CypherUnsupportedError(`expression ${ruleOf(inner) ?? '?'}`);
+      default: {
+        const r = ruleOf(inner) ?? '?';
+        throw new CypherUnsupportedError(EXPRESSION_NAMES[r] !== undefined ? `${EXPRESSION_NAMES[r]} (${r})` : `expression ${r}`);
+      }
     }
   }
 

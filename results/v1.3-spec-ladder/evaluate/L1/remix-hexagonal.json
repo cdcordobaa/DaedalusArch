@@ -1,0 +1,1537 @@
+{
+  "runId": "run-1792150591320",
+  "projectPath": "<clones>/remix-hexagonal/.",
+  "specVersion": "1.0.0",
+  "ahsDeterministic": 0.726,
+  "verdict": "hard-block",
+  "scoring": {
+    "weights": {
+      "structural": 0.35,
+      "coupling": 0.2,
+      "pattern": 0.3,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0,
+      "integrity": 0
+    },
+    "fullModeWeights": {
+      "structural": 0.32,
+      "coupling": 0.18,
+      "pattern": 0.27,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0.04,
+      "integrity": 0.04
+    },
+    "thresholds": {
+      "pass": 0.8,
+      "warning": 0.65,
+      "softBlock": 0.5
+    },
+    "confidenceThresholds": {
+      "high": 0.85,
+      "medium": 0.6,
+      "iccMinimum": 0.7
+    },
+    "verdictSource": "ahsDeterministic"
+  },
+  "perDimensionScores": [
+    {
+      "dimension": "structural",
+      "avr": 0.25,
+      "violatedWeight": 1,
+      "weight": 0.35,
+      "effectiveWeight": 0.35,
+      "violationCount": 1,
+      "functionCount": 4
+    },
+    {
+      "dimension": "coupling",
+      "avr": 0.6,
+      "violatedWeight": 3,
+      "weight": 0.2,
+      "effectiveWeight": 0.2,
+      "violationCount": 3,
+      "functionCount": 5
+    },
+    {
+      "dimension": "pattern",
+      "avr": 0,
+      "violatedWeight": 0,
+      "weight": 0.3,
+      "effectiveWeight": 0.3,
+      "violationCount": 0,
+      "functionCount": 4
+    },
+    {
+      "dimension": "solid",
+      "avr": 0.667,
+      "violatedWeight": 2,
+      "weight": 0.1,
+      "effectiveWeight": 0.1,
+      "violationCount": 2,
+      "functionCount": 3
+    },
+    {
+      "dimension": "convention",
+      "avr": 0,
+      "violatedWeight": 0,
+      "weight": 0.05,
+      "effectiveWeight": 0.05,
+      "violationCount": 0,
+      "functionCount": 4
+    }
+  ],
+  "violations": [
+    {
+      "id": "v-188a89e5c8359705",
+      "type": "CYCLIC_DEPENDENCY",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S02",
+      "route": "symbolic",
+      "filePath": "src/shared/id/GenerateTestId.ts,src/shared/id/index.ts,src/shared/id/GenerateTestId.ts",
+      "message": "Circular dependency: src/shared/id/GenerateTestId.ts,src/shared/id/index.ts,src/shared/id/GenerateTestId.ts",
+      "deterministic": true,
+      "target": "src/shared/id/index.ts",
+      "line": 1,
+      "discriminator": [
+        "[\"src/shared/id/GenerateTestId.ts\",\"src/shared/id/index.ts\",\"src/shared/id/GenerateTestId.ts\"]"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-258475edce0d1c6f",
+      "type": "CYCLIC_DEPENDENCY",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S02",
+      "route": "symbolic",
+      "filePath": "src/todo-list-manager/domain/Todo.ts,src/todo-list-manager/domain/TodoList.ts,src/todo-list-manager/domain/Todo.ts",
+      "message": "Circular dependency: src/todo-list-manager/domain/Todo.ts,src/todo-list-manager/domain/TodoList.ts,src/todo-list-manager/domain/Todo.ts",
+      "deterministic": true,
+      "target": "src/todo-list-manager/domain/TodoList.ts",
+      "line": 2,
+      "discriminator": [
+        "[\"src/todo-list-manager/domain/Todo.ts\",\"src/todo-list-manager/domain/TodoList.ts\",\"src/todo-list-manager/domain/Todo.ts\"]"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-3cd867da12ade806",
+      "type": "FAN_OUT_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C02",
+      "route": "symbolic",
+      "filePath": "src/authentication/application/AuthenticationApplicationService.ts",
+      "message": "Violation in src/authentication/application/AuthenticationApplicationService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanOut=15"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-f48cec27f56968ce",
+      "type": "FAN_OUT_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C02",
+      "route": "symbolic",
+      "filePath": "src/todo-list-manager/application/TodoApplicationService.ts",
+      "message": "Violation in src/todo-list-manager/application/TodoApplicationService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanOut=17"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-fd648f7a28f9f03f",
+      "type": "FAN_OUT_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C02",
+      "route": "symbolic",
+      "filePath": "src/todo-list-manager/application/TodoListApplicationService.ts",
+      "message": "Violation in src/todo-list-manager/application/TodoListApplicationService.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanOut=20"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-43ee1b2be2b7b415",
+      "type": "FAN_OUT_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C02",
+      "route": "symbolic",
+      "filePath": "src/todo-list-manager/usecase/AddTodoToTodoList.ts",
+      "message": "Violation in src/todo-list-manager/usecase/AddTodoToTodoList.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanOut=11"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-1892c9b8fd3c1fca",
+      "type": "FAN_OUT_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C02",
+      "route": "symbolic",
+      "filePath": "src/todo-list-manager/usecase/DeleteTodoFromTodoList.ts",
+      "message": "Violation in src/todo-list-manager/usecase/DeleteTodoFromTodoList.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanOut=11"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-e2b1f7a3e7b2ade3",
+      "type": "FAN_OUT_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C02",
+      "route": "symbolic",
+      "filePath": "src/todo-list-manager/usecase/MarkTodo.ts",
+      "message": "Violation in src/todo-list-manager/usecase/MarkTodo.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanOut=11"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-5c19753da25bfba7",
+      "type": "FAN_OUT_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C02",
+      "route": "symbolic",
+      "filePath": "src/web/ApplicationModule.ts",
+      "message": "Violation in src/web/ApplicationModule.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanOut=15"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-c2db2a511b5ac732",
+      "type": "FAN_OUT_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C02",
+      "route": "symbolic",
+      "filePath": "src/web/controllers/TodoListEventsConsumer.ts",
+      "message": "Violation in src/web/controllers/TodoListEventsConsumer.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanOut=11"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-914ef1f675c2cc8f",
+      "type": "FAN_OUT_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C02",
+      "route": "symbolic",
+      "filePath": "src/web/remix/Actions.ts",
+      "message": "Violation in src/web/remix/Actions.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanOut=25"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-9aed4cc231334761",
+      "type": "FAN_OUT_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C02",
+      "route": "symbolic",
+      "filePath": "src/web/remix/Loaders.ts",
+      "message": "Violation in src/web/remix/Loaders.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanOut=11"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-4d26747089013834",
+      "type": "FAN_IN_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C05",
+      "route": "symbolic",
+      "filePath": "app/todolist/state.ts",
+      "message": "Violation in app/todolist/state.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanIn=23"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-f825fe01425e579b",
+      "type": "FAN_IN_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C05",
+      "route": "symbolic",
+      "filePath": "app/ui/Button.tsx",
+      "message": "Violation in app/ui/Button.tsx",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanIn=18"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-9bf219786c01e9d4",
+      "type": "FAN_IN_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C05",
+      "route": "symbolic",
+      "filePath": "src/shared/client/index.ts",
+      "message": "Violation in src/shared/client/index.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanIn=36"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-5611853fb91f4ec1",
+      "type": "FAN_IN_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C05",
+      "route": "symbolic",
+      "filePath": "src/shared/events/index.ts",
+      "message": "Violation in src/shared/events/index.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanIn=24"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-ff76c68e355aab3e",
+      "type": "FAN_IN_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C05",
+      "route": "symbolic",
+      "filePath": "src/shared/time/index.ts",
+      "message": "Violation in src/shared/time/index.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanIn=21"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-5cfc288daf691bc4",
+      "type": "FAN_IN_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C05",
+      "route": "symbolic",
+      "filePath": "src/todo-list-manager/domain/ContributorId.ts",
+      "message": "Violation in src/todo-list-manager/domain/ContributorId.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanIn=22"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-6f49ba15ddcc7e81",
+      "type": "FAN_IN_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C05",
+      "route": "symbolic",
+      "filePath": "src/todo-list-manager/domain/TodoList.ts",
+      "message": "Violation in src/todo-list-manager/domain/TodoList.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanIn=31"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-d4eec0d9756d045c",
+      "type": "FAN_IN_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C05",
+      "route": "symbolic",
+      "filePath": "src/todo-list-manager/domain/TodoListPermission.ts",
+      "message": "Violation in src/todo-list-manager/domain/TodoListPermission.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanIn=18"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-4b16ceface94bff3",
+      "type": "FAN_IN_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C05",
+      "route": "symbolic",
+      "filePath": "src/todo-list-manager/domain/TodoListPermissions.ts",
+      "message": "Violation in src/todo-list-manager/domain/TodoListPermissions.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanIn=16"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-751a467cebe25002",
+      "type": "FAN_IN_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C05",
+      "route": "symbolic",
+      "filePath": "src/todo-list-manager/domain/event/TodoListEvent.ts",
+      "message": "Violation in src/todo-list-manager/domain/event/TodoListEvent.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanIn=24"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-562cbcba5a9ff106",
+      "type": "FAN_IN_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C05",
+      "route": "symbolic",
+      "filePath": "src/web/index.ts",
+      "message": "Violation in src/web/index.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanIn=20"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-b0f52043a29b792b",
+      "type": "LOW_ABSTRACTION_RATIO",
+      "dimension": "coupling",
+      "severity": "advisory",
+      "functionId": "FF-C06",
+      "route": "symbolic",
+      "filePath": "<project>",
+      "message": "Abstraction ratio 0.2830188679245283 below threshold",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "ratio=0.2830188679245283"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-834342a089d5071c",
+      "type": "SRP_VIOLATION",
+      "dimension": "solid",
+      "severity": "major",
+      "functionId": "FF-SO01",
+      "route": "symbolic",
+      "filePath": "src/authentication/application/AuthenticationApplicationService.ts",
+      "message": "Violation in src/authentication/application/AuthenticationApplicationService.ts",
+      "deterministic": true,
+      "discriminator": [
+        "AuthenticationApplicationService"
+      ],
+      "evidence": [
+        "methodCount=6",
+        "depCount=6"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-4b0a50a28a21ca7f",
+      "type": "SRP_VIOLATION",
+      "dimension": "solid",
+      "severity": "major",
+      "functionId": "FF-SO01",
+      "route": "symbolic",
+      "filePath": "src/todo-list-manager/application/TodoListApplicationService.ts",
+      "message": "Violation in src/todo-list-manager/application/TodoListApplicationService.ts",
+      "deterministic": true,
+      "discriminator": [
+        "TodoListApplicationService"
+      ],
+      "evidence": [
+        "methodCount=12",
+        "depCount=8"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-83fde937b7f3c446",
+      "type": "SRP_VIOLATION",
+      "dimension": "solid",
+      "severity": "major",
+      "functionId": "FF-SO01",
+      "route": "symbolic",
+      "filePath": "src/todo-list-manager/usecase/AddTodoToTodoList.ts",
+      "message": "Violation in src/todo-list-manager/usecase/AddTodoToTodoList.ts",
+      "deterministic": true,
+      "discriminator": [
+        "AddTodoToTodoList"
+      ],
+      "evidence": [
+        "methodCount=1",
+        "depCount=6"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-75f94fccdd12903d",
+      "type": "SRP_VIOLATION",
+      "dimension": "solid",
+      "severity": "major",
+      "functionId": "FF-SO01",
+      "route": "symbolic",
+      "filePath": "src/web/remix/Actions.ts",
+      "message": "Violation in src/web/remix/Actions.ts",
+      "deterministic": true,
+      "discriminator": [
+        "Actions"
+      ],
+      "evidence": [
+        "methodCount=16",
+        "depCount=5"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-0f3c448e7de247e4",
+      "type": "ISP_VIOLATION",
+      "dimension": "solid",
+      "severity": "major",
+      "functionId": "FF-SO02",
+      "route": "symbolic",
+      "filePath": "src/todo-list-manager/__tests__/usecase/builders/Todo.ts",
+      "message": "Violation in src/todo-list-manager/__tests__/usecase/builders/Todo.ts",
+      "deterministic": true,
+      "discriminator": [
+        "TodoBuilder"
+      ],
+      "evidence": [
+        "methodCount=7"
+      ],
+      "tag": "pattern-proxy"
+    }
+  ],
+  "universalMetrics": {
+    "cyclicDependencyCount": 4,
+    "maxFanOut": 25,
+    "maxFanIn": 36,
+    "abstractionRatio": 0.283,
+    "averageInstability": 0.512,
+    "orphanFileCount": 4
+  },
+  "evaluationMode": "symbolic-only",
+  "durationMs": 2473,
+  "droppedDimensions": [],
+  "tiers": {
+    "scoringMode": "v1.3",
+    "tierTable": "Docs/v1.3/rule-tiers.md",
+    "style": "hexagonal",
+    "verdict": "fail",
+    "verdictRule": "any-blocking-violation",
+    "v12eVerdict": "warning",
+    "blockingAhs": 0.821,
+    "blocking": {
+      "rules": [
+        {
+          "functionId": "FF-P01",
+          "name": "domain-purity",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-P03",
+          "name": "port-adapter-pattern",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-P06",
+          "name": "domain-state-purity",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-S01",
+          "name": "dependency-direction-graph",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-S02",
+          "name": "no-cyclic-deps",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 2,
+          "violated": true
+        },
+        {
+          "functionId": "FF-S04",
+          "name": "core-isolation",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        }
+      ],
+      "violatedRules": 1,
+      "violationCount": 2
+    },
+    "advisory": {
+      "rules": [
+        {
+          "functionId": "FF-C02",
+          "name": "module-fan-out",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 10,
+          "violated": true
+        },
+        {
+          "functionId": "FF-C03",
+          "name": "component-instability",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-C04",
+          "name": "no-orphan-files",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-C05",
+          "name": "max-fan-in",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 11,
+          "violated": true
+        },
+        {
+          "functionId": "FF-C06",
+          "name": "abstraction-ratio",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 1,
+          "violated": true
+        },
+        {
+          "functionId": "FF-CV02",
+          "name": "naming-services",
+          "dimension": "convention",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-CV03",
+          "name": "naming-repos",
+          "dimension": "convention",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-CV05",
+          "name": "test-file-pairing",
+          "dimension": "convention",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-CV06",
+          "name": "no-index-logic",
+          "dimension": "convention",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-P02",
+          "name": "port-dependency-inversion",
+          "dimension": "pattern",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-S03",
+          "name": "layer-skip-graph",
+          "dimension": "structural",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-SO01",
+          "name": "single-responsibility-proxy",
+          "dimension": "solid",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 4,
+          "violated": true
+        },
+        {
+          "functionId": "FF-SO02",
+          "name": "interface-segregation-proxy",
+          "dimension": "solid",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 1,
+          "violated": true
+        },
+        {
+          "functionId": "FF-SO03",
+          "name": "inheritance-depth",
+          "dimension": "solid",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        }
+      ],
+      "violatedRules": 5,
+      "violationCount": 27
+    },
+    "notApplicable": [
+      {
+        "functionId": "FF-P06",
+        "part": "FLOWS_TO field rows",
+        "reason": "The field half needs FLOWS_TO, which is near-empty (rule-tiers.md, finding 9); reported N/A with its denominator",
+        "naRows": 0,
+        "totalRows": 0,
+        "flowsToEdges": 0
+      }
+    ],
+    "blockingNotExecuted": []
+  },
+  "warnings": [
+    {
+      "code": "EXTRACTOR_002",
+      "message": "Unresolvable import: ./styles/app.css",
+      "context": {
+        "filePath": "app/root.tsx"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: OnModuleInit",
+      "context": {
+        "filePath": "src/shared/database/Prisma.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_005",
+      "message": "CONSTRUCTOR_INJECTS type unresolvable: ValidationError[]",
+      "context": {
+        "filePath": "src/web/remix/decorators/DataFunction.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_009",
+      "message": "Unsupported dynamic import(s): 1",
+      "context": {
+        "filePath": "src/web/remix/RemixController.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: EventEmitterModule",
+      "context": {
+        "filePath": "src/web/ApplicationModule.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: ServeStaticModule",
+      "context": {
+        "filePath": "src/web/ApplicationModule.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    }
+  ],
+  "functionExecution": {
+    "declared": 24,
+    "adrDerived": 0,
+    "compiled": 22,
+    "disabled": 2,
+    "dropped": [],
+    "skippedByMode": 2,
+    "noJudgeUnits": [],
+    "executed": 20,
+    "failed": []
+  },
+  "functionResults": [
+    {
+      "functionId": "FF-P06",
+      "name": "domain-state-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 12,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S01",
+      "name": "dependency-direction-graph",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 162,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S03",
+      "name": "layer-skip-graph",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 33,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S04",
+      "name": "core-isolation",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 24,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C02",
+      "name": "module-fan-out",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 10,
+      "executionTimeMs": 31,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C03",
+      "name": "component-instability",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 13,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C04",
+      "name": "no-orphan-files",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 21,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C05",
+      "name": "max-fan-in",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 11,
+      "executionTimeMs": 7,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C06",
+      "name": "abstraction-ratio",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 6,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S02",
+      "name": "no-cyclic-deps",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 2,
+      "executionTimeMs": 2800,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO03",
+      "name": "inheritance-depth",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 8,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV02",
+      "name": "naming-services",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 6,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV03",
+      "name": "naming-repos",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 3,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV05",
+      "name": "test-file-pairing",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 196,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV06",
+      "name": "no-index-logic",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 14,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P01",
+      "name": "domain-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 28,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P02",
+      "name": "port-dependency-inversion",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 25,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P03",
+      "name": "port-adapter-pattern",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 15,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO01",
+      "name": "single-responsibility-proxy",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 4,
+      "executionTimeMs": 32,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO02",
+      "name": "interface-segregation-proxy",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 4,
+      "truncated": false
+    }
+  ],
+  "disabledFunctions": [
+    {
+      "functionId": "FF-CV01",
+      "name": "naming-conventions",
+      "reason": "ADR-016 b (B&T Step 31): cannot fire; per-layer naming patterns compile to .* and no requirement supplies them (SP-FF-CV01 not fired)"
+    },
+    {
+      "functionId": "FF-CV04",
+      "name": "naming-controllers",
+      "reason": "ADR-016 b (B&T Step 31): cannot fire; class decorators are not ingested (BR-U2-31), so no controller is selected (SP-FF-CV04 not fired)"
+    }
+  ],
+  "graphStats": {
+    "nodeCount": 741,
+    "edgeCount": 1737,
+    "layerCoverage": 0,
+    "nodeCountByType": {
+      "File": 247,
+      "Class": 114,
+      "Interface": 45,
+      "Method": 229,
+      "Function": 73,
+      "Package": 33
+    },
+    "edgeCountByType": {
+      "IMPORTS": 1032,
+      "IMPLEMENTS": 26,
+      "EXTENDS": 21,
+      "CONSTRUCTOR_INJECTS": 104,
+      "CALLS": 61,
+      "DECLARES": 197,
+      "CONTAINS": 229,
+      "FLOWS_TO": 0,
+      "RE_EXPORTS": 44
+    }
+  },
+  "layerAnnotation": {
+    "mapped": 0,
+    "unmapped": 247,
+    "unmappedFiles": [
+      "app/Date.ts",
+      "app/entry.client.tsx",
+      "app/entry.server.tsx",
+      "app/palette.tsx",
+      "app/root.tsx",
+      "prisma/seed.ts",
+      "src/keys.ts",
+      "src/main.ts",
+      "app/authentication/ForgotPasswordForm.tsx",
+      "app/authentication/FormCard.tsx",
+      "app/authentication/InfoPageTemplate.tsx",
+      "app/authentication/LoginForm.tsx",
+      "app/authentication/Notification.tsx",
+      "app/authentication/RegisterForm.tsx",
+      "app/authentication/ResetPasswordForm.tsx",
+      "app/authentication/usePasswordConfirmation.tsx",
+      "app/authentication/useVerifyAccount.tsx",
+      "app/authentication/VerifyAccount.tsx",
+      "app/authentication/VerifyAccountError.tsx",
+      "app/authentication/Welcome.tsx",
+      "app/error/ErrorPage.tsx",
+      "app/homepage/AddTodoListForm.tsx",
+      "app/homepage/ArchiveTodoList.tsx",
+      "app/homepage/HomePage.tsx",
+      "app/homepage/TodoListItem.tsx",
+      "app/homepage/TodoListsSection.tsx",
+      "app/homepage/TodoListTimeInfo.tsx",
+      "app/routes/forgot-password.tsx",
+      "app/routes/index.tsx",
+      "app/routes/login.tsx",
+      "app/routes/logout.ts",
+      "app/routes/register.tsx",
+      "app/routes/reset-password.tsx",
+      "app/routes/verify-account.tsx",
+      "app/routes/welcome.tsx",
+      "app/todolist/state.ts",
+      "app/todolist/TodoList.tsx",
+      "app/todolist/TodoListOutdatedMessage.tsx",
+      "app/todolist/TodoTag.tsx",
+      "app/todolist/useTodosOrderPreview.tsx",
+      "app/ui/Button.tsx",
+      "app/ui/CheckboxOption.tsx",
+      "app/ui/Dialog.tsx",
+      "app/ui/EditableContent.tsx",
+      "app/ui/EditableContentDisplayMode.tsx",
+      "app/ui/EditableContentEditionMode.tsx",
+      "app/ui/EmptyMessage.tsx",
+      "app/ui/FloatingLabelInput.tsx",
+      "app/ui/PageTitle.tsx",
+      "app/ui/Popover.tsx",
+      "app/ui/RootLayout.tsx",
+      "app/ui/SkipToContent.tsx",
+      "app/ui/Tooltip.tsx",
+      "src/authentication/index.ts",
+      "src/todo-list-manager/index.ts",
+      "src/web/ApplicationModule.ts",
+      "src/web/index.ts",
+      "app/routes/l/$todoListId.tsx",
+      "app/todolist/Sharing/ContributorPin.tsx",
+      "app/todolist/Sharing/ContributorPinsMenu.tsx",
+      "app/todolist/Sharing/ManageContributors.tsx",
+      "app/todolist/Sharing/RevokeAccess.tsx",
+      "app/todolist/Sharing/ShareButton.tsx",
+      "app/todolist/Sharing/ShareTodoListDialogContent.tsx",
+      "app/todolist/Sharing/ShareTodoListForm.tsx",
+      "app/todolist/TodoItem/EditTodoTitle.tsx",
+      "app/todolist/TodoItem/ReorderableTodoItem.tsx",
+      "app/todolist/TodoItem/TodoItem.tsx",
+      "app/todolist/TodoItem/TodoPopoverMenu.tsx",
+      "app/todolist/TodoItem/TodoTags.tsx",
+      "app/todolist/TodoItem/useReorderTodo.tsx",
+      "app/todolist/TodoList/AddTodoForm.tsx",
+      "app/todolist/TodoList/TagFilters.tsx",
+      "app/todolist/TodoList/TodoListCompletion.tsx",
+      "app/todolist/TodoList/TodoListEditableTitle.tsx",
+      "app/todolist/TodoList/TodoListHeader.tsx",
+      "app/todolist/TodoList/Todos.tsx",
+      "app/todolist/TodoList/TodosHeading.tsx",
+      "src/authentication/application/AuthenticationApplicationService.ts",
+      "src/authentication/application/AuthenticationEventsConsumer.ts",
+      "src/authentication/domain/Account.ts",
+      "src/authentication/domain/Accounts.ts",
+      "src/authentication/domain/Authenticator.ts",
+      "src/authentication/domain/FetchAuthenticationStatus.ts",
+      "src/authentication/domain/PasswordHasher.ts",
+      "src/authentication/infrastructure/AccountDatabaseRepository.ts",
+      "src/authentication/infrastructure/BCryptPasswordHasher.ts",
+      "src/authentication/infrastructure/FetchAuthenticationStatusSessionQuery.ts",
+      "src/authentication/usecase/ForgotPassword.ts",
+      "src/authentication/usecase/LoginFlow.ts",
+      "src/authentication/usecase/RegisterFlow.ts",
+      "src/authentication/usecase/ResetPassword.ts",
+      "src/authentication/usecase/VerifyAccount.ts",
+      "src/shared/client/Authentication.ts",
+      "src/shared/client/HomePage.ts",
+      "src/shared/client/index.ts",
+      "src/shared/client/Todo.ts",
+      "src/shared/client/TodoList.ts",
+      "src/shared/database/index.ts",
+      "src/shared/database/Prisma.ts",
+      "src/shared/database/PrismaRepository.ts",
+      "src/shared/events/CollectEvents.ts",
+      "src/shared/events/Event.ts",
+      "src/shared/events/Events.ts",
+      "src/shared/events/index.ts",
+      "src/shared/events/NestEvents.ts",
+      "src/shared/id/GenerateId.ts",
+      "src/shared/id/GenerateTestId.ts",
+      "src/shared/id/GenerateUUID.ts",
+      "src/shared/id/index.ts",
+      "src/shared/lib/array.ts",
+      "src/shared/lib/index.ts",
+      "src/shared/mail/FakeMailer.ts",
+      "src/shared/mail/index.ts",
+      "src/shared/mail/Mail.ts",
+      "src/shared/mail/Mailer.ts",
+      "src/shared/mail/SendGridMailer.ts",
+      "src/shared/time/Clock.ts",
+      "src/shared/time/FixedClock.ts",
+      "src/shared/time/index.ts",
+      "src/shared/time/RealClock.ts",
+      "src/todo-list-manager/application/TodoApplicationService.ts",
+      "src/todo-list-manager/application/TodoListApplicationService.ts",
+      "src/todo-list-manager/domain/Contributor.ts",
+      "src/todo-list-manager/domain/ContributorId.ts",
+      "src/todo-list-manager/domain/Contributors.ts",
+      "src/todo-list-manager/domain/OwnerId.ts",
+      "src/todo-list-manager/domain/Todo.ts",
+      "src/todo-list-manager/domain/TodoList.ts",
+      "src/todo-list-manager/domain/TodoListPermission.ts",
+      "src/todo-list-manager/domain/TodoListPermissions.ts",
+      "src/todo-list-manager/domain/TodoListQuery.ts",
+      "src/todo-list-manager/domain/TodoLists.ts",
+      "src/todo-list-manager/domain/Todos.ts",
+      "src/todo-list-manager/infrastructure/ContributorsAdapter.ts",
+      "src/todo-list-manager/infrastructure/TodoDatabaseRepository.ts",
+      "src/todo-list-manager/infrastructure/TodoListDatabaseQuery.ts",
+      "src/todo-list-manager/infrastructure/TodoListDatabaseRepository.ts",
+      "src/todo-list-manager/infrastructure/TodoListEventDatabaseRepository.ts",
+      "src/todo-list-manager/infrastructure/TodoListEvents.ts",
+      "src/todo-list-manager/infrastructure/TodoListPermissionsDatabaseRepository.ts",
+      "src/todo-list-manager/usecase/AddTagToTodo.ts",
+      "src/todo-list-manager/usecase/AddTodoToTodoList.ts",
+      "src/todo-list-manager/usecase/ArchiveTodoList.ts",
+      "src/todo-list-manager/usecase/CreateTodoList.ts",
+      "src/todo-list-manager/usecase/DeleteTodoFromTodoList.ts",
+      "src/todo-list-manager/usecase/GrantAccess.ts",
+      "src/todo-list-manager/usecase/MarkTodo.ts",
+      "src/todo-list-manager/usecase/RemoveTagFromTodo.ts",
+      "src/todo-list-manager/usecase/ReorderTodo.ts",
+      "src/todo-list-manager/usecase/RevokeAccess.ts",
+      "src/todo-list-manager/usecase/UpdateTodoListTitle.ts",
+      "src/todo-list-manager/usecase/UpdateTodoTitle.ts",
+      "src/todo-list-manager/usecase/ViewHomePage.ts",
+      "src/todo-list-manager/usecase/ViewTodoList.ts",
+      "src/web/authenticator/Authenticated.ts",
+      "src/web/authenticator/SessionAuthenticator.ts",
+      "src/web/authenticator/SessionManager.ts",
+      "src/web/controllers/TodoListEventsConsumer.ts",
+      "src/web/controllers/TodoListEventsController.ts",
+      "src/web/remix/Actions.ts",
+      "src/web/remix/Loaders.ts",
+      "src/web/remix/RemixAppContext.ts",
+      "src/web/remix/RemixController.ts",
+      "src/web/remix/types.ts",
+      "app/routes/l/$todoListId/archive.ts",
+      "app/routes/l/$todoListId/grant-access.ts",
+      "app/routes/l/$todoListId/reorder-todo.ts",
+      "app/routes/l/$todoListId/revoke-access.ts",
+      "app/routes/l/$todoListId/todo.$todoId.add-tag.ts",
+      "app/routes/l/$todoListId/todo.$todoId.delete.ts",
+      "app/routes/l/$todoListId/todo.$todoId.remove-tag.ts",
+      "app/routes/l/$todoListId/todo.$todoId.ts",
+      "app/routes/l/$todoListId/todo.$todoId.update.ts",
+      "app/routes/l/$todoListId/update.ts",
+      "app/todolist/TodoItem/Popover/AddTag.tsx",
+      "app/todolist/TodoItem/Popover/DeleteTodo.tsx",
+      "app/todolist/TodoItem/Popover/SelectableTag.tsx",
+      "app/todolist/TodoItem/Popover/SelectedTag.tsx",
+      "app/todolist/TodoItem/Popover/SendToBottom.tsx",
+      "app/todolist/TodoItem/Popover/SendToTop.tsx",
+      "app/todolist/TodoItem/Popover/TagsList.tsx",
+      "app/todolist/TodoItem/Popover/TodoActions.tsx",
+      "app/todolist/TodoItem/Popover/TodoDangerZone.tsx",
+      "app/todolist/TodoItem/Popover/TodoPopoverContent.tsx",
+      "app/todolist/TodoItem/Popover/TodoTags.tsx",
+      "src/authentication/domain/error/AccountAlreadyVerifiedError.ts",
+      "src/authentication/domain/error/AccountNotFoundError.ts",
+      "src/authentication/domain/error/AccountNotVerifiedError.ts",
+      "src/authentication/domain/error/EmailAlreadyInUseError.ts",
+      "src/authentication/domain/error/InvalidCredentialsError.ts",
+      "src/authentication/domain/error/InvalidPasswordResetTokenError.ts",
+      "src/authentication/domain/error/InvalidVerificationTokenError.ts",
+      "src/authentication/domain/error/PasswordResetTokenExpiredError.ts",
+      "src/authentication/domain/event/PasswordChanged.ts",
+      "src/authentication/domain/event/PasswordForgotten.ts",
+      "src/authentication/domain/event/UserRegistered.ts",
+      "src/todo-list-manager/__tests__/persistence/database.ts",
+      "src/todo-list-manager/domain/error/ContributorNotFoundError.ts",
+      "src/todo-list-manager/domain/error/TodoListNotFoundError.ts",
+      "src/todo-list-manager/domain/error/TodoListPermissionDeniedError.ts",
+      "src/todo-list-manager/domain/event/TagAddedToTodo.ts",
+      "src/todo-list-manager/domain/event/TagRemovedFromTodo.ts",
+      "src/todo-list-manager/domain/event/TodoAdded.ts",
+      "src/todo-list-manager/domain/event/TodoCompletionChanged.ts",
+      "src/todo-list-manager/domain/event/TodoDeleted.ts",
+      "src/todo-list-manager/domain/event/TodoListAccessGranted.ts",
+      "src/todo-list-manager/domain/event/TodoListAccessRevoked.ts",
+      "src/todo-list-manager/domain/event/TodoListCreated.ts",
+      "src/todo-list-manager/domain/event/TodoListEvent.ts",
+      "src/todo-list-manager/domain/event/TodoListUpdated.ts",
+      "src/todo-list-manager/domain/event/TodoReordered.ts",
+      "src/todo-list-manager/domain/event/TodoUpdated.ts",
+      "src/web/remix/decorators/Body.ts",
+      "src/web/remix/decorators/DataFunction.ts",
+      "src/web/remix/decorators/MapError.ts",
+      "src/web/remix/decorators/Params.ts",
+      "src/web/remix/decorators/Query.ts",
+      "src/web/remix/dtos/AddTagToTodo.ts",
+      "src/web/remix/dtos/AddTodo.ts",
+      "src/web/remix/dtos/ArchiveTodoList.ts",
+      "src/web/remix/dtos/CreateTodoList.ts",
+      "src/web/remix/dtos/DeleteTodoFromTodoList.ts",
+      "src/web/remix/dtos/FetchTodoList.ts",
+      "src/web/remix/dtos/ForgotPassword.ts",
+      "src/web/remix/dtos/GrantAccess.ts",
+      "src/web/remix/dtos/Login.ts",
+      "src/web/remix/dtos/MarkTodo.ts",
+      "src/web/remix/dtos/Register.ts",
+      "src/web/remix/dtos/RemoveTagFromTodo.ts",
+      "src/web/remix/dtos/ReorderTodo.ts",
+      "src/web/remix/dtos/ResetPassword.ts",
+      "src/web/remix/dtos/RevokeAccess.ts",
+      "src/web/remix/dtos/UpdateTodoListTitle.ts",
+      "src/web/remix/dtos/UpdateTodoTitle.ts",
+      "src/web/remix/dtos/VerifyAccount.ts",
+      "src/authentication/__tests__/domain/builders/Account.ts",
+      "src/authentication/__tests__/domain/fakes/AccountsInMemory.ts",
+      "src/authentication/__tests__/domain/fakes/FakePasswordHasher.ts",
+      "src/todo-list-manager/__tests__/usecase/builders/Todo.ts",
+      "src/todo-list-manager/__tests__/usecase/builders/TodoList.ts",
+      "src/todo-list-manager/__tests__/usecase/builders/TodoListPermission.ts",
+      "src/todo-list-manager/__tests__/usecase/fakes/ContributorsInMemory.ts",
+      "src/todo-list-manager/__tests__/usecase/fakes/TodoListPermissionsInMemory.ts",
+      "src/todo-list-manager/__tests__/usecase/fakes/TodoListQueryInMemory.ts",
+      "src/todo-list-manager/__tests__/usecase/fakes/TodoListsInMemory.ts",
+      "src/todo-list-manager/__tests__/usecase/fakes/TodosInMemory.ts"
+    ]
+  },
+  "parseCoverage": {
+    "total": 247,
+    "parsed": 247,
+    "percentage": 100,
+    "skipped": []
+  },
+  "importResolution": {
+    "resolvedInternal": 661,
+    "external": 274,
+    "externalOutOfRootAlias": 0,
+    "unresolved": 1,
+    "droppedNoFileNode": 0,
+    "unsupportedDynamic": 1
+  },
+  "timings": {
+    "stages": [
+      {
+        "name": "parallel:extract-apg+parse-spec",
+        "durationMs": 2157,
+        "status": "success"
+      },
+      {
+        "name": "ingest-apg",
+        "durationMs": 200,
+        "status": "success"
+      },
+      {
+        "name": "compile-functions",
+        "durationMs": 5,
+        "status": "success"
+      },
+      {
+        "name": "evaluate-symbolic",
+        "durationMs": 3440,
+        "status": "success"
+      },
+      {
+        "name": "universal-metric:cyclicDependencyCount",
+        "durationMs": 2430,
+        "status": "success"
+      },
+      {
+        "name": "compute-scores",
+        "durationMs": 2474,
+        "status": "success"
+      }
+    ],
+    "totalMs": 8276
+  },
+  "judge": {
+    "provider": "none",
+    "model": "none",
+    "runsPerUnit": 0
+  },
+  "instrumentVersion": 2
+}

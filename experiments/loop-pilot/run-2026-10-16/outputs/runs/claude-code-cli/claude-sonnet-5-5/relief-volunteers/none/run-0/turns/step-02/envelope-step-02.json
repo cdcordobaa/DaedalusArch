@@ -1,0 +1,114 @@
+{
+  "duration_api_ms": 78527,
+  "stop_reason": "end_turn",
+  "session_id": "254ecb13-ec89-483d-af86-af86e15b6e33",
+  "total_cost_usd": 0.26811869999999993,
+  "usage": {
+    "input_tokens": 14,
+    "cache_creation_input_tokens": 28721,
+    "cache_read_input_tokens": 109567,
+    "output_tokens": 14225,
+    "output_tokens_details": {
+      "thinking_tokens": 2027
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 28721,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 704,
+        "cache_read_input_tokens": 34457,
+        "cache_creation_input_tokens": 176,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 176
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "modelUsage": {
+    "claude-sonnet-5-5": {
+      "inputTokens": 14,
+      "outputTokens": 14225,
+      "cacheReadInputTokens": 109567,
+      "cacheCreationInputTokens": 28721,
+      "webSearchRequests": 0,
+      "costUSD": 0.26811869999999993,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "thinkingTokens": 2027,
+      "canonicalModel": "claude-sonnet-5-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_0179cQ9g6XCKvffKFLHRvLVJ",
+      "tool_input": {
+        "command": "find . -path ./node_modules -prune -o -type f -print | head -100 && cat /root/pilot/harness/runs/claude-code-cli/claude-sonnet-5-5/relief-volunteers/none/run-0/tsconfig.json"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01KyC6dkr6c2ZttbT5F7vEh7",
+      "tool_input": {
+        "command": "python3 - <<'EOF'\nimport re\ndef sub(path, a, b, count=1):\n    s=open(path).read()\n    assert a in s, (path,a)\n    open(path,'w').write(s.replace(a,b,count))\n\np='src/registry/domain/volunteer.ts'\nsub(p,'''  expiresOn: string;\n}''','''  expiresOn: string;\n  /** Set when the issuer or registry withdrew the certification. */\n  withdrawn?: boolean;\n}''')\nsub(p,'''export interface VolunteerRepository''','''/** A certification counts on a date when it is not withdrawn and not yet expired. */\nexport function isCertificationValid(c: Certification, on: string): boolean {\n  return !c.withdrawn && !isExpired(c, on);\n}\n\nexport interface VolunteerRepository''')\n\np='src/registry/application/volunteerService.ts'\nsub(p,'  isExpired,\\n','  isCertificationValid,\\n')\nsub(p,'''export class VolunteerService {\n  constructor(''','''/** Notified after a volunteer loses a certification (e.g. withdrawn). */\nexport type CertificationLostListener = (volunteerId: string, skill: Skill) => Promise<void>;\n\nexport class VolunteerService {\n  private readonly lostListeners: CertificationLostListener[] = [];\n\n  constructor(''')\nsub(p,'''  /**\n   * True when the volunteer holds''','''  onCertificationLost(listener: CertificationLostListener): void {\n    this.lostListeners.push(listener);\n  }\n\n  async withdrawCertification(id: string, skill: Skill): Promise<Volunteer> {\n    const v = this.get(id);\n    const s = v.skills.find((x) => x.skill === skill);\n    if (!s || !s.certification) throw new DomainError(`Volunteer has no certification for ${skill}`);\n    s.certification.withdrawn = true;\n    this.repo.save(v);\n    for (const l of this.lostListeners) await l(id, skill);\n    return v;\n  }\n\n  /**\n   * Local check (no issuer call): the volunteer holds the skill and any\n   * attached certification is valid on the date.\n   */\n  hasValidCertification(id: string, skill: Skill, onDate: string): boolean {\n    const s = this.repo.findById(id)?.skills.find((x) => x.skill === skill);\n    if (!s) return false;\n    return !s.certification || isCertificationValid(s.certification, onDate);\n  }\n\n  /**\n   * True when the volunteer holds''')\nsub(p,'''    if (!s.certification) return true;\n    if (isExpired(s.certification, onDate)) return false;''','''    if (!s.certification) return true;\n    if (!isCertificationValid(s.certification, onDate)) return false;''')\nsub(p,'''  async exists(''','''  summaries(): { id: string; name: string; homeRegion: string }[] {\n    return this.repo.findAll().map((v) => ({ id: v.id, name: v.name, homeRegion: v.homeRegion }));\n  }\n\n  async exists(''')\n\np='src/registry/api/routes.ts'\nsub(p,'''  ];\n}''','''    {\n      method: \"DELETE\",\n      pattern: \"/volunteers/:id/skills/:skill/certification\",\n      handler: (req) =>\n        guard(async () => {\n          const skill = req.params[\"skill\"];\n          if (!isSkill(skill)) throw new HttpError(400, \"skill must be one of first_aid, heavy_machinery, logistics, translation\");\n          return { status: 200, body: await service.withdrawCertification(req.params[\"id\"] as string, skill) };\n        }),\n    },\n  ];\n}''')\n\np='src/deployment/domain/deployment.ts'\nsub(p,'''  isQualified(volunteerId: string, skill: SkillName, onDate: string): Promise<boolean>;\n}''','''  isQualified(volunteerId: string, skill: SkillName, onDate: string): Promise<boolean>;\n  /** Local validity check (skill held, certification not expired or withdrawn); never calls the issuer. */\n  hasValidCertification(volunteerId: string, skill: SkillName, onDate: string): Promise<boolean>;\n  list(): Promise<VolunteerSummary[]>;\n}\n\nexport interface VolunteerSummary {\n  id: string;\n  name: string;\n  homeRegion: string;\n}\n\nexport function shiftStart(s: Shift): number {\n  return Date.parse(s.date + \"T00:00:00Z\") + s.startHour * 3_600_000;\n}''')\n\np='src/deployment/acl/registryVolunteerDirectory.ts'\nsub(p,'import type { SkillName, VolunteerDirectory }','import type { SkillName, VolunteerDirectory, VolunteerSummary }')\nsub(p,'''    return this.registry.isQualified(volunteerId, skill, onDate);\n  }''','''    return this.registry.isQualified(volunteerId, skill, onDate);\n  }\n\n  async hasValidCertification(volunteerId: string, skill: SkillName, onDate: string): Promise<boolean> {\n    if (!isSkill(skill)) return false;\n    return this.registry.hasValidCertification(volunteerId, skill, onDate);\n  }\n\n  async list(): Promise<VolunteerSummary[]> {\n    return this.registry.summaries();\n  }''')\n\np='src/deployment/application/deploymentService.ts'\nsub(p,'  overlaps,\\n','') if False else None\nsub(p,'  isIsoDate,\\n','  isIsoDate,\\n  overlaps,\\n  shiftStart,\\n')\nsub(p,'  type SkillName,\\n','  type SkillName,\\n  type VolunteerSummary,\\n')\nsub(p,'''  listShifts(incidentId: string): Shift[] {\n    this.getIncident(incidentId);\n    return this.shifts.findByIncident(incidentId);\n  }\n\n  getShift(id: string): Shift {\n    const s = this.shifts.findById(id);\n    if (!s) throw new NotFoundError(`Shift ${id} not found`);\n    return s;\n  }\n''','''  async listShifts(incidentId: string): Promise<Shift[]> {\n    this.getIncident(incidentId);\n    const list = this.shifts.findByIncident(incidentId);\n    await this.releaseUnqualified(list);\n    return list;\n  }\n\n  async getShift(id: string): Promise<Shift> {\n    const s = this.find(id);\n    await this.releaseUnqualified([s]);\n    return s;\n  }\n\n  private find(id: string): Shift {\n    const s = this.shifts.findById(id);\n    if (!s) throw new NotFoundError(`Shift ${id} not found`);\n    return s;\n  }\n\n  /**\n   * Releases volunteers from future shifts whose required certification is\n   * expired or withdrawn on the shift date, so those shifts show as open again.\n   */\n  async releaseUnqualified(shifts: Shift[], now = Date.now()): Promise<void> {\n    for (const shift of shifts) {\n      if (shiftStart(shift) <= now) continue;\n      for (const vid of [...shift.volunteerIds]) {\n        if (await this.directory.hasValidCertification(vid, shift.requiredSkill, shift.date)) continue;\n        const current = this.shifts.findById(shift.id);\n        if (current?.volunteerIds.includes(vid)) {\n          unassignVolunteer(current, vid);\n          this.shifts.save(current);\n        }\n      }\n    }\n  }\n\n  releaseForVolunteer(volunteerId: string): Promise<void> {\n    return this.releaseUnqualified(this.shifts.findByVolunteer(volunteerId));\n  }\n\n  /** Shifts of the incident that still need people, with the volunteers who could fill each. */\n  async openShifts(incidentId: string): Promise<(Shift & { openSlots: number; candidates: VolunteerSummary[] })[]> {\n    const all = await this.listShifts(incidentId);\n    const volunteers = await this.directory.list();\n    const result: (Shift & { openSlots: number; candidates: VolunteerSummary[] })[] = [];\n    for (const shift of all) {\n      if (shift.volunteerIds.length >= shift.peopleNeeded) continue;\n      const candidates: VolunteerSummary[] = [];\n      for (const v of volunteers) {\n        if (shift.volunteerIds.includes(v.id)) continue;\n        if (!(await this.directory.isQualified(v.id, shift.requiredSkill, shift.date))) continue;\n        if (this.shifts.findByVolunteer(v.id).some((o) => o.id !== shift.id && overlaps(o, shift))) continue;\n        candidates.push(v);\n      }\n      result.push({ ...shift, openSlots: shift.peopleNeeded - shift.volunteerIds.length, candidates });\n    }\n    return result;\n  }\n''')\ns=open(p).read()\ns=s.replace('const pre = this.getShift(shiftId);','const pre = this.find(shiftId);').replace('const shift = this.getShift(shiftId);','const shift = this.find(shiftId);')\nopen(p,'w').write(s)\n\np='src/deployment/api/routes.ts'\nsub(p,'body: service.listShifts(req.params[\"id\"] as string) })),\\n    },','''body: await service.listShifts(req.params[\"id\"] as string) })),\n    },\n    {\n      method: \"GET\",\n      pattern: \"/incidents/:id/open-shifts\",\n      handler: (req) => guard(async () => ({ status: 200, body: await service.openShifts(req.params[\"id\"] as string) })),\n    },''')\nsub(p,'handler: (req) => guard(() => ({ status: 200, body: await service.listShifts','handler: (req) => guard(async () => ({ status: 200, body: await service.listShifts') if 'guard(() => ({ status: 200, body: await service.listShifts' in open(p).read() else None\nsub(p,'guard(() => ({ status: 200, body: service.getShift(req.params[\"id\"] as string) }))','guard(async () => ({ status: 200, body: await service.getShift(req.params[\"id\"] as string) }))')\n\np='src/main.ts'\nsub(p,'const routes','registry.onCertificationLost((volunteerId) => deployment.releaseForVolunteer(volunteerId));\\n\\nconst routes')\nEOF\ngrep -n \"listShifts\" src/deployment/api/routes.ts\n/root/pilot/harness/bin/tsc --noEmit --incremental false -p /root/pilot/harness/runs/claude-code-cli/claude-sonnet-5-5/relief-volunteers/none/run-0/tsconfig.json"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subagent_stats": {
+    "spawned": 0,
+    "requested": {
+      "background": 0,
+      "foreground": 0,
+      "unset": 0
+    },
+    "started_in_background": 0,
+    "max_depth": 0,
+    "spawned_by_subagents": 0,
+    "completed": 0,
+    "failed": 0,
+    "killed": {
+      "parent": 0,
+      "user": 0,
+      "system": 0
+    },
+    "refused": {
+      "depth_limit": 0,
+      "concurrency_limit": 0,
+      "budget": 0
+    },
+    "by_type": {}
+  },
+  "safety_stops": 0,
+  "is_error": false,
+  "num_turns": 36,
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "The feature is in, and the type-check you specified passes with no errors. I haven't run the service or exercised the new endpoints. My first attempts to run shell commands were denied, so I made the edits with the file tools.\n\n- **Assignment rule:** this was already enforced. `assign` rejects a volunteer who lacks the shift's skill or whose certification is expired or unconfirmed on the shift date. A withdrawn certification now fails the same check.\n- **Withdrawal:** `DELETE /volunteers/:id/skills/:skill/certification` marks the certification as withdrawn. It returns 422 if the volunteer has no certification for that skill.\n- **Release on withdrawal:** the volunteer is removed from their future shifts that need that skill straight away. The registry notifies deployment through a listener that `src/main.ts` wires up.\n- **Release on expiry:** this is checked whenever shifts are read (`GET /incidents/:id/shifts`, `GET /shifts/:id` and the new open-shifts list). Volunteers whose certification no longer covers the shift date are removed, and the shift shows as open again.\n- **What \"future\" means:** a shift counts as future if its start time hasn't passed yet, so shifts already under way are left alone.\n- **Release checks are local:** I used a check against the registry only, not the MedCert call. Otherwise a MedCert outage would have released people wrongly.\n- **Open shifts:** `GET /incidents/:id/open-shifts` lists the shifts that still need people. Each one has `openSlots` and a `candidates` list of volunteers (id, name, home region). A candidate is qualified and confirmed for the skill on that date, not already on the shift, and has no overlapping shift.\n- **Open-shifts scope:** it includes past shifts that aren't full. Say if you'd rather it only list upcoming ones.\n\nTwo side effects to know about. Re-adding a skill with a new certification replaces the withdrawn one, which is how a volunteer is reinstated. Released volunteers are not put back on their shifts automatically. `listShifts` and `getShift` are now async, and I updated the routes that call them.",
+  "ttft_ms": 1958,
+  "type": "result",
+  "duration_ms": 79761,
+  "uuid": "4357e774-a0e2-4d43-98d4-bb8c46b0bd9a",
+  "ttft_stream_ms": 870,
+  "time_to_request_ms": 205,
+  "first_content_frame_ms": 871,
+  "queued_turn_count": 0,
+  "result_index": 0
+}

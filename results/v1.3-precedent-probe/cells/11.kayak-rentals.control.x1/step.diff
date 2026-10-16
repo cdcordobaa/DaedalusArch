@@ -1,0 +1,68 @@
+diff --git a/src/application/return-kayak.ts b/src/application/return-kayak.ts
+index 3e09873..3940ed8 100644
+--- a/src/application/return-kayak.ts
++++ b/src/application/return-kayak.ts
+@@ -1,8 +1,12 @@
+-import type { Booking } from '../domain/booking';
++import { lateFeeFor, type Booking } from '../domain/booking';
+ import type { BookingRepository } from '../domain/booking-repository';
++import type { PaymentGateway } from './ports/payment-gateway';
+ 
+ export class ReturnKayak {
+-  constructor(private readonly bookings: BookingRepository) {}
++  constructor(
++    private readonly bookings: BookingRepository,
++    private readonly payments: PaymentGateway,
++  ) {}
+ 
+   async execute(bookingId: string, now = new Date()): Promise<Booking> {
+     const booking = await this.bookings.findById(bookingId);
+@@ -10,6 +14,11 @@ export class ReturnKayak {
+     if (booking.status !== 'out') throw new Error(`booking ${bookingId} is not out on the water`);
+     booking.status = 'returned';
+     booking.returnedAt = now;
++    const fee = lateFeeFor(booking, now);
++    if (fee > 0) {
++      const charged = await this.payments.charge(booking.customerEmail, fee, `late return ${booking.id}`);
++      booking.lateFee = { amountCents: charged.amountCents, paymentId: charged.paymentId };
++    }
+     await this.bookings.save(booking);
+     return booking;
+   }
+diff --git a/src/domain/booking.ts b/src/domain/booking.ts
+index 2682b40..b4f7714 100644
+--- a/src/domain/booking.ts
++++ b/src/domain/booking.ts
+@@ -10,6 +10,7 @@ export interface Booking {
+   status: BookingStatus;
+   depositPaymentId?: string;
+   returnedAt?: Date;
++  lateFee?: { readonly amountCents: number; readonly paymentId: string };
+ }
+ 
+ export function overlaps(a: Pick<Booking, 'startsAt' | 'endsAt'>, b: Pick<Booking, 'startsAt' | 'endsAt'>): boolean {
+@@ -19,3 +20,11 @@ export function overlaps(a: Pick<Booking, 'startsAt' | 'endsAt'>, b: Pick<Bookin
+ export function isActive(booking: Booking): boolean {
+   return booking.status === 'booked' || booking.status === 'out';
+ }
++
++const HALF_HOUR_MS = 30 * 60 * 1000;
++export const LATE_FEE_PER_STARTED_HALF_HOUR_CENTS = 500;
++
++export function lateFeeFor(booking: Pick<Booking, 'endsAt'>, returnedAt: Date): number {
++  const late = returnedAt.getTime() - booking.endsAt.getTime();
++  return late > 0 ? Math.ceil(late / HALF_HOUR_MS) * LATE_FEE_PER_STARTED_HALF_HOUR_CENTS : 0;
++}
+diff --git a/src/infrastructure/main.ts b/src/infrastructure/main.ts
+index 3019a67..0046d43 100644
+--- a/src/infrastructure/main.ts
++++ b/src/infrastructure/main.ts
+@@ -17,7 +17,7 @@ export function buildApp(): express.Express {
+     rentalRoutes({
+       bookKayak: new BookKayak(kayaks, bookings, paddlePay),
+       handOutKayak: new HandOutKayak(bookings),
+-      returnKayak: new ReturnKayak(bookings),
++      returnKayak: new ReturnKayak(bookings, paddlePay),
+     }),
+   );
+   return app;
