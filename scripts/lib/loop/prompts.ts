@@ -138,7 +138,7 @@ export interface FrameExtras {
 const EXTRAS_BEFORE = 'Before you finish, type-check the project';
 
 /** A later clause of `RULE_PLAIN` that tells the agent what to do (a fix), not what the rule is. */
-const FIX_CLAUSE = /^(?:break|go|keep|move|put|use|split|fix|make|extract|wire|place)\b/i;
+export const FIX_CLAUSE = /^(?:break|go|keep|move|put|use|split|fix|make|extract|wire|place)\b/i;
 
 /**
  * The L3 sentence of a rule: "It is a violation when <the first clause of RULE_PLAIN>", then the later clauses that

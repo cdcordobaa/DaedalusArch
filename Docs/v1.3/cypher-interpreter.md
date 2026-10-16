@@ -441,7 +441,7 @@ same command (`results/v1.3-cypher-interp/neo4j-control/`). `scripts/v1.3/cypher
 | CLI: the whole result | 71/71 |
 
 The CLI rounds the universal metrics to 3 decimals, so T2 cannot show there; the unrounded values are compared by the
-parity harness (§4, `universal:*`). Wall time: 2m51.9s (interp), 3m17.4s (Neo4j control).
+parity harness (§4, `universal:*`). Wall time: 3m46.6s (interp), 4m15.2s (Neo4j control), from the committed `run-provenance.json` of the re-run (`3ff49656`). *Corrected 2026-10-16 (post-review fixes): the first text gave 2m51.9s and 3m17.4s, the times of the `ccb14f2f` run.*
 
 ### 4.4 Order guard
 
@@ -484,26 +484,26 @@ fixed (template text is not edited by this work).
 
 ## 6. Performance
 
-All numbers from this container, same run as §4 unless noted. Neo4j times include the bolt round trip on localhost.
+*Corrected 2026-10-16 (post-review fixes).* The CLI run, the arm v1.3 and APG v2 rows and the phase totals are #151's re-run of §4 (`run-provenance.json`, `parity-by-template.json`, `3ff49656`). The bench rows (`bench.md`: warm evaluation, graph stages, `ingest-apg`) and the mirror rows (`mirrors.json`) are the spike's run (`2bcc50e7`), which those records still hold. The first text said "same run as §4" but gave the spike's figures throughout: 3m26.8s / 2m49.9s (medians 2,710 / about 2,330 ms per variant), 505 / 14 ms, 1,747 / 103 / 43 ms, phase totals 36.4 / 1.3 s, 35.6 / 1.0 s, 31,950: 44.6 / 12.9 s and 26,513: 81.4 / 9.4 s, and a 2.4x mirror ratio. Neo4j times include the bolt round trip on localhost.
 
 | measurement | Neo4j | cypher-interp | hand mirrors |
 |---|---:|---:|---:|
-| reference-set CLI run, 71 variants (one `tsx` child per variant) | 3m26.8s (median 2,710 ms per variant) | 2m49.9s (median about 2,330 ms) | - |
+| reference-set CLI run, 71 variants (one `tsx` child per variant) | 4m15.2s (no per-variant median in the re-run's record) | 3m46.6s | - |
 | warm in-process evaluation, clean-architecture/clean (`results/v1.3-cypher-interp/bench.md`) | 728 ms | 149 ms | - |
 | warm in-process evaluation, ddd/clean | 866 ms | 321 ms | - |
 | graph stages of that evaluation (ingest + evaluate + scores) | ≈ 600 ms | ≈ 20 ms | - |
-| pipeline arm v1.3, graph statements per project (median of 71) | 505 ms | 14 ms | - |
-| APG v2 templates, 9 per project, 78 projects (v1.2E text, one run each) | 1,747 ms | 103 ms | 43 ms (graph build included) |
+| pipeline arm v1.3, graph statements per project (median of 71) | 580 ms | 21 ms | - |
+| APG v2 templates, 9 per project, 78 projects (v1.2E text, one run each) | 5,384 ms | 282 ms | 56 ms (graph build included) |
 | `cypher-interp-mirrors.ts`, 78 projects, ingestion + 9 templates vs mirror graph build + 9 templates | - | 833 ms | 67 ms |
 
-Phase totals over the parity run (statements: Neo4j / interpreter): arm v1.3 3,159: 36.4 s / 1.3 s; arm v1.2e
-3,159: 35.6 s / 1.0 s; sweep on the v1.3 graphs 31,950: 44.6 s / 12.9 s; sweep on the APG v2 graphs 26,513: 81.4 s /
-9.4 s. The sweep ratio is lower because it is dominated by the multi-thousand-row texts (`context-isolation`,
+Phase totals over the parity run (statements: Neo4j / interpreter): arm v1.3 3,159: 55.5 s / 2.1 s; arm v1.2e
+3,159: 42.9 s / 1.5 s; sweep on the v1.3 graphs 35,358: 115.7 s / 20.3 s; sweep on the APG v2 graphs 29,121: 140.9 s /
+14.8 s. The sweep ratio is lower because it is dominated by the multi-thousand-row texts (`context-isolation`,
 `test-file-pairing`, the fan-in/out rules under the `low` binding), where the cost is row construction on both sides.
 
 Read: the interpreter removes Neo4j's ingestion cost (the `ingest-apg` stage alone is ≈ 510 ms on Neo4j, ≈ 6 ms here) and the
 per-query round trip. The CLI run barely changes because each variant pays a `tsx` start-up and a ts-morph extraction
-(≈ 2.2 s) either way; the gain shows in a long-lived process (MCP server, watch loop, tests). The hand mirrors are 2.4x
+(≈ 2.2 s) either way; the gain shows in a long-lived process (MCP server, watch loop, tests). The hand mirrors are 5.1x
 (per template run) to 12x (with ingestion) faster than the interpreter, all in single-digit milliseconds per project.
 Cold start: the first query of a process pays ≈ 300-600 ms of ANTLR prediction warm-up; later texts are parsed once
 and cached.
@@ -539,12 +539,12 @@ Still needed:
 1. **CLI**: the flag on `batch`, `drift`, `check-file` (`src/mcp-server/check-file-cli.ts`) and the other commands that
    build a pipeline or a repository; a decision on the default (keep `neo4j` for study commands; make `cypher-interp`
    the default for a new `npx` entry, or select it when no `NEO4J_URI` is set); `--neo4j-uri` and the password check
-   only on the Neo4j path everywhere (`src/cli/cli.ts` has two more `requireEnvForCli('NEO4J_PASSWORD')` calls).
+   only on the Neo4j path everywhere (`src/cli/cli.ts` has one more `requireEnvForCli('NEO4J_PASSWORD')` call; *corrected 2026-10-16: the first text said "two more", true at `ccb14f2f`, one since `3ff49656`*).
 2. **MCP server**: `src/mcp-server/context.ts` constructs `Neo4jRepository` directly and passes Neo4j settings to
    `createPipeline` (`evaluate-project.ts`); both need the same engine switch (and the Neo4j lock only on that path). With the interpreter, an evaluation costs
    ≈ 150-320 ms warm in a long-lived server (§6), most of it ts-morph extraction.
 3. **Judge**: `full` / `neuronal-only` modes read the graph view through `JUDGE_GRAPH_QUERIES`, which already pass
-   parity (`judge-graph:*`, 1,516 statements equal); the judge's own LLM provider, cassettes and credentials are
+   parity (`judge-graph:*`, 1,540 statements equal, 4 × 385 in the §4 table; *corrected 2026-10-16 from 1,516, the spike's 4 × 379*); the judge's own LLM provider, cassettes and credentials are
    independent of the graph engine and keep their current requirements. A full-mode end-to-end run on
    `cypher-interp` has not been done (it spends judge calls).
 4. **Packaging**: `npm run build` emits the generated parser (2 MB of TypeScript) into `dist/` (not measured here);

@@ -347,3 +347,27 @@ Each risk names the event that would tempt a second run, and the mitigation that
 7. The sealed hold-out run and the FR-V11 report (V3, V4); the predictive-validity result.
 8. The gate PR #146 merged, then every line green or waived at the run commit, and signed by the author (§9).
 9. Only then the pre-registration (a separate, author-approved step), and Study 2, once.
+
+## Loop harness note: resume semantics (added 2026-10-16)
+
+This note is placed at the end of the outline so that no earlier line moves; it belongs to §3, where the `gate` arm is
+described (row `gate` of the arm table). `gate` is dropped for Study 2, but the harness still runs it (dress rehearsal,
+pilot, fault drills), so the rule is recorded.
+
+- **Re-score, not re-draw.** When the evaluation of a `gate` step turn's snapshot fails, the gate cannot decide, so
+  the run stops with `LOOP_GATE_UNSCORED` (fault drills D4). The step turn's commit is kept (`gate-unscored.json`). On
+  resume the harness type-checks and evaluates **that kept commit** again and applies the gate to it, repair turn
+  included. It does **not** run the step turn again, so the model is not sampled a second time for that step. Before
+  this fix (post-merge review item 1) the resume discarded the step and drew it again, in the `gate` arm only: the
+  other arms record an unscored snapshot and go on, so the `gate` arm alone could get a second sample of a step.
+- **Fallback.** If the snapshot store no longer stands at the kept commit (or a later step record exists), the
+  resume falls back to the general rule: the partial step is discarded and drawn again.
+- **Visible in the records.** Every `restarts.jsonl` line has `reason`: `rescore` or `redraw` (a line without one
+  predates the field and was a redraw). The grid summary counts both per arm (`restartsByArm`). A redraw is a new
+  model sample for a step; it should be 0 in a registered run, or reported per arm.
+- **Only one exemption.** A spec that could not be frozen (`LOOP_SPEC_FREEZE_FAILED`) is still recorded as a skipped
+  gate and the run goes on; such a run has no scored snapshot and fails with `LOOP_EVAL_ALL_FAILED`. Any other missing
+  evaluation, `LOOP_SPEC_NOT_FROZEN` and code-less failures included, stops the `gate` run (review item 3).
+  `gateStepsWithoutEvaluation` must stay 0; the grid fails otherwise (`LOOP_GATE_NOT_APPLIED`).
+- Code: `scripts/lib/loop/loop.ts` (header "Resume after `LOOP_GATE_UNSCORED`"); tests:
+  `tests/unit/scripts/loop/loop.test.ts`; drills: `Docs/v1.3/loop-fault-drills.md` (D4a and D4b re-run, both pass).

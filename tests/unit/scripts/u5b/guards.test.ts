@@ -4,7 +4,9 @@
  * skips) when `origin/v1.2e` cannot be resolved. Build and Test re-scoped it (BT Step 5): under `results/`, only
  * `results/pre-tag/**` (FR-18), `results/labels/**` (runbook stage 6, the label plan) and `results/<registered plan id>/**` whose `runs/*.run.json` are schema-valid
  * `RunRecord`s of that plan (at least one) are allowed; anything else fails. Checked over the tracked files and the
- * branch diff against `origin/v1.2e`.
+ * branch diff against `origin/v1.2e`. Since 2026-10-16 (decision-chronology row 14) v1.3's result folders are allowed
+ * too, by folder pattern (`results/v1.3/**`, `results/v1.3-<name>/**`, `V13_RESULTS_DIR_PATTERN`); the v1.2E rules
+ * above are unchanged, so a v1.3 commit that touches a v1.2E result folder still fails.
  * BR-U5b-44 (Step 28): no test under `tests/unit/scripts/**` constructs the live Gemini provider or imports its
  * constructor as a value; U5b tests label through Mock providers and cassettes only.
  */
@@ -12,7 +14,7 @@ import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { EXTERNAL_RUNNER_KINDS, validateRunRecord } from '../../../../scripts/run-experiment.js';
-import { LABELS_RESULTS_DIR, resultsPathAllowed } from '../../../golden/check-changes-log.js';
+import { LABELS_RESULTS_DIR, resultsPathAllowed, v13ResultsPath } from '../../../golden/check-changes-log.js';
 import { ROOT } from './score-fixture.js';
 
 function git(...args: string[]): string {
@@ -32,7 +34,10 @@ export function resultsGuardProblems(
   const problems: string[] = [];
   const plans = new Set<string>();
   for (const f of [...new Set(files)].sort()) {
-    if (!resultsPathAllowed(f, planIds)) { problems.push(`${f}: not under results/pre-tag/, results/labels/ or results/<registered plan id>/`); continue; }
+    if (!resultsPathAllowed(f, planIds)) {
+      if (!v13ResultsPath(f, planIds)) problems.push(`${f}: not under results/pre-tag/, results/labels/, results/<registered plan id>/ or a v1.3 result folder`);
+      continue;
+    }
     const top = f.split('/')[1] ?? '';
     if (top !== 'pre-tag' && top !== LABELS_RESULTS_DIR) plans.add(top);
   }
@@ -107,6 +112,19 @@ describe('results guard (BR-U5b-56, re-scoped by Build and Test Step 5)', () => 
     expect(problems).toMatch(/results\/latency-gate\/: no RunRecord/);
     expect(problems).toMatch(/bad.run.json: RunRecord schema/);
     expect(problems).toMatch(/r.run.json: planId is not fixtures/);
+  });
+
+  it('allows v1.3 result folders by pattern and nothing that only resembles one; the v1.2E checks still apply', () => {
+    const rec = JSON.parse(readFileSync(join(ROOT, 'tests/fixtures/u5b/reports/correct-reference.run.json'), 'utf8')) as Record<string, unknown>;
+    const records: Record<string, unknown> = { 'results/sensitivity/runs/bad.run.json': { ...rec, planId: 'sensitivity', attempt: 3 } };
+    const ok = ['results/v1.3/loop-fault-drills/drills.json', 'results/v1.3-reference/after-member-facts/report.json', 'results/v1.3-floor-probe-2/x.json'];
+    expect(resultsGuardProblems(ok, registeredPlanIds(), () => undefined)).toEqual([]);
+    const bad = ['results/v1.30/x.json', 'results/v1.2e-x/a.json', 'results/v1.3-/a.json', 'results/V1.3-x/a.json', 'results/v1.3.json', 'results/sensitivity/runs/bad.run.json'];
+    const problems = resultsGuardProblems(bad, registeredPlanIds(), (f) => records[f]).join('\n');
+    for (const f of bad.slice(0, 5)) expect(problems).toContain(`${f}: not under`);
+    expect(problems).toMatch(/bad.run.json: RunRecord schema/);
+    // A v1.3-named folder that is a registered plan id keeps the plan's RunRecord check.
+    expect(resultsGuardProblems(['results/v1.3-x/a.json'], ['v1.3-x'], () => undefined)).toEqual(['results/v1.3-x/: no RunRecord under runs/']);
   });
 });
 

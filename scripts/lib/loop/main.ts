@@ -59,10 +59,10 @@ import { CODEX_CLI_ADAPTER_ID_VALUE } from '../generators/types.js';
 import { acceptanceRunner } from './acceptance.js';
 import { ClaudeStepAgent, CodexStepAgent } from './agents.js';
 import { checkIsolationPaths } from './isolation.js';
-import { firewallEvaluator, harnessSnapshotTsconfig, harnessTypechecker } from './evaluator.js';
+import { harnessTypechecker, loopEvaluatorOf } from './evaluator.js';
 import { evaluatorForEngine, parseLoopEngine } from './engine-tee.js';
 import type { LoopEngine } from './engine-tee.js';
-import { gateEvaluationFailures, runLoop } from './loop.js';
+import { assertGateApplied, gateEvaluationFailures, restartCounts, runDirFor, runLoop } from './loop.js';
 import type { LoopContext, LoopRunResult, TaskProfile } from './loop.js';
 import { loadLoopPlan, loopRunId, mcpSpecCheck, planCallBudget, planFrame, scheduleLoopRuns, SPEC_SHA_ENV } from './plan.js';
 import { taskFrameExtras } from './rungs.js';
@@ -187,6 +187,8 @@ interface ScheduleFile {
   readonly runs: readonly string[];
   /** The evaluator engine when one was chosen (absent = the default wiring); a resume must keep it. */
   readonly engine?: LoopEngine;
+  /** Present (true) only for a grid started with `--call-log`; a resume must keep it (review item 11). */
+  readonly callLog?: true;
 }
 
 /** Writes `schedule.json`, or checks that an existing one belongs to the same plan, tasks and mode. */
@@ -204,10 +206,11 @@ export function claimSchedule(outRoot: string, schedule: ScheduleFile): DomainRe
       prior.tasksSha256 === schedule.tasksSha256 &&
       prior.dryRun === schedule.dryRun &&
       prior.engine === schedule.engine &&
+      prior.callLog === schedule.callLog &&
       JSON.stringify(prior.runs) === JSON.stringify(schedule.runs);
     return same
       ? DomainResult.ok(undefined)
-      : DomainResult.fail([{ code: 'LOOP_SCHEDULE_MISMATCH', message: `${file} belongs to another plan, tasks file or mode; use a fresh outRoot` }]);
+      : DomainResult.fail([{ code: 'LOOP_SCHEDULE_MISMATCH', message: `${file} belongs to another plan, tasks file or mode (engine, --call-log); use a fresh outRoot` }]);
   }
   fs.mkdirSync(outRoot, { recursive: true });
   fs.writeFileSync(file, `${JSON.stringify(schedule, null, 2)}\n`);
@@ -402,7 +405,7 @@ async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs
     deps.err(`PARITY ${p.status} ${runId ?? '?'}: ${JSON.stringify(p.diff ?? p.checkError ?? {})}\n`);
   };
   const evaluatorOf = (specFile: string): StepEvaluator =>
-    evaluatorForEngine(engine, evaluateDeps, deps.parentEnv, (d, env) => firewallEvaluator(specFile, env, d, harnessSnapshotTsconfig(plan.harnessRoot)), { onMismatch });
+    evaluatorForEngine(engine, evaluateDeps, deps.parentEnv, (d, env) => loopEvaluatorOf(plan.harnessRoot, env, d)(specFile), { onMismatch });
   const profiles = buildProfiles(loaded, repoRoot, evaluatorOf, iseDddFreezer(repoRoot));
   if (!profiles.success) return DomainResult.fail(profiles.errors);
   const extras = buildFrameExtras(loaded, repoRoot);
@@ -433,6 +436,7 @@ export async function runLoopGrid(
     dryRun: options.dryRun,
     runs: specs.map(loopRunId),
     ...(options.engine !== undefined ? { engine: options.engine } : {}),
+    ...(options.callLog === true ? { callLog: true as const } : {}),
   });
   if (!claimed.success) return DomainResult.fail(claimed.errors);
   const tasks = new Map(loaded.tasks.tasks.map((t) => [t.id, t]));
@@ -467,7 +471,23 @@ export async function runLoopGrid(
   return DomainResult.ok(results);
 }
 
-/** The final console summary: runs, the planned call budget and the turns this invocation ran. */
+/**
+ * Per arm, the resumes of the grid's runs by `restarts.jsonl` reason, over every invocation: `redraws` discarded a
+ * partial step and drew its turn again, `rescores` re-evaluated the kept commit of a `LOOP_GATE_UNSCORED` stop.
+ */
+export function restartsByArm(loaded: LoadedPlan): Record<string, { readonly redraws: number; readonly rescores: number }> {
+  const out: Record<string, { redraws: number; rescores: number }> = {};
+  for (const arm of loaded.plan.arms) out[arm] = { redraws: 0, rescores: 0 };
+  for (const spec of scheduleLoopRuns(loaded.plan, loaded.tasks.tasks)) {
+    const c = restartCounts(runDirFor(loaded.plan.outRoot, loopRunId(spec)));
+    const a = (out[spec.arm] ??= { redraws: 0, rescores: 0 });
+    a.redraws += c.redraw;
+    a.rescores += c.rescore;
+  }
+  return out;
+}
+
+/** The final console summary: runs, the planned call budget, the turns this invocation ran and the resumes per arm. */
 export function gridSummary(loaded: LoadedPlan, results: readonly LoopRunResult[], dryRun: boolean): Record<string, unknown> {
   const completed = results.filter((r) => r.kind === 'completed');
   let stepTurns = 0;
@@ -490,8 +510,10 @@ export function gridSummary(loaded: LoadedPlan, results: readonly LoopRunResult[
     skipped: results.length - completed.length,
     callBudget: planCallBudget(loaded.plan, loaded.tasks.tasks),
     turnsThisInvocation: { step: stepTurns, repair: repairTurns, repairsCleared },
-    // R01: gate steps the gate could not judge (no evaluation); non-zero means the gate arm did not run as designed.
+    // R01: gate steps the gate could not judge (no evaluation). An assertion: it must be 0 (`assertGateApplied`).
     gateStepsWithoutEvaluation: gateEvaluationFailures(results),
+    // Review item 1: a redraw is a new model sample for a step; the gate arm re-scores instead of redrawing.
+    restartsByArm: restartsByArm(loaded),
   };
 }
 
@@ -539,5 +561,7 @@ export async function main(argv: readonly string[], repoRoot: string, depsIn?: L
   });
   if (!grid.success) return report(deps, grid.errors);
   deps.out(`${JSON.stringify(gridSummary(loaded.data, grid.data, args.data.dryRun), null, 2)}\n`);
+  const applied = assertGateApplied(grid.data);
+  if (!applied.success) return report(deps, applied.errors);
   return 0;
 }

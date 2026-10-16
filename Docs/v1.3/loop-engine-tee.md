@@ -50,8 +50,8 @@ compared; its report is not written.
 
 `parity.status`:
 - `identical`: every row above equal.
-- `order`: everything equal except `ahs`/`blockingAhs`, which differ by at most 4 ULP (the interpreter doc's trap T2,
-  the class the 65k-statement sweep calls `order`). Reported separately; it is **not** counted as identical.
+- `order`: everything equal except `ahs`/`blockingAhs`, which differ by at most 4 ULP (`ORDER_ULP`: the tee's own bound on two scores, stricter than and separate from the statement sweep's 16-ULP `float-drift` class, #151; reworded 2026-10-16, review item 7, value unchanged).
+  Reported separately; it is **not** counted as identical.
 - `divergent`: anything else. `parity.diff` holds a compact summary: findings only on Neo4j / only on the interpreter
   (at most 20 each, plus totals), per-rule count differences, and the scalar fields that differ.
 - `check-failed`: the interpreter evaluation returned an error (code and message recorded).

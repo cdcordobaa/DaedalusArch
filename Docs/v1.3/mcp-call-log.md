@@ -77,6 +77,14 @@ process: {
 4. `ue-baseline-live.ts --engine cypher-interp` diff against `results/v1.3-reference/after-member-facts` is empty
    except `elapsedMs`.
 
+## Resume (added 2026-10-16, post-merge review item 11)
+
+A loop grid started with `--call-log` records it: `schedule.json` and each `run.json` carry `"callLog": true` (absent
+without the flag, so those files are byte-identical to before). A resume with the other setting is refused
+(`LOOP_SCHEDULE_MISMATCH` for the grid, `LOOP_CALL_LOG_MISMATCH` for a run), because a run whose turns are half logged
+cannot be read. The spec-read log of an L4 run (`spec-reads.jsonl`) is handled the same way as the turn records on a
+redraw: the lines of the steps that rerun move to `discarded/restart-<n>/spec-reads.jsonl`.
+
 ## Not done here
 
 - No live probe: no CLI login exists in the cloud, so the wiring is checked only through argv/config assertions. The

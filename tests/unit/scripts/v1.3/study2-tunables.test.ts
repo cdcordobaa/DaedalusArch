@@ -44,11 +44,12 @@ describe('buildTunablesManifest', () => {
     expect(e['template/frozen/dependency-direction']).toBeDefined();
     expect(e['template/ddd-literal-view/context-isolation']).toBeDefined();
     for (const f of fs.readdirSync(path.join(REPO, 'presets')).filter((n) => n.endsWith('.yaml'))) expect(e[`preset/${f}`]).toBeDefined();
-    for (const k of ['first-step', 'next-step', 'styled-first-step', 'styled-next-step', 'repair', 'rule-plain', 'arm-tool-sentences']) {
+    for (const k of ['first-step', 'next-step', 'styled-first-step', 'styled-next-step', 'repair', 'rule-plain', 'arm-tool-sentences', 'attention', 'l3-lead', 'l4-sentence', 'fix-clause']) {
       expect(e[`frame/${k}`]).toBeDefined();
     }
     for (const s of ['clean', 'hexagonal', 'ddd']) expect(e[`frame/layout-sentence/${s}`]).toBeDefined();
     expect(e['doc/rule-tiers.md']).toBeDefined();
+    expect(e['engine/interp-query-timeout-ms']).toBeDefined();
     expect(e['doc/style-rule-sources.md']).toBeDefined();
     for (const t of TOOL_NAMES) expect(e[`mcp-tool/default/${t}`]).toBeDefined();
     for (const t of NEURAL_TOOL_NAMES) {

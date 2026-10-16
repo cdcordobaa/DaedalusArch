@@ -21,7 +21,12 @@ export type { LoopEngine } from './types.js';
 
 /** Findings listed per side in a parity diff (the totals always hold the full number). */
 export const MAX_PARITY_FINDINGS = 20;
-/** Float distance treated as accumulation order (trap T2 of `Docs/v1.3/cypher-interpreter.md`). */
+/**
+ * The loop tee's own bound: an `ahs`/`blockingAhs` pair within this many ULP is classed `order` (an accumulation-order
+ * difference), not `divergent`. It is stricter than, and separate from, the statement sweep's `float-drift` class of
+ * `Docs/v1.3/cypher-interpreter.md` (16 ULP, two named `averageInstability` texts only, trap T2 as revised by #151): the
+ * tee compares two scores, not statement rows. Reworded 2026-10-16 (post-merge review item 7); the value is unchanged.
+ */
 export const ORDER_ULP = 4;
 
 /** Placeholder password for the interpreter-only wiring: `evaluateProject` reads one, the in-memory graph never does. */

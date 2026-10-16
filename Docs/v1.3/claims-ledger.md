@@ -80,8 +80,8 @@ evidence does not exist yet.
 
 ## 5. Stale references found while building the ledger
 
-- `papers/STATUS.md` cites `Docs/reports/director-report-2026-10.md`. That file was moved out of the public repo
-  (commit `18c7382c`). The E1 figures it supports are also in `Docs/DiagnosticRuns/e1-size-analysis-2026-10-10.md`.
+- `papers/STATUS.md` cited the October director report (`director-report-2026-10.md`, internal). That file was moved out of the public repo
+  (commit `18c7382c`), and the citation has since been removed from `papers/STATUS.md`. The E1 figures it supports are also in `Docs/DiagnosticRuns/e1-size-analysis-2026-10-10.md`.
 - `papers/STATUS.md` and `Docs/v1.3/research/distinction-readiness.md` quote 57/57 author-view recall; the source
   report corrects this to 54/54 (C14).
 - The night backlog's "10 of 15 human-written repos fail" disagrees with PR #133's table, which gives 11 fail

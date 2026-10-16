@@ -47,7 +47,6 @@ export function verdictOf(text: string, ref: DomainResult<QueryResult>, cand: Do
       return { verdict: 'quirk:T2-float-order', ...(detail !== undefined ? { detail } : {}) };
     case 'order':
     case 'content': {
-      if (detail === 'float accumulation order (<= 4 ULP)') return { verdict: 'quirk:T2-float-order', detail };
       if (!ref.success || !cand.success) return { verdict: `mismatch:${klass}` };
       const proj = finalProjection(text);
       if (proj === undefined || proj.orderBy.length === 0) {

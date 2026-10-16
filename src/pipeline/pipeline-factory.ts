@@ -103,7 +103,7 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
     return config.queryEngine === 'neo4j' ? repo : new AcceleratedGraphRepository(repo, config.onAcceleration);
   };
   const graphRepo: GraphRepository = config.graphRepository ?? (config.graphEngine === 'cypher-interp'
-    ? new MemoryGraphRepository()
+    ? new MemoryGraphRepository(config.interpQueryTimeoutMs !== undefined ? { queryTimeoutMs: config.interpQueryTimeoutMs } : {})
     : neo4jRepo());
 
   const snapshotStore: SnapshotStore = new FileSystemSnapshotStore(

@@ -221,9 +221,14 @@ async function evaluateInProcess(
 ): Promise<DomainResult<EvaluateProjectResult>> {
   if (deps.interp === undefined) return failure('ENGINE_UNAVAILABLE', 'cypher-interp selected but no in-process evaluator is wired.');
   const specPath = input.specPath;
-  // The explicit tsconfig and the uncapped violations reach the interpreter path exactly as the Neo4j path above.
+  // The explicit tsconfig, the extractor defaults and the uncapped violations reach the interpreter path exactly as the
+  // Neo4j path above (the extractor defaults were dropped here before; post-merge review item 9).
   const tsconfigPath = input.tsconfigPath ?? deps.tsconfigPath;
-  const res = await deps.interp({ projectPath, specPath, scoringMode, ...(tsconfigPath !== undefined ? { tsconfigPath } : {}) });
+  const res = await deps.interp({
+    projectPath, specPath, scoringMode,
+    ...(tsconfigPath !== undefined ? { tsconfigPath } : {}),
+    ...(input.extractorDefaults !== undefined ? { extractorDefaults: input.extractorDefaults } : {}),
+  });
   if (!res.success) {
     const [first] = res.errors;
     return failure('PIPELINE_FAILED', res.errors.map((e) => e.message).join('; ') || (first?.code ?? 'evaluation failed'));

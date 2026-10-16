@@ -83,6 +83,11 @@ export interface PipelineConfig {
    * rows on the Neo4j engine; `neo4j` sends every query to Neo4j. Not used by the in-process engine.
    */
   readonly queryEngine?: QueryEngine | undefined;
+  /**
+   * `cypher-interp` only (`--interp-query-timeout-ms`): the read timeout of the in-process engine in ms; 0 disables it.
+   * Absent = `DEFAULT_INTERP_QUERY_TIMEOUT_MS` (30 s), a Study 2 tunable (`Docs/v1.3/study2-tunables.md`).
+   */
+  readonly interpQueryTimeoutMs?: number | undefined;
   /** Scale (`--max-files`): fail with `PROJECT_TOO_LARGE` above this many analysable source files; absent = no cap. */
   readonly maxFiles?: number | undefined;
   /** Scale (`--memory-limit-mb`): an RSS budget for the memory guard, in MB; the heap budget applies regardless. */

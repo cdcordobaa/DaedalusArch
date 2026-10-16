@@ -23,6 +23,7 @@ import { COMPOSITION_ROOT_GLOBS, DECLARATION_ONLY_GLOBS, INSTRUMENT_VERSION, ROL
 import { V13_ROLE_NAME_REWRITES } from '../../../src/fitness-compiler/v13-role-names.js';
 import { FIELD_STATE_PURITY_TEXT } from '../../../src/fitness-compiler/v13-rewrites.js';
 import { V13_COMPILE_OPTIONS } from '../../../src/fitness-compiler/fitness-compiler.js';
+import { DEFAULT_INTERP_QUERY_TIMEOUT_MS } from '../../../src/cypher-interp/repository.js';
 import type { CypherTemplate } from '../../../src/fitness-compiler/types.js';
 import { resolveTemplate } from '../../../src/spec-parser/template-registry.js';
 import { DEFAULT_SPEC_PARSER_OPTIONS } from '../../../src/spec-parser/types.js';
@@ -34,8 +35,8 @@ import { FROZEN_SHA256, FROZEN_VALUES } from '../../../src/llm-critic/frozen.js'
 import { JUDGE_V2_SHA256, JUDGE_V2_VALUES } from '../../../src/llm-critic/judge-v2.js';
 import { DAEDALUS_DENIED_TOOLS, ARM_TOOL_SENTENCES } from '../../lib/generators/arms.js';
 import {
-  FIRST_STEP_TEMPLATE, MAX_REPAIR_FINDINGS, NEXT_STEP_TEMPLATE, REPAIR_TEMPLATE, RULE_PLAIN, STYLED_FIRST_STEP_TEMPLATE,
-  STYLED_NEXT_STEP_TEMPLATE,
+  ATTENTION_SENTENCE, FIRST_STEP_TEMPLATE, FIX_CLAUSE, L3_LEAD, L4_SENTENCE, MAX_REPAIR_FINDINGS, NEXT_STEP_TEMPLATE,
+  REPAIR_TEMPLATE, RULE_PLAIN, STYLED_FIRST_STEP_TEMPLATE, STYLED_NEXT_STEP_TEMPLATE,
 } from '../../lib/loop/prompts.js';
 import { LOOP_STYLES, STYLE_PRESETS, layoutSentence, styleSentence } from '../../lib/loop/style.js';
 import { createServer, NEURAL_TOOL_NAMES, SERVER_NAME, SERVER_VERSION, SPEC_TOOL_NAMES, TOOL_NAMES } from '../../../src/mcp-server/server.js';
@@ -158,6 +159,11 @@ export async function buildTunablesManifest(repoRoot: string): Promise<TunablesM
   e['frame/max-repair-findings'] = valueSha256(MAX_REPAIR_FINDINGS);
   e['frame/style-presets'] = valueSha256(STYLE_PRESETS);
   e['frame/arm-tool-sentences'] = valueSha256(ARM_TOOL_SENTENCES);
+  // Frame extras (spec rungs and the attention sentence, `plan.ts` `frame`; post-merge review item 2).
+  e['frame/attention'] = sha256Hex(ATTENTION_SENTENCE);
+  e['frame/l3-lead'] = sha256Hex(L3_LEAD);
+  e['frame/l4-sentence'] = sha256Hex(L4_SENTENCE);
+  e['frame/fix-clause'] = valueSha256({ source: FIX_CLAUSE.source, flags: FIX_CLAUSE.flags });
   for (const style of LOOP_STYLES) {
     e[`frame/style-sentence/${style}`] = sha256Hex(styleSentence(style));
     e[`frame/layout-sentence/${style}`] = sha256Hex(layoutSentence(style, fs.readFileSync(path.join(repoRoot, STYLE_PRESETS[style]), 'utf8')));
@@ -187,6 +193,9 @@ export async function buildTunablesManifest(repoRoot: string): Promise<TunablesM
   e['extractor/DEFAULT_OPTIONS'] = valueSha256(DEFAULT_OPTIONS);
   e['extractor/DEFAULT_CHEAP_OPTIONS'] = valueSha256(DEFAULT_CHEAP_OPTIONS);
   e['extractor/DEFAULT_SPEC_PARSER_OPTIONS'] = valueSha256(DEFAULT_SPEC_PARSER_OPTIONS);
+  // The in-process engine's default read timeout (#151; post-merge review item 6): a query past it fails, so it can
+  // change which rules return rows on a large graph. `--interp-query-timeout-ms 0` disables it.
+  e['engine/interp-query-timeout-ms'] = valueSha256(DEFAULT_INTERP_QUERY_TIMEOUT_MS);
 
   for (const f of LABELLING_FILES) e[`labelling/${path.basename(f)}`] = fileSha256(repoRoot, f);
 

@@ -230,10 +230,12 @@ export interface Grounding {
 
 export interface GroundingOptions {
   /**
-   * What a bare `line N` / `lines N-M` reference is checked against. 'attributed' (default, R20): the shown file named
-   * last before it in its sentence, else the finding's own (first shown) file. 'longest': the longest shown file (the
-   * pre-R20 heuristic the committed judge-v2 figures used). 'finding-file': always the finding's own (first shown)
-   * file. With one file shown all three agree.
+   * What a bare `line N` / `lines N-M` reference is checked against. 'longest' (default): the longest shown file, the
+   * documented rule the committed judge-v2 figures used. 'attributed' (opt-in, R20): the shown file named last before
+   * it in its sentence, else the finding's own (first shown) file. 'finding-file' (opt-in): always the finding's own
+   * (first shown) file. With one file shown all three agree. The default was restored to 'longest' on 2026-10-16
+   * (decision D-e, `Docs/v1.3/decision-chronology.md` row 13): 'attributed' changes judge-stage results, so under D-b
+   * it stays opt-in.
    */
   readonly bareLines?: 'attributed' | 'longest' | 'finding-file';
 }
@@ -244,7 +246,8 @@ export interface GroundingOptions {
  * existing lines (`checkTextReferences`).
  *
  * `files` must be the files as the model saw them (`renderFilterExplainPrompt(...).shown`, R19), the finding's files
- * first: a bare `line N` that no file name in its sentence attributes is checked against the first file (R20).
+ * first: under `bareLines: 'attributed'` (R20, opt-in) a bare `line N` that no file name in its sentence attributes is
+ * checked against the first file.
  */
 export function checkGrounding(answer: FilterExplainAnswer, files: readonly ShownFile[], options: GroundingOptions = {}): Grounding {
   const problems: string[] = [];
@@ -272,9 +275,9 @@ export function shownFileOf(token: string, files: readonly ShownFile[]): string 
 /**
  * Problems of the file and line references in free text (shared by filter-and-explain and the MCP neural tools):
  * - every `path:line[-line]` names a shown file and lines that exist in it;
- * - every bare `line N` / `lines N-M` lies within the file it refers to (R20): the shown file named last before it in
- *   the same sentence (by path or file name), else the first shown file (the finding's own file). With one file shown
- *   that file is the only candidate, as before.
+ * - every bare `line N` / `lines N-M` lies within the file it refers to: by default the longest shown file; with
+ *   `bareLines: 'attributed'` (R20, opt-in) the shown file named last before it in the same sentence (by path or file
+ *   name), else the first shown file. With one file shown that file is the only candidate.
  */
 export function checkTextReferences(text: string, files: readonly ShownFile[], options: GroundingOptions = {}): string[] {
   const problems: string[] = [];
@@ -290,7 +293,7 @@ export function checkTextReferences(text: string, files: readonly ShownFile[], o
   for (const m of text.matchAll(/\blines?\s+(\d+)(?:\s*(?:[-–]|to|and)\s*(\d+))?/gi)) {
     const a = Number(m[1]);
     const b = m[2] !== undefined ? Number(m[2]) : a;
-    const file = bareLineFile(text, m.index, files, count, options.bareLines ?? 'attributed');
+    const file = bareLineFile(text, m.index, files, count, options.bareLines ?? 'longest');
     const n = file === undefined ? 0 : count.get(file) ?? 0;
     const where = file === undefined ? '' : ` of ${file}`;
     if (a < 1 || Math.max(a, b) > n) problems.push(`explanation cites line ${String(a)}${b !== a ? `-${String(b)}` : ''}${where} beyond ${String(n)}`);

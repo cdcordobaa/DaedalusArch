@@ -472,4 +472,6 @@ export interface RunRecord {
   readonly heldOutRules?: HeldOutRuleSplit;
   /** `--engine both` only, set at completion: parity counts over every step record of the run. */
   readonly parity?: RunParityCounts;
+  /** Present (true) only when the run was created with `--call-log`; a resume must use the same setting. */
+  readonly callLog?: true;
 }

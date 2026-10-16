@@ -237,8 +237,19 @@ describe('CLI', () => {
       expect([config.maxFiles, config.memoryLimitMb, config.queryEngine, config.sourceScope]).toEqual([8000, 3072, 'neo4j', 'analysed']);
     });
 
+    it('--interp-query-timeout-ms: absent leaves the default; 0 (no timeout) and a value reach the pipeline', async () => {
+      await loadProgram().parseAsync(['node', 'firewall', 'evaluate', '--project', '/p', '--spec', 's.yaml', '--symbolic-only']);
+      expect(firstPipelineConfig().interpQueryTimeoutMs).toBeUndefined();
+      for (const [value, want] of [['0', 0], ['120000', 120000]] as const) {
+        jest.mocked(createPipeline).mockClear();
+        await loadProgram().parseAsync(['node', 'firewall', 'evaluate', '--project', '/p', '--spec', 's.yaml', '--symbolic-only', '--interp-query-timeout-ms', value]);
+        expect(firstPipelineConfig().interpQueryTimeoutMs).toBe(want);
+      }
+    });
+
     it.each([
       ['--max-files', '0'], ['--max-files', '1e4'], ['--memory-limit-mb', '-1'], ['--query-engine', 'cypher-interp'],
+      ['--interp-query-timeout-ms', '-5'], ['--interp-query-timeout-ms', '30s'],
     ])('scale flags: %s %s exits 2 before any pipeline is built', async (flag, value) => {
       const program = loadProgram();
       await program.parseAsync(['node', 'firewall', 'evaluate', '--project', '/p', '--spec', 's.yaml', '--symbolic-only', flag, value]);

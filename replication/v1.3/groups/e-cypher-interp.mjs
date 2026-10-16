@@ -223,7 +223,7 @@ console.log(JSON.stringify(o));
       n('e-ci-gen-size', 121, 'generated parser size (Cypher25Lexer.ts + Cypher25Parser.ts)', '2 MB'),
       n('e-ci-gen-size-s8', 550, 'generated parser size (packaging)', '2 MB'),
       n('e-ci-mirror-lines', 515, 'apg2-in-memory.ts line count', '271 lines'),
-      n('e-ci-cli-pw', 542, "unconditional requireEnvForCli('NEO4J_PASSWORD') calls left in src/cli/cli.ts", 'two', { known: { actual: 'one', note: 'doc erratum (post-merge verification 2026-10-16): true when written (ccb14f2f: two); already one at the doc commit 3ff49656, which merged v1.3 9768def4' } }),
+      n('e-ci-cli-pw', 542, "unconditional requireEnvForCli('NEO4J_PASSWORD') calls left in src/cli/cli.ts", 'one'),
       n('e-ci-apg2-per-project', 496, 'APG v2 templates per project', '9'),
       n('e-ci-mir-templates-s6', 497, 'templates in the mirror comparison', '9'),
       n('e-ci-apg2-mirrors', 93, 'APG v2 templates with a hand mirror (APG2_IN_MEMORY)', '9'),
@@ -284,7 +284,7 @@ console.log(JSON.stringify({ frozen: CYPHER_TEMPLATES.size, hex: sz('hexagonal')
       n('e-ci-par-proj-syn', 263, 'synthetic APG projects among the parity projects', 'three'),
       n('e-ci-par-earlier-zero', 294, 'an earlier run of the fix: 315 order + 283 float-drift + 4 content', '315 `order` + 283 `float-drift` + 4', { needs: 'not-checkable', note: 'earlier runs are not committed; the committed run is e-ci-par-result' }),
       n('e-ci-par-wall', 258, 'parity run wall time', '4.5 min', { needs: 'not-checkable', note: 'machine-dependent and needs Neo4j; the committed timings sum the statements only' }),
-      n('e-ci-par-judge', 547, 'judge-graph:* statements equal', '1,516', { known: { actual: '1,540', note: 'doc erratum (post-merge verification 2026-10-16): #151 re-ran parity on 81 projects; its own table (judge-graph:* rows, 4 x 385) gives 1,540; this §8 line keeps the spike figure (4 x 379)' } }),
+      n('e-ci-par-judge', 547, 'judge-graph:* statements equal', '1,540'),
       n('e-ci-par-earlier', 293, "order count of the spike's run", '763', { needs: 'not-checkable', note: "the spike's parity outputs are not committed" }),
       ...parityCells,
     ],
@@ -327,8 +327,8 @@ console.log(JSON.stringify({ frozen: CYPHER_TEMPLATES.size, hex: sz('hexagonal')
     numbers: [
       n('e-ci-tm-warm', 29, 'warm in-process evaluation, one variant (summary)', '149 ms (interp) vs 728 ms (Neo4j)'),
       n('e-ci-tm-stages', 29, 'graph stages (summary)', '≈20 ms vs ≈600 ms'),
-      n('e-ci-tm-cli-neo4j', 491, 'reference-set CLI run, Neo4j', '3m26.8s (median 2,710 ms per variant)'),
-      n('e-ci-tm-cli-interp', 491, 'reference-set CLI run, cypher-interp', '2m49.9s (median about 2,330 ms)'),
+      n('e-ci-tm-cli-neo4j', 491, 'reference-set CLI run, Neo4j', '4m15.2s'),
+      n('e-ci-tm-cli-interp', 491, 'reference-set CLI run, cypher-interp', '3m46.6s'),
       n('e-ci-tm-clean-neo4j', 492, 'warm evaluation clean-architecture/clean, Neo4j', '728 ms'),
       n('e-ci-tm-clean-interp', 492, 'warm evaluation clean-architecture/clean, interp', '149 ms'),
       n('e-ci-tm-ddd-neo4j', 493, 'warm evaluation ddd/clean, Neo4j', '866 ms'),
@@ -336,20 +336,20 @@ console.log(JSON.stringify({ frozen: CYPHER_TEMPLATES.size, hex: sz('hexagonal')
       n('e-ci-tm-stages-neo4j', 494, 'graph stages, Neo4j', '≈ 600 ms'),
       n('e-ci-tm-stages-interp', 494, 'graph stages, interp', '≈ 20 ms'),
       n('e-ci-tm-arm-n', 495, 'projects in the arm v1.3 median', '71'),
-      n('e-ci-tm-arm-neo4j', 495, 'arm v1.3 graph statements per project, median, Neo4j', '505 ms'),
-      n('e-ci-tm-arm-interp', 495, 'arm v1.3 graph statements per project, median, interp', '14 ms'),
+      n('e-ci-tm-arm-neo4j', 495, 'arm v1.3 graph statements per project, median, Neo4j', '580 ms'),
+      n('e-ci-tm-arm-interp', 495, 'arm v1.3 graph statements per project, median, interp', '21 ms'),
       n('e-ci-tm-apg2-projects', 496, 'APG v2 template timing, projects', '78'),
-      n('e-ci-tm-apg2-neo4j', 496, 'APG v2 templates total, Neo4j', '1,747 ms'),
-      n('e-ci-tm-apg2-interp', 496, 'APG v2 templates total, interp', '103 ms'),
-      n('e-ci-tm-apg2-mirror', 496, 'APG v2 templates total, hand mirrors', '43 ms'),
+      n('e-ci-tm-apg2-neo4j', 496, 'APG v2 templates total, Neo4j', '5,384 ms'),
+      n('e-ci-tm-apg2-interp', 496, 'APG v2 templates total, interp', '282 ms'),
+      n('e-ci-tm-apg2-mirror', 496, 'APG v2 templates total, hand mirrors', '56 ms'),
       n('e-ci-tm-mir-interp', 497, 'cypher-interp-mirrors.ts, interp', '833 ms'),
       n('e-ci-tm-mir-mirror', 497, 'cypher-interp-mirrors.ts, mirrors', '67 ms'),
-      n('e-ci-tm-ph-v13', 499, 'phase total arm v1.3', '3,159: 36.4 s / 1.3 s'),
-      n('e-ci-tm-ph-v12e', 500, 'phase total arm v1.2e', '3,159: 35.6 s / 1.0 s'),
-      n('e-ci-tm-ph-sw13', 500, 'phase total sweep on the v1.3 graphs', '31,950: 44.6 s / 12.9 s'),
-      n('e-ci-tm-ph-swapg', 500, 'phase total sweep on the APG v2 graphs', '26,513: 81.4 s / 9.4 s'),
+      n('e-ci-tm-ph-v13', 499, 'phase total arm v1.3', '3,159: 55.5 s / 2.1 s'),
+      n('e-ci-tm-ph-v12e', 500, 'phase total arm v1.2e', '3,159: 42.9 s / 1.5 s'),
+      n('e-ci-tm-ph-sw13', 500, 'phase total sweep on the v1.3 graphs', '35,358: 115.7 s / 20.3 s'),
+      n('e-ci-tm-ph-swapg', 500, 'phase total sweep on the APG v2 graphs', '29,121: 140.9 s / 14.8 s'),
       n('e-ci-tm-ingest', 504, 'ingest-apg stage, Neo4j vs interp', '≈ 510 ms on Neo4j, ≈ 6 ms'),
-      n('e-ci-tm-ratio-lo', 506, 'hand mirrors faster than the interpreter, per template run', '2.4x'),
+      n('e-ci-tm-ratio-lo', 506, 'hand mirrors faster than the interpreter, per template run', '5.1x'),
       n('e-ci-tm-ratio-hi', 507, 'hand mirrors faster than the interpreter, with ingestion', '12x'),
       n('e-ci-tm-perproj', 518, 'per project, mirrors vs interpreter', '≈ 1 ms vs ≈ 11 ms'),
       n('e-ci-tm-mcp', 545, 'warm evaluation range in a long-lived server', '≈ 150-320 ms'),
@@ -364,17 +364,17 @@ console.log(JSON.stringify({ frozen: CYPHER_TEMPLATES.size, hex: sz('hexagonal')
       n('e-ci-branches', 87, 'remote branches searched', '105', { needs: 'needs-external', note: 'GitHub state on 2026-10-15' }),
     ],
     async run(ctx0) {
-      // §6 states the spike's run (2bcc50e7): #151's re-runs replaced parity-by-template.json and run-provenance.json
-      // without changing §6, so the records are read at that commit (bench.md and mirrors.json are unchanged since).
+      // §6 was corrected in place on 2026-10-16 (post-review fixes): the CLI, arm, APG v2 and phase rows are #151's
+      // re-run, read from the committed records at HEAD; bench.md and mirrors.json still hold the spike's run and are
+      // read at TIMING_COMMIT (they have not changed since).
       const ctx = { ...ctx0, read: (rel) => readAt(ctx0, TIMING_COMMIT, rel), json: (rel) => JSON.parse(readAt(ctx0, TIMING_COMMIT, rel)) };
+      const head = (rel) => JSON.parse(ctx0.read(rel));
       const bench = Object.fromEntries(ctx.read(`${CI}/bench.md`).split('\n').filter((l) => /^\| (clean-architecture|ddd)\/clean/.test(l))
         .map((l) => l.split('|').map((x) => x.trim())).map((c) => [`${c[1]}|${c[2]}`, { warm: parseInt(c[4], 10), stages: [6, 7, 8].reduce((s, i) => s + Number(c[i]), 0), ingest: Number(c[6]) }]));
       const b = (v, e) => bench[`${v}|${e}`];
       const round10 = (x) => Math.round(x / 10) * 10;
-      const prov = ctx.json(`${CI}/ue-baseline-live/run-provenance.json`).wall;
-      const cli = (s) => { const m = /^(\S+) \((?:run2; )?CLI per variant: median (about )?(\d+) ms\)$/.exec(s); return m; };
-      const cn = cli(prov.neo4j); const cc = cli(prov['cypher-interp']);
-      const t = ctx.json(`${CI}/parity/parity-by-template.json`).timings;
+      const prov = head(`${CI}/ue-baseline-live/run-provenance.json`).wall;
+      const t = head(`${CI}/parity/parity-by-template.json`).timings;
       const med = (a) => { const s = [...a].sort((x, y) => x - y); const h = s.length >> 1; return s.length % 2 ? s[h] : (s[h - 1] + s[h]) / 2; };
       const arm = t.filter((x) => x.phase === 'arm:v1.3');
       const ap = t.filter((x) => x.phase.startsWith('apg2-templates'));
@@ -386,8 +386,8 @@ console.log(JSON.stringify({ frozen: CYPHER_TEMPLATES.size, hex: sz('hexagonal')
       return {
         'e-ci-tm-warm': `${b('clean-architecture/clean', 'cypher-interp').warm} ms (interp) vs ${b('clean-architecture/clean', 'neo4j').warm} ms (Neo4j)`,
         'e-ci-tm-stages': `≈${round10(b('clean-architecture/clean', 'cypher-interp').stages)} ms vs ≈${round10(b('clean-architecture/clean', 'neo4j').stages)} ms`,
-        'e-ci-tm-cli-neo4j': `${cn[1]} (median ${comma(Number(cn[3]))} ms per variant)`,
-        'e-ci-tm-cli-interp': `${cc[1]} (median ${cc[2] ?? ''}${comma(Number(cc[3]))} ms)`,
+        'e-ci-tm-cli-neo4j': prov['neo4j-control'],
+        'e-ci-tm-cli-interp': prov['cypher-interp'],
         'e-ci-tm-clean-neo4j': `${b('clean-architecture/clean', 'neo4j').warm} ms`,
         'e-ci-tm-clean-interp': `${b('clean-architecture/clean', 'cypher-interp').warm} ms`,
         'e-ci-tm-ddd-neo4j': `${b('ddd/clean', 'neo4j').warm} ms`,

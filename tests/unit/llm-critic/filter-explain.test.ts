@@ -92,27 +92,29 @@ describe('filter-and-explain', () => {
     });
   });
 
-  describe('R20: a bare line reference is checked against the file it refers to', () => {
+  describe("R20 (opt-in bareLines 'attributed'): a bare line reference is checked against the file it refers to", () => {
     const order: ShownFile = { path: 'src/domain/order.ts', content: Array.from({ length: 40 }, (_, i) => `// ${String(i)}`).join('\n') };
     const repo: ShownFile = { path: 'src/infra/repo.ts', content: Array.from({ length: 300 }, (_, i) => `// ${String(i)}`).join('\n') };
     const files = [order, repo];
 
+    const R20 = { bareLines: 'attributed' } as const;
+
     it('attributes the line to the file named before it in the sentence', () => {
-      expect(checkTextReferences('order.ts calls the ORM at line 212.', files)).toEqual(['explanation cites line 212 of src/domain/order.ts beyond 40']);
-      expect(checkTextReferences('The adapter repo.ts maps it at line 212.', files)).toEqual([]);
-      expect(checkTextReferences('In src/infra/repo.ts the query sits on lines 200-210, and order.ts uses it on line 12.', files)).toEqual([]);
+      expect(checkTextReferences('order.ts calls the ORM at line 212.', files, R20)).toEqual(['explanation cites line 212 of src/domain/order.ts beyond 40']);
+      expect(checkTextReferences('The adapter repo.ts maps it at line 212.', files, R20)).toEqual([]);
+      expect(checkTextReferences('In src/infra/repo.ts the query sits on lines 200-210, and order.ts uses it on line 12.', files, R20)).toEqual([]);
     });
 
     it('falls back to the finding\'s own file (shown first) when no file is named', () => {
-      expect(checkTextReferences('The import is on line 212.', files)).toEqual(['explanation cites line 212 of src/domain/order.ts beyond 40']);
-      expect(checkTextReferences('The import is on line 12.', files)).toEqual([]);
+      expect(checkTextReferences('The import is on line 212.', files, R20)).toEqual(['explanation cites line 212 of src/domain/order.ts beyond 40']);
+      expect(checkTextReferences('The import is on line 12.', files, R20)).toEqual([]);
       // A file named in an earlier sentence does not carry over.
-      expect(checkTextReferences('See repo.ts. The import is on line 212.', files)).toHaveLength(1);
+      expect(checkTextReferences('See repo.ts. The import is on line 212.', files, R20)).toHaveLength(1);
     });
 
     it('rejects the R20 scenario in checkGrounding', () => {
       const answer: FilterExplainAnswer = { ...ok, explanation: 'order.ts calls the ORM at line 212.', citations: [{ filePath: 'src/domain/order.ts', startLine: 1, endLine: 2 }] };
-      expect(checkGrounding(answer, files).grounded).toBe(false);
+      expect(checkGrounding(answer, files, R20).grounded).toBe(false);
     });
   });
 });
@@ -162,15 +164,17 @@ describe('filter-and-explain grounding against what the prompt showed (R19, R20)
   const repo: ShownFile = { path: 'src/infra/repo.ts', content: Array.from({ length: 300 }, (_, i) => `// ${String(i)}`).join('\n') };
   const bare: FilterExplainAnswer = { ...ok, explanation: 'order.ts calls the ORM at line 212.', citations: [{ filePath: 'src/domain/order.ts', startLine: 1, endLine: 2 }] };
 
-  it("R20: by default ('attributed') a bare line is checked against the file named before it; 'longest' is the pre-R20 heuristic", () => {
-    expect(checkGrounding(bare, [order, repo]).grounded).toBe(false);
-    expect(checkGrounding(bare, [order, repo], { bareLines: 'attributed' })).toEqual(checkGrounding(bare, [order, repo]));
-    expect(outcomeOf(bare, [order, repo]).status).toBe('rejected');
-    expect(checkGrounding(bare, [order, repo], { bareLines: 'longest' }).grounded).toBe(true);
-    expect(outcomeOf(bare, [order, repo], 'PARSE_FAILURE', { bareLines: 'longest' }).status).toBe('dismiss');
+  it("D-e: by default ('longest') a bare line is checked against the longest shown file; R20 'attributed' is opt-in", () => {
+    // Default restored 2026-10-16 (decision-chronology row 13): the committed judge-v2 figures used 'longest'.
+    expect(checkGrounding(bare, [order, repo]).grounded).toBe(true);
+    expect(checkGrounding(bare, [order, repo], { bareLines: 'longest' })).toEqual(checkGrounding(bare, [order, repo]));
+    expect(outcomeOf(bare, [order, repo], 'PARSE_FAILURE').status).toBe('dismiss');
+    // Opt-in R20: the file named before the bare line in its sentence (order.ts, 40 lines).
+    expect(checkGrounding(bare, [order, repo], { bareLines: 'attributed' }).grounded).toBe(false);
+    expect(outcomeOf(bare, [order, repo], 'PARSE_FAILURE', { bareLines: 'attributed' }).status).toBe('rejected');
     // 'finding-file' ignores a file named in the sentence; 'attributed' does not.
     const named = { ...bare, explanation: 'The adapter repo.ts maps it at line 212.' };
-    expect(checkGrounding(named, [order, repo]).grounded).toBe(true);
+    expect(checkGrounding(named, [order, repo], { bareLines: 'attributed' }).grounded).toBe(true);
     expect(checkGrounding(named, [order, repo], { bareLines: 'finding-file' }).grounded).toBe(false);
   });
 

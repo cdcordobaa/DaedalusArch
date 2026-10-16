@@ -164,3 +164,20 @@ describe('evaluate_project on cypher-interp: explicit tsconfig and uncapped viol
     }
   });
 });
+
+describe('evaluate_project on cypher-interp: extractor defaults (post-merge review item 9)', () => {
+  it('extractorDefaults reaches the interpreter pipeline as on Neo4j, and is part of the cache key', async () => {
+    const seen: (string | undefined)[] = [];
+    const interp = createInterpEvaluator({
+      makePipeline: (config) => {
+        seen.push(config.extractorDefaults);
+        return { executor: { execute: () => Promise.resolve({ success: false, errors: [{ code: 'X', message: 'stop here' }] }) } as never, cleanup: () => Promise.resolve() };
+      },
+    });
+    const deps = { ...ctx().evaluateDeps, interp };
+    const project = PROJECT;
+    await evaluateProject({ projectPath: project, specPath: CLEAN_ARCH_SPEC, scoringMode: 'v1.3', extractorDefaults: 'v1.2e' }, NO_DB, deps);
+    await evaluateProject({ projectPath: project, specPath: CLEAN_ARCH_SPEC, scoringMode: 'v1.3' }, NO_DB, deps);
+    expect(seen).toEqual(['v1.2e', undefined]);
+  });
+});
