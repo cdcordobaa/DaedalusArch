@@ -1,0 +1,46 @@
+diff --git a/src/application/garden-service.ts b/src/application/garden-service.ts
+index e6f0f2c..246aa29 100644
+--- a/src/application/garden-service.ts
++++ b/src/application/garden-service.ts
+@@ -83,11 +83,18 @@ export class GardenService {
+   recordPayment(paymentRef: string, status: string): Allocation | undefined {
+     const a = this.allocations.findByPaymentRef(paymentRef);
+     if (!a) return undefined;
+-    if (status === 'paid' && a.status === 'awaiting-payment') {
++    if (a.status === 'paid' || a.status === 'released') return a;
++    const normalized = status.toLowerCase();
++    if (normalized === 'paid' || normalized === 'succeeded') {
+       const paid: Allocation = { ...a, status: 'paid' };
+       this.allocations.save(paid);
+       return paid;
+     }
++    if (normalized === 'failed' || normalized === 'declined' || normalized === 'expired') {
++      const failed: Allocation = { ...a, status: 'payment-failed' };
++      this.allocations.save(failed);
++      return failed;
++    }
+     return a;
+   }
+ 
+diff --git a/src/domain/garden.ts b/src/domain/garden.ts
+index 3c3614c..97f5af4 100644
+--- a/src/domain/garden.ts
++++ b/src/domain/garden.ts
+@@ -11,7 +11,7 @@ export interface Gardener {
+   appliedAt: string;
+ }
+ 
+-export type AllocationStatus = 'awaiting-payment' | 'paid' | 'released';
++export type AllocationStatus = 'awaiting-payment' | 'payment-failed' | 'paid' | 'released';
+ 
+ export interface Allocation {
+   id: string;
+@@ -32,7 +32,7 @@ export function feeFor(plot: Plot): number {
+ }
+ 
+ export function isPaymentOverdue(a: Allocation, now: Date): boolean {
+-  if (a.status !== 'awaiting-payment') return false;
++  if (a.status !== 'awaiting-payment' && a.status !== 'payment-failed') return false;
+   const deadline = new Date(a.allocatedAt).getTime() + PAYMENT_DEADLINE_DAYS * 24 * 3600 * 1000;
+   return now.getTime() > deadline;
+ }

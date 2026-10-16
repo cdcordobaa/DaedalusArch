@@ -311,3 +311,49 @@ export function checkDiff(spec: ParsedSpec, diff: string, options: CheckDiffOpti
     blockingSummary: blockingSummaryOf(blockingVerdict, all, files.reduce((n, f) => n + f.hints.length, 0)),
   };
 }
+
+/**
+ * The project before and after a diff, as in-memory overrides of the files on disk (project-relative; `null` =
+ * absent), for the template check (`template-check.ts`). The disk may hold either side of a modified file (the agent
+ * edited already, or not yet); `rebuild` decides. A modified file neither side of which can be rebuilt is listed in
+ * `unreadable` and left as on disk.
+ */
+export function diffOverrides(diff: string, projectRoot: string | undefined): {
+  readonly before: ReadonlyMap<string, string | null>;
+  readonly after: ReadonlyMap<string, string | null>;
+  readonly unreadable: readonly string[];
+} {
+  const disk = new ProjectView({ root: projectRoot });
+  const before = new Map<string, string | null>();
+  const after = new Map<string, string | null>();
+  const unreadable: string[] = [];
+  for (const f of parseUnifiedDiffWithHunks(diff)) {
+    if (f.newPath === null) {
+      // Deleted: before = the old content (on disk, or rebuilt from the hunks when the agent deleted it already).
+      if (f.oldPath === null || !SOURCE_FILE_RE.test(f.oldPath)) continue;
+      const onDisk = disk.read(f.oldPath);
+      const oldText = onDisk ?? applyHunks('', f.hunks, 'reverse');
+      if (oldText !== undefined) before.set(f.oldPath, oldText);
+      after.set(f.oldPath, null);
+      continue;
+    }
+    if (!SOURCE_FILE_RE.test(f.newPath)) continue;
+    if (f.oldPath === null) {
+      before.set(f.newPath, null);
+      after.set(f.newPath, `${f.added.map((a) => a.text).join('\n')}\n`);
+      continue;
+    }
+    const whole = rebuild(disk, f);
+    if (whole === undefined) {
+      unreadable.push(f.newPath);
+      continue;
+    }
+    before.set(f.oldPath, whole.oldText);
+    after.set(f.newPath, whole.newText);
+    if (f.oldPath !== f.newPath) {
+      before.set(f.newPath, null);
+      after.set(f.oldPath, null);
+    }
+  }
+  return { before, after, unreadable };
+}

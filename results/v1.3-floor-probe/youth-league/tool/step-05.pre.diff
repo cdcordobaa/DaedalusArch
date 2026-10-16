@@ -1,0 +1,39 @@
+diff --git a/src/business/fixture-service.ts b/src/business/fixture-service.ts
+index 6614d34..ab26a0d 100644
+--- a/src/business/fixture-service.ts
++++ b/src/business/fixture-service.ts
+@@ -50,6 +50,16 @@ export class FixtureService {
+     return this.fixtures.save({ ...f, result: { homeGoals, awayGoals, recordedAt: new Date().toISOString() } });
+   }
+ 
++  /** League admin correction of a recorded result. */
++  correctResult(fixtureId: string, homeGoals: number, awayGoals: number): Fixture {
++    const f = this.get(fixtureId);
++    if (!f.result) throw new ValidationError('no result recorded yet');
++    if (!(Number.isInteger(homeGoals) && Number.isInteger(awayGoals) && homeGoals >= 0 && awayGoals >= 0)) {
++      throw new ValidationError('goals must be non-negative integers');
++    }
++    return this.fixtures.save({ ...f, result: { homeGoals, awayGoals, recordedAt: new Date().toISOString() } });
++  }
++
+   postpone(fixtureId: string, newKickOff: string): Fixture {
+     const f = this.get(fixtureId);
+     if (!f.atRisk) throw new ValidationError('only an at-risk fixture can be postponed');
+diff --git a/src/presentation/controllers.ts b/src/presentation/controllers.ts
+index 56c2281..1fbe0d2 100644
+--- a/src/presentation/controllers.ts
++++ b/src/presentation/controllers.ts
+@@ -53,6 +53,13 @@ export function buildRouter(
+   r.put('/fixtures/:id/referee', (req, res) => {
+     res.json(referees.assign(req.params.id, req.body.refereeId));
+   });
++  r.put('/admin/fixtures/:id/result', (req, res) => {
++    if (req.header('x-admin-token') !== (process.env.LEAGUE_ADMIN_TOKEN ?? 'admin')) {
++      res.status(403).json({ error: 'league admin only' });
++      return;
++    }
++    res.json(fixtures.correctResult(req.params.id, Number(req.body.homeGoals), Number(req.body.awayGoals)));
++  });
+   r.get('/tables', (_req, res) => {
+     res.set('cache-control', 'public, max-age=30').json(tables.tables());
+   });
