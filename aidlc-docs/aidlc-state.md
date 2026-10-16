@@ -113,7 +113,7 @@
 - CONSTRUCTION: Functional Design EXECUTE U1–U5 / SKIP U0; NFR Requirements EXECUTE light (in U0); NFR Design, Infrastructure Design SKIP; Code Generation and Build and Test EXECUTE
 
 ### v1.3 VALIDITY CYCLE (started 2026-10-14) — tool validity, greenfield focus
-- **Current Stage** (updated 2026-10-16): CONSTRUCTION. Night plan in `construction/plans/v1.3-night-2026-10-16-plan.md`, tracking every job, branch and PR. Next author gate: the score-free construct sheet (PR #129), then the freeze, then the sealed test once.
+- **Current Stage** (updated 2026-10-16T10:30Z): CONSTRUCTION. Night plan in `construction/plans/v1.3-night-2026-10-16-plan.md`, tracking every job, branch and PR (28 [x], 4 [~], 0 [ ], 63 [!]; 62 open PRs held for author review). Next author gate: decide whether to revert or gate #143 (merged `dffb1db8` before its HOLD; ungated MCP `hints` parameter and FROZEN report-schema change now on v1.3); then review the 62 held PRs, answer the score-free construct sheet (PR #129), freeze, and run the sealed test once.
 - **Standing rules (2026-10-16)**:
   - Study 2 runs exactly once, after the readiness gate is all green and a dress rehearsal has passed.
   - Validity rests on non-human evidence.
