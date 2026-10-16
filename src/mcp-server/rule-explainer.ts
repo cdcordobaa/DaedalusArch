@@ -11,6 +11,9 @@ import { resolveTemplate } from '../spec-parser/template-registry.js';
 import { formatActionableViolation } from '../report/actionable-formatter.js';
 import { functionId } from '../shared/types/value-objects.js';
 import { allowedTransitions } from './spec-rules.js';
+import { familyOf } from '../fix-hints/templates.js';
+import { FIX_HINT_TEMPLATES } from '../fix-hints/catalogue.js';
+import { ruleTier } from '../scoring-engine/rule-tiers.js';
 import type { RuleExplanation } from './types.js';
 
 /**
@@ -103,7 +106,11 @@ function specContext(spec: ParsedSpec | undefined, ref: RuleRef): readonly strin
   return lines;
 }
 
-export function explainViolation(query: string, spec?: ParsedSpec): RuleExplanation | undefined {
+export function explainViolation(
+  query: string,
+  spec?: ParsedSpec,
+  options: { readonly hints?: boolean } = {},
+): RuleExplanation | undefined {
   const ref = lookup(query, spec);
   if (ref === undefined) return undefined;
   const template = CYPHER_TEMPLATES.get(ref.name);
@@ -139,5 +146,22 @@ export function explainViolation(query: string, spec?: ParsedSpec): RuleExplanat
     requiredLayerKinds: template?.requiredLayerKinds ?? [],
     applicableStyles: template?.applicableStyles ?? null,
     specContext: specContext(spec, ref),
+    ...(options.hints === true ? fixHintTemplate(spec, ref) : {}),
+  };
+}
+
+/** With hints on: the rule's fix-hint family, its tier for the spec's style and the template's shape. */
+function fixHintTemplate(
+  spec: ParsedSpec | undefined,
+  ref: RuleRef,
+): { fixHint?: { family: string; blocking: boolean; template: string } } {
+  const family = familyOf(ref.name);
+  if (family === undefined || ref.id === null) return {};
+  return {
+    fixHint: {
+      family,
+      blocking: ruleTier(ref.id, spec?.style).tier === 'blocking',
+      template: FIX_HINT_TEMPLATES[family],
+    },
   };
 }

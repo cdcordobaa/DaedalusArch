@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "layered",
+  "variant": "v30-order-line-product-order-cycle",
+  "kind": "violation",
+  "plants": "FF-S02",
+  "description": "OrderLine imports Product (OrderLine.of(product, quantity)) and Product imports the Order type (quantityIn(order)), closing Order -> OrderLine -> Product -> Order.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "file": "src/business/model/Order.ts",
+      "target": "src/business/model/OrderLine.ts",
+      "reason": "Three-file import cycle Order -> OrderLine -> Product -> Order; \"Order.ts\" sorts before \"OrderLine.ts\" (. < L)."
+    }
+  ]
+}

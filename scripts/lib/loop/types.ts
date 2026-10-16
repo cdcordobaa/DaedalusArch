@@ -134,6 +134,14 @@ export interface StepAgent {
 export interface BlockingFinding {
   readonly ruleId: string;
   readonly ruleName: string;
+  /**
+   * The Cypher template the finding comes from (recovered from its violation type as the labelling does,
+   * `scripts/v1.3/lib/labelling/findings.ts`); part of a finding's identity (`pilot-outcome-memo.md` §3). Absent
+   * when the evaluator does not report it (the stub, records written before the loop replay).
+   */
+  readonly template?: string;
+  /** The report violation's id (a hash of its discriminator), for the labelling. */
+  readonly violationId?: string;
   readonly filePath: string;
   readonly line?: number;
   readonly target?: string;
@@ -154,15 +162,30 @@ export interface StepEvaluation {
   readonly advisoryViolationCount: number;
   /** Blocking violations per rule id. */
   readonly blockingByRule: Readonly<Record<string, number>>;
-  /** The listed blocking findings (each rule capped as `evaluate_project` caps it). */
+  /**
+   * Advisory violations per rule id (rules with at least one). Needed for the pilot memo's advisory slope without
+   * FF-CV05 (`Docs/v1.3/pilot-outcome-memo.md` §4). Absent in records written before the loop replay added it.
+   */
+  readonly advisoryByRule?: Readonly<Record<string, number>>;
+  /**
+   * The listed blocking findings: every one when the evaluator returns the report's violations (the live
+   * evaluator), else each rule capped as `evaluate_project` caps it.
+   */
   readonly blockingFindings: readonly BlockingFinding[];
   readonly durationMs: number;
+  /**
+   * The report's violations (all tiers, uncapped). The loop writes them beside the turn
+   * (`turns/step-NN/report-<turnId>.json`, the input of `scripts/v1.3/check-correct.ts`) and leaves them out of the
+   * step record.
+   */
+  readonly reportViolations?: readonly unknown[];
 }
 
 /** The firewall run on a snapshot. A failure here is recorded on the step, never retried silently. */
 export interface StepEvaluator {
   readonly id: string;
-  evaluate(projectDir: string): Promise<DomainResult<StepEvaluation>>;
+  /** `runId` names the loop run of the snapshot (the live evaluator finds the run's pinned tsconfig with it). */
+  evaluate(projectDir: string, runId?: string): Promise<DomainResult<StepEvaluation>>;
 }
 
 export interface TypecheckResult {

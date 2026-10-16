@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "layered",
+  "variant": "v28-router-health-route-takes-database",
+  "kind": "violation",
+  "plants": "FF-S03",
+  "description": "Router (presentation) takes the InMemoryDatabase (import type) for a GET /health route; ServiceFactory hands the database out in BusinessServices.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S03",
+      "ruleName": "no-layer-skip",
+      "file": "src/presentation/Router.ts",
+      "target": "src/persistence/Database.ts",
+      "reason": "Presentation imports the persistence database, skipping the business layer."
+    }
+  ]
+}

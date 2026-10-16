@@ -1,0 +1,18 @@
+--- a/src/domain/errors/BookingError.ts
++++ b/src/domain/errors/BookingError.ts
+@@ -1,6 +1,12 @@
+-export class BookingError extends Error {
+-  constructor(readonly reason: 'not-found' | 'unavailable' | 'invalid' | 'payment-declined', message: string) {
+-    super(message);
++import { HttpError } from '../../adapters/inbound/http/HttpTypes';
++
++type Reason = 'not-found' | 'unavailable' | 'invalid' | 'payment-declined';
++
++const STATUS_BY_REASON: Record<Reason, number> = { 'not-found': 404, unavailable: 409, invalid: 400, 'payment-declined': 402 };
++
++export class BookingError extends HttpError {
++  constructor(readonly reason: Reason, message: string) {
++    super(STATUS_BY_REASON[reason], message);
+     this.name = 'BookingError';
+   }
+ }

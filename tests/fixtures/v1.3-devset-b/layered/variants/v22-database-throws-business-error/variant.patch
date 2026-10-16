@@ -1,0 +1,19 @@
+--- a/src/persistence/Database.ts
++++ b/src/persistence/Database.ts
+@@ -1,3 +1,5 @@
++import { BusinessError } from '../business/errors/BusinessError';
++
+ /** Stand-in for a relational database: one keyed table per name. */
+ export class InMemoryDatabase {
+   private readonly tables = new Map<string, Map<string, unknown>>();
+@@ -10,4 +12,10 @@
+     }
+     return table as Map<string, T>;
+   }
++
++  row<T>(name: string, key: string): T {
++    const found = this.table<T>(name).get(key);
++    if (found === undefined) throw new BusinessError('NOT_FOUND', `No row ${key} in ${name}`);
++    return found;
++  }
+ }
