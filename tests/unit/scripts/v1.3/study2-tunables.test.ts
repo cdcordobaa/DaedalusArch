@@ -49,6 +49,7 @@ describe('buildTunablesManifest', () => {
     }
     for (const s of ['clean', 'hexagonal', 'ddd']) expect(e[`frame/layout-sentence/${s}`]).toBeDefined();
     expect(e['doc/rule-tiers.md']).toBeDefined();
+    expect(e['engine/interp-query-timeout-ms']).toBeDefined();
     expect(e['doc/style-rule-sources.md']).toBeDefined();
     for (const t of TOOL_NAMES) expect(e[`mcp-tool/default/${t}`]).toBeDefined();
     for (const t of NEURAL_TOOL_NAMES) {

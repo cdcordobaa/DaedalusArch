@@ -74,9 +74,10 @@ interface ScaleCliOpts {
   readonly memoryLimitMb?: string;
   readonly queryEngine: string;
   readonly skipExcludedSources: boolean;
+  readonly interpQueryTimeoutMs?: string;
 }
 
-type ScaleConfig = Pick<PipelineConfig, 'maxFiles' | 'memoryLimitMb' | 'queryEngine' | 'sourceScope'>;
+type ScaleConfig = Pick<PipelineConfig, 'maxFiles' | 'memoryLimitMb' | 'queryEngine' | 'sourceScope' | 'interpQueryTimeoutMs'>;
 
 function positiveInt(flag: string, value: string): number | undefined {
   if (/^[1-9][0-9]*$/.test(value)) return Number(value);
@@ -96,7 +97,17 @@ function resolveScaleOptions(opts: ScaleCliOpts): ScaleConfig | undefined {
   if (opts.maxFiles !== undefined && maxFiles === undefined) return undefined;
   const memoryLimitMb = opts.memoryLimitMb !== undefined ? positiveInt('--memory-limit-mb', opts.memoryLimitMb) : undefined;
   if (opts.memoryLimitMb !== undefined && memoryLimitMb === undefined) return undefined;
+  let interpQueryTimeoutMs: number | undefined;
+  if (opts.interpQueryTimeoutMs !== undefined) {
+    if (!/^(0|[1-9][0-9]*)$/.test(opts.interpQueryTimeoutMs)) {
+      process.stderr.write('Error: --interp-query-timeout-ms must be a non-negative integer (0 disables the timeout)\n');
+      process.exitCode = 2;
+      return undefined;
+    }
+    interpQueryTimeoutMs = Number(opts.interpQueryTimeoutMs);
+  }
   return {
+    ...(interpQueryTimeoutMs !== undefined && { interpQueryTimeoutMs }),
     ...(maxFiles !== undefined && { maxFiles }),
     ...(memoryLimitMb !== undefined && { memoryLimitMb }),
     ...(opts.queryEngine === 'neo4j' && { queryEngine: 'neo4j' as const }),
@@ -274,6 +285,7 @@ withLLMOptions(program
   .option('--max-files <n>', 'Stop with PROJECT_TOO_LARGE before parsing when more than n source files remain after the exclusions')
   .option('--memory-limit-mb <n>', 'Stop with MEMORY_LIMIT_EXCEEDED when resident memory passes n MB (the heap guard is always on)')
   .option('--query-engine <engine>', 'accelerated (default: the bounded cycle queries answered in memory, same rows) | neo4j (every query on Neo4j)', 'accelerated')
+  .option('--interp-query-timeout-ms <n>', 'cypher-interp only: read timeout of the in-process engine in ms (default 30000, a Study 2 tunable); 0 disables it, e.g. for reference runs')
   .option('--skip-excluded-sources', 'Load only the analysed files and declaration files into ts-morph (faster, less memory; output not guaranteed identical)', false)
   .action(async (projectArg: string | undefined, opts: LLMCliOpts & ScaleCliOpts & {
     engine?: string;

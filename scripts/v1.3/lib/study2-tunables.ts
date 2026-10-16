@@ -23,6 +23,7 @@ import { COMPOSITION_ROOT_GLOBS, DECLARATION_ONLY_GLOBS, INSTRUMENT_VERSION, ROL
 import { V13_ROLE_NAME_REWRITES } from '../../../src/fitness-compiler/v13-role-names.js';
 import { FIELD_STATE_PURITY_TEXT } from '../../../src/fitness-compiler/v13-rewrites.js';
 import { V13_COMPILE_OPTIONS } from '../../../src/fitness-compiler/fitness-compiler.js';
+import { DEFAULT_INTERP_QUERY_TIMEOUT_MS } from '../../../src/cypher-interp/repository.js';
 import type { CypherTemplate } from '../../../src/fitness-compiler/types.js';
 import { resolveTemplate } from '../../../src/spec-parser/template-registry.js';
 import { DEFAULT_SPEC_PARSER_OPTIONS } from '../../../src/spec-parser/types.js';
@@ -192,6 +193,9 @@ export async function buildTunablesManifest(repoRoot: string): Promise<TunablesM
   e['extractor/DEFAULT_OPTIONS'] = valueSha256(DEFAULT_OPTIONS);
   e['extractor/DEFAULT_CHEAP_OPTIONS'] = valueSha256(DEFAULT_CHEAP_OPTIONS);
   e['extractor/DEFAULT_SPEC_PARSER_OPTIONS'] = valueSha256(DEFAULT_SPEC_PARSER_OPTIONS);
+  // The in-process engine's default read timeout (#151; post-merge review item 6): a query past it fails, so it can
+  // change which rules return rows on a large graph. `--interp-query-timeout-ms 0` disables it.
+  e['engine/interp-query-timeout-ms'] = valueSha256(DEFAULT_INTERP_QUERY_TIMEOUT_MS);
 
   for (const f of LABELLING_FILES) e[`labelling/${path.basename(f)}`] = fileSha256(repoRoot, f);
 

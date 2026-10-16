@@ -3,7 +3,7 @@
  * with `CypherInterp.Unsupported` and a message naming the construct, never with a guessed answer; and the per-query
  * timeout (NFR-07, `QueryOptions.timeoutMs`) is honoured.
  */
-import { MemoryGraphRepository } from '../../../src/cypher-interp/repository.js';
+import { DEFAULT_INTERP_QUERY_TIMEOUT_MS, MemoryGraphRepository } from '../../../src/cypher-interp/repository.js';
 import { QUERY_TIMEOUT_CODE } from '../../../src/cypher-interp/eval.js';
 
 async function rejection(cypher: string): Promise<{ code: string; message: string }> {
@@ -156,6 +156,13 @@ describe('cypher-interp: query timeout (NFR-07)', () => {
     const repo = await denseGraph(40, { queryTimeoutMs: 50 });
     const r = await repo.executeQuery(EXPLOSIVE);
     expect(!r.success && r.errors[0]?.code).toBe(QUERY_TIMEOUT_CODE);
+  });
+
+  it('queryTimeoutMs 0 disables the repository default (reference runs); the default is DEFAULT_INTERP_QUERY_TIMEOUT_MS', async () => {
+    expect(DEFAULT_INTERP_QUERY_TIMEOUT_MS).toBe(30_000);
+    const repo = await denseGraph(6, { queryTimeoutMs: 0 });
+    const r = await repo.executeQuery(EXPLOSIVE);
+    expect(r.success).toBe(true);
   });
 
   it('does not affect a query that finishes in time', async () => {

@@ -48,6 +48,7 @@ that have no source on this commit, with the reason; a group appearing or disapp
 | `judge` | `frozen-anchor`, `frozen-values`, `v2-anchor`, `v2-values` | `FROZEN_SHA256`, `FROZEN_VALUES`, `JUDGE_V2_SHA256`, `JUDGE_V2_VALUES` |
 | `doc` | `rule-tiers.md`, `style-rule-sources.md` | raw bytes of the two sealed docs |
 | `extractor` | option-set names | `V12E_DEFAULT_OPTIONS`, `V13_DEFAULT_OPTIONS`, `V13_FIELD_STATE_OPTIONS`, `V13_APG2_OPTIONS`, `DEFAULT_OPTIONS`, `DEFAULT_CHEAP_OPTIONS`, `DEFAULT_SPEC_PARSER_OPTIONS` |
+| `engine` | `interp-query-timeout-ms` | `DEFAULT_INTERP_QUERY_TIMEOUT_MS` (30,000 ms), the `cypher-interp` read timeout when a run sets none (#151). A query past it fails, so on a large graph it can change the result. `evaluate --interp-query-timeout-ms <n>` overrides it; `0` disables it (for reference runs). Added 2026-10-16, post-merge review item 6 |
 | `labelling` | file names | raw bytes of `scripts/v1.3/lib/labelling/correctness.ts` (the checker) and `findings.ts` (the finding identity key) |
 
 `absent` is empty on `origin/v1.3` since #157 merged: the `--neural` server is hashed as `mcp-tool/neural/<tool>` (its
