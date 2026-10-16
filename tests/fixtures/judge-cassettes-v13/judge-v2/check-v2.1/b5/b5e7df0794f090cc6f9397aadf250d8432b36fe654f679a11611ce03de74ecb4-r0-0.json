@@ -1,0 +1,51 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6879,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "b5e7df0794f090cc6f9397aadf250d8432b36fe654f679a11611ce03de74ecb4-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.96,
+    "evidence": [
+      "src/domain/entities/Book.ts line 1: `import { Entity } from 'typeorm';` brings in an ORM package.",
+      "src/domain/entities/Book.ts line 5: `@Entity('books')` is on `export class Book`. It maps the domain entity to the 'books' database table, which is infrastructure (persistence) work.",
+      "The other declarations (the constructor invariants that throw DomainError, `copiesAvailable`, `checkOut`, `checkIn`) are pure domain logic."
+    ],
+    "pass": false,
+    "reasoning": "The file is in the domain layer, and the rubric does not allow ORM decorators in domain files, even when the class logic is pure. The Book class has the TypeORM `@Entity('books')` decorator on it. That is a persistence mapping, and persistence mapping belongs to the infrastructure layer. The candidate flag is confirmed. The rest of the file fits the domain layer: the invariants on title and copies, and the checkOut/checkIn behaviour. It only uses the project's own DomainError and Isbn types.",
+    "violations": [
+      {
+        "filePath": "src/domain/entities/Book.ts",
+        "message": "Domain class Book has the TypeORM persistence-mapping decorator `@Entity('books')`, from the 'typeorm' package. ORM entity mapping belongs to the infrastructure layer, not the domain layer."
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe unit's responsibilities, signatures and annotations match the role of its declared layer.\n\n## Rubric\nPass: Every declaration in the file belongs to the role and kind of its declared layer, including its parameter, return and field types, its decorators and base classes, and its statements, and agrees with any ADR prose given.\nFail: The file carries something that belongs to a different layer kind. In a domain or application file: a request, response, HTTP context, status code or HTTP error, from a web or transport package or from the delivery layer, in any method or function signature (parameter or return) or thrown, even when the parameter is optional or unused. In a domain file also: any framework or ORM type, decorator or base class (dependency injection, routing, persistence mapping), even when the class logic is pure; or persistence or I/O (queries, database or ORM clients, HTTP or file access). In an infrastructure or presentation file: a business rule, that is a domain invariant, calculation or decision that the domain or application layer should own. Constructor parameters of an application file are dependency wiring: an injected repository, client or service there is not by itself misplaced. A type the project declares itself is not a framework type, whatever its name.\nEvidence required: Name the file and cite the signature, decorator, declaration or statement that carries the misplaced responsibility, its package or origin, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/entities/Book.ts\nLayer: domain\nUnit files:\n- src/domain/entities/Book.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/entities/Book.ts=====\nimport { Entity } from 'typeorm';\nimport { DomainError } from '../errors/DomainError';\nimport { Isbn } from '../value-objects/Isbn';\n\n@Entity('books')\nexport class Book {\n  constructor(\n    readonly id: string,\n    readonly isbn: Isbn,\n    readonly title: string,\n    readonly author: string,\n    private availableCopies: number,\n  ) {\n    if (title.trim().length === 0) throw new DomainError('INVALID_BOOK', 'A book needs a title');\n    if (availableCopies < 0) throw new DomainError('INVALID_BOOK', 'Copies cannot be negative');\n  }\n\n  get copiesAvailable(): number {\n    return this.availableCopies;\n  }\n\n  checkOut(): void {\n    if (this.availableCopies === 0) {\n      throw new DomainError('NO_COPIES', `No copy of \"${this.title}\" is available`);\n    }\n    this.availableCopies -= 1;\n  }\n\n  checkIn(): void {\n    this.availableCopies += 1;\n  }\n}\n\n=====SOURCE-END=====\n\n## Neighbourhood\nsrc/domain/entities/Book.ts (layer domain, kind domain)\n  imports: package typeorm; src/domain/errors/DomainError.ts (layer domain, kind domain); src/domain/value-objects/Isbn.ts (layer domain, kind domain)\n  imported by: src/application/dto/BookDto.ts (layer application, kind application); src/application/use-cases/RegisterBookUseCase.ts (layer application, kind application); src/domain/repositories/BookRepository.ts (layer domain, kind domain); src/infrastructure/persistence/InMemoryBookRepository.ts (layer infrastructure, kind infrastructure)\n  types: Book injects Isbn in src/domain/value-objects/Isbn.ts (layer domain, kind domain)\n\n## Candidate flags\nCandidates proposed by deterministic checks; verify, don't trust. Each line is a tool observation with its location, not a finding.\n- name-behaviour/domain-persistence-mapping at src/domain/entities/Book.ts:5: domain class Book carries persistence mapping @Entity\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric. Check each candidate flag against the source: a flag the source does not support must not count against the unit, and a violation the flags miss counts as much as one they name. Judge what each declaration is, not only what it does at run time.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T23:56:59.995Z",
+  "repetition": 0,
+  "requestHash": "b5e7df0794f090cc6f9397aadf250d8432b36fe654f679a11611ce03de74ecb4",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":577}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.96,\\\"reasoning\\\":\\\"The file is in the domain layer, and the rubric does not allow ORM decorators in domain files, even when the class logic is pure. The Book class has the TypeORM `@Entity('books')` decorator on it. That is a persistence mapping, and persistence mapping belongs to the infrastructure layer. The candidate flag is confirmed. The rest of the file fits the domain layer: the invariants on title and copies, and the checkOut/checkIn behaviour. It only uses the project's own DomainError and Isbn types.\\\",\\\"evidence\\\":[\\\"src/domain/entities/Book.ts line 1: `import { Entity } from 'typeorm';` brings in an ORM package.\\\",\\\"src/domain/entities/Book.ts line 5: `@Entity('books')` is on `export class Book`. It maps the domain entity to the 'books' database table, which is infrastructure (persistence) work.\\\",\\\"The other declarations (the constructor invariants that throw DomainError, `copiesAvailable`, `checkOut`, `checkIn`) are pure domain logic.\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/domain/entities/Book.ts\\\",\\\"message\\\":\\\"Domain class Book has the TypeORM persistence-mapping decorator `@Entity('books')`, from the 'typeorm' package. ORM entity mapping belongs to the infrastructure layer, not the domain layer.\\\"}]}\",\"structured_output\":{\"confidence\":0.96,\"evidence\":[\"src/domain/entities/Book.ts line 1: `import { Entity } from 'typeorm';` brings in an ORM package.\",\"src/domain/entities/Book.ts line 5: `@Entity('books')` is on `export class Book`. It maps the domain entity to the 'books' database table, which is infrastructure (persistence) work.\",\"The other declarations (the constructor invariants that throw DomainError, `copiesAvailable`, `checkOut`, `checkIn`) are pure domain logic.\"],\"pass\":false,\"reasoning\":\"The file is in the domain layer, and the rubric does not allow ORM decorators in domain files, even when the class logic is pure. The Book class has the TypeORM `@Entity('books')` decorator on it. That is a persistence mapping, and persistence mapping belongs to the infrastructure layer. The candidate flag is confirmed. The rest of the file fits the domain layer: the invariants on title and copies, and the checkOut/checkIn behaviour. It only uses the project's own DomainError and Isbn types.\",\"violations\":[{\"filePath\":\"src/domain/entities/Book.ts\",\"message\":\"Domain class Book has the TypeORM persistence-mapping decorator `@Entity('books')`, from the 'typeorm' package. ORM entity mapping belongs to the infrastructure layer, not the domain layer.\"}]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/entities/Book.ts",
+  "usage": {
+    "inputTokens": 3006,
+    "outputTokens": 577
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

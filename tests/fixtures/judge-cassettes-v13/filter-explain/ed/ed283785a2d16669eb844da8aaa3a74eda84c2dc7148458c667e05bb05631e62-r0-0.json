@@ -1,0 +1,36 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 10635,
+  "effort": "high",
+  "functionId": "filter-explain",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "ed283785a2d16669eb844da8aaa3a74eda84c2dc7148458c667e05bb05631e62-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "## Finding\nRule: FF-P01\nRule intent: Domain files do not import framework, persistence or transport packages.\nType: DOMAIN_PURITY_VIOLATION\nSeverity: critical; tier: blocking\nFile: src/business/model/Order.ts\nTarget: typeorm\nReported lines: 1\nMessage: Domain file src/business/model/Order.ts imports forbidden package typeorm\nDiscriminator: IMPORTS\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**\n- business (kind: domain): src/business/**\n- presentation (kind: presentation): src/presentation/**\n\n## Source (line-numbered)\n=====SOURCE-BEGIN src/business/model/Order.ts (layer business)=====\n 1| import { Entity } from 'typeorm';\n 2| import { BusinessError } from '../errors/BusinessError';\n 3| import { Money } from './Money';\n 4| import { OrderLine } from './OrderLine';\n 5| \n 6| @Entity('orders')\n 7| export class Order {\n 8|   constructor(\n 9|     readonly id: string,\n10|     readonly customerId: string,\n11|     readonly lines: readonly OrderLine[],\n12|     readonly createdAt: Date,\n13|     readonly discount: Money,\n14|     private orderStatus: 'placed' | 'cancelled' = 'placed',\n15|   ) {\n16|     if (lines.length === 0) throw new BusinessError('INVALID', 'An order needs at least one line');\n17|   }\n18| \n19|   get status(): 'placed' | 'cancelled' {\n20|     return this.orderStatus;\n21|   }\n22| \n23|   subtotal(): Money {\n24|     return this.lines.reduce((sum, line) => sum.add(line.total()), Money.zero());\n25|   }\n26| \n27|   total(): Money {\n28|     return this.subtotal().subtract(this.discount);\n29|   }\n30| \n31|   cancel(): void {\n32|     if (this.orderStatus === 'cancelled') throw new BusinessError('CONFLICT', `Order ${this.id} is already cancelled`);\n33|     this.orderStatus = 'cancelled';\n34|   }\n35| }\n=====SOURCE-END=====\n\n## Instructions\nDecide confirm or dismiss. Confirm: the cited code has the problem the rule is meant to catch, in this project and layer model. Dismiss: the rule fired, but the code does not have that problem (a false positive of the rule's mechanism, a threshold artefact on sound code, or a case the style allows). Measurements stated in the finding (counts, ratios, missing files) are correct as measurements; judge what they mean for this code. explanation: one paragraph that justifies the decision from the code, citing file paths and line numbers exactly as numbered below. fix: one concrete change: for a confirm, how to fix the code; for a dismiss, what (if anything) the rule or its configuration should change. citations: the line ranges your explanation relies on; every one must name a file shown below and lines that exist.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T00:04:08.241Z",
+  "repetition": 0,
+  "requestHash": "ed283785a2d16669eb844da8aaa3a74eda84c2dc7148458c667e05bb05631e62",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":601}},\"result\":\"{\\\"decision\\\":\\\"confirm\\\",\\\"explanation\\\":\\\"src/business/model/Order.ts sits in the business layer, which the layer model marks as the domain. Line 1 imports `Entity` from the persistence ORM `typeorm`, and line 6 uses it: `@Entity('orders')` decorates the domain aggregate `Order`. So the import is actually used, not left over or type-only. The ORM decorator ties the domain model to a database table name and to TypeORM's runtime metadata. That is the persistence concern rule FF-P01 is meant to keep out of the domain. The rest of the class (lines 8-34) is plain domain logic: invariants, totals and cancellation, built on Money, OrderLine and BusinessError. That makes the coupling avoidable and shows it is a real layering violation, not a false positive.\\\",\\\"fix\\\":\\\"Delete the `typeorm` import (line 1) and the `@Entity('orders')` decorator (line 6) from src/business/model/Order.ts. Put the mapping in src/persistence: either a separate TypeORM `EntitySchema` for Order, or a dedicated `OrderRecord` @Entity class with a mapper that converts between `OrderRecord` and the domain `Order` inside the repository implementation.\\\",\\\"citations\\\":[{\\\"filePath\\\":\\\"src/business/model/Order.ts\\\",\\\"startLine\\\":1,\\\"endLine\\\":1},{\\\"filePath\\\":\\\"src/business/model/Order.ts\\\",\\\"startLine\\\":6,\\\"endLine\\\":7},{\\\"filePath\\\":\\\"src/business/model/Order.ts\\\",\\\"startLine\\\":8,\\\"endLine\\\":34}]}\",\"structured_output\":{\"citations\":[{\"endLine\":1,\"filePath\":\"src/business/model/Order.ts\",\"startLine\":1},{\"endLine\":7,\"filePath\":\"src/business/model/Order.ts\",\"startLine\":6},{\"endLine\":34,\"filePath\":\"src/business/model/Order.ts\",\"startLine\":8}],\"decision\":\"confirm\",\"explanation\":\"src/business/model/Order.ts sits in the business layer, which the layer model marks as the domain. Line 1 imports `Entity` from the persistence ORM `typeorm`, and line 6 uses it: `@Entity('orders')` decorates the domain aggregate `Order`. So the import is actually used, not left over or type-only. The ORM decorator ties the domain model to a database table name and to TypeORM's runtime metadata. That is the persistence concern rule FF-P01 is meant to keep out of the domain. The rest of the class (lines 8-34) is plain domain logic: invariants, totals and cancellation, built on Money, OrderLine and BusinessError. That makes the coupling avoidable and shows it is a real layering violation, not a false positive.\",\"fix\":\"Delete the `typeorm` import (line 1) and the `@Entity('orders')` decorator (line 6) from src/business/model/Order.ts. Put the mapping in src/persistence: either a separate TypeORM `EntitySchema` for Order, or a dedicated `OrderRecord` @Entity class with a mapper that converts between `OrderRecord` and the domain `Order` inside the repository implementation.\"}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "da4d01dc878c7686",
+  "usage": {
+    "inputTokens": 2455,
+    "outputTokens": 601
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
