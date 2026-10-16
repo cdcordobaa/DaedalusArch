@@ -1570,3 +1570,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: CONSTRUCTION, v1.3 Study 2 readiness (S10, S11, R23). Tooling only; no LLM call, no sealed material read, no template, tier, preset or frame text edited.
 
 ---
+
+## PR #173 review follow-up: hash the --neural MCP tool set
+**Timestamp**: 2026-10-16T08:17:47Z
+**User Input**: "Author review on PR #173 (HOLD, no blocking findings). Nit: ABSENT_GROUPS and study2-tunables.md still say the --neural tools are on an unmerged branch; #157 has since merged. Update before the freeze."
+**AI Response**: "Merged origin/v1.3 into v1.3-tunables-manifest. The manifest now hashes the --neural server as mcp-tool/neural/<tool> (13 tools: the 11 symbolic ones with the neural follow-up sentence plus review_unit and explain_and_fix) and mcp/neural-tool-names; ABSENT_GROUPS is empty. Tools are listed with a stand-in neural service (registration only checks presence; no judge call). 187 entries. Doc and tests updated. 71 reference results byte-identical on cypher-interp after the merge; jest tests/unit/scripts/v1.3 + loop: 30 suites, 464 tests pass. Option taken under delegation: hash the full --neural tool list (not only the two neural tools), because the neural flag also changes the symbolic tools' descriptions."
+**Context**: CONSTRUCTION, v1.3 Study 2 readiness (S11). Tooling only.
+
+---

@@ -11,7 +11,7 @@ import {
   ABSENT_GROUPS, buildTunablesManifest, diffManifests, hasDrift, manifestText, parseManifest, renderDrift, TUNABLES_SCHEMA,
 } from '../../../../scripts/v1.3/lib/study2-tunables.js';
 import type { TunablesManifest } from '../../../../scripts/v1.3/lib/study2-tunables.js';
-import { TOOL_NAMES } from '../../../../src/mcp-server/server.js';
+import { NEURAL_TOOL_NAMES, TOOL_NAMES } from '../../../../src/mcp-server/server.js';
 import { FROZEN_SHA256 } from '../../../../src/llm-critic/frozen.js';
 import { JUDGE_V2_SHA256 } from '../../../../src/llm-critic/judge-v2.js';
 
@@ -51,6 +51,11 @@ describe('buildTunablesManifest', () => {
     expect(e['doc/rule-tiers.md']).toBeDefined();
     expect(e['doc/style-rule-sources.md']).toBeDefined();
     for (const t of TOOL_NAMES) expect(e[`mcp-tool/default/${t}`]).toBeDefined();
+    for (const t of NEURAL_TOOL_NAMES) {
+      expect(e[`mcp-tool/neural/${t}`]).toBeDefined();
+      expect(e[`mcp-tool/default/${t}`]).toBeUndefined();
+    }
+    for (const t of TOOL_NAMES) expect(e[`mcp-tool/neural/${t}`]).toBeDefined();
   });
 
   it('records the judge anchors as committed (the anchor tests recompute them from the values)', () => {
@@ -91,12 +96,12 @@ describe('diffManifests', () => {
     const [first, second] = Object.keys(manifest.entries);
     const entries: Record<string, string> = { ...manifest.entries, [first ?? '']: '0'.repeat(64), 'extra/key': '1'.repeat(64) };
     delete entries[second ?? ''];
-    const live: TunablesManifest = { ...manifest, entries, absent: {} };
+    const live: TunablesManifest = { ...manifest, entries, absent: { ...manifest.absent, 'mcp-tool/other': 'not on this commit' } };
     const d = diffManifests(manifest, live);
     expect(d.changed).toEqual([first]);
     expect(d.removed).toEqual([second]);
     expect(d.added).toEqual(['extra/key']);
-    expect(d.absentChanged).toEqual(Object.keys(ABSENT_GROUPS));
+    expect(d.absentChanged).toEqual(['mcp-tool/other']);
     expect(renderDrift(d)).toContain(`changed  ${String(first)}`);
     expect(diffManifests(manifest, { ...manifest, schema: 'other' }).schemaChanged).toBe(true);
   });

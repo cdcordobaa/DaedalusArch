@@ -43,15 +43,16 @@ that have no source on this commit, with the reason; a group appearing or disapp
 | `library` | `<style>` | `resolveTemplate(style)` for clean-architecture, nestjs, layered, hexagonal, ddd (functions, weights, thresholds) |
 | `preset` | `<file>` | raw bytes of every `presets/*.yaml` |
 | `frame` | template names, `rule-plain`, `max-repair-findings`, `style-presets`, `style-sentence/<style>`, `layout-sentence/<style>`, `arm-tool-sentences` | the step frames (FIRST, NEXT, STYLED_FIRST, STYLED_NEXT), the repair frame, `RULE_PLAIN`, the style and layout sentences (DDD with no contexts), the per-arm tool sentence |
-| `mcp` | `server-version`, `tool-names`, `spec-tool-names`, `denied-tools` | the server identity and the allow/deny lists |
-| `mcp-tool` | `default/<tool>` | name, title, description and input schema (JSON Schema as listed by `tools/list`) of each tool of the default server |
+| `mcp` | `server-version`, `tool-names`, `spec-tool-names`, `neural-tool-names`, `denied-tools` | the server identity and the allow/deny lists |
+| `mcp-tool` | `default/<tool>`, `neural/<tool>` | name, title, description and input schema (JSON Schema as listed by `tools/list`) of each tool of the default server and of the `--neural` server |
 | `judge` | `frozen-anchor`, `frozen-values`, `v2-anchor`, `v2-values` | `FROZEN_SHA256`, `FROZEN_VALUES`, `JUDGE_V2_SHA256`, `JUDGE_V2_VALUES` |
 | `doc` | `rule-tiers.md`, `style-rule-sources.md` | raw bytes of the two sealed docs |
 | `extractor` | option-set names | `V12E_DEFAULT_OPTIONS`, `V13_DEFAULT_OPTIONS`, `V13_FIELD_STATE_OPTIONS`, `V13_APG2_OPTIONS`, `DEFAULT_OPTIONS`, `DEFAULT_CHEAP_OPTIONS`, `DEFAULT_SPEC_PARSER_OPTIONS` |
 | `labelling` | file names | raw bytes of `scripts/v1.3/lib/labelling/correctness.ts` (the checker) and `findings.ts` (the finding identity key) |
 
-`absent` on `origin/v1.3` at this commit: `mcp-tool/neural` (the `--neural` tool set is on the unmerged
-`v1.3-neural-mcp` branch; when it lands, the tool adds `mcp-tool/neural/<tool>` and drops the `absent` entry).
+`absent` is empty on `origin/v1.3` since #157 merged: the `--neural` server is hashed as `mcp-tool/neural/<tool>` (its
+two tools and the symbolic tools with the neural follow-up sentence) and `mcp/neural-tool-names`. Listing the tools
+registers them with a stand-in neural service; no judge is called.
 
 The PipelineConfig has no default object in code (the CLI builds it per call); its extractor-relevant defaults are
 the option sets in the `extractor` group.

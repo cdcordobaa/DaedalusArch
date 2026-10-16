@@ -38,7 +38,8 @@ import {
   STYLED_NEXT_STEP_TEMPLATE,
 } from '../../lib/loop/prompts.js';
 import { LOOP_STYLES, STYLE_PRESETS, layoutSentence, styleSentence } from '../../lib/loop/style.js';
-import { createServer, SERVER_NAME, SERVER_VERSION, SPEC_TOOL_NAMES, TOOL_NAMES } from '../../../src/mcp-server/server.js';
+import { createServer, NEURAL_TOOL_NAMES, SERVER_NAME, SERVER_VERSION, SPEC_TOOL_NAMES, TOOL_NAMES } from '../../../src/mcp-server/server.js';
+import type { NeuralService } from '../../../src/mcp-server/neural-service.js';
 import { createSpecLoader } from '../../../src/mcp-server/tools.js';
 import type { ServerContext } from '../../../src/mcp-server/tools.js';
 
@@ -55,9 +56,7 @@ export const LABELLING_FILES: readonly string[] = Object.freeze([
 export const LIBRARY_STYLES: readonly string[] = Object.freeze(['clean-architecture', 'nestjs', 'layered', 'hexagonal', 'ddd']);
 
 /** Groups the outline names that have no source on this commit (key: group, value: reason). */
-export const ABSENT_GROUPS: Readonly<Record<string, string>> = Object.freeze({
-  'mcp-tool/neural': 'the --neural MCP tool set is not on this commit (unmerged branch v1.3-neural-mcp)',
-});
+export const ABSENT_GROUPS: Readonly<Record<string, string>> = Object.freeze({});
 
 export interface TunablesManifest {
   readonly schema: string;
@@ -87,8 +86,12 @@ function addCatalogue(entries: Record<string, string>, catalogue: string, templa
   }
 }
 
-/** The tools of the default server as `tools/list` returns them (name, title, description, input schema). */
-export async function listDefaultTools(repoRoot: string): Promise<readonly { name: string; title: string | undefined; description: string | undefined; inputSchema: unknown }[]> {
+/**
+ * The tools of the server as `tools/list` returns them (name, title, description, input schema): the default server,
+ * or with `neural` the `--neural` server (its two tools, plus the follow-up sentence on the symbolic ones). Registration
+ * only checks that a neural service is present; listing never calls it, so a stand-in suffices and no model is reached.
+ */
+export async function listServerTools(repoRoot: string, neural = false): Promise<readonly { name: string; title: string | undefined; description: string | undefined; inputSchema: unknown }[]> {
   const ctx: ServerContext = {
     env: {},
     loadSpec: createSpecLoader(),
@@ -101,6 +104,7 @@ export async function listDefaultTools(repoRoot: string): Promise<readonly { nam
         throw new Error('study2-tunables: no pipeline');
       },
     },
+    ...(neural ? { neural: {} as NeuralService } : {}),
   };
   const server = createServer(ctx);
   const [clientT, serverT] = InMemoryTransport.createLinkedPair();
@@ -164,7 +168,9 @@ export async function buildTunablesManifest(repoRoot: string): Promise<TunablesM
   e['mcp/tool-names'] = valueSha256(TOOL_NAMES);
   e['mcp/spec-tool-names'] = valueSha256(SPEC_TOOL_NAMES);
   e['mcp/denied-tools'] = valueSha256(DAEDALUS_DENIED_TOOLS);
-  for (const t of await listDefaultTools(repoRoot)) e[`mcp-tool/default/${t.name}`] = valueSha256(t);
+  e['mcp/neural-tool-names'] = valueSha256(NEURAL_TOOL_NAMES);
+  for (const t of await listServerTools(repoRoot)) e[`mcp-tool/default/${t.name}`] = valueSha256(t);
+  for (const t of await listServerTools(repoRoot, true)) e[`mcp-tool/neural/${t.name}`] = valueSha256(t);
 
   // Judge freezes: the committed anchor and the values it anchors.
   e['judge/frozen-anchor'] = FROZEN_SHA256;
