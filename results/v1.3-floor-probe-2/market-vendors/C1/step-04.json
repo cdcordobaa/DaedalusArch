@@ -1,0 +1,72 @@
+{
+  "task": "market-vendors",
+  "condition": "C1",
+  "step": 4,
+  "spec": "specs/clean-arch.yaml",
+  "engine": "cypher-interp",
+  "scoringMode": "v1.3",
+  "instrumentVersion": 2,
+  "typecheckErrors": 0,
+  "typecheckSample": [],
+  "verdict": "fail",
+  "blockingViolationCount": 1,
+  "advisoryViolationCount": 13,
+  "blockingByRule": {
+    "FF-P01": 0,
+    "FF-P03": 0,
+    "FF-P06": 0,
+    "FF-S01": 0,
+    "FF-S02": 1,
+    "FF-S04": 0
+  },
+  "advisoryByRule": {
+    "FF-C01": 0,
+    "FF-C02": 0,
+    "FF-C03": 1,
+    "FF-C04": 0,
+    "FF-C05": 0,
+    "FF-C06": 0,
+    "FF-CV02": 0,
+    "FF-CV03": 0,
+    "FF-CV05": 9,
+    "FF-CV06": 0,
+    "FF-P02": 1,
+    "FF-P04": 0,
+    "FF-SO01": 2,
+    "FF-SO02": 0,
+    "FF-SO03": 0
+  },
+  "blockingFindings": [
+    {
+      "rule": "FF-S02",
+      "type": "CYCLIC_DEPENDENCY",
+      "file": "src/application/audit.ts,src/application/market-service.ts,src/application/audit.ts",
+      "line": 3,
+      "target": "src/application/market-service.ts",
+      "message": "Circular dependency: src/application/audit.ts,src/application/market-service.ts,src/application/audit.ts",
+      "evidence": null,
+      "identity": [
+        "FF-S02",
+        "CYCLIC_DEPENDENCY",
+        "src/application/audit.ts,src/application/market-service.ts,src/application/audit.ts",
+        null
+      ]
+    }
+  ],
+  "srcFiles": 10,
+  "loc": 474,
+  "filesTouched": [
+    "A src/application/audit.ts",
+    "M src/application/market-service.ts",
+    "M src/application/settlement-service.ts",
+    "A src/application/statement-service.ts",
+    "M src/domain/model.ts",
+    "M src/domain/repositories.ts",
+    "M src/infrastructure/http.ts",
+    "M src/infrastructure/main.ts",
+    "M src/infrastructure/memory-stores.ts"
+  ],
+  "layerMapped": 10,
+  "layerUnmapped": 0,
+  "unmappedFiles": []
+}
