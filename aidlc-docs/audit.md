@@ -1925,3 +1925,20 @@ Other changes in the same PR: paper wording (judge interval, distinct floor-prob
 **Context**: CONSTRUCTION, v1.3 validity cycle (FR-V11 hold-out). Preparation only; the author's answers and step 5 onward remain the author's.
 
 ---
+
+## v1.3 CONSTRUCTION — loop generator isolation and pins, S2 (scheduled task, no live user)
+**Timestamp**: 2026-10-16T04:40:00Z
+**User Input**: (scheduled task prompt, night backlog job #8 S2) Port E1's generator isolation and pinning into the loop harness so gate lines S2 and S3 can turn green: per-adapter cliVersion and modelId, a pre-run --version probe that aborts on mismatch, an isolated config dir and HOME, auto-update off, the env allow-list at every spawn site, usage-limit classification at every call site; stub-binary tests; dry run and replay byte-identical; one PR into v1.3, not merged.
+**AI Response**: "Branch v1.3-loop-isolation-pins from origin/v1.3 with origin/v1.3-loop-replay (#142, unmerged) merged locally. Design and pass criterion committed first (Docs/v1.3/loop-isolation.md). New scripts/lib/loop/isolation.ts; ClaudeStepAgent.probe with the pin; isolated env (E1 allow-list + per-run HOME under <H>, CLAUDE_CONFIG_DIR, DISABLE_AUTOUPDATER=1) at the probe, step and repair turns; the judge's ADR-018 config-dir listing check reused unchanged before every spawn; env-<turnId>.json record; plan fields adapters[].cliVersion and generatorIsolation, --claude-config-dir. 19 unit tests with a stub claude binary. No LLM call, no sealed artefact touched, no frozen or template file edited.
+Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), so cliVersion is optional rather than required for live runs; an unpinned Claude adapter gets a LOOP_UNPINNED warning. (2) One dedicated, author-logged-in config dir per plan instead of a fresh per-run config dir (a fresh dir has no login); the per-run part is HOME. (3) Isolation requires a Claude cliVersion. (4) The judge's frozen ADR-018 allow-list is reused as is; it has no entry for the Linux .credentials.json, recorded for the author. (5) The live adapter probes now run before the skeleton install, so a mismatch stops the grid before any work. (6) Pause-duration recording (rest of S1) left for another job."
+**Context**: v1.3 Study 2 readiness, gate S2/S3 tooling. The gate lines stay RED until the author's live login, the MCP-attached confinement probes (S4) and the plan values.
+
+---
+
+## v1.3 CONSTRUCTION — loop isolation PR #171, review follow-up (scheduled task, no live user)
+**Timestamp**: 2026-10-16T08:15:00Z
+**User Input**: Owner review on PR #171 (HOLD): the default path is not "exactly as today" for live runs: adapters are probed before ensureHarness, isAvailable() goes through probe(), and every unpinned Claude adapter prints LOOP_UNPINNED.
+**AI Response**: "Restored the default path: LOOP_UNPINNED removed; ClaudeStepAgent.isAvailable is the E1 body again; a plan without cliVersion or generatorIsolation runs ensureHarness first and the E1 availability check as on origin/v1.3. Only pinned or isolated plans probe before the install. Supersedes options (1) warning part and (5) of the 04:40 entry. Test added for the unpinned order."
+**Context**: v1.3 Study 2 readiness, gate S2/S3 tooling; review fix only.
+
+---

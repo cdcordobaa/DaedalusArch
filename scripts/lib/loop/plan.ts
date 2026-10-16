@@ -14,6 +14,10 @@
  * run's step-1 snapshot, constrained to the declared `contexts`, then frozen; `specs.ts`). `evaluatorSpec` is the
  * default spec and may be left out only when every task has a profile. `callBudget`, when present, must equal the
  * budget the plan implies (`planCallBudget`), so the recorded figure cannot drift from the plan.
+ *
+ * Pins and isolation (optional, OFF when absent; `Docs/v1.3/loop-isolation.md`): `adapters[].cliVersion` pins the CLI
+ * version (a Codex value must equal `codex.cliVersion`); `generatorIsolation.claudeConfigDir` (`"<local>"` filled from
+ * `--claude-config-dir`) isolates every Claude spawn and requires `cliVersion` on every Claude adapter.
  */
 import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
@@ -54,7 +58,9 @@ export interface LoopPlanFile {
   readonly description: string;
   /** Repository-relative or absolute path of the tasks file. */
   readonly tasksFile: string;
-  readonly adapters: readonly { readonly adapterId: GeneratorAdapterId; readonly modelId: string }[];
+  readonly adapters: readonly { readonly adapterId: GeneratorAdapterId; readonly modelId: string; readonly cliVersion?: string }[];
+  /** Claude generator isolation (gate S3); the E1 environment when absent. */
+  readonly generatorIsolation?: { readonly claudeConfigDir: string };
   readonly arms: readonly LoopArm[];
   readonly runs: number;
   readonly orderSeed: number;
@@ -88,6 +94,7 @@ export interface LoopPlanFile {
 
 const ID_RE = /^[a-z0-9][a-z0-9-]*$/;
 const MODEL_RE = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+const VERSION_RE = /^\d+\.\d+\.\d+$/;
 export const LOCAL = '<local>';
 
 function err(code: string, message: string): DomainError {
@@ -204,6 +211,7 @@ export function validatePlan(raw: unknown): DomainResult<LoopPlanFile> {
   ) {
     errors.push(err('LOOP_PLAN_INVALID', 'adapters must be [{ adapterId: claude-code-cli | codex-cli, modelId }]'));
   }
+  if (Array.isArray(adapters)) errors.push(...pinProblems(adapters, raw.codex, raw.generatorIsolation));
   if (Array.isArray(arms) && arms.includes('daedalus-mcp') && !isRecord(raw.daedalus)) {
     errors.push(err('LOOP_PLAN_INVALID', 'the daedalus-mcp arm needs a daedalus block { nodeBinary, serverEntry, specPath }'));
   }
@@ -212,6 +220,28 @@ export function validatePlan(raw: unknown): DomainResult<LoopPlanFile> {
     errors.push(err('LOOP_PLAN_INVALID', 'cassette must be { dir, mode: record | replay }'));
   }
   return errors.length > 0 ? DomainResult.fail(errors) : DomainResult.ok(raw as unknown as LoopPlanFile);
+}
+
+/** `adapters[].cliVersion` and `generatorIsolation` (module header). */
+function pinProblems(adapters: readonly unknown[], codex: unknown, isolation: unknown): DomainError[] {
+  const errors: DomainError[] = [];
+  const bad = (m: string): void => {
+    errors.push(err('LOOP_PLAN_INVALID', m));
+  };
+  const codexVersion = isRecord(codex) ? codex.cliVersion : undefined;
+  for (const a of adapters) {
+    if (!isRecord(a) || a.cliVersion === undefined) continue;
+    if (typeof a.cliVersion !== 'string' || !VERSION_RE.test(a.cliVersion)) bad(`adapters[${String(a.adapterId)}].cliVersion must be x.y.z`);
+    else if (a.adapterId === 'codex-cli' && a.cliVersion !== codexVersion) bad(`adapters[codex-cli].cliVersion ${a.cliVersion} differs from codex.cliVersion`);
+  }
+  if (isolation === undefined) return errors;
+  if (!isRecord(isolation) || typeof isolation.claudeConfigDir !== 'string' || isolation.claudeConfigDir === '' || Object.keys(isolation).some((k) => k !== 'claudeConfigDir')) {
+    bad('generatorIsolation must be { claudeConfigDir }');
+  }
+  if (adapters.some((a) => isRecord(a) && a.adapterId === 'claude-code-cli' && a.cliVersion === undefined)) {
+    bad('generatorIsolation needs cliVersion on every claude-code-cli adapter');
+  }
+  return errors;
 }
 
 /**
@@ -315,6 +345,7 @@ export interface LocalOverrides {
   readonly binary?: string;
   readonly harnessRoot?: string;
   readonly outRoot?: string;
+  readonly claudeConfigDir?: string;
 }
 
 export interface LoadedPlan {
@@ -332,6 +363,13 @@ export function loadLoopPlan(planFile: string, repoRoot: string, local: LocalOve
     const v = local[k];
     if (v !== undefined && (filled[k] === LOCAL || filled[k] === undefined)) filled[k] = v;
     else if (v !== undefined) return DomainResult.fail([err('LOOP_PLAN_INVALID', `--${k === 'harnessRoot' ? 'harness-root' : k === 'outRoot' ? 'out-root' : k} given but the plan pins ${k}`)]);
+  }
+  const cfg = local.claudeConfigDir;
+  if (cfg !== undefined) {
+    const iso = filled.generatorIsolation;
+    if (!isRecord(iso)) return DomainResult.fail([err('LOOP_PLAN_INVALID', '--claude-config-dir given but the plan has no generatorIsolation block')]);
+    if (iso.claudeConfigDir !== LOCAL) return DomainResult.fail([err('LOOP_PLAN_INVALID', '--claude-config-dir given but the plan pins claudeConfigDir')]);
+    filled.generatorIsolation = { ...iso, claudeConfigDir: cfg };
   }
   const plan = validatePlan(filled);
   if (!plan.success) return DomainResult.fail(plan.errors);
