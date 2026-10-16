@@ -8,6 +8,10 @@
  * blocking-only AHS is reported, but no threshold is applied to it: a blocking rule is a structural fact, and every
  * blocking AHS below 1 already implies a blocking violation, so a threshold clause could never change the verdict.
  *
+ * Fail-closed (2026-10-16): with no applicable blocking violation, a blocking rule that failed to execute (FR-13,
+ * `blockingNotExecuted`) makes the verdict `incomplete`, not `pass`: a rule that did not run cannot vouch for the
+ * code. `fail` takes precedence over `incomplete`. The report verdict for `incomplete` is `soft-block` (exit 1).
+ *
  * Partial rule (FF-P06): its FLOWS_TO rows are reported N/A with their denominator (all FF-P06 rows, and the FLOWS_TO
  * edge count of the graph when the APG is available); only the CONSTRUCTOR_INJECTS rows count.
  */
@@ -227,7 +231,7 @@ export function computeTieredScoring(input: TieredScoringInput): TieredScoring {
     scoringMode: 'v1.3',
     tierTable: RULE_TIERS_DOC,
     style: input.style ?? null,
-    verdict: blocking.violatedRules > 0 ? 'fail' : 'pass',
+    verdict: blocking.violatedRules > 0 ? 'fail' : blockingNotExecuted.length > 0 ? 'incomplete' : 'pass',
     verdictRule: 'any-blocking-violation',
     v12eVerdict: input.v12eVerdict,
     blockingAhs,
@@ -240,10 +244,11 @@ export function computeTieredScoring(input: TieredScoringInput): TieredScoring {
 
 /**
  * The report's `verdict` in the v1.3 mode, in the existing four-level structure: `pass` (exit 0) for a v1.3 pass,
- * `hard-block` (exit 1) for a v1.3 fail. The v1.2E reading stays in `tiers.v12eVerdict`.
+ * `hard-block` (exit 1) for a v1.3 fail, `soft-block` (exit 1) for a v1.3 incomplete (a blocking rule did not run).
+ * The v1.2E reading stays in `tiers.v12eVerdict`.
  */
 export function overallVerdictOf(tiers: TieredScoring): OverallVerdict {
-  return tiers.verdict === 'fail' ? 'hard-block' : 'pass';
+  return tiers.verdict === 'fail' ? 'hard-block' : tiers.verdict === 'incomplete' ? 'soft-block' : 'pass';
 }
 
 /** The scoring modes, in CLI order. */

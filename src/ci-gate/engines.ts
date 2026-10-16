@@ -35,9 +35,21 @@ export interface EngineInput {
   readonly spec: ParsedSpec;
 }
 
+/** One commit's evaluation with the blocking rules that failed to execute (the report's `tiers.blockingNotExecuted`). */
+export interface EngineEvaluation {
+  readonly findings: readonly GateFinding[];
+  readonly blockingNotExecuted: readonly string[];
+}
+
 export interface GateEngine {
   readonly name: GateEngineName;
-  readonly evaluate: (input: EngineInput) => Promise<readonly GateFinding[]>;
+  /** A bare finding list means every blocking rule ran (the lexical engine has no execution failures). */
+  readonly evaluate: (input: EngineInput) => Promise<readonly GateFinding[] | EngineEvaluation>;
+}
+
+/** `evaluate`'s result in the `EngineEvaluation` form. Pure. */
+export function asEngineEvaluation(result: readonly GateFinding[] | EngineEvaluation): EngineEvaluation {
+  return 'findings' in result ? result : { findings: result, blockingNotExecuted: [] };
 }
 
 /** The v1.3 tier of a rule row; FF-P06 rows of its N/A part are `not-applicable`. */
@@ -118,7 +130,11 @@ export function neo4jEngine(opts: Neo4jEngineOptions): GateEngine {
         const result = await executor.execute();
         if (!result.success) throw new Error(result.errors.map((e) => e.message).join('; '));
         const findings = findingsFromReport(result.data, spec, projectDir);
-        return withConcreteFixes(findings, await lexicalEngine().evaluate({ projectDir, specPath, spec }));
+        const lexical = asEngineEvaluation(await lexicalEngine().evaluate({ projectDir, specPath, spec })).findings;
+        return {
+          findings: withConcreteFixes(findings, lexical),
+          blockingNotExecuted: (result.data.tiers?.blockingNotExecuted ?? []).map(String),
+        };
       } finally {
         await cleanup();
       }
