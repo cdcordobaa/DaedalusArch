@@ -1505,3 +1505,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: CONSTRUCTION, v1.3 validity cycle. Autonomous under the standing delegation; author decisions are listed in §6 of the plan.
 
 ---
+
+## v1.3 Notion ideas triage (scheduled routine)
+**Timestamp**: 2026-10-16T00:00:00Z
+**User Input**: "Scheduled task: triage every idea, decision, promise and conflict in the Notion thesis hub and its linked pages against origin/v1.3; write Docs/v1.3/research/notion-ideas-triage.md; insert a status callout at the top of the hub (insert only); open one PR into v1.3, do not merge."
+**AI Response**: "Fetched the hub, the 18 pages it mentions, its Next Actions DB, long-term ideas, the v1.3 brief and the roadmap (read-only). Classified 597 page rows: 263 DONE, 147 SUPERSEDED, 95 OPEN, 43 OUT, 49 UNCLEAR. Wrote the triage with per-page tables, 17 ranked open items mapped to the night backlog/plan or NEW, and 16 groups of now-wrong statements. Documentation only; no code, template, preset or sealed file touched. Option taken under delegation: the AI-DLC stage workflow was not run because this is a documentation triage, not a development task."
+**Context**: v1.3 validity cycle, documentation triage
+
+---
