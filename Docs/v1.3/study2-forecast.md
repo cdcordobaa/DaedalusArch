@@ -103,7 +103,7 @@ Per arm (working grid): `none` $82.49, `daedalus-mcp` $82.54, `gate` $90.74 (rep
 | 2 models, k=5 | $40 / $20 | 31.8 / 62.1 | 31.0 / 65.2 | 7 / 13–14 |
 | 2 models, k=4 | $40 / $20 | 25.7 / 50.9 | 25.4 / 50.6 | 6 / 11 |
 
-When the cap binds, a second lane on the **same** account buys almost nothing: the window, not the lane, is the limit.
+When the cap binds, a second lane on the **same** account does not help: the window, not the lane, is the limit. On the 2-model k=5 grid at $20 it is even slower (65.2 h against 62.1 h), because two lanes exhaust each window together and both wait out the pause.
 
 ### 4.4 Sensitivities (working grid, $20 cap)
 
@@ -115,7 +115,7 @@ When the cap binds, a second lane on the **same** account buys almost nothing: t
 ### 4.5 Reading
 
 - E1's observed cost per generation is **$0.66 (Opus) and $0.26 (Sonnet)**, mean. The outline §6 guess of 2–6 USD per
-  step turn is 3–20 × higher, so the working grid's forecast ($256) sits far below the outline's 1.5k–6k USD.
+  step turn is about 3–23 × higher, so the working grid's forecast ($256) sits far below the outline's 1.5k–6k USD.
 - The largest unmodelled risk is the **step-turn shape**: an E1 generation is one greenfield project; a step 2..k turn
   reads a growing tree. The agent-proof extension turns (MCP attached) took 57–230 s, mean 128 s, against E1's
   163 s (Opus) and 84 s (Sonnet) per generation, so durations look comparable; their cost is not committed. A loop
