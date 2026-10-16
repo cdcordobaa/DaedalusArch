@@ -1,0 +1,51 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7825,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "2f860cd5cfb96eab7a8a031107a6b24c2946ba7145a6b8a5d751a5d96b829ac9-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/domain/services/AvailabilityChecker.ts: `import { Injectable } from '@nestjs/common';` brings in a framework package.",
+      "src/domain/services/AvailabilityChecker.ts: `@Injectable()` decorates `export class AvailabilityChecker`. This is a NestJS dependency-injection decorator that belongs to the framework/infrastructure wiring, not the domain.",
+      "isAvailable(room: Room, stay: DateRange, bookings: readonly Booking[]): boolean uses only domain types, and its logic is pure."
+    ],
+    "pass": false,
+    "reasoning": "The file sits in the domain layer, and the rubric says a domain file must not carry a framework dependency-injection decorator, even when the class logic is pure. AvailabilityChecker has the @Injectable() decorator from @nestjs/common, which is a NestJS DI annotation. That belongs to the framework or wiring layer (infrastructure, or application/config composition), not to the domain. Apart from that, the isAvailable signature uses only project-declared domain types (Room, DateRange, Booking) and returns boolean. The overlap logic is a genuine domain rule with no I/O. No candidate flags were raised, so this violation was found by reading the source directly.",
+    "violations": [
+      {
+        "filePath": "src/domain/services/AvailabilityChecker.ts",
+        "message": "Domain class AvailabilityChecker has the @Injectable() decorator from @nestjs/common. This is a framework dependency-injection annotation that belongs to the framework/infrastructure (composition) layer, not the domain, even though the class logic is pure."
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe unit's responsibilities, signatures and annotations match the role of its declared layer.\n\n## Rubric\nPass: Every declaration in the file belongs to the role and kind of its declared layer, including its parameter, return and field types, its decorators and base classes, and its statements, and agrees with any ADR prose given.\nFail: The file carries something that belongs to a different layer kind. In a domain or application file: a type of a web, transport or framework package in any signature (parameter, return or field), even when the parameter is optional or unused; or a request, response, status code or HTTP error of the delivery layer. In a domain file also: a framework or ORM decorator or base class (dependency injection, routing, persistence mapping), even when the class logic is pure; or persistence or I/O (queries, database or ORM clients, HTTP or file access). In an infrastructure or presentation file: a business rule, that is a domain invariant, calculation or decision that the domain or application layer should own. A type the project declares itself is not a framework type, whatever its name.\nEvidence required: Name the file and cite the signature, decorator, declaration or statement that carries the misplaced responsibility, its package or origin, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- adapters-inbound (kind: presentation): src/adapters/inbound/**\n- adapters-outbound (kind: infrastructure): src/adapters/outbound/**\n- config (kind: application): src/config/**\n\n## Unit\nKind: file\nId: src/domain/services/AvailabilityChecker.ts\nLayer: domain\nUnit files:\n- src/domain/services/AvailabilityChecker.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/services/AvailabilityChecker.ts=====\nimport { Injectable } from '@nestjs/common';\nimport { Booking } from '../model/Booking';\nimport { DateRange } from '../model/DateRange';\nimport { Room } from '../model/Room';\n\n@Injectable()\nexport class AvailabilityChecker {\n  isAvailable(room: Room, stay: DateRange, bookings: readonly Booking[]): boolean {\n    return !bookings.some((b) => b.isActive && b.roomId === room.id && b.stay.overlaps(stay));\n  }\n}\n\n=====SOURCE-END=====\n\n## Neighbourhood\nsrc/domain/services/AvailabilityChecker.ts (layer domain, kind domain)\n  imports: package @nestjs/common; src/domain/model/Booking.ts (layer domain, kind domain); src/domain/model/DateRange.ts (layer domain, kind domain); src/domain/model/Room.ts (layer domain, kind domain)\n  imported by: src/application/services/BookRoomService.ts (layer application, kind application); src/application/services/FindAvailableRoomsService.ts (layer application, kind application)\n  types: AvailabilityChecker receives flow from BookRoomService in src/application/services/BookRoomService.ts (layer application, kind application); AvailabilityChecker receives flow from FindAvailableRoomsService in src/application/services/FindAvailableRoomsService.ts (layer application, kind application)\n\n## Candidate flags\nCandidates proposed by deterministic checks; verify, don't trust. Each line is a tool observation with its location, not a finding.\n(none)\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric. Check each candidate flag against the source: a flag the source does not support must not count against the unit, and a violation the flags miss counts as much as one they name. Judge what each declaration is, not only what it does at run time.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T20:56:10.720Z",
+  "repetition": 0,
+  "requestHash": "2f860cd5cfb96eab7a8a031107a6b24c2946ba7145a6b8a5d751a5d96b829ac9",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":660}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file sits in the domain layer, and the rubric says a domain file must not carry a framework dependency-injection decorator, even when the class logic is pure. AvailabilityChecker has the @Injectable() decorator from @nestjs/common, which is a NestJS DI annotation. That belongs to the framework or wiring layer (infrastructure, or application/config composition), not to the domain. Apart from that, the isAvailable signature uses only project-declared domain types (Room, DateRange, Booking) and returns boolean. The overlap logic is a genuine domain rule with no I/O. No candidate flags were raised, so this violation was found by reading the source directly.\\\",\\\"evidence\\\":[\\\"src/domain/services/AvailabilityChecker.ts: `import { Injectable } from '@nestjs/common';` brings in a framework package.\\\",\\\"src/domain/services/AvailabilityChecker.ts: `@Injectable()` decorates `export class AvailabilityChecker`. This is a NestJS dependency-injection decorator that belongs to the framework/infrastructure wiring, not the domain.\\\",\\\"isAvailable(room: Room, stay: DateRange, bookings: readonly Booking[]): boolean uses only domain types, and its logic is pure.\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/domain/services/AvailabilityChecker.ts\\\",\\\"message\\\":\\\"Domain class AvailabilityChecker has the @Injectable() decorator from @nestjs/common. This is a framework dependency-injection annotation that belongs to the framework/infrastructure (composition) layer, not the domain, even though the class logic is pure.\\\"}]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/domain/services/AvailabilityChecker.ts: `import { Injectable } from '@nestjs/common';` brings in a framework package.\",\"src/domain/services/AvailabilityChecker.ts: `@Injectable()` decorates `export class AvailabilityChecker`. This is a NestJS dependency-injection decorator that belongs to the framework/infrastructure wiring, not the domain.\",\"isAvailable(room: Room, stay: DateRange, bookings: readonly Booking[]): boolean uses only domain types, and its logic is pure.\"],\"pass\":false,\"reasoning\":\"The file sits in the domain layer, and the rubric says a domain file must not carry a framework dependency-injection decorator, even when the class logic is pure. AvailabilityChecker has the @Injectable() decorator from @nestjs/common, which is a NestJS DI annotation. That belongs to the framework or wiring layer (infrastructure, or application/config composition), not to the domain. Apart from that, the isAvailable signature uses only project-declared domain types (Room, DateRange, Booking) and returns boolean. The overlap logic is a genuine domain rule with no I/O. No candidate flags were raised, so this violation was found by reading the source directly.\",\"violations\":[{\"filePath\":\"src/domain/services/AvailabilityChecker.ts\",\"message\":\"Domain class AvailabilityChecker has the @Injectable() decorator from @nestjs/common. This is a framework dependency-injection annotation that belongs to the framework/infrastructure (composition) layer, not the domain, even though the class logic is pure.\"}]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/services/AvailabilityChecker.ts",
+  "usage": {
+    "inputTokens": 2806,
+    "outputTokens": 660
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

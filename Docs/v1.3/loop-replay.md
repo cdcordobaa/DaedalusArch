@@ -12,7 +12,7 @@ Code: `scripts/lib/loop/replay.ts` (scripted agent and wiring), `replay-tapes.ts
 - The v1.3 symbolic evaluator `evaluate_project`.
 - The MCP handlers `check_diff` and `check_file`, called in process.
 
-**Engine.** `--engine cypher-interp` is not on `origin/v1.3`, so the replay uses Neo4j Community 5.26.24 with APOC 5.26.24, from the release tarballs (the server and APOC versions of `Docs/environment.md`).
+**Engine.** When this branch was cut, `--engine cypher-interp` was not on `origin/v1.3`, so the replay uses Neo4j Community 5.26.24 with APOC 5.26.24, from the release tarballs (the server and APOC versions of `Docs/environment.md`). The interpreter has since merged (PR #128). The replay still runs on Neo4j; running it on the interpreter is not done here. After merging the new base (MCP v2 included), the test still passes unchanged, and the MCP gap in §4 still holds.
 
 **Replaced components:**
 - The generator becomes `ScriptedStepAgent`.

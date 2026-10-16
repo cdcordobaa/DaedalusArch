@@ -15,6 +15,7 @@ import { generateReport } from '../report/report-generator.js';
 import { formatActionableHuman } from '../scoring-engine/report-formatter.js';
 import { runBatch } from './batch-runner.js';
 import { requireEnvForCli } from './require-env.js';
+import { GRAPH_ENGINES, parseGraphEngine } from '../cypher-interp/engine.js';
 import { handleDrift } from './drift-handler.js';
 import { parseSpec, validateSpecAgainstProject } from '../spec-parser/index.js';
 import { compileFunctions, compilerInputFromSpec, V13_COMPILE_OPTIONS } from '../fitness-compiler/index.js';
@@ -105,6 +106,7 @@ interface LLMCliOpts {
   cassetteOmitPrompt?: boolean;
   cassetteProjectId?: string;
   judgeCli?: string;
+  judgeVersion?: string;
 }
 
 function withLLMOptions(command: Command): Command {
@@ -119,7 +121,8 @@ function withLLMOptions(command: Command): Command {
     .option('--judge-baseline-report <path>', 'Baseline report whose neuralResults[].selection a variant reuses')
     .option('--cassette-omit-prompt', 'Record cassettes without prompts (corpus runs)', false)
     .option('--cassette-project-id <id>', 'Project id written on every judge cassette entry (repetition reliability)')
-    .option('--judge-cli <path>', 'Judge CLI binary (default ~/.firewall/judge-cli/node_modules/.bin/claude when present, else claude)');
+    .option('--judge-cli <path>', 'Judge CLI binary (default ~/.firewall/judge-cli/node_modules/.bin/claude when present, else claude)')
+    .option('--judge-version <v>', 'Judge rubric version: v1 (frozen, default) | v2 (v1.3 development)');
 }
 
 /** The argv `parseLLMOptions` reads, rebuilt from the parsed options (so `main(argv)` tests work). */
@@ -129,6 +132,7 @@ function llmArgv(opts: LLMCliOpts): string[] {
     ['--cassette-mode', opts.cassetteMode], ['--cassette-dir', opts.cassetteDir], ['--judge-repetition', opts.judgeRepetition],
     ['--judge-config-dir', opts.judgeConfigDir], ['--judge-baseline-report', opts.judgeBaselineReport],
     ['--cassette-project-id', opts.cassetteProjectId], ['--judge-cli', opts.judgeCli],
+    ['--judge-version', opts.judgeVersion],
   ];
   const argv = pairs.flatMap(([name, value]) => (value === undefined ? [] : [`${name}=${value}`]));
   if (opts.cassetteOmitPrompt === true) argv.push('--cassette-omit-prompt');
@@ -184,7 +188,9 @@ withLLMOptions(program
   .option('--neural-aggregation <rule>', 'Neural aggregation of the AHS: registered (default, primary) | proportional (ADR-028 sensitivity variant)', 'registered')
   .option('--tsconfig <path>', 'Explicit tsconfig for APG extraction; the project\'s own tsconfig.json is then ignored (ADR-032)')
   .option('--scoring <mode>', 'Scoring mode: v1.3 (rule tiers, default; verdict from blocking rules) | v1.2e (the registered Study 1 scoring)', 'v1.3')
+  .option('--engine <name>', 'Graph engine: neo4j (default, the reference engine) | cypher-interp (in-process Cypher interpreter, no Neo4j server; v1.3 spike)', 'neo4j')
   .action(async (opts: LLMCliOpts & {
+    engine: string;
     project: string;
     tsconfig?: string;
     spec: string;
@@ -210,8 +216,14 @@ withLLMOptions(program
     if (instrumentVersion === undefined) return;
     const neuralAggregation = resolveNeuralAggregation(opts.neuralAggregation);
     if (neuralAggregation === undefined) return;
-    // BR-U3-80: no default password; stop before any connection.
-    const neo4jPassword = requireEnvForCli('NEO4J_PASSWORD');
+    const graphEngine = parseGraphEngine(opts.engine);
+    if (graphEngine === undefined) {
+      process.stderr.write(`Error: --engine must be one of ${GRAPH_ENGINES.join(' | ')}\n`);
+      process.exitCode = 2;
+      return;
+    }
+    // BR-U3-80: no default password; stop before any connection. The in-process engine opens none and reads none.
+    const neo4jPassword = graphEngine === 'cypher-interp' ? '' : requireEnvForCli('NEO4J_PASSWORD');
     if (neo4jPassword === undefined) return;
     // U4 C9 hunk: judge options parsed before any connection (no key fallback, D-U0-8)
     const llmConfig = llmConfigFor(evaluationMode, opts.project, opts);
@@ -235,6 +247,7 @@ withLLMOptions(program
       instrumentVersion,
       neuralAggregation,
       scoringMode,
+      ...(graphEngine !== 'neo4j' && { graphEngine }),
     };
 
     const { executor, cleanup } = createPipeline(config);

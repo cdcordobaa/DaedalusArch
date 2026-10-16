@@ -1485,6 +1485,27 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 
 ---
 
+## v1.3 SPIKE — in-process Cypher interpreter (scheduled task)
+**Timestamp**: 2026-10-15T23:20:00Z
+**User Input**: "Scheduled task: build a read-only, in-process Cypher interpreter so the tool runs without a Neo4j server (npx, fast MCP loop, tests without Docker). The template text stays the one definition of every rule; no rule re-implemented by hand; Neo4j stays the reference engine. Parse with a maintained openCypher grammar from npm (pinned), add an engine option `cypher-interp`, run differential parity against live Neo4j 5.26.24 + APOC over every template, project and arm, run the reference set and diff it against after-member-facts (target byte-identical), unit tests, a design document with a recommendation on the hand mirrors and an npx plan. Branch v1.3-cypher-interp from I2's branch, or from v1.3 if none; one PR."
+**AI Response**: "I2's memory-engine branch does not exist on the remote, so the branch is cut from origin/v1.3 (dc1a1c4a) and the minimum harness was built here. Parser: Neo4j's Cypher 25 grammar from @neo4j-cypher/language-support 2.0.0-next.38, generated with antlr-ng 1.0.10, runtime antlr4ng 3.0.16 (all exact). src/cypher-interp/ (parse, values, eval, functions, graph, repository with an ingestion adapter, driver-shaped records); PipelineConfig.graphEngine, `firewall evaluate --engine cypher-interp`, ue-baseline-live --engine. Results: ue-baseline-live --engine cypher-interp with no Neo4j variable set is byte-identical to results/v1.3-reference/after-member-facts (raw 71/71, report.json, report.md); memory-parity over 79 projects (71 reference variants × arms v1.3 and v1.2e, 7 APG v2 fixtures, 1 synthetic APG), 65,254 statements: 0 content, 0 error, 0 unsupported, 763 order (Neo4j label-scan order after id reuse; last-bit avg accumulation order); APG v2 hand mirrors equal to the interpreter on 9 templates × 78 projects; 29 unit tests, also checked live. Docs/v1.3/cypher-interpreter.md recommends replacing the hand mirrors with the interpreter, keeping the parity harness as the guard. No template text, frozen v1.2E artefact or results baseline changed. The AI-DLC approval gates were not run interactively: the request came from a scheduled task with no one present; the stored prompt served as the requirements, and its scope (a spike on its own branch, a PR into v1.3) needs no registered-artefact decision."
+**Context**: v1.3 spike, outside the v1.3 study stages. Development-set evidence only.
+
+---
+
+## v1.3 Construction — night plan (2026-10-16)
+**Timestamp**: 2026-10-16T01:55:00Z
+**User Input**: "The author wants all remaining subscription usage spent tonight on closing the thesis gaps (SO3 neuro-symbolic, SO4 validity, SO5 spec level), never on side tracks (frontend dropped). The overriding constraint is that Study 2 must run exactly once ('I don't want to ruin a third study'). Human labels by the author or director carry little authority, so validity must rest on non-human evidence. Cloud work must bill the subscription, not the $250 credit. The plan is to be tracked in AI-DLC."
+**AI Response**: "Wrote construction/plans/v1.3-night-2026-10-16-plan.md, tracking about 40 jobs across three usage windows with a pass criterion each.
+- Validity without raters: developer-fix mining, predictive bug-fix churn, convergent agreement with three external checkers, a cross-vendor model panel, a methods memo, an external human-written set, and graph-fidelity adjudication prep.
+- Readiness: a go/no-go gate, a floor-effect probe, an analysis rehearsal on synthetic data, a no-LLM loop replay, and task design.
+- Tool behaviour: blind-key misses, fix hints, warning noise, npx, CI gate, HTML report, init, rule mining, rule gaps, scale, interpreter fuzz and review fixes, dogfooding, and a spec-driven OpenSpec/AI-DLC demo.
+- Quality: a local multi-agent post-merge review, merge trains at 02:47, 04:17 and 09:30 UTC, and an adversarial review of open PRs at 07:50 that holds failing PRs before the morning train.
+Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, jest with no new failures, byte-identical reference results on Neo4j and the in-process engine). Billing finding: `claude --cloud` sessions drew on the cloud credit ($250 → $186), so further jobs are routines only."
+**Context**: CONSTRUCTION, v1.3 validity cycle. Autonomous under the standing delegation; author decisions are listed in §6 of the plan.
+
+---
+
 ## v1.3 CONSTRUCTION — loop replay (scheduled task, no live user)
 **Timestamp**: 2026-10-16T01:40:00Z
 **User Input**: (scheduled task prompt) Prove the firewall-in-the-loop harness end to end without any LLM: a deterministic scripted agent replaying recorded edits for at least 2 pilot tasks under none / daedalus-mcp / gate, on the in-process engine or Neo4j 5.26 + APOC; assert memo-defined metrics, per-step latency, gate exactness, consistency with a full evaluation, byte reproducibility; jest integration test, npm script, Docs/v1.3/loop-replay.md; one PR into v1.3, not merged.
