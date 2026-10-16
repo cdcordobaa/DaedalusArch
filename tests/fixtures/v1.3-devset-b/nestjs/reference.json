@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "style": "nestjs",
+  "spec": "spec.yaml",
+  "project": "Workshop registrations: workshops, attendees, registrations; three feature modules plus a framework-free src/domain.",
+  "canonicalSource": "NestJS documentation (docs.nestjs.com): Overview > Controllers, Providers, Modules, Exception filters, Guards; Fundamentals > Custom providers (non-class-based provider tokens, useClass). Layer model from presets/nestjs.yaml (controller -> service -> repository -> domain).",
+  "styleDefinition": [
+    "Feature modules co-locate a controller (presentation), a service (application), DTOs (application) and a repository implementation (infrastructure); *.module.ts files wire them (presentation by the preset).",
+    "Layer order (preset): presentation -> application -> infrastructure -> domain. A service may call infrastructure; infrastructure must not call services or controllers; nothing in the domain depends outward.",
+    "This project binds repositories through injection tokens (Custom providers, useClass) to interfaces declared in src/domain, so services depend on ports, not on repository classes. Injecting a concrete repository into a service breaks that declared design (and DIP).",
+    "Controllers exchange DTOs with services; they do not hand domain entities to the transport layer.",
+    "The domain depends on no persistence or web framework (typeorm, express, prisma, sequelize per the preset; @nestjs/* is not forbidden by this preset).",
+    "No dependency cycles (the docs treat circular dependencies and forwardRef as something to avoid)."
+  ],
+  "authored": "2026-10-16",
+  "writtenBeforeToolRun": true,
+  "scopeRules": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-S04",
+      "ruleName": "no-domain-outward-dep",
+      "severity": "major",
+      "blockingCandidate": false
+    },
+    {
+      "ruleId": "FF-P01",
+      "ruleName": "domain-purity",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-P02",
+      "ruleName": "dependency-inversion",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-P03",
+      "ruleName": "repository-pattern",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-P04",
+      "ruleName": "use-case-isolation",
+      "severity": "major",
+      "blockingCandidate": false
+    },
+    {
+      "ruleId": "FF-P05",
+      "ruleName": "controller-no-entity",
+      "severity": "major",
+      "blockingCandidate": false
+    },
+    {
+      "ruleId": "FF-P06",
+      "ruleName": "domain-state-purity",
+      "severity": "critical",
+      "blockingCandidate": true
+    }
+  ],
+  "notApplicable": [
+    {
+      "ruleId": "FF-S03",
+      "reason": "no-layer-skip applies to style layered only (template applicability)"
+    }
+  ],
+  "noViolatingVariant": [],
+  "outOfScope": "Coupling metrics (FF-C*), SOLID proxies (FF-SO*), naming and convention rules (FF-CV*) and the neuronal functions (FF-N*) are not compared: they are threshold proxies or conventions (FR-V6 makes them advisory), and they say nothing about whether a planted architectural violation is caught. The runner lists their rows separately as unscored.",
+  "variants": [
+    "clean",
+    "v21-attendee-repository-types-service-summary",
+    "v22-error-filter-reads-interceptor-header",
+    "v23-response-dto-types-gateway-event",
+    "v24-registration-workshop-entity-cycle",
+    "v25-controller-reads-route-from-module",
+    "v26-three-response-dto-cycle",
+    "v27-core-seat-rules-reads-response-dto",
+    "v28-domain-barrel-reexports-service-type",
+    "v29-models-attendance-record-typeorm",
+    "v30-registration-field-typeorm-column",
+    "v31-domain-reexports-express-types",
+    "v32-workshop-repository-local-store-interface",
+    "v33-persistence-check-in-repository-without-port",
+    "v34-attendee-directory-injects-repository",
+    "v35-registration-policy-injects-system-clock",
+    "v36-attendees-registrations-module-cycle",
+    "n21-attendee-dto-uses-common-pipe",
+    "n22-response-dtos-share-summary-dto",
+    "n23-domain-entity-uses-core-helper",
+    "n24-domain-policy-nestjs-injectable",
+    "n25-domain-express-pass-value",
+    "n26-repository-implements-port-via-domain-barrel",
+    "n27-repository-also-implements-local-interface",
+    "n28-domain-policy-holds-repository-port",
+    "n61-list-registrations-of-attendee",
+    "n62-unique-attendee-email"
+  ]
+}

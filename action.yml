@@ -1,0 +1,163 @@
+name: Daedalus architecture gate
+description: >-
+  Diff-aware architecture check for pull requests. Evaluates the base and head commits with the same spec and fails
+  only on NEW blocking findings; posts a summary comment with fix hints. See Docs/v1.3/ci-gate.md.
+author: cdcordobaa
+
+branding:
+  icon: shield
+  color: blue
+
+inputs:
+  spec:
+    description: AoC YAML spec, relative to the repository root. Read from the base commit unless spec-from is head.
+    required: true
+  project:
+    description: Project directory relative to the repository root.
+    required: false
+    default: '.'
+  base:
+    description: Base commit. Defaults to the pull request base SHA.
+    required: false
+    default: ''
+  head:
+    description: Head commit. Defaults to the pull request head SHA.
+    required: false
+    default: ''
+  engine:
+    description: >-
+      lexical (default): in-process, no database; the import and naming rules of check_file.
+      neo4j: the full symbolic pipeline; the job must provide Neo4j 5.26 with APOC and NEO4J_URI / NEO4J_PASSWORD.
+    required: false
+    default: lexical
+  spec-from:
+    description: Commit the spec is read from, base (default; a PR cannot loosen its own gate) or head.
+    required: false
+    default: base
+  comment:
+    description: Post (or update) a summary comment on the pull request. Needs pull-requests write permission.
+    required: false
+    default: 'true'
+  fail-on-new-blocking:
+    description: Fail the step when the head introduces a new blocking finding.
+    required: false
+    default: 'true'
+  repository-path:
+    description: Path of the checked-out repository (it needs both commits; check out with fetch-depth 0).
+    required: false
+    default: '.'
+  github-token:
+    description: Token used to post the comment.
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  verdict:
+    description: pass or fail (fail = at least one new blocking finding).
+    value: ${{ steps.gate.outputs.verdict }}
+  new-blocking:
+    description: Number of new blocking findings.
+    value: ${{ steps.gate.outputs.new-blocking }}
+  new:
+    description: Number of new findings (all tiers).
+    value: ${{ steps.gate.outputs.new }}
+  fixed:
+    description: Number of fixed findings (all tiers).
+    value: ${{ steps.gate.outputs.fixed }}
+  unchanged:
+    description: Number of unchanged findings.
+    value: ${{ steps.gate.outputs.unchanged }}
+  report-path:
+    description: Markdown summary file.
+    value: ${{ steps.gate.outputs.report-path }}
+  json-path:
+    description: JSON result file.
+    value: ${{ steps.gate.outputs.json-path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+
+    - name: Install the gate
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: npm ci --no-audit --no-fund --loglevel=error
+
+    - name: Run the gate
+      id: gate
+      shell: bash
+      # Inputs reach the script through the environment only, never through expression interpolation.
+      env:
+        GATE_SPEC: ${{ inputs.spec }}
+        GATE_PROJECT: ${{ inputs.project }}
+        GATE_BASE: ${{ inputs.base || github.event.pull_request.base.sha }}
+        GATE_HEAD: ${{ inputs.head || github.event.pull_request.head.sha }}
+        GATE_ENGINE: ${{ inputs.engine }}
+        GATE_SPEC_FROM: ${{ inputs.spec-from }}
+        GATE_REPO: ${{ inputs.repository-path }}
+        GATE_ACTION_PATH: ${{ github.action_path }}
+      run: |
+        set -u
+        if [ -z "$GATE_BASE" ] || [ -z "$GATE_HEAD" ]; then
+          echo "::error::base and head are required outside pull_request events"
+          exit 2
+        fi
+        repo="$(cd "$GATE_REPO" && pwd)"
+        md="$RUNNER_TEMP/daedalus-gate.md"
+        json="$RUNNER_TEMP/daedalus-gate.json"
+        status=0
+        # Run from the action directory so no .env of the checked-out repository is loaded.
+        (cd "$GATE_ACTION_PATH" && npx --no-install tsx bin/firewall.ts check \
+          --repo "$repo" --base "$GATE_BASE" --head "$GATE_HEAD" \
+          --spec "$GATE_SPEC" --project "$GATE_PROJECT" \
+          --engine "$GATE_ENGINE" --spec-from "$GATE_SPEC_FROM" \
+          --format markdown --out "$md" --json-out "$json") || status=$?
+        echo "exit-code=$status" >> "$GITHUB_OUTPUT"
+        if [ "$status" -ge 2 ] || [ ! -f "$json" ]; then
+          echo "::error::the architecture gate could not run (exit $status)"
+          exit 2
+        fi
+        node -e '
+          const r = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"));
+          const out = [
+            `verdict=${r.verdict}`, `new-blocking=${r.newBlocking}`, `new=${r.new.length}`,
+            `fixed=${r.fixed.length}`, `unchanged=${r.unchanged.length}`,
+          ];
+          require("fs").appendFileSync(process.env.GITHUB_OUTPUT, out.join("\n") + "\n");
+        ' "$json"
+        echo "report-path=$md" >> "$GITHUB_OUTPUT"
+        echo "json-path=$json" >> "$GITHUB_OUTPUT"
+        cat "$md" >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Comment on the pull request
+      if: inputs.comment == 'true' && github.event.pull_request != null
+      # A fork's pull request gets a read-only token; the job summary still carries the report.
+      continue-on-error: true
+      uses: actions/github-script@v7
+      env:
+        GATE_REPORT: ${{ steps.gate.outputs.report-path }}
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const fs = require('fs');
+          const marker = '<!-- daedalus-ci-gate -->';
+          const body = fs.readFileSync(process.env.GATE_REPORT, 'utf8');
+          const { owner, repo } = context.repo;
+          const issue_number = context.payload.pull_request.number;
+          const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number, per_page: 100 });
+          const mine = comments.find((c) => c.user?.type === 'Bot' && (c.body ?? '').startsWith(marker));
+          if (mine) await github.rest.issues.updateComment({ owner, repo, comment_id: mine.id, body });
+          else await github.rest.issues.createComment({ owner, repo, issue_number, body });
+
+    - name: Apply the verdict
+      if: inputs.fail-on-new-blocking == 'true' && steps.gate.outputs.verdict == 'fail'
+      shell: bash
+      env:
+        NEW_BLOCKING: ${{ steps.gate.outputs.new-blocking }}
+      run: |
+        echo "::error::${NEW_BLOCKING} new blocking architecture finding(s); see the job summary"
+        exit 1

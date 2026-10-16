@@ -3,11 +3,12 @@ import { SourceFile, SyntaxKind, Node } from 'ts-morph';
 import type { APGEdge, APGNode, FlowsToStats, ImportResolutionStats } from '../shared/types/apg.js';
 import type { ExtractorWarning } from '../shared/types/apg.js';
 import type { EdgeType } from '../shared/types/enums.js';
-import type { ExtractorOptions, NodeLookup } from './types.js';
+import type { ExtractorOptions, FileCheckpoint, NodeLookup } from './types.js';
 import { DEFAULT_OPTIONS, DI_DECORATORS, PRIMITIVE_TYPES } from './types.js';
 import { generateEdgeId, normalizeFilePath } from './id-generator.js';
 import { ImportEdgeMerger } from './import-edge-merger.js';
 import { deriveFlowsToEdges, emptyFlowsToTally } from './flows-to-deriver.js';
+import { deriveHoldsStateOfEdges } from './field-state.js';
 import { PackageNodeRegistry } from './package-node-factory.js';
 import { restrictToGraphMode } from './graph-mode.js';
 import { extractModuleWiringEdges } from './nest-module-extractor.js';
@@ -50,6 +51,7 @@ export function extractEdges(
   lookup: NodeLookup,
   projectRoot: string,
   options: ExtractorOptions = {},
+  checkpoint?: FileCheckpoint,
 ): EdgeExtractionResult {
   const opts = { ...DEFAULT_OPTIONS, ...options };
   const edgeSet = new Map<string, APGEdge>(); // key=(type+sourceId+targetId) for dedup, non-import types only
@@ -74,7 +76,9 @@ export function extractEdges(
   const importCtx = buildImportResolutionContext(project, lookup, projectRoot, opts, addWarning, packages);
   const merger = new ImportEdgeMerger();
 
+  let done = 0;
   for (const sf of sourceFiles) {
+    if (checkpoint !== undefined) checkpoint(done++, sourceFiles.length);
     const filePath = normalizeFilePath(sf.getFilePath(), projectRoot);
     const fileNodeId = lookup.fileNodes.get(filePath);
     if (!fileNodeId) continue;
@@ -253,6 +257,11 @@ export function extractEdges(
 
       // FLOWS_TO (Class → Class | Interface), D8 scope (FR-21; BR-U2-27..29)
       for (const edge of deriveFlowsToEdges(cls, clsNodeId, lookup, projectRoot, addWarning, flowsTo)) addEdge(edge);
+
+      // v1.3 `fieldState` (OFF in the v1.2E and v1.3 defaults): HOLDS_STATE_OF (Class → Class | Interface).
+      if (opts.fieldState) {
+        for (const edge of deriveHoldsStateOfEdges(cls, clsNodeId, lookup, projectRoot)) addEdge(edge);
+      }
 
       // CALLS (cross-boundary Method → Method)
       for (const method of cls.getMethods()) {

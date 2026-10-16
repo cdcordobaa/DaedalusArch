@@ -9,18 +9,27 @@
  * is not compared, and a fragment must hold a value comparison or numeric arithmetic (`densityOf`): a rule, not a
  * bare existence check (`if (!x) throw …`), whose Type-2 shape every component shares.
  *
+ * Guard units (`CheapOptions.cloneGuardUnits`, `guards.ts`): a top-level `if (…) throw …` of a method, accessor,
+ * constructor or top-level function body that is not already a fragment unit, keyed on its normalised condition, thrown
+ * error type and message template, with no token minimum; trivial null checks on parameters are excluded (the rule is
+ * written in `guards.ts`). Guard units pair only with guard units, on an equal key (clone type `guard`).
+ *
  * Emits SAME_LOGIC_AS between the enclosing Method / Function nodes, with the similarity, the clone type and whether
- * the two ends lie in different components; flags the cross-component pairs.
+ * the two ends lie in different components; flags the cross-component pairs (`cross-component-<type>`), and, with
+ * `CheapOptions.cloneSameComponentFlags`, the same-component pairs as a separate advisory kind
+ * (`same-component-<type>`): a copy inside one component is still a duplicated rule, but the component boundary is
+ * the stronger signal, so a consumer can weigh the two kinds apart.
  */
 import { createHash } from 'node:crypto';
 import { Node, SyntaxKind, ts } from 'ts-morph';
 import type { CheapContext } from './context.js';
 import { classesOf } from './context.js';
 import { densityOf, topLevelFunctions } from './behaviour.js';
+import { guardKey, guardShape, isTrivialParamNullCheck } from './guards.js';
 import type { CheapEdge, CheapFlag, CheapProxyOutput, Evidence } from './types.js';
 
 interface CloneUnit {
-  readonly granularity: 'body' | 'fragment';
+  readonly granularity: 'body' | 'fragment' | 'guard';
   readonly file: string;
   readonly component: string;
   readonly className: string | undefined;
@@ -77,15 +86,17 @@ export function jaccard(a: ReadonlySet<string>, b: ReadonlySet<string>): number 
   return inter / (a.size + b.size - inter);
 }
 
-function collectUnits(ctx: CheapContext): CloneUnit[] {
-  const { cloneMinTokens, cloneMinBodyTokens, shingleSize } = ctx.options;
+function collectUnits(ctx: CheapContext): { units: CloneUnit[]; excludedGuards: number } {
+  const { cloneMinTokens, cloneMinBodyTokens, shingleSize, cloneGuardUnits } = ctx.options;
   const units: CloneUnit[] = [];
-  const add = (granularity: CloneUnit['granularity'], file: string, node: Node, className: string | undefined, methodName: string, nodeId: string | undefined): void => {
+  let excludedGuards = 0;
+  /** True when a unit was added. */
+  const add = (granularity: Exclude<CloneUnit['granularity'], 'guard'>, file: string, node: Node, className: string | undefined, methodName: string, nodeId: string | undefined): boolean => {
     const tokens = normalisedTokens(node);
-    if (tokens.length < (granularity === 'body' ? Math.max(cloneMinTokens, cloneMinBodyTokens) : cloneMinTokens)) return;
+    if (tokens.length < (granularity === 'body' ? Math.max(cloneMinTokens, cloneMinBodyTokens) : cloneMinTokens)) return false;
     if (granularity === 'fragment') {
       const d = densityOf(node);
-      if (d.comparisons + d.arithmetic === 0) return;
+      if (d.comparisons + d.arithmetic === 0) return false;
     }
     units.push({
       granularity, file, component: ctx.info(file).component, className, methodName, nodeId,
@@ -93,11 +104,32 @@ function collectUnits(ctx: CheapContext): CloneUnit[] {
       hash: createHash('sha1').update(tokens.join(' ')).digest('hex'),
       shingles: shinglesOf(tokens, shingleSize),
     });
+    return true;
   };
-  const addBody = (file: string, body: Node | undefined, className: string | undefined, methodName: string, nodeId: string | undefined): void => {
+  const addGuard = (file: string, st: Node, className: string | undefined, methodName: string, nodeId: string | undefined): void => {
+    if (!Node.isIfStatement(st)) return;
+    const shape = guardShape(st);
+    if (shape === undefined) return;
+    if (isTrivialParamNullCheck(st)) {
+      excludedGuards++;
+      return;
+    }
+    const key = guardKey(shape);
+    units.push({
+      granularity: 'guard', file, component: ctx.info(file).component, className, methodName, nodeId,
+      evidence: ctx.evidence(st), tokens: [key],
+      hash: createHash('sha1').update(key).digest('hex'),
+      shingles: new Set([key]),
+    });
+  };
+  const addBody = (file: string, body: Node | undefined, className: string | undefined, methodName: string, nodeId: string | undefined, bodyUnits = true): void => {
     if (body === undefined) return;
-    add('body', file, body, className, methodName, nodeId);
-    if (Node.isBlock(body)) for (const st of body.getStatements()) if (COMPOUND.has(st.getKind())) add('fragment', file, st, className, methodName, nodeId);
+    if (bodyUnits) add('body', file, body, className, methodName, nodeId);
+    if (!Node.isBlock(body)) return;
+    for (const st of body.getStatements()) {
+      const fragment = bodyUnits && COMPOUND.has(st.getKind()) && add('fragment', file, st, className, methodName, nodeId);
+      if (cloneGuardUnits && !fragment) addGuard(file, st, className, methodName, nodeId);
+    }
   };
   for (const { file, sf } of ctx.sources) {
     for (const cls of classesOf(sf)) {
@@ -105,10 +137,12 @@ function collectUnits(ctx: CheapContext): CloneUnit[] {
       for (const m of [...cls.getMethods(), ...cls.getGetAccessors(), ...cls.getSetAccessors()]) {
         addBody(file, m.getBody(), cn, m.getName(), ctx.nodeId('Method', file, `${cn}.${m.getName()}`));
       }
+      // Constructors hold invariant guards; they give guard units only (the body and fragment units are unchanged).
+      if (cloneGuardUnits) for (const c of cls.getConstructors()) addBody(file, c.getBody(), cn, 'constructor', undefined, false);
     }
     for (const f of topLevelFunctions(sf)) addBody(file, f.body, undefined, f.name, ctx.nodeId('Function', file, f.name));
   }
-  return units;
+  return { units, excludedGuards };
 }
 
 function contains(a: Evidence, b: Evidence): boolean {
@@ -116,12 +150,15 @@ function contains(a: Evidence, b: Evidence): boolean {
 }
 
 export function runClones(ctx: CheapContext): CheapProxyOutput {
-  const units = collectUnits(ctx);
+  const { units, excludedGuards } = collectUnits(ctx);
   const edges: CheapEdge[] = [];
   const flags: CheapFlag[] = [];
   const t = ctx.options.nearCloneThreshold;
   let exact = 0;
   let near = 0;
+  let guardPairs = 0;
+  let crossPairs = 0;
+  let samePairs = 0;
   for (let i = 0; i < units.length; i++) {
     const a = units[i];
     if (a === undefined) continue;
@@ -132,10 +169,12 @@ export function runClones(ctx: CheapContext): CheapProxyOutput {
       if (contains(a.evidence, b.evidence) || contains(b.evidence, a.evidence)) continue;
       const ratio = Math.min(a.shingles.size, b.shingles.size) / Math.max(a.shingles.size, b.shingles.size);
       if (a.hash !== b.hash && ratio < t) continue;
+      if (a.granularity === 'guard' && a.hash !== b.hash) continue;
       const sim = a.hash === b.hash ? 1 : jaccard(a.shingles, b.shingles);
       if (sim < t) continue;
-      const cloneType = a.hash === b.hash ? 'exact-structural' : 'near';
-      if (cloneType === 'exact-structural') exact++;
+      const cloneType = a.granularity === 'guard' ? 'guard' : a.hash === b.hash ? 'exact-structural' : 'near';
+      if (cloneType === 'guard') guardPairs++;
+      else if (cloneType === 'exact-structural') exact++;
       else near++;
       const crossComponent = a.component !== b.component;
       if (a.nodeId !== undefined && b.nodeId !== undefined) {
@@ -145,10 +184,13 @@ export function runClones(ctx: CheapContext): CheapProxyOutput {
           properties: { similarity: sim, cloneType, granularity: a.granularity, tokens: Math.min(a.tokens.length, b.tokens.length), crossComponent, components: [a.component, b.component] },
         });
       }
-      if (crossComponent) {
+      if (crossComponent) crossPairs++;
+      else samePairs++;
+      if (crossComponent || ctx.options.cloneSameComponentFlags) {
+        const scope = crossComponent ? 'cross-component' : 'same-component';
         for (const [x, y] of [[a, b], [b, a]] as const) {
           flags.push({
-            proxy: 'clones', kind: `cross-component-${cloneType}`, score: sim, evidence: x.evidence,
+            proxy: 'clones', kind: `${scope}-${cloneType}`, score: sim, evidence: x.evidence,
             ...(x.className !== undefined ? { className: x.className } : {}), methodName: x.methodName,
             message: `${a.granularity} clone (${cloneType}, similarity ${sim.toFixed(2)}) of ${y.className ?? ''}${y.className !== undefined ? '.' : ''}${y.methodName} in component ${y.component}`,
             related: { ...y.evidence, ...(y.className !== undefined ? { className: y.className } : {}), methodName: y.methodName },
@@ -157,5 +199,10 @@ export function runClones(ctx: CheapContext): CheapProxyOutput {
       }
     }
   }
-  return { edges, nodeFacts: [], flags, summary: { units: units.length, exactPairs: exact, nearPairs: near, crossComponentPairs: flags.length / 2 } };
+  const summary: Record<string, unknown> = { units: units.length, exactPairs: exact, nearPairs: near, crossComponentPairs: crossPairs };
+  if (ctx.options.cloneGuardUnits) {
+    Object.assign(summary, { guardUnits: units.filter((u) => u.granularity === 'guard').length, excludedTrivialGuards: excludedGuards, guardPairs });
+  }
+  if (ctx.options.cloneSameComponentFlags) summary.sameComponentPairs = samePairs;
+  return { edges, nodeFacts: [], flags, summary };
 }

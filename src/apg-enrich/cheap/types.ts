@@ -21,10 +21,53 @@ export const PROXY_IDS = [
   'communities',
   'doc-text',
 ] as const;
-export type ProxyId = (typeof PROXY_IDS)[number];
+export type Batch1ProxyId = (typeof PROXY_IDS)[number];
+
+/**
+ * Batch 2 (`Docs/v1.3/cheap-semantics-design.md`, "Batch 2"): six per-project proxies run by `enrichCheap`. Agent
+ * provenance (`provenance.ts`) is a multi-snapshot analysis with its own entry point (`analyseProvenance`); its facts
+ * carry the proxy id `agent-provenance`.
+ */
+export const BATCH2_PROXY_IDS = [
+  'error-flow',
+  'reachability',
+  'sdk-spread',
+  'test-topology',
+  'config-surface',
+  'co-change',
+] as const;
+export type Batch2ProxyId = (typeof BATCH2_PROXY_IDS)[number];
+
+/** Every proxy `enrichCheap` can run. */
+export const CONTEXT_PROXY_IDS: readonly ContextProxyId[] = Object.freeze([...PROXY_IDS, ...BATCH2_PROXY_IDS]);
+export type ContextProxyId = Batch1ProxyId | Batch2ProxyId;
+export type ProxyId = ContextProxyId | 'agent-provenance';
 
 /** Edge types the proxies add. They are not APG edge types and are never written to the frozen schema. */
-export type CheapEdgeType = 'SAME_LOGIC_AS' | 'SHARES_LITERAL';
+export type CheapEdgeType =
+  | 'SAME_LOGIC_AS'
+  | 'SHARES_LITERAL'
+  | 'THROWS'
+  | 'CATCHES'
+  | 'REACHES'
+  | 'TESTS'
+  | 'READS_ENV'
+  | 'CO_CHANGES_WITH'
+  | 'CREATED_AT_STEP'
+  | 'MODIFIED_AT_STEP'
+  | 'REIMPLEMENTS';
+
+/**
+ * A node the proxies add that has no APG node: an error type declared in a package, an entry point, an environment
+ * key, a test file (test files are excluded from extraction) or a loop step. Ids are namespaced (`error:`, `entry:`,
+ * `env:`, `test:`, `step:`) so they never collide with the 16-hex APG ids.
+ */
+export interface CheapVirtualNode {
+  readonly id: string;
+  readonly kind: 'ErrorType' | 'EntryPoint' | 'EnvKey' | 'TestFile' | 'Step';
+  readonly name: string;
+  readonly properties: Readonly<Record<string, unknown>>;
+}
 
 /** A source location: project-relative POSIX path and a 1-based inclusive line span. */
 export interface Evidence {
@@ -75,12 +118,15 @@ export interface CheapProxyOutput {
   readonly flags: CheapFlag[];
   /** Proxy-level summary numbers (counts, ARI, per-role aggregates). */
   readonly summary: Record<string, unknown>;
+  /** Batch 2: nodes without an APG node that the edges point at. */
+  readonly virtualNodes?: CheapVirtualNode[];
 }
 
 export interface CheapEnrichment {
   readonly edges: readonly CheapEdge[];
   readonly nodeFacts: readonly CheapNodeFact[];
   readonly flags: readonly CheapFlag[];
+  readonly virtualNodes: readonly CheapVirtualNode[];
   readonly summaries: Readonly<Partial<Record<ProxyId, Record<string, unknown>>>>;
   /** Wall-clock milliseconds per proxy (context build under `context`). */
   readonly timingsMs: Readonly<Record<string, number>>;
@@ -92,6 +138,13 @@ export interface CheapOptions {
   readonly cloneMinTokens: number;
   /** Minimum normalised token count of a whole-body clone unit (CCFinder's default minimum, Kamiya et al. 2002). */
   readonly cloneMinBodyTokens: number;
+  /**
+   * Guard-normalised clone units (`guards.ts`): short `if (…) throw …` guards keyed on condition, error type and message
+   * template, trivial parameter null checks excluded. Off reproduces the proxy before the v1.3 cheap-fix change.
+   */
+  readonly cloneGuardUnits: boolean;
+  /** Flag same-component clone pairs as `same-component-<type>` (advisory kind). Off: only cross-component pairs flag. */
+  readonly cloneSameComponentFlags: boolean;
   /** Token-shingle Jaccard at or above which two units are near-clones. */
   readonly nearCloneThreshold: number;
   /** Shingle width in tokens. */
@@ -110,13 +163,34 @@ export interface CheapOptions {
   readonly vocabularyLeakThreshold: number;
   /** Louvain resolution parameter. */
   readonly louvainResolution: number;
-  /** Proxies to run (default: all). */
-  readonly proxies: readonly ProxyId[];
+  /**
+   * Communities: also link files by the literal view's RE_EXPORTS edges (barrel to re-exported file), so a file reached
+   * only through a barrel is joined to its importers (R14, post-merge review 2026-10-16). Opt-in: off reproduces the
+   * committed outputs; absent from the defaults so the options object is unchanged.
+   */
+  readonly communityReExports?: boolean;
+  /** Batch 2, config surface: an env key read in MORE than this many components is flagged. */
+  readonly envSharedComponents: number;
+  /** Batch 2, co-change: minimum number of commits a file pair changed together in (support). */
+  readonly coChangeMinSupport: number;
+  /** Batch 2, co-change: minimum max(confidence(a→b), confidence(b→a)) of a pair to count as coupled. */
+  readonly coChangeMinConfidence: number;
+  /** Batch 2, co-change: commits touching more files than this are ignored (Zimmermann et al. 2005 drop such transactions). */
+  readonly coChangeMaxFilesPerCommit: number;
+  /**
+   * Batch 2, co-change: which history to read. `own` = a `.git` at the project root only; `enclosing` = the repository
+   * that contains the project root, restricted to the project directory (the reference fixtures live inside this repo).
+   */
+  readonly coChangeHistory: 'own' | 'enclosing';
+  /** Proxies to run (default: the ten batch-1 proxies; batch 2 is selected explicitly, `BATCH2_PROXY_IDS`). */
+  readonly proxies: readonly ContextProxyId[];
 }
 
 export const DEFAULT_CHEAP_OPTIONS: Readonly<CheapOptions> = Object.freeze({
   cloneMinTokens: 12,
   cloneMinBodyTokens: 30,
+  cloneGuardUnits: true,
+  cloneSameComponentFlags: true,
   nearCloneThreshold: 0.8,
   shingleSize: 3,
   literalMinLength: 4,
@@ -126,6 +200,11 @@ export const DEFAULT_CHEAP_OPTIONS: Readonly<CheapOptions> = Object.freeze({
   vocabularyTopK: 10,
   vocabularyLeakThreshold: 0.5,
   louvainResolution: 1,
+  envSharedComponents: 2,
+  coChangeMinSupport: 3,
+  coChangeMinConfidence: 0.5,
+  coChangeMaxFilesPerCommit: 30,
+  coChangeHistory: 'own',
   proxies: PROXY_IDS,
 });
 

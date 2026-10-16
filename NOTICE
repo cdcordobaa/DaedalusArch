@@ -1,0 +1,41 @@
+daedalus-arch
+Copyright (c) 2026 cdcordobaa
+Licensed under the MIT License (see LICENSE), except for the third-party
+material listed below, which keeps its own licence.
+
+-------------------------------------------------------------------------------
+Third-party material under the Apache License, Version 2.0
+-------------------------------------------------------------------------------
+
+1. Neo4j Cypher 25 grammar (generated parser)
+
+   Files:   src/cypher-interp/generated/Cypher25Lexer.ts
+            src/cypher-interp/generated/Cypher25Parser.ts
+   Source:  Cypher25Lexer.g4 and Cypher25Parser.g4 from the npm package
+            @neo4j-cypher/language-support 2.0.0-next.38
+            (https://github.com/neo4j/cypher-language-support)
+   Owner:   Copyright (c) "Neo4j", Neo4j Sweden AB [https://neo4j.com]
+   Licence: Apache License, Version 2.0 (full text: licenses/Apache-2.0.txt,
+            also http://www.apache.org/licenses/LICENSE-2.0)
+
+   The two files are generated from the grammar by antlr-ng 1.0.10 with
+   scripts/v1.3/gen-cypher-parser.sh. Modifications: the grammar's one Java
+   lexer action (RCURLY: `if (!_modeStack.isEmpty()) popMode();`) is replaced
+   by its TypeScript form (`if (this.modeStack.length > 0) this.popMode();`),
+   as upstream's own CypherCmdLexer.g4 does; lint/type-check suppression
+   comments are added. Each file carries the grammar's original copyright and
+   licence header verbatim.
+
+   The grammar is pinned to a prerelease because the package has never
+   published a non-prerelease version: its `latest` dist-tag (2.0.0-next.6,
+   2024) ships only the older Cypher 5 grammar and does not export the grammar
+   files. See scripts/v1.3/gen-cypher-parser.sh and
+   Docs/v1.3/cypher-interpreter.md section 2.1.
+
+   The upstream package ships no NOTICE file of its own.
+
+-------------------------------------------------------------------------------
+Runtime dependencies (not vendored; installed from npm under their own licence)
+-------------------------------------------------------------------------------
+
+   antlr4ng 3.0.16 (BSD-3-Clause), the ANTLR runtime the generated parser uses.

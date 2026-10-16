@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "v30-domain-error-extends-nestjs-http-exception",
+  "kind": "violation",
+  "plants": "FF-P01",
+  "description": "DomainError (domain/errors) now extends HttpException from @nestjs/common, with status 409.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P01",
+      "ruleName": "domain-purity",
+      "file": "src/domain/errors/DomainError.ts",
+      "target": "@nestjs/common",
+      "reason": "The domain imports the web framework @nestjs/common (its error base class)."
+    }
+  ]
+}

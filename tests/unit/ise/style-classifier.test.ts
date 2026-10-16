@@ -1,5 +1,5 @@
 import { boundedContexts, classifyStyle, scoreStyles, styleFeatures } from '../../../src/ise/style-classifier.js';
-import { cleanShaped, graph, layeredShaped } from './helpers.js';
+import { cleanShaped, dddShaped, graph, hexShaped, layeredShaped } from './helpers.js';
 
 describe('ISE style classifier', () => {
   it('classifies a clean-architecture-shaped project from its directory tokens and dependency inversion', () => {
@@ -54,5 +54,28 @@ describe('ISE style classifier', () => {
     const f = styleFeatures(graph({ files: ['src/a.ts'] }));
     const ranked = scoreStyles(f);
     expect(ranked.every((r) => r.points === 0 && r.confidence === 0.2)).toBe(true);
+  });
+
+  it('classifies hexagonal from structure alone: a structural container split into inbound and outbound adapters', () => {
+    const c = classifyStyle(hexShaped('plugins', 'entry', 'exit'));
+    expect(c.best).toBe('hexagonal');
+    expect(c.features.inboundAdapters).toEqual(['src/plugins/entry/']);
+    expect(c.features.outboundAdapters).toEqual(['src/plugins/exit/']);
+    expect(c.features.drivingPorts).toBe(1);
+    expect(c.ranked[0]?.evidence.join(' ')).toMatch(/separate inbound .* and outbound .* adapter units/);
+  });
+
+  it('keeps a clean-architecture project (one outer ring holding the entry file) out of hexagonal', () => {
+    for (const g of [cleanShaped(), cleanShaped('kernel', 'orchestration', 'platform')]) {
+      const c = classifyStyle(g);
+      expect(c.best).toBe('clean-architecture');
+      expect(c.features.inboundAdapters.length * c.features.outboundAdapters.length).toBe(0);
+    }
+  });
+
+  it('classifies DDD from repeated internal layering when the layer folders are renamed', () => {
+    const c = classifyStyle(dddShaped('kernel', 'orchestration', 'platform'));
+    expect(c.best).toBe('ddd');
+    expect(c.features.contexts).toEqual(['src/billing/', 'src/ordering/']);
   });
 });

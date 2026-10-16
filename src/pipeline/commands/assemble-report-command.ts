@@ -10,6 +10,8 @@ import { validateReport } from '../../scoring-engine/report-schema-validator.js'
 import { scrubDeepWithPolicy } from '../../shared/errors/scrub.js';
 import type { ScrubPolicy } from '../../shared/errors/scrub.js';
 import type { CompileFactsHolder } from './compile-command.js';
+import { filterReportAdvisory } from '../../advisory-filter/report.js';
+import type { AdvisoryFilterOption, ProjectView } from '../../advisory-filter/advisory-filter.js';
 
 export interface AssembleReportConfig {
   readonly mode: EvaluationMode;
@@ -23,6 +25,14 @@ export interface AssembleReportConfig {
   readonly judge?: JudgeProvenance;
   /** U4 `toNeuralResultRows`; absent until U4 merges, so full / neuronal-only fail closed (BR-U3-65, D-U3-11). */
   readonly neuralRows?: (context: FirewallContext) => readonly NeuralResultRow[];
+  /**
+   * Advisory post-filters (proposal, off by default; Docs/DiagnosticRuns/v1.3-advisory-noise-2026-10-16.md). Absent or
+   * empty: the report is the one built, unchanged.
+   */
+  readonly advisoryFilter?: {
+    readonly options: readonly AdvisoryFilterOption[];
+    readonly view: (context: FirewallContext) => ProjectView;
+  };
 }
 
 /**
@@ -80,7 +90,11 @@ export class AssembleReportCommand implements PipelineCommand {
 
     // NFR-05: the whole report is scrubbed before validation (BR-U3-58), then validated fail-closed:
     // only a report that matches the frozen schema is written (BR-U3-59).
-    const valid = validateReport(scrubDeepWithPolicy(built.data, this.config.scrubPolicy));
+    const filter = this.config.advisoryFilter;
+    const report = filter !== undefined && filter.options.length > 0
+      ? filterReportAdvisory(built.data, filter.options, filter.view(context))
+      : built.data;
+    const valid = validateReport(scrubDeepWithPolicy(report, this.config.scrubPolicy));
     if (!valid.success) return DomainResult.fail<undefined>(valid.errors);
 
     context.setReport(valid.data);

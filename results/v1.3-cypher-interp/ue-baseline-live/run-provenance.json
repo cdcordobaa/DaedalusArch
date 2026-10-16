@@ -1,0 +1,472 @@
+{
+ "unit": "v1.3 spike: in-process Cypher interpreter (Docs/v1.3/cypher-interpreter.md). The reference-set live run with --engine cypher-interp, compared with results/v1.3-reference/after-member-facts (Neo4j). Development-set check of engine equivalence, not a validity estimate; nothing tuned",
+ "branch": "v1.3-interp-review-fixes at eb86da35: the review fixes merged with origin/v1.3 9768def4 (includes #183 interp-fuzz and the reconciled CALL { } from v1.3-npx), the cheap2 templates and the FF-P05 signature-types rewrite",
+ "previous": {
+  "branch": "v1.3-cypher-interp from origin/v1.3 dc1a1c4a (no I2 memory-engine branch or PR exists; see the design doc §1)",
+  "wall": {
+   "neo4j": "3m26.8s (CLI per variant: median 2710 ms)",
+   "cypher-interp": "2m49.9s (run2; CLI per variant: median about 2330 ms)"
+  },
+  "note": "the spike committed only this provenance file; the outputs below are committed by the review-fix branch"
+ },
+ "command": "env -u NEO4J_URI -u NEO4J_USER -u NEO4J_PASSWORD node --import tsx scripts/v1.3/ue-baseline-live.ts --engine cypher-interp --keep-cli --out results/v1.3-cypher-interp/ue-baseline-live  (no Neo4j variable set: no server, no credentials, no lock)",
+ "control": "node --import tsx scripts/v1.3/ue-baseline-live.ts --keep-cli --out results/v1.3-cypher-interp/neo4j-control, against Neo4j 5.26.24 Community + APOC 5.26.24 core (tarball plus labs/apoc-5.26.24-core.jar in plugins/, bolt 127.0.0.1:7687, credentials generated into a 0600 env file, never printed)",
+ "comparison": "node --import tsx scripts/v1.3/cypher-interp-compare-runs.ts --neo4j results/v1.3-cypher-interp/neo4j-control --interp results/v1.3-cypher-interp/ue-baseline-live --out results/v1.3-cypher-interp/ue-baseline-live  (engine-comparison.md / .json)",
+ "committed": {
+  "raw/": "71 tool outputs (findings), replayable with --from-raw",
+  "evidence/": "71 full violation lists (elapsedMs is run-specific)",
+  "cli/": "71 whole CLI JSON results, run-volatile fields removed",
+  "report.json, report.md": "the reference comparison"
+ },
+ "wall": {
+  "cypher-interp": "3m46.6s",
+  "neo4j-control": "4m15.2s"
+ },
+ "result": {
+  "files": 73,
+  "identicalToReference": 73,
+  "identicalToNeo4jRerun": 73,
+  "evidenceViolationsIdentical": "71/71 (only elapsedMs differs)",
+  "cliResultIdentical": "71/71 whole result; AHS (ahsDeterministic, blockingAhs), verdicts, per-dimension scores, universal metrics, tiers, function results, graph stats, warnings each 71/71"
+ },
+ "files": [
+  {
+   "path": "raw/clean-architecture/clean.json",
+   "sha256": "0281f92f449efb74e39ae8b064eb77c25a8ebdc5cbbf36f17e91552e14b13c16",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/clean-architecture/n01-second-composition-root-for-tests.json",
+   "sha256": "379911057804ccd3c66c5e7132d9d59731258cf521eae839b4e1a791dee84997",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/clean-architecture/n02-report-writer-named-like-repo.json",
+   "sha256": "44be0588f6b9e7321a4e4956941a3ea5b28e6a596bf92532c3755ca2b8c470c8",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/clean-architecture/n03-controller-uses-dto-that-wraps-entity.json",
+   "sha256": "489b16f46c4967b8be1118b1f3f37f669cbb07f2096400a773b422766f51e783",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/clean-architecture/v01-domain-imports-application-port.json",
+   "sha256": "a7e2556e2e8023fd9d4133cc34bf991ee28631ae9ea24893b34d5d87e62f4871",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/clean-architecture/v02-domain-uses-infrastructure-clock.json",
+   "sha256": "6bc18a532ae7909b85c66b1215775bc298aa3f9bff886f3a3fe5e7518baf708c",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/clean-architecture/v03-domain-entity-cycle.json",
+   "sha256": "183506a93beb59781084c58beb733bbcba01d215a8ad16d79ef74f5fdd4c265b",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/clean-architecture/v04-domain-entity-typeorm-decorator.json",
+   "sha256": "da724d92110cf33d46464fbd23525cf4bc4f5e15b08e3852a5d2b2b12077ba49",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/clean-architecture/v05-use-case-injects-concrete-repository.json",
+   "sha256": "6319db8794a5646d596a6e4b6b1283f26eece6c6dddd0090e457e3ad86c4fdb8",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/clean-architecture/v06-repository-without-port.json",
+   "sha256": "05790351f953d013134ec16bcf4e04d951fc165d66ae1e7c3fa8c9a50006cf9e",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/clean-architecture/v07-controller-reads-entity.json",
+   "sha256": "ae2de35a58538c3b37c54960f4df7b968156a5462dc27fa04f6d85770d6ff1e0",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/clean-architecture/v08-domain-service-holds-infrastructure-clock.json",
+   "sha256": "ffb4462ca1d389dfe03618f7ac89149b0308788d6f2be13b8ec1a192fd67d804",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/clean-architecture/v09-dto-depends-on-http-adapter.json",
+   "sha256": "1a4a1af71d865ad47741388d465d08e5c214fec80f0555d16cc7a7c732b0b76d",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/clean-architecture/v10-domain-entity-type-imports-express.json",
+   "sha256": "0ff63d79d2ec0be7ca6f8a6688d426da9760890f9e0ffbf45a2186dd41c32429",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/ddd/clean.json",
+   "sha256": "31e5a2af04ba1ccabe0d0733089208c5de6a2a12dc70de59eaad9674ec035bd5",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/ddd/g01-value-object-setter-accessor.json",
+   "sha256": "8f8df98599540075ee6481fcbbd9b262786d67d791d9f08745f1876acd2f5424",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/ddd/g02-barrel-reexported-service.json",
+   "sha256": "e89778070e63874ee9817f05f557e75c7aa643316db7a3e4736186b909a53326",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/ddd/g03-deep-import-of-reexported-file.json",
+   "sha256": "7fb5b03a675f98a2726ea4da8d80d9efc9891b3eddc2ff33b541177c4d7863f6",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/ddd/n01-acl-internal-import.json",
+   "sha256": "a6dcdbf288411beeb98da048e882665fa2d91d79dd53103caa10a3a73c8ce74c",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/ddd/v01-aggregate-boundary.json",
+   "sha256": "48338bfb5da319ceb8b1dde4d43e073cc65e0815d1d5c3ca698239302e8fa27b",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/ddd/v02-repository-for-inner-entity.json",
+   "sha256": "71efaddcb9221be689e9cd2e6890031aeb1765fb89c2763eddaed4731675b29d",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/ddd/v03-mutable-value-object.json",
+   "sha256": "b9fc3ce31f5933c42518db3695a9ec36c9f3761c68e50ff0a4514726258622b3",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/ddd/v04-framework-in-domain.json",
+   "sha256": "84899c6f0eb2fd8c63caf2bda93743070298fcdde65aac8df49ebdd2bffedabb",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/ddd/v05-event-outside-domain.json",
+   "sha256": "b725c534b3dc5c3c2f507f6df1bbed8b5018de413758a2309ef9ba38ae4ceb0f",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/ddd/v06-fat-application-service.json",
+   "sha256": "1e84602a9eb3acc14d312bf7d1da342bee92739a3a7395e374d2143a64165916",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/ddd/v07-module-outside-context.json",
+   "sha256": "6a5f268fe3db45497da9d3cdd86905b156817806c672ed3d2e04e7929f7402fd",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/ddd/v08-cross-context-internal-import.json",
+   "sha256": "d18f40fab8e763e0a64dc90637fff03b9968a56be5b1036d03b1d32ba2f8c63a",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/ddd/v09-domain-imports-application.json",
+   "sha256": "47db3b62c9339ea2c1e4d29e60a72403e6aae5373efed940e15a8d28d529a99c",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/ddd/v10-api-imports-infrastructure.json",
+   "sha256": "6bbecb51ca77cc4f48eb9ffe004217ffe623da4d9178f001a4b0d071b6378ce4",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/hexagonal/clean.json",
+   "sha256": "3b71caff80a82446ad1a199203813de93ceb26f275404c9b0a56a10b8ec41898",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/hexagonal/n01-inbound-adapter-parses-domain-value.json",
+   "sha256": "0b14c786c10e531f772732524109491956691e3f23248406a2b6acae114f3aa3",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/hexagonal/n02-test-composition-root.json",
+   "sha256": "db3dccb66871d76b27c56614c600a65dc4d64a149347ebe95004e82ca04e6fd6",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/hexagonal/n03-gateway-named-helper.json",
+   "sha256": "63bd08e1a03bedd48f920ec377833dcb84a1f93f4c7134ff2ea88247781dfdc0",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/hexagonal/v01-domain-uses-outbound-adapter-constant.json",
+   "sha256": "8bc1cc235d105432977350e5b2c98457e127b9f74b04258d120f864568967528",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/hexagonal/v02-domain-entity-uses-driven-port.json",
+   "sha256": "5f5908e8bc92f80f7e796daf55c43a610a7dab253df2a72a56d91c71a676a539",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/hexagonal/v03-use-case-injects-concrete-adapter.json",
+   "sha256": "585716997a5667b1289449d852801b715572b88d2b361326742179a2f117d206",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/hexagonal/v04-use-case-throws-http-error.json",
+   "sha256": "edb00f3aaf8d473c2c8e264a4ea45e3536412b5017758289924979be6b7e47ff",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/hexagonal/v05-inbound-adapter-reads-outbound-adapter.json",
+   "sha256": "924ce5e52f0a98592a413755f830b03c4b31f596d33c12577b8c0881d60217a6",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/hexagonal/v06-outbound-adapter-uses-cli-formatter.json",
+   "sha256": "f02ebec808e79b7027cd83594126200b2eae15fa600203868264b0f7c08c32b7",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/hexagonal/v07-domain-service-nestjs-decorator.json",
+   "sha256": "a1b15b003308ac7cc39778b34d96c62d4b79251cf143ece4e85b3817d57fd608",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/hexagonal/v08-adapter-without-port.json",
+   "sha256": "e8c8067bc80918d913eb85afe9debab78533e577a30874e77455bc7c18a6a97f",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/hexagonal/v09-adapter-implements-local-interface.json",
+   "sha256": "93c611458e62e703f4461b26a4a2721473aedb4330f6fbadad0ef9425ae3b9eb",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/hexagonal/v10-domain-service-holds-adapter.json",
+   "sha256": "89e85b5fa2d409c5f23bc790c2b5a2ff26cc3d9aac1f167f9f97084901ac3cd1",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/hexagonal/v11-domain-model-cycle.json",
+   "sha256": "72380f0e1063110b5c85e12fec14776cb94478b232085cbe5bf16c333dc2e6a9",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/layered/clean.json",
+   "sha256": "e6d20d53f5c17ee02df23bb4328266c280ad841a6d30899540fc1f6df4bd326c",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/layered/n01-controller-parses-money.json",
+   "sha256": "5fac46c1bfe5d4a20fc5acdcd96066d0f71eb1c0eb6d41a2cfd0471b4eafeb3e",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/layered/n02-reporting-service-reads-database.json",
+   "sha256": "30c93979f2f285995e517b231008479d4ec1ed8b4f953e7797709e8b5c35ce57",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/layered/n03-views-import-model-barrel.json",
+   "sha256": "af03895eb4eb44dfad5422e8c6d8ffa9b3efb33c5fc911d8a69aa9384bc49fcf",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/layered/v01-gateway-returns-business-money.json",
+   "sha256": "e90a7813ea7d57bcd10b81507c60a5666e4f841d34e4bea6bbfa3470da926f0d",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/layered/v02-service-renders-view.json",
+   "sha256": "2c7959d71147ca0b60ccbe294eb5bebd4f3440bcbdf84ceb16e0dbbb15026b99",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/layered/v03-controller-reads-gateway.json",
+   "sha256": "1caf7bd6a2d33f17efbbc658e358371bc6862a9582812d11b6626c6ec40653f7",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/layered/v04-view-types-persistence-record.json",
+   "sha256": "aa81089132cdc0d223d5d64c56b212f651b98f333a648b761b535df01a477f33",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/layered/v05-business-model-cycle.json",
+   "sha256": "2d9f176a2f736281a2482894ee830173cce764cab18afa610198f5508245f9e9",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/layered/v06-router-controller-cycle.json",
+   "sha256": "7a3a459c08fcc185e8c34c17bd0b9f5c627cd487bbe8033a816bfef230a6e2f9",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/layered/v07-business-model-typeorm-decorator.json",
+   "sha256": "a178d7913004b73adede929f31375e31d52edf4af7f02008d32fa937bbc7be3e",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/layered/v08-business-service-takes-express-request.json",
+   "sha256": "29c7ce0282db62d9fd98bbbe753a0e16fff38fcd633e1090b33847e0a34e8bbe",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/layered/v09-presentation-root-builds-database.json",
+   "sha256": "ec1b50369c2d9b7af3bf751a60beda06bc9ce9acdd9c57f7c93d48ed90010135",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/nestjs/clean.json",
+   "sha256": "cd22d232abebba6a4f17ce24c070019e549502412b025f5cbb1166e1d5733ccc",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/nestjs/n01-controller-catches-domain-error.json",
+   "sha256": "cabd91b1aa8bef3798c02fe15fb604a8d2b6c27aec9e39cf09e1e57dec6bc528",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/nestjs/n02-domain-port-named-dot-repository.json",
+   "sha256": "acc2ca0244c7c29b15866b8965d6b9987027fb56d5c6f0849529c49108e76346",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/nestjs/n03-service-injects-sibling-service.json",
+   "sha256": "d720250eedfb845f777c8d07c5e52fbd8241b43ee0cc7f3e6566e4bcf120ba68",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/nestjs/v01-domain-entity-imports-dto.json",
+   "sha256": "ea1dc49c7ef587ef12fcb4c74caacc00c82364c89230fa924f9f79c811b7b50e",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/nestjs/v02-repository-builds-response-dto.json",
+   "sha256": "4df30f6b2e6a3128082533ab92513b95c4e0ee7d205018ca8824c5771cb68904",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/nestjs/v03-service-imports-guard.json",
+   "sha256": "be37e29da078b0e31f47652aec103f91fd6598cc580f6a13e3951c26f8277e6e",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/nestjs/v04-response-dto-cycle.json",
+   "sha256": "663630bf79cc48e5c28e15e79894755986cf169e252c9f3b82b3ccd276dcf1cf",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/nestjs/v05-domain-entity-typeorm-decorator.json",
+   "sha256": "82e63e106c22bf38d2e4b6bc6abc27a4dac568a672e102f588f8bffac44a1725",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/nestjs/v06-domain-entity-type-imports-express.json",
+   "sha256": "5a010357632ea3082d09b83fb673e152e5e0f083ebfecc81a0ff9936f0113884",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/nestjs/v07-service-injects-concrete-repository.json",
+   "sha256": "bf2eed134596691f66e4414b5210d4bcd865f0b574a998ad64bf3a4cb5655197",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/nestjs/v08-repository-without-port.json",
+   "sha256": "f846bdd8b1c81b79571978dce5de599cca8c598da5fe99ea6beb9b33a3611f2e",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/nestjs/v09-controller-returns-entity.json",
+   "sha256": "13f0c99067b14764ee3a0cd4ef98696ff0994e6b55eaa10f820bc16618b47cc8",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "raw/nestjs/v10-domain-policy-holds-repository.json",
+   "sha256": "526fc444952406b96c997cea372f3030128c16a72a8fdf1934f8b62718e6333d",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "report.json",
+   "sha256": "16999e9ff8491a2cdc1b5682bf273375bb2f8ca705f5020840150e27ed44795d",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  },
+  {
+   "path": "report.md",
+   "sha256": "687daba66a285ae7fa8f1ec6bc70a989373361ef71038b34ff0cbf49c1df8be9",
+   "identicalToReference": true,
+   "identicalToNeo4jRerun": true
+  }
+ ]
+}

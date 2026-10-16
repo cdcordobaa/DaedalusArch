@@ -1,0 +1,177 @@
+{
+ "clean-architecture|case-04|n02-report-writer-named-like-repo|near-miss|FF-P03|scored|src/infrastructure/http/CsvReportWriter.ts||finding|none|none": {
+  "proposed_verdict": "reference-correct",
+  "proposed_class": "tool-bug",
+  "evidence": "src/infrastructure/http/CsvReportWriter.ts:4 `export class CsvReportWriter {` - a CSV formatter that stores nothing and implements no port; repository-pattern selects it only because the name CONTAINS 'Repo' (Re-po-rt), TDC-2. Snapshot is barrels-only; after-fixes/after-member-facts evidence no longer reports FF-P03 here."
+ },
+ "clean-architecture|case-08|v01-domain-imports-application-port|violation|FF-S02|scored|src/application/ports/Clock.ts|src/domain/entities/Loan.ts|none|none|finding": {
+  "proposed_verdict": "tool-correct",
+  "proposed_class": "other",
+  "evidence": "src/domain/entities/Loan.ts:1 `import { Clock } from '../../application/ports/Clock';` - Clock.ts (lines 1-3, `export interface Clock {`) imports nothing, so there is no file cycle; only a layer-level cycle, whose single upward edge FF-S01/FF-S04 already report (construct-decisions Q4 A, P2)."
+ },
+ "clean-architecture|case-02|v06-repository-without-port|violation|FF-P02|scored|src/infrastructure/persistence/InMemoryLoanRepository.ts|src/domain/repositories/LoanRepository.ts|none|none|finding": {
+  "proposed_verdict": "tool-correct",
+  "proposed_class": "other",
+  "evidence": "src/infrastructure/persistence/InMemoryLoanRepository.ts:3 `export class InMemoryLoanRepository {` - missing `implements` is FF-P03's construct (reported); FF-P02 is a ratio over a consumer's injected types and this class injects nothing, no consumer changed (Q9 A)."
+ },
+ "clean-architecture|case-13|v07-controller-reads-entity|violation|FF-P05|scored|src/infrastructure/http/LoanController.ts|src/domain/entities/Loan.ts|none|finding|finding": {
+  "proposed_verdict": "reference-correct",
+  "proposed_class": "tool-bug",
+  "evidence": "src/infrastructure/http/LoanController.ts:18 `const loan: Loan | undefined = await this.loanRepository.findById(String(request.params['loanId']));` - controller reads and serialises the domain entity directly; controller-no-entity misses it only because it selects entities by name suffix (Entity/Aggregate/ValueObject) and `Loan` has none (TDC-1, Q23)."
+ },
+ "clean-architecture|case-13|v07-controller-reads-entity|violation|FF-P04|scored|src/infrastructure/http/LoanController.ts|src/domain/entities/Loan.ts|none|none|finding": {
+  "proposed_verdict": "tool-correct",
+  "proposed_class": "other",
+  "evidence": "src/infrastructure/http/LoanController.ts:14 `private readonly loanRepository: LoanRepository,` - FF-P04 constrains use cases (application layer) injecting non-domain/non-application deps; this is a controller injecting a domain interface, an inward bypass (Q24 A); the defect is FF-P05's."
+ },
+ "clean-architecture|case-13|v07-controller-reads-entity|violation|FF-S03|unscored|src/infrastructure/http/LoanController.ts|src/domain/entities/Loan.ts|none|none|finding": {
+  "proposed_verdict": "tool-correct",
+  "proposed_class": "other",
+  "evidence": "src/infrastructure/http/LoanController.ts:4 `import { Loan } from '../../domain/entities/Loan';` - skipping inward over the use-case circle is permitted in Clean; FF-S03 is a layered-only blocking construct and not applicable here (rule-tiers FF-S03 row, Q24 A)."
+ },
+ "clean-architecture|case-09|v09-dto-depends-on-http-adapter|violation|FF-S02|scored|src/application/dto/LoanDto.ts|src/infrastructure/http/HttpTypes.ts|none|none|finding": {
+  "proposed_verdict": "tool-correct",
+  "proposed_class": "other",
+  "evidence": "src/application/dto/LoanDto.ts:2 `import { HttpResponse, ok } from '../../infrastructure/http/HttpTypes';` - HttpTypes.ts imports nothing (line 1 `export interface HttpRequest {`), so no file cycle exists; the layer-level cycle adds nothing beyond the FF-S01 edge already reported (Q4 A)."
+ },
+ "nestjs|case-12|n03-service-injects-sibling-service|near-miss|FF-P02|scored|src/registrations/registrations.service.ts||finding|none|none": {
+  "proposed_verdict": "reference-correct",
+  "proposed_class": "other",
+  "evidence": "uncertain: src/registrations/registrations.service.ts:22 `private readonly workshopsService: WorkshopsService,` - injecting an exported sibling provider is standard NestJS (the style's source); by the notes' precedence rule the style definition beats FF-P02's literal ratio (0.75), though Martin's DIP is unscoped so the tool's literal reading is defensible (RDQ-3/Q22)."
+ },
+ "nestjs|case-09|v02-repository-builds-response-dto|violation|FF-SO01|unscored|src/workshops/in-memory-workshop.repository.ts|src/workshops/dto/workshop-response.dto.ts|none|none|finding": {
+  "proposed_verdict": "tool-correct",
+  "proposed_class": "other",
+  "evidence": "src/workshops/in-memory-workshop.repository.ts:18 `async findAllAsResponse(): Promise<WorkshopResponseDto[]> {` - FF-SO01 is a size proxy (methods > max or injected deps > max); this class has 4 methods and no constructor deps, so the proxy cannot fire; the leaked responsibility is captured by the agreed FF-S01 edge (unscored)."
+ },
+ "nestjs|case-11|v07-service-injects-concrete-repository|violation|FF-P04|scored|src/registrations/registrations.service.ts||finding|none|none": {
+  "proposed_verdict": "reference-correct",
+  "proposed_class": "other",
+  "evidence": "uncertain: src/registrations/registrations.service.ts:19 `private readonly registrations: InMemoryRegistrationRepository,` - the nestjs preset declares service->repository the normal flow (infrastructure below application), so use-case-isolation contradicts the declared layer order; the defect is DIP (FF-P02), RDQ-2/Q13 B. Advisory, rule-definition conflict rather than extraction fault."
+ },
+ "nestjs|case-11|v07-service-injects-concrete-repository|violation|FF-S01|scored|src/registrations/registrations.service.ts|src/registrations/in-memory-registration.repository.ts|none|none|finding": {
+  "proposed_verdict": "tool-correct",
+  "proposed_class": "other",
+  "evidence": "src/registrations/registrations.service.ts:9 `import { InMemoryRegistrationRepository } from './in-memory-registration.repository';` - presets/nestjs.yaml orders domain -> infrastructure -> application -> presentation and says services call repositories directly, so application->infrastructure is not an outward edge (Q13 A/B); the defect is FF-P02's."
+ },
+ "nestjs|case-11|v07-service-injects-concrete-repository|violation|FF-P03|scored|src/registrations/registrations.service.ts|src/registrations/in-memory-registration.repository.ts|none|none|finding": {
+  "proposed_verdict": "tool-correct",
+  "proposed_class": "other",
+  "evidence": "src/registrations/in-memory-registration.repository.ts:6 `export class InMemoryRegistrationRepository implements RegistrationRepository {` - the implementer still implements the domain port, which is FF-P03's construct; the consumer's concrete injection is owned by FF-P02 (Q7 A, P2)."
+ },
+ "nestjs|case-03|v08-repository-without-port|violation|FF-P02|scored|src/attendees/in-memory-attendee.repository.ts|src/domain/attendee-repository.ts|none|none|finding": {
+  "proposed_verdict": "tool-correct",
+  "proposed_class": "other",
+  "evidence": "src/attendees/in-memory-attendee.repository.ts:5 `export class InMemoryAttendeeRepository {` - the missing `implements` is FF-P03 (reported); FF-P02 measures a consumer's injected interface ratio and no consumer's constructor changed (Q9 A)."
+ },
+ "nestjs|case-01|v09-controller-returns-entity|violation|FF-P05|scored|src/workshops/workshops.controller.ts|src/domain/workshop.ts|none|finding|finding": {
+  "proposed_verdict": "reference-correct",
+  "proposed_class": "tool-bug",
+  "evidence": "src/workshops/workshops.controller.ts:22 `findOne(@Param('id') id: string): Promise<Workshop> {` - the controller imports (line 2) and returns the domain entity; controller-no-entity misses it because `Workshop` lacks an Entity/Aggregate/ValueObject suffix (TDC-1, Q23)."
+ },
+ "nestjs|case-01|v09-controller-returns-entity|violation|FF-S03|unscored|src/workshops/workshops.controller.ts|src/domain/workshop.ts|none|none|finding": {
+  "proposed_verdict": "tool-correct",
+  "proposed_class": "other",
+  "evidence": "src/workshops/workshops.controller.ts:2 `import { Workshop } from '../domain/workshop';` - presentation->domain is an inward edge; FF-S03 no-layer-skip is not applicable outside layered (rule-tiers), and the entity leak is FF-P05's (Q24 A)."
+ },
+ "nestjs|case-10|v10-domain-policy-holds-repository|violation|FF-P01|scored|src/domain/registration-policy.ts|src/registrations/in-memory-registration.repository.ts|none|none|finding": {
+  "proposed_verdict": "tool-correct",
+  "proposed_class": "other",
+  "evidence": "src/domain/registration-policy.ts:5 `import { InMemoryRegistrationRepository } from '../registrations/in-memory-registration.repository';` - the domain file imports no framework itself; `@nestjs/common` arrives only transitively (repository line 1 `import { Injectable } from '@nestjs/common';`), and the outward edge is already FF-S01/FF-S04/FF-P06 (Q20 A)."
+ },
+ "hexagonal|case-04|n01-inbound-adapter-parses-domain-value|near-miss|FF-S03|scored|src/adapters/inbound/http/RoomController.ts|src/domain/model/DateRange.ts|none|none|finding": {
+  "proposed_verdict": "tool-correct",
+  "proposed_class": "other",
+  "evidence": "src/adapters/inbound/http/RoomController.ts:3 `import { DateRange } from '../../../domain/model/DateRange';` - presets/hexagonal.yaml allows `adapters-inbound` -> [application, domain], so this is an allowed edge, not a sideways step; inward use of a domain value is not a port bypass finding (Q24 A)."
+ },
+ "hexagonal|case-06|n03-gateway-named-helper|near-miss|FF-P03|scored|src/adapters/outbound/payment/GatewayRetryPolicy.ts||finding|none|none": {
+  "proposed_verdict": "reference-correct",
+  "proposed_class": "tool-bug",
+  "evidence": "src/adapters/outbound/payment/GatewayRetryPolicy.ts:2 `export class GatewayRetryPolicy {` - a helper used by FakePaymentGateway (`private readonly retry = new GatewayRetryPolicy(3);`), not an adapter; port-adapter-pattern selects it only because the name CONTAINS 'Gateway' (TDC-3). Snapshot is barrels-only; later evidence no longer reports it."
+ },
+ "hexagonal|case-12|v03-use-case-injects-concrete-adapter|violation|FF-S04|scored|src/application/services/FindAvailableRoomsService.ts|src/adapters/outbound/persistence/InMemoryRoomRepository.ts|none|none|finding": {
+  "proposed_verdict": "both-acceptable",
+  "proposed_class": "other",
+  "evidence": "uncertain: src/application/services/FindAvailableRoomsService.ts:1 `import { InMemoryRoomRepository } from '../../adapters/outbound/persistence/InMemoryRoomRepository';` - core-isolation binds only `domain`; whether the hexagonal core includes application is open (Q6, recommended B), and the errata notes 'application core' is not Cockburn's wording; the edge is already FF-S01 (P2)."
+ },
+ "hexagonal|case-12|v03-use-case-injects-concrete-adapter|violation|FF-P03|scored|src/application/services/FindAvailableRoomsService.ts|src/adapters/outbound/persistence/InMemoryRoomRepository.ts|none|none|finding": {
+  "proposed_verdict": "tool-correct",
+  "proposed_class": "other",
+  "evidence": "src/application/services/FindAvailableRoomsService.ts:11 `private readonly rooms: InMemoryRoomRepository,` - port-adapter-pattern is about the implementer, and InMemoryRoomRepository still declares `implements RoomRepository`; the consumer's concrete dependency is owned by FF-S01/FF-P02 (Q7 A)."
+ },
+ "hexagonal|case-03|v04-use-case-throws-http-error|violation|FF-S04|scored|src/application/services/CancelBookingService.ts|src/adapters/inbound/http/HttpTypes.ts|none|none|finding": {
+  "proposed_verdict": "both-acceptable",
+  "proposed_class": "other",
+  "evidence": "uncertain: src/application/services/CancelBookingService.ts:1 `import { HttpError } from '../../adapters/inbound/http/HttpTypes';` - same open question as v03 (Q6): core-isolation binds domain only by design; under the 'application core' reading this is FF-S04 too, but FF-S01 already reports the edge (P2)."
+ },
+ "hexagonal|case-09|v05-inbound-adapter-reads-outbound-adapter|violation|FF-S03|scored|src/adapters/inbound/http/RoomController.ts|src/adapters/outbound/persistence/InMemoryRoomRepository.ts|finding|finding|none": {
+  "proposed_verdict": "both-acceptable",
+  "proposed_class": "other",
+  "evidence": "src/adapters/inbound/http/RoomController.ts:2 `import { InMemoryRoomRepository } from '../../outbound/persistence/InMemoryRoomRepository';` - a sideways adapter->adapter edge; the preset routes it to layer-skip-graph (advisory), but Q5 (recommended D or C) would move it to a blocking id and drop FF-S03 for it; rule-id assignment, not a code-reading dispute."
+ },
+ "hexagonal|case-09|v05-inbound-adapter-reads-outbound-adapter|violation|FF-S01|scored|src/adapters/inbound/http/RoomController.ts|src/adapters/outbound/persistence/InMemoryRoomRepository.ts|none|none|finding": {
+  "proposed_verdict": "both-acceptable",
+  "proposed_class": "other",
+  "evidence": "src/adapters/inbound/http/RoomController.ts:2 `import { InMemoryRoomRepository } from '../../outbound/persistence/InMemoryRoomRepository';` - dependency-direction-graph fires only when the reverse edge is allowed; neither direction is allowed here, so the preset files it under FF-S03; blind's blocking FF-S01 reading is Q5 option C, an open rule-id/tier choice (errata: adapter isolation is inferred from Cockburn)."
+ },
+ "hexagonal|case-09|v05-inbound-adapter-reads-outbound-adapter|violation|FF-P03|scored|src/adapters/inbound/http/RoomController.ts|src/adapters/outbound/persistence/InMemoryRoomRepository.ts|none|none|finding": {
+  "proposed_verdict": "tool-correct",
+  "proposed_class": "other",
+  "evidence": "src/adapters/inbound/http/RoomController.ts:8 `private readonly roomStore: InMemoryRoomRepository,` - a consumer of a concrete adapter; port-adapter-pattern checks implementers, and InMemoryRoomRepository still declares `implements RoomRepository` (Q7 A)."
+ },
+ "hexagonal|case-01|v06-outbound-adapter-uses-cli-formatter|violation|FF-S03|scored|src/adapters/outbound/notification/OutboxNotificationAdapter.ts|src/adapters/inbound/cli/BookingCli.ts|finding|finding|none": {
+  "proposed_verdict": "both-acceptable",
+  "proposed_class": "other",
+  "evidence": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts:3 `import { formatCliLine } from '../../inbound/cli/BookingCli';` - outbound->inbound adapter, a sideways edge the preset routes to layer-skip-graph (advisory); Q5 may move it to a blocking id and drop FF-S03 (rule-id assignment)."
+ },
+ "hexagonal|case-01|v06-outbound-adapter-uses-cli-formatter|violation|FF-S01|scored|src/adapters/outbound/notification/OutboxNotificationAdapter.ts|src/adapters/inbound/cli/BookingCli.ts|none|none|finding": {
+  "proposed_verdict": "both-acceptable",
+  "proposed_class": "other",
+  "evidence": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts:3 `import { formatCliLine } from '../../inbound/cli/BookingCli';` - no allowed edge in either direction, so dependency-direction-graph (reverse-allowed only) does not fire by definition; blind's FF-S01 is Q5 option C, an open rule-id/tier choice."
+ },
+ "hexagonal|case-02|v08-adapter-without-port|violation|FF-P02|scored|src/adapters/outbound/payment/FakePaymentGateway.ts|src/application/ports/out/PaymentGateway.ts|none|none|finding": {
+  "proposed_verdict": "tool-correct",
+  "proposed_class": "other",
+  "evidence": "src/adapters/outbound/payment/FakePaymentGateway.ts:7 `export class FakePaymentGateway {` - the missing `implements PaymentGateway` is port-adapter-pattern (FF-P03, reported); port-dependency-inversion is a ratio over application classes' injected types, unchanged here (Q9 A). The port file does exist (application/ports/out/PaymentGateway.ts)."
+ },
+ "hexagonal|case-14|v09-adapter-implements-local-interface|violation|FF-P02|scored|src/adapters/outbound/persistence/InMemoryRoomRepository.ts|src/adapters/outbound/persistence/RoomStore.ts|none|none|finding": {
+  "proposed_verdict": "tool-correct",
+  "proposed_class": "other",
+  "evidence": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts:5 `export class InMemoryRoomRepository implements RoomStore {` - implementing an adapter-local interface is FF-P03's construct (author expects it); FF-P02 port-dependency-inversion measures application services' injected types, which still use RoomRepository (Q9 A)."
+ },
+ "ddd|case-03|g01-value-object-setter-accessor|violation|FF-DT03|scored|src/ordering/domain/value-objects/Quantity.ts||none|finding|finding": {
+  "proposed_verdict": "reference-correct",
+  "proposed_class": "tool-bug",
+  "evidence": "src/ordering/domain/value-objects/Quantity.ts:15 `set value(v: number) {` - a public setter over the non-readonly `private current: number;` (line 4) makes the value object mutable; the after-fixes extractor recorded no accessors (M3). Fixed in after-member-facts, which reports FF-DT03 '(set accessor)'."
+ },
+ "ddd|case-05|g02-barrel-reexported-service|near-miss|OTHER: public API publishes an application service; consumer bypasses its ACL|unmapped|src/billing/api/InvoiceController.ts|src/ordering/application/GetOrderSummary.ts|n/a|none|finding": {
+  "proposed_verdict": "tool-correct",
+  "proposed_class": "re-export",
+  "evidence": "src/billing/api/InvoiceController.ts:4 `import type { GetOrderSummary } from '../../ordering/index.js';` - the import goes through ordering's declared public barrel, which explicitly publishes GetOrderSummary (index.ts:4); Evans allows integration through a published interface, ACL use is optional; no compared rule states the blind construct (Q17 A)."
+ },
+ "ddd|case-08|g03-deep-import-of-reexported-file|violation|FF-DS02|scored|src/billing/api/InvoiceController.ts|src/ordering/application/GetOrderSummary.ts|none|finding|finding": {
+  "proposed_verdict": "reference-correct",
+  "proposed_class": "re-export",
+  "evidence": "src/billing/api/InvoiceController.ts:4 `import type { GetOrderSummary } from '../../ordering/application/GetOrderSummary.js';` - deep import bypassing ordering/index.ts; the barrels-only tool treated the file as public because the barrel re-exports it. after-fixes/after-member-facts evidence report FF-DS02 at line 4."
+ },
+ "ddd|case-07|v07-module-outside-context|violation|FF-C04|unscored|src/utils/formatCurrency.ts||none|none|finding": {
+  "proposed_verdict": "tool-correct",
+  "proposed_class": "reference-bug",
+  "evidence": "src/billing/api/InvoiceController.ts:3 `import { formatCurrency } from '../../utils/formatCurrency.js';` - formatCurrency.ts is imported, so it is not an orphan (FF-C04 no-orphan-files, which also needs a layer); the 'undeclared module' construct is FF-DS01, which the tool reports on src/utils/formatCurrency.ts."
+ },
+ "ddd|case-01|v09-domain-imports-application|violation|FF-S04|unscored|src/ordering/domain/customer/Customer.ts|src/ordering/application/PlaceOrder.ts|none|none|finding": {
+  "proposed_verdict": "tool-correct",
+  "proposed_class": "other",
+  "evidence": "src/ordering/domain/customer/Customer.ts:3 `import type { PlaceOrderCommand } from '../../application/PlaceOrder.js';` - the tool reports this edge as FF-S01 (domain against allowed direction); FF-S04 is not in the DDD rule set and would repeat FF-S01 (Q11 A, P2). Type-only import, counted per Q2 A."
+ },
+ "ddd|case-01|v09-domain-imports-application|violation|FF-S02|unscored|src/ordering/application/PlaceOrder.ts|src/ordering/domain/customer/Customer.ts|none|none|finding": {
+  "proposed_verdict": "both-acceptable",
+  "proposed_class": "other",
+  "evidence": "uncertain: src/ordering/domain/customer/Customer.ts:3 `import type { PlaceOrderCommand } from '../../application/PlaceOrder.js';` - with PlaceOrder.ts:5 `import type { CustomerRepository } from '../domain/customer/CustomerRepository.js';` and CustomerRepository.ts:1 importing Customer, a real (type-only) 3-file cycle exists, but the DDD preset has no FF-S02 (Q16 open, recommended B); preset scope, not an extraction fault. Key target should be CustomerRepository.ts under canonical rotation."
+ },
+ "ddd|case-04|v10-api-imports-infrastructure|violation|FF-P02|unscored|src/ordering/api/OrderController.ts|src/ordering/infrastructure/InMemoryOrderRepository.ts|none|none|finding": {
+  "proposed_verdict": "tool-correct",
+  "proposed_class": "other",
+  "evidence": "src/ordering/api/OrderController.ts:7 `constructor(private readonly placeOrder: PlaceOrder, private readonly repo?: InMemoryOrderRepository) {}` - FF-P02 (application-layer ratio) is not in the DDD preset and the class is in `api`; the edge is already reported by the tool as FF-S03 api->infrastructure (P2). Type-only import (line 3)."
+ }
+}

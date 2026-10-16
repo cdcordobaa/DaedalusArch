@@ -1,0 +1,58 @@
+{
+  "itemId": "e4b465cb4e5c3815",
+  "itemName": "Shipment",
+  "key": "1e043530bec4905a9618ea6da4ef9eb733c7ae70092d9532308a7f99cf993097",
+  "parts": {
+    "model": "mock-ontology",
+    "pass": "responsibility",
+    "promptHash": "425cc69dbc07364f193da3b17b1f2e00aa42f145e3c79aede753ec9edd0ce78f",
+    "promptVersion": "ontology-v0.1",
+    "provider": "mock",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "1c83830bfa99ad49d460d30b4c3202dea92d0aeeb55aa17addec0d18e16c9cd5"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass Shipment (node e4b465cb4e5c3815), file src/shipping/domain/shipment.ts, lines 1-8.\nComponent: shipping. Declared layer: domain (kind domain).\nMethods:\n- (none)\nFields: id, createdAt, trackingCode, weightKg\n\n## APG neighbourhood\n- (none)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- Shipment: nameRole=\"unknown\"\n- Shipment: behaviourRole=\"coordination\"\n- Shipment: ioCategories=[]\n- Shipment: lcom4=0\n- Shipment: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n\n## Source\n=====SOURCE-BEGIN src/shipping/domain/shipment.ts\n1| export class Shipment {\n2|   constructor(\n3|     readonly id: string,\n4|     readonly createdAt: Date,\n5|     readonly trackingCode: string,\n6|     readonly weightKg: number,\n7|   ) {}\n8| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-15T00:00:00.000Z",
+  "resolvedModel": "mock-ontology",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 1,
+            "file": "src/shipping/domain/shipment.ts",
+            "nodeId": "e4b465cb4e5c3815",
+            "quote": "export class Shipment {",
+            "startLine": 1
+          }
+        ],
+        "name": "Shipment",
+        "relation": "defines"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Record a shipment",
+        "evidence": [
+          {
+            "endLine": 5,
+            "file": "src/shipping/domain/shipment.ts",
+            "nodeId": "e4b465cb4e5c3815",
+            "quote": "readonly trackingCode: string,",
+            "startLine": 5
+          }
+        ],
+        "name": "Record a shipment",
+        "naturalLayer": "domain"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 420,
+    "outputTokens": 124
+  }
+}

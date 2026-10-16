@@ -22,14 +22,22 @@ import { runFrameworkInCore } from './framework-core.js';
 import { runVocabulary } from './vocabulary.js';
 import { runCommunities } from './communities.js';
 import { runDocText } from './doc-text.js';
+import { runErrorFlow } from './error-flow.js';
+import { runReachability } from './reachability.js';
+import { runSdkSpread } from './sdk-spread.js';
+import { runTestTopology } from './test-topology.js';
+import { runConfigSurface } from './config-surface.js';
+import { runCoChange } from './co-change.js';
 import { DEFAULT_CHEAP_OPTIONS } from './types.js';
-import type { CheapEdge, CheapEnrichment, CheapFlag, CheapNodeFact, CheapOptions, CheapProxyOutput, ProxyId } from './types.js';
+import type { CheapEdge, CheapEnrichment, CheapFlag, CheapNodeFact, CheapOptions, CheapProxyOutput, CheapVirtualNode, ContextProxyId, ProxyId } from './types.js';
 
 export * from './types.js';
 export type { CheapContext, CheapInput } from './context.js';
 export { buildContext, componentOf } from './context.js';
+export { analyseProvenance, readGitHistory, readLoopRun } from './provenance.js';
+export type { ProvenanceOptions, ProvenanceResult, ProvenanceStep, SnapshotHistory } from './provenance.js';
 
-const RUNNERS: Readonly<Record<ProxyId, (ctx: CheapContext) => CheapProxyOutput>> = {
+const RUNNERS: Readonly<Record<ContextProxyId, (ctx: CheapContext) => CheapProxyOutput>> = {
   'clones': runClones,
   'shared-literals': runSharedLiterals,
   'name-behaviour': runNameBehaviour,
@@ -40,6 +48,12 @@ const RUNNERS: Readonly<Record<ProxyId, (ctx: CheapContext) => CheapProxyOutput>
   'vocabulary': runVocabulary,
   'communities': runCommunities,
   'doc-text': runDocText,
+  'error-flow': runErrorFlow,
+  'reachability': runReachability,
+  'sdk-spread': runSdkSpread,
+  'test-topology': runTestTopology,
+  'config-surface': runConfigSurface,
+  'co-change': runCoChange,
 };
 
 /** Runs the selected proxies over one project. Pure with respect to its inputs. */
@@ -52,6 +66,7 @@ export function enrichCheap(input: CheapInput, options: Partial<CheapOptions> = 
   const edges: CheapEdge[] = [];
   const nodeFacts: CheapNodeFact[] = [];
   const flags: CheapFlag[] = [];
+  const virtualNodes: CheapVirtualNode[] = [];
   const summaries: Partial<Record<ProxyId, Record<string, unknown>>> = {};
   for (const id of opts.proxies) {
     t0 = performance.now();
@@ -60,9 +75,10 @@ export function enrichCheap(input: CheapInput, options: Partial<CheapOptions> = 
     edges.push(...out.edges);
     nodeFacts.push(...out.nodeFacts);
     flags.push(...out.flags);
+    virtualNodes.push(...(out.virtualNodes ?? []));
     summaries[id] = out.summary;
   }
-  return { edges, nodeFacts, flags, summaries, timingsMs };
+  return { edges, nodeFacts, flags, virtualNodes, summaries, timingsMs };
 }
 
 /** Opens a ts-morph project the way `extractAPG` does, with dependency resolution on (types of packages resolve). */

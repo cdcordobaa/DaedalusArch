@@ -1,0 +1,26 @@
+{
+  "description": "v1.3 loop pilot plan (exploratory, not Study 2; Docs/v1.3/pilot-outcome-memo.md). 3 tasks (Docs/v1.3/pilot-tasks.md) x arms none and gate x k=4 x claude-sonnet-5-5 x 1 run. Readiness and the run command: Docs/v1.3/loop-pilot-readiness.md.",
+  "tasksFile": "experiments/loop-pilot/pilot-tasks.json",
+  "adapters": [{ "adapterId": "claude-code-cli", "modelId": "claude-sonnet-5-5" }],
+  "arms": ["none", "gate"],
+  "runs": 1,
+  "orderSeed": 20261015,
+  "outRoot": "<local>",
+  "binary": "<local>",
+  "harnessRoot": "<local>",
+  "allowBash": true,
+  "timeoutMs": 1200000,
+  "taskProfiles": {
+    "market-vendors": { "style": "clean", "specMode": "static", "evaluatorSpec": "specs/clean-arch.yaml" },
+    "shelter-adoptions": { "style": "hexagonal", "specMode": "static", "evaluatorSpec": "presets/hexagonal.yaml" },
+    "relief-volunteers": {
+      "style": "ddd",
+      "specMode": "ise-step1",
+      "contexts": [
+        { "root": "src/registry/", "part": "the volunteer registry" },
+        { "root": "src/deployment/", "part": "deployment planning" }
+      ]
+    }
+  },
+  "callBudget": { "runs": 6, "stepTurns": 24, "maxRepairTurns": 12, "maxCalls": 36 }
+}

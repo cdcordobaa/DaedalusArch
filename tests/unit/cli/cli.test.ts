@@ -100,17 +100,25 @@ let stderrSpy: jest.SpyInstance;
 let stdoutSpy: jest.SpyInstance;
 let processExitSpy: jest.SpyInstance;
 
-let savedEnvKeys: string[] = [];
+// The values these keys had before each test, restored after it (undefined = the key was unset).
+let savedEnv: Record<string, string | undefined> = {};
+
+/** Sets (or, with undefined, unsets) an env var for the current test; afterEach restores the previous value. */
+function setTestEnv(key: string, value: string | undefined): void {
+  if (!(key in savedEnv)) savedEnv[key] = process.env[key];
+  if (value === undefined) Reflect.deleteProperty(process.env, key);
+  else process.env[key] = value;
+}
 
 beforeEach(() => {
   jest.clearAllMocks();
   process.exitCode = undefined;
+  savedEnv = {};
 
   // Set a default API key so the LLM key validation doesn't block non-symbolic tests
-  process.env['ANTHROPIC_API_KEY'] = 'test-key-for-cli-tests';
+  setTestEnv('ANTHROPIC_API_KEY', 'test-key-for-cli-tests');
   // BR-U3-80: no default password; the commands need one set.
-  process.env.NEO4J_PASSWORD = 'test-password-for-cli-tests';
-  savedEnvKeys = ['ANTHROPIC_API_KEY', 'NEO4J_PASSWORD'];
+  setTestEnv('NEO4J_PASSWORD', 'test-password-for-cli-tests');
 
   stderrSpy = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
   stdoutSpy = jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
@@ -128,9 +136,10 @@ afterEach(() => {
   stderrSpy.mockRestore();
   stdoutSpy.mockRestore();
   processExitSpy.mockRestore();
-  // Clean up env vars set during tests
-  for (const key of savedEnvKeys) {
-    delete process.env[key];
+  // Restore the env vars set during the test to their values before it
+  for (const [key, value] of Object.entries(savedEnv)) {
+    if (value === undefined) Reflect.deleteProperty(process.env, key);
+    else process.env[key] = value;
   }
 });
 
@@ -164,13 +173,21 @@ describe('CLI', () => {
     });
 
     it('defaults neo4j-uri to bolt://localhost:7687', async () => {
-      const program = loadProgram();
+      // The default is read from NEO4J_URI when src/cli/cli.ts loads, and Jest keeps one module instance per file, so
+      // unset it and load a fresh, isolated instance (with its own pipeline-factory mock) for a hermetic test.
+      setTestEnv('NEO4J_URI', undefined);
+      let program: Command | undefined;
+      let isolatedCreatePipeline: jest.MockedFunction<typeof createPipeline> | undefined;
+      await jest.isolateModulesAsync(async () => {
+        program = (await import('../../../src/cli/cli.js')).program;
+        isolatedCreatePipeline = jest.mocked((await import('../../../src/pipeline/pipeline-factory.js')).createPipeline);
+      });
+      if (program === undefined || isolatedCreatePipeline === undefined) throw new Error('isolated CLI module not loaded');
       await program.parseAsync([
         'node', 'firewall', 'evaluate', '--project', '/p', '--spec', 's.yaml', '--symbolic-only',
       ]);
 
-      const config = (createPipeline as jest.Mock).mock.calls[0][0];
-      expect(config.neo4jUri).toBe('bolt://localhost:7687');
+      expect(isolatedCreatePipeline.mock.calls[0]?.[0].neo4jUri).toBe('bolt://localhost:7687');
     });
 
     it('--symbolic-only sets evaluationMode to symbolic-only', async () => {
@@ -201,6 +218,33 @@ describe('CLI', () => {
 
       const config = firstPipelineConfig();
       expect(config.graphMode).toBe('ast-only');
+    });
+
+    it('scale flags: absent by default, so the pipeline config is as before (Docs/v1.3/scale.md)', async () => {
+      const program = loadProgram();
+      await program.parseAsync(['node', 'firewall', 'evaluate', '--project', '/p', '--spec', 's.yaml', '--symbolic-only']);
+      const config = firstPipelineConfig();
+      expect([config.maxFiles, config.memoryLimitMb, config.queryEngine, config.sourceScope]).toEqual([undefined, undefined, undefined, undefined]);
+    });
+
+    it('scale flags: --max-files, --memory-limit-mb, --query-engine neo4j and --skip-excluded-sources reach the pipeline', async () => {
+      const program = loadProgram();
+      await program.parseAsync([
+        'node', 'firewall', 'evaluate', '--project', '/p', '--spec', 's.yaml', '--symbolic-only',
+        '--max-files', '8000', '--memory-limit-mb', '3072', '--query-engine', 'neo4j', '--skip-excluded-sources',
+      ]);
+      const config = firstPipelineConfig();
+      expect([config.maxFiles, config.memoryLimitMb, config.queryEngine, config.sourceScope]).toEqual([8000, 3072, 'neo4j', 'analysed']);
+    });
+
+    it.each([
+      ['--max-files', '0'], ['--max-files', '1e4'], ['--memory-limit-mb', '-1'], ['--query-engine', 'cypher-interp'],
+    ])('scale flags: %s %s exits 2 before any pipeline is built', async (flag, value) => {
+      const program = loadProgram();
+      await program.parseAsync(['node', 'firewall', 'evaluate', '--project', '/p', '--spec', 's.yaml', '--symbolic-only', flag, value]);
+      expect(createPipeline).not.toHaveBeenCalled();
+      expect(process.exitCode).toBe(2);
+      process.exitCode = undefined;
     });
 
     it('an unknown --graph-mode exits 2 before any pipeline is built', async () => {

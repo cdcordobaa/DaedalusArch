@@ -1,0 +1,46 @@
+{
+  "spec": "presets/clean-architecture.yaml",
+  "engine": "cypher-interp",
+  "scoringMode": "v1.3",
+  "instrumentVersion": 2,
+  "typecheckErrors": 0,
+  "typecheckSample": [],
+  "verdict": "fail",
+  "blockingViolationCount": 1,
+  "advisoryViolationCount": 14,
+  "blockingByRule": {
+    "FF-S01": 1
+  },
+  "advisoryByRule": {
+    "FF-CV05": 13,
+    "FF-P02": 1
+  },
+  "blockingFindings": [
+    {
+      "rule": "FF-S01",
+      "template": "LAYER_VIOLATION",
+      "file": "src/application/cancel-rehearsal.ts",
+      "line": 3,
+      "target": "src/infrastructure/sms/text-tone-sms-sender.ts",
+      "message": "src/application/cancel-rehearsal.ts (application) imports from src/infrastructure/sms/text-tone-sms-sender.ts (infrastructure)"
+    }
+  ],
+  "srcFiles": 14,
+  "loc": 212,
+  "cell": "14.choir-rehearsals.planted.x1",
+  "order": 14,
+  "domain": "choir-rehearsals",
+  "style": "clean",
+  "condition": "planted",
+  "step": "x1",
+  "filesTouched": [
+    "M src/application/record-attendance.ts",
+    "A src/domain/absence.ts",
+    "M src/infrastructure/main.ts"
+  ],
+  "seedBlocking": 1,
+  "newBlockingIdentities": [],
+  "newSameShape": 0,
+  "newOther": 0,
+  "precedentSurvives": true
+}

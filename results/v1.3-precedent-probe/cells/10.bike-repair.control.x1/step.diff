@@ -1,0 +1,141 @@
+diff --git a/src/adapters/inbound/http-routes.ts b/src/adapters/inbound/http-routes.ts
+index 1c604f7..e5ec824 100644
+--- a/src/adapters/inbound/http-routes.ts
++++ b/src/adapters/inbound/http-routes.ts
+@@ -1,12 +1,14 @@
+ import { Router, type Request, type Response } from 'express';
+ import type { CloseWorkOrder } from '../../application/close-work-order';
+ import type { OpenWorkOrder } from '../../application/open-work-order';
++import type { OrderPart } from '../../application/order-part';
+ import type { QuoteRepair } from '../../application/quote-repair';
+ 
+ export interface WorkshopUseCases {
+   readonly openWorkOrder: OpenWorkOrder;
+   readonly quoteRepair: QuoteRepair;
+   readonly closeWorkOrder: CloseWorkOrder;
++  readonly orderPart: OrderPart;
+ }
+ 
+ function fail(res: Response, e: unknown): void {
+@@ -38,5 +40,13 @@ export function workshopRoutes(uc: WorkshopUseCases): Router {
+       fail(res, e);
+     }
+   });
++  r.post('/work-orders/:id/part-orders', async (req: Request, res: Response) => {
++    try {
++      const b = req.body as { sku: string; quantity?: number };
++      res.status(201).json(await uc.orderPart.execute(String(req.params.id), b.sku, b.quantity ?? 1));
++    } catch (e) {
++      fail(res, e);
++    }
++  });
+   return r;
+ }
+diff --git a/src/adapters/outbound/spoke-supply-client.ts b/src/adapters/outbound/spoke-supply-client.ts
+index 4dd3aa8..8836d2f 100644
+--- a/src/adapters/outbound/spoke-supply-client.ts
++++ b/src/adapters/outbound/spoke-supply-client.ts
+@@ -1,4 +1,4 @@
+-import type { PartPrice, PartsCatalogue } from '../../application/ports/parts-catalogue';
++import type { PartPrice, PartsCatalogue, SupplierOrder } from '../../application/ports/parts-catalogue';
+ 
+ /** SpokeSupply wholesale API. No network in this service yet: a fixed price list stands in for the HTTP call. */
+ export class SpokeSupplyClient implements PartsCatalogue {
+@@ -15,4 +15,13 @@ export class SpokeSupplyClient implements PartsCatalogue {
+     if (row === undefined) throw new Error(`SpokeSupply (${this.baseUrl}) does not list ${sku}`);
+     return { sku, description: row.description, priceCents: row.cents, inStock: row.stock > 0 };
+   }
++
++  async orderPart(sku: string, quantity: number, reference: string): Promise<SupplierOrder> {
++    const row = this.prices.get(sku);
++    if (row === undefined) throw new Error(`SpokeSupply (${this.baseUrl}) does not list ${sku}`);
++    if (quantity < 1) throw new Error('SpokeSupply: quantity must be at least 1');
++    const days = row.stock >= quantity ? 2 : 7;
++    const expectedDelivery = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
++    return { orderRef: `SS-${reference}-${sku}`, expectedDelivery };
++  }
+ }
+diff --git a/src/application/order-part.ts b/src/application/order-part.ts
+new file mode 100644
+index 0000000..f4e984f
+--- /dev/null
++++ b/src/application/order-part.ts
+@@ -0,0 +1,22 @@
++import type { PartOrder, WorkOrder } from '../domain/work-order';
++import type { PartsCatalogue } from './ports/parts-catalogue';
++import type { WorkOrderRepository } from './ports/work-order-repository';
++
++export class OrderPart {
++  constructor(
++    private readonly orders: WorkOrderRepository,
++    private readonly catalogue: PartsCatalogue,
++  ) {}
++
++  async execute(workOrderId: string, sku: string, quantity = 1, now = new Date()): Promise<WorkOrder> {
++    const order = await this.orders.findById(workOrderId);
++    if (order === undefined) throw new Error(`unknown work order ${workOrderId}`);
++    if (order.status === 'done') throw new Error(`work order ${workOrderId} is already done`);
++    const placed = await this.catalogue.orderPart(sku, quantity, order.id);
++    const partOrder: PartOrder = { sku, supplierOrderRef: placed.orderRef, expectedDelivery: placed.expectedDelivery, orderedAt: now };
++    order.partOrders = [...(order.partOrders ?? []), partOrder];
++    order.status = 'waiting-for-parts';
++    await this.orders.save(order);
++    return order;
++  }
++}
+diff --git a/src/application/ports/parts-catalogue.ts b/src/application/ports/parts-catalogue.ts
+index 1a14bb5..8ce9713 100644
+--- a/src/application/ports/parts-catalogue.ts
++++ b/src/application/ports/parts-catalogue.ts
+@@ -5,6 +5,12 @@ export interface PartPrice {
+   readonly inStock: boolean;
+ }
+ 
++export interface SupplierOrder {
++  readonly orderRef: string;
++  readonly expectedDelivery: Date;
++}
++
+ export interface PartsCatalogue {
+   priceOf(sku: string): Promise<PartPrice>;
++  orderPart(sku: string, quantity: number, reference: string): Promise<SupplierOrder>;
+ }
+diff --git a/src/config/main.ts b/src/config/main.ts
+index fa3bdd5..a19e295 100644
+--- a/src/config/main.ts
++++ b/src/config/main.ts
+@@ -4,6 +4,7 @@ import { InMemoryWorkOrderRepository } from '../adapters/outbound/in-memory-work
+ import { SpokeSupplyClient } from '../adapters/outbound/spoke-supply-client';
+ import { CloseWorkOrder } from '../application/close-work-order';
+ import { OpenWorkOrder } from '../application/open-work-order';
++import { OrderPart } from '../application/order-part';
+ import { QuoteRepair } from '../application/quote-repair';
+ 
+ export function buildApp(): express.Express {
+@@ -16,6 +17,7 @@ export function buildApp(): express.Express {
+       openWorkOrder: new OpenWorkOrder(orders),
+       quoteRepair: new QuoteRepair(orders, spokeSupply),
+       closeWorkOrder: new CloseWorkOrder(orders),
++      orderPart: new OrderPart(orders, spokeSupply),
+     }),
+   );
+   return app;
+diff --git a/src/domain/work-order.ts b/src/domain/work-order.ts
+index 3f39ef4..8615897 100644
+--- a/src/domain/work-order.ts
++++ b/src/domain/work-order.ts
+@@ -14,6 +14,14 @@ export interface WorkOrder {
+   readonly openedAt: Date;
+   status: WorkOrderStatus;
+   quote?: Quote;
++  partOrders?: PartOrder[];
++}
++
++export interface PartOrder {
++  readonly sku: string;
++  readonly supplierOrderRef: string;
++  readonly expectedDelivery: Date;
++  readonly orderedAt: Date;
+ }
+ 
+ export interface Quote {

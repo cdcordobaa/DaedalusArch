@@ -12,6 +12,9 @@ import { HEXAGONAL_TEMPLATES } from './hexagonal-templates.js';
 import { DDD_TEMPLATES } from './ddd-templates.js';
 import { V13_CYPHER_TEMPLATES } from './v13-templates.js';
 import { APG2_TEMPLATES } from './apg2-templates.js';
+import { CHEAP2_TEMPLATES } from './cheap2-templates.js';
+import { CONSTRUCT_TEMPLATES } from '../construct-switches/compile.js';
+import { RULE_GAP_CATALOGUE, RULE_GAP_TEMPLATES } from './rule-gap-templates.js';
 
 export const V13_EXTENSION_TEMPLATE_CATALOGUES: ReadonlyMap<string, ReadonlyMap<string, CypherTemplate>> = new Map([
   ['hexagonal', HEXAGONAL_TEMPLATES],
@@ -19,7 +22,27 @@ export const V13_EXTENSION_TEMPLATE_CATALOGUES: ReadonlyMap<string, ReadonlyMap<
   ['ddd', DDD_TEMPLATES],
   // APG v2 generic templates (`apg2-templates.ts`); they need a graph extracted with `V13_APG2_OPTIONS`.
   ['apg2', APG2_TEMPLATES],
+  // Batch-2 cheap-proxy templates (`cheap2-templates.ts`), all advisory; they read the cheap facts once persisted.
+  ['cheap2', CHEAP2_TEMPLATES],
 ]);
+
+/**
+ * Opt-in catalogues: OFF by default. They are not in `V13_EXTENSION_TEMPLATE_CATALOGUES`, so neither the v1.3 spec
+ * validation nor any lookup sees them unless a caller names the catalogue (`v13OptInCatalogueOf`).
+ * - `rule-gaps` (`rule-gap-templates.ts`, `Docs/v1.3/rule-gap-catalogue.md`): advisory constraints the style sources
+ *   state and no other template checks.
+ */
+export const V13_OPT_IN_EXTENSION_CATALOGUES: ReadonlyMap<string, ReadonlyMap<string, CypherTemplate>> = new Map([
+  [RULE_GAP_CATALOGUE, RULE_GAP_TEMPLATES],
+]);
+
+/** The enabled opt-in catalogue that holds `name`, or undefined (`enabled` lists the catalogues switched on). */
+export function v13OptInCatalogueOf(name: string, enabled: readonly string[]): string | undefined {
+  for (const catalogue of enabled) {
+    if (V13_OPT_IN_EXTENSION_CATALOGUES.get(catalogue)?.has(name) === true) return catalogue;
+  }
+  return undefined;
+}
 
 /** The catalogue that holds a v1.3 extension template, or undefined. */
 export function v13ExtensionCatalogueOf(name: string): string | undefined {
@@ -30,9 +53,11 @@ export function v13ExtensionCatalogueOf(name: string): string | undefined {
 }
 
 /**
- * A style-library template (hexagonal or DDD) by name, for lookups that fall back from `CYPHER_TEMPLATES`.
+ * A style-library template (hexagonal or DDD, or the construct-switch carrier) by name, for lookups that fall back from `CYPHER_TEMPLATES`.
  * The module-wiring example templates are reached only through `CompileOptions.v13Templates`, not here.
  */
 export function getExtensionTemplate(name: string): CypherTemplate | undefined {
-  return HEXAGONAL_TEMPLATES.get(name) ?? DDD_TEMPLATES.get(name);
+  // The construct-switch carrier (only compiled while a switch is set) is found too, so its function result gets the
+  // template's tag like any other row; without it a report with a carrier rule fails the schema (R09).
+  return HEXAGONAL_TEMPLATES.get(name) ?? DDD_TEMPLATES.get(name) ?? CONSTRUCT_TEMPLATES.get(name);
 }

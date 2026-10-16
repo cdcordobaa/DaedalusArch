@@ -10,6 +10,7 @@ import type { PipelineWarning } from '../../shared/errors/domain-result.js';
 import { DomainResult } from '../../shared/errors/domain-result.js';
 import { computeScoredReport } from '../../scoring-engine/index.js';
 import type { CycleMetricTiming, NeuralAggregation } from '../../scoring-engine/index.js';
+import type { ConstructTierResolver } from '../../construct-switches/pipeline.js';
 import { toPipelineError, toPipelineWarning } from './map-helpers.js';
 
 export interface ScoreCommandConfig {
@@ -30,6 +31,8 @@ export interface ScoreCommandConfig {
   readonly scoringMode?: ScoringMode;
   /** The spec's `architecture.style` (style-dependent tiers, v1.3 mode only). */
   readonly style?: string;
+  /** v1.3 construct switches: the switch-aware tier lookup (absent at the status quo). */
+  readonly tierResolver?: ConstructTierResolver;
 }
 
 /** U4's warning for a neural function with zero selected units (U4 BR-U4-AGG-09). */
@@ -76,6 +79,7 @@ export class ScoreCommand implements PipelineCommand {
       ...(this.config.neuralAggregation !== undefined && { neuralAggregation: this.config.neuralAggregation }),
       ...(this.config.scoringMode !== undefined && { scoringMode: this.config.scoringMode }),
       ...(this.config.style !== undefined && { style: this.config.style }),
+      ...(this.config.tierResolver !== undefined && { tierResolver: this.config.tierResolver }),
     });
 
     if (!result.success) {

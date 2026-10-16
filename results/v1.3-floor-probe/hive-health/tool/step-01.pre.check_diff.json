@@ -1,0 +1,62 @@
+{
+  "verdict": "violations",
+  "summary": "6 violation(s) in src/persistence/db.ts, src/persistence/hive-repository.ts, src/presentation/app.ts; apply each fix.",
+  "blocking": [
+    {
+      "file": "src/persistence/db.ts",
+      "rule": "FF-S01",
+      "tier": "blocking",
+      "line": 1,
+      "target": "src/business/model",
+      "reason": "persistence (position 0) may not import business (position 1): layers are ordered inner to outer and may only depend on themselves or inner layers",
+      "fix": "Do not import business from persistence (it may import: no other layer). Declare an interface for what you need in persistence, implement it in business, and inject the implementation from the composi"
+    },
+    {
+      "file": "src/persistence/db.ts",
+      "rule": "FF-S03",
+      "tier": "blocking",
+      "line": 1,
+      "target": "src/business/model",
+      "reason": "persistence may not import business: closed layering allows only business>persistence, presentation>business",
+      "fix": "Do not import business from persistence (it may import: no other layer). Declare an interface for what you need in persistence, implement it in business, and inject the implementation from the composi"
+    },
+    {
+      "file": "src/persistence/hive-repository.ts",
+      "rule": "FF-S01",
+      "tier": "blocking",
+      "line": 1,
+      "target": "src/business/model",
+      "reason": "persistence (position 0) may not import business (position 1): layers are ordered inner to outer and may only depend on themselves or inner layers",
+      "fix": "Do not import business from persistence (it may import: no other layer). Declare an interface for what you need in persistence, implement it in business, and inject the implementation from the composi"
+    },
+    {
+      "file": "src/persistence/hive-repository.ts",
+      "rule": "FF-S03",
+      "tier": "blocking",
+      "line": 1,
+      "target": "src/business/model",
+      "reason": "persistence may not import business: closed layering allows only business>persistence, presentation>business",
+      "fix": "Do not import business from persistence (it may import: no other layer). Declare an interface for what you need in persistence, implement it in business, and inject the implementation from the composi"
+    },
+    {
+      "file": "src/presentation/app.ts",
+      "rule": "FF-S03",
+      "tier": "blocking",
+      "line": 2,
+      "target": "src/persistence/db",
+      "reason": "presentation may not import persistence: closed layering allows only business>persistence, presentation>business",
+      "fix": "Go through business: call a business service that wraps what you need from persistence, or move that type into business. presentation may import: business."
+    },
+    {
+      "file": "src/presentation/app.ts",
+      "rule": "FF-S03",
+      "tier": "blocking",
+      "line": 3,
+      "target": "src/persistence/hive-repository",
+      "reason": "presentation may not import persistence: closed layering allows only business>persistence, presentation>business",
+      "fix": "Go through business: call a business service that wraps what you need from persistence, or move that type into business. presentation may import: business."
+    }
+  ],
+  "advisoryCount": 0,
+  "skipped": []
+}

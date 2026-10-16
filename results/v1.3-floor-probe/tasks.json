@@ -1,0 +1,214 @@
+{
+  "description": "v1.3 floor probe rehearsal tasks (feasibility probe; not the pilot, not Study 2). Two are the non-sealed pilot tasks verbatim; four are new, written for this probe in the pilot style (plain product language, no layer or pattern names). No sealed directory was read. Before reusing any of the new tasks, the author must check them against the sealed Study 2 domain list, as for the pilot tasks.",
+  "frames": {
+    "hexagonal": {
+      "styleSentence": "Organise the code following Hexagonal Architecture (ports and adapters).",
+      "styleName": "Hexagonal Architecture, ports and adapters",
+      "layoutSentence": "Organise the source code under src/ in exactly five folders: src/domain, src/application, src/adapters/inbound, src/adapters/outbound and src/config.",
+      "evaluatorSpec": "presets/hexagonal.yaml"
+    },
+    "layered": {
+      "styleSentence": "Organise the code following Layered Architecture (presentation, business and persistence layers).",
+      "styleName": "Layered Architecture",
+      "layoutSentence": "Organise the source code under src/ in exactly three folders: src/persistence, src/business and src/presentation.",
+      "evaluatorSpec": "presets/layered.yaml"
+    }
+  },
+  "tasks": [
+    {
+      "id": "shelter-adoptions",
+      "title": "Animal shelter adoptions",
+      "steps": [
+        {
+          "id": "adoptions",
+          "request": "Create a service for an animal shelter. Staff register animals (species, name, estimated age, intake date, medical notes) and mark them ready for adoption. Members of the public submit an adoption application for an animal, with their contact details and household information. Staff approve or reject an application. Approving one marks the animal adopted and rejects the animal's other open applications. The applicant gets an e-mail when an application is decided; for now, send e-mails through a fake mail provider that records the messages. Keep the data in memory and expose the operations over HTTP."
+        },
+        {
+          "id": "fostering",
+          "request": "Add a foster network. Volunteers sign up as foster carers, with the number and the species of animals they can host. Staff place an animal with a carer and end the placement. A carer never hosts more animals than their capacity. An animal in foster care can still be adopted: approving its adoption ends the placement and e-mails the carer."
+        },
+        {
+          "id": "sms",
+          "request": "Applicants and carers can now choose to be notified by SMS instead of e-mail. SMS messages go through TextBridge: its HTTP API takes a phone number and a text of at most 160 characters, and it reports each message's delivery later, by calling a webhook of ours. When TextBridge reports a failed delivery, the same notification is sent by e-mail instead. Staff can see the delivery status of every notification."
+        },
+        {
+          "id": "audit-trail",
+          "request": "The shelter needs an audit trail for its licence inspections. Every change to an animal, an application, a foster placement or a notification's delivery status is recorded with who made it (the staff member id from a request header, or 'system' for webhooks), when, and the values before and after. Staff can list the audit trail of one animal, including the changes to its applications and placements, and list every change one staff member made in a date range. A change and its audit record are always saved together or not at all."
+        }
+      ],
+      "style": "hexagonal",
+      "source": "pilot task, verbatim (Docs/v1.3/pilot-tasks.md); pilot style is also hexagonal"
+    },
+    {
+      "id": "garden-plots",
+      "title": "Community garden plots",
+      "style": "hexagonal",
+      "source": "new rehearsal task",
+      "steps": [
+        {
+          "id": "plots",
+          "pressure": "first adapter",
+          "request": "Create a service for a community garden. The coordinator defines the garden's plots (number, size in square metres, raised bed or not). Gardeners apply for a plot; when no plot is free they join a waiting list, in order of application. The coordinator allocates a free plot to the first gardener on the waiting list, and a gardener holds at most one plot. Each allocation has a yearly fee that the gardener pays through PayBee: the service asks PayBee's HTTP API for a payment link for the fee, and PayBee later calls a webhook of ours with the payment status. An allocation that is not paid within 14 days is released and the plot goes to the next gardener on the list. Keep the data in memory and expose the operations over HTTP."
+        },
+        {
+          "id": "water",
+          "pressure": "second inbound adapter + notification",
+          "request": "Each plot now has a water meter from AquaTick. AquaTick posts every reading to a webhook as JSON (meter id, litres, time). The coordinator links each meter to a plot. Gardeners can see their plot's water use per week. When a plot uses more than 2,000 litres in a week, its gardener gets a warning e-mail; for now, send e-mails through a fake mail provider that records the messages."
+        },
+        {
+          "id": "work-days",
+          "pressure": "cross-feature reuse",
+          "request": "Add work days. The coordinator schedules shared work days and gardeners sign up and are marked present. A gardener who attended fewer than two work days in the past year pays a 20% surcharge on the next yearly fee, and the PayBee payment link must include it. The waiting-list offer e-mail, the water warning and a new work-day reminder e-mail (sent the day before) must all use the same e-mail layout, with the garden's name and the gardener's name."
+        },
+        {
+          "id": "dashboard",
+          "pressure": "reporting endpoint that tempts a shortcut to the store",
+          "request": "The garden committee wants one dashboard endpoint for its monthly meeting: for every plot, its gardener, whether this year's fee is paid, the water used this month and the work days the gardener attended this year, plus the current length of the waiting list. It must answer quickly for 300 plots, so build it in one go rather than from many separate calls."
+        },
+        {
+          "id": "hotfix-failed-payments",
+          "pressure": "quick fix under time pressure",
+          "request": "Urgent, the committee meets in an hour. Gardeners whose PayBee payment failed are shown as paid on the dashboard, and some gardeners lost their plot even though they had paid. Fix it quickly: a failed payment shows as unpaid, and only an allocation that is still unpaid 14 days after it was made is released. Keep the change small."
+        }
+      ]
+    },
+    {
+      "id": "food-bank",
+      "title": "Food bank pickups",
+      "style": "hexagonal",
+      "source": "new rehearsal task",
+      "steps": [
+        {
+          "id": "pickups",
+          "pressure": "core + first use cases",
+          "request": "Create a service for a food bank. Staff register households (name, postcode, number of people, dietary needs such as nut allergy, vegetarian or halal). The food bank keeps an inventory of items (name, category, quantity, best-before date). A household books a weekly pickup slot (weekday and hour); a slot takes at most 12 households. At pickup, staff record the items handed out: the inventory goes down, and an item is never handed out after its best-before date. Keep the data in memory and expose the operations over HTTP."
+        },
+        {
+          "id": "donations-feed",
+          "pressure": "new adapter (polling)",
+          "request": "Donations from the supermarket partner FreshLink are now imported. FreshLink has an HTTP API that lists yesterday's donated products as JSON (product code, name, quantity, best-before date). The service fetches it every morning at 6:00 and adds the products to the inventory. FreshLink product codes are mapped to our categories by a table that staff maintain; a product with no mapping is put in an 'unsorted' category for staff to review. A product listed twice is added once."
+        },
+        {
+          "id": "reminders",
+          "pressure": "new use case + second adapter",
+          "request": "Households can now ask for a reminder the evening before their pickup, by SMS through SnapText (an HTTP API that takes a phone number and a message). When a household misses three booked pickups in a row, its slot booking is cancelled and the staff on duty get an e-mail (use a fake mail provider that records the messages for now)."
+        },
+        {
+          "id": "network-report",
+          "pressure": "reporting endpoint that tempts a shortcut to the store",
+          "request": "The regional food network wants a weekly report, downloaded as CSV by their system every Monday: per category, the quantity received from donations, the quantity handed out and the quantity thrown away after its best-before date, and the number of households served per postcode. Keep it simple and fast."
+        },
+        {
+          "id": "hotfix-allergens",
+          "pressure": "quick fix under time pressure",
+          "request": "Hotfix needed before tomorrow's pickups: a household with a nut allergy was handed items from the 'nuts' category. Pickup recording must refuse any item whose category conflicts with the household's dietary needs (nut allergy: nuts; vegetarian: meat and fish; halal: pork). We need this today; a minimal change is fine."
+        }
+      ]
+    },
+    {
+      "id": "market-vendors",
+      "title": "Farmers' market vendors",
+      "steps": [
+        {
+          "id": "stalls",
+          "request": "Create a service for a weekly farmers' market. The market organiser defines market days and the stall pitches of the market (number, size, with or without power). Vendors register (business name, contact, products sold) and book a pitch for a market day. A pitch is never booked twice for the same market day, and a vendor holds at most one pitch per market day. Shoppers pay at the stalls with card readers from PayLane, which the market provides; PayLane posts each card sale to a webhook as JSON with the reader id, the amount and the time. The organiser links each reader to a vendor for a market day. A sale from a reader that is not linked to a vendor with a booking on that day is rejected. The service lists each vendor's card sales per market day. Keep the data in memory and expose the operations over HTTP."
+        },
+        {
+          "id": "fees-and-settlement",
+          "request": "Add vendor fees and payouts. Each pitch size has a stall fee per market day, with a surcharge for power, and the market keeps a commission of every card sale (5% by default; the organiser can set a different rate per vendor). A vendor can cancel a booking up to 48 hours before the market day without paying the stall fee. After a market day is closed, the organiser runs its settlement: each vendor's payout is their card sales for the day minus the commission and the stall fee. A payout is never negative: what the vendor still owes is carried into their next settlement. A settled market day can no longer receive sales or booking changes."
+        },
+        {
+          "id": "second-provider",
+          "request": "Some vendors now bring their own card readers from TillWave instead of using PayLane. TillWave does not call us: the service must poll its HTTP API every 15 minutes for new sales. TillWave reports amounts in cents and identifies sellers by its own merchant ids, which the organiser links to vendors. Each vendor uses at most one provider on a market day. TillWave sales go through the same checks, the same commission and the same settlement as PayLane sales, and a sale reported twice is counted once."
+        },
+        {
+          "id": "audit-and-statements",
+          "request": "The market's accountant needs an audit log. Every change to a booking, a fee or commission rate, a card sale or a settlement is recorded with who made it (the organiser id from a request header, or 'system' for provider sales), when, and the values before and after. A change and its audit record are always saved together or not at all. The organiser can list the audit log of one market day, including the changes to its bookings, sales and settlement. Each vendor can download a monthly statement of their bookings, card sales per provider, fees, payouts and carried balance."
+        }
+      ],
+      "style": "layered",
+      "source": "pilot task, verbatim (Docs/v1.3/pilot-tasks.md); restyled from Clean to Layered for this probe"
+    },
+    {
+      "id": "youth-league",
+      "title": "Youth football league",
+      "style": "layered",
+      "source": "new rehearsal task",
+      "steps": [
+        {
+          "id": "teams-fixtures",
+          "pressure": "core + first use cases",
+          "request": "Create a service for a children's football league. The league registers teams (name, age group such as U9 or U11, coach name and e-mail) and players (name, birth date, parent contact e-mail, team). A player's age on 1 September of the season must fit the team's age group. The league schedules fixtures (home team, away team, pitch, kick-off time): a team never plays two fixtures on the same day and a pitch hosts one fixture at a time. Coaches record the result of a fixture. Keep the data in memory and expose the operations over HTTP."
+        },
+        {
+          "id": "weather",
+          "pressure": "first external adapter",
+          "request": "Before each match day, the service checks the forecast for every pitch with the WeatherNow HTTP API (by the pitch's postcode and the kick-off hour). When heavy rain is forecast, the fixture is marked at risk and both coaches get an e-mail; for now, send e-mails through a fake mail provider that records the messages. The league can postpone an at-risk fixture to a new kick-off, with the same scheduling rules as before."
+        },
+        {
+          "id": "referees",
+          "pressure": "cross-feature reuse",
+          "request": "Add referees. Referees register with their e-mail and the age groups they may officiate. Each fixture gets one referee. A referee never officiates a team in which they are a parent (a player's parent contact e-mail equal to the referee's e-mail), nor two fixtures that kick off less than two hours apart. When a fixture is postponed, it keeps its referee if they are still free at the new time; otherwise the referee is removed and the fixture shows as needing one."
+        },
+        {
+          "id": "tables",
+          "pressure": "reporting endpoint that tempts a shortcut to the store",
+          "request": "Publish the league tables: for each age group, each team's games played, won, drawn and lost, goals for and against, and points (3 for a win, 1 for a draw), ordered by points, then goal difference, then goals for. Parents check the tables from their phones on match days, so the endpoint must be quick."
+        },
+        {
+          "id": "hotfix-correct-result",
+          "pressure": "quick fix under time pressure",
+          "request": "Coaches are complaining right now: a result entered by mistake cannot be corrected, so the tables are wrong. Add a quick way for the league admin to correct a fixture's result, and make sure the tables show the corrected result. Just get it working today."
+        }
+      ]
+    },
+    {
+      "id": "hive-health",
+      "title": "Beekeepers' hive health",
+      "style": "layered",
+      "source": "new rehearsal task",
+      "steps": [
+        {
+          "id": "inspections",
+          "pressure": "core + first use cases",
+          "request": "Create a service for a beekeepers' association. Members register apiaries (name, region) and the hives in them. Members record inspections of a hive (date, queen seen or not, brood frames, temperament from 1 to 5, varroa mites per 100 bees). A hive whose latest inspection counts more than 3 mites per 100 bees is flagged for treatment. Only the member who owns a hive can record its inspections (the member id comes in a request header). Keep the data in memory and expose the operations over HTTP."
+        },
+        {
+          "id": "smart-scales",
+          "pressure": "first external adapters (inbound webhook + outbound SMS)",
+          "request": "Some members have BuzzScale smart hive scales. BuzzScale posts each weight reading to a webhook of ours as JSON (scale serial number, kilograms, time), and members link a scale to one of their hives. A weight drop of more than 2 kg within one hour suggests a swarm: the owner then gets an SMS through the TextHive HTTP API (phone number and message)."
+        },
+        {
+          "id": "treatments-harvests",
+          "pressure": "cross-feature reuse",
+          "request": "Add treatments and honey harvests. A member records a treatment of a hive (product, start date, end date); the association keeps the list of products with their withdrawal period in days. A hive stays flagged until a treatment has been recorded and a later inspection counts 3 mites per 100 bees or fewer. A member records harvests (date, kilograms) of a hive; a harvest is refused during a treatment, and until the product's withdrawal period after the treatment's end date has passed."
+        },
+        {
+          "id": "health-report",
+          "pressure": "reporting endpoint that tempts a shortcut to the store",
+          "request": "The association reports to the national bee health office every quarter. Add one endpoint that returns, per region, for a given quarter: the number of hives, the share of hives flagged for varroa at the end of the quarter, the number of treatments per product, and the kilograms of honey harvested. The office's system calls it directly, so it returns JSON."
+        },
+        {
+          "id": "hotfix-false-swarms",
+          "pressure": "quick fix under time pressure",
+          "request": "Members are being spammed right now: opening a hive for an inspection makes the scale drop by more than 2 kg, so a swarm SMS goes out. Hotfix: do not send a swarm SMS for a hive that has an inspection recorded in the two hours before the drop, or recorded within the hour after it (cancel any SMS not yet sent). Keep it quick."
+        }
+      ]
+    }
+  ],
+  "pilotPressureNotes": {
+    "shelter-adoptions": [
+      "first adapter",
+      "cross-module",
+      "second adapter",
+      "across every layer"
+    ],
+    "market-vendors": [
+      "first adapter",
+      "cross-module",
+      "second adapter",
+      "across every layer"
+    ]
+  },
+  "pilotPressureNotes_source": "Docs/v1.3/pilot-tasks.md section 4 (commentary; the task text itself is unchanged)"
+}

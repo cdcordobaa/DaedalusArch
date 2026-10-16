@@ -1,8 +1,8 @@
 # Paper 2 (tool and approach): A Spec-Driven Neuro-Symbolic Architectural Firewall for TypeScript
 
-Draft of 2026-10-11, written from the committed files at `v1.2e` (`c8848bc0`). Target: ECSA or ICSA tool/approach
+Draft of 2026-10-11, written from the committed files at `v1.2e` (`c8848bc0`); v1.3 evidence added 2026-10-15 and 2026-10-16 (see `REVISION-NOTES.md`). Target: ECSA 2027 research track (see `../STATUS.md`); originally ECSA or ICSA tool/approach
 track. Plain `article` class, 10 pt; about 7 200 words of body text plus 7 tables, 2 listings and 1 figure, which
-should come to roughly 12 pages. Not compiled yet: the drafting container had no TeX installation.
+should come to roughly 12 pages. Now compiles to 24 pages in this class (TeX Live, 2026-10-16).
 
 ```
 pdflatex main && bibtex main && pdflatex main && pdflatex main
@@ -51,3 +51,14 @@ score and verdict, and the pre-registered, reproducible evaluation.
 12. **Figure 1** is ASCII art in `verbatim`; replace it with a TikZ or vector figure for the camera-ready version.
 13. **Related work** has no LLM-based architecture conformance work yet; search for 2024 to 2026 papers on LLMs for
     architecture conformance or erosion detection and position against them.
+
+## v1.3 revision (2026-10-15)
+
+Section 7, "Version 1.3: Fidelity, Development-Set Validation and Defects Fixed", was added on branch
+`v1.3-papers`, with matching changes to the abstract, the contributions, the threats and the conclusion. Every v1.3
+figure carries a `% src:` comment and a `[dev]` mark (`\devset{}`): it is a development-set figure, not a validity
+estimate. The section reports graph fidelity as agreement (not precision), the 71-variant reference set (baseline,
+after the fix round, after member facts), the correctness checker (0 incorrect of 2,668 checkable), APG v2 (25/27
+vs 0/27, cases planted by the designer), eleven defects found and fixed, and the limits. The paper now compiles
+(TeX Live, `pdflatex` + `bibtex`, 20 pages, no undefined references). See `papers/STATUS.md` for venues and missing
+evidence (hold-out run, human labels, Study 2).

@@ -22,9 +22,17 @@ import { compileHexagonalFunctions } from './hexagonal-compiler.js';
 import { HEXAGONAL_STYLE } from './hexagonal-templates.js';
 import { applyV13Rewrites } from './v13-rewrites.js';
 import type { V13RewriteFlags } from './v13-rewrites.js';
+import { applySignatureTypes } from './v13-signature-types.js';
 import { v13InapplicableReason } from './v13-applicability.js';
 import { compileDddFunctions } from './ddd-compiler.js';
 import { DDD_STYLE } from './ddd-templates.js';
+import { CONSTRUCT_ANSWERS } from '../shared/construct-switches.js';
+import type { ConstructAnswers } from '../shared/construct-switches.js';
+import { applyConstructCompileOverlays, constructApplicability, constructSwitchesActive, CONSTRUCT_TEMPLATES } from '../construct-switches/compile.js';
+import type { EmptyAggregatePolicy } from './empty-aggregates.js';
+import {
+  aggregateRulesWithoutAggregates, EMPTY_AGGREGATES_REASON, EXCLUDED_AGGREGATE_RULES, excludeAggregateRules, excludedAggregateRulesMessage,
+} from './empty-aggregates.js';
 
 // ── Standalone Function ───────────────────────────────────────────────────────
 
@@ -68,33 +76,94 @@ export interface CompileOptions {
    * (`ExtractorOptions.memberFacts`) instead of the setter-name proxy (`DDD_MEMBER_FACT_TEMPLATES`).
    */
   readonly memberFacts?: boolean;
+  /**
+   * v1.3 field-level state, OFF by default and OFF in `V13_COMPILE_OPTIONS` (construct question Q8 is open; the Q8
+   * construct switch decides how FLOWS_TO rows are scored, not which fact feeds the field half): FF-P06
+   * domain-state-purity reads its field half from HOLDS_STATE_OF instead of FLOWS_TO (`applyFieldState`,
+   * `v13-rewrites.ts`). Needs a graph extracted with `ExtractorOptions.fieldState`
+   * (`V13_FIELD_STATE_OPTIONS`); on any other graph the field half returns no row.
+   */
+  readonly fieldState?: boolean;
+  /**
+   * v1.3, absent by default: the construct-decision answers (`src/shared/construct-switches.ts`). Read by the compile
+   * hook (`src/construct-switches/compile.ts`: preset additions, layer order, applicability, carrier functions). At the
+   * status quo (every question at A) the hook is the identity.
+   */
+  readonly constructSwitches?: ConstructAnswers;
+  /**
+   * v1.3 fix batch, OFF by default: FF-P05 controller-no-entity also reads the APG v2 SIGNATURE_USES edge (a public
+   * controller method that takes or returns a domain class; `v13-signature-types.ts`, `Docs/v1.3/ffp05-type-edges.md`).
+   */
+  readonly signatureTypes?: boolean;
+  /**
+   * Loop-pilot tool defect T1, `fail` (the status quo) by default and absent from `V13_COMPILE_OPTIONS`: what a `ddd`
+   * spec with an empty `architecture.ddd.aggregates` does to FF-DT01/FF-DT02 (`empty-aggregates.ts`): `fail`
+   * (BR-SPEC-10), `not-applicable` (option a), `exclude` (option c) or `vacuous` (option d).
+   */
+  readonly emptyAggregates?: EmptyAggregatePolicy;
 }
 
 /** The v1.3 compile options for the pipeline (the frozen v1.2E reproduction passes `{}`). */
-export const V13_COMPILE_OPTIONS: Readonly<CompileOptions> = Object.freeze({ edgeViews: true, styleApplicability: true, roleTokens: true, memberFacts: true });
+export const V13_COMPILE_OPTIONS: Readonly<CompileOptions> = Object.freeze({
+  edgeViews: true, styleApplicability: true, roleTokens: true, memberFacts: true, signatureTypes: true, constructSwitches: CONSTRUCT_ANSWERS,
+});
 
 function rewriteFlags(options: CompileOptions): V13RewriteFlags {
-  return { edgeViews: options.edgeViews === true, roleTokens: options.roleTokens === true, memberFacts: options.memberFacts === true };
+  return {
+    edgeViews: options.edgeViews === true, roleTokens: options.roleTokens === true, memberFacts: options.memberFacts === true,
+    signatureTypes: options.signatureTypes === true,
+    ...(options.fieldState === true ? { fieldState: true } : {}),
+  };
 }
 
 type TemplateCatalogue = ReadonlyMap<string, CypherTemplate>;
 
-export function compileFunctions(input: CompilerInput, options: CompileOptions = {}): DomainResult<CompiledFunctions> {
+export function compileFunctions(rawInput: CompilerInput, options: CompileOptions = {}): DomainResult<CompiledFunctions> {
+  // v1.3 construct switches: the spec as the chosen options declare it (identity at the status quo).
+  const overlaid = applyConstructCompileOverlays(rawInput, options.constructSwitches);
+  // Loop-pilot T1 (`empty-aggregates.ts`): only a non-default policy on a ddd spec with no aggregate changes the input.
+  const t1 = emptyAggregateInput(overlaid, options.emptyAggregates);
+  if (t1.warnings.length > 0) {
+    const compiled = compileStyle(t1.input, options);
+    return compiled.success ? DomainResult.ok({ ...compiled.data, warnings: [...compiled.data.warnings, ...t1.warnings] }) : compiled;
+  }
+  return compileStyle(t1.input, options);
+}
+
+/** The input under an empty-aggregates policy, and the warnings that record it; the identity for `fail` or no policy. */
+function emptyAggregateInput(input: CompilerInput, policy: EmptyAggregatePolicy | undefined): { readonly input: CompilerInput; readonly warnings: readonly CompilerWarning[] } {
+  if (policy === undefined || policy === 'fail' || policy === 'vacuous') return { input, warnings: [] };
+  if (policy === 'exclude') {
+    const { input: rest, excluded } = excludeAggregateRules(input);
+    return excluded.length === 0 ? { input, warnings: [] } : { input: rest, warnings: [{ code: EXCLUDED_AGGREGATE_RULES, message: excludedAggregateRulesMessage(excluded) }] };
+  }
+  const rules = aggregateRulesWithoutAggregates(input);
+  if (rules.length === 0) return { input, warnings: [] };
+  const ids = new Set(rules.map((f) => String(f.id)));
+  return {
+    input: { ...input, fitnessFunctions: input.fitnessFunctions.map((f) => (ids.has(String(f.id)) ? { ...f, enabled: false, disabledReason: EMPTY_AGGREGATES_REASON } : f)) },
+    warnings: rules.map((f) => ({ code: 'COMPILER_004', message: `${String(f.id)} (${f.name}) disabled: ${EMPTY_AGGREGATES_REASON}`, functionId: String(f.id) })),
+  };
+}
+
+function compileStyle(input: CompilerInput, options: CompileOptions): DomainResult<CompiledFunctions> {
   // v1.3: the hexagonal style has its own graph-based templates; every other style takes the path below unchanged.
   if (input.style === HEXAGONAL_STYLE) {
     return compileHexagonalFunctions(input, (rest) => compileFunctionsCore(rest, options), rewriteFlags(options));
   }
   if (input.style === DDD_STYLE) {
-    return compileDddFunctions(input, (rest) => compileFunctionsCore(rest, options), rewriteFlags(options));
+    return compileDddFunctions(input, (rest) => compileFunctionsCore(rest, options), rewriteFlags(options), options.emptyAggregates === 'vacuous');
   }
   return compileFunctionsCore(input, options);
 }
 
 function compileFunctionsCore(input: CompilerInput, options: CompileOptions): DomainResult<CompiledFunctions> {
   const instrumentVersion = options.instrumentVersion ?? INSTRUMENT_VERSION;
-  const templates: TemplateCatalogue = options.v13Templates === true
+  const base: TemplateCatalogue = options.v13Templates === true
     ? new Map([...CYPHER_TEMPLATES, ...V13_CYPHER_TEMPLATES])
     : CYPHER_TEMPLATES;
+  // v1.3 construct switches: the carrier template of the switch-declared rules (only when a switch is set).
+  const templates: TemplateCatalogue = constructSwitchesActive(options.constructSwitches) ? new Map([...base, ...CONSTRUCT_TEMPLATES]) : base;
   const { fitnessFunctions, adrRules, layerModel } = input;
   const symbolicQueries: CypherQuery[] = [];
   const neuronalInstructions: NeuronalInstruction[] = [];
@@ -136,10 +205,12 @@ function compileFunctionsCore(input: CompilerInput, options: CompileOptions): Do
     if (template) {
       const applicability = isTemplateApplicable(template, input.style, binding, layerModel);
       // v1.3 (ADR-V13-02 draft): the style-applicability table, after the frozen checks.
-      const v13Reason = applicability.applicable && options.styleApplicability === true
+      // v1.3 construct switches (Q1, Q10): lift or add a style inapplicability.
+      const switched = applicability.applicable ? constructApplicability(template.functionName, input.style, options.constructSwitches) : undefined;
+      const v13Reason = applicability.applicable && options.styleApplicability === true && typeof switched !== 'object'
         ? v13InapplicableReason(template.functionName, input.style)
         : undefined;
-      const reason = !applicability.applicable ? applicability.reason : v13Reason;
+      const reason = !applicability.applicable ? applicability.reason : v13Reason ?? (typeof switched === 'string' ? switched : undefined);
       if (reason !== undefined) {
         disabledFunctions.push({ id: ff.id, name: ff.name, reason });
         warnings.push({
@@ -186,6 +257,16 @@ function compileFunctionsCore(input: CompilerInput, options: CompileOptions): Do
     const neur = compileADRNeuronal(adr);
     if (adr.symbolicRule) {
       const sym = compileADRSymbolic(adr);
+      // v1.3 (R12, post-merge review 2026-10-16): ADR queries are not rewritten to an edge view (edge-views.md), so
+      // on the v1.3 graph a query over IMPORTS reads the literal barrel edge and the resolved edge together. The
+      // text stays as written; the author is told to choose a view.
+      if (options.edgeViews === true && readsImportsWithoutView(sym.cypher)) {
+        warnings.push({
+          code: 'COMPILER_005',
+          message: `ADR "${adr.title}": its query reads IMPORTS on a graph that holds both re-export views (literal edges to a barrel and resolved viaReExport edges); add NOT coalesce(r.viaReExport, false) for the literal view or NOT coalesce(r.reExportHop, false) for the resolved view`,
+          functionId: adrId,
+        });
+      }
       hybridPairs.push({ functionId: adr.id as import('../shared/types/value-objects.js').FunctionId, symbolicQuery: sym, neuronalInstruction: neur });
     } else {
       neuronalInstructions.push(neur);
@@ -259,7 +340,8 @@ function compileSymbolic(
   // the template's instrument v2 role exemptions (ADR-026).
   const excludePatterns = [...ff.excludePaths.map((g) => globToRegex(g)), ...roleExemptionPatterns(template.functionName, instrumentVersion)];
   if (excludePatterns.length > 0) params.excludePatterns = excludePatterns;
-  const instantiated = instantiateTemplate(template, params);
+  const source = rewrites.signatureTypes === true ? applySignatureTypes(template) : template;
+  const instantiated = instantiateTemplate(source, params);
   const cypher = applyV13Rewrites(template.functionName, instantiated, rewrites);
 
   return {
@@ -299,6 +381,11 @@ function compileNeuronal(
 }
 
 // ── ADR Compilation ───────────────────────────────────────────────────────────
+
+/** An IMPORTS relationship pattern in the text, and no edge-view property named anywhere (R12). */
+function readsImportsWithoutView(cypher: string): boolean {
+  return /\[[^\]]*:\s*(?:[A-Z_]+\s*\|\s*)*IMPORTS\b/.test(cypher) && !/\b(?:viaReExport|reExportHop)\b/.test(cypher);
+}
 
 function compileADRSymbolic(adr: ADRRule): CypherQuery {
   const rule = adr.symbolicRule!;

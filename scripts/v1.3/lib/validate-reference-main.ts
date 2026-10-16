@@ -9,6 +9,11 @@
  *   (default, live)         materialise each variant, run `firewall evaluate --symbolic-only --format json` on it
  *                           (Neo4j required: NEO4J_URI and NEO4J_PASSWORD), save the raw rows, compare
  * Common options: --style <a,b>  --out <dir> (report directory; default results/v1.3-reference)
+ *                 --root <dir> (reference projects in the same formats; default tests/fixtures/v1.3-reference, e.g. a
+ *                 hold-out directory)  --id-map <file> (manifest rule ids -> frozen ids, see reference-model.ts)
+ *                 --set <reference|devset-b>  a named set: `reference` (the 71-case set, the default) or `devset-b`
+ *                 (the separate expansion set under tests/fixtures/v1.3-devset-b, default report directory
+ *                 results/v1.3-devset-b); an explicit --root or --out overrides the set's value
  *
  * The runner never edits a manifest: a disagreement is a reported mismatch (anti-circularity rule,
  * Docs/v1.3-reference-notes.md §6).
@@ -21,7 +26,7 @@ import { cliEvaluate } from '../../lib/freeze-gate-main.js';
 import { compareVariant, normaliseFindingPath, renderMarkdown, styleMetrics } from './compare.js';
 import type { ActualFinding, StyleMetrics, VariantComparison } from './compare.js';
 import { makeTempRoot, materialiseVariant } from './materialise.js';
-import { REFERENCE_STYLES, crossCheck, isReferenceStyle, loadAllReferences } from './reference-model.js';
+import { DEVSET_B_ROOT, REFERENCE_ROOT, REFERENCE_STYLES, applyRuleIdMap, crossCheck, isReferenceStyle, loadAllReferences, loadRuleIdMap } from './reference-model.js';
 import { typecheckProject } from './typecheck.js';
 import type { LoadedReference, ReferenceStyle } from './reference-model.js';
 
@@ -40,7 +45,15 @@ interface Args {
   readonly dir?: string;
   readonly styles: readonly ReferenceStyle[];
   readonly out: string;
+  readonly root: string;
+  readonly idMap?: string;
 }
+
+/** The reference sets `--set` accepts: fixture root and default report directory. */
+export const REFERENCE_SETS: Readonly<Record<string, { readonly root: string; readonly out: string }>> = {
+  reference: { root: REFERENCE_ROOT, out: 'results/v1.3-reference' },
+  'devset-b': { root: DEVSET_B_ROOT, out: 'results/v1.3-devset-b' },
+};
 
 export const LIVE_REFUSAL =
   'live run needs Neo4j: set NEO4J_URI and NEO4J_PASSWORD (see README), or use --check, --materialise <dir> or --from-raw <dir>';
@@ -49,7 +62,10 @@ export function parseArgs(argv: readonly string[]): Args | string {
   let mode: Args['mode'] = 'live';
   let dir: string | undefined;
   let styles: ReferenceStyle[] = [...REFERENCE_STYLES];
-  let out = 'results/v1.3-reference';
+  let out: string | undefined;
+  let root: string | undefined;
+  let set = 'reference';
+  let idMap: string | undefined;
   let modes = 0;
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i];
@@ -74,12 +90,22 @@ export function parseArgs(argv: readonly string[]): Args | string {
       const v = value();
       if (v === undefined) return '--out needs a directory';
       out = v;
+    } else if (a === '--set') {
+      const v = value();
+      if (v === undefined || REFERENCE_SETS[v] === undefined) return `--set takes one of ${Object.keys(REFERENCE_SETS).join(', ')}`;
+      set = v;
+    } else if (a === '--root' || a === '--id-map') {
+      const v = value();
+      if (v === undefined) return `${a} needs a path`;
+      if (a === '--root') root = v;
+      else idMap = v;
     } else {
       return `unexpected argument ${JSON.stringify(a)}`;
     }
   }
   if (modes > 1) return 'choose one of --check, --materialise, --from-raw';
-  return { mode, styles, out, ...(dir !== undefined ? { dir } : {}) };
+  const chosen = REFERENCE_SETS[set] ?? { root: REFERENCE_ROOT, out: 'results/v1.3-reference' };
+  return { mode, styles, out: out ?? chosen.out, root: root ?? chosen.root, ...(dir !== undefined ? { dir } : {}), ...(idMap !== undefined ? { idMap } : {}) };
 }
 
 /** The live evaluator: `bin/firewall.ts evaluate --symbolic-only --format json` per variant, through the CLI. */
@@ -143,7 +169,8 @@ export async function main(argv: readonly string[], repoRoot: string, deps: Main
     deps.err(`${args}\n`);
     return 2;
   }
-  const refs = loadAllReferences(repoRoot, args.styles);
+  const map = args.idMap === undefined ? undefined : loadRuleIdMap(path.resolve(repoRoot, args.idMap));
+  const refs = loadAllReferences(repoRoot, args.styles, args.root).map((r) => applyRuleIdMap(r, map).ref);
   const problems = refs.flatMap(crossCheck);
   if (problems.length > 0) {
     deps.err(problems.map((p) => `cross-check: ${p}`).join('\n') + '\n');
@@ -207,7 +234,7 @@ export async function main(argv: readonly string[], repoRoot: string, deps: Main
 
   if (args.mode === 'from-raw') {
     const rawDir = path.resolve(repoRoot, args.dir ?? '');
-    const run = await compareAll(refs, async (ref, variant) => readRaw(rawDir, ref.style, variant));
+    const run = await compareAll(refs, (ref, variant) => Promise.resolve(readRaw(rawDir, ref.style, variant)));
     writeReport(path.resolve(repoRoot, args.out), run, `# v1.3 reference validation (from saved outputs in ${args.dir ?? ''})`);
     deps.out(renderMarkdown(run.metrics, [], '# v1.3 reference validation'));
     return 0;
@@ -227,7 +254,7 @@ export async function main(argv: readonly string[], repoRoot: string, deps: Main
   // jest suite, another agent's run) can wipe the database between this run's ingestion and evaluation. The CLI
   // children see their ancestor's lock and do not wait for it.
   const uri = deps.env.NEO4J_URI ?? '';
-  const lock = uri === '' ? undefined : await acquireNeo4jLock(uri, { label: 'validate-reference live run', env: deps.env, onWait: (t) => deps.err(`${t}\n`) });
+  const lock = uri === '' ? undefined : await acquireNeo4jLock(uri, { label: 'validate-reference live run', env: deps.env, onWait: (t) => { deps.err(`${t}\n`); } });
   if (lock !== undefined) deps.err(`Neo4j lock ${lock.mode} (${lock.path})\n`);
   const work = makeTempRoot();
   try {
@@ -235,7 +262,7 @@ export async function main(argv: readonly string[], repoRoot: string, deps: Main
       const v = ref.variants.find((x) => x.manifest.variant === variant);
       if (v === undefined) throw new Error(`unknown variant ${variant}`);
       const m = materialiseVariant(ref, v, work);
-      const findings = await (evaluate as Evaluator)(m.projectDir, ref.specPath);
+      const findings = await evaluate(m.projectDir, ref.specPath);
       const rawFile = path.join(outDir, 'raw', ref.style, `${variant}.json`);
       fs.mkdirSync(path.dirname(rawFile), { recursive: true });
       fs.writeFileSync(rawFile, JSON.stringify({ style: ref.style, variant, findings }, null, 2) + '\n');

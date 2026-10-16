@@ -1,0 +1,40 @@
+{
+  "style": "ddd",
+  "variant": "v02-repository-for-inner-entity",
+  "elapsedMs": 2537,
+  "violations": [
+    {
+      "id": "v-f771e894f2f4cb1c",
+      "type": "CUSTOM_repository-aggregate-root",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-DT02",
+      "route": "symbolic",
+      "filePath": "src/ordering/domain/order/OrderLineRepository.ts",
+      "message": "Repository src/ordering/domain/order/OrderLineRepository.ts imports src/ordering/domain/order/OrderLine.ts, an inner entity of aggregate Order",
+      "deterministic": true,
+      "target": "src/ordering/domain/order/OrderLine.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "isTypeOnly": true,
+      "discriminator": [
+        "Order",
+        "IMPORTS"
+      ],
+      "tag": "pattern-proxy"
+    }
+  ],
+  "advisoryFilter": {
+    "options": [
+      "cv05-no-logic",
+      "composition-roots",
+      "c03-core-only",
+      "c02-abstract-imports",
+      "c04-entry-points",
+      "so-framework-members"
+    ],
+    "suppressed": []
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "style": "layered",
+  "variant": "v23-business-error-builds-http-response",
+  "kind": "violation",
+  "plants": "FF-S01",
+  "description": "BusinessError (business/errors) gets toResponse(), typed with an import type of HttpResponse from the presentation HTTP types.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/business/errors/BusinessError.ts",
+      "target": "src/presentation/http/HttpTypes.ts",
+      "reason": "A lower layer (business) imports an upper one (presentation)."
+    },
+    {
+      "ruleId": "FF-S03",
+      "ruleName": "no-layer-skip",
+      "file": "src/business/errors/BusinessError.ts",
+      "target": "src/presentation/http/HttpTypes.ts",
+      "reason": "business > presentation is not an allowed transition (only business > persistence and presentation > business are)."
+    }
+  ]
+}

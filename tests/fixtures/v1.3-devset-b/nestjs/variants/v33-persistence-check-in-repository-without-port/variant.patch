@@ -1,0 +1,76 @@
+--- a/src/attendees/attendees.module.ts
++++ b/src/attendees/attendees.module.ts
+@@ -1,12 +1,18 @@
+ import { Module } from '@nestjs/common';
+ import { ATTENDEE_REPOSITORY } from '../domain/attendee-repository';
++import { CHECK_IN_REPOSITORY } from '../domain/check-in-repository';
++import { InMemoryCheckInRepository } from '../persistence/in-memory-check-in.repository';
+ import { AttendeesController } from './attendees.controller';
+ import { AttendeesService } from './attendees.service';
+ import { InMemoryAttendeeRepository } from './in-memory-attendee.repository';
+ 
+ @Module({
+   controllers: [AttendeesController],
+-  providers: [AttendeesService, { provide: ATTENDEE_REPOSITORY, useClass: InMemoryAttendeeRepository }],
++  providers: [
++    AttendeesService,
++    { provide: ATTENDEE_REPOSITORY, useClass: InMemoryAttendeeRepository },
++    { provide: CHECK_IN_REPOSITORY, useClass: InMemoryCheckInRepository },
++  ],
+   exports: [ATTENDEE_REPOSITORY],
+ })
+ export class AttendeesModule {}
+--- a/src/attendees/attendees.service.ts
++++ b/src/attendees/attendees.service.ts
+@@ -1,6 +1,7 @@
+ import { Inject, Injectable } from '@nestjs/common';
+ import { Attendee } from '../domain/attendee';
+ import { ATTENDEE_REPOSITORY, AttendeeRepository } from '../domain/attendee-repository';
++import { CHECK_IN_REPOSITORY, CheckInRepository } from '../domain/check-in-repository';
+ import { DomainError } from '../domain/domain-error';
+ import { CreateAttendeeDto } from './dto/create-attendee.dto';
+ 
+@@ -8,7 +9,16 @@
+ export class AttendeesService {
+   private sequence = 0;
+ 
+-  constructor(@Inject(ATTENDEE_REPOSITORY) private readonly attendees: AttendeeRepository) {}
++  constructor(
++    @Inject(ATTENDEE_REPOSITORY) private readonly attendees: AttendeeRepository,
++    @Inject(CHECK_IN_REPOSITORY) private readonly checkIns: CheckInRepository,
++  ) {}
++
++  async checkIn(attendeeId: string, workshopId: string): Promise<number> {
++    await this.findOne(attendeeId);
++    await this.checkIns.record(workshopId, attendeeId, new Date());
++    return this.checkIns.countFor(workshopId);
++  }
+ 
+   async create(dto: CreateAttendeeDto): Promise<{ id: string; name: string }> {
+     this.sequence += 1;
+--- /dev/null
++++ b/src/domain/check-in-repository.ts
+@@ -0,0 +1,6 @@
++export const CHECK_IN_REPOSITORY = 'CHECK_IN_REPOSITORY';
++
++export interface CheckInRepository {
++  record(workshopId: string, attendeeId: string, at: Date): Promise<void>;
++  countFor(workshopId: string): Promise<number>;
++}
+--- /dev/null
++++ b/src/persistence/in-memory-check-in.repository.ts
+@@ -0,0 +1,14 @@
++import { Injectable } from '@nestjs/common';
++
++@Injectable()
++export class InMemoryCheckInRepository {
++  private readonly rows: { workshopId: string; attendeeId: string; at: Date }[] = [];
++
++  async record(workshopId: string, attendeeId: string, at: Date): Promise<void> {
++    this.rows.push({ workshopId, attendeeId, at });
++  }
++
++  async countFor(workshopId: string): Promise<number> {
++    return this.rows.filter((r) => r.workshopId === workshopId).length;
++  }
++}

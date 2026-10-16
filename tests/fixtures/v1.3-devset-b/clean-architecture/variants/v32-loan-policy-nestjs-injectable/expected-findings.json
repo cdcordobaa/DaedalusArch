@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "v32-loan-policy-nestjs-injectable",
+  "kind": "violation",
+  "plants": "FF-P01",
+  "description": "LoanPolicy (domain service) is decorated with @Injectable from @nestjs/common.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P01",
+      "ruleName": "domain-purity",
+      "file": "src/domain/services/LoanPolicy.ts",
+      "target": "@nestjs/common",
+      "reason": "The domain imports the framework package @nestjs/common."
+    }
+  ]
+}

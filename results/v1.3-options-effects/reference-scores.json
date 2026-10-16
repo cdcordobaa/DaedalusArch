@@ -1,0 +1,3090 @@
+{
+ "base": "results/v1.3-reference/after-member-facts",
+ "checks": "author-cycle-normalised and blind-expanded keys reproduce scores.json (blocking and all rules, 5 styles)",
+ "sets": {
+  "none": {
+   "filter": "none",
+   "toolRows": 1663,
+   "suppressedRows": 0,
+   "variantsWithChangedBlockingRows": 0,
+   "pooled": {
+    "author": {
+     "blocking": {
+      "tp": 57,
+      "fn": 0,
+      "fp": 0
+     },
+     "all": {
+      "tp": 66,
+      "fn": 2,
+      "fp": 2
+     },
+     "advisory": {
+      "tp": 9,
+      "fn": 2,
+      "fp": 2
+     }
+    },
+    "blind": {
+     "blocking": {
+      "tp": 53,
+      "fn": 14,
+      "fp": 4
+     },
+     "all": {
+      "tp": 60,
+      "fn": 22,
+      "fp": 8
+     },
+     "advisory": {
+      "tp": 7,
+      "fn": 8,
+      "fp": 4
+     }
+    }
+   },
+   "perStyle": {
+    "clean-architecture": {
+     "author": {
+      "blocking": {
+       "tp": 13,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 2,
+       "fn": 1,
+       "fp": 0
+      },
+      "all": {
+       "tp": 15,
+       "fn": 1,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 13,
+       "fn": 2,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 2,
+       "fn": 3,
+       "fp": 0
+      },
+      "all": {
+       "tp": 15,
+       "fn": 5,
+       "fp": 0
+      }
+     },
+     "blindBlockingMisses": [
+      "v01-domain-imports-application-port FF-S02 src/application/ports/Clock.ts -> src/domain/entities/Loan.ts",
+      "v09-dto-depends-on-http-adapter FF-S02 src/application/dto/LoanDto.ts -> src/infrastructure/http/HttpTypes.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "layered": {
+     "author": {
+      "blocking": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 0,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 7,
+       "fn": 3,
+       "fp": 4
+      },
+      "advisory": {
+       "tp": 0,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 7,
+       "fn": 3,
+       "fp": 4
+      }
+     },
+     "blindBlockingMisses": [
+      "v01-gateway-returns-business-money FF-S02 src/business/model/Money.ts -> src/persistence/ProductGateway.ts",
+      "v02-service-renders-view FF-S02 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+      "v08-business-service-takes-express-request FF-S01 src/business/services/OrderService.ts -> express"
+     ],
+     "blindBlockingFalseAlarms": [
+      "v01-gateway-returns-business-money FF-S03 src/persistence/ProductGateway.ts -> src/business/model/Money.ts",
+      "v02-service-renders-view FF-S03 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+      "v07-business-model-typeorm-decorator FF-P01 src/business/model/Order.ts -> typeorm",
+      "v08-business-service-takes-express-request FF-P01 src/business/services/OrderService.ts -> express"
+     ]
+    },
+    "nestjs": {
+     "author": {
+      "blocking": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 1,
+       "fp": 2
+      },
+      "all": {
+       "tp": 12,
+       "fn": 1,
+       "fp": 2
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 11,
+       "fn": 3,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 2,
+       "fp": 2
+      },
+      "all": {
+       "tp": 12,
+       "fn": 5,
+       "fp": 2
+      }
+     },
+     "blindBlockingMisses": [
+      "v07-service-injects-concrete-repository FF-S01 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+      "v07-service-injects-concrete-repository FF-P03 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+      "v10-domain-policy-holds-repository FF-P01 src/domain/registration-policy.ts -> src/registrations/in-memory-registration.repository.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "hexagonal": {
+     "author": {
+      "blocking": {
+       "tp": 13,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 16,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 13,
+       "fn": 6,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 3,
+       "fp": 2
+      },
+      "all": {
+       "tp": 14,
+       "fn": 9,
+       "fp": 2
+      }
+     },
+     "blindBlockingMisses": [
+      "v03-use-case-injects-concrete-adapter FF-S04 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v03-use-case-injects-concrete-adapter FF-P03 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v04-use-case-throws-http-error FF-S04 src/application/services/CancelBookingService.ts -> src/adapters/inbound/http/HttpTypes.ts",
+      "v05-inbound-adapter-reads-outbound-adapter FF-S01 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v05-inbound-adapter-reads-outbound-adapter FF-P03 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v06-outbound-adapter-uses-cli-formatter FF-S01 src/adapters/outbound/notification/OutboxNotificationAdapter.ts -> src/adapters/inbound/cli/BookingCli.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "ddd": {
+     "author": {
+      "blocking": {
+       "tp": 9,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 12,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 9,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 12,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blindBlockingMisses": [],
+     "blindBlockingFalseAlarms": []
+    }
+   }
+  },
+  "cv05-no-logic": {
+   "filter": "cv05-no-logic",
+   "toolRows": 1290,
+   "suppressedRows": 373,
+   "variantsWithChangedBlockingRows": 0,
+   "pooled": {
+    "author": {
+     "blocking": {
+      "tp": 57,
+      "fn": 0,
+      "fp": 0
+     },
+     "all": {
+      "tp": 66,
+      "fn": 2,
+      "fp": 2
+     },
+     "advisory": {
+      "tp": 9,
+      "fn": 2,
+      "fp": 2
+     }
+    },
+    "blind": {
+     "blocking": {
+      "tp": 53,
+      "fn": 14,
+      "fp": 4
+     },
+     "all": {
+      "tp": 60,
+      "fn": 22,
+      "fp": 8
+     },
+     "advisory": {
+      "tp": 7,
+      "fn": 8,
+      "fp": 4
+     }
+    }
+   },
+   "perStyle": {
+    "clean-architecture": {
+     "author": {
+      "blocking": {
+       "tp": 13,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 2,
+       "fn": 1,
+       "fp": 0
+      },
+      "all": {
+       "tp": 15,
+       "fn": 1,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 13,
+       "fn": 2,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 2,
+       "fn": 3,
+       "fp": 0
+      },
+      "all": {
+       "tp": 15,
+       "fn": 5,
+       "fp": 0
+      }
+     },
+     "blindBlockingMisses": [
+      "v01-domain-imports-application-port FF-S02 src/application/ports/Clock.ts -> src/domain/entities/Loan.ts",
+      "v09-dto-depends-on-http-adapter FF-S02 src/application/dto/LoanDto.ts -> src/infrastructure/http/HttpTypes.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "layered": {
+     "author": {
+      "blocking": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 0,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 7,
+       "fn": 3,
+       "fp": 4
+      },
+      "advisory": {
+       "tp": 0,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 7,
+       "fn": 3,
+       "fp": 4
+      }
+     },
+     "blindBlockingMisses": [
+      "v01-gateway-returns-business-money FF-S02 src/business/model/Money.ts -> src/persistence/ProductGateway.ts",
+      "v02-service-renders-view FF-S02 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+      "v08-business-service-takes-express-request FF-S01 src/business/services/OrderService.ts -> express"
+     ],
+     "blindBlockingFalseAlarms": [
+      "v01-gateway-returns-business-money FF-S03 src/persistence/ProductGateway.ts -> src/business/model/Money.ts",
+      "v02-service-renders-view FF-S03 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+      "v07-business-model-typeorm-decorator FF-P01 src/business/model/Order.ts -> typeorm",
+      "v08-business-service-takes-express-request FF-P01 src/business/services/OrderService.ts -> express"
+     ]
+    },
+    "nestjs": {
+     "author": {
+      "blocking": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 1,
+       "fp": 2
+      },
+      "all": {
+       "tp": 12,
+       "fn": 1,
+       "fp": 2
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 11,
+       "fn": 3,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 2,
+       "fp": 2
+      },
+      "all": {
+       "tp": 12,
+       "fn": 5,
+       "fp": 2
+      }
+     },
+     "blindBlockingMisses": [
+      "v07-service-injects-concrete-repository FF-S01 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+      "v07-service-injects-concrete-repository FF-P03 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+      "v10-domain-policy-holds-repository FF-P01 src/domain/registration-policy.ts -> src/registrations/in-memory-registration.repository.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "hexagonal": {
+     "author": {
+      "blocking": {
+       "tp": 13,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 16,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 13,
+       "fn": 6,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 3,
+       "fp": 2
+      },
+      "all": {
+       "tp": 14,
+       "fn": 9,
+       "fp": 2
+      }
+     },
+     "blindBlockingMisses": [
+      "v03-use-case-injects-concrete-adapter FF-S04 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v03-use-case-injects-concrete-adapter FF-P03 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v04-use-case-throws-http-error FF-S04 src/application/services/CancelBookingService.ts -> src/adapters/inbound/http/HttpTypes.ts",
+      "v05-inbound-adapter-reads-outbound-adapter FF-S01 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v05-inbound-adapter-reads-outbound-adapter FF-P03 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v06-outbound-adapter-uses-cli-formatter FF-S01 src/adapters/outbound/notification/OutboxNotificationAdapter.ts -> src/adapters/inbound/cli/BookingCli.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "ddd": {
+     "author": {
+      "blocking": {
+       "tp": 9,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 12,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 9,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 12,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blindBlockingMisses": [],
+     "blindBlockingFalseAlarms": []
+    }
+   }
+  },
+  "cv05-no-branching": {
+   "filter": "cv05-no-branching",
+   "toolRows": 985,
+   "suppressedRows": 678,
+   "variantsWithChangedBlockingRows": 0,
+   "pooled": {
+    "author": {
+     "blocking": {
+      "tp": 57,
+      "fn": 0,
+      "fp": 0
+     },
+     "all": {
+      "tp": 66,
+      "fn": 2,
+      "fp": 2
+     },
+     "advisory": {
+      "tp": 9,
+      "fn": 2,
+      "fp": 2
+     }
+    },
+    "blind": {
+     "blocking": {
+      "tp": 53,
+      "fn": 14,
+      "fp": 4
+     },
+     "all": {
+      "tp": 60,
+      "fn": 22,
+      "fp": 8
+     },
+     "advisory": {
+      "tp": 7,
+      "fn": 8,
+      "fp": 4
+     }
+    }
+   },
+   "perStyle": {
+    "clean-architecture": {
+     "author": {
+      "blocking": {
+       "tp": 13,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 2,
+       "fn": 1,
+       "fp": 0
+      },
+      "all": {
+       "tp": 15,
+       "fn": 1,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 13,
+       "fn": 2,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 2,
+       "fn": 3,
+       "fp": 0
+      },
+      "all": {
+       "tp": 15,
+       "fn": 5,
+       "fp": 0
+      }
+     },
+     "blindBlockingMisses": [
+      "v01-domain-imports-application-port FF-S02 src/application/ports/Clock.ts -> src/domain/entities/Loan.ts",
+      "v09-dto-depends-on-http-adapter FF-S02 src/application/dto/LoanDto.ts -> src/infrastructure/http/HttpTypes.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "layered": {
+     "author": {
+      "blocking": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 0,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 7,
+       "fn": 3,
+       "fp": 4
+      },
+      "advisory": {
+       "tp": 0,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 7,
+       "fn": 3,
+       "fp": 4
+      }
+     },
+     "blindBlockingMisses": [
+      "v01-gateway-returns-business-money FF-S02 src/business/model/Money.ts -> src/persistence/ProductGateway.ts",
+      "v02-service-renders-view FF-S02 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+      "v08-business-service-takes-express-request FF-S01 src/business/services/OrderService.ts -> express"
+     ],
+     "blindBlockingFalseAlarms": [
+      "v01-gateway-returns-business-money FF-S03 src/persistence/ProductGateway.ts -> src/business/model/Money.ts",
+      "v02-service-renders-view FF-S03 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+      "v07-business-model-typeorm-decorator FF-P01 src/business/model/Order.ts -> typeorm",
+      "v08-business-service-takes-express-request FF-P01 src/business/services/OrderService.ts -> express"
+     ]
+    },
+    "nestjs": {
+     "author": {
+      "blocking": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 1,
+       "fp": 2
+      },
+      "all": {
+       "tp": 12,
+       "fn": 1,
+       "fp": 2
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 11,
+       "fn": 3,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 2,
+       "fp": 2
+      },
+      "all": {
+       "tp": 12,
+       "fn": 5,
+       "fp": 2
+      }
+     },
+     "blindBlockingMisses": [
+      "v07-service-injects-concrete-repository FF-S01 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+      "v07-service-injects-concrete-repository FF-P03 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+      "v10-domain-policy-holds-repository FF-P01 src/domain/registration-policy.ts -> src/registrations/in-memory-registration.repository.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "hexagonal": {
+     "author": {
+      "blocking": {
+       "tp": 13,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 16,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 13,
+       "fn": 6,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 3,
+       "fp": 2
+      },
+      "all": {
+       "tp": 14,
+       "fn": 9,
+       "fp": 2
+      }
+     },
+     "blindBlockingMisses": [
+      "v03-use-case-injects-concrete-adapter FF-S04 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v03-use-case-injects-concrete-adapter FF-P03 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v04-use-case-throws-http-error FF-S04 src/application/services/CancelBookingService.ts -> src/adapters/inbound/http/HttpTypes.ts",
+      "v05-inbound-adapter-reads-outbound-adapter FF-S01 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v05-inbound-adapter-reads-outbound-adapter FF-P03 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v06-outbound-adapter-uses-cli-formatter FF-S01 src/adapters/outbound/notification/OutboxNotificationAdapter.ts -> src/adapters/inbound/cli/BookingCli.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "ddd": {
+     "author": {
+      "blocking": {
+       "tp": 9,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 12,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 9,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 12,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blindBlockingMisses": [],
+     "blindBlockingFalseAlarms": []
+    }
+   }
+  },
+  "composition-roots": {
+   "filter": "composition-roots",
+   "toolRows": 1586,
+   "suppressedRows": 77,
+   "variantsWithChangedBlockingRows": 0,
+   "pooled": {
+    "author": {
+     "blocking": {
+      "tp": 57,
+      "fn": 0,
+      "fp": 0
+     },
+     "all": {
+      "tp": 66,
+      "fn": 2,
+      "fp": 2
+     },
+     "advisory": {
+      "tp": 9,
+      "fn": 2,
+      "fp": 2
+     }
+    },
+    "blind": {
+     "blocking": {
+      "tp": 53,
+      "fn": 14,
+      "fp": 4
+     },
+     "all": {
+      "tp": 60,
+      "fn": 22,
+      "fp": 8
+     },
+     "advisory": {
+      "tp": 7,
+      "fn": 8,
+      "fp": 4
+     }
+    }
+   },
+   "perStyle": {
+    "clean-architecture": {
+     "author": {
+      "blocking": {
+       "tp": 13,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 2,
+       "fn": 1,
+       "fp": 0
+      },
+      "all": {
+       "tp": 15,
+       "fn": 1,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 13,
+       "fn": 2,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 2,
+       "fn": 3,
+       "fp": 0
+      },
+      "all": {
+       "tp": 15,
+       "fn": 5,
+       "fp": 0
+      }
+     },
+     "blindBlockingMisses": [
+      "v01-domain-imports-application-port FF-S02 src/application/ports/Clock.ts -> src/domain/entities/Loan.ts",
+      "v09-dto-depends-on-http-adapter FF-S02 src/application/dto/LoanDto.ts -> src/infrastructure/http/HttpTypes.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "layered": {
+     "author": {
+      "blocking": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 0,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 7,
+       "fn": 3,
+       "fp": 4
+      },
+      "advisory": {
+       "tp": 0,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 7,
+       "fn": 3,
+       "fp": 4
+      }
+     },
+     "blindBlockingMisses": [
+      "v01-gateway-returns-business-money FF-S02 src/business/model/Money.ts -> src/persistence/ProductGateway.ts",
+      "v02-service-renders-view FF-S02 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+      "v08-business-service-takes-express-request FF-S01 src/business/services/OrderService.ts -> express"
+     ],
+     "blindBlockingFalseAlarms": [
+      "v01-gateway-returns-business-money FF-S03 src/persistence/ProductGateway.ts -> src/business/model/Money.ts",
+      "v02-service-renders-view FF-S03 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+      "v07-business-model-typeorm-decorator FF-P01 src/business/model/Order.ts -> typeorm",
+      "v08-business-service-takes-express-request FF-P01 src/business/services/OrderService.ts -> express"
+     ]
+    },
+    "nestjs": {
+     "author": {
+      "blocking": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 1,
+       "fp": 2
+      },
+      "all": {
+       "tp": 12,
+       "fn": 1,
+       "fp": 2
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 11,
+       "fn": 3,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 2,
+       "fp": 2
+      },
+      "all": {
+       "tp": 12,
+       "fn": 5,
+       "fp": 2
+      }
+     },
+     "blindBlockingMisses": [
+      "v07-service-injects-concrete-repository FF-S01 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+      "v07-service-injects-concrete-repository FF-P03 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+      "v10-domain-policy-holds-repository FF-P01 src/domain/registration-policy.ts -> src/registrations/in-memory-registration.repository.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "hexagonal": {
+     "author": {
+      "blocking": {
+       "tp": 13,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 16,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 13,
+       "fn": 6,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 3,
+       "fp": 2
+      },
+      "all": {
+       "tp": 14,
+       "fn": 9,
+       "fp": 2
+      }
+     },
+     "blindBlockingMisses": [
+      "v03-use-case-injects-concrete-adapter FF-S04 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v03-use-case-injects-concrete-adapter FF-P03 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v04-use-case-throws-http-error FF-S04 src/application/services/CancelBookingService.ts -> src/adapters/inbound/http/HttpTypes.ts",
+      "v05-inbound-adapter-reads-outbound-adapter FF-S01 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v05-inbound-adapter-reads-outbound-adapter FF-P03 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v06-outbound-adapter-uses-cli-formatter FF-S01 src/adapters/outbound/notification/OutboxNotificationAdapter.ts -> src/adapters/inbound/cli/BookingCli.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "ddd": {
+     "author": {
+      "blocking": {
+       "tp": 9,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 12,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 9,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 12,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blindBlockingMisses": [],
+     "blindBlockingFalseAlarms": []
+    }
+   }
+  },
+  "c03-core-only": {
+   "filter": "c03-core-only",
+   "toolRows": 1570,
+   "suppressedRows": 93,
+   "variantsWithChangedBlockingRows": 0,
+   "pooled": {
+    "author": {
+     "blocking": {
+      "tp": 57,
+      "fn": 0,
+      "fp": 0
+     },
+     "all": {
+      "tp": 66,
+      "fn": 2,
+      "fp": 2
+     },
+     "advisory": {
+      "tp": 9,
+      "fn": 2,
+      "fp": 2
+     }
+    },
+    "blind": {
+     "blocking": {
+      "tp": 53,
+      "fn": 14,
+      "fp": 4
+     },
+     "all": {
+      "tp": 60,
+      "fn": 22,
+      "fp": 8
+     },
+     "advisory": {
+      "tp": 7,
+      "fn": 8,
+      "fp": 4
+     }
+    }
+   },
+   "perStyle": {
+    "clean-architecture": {
+     "author": {
+      "blocking": {
+       "tp": 13,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 2,
+       "fn": 1,
+       "fp": 0
+      },
+      "all": {
+       "tp": 15,
+       "fn": 1,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 13,
+       "fn": 2,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 2,
+       "fn": 3,
+       "fp": 0
+      },
+      "all": {
+       "tp": 15,
+       "fn": 5,
+       "fp": 0
+      }
+     },
+     "blindBlockingMisses": [
+      "v01-domain-imports-application-port FF-S02 src/application/ports/Clock.ts -> src/domain/entities/Loan.ts",
+      "v09-dto-depends-on-http-adapter FF-S02 src/application/dto/LoanDto.ts -> src/infrastructure/http/HttpTypes.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "layered": {
+     "author": {
+      "blocking": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 0,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 7,
+       "fn": 3,
+       "fp": 4
+      },
+      "advisory": {
+       "tp": 0,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 7,
+       "fn": 3,
+       "fp": 4
+      }
+     },
+     "blindBlockingMisses": [
+      "v01-gateway-returns-business-money FF-S02 src/business/model/Money.ts -> src/persistence/ProductGateway.ts",
+      "v02-service-renders-view FF-S02 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+      "v08-business-service-takes-express-request FF-S01 src/business/services/OrderService.ts -> express"
+     ],
+     "blindBlockingFalseAlarms": [
+      "v01-gateway-returns-business-money FF-S03 src/persistence/ProductGateway.ts -> src/business/model/Money.ts",
+      "v02-service-renders-view FF-S03 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+      "v07-business-model-typeorm-decorator FF-P01 src/business/model/Order.ts -> typeorm",
+      "v08-business-service-takes-express-request FF-P01 src/business/services/OrderService.ts -> express"
+     ]
+    },
+    "nestjs": {
+     "author": {
+      "blocking": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 1,
+       "fp": 2
+      },
+      "all": {
+       "tp": 12,
+       "fn": 1,
+       "fp": 2
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 11,
+       "fn": 3,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 2,
+       "fp": 2
+      },
+      "all": {
+       "tp": 12,
+       "fn": 5,
+       "fp": 2
+      }
+     },
+     "blindBlockingMisses": [
+      "v07-service-injects-concrete-repository FF-S01 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+      "v07-service-injects-concrete-repository FF-P03 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+      "v10-domain-policy-holds-repository FF-P01 src/domain/registration-policy.ts -> src/registrations/in-memory-registration.repository.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "hexagonal": {
+     "author": {
+      "blocking": {
+       "tp": 13,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 16,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 13,
+       "fn": 6,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 3,
+       "fp": 2
+      },
+      "all": {
+       "tp": 14,
+       "fn": 9,
+       "fp": 2
+      }
+     },
+     "blindBlockingMisses": [
+      "v03-use-case-injects-concrete-adapter FF-S04 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v03-use-case-injects-concrete-adapter FF-P03 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v04-use-case-throws-http-error FF-S04 src/application/services/CancelBookingService.ts -> src/adapters/inbound/http/HttpTypes.ts",
+      "v05-inbound-adapter-reads-outbound-adapter FF-S01 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v05-inbound-adapter-reads-outbound-adapter FF-P03 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v06-outbound-adapter-uses-cli-formatter FF-S01 src/adapters/outbound/notification/OutboxNotificationAdapter.ts -> src/adapters/inbound/cli/BookingCli.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "ddd": {
+     "author": {
+      "blocking": {
+       "tp": 9,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 12,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 9,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 12,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blindBlockingMisses": [],
+     "blindBlockingFalseAlarms": []
+    }
+   }
+  },
+  "c02-abstract-imports": {
+   "filter": "c02-abstract-imports",
+   "toolRows": 1648,
+   "suppressedRows": 15,
+   "variantsWithChangedBlockingRows": 0,
+   "pooled": {
+    "author": {
+     "blocking": {
+      "tp": 57,
+      "fn": 0,
+      "fp": 0
+     },
+     "all": {
+      "tp": 66,
+      "fn": 2,
+      "fp": 2
+     },
+     "advisory": {
+      "tp": 9,
+      "fn": 2,
+      "fp": 2
+     }
+    },
+    "blind": {
+     "blocking": {
+      "tp": 53,
+      "fn": 14,
+      "fp": 4
+     },
+     "all": {
+      "tp": 60,
+      "fn": 22,
+      "fp": 8
+     },
+     "advisory": {
+      "tp": 7,
+      "fn": 8,
+      "fp": 4
+     }
+    }
+   },
+   "perStyle": {
+    "clean-architecture": {
+     "author": {
+      "blocking": {
+       "tp": 13,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 2,
+       "fn": 1,
+       "fp": 0
+      },
+      "all": {
+       "tp": 15,
+       "fn": 1,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 13,
+       "fn": 2,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 2,
+       "fn": 3,
+       "fp": 0
+      },
+      "all": {
+       "tp": 15,
+       "fn": 5,
+       "fp": 0
+      }
+     },
+     "blindBlockingMisses": [
+      "v01-domain-imports-application-port FF-S02 src/application/ports/Clock.ts -> src/domain/entities/Loan.ts",
+      "v09-dto-depends-on-http-adapter FF-S02 src/application/dto/LoanDto.ts -> src/infrastructure/http/HttpTypes.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "layered": {
+     "author": {
+      "blocking": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 0,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 7,
+       "fn": 3,
+       "fp": 4
+      },
+      "advisory": {
+       "tp": 0,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 7,
+       "fn": 3,
+       "fp": 4
+      }
+     },
+     "blindBlockingMisses": [
+      "v01-gateway-returns-business-money FF-S02 src/business/model/Money.ts -> src/persistence/ProductGateway.ts",
+      "v02-service-renders-view FF-S02 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+      "v08-business-service-takes-express-request FF-S01 src/business/services/OrderService.ts -> express"
+     ],
+     "blindBlockingFalseAlarms": [
+      "v01-gateway-returns-business-money FF-S03 src/persistence/ProductGateway.ts -> src/business/model/Money.ts",
+      "v02-service-renders-view FF-S03 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+      "v07-business-model-typeorm-decorator FF-P01 src/business/model/Order.ts -> typeorm",
+      "v08-business-service-takes-express-request FF-P01 src/business/services/OrderService.ts -> express"
+     ]
+    },
+    "nestjs": {
+     "author": {
+      "blocking": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 1,
+       "fp": 2
+      },
+      "all": {
+       "tp": 12,
+       "fn": 1,
+       "fp": 2
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 11,
+       "fn": 3,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 2,
+       "fp": 2
+      },
+      "all": {
+       "tp": 12,
+       "fn": 5,
+       "fp": 2
+      }
+     },
+     "blindBlockingMisses": [
+      "v07-service-injects-concrete-repository FF-S01 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+      "v07-service-injects-concrete-repository FF-P03 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+      "v10-domain-policy-holds-repository FF-P01 src/domain/registration-policy.ts -> src/registrations/in-memory-registration.repository.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "hexagonal": {
+     "author": {
+      "blocking": {
+       "tp": 13,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 16,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 13,
+       "fn": 6,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 3,
+       "fp": 2
+      },
+      "all": {
+       "tp": 14,
+       "fn": 9,
+       "fp": 2
+      }
+     },
+     "blindBlockingMisses": [
+      "v03-use-case-injects-concrete-adapter FF-S04 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v03-use-case-injects-concrete-adapter FF-P03 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v04-use-case-throws-http-error FF-S04 src/application/services/CancelBookingService.ts -> src/adapters/inbound/http/HttpTypes.ts",
+      "v05-inbound-adapter-reads-outbound-adapter FF-S01 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v05-inbound-adapter-reads-outbound-adapter FF-P03 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v06-outbound-adapter-uses-cli-formatter FF-S01 src/adapters/outbound/notification/OutboxNotificationAdapter.ts -> src/adapters/inbound/cli/BookingCli.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "ddd": {
+     "author": {
+      "blocking": {
+       "tp": 9,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 12,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 9,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 12,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blindBlockingMisses": [],
+     "blindBlockingFalseAlarms": []
+    }
+   }
+  },
+  "c02-size-scaled": {
+   "filter": "c02-size-scaled",
+   "toolRows": 1663,
+   "suppressedRows": 0,
+   "variantsWithChangedBlockingRows": 0,
+   "pooled": {
+    "author": {
+     "blocking": {
+      "tp": 57,
+      "fn": 0,
+      "fp": 0
+     },
+     "all": {
+      "tp": 66,
+      "fn": 2,
+      "fp": 2
+     },
+     "advisory": {
+      "tp": 9,
+      "fn": 2,
+      "fp": 2
+     }
+    },
+    "blind": {
+     "blocking": {
+      "tp": 53,
+      "fn": 14,
+      "fp": 4
+     },
+     "all": {
+      "tp": 60,
+      "fn": 22,
+      "fp": 8
+     },
+     "advisory": {
+      "tp": 7,
+      "fn": 8,
+      "fp": 4
+     }
+    }
+   },
+   "perStyle": {
+    "clean-architecture": {
+     "author": {
+      "blocking": {
+       "tp": 13,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 2,
+       "fn": 1,
+       "fp": 0
+      },
+      "all": {
+       "tp": 15,
+       "fn": 1,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 13,
+       "fn": 2,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 2,
+       "fn": 3,
+       "fp": 0
+      },
+      "all": {
+       "tp": 15,
+       "fn": 5,
+       "fp": 0
+      }
+     },
+     "blindBlockingMisses": [
+      "v01-domain-imports-application-port FF-S02 src/application/ports/Clock.ts -> src/domain/entities/Loan.ts",
+      "v09-dto-depends-on-http-adapter FF-S02 src/application/dto/LoanDto.ts -> src/infrastructure/http/HttpTypes.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "layered": {
+     "author": {
+      "blocking": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 0,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 7,
+       "fn": 3,
+       "fp": 4
+      },
+      "advisory": {
+       "tp": 0,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 7,
+       "fn": 3,
+       "fp": 4
+      }
+     },
+     "blindBlockingMisses": [
+      "v01-gateway-returns-business-money FF-S02 src/business/model/Money.ts -> src/persistence/ProductGateway.ts",
+      "v02-service-renders-view FF-S02 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+      "v08-business-service-takes-express-request FF-S01 src/business/services/OrderService.ts -> express"
+     ],
+     "blindBlockingFalseAlarms": [
+      "v01-gateway-returns-business-money FF-S03 src/persistence/ProductGateway.ts -> src/business/model/Money.ts",
+      "v02-service-renders-view FF-S03 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+      "v07-business-model-typeorm-decorator FF-P01 src/business/model/Order.ts -> typeorm",
+      "v08-business-service-takes-express-request FF-P01 src/business/services/OrderService.ts -> express"
+     ]
+    },
+    "nestjs": {
+     "author": {
+      "blocking": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 1,
+       "fp": 2
+      },
+      "all": {
+       "tp": 12,
+       "fn": 1,
+       "fp": 2
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 11,
+       "fn": 3,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 2,
+       "fp": 2
+      },
+      "all": {
+       "tp": 12,
+       "fn": 5,
+       "fp": 2
+      }
+     },
+     "blindBlockingMisses": [
+      "v07-service-injects-concrete-repository FF-S01 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+      "v07-service-injects-concrete-repository FF-P03 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+      "v10-domain-policy-holds-repository FF-P01 src/domain/registration-policy.ts -> src/registrations/in-memory-registration.repository.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "hexagonal": {
+     "author": {
+      "blocking": {
+       "tp": 13,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 16,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 13,
+       "fn": 6,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 3,
+       "fp": 2
+      },
+      "all": {
+       "tp": 14,
+       "fn": 9,
+       "fp": 2
+      }
+     },
+     "blindBlockingMisses": [
+      "v03-use-case-injects-concrete-adapter FF-S04 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v03-use-case-injects-concrete-adapter FF-P03 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v04-use-case-throws-http-error FF-S04 src/application/services/CancelBookingService.ts -> src/adapters/inbound/http/HttpTypes.ts",
+      "v05-inbound-adapter-reads-outbound-adapter FF-S01 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v05-inbound-adapter-reads-outbound-adapter FF-P03 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v06-outbound-adapter-uses-cli-formatter FF-S01 src/adapters/outbound/notification/OutboxNotificationAdapter.ts -> src/adapters/inbound/cli/BookingCli.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "ddd": {
+     "author": {
+      "blocking": {
+       "tp": 9,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 12,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 9,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 12,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blindBlockingMisses": [],
+     "blindBlockingFalseAlarms": []
+    }
+   }
+  },
+  "c04-entry-points": {
+   "filter": "c04-entry-points",
+   "toolRows": 1663,
+   "suppressedRows": 0,
+   "variantsWithChangedBlockingRows": 0,
+   "pooled": {
+    "author": {
+     "blocking": {
+      "tp": 57,
+      "fn": 0,
+      "fp": 0
+     },
+     "all": {
+      "tp": 66,
+      "fn": 2,
+      "fp": 2
+     },
+     "advisory": {
+      "tp": 9,
+      "fn": 2,
+      "fp": 2
+     }
+    },
+    "blind": {
+     "blocking": {
+      "tp": 53,
+      "fn": 14,
+      "fp": 4
+     },
+     "all": {
+      "tp": 60,
+      "fn": 22,
+      "fp": 8
+     },
+     "advisory": {
+      "tp": 7,
+      "fn": 8,
+      "fp": 4
+     }
+    }
+   },
+   "perStyle": {
+    "clean-architecture": {
+     "author": {
+      "blocking": {
+       "tp": 13,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 2,
+       "fn": 1,
+       "fp": 0
+      },
+      "all": {
+       "tp": 15,
+       "fn": 1,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 13,
+       "fn": 2,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 2,
+       "fn": 3,
+       "fp": 0
+      },
+      "all": {
+       "tp": 15,
+       "fn": 5,
+       "fp": 0
+      }
+     },
+     "blindBlockingMisses": [
+      "v01-domain-imports-application-port FF-S02 src/application/ports/Clock.ts -> src/domain/entities/Loan.ts",
+      "v09-dto-depends-on-http-adapter FF-S02 src/application/dto/LoanDto.ts -> src/infrastructure/http/HttpTypes.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "layered": {
+     "author": {
+      "blocking": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 0,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 7,
+       "fn": 3,
+       "fp": 4
+      },
+      "advisory": {
+       "tp": 0,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 7,
+       "fn": 3,
+       "fp": 4
+      }
+     },
+     "blindBlockingMisses": [
+      "v01-gateway-returns-business-money FF-S02 src/business/model/Money.ts -> src/persistence/ProductGateway.ts",
+      "v02-service-renders-view FF-S02 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+      "v08-business-service-takes-express-request FF-S01 src/business/services/OrderService.ts -> express"
+     ],
+     "blindBlockingFalseAlarms": [
+      "v01-gateway-returns-business-money FF-S03 src/persistence/ProductGateway.ts -> src/business/model/Money.ts",
+      "v02-service-renders-view FF-S03 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+      "v07-business-model-typeorm-decorator FF-P01 src/business/model/Order.ts -> typeorm",
+      "v08-business-service-takes-express-request FF-P01 src/business/services/OrderService.ts -> express"
+     ]
+    },
+    "nestjs": {
+     "author": {
+      "blocking": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 1,
+       "fp": 2
+      },
+      "all": {
+       "tp": 12,
+       "fn": 1,
+       "fp": 2
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 11,
+       "fn": 3,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 2,
+       "fp": 2
+      },
+      "all": {
+       "tp": 12,
+       "fn": 5,
+       "fp": 2
+      }
+     },
+     "blindBlockingMisses": [
+      "v07-service-injects-concrete-repository FF-S01 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+      "v07-service-injects-concrete-repository FF-P03 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+      "v10-domain-policy-holds-repository FF-P01 src/domain/registration-policy.ts -> src/registrations/in-memory-registration.repository.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "hexagonal": {
+     "author": {
+      "blocking": {
+       "tp": 13,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 16,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 13,
+       "fn": 6,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 3,
+       "fp": 2
+      },
+      "all": {
+       "tp": 14,
+       "fn": 9,
+       "fp": 2
+      }
+     },
+     "blindBlockingMisses": [
+      "v03-use-case-injects-concrete-adapter FF-S04 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v03-use-case-injects-concrete-adapter FF-P03 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v04-use-case-throws-http-error FF-S04 src/application/services/CancelBookingService.ts -> src/adapters/inbound/http/HttpTypes.ts",
+      "v05-inbound-adapter-reads-outbound-adapter FF-S01 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v05-inbound-adapter-reads-outbound-adapter FF-P03 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v06-outbound-adapter-uses-cli-formatter FF-S01 src/adapters/outbound/notification/OutboxNotificationAdapter.ts -> src/adapters/inbound/cli/BookingCli.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "ddd": {
+     "author": {
+      "blocking": {
+       "tp": 9,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 12,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 9,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 12,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blindBlockingMisses": [],
+     "blindBlockingFalseAlarms": []
+    }
+   }
+  },
+  "so-framework-members": {
+   "filter": "so-framework-members",
+   "toolRows": 1663,
+   "suppressedRows": 0,
+   "variantsWithChangedBlockingRows": 0,
+   "pooled": {
+    "author": {
+     "blocking": {
+      "tp": 57,
+      "fn": 0,
+      "fp": 0
+     },
+     "all": {
+      "tp": 66,
+      "fn": 2,
+      "fp": 2
+     },
+     "advisory": {
+      "tp": 9,
+      "fn": 2,
+      "fp": 2
+     }
+    },
+    "blind": {
+     "blocking": {
+      "tp": 53,
+      "fn": 14,
+      "fp": 4
+     },
+     "all": {
+      "tp": 60,
+      "fn": 22,
+      "fp": 8
+     },
+     "advisory": {
+      "tp": 7,
+      "fn": 8,
+      "fp": 4
+     }
+    }
+   },
+   "perStyle": {
+    "clean-architecture": {
+     "author": {
+      "blocking": {
+       "tp": 13,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 2,
+       "fn": 1,
+       "fp": 0
+      },
+      "all": {
+       "tp": 15,
+       "fn": 1,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 13,
+       "fn": 2,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 2,
+       "fn": 3,
+       "fp": 0
+      },
+      "all": {
+       "tp": 15,
+       "fn": 5,
+       "fp": 0
+      }
+     },
+     "blindBlockingMisses": [
+      "v01-domain-imports-application-port FF-S02 src/application/ports/Clock.ts -> src/domain/entities/Loan.ts",
+      "v09-dto-depends-on-http-adapter FF-S02 src/application/dto/LoanDto.ts -> src/infrastructure/http/HttpTypes.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "layered": {
+     "author": {
+      "blocking": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 0,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 7,
+       "fn": 3,
+       "fp": 4
+      },
+      "advisory": {
+       "tp": 0,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 7,
+       "fn": 3,
+       "fp": 4
+      }
+     },
+     "blindBlockingMisses": [
+      "v01-gateway-returns-business-money FF-S02 src/business/model/Money.ts -> src/persistence/ProductGateway.ts",
+      "v02-service-renders-view FF-S02 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+      "v08-business-service-takes-express-request FF-S01 src/business/services/OrderService.ts -> express"
+     ],
+     "blindBlockingFalseAlarms": [
+      "v01-gateway-returns-business-money FF-S03 src/persistence/ProductGateway.ts -> src/business/model/Money.ts",
+      "v02-service-renders-view FF-S03 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+      "v07-business-model-typeorm-decorator FF-P01 src/business/model/Order.ts -> typeorm",
+      "v08-business-service-takes-express-request FF-P01 src/business/services/OrderService.ts -> express"
+     ]
+    },
+    "nestjs": {
+     "author": {
+      "blocking": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 1,
+       "fp": 2
+      },
+      "all": {
+       "tp": 12,
+       "fn": 1,
+       "fp": 2
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 11,
+       "fn": 3,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 2,
+       "fp": 2
+      },
+      "all": {
+       "tp": 12,
+       "fn": 5,
+       "fp": 2
+      }
+     },
+     "blindBlockingMisses": [
+      "v07-service-injects-concrete-repository FF-S01 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+      "v07-service-injects-concrete-repository FF-P03 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+      "v10-domain-policy-holds-repository FF-P01 src/domain/registration-policy.ts -> src/registrations/in-memory-registration.repository.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "hexagonal": {
+     "author": {
+      "blocking": {
+       "tp": 13,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 16,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 13,
+       "fn": 6,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 3,
+       "fp": 2
+      },
+      "all": {
+       "tp": 14,
+       "fn": 9,
+       "fp": 2
+      }
+     },
+     "blindBlockingMisses": [
+      "v03-use-case-injects-concrete-adapter FF-S04 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v03-use-case-injects-concrete-adapter FF-P03 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v04-use-case-throws-http-error FF-S04 src/application/services/CancelBookingService.ts -> src/adapters/inbound/http/HttpTypes.ts",
+      "v05-inbound-adapter-reads-outbound-adapter FF-S01 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v05-inbound-adapter-reads-outbound-adapter FF-P03 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v06-outbound-adapter-uses-cli-formatter FF-S01 src/adapters/outbound/notification/OutboxNotificationAdapter.ts -> src/adapters/inbound/cli/BookingCli.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "ddd": {
+     "author": {
+      "blocking": {
+       "tp": 9,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 12,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 9,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 12,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blindBlockingMisses": [],
+     "blindBlockingFalseAlarms": []
+    }
+   }
+  },
+  "cv05-rollup": {
+   "filter": "cv05-rollup",
+   "toolRows": 547,
+   "suppressedRows": 1116,
+   "variantsWithChangedBlockingRows": 0,
+   "pooled": {
+    "author": {
+     "blocking": {
+      "tp": 57,
+      "fn": 0,
+      "fp": 0
+     },
+     "all": {
+      "tp": 66,
+      "fn": 2,
+      "fp": 2
+     },
+     "advisory": {
+      "tp": 9,
+      "fn": 2,
+      "fp": 2
+     }
+    },
+    "blind": {
+     "blocking": {
+      "tp": 53,
+      "fn": 14,
+      "fp": 4
+     },
+     "all": {
+      "tp": 60,
+      "fn": 22,
+      "fp": 8
+     },
+     "advisory": {
+      "tp": 7,
+      "fn": 8,
+      "fp": 4
+     }
+    }
+   },
+   "perStyle": {
+    "clean-architecture": {
+     "author": {
+      "blocking": {
+       "tp": 13,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 2,
+       "fn": 1,
+       "fp": 0
+      },
+      "all": {
+       "tp": 15,
+       "fn": 1,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 13,
+       "fn": 2,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 2,
+       "fn": 3,
+       "fp": 0
+      },
+      "all": {
+       "tp": 15,
+       "fn": 5,
+       "fp": 0
+      }
+     },
+     "blindBlockingMisses": [
+      "v01-domain-imports-application-port FF-S02 src/application/ports/Clock.ts -> src/domain/entities/Loan.ts",
+      "v09-dto-depends-on-http-adapter FF-S02 src/application/dto/LoanDto.ts -> src/infrastructure/http/HttpTypes.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "layered": {
+     "author": {
+      "blocking": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 0,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 7,
+       "fn": 3,
+       "fp": 4
+      },
+      "advisory": {
+       "tp": 0,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 7,
+       "fn": 3,
+       "fp": 4
+      }
+     },
+     "blindBlockingMisses": [
+      "v01-gateway-returns-business-money FF-S02 src/business/model/Money.ts -> src/persistence/ProductGateway.ts",
+      "v02-service-renders-view FF-S02 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+      "v08-business-service-takes-express-request FF-S01 src/business/services/OrderService.ts -> express"
+     ],
+     "blindBlockingFalseAlarms": [
+      "v01-gateway-returns-business-money FF-S03 src/persistence/ProductGateway.ts -> src/business/model/Money.ts",
+      "v02-service-renders-view FF-S03 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+      "v07-business-model-typeorm-decorator FF-P01 src/business/model/Order.ts -> typeorm",
+      "v08-business-service-takes-express-request FF-P01 src/business/services/OrderService.ts -> express"
+     ]
+    },
+    "nestjs": {
+     "author": {
+      "blocking": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 1,
+       "fp": 2
+      },
+      "all": {
+       "tp": 12,
+       "fn": 1,
+       "fp": 2
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 11,
+       "fn": 3,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 2,
+       "fp": 2
+      },
+      "all": {
+       "tp": 12,
+       "fn": 5,
+       "fp": 2
+      }
+     },
+     "blindBlockingMisses": [
+      "v07-service-injects-concrete-repository FF-S01 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+      "v07-service-injects-concrete-repository FF-P03 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+      "v10-domain-policy-holds-repository FF-P01 src/domain/registration-policy.ts -> src/registrations/in-memory-registration.repository.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "hexagonal": {
+     "author": {
+      "blocking": {
+       "tp": 13,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 16,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 13,
+       "fn": 6,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 3,
+       "fp": 2
+      },
+      "all": {
+       "tp": 14,
+       "fn": 9,
+       "fp": 2
+      }
+     },
+     "blindBlockingMisses": [
+      "v03-use-case-injects-concrete-adapter FF-S04 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v03-use-case-injects-concrete-adapter FF-P03 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v04-use-case-throws-http-error FF-S04 src/application/services/CancelBookingService.ts -> src/adapters/inbound/http/HttpTypes.ts",
+      "v05-inbound-adapter-reads-outbound-adapter FF-S01 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v05-inbound-adapter-reads-outbound-adapter FF-P03 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v06-outbound-adapter-uses-cli-formatter FF-S01 src/adapters/outbound/notification/OutboxNotificationAdapter.ts -> src/adapters/inbound/cli/BookingCli.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "ddd": {
+     "author": {
+      "blocking": {
+       "tp": 9,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 12,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 9,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 12,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blindBlockingMisses": [],
+     "blindBlockingFalseAlarms": []
+    }
+   }
+  },
+  "all": {
+   "filter": "all",
+   "toolRows": 272,
+   "suppressedRows": 1391,
+   "variantsWithChangedBlockingRows": 0,
+   "pooled": {
+    "author": {
+     "blocking": {
+      "tp": 57,
+      "fn": 0,
+      "fp": 0
+     },
+     "all": {
+      "tp": 66,
+      "fn": 2,
+      "fp": 2
+     },
+     "advisory": {
+      "tp": 9,
+      "fn": 2,
+      "fp": 2
+     }
+    },
+    "blind": {
+     "blocking": {
+      "tp": 53,
+      "fn": 14,
+      "fp": 4
+     },
+     "all": {
+      "tp": 60,
+      "fn": 22,
+      "fp": 8
+     },
+     "advisory": {
+      "tp": 7,
+      "fn": 8,
+      "fp": 4
+     }
+    }
+   },
+   "perStyle": {
+    "clean-architecture": {
+     "author": {
+      "blocking": {
+       "tp": 13,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 2,
+       "fn": 1,
+       "fp": 0
+      },
+      "all": {
+       "tp": 15,
+       "fn": 1,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 13,
+       "fn": 2,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 2,
+       "fn": 3,
+       "fp": 0
+      },
+      "all": {
+       "tp": 15,
+       "fn": 5,
+       "fp": 0
+      }
+     },
+     "blindBlockingMisses": [
+      "v01-domain-imports-application-port FF-S02 src/application/ports/Clock.ts -> src/domain/entities/Loan.ts",
+      "v09-dto-depends-on-http-adapter FF-S02 src/application/dto/LoanDto.ts -> src/infrastructure/http/HttpTypes.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "layered": {
+     "author": {
+      "blocking": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 0,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 7,
+       "fn": 3,
+       "fp": 4
+      },
+      "advisory": {
+       "tp": 0,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 7,
+       "fn": 3,
+       "fp": 4
+      }
+     },
+     "blindBlockingMisses": [
+      "v01-gateway-returns-business-money FF-S02 src/business/model/Money.ts -> src/persistence/ProductGateway.ts",
+      "v02-service-renders-view FF-S02 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+      "v08-business-service-takes-express-request FF-S01 src/business/services/OrderService.ts -> express"
+     ],
+     "blindBlockingFalseAlarms": [
+      "v01-gateway-returns-business-money FF-S03 src/persistence/ProductGateway.ts -> src/business/model/Money.ts",
+      "v02-service-renders-view FF-S03 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+      "v07-business-model-typeorm-decorator FF-P01 src/business/model/Order.ts -> typeorm",
+      "v08-business-service-takes-express-request FF-P01 src/business/services/OrderService.ts -> express"
+     ]
+    },
+    "nestjs": {
+     "author": {
+      "blocking": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 1,
+       "fp": 2
+      },
+      "all": {
+       "tp": 12,
+       "fn": 1,
+       "fp": 2
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 11,
+       "fn": 3,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 2,
+       "fp": 2
+      },
+      "all": {
+       "tp": 12,
+       "fn": 5,
+       "fp": 2
+      }
+     },
+     "blindBlockingMisses": [
+      "v07-service-injects-concrete-repository FF-S01 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+      "v07-service-injects-concrete-repository FF-P03 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+      "v10-domain-policy-holds-repository FF-P01 src/domain/registration-policy.ts -> src/registrations/in-memory-registration.repository.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "hexagonal": {
+     "author": {
+      "blocking": {
+       "tp": 13,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 16,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 13,
+       "fn": 6,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 3,
+       "fp": 2
+      },
+      "all": {
+       "tp": 14,
+       "fn": 9,
+       "fp": 2
+      }
+     },
+     "blindBlockingMisses": [
+      "v03-use-case-injects-concrete-adapter FF-S04 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v03-use-case-injects-concrete-adapter FF-P03 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v04-use-case-throws-http-error FF-S04 src/application/services/CancelBookingService.ts -> src/adapters/inbound/http/HttpTypes.ts",
+      "v05-inbound-adapter-reads-outbound-adapter FF-S01 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v05-inbound-adapter-reads-outbound-adapter FF-P03 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v06-outbound-adapter-uses-cli-formatter FF-S01 src/adapters/outbound/notification/OutboxNotificationAdapter.ts -> src/adapters/inbound/cli/BookingCli.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "ddd": {
+     "author": {
+      "blocking": {
+       "tp": 9,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 12,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 9,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 12,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blindBlockingMisses": [],
+     "blindBlockingFalseAlarms": []
+    }
+   }
+  },
+  "proposed": {
+   "filter": "cv05-no-logic,composition-roots,c03-core-only,c02-abstract-imports,c04-entry-points,so-framework-members",
+   "toolRows": 1139,
+   "suppressedRows": 524,
+   "variantsWithChangedBlockingRows": 0,
+   "pooled": {
+    "author": {
+     "blocking": {
+      "tp": 57,
+      "fn": 0,
+      "fp": 0
+     },
+     "all": {
+      "tp": 66,
+      "fn": 2,
+      "fp": 2
+     },
+     "advisory": {
+      "tp": 9,
+      "fn": 2,
+      "fp": 2
+     }
+    },
+    "blind": {
+     "blocking": {
+      "tp": 53,
+      "fn": 14,
+      "fp": 4
+     },
+     "all": {
+      "tp": 60,
+      "fn": 22,
+      "fp": 8
+     },
+     "advisory": {
+      "tp": 7,
+      "fn": 8,
+      "fp": 4
+     }
+    }
+   },
+   "perStyle": {
+    "clean-architecture": {
+     "author": {
+      "blocking": {
+       "tp": 13,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 2,
+       "fn": 1,
+       "fp": 0
+      },
+      "all": {
+       "tp": 15,
+       "fn": 1,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 13,
+       "fn": 2,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 2,
+       "fn": 3,
+       "fp": 0
+      },
+      "all": {
+       "tp": 15,
+       "fn": 5,
+       "fp": 0
+      }
+     },
+     "blindBlockingMisses": [
+      "v01-domain-imports-application-port FF-S02 src/application/ports/Clock.ts -> src/domain/entities/Loan.ts",
+      "v09-dto-depends-on-http-adapter FF-S02 src/application/dto/LoanDto.ts -> src/infrastructure/http/HttpTypes.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "layered": {
+     "author": {
+      "blocking": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 0,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 7,
+       "fn": 3,
+       "fp": 4
+      },
+      "advisory": {
+       "tp": 0,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 7,
+       "fn": 3,
+       "fp": 4
+      }
+     },
+     "blindBlockingMisses": [
+      "v01-gateway-returns-business-money FF-S02 src/business/model/Money.ts -> src/persistence/ProductGateway.ts",
+      "v02-service-renders-view FF-S02 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+      "v08-business-service-takes-express-request FF-S01 src/business/services/OrderService.ts -> express"
+     ],
+     "blindBlockingFalseAlarms": [
+      "v01-gateway-returns-business-money FF-S03 src/persistence/ProductGateway.ts -> src/business/model/Money.ts",
+      "v02-service-renders-view FF-S03 src/business/services/OrderService.ts -> src/presentation/views/OrderView.ts",
+      "v07-business-model-typeorm-decorator FF-P01 src/business/model/Order.ts -> typeorm",
+      "v08-business-service-takes-express-request FF-P01 src/business/services/OrderService.ts -> express"
+     ]
+    },
+    "nestjs": {
+     "author": {
+      "blocking": {
+       "tp": 11,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 1,
+       "fp": 2
+      },
+      "all": {
+       "tp": 12,
+       "fn": 1,
+       "fp": 2
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 11,
+       "fn": 3,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 2,
+       "fp": 2
+      },
+      "all": {
+       "tp": 12,
+       "fn": 5,
+       "fp": 2
+      }
+     },
+     "blindBlockingMisses": [
+      "v07-service-injects-concrete-repository FF-S01 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+      "v07-service-injects-concrete-repository FF-P03 src/registrations/registrations.service.ts -> src/registrations/in-memory-registration.repository.ts",
+      "v10-domain-policy-holds-repository FF-P01 src/domain/registration-policy.ts -> src/registrations/in-memory-registration.repository.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "hexagonal": {
+     "author": {
+      "blocking": {
+       "tp": 13,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 16,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 13,
+       "fn": 6,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 1,
+       "fn": 3,
+       "fp": 2
+      },
+      "all": {
+       "tp": 14,
+       "fn": 9,
+       "fp": 2
+      }
+     },
+     "blindBlockingMisses": [
+      "v03-use-case-injects-concrete-adapter FF-S04 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v03-use-case-injects-concrete-adapter FF-P03 src/application/services/FindAvailableRoomsService.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v04-use-case-throws-http-error FF-S04 src/application/services/CancelBookingService.ts -> src/adapters/inbound/http/HttpTypes.ts",
+      "v05-inbound-adapter-reads-outbound-adapter FF-S01 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v05-inbound-adapter-reads-outbound-adapter FF-P03 src/adapters/inbound/http/RoomController.ts -> src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "v06-outbound-adapter-uses-cli-formatter FF-S01 src/adapters/outbound/notification/OutboxNotificationAdapter.ts -> src/adapters/inbound/cli/BookingCli.ts"
+     ],
+     "blindBlockingFalseAlarms": []
+    },
+    "ddd": {
+     "author": {
+      "blocking": {
+       "tp": 9,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 12,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blind": {
+      "blocking": {
+       "tp": 9,
+       "fn": 0,
+       "fp": 0
+      },
+      "advisory": {
+       "tp": 3,
+       "fn": 0,
+       "fp": 0
+      },
+      "all": {
+       "tp": 12,
+       "fn": 0,
+       "fp": 0
+      }
+     },
+     "blindBlockingMisses": [],
+     "blindBlockingFalseAlarms": []
+    }
+   }
+  }
+ }
+}

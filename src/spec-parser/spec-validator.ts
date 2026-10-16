@@ -7,8 +7,10 @@ import { HEXAGONAL_TEMPLATES } from '../fitness-compiler/hexagonal-templates.js'
 import { v13ExtensionCatalogueOf } from '../fitness-compiler/extension-templates.js';
 import { EXTENSION_TEMPLATES } from './template-registry.js';
 import { globToRegex } from '../fitness-compiler/glob-to-regex.js';
-import { existsSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { AGGREGATE_TEMPLATE_NAMES } from '../fitness-compiler/empty-aggregates.js';
+import { existsSync, readdirSync } from 'node:fs';
+import { relative, resolve, sep } from 'node:path';
+import picomatch from 'picomatch';
 
 import { Ajv, type ErrorObject } from 'ajv';
 const ajv = new Ajv({ allErrors: true, verbose: true });
@@ -94,7 +96,7 @@ export function validateBusinessRules(spec: ParsedSpec): ValidationResult {
   if (!(t.pass > t.warning && t.warning > t.softBlock && t.softBlock > 0)) {
     errors.push({
       path: 'scoring.thresholds',
-      message: `Verdict thresholds must satisfy pass > warning > soft_block > 0 (got ${t.pass}, ${t.warning}, ${t.softBlock})`,
+      message: `Verdict thresholds must satisfy pass > warning > soft_block > 0 (got ${String(t.pass)}, ${String(t.warning)}, ${String(t.softBlock)})`,
       rule: 'BR-SPEC-08',
     });
   }
@@ -172,6 +174,12 @@ export interface SpecValidationOptions {
    * an extension style library (`EXTENSION_TEMPLATES`).
    */
   readonly rules?: SpecRuleSet;
+  /**
+   * Loop-pilot tool defect T1 option b, OFF by default: a `ddd` spec that keeps an aggregate rule (FF-DT01
+   * aggregate-boundary, FF-DT02 repository-aggregate-root) with an empty `architecture.ddd.aggregates` is an error
+   * (`DDD_NO_AGGREGATES`) here, instead of a BR-SPEC-10 compile failure at evaluation.
+   */
+  readonly rejectEmptyAggregates?: boolean;
 }
 
 function templateCheckFor(rules: SpecRuleSet): (name: string) => boolean {
@@ -179,6 +187,73 @@ function templateCheckFor(rules: SpecRuleSet): (name: string) => boolean {
   if (rules === 'v1.2e') return v12e;
   const extensionNames = new Set([...EXTENSION_TEMPLATES.values()].flatMap((t) => t.functions.map((f) => f.name)));
   return (name) => v12e(name) || v13ExtensionCatalogueOf(name) !== undefined || extensionNames.has(name);
+}
+
+/** Project-relative paths (forward slashes) of every file under `projectPath`, skipping node_modules and .git. */
+function projectFiles(projectPath: string): string[] {
+  const out: string[] = [];
+  const walk = (dir: string): void => {
+    let entries;
+    try {
+      entries = readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const e of entries) {
+      if (e.name === 'node_modules' || e.name === '.git') continue;
+      const abs = resolve(dir, e.name);
+      if (e.isDirectory()) walk(abs);
+      else out.push(relative(projectPath, abs).split(sep).join('/'));
+    }
+  };
+  walk(projectPath);
+  return out;
+}
+
+/**
+ * The v1.3 layer-directory check. A layer's `directories` are globs, matched against the project's files the way the
+ * layer annotator matches them (picomatch, `dot: true`): an inner wildcard (`src/*\/domain/**`) is a pattern, not a
+ * literal directory, and a preset may list alternative directories for several project shapes (presets/nestjs.yaml),
+ * with `file_patterns` as the fallback. So:
+ * - error `LAYER_DIR_NOT_FOUND` when no directory glob and no file pattern of the layer matches any project file
+ *   (the layer would be empty: a typo or a wrong project);
+ * - warning `LAYER_DIR_NOT_FOUND` for each directory glob that matches nothing while the layer matches something
+ *   (an unused alternative).
+ * A glob that names a file or directory literally (`src/main.ts`) also matches when that path exists.
+ */
+function checkLayerGlobsV13(
+  spec: ParsedSpec,
+  projectPath: string,
+  errors: V11ValidationError[],
+  warnings: import('../shared/types/validation.js').ValidationWarning[],
+): void {
+  let files: string[] | undefined;
+  const filesOf = (): string[] => (files ??= projectFiles(projectPath));
+  const matches = (glob: string): boolean => {
+    const literal = glob.replace(/\/?\*\*.*$/, '').replace(/\/?\*$/, '');
+    if (!literal.includes('*') && literal.length > 0 && existsSync(resolve(projectPath, literal))) return true;
+    const m = picomatch(glob, { dot: true });
+    return filesOf().some((f) => m(f));
+  };
+  for (const layer of spec.layerModel.layers) {
+    const field = `architecture.layers.${layer.name}.directories`;
+    const dirs = layer.directories.filter((d) => d.replace(/\/?\*\*.*$/, '').replace(/\/?\*$/, '').length > 0);
+    if (dirs.length === 0) continue;
+    const missing = dirs.filter((d) => !matches(d));
+    const byPattern = (layer.filePatterns ?? []).some((p) => matches(p));
+    if (missing.length === dirs.length && !byPattern) {
+      errors.push({
+        code: 'LAYER_DIR_NOT_FOUND',
+        message: `Layer "${layer.name}" matches no file of ${projectPath}: no directory glob (${dirs.join(', ')})${(layer.filePatterns ?? []).length > 0 ? ' and no file pattern' : ''} matches`,
+        field,
+        suggestion: `Create the directory or update the layer mapping`,
+      });
+      continue;
+    }
+    for (const d of missing) {
+      warnings.push({ code: 'LAYER_DIR_NOT_FOUND', message: `Layer "${layer.name}" directory glob "${d}" matches no file (the layer matches through its other globs)`, field });
+    }
+  }
 }
 
 /**
@@ -194,8 +269,9 @@ export function validateSpecAgainstProject(
   const errors: V11ValidationError[] = [];
   const warnings: import('../shared/types/validation.js').ValidationWarning[] = [];
 
-  // Check layer directories exist
-  for (const layer of spec.layerModel.layers) {
+  // Check layer directories exist (v1.3: glob semantics, see checkLayerGlobsV13; v1.2E: unchanged literal check)
+  if (options.rules === 'v1.3') checkLayerGlobsV13(spec, projectPath, errors, warnings);
+  else for (const layer of spec.layerModel.layers) {
     for (const dir of layer.directories) {
       // Strip glob suffixes for directory existence check
       const cleanDir = dir.replace(/\/?\*\*.*$/, '').replace(/\/?\*$/, '');
@@ -212,6 +288,8 @@ export function validateSpecAgainstProject(
       }
     }
   }
+
+  if (options.rejectEmptyAggregates === true) checkEmptyAggregates(spec, errors);
 
   // Check for duplicate function IDs
   const ids = new Set<string>();
@@ -264,6 +342,8 @@ export function validateSpecAgainstProject(
     }
   }
 
+  // `!== false` (not a plain truthiness test): a function object built without `enabled` counts as enabled.
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-boolean-literal-compare
   const enabledCount = spec.fitnessFunctions.filter((f) => f.enabled !== false).length;
   const disabledCount = spec.fitnessFunctions.length - enabledCount;
 
@@ -280,4 +360,20 @@ export function validateSpecAgainstProject(
       totalWarnings: warnings.length,
     },
   };
+}
+
+/** T1 option b (`SpecValidationOptions.rejectEmptyAggregates`): one error per enabled aggregate rule of a ddd spec with no aggregate. */
+function checkEmptyAggregates(spec: ParsedSpec, errors: V11ValidationError[]): void {
+  if (spec.style?.toLowerCase() !== 'ddd') return;
+  const ddd = spec.layerModel.ddd;
+  if (ddd === undefined || ddd.aggregates.length > 0) return;
+  for (const ff of spec.fitnessFunctions) {
+    if (ff.enabled === false || !AGGREGATE_TEMPLATE_NAMES.includes(ff.name)) continue;
+    errors.push({
+      code: 'DDD_NO_AGGREGATES',
+      message: `${String(ff.id)} (${ff.name}) needs an aggregate, but architecture.ddd.aggregates is empty`,
+      field: 'architecture.ddd.aggregates',
+      suggestion: 'Declare the aggregates, or disable the aggregate rules',
+    });
+  }
 }

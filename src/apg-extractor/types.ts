@@ -41,6 +41,16 @@ export interface ExtractorOptions {
    */
   reExportEdges?: ReExportEdgesMode;
   /**
+   * v1.3 metamorphic finding MT-B1 (`Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md`), OFF in both
+   * `V12E_DEFAULT_OPTIONS` and `V13_DEFAULT_OPTIONS`. With `reExportEdges: 'both'`, the resolved occurrence of a name
+   * imported through a re-export file is recorded without the `viaReExport` mark, so the literal view keeps the edge to
+   * the declaring file next to the literal edge to the barrel. The barrel edge (and its `reExportHop` mark) is
+   * unchanged, so the resolved view and barrel-induced cycles are unchanged. Use: a barrel that belongs to no layer
+   * (a NestJS feature folder's `index.ts`, layers assigned by file-name pattern) otherwise hides the layer of what it
+   * re-exports from every literal-view layer rule. No effect with `reExportEdges: 'resolved-only'`.
+   */
+  resolvedEdgesInLiteralView?: boolean;
+  /**
    * v1.3, ON by default on the v1.3 branch; OFF in the frozen v1.2E instrument. Write class-member facts on Class
    * nodes (field names with their readonly, static and visibility facts, get/set accessors, public mutator methods,
    * fields assigned outside the constructor) and on Method nodes (`visibility`, `assignedFields`). See
@@ -55,6 +65,14 @@ export interface ExtractorOptions {
    * `severity: 'info'`. Off: the import is dropped with `EXTRACTOR_008` (the v1.2E behaviour).
    */
   aliasDeclarationPackages?: boolean;
+  /**
+   * v1.3 field-level state facts, OFF in both `V12E_DEFAULT_OPTIONS` and `V13_DEFAULT_OPTIONS`; ON in
+   * `V13_FIELD_STATE_OPTIONS`. Adds HOLDS_STATE_OF edges (Class → Class | Interface) for what an instance field holds:
+   * its declared type, a property-injection decorator, a `new` initialiser, or a constructor-body assignment from `new`
+   * or from a typed constructor parameter (`field-state.ts`). Written after the class's FLOWS_TO edges; FLOWS_TO is
+   * unchanged. Read by the FF-P06 field-half variant (`CompileOptions.fieldState`).
+   */
+  fieldState?: boolean;
   /**
    * APG v2 (`Docs/v1.3/apg2-design.md`), OFF in both `V12E_DEFAULT_OPTIONS` and `V13_DEFAULT_OPTIONS`; ON in
    * `V13_APG2_OPTIONS`. Adds, after every v1.3 node and edge: SIGNATURE_USES (type flow through signatures), Component
@@ -88,7 +106,32 @@ export type ExtractorErrorCode =
   | 'PROJECT_NOT_FOUND'
   | 'TSCONFIG_NOT_FOUND'
   | 'PARSE_FAILURE'
-  | 'EMPTY_PROJECT';
+  | 'EMPTY_PROJECT'
+  /** More analysable source files than `ExtractionLimits.maxFiles` (`--max-files`); Docs/v1.3/scale.md §6. */
+  | 'PROJECT_TOO_LARGE'
+  /** The memory guard stopped the extraction (`MemoryGuard`); Docs/v1.3/scale.md §6. */
+  | 'MEMORY_LIMIT_EXCEEDED';
+
+/**
+ * Scale controls of one extraction (Docs/v1.3/scale.md §5, §6). Kept out of `ExtractorOptions`, whose frozen default
+ * objects define the instrument; every field is optional and its absence keeps the extraction as it was.
+ */
+export interface ExtractionLimits {
+  /** Fail with `PROJECT_TOO_LARGE` when more source files than this remain after the exclusions. */
+  readonly maxFiles?: number;
+  /** Checked between files of the extraction passes; a `MemoryLimitError` becomes `MEMORY_LIMIT_EXCEEDED`. */
+  readonly memoryGuard?: import('../shared/process/memory-guard.js').MemoryGuard;
+  /**
+   * `tsconfig` (default): ts-morph loads every file of the tsconfig, as before. `analysed` (`--skip-excluded-sources`):
+   * it loads only the files that will be analysed plus every declaration file; an excluded file still reaches the
+   * type checker when an analysed file imports it. Faster and smaller, but the checker's root set differs, so the
+   * output is not guaranteed identical (it was on every project measured in scale.md).
+   */
+  readonly sourceScope?: 'tsconfig' | 'analysed';
+}
+
+/** Called after each file of an extraction pass (memory guard checkpoints). */
+export type FileCheckpoint = (done: number, total: number) => void;
 
 export interface ExtractorError extends PipelineError {
   readonly code: ExtractorErrorCode;
@@ -171,8 +214,10 @@ export const V12E_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object
   dynamicImports: false,
   moduleWiring: false,
   reExportEdges: 'resolved-only',
+  resolvedEdgesInLiteralView: false,
   memberFacts: false,
   aliasDeclarationPackages: false,
+  fieldState: false,
   apg2: false,
   components: [],
 });
@@ -189,6 +234,15 @@ export const V13_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.
   reExportEdges: 'both',
   memberFacts: true,
   aliasDeclarationPackages: true,
+});
+
+/**
+ * v1.3 field-level state facts: the v1.3 defaults plus HOLDS_STATE_OF edges. Not the default, so every v1.3 graph read
+ * by the existing templates, metrics and reports is unchanged.
+ */
+export const V13_FIELD_STATE_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.freeze({
+  ...V13_DEFAULT_OPTIONS,
+  fieldState: true,
 });
 
 /**

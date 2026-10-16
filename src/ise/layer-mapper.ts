@@ -19,9 +19,10 @@ import type { LayerModel } from '../shared/types/spec.js';
 import type { IseGraph } from './graph-view.js';
 import { COMPOSITION_LAYERS, layerRank } from './preset.js';
 import type { IsePreset } from './preset.js';
-import { boundedContexts } from './style-classifier.js';
+import { detectContexts } from './contexts.js';
+import type { ContextLayout } from './contexts.js';
 import type { IseStyle } from './style-classifier.js';
-import { detectSourceRoot, unitStructure } from './units.js';
+import { unitStructure } from './units.js';
 import type { Unit, UnitStructure } from './units.js';
 import { LAYER_SYNONYMS } from './vocabulary.js';
 
@@ -120,7 +121,13 @@ function implementersOfInnerPorts(graph: IseGraph, s: UnitStructure): Set<string
 }
 
 /** The layer the edge structure alone suggests for `unit` (see the file comment). */
-export function structureLayer(unit: Unit, s: UnitStructure, preset: IsePreset, implementers: ReadonlySet<string>): string | null {
+export function structureLayer(
+  unit: Unit,
+  s: UnitStructure,
+  preset: IsePreset,
+  implementers: ReadonlySet<string>,
+  contexts: readonly ContextLayout[] = [],
+): string | null {
   const composition = preset.layers.find((l) => COMPOSITION_LAYERS.includes(l.name));
   // An entry point (a root file no unit imports) or a composition root directory (imports >= 2 units, imported by
   // none) leaves the layer order: to the composition layer when the preset has one, else to no layer.
@@ -132,8 +139,14 @@ export function structureLayer(unit: Unit, s: UnitStructure, preset: IsePreset, 
     .filter((l) => l.rank >= 0);
   const maxRank = Math.max(0, ...ranked.map((l) => l.rank));
   const others = s.units.filter((u) => !outside(u));
-  const maxLevel = Math.max(0, ...others.map((u) => s.level.get(u.id) ?? 0));
-  const lvl = s.level.get(unit.id) ?? 0;
+  // A sub-folder of a bounded context is ranked by its level inside the context (the repeated internal layering),
+  // scaled by the deepest context; anything else by its level among all units.
+  const ctx = contexts.find((c) => c.children.includes(unit.id));
+  const maxLevel = ctx !== undefined
+    ? Math.max(0, ...contexts.flatMap((c) => [...c.level.values()]))
+    : Math.max(0, ...others.map((u) => s.level.get(u.id) ?? 0));
+  // Inside a context, a sub-folder no sibling imports is the context's outer ring, whatever its depth.
+  const lvl = ctx !== undefined ? (ctx.outer.includes(unit.id) ? maxLevel : ctx.level.get(unit.id) ?? 0) : s.level.get(unit.id) ?? 0;
   const r = maxLevel === 0 ? 0 : Math.round((lvl / maxLevel) * maxRank);
   const atRank = ranked.filter((l) => l.rank === r);
   if (atRank.length <= 1) return atRank[0]?.name ?? null;
@@ -148,8 +161,8 @@ const CONF = { agree: 0.9, presetDisagree: 0.6, tokenOnly: 0.6, structureOnly: 0
 
 export function inferLayerMapping(graph: IseGraph, style: IseStyle, preset: IsePreset, mode: MappingMode = 'preset-first'): LayerMapping {
   const files = graph.files;
-  const sourceRoot = detectSourceRoot(files);
-  const contexts = style === 'ddd' ? new Set(boundedContexts(files, sourceRoot)) : new Set<string>();
+    const layouts = style === 'ddd' ? detectContexts(graph).contexts : [];
+  const contexts = new Set(layouts.map((c) => c.root));
   const s = unitStructure(graph, (id) => contexts.has(id));
   const implementers = implementersOfInnerPorts(graph, s);
 
@@ -166,7 +179,7 @@ export function inferLayerMapping(graph: IseGraph, style: IseStyle, preset: IseP
   const added = new Map<string, string[]>();
   for (const u of s.units) {
     const tokenL = tokenLayer(u.token, preset);
-    const structL = structureLayer(u, s, preset, implementers);
+    const structL = structureLayer(u, s, preset, implementers, layouts);
     const uncovered = u.files.filter((f) => first.get(f)?.layer === null);
     const byPattern = u.files.filter((f) => first.get(f)?.method === 'filename').length;
     if (uncovered.length === 0) {
