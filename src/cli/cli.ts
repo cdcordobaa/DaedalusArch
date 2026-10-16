@@ -21,6 +21,7 @@ import { requireEnvForCli } from './require-env.js';
 import { ENGINE_OPTION_HELP, resolveEngineForCli } from './engine-default.js';
 import type { GraphEngine } from '../cypher-interp/engine.js';
 import { CypherSyntaxError, CypherUnsupportedError, parseCypher } from '../cypher-interp/parse.js';
+import { EMPTY_AGGREGATE_POLICIES, parseEmptyAggregatePolicy } from '../fitness-compiler/empty-aggregates.js';
 import { handleDrift } from './drift-handler.js';
 import { parseSpec, validateSpecAgainstProject } from '../spec-parser/index.js';
 import { compileFunctions, compilerInputFromSpec, V13_COMPILE_OPTIONS } from '../fitness-compiler/index.js';
@@ -229,8 +230,10 @@ withLLMOptions(program
   .option('--html <out.html>', 'Also write a self-contained architect HTML report (layer diagram, findings in plain language, filters)')
   .option('--hints', 'Add a deterministic fix hint to every blocking finding (json: `fixHints`; human: a Fix hints section). Off by default: the output is then unchanged', false)
   .option('--engine <name>', ENGINE_OPTION_HELP)
+  .option('--empty-aggregates <policy>', 'A ddd spec with no aggregate (loop-pilot T1): fail (default, BR-SPEC-10) | not-applicable (FF-DT01/02 disabled, recorded) | exclude (FF-DT01/02 not scored, recorded) | vacuous (FF-DT01/02 run on an empty list)', 'fail')
   .action(async (projectArg: string | undefined, opts: LLMCliOpts & {
     engine?: string;
+    emptyAggregates: string;
     project?: string;
     tsconfig?: string;
     resolvedEdgesInLiteralView: boolean;
@@ -287,6 +290,12 @@ withLLMOptions(program
     if (neuralAggregation === undefined) return;
     const graphEngine = engineFor(opts.engine, cmd);
     if (graphEngine === undefined) return;
+    const emptyAggregates = parseEmptyAggregatePolicy(opts.emptyAggregates);
+    if (emptyAggregates === undefined) {
+      process.stderr.write(`Error: --empty-aggregates must be one of ${EMPTY_AGGREGATE_POLICIES.join(' | ')}\n`);
+      process.exitCode = 2;
+      return;
+    }
     // BR-U3-80: no default password; stop before any connection. The in-process engine opens none and reads none.
     const neo4jPassword = graphEngine === 'cypher-interp' ? '' : requireEnvForCli('NEO4J_PASSWORD');
     if (neo4jPassword === undefined) return;
@@ -329,6 +338,7 @@ withLLMOptions(program
       scoringMode,
       ...(extractorDefaults !== 'v1.3' && { extractorDefaults }),
       ...(graphEngine !== 'neo4j' && { graphEngine }),
+      ...(emptyAggregates !== 'fail' && { emptyAggregates }),
     };
 
     const { executor, context, cleanup } = createPipeline(config);
@@ -550,11 +560,13 @@ program
   .requiredOption('--spec <path>', 'Path to AoC YAML spec')
   .option('--project <path>', 'Path to TypeScript project (for directory checks)', '.')
   .option('--rules <set>', 'Rule set the template check accepts: v1.3 (default; adds the v1.3 extension templates) | v1.2e (frozen templates only)', 'v1.3')
+  .option('--reject-empty-aggregates', 'Reject a ddd spec that keeps FF-DT01/FF-DT02 with no aggregate declared (loop-pilot T1 option b; off by default)', false)
   .option('--engine <name>', `${ENGINE_OPTION_HELP} validate never connects; with cypher-interp it also parses every compiled query with the interpreter (subset check).`)
   .action(async (opts: {
     spec: string;
     project: string;
     rules: string;
+    rejectEmptyAggregates: boolean;
     engine?: string;
   }, cmd: Command) => {
     const rules = resolveScoringMode(opts.rules, '--rules');
@@ -568,7 +580,7 @@ program
       return;
     }
 
-    const report = validateSpecAgainstProject(parseResult.data, opts.project, { rules });
+    const report = validateSpecAgainstProject(parseResult.data, opts.project, { rules, ...(opts.rejectEmptyAggregates && { rejectEmptyAggregates: true }) });
 
     if (report.valid) {
       process.stderr.write(

@@ -13,6 +13,8 @@ import { toPipelineError, toPipelineWarning } from './map-helpers.js';
 import { CONSTRUCT_ANSWERS } from '../../shared/construct-switches.js';
 import { applyConstructCompileOverlays } from '../../construct-switches/compile.js';
 import type { ConstructAnswers } from '../../shared/construct-switches.js';
+import { excludeAggregateRules } from '../../fitness-compiler/empty-aggregates.js';
+import type { EmptyAggregatePolicy } from '../../fitness-compiler/empty-aggregates.js';
 
 /**
  * Run-scoped holder for the declared-side counts (BR-U3-52), written by `CompileCommand` next to the
@@ -34,6 +36,8 @@ export class CompileCommand implements PipelineCommand {
      * stage and the tier overrides do not run either, R30). Absent constructor argument = the switch file.
      */
     private readonly constructAnswers: ConstructAnswers | undefined = CONSTRUCT_ANSWERS,
+    /** Loop-pilot T1 (`empty-aggregates.ts`): undefined = the compiler's default, `fail` (BR-SPEC-10). */
+    private readonly emptyAggregates?: EmptyAggregatePolicy,
   ) {}
 
   async execute(context: FirewallContext): Promise<DomainResultType<void>> {
@@ -41,7 +45,8 @@ export class CompileCommand implements PipelineCommand {
 
     // v1.3 edge views (ADR-V13-01): a no-op on a v1.2E graph, so the frozen results are unchanged.
     const { constructSwitches: _fromFile, ...v13 } = { ...V13_COMPILE_OPTIONS };
-    const options = { ...v13, ...(this.constructAnswers !== undefined ? { constructSwitches: this.constructAnswers } : {}), instrumentVersion: this.instrumentVersion };
+    const options = { ...v13, ...(this.constructAnswers !== undefined ? { constructSwitches: this.constructAnswers } : {}), instrumentVersion: this.instrumentVersion,
+      ...(this.emptyAggregates !== undefined ? { emptyAggregates: this.emptyAggregates } : {}) };
     const result = compileFunctions(compilerInputFromSpec(parsedSpec), options);
 
     if (!result.success) {
@@ -54,7 +59,9 @@ export class CompileCommand implements PipelineCommand {
     // BR-U3-52: declared, adrDerived and dropped ids by id sets, computed where the spec is at hand.
     // The declared side is the spec as the switches declare it: a carrier rule a switch adds (Q5 D, Q16 B, Q17 C) is
     // declared by the switch, so identity I1 holds (R09); at the status quo the overlay is the spec itself.
-    const declared = applyConstructCompileOverlays(compilerInputFromSpec(parsedSpec), this.constructAnswers).fitnessFunctions;
+    const overlaid = applyConstructCompileOverlays(compilerInputFromSpec(parsedSpec), this.constructAnswers);
+    // T1 option c: an excluded aggregate rule is not declared either (it is recorded by the COMPILER_006 warning).
+    const declared = (this.emptyAggregates === 'exclude' ? excludeAggregateRules(overlaid).input : overlaid).fitnessFunctions;
     this.factsHolder.facts = compileFactsOf(declared, result.data, this.instrumentVersion);
 
     // Compiler warnings travel in CompiledFunctions.warnings; route them to the context so

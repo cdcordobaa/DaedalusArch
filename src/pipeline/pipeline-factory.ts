@@ -166,7 +166,7 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
   const compileFacts: CompileFactsHolder = {};
   // v1.3 construct switches apply in the v1.3 scoring mode only: compile overlays, row stage and tiers together (R30).
   const constructAnswers = config.scoringMode === 'v1.3' ? config.constructAnswers ?? CONSTRUCT_ANSWERS : undefined;
-  commands.push(new CompileCommand(compileFacts, config.instrumentVersion, constructAnswers));
+  commands.push(new CompileCommand(compileFacts, config.instrumentVersion, constructAnswers, config.emptyAggregates));
 
   // ---- Stage 4: Evaluate (mode-dependent) -----------------------------
   // v1.3 construct switches: the row stage runs in the v1.3 scoring mode only, and only when a switch is set.
