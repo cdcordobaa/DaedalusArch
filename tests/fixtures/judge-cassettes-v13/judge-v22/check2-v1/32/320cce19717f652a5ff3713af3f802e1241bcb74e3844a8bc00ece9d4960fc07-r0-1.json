@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6964,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "320cce19717f652a5ff3713af3f802e1241bcb74e3844a8bc00ece9d4960fc07-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "reserve(body): converts the DTO (new Date(body.from)) and calls this.reserveSpot.reserve(...). This is a presentation-layer translation followed by a call to a use case.",
+      "cancel(id): calls this.cancelReservation.cancel(id) and returns { cancelled: id }. This is presentation-layer response shaping.",
+      "ReserveBody interface: describes the inbound request payload, which belongs in the presentation layer.",
+      "No business rules, persistence or external I/O logic appear in the file."
+    ],
+    "pass": true,
+    "reasoning": "ReservationController only does presentation-layer work. It defines the inbound request shape (ReserveBody), converts transport values (it parses `from` into a Date), passes each call to an application use case, and shapes the response ({ cancelled: id }). It contains no business rules, such as checks on spot availability, electric-spot eligibility or duration limits. It also does no persistence and no infrastructure work. The controller takes the concrete ReserveSpotService rather than the ReserveSpot port. That is a dependency-direction concern, which is checked by other tools and is out of scope for this rule.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- adapters-inbound (kind: presentation): src/adapters/inbound/**\n- adapters-outbound (kind: infrastructure): src/adapters/outbound/**\n- config (kind: application): src/config/**\n\n## Unit\nKind: file\nId: src/adapters/inbound/http/ReservationController.ts\nLayer: adapters-inbound\nUnit files:\n- src/adapters/inbound/http/ReservationController.ts\n\n## Source\n=====SOURCE-BEGIN src/adapters/inbound/http/ReservationController.ts=====\nimport { CancelReservation } from '../../../application/ports/in/CancelReservation';\nimport { ReservationReceipt } from '../../../application/ports/in/ReserveSpot';\nimport { ReserveSpotService } from '../../../application/services/ReserveSpotService';\n\nexport interface ReserveBody {\n  plate: string;\n  from: string;\n  hours: number;\n  electric: boolean;\n}\n\nexport class ReservationController {\n  constructor(\n    private readonly reserveSpot: ReserveSpotService,\n    private readonly cancelReservation: CancelReservation,\n  ) {}\n\n  async reserve(body: ReserveBody): Promise<ReservationReceipt> {\n    const receipt = await this.reserveSpot.reserve(body.plate, new Date(body.from), body.hours, body.electric);\n    return receipt;\n  }\n\n  async cancel(id: string): Promise<{ cancelled: string }> {\n    await this.cancelReservation.cancel(id);\n    return { cancelled: id };\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"ReservationController@src/adapters/inbound/http/ReservationController.ts\",\"to\":\"CancelReservation@src/application/ports/in/CancelReservation.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"ReservationController@src/adapters/inbound/http/ReservationController.ts\",\"to\":\"ReserveSpotService@src/application/services/ReserveSpotService.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/adapters/inbound/http/ReservationController.ts\",\"to\":\"src/application/ports/in/CancelReservation.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/adapters/inbound/http/ReservationController.ts\",\"to\":\"src/application/ports/in/ReserveSpot.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/adapters/inbound/http/ReservationController.ts\",\"to\":\"src/application/services/ReserveSpotService.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/adapters/inbound/http/routes.ts\",\"to\":\"src/adapters/inbound/http/ReservationController.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/config/container.ts\",\"to\":\"src/adapters/inbound/http/ReservationController.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"adapters-inbound\",\"name\":\"ReservationController\",\"path\":\"src/adapters/inbound/http/ReservationController.ts\"},{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"ReserveSpotService\",\"path\":\"src/application/services/ReserveSpotService.ts\"},{\"kind\":\"File\",\"layer\":\"adapters-inbound\",\"path\":\"src/adapters/inbound/http/ReservationController.ts\"},{\"kind\":\"File\",\"layer\":\"adapters-inbound\",\"path\":\"src/adapters/inbound/http/routes.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports/in/CancelReservation.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports/in/ReserveSpot.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/services/ReserveSpotService.ts\"},{\"kind\":\"File\",\"layer\":\"config\",\"path\":\"src/config/container.ts\"},{\"kind\":\"Interface\",\"layer\":\"adapters-inbound\",\"name\":\"ReserveBody\",\"path\":\"src/adapters/inbound/http/ReservationController.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"CancelReservation\",\"path\":\"src/application/ports/in/CancelReservation.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T02:26:18.704Z",
+  "repetition": 0,
+  "requestHash": "320cce19717f652a5ff3713af3f802e1241bcb74e3844a8bc00ece9d4960fc07",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":562}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"ReservationController only does presentation-layer work. It defines the inbound request shape (ReserveBody), converts transport values (it parses `from` into a Date), passes each call to an application use case, and shapes the response ({ cancelled: id }). It contains no business rules, such as checks on spot availability, electric-spot eligibility or duration limits. It also does no persistence and no infrastructure work. The controller takes the concrete ReserveSpotService rather than the ReserveSpot port. That is a dependency-direction concern, which is checked by other tools and is out of scope for this rule.\\\",\\\"evidence\\\":[\\\"reserve(body): converts the DTO (new Date(body.from)) and calls this.reserveSpot.reserve(...). This is a presentation-layer translation followed by a call to a use case.\\\",\\\"cancel(id): calls this.cancelReservation.cancel(id) and returns { cancelled: id }. This is presentation-layer response shaping.\\\",\\\"ReserveBody interface: describes the inbound request payload, which belongs in the presentation layer.\\\",\\\"No business rules, persistence or external I/O logic appear in the file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"reserve(body): converts the DTO (new Date(body.from)) and calls this.reserveSpot.reserve(...). This is a presentation-layer translation followed by a call to a use case.\",\"cancel(id): calls this.cancelReservation.cancel(id) and returns { cancelled: id }. This is presentation-layer response shaping.\",\"ReserveBody interface: describes the inbound request payload, which belongs in the presentation layer.\",\"No business rules, persistence or external I/O logic appear in the file.\"],\"pass\":true,\"reasoning\":\"ReservationController only does presentation-layer work. It defines the inbound request shape (ReserveBody), converts transport values (it parses `from` into a Date), passes each call to an application use case, and shapes the response ({ cancelled: id }). It contains no business rules, such as checks on spot availability, electric-spot eligibility or duration limits. It also does no persistence and no infrastructure work. The controller takes the concrete ReserveSpotService rather than the ReserveSpot port. That is a dependency-direction concern, which is checked by other tools and is out of scope for this rule.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/adapters/inbound/http/ReservationController.ts",
+  "usage": {
+    "inputTokens": 3212,
+    "outputTokens": 562
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
