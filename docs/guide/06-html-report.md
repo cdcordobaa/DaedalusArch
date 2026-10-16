@@ -1,6 +1,6 @@
-# 6. The HTML report (available in PR #140)
+# 6. The HTML report
 
-PR #140 adds `--html <file>` to `evaluate`. The run is a normal evaluation, with the same console output and exit
+`evaluate --html <file>` (PR #140, merged in `v1.3`) runs a normal evaluation, with the same console output and exit
 code. It also writes one HTML page meant for someone reviewing the architecture rather than reading a terminal.
 
 ```bash
@@ -9,17 +9,6 @@ npx tsx bin/firewall.ts evaluate --project fixtures/variant-a-structural --spec 
 # ... usual report on stderr ...
 # HTML report written to /abs/path/report.html          (exit 1)
 ```
-
-## Engine caveat
-
-The PR branch (`v1.3-html-report`) was cut before `--engine cypher-interp` was merged into `v1.3`. On the branch
-as-is, the command needs Neo4j:
-
-- With `--engine cypher-interp`: `unknown option '--engine'`.
-- Without it and with no database: `NEO4J_PASSWORD is not set`.
-
-The run above was done on `v1.3` with the PR's commit applied on top. The only conflict was two adjacent option lines in
-`src/cli/cli.ts`. Once PR #140 is merged into `v1.3`, the command works as shown.
 
 ## What is on the page
 
@@ -42,9 +31,7 @@ The page is self-contained. CSS, script and SVG are inline, there are no externa
 meta tag blocks network requests. You can attach it to a ticket or open it offline. The output has no timestamp, so
 the same input gives the same file. Code excerpts skip `.env*` and secret-like files.
 
-The page does not mention rules that failed to run. In the test runs (on `v1.3` before PR #135 was merged), FF-P05
-failed under `cypher-interp` and showed only in the console's "Failed to run" list. PR #135 has since fixed that rule
-on the in-process engine.
+The page does not mention rules that failed to run. If the console report has a "Failed to run" list, read it there.
 
 ## The older `report` command
 

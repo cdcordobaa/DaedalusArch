@@ -30,11 +30,11 @@ named next to it.
 | MCP v2 tools (`check_file`, `check_diff`, `infer_spec`, `evaluate_project`, ...) | merged in `v1.3` | All tools work without a database |
 | Hexagonal and DDD rule libraries | merged in `v1.3` | `presets/hexagonal.yaml`, `presets/ddd.yaml` |
 | `npx` packaging, `daedalus` / `daedalus-mcp` commands | merged in `v1.3` (PR #135) | Not published to npm yet: install from a checkout or a packed tarball |
-| CI gate (`check --base --head`) and GitHub Action | available in PR #138 | Its in-process engine is `lexical`, not `cypher-interp` (see chapter 5) |
-| HTML report (`evaluate --html`) | available in PR #140 | The PR branch predates `--engine cypher-interp` (see chapter 6) |
+| CI gate (`check --base --head`) and GitHub Action | merged in `v1.3` (PR #138) | Its in-process engine is `lexical`, not `cypher-interp` (see chapter 5) |
+| HTML report (`evaluate --html`) | merged in `v1.3` (PR #140) | |
 | Fix hints (`--hints`) | available in PR #143 | |
 | Rule mining (`mine-rules`) | available in PR #145 | |
-| `init` and `evaluate --from-inferred` | available in PR #150 | |
+| `init`, `evaluate --from-inferred`, MCP `propose_spec` | merged in `v1.3` (PR #150) | |
 
 ## Conventions in this guide
 

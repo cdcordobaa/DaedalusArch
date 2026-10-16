@@ -1,10 +1,8 @@
-# 5. CI pull-request gate (available in PR #138)
+# 5. CI pull-request gate
 
-PR #138 adds a `check` command and a GitHub Action. The command compares a base commit with a head commit and fails
+`v1.3` has a `check` command and a GitHub Action (PR #138). The command compares a base commit with a head commit and fails
 only on **new** blocking findings. Findings that were already on the base branch do not fail the pull request, so you
 can switch the gate on in a codebase that has existing violations.
-
-Everything in this chapter needs branch `v1.3-ci-action` until PR #138 is merged.
 
 ## Engines
 
@@ -13,8 +11,9 @@ Everything in this chapter needs branch `v1.3-ci-action` until PR #138 is merged
 | `lexical` (the Action's default) | The single-file import rules of `check_file`: layer direction, layer skipping, core isolation, domain purity | nothing (in-process) |
 | `neo4j` (the CLI's default) | The full rule set, including cycles, injection, port/adapter and DDD rules | a Neo4j service |
 
-`check` does not accept `--engine cypher-interp`, because PR #138 branched off before that engine was merged. Without a
-database, pass `--engine lexical`. Otherwise you get `NEO4J_PASSWORD is not set` (exit 2).
+`check` does not accept `--engine cypher-interp` (`--engine must be one of neo4j | lexical`, exit 2), and unlike
+`evaluate` its default stays `neo4j` even when `NEO4J_URI` is unset. Without a database, pass `--engine lexical`.
+Otherwise you get `NEO4J_PASSWORD is not set` (exit 2).
 
 `lexical` misses graph rules. In the test below it reported the 3 new layer findings, and missed the 2 import
 cycles that the full evaluation reports for the same code.
@@ -29,7 +28,6 @@ branches:
 - `violating-change`: replaces `app/src` with `fixtures/variant-a-structural/src`.
 
 ```bash
-git checkout v1.3-ci-action
 npx tsx bin/firewall.ts check --repo /path/to/test-repo --base main --head clean-change \
   --spec specs/clean-arch.yaml --project app --engine lexical
 echo $?    # 0
@@ -75,7 +73,7 @@ Exit codes: 0 no new blocking finding, 1 at least one new blocking finding, 2 us
 
 ## GitHub Action
 
-This is the example workflow from the PR (`Docs/examples/architecture-gate.yml` on that branch). Save it as
+This is the example workflow in `Docs/examples/architecture-gate.yml` (comments trimmed). Save it as
 `.github/workflows/architecture-gate.yml` in your repository:
 
 ```yaml
@@ -115,8 +113,7 @@ updates one PR comment. On pull requests from forks the token cannot comment, so
 What was and was not tested:
 
 - The `check` command was run locally, as shown above.
-- The Action has not been run on GitHub. `action.yml` exists only on the PR branch, so `uses: cdcordobaa/DaedalusArch@v1.3`
-  resolves only after PR #138 is merged into `v1.3`. Before that you would have to point `uses:` at the PR branch or a
-  commit on it.
+- The Action itself has not been run on GitHub for this guide. `action.yml` is at the root of `v1.3`, so
+  `uses: cdcordobaa/DaedalusArch@v1.3` points at it. Pin a commit SHA you have reviewed rather than the moving branch.
 - For the full rule set, the example file also contains a commented-out job. It runs a `neo4j:5.26-community` service
   and sets `engine: neo4j` with `NEO4J_URI` and `NEO4J_PASSWORD` from a repository secret.

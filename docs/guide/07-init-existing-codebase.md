@@ -6,19 +6,18 @@ that as the rule. Review what you get before you rely on it.
 
 | Way | Branch | What you get |
 |---|---|---|
-| `init` | available in PR #150 | A spec file: style, layer globs and the preset's rules |
-| `evaluate --from-inferred` | available in PR #150 | A one-off evaluation on an inferred spec, with nothing written |
+| `init` | merged in `v1.3` (PR #150) | A spec file: style, layer globs and the preset's rules |
+| `evaluate --from-inferred` | merged in `v1.3` (PR #150) | A one-off evaluation on an inferred spec, with nothing written |
 | `mine-rules` | available in PR #145 | Dependency rules the code already follows, plus the files that break them |
-| MCP `infer_spec` | merged in `v1.3` | The same inference, as an MCP tool (chapter 4) |
+| MCP `infer_spec`, `propose_spec` | merged in `v1.3` | The same inference, as MCP tools (chapter 4) |
 
-## `init` (available in PR #150)
+## `init`
 
 `init` needs `src/` and `tsconfig.json` at the project root. It picks one of the five styles and maps your folders
 to its layers. It writes `firewall.spec.yaml` into the project. Everything except the layer globs is copied from the
 style's preset.
 
 ```bash
-git checkout claude/v1.3-init-infer-963eh8
 mkdir /tmp/my-app && cp -r fixtures/variant-a-structural/src fixtures/variant-a-structural/tsconfig.json /tmp/my-app/
 npx tsx bin/firewall.ts init --project /tmp/my-app
 echo $?    # 0
@@ -62,7 +61,7 @@ Options and behaviour:
 - Exit 2 means the project could not be read, for example because there is no `src/`.
 - There is no `--style` flag. To force a style, use the MCP tool `infer_spec`, which takes `style`.
 
-## `evaluate --from-inferred` (available in PR #150)
+## `evaluate --from-inferred`
 
 To evaluate without writing a spec:
 

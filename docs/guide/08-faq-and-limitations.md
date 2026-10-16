@@ -12,9 +12,8 @@ with `import`, both reaching into infrastructure) produced no findings. That pro
 No. On `v1.3` the CLI and the MCP server use the in-process engine (`cypher-interp`) unless `NEO4J_URI` is set. You
 still need Neo4j for:
 
-- the CI gate's full rule set (`check --engine neo4j`, PR #138). Its in-process `lexical` engine covers only
-  single-file import rules;
-- `evaluate --html` on the PR #140 branch as it stands (chapter 6);
+- the CI gate's full rule set (`check --engine neo4j`). Its in-process `lexical` engine covers only single-file
+  import rules;
 - the older `report` command.
 
 ## Why does a rule half say "N/A … FLOWS_TO"?

@@ -16,7 +16,8 @@ class should go. The server speaks MCP over stdio, so any MCP client can use it.
 | `suggest_placement` | Layer, path and class name for something new ("repository for orders") | no |
 | `explain_violation` | A rule's intent and fix guidance | no |
 | `explain_finding` | Construct, source, tier and a minimal violating and compliant example for a rule id | no |
-| `infer_spec` | Proposes a spec for a project with no spec (style, layer map, YAML) | no |
+| `infer_spec` | Proposes a spec for a project with no spec (style, layer map, YAML); can be forced to a style | no |
+| `propose_spec` | The spec `init` would write (chapter 7), with its questions | no |
 | `evaluate_project` | The full rule set on the whole project | no (in-process engine unless `NEO4J_URI` is set) |
 
 `check_file` and `check_diff` scan imports and class declarations lexically. They are fast (about 50 ms per file in
