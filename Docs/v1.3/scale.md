@@ -94,11 +94,30 @@ PLACEHOLDER_DIFF_TABLE
 Two exact optimisations in `src/apg-extractor/import-resolver.ts`:
 
 - **Module resolution memo.** `ts.resolveModuleName` ran once per import statement, with no cache. TypeScript resolves a name from the containing file's directory only, and its own resolution cache is keyed the same way. The memo per directory and specifier therefore returns what a fresh call would.
-- **Dynamic-import scan.** `findDynamicImportCalls` wrapped every `CallExpression` of every file, twice per file: once for resolution, once for the unsupported count. It now walks the compiler tree once per file, in the same pre-order as `getDescendantsOfKind`, and wraps nothing. The line is ts-morph's (one plus the number of `\n` before the start), and `require` is matched on the identifier's `text`, as ts-morph's `Identifier.getText()` does. A unit test checks both against ts-morph on `\r\n`, a lone `\r`, ` ` and an escaped `require`.
+- **Dynamic-import scan.** `findDynamicImportCalls` wrapped every `CallExpression` of every file, twice per file: once for resolution, once for the unsupported count. It now walks the compiler tree once per file, in the same pre-order as `getDescendantsOfKind`, and wraps nothing. The line is ts-morph's (one plus the number of `\n` before the start), and `require` is matched on the identifier's `text`, as ts-morph's `Identifier.getText()` does. A unit test checks both against ts-morph on `\r\n`, a lone `\r`, `\u2028` and an escaped `requir\u0065`.
 
 Phase breakdown (`scripts/v1.3/scale/extract-phases.ts`; one run each; "load" is ts-morph parsing, "checker" is program creation):
 
-PLACEHOLDER_PHASES_TABLE
+| Project | Loaded files (default / skip) | Arm | Load (s) | Checker (s) | Node pass (s) | Edge pass (s) | Total (s) | Peak RSS (MB) |
+|---|---|---|---|---|---|---|---|---|
+| nest | 2,033 / 1,498 | before | 1.3 | 0.9 | 1.5 | 2.6 | 6.3 | 574 |
+| | | after | 1.3 | 0.9 | 1.4 | 2.0 | 5.7 | 520 |
+| | | after, `--skip-excluded-sources` | 0.9 | 0.8 | 1.4 | 1.9 | 5.0 | 427 |
+| amplication | 2,507 / 2,286 | before | 1.2 | 1.0 | 0.9 | 3.7 | 6.8 | 645 |
+| | | after | 1.1 | 1.0 | 0.9 | 2.6 | 5.6 | 586 |
+| | | after, `--skip-excluded-sources` | 1.1 | 1.0 | 1.0 | 2.5 | 5.6 | 540 |
+| typeorm | 3,606 / 2,637 | before | 1.9 | 1.3 | 1.7 | 4.0 | 8.8 | 713 |
+| | | after | 1.9 | 1.3 | 1.6 | 3.2 | 8.0 | 713 |
+| | | after, `--skip-excluded-sources` | 1.4 | 0.9 | 1.6 | 3.3 | 7.3 | 609 |
+| prisma | 5,961 / 3,611 | before | 5.8 | 3.5 | 2.0 | 8.8 | 20.0 | 2,225 |
+| | | after | 6.2 | 3.5 | 2.0 | 4.7 | 16.4 | 1,993 |
+| | | after, `--skip-excluded-sources` | 3.5 | 2.1 | 1.8 | 4.8 | 12.2 | 1,285 |
+| payload | 5,594 / 4,925 | before | 4.1 | 2.7 | 0.5 | 6.8 | 14.1 | 1,375 |
+| | | after | 4.2 | 2.5 | 0.5 | 3.1 | 10.3 | 1,249 |
+| | | after, `--skip-excluded-sources` | 2.9 | 1.9 | 0.4 | 3.1 | 8.2 | 967 |
+| rocketchat | 6,455 / 5,577 | before | 3.8 | 2.8 | 3.0 | 11.6 | 21.2 | 1,760 |
+| | | after | 4.0 | 2.8 | 3.3 | 6.2 | 16.4 | 1,568 |
+| | | after, `--skip-excluded-sources` | 3.2 | 2.5 | 3.1 | 5.9 | 14.8 | 1,348 |
 
 The cost that remains is TypeScript's: parsing and program creation for every file the tsconfig names, and the checker calls of the node and edge passes. The default loads every tsconfig file, tests included, because the type checker's root set could in principle change a type's printed form (union order follows type ids). **`--skip-excluded-sources`** (opt-in) loads only the analysed files plus every declaration file. An excluded file still reaches the checker when an analysed file imports it. On all six projects and all 76 cases the output is byte-identical to the default, but it is not guaranteed in general, so it stays a flag.
 
@@ -106,11 +125,43 @@ The cost that remains is TypeScript's: parsing and program creation for every fi
 
 ## 6. Memory guard and `--max-files`
 
-- **`--max-files <n>`.** It counts the tsconfig's files after the exclusions *before any file is parsed*, and stops with `PROJECT_TOO_LARGE`. It counts again on the loaded project. Example: `Project too large: 4897 source files to analyse in /…/payload after the exclusions, over --max-files 3000. Narrow exclude_paths in the spec, point --project or --tsconfig at one package, or raise --max-files.` (exit 2).
-- **The memory guard** (`src/shared/process/memory-guard.ts`) is always on. It runs every 25 files of the node and edge passes, after loading, and before ingestion. The heap budget is 92% of V8's heap limit. Before failing, the guard forces a full collection and measures again, so garbage alone never stops a run: it stops only when the live heap is that close to the limit, where V8 would abort with "JavaScript heap out of memory" anyway.
-- **`--memory-limit-mb <n>`** adds a resident-memory budget for containers smaller than the heap limit. The error is `MEMORY_LIMIT_EXCEEDED`, e.g. `Project too large for the available memory: resident memory 1291 MB is over the --memory-limit-mb budget of 1000 MB during node extraction (1250 of 4897 files). Analyse a smaller part (narrow exclude_paths in the spec, or point --project or --tsconfig at one package), cap the size with --max-files, try --skip-excluded-sources, or give Node more heap (NODE_OPTIONS=--max-old-space-size=<MB>).`
+- **`--max-files <n>`.** It counts the tsconfig's files after the exclusions *before any file is parsed*, and counts again on the loaded project. It stops with `PROJECT_TOO_LARGE` (exit 2) in under 2 s on payload: `Project too large: 4897 source files to analyse in <clones>/payload after the exclusions, over --max-files 3000. Narrow exclude_paths in the spec, point --project or --tsconfig at one package, or raise --max-files.`
+- **The memory guard** (`src/shared/process/memory-guard.ts`) is always on. By default it stops a run only where V8 would abort anyway, so every run that completed before still completes; the sweep below has no false stop. It has two kinds of check.
+  - **Projections**, before each step that cannot be interrupted. Each factor below is a lower bound measured on the corpus, and the check fires only when even the lower bound passes V8's heap limit.
 
-PLACEHOLDER_GUARD_DEMO
+    | Before | Factor | Value | Smallest measured |
+    |---|---|---|---|
+    | parsing | `HEAP_PER_SOURCE_BYTE` (live heap per byte of source loaded) | 35 bytes | 37 |
+    | program and checker creation | `CHECKER_HEAP_GROWTH` (over the parsed heap) | 1.4 | 1.41 |
+    | the node and edge passes | `EXTRACTION_HEAP_GROWTH` (over the heap with the checker) | 1.05 | 1.05 |
+
+    The last projection needs the checker to exist first, so the extractor now creates it explicitly before the node pass, which would otherwise create it on its first type query. The APGs and the 228 equivalence files are identical with this change.
+  - **A checkpoint** every 5 files of the node and edge passes, after loading, and before ingestion. It stops the run when the live heap is over 95% of the limit. The live heap is measured after a forced full collection, at most one per four times the last collection's duration: back-to-back collections near the limit would themselves trip V8's "ineffective mark-compacts" abort.
+- **`--memory-limit-mb <n>`** adds a resident-memory budget at the checkpoints. Use it for a container limit below the heap limit, or for an earlier, guaranteed clean stop.
+- **The error** is `MEMORY_LIMIT_EXCEEDED` (exit 2), e.g. `Project too large for the available memory: 6455 TypeScript files (19 MB of source) need at least 652 MB of heap, over the 648 MB Node heap limit. Analyse a smaller part (narrow exclude_paths in the spec, or point --project or --tsconfig at one package), cap the size with --max-files, try --skip-excluded-sources, or give Node more heap (NODE_OPTIONS=--max-old-space-size=<MB>).`
+
+Sweep with a reduced heap (`NODE_OPTIONS=--max-old-space-size=<MB>`, `evaluate --symbolic-only`, final code). "V8 abort" is the old behaviour: exit 134, "JavaScript heap out of memory".
+
+| Project | Heap (MB) | Flags | Exit | Outcome | Time (s) |
+|---|---|---|---|---|---|
+| prisma | 900 | | 2 | clean stop before parsing | 1.7 |
+| prisma | 1,300 | | 2 | clean stop before checker creation | 8.3 |
+| prisma | 1,600 | | 1 | completes (`hard-block`) | 33.8 |
+| prisma | 900 | `--skip-excluded-sources` | 134 | V8 abort | 20.8 |
+| prisma | 1,100 | `--skip-excluded-sources` | 1 | completes | 19.9 |
+| payload | 600 | | 2 | clean stop before parsing | 1.7 |
+| payload | 900 | | 134 | V8 abort | 11.3 |
+| payload | 1,000 | | 1 | completes | 18.4 |
+| payload | 3,000 | `--memory-limit-mb 1000` | 2 | clean stop during node extraction | 8.8 |
+| rocketchat | 600 | | 2 | clean stop before parsing (needs ≥ 652 MB) | 1.7 |
+| rocketchat | 900, 1,000 | | 134 | V8 abort | 13.6, 15.6 |
+| rocketchat | 1,200 | | 0 | completes (`pass`) | 27.2 |
+| nest | 300 | | 134 | V8 abort | 6.5 |
+| nest | 350, 600 | | 1 | completes | 11.6, 11.0 |
+
+The projections stop the clearly-too-big runs in under 10 s instead of letting them crash. A run whose real need falls between the lower bound and the limit can still end in V8's abort, as it did before.
+
+Stricter defaults were tried. A 92% or an 85% checkpoint budget turned more of those aborts into clean stops, but they also stopped runs that complete: rocketchat at 1,200 MB, payload at 1,000 MB, prisma at 1,600 MB. That would change the default outcome, so they were not kept. For a guaranteed clean stop, set `--memory-limit-mb` below the container's memory.
 
 ## 7. After
 

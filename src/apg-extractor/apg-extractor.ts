@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, statSync } from 'node:fs';
 import { dirname, resolve, join, relative } from 'node:path';
 import { Project, ts } from 'ts-morph';
 import picomatch from 'picomatch';
@@ -12,7 +12,7 @@ import { DEFAULT_OPTIONS, DEFAULT_EXCLUDE_PATTERNS } from './types.js';
 import { extractNodes } from './node-extractor.js';
 import { extractEdges } from './edge-extractor.js';
 import { extractApg2 } from './apg2/index.js';
-import { MemoryLimitError } from '../shared/process/memory-guard.js';
+import { CHECKER_HEAP_GROWTH, EXTRACTION_HEAP_GROWTH, HEAP_PER_SOURCE_BYTE, MemoryLimitError } from '../shared/process/memory-guard.js';
 
 /**
  * Standalone extraction function.
@@ -52,11 +52,17 @@ export async function extractAPG(
 
     // ── 0. Scale pre-flight (scale.md §6): the tsconfig's file list, counted before any file is parsed ──
     let tsconfigFiles: readonly string[] | undefined;
-    if (limits.maxFiles !== undefined || limits.sourceScope === 'analysed') {
+    if (limits.maxFiles !== undefined || limits.sourceScope === 'analysed' || guard !== undefined) {
       tsconfigFiles = tsconfigFileNames(tsconfigPath);
       if (limits.maxFiles !== undefined) {
         const count = tsconfigFiles.filter((f) => !f.endsWith('.d.ts') && analysed(f)).length;
         if (count > limits.maxFiles) return DR.fail<APGResult>([tooLarge(count, limits.maxFiles, absoluteProjectPath)]);
+      }
+      if (guard !== undefined) {
+        // Parsing (inside the ts-morph Project) cannot be interrupted; stop before it when the extraction cannot fit.
+        const toLoad = limits.sourceScope === 'analysed' ? tsconfigFiles.filter((f) => f.endsWith('.d.ts') || analysed(f)) : tsconfigFiles;
+        const bytes = toLoad.reduce((sum, f) => sum + fileSize(f), 0);
+        guard.checkAhead(bytes * HEAP_PER_SOURCE_BYTE, `${String(toLoad.length)} TypeScript files (${String(Math.round(bytes / 1048576))} MB of source)`);
       }
     }
 
@@ -82,6 +88,13 @@ export async function extractAPG(
       });
     }
     guard?.check('source loading');
+    // The node pass creates the type checker in one uninterruptible step; stop before it when it cannot fit.
+    if (guard !== undefined) {
+      guard.checkProjected('type checker creation', CHECKER_HEAP_GROWTH, `${String(project.getSourceFiles().length)} files loaded`);
+      // The node pass would create the checker on its first type query; creating it here lets the guard project the passes.
+      project.getProgram().compilerObject.getTypeChecker();
+      guard.checkProjected('node and edge extraction', EXTRACTION_HEAP_GROWTH);
+    }
 
     // ── 2. Collect source files (apply exclusion patterns) ───────────────────
     const sourceFiles = project.getSourceFiles().filter(sf => analysed(sf.getFilePath()));
@@ -138,13 +151,21 @@ export async function extractAPG(
 }
 
 /** Memory guard checkpoint interval, in files. */
-const CHECKPOINT_EVERY = 25;
+const CHECKPOINT_EVERY = 5;
 
 /** The tsconfig's file list as ts-morph resolves it (`include`, `files`, `exclude`, `extends`), without parsing a file. */
 function tsconfigFileNames(tsconfigPath: string): readonly string[] {
   const read = ts.readConfigFile(tsconfigPath, (file) => ts.sys.readFile(file));
   const parsed = ts.parseJsonConfigFileContent(read.config ?? {}, ts.sys, dirname(tsconfigPath), undefined, tsconfigPath);
   return parsed.fileNames.filter((f) => ts.sys.fileExists(f));
+}
+
+function fileSize(file: string): number {
+  try {
+    return statSync(file).size;
+  } catch {
+    return 0;
+  }
 }
 
 function tooLarge(count: number, maxFiles: number, projectPath: string): ExtractorError {
