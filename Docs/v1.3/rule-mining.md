@@ -106,6 +106,7 @@ ground truth): style, rule counts by kind and level, exceptions, spec validity.
 | `cdb2e8b8` | The miner, the emitter, their unit tests and §1 of this document. No evaluation had run. |
 | `+1` | `analyseSnapshot` / `proposeFromAnalysis` split out of `proposeRules` (no behaviour change), the CLI command, the MCP tool, the evaluation scripts, the offline and external results and §2–§7. |
 | `+2` | The live Neo4j downstream results and §4. |
+| merge, `+3`, `+4` | Merge of `origin/v1.3` (the MCP registry conflict), `--engine cypher-interp` for the downstream script, its rerun. |
 
 `src/rule-mining/miner.ts`, `emit.ts` and `types.ts` were not changed after the first evaluation run; no threshold was
 tuned. The evaluator was changed once after its first run, only to list every exception and to restrict the
@@ -120,9 +121,12 @@ Outputs are in `results/v1.3-rule-mining/2026-10-16/`:
 | `downstream.md`, `downstream.json`, `downstream-raw/` | The live Neo4j check (§4). `scripts/v1.3/rule-mining-downstream.ts`; `--from-raw` replays it. |
 | `wild.md`, `wild.json`, `wild/<id>.{json,mined.yaml}` | The external projects (§5). `scripts/v1.3/rule-mining-wild.ts --repos <clones>`. |
 
-**Engine.** No `cypher-interp` engine exists in this repository, so the live check used Neo4j 5.26.24 community with
-APOC 5.26.24, run from the official tarball (the container has no Docker daemon). The rule miner itself never needs
-an engine.
+**Engine.** When this branch was cut, `origin/v1.3` had no `cypher-interp` engine, so the live check ran on Neo4j
+5.26.24 community with APOC 5.26.24 from the official tarball (the container has no Docker daemon). The interpreter
+(`--engine cypher-interp`, PR #128) reached `v1.3` while this PR was open. After merging it, the same downstream run
+was repeated on it (`downstream-interp.md`, `downstream-interp-raw/`). All 142 evaluations (P1–P5 included) give
+**identical rows** to Neo4j under both specs, and the mined specs are byte-identical. The rule miner itself never
+needs an engine.
 
 ## 3. Results on the reference set
 
