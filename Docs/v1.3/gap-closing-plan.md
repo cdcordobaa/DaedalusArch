@@ -192,12 +192,12 @@ Pilot (open #170):
 Power:
 
 - Option B gives gate 0.54 and mcp 0.18; option C gives 0.77 and 0.33 (`Docs/v1.3/study2-power-notes.md:81-82`).
-- The fallback (advisory) outcome has "almost no power" (`:99-102`); the rehearsal confirms ≈ 0.05 (`v1.3-study2-analysis-rehearsal:Docs/v1.3/study2-analysis-rehearsal.md:160-162`).
+- The fallback (advisory) outcome has "almost no power" (`:99-102`); the rehearsal, on synthetic data, gives about 0.05 (`v1.3-study2-analysis-rehearsal:Docs/v1.3/study2-analysis-rehearsal.md:167-168`).
 
 Gate and rehearsal:
 
 - **Gate:** "NO-GO. 1 of 42 lines is green (V2), 1 is partly green (D14), 32 are red and 8 unknown" (`v1.3-study2-readiness:Docs/v1.3/study2-readiness-gate.md:3`). Statuses were taken at `4339bad5`, before #142 and several open PRs.
-- **Analysis rehearsal (open #160):** "Assertions: 30 of 30 pass" on synthetic telemetry (`v1.3-study2-analysis-rehearsal:Docs/v1.3/study2-analysis-rehearsal.md:109`).
+- **Analysis rehearsal (open #160):** "Assertions: 30 of 30 pass" on synthetic telemetry (`v1.3-study2-analysis-rehearsal:Docs/v1.3/study2-analysis-rehearsal.md:114`).
 
 **Remaining gap.**
 
@@ -248,7 +248,7 @@ Engine and scale:
 - **Fuzz (open #183):** 0 mismatches over 836,000 statements (`v1.3-interp-fuzz:Docs/v1.3/cypher-interp-fuzz.md:13`).
 - **Scale (open #188):** median wall time falls from 51.2–77.2 s to 8.8–19.8 s (`v1.3-scale:Docs/v1.3/scale.md:8`).
   - Outputs are byte-identical on the 71 reference cases and 5 golden fixtures, and the APGs are byte-identical on the six large projects (`:12,86`).
-  - Large-project **reports do change**, wherever a query that used to time out now completes. Verdicts follow: for example typeorm goes from `pass` to `hard-block` (`:91`).
+  - Large-project **reports do change**, wherever a query that used to time out now completes. Verdicts follow: three default verdicts flip from `pass` to `hard-block`, on amplication, typeorm and payload (`before.*.verdict` vs `after.*.verdict` in `v1.3-scale:results/v1.3-scale/profiles.json`; `:91` names the three projects).
   - So #188 changes evaluation results on large repos and counts as a tool change for the freeze.
 
 APG v2 on the dev set: it "adds no planted catch that the v1.3 rules miss" (`Docs/DiagnosticRuns/apg2-live-2026-10-15.md:21`).
@@ -321,7 +321,7 @@ Each decision gives its options and a recommendation.
 4. **Pilot T1.**
    - Options (`v1.3-pilot-run:…loop-pilot-2026-10-16.md:32-34`): (1) re-freeze from the same step-1 commits and score; (2) re-run DDD from scratch; (3) let the pilot stand on 2 tasks.
    - **Recommend (1).** No new generation and no memo change, and it reaches the pre-fixed §5 decision.
-5. **Study 2 under the zero branch.** The outcome itself is fixed by the pilot memo §5 (step 5.2). If DDD scores 0, the primary outcome becomes the advisory erosion rate. That outcome has power ≈ 0.05 under default assumptions, a "costly null by design" (`v1.3-study2-analysis-rehearsal:Docs/v1.3/study2-analysis-rehearsal.md:160-162`). The pilot's advisory slopes without FF-CV05 in `none` were negative: −0.50 and −0.58 (`v1.3-pilot-run:…loop-pilot-2026-10-16.md:57,59`).
+5. **Study 2 under the zero branch.** The outcome itself is fixed by the pilot memo §5 (step 5.2). If DDD scores 0, the primary outcome becomes the advisory erosion rate. That outcome has power ≈ 0.05 under default assumptions, a "costly null by design" (`v1.3-study2-analysis-rehearsal:Docs/v1.3/study2-analysis-rehearsal.md:167-168`). The pilot's advisory slopes without FF-CV05 in `none` were negative: −0.50 and −0.58 (`v1.3-pilot-run:…loop-pilot-2026-10-16.md:57,59`).
    - Options: (a) run Study 2 anyway on the advisory outcome, with the null pre-declared as interpretable, per G4: success is "a correctly run, pre-specified study whose result is reported"; (b) amend the memo by a dated addendum before the DDD score is seen. This is weak, because the Clean and Hexagonal pilot results are already known; (c) do not run Study 2 and report the design and readiness evidence as future work, per G4 (`v1.3-distinction-readiness:Docs/v1.3/research/distinction-readiness.md:489-507`).
    - **Recommend:** score DDD first (Decision 4), and do not touch §5. Under the positive branch, proceed. Under the zero branch, choose (a) only if the power re-run (5.5) at the largest affordable grid gives a defensible number; otherwise (c). Do not choose (b).
 6. **S5 no-hint arm.**
