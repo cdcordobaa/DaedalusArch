@@ -1,0 +1,22 @@
+--- a/src/workshops/in-memory-workshop.repository.ts
++++ b/src/workshops/in-memory-workshop.repository.ts
+@@ -2,10 +2,18 @@
+ import { Workshop } from '../domain/workshop';
+ import { WorkshopRepository } from '../domain/workshop-repository';
+ 
++export interface Resettable {
++  clear(): void;
++}
++
+ @Injectable()
+-export class InMemoryWorkshopRepository implements WorkshopRepository {
++export class InMemoryWorkshopRepository implements WorkshopRepository, Resettable {
+   private readonly rows = new Map<string, Workshop>();
+ 
++  clear(): void {
++    this.rows.clear();
++  }
++
+   async findById(id: string): Promise<Workshop | undefined> {
+     return this.rows.get(id);
+   }

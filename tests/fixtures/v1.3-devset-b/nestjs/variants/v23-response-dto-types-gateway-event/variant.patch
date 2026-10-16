@@ -1,0 +1,66 @@
+--- /dev/null
++++ b/src/gateways/registrations.gateway.ts
+@@ -0,0 +1,18 @@
++import { Injectable } from '@nestjs/common';
++
++export type RegistrationEvent = 'registered' | 'cancelled';
++
++type Listener = (event: RegistrationEvent, registrationId: string) => void;
++
++@Injectable()
++export class RegistrationsGateway {
++  private readonly listeners: Listener[] = [];
++
++  subscribe(listener: Listener): void {
++    this.listeners.push(listener);
++  }
++
++  publish(event: RegistrationEvent, registrationId: string): void {
++    for (const listener of this.listeners) listener(event, registrationId);
++  }
++}
+--- a/src/registrations/dto/registration-response.dto.ts
++++ b/src/registrations/dto/registration-response.dto.ts
+@@ -1,10 +1,12 @@
+ import { Registration } from '../../domain/registration';
++import type { RegistrationEvent } from '../../gateways/registrations.gateway';
+ 
+ export class RegistrationResponseDto {
+   id!: string;
+   workshopId!: string;
+   attendeeId!: string;
+   active!: boolean;
++  event!: RegistrationEvent;
+ 
+   static from(registration: Registration): RegistrationResponseDto {
+     return Object.assign(new RegistrationResponseDto(), {
+@@ -12,6 +14,7 @@
+       workshopId: registration.workshopId,
+       attendeeId: registration.attendeeId,
+       active: registration.isActive,
++      event: registration.isActive ? 'registered' : 'cancelled',
+     });
+   }
+ }
+--- a/src/registrations/registrations.module.ts
++++ b/src/registrations/registrations.module.ts
+@@ -1,6 +1,7 @@
+ import { Module } from '@nestjs/common';
+ import { AttendeesModule } from '../attendees/attendees.module';
+ import { REGISTRATION_REPOSITORY } from '../domain/registration-repository';
++import { RegistrationsGateway } from '../gateways/registrations.gateway';
+ import { WorkshopsModule } from '../workshops/workshops.module';
+ import { InMemoryRegistrationRepository } from './in-memory-registration.repository';
+ import { RegistrationsController } from './registrations.controller';
+@@ -9,6 +10,10 @@
+ @Module({
+   imports: [WorkshopsModule, AttendeesModule],
+   controllers: [RegistrationsController],
+-  providers: [RegistrationsService, { provide: REGISTRATION_REPOSITORY, useClass: InMemoryRegistrationRepository }],
++  providers: [
++    RegistrationsService,
++    RegistrationsGateway,
++    { provide: REGISTRATION_REPOSITORY, useClass: InMemoryRegistrationRepository },
++  ],
+ })
+ export class RegistrationsModule {}

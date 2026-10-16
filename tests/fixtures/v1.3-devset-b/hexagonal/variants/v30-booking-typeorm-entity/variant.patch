@@ -1,0 +1,16 @@
+--- a/src/domain/model/Booking.ts
++++ b/src/domain/model/Booking.ts
+@@ -1,10 +1,13 @@
++import { Column, Entity } from 'typeorm';
+ import { BookingError } from '../errors/BookingError';
+ import { DateRange } from './DateRange';
+ import { Money } from './Money';
+ 
+ export type BookingStatus = 'confirmed' | 'cancelled';
+ 
++@Entity('bookings')
+ export class Booking {
++  @Column({ type: 'varchar', length: 16 })
+   private bookingStatus: BookingStatus = 'confirmed';
+ 
+   constructor(
