@@ -108,3 +108,9 @@ Every secondary analysis is exploratory and is reported as such, with its CI, wh
 - File size and churn dominate defect counts in this literature; the controls may not remove all confounding (e.g. central "god" files are both flagged and edited).
 - Projects that squash-merge and projects that keep branch commits count commits differently; the project fixed effects absorb level differences only.
 - 27 projects is a convenience corpus of popular open-source backends, not a random sample.
+
+## Addenda
+
+### Addendum 1 (2026-10-16, before any corpus tool run)
+
+A smoke run on the in-repo fixture `fixtures/variant-a-structural` (not a corpus project) showed that an FF-S02 cycle violation carries the whole cycle as a comma-separated `filePath`. E1 therefore attributes a cycle violation to **every distinct member file** of the cycle, not to a single file; E1n counts it once per member. Every other rule has a single `filePath`. Implemented in `scripts/v1.3/predictive/exposure.ts` (`sourceFiles`). No corpus output had been produced when this was decided.
