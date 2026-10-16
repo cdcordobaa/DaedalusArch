@@ -8,7 +8,8 @@
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { parseCatalogue } from '../../../../scripts/lib/mutation/catalogue-parser.js';
+import { PRECONDITION_REASONS } from '../../../../scripts/lib/mutation/catalogue-parser.js';
+import { ALL_REASONS, ALL_SITE_KINDS, HEXDDD_REASONS, HEXDDD_SITE_KINDS } from '../../../../scripts/lib/mutation/hexddd/types.js';
 import { loadCompiledSpec } from '../../../../scripts/lib/mutation/expected.js';
 import { HEXDDD_CATALOGUE_PATH, HEXDDD_OPERATORS, buildHexDddRegistry, isHexDddId, loadHexDddRegistry, positiveIdOf, stylesOf } from '../../../../scripts/lib/mutation/hexddd/index.js';
 import { repositoryNames } from '../../../../scripts/lib/mutation/hexddd/ddd.js';
@@ -37,24 +38,49 @@ const TSC = path.join(REPO, 'node_modules/typescript/lib/tsc.js');
 describe('registry and DRAFT catalogue', () => {
   const text = fs.readFileSync(path.join(REPO, HEXDDD_CATALOGUE_PATH), 'utf8');
 
+  /**
+   * The entry table, read here rather than by the frozen `parseCatalogue` (its closed site-kind and reason enums are
+   * hash-frozen and do not list the hexddd values, `hexddd/types.ts`). Same cell rules: backticks stripped, list cells
+   * comma-separated, `—` for an empty list.
+   */
+  function entryTable(markdown: string): Record<string, string>[] {
+    const lines = markdown.split('\n');
+    const head = lines.findIndex((l) => l.startsWith('| Id | Core | Dimension |'));
+    const cols = (l: string): string[] => l.slice(1, -1).split(' | ').map((c) => c.trim().replace(/`/g, ''));
+    const names = cols(lines[head] ?? '');
+    const rows: Record<string, string>[] = [];
+    for (const l of lines.slice(head + 2)) {
+      if (!l.startsWith('| MO-')) break;
+      const cells = cols(l);
+      expect(cells).toHaveLength(names.length);
+      rows.push(Object.fromEntries(names.map((n, i) => [n, cells[i] ?? ''])));
+    }
+    return rows;
+  }
+  const list = (cell: string): string[] => (cell === '—' || cell === '' ? [] : cell.split(',').map((x) => x.trim()));
+
   it('25 entries, one to one with the registry on id, twin, dimension, expected templates, coverage and source', () => {
-    const parsed = parseCatalogue(text);
-    if (!parsed.success) throw new Error(JSON.stringify(parsed.errors));
-    expect(parsed.data.entries.map((e) => e.id)).toEqual(HEXDDD_OPERATORS.map((o) => o.id));
-    for (const e of parsed.data.entries) {
-      const op = HEXDDD_OPERATORS.find((o) => o.id === e.id);
-      if (op === undefined) throw new Error(e.id);
-      expect([e.id, e.twin, e.dimension, e.expectedTemplates, e.coverage, e.source, e.core]).toEqual([
-        op.id,
+    const rows = entryTable(text);
+    expect(rows.map((r) => r.Id)).toEqual(HEXDDD_OPERATORS.map((o) => o.id));
+    for (const r of rows) {
+      const op = HEXDDD_OPERATORS.find((o) => o.id === r.Id);
+      if (op === undefined) throw new Error(r.Id);
+      expect([r.Twin, r.Dimension, list(r['Expected templates'] ?? ''), r.Coverage, r.Source, r.Core]).toEqual([
         op.twinOf ?? `${op.id}n`,
         op.dimension,
         op.expectedTemplates.map((t) => t.template),
         op.coverage,
         op.source,
-        false,
+        'extension',
       ]);
-      for (const k of e.siteKinds) expect(SITE_KINDS).toContain(k);
+      for (const k of list(r['Site kinds'] ?? '')) expect(ALL_SITE_KINDS).toContain(k);
+      for (const k of list(r.Preconditions ?? '')) expect(ALL_REASONS).toContain(k);
     }
+  });
+
+  it('leaves the frozen enums alone: the hexddd kinds and reasons are not in types.ts or the catalogue parser', () => {
+    for (const k of HEXDDD_SITE_KINDS) expect(SITE_KINDS as readonly string[]).not.toContain(k);
+    for (const r of HEXDDD_REASONS) expect(PRECONDITION_REASONS as readonly string[]).not.toContain(r);
   });
 
   it('12 positives, 13 twins; every twin names a positive; every positive has a style', () => {

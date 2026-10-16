@@ -18,6 +18,7 @@
  *
  * The edits keep the text outside the edited span unchanged; every application is type-checked (BR-U5a-07).
  */
+import { reject, siteKind } from './types.js';
 import { Node } from 'ts-morph';
 import type { ClassDeclaration, SourceFile } from 'ts-morph';
 import { DomainResult } from '../../../../src/shared/errors/domain-result.js';
@@ -353,7 +354,7 @@ function injectSites(h: ProjectHandle, s: ParsedSpec, spec: InjectSpec): Mutatio
     const bound = boundNames(sf);
     for (const t of targets) {
       if (t.rel === rel || bound.has(t.name)) continue;
-      out.push({ filePath: rel, line: cls.getStartLineNumber(), kind: 'constructor-injection', detail: { class: cls.getName() ?? '', targetFile: t.rel, targetName: t.name, form: t.form } });
+      out.push({ filePath: rel, line: cls.getStartLineNumber(), kind: siteKind('constructor-injection'), detail: { class: cls.getName() ?? '', targetFile: t.rel, targetName: t.name, form: t.form } });
     }
   }
   return out;
@@ -383,7 +384,7 @@ const injectPre = (twin: boolean) => (h: ProjectHandle, s: ParsedSpec, site: Mut
     () => edgeInBase(ctx, site.filePath, site.detail.targetFile ?? ''),
     () => dddBoundary(h, s, site.filePath, site.detail.targetFile ?? ''),
     () => (twin ? closesCycle(ctx, site.filePath, site.detail.targetFile ?? '') : { ok: true }),
-    () => (twin && !layerPairOk(roles, layerOf(roles, site.filePath), layerOf(roles, site.detail.targetFile ?? '')) ? { ok: false, reason: 'layer-pair' } : { ok: true }),
+    () => (twin && !layerPairOk(roles, layerOf(roles, site.filePath), layerOf(roles, site.detail.targetFile ?? '')) ? reject('layer-pair') : { ok: true }),
     () => (fileAt(h, site.filePath)?.getClass(site.detail.class ?? '') === undefined ? { ok: false, reason: 'type-shape' } : { ok: true }),
   );
 };
@@ -470,7 +471,7 @@ function adapterSites(h: ProjectHandle, s: ParsedSpec): MutationSite[] {
       const name = c.getName();
       if (name === undefined || !hasAdapterRole(name)) continue;
       const ports = portClauses(h, roles, c).map((p) => p.text).join('\n');
-      out.push({ filePath: relOf(h, sf), line: c.getStartLineNumber(), kind: 'implements-clause', detail: { class: name, ports } });
+      out.push({ filePath: relOf(h, sf), line: c.getStartLineNumber(), kind: siteKind('implements-clause'), detail: { class: name, ports } });
     }
   }
   return out;
@@ -479,7 +480,7 @@ function adapterSites(h: ProjectHandle, s: ParsedSpec): MutationSite[] {
 /** The class still exists and implements at least one port (recorded in `detail.ports` when the site was found). */
 const adapterPre = (h: ProjectHandle, _s: ParsedSpec, site: MutationSite): PreconditionResult => {
   if (fileAt(h, site.filePath)?.getClass(site.detail.class ?? '') === undefined) return { ok: false, reason: 'type-shape' };
-  return (site.detail.ports ?? '').length === 0 ? { ok: false, reason: 'no-port' } : { ok: true };
+  return (site.detail.ports ?? '').length === 0 ? reject('no-port') : { ok: true };
 };
 
 const implementationRule: LocationRule = { template: 'port-adapter-pattern', filePath: 'site', discriminator: ['implementation'], line: 'none' };

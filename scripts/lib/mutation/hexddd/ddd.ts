@@ -16,6 +16,7 @@
  *
  * The framework-free domain rule (FF-DT04, `domain-purity`) is MO-H05 run on a `ddd` spec.
  */
+import { reject, siteKind } from './types.js';
 import * as path from 'node:path';
 import { Node, Scope } from 'ts-morph';
 import type { ClassDeclaration, SourceFile } from 'ts-morph';
@@ -62,7 +63,7 @@ function edgePre(twin: boolean) {
     const target = site.detail.targetFile ?? '';
     return all(
       () => edgeInBase(ctx, site.filePath, target),
-      () => (layerPairOk(roles, layerOf(roles, site.filePath), layerOf(roles, target)) ? { ok: true } : { ok: false, reason: 'layer-pair' }),
+      () => (layerPairOk(roles, layerOf(roles, site.filePath), layerOf(roles, target)) ? { ok: true } : reject('layer-pair')),
       () => (twin ? closesCycle(ctx, site.filePath, target) : { ok: true }),
     );
   };
@@ -196,7 +197,7 @@ const repositoryPre = (twin: boolean) => (h: ProjectHandle, s: ParsedSpec, site:
   const created = site.detail.createdFile ?? site.filePath;
   return all(
     () => (fileAt(h, created) !== undefined ? { ok: false, reason: 'type-shape' } : { ok: true }),
-    () => (layerPairOk(roles, layerOf(roles, created), layerOf(roles, site.detail.targetFile ?? '')) ? { ok: true } : { ok: false, reason: 'layer-pair' }),
+    () => (layerPairOk(roles, layerOf(roles, created), layerOf(roles, site.detail.targetFile ?? '')) ? { ok: true } : reject('layer-pair')),
     () => (twin ? closesCycle(ctx, created, site.detail.targetFile ?? '') : { ok: true }),
   );
 };
@@ -284,7 +285,7 @@ function voSites(h: ProjectHandle, s: ParsedSpec): MutationSite[] {
       out.push({
         filePath: rel,
         line: cls.getStartLineNumber(),
-        kind: 'value-object-member',
+        kind: siteKind('value-object-member'),
         detail: field === undefined ? { class: name, mode: 'field' } : { class: name, mode: 'method', field: field.name, type: field.type },
       });
     }
@@ -380,7 +381,7 @@ function crossSites(h: ProjectHandle, s: ParsedSpec, mode: CrossMode): MutationS
       if (b === undefined || b.name === a.name) continue;
       const ok = mode === 'public' ? ddd.isPublicApi(tp) : unpublished(ddd, published, tp);
       if (!ok) continue;
-      const site = siteFor(h, src, tgt, 'cross-context-import', { sourceContext: a.name, targetContext: b.name });
+      const site = siteFor(h, src, tgt, siteKind('cross-context-import'), { sourceContext: a.name, targetContext: b.name });
       if (site !== undefined) out.push(site);
     }
   }

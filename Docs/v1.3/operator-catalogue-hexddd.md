@@ -2,7 +2,7 @@
 
 > **Status: DRAFT 2026-10-16 (v1.3, branch `v1.3-operators-hexddd`).** Not registered, not frozen, not part of any pre-registration. It does not change, extend or replace the frozen v1.2E catalogue `Docs/operator-catalogue.md` (a registered artefact, byte-identical on this branch) or the anti-pattern catalogue `Docs/operator-catalogue-antipatterns.md`. No Cypher template, tier or preset is edited.
 > **Purpose**: the SO4 seeded-detection operators target the Clean, Layered and NestJS libraries only; the hexagonal and DDD libraries of v1.3 had none (`Docs/v1.3-hexagonal-notes.md` §5, `Docs/v1.3-ddd-notes.md` §7). This catalogue gives every **blocking** hexagonal and DDD rule of `Docs/v1.3/rule-tiers.md` at least one operator with a near-miss twin, plus one operator for the advisory `layer-skip-graph` (the "adapter imports another adapter" case named in the task).
-> **Source of truth**: the operators are built in code (`scripts/lib/mutation/hexddd/`). The registry (`hexddd/index.ts`) is separate from the frozen and anti-pattern ones; its `catalogueVersion` is the sha256 of this file. `tests/unit/scripts/mutation/hexddd.test.ts` asserts that the entry table below and the registry match one to one (id, twin, dimension, expected templates, coverage, source) and that every site kind and precondition reason is a known one.
+> **Source of truth**: the operators are built in code (`scripts/lib/mutation/hexddd/`). The registry (`hexddd/index.ts`) is separate from the frozen and anti-pattern ones; its `catalogueVersion` is the sha256 of this file. `tests/unit/scripts/mutation/hexddd.test.ts` asserts that the entry table below and the registry match one to one (id, twin, dimension, expected templates, coverage, source) and that every site kind and precondition reason is a known one. The four new site kinds and three new reasons live in `hexddd/types.ts`, not in `scripts/lib/mutation/types.ts` or `catalogue-parser.ts`: both are hash-frozen for the judge catch test (`Docs/v1.3/judge-catch-frozen.md`) and stay byte-identical. For that reason the test reads this table with its own reader; the frozen `parseCatalogue` would reject the new values.
 > **Measured**: `Docs/DiagnosticRuns/v1.3-operators-hexddd-2026-10-16.md` (development data). Runner: `scripts/v1.3/operators-hexddd-run.ts`.
 
 ## 1. Entries (12 operators, 13 twins)
@@ -80,7 +80,7 @@ Expected templates name the template whose row the application must produce; the
 
 **MO-D06 / D06n**: one site per directory holding a context file. MO-D06 creates `<source_root>common/<dir>-helpers.ts` (the first `common`, `common2`, … that no file or context uses) exporting `describe<Dir>(): string`; the twin creates the same file in the directory itself. No imports, so no other rule can see it.
 
-**Preconditions** (reason codes; the four new ones are added to `PRECONDITION_REASONS`):
+**Preconditions** (reason codes; `layer-pair`, `no-port` and `ddd-boundary` are new and defined in `hexddd/types.ts`):
 
 | Reason | Meaning here |
 |---|---|
@@ -125,4 +125,5 @@ Every application is type-checked with the base's own tsc (`--noEmit`); any erro
 ## 6. Change log
 
 - 2026-10-16: first version (25 entries).
+- 2026-10-16 (review): the new site kinds and reasons moved from the frozen `types.ts` / `catalogue-parser.ts` into `hexddd/types.ts`. No behaviour changed: a count-only pass gives the same 124 feasibility cells as the run.
 - 2026-10-16: MO-H04 sites follow the v1.3 suffix role rule instead of the frozen substring test (one first-run seed, `SqlRepositoryBase` on DDH, was outside the template's selection).

@@ -8,6 +8,7 @@
  * the outbound adapter layer the `infrastructure`-kind layer. DDD roles (contexts, public API, ACL, aggregates, value
  * objects, repositories) are read from `architecture.ddd` and matched with picomatch, as declared.
  */
+import { reject } from './types.js';
 import { Node, Scope, SyntaxKind } from 'ts-morph';
 import type { ClassDeclaration, SourceFile } from 'ts-morph';
 import picomatch from 'picomatch';
@@ -195,7 +196,7 @@ export function dddBoundary(handle: ProjectHandle, spec: ParsedSpec, source: str
     c = { ddd, published: new Map((ddd?.model.contexts ?? []).map((x) => [x.name, ddd === undefined ? new Set<string>() : publishedFiles(handle, ddd, x)])) };
     dddCache.set(handle.project, c);
   }
-  return dddEdgeOk(c.ddd, c.published, source, target) ? { ok: true } : { ok: false, reason: 'ddd-boundary' };
+  return dddEdgeOk(c.ddd, c.published, source, target) ? { ok: true } : reject('ddd-boundary');
 }
 
 /** Files re-exported (directly or through further barrels) by the public-API files of a context. */

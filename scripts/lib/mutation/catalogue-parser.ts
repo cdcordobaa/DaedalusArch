@@ -78,10 +78,6 @@ export const PRECONDITION_REASONS: readonly PreconditionReason[] = [
   'type-shape',
   'already-imported',
   'cycle-cap',
-  // v1.3 DRAFT hexagonal / DDD operators (`Docs/v1.3/operator-catalogue-hexddd.md`).
-  'layer-pair',
-  'no-port',
-  'ddd-boundary',
 ];
 
 const EMPTY_MARKERS = new Set(['', '—', '-']);
