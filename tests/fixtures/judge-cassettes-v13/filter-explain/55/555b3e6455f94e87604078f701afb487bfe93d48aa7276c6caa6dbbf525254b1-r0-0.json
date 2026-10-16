@@ -1,0 +1,36 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9390,
+  "effort": "high",
+  "functionId": "filter-explain",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "555b3e6455f94e87604078f701afb487bfe93d48aa7276c6caa6dbbf525254b1-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "## Finding\nRule: FF-P01\nRule intent: Domain files do not import framework, persistence or transport packages.\nType: DOMAIN_PURITY_VIOLATION\nSeverity: critical; tier: blocking\nFile: src/domain/entities/Member.ts\nTarget: express\nReported lines: 1\nMessage: Domain file src/domain/entities/Member.ts imports forbidden package express\nDiscriminator: IMPORTS\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Source (line-numbered)\n=====SOURCE-BEGIN src/domain/entities/Member.ts (layer domain)=====\n 1| import type { Request } from 'express';\n 2| import { DomainError } from '../errors/DomainError';\n 3| \n 4| export class Member {\n 5|   constructor(\n 6|     readonly id: string,\n 7|     readonly name: string,\n 8|     readonly email: string,\n 9|     readonly maxActiveLoans: number,\n10|   ) {\n11|     if (!email.includes('@')) throw new DomainError('INVALID_MEMBER', `Invalid e-mail: ${email}`);\n12|     if (maxActiveLoans < 1) throw new DomainError('INVALID_MEMBER', 'A member may borrow at least one book');\n13|   }\n14| \n15|   static fromRequest(request: Request): Member {\n16|     const body = request.body;\n17|     return new Member(String(body['id']), String(body['name']), String(body['email']), Number(body['maxActiveLoans']));\n18|   }\n19| }\n=====SOURCE-END=====\n\n## Instructions\nDecide confirm or dismiss. Confirm: the cited code has the problem the rule is meant to catch, in this project and layer model. Dismiss: the rule fired, but the code does not have that problem (a false positive of the rule's mechanism, a threshold artefact on sound code, or a case the style allows). Measurements stated in the finding (counts, ratios, missing files) are correct as measurements; judge what they mean for this code. explanation: one paragraph that justifies the decision from the code, citing file paths and line numbers exactly as numbered below. fix: one concrete change: for a confirm, how to fix the code; for a dismiss, what (if anything) the rule or its configuration should change. citations: the line ranges your explanation relies on; every one must name a file shown below and lines that exist.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T00:02:55.795Z",
+  "repetition": 0,
+  "requestHash": "555b3e6455f94e87604078f701afb487bfe93d48aa7276c6caa6dbbf525254b1",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":615}},\"result\":\"{\\\"decision\\\":\\\"confirm\\\",\\\"explanation\\\":\\\"This is a real violation. src/domain/entities/Member.ts sits in the domain layer, and line 1 imports `Request` from the transport framework express. The import is type-only, so nothing from express loads at runtime. It still matters, because the type is actually used: the static factory `fromRequest` on lines 15-18 takes an express `Request`, reads `request.body` and maps its untyped fields into the constructor. That puts HTTP request parsing inside a domain entity and ties the domain's compile-time API to express. The domain can't be built or reused without express's types, and a change in the transport layer would force a change in the entity. The real domain logic, the invariant checks on lines 11-12, needs nothing from express. This is exactly the coupling FF-P01 exists to prevent.\\\",\\\"fix\\\":\\\"Delete the `import type { Request } from 'express'` on line 1 and the `fromRequest` method on lines 15-18 from Member.ts. Put the mapping from request to entity in an infrastructure HTTP adapter or controller, for example under src/infrastructure/http. That adapter should read `req.body` and call `new Member(id, name, email, maxActiveLoans)`, or pass a plain DTO to an application use case that builds the Member.\\\",\\\"citations\\\":[{\\\"filePath\\\":\\\"src/domain/entities/Member.ts\\\",\\\"startLine\\\":1,\\\"endLine\\\":1},{\\\"filePath\\\":\\\"src/domain/entities/Member.ts\\\",\\\"startLine\\\":15,\\\"endLine\\\":18},{\\\"filePath\\\":\\\"src/domain/entities/Member.ts\\\",\\\"startLine\\\":11,\\\"endLine\\\":12}]}\",\"structured_output\":{\"citations\":[{\"endLine\":1,\"filePath\":\"src/domain/entities/Member.ts\",\"startLine\":1},{\"endLine\":18,\"filePath\":\"src/domain/entities/Member.ts\",\"startLine\":15},{\"endLine\":12,\"filePath\":\"src/domain/entities/Member.ts\",\"startLine\":11}],\"decision\":\"confirm\",\"explanation\":\"This is a real violation. src/domain/entities/Member.ts sits in the domain layer, and line 1 imports `Request` from the transport framework express. The import is type-only, so nothing from express loads at runtime. It still matters, because the type is actually used: the static factory `fromRequest` on lines 15-18 takes an express `Request`, reads `request.body` and maps its untyped fields into the constructor. That puts HTTP request parsing inside a domain entity and ties the domain's compile-time API to express. The domain can't be built or reused without express's types, and a change in the transport layer would force a change in the entity. The real domain logic, the invariant checks on lines 11-12, needs nothing from express. This is exactly the coupling FF-P01 exists to prevent.\",\"fix\":\"Delete the `import type { Request } from 'express'` on line 1 and the `fromRequest` method on lines 15-18 from Member.ts. Put the mapping from request to entity in an infrastructure HTTP adapter or controller, for example under src/infrastructure/http. That adapter should read `req.body` and call `new Member(id, name, email, maxActiveLoans)`, or pass a plain DTO to an application use case that builds the Member.\"}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "be4263407a958fb8",
+  "usage": {
+    "inputTokens": 2267,
+    "outputTokens": 615
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -77,12 +77,17 @@ default to `bolt://localhost:7687`) would silently have moved to the interpreter
 | `scripts/run-experiment.ts` `cliArgv` | the registered v1.2E plans (U5b harness) |
 | `scripts/lib/freeze-gate-main.ts` `cliEvaluate` | the U5a freeze gate; also `scripts/v1.3/lib/validate-reference-main.ts` through it |
 | `scripts/v1.3/e1-v13-evaluate.ts`, `scripts/v1.3/ise-e1.ts` | E1 under v1.3 |
-| `scripts/v1.3/study1-rerun.ts`, `scripts/v1.3/judge-catch-run.ts` | Study 1 re-run, judge catch |
+| `scripts/v1.3/study1-rerun.ts` | Study 1 re-run |
+| `scripts/v1.3/judge-v2-run.ts` | judge v2 prompt harvest (PR #126) |
 | `scripts/v1.3/ue-baseline-live.ts` | passes its own `--engine` (default `neo4j`) to every child, now always explicitly |
 | `scripts/lib/generators/arms.ts` `daedalusMcpConfig` | the `daedalus-mcp` experiment arm's server argv |
 | `tests/golden/u3-templates.test.ts` | the two CLI spawns of the golden suite |
 
 `scripts/so1-layered-acceptance.ts` only records a command string; it spawns nothing.
+
+`scripts/v1.3/judge-catch-run.ts` is a hash-frozen operator (`Docs/v1.3/judge-catch-frozen.md`), so it is left
+byte-identical. It already passes `--neo4j-uri` on every call, which resolves to `neo4j` (rule 2 above), and its
+children print the engine line.
 
 ## 3. MCP server
 
