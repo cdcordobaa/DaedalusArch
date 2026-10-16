@@ -44,7 +44,7 @@ describe('buildTunablesManifest', () => {
     expect(e['template/frozen/dependency-direction']).toBeDefined();
     expect(e['template/ddd-literal-view/context-isolation']).toBeDefined();
     for (const f of fs.readdirSync(path.join(REPO, 'presets')).filter((n) => n.endsWith('.yaml'))) expect(e[`preset/${f}`]).toBeDefined();
-    for (const k of ['first-step', 'next-step', 'styled-first-step', 'styled-next-step', 'repair', 'rule-plain', 'arm-tool-sentences']) {
+    for (const k of ['first-step', 'next-step', 'styled-first-step', 'styled-next-step', 'repair', 'rule-plain', 'arm-tool-sentences', 'attention', 'l3-lead', 'l4-sentence', 'fix-clause']) {
       expect(e[`frame/${k}`]).toBeDefined();
     }
     for (const s of ['clean', 'hexagonal', 'ddd']) expect(e[`frame/layout-sentence/${s}`]).toBeDefined();

@@ -34,8 +34,8 @@ import { FROZEN_SHA256, FROZEN_VALUES } from '../../../src/llm-critic/frozen.js'
 import { JUDGE_V2_SHA256, JUDGE_V2_VALUES } from '../../../src/llm-critic/judge-v2.js';
 import { DAEDALUS_DENIED_TOOLS, ARM_TOOL_SENTENCES } from '../../lib/generators/arms.js';
 import {
-  FIRST_STEP_TEMPLATE, MAX_REPAIR_FINDINGS, NEXT_STEP_TEMPLATE, REPAIR_TEMPLATE, RULE_PLAIN, STYLED_FIRST_STEP_TEMPLATE,
-  STYLED_NEXT_STEP_TEMPLATE,
+  ATTENTION_SENTENCE, FIRST_STEP_TEMPLATE, FIX_CLAUSE, L3_LEAD, L4_SENTENCE, MAX_REPAIR_FINDINGS, NEXT_STEP_TEMPLATE,
+  REPAIR_TEMPLATE, RULE_PLAIN, STYLED_FIRST_STEP_TEMPLATE, STYLED_NEXT_STEP_TEMPLATE,
 } from '../../lib/loop/prompts.js';
 import { LOOP_STYLES, STYLE_PRESETS, layoutSentence, styleSentence } from '../../lib/loop/style.js';
 import { createServer, NEURAL_TOOL_NAMES, SERVER_NAME, SERVER_VERSION, SPEC_TOOL_NAMES, TOOL_NAMES } from '../../../src/mcp-server/server.js';
@@ -158,6 +158,11 @@ export async function buildTunablesManifest(repoRoot: string): Promise<TunablesM
   e['frame/max-repair-findings'] = valueSha256(MAX_REPAIR_FINDINGS);
   e['frame/style-presets'] = valueSha256(STYLE_PRESETS);
   e['frame/arm-tool-sentences'] = valueSha256(ARM_TOOL_SENTENCES);
+  // Frame extras (spec rungs and the attention sentence, `plan.ts` `frame`; post-merge review item 2).
+  e['frame/attention'] = sha256Hex(ATTENTION_SENTENCE);
+  e['frame/l3-lead'] = sha256Hex(L3_LEAD);
+  e['frame/l4-sentence'] = sha256Hex(L4_SENTENCE);
+  e['frame/fix-clause'] = valueSha256({ source: FIX_CLAUSE.source, flags: FIX_CLAUSE.flags });
   for (const style of LOOP_STYLES) {
     e[`frame/style-sentence/${style}`] = sha256Hex(styleSentence(style));
     e[`frame/layout-sentence/${style}`] = sha256Hex(layoutSentence(style, fs.readFileSync(path.join(repoRoot, STYLE_PRESETS[style]), 'utf8')));
