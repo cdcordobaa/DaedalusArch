@@ -223,7 +223,7 @@ function hasSubquery(e: Expr): boolean {
 }
 
 function isExpr(v: unknown): v is Expr {
-  return typeof v === 'object' && v !== null && 'k' in v && typeof (v as { k: unknown }).k === 'string';
+  return typeof v === 'object' && v !== null && 'k' in v && typeof v.k === 'string';
 }
 
 /**
@@ -232,9 +232,11 @@ function isExpr(v: unknown): v is Expr {
  * `flag` fails before any path is complete); deferring it would enumerate every path only to raise it at the end.
  */
 function rejects(q: Extract<Expr, { k: 'quant' }>, x: Value, row: Row, ctx: Ctx): boolean {
+  const where = q.where;
+  if (where === undefined) return false;
   let ok: boolean;
   try {
-    ok = evaluate(q.where as Expr, bind(row, q.v, x), ctx) === true;
+    ok = evaluate(where, bind(row, q.v, x), ctx) === true;
   } catch (e) {
     // A variable the predicate reads is not bound yet at this point of the expansion: do not push it.
     if (e instanceof CypherSyntaxError) return false;

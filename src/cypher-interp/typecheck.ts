@@ -37,7 +37,7 @@ function clauseScope(c: Clause, scope: Map<string, Static>): Map<string, Static>
     case 'return': {
       const p = c.projection;
       for (const i of p.items) check(i.expr, scope);
-      const next: Map<string, Static> = p.star ? new Map(scope) : new Map();
+      const next = new Map<string, Static>(p.star ? scope : []);
       for (const i of p.items) next.set(i.alias, staticType(i.expr, scope));
       // ORDER BY may read both the projected aliases and the incoming variables.
       const both = new Map([...scope, ...next]);
