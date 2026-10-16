@@ -2,6 +2,10 @@
 
 **2026-10-16. Status: plan; nothing has run.** This plan describes **one** small rehearsal of Study 2, end to end. It uses real agents, every arm, every pipeline stage and the final analysis script, on tasks that are not sealed. Its job is to turn the operational lines of `Docs/v1.3/study2-readiness-gate.md` green, so that Study 2 itself cannot fail on plumbing, budget or telemetry. It is not a pilot: it estimates no arm effect, and it informs nothing about erosion. It is not a pre-registration, and it does not create one. No sealed directory was opened to write it.
 
+**Amendment, 2026-10-16.** The arms are now `none` and `daedalus-mcp`, crossed with the five cells none@L2, none@L3, none@L4, mcp@L2 and mcp@L4, and the generators are Sonnet 5.5 and the Codex pin (`Docs/v1.3/study2-deviation-2026-10-16.md`). The rehearsal exercises every cell type and both generators, with 0 evaluation errors (S7). It runs at k = 4, the Study 2 horizon (k = 4 also leaves the per-run slope, now a registered secondary, a residual). Its size is re-stated below; the original three-arm and five-arm figures are kept and marked superseded. In Study 2's canonical order the rehearsal comes after the freeze and the hold-out and before the pre-registration.
+
+<!-- study2-protocol: primary=Y-distinct-blocking-edges-at-step-k; k=4; arms=none,daedalus-mcp; unit=distinct-edge; fallback=do-not-run; order=freeze,hold-out,dress-rehearsal,pre-registration,gate,run; generators=claude-sonnet-5-5,codex-pin -->
+
 ## 1. When it runs
 
 1. **After the loop pilot** (`Docs/v1.3/pilot-outcome-memo.md`). The pilot decides the primary outcome (gate D1) and gives θ and the slope SD (gate D3). The rehearsal does not replace it.
@@ -33,17 +37,18 @@ If acceptance checks are adopted (D12), they are written for these 9 steps, hash
 
 | Factor | Value | Why this is the minimum |
 |---|---|---|
-| Steps per task | **k = 3** | k = 1 exercises only the first-step frame and the DDD freeze. k = 2 adds the next-step frame and "new finding" identity across steps, but the per-run OLS slope then fits 2 points exactly: its residual variance, the slope variance of the GLMM and every bootstrap interval are degenerate, so the analysis script is not really tested. k = 3 is the first k with a residual. It also leaves a step after a resumed step (§4.3). |
+| Steps per task | **k = 4** (amended 2026-10-16, the Study 2 horizon; the superseded value was k = 3, for the reason that follows) | k = 1 exercises only the first-step frame and the DDD freeze. k = 2 adds the next-step frame and "new finding" identity across steps, but the per-run OLS slope then fits 2 points exactly: its residual variance, the slope variance of the GLMM and every bootstrap interval are degenerate, so the analysis script is not really tested. k = 3 is the first k with a residual. It also leaves a step after a resumed step (§4.3). |
 | Styles / tasks | **3** (one per style) | Every style has its own spec path. |
 | Models | **every Study 2 model** (working list: 2 Claude pins and 1 Codex pin, `study2-outline.md:112`) | Each adapter and model has its own failure modes: Haiku failed type-check in E1 (gate S8), and the Codex MCP wiring is untested live (S4). |
 | Model × task | **Latin square**: each model gets one task, each task one model | This exercises every model with every arm and every style with every arm in 3 blocks, instead of 9. Model × style pairs are not needed for plumbing. |
-| Arms | **every Study 2 arm**: `none`, `daedalus-mcp`, `gate`, plus the self-review placebo and a no-hint arm if D11 and S5 adopt them | All arms in every block, as in Study 2. |
+| Arms | **every Study 2 arm and cell**: `none` and `daedalus-mcp` across the five cells, with both generators (amended 2026-10-16; the superseded text listed `gate`, the placebo and a no-hint arm) | All cells in every block, as in Study 2. |
 | Replicates | **1** | Replicates add no new code path. |
 | Blocks | 3 (task × model) | Enough for the paired test and the task-level variant to run (3 clusters), not to mean anything. |
 
 **Runs and turns.**
-- With 3 arms: 3 blocks × 3 arms = **9 runs**, 27 step turns, at most 9 gate repair turns: **at most 36 model turns**.
-- With 5 arms (placebo and no-hint): **15 runs**, 45 step turns, at most 9 repair turns and at most 9 placebo turns: **at most 63 model turns**.
+- Amended 2026-10-16: 3 tasks × 2 generators (6 blocks) × 5 cells = **30 runs**, 120 step turns at k = 4, no repair turns. The two lines below are the superseded three-arm and five-arm sizes.
+- (Superseded) With 3 arms: 3 blocks × 3 arms = **9 runs**, 27 step turns, at most 9 gate repair turns: **at most 36 model turns**.
+- (Superseded) With 5 arms (placebo and no-hint): **15 runs**, 45 step turns, at most 9 repair turns and at most 9 placebo turns: **at most 63 model turns**.
 - The plan's `callBudget` states the exact figure, and `loadLoopPlan` refuses a plan whose budget does not match (`loop-pilot-readiness.md:92`).
 
 ## 4. Every pipeline stage, in order
@@ -117,7 +122,8 @@ At the outline's 2 to 6 USD API-equivalent per model turn (`study2-outline.md:13
 
 | Arm set | Model turns (max) | Cost, API-equivalent |
 |---|---|---|
-| 3 arms (`none`, `daedalus-mcp`, `gate`) | 36 | **72 to 216 USD** |
+| 5 cells × 3 tasks × 2 generators (6 blocks), k = 4 (amended 2026-10-16) | 120 step turns | about 18 to 50 USD at the loop pilot's 0.15–0.42 USD per Sonnet turn; Codex per-turn cost unmeasured |
+| 3 arms with `gate` (superseded) | 36 | **72 to 216 USD** |
 | 5 arms (with placebo and no-hint) | 63 | **126 to 378 USD** |
 
 Plus, outside that range:

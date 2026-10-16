@@ -1854,6 +1854,14 @@ Other changes in the same PR: paper wording (judge interval, distinct floor-prob
 
 ---
 
+## Study 2 protocol reconciliation: declared deviation (scheduled routine)
+**Timestamp**: 2026-10-16T14:09:49Z
+**User Input**: "Scheduled routine carrying the author's 2026-10-16 13:50 UTC delegation ('unblock everything'): record the switch of the Study 2 primary outcome to the level outcome Y as a declared, dated deviation; record the memo §5 branch from the PR #229 re-score; fallback 'do not run'; canonical order; distinct-edge count unit; arms none and daedalus-mcp; k = 4 unless the power simulation says otherwise; Sonnet 5.5 plus the Codex pin with no V10 waiver; grid from the level power simulation. Amend every conflicting protocol doc in one pass, add and run a consistency check, open a PR into v1.3 and merge it if the check passes."
+**AI Response**: "Branch v1.3-protocol-reconciliation from origin/v1.3 (38f199fd). Wrote Docs/v1.3/study2-deviation-2026-10-16.md (canonical protocol block, rationale, §5 branch = zero on #229 with its limits, 24-block grid from the level simulation with the RR <= 0.25 limit, canonical order, evidence timeline). Amended outline v2, gap plan, readiness gate, pilot memo (appended §8, original text unchanged, pre-amendment sha256 recorded), floor-escape design, dashboard, task-design guide and dress rehearsal. Added scripts/v1.3/protocol-consistency-check.mjs (npm run lint:protocol, CI step); it found 47 conflicts before the edits and 0 after, and its self-test shows it fails on a planted contradiction. No sealed directory or .env read."
+**Context**: INCEPTION/planning, Study 2 protocol (docs only). Options taken under delegation: (1) k = 4 is kept because the level simulation finds k = 6 adds turns for no power; the validation pilot uses dated k = 4 fixture variants whose step 4 is the original step 5, so the defining pressure stays inside the horizon; (2) probe 3's vineyard-harvest run is excluded from the validation pilot's go/no-go and reported separately; (3) if one stratum passes, 4 tasks of that style keep the grid at 24 blocks; (4) contrasts below 0.80 at 24 blocks are demoted to secondary before the pre-registration, and if none reaches 0.80 Study 2 does not run; (5) the dress rehearsal is re-sized to k = 4, 5 cells, 2 generators. AD2 (pilot T1 / D15) remains open for the author.
+
+---
+
 ## v1.3 — loop harness correctness (review batch 1: F17, F18, F24, F7)
 **Timestamp**: 2026-10-16T13:51:18Z
 **User Input**: (scheduled task) "Before any Study 2 run, fix the loop harness: blocking findings must be the counted rows, unscored steps must not count as 0, cypher-interp must honour the pinned tsconfig and a run whose snapshots all fail must fail, and the engine must be recorded and asserted. Re-run the loop replay and the 71/71 byte-identity check, open a PR into v1.3 and merge it if everything is green."
