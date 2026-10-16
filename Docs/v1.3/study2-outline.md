@@ -50,7 +50,7 @@ npx tsx scripts/loop-harness-cli.ts --plan experiments/loop-demo/plan.dry-run.js
 | Arm | During each step | After each step |
 |---|---|---|
 | `none` | The E1 confinement argv, byte for byte. There is no MCP server. | Snapshot, type-check and score (measurement only; the agent sees nothing). |
-| `daedalus-mcp` | The DaedalusArch MCP server with the 7 spec-only tools (`check_file`, `check_diff`, `suggest_placement`, `which_layer`, `check_import`, `explain_violation`, `get_architecture_spec`). `evaluate_project` is denied. One matched tool sentence is added to the prompt. | Same as `none`. |
+| `daedalus-mcp` | The DaedalusArch MCP server with the 9 spec-only tools (`check_file`, `check_diff`, `suggest_placement`, `which_layer`, `check_import`, `explain_violation`, `get_architecture_spec`, `infer_spec`, `explain_finding`). `evaluate_project` is denied. One matched tool sentence is added to the prompt. | Same as `none`. |
 | `gate` | The `none` argv (no tools). | Score. If there are **blocking** findings, the agent gets them (rule, file, line, message; at most 40 listed) in **one** repair turn. Then snapshot, type-check and score again. The step's outcome is the post-repair snapshot. |
 
 Notes:
