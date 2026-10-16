@@ -16,6 +16,14 @@ number offline where it can and compares it with the stated value.
 - **Branch:** `v1.3-replication-2`, from `origin/v1.3` at `e46aa6b8`, with `origin/v1.3` at `a6723c34` (PR #142) merged
   in. The full run was at `8b6c1398`, which differs from `a6723c34` only by the package files.
 - **Docs:** not edited. Every mismatch is reported below.
+- **Out of scope:** v1.3 kept moving while this ran. At `5ece0526` it also has new or changed docs that this part
+  does not cover:
+  - `DiagnosticRuns/v1.3-{blind-misses,devset-b,floor-probe,validity-convergent}-2026-10-16.md`;
+  - `v1.3/{ci-gate,construct-question-ff-cv03,cypher-interp-fuzz,fix-hints,foreman-log,html-report,init-infer,neural-arm-agent-tools,npx-mode,overnight-pr-review}.md`;
+  - a 10-line edit to `v1.3/cypher-interpreter.md` that shifts 290 of its registered line numbers.
+
+  Once v1.3 is merged in, rerun `npm run replicate:v1.3` to find which values still hold; the `line` fields of
+  `cypher-interpreter.md` will need refreshing.
 - **No model was called.** Cassette replay only. Every API key and `NEO4J_*` variable is removed from every child
   process.
 - **No Neo4j.** Where a doc allows it, the run uses `--engine cypher-interp`.
@@ -51,6 +59,9 @@ intervals, hashes, test counts, timings, sizes, and counts of files, rules, jobs
 - A composite cell such as `12/13 = 0.92 [0.67, 0.99]` is one number, compared as a whole string.
 - Each table cell is its own number.
 - A claim repeated on another line or in another doc is registered again at each occurrence.
+- Fourteen numbers are composites assembled from cells on one line, or from a value that wraps onto the next line
+  (e.g. `9/11 = 0.82 [0.52, 0.95]; macro mean 0.90`). Their stated string does not occur verbatim on the line; every
+  other stated string does.
 
 Excluded, and counted per doc by each group author:
 
