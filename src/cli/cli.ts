@@ -34,6 +34,8 @@ import { parseLLMOptions } from './llm-options.js';
 import { JUDGE_RUN_INCOMPLETE } from '../llm-critic/judge-stage.js';
 import { GRAPH_MODES } from '../apg-extractor/types.js';
 import type { GraphMode } from '../apg-extractor/types.js';
+import { ADVISORY_FILTER_OPTIONS, parseAdvisoryFilterOptions } from '../advisory-filter/advisory-filter.js';
+import type { AdvisoryFilterOption } from '../advisory-filter/advisory-filter.js';
 import { runCheck, neo4jEngine, lexicalEngine, formatGateHuman, formatGateJSON, formatGateMarkdown } from '../ci-gate/index.js';
 import type { GateEngine } from '../ci-gate/index.js';
 import { defaultPropose, inferredBanner, inferredSpecFile, labelJsonReport, runInit } from './init-command.js';
@@ -227,6 +229,7 @@ withLLMOptions(program
   .option('--extractor <defaults>', 'Extractor defaults: v1.3 (default; literal and resolved re-export edges, dynamic imports, module wiring, member facts) | v1.2e (the registered v1.2E graph)', 'v1.3')
   .option('--resolved-edges-in-literal-view', 'Off by default. Keep an import\'s edge to the declaring file in the literal view when it goes through a barrel (MT-B1, Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md)', false)
   .option('--literal-through-layerless-barrels', 'Off by default. At graph build, an import through barrels that belong to no layer (and are no declared DDD public API) also keeps its edge to the declaring file in the literal view (MT-B1 fix, Docs/DiagnosticRuns/v1.3-mtb1-fix-2026-10-16.md)', false)
+  .option('--advisory-filter <options>', `Advisory post-filters, off by default (comma list, all or none): ${ADVISORY_FILTER_OPTIONS.join(', ')}. Matched advisory rows move to advisoryFilter.suppressed; blocking rows never change`, 'none')
   .option('--html <out.html>', 'Also write a self-contained architect HTML report (layer diagram, findings in plain language, filters)')
   .option('--hints', 'Add a deterministic fix hint to every blocking finding (json: `fixHints`; human: a Fix hints section). Off by default: the output is then unchanged', false)
   .option('--engine <name>', ENGINE_OPTION_HELP)
@@ -252,6 +255,7 @@ withLLMOptions(program
     instrument: string;
     neuralAggregation: string;
     scoring: string;
+    advisoryFilter: string;
     extractor: string;
     hints: boolean;
     html?: string;
@@ -274,6 +278,14 @@ withLLMOptions(program
       cmd.error("error: required option '--spec <path>' not specified");
     }
     const evaluationMode = resolveEvaluationMode(opts.symbolicOnly, opts.neuronalOnly);
+    let advisoryFilter: AdvisoryFilterOption[];
+    try {
+      advisoryFilter = parseAdvisoryFilterOptions(opts.advisoryFilter);
+    } catch (e) {
+      process.stderr.write(`Error: --advisory-filter: ${e instanceof Error ? e.message : String(e)}\n`);
+      process.exitCode = 2;
+      return;
+    }
     const graphMode = resolveGraphMode(opts.graphMode);
     if (graphMode === undefined) return;
     const scoringMode = resolveScoringMode(opts.scoring, '--scoring');
@@ -336,6 +348,7 @@ withLLMOptions(program
       instrumentVersion,
       neuralAggregation,
       scoringMode,
+      ...(advisoryFilter.length > 0 && { advisoryFilter }),
       ...(extractorDefaults !== 'v1.3' && { extractorDefaults }),
       ...(graphEngine !== 'neo4j' && { graphEngine }),
       ...(emptyAggregates !== 'fail' && { emptyAggregates }),
