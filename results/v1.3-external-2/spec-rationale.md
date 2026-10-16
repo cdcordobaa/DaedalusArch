@@ -274,3 +274,10 @@ The preset's role order is kept: domain innermost, then infrastructure, then app
 - **Aggregates:** `Todo` (root `domain/models/Todo.ts`), no inner entities.
 - **Other declarations:** value objects `TodoId`, `TodoTitle` and the shared `Id`; repositories the domain `Todos`, the application `TodoViews` and the infrastructure implementations; event type `IEvent` (from `@nestjs/cqrs`); application services the command and query handlers.
 - **Note:** `domain/events/CompletedTodo.ts` implements `ICommand`, not `IEvent`, at the pin; FF-DT05 reads the declared type and will treat it accordingly.
+
+## Addendum: after `firewall validate`, before any evaluation (second commit)
+
+`firewall validate --spec <spec> --project <clone>` was run on all 20 specs after the first commit. It parses and compiles the spec and checks that each layer matches a file; it does not analyse the code. Outputs are in `validate/` (clone paths shortened to `<clones>/`).
+
+- **19 specs: valid, 0 errors.** Every DDD list was non-empty, so the wave-1 BR-SPEC-10 defect did not recur. No spec was changed.
+- **staart-api: one `LAYER_DIR_NOT_FOUND`, left unchanged.** The `domain` layer matches no file, which is the judgement recorded above (Prisma client, no entity classes). On v1.3 the validator checks real matches rather than literal paths, so the ten mid-path-glob reports of wave 1 do not appear. `firewall evaluate` does not run this check.
