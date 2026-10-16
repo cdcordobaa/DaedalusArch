@@ -14,8 +14,12 @@
  * diff, skeleton integrity), type-checked and evaluated. In the `gate` arm, when that evaluation reports blocking
  * findings, the agent gets them in one repair turn, and the tree is committed, measured, type-checked and evaluated
  * again; the step's outcome is the last snapshot. An evaluator failure is recorded on the snapshot (the commit is kept,
- * so it can be re-scored); a turn or snapshot failure is a harness failure and stops the run. A run in which every
- * snapshot failed evaluation fails at its end (`LOOP_EVAL_ALL_FAILED`) and is not marked complete.
+ * so it can be re-scored); a turn or snapshot failure is a harness failure and stops the run. In the `gate` arm an
+ * evaluator failure on the step turn's snapshot also stops the run (`LOOP_GATE_UNSCORED`): the gate cannot decide on
+ * it, and going on would run the step as `none` (loop fault drills D4, `Docs/v1.3/loop-fault-drills.md`). A spec that
+ * could not be frozen is not such a failure (it is recorded once in `spec/` and holds for the whole run): the gate step
+ * is then recorded with `repair.skipped = 'evaluation-failed'` (R01). A run in which every snapshot failed evaluation
+ * fails at its end (`LOOP_EVAL_ALL_FAILED`) and is not marked complete.
  *
  * Per-task style and spec (`LoopContext.profiles`, optional): the task's step frames carry its style slot (`style.ts`)
  * and its snapshots are evaluated against its own spec, a fixed file or a DDD spec the ISE infers from the run's
@@ -30,6 +34,9 @@
  * Resume: the step records are the only progress state. On start, a run with every step record and `completedAt` is
  * skipped; otherwise the work tree is put back to the last recorded step's final commit (the base commit when none),
  * any partial step after it is logged in `restarts.jsonl` and discarded, and the loop continues with the next step.
+ * The restart line names every step record at or after the gap and why it is not used (`unreadable` or `after-gap`);
+ * those records and the turn records of the steps that rerun are moved to `discarded/restart-<n>/`, so a rerun never
+ * sits beside a stale prompt, report or envelope of the attempt it replaces.
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -67,6 +74,9 @@ export const STEPS_DIR = 'steps';
 export const TURNS_DIR = 'turns';
 export const RESTARTS_LOG = 'restarts.jsonl';
 export const LOOP_INTERRUPTIONS_DIR = 'interruptions';
+export const DISCARDED_DIR = 'discarded';
+/** Evaluation errors that are not a failed evaluation of the snapshot but the run's spec (`specs.ts`). */
+const SPEC_ERRORS: ReadonlySet<string> = new Set(['LOOP_SPEC_FREEZE_FAILED', 'LOOP_SPEC_NOT_FROZEN']);
 
 /** How a task's snapshots are evaluated (`specs.ts`). */
 export type TaskEvaluation =
@@ -386,8 +396,18 @@ class LoopRun {
     let outcome: RepairOutcome | undefined;
     if (this.spec.arm === 'gate') {
       const ev = first.data.snapshot.evaluation;
+      const failed = first.data.snapshot.evaluationError;
+      if (ev === null && failed !== undefined && !SPEC_ERRORS.has(failed.code)) {
+        return DomainResult.fail([
+          {
+            code: 'LOOP_GATE_UNSCORED',
+            message: `step ${String(stepIndex + 1)}: the gate cannot decide on an unscored snapshot (${failed.code}: ${failed.message}); the run stops, and a resume reruns the step`,
+          },
+        ]);
+      }
       if (ev === null) {
-        // The gate saw nothing: recorded as a harness failure, never as a step with no blocking findings (R01).
+        // Only a spec that was not frozen reaches here: the gate saw nothing, recorded as such, never as a step with no
+        // blocking findings (R01).
         repair = { attempted: false, blockingBefore: null, blockingAfter: null, cleared: null, skipped: 'evaluation-failed' };
         this.ctx.log?.(`${this.runId}: step ${String(stepIndex + 1)} GATE NOT APPLIED: the snapshot has no evaluation (${first.data.snapshot.evaluationError?.code ?? 'unknown'})`);
       } else if (ev.blockingViolationCount === 0) {
@@ -426,6 +446,36 @@ class LoopRun {
     });
   }
 
+  /** Step record files at or after the first missing or unreadable one, with why each is not used. */
+  private recordsAfterGap(from: number, steps: number): { readonly file: string; readonly state: 'unreadable' | 'after-gap' }[] {
+    const out: { file: string; state: 'unreadable' | 'after-gap' }[] = [];
+    for (let i = from; i < steps; i++) {
+      if (!fs.existsSync(stepRecordPath(this.runDir, i))) continue;
+      out.push({ file: path.posix.join(STEPS_DIR, `step-${pad(i + 1)}.json`), state: i === from ? 'unreadable' : 'after-gap' });
+    }
+    return out;
+  }
+
+  /**
+   * Moves the unused step records and the turn records of every step that reruns to `discarded/restart-<n>/`
+   * (run-relative POSIX path returned; null when there was nothing to move).
+   */
+  private setAside(from: number, steps: number, records: readonly { readonly file: string }[], n: number): string | null {
+    const rel = path.posix.join(DISCARDED_DIR, `restart-${String(n)}`);
+    const dest = path.join(this.runDir, ...rel.split('/'));
+    const moves: [string, string][] = records.map((r) => [path.join(this.runDir, ...r.file.split('/')), path.join(dest, ...r.file.split('/'))]);
+    for (let i = from; i < steps; i++) {
+      const dir = path.join(this.runDir, TURNS_DIR, `step-${pad(i + 1)}`);
+      if (fs.existsSync(dir)) moves.push([dir, path.join(dest, TURNS_DIR, `step-${pad(i + 1)}`)]);
+    }
+    if (moves.length === 0) return null;
+    for (const [a, b] of moves) {
+      fs.mkdirSync(path.dirname(b), { recursive: true });
+      fs.renameSync(a, b);
+    }
+    return rel;
+  }
+
   async run(): Promise<DomainResult<LoopRunResult>> {
     const runFile = path.join(this.runDir, RUN_JSON);
     let record = readJsonFile(runFile) as RunRecord | null;
@@ -442,35 +492,46 @@ class LoopRun {
     const head = this.snaps.head();
     if (!head.success) return DomainResult.fail(head.errors);
     const dirty = this.snaps.changedCount();
-    if (head.data !== last || dirty > 0) {
-      const line = { at: this.ctx.now().toISOString(), resumeAtStep: done.length + 1, restoredTo: last, discardedHead: head.data, discardedChanges: dirty };
-      fs.appendFileSync(path.join(this.runDir, RESTARTS_LOG), `${JSON.stringify(line)}\n`);
+    const records = this.recordsAfterGap(done.length, steps);
+    if (head.data !== last || dirty > 0 || records.length > 0) {
+      const restartsFile = path.join(this.runDir, RESTARTS_LOG);
+      const n = fs.existsSync(restartsFile) ? fs.readFileSync(restartsFile, 'utf8').split('\n').filter((l) => l !== '').length + 1 : 1;
+      const setAside = this.setAside(done.length, steps, records, n);
+      const line = {
+        at: this.ctx.now().toISOString(),
+        resumeAtStep: done.length + 1,
+        restoredTo: last,
+        discardedHead: head.data,
+        discardedChanges: dirty,
+        ...(records.length > 0 ? { records } : {}),
+        ...(setAside !== null ? { setAside } : {}),
+      };
+      fs.appendFileSync(restartsFile, `${JSON.stringify(line)}\n`);
       this.ctx.log?.(`${this.runId}: partial step ${String(done.length + 1)} discarded, resuming`);
     }
-    // Step records written after the gap (none normally) are stale; they are replaced as the steps rerun. A spec frozen
-    // on a discarded step 1 is discarded with it.
+    // A spec frozen on a discarded step 1 is discarded with it.
     if (done.length === 0) fs.rmSync(path.join(this.runDir, SPEC_DIR), { recursive: true, force: true });
     const restored = this.snaps.restore(last);
     if (!restored.success) return DomainResult.fail(restored.errors);
 
-    const records: StepRecord[] = [...done];
+    const out: StepRecord[] = [...done];
     for (let i = done.length; i < steps; i++) {
       const r = await this.step(i, last);
       if (!r.success) return DomainResult.fail(r.errors);
       writeJsonAtomic(stepRecordPath(this.runDir, i), r.data);
-      records.push(r.data);
+      out.push(r.data);
       last = r.data.finalCommit;
       this.ctx.log?.(`${this.runId}: step ${String(i + 1)}/${String(steps)} ${describeStep(r.data)}`);
     }
-    const unevaluated = allSnapshotsUnevaluated(this.runId, records);
+    const unevaluated = allSnapshotsUnevaluated(this.runId, out);
     if (unevaluated !== undefined) {
       this.ctx.log?.(unevaluated.message);
       return DomainResult.fail([unevaluated]);
     }
     // `--engine both`: parity counts over every step of the run (earlier invocations' steps included); absent otherwise.
-    const parity = runParityCounts(records);
+    const parity = runParityCounts(out);
     writeJsonAtomic(runFile, { ...record, completedAt: this.ctx.now().toISOString(), ...(parity !== undefined ? { parity } : {}) });
-    return DomainResult.ok({ kind: 'completed', runId: this.runId, resumedFromStep: done.length, steps: records });
+    return DomainResult.ok({ kind: 'completed', runId: this.runId, resumedFromStep: done.length, steps: out });
   }
 }
 
