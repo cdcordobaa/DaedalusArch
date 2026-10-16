@@ -120,6 +120,30 @@ Committed before the implementation's first run.
 
 The result is reported whatever it is.
 
-## 5. Results
+## 5. Results (development set; exploratory, no validity claim)
 
-Filled in after the run (§4 was committed first).
+Evidence: `results/v1.3-mcp-interp-parity/`. §4 was committed (a3ade538) before any of these numbers was computed.
+
+| # | Criterion | Result |
+|---|---|---|
+| 1 | Interp option, 71 reference variants, project modes | **Pass.** after-write and before-write, every style: blocking answer, blocking rules and locations agree on 71/71 (142/142 comparisons); 0 unexplained; no documented limit used. spec-only falls back to the fast path and matches the committed fast-path table (the 6 explained spec-only rows, L1/L2). |
+| 2 | Default mode unchanged | **Pass.** `mcp-consistency.ts` without the flag equals the committed `results/v1.3-reference/mcp-v2/consistency.json` with the `ms` field removed, and `consistency.md` except the `ms` column (wall time; byte-for-byte is impossible for a timing column). Golden-capture test (written on untouched `origin/v1.3`) passes. |
+| 3 | #161 §3.7 defects | **Pass** (`tests/unit/mcp-server/interp-parity.test.ts`). (1) `check_import` application → adapters-outbound: `violation` / `block` with FF-S01 blocking (default path: `allowed` / `pass`, kept in the golden). (2) `check_file`: `verdict` `violations` with `blockingVerdict` `block` (default: `clean` with `block`). (3) `check_diff`: every listed violation is blocking; `verdict` and `blockingVerdict` agree per file. |
+| 4 | #142 replay snapshots | **Pass, with a stand-in evaluator.** In a scratch merge of `v1.3-loop-replay` (#142, unmerged) and this branch, the scripted replay ran twice. Fast path: shelter step 3 and relief step 2 get no tool feedback (`tool: []`, full: FF-S01 + FF-S04 / FF-DS02), as #142 records. Option on: the tool reports exactly the full evaluation's blocking findings on all 12 `daedalus-mcp` steps, the scripted fix is applied at both steps, and nothing is unfollowed. Caveat: no Neo4j here and #156 (`evaluate_project --engine`) is not merged, so the replay's evaluator was injected with the interpreter (`createPipeline({ graphEngine: 'cypher-interp' })`), which #128 showed equal to Neo4j on the reference set. The #142 integration test (Neo4j-gated) was not run, and its `mcpSeesIt: false` expectation is not flipped here: the option is OFF by default and #142 is not merged. |
+| 5 | Latency, largest variant (clean-architecture/n01, 653 lines) | check_diff p50/p95: fast 23/97 ms; interp cold 462/1317 ms; interp new proposal (before state cached) 214/252 ms; identical repeat 25/29 ms. check_file: fast 18/29; cold 399/450; new proposal 202/248; repeat 16/18. One machine, 10 calls per row. |
+| 6 | Rule 3 | **Pass.** `ue-baseline-live.ts --engine cypher-interp`: raw 71/71, `report.json` and `report.md` byte-identical to `after-member-facts`. |
+
+What this does and does not show:
+
+- On the 71 reference variants the fast path already agreed with the full evaluation in project modes, so criterion 1 is
+  a non-regression check, not a discriminating one; the only difference from the fast path is the file a cycle
+  (FF-S02) is reported under (8 rows). The discriminating evidence is criterion 4, where the fast path misses the
+  hexagonal and DDD findings and the option does not.
+- The option is a second evaluation path, not a second rule definition: the rows come from the same compiled Cypher
+  the scored evaluation runs. What could still drift is the state the tool evaluates (the scratch copy and the default
+  tsconfig when the project has none). The replay's loop work trees had no tsconfig and still agreed on every step.
+- A new proposal costs about 0.2 s against about 20 ms on the fast path. Whole-state re-extraction is the cost;
+  incremental extraction was not attempted (§3.1).
+
+Not done: the #142 integration test on Neo4j; `evaluate_project --engine` (that is #156); incremental extraction;
+switching the `daedalus-mcp` arm's default (an author decision, gate V9).
