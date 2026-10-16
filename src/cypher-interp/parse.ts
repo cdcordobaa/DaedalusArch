@@ -219,7 +219,9 @@ class Builder {
   properties(c: Ctx): Expr {
     const m = rule(c, 'map');
     if (m !== undefined) return this.map(m);
-    return this.parameter(need(c, 'parameter'));
+    // Every pattern here is a MATCH (or EXISTS) pattern, where Neo4j rejects a parameter map (`-[*1..$max]->` parses
+    // as one; fuzz finding F9).
+    throw new CypherSyntaxError('Parameter maps cannot be used in `MATCH` patterns (use a literal map instead)');
   }
 
   labelExpression(c: Ctx): LabelExpr {

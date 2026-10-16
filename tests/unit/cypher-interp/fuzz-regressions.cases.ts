@@ -240,4 +240,33 @@ export const REGRESSION_CASES: readonly RegressionCase[] = [
     query: "MATCH (f:File {name: 'a.ts'}) WHERE EXISTS { MATCH (f)-[r:IMPORTS|RE_EXPORTS]->(:File) WHERE NOT coalesce(r.viaReExport, false) } RETURN f.name AS n",
     expect: { error: TYPE_ERROR },
   },
+  {
+    finding: 'F9', title: 'an undefined variable is rejected when planning, even if no row ever reaches it (mutant: RETURN iname AS name)',
+    nodes: [{ id: 'f', label: 'File', props: { name: 'a.ts' } }],
+    edges: [],
+    query: 'MATCH (f:File)-[:DECLARES]->(i:Interface) RETURN iname AS name, f.filePath AS file ORDER BY file, name',
+    expect: { error: SYNTAX_ERROR },
+  },
+  {
+    finding: 'F9', title: 'an undefined variable in ORDER BY is rejected too (mutant: ORDER BY sum, class)',
+    nodes: [],
+    edges: [],
+    query: 'MATCH (c:Class) RETURN c.name AS class, c.filePath AS filePath ORDER BY sum, class',
+    expect: { error: SYNTAX_ERROR },
+  },
+  {
+    finding: 'F9', title: 'a function called with the wrong number of arguments is rejected when planning',
+    nodes: [],
+    edges: [],
+    query: "MATCH (c:Class)-[:CONTAINS]->(m:Method) WHERE head(m.name, false) = false RETURN c.name AS n",
+    expect: { error: SYNTAX_ERROR },
+  },
+  {
+    finding: 'F9', title: 'a parameter map in a MATCH pattern is rejected (-[*1..$max]-> parses as one)',
+    nodes: [{ id: 'f', label: 'File', props: { name: 'a.ts' } }],
+    edges: [],
+    query: 'MATCH (n)-[*1..$max]->(m) RETURN n',
+    params: { max: 3 },
+    expect: { error: SYNTAX_ERROR },
+  },
 ];

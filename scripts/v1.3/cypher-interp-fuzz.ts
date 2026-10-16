@@ -332,6 +332,8 @@ async function rejectFuzz(neo: GraphRepository): Promise<Record<string, unknown>
     for (let i = 0; i < rejectN; i++) {
       const s = bases[Math.floor(rng() * bases.length)] as Statement;
       const text = mutants(s.text, rng);
+      // The driver refuses an empty statement before Neo4j sees it; nothing to compare.
+      if (text.trim() === '') { tally.set('empty mutant (skipped)', (tally.get('empty mutant (skipped)') ?? 0) + 1); continue; }
       const sp = statementParams(text, params[s.binding]);
       const c = await cand.executeQuery(text, sp);
       if (!c.success && c.errors[0]?.code === 'CypherInterp.Unsupported') { tally.set('interp unsupported', (tally.get('interp unsupported') ?? 0) + 1); continue; }

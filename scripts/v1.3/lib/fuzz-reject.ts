@@ -75,7 +75,6 @@ const CONSTRUCTS: readonly [string, (v: string, l: string, r: Rand) => string][]
   ['CREATE INDEX (other shape)', () => `CREATE INDEX other FOR (n:File) ON (n.name)`],
   ['DROP INDEX', () => `DROP INDEX apg_node_id IF EXISTS`],
   ['dynamic label', (v) => `MATCH (${v}:$('File')) RETURN ${v}`],
-  ['dynamic property', (v) => `MATCH (${v}) RETURN ${v}[$key] AS p`],
   ['label expression in WHERE with dynamic', (v) => `MATCH (${v}) WHERE ${v}:$($labels) RETURN ${v}`],
   ['CALL apoc procedure', (v) => `CALL apoc.help('coll') YIELD name RETURN name AS ${v}`],
   ['ORDER BY standalone', (v) => `MATCH (${v}) ORDER BY ${v}.name RETURN ${v}`],

@@ -5,9 +5,15 @@
  * expected List<T> but was …") when the operand's static type is known not to be a list. Known here: scalar and map
  * literals, node, relationship and path variables of a pattern, and variables a WITH / RETURN projects from them.
  * Everything else (properties, parameters, functions, UNWIND variables) is unknown and checked at run time.
+ *
+ * The same pass resolves every variable and function name (fuzz finding F9): Neo4j rejects `Variable \`x\` not
+ * defined` and unknown functions when planning, whatever the data; evaluated lazily, the interpreter returned zero
+ * rows for such a query whenever no row reached the expression. An unknown name is a syntax error, a function Neo4j
+ * has but the interpreter does not implement is `CypherUnsupportedError`, both before any row is read.
  */
 import type { Clause, Expr, PatternPart, Query } from './ast.js';
-import { CypherSyntaxError } from './parse.js';
+import { CypherSyntaxError, CypherUnsupportedError } from './parse.js';
+import { AGGREGATES, lookupFunction } from './functions.js';
 
 type Static = 'list' | 'nonList' | 'unknown';
 type Scope = ReadonlyMap<string, Static>;
@@ -100,6 +106,8 @@ function check(e: Expr, scope: Scope): void {
       if (e.to !== undefined) check(e.to, scope);
       return;
     case 'fn':
+      if (!AGGREGATES.has(e.name.toLowerCase()) && lookupFunction(e.name) === undefined) throw new CypherUnsupportedError(`function ${e.name}()`);
+      checkArity(e.name, e.args.length);
       if (e.name.toLowerCase() === 'tail' && e.args[0] !== undefined) iterated(e.args[0], scope);
       for (const a of e.args) check(a, scope);
       return;
@@ -116,7 +124,26 @@ function check(e: Expr, scope: Scope): void {
       for (const [w, t] of e.whens) { check(w, scope); check(t, scope); }
       if (e.otherwise !== undefined) check(e.otherwise, scope);
       return;
-    case 'lit': case 'param': case 'var': case 'countStar':
+    case 'var':
+      if (!scope.has(e.name)) throw new CypherSyntaxError(`Variable \`${e.name}\` not defined`);
+      return;
+    case 'lit': case 'param': case 'countStar':
       return;
   }
+}
+
+/** Argument counts of the supported functions, checked when planning as Neo4j does (`Insufficient parameters`). */
+const ARITY = new Map<string, readonly [number, number]>([
+  ...['type', 'labels', 'id', 'keys', 'nodes', 'relationships', 'startnode', 'endnode', 'length', 'size', 'head', 'last', 'tail', 'reverse',
+    'isempty', 'tolower', 'toupper', 'trim', 'ltrim', 'rtrim', 'tostring', 'tointeger', 'tofloat', 'toboolean', 'abs', 'sign', 'ceil', 'floor',
+    'sqrt', 'apoc.coll.toset', 'apoc.coll.sort', 'count', 'collect', 'sum', 'avg', 'min', 'max'].map((n): [string, readonly [number, number]] => [n, [1, 1]]),
+  ['range', [2, 3]], ['split', [2, 2]], ['substring', [2, 3]], ['left', [2, 2]], ['right', [2, 2]], ['replace', [3, 3]], ['apoc.coll.indexof', [2, 2]],
+  ['coalesce', [1, Infinity]],
+]);
+
+function checkArity(name: string, n: number): void {
+  const a = ARITY.get(name.toLowerCase());
+  if (a === undefined) return;
+  if (n < a[0]) throw new CypherSyntaxError(`Insufficient parameters for function '${name}'`);
+  if (n > a[1]) throw new CypherSyntaxError(`Too many parameters for function '${name}'`);
 }
