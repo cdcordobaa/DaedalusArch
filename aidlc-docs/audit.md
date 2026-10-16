@@ -1534,3 +1534,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: v1.3 construction, tool behaviour (agent-facing neural arm). Development work, no registered artefact touched.
 
 ---
+
+## v1.3 — blind misses diagnosis (v1.3-blind-misses)
+**Timestamp**: 2026-10-16T12:00:00Z
+**User Input**: "Classify every blind miss (14) and blind false alarm (4) of the after-member-facts run as extractor gap, rule/construct gap (mapped to Q1–Q25), key error or layer mapping; fix extractor gaps with tests (behind an off-by-default option if default results change); put construct gaps behind a switch only if none exists; re-score author and blind views; write Docs/DiagnosticRuns/v1.3-blind-misses-2026-10-16.md; one PR into v1.3, not merged."
+**AI Response**: "All 18 rows are rule/construct gaps (b), each mapped to an existing construct switch (Q4, Q5, Q6, Q7, Q10, Q12, Q13, Q20). Nine of them also carry a key-ambiguity note (c). There is no extractor gap and no layer-mapping issue: the graph matches the blind expected graph on every edge and layer. So no extractor change, no extractor option and no new switch were made. Added scripts/v1.3/blind-misses-rescore.ts (rebuilds the blind-expanded key from the committed adjudication sheet, checks it against scores.json, and re-scores both views per switch) and RescoreExtras.actual (reporting only; reports byte-identical)."
+**Context**: v1.3 development-set diagnostic; AI-DLC gates not run (the user's task specification is complete and asks for an autonomous PR); no rule, tier, preset, template or construct answer changed.
+
+---
