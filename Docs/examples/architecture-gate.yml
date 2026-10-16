@@ -1,0 +1,55 @@
+# Example workflow: the Daedalus architecture gate on every pull request (Docs/v1.3/ci-gate.md).
+# Copy it to .github/workflows/ in the repository you want to gate. It is not active on this repository.
+name: Architecture gate
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write   # the summary comment; drop it (and set comment: 'false') for a summary-only gate
+
+concurrency:
+  group: architecture-gate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0               # the gate reads both the base and the head commit
+          persist-credentials: false
+
+      - name: Architecture gate (new blocking findings only)
+        uses: cdcordobaa/DaedalusArch@v1.3   # pin a tag or a commit SHA you have reviewed
+        with:
+          spec: architecture/spec.yaml       # your AoC spec, relative to the repository root
+          project: .                         # the TypeScript project directory
+          engine: lexical                    # in-process, no database
+          # engine: neo4j                    # full rule set; needs the Neo4j job below instead of this one
+
+  # Full rule set (cycles, injection, implements, held state, DDD rules) with the neo4j engine.
+  # gate-full:
+  #   runs-on: ubuntu-latest
+  #   services:
+  #     neo4j:
+  #       image: neo4j:5.26-community
+  #       env:
+  #         NEO4J_AUTH: neo4j/${{ secrets.GATE_NEO4J_PASSWORD }}
+  #         NEO4J_PLUGINS: '["apoc"]'
+  #         NEO4J_dbms_security_procedures_unrestricted: apoc.*
+  #       ports: ['7687:7687']
+  #       options: >-
+  #         --health-cmd "wget -q --spider http://localhost:7474 || exit 1"
+  #         --health-interval 10s --health-retries 12
+  #   env:
+  #     NEO4J_URI: bolt://localhost:7687
+  #     NEO4J_PASSWORD: ${{ secrets.GATE_NEO4J_PASSWORD }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with: { fetch-depth: 0, persist-credentials: false }
+  #     - uses: cdcordobaa/DaedalusArch@v1.3
+  #       with: { spec: architecture/spec.yaml, engine: neo4j }

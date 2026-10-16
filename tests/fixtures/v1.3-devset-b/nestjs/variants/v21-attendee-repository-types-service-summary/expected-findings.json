@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "nestjs",
+  "variant": "v21-attendee-repository-types-service-summary",
+  "kind": "violation",
+  "plants": "FF-S01",
+  "description": "InMemoryAttendeeRepository (infrastructure) gets listSummaries() typed with AttendeeSummary, an interface exported by AttendeesService (application), through an import type.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/attendees/in-memory-attendee.repository.ts",
+      "target": "src/attendees/attendees.service.ts",
+      "reason": "Infrastructure imports application (a type-only import of the service file); infrastructure is below application in the preset order."
+    }
+  ]
+}
