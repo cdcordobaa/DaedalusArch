@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "variant": "v23-outbound-adapter-reads-config-settings",
+  "kind": "violation",
+  "plants": "FF-S01",
+  "description": "FakePaymentGateway (outbound adapter) reads its decline limit and reference prefix from a new src/config/settings.ts module in the composition-root layer.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction-graph",
+      "file": "src/adapters/outbound/payment/FakePaymentGateway.ts",
+      "target": "src/config/settings.ts",
+      "reason": "adapters-outbound > config is not allowed and config > adapters-outbound is: an allowed edge run backwards."
+    }
+  ]
+}
