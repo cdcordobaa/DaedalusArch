@@ -9,7 +9,7 @@ import type {
   Route,
   LayerKind,
 } from '../shared/types/enums.js';
-import type { ViolationType } from '../shared/taxonomy/violation-types.js';
+import type { Violation, ViolationType } from '../shared/taxonomy/violation-types.js';
 import type { ScoringMode, TieredScoring } from '../shared/types/evaluation.js';
 import type { RuleTier } from '../scoring-engine/rule-tiers.js';
 import type { EdgeView } from '../fitness-compiler/edge-views.js';
@@ -181,6 +181,11 @@ export interface EvaluateProjectResult {
   /** cypher-interp only: wall time of the call, and whether the unchanged project was answered from the cache. */
   readonly latencyMs?: number;
   readonly cache?: 'hit' | 'miss';
+  /**
+   * Every violation of the report, uncapped, as the pipeline produced it (type, discriminator, evidence). Present only
+   * when the caller asks (`includeViolations`; the loop harness does, the MCP tool does not).
+   */
+  readonly violations?: readonly Violation[];
 }
 
 // ── Environment ──────────────────────────────────────────────────────────────
