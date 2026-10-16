@@ -14,7 +14,7 @@ submitting. "Not found" means no 2027 date was published or found.
 | Missing | State | Source |
 |---|---|---|
 | Sealed hold-out run | Pre-specified in draft ("to be frozen"); not run | `Docs/v1.3/holdout-prespec.md` |
-| Human labels | Author audit sheet (40 items) written, unanswered; the Study 1 30-item audit also unanswered; the v1.3 "meaningful" labeller stopped at a usage limit after one answer | `Docs/DiagnosticRuns/v1.3-labelling-2026-10-15.md` §3, §4; `Docs/reports/director-report-2026-10.md` §3.7 |
+| Human labels | Author audit sheet (40 items) written, unanswered; the Study 1 30-item audit also unanswered; the v1.3 "meaningful" labeller stopped at a usage limit after one answer | `Docs/DiagnosticRuns/v1.3-labelling-2026-10-15.md` §3, §4 |
 | Graph adjudication | `human_verdict` column empty, so fidelity is agreement only | `Docs/DiagnosticRuns/v1.3-graph-fidelity-2026-10-14.md` |
 | Study 2 (firewall in the loop) | Informal outline only; not run in v1.3 | `Docs/v1.3/study2-outline.md` |
 
@@ -41,15 +41,16 @@ undefined references.
 | Empirical Software Engineering (EMSE, journal) | rolling | no page limit | Fits the current length; the floor and validity material need no cut |
 
 **Readiness.** Highest of the four. The registered results stand: spec-level effect Holm p = 0.0003, direction
-reversed through project size (`Docs/reports/director-report-2026-10.md` §1 item 8). The floor is now a central,
+reversed through project size (`Docs/DiagnosticRuns/e1-size-analysis-2026-10-10.md`, lines 20 and 83-94). The floor is now a central,
 framed result: under v1.3, 0 of 65 cells has a blocking finding, and all the RQ1 difference sits in advisory metrics
 *[dev, descriptive]* (`Docs/DiagnosticRuns/v1.3-study1-rerun-2026-10-15.md` §1). The paper argues that this zero is
 not a blind spot (reference recall 54/54 + 3 N/A, blind 50/64; SO4 73/73 as a development reading; 283/283 correct
 blocking findings on human code) and states that the semantic side is not covered (judge 16/21, not re-run on E1).
 
-**Dependency on open PRs.** The threats paragraph and one floor bullet cite reports on hold: #167 (external
-correctness), #168 (fixes mined, null), #185 (metamorphic), #198 (known groups, null). Their `% src:` comments use
-`git show origin/<branch>:<path>`. If any changes in review, re-check the sentence; if one closes unmerged, remove it.
+**Dependency on open PRs.** The threats paragraph and the floor bullets cite reports on hold: #167 (external
+correctness), #185 (metamorphic), #198 (known groups, null). Their `% src:` comments use `git show <sha>:<path>`,
+pinned to the branch tips of 2026-10-16. #168 (fixes mined, null) has merged and is cited by its v1.3 path. These
+sentences are provisional: see the submission gate below.
 
 **Still missing.** Citation verification (`paper1-e1/README.md` item 1); the author audit (P4 has no panel-vs-audit
 row); 2025–2026 related work; a cut to 10 pages for any conference.
@@ -165,9 +166,8 @@ Update (later on 2026-10-16): the ICSA 2027 New and Emerging Ideas track page no
 - FR-V8 filter-and-explain 65/66 (62/63 with the FF-P06 N/A rows removed, `Docs/v1.3/post-merge-review-2026-10-16.md`
   R26) (`Docs/DiagnosticRuns/v1.3-judge-v2-2026-10-16.md` §4).
 
-**Dependency on open PRs.** Lessons 13–15 cite reports on PR branches #191, #165 and #179, which are marked hold for
-the author's review. The `% src:` comments use `git show origin/<branch>:<path>`. If any of those reports changes in
-review, these lessons must be re-checked; if a PR is closed unmerged, its lesson must go.
+**Dependency on open PRs.** None left. Lessons 13–15 cite reports from #191, #165 and #179, which have all merged
+into v1.3 (2026-10-16); the `% src:` comments now give plain v1.3 paths.
 
 **Still missing.** Human labels on the judge's fails (no catch has a human check); a CHECK-3 with bases that do not
 plant the FF-N01 grey zone, if FF-N01 is to be claimed at all; a pre-specified cross-vendor arm (the Gemini rater was
@@ -203,10 +203,13 @@ copied rules clone units (projected 9/9, **not measured**; +8 clean flags,
 `Docs/DiagnosticRuns/v1.3-fieldstate-cheapfix-2026-10-16.md` §B); batch 2 catches 29/29 of its own planted cases and
 0/3 independent analogues (`Docs/DiagnosticRuns/cheap2-2026-10-15.md`); four source-fact filters remove 163/191 judge
 dismissals and 1/61 confirmations in sample (#139), and out of sample remove 0.45 and 0.33 of advisory volume with no
-relevance labels (#213); the interpreter is byte-identical on the reference set and 149 ms vs 728 ms
+relevance labels (#213); the interpreter is byte-identical on the reference set for the rules that return rows there (not FF-P05, which
+returns none on either engine and whose subquery form postdates the parity sweep) and 149 ms vs 728 ms
 (`Docs/v1.3/cypher-interpreter.md`).
 
-**Dependency on open PRs.** #139 and #213 are on hold; cited with `git show origin/<branch>:<path>`.
+**Dependency on open PRs.** #139 and #213 are on hold; cited with `git show <sha>:<path>`, pinned to the branch
+tips of 2026-10-16 (`afb44917`, `d5170b93`). The sentences that rest on them are provisional: see the submission gate
+below.
 
 **Still missing.** The unbiased follow-up (frozen proxies, seeds the proxy author never saw, construct-only twins,
 human labels, held-out precision, a verification arm); the E1 re-run of the guard-unit projection; relevance labels for
@@ -217,6 +220,31 @@ second, less circular strand), **3 / 5 with the frozen-proxy follow-up.** Every 
 tiny, and the strongest new number (0.85) is in-sample against one judge run.
 
 ---
+
+## Submission gate (added 2026-10-16)
+
+No paper is submitted, and no preprint is posted, until every line below holds for that paper. This is a gate, not
+advice: a paper that fails a line is not ready, whatever its rating above.
+
+1. **No provisional [hold] source.** Every `% src:` comment of the form `git show <sha>:<path>` points at a report on a
+   pull request that was not merged into v1.3 when it was pinned. Before submitting, each must be either (a) merged,
+   with the comment switched to the plain v1.3 path and the cited numbers re-checked against the merged file, or (b)
+   removed together with the sentence it supports. Pinned on 2026-10-16:
+
+   | Paper | PR | Branch tip pinned | Report |
+   |---|---|---|---|
+   | 1, 2 | #167 | `23adb369` | `Docs/DiagnosticRuns/v1.3-external-correctness-2026-10-16.md` |
+   | 1, 2 | #185 | `6efd7520` | `Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md` (and `results/v1.3-metamorphic/summary.md`) |
+   | 1, 2 | #198 | `ba1c6327` | `Docs/DiagnosticRuns/v1.3-known-groups-2026-10-16.md` |
+   | 2 | #181 | `b1d05f7a` | `Docs/DiagnosticRuns/v1.3-external-set-2-2026-10-16.md` |
+   | 4 | #139 | `afb44917` | `Docs/DiagnosticRuns/v1.3-advisory-noise-2026-10-16.md` |
+   | 4 | #213 | `d5170b93` | `Docs/DiagnosticRuns/v1.3-advisory-filter-oos-2026-10-16.md` (and its criterion file) |
+
+   Merged since they were first cited, and now cited by their v1.3 path: #165, #168, #179, #190, #191, #215.
+2. **Every source is public and in the tree.** `npm run lint:citations` passes: no citation of removed internal
+   communications (`Docs/reports/`, `Docs/presentation-kit/`, `director-email*`) and no personal absolute path.
+3. **Every claim the 2026-10-16 merge-wave review flagged as overstated is qualified** (interval wording, distinct
+   findings vs snapshot rows, byte-identity scope, reproducibility caveats); re-read the `% src:` comment of each.
 
 ## Suggested order
 

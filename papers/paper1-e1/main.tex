@@ -8,9 +8,13 @@
 %
 % v1.3 refresh (2026-10-16, branch v1.3-paper1-4-refresh from origin/v1.3 at e9fd61b7): Section 9 (the floor), the
 % v1.3 validity paragraph of Section 11 and the sentences that cite them read committed files on origin/v1.3. Where a
-% report sits on a PR branch that is not merged (marked [hold]), the comment gives "git show origin/<branch>:<path>"
-% and the PR number. If such a PR changes in review or closes unmerged, the sentence that cites it must be re-checked
-% or removed. Merged into v1.3: #110, #120, #134, #166. On hold: #167, #168, #185, #198, #139, #213.
+% report sits on a PR branch that is not merged (marked [hold]), the comment gives a pinned "git show <sha>:<path>"
+% and the PR number. Merged into v1.3: #110, #120, #134, #166, #168. On hold: #167, #185, #198, #139, #213.
+% Pinned [hold] citations (updated 2026-10-16): a report that exists only on an unmerged PR branch is cited as
+% "git show <sha>:<path>", where <sha> is that branch's tip on 2026-10-16, so a rebase or branch deletion cannot change
+% the source. Such a report has not passed review and is not on v1.3; a sentence that rests on it is provisional and
+% must be re-checked against the merged file, or removed, before submission (papers/STATUS.md, "Submission gate").
+% A report whose PR has since merged is cited by its plain v1.3 path.
 %   S1RR        = Docs/DiagnosticRuns/v1.3-study1-rerun-2026-10-15.md (results/v1.3-study1-rerun/e1/by_level_model.csv)
 %   ADD         = Docs/v1.3/study1-addenda.md
 %   REFMF       = Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md ("Correction (2026-10-16)")
@@ -176,7 +180,8 @@ in which violations occur. % src: S1RR §1 ("No blocking finding in any cell"); 
         dependency rule, together with the evidence that this zero is not an instrument blind spot
         (Section~\ref{sec:floor}).
   \item A replication package with every generated tree's hash, every judge and labeller call as a replayable
-        cassette, and scripts that regenerate every table and figure (Section~\ref{sec:conclusion}).
+        cassette, and scripts that regenerate every table and figure from the committed records
+        (Section~\ref{sec:conclusion}); checks that need the generated trees themselves cannot be re-run from it.
 \end{enumerate}
 
 Throughout, every reading carries one of three tags: \regC{} for the registered confirmatory tests, \regX{} for
@@ -779,15 +784,21 @@ We re-ran the symbolic part of v1.3 on all 72 E1 trees with the pinned per-run t
 the registered specification. No judge was called. This re-reading is post-hoc and descriptive: it tests no
 hypothesis, and v1.3 verdicts are not comparable with the registered E1 scores. Two full passes gave byte-identical
 reports for all 72 cells, and v1.3 reproduces the registered deterministic score of every accepted cell (65 of 65).
+The byte-identity is as reported by the run: the second pass's outputs are not committed, so the reproducibility audit
+could not check it from the repository.
+% src: Docs/DiagnosticRuns/v1.3-repro-audit-2026-10-16.md §2 row E-6 ("144/144 and 326/326 byte-identity claims"; second-pass outputs not committed; missing raw file)
 % src: S1RR "Instrument and procedure", "Reproducibility" (144/144 byte-identical), "What changed and why" (ahsDeterministic reproduced 65/65); header banner ("DESCRIPTIVE, v1.3 DEVELOPMENT INSTRUMENT, NOT A REGISTERED RESULT")
 
 \paragraph{Result.} No cell has a blocking finding: 0 of the 65 accepted cells and 0 of all 72, including the 7
 Haiku cells that failed the type-check (Table~\ref{tab:floor}). The blocking view therefore shows no level effect and
 no model effect. The registered direction of RQ1 has nothing to act on there; it lies entirely in advisory rules. Module
 fan-out, for example, fires in 0 of 15 Claude \lev{none} cells and in 15 of 16 \lev{minimal-prose} cells. The
-advisory findings are true statements about the code: all 1,184 E1 findings that a deterministic checker can test are
-correct, but they are metric and convention findings, not violations of a defining constraint.
+advisory findings are true statements about the code: all 1,184 E1 findings that a deterministic checker can test
+(all of them test-pairing findings) are correct, but they are metric and convention findings, not violations of a
+defining constraint. The per-finding verdicts are committed; re-running the check needs the generated trees, which
+are outside the repository, so the audit could not re-derive it.
 % src: S1RR §1 headline table (Any blocking 0/15, 0/16, 0/16 Claude; 0/6 each Codex; "The count is 0 of 65 accepted cells, and 0 of all 72"; GEN-TYPECHECK cells "also have 0 blocking findings"; "C02 fires in 0/15 none cells and 15/16 minimal-prose cells")
+% src: results/v1.3-labelling/e1/correctness-all/correctness.json summary (FF-CV05 n 1184, correct 1184; every other rule notCheckable); Docs/DiagnosticRuns/v1.3-repro-audit-2026-10-16.md §2 row E-9 (E1 correctness needs ../daedalus-e1-outcomes; missing raw file)
 % src: Docs/DiagnosticRuns/v1.3-labelling-2026-10-15.md line 6 ("1,184 of 1,428 E1 findings" checkable, all correct), line 30 ("The E1 cells still have no blocking-tier finding under v1.3")
 The floor was already present in the registered data: the structural dimension was clean in every cell
 (Section~\ref{sec:results}), and no rule that v1.3 treats as blocking fired in any E1 cell under the registered
@@ -835,16 +846,19 @@ development data, gathered on cases the v1.3 changes were made against.
         verdict, and 11 of 15 external, human-written TypeScript back ends written before 2023 have at least one
         blocking finding. These projects are larger and older than the E1 services, so the contrast with E1 is
         descriptive and confounded with size.
-        % src: S1RR §2 "Context only, not scored" ("Each fails the v1.3 blocking verdict"); git show origin/v1.3-external-correctness:Docs/DiagnosticRuns/v1.3-external-correctness-2026-10-16.md §3 ("4 of the 15 repositories have no blocking finding"; PR #167, [hold])
+        % src: S1RR §2 "Context only, not scored" ("Each fails the v1.3 blocking verdict"); git show 23adb369:Docs/DiagnosticRuns/v1.3-external-correctness-2026-10-16.md §3 ("4 of the 15 repositories have no blocking finding"; PR #167, [hold], open; pinned to its branch tip SHA)
   \item \emph{Findings on human code are correct.} All 283 blocking findings on those 15 projects are correct by a
         deterministic source-level check (1.000 [0.987, 1.000], findings clustered in a few projects), and a negative
         control of 500 perturbed findings is rejected 500 times out of 500.
-        % src: git show origin/v1.3-external-correctness:Docs/DiagnosticRuns/v1.3-external-correctness-2026-10-16.md §3 (283/283, Wilson [0.987, 1.000]; control 500 perturbed, all incorrect; ddd-forum 92, neoteric 72, finance 50 of 283); PR #167, [hold]
+        % src: git show 23adb369:Docs/DiagnosticRuns/v1.3-external-correctness-2026-10-16.md §3 (283/283, Wilson [0.987, 1.000]; control 500 perturbed, all incorrect; ddd-forum 92, neoteric 72, finance 50 of 283); PR #167, [hold], open; pinned to its branch tip SHA
   \item \emph{The rules fire on agent-style code with a different layout.} In a small feasibility probe, one Claude
         session implemented six multi-step tasks by hand under a minimal prompt. In the layered style, every one of
-        14 steps had a blocking finding (dependency direction and layer skips, 96 of 96 correct); in the hexagonal
-        style none of 14 steps did. This is one agent and a handful of tasks, so the figures are counts, not rates.
-        % src: Docs/DiagnosticRuns/v1.3-floor-probe-2026-10-16.md §0 (14/28: hexagonal 0/14, layered 14/14; 96/96 correct; "one Claude session ... by hand"), §3.2
+        14 steps had a blocking finding (dependency direction and layer skips); in the hexagonal style none of 14
+        steps did. The layered tasks produced 24 distinct blocking findings, all correct: 13 at the first step and 11
+        added later, in only 4 of the 11 later steps. A finding persists once made, so the same 24 appear as 96 rows
+        across the 14 step snapshots; the 14 of 14 is mostly a step-1 level, not new violations at every step. This is
+        one agent and a handful of tasks, so the figures are counts, not rates.
+        % src: Docs/DiagnosticRuns/v1.3-floor-probe-2026-10-16.md §0 (14/28: hexagonal 0/14, layered 14/14; 96/96 snapshot rows correct; new blocking finding in 4 of 22 later steps, all layered; "one Claude session ... by hand"), §3.1 (market 4, league 2, hive 2 and 3), §3.2, §3.3 (the later findings replicate two step-1 habits), §5 items 3-4; distinct findings derived: identity (rule, file, target) over blockingFindings in results/v1.3-floor-probe/{market-vendors,youth-league,hive-health}/none/step-*.json = 6 + 5 + 13 = 24, step 1 = 4 + 3 + 6 = 13
 \end{itemize}
 Taken together, the instrument fires on planted and on human-written violations of the rules it states, and its
 blocking findings are correct where they can be checked. We therefore read the E1 zero as a property of the generated
@@ -852,7 +866,8 @@ code, not of the instrument, with two limits. First, the reference set and the e
 by the instrument's authors. Second, the floor covers only constraints the rules can state. Semantic violations
 (business logic in the wrong layer, a duplicated business rule) are judged by the LLM judge, which the v1.3 re-reading
 did not call. On planted anti-patterns the frozen v1.3 judge catches 16 of 21 = 0.76 [0.55, 0.89] in the two operators
-whose controls behave as intended, and neither interval bound reaches the 0.80 target, so E1 gives no comparable
+whose controls behave as intended. The interval contains the 0.80 target, but its lower bound does not reach it, so
+the catch rate is not shown to meet the target and E1 gives no comparable
 floor for semantic violations.
 % src: Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md header note (16/21 = 0.76 [0.55, 0.89]; "Neither lower bound reaches 0.80"; restricted to FRAMEWORK-LEAK and PERSIST-IN-DOMAIN); S1RR "Instrument and procedure" ("No judge was called")
 
@@ -963,7 +978,7 @@ were judged real and 3 were uncertain, while all 3 sampled dependency-inversion 
 Those figures come from real projects, not from E1 code, and E1 findings were not labelled.
 \emph{Circularity.} The specification, the rules, the prompt levels and the instrument were written by the same
 author, and the prose level was derived from the same preset. The study measures conformance to this author's
-rendering of clean architecture. % src: TTV §2.8; Docs/reports/director-report-2026-10.md §5 item 1
+rendering of clean architecture. % src: TTV §2.8; Docs/threats-to-validity.md TV-12 (circularity)
 \emph{All cells pass}: the study measures differences inside the pass band, never a blocking violation
 (Section~\ref{sec:floor}). \emph{The \lev{none} level is not specification-free}: every prompt fixes the three
 folder names, so the contrast is a folder hint against a folder hint with prose or with a full AaC specification.
@@ -1024,7 +1039,7 @@ the floor of Section~\ref{sec:floor} more than on the registered contrasts.
         deterministic check that reads the source, not the graph; a negative control of 500 perturbed findings is
         rejected every time. Correct is not the same as meaningful: the check shares the specification with the tool,
         and all 15 specifications were written by one session.
-        % src: git show origin/v1.3-external-correctness:Docs/DiagnosticRuns/v1.3-external-correctness-2026-10-16.md §3, §4 ("Correct is not meaningful"; "All 15 specs were written by one session"); PR #167, [hold]
+        % src: git show 23adb369:Docs/DiagnosticRuns/v1.3-external-correctness-2026-10-16.md §3, §4 ("Correct is not meaningful"; "All 15 specs were written by one session"); PR #167, [hold], open; pinned to its branch tip SHA
   \item \emph{Metamorphic.} Under nine semantics-preserving transformations of the reference variants (renaming,
         reordering, reformatting, export style, type-only imports, path aliases, splitting and merging files, adding
         and removing barrel files), the blocking verdict is unchanged in 637 of 655 applicable cases (0.973). Six
@@ -1032,19 +1047,19 @@ the floor of Section~\ref{sec:floor} more than on the registered contrasts.
         file outside every layer hides an edge), fixed behind an option that is off by default; the others are
         intended consequences of rule definitions, mainly a merge that creates a real module cycle (13 cases). These
         are development data.
-        % src: git show origin/v1.3-metamorphic:Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md §1 ("Six of the nine transformations are invariant"; MT-B1 "tool bug"), §3.1 ("637 of 655 applicable cases are invariant (0.973)"), §3.3 (MT-M1, 13 cases); PR #185, [hold]
+        % src: git show 6efd7520:Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md §1 ("Six of the nine transformations are invariant"; MT-B1 "tool bug"), §3.1 ("637 of 655 applicable cases are invariant (0.973)"), §3.3 (MT-M1, 13 cases); PR #185, [hold], open; pinned to its branch tip SHA
   \item \emph{Developer behaviour (null).} In 36 open-source histories, maintainers did not remove dependencies
         flagged by blocking rules more often than unflagged cross-layer dependencies. A pooled rate ratio of 2.65
         [1.97, 3.56] rests on one commit that enabled an import-cycle lint; without it the ratio is 0.93 [0.61, 1.43],
         and with one credit per fixing commit 1.00 [0.56, 1.80]. Dependency-direction findings were removed less often
         than the baseline. The method cannot tell wrong findings from tolerated debt.
-        % src: git show origin/v1.3-validity-fixes-mined:Docs/DiagnosticRuns/v1.3-validity-fixes-mined-2026-10-16.md "Verdict" (2.65x, 95% CI 1.97-3.56; 0.93 (0.61-1.43); 1.00 (0.56-1.80); rate ratios 0.65, 0.38 and 0; "this method cannot separate them"); PR #168, [hold]
+        % src: Docs/DiagnosticRuns/v1.3-validity-fixes-mined-2026-10-16.md "Verdict" (2.65x, 95% CI 1.97-3.56; 0.93 (0.61-1.43); 1.00 (0.56-1.80); rate ratios 0.65, 0.38 and 0; "this method cannot separate them"); PR #168, merged into v1.3
   \item \emph{Known groups (null).} Blocking findings per thousand lines are not lower in showcase repositories
         (boilerplates, samples) than in application repositories (15 external projects; Cliff's $\delta = -0.18$,
         exact one-sided $p = 0.81$), and the density still correlates with project size (Spearman
         $\rho = 0.39$ [$-0.19$, 0.85]). The grouping by repository name is crude, and several ``application''
         repositories are themselves teaching references.
-        % src: git show origin/v1.3-known-groups:Docs/DiagnosticRuns/v1.3-known-groups-2026-10-16.md §1 (K-1: delta -0.18, p 0.811, "not supported"; "Reading this null honestly"), §2 (B/KLOC rho vs LOC 0.39 [-0.19, 0.85]); PR #198, [hold]
+        % src: git show ba1c6327:Docs/DiagnosticRuns/v1.3-known-groups-2026-10-16.md §1 (K-1: delta -0.18, p 0.811, "not supported"; "Reading this null honestly"), §2 (B/KLOC rho vs LOC 0.39 [-0.19, 0.85]); PR #198, [hold], open; pinned to its branch tip SHA
 \end{itemize}
 The first three support the claim that the blocking rules detect what they state, and do so stably; the two nulls
 show that we have no evidence yet that what they state is what maintainers act on. For E1 this means that the floor
@@ -1113,7 +1128,10 @@ evaluation record and aggregate table (\texttt{results/e1-grid/}), all judge and
 analysis and its producer (\texttt{scripts/e1-size-analysis-cli.ts}), and the script that generates this paper's
 figures from the committed CSVs (\texttt{papers/paper1-e1/figures/make\_figures.py}). Every number in this paper
 carries a source-path comment in the \LaTeX{} source. The generated project trees live outside the repository and are
-identified by their tree hashes. \todo{archive DOI; decide whether to publish the generated trees.}
+identified by their tree hashes. A reproducibility audit of the v1.3 reports
+(\texttt{Docs/DiagnosticRuns/v1.3-repro-audit-2026-10-16.md}) lists what can and cannot be re-derived from the
+package; two Section~\ref{sec:floor} claims are in the second group (the second-pass byte-identity and the E1
+correctness re-check, rows E-6 and E-9), because they need the uncommitted second-pass outputs or the generated trees. \todo{archive DOI; decide whether to publish the generated trees.}
 
 \bibliographystyle{plain}
 \bibliography{refs}

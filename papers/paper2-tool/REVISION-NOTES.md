@@ -71,6 +71,8 @@ Numbering follows the review's Section 11 (prioritised list), with the Section 3
 
 Brings the paper to the later v1.3 evidence. Every new number carries a `% src:` comment. Reports on unmerged pull
 requests are cited as `origin/<branch>:<path>` with the PR number; their numbers must be re-checked after merge.
+(Later on 2026-10-16 these were pinned: open PRs as `git show <sha>:<path>` at the branch tip, merged ones by their
+v1.3 path. See the submission gate in `papers/STATUS.md`.)
 
 | Change | Source |
 |---|---|
