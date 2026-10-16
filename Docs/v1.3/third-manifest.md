@@ -116,3 +116,59 @@ The agy version pin defaults to the labeller's `AGY_PINNED_VERSION` (1.3.2). A n
 | Input A2 `Docs/v1.3/rule-tiers.md` at this commit (read only, not edited) | `290794e0bf8edc0d02b631b576b1181cb3e9fb603af3b4fd110a61b60543f27a` | recorded |
 
 Each case's bundle sha256 and prompt sha256 are written into its provenance and into `run.json`. Before running on new seeds, the author commits `run.json` and `blind-key.json` with the bundle hashes, and only then runs the tool (§8).
+
+## 8. The author's local run (not done here; no login or key exists in the cloud)
+
+Order of work, for any new set (for example the 48 seed variants of `Docs/v1.3/seed-floor-plan.md`):
+
+1. **Build first, commit the hashes.** `build` writes `bundles.json` (each case's bundle and prompt sha256, the input list, the dropped spec keys) and the rendered prompts. Commit `bundles.json` before any call is made.
+2. **Run K-G.** Commit `blind-key.json`, `blind-out/`, `run.json`, the cassettes and `ledger.json`, unread, in one commit. Use the same seed and the same case list as the build. The case ids must match, and `run` rebuilds the bundles and records their hashes again.
+3. **Run the tool.** Only after step 2 is pushed. The commit order is the evidence that the key came before the tool.
+4. **Score and compare.**
+   - `ue-score.ts --blind <dir>` scores each K-G manifest on its own. It needs every reference variant and a mapping row for every name K-G used. `compare` lists the names that have no row.
+   - `compare` against the author manifests (`export-author`) and against the Claude blind manifests, where those exist outside the sealed directory.
+
+Subscription route (agy, no dollars). The home is the v1.2 labeller's dedicated home. `--model` is the name agy takes. `--agy-served-model` is the id its stream-json `init` event prints: run one `build`, then check `agy models` once and set it.
+
+```bash
+npx tsx scripts/v1.3/third-manifest.ts build --variants <style/variant,...> --out results/v1.3-third-manifest/<set>/k-g-agy
+git add results/v1.3-third-manifest/<set>/k-g-agy/bundles.json && git commit -m "v1.3: third-manifest bundle hashes (<set>)"
+HOME=~/.firewall/labeller-agy-home agy --version   # set --agy-version to this if it is not 1.3.2
+npx tsx scripts/v1.3/third-manifest.ts run --adapter agy \
+  --model "Gemini 4 Argon (High)" --agy-served-model <init model id> --agy-version <x.y.z> \
+  --agy-home ~/.firewall/labeller-agy-home --max-calls 20 \
+  --variants <style/variant,...> --out results/v1.3-third-manifest/<set>/k-g-agy \
+  --cassettes results/v1.3-third-manifest/<set>/cassettes
+```
+
+API route (Gemini, $5 cap). Only the `GEMINI_API_KEY` line of `.env` is read. The prices are the author's, from the current Gemini price page, in USD per million tokens. Without them the adapter does not start.
+
+```bash
+npx tsx scripts/v1.3/third-manifest.ts run --adapter gemini --model <pinned gemini model id> --thinking high \
+  --env-file .env --max-usd 5 --usd-per-mtok-in <in> --usd-per-mtok-out <out> --max-output-tokens 32768 \
+  --variants <style/variant,...> --out results/v1.3-third-manifest/<set>/k-g-api \
+  --cassettes results/v1.3-third-manifest/<set>/cassettes
+```
+
+New projects that are not in the reference loader use `--cases cases.json` in place of `--variants` (`[{ "label", "style", "project", "spec" }]`). The label goes only into `blind-key.json`.
+
+Comparison:
+
+```bash
+npx tsx scripts/v1.3/third-manifest.ts export-author --key results/v1.3-third-manifest/<set>/k-g-agy/blind-key.json --out results/v1.3-third-manifest/<set>/author
+npx tsx scripts/v1.3/third-manifest.ts compare --a results/v1.3-third-manifest/<set>/author --b results/v1.3-third-manifest/<set>/k-g-agy \
+  --label-a author-manifest --label-b "K-G (agy)" --banner "Development set; exploratory; nothing adjudicated." --out results/v1.3-third-manifest/<set>/compare-author-vs-k-g.md
+```
+
+Size: a reference case's prompt is about 27–31k characters, roughly 8–10k input tokens. A 71-case development pass is 71 calls, plus re-asks.
+
+**The two routes are kept apart.** The agy route cannot set the temperature, and agy 1.3.2 could not deny `search_web` (`Docs/labeller-route.md` §7). A completed tool step makes that call invalid, and it is retried once. Report agy and API manifests as separate writers, never pooled. As the role-separation plan notes (§7), K-G and the Gemini *meaningful* labeller R3 are the same vendor.
+
+## 9. Dry run (2026-10-16, cloud, fake adapter): dry run, not a result
+
+`results/v1.3-third-manifest/dry-run/` holds:
+- the fake writer's manifests, `k-g-fake/`;
+- the author manifests of the same cases, `author/`;
+- the comparison, `compare.md` and `compare.json`.
+
+The three cases are `layered/clean`, `hexagonal/v03-use-case-injects-concrete-adapter` and `ddd/v08-cross-context-internal-import`. The fake was given the author manifest as an oracle. It dropped one finding (FF-P02 in hexagonal), renamed one (FF-S01 written as `dependency-direction-graph`) and added three advisory decoys. The comparison shows exactly that: both 2, only-author 1, only-fake 3, verdicts 3 of 3. The rename mapped back. That is the known-answer check of §4, and it passed. The numbers say nothing about any vendor.

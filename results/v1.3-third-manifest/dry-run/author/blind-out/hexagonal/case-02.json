@@ -1,0 +1,30 @@
+{
+  "style": "hexagonal",
+  "case": "case-02",
+  "verdict": "fail",
+  "expectedGraph": {
+    "files": [],
+    "edges": [],
+    "unresolvedEdges": []
+  },
+  "findings": [
+    {
+      "ruleId": "FF-S01",
+      "file": "src/application/services/FindAvailableRoomsService.ts",
+      "target": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "tier": "blocking",
+      "reason": "application > adapters-outbound is the reverse of an allowed edge."
+    },
+    {
+      "ruleId": "FF-P02",
+      "file": "src/application/services/FindAvailableRoomsService.ts",
+      "target": null,
+      "tier": "advisory",
+      "reason": "The use case injects an adapter class (1 of 2 constructor dependencies is an interface; 0.5 < 0.85)."
+    }
+  ],
+  "nearMissOk": [],
+  "provenance": {
+    "writer": "author-manifest (Claude-family agents, could see the rules)"
+  }
+}

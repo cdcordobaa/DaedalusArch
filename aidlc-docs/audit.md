@@ -1562,3 +1562,18 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: v1.3 spike follow-up, outside the v1.3 study stages. Development-set evidence only.
 
 ---
+
+## v1.3 night routine #18 (H1): non-Claude blind-manifest writer harness
+**Timestamp**: 2026-10-16T08:40:00Z
+**User Input**: "Scheduled routine: execute job #18 (H1) of Docs/v1.3/night-backlog-2026-10-16.md under its standard rules; add an agy (Antigravity CLI, subscription) adapter next to the API adapter so the author can run the third manifest locally."
+**AI Response**: "Branch v1.3-third-manifest-harness. Committed Docs/v1.3/third-manifest.md (allow-list, prompt tm-1, output schema, pass criterion, analysis, hashes) and the prompt module first, then the harness (scripts/v1.3/third-manifest.ts: build, run, compare, export-author), the adapters (fake, gemini API with a $5 cap, agy subscription route, openai), 21 unit tests, and a fake dry run on 3 development-set variants labelled 'dry run, not a result'. No LLM call, no key, no login; nothing under ../daedalus-sealed/ read. 71-case reference baseline (cypher-interp) byte-identical to results/v1.3-reference/after-member-facts."
+**Context**: Night backlog job H1 (SO4, threat V10). Options taken under delegation:
+- The tier table is given with rule ids and template names (rule names) but without the v1.2E severity column. This follows validation-protocol §1, "names and constructs only".
+- Spec declarations are the parsed `architecture` subtree only: style, layer name/kind/directories/roles, allowed_dependencies, ddd. YAML comments and fitness_functions are dropped.
+- The agy adapter is built from the v1.2 labeller's exported pieces, and `src/llm-critic/agy-cli-provider.ts` is not edited. The version pin can be overridden (`--agy-version`) and is recorded. The expected served model is a separate flag, because agy's display name and init id may differ.
+- The OpenAI route uses non-strict json_schema, because strict mode needs every property required. The strict parse after the call is the check.
+- The Gemini cost guard needs the author's prices, so no price default is invented. The worst case is chars/3 input tokens plus the full output cap.
+- Dry-run cases: layered/clean, hexagonal/v03, ddd/v08 (seed 20261016).
+- A hold-out switch is not written. It needs the freeze and the prespec naming K-G first.
+
+---
