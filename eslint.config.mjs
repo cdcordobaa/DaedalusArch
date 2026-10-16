@@ -53,6 +53,7 @@ export default tseslint.config(
     // tests/fixtures/v1.3-judge-steering: single unit files of CHECK-2 copies (judge steering-comment variants), whose
     // imports resolve only inside their CHECK-2 project.
     // src/cypher-interp/generated: ANTLR output (scripts/v1.3/gen-cypher-parser.sh), not hand-written.
-    ignores: ['dist/**', 'node_modules/**', 'coverage/**', '*.cjs', '*.mjs', 'tests/fixtures/v1.3-cheap2/**', 'tests/fixtures/v1.3-devset-b/**', 'tests/fixtures/v1.3-judge-steering/**', 'src/cypher-interp/generated/**'],
+    // tests/fixtures/loop-acceptance: plain-JS demo services the acceptance runner starts (not TypeScript of this repo).
+    ignores: ['dist/**', 'node_modules/**', 'coverage/**', '*.cjs', '*.mjs', 'tests/fixtures/v1.3-cheap2/**', 'tests/fixtures/v1.3-devset-b/**', 'tests/fixtures/v1.3-judge-steering/**', 'tests/fixtures/loop-acceptance/**', 'src/cypher-interp/generated/**'],
   },
 );
