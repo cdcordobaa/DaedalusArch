@@ -11,6 +11,7 @@ import { ScrubbingFirewallContext } from './scrubbing-context.js';
 import { neo4jScrubPolicy } from '../shared/errors/scrub.js';
 import { runId as makeRunId } from '../shared/types/value-objects.js';
 import { Neo4jRepository } from '../neo4j-ingestion/neo4j-repository.js';
+import { MemoryGraphRepository } from '../cypher-interp/repository.js';
 import { FileSystemSnapshotStore } from '../neo4j-ingestion/fs-snapshot-store.js';
 import * as path from 'node:path';
 import { createLLMProvider } from '../llm-critic/provider-factory.js';
@@ -39,6 +40,8 @@ import type { CompileFactsHolder } from './commands/compile-command.js';
 import { UNIVERSAL_CYCLE_STAGE } from '../scoring-engine/universal-metrics.js';
 import type { CycleMetricTiming } from '../scoring-engine/universal-metrics.js';
 import type { StageTimingEntry, StageTimings } from './types.js';
+import { CONSTRUCT_ANSWERS } from '../shared/construct-switches.js';
+import { constructRowTransform, constructTierResolver } from '../construct-switches/pipeline.js';
 
 /**
  * The value returned by `createPipeline`. Holds everything the caller needs
@@ -80,14 +83,17 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
   // ------------------------------------------------------------------
   // 2. Instantiate infrastructure services
   // ------------------------------------------------------------------
-  const graphRepo: GraphRepository = new Neo4jRepository({
-    neo4jUri: config.neo4jUri,
-    neo4jUser: config.neo4jUser,
-    neo4jPassword: config.neo4jPassword,
-    apgStorePath: config.apgStorePath,
-    // v1.3 fix round: one run at a time per Neo4j database (ingestion wipes it); released by `cleanup`.
-    lock: true,
-  });
+  // v1.3 spike: `cypher-interp` answers the same Cypher text in process (Docs/v1.3/cypher-interpreter.md).
+  const graphRepo: GraphRepository = config.graphRepository ?? (config.graphEngine === 'cypher-interp'
+    ? new MemoryGraphRepository()
+    : new Neo4jRepository({
+      neo4jUri: config.neo4jUri,
+      neo4jUser: config.neo4jUser,
+      neo4jPassword: config.neo4jPassword,
+      apgStorePath: config.apgStorePath,
+      // v1.3 fix round: one run at a time per Neo4j database (ingestion wipes it); released by `cleanup`.
+      lock: true,
+    }));
 
   const snapshotStore: SnapshotStore = new FileSystemSnapshotStore(
     config.apgStorePath,
@@ -160,15 +166,17 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
   commands.push(new CompileCommand(compileFacts, config.instrumentVersion));
 
   // ---- Stage 4: Evaluate (mode-dependent) -----------------------------
+  // v1.3 construct switches: the row stage runs in the v1.3 scoring mode only, and only when a switch is set.
+  const rowStage = config.scoringMode === 'v1.3' ? constructRowTransform(CONSTRUCT_ANSWERS) : undefined;
   switch (config.evaluationMode) {
     case 'full':
       commands.push(
-        new RouteEvaluateCommand(graphRepo, llmProvider!, config.evaluationMode, judgeStage),
+        new RouteEvaluateCommand(graphRepo, llmProvider!, config.evaluationMode, judgeStage, rowStage),
       );
       break;
 
     case 'symbolic-only':
-      commands.push(new SymbolicEvaluateCommand(graphRepo, scrubPolicy.secrets));
+      commands.push(new SymbolicEvaluateCommand(graphRepo, scrubPolicy.secrets, rowStage));
       break;
 
     case 'neuronal-only':
@@ -279,6 +287,8 @@ class LazyScoreCommand implements PipelineCommand {
   async execute(context: FirewallContext): Promise<DomainResultType<void>> {
     const parsedSpec = context.getParsedSpec();
 
+    // v1.3 construct switches: the switch-aware tiers (absent at the status quo).
+    const tiers = this.config.scoringMode === 'v1.3' ? constructTierResolver(CONSTRUCT_ANSWERS, parsedSpec.style, parsedSpec.layerModel) : undefined;
     const scoreCmd = new ScoreCommand(this.graphRepository, {
       scoringWeights: parsedSpec.scoringWeights,
       ...(parsedSpec.fullModeWeights !== undefined && { fullModeWeights: parsedSpec.fullModeWeights }),
@@ -295,6 +305,7 @@ class LazyScoreCommand implements PipelineCommand {
         scoringMode: this.config.scoringMode,
         ...(parsedSpec.style !== undefined && { style: parsedSpec.style }),
       }),
+      ...(tiers !== undefined && { tierResolver: tiers }),
     });
 
     return scoreCmd.execute(context);

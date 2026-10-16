@@ -1,0 +1,4201 @@
+{
+ "id": "hedgedoc-backend",
+ "stats": {
+  "signatureUses": 151,
+  "components": 28,
+  "componentSource": "declared",
+  "dependsOn": 127,
+  "deepImports": 0,
+  "exportsSymbol": 0,
+  "channels": 4,
+  "async": {
+   "publishes": 4,
+   "subscribes": 1,
+   "dynamicNames": 8
+  },
+  "io": {
+   "byCategory": {
+    "db": 295,
+    "http-out": 5,
+    "fs": 11,
+    "env": 107,
+    "clock": 4,
+    "random": 11,
+    "process": 3
+   }
+  },
+  "timingsMs": {
+   "typeFlow": 53.2,
+   "components": 9.3,
+   "async": 215.1,
+   "io": 209.5
+  }
+ },
+ "params": {
+  "domainLayer": "domain",
+  "applicationLayers": [
+   "application"
+  ],
+  "infraLayer": "infrastructure",
+  "controllerLayer": "presentation",
+  "threshold": 0.7,
+  "allowedAsync": [],
+  "compositionRootLayers": [],
+  "compositionRootPatterns": [
+   "^(?:.*/)?(?:main|bootstrap|composition-root|compositionRoot|container|di)\\.(?:ts|tsx|mts|cts)$",
+   "^(?:.*/)?[^/]+\\.(?:module|container)\\.(?:ts|tsx|mts|cts)$"
+  ],
+  "testPatterns": [
+   "^(?:.*/)?[^/]*\\.(?:spec|test)\\.(?:ts|tsx|mts|cts)$",
+   "^(?:.*/)?(?:__tests__|__mocks__|test|tests)/.*$",
+   "^(?:.*/)?[Tt]est[A-Z._-][^/]*$"
+  ],
+  "aclPatterns": [],
+  "minTypes": 4
+ },
+ "components": [
+  {
+   "name": "domain",
+   "kind": "layer"
+  },
+  {
+   "name": "infrastructure",
+   "kind": "layer"
+  },
+  {
+   "name": "application",
+   "kind": "layer"
+  },
+  {
+   "name": "presentation",
+   "kind": "layer"
+  },
+  {
+   "name": "alias",
+   "kind": "folder"
+  },
+  {
+   "name": "api",
+   "kind": "folder"
+  },
+  {
+   "name": "api-token",
+   "kind": "folder"
+  },
+  {
+   "name": "auth",
+   "kind": "folder"
+  },
+  {
+   "name": "config",
+   "kind": "folder"
+  },
+  {
+   "name": "database",
+   "kind": "folder"
+  },
+  {
+   "name": "dtos",
+   "kind": "folder"
+  },
+  {
+   "name": "errors",
+   "kind": "folder"
+  },
+  {
+   "name": "explore",
+   "kind": "folder"
+  },
+  {
+   "name": "frontend-config",
+   "kind": "folder"
+  },
+  {
+   "name": "groups",
+   "kind": "folder"
+  },
+  {
+   "name": "logger",
+   "kind": "folder"
+  },
+  {
+   "name": "media",
+   "kind": "folder"
+  },
+  {
+   "name": "media-redirect",
+   "kind": "folder"
+  },
+  {
+   "name": "message",
+   "kind": "folder"
+  },
+  {
+   "name": "monitoring",
+   "kind": "folder"
+  },
+  {
+   "name": "notes",
+   "kind": "folder"
+  },
+  {
+   "name": "permissions",
+   "kind": "folder"
+  },
+  {
+   "name": "realtime",
+   "kind": "folder"
+  },
+  {
+   "name": "revisions",
+   "kind": "folder"
+  },
+  {
+   "name": "security",
+   "kind": "folder"
+  },
+  {
+   "name": "sessions",
+   "kind": "folder"
+  },
+  {
+   "name": "users",
+   "kind": "folder"
+  },
+  {
+   "name": "utils",
+   "kind": "folder"
+  }
+ ],
+ "parseCoverage": {
+  "total": 203,
+  "parsed": 203
+ },
+ "importResolution": {
+  "resolvedInternal": 631,
+  "external": 500,
+  "externalOutOfRootAlias": 0,
+  "unresolved": 0,
+  "droppedNoFileNode": 0,
+  "unsupportedDynamic": 0
+ },
+ "counts": {
+  "boundary-type-leak": 6,
+  "component-adp-cycle": 96,
+  "component-sdp-violation": 19,
+  "component-main-sequence-distance": 3,
+  "deep-import-declared-api": 0,
+  "deep-import-inferred-api": 0,
+  "undeclared-async-coupling": 0,
+  "io-outside-adapters": 67,
+  "nondeterminism-in-core": 11
+ },
+ "rows": {
+  "boundary-type-leak": [
+   {
+    "filePath": "src/api/private/media/media.controller.ts",
+    "member": "MediaController.uploadMedia",
+    "leakedType": "MulterFile",
+    "target": "src/media/multer-file.interface.ts",
+    "fromLayer": "presentation",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/api/private/media/media.controller.ts",
+    "_line": 82,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/api/public/media/media.controller.ts",
+    "member": "MediaController.uploadMedia",
+    "leakedType": "MulterFile",
+    "target": "src/media/multer-file.interface.ts",
+    "fromLayer": "presentation",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/api/public/media/media.controller.ts",
+    "_line": 78,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/media/media.service.ts",
+    "member": "MediaService.getFileResponse",
+    "leakedType": "MediaFileResponse",
+    "target": "src/media/media-response.interface.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "return"
+    ],
+    "inferred": false,
+    "_file": "src/media/media.service.ts",
+    "_line": 169,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/media/media.service.ts",
+    "member": "MediaService.getFileResponse",
+    "leakedType": "MediaRedirectResponse",
+    "target": "src/media/media-response.interface.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "return"
+    ],
+    "inferred": false,
+    "_file": "src/media/media.service.ts",
+    "_line": 169,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/realtime/realtime-note/realtime-note.service.ts",
+    "member": "RealtimeNoteService.getOrCreateRealtimeNote",
+    "leakedType": "RealtimeNote",
+    "target": "src/realtime/realtime-note/realtime-note.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "return"
+    ],
+    "inferred": false,
+    "_file": "src/realtime/realtime-note/realtime-note.service.ts",
+    "_line": 71,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/realtime/realtime-note/realtime-note.service.ts",
+    "member": "RealtimeNoteService.saveRealtimeNote",
+    "leakedType": "RealtimeNote",
+    "target": "src/realtime/realtime-note/realtime-note.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/realtime/realtime-note/realtime-note.service.ts",
+    "_line": 47,
+    "_importGraphSees": true
+   }
+  ],
+  "component-adp-cycle": [
+   {
+    "component": "alias",
+    "target": "config",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "alias",
+    "_file": "src/alias/alias.service.ts",
+    "_line": 14,
+    "_evidence": [
+     {
+      "file": "src/alias/alias.service.ts",
+      "target": "src/config/note.config.ts",
+      "line": 14
+     }
+    ]
+   },
+   {
+    "component": "alias",
+    "target": "errors",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "alias",
+    "_file": "src/alias/alias.service.ts",
+    "_line": 17,
+    "_evidence": [
+     {
+      "file": "src/alias/alias.service.ts",
+      "target": "src/errors/errors.ts",
+      "line": 17
+     }
+    ]
+   },
+   {
+    "component": "alias",
+    "target": "logger",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "alias",
+    "_file": "src/alias/alias.service.ts",
+    "_line": 24,
+    "_evidence": [
+     {
+      "file": "src/alias/alias.service.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 24
+     }
+    ]
+   },
+   {
+    "component": "api",
+    "target": "alias",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "api",
+    "_file": "src/api/private/private-api.module.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/api/private/private-api.module.ts",
+      "target": "src/alias/alias.module.ts",
+      "line": 8
+     },
+     {
+      "file": "src/api/public/public-api.module.ts",
+      "target": "src/alias/alias.module.ts",
+      "line": 8
+     },
+     {
+      "file": "src/api/private/alias/alias.controller.ts",
+      "target": "src/alias/alias.service.ts",
+      "line": 20
+     }
+    ]
+   },
+   {
+    "component": "api",
+    "target": "api-token",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "api",
+    "_file": "src/api/private/private-api.module.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/api/private/private-api.module.ts",
+      "target": "src/api-token/api-token.module.ts",
+      "line": 9
+     },
+     {
+      "file": "src/api/public/public-api.module.ts",
+      "target": "src/api-token/api-token.module.ts",
+      "line": 9
+     },
+     {
+      "file": "src/api/private/api-tokens/api-tokens.controller.ts",
+      "target": "src/api-token/api-token.service.ts",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "component": "api",
+    "target": "auth",
+    "kind": "folder",
+    "imports": 17,
+    "filePath": "api",
+    "_file": "src/api/private/private-api.module.ts",
+    "_line": 10,
+    "_evidence": [
+     {
+      "file": "src/api/private/private-api.module.ts",
+      "target": "src/auth/auth.module.ts",
+      "line": 10
+     },
+     {
+      "file": "src/api/private/alias/alias.controller.ts",
+      "target": "src/auth/session.guard.ts",
+      "line": 21
+     },
+     {
+      "file": "src/api/private/api-tokens/api-tokens.controller.ts",
+      "target": "src/auth/session.guard.ts",
+      "line": 12
+     }
+    ]
+   },
+   {
+    "component": "api",
+    "target": "config",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "api",
+    "_file": "src/api/private/notes/notes.controller.ts",
+    "_line": 24,
+    "_evidence": [
+     {
+      "file": "src/api/private/notes/notes.controller.ts",
+      "target": "src/config/note.config.ts",
+      "line": 24
+     },
+     {
+      "file": "src/api/utils/guards/guests-enabled.guard.ts",
+      "target": "src/config/note.config.ts",
+      "line": 9
+     },
+     {
+      "file": "src/api/utils/guards/login-enabled.guard.ts",
+      "target": "src/config/auth.config.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "component": "api",
+    "target": "errors",
+    "kind": "folder",
+    "imports": 9,
+    "filePath": "api",
+    "_file": "src/api/private/media/media.controller.ts",
+    "_line": 23,
+    "_evidence": [
+     {
+      "file": "src/api/private/media/media.controller.ts",
+      "target": "src/errors/errors.ts",
+      "line": 23
+     },
+     {
+      "file": "src/api/private/notes/notes.controller.ts",
+      "target": "src/errors/errors.ts",
+      "line": 38
+     },
+     {
+      "file": "src/api/public/media/media.controller.ts",
+      "target": "src/errors/errors.ts",
+      "line": 20
+     }
+    ]
+   },
+   {
+    "component": "api",
+    "target": "explore",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "api",
+    "_file": "src/api/private/private-api.module.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/api/private/private-api.module.ts",
+      "target": "src/explore/explore.module.ts",
+      "line": 11
+     },
+     {
+      "file": "src/api/private/explore/explore.controller.ts",
+      "target": "src/explore/explore.service.ts",
+      "line": 24
+     }
+    ]
+   },
+   {
+    "component": "api",
+    "target": "frontend-config",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "api",
+    "_file": "src/api/private/private-api.module.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/api/private/private-api.module.ts",
+      "target": "src/frontend-config/frontend-config.module.ts",
+      "line": 12
+     },
+     {
+      "file": "src/api/private/config/config.controller.ts",
+      "target": "src/frontend-config/frontend-config.service.ts",
+      "line": 10
+     }
+    ]
+   },
+   {
+    "component": "api",
+    "target": "groups",
+    "kind": "folder",
+    "imports": 5,
+    "filePath": "api",
+    "_file": "src/api/private/private-api.module.ts",
+    "_line": 13,
+    "_evidence": [
+     {
+      "file": "src/api/private/private-api.module.ts",
+      "target": "src/groups/groups.module.ts",
+      "line": 13
+     },
+     {
+      "file": "src/api/public/public-api.module.ts",
+      "target": "src/groups/groups.module.ts",
+      "line": 10
+     },
+     {
+      "file": "src/api/private/groups/groups.controller.ts",
+      "target": "src/groups/groups.service.ts",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "component": "api",
+    "target": "logger",
+    "kind": "folder",
+    "imports": 22,
+    "filePath": "api",
+    "_file": "src/api/private/alias/alias.controller.ts",
+    "_line": 24,
+    "_evidence": [
+     {
+      "file": "src/api/private/alias/alias.controller.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 24
+     },
+     {
+      "file": "src/api/private/api-tokens/api-tokens.controller.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 16
+     },
+     {
+      "file": "src/api/private/auth/auth.controller.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 27
+     }
+    ]
+   },
+   {
+    "component": "api",
+    "target": "media",
+    "kind": "folder",
+    "imports": 11,
+    "filePath": "api",
+    "_file": "src/api/private/private-api.module.ts",
+    "_line": 14,
+    "_evidence": [
+     {
+      "file": "src/api/private/private-api.module.ts",
+      "target": "src/media/media.module.ts",
+      "line": 14
+     },
+     {
+      "file": "src/api/public/public-api.module.ts",
+      "target": "src/media/media.module.ts",
+      "line": 11
+     },
+     {
+      "file": "src/api/private/me/me.controller.ts",
+      "target": "src/media/media.service.ts",
+      "line": 23
+     }
+    ]
+   },
+   {
+    "component": "api",
+    "target": "monitoring",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "api",
+    "_file": "src/api/public/public-api.module.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/api/public/public-api.module.ts",
+      "target": "src/monitoring/monitoring.module.ts",
+      "line": 12
+     },
+     {
+      "file": "src/api/public/monitoring/monitoring.controller.ts",
+      "target": "src/monitoring/monitoring.service.ts",
+      "line": 12
+     }
+    ]
+   },
+   {
+    "component": "api",
+    "target": "notes",
+    "kind": "folder",
+    "imports": 12,
+    "filePath": "api",
+    "_file": "src/api/private/private-api.module.ts",
+    "_line": 15,
+    "_evidence": [
+     {
+      "file": "src/api/private/private-api.module.ts",
+      "target": "src/notes/note.module.ts",
+      "line": 15
+     },
+     {
+      "file": "src/api/public/public-api.module.ts",
+      "target": "src/notes/note.module.ts",
+      "line": 13
+     },
+     {
+      "file": "src/api/utils/extract-note-id-from-request.ts",
+      "target": "src/notes/note.service.ts",
+      "line": 6
+     }
+    ]
+   },
+   {
+    "component": "api",
+    "target": "permissions",
+    "kind": "folder",
+    "imports": 17,
+    "filePath": "api",
+    "_file": "src/api/private/private-api.module.ts",
+    "_line": 16,
+    "_evidence": [
+     {
+      "file": "src/api/private/private-api.module.ts",
+      "target": "src/permissions/permissions.module.ts",
+      "line": 16
+     },
+     {
+      "file": "src/api/public/public-api.module.ts",
+      "target": "src/permissions/permissions.module.ts",
+      "line": 14
+     },
+     {
+      "file": "src/api/private/alias/alias.controller.ts",
+      "target": "src/permissions/permission.service.ts",
+      "line": 26
+     }
+    ]
+   },
+   {
+    "component": "api",
+    "target": "revisions",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "api",
+    "_file": "src/api/private/private-api.module.ts",
+    "_line": 17,
+    "_evidence": [
+     {
+      "file": "src/api/private/private-api.module.ts",
+      "target": "src/revisions/revisions.module.ts",
+      "line": 17
+     },
+     {
+      "file": "src/api/public/public-api.module.ts",
+      "target": "src/revisions/revisions.module.ts",
+      "line": 15
+     },
+     {
+      "file": "src/api/private/notes/notes.controller.ts",
+      "target": "src/revisions/revisions.service.ts",
+      "line": 47
+     }
+    ]
+   },
+   {
+    "component": "api",
+    "target": "sessions",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "api",
+    "_file": "src/api/utils/request.type.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/api/utils/request.type.ts",
+      "target": "src/sessions/session-state.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "component": "api",
+    "target": "users",
+    "kind": "folder",
+    "imports": 12,
+    "filePath": "api",
+    "_file": "src/api/private/private-api.module.ts",
+    "_line": 18,
+    "_evidence": [
+     {
+      "file": "src/api/private/private-api.module.ts",
+      "target": "src/users/users.module.ts",
+      "line": 18
+     },
+     {
+      "file": "src/api/public/public-api.module.ts",
+      "target": "src/users/users.module.ts",
+      "line": 16
+     },
+     {
+      "file": "src/api/private/me/me.controller.ts",
+      "target": "src/users/users.service.ts",
+      "line": 24
+     }
+    ]
+   },
+   {
+    "component": "api",
+    "target": "utils",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "api",
+    "_file": "src/api/private/api-tokens/api-tokens.controller.ts",
+    "_line": 17,
+    "_evidence": [
+     {
+      "file": "src/api/private/api-tokens/api-tokens.controller.ts",
+      "target": "src/utils/datetime.ts",
+      "line": 17
+     }
+    ]
+   },
+   {
+    "component": "api-token",
+    "target": "api",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "api-token",
+    "_file": "src/api-token/api-token.module.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/api-token/api-token.module.ts",
+      "target": "src/api/utils/guards/api-token.guard.ts",
+      "line": 8
+     },
+     {
+      "file": "src/api-token/api-token.module.ts",
+      "target": "src/api/utils/guards/mock-api-token.guard.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "component": "api-token",
+    "target": "errors",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "api-token",
+    "_file": "src/api-token/api-token.service.ts",
+    "_line": 16,
+    "_evidence": [
+     {
+      "file": "src/api-token/api-token.service.ts",
+      "target": "src/errors/errors.ts",
+      "line": 16
+     }
+    ]
+   },
+   {
+    "component": "api-token",
+    "target": "logger",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "api-token",
+    "_file": "src/api-token/api-token.service.ts",
+    "_line": 17,
+    "_evidence": [
+     {
+      "file": "src/api-token/api-token.service.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 17
+     }
+    ]
+   },
+   {
+    "component": "api-token",
+    "target": "users",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "api-token",
+    "_file": "src/api-token/api-token.module.ts",
+    "_line": 10,
+    "_evidence": [
+     {
+      "file": "src/api-token/api-token.module.ts",
+      "target": "src/users/users.module.ts",
+      "line": 10
+     }
+    ]
+   },
+   {
+    "component": "api-token",
+    "target": "utils",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "api-token",
+    "_file": "src/api-token/api-token.service.ts",
+    "_line": 18,
+    "_evidence": [
+     {
+      "file": "src/api-token/api-token.service.ts",
+      "target": "src/utils/datetime.ts",
+      "line": 18
+     },
+     {
+      "file": "src/api-token/api-token.service.ts",
+      "target": "src/utils/password.ts",
+      "line": 24
+     }
+    ]
+   },
+   {
+    "component": "auth",
+    "target": "api",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "auth",
+    "_file": "src/auth/session.guard.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/auth/session.guard.ts",
+      "target": "src/api/utils/request.type.ts",
+      "line": 8
+     },
+     {
+      "file": "src/auth/oidc/oidc.service.ts",
+      "target": "src/api/utils/request.type.ts",
+      "line": 20
+     }
+    ]
+   },
+   {
+    "component": "auth",
+    "target": "config",
+    "kind": "folder",
+    "imports": 5,
+    "filePath": "auth",
+    "_file": "src/auth/identity.service.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/auth/identity.service.ts",
+      "target": "src/config/auth.config.ts",
+      "line": 12
+     },
+     {
+      "file": "src/auth/ldap/ldap.service.ts",
+      "target": "src/config/auth.config.ts",
+      "line": 16
+     },
+     {
+      "file": "src/auth/local/local.service.ts",
+      "target": "src/config/auth.config.ts",
+      "line": 18
+     }
+    ]
+   },
+   {
+    "component": "auth",
+    "target": "errors",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "auth",
+    "_file": "src/auth/identity.service.ts",
+    "_line": 15,
+    "_evidence": [
+     {
+      "file": "src/auth/identity.service.ts",
+      "target": "src/errors/errors.ts",
+      "line": 15
+     },
+     {
+      "file": "src/auth/local/local.service.ts",
+      "target": "src/errors/errors.ts",
+      "line": 19
+     },
+     {
+      "file": "src/auth/oidc/oidc.service.ts",
+      "target": "src/errors/errors.ts",
+      "line": 24
+     }
+    ]
+   },
+   {
+    "component": "auth",
+    "target": "logger",
+    "kind": "folder",
+    "imports": 5,
+    "filePath": "auth",
+    "_file": "src/auth/identity.service.ts",
+    "_line": 16,
+    "_evidence": [
+     {
+      "file": "src/auth/identity.service.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 16
+     },
+     {
+      "file": "src/auth/session.guard.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 9
+     },
+     {
+      "file": "src/auth/ldap/ldap.service.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 18
+     }
+    ]
+   },
+   {
+    "component": "auth",
+    "target": "sessions",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "auth",
+    "_file": "src/auth/auth.module.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/auth/auth.module.ts",
+      "target": "src/sessions/session.module.ts",
+      "line": 8
+     },
+     {
+      "file": "src/auth/oidc/oidc.service.ts",
+      "target": "src/sessions/session.service.ts",
+      "line": 27
+     }
+    ]
+   },
+   {
+    "component": "auth",
+    "target": "users",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "auth",
+    "_file": "src/auth/auth.module.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/auth/auth.module.ts",
+      "target": "src/users/users.module.ts",
+      "line": 9
+     },
+     {
+      "file": "src/auth/identity.service.ts",
+      "target": "src/users/users.service.ts",
+      "line": 17
+     }
+    ]
+   },
+   {
+    "component": "auth",
+    "target": "utils",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "auth",
+    "_file": "src/auth/identity.service.ts",
+    "_line": 18,
+    "_evidence": [
+     {
+      "file": "src/auth/identity.service.ts",
+      "target": "src/utils/datetime.ts",
+      "line": 18
+     },
+     {
+      "file": "src/auth/local/local.service.ts",
+      "target": "src/utils/datetime.ts",
+      "line": 21
+     },
+     {
+      "file": "src/auth/local/local.service.ts",
+      "target": "src/utils/password.ts",
+      "line": 22
+     }
+    ]
+   },
+   {
+    "component": "config",
+    "target": "database",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "config",
+    "_file": "src/config/database.config.ts",
+    "_line": 20,
+    "_evidence": [
+     {
+      "file": "src/config/database.config.ts",
+      "target": "src/database/utils/healthcheck.ts",
+      "line": 20
+     }
+    ]
+   },
+   {
+    "component": "database",
+    "target": "revisions",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "database",
+    "_file": "src/database/seeds/03_note.ts",
+    "_line": 27,
+    "_evidence": [
+     {
+      "file": "src/database/seeds/03_note.ts",
+      "target": "src/revisions/utils/extract-revision-metadata-from-content.ts",
+      "line": 27
+     }
+    ]
+   },
+   {
+    "component": "database",
+    "target": "utils",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "database",
+    "_file": "src/database/seeds/01_user.ts",
+    "_line": 10,
+    "_evidence": [
+     {
+      "file": "src/database/seeds/01_user.ts",
+      "target": "src/utils/datetime.ts",
+      "line": 10
+     },
+     {
+      "file": "src/database/seeds/01_user.ts",
+      "target": "src/utils/password.ts",
+      "line": 11
+     },
+     {
+      "file": "src/database/seeds/02_api_token.ts",
+      "target": "src/utils/datetime.ts",
+      "line": 10
+     }
+    ]
+   },
+   {
+    "component": "errors",
+    "target": "logger",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "errors",
+    "_file": "src/errors/error-mapping.ts",
+    "_line": 23,
+    "_evidence": [
+     {
+      "file": "src/errors/error-mapping.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 23
+     }
+    ]
+   },
+   {
+    "component": "explore",
+    "target": "groups",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "explore",
+    "_file": "src/explore/explore.module.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/explore/explore.module.ts",
+      "target": "src/groups/groups.module.ts",
+      "line": 8
+     },
+     {
+      "file": "src/explore/explore.service.ts",
+      "target": "src/groups/groups.service.ts",
+      "line": 32
+     }
+    ]
+   },
+   {
+    "component": "explore",
+    "target": "logger",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "explore",
+    "_file": "src/explore/explore.service.ts",
+    "_line": 33,
+    "_evidence": [
+     {
+      "file": "src/explore/explore.service.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 33
+     }
+    ]
+   },
+   {
+    "component": "explore",
+    "target": "permissions",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "explore",
+    "_file": "src/explore/explore.module.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/explore/explore.module.ts",
+      "target": "src/permissions/permissions.module.ts",
+      "line": 9
+     },
+     {
+      "file": "src/explore/explore.service.ts",
+      "target": "src/permissions/permission.service.ts",
+      "line": 34
+     }
+    ]
+   },
+   {
+    "component": "explore",
+    "target": "revisions",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "explore",
+    "_file": "src/explore/explore.module.ts",
+    "_line": 10,
+    "_evidence": [
+     {
+      "file": "src/explore/explore.module.ts",
+      "target": "src/revisions/revisions.module.ts",
+      "line": 10
+     },
+     {
+      "file": "src/explore/explore.service.ts",
+      "target": "src/revisions/revisions.service.ts",
+      "line": 35
+     }
+    ]
+   },
+   {
+    "component": "frontend-config",
+    "target": "config",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "frontend-config",
+    "_file": "src/frontend-config/frontend-config.service.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/frontend-config/frontend-config.service.ts",
+      "target": "src/config/auth.config.ts",
+      "line": 11
+     },
+     {
+      "file": "src/frontend-config/frontend-config.service.ts",
+      "target": "src/config/customization.config.ts",
+      "line": 13
+     },
+     {
+      "file": "src/frontend-config/frontend-config.service.ts",
+      "target": "src/config/external-services.config.ts",
+      "line": 15
+     }
+    ]
+   },
+   {
+    "component": "frontend-config",
+    "target": "logger",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "frontend-config",
+    "_file": "src/frontend-config/frontend-config.service.ts",
+    "_line": 22,
+    "_evidence": [
+     {
+      "file": "src/frontend-config/frontend-config.service.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 22
+     }
+    ]
+   },
+   {
+    "component": "frontend-config",
+    "target": "utils",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "frontend-config",
+    "_file": "src/frontend-config/frontend-config.service.ts",
+    "_line": 23,
+    "_evidence": [
+     {
+      "file": "src/frontend-config/frontend-config.service.ts",
+      "target": "src/utils/server-version.ts",
+      "line": 23
+     }
+    ]
+   },
+   {
+    "component": "groups",
+    "target": "errors",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "groups",
+    "_file": "src/groups/groups.service.ts",
+    "_line": 19,
+    "_evidence": [
+     {
+      "file": "src/groups/groups.service.ts",
+      "target": "src/errors/errors.ts",
+      "line": 19
+     }
+    ]
+   },
+   {
+    "component": "groups",
+    "target": "logger",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "groups",
+    "_file": "src/groups/groups.service.ts",
+    "_line": 20,
+    "_evidence": [
+     {
+      "file": "src/groups/groups.service.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 20
+     }
+    ]
+   },
+   {
+    "component": "groups",
+    "target": "users",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "groups",
+    "_file": "src/groups/groups.module.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/groups/groups.module.ts",
+      "target": "src/users/users.module.ts",
+      "line": 8
+     },
+     {
+      "file": "src/groups/groups.service.ts",
+      "target": "src/users/users.service.ts",
+      "line": 21
+     }
+    ]
+   },
+   {
+    "component": "logger",
+    "target": "config",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "logger",
+    "_file": "src/logger/console-logger.service.ts",
+    "_line": 10,
+    "_evidence": [
+     {
+      "file": "src/logger/console-logger.service.ts",
+      "target": "src/config/app.config.ts",
+      "line": 10
+     },
+     {
+      "file": "src/logger/console-logger.service.ts",
+      "target": "src/config/loglevel.enum.ts",
+      "line": 11
+     },
+     {
+      "file": "src/logger/console-logger.service.ts",
+      "target": "src/config/utils.ts",
+      "line": 12
+     }
+    ]
+   },
+   {
+    "component": "logger",
+    "target": "utils",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "logger",
+    "_file": "src/logger/console-logger.service.ts",
+    "_line": 13,
+    "_evidence": [
+     {
+      "file": "src/logger/console-logger.service.ts",
+      "target": "src/utils/dev-mode.ts",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "component": "media",
+    "target": "config",
+    "kind": "folder",
+    "imports": 6,
+    "filePath": "media",
+    "_file": "src/media/media.service.ts",
+    "_line": 25,
+    "_evidence": [
+     {
+      "file": "src/media/media.service.ts",
+      "target": "src/config/media.config.ts",
+      "line": 25
+     },
+     {
+      "file": "src/media/backends/azure-backend.ts",
+      "target": "src/config/media.config.ts",
+      "line": 17
+     },
+     {
+      "file": "src/media/backends/filesystem-backend.ts",
+      "target": "src/config/media.config.ts",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "component": "media",
+    "target": "errors",
+    "kind": "folder",
+    "imports": 6,
+    "filePath": "media",
+    "_file": "src/media/media.service.ts",
+    "_line": 27,
+    "_evidence": [
+     {
+      "file": "src/media/media.service.ts",
+      "target": "src/errors/errors.ts",
+      "line": 27
+     },
+     {
+      "file": "src/media/backends/azure-backend.ts",
+      "target": "src/errors/errors.ts",
+      "line": 18
+     },
+     {
+      "file": "src/media/backends/filesystem-backend.ts",
+      "target": "src/errors/errors.ts",
+      "line": 12
+     }
+    ]
+   },
+   {
+    "component": "media",
+    "target": "logger",
+    "kind": "folder",
+    "imports": 6,
+    "filePath": "media",
+    "_file": "src/media/media.service.ts",
+    "_line": 28,
+    "_evidence": [
+     {
+      "file": "src/media/media.service.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 28
+     },
+     {
+      "file": "src/media/backends/azure-backend.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 19
+     },
+     {
+      "file": "src/media/backends/filesystem-backend.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "component": "media",
+    "target": "permissions",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "media",
+    "_file": "src/media/media.module.ts",
+    "_line": 14,
+    "_evidence": [
+     {
+      "file": "src/media/media.module.ts",
+      "target": "src/permissions/permissions.module.ts",
+      "line": 14
+     },
+     {
+      "file": "src/media/media.service.ts",
+      "target": "src/permissions/permission.service.ts",
+      "line": 29
+     }
+    ]
+   },
+   {
+    "component": "media",
+    "target": "utils",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "media",
+    "_file": "src/media/media.service.ts",
+    "_line": 30,
+    "_evidence": [
+     {
+      "file": "src/media/media.service.ts",
+      "target": "src/utils/datetime.ts",
+      "line": 30
+     }
+    ]
+   },
+   {
+    "component": "monitoring",
+    "target": "database",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "monitoring",
+    "_file": "src/monitoring/monitoring.service.ts",
+    "_line": 13,
+    "_evidence": [
+     {
+      "file": "src/monitoring/monitoring.service.ts",
+      "target": "src/database/utils/healthcheck.ts",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "component": "monitoring",
+    "target": "logger",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "monitoring",
+    "_file": "src/monitoring/monitoring.module.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/monitoring/monitoring.module.ts",
+      "target": "src/logger/logger.module.ts",
+      "line": 8
+     },
+     {
+      "file": "src/monitoring/monitoring.service.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "component": "monitoring",
+    "target": "utils",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "monitoring",
+    "_file": "src/monitoring/monitoring.service.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/monitoring/monitoring.service.ts",
+      "target": "src/utils/server-version.ts",
+      "line": 12
+     }
+    ]
+   },
+   {
+    "component": "notes",
+    "target": "alias",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "notes",
+    "_file": "src/notes/note.module.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/notes/note.module.ts",
+      "target": "src/alias/alias.module.ts",
+      "line": 8
+     },
+     {
+      "file": "src/notes/note.service.ts",
+      "target": "src/alias/alias.service.ts",
+      "line": 23
+     }
+    ]
+   },
+   {
+    "component": "notes",
+    "target": "config",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "notes",
+    "_file": "src/notes/note.service.ts",
+    "_line": 24,
+    "_evidence": [
+     {
+      "file": "src/notes/note.service.ts",
+      "target": "src/config/note.config.ts",
+      "line": 24
+     }
+    ]
+   },
+   {
+    "component": "notes",
+    "target": "errors",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "notes",
+    "_file": "src/notes/note.service.ts",
+    "_line": 27,
+    "_evidence": [
+     {
+      "file": "src/notes/note.service.ts",
+      "target": "src/errors/errors.ts",
+      "line": 27
+     }
+    ]
+   },
+   {
+    "component": "notes",
+    "target": "groups",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "notes",
+    "_file": "src/notes/note.module.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/notes/note.module.ts",
+      "target": "src/groups/groups.module.ts",
+      "line": 9
+     },
+     {
+      "file": "src/notes/note.service.ts",
+      "target": "src/groups/groups.service.ts",
+      "line": 34
+     }
+    ]
+   },
+   {
+    "component": "notes",
+    "target": "logger",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "notes",
+    "_file": "src/notes/note.service.ts",
+    "_line": 35,
+    "_evidence": [
+     {
+      "file": "src/notes/note.service.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 35
+     }
+    ]
+   },
+   {
+    "component": "notes",
+    "target": "permissions",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "notes",
+    "_file": "src/notes/note.module.ts",
+    "_line": 10,
+    "_evidence": [
+     {
+      "file": "src/notes/note.module.ts",
+      "target": "src/permissions/permissions.module.ts",
+      "line": 10
+     },
+     {
+      "file": "src/notes/note.service.ts",
+      "target": "src/permissions/permission.service.ts",
+      "line": 36
+     }
+    ]
+   },
+   {
+    "component": "notes",
+    "target": "realtime",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "notes",
+    "_file": "src/notes/note.module.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/notes/note.module.ts",
+      "target": "src/realtime/realtime-note/realtime-note.module.ts",
+      "line": 11
+     },
+     {
+      "file": "src/notes/note.service.ts",
+      "target": "src/realtime/realtime-note/realtime-note-store.ts",
+      "line": 37
+     }
+    ]
+   },
+   {
+    "component": "notes",
+    "target": "revisions",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "notes",
+    "_file": "src/notes/note.module.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/notes/note.module.ts",
+      "target": "src/revisions/revisions.module.ts",
+      "line": 12
+     },
+     {
+      "file": "src/notes/note.service.ts",
+      "target": "src/revisions/revisions.service.ts",
+      "line": 38
+     }
+    ]
+   },
+   {
+    "component": "notes",
+    "target": "users",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "notes",
+    "_file": "src/notes/note.module.ts",
+    "_line": 13,
+    "_evidence": [
+     {
+      "file": "src/notes/note.module.ts",
+      "target": "src/users/users.module.ts",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "component": "notes",
+    "target": "utils",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "notes",
+    "_file": "src/notes/note.service.ts",
+    "_line": 39,
+    "_evidence": [
+     {
+      "file": "src/notes/note.service.ts",
+      "target": "src/utils/datetime.ts",
+      "line": 39
+     }
+    ]
+   },
+   {
+    "component": "permissions",
+    "target": "api",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "permissions",
+    "_file": "src/permissions/permissions.guard.ts",
+    "_line": 10,
+    "_evidence": [
+     {
+      "file": "src/permissions/permissions.guard.ts",
+      "target": "src/api/utils/extract-note-id-from-request.ts",
+      "line": 10
+     },
+     {
+      "file": "src/permissions/permissions.guard.ts",
+      "target": "src/api/utils/request.type.ts",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "component": "permissions",
+    "target": "config",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "permissions",
+    "_file": "src/permissions/permission.service.ts",
+    "_line": 32,
+    "_evidence": [
+     {
+      "file": "src/permissions/permission.service.ts",
+      "target": "src/config/note.config.ts",
+      "line": 32
+     }
+    ]
+   },
+   {
+    "component": "permissions",
+    "target": "errors",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "permissions",
+    "_file": "src/permissions/permission.service.ts",
+    "_line": 34,
+    "_evidence": [
+     {
+      "file": "src/permissions/permission.service.ts",
+      "target": "src/errors/errors.ts",
+      "line": 34
+     }
+    ]
+   },
+   {
+    "component": "permissions",
+    "target": "groups",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "permissions",
+    "_file": "src/permissions/permission.service.ts",
+    "_line": 36,
+    "_evidence": [
+     {
+      "file": "src/permissions/permission.service.ts",
+      "target": "src/groups/groups.service.ts",
+      "line": 36
+     },
+     {
+      "file": "src/permissions/permissions.module.ts",
+      "target": "src/groups/groups.module.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "component": "permissions",
+    "target": "logger",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "permissions",
+    "_file": "src/permissions/permission.service.ts",
+    "_line": 37,
+    "_evidence": [
+     {
+      "file": "src/permissions/permission.service.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 37
+     },
+     {
+      "file": "src/permissions/permissions.guard.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 12
+     }
+    ]
+   },
+   {
+    "component": "permissions",
+    "target": "notes",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "permissions",
+    "_file": "src/permissions/permissions.guard.ts",
+    "_line": 13,
+    "_evidence": [
+     {
+      "file": "src/permissions/permissions.guard.ts",
+      "target": "src/notes/note.service.ts",
+      "line": 13
+     },
+     {
+      "file": "src/permissions/permissions.module.ts",
+      "target": "src/notes/note.module.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "component": "permissions",
+    "target": "users",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "permissions",
+    "_file": "src/permissions/permission.service.ts",
+    "_line": 38,
+    "_evidence": [
+     {
+      "file": "src/permissions/permission.service.ts",
+      "target": "src/users/users.service.ts",
+      "line": 38
+     },
+     {
+      "file": "src/permissions/permissions.module.ts",
+      "target": "src/users/users.module.ts",
+      "line": 10
+     }
+    ]
+   },
+   {
+    "component": "realtime",
+    "target": "alias",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "realtime",
+    "_file": "src/realtime/websocket/websocket.module.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/realtime/websocket/websocket.module.ts",
+      "target": "src/alias/alias.module.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "component": "realtime",
+    "target": "config",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "realtime",
+    "_file": "src/realtime/realtime-note/realtime-note.service.ts",
+    "_line": 13,
+    "_evidence": [
+     {
+      "file": "src/realtime/realtime-note/realtime-note.service.ts",
+      "target": "src/config/note.config.ts",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "component": "realtime",
+    "target": "logger",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "realtime",
+    "_file": "src/realtime/realtime-note/realtime-note.service.ts",
+    "_line": 15,
+    "_evidence": [
+     {
+      "file": "src/realtime/realtime-note/realtime-note.service.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 15
+     },
+     {
+      "file": "src/realtime/websocket/websocket.gateway.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 17
+     }
+    ]
+   },
+   {
+    "component": "realtime",
+    "target": "notes",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "realtime",
+    "_file": "src/realtime/websocket/websocket.gateway.ts",
+    "_line": 18,
+    "_evidence": [
+     {
+      "file": "src/realtime/websocket/websocket.gateway.ts",
+      "target": "src/notes/note.service.ts",
+      "line": 18
+     },
+     {
+      "file": "src/realtime/websocket/websocket.module.ts",
+      "target": "src/notes/note.module.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "component": "realtime",
+    "target": "permissions",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "realtime",
+    "_file": "src/realtime/realtime-note/realtime-note.module.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/realtime/realtime-note/realtime-note.module.ts",
+      "target": "src/permissions/permissions.module.ts",
+      "line": 9
+     },
+     {
+      "file": "src/realtime/realtime-note/realtime-note.service.ts",
+      "target": "src/permissions/permission.service.ts",
+      "line": 16
+     },
+     {
+      "file": "src/realtime/websocket/websocket.gateway.ts",
+      "target": "src/permissions/permission.service.ts",
+      "line": 19
+     }
+    ]
+   },
+   {
+    "component": "realtime",
+    "target": "revisions",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "realtime",
+    "_file": "src/realtime/realtime-note/realtime-note.module.ts",
+    "_line": 10,
+    "_evidence": [
+     {
+      "file": "src/realtime/realtime-note/realtime-note.module.ts",
+      "target": "src/revisions/revisions.module.ts",
+      "line": 10
+     },
+     {
+      "file": "src/realtime/realtime-note/realtime-note.service.ts",
+      "target": "src/revisions/revisions.service.ts",
+      "line": 17
+     }
+    ]
+   },
+   {
+    "component": "realtime",
+    "target": "sessions",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "realtime",
+    "_file": "src/realtime/realtime-note/realtime-note.module.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/realtime/realtime-note/realtime-note.module.ts",
+      "target": "src/sessions/session.module.ts",
+      "line": 11
+     },
+     {
+      "file": "src/realtime/websocket/websocket.gateway.ts",
+      "target": "src/sessions/session.service.ts",
+      "line": 20
+     },
+     {
+      "file": "src/realtime/websocket/websocket.module.ts",
+      "target": "src/sessions/session.module.ts",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "component": "realtime",
+    "target": "users",
+    "kind": "folder",
+    "imports": 3,
+    "filePath": "realtime",
+    "_file": "src/realtime/realtime-note/realtime-note.module.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/realtime/realtime-note/realtime-note.module.ts",
+      "target": "src/users/users.module.ts",
+      "line": 12
+     },
+     {
+      "file": "src/realtime/websocket/websocket.gateway.ts",
+      "target": "src/users/users.service.ts",
+      "line": 21
+     },
+     {
+      "file": "src/realtime/websocket/websocket.module.ts",
+      "target": "src/users/users.module.ts",
+      "line": 12
+     }
+    ]
+   },
+   {
+    "component": "revisions",
+    "target": "alias",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "revisions",
+    "_file": "src/revisions/revisions.module.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/revisions/revisions.module.ts",
+      "target": "src/alias/alias.module.ts",
+      "line": 8
+     },
+     {
+      "file": "src/revisions/revisions.service.ts",
+      "target": "src/alias/alias.service.ts",
+      "line": 29
+     }
+    ]
+   },
+   {
+    "component": "revisions",
+    "target": "config",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "revisions",
+    "_file": "src/revisions/revisions.service.ts",
+    "_line": 30,
+    "_evidence": [
+     {
+      "file": "src/revisions/revisions.service.ts",
+      "target": "src/config/note.config.ts",
+      "line": 30
+     }
+    ]
+   },
+   {
+    "component": "revisions",
+    "target": "errors",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "revisions",
+    "_file": "src/revisions/revisions.service.ts",
+    "_line": 33,
+    "_evidence": [
+     {
+      "file": "src/revisions/revisions.service.ts",
+      "target": "src/errors/errors.ts",
+      "line": 33
+     }
+    ]
+   },
+   {
+    "component": "revisions",
+    "target": "logger",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "revisions",
+    "_file": "src/revisions/revisions.service.ts",
+    "_line": 34,
+    "_evidence": [
+     {
+      "file": "src/revisions/revisions.service.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 34
+     }
+    ]
+   },
+   {
+    "component": "revisions",
+    "target": "utils",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "revisions",
+    "_file": "src/revisions/revisions.service.ts",
+    "_line": 35,
+    "_evidence": [
+     {
+      "file": "src/revisions/revisions.service.ts",
+      "target": "src/utils/datetime.ts",
+      "line": 35
+     }
+    ]
+   },
+   {
+    "component": "sessions",
+    "target": "config",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "sessions",
+    "_file": "src/sessions/session.service.ts",
+    "_line": 13,
+    "_evidence": [
+     {
+      "file": "src/sessions/session.service.ts",
+      "target": "src/config/auth.config.ts",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "component": "sessions",
+    "target": "logger",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "sessions",
+    "_file": "src/sessions/session.service.ts",
+    "_line": 14,
+    "_evidence": [
+     {
+      "file": "src/sessions/session.service.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 14
+     }
+    ]
+   },
+   {
+    "component": "sessions",
+    "target": "utils",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "sessions",
+    "_file": "src/sessions/knex-session-store.ts",
+    "_line": 10,
+    "_evidence": [
+     {
+      "file": "src/sessions/knex-session-store.ts",
+      "target": "src/utils/datetime.ts",
+      "line": 10
+     },
+     {
+      "file": "src/sessions/session.service.ts",
+      "target": "src/utils/session.ts",
+      "line": 15
+     }
+    ]
+   },
+   {
+    "component": "users",
+    "target": "errors",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "users",
+    "_file": "src/users/users.service.ts",
+    "_line": 16,
+    "_evidence": [
+     {
+      "file": "src/users/users.service.ts",
+      "target": "src/errors/errors.ts",
+      "line": 16
+     }
+    ]
+   },
+   {
+    "component": "users",
+    "target": "logger",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "users",
+    "_file": "src/users/users.service.ts",
+    "_line": 17,
+    "_evidence": [
+     {
+      "file": "src/users/users.service.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 17
+     }
+    ]
+   },
+   {
+    "component": "users",
+    "target": "utils",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "users",
+    "_file": "src/users/users.service.ts",
+    "_line": 18,
+    "_evidence": [
+     {
+      "file": "src/users/users.service.ts",
+      "target": "src/utils/datetime.ts",
+      "line": 18
+     }
+    ]
+   },
+   {
+    "component": "utils",
+    "target": "api",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "utils",
+    "_file": "src/utils/swagger.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/utils/swagger.ts",
+      "target": "src/api/private/private-api.module.ts",
+      "line": 9
+     },
+     {
+      "file": "src/utils/swagger.ts",
+      "target": "src/api/public/public-api.module.ts",
+      "line": 10
+     }
+    ]
+   },
+   {
+    "component": "utils",
+    "target": "config",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "utils",
+    "_file": "src/utils/session.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/utils/session.ts",
+      "target": "src/config/auth.config.ts",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "component": "utils",
+    "target": "logger",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "utils",
+    "_file": "src/utils/setup-pipes.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/utils/setup-pipes.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "component": "utils",
+    "target": "sessions",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "utils",
+    "_file": "src/utils/session.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/utils/session.ts",
+      "target": "src/sessions/knex-session-store.ts",
+      "line": 12
+     }
+    ]
+   }
+  ],
+  "component-sdp-violation": [
+   {
+    "component": "api-token",
+    "target": "api",
+    "kind": "folder",
+    "fromInstability": 0.333,
+    "toInstability": 0.821,
+    "filePath": "api-token",
+    "_file": "src/api-token/api-token.module.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/api-token/api-token.module.ts",
+      "target": "src/api/utils/guards/api-token.guard.ts",
+      "line": 8
+     },
+     {
+      "file": "src/api-token/api-token.module.ts",
+      "target": "src/api/utils/guards/mock-api-token.guard.ts",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "component": "auth",
+    "target": "api",
+    "kind": "folder",
+    "fromInstability": 0.333,
+    "toInstability": 0.821,
+    "filePath": "auth",
+    "_file": "src/auth/session.guard.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/auth/session.guard.ts",
+      "target": "src/api/utils/request.type.ts",
+      "line": 8
+     },
+     {
+      "file": "src/auth/oidc/oidc.service.ts",
+      "target": "src/api/utils/request.type.ts",
+      "line": 20
+     }
+    ]
+   },
+   {
+    "component": "config",
+    "target": "database",
+    "kind": "folder",
+    "fromInstability": 0.038,
+    "toInstability": 0.6,
+    "filePath": "config",
+    "_file": "src/config/database.config.ts",
+    "_line": 20,
+    "_evidence": [
+     {
+      "file": "src/config/database.config.ts",
+      "target": "src/database/utils/healthcheck.ts",
+      "line": 20
+     }
+    ]
+   },
+   {
+    "component": "logger",
+    "target": "config",
+    "kind": "folder",
+    "fromInstability": 0.019,
+    "toInstability": 0.038,
+    "filePath": "logger",
+    "_file": "src/logger/console-logger.service.ts",
+    "_line": 10,
+    "_evidence": [
+     {
+      "file": "src/logger/console-logger.service.ts",
+      "target": "src/config/app.config.ts",
+      "line": 10
+     },
+     {
+      "file": "src/logger/console-logger.service.ts",
+      "target": "src/config/loglevel.enum.ts",
+      "line": 11
+     },
+     {
+      "file": "src/logger/console-logger.service.ts",
+      "target": "src/config/utils.ts",
+      "line": 12
+     }
+    ]
+   },
+   {
+    "component": "logger",
+    "target": "utils",
+    "kind": "folder",
+    "fromInstability": 0.019,
+    "toInstability": 0.19,
+    "filePath": "logger",
+    "_file": "src/logger/console-logger.service.ts",
+    "_line": 13,
+    "_evidence": [
+     {
+      "file": "src/logger/console-logger.service.ts",
+      "target": "src/utils/dev-mode.ts",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "component": "monitoring",
+    "target": "database",
+    "kind": "folder",
+    "fromInstability": 0.5,
+    "toInstability": 0.6,
+    "filePath": "monitoring",
+    "_file": "src/monitoring/monitoring.service.ts",
+    "_line": 13,
+    "_evidence": [
+     {
+      "file": "src/monitoring/monitoring.service.ts",
+      "target": "src/database/utils/healthcheck.ts",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "component": "notes",
+    "target": "groups",
+    "kind": "folder",
+    "fromInstability": 0.111,
+    "toInstability": 0.154,
+    "filePath": "notes",
+    "_file": "src/notes/note.module.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/notes/note.module.ts",
+      "target": "src/groups/groups.module.ts",
+      "line": 9
+     },
+     {
+      "file": "src/notes/note.service.ts",
+      "target": "src/groups/groups.service.ts",
+      "line": 34
+     }
+    ]
+   },
+   {
+    "component": "notes",
+    "target": "permissions",
+    "kind": "folder",
+    "fromInstability": 0.111,
+    "toInstability": 0.143,
+    "filePath": "notes",
+    "_file": "src/notes/note.module.ts",
+    "_line": 10,
+    "_evidence": [
+     {
+      "file": "src/notes/note.module.ts",
+      "target": "src/permissions/permissions.module.ts",
+      "line": 10
+     },
+     {
+      "file": "src/notes/note.service.ts",
+      "target": "src/permissions/permission.service.ts",
+      "line": 36
+     }
+    ]
+   },
+   {
+    "component": "notes",
+    "target": "realtime",
+    "kind": "folder",
+    "fromInstability": 0.111,
+    "toInstability": 0.667,
+    "filePath": "notes",
+    "_file": "src/notes/note.module.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/notes/note.module.ts",
+      "target": "src/realtime/realtime-note/realtime-note.module.ts",
+      "line": 11
+     },
+     {
+      "file": "src/notes/note.service.ts",
+      "target": "src/realtime/realtime-note/realtime-note-store.ts",
+      "line": 37
+     }
+    ]
+   },
+   {
+    "component": "notes",
+    "target": "revisions",
+    "kind": "folder",
+    "fromInstability": 0.111,
+    "toInstability": 0.154,
+    "filePath": "notes",
+    "_file": "src/notes/note.module.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/notes/note.module.ts",
+      "target": "src/revisions/revisions.module.ts",
+      "line": 12
+     },
+     {
+      "file": "src/notes/note.service.ts",
+      "target": "src/revisions/revisions.service.ts",
+      "line": 38
+     }
+    ]
+   },
+   {
+    "component": "notes",
+    "target": "utils",
+    "kind": "folder",
+    "fromInstability": 0.111,
+    "toInstability": 0.19,
+    "filePath": "notes",
+    "_file": "src/notes/note.service.ts",
+    "_line": 39,
+    "_evidence": [
+     {
+      "file": "src/notes/note.service.ts",
+      "target": "src/utils/datetime.ts",
+      "line": 39
+     }
+    ]
+   },
+   {
+    "component": "permissions",
+    "target": "api",
+    "kind": "folder",
+    "fromInstability": 0.143,
+    "toInstability": 0.821,
+    "filePath": "permissions",
+    "_file": "src/permissions/permissions.guard.ts",
+    "_line": 10,
+    "_evidence": [
+     {
+      "file": "src/permissions/permissions.guard.ts",
+      "target": "src/api/utils/extract-note-id-from-request.ts",
+      "line": 10
+     },
+     {
+      "file": "src/permissions/permissions.guard.ts",
+      "target": "src/api/utils/request.type.ts",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "component": "permissions",
+    "target": "groups",
+    "kind": "folder",
+    "fromInstability": 0.143,
+    "toInstability": 0.154,
+    "filePath": "permissions",
+    "_file": "src/permissions/permission.service.ts",
+    "_line": 36,
+    "_evidence": [
+     {
+      "file": "src/permissions/permission.service.ts",
+      "target": "src/groups/groups.service.ts",
+      "line": 36
+     },
+     {
+      "file": "src/permissions/permissions.module.ts",
+      "target": "src/groups/groups.module.ts",
+      "line": 8
+     }
+    ]
+   },
+   {
+    "component": "revisions",
+    "target": "utils",
+    "kind": "folder",
+    "fromInstability": 0.154,
+    "toInstability": 0.19,
+    "filePath": "revisions",
+    "_file": "src/revisions/revisions.service.ts",
+    "_line": 35,
+    "_evidence": [
+     {
+      "file": "src/revisions/revisions.service.ts",
+      "target": "src/utils/datetime.ts",
+      "line": 35
+     }
+    ]
+   },
+   {
+    "component": "users",
+    "target": "utils",
+    "kind": "folder",
+    "fromInstability": 0.042,
+    "toInstability": 0.19,
+    "filePath": "users",
+    "_file": "src/users/users.service.ts",
+    "_line": 18,
+    "_evidence": [
+     {
+      "file": "src/users/users.service.ts",
+      "target": "src/utils/datetime.ts",
+      "line": 18
+     }
+    ]
+   },
+   {
+    "component": "utils",
+    "target": "api",
+    "kind": "folder",
+    "fromInstability": 0.19,
+    "toInstability": 0.821,
+    "filePath": "utils",
+    "_file": "src/utils/swagger.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/utils/swagger.ts",
+      "target": "src/api/private/private-api.module.ts",
+      "line": 9
+     },
+     {
+      "file": "src/utils/swagger.ts",
+      "target": "src/api/public/public-api.module.ts",
+      "line": 10
+     }
+    ]
+   },
+   {
+    "component": "utils",
+    "target": "sessions",
+    "kind": "folder",
+    "fromInstability": 0.19,
+    "toInstability": 0.3,
+    "filePath": "utils",
+    "_file": "src/utils/session.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/utils/session.ts",
+      "target": "src/sessions/knex-session-store.ts",
+      "line": 12
+     }
+    ]
+   },
+   {
+    "component": "infrastructure",
+    "target": "application",
+    "kind": "layer",
+    "fromInstability": 0.205,
+    "toInstability": 0.25,
+    "filePath": "infrastructure",
+    "_file": "src/errors/error-mapping.ts",
+    "_line": 23,
+    "_evidence": [
+     {
+      "file": "src/errors/error-mapping.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 23
+     },
+     {
+      "file": "src/utils/server-version.ts",
+      "target": "src/dtos/server-version.dto.ts",
+      "line": 10
+     },
+     {
+      "file": "src/utils/setup-pipes.ts",
+      "target": "src/logger/console-logger.service.ts",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "component": "infrastructure",
+    "target": "presentation",
+    "kind": "layer",
+    "fromInstability": 0.205,
+    "toInstability": 0.98,
+    "filePath": "infrastructure",
+    "_file": "src/utils/swagger.ts",
+    "_line": 9,
+    "_evidence": [
+     {
+      "file": "src/utils/swagger.ts",
+      "target": "src/api/private/private-api.module.ts",
+      "line": 9
+     },
+     {
+      "file": "src/utils/swagger.ts",
+      "target": "src/api/public/public-api.module.ts",
+      "line": 10
+     }
+    ]
+   }
+  ],
+  "component-main-sequence-distance": [
+   {
+    "component": "dtos",
+    "kind": "folder",
+    "abstractness": 0,
+    "instability": 0,
+    "distance": 1,
+    "filePath": "dtos",
+    "_file": "src/dtos/alias-create.dto.ts",
+    "_line": 1,
+    "_evidence": {
+     "files": 50,
+     "sample": [
+      "src/dtos/alias-create.dto.ts",
+      "src/dtos/alias-update.dto.ts",
+      "src/dtos/alias.dto.ts",
+      "src/dtos/api-token-create.dto.ts",
+      "src/dtos/api-token-with-secret.dto.ts"
+     ]
+    }
+   },
+   {
+    "component": "errors",
+    "kind": "folder",
+    "abstractness": 0.053,
+    "instability": 0.037,
+    "distance": 0.91,
+    "filePath": "errors",
+    "_file": "src/errors/error-mapping.ts",
+    "_line": 1,
+    "_evidence": {
+     "files": 3,
+     "sample": [
+      "src/errors/error-mapping.ts",
+      "src/errors/errors.ts",
+      "src/errors/http-exception-object.ts"
+     ]
+    }
+   },
+   {
+    "component": "logger",
+    "kind": "folder",
+    "abstractness": 0.25,
+    "instability": 0.019,
+    "distance": 0.731,
+    "filePath": "logger",
+    "_file": "src/logger/console-logger.service.ts",
+    "_line": 1,
+    "_evidence": {
+     "files": 3,
+     "sample": [
+      "src/logger/console-logger.service.ts",
+      "src/logger/knex-logger.service.ts",
+      "src/logger/logger.module.ts"
+     ]
+    }
+   }
+  ],
+  "deep-import-declared-api": [],
+  "deep-import-inferred-api": [],
+  "undeclared-async-coupling": [],
+  "io-outside-adapters": [
+   {
+    "filePath": "src/alias/alias.service.ts",
+    "member": "AliasService.addAlias",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:dbActor(TableAlias).select(FieldNameAlias.alias).where",
+     "knex:dbActor(TableAlias).select",
+     "knex:dbActor",
+     "knex:dbActor(TableAlias).insert"
+    ],
+    "line": 87,
+    "lines": [
+     87,
+     87,
+     87,
+     98,
+     98
+    ],
+    "_file": "src/alias/alias.service.ts",
+    "_line": 87,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/alias/alias.service.ts",
+    "member": "AliasService.makeAliasPrimary",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex.transaction"
+    ],
+    "line": 112,
+    "lines": [
+     112
+    ],
+    "_file": "src/alias/alias.service.ts",
+    "_line": 112,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/alias/alias.service.ts",
+    "member": "AliasService.removeAlias",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex.transaction"
+    ],
+    "line": 155,
+    "lines": [
+     155
+    ],
+    "_file": "src/alias/alias.service.ts",
+    "_line": 155,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/api-token/api-token.service.ts",
+    "member": "ApiTokenService.createToken",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex.transaction"
+    ],
+    "line": 108,
+    "lines": [
+     108
+    ],
+    "_file": "src/api-token/api-token.service.ts",
+    "_line": 108,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/api-token/api-token.service.ts",
+    "member": "ApiTokenService.getTokensOfUserById",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableApiToken).select([FieldNameApiToken.create...",
+     "knex:this.knex(TableApiToken).select",
+     "knex:this.knex",
+     "knex:apiTokens.map"
+    ],
+    "line": 189,
+    "lines": [
+     189,
+     189,
+     189,
+     198
+    ],
+    "_file": "src/api-token/api-token.service.ts",
+    "_line": 189,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/api-token/api-token.service.ts",
+    "member": "ApiTokenService.getUserIdForToken",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex.transaction",
+     "knex:this.knex.fn.now"
+    ],
+    "line": 61,
+    "lines": [
+     61,
+     83
+    ],
+    "_file": "src/api-token/api-token.service.ts",
+    "_line": 61,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/api-token/api-token.service.ts",
+    "member": "ApiTokenService.removeInvalidTokens",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableApiToken).where(FieldNameApiToken.validUnt...",
+     "knex:this.knex(TableApiToken).where",
+     "knex:this.knex"
+    ],
+    "line": 246,
+    "lines": [
+     246,
+     246,
+     246
+    ],
+    "_file": "src/api-token/api-token.service.ts",
+    "_line": 246,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/api-token/api-token.service.ts",
+    "member": "ApiTokenService.removeToken",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableApiToken).where(FieldNameApiToken.id,keyId...",
+     "knex:this.knex(TableApiToken).where",
+     "knex:this.knex"
+    ],
+    "line": 220,
+    "lines": [
+     220,
+     220,
+     220,
+     220
+    ],
+    "_file": "src/api-token/api-token.service.ts",
+    "_line": 220,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/auth/identity.service.ts",
+    "member": "IdentityService.createUserWithIdentity",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex.transaction"
+    ],
+    "line": 143,
+    "lines": [
+     143
+    ],
+    "_file": "src/auth/identity.service.ts",
+    "_line": 143,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/auth/identity.service.ts",
+    "member": "IdentityService.getIdentityFromUserIdAndProviderType",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableIdentity).select",
+     "knex:this.knex",
+     "knex:queryBuilder.whereEqualLowercase",
+     "knex:queryBuilder.where",
+     "knex:queryBuilder.andWhere(FieldNameIdentity.providerType,auth...",
+     "knex:queryBuilder.andWhere"
+    ],
+    "line": 59,
+    "lines": [
+     59,
+     59,
+     62,
+     67,
+     69,
+     69,
+     69
+    ],
+    "_file": "src/auth/identity.service.ts",
+    "_line": 59,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/auth/local/local.service.ts",
+    "member": "LocalService.updateLocalPassword",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableIdentity).update({[FieldNameIdentity.passw...",
+     "knex:this.knex(TableIdentity).update",
+     "knex:this.knex"
+    ],
+    "line": 89,
+    "lines": [
+     89,
+     89,
+     89,
+     89
+    ],
+    "_file": "src/auth/local/local.service.ts",
+    "_line": 89,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/explore/explore.service.ts",
+    "member": "ExploreService.applyCommonQuery",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:transaction(TableRevision).select(`${FieldNameRevision.uu...",
+     "knex:transaction(TableRevision).select",
+     "knex:transaction",
+     "knex:query.select({primaryAlias:`${TableAlias}.${FieldNameAlia...",
+     "knex:query.select",
+     "knex:this.knex.select(`${FieldNameRevision.uuid}`,`${FieldName...",
+     "knex:this.knex.select"
+    ],
+    "line": 347,
+    "lines": [
+     347,
+     347,
+     347,
+     347,
+     355,
+     355,
+     355,
+     355,
+     355,
+     355,
+     372,
+     372,
+     372,
+     372
+    ],
+    "_file": "src/explore/explore.service.ts",
+    "_line": 347,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/explore/explore.service.ts",
+    "member": "ExploreService.checkPermissionsAndCleanUpRecentlyVisitedNotes",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:transaction(TableVisitedNote).where({[FieldNameVisitedNot...",
+     "knex:transaction(TableVisitedNote).where",
+     "knex:transaction"
+    ],
+    "line": 293,
+    "lines": [
+     293,
+     293,
+     293
+    ],
+    "_file": "src/explore/explore.service.ts",
+    "_line": 293,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/explore/explore.service.ts",
+    "member": "ExploreService.getMyNoteExploreEntries",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex.transaction"
+    ],
+    "line": 88,
+    "lines": [
+     88
+    ],
+    "_file": "src/explore/explore.service.ts",
+    "_line": 88,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/explore/explore.service.ts",
+    "member": "ExploreService.getMyPinnedNoteExploreEntries",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex.transaction"
+    ],
+    "line": 191,
+    "lines": [
+     191
+    ],
+    "_file": "src/explore/explore.service.ts",
+    "_line": 191,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/explore/explore.service.ts",
+    "member": "ExploreService.getPublicNoteExploreEntries",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex.transaction"
+    ],
+    "line": 160,
+    "lines": [
+     160
+    ],
+    "_file": "src/explore/explore.service.ts",
+    "_line": 160,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/explore/explore.service.ts",
+    "member": "ExploreService.getRecentlyVisitedNoteExploreEntries",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex.transaction"
+    ],
+    "line": 223,
+    "lines": [
+     223
+    ],
+    "_file": "src/explore/explore.service.ts",
+    "_line": 223,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/explore/explore.service.ts",
+    "member": "ExploreService.getSharedWithMeExploreEntries",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex.transaction"
+    ],
+    "line": 121,
+    "lines": [
+     121
+    ],
+    "_file": "src/explore/explore.service.ts",
+    "_line": 121,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/explore/explore.service.ts",
+    "member": "ExploreService.innerGetRecentlyVisitedNoteExploreEntries",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:transaction"
+    ],
+    "line": 245,
+    "lines": [
+     245
+    ],
+    "_file": "src/explore/explore.service.ts",
+    "_line": 245,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/explore/explore.service.ts",
+    "member": "ExploreService.joinWithTableVisitedNote",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:query.leftJoin"
+    ],
+    "line": 337,
+    "lines": [
+     337
+    ],
+    "_file": "src/explore/explore.service.ts",
+    "_line": 337,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/explore/explore.service.ts",
+    "member": "ExploreService.setNotePinStatus",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex.transaction"
+    ],
+    "line": 459,
+    "lines": [
+     459
+    ],
+    "_file": "src/explore/explore.service.ts",
+    "_line": 459,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/groups/groups.service.ts",
+    "member": "GroupsService.createGroup",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableGroup).insert",
+     "knex:this.knex"
+    ],
+    "line": 45,
+    "lines": [
+     45,
+     45
+    ],
+    "_file": "src/groups/groups.service.ts",
+    "_line": 45,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/groups/groups.service.ts",
+    "member": "GroupsService.getGroupsForUser",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex.transaction"
+    ],
+    "line": 121,
+    "lines": [
+     121
+    ],
+    "_file": "src/groups/groups.service.ts",
+    "_line": 121,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/groups/groups.service.ts",
+    "member": "GroupsService.innerGetGroupsForUser",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:transaction(TableGroup).join(TableGroupUser,`${TableGroup...",
+     "knex:transaction(TableGroup).join",
+     "knex:transaction"
+    ],
+    "line": 133,
+    "lines": [
+     133,
+     133,
+     133,
+     133
+    ],
+    "_file": "src/groups/groups.service.ts",
+    "_line": 133,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/media/media.service.ts",
+    "member": "MediaService.addNoteToMediaUpload",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableMediaUploadNote).insert({[FieldNameMediaUp...",
+     "knex:this.knex(TableMediaUploadNote).insert",
+     "knex:this.knex"
+    ],
+    "line": 286,
+    "lines": [
+     286,
+     286,
+     286,
+     286
+    ],
+    "_file": "src/media/media.service.ts",
+    "_line": 286,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/media/media.service.ts",
+    "member": "MediaService.canUserAccessUpload",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableMediaUpload).select(FieldNameMediaUpload.u...",
+     "knex:this.knex(TableMediaUpload).select",
+     "knex:this.knex"
+    ],
+    "line": 303,
+    "lines": [
+     303,
+     303,
+     303,
+     303
+    ],
+    "_file": "src/media/media.service.ts",
+    "_line": 303,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/media/media.service.ts",
+    "member": "MediaService.deleteFile",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableMediaUpload).select(FieldNameMediaUpload.b...",
+     "knex:this.knex(TableMediaUpload).select",
+     "knex:this.knex",
+     "knex:this.knex(TableMediaUpload).where(FieldNameMediaUpload.uu...",
+     "knex:this.knex(TableMediaUpload).where"
+    ],
+    "line": 145,
+    "lines": [
+     145,
+     145,
+     145,
+     145,
+     157,
+     157,
+     157
+    ],
+    "_file": "src/media/media.service.ts",
+    "_line": 145,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/media/media.service.ts",
+    "member": "MediaService.findUploadByUuid",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableMediaUpload).select().where(FieldNameMedia...",
+     "knex:this.knex(TableMediaUpload).select().where",
+     "knex:this.knex(TableMediaUpload).select",
+     "knex:this.knex"
+    ],
+    "line": 222,
+    "lines": [
+     222,
+     222,
+     222,
+     222
+    ],
+    "_file": "src/media/media.service.ts",
+    "_line": 222,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/media/media.service.ts",
+    "member": "MediaService.getFileResponse",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableMediaUpload).select(FieldNameMediaUpload.b...",
+     "knex:this.knex(TableMediaUpload).select",
+     "knex:this.knex"
+    ],
+    "line": 177,
+    "lines": [
+     177,
+     177,
+     177,
+     177
+    ],
+    "_file": "src/media/media.service.ts",
+    "_line": 177,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/media/media.service.ts",
+    "member": "MediaService.getLinkedNoteIds",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableMediaUploadNote).select(FieldNameMediaUplo...",
+     "knex:this.knex(TableMediaUploadNote).select",
+     "knex:this.knex",
+     "knex:results.map"
+    ],
+    "line": 385,
+    "lines": [
+     385,
+     385,
+     385,
+     388
+    ],
+    "_file": "src/media/media.service.ts",
+    "_line": 385,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/media/media.service.ts",
+    "member": "MediaService.getMediaUploadDtoByUuid",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableMediaUpload).join(TableUser,`${TableUser}....",
+     "knex:this.knex(TableMediaUpload).join",
+     "knex:this.knex"
+    ],
+    "line": 344,
+    "lines": [
+     344,
+     344,
+     344,
+     344,
+     344
+    ],
+    "_file": "src/media/media.service.ts",
+    "_line": 344,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/media/media.service.ts",
+    "member": "MediaService.getMediaUploadUuidsByNoteId",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableMediaUploadNote).select(FieldNameMediaUplo...",
+     "knex:this.knex(TableMediaUploadNote).select",
+     "knex:this.knex",
+     "knex:results.map"
+    ],
+    "line": 256,
+    "lines": [
+     256,
+     256,
+     256,
+     259
+    ],
+    "_file": "src/media/media.service.ts",
+    "_line": 256,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/media/media.service.ts",
+    "member": "MediaService.getMediaUploadUuidsByUserId",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableMediaUpload).select(FieldNameMediaUpload.u...",
+     "knex:this.knex(TableMediaUpload).select",
+     "knex:this.knex",
+     "knex:results.map"
+    ],
+    "line": 241,
+    "lines": [
+     241,
+     241,
+     241,
+     244
+    ],
+    "_file": "src/media/media.service.ts",
+    "_line": 241,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/media/media.service.ts",
+    "member": "MediaService.removeNoteFromMediaUpload",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableMediaUploadNote).where(FieldNameMediaUploa...",
+     "knex:this.knex(TableMediaUploadNote).where",
+     "knex:this.knex"
+    ],
+    "line": 273,
+    "lines": [
+     273,
+     273,
+     273,
+     273
+    ],
+    "_file": "src/media/media.service.ts",
+    "_line": 273,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/media/media.service.ts",
+    "member": "MediaService.saveFile",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex.transaction"
+    ],
+    "line": 120,
+    "lines": [
+     120
+    ],
+    "_file": "src/media/media.service.ts",
+    "_line": 120,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/migrate.ts",
+    "member": "runMigrations",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:knex.migrate.list",
+     "knex:knex.migrate.up"
+    ],
+    "line": 35,
+    "lines": [
+     35,
+     48
+    ],
+    "_file": "src/migrate.ts",
+    "_line": 35,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/notes/note.service.ts",
+    "member": "NoteService.createNote",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex.transaction"
+    ],
+    "line": 97,
+    "lines": [
+     97
+    ],
+    "_file": "src/notes/note.service.ts",
+    "_line": 97,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/notes/note.service.ts",
+    "member": "NoteService.deleteNote",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableNote).where(FieldNameNote.id,noteId).delete",
+     "knex:this.knex(TableNote).where",
+     "knex:this.knex"
+    ],
+    "line": 229,
+    "lines": [
+     229,
+     229,
+     229
+    ],
+    "_file": "src/notes/note.service.ts",
+    "_line": 229,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/notes/note.service.ts",
+    "member": "NoteService.getUserNoteIds",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableNote).select(FieldNameNote.id).where",
+     "knex:this.knex(TableNote).select",
+     "knex:this.knex",
+     "knex:result.map"
+    ],
+    "line": 74,
+    "lines": [
+     74,
+     74,
+     74,
+     77
+    ],
+    "_file": "src/notes/note.service.ts",
+    "_line": 74,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/notes/note.service.ts",
+    "member": "NoteService.innerToNoteMetadataDto",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:transaction(TableNote).select(FieldNameNote.createdAt,Fie...",
+     "knex:transaction(TableNote).select",
+     "knex:transaction"
+    ],
+    "line": 282,
+    "lines": [
+     282,
+     282,
+     282,
+     282
+    ],
+    "_file": "src/notes/note.service.ts",
+    "_line": 282,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/notes/note.service.ts",
+    "member": "NoteService.markNoteAsVisited",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableVisitedNote).insert({[FieldNameVisitedNote...",
+     "knex:this.knex(TableVisitedNote).insert",
+     "knex:this.knex"
+    ],
+    "line": 370,
+    "lines": [
+     370,
+     370,
+     370,
+     370
+    ],
+    "_file": "src/notes/note.service.ts",
+    "_line": 370,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/notes/note.service.ts",
+    "member": "NoteService.toNoteDto",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex.transaction"
+    ],
+    "line": 353,
+    "lines": [
+     353
+    ],
+    "_file": "src/notes/note.service.ts",
+    "_line": 353,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/notes/note.service.ts",
+    "member": "NoteService.toNoteMetadataDto",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex.transaction"
+    ],
+    "line": 261,
+    "lines": [
+     261
+    ],
+    "_file": "src/notes/note.service.ts",
+    "_line": 261,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/permissions/permission.service.ts",
+    "member": "PermissionService.canDeleteViaAnyLinkedNote",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableMediaUploadNote).pluck(FieldNameMediaUploa...",
+     "knex:this.knex(TableMediaUploadNote).pluck",
+     "knex:this.knex"
+    ],
+    "line": 105,
+    "lines": [
+     105,
+     105,
+     105
+    ],
+    "_file": "src/permissions/permission.service.ts",
+    "_line": 105,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/permissions/permission.service.ts",
+    "member": "PermissionService.changeOwner",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableNote).update({[FieldNameNote.ownerId]:newO...",
+     "knex:this.knex(TableNote).update",
+     "knex:this.knex"
+    ],
+    "line": 378,
+    "lines": [
+     378,
+     378,
+     378
+    ],
+    "_file": "src/permissions/permission.service.ts",
+    "_line": 378,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/permissions/permission.service.ts",
+    "member": "PermissionService.changePubliclyVisible",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableNote).update({[FieldNameNote.publiclyVisib...",
+     "knex:this.knex(TableNote).update",
+     "knex:this.knex"
+    ],
+    "line": 397,
+    "lines": [
+     397,
+     397,
+     397
+    ],
+    "_file": "src/permissions/permission.service.ts",
+    "_line": 397,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/permissions/permission.service.ts",
+    "member": "PermissionService.checkMediaDeletePermission",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableMediaUpload).select(FieldNameMediaUpload.u...",
+     "knex:this.knex(TableMediaUpload).select",
+     "knex:this.knex"
+    ],
+    "line": 73,
+    "lines": [
+     73,
+     73,
+     73,
+     73
+    ],
+    "_file": "src/permissions/permission.service.ts",
+    "_line": 73,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/permissions/permission.service.ts",
+    "member": "PermissionService.determinePermission",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex.transaction"
+    ],
+    "line": 175,
+    "lines": [
+     175
+    ],
+    "_file": "src/permissions/permission.service.ts",
+    "_line": 175,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/permissions/permission.service.ts",
+    "member": "PermissionService.getPermissionsDtoForNote",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex.transaction"
+    ],
+    "line": 420,
+    "lines": [
+     420
+    ],
+    "_file": "src/permissions/permission.service.ts",
+    "_line": 420,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/permissions/permission.service.ts",
+    "member": "PermissionService.innerDeterminePermission",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:transaction(TableNoteUserPermission).select(FieldNameNote...",
+     "knex:transaction(TableNoteUserPermission).select",
+     "knex:transaction",
+     "knex:transaction(TableNoteGroupPermission).select(FieldNameNot...",
+     "knex:transaction(TableNoteGroupPermission).select",
+     "knex:groupPermissions.map"
+    ],
+    "line": 194,
+    "lines": [
+     194,
+     194,
+     194,
+     194,
+     194,
+     220,
+     220,
+     220,
+     220,
+     228
+    ],
+    "_file": "src/permissions/permission.service.ts",
+    "_line": 194,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/permissions/permission.service.ts",
+    "member": "PermissionService.innerGetPermissionsDtoForNote",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:transaction(TableNote).join(TableUser,`${TableUser}.${Fie...",
+     "knex:transaction(TableNote).join",
+     "knex:transaction",
+     "knex:transaction(TableNoteUserPermission).join(TableUser,`${Ta...",
+     "knex:transaction(TableNoteUserPermission).join",
+     "knex:transaction(TableNoteGroupPermission).join(TableGroup,`${...",
+     "knex:transaction(TableNoteGroupPermission).join",
+     "knex:userPermissions.map",
+     "knex:groupPermissions.map"
+    ],
+    "line": 431,
+    "lines": [
+     431,
+     431,
+     431,
+     431,
+     431,
+     440,
+     440,
+     440,
+     440,
+     457,
+     457,
+     457,
+     457,
+     485,
+     489
+    ],
+    "_file": "src/permissions/permission.service.ts",
+    "_line": 431,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/permissions/permission.service.ts",
+    "member": "PermissionService.removeGroupPermission",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableNoteGroupPermission).where(FieldNameNoteGr...",
+     "knex:this.knex(TableNoteGroupPermission).where",
+     "knex:this.knex"
+    ],
+    "line": 356,
+    "lines": [
+     356,
+     356,
+     356,
+     356
+    ],
+    "_file": "src/permissions/permission.service.ts",
+    "_line": 356,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/permissions/permission.service.ts",
+    "member": "PermissionService.removeUserPermission",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex.transaction"
+    ],
+    "line": 302,
+    "lines": [
+     302
+    ],
+    "_file": "src/permissions/permission.service.ts",
+    "_line": 302,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/permissions/permission.service.ts",
+    "member": "PermissionService.setUserPermission",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex.transaction"
+    ],
+    "line": 268,
+    "lines": [
+     268
+    ],
+    "_file": "src/permissions/permission.service.ts",
+    "_line": 268,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/revisions/revisions.service.ts",
+    "member": "RevisionsService.createRevision",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex.transaction"
+    ],
+    "line": 339,
+    "lines": [
+     339
+    ],
+    "_file": "src/revisions/revisions.service.ts",
+    "_line": 339,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/revisions/revisions.service.ts",
+    "member": "RevisionsService.getAllRevisionMetadataDto",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableRevision).distinct<(Pick<Revision,|FieldNa...",
+     "knex:this.knex(TableRevision).distinct",
+     "knex:this.knex",
+     "knex:noteRevisions.reduce",
+     "knex:revisionMap.values"
+    ],
+    "line": 75,
+    "lines": [
+     75,
+     75,
+     75,
+     75,
+     75,
+     75,
+     75,
+     75,
+     116,
+     171
+    ],
+    "_file": "src/revisions/revisions.service.ts",
+    "_line": 75,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/revisions/revisions.service.ts",
+    "member": "RevisionsService.getRevisionDto",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableRevision).select(FieldNameRevision.uuid,Fi...",
+     "knex:this.knex(TableRevision).select",
+     "knex:this.knex"
+    ],
+    "line": 214,
+    "lines": [
+     214,
+     214,
+     214,
+     214,
+     214
+    ],
+    "_file": "src/revisions/revisions.service.ts",
+    "_line": 214,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/revisions/revisions.service.ts",
+    "member": "RevisionsService.innerCreateRevision",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:transaction(TableRevision).insert",
+     "knex:transaction",
+     "knex:transaction(TableRevisionTag).insert"
+    ],
+    "line": 381,
+    "lines": [
+     381,
+     381,
+     405,
+     405
+    ],
+    "_file": "src/revisions/revisions.service.ts",
+    "_line": 381,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/revisions/revisions.service.ts",
+    "member": "RevisionsService.purgeRevisions",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex.transaction"
+    ],
+    "line": 182,
+    "lines": [
+     182
+    ],
+    "_file": "src/revisions/revisions.service.ts",
+    "_line": 182,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/revisions/revisions.service.ts",
+    "member": "RevisionsService.removeOldRevisions",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex.transaction"
+    ],
+    "line": 473,
+    "lines": [
+     473
+    ],
+    "_file": "src/revisions/revisions.service.ts",
+    "_line": 473,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/users/users.service.ts",
+    "member": "UsersService.createGuestUser",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableUser,).insert",
+     "knex:this.knex"
+    ],
+    "line": 104,
+    "lines": [
+     104,
+     104
+    ],
+    "_file": "src/users/users.service.ts",
+    "_line": 104,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/users/users.service.ts",
+    "member": "UsersService.deleteUser",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableUser).where(FieldNameUser.id,userId).delete",
+     "knex:this.knex(TableUser).where",
+     "knex:this.knex"
+    ],
+    "line": 139,
+    "lines": [
+     139,
+     139,
+     139
+    ],
+    "_file": "src/users/users.service.ts",
+    "_line": 139,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/users/users.service.ts",
+    "member": "UsersService.getUserById",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableUser).select().where(FieldNameUser.id,user...",
+     "knex:this.knex(TableUser).select().where",
+     "knex:this.knex(TableUser).select",
+     "knex:this.knex"
+    ],
+    "line": 304,
+    "lines": [
+     304,
+     304,
+     304,
+     304
+    ],
+    "_file": "src/users/users.service.ts",
+    "_line": 304,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/users/users.service.ts",
+    "member": "UsersService.getUserDtoByUsername",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableUser).select()//@ts-ignore.whereEqualLower...",
+     "knex:this.knex(TableUser).select",
+     "knex:this.knex"
+    ],
+    "line": 281,
+    "lines": [
+     281,
+     281,
+     281,
+     281
+    ],
+    "_file": "src/users/users.service.ts",
+    "_line": 281,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/users/users.service.ts",
+    "member": "UsersService.getUserIdByGuestUuid",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableUser).select(FieldNameUser.id).where(Field...",
+     "knex:this.knex(TableUser).select(FieldNameUser.id).where",
+     "knex:this.knex(TableUser).select",
+     "knex:this.knex"
+    ],
+    "line": 259,
+    "lines": [
+     259,
+     259,
+     259,
+     259
+    ],
+    "_file": "src/users/users.service.ts",
+    "_line": 259,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/users/users.service.ts",
+    "member": "UsersService.getUserIdByUsername",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableUser).select(FieldNameUser.id)//@ts-ignore...",
+     "knex:this.knex(TableUser).select",
+     "knex:this.knex"
+    ],
+    "line": 236,
+    "lines": [
+     236,
+     236,
+     236,
+     236
+    ],
+    "_file": "src/users/users.service.ts",
+    "_line": 236,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/users/users.service.ts",
+    "member": "UsersService.updateUser",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableUser).where(FieldNameUser.id,userId).update",
+     "knex:this.knex(TableUser).where",
+     "knex:this.knex"
+    ],
+    "line": 185,
+    "lines": [
+     185,
+     185,
+     185
+    ],
+    "_file": "src/users/users.service.ts",
+    "_line": 185,
+    "_importGraphSees": true
+   }
+  ],
+  "nondeterminism-in-core": [
+   {
+    "filePath": "src/alias/alias.service.ts",
+    "member": "AliasService.generateRandomAlias",
+    "layer": "application",
+    "category": "random",
+    "apis": [
+     "crypto:randomBytes"
+    ],
+    "line": 57,
+    "lines": [
+     57
+    ],
+    "_file": "src/alias/alias.service.ts",
+    "_line": 57,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/api-token/api-token.service.ts",
+    "member": "ApiTokenService.createToken",
+    "layer": "application",
+    "category": "random",
+    "apis": [
+     "crypto:randomBytes"
+    ],
+    "line": 116,
+    "lines": [
+     116,
+     117
+    ],
+    "_file": "src/api-token/api-token.service.ts",
+    "_line": 116,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/logger/console-logger.service.ts",
+    "member": "ConsoleLoggerService.printMessage",
+    "layer": "application",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 153,
+    "lines": [
+     153
+    ],
+    "_file": "src/logger/console-logger.service.ts",
+    "_line": 153,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/logger/console-logger.service.ts",
+    "member": "ConsoleLoggerService.updateAndGetTimestampDiff",
+    "layer": "application",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 163,
+    "lines": [
+     163,
+     164
+    ],
+    "_file": "src/logger/console-logger.service.ts",
+    "_line": 163,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/media/media.service.ts",
+    "member": "MediaService.findUploadByUuid",
+    "layer": "application",
+    "category": "random",
+    "apis": [
+     "uuid:validateUuid"
+    ],
+    "line": 215,
+    "lines": [
+     215
+    ],
+    "_file": "src/media/media.service.ts",
+    "_line": 215,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/media/media.service.ts",
+    "member": "MediaService.getFileResponse",
+    "layer": "application",
+    "category": "random",
+    "apis": [
+     "uuid:validateUuid"
+    ],
+    "line": 170,
+    "lines": [
+     170
+    ],
+    "_file": "src/media/media.service.ts",
+    "_line": 170,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/media/media.service.ts",
+    "member": "MediaService.getMediaUploadDtoByUuid",
+    "layer": "application",
+    "category": "random",
+    "apis": [
+     "uuid:validateUuid"
+    ],
+    "line": 337,
+    "lines": [
+     337
+    ],
+    "_file": "src/media/media.service.ts",
+    "_line": 337,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/media/media.service.ts",
+    "member": "MediaService.saveFile",
+    "layer": "application",
+    "category": "random",
+    "apis": [
+     "uuid:uuidV7"
+    ],
+    "line": 118,
+    "lines": [
+     118
+    ],
+    "_file": "src/media/media.service.ts",
+    "_line": 118,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/migrate.ts",
+    "member": "runMigrations",
+    "layer": "application",
+    "category": "process",
+    "apis": [
+     "process.exit"
+    ],
+    "line": 54,
+    "lines": [
+     54
+    ],
+    "_file": "src/migrate.ts",
+    "_line": 54,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/revisions/revisions.service.ts",
+    "member": "RevisionsService.innerCreateRevision",
+    "layer": "application",
+    "category": "random",
+    "apis": [
+     "uuid:uuidv7"
+    ],
+    "line": 380,
+    "lines": [
+     380
+    ],
+    "_file": "src/revisions/revisions.service.ts",
+    "_line": 380,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/users/users.service.ts",
+    "member": "UsersService.createGuestUser",
+    "layer": "application",
+    "category": "random",
+    "apis": [
+     "uuid:uuidv4"
+    ],
+    "line": 103,
+    "lines": [
+     103
+    ],
+    "_file": "src/users/users.service.ts",
+    "_line": 103,
+    "_importGraphSees": true
+   }
+  ]
+ }
+}

@@ -64,3 +64,12 @@ pdflatex main && bibtex main && pdflatex main && pdflatex main
 8. **Overlap with paper 2.** `papers/paper2-tool` reports the E7 decomposition table (its RQ4). This workshop paper
    reuses it as Table 1; check the venues' dual-submission rules and cite paper 2 once it has a venue.
 9. **Authors, affiliations and data availability** (`\todo` in the title block and the conclusion).
+
+## v1.3 revision (2026-10-15)
+
+Section 5, "v1.3: Measuring What the Judge Catches", was added on branch `v1.3-papers`: Lesson 11 (the catch test,
+rounds 1, 2 and DUP-RULE v2: 30/35, twin false fail 4/50, the DUP-RULE confound), Lesson 12 (three-way comparison
+with the cheap proxies and the symbolic rules), the layered gate (rules decide, proxies propose, the judge
+interprets) and the same-vendor correlation threat. The abstract, introduction, recommendations, threats and
+conclusion were updated. Every v1.3 figure carries a `% src:` comment and a `[dev]` mark. The paper now compiles
+(10 pages in this class) and is over the 6-page workshop target. See `papers/STATUS.md`.

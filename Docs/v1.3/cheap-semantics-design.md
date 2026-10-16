@@ -217,3 +217,247 @@ None of the proxies uses an LLM, Neo4j or the network. The proxies are determini
   - the hand-written violation variants of the reference projects, written before this unit (results §4);
   - the false-flag counts on the clean projects and near-misses (results §5).
 - Corpus precision, and recall on defects the author did not anticipate, are open questions.
+
+---
+
+# Batch 2: error flow, reachability, SDK spread, test topology, config surface, co-change, agent provenance
+
+Written 2026-10-15 on branch `v1.3-cheap2`. Code: `src/apg-enrich/cheap/` (one module per enrichment, plus the shared call graph `callgraph.ts` and read-only git access `git.ts`). Templates: `src/fitness-compiler/cheap2-templates.ts` with in-memory mirrors in `cheap2-in-memory.ts`. Fixtures: `tests/fixtures/v1.3-cheap2/`. Results: `Docs/DiagnosticRuns/cheap2-2026-10-15.md`.
+
+## Contract additions
+
+- **Same module style.** Proxies 11 to 16 are context proxies: `enrichCheap(input, { proxies: BATCH2_PROXY_IDS })` runs them over the APG and the ts-morph project, with no LLM, no Neo4j and no network. The default `proxies` is still the ten batch-1 proxies (`PROXY_IDS`), so a batch-1 run is unchanged. Proxy 17, agent provenance, compares many snapshots, so it has its own entry point, `analyseProvenance(history, options)`.
+- **New edge types** (`CheapEdgeType`): `THROWS`, `CATCHES`, `REACHES`, `TESTS`, `READS_ENV`, `CO_CHANGES_WITH`, `CREATED_AT_STEP`, `MODIFIED_AT_STEP`, `REIMPLEMENTS`. As in batch 1, none is added to `EDGE_TYPES` or to a frozen schema.
+- **Virtual nodes** (`CheapVirtualNode`, `CheapEnrichment.virtualNodes`). Some facts point at things with no APG node. Their ids are namespaced so they never collide with the 16-hex APG ids:
+  - `ErrorType` (`error:<module>#<Name>`): a package or built-in error class;
+  - `EntryPoint` (`entry:<kind>:<file>:<line>:<name>`);
+  - `EnvKey` (`env:<KEY>`, `env:*` for a computed key);
+  - `TestFile` (`test:<path>`): test files are excluded from extraction;
+  - `Step` (`step:<n>:<turnId>`).
+- **Thresholds.** All are new `CheapOptions`: `envSharedComponents` (2), `coChangeMinSupport` (3), `coChangeMinConfidence` (0.5), `coChangeMaxFilesPerCommit` (30) and `coChangeHistory` (`own`). The provenance thresholds are `ProvenanceOptions`: concept Jaccard 0.5, member Jaccard 0.3, and at least 2 shared member terms. Every default was set before the first run. One definitional change was made after the first run on the reference projects: the test-support exemption of proxy 12, reported with its before and after numbers in the results.
+- **The extractor is read, never edited.** Byte identity holds: `tests/unit/apg-extractor/v12e-byte-identity.test.ts` passes.
+
+## Shared: the resolved call graph (`callgraph.ts`)
+
+The APG's `CALLS` edge targets class `MethodDeclaration`s only. A call through an interface-typed field resolves to a `MethodSignature`, so that call is dropped. Batch 2 therefore builds its own unit-level graph.
+
+- **Units:**
+  - methods and accessors (the APG Method node when there is one);
+  - a constructor together with its field initialisers;
+  - arrow-function class properties;
+  - top-level functions (APG Function nodes);
+  - the module body of each file (`file:` units).
+- **Edges:**
+  - `call`: a call resolved by the type checker, with aliases followed;
+  - `new`: a constructor;
+  - `ref`: a function or method used as a value.
+
+  Every identifier's project declaration is also recorded, for module reachability.
+- **Interface calls.** A call on an interface method resolves to the method of every class that implements it, by an `implements` clause (direct or inherited), else structurally (the class has a method of every name the interface declares). A call on a class method also reaches the overrides in its subclasses. This is class hierarchy analysis (Dean, Grove and Chambers 1995), which over-approximates the call targets.
+- **Literature.** Dean, Grove and Chambers (1995), *Optimization of object-oriented programs using static class hierarchy analysis*, ECOOP. Bacon and Sweeney (1996), *Fast static analysis of C++ virtual function calls*, OOPSLA (rapid type analysis). Grove and Chambers (2001), *A framework for call graph construction algorithms*, TOPLAS 23(6).
+
+## 11. ERROR FLOW
+
+- **Facts.**
+  - `THROWS` (unit → error type). It is direct when a `throw` names the type. It is propagated through the calls of the unit that lie outside a `try … catch` of that unit, computed as a fixpoint. The error type is the APG Class node, or an `ErrorType` virtual node.
+  - `CATCHES` (unit → error type). For each `try … catch`, an edge goes to every type its try block can throw. The `handling` property is the first of these that applies:
+    - `rethrown`: a `throw` in the catch block;
+    - `narrowed`: `instanceof` on the caught value;
+    - `translated`: the value is read outside a log call;
+    - `logged`: the value only reaches log calls;
+    - `swallowed`: no binding, or a binding that is never read.
+- **Flags.**
+  - `framework-http-exception-in-core`: a direct throw, in a domain- or application-kind file, of a framework HTTP exception or of a project subclass of one. The frameworks covered are `@nestjs/common` `*Exception`, `http-errors`, `@hapi/boom`, `routing-controllers` and `@tsed/exceptions`.
+  - `domain-error-swallowed`: a catch in an adapter (an infrastructure- or presentation-kind file) handled as `swallowed` (score 1) or `logged` (0.5), whose try block can throw an error type declared in a domain- or application-kind file. Without a layer model, the rule falls back to class roles and `domain` / `core` directories.
+- **Template.** `framework-exception-in-core`, advisory.
+- **Semantic property.**
+  - The core speaks its own error language, not the transport's status codes ("frameworks are details", Martin 2017, ch. 32).
+  - A business failure is not silently lost at the edge.
+- **Literature.**
+  - Robillard and Murphy (2003), *Static analysis to support the evolution of exception structure in object-oriented systems*, TOSEM 12(2): exception flow over a call graph.
+  - Cabral and Marques (2007), *Exception handling: a field study in Java and .NET*, ECOOP: catch blocks that do nothing or only log are common.
+  - de Pádua and Shang (2017), *Revisiting exception handling practices with exception flow analysis*, SCAM, and (2017) *Studying the prevalence of exception handling anti-patterns*, ICPC: "dummy handler" and "catch generic" anti-patterns.
+- **Limits.**
+  - TypeScript has no checked exceptions. A `throw` whose type resolves to no class (a string, `any`) is invisible.
+  - Promise `.catch(...)` handlers are not read.
+  - Propagation is over the class-hierarchy call graph, so it over-approximates.
+  - The framework catalogue is a fixed list. A project's own `HttpError` class that lives in an inbound adapter is not a framework exception, so the `hexagonal/v04` violation analogue is a miss (results §3).
+
+## 12. ENTRY-POINT REACHABILITY
+
+- **Entry points.**
+  - `http`:
+    - Nest route decorators on a `@Controller` class;
+    - handlers given to `get / post / put / patch / delete / options / head / all / use` on an express, fastify or koa-router receiver, where the package is resolved from the receiver's type. A handler can be a reference, a bound method or an inline callback.
+  - `message`:
+    - `@MessagePattern`, `@EventPattern`, `@OnEvent` and `@Process`;
+    - the `handle` / `execute` method of a Nest CQRS handler class;
+    - every source of an APG v2 `SUBSCRIBES` edge when the APG has them.
+  - `scheduled`: `@Cron`, `@Interval` and `@Timeout`.
+  - `main`: the module body and the exported functions of a `main` / `cli` / `server` / `bootstrap` / `container` / `composition-root` file, of a root `index.ts`, or of a file that tests `require.main === module`. A composition root is often a function that its host calls.
+- **Facts.**
+  - `REACHES` (entry → unit), with the BFS depth.
+  - Reaching a constructor also reaches the public methods of its class, because an instantiated object may escape to a caller outside the project (rapid type analysis).
+  - For an http or message entry, each `REACHES` edge also says whether some call path with no core unit reaches the unit (`withoutCore`), and whether the unit is an infrastructure adapter.
+  - The `EntryPoint` node lists the components the entry reaches and its component paths: the component sequences of the BFS tree, collapsed.
+  - Files carry `reachable`.
+- **Flags.**
+  - `unreachable-module`: a file that declares runtime code and that no entry reaches. A file counts as reached when a reached unit is in it, when a reached unit refers to one of its declarations (types included), or when a reached file imports it at run time. The flag is raised only when the project has at least one entry. Test-support modules are listed in the summary and not flagged. These are files in a `test`, `testing`, `mocks`, `fixtures`, `stubs` or `fakes` directory, files named `test*` or `Test*`, and files with a `.mock`, `.stub`, `.fixture` or `.fake` suffix. This exemption was added after the first run on the reference projects, where it removed both false flags (results §2).
+  - `endpoint-bypasses-core`: an `http` or `message` entry with a call path to an infrastructure adapter on which no core unit lies. The path follows calls and function references, not `new`.
+    - "Core" means the application-kind layers, or the domain-kind layers when there is no application kind (strict layering).
+    - An infrastructure adapter is a unit of an infrastructure-kind file whose class is in the repository or adapter role, or performs catalogued I/O.
+    - An interface (a port) on the path does not count as core.
+- **Template.** `endpoint-bypasses-application`, advisory.
+- **Semantic property.**
+  - Every module serves some use (no dead code).
+  - A delivery mechanism reaches persistence only through a use case (Jacobson's use-case controllers; Martin 2017, ch. 20 and 22; Cockburn 2005).
+- **Literature.**
+  - The call-graph references above.
+  - On dead code: Romano, Vendome, Scanniello and Poshyvanyk (2020), *A multi-study investigation into dead code*, TSE 46(1).
+- **Limits.**
+  - Framework-free controllers (the reference projects' plain classes with an `HttpRequest` type) are not entry points. Only `main` entries are found there, so the bypass rule cannot fire on `hexagonal/v05` or `layered/v03` (results §3). Treating every `*Controller` method as an entry would change that, but the change would be made after seeing those analogues, so it is left as future work to be validated on held-out projects.
+  - Reflection, string-keyed DI tokens without a provider list, and dynamic `import()` of computed paths are invisible.
+  - The escape rule is generous: a class that is constructed reaches all its public methods.
+
+## 13. THIRD-PARTY SDK SPREAD
+
+- **Facts.** Per external package, read from the literal IMPORTS view to Package nodes (node built-ins and the `~` alias excluded):
+  - the components and layers of the importing files;
+  - spread = importing components / components.
+
+  The project's SDK spread index is the mean spread over the vendor SDKs it imports. Package nodes carry `sdkSpread` and `vendorSdk`. Files carry `vendorSdkOutsideAdapters`.
+- **Vendor catalogue** (`VENDOR_SDK`):
+  - cloud and SaaS clients: AWS, GCP, Azure, Firebase, Stripe, Twilio, SendGrid, Slack, OpenAI, Anthropic, Octokit, …;
+  - HTTP clients: axios, node-fetch, got, superagent, undici;
+  - database clients and drivers: Prisma client, Mongoose, mongodb, pg, mysql, redis, ioredis, Supabase;
+  - kafkajs and amqplib.
+
+  ORM frameworks whose decorators define the mapping (TypeORM, Sequelize, MikroORM) are left out. FF-P01 and the batch-1 repository-bypass proxy cover them.
+- **Flag.** `vendor-sdk-outside-adapters`: a vendor SDK imported by a file that is neither in an infrastructure-kind layer nor declares an adapter- or repository-role class. Without layers, adapter-like directories count instead. A type-only import scores 0.5.
+- **Template.** `vendor-sdk-outside-adapters`, advisory.
+- **Semantic property.** A vendor is isolated behind an adapter (ports and adapters, Cockburn 2005; the anti-corruption layer, Evans 2003, ch. 14). Its spread measures how much a vendor change would touch.
+- **Literature.** The spread index is a degree-of-scattering measure, as in Eaddy et al. (2008), *Do crosscutting concerns cause defects?*, TSE 34(4), applied to one vendor dependency instead of a concern.
+- **Limits.**
+  - It reads import edges, not uses. An SDK reached through a project wrapper does not count, which is the intended reading.
+  - The catalogue is a fixed list.
+
+## 14. TEST TOPOLOGY
+
+- **Facts.** `TESTS` (test file → Class / Function / File) from every `*.spec.ts`, `*.test.ts` and `__tests__/` file under the root. A test file outside the tsconfig is added to the ts-morph project, read only. The `via` property is one of:
+  - `instantiation`: `new C()`;
+  - `call`: a call that resolves to a project method or function;
+  - `reference`: a project class or function in value position;
+  - `import`: a production file imported, not type-only.
+
+  Classes and functions carry `tested`. Files carry `component` and `componentUntested`.
+- **Flags.**
+  - `untested-component`: a component with testable code (a class with a method body, or a function) none of whose units a test exercises.
+  - `no-tests`: one flag for a project without any test file. It is a true statement about the project, so it is counted apart from the false flags.
+- **Template.** `untested-component`, advisory. It replaces FF-CV05's naming convention ("a test file next to it"). A test anywhere that exercises the unit counts. A co-located spec that only imports a type does not count, and that case is planted in the fixture.
+- **Semantic property.** Each component's behaviour is pinned by tests.
+- **Literature.**
+  - Van Rompaey and Demeyer (2009), *Establishing traceability links between unit test cases and units under test*, CSMR: naming convention versus static call approaches.
+  - Qusef, Bavota, Oliveto, De Lucia and Binkley (2014), *Recovering test-to-code traceability using slicing and textual analysis*, JSS 88.
+  - White, Krinke and Tan (2020), *Establishing multilevel test-to-code traceability links*, ICSE.
+- **Limits.**
+  - Only direct uses count, with no transitive coverage. A unit exercised only through another class is untested here.
+  - It says nothing about assertion quality.
+  - Mocks named in value position count as references.
+
+## 15. CONFIG SURFACE
+
+- **Facts.** `READS_ENV` (owner unit → `env:<KEY>`) from these forms:
+  - `process.env.X`, `process.env['X']` and `const { X } = process.env`;
+  - `import.meta.env.X`;
+  - `get` / `getOrThrow` on a `@nestjs/config` `ConfigService` or a `config` package value.
+
+  A computed key goes to `env:*`. The `outsideConfig` property is set per edge.
+- **Flags.**
+  - `env-read-outside-config`: a read outside a configuration or infrastructure module. A configuration or infrastructure module is one of:
+    - an infrastructure-kind layer;
+    - a `config`, `configuration`, `settings` or `env` path segment or file name;
+    - a `*Config`, `*Configuration` or `*Settings` class;
+    - the composition root.
+  - `env-key-shared`: a key read in more than `envSharedComponents` (2) components.
+- **Template.** `env-read-outside-config`, advisory.
+- **Semantic property.**
+  - Configuration enters at one place and is passed in (the twelve-factor "config" factor; dependency injection of settings).
+  - No configuration key is a hidden contract between components.
+- **Literature.**
+  - Rabkin and Katz (2011), *Static extraction of program configuration options*, ICSE.
+  - Sayagh, Kerzazi, Adams and Petrillo (2020), *Software configuration engineering in practice: interviews, survey, and systematic literature review*, TSE 46(6).
+- **Limits.**
+  - Wrapper functions (`env('X')`) and config objects read after construction are invisible.
+  - The config-module rule is a naming convention.
+
+## 16. GIT CO-CHANGE
+
+- **History.**
+  - `own` (default): the repository whose work tree root is the project root.
+  - `enclosing`: the repository that contains the root, restricted to the project directory.
+
+  Merge commits are excluded and renames are not followed. A commit that changes more than 30 files is dropped. Only current File nodes count. With no git binary, no repository or no commit, the proxy writes nothing and its summary says why.
+- **Facts.**
+  - `CO_CHANGES_WITH` (file ↔ file) when support ≥ k (3), with support, confidence(a→b), confidence(b→a), `crossComponent` and `hiddenCoupling`.
+  - A component evolutionary coupling matrix: the commits that touched both components, and the Jaccard share of those among the commits that touched either.
+- **Flag.** `hidden-coupling`: a pair of components that some file pair across them co-changes with (max confidence ≥ 0.5), while no static edge joins the two components in either direction. The static edges checked are IMPORTS, RE_EXPORTS, CALLS, CONSTRUCTOR_INJECTS, EXTENDS, IMPLEMENTS, FLOWS_TO and SIGNATURE_USES.
+- **Template.** `hidden-coupling`, advisory.
+- **Semantic property.** Components that must change together should be visibly coupled, or be one component (the common closure principle, Martin 2017, ch. 13).
+- **Literature.**
+  - Gall, Hajek and Jazayeri (1998), *Detection of logical coupling based on product release history*, ICSM.
+  - Zimmermann, Weißgerber, Diehl and Zeller (2005), *Mining version histories to guide software changes*, TSE 31(6): support and confidence, and the large-transaction cut.
+  - D'Ambros, Lanza and Robbes (2009), *On the relationship between change coupling and software defects*, WCRE.
+- **Limits.**
+  - The proxy needs history, and the reference projects have one or two commits each (results §2).
+  - Renames break the chains.
+  - Squash-merge workflows understate co-change.
+  - A shared dependency on a third component explains some co-change, and it is still flagged.
+
+## 17. AGENT PROVENANCE (`provenance.ts`)
+
+- **Input.** A snapshot history, read in one of two ways:
+  - `readLoopRun(runDir)`: the loop harness's own store. This is one snapshot per turn (a gate step with a repair has two), from `run.json`, `steps/step-NN.json` and `snapshots.git`, read through `--git-dir` outside the work tree. Each snapshot carries the run's arm, adapter and model, the task step, the turn's prompt sha256, and the blocking findings the harness recorded.
+  - `readGitHistory(repo)`: a plain git history, one commit per step (first parent). Metadata comes from commit trailers (`Turn`, `Step`, `Step-Id`, `Arm`, `Model`, `Adapter`, `Task`, `Prompt-Sha256`) when present.
+
+  Each snapshot is checked out with `git archive` (read only). A tsconfig is supplied when the tree has none, as a loop work tree does. The APG is extracted and the context proxies run on it. APG ids are path-based, so they are stable across snapshots.
+- **Facts.**
+  - `Step` nodes.
+  - On each File of the last snapshot: `createdAtStep`, `lastModifiedAtStep` and `modifiedAtSteps` (provenance records), with `CREATED_AT_STEP` and `MODIFIED_AT_STEP` edges to the Step nodes.
+  - On every APG edge: the step that introduced it (`edgeFacts`). This is the first snapshot of the edge's last uninterrupted run of presence.
+- **Erosion delta.** For each snapshot, the findings that are new against the previous snapshot, and the findings resolved.
+  - Blocking findings: the harness's recorded findings, and, with a layer model, the in-memory dependency-direction rule.
+  - Advisory findings: the context proxies' flags.
+
+  Each new finding is attributed in the first way that applies:
+  1. to the step that introduced its offending IMPORTS edge, when the finding names a target file;
+  2. to the later of its two ends, for a two-ended finding;
+  3. to the step that last changed its unit (Method, Function or Class text);
+  4. to the step that last changed its file.
+
+  This is the SZZ idea (Śliwerski, Zimmermann and Zeller 2005, *When do changes induce fixes?*, MSR) applied to architecture findings instead of bugs.
+- **REIMPLEMENTS.** A unit created at step k is a candidate when one of these holds:
+  - it is a clone (batch-1 proxy 1) of a unit that existed at k − 1;
+  - for a class, its concept terms (class-name terms minus role words) and its member vocabulary match a class that existed at k − 1.
+
+  Pairs that are related are excluded: one file imports the other (reuse), one type extends or implements the other, or both implement or extend a common type (two adapters of one port).
+- **Agent locality.** For each snapshot: the components and layers the turn touched, against the feature's scope. The scope is the components of the files the turn added, or, when it added none, the component it touched most. locality = touched files in scope / touched files.
+- **Template.** `agent-reimplementation`, advisory.
+- **Semantic property.**
+  - An agent extends the system by reusing what exists. Its step stays within the feature's scope.
+  - The architecture erosion of a multi-step generation can be traced to the step that caused it. This is the Study 2 erosion outcome, `Docs/v1.3/study2-outline.md`, broken down by step.
+- **Literature.**
+  - Clone genealogies: Kim, Sazawal, Notkin and Murphy (2005), *An empirical study of code clone genealogies*, ESEC/FSE.
+  - Origin analysis: Godfrey and Zou (2005), *Using origin analysis to detect merging and splitting of source code entities*, TSE 31(2).
+  - There is no peer-reviewed detector literature for agent re-implementation yet. Industry reports of rising duplication with AI assistants exist (GitClear 2024), but they are grey literature and are not relied on here.
+- **Limits.**
+  - Each snapshot is extracted in full (about 0.3 to 0.5 s per snapshot on the fixtures), so the cost is linear in the number of steps.
+  - Vocabulary matching is English and identifier based.
+  - The scope heuristic makes locality trivially 1 when a turn only adds files. In a layer-first project the components are layers, so a feature legitimately touches several of them.
+  - The dry-run demo plants a dependency violation but no re-implementation. The re-implementation evidence is the synthetic history only.
+
+## What batch 2 does not claim
+
+The batch-1 caveat applies. The planted fixtures were written together with the proxies, so a full catch on them shows that the proxies implement their definitions. It does not show validity. The independent evidence is the reference projects:
+
+- the false-flag counts on the clean and near-miss variants;
+- the hand-written violation analogues. Of those, batch 2 catches none (results §3), and the reasons are the definitional limits stated above.

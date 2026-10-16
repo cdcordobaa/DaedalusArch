@@ -12,15 +12,18 @@
  * 4. Precision proxy: every proxy on the five clean reference projects (and, for context, the near-miss variants),
  *    flag counts per proxy and runtime per project.
  *
+ * 5. `--before`: run the proxies with the v1.3 cheap-fix options off (`cloneGuardUnits`, `cloneSameComponentFlags`),
+ *    which reproduces the clones proxy before that change; without it the defaults (both on) apply.
+ *
  * Usage (repository root):
- *   npx tsx scripts/v1.3/cheap-semantics-eval.ts --out results/v1.3-cheap-semantics [--seed <dir>] [--work <dir>]
+ *   npx tsx scripts/v1.3/cheap-semantics-eval.ts --out results/v1.3-cheap-semantics [--seed <dir>] [--work <dir>] [--before]
  * Writes `<out>/scores.json`, `<out>/rows.csv`, `<out>/flags/<id>.json` and prints the markdown tables.
  */
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { extractAndEnrich } from '../../src/apg-enrich/cheap/index.js';
-import type { CheapEnrichment, CheapFlag, ProxyId } from '../../src/apg-enrich/cheap/index.js';
+import type { CheapEnrichment, CheapFlag, CheapOptions, ProxyId } from '../../src/apg-enrich/cheap/index.js';
 import { PROXY_IDS } from '../../src/apg-enrich/cheap/index.js';
 import { parseSpec, specExcludePathsFromYaml } from '../../src/spec-parser/index.js';
 import type { LayerModel } from '../../src/shared/types/spec.js';
@@ -103,10 +106,14 @@ async function specOf(specPath: string): Promise<{ model: LayerModel; excludes: 
   return v;
 }
 
+/** The cheap-fix options off: the clones proxy before guard units and same-component flags (`--before`). */
+export const BEFORE_CHEAP_FIX: Partial<CheapOptions> = Object.freeze({ cloneGuardUnits: false, cloneSameComponentFlags: false });
+let cheapOptions: Partial<CheapOptions> = {};
+
 async function runOne(id: string, dir: string, specPath: string): Promise<RunOutcome> {
   const { model, excludes } = await specOf(specPath);
   const root = fs.realpathSync(dir);
-  const r = await extractAndEnrich(root, { layerModel: model, extractorOptions: { excludePatterns: excludes } });
+  const r = await extractAndEnrich(root, { layerModel: model, extractorOptions: { excludePatterns: excludes }, options: cheapOptions });
   return { id, enrichment: r.enrichment, extractMs: r.extractMs, files: r.apg.nodes.filter((n) => n.type === 'File').length };
 }
 
@@ -119,6 +126,7 @@ function rate(k: number, n: number): string {
 export async function main(argv: readonly string[], repoRoot: string): Promise<number> {
   const arg = (name: string): string | undefined => (argv.includes(name) ? argv[argv.indexOf(name) + 1] : undefined);
   const out = path.resolve(arg('--out') ?? 'results/v1.3-cheap-semantics');
+  cheapOptions = argv.includes('--before') ? BEFORE_CHEAP_FIX : {};
   const work = path.resolve(arg('--work') ?? fs.mkdtempSync(path.join(os.tmpdir(), 'v13-cheap-')));
   let seedDir = arg('--seed');
   if (seedDir === undefined) {

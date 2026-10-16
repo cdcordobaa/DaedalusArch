@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "case": "case-04c-control-distinct-concepts",
+  "writtenAt": "2026-10-15",
+  "writtenBefore": "any ontology pipeline code, prompt or run (committed in the first commit of branch v1.3-ontology)",
+  "planted": "control",
+  "description": "Order, Invoice and Shipment in three components share field names (id, createdAt, total) but are distinct business concepts. The near-miss of case-03.",
+  "expect": {
+    "ruleDuplications": [],
+    "misplacedResponsibilities": [],
+    "conceptFragmentations": [],
+    "capabilityScatter": []
+  },
+  "forbid": {
+    "conceptFragmentations": [
+      {
+        "classes": [
+          {
+            "file": "src/ordering/domain/order.ts",
+            "class": "Order"
+          },
+          {
+            "file": "src/billing/domain/invoice.ts",
+            "class": "Invoice"
+          }
+        ]
+      },
+      {
+        "classes": [
+          {
+            "file": "src/ordering/domain/order.ts",
+            "class": "Order"
+          },
+          {
+            "file": "src/shipping/domain/shipment.ts",
+            "class": "Shipment"
+          }
+        ]
+      },
+      {
+        "classes": [
+          {
+            "file": "src/billing/domain/invoice.ts",
+            "class": "Invoice"
+          },
+          {
+            "file": "src/shipping/domain/shipment.ts",
+            "class": "Shipment"
+          }
+        ]
+      }
+    ],
+    "ruleDuplications": [],
+    "misplacedResponsibilities": [],
+    "capabilityScatter": []
+  },
+  "cheapExpectation": {
+    "conceptFragmentations": "false-positive-possible",
+    "why": "Shared field vocabulary (id, createdAt, total)."
+  }
+}

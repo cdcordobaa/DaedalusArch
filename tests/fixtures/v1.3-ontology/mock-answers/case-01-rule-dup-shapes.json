@@ -1,0 +1,319 @@
+{
+  "case": "case-01-rule-dup-shapes",
+  "note": "Hand-written scripted mock answers (NOT model output). They exercise the ontology pipeline, the grounding validator, the cache and the scorer on the planted cases; they were written after expected-semantic.json and say nothing about what a model would answer. Planted hallucinations are marked 'planted-hallucination'.",
+  "responses": [
+    {
+      "pass": "responsibility",
+      "item": "ShippingPolicy",
+      "answer": {
+        "responsibilities": [
+          {
+            "name": "Compute the shipping charge, free above a threshold",
+            "description": "Compute the shipping charge, free above a threshold",
+            "naturalLayer": "domain",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "ShippingPolicy.shippingFor",
+                "quote": "if (total >= 50) {"
+              }
+            ]
+          }
+        ],
+        "concepts": [
+          {
+            "name": "Shipping charge",
+            "relation": "defines",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "ShippingPolicy",
+                "quote": "export class ShippingPolicy {"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "responsibility",
+      "item": "CheckoutService",
+      "answer": {
+        "responsibilities": [
+          {
+            "name": "Summarise a checkout with its shipping charge",
+            "description": "Summarise a checkout with its shipping charge",
+            "naturalLayer": "application",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "CheckoutService.summarise",
+                "quote": "return { lines, shipping: this.shipping.shippingFor(lines) };"
+              }
+            ]
+          }
+        ],
+        "concepts": []
+      },
+      "runs": [
+        0
+      ]
+    },
+    {
+      "pass": "responsibility",
+      "item": "CheckoutService",
+      "answer": {
+        "responsibilities": [
+          {
+            "name": "Summarise a checkout with its shipping charge",
+            "description": "Summarise a checkout with its shipping charge",
+            "naturalLayer": "application",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "CheckoutService.summarise",
+                "quote": "return { lines, shipping: this.shipping.shippingFor(lines) };"
+              }
+            ]
+          },
+          {
+            "name": "Charge the customer's payment card",
+            "description": "Charge the customer's payment card",
+            "naturalLayer": "application",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "CheckoutService.summarise",
+                "quote": "this.payments.charge(total)",
+                "lines": [
+                  13,
+                  13
+                ]
+              }
+            ]
+          }
+        ],
+        "concepts": []
+      },
+      "runs": [
+        1
+      ],
+      "tag": "planted-hallucination: real node and lines, quote not on them"
+    },
+    {
+      "pass": "responsibility",
+      "item": "InvoiceAssembler",
+      "answer": {
+        "responsibilities": [
+          {
+            "name": "Assemble an invoice with its shipping and total",
+            "description": "Assemble an invoice with its shipping and total",
+            "naturalLayer": "application",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "InvoiceAssembler.assemble",
+                "quote": "return { items, shippingCents, totalCents: sum + shippingCents };"
+              }
+            ]
+          }
+        ],
+        "concepts": [
+          {
+            "name": "Invoice",
+            "relation": "uses",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "InvoiceAssembler.assemble",
+                "quote": "assemble(items: readonly InvoiceItem[]): Invoice {"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "responsibility",
+      "item": "InvoiceNumber",
+      "answer": {
+        "responsibilities": [
+          {
+            "name": "Format invoice numbers",
+            "description": "Format invoice numbers",
+            "naturalLayer": "domain",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "InvoiceNumber.format",
+                "quote": "return `INV-${String(this.year)}-${String(this.sequence).padStart(6, '0')}`;"
+              }
+            ]
+          }
+        ],
+        "concepts": [
+          {
+            "name": "Invoice number",
+            "relation": "defines",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "InvoiceNumber",
+                "quote": "export class InvoiceNumber {"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "rules",
+      "item": "ShippingPolicy",
+      "answer": {
+        "rules": [
+          {
+            "statement": "Shipping is free when the order total is at least 50",
+            "subject": "order total",
+            "operator": ">=",
+            "threshold": 50,
+            "unit": "currency units",
+            "enforcedBy": "ShippingPolicy.shippingFor",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "ShippingPolicy.shippingFor",
+                "quote": "if (total >= 50) {"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "rules",
+      "item": "InvoiceAssembler",
+      "answer": {
+        "rules": [
+          {
+            "statement": "Shipping is waived when the invoice sum reaches 50.00",
+            "subject": "invoice sum",
+            "operator": ">=",
+            "threshold": 5000,
+            "unit": "cents",
+            "enforcedBy": "InvoiceAssembler.assemble",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "InvoiceAssembler.assemble",
+                "quote": "!(sum < FREE_SHIPPING_MIN_CENTS) ? 0 : SHIPPING_FEE_CENTS"
+              }
+            ]
+          }
+        ]
+      },
+      "runs": [
+        0
+      ]
+    },
+    {
+      "pass": "rules",
+      "item": "InvoiceAssembler",
+      "answer": {
+        "rules": [
+          {
+            "statement": "Shipping is waived when the invoice sum reaches 50.00",
+            "subject": "invoice sum",
+            "operator": ">=",
+            "threshold": 5000,
+            "unit": "cents",
+            "enforcedBy": "InvoiceAssembler.assemble",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "InvoiceAssembler.assemble",
+                "quote": "!(sum < FREE_SHIPPING_MIN_CENTS) ? 0 : SHIPPING_FEE_CENTS"
+              }
+            ]
+          },
+          {
+            "statement": "Invoices carry 20% tax",
+            "subject": "invoice sum",
+            "operator": "other",
+            "threshold": 0.2,
+            "unit": null,
+            "enforcedBy": "InvoiceAssembler.applyTax",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "InvoiceAssembler.assemble",
+                "quote": "const tax = sum * 0.2;"
+              }
+            ]
+          }
+        ]
+      },
+      "runs": [
+        1
+      ],
+      "tag": "planted-hallucination: unknown method and quote not in the file"
+    },
+    {
+      "pass": "capability",
+      "item": "component:checkout",
+      "answer": {
+        "capabilities": [
+          {
+            "name": "Checkout pricing",
+            "description": "Checkout pricing",
+            "realizedBy": [
+              "ShippingPolicy",
+              "CheckoutService"
+            ],
+            "confidence": 0.8,
+            "evidence": [
+              {
+                "node": "ShippingPolicy",
+                "quote": "export class ShippingPolicy {"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "capability",
+      "item": "component:invoicing",
+      "answer": {
+        "capabilities": [
+          {
+            "name": "Invoicing",
+            "description": "Invoicing",
+            "realizedBy": [
+              "InvoiceAssembler",
+              "InvoiceNumber"
+            ],
+            "confidence": 0.8,
+            "evidence": [
+              {
+                "node": "InvoiceAssembler",
+                "quote": "export class InvoiceAssembler {"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "adjudicate",
+      "contains": [
+        "Shipping is free when",
+        "Shipping is waived when"
+      ],
+      "answer": {
+        "same": true,
+        "confidence": 0.9,
+        "rationale": "Both waive shipping from an order value of 50; the invoicing side counts in cents."
+      }
+    }
+  ]
+}

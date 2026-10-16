@@ -9,6 +9,7 @@ import { routeAndEvaluate } from '../../neuro-symbolic-router/index.js';
 import { disposeJudgeProvider, finishJudgeStage, judgeStageNeeded, prepareJudgeStage } from '../../llm-critic/judge-stage.js';
 import type { JudgeStageSettings } from '../../llm-critic/judge-stage.js';
 import type { CassetteLLMProvider } from '../../llm-critic/cassette-provider.js';
+import type { SymbolicTransform } from '../../construct-switches/pipeline.js';
 import { toPipelineError, toPipelineWarning } from './map-helpers.js';
 
 export class RouteEvaluateCommand implements PipelineCommand {
@@ -20,6 +21,8 @@ export class RouteEvaluateCommand implements PipelineCommand {
     private readonly evaluationMode: EvaluationMode,
     // U4 C9 hunk (D-U4-7, D-U4-8): judge stage settings; absent → the router runs with the critic defaults
     private readonly judge?: JudgeStageSettings,
+    /** v1.3 construct switches: the row stage over the symbolic results (`constructRowTransform`). */
+    private readonly transformSymbolic?: SymbolicTransform,
   ) {}
 
   async execute(context: FirewallContext): Promise<DomainResultType<void>> {
@@ -92,7 +95,9 @@ export class RouteEvaluateCommand implements PipelineCommand {
     }
 
     // Both failure lists are forwarded (FR-13, BR-U4-AGG-06)
-    const { symbolicResults, neuronalResults, failures } = result.data;
+    const { neuronalResults, failures } = result.data;
+    // v1.3 construct switches: the row stage (absent at the status quo).
+    const symbolicResults = this.transformSymbolic !== undefined ? this.transformSymbolic(result.data.symbolicResults, context) : result.data.symbolicResults;
     context.setEvaluationResults({ symbolicResults, neuronalResults, failures });
 
     context.addAuditEntry({

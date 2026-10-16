@@ -1,0 +1,2823 @@
+{
+ "id": "reactive-resume-api",
+ "stats": {
+  "signatureUses": 15,
+  "components": 7,
+  "componentSource": "declared",
+  "dependsOn": 7,
+  "deepImports": 0,
+  "exportsSymbol": 0,
+  "channels": 0,
+  "async": {
+   "publishes": 0,
+   "subscribes": 0,
+   "dynamicNames": 0
+  },
+  "io": {
+   "byCategory": {
+    "db": 773,
+    "http-out": 6,
+    "fs": 12,
+    "env": 6,
+    "clock": 76,
+    "random": 4,
+    "process": 0
+   }
+  },
+  "timingsMs": {
+   "typeFlow": 357.2,
+   "components": 6.7,
+   "async": 625.1,
+   "io": 384.8
+  }
+ },
+ "params": {
+  "domainLayer": "business",
+  "applicationLayers": [],
+  "infraLayer": "persistence",
+  "controllerLayer": "presentation",
+  "threshold": 0.7,
+  "allowedAsync": [],
+  "compositionRootLayers": [],
+  "compositionRootPatterns": [
+   "^(?:.*/)?(?:main|bootstrap|composition-root|compositionRoot|container|di)\\.(?:ts|tsx|mts|cts)$",
+   "^(?:.*/)?[^/]+\\.(?:module|container)\\.(?:ts|tsx|mts|cts)$"
+  ],
+  "testPatterns": [
+   "^(?:.*/)?[^/]*\\.(?:spec|test)\\.(?:ts|tsx|mts|cts)$",
+   "^(?:.*/)?(?:__tests__|__mocks__|test|tests)/.*$",
+   "^(?:.*/)?[Tt]est[A-Z._-][^/]*$"
+  ],
+  "aclPatterns": [],
+  "minTypes": 4
+ },
+ "components": [
+  {
+   "name": "persistence",
+   "kind": "layer"
+  },
+  {
+   "name": "business",
+   "kind": "layer"
+  },
+  {
+   "name": "presentation",
+   "kind": "layer"
+  },
+  {
+   "name": "dto",
+   "kind": "folder"
+  },
+  {
+   "name": "features",
+   "kind": "folder"
+  },
+  {
+   "name": "middleware",
+   "kind": "folder"
+  },
+  {
+   "name": "routers",
+   "kind": "folder"
+  }
+ ],
+ "parseCoverage": {
+  "total": 115,
+  "parsed": 115
+ },
+ "importResolution": {
+  "resolvedInternal": 307,
+  "external": 417,
+  "externalOutOfRootAlias": 0,
+  "unresolved": 0,
+  "droppedNoFileNode": 0,
+  "unsupportedDynamic": 0
+ },
+ "counts": {
+  "boundary-type-leak": 0,
+  "component-adp-cycle": 2,
+  "component-sdp-violation": 1,
+  "component-main-sequence-distance": 0,
+  "deep-import-declared-api": 0,
+  "deep-import-inferred-api": 0,
+  "undeclared-async-coupling": 0,
+  "io-outside-adapters": 71,
+  "nondeterminism-in-core": 39
+ },
+ "rows": {
+  "boundary-type-leak": [],
+  "component-adp-cycle": [
+   {
+    "component": "dto",
+    "target": "features",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "dto",
+    "_file": "src/dto/web-access.ts",
+    "_line": 2,
+    "_evidence": [
+     {
+      "file": "src/dto/web-access.ts",
+      "target": "src/features/web-access/contracts.ts",
+      "line": 2
+     }
+    ]
+   },
+   {
+    "component": "features",
+    "target": "dto",
+    "kind": "folder",
+    "imports": 21,
+    "filePath": "features",
+    "_file": "src/features/agent/attachments.ts",
+    "_line": 3,
+    "_evidence": [
+     {
+      "file": "src/features/agent/attachments.ts",
+      "target": "src/dto/agent.ts",
+      "line": 3
+     },
+     {
+      "file": "src/features/agent/messages.ts",
+      "target": "src/dto/agent.ts",
+      "line": 5
+     },
+     {
+      "file": "src/features/agent/threads.ts",
+      "target": "src/dto/agent.ts",
+      "line": 3
+     }
+    ]
+   }
+  ],
+  "component-sdp-violation": [
+   {
+    "component": "dto",
+    "target": "features",
+    "kind": "folder",
+    "fromInstability": 0.05,
+    "toInstability": 0.897,
+    "filePath": "dto",
+    "_file": "src/dto/web-access.ts",
+    "_line": 2,
+    "_evidence": [
+     {
+      "file": "src/dto/web-access.ts",
+      "target": "src/features/web-access/contracts.ts",
+      "line": 2
+     }
+    ]
+   }
+  ],
+  "component-main-sequence-distance": [],
+  "deep-import-declared-api": [],
+  "deep-import-inferred-api": [],
+  "undeclared-async-coupling": [],
+  "io-outside-adapters": [
+   {
+    "filePath": "src/features/agent/document.ts",
+    "member": "findPosting",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:desc"
+    ],
+    "line": 155,
+    "lines": [
+     155,
+     155,
+     155,
+     155,
+     156
+    ],
+    "_file": "src/features/agent/document.ts",
+    "_line": 155,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/agent/messages-persistence.ts",
+    "member": "deleteDraftIfEmpty",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq"
+    ],
+    "line": 340,
+    "lines": [
+     340,
+     341,
+     342,
+     343,
+     344
+    ],
+    "_file": "src/features/agent/messages-persistence.ts",
+    "_line": 340,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/agent/messages-persistence.ts",
+    "member": "findUserMessageRow",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq"
+    ],
+    "line": 362,
+    "lines": [
+     362,
+     363,
+     364,
+     365
+    ],
+    "_file": "src/features/agent/messages-persistence.ts",
+    "_line": 362,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/agent/messages-persistence.ts",
+    "member": "nextMessageSequence",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:max",
+     "drizzle-orm:eq"
+    ],
+    "line": 216,
+    "lines": [
+     216,
+     218
+    ],
+    "_file": "src/features/agent/messages-persistence.ts",
+    "_line": 216,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/agent/messages-persistence.ts",
+    "member": "touchThread",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq"
+    ],
+    "line": 227,
+    "lines": [
+     227,
+     227,
+     227
+    ],
+    "_file": "src/features/agent/messages-persistence.ts",
+    "_line": 227,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/agent/messages-persistence.ts",
+    "member": "upsertAssistantUiMessage",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq"
+    ],
+    "line": 278,
+    "lines": [
+     278,
+     279,
+     280,
+     281,
+     297,
+     298,
+     299,
+     300
+    ],
+    "_file": "src/features/agent/messages-persistence.ts",
+    "_line": 278,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/agent/messages-persistence.ts",
+    "member": "withStoredEditStatuses",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq"
+    ],
+    "line": 70,
+    "lines": [
+     70,
+     71,
+     72,
+     74
+    ],
+    "_file": "src/features/agent/messages-persistence.ts",
+    "_line": 70,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/agent/runs.ts",
+    "member": "claimActiveAgentRun",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:isNull"
+    ],
+    "line": 34,
+    "lines": [
+     34,
+     35,
+     36,
+     37,
+     38,
+     39
+    ],
+    "_file": "src/features/agent/runs.ts",
+    "_line": 34,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/agent/runs.ts",
+    "member": "clearActiveAgentRunIfCurrent",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:isNull"
+    ],
+    "line": 55,
+    "lines": [
+     55,
+     56,
+     57,
+     58,
+     60,
+     61
+    ],
+    "_file": "src/features/agent/runs.ts",
+    "_line": 55,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/agent/runs.ts",
+    "member": "reapStaleAgentRun",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq"
+    ],
+    "line": 140,
+    "lines": [
+     140,
+     141,
+     142,
+     143,
+     164,
+     165,
+     166,
+     167,
+     176,
+     177,
+     181
+    ],
+    "_file": "src/features/agent/runs.ts",
+    "_line": 140,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/agent/runs.ts",
+    "member": "reapStaleAgentRunsAtBoot",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:isNotNull"
+    ],
+    "line": 198,
+    "lines": [
+     198
+    ],
+    "_file": "src/features/agent/runs.ts",
+    "_line": 198,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/agent/service.ts",
+    "member": "getThread",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:isNull"
+    ],
+    "line": 486,
+    "lines": [
+     486,
+     487,
+     488,
+     489
+    ],
+    "_file": "src/features/agent/service.ts",
+    "_line": 486,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/agent/service.ts",
+    "member": "getUnlinkedMessageAttachments",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:inArray",
+     "drizzle-orm:isNull"
+    ],
+    "line": 395,
+    "lines": [
+     395,
+     396,
+     397,
+     398,
+     399
+    ],
+    "_file": "src/features/agent/service.ts",
+    "_line": 395,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/agent/service.ts",
+    "member": "linkAttachmentsToMessage",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:inArray",
+     "drizzle-orm:isNull"
+    ],
+    "line": 435,
+    "lines": [
+     435,
+     436,
+     437,
+     438,
+     439
+    ],
+    "_file": "src/features/agent/service.ts",
+    "_line": 435,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/agent/service.ts",
+    "member": "listThreadMessages",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:asc"
+    ],
+    "line": 677,
+    "lines": [
+     677,
+     677,
+     677,
+     678
+    ],
+    "_file": "src/features/agent/service.ts",
+    "_line": 677,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/agent/service.ts",
+    "member": "proposeEdits",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq"
+    ],
+    "line": 734,
+    "lines": [
+     734,
+     734,
+     734
+    ],
+    "_file": "src/features/agent/service.ts",
+    "_line": 734,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/agent/service.ts",
+    "member": "readAttachment",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq"
+    ],
+    "line": 686,
+    "lines": [
+     686,
+     687,
+     688,
+     689
+    ],
+    "_file": "src/features/agent/service.ts",
+    "_line": 686,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/agent/service.ts",
+    "member": "repairLegacyAskUserQuestionAnswers",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq"
+    ],
+    "line": 616,
+    "lines": [
+     616,
+     617,
+     618,
+     619
+    ],
+    "_file": "src/features/agent/service.ts",
+    "_line": 616,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/agent/service.ts",
+    "member": "service.ts",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:eq",
+     "drizzle-orm:and",
+     "drizzle-orm:isNull",
+     "drizzle-orm:desc",
+     "drizzle-orm:asc",
+     "drizzle-orm:count"
+    ],
+    "line": 948,
+    "lines": [
+     948,
+     949,
+     950,
+     951,
+     951,
+     951,
+     952,
+     1050,
+     1050,
+     1050,
+     1051,
+     1082,
+     1082,
+     1082,
+     1090,
+     1104,
+     1105,
+     1106,
+     1107,
+     1115,
+     1296,
+     1298,
+     1304,
+     1304,
+     1304,
+     1589,
+     1589,
+     1589,
+     1598,
+     1598,
+     1598,
+     1625,
+     1626,
+     1627,
+     1628,
+     1629,
+     1637,
+     1640,
+     1641,
+     1642,
+     1643,
+     1654,
+     1654,
+     1654,
+     1701,
+     1701,
+     1701,
+     1709,
+     1709,
+     1709
+    ],
+    "_file": "src/features/agent/service.ts",
+    "_line": 948,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/agent/service.ts",
+    "member": "updateAssistantToolResultMessage",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq"
+    ],
+    "line": 569,
+    "lines": [
+     569,
+     570,
+     571,
+     572,
+     579,
+     579,
+     579
+    ],
+    "_file": "src/features/agent/service.ts",
+    "_line": 569,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/ai-providers/service.ts",
+    "member": "getOwnedProvider",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq"
+    ],
+    "line": 89,
+    "lines": [
+     89,
+     89,
+     89
+    ],
+    "_file": "src/features/ai-providers/service.ts",
+    "_line": 89,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/ai-providers/service.ts",
+    "member": "service.ts",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:desc",
+     "drizzle-orm:asc",
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:ne"
+    ],
+    "line": 104,
+    "lines": [
+     104,
+     105,
+     106,
+     151,
+     151,
+     151,
+     183,
+     184,
+     185,
+     186,
+     187,
+     255,
+     255,
+     255,
+     268,
+     268,
+     268,
+     297,
+     297,
+     297,
+     312,
+     312,
+     312,
+     330,
+     330,
+     330,
+     334,
+     334,
+     334,
+     345,
+     345,
+     345
+    ],
+    "_file": "src/features/ai-providers/service.ts",
+    "_line": 104,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/applications/service.ts",
+    "member": "deleteApplicationAttachments",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:eq"
+    ],
+    "line": 296,
+    "lines": [
+     296
+    ],
+    "_file": "src/features/applications/service.ts",
+    "_line": 296,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/applications/service.ts",
+    "member": "deleteApplicationCoaching",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:inArray"
+    ],
+    "line": 316,
+    "lines": [
+     316,
+     316,
+     316
+    ],
+    "_file": "src/features/applications/service.ts",
+    "_line": 316,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/applications/service.ts",
+    "member": "followInterviewSchedules",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:inArray"
+    ],
+    "line": 338,
+    "lines": [
+     338,
+     339,
+     340,
+     341,
+     351,
+     352,
+     353,
+     357,
+     371
+    ],
+    "_file": "src/features/applications/service.ts",
+    "_line": 338,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/applications/service.ts",
+    "member": "lockApplicationUser",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:eq"
+    ],
+    "line": 146,
+    "lines": [
+     146
+    ],
+    "_file": "src/features/applications/service.ts",
+    "_line": 146,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/applications/service.ts",
+    "member": "recordSentResume",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:isNull"
+    ],
+    "line": 180,
+    "lines": [
+     180,
+     180,
+     180,
+     180,
+     202,
+     203,
+     204,
+     205,
+     217,
+     218,
+     219,
+     220,
+     241
+    ],
+    "_file": "src/features/applications/service.ts",
+    "_line": 180,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/applications/service.ts",
+    "member": "requireOwned",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq"
+    ],
+    "line": 136,
+    "lines": [
+     136,
+     136,
+     136
+    ],
+    "_file": "src/features/applications/service.ts",
+    "_line": 136,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/applications/service.ts",
+    "member": "service.ts",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:arrayContains",
+     "drizzle-orm:desc",
+     "drizzle-orm:inArray",
+     "drizzle-orm:sql.join"
+    ],
+    "line": 446,
+    "lines": [
+     446,
+     447,
+     448,
+     449,
+     452,
+     584,
+     584,
+     584,
+     607,
+     607,
+     607,
+     644,
+     644,
+     644,
+     658,
+     658,
+     658,
+     672,
+     672,
+     672,
+     694,
+     694,
+     694,
+     711,
+     711,
+     711,
+     733,
+     733,
+     733,
+     767,
+     767,
+     767,
+     780,
+     780,
+     780,
+     801,
+     801,
+     801,
+     817,
+     817,
+     817,
+     831,
+     831,
+     831,
+     838,
+     883,
+     883,
+     883,
+     892,
+     892,
+     892,
+     904,
+     933
+    ],
+    "_file": "src/features/applications/service.ts",
+    "_line": 446,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/career/jobs.ts",
+    "member": "claim",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:lte",
+     "drizzle-orm:or",
+     "drizzle-orm:eq",
+     "drizzle-orm:isNull",
+     "drizzle-orm:asc"
+    ],
+    "line": 246,
+    "lines": [
+     246,
+     247,
+     249,
+     250,
+     251,
+     252,
+     252,
+     252,
+     254,
+     254,
+     254,
+     258,
+     266,
+     273,
+     274,
+     275,
+     290
+    ],
+    "_file": "src/features/career/jobs.ts",
+    "_line": 246,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/career/jobs.ts",
+    "member": "discover",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:inArray"
+    ],
+    "line": 171,
+    "lines": [
+     171,
+     171,
+     171
+    ],
+    "_file": "src/features/career/jobs.ts",
+    "_line": 171,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/career/jobs.ts",
+    "member": "enqueue",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:lte",
+     "drizzle-orm:or",
+     "drizzle-orm:isNull",
+     "drizzle-orm:asc"
+    ],
+    "line": 199,
+    "lines": [
+     199,
+     200,
+     201,
+     202,
+     203,
+     208,
+     216,
+     217,
+     218,
+     234
+    ],
+    "_file": "src/features/career/jobs.ts",
+    "_line": 199,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/career/jobs.ts",
+    "member": "execute",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:isNull"
+    ],
+    "line": 301,
+    "lines": [
+     301,
+     302,
+     303,
+     304,
+     311,
+     311,
+     311,
+     325,
+     344,
+     344,
+     344,
+     352,
+     353,
+     354,
+     355,
+     367,
+     367,
+     367,
+     413,
+     414,
+     416,
+     440
+    ],
+    "_file": "src/features/career/jobs.ts",
+    "_line": 301,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/career/jobs.ts",
+    "member": "jobs.ts",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:eq",
+     "drizzle-orm:desc",
+     "drizzle-orm:and",
+     "drizzle-orm:isNull"
+    ],
+    "line": 37,
+    "lines": [
+     37,
+     38,
+     63,
+     76,
+     76,
+     76,
+     90,
+     90,
+     96,
+     96,
+     96,
+     109,
+     109,
+     109,
+     115,
+     116,
+     123,
+     123,
+     123,
+     131,
+     131,
+     131,
+     132,
+     141,
+     141,
+     141
+    ],
+    "_file": "src/features/career/jobs.ts",
+    "_line": 37,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/career/jobs.ts",
+    "member": "runCareerJobs",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:lte"
+    ],
+    "line": 521,
+    "lines": [
+     521,
+     522,
+     524,
+     555,
+     556,
+     557,
+     558
+    ],
+    "_file": "src/features/career/jobs.ts",
+    "_line": 521,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/career/jobs.ts",
+    "member": "sendPendingEmail",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:eq",
+     "drizzle-orm:and",
+     "drizzle-orm:isNull",
+     "drizzle-orm:or",
+     "drizzle-orm:lte",
+     "drizzle-orm:asc"
+    ],
+    "line": 451,
+    "lines": [
+     451,
+     452,
+     454,
+     455,
+     456,
+     457,
+     458,
+     459,
+     460,
+     461,
+     466,
+     473,
+     480,
+     494
+    ],
+    "_file": "src/features/career/jobs.ts",
+    "_line": 451,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/career/service.ts",
+    "member": "invalidateMemory",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq"
+    ],
+    "line": 251,
+    "lines": [
+     251,
+     251,
+     255,
+     255,
+     261,
+     262
+    ],
+    "_file": "src/features/career/service.ts",
+    "_line": 251,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/career/service.ts",
+    "member": "knowledgeVersion",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:eq",
+     "drizzle-orm:and",
+     "drizzle-orm:or",
+     "drizzle-orm:isNull"
+    ],
+    "line": 208,
+    "lines": [
+     208,
+     213,
+     214,
+     223,
+     224,
+     226,
+     226,
+     226,
+     227,
+     230
+    ],
+    "_file": "src/features/career/service.ts",
+    "_line": 208,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/career/service.ts",
+    "member": "lockCareerUser",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:eq"
+    ],
+    "line": 151,
+    "lines": [
+     151
+    ],
+    "_file": "src/features/career/service.ts",
+    "_line": 151,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/career/service.ts",
+    "member": "memoryVersion",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:or"
+    ],
+    "line": 167,
+    "lines": [
+     167,
+     168,
+     169
+    ],
+    "_file": "src/features/career/service.ts",
+    "_line": 167,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/career/service.ts",
+    "member": "requireFacts",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:inArray"
+    ],
+    "line": 125,
+    "lines": [
+     125,
+     126,
+     127,
+     128
+    ],
+    "_file": "src/features/career/service.ts",
+    "_line": 125,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/career/service.ts",
+    "member": "service.ts",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:or",
+     "drizzle-orm:isNull",
+     "drizzle-orm:eq",
+     "drizzle-orm:and",
+     "drizzle-orm:desc"
+    ],
+    "line": 30,
+    "lines": [
+     30,
+     30,
+     30,
+     30,
+     32,
+     32,
+     32,
+     279,
+     280,
+     281,
+     284,
+     289,
+     308,
+     310,
+     311,
+     319,
+     319,
+     338,
+     345,
+     346,
+     349,
+     350,
+     351,
+     423,
+     424,
+     426,
+     426,
+     426,
+     427,
+     430,
+     444,
+     444,
+     444,
+     459,
+     459,
+     459,
+     469,
+     483,
+     484,
+     485,
+     499,
+     499,
+     499,
+     513,
+     514,
+     515,
+     529,
+     529,
+     529,
+     542,
+     543,
+     544,
+     611,
+     613,
+     614,
+     615,
+     619,
+     647,
+     647,
+     647,
+     655,
+     655,
+     655,
+     660,
+     662,
+     702,
+     702,
+     702,
+     709,
+     709,
+     709,
+     719,
+     719,
+     719,
+     725,
+     725,
+     725,
+     779,
+     783,
+     791,
+     791,
+     791,
+     807,
+     807,
+     807,
+     812,
+     812,
+     812,
+     851,
+     851,
+     851,
+     857,
+     857,
+     857,
+     875,
+     876,
+     877,
+     878,
+     889,
+     890,
+     891,
+     892,
+     903,
+     904,
+     905,
+     906,
+     926,
+     954,
+     954,
+     954,
+     965,
+     966,
+     967,
+     975,
+     975,
+     975,
+     997,
+     997,
+     997,
+     1001,
+     1019,
+     1040,
+     1041,
+     1042,
+     1043,
+     1044,
+     1045,
+     1046,
+     1047,
+     1048,
+     1049,
+     1050,
+     1051
+    ],
+    "_file": "src/features/career/service.ts",
+    "_line": 30,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/career/service.ts",
+    "member": "sourceText",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:eq",
+     "drizzle-orm:and",
+     "drizzle-orm:isNull"
+    ],
+    "line": 59,
+    "lines": [
+     59,
+     61,
+     62,
+     63,
+     64,
+     65,
+     80,
+     80,
+     80,
+     88,
+     88,
+     88,
+     96,
+     96,
+     96,
+     104,
+     104,
+     104
+    ],
+    "_file": "src/features/career/service.ts",
+    "_line": 59,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/career/tools.ts",
+    "member": "buildCareerTools",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:desc"
+    ],
+    "line": 90,
+    "lines": [
+     90,
+     90,
+     90,
+     92,
+     176,
+     177
+    ],
+    "_file": "src/features/career/tools.ts",
+    "_line": 90,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/career/voice.ts",
+    "member": "voice.ts",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:isNull",
+     "drizzle-orm:desc"
+    ],
+    "line": 68,
+    "lines": [
+     68,
+     69,
+     71,
+     72,
+     75,
+     143,
+     143,
+     143,
+     159,
+     159,
+     159
+    ],
+    "_file": "src/features/career/voice.ts",
+    "_line": 68,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/cover-letters/embedded.ts",
+    "member": "adoptEmbeddedLetters",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:inArray"
+    ],
+    "line": 31,
+    "lines": [
+     31,
+     32,
+     33,
+     34
+    ],
+    "_file": "src/features/cover-letters/embedded.ts",
+    "_line": 31,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/cover-letters/service.ts",
+    "member": "assertUnlocked",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq"
+    ],
+    "line": 235,
+    "lines": [
+     235,
+     235,
+     235
+    ],
+    "_file": "src/features/cover-letters/service.ts",
+    "_line": 235,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/cover-letters/service.ts",
+    "member": "getOwnedApplication",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq"
+    ],
+    "line": 104,
+    "lines": [
+     104,
+     104,
+     104
+    ],
+    "_file": "src/features/cover-letters/service.ts",
+    "_line": 104,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/cover-letters/service.ts",
+    "member": "getRow",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq"
+    ],
+    "line": 56,
+    "lines": [
+     56,
+     56,
+     56
+    ],
+    "_file": "src/features/cover-letters/service.ts",
+    "_line": 56,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/cover-letters/service.ts",
+    "member": "linkLetterApplication",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:inArray",
+     "drizzle-orm:asc"
+    ],
+    "line": 134,
+    "lines": [
+     134,
+     134,
+     134,
+     135,
+     154,
+     154,
+     154
+    ],
+    "_file": "src/features/cover-letters/service.ts",
+    "_line": 134,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/cover-letters/service.ts",
+    "member": "service.ts",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:eq",
+     "drizzle-orm:isNull",
+     "drizzle-orm:ilike",
+     "drizzle-orm:and",
+     "drizzle-orm:desc",
+     "drizzle-orm:count"
+    ],
+    "line": 243,
+    "lines": [
+     243,
+     243,
+     244,
+     245,
+     247,
+     248,
+     254,
+     254,
+     257,
+     402,
+     403,
+     404,
+     405,
+     406
+    ],
+    "_file": "src/features/cover-letters/service.ts",
+    "_line": 243,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/cover-letters/service.ts",
+    "member": "updateRevision",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq"
+    ],
+    "line": 217,
+    "lines": [
+     217,
+     218,
+     219,
+     220,
+     221
+    ],
+    "_file": "src/features/cover-letters/service.ts",
+    "_line": 217,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/documents/ownership.ts",
+    "member": "lockDocumentOwner",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:eq"
+    ],
+    "line": 11,
+    "lines": [
+     11
+    ],
+    "_file": "src/features/documents/ownership.ts",
+    "_line": 11,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/documents/service.ts",
+    "member": "assertOwnedApplication",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq"
+    ],
+    "line": 39,
+    "lines": [
+     39,
+     39,
+     39
+    ],
+    "_file": "src/features/documents/service.ts",
+    "_line": 39,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/documents/service.ts",
+    "member": "purgeExpired",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:lt"
+    ],
+    "line": 110,
+    "lines": [
+     110,
+     110,
+     110,
+     114,
+     114,
+     114
+    ],
+    "_file": "src/features/documents/service.ts",
+    "_line": 110,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/documents/service.ts",
+    "member": "service.ts",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:isNotNull",
+     "drizzle-orm:isNull",
+     "drizzle-orm:count"
+    ],
+    "line": 48,
+    "lines": [
+     48,
+     48,
+     48,
+     49,
+     49,
+     49,
+     145,
+     147,
+     148,
+     149,
+     149,
+     168,
+     170,
+     171,
+     172,
+     172,
+     193,
+     195,
+     195,
+     195,
+     197,
+     199,
+     199,
+     199,
+     201,
+     203,
+     203,
+     203,
+     205,
+     207,
+     207,
+     207
+    ],
+    "_file": "src/features/documents/service.ts",
+    "_line": 48,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/documents/version-history.ts",
+    "member": "createVersionHistory",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:inArray",
+     "drizzle-orm:lt",
+     "drizzle-orm:desc",
+     "drizzle-orm:notInArray",
+     "drizzle-orm:or"
+    ],
+    "line": 51,
+    "lines": [
+     51,
+     51,
+     51,
+     51,
+     57,
+     58,
+     59,
+     60,
+     67,
+     67,
+     67,
+     68,
+     73,
+     73,
+     73,
+     73,
+     111,
+     112,
+     113,
+     113,
+     116,
+     125,
+     139,
+     139,
+     139,
+     146,
+     146,
+     146,
+     146,
+     148,
+     154,
+     155,
+     156,
+     157,
+     157,
+     157,
+     160,
+     178,
+     178,
+     187,
+     187
+    ],
+    "_file": "src/features/documents/version-history.ts",
+    "_line": 51,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/resume/legacy-styles-migration.ts",
+    "member": "legacy-styles-migration.ts",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:sql.raw",
+     "drizzle-orm:sql.identifier"
+    ],
+    "line": 42,
+    "lines": [
+     42,
+     45,
+     49
+    ],
+    "_file": "src/features/resume/legacy-styles-migration.ts",
+    "_line": 42,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/resume/legacy-styles-migration.ts",
+    "member": "migrateLegacyStyles",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:db.execute",
+     "drizzle-orm:found.rows.map",
+     "drizzle-orm:ids.slice"
+    ],
+    "line": 85,
+    "lines": [
+     85,
+     88,
+     94,
+     97,
+     118
+    ],
+    "_file": "src/features/resume/legacy-styles-migration.ts",
+    "_line": 85,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/resume/legacy-styles-migration.ts",
+    "member": "restoreLegacyStyles",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:db.execute"
+    ],
+    "line": 152,
+    "lines": [
+     152
+    ],
+    "_file": "src/features/resume/legacy-styles-migration.ts",
+    "_line": 152,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/resume/service.ts",
+    "member": "applyResumePatchTx",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq"
+    ],
+    "line": 90,
+    "lines": [
+     90,
+     90,
+     90,
+     136,
+     136,
+     136,
+     136
+    ],
+    "_file": "src/features/resume/service.ts",
+    "_line": 90,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/resume/service.ts",
+    "member": "service.ts",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:eq",
+     "drizzle-orm:and",
+     "drizzle-orm:isNull",
+     "drizzle-orm:gte",
+     "drizzle-orm:arrayContains",
+     "drizzle-orm:desc",
+     "drizzle-orm:asc",
+     "drizzle-orm:isNotNull"
+    ],
+    "line": 174,
+    "lines": [
+     174,
+     195,
+     197,
+     198,
+     199,
+     200,
+     234,
+     235,
+     235,
+     235,
+     295,
+     295,
+     295,
+     312,
+     312,
+     312,
+     455,
+     456,
+     457,
+     458,
+     463,
+     464,
+     465,
+     486,
+     486,
+     486,
+     518,
+     519,
+     519,
+     519,
+     521,
+     642,
+     642,
+     642,
+     689,
+     690,
+     691,
+     692,
+     764,
+     764,
+     764,
+     785,
+     787,
+     788,
+     790,
+     791,
+     794,
+     817,
+     817,
+     817,
+     822,
+     822,
+     822
+    ],
+    "_file": "src/features/resume/service.ts",
+    "_line": 174,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/resume/service.ts",
+    "member": "updateResumePassword",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq"
+    ],
+    "line": 360,
+    "lines": [
+     360,
+     360,
+     360,
+     364,
+     364
+    ],
+    "_file": "src/features/resume/service.ts",
+    "_line": 360,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/resume/slugs.ts",
+    "member": "checkSlug",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq"
+    ],
+    "line": 44,
+    "lines": [
+     44,
+     44,
+     44
+    ],
+    "_file": "src/features/resume/slugs.ts",
+    "_line": 44,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/resume/slugs.ts",
+    "member": "findFreeSlug",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:or",
+     "drizzle-orm:like"
+    ],
+    "line": 28,
+    "lines": [
+     28,
+     28,
+     28,
+     28,
+     28
+    ],
+    "_file": "src/features/resume/slugs.ts",
+    "_line": 28,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/resume/slugs.ts",
+    "member": "matchesSlug",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:or",
+     "drizzle-orm:eq",
+     "drizzle-orm:inArray",
+     "drizzle-orm:and",
+     "drizzle-orm:gt"
+    ],
+    "line": 80,
+    "lines": [
+     80,
+     81,
+     82,
+     88,
+     89,
+     90,
+     91
+    ],
+    "_file": "src/features/resume/slugs.ts",
+    "_line": 80,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/resume/slugs.ts",
+    "member": "recordSlugChange",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq"
+    ],
+    "line": 66,
+    "lines": [
+     66,
+     66,
+     66
+    ],
+    "_file": "src/features/resume/slugs.ts",
+    "_line": 66,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/web-access/builtin.ts",
+    "member": "readBuiltinPage",
+    "layer": "business",
+    "category": "http-out",
+    "apis": [
+     "https:request",
+     "https:req.destroy",
+     "https:req.on",
+     "https:req.end"
+    ],
+    "line": 56,
+    "lines": [
+     56,
+     92,
+     105,
+     110
+    ],
+    "_file": "src/features/web-access/builtin.ts",
+    "_line": 56,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/web-access/credentials.ts",
+    "member": "credentials.ts",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:eq"
+    ],
+    "line": 75,
+    "lines": [
+     75
+    ],
+    "_file": "src/features/web-access/credentials.ts",
+    "_line": 75,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/web-access/credentials.ts",
+    "member": "savedCredential",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:eq"
+    ],
+    "line": 26,
+    "lines": [
+     26
+    ],
+    "_file": "src/features/web-access/credentials.ts",
+    "_line": 26,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/web-access/transport.ts",
+    "member": "postJson",
+    "layer": "business",
+    "category": "http-out",
+    "apis": [
+     "fetch()"
+    ],
+    "line": 14,
+    "lines": [
+     14
+    ],
+    "_file": "src/features/web-access/transport.ts",
+    "_line": 14,
+    "_importGraphSees": false
+   }
+  ],
+  "nondeterminism-in-core": [
+   {
+    "filePath": "src/features/agent/cancellation.ts",
+    "member": "isRunAlive",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 58,
+    "lines": [
+     58
+    ],
+    "_file": "src/features/agent/cancellation.ts",
+    "_line": 58,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/agent/messages-persistence.ts",
+    "member": "touchThread",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 226,
+    "lines": [
+     226
+    ],
+    "_file": "src/features/agent/messages-persistence.ts",
+    "_line": 226,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/agent/runs.ts",
+    "member": "claimActiveAgentRun",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 32,
+    "lines": [
+     32
+    ],
+    "_file": "src/features/agent/runs.ts",
+    "_line": 32,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/agent/runs.ts",
+    "member": "isStaleAgentRun",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 18,
+    "lines": [
+     18
+    ],
+    "_file": "src/features/agent/runs.ts",
+    "_line": 18,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/agent/service.ts",
+    "member": "createAgent",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 774,
+    "lines": [
+     774,
+     788
+    ],
+    "_file": "src/features/agent/service.ts",
+    "_line": 774,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/agent/service.ts",
+    "member": "service.ts",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 1102,
+    "lines": [
+     1102
+    ],
+    "_file": "src/features/agent/service.ts",
+    "_line": 1102,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/agent/service.ts",
+    "member": "updateAssistantToolResultMessage",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 578,
+    "lines": [
+     578
+    ],
+    "_file": "src/features/agent/service.ts",
+    "_line": 578,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/ai-providers/service.ts",
+    "member": "service.ts",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 295,
+    "lines": [
+     295,
+     310,
+     344
+    ],
+    "_file": "src/features/ai-providers/service.ts",
+    "_line": 295,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/ai/credentials.ts",
+    "member": "encryptCredential",
+    "layer": "business",
+    "category": "random",
+    "apis": [
+     "crypto:randomBytes"
+    ],
+    "line": 48,
+    "lines": [
+     48,
+     49
+    ],
+    "_file": "src/features/ai/credentials.ts",
+    "_line": 48,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/features/ai/service.ts",
+    "member": "service.ts",
+    "layer": "business",
+    "category": "env",
+    "apis": [
+     "process.env"
+    ],
+    "line": 87,
+    "lines": [
+     87
+    ],
+    "_file": "src/features/ai/service.ts",
+    "_line": 87,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/applications/posting.ts",
+    "member": "readOpenPosting",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 189,
+    "lines": [
+     189
+    ],
+    "_file": "src/features/applications/posting.ts",
+    "_line": 189,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/applications/service.ts",
+    "member": "noteEntry",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 58,
+    "lines": [
+     58
+    ],
+    "_file": "src/features/applications/service.ts",
+    "_line": 58,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/applications/service.ts",
+    "member": "service.ts",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 491,
+    "lines": [
+     491,
+     527
+    ],
+    "_file": "src/features/applications/service.ts",
+    "_line": 491,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/applications/service.ts",
+    "member": "stageEntry",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 54,
+    "lines": [
+     54
+    ],
+    "_file": "src/features/applications/service.ts",
+    "_line": 54,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/career/generate.ts",
+    "member": "generateCareer",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 198,
+    "lines": [
+     198
+    ],
+    "_file": "src/features/career/generate.ts",
+    "_line": 198,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/career/jobs.ts",
+    "member": "claim",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "new Date()",
+     "Date.now()"
+    ],
+    "line": 241,
+    "lines": [
+     241,
+     288
+    ],
+    "_file": "src/features/career/jobs.ts",
+    "_line": 241,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/career/jobs.ts",
+    "member": "discover",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 180,
+    "lines": [
+     180
+    ],
+    "_file": "src/features/career/jobs.ts",
+    "_line": 180,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/career/jobs.ts",
+    "member": "enqueue",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 201,
+    "lines": [
+     201,
+     229
+    ],
+    "_file": "src/features/career/jobs.ts",
+    "_line": 201,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/career/jobs.ts",
+    "member": "execute",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 359,
+    "lines": [
+     359,
+     366,
+     386,
+     399,
+     400,
+     411
+    ],
+    "_file": "src/features/career/jobs.ts",
+    "_line": 359,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/career/jobs.ts",
+    "member": "jobs.ts",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 122,
+    "lines": [
+     122,
+     140
+    ],
+    "_file": "src/features/career/jobs.ts",
+    "_line": 122,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/career/jobs.ts",
+    "member": "runCareerJobs",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "new Date()",
+     "Date.now()"
+    ],
+    "line": 524,
+    "lines": [
+     524,
+     551
+    ],
+    "_file": "src/features/career/jobs.ts",
+    "_line": 524,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/career/jobs.ts",
+    "member": "sendPendingEmail",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "Date.now()",
+     "new Date()"
+    ],
+    "line": 461,
+    "lines": [
+     461,
+     472,
+     493
+    ],
+    "_file": "src/features/career/jobs.ts",
+    "_line": 461,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/career/runner.ts",
+    "member": "runner.ts",
+    "layer": "business",
+    "category": "env",
+    "apis": [
+     "process.env"
+    ],
+    "line": 3,
+    "lines": [
+     3
+    ],
+    "_file": "src/features/career/runner.ts",
+    "_line": 3,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/career/service.ts",
+    "member": "service.ts",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 298,
+    "lines": [
+     298,
+     386,
+     669,
+     747,
+     834,
+     917,
+     1013
+    ],
+    "_file": "src/features/career/service.ts",
+    "_line": 298,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/cover-letters/service.ts",
+    "member": "service.ts",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 90,
+    "lines": [
+     90,
+     400
+    ],
+    "_file": "src/features/cover-letters/service.ts",
+    "_line": 90,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/documents/service.ts",
+    "member": "purgeExpired",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 105,
+    "lines": [
+     105
+    ],
+    "_file": "src/features/documents/service.ts",
+    "_line": 105,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/documents/service.ts",
+    "member": "service.ts",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 255,
+    "lines": [
+     255
+    ],
+    "_file": "src/features/documents/service.ts",
+    "_line": 255,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/documents/version-history.ts",
+    "member": "createVersionHistory",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "Date.now()",
+     "new Date()"
+    ],
+    "line": 60,
+    "lines": [
+     60,
+     119,
+     124
+    ],
+    "_file": "src/features/documents/version-history.ts",
+    "_line": 60,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/resume/access.ts",
+    "member": "access.ts",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 30,
+    "lines": [
+     30,
+     36
+    ],
+    "_file": "src/features/resume/access.ts",
+    "_line": 30,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/resume/pdf-download-url.ts",
+    "member": "createResumePdfDownloadUrl",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 65,
+    "lines": [
+     65
+    ],
+    "_file": "src/features/resume/pdf-download-url.ts",
+    "_line": 65,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/resume/pdf-download-url.ts",
+    "member": "verifyResumePdfDownloadToken",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 89,
+    "lines": [
+     89
+    ],
+    "_file": "src/features/resume/pdf-download-url.ts",
+    "_line": 89,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/resume/service.ts",
+    "member": "service.ts",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "new Date()",
+     "Date.now()"
+    ],
+    "line": 253,
+    "lines": [
+     253,
+     299,
+     547,
+     601,
+     836
+    ],
+    "_file": "src/features/resume/service.ts",
+    "_line": 253,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/resume/slugs.ts",
+    "member": "recordSlugChange",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 68,
+    "lines": [
+     68
+    ],
+    "_file": "src/features/resume/slugs.ts",
+    "_line": 68,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/web-access/builtin.ts",
+    "member": "readBuiltinPage",
+    "layer": "business",
+    "category": "env",
+    "apis": [
+     "process.env"
+    ],
+    "line": 54,
+    "lines": [
+     54
+    ],
+    "_file": "src/features/web-access/builtin.ts",
+    "_line": 54,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/web-access/service.ts",
+    "member": "consume",
+    "layer": "business",
+    "category": "env",
+    "apis": [
+     "process.env"
+    ],
+    "line": 22,
+    "lines": [
+     22
+    ],
+    "_file": "src/features/web-access/service.ts",
+    "_line": 22,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/web-access/service.ts",
+    "member": "log",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 64,
+    "lines": [
+     64
+    ],
+    "_file": "src/features/web-access/service.ts",
+    "_line": 64,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/web-access/service.ts",
+    "member": "probeWebAccess",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 167,
+    "lines": [
+     167
+    ],
+    "_file": "src/features/web-access/service.ts",
+    "_line": 167,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/web-access/service.ts",
+    "member": "readPage",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "Date.now()",
+     "new Date()"
+    ],
+    "line": 100,
+    "lines": [
+     100,
+     108,
+     124,
+     142
+    ],
+    "_file": "src/features/web-access/service.ts",
+    "_line": 100,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/features/web-access/service.ts",
+    "member": "searchWeb",
+    "layer": "business",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 72,
+    "lines": [
+     72
+    ],
+    "_file": "src/features/web-access/service.ts",
+    "_line": 72,
+    "_importGraphSees": false
+   }
+  ]
+ }
+}

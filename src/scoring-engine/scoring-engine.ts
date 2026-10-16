@@ -55,6 +55,7 @@ export async function computeScoredReport(input: ScoringInput): Promise<DomainRe
       confidenceThresholds: input.confidenceThresholds,
       v12eVerdict,
       ...(input.apg !== undefined && { apg: input.apg }),
+      ...(input.tierResolver !== undefined && { tierResolver: input.tierResolver }),
     })
     : undefined;
   const verdict = tiers !== undefined ? overallVerdictOf(tiers) : v12eVerdict;

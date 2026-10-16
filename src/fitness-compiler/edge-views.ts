@@ -107,7 +107,7 @@ export function applyEdgeView(templateName: string, cypher: string): string {
   const pendingAll: string[] = [];
   for (const m of cypher.matchAll(REL_PATTERN)) {
     const [whole, name, types = '', range] = m;
-    const index = m.index ?? 0;
+    const index = m.index;
     if (!readsImports(types)) continue;
     if (index < last) throw new Error(`edge view: an IMPORTS pattern inside a rewritten WHERE prefix in ${templateName}`);
     const rel = name ?? `_ev${String(counter++)}`;

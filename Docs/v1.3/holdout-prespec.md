@@ -9,13 +9,22 @@ It is not a pre-registration of Study 2. It covers only the validation of the to
 | Item | Value |
 |---|---|
 | Tool commit | `<FREEZE_SHA>` |
-| Hold-out manifests (sealed outside the repository) | path `<HOLDOUT_PATH>`, sha256 `<HOLDOUT_SHA256>` |
+| Hold-out manifests (sealed outside the repository) | path `<HOLDOUT_PATH>`, sha256: see the row "../daedalus-sealed/v1.3-holdout (directory manifest)" in `Docs/v1.3/sealed-hashes.md`, section "Hold-out and blind manifests (recorded late, 2026-10-15T20:38Z)" (`1379b561…`; the author's own `out.sha256` value is `cddec14a…`). The blind manifests are hashed in the same section. |
 | Rule tiers | `Docs/v1.3/rule-tiers.md` at its sealed hash, plus the tier ADRs merged at `<FREEZE_SHA>` |
 | Defaults | the v1.3 extractor and compile defaults at `<FREEZE_SHA>` (`V13_DEFAULT_OPTIONS`, `V13_COMPILE_OPTIONS`) |
 | Presets, templates, specs | as at `<FREEZE_SHA>`, sha256 of each listed in the freeze commit |
 | Matching | `scripts/v1.3/lib/compare.ts` at `<FREEZE_SHA>` |
 
 **How the freeze works.** Commit X holds the tool. Commit Y fills `<FREEZE_SHA>` = X in this file and records the file's hash. The run uses the code at X. Before the run, `git diff X Y -- src scripts presets specs` must be empty. Construct decisions that change code (`Docs/v1.3/construct-decisions.md`) must be merged before X, including their single development-set runs (Q16, Q25). Nothing merges between X and the run.
+
+### Known limitations of the hold-out (added 2026-10-16, after the adversarial review)
+
+- **Same vendor.** The hold-out was written by a Fable model, the same vendor as the tool's judge (`claude-opus-5-5`), the blind-manifest annotator and the coordinating agent. It is independent of tuning, not independent of the vendor.
+- **Enlarged after tuning.** It was enlarged from 62 to 207 cases on 2026-10-15 (commit `3e69928f` on v1.2e), after the after-fixes development measurement (`b35bf172`) and after `construct-decisions.md` (`be17c4d9`) listed the contested constructs. The enlargement was done by the AI under the author's "max progress" delegation, without an explicit author decision, and the enlarging agent had access to the development-set results. Its hashes were recorded late (see `sealed-hashes.md`).
+- **Unverified rule input.** The hold-out author's rule input was `Docs/v1.3/style-rule-sources.md`, a paraphrase of the sources that had not been checked against the books. `Docs/v1.3/rule-source-verification.md` and `Docs/v1.3/style-rule-sources-errata.md` have since found rows that are only partly supported and rules with no source row.
+- **No human check of its construct distribution.** No human has checked whether the 207 cases' construct distribution mirrors the development set's contested list or the tool's implemented constructs.
+
+**Recommended mitigation.** Score, alongside the hold-out, one external, non-Claude-authored project per style, with rules written by someone outside the project (for example dependency-cruiser `forbidden` rules or Nx boundaries). Report it as a separate arm.
 
 ## 2. The run
 

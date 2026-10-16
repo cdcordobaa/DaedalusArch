@@ -275,6 +275,7 @@ function portAdapter(c: Ctx): Outcome {
 function domainStatePurity(c: Ctx): Outcome {
   const [cls0, targetName = '', relType, field = ''] = c.f.discriminator;
   if (relType === 'FLOWS_TO') return na('FLOWS_TO (field) half: reported N/A by rule-tiers.md (FF-P06, finding 9)');
+  if (relType === 'HOLDS_STATE_OF') return na('HOLDS_STATE_OF (field) half: the field-state variant of the N/A half (rule-tiers.md, FF-P06)');
   if (relType !== 'CONSTRUCTOR_INJECTS') return na(`unknown relation ${relType ?? '?'}`);
   const cls = classIn(c, cls0);
   if ('verdict' in cls) return cls;

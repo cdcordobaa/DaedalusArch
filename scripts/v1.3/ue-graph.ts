@@ -4,6 +4,7 @@
  * keep the File-to-File IMPORTS / RE_EXPORTS edges, and assign layers with `annotateNodes` under the style's spec.
  *
  * Usage (repository root): npx tsx scripts/v1.3/ue-graph.ts --out results/v1.3-reference/baseline-pre-barrel
+ *   [--root <dir>] (reference projects in the same formats, e.g. a hold-out directory)  [--style <a,b>]
  * Writes <out>/graph/tool-graphs.json.
  */
 import * as fs from 'node:fs';
@@ -13,7 +14,8 @@ import { parseSpec, specExcludePathsFromYaml } from '../../src/spec-parser/index
 import { normaliseFindingPath } from './lib/compare.js';
 import { assignLayers } from './lib/layer-assignment.js';
 import { makeTempRoot, materialiseVariant } from './lib/materialise.js';
-import { loadAllReferences } from './lib/reference-model.js';
+import { REFERENCE_ROOT, isReferenceStyle, loadAllReferences } from './lib/reference-model.js';
+import type { ReferenceStyle } from './lib/reference-model.js';
 
 interface ToolEdge { from: string; to: string; types: string[]; typeOnly: boolean; specifiers: string[] }
 
@@ -21,7 +23,12 @@ async function run(): Promise<void> {
   const argv = process.argv.slice(2);
   const oi = argv.indexOf('--out');
   const out = path.resolve(oi >= 0 ? argv[oi + 1] ?? '' : 'results/v1.3-reference/baseline-pre-barrel');
-  const refs = loadAllReferences(process.cwd());
+  const ri = argv.indexOf('--root');
+  const root = ri >= 0 ? argv[ri + 1] ?? REFERENCE_ROOT : REFERENCE_ROOT;
+  const si = argv.indexOf('--style');
+  const styles = si >= 0 ? (argv[si + 1] ?? '').split(',').filter((s) => s !== '') : undefined;
+  if (styles !== undefined && !styles.every(isReferenceStyle)) throw new Error(`--style takes reference styles, got ${styles.join(',')}`);
+  const refs = loadAllReferences(process.cwd(), styles as ReferenceStyle[] | undefined, root);
   const work = makeTempRoot('v13-ue-graph-');
   const result: Record<string, Record<string, { files: { file: string; layer: string | null; matchMethod: string | null }[]; edges: ToolEdge[]; packages: { from: string; to: string }[] }>> = {};
   try {
