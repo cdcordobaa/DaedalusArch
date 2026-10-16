@@ -10,14 +10,14 @@ odd, and queries it is not meant to accept. Neo4j stays the reference engine. No
 
 | check | result |
 |---|---|
-| Graph fuzz, final run (seeds 1-2000, interpreter at its final state) | ⟨GRAPHS⟩ graphs, ⟨STMTS⟩ statements, ⟨ROWS⟩ Neo4j rows: **⟨OK⟩ equal**, ⟨QUIRKS⟩ documented quirks, ⟨TIMEOUTS⟩ Neo4j timeouts (not compared), **⟨MISMATCH⟩ mismatches** (§3, §6) |
-| Development fuzz runs (before and between the fixes) | about 170 graphs; 34 minimised mismatches → 9 interpreter bugs (F1-F9), all fixed |
-| Rejection fuzz, 3,000 queries built around unsupported constructs | ⟨REJ⟩ |
-| Mutation fuzz, 3,000 random mutants of the template texts | ⟨MUT⟩ |
-| Regression tests (`tests/unit/cypher-interp/fuzz-regressions.test.ts`) | 32 cases, one or more per finding; every expectation is Neo4j's live answer (`scripts/v1.3/cypher-interp-fuzz-live.ts`: 32/32) |
-| Unit tests, `jest tests/unit/cypher-interp --maxWorkers=2` | 61/61 (29 existing + 32 new) |
-| 71-reference byte-identity, `ue-baseline-live --engine cypher-interp` vs `results/v1.3-reference/after-member-facts` | **73/73 files identical** (raw 71, `report.json`, `report.md`), after all fixes (`results/v1.3-cypher-interp/fuzz/reference-check.json`) |
-| Real-graph parity re-run (`memory-parity.ts`, 79 projects), after all fixes | 65,254 statements: **0 content, 0 error, 0 unsupported**; 797 `order`, all `ingest-verify` (T1) and `averageInstability` (T2) as in PR #128 (`results/v1.3-cypher-interp/fuzz/parity-rerun/parity.md`) |
+| Graph fuzz, final run (seeds 1-2000) | 2,000 graphs (59,637 nodes, 67,200 edges), 836,000 statements, 342,220 Neo4j rows, 0 ingestion differences: **821,236 equal**, 13,215 documented quirks (T20 8,763, T8 4,257, T2 195), 1,549 Neo4j timeouts (not compared), **0 mismatches** with the final code (41 as run, all in `universal-literal:orphanFileCount`/`cyclicDependencyCount`; replayed: 9 equal, 32 T20; they led to F10; §8) |
+| Development fuzz runs (before and between the fixes) | about 170 graphs and two 3,000-query rejection runs; 34 minimised mismatches and 139 rows-where-Neo4j-errors mutants → 9 interpreter bugs (F1-F9), all fixed; F10 came from the final run |
+| Rejection fuzz, 3,000 queries built around 59 unsupported constructs | **3,000/3,000 rejected** (`CypherInterp.Unsupported` or a syntax error), **0 returned rows**; Neo4j accepted 1,686 of them in a read transaction (they are valid Neo4j, outside the subset) |
+| Mutation fuzz, 3,000 random mutants of the template texts | 2,772 both fail with the same code, 168 same rows (163 equal, 3 T8, 2 T20), 28 rejected as unsupported, 10 empty (skipped); 22 differ, all Neo4j compile-time checks the interpreter does not make (T21: 19, T22: 3; §6). Before F9: 139 mutants returned rows where Neo4j failed |
+| Regression tests (`tests/unit/cypher-interp/fuzz-regressions.test.ts`) | 33 cases, one or more per finding; every expectation is Neo4j's live answer (`scripts/v1.3/cypher-interp-fuzz-live.ts`: 33/33; two F8/F10 cases are plan-order dependent in Neo4j and marked `neo4jMayRaise`, §6 T20) |
+| Unit tests, `jest tests/unit/cypher-interp --maxWorkers=2` | 62/62 (29 existing + 33 new) |
+| 71-reference byte-identity, `ue-baseline-live --engine cypher-interp` vs `results/v1.3-reference/after-member-facts` | **73/73 files identical** (raw 71, `report.json`, `report.md`), with the final interpreter (`results/v1.3-cypher-interp/fuzz/reference-check.json`, sha256 per file) |
+| Real-graph parity re-run (`memory-parity.ts`, 79 projects), after all fixes | 65,254 statements: **0 content, 0 error, 0 unsupported**; 759 `order`, all `ingest-verify` (T1) and `averageInstability` (T2) as in PR #128 (`results/v1.3-cypher-interp/fuzz/parity-rerun/parity.md`) |
 
 ## 1. Setup
 
@@ -44,8 +44,8 @@ node` writes) on both engines, so it is exactly what the pipeline would store.
 | empty layers, files with no layer | 0-5 layers, some pointing at `nowhere/**`, some sharing a name; most files match no layer |
 | list properties | string, float, integer and boolean lists, empty lists; homogeneous and null-free (what Neo4j can store) |
 
-Size: 0-28 files, up to about 70 nodes and 70 edges; 25 % of graphs are "medium" (twice the counts). In the final run:
-⟨SIZE⟩.
+Size: 0-28 files; 25 % of graphs are "medium" (twice the counts). In the final run: 8-75 nodes and 0-107 edges per
+graph (59,637 nodes and 67,200 edges in all).
 
 `shrinkCandidates` yields one-step reductions (halves down to single edges and nodes, then layers, then single
 properties); the minimiser keeps the first that still gives the same verdict and repeats (greedy, 180 s budget).
@@ -97,11 +97,13 @@ every run was replayed after the last fix.
    interpreter accepts a mutant, Neo4j runs it in a READ transaction (a mutant can never write) and must return the
    same rows; when both fail, the codes are compared.
 
-⟨REJECTION RESULTS⟩
+Results (`results/v1.3-cypher-interp/fuzz/rejection-summary.json`): every one of the 3,000 constructed queries was
+rejected, none returned rows. Of the 3,000 mutants, 22 differ from Neo4j, all on Neo4j compile-time analysis (§6 T21,
+T22). The first rejection run found F9 (139 mutants returned rows where Neo4j failed) and two harness bugs (H2, H3).
 
 ## 5. Findings and fixes
 
-Classified as **interpreter bug** (fixed, regression test each), **documented Neo4j quirk** (§6) or **harness bug**
+Ten findings. Classified as **interpreter bug** (fixed, regression test each), **documented Neo4j quirk** (§6) or **harness bug**
 (§7). Every fix was checked against live Neo4j (`cypher-interp-fuzz-live.ts`) and against the reference set.
 
 | # | found by | minimised repro | Neo4j 5.26.24 | interpreter before | fix |
@@ -115,6 +117,7 @@ Classified as **interpreter bug** (fixed, regression test each), **documented Ne
 | F7 | graph fuzz, seed 21, no-cyclic-deps [v1.3+exclude] | 3 Files, a `.spec.ts` node behind a string-flag edge | `NONE(n IN nodes(p) WHERE …exclude…)` is pushed too and prunes the `.spec.ts` node first | TypeError | `NONE` pushdown (prune where the predicate is not false) |
 | F8 | graph fuzz, seed 21, orphanFileCount [literal] | a File with two IMPORTS, one with a string flag | `EXISTS` is true as soon as one row qualifies | TypeError from the other row | in an existential MATCH a row's data error is held back; raised only if no row qualifies |
 | F9 | mutation fuzz, 139 of 3,000 mutants | `RETURN iname AS name` (typo), `ORDER BY sum`, `head(x, false)`, `-[*1..$max]->` | rejected when planning: undefined variable, unknown function, wrong argument count, parameter map in a MATCH pattern | **returned 0 rows** whenever no row reached the bad expression (variables and functions were resolved lazily); `$max` became a property map and failed at run time | `typecheck.ts` resolves every variable through the clause scopes and every function name and arity before any row is read; unknown names are SyntaxError, functions outside the subset `CypherInterp.Unsupported`; a parameter map in a pattern is a SyntaxError |
+| F10 | final graph run, seed 474, cyclicDependencyCount [literal] | a File with two self-loops (a cycle of length 2) and an edge with a FLOAT `viaReExport` to a Package (a dead end) | which path its plan tries first decides: rows on one instance, the TypeError on another | F4's "raise a pushed-down predicate's error at once" fired on the dead end inside an `EXISTS` | inside an existential MATCH a pushed-down predicate's error prunes the path and is held back like F8; raised only if no path qualifies. Re-run of this statement over all 2,000 seeds with the final code: 0 mismatches |
 
 F2 and F4 are performance and plan-order fixes as much as semantic ones; none changes a row on any real graph (the
 reference set and the real-graph parity are unchanged, §0).
@@ -123,13 +126,13 @@ reference set and the real-graph parity are unchanged, §0).
 
 | # | quirk | in the final run |
 |---|---|---|
-| T1 | row order without ORDER BY follows the planner and the store | ⟨T1⟩ |
-| T2 | `avg`/`sum` over unordered rows differ in the last bits | ⟨T2⟩ |
-| T8 | rows tied on every ORDER BY key come back in an unspecified order; which tied rows a LIMIT keeps is unspecified. Duplicate paths and names make full-key ties common in fuzz graphs, never in the reference projects | ⟨T8⟩ |
-| T20 (new) | **plan-order data errors**: whether Neo4j raises a type error in a predicate depends on its plan (expansion direction from label statistics, conjunct order, EXISTS row order); the same template text on graphs differing in one node flips. The interpreter raises only errors no order avoids; strict mode proves each T20 error reachable | ⟨T20⟩ |
-| T21 (new) | Neo4j's semantic analysis infers types beyond literals (`true + x`, `m + 1.filePath`, `toBoolean(n) / m`, `avg(node)`, `size(rel)`, a regex `=~ false`) and rejects them when planning; the interpreter checks literals, pattern variables and their aliases only, so on such a query it may return rows (when no row reaches the expression) or a runtime TypeError instead of a SyntaxError | ⟨T21⟩ |
-| T22 (new) | grammar: the interpreter parses with Neo4j's Cypher 25 grammar (T18); a few Cypher 5 syntax errors parse there (`(c IS NULL:Label)`, a property after whitespace and `.`), giving rows or a different error | ⟨T22⟩ |
-| timeout | Neo4j needs more than 3 s for no-cyclic-deps [v1.2e] on the densest ring graphs (the v1.2E text has no relationship predicate to push down); not compared | ⟨TIMEOUT⟩ |
+| T1 | row order without ORDER BY follows the planner and the store | 0 in the template sweep (every catalogue template has an ORDER BY; the single-row metrics cannot differ in order); the ingestion verification reads differ in order as in PR #128 (`ingest-verify`, real-graph parity re-run) |
+| T2 | `avg`/`sum` over unordered rows differ in the last bits | 195 (`averageInstability`, both metric sets) |
+| T8 | rows tied on every ORDER BY key come back in an unspecified order; which tied rows a LIMIT keeps is unspecified. Duplicate paths and names make full-key ties common in fuzz graphs, never in the reference projects | 4,257, in 15 families (context-isolation 1,917, module-fan-out 918, max-fan-in 844, …); `T8-limit-tie` did not occur |
+| T20 (new) | **plan-order data errors**: whether Neo4j raises a type error in a predicate depends on its plan (expansion direction from label statistics, conjunct order, EXISTS row order); the same template text on graphs differing in one node flips. The interpreter raises only errors no order avoids; strict mode proves each T20 error reachable | 8,763 in 16 families (layer-skip-graph 1,162, dependency-direction-graph 1,135, no-orphan-files 1,333, …); each one strict-verified. The same F8/F10 regression case gave rows on one 5.26.24 instance and the error on another |
+| T21 (new) | Neo4j's semantic analysis infers types beyond literals (`true + x`, `m + 1.filePath`, `toBoolean(n) / m`, `avg(node)`, `size(rel)`, a regex `=~ false`) and rejects them when planning; the interpreter checks literals, pattern variables and their aliases only, so on such a query it may return rows (when no row reaches the expression) or a runtime TypeError instead of a SyntaxError | mutation fuzz only: 19 (11 return rows where Neo4j fails, 8 fail with TypeError where Neo4j gives SyntaxError); no template is affected |
+| T22 (new) | grammar: the interpreter parses with Neo4j's Cypher 25 grammar (T18); a few Cypher 5 syntax errors parse there (`(c IS NULL:Label)`, a property after whitespace and `.`), giving rows or a different error | mutation fuzz only: 3 (`IS NULL:` label, a property after `.`, `1f`) |
+| timeout | Neo4j needs more than 3 s for no-cyclic-deps [v1.2e] on the densest ring graphs (the v1.2E text has no relationship predicate to push down); not compared | 1,549 (no-cyclic-deps 1,547, port-adapter-pattern 1, cyclicDependencyCount 1) |
 
 ## 7. Harness bugs found
 
@@ -149,14 +152,23 @@ node --import tsx scripts/v1.3/cypher-interp-fuzz-live.ts                       
 npx jest tests/unit/cypher-interp --maxWorkers=2
 ```
 
-Results: `results/v1.3-cypher-interp/fuzz/` (`fuzz-summary.json` per family and verdict, `fuzz-mismatches.json` with
-minimised repros, `fuzz-recheck.json`, `rejection-summary.json`, `reference-check.json`).
+Results: `results/v1.3-cypher-interp/fuzz/`: `fuzz-summary.json` (verdicts as run and final, per family),
+`fuzz-progress.jsonl.gz` (one record per seed), `fuzz-mismatches.json` (the 41 as-run mismatches with minimised repros),
+`fuzz-recheck.json` (their replay with the final code), `rejection-summary.json`, `reference-check.json`,
+`parity-rerun/parity.md`.
+
+**How the final numbers were made.** The 2,000-graph run took 3.6 harness-hours on two instances. During it, F10 and
+two refinements of the strict diagnostics (EXISTS rows exhausted; anchor conjuncts checked) landed. The as-run verdicts
+(`verdictsAsRun`: 41 `mismatch:error`) are kept; the final verdicts replay every as-run mismatch with the final code
+(9 → equal, 32 → T20) and take `universal-literal:cyclicDependencyCount`, the only statement F10 can change (the only
+text with a pushed-down quantifier inside an EXISTS), from a re-run over all 2,000 seeds with the final code (0
+mismatches). The reference-set check and the real-graph parity were re-run on the final code.
 
 ## 9. Files
 
 - generator and harness: `scripts/v1.3/lib/fuzz-apg.ts`, `scripts/v1.3/lib/fuzz-verdict.ts`, `scripts/v1.3/lib/fuzz-reject.ts`,
   `scripts/v1.3/cypher-interp-fuzz.ts`, `scripts/v1.3/cypher-interp-fuzz-live.ts`, `scripts/v1.3/lib/memory-bindings.ts`
   (bindings moved out of `memory-parity.ts`, unchanged)
-- interpreter: `src/cypher-interp/eval.ts`, `functions.ts` (`tail`), `parse.ts` (static checks, parameter maps),
+- interpreter: `src/cypher-interp/eval.ts` (F1, F2, F4, F5, F7, F8, F10, strict diagnostics), `functions.ts` (`tail`), `parse.ts` (static checks, parameter maps),
   new `typecheck.ts`, new `simplify.ts`
 - tests: `tests/unit/cypher-interp/fuzz-regressions.cases.ts`, `fuzz-regressions.test.ts`

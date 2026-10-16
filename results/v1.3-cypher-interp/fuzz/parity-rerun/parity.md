@@ -1,6 +1,6 @@
 # cypher-interp parity against Neo4j 5.26.24 + APOC
 
-Statements: 65254 (equal 64457, order 797, content 0, error 0, unsupported 0, both-error 0); projects: 79.
+Statements: 65254 (equal 64495, order 759, content 0, error 0, unsupported 0, both-error 0); projects: 79.
 
 | template / query family | statements | projects | equal | order | content | error | unsupported | both-error | Neo4j rows |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -26,7 +26,7 @@ Statements: 65254 (equal 64457, order 797, content 0, error 0, unsupported 0, bo
 | domain-stability | 1572 | 79 | 1572 | 0 | 0 | 0 | 0 | 0 | 5214 |
 | domain-state-purity | 844 | 79 | 844 | 0 | 0 | 0 | 0 | 0 | 578 |
 | ingest | 4146 | 79 | 4146 | 0 | 0 | 0 | 0 | 0 | 0 |
-| ingest-verify | 884 | 79 | 652 | 232 | 0 | 0 | 0 | 0 | 3704 |
+| ingest-verify | 884 | 79 | 614 | 270 | 0 | 0 | 0 | 0 | 3704 |
 | inheritance-depth | 870 | 79 | 870 | 0 | 0 | 0 | 0 | 0 | 26 |
 | interface-segregation-proxy | 870 | 79 | 870 | 0 | 0 | 0 | 0 | 0 | 1312 |
 | io-outside-adapters | 758 | 79 | 758 | 0 | 0 | 0 | 0 | 0 | 18 |
@@ -55,13 +55,13 @@ Statements: 65254 (equal 64457, order 797, content 0, error 0, unsupported 0, bo
 | single-responsibility-proxy | 870 | 79 | 870 | 0 | 0 | 0 | 0 | 0 | 4988 |
 | test-file-pairing | 870 | 79 | 870 | 0 | 0 | 0 | 0 | 0 | 23212 |
 | undeclared-async-coupling | 758 | 79 | 758 | 0 | 0 | 0 | 0 | 0 | 30 |
-| universal-literal:averageInstability | 450 | 79 | 167 | 283 | 0 | 0 | 0 | 0 | 450 |
+| universal-literal:averageInstability | 450 | 79 | 207 | 243 | 0 | 0 | 0 | 0 | 450 |
 | universal-literal:cyclicDependencyCount | 450 | 79 | 450 | 0 | 0 | 0 | 0 | 0 | 450 |
 | universal-literal:maxFanIn | 450 | 79 | 450 | 0 | 0 | 0 | 0 | 0 | 450 |
 | universal-literal:maxFanOut | 450 | 79 | 450 | 0 | 0 | 0 | 0 | 0 | 450 |
 | universal-literal:orphanFileCount | 450 | 79 | 450 | 0 | 0 | 0 | 0 | 0 | 450 |
 | universal:abstractionRatio | 900 | 79 | 900 | 0 | 0 | 0 | 0 | 0 | 900 |
-| universal:averageInstability | 450 | 79 | 168 | 282 | 0 | 0 | 0 | 0 | 450 |
+| universal:averageInstability | 450 | 79 | 204 | 246 | 0 | 0 | 0 | 0 | 450 |
 | universal:cyclicDependencyCount | 450 | 79 | 450 | 0 | 0 | 0 | 0 | 0 | 450 |
 | universal:maxFanIn | 450 | 79 | 450 | 0 | 0 | 0 | 0 | 0 | 450 |
 | universal:maxFanOut | 450 | 79 | 450 | 0 | 0 | 0 | 0 | 0 | 450 |

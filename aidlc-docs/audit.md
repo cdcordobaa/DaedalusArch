@@ -1492,3 +1492,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 spike, outside the v1.3 study stages. Development-set evidence only.
 
 ---
+
+## v1.3 — differential fuzz of the Cypher interpreter (scheduled task)
+**Timestamp**: 2026-10-16T04:55:00Z
+**User Input**: "Scheduled task: differential fuzz parity of the in-process Cypher interpreter (PR #128) against live Neo4j 5.26.24 + APOC: a seeded adversarial APG generator; thousands of graphs × every template in every compiled form and binding of the parity harness, rows compared exactly; minimise, classify and fix every mismatch (regression test each, never change template text); fuzz the rejection path; write Docs/v1.3/cypher-interp-fuzz.md; re-run the 71-reference byte-identity check. Branch v1.3-interp-fuzz, one PR into v1.3, not merged."
+**AI Response**: "Branch cut from origin/v1.3-cypher-interp (origin/v1.3 has no src/cypher-interp). Generator scripts/v1.3/lib/fuzz-apg.ts (mulberry32), harness scripts/v1.3/cypher-interp-fuzz.ts (418 statements per graph, verdicts, greedy minimiser, strict-mode classification of plan-order errors, resumable), rejection and mutation fuzz. Ten interpreter bugs found and fixed (F1-F10), 33 regression cases checked live. Final run: 2,000 graphs, 836,000 statements, 0 mismatches with the final code (13,215 documented quirks, 1,549 Neo4j timeouts); 3,000/3,000 unsupported queries rejected; 22 of 3,000 mutants differ, all Neo4j compile-time analysis (documented T21/T22). Reference set 73/73 byte-identical; real-graph parity 0 content/error/unsupported. No template text changed. The AI-DLC approval gates were not run interactively: the request came from a scheduled task with no one present; the stored prompt served as the requirements, and its scope (tests, fixes on a spike branch, one PR into v1.3) needs no registered-artefact decision."
+**Context**: v1.3 spike follow-up, outside the v1.3 study stages. Development-set evidence only.
+
+---
