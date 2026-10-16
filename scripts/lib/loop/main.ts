@@ -62,7 +62,7 @@ import { checkIsolationPaths } from './isolation.js';
 import { firewallEvaluator, harnessSnapshotTsconfig, harnessTypechecker } from './evaluator.js';
 import { evaluatorForEngine, parseLoopEngine } from './engine-tee.js';
 import type { LoopEngine } from './engine-tee.js';
-import { assertGateApplied, gateEvaluationFailures, runLoop } from './loop.js';
+import { assertGateApplied, gateEvaluationFailures, restartCounts, runDirFor, runLoop } from './loop.js';
 import type { LoopContext, LoopRunResult, TaskProfile } from './loop.js';
 import { loadLoopPlan, loopRunId, mcpSpecCheck, planCallBudget, planFrame, scheduleLoopRuns, SPEC_SHA_ENV } from './plan.js';
 import { taskFrameExtras } from './rungs.js';
@@ -467,7 +467,23 @@ export async function runLoopGrid(
   return DomainResult.ok(results);
 }
 
-/** The final console summary: runs, the planned call budget and the turns this invocation ran. */
+/**
+ * Per arm, the resumes of the grid's runs by `restarts.jsonl` reason, over every invocation: `redraws` discarded a
+ * partial step and drew its turn again, `rescores` re-evaluated the kept commit of a `LOOP_GATE_UNSCORED` stop.
+ */
+export function restartsByArm(loaded: LoadedPlan): Record<string, { readonly redraws: number; readonly rescores: number }> {
+  const out: Record<string, { redraws: number; rescores: number }> = {};
+  for (const arm of loaded.plan.arms) out[arm] = { redraws: 0, rescores: 0 };
+  for (const spec of scheduleLoopRuns(loaded.plan, loaded.tasks.tasks)) {
+    const c = restartCounts(runDirFor(loaded.plan.outRoot, loopRunId(spec)));
+    const a = (out[spec.arm] ??= { redraws: 0, rescores: 0 });
+    a.redraws += c.redraw;
+    a.rescores += c.rescore;
+  }
+  return out;
+}
+
+/** The final console summary: runs, the planned call budget, the turns this invocation ran and the resumes per arm. */
 export function gridSummary(loaded: LoadedPlan, results: readonly LoopRunResult[], dryRun: boolean): Record<string, unknown> {
   const completed = results.filter((r) => r.kind === 'completed');
   let stepTurns = 0;
@@ -492,6 +508,8 @@ export function gridSummary(loaded: LoadedPlan, results: readonly LoopRunResult[
     turnsThisInvocation: { step: stepTurns, repair: repairTurns, repairsCleared },
     // R01: gate steps the gate could not judge (no evaluation). An assertion: it must be 0 (`assertGateApplied`).
     gateStepsWithoutEvaluation: gateEvaluationFailures(results),
+    // Review item 1: a redraw is a new model sample for a step; the gate arm re-scores instead of redrawing.
+    restartsByArm: restartsByArm(loaded),
   };
 }
 

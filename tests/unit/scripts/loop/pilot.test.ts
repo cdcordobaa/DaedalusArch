@@ -428,7 +428,9 @@ describe('pilot plan', () => {
     const code = await main(['--plan', PLAN, '--dry-run', '--out-root', out], REPO, deps);
     expect(code).toBe(0);
     const summary = JSON.parse(lines[lines.length - 1] ?? '{}') as Record<string, unknown>;
-    expect(summary).toMatchObject({ dryRun: true, runs: 6, completed: 6, callBudget: { maxCalls: 36 }, turnsThisInvocation: { step: 24 } });
+    expect(summary).toMatchObject({ dryRun: true, runs: 6, completed: 6, callBudget: { maxCalls: 36 }, turnsThisInvocation: { step: 24 }, gateStepsWithoutEvaluation: 0 });
+    // Review item 1: re-draws and re-scores per arm (none here: the dry run never stops).
+    expect(summary.restartsByArm).toEqual({ none: { redraws: 0, rescores: 0 }, gate: { redraws: 0, rescores: 0 } });
     const loaded = loadLoopPlan(path.join(REPO, PLAN), REPO, { outRoot: out });
     if (!loaded.success) throw new Error('plan');
     for (const task of loaded.data.tasks.tasks) {

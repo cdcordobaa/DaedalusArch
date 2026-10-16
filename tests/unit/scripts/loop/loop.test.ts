@@ -5,7 +5,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { DomainResult } from '../../../../src/shared/errors/domain-result.js';
-import { RESTARTS_LOG, RUN_JSON, WORK_DIR, assertGateApplied, gateEvaluationFailures, readStepRecords, runDirFor, runLoop, stepRecordPath } from '../../../../scripts/lib/loop/loop.js';
+import { GATE_UNSCORED_FILE, RESTARTS_LOG, RUN_JSON, WORK_DIR, assertGateApplied, gateEvaluationFailures, readStepRecords, restartCounts, restartReasonOf, runDirFor, runLoop, stepRecordPath } from '../../../../scripts/lib/loop/loop.js';
 import { loopRunId } from '../../../../scripts/lib/loop/plan.js';
 import { MAX_REPAIR_FINDINGS, repairPrompt, sha256, stepPrompt } from '../../../../scripts/lib/loop/prompts.js';
 import { SNAPSHOT_GIT_DIR, WorkTreeSnapshots } from '../../../../scripts/lib/loop/snapshot.js';
@@ -143,20 +143,68 @@ describe('multi-step loop (dry run)', () => {
     expect(s2?.repair).toBeNull();
   });
 
-  it('gate: an unscored step-turn snapshot stops the run (the gate cannot decide), and a resume reruns the step with its repair', async () => {
+  it('gate: an unscored step-turn snapshot stops the run (the gate cannot decide), and a resume re-scores the kept commit', async () => {
     // Loop fault drills D4a/D4b (Docs/v1.3/loop-fault-drills.md): recording the error and going on ran the step
     // without the gate (no repair), so the gate arm silently became `none` for that step and every later one.
-    const first = await runLoop(context(out, stubAgent(), { evaluator: flakyEvaluator(2) }), spec('gate'));
+    // Review item 1: the resume must not draw the step turn again (a new model sample only in the gate arm).
+    const firstAgent = stubAgent();
+    const first = await runLoop(context(out, firstAgent, { evaluator: flakyEvaluator(2) }), spec('gate'));
     expect(first.success ? [] : first.errors.map((e) => e.code)).toEqual(['LOOP_GATE_UNSCORED']);
     if (!first.success) expect(first.errors[0]?.message).toContain('NEO4J_UNREACHABLE');
     const runDir = runDirFor(out, loopRunId(spec('gate')));
     expect(readStepRecords(runDir, 3)).toHaveLength(1);
-    const second = await runLoop(context(out, stubAgent()), spec('gate'));
+    expect(fs.existsSync(path.join(runDir, GATE_UNSCORED_FILE))).toBe(true);
+    const keptCommit = (JSON.parse(fs.readFileSync(path.join(runDir, GATE_UNSCORED_FILE), 'utf8')) as { turn: { snapshot: { commit: string } } }).turn.snapshot.commit;
+    const agent = stubAgent();
+    const second = await runLoop(context(out, agent), spec('gate'));
     if (!second.success || second.data.kind !== 'completed') throw new Error('expected completion');
     expect(second.data.resumedFromStep).toBe(1);
-    expect(second.data.steps[1]?.repair).toEqual({ attempted: true, blockingBefore: 1, blockingAfter: 0, cleared: true });
+    // No new step-2 step turn: only the repair the gate now orders, then step 3.
+    expect(agent.turns.map((t) => t.turnId)).toEqual(['step-02-repair', 'step-03']);
+    const s2 = second.data.steps[1];
+    expect(s2?.turns[0]?.snapshot.commit).toBe(keptCommit);
+    expect(s2?.turns[0]?.snapshot.evaluation?.blockingViolationCount).toBe(1);
+    expect(s2?.turns[0]?.snapshot.evaluationError).toBeUndefined();
+    // The step turn's own result (the first invocation's model call) is the one on the record.
+    expect(firstAgent.turns.filter((t) => t.turnId === 'step-02')).toHaveLength(1);
+    expect(s2?.turns[0]?.result).toEqual((JSON.parse(fs.readFileSync(path.join(runDir, 'discarded', 'restart-1', GATE_UNSCORED_FILE), 'utf8')) as { turn: { result: unknown } }).turn.result);
+    expect(s2?.repair).toEqual({ attempted: true, blockingBefore: 1, blockingAfter: 0, cleared: true });
+    const lines = fs.readFileSync(path.join(runDir, RESTARTS_LOG), 'utf8').trim().split('\n');
+    expect(lines).toHaveLength(1);
+    expect(JSON.parse(lines[0] ?? '{}')).toMatchObject({ reason: 'rescore', resumeAtStep: 2, rescoredCommit: keptCommit, unscoredBy: 'NEO4J_UNREACHABLE', setAside: 'discarded/restart-1' });
+    expect(fs.existsSync(path.join(runDir, GATE_UNSCORED_FILE))).toBe(false);
+    expect(restartCounts(runDir)).toEqual({ redraw: 0, rescore: 1 });
     const log = snapsOf(loopRunId(spec('gate'))).log();
     expect(log.success && log.data).toEqual(['base: skeleton', 'step-01 gate', 'step-02 gate', 'step-02-repair gate', 'step-03 gate']);
+  });
+
+  it('gate: a re-score that fails again stops again and keeps the same commit (never a redraw)', async () => {
+    await runLoop(context(out, stubAgent(), { evaluator: flakyEvaluator(2) }), spec('gate'));
+    const runDir = runDirFor(out, loopRunId(spec('gate')));
+    const again = await runLoop(context(out, stubAgent(), { evaluator: flakyEvaluator(1) }), spec('gate'));
+    expect(again.success ? [] : again.errors.map((e) => e.code)).toEqual(['LOOP_GATE_UNSCORED']);
+    const agent = stubAgent();
+    const third = await runLoop(context(out, agent), spec('gate'));
+    if (!third.success || third.data.kind !== 'completed') throw new Error('expected completion');
+    expect(agent.turns.map((t) => t.turnId)).toEqual(['step-02-repair', 'step-03']);
+    expect(restartCounts(runDir)).toEqual({ redraw: 0, rescore: 2 });
+  });
+
+  it('gate: when the store has moved past the kept commit, the resume falls back to a redraw', async () => {
+    await runLoop(context(out, stubAgent(), { evaluator: flakyEvaluator(2) }), spec('gate'));
+    const runId = loopRunId(spec('gate'));
+    const runDir = runDirFor(out, runId);
+    fs.writeFileSync(path.join(runDir, WORK_DIR, 'src', 'stray.ts'), 'export {};\n');
+    const moved = snapsOf(runId).commit('stray');
+    if (!moved.success) throw new Error('commit failed');
+    const agent = stubAgent();
+    const r = await runLoop(context(out, agent), spec('gate'));
+    if (!r.success || r.data.kind !== 'completed') throw new Error('expected completion');
+    expect(agent.turns.map((t) => t.turnId)).toEqual(['step-02', 'step-02-repair', 'step-03']);
+    const line = JSON.parse(fs.readFileSync(path.join(runDir, RESTARTS_LOG), 'utf8').trim()) as Record<string, unknown>;
+    expect(line).toMatchObject({ reason: 'redraw', discardedHead: moved.data, setAside: 'discarded/restart-1' });
+    expect(fs.existsSync(path.join(runDir, 'discarded', 'restart-1', GATE_UNSCORED_FILE))).toBe(true);
+    expect(restartCounts(runDir)).toEqual({ redraw: 1, rescore: 0 });
   });
 
   it('gate: an unscored repair snapshot is recorded (the gate has acted) and the run goes on', async () => {
@@ -297,7 +345,8 @@ describe('resume', () => {
     expect(fs.existsSync(path.join(runDir, WORK_DIR, 'src', 'partial'))).toBe(false);
     const lines = fs.readFileSync(path.join(runDir, RESTARTS_LOG), 'utf8').trim().split('\n');
     expect(lines).toHaveLength(1);
-    expect(JSON.parse(lines[0] ?? '{}')).toMatchObject({ resumeAtStep: 2, restoredTo: (JSON.parse(before) as StepRecord).finalCommit, discardedChanges: 1 });
+    expect(JSON.parse(lines[0] ?? '{}')).toMatchObject({ reason: 'redraw', resumeAtStep: 2, restoredTo: (JSON.parse(before) as StepRecord).finalCommit, discardedChanges: 1 });
+    expect(restartCounts(runDir)).toEqual({ redraw: 1, rescore: 0 });
     const log = snapsOf(loopRunId(spec('none'))).log();
     expect(log.success && log.data).toEqual(['base: skeleton', 'step-01 none', 'step-02 none', 'step-03 none']);
   });
@@ -332,6 +381,7 @@ describe('resume', () => {
     const lines = fs.readFileSync(path.join(runDir, RESTARTS_LOG), 'utf8').trim().split('\n');
     expect(lines).toHaveLength(1);
     expect(JSON.parse(lines[0] ?? '{}')).toMatchObject({
+      reason: 'redraw',
       resumeAtStep: 2,
       restoredTo: steps[0]?.finalCommit,
       records: [
@@ -382,6 +432,22 @@ describe('resume', () => {
     fs.writeFileSync(path.join(runDir, WORK_DIR, 'src', 'leftover.ts'), 'export {};\n');
     const steps = await completed('none');
     expect(steps[0]?.turns[0]?.snapshot.sourceFiles).not.toContain('leftover.ts');
+  });
+});
+
+describe('restart reasons', () => {
+  it('a restarts.jsonl line without a reason predates the field and counts as a redraw', () => {
+    expect(restartReasonOf({})).toBe('redraw');
+    expect(restartReasonOf({ reason: 'redraw' })).toBe('redraw');
+    expect(restartReasonOf({ reason: 'rescore' })).toBe('rescore');
+    const dir = tmpRoot();
+    try {
+      expect(restartCounts(dir)).toEqual({ redraw: 0, rescore: 0 });
+      fs.writeFileSync(path.join(dir, RESTARTS_LOG), `${JSON.stringify({ resumeAtStep: 2 })}\n${JSON.stringify({ reason: 'rescore' })}\n`);
+      expect(restartCounts(dir)).toEqual({ redraw: 1, rescore: 1 });
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
 
