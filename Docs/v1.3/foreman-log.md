@@ -28,7 +28,7 @@ The foreman counted none of these against a PR.
 | #156 agent-proof | 4e83ed1f | The per-call `tsconfigPath` wins over the server-wide `--tsconfig`. `--engine`, `--tsconfig` and `--neural` all parse. |
 | #135 npx | dd32e060 | **Race:** the train merged fe02977e while the foreman pushed. The only commit not yet in v1.3 is bba3cfc8, which makes the cypher-interp path of `evaluate_project` honour `includeViolations`. v1.3 currently has this gap. |
 | #159 review-fixes-2 | d7a9fbb0 | R01 snapshot tsconfig kept, with #142's `includeViolations` added. Full jest: only the 6 failures above. **Blocked since then; see below.** |
-| #134 blind-misses, #131 fidelity-adjudication | b1430f96, f787ea9a | audit.md only. Both have since been merged by the train. |
+| #134 blind-misses, #131 fidelity-adjudication | b1430f96, f787ea9a | audit.md only. #134 has since been merged by the train; #131 is still open (do not merge until the author has reviewed it). |
 | #168, #141, #155, #138, #130 | 4245179a, e853a8ba, fecf704f, 32763d1f, 468f645b | audit.md only. |
 | #140 html-report, #139 advisory-noise | 5f7b6741, f904d16a | CLI options kept on top of v1.3's positional-project `evaluate` signature. `PipelineConfig` keeps `advisoryFilter` and `graphEngine`. |
 | #137 devset-expansion | 6445749f | `ue-baseline-live.ts`: `--engine` stripping combined with `--set devset-b`. The eslint ignores are the union of both sides. |
