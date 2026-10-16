@@ -41,7 +41,7 @@ import { checkSkeletonIntact, ensureHarness, prepareCellDir } from '../generator
 import type { SkeletonInstall } from '../generators/skeleton.js';
 import { CODEX_CLI_ADAPTER_ID_VALUE } from '../generators/types.js';
 import { ClaudeStepAgent, CodexStepAgent } from './agents.js';
-import { firewallEvaluator, harnessTypechecker } from './evaluator.js';
+import { firewallEvaluator, harnessSnapshotTsconfig, harnessTypechecker } from './evaluator.js';
 import { runLoop } from './loop.js';
 import type { LoopContext, LoopRunResult, TaskProfile } from './loop.js';
 import { loadLoopPlan, loopRunId, planCallBudget, scheduleLoopRuns, SPEC_SHA_ENV } from './plan.js';
@@ -236,12 +236,14 @@ export function buildProfiles(
   return DomainResult.ok(out);
 }
 
-/** Where the dry-run stub writes a step of a task of the given style (DDD: the declared contexts in turn). */
+/** Where the dry-run stub writes a step of a task of the given style (DDD: the declared contexts in turn, one folder per aggregate, every context at step 1). */
 export function stubLayoutFor(style: LoopStyle | undefined, contextRoots: readonly string[], stepIndex: number): StubLayout {
   if (style === 'hexagonal') return { domain: 'src/domain', application: 'src/application', infrastructure: 'src/adapters/outbound' };
   if (style === 'ddd' && contextRoots.length > 0) {
-    const root = (contextRoots[stepIndex % contextRoots.length] ?? '').replace(/\/$/, '');
-    return { domain: `${root}/domain`, application: `${root}/application`, infrastructure: `${root}/infrastructure` };
+    const roots = contextRoots.map((r) => r.replace(/\/$/, ''));
+    const root = roots[stepIndex % roots.length] ?? '';
+    const also = stepIndex === 0 ? roots.filter((r) => r !== root).map((r) => `${r}/domain`) : [];
+    return { domain: `${root}/domain`, application: `${root}/application`, infrastructure: `${root}/infrastructure`, aggregateFolders: true, ...(also.length > 0 ? { alsoDomains: also } : {}) };
   }
   return CLEAN_STUB_LAYOUT;
 }
@@ -295,7 +297,7 @@ async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs
     agents.set(agentKey(a.adapterId, a.modelId), agent);
   }
   const evaluateDeps = await deps.evaluateDeps();
-  const evaluatorOf = (specFile: string): StepEvaluator => firewallEvaluator(specFile, deps.parentEnv, evaluateDeps);
+  const evaluatorOf = (specFile: string): StepEvaluator => firewallEvaluator(specFile, deps.parentEnv, evaluateDeps, harnessSnapshotTsconfig(plan.harnessRoot));
   const profiles = buildProfiles(loaded, repoRoot, evaluatorOf, iseDddFreezer(repoRoot));
   if (!profiles.success) return DomainResult.fail(profiles.errors);
   return DomainResult.ok({

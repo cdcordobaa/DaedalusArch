@@ -1,0 +1,446 @@
+{
+  "schemaVersion": 1,
+  "style": "nestjs",
+  "variant": "clean",
+  "note": "Written by hand from the clean variant's source: the layer every file gets under spec.yaml, and every internal file-to-file import edge (one per importing file and imported file, type-only included; package imports excluded). Ground truth for graph-fidelity (FR-V2 link 1).",
+  "files": [
+    {
+      "path": "src/app.module.ts",
+      "layer": "presentation"
+    },
+    {
+      "path": "src/attendees/attendees.controller.ts",
+      "layer": "presentation"
+    },
+    {
+      "path": "src/attendees/attendees.module.ts",
+      "layer": "presentation"
+    },
+    {
+      "path": "src/attendees/attendees.service.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/attendees/dto/create-attendee.dto.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/attendees/in-memory-attendee.repository.ts",
+      "layer": "infrastructure"
+    },
+    {
+      "path": "src/common/filters/domain-error.filter.ts",
+      "layer": "infrastructure"
+    },
+    {
+      "path": "src/common/guards/api-key.guard.ts",
+      "layer": "presentation"
+    },
+    {
+      "path": "src/domain/attendee-repository.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/domain/attendee.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/domain/domain-error.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/domain/registration-policy.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/domain/registration-repository.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/domain/registration.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/domain/workshop-repository.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/domain/workshop.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/main.ts",
+      "layer": null
+    },
+    {
+      "path": "src/registrations/dto/register-attendee.dto.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/registrations/dto/registration-response.dto.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/registrations/in-memory-registration.repository.ts",
+      "layer": "infrastructure"
+    },
+    {
+      "path": "src/registrations/registrations.controller.ts",
+      "layer": "presentation"
+    },
+    {
+      "path": "src/registrations/registrations.module.ts",
+      "layer": "presentation"
+    },
+    {
+      "path": "src/registrations/registrations.service.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/workshops/dto/create-workshop.dto.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/workshops/dto/workshop-response.dto.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/workshops/in-memory-workshop.repository.ts",
+      "layer": "infrastructure"
+    },
+    {
+      "path": "src/workshops/workshops.controller.ts",
+      "layer": "presentation"
+    },
+    {
+      "path": "src/workshops/workshops.module.ts",
+      "layer": "presentation"
+    },
+    {
+      "path": "src/workshops/workshops.service.ts",
+      "layer": "application"
+    }
+  ],
+  "edges": [
+    {
+      "from": "src/app.module.ts",
+      "to": "src/attendees/attendees.module.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/app.module.ts",
+      "to": "src/common/filters/domain-error.filter.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/app.module.ts",
+      "to": "src/registrations/registrations.module.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/app.module.ts",
+      "to": "src/workshops/workshops.module.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/attendees/attendees.controller.ts",
+      "to": "src/attendees/attendees.service.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/attendees/attendees.controller.ts",
+      "to": "src/attendees/dto/create-attendee.dto.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/attendees/attendees.module.ts",
+      "to": "src/attendees/attendees.controller.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/attendees/attendees.module.ts",
+      "to": "src/attendees/attendees.service.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/attendees/attendees.module.ts",
+      "to": "src/attendees/in-memory-attendee.repository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/attendees/attendees.module.ts",
+      "to": "src/domain/attendee-repository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/attendees/attendees.service.ts",
+      "to": "src/attendees/dto/create-attendee.dto.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/attendees/attendees.service.ts",
+      "to": "src/domain/attendee-repository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/attendees/attendees.service.ts",
+      "to": "src/domain/attendee.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/attendees/attendees.service.ts",
+      "to": "src/domain/domain-error.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/attendees/in-memory-attendee.repository.ts",
+      "to": "src/domain/attendee-repository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/attendees/in-memory-attendee.repository.ts",
+      "to": "src/domain/attendee.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/common/filters/domain-error.filter.ts",
+      "to": "src/domain/domain-error.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/attendee-repository.ts",
+      "to": "src/domain/attendee.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/attendee.ts",
+      "to": "src/domain/domain-error.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/registration-policy.ts",
+      "to": "src/domain/attendee.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/registration-policy.ts",
+      "to": "src/domain/domain-error.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/registration-policy.ts",
+      "to": "src/domain/registration.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/registration-policy.ts",
+      "to": "src/domain/workshop.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/registration-repository.ts",
+      "to": "src/domain/registration.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/registration.ts",
+      "to": "src/domain/domain-error.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/workshop-repository.ts",
+      "to": "src/domain/workshop.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/workshop.ts",
+      "to": "src/domain/domain-error.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/main.ts",
+      "to": "src/app.module.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/registrations/dto/registration-response.dto.ts",
+      "to": "src/domain/registration.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/registrations/in-memory-registration.repository.ts",
+      "to": "src/domain/registration-repository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/registrations/in-memory-registration.repository.ts",
+      "to": "src/domain/registration.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/registrations/registrations.controller.ts",
+      "to": "src/common/guards/api-key.guard.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/registrations/registrations.controller.ts",
+      "to": "src/registrations/dto/register-attendee.dto.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/registrations/registrations.controller.ts",
+      "to": "src/registrations/dto/registration-response.dto.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/registrations/registrations.controller.ts",
+      "to": "src/registrations/registrations.service.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/registrations/registrations.module.ts",
+      "to": "src/attendees/attendees.module.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/registrations/registrations.module.ts",
+      "to": "src/domain/registration-repository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/registrations/registrations.module.ts",
+      "to": "src/registrations/in-memory-registration.repository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/registrations/registrations.module.ts",
+      "to": "src/registrations/registrations.controller.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/registrations/registrations.module.ts",
+      "to": "src/registrations/registrations.service.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/registrations/registrations.module.ts",
+      "to": "src/workshops/workshops.module.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/registrations/registrations.service.ts",
+      "to": "src/domain/attendee-repository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/registrations/registrations.service.ts",
+      "to": "src/domain/domain-error.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/registrations/registrations.service.ts",
+      "to": "src/domain/registration-policy.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/registrations/registrations.service.ts",
+      "to": "src/domain/registration-repository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/registrations/registrations.service.ts",
+      "to": "src/domain/registration.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/registrations/registrations.service.ts",
+      "to": "src/domain/workshop-repository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/registrations/registrations.service.ts",
+      "to": "src/registrations/dto/register-attendee.dto.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/registrations/registrations.service.ts",
+      "to": "src/registrations/dto/registration-response.dto.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/workshops/dto/workshop-response.dto.ts",
+      "to": "src/domain/workshop.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/workshops/in-memory-workshop.repository.ts",
+      "to": "src/domain/workshop-repository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/workshops/in-memory-workshop.repository.ts",
+      "to": "src/domain/workshop.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/workshops/workshops.controller.ts",
+      "to": "src/workshops/dto/create-workshop.dto.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/workshops/workshops.controller.ts",
+      "to": "src/workshops/dto/workshop-response.dto.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/workshops/workshops.controller.ts",
+      "to": "src/workshops/workshops.service.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/workshops/workshops.module.ts",
+      "to": "src/domain/workshop-repository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/workshops/workshops.module.ts",
+      "to": "src/workshops/in-memory-workshop.repository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/workshops/workshops.module.ts",
+      "to": "src/workshops/workshops.controller.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/workshops/workshops.module.ts",
+      "to": "src/workshops/workshops.service.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/workshops/workshops.service.ts",
+      "to": "src/domain/domain-error.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/workshops/workshops.service.ts",
+      "to": "src/domain/workshop-repository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/workshops/workshops.service.ts",
+      "to": "src/domain/workshop.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/workshops/workshops.service.ts",
+      "to": "src/workshops/dto/create-workshop.dto.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/workshops/workshops.service.ts",
+      "to": "src/workshops/dto/workshop-response.dto.ts",
+      "kind": "import"
+    }
+  ]
+}
