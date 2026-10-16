@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "layered",
+  "variant": "v34-catalog-service-typeorm-namespace",
+  "kind": "violation",
+  "plants": "FF-P01",
+  "description": "CatalogService gets importProduct(source: typeorm.Repository<ProductRecord>, sku) through a namespace import of typeorm.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P01",
+      "ruleName": "domain-purity",
+      "file": "src/business/services/CatalogService.ts",
+      "target": "typeorm",
+      "reason": "The business layer imports the persistence framework typeorm (namespace import)."
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+--- a/src/adapters/inbound/http/BookingController.ts
++++ b/src/adapters/inbound/http/BookingController.ts
+@@ -1,5 +1,6 @@
+ import { BookRoom } from '../../../application/ports/in/BookRoom';
+ import { CancelBooking } from '../../../application/ports/in/CancelBooking';
++import { GetBooking } from '../../../application/ports/in/GetBooking';
+ import { BookingError } from '../../../domain/errors/BookingError';
+ import { HttpRequest, HttpResponse } from './HttpTypes';
+ 
+@@ -10,8 +11,17 @@
+   constructor(
+     private readonly bookRoom: BookRoom,
+     private readonly cancelBooking: CancelBooking,
++    private readonly getBooking: GetBooking,
+   ) {}
+ 
++  async show(request: HttpRequest): Promise<HttpResponse> {
++    try {
++      return { status: 200, body: await this.getBooking.get(String(request.params['id'])) };
++    } catch (error) {
++      return this.toResponse(error);
++    }
++  }
++
+   async create(request: HttpRequest): Promise<HttpResponse> {
+     try {
+       const view = await this.bookRoom.book({
+--- /dev/null
++++ b/src/application/ports/in/GetBooking.ts
+@@ -0,0 +1,5 @@
++import { BookingView } from './BookingView';
++
++export interface GetBooking {
++  get(bookingId: string): Promise<BookingView>;
++}
+--- /dev/null
++++ b/src/application/services/GetBookingService.ts
+@@ -0,0 +1,14 @@
++import { BookingError } from '../../domain/errors/BookingError';
++import { GetBooking } from '../ports/in/GetBooking';
++import { BookingView, toBookingView } from '../ports/in/BookingView';
++import { BookingRepository } from '../ports/out/BookingRepository';
++
++export class GetBookingService implements GetBooking {
++  constructor(private readonly bookings: BookingRepository) {}
++
++  async get(bookingId: string): Promise<BookingView> {
++    const booking = await this.bookings.findById(bookingId);
++    if (booking === undefined) throw new BookingError('not-found', `No booking ${bookingId}`);
++    return toBookingView(booking);
++  }
++}
+--- a/src/config/container.ts
++++ b/src/config/container.ts
+@@ -9,6 +9,7 @@
+ import { BookRoomService } from '../application/services/BookRoomService';
+ import { CancelBookingService } from '../application/services/CancelBookingService';
+ import { FindAvailableRoomsService } from '../application/services/FindAvailableRoomsService';
++import { GetBookingService } from '../application/services/GetBookingService';
+ 
+ export interface Container {
+   bookings: BookingController;
+@@ -26,7 +27,11 @@
+ 
+   const bookRoom = new BookRoomService(rooms, bookings, guests, payments, notifications);
+   return {
+-    bookings: new BookingController(bookRoom, new CancelBookingService(bookings, guests, payments, notifications)),
++    bookings: new BookingController(
++      bookRoom,
++      new CancelBookingService(bookings, guests, payments, notifications),
++      new GetBookingService(bookings),
++    ),
+     rooms: new RoomController(new FindAvailableRoomsService(rooms, bookings)),
+     cli: new BookingCli(bookRoom),
+   };

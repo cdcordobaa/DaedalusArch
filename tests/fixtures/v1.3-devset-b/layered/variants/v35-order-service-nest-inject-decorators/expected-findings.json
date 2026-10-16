@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "layered",
+  "variant": "v35-order-service-nest-inject-decorators",
+  "kind": "violation",
+  "plants": "FF-P01",
+  "description": "OrderService's constructor parameters are decorated with @Inject(token) from @nestjs/common.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P01",
+      "ruleName": "domain-purity",
+      "file": "src/business/services/OrderService.ts",
+      "target": "@nestjs/common",
+      "reason": "The business layer imports the DI framework @nestjs/common for parameter decorators."
+    }
+  ]
+}
