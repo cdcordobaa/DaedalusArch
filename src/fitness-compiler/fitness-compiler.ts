@@ -29,6 +29,10 @@ import { DDD_STYLE } from './ddd-templates.js';
 import { CONSTRUCT_ANSWERS } from '../shared/construct-switches.js';
 import type { ConstructAnswers } from '../shared/construct-switches.js';
 import { applyConstructCompileOverlays, constructApplicability, constructSwitchesActive, CONSTRUCT_TEMPLATES } from '../construct-switches/compile.js';
+import type { EmptyAggregatePolicy } from './empty-aggregates.js';
+import {
+  aggregateRulesWithoutAggregates, EMPTY_AGGREGATES_REASON, EXCLUDED_AGGREGATE_RULES, excludeAggregateRules, excludedAggregateRulesMessage,
+} from './empty-aggregates.js';
 
 // ── Standalone Function ───────────────────────────────────────────────────────
 
@@ -91,6 +95,12 @@ export interface CompileOptions {
    * controller method that takes or returns a domain class; `v13-signature-types.ts`, `Docs/v1.3/ffp05-type-edges.md`).
    */
   readonly signatureTypes?: boolean;
+  /**
+   * Loop-pilot tool defect T1, `fail` (the status quo) by default and absent from `V13_COMPILE_OPTIONS`: what a `ddd`
+   * spec with an empty `architecture.ddd.aggregates` does to FF-DT01/FF-DT02 (`empty-aggregates.ts`): `fail`
+   * (BR-SPEC-10), `not-applicable` (option a), `exclude` (option c) or `vacuous` (option d).
+   */
+  readonly emptyAggregates?: EmptyAggregatePolicy;
 }
 
 /** The v1.3 compile options for the pipeline (the frozen v1.2E reproduction passes `{}`). */
@@ -110,13 +120,39 @@ type TemplateCatalogue = ReadonlyMap<string, CypherTemplate>;
 
 export function compileFunctions(rawInput: CompilerInput, options: CompileOptions = {}): DomainResult<CompiledFunctions> {
   // v1.3 construct switches: the spec as the chosen options declare it (identity at the status quo).
-  const input = applyConstructCompileOverlays(rawInput, options.constructSwitches);
+  const overlaid = applyConstructCompileOverlays(rawInput, options.constructSwitches);
+  // Loop-pilot T1 (`empty-aggregates.ts`): only a non-default policy on a ddd spec with no aggregate changes the input.
+  const t1 = emptyAggregateInput(overlaid, options.emptyAggregates);
+  if (t1.warnings.length > 0) {
+    const compiled = compileStyle(t1.input, options);
+    return compiled.success ? DomainResult.ok({ ...compiled.data, warnings: [...compiled.data.warnings, ...t1.warnings] }) : compiled;
+  }
+  return compileStyle(t1.input, options);
+}
+
+/** The input under an empty-aggregates policy, and the warnings that record it; the identity for `fail` or no policy. */
+function emptyAggregateInput(input: CompilerInput, policy: EmptyAggregatePolicy | undefined): { readonly input: CompilerInput; readonly warnings: readonly CompilerWarning[] } {
+  if (policy === undefined || policy === 'fail' || policy === 'vacuous') return { input, warnings: [] };
+  if (policy === 'exclude') {
+    const { input: rest, excluded } = excludeAggregateRules(input);
+    return excluded.length === 0 ? { input, warnings: [] } : { input: rest, warnings: [{ code: EXCLUDED_AGGREGATE_RULES, message: excludedAggregateRulesMessage(excluded) }] };
+  }
+  const rules = aggregateRulesWithoutAggregates(input);
+  if (rules.length === 0) return { input, warnings: [] };
+  const ids = new Set(rules.map((f) => String(f.id)));
+  return {
+    input: { ...input, fitnessFunctions: input.fitnessFunctions.map((f) => (ids.has(String(f.id)) ? { ...f, enabled: false, disabledReason: EMPTY_AGGREGATES_REASON } : f)) },
+    warnings: rules.map((f) => ({ code: 'COMPILER_004', message: `${String(f.id)} (${f.name}) disabled: ${EMPTY_AGGREGATES_REASON}`, functionId: String(f.id) })),
+  };
+}
+
+function compileStyle(input: CompilerInput, options: CompileOptions): DomainResult<CompiledFunctions> {
   // v1.3: the hexagonal style has its own graph-based templates; every other style takes the path below unchanged.
   if (input.style === HEXAGONAL_STYLE) {
     return compileHexagonalFunctions(input, (rest) => compileFunctionsCore(rest, options), rewriteFlags(options));
   }
   if (input.style === DDD_STYLE) {
-    return compileDddFunctions(input, (rest) => compileFunctionsCore(rest, options), rewriteFlags(options));
+    return compileDddFunctions(input, (rest) => compileFunctionsCore(rest, options), rewriteFlags(options), options.emptyAggregates === 'vacuous');
   }
   return compileFunctionsCore(input, options);
 }

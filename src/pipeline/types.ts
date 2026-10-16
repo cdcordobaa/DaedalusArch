@@ -8,6 +8,7 @@ import type { ScoringMode } from '../shared/types/evaluation.js';
 import type { GraphRepository } from '../shared/interfaces/graph-repository.js';
 import type { GraphEngine } from '../cypher-interp/engine.js';
 import type { ConstructAnswers } from '../shared/construct-switches.js';
+import type { EmptyAggregatePolicy } from '../fitness-compiler/empty-aggregates.js';
 
 export interface PipelineConfig {
   readonly projectPath: string;
@@ -56,6 +57,11 @@ export interface PipelineConfig {
   readonly graphEngine?: GraphEngine | undefined;
   /** Harness injection (the parity tee): this repository is used instead of the one `graphEngine` selects. */
   readonly graphRepository?: GraphRepository | undefined;
+  /**
+   * Loop-pilot tool defect T1, absent by default (= `fail`, BR-SPEC-10): what a ddd spec with no aggregate does to
+   * FF-DT01/FF-DT02 (`src/fitness-compiler/empty-aggregates.ts`). Read by the compile stage only.
+   */
+  readonly emptyAggregates?: EmptyAggregatePolicy | undefined;
 }
 
 /** Which extractor defaults a pipeline extracts with (`PipelineConfig.extractorDefaults`). */
