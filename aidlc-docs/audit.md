@@ -1598,6 +1598,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 
 ---
 
+## Scheduled task: artifact-evaluation readiness (v1.3-artifact-eval)
+**Timestamp**: 2026-10-16T11:20:00Z
+**User Input**: "scheduled task: audit the repo against ACM artifact badges and a current SE artifact-track call from a clean clone, fix small doc/script blockers only, write ARTIFACT.md and Docs/v1.3/artifact-eval-readiness.md, open one PR into v1.3 without merging"
+**AI Response**: "Clean-clone run measured (npm ci 24 s, first result ~30 s, kick-the-tires 30 s, smoke exit 1 with 28 DIFF as in PR #215). Fixed the build script dropping the exec bit on the bin files (npx in the checkout failed from the 2nd call). Added ARTIFACT.md, replication/kick-the-tires.sh (npm run artifact:kick), the readiness doc and a README pointer. No src or template change. AI-DLC stages condensed: the scheduled prompt fixed scope and deliverables, and no approver is present; the PR is the review gate."
+**Context**: CONSTRUCTION, v1.3 validity cycle; docs and scripts only.
 ## v1.3 RESEARCH — research gaps and evidence map (scheduled task)
 **Timestamp**: 2026-10-16T12:00:00Z
 **User Input**: "Scheduled task: write Docs/v1.3/research/research-gaps-and-evidence.md: an evidence map with 1–3 verified published precedents for each validity and backlog job, a gap analysis, a master's vs doctoral scope separation (doctoral agenda kept separate), and Related-work / Future-work paragraphs using verified citations only. Documentation only; one PR into v1.3, not merged."
