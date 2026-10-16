@@ -193,7 +193,7 @@ const mean = (xs: readonly number[]): number => (xs.length === 0 ? Number.NaN : 
 export function summarise(obs: readonly MatchedObs[], reps = 10000, seed = 20261016): Summary {
   const d = obs.map(matchedDiff);
   const byRepo = new Map<string, number[]>();
-  for (const [i, o] of obs.entries()) byRepo.set(o.repo, [...(byRepo.get(o.repo) ?? []), d[i]!]);
+  for (const [i, o] of obs.entries()) byRepo.set(o.repo, [...(byRepo.get(o.repo) ?? []), d[i] ?? 0]);
   const clusters = [...byRepo.values()];
   const neg = d.filter((x) => x < 0).length;
   const pos = d.filter((x) => x > 0).length;
