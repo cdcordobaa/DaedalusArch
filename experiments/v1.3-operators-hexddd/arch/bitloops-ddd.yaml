@@ -1,0 +1,68 @@
+architecture:
+  style: ddd
+  layers:
+    - name: composition
+      kind: application
+      directories: [src/main.ts, src/app.module.ts, "src/config/**", "src/bounded-contexts/*/*/*.module.ts", "src/lib/bounded-contexts/*/*/*.module.ts"]
+      roles: [composition-root]
+    - name: api
+      kind: presentation
+      directories: ["src/api/**"]
+      roles: [controller]
+    - name: application
+      kind: application
+      directories: ["src/lib/bounded-contexts/*/*/application/**", "src/lib/bounded-contexts/*/*/commands/**", "src/lib/bounded-contexts/*/*/queries/**", "src/lib/bounded-contexts/*/*/ports/**", "src/lib/bounded-contexts/*/*/dtos/**"]
+      roles: [application-service, port]
+    - name: domain
+      kind: domain
+      directories: ["src/lib/bounded-contexts/*/*/domain/**", "src/lib/bounded-contexts/*/*/structs/**", "src/lib/bounded-contexts/*/*/constants.ts"]
+      roles: [aggregate, entity, value-object, domain-event]
+    - name: infrastructure
+      kind: infrastructure
+      directories: ["src/bounded-contexts/**", "src/lib/infra/**"]
+      roles: [repository]
+  allowed_dependencies:
+    - from: application
+      to: [domain]
+    - from: infrastructure
+      to: [application, domain]
+    - from: api
+      to: [application, domain]
+    - from: composition
+      to: [domain, application, infrastructure, api]
+  ddd:
+    source_root: src/lib/bounded-contexts/
+    contexts:
+      - name: iam
+        root: src/lib/bounded-contexts/iam/
+        public_api: ["src/lib/bounded-contexts/iam/*/contracts/**", "src/lib/bounded-contexts/iam/*/*.module.ts"]
+        acl: []
+      - name: marketing
+        root: src/lib/bounded-contexts/marketing/
+        public_api: ["src/lib/bounded-contexts/marketing/*/contracts/**", "src/lib/bounded-contexts/marketing/*/*.module.ts"]
+        acl: []
+      - name: todo
+        root: src/lib/bounded-contexts/todo/
+        public_api: ["src/lib/bounded-contexts/todo/*/contracts/**", "src/lib/bounded-contexts/todo/*/*.module.ts"]
+        acl: []
+    outside_contexts: []
+    aggregates:
+      - name: Todo
+        context: todo
+        module: src/lib/bounded-contexts/todo/todo/domain/todo.entity.ts
+        root: src/lib/bounded-contexts/todo/todo/domain/todo.entity.ts
+        inner_entities: []
+      - name: User
+        context: marketing
+        module: src/lib/bounded-contexts/marketing/marketing/domain/user.entity.ts
+        root: src/lib/bounded-contexts/marketing/marketing/domain/user.entity.ts
+        inner_entities: []
+      - name: NotificationTemplate
+        context: marketing
+        module: src/lib/bounded-contexts/marketing/marketing/domain/notification-template.entity.ts
+        root: src/lib/bounded-contexts/marketing/marketing/domain/notification-template.entity.ts
+        inner_entities: []
+    value_objects: ["src/lib/bounded-contexts/*/*/domain/*.value-object.ts"]
+    repositories: ["src/bounded-contexts/*/*/repository/*.repository.ts", "src/lib/bounded-contexts/*/*/ports/*.repo-port.ts"]
+    domain_event_types: [DomainEvent]
+    application_services: ["src/lib/bounded-contexts/*/*/application/**/*.ts"]
