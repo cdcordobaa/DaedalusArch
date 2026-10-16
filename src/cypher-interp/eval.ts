@@ -29,7 +29,7 @@ export const evalDiagnostics = { suppressed: new Map<string, number>(), enabled:
 
 /**
  * Drops a held-back data error. In `strict` mode (diagnostics only, never in a normal run) it is raised instead, the
- * anchor pre-filter is off and every pattern predicate is first evaluated over every relationship of its types: the
+ * anchor pre-filter raises its conjuncts' errors and prunes nothing, and every pattern predicate is first evaluated over every relationship of its types: the
  * interpreter then fails iff some evaluation order reaches a data error, which is how the fuzz harness tells Neo4j
  * reaching one in its plan's order (trap T20) from an error the interpreter misses.
  */
@@ -381,9 +381,14 @@ function* matchPart(part: PatternPart, row: Row, used: ReadonlySet<GraphRel>, ct
     // Neo4j filters the anchor with the WHERE conjuncts it can already decide before expanding from it (fuzz finding
     // F4: `ctrl.layer = $controllerLayer` rejects the anchor before a relationship predicate can raise an error). The
     // conjuncts stay in the WHERE; this only skips expansions it would reject.
-    for (const c of evalDiagnostics.strict ? [] : ctx.early ?? []) {
+    for (const c of ctx.early ?? []) {
       if (![...c.vars].every((v) => r0?.has(v) === true)) continue;
       const ok = tryPredicate(c.expr, r0, ctx);
+      // Strict mode (diagnostics) raises the anchor conjuncts' errors and never prunes with them.
+      if (evalDiagnostics.strict) {
+        if (ok instanceof CypherRuntimeError) throw ok;
+        continue;
+      }
       if (ok === false) continue next;
       if (ok !== true) r0 = withPending(r0, ok);
     }

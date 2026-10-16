@@ -369,8 +369,8 @@ async function rejectFuzz(neo: GraphRepository): Promise<Record<string, unknown>
       if (!c.success && c.errors[0]?.code === 'CypherInterp.Unsupported') { tally.set('interp unsupported', (tally.get('interp unsupported') ?? 0) + 1); continue; }
       const n = await readOnly(text, sp);
       const v = !n.success && !c.success ? (n.errors[0]?.code === c.errors[0]?.code ? 'both error, same code' : 'both error, different code')
-        : verdictOf(text, n, c).verdict;
-      const key = c.success && !n.success ? 'mismatch:interp rows, neo4j error' : v;
+        : verdictOf(text, n, c, await strictCode(cand, text, sp, n, c)).verdict;
+      const key = c.success && !n.success && v !== 'quirk:T20-plan-order-error' ? 'mismatch:interp rows, neo4j error' : v;
       tally.set(key, (tally.get(key) ?? 0) + 1);
       if (key.startsWith('mismatch:') || key === 'both error, different code') {
         if (bad.length < 300) bad.push({ base: s.label, verdict: key, text, neo4j: n.success ? `${String(n.data.records.length)} rows` : `${n.errors[0]?.code ?? ''}: ${(n.errors[0]?.message ?? '').slice(0, 200)}`, interp: c.success ? `${String(c.data.records.length)} rows` : `${c.errors[0]?.code ?? ''}: ${(c.errors[0]?.message ?? '').slice(0, 200)}` });
