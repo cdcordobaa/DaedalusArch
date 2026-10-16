@@ -91,31 +91,53 @@ the hold-out is the better bet.
 
 ## Paper 3: When the Judge Cannot Rule (`paper3-judge/`)
 
-Workshop paper on an LLM judge inside a gate. **Revised on this branch:** new Section 5 (v1.3 catch test, three-way
-comparison, layered framing, same-vendor threat), lessons 11 and 12, two recommendations, threats and conclusion.
-Compiles: 10 pages in this class, no undefined references.
+Retitled *When the Judge Cannot Rule: A Pre-Registered, Falsifiable Evaluation of an LLM Architectural Judge inside a
+Neuro-Symbolic Firewall*. **Revised on branch `v1.3-paper3-update` (2026-10-16):** new abstract and framing (Study 1
+pre-registered; each follow-up test committed its decision rule before any call or number, and the negative results
+are reported beside the positive ones); Lesson 11 now states the defensible 16/21; new Lessons 13 (CHECK-2), 14
+(unanimity null) and 15 (complementarity); FR-V8 filter-and-explain added to the layered-gate section; three new
+recommendations; threats and conclusion updated. Compiles with `pdflatex` + `bibtex`: **12 pages** in this class, no
+undefined references.
 
-**Venue candidates**
+**Venue candidates (verified online 2026-10-16 on the official pages; re-check before submitting)**
 
-| Venue | Deadline found | Fit |
-|---|---|---|
-| LLM4Code 2027 (ICSE 2027 workshop, Dublin) | not found; the 2027 page exists (**verify**; past editions had deadlines around Nov–Jan) | Best fit |
-| ICSA 2027 New and Emerging Ideas track | not found (**verify**) | Good fit for the layered-gate argument |
-| ICSE 2027 co-located LLM-for-SE workshops (e.g. the LLMSC page found) | not found (**verify**) | Alternative |
+| Venue | Deadline (AoE) | Format | Fit |
+|---|---|---|---|
+| [LLM4Code 2027](https://llm4code.github.io/) (4th edition, ICSE 2027 workshop, Dublin, 1 May 2027) | **13 Nov 2026** (llm4code.github.io) | page limit not stated on the page; check the call | Best fit: topics include empirical studies and benchmarking of LLMs on code tasks |
+| [FORGE 2027](https://conf.researchr.org/track/forge-2027/forge-2027-research-papers) (ACM conference on AI Foundation Models and SE, with ICSE 2027, Dublin, 26–27 Apr 2027) | abstract **25 Oct 2026**, paper **30 Oct 2026**; notification 4 Jan 2027 | full 10 pp + 2 refs, new-idea 4 pp + 2 refs; IEEE template, double-anonymous | Good fit for evaluation and quality assurance of FM-based systems; the deadline is two weeks away and the paper would need anonymising and an IEEE conversion |
+| [AgentArch 2027](https://agentarch.org/) (Workshop on Architecting Agentic AI Systems, with ICSA 2027, Sydney, 8–12 Mar 2027) | **20 Dec 2026**; notification 19 Jan 2027 | research 8 pp, short 4 pp; IEEE CS format; ICSA Companion proceedings | Architecture audience; the layered gate and guarding agent-written code fit, LLM-as-judge is not named in the call |
+| Fallback: Empirical Software Engineering (journal) | rolling | no page limit | For a longer version once the human labels exist; ESEM 2027's call was not yet published (search, 2026-10-16) |
 
-**Readiness.** Lessons 1–10 rest on registered Study 1 data. The new v1.3 material *[dev]*: catch 30/35
-[0.71, 0.94], twin false fail 4/50 [0.03, 0.19] with the v2 twin, DUP-RULE confounded with a misplaced-method cue
-(`Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md` §3, §4); three-way 11/11 vs 9/11 vs 0/11 (circular) and
-DUP-RULE proxies 1–2/9 vs judge 9/9 (`Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md` §2;
-`Docs/DiagnosticRuns/v1.3-duprule-v2-2026-10-15.md` §5).
+Not found on 2026-10-16: an ICSA 2027 New and Emerging Ideas deadline (the track page lists dates as TBA).
 
-**Still missing.** Human labels on the judge's fails (the catch test has no human check); a cross-vendor judge arm
-(the robustness check is same-vendor, and 14 of 16 round-2 seeds are in same-vendor generated code;
-`Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md` §1a); a duplication positive that is not also a misplaced
-method; the length must come down from 10 to about 6 pages, probably by moving Lessons 3–4 or 10 to an appendix.
+**Readiness.** Lessons 1–10 rest on registered Study 1 data. The v1.3 material is all development data *[dev]*:
+- catch: pooled 30/35, defensible restricted claim 16/21 = 0.76 [0.55, 0.89]
+  (`Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md` header note);
+- CHECK-2 (PR #191, open): v1 and v2.2 both 40/40 on ten unseen bases in five styles; clean false fail 16/48 vs 8/48;
+  twin false fail 12/40 vs 7/40; v2.2 NOT CANDIDATE on the pre-fixed D1 rule (7/21 layered business clean units,
+  rule ≤ 1); FF-N01 non-discriminating because every layered base plants a direct-ORM service in its business layer
+  (a base-construction defect, reported as such); exploratory second-vendor rater 134/137, κ = 0.954;
+- unanimity (PR #165, open): rule not met for v1 (0.883, lower bound 0.778) or v2.1 (0.900, lower bound 0.7985);
+  null result;
+- complementarity (PR #179, open): rules see 9/35 seeds; judge catches 22/26 symbolic-blind seeds (8/12 without
+  DUP-RULE); judge false fail 2/48 on symbolic-pass clean units and 10/55 on twins;
+- FR-V8 filter-and-explain 65/66 (62/63 with the FF-P06 N/A rows removed, `Docs/v1.3/post-merge-review-2026-10-16.md`
+  R26) (`Docs/DiagnosticRuns/v1.3-judge-v2-2026-10-16.md` §4).
 
-**Honest rating: 3.5 / 5 for a workshop.** The bound argument and the catch-test confound are useful lessons for
-others; the numbers are small and the new ones are development data. Over-length now.
+**Dependency on open PRs.** Lessons 13–15 cite reports on PR branches #191, #165 and #179, which are marked hold for
+the author's review. The `% src:` comments use `git show origin/<branch>:<path>`. If any of those reports changes in
+review, these lessons must be re-checked; if a PR is closed unmerged, its lesson must go.
+
+**Still missing.** Human labels on the judge's fails (no catch has a human check); a CHECK-3 with bases that do not
+plant the FF-N01 grey zone, if FF-N01 is to be claimed at all; a pre-specified cross-vendor arm (the Gemini rater was
+exploratory and shared the prompt); a duplication positive that is not also a misplaced method; citation
+verification; the cut to the venue's page limit (12 pages now; LLM4Code and AgentArch need about 4–8, FORGE 10 in
+two-column IEEE). Lessons 3–4 and 10 are the natural candidates for an appendix or for removal.
+
+**Honest rating: 3.5 / 5 for a workshop, unchanged.** The framing is stronger: the paper now reports a falsification
+test that rejected the authors' own revision, a null on self-consistency and a base-construction defect, which
+reviewers of judge papers rarely see. The numbers are still small, all follow-up data are development data, the
+bases and seeds were written by the same team, and no human has checked a catch.
 
 ---
 
@@ -148,6 +170,7 @@ question is good and the DUP-RULE reversal is interesting, but every positive re
 
 1. Paper 1: verify citations and decide MSR 2027 (if the 23 Oct date holds) or ESEM/EMSE.
 2. Run the hold-out and the author audit; these unblock Papers 2, 3 and 4 together.
-3. Paper 3 to LLM4Code 2027 once its deadline is confirmed, cut to about 6 pages.
+3. Paper 3 to LLM4Code 2027 (13 Nov 2026), cut to the workshop limit, once PRs #191, #165 and #179 are reviewed;
+   AgentArch 2027 (20 Dec 2026) as the second choice.
 4. Paper 2 to ECSA 2027 with the hold-out numbers; a cut-down tool demo is an option before that.
 5. Paper 4 after the follow-up has at least its frozen proxies and independent seeds.
