@@ -1728,3 +1728,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: v1.3 development-set engine check; no template, tier, preset, spec or sealed material touched.
 
 ---
+
+## v1.3 — Study 2 budget forecaster (night backlog #25, C1; scheduled task)
+**Timestamp**: 2026-10-16T09:10:00Z
+**User Input**: (scheduled task, no one present) "Build a Study 2 cost, time and usage-window forecaster from committed telemetry (E1 grid, floor probe, agent proof): commit the model and pass criterion first; study2-forecast.ts --plan --telemetry prints per arm and total turns, tokens and USD (P10/P50/P90 by bootstrap), wall time under 1 and 2 lanes with the pause policy and 5-hour windows; back-test on E1 within 20 %; tables for the working grid and two smaller grids; no recommendation; one PR into v1.3, not merged."
+**AI Response**: "Branch v1.3-study2-forecast from origin/v1.3 dffb1db8. Docs/v1.3/study2-forecast.md §1–§3 (model, pass criterion) committed before any number. scripts/v1.3/study2-forecast.ts + lib, 14 unit tests, plans under experiments/study2-forecast/, outputs under results/v1.3-study2-forecast/. Back-test on the pre-declared E1 split passes (USD −7.1 %, hours −4.2 %; 82 % of 200 other splits pass); per-model bands are too narrow. Working grid P50: 810 step calls + 27 repairs, $256 API-equivalent (Claude pins), 27.9 h on 1 lane / 14.0 h on 2 lanes with no cap; 36–68 h under hypothetical $40/$20 caps per window. Tokens n/a (not committed). Options taken under delegation: (1) the two smaller grids read as '2 Claude models, k=5' and '2 Claude models, k=4'; (2) working k = 5 (middle of 4–6); (3) model pins = E1's Opus, Sonnet and gpt-5.6-terra as placeholders; (4) gate fire rate from the floor probe tool-arm pre-fix steps, none arm as sensitivity; (5) window capacities $40/$20 are hypothetical, as calls per window are unmeasured; (6) repairScale = mcpScale = 1. Reference set byte-identical (cypher-interp). No sealed path read; no LLM call; no construct switch."
+**Context**: v1.3 tooling for the D4/NFR-V4 budget escalation; AI-DLC gates not run interactively (scheduled task, no one present; scope is tooling and an unmerged PR).
+
+---
