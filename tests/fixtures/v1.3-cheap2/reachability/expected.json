@@ -1,0 +1,64 @@
+{
+  "proxy": "reachability",
+  "planted": [
+    {
+      "id": "P1",
+      "kind": "endpoint-bypasses-core",
+      "file": "src/shop/presentation/products.controller.ts",
+      "className": "ProductsController",
+      "methodName": "list"
+    },
+    {
+      "id": "P2",
+      "kind": "endpoint-bypasses-core",
+      "file": "src/shop/presentation/express-app.ts"
+    },
+    {
+      "id": "P3",
+      "kind": "unreachable-module",
+      "file": "src/shop/domain/legacy-pricing.ts"
+    },
+    {
+      "id": "P4a",
+      "kind": "unreachable-module",
+      "file": "src/shop/infrastructure/old-notifier.ts"
+    },
+    {
+      "id": "P4b",
+      "kind": "unreachable-module",
+      "file": "src/shop/infrastructure/old-mailer.ts"
+    }
+  ],
+  "nearMisses": [
+    {
+      "id": "N1",
+      "file": "src/shop/presentation/orders.controller.ts",
+      "note": "endpoint through the application layer"
+    },
+    {
+      "id": "N2",
+      "file": "src/shop/domain/money.ts",
+      "note": "used only as a type"
+    },
+    {
+      "id": "N3",
+      "file": "src/shop/domain/events.ts",
+      "note": "declarations only"
+    },
+    {
+      "id": "N4",
+      "file": "src/shop/infrastructure/clock.ts",
+      "note": "reached through a Nest provider list"
+    },
+    {
+      "id": "N5",
+      "file": "src/shop/presentation/health.ts",
+      "note": "bound method handler, no infrastructure"
+    },
+    {
+      "id": "N6",
+      "file": "src/shop/testing/test-app.ts",
+      "note": "test-support module, not reached from production entries"
+    }
+  ]
+}

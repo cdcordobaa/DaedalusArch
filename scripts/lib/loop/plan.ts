@@ -8,6 +8,12 @@
  * Schedule: for each run index r, for each adapter, for each task, one block holding every arm, the arms in an order
  * drawn from `orderSeed` with mulberry32 (one generator consumed block by block, as BR-U5a-51), so drift during a
  * session window hits every arm of a block alike.
+ *
+ * Per-task profiles (`taskProfiles`, optional): a task's target style (`clean | hexagonal | ddd`, the style slot of the
+ * step frames) and its evaluator spec: `static` (a spec file) or `ise-step1` (DDD only: a spec the ISE infers from the
+ * run's step-1 snapshot, constrained to the declared `contexts`, then frozen; `specs.ts`). `evaluatorSpec` is the
+ * default spec and may be left out only when every task has a profile. `callBudget`, when present, must equal the
+ * budget the plan implies (`planCallBudget`), so the recorded figure cannot drift from the plan.
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -18,8 +24,29 @@ import type { DaedalusServerInput } from '../generators/arms.js';
 import type { CodexPlanBlock } from '../generators/schedule.js';
 import { GENERATOR_ADAPTER_IDS } from '../generators/types.js';
 import type { GeneratorAdapterId } from '../generators/types.js';
+import { CONTEXT_ROOT_RE, LOOP_STYLES } from './style.js';
+import type { LoopContextDecl, LoopStyle } from './style.js';
 import { LOOP_ARMS } from './types.js';
 import type { LoopArm, LoopRunSpec, LoopTask, LoopTasksFile } from './types.js';
+
+/** A task's style and evaluator spec. */
+export interface TaskProfilePlan {
+  readonly style: LoopStyle;
+  /** `static` (default): `evaluatorSpec` is the spec file. `ise-step1`: DDD spec inferred and frozen after step 1. */
+  readonly specMode?: 'static' | 'ise-step1';
+  /** Repository-relative or absolute; required for `static`. */
+  readonly evaluatorSpec?: string;
+  /** DDD: the bounded contexts the frame names and the spec declares. */
+  readonly contexts?: readonly LoopContextDecl[];
+}
+
+/** Model calls a plan implies: one per step turn, plus at most one repair turn per gate step. */
+export interface CallBudget {
+  readonly runs: number;
+  readonly stepTurns: number;
+  readonly maxRepairTurns: number;
+  readonly maxCalls: number;
+}
 
 export interface LoopPlanFile {
   readonly description: string;
@@ -40,8 +67,12 @@ export interface LoopPlanFile {
   readonly codex?: CodexPlanBlock;
   /** The DaedalusArch MCP server of the `daedalus-mcp` arm (absolute paths, outside every cwd). */
   readonly daedalus?: DaedalusServerInput;
-  /** Spec the firewall evaluates each snapshot against (repository-relative or absolute). */
-  readonly evaluatorSpec: string;
+  /** Default spec the firewall evaluates each snapshot against (repository-relative or absolute). */
+  readonly evaluatorSpec?: string;
+  /** Per-task style and spec, keyed by task id. */
+  readonly taskProfiles?: Readonly<Record<string, TaskProfilePlan>>;
+  /** The recorded call budget; checked against `planCallBudget`. */
+  readonly callBudget?: CallBudget;
   /** Recorded for a judge-mode evaluator (the symbolic evaluator makes no model call). */
   readonly cassette?: { readonly dir: string; readonly mode: 'record' | 'replay' };
 }
@@ -96,7 +127,19 @@ export function validatePlan(raw: unknown): DomainResult<LoopPlanFile> {
   const str = (k: string): void => {
     if (typeof raw[k] !== 'string' || raw[k] === '') errors.push(err('LOOP_PLAN_INVALID', `${k} must be a non-empty string`));
   };
-  for (const k of ['description', 'tasksFile', 'outRoot', 'binary', 'harnessRoot', 'evaluatorSpec']) str(k);
+  for (const k of ['description', 'tasksFile', 'outRoot', 'binary', 'harnessRoot']) str(k);
+  if (raw.evaluatorSpec !== undefined) str('evaluatorSpec');
+  if (raw.evaluatorSpec === undefined && raw.taskProfiles === undefined) errors.push(err('LOOP_PLAN_INVALID', 'evaluatorSpec must be a non-empty string (or every task needs a taskProfiles entry)'));
+  if (raw.taskProfiles !== undefined) errors.push(...validateProfiles(raw.taskProfiles));
+  if (raw.taskProfiles !== undefined && Array.isArray(raw.arms) && raw.arms.includes('daedalus-mcp')) {
+    errors.push(err('LOOP_PLAN_INVALID', 'taskProfiles cannot be combined with the daedalus-mcp arm (its MCP server has one spec)'));
+  }
+  if (raw.callBudget !== undefined) {
+    const b = raw.callBudget;
+    if (!isRecord(b) || !['runs', 'stepTurns', 'maxRepairTurns', 'maxCalls'].every((k) => Number.isInteger(b[k]) && (b[k] as number) >= 0)) {
+      errors.push(err('LOOP_PLAN_INVALID', 'callBudget must be { runs, stepTurns, maxRepairTurns, maxCalls } (non-negative integers)'));
+    }
+  }
   if (typeof raw.allowBash !== 'boolean') errors.push(err('LOOP_PLAN_INVALID', 'allowBash must be a boolean'));
   if (!Number.isInteger(raw.runs) || (raw.runs as number) < 1) errors.push(err('LOOP_PLAN_INVALID', 'runs must be a positive integer'));
   if (!Number.isInteger(raw.orderSeed) || (raw.orderSeed as number) < 0 || (raw.orderSeed as number) > 0xffffffff) {
@@ -124,6 +167,64 @@ export function validatePlan(raw: unknown): DomainResult<LoopPlanFile> {
     errors.push(err('LOOP_PLAN_INVALID', 'cassette must be { dir, mode: record | replay }'));
   }
   return errors.length > 0 ? DomainResult.fail(errors) : DomainResult.ok(raw as unknown as LoopPlanFile);
+}
+
+function validateProfiles(raw: unknown): DomainError[] {
+  if (!isRecord(raw)) return [err('LOOP_PLAN_INVALID', 'taskProfiles must be an object keyed by task id')];
+  const errors: DomainError[] = [];
+  for (const [id, p] of Object.entries(raw)) {
+    const bad = (m: string): void => {
+      errors.push(err('LOOP_PLAN_INVALID', `taskProfiles.${id}: ${m}`));
+    };
+    if (!isRecord(p)) {
+      bad('must be { style, specMode?, evaluatorSpec?, contexts? }');
+      continue;
+    }
+    if (!(LOOP_STYLES as readonly unknown[]).includes(p.style)) bad(`style must be one of ${LOOP_STYLES.join(', ')}`);
+    const mode = p.specMode ?? 'static';
+    if (mode !== 'static' && mode !== 'ise-step1') bad('specMode must be static or ise-step1');
+    if (mode === 'static' && (typeof p.evaluatorSpec !== 'string' || p.evaluatorSpec === '')) bad('a static profile needs evaluatorSpec');
+    if (mode === 'ise-step1' && p.evaluatorSpec !== undefined) bad('an ise-step1 profile has no evaluatorSpec (the spec is frozen after step 1)');
+    if (mode === 'ise-step1' && p.style !== 'ddd') bad('ise-step1 is for the ddd style only');
+    const ctx = p.contexts;
+    if (p.style === 'ddd') {
+      const ok =
+        Array.isArray(ctx) &&
+        ctx.length > 0 &&
+        ctx.every((c) => isRecord(c) && typeof c.root === 'string' && CONTEXT_ROOT_RE.test(c.root) && typeof c.part === 'string' && c.part.trim() !== '') &&
+        new Set(ctx.map((c) => (c as { root: string }).root)).size === ctx.length;
+      if (!ok) bad('a ddd profile needs contexts [{ root: "src/<name>/", part }] with distinct roots');
+    } else if (ctx !== undefined) bad('only a ddd profile has contexts');
+  }
+  return errors;
+}
+
+/** The model calls of a plan (module header). */
+export function planCallBudget(plan: Pick<LoopPlanFile, 'adapters' | 'arms' | 'runs'>, tasks: readonly LoopTask[]): CallBudget {
+  const reps = plan.adapters.length * plan.runs;
+  const steps = tasks.reduce((a, t) => a + t.steps.length, 0);
+  const gate = plan.arms.includes('gate') ? 1 : 0;
+  const stepTurns = steps * plan.arms.length * reps;
+  const maxRepairTurns = steps * gate * reps;
+  return { runs: tasks.length * plan.arms.length * reps, stepTurns, maxRepairTurns, maxCalls: stepTurns + maxRepairTurns };
+}
+
+/** Checks the profiles and the budget against the tasks file. */
+export function checkPlanAgainstTasks(plan: LoopPlanFile, tasks: LoopTasksFile): DomainError[] {
+  const errors: DomainError[] = [];
+  const ids = new Set(tasks.tasks.map((t) => t.id));
+  for (const id of Object.keys(plan.taskProfiles ?? {})) if (!ids.has(id)) errors.push(err('LOOP_PLAN_INVALID', `taskProfiles.${id}: no such task`));
+  if (plan.evaluatorSpec === undefined) {
+    for (const id of ids) if (plan.taskProfiles?.[id] === undefined) errors.push(err('LOOP_PLAN_INVALID', `task ${id} has no profile and the plan has no evaluatorSpec`));
+  }
+  if (plan.callBudget !== undefined) {
+    const want = planCallBudget(plan, tasks.tasks);
+    const b = plan.callBudget;
+    if (b.runs !== want.runs || b.stepTurns !== want.stepTurns || b.maxRepairTurns !== want.maxRepairTurns || b.maxCalls !== want.maxCalls) {
+      errors.push(err('LOOP_PLAN_INVALID', `callBudget ${JSON.stringify(plan.callBudget)} differs from the plan's ${JSON.stringify(want)}`));
+    }
+  }
+  return errors;
 }
 
 function readJson(file: string): DomainResult<unknown> {
@@ -163,6 +264,8 @@ export function loadLoopPlan(planFile: string, repoRoot: string, local: LocalOve
   if (!rawTasks.success) return DomainResult.fail(rawTasks.errors);
   const tasks = validateTasks(rawTasks.data);
   if (!tasks.success) return DomainResult.fail(tasks.errors);
+  const cross = checkPlanAgainstTasks(plan.data, tasks.data);
+  if (cross.length > 0) return DomainResult.fail(cross);
   return DomainResult.ok({ plan: plan.data, tasks: tasks.data, tasksPath });
 }
 

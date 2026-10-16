@@ -207,7 +207,7 @@ export async function main(argv: readonly string[], repoRoot: string, deps: Main
 
   if (args.mode === 'from-raw') {
     const rawDir = path.resolve(repoRoot, args.dir ?? '');
-    const run = await compareAll(refs, async (ref, variant) => readRaw(rawDir, ref.style, variant));
+    const run = await compareAll(refs, (ref, variant) => Promise.resolve(readRaw(rawDir, ref.style, variant)));
     writeReport(path.resolve(repoRoot, args.out), run, `# v1.3 reference validation (from saved outputs in ${args.dir ?? ''})`);
     deps.out(renderMarkdown(run.metrics, [], '# v1.3 reference validation'));
     return 0;
@@ -227,7 +227,7 @@ export async function main(argv: readonly string[], repoRoot: string, deps: Main
   // jest suite, another agent's run) can wipe the database between this run's ingestion and evaluation. The CLI
   // children see their ancestor's lock and do not wait for it.
   const uri = deps.env.NEO4J_URI ?? '';
-  const lock = uri === '' ? undefined : await acquireNeo4jLock(uri, { label: 'validate-reference live run', env: deps.env, onWait: (t) => deps.err(`${t}\n`) });
+  const lock = uri === '' ? undefined : await acquireNeo4jLock(uri, { label: 'validate-reference live run', env: deps.env, onWait: (t) => { deps.err(`${t}\n`); } });
   if (lock !== undefined) deps.err(`Neo4j lock ${lock.mode} (${lock.path})\n`);
   const work = makeTempRoot();
   try {
@@ -235,7 +235,7 @@ export async function main(argv: readonly string[], repoRoot: string, deps: Main
       const v = ref.variants.find((x) => x.manifest.variant === variant);
       if (v === undefined) throw new Error(`unknown variant ${variant}`);
       const m = materialiseVariant(ref, v, work);
-      const findings = await (evaluate as Evaluator)(m.projectDir, ref.specPath);
+      const findings = await evaluate(m.projectDir, ref.specPath);
       const rawFile = path.join(outDir, 'raw', ref.style, `${variant}.json`);
       fs.mkdirSync(path.dirname(rawFile), { recursive: true });
       fs.writeFileSync(rawFile, JSON.stringify({ style: ref.style, variant, findings }, null, 2) + '\n');

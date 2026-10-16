@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "case": "case-01-rule-dup-shapes",
+  "writtenAt": "2026-10-15",
+  "writtenBefore": "any ontology pipeline code, prompt or run (committed in the first commit of branch v1.3-ontology)",
+  "planted": "rule-duplication",
+  "description": "One business rule, 'shipping is free when the order total is at least 50', implemented in two components with different code shapes: `total >= 50` (units) in checkout, and `!(sum < FREE_SHIPPING_MIN_CENTS)` with the constant 5000 (cents) in invoicing. No shared token sequence, no shared literal (50 vs 5000, 4.99 vs 499).",
+  "expect": {
+    "ruleDuplications": [
+      {
+        "id": "free-shipping-at-50",
+        "rule": "Shipping is free when the order total is at least 50 (currency units); otherwise a flat fee applies.",
+        "sites": [
+          {
+            "file": "src/checkout/domain/shipping-policy.ts",
+            "class": "ShippingPolicy",
+            "method": "shippingFor"
+          },
+          {
+            "file": "src/invoicing/application/invoice-assembler.ts",
+            "class": "InvoiceAssembler",
+            "method": "assemble"
+          }
+        ]
+      }
+    ],
+    "misplacedResponsibilities": [],
+    "conceptFragmentations": [],
+    "capabilityScatter": []
+  },
+  "forbid": {
+    "misplacedResponsibilities": [
+      {
+        "file": "src/invoicing/domain/invoice-number.ts",
+        "class": "InvoiceNumber"
+      },
+      {
+        "file": "src/checkout/domain/shipping-policy.ts",
+        "class": "ShippingPolicy"
+      }
+    ],
+    "ruleDuplications": [],
+    "conceptFragmentations": [],
+    "capabilityScatter": []
+  },
+  "cheapExpectation": {
+    "ruleDuplications": "miss",
+    "why": "Type-4 clone (different shape) and different literals; the clone and shared-literal proxies have nothing to match."
+  },
+  "notes": "Whether the invoicing site is also a misplaced responsibility (a domain rule in an application service) is debatable; it is neither expected nor forbidden."
+}
