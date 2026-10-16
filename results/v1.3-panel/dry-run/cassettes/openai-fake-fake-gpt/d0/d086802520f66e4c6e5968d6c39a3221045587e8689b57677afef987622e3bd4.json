@@ -1,0 +1,19 @@
+{
+  "answer": {
+    "inputTokens": 359,
+    "outputTokens": 20,
+    "servedModel": "fake-gpt",
+    "text": "{\"choice\":\"C\",\"reason\":\"fake openai answer\"}"
+  },
+  "failedAttempts": [],
+  "itemKey": "4dca826a8f00a58f65eed548",
+  "key": "d086802520f66e4c6e5968d6c39a3221045587e8689b57677afef987622e3bd4",
+  "model": "fake-gpt",
+  "provider": "fake",
+  "request": {
+    "prompt": "## Architectural style\n- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.\n\n## Code excerpt\nFile: src/fhir/fhirquota.ts\n```ts\n    5  import type { Response } from 'express';\n    6  import type Redis from 'ioredis';\n    7  import { RateLimiterRedis, RateLimiterRes } from 'rate-limiter-flexible';\n    8> import { getConfig } from '../config/loader';\n    9  import type { AuthState } from '../oauth/middleware';\n   10  \n   11  export const FHIR_RATE_LIMIT_MEMBERSHIP_PREFIX = 'medplum:rl:fhir:membership:';\n   12  export const FHIR_RATE_LIMIT_PROJECT_PREFIX = 'medplum:rl:fhir:project:';\n   13  export const FHIR_RATE_LIMIT_ACTIVE_PREFIX = 'medplum:rl:fhir:active:';\n   14  export const FHIR_RATE_LIMIT_DURATION = 60;\n   15  export const FHIR_RATE_LIMIT_ACTIVE_TTL = 120;\n   16  \n```\n\n## Reported finding\nComponent `fhir` depends on `config` (40 import(s)), and `config` depends back on `fhir` (directly or transitively): a dependency cycle between folder components.\n\n## Question\nWould an architect following this style want this changed?\nA. yes\nB. uncertain\nC. no\n\nReply with JSON only: {\"choice\": \"<letter>\", \"reason\": \"<one sentence>\"}",
+    "system": "You are a software architect reviewing a TypeScript code base against an architectural style. Judge only from the material in the message: the style definition, the code excerpt and the reported finding. You have no tools. Reply with one JSON object and nothing else.",
+    "temperature": 0
+  },
+  "runIndex": 1
+}

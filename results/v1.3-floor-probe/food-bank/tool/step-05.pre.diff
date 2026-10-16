@@ -1,0 +1,50 @@
+diff --git a/src/application/food-bank-service.ts b/src/application/food-bank-service.ts
+index 8501e00..60ab660 100644
+--- a/src/application/food-bank-service.ts
++++ b/src/application/food-bank-service.ts
+@@ -1,5 +1,5 @@
+ import { randomUUID } from 'node:crypto';
+-import { DietaryNeed, Household } from '../domain/household';
++import { DietaryNeed, Household, conflictingNeed } from '../domain/household';
+ import { InventoryItem, takeFrom } from '../domain/inventory';
+ import { Pickup, PickupLine, SLOT_CAPACITY, SlotBooking, validateSlot } from '../domain/pickup';
+ import { BookingRepository, HouseholdRepository, InventoryRepository, PickupRepository } from './ports';
+@@ -71,7 +71,8 @@ export class FoodBankService {
+   }
+ 
+   recordPickup(householdId: string, items: { itemId: string; quantity: number }[]): Pickup {
+-    if (!this.households.get(householdId)) throw new Error('Unknown household');
++    const household = this.households.get(householdId);
++    if (!household) throw new Error('Unknown household');
+     const today = this.today();
+     // validate everything first so that a bad line changes nothing
+     const updates: InventoryItem[] = [];
+@@ -79,6 +80,8 @@ export class FoodBankService {
+     for (const line of items) {
+       const item = this.inventory.get(line.itemId);
+       if (!item) throw new Error(`Unknown item ${line.itemId}`);
++      const need = conflictingNeed(household, item.category);
++      if (need) throw new Error(`${item.name} (${item.category}) conflicts with the household's dietary need: ${need}`);
+       updates.push(takeFrom(item, line.quantity, today));
+       lines.push({ itemId: item.id, name: item.name, category: item.category, quantity: line.quantity });
+     }
+diff --git a/src/domain/household.ts b/src/domain/household.ts
+index b50db04..1283993 100644
+--- a/src/domain/household.ts
++++ b/src/domain/household.ts
+@@ -9,3 +9,15 @@ export interface Household {
+   phone?: string;
+   smsReminder?: boolean;
+ }
++
++const FORBIDDEN_CATEGORIES: Record<DietaryNeed, string[]> = {
++  'nut-allergy': ['nuts'],
++  vegetarian: ['meat', 'fish'],
++  halal: ['pork'],
++};
++
++/** The dietary need that forbids the category, if any. */
++export function conflictingNeed(h: Household, category: string): DietaryNeed | undefined {
++  const c = category.toLowerCase();
++  return h.dietaryNeeds.find((n) => FORBIDDEN_CATEGORIES[n]?.includes(c));
++}

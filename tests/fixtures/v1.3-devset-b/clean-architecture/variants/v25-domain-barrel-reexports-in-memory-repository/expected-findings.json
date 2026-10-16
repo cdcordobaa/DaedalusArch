@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "v25-domain-barrel-reexports-in-memory-repository",
+  "kind": "violation",
+  "plants": "FF-S04",
+  "description": "A new domain barrel src/domain/index.ts re-exports the entities and repository interfaces and also re-exports InMemoryBookRepository from infrastructure/persistence.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/domain/index.ts",
+      "target": "src/infrastructure/persistence/InMemoryBookRepository.ts",
+      "reason": "A domain module re-exports an infrastructure class: the re-export is a source dependency that points outward."
+    },
+    {
+      "ruleId": "FF-S04",
+      "ruleName": "no-domain-outward-dep",
+      "file": "src/domain/index.ts",
+      "target": "src/infrastructure/persistence/InMemoryBookRepository.ts",
+      "reason": "A domain file imports a file of another layer."
+    }
+  ]
+}

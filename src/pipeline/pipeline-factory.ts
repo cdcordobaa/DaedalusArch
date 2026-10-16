@@ -147,7 +147,7 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
   // ---- Stage 1: Extract APG + Parse Spec (parallel) -------------------
   commands.push(
     new ParallelCommand([
-      new ExtractCommand(config.projectPath, specExcludePaths, config.graphMode, config.tsconfigPath),
+      new ExtractCommand(config.projectPath, specExcludePaths, config.graphMode, config.tsconfigPath, config.sourceOverrides, config.resolvedEdgesInLiteralView === true),
       new ParseCommand(config.specFilePath),
     ]),
   );
@@ -157,6 +157,7 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
     mode: config.pipelineMode,
     apgStorePath: config.apgStorePath,
     ...(config.commitSha !== undefined && { commitSha: config.commitSha }),
+    ...(config.literalThroughLayerlessBarrels === true && { literalThroughLayerlessBarrels: true }),
   };
   commands.push(new IngestCommand(graphRepo, snapshotStore, ingestConfig));
 

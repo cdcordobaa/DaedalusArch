@@ -258,6 +258,35 @@ describe('evaluate_project', () => {
   });
 });
 
+describe('evaluate_project on cypher-interp', () => {
+  // The in-process path (v1.3 npx mode): no Neo4j env, no graph probe; `violations` only on request, as on Neo4j.
+  function interpDeps(): { deps: EvaluateDeps; calls: number[] } {
+    const calls: number[] = [];
+    const base = harness().deps;
+    const deps: EvaluateDeps = {
+      ...base,
+      graphEngine: 'cypher-interp',
+      interp: () => {
+        calls.push(1);
+        return Promise.resolve(DomainResult.ok({ report: report(), latencyMs: 7, cache: 'miss' as const }));
+      },
+    };
+    return { deps, calls };
+  }
+
+  it('returns the full violations only with includeViolations, and the summary either way', async () => {
+    const { deps, calls } = interpDeps();
+    const plain = await evaluateProject({ projectPath: PROJECT, specPath: CLEAN_ARCH_SPEC }, {}, deps);
+    const full = await evaluateProject({ projectPath: PROJECT, specPath: CLEAN_ARCH_SPEC, includeViolations: true }, {}, deps);
+    expect(calls).toHaveLength(2);
+    if (!plain.success || !full.success) throw new Error('evaluation failed');
+    expect(plain.data).toMatchObject({ engine: 'cypher-interp', latencyMs: 7, cache: 'miss', violationCount: 3 });
+    expect(plain.data.violations).toBeUndefined();
+    expect(full.data.violations).toEqual(report().violations);
+    expect(full.data.byRule).toEqual(plain.data.byRule);
+  });
+});
+
 describe('groupByRule', () => {
   it('caps the listing per rule but keeps the full count', () => {
     const many = Array.from({ length: MAX_LISTED_PER_RULE + 5 }, (_, i) =>

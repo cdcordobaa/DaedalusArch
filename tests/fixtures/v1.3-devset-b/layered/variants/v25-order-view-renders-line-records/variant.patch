@@ -1,0 +1,19 @@
+--- a/src/presentation/views/OrderView.ts
++++ b/src/presentation/views/OrderView.ts
+@@ -1,4 +1,5 @@
+ import { Order } from '../../business/model/Order';
++import type { OrderLineRecord } from '../../persistence/records/OrderRecord';
+ 
+ export interface OrderViewModel {
+   id: string;
+@@ -8,6 +9,10 @@
+   total: string;
+ }
+ 
++export function renderLineRows(rows: readonly OrderLineRecord[]): OrderViewModel['lines'] {
++  return rows.map((row) => ({ sku: row.sku, quantity: row.quantity, total: `${((row.unitPriceCents * row.quantity) / 100).toFixed(2)} EUR` }));
++}
++
+ export function renderOrder(order: Order): OrderViewModel {
+   return {
+     id: order.id,

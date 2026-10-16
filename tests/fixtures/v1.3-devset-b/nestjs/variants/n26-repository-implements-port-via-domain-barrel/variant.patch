@@ -1,0 +1,18 @@
+--- a/src/attendees/in-memory-attendee.repository.ts
++++ b/src/attendees/in-memory-attendee.repository.ts
+@@ -1,6 +1,5 @@
+ import { Injectable } from '@nestjs/common';
+-import { Attendee } from '../domain/attendee';
+-import { AttendeeRepository } from '../domain/attendee-repository';
++import { Attendee, AttendeeRepository } from '../domain';
+ 
+ @Injectable()
+ export class InMemoryAttendeeRepository implements AttendeeRepository {
+--- /dev/null
++++ b/src/domain/index.ts
+@@ -0,0 +1,5 @@
++export { Attendee } from './attendee';
++export { ATTENDEE_REPOSITORY } from './attendee-repository';
++export type { AttendeeRepository } from './attendee-repository';
++export { DomainError } from './domain-error';
++export type { DomainErrorKind } from './domain-error';

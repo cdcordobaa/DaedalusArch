@@ -1,0 +1,35 @@
+# Idiomatic translation of azu/faao .dependency-cruiser.json (rules domain-not-to-depend-on-{infra,store,component},
+# store-not-to-depend-on-component), written by hand with globs.
+# Judgement calls:
+#  J1 anchored regexes ^src/domain etc. become globs src/domain/** (exact; the regex also matched src/domainX, none exist);
+#  J2 directories the rules never name (src/use-case, src/bootstrap, src/test) stay unlayered, so no rule applies
+#     to them, as in the human config;
+#  J3 every ordered pair of named layers the four rules do not forbid is listed as allowed (the human config is a
+#     deny-list; our hexagonal graph is an allow-list);
+#  J4 kinds are nominal (domain, infra=infrastructure, component=presentation, store=application).
+architecture:
+  style: hexagonal
+  layers:
+    - name: domain
+      kind: domain
+      roles: [entity]
+      directories: ["src/domain/**"]
+    - name: store
+      kind: application
+      roles: [store]
+      directories: ["src/store/**"]
+    - name: infra
+      kind: infrastructure
+      roles: [repository]
+      directories: ["src/infra/**"]
+    - name: component
+      kind: presentation
+      roles: [component]
+      directories: ["src/component/**"]
+  allowed_dependencies:
+    - from: store
+      to: [domain, infra]
+    - from: infra
+      to: [domain, store, component]
+    - from: component
+      to: [domain, store, infra]
