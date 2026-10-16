@@ -1,0 +1,121 @@
+{
+  "duration_api_ms": 75380,
+  "stop_reason": "end_turn",
+  "session_id": "05e49eb2-c0b2-4882-ac33-e4d540acab76",
+  "total_cost_usd": 0.2162636,
+  "usage": {
+    "input_tokens": 12,
+    "cache_creation_input_tokens": 17547,
+    "cache_read_input_tokens": 47816,
+    "output_tokens": 14127,
+    "output_tokens_details": {
+      "thinking_tokens": 1314
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 17547,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 1062,
+        "cache_read_input_tokens": 10067,
+        "cache_creation_input_tokens": 13392,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 13392
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "modelUsage": {
+    "claude-sonnet-5-5": {
+      "inputTokens": 12,
+      "outputTokens": 14127,
+      "cacheReadInputTokens": 47816,
+      "cacheCreationInputTokens": 17547,
+      "webSearchRequests": 0,
+      "costUSD": 0.2162636,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "thinkingTokens": 1314,
+      "canonicalModel": "claude-sonnet-5-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_014Rch3QrooxevXYmimgb76L",
+      "tool_input": {
+        "command": "cd /root/pilot/out/runs/claude-code-cli/claude-sonnet-5-5/relief-volunteers/gate/run-0/work; ls -la; cat /root/pilot/harness/runs/claude-code-cli/claude-sonnet-5-5/relief-volunteers/gate/run-0/tsconfig.json; ls /root/pilot/harness/runs/claude-code-cli/claude-sonnet-5-5/relief-volunteers/gate/run-0/"
+      }
+    },
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_01RuoNenAqfhPC57xrjigaDQ",
+      "tool_input": {
+        "file_path": "/root/pilot/harness/runs/claude-code-cli/claude-sonnet-5-5/relief-volunteers/gate/run-0/tsconfig.json"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01S5g31obXCsA4914mDfVtaD",
+      "tool_input": {
+        "command": "mkdir -p src/{registry,deployment}/{domain,application,infrastructure,acl,api} src/shared && ls node_modules 2>&1 | head -3"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subagent_stats": {
+    "spawned": 0,
+    "requested": {
+      "background": 0,
+      "foreground": 0,
+      "unset": 0
+    },
+    "started_in_background": 0,
+    "max_depth": 0,
+    "spawned_by_subagents": 0,
+    "completed": 0,
+    "failed": 0,
+    "killed": {
+      "parent": 0,
+      "user": 0,
+      "system": 0
+    },
+    "refused": {
+      "depth_limit": 0,
+      "concurrency_limit": 0,
+      "budget": 0
+    },
+    "by_type": {}
+  },
+  "safety_stops": 0,
+  "is_error": false,
+  "num_turns": 21,
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "The service is written, and the required `tsc` command exits clean with no errors. I haven't started the server or sent any requests to it.\n\n**Layout**\n- `src/registry/` has `domain`, `application`, `infrastructure`, `acl` and `api` folders. It holds volunteers, skills and certifications, with an in-memory repository.\n- `src/deployment/` has the same five folders. It holds incidents, shifts and assignments, with in-memory repositories.\n- `src/shared/http.ts` is a small router built on `node:http`. I used that instead of Express because I couldn't confirm Express was installed.\n- `src/main.ts` is the composition root. It reads `PORT` (default 3000) and `MEDCERT_BASE_URL` (default `http://localhost:9000`).\n\n**Cross-context link:** deployment reaches the registry only through its own `VolunteerDirectory` interface. The adapter for it is in `deployment/acl/registry-volunteer-directory.ts`. One shortcut: `deployment/api/routes.ts` imports `isDate` and `isSkill` straight from the registry's domain code.\n\n**Rules and assumptions**\n- **First-aid certificates:** first aid requires a certification number and expiry. It counts only if it hasn't expired and MedCert confirms it. Any other answer from MedCert counts as missing, including a 404, an error, a timeout or an unrecognised response.\n- **MedCert API shape:** I assumed `GET {base}/certificates/{number}` returns JSON with `confirmed`, `valid` or `verified` set to `true`, or a `status` of confirmed, valid, verified or active. I didn't have the real API spec, so check this against it.\n- **Other skills:** certifications are optional for them. If one is given, it only has to be unexpired.\n- **Shifts:** a shift has a `date`, a `startTime` (`HH:MM`), `hours`, a `requiredSkill` and `peopleNeeded`. I added `startTime` because overlap can't be checked from a date and hours alone.\n- **Assignments:** assigning a volunteer needs a valid qualification for the shift's skill on the shift's date. It is rejected if the shift is full, the volunteer is already on it, or they have an overlapping shift. The qualification lookup is async. The capacity and overlap checks run after it and before the shift is changed, so concurrent requests can't both take the last place.\n\n**Endpoints**\n- `POST/GET /volunteers`\n- `GET /volunteers/:id`\n- `POST/GET /volunteers/:id/skills`\n- `POST/GET /incidents`\n- `GET /incidents/:id`\n- `POST/GET /incidents/:id/shifts`\n- `GET /shifts/:id`\n- `POST /shifts/:id/assignments`\n- `DELETE /shifts/:id/assignments/:volunteerId`\n\nSome of my shell commands were denied, including `mkdir` and reading the tsconfig. I created the files with the file-writing tool instead.",
+  "ttft_ms": 2185,
+  "type": "result",
+  "duration_ms": 76540,
+  "uuid": "56cb9f54-4f2d-4826-b49b-1791de816bf8",
+  "ttft_stream_ms": 902,
+  "time_to_request_ms": 223,
+  "first_content_frame_ms": 903,
+  "queued_turn_count": 0,
+  "result_index": 0
+}

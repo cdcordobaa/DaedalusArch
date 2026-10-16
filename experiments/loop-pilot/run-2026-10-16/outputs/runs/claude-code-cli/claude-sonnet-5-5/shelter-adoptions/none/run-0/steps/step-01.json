@@ -1,0 +1,119 @@
+{
+  "schema": "loop-step/v1",
+  "runId": "claude-code-cli/claude-sonnet-5-5/shelter-adoptions/none/run-0",
+  "spec": {
+    "adapterId": "claude-code-cli",
+    "modelId": "claude-sonnet-5-5",
+    "taskId": "shelter-adoptions",
+    "arm": "none",
+    "runIndex": 0
+  },
+  "stepIndex": 0,
+  "stepId": "adoptions",
+  "startedAt": "2026-10-16T04:03:40.698Z",
+  "finishedAt": "2026-10-16T04:05:01.534Z",
+  "turns": [
+    {
+      "turnId": "step-01",
+      "kind": "step",
+      "promptSha256": "14d13f72d0fd73cb290e01af7903d0eccd4bac9f5fa972dbe7cb6d05bed8cf69",
+      "result": {
+        "status": "completed",
+        "usage": {
+          "costUsd": 0.23785440000000002,
+          "inputTokens": 12,
+          "outputTokens": 15811,
+          "cacheReadTokens": 52924,
+          "cacheCreationTokens": 18607,
+          "numTurns": 17,
+          "durationMs": 78045
+        },
+        "wallMs": 78563,
+        "attempts": [
+          {
+            "startedAt": "2026-10-16T04:03:40.699Z",
+            "outcome": "completed"
+          }
+        ],
+        "interruptions": [],
+        "argv": [
+          "-p",
+          "<prompt>",
+          "--model",
+          "claude-sonnet-5-5",
+          "--output-format",
+          "json",
+          "--safe-mode",
+          "--restricted",
+          "--tools",
+          "Read,Write,Edit,Glob,Grep,Bash",
+          "--allowedTools",
+          "Bash(/root/pilot/harness/bin/tsc --noEmit --incremental false -p /root/pilot/harness/runs/claude-code-cli/claude-sonnet-5-5/shelter-adoptions/none/run-0/tsconfig.json)",
+          "--disallowedTools",
+          "Write(node_modules/**)",
+          "Edit(node_modules/**)",
+          "--permission-mode",
+          "acceptEdits",
+          "--permission-prompts",
+          "none",
+          "--no-session-persistence",
+          "--strict-mcp-config"
+        ],
+        "envelopePath": "envelope-step-01.json",
+        "permissionDenials": 3
+      },
+      "snapshot": {
+        "commit": "c231fb1dd7876b7b05a77b8dabcc5cb0cf8c5d03",
+        "sourceFiles": [
+          "adapters/inbound/http-server.ts",
+          "adapters/outbound/fake-mail-sender.ts",
+          "adapters/outbound/in-memory-repositories.ts",
+          "adapters/outbound/system.ts",
+          "application/ports.ts",
+          "application/shelter-service.ts",
+          "config/main.ts",
+          "domain/adoption-application.ts",
+          "domain/animal.ts",
+          "domain/errors.ts"
+        ],
+        "treeFileCount": 10,
+        "loc": 441,
+        "diff": {
+          "added": 10,
+          "modified": 0,
+          "deleted": 0
+        },
+        "skeletonIntact": true,
+        "typecheck": {
+          "errors": 0,
+          "codes": []
+        },
+        "evaluation": {
+          "scoringMode": "v1.3",
+          "ahs": 0.867,
+          "blockingAhs": 1,
+          "verdict": "pass",
+          "violationCount": 11,
+          "blockingViolationCount": 0,
+          "advisoryViolationCount": 11,
+          "blockingByRule": {},
+          "blockingFindings": [],
+          "durationMs": 62
+        }
+      }
+    }
+  ],
+  "repair": null,
+  "evaluatorSpec": {
+    "kind": "static",
+    "path": "presets/hexagonal.yaml",
+    "sha256": "d085d6b9badca2e79ade19b12fcfff96d1317df139d646772871266f0ed20ab7"
+  },
+  "finalCommit": "c231fb1dd7876b7b05a77b8dabcc5cb0cf8c5d03",
+  "cost": {
+    "costUsd": 0.23785440000000002,
+    "inputTokens": 12,
+    "outputTokens": 15811,
+    "wallMs": 78563
+  }
+}
