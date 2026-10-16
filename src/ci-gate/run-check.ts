@@ -3,9 +3,14 @@
  * in head, fixed by head and unchanged. The verdict fails only on NEW blocking findings, so a pull request is judged
  * on what it introduces, not on the debt already on its base.
  *
+ * Fail-closed: a blocking rule that failed to execute on the head commit (`tiers.blockingNotExecuted`, the report's
+ * `incomplete` verdict) fails the gate too, whatever the base did; the head cannot be vouched for by a rule that did
+ * not run.
+ *
  * The spec is read from the base commit by default: a pull request that loosens the spec does not loosen its own gate.
  * `specFrom: 'head'` reads it from the head commit instead (a PR that is meant to change the spec).
  */
+import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -13,8 +18,9 @@ import { parseSpec } from '../spec-parser/index.js';
 import type { ParsedSpec } from '../shared/types/spec.js';
 import { exportTree, listRenames, resolveCommit } from './git-tree.js';
 import { classifyFindings } from './match.js';
-import type { GateEngine } from './engines.js';
-import type { CommitEvaluation, GateFinding, GateResult } from './types.js';
+import { asEngineEvaluation } from './engines.js';
+import type { EngineEvaluation, GateEngine } from './engines.js';
+import type { CommitEvaluation, GateResult } from './types.js';
 
 export interface CheckOptions {
   /** Repository root (any directory inside the work tree). */
@@ -27,8 +33,12 @@ export interface CheckOptions {
   readonly project?: string;
   readonly specFrom?: 'base' | 'head';
   readonly engine: GateEngine;
-  /** Evaluations keyed by `<sha>:<project>:<spec>` (a caller that checks many pairs evaluates each commit once). */
-  readonly cache?: Map<string, readonly GateFinding[]>;
+  /**
+   * Evaluations keyed by `<sha>:<project>:<spec path>:<spec sha256>:<engine>` (a caller that checks many pairs
+   * evaluates each commit once per spec). The spec's content hash is part of the key, so a cache shared along a chain
+   * whose spec changes never serves findings computed under another spec.
+   */
+  readonly cache?: Map<string, EngineEvaluation>;
   readonly log?: (text: string) => void;
 }
 
@@ -69,20 +79,21 @@ export async function runCheck(opts: CheckOptions): Promise<GateResult> {
     };
     const specPath = path.join(treeOf(opts.specFrom === 'head' ? headSha : baseSha), spec);
     const parsedSpec = await loadSpec(specPath);
+    const specSha256 = createHash('sha256').update(fs.readFileSync(specPath)).digest('hex');
 
-    const evaluate = async (ref: string, sha: string): Promise<CommitEvaluation> => {
-      const key = `${sha}:${project}:${spec}:${opts.specFrom ?? 'base'}:${opts.engine.name}`;
-      let findings = opts.cache?.get(key);
-      if (findings === undefined) {
+    const evaluate = async (ref: string, sha: string): Promise<CommitEvaluation & { readonly blockingNotExecuted: readonly string[] }> => {
+      const key = `${sha}:${project}:${spec}:${specSha256}:${opts.engine.name}`;
+      let evaluation = opts.cache?.get(key);
+      if (evaluation === undefined) {
         const projectDir = path.join(treeOf(sha), project);
         if (!fs.existsSync(projectDir) || !fs.statSync(projectDir).isDirectory()) {
           throw new CheckError(`project directory ${project} does not exist in ${ref} (${sha.slice(0, 12)})`);
         }
         opts.log?.(`evaluating ${ref} (${sha.slice(0, 12)}) with the ${opts.engine.name} engine\n`);
-        findings = await opts.engine.evaluate({ projectDir, specPath, spec: parsedSpec });
-        opts.cache?.set(key, findings);
+        evaluation = asEngineEvaluation(await opts.engine.evaluate({ projectDir, specPath, spec: parsedSpec }));
+        opts.cache?.set(key, evaluation);
       }
-      return { ref, sha, findings };
+      return { ref, sha, ...evaluation };
     };
 
     const base = await evaluate(opts.base, baseSha);
@@ -98,8 +109,9 @@ export async function runCheck(opts: CheckOptions): Promise<GateResult> {
       head: { ref: opts.head, sha: headSha, findings: head.findings.length },
       renames,
       ...classified,
-      verdict: newBlocking > 0 ? 'fail' : 'pass',
+      verdict: newBlocking > 0 || head.blockingNotExecuted.length > 0 ? 'fail' : 'pass',
       newBlocking,
+      ...(head.blockingNotExecuted.length > 0 ? { headBlockingNotExecuted: head.blockingNotExecuted } : {}),
     };
   } finally {
     fs.rmSync(work, { recursive: true, force: true });

@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9452,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "471c3b6261c81d7470cd0dd3964e1da2474ca0e07ba8307550864d976ac1eb15-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/policies/domain/policy/Coverage.ts: class Coverage only holds the domain fields peril, limitCents and deductibleCents, which are set in its constructor",
+      "src/policies/domain/policy/Coverage.ts: hasPeril() is a pure domain query with no I/O or framework dependency",
+      "There are no imports or calls to persistence, HTTP or framework APIs"
+    ],
+    "pass": true,
+    "reasoning": "Coverage.ts is a plain domain value-type class. It holds a peril, a limit and a deductible, and has one small domain query, hasPeril(). It does no persistence, transport, framework or presentation work, so everything in it fits the domain layer. It may be an anemic model with public mutable fields, but that is a design-quality concern. It is not a responsibility that belongs to another layer.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/*/domain/**, src/shared-kernel/**\n- application (kind: application): src/*/application/**\n- infrastructure (kind: infrastructure): src/*/infrastructure/**, src/*/acl/**\n- api (kind: presentation): src/*/api/**\n- composition (kind: application): src/main.ts\n\n## Unit\nKind: file\nId: src/policies/domain/policy/Coverage.ts\nLayer: domain\nUnit files:\n- src/policies/domain/policy/Coverage.ts\n\n## Source\n=====SOURCE-BEGIN src/policies/domain/policy/Coverage.ts=====\nexport class Coverage {\n  peril: string;\n  limitCents: number;\n  deductibleCents: number;\n\n  constructor(peril: string, limitCents: number, deductibleCents: number) {\n    this.peril = peril;\n    this.limitCents = limitCents;\n    this.deductibleCents = deductibleCents;\n  }\n\n  hasPeril(): boolean {\n    return this.peril !== undefined;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/policies/domain/policy/Policy.ts\",\"to\":\"src/policies/domain/policy/Coverage.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Coverage\",\"path\":\"src/policies/domain/policy/Coverage.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/policies/domain/policy/Coverage.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/policies/domain/policy/Policy.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T02:56:40.066Z",
+  "repetition": 0,
+  "requestHash": "471c3b6261c81d7470cd0dd3964e1da2474ca0e07ba8307550864d976ac1eb15",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":397}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"Coverage.ts is a plain domain value-type class. It holds a peril, a limit and a deductible, and has one small domain query, hasPeril(). It does no persistence, transport, framework or presentation work, so everything in it fits the domain layer. It may be an anemic model with public mutable fields, but that is a design-quality concern. It is not a responsibility that belongs to another layer.\\\",\\\"evidence\\\":[\\\"src/policies/domain/policy/Coverage.ts: class Coverage only holds the domain fields peril, limitCents and deductibleCents, which are set in its constructor\\\",\\\"src/policies/domain/policy/Coverage.ts: hasPeril() is a pure domain query with no I/O or framework dependency\\\",\\\"There are no imports or calls to persistence, HTTP or framework APIs\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/policies/domain/policy/Coverage.ts: class Coverage only holds the domain fields peril, limitCents and deductibleCents, which are set in its constructor\",\"src/policies/domain/policy/Coverage.ts: hasPeril() is a pure domain query with no I/O or framework dependency\",\"There are no imports or calls to persistence, HTTP or framework APIs\"],\"pass\":true,\"reasoning\":\"Coverage.ts is a plain domain value-type class. It holds a peril, a limit and a deductible, and has one small domain query, hasPeril(). It does no persistence, transport, framework or presentation work, so everything in it fits the domain layer. It may be an anemic model with public mutable fields, but that is a design-quality concern. It is not a responsibility that belongs to another layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/policies/domain/policy/Coverage.ts",
+  "usage": {
+    "inputTokens": 2308,
+    "outputTokens": 397
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

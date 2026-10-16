@@ -191,6 +191,8 @@ export interface NeuralServiceOptions {
   /** Results kept in memory (least recently used dropped first). */
   readonly cacheSize?: number;
   readonly now?: () => number;
+  /** Strip comments from the code shown to the judge (`--strip-comments`; OFF by default). */
+  readonly stripComments?: boolean;
 }
 
 /** Default latency budget of one neural tool call: answer within 20 s, else `pending` with a job id. */
@@ -200,6 +202,7 @@ export const DEFAULT_NEURAL_CACHE_SIZE = 500;
 export class NeuralService {
   readonly judge: NeuralJudge | undefined;
   readonly waitMs: number;
+  readonly stripComments: boolean;
   private readonly cacheSize: number;
   private readonly now: () => number;
   /** Finished results by cache key (insertion order = recency). */
@@ -211,6 +214,7 @@ export class NeuralService {
   constructor(options: NeuralServiceOptions = {}) {
     this.judge = options.judge;
     this.waitMs = options.waitMs ?? DEFAULT_NEURAL_WAIT_MS;
+    this.stripComments = options.stripComments === true;
     this.cacheSize = options.cacheSize ?? DEFAULT_NEURAL_CACHE_SIZE;
     this.now = options.now ?? Date.now;
   }

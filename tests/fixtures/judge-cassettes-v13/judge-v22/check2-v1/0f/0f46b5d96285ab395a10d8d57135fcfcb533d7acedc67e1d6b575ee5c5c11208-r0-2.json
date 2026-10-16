@@ -1,0 +1,51 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8176,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "0f46b5d96285ab395a10d8d57135fcfcb533d7acedc67e1d6b575ee5c5c11208-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "src/business/model/Member.ts: `@Entity()` on `export class Member` marks the domain class as a TypeORM database entity, which is persistence (infrastructure) mapping.",
+      "src/business/model/Member.ts: `@Column()` on property `id` defines database column mapping, which is persistence (infrastructure) mapping.",
+      "src/business/model/Member.ts: `canBorrow(openLoans)` is a legitimate domain rule, so this part fits the business layer."
+    ],
+    "pass": false,
+    "reasoning": "Member is a domain entity in the business layer. Its business rule, canBorrow (an active member below maxLoans), belongs in the domain. But the class also handles ORM persistence mapping. The TypeORM @Entity() decorator on the class and the @Column() decorator on id define how the entity maps to database tables and columns. That mapping is the job of the persistence (infrastructure) layer. This is a misplaced responsibility, not just an import direction issue: the domain class itself states persistence schema metadata. The mapping should live in the persistence layer, for example in a separate ORM entity or an EntitySchema with a mapper.",
+    "violations": [
+      {
+        "filePath": "src/business/model/Member.ts",
+        "message": "The domain entity Member handles ORM persistence mapping through the TypeORM decorators `@Entity()` on the class and `@Column()` on `id`. Database schema mapping belongs to the persistence (infrastructure) layer, not to the business (domain) layer."
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**\n- business (kind: domain): src/business/**\n- presentation (kind: presentation): src/presentation/**\n\n## Unit\nKind: file\nId: src/business/model/Member.ts\nLayer: business\nUnit files:\n- src/business/model/Member.ts\n\n## Source\n=====SOURCE-BEGIN src/business/model/Member.ts=====\nimport { Entity, Column } from 'typeorm';\n\n@Entity()\nexport class Member {\n  @Column()\n  id: string;\n  name: string;\n  maxLoans: number;\n  active: boolean;\n\n  constructor(id: string, name: string, maxLoans: number, active: boolean) {\n    this.id = id;\n    this.name = name;\n    this.maxLoans = maxLoans;\n    this.active = active;\n  }\n\n  canBorrow(openLoans: number): boolean {\n    return this.active && openLoans < this.maxLoans;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/business/model/Member.ts\",\"to\":\"typeorm\",\"type\":\"IMPORTS\"},{\"from\":\"src/business/services/LendingService.ts\",\"to\":\"src/business/model/Member.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"business\",\"name\":\"Member\",\"path\":\"src/business/model/Member.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/model/Member.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/services/LendingService.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"typeorm\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T03:17:35.415Z",
+  "repetition": 0,
+  "requestHash": "0f46b5d96285ab395a10d8d57135fcfcb533d7acedc67e1d6b575ee5c5c11208",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":703}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"Member is a domain entity in the business layer. Its business rule, canBorrow (an active member below maxLoans), belongs in the domain. But the class also handles ORM persistence mapping. The TypeORM @Entity() decorator on the class and the @Column() decorator on id define how the entity maps to database tables and columns. That mapping is the job of the persistence (infrastructure) layer. This is a misplaced responsibility, not just an import direction issue: the domain class itself states persistence schema metadata. The mapping should live in the persistence layer, for example in a separate ORM entity or an EntitySchema with a mapper.\\\",\\\"evidence\\\":[\\\"src/business/model/Member.ts: `@Entity()` on `export class Member` marks the domain class as a TypeORM database entity, which is persistence (infrastructure) mapping.\\\",\\\"src/business/model/Member.ts: `@Column()` on property `id` defines database column mapping, which is persistence (infrastructure) mapping.\\\",\\\"src/business/model/Member.ts: `canBorrow(openLoans)` is a legitimate domain rule, so this part fits the business layer.\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/business/model/Member.ts\\\",\\\"message\\\":\\\"The domain entity Member handles ORM persistence mapping through the TypeORM decorators `@Entity()` on the class and `@Column()` on `id`. Database schema mapping belongs to the persistence (infrastructure) layer, not to the business (domain) layer.\\\"}]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"src/business/model/Member.ts: `@Entity()` on `export class Member` marks the domain class as a TypeORM database entity, which is persistence (infrastructure) mapping.\",\"src/business/model/Member.ts: `@Column()` on property `id` defines database column mapping, which is persistence (infrastructure) mapping.\",\"src/business/model/Member.ts: `canBorrow(openLoans)` is a legitimate domain rule, so this part fits the business layer.\"],\"pass\":false,\"reasoning\":\"Member is a domain entity in the business layer. Its business rule, canBorrow (an active member below maxLoans), belongs in the domain. But the class also handles ORM persistence mapping. The TypeORM @Entity() decorator on the class and the @Column() decorator on id define how the entity maps to database tables and columns. That mapping is the job of the persistence (infrastructure) layer. This is a misplaced responsibility, not just an import direction issue: the domain class itself states persistence schema metadata. The mapping should live in the persistence layer, for example in a separate ORM entity or an EntitySchema with a mapper.\",\"violations\":[{\"filePath\":\"src/business/model/Member.ts\",\"message\":\"The domain entity Member handles ORM persistence mapping through the TypeORM decorators `@Entity()` on the class and `@Column()` on `id`. Database schema mapping belongs to the persistence (infrastructure) layer, not to the business (domain) layer.\"}]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/business/model/Member.ts",
+  "usage": {
+    "inputTokens": 2295,
+    "outputTokens": 703
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

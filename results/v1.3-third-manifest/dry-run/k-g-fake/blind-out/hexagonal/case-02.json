@@ -1,0 +1,169 @@
+{
+  "case": "case-02",
+  "expectedGraph": {
+    "edges": [],
+    "files": [
+      {
+        "file": "src/adapters/inbound/cli/BookingCli.ts",
+        "layer": null
+      },
+      {
+        "file": "src/adapters/inbound/http/BookingController.ts",
+        "layer": null
+      },
+      {
+        "file": "src/adapters/inbound/http/HttpTypes.ts",
+        "layer": null
+      },
+      {
+        "file": "src/adapters/inbound/http/RoomController.ts",
+        "layer": null
+      },
+      {
+        "file": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts",
+        "layer": null
+      },
+      {
+        "file": "src/adapters/outbound/payment/FakePaymentGateway.ts",
+        "layer": null
+      },
+      {
+        "file": "src/adapters/outbound/persistence/InMemoryBookingRepository.ts",
+        "layer": null
+      },
+      {
+        "file": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts",
+        "layer": null
+      },
+      {
+        "file": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+        "layer": null
+      },
+      {
+        "file": "src/application/ports/in/BookRoom.ts",
+        "layer": null
+      },
+      {
+        "file": "src/application/ports/in/BookingView.ts",
+        "layer": null
+      },
+      {
+        "file": "src/application/ports/in/CancelBooking.ts",
+        "layer": null
+      },
+      {
+        "file": "src/application/ports/in/FindAvailableRooms.ts",
+        "layer": null
+      },
+      {
+        "file": "src/application/ports/out/BookingRepository.ts",
+        "layer": null
+      },
+      {
+        "file": "src/application/ports/out/GuestRepository.ts",
+        "layer": null
+      },
+      {
+        "file": "src/application/ports/out/NotificationSender.ts",
+        "layer": null
+      },
+      {
+        "file": "src/application/ports/out/PaymentGateway.ts",
+        "layer": null
+      },
+      {
+        "file": "src/application/ports/out/RoomRepository.ts",
+        "layer": null
+      },
+      {
+        "file": "src/application/services/BookRoomService.ts",
+        "layer": null
+      },
+      {
+        "file": "src/application/services/CancelBookingService.ts",
+        "layer": null
+      },
+      {
+        "file": "src/application/services/FindAvailableRoomsService.ts",
+        "layer": null
+      },
+      {
+        "file": "src/config/container.ts",
+        "layer": null
+      },
+      {
+        "file": "src/domain/errors/BookingError.ts",
+        "layer": null
+      },
+      {
+        "file": "src/domain/model/Booking.ts",
+        "layer": null
+      },
+      {
+        "file": "src/domain/model/DateRange.ts",
+        "layer": null
+      },
+      {
+        "file": "src/domain/model/Guest.ts",
+        "layer": null
+      },
+      {
+        "file": "src/domain/model/Money.ts",
+        "layer": null
+      },
+      {
+        "file": "src/domain/model/Room.ts",
+        "layer": null
+      },
+      {
+        "file": "src/domain/services/AvailabilityChecker.ts",
+        "layer": null
+      },
+      {
+        "file": "src/domain/services/PriceCalculator.ts",
+        "layer": null
+      },
+      {
+        "file": "types/vendor.d.ts",
+        "layer": null
+      }
+    ],
+    "unresolvedEdges": []
+  },
+  "findings": [
+    {
+      "alsoMatches": [],
+      "confidence": "high",
+      "file": "src/application/services/FindAvailableRoomsService.ts",
+      "reason": "fake: application > adapters-outbound is the reverse of an allowed edge.",
+      "ruleId": "dependency-direction-graph",
+      "target": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "tier": "blocking"
+    },
+    {
+      "alsoMatches": [],
+      "confidence": "low",
+      "file": "src/adapters/inbound/cli/BookingCli.ts",
+      "reason": "fake decoy",
+      "ruleId": "FF-C02",
+      "target": null,
+      "tier": "advisory"
+    }
+  ],
+  "nearMissOk": [],
+  "provenance": {
+    "adapter": "fake",
+    "bundleSha256": "7108569684fc1da71bffab461e2c48066f47a345c763991b7eedab1df51c6544",
+    "casePromptSha256": "50945aff268a34309553f11f65073602f19195ca1b5fd2874127021dada8fd5f",
+    "cassetteKeys": [
+      "016ca7a66540de9f1b2de9263092fcd1ebb353ff4eeebf89bb858934884187c9"
+    ],
+    "label": "dry run, not a result",
+    "promptSha256": "4d0d1525d84f1fed4883829987d4b5b134f4f6a234eca904af835c3acb729f96",
+    "schemaSha256": "756f3f41c603c471d2604f5eb5f71377103e5f180822e9051da1487932f001f8",
+    "servedModel": "fake-k-g",
+    "writer": "none:fake-k-g"
+  },
+  "style": "hexagonal",
+  "verdict": "fail"
+}

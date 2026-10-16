@@ -1,0 +1,235 @@
+# v1.3 external set, wave 2: spec for `talyssonoc-node-api` (style ddd).
+# Derived from presets/ddd.yaml: the `architecture:` block maps THIS project's folders
+# (judgements in results/v1.3-external-2/spec-rationale.md); `fitness_functions:` is the preset's, verbatim.
+# Written before any tool run on the project.
+
+spec_version: "1.0.0"
+
+architecture:
+  style: ddd
+
+  # README: "implemented following ideas from layered architecture, Clean Architecture, and Domain-Driven Design".
+  # Contexts article and comment, each {domain,application,infrastructure,interface} plus an index.ts that is the
+  # module's DI registration (composition). _sharedKernel is split by its own subfolders; _lib (framework
+  # library: DI adapters, http helpers, pub/sub, errors) and _boot (bootstrap) are outside every context.
+  # Type-only files (*.d.ts: ArticleRepository, ArticleId, CommentId, FindArticles) are not extracted (rationale).
+  layers:
+    - name: domain
+      kind: domain
+      directories:
+        - src/*/domain/**
+        - src/_sharedKernel/domain/**
+      roles:
+        - aggregate
+        - entity
+        - value-object
+        - repository-interface
+
+    - name: application
+      kind: application
+      directories:
+        - src/*/application/**
+      roles:
+        - application-service
+
+    - name: infrastructure
+      kind: infrastructure
+      directories:
+        - src/*/infrastructure/**
+        - src/_sharedKernel/infrastructure/**
+      roles:
+        - repository
+
+    - name: api
+      kind: presentation
+      directories:
+        - src/*/interface/**
+        - src/_sharedKernel/interface/**
+      roles:
+        - controller
+
+    - name: composition
+      kind: application
+      directories:
+        - src/article/index.ts
+        - src/comment/index.ts
+        - src/_boot/**
+        - src/index.ts
+        - src/container.ts
+        - src/context.ts
+        - src/config.ts
+      roles:
+        - composition-root
+
+  allowed_dependencies:
+    - from: application
+      to: [domain]
+    - from: infrastructure
+      to: [application, domain]
+    - from: api
+      to: [application, domain]
+    - from: composition
+      to: [domain, application, infrastructure, api]
+
+  ddd:
+    source_root: src/
+    contexts:
+      - name: article
+        root: src/article/
+        public_api: [src/article/index.ts]
+        acl: []
+      - name: comment
+        root: src/comment/
+        public_api: [src/comment/index.ts]
+        acl: []
+    outside_contexts: [src/_sharedKernel/**, src/_lib/**, src/_boot/**, src/index.ts, src/container.ts, src/context.ts, src/config.ts]
+    aggregates:
+      - name: Article
+        context: article
+        module: src/article/domain/**
+        root: src/article/domain/Article.ts
+        inner_entities: []
+      - name: Comment
+        context: comment
+        module: src/comment/domain/**
+        root: src/comment/domain/Comment.ts
+        inner_entities: []
+    value_objects: ["src/*/domain/*Id.d.ts", "src/_sharedKernel/domain/*Id.d.ts"]
+    repositories: ["src/*/domain/*Repository.d.ts", "src/*/infrastructure/Mongo*Repository.ts"]
+    domain_event_types: [Event]
+    application_services: ["src/*/application/useCases/*.ts"]
+
+fitness_functions:
+
+  # ── STRATEGIC ──
+
+  - id: FF-DS01
+    name: bounded-context-modules
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DS02
+    name: context-isolation
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # ── TACTICAL ──
+
+  - id: FF-DT01
+    name: aggregate-boundary
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DT02
+    name: repository-aggregate-root
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Blocking per the sealed Docs/v1.3/rule-tiers.md. The check is still a method-name proxy (the extractor sees no
+  # readonly, accessors or visibility); see Docs/v1.3-ddd-notes.md §2 for the proposed ADR.
+  - id: FF-DT03
+    name: value-object-immutability
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Framework-free domain: the existing domain-purity template, unchanged, with the DDD package list.
+  - id: FF-DT04
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+    forbidden_imports:
+      - "@nestjs/*"
+      - typeorm
+      - express
+      - prisma
+      - "@prisma/*"
+      - sequelize
+      - mongoose
+      - "@mikro-orm/*"
+      - class-validator
+      - class-transformer
+      - inversify
+      - tsyringe
+
+  # Advisory per the sealed Docs/v1.3/rule-tiers.md (placement guideline).
+  - id: FF-DT05
+    name: domain-event-placement
+    dimension: pattern
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+  # Advisory heuristic: more methods than the threshold in an application service.
+  - id: FF-DT06
+    name: application-service-thin
+    dimension: pattern
+    severity: advisory
+    route: symbolic
+    validated: false
+    tier: advisory
+    threshold: 3
+
+  # ── LAYERING INSIDE EACH CONTEXT (hexagonal templates) ──
+
+  - id: FF-S01
+    name: dependency-direction-graph
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Advisory per the sealed Docs/v1.3/rule-tiers.md (hexagonal does not define strict layering).
+  - id: FF-S03
+    name: layer-skip-graph
+    dimension: structural
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70

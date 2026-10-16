@@ -8,7 +8,7 @@
 - **Purpose**: Create a working project scaffolding so all subsequent units can build on clean infrastructure
 
 ## Code Location
-- **Workspace root**: `/Volumes/Life-OS/Users/Arkatechie/Development/Archi-Firewall/DaedalusArch`
+- **Workspace root**: `<workspace>/DaedalusArch`
 - **Pattern**: Greenfield multi-unit monolith — `src/{module}/`, `tests/{scope}/`
 
 ---

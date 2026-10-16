@@ -1,0 +1,169 @@
+{
+  "case": "case-03",
+  "expectedGraph": {
+    "edges": [],
+    "files": [
+      {
+        "file": "src/billing/acl/OrderingAcl.ts",
+        "layer": null
+      },
+      {
+        "file": "src/billing/api/InvoiceController.ts",
+        "layer": null
+      },
+      {
+        "file": "src/billing/application/IssueInvoice.ts",
+        "layer": null
+      },
+      {
+        "file": "src/billing/application/ports/OrderSource.ts",
+        "layer": null
+      },
+      {
+        "file": "src/billing/contracts/InvoiceView.ts",
+        "layer": null
+      },
+      {
+        "file": "src/billing/domain/invoice/Invoice.ts",
+        "layer": null
+      },
+      {
+        "file": "src/billing/domain/invoice/InvoiceLine.ts",
+        "layer": null
+      },
+      {
+        "file": "src/billing/domain/invoice/InvoiceRepository.ts",
+        "layer": null
+      },
+      {
+        "file": "src/billing/domain/invoice/events/InvoiceIssued.ts",
+        "layer": null
+      },
+      {
+        "file": "src/billing/domain/invoice/value-objects/InvoiceId.ts",
+        "layer": null
+      },
+      {
+        "file": "src/billing/index.ts",
+        "layer": null
+      },
+      {
+        "file": "src/billing/infrastructure/InMemoryInvoiceRepository.ts",
+        "layer": null
+      },
+      {
+        "file": "src/main.ts",
+        "layer": null
+      },
+      {
+        "file": "src/ordering/api/OrderController.ts",
+        "layer": null
+      },
+      {
+        "file": "src/ordering/application/GetOrderSummary.ts",
+        "layer": null
+      },
+      {
+        "file": "src/ordering/application/PlaceOrder.ts",
+        "layer": null
+      },
+      {
+        "file": "src/ordering/contracts/OrderSummary.ts",
+        "layer": null
+      },
+      {
+        "file": "src/ordering/domain/customer/Customer.ts",
+        "layer": null
+      },
+      {
+        "file": "src/ordering/domain/customer/CustomerRepository.ts",
+        "layer": null
+      },
+      {
+        "file": "src/ordering/domain/customer/value-objects/CustomerId.ts",
+        "layer": null
+      },
+      {
+        "file": "src/ordering/domain/order/Order.ts",
+        "layer": null
+      },
+      {
+        "file": "src/ordering/domain/order/OrderLine.ts",
+        "layer": null
+      },
+      {
+        "file": "src/ordering/domain/order/OrderRepository.ts",
+        "layer": null
+      },
+      {
+        "file": "src/ordering/domain/order/events/OrderPlaced.ts",
+        "layer": null
+      },
+      {
+        "file": "src/ordering/domain/order/value-objects/OrderId.ts",
+        "layer": null
+      },
+      {
+        "file": "src/ordering/domain/value-objects/Quantity.ts",
+        "layer": null
+      },
+      {
+        "file": "src/ordering/index.ts",
+        "layer": null
+      },
+      {
+        "file": "src/ordering/infrastructure/InMemoryCustomerRepository.ts",
+        "layer": null
+      },
+      {
+        "file": "src/ordering/infrastructure/InMemoryOrderRepository.ts",
+        "layer": null
+      },
+      {
+        "file": "src/shared-kernel/DomainEvent.ts",
+        "layer": null
+      },
+      {
+        "file": "src/shared-kernel/value-objects/Money.ts",
+        "layer": null
+      }
+    ],
+    "unresolvedEdges": []
+  },
+  "findings": [
+    {
+      "alsoMatches": [],
+      "confidence": "high",
+      "file": "src/billing/application/IssueInvoice.ts",
+      "reason": "fake: billing imports a file of ordering that is not in ordering's declared public API, and the importing file is not in billing's anti-corruption layer.",
+      "ruleId": "FF-DS02",
+      "target": "src/ordering/domain/order/Order.ts",
+      "tier": "blocking"
+    },
+    {
+      "alsoMatches": [],
+      "confidence": "low",
+      "file": "src/billing/acl/OrderingAcl.ts",
+      "reason": "fake decoy",
+      "ruleId": "FF-C02",
+      "target": null,
+      "tier": "advisory"
+    }
+  ],
+  "nearMissOk": [],
+  "provenance": {
+    "adapter": "fake",
+    "bundleSha256": "642f9fbb00ec10be767d5064c2d0007a4d11cda9d0e15b8467d705ddcaa4b2e9",
+    "casePromptSha256": "c56b8e0cb21f1a952fdc0bac8351260aabe6d2917adda37f3030f572987e7fbb",
+    "cassetteKeys": [
+      "f93dd2c3293d8b4ece4fc6fc1ea82c28d03c8ea5975a1b52032156a5cb620cdc"
+    ],
+    "label": "dry run, not a result",
+    "promptSha256": "4d0d1525d84f1fed4883829987d4b5b134f4f6a234eca904af835c3acb729f96",
+    "schemaSha256": "756f3f41c603c471d2604f5eb5f71377103e5f180822e9051da1487932f001f8",
+    "servedModel": "fake-k-g",
+    "writer": "none:fake-k-g"
+  },
+  "style": "ddd",
+  "verdict": "fail"
+}

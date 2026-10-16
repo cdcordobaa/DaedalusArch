@@ -5,7 +5,7 @@
  *   npx tsx src/mcp-server/check-file-cli.ts --spec specs/clean-arch.yaml <path-in-project> [<file-with-content>]
  *
  * The content is read from `<file-with-content>`, or from stdin when it is omitted. `<path-in-project>` decides the
- * layer. Exit codes: 0 clean, 1 violations or unknown, 2 usage or spec error.
+ * layer. Exit codes: 0 when `blockingVerdict` is pass, 1 when it is block or unknown, 2 usage or spec error.
  */
 import * as fs from 'node:fs';
 import { buildContext, parseArgs } from './context.js';
@@ -43,7 +43,9 @@ export async function checkFileCli(
     return 2;
   }
   write(`${JSON.stringify(res.data, null, 2)}\n`);
-  return res.data.verdict === 'clean' ? 0 : 1;
+  // Exit on the v1.3 answer the tool contract says to act on (`blockingVerdict`), which includes the fast-rule
+  // findings the legacy `verdict` ignores (R21, post-merge review 2026-10-16).
+  return res.data.blockingVerdict === 'pass' ? 0 : 1;
 }
 
 if (

@@ -25,7 +25,7 @@ function twoRuleEvaluator(): StepEvaluator {
     evaluate: async (dir, runId) => {
       const r = await base.evaluate(dir, runId);
       if (!r.success) return r;
-      const held: BlockingFinding[] = r.data.blockingFindings.map((f) => ({ ruleId: HELD, ruleName: 'held rule (stub)', filePath: HELD_FILE, target: 'withheld-target', message: HELD_MESSAGE }));
+      const held: BlockingFinding[] = r.data.blockingFindings.map(() => ({ ruleId: HELD, ruleName: 'held rule (stub)', filePath: HELD_FILE, target: 'withheld-target', message: HELD_MESSAGE }));
       const blocking = r.data.blockingViolationCount + held.length;
       return DomainResult.ok({
         ...r.data,
