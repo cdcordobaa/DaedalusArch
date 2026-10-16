@@ -31,6 +31,7 @@ import type { SpecProposal } from '../ise/propose.js';
 import type { NeuralService } from './neural-service.js';
 import { explainAndFix, reviewUnit } from './neural-tools.js';
 import type { ExplainAndFixArgs, ExplainAndFixResult, FixHintSource, ReviewUnitArgs, ReviewUnitResult } from './neural-tools.js';
+import type { CallLogger } from './call-log.js';
 import { defaultPresetsDir, proposeRules, summariseProposal } from '../rule-mining/index.js';
 import type { ProposalSummary } from '../rule-mining/index.js';
 import type {
@@ -83,6 +84,8 @@ export interface ServerContext {
   readonly fixHints?: FixHintSource | undefined;
   /** Graph engine of `evaluate_project` and the template checks; absent = `neo4j` (the reference engine). */
   readonly graphEngine?: GraphEngine | undefined;
+  /** Call log (`--call-log`, Docs/v1.3/mcp-call-log.md); absent means off: handlers are registered unwrapped. */
+  readonly callLog?: CallLogger | undefined;
   /** Register the opt-in `propose_rules` tool (rule mining). Off by default. */
   readonly ruleMining?: boolean | undefined;
 }
@@ -125,13 +128,43 @@ async function specFor(
   return ctx.loadSpec(specPath);
 }
 
-/** A file path as the spec's globs see it: project-relative POSIX. Absolute paths are made relative to the project. */
-export function toProjectRelative(ctx: ServerContext, filePath: string): string {
-  const root = ctx.defaultProjectPath;
-  if (root !== undefined && path.isAbsolute(filePath)) {
-    return normalisePath(path.relative(path.resolve(root), filePath));
+/** The realpath of `p`; for a path that does not exist yet, the realpath of its nearest existing ancestor plus the rest. */
+function realpathLoose(p: string): string {
+  const rest: string[] = [];
+  let cur = path.resolve(p);
+  for (;;) {
+    try {
+      return path.join(fs.realpathSync(cur), ...rest.reverse());
+    } catch {
+      const parent = path.dirname(cur);
+      if (parent === cur) return path.resolve(p);
+      rest.push(path.basename(cur));
+      cur = parent;
+    }
   }
-  return normalisePath(filePath);
+}
+
+/**
+ * A file path as the spec's globs see it: project-relative POSIX. An absolute path is made relative to the project
+ * root with symlinks resolved on both sides (macOS /tmp -> /private/tmp). A path that leaves the root, or an absolute
+ * path with no project configured, is refused: it would otherwise match no layer glob and pass every layer rule
+ * (R05, post-merge review 2026-10-16).
+ */
+export function toProjectRelative(ctx: ServerContext, filePath: string): ToolOutcome<string> {
+  const root = ctx.defaultProjectPath;
+  let rel: string;
+  if (path.isAbsolute(filePath)) {
+    if (root === undefined) {
+      return fail(`An absolute path (${filePath}) needs a project root: start the server with --project <path>, or pass a project-relative path.`);
+    }
+    rel = path.relative(realpathLoose(root), realpathLoose(filePath));
+    if (path.isAbsolute(rel)) return fail(`The path ${filePath} is outside the project root ${root}.`);
+  } else {
+    rel = filePath;
+  }
+  const posix = path.posix.normalize(rel.replace(/\\/g, '/'));
+  if (posix === '..' || posix.startsWith('../')) return fail(`The path ${filePath} is outside the project root${root !== undefined ? ` ${root}` : ''}.`);
+  return ok(normalisePath(posix));
 }
 
 /** The interpreter input when the cypher-interp engine is on and a project root is configured; else undefined. */
@@ -173,7 +206,9 @@ export async function whichLayerTool(
 ): Promise<ToolOutcome<WhichLayerResult>> {
   const loaded = await specFor(ctx, args.spec);
   if (!loaded.ok) return loaded;
-  return ok(whichLayer(loaded.data.spec, toProjectRelative(ctx, args.path)));
+  const rel = toProjectRelative(ctx, args.path);
+  if (!rel.ok) return rel;
+  return ok(whichLayer(loaded.data.spec, rel.data));
 }
 
 export async function checkImportTool(
@@ -188,12 +223,14 @@ export async function checkImportTool(
   const loaded = await specFor(ctx, args.spec);
   if (!loaded.ok) return loaded;
   const spec = loaded.data.spec;
+  const from = toProjectRelative(ctx, args.from);
+  if (!from.ok) return from;
+  const resolved = args.resolvedPath !== undefined ? toProjectRelative(ctx, args.resolvedPath) : undefined;
+  if (resolved !== undefined && !resolved.ok) return resolved;
   const res = checkImport(spec, {
-    fromFile: toProjectRelative(ctx, args.from),
+    fromFile: from.data,
     module: args.module,
-    ...(args.resolvedPath !== undefined
-      ? { resolvedPath: toProjectRelative(ctx, args.resolvedPath) }
-      : {}),
+    ...(resolved !== undefined ? { resolvedPath: resolved.data } : {}),
   });
   // MCP v2: each hit with its v1.3 tier, construct and source; the blocking answer.
   const violations = res.violations.map((v) => {
@@ -205,9 +242,9 @@ export async function checkImportTool(
   const interp = interpInput(ctx, loaded.data);
   if (interp === undefined) return ok(noRoot(ctx, fast));
   return ok(await orFast(fast, () => interpCheckImport(interp, fast, {
-    from: toProjectRelative(ctx, args.from),
+    from: from.data,
     module: args.module,
-    ...(args.resolvedPath !== undefined ? { resolvedPath: toProjectRelative(ctx, args.resolvedPath) } : {}),
+    ...(resolved !== undefined ? { resolvedPath: resolved.data } : {}),
   })));
 }
 
@@ -266,7 +303,9 @@ export async function checkFileTool(
 ): Promise<ToolOutcome<FileCheckResult>> {
   const loaded = await specFor(ctx, args.spec);
   if (!loaded.ok) return loaded;
-  const rel = toProjectRelative(ctx, args.path);
+  const relOutcome = toProjectRelative(ctx, args.path);
+  if (!relOutcome.ok) return relOutcome;
+  const rel = relOutcome.data;
   const hints = args.hints ?? ctx.hints === true;
   const fast = checkSource(loaded.data.spec, {
     path: rel,
@@ -392,9 +431,11 @@ export async function explainFindingTool(
   const parsed = args.location !== undefined ? parseLocationArg(args.location) : undefined;
   const file = args.file ?? parsed?.file;
   const line = args.line ?? parsed?.line;
+  const rel = file !== undefined ? toProjectRelative(ctx, file) : undefined;
+  if (rel !== undefined && !rel.ok) return rel;
   const res = explainFinding(
     loaded?.ok === true ? loaded.data.spec : undefined,
-    { rule: args.rule, ...(file !== undefined ? { file: toProjectRelative(ctx, file) } : {}), ...(line !== undefined ? { line } : {}) },
+    { rule: args.rule, ...(rel !== undefined ? { file: rel.data } : {}), ...(line !== undefined ? { line } : {}) },
     new ProjectView({ root: ctx.defaultProjectPath }),
   );
   if (res === undefined) {
@@ -410,6 +451,16 @@ function parseLocationArg(location: string): { file: string; line?: number } {
   return m === null ? { file: location.trim() } : { file: m[1] ?? location, line: Number(m[2]) };
 }
 
+/**
+ * Project-relative path for the neural tools, which take a plain string and confine every read to the project root
+ * themselves (`readProjectFile`, `sourceFilesUnder`): a path `toProjectRelative` refuses (R05/R06) falls back to the
+ * normalised path as given, which those reads then reject.
+ */
+function neuralRelative(ctx: ServerContext, p: string): string {
+  const rel = toProjectRelative(ctx, p);
+  return rel.ok ? rel.data : normalisePath(path.posix.normalize(p.replace(/\\/g, '/')));
+}
+
 /** `review_unit` (neural arm): the judge on demand over one file or module unit; advisory, never blocking. */
 export async function reviewUnitTool(
   ctx: ServerContext,
@@ -417,7 +468,7 @@ export async function reviewUnitTool(
 ): Promise<ToolOutcome<ReviewUnitResult>> {
   const loaded = await specFor(ctx, args.spec);
   if (!loaded.ok) return loaded;
-  return reviewUnit({ neural: ctx.neural, defaultProjectPath: ctx.defaultProjectPath, toProjectRelative: (p) => toProjectRelative(ctx, p) }, loaded.data.spec, args);
+  return reviewUnit({ neural: ctx.neural, defaultProjectPath: ctx.defaultProjectPath, toProjectRelative: (p) => neuralRelative(ctx, p) }, loaded.data.spec, args);
 }
 
 /** `explain_and_fix` (neural arm): fix hint + judge explanation + code excerpt for one symbolic finding. */
@@ -428,7 +479,7 @@ export async function explainAndFixTool(
   const loaded = await specFor(ctx, args.spec);
   if (!loaded.ok) return loaded;
   return explainAndFix(
-    { neural: ctx.neural, fixHints: ctx.fixHints, defaultProjectPath: ctx.defaultProjectPath, toProjectRelative: (p) => toProjectRelative(ctx, p) },
+    { neural: ctx.neural, fixHints: ctx.fixHints, defaultProjectPath: ctx.defaultProjectPath, toProjectRelative: (p) => neuralRelative(ctx, p) },
     loaded.data.spec,
     args,
   );

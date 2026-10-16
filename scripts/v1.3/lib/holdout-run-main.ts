@@ -3,6 +3,9 @@
  * structure check to the claim levels.
  *
  * Modes:
+ *   --engine <neo4j|cypher-interp>  the engine `ue-baseline-live.ts` evaluates with (default neo4j, the reference
+ *                             engine of every reported figure). `cypher-interp` is the engine cross-check of
+ *                             Docs/v1.3/freeze-runbook.md: no Neo4j, and every output is headed as a cross-check
  *   --dry-run                 check the hold-out directory's structure only (schemas, cross-checks, id mapping,
  *                             every patch or overlay applied to a temporary copy, counts, location, tree hash);
  *                             the tool is not run and Neo4j is not needed
@@ -18,6 +21,9 @@
  *
  * Options: --holdout <dir> (required)  --commit <sha> (required unless --dry-run)  --out <dir>  --id-map <file>
  *   --deferred <FF-xx,...>  --graph-adjudication <file>  --style <a,b>  --expect-sha256 <hex>  --no-correctness
+ *   --expect-sealed-sha256 <hex>  (--expect-sha256 matches the runner's own tree hash only, as before;
+ *   --expect-sealed-sha256 matches only the directory-manifest hash of Docs/v1.3/sealed-hashes.md, which names each
+ *   file `<basename of --holdout>/<path>`: unseal the copy as `<tmp>/v1.3-holdout`. Either, both or neither may be given.)
  *   --determinism <other run dir> (compare the raw rows of a repeat run; a difference is a defect, prespec §2.3)
  *   --development-stand-in (allow a hold-out directory inside the repository, i.e. the development reference set,
  *   to test the runner; every output is then headed as a stand-in and is never a validity figure)
@@ -65,6 +71,9 @@ export interface HoldoutDeps {
  */
 export const FROZEN_PATHS = ['src', 'scripts', 'presets', 'specs', 'package.json', 'package-lock.json', 'tsconfig*.json'] as const;
 
+export const ENGINES = ['neo4j', 'cypher-interp'] as const;
+export type Engine = (typeof ENGINES)[number];
+
 export interface HoldoutArgs {
   readonly mode: 'dry-run' | 'live' | 'from-raw';
   readonly holdout: string;
@@ -76,9 +85,11 @@ export interface HoldoutArgs {
   readonly graphAdjudication?: string;
   readonly styles?: readonly ReferenceStyle[];
   readonly expectSha256?: string;
+  readonly expectSealedSha256?: string;
   readonly correctness: boolean;
   readonly determinism?: string;
   readonly standIn: boolean;
+  readonly engine: Engine;
 }
 
 export function parseHoldoutArgs(argv: readonly string[]): HoldoutArgs | string {
@@ -95,7 +106,7 @@ export function parseHoldoutArgs(argv: readonly string[]): HoldoutArgs | string 
       i += 1;
     }
   }
-  const known = new Set(['dry-run', 'no-correctness', 'development-stand-in', 'holdout', 'commit', 'out', 'from-raw', 'id-map', 'deferred', 'graph-adjudication', 'style', 'expect-sha256', 'determinism']);
+  const known = new Set(['dry-run', 'no-correctness', 'development-stand-in', 'holdout', 'commit', 'out', 'from-raw', 'id-map', 'deferred', 'graph-adjudication', 'style', 'expect-sha256', 'expect-sealed-sha256', 'determinism', 'engine']);
   for (const k of m.keys()) if (!known.has(k)) return `unknown option --${k}`;
   const holdout = m.get('holdout');
   if (holdout === undefined) return '--holdout <dir> is required';
@@ -118,14 +129,18 @@ export function parseHoldoutArgs(argv: readonly string[]): HoldoutArgs | string 
   if (!deferred.every((d) => /^FF-[A-Z]+[0-9]{2}$/.test(d))) return '--deferred takes a comma list of rule ids';
   const sha = m.get('expect-sha256');
   if (sha !== undefined && !/^[0-9a-f]{64}$/.test(sha)) return '--expect-sha256 takes 64 hex characters';
+  const sealedSha = m.get('expect-sealed-sha256');
+  if (sealedSha !== undefined && !/^[0-9a-f]{64}$/.test(sealedSha)) return '--expect-sealed-sha256 takes 64 hex characters';
   const idMap = m.get('id-map');
   const graphAdjudication = m.get('graph-adjudication');
   const determinism = m.get('determinism');
+  const engine = m.get('engine') ?? 'neo4j';
+  if (!(ENGINES as readonly string[]).includes(engine)) return `--engine takes one of ${ENGINES.join(', ')}`;
   return {
-    mode, holdout, deferred, correctness: !m.has('no-correctness'), standIn: m.has('development-stand-in'),
+    mode, holdout, deferred, correctness: !m.has('no-correctness'), standIn: m.has('development-stand-in'), engine: engine as Engine,
     ...(commit !== undefined && { commit }), ...(out !== undefined && { out }), ...(fromRaw !== undefined && { fromRaw }),
     ...(idMap !== undefined && { idMap }), ...(graphAdjudication !== undefined && { graphAdjudication }),
-    ...(styles !== undefined && { styles }), ...(sha !== undefined && { expectSha256: sha }), ...(determinism !== undefined && { determinism }),
+    ...(styles !== undefined && { styles }), ...(sha !== undefined && { expectSha256: sha }), ...(sealedSha !== undefined && { expectSealedSha256: sealedSha }), ...(determinism !== undefined && { determinism }),
   };
 }
 
@@ -155,6 +170,16 @@ export function treeSha256(root: string): { sha256: string; files: number } {
   return { sha256: h.digest('hex'), files: files.length };
 }
 
+/**
+ * The directory-manifest hash of Docs/v1.3/sealed-hashes.md, run from the directory's parent:
+ * `find <name> -type f | LC_ALL=C sort | xargs shasum -a 256 | shasum -a 256`, each file named `<name>/<path>`.
+ */
+export function sealedTreeSha256(root: string, name: string = path.basename(path.resolve(root))): string {
+  const h = createHash('sha256');
+  for (const f of listFiles(root)) h.update(`${createHash('sha256').update(fs.readFileSync(path.join(root, f))).digest('hex')}  ${name}/${f}\n`);
+  return h.digest('hex');
+}
+
 /** Prespec §2.1: the unsealed hold-out lies outside the repository and outside any node_modules ancestry. */
 export function locationProblems(holdout: string, repoRoot: string): string[] {
   const abs = path.resolve(holdout);
@@ -181,7 +206,7 @@ export interface StyleStructure {
 
 export interface StructureReport {
   readonly holdout: string;
-  readonly tree: { readonly sha256: string; readonly files: number };
+  readonly tree: { readonly sha256: string; readonly files: number; readonly sealedMethodSha256?: string };
   readonly styles: readonly StyleStructure[];
   readonly missingStyles: readonly ReferenceStyle[];
   readonly problems: readonly string[];
@@ -194,7 +219,7 @@ const REQUIRED: Readonly<Record<'patch' | 'overlay', readonly string[]>> = {
   overlay: ['expected-graph.json', 'clean', 'clean/expected-findings.json', 'variants'],
 };
 
-export function checkStructure(repoRoot: string, args: Pick<HoldoutArgs, 'holdout' | 'idMap' | 'styles' | 'expectSha256' | 'standIn' | 'deferred'>): StructureReport {
+export function checkStructure(repoRoot: string, args: Pick<HoldoutArgs, 'holdout' | 'idMap' | 'styles' | 'expectSha256' | 'expectSealedSha256' | 'standIn' | 'deferred'>): StructureReport {
   const holdout = path.resolve(repoRoot, args.holdout);
   const problems: string[] = [];
   const warnings: string[] = [];
@@ -206,8 +231,11 @@ export function checkStructure(repoRoot: string, args: Pick<HoldoutArgs, 'holdou
     if (args.standIn) warnings.push(...loc.map((l) => `${l} (allowed: --development-stand-in)`));
     else problems.push(...loc);
   }
-  const tree = treeSha256(holdout);
+  const tree = { ...treeSha256(holdout), sealedMethodSha256: sealedTreeSha256(holdout) };
   if (args.expectSha256 !== undefined && args.expectSha256 !== tree.sha256) problems.push(`tree sha256 ${tree.sha256} does not match --expect-sha256 ${args.expectSha256}`);
+  if (args.expectSealedSha256 !== undefined && args.expectSealedSha256 !== tree.sealedMethodSha256) {
+    problems.push(`sealed-hashes method sha256 (as ${path.basename(holdout)}/) ${tree.sealedMethodSha256} does not match --expect-sealed-sha256 ${args.expectSealedSha256}`);
+  }
   let map: RuleIdMapFile | undefined;
   if (args.idMap !== undefined) {
     try { map = loadRuleIdMap(path.resolve(repoRoot, args.idMap)); } catch (e) { problems.push(e instanceof Error ? e.message : String(e)); }
@@ -280,7 +308,7 @@ export function checkStructure(repoRoot: string, args: Pick<HoldoutArgs, 'holdou
 }
 
 export function renderStructure(r: StructureReport): string {
-  const out = [`hold-out ${r.holdout}`, `tree sha256 ${r.tree.sha256} (${String(r.tree.files)} files)`];
+  const out = [`hold-out ${r.holdout}`, `tree sha256 ${r.tree.sha256} (${String(r.tree.files)} files)${r.tree.sealedMethodSha256 !== undefined ? `; sealed-hashes method (as ${path.basename(r.holdout)}/) ${r.tree.sealedMethodSha256}` : ''}`];
   for (const s of r.styles) {
     const mapped = Object.entries(s.mappedIds).map(([k, n]) => `${k} x${String(n)}`).join(', ');
     out.push(`${s.style}: ${s.format} format; ${String(s.variants.violation)} violation, ${String(s.variants.nearMiss)} near-miss, ${String(s.variants.clean)} clean; ${String(s.expectedFindings)} expected findings (${String(s.expectedBlocking)} blocking = N_PER_STYLE); graph ${String(s.graphFiles)} files, ${String(s.graphEdges)} edges${mapped !== '' ? `; ids mapped: ${mapped}` : ''}`);
@@ -474,7 +502,7 @@ export async function holdoutMain(argv: readonly string[], repoRoot: string, io:
   const styleArgs = ['--style', structure.refs.map((r) => r.style).join(',')];
   const spawnNode = deps.spawnNode ?? defaultSpawn(repoRoot);
   if (args.mode === 'live') {
-    if ((io.env.NEO4J_URI ?? '') === '' || (io.env.NEO4J_PASSWORD ?? '') === '') {
+    if (args.engine === 'neo4j' && ((io.env.NEO4J_URI ?? '') === '' || (io.env.NEO4J_PASSWORD ?? '') === '')) {
       io.err('live run needs Neo4j: set NEO4J_URI and NEO4J_PASSWORD (or use --dry-run or --from-raw <run dir>)\n');
       return 2;
     }
@@ -483,7 +511,8 @@ export async function holdoutMain(argv: readonly string[], repoRoot: string, io:
       return 1;
     }
     const idMapArgs = args.idMap !== undefined ? ['--id-map', path.resolve(repoRoot, args.idMap)] : [];
-    const live = spawnNode(['--import', 'tsx', 'scripts/v1.3/ue-baseline-live.ts', '--root', structure.holdout, '--out', outDir, ...styleArgs, ...idMapArgs], io.env);
+    const engineArgs = args.engine === 'neo4j' ? [] : ['--engine', args.engine];
+    const live = spawnNode(['--import', 'tsx', 'scripts/v1.3/ue-baseline-live.ts', '--root', structure.holdout, '--out', outDir, ...styleArgs, ...idMapArgs, ...engineArgs], io.env);
     if (live !== 0) {
       io.err(`ue-baseline-live.ts exited ${String(live)}\n`);
       return 1;
@@ -515,21 +544,25 @@ export async function holdoutMain(argv: readonly string[], repoRoot: string, io:
     const rel = path.relative(repoRoot, p);
     return rel === '' ? '.' : rel.startsWith('..') ? p : rel;
   };
+  const crossCheck = args.engine !== 'neo4j' && args.mode === 'live';
   const header = args.standIn
     ? '# DEVELOPMENT-SET STAND-IN: holdout-run.ts on the development reference set (not a hold-out result, not a validity figure)'
-    : '# v1.3 hold-out run: scores (Docs/v1.3/holdout-prespec.md)';
+    : crossCheck
+      ? `# ENGINE CROSS-CHECK (${args.engine}): not the reported hold-out figures; the Neo4j run is (Docs/v1.3/freeze-runbook.md)`
+      : '# v1.3 hold-out run: scores (Docs/v1.3/holdout-prespec.md)';
   const md = renderHoldoutMarkdown(scores, `${header}\n\nTool commit ${freeze.sha}. Hold-out tree sha256 ${structure.tree.sha256}. Run directory ${shown(runDir)}.${determinism !== undefined ? ` Determinism repeat: ${determinism.length === 0 ? 'identical raw rows' : `DIFFERS in ${determinism.join(', ')} (a defect; the first run stands)`}.` : ''}`);
   fs.writeFileSync(path.join(outDir, 'holdout-scores.md'), md);
-  fs.writeFileSync(path.join(outDir, 'holdout-scores.json'), JSON.stringify({ standIn: args.standIn, commit: freeze.sha, treeSha256: structure.tree.sha256, ...(determinism !== undefined && { determinism }), scores: scoresJson(scores) }, null, 1) + '\n');
+  fs.writeFileSync(path.join(outDir, 'holdout-scores.json'), JSON.stringify({ standIn: args.standIn, ...(crossCheck && { engineCrossCheck: args.engine }), commit: freeze.sha, treeSha256: structure.tree.sha256, ...(determinism !== undefined && { determinism }), scores: scoresJson(scores) }, null, 1) + '\n');
   const uri = io.env.NEO4J_URI ?? '';
   fs.writeFileSync(path.join(outDir, 'holdout-run-provenance.json'), JSON.stringify({
     standIn: args.standIn,
-    note: args.standIn ? 'Development-set stand-in for testing the runner; never a validity figure.' : 'One-time hold-out run (prespec §2).',
-    mode: args.mode, commit: freeze.sha, head: freeze.head, frozenPaths: FROZEN_PATHS,
+    note: args.standIn ? 'Development-set stand-in for testing the runner; never a validity figure.'
+      : crossCheck ? `Engine cross-check with ${args.engine}; not the reported figures.` : 'One-time hold-out run (prespec §2).',
+    mode: args.mode, engine: args.mode === 'live' ? args.engine : null, commit: freeze.sha, head: freeze.head, frozenPaths: FROZEN_PATHS,
     holdout: structure.holdout, holdoutTree: structure.tree, runDir,
     idMap: args.idMap ?? null, idsMapped: Object.fromEntries(structure.styles.map((s) => [s.style, s.mappedIds])),
     deferredRules: args.deferred, graphAdjudication: args.graphAdjudication ?? null, correctness: correctness === undefined ? 'skipped' : `${String(correctness.length)} blocking findings checked`,
-    neo4j: args.mode === 'live' ? uri.replace(/\/\/[^@/]*@/, '//') : null,
+    neo4j: args.mode === 'live' && args.engine === 'neo4j' ? uri.replace(/\/\/[^@/]*@/, '//') : null,
     lockfileSha256: depCheck.lockfileSha256, dependencies: depCheck.direct, dependenciesChecked: depCheck.checked,
     node: process.version, started, ended: now().toISOString(),
   }, null, 2) + '\n');

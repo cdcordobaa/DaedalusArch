@@ -14,12 +14,14 @@
  *    spec plus two permissive bindings (`low`, `high`) that make the threshold and naming rules return rows, on the
  *    v1.3 graph; then on the APG v2 graph of the same project (APG v2 extractor options). Each sweep also runs the
  *    judge's graph-view queries and both universal-metric sets.
- * Each statement is classed equal | order | content | error | unsupported | both-error (lib/memory-sweep.ts).
+ * Each statement is classed equal | order | float-drift | content | error | unsupported | both-error (lib/memory-sweep.ts).
+ * Coverage: per template, the statements that returned rows on both engines, per binding; under 50 is `thin`.
  *
  * Usage (repository root, Neo4j env loaded; the run holds the cross-process Neo4j lock):
  *   node --import tsx scripts/v1.3/memory-parity.ts --engine cypher-interp --out <dir> [--only <substring>] [--no-sweep]
  * Writes <out>/parity-nonequal.json (every statement not `equal`; `--full` adds parity.json with every statement),
- * <out>/parity-by-template.json (classes per template, timings per project and phase) and <out>/parity.md.
+ * <out>/parity-by-template.json (classes and coverage per template, timings per project and phase),
+ * <out>/parity-float-drift.json (every float-drift statement, both values per cell) and <out>/parity.md.
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -42,10 +44,10 @@ import type { SnapshotStore } from '../../src/shared/interfaces/snapshot-store.j
 import { acquireNeo4jLock } from '../../src/shared/process/neo4j-lock.js';
 import { scrubSecrets } from '../../src/shared/errors/scrub.js';
 import { makeTempRoot } from './lib/materialise.js';
-import { apg2FixtureProjects, referenceProjects, syntheticProject } from './lib/memory-projects.js';
-import { ParityTee, sweepTexts } from './lib/memory-sweep.js';
-import { permissive, statementParams, sweepParams } from './lib/memory-bindings.js';
+import { apg2FixtureProjects, referenceProjects, syntheticProjects, writeCheapFacts } from './lib/memory-projects.js';
+import { FLOAT_DRIFT_MAX_ULPS, FLOAT_DRIFT_TEMPLATES, ParityTee, sweepTexts } from './lib/memory-sweep.js';
 import type { ParityClass, ParityEntry } from './lib/memory-sweep.js';
+import { permissive, statementParams, sweepParams } from './lib/memory-bindings.js';
 
 const argv = process.argv.slice(2);
 const opt = (name: string): string | undefined => {
@@ -191,18 +193,19 @@ async function main(): Promise<number> {
         record(proj.id, tee, timings, entries);
       }
     }
-    const syn = syntheticProject();
-    if (filter === undefined || filter(syn.id)) {
+    for (const syn of syntheticProjects()) {
+      if (filter !== undefined && !filter(syn.id)) continue;
       const cand = new MemoryGraphRepository();
       const tee = new ParityTee(neo, cand);
       tee.project = syn.id;
       tee.phase = 'sweep:synthetic';
       const ing = await ingestAPG({ apgResult: syn.apg, layerModel: syn.layerModel, mode: 'stateless' }, tee, nullStore);
       if (!ing.success) throw new Error(`${syn.id}: ingest failed: ${ing.errors.map((e) => e.message).join('; ')}`);
-      for (const e of tee.entries) if (e.label === '?') e.label = FIXED_LABELS.get(e.cypher) ?? 'other';
+      if (syn.cheapFacts !== undefined) await writeCheapFacts(tee, syn.cheapFacts);
+      for (const e of tee.entries) if (e.label === '?') e.label = e.write ? 'ingest' : FIXED_LABELS.get(e.cypher) ?? 'other';
       const a2 = apg2Params(syn.layerModel);
       const filePaths = cand.graph.nodesWithLabel('File').map((n) => String(n.properties.get('filePath') ?? ''));
-      const sparams = sweepParams(syn.layerModel, new Map(), a2, filePaths);
+      const sparams = { ...sweepParams(syn.layerModel, new Map(), a2, filePaths), ...syn.params };
       await runSweep(tee, cand, 'sweep:synthetic', sparams, ALL_TEMPLATES);
       await runSweep(tee, cand, 'sweep:synthetic:low', permissive(sparams, 'low'), ALL_TEMPLATES);
       await runSweep(tee, cand, 'sweep:synthetic:high', permissive(sparams, 'high'), ALL_TEMPLATES);
@@ -215,7 +218,7 @@ async function main(): Promise<number> {
   }
   write(entries, timings);
   const bad = entries.filter((e) => e.klass === 'content' || e.klass === 'error' || e.klass === 'unsupported');
-  process.stdout.write(`statements: ${String(entries.length)}, not equal-or-order: ${String(bad.length)}\n`);
+  process.stdout.write(`statements: ${String(entries.length)}, not equal / order / float-drift: ${String(bad.length)}\n`);
   return bad.length === 0 ? 0 : 1;
 }
 
@@ -243,7 +246,23 @@ function record(project: string, tee: ParityTee, timings: Timing[], entries: Par
   process.stdout.write(`${project}: ${Object.entries(counts).filter(([, n]) => n > 0).map(([k, n]) => `${k} ${String(n)}`).join(', ')}\n`);
 }
 
-const CLASSES: readonly ParityClass[] = ['equal', 'order', 'content', 'error', 'unsupported', 'both-error'];
+const CLASSES: readonly ParityClass[] = ['equal', 'order', 'float-drift', 'content', 'error', 'unsupported', 'both-error'];
+
+/** A template compared on fewer non-empty statements than this is `thin`: its parity rests mostly on empty results. */
+const THIN_BELOW = 50;
+
+/** The binding a statement ran under: `pipeline` (the arms, the ingestion), else the sweep's `spec` / `low` / `high`. */
+function bindingOf(e: ParityEntry): string {
+  if (!e.phase.startsWith('sweep:')) return 'pipeline';
+  if (e.phase.endsWith(':low')) return 'low';
+  if (e.phase.endsWith(':high')) return 'high';
+  return 'spec';
+}
+
+/** Non-empty on both engines: the statement compared actual rows, not two empty results. */
+function nonEmpty(e: ParityEntry): boolean {
+  return e.refRows > 0 && e.candRows > 0;
+}
 
 function countClasses(es: readonly ParityEntry[]): Record<ParityClass, number> {
   const c = Object.fromEntries(CLASSES.map((k) => [k, 0])) as Record<ParityClass, number>;
@@ -267,16 +286,31 @@ function write(entries: readonly ParityEntry[], timings: readonly Timing[]): voi
   const rows = [...byTemplate].sort(([a], [b]) => a.localeCompare(b)).map(([label, es]) => ({
     template: label, statements: es.length, projects: new Set(es.map((e) => e.project)).size, ...countClasses(es),
     rowsNeo4j: es.reduce((s, e) => s + Math.max(0, e.refRows), 0),
-    examples: es.filter((e) => e.klass !== 'equal' && e.klass !== 'order').slice(0, 3).map((e) => `${e.project} ${e.label}: ${e.detail ?? ''}`.slice(0, 600)),
+    nonEmptyBoth: es.filter(nonEmpty).length,
+    nonEmptyByBinding: Object.fromEntries(['pipeline', 'spec', 'low', 'high'].map((b) => [b, es.filter((e) => bindingOf(e) === b && nonEmpty(e)).length])),
+    syntheticNonEmptyByBinding: Object.fromEntries(['spec', 'low', 'high'].map((b) => [b, es.filter((e) => e.project.startsWith('synthetic/') && bindingOf(e) === b && nonEmpty(e)).length])),
+    // Writes compare counters, not rows: never thin.
+    thin: !es.every((e) => e.write) && es.filter(nonEmpty).length < THIN_BELOW,
+    examples: es.filter((e) => e.klass !== 'equal' && e.klass !== 'order' && e.klass !== 'float-drift').slice(0, 3).map((e) => `${e.project} ${e.label}: ${e.detail ?? ''}`.slice(0, 600)),
   }));
-  fs.writeFileSync(path.join(outDir, 'parity-by-template.json'), JSON.stringify({ rows, timings }, null, 1) + '\n');
+  // Every float-drift statement with both values of each drifting cell (trap T2), in full.
+  const drift = entries.filter((e) => e.klass === 'float-drift').map((e) => ({ project: e.project, phase: e.phase, label: e.label, cells: e.floatDrift ?? [] }));
+  fs.writeFileSync(path.join(outDir, 'parity-float-drift.json'), JSON.stringify({ boundUlps: FLOAT_DRIFT_MAX_ULPS, templates: [...FLOAT_DRIFT_TEMPLATES.values()], statements: drift }, null, 1) + '\n');
+  fs.writeFileSync(path.join(outDir, 'parity-by-template.json'), JSON.stringify({ thinBelow: THIN_BELOW, rows, timings }, null, 1) + '\n');
   const total = countClasses(entries);
   const md: string[] = [
     '# cypher-interp parity against Neo4j 5.26.24 + APOC', '',
     `Statements: ${String(entries.length)} (${CLASSES.map((k) => `${k} ${String(total[k])}`).join(', ')}); projects: ${String(new Set(entries.map((e) => e.project)).size)}.`, '',
-    '| template / query family | statements | projects | equal | order | content | error | unsupported | both-error | Neo4j rows |',
-    '|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|',
-    ...rows.map((r) => `| ${r.template} | ${String(r.statements)} | ${String(r.projects)} | ${String(r.equal)} | ${String(r.order)} | ${String(r.content)} | ${String(r.error)} | ${String(r.unsupported)} | ${String(r['both-error'])} | ${String(r.rowsNeo4j)} |`),
+    `\`float-drift\` applies only to ${[...FLOAT_DRIFT_TEMPLATES.values()].join(', ')} (bound ${String(FLOAT_DRIFT_MAX_ULPS)} ULP; both values per cell in parity-float-drift.json). ` +
+      `"non-empty" = statements that returned rows on both engines; a template under ${String(THIN_BELOW)} is **thin**. ` +
+      'Per binding: pipeline / spec / low / high; synthetic = the same on the synthetic graphs only.', '',
+    '| template / query family | statements | projects | equal | order | float-drift | content | error | unsupported | both-error | Neo4j rows | non-empty | non-empty p/s/l/h | synthetic s/l/h | thin |',
+    '|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---|---|',
+    ...rows.map((r) => {
+      const nb = r.nonEmptyByBinding as Record<string, number>;
+      const sb = r.syntheticNonEmptyByBinding as Record<string, number>;
+      return `| ${r.template} | ${String(r.statements)} | ${String(r.projects)} | ${String(r.equal)} | ${String(r.order)} | ${String(r['float-drift'])} | ${String(r.content)} | ${String(r.error)} | ${String(r.unsupported)} | ${String(r['both-error'])} | ${String(r.rowsNeo4j)} | ${String(r.nonEmptyBoth)} | ${['pipeline', 'spec', 'low', 'high'].map((b) => String(nb[b] ?? 0)).join(' / ')} | ${['spec', 'low', 'high'].map((b) => String(sb[b] ?? 0)).join(' / ')} | ${r.thin ? 'thin' : ''} |`;
+    }),
     '',
   ];
   const nonEqual = rows.filter((r) => r.examples.length > 0);

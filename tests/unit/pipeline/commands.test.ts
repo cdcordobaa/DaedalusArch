@@ -28,6 +28,7 @@ jest.mock('../../../src/fitness-compiler/index.js', () => ({
 import { ExtractCommand } from '../../../src/pipeline/commands/extract-command.js';
 import { ParseCommand } from '../../../src/pipeline/commands/parse-command.js';
 import { CompileCommand } from '../../../src/pipeline/commands/compile-command.js';
+import { CONSTRUCT_ANSWERS } from '../../../src/shared/construct-switches.js';
 import type { CompileFactsHolder } from '../../../src/pipeline/commands/compile-command.js';
 
 // ---------------------------------------------------------------------------
@@ -86,7 +87,7 @@ describe('ExtractCommand', () => {
     const result = await cmd.execute(context);
 
     expect(result.success).toBe(true);
-    expect(mockExtractAPG).toHaveBeenCalledWith('/my/project', { excludePatterns: [] }, undefined);
+    expect(mockExtractAPG).toHaveBeenCalledWith('/my/project', { excludePatterns: [] }, undefined, undefined, {});
     expect(context.getApgResult()).toBe(apg);
   });
 
@@ -94,7 +95,14 @@ describe('ExtractCommand', () => {
     mockExtractAPG.mockResolvedValue(DomainResult.ok(stubApgResult()));
     const cmd = new ExtractCommand('/my/project', [], undefined, '/pinned/tsconfig.json');
     await cmd.execute(context);
-    expect(mockExtractAPG).toHaveBeenLastCalledWith('/my/project', { excludePatterns: [] }, '/pinned/tsconfig.json');
+    expect(mockExtractAPG).toHaveBeenLastCalledWith('/my/project', { excludePatterns: [] }, '/pinned/tsconfig.json', undefined, {});
+  });
+
+  it('scale: passes the extraction limits through to extractAPG', async () => {
+    mockExtractAPG.mockResolvedValue(DomainResult.ok(stubApgResult()));
+    const limits = { maxFiles: 5000, sourceScope: 'analysed' as const };
+    await new ExtractCommand('/my/project', [], undefined, undefined, undefined, false, undefined, limits).execute(context);
+    expect(mockExtractAPG).toHaveBeenLastCalledWith('/my/project', { excludePatterns: [] }, undefined, undefined, limits);
   });
 
   it('maps errors with stage name', async () => {
@@ -219,7 +227,7 @@ describe('CompileCommand', () => {
         layerModel: expect.any(Object),
         scoringWeights: expect.any(Object),
       }),
-      { instrumentVersion: 2 }, // ADR-026 default
+      { instrumentVersion: 2, constructSwitches: CONSTRUCT_ANSWERS }, // ADR-026 default; the switch file (R30: explicit)
     );
     expect(context.getCompiledFunctions()).toBe(compiled);
   });

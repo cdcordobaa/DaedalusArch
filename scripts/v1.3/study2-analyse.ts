@@ -6,16 +6,21 @@
  *   npx tsx scripts/v1.3/study2-analyse.ts --out-root <study2 out-root> --out <dir>
  *     (--pilot-out-root <pilot out-root> [--labels <labels.json>] | --primary blocking|advisory-per-kloc --reason <text>)
  *     [--seed 20261016] [--resamples 4999] [--flips 9999] [--engine neo4j|cypher-interp]
+ *     [--plan scripts/v1.3/study2-analysis-plan.json] [--outcome blockingCount,blockingPerKloc,distinctViolatingEdges,newIdentitiesFromStep2]
  * `--engine` (default neo4j, the reference engine) is the graph engine every evaluated snapshot of the out-root (and of
  * the pilot out-root) must record; any other engine, or none recorded, stops the analysis before it reads a number.
+ * `--plan` (OFF by default; Docs/v1.3/study2-analysis-determinism.md): seed, flips, resamples and α come from the plan
+ * file (the flags above override and the captions say so), the sign-flip test is exact up to the plan's bound, both
+ * blocking scales are reported side by side, and every table carries a caption with outcome, scale, inference and seed.
+ * `--outcome` (OFF by default) adds table T12 with the named outcome columns.
  * `--labels` is a JSON object { "<ruleId>|<filePath>|<target>": "correct" | "incorrect" | "not-checkable-confirmed" |
  * "not-checkable" } (check-correct.ts labels of the pilot's new findings). Writes <dir>/report.md, report.json and
  * the SVG figures. Reads step records only; makes no model call and no network call.
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { DEFAULT_OPTIONS, analyse, overrideSwitch, pilotSwitch } from './lib/study2-analysis.js';
-import type { FindingLabel, PrimaryOutcome } from './lib/study2-analysis.js';
+import { DEFAULT_OPTIONS, OUTCOME_IDS, analyse, overrideSwitch, parsePlan, pilotSwitch } from './lib/study2-analysis.js';
+import type { AnalysisOptions, FindingLabel, OutcomeId, PrimaryOutcome } from './lib/study2-analysis.js';
 import { parseGraphEngine } from '../../src/cypher-interp/engine.js';
 import { engineProblems, loadOutRoot } from './lib/study2-io.js';
 import type { LoadedOutRoot } from './lib/study2-io.js';
@@ -60,7 +65,19 @@ try {
   } else {
     throw new Error('give --pilot-out-root (the memo §5 rule) or --primary with --reason');
   }
-  const options = { ...DEFAULT_OPTIONS, seed: int('--seed', DEFAULT_OPTIONS.seed), resamples: int('--resamples', DEFAULT_OPTIONS.resamples), flips: int('--flips', DEFAULT_OPTIONS.flips) };
+  const planFile = opt('--plan', '');
+  const outcomeArg = opt('--outcome', '');
+  const outcomes = outcomeArg === '' ? [] : outcomeArg.split(',').map((x) => x.trim());
+  for (const x of outcomes) if (!(OUTCOME_IDS as readonly string[]).includes(x)) throw new Error(`--outcome: unknown ${x} (one of ${OUTCOME_IDS.join(', ')})`);
+  let options: AnalysisOptions;
+  if (planFile === '') {
+    options = { ...DEFAULT_OPTIONS, seed: int('--seed', DEFAULT_OPTIONS.seed), resamples: int('--resamples', DEFAULT_OPTIONS.resamples), flips: int('--flips', DEFAULT_OPTIONS.flips) };
+  } else {
+    const plan = parsePlan(JSON.parse(fs.readFileSync(planFile, 'utf8')));
+    const seed = int('--seed', plan.seed);
+    options = { ...DEFAULT_OPTIONS, alpha: plan.alpha, seed, resamples: int('--resamples', plan.resamples), flips: int('--flips', plan.flips), plan, seedSource: seed === plan.seed ? 'plan' : 'cli-override' };
+  }
+  if (outcomes.length > 0) options = { ...options, outcomes: outcomes as OutcomeId[] };
   const report = analyse(study.runs, study.scheduled, decision, options);
   fs.mkdirSync(out, { recursive: true });
   fs.writeFileSync(path.join(out, 'report.json'), `${JSON.stringify(report, null, 1)}\n`);

@@ -139,6 +139,11 @@ export interface TurnInput {
   readonly prompt: string;
   /** Harness-owned directory of this turn's records (outside `cwd`). */
   readonly recordDir: string;
+  /**
+   * `daedalus-mcp` with the loop's call log on: the absolute JSONL path the MCP server appends its calls to
+   * (`<H>/runs/<runId>/calls/<turnId>.jsonl`, outside `cwd`; Docs/v1.3/mcp-call-log.md). Absent otherwise.
+   */
+  readonly callLogPath?: string;
   /** Files the agent changed since the last snapshot (decides "timeout with files written"). */
   readonly changedFiles: () => number;
   /** Puts `cwd` back to the last snapshot (before an infrastructure retry or after a usage-limit interruption). */
@@ -194,7 +199,7 @@ export interface StepEvaluation {
   /** AHS over the blocking rules only; null when none ran. */
   readonly blockingAhs: number | null;
   /** v1.3 verdict: `fail` iff a blocking rule has an applicable violation. */
-  readonly verdict: 'pass' | 'fail';
+  readonly verdict: 'pass' | 'fail' | 'incomplete';
   readonly violationCount: number;
   readonly blockingViolationCount: number;
   readonly advisoryViolationCount: number;
@@ -283,7 +288,7 @@ export interface RunParityCounts {
 /** The firewall run on a snapshot. A failure here is recorded on the step, never retried silently. */
 export interface StepEvaluator {
   readonly id: string;
-  /** `runId` names the loop run of the snapshot (the live evaluator finds the run's pinned tsconfig with it). */
+  /** `runId` names the loop run of the snapshot (the live evaluator finds the run's pinned tsconfig with it, R01). */
   evaluate(projectDir: string, runId?: string): Promise<DomainResult<StepEvaluation>>;
 }
 
@@ -338,7 +343,17 @@ export interface StepRecord {
   readonly finishedAt: string;
   readonly turns: readonly TurnRecord[];
   /** Gate arm: whether a repair turn ran and whether it cleared every blocking finding. */
-  readonly repair: { readonly attempted: boolean; readonly blockingBefore: number | null; readonly blockingAfter: number | null; readonly cleared: boolean | null } | null;
+  readonly repair: {
+    readonly attempted: boolean;
+    readonly blockingBefore: number | null;
+    readonly blockingAfter: number | null;
+    readonly cleared: boolean | null;
+    /**
+     * Set when the gate could not judge the step: its snapshot has no evaluation (see `evaluationError`). Such a step
+     * is a harness failure, not a step with no blocking findings (R01, post-merge review 2026-10-16).
+     */
+    readonly skipped?: 'evaluation-failed';
+  } | null;
   /**
    * Gate arm, when a repair ran and both snapshots were evaluated: finding by finding, which blocking findings the
    * repair removed and which it introduced (`repairOutcome` in `loop.ts`).
@@ -346,12 +361,31 @@ export interface StepRecord {
   readonly repairOutcome?: RepairOutcome;
   /** The spec the step's snapshots were evaluated against, when the plan sets one per task (`specs.ts`). */
   readonly evaluatorSpec?: StepSpecRef;
+  /** `daedalus-mcp` with the call log on: tool use during the step (`process-metrics.ts`). Absent otherwise. */
+  readonly process?: StepProcess;
   /** The acceptance checks of the step's final snapshot; absent unless the plan enables them. */
   readonly acceptance?: AcceptanceRecord;
   /** Commit the next step starts from (the last turn's snapshot). */
   readonly finalCommit: string;
   /** Sum over the turns. */
   readonly cost: { readonly costUsd: number | null; readonly inputTokens: number | null; readonly outputTokens: number | null; readonly wallMs: number };
+}
+
+/** Per-step tool use of a `daedalus-mcp` step, from the turns' MCP call logs (Docs/v1.3/mcp-call-log.md). */
+export interface StepProcess {
+  readonly schema: 'loop-process/v1';
+  /** Run-directory-relative paths of the turns' logs that exist. */
+  readonly logs: readonly string[];
+  readonly logFound: boolean;
+  readonly calls: number;
+  readonly errors: number;
+  readonly callsByTool: Readonly<Record<string, number>>;
+  readonly firstCallAt: string | null;
+  /** Null when undetermined (no call, or only an mtime bound that does not decide it). */
+  readonly firstCallBeforeFirstWrite: boolean | null;
+  readonly firstWriteEvidence: 'server-fingerprint' | 'mtime-upper-bound' | 'none';
+  /** Nearest-rank percentiles of the calls' durationMs. */
+  readonly latencyMs: { readonly p50: number | null; readonly p95: number | null };
 }
 
 /**

@@ -1,0 +1,813 @@
+{
+ "note": "SYNTHETIC rehearsal; not a pre-registration.",
+ "seed": 20261016,
+ "checks": [
+  {
+   "id": "null",
+   "label": "no effect",
+   "advisoryByRule": true,
+   "checks": [
+    {
+     "name": "switch rule: pilot shows erosion → primary stays blocking",
+     "pass": true,
+     "detail": "Pilot memo §3: erosion EXISTS (new blocking findings after step 1 in 3 of 3 tasks). Per memo §5 the Study 2 primary outcome stays the blocking erosion slope."
+    },
+    {
+     "name": "null: no confirmatory contrast rejected under Holm",
+     "pass": true,
+     "detail": "gate: Holm p 1.000; daedalus-mcp: Holm p 1.000"
+    },
+    {
+     "name": "null: gate − none CI contains 0",
+     "pass": true,
+     "detail": "CI [-0.300, 0.534]"
+    },
+    {
+     "name": "null: daedalus-mcp − none CI contains 0",
+     "pass": true,
+     "detail": "CI [-0.426, 0.341]"
+    },
+    {
+     "name": "gate − none: 95% CI of the mean slope difference covers the generating value",
+     "pass": true,
+     "detail": "truth 0.086, estimate 0.105, CI [-0.300, 0.534]"
+    },
+    {
+     "name": "daedalus-mcp − none: 95% CI of the mean slope difference covers the generating value",
+     "pass": true,
+     "detail": "truth -0.049, estimate -0.039, CI [-0.426, 0.341]"
+    }
+   ]
+  },
+  {
+   "id": "small",
+   "label": "small effect (gate 0.2, mcp 0.1)",
+   "advisoryByRule": true,
+   "checks": [
+    {
+     "name": "switch rule: pilot shows erosion → primary stays blocking",
+     "pass": true,
+     "detail": "Pilot memo §3: erosion EXISTS (new blocking findings after step 1 in 3 of 3 tasks). Per memo §5 the Study 2 primary outcome stays the blocking erosion slope."
+    },
+    {
+     "name": "gate − none: 95% CI of the mean slope difference covers the generating value",
+     "pass": true,
+     "detail": "truth -0.090, estimate -0.094, CI [-0.593, 0.361]"
+    },
+    {
+     "name": "gate − none: estimate has the planted sign (less erosion)",
+     "pass": true,
+     "detail": "estimate -0.094"
+    },
+    {
+     "name": "gate − none: 95% CI of the relative reduction covers the planted reduction",
+     "pass": true,
+     "detail": "planted 0.200, estimate 0.112, CI [-0.634, 0.508]"
+    },
+    {
+     "name": "daedalus-mcp − none: 95% CI of the mean slope difference covers the generating value",
+     "pass": true,
+     "detail": "truth -0.214, estimate -0.101, CI [-0.689, 0.374]"
+    },
+    {
+     "name": "daedalus-mcp − none: estimate has the planted sign (less erosion)",
+     "pass": true,
+     "detail": "estimate -0.101"
+    },
+    {
+     "name": "daedalus-mcp − none: 95% CI of the relative reduction covers the planted reduction",
+     "pass": true,
+     "detail": "planted 0.100, estimate 0.120, CI [-0.801, 0.541]"
+    }
+   ]
+  },
+  {
+   "id": "expected",
+   "label": "expected effect (gate halves the slope, mcp quarters it)",
+   "advisoryByRule": true,
+   "checks": [
+    {
+     "name": "switch rule: pilot shows erosion → primary stays blocking",
+     "pass": true,
+     "detail": "Pilot memo §3: erosion EXISTS (new blocking findings after step 1 in 2 of 3 tasks). Per memo §5 the Study 2 primary outcome stays the blocking erosion slope."
+    },
+    {
+     "name": "gate − none: 95% CI of the mean slope difference covers the generating value",
+     "pass": true,
+     "detail": "truth -0.510, estimate -0.705, CI [-1.942, 0.061]"
+    },
+    {
+     "name": "gate − none: estimate has the planted sign (less erosion)",
+     "pass": true,
+     "detail": "estimate -0.705"
+    },
+    {
+     "name": "gate − none: 95% CI of the relative reduction covers the planted reduction",
+     "pass": true,
+     "detail": "planted 0.500, estimate 0.604, CI [-0.125, 0.789]"
+    },
+    {
+     "name": "daedalus-mcp − none: 95% CI of the mean slope difference covers the generating value",
+     "pass": true,
+     "detail": "truth -0.287, estimate -0.632, CI [-1.848, 0.060]"
+    },
+    {
+     "name": "daedalus-mcp − none: estimate has the planted sign (less erosion)",
+     "pass": true,
+     "detail": "estimate -0.632"
+    },
+    {
+     "name": "daedalus-mcp − none: 95% CI of the relative reduction covers the planted reduction",
+     "pass": true,
+     "detail": "planted 0.250, estimate 0.542, CI [-0.104, 0.770]"
+    }
+   ]
+  },
+  {
+   "id": "floor",
+   "label": "floor: zero blocking findings everywhere; expected effect on the advisory rules",
+   "advisoryByRule": true,
+   "checks": [
+    {
+     "name": "switch rule: pilot primary outcome is zero → pre-committed fallback triggered",
+     "pass": true,
+     "detail": "Pilot memo §3: the primary outcome is ZERO (no new blocking finding after step 1 in any of 3 tasks). Per memo §5 the PRE-COMMITTED FALLBACK applies: the Study 2 primary outcome moves to the advisory-tier erosion rate (per-run slope of advisory findings per KLOC, FF-CV05 excluded)."
+    },
+    {
+     "name": "primary outcome moved to the advisory-tier erosion rate",
+     "pass": true,
+     "detail": "advisoryExclCv05PerKlocSlope"
+    },
+    {
+     "name": "the report says so (statement names the fallback)",
+     "pass": true,
+     "detail": "T1 of report.md"
+    },
+    {
+     "name": "fallback outcome computed as defined (FF-CV05 excluded)",
+     "pass": true,
+     "detail": "advisoryByRule present on every evaluated step"
+    },
+    {
+     "name": "gate − none: 95% CI of the mean slope difference covers the generating value",
+     "pass": true,
+     "detail": "truth -0.100, estimate 0.173, CI [-0.547, 0.851]"
+    },
+    {
+     "name": "daedalus-mcp − none: 95% CI of the mean slope difference covers the generating value",
+     "pass": true,
+     "detail": "truth -0.018, estimate 0.033, CI [-0.896, 0.790]"
+    }
+   ]
+  },
+  {
+   "id": "floor-pre-142",
+   "label": "floor: zero blocking findings everywhere; expected effect on the advisory rules",
+   "advisoryByRule": false,
+   "checks": [
+    {
+     "name": "switch rule: pilot primary outcome is zero → pre-committed fallback triggered",
+     "pass": true,
+     "detail": "Pilot memo §3: the primary outcome is ZERO (no new blocking finding after step 1 in any of 3 tasks). Per memo §5 the PRE-COMMITTED FALLBACK applies: the Study 2 primary outcome moves to the advisory-tier erosion rate (per-run slope of advisory findings per KLOC, FF-CV05 excluded)."
+    },
+    {
+     "name": "primary outcome moved to the advisory-tier erosion rate",
+     "pass": true,
+     "detail": "advisoryTotalPerKlocSlope"
+    },
+    {
+     "name": "the report says so (statement names the fallback)",
+     "pass": true,
+     "detail": "T1 of report.md"
+    },
+    {
+     "name": "pre-#142 records: the report says the defined fallback is NOT computable (no per-rule advisory counts)",
+     "pass": true,
+     "detail": "The memo §5 fallback outcome (advisory per KLOC WITHOUT FF-CV05) is NOT computable from these step records: these records carry only `advisoryViolationCount`, no `advisoryByRule` (records written before PR #142, or by an evaluator that omits it; readiness gate S6). The table below uses ALL advisory rules, FF-CV05 included, as a labelled surrogate; it is not the pre-committed outcome."
+    }
+   ]
+  }
+ ],
+ "power": [
+  {
+   "scenario": "null",
+   "outcome": "blocking",
+   "powerGate": 0.0425,
+   "powerMcp": 0.0425,
+   "powerAny": 0.0675,
+   "mcSe": 0.025
+  },
+  {
+   "scenario": "small",
+   "outcome": "blocking",
+   "powerGate": 0.09,
+   "powerMcp": 0.0375,
+   "powerAny": 0.1075,
+   "mcSe": 0.025
+  },
+  {
+   "scenario": "expected",
+   "outcome": "blocking",
+   "powerGate": 0.5425,
+   "powerMcp": 0.165,
+   "powerAny": 0.5525,
+   "mcSe": 0.025
+  },
+  {
+   "scenario": "floor",
+   "outcome": "advisory-per-kloc",
+   "powerGate": 0.05,
+   "powerMcp": 0.0175,
+   "powerAny": 0.0575,
+   "mcSe": 0.025
+  }
+ ],
+ "calibration": [],
+ "seedSensitivity": [
+  {
+   "analysisSeed": 1,
+   "contrasts": [
+    {
+     "arm": "gate",
+     "p": 0.0043,
+     "holmP": 0.0086,
+     "reject": true
+    },
+    {
+     "arm": "daedalus-mcp",
+     "p": 0.0526,
+     "holmP": 0.0526,
+     "reject": false
+    }
+   ]
+  },
+  {
+   "analysisSeed": 2,
+   "contrasts": [
+    {
+     "arm": "gate",
+     "p": 0.0034,
+     "holmP": 0.0068,
+     "reject": true
+    },
+    {
+     "arm": "daedalus-mcp",
+     "p": 0.0461,
+     "holmP": 0.0461,
+     "reject": true
+    }
+   ]
+  },
+  {
+   "analysisSeed": 3,
+   "contrasts": [
+    {
+     "arm": "gate",
+     "p": 0.0029,
+     "holmP": 0.0058,
+     "reject": true
+    },
+    {
+     "arm": "daedalus-mcp",
+     "p": 0.0504,
+     "holmP": 0.0504,
+     "reject": false
+    }
+   ]
+  },
+  {
+   "analysisSeed": 4,
+   "contrasts": [
+    {
+     "arm": "gate",
+     "p": 0.0038,
+     "holmP": 0.0076,
+     "reject": true
+    },
+    {
+     "arm": "daedalus-mcp",
+     "p": 0.05,
+     "holmP": 0.05,
+     "reject": true
+    }
+   ]
+  },
+  {
+   "analysisSeed": 5,
+   "contrasts": [
+    {
+     "arm": "gate",
+     "p": 0.0037,
+     "holmP": 0.0074,
+     "reject": true
+    },
+    {
+     "arm": "daedalus-mcp",
+     "p": 0.0494,
+     "holmP": 0.0494,
+     "reject": true
+    }
+   ]
+  },
+  {
+   "analysisSeed": 6,
+   "contrasts": [
+    {
+     "arm": "gate",
+     "p": 0.0044,
+     "holmP": 0.0088,
+     "reject": true
+    },
+    {
+     "arm": "daedalus-mcp",
+     "p": 0.0516,
+     "holmP": 0.0516,
+     "reject": false
+    }
+   ]
+  },
+  {
+   "analysisSeed": 7,
+   "contrasts": [
+    {
+     "arm": "gate",
+     "p": 0.0034,
+     "holmP": 0.0068,
+     "reject": true
+    },
+    {
+     "arm": "daedalus-mcp",
+     "p": 0.05,
+     "holmP": 0.05,
+     "reject": true
+    }
+   ]
+  },
+  {
+   "analysisSeed": 8,
+   "contrasts": [
+    {
+     "arm": "gate",
+     "p": 0.0031,
+     "holmP": 0.0062,
+     "reject": true
+    },
+    {
+     "arm": "daedalus-mcp",
+     "p": 0.0494,
+     "holmP": 0.0494,
+     "reject": true
+    }
+   ]
+  }
+ ],
+ "plan": {
+  "schema": "study2-analysis-plan/v0-tooling",
+  "seed": 20261016,
+  "flips": 9999,
+  "resamples": 4999,
+  "alpha": 0.05,
+  "exactMaxUnits": 20,
+  "primaryScale": null,
+  "confirmatoryInference": null
+ },
+ "calibrationPlan": [
+  {
+   "scenario": "null",
+   "scale": "raw",
+   "sims": 200,
+   "arms": [
+    {
+     "arm": "gate",
+     "signFlipHolm": 0.03,
+     "signFlipUnadjusted": 0.065,
+     "bootstrap": 0.025,
+     "disagree": 0.04,
+     "cover": 0.985
+    },
+    {
+     "arm": "daedalus-mcp",
+     "signFlipHolm": 0.015,
+     "signFlipUnadjusted": 0.03,
+     "bootstrap": 0.015,
+     "disagree": 0.025,
+     "cover": 0.975
+    }
+   ]
+  },
+  {
+   "scenario": "null",
+   "scale": "perKloc",
+   "sims": 200,
+   "arms": [
+    {
+     "arm": "gate",
+     "signFlipHolm": 0.03,
+     "signFlipUnadjusted": 0.04,
+     "bootstrap": 0.02,
+     "disagree": 0.03,
+     "cover": null
+    },
+    {
+     "arm": "daedalus-mcp",
+     "signFlipHolm": 0.035,
+     "signFlipUnadjusted": 0.05,
+     "bootstrap": 0.025,
+     "disagree": 0.025,
+     "cover": null
+    }
+   ]
+  },
+  {
+   "scenario": "small",
+   "scale": "raw",
+   "sims": 200,
+   "arms": [
+    {
+     "arm": "gate",
+     "signFlipHolm": 0.13,
+     "signFlipUnadjusted": 0.175,
+     "bootstrap": 0.1,
+     "disagree": 0.085,
+     "cover": 0.99
+    },
+    {
+     "arm": "daedalus-mcp",
+     "signFlipHolm": 0.075,
+     "signFlipUnadjusted": 0.09,
+     "bootstrap": 0.05,
+     "disagree": 0.04,
+     "cover": 0.985
+    }
+   ]
+  },
+  {
+   "scenario": "small",
+   "scale": "perKloc",
+   "sims": 200,
+   "arms": [
+    {
+     "arm": "gate",
+     "signFlipHolm": 0.075,
+     "signFlipUnadjusted": 0.09,
+     "bootstrap": 0.04,
+     "disagree": 0.05,
+     "cover": null
+    },
+    {
+     "arm": "daedalus-mcp",
+     "signFlipHolm": 0.06,
+     "signFlipUnadjusted": 0.07,
+     "bootstrap": 0.05,
+     "disagree": 0.02,
+     "cover": null
+    }
+   ]
+  },
+  {
+   "scenario": "expected",
+   "scale": "raw",
+   "sims": 200,
+   "arms": [
+    {
+     "arm": "gate",
+     "signFlipHolm": 0.595,
+     "signFlipUnadjusted": 0.67,
+     "bootstrap": 0.535,
+     "disagree": 0.135,
+     "cover": 0.99
+    },
+    {
+     "arm": "daedalus-mcp",
+     "signFlipHolm": 0.21,
+     "signFlipUnadjusted": 0.225,
+     "bootstrap": 0.125,
+     "disagree": 0.11,
+     "cover": 0.985
+    }
+   ]
+  },
+  {
+   "scenario": "expected",
+   "scale": "perKloc",
+   "sims": 200,
+   "arms": [
+    {
+     "arm": "gate",
+     "signFlipHolm": 0.28,
+     "signFlipUnadjusted": 0.37,
+     "bootstrap": 0.205,
+     "disagree": 0.165,
+     "cover": null
+    },
+    {
+     "arm": "daedalus-mcp",
+     "signFlipHolm": 0.105,
+     "signFlipUnadjusted": 0.13,
+     "bootstrap": 0.065,
+     "disagree": 0.065,
+     "cover": null
+    }
+   ]
+  },
+  {
+   "scenario": "floor",
+   "scale": "advisory",
+   "sims": 200,
+   "arms": [
+    {
+     "arm": "gate",
+     "signFlipHolm": 0.04,
+     "signFlipUnadjusted": 0.05,
+     "bootstrap": 0.02,
+     "disagree": 0.04,
+     "cover": 0.995
+    },
+    {
+     "arm": "daedalus-mcp",
+     "signFlipHolm": 0.03,
+     "signFlipUnadjusted": 0.05,
+     "bootstrap": 0.025,
+     "disagree": 0.035,
+     "cover": 0.97
+    }
+   ]
+  }
+ ],
+ "stability": [
+  {
+   "scenario": "null",
+   "rows": [
+    {
+     "scope": "T2b raw (Holm p)",
+     "contrast": "gate − none",
+     "units": 54,
+     "method": "Monte Carlo sign-flip",
+     "seeds": 10,
+     "pMin": 1,
+     "pMax": 1,
+     "identical": true,
+     "rejects": 0
+    },
+    {
+     "scope": "T2b raw (Holm p)",
+     "contrast": "daedalus-mcp − none",
+     "units": 54,
+     "method": "Monte Carlo sign-flip",
+     "seeds": 10,
+     "pMin": 1,
+     "pMax": 1,
+     "identical": true,
+     "rejects": 0
+    },
+    {
+     "scope": "T2b perKloc (Holm p)",
+     "contrast": "gate − none",
+     "units": 54,
+     "method": "Monte Carlo sign-flip",
+     "seeds": 10,
+     "pMin": 1,
+     "pMax": 1,
+     "identical": true,
+     "rejects": 0
+    },
+    {
+     "scope": "T2b perKloc (Holm p)",
+     "contrast": "daedalus-mcp − none",
+     "units": 54,
+     "method": "Monte Carlo sign-flip",
+     "seeds": 10,
+     "pMin": 1,
+     "pMax": 1,
+     "identical": true,
+     "rejects": 0
+    },
+    {
+     "scope": "T3 task level (unadjusted p)",
+     "contrast": "gate − none",
+     "units": 6,
+     "method": "exact sign-flip",
+     "seeds": 10,
+     "pMin": 0.40625,
+     "pMax": 0.40625,
+     "identical": true,
+     "rejects": 0
+    },
+    {
+     "scope": "T3 task level (unadjusted p)",
+     "contrast": "daedalus-mcp − none",
+     "units": 6,
+     "method": "exact sign-flip",
+     "seeds": 10,
+     "pMin": 0.8125,
+     "pMax": 0.8125,
+     "identical": true,
+     "rejects": 0
+    },
+    {
+     "scope": "T5 claude-code-cli/synth-model-a (unadjusted p)",
+     "contrast": "gate − none",
+     "units": 18,
+     "method": "exact sign-flip",
+     "seeds": 10,
+     "pMin": 0.9646987915039062,
+     "pMax": 0.9646987915039062,
+     "identical": true,
+     "rejects": 0
+    },
+    {
+     "scope": "T5 claude-code-cli/synth-model-a (unadjusted p)",
+     "contrast": "daedalus-mcp − none",
+     "units": 18,
+     "method": "exact sign-flip",
+     "seeds": 10,
+     "pMin": 0.951568603515625,
+     "pMax": 0.951568603515625,
+     "identical": true,
+     "rejects": 0
+    },
+    {
+     "scope": "T5 claude-code-cli/synth-model-b (unadjusted p)",
+     "contrast": "gate − none",
+     "units": 18,
+     "method": "exact sign-flip",
+     "seeds": 10,
+     "pMin": 0.7277679443359375,
+     "pMax": 0.7277679443359375,
+     "identical": true,
+     "rejects": 0
+    },
+    {
+     "scope": "T5 claude-code-cli/synth-model-b (unadjusted p)",
+     "contrast": "daedalus-mcp − none",
+     "units": 18,
+     "method": "exact sign-flip",
+     "seeds": 10,
+     "pMin": 0.61700439453125,
+     "pMax": 0.61700439453125,
+     "identical": true,
+     "rejects": 0
+    },
+    {
+     "scope": "T5 codex-cli/synth-model-c (unadjusted p)",
+     "contrast": "gate − none",
+     "units": 18,
+     "method": "exact sign-flip",
+     "seeds": 10,
+     "pMin": 0.5157012939453125,
+     "pMax": 0.5157012939453125,
+     "identical": true,
+     "rejects": 0
+    },
+    {
+     "scope": "T5 codex-cli/synth-model-c (unadjusted p)",
+     "contrast": "daedalus-mcp − none",
+     "units": 18,
+     "method": "exact sign-flip",
+     "seeds": 10,
+     "pMin": 0.829071044921875,
+     "pMax": 0.829071044921875,
+     "identical": true,
+     "rejects": 0
+    }
+   ]
+  },
+  {
+   "scenario": "expected",
+   "rows": [
+    {
+     "scope": "T2b raw (Holm p)",
+     "contrast": "gate − none",
+     "units": 54,
+     "method": "Monte Carlo sign-flip",
+     "seeds": 10,
+     "pMin": 0.0062,
+     "pMax": 0.01,
+     "identical": false,
+     "rejects": 10
+    },
+    {
+     "scope": "T2b raw (Holm p)",
+     "contrast": "daedalus-mcp − none",
+     "units": 54,
+     "method": "Monte Carlo sign-flip",
+     "seeds": 10,
+     "pMin": 0.0463,
+     "pMax": 0.056,
+     "identical": false,
+     "rejects": 4
+    },
+    {
+     "scope": "T2b perKloc (Holm p)",
+     "contrast": "gate − none",
+     "units": 54,
+     "method": "Monte Carlo sign-flip",
+     "seeds": 10,
+     "pMin": 0.2022,
+     "pMax": 0.2168,
+     "identical": false,
+     "rejects": 0
+    },
+    {
+     "scope": "T2b perKloc (Holm p)",
+     "contrast": "daedalus-mcp − none",
+     "units": 54,
+     "method": "Monte Carlo sign-flip",
+     "seeds": 10,
+     "pMin": 0.2022,
+     "pMax": 0.2168,
+     "identical": false,
+     "rejects": 0
+    },
+    {
+     "scope": "T3 task level (unadjusted p)",
+     "contrast": "gate − none",
+     "units": 6,
+     "method": "exact sign-flip",
+     "seeds": 10,
+     "pMin": 0.15625,
+     "pMax": 0.15625,
+     "identical": true,
+     "rejects": 0
+    },
+    {
+     "scope": "T3 task level (unadjusted p)",
+     "contrast": "daedalus-mcp − none",
+     "units": 6,
+     "method": "exact sign-flip",
+     "seeds": 10,
+     "pMin": 0.125,
+     "pMax": 0.125,
+     "identical": true,
+     "rejects": 0
+    },
+    {
+     "scope": "T5 claude-code-cli/synth-model-a (unadjusted p)",
+     "contrast": "gate − none",
+     "units": 18,
+     "method": "exact sign-flip",
+     "seeds": 10,
+     "pMin": 0.128692626953125,
+     "pMax": 0.128692626953125,
+     "identical": true,
+     "rejects": 0
+    },
+    {
+     "scope": "T5 claude-code-cli/synth-model-a (unadjusted p)",
+     "contrast": "daedalus-mcp − none",
+     "units": 18,
+     "method": "exact sign-flip",
+     "seeds": 10,
+     "pMin": 0.2766571044921875,
+     "pMax": 0.2766571044921875,
+     "identical": true,
+     "rejects": 0
+    },
+    {
+     "scope": "T5 claude-code-cli/synth-model-b (unadjusted p)",
+     "contrast": "gate − none",
+     "units": 18,
+     "method": "exact sign-flip",
+     "seeds": 10,
+     "pMin": 0.18670654296875,
+     "pMax": 0.18670654296875,
+     "identical": true,
+     "rejects": 0
+    },
+    {
+     "scope": "T5 claude-code-cli/synth-model-b (unadjusted p)",
+     "contrast": "daedalus-mcp − none",
+     "units": 18,
+     "method": "exact sign-flip",
+     "seeds": 10,
+     "pMin": 0.363922119140625,
+     "pMax": 0.363922119140625,
+     "identical": true,
+     "rejects": 0
+    },
+    {
+     "scope": "T5 codex-cli/synth-model-c (unadjusted p)",
+     "contrast": "gate − none",
+     "units": 18,
+     "method": "exact sign-flip",
+     "seeds": 10,
+     "pMin": 0.05628204345703125,
+     "pMax": 0.05628204345703125,
+     "identical": true,
+     "rejects": 0
+    },
+    {
+     "scope": "T5 codex-cli/synth-model-c (unadjusted p)",
+     "contrast": "daedalus-mcp − none",
+     "units": 18,
+     "method": "exact sign-flip",
+     "seeds": 10,
+     "pMin": 0.18979644775390625,
+     "pMax": 0.18979644775390625,
+     "identical": true,
+     "rejects": 0
+    }
+   ]
+  }
+ ]
+}

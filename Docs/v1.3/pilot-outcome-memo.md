@@ -84,12 +84,12 @@ No other pilot result may change Study 2's primary outcome. In particular, nothi
 | Task `market-vendors` "Farmers' market vendors" (sha256 of `JSON.stringify(task)`) | `009c672b4dee2a566da4fc9ad4d6d084df317763cbfce1508f53c6196d012c89` |
 | Task `shelter-adoptions` "Animal shelter adoptions" | `acc8a145f5c884653dfec92bd98315b4cd272d24bdce3c3253d0f52e6d4ff49c` |
 | Task `relief-volunteers` "Disaster-relief volunteer coordination" | `0a6f2531c56e09f4bd69d739bfa16c20e058a14224f70d1263b5964fd5c52315` |
-| Tool commit | `<PILOT_SHA>` |
-| Step and repair frames (`promptSha256` of each) | `<FRAME_SHA256>` |
-| Pilot specs (Hexagonal, DDD) and `specs/clean-arch.yaml` (sha256 each) | `<SPEC_SHA256>` |
-| `daedalus-mcp` included? | `<YES/NO, with the probe result>` |
-| `orderSeed` | `<SEED>` |
-| CLI version and model id | `<CLAUDE_CLI_VERSION>`, `claude-sonnet-5-5` |
+| Tool commit | `419e29067e6eebcf8358d2fd6d0eb3181e2a2fe9` (`origin/v1.3` with `origin/v1.3-review-fixes-2` merged, a fast-forward; R01 fix included) |
+| Step and repair frames (`promptSha256` of each) | `STYLED_FIRST_STEP_TEMPLATE` `54e815ddf472515b55b1c839a4ee417f711ee5817222ea5e23d758814c5b0911`; `STYLED_NEXT_STEP_TEMPLATE` `93161c32c3cebcb6a1b2cebc5fc6d7de253282b0becfe59de7e5389bb6818626`; `REPAIR_TEMPLATE` `2a06bf712219964ff682e77d827620d0a7db3d62fbc457bb3de94367660acec0` (templates before the slots are filled; each instantiated prompt's `promptSha256` is in its turn record) |
+| Pilot specs (Hexagonal, DDD) and `specs/clean-arch.yaml` (sha256 each) | `specs/clean-arch.yaml` `91bd152e0ae58dcc28a35f2ebc6fe264bf9ff7cd11a2fa6a8094ef54fcd6f6a8`; `presets/hexagonal.yaml` `d085d6b9badca2e79ade19b12fcfff96d1317df139d646772871266f0ed20ab7`; `presets/ddd.yaml` `ce28a78582a92571c5c8ff2c9144eb2161c580e140db3af880d451737b6260f7` (base of the DDD specs frozen per run after step 1; each frozen spec's sha256 is in its run's `spec/spec.json`) |
+| `daedalus-mcp` included? | **NO.** Check (a) cannot be passed without new engineering: no live confinement probe exists for the Claude CLI with the MCP server attached in the loop wiring (`scripts/lib/loop/agents.ts`, header: "has NOT been through a live confinement probe yet"), and the plan loader refuses `daedalus-mcp` together with per-task specs (`scripts/lib/loop/plan.ts`, `taskProfiles cannot be combined with the daedalus-mcp arm`). Check (b) was therefore not reached. Per §2 the arm needs no engineering beyond the two checks, so it is out. |
+| `orderSeed` | `20261015` (as in `experiments/loop-pilot/plan.json`, sha256 `4104919ee0c02937b6b639b5d20b71d3757d8e1cca2c8757536f6c64bb7f6d83`) |
+| CLI version and model id | `2.1.301 (Claude Code)`, `claude-sonnet-5-5` |
 
 The commands that reproduce the task hashes are in `pilot-tasks.md` §5.
 

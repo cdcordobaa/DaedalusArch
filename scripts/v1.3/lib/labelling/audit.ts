@@ -209,13 +209,16 @@ export interface AuditAgreementReport {
   readonly correctness?: Agreement;
   readonly unanswered: readonly string[];
   readonly unmatched: readonly string[];
+  /** Audit ids whose `correct` answer is neither yes nor no (e.g. 'uncertain', 'n/a', 'y'): left out of `correctness` (R29). */
+  readonly correctnessUnmatched: readonly string[];
 }
 
 const norm = (s: string | undefined): string => (s ?? '').trim().toLowerCase();
 
 /**
  * Agreement between the author's answers and the labeller (meaningful) and, when given, the correctness checker
- * (checkable items only; `correct` yes/no against correct/incorrect).
+ * (checkable items only; `correct` yes/no against correct/incorrect; any other `correct` answer is left out and
+ * listed in `correctnessUnmatched`).
  */
 export function auditAgreement(
   key: readonly AuditKeyRow[],
@@ -228,6 +231,7 @@ export function auditAgreement(
   const correctness: [string, string][] = [];
   const unanswered: string[] = [];
   const unmatched: string[] = [];
+  const correctnessUnmatched: string[] = [];
   for (const k of key) {
     const a = byId.get(k.auditId);
     const m = norm(a?.meaningful);
@@ -236,7 +240,12 @@ export function auditAgreement(
     if (l === undefined) unmatched.push(k.auditId); else meaningful.push([m, l]);
     const c = norm(a?.correct);
     const v = correctnessOf?.get(k.key);
-    if (c !== '' && (v === 'correct' || v === 'incorrect')) correctness.push([c === 'yes' ? 'correct' : 'incorrect', v]);
+    if (c !== '' && (v === 'correct' || v === 'incorrect')) {
+      // Only yes/no map to a category; any other answer is left out and reported, not scored as 'incorrect' (R29).
+      if (c === 'yes') correctness.push(['correct', v]);
+      else if (c === 'no') correctness.push(['incorrect', v]);
+      else correctnessUnmatched.push(k.auditId);
+    }
   }
   const m3 = agreement(meaningful, ['yes', 'no', 'uncertain']);
   const binary = meaningful.map(([a, b]): [string, string] => [a === 'yes' ? 'yes' : 'not-yes', b === 'yes' ? 'yes' : 'not-yes']);
@@ -245,6 +254,6 @@ export function auditAgreement(
     meaningfulBinary: agreement(binary, ['yes', 'not-yes']),
     gate: { threshold: KAPPA_GATE, kappa: m3.kappa, pass: m3.kappa !== null && m3.kappa >= KAPPA_GATE && m3.n >= AUDIT_MIN },
     ...(correctnessOf !== undefined && { correctness: agreement(correctness, ['correct', 'incorrect']) }),
-    unanswered, unmatched,
+    unanswered, unmatched, correctnessUnmatched,
   };
 }

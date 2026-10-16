@@ -1,0 +1,121 @@
+{
+  "duration_api_ms": 88227,
+  "stop_reason": "end_turn",
+  "session_id": "72a6e7d3-9a46-47b4-8f47-3da8cc1eca49",
+  "total_cost_usd": 0.3043721,
+  "usage": {
+    "input_tokens": 18,
+    "cache_creation_input_tokens": 30784,
+    "cache_read_input_tokens": 142801,
+    "output_tokens": 16692,
+    "output_tokens_details": {
+      "thinking_tokens": 1446
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 30784,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 1156,
+        "cache_read_input_tokens": 30330,
+        "cache_creation_input_tokens": 6366,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 6366
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "modelUsage": {
+    "claude-sonnet-5-5": {
+      "inputTokens": 18,
+      "outputTokens": 16692,
+      "cacheReadInputTokens": 142801,
+      "cacheCreationInputTokens": 30784,
+      "webSearchRequests": 0,
+      "costUSD": 0.3043721,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "thinkingTokens": 1446,
+      "canonicalModel": "claude-sonnet-5-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01NAasrHw6Bq1GP2rudWj7FX",
+      "tool_input": {
+        "command": "find . -path ./node_modules -prune -o -type f -print | head -100 && cat package.json && cat /root/pilot/harness/runs/claude-code-cli/claude-sonnet-5-5/shelter-adoptions/none/run-0/tsconfig.json"
+      }
+    },
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_01S6AkWadjFYiREVSpsJojeX",
+      "tool_input": {
+        "file_path": "/root/pilot/harness/runs/claude-code-cli/claude-sonnet-5-5/shelter-adoptions/none/run-0/tsconfig.json"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_013Mz1YrY2RnXsq4GqTZC9JL",
+      "tool_input": {
+        "command": "python3 - <<'E'\np='src/application/shelter-service.ts'\ns=open(p).read()\ns=s.replace('''  MailSender,\n} from \"./ports.js\";''','''  MailSender,\n  NotificationRepository,\n  SmsSender,\n} from \"./ports.js\";\nimport { applyDeliveryReport, parseDeliveryReport, smsText } from \"../domain/notification.js\";\nimport type { Notification, NotificationChannel } from \"../domain/notification.js\";\n\ninterface Recipient {\n  readonly name: string;\n  readonly email: string;\n  readonly phone?: string;\n  readonly channel: NotificationChannel;\n}''')\ns=s.replace('''    private readonly placements: PlacementRepository,\n  ) {}\n''','''    private readonly placements: PlacementRepository,\n    private readonly sms: SmsSender,\n    private readonly notifications: NotificationRepository,\n  ) {}\n\n  private notificationLock: Promise<unknown> = Promise.resolve();\n\n  private lockedNotifications<T>(task: () => Promise<T>): Promise<T> {\n    const run = this.notificationLock.then(task, task);\n    this.notificationLock = run.catch(() => undefined);\n    return run;\n  }\n\n  listNotifications(): Promise<Notification[]> {\n    return this.notifications.findAll();\n  }\n\n  async getNotification(id: string): Promise<Notification> {\n    const n = await this.notifications.findById(id);\n    if (!n) throw new NotFoundError(`notification ${id} not found`);\n    return n;\n  }\n\n  /** Handles a TextBridge delivery report; a failed SMS is re-sent by e-mail. */\n  handleDeliveryReport(input: unknown): Promise<Notification> {\n    const report = parseDeliveryReport(input);\n    return this.lockedNotifications(async () => {\n      const n = await this.notifications.findByProviderMessageId(report.messageId);\n      if (!n) throw new NotFoundError(`message ${report.messageId} not found`);\n      if (n.status === \"failed\" || n.status === \"delivered\") return n;\n      const updated = applyDeliveryReport(n, report.status, report.reason, this.clock.now());\n      await this.notifications.save(updated);\n      if (updated.status === \"failed\") return this.fallbackToEmail(updated);\n      return updated;\n    });\n  }\n\n  private async fallbackToEmail(failed: Notification): Promise<Notification> {\n    if (failed.fallbackEmail === undefined || failed.fallbackId !== undefined) return failed;\n    const email = await this.sendEmail(\n      failed.recipientName,\n      failed.fallbackEmail,\n      failed.subject,\n      failed.body,\n      failed.id,\n    );\n    const linked = { ...failed, fallbackId: email.id };\n    await this.notifications.save(linked);\n    return linked;\n  }\n\n  private async sendEmail(\n    recipientName: string,\n    to: string,\n    subject: string,\n    body: string,\n    fallbackForId?: string,\n  ): Promise<Notification> {\n    const now = this.clock.now().toISOString();\n    const base: Notification = {\n      id: this.ids.next(),\n      channel: \"email\",\n      recipientName,\n      to,\n      subject,\n      body,\n      status: \"pending\",\n      createdAt: now,\n      updatedAt: now,\n    };\n    const pending = fallbackForId === undefined ? base : { ...base, fallbackForId };\n    await this.notifications.save(pending);\n    try {\n      await this.mail.send({ to, subject, body });\n    } catch (err) {\n      await this.notifications.save({\n        ...pending,\n        status: \"failed\",\n        failureReason: err instanceof Error ? err.message : \"e-mail could not be sent\",\n      });\n      throw err;\n    }\n    const sent: Notification = { ...pending, status: \"sent\", updatedAt: this.clock.now().toISOString() };\n    await this.notifications.save(sent);\n    return sent;\n  }\n\n  private async sendSms(r: Recipient, phone: string, subject: string, body: string): Promise<void> {\n    const now = this.clock.now().toISOString();\n    const pending: Notification = {\n      id: this.ids.next(),\n      channel: \"sms\",\n      recipientName: r.name,\n      to: phone,\n      subject,\n      body: smsText(subject, body),\n      status: \"pending\",\n      createdAt: now,\n      updatedAt: now,\n      fallbackEmail: r.email,\n    };\n    await this.notifications.save(pending);\n    let messageId: string;\n    try {\n      ({ messageId } = await this.sms.send({ to: phone, text: pending.body }));\n    } catch (err) {\n      const failed: Notification = {\n        ...pending,\n        status: \"failed\",\n        updatedAt: this.clock.now().toISOString(),\n        failureReason: err instanceof Error ? err.message : \"SMS could not be sent\",\n      };\n      await this.notifications.save(failed);\n      await this.fallbackToEmail(failed);\n      return;\n    }\n    await this.notifications.save({\n      ...pending,\n      status: \"sent\",\n      providerMessageId: messageId,\n      updatedAt: this.clock.now().toISOString(),\n    });\n  }\n\n  private dispatch(r: Recipient, subject: string, body: string): Promise<void> {\n    return this.lockedNotifications(async () => {\n      if (r.channel === \"sms\" && r.phone !== undefined) {\n        await this.sendSms(r, r.phone, subject, body);\n      } else {\n        await this.sendEmail(r.name, r.email, subject, body);\n      }\n    });\n  }\n''',1)\ns=s.replace('''    await this.mail.send({\n      to: carer.email,\n      subject: `${animal.name} has been adopted`,\n      body: `Hello ${carer.name}, ${animal.name} has been adopted, so the foster placement with you has ended. Thank you for caring for them!`,\n    });''','''    await this.dispatch(\n      {\n        name: carer.name,\n        email: carer.email,\n        channel: carer.notificationChannel,\n        ...(carer.phone === undefined ? {} : { phone: carer.phone }),\n      },\n      `${animal.name} has been adopted`,\n      `Hello ${carer.name}, ${animal.name} has been adopted, so the foster placement with you has ended. Thank you for caring for them!`,\n    );''')\ns=s.replace('''    await this.mail.send({\n      to: application.applicant.email,\n      subject: `Your adoption application for ${animal.name} was ${application.status}`,\n      body: approved\n        ? `Hello ${application.applicant.name}, congratulations! Your application to adopt ${animal.name} has been approved.`\n        : `Hello ${application.applicant.name}, we are sorry to tell you that your application to adopt ${animal.name} was not successful.`,\n    });''','''    const a = application.applicant;\n    await this.dispatch(\n      { name: a.name, email: a.email, phone: a.phone, channel: a.notificationChannel },\n      `Your adoption application for ${animal.name} was ${application.status}`,\n      approved\n        ? `Hello ${a.name}, congratulations! Your application to adopt ${animal.name} has been approved.`\n        : `Hello ${a.name}, we are sorry to tell you that your application to adopt ${animal.name} was not successful.`,\n    );''')\nopen(p,'w').write(s)\n\np='src/adapters/inbound/http-server.ts'\ns=open(p).read()\ns=s.replace('''  app.get(\"/mail/outbox\"''','''  app.get(\"/notifications\", wrap(async (_req, res) => {\n    res.json(await service.listNotifications());\n  }));\n  app.get(\"/notifications/:id\", wrap(async (req, res) => {\n    res.json(await service.getNotification(param(req, \"id\")));\n  }));\n  app.post(\"/webhooks/textbridge\", wrap(async (req, res) => {\n    await service.handleDeliveryReport(req.body);\n    res.status(200).json({ ok: true });\n  }));\n  app.get(\"/mail/outbox\"''')\nopen(p,'w').write(s)\n\np='src/config/main.ts'\ns=open(p).read()\ns=s.replace('''  InMemoryCarerRepository,\n''','''  InMemoryCarerRepository,\n  InMemoryNotificationRepository,\n''')\ns=s.replace('''import { SystemClock''','''import { FakeSmsSender, TextBridgeSmsSender } from \"../adapters/outbound/textbridge-sms-sender.js\";\nimport { SystemClock''')\ns=s.replace('''  new InMemoryPlacementRepository(),\n);''','''  new InMemoryPlacementRepository(),\n  process.env.TEXTBRIDGE_URL\n    ? new TextBridgeSmsSender(process.env.TEXTBRIDGE_URL, process.env.TEXTBRIDGE_API_KEY)\n    : new FakeSmsSender(),\n  new InMemoryNotificationRepository(),\n);''')\nopen(p,'w').write(s)\n\np='src/adapters/outbound/in-memory-repositories.ts'\ns=open(p).read()\ns=s.replace('''  CarerRepository,\n  PlacementRepository,\n} from \"../../application/ports.js\";''','''  CarerRepository,\n  NotificationRepository,\n  PlacementRepository,\n} from \"../../application/ports.js\";\nimport type { Notification } from \"../../domain/notification.js\";''')\ns+='''\nexport class InMemoryNotificationRepository implements NotificationRepository {\n  private readonly items = new Map<string, Notification>();\n\n  async save(notification: Notification): Promise<void> {\n    this.items.set(notification.id, notification);\n  }\n\n  async findById(id: string): Promise<Notification | undefined> {\n    return this.items.get(id);\n  }\n\n  async findByProviderMessageId(messageId: string): Promise<Notification | undefined> {\n    return [...this.items.values()].find((n) => n.providerMessageId === messageId);\n  }\n\n  async findAll(): Promise<Notification[]> {\n    return [...this.items.values()];\n  }\n}\n'''\nopen(p,'w').write(s)\nE\ncat > src/adapters/outbound/textbridge-sms-sender.ts <<'E'\nimport { randomUUID } from \"node:crypto\";\nimport type { SmsMessage, SmsSender } from \"../../application/ports.js\";\nimport { SMS_MAX_LENGTH } from \"../../domain/notification.js\";\n\nexport class TextBridgeSmsSender implements SmsSender {\n  constructor(\n    private readonly url: string,\n    private readonly apiKey?: string,\n  ) {}\n\n  async send(message: SmsMessage): Promise<{ messageId: string }> {\n    if (message.text.length > SMS_MAX_LENGTH) {\n      throw new Error(`SMS text exceeds ${SMS_MAX_LENGTH} characters`);\n    }\n    const headers: Record<string, string> = { \"content-type\": \"application/json\" };\n    if (this.apiKey) headers.authorization = `Bearer ${this.apiKey}`;\n    const res = await fetch(this.url, {\n      method: \"POST\",\n      headers,\n      body: JSON.stringify({ to: message.to, text: message.text }),\n    });\n    if (!res.ok) throw new Error(`TextBridge responded with HTTP ${res.status}`);\n    const json: unknown = await res.json();\n    const r = typeof json === \"object\" && json !== null ? (json as Record<string, unknown>) : {};\n    const id = r.messageId ?? r.message_id ?? r.id;\n    if (typeof id !== \"string\" || id === \"\") throw new Error(\"TextBridge returned no message id\");\n    return { messageId: id };\n  }\n}\n\nexport class FakeSmsSender implements SmsSender {\n  private readonly messages: (SmsMessage & { messageId: string })[] = [];\n\n  async send(message: SmsMessage): Promise<{ messageId: string }> {\n    const messageId = randomUUID();\n    this.messages.push({ ...message, messageId });\n    return { messageId };\n  }\n\n  sent(): readonly (SmsMessage & { messageId: string })[] {\n    return [...this.messages];\n  }\n}\nE\n/root/pilot/harness/bin/tsc --noEmit --incremental false -p /root/pilot/harness/runs/claude-code-cli/claude-sonnet-5-5/shelter-adoptions/none/run-0/tsconfig.json"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subagent_stats": {
+    "spawned": 0,
+    "requested": {
+      "background": 0,
+      "foreground": 0,
+      "unset": 0
+    },
+    "started_in_background": 0,
+    "max_depth": 0,
+    "spawned_by_subagents": 0,
+    "completed": 0,
+    "failed": 0,
+    "killed": {
+      "parent": 0,
+      "user": 0,
+      "system": 0
+    },
+    "refused": {
+      "depth_limit": 0,
+      "concurrency_limit": 0,
+      "budget": 0
+    },
+    "by_type": {}
+  },
+  "safety_stops": 0,
+  "is_error": false,
+  "num_turns": 33,
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "I've added SMS notifications through TextBridge, with the e-mail fallback and a staff view of delivery status. I couldn't run the type-check. Bash was denied in this session, so none of the changes have been compiled or tested.\n\nPlease run the `tsc` command you gave me before relying on any of this.\n\n**What changed**\n- **Channel choice:** applicants (`applicant.notificationChannel`) and carers (`notificationChannel`, plus an optional `phone`) can choose `\"email\"` or `\"sms\"`. The default is `\"email\"`, so existing requests behave as before. A carer who picks `\"sms\"` must give a phone number.\n- **Sending:** approval and rejection messages to applicants, and the \"animal adopted\" message to carers, now go through one dispatch step that picks the channel. SMS text is cut to 160 characters, with \"...\" at the end if it was cut.\n- **Delivery reports:** `POST /webhooks/textbridge` takes a report of `delivered` or `failed`. A failed report triggers the same message by e-mail. A repeated report for the same message is ignored, so it won't send a second e-mail. An unknown message id returns 404.\n- **Staff view:** `GET /notifications` and `GET /notifications/:id` show every notification with its status (`pending`, `sent`, `delivered` or `failed`). A failed SMS shows the id of the e-mail that replaced it. `/mail/outbox` still works.\n- **If TextBridge rejects the send:** if the HTTP call to TextBridge itself fails, the notification is marked failed and the e-mail goes out straight away.\n- **Structure:** the new code follows the existing layout. The SMS and notification-store ports are in `src/application/ports.ts`. The TextBridge adapter and an in-memory fake are in `src/adapters/outbound/textbridge-sms-sender.ts`, and the notification store is added to `in-memory-repositories.ts`. The wiring is in `src/config/main.ts`. Notification logic is in `src/domain/notification.ts`.\n\n**Assumptions about TextBridge**\n- **Send request:** I had no TextBridge documentation, so I assumed a `POST` to `TEXTBRIDGE_URL` with `{to, text}`, an optional `TEXTBRIDGE_API_KEY` sent as a Bearer token, and a JSON reply containing `messageId`, `message_id` or `id`.\n- **Webhook payload:** I assumed it carries the same id plus a `status`.\n- **No `TEXTBRIDGE_URL`:** the service uses an in-memory fake sender.\n\nCheck these against the real API before using it.",
+  "ttft_ms": 2332,
+  "type": "result",
+  "duration_ms": 88623,
+  "uuid": "fe6c2a74-e2c8-454f-8d69-8a5a1fd35b2d",
+  "ttft_stream_ms": 1088,
+  "time_to_request_ms": 224,
+  "first_content_frame_ms": 1089,
+  "queued_turn_count": 0,
+  "result_index": 0
+}

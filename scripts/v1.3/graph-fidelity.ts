@@ -39,6 +39,7 @@ import type {
   Agreement, ApgEdgeInfo, ApgLike, ClassifyContext, DcEdgeInfo, DcModule, EdgeKey, RefOccurrence,
 } from './lib/graph-fidelity.js';
 import { assignLayers } from './lib/layer-assignment.js';
+import { DYNAMIC_IMPORTS_VARIANT_OPTIONS } from './lib/fidelity-variants.js';
 import { must } from './lib/must.js';
 import type { LayerAssignment } from './lib/layer-assignment.js';
 
@@ -534,7 +535,8 @@ async function main(): Promise<void> {
   const dyn = arg('dynamic-extractor', argv);
   if (dyn !== undefined) {
     const mod = (await import(pathToFileURL(resolve(dyn)).href)) as { extractAPG: ExtractFn };
-    variants.push({ name: 'apg-v13-dynamicImports', extract: mod.extractAPG, options: { dynamicImports: true }, dynamicOption: true });
+    // R11: the v1.2E options plus dynamicImports only (on this branch `{ dynamicImports: true }` means the v1.3 defaults).
+    variants.push({ name: 'apg-v13-dynamicImports', extract: mod.extractAPG, options: { ...DYNAMIC_IMPORTS_VARIANT_OPTIONS }, dynamicOption: true });
   }
   const tmp = mkdtempSync(join(tmpdir(), 'gf-tsconfig-'));
   try {

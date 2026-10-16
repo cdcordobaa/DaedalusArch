@@ -1,0 +1,10 @@
+The current directory holds a TypeScript backend service built in earlier feature steps.
+This is step 3 of 4 of "Disaster-relief volunteer coordination". Extend the existing service; keep every existing feature working.
+
+Feature request:
+Heavy-machinery licences must now be verified too. The national licence registry has no API: it publishes a CSV file of the valid licence numbers once a day at a fixed URL, which the service downloads. A heavy-machinery certification is valid only while its number is in the latest file. Re-verify every certification, of either kind, once a day.
+
+Keep the source under src/ and follow the architecture the project already uses (Domain-Driven Design, one bounded context per part: src/registry/ for the volunteer registry and src/deployment/ for deployment planning).
+Inside each bounded context folder, organise the source code in the folders domain, application, infrastructure, acl and api (for example src/registry/domain), and put the composition root in src/main.ts.
+Before you finish, type-check the project with exactly this command and fix every error it reports:
+/root/pilot/harness/bin/tsc --noEmit --incremental false -p /root/pilot/harness/runs/claude-code-cli/claude-sonnet-5-5/relief-volunteers/gate/run-0/tsconfig.json

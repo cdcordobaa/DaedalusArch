@@ -86,6 +86,8 @@ export function applyConstructRows(results: readonly SymbolicFunctionResult[], c
 class RowStage {
   private readonly work = new Map<string, Working>();
   private readonly changes: RowChange[] = [];
+  /** Which question added a row (by violation id), so a rebuild keeps the rows other questions added (R08). */
+  private readonly addedBy = new Map<string, ConstructQuestionId>();
   private readonly view: LayerView;
   private readonly style: string | undefined;
   private readonly a: ConstructAnswers;
@@ -169,6 +171,7 @@ class RowStage {
     };
     w.violations.push(v);
     w.changed = true;
+    this.addedBy.set(id, q);
     this.changes.push({ q, functionId: String(functionId), action: 'added', file: row.filePath, ...(row.target !== undefined ? { target: row.target } : {}) });
   }
 
@@ -546,6 +549,12 @@ class RowStage {
     w.violations = [];
     build();
     this.changes.splice(mark);
+    // Rows another question added (Q9 B's FF-P02 row on an implementer) are not part of the rule being redefined:
+    // they are kept, and logged by the question that added them (R08).
+    for (const v of old) {
+      const by = this.addedBy.get(v.id);
+      if (by !== undefined && by !== q && !w.violations.some((x) => x.id === v.id)) w.violations.push(v);
+    }
     const before = new Set(old.map((v) => v.id));
     const after = new Set(w.violations.map((v) => v.id));
     const fid = String(w.base.functionId);

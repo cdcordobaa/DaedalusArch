@@ -1,0 +1,48 @@
+{
+  "spec": "presets/clean-architecture.yaml",
+  "engine": "cypher-interp",
+  "scoringMode": "v1.3",
+  "instrumentVersion": 2,
+  "typecheckErrors": 0,
+  "typecheckSample": [],
+  "verdict": "fail",
+  "blockingViolationCount": 1,
+  "advisoryViolationCount": 15,
+  "blockingByRule": {
+    "FF-S01": 1
+  },
+  "advisoryByRule": {
+    "FF-C03": 1,
+    "FF-CV05": 13,
+    "FF-P02": 1
+  },
+  "blockingFindings": [
+    {
+      "rule": "FF-S01",
+      "template": "LAYER_VIOLATION",
+      "file": "src/application/cancel-rehearsal.ts",
+      "line": 3,
+      "target": "src/infrastructure/sms/text-tone-sms-sender.ts",
+      "message": "src/application/cancel-rehearsal.ts (application) imports from src/infrastructure/sms/text-tone-sms-sender.ts (infrastructure)"
+    }
+  ],
+  "srcFiles": 14,
+  "loc": 235,
+  "cell": "02.choir-rehearsals.planted.x2",
+  "order": 2,
+  "domain": "choir-rehearsals",
+  "style": "clean",
+  "condition": "planted",
+  "step": "x2",
+  "filesTouched": [
+    "A src/application/move-rehearsal.ts",
+    "M src/domain/singer.ts",
+    "M src/infrastructure/http/routes.ts",
+    "M src/infrastructure/main.ts"
+  ],
+  "seedBlocking": 1,
+  "newBlockingIdentities": [],
+  "newSameShape": 0,
+  "newOther": 0,
+  "precedentSurvives": true
+}

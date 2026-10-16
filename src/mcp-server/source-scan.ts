@@ -11,7 +11,8 @@ export interface ScannedImport {
   readonly line: number;
   /**
    * `type` for `import type` / `export type` (erased at runtime, still an IMPORTS edge in the graph). `require` and
-   * `dynamic` calls are counted, not modelled, by the extractor (BR-U2-25), so the frozen firewall never scores them.
+   * `dynamic` are string-literal calls: the frozen v1.2E extractor only counted them (BR-U2-25), the v1.3 extractor
+   * models them as IMPORTS edges (`dynamicImports`), and `check_file` scores them as v1.3 does (R03).
    */
   readonly kind: 'static' | 'type' | 'side-effect' | 'require' | 'dynamic';
 }

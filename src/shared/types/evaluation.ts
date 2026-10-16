@@ -367,8 +367,25 @@ export interface EvaluationReport {
   readonly neuralResults?: readonly NeuralResultRow[];
   /** v1.3 scoring mode only (FR-V6, Docs/v1.3/rule-tiers.md): the tiered verdict; absent in the v1.2E mode. */
   readonly tiers?: TieredScoring;
+  /**
+   * Advisory post-filters (proposal, off by default; Docs/DiagnosticRuns/v1.3-advisory-noise-2026-10-16.md): present only
+   * when an option is on. The rows the options removed from `violations`; scores, tiers and the verdict are pre-filter.
+   */
+  readonly advisoryFilter?: AdvisoryFilterSection;
   /** `firewall evaluate --hints` only (Docs/v1.3/fix-hints.md): a deterministic fix hint per blocking violation; absent otherwise. */
   readonly fixHints?: readonly import('../../fix-hints/types.js').ReportFixHint[];
+}
+
+/** One advisory row an advisory post-filter option removed from `violations`. */
+export interface SuppressedAdvisoryRow {
+  readonly option: string;
+  readonly reason: string;
+  readonly violation: Violation;
+}
+
+export interface AdvisoryFilterSection {
+  readonly options: readonly string[];
+  readonly suppressed: readonly SuppressedAdvisoryRow[];
 }
 
 /** Scoring mode: `v1.2e` (the registered Study 1 scoring, unchanged) or `v1.3` (rule tiers, FR-V6). */
@@ -413,8 +430,11 @@ export interface TieredScoring {
   readonly scoringMode: 'v1.3';
   readonly tierTable: string;
   readonly style: string | null;
-  /** `fail` iff a blocking rule has at least one applicable violation. */
-  readonly verdict: 'pass' | 'fail';
+  /**
+   * `fail` iff a blocking rule has at least one applicable violation; otherwise `incomplete` iff a blocking rule failed
+   * to execute (`blockingNotExecuted` non-empty; fail-closed, 2026-10-16); otherwise `pass`.
+   */
+  readonly verdict: 'pass' | 'fail' | 'incomplete';
   readonly verdictRule: 'any-blocking-violation';
   /** The v1.2E verdict of the same run (the report's v1.2E AHS fields are unchanged). */
   readonly v12eVerdict: import('./enums.js').OverallVerdict;
@@ -423,7 +443,7 @@ export interface TieredScoring {
   readonly blocking: TierGroup;
   readonly advisory: TierGroup;
   readonly notApplicable: readonly NotApplicablePart[];
-  /** Blocking rules that failed to execute (FR-13); they do not count, as in v1.2E. */
+  /** Blocking rules that failed to execute (FR-13); they add no violation, but make a non-failing verdict `incomplete`. */
   readonly blockingNotExecuted: readonly FunctionId[];
 }
 
