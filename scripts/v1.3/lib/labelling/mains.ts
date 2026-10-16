@@ -24,6 +24,7 @@ import type { MeaningfulProvider, ProviderId } from './providers.js';
 import { AUDIT_MIN, answersTemplate, auditAgreement, auditKey, auditSheet, auditTable, parseAnswerTable, parseCsv, selectAudit, selectAuditStratified } from './audit.js';
 import type { AuditKeyRow } from './audit.js';
 import { wilson } from '../../../lib/stats.js';
+import { unionAgreementMain, unionSheetMain } from './union-main.js';
 
 export interface MainIo {
   readonly out: (t: string) => void;
@@ -301,9 +302,12 @@ export async function labelMain(argv: readonly string[], repoRoot: string, io: M
  * `agreement --key audit-key.json --answers audit-answers.csv --labels labels.json [--correctness correctness.json]
  *  --out agreement.json`.
  */
-export function auditMain(argv: readonly string[], io: MainIo): number {
+export function auditMain(argv: readonly string[], io: MainIo, repoRoot: string = process.cwd()): number {
   const [sub, ...rest] = argv;
   const args = parseArgs(rest);
+  // Blind union sheet and its multi-rater agreement (human-labelling-protocol.md): union-main.ts.
+  if (sub === 'union') return unionSheetMain(args, repoRoot, io);
+  if (sub === 'union-agreement') return unionAgreementMain(args, io);
   if (sub === 'sheet') {
     // --sample and --jobs take a comma-separated list (one audit over several sets, e.g. E1 and the reference runs).
     const list = (name: string): string[] => need(args, name).split(',').filter((x) => x !== '');
@@ -354,5 +358,5 @@ export function auditMain(argv: readonly string[], io: MainIo): number {
     if (report.unanswered.length > 0) io.out(`unanswered: ${report.unanswered.join(', ')}\n`);
     return 0;
   }
-  throw new Error('audit-sheet: subcommand sheet or agreement');
+  throw new Error('audit-sheet: subcommand sheet, agreement, union or union-agreement');
 }

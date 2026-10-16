@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "case": "case-03-concept-fragmentation",
+  "writtenAt": "2026-10-15",
+  "writtenBefore": "any ontology pipeline code, prompt or run (committed in the first commit of branch v1.3-ontology)",
+  "planted": "concept-fragmentation",
+  "description": "The customer concept is modelled three times under three names in three components: Client (sales), Buyer (billing), AccountHolder (accounts). Field names differ too (email / emailAddress / contactEmail; id / buyerId / holderId).",
+  "expect": {
+    "conceptFragmentations": [
+      {
+        "id": "customer",
+        "concept": "Customer",
+        "classes": [
+          {
+            "file": "src/sales/domain/client.ts",
+            "class": "Client"
+          },
+          {
+            "file": "src/billing/domain/buyer.ts",
+            "class": "Buyer"
+          },
+          {
+            "file": "src/accounts/domain/account-holder.ts",
+            "class": "AccountHolder"
+          }
+        ]
+      }
+    ],
+    "ruleDuplications": [],
+    "misplacedResponsibilities": [],
+    "capabilityScatter": []
+  },
+  "forbid": {
+    "conceptFragmentations": [
+      {
+        "classes": [
+          {
+            "file": "src/accounts/domain/password-policy.ts",
+            "class": "PasswordPolicy"
+          }
+        ]
+      }
+    ],
+    "ruleDuplications": [],
+    "misplacedResponsibilities": [],
+    "capabilityScatter": []
+  },
+  "cheapExpectation": {
+    "conceptFragmentations": "miss",
+    "why": "No shared identifiers, literals or token sequences; the vocabulary proxy sees three unrelated names."
+  }
+}

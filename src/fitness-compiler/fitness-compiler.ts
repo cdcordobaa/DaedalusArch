@@ -22,6 +22,7 @@ import { compileHexagonalFunctions } from './hexagonal-compiler.js';
 import { HEXAGONAL_STYLE } from './hexagonal-templates.js';
 import { applyV13Rewrites } from './v13-rewrites.js';
 import type { V13RewriteFlags } from './v13-rewrites.js';
+import { applySignatureTypes } from './v13-signature-types.js';
 import { v13InapplicableReason } from './v13-applicability.js';
 import { compileDddFunctions } from './ddd-compiler.js';
 import { DDD_STYLE } from './ddd-templates.js';
@@ -72,20 +73,37 @@ export interface CompileOptions {
    */
   readonly memberFacts?: boolean;
   /**
+   * v1.3 field-level state, OFF by default and OFF in `V13_COMPILE_OPTIONS` (construct question Q8 is open; the Q8
+   * construct switch decides how FLOWS_TO rows are scored, not which fact feeds the field half): FF-P06
+   * domain-state-purity reads its field half from HOLDS_STATE_OF instead of FLOWS_TO (`applyFieldState`,
+   * `v13-rewrites.ts`). Needs a graph extracted with `ExtractorOptions.fieldState`
+   * (`V13_FIELD_STATE_OPTIONS`); on any other graph the field half returns no row.
+   */
+  readonly fieldState?: boolean;
+  /**
    * v1.3, absent by default: the construct-decision answers (`src/shared/construct-switches.ts`). Read by the compile
    * hook (`src/construct-switches/compile.ts`: preset additions, layer order, applicability, carrier functions). At the
    * status quo (every question at A) the hook is the identity.
    */
   readonly constructSwitches?: ConstructAnswers;
+  /**
+   * v1.3 fix batch, OFF by default: FF-P05 controller-no-entity also reads the APG v2 SIGNATURE_USES edge (a public
+   * controller method that takes or returns a domain class; `v13-signature-types.ts`, `Docs/v1.3/ffp05-type-edges.md`).
+   */
+  readonly signatureTypes?: boolean;
 }
 
 /** The v1.3 compile options for the pipeline (the frozen v1.2E reproduction passes `{}`). */
 export const V13_COMPILE_OPTIONS: Readonly<CompileOptions> = Object.freeze({
-  edgeViews: true, styleApplicability: true, roleTokens: true, memberFacts: true, constructSwitches: CONSTRUCT_ANSWERS,
+  edgeViews: true, styleApplicability: true, roleTokens: true, memberFacts: true, signatureTypes: true, constructSwitches: CONSTRUCT_ANSWERS,
 });
 
 function rewriteFlags(options: CompileOptions): V13RewriteFlags {
-  return { edgeViews: options.edgeViews === true, roleTokens: options.roleTokens === true, memberFacts: options.memberFacts === true };
+  return {
+    edgeViews: options.edgeViews === true, roleTokens: options.roleTokens === true, memberFacts: options.memberFacts === true,
+    signatureTypes: options.signatureTypes === true,
+    ...(options.fieldState === true ? { fieldState: true } : {}),
+  };
 }
 
 type TemplateCatalogue = ReadonlyMap<string, CypherTemplate>;
@@ -276,7 +294,8 @@ function compileSymbolic(
   // the template's instrument v2 role exemptions (ADR-026).
   const excludePatterns = [...ff.excludePaths.map((g) => globToRegex(g)), ...roleExemptionPatterns(template.functionName, instrumentVersion)];
   if (excludePatterns.length > 0) params.excludePatterns = excludePatterns;
-  const instantiated = instantiateTemplate(template, params);
+  const source = rewrites.signatureTypes === true ? applySignatureTypes(template) : template;
+  const instantiated = instantiateTemplate(source, params);
   const cypher = applyV13Rewrites(template.functionName, instantiated, rewrites);
 
   return {

@@ -1,0 +1,147 @@
+{
+ "id": "clean-ts-api",
+ "style": "clean-architecture",
+ "confidence": 0.42857142857142855,
+ "ranked": [
+  {
+   "style": "clean-architecture",
+   "points": 3,
+   "confidence": 0.42857142857142855,
+   "evidence": [
+    "+1 top-level core/domain directory",
+    "+1 top-level infrastructure directory",
+    "+1 use-case directory"
+   ]
+  },
+  {
+   "style": "layered",
+   "points": 2,
+   "confidence": 0.2857142857142857,
+   "evidence": [
+    "+1 top-level presentation directory",
+    "+1 top-level persistence/data directory"
+   ]
+  },
+  {
+   "style": "hexagonal",
+   "points": 2,
+   "confidence": 0.2857142857142857,
+   "evidence": [
+    "+2 dependency inversion with independent sibling outer units and a composition root"
+   ]
+  },
+  {
+   "style": "nestjs",
+   "points": 0,
+   "confidence": 0,
+   "evidence": []
+  },
+  {
+   "style": "ddd",
+   "points": 0,
+   "confidence": 0,
+   "evidence": []
+  }
+ ],
+ "mapping": {
+  "mode": "preset-first",
+  "units": [
+   {
+    "unit": "src/data/",
+    "layer": "application",
+    "source": "structure",
+    "confidence": 0.5
+   },
+   {
+    "unit": "src/domain/",
+    "layer": "domain",
+    "source": "preset-glob",
+    "confidence": 0.9
+   },
+   {
+    "unit": "src/infra/",
+    "layer": "infrastructure",
+    "source": "token+structure",
+    "confidence": 0.9
+   },
+   {
+    "unit": "src/main/",
+    "layer": "infrastructure",
+    "source": "structure",
+    "confidence": 0.5
+   },
+   {
+    "unit": "src/presentation/",
+    "layer": "application",
+    "source": "structure",
+    "confidence": 0.5
+   },
+   {
+    "unit": "src/validation/",
+    "layer": "application",
+    "source": "structure",
+    "confidence": 0.5
+   }
+  ]
+ },
+ "ddd": null,
+ "features": {
+  "sourceRoot": "src/",
+  "topTokens": [
+   "data",
+   "domain",
+   "infra",
+   "main",
+   "presentation",
+   "validation"
+  ],
+  "deepTokens": [
+   "account",
+   "adapters",
+   "apollo",
+   "components",
+   "config",
+   "controllers",
+   "cryptography",
+   "db",
+   "decorators",
+   "directives",
+   "docs",
+   "errors",
+   "factories",
+   "graphql",
+   "helpers",
+   "log",
+   "middlewares",
+   "models",
+   "mongodb",
+   "paths",
+   "protocols",
+   "resolvers",
+   "routes",
+   "schemas",
+   "survey",
+   "surveyresult",
+   "typedefs",
+   "usecases",
+   "validators"
+  ],
+  "nestDecoratedClasses": 0,
+  "nestModuleClasses": 0,
+  "classes": 35,
+  "nestSuffixFiles": 0,
+  "contexts": [],
+  "crossImplements": 32,
+  "inwardImplements": 32,
+  "maxLevel": 3,
+  "compositionRoots": [
+   "src/main/"
+  ],
+  "siblingOuterPairs": 1
+ },
+ "specValid": true,
+ "specErrors": [],
+ "specWarnings": [],
+ "majorityVoteRules": 31,
+ "files": 180
+}

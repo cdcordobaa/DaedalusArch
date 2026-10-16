@@ -1,7 +1,7 @@
 import * as path from 'node:path';
 import { expandGlob, inferLayerMapping, tokenLayer } from '../../../src/ise/layer-mapper.js';
 import { loadIsePreset } from '../../../src/ise/preset.js';
-import { cleanShaped, graph, layeredShaped } from './helpers.js';
+import { cleanShaped, dddShaped, graph, hexShaped, layeredShaped } from './helpers.js';
 
 const PRESETS = path.resolve('presets');
 
@@ -65,5 +65,21 @@ describe('ISE layer mapper', () => {
     expect(layerOf('src/adapters/entry/')).toBe('adapters-inbound');
     expect(layerOf('src/adapters/exit/')).toBe('adapters-outbound');
     expect(m.units.find((x) => x.unit === 'src/adapters/exit/')?.source).toBe('structure');
+  });
+
+  it('maps renamed hexagonal adapters by direction (implementers of inner ports are outbound)', () => {
+    const m = inferLayerMapping(hexShaped('plugins', 'entry', 'exit'), 'hexagonal', loadIsePreset('hexagonal', PRESETS));
+    const layerOf = new Map(m.units.map((u) => [u.unit, u.layer]));
+    expect([layerOf.get('src/plugins/entry/'), layerOf.get('src/plugins/exit/'), layerOf.get('src/wiring/')]).toEqual(['adapters-inbound', 'adapters-outbound', 'config']);
+  });
+
+  it('maps the renamed layers of a bounded context by their level inside the context', () => {
+    for (const between of ['', 'mod']) {
+      const m = inferLayerMapping(dddShaped('kernel', 'orchestration', 'platform', between), 'ddd', loadIsePreset('ddd', PRESETS));
+      const L = `src/ordering/${between === '' ? '' : `${between}/`}`;
+      const layerOf = new Map(m.units.map((u) => [u.unit, u.layer]));
+      expect([`${L}kernel/`, `${L}orchestration/`, `${L}platform/`, `${L}api/`].map((u) => layerOf.get(u))).toEqual(['domain', 'application', 'infrastructure', 'api']);
+      expect(m.units.find((u) => u.unit === 'src/ordering/')?.source).toBe('public-api');
+    }
   });
 });

@@ -57,11 +57,11 @@ const REPO = process.cwd();
 
 function arg(argv: readonly string[], name: string, dflt: string): string {
   const i = argv.indexOf(name);
-  return i >= 0 && argv[i + 1] !== undefined ? (argv[i + 1] as string) : dflt;
+  return (i >= 0 ? argv[i + 1] : undefined) ?? dflt;
 }
 
-function readJson<T>(file: string): T {
-  return JSON.parse(fs.readFileSync(file, 'utf8')) as T;
+function readJson(file: string): unknown {
+  return JSON.parse(fs.readFileSync(file, 'utf8')) as unknown;
 }
 
 function writeJson(file: string, value: unknown): void {
@@ -78,7 +78,7 @@ function baseDirOf(work: string, baseId: string): string {
 }
 
 function liveRows(work: string): SeedRow[] {
-  return readJson<Manifest>(path.join(work, 'seed-manifest.json')).rows.filter((r) => r.status === 'ok');
+  return (readJson(path.join(work, 'seed-manifest.json')) as Manifest).rows.filter((r) => r.status === 'ok');
 }
 
 /** Every evaluated project: the ok rows and the bases they were seeded on. */
@@ -99,7 +99,7 @@ interface EvalResult {
 
 function evaluate(projectDir: string, spec: string, extra: readonly string[]): EvalResult {
   const tsx = path.resolve(REPO, 'node_modules/.bin/tsx');
-  const args = ['bin/firewall.ts', 'evaluate', '--project', projectDir, '--spec', spec, '--format', 'json', '--neo4j-uri', process.env['NEO4J_URI'] ?? '', ...extra];
+  const args = ['bin/firewall.ts', 'evaluate', '--project', projectDir, '--spec', spec, '--format', 'json', '--neo4j-uri', process.env.NEO4J_URI ?? '', ...extra];
   const r = spawnSync(tsx, args, { cwd: REPO, env: process.env, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024, timeout: 3_600_000 });
   return { status: r.status, stdout: r.stdout, stderr: r.stderr };
 }
@@ -145,7 +145,7 @@ function entryFiles(dir: string): Map<string, number> {
     const p = path.join(dir, sub);
     if (sub === '_incomplete' || !fs.statSync(p).isDirectory()) continue;
     for (const f of fs.readdirSync(p).filter((x) => x.endsWith('.json'))) {
-      const e = readJson<{ attempts?: number }>(path.join(p, f));
+      const e = readJson(path.join(p, f)) as { attempts?: number };
       out.set(f, e.attempts ?? 1);
     }
   }
@@ -173,7 +173,7 @@ function plan(work: string): number {
   const targets: Target[] = [];
   const baseUnits = new Map<string, Map<string, Set<string>>>();
   const rowOf = (id: string, fn: string): { cands: string[]; filesOf: Map<string, string[]> } => {
-    const rep = readJson<ReportLike>(path.join(work, 'mock-full', `${safe(id)}.json`));
+    const rep = readJson(path.join(work, 'mock-full', `${safe(id)}.json`)) as ReportLike;
     const row = rep.neuralResults?.find((n) => n.functionId === fn);
     if (row === undefined) throw new Error(`${id}: no neural row for ${fn}`);
     return { cands: row.selection.candidateUnitIds, filesOf: new Map(row.unitResults.filter((u) => u.filePaths !== undefined).map((u) => [u.unitId, u.filePaths ?? []])) };
@@ -183,7 +183,7 @@ function plan(work: string): number {
   for (const r of rows) {
     const fn = PROBED_FUNCTION[r.positiveId];
     if (fn === undefined) throw new Error(`no probed function for ${r.positiveId}`);
-    const hasFn = readJson<ReportLike>(path.join(work, 'mock-full', `${safe(r.rowId)}.json`)).neuralResults?.some((n) => n.functionId === fn) === true;
+    const hasFn = (readJson(path.join(work, 'mock-full', `${safe(r.rowId)}.json`)) as ReportLike).neuralResults?.some((n) => n.functionId === fn) === true;
     if (!hasFn) {
       // The base's spec declares no judged function (presets/ddd.yaml): the frozen judge does not run on it.
       skipped.push({ id: r.rowId, reason: `spec ${r.specPath} declares no ${fn}` });
@@ -211,7 +211,7 @@ function plan(work: string): number {
   }
   // Crafted baseline reports: the mock report's rows with the selection narrowed to the target units.
   for (const t of targets) {
-    const rep = readJson<ReportLike>(path.join(work, 'mock-full', `${safe(t.id)}.json`));
+    const rep = readJson(path.join(work, 'mock-full', `${safe(t.id)}.json`)) as ReportLike;
     const neuralResults = (rep.neuralResults ?? []).map((n) => ({
       ...n,
       selection: { ...n.selection, source: 'own', selectedUnitIds: [...(t.units[n.functionId] ?? [])] },
@@ -225,7 +225,7 @@ function plan(work: string): number {
 }
 
 function dry(work: string): number {
-  const { targets } = readJson<{ targets: Target[] }>(path.join(work, 'plan.json'));
+  const { targets } = readJson(path.join(work, 'plan.json')) as { targets: Target[] };
   const cas = path.join(work, 'mock-dry-cassettes');
   fs.rmSync(cas, { recursive: true, force: true });
   const perTarget: { id: string; newEntries: number }[] = [];
@@ -253,11 +253,11 @@ function record(work: string, argv: readonly string[]): number {
   const budget = Number(arg(argv, '--budget', '400'));
   const cas = path.resolve(REPO, arg(argv, '--cassettes', 'tests/fixtures/judge-cassettes-v13/judge-catch'));
   const results = path.resolve(REPO, arg(argv, '--results', 'results/v1.3-judge-catch'));
-  const { targets } = readJson<{ targets: Target[] }>(path.join(work, 'plan.json'));
-  const dryCount = readJson<{ perTarget: { id: string; newEntries: number }[] }>(path.join(work, 'dry-count.json'));
+  const { targets } = readJson(path.join(work, 'plan.json')) as { targets: Target[] };
+  const dryCount = readJson(path.join(work, 'dry-count.json')) as { perTarget: { id: string; newEntries: number }[] };
   const ledgerFile = path.join(results, 'call-ledger.json');
   const ledger = fs.existsSync(ledgerFile)
-    ? readJson<{ calls: number; runs: { id: string; exit: number | null; judgeAttempts: number; initProbe: number; at: string; note?: string }[] }>(ledgerFile)
+    ? (readJson(ledgerFile) as { calls: number; runs: { id: string; exit: number | null; judgeAttempts: number; initProbe: number; at: string; note?: string }[] })
     : { calls: 0, runs: [] };
   for (const t of targets) {
     const reportFile = path.join(results, 'reports', `${safe(t.id)}.json`);
@@ -293,7 +293,7 @@ function record(work: string, argv: readonly string[]): number {
 
 function replay(work: string, argv: readonly string[]): number {
   const cas = path.resolve(REPO, arg(argv, '--cassettes', 'tests/fixtures/judge-cassettes-v13/judge-catch'));
-  const { targets } = readJson<{ targets: Target[] }>(path.join(work, 'plan.json'));
+  const { targets } = readJson(path.join(work, 'plan.json')) as { targets: Target[] };
   let failed = 0;
   for (const t of targets) {
     const r = evaluate(t.projectDir, t.specPath, ['--llm-provider', 'claude-cli', '--cassette-mode', 'replay', '--cassette-dir', cas, '--judge-baseline-report', path.join(work, 'baseline', `${safe(t.id)}.json`)]);

@@ -1,0 +1,36 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 10375,
+  "effort": "high",
+  "functionId": "filter-explain",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "901125bc691b9158b939af64bf8dcabd500105b4ebb892c51ee96ec0bb4937ec-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "## Finding\nRule: FF-CV05\nRule intent: Each source file has a paired test file.\nType: MISSING_TEST_FILE\nSeverity: advisory; tier: advisory (unscored)\nFile: src/business/errors/BusinessError.ts\nMessage: Violation in src/business/errors/BusinessError.ts\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**\n- business (kind: domain): src/business/**\n- presentation (kind: presentation): src/presentation/**\n\n## Source (line-numbered)\n=====SOURCE-BEGIN src/business/errors/BusinessError.ts (layer business)=====\n1| export class BusinessError extends Error {\n2|   constructor(readonly code: 'NOT_FOUND' | 'INVALID' | 'CONFLICT', message: string) {\n3|     super(message);\n4|     this.name = 'BusinessError';\n5|   }\n6| }\n=====SOURCE-END=====\n\n## Instructions\nDecide confirm or dismiss. Confirm: the cited code has the problem the rule is meant to catch, in this project and layer model. Dismiss: the rule fired, but the code does not have that problem (a false positive of the rule's mechanism, a threshold artefact on sound code, or a case the style allows). Measurements stated in the finding (counts, ratios, missing files) are correct as measurements; judge what they mean for this code. explanation: one paragraph that justifies the decision from the code, citing file paths and line numbers exactly as numbered below. fix: one concrete change: for a confirm, how to fix the code; for a dismiss, what (if anything) the rule or its configuration should change. citations: the line ranges your explanation relies on; every one must name a file shown below and lines that exist.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T00:05:04.615Z",
+  "repetition": 0,
+  "requestHash": "901125bc691b9158b939af64bf8dcabd500105b4ebb892c51ee96ec0bb4937ec",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":676}},\"result\":\"{\\\"decision\\\":\\\"dismiss\\\",\\\"explanation\\\":\\\"The file src/business/errors/BusinessError.ts has no test file of its own, and that measurement is correct. But the file holds no logic that needs a dedicated test. Lines 1-6 declare an Error subclass. Its constructor (line 2) keeps a `code` from a closed union of literal values. It forwards the message to `super` (line 3) and sets `this.name` (line 4). There are no branches, no calculations and no state changes, so the class has no behaviour beyond what TypeScript and the Error built-in already guarantee. A paired test would only repeat the type declaration. Any real risk is in how business services throw this error and how the presentation layer turns `code` into a response. Tests for those layers cover that, not a unit test of this class. The rule's purpose is to catch untested behaviour, and that problem is not present here. The rule fired because it matches files one-to-one, which flags a trivial error type.\\\",\\\"fix\\\":\\\"Leave the code unchanged. Set FF-CV05 to skip trivial declaration-only modules. One option is an exclude glob for `src/**/errors/**`. Another is a heuristic that skips files whose classes contain only a constructor with no conditional logic. If the team still wants BusinessError checked, add a small shared errors test asserting that `name` and `code` are set.\\\",\\\"citations\\\":[{\\\"filePath\\\":\\\"src/business/errors/BusinessError.ts\\\",\\\"startLine\\\":1,\\\"endLine\\\":6}]}\",\"structured_output\":{\"citations\":[{\"endLine\":6,\"filePath\":\"src/business/errors/BusinessError.ts\",\"startLine\":1}],\"decision\":\"dismiss\",\"explanation\":\"The file src/business/errors/BusinessError.ts has no test file of its own, and that measurement is correct. But the file holds no logic that needs a dedicated test. Lines 1-6 declare an Error subclass. Its constructor (line 2) keeps a `code` from a closed union of literal values. It forwards the message to `super` (line 3) and sets `this.name` (line 4). There are no branches, no calculations and no state changes, so the class has no behaviour beyond what TypeScript and the Error built-in already guarantee. A paired test would only repeat the type declaration. Any real risk is in how business services throw this error and how the presentation layer turns `code` into a response. Tests for those layers cover that, not a unit test of this class. The rule's purpose is to catch untested behaviour, and that problem is not present here. The rule fired because it matches files one-to-one, which flags a trivial error type.\",\"fix\":\"Leave the code unchanged. Set FF-CV05 to skip trivial declaration-only modules. One option is an exclude glob for `src/**/errors/**`. Another is a heuristic that skips files whose classes contain only a constructor with no conditional logic. If the team still wants BusinessError checked, add a small shared errors test asserting that `name` and `code` are set.\"}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "f1fb1eb529ff6f1a",
+  "usage": {
+    "inputTokens": 2010,
+    "outputTokens": 676
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

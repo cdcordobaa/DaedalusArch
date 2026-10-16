@@ -1,0 +1,1750 @@
+{
+ "seed": 20261016,
+ "perRule": 5,
+ "note": "Key to review-sheet.md: do not open before judging the sheet.",
+ "poolSizes": {
+  "boundary-type-leak": 267,
+  "component-adp-cycle": 494,
+  "component-sdp-violation": 174,
+  "component-main-sequence-distance": 24,
+  "deep-import-declared-api": 0,
+  "deep-import-inferred-api": 482,
+  "undeclared-async-coupling": 3,
+  "io-outside-adapters": 231,
+  "nondeterminism-in-core": 258,
+  "clones": 9808,
+  "shared-literals": 1913,
+  "name-behaviour": 85,
+  "cohesion": 396,
+  "logic-density": 246,
+  "repo-bypass": 0,
+  "framework-in-core": 0,
+  "vocabulary": 0,
+  "communities": 1086
+ },
+ "items": [
+  {
+   "id": "W01",
+   "family": "apg2",
+   "rule": "component-sdp-violation",
+   "kind": "folder",
+   "repo": "medplum-server",
+   "file": "src/util/auditevent.ts",
+   "line": 32,
+   "source": {
+    "component": "util",
+    "target": "fhir",
+    "kind": "folder",
+    "fromInstability": 0.045,
+    "toInstability": 0.479,
+    "filePath": "util",
+    "_file": "src/util/auditevent.ts",
+    "_line": 32,
+    "_evidence": [
+     {
+      "file": "src/util/auditevent.ts",
+      "target": "src/fhir/repo.ts",
+      "line": 32
+     },
+     {
+      "file": "src/util/validator.ts",
+      "target": "src/fhir/outcomes.ts",
+      "line": 6
+     }
+    ]
+   }
+  },
+  {
+   "id": "W02",
+   "family": "apg2",
+   "rule": "nondeterminism-in-core",
+   "kind": null,
+   "repo": "ts-express-starter-prisma",
+   "file": "src/utils/standardLogger.ts",
+   "line": 321,
+   "source": {
+    "filePath": "src/utils/standardLogger.ts",
+    "member": "standardLogger.ts",
+    "layer": "application",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 321,
+    "lines": [
+     321
+    ],
+    "_file": "src/utils/standardLogger.ts",
+    "_line": 321,
+    "_importGraphSees": false
+   }
+  },
+  {
+   "id": "W03",
+   "family": "apg2",
+   "rule": "boundary-type-leak",
+   "kind": null,
+   "repo": "podkrepi-api",
+   "file": "src/email/email.service.ts",
+   "line": 36,
+   "source": {
+    "filePath": "src/email/email.service.ts",
+    "member": "EmailService.sendFromTemplate",
+    "leakedType": "EmailTemplate",
+    "target": "src/email/template.interface.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/email/email.service.ts",
+    "_line": 36,
+    "_importGraphSees": true
+   }
+  },
+  {
+   "id": "W04",
+   "family": "apg2",
+   "rule": "component-main-sequence-distance",
+   "kind": "folder",
+   "repo": "hoppscotch-backend",
+   "file": "src/team/team-member.resolver.ts",
+   "line": 1,
+   "source": {
+    "component": "team",
+    "kind": "folder",
+    "abstractness": 0,
+    "instability": 0.093,
+    "distance": 0.907,
+    "filePath": "team",
+    "_file": "src/team/team-member.resolver.ts",
+    "_line": 1,
+    "_evidence": {
+     "files": 8,
+     "sample": [
+      "src/team/team-member.resolver.ts",
+      "src/team/team.model.ts",
+      "src/team/team.module.ts",
+      "src/team/team.resolver.ts",
+      "src/team/team.service.ts"
+     ]
+    }
+   }
+  },
+  {
+   "id": "W05",
+   "family": "apg2",
+   "rule": "deep-import-inferred-api",
+   "kind": "folder",
+   "repo": "medplum-server",
+   "file": "src/migrations/data/v22.ts",
+   "line": 4,
+   "source": {
+    "filePath": "src/migrations/data/v22.ts",
+    "target": "src/workers/post-deploy-migration.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v22.ts",
+    "_line": 4
+   }
+  },
+  {
+   "id": "W06",
+   "family": "apg2",
+   "rule": "io-outside-adapters",
+   "kind": null,
+   "repo": "hedgedoc-backend",
+   "file": "src/media/media.service.ts",
+   "line": 177,
+   "source": {
+    "filePath": "src/media/media.service.ts",
+    "member": "MediaService.getFileResponse",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "knex:this.knex(TableMediaUpload).select(FieldNameMediaUpload.b...",
+     "knex:this.knex(TableMediaUpload).select",
+     "knex:this.knex"
+    ],
+    "line": 177,
+    "lines": [
+     177,
+     177,
+     177,
+     177
+    ],
+    "_file": "src/media/media.service.ts",
+    "_line": 177,
+    "_importGraphSees": true
+   }
+  },
+  {
+   "id": "W07",
+   "family": "apg2",
+   "rule": "nondeterminism-in-core",
+   "kind": null,
+   "repo": "reactive-resume-api",
+   "file": "src/features/ai/credentials.ts",
+   "line": 48,
+   "source": {
+    "filePath": "src/features/ai/credentials.ts",
+    "member": "encryptCredential",
+    "layer": "business",
+    "category": "random",
+    "apis": [
+     "crypto:randomBytes"
+    ],
+    "line": 48,
+    "lines": [
+     48,
+     49
+    ],
+    "_file": "src/features/ai/credentials.ts",
+    "_line": 48,
+    "_importGraphSees": true
+   }
+  },
+  {
+   "id": "W08",
+   "family": "cheap",
+   "rule": "cohesion",
+   "kind": "broad-responsibility",
+   "repo": "immich-server",
+   "file": "src/controllers/tag.controller.ts",
+   "line": 19,
+   "source": {
+    "proxy": "cohesion",
+    "kind": "broad-responsibility",
+    "score": 4,
+    "evidence": {
+     "file": "src/controllers/tag.controller.ts",
+     "startLine": 19,
+     "endLine": 142
+    },
+    "className": "TagController",
+    "message": "TagController: 0 I/O categories, 4 other components"
+   }
+  },
+  {
+   "id": "W09",
+   "family": "apg2",
+   "rule": "io-outside-adapters",
+   "kind": null,
+   "repo": "immich-server",
+   "file": "src/services/metadata.service.ts",
+   "line": 1055,
+   "source": {
+    "filePath": "src/services/metadata.service.ts",
+    "member": "MetadataService.getDates",
+    "layer": "application",
+    "category": "fs",
+    "apis": [
+     "fs:stats.mtime.getTime"
+    ],
+    "line": 1055,
+    "lines": [
+     1055
+    ],
+    "_file": "src/services/metadata.service.ts",
+    "_line": 1055,
+    "_importGraphSees": true
+   }
+  },
+  {
+   "id": "W10",
+   "family": "cheap",
+   "rule": "shared-literals",
+   "kind": "shared-number-literal",
+   "repo": "immich-server",
+   "file": "src/utils/asset.util.ts",
+   "line": 213,
+   "source": {
+    "proxy": "shared-literals",
+    "kind": "shared-number-literal",
+    "score": 0.21428571428571427,
+    "evidence": {
+     "file": "src/utils/asset.util.ts",
+     "startLine": 213,
+     "endLine": 213
+    },
+    "message": "literal \"-90\" also used in component(s) (root), services",
+    "related": {
+     "file": "src/services/metadata.service.ts",
+     "startLine": 1128,
+     "endLine": 1128,
+     "className": "MetadataService",
+     "methodName": "getVideoTags"
+    },
+    "_importGraphSees": true
+   }
+  },
+  {
+   "id": "W11",
+   "family": "cheap",
+   "rule": "cohesion",
+   "kind": "low-cohesion",
+   "repo": "bitloops-ddd-backend",
+   "file": "src/lib/bounded-contexts/marketing/marketing/application/command-handlers/create-user.command-handler.ts",
+   "line": 22,
+   "source": {
+    "proxy": "cohesion",
+    "kind": "low-cohesion",
+    "score": 3,
+    "evidence": {
+     "file": "src/lib/bounded-contexts/marketing/marketing/application/command-handlers/create-user.command-handler.ts",
+     "startLine": 22,
+     "endLine": 74
+    },
+    "className": "CreateUserCommandHandler",
+    "message": "CreateUserCommandHandler: LCOM4 3 over 3 methods ({execute} {command} {boundedContext})"
+   }
+  },
+  {
+   "id": "W12",
+   "family": "apg2",
+   "rule": "component-sdp-violation",
+   "kind": "folder",
+   "repo": "hoppscotch-backend",
+   "file": "src/pubsub/topicsDefs.ts",
+   "line": 24,
+   "source": {
+    "component": "pubsub",
+    "target": "user-collection",
+    "kind": "folder",
+    "fromInstability": 0.031,
+    "toInstability": 0.313,
+    "filePath": "pubsub",
+    "_file": "src/pubsub/topicsDefs.ts",
+    "_line": 24,
+    "_evidence": [
+     {
+      "file": "src/pubsub/topicsDefs.ts",
+      "target": "src/user-collection/user-collections.model.ts",
+      "line": 24
+     }
+    ]
+   }
+  },
+  {
+   "id": "W13",
+   "family": "apg2",
+   "rule": "component-adp-cycle",
+   "kind": "folder",
+   "repo": "hedgedoc-backend",
+   "file": "src/api/private/private-api.module.ts",
+   "line": 18,
+   "source": {
+    "component": "api",
+    "target": "users",
+    "kind": "folder",
+    "imports": 12,
+    "filePath": "api",
+    "_file": "src/api/private/private-api.module.ts",
+    "_line": 18,
+    "_evidence": [
+     {
+      "file": "src/api/private/private-api.module.ts",
+      "target": "src/users/users.module.ts",
+      "line": 18
+     },
+     {
+      "file": "src/api/public/public-api.module.ts",
+      "target": "src/users/users.module.ts",
+      "line": 16
+     },
+     {
+      "file": "src/api/private/me/me.controller.ts",
+      "target": "src/users/users.service.ts",
+      "line": 24
+     }
+    ]
+   }
+  },
+  {
+   "id": "W14",
+   "family": "cheap",
+   "rule": "clones",
+   "kind": "cross-component-near",
+   "repo": "podkrepi-api",
+   "file": "src/donations/donations.service.ts",
+   "line": 456,
+   "source": {
+    "proxy": "clones",
+    "kind": "cross-component-near",
+    "score": 0.8076923076923077,
+    "evidence": {
+     "file": "src/donations/donations.service.ts",
+     "startLine": 456,
+     "endLine": 468
+    },
+    "className": "DonationsService",
+    "methodName": "getPaymentById",
+    "message": "body clone (near, similarity 0.81) of CountryService.getCountryById in component country",
+    "related": {
+     "file": "src/country/country.service.ts",
+     "startLine": 23,
+     "endLine": 40,
+     "className": "CountryService",
+     "methodName": "getCountryById"
+    },
+    "_importGraphSees": false
+   }
+  },
+  {
+   "id": "W15",
+   "family": "cheap",
+   "rule": "logic-density",
+   "kind": "adapter-logic-density",
+   "repo": "medplum-server",
+   "file": "src/fhir/rewrite.ts",
+   "line": 167,
+   "source": {
+    "proxy": "logic-density",
+    "kind": "adapter-logic-density",
+    "score": 2.3333333333333335,
+    "evidence": {
+     "file": "src/fhir/rewrite.ts",
+     "startLine": 167,
+     "endLine": 191
+    },
+    "className": "Rewriter",
+    "methodName": "rewriteAttachmentUrl",
+    "message": "adapter method Rewriter.rewriteAttachmentUrl: 4 branches, 3 comparisons, 0 arithmetic, 0 validation throws"
+   }
+  },
+  {
+   "id": "W16",
+   "family": "apg2",
+   "rule": "component-adp-cycle",
+   "kind": "folder",
+   "repo": "podkrepi-api",
+   "file": "src/bank-transactions-file/bank-transactions-file.module.ts",
+   "line": 14,
+   "source": {
+    "component": "bank-transactions-file",
+    "target": "notifications",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "bank-transactions-file",
+    "_file": "src/bank-transactions-file/bank-transactions-file.module.ts",
+    "_line": 14,
+    "_evidence": [
+     {
+      "file": "src/bank-transactions-file/bank-transactions-file.module.ts",
+      "target": "src/notifications/notifications.module.ts",
+      "line": 14
+     }
+    ]
+   }
+  },
+  {
+   "id": "W17",
+   "family": "apg2",
+   "rule": "undeclared-async-coupling",
+   "kind": "layer",
+   "repo": "domain-driven-hexagon",
+   "file": "src/modules/user/commands/create-user/create-user.message.controller.ts",
+   "line": 4,
+   "source": {
+    "filePath": "src/modules/user/commands/create-user/create-user.message.controller.ts",
+    "subscriberComponent": "application",
+    "publisherComponent": "presentation",
+    "kind": "layer",
+    "transport": "cqrs-command",
+    "channel": "CreateUserCommand",
+    "target": "src/modules/user/commands/create-user/create-user.service.ts",
+    "_file": "src/modules/user/commands/create-user/create-user.message.controller.ts",
+    "_line": 4,
+    "_importGraphSees": false
+   }
+  },
+  {
+   "id": "W18",
+   "family": "apg2",
+   "rule": "component-adp-cycle",
+   "kind": "folder",
+   "repo": "medplum-server",
+   "file": "src/fhir/fhirquota.ts",
+   "line": 8,
+   "source": {
+    "component": "fhir",
+    "target": "config",
+    "kind": "folder",
+    "imports": 40,
+    "filePath": "fhir",
+    "_file": "src/fhir/fhirquota.ts",
+    "_line": 8,
+    "_evidence": [
+     {
+      "file": "src/fhir/fhirquota.ts",
+      "target": "src/config/loader.ts",
+      "line": 8
+     },
+     {
+      "file": "src/fhir/job.ts",
+      "target": "src/config/loader.ts",
+      "line": 8
+     },
+     {
+      "file": "src/fhir/metadata.ts",
+      "target": "src/config/capabilitystatement.ts",
+      "line": 22
+     }
+    ]
+   }
+  },
+  {
+   "id": "W19",
+   "family": "cheap",
+   "rule": "communities",
+   "kind": "community-component-mismatch",
+   "repo": "medplum-server",
+   "file": "src/workers/subscription-failure-tracker.ts",
+   "line": 1,
+   "source": {
+    "proxy": "communities",
+    "kind": "community-component-mismatch",
+    "score": 0.2777777777777778,
+    "evidence": {
+     "file": "src/workers/subscription-failure-tracker.ts",
+     "startLine": 1,
+     "endLine": 1
+    },
+    "message": "src/workers/subscription-failure-tracker.ts (component workers) clusters with community 0 whose majority component is auth"
+   }
+  },
+  {
+   "id": "W20",
+   "family": "cheap",
+   "rule": "cohesion",
+   "kind": "low-cohesion",
+   "repo": "standardnotes-auth",
+   "file": "src/Infra/InversifyExpressUtils/AnnotatedSubscriptionInvitesController.ts",
+   "line": 16,
+   "source": {
+    "proxy": "cohesion",
+    "kind": "low-cohesion",
+    "score": 5,
+    "evidence": {
+     "file": "src/Infra/InversifyExpressUtils/AnnotatedSubscriptionInvitesController.ts",
+     "startLine": 16,
+     "endLine": 49
+    },
+    "className": "AnnotatedSubscriptionInvitesController",
+    "message": "AnnotatedSubscriptionInvitesController: LCOM4 5 over 5 methods ({acceptInvite} {declineInvite} {inviteToSubscriptionSharing} {cancelSubscriptionSharing} {listInvites})"
+   }
+  },
+  {
+   "id": "W21",
+   "family": "apg2",
+   "rule": "component-main-sequence-distance",
+   "kind": "folder",
+   "repo": "podkrepi-api",
+   "file": "src/prisma/prisma-client-exception.filter.ts",
+   "line": 1,
+   "source": {
+    "component": "prisma",
+    "kind": "folder",
+    "abstractness": 0,
+    "instability": 0,
+    "distance": 1,
+    "filePath": "prisma",
+    "_file": "src/prisma/prisma-client-exception.filter.ts",
+    "_line": 1,
+    "_evidence": {
+     "files": 6,
+     "sample": [
+      "src/prisma/prisma-client-exception.filter.ts",
+      "src/prisma/prisma-client.mock.ts",
+      "src/prisma/prisma-client.ts",
+      "src/prisma/prisma.health.ts",
+      "src/prisma/prisma.module.ts"
+     ]
+    }
+   }
+  },
+  {
+   "id": "W22",
+   "family": "apg2",
+   "rule": "component-sdp-violation",
+   "kind": "folder",
+   "repo": "podkrepi-api",
+   "file": "src/campaign/campaign.module.ts",
+   "line": 12,
+   "source": {
+    "component": "campaign",
+    "target": "notifications",
+    "kind": "folder",
+    "fromInstability": 0.115,
+    "toInstability": 0.214,
+    "filePath": "campaign",
+    "_file": "src/campaign/campaign.module.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/campaign/campaign.module.ts",
+      "target": "src/notifications/notifications.module.ts",
+      "line": 12
+     },
+     {
+      "file": "src/campaign/campaign.service.ts",
+      "target": "src/notifications/providers/notifications.sendgrid.types.ts",
+      "line": 47
+     },
+     {
+      "file": "src/campaign/campaign.service.ts",
+      "target": "src/notifications/notifications.service.ts",
+      "line": 52
+     }
+    ]
+   }
+  },
+  {
+   "id": "W23",
+   "family": "apg2",
+   "rule": "nondeterminism-in-core",
+   "kind": null,
+   "repo": "etherpad",
+   "file": "src/node/hooks/express/tokenTransfer.ts",
+   "line": 89,
+   "source": {
+    "filePath": "src/node/hooks/express/tokenTransfer.ts",
+    "member": "tokenTransfer.ts",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 89,
+    "lines": [
+     89,
+     118
+    ],
+    "_file": "src/node/hooks/express/tokenTransfer.ts",
+    "_line": 89,
+    "_importGraphSees": false
+   }
+  },
+  {
+   "id": "W24",
+   "family": "apg2",
+   "rule": "nondeterminism-in-core",
+   "kind": null,
+   "repo": "hoppscotch-backend",
+   "file": "src/user/user.service.ts",
+   "line": 331,
+   "source": {
+    "filePath": "src/user/user.service.ts",
+    "member": "UserService.updateUserLastLoggedOn",
+    "layer": "application",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 331,
+    "lines": [
+     331
+    ],
+    "_file": "src/user/user.service.ts",
+    "_line": 331,
+    "_importGraphSees": false
+   }
+  },
+  {
+   "id": "W25",
+   "family": "apg2",
+   "rule": "io-outside-adapters",
+   "kind": null,
+   "repo": "podkrepi-api",
+   "file": "src/expenses/expenses.service.ts",
+   "line": 72,
+   "source": {
+    "filePath": "src/expenses/expenses.service.ts",
+    "member": "ExpensesService.update",
+    "layer": "application",
+    "category": "db",
+    "apis": [
+     "@prisma/client:ExpenseStatus.approved.valueOf",
+     "@prisma/client:ExpenseStatus.canceled.valueOf"
+    ],
+    "line": 72,
+    "lines": [
+     72,
+     72
+    ],
+    "_file": "src/expenses/expenses.service.ts",
+    "_line": 72,
+    "_importGraphSees": true
+   }
+  },
+  {
+   "id": "W26",
+   "family": "apg2",
+   "rule": "boundary-type-leak",
+   "kind": null,
+   "repo": "immich-server",
+   "file": "src/services/asset-media.service.ts",
+   "line": 229,
+   "source": {
+    "filePath": "src/services/asset-media.service.ts",
+    "member": "AssetMediaService.downloadOriginal",
+    "leakedType": "ImmichFileResponse",
+    "target": "src/utils/file.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "return"
+    ],
+    "inferred": false,
+    "_file": "src/services/asset-media.service.ts",
+    "_line": 229,
+    "_importGraphSees": true
+   }
+  },
+  {
+   "id": "W27",
+   "family": "apg2",
+   "rule": "component-sdp-violation",
+   "kind": "layer",
+   "repo": "standardnotes-auth",
+   "file": "src/Projection/SessionProjector.ts",
+   "line": 3,
+   "source": {
+    "component": "domain",
+    "target": "infrastructure",
+    "kind": "layer",
+    "fromInstability": 0.336,
+    "toInstability": 0.576,
+    "filePath": "domain",
+    "_file": "src/Projection/SessionProjector.ts",
+    "_line": 3,
+    "_evidence": [
+     {
+      "file": "src/Projection/SessionProjector.ts",
+      "target": "src/Bootstrap/Types.ts",
+      "line": 3
+     },
+     {
+      "file": "src/Domain/Auth/AuthResponseFactory20161215.ts",
+      "target": "src/Bootstrap/Types.ts",
+      "line": 7
+     },
+     {
+      "file": "src/Domain/Auth/AuthResponseFactory20200115.ts",
+      "target": "src/Bootstrap/Types.ts",
+      "line": 10
+     }
+    ]
+   }
+  },
+  {
+   "id": "W28",
+   "family": "apg2",
+   "rule": "boundary-type-leak",
+   "kind": null,
+   "repo": "standardnotes-auth",
+   "file": "src/Mapping/SharedVaultUserPersistenceMapper.ts",
+   "line": 13,
+   "source": {
+    "filePath": "src/Mapping/SharedVaultUserPersistenceMapper.ts",
+    "member": "SharedVaultUserPersistenceMapper.toDomain",
+    "leakedType": "TypeORMSharedVaultUser",
+    "target": "src/Infra/TypeORM/TypeORMSharedVaultUser.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/Mapping/SharedVaultUserPersistenceMapper.ts",
+    "_line": 13,
+    "_importGraphSees": true
+   }
+  },
+  {
+   "id": "W29",
+   "family": "apg2",
+   "rule": "deep-import-inferred-api",
+   "kind": "folder",
+   "repo": "immich-server",
+   "file": "src/maintenance/maintenance-websocket.repository.ts",
+   "line": 13,
+   "source": {
+    "filePath": "src/maintenance/maintenance-websocket.repository.ts",
+    "target": "src/repositories/logging.repository.ts",
+    "component": "repositories",
+    "kind": "folder",
+    "line": 13,
+    "_file": "src/maintenance/maintenance-websocket.repository.ts",
+    "_line": 13
+   }
+  },
+  {
+   "id": "W30",
+   "family": "cheap",
+   "rule": "clones",
+   "kind": "cross-component-near",
+   "repo": "mikro-orm-realworld",
+   "file": "src/article/article.module.ts",
+   "line": 18,
+   "source": {
+    "proxy": "clones",
+    "kind": "cross-component-near",
+    "score": 0.84,
+    "evidence": {
+     "file": "src/article/article.module.ts",
+     "startLine": 18,
+     "endLine": 31
+    },
+    "className": "ArticleModule",
+    "methodName": "configure",
+    "message": "body clone (near, similarity 0.84) of UserModule.configure in component user",
+    "related": {
+     "file": "src/user/user.module.ts",
+     "startLine": 15,
+     "endLine": 19,
+     "className": "UserModule",
+     "methodName": "configure"
+    },
+    "_importGraphSees": true
+   }
+  },
+  {
+   "id": "W31",
+   "family": "cheap",
+   "rule": "logic-density",
+   "kind": "adapter-logic-density",
+   "repo": "immich-server",
+   "file": "src/utils/media.ts",
+   "line": 661,
+   "source": {
+    "proxy": "logic-density",
+    "kind": "adapter-logic-density",
+    "score": 1,
+    "evidence": {
+     "file": "src/utils/media.ts",
+     "startLine": 661,
+     "endLine": 681
+    },
+    "className": "NvencSwDecodeConfig",
+    "methodName": "getBaseOutputOptions",
+    "message": "adapter method NvencSwDecodeConfig.getBaseOutputOptions: 2 branches, 1 comparisons, 0 arithmetic, 0 validation throws"
+   }
+  },
+  {
+   "id": "W32",
+   "family": "apg2",
+   "rule": "component-adp-cycle",
+   "kind": "folder",
+   "repo": "hoppscotch-backend",
+   "file": "src/auth/auth.controller.ts",
+   "line": 27,
+   "source": {
+    "component": "auth",
+    "target": "guards",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "auth",
+    "_file": "src/auth/auth.controller.ts",
+    "_line": 27,
+    "_evidence": [
+     {
+      "file": "src/auth/auth.controller.ts",
+      "target": "src/guards/throttler-behind-proxy.guard.ts",
+      "line": 27
+     }
+    ]
+   }
+  },
+  {
+   "id": "W33",
+   "family": "cheap",
+   "rule": "name-behaviour",
+   "kind": "controller-business-logic",
+   "repo": "standardnotes-auth",
+   "file": "src/Infra/InversifyExpressUtils/Base/BaseAuthController.ts",
+   "line": 330,
+   "source": {
+    "proxy": "name-behaviour",
+    "kind": "controller-business-logic",
+    "score": 1.6666666666666667,
+    "evidence": {
+     "file": "src/Infra/InversifyExpressUtils/Base/BaseAuthController.ts",
+     "startLine": 330,
+     "endLine": 416
+    },
+    "className": "BaseAuthController",
+    "methodName": "register",
+    "message": "controller BaseAuthController.register has logic density 5"
+   }
+  },
+  {
+   "id": "W34",
+   "family": "apg2",
+   "rule": "component-adp-cycle",
+   "kind": "folder",
+   "repo": "immich-server",
+   "file": "src/maintenance/maintenance-auth.guard.ts",
+   "line": 7,
+   "source": {
+    "component": "maintenance",
+    "target": "repositories",
+    "kind": "folder",
+    "imports": 12,
+    "filePath": "maintenance",
+    "_file": "src/maintenance/maintenance-auth.guard.ts",
+    "_line": 7,
+    "_evidence": [
+     {
+      "file": "src/maintenance/maintenance-auth.guard.ts",
+      "target": "src/repositories/logging.repository.ts",
+      "line": 7
+     },
+     {
+      "file": "src/maintenance/maintenance-websocket.repository.ts",
+      "target": "src/repositories/event.repository.ts",
+      "line": 10
+     },
+     {
+      "file": "src/maintenance/maintenance-websocket.repository.ts",
+      "target": "src/repositories/app.repository.ts",
+      "line": 12
+     }
+    ]
+   }
+  },
+  {
+   "id": "W35",
+   "family": "cheap",
+   "rule": "communities",
+   "kind": "community-component-mismatch",
+   "repo": "standardnotes-auth",
+   "file": "src/Controller/AuthenticatorsController.ts",
+   "line": 1,
+   "source": {
+    "proxy": "communities",
+    "kind": "community-component-mismatch",
+    "score": 0.5227272727272727,
+    "evidence": {
+     "file": "src/Controller/AuthenticatorsController.ts",
+     "startLine": 1,
+     "endLine": 1
+    },
+    "message": "src/Controller/AuthenticatorsController.ts (component Controller) clusters with community 5 whose majority component is Domain"
+   }
+  },
+  {
+   "id": "W36",
+   "family": "cheap",
+   "rule": "shared-literals",
+   "kind": "shared-string-literal",
+   "repo": "podkrepi-api",
+   "file": "src/campaign/campaign.controller.ts",
+   "line": 178,
+   "source": {
+    "proxy": "shared-literals",
+    "kind": "shared-string-literal",
+    "score": 0.0392156862745098,
+    "evidence": {
+     "file": "src/campaign/campaign.controller.ts",
+     "startLine": 178,
+     "endLine": 178
+    },
+    "className": "CampaignController",
+    "methodName": "subscribeToCampaignNotifications",
+    "message": "literal \"Notification consent should be provided\" also used in component(s) notifications",
+    "related": {
+     "file": "src/notifications/notifications.controller.ts",
+     "startLine": 34,
+     "endLine": 34,
+     "className": "MarketingNotificationsController",
+     "methodName": "subscribePublic"
+    },
+    "_importGraphSees": false
+   }
+  },
+  {
+   "id": "W37",
+   "family": "cheap",
+   "rule": "name-behaviour",
+   "kind": "controller-business-logic",
+   "repo": "podkrepi-api",
+   "file": "src/campaign-application/campaign-application.controller.ts",
+   "line": 133,
+   "source": {
+    "proxy": "name-behaviour",
+    "kind": "controller-business-logic",
+    "score": 1.6666666666666667,
+    "evidence": {
+     "file": "src/campaign-application/campaign-application.controller.ts",
+     "startLine": 133,
+     "endLine": 162
+    },
+    "className": "CampaignApplicationController",
+    "methodName": "update",
+    "message": "controller CampaignApplicationController.update has logic density 5"
+   }
+  },
+  {
+   "id": "W38",
+   "family": "cheap",
+   "rule": "name-behaviour",
+   "kind": "repository-does-outbound-io",
+   "repo": "immich-server",
+   "file": "src/repositories/oauth.repository.ts",
+   "line": 133,
+   "source": {
+    "proxy": "name-behaviour",
+    "kind": "repository-does-outbound-io",
+    "score": 1,
+    "evidence": {
+     "file": "src/repositories/oauth.repository.ts",
+     "startLine": 133,
+     "endLine": 133
+    },
+    "className": "OAuthRepository",
+    "methodName": "getProfilePicture",
+    "message": "OAuthRepository is named a repository but calls fetch fetch (http-client)"
+   }
+  },
+  {
+   "id": "W39",
+   "family": "cheap",
+   "rule": "communities",
+   "kind": "community-component-mismatch",
+   "repo": "hedgedoc-backend",
+   "file": "src/config/mock/note.config.mock.ts",
+   "line": 1,
+   "source": {
+    "proxy": "communities",
+    "kind": "community-component-mismatch",
+    "score": 0.475,
+    "evidence": {
+     "file": "src/config/mock/note.config.mock.ts",
+     "startLine": 1,
+     "endLine": 1
+    },
+    "message": "src/config/mock/note.config.mock.ts (component config) clusters with community 1 whose majority component is dtos"
+   }
+  },
+  {
+   "id": "W40",
+   "family": "apg2",
+   "rule": "deep-import-inferred-api",
+   "kind": "folder",
+   "repo": "immich-server",
+   "file": "src/services/metadata.service.ts",
+   "line": 30,
+   "source": {
+    "filePath": "src/services/metadata.service.ts",
+    "target": "src/schema/tables/asset-face.table.ts",
+    "component": "schema",
+    "kind": "folder",
+    "line": 30,
+    "_file": "src/services/metadata.service.ts",
+    "_line": 30
+   }
+  },
+  {
+   "id": "W41",
+   "family": "cheap",
+   "rule": "cohesion",
+   "kind": "broad-responsibility",
+   "repo": "hedgedoc-backend",
+   "file": "src/api/public/media/media.controller.ts",
+   "line": 34,
+   "source": {
+    "proxy": "cohesion",
+    "kind": "broad-responsibility",
+    "score": 5,
+    "evidence": {
+     "file": "src/api/public/media/media.controller.ts",
+     "startLine": 34,
+     "endLine": 126
+    },
+    "className": "MediaController",
+    "message": "MediaController: 0 I/O categories, 5 other components"
+   }
+  },
+  {
+   "id": "W42",
+   "family": "cheap",
+   "rule": "clones",
+   "kind": "cross-component-exact-structural",
+   "repo": "immich-server",
+   "file": "src/repositories/access.repository.ts",
+   "line": 79,
+   "source": {
+    "proxy": "clones",
+    "kind": "cross-component-exact-structural",
+    "score": 1,
+    "evidence": {
+     "file": "src/repositories/access.repository.ts",
+     "startLine": 79,
+     "endLine": 81
+    },
+    "className": "AlbumAccess",
+    "methodName": "checkOwnerAccess",
+    "message": "fragment clone (exact-structural, similarity 1.00) of checkAccess in component utils",
+    "related": {
+     "file": "src/utils/access.ts",
+     "startLine": 103,
+     "endLine": 105,
+     "methodName": "checkAccess"
+    },
+    "_importGraphSees": true
+   }
+  },
+  {
+   "id": "W43",
+   "family": "cheap",
+   "rule": "communities",
+   "kind": "community-component-mismatch",
+   "repo": "hoppscotch-backend",
+   "file": "src/auth/guards/github-sso.guard.ts",
+   "line": 1,
+   "source": {
+    "proxy": "communities",
+    "kind": "community-component-mismatch",
+    "score": 0.28125,
+    "evidence": {
+     "file": "src/auth/guards/github-sso.guard.ts",
+     "startLine": 1,
+     "endLine": 1
+    },
+    "message": "src/auth/guards/github-sso.guard.ts (component auth) clusters with community 0 whose majority component is infra-config"
+   }
+  },
+  {
+   "id": "W44",
+   "family": "cheap",
+   "rule": "name-behaviour",
+   "kind": "controller-business-logic",
+   "repo": "hoppscotch-backend",
+   "file": "src/infra-config/onboarding.controller.ts",
+   "line": 58,
+   "source": {
+    "proxy": "name-behaviour",
+    "kind": "controller-business-logic",
+    "score": 1,
+    "evidence": {
+     "file": "src/infra-config/onboarding.controller.ts",
+     "startLine": 58,
+     "endLine": 99
+    },
+    "className": "OnboardingController",
+    "methodName": "updateOnboardingConfig",
+    "message": "controller OnboardingController.updateOnboardingConfig has logic density 3"
+   }
+  },
+  {
+   "id": "W45",
+   "family": "apg2",
+   "rule": "deep-import-inferred-api",
+   "kind": "folder",
+   "repo": "standardnotes-auth",
+   "file": "src/Infra/InversifyExpressUtils/AnnotatedAuthenticatorsController.ts",
+   "line": 10,
+   "source": {
+    "filePath": "src/Infra/InversifyExpressUtils/AnnotatedAuthenticatorsController.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 10,
+    "_file": "src/Infra/InversifyExpressUtils/AnnotatedAuthenticatorsController.ts",
+    "_line": 10
+   }
+  },
+  {
+   "id": "W46",
+   "family": "apg2",
+   "rule": "undeclared-async-coupling",
+   "kind": "layer",
+   "repo": "domain-driven-hexagon",
+   "file": "src/modules/user/commands/create-user/create-user.cli.controller.ts",
+   "line": 4,
+   "source": {
+    "filePath": "src/modules/user/commands/create-user/create-user.cli.controller.ts",
+    "subscriberComponent": "application",
+    "publisherComponent": "presentation",
+    "kind": "layer",
+    "transport": "cqrs-command",
+    "channel": "CreateUserCommand",
+    "target": "src/modules/user/commands/create-user/create-user.service.ts",
+    "_file": "src/modules/user/commands/create-user/create-user.cli.controller.ts",
+    "_line": 4,
+    "_importGraphSees": false
+   }
+  },
+  {
+   "id": "W47",
+   "family": "apg2",
+   "rule": "undeclared-async-coupling",
+   "kind": "layer",
+   "repo": "domain-driven-hexagon",
+   "file": "src/modules/user/commands/create-user/create-user.http.controller.ts",
+   "line": 12,
+   "source": {
+    "filePath": "src/modules/user/commands/create-user/create-user.http.controller.ts",
+    "subscriberComponent": "application",
+    "publisherComponent": "presentation",
+    "kind": "layer",
+    "transport": "cqrs-command",
+    "channel": "CreateUserCommand",
+    "target": "src/modules/user/commands/create-user/create-user.service.ts",
+    "_file": "src/modules/user/commands/create-user/create-user.http.controller.ts",
+    "_line": 12,
+    "_importGraphSees": false
+   }
+  },
+  {
+   "id": "W48",
+   "family": "cheap",
+   "rule": "name-behaviour",
+   "kind": "controller-business-logic",
+   "repo": "bitloops-ddd-backend",
+   "file": "src/api/todo.sse.controller.ts",
+   "line": 124,
+   "source": {
+    "proxy": "name-behaviour",
+    "kind": "controller-business-logic",
+    "score": 1.6666666666666667,
+    "evidence": {
+     "file": "src/api/todo.sse.controller.ts",
+     "startLine": 124,
+     "endLine": 146
+    },
+    "className": "TodoSSEController",
+    "methodName": "subscribe",
+    "message": "controller TodoSSEController.subscribe has logic density 5"
+   }
+  },
+  {
+   "id": "W49",
+   "family": "apg2",
+   "rule": "boundary-type-leak",
+   "kind": null,
+   "repo": "hoppscotch-backend",
+   "file": "src/published-docs/published-docs.service.ts",
+   "line": 762,
+   "source": {
+    "filePath": "src/published-docs/published-docs.service.ts",
+    "member": "PublishedDocsService.deletePublishedDoc",
+    "leakedType": "User",
+    "target": "src/user/user.model.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/published-docs/published-docs.service.ts",
+    "_line": 762,
+    "_importGraphSees": true
+   }
+  },
+  {
+   "id": "W50",
+   "family": "cheap",
+   "rule": "communities",
+   "kind": "community-component-mismatch",
+   "repo": "podkrepi-api",
+   "file": "src/statistics/dto/group-by.dto.ts",
+   "line": 1,
+   "source": {
+    "proxy": "communities",
+    "kind": "community-component-mismatch",
+    "score": 0.1875,
+    "evidence": {
+     "file": "src/statistics/dto/group-by.dto.ts",
+     "startLine": 1,
+     "endLine": 1
+    },
+    "message": "src/statistics/dto/group-by.dto.ts (component statistics) clusters with community 5 whose majority component is donation-wish"
+   }
+  },
+  {
+   "id": "W51",
+   "family": "apg2",
+   "rule": "boundary-type-leak",
+   "kind": null,
+   "repo": "hedgedoc-backend",
+   "file": "src/realtime/realtime-note/realtime-note.service.ts",
+   "line": 47,
+   "source": {
+    "filePath": "src/realtime/realtime-note/realtime-note.service.ts",
+    "member": "RealtimeNoteService.saveRealtimeNote",
+    "leakedType": "RealtimeNote",
+    "target": "src/realtime/realtime-note/realtime-note.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/realtime/realtime-note/realtime-note.service.ts",
+    "_line": 47,
+    "_importGraphSees": true
+   }
+  },
+  {
+   "id": "W52",
+   "family": "cheap",
+   "rule": "clones",
+   "kind": "cross-component-exact-structural",
+   "repo": "medplum-server",
+   "file": "src/fhir/operations/project-rate-limits.ts",
+   "line": 171,
+   "source": {
+    "proxy": "clones",
+    "kind": "cross-component-exact-structural",
+    "score": 1,
+    "evidence": {
+     "file": "src/fhir/operations/project-rate-limits.ts",
+     "startLine": 171,
+     "endLine": 173
+    },
+    "methodName": "loadMembershipUserConfigurations",
+    "message": "fragment clone (exact-structural, similarity 1.00) of buildTracingExtension in component (root)",
+    "related": {
+     "file": "src/context.ts",
+     "startLine": 239,
+     "endLine": 241,
+     "methodName": "buildTracingExtension"
+    },
+    "_importGraphSees": true
+   }
+  },
+  {
+   "id": "W53",
+   "family": "apg2",
+   "rule": "component-main-sequence-distance",
+   "kind": "folder",
+   "repo": "immich-server",
+   "file": "src/schema/enums.ts",
+   "line": 1,
+   "source": {
+    "component": "schema",
+    "kind": "folder",
+    "abstractness": 0.028,
+    "instability": 0.153,
+    "distance": 0.819,
+    "filePath": "schema",
+    "_file": "src/schema/enums.ts",
+    "_line": 1,
+    "_evidence": {
+     "files": 168,
+     "sample": [
+      "src/schema/enums.ts",
+      "src/schema/functions.ts",
+      "src/schema/index.ts",
+      "src/schema/migrations/1744910873969-InitialMigration.ts",
+      "src/schema/migrations/1744991379464-AddNotificationsTable.ts"
+     ]
+    }
+   }
+  },
+  {
+   "id": "W54",
+   "family": "cheap",
+   "rule": "logic-density",
+   "kind": "controller-logic-density",
+   "repo": "podkrepi-api",
+   "file": "src/expenses/expenses.controller.ts",
+   "line": 124,
+   "source": {
+    "proxy": "logic-density",
+    "kind": "controller-logic-density",
+    "score": 1.6666666666666667,
+    "evidence": {
+     "file": "src/expenses/expenses.controller.ts",
+     "startLine": 124,
+     "endLine": 137
+    },
+    "className": "ExpensesController",
+    "methodName": "verifyCampaignOwnership",
+    "message": "controller method ExpensesController.verifyCampaignOwnership: 3 branches, 0 comparisons, 0 arithmetic, 2 validation throws"
+   }
+  },
+  {
+   "id": "W55",
+   "family": "apg2",
+   "rule": "io-outside-adapters",
+   "kind": null,
+   "repo": "reactive-resume-api",
+   "file": "src/features/agent/runs.ts",
+   "line": 34,
+   "source": {
+    "filePath": "src/features/agent/runs.ts",
+    "member": "claimActiveAgentRun",
+    "layer": "business",
+    "category": "db",
+    "apis": [
+     "drizzle-orm:and",
+     "drizzle-orm:eq",
+     "drizzle-orm:isNull"
+    ],
+    "line": 34,
+    "lines": [
+     34,
+     35,
+     36,
+     37,
+     38,
+     39
+    ],
+    "_file": "src/features/agent/runs.ts",
+    "_line": 34,
+    "_importGraphSees": true
+   }
+  },
+  {
+   "id": "W56",
+   "family": "apg2",
+   "rule": "io-outside-adapters",
+   "kind": null,
+   "repo": "awesome-nest-boilerplate",
+   "file": "src/database/migrations/1641994291086-add-posts-table.ts",
+   "line": 44,
+   "source": {
+    "filePath": "src/database/migrations/1641994291086-add-posts-table.ts",
+    "member": "AddPostsTable1641994291086.down",
+    "layer": "domain",
+    "category": "db",
+    "apis": [
+     "typeorm:queryRunner.query"
+    ],
+    "line": 44,
+    "lines": [
+     44,
+     46,
+     48,
+     50,
+     51,
+     52,
+     55
+    ],
+    "_file": "src/database/migrations/1641994291086-add-posts-table.ts",
+    "_line": 44,
+    "_importGraphSees": true
+   }
+  },
+  {
+   "id": "W57",
+   "family": "apg2",
+   "rule": "deep-import-inferred-api",
+   "kind": "folder",
+   "repo": "medplum-server",
+   "file": "src/migrations/data/v23.ts",
+   "line": 4,
+   "source": {
+    "filePath": "src/migrations/data/v23.ts",
+    "target": "src/workers/reindex.ts",
+    "component": "workers",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/migrations/data/v23.ts",
+    "_line": 4
+   }
+  },
+  {
+   "id": "W58",
+   "family": "cheap",
+   "rule": "clones",
+   "kind": "cross-component-near",
+   "repo": "hoppscotch-backend",
+   "file": "src/user-history/user-history.resolver.ts",
+   "line": 110,
+   "source": {
+    "proxy": "clones",
+    "kind": "cross-component-near",
+    "score": 0.8333333333333334,
+    "evidence": {
+     "file": "src/user-history/user-history.resolver.ts",
+     "startLine": 110,
+     "endLine": 117
+    },
+    "className": "UserHistoryResolver",
+    "methodName": "deleteAllUserHistory",
+    "message": "body clone (near, similarity 0.83) of TeamCollectionResolver.duplicateTeamCollection in component team-collection",
+    "related": {
+     "file": "src/team-collection/team-collection.resolver.ts",
+     "startLine": 353,
+     "endLine": 360,
+     "className": "TeamCollectionResolver",
+     "methodName": "duplicateTeamCollection"
+    },
+    "_importGraphSees": false
+   }
+  },
+  {
+   "id": "W59",
+   "family": "apg2",
+   "rule": "component-sdp-violation",
+   "kind": "layer",
+   "repo": "ts-express-starter-prisma",
+   "file": "src/server.ts",
+   "line": 4,
+   "source": {
+    "component": "config",
+    "target": "application",
+    "kind": "layer",
+    "fromInstability": 0.3,
+    "toInstability": 0.833,
+    "filePath": "config",
+    "_file": "src/server.ts",
+    "_line": 4,
+    "_evidence": [
+     {
+      "file": "src/server.ts",
+      "target": "src/utils/logger.ts",
+      "line": 4
+     },
+     {
+      "file": "src/server.ts",
+      "target": "src/app.ts",
+      "line": 5
+     },
+     {
+      "file": "src/server.ts",
+      "target": "src/routes/auth.route.ts",
+      "line": 6
+     }
+    ]
+   }
+  },
+  {
+   "id": "W60",
+   "family": "cheap",
+   "rule": "shared-literals",
+   "kind": "shared-string-literal",
+   "repo": "standardnotes-auth",
+   "file": "src/Infra/InversifyExpressUtils/Middleware/RequiredCrossServiceTokenMiddleware.ts",
+   "line": 17,
+   "source": {
+    "proxy": "shared-literals",
+    "kind": "shared-string-literal",
+    "score": 0.42857142857142855,
+    "evidence": {
+     "file": "src/Infra/InversifyExpressUtils/Middleware/RequiredCrossServiceTokenMiddleware.ts",
+     "startLine": 17,
+     "endLine": 17
+    },
+    "className": "RequiredCrossServiceTokenMiddleware",
+    "methodName": "handleMissingToken",
+    "message": "literal \"Invalid login credentials.\" also used in component(s) Controller, Domain",
+    "related": {
+     "file": "src/Controller/AuthController.ts",
+     "startLine": 76,
+     "endLine": 76,
+     "className": "AuthController",
+     "methodName": "recoveryKeyParams"
+    },
+    "_importGraphSees": false
+   }
+  },
+  {
+   "id": "W61",
+   "family": "cheap",
+   "rule": "logic-density",
+   "kind": "controller-logic-density",
+   "repo": "hoppscotch-backend",
+   "file": "src/infra-config/onboarding.controller.ts",
+   "line": 101,
+   "source": {
+    "proxy": "logic-density",
+    "kind": "controller-logic-density",
+    "score": 1,
+    "evidence": {
+     "file": "src/infra-config/onboarding.controller.ts",
+     "startLine": 101,
+     "endLine": 142
+    },
+    "className": "OnboardingController",
+    "methodName": "getOnboardingConfig",
+    "message": "controller method OnboardingController.getOnboardingConfig: 3 branches, 0 comparisons, 0 arithmetic, 0 validation throws"
+   }
+  },
+  {
+   "id": "W62",
+   "family": "cheap",
+   "rule": "cohesion",
+   "kind": "low-cohesion",
+   "repo": "medplum-server",
+   "file": "src/fhir/lookups/reference.ts",
+   "line": 45,
+   "source": {
+    "proxy": "cohesion",
+    "kind": "low-cohesion",
+    "score": 3,
+    "evidence": {
+     "file": "src/fhir/lookups/reference.ts",
+     "startLine": 45,
+     "endLine": 235
+    },
+    "className": "ReferenceTable",
+    "message": "ReferenceTable: LCOM4 3 over 8 methods ({getTableName, batchIndexResources, extractAllValues, extractValues, getExistingRows, batchInsertRows} {getColumnName} {isIndexed})"
+   }
+  },
+  {
+   "id": "W63",
+   "family": "cheap",
+   "rule": "shared-literals",
+   "kind": "shared-string-literal",
+   "repo": "medplum-server",
+   "file": "src/auth/register.ts",
+   "line": 64,
+   "source": {
+    "proxy": "shared-literals",
+    "kind": "shared-string-literal",
+    "score": 0.07692307692307693,
+    "evidence": {
+     "file": "src/auth/register.ts",
+     "startLine": 64,
+     "endLine": 64
+    },
+    "methodName": "registerNew",
+    "message": "literal \"openid offline_access\" also used in component(s) oauth",
+    "related": {
+     "file": "src/oauth/token.ts",
+     "startLine": 584,
+     "endLine": 584,
+     "methodName": "exchangeExternalAuthToken"
+    },
+    "_importGraphSees": false
+   }
+  },
+  {
+   "id": "W64",
+   "family": "apg2",
+   "rule": "nondeterminism-in-core",
+   "kind": null,
+   "repo": "podkrepi-api",
+   "file": "src/notifications/marketing_templates/scripts/upload-templates.ts",
+   "line": 7,
+   "source": {
+    "filePath": "src/notifications/marketing_templates/scripts/upload-templates.ts",
+    "member": "upload-templates.ts",
+    "layer": "application",
+    "category": "env",
+    "apis": [
+     "process.env"
+    ],
+    "line": 7,
+    "lines": [
+     7
+    ],
+    "_file": "src/notifications/marketing_templates/scripts/upload-templates.ts",
+    "_line": 7,
+    "_importGraphSees": false
+   }
+  },
+  {
+   "id": "W65",
+   "family": "apg2",
+   "rule": "component-main-sequence-distance",
+   "kind": "folder",
+   "repo": "medplum-server",
+   "file": "src/scim/routes.ts",
+   "line": 1,
+   "source": {
+    "component": "scim",
+    "kind": "folder",
+    "abstractness": 1,
+    "instability": 1,
+    "distance": 1,
+    "filePath": "scim",
+    "_file": "src/scim/routes.ts",
+    "_line": 1,
+    "_evidence": {
+     "files": 3,
+     "sample": [
+      "src/scim/routes.ts",
+      "src/scim/types.ts",
+      "src/scim/utils.ts"
+     ]
+    }
+   }
+  },
+  {
+   "id": "W66",
+   "family": "cheap",
+   "rule": "shared-literals",
+   "kind": "shared-number-literal",
+   "repo": "reactive-resume-api",
+   "file": "src/features/resume/slugs.ts",
+   "line": 11,
+   "source": {
+    "proxy": "shared-literals",
+    "kind": "shared-number-literal",
+    "score": 0.4,
+    "evidence": {
+     "file": "src/features/resume/slugs.ts",
+     "startLine": 11,
+     "endLine": 11
+    },
+    "message": "literal \"1000\" also used in component(s) middleware",
+    "related": {
+     "file": "src/middleware/rate-limit/index.ts",
+     "startLine": 84,
+     "endLine": 84,
+     "methodName": "consumePdfExportLimit"
+    },
+    "_importGraphSees": false
+   }
+  },
+  {
+   "id": "W67",
+   "family": "cheap",
+   "rule": "logic-density",
+   "kind": "adapter-logic-density",
+   "repo": "bitloops-ddd-backend",
+   "file": "src/lib/infra/nest-jetstream/buses/nats-streaming-integration-event-bus.ts",
+   "line": 128,
+   "source": {
+    "proxy": "logic-density",
+    "kind": "adapter-logic-density",
+    "score": 1.3333333333333333,
+    "evidence": {
+     "file": "src/lib/infra/nest-jetstream/buses/nats-streaming-integration-event-bus.ts",
+     "startLine": 128,
+     "endLine": 141
+    },
+    "className": "NatsStreamingIntegrationEventBus",
+    "methodName": "generateHeaders",
+    "message": "adapter method NatsStreamingIntegrationEventBus.generateHeaders: 3 branches, 1 comparisons, 0 arithmetic, 0 validation throws"
+   }
+  },
+  {
+   "id": "W68",
+   "family": "apg2",
+   "rule": "component-main-sequence-distance",
+   "kind": "folder",
+   "repo": "bitloops-ddd-backend",
+   "file": "src/lib/infra/nest-jetstream/index.ts",
+   "line": 1,
+   "source": {
+    "component": "lib",
+    "kind": "folder",
+    "abstractness": 0.185,
+    "instability": 0,
+    "distance": 0.815,
+    "filePath": "lib",
+    "_file": "src/lib/infra/nest-jetstream/index.ts",
+    "_line": 1,
+    "_evidence": {
+     "files": 128,
+     "sample": [
+      "src/lib/infra/nest-jetstream/index.ts",
+      "src/lib/infra/nest-jetstream/jetstream-core.module.ts",
+      "src/lib/infra/nest-jetstream/jetstream.constants.ts",
+      "src/lib/infra/nest-jetstream/jetstream.module.ts",
+      "src/lib/infra/nest-jetstream/jetstream.subscriptions.service.ts"
+     ]
+    }
+   }
+  }
+ ]
+}

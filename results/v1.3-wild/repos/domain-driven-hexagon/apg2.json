@@ -1,0 +1,331 @@
+{
+ "id": "domain-driven-hexagon",
+ "stats": {
+  "signatureUses": 41,
+  "components": 7,
+  "componentSource": "declared",
+  "dependsOn": 11,
+  "deepImports": 0,
+  "exportsSymbol": 0,
+  "channels": 3,
+  "async": {
+   "publishes": 7,
+   "subscribes": 3,
+   "dynamicNames": 1
+  },
+  "io": {
+   "byCategory": {
+    "db": 0,
+    "http-out": 0,
+    "fs": 0,
+    "env": 1,
+    "clock": 3,
+    "random": 5,
+    "process": 0
+   }
+  },
+  "timingsMs": {
+   "typeFlow": 19.8,
+   "components": 8.4,
+   "async": 58.2,
+   "io": 32
+  }
+ },
+ "params": {
+  "domainLayer": "domain",
+  "applicationLayers": [
+   "application"
+  ],
+  "infraLayer": "infrastructure",
+  "controllerLayer": "presentation",
+  "threshold": 0.7,
+  "allowedAsync": [],
+  "compositionRootLayers": [],
+  "compositionRootPatterns": [
+   "^(?:.*/)?(?:main|bootstrap|composition-root|compositionRoot|container|di)\\.(?:ts|tsx|mts|cts)$",
+   "^(?:.*/)?[^/]+\\.(?:module|container)\\.(?:ts|tsx|mts|cts)$"
+  ],
+  "testPatterns": [
+   "^(?:.*/)?[^/]*\\.(?:spec|test)\\.(?:ts|tsx|mts|cts)$",
+   "^(?:.*/)?(?:__tests__|__mocks__|test|tests)/.*$",
+   "^(?:.*/)?[Tt]est[A-Z._-][^/]*$"
+  ],
+  "aclPatterns": [],
+  "minTypes": 4
+ },
+ "components": [
+  {
+   "name": "domain",
+   "kind": "layer"
+  },
+  {
+   "name": "infrastructure",
+   "kind": "layer"
+  },
+  {
+   "name": "application",
+   "kind": "layer"
+  },
+  {
+   "name": "presentation",
+   "kind": "layer"
+  },
+  {
+   "name": "configs",
+   "kind": "folder"
+  },
+  {
+   "name": "libs",
+   "kind": "folder"
+  },
+  {
+   "name": "modules",
+   "kind": "folder"
+  }
+ ],
+ "parseCoverage": {
+  "total": 82,
+  "parsed": 82
+ },
+ "importResolution": {
+  "resolvedInternal": 182,
+  "external": 104,
+  "externalOutOfRootAlias": 0,
+  "unresolved": 0,
+  "droppedNoFileNode": 0,
+  "unsupportedDynamic": 0
+ },
+ "counts": {
+  "boundary-type-leak": 0,
+  "component-adp-cycle": 0,
+  "component-sdp-violation": 2,
+  "component-main-sequence-distance": 0,
+  "deep-import-declared-api": 0,
+  "deep-import-inferred-api": 0,
+  "undeclared-async-coupling": 3,
+  "io-outside-adapters": 0,
+  "nondeterminism-in-core": 8
+ },
+ "rows": {
+  "boundary-type-leak": [],
+  "component-adp-cycle": [],
+  "component-sdp-violation": [
+   {
+    "component": "domain",
+    "target": "application",
+    "kind": "layer",
+    "fromInstability": 0.05,
+    "toInstability": 0.611,
+    "filePath": "domain",
+    "_file": "src/libs/api/response.base.ts",
+    "_line": 2,
+    "_evidence": [
+     {
+      "file": "src/libs/api/response.base.ts",
+      "target": "src/libs/api/id.response.dto.ts",
+      "line": 2
+     }
+    ]
+   },
+   {
+    "component": "infrastructure",
+    "target": "application",
+    "kind": "layer",
+    "fromInstability": 0.333,
+    "toInstability": 0.611,
+    "filePath": "infrastructure",
+    "_file": "src/modules/wallet/database/wallet.repository.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/modules/wallet/database/wallet.repository.ts",
+      "target": "src/modules/wallet/database/wallet.repository.port.ts",
+      "line": 5
+     },
+     {
+      "file": "src/modules/wallet/database/wallet.repository.ts",
+      "target": "src/modules/wallet/domain/wallet.entity.ts",
+      "line": 6
+     },
+     {
+      "file": "src/modules/wallet/database/wallet.repository.ts",
+      "target": "src/modules/wallet/wallet.mapper.ts",
+      "line": 7
+     }
+    ]
+   }
+  ],
+  "component-main-sequence-distance": [],
+  "deep-import-declared-api": [],
+  "deep-import-inferred-api": [],
+  "undeclared-async-coupling": [
+   {
+    "filePath": "src/modules/user/commands/create-user/create-user.cli.controller.ts",
+    "subscriberComponent": "application",
+    "publisherComponent": "presentation",
+    "kind": "layer",
+    "transport": "cqrs-command",
+    "channel": "CreateUserCommand",
+    "target": "src/modules/user/commands/create-user/create-user.service.ts",
+    "_file": "src/modules/user/commands/create-user/create-user.cli.controller.ts",
+    "_line": 4,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/modules/user/commands/create-user/create-user.http.controller.ts",
+    "subscriberComponent": "application",
+    "publisherComponent": "presentation",
+    "kind": "layer",
+    "transport": "cqrs-command",
+    "channel": "CreateUserCommand",
+    "target": "src/modules/user/commands/create-user/create-user.service.ts",
+    "_file": "src/modules/user/commands/create-user/create-user.http.controller.ts",
+    "_line": 12,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/modules/user/commands/create-user/create-user.message.controller.ts",
+    "subscriberComponent": "application",
+    "publisherComponent": "presentation",
+    "kind": "layer",
+    "transport": "cqrs-command",
+    "channel": "CreateUserCommand",
+    "target": "src/modules/user/commands/create-user/create-user.service.ts",
+    "_file": "src/modules/user/commands/create-user/create-user.message.controller.ts",
+    "_line": 4,
+    "_importGraphSees": false
+   }
+  ],
+  "io-outside-adapters": [],
+  "nondeterminism-in-core": [
+   {
+    "filePath": "src/libs/application/context/ContextInterceptor.ts",
+    "member": "ContextInterceptor.intercept",
+    "layer": "domain",
+    "category": "random",
+    "apis": [
+     "nanoid:nanoid"
+    ],
+    "line": 20,
+    "lines": [
+     20
+    ],
+    "_file": "src/libs/application/context/ContextInterceptor.ts",
+    "_line": 20,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/libs/ddd/command.base.ts",
+    "member": "Command",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 50,
+    "lines": [
+     50
+    ],
+    "_file": "src/libs/ddd/command.base.ts",
+    "_line": 50,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/libs/ddd/command.base.ts",
+    "member": "Command",
+    "layer": "domain",
+    "category": "random",
+    "apis": [
+     "crypto:randomUUID"
+    ],
+    "line": 46,
+    "lines": [
+     46
+    ],
+    "_file": "src/libs/ddd/command.base.ts",
+    "_line": 46,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/libs/ddd/domain-event.base.ts",
+    "member": "DomainEvent",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 50,
+    "lines": [
+     50
+    ],
+    "_file": "src/libs/ddd/domain-event.base.ts",
+    "_line": 50,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/libs/ddd/domain-event.base.ts",
+    "member": "DomainEvent",
+    "layer": "domain",
+    "category": "random",
+    "apis": [
+     "crypto:randomUUID"
+    ],
+    "line": 44,
+    "lines": [
+     44
+    ],
+    "_file": "src/libs/ddd/domain-event.base.ts",
+    "_line": 44,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/libs/ddd/entity.base.ts",
+    "member": "Entity",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 33,
+    "lines": [
+     33
+    ],
+    "_file": "src/libs/ddd/entity.base.ts",
+    "_line": 33,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/libs/utils/dotenv.ts",
+    "member": "dotenv.ts",
+    "layer": "domain",
+    "category": "env",
+    "apis": [
+     "process.env"
+    ],
+    "line": 7,
+    "lines": [
+     7
+    ],
+    "_file": "src/libs/utils/dotenv.ts",
+    "_line": 7,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/modules/wallet/domain/wallet.entity.ts",
+    "member": "WalletEntity.create",
+    "layer": "application",
+    "category": "random",
+    "apis": [
+     "crypto:randomUUID"
+    ],
+    "line": 20,
+    "lines": [
+     20
+    ],
+    "_file": "src/modules/wallet/domain/wallet.entity.ts",
+    "_line": 20,
+    "_importGraphSees": true
+   }
+  ]
+ }
+}

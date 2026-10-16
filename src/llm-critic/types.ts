@@ -6,6 +6,8 @@ import type { PipelineError } from '../shared/errors/domain-result.js';
 import type { VCRMode } from '../shared/types/llm-config.js';
 import type { JudgeUnitKind } from '../shared/types/enums.js';
 import type { JudgeGraphView } from './judge-graph.js';
+import type { JudgeVersion } from './judge-v2.js';
+import type { CheapFlag } from '../apg-enrich/cheap/types.js';
 import {
   DEFAULT_CASSETTE_DIR, EXCERPT_MAX_NODES, JUDGE_EFFORT, JUDGE_MAX_TOKENS, JUDGE_MODEL, JUDGE_TIMEOUT_MS,
   JUDGE_TOKEN_BUDGET, MAX_CONCURRENCY, MIN_SIZE_TOKENS, RUNS_PER_EVALUATION, SELECTION_SEED, UNIT_CAP,
@@ -35,6 +37,8 @@ export interface NeuronalRunOptions {
   readonly cassette: { readonly mode: VCRMode; readonly dir: string; readonly omitPrompt: boolean };
   readonly baseline?: readonly BaselineSelection[];        // variant run (BR-U4-SEL-07)
   readonly evaluatorSpecLayers: readonly LayerDefinition[]; // layer model and module roots (CTX-07, SEL-03)
+  /** Rubric and prompt version (v1.3): `v1` is the frozen judge and the default; `v2` is `judge-v2.ts`. */
+  readonly judgeVersion: JudgeVersion;
 }
 
 /** The judge run settings the CLI parses (`parseLLMOptions().run`, DE §5.6); the C9 hunks pass them on. */
@@ -47,6 +51,8 @@ export interface JudgeRunSettings {
     readonly projectId?: string;
   };
   readonly baselineReport?: string;         // --judge-baseline-report
+  /** --judge-version (v1.3); absent means `v1`, the frozen judge. */
+  readonly judgeVersion?: JudgeVersion;
 }
 
 export const DEFAULT_NEURONAL_RUN_OPTIONS: NeuronalRunOptions = Object.freeze({
@@ -64,6 +70,7 @@ export const DEFAULT_NEURONAL_RUN_OPTIONS: NeuronalRunOptions = Object.freeze({
   repetition: 0,
   cassette: Object.freeze({ mode: 'record', dir: DEFAULT_CASSETTE_DIR, omitPrompt: false }),
   evaluatorSpecLayers: Object.freeze([]),
+  judgeVersion: 'v1',
 });
 
 export interface NeuronalEvalInput {
@@ -82,6 +89,11 @@ export interface NeuronalEvalInput {
   readonly adrProse?: Readonly<Record<string, string>>;
   /** Values scrubbed from messages besides the built-in patterns (CAS-07); default from `process.env`. */
   readonly knownSecrets?: readonly string[];
+  /**
+   * Judge v2 only: the cheap-proxy flags of the project (`enrichCheap(...).flags`). When absent, a v2 run computes
+   * them with `extractAndEnrich(projectRoot)`; a failure there leaves the unit with no flag and a warning.
+   */
+  readonly cheapFlags?: readonly CheapFlag[];
   // Shorthands kept for the callers written before Step 21 (router, U3 commands); `options` wins.
   readonly runsPerEvaluation?: number;
   readonly vcrMode?: VCRMode;

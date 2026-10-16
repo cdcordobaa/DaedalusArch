@@ -121,7 +121,26 @@ async function evaluate(copy: string, spec: string, tsconfig: string, uri: strin
   return { findings, tiers: parsed.tiers };
 }
 
-function scoreUnder(label: string, graph: IseGraph, layers: readonly InferredLayer[], ev: { findings: Finding[]; tiers: Tiers }) {
+/** One project's figures under one layer model (the `extrinsic` / `intrinsic` entries of the output). */
+interface Score {
+  label: string;
+  style: string | null;
+  verdict: string;
+  blockingAhs: number | null;
+  layeredFiles: number;
+  checkedSites: number;
+  violatedSites: string[];
+  violatedInChecked: number;
+  siteRatio: number | null;
+  blockingFindings: number;
+  advisoryFindings: number;
+  blockingByRule: Record<string, number>;
+  advisoryByRule: Record<string, number>;
+  blockingPerFile: Record<string, number>;
+  advisoryPerFile: Record<string, number>;
+}
+
+function scoreUnder(label: string, graph: IseGraph, layers: readonly InferredLayer[], ev: { findings: Finding[]; tiers: Tiers }): Score {
   const layerOf = annotate(graph.files, layers);
   const n = sitesOf(graph, layerOf);
   const blockingRules = new Set(ev.tiers.blocking.rules.map((r) => r.functionId));

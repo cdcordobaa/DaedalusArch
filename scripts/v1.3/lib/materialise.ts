@@ -27,7 +27,7 @@ export function directoryTarget(root: string): PatchTarget {
       fs.mkdirSync(path.dirname(abs), { recursive: true });
       fs.writeFileSync(abs, content);
     },
-    remove: (rel) => fs.rmSync(resolve(rel), { force: true }),
+    remove: (rel) => { fs.rmSync(resolve(rel), { force: true }); },
   };
 }
 

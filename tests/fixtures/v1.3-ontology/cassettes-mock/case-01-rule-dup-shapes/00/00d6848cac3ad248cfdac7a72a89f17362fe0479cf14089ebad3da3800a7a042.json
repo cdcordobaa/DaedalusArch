@@ -1,0 +1,45 @@
+{
+  "itemId": "2129045aa2d7117d",
+  "itemName": "ShippingPolicy",
+  "key": "00d6848cac3ad248cfdac7a72a89f17362fe0479cf14089ebad3da3800a7a042",
+  "parts": {
+    "model": "mock-ontology",
+    "pass": "rules",
+    "promptHash": "5601f99ee1be2564e945abf2b7855b48a6ed451490699c8420761798af4b712e",
+    "promptVersion": "ontology-v0.1",
+    "provider": "mock",
+    "runIndex": 0,
+    "schemaHash": "c3f8aec88fa6ccad475e6e4464d21b697a253f9d37cf5ad755b84638db034426",
+    "systemHash": "1c83830bfa99ad49d460d30b4c3202dea92d0aeeb55aa17addec0d18e16c9cd5"
+  },
+  "prompt": "## Task\nExtract the business rules enforced by the candidate methods below. A business rule is a policy of the business domain (a threshold, an eligibility condition, a limit, a rate), not a technical check (a null check, formatting, parsing). State each rule in plain business language with the subject it constrains, the comparison operator and threshold normalised to the most natural business unit, and the unit. Write the rule as the business would state it, independent of how the code is shaped (`!(a < b)` states `a >= b`).\nSet enforcedBy to the node id of the method that enforces the rule. Cite that method and quote the code that enforces it. Return an empty list when the candidates enforce no business rule.\n\n## Class\nClass ShippingPolicy (node 2129045aa2d7117d), file src/checkout/domain/shipping-policy.ts, lines 8-18.\nComponent: checkout. Declared layer: domain (kind domain).\nCandidate methods (proposed by the cheap proxies):\n- shippingFor (node 929c29b519518bca, lines 11-17, logic density 4)\n\n## Source\n=====SOURCE-BEGIN src/checkout/domain/shipping-policy.ts\n 8| export class ShippingPolicy {\n 9|   private readonly flatRate = 4.99;\n10| \n11|   shippingFor(lines: readonly CartLine[]): number {\n12|     const total = lines.reduce((acc, l) => acc + l.unitPrice * l.quantity, 0);\n13|     if (total >= 50) {\n14|       return 0;\n15|     }\n16|     return this.flatRate;\n17|   }\n18| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-15T00:00:00.000Z",
+  "resolvedModel": "mock-ontology",
+  "response": {
+    "rules": [
+      {
+        "confidence": 0.85,
+        "enforcedBy": "929c29b519518bca",
+        "evidence": [
+          {
+            "endLine": 13,
+            "file": "src/checkout/domain/shipping-policy.ts",
+            "nodeId": "929c29b519518bca",
+            "quote": "if (total >= 50) {",
+            "startLine": 13
+          }
+        ],
+        "operator": ">=",
+        "statement": "Shipping is free when the order total is at least 50",
+        "subject": "order total",
+        "threshold": 50,
+        "unit": "currency units"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 355,
+    "outputTokens": 90
+  }
+}
