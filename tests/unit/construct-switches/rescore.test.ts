@@ -73,6 +73,27 @@ describe('construct re-score of after-member-facts', () => {
     expect(readRaw(path.join(BASE, 'raw'), 'clean-architecture', 'clean').length).toBeGreaterThan(0);
   });
 
+  it('extras.actual holds every variant\'s tool rows: the raw file at the status quo, the same rows on the forced path', async () => {
+    const plain = await rescore({ repoRoot: REPO, base: BASE, answers: STATUS_QUO_ANSWERS });
+    const forced = await rescore({ repoRoot: REPO, base: BASE, answers: STATUS_QUO_ANSWERS, forceGeneralPath: true, graphs: emptyGraphs });
+    expect(Object.keys(plain.extras.actual)).toHaveLength(71);
+    for (const [k, rows] of Object.entries(plain.extras.actual)) {
+      const [style, variant] = k.split('/') as [string, string];
+      expect(rows).toEqual(readRaw(path.join(BASE, 'raw'), style, variant));
+      const sorted = (xs: readonly unknown[]): string[] => xs.map((x) => JSON.stringify(x)).sort();
+      expect(sorted(forced.extras.actual[k] ?? [])).toEqual(sorted(rows));
+    }
+  });
+
+  it('extras.actual is not written to construct-switches.json', async () => {
+    const answers = withAnswers({ Q8: 'B' });
+    const r = await rescore({ repoRoot: REPO, base: BASE, answers, graphs: emptyGraphs });
+    const out = path.join(tmp, 'q8b');
+    writeRescore(out, r, HEADER, answers);
+    const written = JSON.parse(fs.readFileSync(path.join(out, 'construct-switches.json'), 'utf8')) as Record<string, unknown>;
+    expect(Object.keys(written).sort()).toEqual(['answers', 'changes', 'notApplicable', 'scope']);
+  });
+
   it('Q8 B: the three FLOWS_TO detections of FF-P06 are listed N/A with their manifest rows, not scored', async () => {
     const r = await rescore({ repoRoot: REPO, base: BASE, answers: withAnswers({ Q8: 'B' }), graphs: emptyGraphs });
     const na = Object.entries(r.extras.notApplicable);

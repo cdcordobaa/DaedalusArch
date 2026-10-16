@@ -32,6 +32,13 @@ import { ruleTier } from '../../../src/scoring-engine/rule-tiers.js';
 import type { RuleTier } from '../../../src/scoring-engine/rule-tiers.js';
 
 export const REFERENCE_ROOT = 'tests/fixtures/v1.3-reference';
+/**
+ * The development-set expansion (devset-b): the same five styles and on-disk formats, a copy of each clean project,
+ * and new variants only. Kept apart so the 71 cases under REFERENCE_ROOT and their results stay unchanged. Each style
+ * directory also holds `devset-b.json` (the role of every variant: violation, look-alike or clean; read by
+ * scripts/v1.3/devset-b-score.ts, not by this loader).
+ */
+export const DEVSET_B_ROOT = 'tests/fixtures/v1.3-devset-b';
 /** Styles stored in the patch format (U-C2). */
 export const PATCH_REFERENCE_STYLES = ['clean-architecture', 'layered', 'nestjs', 'hexagonal'] as const;
 /** Styles stored in the overlay format (U-C1). */

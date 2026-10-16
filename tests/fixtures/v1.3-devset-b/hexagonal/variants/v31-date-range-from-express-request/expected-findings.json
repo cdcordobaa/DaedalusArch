@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "variant": "v31-date-range-from-express-request",
+  "kind": "violation",
+  "plants": "FF-P01",
+  "description": "DateRange (domain value object) gets a static fromRequest(request: Request) factory with a type-only import from express.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P01",
+      "ruleName": "domain-purity",
+      "file": "src/domain/model/DateRange.ts",
+      "target": "express",
+      "reason": "The core imports a web framework package (express is forbidden by the hexagonal preset), even as a type-only import."
+    }
+  ]
+}

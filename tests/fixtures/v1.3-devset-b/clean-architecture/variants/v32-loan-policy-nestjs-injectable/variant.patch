@@ -1,0 +1,12 @@
+--- a/src/domain/services/LoanPolicy.ts
++++ b/src/domain/services/LoanPolicy.ts
+@@ -1,7 +1,9 @@
++import { Injectable } from '@nestjs/common';
+ import { Loan } from '../entities/Loan';
+ import { Member } from '../entities/Member';
+ import { DomainError } from '../errors/DomainError';
+ 
++@Injectable()
+ export class LoanPolicy {
+   assertCanBorrow(member: Member, activeLoans: readonly Loan[], now: Date): void {
+     if (activeLoans.some((loan) => loan.isOverdue(now))) {

@@ -5,7 +5,7 @@
  * and the cited files with line numbers. It answers confirm or dismiss, one explanation paragraph, one fix suggestion
  * and the line ranges it relies on (`FE_SCHEMA`). The answer is grounded only when every citation names a shown file
  * and lines that exist, and every `file:line` or `line N` reference in the explanation exists too
- * (`checkGrounding`). An ungrounded answer is rejected: the finding is kept and the explanation is not shown.
+ * (`checkGrounding`), measured on the files as the prompt rendered them (`renderFilterExplainPrompt`). An ungrounded answer is rejected: the finding is kept and the explanation is not shown.
  *
  * The call goes through the same isolated Claude CLI route and cassette decorator as the judge, with the FE persona
  * and schema in the request (so its cassette keys never collide with a verdict call). The CLI's verdict interpreter
@@ -132,7 +132,23 @@ export function numberLines(content: string): string {
   return lines.map((l, i) => `${String(i + 1).padStart(width, ' ')}| ${l}`).join('\n');
 }
 
+/** A rendered FE prompt and the files as the model saw them (R19: truncated or omitted files are cut here too). */
+export interface RenderedFilterExplainPrompt {
+  readonly prompt: string;
+  /**
+   * The files the prompt shows, each cut to the complete lines it renders: a file truncated by the source budget keeps
+   * only the lines before the cut, and a file the budget left out is absent. Ground answers against this list.
+   */
+  readonly shown: readonly ShownFile[];
+}
+
+/** The FE prompt text (unchanged by R19: byte-identical to before). */
 export function buildFilterExplainPrompt(input: FilterExplainInput): string {
+  return renderFilterExplainPrompt(input).prompt;
+}
+
+/** The FE prompt and the shown files to pass to `checkGrounding` / `outcomeOf` (R19). */
+export function renderFilterExplainPrompt(input: FilterExplainInput): RenderedFilterExplainPrompt {
   const f = input.finding;
   const intent = RULE_INTENTS[f.functionId] ?? f.ruleName ?? f.functionId;
   const finding = [
@@ -149,20 +165,38 @@ export function buildFilterExplainPrompt(input: FilterExplainInput): string {
   ].join('\n');
   let remaining = FE_SOURCE_BUDGET_CHARS;
   const blocks: string[] = [];
+  const shown: ShownFile[] = [];
   for (const file of input.files) {
     let body = numberLines(file.content).split(SOURCE_DELIMITER_PREFIX).join(SOURCE_DELIMITER_ESCAPED);
+    const visible = visibleContent(file.content, body, remaining);
     if (body.length > remaining) body = `${body.slice(0, Math.max(0, remaining))}\n${TRUNCATION_MARKER}`;
     remaining -= body.length;
     const layer = input.fileLayers?.[file.path];
     blocks.push(`${SOURCE_BEGIN} ${file.path}${layer !== undefined ? ` (layer ${layer ?? 'none'})` : ''}=====\n${body}\n${SOURCE_END}`);
+    if (visible !== null) shown.push({ path: file.path, content: visible });
     if (remaining <= 0) break;
   }
-  return [
+  const prompt = [
     `## Finding\n${finding}`,
     `## Layer model\n${input.layerModel}`,
     `## Source (line-numbered)\n${blocks.length === 0 ? '(no file: the finding is about the whole project)' : blocks.join('\n\n')}`,
     `## Instructions\n${FE_INSTRUCTIONS}`,
   ].join('\n\n') + '\n';
+  return { prompt, shown };
+}
+
+/**
+ * The part of `content` the prompt renders when its numbered `body` is cut at `budget` characters: the whole content
+ * when it fits, else the complete lines before the cut (a partly shown last line is not counted), `null` when no line
+ * is complete. Escaping the source delimiter never adds or removes a line, so body lines map 1:1 to content lines.
+ */
+function visibleContent(content: string, body: string, budget: number): string | null {
+  if (body.length <= budget) return content;
+  const cut = Math.max(0, budget);
+  const head = body.slice(0, cut);
+  const complete = body.charAt(cut) === '\n' ? head.split('\n').length : head.split('\n').length - 1;
+  if (complete <= 0) return null;
+  return content.replace(/\r\n/g, '\n').split('\n').slice(0, complete).join('\n');
 }
 
 export interface FilterExplainAnswer {
@@ -197,33 +231,91 @@ export interface Grounding {
 /**
  * Grounding check: at least one citation when files were shown; every citation names a shown file with
  * 1 <= startLine <= endLine <= its line count; every `path:line[-line]` in the explanation names a shown file and
- * existing lines; every bare `line N` / `lines N-M` lies within the longest shown file.
+ * existing lines (`checkTextReferences`).
+ *
+ * `files` must be the files as the model saw them (`renderFilterExplainPrompt(...).shown`, R19), the finding's files
+ * first: a bare `line N` that no file name in its sentence attributes is checked against the first file (R20).
  */
 export function checkGrounding(answer: FilterExplainAnswer, files: readonly ShownFile[]): Grounding {
   const problems: string[] = [];
-  const count = new Map(files.map((f) => [f.path, f.content.replace(/\r\n/g, '\n').replace(/\n$/, '').split('\n').length]));
-  const maxLines = Math.max(0, ...count.values());
+  const count = lineCounts(files);
   if (files.length > 0 && answer.citations.length === 0) problems.push('no citation');
   for (const c of answer.citations) {
     const n = count.get(c.filePath);
     if (n === undefined) problems.push(`citation of a file not shown: ${c.filePath}`);
     else if (c.startLine < 1 || c.endLine < c.startLine || c.endLine > n) problems.push(`citation ${c.filePath}:${String(c.startLine)}-${String(c.endLine)} outside 1-${String(n)}`);
   }
-  const text = `${answer.explanation}\n${answer.fix}`;
+  problems.push(...checkTextReferences(`${answer.explanation}\n${answer.fix}`, files));
+  return { grounded: problems.length === 0, problems };
+}
+
+/** Line count of each shown file, by path. */
+export function lineCounts(files: readonly ShownFile[]): Map<string, number> {
+  return new Map(files.map((f) => [f.path, f.content.replace(/\r\n/g, '\n').replace(/\n$/, '').split('\n').length]));
+}
+
+/** The shown file a `path:line` token names (exact path, or a path ending in `/<token>`). */
+export function shownFileOf(token: string, files: readonly ShownFile[]): string | undefined {
+  return files.map((f) => f.path).find((p) => p === token || p.endsWith(`/${token}`));
+}
+
+/**
+ * Problems of the file and line references in free text (shared by filter-and-explain and the MCP neural tools):
+ * - every `path:line[-line]` names a shown file and lines that exist in it;
+ * - every bare `line N` / `lines N-M` lies within the file it refers to (R20): the shown file named last before it in
+ *   the same sentence (by path or file name), else the first shown file (the finding's own file). With one file shown
+ *   that file is the only candidate, as before.
+ */
+export function checkTextReferences(text: string, files: readonly ShownFile[]): string[] {
+  const problems: string[] = [];
+  const count = lineCounts(files);
   for (const m of text.matchAll(/([\w./@-]+\.(?:ts|tsx|js|mjs|cjs)):(\d+)(?:\s*[-–]\s*(\d+))?/g)) {
     const file = m[1] ?? '';
     const a = Number(m[2]);
     const b = m[3] !== undefined ? Number(m[3]) : a;
-    const shown = [...count.keys()].find((p) => p === file || p.endsWith(`/${file}`));
+    const shown = shownFileOf(file, files);
     if (shown === undefined) problems.push(`explanation cites a file not shown: ${file}`);
     else if (a < 1 || b < a || b > (count.get(shown) ?? 0)) problems.push(`explanation cites ${file}:${String(a)}${b !== a ? `-${String(b)}` : ''} outside 1-${String(count.get(shown) ?? 0)}`);
   }
   for (const m of text.matchAll(/\blines?\s+(\d+)(?:\s*(?:[-–]|to|and)\s*(\d+))?/gi)) {
     const a = Number(m[1]);
     const b = m[2] !== undefined ? Number(m[2]) : a;
-    if (a < 1 || Math.max(a, b) > maxLines) problems.push(`explanation cites line ${String(a)}${b !== a ? `-${String(b)}` : ''} beyond ${String(maxLines)}`);
+    const file = attributedFile(text, m.index, files);
+    const n = file === undefined ? 0 : count.get(file) ?? 0;
+    const where = file === undefined ? '' : ` of ${file}`;
+    if (a < 1 || Math.max(a, b) > n) problems.push(`explanation cites line ${String(a)}${b !== a ? `-${String(b)}` : ''}${where} beyond ${String(n)}`);
   }
-  return { grounded: problems.length === 0, problems };
+  return problems;
+}
+
+/** R20: the shown file a bare line reference at `at` refers to: the last one named earlier in its sentence, else the first. */
+function attributedFile(text: string, at: number, files: readonly ShownFile[]): string | undefined {
+  const before = text.slice(0, at);
+  const boundary = Math.max(before.lastIndexOf('\n'), ...[...before.matchAll(/[.!?;](?=\s)/g)].map((b) => b.index));
+  const sentence = before.slice(boundary + 1);
+  let best: { readonly path: string; readonly index: number } | undefined;
+  for (const f of files) {
+    const base = f.path.slice(f.path.lastIndexOf('/') + 1);
+    for (const name of new Set([f.path, base])) {
+      const index = lastMention(sentence, name);
+      if (index >= 0 && (best === undefined || index > best.index)) best = { path: f.path, index };
+    }
+  }
+  return best?.path ?? files[0]?.path;
+}
+
+/** Last index of `name` in `text` as a whole token (not part of a longer path or name), or -1. */
+function lastMention(text: string, name: string): number {
+  let from = text.length;
+  while (from >= 0) {
+    const i = text.lastIndexOf(name, from);
+    if (i < 0) return -1;
+    const prev = text.charAt(i - 1);
+    const next = text.charAt(i + name.length);
+    if (!/[\w./@-]/.test(prev) && !/[\w@-]/.test(next) && !(next === '.' && /\w/.test(text.charAt(i + name.length + 1)))) return i;
+    from = i - 1;
+  }
+  return -1;
 }
 
 export type FilterExplainOutcome =

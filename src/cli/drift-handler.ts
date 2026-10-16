@@ -91,7 +91,8 @@ async function handleLatestVsCurrentDrift(
   snapshotStore: FileSystemSnapshotStore,
 ): Promise<number> {
   // BR-U3-80: the fresh evaluation needs Neo4j; no default password, stop before any connection.
-  const neo4jPassword = requireEnv('NEO4J_PASSWORD');
+  // The in-process engine opens no connection and reads no password.
+  const neo4jPassword = opts.graphEngine === 'cypher-interp' ? '' : requireEnv('NEO4J_PASSWORD');
 
   // Load the most recent snapshot as baseline
   const latestResult = await snapshotStore.getLatestSnapshot();
@@ -116,6 +117,7 @@ async function handleLatestVsCurrentDrift(
     diff: false,
     verbose: false,
     apgStorePath: process.env['APG_STORE_PATH'] ?? '.apg-store',
+    ...(opts.graphEngine === 'cypher-interp' && { graphEngine: 'cypher-interp' as const }),
   });
 
   try {

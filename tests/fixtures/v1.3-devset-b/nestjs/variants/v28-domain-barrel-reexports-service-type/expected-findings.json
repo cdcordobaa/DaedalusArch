@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "style": "nestjs",
+  "variant": "v28-domain-barrel-reexports-service-type",
+  "kind": "violation",
+  "plants": "FF-S04",
+  "description": "A new domain barrel src/domain/index.ts re-exports domain types and also re-exports AttendeeSummary from AttendeesService (application) with export type ... from.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/domain/index.ts",
+      "target": "src/attendees/attendees.service.ts",
+      "reason": "Domain re-exports from an application file (export ... from is a dependency on that file): the dependency points outward."
+    },
+    {
+      "ruleId": "FF-S04",
+      "ruleName": "no-domain-outward-dep",
+      "file": "src/domain/index.ts",
+      "target": "src/attendees/attendees.service.ts",
+      "reason": "A domain file imports a file of another layer. (a re-export)"
+    }
+  ]
+}

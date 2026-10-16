@@ -1,0 +1,17 @@
+--- /dev/null
++++ b/src/infrastructure/persistence/TypeOrmBookRepository.ts
+@@ -0,0 +1,14 @@
++import { Repository } from 'typeorm';
++import { Book } from '../../domain/entities/Book';
++
++export class TypeOrmBookRepository {
++  constructor(private readonly table: Repository<Book>) {}
++
++  async findById(id: string): Promise<Book | undefined> {
++    return (await this.table.findOneBy({ id })) ?? undefined;
++  }
++
++  async save(book: Book): Promise<void> {
++    await this.table.save(book);
++  }
++}

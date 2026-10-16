@@ -1,0 +1,42 @@
+--- /dev/null
++++ b/src/persistence/business-hours/BusinessHoursGateway.ts
+@@ -0,0 +1,14 @@
++import { InMemoryDatabase } from '../Database';
++import { BusinessDay, BusinessHoursRecord } from './BusinessHoursRecord';
++
++export class BusinessHoursGateway {
++  constructor(private readonly db: InMemoryDatabase) {}
++
++  findByDay(day: BusinessDay): BusinessHoursRecord | undefined {
++    return this.db.table<BusinessHoursRecord>('business_hours').get(day);
++  }
++
++  save(record: BusinessHoursRecord): void {
++    this.db.table<BusinessHoursRecord>('business_hours').set(record.day, { ...record });
++  }
++}
+--- /dev/null
++++ b/src/persistence/business-hours/BusinessHoursRecord.ts
+@@ -0,0 +1,7 @@
++export type BusinessDay = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat';
++
++export interface BusinessHoursRecord {
++  day: BusinessDay;
++  opensAt: string;
++  closesAt: string;
++}
+--- a/src/persistence/records/OrderRecord.ts
++++ b/src/persistence/records/OrderRecord.ts
+@@ -1,3 +1,5 @@
++import type { BusinessDay } from '../business-hours/BusinessHoursRecord';
++
+ export interface OrderLineRecord {
+   sku: string;
+   quantity: number;
+@@ -10,5 +12,6 @@
+   status: 'placed' | 'cancelled';
+   createdAt: string;
+   discountCents: number;
++  dispatchDay?: BusinessDay;
+   lines: OrderLineRecord[];
+ }
