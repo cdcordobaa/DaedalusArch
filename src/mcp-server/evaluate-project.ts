@@ -37,6 +37,12 @@ export interface EvaluateDeps {
   readonly graphEngine?: GraphEngine;
   /** Required for `cypher-interp`: the in-process pipeline with its result cache. */
   readonly interp?: InterpEvaluator;
+  /**
+   * Opt-in, default off: on `cypher-interp`, forward `EvaluateInput.tsconfigPath` to the extractor (the Neo4j path
+   * always does). Off keeps the interpreter's earlier behaviour (`<project>/tsconfig.json` only). The loop harness on
+   * the interpreter needs it on: its work trees have no tsconfig of their own (Docs/v1.3/grid-scale-replay.md F1).
+   */
+  readonly interpTsconfig?: boolean;
 }
 
 export interface EvaluateInput {
@@ -213,8 +219,8 @@ async function evaluateInProcess(
 ): Promise<DomainResult<EvaluateProjectResult>> {
   if (deps.interp === undefined) return failure('ENGINE_UNAVAILABLE', 'cypher-interp selected but no in-process evaluator is wired.');
   const specPath = input.specPath;
-  // The explicit tsconfig and the uncapped violations reach the interpreter path exactly as the Neo4j path above.
-  const res = await deps.interp({ projectPath, specPath, scoringMode, ...(input.tsconfigPath !== undefined ? { tsconfigPath: input.tsconfigPath } : {}) });
+  const forwardTsconfig = deps.interpTsconfig === true && input.tsconfigPath !== undefined;
+  const res = await deps.interp({ projectPath, specPath, scoringMode, ...(forwardTsconfig ? { tsconfigPath: input.tsconfigPath } : {}) });
   if (!res.success) {
     const [first] = res.errors;
     return failure('PIPELINE_FAILED', res.errors.map((e) => e.message).join('; ') || (first?.code ?? 'evaluation failed'));

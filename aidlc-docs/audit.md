@@ -1569,3 +1569,10 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: v1.3 Study 2 readiness tooling (D4, D7, D9, S9). Development-set tooling, not a measurement.
 
 ---
+## v1.3 — S4 follow-up: gate the cypher-interp tsconfigPath pass-through (PR #206)
+**Timestamp**: 2026-10-16T13:45:00Z
+**User Input**: (scheduled check-in, no one present) Review on #206 held the PR because the tsconfigPath fix changed default cypher-interp `evaluate_project` behaviour without a flag; merge train MT5 left it open for the same reason.
+**AI Response**: "Option taken under delegation: the pass-through now sits behind `EvaluateDeps.interpTsconfig` (off by default, standard rule 3); the grid driver turns it on; the loop harness's own wiring is unchanged. Test covers off (old failure) and on. 311 tests pass; 71-reference results byte-identical on cypher-interp. The sealed-list domain check stays with the author."
+**Context**: v1.3 Study 2 readiness tooling, PR #206 follow-up.
+
+---

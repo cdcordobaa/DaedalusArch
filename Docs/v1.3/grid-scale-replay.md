@@ -86,17 +86,16 @@ the Neo4j evaluator.
 
 ## 4. Defects and gaps found
 
-**F1, fixed (pure bug, test added; needs the author's approval, see below).** `evaluate_project` on `cypher-interp`
-dropped `tsconfigPath` (`src/mcp-server/evaluate-project.ts`, `interp-evaluator.ts`); the Neo4j path honours it. A loop
-work tree has no tsconfig of its own (the pinned one lies in the harness root), so on the interpreter **every
-snapshot failed with `PIPELINE_FAILED: No tsconfig.json found`**, the gate never fired, and every run still
-"completed". The fix passes `tsconfigPath` through and adds the tsconfig path and mtime to the interpreter's cache
-key. Test: `tests/unit/mcp-server/npx-mode.test.ts` (fails before, passes after). Calls without `tsconfigPath` are
-unchanged. This branch's run also found `includeViolations` dropped on the same path; `v1.3` fixed that independently
-(`bba3cfc8`, merged in `cd0762c2`), and the merge into this branch keeps one copy of it. The fix is not behind an
-option: calls that pass `tsconfigPath` on `cypher-interp` (every loop-harness snapshot) used to fail and now
-evaluate, so the gate arm's behaviour on the interpreter changes. That is the point of the fix, but it is a tool
-behaviour change and the author decides whether it lands ungated.
+**F1, fixed behind an opt-in (test added).** `evaluate_project` on `cypher-interp` dropped `tsconfigPath`
+(`src/mcp-server/evaluate-project.ts`, `interp-evaluator.ts`); the Neo4j path honours it. A loop work tree has no
+tsconfig of its own (the pinned one lies in the harness root), so on the interpreter **every snapshot failed with
+`PIPELINE_FAILED: No tsconfig.json found`**, the gate never fired, and every run still "completed". The pass-through
+is gated by a new `EvaluateDeps.interpTsconfig` flag, **off by default** (standard rule 3): with it off,
+`evaluate_project` on the interpreter behaves exactly as before; this driver turns it on. When on, the tsconfig path
+and mtime join the interpreter's cache key. Test: `tests/unit/mcp-server/npx-mode.test.ts` (default off still fails as
+before; on evaluates). Whether the loop harness's own live wiring (`main.ts`) should turn it on for a
+`cypher-interp` loop is the author's decision; this branch does not change that wiring. `includeViolations` was dropped
+on the same path too; `v1.3` fixed that independently (`bba3cfc8`, merged in `cd0762c2`).
 
 **F2, not fixed (proposal).** An evaluator that fails on every snapshot does not stop or warn the grid: by design the
 loop records the error on the snapshot and goes on (`loop.ts` header). At Study 2 scale a misconfigured evaluator

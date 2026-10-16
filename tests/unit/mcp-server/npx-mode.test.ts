@@ -135,7 +135,7 @@ describe('createInterpEvaluator', () => {
 });
 
 describe('evaluate_project on cypher-interp: explicit tsconfig and uncapped violations (loop harness path)', () => {
-  it('a work tree without its own tsconfig is evaluated with the given tsconfigPath, and includeViolations lists the findings', async () => {
+  it('opt-in interpTsconfig: a work tree without its own tsconfig is evaluated with the given tsconfigPath (default off: unchanged)', async () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'interp-tsconfig-'));
     try {
       const work = path.join(tmp, 'work');
@@ -151,9 +151,11 @@ describe('evaluate_project on cypher-interp: explicit tsconfig and uncapped viol
       fs.mkdirSync(path.dirname(tsconfig), { recursive: true });
       fs.writeFileSync(tsconfig, JSON.stringify({ compilerOptions: { strict: true, target: 'ES2022', module: 'commonjs', noEmit: true }, include: [`${work}/src/**/*.ts`] }));
       const deps = ctx().evaluateDeps;
-      const without = await evaluateProject({ projectPath: work, specPath: CLEAN_ARCH_SPEC, scoringMode: 'v1.3' }, NO_DB, deps);
-      expect(without.success).toBe(false);
-      const res = await evaluateProject({ projectPath: work, specPath: CLEAN_ARCH_SPEC, scoringMode: 'v1.3', tsconfigPath: tsconfig, includeViolations: true }, NO_DB, deps);
+      const input = { projectPath: work, specPath: CLEAN_ARCH_SPEC, scoringMode: 'v1.3' as const, tsconfigPath: tsconfig, includeViolations: true };
+      // Default (interpTsconfig off): unchanged behaviour, the tsconfigPath is not forwarded and the tree has none.
+      const off = await evaluateProject(input, NO_DB, deps);
+      expect(off.success).toBe(false);
+      const res = await evaluateProject(input, NO_DB, { ...deps, interpTsconfig: true });
       expect(res.success).toBe(true);
       if (!res.success) return;
       expect(res.data.engine).toBe('cypher-interp');
