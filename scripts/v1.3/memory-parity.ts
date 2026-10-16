@@ -45,9 +45,9 @@ import { acquireNeo4jLock } from '../../src/shared/process/neo4j-lock.js';
 import { scrubSecrets } from '../../src/shared/errors/scrub.js';
 import { makeTempRoot } from './lib/materialise.js';
 import { apg2FixtureProjects, referenceProjects, syntheticProjects, writeCheapFacts } from './lib/memory-projects.js';
-import { FLOAT_DRIFT_MAX_ULPS, FLOAT_DRIFT_TEMPLATES, ParityTee, paramNames, sweepTexts } from './lib/memory-sweep.js';
+import { FLOAT_DRIFT_MAX_ULPS, FLOAT_DRIFT_TEMPLATES, ParityTee, sweepTexts } from './lib/memory-sweep.js';
 import type { ParityClass, ParityEntry } from './lib/memory-sweep.js';
-import { permissive, sweepParams } from './lib/memory-bindings.js';
+import { permissive, statementParams, sweepParams } from './lib/memory-bindings.js';
 
 const argv = process.argv.slice(2);
 const opt = (name: string): string | undefined => {
@@ -97,8 +97,7 @@ async function runSweep(tee: ParityTee, cand: MemoryGraphRepository, phase: stri
   tee.phase = phase;
   for (const [name, t] of templates) {
     for (const { variant, text, excludes } of sweepTexts(t)) {
-      const p: Record<string, unknown> = {};
-      for (const n of paramNames(text)) p[n] = n === 'excludePatterns' ? ['.*\\.spec\\.ts$', '^__no_such_path__$'] : params[n] ?? null;
+      const p = statementParams(text, params);
       void excludes;
       const before = tee.entries.length;
       await tee.executeQuery(text, p);

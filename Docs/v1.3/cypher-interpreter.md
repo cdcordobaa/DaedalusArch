@@ -75,6 +75,11 @@ What may **not** be claimed:
 - **Performance beyond §6** (single-threaded, in memory, measured on the reference projects only; a long query blocks
   the event loop until its timeout).
 
+**Follow-up (branch `v1.3-interp-fuzz`):** a differential fuzz on 2,000 adversarial graphs and 6,000 rejection and
+mutation queries found ten interpreter bugs (all fixed: data-error handling in conjunctions and EXISTS, list and scalar
+coercions, Neo4j's boolean simplifications, predicate pushdown, static name and arity checks) and three new documented
+Neo4j behaviours (T20-T22). See `Docs/v1.3/cypher-interp-fuzz.md`.
+
 ## 1. Base branch: I2 was not found
 
 The task said to cut from I2's branch (`src/memory-engine/`, hand mirrors in `src/memory-engine/templates/`,

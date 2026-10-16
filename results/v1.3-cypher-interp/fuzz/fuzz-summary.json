@@ -1,0 +1,325 @@
+{
+ "run": "graph fuzz, seeds 1-2000 (fuzzProject), Neo4j 5.26.24 + APOC 5.26.24 core, two instances (seeds 1-1000 on bolt 7687, 1001-2000 on 7688)",
+ "graphs": 2000,
+ "nodes": 59637,
+ "edges": 67200,
+ "nodesPerGraph": {
+  "min": 8,
+  "max": 75
+ },
+ "edgesPerGraph": {
+  "min": 0,
+  "max": 107
+ },
+ "statementsPerGraph": 418,
+ "statements": 836000,
+ "neo4jRows": 342220,
+ "ingestionDifferences": 0,
+ "harnessSeconds": 13028,
+ "verdictsAsRun": {
+  "ok": 821531,
+  "quirk:T8-order-by-tie": 4257,
+  "quirk:T20-plan-order-error": 8428,
+  "timeout": 1548,
+  "quirk:T2-float-order": 195,
+  "mismatch:error": 41
+ },
+ "verdictsFinal": {
+  "ok": 821236,
+  "quirk:T2-float-order": 195,
+  "quirk:T20-plan-order-error": 8763,
+  "quirk:T8-order-by-tie": 4257,
+  "timeout": 1549
+ },
+ "finalNote": "verdictsAsRun come from the interpreter as it was during the run; F10 (one family) and two strict-mode diagnostics refinements landed during it. verdictsFinal: every mismatch replayed with the final code (fuzz-recheck.json), and universal-literal:cyclicDependencyCount, the only statement F10 can change, re-run over all 2000 seeds with the final code",
+ "families": [
+  {
+   "family": "abstraction-ratio",
+   "ok": 12000
+  },
+  {
+   "family": "aggregate-boundary",
+   "ok": 23623,
+   "quirk:T20-plan-order-error": 272,
+   "quirk:T8-order-by-tie": 105
+  },
+  {
+   "family": "application-service-thin",
+   "ok": 12000
+  },
+  {
+   "family": "boundary-type-leak",
+   "ok": 12000
+  },
+  {
+   "family": "bounded-context-modules",
+   "ok": 12000
+  },
+  {
+   "family": "component-adp-cycle",
+   "ok": 12000
+  },
+  {
+   "family": "component-instability",
+   "ok": 23956,
+   "quirk:T8-order-by-tie": 44
+  },
+  {
+   "family": "component-main-sequence-distance",
+   "ok": 12000
+  },
+  {
+   "family": "component-sdp-violation",
+   "ok": 12000
+  },
+  {
+   "family": "context-isolation",
+   "ok": 22083,
+   "quirk:T8-order-by-tie": 1917
+  },
+  {
+   "family": "controller-no-entity",
+   "ok": 24000
+  },
+  {
+   "family": "core-isolation",
+   "ok": 23892,
+   "quirk:T20-plan-order-error": 78,
+   "quirk:T8-order-by-tie": 30
+  },
+  {
+   "family": "deep-import-declared-api",
+   "ok": 12000
+  },
+  {
+   "family": "deep-import-inferred-api",
+   "ok": 12000
+  },
+  {
+   "family": "dependency-direction",
+   "ok": 23560,
+   "quirk:T20-plan-order-error": 386,
+   "quirk:T8-order-by-tie": 54
+  },
+  {
+   "family": "dependency-direction-graph",
+   "ok": 22805,
+   "quirk:T20-plan-order-error": 1135,
+   "quirk:T8-order-by-tie": 60
+  },
+  {
+   "family": "dependency-inversion",
+   "ok": 12000
+  },
+  {
+   "family": "domain-event-placement",
+   "ok": 12000
+  },
+  {
+   "family": "domain-purity",
+   "ok": 23964,
+   "quirk:T20-plan-order-error": 36
+  },
+  {
+   "family": "domain-stability",
+   "ok": 23538,
+   "quirk:T20-plan-order-error": 462
+  },
+  {
+   "family": "domain-state-purity",
+   "ok": 12000
+  },
+  {
+   "family": "inheritance-depth",
+   "ok": 12000
+  },
+  {
+   "family": "interface-segregation-proxy",
+   "ok": 12000
+  },
+  {
+   "family": "io-outside-adapters",
+   "ok": 12000
+  },
+  {
+   "family": "judge-graph:classes",
+   "ok": 2000
+  },
+  {
+   "family": "judge-graph:edges",
+   "ok": 2000
+  },
+  {
+   "family": "judge-graph:files",
+   "ok": 1952,
+   "quirk:T8-order-by-tie": 48
+  },
+  {
+   "family": "judge-graph:interfaces",
+   "ok": 2000
+  },
+  {
+   "family": "layer-skip-graph",
+   "ok": 22790,
+   "quirk:T20-plan-order-error": 1162,
+   "quirk:T8-order-by-tie": 48
+  },
+  {
+   "family": "max-fan-in",
+   "ok": 23156,
+   "quirk:T8-order-by-tie": 844
+  },
+  {
+   "family": "module-domain-imports-infrastructure",
+   "ok": 12000
+  },
+  {
+   "family": "module-fan-out",
+   "ok": 23082,
+   "quirk:T8-order-by-tie": 918
+  },
+  {
+   "family": "naming-controllers",
+   "ok": 12000
+  },
+  {
+   "family": "naming-conventions",
+   "ok": 12000
+  },
+  {
+   "family": "naming-repos",
+   "ok": 12000
+  },
+  {
+   "family": "naming-services",
+   "ok": 12000
+  },
+  {
+   "family": "no-cyclic-deps",
+   "ok": 22453,
+   "timeout": 1547
+  },
+  {
+   "family": "no-domain-outward-dep",
+   "ok": 23601,
+   "quirk:T20-plan-order-error": 369,
+   "quirk:T8-order-by-tie": 30
+  },
+  {
+   "family": "no-index-logic",
+   "ok": 12000
+  },
+  {
+   "family": "no-layer-skip",
+   "ok": 23098,
+   "quirk:T20-plan-order-error": 806,
+   "quirk:T8-order-by-tie": 96
+  },
+  {
+   "family": "no-orphan-files",
+   "ok": 22649,
+   "quirk:T20-plan-order-error": 1333,
+   "quirk:T8-order-by-tie": 18
+  },
+  {
+   "family": "nondeterminism-in-core",
+   "ok": 12000
+  },
+  {
+   "family": "port-adapter-pattern",
+   "ok": 23999,
+   "timeout": 1
+  },
+  {
+   "family": "port-dependency-inversion",
+   "ok": 12000
+  },
+  {
+   "family": "repository-aggregate-root",
+   "ok": 23196,
+   "quirk:T20-plan-order-error": 765,
+   "quirk:T8-order-by-tie": 39
+  },
+  {
+   "family": "repository-pattern",
+   "ok": 24000
+  },
+  {
+   "family": "single-responsibility-proxy",
+   "ok": 12000
+  },
+  {
+   "family": "test-file-pairing",
+   "ok": 11598,
+   "quirk:T20-plan-order-error": 396,
+   "quirk:T8-order-by-tie": 6
+  },
+  {
+   "family": "undeclared-async-coupling",
+   "ok": 12000
+  },
+  {
+   "family": "universal-literal:abstractionRatio",
+   "ok": 2000
+  },
+  {
+   "family": "universal-literal:averageInstability",
+   "ok": 1968,
+   "quirk:T2-float-order": 32
+  },
+  {
+   "family": "universal-literal:cyclicDependencyCount",
+   "ok": 1555,
+   "quirk:T20-plan-order-error": 444,
+   "timeout": 1,
+   "note": "final-code re-run over seeds 1-2000 (F10)"
+  },
+  {
+   "family": "universal-literal:maxFanIn",
+   "ok": 2000
+  },
+  {
+   "family": "universal-literal:maxFanOut",
+   "ok": 2000
+  },
+  {
+   "family": "universal-literal:orphanFileCount",
+   "ok": 1372,
+   "quirk:T20-plan-order-error": 628
+  },
+  {
+   "family": "universal:abstractionRatio",
+   "ok": 2000
+  },
+  {
+   "family": "universal:averageInstability",
+   "ok": 1837,
+   "quirk:T2-float-order": 163
+  },
+  {
+   "family": "universal:cyclicDependencyCount",
+   "ok": 2000
+  },
+  {
+   "family": "universal:maxFanIn",
+   "ok": 2000
+  },
+  {
+   "family": "universal:maxFanOut",
+   "ok": 2000
+  },
+  {
+   "family": "universal:orphanFileCount",
+   "ok": 1509,
+   "quirk:T20-plan-order-error": 491
+  },
+  {
+   "family": "use-case-isolation",
+   "ok": 24000
+  },
+  {
+   "family": "value-object-immutability",
+   "ok": 12000
+  }
+ ]
+}

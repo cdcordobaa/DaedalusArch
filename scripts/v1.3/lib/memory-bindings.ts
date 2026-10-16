@@ -1,10 +1,12 @@
 /**
- * Parameter bindings for the parity sweep (Docs/v1.3/cypher-interpreter.md §4), shared by `memory-parity.ts` and the
- * interpreter's order-guard unit test: `sweepParams` (the spec's compiled parameters, then generic values for every
- * other `$name`) and `permissive` (the `low` / `high` bindings that make threshold and naming rules return rows).
+ * The parameter bindings of the catalogue sweep (Docs/v1.3/cypher-interpreter.md §4), shared by the parity harness
+ * (`memory-parity.ts`), the fuzz harness (`cypher-interp-fuzz.ts`) and the interpreter's order-guard unit test, so all
+ * bind every template the same way: `sweepParams` (the spec's compiled parameters, then generic values for every other
+ * `$name`) and `permissive` (the `low` / `high` bindings that make threshold and naming rules return rows).
  */
 import type { LayerModel } from '../../../src/shared/types/spec.js';
 import type { Apg2Params } from '../../../src/fitness-compiler/apg2-in-memory.js';
+import { paramNames } from './memory-sweep.js';
 
 /** The three sweep bindings: the spec's own parameters, then the two permissive ones. */
 export const SWEEP_BINDINGS = ['spec', 'low', 'high'] as const;
@@ -69,4 +71,11 @@ function commonDir(paths: readonly string[]): string {
 /** The binding a sweep was run with. */
 export function bindingParams(base: Record<string, unknown>, binding: SweepBinding): Record<string, unknown> {
   return binding === 'spec' ? base : permissive(base, binding);
+}
+
+/** The parameters one sweep statement is run with: every `$name` it reads, from `params` (null when unbound). */
+export function statementParams(text: string, params: Readonly<Record<string, unknown>>): Record<string, unknown> {
+  const p: Record<string, unknown> = {};
+  for (const n of paramNames(text)) p[n] = n === 'excludePatterns' ? ['.*\\.spec\\.ts$', '^__no_such_path__$'] : params[n] ?? null;
+  return p;
 }
