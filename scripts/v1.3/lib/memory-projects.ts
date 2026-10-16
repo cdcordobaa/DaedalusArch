@@ -12,6 +12,7 @@ import type { ComponentDeclaration } from '../../../src/apg-extractor/index.js';
 import type { LayerDefinition, LayerModel } from '../../../src/shared/types/spec.js';
 import type { LayerKind } from '../../../src/shared/types/enums.js';
 import type { APGEdge, APGNode, APGResult } from '../../../src/shared/types/apg.js';
+import type { GraphRepository } from '../../../src/shared/interfaces/graph-repository.js';
 import { loadAllReferences } from './reference-model.js';
 import { materialiseVariant } from './materialise.js';
 
@@ -74,6 +75,304 @@ export interface SyntheticProject {
   readonly id: string;
   readonly apg: APGResult;
   readonly layerModel: LayerModel;
+  /** Sweep parameters that override the generic binding (applied before the `low` / `high` bindings). */
+  readonly params?: Readonly<Record<string, unknown>>;
+  /** Cheap-proxy facts to write after `ingestAPG` (`writeCheapFacts`). */
+  readonly cheapFacts?: CheapFacts;
+}
+
+/**
+ * Cheap-proxy facts (batch 2) in the graph layout `src/fitness-compiler/cheap2-templates.ts` specifies: a virtual node
+ * labelled with its kind (`EntryPoint`, `EnvKey`, ...) carrying `id`, `name` and its properties; a cheap edge as a
+ * relationship of its own type between nodes, its properties copied as they are. (Node facts, `cheap.<key>`, are
+ * ordinary APG node properties and go through `ingestAPG`.) No persistence unit writes these yet, so the cheap2
+ * templates return rows only on graphs built this way.
+ */
+export interface CheapFacts {
+  readonly nodes: readonly { readonly type: string; readonly props: Readonly<Record<string, unknown>> }[];
+  readonly edges: readonly { readonly type: string; readonly sourceId: string; readonly targetId: string; readonly props: Readonly<Record<string, unknown>> }[];
+}
+
+/**
+ * Writes cheap facts with exactly the statement shapes of `graph-ingester.ts` (one UNWIND-CREATE per node type and
+ * per edge type), which Neo4j runs as Cypher and the interpreter's repository applies by shape; through a `ParityTee`
+ * both engines receive the same writes. Throws if a write fails or creates fewer elements than given.
+ */
+export async function writeCheapFacts(repo: GraphRepository, facts: CheapFacts): Promise<void> {
+  for (const type of [...new Set(facts.nodes.map((n) => n.type))]) {
+    const batch = facts.nodes.filter((n) => n.type === type).map((n) => ({ ...n.props }));
+    const r = await repo.executeQuery(`
+      UNWIND $batch AS node
+      CREATE (n:APGNode:${type})
+      SET n = node
+    `, { batch });
+    if (!r.success || r.data.summary.counters.nodesCreated !== batch.length) throw new Error(`cheap facts: ${type} nodes not written`);
+  }
+  for (const type of [...new Set(facts.edges.map((e) => e.type))]) {
+    const batch = facts.edges.filter((e) => e.type === type).map((e) => ({ sourceId: e.sourceId, targetId: e.targetId, props: { ...e.props } }));
+    const r = await repo.executeQuery(`
+      UNWIND $batch AS edge
+      MATCH (src:APGNode {id: edge.sourceId})
+      MATCH (tgt:APGNode {id: edge.targetId})
+      CREATE (src)-[r:${type}]->(tgt)
+      SET r = edge.props
+    `, { batch });
+    if (!r.success || r.data.summary.counters.relationshipsCreated !== batch.length) throw new Error(`cheap facts: ${type} edges not written`);
+  }
+}
+
+/** Every synthetic graph the parity sweep runs: the shapes graph, then the graphs built for the thin templates. */
+export function syntheticProjects(): SyntheticProject[] {
+  return [syntheticProject(), thinTemplateProject('a'), thinTemplateProject('b')];
+}
+
+/**
+ * The templates the first parity run of this fix compared on fewer than 50 non-empty statements ("thin"; Docs/v1.3/
+ * cypher-interpreter.md §4.2). `thinTemplateProject` gives each of them violating rows under all three sweep
+ * bindings (spec, low, high); `tests/unit/cypher-interp/template-order.test.ts` asserts it.
+ */
+export const THIN_TEMPLATES = [
+  'boundary-type-leak', 'component-adp-cycle', 'component-main-sequence-distance', 'deep-import-declared-api', 'deep-import-inferred-api',
+  'domain-event-placement', 'inheritance-depth', 'io-outside-adapters', 'module-domain-imports-infrastructure', 'naming-controllers',
+  'no-index-logic', 'no-orphan-files', 'repository-aggregate-root', 'undeclared-async-coupling',
+] as const;
+
+/**
+ * The batch-2 cheap-proxy templates (`cheap2` catalogue), which arrived in `v1.3` after the first parity run and read
+ * facts no persistence unit writes yet: zero rows on every real graph. `thinTemplateProject` writes such facts
+ * (`cheapFacts`) so they are compared on rows too; they are held to the same per-binding minimum.
+ */
+export const CHEAP2_COVERED_TEMPLATES = [
+  'framework-exception-in-core', 'endpoint-bypasses-application', 'vendor-sdk-outside-adapters', 'untested-component',
+  'env-read-outside-config', 'hidden-coupling', 'agent-reimplementation',
+] as const;
+
+/**
+ * A synthetic APG (APG v1 and v2 node and edge types) on which every `THIN_TEMPLATES` entry returns rows under each
+ * sweep binding, and so do `aggregate-boundary` and `dependency-direction-graph`, which no other synthetic or fixture
+ * graph exercises. Two variants with different roots and names (`a` under `src/`, `b` under `lib/`, with more of every
+ * shape) so that every APG v2 template (two compiled texts each) reaches at least 3 non-empty comparisons per binding.
+ *
+ * One deliberate out-of-range value: component `Shipping` has `distance` 2.5 (the extractor's distance is in [0, 1]),
+ * so `component-main-sequence-distance` returns a row under the `high` binding (threshold 2) too. Everything else is a
+ * shape the extractor emits. Aggregates are given explicitly and do not overlap (the row-grain precondition of the
+ * aggregate templates, see the order-guard test).
+ */
+export function thinTemplateProject(variant: 'a' | 'b'): SyntheticProject {
+  const root = variant === 'a' ? 'src' : 'lib';
+  const extra = variant === 'b';
+  const layer = (name: string, kind: LayerKind): LayerDefinition => ({ name, directories: [`${root}/${name}/**`], naming: [], role: '', kind, kindSource: 'explicit' });
+  const layerModel: LayerModel = { layers: [layer('domain', 'domain'), layer('application', 'application'), layer('infrastructure', 'infrastructure'), layer('presentation', 'presentation')] };
+  const nodes: APGNode[] = [];
+  const edges: APGEdge[] = [];
+  const node = (id: string, type: APGNode['type'], name: string, filePath: string, properties: Record<string, unknown> = {}): void => {
+    nodes.push({ id, type, name, filePath, decorators: [], properties });
+  };
+  const edge = (type: APGEdge['type'], sourceId: string, targetId: string, properties: Record<string, unknown> = {}): void => {
+    edges.push({ id: `${type}:${sourceId}->${targetId}`, type, sourceId, targetId, properties });
+  };
+  const f = (rel: string): string => `${root}/${rel}`;
+  const file = (rel: string, properties: Record<string, unknown> = {}): string => {
+    const fp = f(rel);
+    node(`file:${fp}`, 'File', fp.slice(fp.lastIndexOf('/') + 1), fp, { isBarrel: false, ...properties });
+    return `file:${fp}`;
+  };
+  const imp = (s: string, t: string, line: number): void => edge('IMPORTS', s, t, { line, lines: [line], isTypeOnly: false });
+
+  // Files. `orphan*` have a layer and no import in or out (no-orphan-files).
+  const order = file('domain/order/Order.ts');
+  const orderItem = file('domain/order/OrderItem.ts');
+  const invoice = file('domain/billing/Invoice.ts');
+  file('domain/events/DomainEvent.ts');
+  const barrel = file('domain/index.ts', { isBarrel: true });
+  // Cheap node facts (`cheap.<key>`): vendor SDKs outside adapters, untested components.
+  const service = file('application/OrderService.ts', { 'cheap.vendorSdkOutsideAdapters': extra ? ['stripe', 'aws-sdk'] : ['stripe'], 'cheap.component': 'Orders', 'cheap.componentUntested': true });
+  const handler = file('application/ShipOrderHandler.ts', { 'cheap.vendorSdkOutsideAdapters': ['@sendgrid/mail'], 'cheap.component': 'Shipping', 'cheap.componentUntested': true });
+  const repo = file('infrastructure/OrderRepository.ts');
+  const invRepo = file('infrastructure/InvoiceRepository.ts');
+  const db = file('infrastructure/Db.ts');
+  const ctrl = file('presentation/OrdersController.ts', { 'cheap.component': 'Shipping', 'cheap.componentUntested': true });
+  file('domain/orphan/Clock.ts');
+  file('application/orphan/Unused.ts');
+  if (extra) {
+    file('infrastructure/orphan/Legacy.ts');
+    file('presentation/orphan/OldView.ts');
+  }
+
+  // Imports: a domain file importing application (dependency-direction-graph: domain>application is not allowed but
+  // application>domain is); repositories reaching into aggregate internals (repository-aggregate-root,
+  // aggregate-boundary); the barrel re-exported nowhere but declaring code (no-index-logic).
+  imp(order, service, 3);
+  imp(order, orderItem, 1);
+  imp(service, order, 2);
+  imp(service, repo, 4);
+  imp(handler, order, 5);
+  imp(handler, orderItem, 6);
+  imp(repo, orderItem, 2);
+  imp(repo, order, 1);
+  imp(invRepo, invoice, 1);
+  imp(invRepo, orderItem, 7);
+  imp(repo, db, 3);
+  imp(ctrl, service, 1);
+  imp(ctrl, invoice, 9);
+  if (extra) {
+    imp(invoice, handler, 4);
+    imp(db, invoice, 8);
+  }
+
+  // Classes, with an EXTENDS chain of depth 3 (inheritance-depth, maxDepth <= 1) and domain events
+  // (domain-event-placement: a class outside the domain layer that implements or extends an event type).
+  const cls = (id: string, name: string, fp: string, properties: Record<string, unknown> = {}): string => {
+    node(`class:${variant}:${id}`, 'Class', name, fp, properties);
+    return `class:${variant}:${id}`;
+  };
+  const base = cls('Base', 'EntityBase', f('domain/order/Order.ts'));
+  const agg = cls('Agg', 'AggregateBase', f('domain/order/Order.ts'));
+  const orderC = cls('Order', 'Order', f('domain/order/Order.ts'));
+  const special = cls('Special', 'SpecialOrder', f('domain/order/Order.ts'));
+  edge('EXTENDS', agg, base);
+  edge('EXTENDS', orderC, agg);
+  edge('EXTENDS', special, orderC);
+  const domainEvent = cls('DomainEvent', 'DomainEvent', f('domain/events/DomainEvent.ts'));
+  const eventIface = `iface:${variant}:Event`;
+  node(eventIface, 'Interface', 'Event', f('domain/events/DomainEvent.ts'));
+  const shipped = cls('Shipped', 'OrderShippedEvent', f('application/ShipOrderHandler.ts'));
+  const paid = cls('Paid', 'InvoicePaidEvent', f('infrastructure/Db.ts'));
+  edge('EXTENDS', shipped, domainEvent);
+  edge('IMPLEMENTS', paid, eventIface);
+  const svcC = cls('Svc', 'OrderService', f('application/OrderService.ts'));
+  const repoC = cls('Repo', 'OrderRepository', f('infrastructure/OrderRepository.ts'));
+  if (extra) {
+    const deeper = cls('Deeper', 'VerySpecialOrder', f('domain/order/Order.ts'));
+    edge('EXTENDS', deeper, special);
+    const audit = cls('Audit', 'AuditEvent', f('presentation/OrdersController.ts'));
+    edge('EXTENDS', audit, domainEvent);
+  }
+
+  // NestJS-style modules: a domain module importing an infrastructure module (module-domain-imports-infrastructure).
+  const domMod = cls('DomMod', 'OrderDomainModule', f('domain/order/Order.ts'));
+  const infMod = cls('InfMod', 'PersistenceModule', f('infrastructure/Db.ts'));
+  edge('MODULE_IMPORTS', domMod, infMod, { line: 12 });
+  if (extra) {
+    const infMod2 = cls('InfMod2', 'MessagingModule', f('infrastructure/OrderRepository.ts'));
+    edge('MODULE_IMPORTS', domMod, infMod2, { line: 13 });
+  }
+
+  // Controllers (naming-controllers): a presentation class whose name breaks the naming pattern (spec and high
+  // bindings), and a domain class with a Controller decorator (the low binding sets controllerLayer to the domain).
+  cls('Ctrl', 'orders_controller', f('presentation/OrdersController.ts'), { decorators: ['Controller'] });
+  cls('DomCtrl', 'DomainController', f('domain/order/Order.ts'), { decorators: ['Controller', 'Injectable'] });
+  if (extra) cls('Ctrl2', 'invoices-controller', f('presentation/OrdersController.ts'), { decorators: ['RestController'] });
+
+  // The barrel declares code (no-index-logic).
+  node(`fn:${variant}:helper`, 'Function', 'formatOrder', f('domain/index.ts'));
+  edge('DECLARES', barrel, `fn:${variant}:helper`);
+  edge('DECLARES', barrel, orderC);
+
+  // Members for the APG v2 member-level edges.
+  const method = (owner: string, name: string, fp: string): string => {
+    const id = `method:${variant}:${name}`;
+    node(id, 'Method', name, fp);
+    edge('CONTAINS', owner, id);
+    return id;
+  };
+  const place = method(svcC, 'OrderService.place', f('application/OrderService.ts'));
+  const ship = method(svcC, 'OrderService.ship', f('application/OrderService.ts'));
+  const total = method(orderC, 'Order.total', f('domain/order/Order.ts'));
+  const save = method(repoC, 'OrderRepository.save', f('infrastructure/OrderRepository.ts'));
+
+  // boundary-type-leak: application members whose public signature uses an infrastructure type.
+  edge('SIGNATURE_USES', place, repoC, { publicSurface: true, positions: ['parameter'], inferred: false });
+  edge('SIGNATURE_USES', ship, repoC, { publicSurface: true, positions: ['return'], inferred: true });
+  edge('SIGNATURE_USES', total, repoC, { publicSurface: false, positions: ['parameter'], inferred: false });
+
+  // io-outside-adapters: domain and application members performing db / http / fs I/O.
+  for (const io of ['db', 'http-out', 'fs', 'clock']) node(`io:${variant}:${io}`, 'IOCategory', io, '');
+  edge('PERFORMS_IO', place, `io:${variant}:db`, { apis: ['query'], line: 20, lines: [20, 24] });
+  edge('PERFORMS_IO', total, `io:${variant}:http-out`, { apis: ['fetch'], line: 7, lines: [7] });
+  edge('PERFORMS_IO', save, `io:${variant}:db`, { apis: ['insert'], line: 3, lines: [3] });
+  if (extra) edge('PERFORMS_IO', ship, `io:${variant}:fs`, { apis: ['writeFile'], line: 31, lines: [31] });
+
+  // Components (APG v2): an ADP cycle between two modules, a main-sequence outlier, BELONGS_TO for async coupling.
+  const comp = (name: string, properties: Record<string, unknown>): string => {
+    const id = `component:${variant}:${name}`;
+    node(id, 'Component', name, '', properties);
+    return id;
+  };
+  const orders = comp('Orders', { kind: 'module', typeCount: 6, abstractness: 0.1, instability: 0.1, distance: 0.8 });
+  const billing = comp('Billing', { kind: 'module', typeCount: 4, abstractness: 0.5, instability: 0.5, distance: 0 });
+  const shipping = comp('Shipping', { kind: 'module', typeCount: 9, abstractness: 0, instability: 0, distance: 2.5 });
+  const domainLayerC = comp('domain', { kind: 'layer', typeCount: 12, abstractness: 0, instability: 0, distance: 1 });
+  edge('DEPENDS_ON', orders, billing, { kind: 'module', imports: 3 });
+  edge('DEPENDS_ON', billing, orders, { kind: 'module', imports: 1 });
+  edge('DEPENDS_ON', shipping, orders, { kind: 'module', imports: 2 });
+  edge('DEPENDS_ON', domainLayerC, orders, { kind: 'layer', imports: 1 });
+  if (extra) {
+    edge('DEPENDS_ON', orders, shipping, { kind: 'module', imports: 4 });
+    comp('Reporting', { kind: 'folder', typeCount: 5, abstractness: 0.9, instability: 0.9, distance: 0.8 });
+  }
+  edge('BELONGS_TO', order, orders);
+  edge('BELONGS_TO', service, orders);
+  edge('BELONGS_TO', invoice, billing);
+  edge('BELONGS_TO', handler, shipping);
+  edge('BELONGS_TO', repo, orders);
+
+  // deep-import-*: files importing past a component's public API (declared and inferred), kinds module and folder.
+  edge('DEEP_IMPORT', ctrl, invoice, { publicApiDeclared: true, kind: 'module', component: 'Billing', line: 9 });
+  edge('DEEP_IMPORT', handler, orderItem, { publicApiDeclared: false, kind: 'folder', component: 'Orders', line: 6 });
+  edge('DEEP_IMPORT', invRepo, orderItem, { publicApiDeclared: true, kind: 'folder', component: 'Orders', line: 7 });
+  edge('DEEP_IMPORT', repo, orderItem, { publicApiDeclared: false, kind: 'module', component: 'Orders', line: 2 });
+
+  // undeclared-async-coupling: a publisher and a subscriber in different module components on one channel.
+  node(`channel:${variant}:orders`, 'Channel', 'order.placed', '', { transport: 'event-emitter' });
+  node(`channel:${variant}:billing`, 'Channel', 'invoice.paid', '', { transport: 'kafka' });
+  edge('PUBLISHES', place, `channel:${variant}:orders`);
+  edge('SUBSCRIBES', `class:${variant}:Shipped`, `channel:${variant}:orders`);
+  const invoiceC = cls('Invoice', 'Invoice', f('domain/billing/Invoice.ts'));
+  edge('SUBSCRIBES', invoiceC, `channel:${variant}:orders`);
+  edge('PUBLISHES', invoiceC, `channel:${variant}:billing`);
+  edge('SUBSCRIBES', total, `channel:${variant}:billing`);
+
+  // Cheap edges and virtual nodes (batch 2), in the layout cheap2-templates.ts specifies.
+  const v = (id: string): string => `cheap:${variant}:${id}`;
+  const cheapFacts: CheapFacts = {
+    nodes: [
+      { type: 'EntryPoint', props: { id: v('ep:post-orders'), name: 'POST /orders', entryKind: 'http', file: f('presentation/OrdersController.ts') } },
+      { type: 'EntryPoint', props: { id: v('ep:invoice-paid'), name: 'invoice.paid', entryKind: 'message', file: f('application/ShipOrderHandler.ts') } },
+      { type: 'EntryPoint', props: { id: v('ep:cron'), name: 'nightly', entryKind: 'cron', file: f('infrastructure/Db.ts') } },
+      { type: 'EnvKey', props: { id: v('env:DB_URL'), name: 'DB_URL' } },
+      { type: 'EnvKey', props: { id: v('env:STRIPE_KEY'), name: 'STRIPE_KEY' } },
+      { type: 'ErrorType', props: { id: v('err:HttpException'), name: 'HttpException' } },
+      { type: 'ErrorType', props: { id: v('err:NotFoundException'), name: 'NotFoundException' } },
+    ],
+    edges: [
+      { type: 'THROWS', sourceId: place, targetId: v('err:HttpException'), props: { direct: true, frameworkHttp: true, unit: 'OrderService.place', errorType: 'HttpException', module: '@nestjs/common' } },
+      { type: 'THROWS', sourceId: total, targetId: v('err:NotFoundException'), props: { direct: true, frameworkHttp: true, unit: 'Order.total', errorType: 'NotFoundException', module: '@nestjs/common' } },
+      { type: 'THROWS', sourceId: save, targetId: v('err:HttpException'), props: { direct: true, frameworkHttp: true, unit: 'OrderRepository.save', errorType: 'HttpException', module: '@nestjs/common' } },
+      { type: 'REACHES', sourceId: v('ep:post-orders'), targetId: save, props: { withoutCore: true, infrastructure: true, unit: 'OrderRepository.save', depth: 2 } },
+      { type: 'REACHES', sourceId: v('ep:invoice-paid'), targetId: repoC, props: { withoutCore: true, infrastructure: true, unit: 'OrderRepository', depth: 1 } },
+      { type: 'REACHES', sourceId: v('ep:cron'), targetId: save, props: { withoutCore: true, infrastructure: true, unit: 'OrderRepository.save', depth: 1 } },
+      { type: 'READS_ENV', sourceId: total, targetId: v('env:DB_URL'), props: { outsideConfig: true, via: 'process.env', lines: [11] } },
+      { type: 'READS_ENV', sourceId: place, targetId: v('env:STRIPE_KEY'), props: { outsideConfig: true, via: 'process.env', lines: [21, 22] } },
+      { type: 'READS_ENV', sourceId: save, targetId: v('env:DB_URL'), props: { outsideConfig: false, via: 'ConfigService', lines: [4] } },
+      { type: 'CO_CHANGES_WITH', sourceId: ctrl, targetId: db, props: { hiddenCoupling: true, support: 6, confidence: 0.75, reverseConfidence: 0.5 } },
+      { type: 'CO_CHANGES_WITH', sourceId: invoice, targetId: handler, props: { hiddenCoupling: true, support: 4, confidence: 0.8, reverseConfidence: 0.4 } },
+      { type: 'CO_CHANGES_WITH', sourceId: order, targetId: orderItem, props: { hiddenCoupling: false, support: 9, confidence: 0.9, reverseConfidence: 0.9 } },
+      { type: 'REIMPLEMENTS', sourceId: ship, targetId: place, props: { via: 'clone', step: 3, existingSince: 1 } },
+      { type: 'REIMPLEMENTS', sourceId: invoiceC, targetId: orderC, props: { via: 'name', step: 5, existingSince: 2 } },
+    ],
+  };
+
+  const roots = [`${root}/domain/order/`, `${root}/domain/billing/`];
+  return {
+    kind: 'synthetic', id: `synthetic/thin-${variant}`, apg: { nodes, edges } as unknown as APGResult, layerModel, cheapFacts,
+    params: {
+      aggregates: [
+        { name: 'OrderAggregate', innerEntities: [`${roots[0] ?? ''}OrderItem\\.ts$`], module: `${roots[0] ?? ''}.*` },
+        { name: 'InvoiceAggregate', innerEntities: [`${roots[1] ?? ''}Invoice\\.ts$`], module: `${roots[1] ?? ''}.*` },
+      ],
+    },
+  };
 }
 
 /**

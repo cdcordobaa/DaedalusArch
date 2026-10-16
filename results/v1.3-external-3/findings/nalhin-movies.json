@@ -1,0 +1,2282 @@
+{
+  "runId": "run-1792150896302",
+  "projectPath": "<clones>/nalhin-movies/backend",
+  "specVersion": "1.0.0",
+  "ahsDeterministic": 0.705,
+  "verdict": "hard-block",
+  "scoring": {
+    "weights": {
+      "structural": 0.35,
+      "coupling": 0.2,
+      "pattern": 0.3,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0,
+      "integrity": 0
+    },
+    "fullModeWeights": {
+      "structural": 0.32,
+      "coupling": 0.18,
+      "pattern": 0.27,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0.04,
+      "integrity": 0.04
+    },
+    "thresholds": {
+      "pass": 0.8,
+      "warning": 0.65,
+      "softBlock": 0.5
+    },
+    "confidenceThresholds": {
+      "high": 0.85,
+      "medium": 0.6,
+      "iccMinimum": 0.7
+    },
+    "verdictSource": "ahsDeterministic"
+  },
+  "perDimensionScores": [
+    {
+      "dimension": "structural",
+      "avr": 0.25,
+      "violatedWeight": 1,
+      "weight": 0.35,
+      "effectiveWeight": 0.35,
+      "violationCount": 1,
+      "functionCount": 4
+    },
+    {
+      "dimension": "coupling",
+      "avr": 0.6,
+      "violatedWeight": 3,
+      "weight": 0.2,
+      "effectiveWeight": 0.2,
+      "violationCount": 3,
+      "functionCount": 5
+    },
+    {
+      "dimension": "pattern",
+      "avr": 0.25,
+      "violatedWeight": 1,
+      "weight": 0.3,
+      "effectiveWeight": 0.3,
+      "violationCount": 1,
+      "functionCount": 4
+    },
+    {
+      "dimension": "solid",
+      "avr": 0,
+      "violatedWeight": 0,
+      "weight": 0.1,
+      "effectiveWeight": 0.1,
+      "violationCount": 0,
+      "functionCount": 3
+    },
+    {
+      "dimension": "convention",
+      "avr": 0.25,
+      "violatedWeight": 1,
+      "weight": 0.05,
+      "effectiveWeight": 0.05,
+      "violationCount": 1,
+      "functionCount": 4
+    }
+  ],
+  "violations": [
+    {
+      "id": "v-c37a05191bd2a744",
+      "type": "CYCLIC_DEPENDENCY",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S02",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.entity.ts,src/movie/adapter/out/persistance/movie/movie.entity.ts,src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.entity.ts",
+      "message": "Circular dependency: src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.entity.ts,src/movie/adapter/out/persistance/movie/movie.entity.ts,src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.entity.ts",
+      "deterministic": true,
+      "target": "src/movie/adapter/out/persistance/movie/movie.entity.ts",
+      "line": 10,
+      "discriminator": [
+        "[\"src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.entity.ts\",\"src/movie/adapter/out/persistance/movie/movie.entity.ts\",\"src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.entity.ts\"]"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-304bda171cd590f4",
+      "type": "CYCLIC_DEPENDENCY",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S02",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/out/persistance/movie-rating/movie-rating.entity.ts,src/movie/adapter/out/persistance/movie/movie.entity.ts,src/movie/adapter/out/persistance/movie-rating/movie-rating.entity.ts",
+      "message": "Circular dependency: src/movie/adapter/out/persistance/movie-rating/movie-rating.entity.ts,src/movie/adapter/out/persistance/movie/movie.entity.ts,src/movie/adapter/out/persistance/movie-rating/movie-rating.entity.ts",
+      "deterministic": true,
+      "target": "src/movie/adapter/out/persistance/movie/movie.entity.ts",
+      "line": 11,
+      "discriminator": [
+        "[\"src/movie/adapter/out/persistance/movie-rating/movie-rating.entity.ts\",\"src/movie/adapter/out/persistance/movie/movie.entity.ts\",\"src/movie/adapter/out/persistance/movie-rating/movie-rating.entity.ts\"]"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-c0280cfb85cab2d2",
+      "type": "CUSTOM_port-adapter-pattern",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P03",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.repository.ts",
+      "message": "Violation in src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.repository.ts",
+      "deterministic": true,
+      "discriminator": [
+        "MovieFavouriteByUserRepository"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-5656cbcc786966a0",
+      "type": "CUSTOM_port-adapter-pattern",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P03",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/out/persistance/movie-rating/movie-rating.repository.ts",
+      "message": "Violation in src/movie/adapter/out/persistance/movie-rating/movie-rating.repository.ts",
+      "deterministic": true,
+      "discriminator": [
+        "MovieRatingRepository"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-d6fecf84b4d3a81d",
+      "type": "CUSTOM_port-adapter-pattern",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P03",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/out/persistance/movie/movie.repository.ts",
+      "message": "Violation in src/movie/adapter/out/persistance/movie/movie.repository.ts",
+      "deterministic": true,
+      "discriminator": [
+        "MovieRepository"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-98d185720cd2e015",
+      "type": "CUSTOM_port-adapter-pattern",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P03",
+      "route": "symbolic",
+      "filePath": "src/user/adapter/out/persistance/database/user.repository.ts",
+      "message": "Violation in src/user/adapter/out/persistance/database/user.repository.ts",
+      "deterministic": true,
+      "discriminator": [
+        "UserRepository"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-42683a265c0c2ab3",
+      "type": "FAN_OUT_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C02",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/out/data-aggregators/movie-query.adapter.ts",
+      "message": "Violation in src/movie/adapter/out/data-aggregators/movie-query.adapter.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanOut=14"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-f6d73564dad16077",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/in/web/favourite-movie.controller.ts",
+      "message": "Violation in src/movie/adapter/in/web/favourite-movie.controller.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8888888888888888"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-69efab7594359ca6",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/in/web/movie-rating.controller.ts",
+      "message": "Violation in src/movie/adapter/in/web/movie-rating.controller.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.9"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-27947beacfe383b5",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/in/web/movie.controller.ts",
+      "message": "Violation in src/movie/adapter/in/web/movie.controller.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.9090909090909091"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-8d26811d7d110fdc",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/out/data-aggregators/movie-query.adapter.ts",
+      "message": "Violation in src/movie/adapter/out/data-aggregators/movie-query.adapter.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.875"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-1f8300a114d50024",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/user/adapter/in/web/auth.controller.ts",
+      "message": "Violation in src/user/adapter/in/web/auth.controller.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8333333333333334"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-9ba71f946d5e2d90",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/user/application/service/command/sign-up-user.service.ts",
+      "message": "Violation in src/user/application/service/command/sign-up-user.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8333333333333334"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-d5cd0e4c13cd7dc2",
+      "type": "FAN_IN_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C05",
+      "route": "symbolic",
+      "filePath": "src/movie/domain/read-model/movie-list.read-model.ts",
+      "message": "Violation in src/movie/domain/read-model/movie-list.read-model.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanIn=16"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-2a623563a05b3115",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/in/web/favourite-movie.controller.ts",
+      "message": "Violation in src/movie/adapter/in/web/favourite-movie.controller.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-4363b0e2bc940127",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/in/web/movie-cast.controller.ts",
+      "message": "Violation in src/movie/adapter/in/web/movie-cast.controller.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b5d229da5f5bc578",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/in/web/movie-plot-question.controller.ts",
+      "message": "Violation in src/movie/adapter/in/web/movie-plot-question.controller.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-fd50f5f84ad6cab4",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/in/web/movie-rating.controller.ts",
+      "message": "Violation in src/movie/adapter/in/web/movie-rating.controller.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-2e46bfc1083ce012",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/in/web/movie.controller.ts",
+      "message": "Violation in src/movie/adapter/in/web/movie.controller.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-feef2455d98e6512",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/out/data-aggregators/movie-cast-query.adapter.ts",
+      "message": "Violation in src/movie/adapter/out/data-aggregators/movie-cast-query.adapter.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-7043391377d701dc",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/out/data-aggregators/movie-domain.adapter.ts",
+      "message": "Violation in src/movie/adapter/out/data-aggregators/movie-domain.adapter.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-4f43dedc9a891e20",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/out/data-aggregators/movie-query.adapter.ts",
+      "message": "Violation in src/movie/adapter/out/data-aggregators/movie-query.adapter.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-f1885ac3870a5b35",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/out/movie-data/tmdb-movie-data/tmdb-client.service.ts",
+      "message": "Violation in src/movie/adapter/out/movie-data/tmdb-movie-data/tmdb-client.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-cddc39e477a95afe",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.entity.ts",
+      "message": "Violation in src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.entity.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-bf814354163ea30c",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.repository.ts",
+      "message": "Violation in src/movie/adapter/out/persistance/movie-favourite-by-user/movie-favourite-by-user.repository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-94949518ccbc37c1",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/out/persistance/movie-rating/movie-rating.entity.ts",
+      "message": "Violation in src/movie/adapter/out/persistance/movie-rating/movie-rating.entity.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-03d05af41fa79d45",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/out/persistance/movie-rating/movie-rating.repository.ts",
+      "message": "Violation in src/movie/adapter/out/persistance/movie-rating/movie-rating.repository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-d9ca70cb3556ee22",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/out/persistance/movie/movie.entity.ts",
+      "message": "Violation in src/movie/adapter/out/persistance/movie/movie.entity.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-39287ee66cec167d",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/out/persistance/movie/movie.repository.ts",
+      "message": "Violation in src/movie/adapter/out/persistance/movie/movie.repository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b28d700e960f4e4e",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/out/plot-details/wikipedia-plot-details/wikipedia-plot-details.service.ts",
+      "message": "Violation in src/movie/adapter/out/plot-details/wikipedia-plot-details/wikipedia-plot-details.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-896babce06092d8e",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/adapter/out/question-answering/nlp-question-answering/nlp-question-aswering.service.ts",
+      "message": "Violation in src/movie/adapter/out/question-answering/nlp-question-answering/nlp-question-aswering.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-d1377fd17e74832e",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/port/in/command/add-favourite-movie.use-case.ts",
+      "message": "Violation in src/movie/application/port/in/command/add-favourite-movie.use-case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-9f490c0a3a71ec57",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/port/in/command/rate-movie.use-case.ts",
+      "message": "Violation in src/movie/application/port/in/command/rate-movie.use-case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-df2f0659f6fae951",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/port/in/command/remove-favourite-movie.use-case.ts",
+      "message": "Violation in src/movie/application/port/in/command/remove-favourite-movie.use-case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-19fad064d3a0e65a",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/port/in/command/remove-movie-rating.use-case.ts",
+      "message": "Violation in src/movie/application/port/in/command/remove-movie-rating.use-case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-bd35b2e1c07be953",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/port/in/query/ask-plot-question.use-case.ts",
+      "message": "Violation in src/movie/application/port/in/query/ask-plot-question.use-case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-88b5b94ad10b9c33",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/port/in/query/get-favourite-movies.use-case.ts",
+      "message": "Violation in src/movie/application/port/in/query/get-favourite-movies.use-case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-831cc9d9340b69a0",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/port/in/query/get-movie-cast.use-case.ts",
+      "message": "Violation in src/movie/application/port/in/query/get-movie-cast.use-case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-431555662d8f5272",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/port/in/query/get-movie-details.use-case.ts",
+      "message": "Violation in src/movie/application/port/in/query/get-movie-details.use-case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-5cd123c9cc999400",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/port/in/query/get-movies-use-case.ts",
+      "message": "Violation in src/movie/application/port/in/query/get-movies-use-case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b92b0bd8736457f1",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/port/in/query/get-popular-movies.use-case.ts",
+      "message": "Violation in src/movie/application/port/in/query/get-popular-movies.use-case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-debe527160bcf5fe",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/port/in/query/get-rated-movies-use.case.ts",
+      "message": "Violation in src/movie/application/port/in/query/get-rated-movies-use.case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-52b086222d255766",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/port/in/query/get-similar-movies.use-case.ts",
+      "message": "Violation in src/movie/application/port/in/query/get-similar-movies.use-case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-c177c206205a6dad",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/port/out/find-movie.port.ts",
+      "message": "Violation in src/movie/application/port/out/find-movie.port.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-f6a717d79ee2a79c",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/port/out/get-favourite-movies.port.ts",
+      "message": "Violation in src/movie/application/port/out/get-favourite-movies.port.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-6bd7d1677b807f57",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/port/out/get-movie-cast.port.ts",
+      "message": "Violation in src/movie/application/port/out/get-movie-cast.port.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-ca580c2c242bbf39",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/port/out/get-movie-details.port.ts",
+      "message": "Violation in src/movie/application/port/out/get-movie-details.port.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-cc61fbde9ba8cb66",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/port/out/get-movies.port.ts",
+      "message": "Violation in src/movie/application/port/out/get-movies.port.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-174694856690c17f",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/port/out/get-plot-details.port.ts",
+      "message": "Violation in src/movie/application/port/out/get-plot-details.port.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-f45d99b7485b57e2",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/port/out/get-popular-movies.port.ts",
+      "message": "Violation in src/movie/application/port/out/get-popular-movies.port.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-77a1c371b40c21d7",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/port/out/get-rated-movies.port.ts",
+      "message": "Violation in src/movie/application/port/out/get-rated-movies.port.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-a893ea22de4fc7bf",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/port/out/get-similar-movies.port.ts",
+      "message": "Violation in src/movie/application/port/out/get-similar-movies.port.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-95ece5b0b33a27c6",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/port/out/question-answering.port.ts",
+      "message": "Violation in src/movie/application/port/out/question-answering.port.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-358397e59ad8afc0",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/port/out/update-movie.port.ts",
+      "message": "Violation in src/movie/application/port/out/update-movie.port.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-6ccf4f8b9aeed723",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/service/command/add-favourite-movie.service.ts",
+      "message": "Violation in src/movie/application/service/command/add-favourite-movie.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-5b94afd2972e1551",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/service/command/rate-movie.service.ts",
+      "message": "Violation in src/movie/application/service/command/rate-movie.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-17a05908932a8ae9",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/service/command/remove-favourite-movie.service.ts",
+      "message": "Violation in src/movie/application/service/command/remove-favourite-movie.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-54172af1dd0c530d",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/service/command/remove-movie-rating.service.ts",
+      "message": "Violation in src/movie/application/service/command/remove-movie-rating.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-bf86fe7588b3f07b",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/service/query/ask-plot-question.service.ts",
+      "message": "Violation in src/movie/application/service/query/ask-plot-question.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-302ae51f84dc78d3",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/service/query/get-favourite-movies.service.ts",
+      "message": "Violation in src/movie/application/service/query/get-favourite-movies.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-14bbf37be3fb62b8",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/service/query/get-movie-cast.service.ts",
+      "message": "Violation in src/movie/application/service/query/get-movie-cast.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-f63edd7db959c898",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/service/query/get-movie-details.service.ts",
+      "message": "Violation in src/movie/application/service/query/get-movie-details.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-99bc4436f9a72788",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/service/query/get-movies.service.ts",
+      "message": "Violation in src/movie/application/service/query/get-movies.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-8e3b81854873c434",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/service/query/get-popular-movies.service.ts",
+      "message": "Violation in src/movie/application/service/query/get-popular-movies.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-6170cdb28ac9f0c9",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/service/query/get-rated-movies.service.ts",
+      "message": "Violation in src/movie/application/service/query/get-rated-movies.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-ee623f80ae4174af",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/application/service/query/get-similar-movies.service.ts",
+      "message": "Violation in src/movie/application/service/query/get-similar-movies.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-c71f798098b7bb5c",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/domain/model/movie.domain-model.ts",
+      "message": "Violation in src/movie/domain/model/movie.domain-model.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-c97f97fda7d42c06",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/domain/read-model/movie-cast.read-model.ts",
+      "message": "Violation in src/movie/domain/read-model/movie-cast.read-model.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-0cc69e063279dd5d",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/domain/read-model/movie-details.read-model.ts",
+      "message": "Violation in src/movie/domain/read-model/movie-details.read-model.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-f118b4cf1694e3a0",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/domain/read-model/movie-list.read-model.ts",
+      "message": "Violation in src/movie/domain/read-model/movie-list.read-model.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-03fb6d50f848f1b6",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/movie/domain/read-model/paginated.read-model.ts",
+      "message": "Violation in src/movie/domain/read-model/paginated.read-model.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-c1a4922f06055e4c",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/user/adapter/in/auth/strategies/jwt.strategy.ts",
+      "message": "Violation in src/user/adapter/in/auth/strategies/jwt.strategy.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-65f62678d6488229",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/user/adapter/in/web/auth.controller.ts",
+      "message": "Violation in src/user/adapter/in/web/auth.controller.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b4e9ce01a584fad8",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/user/adapter/in/web/user.controller.ts",
+      "message": "Violation in src/user/adapter/in/web/user.controller.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-5d53f44172c43349",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/user/adapter/out/persistance/database/user.entity.ts",
+      "message": "Violation in src/user/adapter/out/persistance/database/user.entity.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-efc9670c65b6450d",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/user/adapter/out/persistance/database/user.repository.ts",
+      "message": "Violation in src/user/adapter/out/persistance/database/user.repository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-ca4a2f00f0d7571d",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/user/adapter/out/persistance/user-persistance-command.adapter.ts",
+      "message": "Violation in src/user/adapter/out/persistance/user-persistance-command.adapter.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-2dc234a8bf85d9e8",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/user/adapter/out/persistance/user-persistence-query.adapter.ts",
+      "message": "Violation in src/user/adapter/out/persistance/user-persistence-query.adapter.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-c51db0029e9f508c",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/user/adapter/out/token/token-provider.adapter.ts",
+      "message": "Violation in src/user/adapter/out/token/token-provider.adapter.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-e6aad1ea537e7675",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/user/application/port/in/command/login-user.use-case.ts",
+      "message": "Violation in src/user/application/port/in/command/login-user.use-case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-03f64ba9bfbe18d8",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/user/application/port/in/command/sign-up-user.use-case.ts",
+      "message": "Violation in src/user/application/port/in/command/sign-up-user.use-case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-2d11ff86b3f7846d",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/user/application/port/in/query/find-user-by-username-use.case.ts",
+      "message": "Violation in src/user/application/port/in/query/find-user-by-username-use.case.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-dc800fc05711f4ee",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/user/application/port/out/command/save-user.port.ts",
+      "message": "Violation in src/user/application/port/out/command/save-user.port.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-8cf84e7d43340fc8",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/user/application/port/out/query/exists-by-username-or-email.port.ts",
+      "message": "Violation in src/user/application/port/out/query/exists-by-username-or-email.port.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b34de447e182c89c",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/user/application/port/out/query/get-user-by-username.port.ts",
+      "message": "Violation in src/user/application/port/out/query/get-user-by-username.port.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-95cae355104a7448",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/user/application/port/out/query/token-provider.port.ts",
+      "message": "Violation in src/user/application/port/out/query/token-provider.port.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-645013be764cf1aa",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/user/application/service/command/login-user.service.ts",
+      "message": "Violation in src/user/application/service/command/login-user.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-6ebfaf230188f26e",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/user/application/service/command/sign-up-user.service.ts",
+      "message": "Violation in src/user/application/service/command/sign-up-user.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-4eb48dcd3829fbcb",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/user/application/service/query/find-user-by-username.service.ts",
+      "message": "Violation in src/user/application/service/query/find-user-by-username.service.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-ed28e7f4a8677e7f",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/user/domain/model/user.domain-model.ts",
+      "message": "Violation in src/user/domain/model/user.domain-model.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    }
+  ],
+  "universalMetrics": {
+    "cyclicDependencyCount": 3,
+    "maxFanOut": 49,
+    "maxFanIn": 16,
+    "abstractionRatio": 0.333,
+    "averageInstability": 0.41,
+    "orphanFileCount": 0
+  },
+  "evaluationMode": "symbolic-only",
+  "durationMs": 47,
+  "droppedDimensions": [],
+  "tiers": {
+    "scoringMode": "v1.3",
+    "tierTable": "Docs/v1.3/rule-tiers.md",
+    "style": "hexagonal",
+    "verdict": "fail",
+    "verdictRule": "any-blocking-violation",
+    "v12eVerdict": "warning",
+    "blockingAhs": 0.667,
+    "blocking": {
+      "rules": [
+        {
+          "functionId": "FF-P01",
+          "name": "domain-purity",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-P03",
+          "name": "port-adapter-pattern",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 4,
+          "violated": true
+        },
+        {
+          "functionId": "FF-P06",
+          "name": "domain-state-purity",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-S01",
+          "name": "dependency-direction-graph",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-S02",
+          "name": "no-cyclic-deps",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 2,
+          "violated": true
+        },
+        {
+          "functionId": "FF-S04",
+          "name": "core-isolation",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        }
+      ],
+      "violatedRules": 2,
+      "violationCount": 6
+    },
+    "advisory": {
+      "rules": [
+        {
+          "functionId": "FF-C02",
+          "name": "module-fan-out",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 1,
+          "violated": true
+        },
+        {
+          "functionId": "FF-C03",
+          "name": "component-instability",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 6,
+          "violated": true
+        },
+        {
+          "functionId": "FF-C04",
+          "name": "no-orphan-files",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-C05",
+          "name": "max-fan-in",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 1,
+          "violated": true
+        },
+        {
+          "functionId": "FF-C06",
+          "name": "abstraction-ratio",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-CV02",
+          "name": "naming-services",
+          "dimension": "convention",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-CV03",
+          "name": "naming-repos",
+          "dimension": "convention",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-CV05",
+          "name": "test-file-pairing",
+          "dimension": "convention",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 76,
+          "violated": true
+        },
+        {
+          "functionId": "FF-CV06",
+          "name": "no-index-logic",
+          "dimension": "convention",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-P02",
+          "name": "port-dependency-inversion",
+          "dimension": "pattern",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-S03",
+          "name": "layer-skip-graph",
+          "dimension": "structural",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-SO01",
+          "name": "single-responsibility-proxy",
+          "dimension": "solid",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-SO02",
+          "name": "interface-segregation-proxy",
+          "dimension": "solid",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-SO03",
+          "name": "inheritance-depth",
+          "dimension": "solid",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        }
+      ],
+      "violatedRules": 4,
+      "violationCount": 84
+    },
+    "notApplicable": [
+      {
+        "functionId": "FF-P06",
+        "part": "FLOWS_TO field rows",
+        "reason": "The field half needs FLOWS_TO, which is near-empty (rule-tiers.md, finding 9); reported N/A with its denominator",
+        "naRows": 0,
+        "totalRows": 0,
+        "flowsToEdges": 0
+      }
+    ],
+    "blockingNotExecuted": []
+  },
+  "warnings": [
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: CacheOptionsFactory",
+      "context": {
+        "filePath": "src/core/config/cache.config.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: CacheOptionsFactory",
+      "context": {
+        "filePath": "test/config/cache-test.config.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: CanActivate",
+      "context": {
+        "filePath": "src/common/guards/require-auth.guard.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: ExceptionFilter",
+      "context": {
+        "filePath": "src/common/filter/self-validation-error.filter.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: HttpModuleOptionsFactory",
+      "context": {
+        "filePath": "src/core/config/tmdb.config.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: HttpModuleOptionsFactory",
+      "context": {
+        "filePath": "test/config/tmdb-test.config.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: OnModuleInit",
+      "context": {
+        "filePath": "src/movie/adapter/out/movie-data/tmdb-movie-data/tmdb.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: OnModuleInit",
+      "context": {
+        "filePath": "src/movie/adapter/out/plot-details/wikipedia-plot-details/wikipedia-plot-details.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: OnModuleInit",
+      "context": {
+        "filePath": "src/movie/adapter/out/question-answering/nlp-question-answering/nlp-question-aswering.service.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: TypeOrmOptionsFactory",
+      "context": {
+        "filePath": "src/core/config/typerom.config.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: TypeOrmOptionsFactory",
+      "context": {
+        "filePath": "test/config/typeorm-test.config.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_005",
+      "message": "CONSTRUCTOR_INJECTS type unresolvable: { field: string; messages: string[]; }[]",
+      "context": {
+        "filePath": "src/common/self-validating/self-validating.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module exports element not in extracted set: CacheModule",
+      "context": {
+        "filePath": "src/core/http-cache/http-cache.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module exports element not in extracted set: ConfigModule",
+      "context": {
+        "filePath": "src/movie/adapter/out/question-answering/nlp-question-answering/nlp-question-answering.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module exports element not in extracted set: HttpModule",
+      "context": {
+        "filePath": "src/movie/adapter/out/movie-data/tmdb-movie-data/tmdb.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module exports element not in extracted set: JwtModule",
+      "context": {
+        "filePath": "src/user/adapter/out/token/token-provider.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module exports element not in extracted set: TypeOrmModule",
+      "context": {
+        "filePath": "src/movie/adapter/out/data-aggregators/movie-data-aggregators.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module exports element not in extracted set: TypeOrmModule",
+      "context": {
+        "filePath": "src/movie/adapter/out/persistance/movie-persistence.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module exports element not in extracted set: TypeOrmModule",
+      "context": {
+        "filePath": "src/user/adapter/out/persistance/user-persistence.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: CacheModule",
+      "context": {
+        "filePath": "src/core/http-cache/http-cache.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: ConfigModule",
+      "context": {
+        "filePath": "src/app.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: ConfigModule",
+      "context": {
+        "filePath": "src/movie/adapter/out/question-answering/nlp-question-answering/nlp-question-answering.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: ConfigModule",
+      "context": {
+        "filePath": "src/user/adapter/out/token/token-provider.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: ConfigModule",
+      "context": {
+        "filePath": "src/user/user.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: HttpModule",
+      "context": {
+        "filePath": "src/movie/adapter/out/movie-data/tmdb-movie-data/tmdb.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: HttpModule",
+      "context": {
+        "filePath": "src/movie/adapter/out/plot-details/wikipedia-plot-details/wikipedia-plot-details.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: HttpModule",
+      "context": {
+        "filePath": "src/movie/movie.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: JwtModule",
+      "context": {
+        "filePath": "src/user/adapter/out/token/token-provider.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: PassportModule",
+      "context": {
+        "filePath": "src/user/user.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: TypeOrmModule",
+      "context": {
+        "filePath": "src/app.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: TypeOrmModule",
+      "context": {
+        "filePath": "src/movie/adapter/out/data-aggregators/movie-data-aggregators.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: TypeOrmModule",
+      "context": {
+        "filePath": "src/movie/adapter/out/persistance/movie-persistence.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: TypeOrmModule",
+      "context": {
+        "filePath": "src/user/adapter/out/persistance/user-persistence.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module providers element not in extracted set: APP_PIPE",
+      "context": {
+        "filePath": "src/app.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    }
+  ],
+  "functionExecution": {
+    "declared": 24,
+    "adrDerived": 0,
+    "compiled": 22,
+    "disabled": 2,
+    "dropped": [],
+    "skippedByMode": 2,
+    "noJudgeUnits": [],
+    "executed": 20,
+    "failed": []
+  },
+  "functionResults": [
+    {
+      "functionId": "FF-P06",
+      "name": "domain-state-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 9,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S01",
+      "name": "dependency-direction-graph",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 68,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S03",
+      "name": "layer-skip-graph",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 15,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S04",
+      "name": "core-isolation",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 9,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C02",
+      "name": "module-fan-out",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 9,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C03",
+      "name": "component-instability",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 6,
+      "executionTimeMs": 15,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C04",
+      "name": "no-orphan-files",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 11,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C05",
+      "name": "max-fan-in",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 6,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C06",
+      "name": "abstraction-ratio",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 4,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S02",
+      "name": "no-cyclic-deps",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 2,
+      "executionTimeMs": 59,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO03",
+      "name": "inheritance-depth",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 4,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV02",
+      "name": "naming-services",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 4,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV03",
+      "name": "naming-repos",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 3,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV05",
+      "name": "test-file-pairing",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 76,
+      "executionTimeMs": 65,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV06",
+      "name": "no-index-logic",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 7,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P01",
+      "name": "domain-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 29,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P02",
+      "name": "port-dependency-inversion",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 11,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P03",
+      "name": "port-adapter-pattern",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 4,
+      "executionTimeMs": 12,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO01",
+      "name": "single-responsibility-proxy",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 6,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO02",
+      "name": "interface-segregation-proxy",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 2,
+      "truncated": false
+    }
+  ],
+  "disabledFunctions": [
+    {
+      "functionId": "FF-CV01",
+      "name": "naming-conventions",
+      "reason": "ADR-016 b (B&T Step 31): cannot fire; per-layer naming patterns compile to .* and no requirement supplies them (SP-FF-CV01 not fired)"
+    },
+    {
+      "functionId": "FF-CV04",
+      "name": "naming-controllers",
+      "reason": "ADR-016 b (B&T Step 31): cannot fire; class decorators are not ingested (BR-U2-31), so no controller is selected (SP-FF-CV04 not fired)"
+    }
+  ],
+  "graphStats": {
+    "nodeCount": 427,
+    "edgeCount": 1005,
+    "layerCoverage": 0.7266187050359713,
+    "nodeCountByType": {
+      "File": 139,
+      "Class": 90,
+      "Interface": 45,
+      "Method": 118,
+      "Function": 6,
+      "Package": 29
+    },
+    "edgeCountByType": {
+      "IMPORTS": 571,
+      "IMPLEMENTS": 30,
+      "EXTENDS": 8,
+      "CONSTRUCTOR_INJECTS": 53,
+      "CALLS": 15,
+      "DECLARES": 141,
+      "CONTAINS": 118,
+      "FLOWS_TO": 0,
+      "RE_EXPORTS": 0
+    }
+  },
+  "layerAnnotation": {
+    "mapped": 101,
+    "unmapped": 38,
+    "unmappedFiles": [
+      "test/setup.ts",
+      "test/config/cache-test.config.ts",
+      "test/config/question-anwering-test.config.ts",
+      "test/config/tmdb-test.config.ts",
+      "test/config/typeorm-test.config.ts",
+      "test/factories/movie.ts",
+      "test/factories/tmdb-api.ts",
+      "test/factories/user.ts",
+      "test/matchers/to-throw-self-validation-error.matcher.ts",
+      "src/common/decorators/auth-optional.decorator.ts",
+      "src/common/decorators/auth-required.decorator.ts",
+      "src/common/decorators/current-user.decorator.ts",
+      "src/common/filter/self-validation-error.filter.ts",
+      "src/common/guards/jwt-auth.guard.ts",
+      "src/common/guards/require-auth.guard.ts",
+      "src/common/interceptors/exclude-properties-class-serializer-interceptor.service.ts",
+      "src/common/model/app-user.model.ts",
+      "src/common/params/id.ts",
+      "src/common/self-validating/self-validating.ts",
+      "src/core/config/cache.config.ts",
+      "src/core/config/jwt.config.ts",
+      "src/core/config/question-answering.config.ts",
+      "src/core/config/tmdb.config.ts",
+      "src/core/config/typerom.config.ts",
+      "src/core/http-cache/http-cache.module.ts",
+      "src/core/http-cache/http-cache.service.ts",
+      "test/e2e/mocks/tmdb-api.mock.ts",
+      "test/e2e/movie/favourite-movie-api.e2e-spec.ts",
+      "test/e2e/movie/movie-api.e2e-spec.ts",
+      "test/e2e/movie/movie-cast-api.e2e-spec.ts",
+      "test/e2e/movie/movie-plot-question-api.e2e-spec.ts",
+      "test/e2e/movie/movie-rating-api.e2e-spec.ts",
+      "test/e2e/user/auth-api.e2e-spec.ts",
+      "test/e2e/user/user-api.e2e-spec.ts",
+      "test/e2e/utils/authenticate.ts",
+      "test/e2e/utils/initialize-app.ts",
+      "test/e2e/utils/typeorm-test.utils.ts",
+      "src/core/http-cache/types/cached-axios-response.ts"
+    ]
+  },
+  "parseCoverage": {
+    "total": 139,
+    "parsed": 139,
+    "percentage": 100,
+    "skipped": []
+  },
+  "importResolution": {
+    "resolvedInternal": 340,
+    "external": 262,
+    "externalOutOfRootAlias": 0,
+    "unresolved": 0,
+    "droppedNoFileNode": 0,
+    "unsupportedDynamic": 0
+  },
+  "timings": {
+    "stages": [
+      {
+        "name": "parallel:extract-apg+parse-spec",
+        "durationMs": 1328,
+        "status": "success"
+      },
+      {
+        "name": "ingest-apg",
+        "durationMs": 114,
+        "status": "success"
+      },
+      {
+        "name": "compile-functions",
+        "durationMs": 4,
+        "status": "success"
+      },
+      {
+        "name": "evaluate-symbolic",
+        "durationMs": 349,
+        "status": "success"
+      },
+      {
+        "name": "universal-metric:cyclicDependencyCount",
+        "durationMs": 23,
+        "status": "success"
+      },
+      {
+        "name": "compute-scores",
+        "durationMs": 48,
+        "status": "success"
+      }
+    ],
+    "totalMs": 1843
+  },
+  "judge": {
+    "provider": "none",
+    "model": "none",
+    "runsPerUnit": 0
+  },
+  "instrumentVersion": 2
+}

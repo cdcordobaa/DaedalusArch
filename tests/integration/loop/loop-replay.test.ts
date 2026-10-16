@@ -111,6 +111,7 @@ describeNeo4j('loop replay: scripted agent through none, daedalus-mcp and gate (
           expect(t.snapshot.evaluationError).toBeUndefined();
           expect(t.snapshot.typecheck).toEqual({ errors: 0, codes: [] });
           expect(t.snapshot.evaluation?.advisoryByRule).toBeDefined();
+          expect(t.snapshot.evaluation?.engineOfRecord).toBe('neo4j');
           for (const f of t.snapshot.evaluation?.blockingFindings ?? []) {
             expect(f.template).not.toBe('');
             expect(f.violationId).toBeDefined();
@@ -192,7 +193,8 @@ describeNeo4j('loop replay: scripted agent through none, daedalus-mcp and gate (
   });
 
   it('labels every new blocking finding `correct` with the check-correct checker (memo §3)', () => {
-    const total = v.outcomes.reduce((n, o) => n + o.newBlockingTotal, 0);
+    for (const o of v.outcomes) expect({ run: o.runId, unscored: o.unscoredSteps }).toEqual({ run: o.runId, unscored: [] });
+    const total = v.outcomes.reduce((n, o) => n + (o.newBlockingTotal ?? 0), 0);
     expect(v.labels).toHaveLength(total);
     for (const l of v.labels) expect(l).toEqual({ ...l, verdict: 'correct' });
   });

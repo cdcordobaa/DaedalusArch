@@ -1,0 +1,188 @@
+{
+ "engine": "--engine cypher-interp (in-process interpreter, on v1.3 since PR #128) for 19 projects; bank-server on a local Neo4j 5.26.24 community server with APOC 5.26.24 core from the release tarballs (dist.neo4j.org, github.com/neo4j/apoc releases), bound to 127.0.0.1, because the interpreter did not finish FF-S02 on it",
+ "engineParity": "All 19 cypher-interp projects were re-run on that Neo4j server (scratch, not committed): identical violation ids and identical v1.3 verdicts on 19/19.",
+ "toolCommit": "50a32841 (origin/v1.3); specs at 34c4cf79 + validate outputs at 5ed03e72",
+ "command": "npx tsx bin/firewall.ts evaluate --project <clone>/<root> --spec results/v1.3-external-2/specs/<id>.yaml --symbolic-only --engine cypher-interp --format json   (bank-server: same without --engine, NEO4J_PASSWORD set for the local server)",
+ "options": {
+  "scoring": "v1.3 (default)",
+  "instrument": "v2 (default)",
+  "graphMode": "full (default)",
+  "tsconfig": "<root>/tsconfig.json (default)",
+  "evaluationMode": "symbolic-only: the LLM judge rules FF-N01/FF-N02 were not run (non-blocking in v1.3)"
+ },
+ "node": "v22.22.0",
+ "dependenciesInstalled": "no: clones have no node_modules; imports of packages are external nodes",
+ "exitCodes": "0 = pass verdict, 1 = verdict fail/hard-block (exitCodeFromVerdict), not an error; every completed run wrote a complete report",
+ "fidelityHarness": "node --import tsx scripts/v1.3/graph-fidelity.ts project --views --id <id> --root <clone> --tsconfig <clone>/tsconfig.json --spec results/v1.3-external-2/specs/<id>.yaml --out results/v1.3-external-2/fidelity/<id>  (dependency-cruiser 18.4.0 from experiments/tool-comparison/depcruise, npm ci --ignore-scripts)",
+ "runs": [
+  {
+   "id": "jamielivingstone-clean",
+   "engine": "cypher-interp",
+   "exit": 1,
+   "wallMs": 3147,
+   "startUtc": "2026-10-16T04:10:30Z",
+   "cloneDirtyAfter": 0
+  },
+  {
+   "id": "nutes-template-base",
+   "engine": "cypher-interp",
+   "exit": 1,
+   "wallMs": 4157,
+   "startUtc": "2026-10-16T04:10:33Z",
+   "cloneDirtyAfter": 0
+  },
+  {
+   "id": "felixle-node-core",
+   "engine": "cypher-interp",
+   "exit": 1,
+   "wallMs": 5113,
+   "startUtc": "2026-10-16T04:10:37Z",
+   "cloneDirtyAfter": 0
+  },
+  {
+   "id": "adilsonfuxe-auth",
+   "engine": "cypher-interp",
+   "exit": 1,
+   "wallMs": 4098,
+   "startUtc": "2026-10-16T04:10:43Z",
+   "cloneDirtyAfter": 0
+  },
+  {
+   "id": "typeplate",
+   "engine": "cypher-interp",
+   "exit": 1,
+   "wallMs": 34121,
+   "startUtc": "2026-10-16T04:10:47Z",
+   "cloneDirtyAfter": 0
+  },
+  {
+   "id": "geekyants-express",
+   "engine": "cypher-interp",
+   "exit": 1,
+   "wallMs": 3251,
+   "startUtc": "2026-10-16T04:11:21Z",
+   "cloneDirtyAfter": 0
+  },
+  {
+   "id": "ngduc-node-rem",
+   "engine": "cypher-interp",
+   "exit": 1,
+   "wallMs": 3195,
+   "startUtc": "2026-10-16T04:11:24Z",
+   "cloneDirtyAfter": 0
+  },
+  {
+   "id": "shihabmridha-repo-ioc",
+   "engine": "cypher-interp",
+   "exit": 1,
+   "wallMs": 3276,
+   "startUtc": "2026-10-16T04:11:27Z",
+   "cloneDirtyAfter": 0
+  },
+  {
+   "id": "staart-api",
+   "engine": "cypher-interp",
+   "exit": 1,
+   "wallMs": 4523,
+   "startUtc": "2026-10-16T04:11:31Z",
+   "cloneDirtyAfter": 0
+  },
+  {
+   "id": "bank-server",
+   "engine": "cypher-interp",
+   "exit": 143,
+   "wallMs": 1506163,
+   "startUtc": "2026-10-16T04:11:35Z",
+   "cloneDirtyAfter": 0,
+   "note": "killed (SIGTERM, exit 143) after 25 min; FF-S02 (no-cyclic-deps) variable-length cycle query did not finish in the interpreter (typeplate, the next slowest, spent 17 s in FF-S02). The report in findings/bank-server.json is the Neo4j run below."
+  },
+  {
+   "id": "saluki-nestjs-template",
+   "engine": "cypher-interp",
+   "exit": 1,
+   "wallMs": 3336,
+   "startUtc": "2026-10-16T04:36:42Z",
+   "cloneDirtyAfter": 0
+  },
+  {
+   "id": "monstarlab-nestjs-starter",
+   "engine": "cypher-interp",
+   "exit": 1,
+   "wallMs": 3614,
+   "startUtc": "2026-10-16T04:36:45Z",
+   "cloneDirtyAfter": 0
+  },
+  {
+   "id": "hexapinod",
+   "engine": "cypher-interp",
+   "exit": 1,
+   "wallMs": 3786,
+   "startUtc": "2026-10-16T04:36:48Z",
+   "cloneDirtyAfter": 0
+  },
+  {
+   "id": "ts-seed-hexagonal",
+   "engine": "cypher-interp",
+   "exit": 1,
+   "wallMs": 3409,
+   "startUtc": "2026-10-16T04:36:52Z",
+   "cloneDirtyAfter": 0
+  },
+  {
+   "id": "remix-hexagonal",
+   "engine": "cypher-interp",
+   "exit": 1,
+   "wallMs": 9886,
+   "startUtc": "2026-10-16T04:36:56Z",
+   "cloneDirtyAfter": 0
+  },
+  {
+   "id": "quiz4devs-backend",
+   "engine": "cypher-interp",
+   "exit": 1,
+   "wallMs": 3387,
+   "startUtc": "2026-10-16T04:37:06Z",
+   "cloneDirtyAfter": 0
+  },
+  {
+   "id": "pezzetti-base-app",
+   "engine": "cypher-interp",
+   "exit": 1,
+   "wallMs": 3146,
+   "startUtc": "2026-10-16T04:37:09Z",
+   "cloneDirtyAfter": 0
+  },
+  {
+   "id": "talyssonoc-node-api",
+   "engine": "cypher-interp",
+   "exit": 1,
+   "wallMs": 3198,
+   "startUtc": "2026-10-16T04:37:12Z",
+   "cloneDirtyAfter": 0
+  },
+  {
+   "id": "camps-graphql-api",
+   "engine": "cypher-interp",
+   "exit": 0,
+   "wallMs": 3157,
+   "startUtc": "2026-10-16T04:37:15Z",
+   "cloneDirtyAfter": 0
+  },
+  {
+   "id": "mustodon",
+   "engine": "cypher-interp",
+   "exit": 1,
+   "wallMs": 3816,
+   "startUtc": "2026-10-16T04:37:19Z",
+   "cloneDirtyAfter": 0
+  },
+  {
+   "id": "bank-server",
+   "engine": "neo4j",
+   "exit": 1,
+   "wallMs": 46826,
+   "startUtc": "2026-10-16T04:38:43Z",
+   "cloneDirtyAfter": 0
+  }
+ ]
+}

@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7699,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "26cd7c0f71abca6922c30da2f1fe6bdc8c4ea783acaec1107e756d9cffa9c9e9-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.88,
+    "evidence": [
+      "Event.remaining() returns venueCapacity - seatsSold, which is a domain calculation",
+      "Event.sell() checks capacity, throws the domain error SoldOut, updates seatsSold and returns seats * priceCents, which is a business rule",
+      "The only import is './TicketingError', a domain error in the business layer; there are no persistence, transport or framework imports or calls",
+      "hasId() only checks the entity's own id field and does no I/O"
+    ],
+    "pass": true,
+    "reasoning": "src/business/core/Event.ts is a plain domain entity, and every responsibility in it belongs in the domain (business) layer. It holds event state (id, title, capacity, seats sold, start time, price). It also applies the business rules: remaining() works out how many seats are left. sell() rejects a sale larger than the remaining capacity by throwing the domain error SoldOut, updates seatsSold and returns the price. The file has no persistence code (no SQL, ORM or repository calls), no transport or HTTP handling, no framework decorators and no presentation formatting. hasId() checks whether the entity has an identity. This could hint that the caller cares whether the event has been saved, but the method is only a check on the entity's own field and does no persistence work, so it is not a misplaced responsibility.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**\n- business (kind: domain): src/business/**\n- presentation (kind: presentation): src/presentation/**\n\n## Unit\nKind: file\nId: src/business/core/Event.ts\nLayer: business\nUnit files:\n- src/business/core/Event.ts\n\n## Source\n=====SOURCE-BEGIN src/business/core/Event.ts=====\nimport { SoldOut } from './TicketingError';\n\nexport class Event {\n  id: string;\n  title: string;\n  venueCapacity: number;\n  seatsSold: number;\n  startsAt: Date;\n  priceCents: number;\n\n  constructor(id: string, title: string, venueCapacity: number, seatsSold: number, startsAt: Date, priceCents: number) {\n    this.id = id;\n    this.title = title;\n    this.venueCapacity = venueCapacity;\n    this.seatsSold = seatsSold;\n    this.startsAt = startsAt;\n    this.priceCents = priceCents;\n  }\n\n  remaining(): number {\n    return this.venueCapacity - this.seatsSold;\n  }\n\n  sell(seats: number): number {\n    if (seats > this.remaining()) throw new SoldOut(`Only ${this.remaining()} seats left for ${this.title}`);\n    this.seatsSold += seats;\n    return seats * this.priceCents;\n  }\n\n  hasId(): boolean {\n    return this.id !== undefined;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/business/core/Event.ts\",\"to\":\"src/business/core/TicketingError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/business/logic/BoxOffice.ts\",\"to\":\"src/business/core/Event.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"business\",\"name\":\"Event\",\"path\":\"src/business/core/Event.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/core/Event.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/core/TicketingError.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/logic/BoxOffice.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T03:28:00.717Z",
+  "repetition": 0,
+  "requestHash": "26cd7c0f71abca6922c30da2f1fe6bdc8c4ea783acaec1107e756d9cffa9c9e9",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":605}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.88,\\\"reasoning\\\":\\\"src/business/core/Event.ts is a plain domain entity, and every responsibility in it belongs in the domain (business) layer. It holds event state (id, title, capacity, seats sold, start time, price). It also applies the business rules: remaining() works out how many seats are left. sell() rejects a sale larger than the remaining capacity by throwing the domain error SoldOut, updates seatsSold and returns the price. The file has no persistence code (no SQL, ORM or repository calls), no transport or HTTP handling, no framework decorators and no presentation formatting. hasId() checks whether the entity has an identity. This could hint that the caller cares whether the event has been saved, but the method is only a check on the entity's own field and does no persistence work, so it is not a misplaced responsibility.\\\",\\\"evidence\\\":[\\\"Event.remaining() returns venueCapacity - seatsSold, which is a domain calculation\\\",\\\"Event.sell() checks capacity, throws the domain error SoldOut, updates seatsSold and returns seats * priceCents, which is a business rule\\\",\\\"The only import is './TicketingError', a domain error in the business layer; there are no persistence, transport or framework imports or calls\\\",\\\"hasId() only checks the entity's own id field and does no I/O\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.88,\"evidence\":[\"Event.remaining() returns venueCapacity - seatsSold, which is a domain calculation\",\"Event.sell() checks capacity, throws the domain error SoldOut, updates seatsSold and returns seats * priceCents, which is a business rule\",\"The only import is './TicketingError', a domain error in the business layer; there are no persistence, transport or framework imports or calls\",\"hasId() only checks the entity's own id field and does no I/O\"],\"pass\":true,\"reasoning\":\"src/business/core/Event.ts is a plain domain entity, and every responsibility in it belongs in the domain (business) layer. It holds event state (id, title, capacity, seats sold, start time, price). It also applies the business rules: remaining() works out how many seats are left. sell() rejects a sale larger than the remaining capacity by throwing the domain error SoldOut, updates seatsSold and returns the price. The file has no persistence code (no SQL, ORM or repository calls), no transport or HTTP handling, no framework decorators and no presentation formatting. hasId() checks whether the entity has an identity. This could hint that the caller cares whether the event has been saved, but the method is only a check on the entity's own field and does no persistence work, so it is not a misplaced responsibility.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/business/core/Event.ts",
+  "usage": {
+    "inputTokens": 2489,
+    "outputTokens": 605
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

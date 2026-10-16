@@ -1,0 +1,514 @@
+{
+  "runId": "run-1792149879368",
+  "projectPath": "<work>/claude-code-cli/claude-sonnet-5-5/relief-volunteers/none/run-0/step-02",
+  "specVersion": "1.0.0",
+  "ahsDeterministic": 0.8,
+  "verdict": "hard-block",
+  "scoring": {
+    "weights": {
+      "structural": 0.35,
+      "coupling": 0.2,
+      "pattern": 0.3,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0,
+      "integrity": 0
+    },
+    "fullModeWeights": {
+      "structural": 0.32,
+      "coupling": 0.18,
+      "pattern": 0.27,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0.04,
+      "integrity": 0.04
+    },
+    "thresholds": {
+      "pass": 0.8,
+      "warning": 0.65,
+      "softBlock": 0.5
+    },
+    "confidenceThresholds": {
+      "high": 0.85,
+      "medium": 0.6,
+      "iccMinimum": 0.7
+    },
+    "verdictSource": "ahsDeterministic"
+  },
+  "perDimensionScores": [
+    {
+      "dimension": "structural",
+      "avr": 0.2,
+      "violatedWeight": 1,
+      "weight": 0.35,
+      "effectiveWeight": 0.5384615384615385,
+      "violationCount": 1,
+      "functionCount": 5
+    },
+    {
+      "dimension": "pattern",
+      "avr": 0.2,
+      "violatedWeight": 1,
+      "weight": 0.3,
+      "effectiveWeight": 0.46153846153846156,
+      "violationCount": 1,
+      "functionCount": 5
+    }
+  ],
+  "violations": [
+    {
+      "id": "v-0e66bd87460ba2b1",
+      "type": "CUSTOM_bounded-context-modules",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-DS01",
+      "route": "symbolic",
+      "filePath": "src/shared/http.ts",
+      "message": "src/shared/http.ts lies in no declared bounded context",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "structural"
+    },
+    {
+      "id": "v-a0bb51aab8c1b30f",
+      "type": "CUSTOM_application-service-thin",
+      "dimension": "pattern",
+      "severity": "advisory",
+      "functionId": "FF-DT06",
+      "route": "symbolic",
+      "filePath": "src/deployment/application/deploymentService.ts",
+      "message": "Application service DeploymentService in src/deployment/application/deploymentService.ts declares 12 methods",
+      "deterministic": true,
+      "discriminator": [
+        "DeploymentService"
+      ],
+      "evidence": [
+        "methods=12"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-bd53ba3e4be582bd",
+      "type": "CUSTOM_application-service-thin",
+      "dimension": "pattern",
+      "severity": "advisory",
+      "functionId": "FF-DT06",
+      "route": "symbolic",
+      "filePath": "src/registry/application/volunteerService.ts",
+      "message": "Application service VolunteerService in src/registry/application/volunteerService.ts declares 10 methods",
+      "deterministic": true,
+      "discriminator": [
+        "VolunteerService"
+      ],
+      "evidence": [
+        "methods=10"
+      ],
+      "tag": "pattern-proxy"
+    }
+  ],
+  "universalMetrics": {
+    "cyclicDependencyCount": 0,
+    "maxFanOut": 10,
+    "maxFanIn": 6,
+    "abstractionRatio": 0.571,
+    "averageInstability": 0.444,
+    "orphanFileCount": 0
+  },
+  "evaluationMode": "symbolic-only",
+  "durationMs": 59,
+  "droppedDimensions": [
+    {
+      "dimension": "coupling",
+      "reason": "none_declared",
+      "declared": 0,
+      "executed": 0
+    },
+    {
+      "dimension": "solid",
+      "reason": "none_declared",
+      "declared": 0,
+      "executed": 0
+    },
+    {
+      "dimension": "convention",
+      "reason": "none_declared",
+      "declared": 0,
+      "executed": 0
+    }
+  ],
+  "tiers": {
+    "scoringMode": "v1.3",
+    "tierTable": "Docs/v1.3/rule-tiers.md",
+    "style": "ddd",
+    "verdict": "fail",
+    "verdictRule": "any-blocking-violation",
+    "v12eVerdict": "pass",
+    "blockingAhs": 0.865,
+    "blocking": {
+      "rules": [
+        {
+          "functionId": "FF-DS01",
+          "name": "bounded-context-modules",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 1,
+          "violated": true
+        },
+        {
+          "functionId": "FF-DS02",
+          "name": "context-isolation",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-DT01",
+          "name": "aggregate-boundary",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-DT02",
+          "name": "repository-aggregate-root",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-DT03",
+          "name": "value-object-immutability",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-DT04",
+          "name": "domain-purity",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-S01",
+          "name": "dependency-direction-graph",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        }
+      ],
+      "violatedRules": 1,
+      "violationCount": 1
+    },
+    "advisory": {
+      "rules": [
+        {
+          "functionId": "FF-DT05",
+          "name": "domain-event-placement",
+          "dimension": "pattern",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-DT06",
+          "name": "application-service-thin",
+          "dimension": "pattern",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 2,
+          "violated": true
+        },
+        {
+          "functionId": "FF-S03",
+          "name": "layer-skip-graph",
+          "dimension": "structural",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        }
+      ],
+      "violatedRules": 1,
+      "violationCount": 2
+    },
+    "notApplicable": [],
+    "blockingNotExecuted": []
+  },
+  "warnings": [
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DS01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DS02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DT01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DT02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DT03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DT04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DT05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DT06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    }
+  ],
+  "functionExecution": {
+    "declared": 10,
+    "adrDerived": 0,
+    "compiled": 10,
+    "disabled": 0,
+    "dropped": [],
+    "skippedByMode": 0,
+    "noJudgeUnits": [],
+    "executed": 10,
+    "failed": []
+  },
+  "functionResults": [
+    {
+      "functionId": "FF-DS01",
+      "name": "bounded-context-modules",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 17,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DS02",
+      "name": "context-isolation",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 43,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DT01",
+      "name": "aggregate-boundary",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 10,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S01",
+      "name": "dependency-direction-graph",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 18,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S03",
+      "name": "layer-skip-graph",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 11,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DT02",
+      "name": "repository-aggregate-root",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 7,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DT03",
+      "name": "value-object-immutability",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 20,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DT04",
+      "name": "domain-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 7,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DT05",
+      "name": "domain-event-placement",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 8,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DT06",
+      "name": "application-service-thin",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 2,
+      "executionTimeMs": 7,
+      "truncated": false
+    }
+  ],
+  "disabledFunctions": [],
+  "graphStats": {
+    "nodeCount": 117,
+    "edgeCount": 146,
+    "layerCoverage": 0.9166666666666666,
+    "nodeCountByType": {
+      "File": 12,
+      "Class": 12,
+      "Interface": 16,
+      "Method": 52,
+      "Function": 23,
+      "Package": 2
+    },
+    "edgeCountByType": {
+      "IMPORTS": 28,
+      "IMPLEMENTS": 5,
+      "EXTENDS": 0,
+      "CONSTRUCTOR_INJECTS": 6,
+      "CALLS": 4,
+      "DECLARES": 51,
+      "CONTAINS": 52,
+      "FLOWS_TO": 0,
+      "RE_EXPORTS": 0
+    }
+  },
+  "layerAnnotation": {
+    "mapped": 11,
+    "unmapped": 1,
+    "unmappedFiles": [
+      "src/shared/http.ts"
+    ]
+  },
+  "parseCoverage": {
+    "total": 12,
+    "parsed": 12,
+    "percentage": 100,
+    "skipped": []
+  },
+  "importResolution": {
+    "resolvedInternal": 24,
+    "external": 4,
+    "externalOutOfRootAlias": 0,
+    "unresolved": 0,
+    "droppedNoFileNode": 0,
+    "unsupportedDynamic": 0
+  },
+  "timings": {
+    "stages": [
+      {
+        "name": "parallel:extract-apg+parse-spec",
+        "durationMs": 857,
+        "status": "success"
+      },
+      {
+        "name": "ingest-apg",
+        "durationMs": 76,
+        "status": "success"
+      },
+      {
+        "name": "compile-functions",
+        "durationMs": 3,
+        "status": "success"
+      },
+      {
+        "name": "evaluate-symbolic",
+        "durationMs": 149,
+        "status": "success"
+      },
+      {
+        "name": "universal-metric:cyclicDependencyCount",
+        "durationMs": 20,
+        "status": "success"
+      },
+      {
+        "name": "compute-scores",
+        "durationMs": 60,
+        "status": "success"
+      }
+    ],
+    "totalMs": 1145
+  },
+  "judge": {
+    "provider": "none",
+    "model": "none",
+    "runsPerUnit": 0
+  },
+  "instrumentVersion": 2
+}

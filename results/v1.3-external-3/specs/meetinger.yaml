@@ -1,0 +1,275 @@
+# v1.3 external set, wave 3: spec for `meetinger` (style ddd).
+# Derived from presets/ddd.yaml: the `architecture:` block maps THIS project's folders
+# (judgements in results/v1.3-external-3/spec-rationale.md); `fitness_functions:` is the preset's, verbatim.
+# Written before any tool run on the project.
+
+spec_version: "1.0.0"
+
+architecture:
+  style: ddd
+
+  # Analysis root: backend/. README: "built with TypeScript to showcase Domain-Driven Design (DDD), Clean
+  # Architecture & SOLID", "highly influenced by ... Khalil Stemmler". Stemmler module layout: src/modules/
+  # {connection,meetings,users}/{domain,repos,usecase,...} plus src/shared/{core,domain,infra}. Each
+  # usecase/<name>/index.ts is the Lambda handler that wires repo, use case and controller (composition).
+  # Repository interfaces (repos/*Repo.ts) are domain ports; repos/implementations/* are infrastructure.
+  # mappers/* convert DynamoDB items (aws-sdk types) to domain and domain to DTO: infrastructure.
+  # shared/core (errors, UseCase interface) is cross-cutting and unmapped.
+  layers:
+    - name: domain
+      kind: domain
+      directories:
+        - src/modules/*/domain/**
+        - src/modules/*/errors/**
+        - src/modules/*/repos/*Repo.ts
+        - src/shared/domain/**
+      roles:
+        - aggregate
+        - entity
+        - value-object
+        - domain-event
+        - repository-interface
+
+    - name: application
+      kind: application
+      directories:
+        - src/modules/*/usecase/*/*UseCase.ts
+        - src/modules/*/usecase/*/*Request.ts
+        - src/modules/*/usecase/*/*Response.ts
+        - src/modules/*/dtos/**
+        - src/modules/*/integrationEvents/**
+        - src/modules/*/emails/**
+        - src/modules/*/listeners/**
+      roles:
+        - application-service
+        - port
+
+    - name: infrastructure
+      kind: infrastructure
+      directories:
+        - src/modules/*/repos/implementations/**
+        - src/modules/*/mappers/**
+        - src/shared/infra/brokers/**
+        - src/shared/infra/dynamodb/**
+        - src/shared/infra/emailService/**
+        - src/shared/infra/queues/**
+      roles:
+        - repository
+
+    - name: api
+      kind: presentation
+      directories:
+        - src/modules/*/usecase/*/*Controller.ts
+        - src/shared/infra/http/**
+      roles:
+        - controller
+
+    - name: composition
+      kind: application
+      directories:
+        - src/modules/*/usecase/*/index.ts
+      roles:
+        - composition-root
+
+  allowed_dependencies:
+    - from: application
+      to: [domain]
+    - from: infrastructure
+      to: [application, domain]
+    - from: api
+      to: [application, domain]
+    - from: composition
+      to: [domain, application, infrastructure, api]
+
+  ddd:
+    source_root: src/modules/
+    # Contexts are the three Stemmler modules. meetings publishes integration events (integrationEvents/,
+    # consumed by shared/infra/brokers); no module has a barrel or contracts folder otherwise.
+    contexts:
+      - name: connection
+        root: src/modules/connection/
+        public_api: []
+        acl: []
+      - name: meetings
+        root: src/modules/meetings/
+        public_api: [src/modules/meetings/integrationEvents/**]
+        acl: []
+      - name: users
+        root: src/modules/users/
+        public_api: []
+        acl: []
+    outside_contexts: [src/shared/**]
+    # Roots found with grep 'class X extends AggregateRoot'. meetings/domain is flat, so Meeting and Attendee
+    # share the module glob. connection/domain/connection.ts is a plain class (no AggregateRoot): not declared.
+    aggregates:
+      - name: Meeting
+        context: meetings
+        module: src/modules/meetings/domain/**
+        root: src/modules/meetings/domain/Meeting.ts
+        inner_entities: []
+      - name: Attendee
+        context: meetings
+        module: src/modules/meetings/domain/**
+        root: src/modules/meetings/domain/Attendee.ts
+        inner_entities: []
+      - name: User
+        context: users
+        module: src/modules/users/domain/**
+        root: src/modules/users/domain/User.ts
+        inner_entities: []
+    # Every class that extends ValueObject at the pin, plus the shared base class.
+    value_objects:
+      - src/shared/domain/valueObject.ts
+      - src/modules/users/domain/UserEmail.ts
+      - src/modules/users/domain/UserFullName.ts
+      - src/modules/users/domain/UserIntroduction.ts
+      - src/modules/users/domain/UserName.ts
+      - src/modules/meetings/domain/AttendeeDetails.ts
+      - src/modules/meetings/domain/MeetingAddress.ts
+      - src/modules/meetings/domain/MeetingAvailableSeats.ts
+      - src/modules/meetings/domain/MeetingCategory.ts
+      - src/modules/meetings/domain/MeetingDescription.ts
+      - src/modules/meetings/domain/MeetingItemView.ts
+      - src/modules/meetings/domain/MeetingPlace.ts
+      - src/modules/meetings/domain/MeetingRemainingSeats.ts
+      - src/modules/meetings/domain/MeetingTitle.ts
+      - src/modules/meetings/domain/MeetingView.ts
+      - src/modules/meetings/domain/RegisteredMeetingView.ts
+    repositories: ["src/modules/*/repos/*Repo.ts", "src/modules/*/repos/implementations/*Repo.ts"]
+    domain_event_types: [DomainEvent]
+    application_services: ["src/modules/*/usecase/*/*UseCase.ts"]
+
+fitness_functions:
+
+  # ── STRATEGIC ──
+
+  - id: FF-DS01
+    name: bounded-context-modules
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DS02
+    name: context-isolation
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # ── TACTICAL ──
+
+  - id: FF-DT01
+    name: aggregate-boundary
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DT02
+    name: repository-aggregate-root
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Blocking per the sealed Docs/v1.3/rule-tiers.md. The check is still a method-name proxy (the extractor sees no
+  # readonly, accessors or visibility); see Docs/v1.3-ddd-notes.md §2 for the proposed ADR.
+  - id: FF-DT03
+    name: value-object-immutability
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Framework-free domain: the existing domain-purity template, unchanged, with the DDD package list.
+  - id: FF-DT04
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+    forbidden_imports:
+      - "@nestjs/*"
+      - typeorm
+      - express
+      - prisma
+      - "@prisma/*"
+      - sequelize
+      - mongoose
+      - "@mikro-orm/*"
+      - class-validator
+      - class-transformer
+      - inversify
+      - tsyringe
+
+  # Advisory per the sealed Docs/v1.3/rule-tiers.md (placement guideline).
+  - id: FF-DT05
+    name: domain-event-placement
+    dimension: pattern
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+  # Advisory heuristic: more methods than the threshold in an application service.
+  - id: FF-DT06
+    name: application-service-thin
+    dimension: pattern
+    severity: advisory
+    route: symbolic
+    validated: false
+    tier: advisory
+    threshold: 3
+
+  # ── LAYERING INSIDE EACH CONTEXT (hexagonal templates) ──
+
+  - id: FF-S01
+    name: dependency-direction-graph
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Advisory per the sealed Docs/v1.3/rule-tiers.md (hexagonal does not define strict layering).
+  - id: FF-S03
+    name: layer-skip-graph
+    dimension: structural
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70

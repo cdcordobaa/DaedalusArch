@@ -5,6 +5,7 @@
  *   npx tsx scripts/loop-harness-cli.ts --plan <plan.json> [--dry-run] [--binary <abs>] [--harness-root <abs>]
  *                                       [--out-root <abs>] [--codex-home <abs>] [--codex-user-home <abs>]
  *                                       [--claude-config-dir <abs>]
+ *                                       [--engine neo4j|cypher-interp|both]
  *   npx tsx scripts/loop-harness-cli.ts --help
  *
  * `--dry-run` replaces the generator, the firewall and the type-check with the stubs of `stub.ts`: the whole loop
@@ -26,6 +27,12 @@
  * A live plan with `adapters[].cliVersion` or `generatorIsolation` probes every adapter before the skeleton install, so
  * a version mismatch or a failed isolation check stops the grid before any work (`Docs/v1.3/loop-isolation.md`). Any
  * other plan keeps the E1 order and availability check unchanged.
+ *
+ * `--engine` (or the plan's `engine`; the flag wins) picks the evaluator's graph engine (`engine-tee.ts`,
+ * `Docs/v1.3/loop-engine-tee.md`): `both` keeps Neo4j as the engine of record, re-evaluates every snapshot on the
+ * in-process interpreter and records parity. Absent = `neo4j`, the reference engine: a live grid never inherits the
+ * NEO4J_URI default of `engine-default.ts`, and every evaluation records its engine (`engineOfRecord`). A dry run
+ * ignores it (stubs).
  */
 import * as crypto from 'node:crypto';
 import * as fs from 'node:fs';
@@ -46,12 +53,15 @@ import type { Clock, Sleeper } from '../generators/retry.js';
 import { checkSkeletonIntact, ensureHarness, prepareCellDir } from '../generators/skeleton.js';
 import type { SkeletonInstall } from '../generators/skeleton.js';
 import { CODEX_CLI_ADAPTER_ID_VALUE } from '../generators/types.js';
+import { acceptanceRunner } from './acceptance.js';
 import { ClaudeStepAgent, CodexStepAgent } from './agents.js';
 import { checkIsolationPaths } from './isolation.js';
 import { firewallEvaluator, harnessSnapshotTsconfig, harnessTypechecker } from './evaluator.js';
-import { runLoop } from './loop.js';
+import { evaluatorForEngine, parseLoopEngine } from './engine-tee.js';
+import type { LoopEngine } from './engine-tee.js';
+import { gateEvaluationFailures, runLoop } from './loop.js';
 import type { LoopContext, LoopRunResult, TaskProfile } from './loop.js';
-import { loadLoopPlan, loopRunId, planCallBudget, scheduleLoopRuns } from './plan.js';
+import { loadLoopPlan, loopRunId, mcpSpecCheck, planCallBudget, scheduleLoopRuns } from './plan.js';
 import type { LoadedPlan, LocalOverrides } from './plan.js';
 import { iseDddFreezer } from './specs.js';
 import type { SpecFreezer } from './specs.js';
@@ -67,12 +77,15 @@ export const LOOP_USAGE = [
   'usage: npx tsx scripts/loop-harness-cli.ts --plan <plan.json> [--dry-run] [--binary <abs>] [--harness-root <abs>]',
   '                                          [--out-root <abs>] [--codex-home <abs>] [--codex-user-home <abs>]',
   '                                          [--claude-config-dir <abs>]',
+  '                                          [--engine neo4j|cypher-interp|both]',
   '       npx tsx scripts/loop-harness-cli.ts --help',
   '',
   'Runs the multi-step firewall-in-the-loop grid: each run applies the k steps of a task to one work directory under',
   'an arm (none | daedalus-mcp | gate), snapshotting, type-checking and evaluating after every step. Re-running the',
   'same plan resumes. --dry-run uses a stub generator, stub firewall and stub type-check (no model, no Neo4j).',
   'Plan fields "<local>" (binary, harnessRoot, outRoot) come from --binary, --harness-root and --out-root.',
+  '--engine (or the plan\'s "engine") picks the evaluator\'s graph engine; both = Neo4j of record plus an',
+  'interpreter parity check on every snapshot. Absent = the default wiring.',
   '',
 ].join('\n');
 
@@ -110,12 +123,15 @@ interface ParsedArgs {
   readonly plan?: string;
   readonly local: LocalOverrides;
   readonly codexHomes: CodexHomes;
+  /** `--engine`; absent = the plan's `engine`, else the default wiring. */
+  readonly engine?: LoopEngine;
 }
 
 export function parseLoopArgs(argv: readonly string[]): DomainResult<ParsedArgs> {
   let help = false;
   let dryRun = false;
   let plan: string | undefined;
+  let engine: string | undefined;
   const local: { binary?: string; harnessRoot?: string; outRoot?: string; claudeConfigDir?: string } = {};
   const homes: { codexHome?: string; userHome?: string } = {};
   const value = (i: number): string | undefined => {
@@ -130,6 +146,7 @@ export function parseLoopArgs(argv: readonly string[]): DomainResult<ParsedArgs>
     '--codex-home': (v) => (homes.codexHome = v),
     '--codex-user-home': (v) => (homes.userHome = v),
     '--claude-config-dir': (v) => (local.claudeConfigDir = v),
+    '--engine': (v) => (engine = v),
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i] ?? '';
@@ -143,7 +160,9 @@ export function parseLoopArgs(argv: readonly string[]): DomainResult<ParsedArgs>
     } else return DomainResult.fail([{ code: 'LOOP_USAGE', message: `unexpected argument ${JSON.stringify(a)}` }]);
   }
   if (!help && plan === undefined) return DomainResult.fail([{ code: 'LOOP_USAGE', message: '--plan <file> is required' }]);
-  return DomainResult.ok({ help, dryRun, local, codexHomes: homes, ...(plan !== undefined ? { plan } : {}) });
+  const parsedEngine = engine !== undefined ? parseLoopEngine(engine) : undefined;
+  if (engine !== undefined && parsedEngine === undefined) return DomainResult.fail([{ code: 'LOOP_USAGE', message: `--engine must be neo4j, cypher-interp or both, not ${JSON.stringify(engine)}` }]);
+  return DomainResult.ok({ help, dryRun, local, codexHomes: homes, ...(plan !== undefined ? { plan } : {}), ...(parsedEngine !== undefined ? { engine: parsedEngine } : {}) });
 }
 
 function sha256File(file: string): string {
@@ -156,6 +175,8 @@ interface ScheduleFile {
   readonly tasksSha256: string;
   readonly dryRun: boolean;
   readonly runs: readonly string[];
+  /** The evaluator engine when one was chosen (absent = the default wiring); a resume must keep it. */
+  readonly engine?: LoopEngine;
 }
 
 /** Writes `schedule.json`, or checks that an existing one belongs to the same plan, tasks and mode. */
@@ -172,6 +193,7 @@ export function claimSchedule(outRoot: string, schedule: ScheduleFile): DomainRe
       prior.planSha256 === schedule.planSha256 &&
       prior.tasksSha256 === schedule.tasksSha256 &&
       prior.dryRun === schedule.dryRun &&
+      prior.engine === schedule.engine &&
       JSON.stringify(prior.runs) === JSON.stringify(schedule.runs);
     return same
       ? DomainResult.ok(undefined)
@@ -278,10 +300,18 @@ function dryRunWiring(loaded: LoadedPlan, repoRoot: string): DomainResult<Wiring
   });
 }
 
+/** The engine of a live grid: `--engine`, else the plan's `engine`, else `neo4j` (never the NEO4J_URI default). */
+export function liveEngine(flag: LoopEngine | undefined, plan: LoopEngine | undefined): LoopEngine {
+  return flag ?? plan ?? 'neo4j';
+}
+
 async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs, deps: LoopMainDeps): Promise<DomainResult<Wiring>> {
   const { plan } = loaded;
   if (isInsideOrEqual(repoRoot, plan.outRoot)) return DomainResult.fail([{ code: 'LOOP_PLAN_INVALID', message: 'outRoot must lie outside the repository' }]);
   if (deps.evaluateDeps === undefined) return DomainResult.fail([{ code: 'LOOP_NO_EVALUATOR', message: 'no evaluate_project wiring' }]);
+  // R23: the MCP arm's advice and the score must come from the same spec.
+  const specMatch = mcpSpecCheck(plan, repoRoot);
+  if (!specMatch.success) return DomainResult.fail(specMatch.errors);
   const isolation = plan.generatorIsolation !== undefined ? { configDir: plan.generatorIsolation.claudeConfigDir } : undefined;
   if (isolation !== undefined) {
     const where = { repoRoot, outRoot: plan.outRoot, harnessRoot: plan.harnessRoot, realHome: deps.parentEnv.HOME ?? os.homedir() };
@@ -326,7 +356,12 @@ async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs
   }
   const harness: SkeletonInstall = install;
   const evaluateDeps = await deps.evaluateDeps();
-  const evaluatorOf = (specFile: string): StepEvaluator => firewallEvaluator(specFile, deps.parentEnv, evaluateDeps, harnessSnapshotTsconfig(plan.harnessRoot));
+  const engine = liveEngine(args.engine, plan.engine);
+  const onMismatch = (runId: string | undefined, _dir: string, p: { status: string; diff?: unknown; checkError?: unknown }): void => {
+    deps.err(`PARITY ${p.status} ${runId ?? '?'}: ${JSON.stringify(p.diff ?? p.checkError ?? {})}\n`);
+  };
+  const evaluatorOf = (specFile: string): StepEvaluator =>
+    evaluatorForEngine(engine, evaluateDeps, deps.parentEnv, (d, env) => firewallEvaluator(specFile, env, d, harnessSnapshotTsconfig(plan.harnessRoot)), { onMismatch });
   const profiles = buildProfiles(loaded, repoRoot, evaluatorOf, iseDddFreezer(repoRoot));
   if (!profiles.success) return DomainResult.fail(profiles.errors);
   return DomainResult.ok({
@@ -343,7 +378,7 @@ async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs
 export async function runLoopGrid(
   loaded: LoadedPlan,
   wiring: Wiring,
-  options: { readonly dryRun: boolean; readonly now: () => Date; readonly planSha256: string; readonly tasksSha256: string; readonly log?: (line: string) => void },
+  options: { readonly dryRun: boolean; readonly now: () => Date; readonly planSha256: string; readonly tasksSha256: string; readonly log?: (line: string) => void; readonly engine?: LoopEngine },
 ): Promise<DomainResult<readonly LoopRunResult[]>> {
   const { plan } = loaded;
   const specs = scheduleLoopRuns(plan, loaded.tasks.tasks);
@@ -353,6 +388,7 @@ export async function runLoopGrid(
     tasksSha256: options.tasksSha256,
     dryRun: options.dryRun,
     runs: specs.map(loopRunId),
+    ...(options.engine !== undefined ? { engine: options.engine } : {}),
   });
   if (!claimed.success) return DomainResult.fail(claimed.errors);
   const tasks = new Map(loaded.tasks.tasks.map((t) => [t.id, t]));
@@ -374,6 +410,7 @@ export async function runLoopGrid(
         now: options.now,
         dryRun: options.dryRun,
         ...(options.log !== undefined ? { log: options.log } : {}),
+        ...(plan.acceptance?.enabled === true ? { acceptance: acceptanceRunner(plan.acceptance) } : {}),
       },
       spec,
     );
@@ -406,6 +443,8 @@ export function gridSummary(loaded: LoadedPlan, results: readonly LoopRunResult[
     skipped: results.length - completed.length,
     callBudget: planCallBudget(loaded.plan, loaded.tasks.tasks),
     turnsThisInvocation: { step: stepTurns, repair: repairTurns, repairsCleared },
+    // R01: gate steps the gate could not judge (no evaluation); non-zero means the gate arm did not run as designed.
+    gateStepsWithoutEvaluation: gateEvaluationFailures(results),
   };
 }
 
@@ -438,6 +477,8 @@ export async function main(argv: readonly string[], repoRoot: string, depsIn?: L
     }
     wiring = live.data;
   }
+  // The evaluator engine of a live grid (a dry run evaluates with stubs, so it has none).
+  const engine = args.data.dryRun ? undefined : liveEngine(args.data.engine, loaded.data.plan.engine);
   const grid = await runLoopGrid(loaded.data, wiring, {
     dryRun: args.data.dryRun,
     now: deps.now,
@@ -446,6 +487,7 @@ export async function main(argv: readonly string[], repoRoot: string, depsIn?: L
     log: (line) => {
       deps.out(`${line}\n`);
     },
+    ...(engine !== undefined ? { engine } : {}),
   });
   if (!grid.success) return report(deps, grid.errors);
   deps.out(`${JSON.stringify(gridSummary(loaded.data, grid.data, args.data.dryRun), null, 2)}\n`);
