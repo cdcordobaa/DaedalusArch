@@ -2,12 +2,17 @@
 
 Written by the round-4 (final) foreman. **Documentation only.** Every number below is quoted exactly from the doc named next to it, or comes from a gate this run executed. Nothing was recomputed by hand. When a doc lives on an unmerged PR branch, the branch head SHA is given; that number is not yet on `v1.3`.
 
-`origin/v1.3` at the time of writing: `f66564ef`.
+`origin/v1.3` when the gates ran: `f66564ef`. At publication it is `e9fd61b7`, after #219, which changes papers only (`papers/STATUS.md`, `papers/paper3-judge/*`). No gated path changed.
 
 ## 1. What the foreman did in round 4
 
 - **Unblock pass.** Of the 64 open PRs into `v1.3`, 63 are titled `[hold]`. The only other one, #215 (replication part 2), merges cleanly, but its body says "**Do not merge without review.**" Following the rules of earlier rounds, the foreman pushed nothing to `[hold]` PRs and did not merge #215. No conflict was resolved and no branch was pushed this round.
-- **Merges.** No PR met the merge rule (fully green, not hold, no do-not-merge mark). **Nothing was merged into `v1.3` by this round**, except this report's own docs-only PR.
+- **Merges.** No PR met the merge rule (fully green, not hold, no do-not-merge mark). **Nothing was merged into `v1.3` by this round**, except this report's own docs-only PR (#224).
+- **Opened during this run, not merged:**
+  - #218 (hold-queue triage) and #223 (artifact-eval readiness): both bodies say "Do not merge without review".
+  - #220: titled `[hold]`.
+  - #222 (MT-B1 barrel fix, off by default): its base is `v1.3-metamorphic`, not `v1.3`.
+  - #221 (APG v2 fixes-mined): not titled hold and has no do-not-merge line. It copies `scripts/v1.3/lib/fixes-mined.ts`, `results/v1.3-fixes-mined/corpus.json` and `specs/` verbatim from #168, which the author marked do-not-merge. Merging #221 would land part of #168 unreviewed, the same reason the overnight review held #212 and #213. It was also opened after the last review sweep. **Left for the author.**
 - **Gates on `v1.3` itself at `f66564ef`:**
   - `npx tsc --noEmit`, `-p tsconfig.scripts.json` and `-p tsconfig.u0-tests.json`: all three clean (fresh `npm ci`).
   - **Offline re-score:** `scripts/v1.3/validate-reference.ts --from-raw results/v1.3-reference/after-member-facts/raw` gives "No mismatch." Its `report.json` and `report.md` equal the committed ones, except for the header line, which names the mode ("from saved outputs in …" vs "live run").
@@ -61,12 +66,13 @@ Taken from `git log origin/v1.3 --merges --first-parent`.
 | 08:49 | #211 | v1.3-foreman-log (round 2) |
 | 09:42 | #214 | v1.3-overnight-review (pre-train sweep) |
 | 10:33 | #216 | v1.3-tracker-1030 |
+| 11:04 | #219 | v1.3-paper3-update (papers only; merged by another session during this run) |
 
 The round-3 foreman log (`9286f705` on `v1.3-foreman-log`) has no PR yet and is not on `v1.3`.
 
 ## 3. What is still open, and why
 
-**64 open PRs into `v1.3`.** 63 are titled `[hold]`. Round 3 found that each of #130–#201 is held at least partly because the author marked it do-not-merge-before-review. #203–#213 and #217 also carry `[hold]` in their titles. #215 is not titled hold, but its body says "Do not merge without review".
+**64 open PRs into `v1.3` at `f66564ef`** (68 after #218, #220, #221 and #223 opened during this run; the mergeability list below covers the original 64). 63 of the 64 are titled `[hold]`. Round 3 found that each of #130–#201 is held at least partly because the author marked it do-not-merge-before-review. #203–#213 and #217 also carry `[hold]` in their titles. #215 is not titled hold, but its body says "Do not merge without review".
 
 Mergeability against `f66564ef` (`git merge-tree`):
 
@@ -204,7 +210,7 @@ The foreman did not resolve these conflicts, because every one of these PRs is o
 
 ## 7. Decision list for the author (today)
 
-1. **Holds.** All 63 `[hold]` PRs are waiting on your review. #215 is clean and needs your review before it can merge. Nothing can enter a train until you clear the holds.
+1. **Holds.** All 63 `[hold]` PRs are waiting on your review. #215 is clean and needs your review before it can merge. #218's triage proposes a merge order for clearing the hold queue (its body: 40 MERGE-NOW, 18 AUTHOR-DECISION, 4 FIX-FIRST, 1 PARK). Also decide on #221 (it carries #168's files) and #223. Nothing can enter a train until you clear the holds.
 2. **#143 is already on `v1.3`.** Agent-settable MCP `hints` work without `--hints`, and `fixHints` is in the frozen report schema. Revert it or gate it (round 3).
 3. **#159 / #170, filter-explain R20.** Choose `v1.3`'s default grounding or #159's opt-in `bareLines`. Both PRs conflict again (in 4 and 10 files).
 4. **#188 scale.** `--query-engine accelerated` is the ungated default, and the title claims "outputs byte-identical". Gate it or retitle it. The PR conflicts in 5 `src` files.
