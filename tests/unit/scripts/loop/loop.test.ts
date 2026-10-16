@@ -10,7 +10,7 @@ import { loopRunId } from '../../../../scripts/lib/loop/plan.js';
 import { MAX_REPAIR_FINDINGS, repairPrompt, sha256, stepPrompt } from '../../../../scripts/lib/loop/prompts.js';
 import { SNAPSHOT_GIT_DIR, WorkTreeSnapshots } from '../../../../scripts/lib/loop/snapshot.js';
 import { stubEvaluator } from '../../../../scripts/lib/loop/stub.js';
-import type { BlockingFinding, StepAgent, StepEvaluator, StepRecord, TurnInput } from '../../../../scripts/lib/loop/types.js';
+import type { BlockingFinding, StepAgent, StepEvaluation, StepEvaluator, StepRecord, TurnInput } from '../../../../scripts/lib/loop/types.js';
 import { DEMO_TASK, context, spec, stubAgent, tmpRoot } from './helpers.js';
 
 let out: string;
@@ -121,16 +121,15 @@ describe('multi-step loop (dry run)', () => {
   });
 
   /** An evaluator that fails on its `failOn`-th call (1-based) and otherwise is the stub. */
-  function flakyEvaluator(failOn: number, code = 'NEO4J_UNREACHABLE'): StepEvaluator & { calls: number } {
-    const e = {
+  function flakyEvaluator(failOn: number, code = 'NEO4J_UNREACHABLE'): StepEvaluator {
+    let calls = 0;
+    return {
       id: 'flaky',
-      calls: 0,
       evaluate: (dir: string) => {
-        e.calls++;
-        return e.calls === failOn ? Promise.resolve(DomainResult.fail([{ code, message: 'down' }])) : stubEvaluator().evaluate(dir);
+        calls++;
+        return calls === failOn ? Promise.resolve(DomainResult.fail<StepEvaluation>([{ code, message: 'down' }])) : stubEvaluator().evaluate(dir);
       },
     };
-    return e;
   }
 
   it('none: an evaluator failure is recorded on the snapshot and the run goes on (the commit can be re-scored)', async () => {
