@@ -1505,3 +1505,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: CONSTRUCTION, v1.3 validity cycle. Autonomous under the standing delegation; author decisions are listed in §6 of the plan.
 
 ---
+
+## v1.3 RESEARCH — research gaps and evidence map (scheduled task)
+**Timestamp**: 2026-10-16T12:00:00Z
+**User Input**: "Scheduled task: write Docs/v1.3/research/research-gaps-and-evidence.md: an evidence map with 1–3 verified published precedents for each validity and backlog job, a gap analysis, a master's vs doctoral scope separation (doctoral agenda kept separate), and Related-work / Future-work paragraphs using verified citations only. Documentation only; one PR into v1.3, not merged."
+**AI Response**: "Wrote the memo on branch v1.3-research-gaps. 52 DOIs checked against Crossref and 47 arXiv IDs against the arXiv API on 2026-10-16. Preprints are marked as such, venues not confirmed by a record are flagged, and one wrong DOI (Kapus & Cadar) was replaced by the verified one. Full texts not re-read. No code, rule, template, preset, result or registered artefact changed; no LLM judge call; no Study 2 or hold-out material touched. Options taken under delegation: ranking of master's work (hold-out first, Study 2 last); 7 doctoral RQs; status figures from open PRs (#161, #165, #166, #167) quoted as claims, not reviewed results."
+**Context**: v1.3 research memo, outside the study stages. AI-DLC approval gates not run interactively (scheduled task, documentation only).
+
+---
