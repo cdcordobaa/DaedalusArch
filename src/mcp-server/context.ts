@@ -9,19 +9,19 @@ import { createPipeline } from '../pipeline/pipeline-factory.js';
 import { Neo4jRepository } from '../neo4j-ingestion/neo4j-repository.js';
 import { createSpecLoader } from './tools.js';
 import type { ServerContext } from './tools.js';
+import { buildNeuralService, parseNeuralArgs } from './neural-context.js';
+import type { NeuralArgs } from './neural-context.js';
 import { createInterpEvaluator } from './interp-evaluator.js';
 import { resolveEngine } from '../cli/engine-default.js';
 import type { ResolvedEngine } from '../cli/engine-default.js';
-import { buildNeuralService, parseNeuralArgs } from './neural-context.js';
-import type { NeuralArgs } from './neural-context.js';
 
 export interface McpArgs {
   readonly spec?: string;
   readonly project?: string;
-  /** `--engine neo4j|cypher-interp`; absent = the NEO4J_URI default (`engine-default.ts`). */
-  readonly engine?: string;
   /** Neural arm flags (`--neural ...`); absent when no neural flag is given. */
   readonly neural?: NeuralArgs;
+  /** `--engine neo4j|cypher-interp`; absent = the NEO4J_URI default (`engine-default.ts`). */
+  readonly engine?: string;
 }
 
 const FLAGS: Readonly<Record<string, 'spec' | 'project' | 'engine'>> = { '--spec': 'spec', '--project': 'project', '--engine': 'engine' };
@@ -76,12 +76,12 @@ function realEntry(entry: string | undefined): string | undefined {
 }
 
 export function buildContext(args: McpArgs, env: NodeJS.ProcessEnv): ServerContext {
-  const graphEngine = serverEngine(args, env)?.engine ?? 'neo4j';
   // Off unless `--neural` or DAEDALUS_NEURAL names a provider: the default server is unchanged.
   const neural = buildNeuralService(args.neural ?? parseNeuralArgs([], env), env);
+  const graphEngine = serverEngine(args, env)?.engine ?? 'neo4j';
   return {
-    graphEngine,
     ...(neural !== undefined ? { neural } : {}),
+    graphEngine,
     presetsDir: presetsDirFrom(env, realEntry(process.argv[1]), process.cwd()),
     defaultSpecPath: args.spec ?? env.DAEDALUS_SPEC,
     defaultProjectPath: args.project ?? env.DAEDALUS_PROJECT,

@@ -176,16 +176,16 @@ export interface EvaluateProjectResult {
   readonly scoringMode: ScoringMode;
   /** v1.3 mode only: blocking and advisory counts per rule, N/A parts with denominators; `ahs` stays the v1.2E AHS. */
   readonly tiers?: TieredScoring;
-  /** v1.3 npx mode: set when the in-process interpreter answered (absent = Neo4j, the reference engine). */
-  readonly engine?: 'cypher-interp';
-  /** cypher-interp only: wall time of the call, and whether the unchanged project was answered from the cache. */
-  readonly latencyMs?: number;
-  readonly cache?: 'hit' | 'miss';
   /**
    * Every violation of the report, uncapped, as the pipeline produced it (type, discriminator, evidence). Present only
    * when the caller asks (`includeViolations`; the loop harness does, the MCP tool does not).
    */
   readonly violations?: readonly Violation[];
+  /** v1.3 npx mode: set when the in-process interpreter answered (absent = Neo4j, the reference engine). */
+  readonly engine?: 'cypher-interp';
+  /** cypher-interp only: wall time of the call, and whether the unchanged project was answered from the cache. */
+  readonly latencyMs?: number;
+  readonly cache?: 'hit' | 'miss';
 }
 
 // ── Environment ──────────────────────────────────────────────────────────────

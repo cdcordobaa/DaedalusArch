@@ -58,12 +58,12 @@ export interface ServerContext {
   readonly loadSpec: (specPath: string) => Promise<ToolOutcome<LoadedSpec>>;
   /** The tool's canonical presets (`presets/`), read by `infer_spec`. */
   readonly presetsDir?: string | undefined;
-  /** Graph engine of `evaluate_project` and the template checks; absent = `neo4j` (the reference engine). */
-  readonly graphEngine?: GraphEngine | undefined;
   /** The neural arm (`--neural`); absent means off: no neural tool is registered (v1.3, neural-arm-agent-tools.md). */
   readonly neural?: NeuralService | undefined;
   /** Deterministic fix hints for `explain_and_fix` (the fix-hints feature's `buildFixHint`, when the build has it). */
   readonly fixHints?: FixHintSource | undefined;
+  /** Graph engine of `evaluate_project` and the template checks; absent = `neo4j` (the reference engine). */
+  readonly graphEngine?: GraphEngine | undefined;
 }
 
 const ok = <T>(data: T): ToolOutcome<T> => ({ ok: true, data });
