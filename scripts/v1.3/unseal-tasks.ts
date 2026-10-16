@@ -8,11 +8,10 @@
  * holds a banned term (outputs are still written, for the unsealer). Prints counts, indices and hashes only.
  */
 import * as path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { parseArgs, unseal } from './lib/unseal.js';
 
-const here = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(here, '..', '..');
+const repoRoot = process.cwd();
+const here = path.join(repoRoot, 'scripts', 'v1.3');
 try {
   const o = parseArgs(process.argv.slice(2), { termsFile: path.join(here, 'schemas', 'unseal-terms.json'), repoRoot });
   if (typeof o === 'string') {

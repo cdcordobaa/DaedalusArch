@@ -59,7 +59,7 @@ const writeJson = (p: string, v: unknown): void => {
   fs.writeFileSync(p, JSON.stringify(v, null, 1) + '\n');
 };
 
-function groups(set: SetName, entries: readonly Entry[], rule: 'name' | 'description'): Group[] {
+function groups(_set: SetName, entries: readonly Entry[], rule: 'name' | 'description'): Group[] {
   return entries.map((e) => groupOf([e.id, e.repo, e.url, ...(rule === 'description' ? [e.styleClaim, e.ownDescription] : [])]));
 }
 

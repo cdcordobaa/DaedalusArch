@@ -4,11 +4,13 @@ import type { ImportLister } from '../../../../scripts/v1.3/lib/external-correct
 import type { Finding } from '../../../../scripts/v1.3/lib/labelling/findings.js';
 import type { SampledFinding } from '../../../../scripts/v1.3/lib/labelling/sampler.js';
 
-const finding = (over: Partial<Finding>): Finding => ({
+/** Partial<Finding> that may also clear optional fields (exactOptionalPropertyTypes). */
+type Over = { [K in keyof Finding]?: Finding[K] | undefined };
+const finding = (over: Over): Finding => ({
   key: 'k', projectId: 'p', style: 'nestjs', ruleId: 'FF-S01', template: 'dependency-direction', type: 'LAYER_VIOLATION',
   tier: 'blocking', file: 'src/a.ts', line: 3, target: 'src/b.ts', discriminator: ['IMPORTS'], evidence: [], message: 'm', violationId: 'v1', ...over,
-});
-const sampled = (over: Partial<Finding>): SampledFinding => ({ ...finding(over), rule: `${over.ruleId ?? 'FF-S01'}/${over.template ?? 'dependency-direction'}`, inclusionProbability: 1 });
+}) as Finding;
+const sampled = (over: Over): SampledFinding => ({ ...finding(over), rule: `${over.ruleId ?? 'FF-S01'}/${over.template ?? 'dependency-direction'}`, inclusionProbability: 1 });
 
 describe('external correctness: jobs', () => {
   it('builds one job per entry from the clone root, the spec and the report', () => {
