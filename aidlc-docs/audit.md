@@ -1505,3 +1505,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: CONSTRUCTION, v1.3 validity cycle. Autonomous under the standing delegation; author decisions are listed in §6 of the plan.
 
 ---
+
+## v1.3 research — tool landscape (scheduled task)
+**Timestamp**: 2026-10-16T12:00:00Z
+**User Input**: "Scheduled task: write Docs/v1.3/research/tool-landscape.md, a verified comparison of architecture-conformance, graph-query, smell-research, AI-reviewer/SDD and MCP code-quality tools against DaedalusArch (capability matrix, positioning incl. precise jQAssistant differences, cheap comparison experiments mapped to backlog jobs). Documentation only; no code, no LLM-judge calls; branch v1.3-research-tools; one PR into v1.3, not merged."
+**AI Response**: "Wrote Docs/v1.3/research/tool-landscape.md. Facts were verified online from official docs, registries and papers (accessed 2026-10-16), with unverified items marked. Key corrections to the 2026-10-10 Notion landscape: Sonar acquired Structure101 (2024-10-15) and no longer sells it; Sonar Architecture supports TypeScript; Sonargraph's Zügel MCP server checks proposed dependencies against its architecture DSL (Java/Python/C#, not TS); jQAssistant's jMolecules plugin ships hexagonal/DDD/onion rule packs (Java, annotation-driven, hard-coded Cypher). Proposed new backlog jobs J2–J6 (jQAssistant arm, expressibility matrix, community MCP servers, Sonar arm, Semgrep/CodeQL translation). Options taken under delegation: no AI-DLC stage gates were run, because this is a documentation-only scheduled task with no one present; and the night-backlog rule 7 ('no literature review') was read as overridden by this task's explicit request for a tool comparison."
+**Context**: v1.3 research note, outside the study stages; no frozen artefact touched.
+
+---
