@@ -1492,3 +1492,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 development (judge v2.2). No judge call; no registered artefact touched.
 
 ---
+
+## v1.3 — CHECK-3 bases, items and pre-registration (scheduled task)
+**Timestamp**: 2026-10-16T12:00:00Z
+**User Input**: "(scheduled task) Fix the CHECK-2 data defect found in PR #191 (every layered clean base carries a PrismaService bypass service, so clean FF-N01 units fail by construction): make the layered clean bases truly clean with the bypass only in the seeded variant, keep every other base unchanged, regenerate the items with the existing generator and record hashes, pre-register a CHECK-3 plan (D0–D6 reused, a testable D1 bound, call budget, v1 frozen) before any run, add and run a static self-check, write a short report. No LLM call. Branch v1.3-check3-bases from v1.3-judge-v22-run; PR into it, not merged."
+**AI Response**: "Six layered bases rebuilt in tests/fixtures/v1.3-check3 (the PrismaService service injects a new persistence class; the CHECK-2 version kept in seed-overlay/ and used only for the AP-REPO-BYPASS seed; the twin applied to the clean base). Non-layered bases read unchanged from v1.3-check2. Harness --set check3 (CHECK-2 still reproduces byte for byte). Manifest ec56b097…, split 75d6b242…, prompts v1 e1d9a02f… / v2.2 419eecb4… (mock provider, local Neo4j); 138 items, 117 prompts identical to CHECK-2. Static self-check scripts/v1.3/judge-check3-selfcheck.ts: CHECK-3 PASS, CHECK-2 FAIL on exactly the six services and twins. Plan Docs/v1.3/judge-check3-plan.md (budget 830, cap 1000). Report Docs/DiagnosticRuns/v1.3-judge-check3-bases-2026-10-16.md. The AI-DLC approval gates were not run interactively: scheduled task with no one present; running the judge is left to the author."
+**Context**: v1.3 development (judge CHECK-3). No judge or LLM call; no registered artefact touched; main and v1.2e untouched.
+
+---
