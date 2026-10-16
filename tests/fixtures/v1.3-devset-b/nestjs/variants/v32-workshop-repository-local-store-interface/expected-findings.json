@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "style": "nestjs",
+  "variant": "v32-workshop-repository-local-store-interface",
+  "kind": "violation",
+  "plants": "FF-P03",
+  "description": "InMemoryWorkshopRepository implements WorkshopStore, an interface declared in its own infrastructure file, instead of the domain port WorkshopRepository (it still fits the port structurally).",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P03",
+      "ruleName": "repository-pattern",
+      "file": "src/workshops/in-memory-workshop.repository.ts",
+      "reason": "The infrastructure repository implements no domain-owned repository interface; its only interface is declared in the infrastructure layer."
+    }
+  ]
+}

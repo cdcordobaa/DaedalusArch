@@ -1,0 +1,17 @@
+--- a/src/application/dto/LoanDto.ts
++++ b/src/application/dto/LoanDto.ts
+@@ -1,4 +1,5 @@
+ import { Loan } from '../../domain/entities/Loan';
++import type { ReturnBookResult } from '../use-cases/ReturnBookUseCase';
+ 
+ export interface LoanDto {
+   id: string;
+@@ -17,3 +18,8 @@
+     overdue: loan.isOverdue(now),
+   };
+ }
++
++export function describeReturn(result: ReturnBookResult): string {
++  const fine = (result.fineInCents / 100).toFixed(2);
++  return `Loan ${result.loan.id} returned, fine ${fine}`;
++}

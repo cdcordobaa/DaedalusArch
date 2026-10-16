@@ -13,14 +13,14 @@ import { checkFileTool } from './tools.js';
 import type { ServerContext } from './tools.js';
 
 export const CHECK_FILE_USAGE =
-  'usage: check-file-cli --spec <spec.yaml> [--project <dir>] <path-in-project> [<file-with-content>]\n';
+  'usage: check-file-cli --spec <spec.yaml> [--project <dir>] [--engine neo4j|cypher-interp] [--templates] <path-in-project> [<file-with-content>]\n';
 
-/** Positional arguments: everything that is not `--spec`/`--project` or their values. */
+/** Positional arguments: everything that is not `--spec`/`--project`/`--engine` or their values, nor another flag. */
 export function positionals(argv: readonly string[]): readonly string[] {
   const out: string[] = [];
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i] ?? '';
-    if (a === '--spec' || a === '--project') i++;
+    if (a === '--spec' || a === '--project' || a === '--engine') i++;
     else if (!a.startsWith('--')) out.push(a);
   }
   return out;
@@ -37,7 +37,7 @@ export async function checkFileCli(
     write(CHECK_FILE_USAGE);
     return 2;
   }
-  const res = await checkFileTool(ctx, { path: target, content: readContent(contentFile) });
+  const res = await checkFileTool(ctx, { path: target, content: readContent(contentFile), ...(argv.includes('--templates') && { templates: true }) });
   if (!res.ok) {
     write(`${res.message}\n`);
     return 2;

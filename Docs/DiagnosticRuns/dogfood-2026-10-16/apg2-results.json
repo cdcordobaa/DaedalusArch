@@ -1,0 +1,5159 @@
+{
+ "spec": "specs/dogfood/daedalus-self.yaml",
+ "params": {
+  "domainLayer": "shared",
+  "infraLayer": "neo4j-ingestion",
+  "controllerLayer": "cli",
+  "applicationLayers": [
+   "pipeline",
+   "apg-extractor",
+   "apg-enrich",
+   "ise",
+   "spec-parser",
+   "fitness-compiler",
+   "construct-switches",
+   "evaluation-engine",
+   "neuro-symbolic-router",
+   "scoring-engine",
+   "baseline",
+   "report"
+  ],
+  "threshold": 0.7,
+  "allowedAsync": [
+   "cli->shared",
+   "cli->pipeline",
+   "cli->spec-parser",
+   "cli->fitness-compiler",
+   "cli->scoring-engine",
+   "cli->baseline",
+   "cli->report",
+   "cli->neo4j-ingestion",
+   "cli->cypher-interp",
+   "cli->llm-critic",
+   "mcp-server->shared",
+   "mcp-server->pipeline",
+   "mcp-server->spec-parser",
+   "mcp-server->fitness-compiler",
+   "mcp-server->scoring-engine",
+   "mcp-server->ise",
+   "pipeline->shared",
+   "pipeline->apg-extractor",
+   "pipeline->spec-parser",
+   "pipeline->fitness-compiler",
+   "pipeline->construct-switches",
+   "pipeline->neo4j-ingestion",
+   "pipeline->cypher-interp",
+   "pipeline->neuro-symbolic-router",
+   "pipeline->evaluation-engine",
+   "pipeline->llm-critic",
+   "pipeline->scoring-engine",
+   "pipeline->baseline",
+   "pipeline->report",
+   "apg-extractor->shared",
+   "spec-parser->shared",
+   "spec-parser->fitness-compiler",
+   "fitness-compiler->shared",
+   "fitness-compiler->construct-switches",
+   "construct-switches->shared",
+   "evaluation-engine->shared",
+   "evaluation-engine->fitness-compiler",
+   "neuro-symbolic-router->shared",
+   "neuro-symbolic-router->evaluation-engine",
+   "neuro-symbolic-router->llm-critic",
+   "scoring-engine->shared",
+   "scoring-engine->report",
+   "baseline->shared",
+   "report->shared",
+   "apg-enrich->shared",
+   "apg-enrich->apg-extractor",
+   "apg-enrich->llm-critic",
+   "ise->shared",
+   "ise->apg-extractor",
+   "ise->spec-parser",
+   "neo4j-ingestion->shared",
+   "cypher-interp->shared",
+   "llm-critic->shared"
+  ],
+  "compositionRootLayers": [
+   "pipeline"
+  ],
+  "compositionRootPatterns": [
+   "^(?:.*/)?(?:main|bootstrap|composition-root|compositionRoot|container|di)\\.(?:ts|tsx|mts|cts)$",
+   "^(?:.*/)?[^/]+\\.(?:module|container)\\.(?:ts|tsx|mts|cts)$"
+  ],
+  "testPatterns": [
+   "^(?:.*/)?[^/]*\\.(?:spec|test)\\.(?:ts|tsx|mts|cts)$",
+   "^(?:.*/)?(?:__tests__|__mocks__|test|tests)/.*$",
+   "^(?:.*/)?[Tt]est[A-Z._-][^/]*$"
+  ],
+  "aclPatterns": [],
+  "minTypes": 4
+ },
+ "apg2Stats": {
+  "signatureUses": 3280,
+  "components": 37,
+  "componentSource": "declared",
+  "dependsOn": 152,
+  "deepImports": 627,
+  "exportsSymbol": 769,
+  "channels": 7,
+  "async": {
+   "publishes": 0,
+   "subscribes": 7,
+   "dynamicNames": 0
+  },
+  "io": {
+   "byCategory": {
+    "db": 0,
+    "http-out": 0,
+    "fs": 185,
+    "env": 33,
+    "clock": 89,
+    "random": 2,
+    "process": 69
+   }
+  },
+  "timingsMs": {
+   "typeFlow": 500.5,
+   "components": 75.4,
+   "async": 3730.9,
+   "io": 1436.2
+  }
+ },
+ "nodes": 5817,
+ "edges": 12896,
+ "timingMs": {
+  "extract": 16532,
+  "ingestAndTemplates": 2702,
+  "cheap": 307272
+ },
+ "templates": {
+  "boundary-type-leak": {
+   "tier": "blocking",
+   "rows": [],
+   "mirrorRows": 0,
+   "mirrorAgrees": true
+  },
+  "component-adp-cycle": {
+   "tier": "blocking",
+   "rows": [
+    {
+     "component": "mod:apg-enrich",
+     "target": "mod:fitness-compiler",
+     "kind": "module",
+     "imports": 2,
+     "filePath": "mod:apg-enrich"
+    },
+    {
+     "component": "mod:apg-enrich",
+     "target": "mod:llm-critic",
+     "kind": "module",
+     "imports": 7,
+     "filePath": "mod:apg-enrich"
+    },
+    {
+     "component": "mod:construct-switches",
+     "target": "mod:evaluation-engine",
+     "kind": "module",
+     "imports": 1,
+     "filePath": "mod:construct-switches"
+    },
+    {
+     "component": "mod:construct-switches",
+     "target": "mod:fitness-compiler",
+     "kind": "module",
+     "imports": 5,
+     "filePath": "mod:construct-switches"
+    },
+    {
+     "component": "mod:construct-switches",
+     "target": "mod:scoring-engine",
+     "kind": "module",
+     "imports": 2,
+     "filePath": "mod:construct-switches"
+    },
+    {
+     "component": "mod:evaluation-engine",
+     "target": "mod:fitness-compiler",
+     "kind": "module",
+     "imports": 6,
+     "filePath": "mod:evaluation-engine"
+    },
+    {
+     "component": "mod:fitness-compiler",
+     "target": "mod:apg-enrich",
+     "kind": "module",
+     "imports": 1,
+     "filePath": "mod:fitness-compiler"
+    },
+    {
+     "component": "mod:fitness-compiler",
+     "target": "mod:construct-switches",
+     "kind": "module",
+     "imports": 1,
+     "filePath": "mod:fitness-compiler"
+    },
+    {
+     "component": "mod:fitness-compiler",
+     "target": "mod:spec-parser",
+     "kind": "module",
+     "imports": 1,
+     "filePath": "mod:fitness-compiler"
+    },
+    {
+     "component": "mod:llm-critic",
+     "target": "mod:apg-enrich",
+     "kind": "module",
+     "imports": 4,
+     "filePath": "mod:llm-critic"
+    },
+    {
+     "component": "mod:llm-critic",
+     "target": "mod:evaluation-engine",
+     "kind": "module",
+     "imports": 1,
+     "filePath": "mod:llm-critic"
+    },
+    {
+     "component": "mod:llm-critic",
+     "target": "mod:fitness-compiler",
+     "kind": "module",
+     "imports": 2,
+     "filePath": "mod:llm-critic"
+    },
+    {
+     "component": "mod:report",
+     "target": "mod:fitness-compiler",
+     "kind": "module",
+     "imports": 2,
+     "filePath": "mod:report"
+    },
+    {
+     "component": "mod:report",
+     "target": "mod:scoring-engine",
+     "kind": "module",
+     "imports": 1,
+     "filePath": "mod:report"
+    },
+    {
+     "component": "mod:scoring-engine",
+     "target": "mod:evaluation-engine",
+     "kind": "module",
+     "imports": 2,
+     "filePath": "mod:scoring-engine"
+    },
+    {
+     "component": "mod:scoring-engine",
+     "target": "mod:fitness-compiler",
+     "kind": "module",
+     "imports": 4,
+     "filePath": "mod:scoring-engine"
+    },
+    {
+     "component": "mod:scoring-engine",
+     "target": "mod:report",
+     "kind": "module",
+     "imports": 1,
+     "filePath": "mod:scoring-engine"
+    },
+    {
+     "component": "mod:spec-parser",
+     "target": "mod:fitness-compiler",
+     "kind": "module",
+     "imports": 5,
+     "filePath": "mod:spec-parser"
+    }
+   ],
+   "mirrorRows": 18,
+   "mirrorAgrees": true
+  },
+  "component-sdp-violation": {
+   "tier": "advisory",
+   "rows": [
+    {
+     "component": "cli",
+     "target": "pipeline",
+     "kind": "layer",
+     "fromInstability": 0.8,
+     "toInstability": 0.815,
+     "filePath": "cli"
+    },
+    {
+     "component": "fitness-compiler",
+     "target": "apg-enrich",
+     "kind": "layer",
+     "fromInstability": 0.372,
+     "toInstability": 0.8,
+     "filePath": "fitness-compiler"
+    },
+    {
+     "component": "fitness-compiler",
+     "target": "construct-switches",
+     "kind": "layer",
+     "fromInstability": 0.372,
+     "toInstability": 0.545,
+     "filePath": "fitness-compiler"
+    },
+    {
+     "component": "fitness-compiler",
+     "target": "neo4j-ingestion",
+     "kind": "layer",
+     "fromInstability": 0.372,
+     "toInstability": 0.444,
+     "filePath": "fitness-compiler"
+    },
+    {
+     "component": "fitness-compiler",
+     "target": "spec-parser",
+     "kind": "layer",
+     "fromInstability": 0.372,
+     "toInstability": 0.6,
+     "filePath": "fitness-compiler"
+    },
+    {
+     "component": "llm-critic",
+     "target": "apg-enrich",
+     "kind": "layer",
+     "fromInstability": 0.606,
+     "toInstability": 0.8,
+     "filePath": "llm-critic"
+    },
+    {
+     "component": "scoring-engine",
+     "target": "report",
+     "kind": "layer",
+     "fromInstability": 0.522,
+     "toInstability": 0.556,
+     "filePath": "scoring-engine"
+    },
+    {
+     "component": "mod:cli",
+     "target": "mod:pipeline",
+     "kind": "module",
+     "fromInstability": 0.8,
+     "toInstability": 0.815,
+     "filePath": "mod:cli"
+    },
+    {
+     "component": "mod:fitness-compiler",
+     "target": "mod:apg-enrich",
+     "kind": "module",
+     "fromInstability": 0.372,
+     "toInstability": 0.8,
+     "filePath": "mod:fitness-compiler"
+    },
+    {
+     "component": "mod:fitness-compiler",
+     "target": "mod:construct-switches",
+     "kind": "module",
+     "fromInstability": 0.372,
+     "toInstability": 0.545,
+     "filePath": "mod:fitness-compiler"
+    },
+    {
+     "component": "mod:fitness-compiler",
+     "target": "mod:neo4j-ingestion",
+     "kind": "module",
+     "fromInstability": 0.372,
+     "toInstability": 0.444,
+     "filePath": "mod:fitness-compiler"
+    },
+    {
+     "component": "mod:fitness-compiler",
+     "target": "mod:spec-parser",
+     "kind": "module",
+     "fromInstability": 0.372,
+     "toInstability": 0.6,
+     "filePath": "mod:fitness-compiler"
+    },
+    {
+     "component": "mod:llm-critic",
+     "target": "mod:apg-enrich",
+     "kind": "module",
+     "fromInstability": 0.606,
+     "toInstability": 0.8,
+     "filePath": "mod:llm-critic"
+    },
+    {
+     "component": "mod:scoring-engine",
+     "target": "mod:report",
+     "kind": "module",
+     "fromInstability": 0.522,
+     "toInstability": 0.556,
+     "filePath": "mod:scoring-engine"
+    }
+   ],
+   "mirrorRows": 14,
+   "mirrorAgrees": true
+  },
+  "component-main-sequence-distance": {
+   "tier": "advisory",
+   "rows": [
+    {
+     "component": "mod:apg-enrich",
+     "kind": "module",
+     "abstractness": 0.924,
+     "instability": 0.8,
+     "distance": 0.724,
+     "filePath": "mod:apg-enrich"
+    },
+    {
+     "component": "mod:cypher-interp",
+     "kind": "module",
+     "abstractness": 0.032,
+     "instability": 0.25,
+     "distance": 0.718,
+     "filePath": "mod:cypher-interp"
+    },
+    {
+     "component": "mod:ise",
+     "kind": "module",
+     "abstractness": 1,
+     "instability": 0.75,
+     "distance": 0.75,
+     "filePath": "mod:ise"
+    },
+    {
+     "component": "mod:mcp-server",
+     "kind": "module",
+     "abstractness": 0.984,
+     "instability": 1,
+     "distance": 0.984,
+     "filePath": "mod:mcp-server"
+    }
+   ],
+   "mirrorRows": 4,
+   "mirrorAgrees": true
+  },
+  "deep-import-declared-api": {
+   "tier": "blocking",
+   "rows": [
+    {
+     "filePath": "src/apg-enrich/cheap/context.ts",
+     "target": "src/neo4j-ingestion/layer-annotator.ts",
+     "component": "mod:neo4j-ingestion",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/apg-enrich/cheap/provenance.ts",
+     "target": "src/apg-extractor/id-generator.ts",
+     "component": "mod:apg-extractor",
+     "kind": "module",
+     "line": 49
+    },
+    {
+     "filePath": "src/apg-enrich/cheap/provenance.ts",
+     "target": "src/fitness-compiler/apg2-in-memory.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 47
+    },
+    {
+     "filePath": "src/apg-enrich/cheap/provenance.ts",
+     "target": "src/fitness-compiler/v13-in-memory-baselines.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 48
+    },
+    {
+     "filePath": "src/apg-enrich/ontology/cache.ts",
+     "target": "src/llm-critic/canonical-json.ts",
+     "component": "mod:llm-critic",
+     "kind": "module",
+     "line": 13
+    },
+    {
+     "filePath": "src/apg-enrich/ontology/caller.ts",
+     "target": "src/llm-critic/canonical-json.ts",
+     "component": "mod:llm-critic",
+     "kind": "module",
+     "line": 13
+    },
+    {
+     "filePath": "src/apg-enrich/ontology/cassette-io.ts",
+     "target": "src/llm-critic/cassette-manager.ts",
+     "component": "mod:llm-critic",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/apg-enrich/ontology/clustering.ts",
+     "target": "src/llm-critic/canonical-json.ts",
+     "component": "mod:llm-critic",
+     "kind": "module",
+     "line": 13
+    },
+    {
+     "filePath": "src/apg-enrich/ontology/pipeline.ts",
+     "target": "src/llm-critic/canonical-json.ts",
+     "component": "mod:llm-critic",
+     "kind": "module",
+     "line": 10
+    },
+    {
+     "filePath": "src/apg-enrich/ontology/provider.ts",
+     "target": "src/llm-critic/claude-cli-provider.ts",
+     "component": "mod:llm-critic",
+     "kind": "module",
+     "line": 15
+    },
+    {
+     "filePath": "src/apg-enrich/ontology/provider.ts",
+     "target": "src/llm-critic/frozen.ts",
+     "component": "mod:llm-critic",
+     "kind": "module",
+     "line": 16
+    },
+    {
+     "filePath": "src/cli/batch-runner.ts",
+     "target": "src/pipeline/pipeline-factory.ts",
+     "component": "mod:pipeline",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/cli/batch-runner.ts",
+     "target": "src/pipeline/types.ts",
+     "component": "mod:pipeline",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/cli/cli.ts",
+     "target": "src/apg-extractor/types.ts",
+     "component": "mod:apg-extractor",
+     "kind": "module",
+     "line": 28
+    },
+    {
+     "filePath": "src/cli/cli.ts",
+     "target": "src/cypher-interp/engine.ts",
+     "component": "mod:cypher-interp",
+     "kind": "module",
+     "line": 18
+    },
+    {
+     "filePath": "src/cli/cli.ts",
+     "target": "src/fitness-compiler/role-exemptions.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/cli/cli.ts",
+     "target": "src/llm-critic/judge-stage.ts",
+     "component": "mod:llm-critic",
+     "kind": "module",
+     "line": 27
+    },
+    {
+     "filePath": "src/cli/cli.ts",
+     "target": "src/pipeline/pipeline-factory.ts",
+     "component": "mod:pipeline",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/cli/cli.ts",
+     "target": "src/pipeline/types.ts",
+     "component": "mod:pipeline",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/cli/cli.ts",
+     "target": "src/report/report-generator.ts",
+     "component": "mod:report",
+     "kind": "module",
+     "line": 14
+    },
+    {
+     "filePath": "src/cli/cli.ts",
+     "target": "src/scoring-engine/neural-aggregation.ts",
+     "component": "mod:scoring-engine",
+     "kind": "module",
+     "line": 10
+    },
+    {
+     "filePath": "src/cli/cli.ts",
+     "target": "src/scoring-engine/report-formatter.ts",
+     "component": "mod:scoring-engine",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/cli/cli.ts",
+     "target": "src/scoring-engine/tiered-scoring.ts",
+     "component": "mod:scoring-engine",
+     "kind": "module",
+     "line": 12
+    },
+    {
+     "filePath": "src/cli/drift-handler.ts",
+     "target": "src/neo4j-ingestion/delta-computer.ts",
+     "component": "mod:neo4j-ingestion",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/cli/drift-handler.ts",
+     "target": "src/neo4j-ingestion/drift-detector.ts",
+     "component": "mod:neo4j-ingestion",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/cli/drift-handler.ts",
+     "target": "src/neo4j-ingestion/fs-snapshot-store.ts",
+     "component": "mod:neo4j-ingestion",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/cli/drift-handler.ts",
+     "target": "src/pipeline/pipeline-factory.ts",
+     "component": "mod:pipeline",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/cli/drift-handler.ts",
+     "target": "src/pipeline/types.ts",
+     "component": "mod:pipeline",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/cli/llm-options.ts",
+     "target": "src/llm-critic/claude-cli-provider.ts",
+     "component": "mod:llm-critic",
+     "kind": "module",
+     "line": 39
+    },
+    {
+     "filePath": "src/cli/llm-options.ts",
+     "target": "src/llm-critic/frozen.ts",
+     "component": "mod:llm-critic",
+     "kind": "module",
+     "line": 36
+    },
+    {
+     "filePath": "src/cli/llm-options.ts",
+     "target": "src/llm-critic/judge-v2.ts",
+     "component": "mod:llm-critic",
+     "kind": "module",
+     "line": 41
+    },
+    {
+     "filePath": "src/cli/llm-options.ts",
+     "target": "src/llm-critic/types.ts",
+     "component": "mod:llm-critic",
+     "kind": "module",
+     "line": 40
+    },
+    {
+     "filePath": "src/construct-switches/compile.ts",
+     "target": "src/fitness-compiler/types.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 11
+    },
+    {
+     "filePath": "src/construct-switches/graph.ts",
+     "target": "src/neo4j-ingestion/layer-annotator.ts",
+     "component": "mod:neo4j-ingestion",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/construct-switches/layer-view.ts",
+     "target": "src/fitness-compiler/hexagonal-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 10
+    },
+    {
+     "filePath": "src/construct-switches/layer-view.ts",
+     "target": "src/neo4j-ingestion/layer-annotator.ts",
+     "component": "mod:neo4j-ingestion",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/construct-switches/pipeline.ts",
+     "target": "src/fitness-compiler/compiler-input.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 11
+    },
+    {
+     "filePath": "src/construct-switches/pipeline.ts",
+     "target": "src/scoring-engine/rule-tiers.ts",
+     "component": "mod:scoring-engine",
+     "kind": "module",
+     "line": 12
+    },
+    {
+     "filePath": "src/construct-switches/rows.ts",
+     "target": "src/evaluation-engine/violation-id.ts",
+     "component": "mod:evaluation-engine",
+     "kind": "module",
+     "line": 21
+    },
+    {
+     "filePath": "src/construct-switches/rows.ts",
+     "target": "src/fitness-compiler/ddd-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 23
+    },
+    {
+     "filePath": "src/construct-switches/rows.ts",
+     "target": "src/fitness-compiler/role-exemptions.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 22
+    },
+    {
+     "filePath": "src/construct-switches/tiers.ts",
+     "target": "src/scoring-engine/rule-tiers.ts",
+     "component": "mod:scoring-engine",
+     "kind": "module",
+     "line": 10
+    },
+    {
+     "filePath": "src/evaluation-engine/cycle-canonicaliser.ts",
+     "target": "src/fitness-compiler/cypher-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/evaluation-engine/scc-cycles.ts",
+     "target": "src/fitness-compiler/cypher-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 20
+    },
+    {
+     "filePath": "src/evaluation-engine/scc-cycles.ts",
+     "target": "src/fitness-compiler/glob-to-regex.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 19
+    },
+    {
+     "filePath": "src/evaluation-engine/symbolic-evaluator.ts",
+     "target": "src/fitness-compiler/cypher-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/evaluation-engine/symbolic-evaluator.ts",
+     "target": "src/fitness-compiler/extension-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/evaluation-engine/symbolic-evaluator.ts",
+     "target": "src/fitness-compiler/types.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/fitness-compiler/apg2-in-memory.ts",
+     "target": "src/neo4j-ingestion/layer-annotator.ts",
+     "component": "mod:neo4j-ingestion",
+     "kind": "module",
+     "line": 10
+    },
+    {
+     "filePath": "src/fitness-compiler/bound-param-checker.ts",
+     "target": "src/spec-parser/function-fields.ts",
+     "component": "mod:spec-parser",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/ise/layer-mapper.ts",
+     "target": "src/neo4j-ingestion/layer-annotator.ts",
+     "component": "mod:neo4j-ingestion",
+     "kind": "module",
+     "line": 16
+    },
+    {
+     "filePath": "src/llm-critic/claude-cli-provider.ts",
+     "target": "src/fitness-compiler/glob-to-regex.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 35
+    },
+    {
+     "filePath": "src/llm-critic/judge-unit-selector.ts",
+     "target": "src/fitness-compiler/glob-to-regex.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/llm-critic/llm-critic.ts",
+     "target": "src/evaluation-engine/violation-id.ts",
+     "component": "mod:evaluation-engine",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/mcp-server/context.ts",
+     "target": "src/neo4j-ingestion/neo4j-repository.ts",
+     "component": "mod:neo4j-ingestion",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/mcp-server/context.ts",
+     "target": "src/pipeline/pipeline-factory.ts",
+     "component": "mod:pipeline",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/mcp-server/evaluate-project.ts",
+     "target": "src/cli/require-env.ts",
+     "component": "mod:cli",
+     "kind": "module",
+     "line": 18
+    },
+    {
+     "filePath": "src/mcp-server/evaluate-project.ts",
+     "target": "src/pipeline/pipeline-factory.ts",
+     "component": "mod:pipeline",
+     "kind": "module",
+     "line": 17
+    },
+    {
+     "filePath": "src/mcp-server/evaluate-project.ts",
+     "target": "src/pipeline/types.ts",
+     "component": "mod:pipeline",
+     "kind": "module",
+     "line": 16
+    },
+    {
+     "filePath": "src/mcp-server/explain-finding.ts",
+     "target": "src/fitness-compiler/apg2-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 12
+    },
+    {
+     "filePath": "src/mcp-server/explain-finding.ts",
+     "target": "src/fitness-compiler/cypher-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/mcp-server/explain-finding.ts",
+     "target": "src/fitness-compiler/ddd-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 11
+    },
+    {
+     "filePath": "src/mcp-server/explain-finding.ts",
+     "target": "src/fitness-compiler/edge-views.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 13
+    },
+    {
+     "filePath": "src/mcp-server/explain-finding.ts",
+     "target": "src/fitness-compiler/hexagonal-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 10
+    },
+    {
+     "filePath": "src/mcp-server/fast-hints.ts",
+     "target": "src/apg-extractor/apg2/components.ts",
+     "component": "mod:apg-extractor",
+     "kind": "module",
+     "line": 15
+    },
+    {
+     "filePath": "src/mcp-server/fast-hints.ts",
+     "target": "src/apg-extractor/apg2/io-boundary.ts",
+     "component": "mod:apg-extractor",
+     "kind": "module",
+     "line": 16
+    },
+    {
+     "filePath": "src/mcp-server/fast-hints.ts",
+     "target": "src/apg-extractor/types.ts",
+     "component": "mod:apg-extractor",
+     "kind": "module",
+     "line": 21
+    },
+    {
+     "filePath": "src/mcp-server/fast-hints.ts",
+     "target": "src/fitness-compiler/apg2-in-memory.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 14
+    },
+    {
+     "filePath": "src/mcp-server/fast-hints.ts",
+     "target": "src/fitness-compiler/glob-to-regex.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 20
+    },
+    {
+     "filePath": "src/mcp-server/fast-hints.ts",
+     "target": "src/fitness-compiler/layer-binding.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 13
+    },
+    {
+     "filePath": "src/mcp-server/fast-rules.ts",
+     "target": "src/fitness-compiler/cypher-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 21
+    },
+    {
+     "filePath": "src/mcp-server/fast-rules.ts",
+     "target": "src/fitness-compiler/ddd-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 19
+    },
+    {
+     "filePath": "src/mcp-server/fast-rules.ts",
+     "target": "src/fitness-compiler/hexagonal-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 17
+    },
+    {
+     "filePath": "src/mcp-server/fast-rules.ts",
+     "target": "src/fitness-compiler/layer-binding.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 16
+    },
+    {
+     "filePath": "src/mcp-server/file-check.ts",
+     "target": "src/fitness-compiler/layer-binding.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/mcp-server/file-check.ts",
+     "target": "src/fitness-compiler/pattern-compiler.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/mcp-server/import-check.ts",
+     "target": "src/apg-extractor/package-node-factory.ts",
+     "component": "mod:apg-extractor",
+     "kind": "module",
+     "line": 10
+    },
+    {
+     "filePath": "src/mcp-server/project-files.ts",
+     "target": "src/apg-extractor/package-node-factory.ts",
+     "component": "mod:apg-extractor",
+     "kind": "module",
+     "line": 11
+    },
+    {
+     "filePath": "src/mcp-server/rule-explainer.ts",
+     "target": "src/fitness-compiler/cypher-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/mcp-server/rule-explainer.ts",
+     "target": "src/report/actionable-formatter.ts",
+     "component": "mod:report",
+     "kind": "module",
+     "line": 11
+    },
+    {
+     "filePath": "src/mcp-server/rule-explainer.ts",
+     "target": "src/spec-parser/template-registry.ts",
+     "component": "mod:spec-parser",
+     "kind": "module",
+     "line": 10
+    },
+    {
+     "filePath": "src/mcp-server/rule-meta.ts",
+     "target": "src/fitness-compiler/apg2-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 13
+    },
+    {
+     "filePath": "src/mcp-server/rule-meta.ts",
+     "target": "src/fitness-compiler/compiler-input.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 10
+    },
+    {
+     "filePath": "src/mcp-server/rule-meta.ts",
+     "target": "src/fitness-compiler/edge-views.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 11
+    },
+    {
+     "filePath": "src/mcp-server/rule-meta.ts",
+     "target": "src/fitness-compiler/fitness-compiler.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/mcp-server/rule-meta.ts",
+     "target": "src/scoring-engine/rule-tiers.ts",
+     "component": "mod:scoring-engine",
+     "kind": "module",
+     "line": 14
+    },
+    {
+     "filePath": "src/mcp-server/source-ast.ts",
+     "target": "src/apg-extractor/member-facts.ts",
+     "component": "mod:apg-extractor",
+     "kind": "module",
+     "line": 13
+    },
+    {
+     "filePath": "src/mcp-server/spec-rules.ts",
+     "target": "src/fitness-compiler/cypher-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 10
+    },
+    {
+     "filePath": "src/mcp-server/spec-rules.ts",
+     "target": "src/fitness-compiler/glob-to-regex.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 13
+    },
+    {
+     "filePath": "src/mcp-server/spec-rules.ts",
+     "target": "src/fitness-compiler/layer-binding.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 11
+    },
+    {
+     "filePath": "src/mcp-server/spec-rules.ts",
+     "target": "src/fitness-compiler/template-applicability.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 12
+    },
+    {
+     "filePath": "src/mcp-server/spec-view.ts",
+     "target": "src/fitness-compiler/cypher-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/mcp-server/tools.ts",
+     "target": "src/spec-parser/spec-parser.ts",
+     "component": "mod:spec-parser",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/mcp-server/types.ts",
+     "target": "src/fitness-compiler/edge-views.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 15
+    },
+    {
+     "filePath": "src/mcp-server/types.ts",
+     "target": "src/scoring-engine/rule-tiers.ts",
+     "component": "mod:scoring-engine",
+     "kind": "module",
+     "line": 14
+    },
+    {
+     "filePath": "src/neuro-symbolic-router/router.ts",
+     "target": "src/evaluation-engine/symbolic-evaluator.ts",
+     "component": "mod:evaluation-engine",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/neuro-symbolic-router/router.ts",
+     "target": "src/llm-critic/llm-critic.ts",
+     "component": "mod:llm-critic",
+     "kind": "module",
+     "line": 10
+    },
+    {
+     "filePath": "src/neuro-symbolic-router/router.ts",
+     "target": "src/llm-critic/types.ts",
+     "component": "mod:llm-critic",
+     "kind": "module",
+     "line": 12
+    },
+    {
+     "filePath": "src/neuro-symbolic-router/types.ts",
+     "target": "src/llm-critic/llm-critic.ts",
+     "component": "mod:llm-critic",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/neuro-symbolic-router/types.ts",
+     "target": "src/llm-critic/types.ts",
+     "component": "mod:llm-critic",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/report/dashboard-data-builder.ts",
+     "target": "src/fitness-compiler/cypher-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/report/dashboard-data-builder.ts",
+     "target": "src/fitness-compiler/extension-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/report/dashboard-data-builder.ts",
+     "target": "src/scoring-engine/report-formatter.ts",
+     "component": "mod:scoring-engine",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/scoring-engine/report-builder.ts",
+     "target": "src/fitness-compiler/cypher-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 27
+    },
+    {
+     "filePath": "src/scoring-engine/report-builder.ts",
+     "target": "src/fitness-compiler/extension-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 28
+    },
+    {
+     "filePath": "src/scoring-engine/report-builder.ts",
+     "target": "src/fitness-compiler/role-exemptions.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 30
+    },
+    {
+     "filePath": "src/scoring-engine/report-formatter.ts",
+     "target": "src/report/actionable-formatter.ts",
+     "component": "mod:report",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/scoring-engine/scoring-engine.ts",
+     "target": "src/evaluation-engine/scc-cycles.ts",
+     "component": "mod:evaluation-engine",
+     "kind": "module",
+     "line": 10
+    },
+    {
+     "filePath": "src/scoring-engine/universal-metrics.ts",
+     "target": "src/evaluation-engine/scc-cycles.ts",
+     "component": "mod:evaluation-engine",
+     "kind": "module",
+     "line": 21
+    },
+    {
+     "filePath": "src/scoring-engine/universal-metrics.ts",
+     "target": "src/fitness-compiler/cypher-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 20
+    },
+    {
+     "filePath": "src/spec-parser/layer-parsers.ts",
+     "target": "src/fitness-compiler/cypher-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 12
+    },
+    {
+     "filePath": "src/spec-parser/spec-validator.ts",
+     "target": "src/fitness-compiler/cypher-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/spec-parser/spec-validator.ts",
+     "target": "src/fitness-compiler/extension-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/spec-parser/spec-validator.ts",
+     "target": "src/fitness-compiler/glob-to-regex.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/spec-parser/spec-validator.ts",
+     "target": "src/fitness-compiler/hexagonal-templates.ts",
+     "component": "mod:fitness-compiler",
+     "kind": "module",
+     "line": 6
+    }
+   ],
+   "mirrorRows": 115,
+   "mirrorAgrees": true
+  },
+  "deep-import-inferred-api": {
+   "tier": "advisory",
+   "rows": [
+    {
+     "filePath": "src/apg-enrich/cheap/cohesion.ts",
+     "target": "src/shared/apg-edge-view.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 15
+    },
+    {
+     "filePath": "src/apg-enrich/cheap/communities.ts",
+     "target": "src/shared/apg-edge-view.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 10
+    },
+    {
+     "filePath": "src/apg-enrich/cheap/context.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 10
+    },
+    {
+     "filePath": "src/apg-enrich/cheap/context.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 11
+    },
+    {
+     "filePath": "src/apg-enrich/cheap/context.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 12
+    },
+    {
+     "filePath": "src/apg-enrich/cheap/index.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 13
+    },
+    {
+     "filePath": "src/apg-enrich/cheap/index.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 14
+    },
+    {
+     "filePath": "src/apg-enrich/cheap/provenance.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 45
+    },
+    {
+     "filePath": "src/apg-enrich/cheap/provenance.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 46
+    },
+    {
+     "filePath": "src/apg-enrich/cheap/types.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/apg-enrich/ontology/grounding.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 15
+    },
+    {
+     "filePath": "src/apg-enrich/ontology/index.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/apg-enrich/ontology/passes.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/apg-enrich/ontology/pipeline.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 11
+    },
+    {
+     "filePath": "src/apg-enrich/ontology/pipeline.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 12
+    },
+    {
+     "filePath": "src/apg-enrich/ontology/prompts.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/apg-enrich/ontology/provider.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 14
+    },
+    {
+     "filePath": "src/apg-enrich/ontology/provider.ts",
+     "target": "src/shared/interfaces/llm-provider.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 13
+    },
+    {
+     "filePath": "src/apg-enrich/ontology/scorer.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 10
+    },
+    {
+     "filePath": "src/apg-enrich/ontology/scripted-provider.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 11
+    },
+    {
+     "filePath": "src/apg-enrich/ontology/types.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/apg-enrich/ontology/units.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 14
+    },
+    {
+     "filePath": "src/apg-enrich/ontology/units.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 15
+    },
+    {
+     "filePath": "src/apg-extractor/apg-extractor.ts",
+     "target": "src/shared/context/firewall-context.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/apg-extractor/apg-extractor.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/apg-extractor/apg-extractor.ts",
+     "target": "src/shared/interfaces/pipeline-stage.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/apg-extractor/apg-extractor.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/apg-extractor/apg2/async-coupling.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/apg-extractor/apg2/common.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/apg-extractor/apg2/common.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/apg-extractor/apg2/components.ts",
+     "target": "src/shared/apg2-scope.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/apg-extractor/apg2/components.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/apg-extractor/apg2/components.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/apg-extractor/apg2/index.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/apg-extractor/apg2/io-boundary.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/apg-extractor/apg2/type-flow.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/apg-extractor/edge-extractor.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/apg-extractor/edge-extractor.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/apg-extractor/field-state.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/apg-extractor/flows-to-deriver.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/apg-extractor/graph-mode.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/apg-extractor/graph-mode.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/apg-extractor/id-generator.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/apg-extractor/import-edge-merger.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/apg-extractor/nest-module-extractor.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 11
+    },
+    {
+     "filePath": "src/apg-extractor/nest-module-extractor.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 12
+    },
+    {
+     "filePath": "src/apg-extractor/node-extractor.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/apg-extractor/node-extractor.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/apg-extractor/package-node-factory.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 10
+    },
+    {
+     "filePath": "src/apg-extractor/types.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/baseline/baseline-manager.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/baseline/baseline-manager.ts",
+     "target": "src/shared/taxonomy/violation-types.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/baseline/baseline-manager.ts",
+     "target": "src/shared/types/baseline.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/cli/batch-runner.ts",
+     "target": "src/shared/errors/scrub.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/cli/batch-runner.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/cli/batch-runner.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/cli/cli.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/cli/cli.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 13
+    },
+    {
+     "filePath": "src/cli/cli.ts",
+     "target": "src/shared/types/llm-config.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 25
+    },
+    {
+     "filePath": "src/cli/drift-handler.ts",
+     "target": "src/shared/interfaces/snapshot-store.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/cli/drift-handler.ts",
+     "target": "src/shared/types/drift.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/cli/drift-handler.ts",
+     "target": "src/shared/types/value-objects.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/cli/llm-options.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 35
+    },
+    {
+     "filePath": "src/cli/llm-options.ts",
+     "target": "src/shared/interfaces/llm-provider.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 33
+    },
+    {
+     "filePath": "src/cli/llm-options.ts",
+     "target": "src/shared/types/llm-config.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 34
+    },
+    {
+     "filePath": "src/construct-switches/compile.ts",
+     "target": "src/shared/construct-switches.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 14
+    },
+    {
+     "filePath": "src/construct-switches/compile.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 13
+    },
+    {
+     "filePath": "src/construct-switches/compile.ts",
+     "target": "src/shared/types/value-objects.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 16
+    },
+    {
+     "filePath": "src/construct-switches/graph.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/construct-switches/graph.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/construct-switches/layer-view.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/construct-switches/layer-view.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/construct-switches/layer-view.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/construct-switches/pipeline.ts",
+     "target": "src/shared/construct-switches.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 10
+    },
+    {
+     "filePath": "src/construct-switches/pipeline.ts",
+     "target": "src/shared/context/firewall-context.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/construct-switches/pipeline.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/construct-switches/pipeline.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/construct-switches/rows.ts",
+     "target": "src/shared/construct-switch-catalogue.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 19
+    },
+    {
+     "filePath": "src/construct-switches/rows.ts",
+     "target": "src/shared/construct-switches.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 18
+    },
+    {
+     "filePath": "src/construct-switches/rows.ts",
+     "target": "src/shared/taxonomy/violation-types.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 15
+    },
+    {
+     "filePath": "src/construct-switches/rows.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 14
+    },
+    {
+     "filePath": "src/construct-switches/rows.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 16
+    },
+    {
+     "filePath": "src/construct-switches/rows.ts",
+     "target": "src/shared/types/value-objects.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 17
+    },
+    {
+     "filePath": "src/construct-switches/tiers.ts",
+     "target": "src/shared/construct-switches.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/construct-switches/tiers.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/cypher-interp/repository.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 14
+    },
+    {
+     "filePath": "src/cypher-interp/repository.ts",
+     "target": "src/shared/interfaces/graph-repository.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 13
+    },
+    {
+     "filePath": "src/evaluation-engine/evidence.ts",
+     "target": "src/shared/taxonomy/violation-types.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 11
+    },
+    {
+     "filePath": "src/evaluation-engine/scc-cycles.ts",
+     "target": "src/shared/taxonomy/violation-types.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 17
+    },
+    {
+     "filePath": "src/evaluation-engine/scc-cycles.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 15
+    },
+    {
+     "filePath": "src/evaluation-engine/scc-cycles.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 16
+    },
+    {
+     "filePath": "src/evaluation-engine/scc-cycles.ts",
+     "target": "src/shared/types/value-objects.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 18
+    },
+    {
+     "filePath": "src/evaluation-engine/symbolic-evaluator.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/evaluation-engine/symbolic-evaluator.ts",
+     "target": "src/shared/errors/scrub.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/evaluation-engine/symbolic-evaluator.ts",
+     "target": "src/shared/taxonomy/violation-types.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/evaluation-engine/symbolic-evaluator.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/evaluation-engine/symbolic-evaluator.ts",
+     "target": "src/shared/types/value-objects.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 10
+    },
+    {
+     "filePath": "src/evaluation-engine/types.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/evaluation-engine/types.ts",
+     "target": "src/shared/interfaces/graph-repository.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/evaluation-engine/types.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/evaluation-engine/types.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/evaluation-engine/types.ts",
+     "target": "src/shared/types/value-objects.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/evaluation-engine/violation-id.ts",
+     "target": "src/shared/types/value-objects.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 12
+    },
+    {
+     "filePath": "src/fitness-compiler/apg2-in-memory.ts",
+     "target": "src/shared/apg2-scope.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 14
+    },
+    {
+     "filePath": "src/fitness-compiler/apg2-in-memory.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/fitness-compiler/apg2-in-memory.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/fitness-compiler/apg2-templates.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 21
+    },
+    {
+     "filePath": "src/fitness-compiler/bound-param-checker.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/fitness-compiler/bound-param-checker.ts",
+     "target": "src/shared/types/value-objects.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/fitness-compiler/cheap2-templates.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 21
+    },
+    {
+     "filePath": "src/fitness-compiler/compiler-input.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/fitness-compiler/cypher-templates.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/fitness-compiler/ddd-compiler.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 10
+    },
+    {
+     "filePath": "src/fitness-compiler/ddd-compiler.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/fitness-compiler/ddd-compiler.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/fitness-compiler/ddd-templates.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 12
+    },
+    {
+     "filePath": "src/fitness-compiler/fitness-compiler.ts",
+     "target": "src/shared/construct-switches.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 29
+    },
+    {
+     "filePath": "src/fitness-compiler/fitness-compiler.ts",
+     "target": "src/shared/context/firewall-context.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/fitness-compiler/fitness-compiler.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/fitness-compiler/fitness-compiler.ts",
+     "target": "src/shared/interfaces/pipeline-stage.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/fitness-compiler/fitness-compiler.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/fitness-compiler/fitness-compiler.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/fitness-compiler/hexagonal-compiler.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/fitness-compiler/hexagonal-compiler.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/fitness-compiler/hexagonal-compiler.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/fitness-compiler/hexagonal-templates.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 16
+    },
+    {
+     "filePath": "src/fitness-compiler/layer-binding.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/fitness-compiler/template-applicability.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/fitness-compiler/template-applicability.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/fitness-compiler/types.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/fitness-compiler/types.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/fitness-compiler/types.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/fitness-compiler/v13-in-memory-baselines.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/fitness-compiler/v13-in-memory-baselines.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/ise/graph-view.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 11
+    },
+    {
+     "filePath": "src/ise/layer-mapper.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 17
+    },
+    {
+     "filePath": "src/ise/layer-mapper.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 18
+    },
+    {
+     "filePath": "src/llm-critic/aggregation.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/llm-critic/aggregation.ts",
+     "target": "src/shared/errors/scrub.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/llm-critic/aggregation.ts",
+     "target": "src/shared/taxonomy/violation-types.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/llm-critic/aggregation.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/llm-critic/agy-cli-provider.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 37
+    },
+    {
+     "filePath": "src/llm-critic/agy-cli-provider.ts",
+     "target": "src/shared/errors/scrub.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 39
+    },
+    {
+     "filePath": "src/llm-critic/agy-cli-provider.ts",
+     "target": "src/shared/interfaces/llm-provider.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 33
+    },
+    {
+     "filePath": "src/llm-critic/agy-cli-provider.ts",
+     "target": "src/shared/interfaces/process-runner.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 34
+    },
+    {
+     "filePath": "src/llm-critic/agy-cli-provider.ts",
+     "target": "src/shared/process/node-process-runner.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 40
+    },
+    {
+     "filePath": "src/llm-critic/agy-cli-provider.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 35
+    },
+    {
+     "filePath": "src/llm-critic/agy-cli-provider.ts",
+     "target": "src/shared/types/llm-config.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 36
+    },
+    {
+     "filePath": "src/llm-critic/cassette-provider.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/llm-critic/cassette-provider.ts",
+     "target": "src/shared/errors/scrub.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/llm-critic/cassette-provider.ts",
+     "target": "src/shared/interfaces/llm-provider.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/llm-critic/cassette-provider.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/llm-critic/cassette-provider.ts",
+     "target": "src/shared/types/llm-config.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/llm-critic/claude-cli-provider.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 31
+    },
+    {
+     "filePath": "src/llm-critic/claude-cli-provider.ts",
+     "target": "src/shared/errors/scrub.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 33
+    },
+    {
+     "filePath": "src/llm-critic/claude-cli-provider.ts",
+     "target": "src/shared/interfaces/llm-provider.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 25
+    },
+    {
+     "filePath": "src/llm-critic/claude-cli-provider.ts",
+     "target": "src/shared/interfaces/process-runner.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 28
+    },
+    {
+     "filePath": "src/llm-critic/claude-cli-provider.ts",
+     "target": "src/shared/process/node-process-runner.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 34
+    },
+    {
+     "filePath": "src/llm-critic/claude-cli-provider.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 29
+    },
+    {
+     "filePath": "src/llm-critic/claude-cli-provider.ts",
+     "target": "src/shared/types/llm-config.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 30
+    },
+    {
+     "filePath": "src/llm-critic/context-assembler.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/llm-critic/context-assembler.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/llm-critic/context-v2.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/llm-critic/filter-explain.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 15
+    },
+    {
+     "filePath": "src/llm-critic/filter-explain.ts",
+     "target": "src/shared/interfaces/llm-provider.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 14
+    },
+    {
+     "filePath": "src/llm-critic/filter-explain.ts",
+     "target": "src/shared/types/llm-config.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 16
+    },
+    {
+     "filePath": "src/llm-critic/frozen.ts",
+     "target": "src/shared/interfaces/llm-provider.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 16
+    },
+    {
+     "filePath": "src/llm-critic/gemini-provider.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/llm-critic/gemini-provider.ts",
+     "target": "src/shared/interfaces/llm-provider.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/llm-critic/gemini-provider.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/llm-critic/gemini-provider.ts",
+     "target": "src/shared/types/llm-config.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/llm-critic/judge-graph.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/llm-critic/judge-graph.ts",
+     "target": "src/shared/interfaces/graph-repository.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/llm-critic/judge-stage.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/llm-critic/judge-stage.ts",
+     "target": "src/shared/interfaces/llm-provider.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/llm-critic/judge-stage.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/llm-critic/judge-stage.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/llm-critic/judge-stage.ts",
+     "target": "src/shared/types/llm-config.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/llm-critic/judge-stage.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/llm-critic/judge-unit-selector.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/llm-critic/judge-unit-selector.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/llm-critic/judge-unit-selector.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/llm-critic/judge-unit-selector.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/llm-critic/judge-unit-selector.ts",
+     "target": "src/shared/types/value-objects.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/llm-critic/llm-critic.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/llm-critic/llm-critic.ts",
+     "target": "src/shared/errors/scrub.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/llm-critic/llm-critic.ts",
+     "target": "src/shared/interfaces/llm-provider.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/llm-critic/llm-critic.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/llm-critic/llm-critic.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 27
+    },
+    {
+     "filePath": "src/llm-critic/llm-critic.ts",
+     "target": "src/shared/types/value-objects.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/llm-critic/mock-provider.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/llm-critic/mock-provider.ts",
+     "target": "src/shared/interfaces/llm-provider.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/llm-critic/mock-provider.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/llm-critic/neural-result-rows.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/llm-critic/neural-result-rows.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/llm-critic/neural-result-rows.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/llm-critic/null-provider.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/llm-critic/null-provider.ts",
+     "target": "src/shared/interfaces/llm-provider.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/llm-critic/null-provider.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/llm-critic/provenance.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/llm-critic/provenance.ts",
+     "target": "src/shared/interfaces/llm-provider.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/llm-critic/provenance.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/llm-critic/provenance.ts",
+     "target": "src/shared/types/llm-config.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/llm-critic/provider-factory.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/llm-critic/provider-factory.ts",
+     "target": "src/shared/interfaces/llm-provider.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/llm-critic/provider-factory.ts",
+     "target": "src/shared/interfaces/process-runner.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/llm-critic/provider-factory.ts",
+     "target": "src/shared/process/node-process-runner.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/llm-critic/provider-factory.ts",
+     "target": "src/shared/types/llm-config.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/llm-critic/source-context.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/llm-critic/source-context.ts",
+     "target": "src/shared/interfaces/graph-repository.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/llm-critic/types.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/llm-critic/types.ts",
+     "target": "src/shared/interfaces/graph-repository.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/llm-critic/types.ts",
+     "target": "src/shared/interfaces/llm-provider.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/llm-critic/types.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/llm-critic/types.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/llm-critic/types.ts",
+     "target": "src/shared/types/llm-config.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/llm-critic/types.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/mcp-server/diff-check.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/mcp-server/evaluate-project.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 13
+    },
+    {
+     "filePath": "src/mcp-server/evaluate-project.ts",
+     "target": "src/shared/errors/scrub.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 15
+    },
+    {
+     "filePath": "src/mcp-server/evaluate-project.ts",
+     "target": "src/shared/interfaces/graph-repository.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 11
+    },
+    {
+     "filePath": "src/mcp-server/evaluate-project.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 12
+    },
+    {
+     "filePath": "src/mcp-server/explain-finding.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/mcp-server/fast-context.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/mcp-server/fast-context.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/mcp-server/fast-hints.ts",
+     "target": "src/shared/apg2-scope.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 19
+    },
+    {
+     "filePath": "src/mcp-server/fast-rules.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 15
+    },
+    {
+     "filePath": "src/mcp-server/fast-rules.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 14
+    },
+    {
+     "filePath": "src/mcp-server/file-check.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/mcp-server/import-check.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/mcp-server/layer-resolver.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/mcp-server/placement.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 10
+    },
+    {
+     "filePath": "src/mcp-server/placement.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/mcp-server/rule-explainer.ts",
+     "target": "src/shared/taxonomy/violation-types.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/mcp-server/rule-explainer.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/mcp-server/rule-explainer.ts",
+     "target": "src/shared/types/value-objects.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 12
+    },
+    {
+     "filePath": "src/mcp-server/rule-meta.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/mcp-server/spec-rules.ts",
+     "target": "src/shared/taxonomy/violation-types.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/mcp-server/spec-rules.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/mcp-server/spec-view.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/mcp-server/tools.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/mcp-server/types.ts",
+     "target": "src/shared/taxonomy/violation-types.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 12
+    },
+    {
+     "filePath": "src/mcp-server/types.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/mcp-server/types.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 13
+    },
+    {
+     "filePath": "src/neo4j-ingestion/delta-computer.ts",
+     "target": "src/shared/interfaces/snapshot-store.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/neo4j-ingestion/delta-computer.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/neo4j-ingestion/delta-computer.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/neo4j-ingestion/drift-detector.ts",
+     "target": "src/shared/apg-edge-view.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 10
+    },
+    {
+     "filePath": "src/neo4j-ingestion/drift-detector.ts",
+     "target": "src/shared/interfaces/snapshot-store.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/neo4j-ingestion/drift-detector.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/neo4j-ingestion/drift-detector.ts",
+     "target": "src/shared/types/drift.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/neo4j-ingestion/fs-snapshot-store.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/neo4j-ingestion/fs-snapshot-store.ts",
+     "target": "src/shared/interfaces/snapshot-store.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/neo4j-ingestion/fs-snapshot-store.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/neo4j-ingestion/fs-snapshot-store.ts",
+     "target": "src/shared/types/drift.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/neo4j-ingestion/fs-snapshot-store.ts",
+     "target": "src/shared/types/value-objects.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/neo4j-ingestion/graph-ingester.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/neo4j-ingestion/graph-ingester.ts",
+     "target": "src/shared/interfaces/graph-repository.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/neo4j-ingestion/graph-ingester.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/neo4j-ingestion/graph-ingester.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/neo4j-ingestion/graph-ingester.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/neo4j-ingestion/layer-annotator.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/neo4j-ingestion/layer-annotator.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/neo4j-ingestion/layer-annotator.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/neo4j-ingestion/neo4j-ingestion.ts",
+     "target": "src/shared/context/firewall-context.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/neo4j-ingestion/neo4j-ingestion.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/neo4j-ingestion/neo4j-ingestion.ts",
+     "target": "src/shared/interfaces/graph-repository.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/neo4j-ingestion/neo4j-ingestion.ts",
+     "target": "src/shared/interfaces/pipeline-stage.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/neo4j-ingestion/neo4j-ingestion.ts",
+     "target": "src/shared/interfaces/snapshot-store.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/neo4j-ingestion/neo4j-ingestion.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/neo4j-ingestion/neo4j-repository.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/neo4j-ingestion/neo4j-repository.ts",
+     "target": "src/shared/errors/scrub.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/neo4j-ingestion/neo4j-repository.ts",
+     "target": "src/shared/interfaces/graph-repository.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/neo4j-ingestion/neo4j-repository.ts",
+     "target": "src/shared/process/neo4j-lock.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/neo4j-ingestion/types.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/neo4j-ingestion/types.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/neo4j-ingestion/types.ts",
+     "target": "src/shared/types/drift.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/neo4j-ingestion/types.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/neo4j-ingestion/types.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/neo4j-ingestion/types.ts",
+     "target": "src/shared/types/value-objects.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/neuro-symbolic-router/router.ts",
+     "target": "src/shared/context/firewall-context.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/neuro-symbolic-router/router.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/neuro-symbolic-router/router.ts",
+     "target": "src/shared/interfaces/pipeline-stage.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/neuro-symbolic-router/router.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/neuro-symbolic-router/router.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/neuro-symbolic-router/types.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/neuro-symbolic-router/types.ts",
+     "target": "src/shared/interfaces/graph-repository.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/neuro-symbolic-router/types.ts",
+     "target": "src/shared/interfaces/llm-provider.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/neuro-symbolic-router/types.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/neuro-symbolic-router/types.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/neuro-symbolic-router/types.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/report/actionable-formatter.ts",
+     "target": "src/shared/taxonomy/violation-types.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/report/actionable-formatter.ts",
+     "target": "src/shared/types/baseline.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/report/actionable-formatter.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/report/dashboard-data-builder.ts",
+     "target": "src/shared/taxonomy/violation-types.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/report/dashboard-data-builder.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/report/dashboard-data-builder.ts",
+     "target": "src/shared/types/baseline.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/report/dashboard-data-builder.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/report/dashboard-data-builder.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/report/graph-data-builder.ts",
+     "target": "src/shared/apg-edge-view.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/report/graph-data-builder.ts",
+     "target": "src/shared/taxonomy/violation-types.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/report/graph-data-builder.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/report/graph-data-builder.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/report/report-generator.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/report/types.ts",
+     "target": "src/shared/taxonomy/violation-types.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/report/types.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/report/types.ts",
+     "target": "src/shared/types/baseline.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/report/types.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/report/types.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/report/types.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/scoring-engine/neural-aggregation.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 28
+    },
+    {
+     "filePath": "src/scoring-engine/renormaliser.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/scoring-engine/renormaliser.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/scoring-engine/renormaliser.ts",
+     "target": "src/shared/types/value-objects.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 10
+    },
+    {
+     "filePath": "src/scoring-engine/report-builder.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 24
+    },
+    {
+     "filePath": "src/scoring-engine/report-builder.ts",
+     "target": "src/shared/errors/scrub.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 26
+    },
+    {
+     "filePath": "src/scoring-engine/report-builder.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 13
+    },
+    {
+     "filePath": "src/scoring-engine/report-builder.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 21
+    },
+    {
+     "filePath": "src/scoring-engine/report-builder.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 16
+    },
+    {
+     "filePath": "src/scoring-engine/report-builder.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 22
+    },
+    {
+     "filePath": "src/scoring-engine/report-builder.ts",
+     "target": "src/shared/types/value-objects.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 23
+    },
+    {
+     "filePath": "src/scoring-engine/report-formatter.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/scoring-engine/report-formatter.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/scoring-engine/report-formatter.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/scoring-engine/report-schema-validator.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 12
+    },
+    {
+     "filePath": "src/scoring-engine/report-schema-validator.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 11
+    },
+    {
+     "filePath": "src/scoring-engine/score-computer.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 13
+    },
+    {
+     "filePath": "src/scoring-engine/score-computer.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 9
+    },
+    {
+     "filePath": "src/scoring-engine/score-computer.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 15
+    },
+    {
+     "filePath": "src/scoring-engine/score-computer.ts",
+     "target": "src/shared/types/value-objects.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 16
+    },
+    {
+     "filePath": "src/scoring-engine/scoring-engine.ts",
+     "target": "src/shared/context/firewall-context.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/scoring-engine/scoring-engine.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/scoring-engine/scoring-engine.ts",
+     "target": "src/shared/interfaces/pipeline-stage.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/scoring-engine/scoring-engine.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/scoring-engine/scoring-engine.ts",
+     "target": "src/shared/types/value-objects.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/scoring-engine/tiered-scoring.ts",
+     "target": "src/shared/taxonomy/violation-types.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 17
+    },
+    {
+     "filePath": "src/scoring-engine/tiered-scoring.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 22
+    },
+    {
+     "filePath": "src/scoring-engine/tiered-scoring.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 18
+    },
+    {
+     "filePath": "src/scoring-engine/tiered-scoring.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 14
+    },
+    {
+     "filePath": "src/scoring-engine/tiered-scoring.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 20
+    },
+    {
+     "filePath": "src/scoring-engine/tiered-scoring.ts",
+     "target": "src/shared/types/value-objects.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 21
+    },
+    {
+     "filePath": "src/scoring-engine/types.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/scoring-engine/types.ts",
+     "target": "src/shared/interfaces/graph-repository.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/scoring-engine/types.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/scoring-engine/types.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/scoring-engine/types.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/scoring-engine/types.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/scoring-engine/types.ts",
+     "target": "src/shared/types/value-objects.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/scoring-engine/universal-metrics.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 17
+    },
+    {
+     "filePath": "src/scoring-engine/universal-metrics.ts",
+     "target": "src/shared/errors/scrub.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 19
+    },
+    {
+     "filePath": "src/scoring-engine/universal-metrics.ts",
+     "target": "src/shared/interfaces/graph-repository.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 14
+    },
+    {
+     "filePath": "src/scoring-engine/universal-metrics.ts",
+     "target": "src/shared/types/apg.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 16
+    },
+    {
+     "filePath": "src/scoring-engine/universal-metrics.ts",
+     "target": "src/shared/types/evaluation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 15
+    },
+    {
+     "filePath": "src/scoring-engine/verdict.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/scoring-engine/verdict.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/scoring-engine/verdict.ts",
+     "target": "src/shared/types/value-objects.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/scoring-engine/warning-merge.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 10
+    },
+    {
+     "filePath": "src/spec-parser/adr-parsers.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/spec-parser/adr-parsers.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/spec-parser/adr-parsers.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    },
+    {
+     "filePath": "src/spec-parser/ddd-template.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/spec-parser/ddd-template.ts",
+     "target": "src/shared/types/value-objects.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/spec-parser/dimension-alias.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/spec-parser/function-fields.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/spec-parser/hexagonal-template.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/spec-parser/hexagonal-template.ts",
+     "target": "src/shared/types/value-objects.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/spec-parser/layer-kind-resolver.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/spec-parser/layer-kind-resolver.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/spec-parser/layer-parsers.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/spec-parser/layer-parsers.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/spec-parser/layer-parsers.ts",
+     "target": "src/shared/types/value-objects.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 8
+    },
+    {
+     "filePath": "src/spec-parser/preset-loader.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/spec-parser/preset-loader.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/spec-parser/spec-parser.ts",
+     "target": "src/shared/context/firewall-context.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 6
+    },
+    {
+     "filePath": "src/spec-parser/spec-parser.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 7
+    },
+    {
+     "filePath": "src/spec-parser/spec-parser.ts",
+     "target": "src/shared/interfaces/pipeline-stage.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 5
+    },
+    {
+     "filePath": "src/spec-parser/spec-parser.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 4
+    },
+    {
+     "filePath": "src/spec-parser/spec-validator.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/spec-parser/spec-validator.ts",
+     "target": "src/shared/types/validation.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/spec-parser/template-registry.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/spec-parser/template-registry.ts",
+     "target": "src/shared/types/value-objects.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/spec-parser/types.ts",
+     "target": "src/shared/errors/domain-result.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 3
+    },
+    {
+     "filePath": "src/spec-parser/types.ts",
+     "target": "src/shared/types/enums.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 1
+    },
+    {
+     "filePath": "src/spec-parser/types.ts",
+     "target": "src/shared/types/spec.ts",
+     "component": "mod:shared",
+     "kind": "module",
+     "line": 2
+    }
+   ],
+   "mirrorRows": 384,
+   "mirrorAgrees": true
+  },
+  "undeclared-async-coupling": {
+   "tier": "advisory",
+   "rows": [],
+   "mirrorRows": 0,
+   "mirrorAgrees": true
+  },
+  "io-outside-adapters": {
+   "tier": "blocking",
+   "rows": [
+    {
+     "filePath": "src/apg-enrich/cheap/co-change.ts",
+     "member": "historyOf",
+     "layer": "apg-enrich",
+     "category": "fs",
+     "apis": [
+      "fs:fs.existsSync",
+      "fs:fs.realpathSync"
+     ],
+     "line": 34,
+     "lines": [
+      34,
+      37,
+      37,
+      42,
+      42
+     ]
+    },
+    {
+     "filePath": "src/apg-enrich/cheap/provenance.ts",
+     "member": "analyseProvenance",
+     "layer": "apg-enrich",
+     "category": "fs",
+     "apis": [
+      "fs:fs.mkdtempSync",
+      "fs:fs.rmSync"
+     ],
+     "line": 410,
+     "lines": [
+      410,
+      425
+     ]
+    },
+    {
+     "filePath": "src/apg-enrich/cheap/provenance.ts",
+     "member": "materialise",
+     "layer": "apg-enrich",
+     "category": "fs",
+     "apis": [
+      "fs:fs.rmSync",
+      "fs:fs.mkdirSync",
+      "fs:fs.existsSync",
+      "fs:fs.writeFileSync"
+     ],
+     "line": 260,
+     "lines": [
+      260,
+      261,
+      267,
+      269
+     ]
+    },
+    {
+     "filePath": "src/apg-enrich/cheap/provenance.ts",
+     "member": "readLoopRun",
+     "layer": "apg-enrich",
+     "category": "fs",
+     "apis": [
+      "fs:fs.readFileSync",
+      "fs:fs.existsSync",
+      "fs:fs.readdirSync(stepsDir).filter((f)=>/^step-\\d+\\.json$/.t...",
+      "fs:fs.readdirSync(stepsDir).filter",
+      "fs:fs.readdirSync"
+     ],
+     "line": 100,
+     "lines": [
+      100,
+      104,
+      104,
+      104,
+      104,
+      107
+     ]
+    },
+    {
+     "filePath": "src/apg-enrich/cheap/provenance.ts",
+     "member": "snapshotOf",
+     "layer": "apg-enrich",
+     "category": "fs",
+     "apis": [
+      "fs:fs.realpathSync"
+     ],
+     "line": 313,
+     "lines": [
+      313
+     ]
+    },
+    {
+     "filePath": "src/apg-enrich/ontology/cassette-io.ts",
+     "member": "readCassetteEntry",
+     "layer": "apg-enrich",
+     "category": "fs",
+     "apis": [
+      "fs:fs.existsSync",
+      "fs:fs.readFileSync"
+     ],
+     "line": 15,
+     "lines": [
+      15,
+      16
+     ]
+    },
+    {
+     "filePath": "src/apg-enrich/ontology/grounding.ts",
+     "member": "diskReader",
+     "layer": "apg-enrich",
+     "category": "fs",
+     "apis": [
+      "fs:fs.readFileSync"
+     ],
+     "line": 24,
+     "lines": [
+      24
+     ]
+    },
+    {
+     "filePath": "src/apg-extractor/apg-extractor.ts",
+     "member": "extractAPG",
+     "layer": "apg-extractor",
+     "category": "fs",
+     "apis": [
+      "fs:existsSync"
+     ],
+     "line": 32,
+     "lines": [
+      32,
+      37
+     ]
+    },
+    {
+     "filePath": "src/baseline/baseline-manager.ts",
+     "member": "loadBaseline",
+     "layer": "baseline",
+     "category": "fs",
+     "apis": [
+      "fs:fs.existsSync",
+      "fs:fs.readFileSync"
+     ],
+     "line": 60,
+     "lines": [
+      60,
+      68
+     ]
+    },
+    {
+     "filePath": "src/baseline/baseline-manager.ts",
+     "member": "saveBaseline",
+     "layer": "baseline",
+     "category": "fs",
+     "apis": [
+      "fs:fs.existsSync",
+      "fs:fs.mkdirSync",
+      "fs:fs.writeFileSync"
+     ],
+     "line": 95,
+     "lines": [
+      95,
+      96,
+      98
+     ]
+    },
+    {
+     "filePath": "src/ise/graph-view.ts",
+     "member": "loadIseGraph",
+     "layer": "ise",
+     "category": "fs",
+     "apis": [
+      "fs:fs.realpathSync",
+      "fs:root.replace"
+     ],
+     "line": 104,
+     "lines": [
+      104,
+      109
+     ]
+    },
+    {
+     "filePath": "src/ise/preset.ts",
+     "member": "loadIsePreset",
+     "layer": "ise",
+     "category": "fs",
+     "apis": [
+      "fs:fs.readFileSync"
+     ],
+     "line": 54,
+     "lines": [
+      54
+     ]
+    },
+    {
+     "filePath": "src/ise/snapshot.ts",
+     "member": "listSnapshotFiles",
+     "layer": "ise",
+     "category": "fs",
+     "apis": [
+      "fs:fs.readdirSync"
+     ],
+     "line": 39,
+     "lines": [
+      39
+     ]
+    },
+    {
+     "filePath": "src/ise/snapshot.ts",
+     "member": "snapshotSource",
+     "layer": "ise",
+     "category": "fs",
+     "apis": [
+      "fs:fs.existsSync",
+      "fs:fs.mkdtempSync",
+      "fs:fs.mkdirSync",
+      "fs:fs.cpSync",
+      "fs:fs.copyFileSync",
+      "fs:fs.rmSync"
+     ],
+     "line": 25,
+     "lines": [
+      25,
+      26,
+      27,
+      29,
+      30,
+      31,
+      32
+     ]
+    },
+    {
+     "filePath": "src/ise/spec-emitter.ts",
+     "member": "validateEmittedSpec",
+     "layer": "ise",
+     "category": "fs",
+     "apis": [
+      "fs:fs.mkdtempSync",
+      "fs:fs.writeFileSync",
+      "fs:fs.rmSync"
+     ],
+     "line": 47,
+     "lines": [
+      47,
+      50,
+      60
+     ]
+    },
+    {
+     "filePath": "src/report/report-generator.ts",
+     "member": "generateReport",
+     "layer": "report",
+     "category": "fs",
+     "apis": [
+      "fs:writeFileSync"
+     ],
+     "line": 64,
+     "lines": [
+      64
+     ]
+    },
+    {
+     "filePath": "src/shared/process/neo4j-lock.ts",
+     "member": "acquireNeo4jLock",
+     "layer": "shared",
+     "category": "fs",
+     "apis": [
+      "fs:fs.mkdirSync"
+     ],
+     "line": 231,
+     "lines": [
+      231
+     ]
+    },
+    {
+     "filePath": "src/shared/process/neo4j-lock.ts",
+     "member": "ageMs",
+     "layer": "shared",
+     "category": "fs",
+     "apis": [
+      "fs:fs.statSync"
+     ],
+     "line": 141,
+     "lines": [
+      141
+     ]
+    },
+    {
+     "filePath": "src/shared/process/neo4j-lock.ts",
+     "member": "breakStale",
+     "layer": "shared",
+     "category": "fs",
+     "apis": [
+      "fs:fs.openSync",
+      "fs:fs.unlinkSync",
+      "fs:fs.closeSync"
+     ],
+     "line": 179,
+     "lines": [
+      179,
+      184,
+      192,
+      197,
+      204
+     ]
+    },
+    {
+     "filePath": "src/shared/process/neo4j-lock.ts",
+     "member": "readInfo",
+     "layer": "shared",
+     "category": "fs",
+     "apis": [
+      "fs:fs.readFileSync"
+     ],
+     "line": 126,
+     "lines": [
+      126
+     ]
+    },
+    {
+     "filePath": "src/shared/process/neo4j-lock.ts",
+     "member": "tryCreate",
+     "layer": "shared",
+     "category": "fs",
+     "apis": [
+      "fs:fs.openSync",
+      "fs:fs.writeSync",
+      "fs:fs.closeSync"
+     ],
+     "line": 150,
+     "lines": [
+      150,
+      156,
+      158
+     ]
+    },
+    {
+     "filePath": "src/shared/process/neo4j-lock.ts",
+     "member": "unlinkIfToken",
+     "layer": "shared",
+     "category": "fs",
+     "apis": [
+      "fs:fs.unlinkSync"
+     ],
+     "line": 167,
+     "lines": [
+      167
+     ]
+    },
+    {
+     "filePath": "src/spec-parser/exclude-paths.ts",
+     "member": "readSpecExcludePaths",
+     "layer": "spec-parser",
+     "category": "fs",
+     "apis": [
+      "fs:fs.readFileSync"
+     ],
+     "line": 21,
+     "lines": [
+      21
+     ]
+    },
+    {
+     "filePath": "src/spec-parser/preset-loader.ts",
+     "member": "listPresets",
+     "layer": "spec-parser",
+     "category": "fs",
+     "apis": [
+      "fs:fs.existsSync",
+      "fs:fs.readdirSync(dir).filter((f)=>f.endsWith('.yaml')||f.en...",
+      "fs:fs.readdirSync(dir).filter",
+      "fs:fs.readdirSync"
+     ],
+     "line": 33,
+     "lines": [
+      33,
+      35,
+      35,
+      35
+     ]
+    },
+    {
+     "filePath": "src/spec-parser/preset-loader.ts",
+     "member": "loadPreset",
+     "layer": "spec-parser",
+     "category": "fs",
+     "apis": [
+      "fs:fs.existsSync",
+      "fs:fs.readFileSync"
+     ],
+     "line": 48,
+     "lines": [
+      48,
+      48,
+      63
+     ]
+    },
+    {
+     "filePath": "src/spec-parser/preset-loader.ts",
+     "member": "presetsDir",
+     "layer": "spec-parser",
+     "category": "fs",
+     "apis": [
+      "fs:fs.existsSync"
+     ],
+     "line": 23,
+     "lines": [
+      23
+     ]
+    },
+    {
+     "filePath": "src/spec-parser/spec-parser.ts",
+     "member": "parseADRs",
+     "layer": "spec-parser",
+     "category": "fs",
+     "apis": [
+      "fs:fs.existsSync",
+      "fs:fs.readdirSync(adrDirPath).filter((f)=>f.endsWith('.md')|...",
+      "fs:fs.readdirSync(adrDirPath).filter",
+      "fs:fs.readdirSync",
+      "fs:fs.readFileSync"
+     ],
+     "line": 139,
+     "lines": [
+      139,
+      143,
+      143,
+      143,
+      152
+     ]
+    },
+    {
+     "filePath": "src/spec-parser/spec-parser.ts",
+     "member": "parseSpec",
+     "layer": "spec-parser",
+     "category": "fs",
+     "apis": [
+      "fs:fs.existsSync",
+      "fs:fs.readFileSync"
+     ],
+     "line": 26,
+     "lines": [
+      26,
+      32
+     ]
+    },
+    {
+     "filePath": "src/spec-parser/spec-validator.ts",
+     "member": "checkLayerGlobsV13",
+     "layer": "spec-parser",
+     "category": "fs",
+     "apis": [
+      "fs:existsSync"
+     ],
+     "line": 227,
+     "lines": [
+      227
+     ]
+    },
+    {
+     "filePath": "src/spec-parser/spec-validator.ts",
+     "member": "projectFiles",
+     "layer": "spec-parser",
+     "category": "fs",
+     "apis": [
+      "fs:readdirSync"
+     ],
+     "line": 191,
+     "lines": [
+      191
+     ]
+    },
+    {
+     "filePath": "src/spec-parser/spec-validator.ts",
+     "member": "validateSpecAgainstProject",
+     "layer": "spec-parser",
+     "category": "fs",
+     "apis": [
+      "fs:existsSync"
+     ],
+     "line": 273,
+     "lines": [
+      273
+     ]
+    }
+   ],
+   "mirrorRows": 31,
+   "mirrorAgrees": true
+  },
+  "nondeterminism-in-core": {
+   "tier": "advisory",
+   "rows": [
+    {
+     "filePath": "src/apg-enrich/cheap/git.ts",
+     "member": "env",
+     "layer": "apg-enrich",
+     "category": "env",
+     "apis": [
+      "process.env"
+     ],
+     "line": 11,
+     "lines": [
+      11
+     ]
+    },
+    {
+     "filePath": "src/apg-enrich/cheap/git.ts",
+     "member": "git",
+     "layer": "apg-enrich",
+     "category": "process",
+     "apis": [
+      "child_process:spawnSync",
+      "child_process:r.stdout.toString"
+     ],
+     "line": 19,
+     "lines": [
+      19,
+      21
+     ]
+    },
+    {
+     "filePath": "src/apg-enrich/cheap/git.ts",
+     "member": "gitBytes",
+     "layer": "apg-enrich",
+     "category": "process",
+     "apis": [
+      "child_process:spawnSync"
+     ],
+     "line": 26,
+     "lines": [
+      26
+     ]
+    },
+    {
+     "filePath": "src/apg-enrich/cheap/index.ts",
+     "member": "enrichCheap",
+     "layer": "apg-enrich",
+     "category": "clock",
+     "apis": [
+      "performance.now()"
+     ],
+     "line": 63,
+     "lines": [
+      63,
+      65,
+      72,
+      74
+     ]
+    },
+    {
+     "filePath": "src/apg-enrich/cheap/index.ts",
+     "member": "extractAndEnrich",
+     "layer": "apg-enrich",
+     "category": "clock",
+     "apis": [
+      "performance.now()"
+     ],
+     "line": 96,
+     "lines": [
+      96,
+      99
+     ]
+    },
+    {
+     "filePath": "src/apg-enrich/cheap/provenance.ts",
+     "member": "materialise",
+     "layer": "apg-enrich",
+     "category": "process",
+     "apis": [
+      "child_process:spawnSync"
+     ],
+     "line": 265,
+     "lines": [
+      265
+     ]
+    },
+    {
+     "filePath": "src/apg-enrich/ontology/caller.ts",
+     "member": "ModelCaller.call",
+     "layer": "apg-enrich",
+     "category": "clock",
+     "apis": [
+      "new Date()"
+     ],
+     "line": 145,
+     "lines": [
+      145
+     ]
+    },
+    {
+     "filePath": "src/apg-extractor/apg-extractor.ts",
+     "member": "APGExtractor.execute",
+     "layer": "apg-extractor",
+     "category": "clock",
+     "apis": [
+      "Date.now()",
+      "new Date()"
+     ],
+     "line": 112,
+     "lines": [
+      112,
+      118,
+      121,
+      131,
+      134
+     ]
+    },
+    {
+     "filePath": "src/apg-extractor/apg2/index.ts",
+     "member": "extractApg2",
+     "layer": "apg-extractor",
+     "category": "clock",
+     "apis": [
+      "performance.now()"
+     ],
+     "line": 37,
+     "lines": [
+      37,
+      39
+     ]
+    },
+    {
+     "filePath": "src/baseline/baseline-manager.ts",
+     "member": "createBaseline",
+     "layer": "baseline",
+     "category": "clock",
+     "apis": [
+      "new Date()"
+     ],
+     "line": 47,
+     "lines": [
+      47
+     ]
+    },
+    {
+     "filePath": "src/evaluation-engine/symbolic-evaluator.ts",
+     "member": "evaluateSymbolic",
+     "layer": "evaluation-engine",
+     "category": "clock",
+     "apis": [
+      "Date.now()"
+     ],
+     "line": 40,
+     "lines": [
+      40,
+      62,
+      113
+     ]
+    },
+    {
+     "filePath": "src/fitness-compiler/fitness-compiler.ts",
+     "member": "FitnessCompilerStage.execute",
+     "layer": "fitness-compiler",
+     "category": "clock",
+     "apis": [
+      "Date.now()",
+      "new Date()"
+     ],
+     "line": 484,
+     "lines": [
+      484,
+      490,
+      493,
+      504,
+      507
+     ]
+    },
+    {
+     "filePath": "src/neuro-symbolic-router/router.ts",
+     "member": "RouterStage.execute",
+     "layer": "neuro-symbolic-router",
+     "category": "clock",
+     "apis": [
+      "Date.now()",
+      "new Date()"
+     ],
+     "line": 141,
+     "lines": [
+      141,
+      147,
+      150,
+      159,
+      162
+     ]
+    },
+    {
+     "filePath": "src/pipeline/commands/assemble-report-command.ts",
+     "member": "AssembleReportCommand.assemble",
+     "layer": "pipeline",
+     "category": "clock",
+     "apis": [
+      "new Date()"
+     ],
+     "line": 88,
+     "lines": [
+      88
+     ]
+    },
+    {
+     "filePath": "src/pipeline/commands/compare-baseline-command.ts",
+     "member": "CompareBaselineCommand.execute",
+     "layer": "pipeline",
+     "category": "clock",
+     "apis": [
+      "new Date()"
+     ],
+     "line": 44,
+     "lines": [
+      44
+     ]
+    },
+    {
+     "filePath": "src/pipeline/commands/compile-command.ts",
+     "member": "CompileCommand.execute",
+     "layer": "pipeline",
+     "category": "clock",
+     "apis": [
+      "new Date()"
+     ],
+     "line": 60,
+     "lines": [
+      60
+     ]
+    },
+    {
+     "filePath": "src/pipeline/commands/create-baseline-command.ts",
+     "member": "CreateBaselineCommand.execute",
+     "layer": "pipeline",
+     "category": "clock",
+     "apis": [
+      "new Date()"
+     ],
+     "line": 32,
+     "lines": [
+      32
+     ]
+    },
+    {
+     "filePath": "src/pipeline/commands/drift-detect-command.ts",
+     "member": "DriftDetectCommand.execute",
+     "layer": "pipeline",
+     "category": "clock",
+     "apis": [
+      "new Date()"
+     ],
+     "line": 25,
+     "lines": [
+      25,
+      67
+     ]
+    },
+    {
+     "filePath": "src/pipeline/commands/extract-command.ts",
+     "member": "ExtractCommand.execute",
+     "layer": "pipeline",
+     "category": "clock",
+     "apis": [
+      "new Date()"
+     ],
+     "line": 50,
+     "lines": [
+      50
+     ]
+    },
+    {
+     "filePath": "src/pipeline/commands/generate-report-command.ts",
+     "member": "GenerateReportCommand.execute",
+     "layer": "pipeline",
+     "category": "clock",
+     "apis": [
+      "new Date()"
+     ],
+     "line": 41,
+     "lines": [
+      41
+     ]
+    },
+    {
+     "filePath": "src/pipeline/commands/ingest-command.ts",
+     "member": "IngestCommand.execute",
+     "layer": "pipeline",
+     "category": "clock",
+     "apis": [
+      "new Date()"
+     ],
+     "line": 60,
+     "lines": [
+      60
+     ]
+    },
+    {
+     "filePath": "src/pipeline/commands/neuronal-evaluate-command.ts",
+     "member": "NeuronalEvaluateCommand.run",
+     "layer": "pipeline",
+     "category": "clock",
+     "apis": [
+      "new Date()"
+     ],
+     "line": 102,
+     "lines": [
+      102
+     ]
+    },
+    {
+     "filePath": "src/pipeline/commands/parse-command.ts",
+     "member": "ParseCommand.execute",
+     "layer": "pipeline",
+     "category": "clock",
+     "apis": [
+      "new Date()"
+     ],
+     "line": 31,
+     "lines": [
+      31
+     ]
+    },
+    {
+     "filePath": "src/pipeline/commands/route-evaluate-command.ts",
+     "member": "RouteEvaluateCommand.run",
+     "layer": "pipeline",
+     "category": "clock",
+     "apis": [
+      "new Date()"
+     ],
+     "line": 104,
+     "lines": [
+      104
+     ]
+    },
+    {
+     "filePath": "src/pipeline/commands/score-command.ts",
+     "member": "ScoreCommand.execute",
+     "layer": "pipeline",
+     "category": "clock",
+     "apis": [
+      "new Date()"
+     ],
+     "line": 102,
+     "lines": [
+      102
+     ]
+    },
+    {
+     "filePath": "src/pipeline/commands/snapshot-load-command.ts",
+     "member": "SnapshotLoadCommand.execute",
+     "layer": "pipeline",
+     "category": "clock",
+     "apis": [
+      "new Date()"
+     ],
+     "line": 39,
+     "lines": [
+      39,
+      51
+     ]
+    },
+    {
+     "filePath": "src/pipeline/commands/snapshot-save-command.ts",
+     "member": "SnapshotSaveCommand.execute",
+     "layer": "pipeline",
+     "category": "clock",
+     "apis": [
+      "new Date()"
+     ],
+     "line": 23,
+     "lines": [
+      23,
+      42
+     ]
+    },
+    {
+     "filePath": "src/pipeline/commands/symbolic-evaluate-command.ts",
+     "member": "SymbolicEvaluateCommand.execute",
+     "layer": "pipeline",
+     "category": "clock",
+     "apis": [
+      "new Date()"
+     ],
+     "line": 60,
+     "lines": [
+      60
+     ]
+    },
+    {
+     "filePath": "src/pipeline/commands/validate-spec-command.ts",
+     "member": "ValidateSpecCommand.execute",
+     "layer": "pipeline",
+     "category": "clock",
+     "apis": [
+      "new Date()"
+     ],
+     "line": 18,
+     "lines": [
+      18
+     ]
+    },
+    {
+     "filePath": "src/pipeline/pipeline-executor.ts",
+     "member": "PipelineExecutor.execute",
+     "layer": "pipeline",
+     "category": "clock",
+     "apis": [
+      "Date.now()",
+      "new Date()"
+     ],
+     "line": 47,
+     "lines": [
+      47,
+      49,
+      59,
+      62,
+      77,
+      83,
+      100
+     ]
+    },
+    {
+     "filePath": "src/pipeline/pipeline-factory.ts",
+     "member": "createPipeline",
+     "layer": "pipeline",
+     "category": "clock",
+     "apis": [
+      "Date.now()"
+     ],
+     "line": 81,
+     "lines": [
+      81
+     ]
+    },
+    {
+     "filePath": "src/report/dashboard-data-builder.ts",
+     "member": "buildHeader",
+     "layer": "report",
+     "category": "clock",
+     "apis": [
+      "new Date()"
+     ],
+     "line": 29,
+     "lines": [
+      29
+     ]
+    },
+    {
+     "filePath": "src/scoring-engine/scoring-engine.ts",
+     "member": "ScoringStage.execute",
+     "layer": "scoring-engine",
+     "category": "clock",
+     "apis": [
+      "new Date()"
+     ],
+     "line": 129,
+     "lines": [
+      129
+     ]
+    },
+    {
+     "filePath": "src/scoring-engine/scoring-engine.ts",
+     "member": "computeScoredReport",
+     "layer": "scoring-engine",
+     "category": "clock",
+     "apis": [
+      "Date.now()"
+     ],
+     "line": 21,
+     "lines": [
+      21,
+      98,
+      110
+     ]
+    },
+    {
+     "filePath": "src/scoring-engine/universal-metrics.ts",
+     "member": "computeUniversalMetrics",
+     "layer": "scoring-engine",
+     "category": "clock",
+     "apis": [
+      "performance.now()"
+     ],
+     "line": 112,
+     "lines": [
+      112
+     ]
+    },
+    {
+     "filePath": "src/shared/context/firewall-context.ts",
+     "member": "FirewallContext",
+     "layer": "shared",
+     "category": "clock",
+     "apis": [
+      "new Date()"
+     ],
+     "line": 41,
+     "lines": [
+      41
+     ]
+    },
+    {
+     "filePath": "src/shared/process/neo4j-lock.ts",
+     "member": "acquireNeo4jLock",
+     "layer": "shared",
+     "category": "clock",
+     "apis": [
+      "new Date()",
+      "Date.now()"
+     ],
+     "line": 236,
+     "lines": [
+      236,
+      238,
+      243,
+      274
+     ]
+    },
+    {
+     "filePath": "src/shared/process/neo4j-lock.ts",
+     "member": "acquireNeo4jLock",
+     "layer": "shared",
+     "category": "env",
+     "apis": [
+      "process.env"
+     ],
+     "line": 222,
+     "lines": [
+      222
+     ]
+    },
+    {
+     "filePath": "src/shared/process/neo4j-lock.ts",
+     "member": "acquireNeo4jLock",
+     "layer": "shared",
+     "category": "process",
+     "apis": [
+      "process.pid",
+      "process.once",
+      "process.removeListener"
+     ],
+     "line": 235,
+     "lines": [
+      235,
+      248,
+      254,
+      266
+     ]
+    },
+    {
+     "filePath": "src/shared/process/neo4j-lock.ts",
+     "member": "acquireNeo4jLock",
+     "layer": "shared",
+     "category": "random",
+     "apis": [
+      "crypto:randomBytes"
+     ],
+     "line": 236,
+     "lines": [
+      236
+     ]
+    },
+    {
+     "filePath": "src/shared/process/neo4j-lock.ts",
+     "member": "ageMs",
+     "layer": "shared",
+     "category": "clock",
+     "apis": [
+      "Date.now()"
+     ],
+     "line": 141,
+     "lines": [
+      141
+     ]
+    },
+    {
+     "filePath": "src/shared/process/neo4j-lock.ts",
+     "member": "ancestorPids",
+     "layer": "shared",
+     "category": "process",
+     "apis": [
+      "child_process:execFileSync",
+      "child_process:out.split",
+      "process.ppid"
+     ],
+     "line": 106,
+     "lines": [
+      106,
+      107,
+      112,
+      112,
+      115
+     ]
+    },
+    {
+     "filePath": "src/shared/process/neo4j-lock.ts",
+     "member": "neo4jLockDir",
+     "layer": "shared",
+     "category": "env",
+     "apis": [
+      "process.env"
+     ],
+     "line": 82,
+     "lines": [
+      82
+     ]
+    },
+    {
+     "filePath": "src/shared/process/neo4j-lock.ts",
+     "member": "neo4jLockPath",
+     "layer": "shared",
+     "category": "env",
+     "apis": [
+      "process.env"
+     ],
+     "line": 87,
+     "lines": [
+      87
+     ]
+    },
+    {
+     "filePath": "src/shared/process/neo4j-lock.ts",
+     "member": "pidAlive",
+     "layer": "shared",
+     "category": "process",
+     "apis": [
+      "process.kill"
+     ],
+     "line": 95,
+     "lines": [
+      95
+     ]
+    },
+    {
+     "filePath": "src/shared/process/node-process-runner.ts",
+     "member": "NodeProcessRunner.run",
+     "layer": "shared",
+     "category": "process",
+     "apis": [
+      "child_process:spawn",
+      "child_process:child.once",
+      "child_process:child.stdout.on",
+      "child_process:child.stderr.on",
+      "child_process:child.stdin.on",
+      "child_process:child.stdin.write",
+      "child_process:child.stdin.end"
+     ],
+     "line": 93,
+     "lines": [
+      93,
+      101,
+      113,
+      130,
+      133,
+      137,
+      139,
+      141,
+      143
+     ]
+    },
+    {
+     "filePath": "src/shared/process/node-process-runner.ts",
+     "member": "node-process-runner.ts",
+     "layer": "shared",
+     "category": "process",
+     "apis": [
+      "process.platform"
+     ],
+     "line": 14,
+     "lines": [
+      14
+     ]
+    },
+    {
+     "filePath": "src/shared/process/node-process-runner.ts",
+     "member": "signalTree",
+     "layer": "shared",
+     "category": "process",
+     "apis": [
+      "child_process:child.kill",
+      "process.kill"
+     ],
+     "line": 59,
+     "lines": [
+      59,
+      61
+     ]
+    },
+    {
+     "filePath": "src/spec-parser/preset-loader.ts",
+     "member": "presetsDir",
+     "layer": "spec-parser",
+     "category": "process",
+     "apis": [
+      "process.cwd"
+     ],
+     "line": 20,
+     "lines": [
+      20,
+      25
+     ]
+    },
+    {
+     "filePath": "src/spec-parser/spec-parser.ts",
+     "member": "SpecParserStage.execute",
+     "layer": "spec-parser",
+     "category": "clock",
+     "apis": [
+      "Date.now()",
+      "new Date()"
+     ],
+     "line": 176,
+     "lines": [
+      176,
+      182,
+      185,
+      196,
+      199
+     ]
+    }
+   ],
+   "mirrorRows": 50,
+   "mirrorAgrees": true
+  }
+ }
+}

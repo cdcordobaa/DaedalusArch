@@ -1,0 +1,10 @@
+The current directory holds a TypeScript backend service built in earlier feature steps.
+This is step 3 of 4 of "Repair café". Extend the existing service; keep every existing feature working.
+
+Feature request:
+Fixers now sign in through the venue's login proxy, which adds two request headers to every call: X-Fixer-Id and X-Venue. A fixer may only take items, record outcomes and order parts at the venue they are signed in at, and only for the categories they can repair. Every outcome and every part order records which fixer did it and at which venue. Add a leaderboard per event: items fixed and kilograms saved from landfill per fixer.
+
+Keep the source under src/ and follow the architecture the project already uses (Hexagonal Architecture, ports and adapters).
+Organise the source code under src/ in exactly five folders: src/domain, src/application, src/adapters/inbound, src/adapters/outbound and src/config.
+Before you finish, type-check the project with exactly this command and fix every error it reports:
+/tmp/claude-0/-home-user-DaedalusArch/a83fccad-843c-5015-8db8-a37911ed0199/scratchpad/harness/bin/tsc --noEmit --incremental false -p /tmp/claude-0/-home-user-DaedalusArch/a83fccad-843c-5015-8db8-a37911ed0199/scratchpad/harness/runs/claude-code-cli/claude-sonnet-5-5/repair-cafe/none/run-0/tsconfig.json

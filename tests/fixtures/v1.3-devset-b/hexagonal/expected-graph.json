@@ -1,0 +1,500 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "variant": "clean",
+  "note": "Written by hand from the clean variant's source: the layer every file gets under spec.yaml, and every internal file-to-file import edge (one per importing file and imported file, type-only included; package imports excluded). Ground truth for graph-fidelity (FR-V2 link 1).",
+  "files": [
+    {
+      "path": "src/adapters/inbound/cli/BookingCli.ts",
+      "layer": "adapters-inbound"
+    },
+    {
+      "path": "src/adapters/inbound/http/BookingController.ts",
+      "layer": "adapters-inbound"
+    },
+    {
+      "path": "src/adapters/inbound/http/HttpTypes.ts",
+      "layer": "adapters-inbound"
+    },
+    {
+      "path": "src/adapters/inbound/http/RoomController.ts",
+      "layer": "adapters-inbound"
+    },
+    {
+      "path": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts",
+      "layer": "adapters-outbound"
+    },
+    {
+      "path": "src/adapters/outbound/payment/FakePaymentGateway.ts",
+      "layer": "adapters-outbound"
+    },
+    {
+      "path": "src/adapters/outbound/persistence/InMemoryBookingRepository.ts",
+      "layer": "adapters-outbound"
+    },
+    {
+      "path": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts",
+      "layer": "adapters-outbound"
+    },
+    {
+      "path": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "layer": "adapters-outbound"
+    },
+    {
+      "path": "src/application/ports/in/BookRoom.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/application/ports/in/BookingView.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/application/ports/in/CancelBooking.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/application/ports/in/FindAvailableRooms.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/application/ports/out/BookingRepository.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/application/ports/out/GuestRepository.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/application/ports/out/NotificationSender.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/application/ports/out/PaymentGateway.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/application/ports/out/RoomRepository.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/application/services/BookRoomService.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/application/services/CancelBookingService.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/application/services/FindAvailableRoomsService.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/config/container.ts",
+      "layer": "config"
+    },
+    {
+      "path": "src/domain/errors/BookingError.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/domain/model/Booking.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/domain/model/DateRange.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/domain/model/Guest.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/domain/model/Money.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/domain/model/Room.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/domain/services/AvailabilityChecker.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/domain/services/PriceCalculator.ts",
+      "layer": "domain"
+    }
+  ],
+  "edges": [
+    {
+      "from": "src/adapters/inbound/cli/BookingCli.ts",
+      "to": "src/application/ports/in/BookRoom.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/adapters/inbound/cli/BookingCli.ts",
+      "to": "src/application/ports/in/BookingView.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/adapters/inbound/http/BookingController.ts",
+      "to": "src/adapters/inbound/http/HttpTypes.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/adapters/inbound/http/BookingController.ts",
+      "to": "src/application/ports/in/BookRoom.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/adapters/inbound/http/BookingController.ts",
+      "to": "src/application/ports/in/CancelBooking.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/adapters/inbound/http/BookingController.ts",
+      "to": "src/domain/errors/BookingError.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/adapters/inbound/http/RoomController.ts",
+      "to": "src/adapters/inbound/http/HttpTypes.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/adapters/inbound/http/RoomController.ts",
+      "to": "src/application/ports/in/FindAvailableRooms.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts",
+      "to": "src/application/ports/out/NotificationSender.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/adapters/outbound/payment/FakePaymentGateway.ts",
+      "to": "src/application/ports/out/PaymentGateway.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/adapters/outbound/payment/FakePaymentGateway.ts",
+      "to": "src/domain/errors/BookingError.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/adapters/outbound/payment/FakePaymentGateway.ts",
+      "to": "src/domain/model/Money.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/adapters/outbound/persistence/InMemoryBookingRepository.ts",
+      "to": "src/application/ports/out/BookingRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/adapters/outbound/persistence/InMemoryBookingRepository.ts",
+      "to": "src/domain/model/Booking.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts",
+      "to": "src/application/ports/out/GuestRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts",
+      "to": "src/domain/model/Guest.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "to": "src/application/ports/out/RoomRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "to": "src/domain/model/Money.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "to": "src/domain/model/Room.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/ports/in/BookRoom.ts",
+      "to": "src/application/ports/in/BookingView.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/ports/in/BookingView.ts",
+      "to": "src/domain/model/Booking.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/ports/in/CancelBooking.ts",
+      "to": "src/application/ports/in/BookingView.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/ports/out/BookingRepository.ts",
+      "to": "src/domain/model/Booking.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/ports/out/GuestRepository.ts",
+      "to": "src/domain/model/Guest.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/ports/out/PaymentGateway.ts",
+      "to": "src/domain/model/Money.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/ports/out/RoomRepository.ts",
+      "to": "src/domain/model/Room.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/services/BookRoomService.ts",
+      "to": "src/application/ports/in/BookRoom.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/services/BookRoomService.ts",
+      "to": "src/application/ports/in/BookingView.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/services/BookRoomService.ts",
+      "to": "src/application/ports/out/BookingRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/services/BookRoomService.ts",
+      "to": "src/application/ports/out/GuestRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/services/BookRoomService.ts",
+      "to": "src/application/ports/out/NotificationSender.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/services/BookRoomService.ts",
+      "to": "src/application/ports/out/PaymentGateway.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/services/BookRoomService.ts",
+      "to": "src/application/ports/out/RoomRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/services/BookRoomService.ts",
+      "to": "src/domain/errors/BookingError.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/services/BookRoomService.ts",
+      "to": "src/domain/model/Booking.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/services/BookRoomService.ts",
+      "to": "src/domain/model/DateRange.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/services/BookRoomService.ts",
+      "to": "src/domain/services/AvailabilityChecker.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/services/BookRoomService.ts",
+      "to": "src/domain/services/PriceCalculator.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/services/CancelBookingService.ts",
+      "to": "src/application/ports/in/BookingView.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/services/CancelBookingService.ts",
+      "to": "src/application/ports/in/CancelBooking.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/services/CancelBookingService.ts",
+      "to": "src/application/ports/out/BookingRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/services/CancelBookingService.ts",
+      "to": "src/application/ports/out/GuestRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/services/CancelBookingService.ts",
+      "to": "src/application/ports/out/NotificationSender.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/services/CancelBookingService.ts",
+      "to": "src/application/ports/out/PaymentGateway.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/services/CancelBookingService.ts",
+      "to": "src/domain/errors/BookingError.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/services/FindAvailableRoomsService.ts",
+      "to": "src/application/ports/in/FindAvailableRooms.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/services/FindAvailableRoomsService.ts",
+      "to": "src/application/ports/out/BookingRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/services/FindAvailableRoomsService.ts",
+      "to": "src/application/ports/out/RoomRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/services/FindAvailableRoomsService.ts",
+      "to": "src/domain/model/DateRange.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/services/FindAvailableRoomsService.ts",
+      "to": "src/domain/services/AvailabilityChecker.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/config/container.ts",
+      "to": "src/adapters/inbound/cli/BookingCli.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/config/container.ts",
+      "to": "src/adapters/inbound/http/BookingController.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/config/container.ts",
+      "to": "src/adapters/inbound/http/RoomController.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/config/container.ts",
+      "to": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/config/container.ts",
+      "to": "src/adapters/outbound/payment/FakePaymentGateway.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/config/container.ts",
+      "to": "src/adapters/outbound/persistence/InMemoryBookingRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/config/container.ts",
+      "to": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/config/container.ts",
+      "to": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/config/container.ts",
+      "to": "src/application/services/BookRoomService.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/config/container.ts",
+      "to": "src/application/services/CancelBookingService.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/config/container.ts",
+      "to": "src/application/services/FindAvailableRoomsService.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/model/Booking.ts",
+      "to": "src/domain/errors/BookingError.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/model/Booking.ts",
+      "to": "src/domain/model/DateRange.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/model/Booking.ts",
+      "to": "src/domain/model/Money.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/model/DateRange.ts",
+      "to": "src/domain/errors/BookingError.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/model/Guest.ts",
+      "to": "src/domain/errors/BookingError.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/model/Money.ts",
+      "to": "src/domain/errors/BookingError.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/model/Room.ts",
+      "to": "src/domain/model/Money.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/services/AvailabilityChecker.ts",
+      "to": "src/domain/model/Booking.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/services/AvailabilityChecker.ts",
+      "to": "src/domain/model/DateRange.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/services/AvailabilityChecker.ts",
+      "to": "src/domain/model/Room.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/services/PriceCalculator.ts",
+      "to": "src/domain/model/DateRange.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/services/PriceCalculator.ts",
+      "to": "src/domain/model/Money.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/services/PriceCalculator.ts",
+      "to": "src/domain/model/Room.ts",
+      "kind": "import"
+    }
+  ]
+}

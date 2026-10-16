@@ -1,0 +1,3246 @@
+{
+  "runId": "run-1792150909482",
+  "projectPath": "<clones>/canario-hexagonal-express/.",
+  "specVersion": "1.0.0",
+  "ahsDeterministic": 0.425,
+  "verdict": "hard-block",
+  "scoring": {
+    "weights": {
+      "structural": 0.35,
+      "coupling": 0.2,
+      "pattern": 0.3,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0,
+      "integrity": 0
+    },
+    "fullModeWeights": {
+      "structural": 0.32,
+      "coupling": 0.18,
+      "pattern": 0.27,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0.04,
+      "integrity": 0.04
+    },
+    "thresholds": {
+      "pass": 0.8,
+      "warning": 0.65,
+      "softBlock": 0.5
+    },
+    "confidenceThresholds": {
+      "high": 0.85,
+      "medium": 0.6,
+      "iccMinimum": 0.7
+    },
+    "verdictSource": "ahsDeterministic"
+  },
+  "perDimensionScores": [
+    {
+      "dimension": "structural",
+      "avr": 0.75,
+      "violatedWeight": 3,
+      "weight": 0.35,
+      "effectiveWeight": 0.35,
+      "violationCount": 3,
+      "functionCount": 4
+    },
+    {
+      "dimension": "coupling",
+      "avr": 1,
+      "violatedWeight": 5,
+      "weight": 0.2,
+      "effectiveWeight": 0.2,
+      "violationCount": 5,
+      "functionCount": 5
+    },
+    {
+      "dimension": "pattern",
+      "avr": 0.25,
+      "violatedWeight": 1,
+      "weight": 0.3,
+      "effectiveWeight": 0.3,
+      "violationCount": 1,
+      "functionCount": 4
+    },
+    {
+      "dimension": "solid",
+      "avr": 0,
+      "violatedWeight": 0,
+      "weight": 0.1,
+      "effectiveWeight": 0.1,
+      "violationCount": 0,
+      "functionCount": 3
+    },
+    {
+      "dimension": "convention",
+      "avr": 0.75,
+      "violatedWeight": 3,
+      "weight": 0.05,
+      "effectiveWeight": 0.05,
+      "violationCount": 3,
+      "functionCount": 4
+    }
+  ],
+  "violations": [
+    {
+      "id": "v-d2e74eebe97b4d9b",
+      "type": "CUSTOM_dependency-direction-graph",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S01",
+      "route": "symbolic",
+      "filePath": "src/apps/cart/back/routes/carts.ts",
+      "message": "src/apps/cart/back/routes/carts.ts (adapters-inbound) imports against the allowed direction from src/apps/cart/back/dependencyInjection/index.ts (config)",
+      "deterministic": true,
+      "target": "src/apps/cart/back/dependencyInjection/index.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-e5874d9dda1d7ded",
+      "type": "CUSTOM_dependency-direction-graph",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S01",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts",
+      "message": "src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts (domain) imports against the allowed direction from src/contexts/cartsMs/cart/application/read/countById/cartCountByIdQuery.ts (application)",
+      "deterministic": true,
+      "target": "src/contexts/cartsMs/cart/application/read/countById/cartCountByIdQuery.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-cab1d87a017aa341",
+      "type": "CUSTOM_dependency-direction-graph",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S01",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts",
+      "message": "src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts (domain) imports against the allowed direction from src/contexts/cartsMs/cart/application/read/countById/cartCountByIdResponse.ts (application)",
+      "deterministic": true,
+      "target": "src/contexts/cartsMs/cart/application/read/countById/cartCountByIdResponse.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-1b51cc3ff4ce43b6",
+      "type": "CYCLIC_DEPENDENCY",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S02",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCart.ts,src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCartItem.ts,src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCart.ts",
+      "message": "Circular dependency: src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCart.ts,src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCartItem.ts,src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCart.ts",
+      "deterministic": true,
+      "target": "src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCartItem.ts",
+      "line": 2,
+      "discriminator": [
+        "[\"src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCart.ts\",\"src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCartItem.ts\",\"src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCart.ts\"]"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-4c143867a010bf5d",
+      "type": "CUSTOM_core-isolation",
+      "dimension": "structural",
+      "severity": "major",
+      "functionId": "FF-S04",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts",
+      "message": "Core file src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts imports from src/contexts/cartsMs/cart/application/read/countById/cartCountByIdQuery.ts in application",
+      "deterministic": true,
+      "target": "src/contexts/cartsMs/cart/application/read/countById/cartCountByIdQuery.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-6d98f29856670c8b",
+      "type": "CUSTOM_core-isolation",
+      "dimension": "structural",
+      "severity": "major",
+      "functionId": "FF-S04",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts",
+      "message": "Core file src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts imports from src/contexts/cartsMs/cart/application/read/countById/cartCountByIdResponse.ts in application",
+      "deterministic": true,
+      "target": "src/contexts/cartsMs/cart/application/read/countById/cartCountByIdResponse.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-9e8dbcd01d37bfa2",
+      "type": "CUSTOM_port-dependency-inversion",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/addItem/cartAddItemViewOnCartItemAdded.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/addItem/cartAddItemViewOnCartItemAdded.ts",
+      "deterministic": true,
+      "discriminator": [
+        "CartAddItemViewOnCartItemAdded"
+      ],
+      "evidence": [
+        "ratio=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-81c1f7b3c540824f",
+      "type": "CUSTOM_port-dependency-inversion",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/countById/cartCountByIdQueryHandler.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/countById/cartCountByIdQueryHandler.ts",
+      "deterministic": true,
+      "discriminator": [
+        "CartCountByIdQueryHandler"
+      ],
+      "evidence": [
+        "ratio=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-59928819da67cf74",
+      "type": "CUSTOM_port-dependency-inversion",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/countById/cartCountByIdResponse.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/countById/cartCountByIdResponse.ts",
+      "deterministic": true,
+      "discriminator": [
+        "CartCountByIdResponse"
+      ],
+      "evidence": [
+        "ratio=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b90db49712866906",
+      "type": "CUSTOM_port-dependency-inversion",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/create/cartViewCreateOnCartCreated.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/create/cartViewCreateOnCartCreated.ts",
+      "deterministic": true,
+      "discriminator": [
+        "CartViewCreateOnCartViewCreated"
+      ],
+      "evidence": [
+        "ratio=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-9d4d8acc9530cffd",
+      "type": "CUSTOM_port-dependency-inversion",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/findAllItemsByCart/cartItemFindAllQueryHandler.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/findAllItemsByCart/cartItemFindAllQueryHandler.ts",
+      "deterministic": true,
+      "discriminator": [
+        "CartItemFindAllQueryHandler"
+      ],
+      "evidence": [
+        "ratio=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-dc9cc27b281de86c",
+      "type": "CUSTOM_port-dependency-inversion",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/findById/cartFindByIdQueryHandler.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/findById/cartFindByIdQueryHandler.ts",
+      "deterministic": true,
+      "discriminator": [
+        "CartFindByIdQueryHandler"
+      ],
+      "evidence": [
+        "ratio=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-08de6b3582f6e579",
+      "type": "CUSTOM_port-dependency-inversion",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/findById/cartFindByIdResponse.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/findById/cartFindByIdResponse.ts",
+      "deterministic": true,
+      "discriminator": [
+        "CartFindByIdResponse"
+      ],
+      "evidence": [
+        "ratio=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-e5ac7c7cea97ceb3",
+      "type": "CUSTOM_port-dependency-inversion",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/write/addItem/cartAddItemCommandHandler.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/write/addItem/cartAddItemCommandHandler.ts",
+      "deterministic": true,
+      "discriminator": [
+        "CartAddItemCommandHandler"
+      ],
+      "evidence": [
+        "ratio=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-bef279a1456256a7",
+      "type": "CUSTOM_port-dependency-inversion",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-P02",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/write/create/cartCreateCommandHandler.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/write/create/cartCreateCommandHandler.ts",
+      "deterministic": true,
+      "discriminator": [
+        "CartCreateCommandHandler"
+      ],
+      "evidence": [
+        "ratio=0"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-5799ef3f147f1b66",
+      "type": "FAN_OUT_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C02",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/domain/write/cart.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/domain/write/cart.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanOut=12"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-bee8f033b9f0420c",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/apps/cart/back/cartBackendApp.ts",
+      "message": "Violation in src/apps/cart/back/cartBackendApp.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8571428571428571"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-07ed36658a4ad7fb",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/apps/cart/back/command/ConfigureRabbitMQCommand.ts",
+      "message": "Violation in src/apps/cart/back/command/ConfigureRabbitMQCommand.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8333333333333334"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-cc63bb8dcf03311d",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/apps/cart/back/command/runConfigureRabbitMQCommand.ts",
+      "message": "Violation in src/apps/cart/back/command/runConfigureRabbitMQCommand.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-10e694be7b2a799d",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/apps/cart/back/controllers/cartItemsGetAllController.ts",
+      "message": "Violation in src/apps/cart/back/controllers/cartItemsGetAllController.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-e2d944beacfb7a30",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/apps/cart/back/controllers/cartItemsPostController.ts",
+      "message": "Violation in src/apps/cart/back/controllers/cartItemsPostController.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-7609bed86b38bb65",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/apps/cart/back/controllers/cartsGetByIdController.ts",
+      "message": "Violation in src/apps/cart/back/controllers/cartsGetByIdController.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-0874ebfd33648b5f",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/apps/cart/back/controllers/cartsPostController.ts",
+      "message": "Violation in src/apps/cart/back/controllers/cartsPostController.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-e6a00eed4b7a0fae",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/apps/cart/back/start.ts",
+      "message": "Violation in src/apps/cart/back/start.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-87fdb31995fa1c42",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/apps/mailer/back/command/ConfigureRabbitMQCommand.ts",
+      "message": "Violation in src/apps/mailer/back/command/ConfigureRabbitMQCommand.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8333333333333334"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-99325a5c6badc98f",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/apps/mailer/back/command/runConfigureRabbitMQCommand.ts",
+      "message": "Violation in src/apps/mailer/back/command/runConfigureRabbitMQCommand.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-ae3e28e75da9a1e6",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/apps/mailer/back/start.ts",
+      "message": "Violation in src/apps/mailer/back/start.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-ceeb50fa1288b037",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/addItem/cartAddItemView.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/addItem/cartAddItemView.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8333333333333334"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-288d3974b04aac27",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/addItem/cartAddItemViewOnCartItemAdded.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/addItem/cartAddItemViewOnCartItemAdded.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-7b7ddc4c16687cc9",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/countById/cartCountByIdQueryHandler.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/countById/cartCountByIdQueryHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-98b231c11f10c435",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/create/cartViewCreate.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/create/cartViewCreate.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8333333333333334"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-868b7d4ceaf3c958",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/create/cartViewCreateOnCartCreated.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/create/cartViewCreateOnCartCreated.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-3cf44ea5ef7b808f",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/findAllItemsByCart/cartItemFindAll.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/findAllItemsByCart/cartItemFindAll.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8333333333333334"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-8a779ddd56db3cc4",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/findAllItemsByCart/cartItemFindAllQueryHandler.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/findAllItemsByCart/cartItemFindAllQueryHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-986dd26d6620e9c6",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/findById/cartFindByIdQueryHandler.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/findById/cartFindByIdQueryHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-5216377cd6707646",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/write/addItem/cartAddItem.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/write/addItem/cartAddItem.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.875"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-26b710c0aacf9aa2",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/write/addItem/cartAddItemCommandHandler.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/write/addItem/cartAddItemCommandHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-4de34f3d8be9bc22",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/write/create/cartCreate.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/write/create/cartCreate.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.9"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-7ab5184ef6b942aa",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/write/create/cartCreateCommandHandler.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/write/create/cartCreateCommandHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-409683057dc5e7fa",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/infrastructure/typeORM/typeORMCartEventStore.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/infrastructure/typeORM/typeORMCartEventStore.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-81917a7a6bad8821",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/infrastructure/typeORM/typeORMCartItemViewRepository.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/infrastructure/typeORM/typeORMCartItemViewRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-1ce486a73ed05be4",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/infrastructure/typeORM/typeORMCartViewRepository.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/infrastructure/typeORM/typeORMCartViewRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-8594358172e1504b",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/shared/infrastructure/rabbitMqConfigFactory.ts",
+      "message": "Violation in src/contexts/cartsMs/shared/infrastructure/rabbitMqConfigFactory.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-e51ec293df5251df",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/shared/infrastructure/typeORM/typeORMConfigFactory.ts",
+      "message": "Violation in src/contexts/cartsMs/shared/infrastructure/typeORM/typeORMConfigFactory.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-99631eefe61f789f",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/contexts/mailerMs/mail/application/send/sendMailOnCartChanged.ts",
+      "message": "Violation in src/contexts/mailerMs/mail/application/send/sendMailOnCartChanged.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-e92e338b14f3e36e",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/contexts/mailerMs/shared/infrastructure/rabbitMqConfigFactory.ts",
+      "message": "Violation in src/contexts/mailerMs/shared/infrastructure/rabbitMqConfigFactory.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-8109929bdf92c101",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/infrastructure/eventBus/rabbitMQ/rabbitMqConsumers.ts",
+      "message": "Violation in src/contexts/shared/infrastructure/eventBus/rabbitMQ/rabbitMqConsumers.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-84d6895aa77c89b1",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/infrastructure/eventBus/rabbitMQ/rabbitMqEventBus.ts",
+      "message": "Violation in src/contexts/shared/infrastructure/eventBus/rabbitMQ/rabbitMqEventBus.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-2072efb80a7ecbfc",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/infrastructure/wistonLogger.ts",
+      "message": "Violation in src/contexts/shared/infrastructure/wistonLogger.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=1"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-b313cb135d107ee8",
+      "type": "ORPHAN_FILE",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C04",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/infrastructure/typeORM/typeORMClientFactory.ts",
+      "message": "Violation in src/contexts/shared/infrastructure/typeORM/typeORMClientFactory.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "topological"
+    },
+    {
+      "id": "v-37d7178c004c2f36",
+      "type": "FAN_IN_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/domain/valueObject/cartId.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/domain/valueObject/cartId.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanIn=21"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-3e637aa988b28860",
+      "type": "FAN_IN_EXCEEDED",
+      "dimension": "coupling",
+      "severity": "minor",
+      "functionId": "FF-C05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/domain/eventBus/domainEvent.ts",
+      "message": "Violation in src/contexts/shared/domain/eventBus/domainEvent.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "fanIn=23"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-b0f52043a29b792b",
+      "type": "LOW_ABSTRACTION_RATIO",
+      "dimension": "coupling",
+      "severity": "advisory",
+      "functionId": "FF-C06",
+      "route": "symbolic",
+      "filePath": "<project>",
+      "message": "Abstraction ratio 0.10714285714285714 below threshold",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "ratio=0.10714285714285714"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-4ec853f5ca7b0b1b",
+      "type": "NAMING_CONVENTION",
+      "dimension": "convention",
+      "severity": "minor",
+      "functionId": "FF-CV03",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/infrastructure/typeORM/typeORMRepository.ts",
+      "message": "Violation in src/contexts/shared/infrastructure/typeORM/typeORMRepository.ts",
+      "deterministic": true,
+      "discriminator": [
+        "TypeORMRepositry"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-dbcdf71003879620",
+      "type": "NAMING_CONVENTION",
+      "dimension": "convention",
+      "severity": "minor",
+      "functionId": "FF-CV03",
+      "route": "symbolic",
+      "filePath": "src/tests/contexts/cartsMs/cart/__mocks__/cartItemViewRepositoryMock.ts",
+      "message": "Violation in src/tests/contexts/cartsMs/cart/__mocks__/cartItemViewRepositoryMock.ts",
+      "deterministic": true,
+      "discriminator": [
+        "CartItemViewRepositoryMock"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-d26c65d2d2f8092f",
+      "type": "NAMING_CONVENTION",
+      "dimension": "convention",
+      "severity": "minor",
+      "functionId": "FF-CV03",
+      "route": "symbolic",
+      "filePath": "src/tests/contexts/cartsMs/cart/__mocks__/cartViewRepositoryMock.ts",
+      "message": "Violation in src/tests/contexts/cartsMs/cart/__mocks__/cartViewRepositoryMock.ts",
+      "deterministic": true,
+      "discriminator": [
+        "CartViewRepositoryMock"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-c3fabaa540b05bec",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/apps/cart/back/cartBackendApp.ts",
+      "message": "Violation in src/apps/cart/back/cartBackendApp.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-8e03212b01e61924",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/apps/cart/back/command/ConfigureRabbitMQCommand.ts",
+      "message": "Violation in src/apps/cart/back/command/ConfigureRabbitMQCommand.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-93659ecd8d966a78",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/apps/cart/back/command/runConfigureRabbitMQCommand.ts",
+      "message": "Violation in src/apps/cart/back/command/runConfigureRabbitMQCommand.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-0808aa4384a124e9",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/apps/cart/back/controllers/cartItemsGetAllController.ts",
+      "message": "Violation in src/apps/cart/back/controllers/cartItemsGetAllController.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b1d760a7d15ec392",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/apps/cart/back/controllers/cartItemsPostController.ts",
+      "message": "Violation in src/apps/cart/back/controllers/cartItemsPostController.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-f3c885e6345e69aa",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/apps/cart/back/controllers/cartsGetByIdController.ts",
+      "message": "Violation in src/apps/cart/back/controllers/cartsGetByIdController.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-3f5480375ecbd078",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/apps/cart/back/controllers/cartsPostController.ts",
+      "message": "Violation in src/apps/cart/back/controllers/cartsPostController.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-4ad11142e728c935",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/apps/cart/back/controllers/controllers.ts",
+      "message": "Violation in src/apps/cart/back/controllers/controllers.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-0da98f14bbf185c3",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/apps/cart/back/dependencyInjection/index.ts",
+      "message": "Violation in src/apps/cart/back/dependencyInjection/index.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-12ffb28748825372",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/apps/cart/back/routes/carts.ts",
+      "message": "Violation in src/apps/cart/back/routes/carts.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-5d99a39800dfcdab",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/apps/cart/back/routes/index.ts",
+      "message": "Violation in src/apps/cart/back/routes/index.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-3c42a296077037ba",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/apps/cart/back/server.ts",
+      "message": "Violation in src/apps/cart/back/server.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-84c840bfc7467025",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/apps/cart/back/start.ts",
+      "message": "Violation in src/apps/cart/back/start.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-f37d5804c78bd632",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/apps/mailer/back/command/ConfigureRabbitMQCommand.ts",
+      "message": "Violation in src/apps/mailer/back/command/ConfigureRabbitMQCommand.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-bad1eb7a067b2389",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/apps/mailer/back/command/runConfigureRabbitMQCommand.ts",
+      "message": "Violation in src/apps/mailer/back/command/runConfigureRabbitMQCommand.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-857fbab565954eae",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/apps/mailer/back/dependencyInjection/index.ts",
+      "message": "Violation in src/apps/mailer/back/dependencyInjection/index.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-7904ca5e6f5cfcbe",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/apps/mailer/back/mailerBackendApp.ts",
+      "message": "Violation in src/apps/mailer/back/mailerBackendApp.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-ee75438162a9c156",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/apps/mailer/back/server.ts",
+      "message": "Violation in src/apps/mailer/back/server.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-41a6c98a024b939b",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/apps/mailer/back/start.ts",
+      "message": "Violation in src/apps/mailer/back/start.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-78c5697af8f6d02e",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/addItem/cartAddItemView.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/addItem/cartAddItemView.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b6997343f88a6825",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/addItem/cartAddItemViewOnCartItemAdded.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/addItem/cartAddItemViewOnCartItemAdded.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-853afad59f887ff4",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/countById/cartCountById.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/countById/cartCountById.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-83702eeae91489ba",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/countById/cartCountByIdQuery.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/countById/cartCountByIdQuery.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-9f92989f49eb9212",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/countById/cartCountByIdQueryHandler.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/countById/cartCountByIdQueryHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-c0d8617ff679a736",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/countById/cartCountByIdResponse.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/countById/cartCountByIdResponse.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-3de239bf487a164c",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/create/cartViewCreate.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/create/cartViewCreate.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-f845cfe3e7287b34",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/create/cartViewCreateOnCartCreated.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/create/cartViewCreateOnCartCreated.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-5a4dba417b17e4ac",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/findAllItemsByCart/cartItemFindAll.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/findAllItemsByCart/cartItemFindAll.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-400b26b6e631085f",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/findAllItemsByCart/cartItemFindAllQuery.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/findAllItemsByCart/cartItemFindAllQuery.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-a087492664ea9a42",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/findAllItemsByCart/cartItemFindAllQueryHandler.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/findAllItemsByCart/cartItemFindAllQueryHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-4238e5c4cc15b835",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/findAllItemsByCart/cartItemFindAllResponse.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/findAllItemsByCart/cartItemFindAllResponse.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-e89671d299d3fa0c",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/findById/cartFindById.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/findById/cartFindById.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-e9aab36719ff5d01",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/findById/cartFindByIdQuery.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/findById/cartFindByIdQuery.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-868cdb97edd4b840",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/findById/cartFindByIdQueryHandler.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/findById/cartFindByIdQueryHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-570917f4dc935f9d",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/read/findById/cartFindByIdResponse.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/read/findById/cartFindByIdResponse.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-4845bcae350de9a4",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/write/addItem/cartAddItem.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/write/addItem/cartAddItem.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-18e3fcdad265d4d7",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/write/addItem/cartAddItemCommand.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/write/addItem/cartAddItemCommand.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-86e20624233b625e",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/write/addItem/cartAddItemCommandHandler.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/write/addItem/cartAddItemCommandHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-d1901d6f0314c3bd",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/write/create/cartCreate.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/write/create/cartCreate.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-c1f68887169ad742",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/write/create/cartCreateCommand.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/write/create/cartCreateCommand.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-16c5c765dc1bc922",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/application/write/create/cartCreateCommandHandler.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/application/write/create/cartCreateCommandHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-a289bd9cd2b6279b",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/domain/cartAlreadyExists.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/domain/cartAlreadyExists.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-c13fb2eb669a332b",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/domain/cartNotFoundError.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/domain/cartNotFoundError.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-79e7fcf869d5b71c",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/domain/read/cartItemView.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/domain/read/cartItemView.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-276728de49623d33",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/domain/read/cartItemViewRepository.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/domain/read/cartItemViewRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-e870bccd73bedad5",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/domain/read/cartItemsView.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/domain/read/cartItemsView.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-4180fba55bb72895",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/domain/read/cartView.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/domain/read/cartView.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-9a4632f405c1eeff",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/domain/read/cartViewRepository.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/domain/read/cartViewRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-2bcd8a89b593e8a4",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/domain/valueObject/cartCount.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/domain/valueObject/cartCount.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-e9d1f43fcaf91ea9",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/domain/valueObject/cartId.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/domain/valueObject/cartId.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-46a217467cf64c97",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/domain/valueObject/cartItemCount.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/domain/valueObject/cartItemCount.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-63a8f577bfeb9477",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/domain/valueObject/cartValidated.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/domain/valueObject/cartValidated.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-f0e3013dd95b5f8c",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/domain/valueObject/cartVersion.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/domain/valueObject/cartVersion.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-79c62c3227c03390",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/domain/valueObject/price.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/domain/valueObject/price.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-c2a8041223615578",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/domain/valueObject/productId.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/domain/valueObject/productId.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-6db199d5bf5c9545",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/domain/valueObject/userId.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/domain/valueObject/userId.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-bb3cc836429c20ea",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/domain/write/cart.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/domain/write/cart.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-1caab6ada553a7ba",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/domain/write/cartCreatedDomainEvent.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/domain/write/cartCreatedDomainEvent.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-0c90559521930f87",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/domain/write/cartEventStore.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/domain/write/cartEventStore.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-8b3103737cb6efe8",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/domain/write/cartItem.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/domain/write/cartItem.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-7cf87fbfb0d17f58",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/domain/write/cartItemAddedDomainEvent.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/domain/write/cartItemAddedDomainEvent.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-729f9bc00ad4db91",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/domain/write/cartItems.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/domain/write/cartItems.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-8d71e3f013fda889",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/infrastructure/typeORM/typeORMCartEventStore.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/infrastructure/typeORM/typeORMCartEventStore.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-e0a4ad55d2b72d2f",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/infrastructure/typeORM/typeORMCartItemViewRepository.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/infrastructure/typeORM/typeORMCartItemViewRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-91d2a83fe6dbe360",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/cart/infrastructure/typeORM/typeORMCartViewRepository.ts",
+      "message": "Violation in src/contexts/cartsMs/cart/infrastructure/typeORM/typeORMCartViewRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-c836de31c548f15d",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/shared/domain/concurrencyError.ts",
+      "message": "Violation in src/contexts/cartsMs/shared/domain/concurrencyError.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-8bad8cde2d01ad42",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/shared/domain/eventSourceAggregateRoot.ts",
+      "message": "Violation in src/contexts/cartsMs/shared/domain/eventSourceAggregateRoot.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-43394a8c595ef3ca",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/shared/domain/eventSourceNotRegisteredError.ts",
+      "message": "Violation in src/contexts/cartsMs/shared/domain/eventSourceNotRegisteredError.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-c63e8f45fc5b55d2",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/shared/domain/eventSourcingSubscriberNotFounError.ts",
+      "message": "Violation in src/contexts/cartsMs/shared/domain/eventSourcingSubscriberNotFounError.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-0ed738b95b795a0a",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts",
+      "message": "Violation in src/contexts/cartsMs/shared/domain/existsChecker/cartExistsChecker.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-49cb82adeceb27c1",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/shared/infrastructure/rabbitMqConfigFactory.ts",
+      "message": "Violation in src/contexts/cartsMs/shared/infrastructure/rabbitMqConfigFactory.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-3cc0d020710c5fa7",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCart.ts",
+      "message": "Violation in src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCart.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-ada9734cc00260fe",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCartItem.ts",
+      "message": "Violation in src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeORMCartItem.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-662fa9057709a51a",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeOrmEvent.ts",
+      "message": "Violation in src/contexts/cartsMs/shared/infrastructure/typeORM/entities/typeOrmEvent.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-19f1b0162c13f1dc",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/shared/infrastructure/typeORM/typeORMConfigFactory.ts",
+      "message": "Violation in src/contexts/cartsMs/shared/infrastructure/typeORM/typeORMConfigFactory.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-22dc0a1414f5b5eb",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/cartsMs/shared/infrastructure/typeORM/typeORMEventStore.ts",
+      "message": "Violation in src/contexts/cartsMs/shared/infrastructure/typeORM/typeORMEventStore.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-09c512c4e0a22cc5",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/mailerMs/mail/application/send/sendMailOnCartChanged.ts",
+      "message": "Violation in src/contexts/mailerMs/mail/application/send/sendMailOnCartChanged.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-50990da1acdef754",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/mailerMs/shared/infrastructure/rabbitMqConfigFactory.ts",
+      "message": "Violation in src/contexts/mailerMs/shared/infrastructure/rabbitMqConfigFactory.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-dac4954d460516ba",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/domain/aggregateRoot.ts",
+      "message": "Violation in src/contexts/shared/domain/aggregateRoot.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-dbcb1b4e448b5c79",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/domain/commandBus/command.ts",
+      "message": "Violation in src/contexts/shared/domain/commandBus/command.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-46401e983931b212",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/domain/commandBus/commandBus.ts",
+      "message": "Violation in src/contexts/shared/domain/commandBus/commandBus.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-52e337aa70a86882",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/domain/commandBus/commandHandler.ts",
+      "message": "Violation in src/contexts/shared/domain/commandBus/commandHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-4a9c37be8503a713",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/domain/commandBus/commandNotRegisteredError.ts",
+      "message": "Violation in src/contexts/shared/domain/commandBus/commandNotRegisteredError.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-4af11774fd2df2b2",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/domain/eventBus/domainEvent.ts",
+      "message": "Violation in src/contexts/shared/domain/eventBus/domainEvent.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-a156cf05f7ca08aa",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/domain/eventBus/domainEventSubscriber.ts",
+      "message": "Violation in src/contexts/shared/domain/eventBus/domainEventSubscriber.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-7a5148c73dfd8ef5",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/domain/eventBus/eventBus.ts",
+      "message": "Violation in src/contexts/shared/domain/eventBus/eventBus.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-5eef9f650376a652",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/domain/invalidArgumentError.ts",
+      "message": "Violation in src/contexts/shared/domain/invalidArgumentError.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-59381c15e1fbc46c",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/domain/logger.ts",
+      "message": "Violation in src/contexts/shared/domain/logger.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-3df3619281c38144",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/domain/queryBus/query.ts",
+      "message": "Violation in src/contexts/shared/domain/queryBus/query.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-8d24c8f6267e7ba7",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/domain/queryBus/queryBus.ts",
+      "message": "Violation in src/contexts/shared/domain/queryBus/queryBus.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-4bf9f21d41f6f3c0",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/domain/queryBus/queryHandler.ts",
+      "message": "Violation in src/contexts/shared/domain/queryBus/queryHandler.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-06de8095e15d1e03",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/domain/queryBus/queryNotRegisteredError.ts",
+      "message": "Violation in src/contexts/shared/domain/queryBus/queryNotRegisteredError.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-be10175b70e06395",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/domain/queryBus/response.ts",
+      "message": "Violation in src/contexts/shared/domain/queryBus/response.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-24392b08fd000b13",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/domain/valueObject/uuid.ts",
+      "message": "Violation in src/contexts/shared/domain/valueObject/uuid.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-6e49ed728e2b1567",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/domain/valueObject/valueObject.ts",
+      "message": "Violation in src/contexts/shared/domain/valueObject/valueObject.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-0a83188ddedfc1e1",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/infrastructure/commandBus/commandHandlersMapper.ts",
+      "message": "Violation in src/contexts/shared/infrastructure/commandBus/commandHandlersMapper.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-7fa19794a3b6c766",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/infrastructure/commandBus/inMemoryCommandBus.ts",
+      "message": "Violation in src/contexts/shared/infrastructure/commandBus/inMemoryCommandBus.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-9271cf6dcf363134",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/infrastructure/eventBus/domainEventJSONDeserializer.ts",
+      "message": "Violation in src/contexts/shared/infrastructure/eventBus/domainEventJSONDeserializer.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b8ca616252e8704b",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/infrastructure/eventBus/domainEventJSONSerializer.ts",
+      "message": "Violation in src/contexts/shared/infrastructure/eventBus/domainEventJSONSerializer.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-308152b2bbcf81ee",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/infrastructure/eventBus/domainEventMapping.ts",
+      "message": "Violation in src/contexts/shared/infrastructure/eventBus/domainEventMapping.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-5706e6b726619465",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/infrastructure/eventBus/domainEventSubscribers.ts",
+      "message": "Violation in src/contexts/shared/infrastructure/eventBus/domainEventSubscribers.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-ce3d9255a4df0db1",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/infrastructure/eventBus/rabbitMQ/rabbitMqConfig.ts",
+      "message": "Violation in src/contexts/shared/infrastructure/eventBus/rabbitMQ/rabbitMqConfig.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-f809d2c94f145c4e",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/infrastructure/eventBus/rabbitMQ/rabbitMqConfigurer.ts",
+      "message": "Violation in src/contexts/shared/infrastructure/eventBus/rabbitMQ/rabbitMqConfigurer.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-04b3b48e528bc6a7",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/infrastructure/eventBus/rabbitMQ/rabbitMqConnection.ts",
+      "message": "Violation in src/contexts/shared/infrastructure/eventBus/rabbitMQ/rabbitMqConnection.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-487635fc94d43b48",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/infrastructure/eventBus/rabbitMQ/rabbitMqConsumers.ts",
+      "message": "Violation in src/contexts/shared/infrastructure/eventBus/rabbitMQ/rabbitMqConsumers.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-8a50c5ce8aeba677",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/infrastructure/eventBus/rabbitMQ/rabbitMqEventBus.ts",
+      "message": "Violation in src/contexts/shared/infrastructure/eventBus/rabbitMQ/rabbitMqEventBus.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-0f038f5c4aad8457",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/infrastructure/queryBus/inMemoryQueryBus.ts",
+      "message": "Violation in src/contexts/shared/infrastructure/queryBus/inMemoryQueryBus.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-3c7a22b158698c45",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/infrastructure/queryBus/queryHandlersMapper.ts",
+      "message": "Violation in src/contexts/shared/infrastructure/queryBus/queryHandlersMapper.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-4ba6b822050ccdb8",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/infrastructure/typeORM/typeORMClientFactory.ts",
+      "message": "Violation in src/contexts/shared/infrastructure/typeORM/typeORMClientFactory.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-626e6ccc916b3bd6",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/infrastructure/typeORM/typeORMRepository.ts",
+      "message": "Violation in src/contexts/shared/infrastructure/typeORM/typeORMRepository.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-2b092d07ffc06c56",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/contexts/shared/infrastructure/wistonLogger.ts",
+      "message": "Violation in src/contexts/shared/infrastructure/wistonLogger.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-ac14a4435549c79f",
+      "type": "INDEX_LOGIC_VIOLATION",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV06",
+      "route": "symbolic",
+      "filePath": "src/apps/cart/back/routes/index.ts",
+      "message": "Violation in src/apps/cart/back/routes/index.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "declCount=1"
+      ],
+      "tag": "pattern-proxy"
+    }
+  ],
+  "universalMetrics": {
+    "cyclicDependencyCount": 2,
+    "maxFanOut": 12,
+    "maxFanIn": 23,
+    "abstractionRatio": 0.107,
+    "averageInstability": 0.571,
+    "orphanFileCount": 1
+  },
+  "evaluationMode": "symbolic-only",
+  "durationMs": 44,
+  "droppedDimensions": [],
+  "tiers": {
+    "scoringMode": "v1.3",
+    "tierTable": "Docs/v1.3/rule-tiers.md",
+    "style": "hexagonal",
+    "verdict": "fail",
+    "verdictRule": "any-blocking-violation",
+    "v12eVerdict": "hard-block",
+    "blockingAhs": 0.462,
+    "blocking": {
+      "rules": [
+        {
+          "functionId": "FF-P01",
+          "name": "domain-purity",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-P03",
+          "name": "port-adapter-pattern",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-P06",
+          "name": "domain-state-purity",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-S01",
+          "name": "dependency-direction-graph",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 3,
+          "violated": true
+        },
+        {
+          "functionId": "FF-S02",
+          "name": "no-cyclic-deps",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 1,
+          "violated": true
+        },
+        {
+          "functionId": "FF-S04",
+          "name": "core-isolation",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 2,
+          "violated": true
+        }
+      ],
+      "violatedRules": 3,
+      "violationCount": 6
+    },
+    "advisory": {
+      "rules": [
+        {
+          "functionId": "FF-C02",
+          "name": "module-fan-out",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 1,
+          "violated": true
+        },
+        {
+          "functionId": "FF-C03",
+          "name": "component-instability",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 33,
+          "violated": true
+        },
+        {
+          "functionId": "FF-C04",
+          "name": "no-orphan-files",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 1,
+          "violated": true
+        },
+        {
+          "functionId": "FF-C05",
+          "name": "max-fan-in",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 2,
+          "violated": true
+        },
+        {
+          "functionId": "FF-C06",
+          "name": "abstraction-ratio",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 1,
+          "violated": true
+        },
+        {
+          "functionId": "FF-CV02",
+          "name": "naming-services",
+          "dimension": "convention",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-CV03",
+          "name": "naming-repos",
+          "dimension": "convention",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 3,
+          "violated": true
+        },
+        {
+          "functionId": "FF-CV05",
+          "name": "test-file-pairing",
+          "dimension": "convention",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 111,
+          "violated": true
+        },
+        {
+          "functionId": "FF-CV06",
+          "name": "no-index-logic",
+          "dimension": "convention",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 1,
+          "violated": true
+        },
+        {
+          "functionId": "FF-P02",
+          "name": "port-dependency-inversion",
+          "dimension": "pattern",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 9,
+          "violated": true
+        },
+        {
+          "functionId": "FF-S03",
+          "name": "layer-skip-graph",
+          "dimension": "structural",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-SO01",
+          "name": "single-responsibility-proxy",
+          "dimension": "solid",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-SO02",
+          "name": "interface-segregation-proxy",
+          "dimension": "solid",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-SO03",
+          "name": "inheritance-depth",
+          "dimension": "solid",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        }
+      ],
+      "violatedRules": 9,
+      "violationCount": 162
+    },
+    "notApplicable": [
+      {
+        "functionId": "FF-P06",
+        "part": "FLOWS_TO field rows",
+        "reason": "The field half needs FLOWS_TO, which is near-empty (rule-tiers.md, finding 9); reported N/A with its denominator",
+        "naRows": 0,
+        "totalRows": 0,
+        "flowsToEdges": 10
+      }
+    ],
+    "blockingNotExecuted": []
+  },
+  "warnings": [
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: DomainEventSubscriber",
+      "context": {
+        "filePath": "src/contexts/cartsMs/cart/application/read/addItem/cartAddItemViewOnCartItemAdded.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: DomainEventSubscriber",
+      "context": {
+        "filePath": "src/contexts/cartsMs/cart/application/read/create/cartViewCreateOnCartCreated.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: DomainEventSubscriber",
+      "context": {
+        "filePath": "src/contexts/mailerMs/mail/application/send/sendMailOnCartChanged.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_005",
+      "message": "CONSTRUCTOR_INJECTS type unresolvable: import(\"<clones>/canario-hexagonal-express/src/contexts/cartsMs/cart/domain/read/cartItemView\").default[]",
+      "context": {
+        "filePath": "src/contexts/cartsMs/cart/application/read/findAllItemsByCart/cartItemFindAllResponse.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_005",
+      "message": "CONSTRUCTOR_INJECTS type unresolvable: import(\"<clones>/canario-hexagonal-express/src/contexts/cartsMs/cart/domain/read/cartItemView\").default[]",
+      "context": {
+        "filePath": "src/contexts/cartsMs/cart/domain/read/cartItemsView.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_005",
+      "message": "CONSTRUCTOR_INJECTS type unresolvable: import(\"<clones>/canario-hexagonal-express/src/contexts/cartsMs/cart/domain/write/cartItem\").default[]",
+      "context": {
+        "filePath": "src/contexts/cartsMs/cart/domain/write/cartItems.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_005",
+      "message": "CONSTRUCTOR_INJECTS type unresolvable: import(\"<clones>/canario-hexagonal-express/src/contexts/shared/domain/commandBus/commandHandler\").default<import(\"<clones>/canario-hexagonal-express/src/contexts/shared/domain/commandBus/command\").default>[]",
+      "context": {
+        "filePath": "src/contexts/shared/infrastructure/commandBus/commandHandlersMapper.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_005",
+      "message": "CONSTRUCTOR_INJECTS type unresolvable: import(\"<clones>/canario-hexagonal-express/src/contexts/shared/domain/eventBus/domainEventSubscriber\").default<import(\"<clones>/canario-hexagonal-express/src/contexts/shared/domain/eventBus/domainEvent\").default>[]",
+      "context": {
+        "filePath": "src/contexts/shared/infrastructure/eventBus/domainEventMapping.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_005",
+      "message": "CONSTRUCTOR_INJECTS type unresolvable: import(\"<clones>/canario-hexagonal-express/src/contexts/shared/domain/eventBus/domainEventSubscriber\").default<import(\"<clones>/canario-hexagonal-express/src/contexts/shared/domain/eventBus/domainEvent\").default>[]",
+      "context": {
+        "filePath": "src/contexts/shared/infrastructure/eventBus/rabbitMQ/rabbitMqConsumers.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_005",
+      "message": "CONSTRUCTOR_INJECTS type unresolvable: import(\"<clones>/canario-hexagonal-express/src/contexts/shared/domain/queryBus/queryHandler\").default<import(\"<clones>/canario-hexagonal-express/src/contexts/shared/domain/queryBus/query\").default, import(\"<clones>/canario-hexagonal-express/src/contexts/shared/domain/queryBus/response\").default>[]",
+      "context": {
+        "filePath": "src/contexts/shared/infrastructure/queryBus/queryHandlersMapper.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    }
+  ],
+  "functionExecution": {
+    "declared": 24,
+    "adrDerived": 0,
+    "compiled": 22,
+    "disabled": 2,
+    "dropped": [],
+    "skippedByMode": 2,
+    "noJudgeUnits": [],
+    "executed": 20,
+    "failed": []
+  },
+  "functionResults": [
+    {
+      "functionId": "FF-P06",
+      "name": "domain-state-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 12,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S01",
+      "name": "dependency-direction-graph",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": false,
+      "violationCount": 3,
+      "executionTimeMs": 67,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S03",
+      "name": "layer-skip-graph",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 17,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S04",
+      "name": "core-isolation",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": false,
+      "violationCount": 2,
+      "executionTimeMs": 11,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C02",
+      "name": "module-fan-out",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 9,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C03",
+      "name": "component-instability",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 33,
+      "executionTimeMs": 17,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C04",
+      "name": "no-orphan-files",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 9,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C05",
+      "name": "max-fan-in",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 2,
+      "executionTimeMs": 5,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C06",
+      "name": "abstraction-ratio",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 4,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S02",
+      "name": "no-cyclic-deps",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 47,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO03",
+      "name": "inheritance-depth",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 6,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV02",
+      "name": "naming-services",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 7,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV03",
+      "name": "naming-repos",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 3,
+      "executionTimeMs": 4,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV05",
+      "name": "test-file-pairing",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 111,
+      "executionTimeMs": 52,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV06",
+      "name": "no-index-logic",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 7,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P01",
+      "name": "domain-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 14,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P02",
+      "name": "port-dependency-inversion",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 9,
+      "executionTimeMs": 13,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P03",
+      "name": "port-adapter-pattern",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 15,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO01",
+      "name": "single-responsibility-proxy",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 12,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO02",
+      "name": "interface-segregation-proxy",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 4,
+      "truncated": false
+    }
+  ],
+  "disabledFunctions": [
+    {
+      "functionId": "FF-CV01",
+      "name": "naming-conventions",
+      "reason": "ADR-016 b (B&T Step 31): cannot fire; per-layer naming patterns compile to .* and no requirement supplies them (SP-FF-CV01 not fired)"
+    },
+    {
+      "functionId": "FF-CV04",
+      "name": "naming-controllers",
+      "reason": "ADR-016 b (B&T Step 31): cannot fire; class decorators are not ingested (BR-U2-31), so no controller is selected (SP-FF-CV04 not fired)"
+    }
+  ],
+  "graphStats": {
+    "nodeCount": 486,
+    "edgeCount": 932,
+    "layerCoverage": 0.9098360655737705,
+    "nodeCountByType": {
+      "File": 122,
+      "Class": 100,
+      "Interface": 12,
+      "Method": 235,
+      "Function": 5,
+      "Package": 12
+    },
+    "edgeCountByType": {
+      "IMPORTS": 356,
+      "IMPLEMENTS": 34,
+      "EXTENDS": 22,
+      "CONSTRUCTOR_INJECTS": 55,
+      "CALLS": 103,
+      "DECLARES": 117,
+      "CONTAINS": 235,
+      "FLOWS_TO": 10,
+      "RE_EXPORTS": 0
+    }
+  },
+  "layerAnnotation": {
+    "mapped": 111,
+    "unmapped": 11,
+    "unmappedFiles": [
+      "src/tests/contexts/cartsMs/cart/__mocks__/cartEventStoreMock.ts",
+      "src/tests/contexts/cartsMs/cart/__mocks__/cartItemViewRepositoryMock.ts",
+      "src/tests/contexts/cartsMs/cart/__mocks__/cartViewRepositoryMock.ts",
+      "src/tests/contexts/cartsMs/shared/__mocks__/eventBusMock.ts",
+      "src/tests/contexts/cartsMs/shared/infrastructure/commandBus/__mocks__/commandHandlerDummy.ts",
+      "src/tests/contexts/cartsMs/shared/infrastructure/commandBus/__mocks__/dummyCommand.ts",
+      "src/tests/contexts/cartsMs/shared/infrastructure/commandBus/__mocks__/unhandledCommand.ts",
+      "src/tests/contexts/cartsMs/shared/infrastructure/queryBus/__mocks__/dummyQuery.ts",
+      "src/tests/contexts/cartsMs/shared/infrastructure/queryBus/__mocks__/dummyQueryResponse.ts",
+      "src/tests/contexts/cartsMs/shared/infrastructure/queryBus/__mocks__/queryHandlerDummy.ts",
+      "src/tests/contexts/cartsMs/shared/infrastructure/queryBus/__mocks__/unhandledQuery.ts"
+    ]
+  },
+  "parseCoverage": {
+    "total": 122,
+    "parsed": 122,
+    "percentage": 100,
+    "skipped": []
+  },
+  "importResolution": {
+    "resolvedInternal": 314,
+    "external": 42,
+    "externalOutOfRootAlias": 0,
+    "unresolved": 0,
+    "droppedNoFileNode": 0,
+    "unsupportedDynamic": 0
+  },
+  "timings": {
+    "stages": [
+      {
+        "name": "parallel:extract-apg+parse-spec",
+        "durationMs": 1269,
+        "status": "success"
+      },
+      {
+        "name": "ingest-apg",
+        "durationMs": 111,
+        "status": "success"
+      },
+      {
+        "name": "compile-functions",
+        "durationMs": 4,
+        "status": "success"
+      },
+      {
+        "name": "evaluate-symbolic",
+        "durationMs": 334,
+        "status": "success"
+      },
+      {
+        "name": "universal-metric:cyclicDependencyCount",
+        "durationMs": 15,
+        "status": "success"
+      },
+      {
+        "name": "compute-scores",
+        "durationMs": 44,
+        "status": "success"
+      }
+    ],
+    "totalMs": 1762
+  },
+  "judge": {
+    "provider": "none",
+    "model": "none",
+    "runsPerUnit": 0
+  },
+  "instrumentVersion": 2
+}

@@ -1,0 +1,120 @@
+diff --git a/src/business/models.ts b/src/business/models.ts
+index 5368016..1e68563 100644
+--- a/src/business/models.ts
++++ b/src/business/models.ts
+@@ -1,45 +1,4 @@
+-export interface MarketDay {
+-  id: string;
+-  date: string; // YYYY-MM-DD
+-}
+-
+-export type PitchSize = 'small' | 'medium' | 'large';
+-
+-export interface Pitch {
+-  number: number;
+-  size: PitchSize;
+-  hasPower: boolean;
+-}
+-
+-export interface Vendor {
+-  id: string;
+-  businessName: string;
+-  contact: string;
+-  products: string[];
+-}
+-
+-export interface Booking {
+-  id: string;
+-  marketDayId: string;
+-  pitchNumber: number;
+-  vendorId: string;
+-}
+-
+-export interface ReaderLink {
+-  readerId: string;
+-  marketDayId: string;
+-  vendorId: string;
+-}
+-
+-export interface CardSale {
+-  id: string;
+-  readerId: string;
+-  vendorId: string;
+-  marketDayId: string;
+-  amount: number;
+-  time: string;
+-  provider: 'paylane';
+-}
++export * from '../persistence/models';
+ 
+ export class BusinessError extends Error {
+   constructor(message: string, readonly status = 400) {
+diff --git a/src/persistence/models.ts b/src/persistence/models.ts
+new file mode 100644
+index 0000000..9779c29
+--- /dev/null
++++ b/src/persistence/models.ts
+@@ -0,0 +1,43 @@
++/** Records stored by the persistence layer. The business layer re-exports them. */
++export interface MarketDay {
++  id: string;
++  date: string; // YYYY-MM-DD
++}
++
++export type PitchSize = 'small' | 'medium' | 'large';
++
++export interface Pitch {
++  number: number;
++  size: PitchSize;
++  hasPower: boolean;
++}
++
++export interface Vendor {
++  id: string;
++  businessName: string;
++  contact: string;
++  products: string[];
++}
++
++export interface Booking {
++  id: string;
++  marketDayId: string;
++  pitchNumber: number;
++  vendorId: string;
++}
++
++export interface ReaderLink {
++  readerId: string;
++  marketDayId: string;
++  vendorId: string;
++}
++
++export interface CardSale {
++  id: string;
++  readerId: string;
++  vendorId: string;
++  marketDayId: string;
++  amount: number;
++  time: string;
++  provider: 'paylane';
++}
+diff --git a/src/persistence/repositories.ts b/src/persistence/repositories.ts
+index c41aa00..e8758c6 100644
+--- a/src/persistence/repositories.ts
++++ b/src/persistence/repositories.ts
+@@ -1,4 +1,4 @@
+-import { Booking, CardSale, MarketDay, Pitch, ReaderLink, Vendor } from '../business/models';
++import { Booking, CardSale, MarketDay, Pitch, ReaderLink, Vendor } from './models';
+ import { bookings, cardSales, marketDays, pitches, readerLinks, vendors } from './store';
+ 
+ export const marketDayRepository = {
+diff --git a/src/persistence/store.ts b/src/persistence/store.ts
+index df953f8..783919f 100644
+--- a/src/persistence/store.ts
++++ b/src/persistence/store.ts
+@@ -1,4 +1,4 @@
+-import { Booking, CardSale, MarketDay, Pitch, ReaderLink, Vendor } from '../business/models';
++import { Booking, CardSale, MarketDay, Pitch, ReaderLink, Vendor } from './models';
+ 
+ /** In-memory tables. */
+ export class Table<T> {

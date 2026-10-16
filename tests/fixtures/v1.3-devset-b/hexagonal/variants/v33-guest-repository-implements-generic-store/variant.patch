@@ -1,0 +1,31 @@
+--- a/src/adapters/outbound/persistence/InMemoryGuestRepository.ts
++++ b/src/adapters/outbound/persistence/InMemoryGuestRepository.ts
+@@ -1,10 +1,18 @@
+-import { GuestRepository } from '../../../application/ports/out/GuestRepository';
+ import { Guest } from '../../../domain/model/Guest';
++import { KeyValueStore } from '../shared/KeyValueStore';
+ 
+-export class InMemoryGuestRepository implements GuestRepository {
++export class InMemoryGuestRepository implements KeyValueStore<Guest> {
+   private readonly guests = new Map<string, Guest>([['g-1', new Guest('g-1', 'Alistair', 'alistair@example.org')]]);
+ 
++  get(key: string): Guest | undefined {
++    return this.guests.get(key);
++  }
++
++  put(key: string, value: Guest): void {
++    this.guests.set(key, value);
++  }
++
+   async findById(id: string): Promise<Guest | undefined> {
+-    return this.guests.get(id);
++    return this.get(id);
+   }
+ }
+--- /dev/null
++++ b/src/adapters/outbound/shared/KeyValueStore.ts
+@@ -0,0 +1,4 @@
++export interface KeyValueStore<T> {
++  get(key: string): T | undefined;
++  put(key: string, value: T): void;
++}

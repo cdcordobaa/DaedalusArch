@@ -1,6 +1,6 @@
 import {
-  FE_SCHEMA_TEXT, answerOfResponse, buildFilterExplainPrompt, checkGrounding, findingKept, numberLines, outcomeOf,
-  parseFilterExplainAnswer, renderFilterExplainPrompt, shownLineCounts,
+  FE_SCHEMA_TEXT, FE_SOURCE_BUDGET_CHARS, answerOfResponse, buildFilterExplainPrompt, checkGrounding, checkTextReferences, findingKept,
+  numberLines, outcomeOf, parseFilterExplainAnswer, renderFilterExplainPrompt,
 } from '../../../src/llm-critic/filter-explain.js';
 import type { FilterExplainAnswer, ShownFile } from '../../../src/llm-critic/filter-explain.js';
 
@@ -55,6 +55,66 @@ describe('filter-and-explain', () => {
     expect(answerOfResponse(JSON.stringify({ is_error: false, result: '', structured_output: ok }))).toEqual(ok);
     expect(JSON.parse(FE_SCHEMA_TEXT).required).toEqual(['decision', 'explanation', 'fix', 'citations']);
   });
+
+  describe('R19: grounding is measured on what the prompt rendered', () => {
+    const finding = { functionId: 'FF-S01', type: 'LAYER_VIOLATION', severity: 'critical', filePath: 'src/domain/big.ts', message: 'imports infra' };
+    // About 2x the source budget: the first file is cut, the second never shown.
+    const bigLines = Array.from({ length: 8000 }, (_, i) => `export const value${String(i)} = ${String(i)}; // ${'x'.repeat(10)}`);
+    const big: ShownFile = { path: 'src/domain/big.ts', content: `${bigLines.join('\n')}\n` };
+    const small: ShownFile = { path: 'src/infra/db.ts', content: 'export const db = 1;\n' };
+
+    it('keeps the prompt text unchanged and returns only the shown files and lines', () => {
+      const input = { finding, files: [big, small], layerModel: '(none)' };
+      const rendered = renderFilterExplainPrompt(input);
+      expect(rendered.prompt).toBe(buildFilterExplainPrompt(input));
+      expect(rendered.prompt).toContain('[truncated]');
+      expect(rendered.prompt).not.toContain('src/infra/db.ts=====');
+      expect(rendered.shown.map((f) => f.path)).toEqual(['src/domain/big.ts']);
+      const shownLines = (rendered.shown[0]?.content ?? '').split('\n').length;
+      expect(shownLines).toBeGreaterThan(100);
+      expect(shownLines).toBeLessThan(8000);
+      // Every shown line is fully inside the rendered budget.
+      expect(numberLines(rendered.shown[0]?.content ?? '').length).toBeLessThanOrEqual(FE_SOURCE_BUDGET_CHARS);
+    });
+
+    it('rejects a citation past the cut or of the omitted file', () => {
+      const { shown } = renderFilterExplainPrompt({ finding, files: [big, small], layerModel: '(none)' });
+      const past: FilterExplainAnswer = { ...ok, explanation: 'See src/domain/big.ts:7990.', citations: [{ filePath: 'src/domain/big.ts', startLine: 7990, endLine: 7990 }] };
+      const omitted: FilterExplainAnswer = { ...ok, explanation: 'See src/domain/big.ts:2.', citations: [{ filePath: 'src/infra/db.ts', startLine: 1, endLine: 1 }] };
+      expect(outcomeOf(past, [big, small]).status).toBe('dismiss'); // the full files would accept it
+      expect(outcomeOf(past, shown).status).toBe('rejected');
+      expect(outcomeOf(omitted, shown).status).toBe('rejected');
+      expect(outcomeOf({ ...ok, explanation: 'See src/domain/big.ts:2.', citations: [{ filePath: 'src/domain/big.ts', startLine: 1, endLine: 3 }] }, shown).status).toBe('dismiss');
+    });
+
+    it('shows small files whole', () => {
+      expect(renderFilterExplainPrompt({ finding, files: FILES, layerModel: '(none)' }).shown).toEqual(FILES);
+    });
+  });
+
+  describe('R20: a bare line reference is checked against the file it refers to', () => {
+    const order: ShownFile = { path: 'src/domain/order.ts', content: Array.from({ length: 40 }, (_, i) => `// ${String(i)}`).join('\n') };
+    const repo: ShownFile = { path: 'src/infra/repo.ts', content: Array.from({ length: 300 }, (_, i) => `// ${String(i)}`).join('\n') };
+    const files = [order, repo];
+
+    it('attributes the line to the file named before it in the sentence', () => {
+      expect(checkTextReferences('order.ts calls the ORM at line 212.', files)).toEqual(['explanation cites line 212 of src/domain/order.ts beyond 40']);
+      expect(checkTextReferences('The adapter repo.ts maps it at line 212.', files)).toEqual([]);
+      expect(checkTextReferences('In src/infra/repo.ts the query sits on lines 200-210, and order.ts uses it on line 12.', files)).toEqual([]);
+    });
+
+    it('falls back to the finding\'s own file (shown first) when no file is named', () => {
+      expect(checkTextReferences('The import is on line 212.', files)).toEqual(['explanation cites line 212 of src/domain/order.ts beyond 40']);
+      expect(checkTextReferences('The import is on line 12.', files)).toEqual([]);
+      // A file named in an earlier sentence does not carry over.
+      expect(checkTextReferences('See repo.ts. The import is on line 212.', files)).toHaveLength(1);
+    });
+
+    it('rejects the R20 scenario in checkGrounding', () => {
+      const answer: FilterExplainAnswer = { ...ok, explanation: 'order.ts calls the ORM at line 212.', citations: [{ filePath: 'src/domain/order.ts', startLine: 1, endLine: 2 }] };
+      expect(checkGrounding(answer, files).grounded).toBe(false);
+    });
+  });
 });
 
 describe('filter-and-explain grounding against what the prompt showed (R19, R20)', () => {
@@ -69,13 +129,13 @@ describe('filter-and-explain grounding against what the prompt showed (R19, R20)
     expect(r.prompt).toContain('[truncated]');
     expect(r.prompt).not.toContain('src/infra/second.ts=====');
     expect(r.shown.map((s) => s.path)).toEqual(['src/domain/big.ts']);
-    const n = r.shown[0]?.lineCount ?? 0;
+    const n = (r.shown[0]?.content ?? '').split('\n').length;
     expect(n).toBeGreaterThan(100);
     expect(n).toBeLessThan(3000);
-    // The last line counted as shown has its number label in the prompt; the next one does not.
-    expect(r.prompt).toContain(`${String(n).padStart(4, ' ')}| `);
-    expect(r.prompt).not.toContain(`${String(n + 1).padStart(4, ' ')}| `);
-    expect(shownLineCounts([big, second])).toEqual(r.shown);
+    // The last line counted as shown is complete in the prompt; the next one is not (v1.3: a partly shown line is not counted).
+    const full = (k: number): string => `${String(k).padStart(4, ' ')}| export const value${String(k - 1)} = 'xxxxxxxxxxxxxxxxxxxx';\n`;
+    expect(r.prompt).toContain(full(n));
+    expect(r.prompt).not.toContain(full(n + 1));
   });
 
   it('R19: a citation of a dropped file or of lines past the cut is ungrounded', () => {
@@ -92,7 +152,7 @@ describe('filter-and-explain grounding against what the prompt showed (R19, R20)
     const files: ShownFile[] = [FILES[0] as ShownFile, second];
     const { shown, prompt } = renderFilterExplainPrompt({ finding, files, layerModel: '- domain' });
     expect(prompt).not.toContain('[truncated]');
-    expect(shown).toEqual([{ path: 'src/domain/a.ts', lineCount: 4 }, { path: 'src/infra/second.ts', lineCount: 2 }]);
+    expect(shown).toEqual(files);
     for (const a of [ok, { ...ok, explanation: 'See line 4.' }, { ...ok, explanation: 'See line 5.' }, { ...ok, citations: [{ filePath: 'src/infra/second.ts', startLine: 1, endLine: 3 }] }]) {
       expect(checkGrounding(a, shown)).toEqual(checkGrounding(a, files));
     }
@@ -102,10 +162,16 @@ describe('filter-and-explain grounding against what the prompt showed (R19, R20)
   const repo: ShownFile = { path: 'src/infra/repo.ts', content: Array.from({ length: 300 }, (_, i) => `// ${String(i)}`).join('\n') };
   const bare: FilterExplainAnswer = { ...ok, explanation: 'order.ts calls the ORM at line 212.', citations: [{ filePath: 'src/domain/order.ts', startLine: 1, endLine: 2 }] };
 
-  it('R20: by default a bare line is checked against the longest shown file (documented heuristic)', () => {
-    expect(checkGrounding(bare, [order, repo]).grounded).toBe(true);
+  it("R20: by default ('attributed') a bare line is checked against the file named before it; 'longest' is the pre-R20 heuristic", () => {
+    expect(checkGrounding(bare, [order, repo]).grounded).toBe(false);
+    expect(checkGrounding(bare, [order, repo], { bareLines: 'attributed' })).toEqual(checkGrounding(bare, [order, repo]));
+    expect(outcomeOf(bare, [order, repo]).status).toBe('rejected');
     expect(checkGrounding(bare, [order, repo], { bareLines: 'longest' }).grounded).toBe(true);
-    expect(outcomeOf(bare, [order, repo]).status).toBe('dismiss');
+    expect(outcomeOf(bare, [order, repo], 'PARSE_FAILURE', { bareLines: 'longest' }).status).toBe('dismiss');
+    // 'finding-file' ignores a file named in the sentence; 'attributed' does not.
+    const named = { ...bare, explanation: 'The adapter repo.ts maps it at line 212.' };
+    expect(checkGrounding(named, [order, repo]).grounded).toBe(true);
+    expect(checkGrounding(named, [order, repo], { bareLines: 'finding-file' }).grounded).toBe(false);
   });
 
   it("R20: bareLines 'finding-file' checks a bare line against the finding's own (first shown) file", () => {

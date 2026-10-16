@@ -1,0 +1,16 @@
+--- a/src/infrastructure/persistence/InMemoryMemberRepository.ts
++++ b/src/infrastructure/persistence/InMemoryMemberRepository.ts
+@@ -1,7 +1,11 @@
+ import { Member } from '../../domain/entities/Member';
+-import { MemberRepository } from '../../domain/repositories/MemberRepository';
+ 
+-export class InMemoryMemberRepository implements MemberRepository {
++export interface MemberStore {
++  findById(id: string): Promise<Member | undefined>;
++  save(member: Member): Promise<void>;
++}
++
++export class InMemoryMemberRepository implements MemberStore {
+   private readonly rows = new Map<string, Member>();
+ 
+   async findById(id: string): Promise<Member | undefined> {
