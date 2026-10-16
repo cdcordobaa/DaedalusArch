@@ -1,0 +1,21 @@
+diff -ruN bases/nestjs__n02-domain-port-named-dot-repository/src/registrations/registrations.service.ts copies/nestjs__n02-domain-port-named-dot-repository__AP-FRAMEWORK-LEAKn__2/src/registrations/registrations.service.ts
+--- bases/nestjs__n02-domain-port-named-dot-repository/src/registrations/registrations.service.ts	2026-10-15 11:50:59
++++ copies/nestjs__n02-domain-port-named-dot-repository__AP-FRAMEWORK-LEAKn__2/src/registrations/registrations.service.ts	2026-10-15 11:51:13
+@@ -21,7 +21,7 @@
+     @Inject(WAITLIST_REPOSITORY) private readonly waitlist: WaitlistRepository,
+   ) {}
+ 
+-  async joinWaitlist(dto: RegisterAttendeeDto): Promise<void> {
++  async joinWaitlist(dto: RegisterAttendeeDto, context?: JoinWaitlistContextDto): Promise<void> {
+     await this.waitlist.add(dto.workshopId, dto.attendeeId);
+   }
+ 
+@@ -53,4 +53,8 @@
+     await this.registrations.save(registration);
+     return RegistrationResponseDto.from(registration);
+   }
++}
++
++export interface JoinWaitlistContextDto {
++  readonly requestId?: string;
+ }

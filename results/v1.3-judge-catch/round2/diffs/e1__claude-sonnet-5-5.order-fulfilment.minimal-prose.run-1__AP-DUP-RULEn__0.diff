@@ -1,0 +1,40 @@
+diff -ruN -x node_modules a/src/application/list-stock-levels-use-case.ts b/src/application/list-stock-levels-use-case.ts
+--- a/src/application/list-stock-levels-use-case.ts	2026-10-15 12:42:23
++++ b/src/application/list-stock-levels-use-case.ts	2026-10-15 12:42:04
+@@ -1,10 +1,15 @@
+ import { ProductRepository } from "../domain/product-repository";
+-import { StockLevelDto, toStockLevelDto } from "./dtos";
++import { StockLevelDto, toStockLevelDto, PlaceOrderRequest } from "./dtos";
++import { assertExecuteRule } from "./place-order-use-case";
+ 
+ export class ListStockLevelsUseCase {
+   constructor(private readonly products: ProductRepository) {}
+ 
+   async execute(): Promise<StockLevelDto[]> {
+     return (await this.products.findAll()).map(toStockLevelDto);
++  }
++
++  validateExecute(request: PlaceOrderRequest): void {
++    assertExecuteRule(request);
+   }
+ }
+diff -ruN -x node_modules a/src/application/place-order-use-case.ts b/src/application/place-order-use-case.ts
+--- a/src/application/place-order-use-case.ts	2026-10-15 12:42:23
++++ b/src/application/place-order-use-case.ts	2026-10-15 12:42:04
+@@ -14,11 +14,15 @@
+   ) {}
+ 
+   async execute(request: PlaceOrderRequest): Promise<OrderDto> {
+-    if (!request.customerId) throw new InvalidRequestError("customerId is required");
++    assertExecuteRule(request);
+     const lines = request.items.map((item) => new OrderLine(item.productId, item.quantity));
+     const order = new Order(this.ids.next(), request.customerId, lines);
+     await this.reservations.reserve(order.lines);
+     await this.orders.save(order);
+     return toOrderDto(order);
+   }
++}
++
++export function assertExecuteRule(request: PlaceOrderRequest): void {
++  if (!request.customerId) throw new InvalidRequestError("customerId is required");
+ }

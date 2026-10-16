@@ -1,0 +1,18 @@
+{
+  "unit": "v1.3 devset-b: development-set expansion (Claude-written variants). DEVELOPMENT DATA, not a validity estimate and not a hold-out",
+  "branch": "v1.3-devset-expansion from origin/v1.3 133c261a",
+  "code": "Tool, rules and presets unchanged from origin/v1.3 133c261a (git diff origin/v1.3 -- src bin presets is empty). Harness changes only: --set flag (scripts/v1.3/lib/validate-reference-main.ts, reference-model.ts, ue-baseline-live.ts) and scripts/v1.3/devset-b-score.ts",
+  "neo4j": "Neo4j 5.26.24 community from the dist.neo4j.org tarball with APOC 5.26.24 core (github.com/neo4j/apoc release jar), bolt://localhost:7687, local throwaway password; no --engine cypher-interp exists on v1.3",
+  "node": "v22.22.0",
+  "manifests": "All expected-findings.json and devset-b.json files were written and committed before the first tool run on devset-b (patch styles committed by 3ec8e2b7 at 00:45:48Z, before run1 at 00:45:58Z; ddd committed in 7968f605 at 00:50:33Z, before run2 at 00:50:49Z)",
+  "command": "npx tsx scripts/v1.3/ue-baseline-live.ts --set devset-b --style <styles> --out results/v1.3-devset-b; npx tsx scripts/v1.3/validate-reference.ts --set devset-b --from-raw results/v1.3-devset-b/raw --out results/v1.3-devset-b; npx tsx scripts/v1.3/devset-b-score.ts --base results/v1.3-devset-b",
+  "runs": [
+    { "attempt": "run1", "styles": "clean-architecture, layered, nestjs, hexagonal", "start": "2026-10-16T00:45:58Z", "end": "2026-10-16T00:50:07Z", "kept": true },
+    { "attempt": "run2", "styles": "ddd", "start": "2026-10-16T00:50:49Z", "end": "2026-10-16T00:52:30Z", "kept": true },
+    { "attempt": "run3", "styles": "all five", "start": "2026-10-16T00:53:57Z", "end": "2026-10-16T00:59:38Z", "kept": false, "identicalToRun1And2": "raw/ byte-identical (136 files); evidence violations identical 136/136 (only elapsedMs differs)" },
+    { "attempt": "run4", "styles": "all five", "start": "2026-10-16T01:11:28Z", "end": "2026-10-16T01:16:36Z", "kept": false, "code": "after merging origin/v1.3 2c64d1d5 into the branch (24 tool files changed upstream since 133c261a: field-state, analysis-ready, wild, ise-robust)", "identicalToRun1And2": "raw/ byte-identical (136 files); evidence violations identical 136/136; output not committed (duplicate)" }
+  ],
+  "report": "report.md / report.json were regenerated with --from-raw over all five styles after run2 (run2 alone had overwritten them with ddd only)",
+  "scoringNote": "The cycle-containment view of devset-b-score.ts was added AFTER the literal results were seen (all 5 literal FF-S02 misses were 3-file cycles reported in full by the tool); the literal view is the pre-declared one and is reported first",
+  "temp": "materialised variants under the OS temp directory; removed after each run"
+}

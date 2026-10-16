@@ -41,8 +41,10 @@ describe('requireEnv (BR-U3-80)', () => {
   });
 });
 
-describe('TF-20: NEO4J_PASSWORD unset across the CLI commands', () => {
+// v1.3 npx mode: the password is required on the Neo4j engine, which NEO4J_URI selects (src/cli/engine-default.ts).
+describe('TF-20: NEO4J_PASSWORD unset across the CLI commands (Neo4j engine)', () => {
   const saved = process.env.NEO4J_PASSWORD;
+  const savedUri = process.env.NEO4J_URI;
   let stderr: string[];
   let stderrSpy: jest.SpyInstance;
   let stdoutSpy: jest.SpyInstance;
@@ -51,6 +53,7 @@ describe('TF-20: NEO4J_PASSWORD unset across the CLI commands', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     delete process.env.NEO4J_PASSWORD;
+    process.env.NEO4J_URI = 'bolt://localhost:7687';
     process.exitCode = undefined;
     stderr = [];
     stderrSpy = jest.spyOn(process.stderr, 'write').mockImplementation((chunk: string | Uint8Array) => { stderr.push(String(chunk)); return true; });
@@ -65,6 +68,8 @@ describe('TF-20: NEO4J_PASSWORD unset across the CLI commands', () => {
     process.exitCode = undefined;
     if (saved === undefined) delete process.env.NEO4J_PASSWORD;
     else process.env.NEO4J_PASSWORD = saved;
+    if (savedUri === undefined) delete process.env.NEO4J_URI;
+    else process.env.NEO4J_URI = savedUri;
   });
 
   it.each([
@@ -80,6 +85,19 @@ describe('TF-20: NEO4J_PASSWORD unset across the CLI commands', () => {
     expect(process.exitCode).toBe(2);
     expect(stderr.join('')).toContain(`Error [${CONFIG_MISSING_ENV}]: NEO4J_PASSWORD is not set`);
     expect(createPipeline).not.toHaveBeenCalled();
+  });
+
+  it('--engine cypher-interp needs no password even with NEO4J_URI set', async () => {
+    await loadProgram().parseAsync(['node', 'firewall', 'evaluate', '--project', '/p', '--spec', 's.yaml', '--symbolic-only', '--engine', 'cypher-interp']).catch(() => undefined);
+    expect(stderr.join('')).not.toContain(CONFIG_MISSING_ENV);
+    expect(stderr.join('')).toContain('daedalus: graph engine cypher-interp');
+  });
+
+  it('without NEO4J_URI the default engine is cypher-interp: no password read, the engine line names it', async () => {
+    delete process.env.NEO4J_URI;
+    await loadProgram().parseAsync(['node', 'firewall', 'baseline', '--project', '/p', '--spec', 's.yaml']).catch(() => undefined);
+    expect(stderr.join('')).not.toContain(CONFIG_MISSING_ENV);
+    expect(stderr.join('')).toContain('daedalus: graph engine cypher-interp (in-process, no database) [NEO4J_URI is not set');
   });
 });
 

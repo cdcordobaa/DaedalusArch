@@ -23,7 +23,12 @@ export interface FitnessFunction {
   readonly pattern?: string;
   // Judge unit for neuronal/hybrid functions (FR-33); default per dimension is set by U4.
   readonly judgeUnit?: JudgeUnitKind;
+  /** DDD style only (v1.3): the rule's tier, assigned a priori. Absent for every other style; not read by scoring yet (FR-V6). */
+  readonly tier?: RuleTier;
 }
+
+/** v1.3 rule tier (FR-V4, ahead of FR-V6): only a blocking rule is meant to be able to fail a verdict. */
+export type RuleTier = 'blocking' | 'advisory';
 
 /** The six YAML keys FR-07 maps, as one typed bag. */
 export type FunctionSpecificFields = Pick<
@@ -51,6 +56,49 @@ export interface EvalRubric {
 
 export interface LayerModel {
   readonly layers: readonly LayerDefinition[];
+  /** Hexagonal style only (v1.3): the allowed-dependency graph, `from` may import `to`. Absent for every other style. */
+  readonly allowedDependencies?: readonly AllowedDependency[];
+  /** DDD style only (v1.3): the declared bounded contexts, aggregates and tactical roles (`architecture.ddd`). */
+  readonly ddd?: DddModel;
+}
+
+/**
+ * `architecture.ddd` (v1.3, style `ddd`). Everything the extractor cannot infer is declared here: which files form a
+ * context, its public API and anti-corruption layer, which file is an aggregate root or an inner entity, and which files
+ * hold repositories, value objects and application services. Paths are project-relative globs.
+ */
+export interface DddModel {
+  readonly sourceRoot: string;
+  readonly contexts: readonly DddContext[];
+  readonly outsideContexts: readonly string[];
+  readonly aggregates: readonly DddAggregate[];
+  readonly valueObjects: readonly string[];
+  readonly repositories: readonly string[];
+  readonly domainEventTypes: readonly string[];
+  readonly applicationServices: readonly string[];
+}
+
+export interface DddContext {
+  readonly name: string;
+  /** Top-level module of the context: `<sourceRoot><name>/`. */
+  readonly root: string;
+  readonly publicApi: readonly string[];
+  readonly acl: readonly string[];
+}
+
+export interface DddAggregate {
+  readonly name: string;
+  readonly context: string;
+  /** Glob of the aggregate's module (root, inner entities, its value objects, events, repository interface). */
+  readonly module: string;
+  readonly root: string;
+  readonly innerEntities: readonly string[];
+}
+
+/** One directed edge of the hexagonal allowed-dependency graph (`architecture.allowed_dependencies`). */
+export interface AllowedDependency {
+  readonly from: string;
+  readonly to: string;
 }
 
 export interface LayerDefinition {

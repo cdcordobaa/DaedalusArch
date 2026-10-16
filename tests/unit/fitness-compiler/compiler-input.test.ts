@@ -1,6 +1,6 @@
 import * as path from 'node:path';
 import { compilerInputFromSpec } from '../../../src/fitness-compiler/compiler-input.js';
-import { compileFunctions, FitnessCompilerStage } from '../../../src/fitness-compiler/fitness-compiler.js';
+import { compileFunctions, FitnessCompilerStage, V13_COMPILE_OPTIONS } from '../../../src/fitness-compiler/fitness-compiler.js';
 import { CompileCommand } from '../../../src/pipeline/commands/compile-command.js';
 import { parseSpec } from '../../../src/spec-parser/spec-parser.js';
 import { FirewallContext } from '../../../src/shared/context/firewall-context.js';
@@ -67,6 +67,16 @@ describe('compilerInputFromSpec (BR-U1-11)', () => {
     cmdCtx.setParsedSpec(spec);
     const cmdResult = await new CompileCommand().execute(cmdCtx);
     expect(cmdResult.success).toBe(true);
-    expect(cmdCtx.getCompiledFunctions()).toEqual(legacy.data);
+    // v1.3 (ADR-V13-01): the pipeline's CompileCommand compiles with the v1.3 edge views on.
+    const withViews = compileFunctions({
+      fitnessFunctions: spec.fitnessFunctions,
+      adrRules: spec.adrRules,
+      layerModel: spec.layerModel,
+      scoringWeights: spec.scoringWeights,
+      style: 'clean-architecture',
+    }, V13_COMPILE_OPTIONS);
+    expect(withViews.success).toBe(true);
+    if (!withViews.success) return;
+    expect(cmdCtx.getCompiledFunctions()).toEqual(withViews.data);
   });
 });

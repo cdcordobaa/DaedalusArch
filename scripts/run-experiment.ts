@@ -446,9 +446,12 @@ export function cliArgv(
   plan: ExperimentPlan, entry: PlanEntry, instrumentVersion: InstrumentVersion = INSTRUMENT_VERSION, judge: JudgeRunOptions = {},
   tsconfigPath?: string,
 ): string[] {
-  const argv = ['evaluate', '--project', entry.path, '--spec', entry.specPath, '--format', 'json', ...modeFlags(plan.mode)];
+  // v1.3 npx mode: the CLI's engine default follows NEO4J_URI; a registered run always names the reference engine.
+  const argv = ['evaluate', '--project', entry.path, '--spec', entry.specPath, '--format', 'json', ...modeFlags(plan.mode), '--engine', 'neo4j'];
   if (entry.graphMode !== undefined && entry.graphMode !== 'full') argv.push('--graph-mode', entry.graphMode);
   if (tsconfigPath !== undefined) argv.push('--tsconfig', tsconfigPath); // ADR-032 (E1 cells)
+  // v1.3 FR-V6: the CLI defaults to the v1.3 tiered scoring; the registered v1.2E plans pin the v1.2E scoring.
+  argv.push('--scoring', 'v1.2e');
   argv.push('--instrument', `v${String(instrumentVersion)}`); // ADR-026
   if (plan.mode !== 'symbolic-only') {
     if (plan.judge !== undefined) argv.push('--llm-provider', plan.judge.provider, '--llm-model', plan.judge.model);

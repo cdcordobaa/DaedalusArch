@@ -108,12 +108,15 @@ describe('BR-U1-11 (a): validate prints the CompileCommand denominator', () => {
     );
   });
 
-  it('presets/layered.yaml prints declared 27, compiled 18, disabled 9 (BR-U1-19 a)', async () => {
+  // v1.3 fix round (ADR-V13-02 draft): the CompileCommand compiles with V13_COMPILE_OPTIONS, where FF-P06 is not
+  // applicable to layered; the frozen compile still gives compiled 18, disabled 9 (v13-fix-round.test.ts).
+  it('presets/layered.yaml prints declared 27, compiled 17, disabled 10 (BR-U1-19 a; FF-P06 n/a in layered under v1.3)', async () => {
     const specPath = path.join(ROOT, 'presets/layered.yaml');
     const spec = await loadSpec(specPath);
     const { exitCode, text } = await runValidate(specPath, projectFor(spec, 'layered-counts'));
     expect(exitCode).toBe(0);
-    expect(text).toContain('declared 27, compiled 18, disabled 9\n'); // U3-R6 (BR-U3-25)
+    expect(text).toContain('declared 27, compiled 17, disabled 10\n'); // U3-R6 (BR-U3-25), fix round ADR-V13-02
+    expect(text).toContain('  Disabled: FF-P06 domain-state-purity: not applicable to style layered (v1.3: ');
     expect(text).toContain('  Disabled: FF-CV02 naming-services: no application layer\n');
     expect(text).toContain('  Disabled: FF-S04 ');
   });
@@ -145,7 +148,7 @@ confidence_thresholds: { high: 0.85, medium: 0.70, icc_minimum: 0.75 }
     const { exitCode, text } = await runValidate(specPath, path.join(TMP, 'no-such-project'));
     expect(exitCode).toBe(1);
     expect(text).toContain('[LAYER_DIR_NOT_FOUND]');
-    expect(text).toContain('declared 27, compiled 18, disabled 9\n'); // U3-R6 (BR-U3-25)
+    expect(text).toContain('declared 27, compiled 17, disabled 10\n'); // U3-R6 (BR-U3-25), fix round ADR-V13-02
   });
 });
 

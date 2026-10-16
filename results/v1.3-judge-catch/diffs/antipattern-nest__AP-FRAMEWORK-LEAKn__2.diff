@@ -1,0 +1,21 @@
+diff -ruN bases/antipattern-nest/src/order/order.service.ts copies/antipattern-nest__AP-FRAMEWORK-LEAKn__2/src/order/order.service.ts
+--- bases/antipattern-nest/src/order/order.service.ts	2026-10-15 11:50:59
++++ copies/antipattern-nest__AP-FRAMEWORK-LEAKn__2/src/order/order.service.ts	2026-10-15 11:51:13
+@@ -10,7 +10,7 @@
+     private readonly orderRepository: Repository<OrderEntity>,
+   ) {}
+ 
+-  async create(customerId: string, quantity: number, unitPrice: number): Promise<OrderEntity> {
++  async create(customerId: string, quantity: number, unitPrice: number, context?: CreateContextDto): Promise<OrderEntity> {
+     if (quantity <= 0) {
+       throw new BadRequestException('Quantity must be positive');
+     }
+@@ -25,4 +25,8 @@
+     }
+     return order;
+   }
++}
++
++export interface CreateContextDto {
++  readonly requestId?: string;
+ }

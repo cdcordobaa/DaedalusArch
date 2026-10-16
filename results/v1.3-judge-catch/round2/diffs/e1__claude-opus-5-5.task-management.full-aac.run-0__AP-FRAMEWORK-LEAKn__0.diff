@@ -1,0 +1,21 @@
+diff -ruN -x node_modules a/src/application/use-cases/ListProjectTasksUseCase.ts b/src/application/use-cases/ListProjectTasksUseCase.ts
+--- a/src/application/use-cases/ListProjectTasksUseCase.ts	2026-10-15 12:42:23
++++ b/src/application/use-cases/ListProjectTasksUseCase.ts	2026-10-15 12:42:15
+@@ -12,7 +12,7 @@
+     private readonly tasks: TaskRepository,
+   ) {}
+ 
+-  async execute(input: ListProjectTasksInput): Promise<TaskDto[]> {
++  async execute(input: ListProjectTasksInput, context?: ExecuteContextDto): Promise<TaskDto[]> {
+     const project = await this.projects.findById(input.projectId);
+     if (project === undefined) {
+       throw new NotFoundError('Project', input.projectId);
+@@ -24,4 +24,8 @@
+     });
+     return tasks.map(toTaskDto);
+   }
++}
++
++export interface ExecuteContextDto {
++  readonly requestId?: string;
+ }

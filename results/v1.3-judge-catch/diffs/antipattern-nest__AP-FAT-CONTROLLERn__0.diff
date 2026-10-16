@@ -1,0 +1,13 @@
+diff -ruN bases/antipattern-nest/src/order/order.controller.ts copies/antipattern-nest__AP-FAT-CONTROLLERn__0/src/order/order.controller.ts
+--- bases/antipattern-nest/src/order/order.controller.ts	2026-10-15 11:50:59
++++ copies/antipattern-nest__AP-FAT-CONTROLLERn__0/src/order/order.controller.ts	2026-10-15 11:51:02
+@@ -9,7 +9,8 @@
+ 
+   @Post()
+   create(@Body() dto: CreateOrderDto): Promise<OrderEntity> {
+-    return this.orderService.create(dto.customerId, dto.quantity, dto.unitPrice);
++    const customerId = dto.customerId;
++    return this.orderService.create(customerId, dto.quantity, dto.unitPrice);
+   }
+ 
+   @Get(':id')

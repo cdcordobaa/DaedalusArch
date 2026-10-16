@@ -1,0 +1,50 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6998,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "0e08f2b3d951fa1d043223de21752ab6609426d93a32b837450c016b1f92e13d-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "src/domain/entities/Book.ts: `@Entity('books')` on `export class Book` maps the domain entity to the 'books' database table through TypeORM. That is persistence mapping, which belongs in the infrastructure layer.",
+      "src/domain/entities/Book.ts: the constructor invariants and the checkOut()/checkIn() rules are proper domain responsibilities."
+    ],
+    "pass": false,
+    "reasoning": "Most of what Book does is domain logic: the invariants in the constructor (non-empty title, non-negative copies) and the checkOut/checkIn rules on available copies. But the class also has the TypeORM decorator `@Entity('books')`, which maps the entity to the 'books' database table. That ties the domain entity to a specific ORM and storage schema, which is a persistence job for the infrastructure layer. The import direction itself is out of scope, but the persistence mapping is a misplaced responsibility in its own right.",
+    "violations": [
+      {
+        "filePath": "src/domain/entities/Book.ts",
+        "message": "The class Book has the TypeORM decorator `@Entity('books')`, which maps it to the 'books' table. Mapping an entity to a database table is a persistence (infrastructure) job, not a domain one. Move the mapping into an infrastructure persistence model or mapper."
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/entities/Book.ts\nLayer: domain\nUnit files:\n- src/domain/entities/Book.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/entities/Book.ts=====\nimport { Entity } from 'typeorm';\nimport { DomainError } from '../errors/DomainError';\nimport { Isbn } from '../value-objects/Isbn';\n\n@Entity('books')\nexport class Book {\n  constructor(\n    readonly id: string,\n    readonly isbn: Isbn,\n    readonly title: string,\n    readonly author: string,\n    private availableCopies: number,\n  ) {\n    if (title.trim().length === 0) throw new DomainError('INVALID_BOOK', 'A book needs a title');\n    if (availableCopies < 0) throw new DomainError('INVALID_BOOK', 'Copies cannot be negative');\n  }\n\n  get copiesAvailable(): number {\n    return this.availableCopies;\n  }\n\n  checkOut(): void {\n    if (this.availableCopies === 0) {\n      throw new DomainError('NO_COPIES', `No copy of \"${this.title}\" is available`);\n    }\n    this.availableCopies -= 1;\n  }\n\n  checkIn(): void {\n    this.availableCopies += 1;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"Book@src/domain/entities/Book.ts\",\"to\":\"Isbn@src/domain/value-objects/Isbn.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/dto/BookDto.ts\",\"to\":\"src/domain/entities/Book.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/RegisterBookUseCase.ts\",\"to\":\"src/domain/entities/Book.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/entities/Book.ts\",\"to\":\"src/domain/errors/DomainError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/entities/Book.ts\",\"to\":\"src/domain/value-objects/Isbn.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/entities/Book.ts\",\"to\":\"typeorm\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/repositories/BookRepository.ts\",\"to\":\"src/domain/entities/Book.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/persistence/InMemoryBookRepository.ts\",\"to\":\"src/domain/entities/Book.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Book\",\"path\":\"src/domain/entities/Book.ts\"},{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Isbn\",\"path\":\"src/domain/value-objects/Isbn.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto/BookDto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/RegisterBookUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Book.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors/DomainError.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/BookRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/value-objects/Isbn.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/persistence/InMemoryBookRepository.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"typeorm\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T18:09:06.779Z",
+  "repetition": 0,
+  "requestHash": "0e08f2b3d951fa1d043223de21752ab6609426d93a32b837450c016b1f92e13d",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":613}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"Most of what Book does is domain logic: the invariants in the constructor (non-empty title, non-negative copies) and the checkOut/checkIn rules on available copies. But the class also has the TypeORM decorator `@Entity('books')`, which maps the entity to the 'books' database table. That ties the domain entity to a specific ORM and storage schema, which is a persistence job for the infrastructure layer. The import direction itself is out of scope, but the persistence mapping is a misplaced responsibility in its own right.\\\",\\\"evidence\\\":[\\\"src/domain/entities/Book.ts: `@Entity('books')` on `export class Book` maps the domain entity to the 'books' database table through TypeORM. That is persistence mapping, which belongs in the infrastructure layer.\\\",\\\"src/domain/entities/Book.ts: the constructor invariants and the checkOut()/checkIn() rules are proper domain responsibilities.\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/domain/entities/Book.ts\\\",\\\"message\\\":\\\"The class Book has the TypeORM decorator `@Entity('books')`, which maps it to the 'books' table. Mapping an entity to a database table is a persistence (infrastructure) job, not a domain one. Move the mapping into an infrastructure persistence model or mapper.\\\"}]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"src/domain/entities/Book.ts: `@Entity('books')` on `export class Book` maps the domain entity to the 'books' database table through TypeORM. That is persistence mapping, which belongs in the infrastructure layer.\",\"src/domain/entities/Book.ts: the constructor invariants and the checkOut()/checkIn() rules are proper domain responsibilities.\"],\"pass\":false,\"reasoning\":\"Most of what Book does is domain logic: the invariants in the constructor (non-empty title, non-negative copies) and the checkOut/checkIn rules on available copies. But the class also has the TypeORM decorator `@Entity('books')`, which maps the entity to the 'books' database table. That ties the domain entity to a specific ORM and storage schema, which is a persistence job for the infrastructure layer. The import direction itself is out of scope, but the persistence mapping is a misplaced responsibility in its own right.\",\"violations\":[{\"filePath\":\"src/domain/entities/Book.ts\",\"message\":\"The class Book has the TypeORM decorator `@Entity('books')`, which maps it to the 'books' table. Mapping an entity to a database table is a persistence (infrastructure) job, not a domain one. Move the mapping into an infrastructure persistence model or mapper.\"}]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/domain/entities/Book.ts",
+  "usage": {
+    "inputTokens": 3066,
+    "outputTokens": 613
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

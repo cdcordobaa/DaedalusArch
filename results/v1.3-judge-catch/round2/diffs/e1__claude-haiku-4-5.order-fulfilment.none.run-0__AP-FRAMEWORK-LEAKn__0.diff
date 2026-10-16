@@ -1,0 +1,21 @@
+diff -ruN -x node_modules a/src/application/CancelOrderUseCase.ts b/src/application/CancelOrderUseCase.ts
+--- a/src/application/CancelOrderUseCase.ts	2026-10-15 12:42:23
++++ b/src/application/CancelOrderUseCase.ts	2026-10-15 12:42:14
+@@ -5,7 +5,7 @@
+ export class CancelOrderUseCase {
+   constructor(private catalog: Catalog, private orderRepository: OrderRepository) {}
+ 
+-  execute(orderId: string): Order {
++  execute(orderId: string, context?: ExecuteContextDto): Order {
+     const order = this.orderRepository.getById(orderId);
+     if (!order) {
+       throw new Error(`Order ${orderId} not found`);
+@@ -23,4 +23,8 @@
+     this.orderRepository.save(order);
+     return order;
+   }
++}
++
++export interface ExecuteContextDto {
++  readonly requestId?: string;
+ }

@@ -14,6 +14,8 @@ export interface IngestionInput {
   readonly commitSha?: CommitSha;
   readonly apgStorePath?: string;
   readonly driftThresholds?: DriftThresholds;
+  /** MT-B1 (OFF by default): `liftLayerlessBarrelEdges` before the edges are written (`layerless-barrel-edges.ts`). */
+  readonly literalThroughLayerlessBarrels?: boolean;
 }
 
 export interface IngestionConfig {
@@ -38,7 +40,13 @@ export const WRITE_QUERY_TIMEOUT_MS = 120_000;
 
 /** `Neo4jRepository` constructor parameter: the password is required, everything else optional. */
 export type Neo4jRepositoryConfig =
-  Partial<Omit<IngestionConfig, 'neo4jPassword'>> & Pick<IngestionConfig, 'neo4jPassword'>;
+  Partial<Omit<IngestionConfig, 'neo4jPassword'>> & Pick<IngestionConfig, 'neo4jPassword'> & {
+    /**
+     * v1.3 fix round: hold the cross-process Neo4j lock (`src/shared/process/neo4j-lock.ts`) from the first query
+     * until `close()`. The pipeline and the MCP server set it; a bare repository (tests, scripts) does not.
+     */
+    readonly lock?: boolean;
+  };
 
 // ── Layer Annotation ──────────────────────────────────────────────────────────
 

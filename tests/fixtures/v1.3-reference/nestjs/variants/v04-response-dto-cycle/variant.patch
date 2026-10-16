@@ -1,0 +1,30 @@
+--- a/src/registrations/dto/registration-response.dto.ts
++++ b/src/registrations/dto/registration-response.dto.ts
+@@ -1,10 +1,12 @@
+ import { Registration } from '../../domain/registration';
++import { WorkshopResponseDto } from '../../workshops/dto/workshop-response.dto';
+ 
+ export class RegistrationResponseDto {
+   id!: string;
+   workshopId!: string;
+   attendeeId!: string;
+   active!: boolean;
++  workshop?: WorkshopResponseDto;
+ 
+   static from(registration: Registration): RegistrationResponseDto {
+     return Object.assign(new RegistrationResponseDto(), {
+--- a/src/workshops/dto/workshop-response.dto.ts
++++ b/src/workshops/dto/workshop-response.dto.ts
+@@ -1,10 +1,12 @@
+ import { Workshop } from '../../domain/workshop';
++import { RegistrationResponseDto } from '../../registrations/dto/registration-response.dto';
+ 
+ export class WorkshopResponseDto {
+   id!: string;
+   title!: string;
+   seatsLeft!: number;
+   startsAt!: string;
++  registrations?: RegistrationResponseDto[];
+ 
+   static from(workshop: Workshop): WorkshopResponseDto {
+     return Object.assign(new WorkshopResponseDto(), {

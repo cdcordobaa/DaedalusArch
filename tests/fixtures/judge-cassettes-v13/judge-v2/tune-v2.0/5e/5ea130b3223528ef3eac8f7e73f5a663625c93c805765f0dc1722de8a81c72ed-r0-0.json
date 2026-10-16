@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6853,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "5ea130b3223528ef3eac8f7e73f5a663625c93c805765f0dc1722de8a81c72ed-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/application/catalogue/ListStockLevelsUseCase.ts: `constructor(private readonly products: ProductRepository)` injects a repository interface that the project's domain layer declares (src/domain/repositories/ProductRepository), not a framework or ORM type",
+      "src/application/catalogue/ListStockLevelsUseCase.ts: `execute(): StockLevelDto[]` returns an application DTO from ./ProductDtos, not a delivery-layer response",
+      "src/application/catalogue/ListStockLevelsUseCase.ts: the class has no decorators or base classes and only implements the local interface ListStockLevels",
+      "src/application/catalogue/ListStockLevelsUseCase.ts: the method body `this.products.findAll().map(toStockLevelDto)` is pure orchestration through a port"
+    ],
+    "pass": true,
+    "reasoning": "The file is a plain application use case. It defines a ListStockLevels port interface and a ListStockLevelsUseCase class. The class depends on a domain repository interface through its constructor, gets products with findAll() and maps them to application DTOs. No signature uses a framework, web or transport type. The class has no decorators or framework base classes. It returns no HTTP request, response or status code and does no direct I/O. Everything it does is orchestration, which is the application layer's job.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities, signatures and annotations match the role of its declared layer.\n\n## Rubric\nPass: Every declaration in the file belongs to the role and kind of its declared layer, including its parameter, return and field types, its decorators and base classes, and its statements, and agrees with any ADR prose given.\nFail: The file carries something that belongs to a different layer kind. In a domain or application file: a type of a web, transport or framework package in any signature (parameter, return or field), even when the parameter is optional or unused; or a request, response, status code or HTTP error of the delivery layer. In a domain file also: a framework or ORM decorator or base class (dependency injection, routing, persistence mapping), even when the class logic is pure; or persistence or I/O (queries, database or ORM clients, HTTP or file access). In an infrastructure or presentation file: a business rule, that is a domain invariant, calculation or decision that the domain or application layer should own. A type the project declares itself is not a framework type, whatever its name.\nEvidence required: Name the file and cite the signature, decorator, declaration or statement that carries the misplaced responsibility, its package or origin, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/catalogue/ListStockLevelsUseCase.ts\nLayer: application\nUnit files:\n- src/application/catalogue/ListStockLevelsUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/catalogue/ListStockLevelsUseCase.ts=====\nimport type { ProductRepository } from '../../domain/repositories/ProductRepository';\nimport type { StockLevelDto } from './ProductDtos';\nimport { toStockLevelDto } from './ProductMapper';\n\nexport interface ListStockLevels {\n  execute(): StockLevelDto[];\n}\n\nexport class ListStockLevelsUseCase implements ListStockLevels {\n  constructor(private readonly products: ProductRepository) {}\n\n  execute(): StockLevelDto[] {\n    return this.products.findAll().map(toStockLevelDto);\n  }\n}\n\n=====SOURCE-END=====\n\n## Neighbourhood\nsrc/application/catalogue/ListStockLevelsUseCase.ts (layer application, kind application)\n  imports: src/application/catalogue/ProductDtos.ts (layer application, kind application); src/application/catalogue/ProductMapper.ts (layer application, kind application); src/domain/repositories/ProductRepository.ts (layer domain, kind domain)\n  imported by: src/application/catalogue/CatalogueModule.ts (layer application, kind application)\n  types: ListStockLevelsUseCase implements ListStockLevels in src/application/catalogue/ListStockLevelsUseCase.ts (layer application, kind application); ListStockLevelsUseCase injects ProductRepository in src/domain/repositories/ProductRepository.ts (layer domain, kind domain)\n\n## Candidate flags\nCandidates proposed by deterministic checks; verify, don't trust. Each line is a tool observation with its location, not a finding.\n(none)\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric. Check each candidate flag against the source: a flag the source does not support must not count against the unit, and a violation the flags miss counts as much as one they name. Judge what each declaration is, not only what it does at run time.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T20:55:15.860Z",
+  "repetition": 0,
+  "requestHash": "5ea130b3223528ef3eac8f7e73f5a663625c93c805765f0dc1722de8a81c72ed",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":566}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"The file is a plain application use case. It defines a ListStockLevels port interface and a ListStockLevelsUseCase class. The class depends on a domain repository interface through its constructor, gets products with findAll() and maps them to application DTOs. No signature uses a framework, web or transport type. The class has no decorators or framework base classes. It returns no HTTP request, response or status code and does no direct I/O. Everything it does is orchestration, which is the application layer's job.\\\",\\\"evidence\\\":[\\\"src/application/catalogue/ListStockLevelsUseCase.ts: `constructor(private readonly products: ProductRepository)` injects a repository interface that the project's domain layer declares (src/domain/repositories/ProductRepository), not a framework or ORM type\\\",\\\"src/application/catalogue/ListStockLevelsUseCase.ts: `execute(): StockLevelDto[]` returns an application DTO from ./ProductDtos, not a delivery-layer response\\\",\\\"src/application/catalogue/ListStockLevelsUseCase.ts: the class has no decorators or base classes and only implements the local interface ListStockLevels\\\",\\\"src/application/catalogue/ListStockLevelsUseCase.ts: the method body `this.products.findAll().map(toStockLevelDto)` is pure orchestration through a port\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/application/catalogue/ListStockLevelsUseCase.ts: `constructor(private readonly products: ProductRepository)` injects a repository interface that the project's domain layer declares (src/domain/repositories/ProductRepository), not a framework or ORM type\",\"src/application/catalogue/ListStockLevelsUseCase.ts: `execute(): StockLevelDto[]` returns an application DTO from ./ProductDtos, not a delivery-layer response\",\"src/application/catalogue/ListStockLevelsUseCase.ts: the class has no decorators or base classes and only implements the local interface ListStockLevels\",\"src/application/catalogue/ListStockLevelsUseCase.ts: the method body `this.products.findAll().map(toStockLevelDto)` is pure orchestration through a port\"],\"pass\":true,\"reasoning\":\"The file is a plain application use case. It defines a ListStockLevels port interface and a ListStockLevelsUseCase class. The class depends on a domain repository interface through its constructor, gets products with findAll() and maps them to application DTOs. No signature uses a framework, web or transport type. The class has no decorators or framework base classes. It returns no HTTP request, response or status code and does no direct I/O. Everything it does is orchestration, which is the application layer's job.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/catalogue/ListStockLevelsUseCase.ts",
+  "usage": {
+    "inputTokens": 2777,
+    "outputTokens": 566
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 14717,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "a749b06a4bc46460efd47943bffa0aee8343515d7d9485640184abdd7d01f145-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.62,
+    "evidence": [
+      "src/application/get-order-use-case.ts: `async execute(orderId: string, request?: Request): Promise<OrderDto>`: the application use case API accepts an Express HTTP Request, which is a transport/framework (infrastructure) concern",
+      "src/application/get-order-use-case.ts: `import { Request } from \"express\"` is the type behind that parameter",
+      "The rest of execute (orders.findById, NotFoundError, toOrderDto) is normal application orchestration"
+    ],
+    "pass": false,
+    "reasoning": "GetOrderUseCase does normal application work: it loads the order through the injected OrderRepository port, throws the domain NotFoundError when the order is missing, and maps the result with toOrderDto. But the public execute signature also takes an Express Request (`request?: Request`). That ties the use case's contract to the HTTP transport framework, which is an infrastructure concern. The parameter is unused, so this is coupling in the contract rather than active transport logic, which is why confidence is moderate. The express import on its own is an import-direction issue and is out of scope. The finding is that the use case's API takes a transport object. Any request-derived data should be extracted by the infrastructure controller and passed in as plain values.",
+    "violations": [
+      {
+        "filePath": "src/application/get-order-use-case.ts",
+        "message": "GetOrderUseCase.execute takes an Express `Request` parameter (`request?: Request`), which puts HTTP transport/framework concerns (infrastructure) into the application use case's contract. Remove it and have the infrastructure controller pass in plain values."
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/get-order-use-case.ts\nLayer: application\nUnit files:\n- src/application/get-order-use-case.ts\n\n## Source\n=====SOURCE-BEGIN src/application/get-order-use-case.ts=====\nimport { NotFoundError } from \"../domain/errors\";\nimport { OrderRepository } from \"../domain/order-repository\";\nimport { OrderDto, toOrderDto } from \"./dtos\";\nimport { Request } from \"express\";\n\nexport class GetOrderUseCase {\n  constructor(private readonly orders: OrderRepository) {}\n\n  async execute(orderId: string, request?: Request): Promise<OrderDto> {\n    const order = await this.orders.findById(orderId);\n    if (!order) throw new NotFoundError(`Order ${orderId} not found`);\n    return toOrderDto(order);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"GetOrderUseCase@src/application/get-order-use-case.ts\",\"to\":\"OrderRepository@src/domain/order-repository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"OrderController@src/infrastructure/order-controller.ts\",\"to\":\"GetOrderUseCase@src/application/get-order-use-case.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/get-order-use-case.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/get-order-use-case.ts\",\"to\":\"src/application/dtos.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/get-order-use-case.ts\",\"to\":\"src/domain/errors.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/get-order-use-case.ts\",\"to\":\"src/domain/order-repository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/app-factory.ts\",\"to\":\"src/application/get-order-use-case.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/order-controller.ts\",\"to\":\"src/application/get-order-use-case.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"GetOrderUseCase\",\"path\":\"src/application/get-order-use-case.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"OrderController\",\"path\":\"src/infrastructure/order-controller.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dtos.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/get-order-use-case.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/order-repository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/app-factory.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/order-controller.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"OrderRepository\",\"path\":\"src/domain/order-repository.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T18:00:43.951Z",
+  "repetition": 0,
+  "requestHash": "a749b06a4bc46460efd47943bffa0aee8343515d7d9485640184abdd7d01f145",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":1373}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.62,\\\"reasoning\\\":\\\"GetOrderUseCase does normal application work: it loads the order through the injected OrderRepository port, throws the domain NotFoundError when the order is missing, and maps the result with toOrderDto. But the public execute signature also takes an Express Request (`request?: Request`). That ties the use case's contract to the HTTP transport framework, which is an infrastructure concern. The parameter is unused, so this is coupling in the contract rather than active transport logic, which is why confidence is moderate. The express import on its own is an import-direction issue and is out of scope. The finding is that the use case's API takes a transport object. Any request-derived data should be extracted by the infrastructure controller and passed in as plain values.\\\",\\\"evidence\\\":[\\\"src/application/get-order-use-case.ts: `async execute(orderId: string, request?: Request): Promise<OrderDto>`: the application use case API accepts an Express HTTP Request, which is a transport/framework (infrastructure) concern\\\",\\\"src/application/get-order-use-case.ts: `import { Request } from \\\\\\\"express\\\\\\\"` is the type behind that parameter\\\",\\\"The rest of execute (orders.findById, NotFoundError, toOrderDto) is normal application orchestration\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/application/get-order-use-case.ts\\\",\\\"message\\\":\\\"GetOrderUseCase.execute takes an Express `Request` parameter (`request?: Request`), which puts HTTP transport/framework concerns (infrastructure) into the application use case's contract. Remove it and have the infrastructure controller pass in plain values.\\\"}]}\",\"structured_output\":{\"confidence\":0.62,\"evidence\":[\"src/application/get-order-use-case.ts: `async execute(orderId: string, request?: Request): Promise<OrderDto>`: the application use case API accepts an Express HTTP Request, which is a transport/framework (infrastructure) concern\",\"src/application/get-order-use-case.ts: `import { Request } from \\\"express\\\"` is the type behind that parameter\",\"The rest of execute (orders.findById, NotFoundError, toOrderDto) is normal application orchestration\"],\"pass\":false,\"reasoning\":\"GetOrderUseCase does normal application work: it loads the order through the injected OrderRepository port, throws the domain NotFoundError when the order is missing, and maps the result with toOrderDto. But the public execute signature also takes an Express Request (`request?: Request`). That ties the use case's contract to the HTTP transport framework, which is an infrastructure concern. The parameter is unused, so this is coupling in the contract rather than active transport logic, which is why confidence is moderate. The express import on its own is an import-direction issue and is out of scope. The finding is that the use case's API takes a transport object. Any request-derived data should be extracted by the infrastructure controller and passed in as plain values.\",\"violations\":[{\"filePath\":\"src/application/get-order-use-case.ts\",\"message\":\"GetOrderUseCase.execute takes an Express `Request` parameter (`request?: Request`), which puts HTTP transport/framework concerns (infrastructure) into the application use case's contract. Remove it and have the infrastructure controller pass in plain values.\"}]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/application/get-order-use-case.ts",
+  "usage": {
+    "inputTokens": 2902,
+    "outputTokens": 1373
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

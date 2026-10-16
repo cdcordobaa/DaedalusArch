@@ -1,0 +1,288 @@
+diff --git a/src/business/market-service.ts b/src/business/market-service.ts
+index 0a27b12..fe88a0c 100644
+--- a/src/business/market-service.ts
++++ b/src/business/market-service.ts
+@@ -8,7 +8,7 @@ export const marketService = {
+   defineMarketDay(date: string): MarketDay {
+     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new BusinessError('date must be YYYY-MM-DD');
+     if (marketDayRepository.findByDate(date)) throw new BusinessError('market day already exists');
+-    return marketDayRepository.save({ id: randomUUID(), date });
++    return marketDayRepository.save({ id: randomUUID(), date, status: 'open' });
+   },
+ 
+   listMarketDays(): MarketDay[] {
+@@ -36,12 +36,31 @@ export const marketService = {
+ 
+   book(vendorId: string, marketDayId: string, pitchNumber: number): Booking {
+     if (!vendorRepository.find(vendorId)) throw new BusinessError('unknown vendor', 404);
+-    if (!marketDayRepository.find(marketDayId)) throw new BusinessError('unknown market day', 404);
++    const day = marketDayRepository.find(marketDayId);
++    if (!day) throw new BusinessError('unknown market day', 404);
++    if (day.status !== 'open') throw new BusinessError('market day is closed for booking changes', 409);
+     if (!pitchRepository.find(pitchNumber)) throw new BusinessError('unknown pitch', 404);
+-    const dayBookings = bookingRepository.forDay(marketDayId);
++    const dayBookings = bookingRepository.activeForDay(marketDayId);
+     if (dayBookings.some((b) => b.pitchNumber === pitchNumber)) throw new BusinessError('pitch already booked for this market day', 409);
+     if (dayBookings.some((b) => b.vendorId === vendorId)) throw new BusinessError('vendor already holds a pitch on this market day', 409);
+-    return bookingRepository.save({ id: randomUUID(), vendorId, marketDayId, pitchNumber });
++    return bookingRepository.save({ id: randomUUID(), vendorId, marketDayId, pitchNumber, feeDue: true });
++  },
++
++  cancelBooking(bookingId: string, now: Date = new Date()): Booking {
++    const booking = bookingRepository.find(bookingId);
++    if (!booking) throw new BusinessError('unknown booking', 404);
++    if (booking.cancelledAt) throw new BusinessError('booking already cancelled', 409);
++    const day = marketDayRepository.find(booking.marketDayId);
++    if (!day || day.status === 'settled') throw new BusinessError('market day is settled', 409);
++    const hoursBefore = (new Date(`${day.date}T00:00:00Z`).getTime() - now.getTime()) / 3600000;
++    return bookingRepository.save({ ...booking, cancelledAt: now.toISOString(), feeDue: hoursBefore < 48 });
++  },
++
++  setCommissionRate(vendorId: string, rate: number): Vendor {
++    const v = vendorRepository.find(vendorId);
++    if (!v) throw new BusinessError('unknown vendor', 404);
++    if (!(rate >= 0 && rate < 1)) throw new BusinessError('rate must be between 0 and 1');
++    return vendorRepository.save({ ...v, commissionRate: rate });
+   },
+ 
+   bookingsForDay(marketDayId: string): Booking[] {
+diff --git a/src/business/sales-service.ts b/src/business/sales-service.ts
+index 22df75e..ab4f47b 100644
+--- a/src/business/sales-service.ts
++++ b/src/business/sales-service.ts
+@@ -20,9 +20,10 @@ export const salesService = {
+     if (!(amount > 0)) throw new BusinessError('amount must be positive');
+     const day = marketDayRepository.findByDate(time.slice(0, 10));
+     if (!day) throw new BusinessError('no market day on the sale date', 422);
++    if (day.status === 'settled') throw new BusinessError('market day is settled', 409);
+     const link = readerLinkRepository.find(day.id, readerId);
+     if (!link) throw new BusinessError('reader is not linked to a vendor for this market day', 422);
+-    const booked = bookingRepository.forDay(day.id).some((b) => b.vendorId === link.vendorId);
++    const booked = bookingRepository.activeForDay(day.id).some((b) => b.vendorId === link.vendorId);
+     if (!booked) throw new BusinessError('vendor has no booking on this market day', 422);
+     return cardSaleRepository.save({
+       id: randomUUID(),
+diff --git a/src/business/settlement-service.ts b/src/business/settlement-service.ts
+new file mode 100644
+index 0000000..647aff9
+--- /dev/null
++++ b/src/business/settlement-service.ts
+@@ -0,0 +1,67 @@
++import { BusinessError, MarketDay, Settlement } from './models';
++import {
++  balanceRepository,
++  bookingRepository,
++  cardSaleRepository,
++  feeRepository,
++  marketDayRepository,
++  pitchRepository,
++  settlementRepository,
++  vendorRepository,
++} from '../persistence/repositories';
++
++const round2 = (n: number): number => Math.round(n * 100) / 100;
++
++export const settlementService = {
++  closeDay(marketDayId: string): MarketDay {
++    const day = marketDayRepository.find(marketDayId);
++    if (!day) throw new BusinessError('unknown market day', 404);
++    if (day.status !== 'open') throw new BusinessError(`market day is already ${day.status}`, 409);
++    return marketDayRepository.save({ ...day, status: 'closed' });
++  },
++
++  settle(marketDayId: string): Settlement[] {
++    const day = marketDayRepository.find(marketDayId);
++    if (!day) throw new BusinessError('unknown market day', 404);
++    if (day.status !== 'closed') throw new BusinessError('only a closed market day can be settled', 409);
++    const fees = feeRepository.get();
++    const sales = cardSaleRepository.forDay(marketDayId);
++    const vendorIds = new Set<string>([
++      ...bookingRepository.forDay(marketDayId).filter((b) => b.feeDue).map((b) => b.vendorId),
++      ...sales.map((s) => s.vendorId),
++    ]);
++    const result: Settlement[] = [];
++    for (const vendorId of vendorIds) {
++      const vendor = vendorRepository.find(vendorId);
++      const rate = vendor?.commissionRate ?? fees.defaultCommissionRate;
++      const total = round2(sales.filter((s) => s.vendorId === vendorId).reduce((a, s) => a + s.amount, 0));
++      let stallFee = 0;
++      for (const b of bookingRepository.forDay(marketDayId).filter((x) => x.vendorId === vendorId && x.feeDue)) {
++        const pitch = pitchRepository.find(b.pitchNumber);
++        if (pitch) stallFee += fees.perSize[pitch.size] + (pitch.hasPower ? fees.powerSurcharge : 0);
++      }
++      const commission = round2(total * rate);
++      const carriedIn = balanceRepository.owed(vendorId);
++      const net = round2(total - commission - stallFee - carriedIn);
++      const settlement: Settlement = {
++        marketDayId,
++        vendorId,
++        sales: total,
++        commission,
++        stallFee,
++        carriedIn,
++        payout: Math.max(0, net),
++        carriedOut: net < 0 ? -net : 0,
++      };
++      balanceRepository.setOwed(vendorId, settlement.carriedOut);
++      settlementRepository.save(settlement);
++      result.push(settlement);
++    }
++    marketDayRepository.save({ ...day, status: 'settled' });
++    return result;
++  },
++
++  settlementsForDay(marketDayId: string): Settlement[] {
++    return settlementRepository.forDay(marketDayId);
++  },
++};
+diff --git a/src/persistence/models.ts b/src/persistence/models.ts
+index 9779c29..9a64c38 100644
+--- a/src/persistence/models.ts
++++ b/src/persistence/models.ts
+@@ -1,7 +1,10 @@
+ /** Records stored by the persistence layer. The business layer re-exports them. */
++export type MarketDayStatus = 'open' | 'closed' | 'settled';
++
+ export interface MarketDay {
+   id: string;
+   date: string; // YYYY-MM-DD
++  status: MarketDayStatus;
+ }
+ 
+ export type PitchSize = 'small' | 'medium' | 'large';
+@@ -17,6 +20,7 @@ export interface Vendor {
+   businessName: string;
+   contact: string;
+   products: string[];
++  commissionRate?: number; // overrides the default
+ }
+ 
+ export interface Booking {
+@@ -24,6 +28,9 @@ export interface Booking {
+   marketDayId: string;
+   pitchNumber: number;
+   vendorId: string;
++  cancelledAt?: string;
++  /** false when cancelled 48 hours or more before the market day */
++  feeDue: boolean;
+ }
+ 
+ export interface ReaderLink {
+@@ -41,3 +48,20 @@ export interface CardSale {
+   time: string;
+   provider: 'paylane';
+ }
++
++export interface FeeSchedule {
++  perSize: Record<PitchSize, number>;
++  powerSurcharge: number;
++  defaultCommissionRate: number;
++}
++
++export interface Settlement {
++  marketDayId: string;
++  vendorId: string;
++  sales: number;
++  commission: number;
++  stallFee: number;
++  carriedIn: number;
++  payout: number;
++  carriedOut: number;
++}
+diff --git a/src/persistence/repositories.ts b/src/persistence/repositories.ts
+index e8758c6..a2bb515 100644
+--- a/src/persistence/repositories.ts
++++ b/src/persistence/repositories.ts
+@@ -1,5 +1,5 @@
+-import { Booking, CardSale, MarketDay, Pitch, ReaderLink, Vendor } from './models';
+-import { bookings, cardSales, marketDays, pitches, readerLinks, vendors } from './store';
++import { Booking, CardSale, FeeSchedule, MarketDay, Pitch, ReaderLink, Settlement, Vendor } from './models';
++import { balances, bookings, cardSales, feeSchedule, marketDays, pitches, readerLinks, settlements, vendors } from './store';
+ 
+ export const marketDayRepository = {
+   save: (d: MarketDay) => marketDays.upsert(d),
+@@ -25,6 +25,7 @@ export const bookingRepository = {
+   find: (id: string) => bookings.get(id),
+   delete: (id: string) => bookings.delete(id),
+   forDay: (marketDayId: string) => bookings.where((b) => b.marketDayId === marketDayId),
++  activeForDay: (marketDayId: string) => bookings.where((b) => b.marketDayId === marketDayId && !b.cancelledAt),
+   forVendor: (vendorId: string) => bookings.where((b) => b.vendorId === vendorId),
+ };
+ 
+@@ -38,4 +39,21 @@ export const cardSaleRepository = {
+   forVendorAndDay: (vendorId: string, marketDayId: string) =>
+     cardSales.where((s) => s.vendorId === vendorId && s.marketDayId === marketDayId),
+   forVendor: (vendorId: string) => cardSales.where((s) => s.vendorId === vendorId),
++  forDay: (marketDayId: string) => cardSales.where((s) => s.marketDayId === marketDayId),
++};
++
++export const settlementRepository = {
++  save: (s: Settlement) => settlements.upsert(s),
++  forDay: (marketDayId: string) => settlements.where((s) => s.marketDayId === marketDayId),
++  forVendor: (vendorId: string) => settlements.where((s) => s.vendorId === vendorId),
++};
++
++export const balanceRepository = {
++  owed: (vendorId: string) => balances.get(vendorId) ?? 0,
++  setOwed: (vendorId: string, amount: number) => balances.set(vendorId, amount),
++};
++
++export const feeRepository = {
++  get: (): FeeSchedule => feeSchedule,
++  update: (patch: Partial<FeeSchedule>): FeeSchedule => Object.assign(feeSchedule, patch),
+ };
+diff --git a/src/persistence/store.ts b/src/persistence/store.ts
+index 783919f..7cf317c 100644
+--- a/src/persistence/store.ts
++++ b/src/persistence/store.ts
+@@ -1,4 +1,4 @@
+-import { Booking, CardSale, MarketDay, Pitch, ReaderLink, Vendor } from './models';
++import { Booking, CardSale, FeeSchedule, MarketDay, Pitch, ReaderLink, Settlement, Vendor } from './models';
+ 
+ /** In-memory tables. */
+ export class Table<T> {
+@@ -28,3 +28,10 @@ export const vendors = new Table<Vendor>((v) => v.id);
+ export const bookings = new Table<Booking>((b) => b.id);
+ export const readerLinks = new Table<ReaderLink>((l) => `${l.marketDayId}|${l.readerId}`);
+ export const cardSales = new Table<CardSale>((s) => s.id);
++export const settlements = new Table<Settlement>((s) => `${s.marketDayId}|${s.vendorId}`);
++export const balances = new Map<string, number>(); // vendorId -> amount still owed to the market
++export const feeSchedule: FeeSchedule = {
++  perSize: { small: 20, medium: 30, large: 45 },
++  powerSurcharge: 8,
++  defaultCommissionRate: 0.05,
++};
+diff --git a/src/presentation/routes.ts b/src/presentation/routes.ts
+index 2589df5..cbfea0c 100644
+--- a/src/presentation/routes.ts
++++ b/src/presentation/routes.ts
+@@ -1,6 +1,7 @@
+ import { Router } from 'express';
+ import { marketService } from '../business/market-service';
+ import { salesService } from '../business/sales-service';
++import { settlementService } from '../business/settlement-service';
+ 
+ export const router = Router();
+ 
+@@ -35,6 +36,21 @@ router.get('/vendors/:vendorId/sales', (req, res) => {
+   const day = typeof req.query.marketDayId === 'string' ? req.query.marketDayId : undefined;
+   res.json(salesService.salesForVendor(req.params.vendorId, day));
+ });
++router.post('/bookings/:id/cancel', (req, res) => {
++  res.json(marketService.cancelBooking(req.params.id));
++});
++router.put('/vendors/:vendorId/commission-rate', (req, res) => {
++  res.json(marketService.setCommissionRate(req.params.vendorId, Number(req.body.rate)));
++});
++router.post('/market-days/:dayId/close', (req, res) => {
++  res.json(settlementService.closeDay(req.params.dayId));
++});
++router.post('/market-days/:dayId/settlement', (req, res) => {
++  res.status(201).json(settlementService.settle(req.params.dayId));
++});
++router.get('/market-days/:dayId/settlement', (req, res) => {
++  res.json(settlementService.settlementsForDay(req.params.dayId));
++});
+ // PayLane webhook
+ router.post('/webhooks/paylane', (req, res) => {
+   const { readerId, amount, time } = req.body as { readerId: string; amount: number; time: string };

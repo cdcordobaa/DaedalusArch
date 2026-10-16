@@ -278,6 +278,8 @@ export interface JudgeProvenance extends ProviderDescription {
   readonly configListingSha256?: string;    // claude-cli
   readonly provenanceMixed?: boolean;       // replay found differing values across entries (BR-U4-CAS-10)
   readonly seededList?: readonly string[];  // sorted; [] in every reported run (BR-U4-SEL-06)
+  readonly judgeVersion?: 'v2' | 'v2.2';    // v1.3: set only on a judge v2 or v2.2 run (v1 is the frozen default)
+  readonly judgeRevision?: string;          // v1.3: the text revision (`JUDGE_V2_REVISION`, `JUDGE_V22_REVISION`)
 }
 
 // Types referenced by NeuralResultRow, verbatim from U4 DE §2.2 and §4.2 (C10 row 14 needs them;
@@ -363,6 +365,86 @@ export interface EvaluationReport {
   readonly instrumentVersion?: 1 | 2;
   // FR-33: present in full and neuronal-only modes, absent in symbolic-only (schema if/then, BR-U3-65; C10 row 14)
   readonly neuralResults?: readonly NeuralResultRow[];
+  /** v1.3 scoring mode only (FR-V6, Docs/v1.3/rule-tiers.md): the tiered verdict; absent in the v1.2E mode. */
+  readonly tiers?: TieredScoring;
+  /**
+   * Advisory post-filters (proposal, off by default; Docs/DiagnosticRuns/v1.3-advisory-noise-2026-10-16.md): present only
+   * when an option is on. The rows the options removed from `violations`; scores, tiers and the verdict are pre-filter.
+   */
+  readonly advisoryFilter?: AdvisoryFilterSection;
+  /** `firewall evaluate --hints` only (Docs/v1.3/fix-hints.md): a deterministic fix hint per blocking violation; absent otherwise. */
+  readonly fixHints?: readonly import('../../fix-hints/types.js').ReportFixHint[];
+}
+
+/** One advisory row an advisory post-filter option removed from `violations`. */
+export interface SuppressedAdvisoryRow {
+  readonly option: string;
+  readonly reason: string;
+  readonly violation: Violation;
+}
+
+export interface AdvisoryFilterSection {
+  readonly options: readonly string[];
+  readonly suppressed: readonly SuppressedAdvisoryRow[];
+}
+
+/** Scoring mode: `v1.2e` (the registered Study 1 scoring, unchanged) or `v1.3` (rule tiers, FR-V6). */
+export type ScoringMode = 'v1.2e' | 'v1.3';
+
+/** One executed rule under v1.3 tiers. */
+export interface TierRuleRow {
+  readonly functionId: FunctionId;
+  readonly name: string;
+  readonly dimension: Dimension;
+  readonly tier: 'blocking' | 'advisory';
+  /** `table`: Docs/v1.3/rule-tiers.md; `untiered-default`: an id the table does not list (advisory). */
+  readonly tierSource: 'table' | 'untiered-default';
+  /** LLM judge rule (FF-N01, FF-N02): reported, non-blocking in v1.3. */
+  readonly judge?: true;
+  /** Violations that count (for a partial rule, the applicable rows only). */
+  readonly violationCount: number;
+  readonly violated: boolean;
+}
+
+export interface TierGroup {
+  readonly rules: readonly TierRuleRow[];
+  readonly violatedRules: number;
+  readonly violationCount: number;
+}
+
+/** A part of a rule reported N/A (FF-P06 FLOWS_TO field rows), with its denominator. */
+export interface NotApplicablePart {
+  readonly functionId: FunctionId;
+  readonly part: string;
+  readonly reason: string;
+  /** Rows of the part, reported and not counted. */
+  readonly naRows: number;
+  /** All rows of the rule (the denominator of `naRows`). */
+  readonly totalRows: number;
+  /** FLOWS_TO edges in the extracted graph (the part's input); null when the APG is not available to scoring. */
+  readonly flowsToEdges: number | null;
+}
+
+/** v1.3 scoring (FR-V6): verdict from blocking rules only; advisory findings reported apart. */
+export interface TieredScoring {
+  readonly scoringMode: 'v1.3';
+  readonly tierTable: string;
+  readonly style: string | null;
+  /**
+   * `fail` iff a blocking rule has at least one applicable violation; otherwise `incomplete` iff a blocking rule failed
+   * to execute (`blockingNotExecuted` non-empty; fail-closed, 2026-10-16); otherwise `pass`.
+   */
+  readonly verdict: 'pass' | 'fail' | 'incomplete';
+  readonly verdictRule: 'any-blocking-violation';
+  /** The v1.2E verdict of the same run (the report's v1.2E AHS fields are unchanged). */
+  readonly v12eVerdict: import('./enums.js').OverallVerdict;
+  /** AHS over the blocking rules only (v1.2E symbolic weights renormalised over their dimensions); null when none ran. */
+  readonly blockingAhs: number | null;
+  readonly blocking: TierGroup;
+  readonly advisory: TierGroup;
+  readonly notApplicable: readonly NotApplicablePart[];
+  /** Blocking rules that failed to execute (FR-13); they add no violation, but make a non-failing verdict `incomplete`. */
+  readonly blockingNotExecuted: readonly FunctionId[];
 }
 
 // Forward ref type used by CypherRule in spec.ts — re-exported for convenience

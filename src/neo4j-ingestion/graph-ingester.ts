@@ -3,7 +3,7 @@ import type { GraphRepository } from '../shared/interfaces/graph-repository.js';
 import type { GraphStats } from '../shared/types/evaluation.js';
 import type { DomainWarning } from '../shared/errors/domain-result.js';
 import { DomainResult } from '../shared/errors/domain-result.js';
-import { NODE_TYPES, EDGE_TYPES } from '../shared/types/enums.js';
+import { NODE_TYPES, EDGE_TYPES, V13_EDGE_TYPES, FIELD_STATE_EDGE_TYPES, APG2_NODE_TYPES, APG2_EDGE_TYPES } from '../shared/types/enums.js';
 import type { NodeType, EdgeType } from '../shared/types/enums.js';
 import type { LayerAnnotation } from './types.js';
 import { WRITE_QUERY_TIMEOUT_MS } from './types.js';
@@ -73,6 +73,29 @@ function checkCreated(
 const NODE_CHECK = { key: 'nodesCreated', code: 'INGEST_002', noun: 'nodes' } as const;
 const EDGE_CHECK = { key: 'relationshipsCreated', code: 'INGEST_003', noun: 'relationships' } as const;
 
+/** The node write of one node type (`$batch`: one property map per node). The graph mirror recognises this text. */
+export function nodeIngestCypher(type: string): string {
+  return `
+      UNWIND $batch AS node
+      CREATE (n:APGNode:${type})
+      SET n = node
+    `;
+}
+
+/**
+ * The edge write of one relationship type (`$batch`: `{ sourceId, targetId, props }` per edge). Neo4j doesn't support
+ * dynamic relationship types in UNWIND CREATE, so there is one query per edge type. The graph mirror recognises this text.
+ */
+export function edgeIngestCypher(type: string): string {
+  return `
+      UNWIND $batch AS edge
+      MATCH (src:APGNode {id: edge.sourceId})
+      MATCH (tgt:APGNode {id: edge.targetId})
+      CREATE (src)-[r:${type}]->(tgt)
+      SET r = edge.props
+    `;
+}
+
 /**
  * Ingest annotated nodes into Neo4j via UNWIND bulk insert.
  */
@@ -84,7 +107,8 @@ export async function ingestNodes(
   let totalCreated = 0;
   const warnings: DomainWarning[] = [];
 
-  for (const type of NODE_INGESTION_ORDER) {
+  // The APG v2 node types follow; they occur only when the extractor's `apg2` option is on.
+  for (const type of [...NODE_INGESTION_ORDER, ...APG2_NODE_TYPES]) {
     const typeNodes = nodes.filter((n) => n.type === type);
     if (typeNodes.length === 0) continue;
 
@@ -103,11 +127,7 @@ export async function ingestNodes(
       };
     });
 
-    const cypher = `
-      UNWIND $batch AS node
-      CREATE (n:APGNode:${type})
-      SET n = node
-    `;
+    const cypher = nodeIngestCypher(type);
 
     const result = await graphRepo.executeQuery(cypher, { batch }, { timeoutMs: WRITE_QUERY_TIMEOUT_MS });
     if (!result.success) {
@@ -129,7 +149,9 @@ export async function ingestEdges(
   let totalCreated = 0;
   const warnings: DomainWarning[] = [];
 
-  for (const type of EDGE_INGESTION_ORDER) {
+  // The v1.3 module-wiring types follow; they occur only when the extractor's `moduleWiring` option is on. Then the
+  // field-state type (`fieldState` option only), then the APG v2 types, which occur only with the `apg2` option.
+  for (const type of [...EDGE_INGESTION_ORDER, ...V13_EDGE_TYPES, ...FIELD_STATE_EDGE_TYPES, ...APG2_EDGE_TYPES]) {
     const typeEdges = edges.filter((e) => e.type === type);
     if (typeEdges.length === 0) continue;
 
@@ -141,15 +163,7 @@ export async function ingestEdges(
       props: { ...flattenProperties(e.properties), id: e.id },
     }));
 
-    // Neo4j doesn't support dynamic relationship types in UNWIND CREATE,
-    // so we use a separate query per edge type
-    const cypher = `
-      UNWIND $batch AS edge
-      MATCH (src:APGNode {id: edge.sourceId})
-      MATCH (tgt:APGNode {id: edge.targetId})
-      CREATE (src)-[r:${type}]->(tgt)
-      SET r = edge.props
-    `;
+    const cypher = edgeIngestCypher(type);
 
     const result = await graphRepo.executeQuery(cypher, { batch }, { timeoutMs: WRITE_QUERY_TIMEOUT_MS });
     if (!result.success) {

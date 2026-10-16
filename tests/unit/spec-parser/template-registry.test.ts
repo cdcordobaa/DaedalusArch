@@ -62,7 +62,8 @@ describe('template-registry', () => {
     });
 
     it('returns undefined for unknown style', () => {
-      const template = resolveTemplate('hexagonal');
+      // v1.3: 'hexagonal' is a known style now (PR #76), so an unregistered name stands in for "unknown".
+      const template = resolveTemplate('onion');
       expect(template).toBeUndefined();
     });
   });

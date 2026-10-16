@@ -1,0 +1,36 @@
+--- a/src/infrastructure/http/LoanController.ts
++++ b/src/infrastructure/http/LoanController.ts
+@@ -1,6 +1,8 @@
+ import { BorrowBookUseCase } from '../../application/use-cases/BorrowBookUseCase';
+ import { ListOverdueLoansUseCase } from '../../application/use-cases/ListOverdueLoansUseCase';
+ import { ReturnBookUseCase } from '../../application/use-cases/ReturnBookUseCase';
++import { Loan } from '../../domain/entities/Loan';
++import { LoanRepository } from '../../domain/repositories/LoanRepository';
+ import { toErrorResponse } from './ErrorMapper';
+ import { HttpRequest, HttpResponse, created, ok } from './HttpTypes';
+ 
+@@ -9,7 +11,14 @@
+     private readonly borrowBook: BorrowBookUseCase,
+     private readonly returnBook: ReturnBookUseCase,
+     private readonly listOverdue: ListOverdueLoansUseCase,
++    private readonly loanRepository: LoanRepository,
+   ) {}
++
++  async show(request: HttpRequest): Promise<HttpResponse> {
++    const loan: Loan | undefined = await this.loanRepository.findById(String(request.params['loanId']));
++    if (loan === undefined) return toErrorResponse(new Error('not found'));
++    return ok({ id: loan.id, bookId: loan.bookId, dueAt: loan.dueAt.toISOString(), active: loan.isActive });
++  }
+ 
+   async borrow(request: HttpRequest): Promise<HttpResponse> {
+     try {
+--- a/src/infrastructure/main.ts
++++ b/src/infrastructure/main.ts
+@@ -30,6 +30,7 @@
+       new BorrowBookUseCase(books, members, loans, clock, ids),
+       new ReturnBookUseCase(loans, books, clock),
+       new ListOverdueLoansUseCase(loans, clock),
++      loans,
+     ),
+     members,
+   };

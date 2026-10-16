@@ -2,8 +2,7 @@
 
 Working title: *When the Judge Cannot Rule: Lessons from Using an LLM-as-Judge inside an Architectural Conformance
 Gate*. Draft of 2026-10-11, written from the committed files at `v1.2e` (`b7034682`). Target: LLM4Code or another
-AI-for-SE workshop, about 6 pages. Plain `article` class, 10 pt, A4. Not compiled yet: the drafting container had
-no TeX installation.
+AI-for-SE workshop, about 6 pages. Plain `article` class, 10 pt, A4. Compiles (see the revision notes at the end).
 
 ```
 pdflatex main && bibtex main && pdflatex main && pdflatex main
@@ -17,7 +16,7 @@ pdflatex main && bibtex main && pdflatex main && pdflatex main
 - `refs.bib`: bibliography, written from general knowledge. Entries cited with `\citeneeded{}` render with a red
   "[verify]" mark. The six cited with a plain `\cite{}` are well known but still need a page and DOI check.
 
-## The eight lessons and their main sources
+## The ten lessons and their main sources
 
 | Lesson | Claim | Main sources |
 |---|---|---|
@@ -28,7 +27,9 @@ pdflatex main && bibtex main && pdflatex main && pdflatex main
 | 5 | 63 of 73 E7 judge fails (55 of 55 on E1) are also flagged by rules | `judge_summary.csv`; `results/e1-grid/judge-diagnostics/judge_units.csv` |
 | 6 | Directional self-preference p 0.014, driven by the smallest Claude tier | `results/e1-grid/agg/so5_tests.csv`; `results/e1-grid/agg/so5_grid.csv`; E1 `judge_units.csv` |
 | 7 | Panel: 98.2 % agreement, AC1 0.98, kappa 0; lenient errors; fail detection untested on E1 | `results/e1-grid/label-plan-p4-api/labelling.json`, `labels.json`; `results/e1-grid/label-plan-p4/label-plan-summary.json`; `results/labels/live-call-ledger.md` |
-| 8 | CLI isolation, unblockable `search_web`, fail-closed guard plus stop rule | ADR-018, ADR-034, ADR-035; `Docs/judge-preregistration.md`; `Docs/labeller-route.md` §7, §8 |
+| 8 | Judge model robustness: top vs middle Claude tier on 100 recorded units, agreement 0.94, kappa 0.766, 0 verdict changes; the top tier fails 18 vs 12 (slightly stricter) | ADR-038; `results/judge-robustness/` (`summary.json`, `agreement.csv`, `transition.csv`, `fail-rates.csv`, `units.csv`) |
+| 9 | Construct validity of synthetic judge probes: MO-X02/MO-X03 place no seed on the 7 held-out bases or the 65 E1 cells | `Docs/DiagnosticRuns/judge-probe-e1-site-count.md`; `results/so4-heldout/agg/seed_coverage.csv`; ADR-038 status (ADR-037 on hold) |
+| 10 | CLI isolation, unblockable `search_web`, fail-closed guard plus stop rule | ADR-018, ADR-034, ADR-035; `Docs/judge-preregistration.md`; `Docs/labeller-route.md` §7, §8 |
 
 ## Open items
 
@@ -62,3 +63,28 @@ pdflatex main && bibtex main && pdflatex main && pdflatex main
 8. **Overlap with paper 2.** `papers/paper2-tool` reports the E7 decomposition table (its RQ4). This workshop paper
    reuses it as Table 1; check the venues' dual-submission rules and cite paper 2 once it has a venue.
 9. **Authors, affiliations and data availability** (`\todo` in the title block and the conclusion).
+
+## v1.3 revision (2026-10-15)
+
+Section 5, "v1.3: Measuring What the Judge Catches", was added on branch `v1.3-papers`: Lesson 11 (the catch test,
+rounds 1, 2 and DUP-RULE v2: 30/35, twin false fail 4/50, the DUP-RULE confound), Lesson 12 (three-way comparison
+with the cheap proxies and the symbolic rules), the layered gate (rules decide, proxies propose, the judge
+interprets) and the same-vendor correlation threat. The abstract, introduction, recommendations, threats and
+conclusion were updated. Every v1.3 figure carries a `% src:` comment and a `[dev]` mark. The paper now compiles
+(10 pages in this class) and is over the 6-page workshop target. See `papers/STATUS.md`.
+
+## Falsification revision (2026-10-16)
+
+Branch `v1.3-paper3-update`. Retitled *A Pre-Registered, Falsifiable Evaluation of an LLM Architectural Judge inside a
+Neuro-Symbolic Firewall*. The abstract and introduction now frame the work as a pre-registered study followed by
+tests whose decision rules were fixed before any call or number, negative results included.
+
+| Lesson | Claim | Main sources |
+|---|---|---|
+| 11 (revised) | Adds the defensible restricted catch, 16/21 = 0.76 [0.55, 0.89] | `Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md` header note |
+| 13 | CHECK-2: v1 and v2.2 both 40/40 on ten unseen bases; v2.2 halves false fails but fails D1 (7/21) and is not adopted; FF-N01 base-construction defect; exploratory second-vendor rater κ = 0.954 | `Docs/DiagnosticRuns/v1.3-judge-v22-check2-2026-10-16.md` (PR #191) |
+| 14 | 3-run unanimity does not meet the pre-stated confidence rule (null) | `Docs/DiagnosticRuns/v1.3-judge-selective-2026-10-16.md` (PR #165) |
+| 15 | Symbolic–neural complementarity: rules see 9/35; judge catches 22/26 blind seeds; false fail 2/48 clean, 10/55 twins | `Docs/DiagnosticRuns/v1.3-complementarity-2026-10-16.md` (PR #179) |
+| layered gate | FR-V8 filter-and-explain confirms 65/66 expected findings (62/63 without the FF-P06 N/A rows) | `Docs/DiagnosticRuns/v1.3-judge-v2-2026-10-16.md` §4; `Docs/v1.3/post-merge-review-2026-10-16.md` R26 |
+
+Compiles: 12 pages, no undefined references. Lessons 13–15 depend on three open PRs; see `papers/STATUS.md`.

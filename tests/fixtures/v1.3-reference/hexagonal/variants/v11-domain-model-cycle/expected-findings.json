@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "variant": "v11-domain-model-cycle",
+  "kind": "violation",
+  "plants": "FF-S02",
+  "description": "Booking and Room import each other (Booking.isFor(room), Room.activeBookings(bookings)).",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "file": "src/domain/model/Booking.ts",
+      "target": "src/domain/model/Room.ts",
+      "reason": "Two-file import cycle Booking -> Room -> Booking."
+    }
+  ]
+}

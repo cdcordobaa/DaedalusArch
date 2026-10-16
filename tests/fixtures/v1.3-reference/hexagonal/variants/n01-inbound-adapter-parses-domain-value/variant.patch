@@ -1,0 +1,21 @@
+--- a/src/adapters/inbound/http/RoomController.ts
++++ b/src/adapters/inbound/http/RoomController.ts
+@@ -1,10 +1,18 @@
+ import { FindAvailableRooms } from '../../../application/ports/in/FindAvailableRooms';
++import { BookingError } from '../../../domain/errors/BookingError';
++import { DateRange } from '../../../domain/model/DateRange';
+ import { HttpRequest, HttpResponse } from './HttpTypes';
+ 
+ export class RoomController {
+   constructor(private readonly findAvailableRooms: FindAvailableRooms) {}
+ 
+   async available(request: HttpRequest): Promise<HttpResponse> {
++    try {
++      DateRange.parse(String(request.query['checkIn']), String(request.query['checkOut']));
++    } catch (error) {
++      if (error instanceof BookingError) return { status: 400, body: { error: error.message } };
++      throw error;
++    }
+     const rooms = await this.findAvailableRooms.find(
+       String(request.query['checkIn']),
+       String(request.query['checkOut']),

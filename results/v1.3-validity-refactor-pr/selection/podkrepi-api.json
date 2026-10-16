@@ -1,0 +1,230 @@
+{
+ "id": "podkrepi-api",
+ "repo": "podkrepi-bg/api",
+ "pin": "52f5d79d890bd3b87886c3be61961a5b0e9411e0",
+ "root": "apps/api",
+ "universe": 454,
+ "eligible": 447,
+ "declaredRefactors": 3,
+ "controlPool": 402,
+ "cap": 10,
+ "caliper": 1.5,
+ "k": 3,
+ "allMatches": [
+  {
+   "sha": "530d9b79f6df01ddc93553c2f81112bdbde3528f",
+   "index": 375,
+   "kind": "squash",
+   "pr": 604,
+   "families": [
+    "G"
+   ],
+   "phrases": {
+    "G": "restructure"
+   },
+   "subject": "[1/2]: Overhaul of  donations module (#604)"
+  },
+  {
+   "sha": "e60ec14cd27c08f5466b176c6f2a70259e96bc16",
+   "index": 376,
+   "kind": "squash",
+   "pr": 606,
+   "families": [
+    "G"
+   ],
+   "phrases": {
+    "G": "restructure"
+   },
+   "subject": "bank-import: Add amount in donation create bank object (#606)"
+  },
+  {
+   "sha": "d540599ee36a8a680befd809d13ba5b872237f0f",
+   "index": 398,
+   "kind": "squash",
+   "pr": 657,
+   "families": [
+    "G"
+   ],
+   "phrases": {
+    "G": "restructured"
+   },
+   "subject": "Persisting created new campaignApplication to db (#657)"
+  }
+ ],
+ "sets": [
+  {
+   "refactor": {
+    "sha": "530d9b79f6df01ddc93553c2f81112bdbde3528f",
+    "parent": "051ba488dfff04a4fafe81a9cd29d94cd686f25c",
+    "index": 375,
+    "date": "2024-03-10T00:49:22.000Z",
+    "kind": "squash",
+    "pr": 604,
+    "families": [
+     "G"
+    ],
+    "phrases": {
+     "G": "restructure"
+    },
+    "files": 55,
+    "lines": 1774,
+    "subject": "[1/2]: Overhaul of  donations module (#604)",
+    "message": "[1/2]: Overhaul of  donations module (#604)\n\n* Donation table structural changes\r\n- Payment table will save the information regarding the payment\r\n- Donation table will save information regarding the donation(e.g. campaign, wish etc..)\r\n\r\n* Initial API changes for new payment structure\r\n\r\n* Adjust existing tests to cover the restructure\r\n\r\n* src/vault: Add possibility to decrement many vaults as well\r\nIn future situations, we might need to decrement many vaults at once as well,(e.g. payment refund etc..)\r\n\r\n- Added some unit tests to cover vaults updates\r\n-Did some refactoring on commonly used types, as well as test mocks\r\n\r\n* schema.prisma: Rename Payments to Payment\r\nAs the name of the model is used as a type, the acceptednaming convention is to name that type in singular way\r\n\r\n* Infer person.email as string in campaign.controller test cases\r\nFixes TS related errors\r\n\r\n* src/bank-transactions:  Check for admin privilleges regardless of env when simulating IRIS transactions\r\n\r\n* donations.service: Rename currentDonation to currentPayment in update fn"
+   },
+   "controls": [
+    {
+     "sha": "22ffb13fea31e3a66c0eba9c73fcb737617b50e2",
+     "parent": "0a978a7d127258df1412f08a810a35e4384e1be7",
+     "index": 360,
+     "date": "2023-11-14T13:46:05.000Z",
+     "kind": "squash",
+     "pr": 564,
+     "distance": 0.3032,
+     "files": 72,
+     "lines": 1843,
+     "subject": "[2/2] Affiliate program Integration v1 (#564)"
+    },
+    {
+     "sha": "88731cb298eae65f67033a887ddda3d6542055ef",
+     "parent": "793bb2b64a4d5f53c837c0ca1757baedf1b438d7",
+     "index": 161,
+     "date": "2022-06-03T11:00:04.000Z",
+     "kind": "direct",
+     "distance": 0.8938,
+     "files": 59,
+     "lines": 777,
+     "subject": "full rename of CampaignReport to Irregularity, because we will need the name Report for the real Reporting on the Campaign Activities"
+    },
+    {
+     "sha": "77b0dc8d78d214bcf839b17466712d6e5d1db68a",
+     "parent": "b3c8fa3d466b82e798485fadb56557c375a3e054",
+     "index": 48,
+     "date": "2021-10-25T15:14:51.000Z",
+     "kind": "merge",
+     "pr": 45,
+     "distance": 1.1112,
+     "files": 39,
+     "lines": 817,
+     "subject": "Merge pull request #45 from podkrepi-bg/integration-with-stripe-webhooks"
+    }
+   ]
+  },
+  {
+   "refactor": {
+    "sha": "e60ec14cd27c08f5466b176c6f2a70259e96bc16",
+    "parent": "cf328254c343fd0086bcb775510280cc47cc7c34",
+    "index": 376,
+    "date": "2024-03-10T10:10:01.000Z",
+    "kind": "squash",
+    "pr": 606,
+    "families": [
+     "G"
+    ],
+    "phrases": {
+     "G": "restructure"
+    },
+    "files": 2,
+    "lines": 6,
+    "subject": "bank-import: Add amount in donation create bank object (#606)",
+    "message": "bank-import: Add amount in donation create bank object (#606)\n\n* Donation table structural changes\r\n- Payment table will save the information regarding the payment\r\n- Donation table will save information regarding the donation(e.g. campaign, wish etc..)\r\n\r\n* Initial API changes for new payment structure\r\n\r\n* Adjust existing tests to cover the restructure\r\n\r\n* src/vault: Add possibility to decrement many vaults as well\r\nIn future situations, we might need to decrement many vaults at once as well,(e.g. payment refund etc..)\r\n\r\n- Added some unit tests to cover vaults updates\r\n-Did some refactoring on commonly used types, as well as test mocks\r\n\r\n* schema.prisma: Rename Payments to Payment\r\nAs the name of the model is used as a type, the acceptednaming convention is to name that type in singular way\r\n\r\n* Infer person.email as string in campaign.controller test cases\r\nFixes TS related errors\r\n\r\n* src/bank-transactions:  Check for admin privilleges regardless of env when simulating IRIS transactions\r\n\r\n* donations.service: Rename currentDonation to currentPayment in update fn\r\n\r\n* db/seed: Adapt seeding scripts to new structure\r\n\r\n* payment/seed: Use payment's createdAt updatedAt values for donation\r\nIn production, the insertion is done within a single transaction, thus the dates should be the same\r\n\r\n* bank-import: Add amount in donation create bank object\r\n\r\n* import-transactions: Fix failing test case"
+   },
+   "controls": [
+    {
+     "sha": "87ddc2a8202a93492f370993cf44a25eb60a41a2",
+     "parent": "b2fc5037900c3e188ca85c41b4c37ae2ad754690",
+     "index": 337,
+     "date": "2023-08-23T20:35:45.000Z",
+     "kind": "squash",
+     "pr": 539,
+     "distance": 0,
+     "files": 2,
+     "lines": 6,
+     "subject": "src/campaign-file: Set Cache-Control header (#539)"
+    },
+    {
+     "sha": "b77aa01e057545ba69f1cf746e8601a49aa8417f",
+     "parent": "1e7c2ec6a0a5e999467da159d8f4490584be0b76",
+     "index": 329,
+     "date": "2023-08-06T15:28:20.000Z",
+     "kind": "squash",
+     "pr": 528,
+     "distance": 0,
+     "files": 2,
+     "lines": 6,
+     "subject": "use wishes campaignId param (#528)"
+    },
+    {
+     "sha": "b0ad7c6c61af4b2ce3484fa1e85d507f7c74a11c",
+     "parent": "917704be092b46a6aaed9a784608ab60df87f98d",
+     "index": 152,
+     "date": "2022-05-24T18:27:09.000Z",
+     "kind": "merge",
+     "pr": 249,
+     "distance": 0,
+     "files": 2,
+     "lines": 6,
+     "subject": "Merge pull request #249 from podkrepi-bg/update-manifests"
+    }
+   ]
+  },
+  {
+   "refactor": {
+    "sha": "d540599ee36a8a680befd809d13ba5b872237f0f",
+    "parent": "05bd507102cb2c448222ccb12edd459034859ab8",
+    "index": 398,
+    "date": "2024-07-17T19:07:07.000Z",
+    "kind": "squash",
+    "pr": 657,
+    "families": [
+     "G"
+    ],
+    "phrases": {
+     "G": "restructured"
+    },
+    "files": 9,
+    "lines": 508,
+    "subject": "Persisting created new campaignApplication to db (#657)",
+    "message": "Persisting created new campaignApplication to db (#657)\n\n* finish create functionality and testing on it\n\nupdate CampaignApplication model - organizerEmail now is not unique\nupdate create method testing\nnow created campaig-application data is persisted to db\n\n* finish create functionality and testing on it\n\nupdate CampaignApplication model - organizerEmail now is not unique\nupdate create method testing\nnow created campaig-application data is persisted to db\n\n* restructured mocking of data in service.spec and controller.spec\n\n* finish mocking data changes\n\n* updated controller,spec mockis\n\n* fix module providers\n\n* hardcoded testing values\n\n* delete unused imports & recover unit test\n\n* remove campaingApplication data sanitization\n\n* importing moduls instead of providing services\n\ndelete PersonService and OrganizerService and add PersonModule and OrganizersModule to campaign-application module"
+   },
+   "controls": [
+    {
+     "sha": "0118cbabc4e594068173ab44a56de82af02c5af1",
+     "parent": "06ea11e9cd61685c72c8033d44eacf93fcdb926c",
+     "index": 339,
+     "date": "2023-08-30T06:13:08.000Z",
+     "kind": "squash",
+     "pr": 536,
+     "distance": 0.0901,
+     "files": 9,
+     "lines": 556,
+     "subject": "fix campaign completion transaction (#536)"
+    },
+    {
+     "sha": "2e685618ee589bbd4f523dd302e8ba4a3aa5c264",
+     "parent": "ff951b371693a75dd5027968a89956c9a73003a2",
+     "index": 404,
+     "date": "2024-08-07T19:11:15.000Z",
+     "kind": "squash",
+     "pr": 660,
+     "distance": 0.2756,
+     "files": 7,
+     "lines": 482,
+     "subject": "Edit campaing application task(Admin and Organaizer) (#660)"
+    },
+    {
+     "sha": "077349089b58522a3d82fd66aa3072cc0c006634",
+     "parent": "0675801127b6b7a0f5b0defb78c72d973b895c84",
+     "index": 239,
+     "date": "2022-07-29T15:49:56.000Z",
+     "kind": "squash",
+     "pr": 317,
+     "distance": 0.2764,
+     "files": 8,
+     "lines": 428,
+     "subject": "fixing bank donations import (#317)"
+    }
+   ]
+  }
+ ],
+ "seconds": 4
+}

@@ -11,6 +11,7 @@
  */
 import * as path from 'node:path';
 import { extractAPG } from '../../src/apg-extractor/index.js';
+import type { ExtractorOptions } from '../../src/apg-extractor/index.js';
 import { buildImportGraph, openImportGraphProject } from './mutation/import-graph.js';
 import type { ImportGraph, LayerDirs } from './mutation/import-graph.js';
 
@@ -34,9 +35,12 @@ export function projectBuilderGraph(g: ImportGraph): string[] {
   return items.sort(cmp);
 }
 
-/** The same projection of `extractAPG`'s File nodes and File→File import edges. */
-export async function projectExtractorGraph(projectDir: string): Promise<string[]> {
-  const result = await extractAPG(projectDir);
+/**
+ * The same projection of `extractAPG`'s File nodes and File→File import edges. `extractorOptions` defaults to `{}`
+ * (the extractor's defaults); pass `V12E_DEFAULT_OPTIONS` for the v1.2E graph the builder mirrors edge for edge.
+ */
+export async function projectExtractorGraph(projectDir: string, extractorOptions: ExtractorOptions = {}): Promise<string[]> {
+  const result = await extractAPG(projectDir, extractorOptions);
   if (!result.success) {
     throw new Error(`extractAPG failed on ${projectDir}: ${result.errors.map((e) => e.message).join('; ')}`);
   }
@@ -65,6 +69,7 @@ export async function compareImportGraphs(
   projectDir: string,
   tsconfigPath: string,
   layers: readonly LayerDirs[],
+  extractorOptions: ExtractorOptions = {},
 ): Promise<ParityResult> {
   const root = path.resolve(projectDir);
   const tsconfigAbs = path.resolve(root, tsconfigPath);
@@ -72,7 +77,7 @@ export async function compareImportGraphs(
     throw new Error(`compareImportGraphs: extractAPG reads <projectDir>/tsconfig.json only, got ${tsconfigAbs}`);
   }
   const builder = projectBuilderGraph(buildImportGraph(openImportGraphProject(root, tsconfigAbs), layers));
-  const extractor = await projectExtractorGraph(root);
+  const extractor = await projectExtractorGraph(root, extractorOptions);
   const b = new Set(builder);
   const x = new Set(extractor);
   const onlyInBuilder = builder.filter((i) => !x.has(i));

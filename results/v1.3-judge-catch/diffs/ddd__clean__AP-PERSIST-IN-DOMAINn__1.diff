@@ -1,0 +1,12 @@
+diff -ruN bases/ddd__clean/src/billing/domain/invoice/events/InvoiceIssued.ts copies/ddd__clean__AP-PERSIST-IN-DOMAINn__1/src/billing/domain/invoice/events/InvoiceIssued.ts
+--- bases/ddd__clean/src/billing/domain/invoice/events/InvoiceIssued.ts	2026-10-15 11:50:59
++++ copies/ddd__clean__AP-PERSIST-IN-DOMAINn__1/src/billing/domain/invoice/events/InvoiceIssued.ts	2026-10-15 11:51:04
+@@ -5,4 +5,8 @@
+   readonly occurredAt = new Date();
+ 
+   constructor(readonly invoiceId: string, readonly orderId: string) {}
++
++  hasName(): boolean {
++    return this.name !== undefined;
++  }
+ }

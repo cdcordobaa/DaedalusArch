@@ -1,0 +1,12 @@
+--- a/src/business/model/Order.ts
++++ b/src/business/model/Order.ts
+@@ -1,7 +1,9 @@
++import { Entity } from 'typeorm';
+ import { BusinessError } from '../errors/BusinessError';
+ import { Money } from './Money';
+ import { OrderLine } from './OrderLine';
+ 
++@Entity('orders')
+ export class Order {
+   constructor(
+     readonly id: string,

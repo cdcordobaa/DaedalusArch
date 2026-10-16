@@ -1,0 +1,12 @@
+diff -ruN bases/clean-architecture__clean/src/domain/entities/Loan.ts copies/clean-architecture__clean__AP-PERSIST-IN-DOMAINn__0/src/domain/entities/Loan.ts
+--- bases/clean-architecture__clean/src/domain/entities/Loan.ts	2026-10-15 11:50:59
++++ copies/clean-architecture__clean__AP-PERSIST-IN-DOMAINn__0/src/domain/entities/Loan.ts	2026-10-15 11:51:03
+@@ -35,4 +35,8 @@
+     if (!this.isOverdue(now)) return 0;
+     return Math.ceil((now.getTime() - this.dueAt.getTime()) / DAY_MS);
+   }
++
++  hasReturnedAt(): boolean {
++    return this.returnedAt !== undefined;
++  }
+ }

@@ -1,0 +1,32 @@
+--- a/src/adapters/inbound/http/RoomController.ts
++++ b/src/adapters/inbound/http/RoomController.ts
+@@ -1,8 +1,17 @@
+ import { FindAvailableRooms } from '../../../application/ports/in/FindAvailableRooms';
++import { InMemoryRoomRepository } from '../../outbound/persistence/InMemoryRoomRepository';
+ import { HttpRequest, HttpResponse } from './HttpTypes';
+ 
+ export class RoomController {
+-  constructor(private readonly findAvailableRooms: FindAvailableRooms) {}
++  constructor(
++    private readonly findAvailableRooms: FindAvailableRooms,
++    private readonly roomStore: InMemoryRoomRepository,
++  ) {}
++
++  async show(request: HttpRequest): Promise<HttpResponse> {
++    const room = await this.roomStore.findById(String(request.params['id']));
++    return room === undefined ? { status: 404, body: null } : { status: 200, body: { id: room.id, number: room.number } };
++  }
+ 
+   async available(request: HttpRequest): Promise<HttpResponse> {
+     const rooms = await this.findAvailableRooms.find(
+--- a/src/config/container.ts
++++ b/src/config/container.ts
+@@ -27,7 +27,7 @@
+   const bookRoom = new BookRoomService(rooms, bookings, guests, payments, notifications);
+   return {
+     bookings: new BookingController(bookRoom, new CancelBookingService(bookings, guests, payments, notifications)),
+-    rooms: new RoomController(new FindAvailableRoomsService(rooms, bookings)),
++    rooms: new RoomController(new FindAvailableRoomsService(rooms, bookings), rooms),
+     cli: new BookingCli(bookRoom),
+   };
+ }

@@ -1,0 +1,21 @@
+diff -ruN a/src/application/order-service.ts b/src/application/order-service.ts
+--- a/src/application/order-service.ts
++++ b/src/application/order-service.ts
+@@ -62,7 +62,7 @@
+   }
+ 
+   private combineItems(items: PlaceOrderDto["items"]): OrderItem[] {
+-    if (!Array.isArray(items) || items.length === 0) throw new DomainError("An order requires at least one item");
++    assertCombineItemsRule(items);
+     const quantities = new Map<string, number>();
+     for (const item of items) {
+       if (!item || !item.productId || !Number.isInteger(item.quantity) || item.quantity <= 0) {
+@@ -82,4 +82,8 @@
+   private toDto(order: Order): OrderDto {
+     return { id: order.id, state: order.state, items: order.items.map((item) => ({ ...item })) };
+   }
++}
++
++function assertCombineItemsRule(items: PlaceOrderDto["items"]): void {
++  if (!Array.isArray(items) || items.length === 0) throw new DomainError("An order requires at least one item");
+ }

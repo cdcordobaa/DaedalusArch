@@ -1,0 +1,18 @@
+diff -ruN bases/nestjs__clean/src/workshops/workshops.service.ts copies/nestjs__clean__AP-FRAMEWORK-LEAKn__6/src/workshops/workshops.service.ts
+--- bases/nestjs__clean/src/workshops/workshops.service.ts	2026-10-15 11:50:59
++++ copies/nestjs__clean__AP-FRAMEWORK-LEAKn__6/src/workshops/workshops.service.ts	2026-10-15 11:51:11
+@@ -22,9 +22,13 @@
+     return (await this.workshops.findAll()).map((w) => WorkshopResponseDto.from(w));
+   }
+ 
+-  async findOne(id: string): Promise<WorkshopResponseDto> {
++  async findOne(id: string, context?: FindOneContextDto): Promise<WorkshopResponseDto> {
+     const workshop = await this.workshops.findById(id);
+     if (workshop === undefined) throw new DomainError('not-found', `No workshop ${id}`);
+     return WorkshopResponseDto.from(workshop);
+   }
++}
++
++export interface FindOneContextDto {
++  readonly requestId?: string;
+ }

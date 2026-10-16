@@ -6,6 +6,8 @@ import type {
   CrossLayerDep, LayerCouplingDelta, FanOutContributor, LayerConventionDelta,
 } from '../shared/types/drift.js';
 import { DEFAULT_DRIFT_THRESHOLDS } from './types.js';
+// v1.3: drift reads the literal edge view (Docs/v1.3/edge-views.md, addendum 2026-10-15); a no-op on a v1.2E graph.
+import { isResolvedReExportEdge } from '../shared/apg-edge-view.js';
 
 /**
  * Detect all drift between two APG snapshots.
@@ -73,7 +75,7 @@ function groupCrossLayerDeps(
   const groups = new Map<string, { count: number; examples: string[] }>();
 
   for (const edge of edges) {
-    if (edge.type !== 'IMPORTS') continue;
+    if (edge.type !== 'IMPORTS' || isResolvedReExportEdge(edge)) continue;
     const srcLayer = layerMap.get(edge.sourceId);
     const tgtLayer = layerMap.get(edge.targetId);
     if (!srcLayer || !tgtLayer || srcLayer === tgtLayer) continue;
@@ -104,7 +106,7 @@ export function detectCouplingDrift(
     const fileNodes = nodes.filter((n) => n.type === 'File');
     // D-4, BR-U2-37: only IMPORTS edges to File nodes count; File -> Package edges are not coupling.
     const fileIds = fileIdsOf(nodes);
-    const importEdges = edges.filter((e) => e.type === 'IMPORTS' && fileIds.has(e.targetId));
+    const importEdges = edges.filter((e) => e.type === 'IMPORTS' && !isResolvedReExportEdge(e) && fileIds.has(e.targetId));
     const fanOutMap = new Map<string, number>();
     for (const edge of importEdges) {
       fanOutMap.set(edge.sourceId, (fanOutMap.get(edge.sourceId) ?? 0) + 1);
@@ -171,7 +173,7 @@ function computeTopContributors(
   const currFileIds = fileIdsOf(currentNodes);
   const prevFileIds = fileIdsOf(previousNodes);
   const fanOut = (nodeId: string, edges: readonly APGEdge[], fileIds: ReadonlySet<string>): number =>
-    edges.filter((e) => e.type === 'IMPORTS' && e.sourceId === nodeId && fileIds.has(e.targetId)).length;
+    edges.filter((e) => e.type === 'IMPORTS' && !isResolvedReExportEdge(e) && e.sourceId === nodeId && fileIds.has(e.targetId)).length;
 
   const currFiles = currentNodes.filter((n) => n.type === 'File');
   const contributors: FanOutContributor[] = [];

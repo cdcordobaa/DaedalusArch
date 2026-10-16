@@ -1,0 +1,20 @@
+diff -ruN -x node_modules a/src/application/list-stock-levels-use-case.ts b/src/application/list-stock-levels-use-case.ts
+--- a/src/application/list-stock-levels-use-case.ts	2026-10-15 12:42:23
++++ b/src/application/list-stock-levels-use-case.ts	2026-10-15 12:41:48
+@@ -1,10 +1,15 @@
+ import { ProductRepository } from "../domain/product-repository";
+-import { StockLevelDto, toStockLevelDto } from "./dtos";
++import { StockLevelDto, toStockLevelDto, PlaceOrderRequest } from "./dtos";
++import { InvalidRequestError } from "../domain/domain-errors";
+ 
+ export class ListStockLevelsUseCase {
+   constructor(private readonly products: ProductRepository) {}
+ 
+   async execute(): Promise<StockLevelDto[]> {
+     return (await this.products.findAll()).map(toStockLevelDto);
++  }
++
++  validateExecute(request: PlaceOrderRequest): void {
++    if (!request.customerId) throw new InvalidRequestError("customerId is required");
+   }
+ }

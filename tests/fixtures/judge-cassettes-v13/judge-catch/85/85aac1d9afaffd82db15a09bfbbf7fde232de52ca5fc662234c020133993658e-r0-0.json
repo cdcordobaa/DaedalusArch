@@ -1,0 +1,52 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 11198,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "85aac1d9afaffd82db15a09bfbbf7fde232de52ca5fc662234c020133993658e-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.7,
+    "evidence": [
+      "src/order/order.entity.ts: `@Entity('orders')` on class OrderEntity maps the class to a database table. This is persistence work (infrastructure).",
+      "src/order/order.entity.ts: `@PrimaryGeneratedColumn('uuid') id` sets a database key generation strategy. This is persistence work (infrastructure).",
+      "src/order/order.entity.ts: `@Column()` on customerId, quantity and total defines column mappings. This is persistence work (infrastructure).",
+      "src/order/order.entity.ts has no domain behaviour (no invariants, methods or business rules). The class is purely an ORM persistence model."
+    ],
+    "pass": false,
+    "reasoning": "src/order/order.entity.ts is declared as domain (it matches **/*.entity.ts). Its only job is TypeORM persistence mapping: it binds the class to the 'orders' table, sets a uuid generation strategy for the primary key, and marks each field as a database column. That is persistence and ORM framework work, which belongs in an infrastructure layer. The file has no domain behaviour: no invariants, rules or methods. It is a database row model sitting in the domain layer. The layer model does map *.entity.ts files to domain on purpose, which is a common NestJS convention, so this is a judgement call and my confidence is moderate. Still, the rubric names persistence logic in a domain file as a failure.",
+    "violations": [
+      {
+        "filePath": "src/order/order.entity.ts",
+        "message": "Class OrderEntity is in the domain layer but carries TypeORM persistence mapping (@Entity('orders'), @PrimaryGeneratedColumn('uuid'), @Column on its fields). Table, column and key-generation mapping is a persistence responsibility, which belongs in the infrastructure layer, not in a domain file."
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/order/order.entity.ts\nLayer: domain\nUnit files:\n- src/order/order.entity.ts\n\n## Source\n=====SOURCE-BEGIN src/order/order.entity.ts=====\nimport { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';\n\n@Entity('orders')\nexport class OrderEntity {\n  @PrimaryGeneratedColumn('uuid')\n  id!: string;\n\n  @Column()\n  customerId!: string;\n\n  @Column()\n  quantity!: number;\n\n  @Column()\n  total!: number;\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/order/order.controller.ts\",\"to\":\"src/order/order.entity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/order/order.service.ts\",\"to\":\"src/order/order.entity.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"OrderEntity\",\"path\":\"src/order/order.entity.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/order/order.service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/order/order.entity.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/order/order.controller.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T17:03:05.937Z",
+  "repetition": 0,
+  "requestHash": "85aac1d9afaffd82db15a09bfbbf7fde232de52ca5fc662234c020133993658e",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":1074}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.7,\\\"reasoning\\\":\\\"src/order/order.entity.ts is declared as domain (it matches **/*.entity.ts). Its only job is TypeORM persistence mapping: it binds the class to the 'orders' table, sets a uuid generation strategy for the primary key, and marks each field as a database column. That is persistence and ORM framework work, which belongs in an infrastructure layer. The file has no domain behaviour: no invariants, rules or methods. It is a database row model sitting in the domain layer. The layer model does map *.entity.ts files to domain on purpose, which is a common NestJS convention, so this is a judgement call and my confidence is moderate. Still, the rubric names persistence logic in a domain file as a failure.\\\",\\\"evidence\\\":[\\\"src/order/order.entity.ts: `@Entity('orders')` on class OrderEntity maps the class to a database table. This is persistence work (infrastructure).\\\",\\\"src/order/order.entity.ts: `@PrimaryGeneratedColumn('uuid') id` sets a database key generation strategy. This is persistence work (infrastructure).\\\",\\\"src/order/order.entity.ts: `@Column()` on customerId, quantity and total defines column mappings. This is persistence work (infrastructure).\\\",\\\"src/order/order.entity.ts has no domain behaviour (no invariants, methods or business rules). The class is purely an ORM persistence model.\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/order/order.entity.ts\\\",\\\"message\\\":\\\"Class OrderEntity is in the domain layer but carries TypeORM persistence mapping (@Entity('orders'), @PrimaryGeneratedColumn('uuid'), @Column on its fields). Table, column and key-generation mapping is a persistence responsibility, which belongs in the infrastructure layer, not in a domain file.\\\"}]}\",\"structured_output\":{\"confidence\":0.7,\"evidence\":[\"src/order/order.entity.ts: `@Entity('orders')` on class OrderEntity maps the class to a database table. This is persistence work (infrastructure).\",\"src/order/order.entity.ts: `@PrimaryGeneratedColumn('uuid') id` sets a database key generation strategy. This is persistence work (infrastructure).\",\"src/order/order.entity.ts: `@Column()` on customerId, quantity and total defines column mappings. This is persistence work (infrastructure).\",\"src/order/order.entity.ts has no domain behaviour (no invariants, methods or business rules). The class is purely an ORM persistence model.\"],\"pass\":false,\"reasoning\":\"src/order/order.entity.ts is declared as domain (it matches **/*.entity.ts). Its only job is TypeORM persistence mapping: it binds the class to the 'orders' table, sets a uuid generation strategy for the primary key, and marks each field as a database column. That is persistence and ORM framework work, which belongs in an infrastructure layer. The file has no domain behaviour: no invariants, rules or methods. It is a database row model sitting in the domain layer. The layer model does map *.entity.ts files to domain on purpose, which is a common NestJS convention, so this is a judgement call and my confidence is moderate. Still, the rubric names persistence logic in a domain file as a failure.\",\"violations\":[{\"filePath\":\"src/order/order.entity.ts\",\"message\":\"Class OrderEntity is in the domain layer but carries TypeORM persistence mapping (@Entity('orders'), @PrimaryGeneratedColumn('uuid'), @Column on its fields). Table, column and key-generation mapping is a persistence responsibility, which belongs in the infrastructure layer, not in a domain file.\"}]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/order/order.entity.ts",
+  "usage": {
+    "inputTokens": 2555,
+    "outputTokens": 1074
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

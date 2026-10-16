@@ -1,0 +1,22 @@
+diff -ruN -x node_modules a/src/application/get-order-use-case.ts b/src/application/get-order-use-case.ts
+--- a/src/application/get-order-use-case.ts	2026-10-15 12:42:22
++++ b/src/application/get-order-use-case.ts	2026-10-15 12:41:44
+@@ -1,6 +1,7 @@
+-import { NotFoundError } from "../domain/errors";
++import { NotFoundError, ValidationError } from "../domain/errors";
+ import { OrderRepository } from "../domain/order-repository";
+ import { OrderDto, toOrderDto } from "./dtos";
++import { isOrderState } from "../domain/order-state";
+ 
+ export class GetOrderUseCase {
+   constructor(private readonly orders: OrderRepository) {}
+@@ -9,5 +10,9 @@
+     const order = await this.orders.findById(orderId);
+     if (!order) throw new NotFoundError(`Order ${orderId} not found`);
+     return toOrderDto(order);
++  }
++
++  validateExecute(state: unknown): void {
++    if (!isOrderState(state)) throw new ValidationError("Unknown order state");
+   }
+ }

@@ -1,0 +1,19 @@
+{
+  "unit": "U-E2 fix round after the U-E baseline. DEVELOPMENT-SET numbers (the 71-case reference set the fixes were tuned on); not a validity estimate",
+  "branch": "v1.3-fixes from origin/v1.3 9542356b (barrel fix #85, U-E baseline #86)",
+  "code": "3e8d4b48 = lock (521d4924) + fixes 2-6; every construct reason was committed in aidlc-docs/construction/v1.3-fixes/fixes-notes.md before run1",
+  "defaults": "v1.3: extractor reExportEdges 'both' (barrels on); CompileCommand V13_COMPILE_OPTIONS = { edgeViews, styleApplicability, roleTokens }; v1.3 tiers",
+  "neo4j": "daedalus-neo4j-bt, bolt 127.0.0.1:7693, env from ~/.daedalus-bt.env (not printed). The validate-reference live run held the cross-process Neo4j lock (~/.daedalus/locks/neo4j-127.0.0.1_7693.lock, mode owned) for the whole run; the CLI children were re-entrant",
+  "command": "node --import tsx scripts/v1.3/ue-baseline-live.ts --out <dir>; scripts/v1.3/ue-graph.ts --out <dir>; scripts/v1.3/ue-score.ts --base <dir> --blind <daedalus-sealed/v1.3-blind> (the blind manifests were read only through ue-score.ts)",
+  "admission": "HEAVY_ADMISSION_BYPASS=1 on npm ci, each live run, ue-graph, tsc, eslint and the jest runs, one at a time: the hook blocked on swap (10.8-11.0 GB of 16 GB) while memory_pressure reported 37-42% free",
+  "runs": [
+    { "attempt": "run1", "start": "2026-10-15T01:53:57Z", "end": "2026-10-15T01:55:44Z", "kept": true, "lock": "owned" },
+    {
+      "attempt": "run2", "start": "2026-10-15T01:56:04Z", "end": "2026-10-15T01:57:42Z", "kept": false, "lock": "owned",
+      "identicalToRun1": "raw/ byte-identical (71 files); report.md and report.json byte-identical; evidence violations identical 71/71 (only elapsedMs differs); scores.json and adjudication.csv byte-identical when run2 is scored the same way"
+    }
+  ],
+  "replay": "validate-reference.ts --from-raw raw/ reproduces report.md (header line aside)",
+  "intermediate": "barrels-only/: origin/v1.3 9542356b plus the lock commit 521d4924 (no other change), run live once with the lock at 2026-10-15T01:37Z-01:39Z and scored the same way. Its raw/ equals baseline-pre-barrel/raw for all 71 variants",
+  "temp": "materialised variants under the OS temp directory (/var/folders/...), outside any node_modules ancestry; removed after each run"
+}

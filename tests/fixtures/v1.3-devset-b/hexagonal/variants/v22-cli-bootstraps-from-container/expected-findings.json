@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "variant": "v22-cli-bootstraps-from-container",
+  "kind": "violation",
+  "plants": "FF-S01",
+  "description": "BookingCli (inbound adapter) imports createContainer from the composition root for a static withDefaults() factory; the container already imports BookingCli.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction-graph",
+      "file": "src/adapters/inbound/cli/BookingCli.ts",
+      "target": "src/config/container.ts",
+      "reason": "adapters-inbound > config is not allowed and config > adapters-inbound is: an adapter depends on the composition root."
+    },
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "file": "src/adapters/inbound/cli/BookingCli.ts",
+      "target": "src/config/container.ts",
+      "reason": "Two-file import cycle BookingCli -> container -> BookingCli."
+    }
+  ]
+}

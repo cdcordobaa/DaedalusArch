@@ -1,0 +1,40 @@
+--- a/src/registrations/registrations.module.ts
++++ b/src/registrations/registrations.module.ts
+@@ -1,6 +1,5 @@
+ import { Module } from '@nestjs/common';
+ import { AttendeesModule } from '../attendees/attendees.module';
+-import { REGISTRATION_REPOSITORY } from '../domain/registration-repository';
+ import { WorkshopsModule } from '../workshops/workshops.module';
+ import { InMemoryRegistrationRepository } from './in-memory-registration.repository';
+ import { RegistrationsController } from './registrations.controller';
+@@ -9,6 +8,6 @@
+ @Module({
+   imports: [WorkshopsModule, AttendeesModule],
+   controllers: [RegistrationsController],
+-  providers: [RegistrationsService, { provide: REGISTRATION_REPOSITORY, useClass: InMemoryRegistrationRepository }],
++  providers: [RegistrationsService, InMemoryRegistrationRepository],
+ })
+ export class RegistrationsModule {}
+--- a/src/registrations/registrations.service.ts
++++ b/src/registrations/registrations.service.ts
+@@ -3,10 +3,10 @@
+ import { DomainError } from '../domain/domain-error';
+ import { Registration } from '../domain/registration';
+ import { RegistrationPolicy } from '../domain/registration-policy';
+-import { REGISTRATION_REPOSITORY, RegistrationRepository } from '../domain/registration-repository';
+ import { WORKSHOP_REPOSITORY, WorkshopRepository } from '../domain/workshop-repository';
+ import { RegisterAttendeeDto } from './dto/register-attendee.dto';
+ import { RegistrationResponseDto } from './dto/registration-response.dto';
++import { InMemoryRegistrationRepository } from './in-memory-registration.repository';
+ 
+ @Injectable()
+ export class RegistrationsService {
+@@ -16,7 +16,7 @@
+   constructor(
+     @Inject(WORKSHOP_REPOSITORY) private readonly workshops: WorkshopRepository,
+     @Inject(ATTENDEE_REPOSITORY) private readonly attendees: AttendeeRepository,
+-    @Inject(REGISTRATION_REPOSITORY) private readonly registrations: RegistrationRepository,
++    private readonly registrations: InMemoryRegistrationRepository,
+   ) {}
+ 
+   async register(dto: RegisterAttendeeDto): Promise<RegistrationResponseDto> {

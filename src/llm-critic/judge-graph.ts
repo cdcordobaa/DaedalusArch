@@ -85,7 +85,10 @@ export const JUDGE_GRAPH_QUERIES = Object.freeze({
   files: 'MATCH (f:File) RETURN f.filePath AS path, f.layer AS layer, coalesce(f.isBarrel, false) AS isBarrel ORDER BY path',
   classes: 'MATCH (f:File)-[:DECLARES]->(c:Class) RETURN c.name AS name, f.filePath AS file ORDER BY file, name',
   interfaces: 'MATCH (f:File)-[:DECLARES]->(i:Interface) RETURN i.name AS name, f.filePath AS file ORDER BY file, name',
+  // v1.3: the literal edge view (Docs/v1.3/edge-views.md, addendum 2026-10-15): the judge sees the edges the unit's
+  // import statements state; a resolved `viaReExport` edge is dropped. A no-op on a v1.2E graph.
   edges: `MATCH (a)-[r:${EXCERPT_EDGE_TYPES.join('|')}]->(b)`
+    + ' WHERE NOT coalesce(r.viaReExport, false)'
     + ` WITH type(r) AS type, ${KEY_OF('a')} AS from, ${KEY_OF('b')} AS to`
     + ' WHERE from IS NOT NULL AND to IS NOT NULL'
     + ' RETURN DISTINCT type, from, to ORDER BY type, from, to',

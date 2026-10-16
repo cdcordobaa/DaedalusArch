@@ -1,0 +1,26 @@
+diff -ruN bases/antipattern-nest/src/order/order.service.ts copies/antipattern-nest__AP-REPO-BYPASS__2/src/order/order.service.ts
+--- bases/antipattern-nest/src/order/order.service.ts	2026-10-15 11:50:59
++++ copies/antipattern-nest__AP-REPO-BYPASS__2/src/order/order.service.ts	2026-10-15 11:51:00
+@@ -1,6 +1,6 @@
+ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+ import { InjectRepository } from '@nestjs/typeorm';
+-import { Repository } from 'typeorm';
++import { Repository, getRepository } from 'typeorm';
+ import { OrderEntity } from './order.entity';
+ 
+ @Injectable()
+@@ -11,11 +11,12 @@
+   ) {}
+ 
+   async create(customerId: string, quantity: number, unitPrice: number): Promise<OrderEntity> {
++    const orderRepository = getRepository(OrderEntity);
+     if (quantity <= 0) {
+       throw new BadRequestException('Quantity must be positive');
+     }
+-    const order = this.orderRepository.create({ customerId, quantity, total: quantity * unitPrice });
+-    return this.orderRepository.save(order);
++    const order = orderRepository.create({ customerId, quantity, total: quantity * unitPrice });
++    return orderRepository.save(order);
+   }
+ 
+   async findOne(id: string): Promise<OrderEntity> {

@@ -1,0 +1,19 @@
+diff -ruN -x node_modules a/src/domain/entities/Member.ts b/src/domain/entities/Member.ts
+--- a/src/domain/entities/Member.ts	2026-10-15 12:42:23
++++ b/src/domain/entities/Member.ts	2026-10-15 12:42:21
+@@ -1,3 +1,4 @@
++import type { Request } from 'express';
+ import { DomainError } from '../errors/DomainError';
+ 
+ export class Member {
+@@ -9,5 +10,10 @@
+   ) {
+     if (!email.includes('@')) throw new DomainError('INVALID_MEMBER', `Invalid e-mail: ${email}`);
+     if (maxActiveLoans < 1) throw new DomainError('INVALID_MEMBER', 'A member may borrow at least one book');
++  }
++
++  static fromRequest(request: Request): Member {
++    const body = request.body;
++    return new Member(String(body['id']), String(body['name']), String(body['email']), Number(body['maxActiveLoans']));
+   }
+ }

@@ -1,0 +1,222 @@
+{
+ "id": "claude-opus-5-5_order-fulfilment_minimal-prose_run-1",
+ "projectId": "claude-opus-5-5/order-fulfilment/minimal-prose/run-1",
+ "model": "claude-opus-5-5",
+ "task": "order-fulfilment",
+ "level": "minimal-prose",
+ "run": "run-1",
+ "files": 40,
+ "ise": {
+  "style": "clean-architecture",
+  "confidence": 1,
+  "points": 9,
+  "totalPoints": 9,
+  "runnerUp": null,
+  "evidence": [
+   "+3 top-level domain + application + infrastructure directories",
+   "+1 top-level core/domain directory",
+   "+1 top-level application/use-case directory",
+   "+1 top-level infrastructure directory",
+   "+1 use-case directory",
+   "+2 dependency inversion: 4/4 cross-unit implements point inward, one outer ring"
+  ],
+  "ranked": [
+   {
+    "style": "clean-architecture",
+    "points": 9,
+    "confidence": 1
+   },
+   {
+    "style": "layered",
+    "points": 0,
+    "confidence": 0
+   },
+   {
+    "style": "hexagonal",
+    "points": 0,
+    "confidence": 0
+   },
+   {
+    "style": "nestjs",
+    "points": 0,
+    "confidence": 0
+   },
+   {
+    "style": "ddd",
+    "points": 0,
+    "confidence": 0
+   }
+  ],
+  "abstains": false,
+  "abstainReasons": [],
+  "styleMatch": true,
+  "units": [
+   {
+    "unit": "src/application/",
+    "layer": "application",
+    "source": "preset-glob",
+    "confidence": 0.9
+   },
+   {
+    "unit": "src/domain/",
+    "layer": "domain",
+    "source": "preset-glob",
+    "confidence": 0.9
+   },
+   {
+    "unit": "src/infrastructure/",
+    "layer": "infrastructure",
+    "source": "preset-glob",
+    "confidence": 0.9
+   }
+  ],
+  "structureOnlyUnits": 0,
+  "unlayeredFiles": 0,
+  "layers": [
+   {
+    "name": "domain",
+    "directories": [
+     "src/domain/**"
+    ],
+    "filePatterns": []
+   },
+   {
+    "name": "application",
+    "directories": [
+     "src/application/**"
+    ],
+    "filePatterns": []
+   },
+   {
+    "name": "infrastructure",
+    "directories": [
+     "src/infrastructure/**"
+    ],
+    "filePatterns": []
+   }
+  ],
+  "specValid": true,
+  "specErrors": [],
+  "majorityVoteRules": 15
+ },
+ "extrinsic": {
+  "label": "given",
+  "style": "clean-architecture",
+  "verdict": "pass",
+  "blockingAhs": 1,
+  "layeredFiles": 40,
+  "checkedSites": 130,
+  "violatedSites": [],
+  "violatedInChecked": 0,
+  "siteRatio": 1,
+  "blockingFindings": 0,
+  "advisoryFindings": 49,
+  "blockingByRule": {},
+  "advisoryByRule": {
+   "FF-C02": 1,
+   "FF-C03": 4,
+   "FF-CV05": 37,
+   "FF-P02": 7
+  },
+  "blockingPerFile": {},
+  "advisoryPerFile": {
+   "src/application/ports/Clock.ts": 1,
+   "src/application/ports/IdGenerator.ts": 1,
+   "src/application/services/OrderLookupService.ts": 1,
+   "src/application/services/StockAllocationService.ts": 1,
+   "src/application/use-cases/CancelOrderUseCase.ts": 2,
+   "src/application/use-cases/DeliverOrderUseCase.ts": 2,
+   "src/application/use-cases/GetOrderUseCase.ts": 2,
+   "src/application/use-cases/GetProductStockUseCase.ts": 1,
+   "src/application/use-cases/ListOrdersUseCase.ts": 1,
+   "src/application/use-cases/ListProductStockUseCase.ts": 1,
+   "src/application/use-cases/PackOrderUseCase.ts": 2,
+   "src/application/use-cases/PayOrderUseCase.ts": 2,
+   "src/application/use-cases/PlaceOrderUseCase.ts": 3,
+   "src/application/use-cases/ShipOrderUseCase.ts": 2,
+   "src/domain/errors/DomainErrors.ts": 1,
+   "src/domain/inventory/StockReservationService.ts": 1,
+   "src/domain/order/Order.ts": 1,
+   "src/domain/order/OrderLine.ts": 1,
+   "src/domain/order/OrderRepository.ts": 1,
+   "src/domain/order/OrderStatus.ts": 1,
+   "src/domain/product/Product.ts": 1,
+   "src/domain/product/ProductRepository.ts": 1,
+   "src/domain/shared/Money.ts": 1,
+   "src/domain/shared/Quantity.ts": 1,
+   "src/infrastructure/config/container.ts": 3,
+   "src/infrastructure/config/seedCatalogue.ts": 1,
+   "src/infrastructure/http/controllers/OrderController.ts": 2,
+   "src/infrastructure/http/controllers/StockController.ts": 1,
+   "src/infrastructure/http/createApp.ts": 1,
+   "src/infrastructure/http/middleware/errorHandler.ts": 1,
+   "src/infrastructure/http/middleware/notFoundHandler.ts": 1,
+   "src/infrastructure/http/requestParsing.ts": 1,
+   "src/infrastructure/persistence/InMemoryOrderRepository.ts": 1,
+   "src/infrastructure/persistence/InMemoryProductRepository.ts": 1,
+   "src/infrastructure/server.ts": 2,
+   "src/infrastructure/system/CryptoIdGenerator.ts": 1,
+   "src/infrastructure/system/SystemClock.ts": 1
+  }
+ },
+ "intrinsic": {
+  "label": "inferred",
+  "style": "clean-architecture",
+  "verdict": "pass",
+  "blockingAhs": 1,
+  "layeredFiles": 40,
+  "checkedSites": 130,
+  "violatedSites": [],
+  "violatedInChecked": 0,
+  "siteRatio": 1,
+  "blockingFindings": 0,
+  "advisoryFindings": 49,
+  "blockingByRule": {},
+  "advisoryByRule": {
+   "FF-C02": 1,
+   "FF-C03": 4,
+   "FF-CV05": 37,
+   "FF-P02": 7
+  },
+  "blockingPerFile": {},
+  "advisoryPerFile": {
+   "src/application/ports/Clock.ts": 1,
+   "src/application/ports/IdGenerator.ts": 1,
+   "src/application/services/OrderLookupService.ts": 1,
+   "src/application/services/StockAllocationService.ts": 1,
+   "src/application/use-cases/CancelOrderUseCase.ts": 2,
+   "src/application/use-cases/DeliverOrderUseCase.ts": 2,
+   "src/application/use-cases/GetOrderUseCase.ts": 2,
+   "src/application/use-cases/GetProductStockUseCase.ts": 1,
+   "src/application/use-cases/ListOrdersUseCase.ts": 1,
+   "src/application/use-cases/ListProductStockUseCase.ts": 1,
+   "src/application/use-cases/PackOrderUseCase.ts": 2,
+   "src/application/use-cases/PayOrderUseCase.ts": 2,
+   "src/application/use-cases/PlaceOrderUseCase.ts": 3,
+   "src/application/use-cases/ShipOrderUseCase.ts": 2,
+   "src/domain/errors/DomainErrors.ts": 1,
+   "src/domain/inventory/StockReservationService.ts": 1,
+   "src/domain/order/Order.ts": 1,
+   "src/domain/order/OrderLine.ts": 1,
+   "src/domain/order/OrderRepository.ts": 1,
+   "src/domain/order/OrderStatus.ts": 1,
+   "src/domain/product/Product.ts": 1,
+   "src/domain/product/ProductRepository.ts": 1,
+   "src/domain/shared/Money.ts": 1,
+   "src/domain/shared/Quantity.ts": 1,
+   "src/infrastructure/config/container.ts": 3,
+   "src/infrastructure/config/seedCatalogue.ts": 1,
+   "src/infrastructure/http/controllers/OrderController.ts": 2,
+   "src/infrastructure/http/controllers/StockController.ts": 1,
+   "src/infrastructure/http/createApp.ts": 1,
+   "src/infrastructure/http/middleware/errorHandler.ts": 1,
+   "src/infrastructure/http/middleware/notFoundHandler.ts": 1,
+   "src/infrastructure/http/requestParsing.ts": 1,
+   "src/infrastructure/persistence/InMemoryOrderRepository.ts": 1,
+   "src/infrastructure/persistence/InMemoryProductRepository.ts": 1,
+   "src/infrastructure/server.ts": 2,
+   "src/infrastructure/system/CryptoIdGenerator.ts": 1,
+   "src/infrastructure/system/SystemClock.ts": 1
+  }
+ }
+}

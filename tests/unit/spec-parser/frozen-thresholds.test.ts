@@ -26,6 +26,18 @@ const PINNED: Readonly<Record<string, { functions: Record<string, number>; scori
     functions: { 'FF-P02': 0.85, 'FF-C01': 0.3, 'FF-C02': 12, 'FF-C03': 0.8, 'FF-C05': 20, 'FF-C06': 0.3 },
     scoring: SCORING,
   },
+  // v1.3 (PR #76): the hexagonal preset, pinned at its first commit. It has no FF-C01; the other values equal
+  // clean-architecture.
+  'presets/hexagonal.yaml': {
+    functions: { 'FF-P02': 0.85, 'FF-C02': 10, 'FF-C05': 15, 'FF-C06': 0.3 },
+    scoring: SCORING,
+  },
+  // v1.3 (PR #83, U-C1): the DDD preset, pinned at its first commit. FF-DT06 threshold 3 is a priori
+  // (Docs/v1.3-ddd-notes.md §1); scoring thresholds equal layered.
+  'presets/ddd.yaml': {
+    functions: { 'FF-DT06': 3 },
+    scoring: SCORING,
+  },
   'specs/clean-arch.yaml': { functions: CLEAN_ARCH_FUNCTIONS, scoring: SCORING },
   'specs/daedalus-arch.yaml': {
     functions: { 'FF-P02': 0.85, 'FF-C01': 0.3, 'FF-C02': 15, 'FF-C05': 20, 'FF-C06': 0.25 },

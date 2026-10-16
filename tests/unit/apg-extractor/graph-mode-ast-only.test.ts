@@ -22,7 +22,8 @@ function run(files: Record<string, string>, graphMode: GraphMode, compilerOption
   for (const [fp, content] of Object.entries(files)) project.createSourceFile(fp, content);
   const sfs = project.getSourceFiles();
   const { nodes, lookup } = extractNodes(sfs, ROOT);
-  return { nodes, r: extractEdges(sfs, lookup, ROOT, { graphMode }) };
+  // v1.3: the edge counts pin the v1.2E barrel routing (ADR-V13-01 'both' is covered in v13-reexport-edges.test.ts).
+  return { nodes, r: extractEdges(sfs, lookup, ROOT, { graphMode, reExportEdges: 'resolved-only' }) };
 }
 
 /** `TYPE source -> target` by node name (Package nodes by name too). */

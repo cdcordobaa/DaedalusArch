@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "layered",
+  "variant": "v33-business-error-extends-nest-http-exception",
+  "kind": "violation",
+  "plants": "FF-P01",
+  "description": "BusinessError (business/errors) extends HttpException from @nestjs/common instead of Error.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P01",
+      "ruleName": "domain-purity",
+      "file": "src/business/errors/BusinessError.ts",
+      "target": "@nestjs/common",
+      "reason": "The business layer imports the web framework @nestjs/common."
+    }
+  ]
+}

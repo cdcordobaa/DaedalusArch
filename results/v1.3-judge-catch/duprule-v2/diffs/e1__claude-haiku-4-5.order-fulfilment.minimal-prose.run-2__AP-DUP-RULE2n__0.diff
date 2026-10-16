@@ -1,0 +1,25 @@
+diff -ruN a/src/application/usecases/PlaceOrderUseCase.ts b/src/application/usecases/PlaceOrderUseCase.ts
+--- a/src/application/usecases/PlaceOrderUseCase.ts
++++ b/src/application/usecases/PlaceOrderUseCase.ts
+@@ -12,9 +12,7 @@
+   ) {}
+ 
+   execute(request: CreateOrderRequest): OrderDto {
+-    if (request.lines.length === 0) {
+-      throw new Error('Order must contain at least one line');
+-    }
++    assertExecuteRule(request);
+ 
+     const products = this.productRepository.findAll();
+ 
+@@ -52,4 +50,10 @@
+       createdAt: order.createdAt.toISOString()
+     };
+   }
++}
++
++function assertExecuteRule(request: CreateOrderRequest): void {
++  if (request.lines.length === 0) {
++        throw new Error('Order must contain at least one line');
++      }
+ }

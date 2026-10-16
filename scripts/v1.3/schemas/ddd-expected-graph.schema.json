@@ -1,0 +1,59 @@
+{
+  "$id": "https://daedalusarch/v1.3/ddd-expected-graph.schema.json",
+  "title": "Hand-written expected graph of the DDD reference project (U-C1 format: every file, key edges, absent edges)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["variant", "spec", "note", "files", "keyEdges", "absentEdges"],
+  "properties": {
+    "variant": { "const": "clean" },
+    "spec": { "const": "presets/ddd.yaml" },
+    "note": { "type": "string" },
+    "files": {
+      "type": "object",
+      "minProperties": 15,
+      "maxProperties": 40,
+      "propertyNames": { "pattern": "^src/.+\\.ts$" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["layer", "context"],
+        "properties": {
+          "layer": { "type": ["string", "null"] },
+          "context": { "type": ["string", "null"] },
+          "aggregate": { "type": "string" },
+          "aggregateRole": { "type": "string" },
+          "acl": { "type": "boolean" }
+        }
+      }
+    },
+    "keyEdges": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "to"],
+        "properties": {
+          "from": { "type": "string", "pattern": "^src/.+\\.ts$" },
+          "to": { "type": "string", "pattern": "^src/.+\\.ts$" },
+          "kind": { "type": "string", "enum": ["RE_EXPORTS"] },
+          "why": { "type": "string" }
+        }
+      }
+    },
+    "absentEdges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "to"],
+        "properties": {
+          "from": { "type": "string" },
+          "to": { "type": "string" },
+          "except": { "type": "string" },
+          "why": { "type": "string" }
+        }
+      }
+    }
+  }
+}

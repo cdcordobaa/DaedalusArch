@@ -1,0 +1,42 @@
+diff -ruN a/src/application/list-orders-use-case.ts b/src/application/list-orders-use-case.ts
+--- a/src/application/list-orders-use-case.ts
++++ b/src/application/list-orders-use-case.ts
+@@ -1,6 +1,5 @@
+-import { DomainError } from "../domain/domain-error";
+ import { OrderRepository } from "../domain/order-repository";
+-import { isOrderStatus } from "../domain/order-status";
++import { assertOrderStatus } from "../domain/order-status";
+ import { OrderDto } from "./order-dto";
+ import { toOrderDto } from "./order-mapper";
+ 
+@@ -8,9 +7,7 @@
+   constructor(private readonly orders: OrderRepository) {}
+ 
+   execute(status: unknown): OrderDto[] {
+-    if (!isOrderStatus(status)) {
+-      throw new DomainError("VALIDATION", "Query parameter 'status' must be a valid order status");
+-    }
++    assertOrderStatus(status);
+     return this.orders.findByStatus(status).map(toOrderDto);
+   }
+ }
+diff -ruN a/src/domain/order-status.ts b/src/domain/order-status.ts
+--- a/src/domain/order-status.ts
++++ b/src/domain/order-status.ts
+@@ -1,3 +1,5 @@
++import { DomainError } from "./domain-error";
++
+ export const FULFILMENT_FLOW = ["placed", "paid", "packed", "shipped", "delivered"] as const;
+ 
+ export type FulfilmentStatus = (typeof FULFILMENT_FLOW)[number];
+@@ -16,4 +18,10 @@
+ 
+ export function isCancellable(current: OrderStatus): boolean {
+   return current === "placed" || current === "paid" || current === "packed";
++}
++
++export function assertOrderStatus(status: unknown): asserts status is OrderStatus {
++  if (!isOrderStatus(status)) {
++        throw new DomainError("VALIDATION", "Query parameter 'status' must be a valid order status");
++      }
+ }

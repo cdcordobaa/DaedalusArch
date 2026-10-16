@@ -75,7 +75,13 @@ export type SiteKind =
   | 'field-assignment'
   | 'dynamic-import'
   | 'guard-move'
-  | 'invariant-split';
+  | 'invariant-split'
+  // v1.3 DRAFT anti-pattern operators (`Docs/operator-catalogue-antipatterns.md`); not used by the frozen catalogue.
+  | 'repo-bypass'
+  | 'rule-move'
+  | 'orm-annotation'
+  | 'rule-duplicate'
+  | 'framework-param';
 
 export const SITE_KINDS: readonly SiteKind[] = [
   'import-edge',
@@ -89,6 +95,11 @@ export const SITE_KINDS: readonly SiteKind[] = [
   'dynamic-import',
   'guard-move',
   'invariant-split',
+  'repo-bypass',
+  'rule-move',
+  'orm-annotation',
+  'rule-duplicate',
+  'framework-param',
 ];
 
 export interface MutationSite {

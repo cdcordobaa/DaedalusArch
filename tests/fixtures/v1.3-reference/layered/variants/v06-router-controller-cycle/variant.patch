@@ -1,0 +1,19 @@
+--- a/src/presentation/http/OrderController.ts
++++ b/src/presentation/http/OrderController.ts
+@@ -1,10 +1,16 @@
+ import { OrderItem, OrderService } from '../../business/services/OrderService';
++import { Router } from '../Router';
+ import { renderOrder } from '../views/OrderView';
+ import { errorResponse } from './ErrorHandling';
+ import { HttpRequest, HttpResponse } from './HttpTypes';
+ 
+ export class OrderController {
+   constructor(private readonly orders: OrderService) {}
++
++  /** Self-registration: the controller looks routes up on the router that owns it. */
++  forward(router: Router, request: HttpRequest): HttpResponse {
++    return router.handle('GET /orders/:id', request);
++  }
+ 
+   place(request: HttpRequest): HttpResponse {
+     try {

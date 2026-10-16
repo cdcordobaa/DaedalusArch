@@ -1,0 +1,36 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9199,
+  "effort": "high",
+  "functionId": "filter-explain",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "99f63be3b8f0bdafd8174c57c67bfe0c86e8943c2df1870f75a10f860b081100-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "## Finding\nRule: FF-CV05\nRule intent: Each source file has a paired test file.\nType: MISSING_TEST_FILE\nSeverity: advisory; tier: advisory (unscored)\nFile: src/adapters/inbound/http/RoomController.ts\nMessage: Violation in src/adapters/inbound/http/RoomController.ts\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- adapters-inbound (kind: presentation): src/adapters/inbound/**\n- adapters-outbound (kind: infrastructure): src/adapters/outbound/**\n- config (kind: application): src/config/**\n\n## Source (line-numbered)\n=====SOURCE-BEGIN src/adapters/inbound/http/RoomController.ts (layer adapters-inbound)=====\n 1| import { FindAvailableRooms } from '../../../application/ports/in/FindAvailableRooms';\n 2| import { BookingError } from '../../../domain/errors/BookingError';\n 3| import { DateRange } from '../../../domain/model/DateRange';\n 4| import { HttpRequest, HttpResponse } from './HttpTypes';\n 5| \n 6| export class RoomController {\n 7|   constructor(private readonly findAvailableRooms: FindAvailableRooms) {}\n 8| \n 9|   async available(request: HttpRequest): Promise<HttpResponse> {\n10|     try {\n11|       DateRange.parse(String(request.query['checkIn']), String(request.query['checkOut']));\n12|     } catch (error) {\n13|       if (error instanceof BookingError) return { status: 400, body: { error: error.message } };\n14|       throw error;\n15|     }\n16|     const rooms = await this.findAvailableRooms.find(\n17|       String(request.query['checkIn']),\n18|       String(request.query['checkOut']),\n19|       Number(request.query['guests'] ?? 1),\n20|     );\n21|     return { status: 200, body: rooms };\n22|   }\n23| }\n=====SOURCE-END=====\n\n## Instructions\nDecide confirm or dismiss. Confirm: the cited code has the problem the rule is meant to catch, in this project and layer model. Dismiss: the rule fired, but the code does not have that problem (a false positive of the rule's mechanism, a threshold artefact on sound code, or a case the style allows). Measurements stated in the finding (counts, ratios, missing files) are correct as measurements; judge what they mean for this code. explanation: one paragraph that justifies the decision from the code, citing file paths and line numbers exactly as numbered below. fix: one concrete change: for a confirm, how to fix the code; for a dismiss, what (if anything) the rule or its configuration should change. citations: the line ranges your explanation relies on; every one must name a file shown below and lines that exist.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T00:00:28.211Z",
+  "repetition": 0,
+  "requestHash": "99f63be3b8f0bdafd8174c57c67bfe0c86e8943c2df1870f75a10f860b081100",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":734}},\"result\":\"{\\\"decision\\\":\\\"confirm\\\",\\\"explanation\\\":\\\"The finding holds: RoomController has no paired test file, and it contains behaviour that should be tested. src/adapters/inbound/http/RoomController.ts is not a pure type file or a trivial pass-through. Lines 10-15 validate the checkIn/checkOut query parameters with DateRange.parse. They turn a BookingError into an HTTP 400 response and rethrow every other error. Lines 16-20 coerce the query values with String() and Number(), and default guests to 1 when it is absent (line 19). Line 21 maps a successful result to a 200 response. Each of these is a branch that can break unnoticed: the error mapping, the rethrow path, the guests default, and the coercion of missing parameters to the string 'undefined'. The FindAvailableRooms port is injected through the constructor (line 7), so the controller is easy to unit-test with a stub. Nothing in the layer model exempts presentation adapters from having tests.\\\",\\\"fix\\\":\\\"Add src/adapters/inbound/http/RoomController.test.ts (or put it in the project's test folder) using a stub FindAvailableRooms. It should check that: (1) invalid or reversed dates return status 400 with the BookingError message; (2) a non-BookingError thrown by DateRange.parse is rethrown; (3) valid input calls find with checkIn, checkOut and guests defaulting to 1, and returns status 200 with the rooms; (4) an explicit guests query value is passed through as a number.\\\",\\\"citations\\\":[{\\\"filePath\\\":\\\"src/adapters/inbound/http/RoomController.ts\\\",\\\"startLine\\\":7,\\\"endLine\\\":7},{\\\"filePath\\\":\\\"src/adapters/inbound/http/RoomController.ts\\\",\\\"startLine\\\":9,\\\"endLine\\\":22}]}\",\"structured_output\":{\"citations\":[{\"endLine\":7,\"filePath\":\"src/adapters/inbound/http/RoomController.ts\",\"startLine\":7},{\"endLine\":22,\"filePath\":\"src/adapters/inbound/http/RoomController.ts\",\"startLine\":9}],\"decision\":\"confirm\",\"explanation\":\"The finding holds: RoomController has no paired test file, and it contains behaviour that should be tested. src/adapters/inbound/http/RoomController.ts is not a pure type file or a trivial pass-through. Lines 10-15 validate the checkIn/checkOut query parameters with DateRange.parse. They turn a BookingError into an HTTP 400 response and rethrow every other error. Lines 16-20 coerce the query values with String() and Number(), and default guests to 1 when it is absent (line 19). Line 21 maps a successful result to a 200 response. Each of these is a branch that can break unnoticed: the error mapping, the rethrow path, the guests default, and the coercion of missing parameters to the string 'undefined'. The FindAvailableRooms port is injected through the constructor (line 7), so the controller is easy to unit-test with a stub. Nothing in the layer model exempts presentation adapters from having tests.\",\"fix\":\"Add src/adapters/inbound/http/RoomController.test.ts (or put it in the project's test folder) using a stub FindAvailableRooms. It should check that: (1) invalid or reversed dates return status 400 with the BookingError message; (2) a non-BookingError thrown by DateRange.parse is rethrown; (3) valid input calls find with checkIn, checkOut and guests defaulting to 1, and returns status 200 with the rooms; (4) an explicit guests query value is passed through as a number.\"}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "60e544ace80ac985",
+  "usage": {
+    "inputTokens": 2389,
+    "outputTokens": 734
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -1,0 +1,18 @@
+diff -ruN bases/nestjs__clean/src/attendees/attendees.service.ts copies/nestjs__clean__AP-FRAMEWORK-LEAKn__1/src/attendees/attendees.service.ts
+--- bases/nestjs__clean/src/attendees/attendees.service.ts	2026-10-15 11:50:59
++++ copies/nestjs__clean__AP-FRAMEWORK-LEAKn__1/src/attendees/attendees.service.ts	2026-10-15 11:51:10
+@@ -17,9 +17,13 @@
+     return { id: attendee.id, name: attendee.name };
+   }
+ 
+-  async findOne(id: string): Promise<{ id: string; name: string }> {
++  async findOne(id: string, context?: FindOneContextDto): Promise<{ id: string; name: string }> {
+     const attendee = await this.attendees.findById(id);
+     if (attendee === undefined) throw new DomainError('not-found', `No attendee ${id}`);
+     return { id: attendee.id, name: attendee.name };
+   }
++}
++
++export interface FindOneContextDto {
++  readonly requestId?: string;
+ }

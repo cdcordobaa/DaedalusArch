@@ -2,9 +2,10 @@ import { Node, SourceFile, SyntaxKind } from 'ts-morph';
 import type { APGNode } from '../shared/types/apg.js';
 import type { SkippedFile } from '../shared/types/apg.js';
 import type { NodeType } from '../shared/types/enums.js';
-import type { ExtractorOptions, NodeLookup, DecoratorMetadata } from './types.js';
+import type { ExtractorOptions, FileCheckpoint, NodeLookup, DecoratorMetadata } from './types.js';
 import { DEFAULT_OPTIONS } from './types.js';
 import { generateNodeId, normalizeFilePath } from './id-generator.js';
+import { extractClassMemberFacts, extractMethodMemberFacts } from './member-facts.js';
 
 export interface NodeExtractionResult {
   readonly nodes: APGNode[];
@@ -19,6 +20,7 @@ export function extractNodes(
   sourceFiles: SourceFile[],
   projectRoot: string,
   options: ExtractorOptions = {},
+  checkpoint?: FileCheckpoint,
 ): NodeExtractionResult {
   const opts = { ...DEFAULT_OPTIONS, ...options };
   const nodes: APGNode[] = [];
@@ -32,7 +34,9 @@ export function extractNodes(
     functionNodes: new Map(),
   };
 
+  let done = 0;
   for (const sf of sourceFiles) {
+    if (checkpoint !== undefined) checkpoint(done++, sourceFiles.length);
     try {
       const filePath = normalizeFilePath(sf.getFilePath(), projectRoot);
       const fileNode = extractFileNode(sf, filePath, opts);
@@ -148,6 +152,8 @@ function extractClassNode(
   return buildNode('Class', filePath, name, {
     isAbstract: cls.isAbstract(),
     typeParameters: cls.getTypeParameters().map(tp => tp.getName()),
+    // v1.3 `memberFacts` only: absent from the v1.2E graph.
+    ...(opts.memberFacts ? extractClassMemberFacts(cls) : {}),
   }, decorators.map(d => d.name));
 }
 
@@ -175,6 +181,7 @@ function extractMethodNode(
     isStatic: method.isStatic(),
     isAbstract: method.isAbstract(),
     returnType: method.getReturnType().getText(),
+    ...(opts.memberFacts ? extractMethodMemberFacts(method) : {}),
   }, decorators.map(d => d.name));
 }
 

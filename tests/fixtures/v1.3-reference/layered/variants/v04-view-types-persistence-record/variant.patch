@@ -1,0 +1,19 @@
+--- a/src/presentation/views/ProductView.ts
++++ b/src/presentation/views/ProductView.ts
+@@ -1,4 +1,5 @@
+ import { Product } from '../../business/model/Product';
++import type { ProductRecord } from '../../persistence/records/ProductRecord';
+ 
+ export interface ProductViewModel {
+   sku: string;
+@@ -7,6 +8,10 @@
+   inStock: boolean;
+ }
+ 
++export function renderProductRow(row: ProductRecord): ProductViewModel {
++  return { sku: row.sku, name: row.name, price: `${(row.priceCents / 100).toFixed(2)} EUR`, inStock: row.stock > 0 };
++}
++
+ export function renderProduct(product: Product): ProductViewModel {
+   return { sku: product.sku, name: product.name, price: product.price.format(), inStock: product.stock > 0 };
+ }

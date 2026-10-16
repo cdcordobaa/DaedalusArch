@@ -3,7 +3,8 @@ import type { FirewallContext } from '../../shared/context/firewall-context.js';
 import type { DomainResult as DomainResultType } from '../../shared/errors/domain-result.js';
 import { DomainResult } from '../../shared/errors/domain-result.js';
 import { extractAPG } from '../../apg-extractor/index.js';
-import type { GraphMode } from '../../apg-extractor/types.js';
+import type { ExtractionLimits, GraphMode } from '../../apg-extractor/types.js';
+import { V12E_DEFAULT_OPTIONS } from '../../apg-extractor/types.js';
 import { toPipelineError, toPipelineWarning } from './map-helpers.js';
 
 export class ExtractCommand implements PipelineCommand {
@@ -16,13 +17,25 @@ export class ExtractCommand implements PipelineCommand {
     private readonly graphMode?: GraphMode,
     /** ADR-032: explicit tsconfig (the project's own `tsconfig.json` is then ignored); absent = `<project>/tsconfig.json`. */
     private readonly tsconfigPath?: string,
+    /** In-memory file contents (absolute path; `null` = removed); absent = the files on disk. */
+    private readonly sourceOverrides?: ReadonlyMap<string, string | null>,
+    /** MT-B1 (OFF by default): `ExtractorOptions.resolvedEdgesInLiteralView`. */
+    private readonly resolvedEdgesInLiteralView = false,
+    /** R02: `v1.2e` extracts with `V12E_DEFAULT_OPTIONS` (the registered graph); absent = the v1.3 defaults. */
+    private readonly defaults?: 'v1.3' | 'v1.2e',
+    /** Scale controls: `--max-files`, the memory guard, `--skip-excluded-sources` (Docs/v1.3/scale.md §5, §6). */
+    private readonly limits: ExtractionLimits = {},
   ) {}
 
   async execute(context: FirewallContext): Promise<DomainResultType<void>> {
-    const result = await extractAPG(this.projectPath, {
+    const options = {
+      ...(this.defaults === 'v1.2e' ? V12E_DEFAULT_OPTIONS : {}),
       excludePatterns: this.excludePatterns,
       ...(this.graphMode !== undefined && { graphMode: this.graphMode }),
-    }, this.tsconfigPath);
+      ...(this.resolvedEdgesInLiteralView && { resolvedEdgesInLiteralView: true }),
+    };
+    // The overrides argument is passed only when present (MCP template checks): every other caller is unchanged.
+    const result = await extractAPG(this.projectPath, options, this.tsconfigPath, this.sourceOverrides, this.limits);
 
     if (!result.success) {
       return DomainResult.fail<void>(
@@ -34,7 +47,10 @@ export class ExtractCommand implements PipelineCommand {
 
     // Extractor warnings travel in APGResult.warnings (BR-U2-26); route them to the context (BR-U3-56).
     for (const w of result.data.warnings) {
-      context.addWarning(toPipelineWarning({ code: w.code, message: w.message, context: { filePath: w.filePath } }, this.name));
+      context.addWarning(toPipelineWarning({
+        code: w.code, message: w.message,
+        context: { filePath: w.filePath, ...(w.severity !== undefined ? { severity: w.severity } : {}) },
+      }, this.name));
     }
 
     if (result.warnings) {

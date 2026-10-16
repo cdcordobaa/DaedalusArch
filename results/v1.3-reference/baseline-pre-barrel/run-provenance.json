@@ -1,0 +1,17 @@
+{
+  "unit": "U-E baseline, before ADR-V13-01 (barrel fix)",
+  "branch": "v1.3-ue from origin/v1.3 5d50dfaf",
+  "neo4j": "daedalus-neo4j-bt, bolt 127.0.0.1:7693, env from ~/.daedalus-bt.env (not printed)",
+  "command": "node --import tsx scripts/v1.3/ue-baseline-live.ts --out <dir>  (validate-reference live mode, all 5 styles, 71 cases, v1.3 tiers; evaluator = the cliEvaluate command plus the full violation objects kept under evidence/)",
+  "admission": "HEAVY_ADMISSION_BYPASS=1 on npm ci and on each live/graph run: the hook blocked on swap (11.3 GB / 16 GB) while memory_pressure reported 43-54% free",
+  "runs": [
+    { "attempt": "first", "start": "2026-10-15T01:08Z", "kept": false,
+      "why": "Another worktree (agent-ab41624562e2b80e4) ran jest suites against the same Neo4j between 01:09:10Z and 01:10:01Z. Every ingestion wipes the database (MATCH (n) DETACH DELETE n). Four raw files differ from the clean runs: nestjs/v10 got FF-P03 rows on DDD fixture files (src/billing/..., src/ordering/...) and lost its FF-S01/FF-S04/FF-P06 rows; hexagonal clean, v02 and v03 got FF-C04 rows on DDD files." },
+    { "attempt": "second", "start": "2026-10-15T01:11Z", "kept": false, "why": "aborted by the same interference (Neo4j: 'Unable to load NODE' during edge ingestion)" },
+    { "attempt": "run1", "start": "2026-10-15T01:14:23Z", "end": "2026-10-15T01:16:03Z", "kept": true, "foreignNeo4jUsers": 0 },
+    { "attempt": "run2", "start": "2026-10-15T01:17:39Z", "end": "2026-10-15T01:19:01Z", "kept": false, "foreignNeo4jUsers": 0, "identicalToRun1": "raw/ byte-identical (71 files), report.md identical" }
+  ],
+  "guard": "Each kept run started after 90 s with no other process matching jest or 'firewall.ts evaluate' outside this worktree, and was polled every second for such a process; run1 and run2 saw none.",
+  "replay": "validate-reference.ts --from-raw raw/ reproduces report.md (header line aside)",
+  "temp": "materialised variants under the session scratchpad (TMPDIR), outside any node_modules ancestry, so the vendored ambient typings stay in force as in --check; removed after the run"
+}

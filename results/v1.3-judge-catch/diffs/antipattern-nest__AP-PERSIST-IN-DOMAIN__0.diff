@@ -1,0 +1,14 @@
+diff -ruN bases/antipattern-nest/src/order/domain/order.ts copies/antipattern-nest__AP-PERSIST-IN-DOMAIN__0/src/order/domain/order.ts
+--- bases/antipattern-nest/src/order/domain/order.ts	2026-10-15 11:50:59
++++ copies/antipattern-nest__AP-PERSIST-IN-DOMAIN__0/src/order/domain/order.ts	2026-10-15 11:51:02
+@@ -1,6 +1,10 @@
++import { Entity, Column } from 'typeorm';
++
+ export type OrderStatus = 'open' | 'paid' | 'cancelled';
+ 
++@Entity()
+ export class Order {
++  @Column()
+   status: OrderStatus = 'open';
+ 
+   constructor(

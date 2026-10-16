@@ -6,8 +6,10 @@
  */
 
 export { APGExtractor, extractAPG } from './apg-extractor.js';
-export type { ExtractorOptions, ExtractorError, ExtractorErrorCode, GraphMode } from './types.js';
-export { GRAPH_MODES } from './types.js';
+export type { ComponentDeclaration, ExtractionLimits, ExtractorOptions, ExtractorError, ExtractorErrorCode, GraphMode, ReExportEdgesMode } from './types.js';
+export { GRAPH_MODES, V12E_DEFAULT_OPTIONS, V13_APG2_OPTIONS, V13_DEFAULT_OPTIONS, V13_FIELD_STATE_OPTIONS } from './types.js';
+export { extractApg2, componentsFromLayerModel, APG2_IO_CATEGORIES } from './apg2/index.js';
+export type { Apg2Stats } from './apg2/index.js';
 export { AST_ONLY_EDGE_TYPES, edgeTypesOf, restrictToGraphMode } from './graph-mode.js';
 export type { GraphView } from './graph-mode.js';
 export {

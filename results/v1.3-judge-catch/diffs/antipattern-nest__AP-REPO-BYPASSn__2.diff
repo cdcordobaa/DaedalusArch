@@ -1,0 +1,18 @@
+diff -ruN bases/antipattern-nest/src/order/order.service.ts copies/antipattern-nest__AP-REPO-BYPASSn__2/src/order/order.service.ts
+--- bases/antipattern-nest/src/order/order.service.ts	2026-10-15 11:50:59
++++ copies/antipattern-nest__AP-REPO-BYPASSn__2/src/order/order.service.ts	2026-10-15 11:51:01
+@@ -11,11 +11,12 @@
+   ) {}
+ 
+   async create(customerId: string, quantity: number, unitPrice: number): Promise<OrderEntity> {
++    const orderRepository = this.orderRepository;
+     if (quantity <= 0) {
+       throw new BadRequestException('Quantity must be positive');
+     }
+-    const order = this.orderRepository.create({ customerId, quantity, total: quantity * unitPrice });
+-    return this.orderRepository.save(order);
++    const order = orderRepository.create({ customerId, quantity, total: quantity * unitPrice });
++    return orderRepository.save(order);
+   }
+ 
+   async findOne(id: string): Promise<OrderEntity> {

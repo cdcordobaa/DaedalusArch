@@ -1,0 +1,164 @@
+{
+  "case": "case-04c-control-distinct-concepts",
+  "note": "Hand-written scripted mock answers (NOT model output). They exercise the ontology pipeline, the grounding validator, the cache and the scorer on the planted cases; they were written after expected-semantic.json and say nothing about what a model would answer. Planted hallucinations are marked 'planted-hallucination'.",
+  "responses": [
+    {
+      "pass": "responsibility",
+      "item": "Order",
+      "answer": {
+        "responsibilities": [
+          {
+            "name": "Record an order",
+            "description": "Record an order",
+            "naturalLayer": "domain",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "Order",
+                "quote": "readonly customerId: string,"
+              }
+            ]
+          }
+        ],
+        "concepts": [
+          {
+            "name": "Order",
+            "relation": "defines",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "Order",
+                "quote": "export class Order {"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "responsibility",
+      "item": "Invoice",
+      "answer": {
+        "responsibilities": [
+          {
+            "name": "Record an invoice and tell whether it is overdue",
+            "description": "Record an invoice and tell whether it is overdue",
+            "naturalLayer": "domain",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "Invoice.isOverdue",
+                "quote": "return today.getTime() > this.dueDate.getTime();"
+              }
+            ]
+          }
+        ],
+        "concepts": [
+          {
+            "name": "Invoice",
+            "relation": "defines",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "Invoice",
+                "quote": "export class Invoice {"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "responsibility",
+      "item": "Shipment",
+      "answer": {
+        "responsibilities": [
+          {
+            "name": "Record a shipment",
+            "description": "Record a shipment",
+            "naturalLayer": "domain",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "Shipment",
+                "quote": "readonly trackingCode: string,"
+              }
+            ]
+          }
+        ],
+        "concepts": [
+          {
+            "name": "Shipment",
+            "relation": "defines",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "Shipment",
+                "quote": "export class Shipment {"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "rules",
+      "item": "Invoice",
+      "answer": {
+        "rules": [
+          {
+            "statement": "An invoice is overdue once its due date has passed",
+            "subject": "due date",
+            "operator": ">",
+            "threshold": null,
+            "unit": null,
+            "enforcedBy": "Invoice.isOverdue",
+            "confidence": 0.85,
+            "evidence": [
+              {
+                "node": "Invoice.isOverdue",
+                "quote": "today.getTime() > this.dueDate.getTime()"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "pass": "adjudicate",
+      "contains": [
+        "Order",
+        "Invoice"
+      ],
+      "answer": {
+        "same": false,
+        "confidence": 0.9,
+        "rationale": "An order and the invoice for it are different documents."
+      }
+    },
+    {
+      "pass": "adjudicate",
+      "contains": [
+        "Order",
+        "Shipment"
+      ],
+      "answer": {
+        "same": false,
+        "confidence": 0.9,
+        "rationale": "Different concepts."
+      }
+    },
+    {
+      "pass": "adjudicate",
+      "contains": [
+        "Invoice",
+        "Shipment"
+      ],
+      "answer": {
+        "same": false,
+        "confidence": 0.9,
+        "rationale": "Different concepts."
+      }
+    }
+  ]
+}

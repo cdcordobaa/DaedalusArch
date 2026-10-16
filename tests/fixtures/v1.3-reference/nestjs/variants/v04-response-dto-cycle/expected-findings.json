@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "nestjs",
+  "variant": "v04-response-dto-cycle",
+  "kind": "violation",
+  "plants": "FF-S02",
+  "description": "WorkshopResponseDto and RegistrationResponseDto nest each other.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "file": "src/registrations/dto/registration-response.dto.ts",
+      "target": "src/workshops/dto/workshop-response.dto.ts",
+      "reason": "Two-file import cycle between the response DTOs (\"src/registrations/...\" sorts before \"src/workshops/...\")."
+    }
+  ]
+}

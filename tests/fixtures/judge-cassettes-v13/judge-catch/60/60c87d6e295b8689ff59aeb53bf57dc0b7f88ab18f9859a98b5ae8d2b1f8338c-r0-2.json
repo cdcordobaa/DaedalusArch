@@ -1,0 +1,47 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6482,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "60c87d6e295b8689ff59aeb53bf57dc0b7f88ab18f9859a98b5ae8d2b1f8338c-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "execute() creates the entity: new Book(this.ids.next('book'), Isbn.parse(command.isbn), ...). Validation is left to the domain value object Isbn.parse.",
+      "Persistence is delegated to the injected BookRepository abstraction: await this.books.save(book).",
+      "Returns toBookDto(book), which maps the result to an application DTO.",
+      "RegisterBookCommand is a plain input interface. The file has no HTTP, database or framework code."
+    ],
+    "pass": true,
+    "reasoning": "RegisterBookUseCase.ts is a standard application-layer use case. It takes a command and creates the domain entity (Book) and value object (Isbn) through their own constructors and parse methods. It saves the book through an injected repository abstraction and an IdGenerator port, then maps the result to a DTO. Persistence is delegated to an abstraction, the file has no transport or framework code, and it adds no business rules of its own. The command shape and DTO mapping are normal application concerns.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/use-cases/RegisterBookUseCase.ts\nLayer: application\nUnit files:\n- src/application/use-cases/RegisterBookUseCase.ts\n\n## Source\n=====SOURCE-BEGIN src/application/use-cases/RegisterBookUseCase.ts=====\nimport { Book } from '../../domain/entities/Book';\nimport { BookRepository } from '../../domain/repositories/BookRepository';\nimport { Isbn } from '../../domain/value-objects/Isbn';\nimport { BookDto, toBookDto } from '../dto/BookDto';\nimport { IdGenerator } from '../ports/IdGenerator';\n\nexport interface RegisterBookCommand {\n  isbn: string;\n  title: string;\n  author: string;\n  copies: number;\n}\n\nexport class RegisterBookUseCase {\n  constructor(\n    private readonly books: BookRepository,\n    private readonly ids: IdGenerator,\n  ) {}\n\n  async execute(command: RegisterBookCommand): Promise<BookDto> {\n    const book = new Book(this.ids.next('book'), Isbn.parse(command.isbn), command.title, command.author, command.copies);\n    await this.books.save(book);\n    return toBookDto(book);\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"BookController@src/infrastructure/http/BookController.ts\",\"to\":\"RegisterBookUseCase@src/application/use-cases/RegisterBookUseCase.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"RegisterBookUseCase@src/application/use-cases/RegisterBookUseCase.ts\",\"to\":\"BookRepository@src/domain/repositories/BookRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"RegisterBookUseCase@src/application/use-cases/RegisterBookUseCase.ts\",\"to\":\"IdGenerator@src/application/ports/IdGenerator.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/use-cases/RegisterBookUseCase.ts\",\"to\":\"src/application/dto/BookDto.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/RegisterBookUseCase.ts\",\"to\":\"src/application/ports/IdGenerator.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/RegisterBookUseCase.ts\",\"to\":\"src/domain/entities/Book.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/RegisterBookUseCase.ts\",\"to\":\"src/domain/repositories/BookRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/RegisterBookUseCase.ts\",\"to\":\"src/domain/value-objects/Isbn.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/BookController.ts\",\"to\":\"src/application/use-cases/RegisterBookUseCase.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/main.ts\",\"to\":\"src/application/use-cases/RegisterBookUseCase.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"RegisterBookUseCase\",\"path\":\"src/application/use-cases/RegisterBookUseCase.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"BookController\",\"path\":\"src/infrastructure/http/BookController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto/BookDto.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports/IdGenerator.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/RegisterBookUseCase.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/entities/Book.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/repositories/BookRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/value-objects/Isbn.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/BookController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/main.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"IdGenerator\",\"path\":\"src/application/ports/IdGenerator.ts\"},{\"kind\":\"Interface\",\"layer\":\"application\",\"name\":\"RegisterBookCommand\",\"path\":\"src/application/use-cases/RegisterBookUseCase.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"BookRepository\",\"path\":\"src/domain/repositories/BookRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T17:01:35.431Z",
+  "repetition": 0,
+  "requestHash": "60c87d6e295b8689ff59aeb53bf57dc0b7f88ab18f9859a98b5ae8d2b1f8338c",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":453}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"RegisterBookUseCase.ts is a standard application-layer use case. It takes a command and creates the domain entity (Book) and value object (Isbn) through their own constructors and parse methods. It saves the book through an injected repository abstraction and an IdGenerator port, then maps the result to a DTO. Persistence is delegated to an abstraction, the file has no transport or framework code, and it adds no business rules of its own. The command shape and DTO mapping are normal application concerns.\\\",\\\"evidence\\\":[\\\"execute() creates the entity: new Book(this.ids.next('book'), Isbn.parse(command.isbn), ...). Validation is left to the domain value object Isbn.parse.\\\",\\\"Persistence is delegated to the injected BookRepository abstraction: await this.books.save(book).\\\",\\\"Returns toBookDto(book), which maps the result to an application DTO.\\\",\\\"RegisterBookCommand is a plain input interface. The file has no HTTP, database or framework code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"execute() creates the entity: new Book(this.ids.next('book'), Isbn.parse(command.isbn), ...). Validation is left to the domain value object Isbn.parse.\",\"Persistence is delegated to the injected BookRepository abstraction: await this.books.save(book).\",\"Returns toBookDto(book), which maps the result to an application DTO.\",\"RegisterBookCommand is a plain input interface. The file has no HTTP, database or framework code.\"],\"pass\":true,\"reasoning\":\"RegisterBookUseCase.ts is a standard application-layer use case. It takes a command and creates the domain entity (Book) and value object (Isbn) through their own constructors and parse methods. It saves the book through an injected repository abstraction and an IdGenerator port, then maps the result to a DTO. Persistence is delegated to an abstraction, the file has no transport or framework code, and it adds no business rules of its own. The command shape and DTO mapping are normal application concerns.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/application/use-cases/RegisterBookUseCase.ts",
+  "usage": {
+    "inputTokens": 3468,
+    "outputTokens": 453
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

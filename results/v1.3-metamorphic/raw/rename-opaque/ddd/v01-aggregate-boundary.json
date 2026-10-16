@@ -1,0 +1,76 @@
+{
+  "transform": "rename-opaque",
+  "style": "ddd",
+  "variant": "v01-aggregate-boundary",
+  "candidate": "opaque names",
+  "candidatesTried": 1,
+  "applied": true,
+  "transformed": true,
+  "note": "32 declarations, 28 files renamed",
+  "tscOk": true,
+  "tscDiagnostics": [],
+  "candidateErrors": [],
+  "origCanon": {},
+  "newCanon": {
+    "src/billing/acl/m001.ts": "src/billing/acl/OrderingAcl.ts",
+    "src/billing/api/m002.ts": "src/billing/api/InvoiceController.ts",
+    "src/billing/application/m003.ts": "src/billing/application/IssueInvoice.ts",
+    "src/billing/application/ports/m004.ts": "src/billing/application/ports/OrderSource.ts",
+    "src/billing/contracts/m005.ts": "src/billing/contracts/InvoiceView.ts",
+    "src/billing/domain/invoice/events/m006.ts": "src/billing/domain/invoice/events/InvoiceIssued.ts",
+    "src/billing/domain/invoice/m007.ts": "src/billing/domain/invoice/Invoice.ts",
+    "src/billing/domain/invoice/m008.ts": "src/billing/domain/invoice/InvoiceLine.ts",
+    "src/billing/domain/invoice/m009.ts": "src/billing/domain/invoice/InvoiceRepository.ts",
+    "src/billing/domain/invoice/value-objects/m010.ts": "src/billing/domain/invoice/value-objects/InvoiceId.ts",
+    "src/billing/infrastructure/m011.ts": "src/billing/infrastructure/InMemoryInvoiceRepository.ts",
+    "src/ordering/api/m012.ts": "src/ordering/api/OrderController.ts",
+    "src/ordering/application/m013.ts": "src/ordering/application/GetOrderSummary.ts",
+    "src/ordering/application/m014.ts": "src/ordering/application/PlaceOrder.ts",
+    "src/ordering/contracts/m015.ts": "src/ordering/contracts/OrderSummary.ts",
+    "src/ordering/domain/customer/m016.ts": "src/ordering/domain/customer/Customer.ts",
+    "src/ordering/domain/customer/m017.ts": "src/ordering/domain/customer/CustomerRepository.ts",
+    "src/ordering/domain/customer/value-objects/m018.ts": "src/ordering/domain/customer/value-objects/CustomerId.ts",
+    "src/ordering/domain/order/events/m019.ts": "src/ordering/domain/order/events/OrderPlaced.ts",
+    "src/ordering/domain/order/m020.ts": "src/ordering/domain/order/Order.ts",
+    "src/ordering/domain/order/m021.ts": "src/ordering/domain/order/OrderLine.ts",
+    "src/ordering/domain/order/m022.ts": "src/ordering/domain/order/OrderRepository.ts",
+    "src/ordering/domain/order/value-objects/m023.ts": "src/ordering/domain/order/value-objects/OrderId.ts",
+    "src/ordering/domain/value-objects/m024.ts": "src/ordering/domain/value-objects/Quantity.ts",
+    "src/ordering/infrastructure/m025.ts": "src/ordering/infrastructure/InMemoryCustomerRepository.ts",
+    "src/ordering/infrastructure/m026.ts": "src/ordering/infrastructure/InMemoryOrderRepository.ts",
+    "src/shared-kernel/m027.ts": "src/shared-kernel/DomainEvent.ts",
+    "src/shared-kernel/value-objects/m028.ts": "src/shared-kernel/value-objects/Money.ts"
+  },
+  "specReplaced": [
+    "Customer -> Q020",
+    "DomainEvent -> Q031",
+    "Invoice -> Q008",
+    "Order -> Q024",
+    "src/billing/domain/invoice/Invoice.ts -> src/billing/domain/invoice/m007.ts",
+    "src/billing/domain/invoice/InvoiceLine.ts -> src/billing/domain/invoice/m008.ts",
+    "src/ordering/domain/customer/Customer.ts -> src/ordering/domain/customer/m016.ts",
+    "src/ordering/domain/order/Order.ts -> src/ordering/domain/order/m020.ts",
+    "src/ordering/domain/order/OrderLine.ts -> src/ordering/domain/order/m021.ts"
+  ],
+  "summary": {
+    "verdict": "fail",
+    "blockingRules": [
+      "FF-DS01",
+      "FF-DS02",
+      "FF-DT01",
+      "FF-DT02",
+      "FF-DT03",
+      "FF-DT04",
+      "FF-S01"
+    ],
+    "blocking": [
+      {
+        "ruleId": "FF-DT01",
+        "file": "src/ordering/application/m013.ts",
+        "target": "src/ordering/domain/order/m021.ts"
+      }
+    ],
+    "advisory": [],
+    "rows": 1
+  }
+}
