@@ -1756,3 +1756,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: v1.3 CONSTRUCTION, Study 2 readiness tooling (D13, D16); AI-DLC gates not run interactively (scheduled task; the stored backlog job is the requirements).
 
 ---
+
+## v1.3 — rule-gap catalogue (opt-in, advisory)
+**Timestamp**: 2026-10-16T01:35:00Z
+**User Input**: (scheduled task) "Find constraints the style sources state but the tool does not check; add the most valuable 5–8 as an opt-in, advisory extension catalogue with fixtures, unit tests and source rows; run them on the 71-case dev set and the E1 projects; write Docs/v1.3/rule-gap-catalogue.md; one PR into v1.3, not merged."
+**AI Response**: "Branch v1.3-rule-gaps from origin/v1.3. Coverage matrix of 57 constraints over clean, layered, hexagonal, DDD and NestJS sources (20 covered, 15 partial, 11 not covered, 9 not checkable statically, 2 N/A). Eight new advisory templates in src/fitness-compiler/rule-gap-templates.ts with in-memory mirrors, outside V13_EXTENSION_TEMPLATE_CATALOGUES (new opt-in V13_OPT_IN_EXTENSION_CATALOGUES); 37 fixture cases (violating, clean, look-alike); unit tests pass. Live runs on cypher-interp (merged into v1.3 as #128) and on Neo4j 5.26 + APOC (tarball): fixtures 37/37 on both, dev set 71 variants with live = mirror and the same 60 rows on both engines; fire counts and a labelling sample in results/v1.3-rule-gaps. E1 not run: the outcome projects are not in the container. No existing template, tier or preset changed. The AI-DLC approval gates were not run interactively: the request came from a scheduled task with no one present."
+**Context**: v1.3 DEVELOPMENT data only; nothing scored or sealed.
+
+---
