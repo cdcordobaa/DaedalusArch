@@ -5,9 +5,9 @@ Written 2026-10-16 on branch `v1.3-scale`, cut from `origin/v1.3` @ `2c64d1d5`. 
 **Summary.**
 
 - **Cycle queries.** Before: on all 6 projects at least one of the two bounded cycle queries hit Neo4j's 30 s query timeout, so the report carried a failed FF-S02, a `null` cycle metric, or both. After: both queries are answered in memory, with the same rows, in 10–60 ms. No query times out on any project.
-- **Wall time.** Median wall time falls from 52–85 s to 10–26 s (PLACEHOLDER_SPEEDUP).
-- **Extraction.** 10–30% faster with an identical APG.
-- **Peak memory.** Peak RSS falls slightly by default and by up to 35% with the new opt-in `--skip-excluded-sources`.
+- **Wall time.** Median wall time falls from 51.2–77.2 s to 8.8–19.8 s (3.0× to 8.1× faster; median of three runs per project).
+- **Extraction.** 9–27% faster with an identical APG.
+- **Peak memory.** Peak RSS falls by 2–12% by default, and by up to 42% (prisma: 2,269 → 1,321 MB) with the new opt-in `--skip-excluded-sources`.
 - **Size limits.** A memory guard and `--max-files` turn "JavaScript heap out of memory" into a clear error.
 - **Outputs.** Byte-identical before and after on the 71 reference cases and the 5 golden fixtures (228 files, three modes). On the six large projects the APG is byte-identical, and every query that completed before returns the same rows.
 
@@ -30,7 +30,16 @@ The five presets cover every built-in template family (core, NestJS, layered, he
 
 `scripts/v1.3/scale/profile.ts` runs the pipeline exactly as `firewall evaluate --symbolic-only` builds it. It records the wall time and the peak RSS of each executor stage, and the evaluation time of each rule. Median of three runs:
 
-PLACEHOLDER_BEFORE_TABLE
+| Project | Files | Wall (s) | Peak RSS (MB) | Extract | Ingest | Evaluate | Score | Assemble | Not completed | Slowest rules (ms) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| nest | 1,498 | 51.2 | 598 | 5.8 | 2.5 | 12.1 | 31.0 | 0.1 | cyclicDependencyCount null, FF-S02 truncated at 100 | FF-S02 11,339, FF-CV05 366, FF-S01 43 |
+| amplication | 2,285 | 70.9 | 673 | 6.9 | 1.9 | 30.6 | 31.2 | 0.2 | FF-S02 timeout, cyclicDependencyCount null | FF-CV05 232, FF-P06 30, FF-C03 20 |
+| typeorm | 2,637 | 73.2 | 826 | 9.3 | 2.4 | 31.2 | 30.3 | 0.1 | FF-S02 timeout, cyclicDependencyCount null | FF-C03 46, FF-S01 46, FF-P01 39 |
+| prisma | 3,189 | 58.8 | 2,269 | 19.3 | 3.0 | 6.4 | 30.5 | 0.1 | cyclicDependencyCount null, FF-S02 truncated at 100 | FF-S02 6,055, FF-P05 62, FF-P01 38 |
+| payload | 4,897 | 77.2 | 1,402 | 13.1 | 2.6 | 31.6 | 30.3 | 0.1 | FF-S02 timeout, cyclicDependencyCount null | FF-P02 43, FF-P06 27, FF-SO01 25 |
+| rocketchat | 5,507 | 58.4 | 1,792 | 22.1 | 3.7 | 0.2 | 31.0 | 0.1 | cyclicDependencyCount null | FF-DT01 102, FF-DS02 52, FF-DT02 18 |
+
+"Not completed": `FF-S02 timeout` is the template failing with EVAL_002 at the 30 s query timeout; `cyclicDependencyCount null` is the metric reported as `null` with METRIC_001; `FF-S02 truncated at 100` is the template's own row cap (EVAL_003), which is not a failure.
 
 Three findings:
 
@@ -167,7 +176,38 @@ Stricter defaults were tried. A 92% or an 85% checkpoint budget turned more of t
 
 Median of three runs, the same harness, `v1.3-scale`:
 
-PLACEHOLDER_AFTER_TABLE
+| Project | Files | Wall before (s) | Wall after (s) | Speed-up | Wall `--skip-excluded-sources` (s) | Peak RSS before (MB) | after | `--skip-excluded-sources` |
+|---|---|---|---|---|---|---|---|---|
+| nest | 1,498 | 51.2 | 8.9 | 5.8× | 8.1 | 598 | 577 | 459 |
+| amplication | 2,285 | 70.9 | 8.8 | 8.1× | 8.3 | 673 | 615 | 570 |
+| typeorm | 2,637 | 73.2 | 10.8 | 6.7× | 10.0 | 826 | 811 | 634 |
+| prisma | 3,189 | 58.8 | 19.8 | 3.0× | 15.3 | 2,269 | 2,005 | 1,321 |
+| payload | 4,897 | 77.2 | 13.1 | 5.9× | 11.7 | 1,402 | 1,297 | 986 |
+| rocketchat | 5,507 | 58.4 | 19.8 | 3.0× | 19.7 | 1,792 | 1,586 | 1,400 |
+
+Stage times after (default):
+
+| Project | Files | Wall (s) | Peak RSS (MB) | Extract | Ingest | Evaluate | Score | Assemble | Not completed | Slowest rules (ms) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| nest | 1,498 | 8.9 | 577 | 5.4 | 2.4 | 0.8 | 0.1 | 0.1 | FF-S02 truncated at 100 | FF-CV05 353, FF-S01 42, FF-C03 39 |
+| amplication | 2,285 | 8.8 | 615 | 6.0 | 2.0 | 0.4 | 0.1 | 0.1 | FF-S02 truncated at 100 | FF-CV05 271, FF-P06 23, FF-S02 23 |
+| typeorm | 2,637 | 10.8 | 811 | 8.1 | 2.3 | 0.2 | 0.1 | 0.1 | FF-S02 truncated at 100 | FF-S01 36, FF-C03 33, FF-C05 31 |
+| prisma | 3,189 | 19.8 | 2,005 | 16.3 | 3.0 | 0.2 | 0.1 | 0.1 | FF-S02 truncated at 100 | FF-P01 32, FF-S02 31, FF-P06 19 |
+| payload | 4,897 | 13.1 | 1,297 | 10.1 | 2.5 | 0.2 | 0.1 | 0.1 | FF-S02 truncated at 100 | FF-S02 42, FF-P02 31, FF-SO01 23 |
+| rocketchat | 5,507 | 19.8 | 1,586 | 15.8 | 3.5 | 0.2 | 0.1 | 0.1 | none | FF-DT01 99, FF-DS02 31, FF-DT02 13 |
+
+Stage times after, `--skip-excluded-sources`:
+
+| Project | Files | Wall (s) | Peak RSS (MB) | Extract | Ingest | Evaluate | Score | Assemble | Not completed | Slowest rules (ms) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| nest | 1,498 | 8.1 | 459 | 4.8 | 2.4 | 0.7 | 0.1 | 0.1 | FF-S02 truncated at 100 | FF-CV05 359, FF-S01 39, FF-C03 39 |
+| amplication | 2,285 | 8.3 | 570 | 5.8 | 1.9 | 0.4 | 0.1 | 0.1 | FF-S02 truncated at 100 | FF-CV05 249, FF-S02 18, FF-C03 15 |
+| typeorm | 2,637 | 10.0 | 634 | 7.1 | 2.4 | 0.3 | 0.1 | 0.1 | FF-S02 truncated at 100 | FF-S02 43, FF-S01 41, FF-C04 38 |
+| prisma | 3,189 | 15.3 | 1,321 | 12.0 | 2.8 | 0.2 | 0.1 | 0.1 | FF-S02 truncated at 100 | FF-P01 33, FF-S02 30, FF-P06 16 |
+| payload | 4,897 | 11.7 | 986 | 8.8 | 2.6 | 0.2 | 0.1 | 0.1 | FF-S02 truncated at 100 | FF-S02 38, FF-P02 29, FF-SO01 21 |
+| rocketchat | 5,507 | 19.7 | 1,400 | 15.4 | 3.8 | 0.2 | 0.1 | 0.1 | none | FF-DT01 88, FF-DS02 26, FF-DT02 12 |
+
+The three repetitions of each arm gave byte-identical reports, and the `--skip-excluded-sources` reports are byte-identical to the default ones on all six projects. `results/v1.3-scale/profiles.json` holds the medians, the ranges and the slowest rules per arm.
 
 ## 8. Not done, and why
 
