@@ -19,8 +19,9 @@
  *
  * Options: --holdout <dir> (required)  --commit <sha> (required unless --dry-run)  --out <dir>  --id-map <file>
  *   --deferred <FF-xx,...>  --graph-adjudication <file>  --style <a,b>  --expect-sha256 <hex>  --no-correctness
- *   (--expect-sha256 matches the runner's own tree hash, or the directory-manifest hash of Docs/v1.3/sealed-hashes.md,
- *   which names each file `<basename of --holdout>/<path>`: unseal the copy as `<tmp>/v1.3-holdout`)
+ *   --expect-sealed-sha256 <hex>  (--expect-sha256 matches the runner's own tree hash only, as before;
+ *   --expect-sealed-sha256 matches only the directory-manifest hash of Docs/v1.3/sealed-hashes.md, which names each
+ *   file `<basename of --holdout>/<path>`: unseal the copy as `<tmp>/v1.3-holdout`. Either, both or neither may be given.)
  *   --determinism <other run dir> (compare the raw rows of a repeat run; a difference is a defect, prespec §2.3)
  *   --development-stand-in (allow a hold-out directory inside the repository, i.e. the development reference set,
  *   to test the runner; every output is then headed as a stand-in and is never a validity figure)
@@ -76,6 +77,7 @@ export interface HoldoutArgs {
   readonly graphAdjudication?: string;
   readonly styles?: readonly ReferenceStyle[];
   readonly expectSha256?: string;
+  readonly expectSealedSha256?: string;
   readonly correctness: boolean;
   readonly determinism?: string;
   readonly standIn: boolean;
@@ -96,7 +98,7 @@ export function parseHoldoutArgs(argv: readonly string[]): HoldoutArgs | string 
       i += 1;
     }
   }
-  const known = new Set(['dry-run', 'no-correctness', 'development-stand-in', 'holdout', 'commit', 'out', 'from-raw', 'id-map', 'deferred', 'graph-adjudication', 'style', 'expect-sha256', 'determinism', 'engine']);
+  const known = new Set(['dry-run', 'no-correctness', 'development-stand-in', 'holdout', 'commit', 'out', 'from-raw', 'id-map', 'deferred', 'graph-adjudication', 'style', 'expect-sha256', 'expect-sealed-sha256', 'determinism', 'engine']);
   for (const k of m.keys()) if (!known.has(k)) return `unknown option --${k}`;
   const holdout = m.get('holdout');
   if (holdout === undefined) return '--holdout <dir> is required';
@@ -119,6 +121,8 @@ export function parseHoldoutArgs(argv: readonly string[]): HoldoutArgs | string 
   if (!deferred.every((d) => /^FF-[A-Z]+[0-9]{2}$/.test(d))) return '--deferred takes a comma list of rule ids';
   const sha = m.get('expect-sha256');
   if (sha !== undefined && !/^[0-9a-f]{64}$/.test(sha)) return '--expect-sha256 takes 64 hex characters';
+  const sealedSha = m.get('expect-sealed-sha256');
+  if (sealedSha !== undefined && !/^[0-9a-f]{64}$/.test(sealedSha)) return '--expect-sealed-sha256 takes 64 hex characters';
   const idMap = m.get('id-map');
   const graphAdjudication = m.get('graph-adjudication');
   const determinism = m.get('determinism');
@@ -128,7 +132,7 @@ export function parseHoldoutArgs(argv: readonly string[]): HoldoutArgs | string 
     mode, holdout, deferred, correctness: !m.has('no-correctness'), standIn: m.has('development-stand-in'), engine: engine as Engine,
     ...(commit !== undefined && { commit }), ...(out !== undefined && { out }), ...(fromRaw !== undefined && { fromRaw }),
     ...(idMap !== undefined && { idMap }), ...(graphAdjudication !== undefined && { graphAdjudication }),
-    ...(styles !== undefined && { styles }), ...(sha !== undefined && { expectSha256: sha }), ...(determinism !== undefined && { determinism }),
+    ...(styles !== undefined && { styles }), ...(sha !== undefined && { expectSha256: sha }), ...(sealedSha !== undefined && { expectSealedSha256: sealedSha }), ...(determinism !== undefined && { determinism }),
   };
 }
 
@@ -207,7 +211,7 @@ const REQUIRED: Readonly<Record<'patch' | 'overlay', readonly string[]>> = {
   overlay: ['expected-graph.json', 'clean', 'clean/expected-findings.json', 'variants'],
 };
 
-export function checkStructure(repoRoot: string, args: Pick<HoldoutArgs, 'holdout' | 'idMap' | 'styles' | 'expectSha256' | 'standIn' | 'deferred'>): StructureReport {
+export function checkStructure(repoRoot: string, args: Pick<HoldoutArgs, 'holdout' | 'idMap' | 'styles' | 'expectSha256' | 'expectSealedSha256' | 'standIn' | 'deferred'>): StructureReport {
   const holdout = path.resolve(repoRoot, args.holdout);
   const problems: string[] = [];
   const warnings: string[] = [];
@@ -220,8 +224,9 @@ export function checkStructure(repoRoot: string, args: Pick<HoldoutArgs, 'holdou
     else problems.push(...loc);
   }
   const tree = { ...treeSha256(holdout), sealedMethodSha256: sealedTreeSha256(holdout) };
-  if (args.expectSha256 !== undefined && args.expectSha256 !== tree.sha256 && args.expectSha256 !== tree.sealedMethodSha256) {
-    problems.push(`tree sha256 ${tree.sha256} (sealed-hashes method, as ${path.basename(holdout)}/: ${tree.sealedMethodSha256}) does not match --expect-sha256 ${args.expectSha256}`);
+  if (args.expectSha256 !== undefined && args.expectSha256 !== tree.sha256) problems.push(`tree sha256 ${tree.sha256} does not match --expect-sha256 ${args.expectSha256}`);
+  if (args.expectSealedSha256 !== undefined && args.expectSealedSha256 !== tree.sealedMethodSha256) {
+    problems.push(`sealed-hashes method sha256 (as ${path.basename(holdout)}/) ${tree.sealedMethodSha256} does not match --expect-sealed-sha256 ${args.expectSealedSha256}`);
   }
   let map: RuleIdMapFile | undefined;
   if (args.idMap !== undefined) {

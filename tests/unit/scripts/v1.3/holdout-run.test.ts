@@ -98,9 +98,14 @@ describe('location and tree hash', () => {
     const shell = execSync('find v1.3-holdout -type f | LC_ALL=C sort | xargs sha256sum | sha256sum', { cwd: tmp, encoding: 'utf8' }).split(' ')[0];
     expect(sealedTreeSha256(d)).toBe(shell);
     expect(sealedTreeSha256(d)).not.toBe(treeSha256(d).sha256);
-    // --expect-sha256 accepts either value.
-    expect(checkStructure(ROOT, { holdout: d, standIn: false, deferred: [], expectSha256: shell ?? '' }).problems.filter((p) => p.includes('expect-sha256'))).toEqual([]);
-    expect(checkStructure(ROOT, { holdout: d, standIn: false, deferred: [], expectSha256: 'f'.repeat(64) }).problems.filter((p) => p.includes('expect-sha256'))).toHaveLength(1);
+    // Each option checks its own method only: --expect-sha256 the runner hash, --expect-sealed-sha256 the sealed one.
+    const hashProblems = (o: { expectSha256?: string; expectSealedSha256?: string }): string[] =>
+      checkStructure(ROOT, { holdout: d, standIn: false, deferred: [], ...o }).problems.filter((p) => p.includes('expect-'));
+    expect(hashProblems({ expectSealedSha256: shell ?? '' })).toEqual([]);
+    expect(hashProblems({ expectSha256: treeSha256(d).sha256, expectSealedSha256: shell ?? '' })).toEqual([]);
+    expect(hashProblems({ expectSha256: shell ?? '' })[0]).toMatch(/does not match --expect-sha256/);
+    expect(hashProblems({ expectSealedSha256: treeSha256(d).sha256 })[0]).toMatch(/does not match --expect-sealed-sha256/);
+    expect(parseHoldoutArgs(['--holdout', 'h', '--dry-run', '--expect-sealed-sha256', 'abc'])).toMatch(/64 hex/);
   });
 });
 

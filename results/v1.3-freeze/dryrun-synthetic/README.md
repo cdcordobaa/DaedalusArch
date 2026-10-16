@@ -5,7 +5,7 @@ from the development reference set (`tests/fixtures/v1.3-reference`) into a dire
 path was read. Method and results: `Docs/v1.3/freeze-runbook.md` §D.
 
 - `neo4j/`: `holdout-run.ts --development-stand-in` on Neo4j 5.26.24 Community + APOC core 5.26.24, tool commit
-  `c80a1716` (the runner and scorer code is unchanged after it on this branch).
+  `c80a1716`, with `--expect-sha256` then accepting the sealed-hashes value; that check is now the separate `--expect-sealed-sha256` (the run itself and the scorer are unchanged).
 - `cypher-interp/`: the engine cross-check, `--engine cypher-interp --determinism ../neo4j`: raw rows byte-identical.
 - `synthetic-id-map.json`: the id map of the stand-in's provisional ddd id (FF-D01 -> FF-DT01).
 - `freeze-check-dry-run.txt`: `freeze-check.ts --dry-run` on the branch tip (no answers applied).

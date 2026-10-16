@@ -25,7 +25,7 @@ it('generates a stand-in that passes the structure check only with its id map, w
 
   const map = path.join(tmp, 'id-map.json');
   fs.writeFileSync(map, JSON.stringify(r.idMap));
-  const s = checkStructure(ROOT, { holdout: out, idMap: map, standIn: false, deferred: [], expectSha256: sealedTreeSha256(out) });
+  const s = checkStructure(ROOT, { holdout: out, idMap: map, standIn: false, deferred: [], expectSealedSha256: sealedTreeSha256(out) });
   expect(s.problems).toEqual([]);
   expect(s.styles.map((x) => [x.style, x.expectedBlocking])).toEqual([
     ['clean-architecture', 14], ['layered', 11], ['nestjs', 11], ['hexagonal', 13], ['ddd', 9],

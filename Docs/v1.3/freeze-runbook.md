@@ -137,11 +137,12 @@ cp -R ../daedalus-sealed/v1.3-holdout "$H"
 DEF=$(npx tsx scripts/v1.3/freeze-check.ts --dry-run --json 2>/dev/null | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const r=JSON.parse(s).manifest.deferredRules;console.log(r.length?`--deferred ${r.join(",")}`:"")})')
 echo "deferred: ${DEF:-none}"
 npx tsx scripts/v1.3/holdout-run.ts --dry-run --holdout "$H" $DEF \
-  --expect-sha256 1379b561789b18133e0ca76eb8bcbba470543dcc1455d0260e54532a40f5fa8f
+  --expect-sealed-sha256 1379b561789b18133e0ca76eb8bcbba470543dcc1455d0260e54532a40f5fa8f
 ```
 
-- `--expect-sha256` accepts the sealed-hashes value because the copy is named `v1.3-holdout` (the runner also
-  computes the sealed-hashes method; before 2026-10-16 it computed only `./<path>` names, which never equal it).
+- `--expect-sealed-sha256` checks the sealed-hashes method (files named `v1.3-holdout/<path>`), which matches
+  because the copy is named `v1.3-holdout`. `--expect-sha256` keeps its old meaning (the runner's `./<path>` hash,
+  which never equals the sealed value) and is not used here.
 - The dry run prints, per style, `N expected blocking findings (= N_PER_STYLE)`. These are the `<N_PER_STYLE>`
   values. They depend on `$DEF` (§D3.5): a deferred rule's findings are reported separately and kept out of M1 and
   M2 (prespec §4), so steps 5, 9, 10 and 11 all pass the same `$DEF`, which equals the manifest's `deferredRules`.
@@ -196,7 +197,7 @@ git push origin v1.3                                    # nothing else merges in
 ```bash
 npx tsx scripts/v1.3/freeze-check.ts --commit "$X"      # again, immediately before; exit 0 or STOP
 npx tsx scripts/v1.3/holdout-run.ts --commit "$X" --holdout "$H" \
-  --expect-sha256 1379b561789b18133e0ca76eb8bcbba470543dcc1455d0260e54532a40f5fa8f \
+  --expect-sealed-sha256 1379b561789b18133e0ca76eb8bcbba470543dcc1455d0260e54532a40f5fa8f \
   --out results/v1.3-holdout/run-1 $DEF [--id-map Docs/v1.3/holdout-id-map.json]
 git add results/v1.3-holdout/run-1
 git commit -m "v1.3 hold-out run-1 at $X: outputs as produced"        # before anything else, before any label
@@ -215,7 +216,7 @@ only if it is environmental (Neo4j down, disk full); a tool defect ends the atte
 
 ```bash
 npx tsx scripts/v1.3/holdout-run.ts --engine cypher-interp --commit "$X" --holdout "$H" \
-  --expect-sha256 1379b561789b18133e0ca76eb8bcbba470543dcc1455d0260e54532a40f5fa8f \
+  --expect-sealed-sha256 1379b561789b18133e0ca76eb8bcbba470543dcc1455d0260e54532a40f5fa8f \
   --out results/v1.3-holdout/crosscheck-cypher-interp --determinism results/v1.3-holdout/run-1 $DEF [same --id-map]
 diff -r results/v1.3-holdout/run-1/raw results/v1.3-holdout/crosscheck-cypher-interp/raw && echo "raw byte-identical"
 git add results/v1.3-holdout/crosscheck-cypher-interp && git commit -m "v1.3 hold-out: engine cross-check (cypher-interp)"
@@ -322,10 +323,10 @@ S=$(mktemp -d)
 npx tsx scripts/v1.3/synthetic-holdout.ts --out "$S/v1.3-holdout"         # writes $S/synthetic-id-map.json too
 npx tsx scripts/v1.3/holdout-run.ts --dry-run --holdout "$S/v1.3-holdout" --deferred FF-DS01   # exit 1: FF-D01 needs the id map
 npx tsx scripts/v1.3/holdout-run.ts --development-stand-in --commit HEAD --holdout "$S/v1.3-holdout" \
-  --id-map "$S/synthetic-id-map.json" --expect-sha256 <sealed-method hash printed by the generator> --deferred FF-DS01 \
+  --id-map "$S/synthetic-id-map.json" --expect-sealed-sha256 <sealed-method hash printed by the generator> --deferred FF-DS01 \
   --out results/v1.3-freeze/dryrun-synthetic/neo4j
 npx tsx scripts/v1.3/holdout-run.ts --development-stand-in --engine cypher-interp --commit HEAD --holdout "$S/v1.3-holdout" \
-  --id-map "$S/synthetic-id-map.json" --expect-sha256 <same> --deferred FF-DS01 \
+  --id-map "$S/synthetic-id-map.json" --expect-sealed-sha256 <same> --deferred FF-DS01 \
   --determinism results/v1.3-freeze/dryrun-synthetic/neo4j --out results/v1.3-freeze/dryrun-synthetic/cypher-interp
 ```
 
@@ -338,7 +339,7 @@ figures are not validity figures; `--development-stand-in` heads every output ac
 | Check | Result |
 |---|---|
 | Structure dry run without the id map | exit 1, exactly one problem: `ddd: rule ids not in the frozen spec: FF-D01` |
-| Structure dry run with the id map, `--expect-sha256` = sealed-hashes method | exit 0; 331 files; `FF-D01 -> FF-DT01 x1` |
+| Structure dry run with the id map, `--expect-sealed-sha256` | exit 0; 331 files; `FF-D01 -> FF-DT01 x1` |
 | Live run, Neo4j 5.26.24, freeze check at the branch commit | exit 0, 3 min 55 s; 71 variants; 57 blocking findings checked for correctness |
 | Planted miss | clean-architecture M1 = 0.929 (13/14): the planted finding is the **only** miss listed; every other style and metric equals the development stand-in (layered 11/11, nestjs 11/11, hexagonal 13/13, ddd blocking all found) |
 | Cross-check, `--engine cypher-interp`, no Neo4j variables | exit 0, 3 min 18 s; `raw/` byte-identical (71 files), `report.json` byte-identical, `holdout-scores.json` scores identical, evidence identical apart from `elapsedMs`; `--determinism`: identical raw rows |
@@ -352,7 +353,9 @@ Outputs: `results/v1.3-freeze/dryrun-synthetic/{neo4j,cypher-interp}/` and `synt
    `v1.3-holdout/<path>` (run from `../daedalus-sealed/`), while `holdout-run.ts` hashed `./<path>`: the same tree
    gives two different values (synthetic tree: `35c42509…` vs `433f76f8…`), so `--expect-sha256 1379b561…` would
    have stopped the real run. The runner now also computes the sealed-hashes method (`sealedTreeSha256`, named after
-   the copy's basename) and accepts either; the copy must be named `v1.3-holdout` (step 5). Under test.
+   the copy's basename) and checks it with a separate, opt-in `--expect-sealed-sha256`; `--expect-sha256` is
+   unchanged and checks only the runner's own hash (review of PR #164). The copy must be named `v1.3-holdout`
+   (step 5). Under test.
 2. **No engine option on the runner.** `holdout-run.ts` could only use Neo4j, so the interpreter cross-check had no
    runner path. It now takes `--engine cypher-interp`, passed to `ue-baseline-live.ts`, with cross-check headers and
    `engine` in the provenance.
