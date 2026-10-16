@@ -282,6 +282,8 @@ interface PairRecord {
   readonly childOk: boolean;
   /** Findings present at the parent, by rule (exposure). */
   readonly exposedByRule: Record<string, number>;
+  /** Of those, the edge-shaped ones (they rest on file edges, so FIXED-BY-DEV is possible). */
+  readonly exposedEdgeByRule: Record<string, number>;
   /** Findings present at the child, by rule (the FF-S02 truncation check needs both sides). */
   readonly childByRule: Record<string, number>;
   readonly disappeared: PairFinding[];
@@ -307,7 +309,11 @@ function analysePair(meta: CommitMeta, ns: NameStatus, parent: Snapshot, child: 
   const pv = new Map(parent.violations.map((v) => [violationKey(v), v]));
   const cv = new Map(child.violations.map((v) => [violationKey(v), v]));
   const exposedByRule: Record<string, number> = {};
-  for (const v of pv.values()) exposedByRule[v.functionId] = (exposedByRule[v.functionId] ?? 0) + 1;
+  const exposedEdgeByRule: Record<string, number> = {};
+  for (const v of pv.values()) {
+    exposedByRule[v.functionId] = (exposedByRule[v.functionId] ?? 0) + 1;
+    if (violationEdges(v).length > 0) exposedEdgeByRule[v.functionId] = (exposedEdgeByRule[v.functionId] ?? 0) + 1;
+  }
   const childByRule: Record<string, number> = {};
   for (const v of cv.values()) childByRule[v.functionId] = (childByRule[v.functionId] ?? 0) + 1;
   const toFinding = (key: string, v: SnapViolation, snap: Snapshot, cause?: Disappearance): PairFinding => {
@@ -355,7 +361,7 @@ function analysePair(meta: CommitMeta, ns: NameStatus, parent: Snapshot, child: 
   return {
     sha: meta.sha, parent: meta.parent, date: meta.date, author: meta.author, bot: meta.bot, mass, changed: ns.changed,
     renamedOrDeleted: ns.renamedOrDeleted, message: meta.message, parentOk: parent.ok, childOk: child.ok,
-    exposedByRule, childByRule, disappeared, introduced, baseline: base, baselineFixedSample: fixedSample,
+    exposedByRule, exposedEdgeByRule, childByRule, disappeared, introduced, baseline: base, baselineFixedSample: fixedSample,
   };
 }
 
