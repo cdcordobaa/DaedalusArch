@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "nestjs",
+  "variant": "v24-registration-workshop-entity-cycle",
+  "kind": "violation",
+  "plants": "FF-S02",
+  "description": "Registration gets isFor(workshop) (import type of Workshop) and Workshop gets activeRegistrations(registrations) (value import of Registration): the two domain entities import each other.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "file": "src/domain/registration.ts",
+      "target": "src/domain/workshop.ts",
+      "reason": "Two-file import cycle between the domain entities (\"src/domain/registration.ts\" sorts before \"src/domain/workshop.ts\")."
+    }
+  ]
+}

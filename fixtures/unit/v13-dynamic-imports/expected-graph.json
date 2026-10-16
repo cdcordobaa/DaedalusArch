@@ -1,0 +1,33 @@
+{
+  "description": "Hand-written expected file-to-file import graph for the v1.3 dynamicImports reference cases. Derived from the code alone (what each line imports), not from tool output. Never edit an edge to match the tool; record a mismatch under knownApgGaps instead.",
+  "edges": [
+    { "from": "src/application/loader.ts", "to": "src/domain/order.ts", "lines": [1], "kind": "static", "specifier": "../domain/order" },
+    { "from": "src/application/loader.ts", "to": "src/infrastructure/db.ts", "lines": [5], "kind": "dynamic", "case": "await import() with a string literal", "specifier": "../infrastructure/db" },
+    { "from": "src/application/loader.ts", "to": "src/infrastructure/cache.ts", "lines": [6], "kind": "dynamic", "case": "import() without await (.then)", "specifier": "../infrastructure/cache" },
+    { "from": "src/application/loader.ts", "to": "src/infrastructure/mailer.ts", "lines": [7], "kind": "dynamic", "case": "import() with a no-substitution template literal", "specifier": "../infrastructure/mailer" },
+    { "from": "src/application/loader.ts", "to": "src/domain/index.ts", "lines": [8], "kind": "dynamic", "case": "import() of a barrel: the module itself, no per-name routing", "specifier": "../domain" },
+    { "from": "src/application/loader.ts", "to": "src/infrastructure/report.ts", "lines": [9], "kind": "dynamic", "case": "import() through a tsconfig paths alias", "specifier": "@app/infrastructure/report" },
+    { "from": "src/application/loader.ts", "to": "src/infrastructure/legacy.ts", "lines": [10], "kind": "dynamic", "case": "require() with a string literal", "specifier": "../infrastructure/legacy" },
+    { "from": "src/application/loader.ts", "to": "src/infrastructure/esm-style.ts", "lines": [11], "kind": "dynamic", "case": "import() with an ESM-style .js extension", "specifier": "../infrastructure/esm-style.js" },
+    { "from": "src/application/loader.ts", "to": "src/infrastructure/typed.ts", "lines": [23], "kind": "import-type", "case": "type-position import('x').T (not a call)", "specifier": "../infrastructure/typed" },
+    { "from": "src/application/mixed.ts", "to": "src/infrastructure/both.ts", "lines": [1, 4], "kind": "static", "case": "static import and import() of the same file", "specifier": "../infrastructure/both" },
+    { "from": "src/domain/order-archive.ts", "to": "src/domain/order.ts", "lines": [1], "kind": "static", "specifier": "./order" },
+    { "from": "src/domain/order-archive.ts", "to": "src/infrastructure/db.ts", "lines": [6], "kind": "dynamic", "case": "domain -> infrastructure only through await import() (MO-X01 shape)", "specifier": "../infrastructure/db" },
+    { "from": "src/domain/index.ts", "to": "src/domain/order.ts", "lines": [1], "kind": "re-export", "specifier": "./order" }
+  ],
+  "nonLiteral": [
+    { "from": "src/application/loader.ts", "line": 16, "expression": "import(name)", "possibleTargets": "any module" },
+    { "from": "src/application/loader.ts", "line": 17, "expression": "import(`../plugins/${name}`)", "possibleTargets": "src/plugins/*" },
+    { "from": "src/application/loader.ts", "line": 18, "expression": "import('../plugins/' + name)", "possibleTargets": "src/plugins/*" },
+    { "from": "src/application/loader.ts", "line": 19, "expression": "require(name)", "possibleTargets": "any module" }
+  ],
+  "unresolvable": [
+    { "from": "src/application/loader.ts", "line": 26, "specifier": "../infrastructure/missing" }
+  ],
+  "knownApgGaps": [
+    {
+      "from": "src/application/loader.ts", "to": "src/infrastructure/typed.ts", "line": 23,
+      "note": "An ImportTypeNode (import('x').T in a type position) is not a call expression, so neither the static statement walk nor dynamicImports models it. tsc reports it (kind import-type). Found by this fixture, 2026-10-16; not fixed here."
+    }
+  ]
+}
