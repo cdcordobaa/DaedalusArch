@@ -1,6 +1,6 @@
 # Claims ledger (v1.3)
 
-**Compiled 2026-10-16 from `origin/v1.3` at `81933889`.** This ledger lists every quantitative claim in `Docs/v1.3/**/*.md`, `Docs/DiagnosticRuns/v1.3-*` (including the audit appendices), `papers/` (LaTeX sources, READMEs, STATUS, review and revision notes) and the Study 2 readiness dashboard. That is 150 documents and 4,795 claims. For each claim it gives the exact statement, the number strings as the line writes them, the source `file:line`, the evidence type, the data set, a status and, where one exists, the replication group of `replication/v1.3`. The claims tables are split into ten parts by objective, listed below. This file also holds the **conflicts** between documents and the correct values.
+**Compiled 2026-10-16 from `origin/v1.3` at `81933889`, with the documents of PR #244 and #245 (`c49acf03`) added.** This ledger lists every quantitative claim in `Docs/v1.3/**/*.md`, `Docs/DiagnosticRuns/v1.3-*` (including the audit appendices), `papers/` (LaTeX sources, READMEs, STATUS, review and revision notes) and the Study 2 readiness dashboard. That is 154 documents and 4,952 claims. Four of the documents were merged at 15:10–15:19 UTC (PR #244, #245) and form the last part. For each claim it gives the exact statement, the number strings as the line writes them, the source `file:line`, the evidence type, the data set, a status and, where one exists, the replication group of `replication/v1.3`. The claims tables are split into ten parts by objective, listed below. This file also holds the **conflicts** between documents and the correct values.
 
 ## Method
 
@@ -30,11 +30,12 @@
 | [Synthesis and governance documents (secondary)](claims-ledger/synthesis-and-governance.md) | C3411–C3762 | 352 | 189 | 83 | 64 | 16 |
 | [Replication part 2 and the reproducibility audit](claims-ledger/replication-and-audit.md) | C3763–C3982 | 220 | 185 | 7 | 19 | 9 |
 | [Papers (secondary)](claims-ledger/papers.md) | C3983–C4795 | 813 | 611 | 76 | 104 | 22 |
-| **total** | C0001–C4795 | **4,795** | 3092 | 485 | 973 | 245 |
+| [SO4 additions after #244 and #245: jury fixes, external cluster bootstrap, barrel-cycle sensitivity, labeller calibration plan](claims-ledger/so4-jury-fixes-and-calibration.md) | C4796–C4952 | 157 | 126 | 13 | 18 | 0 |
+| **total** | C0001–C4952 | **4,952** | 3218 | 498 | 991 | 245 |
 
-By evidence type: descriptive 1,012, criterion 981, neural 711, correctness 594, reliability 449, pilot 386, power 297, convergent 150, mutation 147, metamorphic 68.
+By evidence type: descriptive 1,059, criterion 1,000, neural 711, correctness 642, reliability 466, pilot 386, power 315, convergent 158, mutation 147, metamorphic 68.
 
-By set: development 2,978, external 737, wild 410, none 335, synthetic 327, hold-out 8.
+By set: development 2,981, external 828, wild 419, none 381, synthetic 335, hold-out 8.
 
 A claim keeps its status in its own context. For example, `established` on a development-set row means established **as a development-set figure**. No v1.3 row is a held-out estimate.
 
@@ -147,6 +148,13 @@ A conflict, in this register, is a case where a document states a value for a qu
 | K099 | repro audit: ISE section 7 unit tests at HEAD | 49 at HEAD | `49 at HEAD` | `Docs/DiagnosticRuns/v1.3-repro-audit-2026-10-16.md:77` | 43 at the doc commit; 93 at the replication HEAD (14 suites) | `Docs/v1.3/replication-2.md:214` (#28, d-audit) |
 | K100 | repro audit smoke: ISE outputs | IDENTICAL | `22 + 12 + 2` | `Docs/DiagnosticRuns/v1.3-repro-audit-2026-10-16.md:175` | identical at the audit commit; 11 of 22 files DIFF at the replication HEAD | `Docs/v1.3/replication-2.md:215` (#29, d-audit-smoke-ise-result) |
 | K101 | repro audit smoke: cheap proxies outputs | 55 IDENTICAL | `55` | `Docs/DiagnosticRuns/v1.3-repro-audit-2026-10-16.md:177` | identical at the audit commit; 38 IDENTICAL + 17 DIFF at the replication HEAD | `Docs/v1.3/replication-2.md:216` (#30, d-audit-smoke-cheap-result) |
+| K169 | external set 2: bank-server FF-S02 rows | 100 rows read as 100 cycles | `FF-S02 (100)` | `Docs/DiagnosticRuns/v1.3-external-set-2-2026-10-16.md:146` | at least 100: the rows are truncated at the 100-row cycle cap (`EVAL_003`); the unbounded SCC path gives 5 SCCs over 60 files | `results/v1.3-external-2/findings/bank-server.json` (`EVAL_003`); `Docs/DiagnosticRuns/v1.3-jury-fixes-2026-10-16/b1-bank-server.json`; `Docs/DiagnosticRuns/v1.3-barrel-cycle-sensitivity-2026-10-16.md:71` |
+| K170 | external set 2: bank-server FF-S02 rows | all 100 FF-S02 rows pass through a barrel | `All 100 FF-S02 rows` | `Docs/DiagnosticRuns/v1.3-external-set-2-2026-10-16.md:165` | at least 100 (capped); also, FF-S02 reads the literal view, so the barrel is kept as a module rather than routed | as K169; `Docs/DiagnosticRuns/v1.3-barrel-cycle-sensitivity-2026-10-16.md:52` |
+| K171 | external set 2: pooled FF-S02 rows | 208 pooled FF-S02 rows | `208` | `Docs/DiagnosticRuns/v1.3-external-set-2-2026-10-16.md:264` | at least 208 (100 of them capped at bank-server); 108 uncapped rows plus ≥ 100 truncated | as K169; jury fixes B1 |
+| K172 | external set 2: pooled FF-S02 rows through a barrel | 189 of the 208 | `189 of the 208` | `Docs/DiagnosticRuns/v1.3-external-set-2-2026-10-16.md:275` | lower bound; the 100 bank-server rows are a cap, not a count | as K169 |
+| K173 | bank-server under the interpreter | killed after 25 minutes; FF-S02 is the cause | `killed after 25 minutes` | `Docs/DiagnosticRuns/v1.3-external-set-2-2026-10-16.md:116` | **unresolved**: the FF-S02 template alone, same pin and spec, finishes in a median 16.0 s (3 runs) on the interpreter; the cause of the 25-minute run is not established | `Docs/DiagnosticRuns/v1.3-jury-fixes-2026-10-16/b1-bank-server.json` (`cypherInterp.median`); a re-run of `firewall evaluate --engine cypher-interp` on bank-server would settle it |
+| K174 | external correctness: interval | 283/283 with finding-level Wilson only | `[0.987, 1.000]` | `Docs/v1.3/hold-queue-triage-2026-10-16.md:303` | quote with the clustered bound: 11/11 repositories fully correct, repository-level Wilson [0.741, 1]; 69/69 outside the three largest repositories, Wilson [0.947, 1] | `Docs/DiagnosticRuns/v1.3-external-cluster-bootstrap-2026-10-16.md:43`; its JSON sidecar (`repositoryLevel.wilson95`) |
+| K175 | external correctness: interval | 283/283 with finding-level Wilson only | `283/283` | `Docs/v1.3/research/distinction-readiness.md:342` | as K174 | as K174 |
 
 ### Rounding and wording-only differences
 
@@ -197,6 +205,8 @@ A conflict, in this register, is a case where a document states a value for a qu
 | K144 | FF-P01 repro shapes A and D | imports none | `**none**` | `Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md:179` | Package:typeorm at HEAD (none holds at f8251b8b) | replication-2 b-r2-ffp01-A-*; audit D-4 |
 | K145 | FF-P01 repro shapes A and D | imports none | `**none**` | `Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md:182` | Package:typeorm; packages @nestjs/common, @nestjs/typeorm, typeorm at HEAD | replication-2 b-r2-ffp01-D-*; audit D-4 |
 | K146 | N1, N2 and S probe label | ISE held-out probes | `held-out probes N1, N2 and S` | `Docs/v1.3/init-infer.md:16` | rename probes of the development projects, not hold-out evidence | `Docs/v1.3/rule-mining.md:74` |
+| K176 | external correctness: finding-level Wilson lower bound | 0.987 | `[0.987, 1]` | `Docs/DiagnosticRuns/v1.3-jury-fixes-2026-10-16.md:12` | 0.9866 (Wilson); 0.987 is the Clopper–Pearson bound and the rounded Wilson | `Docs/DiagnosticRuns/v1.3-external-cluster-bootstrap-2026-10-16.json` (`wilsonFindingLevel95`) |
+| K177 | labeller calibration: human–human α (MLCQ) | α 0.422 | `0.422` | `Docs/v1.3/labeller-calibration-plan.md:27` | 0.422 is the pairwise α the plan defines (§6); standard Krippendorff α on the same sample is 0.420. Name the variant when quoting | `results/v1.3-labeller-calibration/mlcq/sample.json` (recomputed) |
 
 ### Figures superseded inside the source itself (already corrected there)
 
