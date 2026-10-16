@@ -1566,6 +1566,12 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **AI Response**: "Branch cut from origin/v1.3-cypher-interp (origin/v1.3 has no src/cypher-interp). Generator scripts/v1.3/lib/fuzz-apg.ts (mulberry32), harness scripts/v1.3/cypher-interp-fuzz.ts (418 statements per graph, verdicts, greedy minimiser, strict-mode classification of plan-order errors, resumable), rejection and mutation fuzz. Ten interpreter bugs found and fixed (F1-F10), 33 regression cases checked live. Final run: 2,000 graphs, 836,000 statements, 0 mismatches with the final code (13,215 documented quirks, 1,549 Neo4j timeouts); 3,000/3,000 unsupported queries rejected; 22 of 3,000 mutants differ, all Neo4j compile-time analysis (documented T21/T22). Reference set 73/73 byte-identical; real-graph parity 0 content/error/unsupported. No template text changed. The AI-DLC approval gates were not run interactively: the request came from a scheduled task with no one present; the stored prompt served as the requirements, and its scope (tests, fixes on a spike branch, one PR into v1.3) needs no registered-artefact decision."
 **Context**: v1.3 spike follow-up, outside the v1.3 study stages. Development-set evidence only.
 
+## v1.3 Notion ideas triage (scheduled routine)
+**Timestamp**: 2026-10-16T00:00:00Z
+**User Input**: "Scheduled task: triage every idea, decision, promise and conflict in the Notion thesis hub and its linked pages against origin/v1.3; write Docs/v1.3/research/notion-ideas-triage.md; insert a status callout at the top of the hub (insert only); open one PR into v1.3, do not merge."
+**AI Response**: "Fetched the hub, the 18 pages it mentions, its Next Actions DB, long-term ideas, the v1.3 brief and the roadmap (read-only). Classified 597 page rows: 263 DONE, 147 SUPERSEDED, 95 OPEN, 43 OUT, 49 UNCLEAR. Wrote the triage with per-page tables, 17 ranked open items mapped to the night backlog/plan or NEW, and 16 groups of now-wrong statements. Documentation only; no code, template, preset or sealed file touched. Option taken under delegation: the AI-DLC stage workflow was not run because this is a documentation triage, not a development task."
+**Context**: v1.3 validity cycle, documentation triage
+
 ---
 ## v1.3 CONSTRUCTION — night plan tracker update (scheduled task)
 **Timestamp**: 2026-10-16T10:30:00Z
