@@ -2,7 +2,7 @@
 
 Branch `v1.3-cypher-interp`, 2026-10-15 (merged into `v1.3` as #128); review fixes on `v1.3-interp-review-fixes`,
 2026-10-16 (an adversarial review found the parity claim held with caveats; §0, "What may be claimed", §2.1, §3, §4
-and §5 are updated). All numbers below are for `v1.3` at `50a32841` merged with the review fixes, which includes the
+and §5 are updated). All numbers below are for `v1.3` at `92d7a411` merged with the review fixes, which includes the
 seven `cheap2` templates and the FF-P05 signature-types rewrite that arrived after the spike's base `dc1a1c4a`. Status:
 spike, development-set evidence only. Neo4j stays the reference engine for every reported number; nothing in this
 document replaces a Neo4j run in a study.
@@ -65,7 +65,7 @@ What may **not** be claimed:
 - **Row order without ORDER BY, or under ORDER BY ties.** The interpreter's order is deterministic (creation order,
   stable sort); Neo4j's is not (T1, T8). Downstream code (report top-10, the cycle cap) is safe because every template
   orders on keys unique at the row grain, under the preconditions of §4.4.
-- **Parity on a later `v1.3`.** The evidence is for `v1.3` at `50a32841` plus these fixes. A template or compiler
+- **Parity on a later `v1.3`.** The evidence is for `v1.3` at `92d7a411` plus these fixes. A template or compiler
   rewrite added later is covered only after the harness and the order guard run on it (the order guard fails until
   every catalogue template returns rows on some test graph; that is how the `cheap2` gap was found).
 - **Anything about a study.** Reported numbers still come from Neo4j; nothing here is a validity estimate.
