@@ -46,7 +46,7 @@ describe('CHECK-2 decision rule (Docs/v1.3/judge-v22-plan.md §5)', () => {
 });
 
 describe('CHECK-2 seeding helpers', () => {
-  const site = (filePath: string, detail: Record<string, string>): MutationSite => ({ filePath, line: 1, kind: 'k', detail });
+  const site = (filePath: string, detail: Record<string, string>): MutationSite => ({ filePath, line: 1, kind: 'repo-bypass', detail });
 
   it('prefers non-error holders and, for MO-DF01, repository targets in the same ddd context', () => {
     const op = { id: 'MO-DF01' } as MutationOperator;

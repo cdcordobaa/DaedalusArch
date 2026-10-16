@@ -607,6 +607,10 @@ function harvest(work: string, version: Check2Version, check: boolean): number {
           return 1;
         }
         const prompt = e.prompt ?? '';
+        if (prompt.includes('[REDACTED]') || e.functionId !== fn) {
+          process.stderr.write(`${t.id}: the cassette scrubbed part of the ${fn} ${u} prompt (an environment variable named like a secret has a value found in it); harvest under a minimal environment (env -i)\n`);
+          return 1;
+        }
         records.push({ itemId: `check2|${t.id}|${fn}|${u}`, functionId: fn, unitId: u, prompt, promptSha256: sha256(prompt) });
       }
     }
@@ -647,7 +651,10 @@ function loadPrompts(version: Check2Version): Check2Prompts {
   if (file.itemsSha256 !== split.itemsSha256) throw new Error(`prompts ${version}: harvested for another item list`);
   if (version === 'v2.2' && file.textSha256 !== computeJudgeV22Sha256()) throw new Error(`prompts v2.2: harvested with other v2.2 texts (${file.textSha256}); re-harvest`);
   if (version === 'v1' && file.textSha256 !== FROZEN_SHA256) throw new Error('prompts v1: the frozen judge moved');
-  for (const r of file.records) if (sha256(r.prompt) !== r.promptSha256) throw new Error(`prompts ${version}: ${r.itemId} was edited`);
+  for (const r of file.records) {
+    if (sha256(r.prompt) !== r.promptSha256) throw new Error(`prompts ${version}: ${r.itemId} was edited`);
+    if (r.prompt.includes('[REDACTED]')) throw new Error(`prompts ${version}: ${r.itemId} holds a scrubbed value; re-harvest under env -i`);
+  }
   return file;
 }
 
