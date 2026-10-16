@@ -1,0 +1,39 @@
+# Example GitHub Actions workflow: DaedalusArch checks its own architecture (Docs/v1.3/dogfood.md).
+# Inert where it is. To enable, copy it to .github/workflows/self-check.yml.
+#
+# - In-process Cypher engine (--engine cypher-interp): no Neo4j service, no NEO4J_PASSWORD.
+# - Symbolic only: no judge, no LLM, no secrets of any kind.
+# - Gate: `npm run self-check` fails on any defining-rule finding not listed in specs/dogfood/known-findings.json.
+#   After fixing debt, run `npm run self-check -- --update` and commit the shorter list.
+name: Architecture self-check
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'specs/dogfood/**'
+      - 'tsconfig.json'
+
+permissions:
+  contents: read
+
+jobs:
+  self-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - name: Self-check (declared spec, in-process engine)
+        run: npm run -s self-check -- --report self-check-report.json
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: self-check-report
+          path: self-check-report.json
+          if-no-files-found: ignore

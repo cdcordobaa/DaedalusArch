@@ -4,6 +4,10 @@ An architectural firewall for TypeScript: a YAML spec (layers, fitness functions
 architecture property graph, scored as an Architecture Health Score (AHS) and turned into a verdict. See
 `Docs/` for the requirements, the registered instrument and the experiment plans.
 
+**Using it on your own code?** Start with the [user guide](docs/guide/README.md). It covers the quick start with no
+database, writing a spec, reading a report, the MCP server for coding agents, the CI gate, the HTML report and zero-config
+init.
+
 ## Quick start without a database (npx)
 
 No Neo4j server, no Docker, no credentials: when `NEO4J_URI` is not set, every command runs the rule templates on

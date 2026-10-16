@@ -1,0 +1,109 @@
+{
+  "description": "v1.3 Study 2 dress-rehearsal tasks (REHEARSAL ONLY; not the pilot, not Study 2, never to be used in Study 2). Written for Docs/v1.3/study2-task-design.md on 2026-10-16 without reading the sealed directory. Before any run, the author checks every domain here against the sealed Study 2 list without disclosing it, as for the pilot tasks.",
+  "tasks": [
+    {
+      "id": "repair-cafe",
+      "title": "Repair café",
+      "steps": [
+        {
+          "id": "intake-and-repairs",
+          "request": "Build the backend for a repair café, where volunteer fixers repair things that visitors bring in. The organiser sets up repair events (date, venue, opening hours) and the fixers who attend each one, with the categories they can repair (electrical, bikes, textiles, furniture). At the door, a visitor registers an item (category, brand and model, what is wrong with it, their name and mobile number) and gets a ticket number. A fixer takes the oldest waiting item of a category they can repair; a fixer works on one item at a time. When the fixer finishes, they record the outcome (fixed, advice given, not repairable) and the item's weight, and the visitor gets a text message saying the item is ready to collect. Text messages go through the café's account at TextLoop, whose HTTP API takes a mobile number and a message of at most 160 characters. Keep the data in memory and expose the operations over HTTP."
+        },
+        {
+          "id": "spare-parts",
+          "request": "Fixers can now order a spare part for an item from SpareBox. SpareBox's HTTP API searches parts by brand and model, places an order and returns an order number and an expected delivery date. An item waiting for a part is put aside and does not count as the fixer's current item. When SpareBox calls a webhook of ours to say an order has shipped, the visitor gets a text message, sent the same way as the 'ready to collect' message, with the delivery date and the price of the part. The visitor pays the part's price when they collect the item."
+        },
+        {
+          "id": "signed-in-fixers",
+          "request": "Fixers now sign in through the venue's login proxy, which adds two request headers to every call: X-Fixer-Id and X-Venue. A fixer may only take items, record outcomes and order parts at the venue they are signed in at, and only for the categories they can repair. Every outcome and every part order records which fixer did it and at which venue. Add a leaderboard per event: items fixed and kilograms saved from landfill per fixer."
+        },
+        {
+          "id": "text-outage-fix",
+          "request": "Urgent, before Saturday's event. Last week TextLoop ran out of credit, and because the text message failed, registering and finishing items failed at the door. Fix it today: a failed text message must never stop an item from being registered or finished. A failed message is retried every 10 minutes for up to 2 hours. The organiser must also be able to turn text messages off and on again for a venue without restarting anything; while they are off, the message is shown on the volunteers' screen at the door instead. Keep the change small."
+        },
+        {
+          "id": "council-upload",
+          "request": "The council funds the café by the weight it keeps out of landfill. On the first day of every quarter, the backend uploads the last quarter's figures to the council's upload address as a CSV file: per venue and category, the items brought in, fixed, given advice and not repairable, the kilograms saved and the money visitors spent on parts. The organiser can also trigger the upload by hand. A quarter is uploaded once; if the council's address does not answer, the upload is tried again every hour until it succeeds."
+        }
+      ]
+    },
+    {
+      "id": "school-bus",
+      "title": "School bus tracking",
+      "steps": [
+        {
+          "id": "routes-and-positions",
+          "request": "Build the backend for a school district's bus tracking. The transport office defines bus routes, each a list of stops with a scheduled time, and assigns pupils (name, school, parent contact e-mail) to a morning stop and an afternoon stop. Each bus carries a TrackBus GPS unit that posts its position to a webhook of ours as JSON (unit id, latitude, longitude, time). The office links each unit to the route it drives that day. A parent can ask when the bus will reach their child's stop: the estimate is the scheduled time plus the bus's current delay, where the delay is how late the bus passed its last stop. Keep the data in memory and expose the operations over HTTP."
+        },
+        {
+          "id": "delay-alerts",
+          "request": "When a bus is more than 10 minutes late at a stop, the parents of every pupil waiting at the later stops of that route get an e-mail with the new estimate; a parent gets at most one delay e-mail per trip unless the delay grows by another 10 minutes. When the office cancels a trip, the same parents get a cancellation e-mail. For now, send e-mails through a fake mail provider that records the messages."
+        },
+        {
+          "id": "boarding-and-push",
+          "request": "Buses now have CardTap readers. A pupil taps their card when boarding and leaving, and CardTap posts each tap to a webhook of ours (reader id, card number, time). Parents can choose to get messages as push notifications in the PingPost app instead of e-mail; PingPost has an HTTP API that takes a device token and a short text. A parent gets a message when their child boards and leaves the bus, in the channel they chose. When a pupil assigned to a morning stop has not tapped on by the time the bus reaches the school, the school office gets an e-mail."
+        },
+        {
+          "id": "clock-skew-fix",
+          "request": "Urgent fix needed before tomorrow's morning run. On Monday two GPS units sent their positions with the time one hour off, and parents got 60-minute delay e-mails. Positions whose time is more than 5 minutes ahead of or behind our own clock must be ignored. The transport office must also be able to mute delay messages for one route for the rest of the day with a single call. A minimal change is fine."
+        },
+        {
+          "id": "audit-and-punctuality",
+          "request": "The district now needs a record of every change to a route, a stop, a pupil's stops or a mute: who made it (the staff id in the X-Staff-Id request header), when, and the values before and after. A change and its record are always saved together or not at all. The district's inspector downloads a monthly punctuality report per route: the share of stops reached within 5 minutes of schedule, the average delay, the trips cancelled and the messages sent per channel."
+        }
+      ]
+    },
+    {
+      "id": "vineyard-harvest",
+      "title": "Vineyard harvest",
+      "steps": [
+        {
+          "id": "picking-and-intake",
+          "request": "Build the backend for a vineyard's harvest. It has two parts, run by different teams. Picking keeps the pickers (name, phone, hourly rate), the vineyard blocks (name, grape variety, area) and each day's picking: which pickers work which block, and the bins they fill; every bin has a numbered tag, and a picker records the bin's tag and block when it is full. The cellar receives the bins at the winery: the weighbridge from ScaleLink posts each weighing to a webhook of ours as JSON (bin tag, gross weight in kilograms, time), and cellar staff record the sugar level of each bin. The cellar accepts a bin only if picking recorded it that day and its sugar level is at least the variety's minimum; otherwise the bin is rejected with a reason. Keep the data in memory and expose the operations over HTTP."
+        },
+        {
+          "id": "picker-pay",
+          "request": "Add picker pay. Pickers are paid their hourly rate for the hours they worked plus a piece rate per kilogram of their bins that the cellar accepted (net of the bin's own weight, which depends on the bin type). A rejected bin pays no piece rate. Each picker gets a weekly pay statement listing their hours, their bins with weight and status, and the total. Once the farm manager has approved a week's pay, it can no longer change."
+        },
+        {
+          "id": "second-weighbridge",
+          "request": "The second winery site uses a WeighWell weighbridge. WeighWell does not call us: its HTTP API must be polled every 5 minutes for new weighings. It reports weights in tenths of a kilogram and identifies bins by an RFID chip number, which cellar staff link to a bin tag. Weighings from either site are checked and accepted in the same way, and count in the same way for picker pay."
+        },
+        {
+          "id": "double-weighing-fix",
+          "request": "Urgent: when the weighbridge loses its network it sends the same weighing again, so some bins were counted twice and pickers were overpaid this week. Fix it before Friday's pay run: a second weighing of a bin that has already been weighed is ignored, unless cellar staff enter it as a correction, which replaces the first weight. Recalculate the pay statements of every week that is not yet approved. Keep the change small."
+        },
+        {
+          "id": "harvest-dashboard",
+          "request": "The owner wants a harvest dashboard: per block and per variety, the kilograms picked and accepted, the rejection rate and its reasons, the average sugar level, and the labour cost per tonne accepted; plus the ten pickers with the most accepted kilograms this season. Picking and the cellar must use the same identifiers for blocks, varieties and bin tags."
+        }
+      ]
+    },
+    {
+      "id": "ice-rink",
+      "title": "Ice rink",
+      "steps": [
+        {
+          "id": "sessions-and-hire",
+          "request": "Build the backend for a public ice rink. The rink manager schedules skating sessions (date, start, end, capacity, price). Skaters buy tickets for a session online and can add skate hire in their shoe size; the rink has a fixed stock of hire skates per size, and a session never sells more tickets than its capacity or more hire skates of a size than are in stock. Skaters pay through PuckPay: the backend asks PuckPay's HTTP API for a checkout link, and PuckPay later calls a webhook of ours with the payment result. A ticket that is not paid within 15 minutes is released. Keep the data in memory and expose the operations over HTTP."
+        },
+        {
+          "id": "club-ice-time",
+          "request": "The figure-skating club books ice time: whole or half rinks for a date and hours, which then reduce the capacity of any public session at the same time by half or to zero. A club booking never overlaps another club booking on the same half. The club is invoiced monthly for its hours at the club rate. Club members can use their membership number to skate in public sessions without paying, up to four times a month, with the same capacity and skate-hire rules as everyone else."
+        },
+        {
+          "id": "ice-sensors",
+          "request": "The rink has FrostSense sensors in the ice, which post a temperature reading to a webhook of ours every minute. When the ice is warmer than minus 3 °C for 10 minutes, the next session is put on hold: no more tickets are sold for it, and its ticket holders get a text message through DropText (an HTTP API that takes a phone number and a message). The manager either cancels the held session, which refunds every ticket through PuckPay, or releases it."
+        },
+        {
+          "id": "oversell-fix",
+          "request": "Urgent before Saturday's disco session: twice this week the last tickets were sold to two skaters at the same moment and the session went over capacity, and refunds made through PuckPay were not recorded on the tickets. Fix both quickly: a session can never go over capacity, even when two purchases arrive together, and a refund PuckPay confirms is recorded on its ticket. Keep the change small."
+        },
+        {
+          "id": "weekly-report",
+          "request": "The rink manager wants a weekly report, and the council's leisure department downloads the same figures as CSV every Monday: per session, tickets sold, members admitted, occupancy as a share of capacity, skate-hire income per size, refunds, and sessions held or cancelled because of the ice. It has to answer quickly for a whole season."
+        }
+      ]
+    }
+  ]
+}
