@@ -1,0 +1,43 @@
+--- a/src/domain/model/Booking.ts
++++ b/src/domain/model/Booking.ts
+@@ -1,10 +1,11 @@
+ import { BookingError } from '../errors/BookingError';
+ import { DateRange } from './DateRange';
+ import { Money } from './Money';
++import { Occupancy } from './Occupancy';
+ 
+ export type BookingStatus = 'confirmed' | 'cancelled';
+ 
+-export class Booking {
++export class Booking implements Occupancy {
+   private bookingStatus: BookingStatus = 'confirmed';
+ 
+   constructor(
+--- /dev/null
++++ b/src/domain/model/Occupancy.ts
+@@ -0,0 +1,7 @@
++import { DateRange } from './DateRange';
++
++export interface Occupancy {
++  readonly roomId: string;
++  readonly stay: DateRange;
++  readonly isActive: boolean;
++}
+--- a/src/domain/model/Room.ts
++++ b/src/domain/model/Room.ts
+@@ -1,4 +1,6 @@
++import { DateRange } from './DateRange';
+ import { Money } from './Money';
++import { Occupancy } from './Occupancy';
+ 
+ export class Room {
+   constructor(
+@@ -11,4 +13,8 @@
+   fits(guests: number): boolean {
+     return guests >= 1 && guests <= this.capacity;
+   }
++
++  isOccupiedDuring(stay: DateRange, occupancies: readonly Occupancy[]): boolean {
++    return occupancies.some((o) => o.isActive && o.roomId === this.id && o.stay.overlaps(stay));
++  }
+ }

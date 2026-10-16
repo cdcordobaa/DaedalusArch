@@ -1,0 +1,208 @@
+spec_version: "1.0.0"
+
+# Idiomatic translation of TalanLabs/bookadesk back/.dependency-cruiser.js (rules no-dep-from-domain,
+# no-dep-from-usecase), written by hand as a spec author would, with globs instead of resolved file lists.
+# Judgement calls (see Docs/v1.3/research/external-labelled-datasets.md, pilot section):
+#  J1 the regex "src/domain" (unanchored) becomes the glob src/domain/**;
+#  J2 "to: src, pathNot: src/domain" (everything else in src) becomes a catch-all layer src/** listed LAST,
+#     so the first-match annotator gives domain and usecase files their own layer first;
+#  J3 the usecase rule's pathNot on spec/.d.ts sources is dropped: our extractor excludes those files anyway;
+#  J4 kinds: domain=domain, usecase=application, rest=infrastructure; an empty presentation placeholder
+#     satisfies the hexagonal binder (it holds no file and has no edge).
+architecture:
+  style: hexagonal
+  layers:
+    - name: domain
+      kind: domain
+      roles: [entity]
+      directories: ["src/domain/**"]
+    - name: usecase
+      kind: application
+      roles: [use-case]
+      directories: ["src/usecase/**"]
+    - name: rest-of-src
+      kind: infrastructure
+      roles: [adapter]
+      directories: ["src/**"]
+    - name: placeholder-presentation
+      kind: presentation
+      roles: [placeholder]
+      directories: ["__no_such_dir__/**"]
+  allowed_dependencies:
+    - from: usecase
+      to: [domain]
+    - from: rest-of-src
+      to: [domain, usecase]
+
+fitness_functions:
+  - id: FF-S01
+    name: dependency-direction-graph
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+  - id: FF-S03
+    name: layer-skip-graph
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+  - id: FF-S02
+    name: no-cyclic-deps
+    dimension: structural
+    severity: critical
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-S04
+    name: core-isolation
+    dimension: structural
+    severity: major
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-P01
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-P02
+    name: port-dependency-inversion
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-P03
+    name: port-adapter-pattern
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-P06
+    name: domain-state-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-C02
+    name: module-fan-out
+    dimension: coupling
+    severity: major
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-C03
+    name: component-instability
+    dimension: coupling
+    severity: major
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-C04
+    name: no-orphan-files
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-C05
+    name: max-fan-in
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-C06
+    name: abstraction-ratio
+    dimension: coupling
+    severity: advisory
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-SO01
+    name: single-responsibility-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-SO02
+    name: interface-segregation-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-SO03
+    name: inheritance-depth
+    dimension: solid
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-CV01
+    name: naming-conventions
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-CV02
+    name: naming-services
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-CV03
+    name: naming-repos
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-CV04
+    name: naming-controllers
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-CV05
+    name: test-file-pairing
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-CV06
+    name: no-index-logic
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-N01
+    name: architectural-integrity
+    dimension: integrity
+    severity: major
+    route: neuronal
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+  - id: FF-N02
+    name: intent-alignment
+    dimension: semantic
+    severity: major
+    route: neuronal
+    enabled: false
+    reason: "human-rules pilot: only the layer rules are compared"
+
+scoring:
+  weights: { structural: 0.35, coupling: 0.20, pattern: 0.30, solid: 0.10, convention: 0.05 }
+  thresholds: { pass: 0.80, warning: 0.65, soft_block: 0.50 }
+confidence_thresholds: { high: 0.85, medium: 0.60, icc_minimum: 0.70 }

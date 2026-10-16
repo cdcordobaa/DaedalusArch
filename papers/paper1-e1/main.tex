@@ -6,6 +6,20 @@
 % from (paths relative to the repository root, branch v1.2e at b7034682). Where a number was derived (a sum, a mean
 % over rows, a ratio), the comment says "derived" and how. Nothing here comes from an uncommitted file.
 %
+% v1.3 refresh (2026-10-16, branch v1.3-paper1-4-refresh from origin/v1.3 at e9fd61b7): Section 9 (the floor), the
+% v1.3 validity paragraph of Section 11 and the sentences that cite them read committed files on origin/v1.3. Where a
+% report sits on a PR branch that is not merged (marked [hold]), the comment gives a pinned "git show <sha>:<path>"
+% and the PR number. Merged into v1.3: #110, #120, #134, #166, #168, #185. On hold: #167, #198, #139, #213.
+% Pinned [hold] citations (updated 2026-10-16): a report that exists only on an unmerged PR branch is cited as
+% "git show <sha>:<path>", where <sha> is that branch's tip on 2026-10-16, so a rebase or branch deletion cannot change
+% the source. Such a report has not passed review and is not on v1.3; a sentence that rests on it is provisional and
+% must be re-checked against the merged file, or removed, before submission (papers/STATUS.md, "Submission gate").
+% A report whose PR has since merged is cited by its plain v1.3 path.
+%   S1RR        = Docs/DiagnosticRuns/v1.3-study1-rerun-2026-10-15.md (results/v1.3-study1-rerun/e1/by_level_model.csv)
+%   ADD         = Docs/v1.3/study1-addenda.md
+%   REFMF       = Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md ("Correction (2026-10-16)")
+%   NARECOUNT   = scripts/v1.3/ffp06-na-recount.mjs (PR #120)
+%
 % Abbreviations used in the comments:
 %   ADR.md      = "Docs/ADR <U+2014> Architectural Decision Records Firewall Tech.md" (its real name contains an em dash,
 %                 which this draft does not reproduce)
@@ -63,7 +77,7 @@
 \title{Do Specifications Make LLMs Better Architects?\\[2pt]
 \large A Pre-Registered Factorial Study of Architectural Conformance in LLM-Generated TypeScript}
 \author{\todo{author list and affiliations}}
-\date{Draft, 2026-10-11}
+\date{Draft, 2026-10-16 (v1.3 refresh)}
 
 \begin{document}
 \maketitle
@@ -91,9 +105,15 @@ on a 36-item sample the judge's weighted agreement with the panel is 0.982 (AC1 
 lenient; replacing the judge model on 100 recorded units changes no verdict ($\kappa = 0.77$).
 % src: P4 headline row (percentAgreement 0.982301, AC1 0.981985); results/e1-grid/label-plan-p4-api/labels.json joined with results/e1-grid/label-plan-p4/judge-verdicts.json (36 decided E1 items: 34 agree, 2 judge pass / panel fail; derived)
 % src: results/judge-robustness/summary.json (units 100, kappa 0.766355, registeredVerdictChanges 0); ADR.md ADR-038
+A post-hoc re-reading with a later instrument version, which separates blocking dependency rules from advisory
+metrics, finds no blocking violation in any of the 65 projects: the agents did not break an explicit dependency
+rule at any level, and the whole specification-level effect lies in advisory metrics.
+% src: S1RR §1 (0 of 65 accepted cells, 0 of 72; "The direction lives entirely in the advisory tier"); ADD A1 ("Related finding")
 \textbf{Conclusion.} A specification changes how much structure an agent builds, and scores that reward
 small structures can make that change look like a loss. At equal size, a precise AaC specification gives more
-conformant code than prose.
+conformant code than prose. In single-shot generation of small services, the agents stay above the floor that
+explicit dependency rules set, so whether a specification prevents violations has to be tested where violations
+occur, such as multi-step work by an agent on a growing code base.
 \end{abstract}
 
 % =====================================================================================================================
@@ -137,6 +157,14 @@ projects of the same size, the full AaC specification beats the prose one. The m
 does not move any verdict, a registered self-preference check is positive but confounded, and a cross-vendor panel
 agrees with the judge on almost every sampled item.
 
+One result frames all of these. When the 65 projects are re-read with a later version of the instrument that
+separates blocking dependency rules (direction, cycles, domain purity, the repository and port patterns) from
+advisory metrics, not one project has a blocking violation, at any level, for any model or vendor. The differences
+above are differences in coupling metrics inside a band where the defining rules of the style always hold. We report
+this floor as a result in its own right (Section~\ref{sec:floor}): in this setting, current agents rarely violate
+explicit dependency rules, so a study of whether a specification prevents architectural violations needs a setting
+in which violations occur. % src: S1RR §1 ("No blocking finding in any cell"); ADD A1
+
 \paragraph{Contributions.}
 \begin{enumerate}
   \item A pre-registered $3 \times 3 \times 2 \times 3$ experiment on specification level and model for agentic
@@ -148,8 +176,12 @@ agrees with the judge on almost every sampled item.
         put in a specification (Section~\ref{sec:discussion}).
   \item A registered analysis of an LLM judge inside a conformance score: its effect on verdicts, a self-preference
         check, and judge-versus-panel agreement with a judge from another vendor.
+  \item A floor result: under a tiered re-reading, none of the 65 generated projects breaks a blocking
+        dependency rule, together with the evidence that this zero is not an instrument blind spot
+        (Section~\ref{sec:floor}).
   \item A replication package with every generated tree's hash, every judge and labeller call as a replayable
-        cassette, and scripts that regenerate every table and figure (Section~\ref{sec:conclusion}).
+        cassette, and scripts that regenerate every table and figure from the committed records
+        (Section~\ref{sec:conclusion}); checks that need the generated trees themselves cannot be re-run from it.
 \end{enumerate}
 
 Throughout, every reading carries one of three tags: \regC{} for the registered confirmatory tests, \regX{} for
@@ -230,7 +262,10 @@ Every prompt has the same four parts: the task brief, one sentence that fixes th
 the compiler options and the exact type-check command), and a level block. % src: GENP §5
 The level block differs:
 \begin{itemize}
-  \item \lev{none}: no block. The agent still sees the three folder names.
+  \item \lev{none}: no block. The agent still sees the three folder names, so \lev{none} means ``no
+        specification beyond a three-folder layout hint'', not ``no architectural guidance''. All 65 accepted cells,
+        including all 21 \lev{none} cells, use exactly those three folders. Claims about agents that receive no
+        architectural guidance at all are therefore not tested by E1. % src: ADD A1 (GENP line 75; Docs/DiagnosticRuns/ise-e1-ics-2026-10-15.md, PR #100: "all 65 accepted cells, including all 21 none cells, use exactly those three folders")
   \item \lev{minimal-prose}: about 140 words of prose derived from the clean-architecture preset, naming every layer
         and role and the dependency direction, with no rule identifier and no number. % src: GENP §5
   \item \lev{full-aac}: the clean-architecture preset verbatim, a 307-line YAML document with layers, roles, fitness
@@ -413,7 +448,8 @@ specification level (Holm $p = 1.000$). % src: TESTS family secondary:valid_gene
 threshold, and the structural dimension (dependency direction and cycles) is clean in every cell.
 % src: GRID (derived min/max of ahs_combined over accepted rows); TESTS family secondary:avr_structural (all statistics 0)
 E1 is therefore a study of differences inside the pass band. No agent at any level produced an inward-dependency
-violation that the instrument detects.
+violation that the instrument detects. Section~\ref{sec:floor} examines this floor with a later instrument version
+and asks whether it is real or a blind spot.
 
 \subsection{RQ1: Specification level}\label{sec:rq1}
 
@@ -735,6 +771,118 @@ weakest model's cells and confounded with code quality. A panel from another ven
 sampled E1 units (weighted agreement 0.982), and where they disagree the judge is the lenient one. Replacing the judge model changes no verdict.
 
 % =====================================================================================================================
+\section{The Floor: No Blocking Violation in 65 Projects \ph{}}\label{sec:floor}
+
+\paragraph{Re-reading.} After E1, a later development version of the instrument (v1.3) split the symbolic rules
+into two tiers. A \emph{blocking} rule states a defining constraint of the style and alone decides the verdict; for
+clean architecture these are dependency direction (\ff{FF-S01}), no cycles (\ff{FF-S02}), no outward dependency of
+the domain (\ff{FF-S04}), domain purity (\ff{FF-P01}), the repository pattern (\ff{FF-P03}) and domain-state purity
+(\ff{FF-P06}). Every metric with a threshold (module fan-out, instability, abstraction ratio, the dependency-inversion
+ratio, the SOLID proxies) and the test-pairing convention became \emph{advisory}: reported, but outside the verdict.
+% src: S1RR §1 "What changed and why" (6 blocking rules FF-S01, S02, S04, P01, P03, P06; FF-P02, C02, C03, C06, CV05, SO01, SO02 advisory); Docs/v1.3/rule-tiers.md
+We re-ran the symbolic part of v1.3 on all 72 E1 trees with the pinned per-run tsconfig of the generator protocol and
+the registered specification. No judge was called. This re-reading is post-hoc and descriptive: it tests no
+hypothesis, and v1.3 verdicts are not comparable with the registered E1 scores. Two full passes gave byte-identical
+reports for all 72 cells, and v1.3 reproduces the registered deterministic score of every accepted cell (65 of 65).
+The byte-identity is as reported by the run: the second pass's outputs are not committed, so the reproducibility audit
+could not check it from the repository.
+% src: Docs/DiagnosticRuns/v1.3-repro-audit-2026-10-16.md §2 row E-6 ("144/144 and 326/326 byte-identity claims"; second-pass outputs not committed; missing raw file)
+% src: S1RR "Instrument and procedure", "Reproducibility" (144/144 byte-identical), "What changed and why" (ahsDeterministic reproduced 65/65); header banner ("DESCRIPTIVE, v1.3 DEVELOPMENT INSTRUMENT, NOT A REGISTERED RESULT")
+
+\paragraph{Result.} No cell has a blocking finding: 0 of the 65 accepted cells and 0 of all 72, including the 7
+Haiku cells that failed the type-check (Table~\ref{tab:floor}). The blocking view therefore shows no level effect and
+no model effect. The registered direction of RQ1 has nothing to act on there; it lies entirely in advisory rules. Module
+fan-out, for example, fires in 0 of 15 Claude \lev{none} cells and in 15 of 16 \lev{minimal-prose} cells. The
+advisory findings are true statements about the code: all 1,184 E1 findings that a deterministic checker can test
+(all of them test-pairing findings) are correct, but they are metric and convention findings, not violations of a
+defining constraint. The per-finding verdicts are committed; re-running the check needs the generated trees, which
+are outside the repository, so the audit could not re-derive it.
+% src: S1RR §1 headline table (Any blocking 0/15, 0/16, 0/16 Claude; 0/6 each Codex; "The count is 0 of 65 accepted cells, and 0 of all 72"; GEN-TYPECHECK cells "also have 0 blocking findings"; "C02 fires in 0/15 none cells and 15/16 minimal-prose cells")
+% src: results/v1.3-labelling/e1/correctness-all/correctness.json summary (FF-CV05 n 1184, correct 1184; every other rule notCheckable); Docs/DiagnosticRuns/v1.3-repro-audit-2026-10-16.md §2 row E-9 (E1 correctness needs ../daedalus-e1-outcomes; missing raw file)
+% src: Docs/DiagnosticRuns/v1.3-labelling-2026-10-15.md line 6 ("1,184 of 1,428 E1 findings" checkable, all correct), line 30 ("The E1 cells still have no blocking-tier finding under v1.3")
+The floor was already present in the registered data: the structural dimension was clean in every cell
+(Section~\ref{sec:results}), and no rule that v1.3 treats as blocking fired in any E1 cell under the registered
+instrument either. v1.3 does not hide a signal that the registered instrument saw.
+% src: S1RR §1 ("The blocking rules never fired in Study 1 either"; v12e_share_cells_any_v13_blocking_rule = 0 everywhere)
+
+\begin{table}[t]
+\centering\small
+\caption{\ph{} E1 re-read with the v1.3 tiers (symbolic only, 65 accepted cells). Files are means per cell.
+Any blocking: cells with at least one blocking finding. Advisory share: advisory over all symbolic findings.
+The registered $\AHSc$ is shown for reference only; it is not comparable with the v1.3 columns.}
+\label{tab:floor}
+\begin{tabular}{llrrrrr}
+\toprule
+Arm & Level & $n$ & Files & Any blocking & Advisory share & Registered $\AHSc$ \\
+\midrule
+Claude & \lev{none}          & 15 &  9.1 & 0/15 & 1.000 & 0.951 \\
+Claude & \lev{minimal-prose} & 16 & 27.4 & 0/16 & 1.000 & 0.887 \\
+Claude & \lev{full-aac}      & 16 & 29.6 & 0/16 & 1.000 & 0.920 \\
+Codex  & \lev{none}          &  6 &  6.3 & 0/6  & 1.000 & 0.926 \\
+Codex  & \lev{minimal-prose} &  6 & 10.5 & 0/6  & 1.000 & 0.957 \\
+Codex  & \lev{full-aac}      &  6 & 13.3 & 0/6  & 1.000 & 0.942 \\
+\bottomrule
+\end{tabular}
+% src: S1RR §1 headline table (rows "Claude arm" none/minimal-prose/full-aac and gpt-5.6-terra); results/v1.3-study1-rerun/e1/by_level_model.csv
+\end{table}
+
+\paragraph{Is the zero real?} A zero from a detector is informative only if the detector fires when a violation is
+present. Five pieces of evidence, all gathered for v1.3 and none on E1 code, bear on this; all but the fourth are
+development data, gathered on cases the v1.3 changes were made against.
+\begin{itemize}
+  \item \emph{Planted violations.} On the 71-variant v1.3 reference set (five projects, five styles), blocking recall
+        against the author's manifests is 54/54 = 1.00 [0.93, 1.00], with precision 54/54. Three further
+        \ff{FF-P06} rows come from the field-initialiser half of that rule, which the tier table declares N/A; they
+        are reported N/A and their recall is not estimated. An earlier count of 57/57 included them in error.
+        Against a manifest written blind to the tool, recall is 50/64 = 0.78 [0.67, 0.86] and precision
+        50/54 = 0.93 [0.82, 0.97]. Every one of the 14 blind misses is a difference in rule definition, not a
+        missing edge or fact in the extracted graph.
+        % src: REFMF "Correction (2026-10-16)" table (pooled author 54/54 = 1.00 [0.93, 1.00] recall and precision; blind 50/64 = 0.78 [0.67, 0.86], 50/54 = 0.93 [0.82, 0.97]; "quote 54/54 with '3 FF-P06 field-initialiser rows reported N/A (recall unestimated)', not 57/57"); NARECOUNT; Docs/DiagnosticRuns/v1.3-blind-misses-2026-10-16.md Summary table (extractor gap 0, rule/construct gap 14; PR #134, merged)
+  \item \emph{Seeded held-out projects.} On the 73 seeded violations of the companion study's seven held-out projects,
+        v1.3 recalls 73/73. This is a development reading: those seeds were known while v1.3 was built, and one
+        operator (dynamic imports) motivated a v1.3 change.
+        % src: S1RR §2 table (Total recall v1.3 73/73 = 1.000), §3 ("SO4 is a development reading ... MO-X01 motivated dynamicImports")
+  \item \emph{The same rules fire on human-written code.} All seven held-out base projects fail the v1.3 blocking
+        verdict, and 11 of 15 external, human-written TypeScript back ends written before 2023 have at least one
+        blocking finding. These projects are larger and older than the E1 services, so the contrast with E1 is
+        descriptive and confounded with size.
+        % src: S1RR §2 "Context only, not scored" ("Each fails the v1.3 blocking verdict"); git show 23adb369:Docs/DiagnosticRuns/v1.3-external-correctness-2026-10-16.md §3 ("4 of the 15 repositories have no blocking finding"; PR #167, [hold], open; pinned to its branch tip SHA)
+  \item \emph{Findings on human code are correct.} All 283 blocking findings on those 15 projects are correct by a
+        deterministic source-level check (1.000 [0.987, 1.000], findings clustered in a few projects), and a negative
+        control of 500 perturbed findings is rejected 500 times out of 500.
+        % src: git show 23adb369:Docs/DiagnosticRuns/v1.3-external-correctness-2026-10-16.md §3 (283/283, Wilson [0.987, 1.000]; control 500 perturbed, all incorrect; ddd-forum 92, neoteric 72, finance 50 of 283); PR #167, [hold], open; pinned to its branch tip SHA
+  \item \emph{The rules fire on agent-style code with a different layout.} In a small feasibility probe, one Claude
+        session implemented six multi-step tasks by hand under a minimal prompt. In the layered style, every one of
+        14 steps had a blocking finding (dependency direction and layer skips); in the hexagonal style none of 14
+        steps did. The layered tasks produced 24 distinct blocking findings, all correct: 13 at the first step and 11
+        added later, in only 4 of the 11 later steps. A finding persists once made, so the same 24 appear as 96 rows
+        across the 14 step snapshots; the 14 of 14 is mostly a step-1 level, not new violations at every step. This is
+        one agent and a handful of tasks, so the figures are counts, not rates.
+        % src: Docs/DiagnosticRuns/v1.3-floor-probe-2026-10-16.md §0 (14/28: hexagonal 0/14, layered 14/14; 96/96 snapshot rows correct; new blocking finding in 4 of 22 later steps, all layered; "one Claude session ... by hand"), §3.1 (market 4, league 2, hive 2 and 3), §3.2, §3.3 (the later findings replicate two step-1 habits), §5 items 3-4; distinct findings derived: identity (rule, file, target) over blockingFindings in results/v1.3-floor-probe/{market-vendors,youth-league,hive-health}/none/step-*.json = 6 + 5 + 13 = 24, step 1 = 4 + 3 + 6 = 13
+\end{itemize}
+Taken together, the instrument fires on planted and on human-written violations of the rules it states, and its
+blocking findings are correct where they can be checked. We therefore read the E1 zero as a property of the generated
+code, not of the instrument, with two limits. First, the reference set and the external specifications were written
+by the instrument's authors. Second, the floor covers only constraints the rules can state. Semantic violations
+(business logic in the wrong layer, a duplicated business rule) are judged by the LLM judge, which the v1.3 re-reading
+did not call. On planted anti-patterns the frozen v1.3 judge catches 16 of 21 = 0.76 [0.55, 0.89] in the two operators
+whose controls behave as intended. The interval contains the 0.80 target, but its lower bound does not reach it, so
+the catch rate is not shown to meet the target and E1 gives no comparable
+floor for semantic violations.
+% src: Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md header note (16/21 = 0.76 [0.55, 0.89]; "Neither lower bound reaches 0.80"; restricted to FRAMEWORK-LEAK and PERSIST-IN-DOMAIN); S1RR "Instrument and procedure" ("No judge was called")
+
+\paragraph{What the floor means.} The agents in E1 receive a short brief, a folder layout and, at two levels, a
+specification; they write a small service in one session. In that setting they do not break the defining rules of
+clean architecture, with or without a specification, and with every model we tested. The question ``does a
+specification prevent architectural violations?'' cannot be answered where there are no violations to prevent. Two
+conditions under which violations do appear are suggested by the evidence above: other styles (the layered probe)
+and longer histories (the human-written projects). Both point to multi-step work by an agent on a growing code base,
+with and without the instrument's feedback in the loop. That is the design of our planned second study, whose primary
+outcome is the slope of blocking violations over steps. The layered and hexagonal probe also warns that the floor can
+recur there: an agent's default layout may already satisfy a style's defining rules.
+% src: Docs/v1.3/study2-outline.md §4 ("Erosion slope ... the slope of blocking violations ... This is the main contrast between arms"), Q1; Docs/DiagnosticRuns/v1.3-floor-probe-2026-10-16.md §0 ("Floor risk for Study 2's primary outcome: Real for hexagonal")
+
+% =====================================================================================================================
 \section{Discussion}\label{sec:discussion}
 
 \subsection{What specifications do to LLM architecture}
@@ -770,12 +918,15 @@ task gains reliability, not architecture, from the larger models.
 
 \subsection{Measuring generated architecture}
 
-E1 has two lessons for anyone who scores generated code. First, a score built from rule firings is not
+E1 has three lessons for anyone who scores generated code. First, a score built from rule firings is not
 size-neutral: when a treatment changes size, report size beside the score and add a per-file reading. Second, a
 rule that fires everywhere (here, missing test files) dominates finding counts while contributing nothing to
 contrasts; counts by family mostly count files. Both were visible only because the analysis kept per-function
 detail, and both were found after the registered tests. We report them as post-hoc and recommend that future
-designs register a size-normalised and a per-file outcome in advance.
+designs register a size-normalised and a per-file outcome in advance. Third, found with a later instrument version, a score that mixes
+defining constraints with metric thresholds can show a large effect when no defining constraint is ever broken.
+Reporting the two tiers apart (Section~\ref{sec:floor}) shows at once that every E1 difference is a difference in
+metrics, and that the specification effect of RQ1 is an effect on coupling style, not on rule violations.
 
 On the judge, E1 replicates the companion study: with an 8\% weight and a majority rule, the judge cannot move a
 verdict in a pass band this wide \cite{daedalus2026tool}. A judge earns its place in such a score only if its weight
@@ -827,8 +978,15 @@ were judged real and 3 were uncertain, while all 3 sampled dependency-inversion 
 Those figures come from real projects, not from E1 code, and E1 findings were not labelled.
 \emph{Circularity.} The specification, the rules, the prompt levels and the instrument were written by the same
 author, and the prose level was derived from the same preset. The study measures conformance to this author's
-rendering of clean architecture. % src: TTV §2.8; Docs/reports/director-report-2026-10.md §5 item 1
-\emph{All cells pass}: the study measures differences inside the pass band, never a blocking violation.
+rendering of clean architecture. % src: TTV §2.8; Docs/threats-to-validity.md TV-12 (circularity)
+\emph{All cells pass}: the study measures differences inside the pass band, never a blocking violation
+(Section~\ref{sec:floor}). \emph{The \lev{none} level is not specification-free}: every prompt fixes the three
+folder names, so the contrast is a folder hint against a folder hint with prose or with a full AaC specification.
+% src: ADD A1
+\emph{The rule set is one author's}: of the rule-by-style rows the v1.3 presets compile, 57 of 89 cannot be expressed
+in any of three independent tools, among them the blocking repository-pattern and domain-state-purity rules, so the
+E1 zero on those two rules rests on our instrument alone.
+% src: Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md §0 ("57 rows (21 distinct rules) cannot be expressed in any of the three tools. Four of those rules are blocking ... FF-P03 ... FF-P06"); PR #166, merged
 
 \paragraph{Internal validity.}
 \emph{The ADR-032 fix.} The first judge pass found that the extractor had no registered way to read an E1 tree's
@@ -864,6 +1022,48 @@ Codex arm is one model, exploratory, and differs in harness, confinement, reason
 \emph{One architecture style} (clean architecture) and one language. \emph{Model generation} is confounded with tier
 (Haiku 4.5 against two 5.5 models). % src: PLAN §10 B5
 The models and CLIs are pinned versions that will change.
+
+\paragraph{Validity evidence for the instrument (v1.3, exploratory).} After E1, five studies tested the v1.3
+instrument without human raters. None was pre-registered, and only the first is merged at the time of writing; the
+others are under review, so their figures may change. They concern the instrument, not E1 itself, and they bear on
+the floor of Section~\ref{sec:floor} more than on the registered contrasts.
+\begin{itemize}
+  \item \emph{Convergent.} On every rule that dependency-cruiser, eslint-plugin-boundaries or ArchUnitTS can also
+        express, Cohen's $\kappa$ between our findings and each tool is 1.000 on the 71 reference variants, 0.918 to
+        0.961 on 15 external human-written projects and 0.913 to 1.000 on 14 current open-source projects. All 253
+        disagreements were traced to a cause outside our rule logic (definition differences, alias or barrel
+        resolution, two defects in the other tools); none was classed as our defect. Four blocking rules have no
+        counterpart in any of the three tools (see Construct validity).
+        % src: Docs/DiagnosticRuns/v1.3-validity-convergent-2026-10-16.md §0 table (kappa rows; 0 + 94 + 159 = 253 disagreements, 0 "our bug"); PR #166, merged
+  \item \emph{External correctness.} All 283 blocking findings on the 15 external projects are correct by a
+        deterministic check that reads the source, not the graph; a negative control of 500 perturbed findings is
+        rejected every time. Correct is not the same as meaningful: the check shares the specification with the tool,
+        and all 15 specifications were written by one session.
+        % src: git show 23adb369:Docs/DiagnosticRuns/v1.3-external-correctness-2026-10-16.md §3, §4 ("Correct is not meaningful"; "All 15 specs were written by one session"); PR #167, [hold], open; pinned to its branch tip SHA
+  \item \emph{Metamorphic.} Under nine semantics-preserving transformations of the reference variants (renaming,
+        reordering, reformatting, export style, type-only imports, path aliases, splitting and merging files, adding
+        and removing barrel files), the blocking verdict is unchanged in 637 of 655 applicable cases (0.973). Six
+        transformations change nothing in all 71 variants. Of the 18 changed cases, one is an instrument defect (a barrel
+        file outside every layer hides an edge), fixed behind an option that is off by default; the others are
+        intended consequences of rule definitions, mainly a merge that creates a real module cycle (13 cases). These
+        are development data.
+        % src: Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md §1 ("Six of the nine transformations are invariant"; MT-B1 "tool bug"), §3.1 ("637 of 655 applicable cases are invariant (0.973)"), §3.3 (MT-M1, 13 cases); PR #185, merged into v1.3
+  \item \emph{Developer behaviour (null).} In 36 open-source histories, maintainers did not remove dependencies
+        flagged by blocking rules more often than unflagged cross-layer dependencies. A pooled rate ratio of 2.65
+        [1.97, 3.56] rests on one commit that enabled an import-cycle lint; without it the ratio is 0.93 [0.61, 1.43],
+        and with one credit per fixing commit 1.00 [0.56, 1.80]. Dependency-direction findings were removed less often
+        than the baseline. The method cannot tell wrong findings from tolerated debt.
+        % src: Docs/DiagnosticRuns/v1.3-validity-fixes-mined-2026-10-16.md "Verdict" (2.65x, 95% CI 1.97-3.56; 0.93 (0.61-1.43); 1.00 (0.56-1.80); rate ratios 0.65, 0.38 and 0; "this method cannot separate them"); PR #168, merged into v1.3
+  \item \emph{Known groups (null).} Blocking findings per thousand lines are not lower in showcase repositories
+        (boilerplates, samples) than in application repositories (15 external projects; Cliff's $\delta = -0.18$,
+        exact one-sided $p = 0.81$), and the density still correlates with project size (Spearman
+        $\rho = 0.39$ [$-0.19$, 0.85]). The grouping by repository name is crude, and several ``application''
+        repositories are themselves teaching references.
+        % src: git show ba1c6327:Docs/DiagnosticRuns/v1.3-known-groups-2026-10-16.md §1 (K-1: delta -0.18, p 0.811, "not supported"; "Reading this null honestly"), §2 (B/KLOC rho vs LOC 0.39 [-0.19, 0.85]); PR #198, [hold], open; pinned to its branch tip SHA
+\end{itemize}
+The first three support the claim that the blocking rules detect what they state, and do so stably; the two nulls
+show that we have no evidence yet that what they state is what maintainers act on. For E1 this means that the floor
+is a floor of rule violations as the specification defines them, and no stronger claim.
 
 \paragraph{Reliability.} Every generated tree is identified by its git tree hash, every judge and labeller call is
 stored as a cassette and replays without a model call, and the aggregation is byte-identical across reruns.
@@ -913,8 +1113,12 @@ and dependency inversion, then fire. Findings per file did not differ. At equal 
 better conformance than a short prose one, which was the worst level. An exploratory second-vendor arm reversed the
 order of levels. The LLM judge, at its 8\% weight, changed no verdict; a positive self-preference check was carried
 by the weakest model's cells; and a cross-vendor panel agreed with the judge's passes on 34 of 36 sampled units (weighted agreement 0.982).
+Re-read with a later instrument that separates blocking rules from advisory metrics, none of the 65 projects broke
+a blocking dependency rule. The agents in this setting stay above the floor that explicit dependency rules set, and
+every specification effect we observed is an effect on coupling metrics.
 
-Next steps are a registered replication with a size-normalised primary outcome, a fourth level that gives a precise
+Next steps are a study of agents in a multi-step loop, where violations can accumulate and the instrument's feedback
+can be tested against their slope. For the questions of E1 itself, they are a registered replication with a size-normalised primary outcome, a fourth level that gives a precise
 specification of a different rule set to separate understanding from knowing the test, more tasks and vendors, and a
 judge-validation sample stratified on judge fails.
 
@@ -924,7 +1128,10 @@ evaluation record and aggregate table (\texttt{results/e1-grid/}), all judge and
 analysis and its producer (\texttt{scripts/e1-size-analysis-cli.ts}), and the script that generates this paper's
 figures from the committed CSVs (\texttt{papers/paper1-e1/figures/make\_figures.py}). Every number in this paper
 carries a source-path comment in the \LaTeX{} source. The generated project trees live outside the repository and are
-identified by their tree hashes. \todo{archive DOI; decide whether to publish the generated trees.}
+identified by their tree hashes. A reproducibility audit of the v1.3 reports
+(\texttt{Docs/DiagnosticRuns/v1.3-repro-audit-2026-10-16.md}) lists what can and cannot be re-derived from the
+package; two Section~\ref{sec:floor} claims are in the second group (the second-pass byte-identity and the E1
+correctness re-check, rows E-6 and E-9), because they need the uncommitted second-pass outputs or the generated trees. \todo{archive DOI; decide whether to publish the generated trees.}
 
 \bibliographystyle{plain}
 \bibliography{refs}

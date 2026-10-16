@@ -17,16 +17,25 @@ export class ExtractCommand implements PipelineCommand {
     private readonly graphMode?: GraphMode,
     /** ADR-032: explicit tsconfig (the project's own `tsconfig.json` is then ignored); absent = `<project>/tsconfig.json`. */
     private readonly tsconfigPath?: string,
+    /** In-memory file contents (absolute path; `null` = removed); absent = the files on disk. */
+    private readonly sourceOverrides?: ReadonlyMap<string, string | null>,
+    /** MT-B1 (OFF by default): `ExtractorOptions.resolvedEdgesInLiteralView`. */
+    private readonly resolvedEdgesInLiteralView = false,
     /** R02: `v1.2e` extracts with `V12E_DEFAULT_OPTIONS` (the registered graph); absent = the v1.3 defaults. */
     private readonly defaults?: 'v1.3' | 'v1.2e',
   ) {}
 
   async execute(context: FirewallContext): Promise<DomainResultType<void>> {
-    const result = await extractAPG(this.projectPath, {
+    const options = {
       ...(this.defaults === 'v1.2e' ? V12E_DEFAULT_OPTIONS : {}),
       excludePatterns: this.excludePatterns,
       ...(this.graphMode !== undefined && { graphMode: this.graphMode }),
-    }, this.tsconfigPath);
+      ...(this.resolvedEdgesInLiteralView && { resolvedEdgesInLiteralView: true }),
+    };
+    // The overrides argument is passed only when present (MCP template checks): every other caller is unchanged.
+    const result = this.sourceOverrides === undefined
+      ? await extractAPG(this.projectPath, options, this.tsconfigPath)
+      : await extractAPG(this.projectPath, options, this.tsconfigPath, this.sourceOverrides);
 
     if (!result.success) {
       return DomainResult.fail<void>(

@@ -1,0 +1,30 @@
+--- a/src/domain/services/LoanPolicy.ts
++++ b/src/domain/services/LoanPolicy.ts
+@@ -2,6 +2,8 @@
+ import { Member } from '../entities/Member';
+ import { DomainError } from '../errors/DomainError';
+ 
++export const MAX_LOAN_DAYS = 60;
++
+ export class LoanPolicy {
+   assertCanBorrow(member: Member, activeLoans: readonly Loan[], now: Date): void {
+     if (activeLoans.some((loan) => loan.isOverdue(now))) {
+--- a/src/domain/value-objects/LoanPeriod.ts
++++ b/src/domain/value-objects/LoanPeriod.ts
+@@ -1,4 +1,5 @@
+ import { DomainError } from '../errors/DomainError';
++import { MAX_LOAN_DAYS } from '../services/LoanPolicy';
+ 
+ const DAY_MS = 24 * 60 * 60 * 1000;
+ 
+@@ -6,8 +7,8 @@
+   private constructor(readonly days: number) {}
+ 
+   static ofDays(days: number): LoanPeriod {
+-    if (!Number.isInteger(days) || days < 1 || days > 60) {
+-      throw new DomainError('INVALID_LOAN_PERIOD', `Loan period must be 1 to 60 days: ${days}`);
++    if (!Number.isInteger(days) || days < 1 || days > MAX_LOAN_DAYS) {
++      throw new DomainError('INVALID_LOAN_PERIOD', `Loan period must be 1 to ${MAX_LOAN_DAYS} days: ${days}`);
+     }
+     return new LoanPeriod(days);
+   }

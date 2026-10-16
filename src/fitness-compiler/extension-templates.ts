@@ -14,6 +14,7 @@ import { V13_CYPHER_TEMPLATES } from './v13-templates.js';
 import { APG2_TEMPLATES } from './apg2-templates.js';
 import { CHEAP2_TEMPLATES } from './cheap2-templates.js';
 import { CONSTRUCT_TEMPLATES } from '../construct-switches/compile.js';
+import { RULE_GAP_CATALOGUE, RULE_GAP_TEMPLATES } from './rule-gap-templates.js';
 
 export const V13_EXTENSION_TEMPLATE_CATALOGUES: ReadonlyMap<string, ReadonlyMap<string, CypherTemplate>> = new Map([
   ['hexagonal', HEXAGONAL_TEMPLATES],
@@ -24,6 +25,24 @@ export const V13_EXTENSION_TEMPLATE_CATALOGUES: ReadonlyMap<string, ReadonlyMap<
   // Batch-2 cheap-proxy templates (`cheap2-templates.ts`), all advisory; they read the cheap facts once persisted.
   ['cheap2', CHEAP2_TEMPLATES],
 ]);
+
+/**
+ * Opt-in catalogues: OFF by default. They are not in `V13_EXTENSION_TEMPLATE_CATALOGUES`, so neither the v1.3 spec
+ * validation nor any lookup sees them unless a caller names the catalogue (`v13OptInCatalogueOf`).
+ * - `rule-gaps` (`rule-gap-templates.ts`, `Docs/v1.3/rule-gap-catalogue.md`): advisory constraints the style sources
+ *   state and no other template checks.
+ */
+export const V13_OPT_IN_EXTENSION_CATALOGUES: ReadonlyMap<string, ReadonlyMap<string, CypherTemplate>> = new Map([
+  [RULE_GAP_CATALOGUE, RULE_GAP_TEMPLATES],
+]);
+
+/** The enabled opt-in catalogue that holds `name`, or undefined (`enabled` lists the catalogues switched on). */
+export function v13OptInCatalogueOf(name: string, enabled: readonly string[]): string | undefined {
+  for (const catalogue of enabled) {
+    if (V13_OPT_IN_EXTENSION_CATALOGUES.get(catalogue)?.has(name) === true) return catalogue;
+  }
+  return undefined;
+}
 
 /** The catalogue that holds a v1.3 extension template, or undefined. */
 export function v13ExtensionCatalogueOf(name: string): string | undefined {

@@ -2,7 +2,7 @@
 
 **Analysis Date**: 2026-03-27T15:40:33Z
 **Analyzer**: AI-DLC
-**Workspace**: /Volumes/Life-OS/Users/Arkatechie/Development/Archi-Firewall/DaedalusArch
+**Workspace**: <workspace>/DaedalusArch
 **Total Files Analyzed**: 14 (Configuration and Documentation)
 
 ## Artifacts Generated

@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8753,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "3e30468a024bf7f54ee73c773a7df96f0b62ed8dba6bbcf8fbecdca40de7ecf5-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.88,
+    "evidence": [
+      "execute() sequences the work: subscriptions.byId -> subscription.cancel() -> subscriptions.save, which is use-case orchestration.",
+      "Persistence goes only through the injected SubscriptionRepository port, so the file contains no database or ORM code.",
+      "The cancellation rule is delegated to the domain via subscription.cancel(), so no business rule is reimplemented here.",
+      "No HTTP, request/response or framework constructs appear; transport is handled by SubscriptionController in infrastructure.",
+      "reason.trim() is minor input normalization in the returned DTO and fits the application layer."
+    ],
+    "pass": true,
+    "reasoning": "CancelSubscription is a typical application-layer use case. It loads the aggregate through a domain port (SubscriptionRepository.byId), raises a domain error when the subscription is missing, hands the state change to the domain (subscription.cancel()), saves through the port and returns a simple result DTO. It contains no persistence details, no transport or HTTP handling and no framework code. The business rule for cancelling stays in the domain entity. The only extra logic is reason.trim(), which is trivial input normalization and fits the application layer. No ADR prose was provided to contradict this.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/use-cases/CancelSubscription.ts\nLayer: application\nUnit files:\n- src/application/use-cases/CancelSubscription.ts\n\n## Source\n=====SOURCE-BEGIN src/application/use-cases/CancelSubscription.ts=====\nimport { SubscriptionError } from '../../domain/errors/SubscriptionError';\nimport { SubscriptionRepository } from '../../domain/ports/SubscriptionRepository';\n\nexport class CancelSubscription {\n  constructor(private readonly subscriptions: SubscriptionRepository) {}\n\n  async execute(subscriptionId: string, reason: string): Promise<{ id: string; reason: string }> {\n    const subscription = await this.subscriptions.byId(subscriptionId);\n    if (subscription === undefined) throw new SubscriptionError('not-found', `Unknown subscription ${subscriptionId}`);\n    subscription.cancel();\n    await this.subscriptions.save(subscription);\n    return { id: subscription.id, reason: reason.trim() };\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"CancelSubscription@src/application/use-cases/CancelSubscription.ts\",\"to\":\"SubscriptionRepository@src/domain/ports/SubscriptionRepository.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"SubscriptionController@src/infrastructure/http/SubscriptionController.ts\",\"to\":\"CancelSubscription@src/application/use-cases/CancelSubscription.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/application/use-cases/CancelSubscription.ts\",\"to\":\"src/domain/errors/SubscriptionError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/CancelSubscription.ts\",\"to\":\"src/domain/ports/SubscriptionRepository.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/http/SubscriptionController.ts\",\"to\":\"src/application/use-cases/CancelSubscription.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/main.ts\",\"to\":\"src/application/use-cases/CancelSubscription.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"application\",\"name\":\"CancelSubscription\",\"path\":\"src/application/use-cases/CancelSubscription.ts\"},{\"kind\":\"Class\",\"layer\":\"infrastructure\",\"name\":\"SubscriptionController\",\"path\":\"src/infrastructure/http/SubscriptionController.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/CancelSubscription.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors/SubscriptionError.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/ports/SubscriptionRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/http/SubscriptionController.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/main.ts\"},{\"kind\":\"Interface\",\"layer\":\"domain\",\"name\":\"SubscriptionRepository\",\"path\":\"src/domain/ports/SubscriptionRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T02:48:59.747Z",
+  "repetition": 0,
+  "requestHash": "3e30468a024bf7f54ee73c773a7df96f0b62ed8dba6bbcf8fbecdca40de7ecf5",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":582}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.88,\\\"reasoning\\\":\\\"CancelSubscription is a typical application-layer use case. It loads the aggregate through a domain port (SubscriptionRepository.byId), raises a domain error when the subscription is missing, hands the state change to the domain (subscription.cancel()), saves through the port and returns a simple result DTO. It contains no persistence details, no transport or HTTP handling and no framework code. The business rule for cancelling stays in the domain entity. The only extra logic is reason.trim(), which is trivial input normalization and fits the application layer. No ADR prose was provided to contradict this.\\\",\\\"evidence\\\":[\\\"execute() sequences the work: subscriptions.byId -> subscription.cancel() -> subscriptions.save, which is use-case orchestration.\\\",\\\"Persistence goes only through the injected SubscriptionRepository port, so the file contains no database or ORM code.\\\",\\\"The cancellation rule is delegated to the domain via subscription.cancel(), so no business rule is reimplemented here.\\\",\\\"No HTTP, request/response or framework constructs appear; transport is handled by SubscriptionController in infrastructure.\\\",\\\"reason.trim() is minor input normalization in the returned DTO and fits the application layer.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.88,\"evidence\":[\"execute() sequences the work: subscriptions.byId -> subscription.cancel() -> subscriptions.save, which is use-case orchestration.\",\"Persistence goes only through the injected SubscriptionRepository port, so the file contains no database or ORM code.\",\"The cancellation rule is delegated to the domain via subscription.cancel(), so no business rule is reimplemented here.\",\"No HTTP, request/response or framework constructs appear; transport is handled by SubscriptionController in infrastructure.\",\"reason.trim() is minor input normalization in the returned DTO and fits the application layer.\"],\"pass\":true,\"reasoning\":\"CancelSubscription is a typical application-layer use case. It loads the aggregate through a domain port (SubscriptionRepository.byId), raises a domain error when the subscription is missing, hands the state change to the domain (subscription.cancel()), saves through the port and returns a simple result DTO. It contains no persistence details, no transport or HTTP handling and no framework code. The business rule for cancelling stays in the domain entity. The only extra logic is reason.trim(), which is trivial input normalization and fits the application layer. No ADR prose was provided to contradict this.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/use-cases/CancelSubscription.ts",
+  "usage": {
+    "inputTokens": 2955,
+    "outputTokens": 582
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

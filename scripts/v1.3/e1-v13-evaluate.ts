@@ -69,7 +69,7 @@ async function main(): Promise<number> {
       const tsconfig = path.join(work, `${path.basename(copy)}.tsconfig.json`);
       fs.writeFileSync(tsconfig, harnessTsconfigText(copy), { mode: 0o444 });
       const started = Date.now();
-      const run = await runner.run(tsx, [CLI_ENTRY, 'evaluate', '--project', copy, '--spec', spec, '--format', 'json', '--symbolic-only', '--tsconfig', tsconfig, '--neo4j-uri', uri],
+      const run = await runner.run(tsx, [CLI_ENTRY, 'evaluate', '--project', copy, '--spec', spec, '--format', 'json', '--symbolic-only', '--tsconfig', tsconfig, '--neo4j-uri', uri, '--engine', 'neo4j'],
         { cwd: repoRoot, env: childEnv, timeoutMs: 600_000 });
       fs.rmSync(copy, { recursive: true, force: true });
       if (!run.success || run.data.timedOut) { failures.push(`${rec.projectId}: evaluate did not finish`); continue; }

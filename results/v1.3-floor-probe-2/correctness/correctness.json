@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "summary": [
+    {
+      "rule": "FF-S02/no-cyclic-deps",
+      "n": 1,
+      "correct": 1,
+      "incorrect": 0,
+      "notCheckable": 0,
+      "correctShare": 1,
+      "wilsonLow": 0.20654931437723745,
+      "wilsonHigh": 1
+    }
+  ],
+  "results": [
+    {
+      "key": "6679095ae38bcbe3edf9796f",
+      "projectId": "market-vendors/C1/step-04",
+      "ruleId": "FF-S02",
+      "template": "no-cyclic-deps",
+      "tier": "blocking",
+      "file": "src/application/audit.ts,src/application/market-service.ts,src/application/audit.ts",
+      "verdict": "correct",
+      "reason": "every step of the 2-file cycle is an import that resolves to the next file",
+      "checks": [
+        "src/application/audit.ts:3 './market-service' -> src/application/market-service.ts",
+        "src/application/market-service.ts:5 './audit' -> src/application/audit.ts"
+      ],
+      "rule": "FF-S02/no-cyclic-deps"
+    }
+  ]
+}

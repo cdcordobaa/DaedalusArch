@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "layered",
+  "variant": "v27-views-barrel-re-exports-product-record",
+  "kind": "violation",
+  "plants": "FF-S03",
+  "description": "A new presentation barrel views/index.ts re-exports the renderers and also re-exports the persistence ProductRecord type; the controllers import the renderers through the barrel.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S03",
+      "ruleName": "no-layer-skip",
+      "file": "src/presentation/views/index.ts",
+      "target": "src/persistence/records/ProductRecord.ts",
+      "reason": "A presentation module re-exports (export type ... from) a persistence record, a presentation -> persistence dependency that skips the business layer."
+    }
+  ]
+}

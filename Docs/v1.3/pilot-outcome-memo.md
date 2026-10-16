@@ -92,3 +92,17 @@ No other pilot result may change Study 2's primary outcome. In particular, nothi
 | CLI version and model id | `2.1.301 (Claude Code)`, `claude-sonnet-5-5` |
 
 The commands that reproduce the task hashes are in `pilot-tasks.md` §5.
+
+<!-- protocol-check: historical-above -->
+
+## 8. Amendment, 2026-10-16: declared deviation from §5 (appended; the text above is unchanged)
+
+<!-- study2-protocol: primary=Y-distinct-blocking-edges-at-step-k; k=4; arms=none,daedalus-mcp; unit=distinct-edge; fallback=do-not-run; order=freeze,hold-out,dress-rehearsal,pre-registration,gate,run; generators=claude-sonnet-5-5,codex-pin -->
+
+Sections 1–7 above are the memo as written on 2026-10-15, before any pilot run. Their sha256 before this amendment was appended is `46d94136febeb308139f5224c974ecc879123855e7842891494b23bbfa63c9ca` (the whole file at `origin/v1.3` `38f199fd`). Nothing above this section was edited.
+
+1. **§5 branch.** The 8 kept DDD snapshots were scored offline under §3 and §5 on PR #229 (`v1.3-pilot-t1-options:Docs/DiagnosticRuns/v1.3-pilot-t1-options-2026-10-16.md`). Under every T1 option that scores them (a, c, d), DDD `none` has 1 blocking finding at each step and **0 new** at steps 2–4. With Clean and Hexagonal at 0 (PR #170), **§5 lands on the zero branch.** It is final once the author's T1 option is merged and the snapshots are re-scored on `v1.3` with Neo4j, the engine of record; #229 used `cypher-interp`. The zero rests on 5 of DDD's 7 blocking rules, because FF-DT01 and FF-DT02 cannot fire on these trees.
+2. **Deviation.** The author did **not** apply §5's consequence. Study 2's primary outcome is instead the level outcome Y (distinct blocking violating edges at step k = 4), decided 2026-10-16 13:50 UTC and recorded in `Docs/v1.3/study2-deviation-2026-10-16.md`. This breaks the commitment in §5 that "no other pilot result may change Study 2's primary outcome". The thesis reports it as a deviation, with the rationale and the timeline given there. Briefly: the floor was seen only on development and rehearsal tasks, never on sealed Study 2 tasks; Study 2 was not pre-registered; and the zero branch's advisory outcome is blocked by gate D1.
+3. **What stays.** The §3 primary outcome and the §5 outcomes (new blocking identities at steps ≥ 2, the per-run slope, and the advisory slope per KLOC without FF-CV05) are **registered secondary outcomes** of Study 2, computed exactly as this memo defines them. The §5 branch result is reported beside the Study 2 primary.
+4. **The `gate` question in §5** is settled: `gate` is dropped, and Study 2 compares `none` and `daedalus-mcp`.
+5. **§6 leakage controls still hold.** The pilot tasks and their domains never become Study 2 tasks, and no pilot figure estimates an arm effect.

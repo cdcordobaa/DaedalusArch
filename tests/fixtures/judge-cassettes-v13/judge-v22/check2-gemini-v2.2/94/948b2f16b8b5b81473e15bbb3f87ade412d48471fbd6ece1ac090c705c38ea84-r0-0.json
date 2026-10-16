@@ -1,0 +1,43 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.6",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 24150,
+  "effort": null,
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "d68c66d27818a8985e559c413f44be9c1f9c04a809ce77369abdb4acca0710db",
+  "key": "948b2f16b8b5b81473e15bbb3f87ade412d48471fbd6ece1ac090c705c38ea84-r0-0",
+  "model": "gemini-4-argon-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 1,
+    "evidence": [
+      "src/business/model/Vehicle.ts declares the domain constant SERVICE_INTERVAL_KM and the pure domain entity class Vehicle with domain properties and behavior methods (serviceDue, takeOutOfService, returnToService, hasPlate), using only primitive types and no framework, ORM, transport, or direct I/O constructs."
+    ],
+    "pass": true,
+    "reasoning": "All declarations in src/business/model/Vehicle.ts belong to the business (domain) layer. The file defines a domain constant (SERVICE_INTERVAL_KM) and a domain entity class (Vehicle) encapsulating vehicle state and domain rules (service interval calculation and service status transitions) with primitive field and signature types and no external dependencies, decorators, or I/O.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities, signatures and annotations match the role of its declared layer.\n\n## Rubric\nPass: Every declaration in the file belongs to the role and kind of its declared layer, including its parameter, return and field types, its decorators and base classes, and its statements, and agrees with any ADR prose given. Calls into a layer that the layer model lets this layer depend on are part of that role.\nFail: The file carries something that belongs to a different layer kind. In a domain or application file: a request, response, HTTP context, status code or HTTP error, from a web or transport package or from the delivery layer, in any method or function signature (parameter or return) or thrown, even when the parameter is optional or unused. In a domain file also: any framework or ORM type, decorator or base class (dependency injection, routing, persistence mapping), even when the class logic is pure; or direct I/O, that is a database, ORM, query, HTTP or file client that the file itself creates, imports from a package or obtains from a global accessor, or persistence or I/O done through a class of a layer that the layer model does not let this layer depend on. A call to a class or interface of a layer that this layer may depend on is not misplaced I/O, whatever that layer does behind it. In an infrastructure or presentation file: a business rule, that is a domain invariant, calculation or decision that the domain or application layer should own. Constructor parameters of any file are dependency wiring when their types come from the file's own layer or from a layer it may depend on: an injected repository, gateway, client or service there is not by itself misplaced. A type the project declares itself is not a framework type, whatever its name.\nEvidence required: Name the file and cite the signature, decorator, declaration or statement that carries the misplaced responsibility, its package or origin, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\nStyle: layered. Closed layering: layers are listed bottom-up and each layer may depend only on the layer listed directly before it.\n- persistence (kind: infrastructure; may depend on: no other layer): src/persistence/**\n- business (kind: domain; may depend on: persistence): src/business/**\n- presentation (kind: presentation; may depend on: business): src/presentation/**\n\n## Unit\nKind: file\nId: src/business/model/Vehicle.ts\nLayer: business\nUnit files:\n- src/business/model/Vehicle.ts\n\n## Source\n=====SOURCE-BEGIN src/business/model/Vehicle.ts=====\nexport const SERVICE_INTERVAL_KM = 15_000;\n\nexport class Vehicle {\n  plate: string;\n  model: string;\n  odometerKm: number;\n  inService: boolean;\n  lastServiceKm: number;\n\n  constructor(plate: string, model: string, odometerKm: number, inService: boolean, lastServiceKm: number) {\n    this.plate = plate;\n    this.model = model;\n    this.odometerKm = odometerKm;\n    this.inService = inService;\n    this.lastServiceKm = lastServiceKm;\n  }\n\n  serviceDue(): boolean {\n    return this.odometerKm - this.lastServiceKm >= SERVICE_INTERVAL_KM;\n  }\n\n  takeOutOfService(): void {\n    this.inService = false;\n  }\n\n  returnToService(): void {\n    this.inService = true;\n    this.lastServiceKm = this.odometerKm;\n  }\n\n  hasPlate(): boolean {\n    return this.plate !== undefined;\n  }\n}\n\n=====SOURCE-END=====\n\n## Neighbourhood\nsrc/business/model/Vehicle.ts (layer business, kind domain)\n  imports: (none)\n  imported by: src/business/services/MaintenanceService.ts (layer business, kind domain); src/business/services/MileageService.ts (layer business, kind domain)\n\n## Candidate flags\nCandidates proposed by deterministic checks; verify, don't trust. Each line is a tool observation with its location, not a finding.\n(none)\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric. Check each candidate flag against the source: a flag the source does not support must not count against the unit, and a violation the flags miss counts as much as one they name. Judge what each declaration is, not only what it does at run time.\n",
+  "provider": "agy",
+  "recordedAt": "2026-10-16T05:55:53.719Z",
+  "repetition": 0,
+  "requestHash": "948b2f16b8b5b81473e15bbb3f87ade412d48471fbd6ece1ac090c705c38ea84",
+  "resolvedModel": "gemini-4-argon-high",
+  "response": "{\"confidence\":1,\"evidence\":[\"src/business/model/Vehicle.ts declares the domain constant SERVICE_INTERVAL_KM and the pure domain entity class Vehicle with domain properties and behavior methods (serviceDue, takeOutOfService, returnToService, hasPlate), using only primitive types and no framework, ORM, transport, or direct I/O constructs.\"],\"pass\":true,\"reasoning\":\"All declarations in src/business/model/Vehicle.ts belong to the business (domain) layer. The file defines a domain constant (SERVICE_INTERVAL_KM) and a domain entity class (Vehicle) encapsulating vehicle state and domain rules (service interval calculation and service status transitions) with primitive field and signature types and no external dependencies, decorators, or I/O.\",\"violations\":[]}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/business/model/Vehicle.ts",
+  "usage": {
+    "inputTokens": 14197,
+    "outputTokens": 490
+  },
+  "usedOptions": {
+    "model": "gemini-4-argon-high"
+  }
+}
