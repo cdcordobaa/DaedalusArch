@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DaedalusArch: Study 1 results and the v1.3 validity cycle</title>
+  <script type="application/json" id="deck-metadata">
+  {
+    "title": "DaedalusArch: Study 1 (v1.2E) results and the v1.3 validity cycle",
+    "audience": "Thesis director, MSc Universidad Nacional de Colombia",
+    "date": "2026-10-15",
+    "source": "Docs/reports/director-report-2026-10.md (4th revision, branch v1.2e); results/*; Docs/DiagnosticRuns/*; Docs/v1.3/*; PRs #80-#84",
+    "visual_system": "Ink navy + teal accent, amber for caveats; Inter/system sans; 1280x720",
+    "assets": {
+      "escudo-un.png": "Thesis repo, HojaTitulo/EscudoUN.png (Universidad Nacional de Colombia)",
+      "fig1/fig2/fig5 SVG": "Docs/reports/figures, built by make_figures.py from committed CSVs"
+    }
+  }
+  </script>
+  <style>
+    :root {
+      --paper: #fbfcfd;
+      --ink: #0f1d2e;
+      --muted: #5a6778;
+      --line: #dbe1e8;
+      --accent: #0f6e78;
+      --accent-soft: #e2f1f2;
+      --warn: #b7791f;
+      --warn-soft: #fbf1df;
+      --bad: #a23b3b;
+      --bad-soft: #f8e6e6;
+      --good: #2f7a4a;
+      --good-soft: #e3f2e8;
+      --slide-w: 1280px;
+      --slide-h: 720px;
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #e7ebef; color: var(--ink); }
+    .edit-toolbar { position: sticky; top: 0; z-index: 10; padding: 12px 20px; background: rgba(251,252,253,.95); border-bottom: 1px solid var(--line); backdrop-filter: blur(12px); }
+    .edit-toolbar p { margin: 0; color: var(--muted); font-size: 14px; }
+    .deck { display: grid; gap: 32px; justify-items: center; padding: 32px; }
+    .slide { position: relative; width: var(--slide-w); height: var(--slide-h); overflow: hidden; padding: 54px 72px 60px; background: var(--paper); border: 1px solid var(--line); border-radius: 4px; box-shadow: 0 18px 48px rgba(15,29,46,.14); }
+    .slide:focus { outline: 4px solid rgba(15,110,120,.25); outline-offset: 8px; }
+    .logo { position: absolute; top: 30px; right: 40px; height: 46px; opacity: .9; }
+    .slide-header { display: flex; gap: 18px; align-items: baseline; margin-bottom: 18px; color: var(--accent); font-size: 15px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .slide-header .num { color: var(--muted); }
+    .slide h1 { max-width: 1040px; margin: 0 0 24px; font-size: 42px; line-height: 1.08; }
+    .slide h2 { margin: 0 0 10px; font-size: 22px; line-height: 1.15; }
+    .slide p, .slide li { font-size: 19px; line-height: 1.35; }
+    .slide p { margin: 0 0 12px; }
+    .slide ul { margin: 0; padding-left: 24px; }
+    .slide li + li { margin-top: 8px; }
+    .small, .slide .small li, .slide p.small { font-size: 16px; color: var(--muted); }
+    .hero { display: grid; align-content: center; height: 100%; }
+    .hero .kicker { color: var(--accent); font-size: 17px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    .hero h1 { font-size: 64px; max-width: 1000px; margin: 14px 0 22px; }
+    .hero .subtitle { font-size: 25px; color: var(--muted); max-width: 900px; line-height: 1.3; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 20px; }
+    .grid.three { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .grid.four { grid-template-columns: repeat(4, minmax(0,1fr)); }
+    .grid.wide-left { grid-template-columns: 1.25fr 1fr; }
+    .card { padding: 20px 22px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+    .card.hl { background: var(--accent-soft); border-color: #bfdfe2; }
+    .card.warn { background: var(--warn-soft); border-color: #efd7ad; }
+    .card.bad { background: var(--bad-soft); border-color: #ecc5c5; }
+    .card.good { background: var(--good-soft); border-color: #c3e0cc; }
+    .metric { color: var(--accent); font-size: 44px; font-weight: 850; line-height: 1; margin-bottom: 6px; }
+    .metric.warn { color: var(--warn); }
+    .metric.bad { color: var(--bad); }
+    .label { font-size: 15px; color: var(--muted); line-height: 1.3; }
+    .callout { margin-top: 18px; padding: 16px 22px; border-left: 7px solid var(--accent); border-radius: 8px; background: var(--accent-soft); font-size: 20px; line-height: 1.3; font-weight: 700; }
+    .callout.warn { border-color: var(--warn); background: var(--warn-soft); }
+    table { width: 100%; border-collapse: collapse; font-size: 16.5px; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.3; }
+    th { color: var(--muted); font-size: 13.5px; text-transform: uppercase; letter-spacing: .06em; }
+    .tag { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 13px; font-weight: 700; white-space: nowrap; }
+    .tag.reg { background: var(--accent-soft); color: var(--accent); }
+    .tag.post { background: var(--warn-soft); color: var(--warn); }
+    .tag.done { background: var(--good-soft); color: var(--good); }
+    .tag.part { background: var(--warn-soft); color: var(--warn); }
+    .tag.no { background: var(--bad-soft); color: var(--bad); }
+    .flow { display: flex; align-items: stretch; gap: 10px; margin: 6px 0 20px; }
+    .flow .step { flex: 1; padding: 14px 14px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font-size: 16px; line-height: 1.3; }
+    .flow .step b { display: block; font-size: 17.5px; margin-bottom: 4px; color: var(--accent); }
+    .flow .arrow { align-self: center; color: var(--muted); font-size: 26px; font-weight: 700; }
+    figure { margin: 0; }
+    figure img { width: 100%; max-height: 420px; object-fit: contain; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+    figcaption { font-size: 13.5px; color: var(--muted); margin-top: 6px; }
+    .footer-note { position: absolute; left: 72px; right: 72px; bottom: 22px; border-top: 1px solid var(--line); padding-top: 8px; color: var(--muted); font-size: 13px; line-height: 1.3; }
+    @media print {
+      @page { size: 13.333in 7.5in; margin: 0; }
+      body { background: var(--paper); }
+      .edit-toolbar { display: none; }
+      .deck { display: block; padding: 0; }
+      .slide { width: 13.333in; height: 7.5in; margin: 0; border: 0; border-radius: 0; box-shadow: none; break-after: page; page-break-after: always; }
+      .slide:focus { outline: none; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="edit-toolbar" contenteditable="false">
+    <p>Editable deck. Click any slide text to edit. Save: File → Save Page As… → Webpage, Complete. PDF: Print → Save as PDF (landscape, no margins, background graphics on).</p>
+  </aside>
+
+  <main class="deck">
+
+    <!-- 1 -->
+    <section class="slide" contenteditable="true" spellcheck="true" aria-label="Slide 1 Title">
+      <img class="logo" src="assets/escudo-un.png" alt="Universidad Nacional de Colombia">
+      <div class="hero">
+        <p class="kicker">MSc thesis · Universidad Nacional de Colombia · October 2026</p>
+        <h1>Governing AI-agentic development with an architectural firewall</h1>
+        <p class="subtitle">Study 1 (v1.2E) results: what holds, what doesn't, and the v1.3 cycle that makes the tool provably valid before Study 2.</p>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section class="slide" contenteditable="true" spellcheck="true" aria-label="Slide 2 The tool">
+      <img class="logo" src="assets/escudo-un.png" alt="">
+      <div class="slide-header"><span>The tool</span><span class="num">02</span></div>
+      <h1>DaedalusArch turns an architecture spec into checks that run on every change</h1>
+      <div class="flow">
+        <div class="step"><b>1 · Code</b>TypeScript project, written by a person or an AI agent</div>
+        <div class="arrow">→</div>
+        <div class="step"><b>2 · Graph (APG)</b>ts-morph extracts files, classes, imports, injections and calls into Neo4j</div>
+        <div class="arrow">→</div>
+        <div class="step"><b>3 · Spec → rules</b>A YAML architecture spec compiles to 27 Cypher fitness functions</div>
+        <div class="arrow">→</div>
+        <div class="step"><b>4 · Judge</b>An isolated LLM judge scores the semantic dimensions (integrity, intent)</div>
+        <div class="arrow">→</div>
+        <div class="step"><b>5 · Verdict</b>Architectural Health Score over 7 dimensions plus pass / block</div>
+      </div>
+      <div class="grid three">
+        <div class="card"><h2>Symbolic core</h2><p>Deterministic, auditable and fast. The same code always gets the same findings.</p></div>
+        <div class="card"><h2>Neural layer</h2><p>Explains and judges what rules can't express. It's frozen, pinned and recorded.</p></div>
+        <div class="card hl"><h2>Use case</h2><p>A CI gate, or an agent's tool through MCP, that stops architectural erosion as it happens.</p></div>
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section class="slide" contenteditable="true" spellcheck="true" aria-label="Slide 3 Rigour">
+      <img class="logo" src="assets/escudo-un.png" alt="">
+      <div class="slide-header"><span>Method</span><span class="num">03</span></div>
+      <h1>Every result is pre-registered or declared post-hoc, and all of it reproduces</h1>
+      <div class="grid four">
+        <div class="card hl"><div class="metric">v25</div><div class="label">Pre-registration version, with 85 hashed artefacts (plans, rules, rubric, corpus)</div></div>
+        <div class="card"><div class="metric">Gate</div><div class="label"><code>run-experiment</code> refuses any plan whose registered artefacts changed, and CI checks it on every PR</div></div>
+        <div class="card"><div class="metric">ADRs</div><div class="label">Every change made after seeing data is an ADR, reported beside the registered reading, never instead of it</div></div>
+        <div class="card good"><div class="metric">310</div><div class="label">Result tables reproduced byte for byte by an independent audit, with 0 differences</div></div>
+      </div>
+      <div class="callout">How to read the numbers that follow: <span class="tag reg">pre-registered</span> is the primary figure; <span class="tag post">post-hoc</span> is a declared correction, shown next to it.</div>
+    </section>
+
+    <!-- 4 -->
+    <section class="slide" contenteditable="true" spellcheck="true" aria-label="Slide 4 Objectives">
+      <img class="logo" src="assets/escudo-un.png" alt="">
+      <div class="slide-header"><span>Objectives</span><span class="num">04</span></div>
+      <h1>Status of SO1–SO5 on the frozen Study 1 branch</h1>
+      <table>
+        <tr><th style="width:8%">SO</th><th style="width:30%">Promise</th><th style="width:13%">Status</th><th>Evidence in one line</th></tr>
+        <tr><td><b>SO1</b></td><td>Spec language and style libraries</td><td><span class="tag part">Partly</span></td><td>Clean, Layered and NestJS: 27/27 templates each. Hexagonal was missing in Study 1 and is now built in v1.3.</td></tr>
+        <tr><td><b>SO2</b></td><td>Graph extraction, coverage and latency</td><td><span class="tag done">Done</span></td><td>100% of files parse; 5.3 s on the largest base against a 30 s budget; FLOWS_TO limitation declared.</td></tr>
+        <tr><td><b>SO3</b></td><td>Rules plus judge give AHS and verdicts</td><td><span class="tag part">Partly</span></td><td>Judge agrees with a Gemini panel (AC1 0.982) and is model-stable (κ 0.766), but it changes no verdict and its catch rate is unmeasured.</td></tr>
+        <tr><td><b>SO4</b></td><td>P/R/F1 on a seeded golden set (80–120)</td><td><span class="tag part">Shortfall</span></td><td>Recall 0.893 registered, 0.918 corrected. N = 75 against the floor of 80. Real-code precision is uncertain.</td></tr>
+        <tr><td><b>SO5</b></td><td>LLM × spec-quality study (E1)</td><td><span class="tag done">Run</span></td><td>72 cells, 65 judged. Spec level matters, but through project size; full spec beats vague prose.</td></tr>
+      </table>
+    </section>
+
+    <!-- 5 -->
+    <section class="slide" contenteditable="true" spellcheck="true" aria-label="Slide 5 SO2">
+      <img class="logo" src="assets/escudo-un.png" alt="">
+      <div class="slide-header"><span>SO2 · Extraction</span><span class="num">05</span></div>
+      <h1>Extraction is complete and fast enough for CI; data-flow edges are a known gap</h1>
+      <div class="grid three">
+        <div class="card good"><div class="metric">100%</div><div class="label">Parse coverage on every base (4 real core bases, up to 241 files)</div></div>
+        <div class="card hl"><div class="metric">5.3 s</div><div class="label">Full evaluation of ghostfolio (241 files). The slowest cycle query took 1.35 s against a 30 s budget. <span class="tag reg">pre-registered</span></div></div>
+        <div class="card warn"><div class="metric warn">0</div><div class="label">FLOWS_TO (data-flow) edges on real NestJS code, because collaborators arrive by injection. Declared limitation (ADR-023).</div></div>
+      </div>
+      <div class="callout">The ablation shows why the graph matters. With only AST import edges, the dependency-inversion (FF-P02) and use-case-isolation (FF-P04) rules go blind on every real base where they fired.</div>
+    </section>
+
+    <!-- 6 -->
+    <section class="slide" contenteditable="true" spellcheck="true" aria-label="Slide 6 SO4">
+      <img class="logo" src="assets/escudo-un.png" alt="">
+      <div class="slide-header"><span>SO4 · Seeded detection</span><span class="num">06</span></div>
+      <h1>On held-out code it finds the violations it was built to find</h1>
+      <div class="grid wide-left">
+        <figure><img src="assets/fig1-so4-readings.svg" alt="SO4 readings with 95% intervals"><figcaption>Recall, precision and F1 per reading, with cell-bootstrap 95% intervals.</figcaption></figure>
+        <div>
+          <table>
+            <tr><th>Reading</th><th>Recall</th><th>Prec.</th><th>F1</th></tr>
+            <tr><td>Strict, N 75 <span class="tag reg">reg.</span></td><td>0.893</td><td>0.838</td><td>0.865</td></tr>
+            <tr><td>Corrected, N 73 <span class="tag post">post-hoc</span></td><td>0.918</td><td>1.000</td><td>0.957</td></tr>
+            <tr><td>Labelled, N 73 <span class="tag post">post-hoc</span></td><td>0.918</td><td>0.957</td><td>0.937</td></tr>
+          </table>
+          <ul class="small" style="margin-top:14px">
+            <li>All 6 misses are dynamic <code>import()</code>, which is outside extractor coverage. Now fixed in v1.3.</li>
+            <li>N = 75 is below the floor of 80, because 10 seeds failed type-check. This is reported as a deviation.</li>
+            <li>Recall measures <b>construct sensitivity</b>, not detection of naturally occurring violations.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7 -->
+    <section class="slide" contenteditable="true" spellcheck="true" aria-label="Slide 7 Real-code precision">
+      <img class="logo" src="assets/escudo-un.png" alt="">
+      <div class="slide-header"><span>Real-code precision</span><span class="num">07</span></div>
+      <h1>On real projects, precision is low and poorly measured; that is the weak point</h1>
+      <div class="grid three">
+        <div class="card bad"><div class="metric bad">0.33</div><div class="label">Registered baseline precision (instrument v2), Kish-Wilson 95% CI 0.13–0.61 <span class="tag reg">pre-registered</span></div></div>
+        <div class="card warn"><div class="metric warn">0.33–0.79</div><div class="label">The range depends on how the 8 "uncertain" labels are counted, out of 24 items <span class="tag post">post-hoc</span></div></div>
+        <div class="card"><div class="metric">n<sub>eff</sub> 11.5</div><div class="label">Only 24 labelled items: a pilot, not a precision estimate</div></div>
+      </div>
+      <div class="grid" style="margin-top:18px">
+        <div class="card"><h2>Why so noisy</h2><p class="small">Core projects score 0.59 and E7 projects 0.21. The E7 specs were generated <b>mechanically from folder names</b>. False alarms come from metric and convention proxies, type-only imports and layer mapping, not from the structural import rules.</p></div>
+        <div class="card hl"><h2>What it means</h2><p class="small">A finding can be wrong at four points: graph, spec, rule or meaning. Study 1 measured only the end-to-end result. <b>v1.3 measures each point separately</b>, on greenfield code where the spec is known.</p></div>
+      </div>
+    </section>
+
+    <!-- 8 -->
+    <section class="slide" contenteditable="true" spellcheck="true" aria-label="Slide 8 Tool comparison">
+      <img class="logo" src="assets/escudo-un.png" alt="">
+      <div class="slide-header"><span>Comparison</span><span class="num">08</span></div>
+      <h1>It matches a mature import checker on the rules both tools can express</h1>
+      <div class="grid wide-left">
+        <figure><img src="assets/fig2-tool-comparison.svg" alt="DaedalusArch versus dependency-cruiser on the same seeds"><figcaption>Same seeds, comparable rules: DaedalusArch vs dependency-cruiser 18.4.0.</figcaption></figure>
+        <div>
+          <ul>
+            <li><b>Shared rules:</b> they agree, apart from two explained points.</li>
+            <li><b>dependency-cruiser</b> catches the 6 dynamic-import seeds that we missed.</li>
+            <li>Our apparent edge on domain purity came from a translation defect that favoured us. It was declared post-hoc.</li>
+            <li><b>Real fix commits:</b> both tools flag the same 2 of 5.</li>
+            <li><b>Our advantage is breadth:</b> pattern, SOLID-proxy, metric and judge dimensions that have no external comparator yet.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9 -->
+    <section class="slide" contenteditable="true" spellcheck="true" aria-label="Slide 9 Judge">
+      <img class="logo" src="assets/escudo-un.png" alt="">
+      <div class="slide-header"><span>SO3 · The LLM judge</span><span class="num">09</span></div>
+      <h1>The judge is consistent and stable, but its effect and its catch rate are unproven</h1>
+      <div class="grid four">
+        <div class="card"><div class="metric">73/331</div><div class="label">Judge units failed across the 9 real E7 projects</div></div>
+        <div class="card warn"><div class="metric warn">0</div><div class="label">Verdicts changed at the registered 8% weight (an algebraic bound). Variants move 0 to 8 of 9.</div></div>
+        <div class="card hl"><div class="metric">0.982</div><div class="label">Agreement and AC1 with a Gemini panel on E1 (n 36). κ is 0 only because almost every item is "pass".</div></div>
+        <div class="card hl"><div class="metric">κ 0.766</div><div class="label">Sonnet vs Opus as the judge: 94% agreement, 0 verdict changes</div></div>
+      </div>
+      <div class="callout warn">Open gap: the judge passed 36 of 36 E1 items, and the planned catch test (B) placed 0 seeds. So we know it doesn't wrongly fail good code, but not whether it catches bad code. v1.3 adds realistic anti-pattern seeds.</div>
+    </section>
+
+    <!-- 10 -->
+    <section class="slide" contenteditable="true" spellcheck="true" aria-label="Slide 10 E1">
+      <img class="logo" src="assets/escudo-un.png" alt="">
+      <div class="slide-header"><span>SO5 · E1 grid</span><span class="num">10</span></div>
+      <h1>Specs change what agents build; a precise spec beats vague prose</h1>
+      <div class="grid wide-left">
+        <figure><img src="assets/fig5-e1-ahs-model-spec.svg" alt="E1 AHS by model and spec level"><figcaption>AHS by generator and spec level. 72 cells (3 Claude models + Codex), 65 judged.</figcaption></figure>
+        <div>
+          <ul>
+            <li>Spec level has an effect (Holm p 0.0003), but the direction is <b>reversed</b>: no spec scores highest. <span class="tag reg">reg.</span></li>
+            <li><b>Why:</b> without a spec, models build small flat projects (about 9 files) where few rules can fire. Findings per file are equal across levels.</li>
+            <li><b>At equal size</b>, a full AaC spec beats minimal prose: Cliff's δ 0.52 (0.47 after LOC adjustment). <span class="tag post">post-hoc</span></li>
+            <li>No model effect. One rule (test-file pairing) produced 83% of findings.</li>
+            <li>Self-preference p 0.014, driven by the Haiku cells.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11 -->
+    <section class="slide" contenteditable="true" spellcheck="true" aria-label="Slide 11 LLM review">
+      <img class="logo" src="assets/escudo-un.png" alt="">
+      <div class="slide-header"><span>Baseline · Plain LLM review</span><span class="num">11</span></div>
+      <h1>A plain LLM reviewer finds planted bugs, but is not repeatable or exhaustive</h1>
+      <div class="grid four">
+        <div class="card"><div class="metric">9/10</div><div class="label">Planted seeds found by Codex GPT-5.6 given the same spec as prose (the firewall found 5/5)</div></div>
+        <div class="card warn"><div class="metric warn">0.727</div><div class="label">Run-to-run overlap (Jaccard): the same tree reviewed twice gives different findings</div></div>
+        <div class="card warn"><div class="metric warn">26.5%</div><div class="label">Share of the firewall's findings that the reviewer listed</div></div>
+        <div class="card"><div class="metric">~3 min</div><div class="label">and about 6 credits per review, against seconds for the firewall</div></div>
+      </div>
+      <div class="callout">The firewall's case is determinism, exhaustiveness, speed and auditability, not better seed detection. (Exploratory pilot: it stopped at its registered budget after 25 of 42 reviews.)</div>
+    </section>
+
+    <!-- 12 -->
+    <section class="slide" contenteditable="true" spellcheck="true" aria-label="Slide 12 Supports">
+      <img class="logo" src="assets/escudo-un.png" alt="">
+      <div class="slide-header"><span>Verdict on Study 1</span><span class="num">12</span></div>
+      <h1>What Study 1 supports, and what it does not yet</h1>
+      <div class="grid">
+        <div class="card good"><h2>Supports</h2>
+          <ul class="small">
+            <li>It finds the canonical violation constructs reproducibly, on held-out code, at CI speed.</li>
+            <li>It matches dependency-cruiser on the rules both can express.</li>
+            <li>Specs change the structure agents build, the AHS registers it, and vague prose is worst.</li>
+            <li>The judge isn't failing sound code, and it's stable across judge models.</li>
+            <li>The method holds: pre-registration, declared post-hoc changes, and byte-identical reproduction.</li>
+          </ul>
+        </div>
+        <div class="card bad"><h2>Does not support yet</h2>
+          <ul class="small">
+            <li>That findings on real code are mostly correct (0.33 registered, wide CI).</li>
+            <li>That the judge improves verdicts or catches unsound code.</li>
+            <li>That the firewall beats a plain LLM review at seed detection.</li>
+            <li>That specs make architecture worse (the reversal runs through size).</li>
+            <li>Any SO5 claim beyond one vendor, two tasks and single-shot generation.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13 -->
+    <section class="slide" contenteditable="true" spellcheck="true" aria-label="Slide 13 v1.3">
+      <img class="logo" src="assets/escudo-un.png" alt="">
+      <div class="slide-header"><span>Next · v1.3 validity cycle</span><span class="num">13</span></div>
+      <h1>Before Study 2: prove each link of the measurement chain on greenfield code</h1>
+      <div class="flow">
+        <div class="step"><b>Link 1 · Code → graph</b>Is the graph faithful? Checked against dependency-cruiser, the TypeScript compiler and hand-written graphs.</div>
+        <div class="arrow">→</div>
+        <div class="step"><b>Link 2 · Spec</b>In greenfield the spec is the intent by construction. Brownfield inference (ISE) comes later.</div>
+        <div class="arrow">→</div>
+        <div class="step"><b>Link 3 · Rules</b>Recall and precision per style and per rule on reference projects with known truth.</div>
+        <div class="arrow">→</div>
+        <div class="step"><b>Link 4 · Meaning</b>Is each finding <i>correct</i> (mechanical) and <i>meaningful</i> (labelled, author-audited)?</div>
+      </div>
+      <table>
+        <tr><th>Study 1 (v1.2E)</th><th>v1.3 (development)</th><th>Study 2</th></tr>
+        <tr><td>Frozen, reported exactly as run</td><td>May learn from all Study 1 data; every change is an ADR</td><td>Pre-registered before it runs, on fresh sealed tasks: firewall-in-the-loop vs no firewall, over multi-step feature builds</td></tr>
+      </table>
+      <p class="small" style="margin-top:12px">Targets (provisional): graph ≥ 0.95, recall ≥ 0.90 per style, blocking-rule precision ≥ 0.90, judge catch rate ≥ 0.80. A missed target is either fixed or waived in writing.</p>
+    </section>
+
+    <!-- 14 -->
+    <section class="slide" contenteditable="true" spellcheck="true" aria-label="Slide 14 v1.3 progress">
+      <img class="logo" src="assets/escudo-un.png" alt="">
+      <div class="slide-header"><span>v1.3 · Progress so far</span><span class="num">14</span></div>
+      <h1>First evidence: the graph is faithful, and one real defect was found and fixed</h1>
+      <div class="grid three">
+        <div class="card good"><div class="metric">99.2–99.7%</div><div class="label">Edge agreement with the TypeScript compiler and dependency-cruiser on the 72 E1 projects, with 0 unexplained extractor bugs</div></div>
+        <div class="card warn"><div class="metric warn">Barrels</div><div class="label">Imports through re-export files were routed past the barrel. Fix (ADR-V13-01): record both the literal and the resolved edge.</div></div>
+        <div class="card hl"><div class="metric">71 cases</div><div class="label">Reference projects for Clean, Layered, NestJS, Hexagonal and DDD, each with known truth and near-miss controls</div></div>
+      </div>
+      <ul class="small" style="margin-top:16px">
+        <li><b>New styles:</b> Hexagonal (Cockburn) and DDD, tactical and strategic (Evans, Vernon). Every rule is traced to its source.</li>
+        <li><b>Anti-circularity:</b> a separate model re-derives the expected findings blind, and the author adjudicates disagreements.</li>
+        <li><b>Rule tiers sealed in advance:</b> only structural style constraints can block, and proxies and conventions only warn. The Study 2 tasks are sealed by hash.</li>
+        <li>An adversarial review (2 blocking, 5 major findings) shaped the protocol before any measurement.</li>
+      </ul>
+    </section>
+
+    <!-- 15 -->
+    <section class="slide" contenteditable="true" spellcheck="true" aria-label="Slide 15 Decisions">
+      <img class="logo" src="assets/escudo-un.png" alt="">
+      <div class="slide-header"><span>Decisions</span><span class="num">15</span></div>
+      <h1>What I need from you</h1>
+      <div class="grid">
+        <div class="card hl"><h2>Direction</h2>
+          <ul class="small">
+            <li>Approve the frame: Study 1 as the pilot, v1.3 as validation, Study 2 as the main result.</li>
+            <li>Confirm the greenfield focus, with brownfield spec inference as a later chapter.</li>
+            <li>Confirm the v1.3 exit targets, or adjust them.</li>
+          </ul>
+        </div>
+        <div class="card"><h2>Reporting and scope</h2>
+          <ul class="small">
+            <li>How to frame the reversed E1 spec effect and the Codex arm.</li>
+            <li>Would you rate 30 items as an independent second human rater?</li>
+            <li>Paper split (E1 study, tool, judge) and which comes first.</li>
+            <li>Extensions: Grok arm, MCP firewall-in-the-loop as the Study 2 treatment.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout">Full evidence, with a source path for every number: <code>Docs/reports/director-report-2026-10.md</code>, and the v1.3 brief in Notion.</div>
+    </section>
+
+  </main>
+</body>
+</html>

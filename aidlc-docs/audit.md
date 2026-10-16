@@ -2061,5 +2061,242 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **User Input**: "(scheduled task) Fix the CHECK-2 data defect found in PR #191 (every layered clean base carries a PrismaService bypass service, so clean FF-N01 units fail by construction): make the layered clean bases truly clean with the bypass only in the seeded variant, keep every other base unchanged, regenerate the items with the existing generator and record hashes, pre-register a CHECK-3 plan (D0–D6 reused, a testable D1 bound, call budget, v1 frozen) before any run, add and run a static self-check, write a short report. No LLM call. Branch v1.3-check3-bases from v1.3-judge-v22-run; PR into it, not merged."
 **AI Response**: "Six layered bases rebuilt in tests/fixtures/v1.3-check3 (the PrismaService service injects a new persistence class; the CHECK-2 version kept in seed-overlay/ and used only for the AP-REPO-BYPASS seed; the twin applied to the clean base). Non-layered bases read unchanged from v1.3-check2. Harness --set check3 (CHECK-2 still reproduces byte for byte). Manifest ec56b097…, split 75d6b242…, prompts v1 e1d9a02f… / v2.2 419eecb4… (mock provider, local Neo4j); 138 items, 117 prompts identical to CHECK-2. Static self-check scripts/v1.3/judge-check3-selfcheck.ts: CHECK-3 PASS, CHECK-2 FAIL on exactly the six services and twins. Plan Docs/v1.3/judge-check3-plan.md (budget 830, cap 1000). Report Docs/DiagnosticRuns/v1.3-judge-check3-bases-2026-10-16.md. The AI-DLC approval gates were not run interactively: scheduled task with no one present; running the judge is left to the author."
 **Context**: v1.3 development (judge CHECK-3). No judge or LLM call; no registered artefact touched; main and v1.2e untouched.
+## v1.3 CONSTRUCTION — U-A integration done; U-D started
+**Timestamp**: 2026-10-14T20:40:00Z
+**User Input**: (none; under delegation)
+**AI Response**: "U-A: branch v1.3 at f0f1137 (verified on origin), draft PR #80. Merged #74(+#55), #69, #76, #79 with --no-ff, no textual conflicts; 3 hexagonal-affected tests fixed without deleting assertions; extractor DEFAULT_OPTIONS → V13 (dynamicImports and moduleWiring on), V12E_DEFAULT_OPTIONS kept for reproduction. jest 3655/3656 (the 1 failure is env-sensitive, also on v1.2e); golden 80/80; --check-prereg v25 ok on 12 plans. Open: presets/hexagonal.yaml must be hashed by any future registration; spec-validator accepts frozen templates only (assigned to U-D). U-D launched on branch v1.3-tiers (tiers per Docs/v1.3/rule-tiers.md, v1.3 scoring mode, spec-validator for extension templates)."
+**Context**: v1.3 CONSTRUCTION — lane 1 now U-D; lane 2 U-B still running.
+
+---
+
+## v1.3 CONSTRUCTION — U-B first fidelity result (Gate 2, human gate)
+**Timestamp**: 2026-10-14T21:15:00Z
+**User Input**: (none; result under delegation; Gate 2 needs the author)
+**AI Response**: "U-B: branch v1.3-fidelity at 5b5be04 (verified), draft PR #81. Agreement on E1 (72 cells): covered 0.9967, confirmed 0.9916, Jaccard 0.9883, identical against dependency-cruiser and tsc; 70/72 cells agree fully. SO4 scoped vs tsc: 0.9663 / 0.9433 / 0.9132. 0 unexplained extractor bugs; every disagreement falls in a deliberate-behaviour class (re-export/barrel, excluded file, out-of-root, .d.ts); excluding those, scoped agreement with tsc is 1.0. Defect confirmed by the coordinator on source: barrel routing sends a named import through a re-export file to the declaring file and drops the edge to the re-export file itself (opus order-fulfilment/full-aac/run-1: infrastructure → application/ports/persistence.ts recorded only as infrastructure → domain). Also: monorepo libs outside the root become Package nodes (ghostfolio libs/common, 329 edges); dynamicImports untested (no literal dynamic import in either corpus). File-to-layer coverage E1 0.990 (13 unassigned index/server files), SO4 0.723 (spec coverage). Adjudication sheets prefilled 'suggested'; human verdicts pending, so no precision is claimed."
+**Context**: v1.3 Gate 2 presented to the author. Proposed fix: ADR-V13-01, emit both edges (literal edge to the re-export file and resolved edge with viaReExport), rule by rule choice of edge view.
+
+---
+
+## v1.3 CONSTRUCTION — cloud units done; blind re-derivation started; U-D resumed
+**Timestamp**: 2026-10-15T00:40:00Z
+**User Input**: "how are we progressing here"
+**AI Response**: "Cloud U-C2 → PR #82 (4 reference projects, clean/layered/NestJS/hexagonal, 27–30 files each, 56 variants of which 40 are violations and 12 near-misses, hand-written expected graphs, validation runner with --check/--materialise/live/--from-raw; no Neo4j run). Cloud U-C1 → PR #83 (DDD style: 7 templates, declarations-based, 31-file two-context reference project with 10 violations, 3 probes and 1 negative control, manifests committed before the templates; it independently found the same barrel-routing defect; three tier disagreements are proposed as ADRs). U-D had stalled waiting for a memory signal that never came; resumed. Blind re-derivation (protocol §1) started: 71 cases shuffled and renamed, 68 revealing comments removed, the variant key kept by the coordinator only; annotator = Fable model, sees only code, declarations, style-rule-sources.md and rule-tiers.md."
+**Context**: v1.3 CONSTRUCTION — waiting on U-D, the blind annotation, and the author's Gate 2 answer (barrel fix, ADR-V13-01).
+
+---
+
+## v1.3 CONSTRUCTION — Gate 2 decided by the author: barrel fix option A (ADR-V13-01)
+**Timestamp**: 2026-10-15T01:30:00Z
+**User Input**: "yes A" (Intent: approve Gate 2 and choose to record both the literal edge to the re-export file and the resolved edge to the declaring file.)
+**AI Response**: "Recorded ADR-V13-01 (Docs/v1.3/adr-v13.md). U-D done (96120b3, PR #84: verdict FAIL iff a blocking rule has a counted violation; v1.2E scoring byte-identical by default in the library, v1.3 default in evaluate/MCP; 41+17+5 new tests, 837 unit, 81 golden). Integration agent merging #84, #82, #83 and the fidelity branch into v1.3 and wiring DDD tiers. Barrel-fix unit launched on branch v1.3-barrels from v1.3. U-E (live reference validation) runs after both land."
+**Context**: v1.3 Gate 2 passed.
+
+---
+
+## v1.3 CONSTRUCTION — units merged into v1.3; blind annotation done
+**Timestamp**: 2026-10-15T03:30:00Z
+**User Input**: (none; under delegation)
+**AI Response**: "v1.3 at 5d50dfa: #84 tiers (513e558), #82 reference (293f486), #83 DDD (48d1908) and the v1.3-fidelity branch (4fb5b45) merged; #81 left open with a pointer. DDD wired into tiers, extension registry and validate-reference (blocking sets now from the sealed v1.3 tiers). Defect found by the blind annotator: .gitignore 'out/' had dropped hexagonal src/application/ports/out (5 files) from PR #82; negation added; the files were RECONSTRUCTED from usages and expected-graph.json, not recovered, so they enter the author audit. --check 71/71 cases compile; 97 suites 1502 tests pass plus 25 suites 396 (no Neo4j); golden 81 + 7; DDD Cypher ran on Neo4j for the first time; prereg v25 ok. Blind re-derivation (Fable model, 71 cases): verdict agreement with the author-manifests 63/71 (hexagonal 15/15, clean 13/14, layered 12/13, NestJS 12/14, DDD 11/15); most disagreements are rules that are advisory under the sealed tiers (the author-manifests used severity); 13 rule-definition ambiguities recorded; artefacts in ../daedalus-sealed/v1.3-blind. Tier decision: FF-DS01 bounded-context-modules stays blocking, because rule-tiers.md delegates new-rule tiers to the library notes written before validation, and the DDD notes assigned blocking before any template existed; flagged for the author."
+**Context**: v1.3 — next U-E (live reference validation) after the barrel fix (ADR-V13-01) merges.
+
+---
+
+## v1.3 CONSTRUCTION — barrel fix merged (ADR-V13-01); academic deck
+**Timestamp**: 2026-10-15T05:00:00Z
+**User Input**: "can i really have an academic presentation please send a sub agent, creat ea nice style" (earlier); none since for the barrel fix (approved as 'yes A').
+**AI Response**: "PR #85 (04c6158) merged into v1.3 as 79c692f. Extractor option reExportEdges ('resolved-only' in V12E, 'both' in v1.3); Docs/v1.3/edge-views.md committed before validation (13 literal, 4 resolved, 21 none, out of 38 templates), applied by a compile-time rewrite with the frozen template text unchanged; v1.2E extraction byte-identical on 15 fixtures. Fidelity on the two disagreeing E1 cells: task-management/none/run-1 Jaccard 0.3962 → 1.0, order-fulfilment/full-aac/run-1 0.9435 → 1.0 (literal view vs dependency-cruiser/tsc). 968 tests + 81 golden pass; prereg v25 ok. Follow-ups: the scoring engine's universal metrics, the drift detector, the judge source context and the report graph still read both views and need a view decision; the other 70 E1 cells and SO4 have not been rerun. Academic deck: 31 slides, HTML + PDF, committed 3325fa5 on v1.2e (Docs/reports/director-deck-v12e-2026-10/)."
+**Context**: v1.3 — U-E baseline (pre-barrel, v1.3@5d50dfa) running; a post-barrel re-run follows on 79c692f.
+
+---
+
+## v1.3 CONSTRUCTION — U-E baseline result; fix round and sealed hold-out set started
+**Timestamp**: 2026-10-15T06:30:00Z
+**User Input**: (none; under delegation)
+**AI Response**: "U-E baseline (pre-barrel, v1.3@5d50dfa) merged as PR #86 (9542356). Blocking recall against the author-manifests: clean 0.92, layered 0.82, NestJS 0.91, hexagonal 0.92, DDD 0.78, pooled 0.88 (0.96 once cycles are matched on file set). Against the blind manifests: pooled 0.76. Blocking precision pooled 0.45 (layered 0.14), 53 of 60 blocking FPs from FF-P06 on layered business→gateway. Negative control: 1 of 5 clean variants fails (layered). Near-misses: 6/14 have FPs. Graph: author graphs exact on the 4 non-DDD styles; blind literal edges 4738/4756; barrel literal edges 0/18 (pre-fix). A validity incident: the first live run was silently corrupted by a concurrent jest run wiping the shared Neo4j, so it was discarded; two later runs are byte-identical. Neo4j isolation is now a required fix. Started: U-E2 fix round (v1.3-fixes: Neo4j lock, cycle matching on file set, FF-P06 inapplicable to layered (ADR-V13-02 draft), token-based role detection, edge views for metrics/drift/judge/report, DDD FF-DS02 literal edge), with a re-measure labelled DEVELOPMENT-SET. Because tuning now uses the 71 cases, final validity numbers must come from a fresh set: a sealed hold-out reference set (5 new apps in new domains, blind-authored by a Fable model from the rule sources and layer declarations only) is being written to ../daedalus-sealed/v1.3-holdout; the fix-round agent is forbidden to read it."
+**Context**: v1.3 — validation-protocol amendment: development set = 71 reference cases; hold-out set = sealed, run once after tuning freezes.
+
+---
+
+## v1.3 — author decision: no pre-registration until the tool is fit
+**Timestamp**: 2026-10-15T07:00:00Z
+**User Input**: "i dont want p[reregistrations  until we make sure the tool is good enough to actually detect what we are trying to find out" (Intent: defer every pre-registration until the tool is demonstrated to detect what the study needs.)
+**AI Response**: "Requirements revision 2: FR-V12 is now an informal outline only; no prereg work in v1.3; pre-registration is gated on the hold-out validation meeting the targets (or written waivers) plus the author's explicit go. The non-prereg safeguards (sealed hold-out, blind manifests, a priori tiers, sealed task hash) stay."
+**Context**: v1.3 scope change by the author.
+
+---
+
+## v1.3 — clarification: pre-registration deferred, not dropped
+**Timestamp**: 2026-10-15T07:10:00Z
+**User Input**: "I do want to do the registration at some point, not discard it at all. I really want to do the proper process but before actually going into and running the whole study, I want to be sure the tool exists before presenting the study."
+**AI Response**: "Confirmed: the order is tool validated (hold-out) → author go → full Study 2 pre-registration → Study 2 run. Clarification added to requirements rev 2."
+**Context**: v1.3 scope clarification.
+
+---
+
+## v1.3 — sealed hold-out set written
+**Timestamp**: 2026-10-15T08:00:00Z
+**User Input**: (none)
+**AI Response**: "Hold-out set authored blind (Fable model; inputs: rule sources, tiers, layer declarations, schemas): 5 apps in new domains, 62 cases (42 violations, 15 near-misses, 5 clean), 6 cycles, 2 dynamic import(), 1 barrel-mediated violation, 2 type-only, 3 misleading-name near-misses; 62/62 compile. Content hash (sha256 of the sorted file hashes) recorded at ../daedalus-sealed/v1.3-holdout/out.sha256: a94360e1278208fd8391056873e0fa01c71fd14aad8da68dfcf74b669cb41feb. Known format gaps for the scorer: 'ddd' is not in the style enum; provisional DDD ids FF-D01..D04 and FF-M01 need a mapping. Open author question: enlarge to ~30–40 violations per style (option A) so that intervals can clear 0.80."
+**Context**: v1.3 — hold-out sealed; not read by any tuning agent.
+
+---
+
+## v1.3 CONSTRUCTION — fix round merged (dev set)
+**Timestamp**: 2026-10-15T09:30:00Z
+**User Input**: "Do you think we overpromised?" (answered: SO3 'neuro' and the 'governing' claim are the unsupported parts; the symbolic core is not overpromised)
+**AI Response**: "PR #87 (b35bf17) merged into v1.3. Construct reasons committed before measuring (3e8d4b4). Dev-set after fixes (blocking; author cycle-normalised / blind expanded): pooled recall 56/57 / 52/67, pooled precision 56/56 / 52/56; clean variants 5/5 pass; near-misses with a blocking FP 0/14; barrel edges 18/18; DDD key edges 16/16; blind literal edge recall 1.000 in every style. Two live runs byte-identical under the new Neo4j lock (~/.daedalus/locks). Fixes: lock; cycle matching on file set; FF-P06 not applicable to layered (ADR-V13-02 draft); camel-case-token role matching (FF-P03/P04/P05); literal view for metrics/drift/judge context/report; DDD context isolation on the literal barrel edge. Remaining: FF-DT03 setter accessor (needs extractor member facts); advisory misses and FPs; the gap against the blind manifests is construct-reading disagreement that awaits author adjudication (RDQ-3 FF-P02 sibling injection open)."
+**Context**: v1.3 — tool frozen for hold-out pending the adjudication outcome and the author's answer on enlarging the hold-out set.
+
+---
+
+## v1.3 — overnight push started (author: maximise progress until 7am)
+**Timestamp**: 2026-10-15T16:50:00Z
+**User Input**: "i just updgraded my subscription, lets put fire to we most we can here ... until tomorrow 7am where week reestarts"; "what are we going to do"
+**AI Response**: "caffeinate until 07:30 local. Wave 1. Local: judge catch test (FR-V9; AP operators frozen first; ≤400 judge calls; clean variants as negative control); construct-decision document for the author (Docs/v1.3/construct-decisions.md); hold-out enlargement to ≥32 violations per style (sealed, Fable model; the author's open question on option A taken as yes under 'max progress'). Cloud: member facts + FF-DT03 value-object immutability (trig_01VCHsLrUyNLhFesQD8ZczZC); labelling harness, correctness checker + meaningful labeller, no live calls (trig_016GhDoS9pYs8fDafta1Dton); firewall-in-the-loop multi-step harness + informal Study 2 outline, not a pre-registration (trig_01EsbzfWhTfZj2j6UrUgTZDt). Neo4j work is serialised by the new lock."
+**Context**: v1.3 overnight; wave 2 (merges, the dev-set re-run with member facts, E1/SO4 re-run, U-F labelling, then the hold-out freeze decision) follows as wave 1 lands.
+
+---
+
+## ISE — author starts exploratory testing now (scope change: pulled forward from a later cycle)
+**Timestamp**: 2026-10-15T17:12:00Z
+**User Input**: "Now that we have the capacity, can we start some testing on the ESA? ... the capability of building the rules based on the graph itself" (Intent: begin ISE, inferring the spec from the APG, now, using spare capacity.)
+**AI Response**: "Cloud routine trig_017XkPGDWCqp4brThyUVyEfo, branch v1.3-ise: a style classifier, a layer-mapping inferrer and a spec emitter (thesis §16 Option 2), with Option 1 (majority vote) and Option 3 (deviation clustering) as comparators. Anti-leakage: the inferrer sees only src/ and the in-memory APG, enforced by a test. Ground truth = the 71-case dev reference set (true specs and expected graphs); the sealed hold-out is NOT used. Metrics: style accuracy, per-file layer accuracy, glob equivalence, downstream finding agreement and planted-violation recall under the inferred spec (needs Neo4j; local run later), plus a renamed-directory robustness probe. Exploratory, not pre-registered."
+**Context**: ISE exploratory track inside the v1.3 overnight push.
+
+---
+
+## v1.3 — APG v2 generic enrichments (author choice)
+**Timestamp**: 2026-10-15T17:20:00Z
+**User Input**: "In the graph construction what is something that we can generate ... that others, like Dependency Cruiser ... definitely can't?"; then "1, 2, 4 but ... those ones are very focused on DDD. What would be some features ... more generic and applied to most projects?" (Intent: strengthen the APG's distinctive value with style-agnostic enrichments.)
+**AI Response**: "Generic set proposed: type flow across boundaries (SIGNATURE_USES), component nodes + Martin metrics, public API surface / deep imports, async coupling (EventEmitter, pub/sub, queues), I/O and side-effect boundary, SDK spread, entry-point reachability, error flow, test topology. Built now (cloud trig_01X4cxm8Y5WHCvMw6vACxKVD, branch v1.3-apg2): 1, 2 + 2b, 4 (as generic async coupling) + 5 (I/O, recommended), each with one extension template, a design note with literature, and an ablation fixture suite showing per case: APG v2 detects / v1.3 APG does not / dependency-cruiser does not. v1.2E extraction stays byte-identical."
+**Context**: v1.3 — SO2 strengthening (what the APG can express that import graphs cannot).
+
+---
+
+## v1.3 — judge catch round 1 merged; round 2 started
+**Timestamp**: 2026-10-15T18:10:00Z
+**User Input**: (none; overnight push)
+**AI Response**: "PR #92 (7811797) merged into v1.3 (a06532d). Operators frozen first (0771ecb). The judge caught 9/11 seeds = 0.82 (Wilson 0.52–0.95): REPO-BYPASS 4/4, DUP-RULE 1/1, FAT-CONTROLLER 1/1, PERSIST-IN-DOMAIN 1/1, FRAMEWORK-LEAK 2/4 (both misses: an express Request parameter not mentioned). Twin false-fail 3/33 (1/33 excluding units already failing on the clean base); clean-control false-fail 2/24 units, both the fixture's own TypeORM entities; 0/22 reference units. The symbolic rules caught no seed: FF-P01 did not fire on PERSIST-IN-DOMAIN, suspected path-aliased package (to verify). 261 of 400 calls; cassette replay identical. Limitation: 10 of 11 seeds on one fixture. Round 2 launched: hand-planted semantic variants from the dev reference set (a separate stratum), operator seeds on E1 cells (≤8 per operator), twins and controls, the FF-P01 investigation; ≤500 calls."
+**Context**: v1.3 FR-V9 — first evidence that the judge detects semantic anti-patterns; precision of the estimate pending round 2.
+
+---
+
+## v1.3 — hold-out set enlarged and re-sealed
+**Timestamp**: 2026-10-15T19:00:00Z
+**User Input**: (none; option A taken under 'max progress')
+**AI Response**: "Hold-out enlarged by the same blind author: 62 → 207 cases (167 violations: clean 33, layered 32, NestJS 34, hexagonal 32, DDD 36; 35 near-misses, 7 per style; 5 clean). Every blocking construct has ≥ 4 variants; many import and injection forms; 207/207 compile; the original 62 cases are unchanged. New content hash: cddec14a2863168af95c6254e93b1235e3a2ba631fe937599479688d3bb1fcc4. Not read by any tuning agent."
+**Context**: v1.3 — hold-out ready; it runs once after the construct decisions and the tool freeze.
+
+---
+
+## v1.3 — semantic layer direction; cheap proxies first
+**Timestamp**: 2026-10-15T17:32:00Z
+**User Input**: "we really do need some step where a model or a harness could observe, identify the graph ... drive some connections between the nodes ... a second pass or a second layer"; then "Those ideas, but also ... let's win the ones that are cheap, quick, and easy ... programmatic tricks ... before getting deep into the semantics." (Intent: a neuro-symbolic semantic layer over the APG, preceded by deterministic semantic proxies.)
+**AI Response**: "Design recorded in the conversation: Pass 0 symbolic APG → Pass 0.5 cheap deterministic proxies → Pass 1 grounded LLM semantic layer (separate namespace, provenance, mandatory evidence, symbolic proposes / neural interprets / symbolic verifies) → rules over both layers. Pass 0.5 launched (cloud trig_016GQwzSLmKe8mWe68ZirWQR, branch v1.3-cheap-semantics, new module src/apg-enrich/cheap/): clones, shared literals, name-vs-behaviour, LCOM4, logic density by role, repository bypass, framework types in the core, vocabulary TF-IDF, Louvain communities vs declared structure, doc text. Evaluated on the frozen AP operators against the LLM judge and the symbolic rules (three-way table)."
+**Context**: v1.3 exploratory; the semantic layer (Pass 1) design is pending the author's answers (fixed prompts vs agent; thesis vs next step; first semantic question).
+
+---
+
+## v1.3 — integration check + dev-set re-run with member facts merged
+**Timestamp**: 2026-10-15T18:40:00Z
+**User Input**: (none)
+**AI Response**: "PR #94 (0440d49) merged. Integration of #89/#90: tsc clean; 1597 tests pass (104 suites) + 81 golden; prereg v25 ok; v1.2E extraction byte-identical on 21 fixtures; the DDD member-fact Cypher ran on Neo4j for the first time and passed. Dev set (development numbers, nothing tuned): only DDD g01 (now a TP via the setter accessor) and v03 (evidence text) changed; DDD recall 9/9; pooled blocking recall/precision against the author-manifests 57/57 and 57/57; against the blind manifests 53/67 and 53/57 (the gap is construct reading, which awaits the author's decisions). Two live runs byte-identical."
+**Context**: v1.3 — the tool is complete on the development set against the author-manifests; the remaining gap is definitional.
+
+---
+
+## v1.3 — labelling harness merged; live labelling started
+**Timestamp**: 2026-10-15T18:50:00Z
+**User Input**: (none)
+**AI Response**: "PR #93 merged (8114324): deterministic correctness checker (TS compiler API + spec globs, never the graph), a meaningful labeller (Codex or Gemini providers, two permuted runs, cassettes), a per-rule sampler, and the author-audit sheet + agreement calculator. Dry run: all 53 checkable blocking dev-set findings re-verify as correct; Study 1 E1 has 0 blocking-tier findings under v1.3 (all advisory). That is a design input for Study 2: single-shot generation is structurally clean, so look for erosion across steps. Live labelling launched with the Codex provider only (the Gemini key is exposed, so not used), cap 400 calls, plus a blind author-audit sheet (≥40 items) at audit/view/v1.3-labels-audit.md."
+**Context**: v1.3 U-F.
+
+---
+
+## v1.3 — live labelling: correctness done; meaningful blocked by a Codex limit
+**Timestamp**: 2026-10-15T19:20:00Z
+**User Input**: (none)
+**AI Response**: "PR #95 (2c1098c) merged. Correctness (deterministic, from code + spec, never the graph): reference dev set 1,663 findings, 1,484 correct, 0 incorrect, 179 not checkable; E1 under v1.3 1,428 findings, 1,184 correct, 0 incorrect, 244 not checkable (threshold metrics). All 54 checkable blocking findings are correct. One checker bug (the FF-DT03 member-fact discriminator) was fixed; it was not a tool defect. E1 still has 0 blocking-tier findings under v1.3. Meaningful labelling: the protocol sample is 348 items (696 calls); Codex hit the account usage limit on call 2 (resets Nov 9), so no meaningful labels yet. Audit sheet generated (40 items), BUT the reference fixtures contain comments such as '// VIOLATION (...)' that reveal the answer in the excerpts, so the sheet must be regenerated with comments stripped before the author uses it."
+**Context**: v1.3 U-F — meaningful labels need a provider: the Gemini API with a NEW key (the old one is exposed), or a Claude labeller declared as same-vendor as the judge.
+
+---
+
+## ISE — prototype merged; E1 consistency run and robustness round started
+**Timestamp**: 2026-10-15T19:45:00Z
+**User Input**: (none)
+**AI Response**: "PR #96 merged (e8a966d). The ISE prototype on the 71 dev reference cases: style 71/71, per-file layers 100%, inferred DDD block equal to the hand-written one, blocking findings under the inferred spec identical to the true spec on all 71 (planted recall 49/52, the same as the true spec). Option 2 49/52 vs Option 1 39/52 (5 near-miss false alarms) vs Option 3 21/52. Rename probe: clean/layered/NestJS robust, hexagonal and DDD misread as clean (recall 5/11 and 0/12). Side defect: the true NestJS spec and presets/ddd.yaml fail `firewall validate` (LAYER_DIR_NOT_FOUND). Launched: a local ISE-on-E1 run (ICS defined before results, the §16.8 2×2 grid, the no-spec cells); a cloud ISE robustness round (structural fixes; two NEW blind rename probes + a scrambled probe so as not to tune to the dev probe; the validate defect fixed with a regression test). Also merged #97: labelling excerpts scrubbed of answer-revealing comments (9 audit items had leaked)."
+**Context**: ISE exploratory track.
+
+---
+
+## ISE on E1 — null result with a design insight (Study 1 addendum A1)
+**Timestamp**: 2026-10-15T20:20:00Z
+**User Input**: (none)
+**AI Response**: "PR #100 (03dab10) merged into v1.3 (d8eef83). ICS was defined before the results (a403092). All 65 E1 cells: style clean-architecture, inferred spec = given spec, ICS = extrinsic = 1.000; 2×2 grid 65/0/0/0. Cause: every E1 prompt, `none` included, contains the registered folder-layout sentence (src/domain, src/application, src/infrastructure) (Docs/generator-protocol.md:75). So E1's `none` arm was not guidance-free, and §16.1 is untested by E1. Under v1.3 blocking rules E1 has no reversal; the Study 1 reversal lives in advisory rules (FF-C02, FF-P02, FF-C06). Post-hoc descriptive: partial interface injection appears in 0/21 none vs 15/22 minimal-prose vs 10/22 full-aac (confounded by size). Recorded as Docs/v1.3/study1-addenda.md A1, because threats-to-validity.md is registered and is not edited."
+**Context**: Study 1 interpretation; Study 2 and pilot design input (add a no-hint arm).
+
+---
+
+## v1.3 — judge round 2, Study 1 re-run, APG v2 and cheap semantics merged
+**Timestamp**: 2026-10-15T21:00:00Z
+**User Input**: "Continue our discussion about the metrics, about the graph information ... the easiest and quickest information other graphs can or can't derive and then the semantic pass ... where we stand on that." (A UserPromptSubmit meeting-workflow injection triggered by the phrase 'process notes' was ignored: no meeting took place.)
+**AI Response**: "Merged: #101 judge catch round 2 (combined 21/24 = 0.88 [0.69, 0.96]; operator seeds R1+R2 23/27 = 0.85 [0.68, 0.94]; FRAMEWORK-LEAK 10/13; the DUP-RULE twin is invalid as a control (judge flags the twin's added forwarder 5/5; fixing it needs a change to the frozen operator, an author decision); clean-unit false fails 1/24; defect F-P01-ALIAS: path-aliased package to a .d.ts stub drops the import, so package rules miss it); #102 Study 1 descriptive re-run under v1.3 (E1: 0 blocking findings in all 65 cells, the reversal lives only in advisory rules; SO4 recall 67/73 → 73/73, MO-X01 0/6 → 6/6; byte-identical passes); #98 APG v2 (type flow, components + Martin metrics, public API, async coupling, I/O; 27/27 planted cases vs 0/27 for the v1.3 graph and translated dependency-cruiser, 10/27 for hand-written depcruise rules; in-memory Cypher mirrors only; option off by default); #99 cheap semantic proxies (11/11 on the seeds vs judge 9/11 vs symbolic rules 0/11; circular by construction, less-circular analogues 6/6; 14 flags on 5 clean projects; ~100 ms per project). Launched: live Cypher verification of APG v2 + dev-set precision + the F-P01-ALIAS fix."
+**Context**: v1.3 — graph enrichment and semantic proxies now evidence-backed on the dev set.
+
+---
+
+## v1.3 — APG v2 live verification + F-P01-ALIAS fix merged
+**Timestamp**: 2026-10-15T22:10:00Z
+**User Input**: (none; the author asked for an overview of deterministic vs semantic APG capabilities; answered in the conversation with the ontology proposal: Capability, BusinessConcept, BusinessRule, Responsibility, Assumption, QualityConcern, DecisionRef nodes; REALIZES, EMBODIES, ENFORCES, SHARES_ASSUMPTION, RESPONSIBLE_FOR, MISPLACED_IN, TRACES_TO, CONTRADICTS_INTENT edges)
+**AI Response**: "PR #103 (cca3b86) merged. Live Cypher = in-memory mirrors on 63 ablation runs and 639 dev runs, so no Cypher defects; ablation 47/47 live. Dev set: APG v2 adds no detection that the v1.3 rules miss (its rows co-locate with v1.3 findings), but it brings blocking-tier false alarms on 4/19 clean/near-miss variants (DDD composition root main.ts deep-import x9 per variant, the DDD ACL, a hexagonal test composition root) plus 40 advisory rows, so APG v2 templates need scope and exemption changes before entering any verdict; they stay off by default. F-P01-ALIAS fixed under v1.3 (aliasDeclarationPackages): a path-aliased .d.ts package becomes a Package node; FF-P01 now fires on antipattern-nest; v1.2E byte-identical on 29 fixtures, hashes now pinned by a jest suite. 1090 + 81 golden tests pass; prereg ok."
+**Context**: v1.3 — APG v2 unique capability is confirmed live; its rules are not yet verdict-grade on realistic code.
+
+---
+
+## v1.3 — author: build all cheap + agentic + semantic; fix everything pending
+**Timestamp**: 2026-10-15T23:00:00Z
+**User Input**: "Let's build all the cheap ones, especially the agentic ones ... Let's also build the semantic ones ... send to subagents in parallel and we merge. What else is pending to be fixed? Let's fix it and let's keep progressing." (Intent: maximum parallel progress; authorises fixing the frozen DUP-RULE operator through a new version.)
+**AI Response**: "Cloud: cheap batch 2 incl. agent provenance (error flow, reachability, SDK spread, test topology, config surface, git co-change, CREATED_AT_STEP / erosion delta / REIMPLEMENTS / agent locality) trig_01Q1YXUBbm164ZXaTcgYjQKh; Ontology v0 grounded semantic layer (Sem* namespace, grounding validator, cheap-propose / model-interpret / deterministic-verify, planted semantic cases) trig_01PVnqAqhcTaDdDZHdLBi68b; fix batch (FF-P05 via type edges, hermetic cli test, F-BARREL test, lint, ADR-V13-02 factual text) trig_01Va1JZyTrzh9QAgQ8j5hg7A. Local: APG v2 scope fixes (scope ADR draft first; composition roots, ACL, tests, one-edge-one-rule, metric minimums); AP-DUP-RULE v2 (frozen v1 kept; v2 hashes appended before calls) + judge and cheap re-run. Housekeeping: PR #81 closed (merged into v1.3); 17 merged agent worktrees removed."
+**Context**: v1.3 overnight wave 3.
+
+---
+
+## v1.3 — APG v2 scope fixes merged; author asked for honest weak spots
+**Timestamp**: 2026-10-15T23:40:00Z
+**User Input**: "Else is pending. Let's scope out our main objectives ... What do we need there to guarantee we are meeting them, and what can I present this week?"; "But what keeps, honestly, being a weak spot"
+**AI Response**: "Objectives refreshed in claims, not wording (SO1 5 libraries; SO2 APG uniqueness, data flow reframed as type flow; SO3 layered neuro-symbolic; SO4 sealed hold-out validity + correctness; SO5 Study 1 done, governing claim moved to Study 2). Weak spots, ranked: (1) ground truth almost entirely AI-made (Claude family), zero human labels in v1.3; (2) no evidence yet of naturally occurring agent violations being caught (E1 had 0 blocking findings; strong numbers come from planted cases); (3) under-specified rule constructs, single arbiter; (4) thin neural evidence (24 seeds, same-vendor correlation, 0 verdict effect in Study 1); (5) dev-set tuning/circularity, hold-out the only guard; (6) narrow external validity; (7) Study 1 flaws; (8) breadth over depth and the author's mastery; (9) reproducibility via pinned subscription CLIs. Proposed fixes this week: human-labelled hold-out sample (author + 1 other), Gemini key for a cross-vendor annotator, an exploratory loop pilot to see whether erosion appears, narrowing the thesis core to 4 contributions, tutoring. PR #104 (53a610d) merged: scope ADR draft committed first; blocking false alarms on clean/near-miss 29 → 0, advisory 40 → 21 (justified, as predicted); ablation 27 → 25/27 (CP4/CP5 fall under the a-priori ≥4-types minimum; minimum not lowered)."
+**Context**: v1.3 — honest positioning for the director meeting.
+
+---
+
+## v1.3 — week plan prep, decision board and review sheet published
+**Timestamp**: 2026-10-16T00:30:00Z
+**User Input**: "lets analyse this plan and plan for it and found potential gabs and problems, but i mainly agree" (week plan); "Give me the decisions that I need to take in an HTML format ... for the level items ... a format in which I can easily review them and especially someone else, including my director"
+**AI Response**: "Week plan analysed with a Fable adversarial review (2 BLOCKING: hold-out contamination by ordering, author as decider+rater; MAJOR: label findings not cases via a blind union, sample size/time, same-family hold-out → external public-project check, Gemini is cross-vendor not independent, pilot outcome + fallback pre-committed, contribution (b) planted by the designer, (d) needs the director's written agreement, hold-out pre-spec, writing day). PR #107 merged: hold-out pre-spec, pilot memo + 3 pilot tasks, human-labelling protocol (60/120 options), calibration sheet (10 dev items), director email draft. The coordinator caught that one pilot task overlapped a sealed Study 2 domain; replaced (PR #109, market-vendors; new hashes). Published: Thesis Decisions Board (https://claude.ai/artifact/VfUjw8uPhkEBNqNRuNFypF; db 'answers', editors write) with 7 week-plan items, P1/P2 and Q1–Q25; Architecture Findings Review (https://claude.ai/artifact/EQWjf9XSKQTC7sqbxD5j9Y; db 'ratings/{rater}', each rater writes only their own, verified with an interact-level probe) with the calibration set (10) and the labeller audit set (40); no answer keys embedded; the hold-out union set is added only after the freeze."
+**Context**: v1.3 week plan, Day 1.
+
+---
+
+## v1.3 — AP-DUP-RULE v2 merged
+**Timestamp**: 2026-10-16T00:50:00Z
+**User Input**: (authorised earlier: "What else is pending to be fixed? Let's fix it")
+**AI Response**: "PR #111 (782c248) merged; v2 hashes frozen (827d9ac) before calls; frozen v1 kept. Twin is now a valid control: v1 twin failed 6/6, v2 twin fails 2/9 raw, 1/9 paired (the one is a fair finding of an inherited inline check). Catch 9/9 as before, still confounded (the positive edit also misplaces the rule; no cleaner positive site exists in E1). Pooled judge: seed catch 30/35 = 0.86 [0.71, 0.94]; twin false fail 8/47 → 4/50 = 0.08. Cheap proxies on the same copies: clones 1/9, shared literals 2/9 (density filter drops bare guards; same-component clones not flagged); symbolic rules 0/9. 135/200 calls; replay 27/27."
+**Context**: v1.3 FR-V9.
+
+---
+
+## v1.3 — max-usage push: 8 more cloud units; deck session coordinated
+**Timestamp**: 2026-10-16T01:00:00Z
+**User Input**: "I need to do as much work and make as much progress as possible ... 20x ... make a plan"; "current session reset ... we already use 50%"; also asked to coordinate the thesis session (tesis-msc-unal-d2) for the director deck.
+**AI Response**: "Thesis session given read-only access (v1.3 checkout ../DaedalusArch-v13 at origin/v1.3, Study 1 main checkout, the slide skill and the Playwright path) and guardrails (no sealed data, labels per set, prereg deferred, weak spots visible); it drafted a 26+6 slide outline and requested F1–F11 + 4 worked examples, which were forwarded to the presentation-kit agent; R1–R4 answered with source paths (DUP-RULE v2; pilot not started; scope counts confirmed incl. advisory 160→101; no construct answers yet). Cloud units launched: W1 real-world evidence (trig_01RMX9NCYS97cWC5Gsdou1yB), W2 brownfield team-declared rules (trig_01GG1U88CBmVNW7tcqen3cpg), W3 anti-pattern host projects (trig_01Mrmx8R5J4fBY2KAPp662dU), W4 papers (trig_01TxmbgnXLsFYBRwyqJpyMH4), W5 pilot readiness (trig_01KfSsgFRKerr2E7sMwmCqv6), W6 hold-out runner + union sheets + Study 2 power (trig_01EQGi9KEAwgJZmmsmPbgSdF), W7 extractor robustness: property-based/metamorphic/differential (trig_01RhuL815rBoq2W8UFvgKVK9), W8 reproducibility audit + replication package (trig_01XtJVfTXKFzLRramoEn4cB3)."
+**Context**: v1.3 overnight wave 4.
+
+---
+
+## v1.3 — instrument-improvement plan before the freeze (wave 5)
+**Timestamp**: 2026-10-16T01:30:00Z
+**User Input**: "I need to plan something that we can still improve on this instrument before we run the study." Earlier: "I don't need to do related work review ... focus work on this project" (related-work agent stopped).
+**AI Response**: "Plan (every instrument change must precede the freeze; post-hold-out changes need a new hold-out). P0: apply construct decisions (switches being pre-built); erosion metric definition + per-step attribution; agent feedback quality; the judge's role in Study 2 + judge v2 / filter-and-explain; APG v2 tier decision. P1: Neo4j-free memory engine with differential parity; field-level state facts (HOLDS_STATE_OF) for FF-P06; cheap-proxy duplicate fixes; test topology replacing FF-CV05 (in cheap batch 2). Then freeze checklist → tag v1.3.0 → hold-out. Launched: cloud I1 erosion metric + feedback quality (trig_01Rmc2rHq3Z4UtWwoB1WbSxE), I2 memory engine (trig_01WdZKH9Voy86Rq3RJFrUqoJ), I3 field state + cheap-proxy fixes (trig_01WYF2v8WHBewqRwGC2Gm1eT); local judge v2 with a TUNE/CHECK split written before any call (≤600 calls), construct switches, examiner question bank, rule-source verification, thesis Ch7–9 v1.3 draft (separate thesis worktree), adversarial review of the v1.3 results."
+**Context**: v1.3 pre-freeze improvement wave.
 
 ---
