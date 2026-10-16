@@ -1,0 +1,51 @@
+{
+ "typecheck": "./node_modules/.bin/tsc -p tsconfig.json",
+ "style": {
+  "hexagonal": {
+   "styleSentence": "Organise the code following Hexagonal Architecture (ports and adapters).",
+   "styleName": "Hexagonal Architecture, ports and adapters",
+   "layoutSentence": "Organise the source code under src/ in exactly five folders: src/domain, src/application, src/adapters/inbound, src/adapters/outbound and src/config."
+  },
+  "clean": {
+   "styleSentence": "Organise the code following Clean Architecture.",
+   "styleName": "Clean Architecture",
+   "layoutSentence": "Organise the source code under src/ in exactly three folders: src/domain, src/application and src/infrastructure."
+  }
+ },
+ "taskStyle": {
+  "shelter-adoptions": "hexagonal",
+  "market-vendors": "clean"
+ },
+ "pilotSpec": {
+  "shelter-adoptions": "presets/hexagonal.yaml",
+  "market-vendors": "specs/clean-arch.yaml"
+ },
+ "arch": {
+  "C1": {
+   "first": [
+    "Put the source under src/. {styleSentence}",
+    "{layoutSentence}"
+   ],
+   "next": [
+    "Keep the source under src/ and follow the architecture the project already uses ({styleName}).",
+    "{layoutSentence}"
+   ]
+  },
+  "C2": {
+   "first": [
+    "Put the source under src/. {styleSentence}"
+   ],
+   "next": [
+    "Keep the source under src/ and follow the architecture the project already uses ({styleName})."
+   ]
+  },
+  "C3": {
+   "first": [
+    "Put the source under src/. Follow the architecture spec at spec.yaml."
+   ],
+   "next": [
+    "Keep the source under src/ and follow the architecture spec at spec.yaml."
+   ]
+  }
+ }
+}

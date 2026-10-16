@@ -39,7 +39,7 @@
 
 ## 5. Tiers (finding 5, MAJOR)
 
-`Docs/v1.3/rule-tiers.md` was committed before any labelling. Its hash is sealed.
+`Docs/v1.3/rule-tiers.md` was committed before any v1.3 labelling (2026-10-14). It was not committed before any labelling: the Study 1 labels, including P4 (2026-10-10/11), already existed. See `Docs/v1.3/decision-chronology.md`. Its hash is sealed.
 
 ## 6. Judge (finding 7, MAJOR)
 
