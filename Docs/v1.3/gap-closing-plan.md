@@ -29,7 +29,7 @@ Numbers are quoted from the docs. Where no run exists the plan says **pending**.
 
 | SO | Claim (short) | Now | Gap | Closing move |
 |---|---|---|---|---|
-| SO1 | specs and style libraries | met with margin | none blocking (8 rules without a source row, open #136) | none needed; out of scope here |
+| SO1 | specs and style libraries | met ("met with margin" is the author's status; the docs say "met": `v1.3-research-gaps:Docs/v1.3/research/research-gaps-and-evidence.md:32`) | none blocking (8 blocking rules without a source row, `:32`; open #136) | none needed; out of scope here |
 | SO2 | property graph | met but reframed (data flow → type flow) | real-world value of type flow has no precision figure | one deterministic precision check on the wild type-flow rows ([C]) |
 | SO3 | neuro-symbolic gate | 16/21 = 0.76 vs 0.80; v2/v2.2 not better; DDD judged only on open #191 | below target; registered headline (judge vs panel) is empty | stop tuning; narrow the claim to complementarity; one real panel run ([L]) |
 | SO4 | validity | sealed hold-out not run; no labels | the one unrun step, plus "meaningful" | construct sheet → freeze → hold-out once ([A]→[L]); non-human evidence pack ([C]) |
@@ -94,7 +94,7 @@ Registered headline and labels:
 | # | Step | Owner | Effort (est.) | Pass criterion (fixed now) |
 |---|---|---|---|---|
 | 3.1 | Decide the SO3 claim. Recommended: v1 stays the frozen judge and SO3 is reported as **"below target (0.76 < 0.80), complementary to the symbolic arm"**, with 22/26 and the #165 negative result. No v2.3/CHECK-3. (Decision 2) | [A] | 30 min | Decision committed as a dated note before the freeze (gate V7 is [W]: it may be closed by a written waiver, `v1.3-study2-readiness:Docs/v1.3/study2-readiness-gate.md:21`). |
-| 3.2 | Merge #191, #179 and #165 as **exploratory results** (no tool change). This puts the first DDD judgement and the complementarity number on `v1.3`. | [C] merge train | 1 h | Docs on `v1.3`; `npm test` green; no file under `src/` changed by the three PRs. |
+| 3.2 | Merge #179 and #165 as **exploratory results**; neither touches `src/`. #191 is not docs-only: it changes 9 `src/` files, adding `judge-v22.ts` and `context-v22.ts` and changing `llm-critic.ts`, `judge-stage.ts`, `judge-v2.ts`, `types.ts`, `cli.ts`, `llm-options.ts` and `evaluation.ts`. That code adds an opt-in `--judge-version v2.2` and keeps `v1 (frozen, default)`. So either merge #191 whole as opt-in code, or take only its result docs. Either way the step must land **before the freeze**. This puts the first DDD judgement and the complementarity number on `v1.3`. | [C] merge train | 1–2 h | Docs on `v1.3`; `npm test` green; #179 and #165 change no file under `src/`; if #191's code is merged: the default judge is still `v1`, and default `evaluate` output (no `--judge-version`) is byte-identical on the 71 reference variants before and after the merge. |
 | 3.3 | Real model-panel run (Gemini, OpenAI/Codex and Claude) on the union sheet plus 15+15 decoys. This yields the meaningful label and the registered judge-vs-panel headline, both from non-human raters. It needs a new Gemini key (night-plan decision 7). | [L] | half a day plus a few USD (est. from `Docs/v1.3/model-panel.md:198-208`) | Panel authority rule `panel-authority-v1` as already committed (`Docs/v1.3/model-panel.md:3`); report judge-vs-panel κ with its interval whatever its value. **Pass = the number exists and is reported.** No threshold is invented now. |
 | 3.4 | Write the SO3 section from 3.1–3.3: limits, same-vendor threat V10. | [C] | 2 h | Every number cites a committed file; the words "met" or "validated" do not appear for SO3. |
 
@@ -246,11 +246,14 @@ Engine and scale:
 
 - **Interpreter parity (merged #128):** "65,254 statements, 79 projects: 0 content, 0 error, 0 unsupported" (`Docs/v1.3/cypher-interpreter.md:16`).
 - **Fuzz (open #183):** 0 mismatches over 836,000 statements (`v1.3-interp-fuzz:Docs/v1.3/cypher-interp-fuzz.md:13`).
-- **Scale (open #188):** median wall time falls from 51.2–77.2 s to 8.8–19.8 s, outputs byte-identical (`v1.3-scale:Docs/v1.3/scale.md:8,12`).
+- **Scale (open #188):** median wall time falls from 51.2–77.2 s to 8.8–19.8 s (`v1.3-scale:Docs/v1.3/scale.md:8`).
+  - Outputs are byte-identical on the 71 reference cases and 5 golden fixtures, and the APGs are byte-identical on the six large projects (`:12,86`).
+  - Large-project **reports do change**, wherever a query that used to time out now completes. Verdicts follow: for example typeorm goes from `pass` to `hard-block` (`:91`).
+  - So #188 changes evaluation results on large repos and counts as a tool change for the freeze.
 
 APG v2 on the dev set: it "adds no planted catch that the v1.3 rules miss" (`Docs/DiagnosticRuns/apg2-live-2026-10-15.md:21`).
 
-**Remaining gap.** The graph is shown faithful and fast. Its distinctive real-world value, type flow invisible to imports, has counts but **no precision**. No precision figure exists for APG v2 detections on real code.
+**Remaining gap.** On `v1.3` itself, the evidence for fidelity on real code is the merged wild run (#114, 0 scoped disagreements on 14 repositories) and the merged interpreter parity (#128). The external-set fidelity (#133, #149), the fuzz (#183) and the scale results (#188) are still on open branches. The graph's distinctive real-world value, type flow invisible to imports, has counts but **no precision**. No precision figure exists for APG v2 detections on real code.
 
 **Minimal steps.**
 
@@ -366,5 +369,5 @@ None of the following moves SO2–SO5 or a gate line. Most are on the backlog's 
   - ontology v1;
   - Neo4j GDS;
   - any frontend or dashboard.
-- **No interpreter work beyond parity.** Neo4j "stays the reference engine for every reported number" (`Docs/v1.3/cypher-interpreter.md:3-4`). #183 and #188 are enough. Do not switch the MCP default (#176) before Study 2.
+- **No interpreter work beyond parity.** Neo4j "stays the reference engine for every reported number" (`Docs/v1.3/cypher-interpreter.md:3-4`). #183 and #188 are enough. #188 changes large-repo reports (see SO2), so it merges before the freeze or not at all. Do not switch the MCP default (#176) before Study 2.
 - **No Study 2 "practice" runs on the real grid.** The pilot and the dress rehearsal are the only allowed loop runs before the single run. Per distinction readiness G4: "If the gate is not green by the writing deadline: do not run Study 2." (`v1.3-distinction-readiness:Docs/v1.3/research/distinction-readiness.md:489-507`).
