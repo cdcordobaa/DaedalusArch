@@ -23,8 +23,9 @@ import { FF_N01_ID, FF_N01_RUBRIC, FF_N02_ID, FF_N02_RUBRIC, RUBRIC_OUT_OF_SCOPE
 import { PROMPT_INSTRUCTIONS, JUDGE_PERSONA } from './frozen.js';
 import { VERDICT_JSON_SCHEMA } from './verdict-schema.js';
 
-export type JudgeVersion = 'v1' | 'v2';
-export const JUDGE_VERSIONS: readonly JudgeVersion[] = ['v1', 'v2'];
+/** `v2` is revision v2.1 (this file); `v2.2` is `judge-v22.ts`. */
+export type JudgeVersion = 'v1' | 'v2' | 'v2.2';
+export const JUDGE_VERSIONS: readonly JudgeVersion[] = ['v1', 'v2', 'v2.2'];
 export const DEFAULT_JUDGE_VERSION: JudgeVersion = 'v1';
 
 /** Revision of the v2 texts; bumped with every committed prompt revision (at most 3 TUNE revisions). */

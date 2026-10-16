@@ -119,7 +119,7 @@ export async function evaluateProject(
   if (!fs.existsSync(input.specPath)) {
     return failure('SPEC_NOT_FOUND', `Spec file not found: ${input.specPath}`);
   }
-  if (deps.graphEngine === 'cypher-interp') return evaluateInProcess(projectPath, input.specPath, scoringMode, deps);
+  if (deps.graphEngine === 'cypher-interp') return evaluateInProcess(projectPath, input.specPath, scoringMode, deps, input.includeViolations === true);
 
   let neo4j: Neo4jEnv;
   try {
@@ -210,6 +210,7 @@ async function evaluateInProcess(
   specPath: string,
   scoringMode: ScoringMode,
   deps: EvaluateDeps,
+  includeViolations = false,
 ): Promise<DomainResult<EvaluateProjectResult>> {
   if (deps.interp === undefined) return failure('ENGINE_UNAVAILABLE', 'cypher-interp selected but no in-process evaluator is wired.');
   const res = await deps.interp({ projectPath, specPath, scoringMode });
@@ -229,6 +230,7 @@ async function evaluateInProcess(
     durationMs: report.durationMs,
     scoringMode,
     ...(report.tiers !== undefined && { tiers: report.tiers }),
+    ...(includeViolations && { violations: report.violations }),
     engine: 'cypher-interp',
     latencyMs,
     cache,

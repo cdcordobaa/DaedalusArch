@@ -1,0 +1,212 @@
+{
+  "transform": "rename",
+  "style": "hexagonal",
+  "variant": "v07-domain-service-nestjs-decorator",
+  "candidate": "Acme prefix",
+  "candidatesTried": 1,
+  "applied": true,
+  "transformed": true,
+  "note": "42 declarations, 30 files renamed",
+  "tscOk": true,
+  "tscDiagnostics": [],
+  "candidateErrors": [],
+  "origCanon": {},
+  "newCanon": {
+    "src/adapters/inbound/cli/AcmeBookingCli.ts": "src/adapters/inbound/cli/BookingCli.ts",
+    "src/adapters/inbound/http/AcmeBookingController.ts": "src/adapters/inbound/http/BookingController.ts",
+    "src/adapters/inbound/http/AcmeHttpTypes.ts": "src/adapters/inbound/http/HttpTypes.ts",
+    "src/adapters/inbound/http/AcmeRoomController.ts": "src/adapters/inbound/http/RoomController.ts",
+    "src/adapters/outbound/notification/AcmeOutboxNotificationAdapter.ts": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts",
+    "src/adapters/outbound/payment/AcmeFakePaymentGateway.ts": "src/adapters/outbound/payment/FakePaymentGateway.ts",
+    "src/adapters/outbound/persistence/AcmeInMemoryBookingRepository.ts": "src/adapters/outbound/persistence/InMemoryBookingRepository.ts",
+    "src/adapters/outbound/persistence/AcmeInMemoryGuestRepository.ts": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts",
+    "src/adapters/outbound/persistence/AcmeInMemoryRoomRepository.ts": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+    "src/application/ports/in/AcmeBookingView.ts": "src/application/ports/in/BookingView.ts",
+    "src/application/ports/in/AcmeBookRoom.ts": "src/application/ports/in/BookRoom.ts",
+    "src/application/ports/in/AcmeCancelBooking.ts": "src/application/ports/in/CancelBooking.ts",
+    "src/application/ports/in/AcmeFindAvailableRooms.ts": "src/application/ports/in/FindAvailableRooms.ts",
+    "src/application/ports/out/AcmeBookingRepository.ts": "src/application/ports/out/BookingRepository.ts",
+    "src/application/ports/out/AcmeGuestRepository.ts": "src/application/ports/out/GuestRepository.ts",
+    "src/application/ports/out/AcmeNotificationSender.ts": "src/application/ports/out/NotificationSender.ts",
+    "src/application/ports/out/AcmePaymentGateway.ts": "src/application/ports/out/PaymentGateway.ts",
+    "src/application/ports/out/AcmeRoomRepository.ts": "src/application/ports/out/RoomRepository.ts",
+    "src/application/services/AcmeBookRoomService.ts": "src/application/services/BookRoomService.ts",
+    "src/application/services/AcmeCancelBookingService.ts": "src/application/services/CancelBookingService.ts",
+    "src/application/services/AcmeFindAvailableRoomsService.ts": "src/application/services/FindAvailableRoomsService.ts",
+    "src/config/acme-container.ts": "src/config/container.ts",
+    "src/domain/errors/AcmeBookingError.ts": "src/domain/errors/BookingError.ts",
+    "src/domain/model/AcmeBooking.ts": "src/domain/model/Booking.ts",
+    "src/domain/model/AcmeDateRange.ts": "src/domain/model/DateRange.ts",
+    "src/domain/model/AcmeGuest.ts": "src/domain/model/Guest.ts",
+    "src/domain/model/AcmeMoney.ts": "src/domain/model/Money.ts",
+    "src/domain/model/AcmeRoom.ts": "src/domain/model/Room.ts",
+    "src/domain/services/AcmeAvailabilityChecker.ts": "src/domain/services/AvailabilityChecker.ts",
+    "src/domain/services/AcmePriceCalculator.ts": "src/domain/services/PriceCalculator.ts"
+  },
+  "specReplaced": [],
+  "summary": {
+    "verdict": "fail",
+    "blockingRules": [
+      "FF-P01",
+      "FF-P03",
+      "FF-P06",
+      "FF-S01",
+      "FF-S02",
+      "FF-S04"
+    ],
+    "blocking": [
+      {
+        "ruleId": "FF-P01",
+        "file": "src/domain/services/AcmeAvailabilityChecker.ts",
+        "target": "@nestjs/common"
+      }
+    ],
+    "advisory": [
+      {
+        "ruleId": "FF-C02",
+        "file": "src/application/services/AcmeBookRoomService.ts"
+      },
+      {
+        "ruleId": "FF-C02",
+        "file": "src/config/acme-container.ts"
+      },
+      {
+        "ruleId": "FF-C03",
+        "file": "src/application/services/AcmeBookRoomService.ts"
+      },
+      {
+        "ruleId": "FF-C03",
+        "file": "src/application/services/AcmeCancelBookingService.ts"
+      },
+      {
+        "ruleId": "FF-C03",
+        "file": "src/application/services/AcmeFindAvailableRoomsService.ts"
+      },
+      {
+        "ruleId": "FF-C03",
+        "file": "src/config/acme-container.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/adapters/inbound/cli/AcmeBookingCli.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/adapters/inbound/http/AcmeBookingController.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/adapters/inbound/http/AcmeHttpTypes.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/adapters/inbound/http/AcmeRoomController.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/adapters/outbound/notification/AcmeOutboxNotificationAdapter.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/adapters/outbound/payment/AcmeFakePaymentGateway.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/adapters/outbound/persistence/AcmeInMemoryBookingRepository.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/adapters/outbound/persistence/AcmeInMemoryGuestRepository.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/adapters/outbound/persistence/AcmeInMemoryRoomRepository.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/ports/in/AcmeBookRoom.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/ports/in/AcmeBookingView.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/ports/in/AcmeCancelBooking.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/ports/in/AcmeFindAvailableRooms.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/ports/out/AcmeBookingRepository.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/ports/out/AcmeGuestRepository.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/ports/out/AcmeNotificationSender.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/ports/out/AcmePaymentGateway.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/ports/out/AcmeRoomRepository.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/services/AcmeBookRoomService.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/services/AcmeCancelBookingService.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/application/services/AcmeFindAvailableRoomsService.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/config/acme-container.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/errors/AcmeBookingError.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/model/AcmeBooking.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/model/AcmeDateRange.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/model/AcmeGuest.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/model/AcmeMoney.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/model/AcmeRoom.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/services/AcmeAvailabilityChecker.ts"
+      },
+      {
+        "ruleId": "FF-CV05",
+        "file": "src/domain/services/AcmePriceCalculator.ts"
+      }
+    ],
+    "rows": 37
+  }
+}

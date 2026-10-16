@@ -1,0 +1,56 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9694,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "8c542717f526c462d23023f76ea10259598975100712ec70b3cfb9f5119cb0fe-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "src/business/services/LoanHistoryService.ts: note() calls this.db.loanEvent.create({ data: { id, loanId, kind, at } }), a Prisma ORM write (infrastructure/persistence)",
+      "src/business/services/LoanHistoryService.ts: eventsOf() calls this.db.loanEvent.findMany({ where: { loanId } }) and maps the rows to LoanEvent (infrastructure/persistence)",
+      "src/business/services/LoanHistoryService.ts: eventsOf(loanId: string, request?: Request) takes an Express Request (transport/presentation concern)",
+      "src/business/services/LoanHistoryService.ts: note() builds persistence IDs with `evt-${this.counter}` (persistence detail)"
+    ],
+    "pass": false,
+    "reasoning": "LoanHistoryService is declared in the business (domain) layer, but it does persistence work itself. It writes Prisma ORM queries directly (loanEvent.create and loanEvent.findMany with Prisma's data/where argument shapes) and maps database rows to domain objects. Both of those jobs belong to the infrastructure layer, for example a repository. Its eventsOf method also takes an Express Request as a parameter. That is a transport/presentation concern and doesn't belong in a domain service, even though the parameter is never used. Generating record IDs with an in-memory counter (`evt-${counter}`) is also a persistence detail. Import direction is out of scope here. These findings are about responsibilities in the file, not about which modules it imports.",
+    "violations": [
+      {
+        "filePath": "src/business/services/LoanHistoryService.ts",
+        "message": "note() and eventsOf() run Prisma ORM queries directly (this.db.loanEvent.create / findMany with data/where shapes) and map the rows to domain objects. This persistence work belongs in the infrastructure layer, for example a repository, not in a domain service."
+      },
+      {
+        "filePath": "src/business/services/LoanHistoryService.ts",
+        "message": "eventsOf(loanId, request?: Request) takes an Express Request. HTTP transport types are a presentation-layer concern and don't belong in a domain service."
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**\n- business (kind: domain): src/business/**\n- presentation (kind: presentation): src/presentation/**\n\n## Unit\nKind: file\nId: src/business/services/LoanHistoryService.ts\nLayer: business\nUnit files:\n- src/business/services/LoanHistoryService.ts\n\n## Source\n=====SOURCE-BEGIN src/business/services/LoanHistoryService.ts=====\nimport { PrismaService } from '../../persistence/PrismaService';\nimport { Request } from 'express';\n\nexport interface LoanEvent {\n  loanId: string;\n  kind: string;\n  at: Date;\n}\n\nexport class LoanHistoryService {\n  private counter = 0;\n\n  constructor(private readonly db: PrismaService) {}\n\n  async note(loanId: string, kind: string): Promise<void> {\n    this.counter += 1;\n    await this.db.loanEvent.create({ data: { id: `evt-${this.counter}`, loanId, kind, at: new Date() } });\n  }\n\n  async eventsOf(loanId: string, request?: Request): Promise<LoanEvent[]> {\n    const rows = await this.db.loanEvent.findMany({ where: { loanId } });\n    return rows.map((r) => ({ loanId: r.loanId, kind: r.kind, at: r.at }));\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"LoanController@src/presentation/http/LoanController.ts\",\"to\":\"LoanHistoryService@src/business/services/LoanHistoryService.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"LoanHistoryService@src/business/services/LoanHistoryService.ts\",\"to\":\"PrismaService@src/persistence/PrismaService.ts\",\"type\":\"CONSTRUCTOR_INJECTS\"},{\"from\":\"src/business/services/LoanHistoryService.ts\",\"to\":\"express\",\"type\":\"IMPORTS\"},{\"from\":\"src/business/services/LoanHistoryService.ts\",\"to\":\"src/persistence/PrismaService.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/main.ts\",\"to\":\"src/business/services/LoanHistoryService.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/presentation/http/LoanController.ts\",\"to\":\"src/business/services/LoanHistoryService.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"business\",\"name\":\"LoanHistoryService\",\"path\":\"src/business/services/LoanHistoryService.ts\"},{\"kind\":\"Class\",\"layer\":\"persistence\",\"name\":\"PrismaService\",\"path\":\"src/persistence/PrismaService.ts\"},{\"kind\":\"Class\",\"layer\":\"presentation\",\"name\":\"LoanController\",\"path\":\"src/presentation/http/LoanController.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/services/LoanHistoryService.ts\"},{\"kind\":\"File\",\"layer\":\"persistence\",\"path\":\"src/persistence/PrismaService.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/presentation/http/LoanController.ts\"},{\"kind\":\"File\",\"layer\":null,\"path\":\"src/main.ts\"},{\"kind\":\"Interface\",\"layer\":\"business\",\"name\":\"LoanEvent\",\"path\":\"src/business/services/LoanHistoryService.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"express\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T03:16:29.600Z",
+  "repetition": 0,
+  "requestHash": "8c542717f526c462d23023f76ea10259598975100712ec70b3cfb9f5119cb0fe",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":904}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"LoanHistoryService is declared in the business (domain) layer, but it does persistence work itself. It writes Prisma ORM queries directly (loanEvent.create and loanEvent.findMany with Prisma's data/where argument shapes) and maps database rows to domain objects. Both of those jobs belong to the infrastructure layer, for example a repository. Its eventsOf method also takes an Express Request as a parameter. That is a transport/presentation concern and doesn't belong in a domain service, even though the parameter is never used. Generating record IDs with an in-memory counter (`evt-${counter}`) is also a persistence detail. Import direction is out of scope here. These findings are about responsibilities in the file, not about which modules it imports.\\\",\\\"evidence\\\":[\\\"src/business/services/LoanHistoryService.ts: note() calls this.db.loanEvent.create({ data: { id, loanId, kind, at } }), a Prisma ORM write (infrastructure/persistence)\\\",\\\"src/business/services/LoanHistoryService.ts: eventsOf() calls this.db.loanEvent.findMany({ where: { loanId } }) and maps the rows to LoanEvent (infrastructure/persistence)\\\",\\\"src/business/services/LoanHistoryService.ts: eventsOf(loanId: string, request?: Request) takes an Express Request (transport/presentation concern)\\\",\\\"src/business/services/LoanHistoryService.ts: note() builds persistence IDs with `evt-${this.counter}` (persistence detail)\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/business/services/LoanHistoryService.ts\\\",\\\"message\\\":\\\"note() and eventsOf() run Prisma ORM queries directly (this.db.loanEvent.create / findMany with data/where shapes) and map the rows to domain objects. This persistence work belongs in the infrastructure layer, for example a repository, not in a domain service.\\\"},{\\\"filePath\\\":\\\"src/business/services/LoanHistoryService.ts\\\",\\\"message\\\":\\\"eventsOf(loanId, request?: Request) takes an Express Request. HTTP transport types are a presentation-layer concern and don't belong in a domain service.\\\"}]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"src/business/services/LoanHistoryService.ts: note() calls this.db.loanEvent.create({ data: { id, loanId, kind, at } }), a Prisma ORM write (infrastructure/persistence)\",\"src/business/services/LoanHistoryService.ts: eventsOf() calls this.db.loanEvent.findMany({ where: { loanId } }) and maps the rows to LoanEvent (infrastructure/persistence)\",\"src/business/services/LoanHistoryService.ts: eventsOf(loanId: string, request?: Request) takes an Express Request (transport/presentation concern)\",\"src/business/services/LoanHistoryService.ts: note() builds persistence IDs with `evt-${this.counter}` (persistence detail)\"],\"pass\":false,\"reasoning\":\"LoanHistoryService is declared in the business (domain) layer, but it does persistence work itself. It writes Prisma ORM queries directly (loanEvent.create and loanEvent.findMany with Prisma's data/where argument shapes) and maps database rows to domain objects. Both of those jobs belong to the infrastructure layer, for example a repository. Its eventsOf method also takes an Express Request as a parameter. That is a transport/presentation concern and doesn't belong in a domain service, even though the parameter is never used. Generating record IDs with an in-memory counter (`evt-${counter}`) is also a persistence detail. Import direction is out of scope here. These findings are about responsibilities in the file, not about which modules it imports.\",\"violations\":[{\"filePath\":\"src/business/services/LoanHistoryService.ts\",\"message\":\"note() and eventsOf() run Prisma ORM queries directly (this.db.loanEvent.create / findMany with data/where shapes) and map the rows to domain objects. This persistence work belongs in the infrastructure layer, for example a repository, not in a domain service.\"},{\"filePath\":\"src/business/services/LoanHistoryService.ts\",\"message\":\"eventsOf(loanId, request?: Request) takes an Express Request. HTTP transport types are a presentation-layer concern and don't belong in a domain service.\"}]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/business/services/LoanHistoryService.ts",
+  "usage": {
+    "inputTokens": 2912,
+    "outputTokens": 904
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
