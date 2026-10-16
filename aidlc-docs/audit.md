@@ -1893,3 +1893,27 @@ Other changes in the same PR: paper wording (judge interval, distinct floor-prob
 **Context**: v1.3 exploratory diagnostic on public data; no rule, tier, template, preset, construct switch or hold-out touched.
 
 ---
+
+## v1.3 SPIKE — cypher-interp review fixes (scheduled task)
+**Timestamp**: 2026-10-16T02:10:00Z
+**User Input**: "Scheduled task: an adversarial review of PR #128 (in-process Cypher interpreter) found the parity claim holds with caveats. On a branch v1.3-interp-review-fixes (from origin/v1.3-cypher-interp, since origin/v1.3 lacks src/cypher-interp), one PR into v1.3, not merged: split 'order' into 'order' and 'float-drift' (stated ULP bound, both values recorded, tolerance restricted to the named metric templates); re-run parity against Neo4j 5.26.24 + APOC; report per-template non-empty coverage, flag thin templates (< 50) and add synthetic graphs (>= 3 non-empty per template per binding); commit the interpreter's reference-set outputs and compare scores and universal metrics between engines; an order-guard unit test; rejection tests for unsupported syntax; honour or document the query timeout; licence fixes (grammar header and attribution, NOTICE, LICENSE matching package.json, record why the grammar is a prerelease); update the design doc with the corrected table and 'What may be claimed'. Never edit template text, read .env, or touch main or v1.2e."
+**AI Response**: "Done on v1.3-interp-review-fixes. Parity (66,212 statements, 81 projects): 0 content, 0 error, 0 unsupported; 358 order (ingestion verification counts only), 214 float-drift (the two averageInstability texts only, <= 5 ULP observed). The first bound tried (4 ULP) failed 4 statements at 5 ULP; a seeded permutation experiment (avg-order-spread.json) showed each engine's avg is the fold of its own row order and the order spread on that graph is -2..+8 ULP, so the bound is 16 ULP; the spike's '4 ULP' rule was relative (up to 8 ULP) and applied to any avg/sum text. 14 templates were thin; two synthetic APGs give each >= 4 non-empty per binding; 12 remain under 50 and are flagged. Reference set: interpreter outputs committed; raw/report byte-identical 73/73 to after-member-facts and a Neo4j control; the whole CLI result (AHS, scores, universal metrics, tiers) identical 71/71. Order guard, 43 rejection tests, cooperative timeout with Neo4j's timeout code, LICENSE/NOTICE/grammar header. Not done: merging v1.3 (it has moved: 7 cheap2 templates, rewrite changes; a trial merge showed the new templates run but have no synthetic rows, and eslint.config.mjs conflicts) — recorded in the doc and the PR as needing a re-run. The AI-DLC approval gates were not run interactively (scheduled task, no one present); the PR is left open for review."
+**Context**: v1.3 spike follow-up, outside the v1.3 study stages. Development-set evidence only.
+
+---
+
+## v1.3 SPIKE — cypher-interp review fixes: merged with v1.3 (PR #151)
+**Timestamp**: 2026-10-16T03:05:00Z
+**User Input**: "(No new user input; PR-ownership follow-up on #151.) #128 was merged into v1.3 by the merge train while the review fixes were in flight, leaving #151 in conflict with v1.3."
+**AI Response**: "Merged origin/v1.3 (f94eb251) into v1.3-interp-review-fixes (conflict: this audit log, both entries kept). The merged state exposed two gaps: (1) the seven cheap2 templates read facts no persistence unit writes, so the order guard found no rows for them: the thin synthetic graphs now write those facts in the layout cheap2-templates.ts specifies, with the ingester's own statement shapes; (2) v1.3 compiles FF-P05 into CALL { … UNION … } (a82c3bb5), which the interpreter rejected, so --engine cypher-interp failed FF-P05 in the pipeline on 28 projects (56 unsupported in parity): the uncorrelated CALL { } subquery with UNION / UNION ALL is now supported, checked live against Neo4j 5.26.24, other subquery forms still rejected. Re-run on the merged state: parity 72,388 statements, 0 content / error / unsupported, 360 order, 206 float-drift; reference set byte-identical 73/73, whole CLI result 71/71 vs a Neo4j control. Template text unchanged (git diff origin/v1.3 -- src/fitness-compiler empty)."
+**Context**: v1.3 spike follow-up; PR #151 into v1.3, left open for review.
+
+---
+
+## v1.3 SPIKE — cypher-interp review fixes: post-merge review R15/R17 (PR #151)
+**Timestamp**: 2026-10-16T03:40:00Z
+**User Input**: "(No new user input; scheduled safety-net check-in on #151.) v1.3 gained Docs/v1.3/post-merge-review-2026-10-16.md (#152) with interpreter findings R15-R18."
+**AI Response**: "Merged v1.3 (docs only). Fixed the two findings inside this PR's brief: R15 (Java regex constructs silently read as JS; (?m) broke whole-input matching; escaped backslash over-rejected) and R17 (a reordering under ORDER BY was classed 'order'). Checked against Neo4j 5.26.24; parity and the reference set re-run on the merged state with identical results (72,388 statements, 0 content / error / unsupported; 73/73 bytes, 71/71 CLI results). R16 and R18 are recorded as not fixed (no template reaches them)."
+**Context**: v1.3 spike follow-up; PR #151 left open for review.
+
+---
