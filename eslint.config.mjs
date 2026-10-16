@@ -50,7 +50,9 @@ export default tseslint.config(
     // tests/fixtures/v1.3-cheap2: planted fixture projects (inputs of the batch-2 cheap proxies, with deliberate
     // anti-patterns and their own ambient typings), not code of this repository. tests/fixtures/v1.3-devset-b: the same
     // for the devset-b reference variants (copies of the reference projects plus planted variants).
+    // tests/fixtures/v1.3-judge-steering: single unit files of CHECK-2 copies (judge steering-comment variants), whose
+    // imports resolve only inside their CHECK-2 project.
     // src/cypher-interp/generated: ANTLR output (scripts/v1.3/gen-cypher-parser.sh), not hand-written.
-    ignores: ['dist/**', 'node_modules/**', 'coverage/**', '*.cjs', '*.mjs', 'tests/fixtures/v1.3-cheap2/**', 'tests/fixtures/v1.3-devset-b/**', 'src/cypher-interp/generated/**'],
+    ignores: ['dist/**', 'node_modules/**', 'coverage/**', '*.cjs', '*.mjs', 'tests/fixtures/v1.3-cheap2/**', 'tests/fixtures/v1.3-devset-b/**', 'tests/fixtures/v1.3-judge-steering/**', 'src/cypher-interp/generated/**'],
   },
 );
