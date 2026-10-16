@@ -2026,3 +2026,17 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.3 Study 2 readiness tooling (gate line D6); AI-DLC gates not run interactively: the stored prompt is a complete specification and the unmerged PR is the approval point.
 
 ---
+## v1.3 — full-grid stub replay at Study 2 scale (S4, scheduled task)
+**Timestamp**: 2026-10-16T08:45:00Z
+**User Input**: (scheduled task, no one present) "Night backlog job #22 (S4): run the loop harness at Study 2's planned volume with stubs (6 made-up demo tasks x 3 fake models x 3 replicates x 3 arms, k = 5), two lanes with separate roots, a mid-grid kill and resume, the #160 analysis script on the output; report disk, wall time, record size, seeded interleaving; fix only pure bugs with tests. Branch v1.3-grid-scale-replay, one PR into v1.3, not merged." (Intent: find scheduling, disk, resume and analysis-runtime problems before the one real Study 2 run.)
+**AI Response**: "Plan and pass criterion committed before any run (Docs/v1.3/grid-scale-replay.md). Driver scripts/v1.3/grid-scale-replay.ts (run/merge/verify). Result: P1-P7 pass; 162 runs, 864 snapshots, 13.7 MB, about 0.8 s harness time per run, analysis 3.0 s. F1 fixed with a test: evaluate_project on cypher-interp dropped tsconfigPath and includeViolations, so every loop snapshot failed evaluation silently. F2 (no stop on all-failing evaluator), F3 (no out-root lock; a kill of the npx pid left the tsx child running and two processes corrupted one run) and F4 (no lane concept in the harness) proposed, not built. 71-reference check on cypher-interp byte-identical. No LLM call, no sealed or pilot task, no construct switch, no template/tier/preset/prompt-frame edit. Options taken under delegation: (1) lanes by block index mod 2 so the seeded order holds; (2) cypher-interp evaluator with the stub type-check; (3) the six demo task domains chosen without the sealed list (author must confirm no overlap); (4) F1 counted as a pure bug and fixed; F2-F4 left as proposals; (5) the analysis report's tables not read for effects and not committed (stub artefacts). The AI-DLC approval gates were not run interactively: the request came from a scheduled task with no one present; the stored prompt served as the requirements."
+**Context**: v1.3 Study 2 readiness tooling (D4, D7, D9, S9). Development-set tooling, not a measurement.
+
+---
+## v1.3 — S4 follow-up: gate the cypher-interp tsconfigPath pass-through (PR #206)
+**Timestamp**: 2026-10-16T13:45:00Z
+**User Input**: (scheduled check-in, no one present) Review on #206 held the PR because the tsconfigPath fix changed default cypher-interp `evaluate_project` behaviour without a flag; merge train MT5 left it open for the same reason.
+**AI Response**: "Option taken under delegation: the pass-through now sits behind `EvaluateDeps.interpTsconfig` (off by default, standard rule 3); the grid driver turns it on; the loop harness's own wiring is unchanged. Test covers off (old failure) and on. 311 tests pass; 71-reference results byte-identical on cypher-interp. The sealed-list domain check stays with the author."
+**Context**: v1.3 Study 2 readiness tooling, PR #206 follow-up.
+
+---
