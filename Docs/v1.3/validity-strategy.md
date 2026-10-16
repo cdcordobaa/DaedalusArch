@@ -115,8 +115,9 @@ answer (`v1.3-labelling-2026-10-15.md`).
   corrected precision 1.000 [CP 0.946, 1.000] (`results/so4-heldout/agg-corrected/prf_overall.csv`; paper 2, Table at
   line 643). Twins (near-miss controls that should not fire): 2/42 fired
   (`Docs/DiagnosticRuns/tool-comparison-real-pairs-2026-10-10.md` §A).
-- v1.3 development reference set: pooled blocking recall 57/57 (author view), 53/67 (blind view) *[dev]*
-  (`v1.3-reference-after-member-facts-2026-10-15.md` §3).
+- v1.3 development reference set: pooled blocking recall 54/54 (author view; 3 FF-P06 field-initialiser rows
+  reported N/A, recall unestimated; PR #120), 50/64 (blind view) *[dev]*
+  (`v1.3-reference-after-member-facts-2026-10-15.md`, "Correction (2026-10-16)").
 - v1.3 hold-out: 207 sealed cases, pre-specified in `Docs/v1.3/holdout-prespec.md`, **not yet run**.
 
 **Precedents.** Injecting known faults to obtain ground truth for detector recall is accepted when real labelled
@@ -139,7 +140,7 @@ project's best single piece of evidence.
 the designer's own reading. (b) **Same vendor:** the hold-out was written by a model of the same vendor as the judge
 and the blind annotator, and enlarged from 62 to 207 after tuning (`holdout-prespec.md`, "Known limitations"). (c)
 **Representativeness:** seeds are single-edit mutants; real violations are often diffuse. (d) The blind-view recall
-53/67 shows the score depends on who writes the manifest.
+50/64 (after the FF-P06 N/A correction, PR #120) shows the score depends on who writes the manifest.
 
 **Close it without humans.** Run the hold-out once at the freeze; add the recommended external arm (one
 non-Claude-authored project per style, rules written by someone outside the project, e.g. dependency-cruiser

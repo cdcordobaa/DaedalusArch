@@ -81,8 +81,9 @@ written, every figure development-set:
 
 - graph fidelity is agreement, Jaccard 0.988 (E1) and 0.913 (SO4, tsc), 0 unexplained disagreements *[dev]*
   (`Docs/DiagnosticRuns/v1.3-graph-fidelity-2026-10-14.md`);
-- reference set pooled blocking recall 57/57 (author view) and 53/67 (blind view) *[dev]*
-  (`Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md` §3);
+- reference set pooled blocking recall 54/54 (author view; 3 FF-P06 field-initialiser rows reported N/A, recall
+  unestimated; PR #120) and 50/64 (blind view) *[dev]*
+  (`Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md`, "Correction (2026-10-16)");
 - 0 incorrect of 2,668 checkable findings *[dev]* (`Docs/DiagnosticRuns/v1.3-labelling-2026-10-15.md`);
 - APG v2 25/27 vs 0/27 on designer-planted cases *[dev]* (`Docs/DiagnosticRuns/apg2-scope-2026-10-15.md`;
   `Docs/DiagnosticRuns/apg2-ablation-2026-10-15.md`);
