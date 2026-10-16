@@ -1,0 +1,19 @@
+{
+  "answer": {
+    "inputTokens": 422,
+    "outputTokens": 20,
+    "servedModel": "fake-gpt",
+    "text": "{\"choice\":\"B\",\"reason\":\"fake openai answer\"}"
+  },
+  "failedAttempts": [],
+  "itemKey": "09e748273556e1a373218a1b",
+  "key": "9c59d331b0bdcf8584b9846fb0914a712ec788219dfa43c9ef63f53cd852543a",
+  "model": "fake-gpt",
+  "provider": "fake",
+  "request": {
+    "prompt": "## Architectural style\n- Acyclic dependencies: The component dependency graph has no cycles. (Martin 2017, ch. 14 \"Component Coupling\", ADP)\n- Downward-only, no skipping when strict: A higher layer uses services of lower layers, and lower layers do not use upper ones. Strict layering also forbids skipping a layer. (Fowler, *Patterns of Enterprise Application Architecture* (2002), ch. 1 \"Layering\"; Buschmann et al., *POSA vol. 1* (1996), Layers pattern)\n\n## Code excerpt\nFile: src/presentation/http/CatalogController.ts\n```ts\n    1 | import { CatalogService } from '../../business/services/CatalogService';\n    2 | import { ProductGateway } from '../../persistence/ProductGateway';\n    3 | import { renderProduct } from '../views/ProductView';\n    4 | import { errorResponse } from './ErrorHandling';\n    5 | import { HttpRequest, HttpResponse } from './HttpTypes';\n    6 | \n    7 | export class CatalogController {\n    8 |   constructor(\n    9 |     private readonly catalog: CatalogService,\n   10 |     private readonly products: ProductGateway,\n   11 |   ) {}\n   12 | \n   13 |   stock(request: HttpRequest): HttpResponse {\n   14 |     const row = this.products.findBySku(String(request.params['sku']));\n   15 |     return row === undefined ? { status: 404, body: null } : { status: 200, body: { stock: row.stock } };\n   16 |   }\n   17 | \n```\n\n## Reported finding\nsrc/presentation/http/CatalogController.ts (presentation) skips layers to import src/persistence/records/ProductRecord.ts (persistence) (line 2)\n\n## Question\nWould an architect following this style want this changed?\nA. yes\nB. no\nC. uncertain\n\nReply with JSON only: {\"choice\": \"<letter>\", \"reason\": \"<one sentence>\"}",
+    "system": "You are a software architect reviewing a TypeScript code base against an architectural style. Judge only from the material in the message: the style definition, the code excerpt and the reported finding. You have no tools. Reply with one JSON object and nothing else.",
+    "temperature": 0
+  },
+  "runIndex": 0
+}

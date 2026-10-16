@@ -1,0 +1,19 @@
+{
+  "answer": {
+    "inputTokens": 320,
+    "outputTokens": 20,
+    "servedModel": "fake-claude",
+    "text": "{\"choice\":\"C\",\"reason\":\"fake anthropic answer\"}"
+  },
+  "failedAttempts": [],
+  "itemKey": "0f1b0e84ba9f5b1bfef2738e",
+  "key": "00264c8c8e0957f76a4e0a8cb9746b5abee55d2f9b69f66f2073968ac8e18d01",
+  "model": "fake-claude",
+  "provider": "fake",
+  "request": {
+    "prompt": "## Architectural style\n- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.\n\n## Code excerpt\nFile: src/features/ai/credentials.ts\n```ts\n   45  }\n   46  \n   47  export function encryptCredential(apiKey: string): StoredCredentialFields {\n   48> \tconst iv = randomBytes(IV_BYTES);\n   49  \tconst salt = encode(randomBytes(SALT_BYTES));\n   50  \tconst cipher = createCipheriv(CIPHER, getEncryptionKey(), iv);\n   51  \n   52  \tconst ciphertext = Buffer.concat([cipher.update(apiKey, \"utf8\"), cipher.final()]);\n   53  \tconst authTag = cipher.getAuthTag();\n   54  \tconst payload = [CREDENTIAL_VERSION, encode(iv), encode(authTag), encode(ciphertext)].join(\".\");\n   55  \n   56  \treturn {\n```\n\n## Reported finding\n`encryptCredential` in the business layer performs random I/O or side effects directly (crypto:randomBytes).\n\n## Question\nWould an architect following this style want this changed?\nA. uncertain\nB. yes\nC. no\n\nReply with JSON only: {\"choice\": \"<letter>\", \"reason\": \"<one sentence>\"}",
+    "system": "You are a software architect reviewing a TypeScript code base against an architectural style. Judge only from the material in the message: the style definition, the code excerpt and the reported finding. You have no tools. Reply with one JSON object and nothing else.",
+    "temperature": 0
+  },
+  "runIndex": 1
+}
