@@ -1,0 +1,19 @@
+{
+  "answer": {
+    "inputTokens": 376,
+    "outputTokens": 20,
+    "servedModel": "fake-gemini",
+    "text": "{\"choice\":\"B\",\"reason\":\"fake google answer\"}"
+  },
+  "failedAttempts": [],
+  "itemKey": "c9b77450ba3ca9761d2485d3",
+  "key": "7a9925e7ea2532193886c9a22423a68dda33eb07f7934cffb13b71d51e0c0378",
+  "model": "fake-gemini",
+  "provider": "fake",
+  "request": {
+    "prompt": "## Architectural style\n- No architectural style is declared for this code base. Judge against widely shared principles of software architecture:\n  dependencies point from volatile, concrete code towards stable, abstract code; layers and components keep their\n  responsibilities; side effects and framework details stay at the edges; cycles between components are avoided.\n\n## Code excerpt\nFile: src/Infra/InversifyExpressUtils/AnnotatedSubscriptionInvitesController.ts\n```ts\n   13  import { SubscriptionInvitesController } from '../../Controller/SubscriptionInvitesController'\n   14  import { BaseSubscriptionInvitesController } from './Base/BaseSubscriptionInvitesController'\n   15  \n   16> @controller('/subscription-invites')\n   17  export class AnnotatedSubscriptionInvitesController extends BaseSubscriptionInvitesController {\n   18    constructor(\n   19      @inject(TYPES.Auth_SubscriptionInvitesController)\n   20      override subscriptionInvitesController: SubscriptionInvitesController,\n   21    ) {\n   22      super(subscriptionInvitesController)\n   23    }\n   24  \n```\n\n## Reported finding\nClass `AnnotatedSubscriptionInvitesController` is not cohesive: its 5 methods fall into 5 groups that share no field or call: {acceptInvite} {declineInvite} {inviteToSubscriptionSharing} {cancelSubscriptionSharing} {listInvites}.\n\n## Question\nWould an architect following this style want this changed?\nA. yes\nB. no\nC. uncertain\n\nReply with JSON only: {\"choice\": \"<letter>\", \"reason\": \"<one sentence>\"}",
+    "system": "You are a software architect reviewing a TypeScript code base against an architectural style. Judge only from the material in the message: the style definition, the code excerpt and the reported finding. You have no tools. Reply with one JSON object and nothing else.",
+    "temperature": 0
+  },
+  "runIndex": 0
+}

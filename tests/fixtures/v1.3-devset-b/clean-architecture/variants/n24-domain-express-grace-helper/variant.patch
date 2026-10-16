@@ -1,0 +1,45 @@
+--- a/src/domain/services/FineCalculator.ts
++++ b/src/domain/services/FineCalculator.ts
+@@ -1,9 +1,11 @@
+ import { Loan } from '../entities/Loan';
++import { withinExpressGrace } from './express';
+ 
+ export class FineCalculator {
+   constructor(private readonly centsPerDay: number) {}
+ 
+   fineInCents(loan: Loan, now: Date): number {
++    if (withinExpressGrace(loan, now)) return 0;
+     return loan.daysOverdue(now) * this.centsPerDay;
+   }
+ }
+--- /dev/null
++++ b/src/domain/services/express.ts
+@@ -0,0 +1,9 @@
++import { Loan } from '../entities/Loan';
++
++const DAY_MS = 24 * 60 * 60 * 1000;
++
++export const EXPRESS_GRACE_DAYS = 1;
++
++export function withinExpressGrace(loan: Loan, now: Date): boolean {
++  return now.getTime() - loan.dueAt.getTime() <= EXPRESS_GRACE_DAYS * DAY_MS;
++}
+--- /dev/null
++++ b/src/infrastructure/http/ExpressLoanRoutes.ts
+@@ -0,0 +1,16 @@
++import type { Request, Response } from 'express';
++import { LoanController } from './LoanController';
++
++export class ExpressLoanRoutes {
++  constructor(private readonly loans: LoanController) {}
++
++  async borrow(request: Request, response: Response): Promise<void> {
++    const result = await this.loans.borrow({ params: request.params, body: request.body });
++    response.status(result.status).json(result.body);
++  }
++
++  async overdue(_request: Request, response: Response): Promise<void> {
++    const result = await this.loans.overdue();
++    response.status(result.status).json(result.body);
++  }
++}

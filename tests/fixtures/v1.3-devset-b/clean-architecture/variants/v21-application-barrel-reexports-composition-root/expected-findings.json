@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "v21-application-barrel-reexports-composition-root",
+  "kind": "violation",
+  "plants": "FF-S01",
+  "description": "A new application barrel src/application/index.ts re-exports the use cases and also re-exports createLibraryApp and LibraryApp from the composition root infrastructure/main.ts.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/application/index.ts",
+      "target": "src/infrastructure/main.ts",
+      "reason": "An application module re-exports from an infrastructure module: a re-export is a source dependency and it points outward."
+    }
+  ]
+}

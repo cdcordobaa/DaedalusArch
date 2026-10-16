@@ -1,0 +1,17 @@
+--- a/src/persistence/records/OrderRecord.ts
++++ b/src/persistence/records/OrderRecord.ts
+@@ -1,3 +1,5 @@
++import type { Order } from '../../business/model/Order';
++
+ export interface OrderLineRecord {
+   sku: string;
+   quantity: number;
+@@ -7,7 +9,7 @@
+ export interface OrderRecord {
+   id: string;
+   customerId: string;
+-  status: 'placed' | 'cancelled';
++  status: Order['status'];
+   createdAt: string;
+   discountCents: number;
+   lines: OrderLineRecord[];
