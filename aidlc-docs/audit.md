@@ -1484,3 +1484,11 @@ Plan checkboxes ticked. Auto-approved under standing approval; no blocking or ma
 **Context**: v1.3 — requirements revision 1; Gate 2 (first fidelity result) is now a human gate.
 
 ---
+
+## v1.3 CONSTRUCTION — CI gate (diff-aware `check`, GitHub Action)
+**Timestamp**: 2026-10-16T00:00:00Z
+**User Input**: "Make the tool usable as a PR gate: a diff-aware `check --base --head` that reports new, fixed and unchanged findings (rule + file + target, line drift tolerated) and exits non-zero only on NEW blocking findings, reusing check_diff logic; a GitHub Action (action.yml plus an example workflow, not active on this repo) with the in-process engine and a summary comment with fix hints; accuracy on synthetic diffs from the 71 reference variants; Docs/v1.3/ci-gate.md. One PR into v1.3, not merged. No .env reads, no Cypher template or tier edits, existing default outputs byte-identical, jest --maxWorkers=2; engine cypher-interp if on v1.3, else Neo4j 5.26 + APOC from the tarball."
+**AI Response**: "Branch v1.3-ci-action from origin/v1.3 2c64d1d5. src/ci-gate (match, engines neo4j|lexical, git-tree, run-check, format) and a `check` CLI subcommand; cypher-interp is not on v1.3 (only on the unmerged v1.3-cypher-interp branch), so the in-process engine is the MCP check_file scan (`lexical`) and the accuracy runs used Neo4j 5.26.24 + APOC 5.26.24 from the tarball. Synthetic diffs, 203 cases over 71 variants: neo4j 197/203 exact, 108/114 blocking findings, 0 false alarms (the 6 inexact cases are the 3 FF-P06 FLOWS_TO rows, reported in tier not-applicable as v1.3 scoring does); lexical 155/203 exact, 0 false alarms, recall 50.9 %. action.yml, Docs/examples/architecture-gate.yml, Docs/v1.3/ci-gate.md, results/v1.3-ci-gate/. The AI-DLC approval gates were not run interactively: the request specified scope, rules and deliverables in full and asked for an unmerged PR for review, which serves as the approval point."
+**Context**: v1.3 — tooling unit outside the validity studies; no manifest, tier, template or registered artefact changed.
+
+---
