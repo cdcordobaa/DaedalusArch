@@ -66,6 +66,16 @@
               "additionalProperties": false,
               "required": ["policy", "lockSha256"],
               "properties": { "policy": { "const": "npm-ci-ignore-scripts" }, "lockSha256": { "$ref": "#/definitions/sha256" } }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["policy", "lockSha256", "packageManager"],
+              "properties": {
+                "policy": { "enum": ["pnpm-frozen-ignore-scripts", "yarn-classic-frozen-ignore-scripts", "yarn-berry-immutable-ignore-scripts"] },
+                "lockSha256": { "$ref": "#/definitions/sha256" },
+                "packageManager": { "type": "string", "pattern": "^(pnpm|yarn)@[0-9]+\\.[0-9]+\\.[0-9]+$" }
+              }
             }
           ]
         },

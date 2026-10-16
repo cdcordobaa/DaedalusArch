@@ -21,6 +21,7 @@ import { createHash } from 'node:crypto';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import type { ProcessRunner } from '../../../src/shared/interfaces/process-runner.js';
 import type { BaseKind, JudgeSelection, PreparedBase } from './types.js';
+import { isPnpmLayout, relinkPnpmCopy } from '../pnpm-links.js';
 
 const SHA1_HEX = /^[0-9a-f]{40}$/;
 const SHA256_HEX = /^[0-9a-f]{64}$/;
@@ -168,6 +169,8 @@ export async function copyBase(base: PreparedBase, dest: string): Promise<Domain
   }
   await fs.promises.mkdir(path.dirname(target), { recursive: true });
   await fs.promises.cp(source, target, { recursive: true, errorOnExist: true, force: false, preserveTimestamps: true, verbatimSymlinks: true });
+  // v1.3: a pnpm base (`node_modules/.pnpm`) keeps its links resolving as in the source; npm and yarn bases are untouched.
+  if (isPnpmLayout(source)) relinkPnpmCopy(source, target);
   for (const o of base.overlays) {
     const file = path.join(target, ...o.path.split('/'));
     const actual = fs.existsSync(file) ? sha256File(file) : null;
