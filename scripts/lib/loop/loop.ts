@@ -52,6 +52,7 @@ import type {
   StepEvaluation,
   StepEvaluator,
   RepairOutcome,
+  RunParityCounts,
   StepRecord,
   StepSpecRef,
   StepTypechecker,
@@ -456,9 +457,28 @@ class LoopRun {
       last = r.data.finalCommit;
       this.ctx.log?.(`${this.runId}: step ${String(i + 1)}/${String(steps)} ${describeStep(r.data)}`);
     }
-    writeJsonAtomic(runFile, { ...record, completedAt: this.ctx.now().toISOString() });
+    // `--engine both`: parity counts over every step of the run (earlier invocations' steps included); absent otherwise.
+    const parity = runParityCounts(records);
+    writeJsonAtomic(runFile, { ...record, completedAt: this.ctx.now().toISOString(), ...(parity !== undefined ? { parity } : {}) });
     return DomainResult.ok({ kind: 'completed', runId: this.runId, resumedFromStep: done.length, steps: records });
   }
+}
+
+/** Parity counts over every evaluated turn of the given step records; undefined when none carries a parity block. */
+export function runParityCounts(steps: readonly StepRecord[]): RunParityCounts | undefined {
+  const c = { snapshots: 0, identical: 0, order: 0, divergent: 0, checkFailed: 0 };
+  for (const s of steps) {
+    for (const t of s.turns) {
+      const p = t.snapshot.evaluation?.parity;
+      if (p === undefined) continue;
+      c.snapshots++;
+      if (p.status === 'identical') c.identical++;
+      else if (p.status === 'order') c.order++;
+      else if (p.status === 'divergent') c.divergent++;
+      else c.checkFailed++;
+    }
+  }
+  return c.snapshots > 0 ? c : undefined;
 }
 
 /** One-line summary of a step for the console. */

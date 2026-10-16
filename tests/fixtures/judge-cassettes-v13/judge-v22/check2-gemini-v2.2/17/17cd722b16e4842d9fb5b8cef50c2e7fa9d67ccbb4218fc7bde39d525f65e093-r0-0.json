@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.6",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 33314,
+  "effort": null,
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "d68c66d27818a8985e559c413f44be9c1f9c04a809ce77369abdb4acca0710db",
+  "key": "17cd722b16e4842d9fb5b8cef50c2e7fa9d67ccbb4218fc7bde39d525f65e093-r0-0",
+  "model": "gemini-4-argon-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.98,
+    "evidence": [
+      "src/presentation/handlers/PayrollController.ts:18-21: PayrollController.submit(actor: string, payload: HoursPayload) executes `if (payload.hours < 0 || payload.hours > 80) { throw new PayrollRuleError('Weekly hours must be between 0 and 80'); }`, enforcing a domain invariant and throwing `PayrollRuleError` (from `../../business/model/PayrollRuleError`, layer `business`, kind `domain`), which belongs to the `domain` layer."
+    ],
+    "pass": false,
+    "reasoning": "`src/presentation/handlers/PayrollController.ts` is in the `presentation` layer, but `PayrollController.submit` enforces a business rule / domain invariant (`payload.hours < 0 || payload.hours > 80`) and throws `PayrollRuleError` (from `src/business/model/PayrollRuleError.ts`, `business` / `domain` layer), which belongs to the `domain` layer.",
+    "violations": [
+      {
+        "filePath": "src/presentation/handlers/PayrollController.ts",
+        "message": "PayrollController.submit (lines 18-21) enforces a domain invariant (`if (payload.hours < 0 || payload.hours > 80)`) and throws `PayrollRuleError` (from `../../business/model/PayrollRuleError`, `business` / `domain` layer), placing a `domain` layer business rule inside a `presentation` layer controller."
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe unit's responsibilities, signatures and annotations match the role of its declared layer.\n\n## Rubric\nPass: Every declaration in the file belongs to the role and kind of its declared layer, including its parameter, return and field types, its decorators and base classes, and its statements, and agrees with any ADR prose given. Calls into a layer that the layer model lets this layer depend on are part of that role.\nFail: The file carries something that belongs to a different layer kind. In a domain or application file: a request, response, HTTP context, status code or HTTP error, from a web or transport package or from the delivery layer, in any method or function signature (parameter or return) or thrown, even when the parameter is optional or unused. In a domain file also: any framework or ORM type, decorator or base class (dependency injection, routing, persistence mapping), even when the class logic is pure; or direct I/O, that is a database, ORM, query, HTTP or file client that the file itself creates, imports from a package or obtains from a global accessor, or persistence or I/O done through a class of a layer that the layer model does not let this layer depend on. A call to a class or interface of a layer that this layer may depend on is not misplaced I/O, whatever that layer does behind it. In an infrastructure or presentation file: a business rule, that is a domain invariant, calculation or decision that the domain or application layer should own. Constructor parameters of any file are dependency wiring when their types come from the file's own layer or from a layer it may depend on: an injected repository, gateway, client or service there is not by itself misplaced. A type the project declares itself is not a framework type, whatever its name.\nEvidence required: Name the file and cite the signature, decorator, declaration or statement that carries the misplaced responsibility, its package or origin, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\nStyle: layered. Closed layering: layers are listed bottom-up and each layer may depend only on the layer listed directly before it.\n- persistence (kind: infrastructure; may depend on: no other layer): src/persistence/**\n- business (kind: domain; may depend on: persistence): src/business/**\n- presentation (kind: presentation; may depend on: business): src/presentation/**\n\n## Unit\nKind: file\nId: src/presentation/handlers/PayrollController.ts\nLayer: presentation\nUnit files:\n- src/presentation/handlers/PayrollController.ts\n\n## Source\n=====SOURCE-BEGIN src/presentation/handlers/PayrollController.ts=====\nimport { PayrollAuditService } from '../../business/services/PayrollAuditService';\nimport { PayrollService } from '../../business/services/PayrollService';\nimport { payslipRow } from '../views/payslipView';\nimport { PayrollRuleError } from '../../business/model/PayrollRuleError';\n\nexport interface HoursPayload {\n  employeeId: string;\n  week: string;\n  hours: number;\n}\n\nexport class PayrollController {\n  constructor(\n    private readonly payroll: PayrollService,\n    private readonly audit: PayrollAuditService,\n  ) {}\n\n  async submit(actor: string, payload: HoursPayload): Promise<{ id: string }> {\n    if (payload.hours < 0 || payload.hours > 80) {\n      throw new PayrollRuleError('Weekly hours must be between 0 and 80');\n    }\n    const sheet = await this.payroll.submitHours(payload.employeeId, payload.week, payload.hours);\n    await this.audit.log(actor, 'submit', sheet.id);\n    return { id: sheet.id };\n  }\n\n  async approve(actor: string, timesheetId: string): Promise<{ approved: boolean }> {\n    const sheet = await this.payroll.approve(timesheetId);\n    await this.audit.log(actor, 'approve', sheet.id);\n    return { approved: sheet.approved };\n  }\n\n  async export(week: string): Promise<string> {\n    return (await this.payroll.run(week)).map(payslipRow).join('\\n');\n  }\n}\n\n=====SOURCE-END=====\n\n## Neighbourhood\nsrc/presentation/handlers/PayrollController.ts (layer presentation, kind presentation)\n  imports: src/business/model/PayrollRuleError.ts (layer business, kind domain); src/business/services/PayrollAuditService.ts (layer business, kind domain); src/business/services/PayrollService.ts (layer business, kind domain); src/presentation/views/payslipView.ts (layer presentation, kind presentation)\n  imported by: src/main.ts (unlayered); src/presentation/handlers/http.ts (layer presentation, kind presentation)\n  types: PayrollController injects PayrollAuditService in src/business/services/PayrollAuditService.ts (layer business, kind domain); PayrollController injects PayrollService in src/business/services/PayrollService.ts (layer business, kind domain)\n\n## Candidate flags\nCandidates proposed by deterministic checks; verify, don't trust. Each line is a tool observation with its location, not a finding.\n- logic-density/controller-logic-density at src/presentation/handlers/PayrollController.ts:18-25: controller method PayrollController.submit: 1 branches, 2 comparisons, 0 arithmetic, 1 validation throws\n- name-behaviour/controller-business-logic at src/presentation/handlers/PayrollController.ts:18-25: controller PayrollController.submit has logic density 4\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric. Check each candidate flag against the source: a flag the source does not support must not count against the unit, and a violation the flags miss counts as much as one they name. Judge what each declaration is, not only what it does at run time.\n",
+  "provider": "agy",
+  "recordedAt": "2026-10-16T06:03:09.092Z",
+  "repetition": 0,
+  "requestHash": "17cd722b16e4842d9fb5b8cef50c2e7fa9d67ccbb4218fc7bde39d525f65e093",
+  "resolvedModel": "gemini-4-argon-high",
+  "response": "{\"confidence\":0.98,\"evidence\":[\"src/presentation/handlers/PayrollController.ts:18-21: PayrollController.submit(actor: string, payload: HoursPayload) executes `if (payload.hours < 0 || payload.hours > 80) { throw new PayrollRuleError('Weekly hours must be between 0 and 80'); }`, enforcing a domain invariant and throwing `PayrollRuleError` (from `../../business/model/PayrollRuleError`, layer `business`, kind `domain`), which belongs to the `domain` layer.\"],\"pass\":false,\"reasoning\":\"`src/presentation/handlers/PayrollController.ts` is in the `presentation` layer, but `PayrollController.submit` enforces a business rule / domain invariant (`payload.hours < 0 || payload.hours > 80`) and throws `PayrollRuleError` (from `src/business/model/PayrollRuleError.ts`, `business` / `domain` layer), which belongs to the `domain` layer.\",\"violations\":[{\"filePath\":\"src/presentation/handlers/PayrollController.ts\",\"message\":\"PayrollController.submit (lines 18-21) enforces a domain invariant (`if (payload.hours < 0 || payload.hours > 80)`) and throws `PayrollRuleError` (from `../../business/model/PayrollRuleError`, `business` / `domain` layer), placing a `domain` layer business rule inside a `presentation` layer controller.\"}]}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/presentation/handlers/PayrollController.ts",
+  "usage": {
+    "inputTokens": 30644,
+    "outputTokens": 1959
+  },
+  "usedOptions": {
+    "model": "gemini-4-argon-high"
+  }
+}

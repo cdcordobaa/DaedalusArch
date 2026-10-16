@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 5456,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "eb59c3d28084b7f41a31b9389d450c67bab6598dc875c9db9bb08f248e879102-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.9,
+    "evidence": [
+      "src/business/model/Member.ts: class Member is a plain domain entity with no framework decorators, I/O or persistence calls",
+      "src/business/model/Member.ts: canBorrow(openLoans) holds the domain rule `this.active && openLoans < this.maxLoans`, which belongs in the domain layer",
+      "src/business/model/Member.ts: hasId() is a simple identity check on the entity, not persistence logic"
+    ],
+    "pass": true,
+    "reasoning": "Member.ts is a plain domain entity in the business layer, which is a domain-kind layer. It holds member state (id, name, maxLoans, active) and one business rule, canBorrow, that checks whether the member is active and still under the loan limit. hasId() is a small identity check. It has no persistence, transport, framework or presentation logic. Every responsibility fits the domain layer.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**\n- business (kind: domain): src/business/**\n- presentation (kind: presentation): src/presentation/**\n\n## Unit\nKind: file\nId: src/business/model/Member.ts\nLayer: business\nUnit files:\n- src/business/model/Member.ts\n\n## Source\n=====SOURCE-BEGIN src/business/model/Member.ts=====\nexport class Member {\n  id: string;\n  name: string;\n  maxLoans: number;\n  active: boolean;\n\n  constructor(id: string, name: string, maxLoans: number, active: boolean) {\n    this.id = id;\n    this.name = name;\n    this.maxLoans = maxLoans;\n    this.active = active;\n  }\n\n  canBorrow(openLoans: number): boolean {\n    return this.active && openLoans < this.maxLoans;\n  }\n\n  hasId(): boolean {\n    return this.id !== undefined;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/business/services/LendingService.ts\",\"to\":\"src/business/model/Member.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"business\",\"name\":\"Member\",\"path\":\"src/business/model/Member.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/model/Member.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/services/LendingService.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T03:17:09.856Z",
+  "repetition": 0,
+  "requestHash": "eb59c3d28084b7f41a31b9389d450c67bab6598dc875c9db9bb08f248e879102",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":407}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.9,\\\"reasoning\\\":\\\"Member.ts is a plain domain entity in the business layer, which is a domain-kind layer. It holds member state (id, name, maxLoans, active) and one business rule, canBorrow, that checks whether the member is active and still under the loan limit. hasId() is a small identity check. It has no persistence, transport, framework or presentation logic. Every responsibility fits the domain layer.\\\",\\\"evidence\\\":[\\\"src/business/model/Member.ts: class Member is a plain domain entity with no framework decorators, I/O or persistence calls\\\",\\\"src/business/model/Member.ts: canBorrow(openLoans) holds the domain rule `this.active && openLoans < this.maxLoans`, which belongs in the domain layer\\\",\\\"src/business/model/Member.ts: hasId() is a simple identity check on the entity, not persistence logic\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.9,\"evidence\":[\"src/business/model/Member.ts: class Member is a plain domain entity with no framework decorators, I/O or persistence calls\",\"src/business/model/Member.ts: canBorrow(openLoans) holds the domain rule `this.active && openLoans < this.maxLoans`, which belongs in the domain layer\",\"src/business/model/Member.ts: hasId() is a simple identity check on the entity, not persistence logic\"],\"pass\":true,\"reasoning\":\"Member.ts is a plain domain entity in the business layer, which is a domain-kind layer. It holds member state (id, name, maxLoans, active) and one business rule, canBorrow, that checks whether the member is active and still under the loan limit. hasId() is a small identity check. It has no persistence, transport, framework or presentation logic. Every responsibility fits the domain layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/business/model/Member.ts",
+  "usage": {
+    "inputTokens": 2231,
+    "outputTokens": 407
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

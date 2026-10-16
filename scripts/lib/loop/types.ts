@@ -217,6 +217,67 @@ export interface StepEvaluation {
    * step record.
    */
   readonly reportViolations?: readonly unknown[];
+  /**
+   * The graph engine this evaluation was recorded on. Absent in the default mode (no `--engine`), so default records
+   * are unchanged; `neo4j` under `--engine both`, `cypher-interp` under `--engine cypher-interp`
+   * (`Docs/v1.3/loop-engine-tee.md`).
+   */
+  readonly engineOfRecord?: 'neo4j' | 'cypher-interp';
+  /** `--engine both` only: the interpreter's evaluation of the same snapshot compared with this one. */
+  readonly parity?: EngineParity;
+}
+
+/** The loop evaluator's graph engine (`--engine`, `Docs/v1.3/loop-engine-tee.md`). */
+export const LOOP_ENGINES = ['neo4j', 'cypher-interp', 'both'] as const;
+export type LoopEngine = (typeof LOOP_ENGINES)[number];
+
+export function parseLoopEngine(value: unknown): LoopEngine | undefined {
+  return typeof value === 'string' && (LOOP_ENGINES as readonly string[]).includes(value) ? (value as LoopEngine) : undefined;
+}
+
+/** Where a parity check landed (`Docs/v1.3/loop-engine-tee.md` §3). */
+export type ParityStatus = 'identical' | 'order' | 'divergent' | 'check-failed';
+
+/** A blocking finding's identity for parity: `(ruleId, template, filePath, target)`. */
+export interface ParityFindingKey {
+  readonly ruleId: string;
+  readonly template: string | null;
+  readonly filePath: string;
+  readonly target: string | null;
+}
+
+/** What differs between the engine of record and the check engine (empty fields left out). */
+export interface ParityDiff {
+  /** Blocking findings only on the engine of record / only on the check engine (at most 20 listed each). */
+  readonly onlyRecord?: readonly ParityFindingKey[];
+  readonly onlyCheck?: readonly ParityFindingKey[];
+  readonly onlyRecordTotal?: number;
+  readonly onlyCheckTotal?: number;
+  /** Rule id → [record, check] where the per-rule counts differ. */
+  readonly blockingByRule?: Readonly<Record<string, readonly [number, number]>>;
+  readonly advisoryByRule?: Readonly<Record<string, readonly [number, number]>>;
+  /** Scalar field → [record, check] where it differs. */
+  readonly fields?: Readonly<Record<string, readonly [unknown, unknown]>>;
+}
+
+export interface EngineParity {
+  readonly checkEngine: 'cypher-interp';
+  readonly status: ParityStatus;
+  /** Present when the status is not `identical`. */
+  readonly diff?: ParityDiff;
+  /** `check-failed` only: the check engine's first error. */
+  readonly checkError?: { readonly code: string; readonly message: string };
+  /** The check engine's own pipeline duration (ms; a timing field, zeroed by the replay's comparisons). */
+  readonly durationMs?: number;
+}
+
+/** `run.json` `parity` under `--engine both`: counts over every evaluated snapshot of the run. */
+export interface RunParityCounts {
+  readonly snapshots: number;
+  readonly identical: number;
+  readonly order: number;
+  readonly divergent: number;
+  readonly checkFailed: number;
 }
 
 /** The firewall run on a snapshot. A failure here is recorded on the step, never retried silently. */
@@ -339,4 +400,6 @@ export interface RunRecord {
   readonly createdAt: string;
   readonly completedAt?: string;
   readonly dryRun: boolean;
+  /** `--engine both` only, set at completion: parity counts over every step record of the run. */
+  readonly parity?: RunParityCounts;
 }
