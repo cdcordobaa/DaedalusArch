@@ -105,7 +105,7 @@ one `code` option.
   `IMPORTS` hop joins Class nodes and never matches; `edge-views.md`). The controllers in v07 and v09 name the entity
   without injecting it, so changing only the selector moves no row. The CSV figure (16/16) assumed an import reach.
 - **Q13 C needs Q25 B.** On its own, the Clean order makes every `*.module.ts` that wires a repository an FF-S01 row:
-  4 distinct rows on each of the 14 variants, which gives nestjs blocking P 10/68. With Q25 B as well, the effect is
+  4 distinct rows on 13 variants, 5 on n02-domain-port-named-dot-repository (rows on all of the 14 variants), which gives nestjs blocking P 10/68. With Q25 B as well, the effect is
   the one the CSV states: v07 becomes an FF-S01 finding, v02 is no longer one, and blocking R and P are 10/11.
 - **Q20 B is wide.** Transitive closure turns every outward edge into a purity finding, as P2 warns: 2 to 5 new rows
   per style, not only nestjs v10.
