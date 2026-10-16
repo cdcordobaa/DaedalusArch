@@ -17,7 +17,7 @@
  * links dangling on a platform that skips them. Nothing is written outside `target`, and the rewrite only runs for a
  * base that has the pnpm virtual store (`node_modules/.pnpm`), so an npm or yarn base is copied exactly as before.
  */
-import { existsSync, lstatSync, readdirSync, readlinkSync, rmSync, symlinkSync } from 'node:fs';
+import { existsSync, lstatSync, readdirSync, readlinkSync, symlinkSync, unlinkSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 
 /** True for a base installed by pnpm with the default (isolated) linker. */
@@ -74,11 +74,11 @@ export function relinkPnpmCopy(source: string, target: string): LinkReport {
     const stays = inside(src, resolvedTarget);
     if (isAbsolute(raw) && stays) {
       const inCopyTarget = join(dst, relative(src, resolvedTarget));
-      rmSync(inCopy);
+      unlinkSync(inCopy); // the link itself; rmSync follows a link to a directory on Node 24
       symlinkSync(relative(dirname(inCopy), inCopyTarget) || '.', inCopy);
       relinkedInside.push(rel);
     } else if (!isAbsolute(raw) && !stays) {
-      rmSync(inCopy);
+      unlinkSync(inCopy); // the link itself; rmSync follows a link to a directory on Node 24
       symlinkSync(resolvedTarget, inCopy);
       relinkedOutside.push(rel);
     }
