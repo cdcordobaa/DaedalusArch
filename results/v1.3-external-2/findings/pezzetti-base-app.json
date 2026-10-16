@@ -1,0 +1,787 @@
+{
+  "runId": "run-1792125432519",
+  "projectPath": "<clones>/pezzetti_base-app-nestjs",
+  "specVersion": "1.0.0",
+  "ahsDeterministic": 0.8,
+  "verdict": "hard-block",
+  "scoring": {
+    "weights": {
+      "structural": 0.35,
+      "coupling": 0.2,
+      "pattern": 0.3,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0,
+      "integrity": 0
+    },
+    "fullModeWeights": {
+      "structural": 0.32,
+      "coupling": 0.18,
+      "pattern": 0.27,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0.04,
+      "integrity": 0.04
+    },
+    "thresholds": {
+      "pass": 0.8,
+      "warning": 0.65,
+      "softBlock": 0.5
+    },
+    "confidenceThresholds": {
+      "high": 0.85,
+      "medium": 0.6,
+      "iccMinimum": 0.7
+    },
+    "verdictSource": "ahsDeterministic"
+  },
+  "perDimensionScores": [
+    {
+      "dimension": "structural",
+      "avr": 0.2,
+      "violatedWeight": 1,
+      "weight": 0.35,
+      "effectiveWeight": 0.5384615384615385,
+      "violationCount": 1,
+      "functionCount": 5
+    },
+    {
+      "dimension": "pattern",
+      "avr": 0.2,
+      "violatedWeight": 1,
+      "weight": 0.3,
+      "effectiveWeight": 0.46153846153846156,
+      "violationCount": 1,
+      "functionCount": 5
+    }
+  ],
+  "violations": [
+    {
+      "id": "v-227e44ea4792c8ac",
+      "type": "CUSTOM_context-isolation",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-DS02",
+      "route": "symbolic",
+      "filePath": "src/modules/auth/auth.module.ts",
+      "message": "src/modules/auth/auth.module.ts (src/modules/auth/) imports src/modules/users/users.module.ts, which is not in the public API of src/modules/users/",
+      "deterministic": true,
+      "target": "src/modules/users/users.module.ts",
+      "line": 5,
+      "lines": [
+        5
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-486bc9fca683d1de",
+      "type": "CUSTOM_context-isolation",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-DS02",
+      "route": "symbolic",
+      "filePath": "src/modules/auth/shared/auth.service.ts",
+      "message": "src/modules/auth/shared/auth.service.ts (src/modules/auth/) imports src/modules/users/domain/user.domain.ts, which is not in the public API of src/modules/users/",
+      "deterministic": true,
+      "target": "src/modules/users/domain/user.domain.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-f076f9882acc1116",
+      "type": "CUSTOM_context-isolation",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-DS02",
+      "route": "symbolic",
+      "filePath": "src/modules/auth/shared/auth.service.ts",
+      "message": "src/modules/auth/shared/auth.service.ts (src/modules/auth/) imports src/modules/users/interfaces/services/get.user.service.interface.ts, which is not in the public API of src/modules/users/",
+      "deterministic": true,
+      "target": "src/modules/users/interfaces/services/get.user.service.interface.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-c5f00e3b43cdc2ea",
+      "type": "CUSTOM_context-isolation",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-DS02",
+      "route": "symbolic",
+      "filePath": "src/modules/auth/shared/auth.service.ts",
+      "message": "src/modules/auth/shared/auth.service.ts (src/modules/auth/) imports src/modules/users/interfaces/types.ts, which is not in the public API of src/modules/users/",
+      "deterministic": true,
+      "target": "src/modules/users/interfaces/types.ts",
+      "line": 5,
+      "lines": [
+        5
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-4a664da83c96c37f",
+      "type": "CUSTOM_context-isolation",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-DS02",
+      "route": "symbolic",
+      "filePath": "src/modules/auth/shared/local.strategy.ts",
+      "message": "src/modules/auth/shared/local.strategy.ts (src/modules/auth/) imports src/modules/users/domain/user.domain.ts, which is not in the public API of src/modules/users/",
+      "deterministic": true,
+      "target": "src/modules/users/domain/user.domain.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-2875c1387b46194a",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-DT04",
+      "route": "symbolic",
+      "filePath": "src/modules/users/domain/user.domain.ts",
+      "message": "Domain file src/modules/users/domain/user.domain.ts imports forbidden package @nestjs/graphql",
+      "deterministic": true,
+      "target": "@nestjs/graphql",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-fab14462fd336334",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-DT04",
+      "route": "symbolic",
+      "filePath": "src/modules/users/domain/user.domain.ts",
+      "message": "Domain file src/modules/users/domain/user.domain.ts imports forbidden package @nestjs/swagger",
+      "deterministic": true,
+      "target": "@nestjs/swagger",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-70c1ecbf9dfa7ca5",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-DT04",
+      "route": "symbolic",
+      "filePath": "src/modules/users/domain/user.domain.ts",
+      "message": "Domain file src/modules/users/domain/user.domain.ts imports forbidden package class-validator",
+      "deterministic": true,
+      "target": "class-validator",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-3ac6c1db621b299f",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-DT04",
+      "route": "symbolic",
+      "filePath": "src/modules/users/domain/user.entity.ts",
+      "message": "Domain file src/modules/users/domain/user.entity.ts imports forbidden package @nestjs/graphql",
+      "deterministic": true,
+      "target": "@nestjs/graphql",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-36705f4c59d94379",
+      "type": "DOMAIN_PURITY_VIOLATION",
+      "dimension": "pattern",
+      "severity": "critical",
+      "functionId": "FF-DT04",
+      "route": "symbolic",
+      "filePath": "src/modules/users/domain/user.entity.ts",
+      "message": "Domain file src/modules/users/domain/user.entity.ts imports forbidden package typeorm",
+      "deterministic": true,
+      "target": "typeorm",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "pattern-proxy"
+    }
+  ],
+  "universalMetrics": {
+    "cyclicDependencyCount": 0,
+    "maxFanOut": 8,
+    "maxFanIn": 12,
+    "abstractionRatio": 0.217,
+    "averageInstability": 0.471,
+    "orphanFileCount": 1
+  },
+  "evaluationMode": "symbolic-only",
+  "durationMs": 60,
+  "droppedDimensions": [
+    {
+      "dimension": "coupling",
+      "reason": "none_declared",
+      "declared": 0,
+      "executed": 0
+    },
+    {
+      "dimension": "solid",
+      "reason": "none_declared",
+      "declared": 0,
+      "executed": 0
+    },
+    {
+      "dimension": "convention",
+      "reason": "none_declared",
+      "declared": 0,
+      "executed": 0
+    }
+  ],
+  "tiers": {
+    "scoringMode": "v1.3",
+    "tierTable": "Docs/v1.3/rule-tiers.md",
+    "style": "ddd",
+    "verdict": "fail",
+    "verdictRule": "any-blocking-violation",
+    "v12eVerdict": "pass",
+    "blockingAhs": 0.712,
+    "blocking": {
+      "rules": [
+        {
+          "functionId": "FF-DS01",
+          "name": "bounded-context-modules",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-DS02",
+          "name": "context-isolation",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 5,
+          "violated": true
+        },
+        {
+          "functionId": "FF-DT01",
+          "name": "aggregate-boundary",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-DT02",
+          "name": "repository-aggregate-root",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-DT03",
+          "name": "value-object-immutability",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-DT04",
+          "name": "domain-purity",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 5,
+          "violated": true
+        },
+        {
+          "functionId": "FF-S01",
+          "name": "dependency-direction-graph",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        }
+      ],
+      "violatedRules": 2,
+      "violationCount": 10
+    },
+    "advisory": {
+      "rules": [
+        {
+          "functionId": "FF-DT05",
+          "name": "domain-event-placement",
+          "dimension": "pattern",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-DT06",
+          "name": "application-service-thin",
+          "dimension": "pattern",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-S03",
+          "name": "layer-skip-graph",
+          "dimension": "structural",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        }
+      ],
+      "violatedRules": 0,
+      "violationCount": 0
+    },
+    "notApplicable": [],
+    "blockingNotExecuted": []
+  },
+  "warnings": [
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: PipeTransform",
+      "context": {
+        "filePath": "src/common/validation.pipe.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_005",
+      "message": "CONSTRUCTOR_INJECTS type unresolvable: Function",
+      "context": {
+        "filePath": "src/common/validation.pipe.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module exports element not in extracted set: getUserService",
+      "context": {
+        "filePath": "src/modules/users/users.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: ConfigModule",
+      "context": {
+        "filePath": "src/app.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: ConfigModule",
+      "context": {
+        "filePath": "src/modules/auth/auth.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: GraphQLModule",
+      "context": {
+        "filePath": "src/app.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: JwtModule",
+      "context": {
+        "filePath": "src/modules/auth/auth.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: PassportModule",
+      "context": {
+        "filePath": "src/modules/auth/auth.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: TypeOrmModule",
+      "context": {
+        "filePath": "src/app.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: TypeOrmModule",
+      "context": {
+        "filePath": "src/modules/users/users.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module providers element not in extracted set: createUserApp",
+      "context": {
+        "filePath": "src/modules/users/users.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module providers element not in extracted set: createUserService",
+      "context": {
+        "filePath": "src/modules/users/users.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module providers element not in extracted set: getUserApp",
+      "context": {
+        "filePath": "src/modules/users/users.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module providers element not in extracted set: getUserService",
+      "context": {
+        "filePath": "src/modules/users/users.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DS01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DS02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DT01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DT02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DT03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DT04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DT05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DT06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    }
+  ],
+  "functionExecution": {
+    "declared": 10,
+    "adrDerived": 0,
+    "compiled": 10,
+    "disabled": 0,
+    "dropped": [],
+    "skippedByMode": 0,
+    "noJudgeUnits": [],
+    "executed": 10,
+    "failed": []
+  },
+  "functionResults": [
+    {
+      "functionId": "FF-DS01",
+      "name": "bounded-context-modules",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 29,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DS02",
+      "name": "context-isolation",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": false,
+      "violationCount": 5,
+      "executionTimeMs": 53,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DT01",
+      "name": "aggregate-boundary",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 12,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S01",
+      "name": "dependency-direction-graph",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 23,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S03",
+      "name": "layer-skip-graph",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 13,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DT02",
+      "name": "repository-aggregate-root",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 11,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DT03",
+      "name": "value-object-immutability",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 23,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DT04",
+      "name": "domain-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 5,
+      "executionTimeMs": 11,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DT05",
+      "name": "domain-event-placement",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 9,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DT06",
+      "name": "application-service-thin",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 3,
+      "truncated": false
+    }
+  ],
+  "disabledFunctions": [],
+  "graphStats": {
+    "nodeCount": 89,
+    "edgeCount": 181,
+    "layerCoverage": 0.9655172413793104,
+    "nodeCountByType": {
+      "File": 29,
+      "Class": 18,
+      "Interface": 5,
+      "Method": 21,
+      "Function": 1,
+      "Package": 15
+    },
+    "edgeCountByType": {
+      "IMPORTS": 111,
+      "IMPLEMENTS": 4,
+      "EXTENDS": 0,
+      "CONSTRUCTOR_INJECTS": 9,
+      "CALLS": 2,
+      "DECLARES": 24,
+      "CONTAINS": 21,
+      "FLOWS_TO": 0,
+      "RE_EXPORTS": 0
+    }
+  },
+  "layerAnnotation": {
+    "mapped": 28,
+    "unmapped": 1,
+    "unmappedFiles": [
+      "test/user.e2e-spec.ts"
+    ]
+  },
+  "parseCoverage": {
+    "total": 29,
+    "parsed": 29,
+    "percentage": 100,
+    "skipped": []
+  },
+  "importResolution": {
+    "resolvedInternal": 60,
+    "external": 53,
+    "externalOutOfRootAlias": 0,
+    "unresolved": 0,
+    "droppedNoFileNode": 0,
+    "unsupportedDynamic": 0
+  },
+  "timings": {
+    "stages": [
+      {
+        "name": "parallel:extract-apg+parse-spec",
+        "durationMs": 587,
+        "status": "success"
+      },
+      {
+        "name": "ingest-apg",
+        "durationMs": 100,
+        "status": "success"
+      },
+      {
+        "name": "compile-functions",
+        "durationMs": 5,
+        "status": "success"
+      },
+      {
+        "name": "evaluate-symbolic",
+        "durationMs": 187,
+        "status": "success"
+      },
+      {
+        "name": "universal-metric:cyclicDependencyCount",
+        "durationMs": 22,
+        "status": "success"
+      },
+      {
+        "name": "compute-scores",
+        "durationMs": 61,
+        "status": "success"
+      }
+    ],
+    "totalMs": 940
+  },
+  "judge": {
+    "provider": "none",
+    "model": "none",
+    "runsPerUnit": 0
+  },
+  "instrumentVersion": 2
+}

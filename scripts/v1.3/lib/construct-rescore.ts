@@ -69,6 +69,8 @@ export interface RescoreExtras {
   readonly notApplicable: Readonly<Record<string, { readonly tool: readonly ActualFinding[]; readonly expected: readonly ExpectedFinding[] }>>;
   /** Rules added to or removed from a style's compared scope by the answers. */
   readonly scope: Readonly<Record<string, { readonly added: readonly string[]; readonly removed: readonly string[] }>>;
+  /** The tool rows of each variant (`style/variant`) after the switches, N/A rows excluded: for re-scoring against another key. */
+  readonly actual: Readonly<Record<string, readonly ActualFinding[]>>;
 }
 
 export interface RescoreResult {
@@ -148,10 +150,14 @@ const IN_COMPONENT_SUFFIX = ' (in-component)';
 export async function rescore(input: RescoreInput): Promise<RescoreResult> {
   const refs = loadAllReferences(input.repoRoot, input.styles);
   const rawDir = path.join(input.base, 'raw');
-  const extras: { changes: Record<string, RowChange[]>; notApplicable: Record<string, { tool: ActualFinding[]; expected: ExpectedFinding[] }>; scope: Record<string, { added: string[]; removed: string[] }> } =
-    { changes: {}, notApplicable: {}, scope: {} };
+  const extras: { changes: Record<string, RowChange[]>; notApplicable: Record<string, { tool: ActualFinding[]; expected: ExpectedFinding[] }>; scope: Record<string, { added: string[]; removed: string[] }>; actual: Record<string, readonly ActualFinding[]> } =
+    { changes: {}, notApplicable: {}, scope: {}, actual: {} };
   if (isStatusQuo(input.answers) && input.forceGeneralPath !== true) {
-    const run = await compareAll(refs, (ref, variant) => Promise.resolve(readRaw(rawDir, ref.style, variant)));
+    const run = await compareAll(refs, (ref, variant) => {
+      const rows = readRaw(rawDir, ref.style, variant);
+      extras.actual[`${ref.style}/${variant}`] = rows;
+      return Promise.resolve(rows);
+    });
     return { run, extras };
   }
   const graphs = input.graphs ?? extractingGraphs();
@@ -177,7 +183,7 @@ const NEW_RULE_NAMES: Readonly<Record<string, string>> = {
 
 async function rescoreStyle(
   ref: LoadedReference, input: RescoreInput, graphs: GraphProvider,
-  extras: { changes: Record<string, RowChange[]>; notApplicable: Record<string, { tool: ActualFinding[]; expected: ExpectedFinding[] }>; scope: Record<string, { added: string[]; removed: string[] }> },
+  extras: { changes: Record<string, RowChange[]>; notApplicable: Record<string, { tool: ActualFinding[]; expected: ExpectedFinding[] }>; scope: Record<string, { added: string[]; removed: string[] }>; actual: Record<string, readonly ActualFinding[]> },
 ): Promise<{ comparisons: VariantComparison[]; metrics: StyleMetrics }> {
   const answers = input.answers;
   const parsed = await parseSpec({ specFilePath: ref.specPath });
@@ -244,6 +250,7 @@ async function rescoreStyle(
     const na = answers.Q8 === 'B' ? rows.filter((x) => String(x.functionId) === 'FF-P06' && x.discriminator?.[2] === 'FLOWS_TO') : [];
     naOf.set(variant, na.map(toFinding));
     actualOf.set(variant, rows.filter((x) => !na.includes(x)).map(toFinding));
+    extras.actual[`${ref.style}/${variant}`] = actualOf.get(variant) ?? [];
   }
 
   // The reference under the answers (renames and N/A only).
@@ -311,6 +318,7 @@ export function writeRescore(outDir: string, result: RescoreResult, header: stri
   fs.writeFileSync(path.join(outDir, 'report.json'), JSON.stringify({ header, metrics: result.run.metrics, comparisons: result.run.comparisons }, null, 2) + '\n');
   fs.writeFileSync(path.join(outDir, 'report.md'), renderMarkdown(result.run.metrics, result.run.comparisons, header));
   if (!isStatusQuo(answers)) {
-    fs.writeFileSync(path.join(outDir, 'construct-switches.json'), JSON.stringify({ answers, ...result.extras }, null, 2) + '\n');
+    const { actual: _actual, ...written } = result.extras;
+    fs.writeFileSync(path.join(outDir, 'construct-switches.json'), JSON.stringify({ answers, ...written }, null, 2) + '\n');
   }
 }

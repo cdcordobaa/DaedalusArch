@@ -14,13 +14,18 @@
  * diff, skeleton integrity), type-checked and evaluated. In the `gate` arm, when that evaluation reports blocking
  * findings, the agent gets them in one repair turn, and the tree is committed, measured, type-checked and evaluated
  * again; the step's outcome is the last snapshot. An evaluator failure is recorded on the snapshot (the commit is kept,
- * so it can be re-scored); a turn or snapshot failure is a harness failure and stops the run.
+ * so it can be re-scored); a turn or snapshot failure is a harness failure and stops the run. A run in which every
+ * snapshot failed evaluation fails at its end (`LOOP_EVAL_ALL_FAILED`) and is not marked complete.
  *
  * Per-task style and spec (`LoopContext.profiles`, optional): the task's step frames carry its style slot (`style.ts`)
  * and its snapshots are evaluated against its own spec, a fixed file or a DDD spec the ISE infers from the run's
  * step-1 snapshot and freezes in `spec/` (`specs.ts`). Without a profile the task uses the default frame and
  * `LoopContext.evaluator`. Every turn's prompt is written beside its envelope (`turns/step-NN/prompt-<turnId>.txt`).
  * The gate's repair record says finding by finding which blocking findings the repair removed (`repairOutcome`).
+ *
+ * Acceptance checks (`LoopContext.acceptance`, off unless the plan enables them; `acceptance.ts`, gate D12): every
+ * measured snapshot also gets the black-box tests of steps 1..k run against its service, started from a copy outside
+ * `work/`; the record goes on the snapshot and the step's final one on the step record.
  *
  * Resume: the step records are the only progress state. On start, a run with every step record and `completedAt` is
  * skipped; otherwise the work tree is put back to the last recorded step's final commit (the base commit when none),
@@ -31,6 +36,7 @@ import * as path from 'node:path';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import { agentFileCount, sourceFilePaths } from '../generators/outcome.js';
 import { treeLoc } from '../so5-size.js';
+import type { AcceptanceRunner } from './acceptance.js';
 import { loopRunId } from './plan.js';
 import { MAX_REPAIR_FINDINGS, repairPrompt, sha256, stepPrompt } from './prompts.js';
 import { WorkTreeSnapshots, SNAPSHOT_GIT_DIR } from './snapshot.js';
@@ -47,6 +53,7 @@ import type {
   StepEvaluation,
   StepEvaluator,
   RepairOutcome,
+  RunParityCounts,
   StepRecord,
   StepSpecRef,
   StepTypechecker,
@@ -102,6 +109,10 @@ export interface LoopContext {
   readonly now: () => Date;
   readonly dryRun: boolean;
   readonly log?: (line: string) => void;
+  /** Pins the snapshot commits' dates (`WorkTreeSnapshots`); the loop replay sets it, live runs do not. */
+  readonly snapshotDate?: string;
+  /** Per-snapshot acceptance checks (`acceptance.ts`); absent (the default) means none run and none are recorded. */
+  readonly acceptance?: AcceptanceRunner;
 }
 
 export type LoopRunResult =
@@ -157,8 +168,9 @@ function copyTree(from: string, to: string): void {
   fs.cpSync(from, to, { recursive: true, verbatimSymlinks: true });
 }
 
-function identity(f: Pick<BlockingFinding, 'ruleId' | 'filePath' | 'target'>): string {
-  return `${f.ruleId}\u0000${f.filePath}\u0000${f.target ?? ''}`;
+/** Rule id, template (when the evaluator reports it), file and target; lines ignored (memo §3). */
+function identity(f: Pick<BlockingFinding, 'ruleId' | 'template' | 'filePath' | 'target'>): string {
+  return `${f.ruleId}\u0000${f.template ?? ''}\u0000${f.filePath}\u0000${f.target ?? ''}`;
 }
 
 /**
@@ -218,7 +230,7 @@ class LoopRun {
     this.runId = loopRunId(spec);
     this.runDir = runDirFor(ctx.outRoot, this.runId);
     this.workDir = path.join(this.runDir, WORK_DIR);
-    this.snaps = new WorkTreeSnapshots(path.join(this.runDir, SNAPSHOT_GIT_DIR), this.workDir);
+    this.snaps = new WorkTreeSnapshots(path.join(this.runDir, SNAPSHOT_GIT_DIR), this.workDir, ctx.snapshotDate);
     this.profile = ctx.profiles?.get(task.id);
   }
 
@@ -292,9 +304,29 @@ class LoopRun {
     if (resolved.ref !== undefined) this.lastSpecRef = resolved.ref;
     const ev =
       resolved.evaluator !== null
-        ? await resolved.evaluator.evaluate(this.workDir)
+        ? await resolved.evaluator.evaluate(this.workDir, this.runId)
         : DomainResult.fail<StepEvaluation>([resolved.error ?? { code: 'LOOP_NO_EVALUATOR', message: 'no evaluator' }]);
     const firstError = ev.success ? undefined : ev.errors[0];
+    let evaluation: StepEvaluation | null = null;
+    if (ev.success) {
+      const { reportViolations, ...rest } = ev.data;
+      evaluation = rest;
+      if (reportViolations !== undefined) {
+        const turnId = `step-${pad(stepIndex + 1)}${kind === 'repair' ? '-repair' : ''}`;
+        const file = path.join(this.runDir, TURNS_DIR, `step-${pad(stepIndex + 1)}`, `report-${turnId}.json`);
+        writeJsonAtomic(file, { schema: 'loop-snapshot-report/v1', runId: this.runId, turnId, commit, violations: reportViolations });
+      }
+    }
+    const acceptance =
+      this.ctx.acceptance !== undefined
+        ? await this.ctx.acceptance.run({
+            taskId: this.task.id,
+            stepIndex,
+            workDir: this.workDir,
+            ...(this.task.acceptance !== undefined ? { task: this.task.acceptance } : {}),
+            logFile: path.join(this.runDir, TURNS_DIR, `step-${pad(stepIndex + 1)}`, `acceptance-step-${pad(stepIndex + 1)}${kind === 'repair' ? '-repair' : ''}.log`),
+          })
+        : undefined;
     return DomainResult.ok({
       commit,
       sourceFiles: sourceFilePaths(this.workDir),
@@ -303,8 +335,9 @@ class LoopRun {
       diff: diff.data,
       skeletonIntact: this.ctx.skeletonIntact(this.workDir),
       typecheck: tc.data,
-      evaluation: ev.success ? ev.data : null,
+      evaluation,
       ...(firstError !== undefined ? { evaluationError: { code: firstError.code, message: firstError.message } } : {}),
+      ...(acceptance !== undefined ? { acceptance } : {}),
     });
   }
 
@@ -353,8 +386,12 @@ class LoopRun {
     let outcome: RepairOutcome | undefined;
     if (this.spec.arm === 'gate') {
       const ev = first.data.snapshot.evaluation;
-      if (ev === null || ev.blockingViolationCount === 0) {
-        repair = { attempted: false, blockingBefore: ev?.blockingViolationCount ?? null, blockingAfter: null, cleared: null };
+      if (ev === null) {
+        // The gate saw nothing: recorded as a harness failure, never as a step with no blocking findings (R01).
+        repair = { attempted: false, blockingBefore: null, blockingAfter: null, cleared: null, skipped: 'evaluation-failed' };
+        this.ctx.log?.(`${this.runId}: step ${String(stepIndex + 1)} GATE NOT APPLIED: the snapshot has no evaluation (${first.data.snapshot.evaluationError?.code ?? 'unknown'})`);
+      } else if (ev.blockingViolationCount === 0) {
+        repair = { attempted: false, blockingBefore: 0, blockingAfter: null, cleared: null };
       } else {
         const fix = await this.turn(stepIndex, 'repair', repairPrompt(ev.blockingFindings, ev.blockingViolationCount, tcCommand), first.data.snapshot.commit);
         if (!fix.success) return DomainResult.fail(fix.errors);
@@ -378,6 +415,7 @@ class LoopRun {
       repair,
       ...(outcome !== undefined ? { repairOutcome: outcome } : {}),
       ...(this.lastSpecRef !== undefined ? { evaluatorSpec: this.lastSpecRef } : {}),
+      ...(last.snapshot.acceptance !== undefined ? { acceptance: last.snapshot.acceptance } : {}),
       finalCommit: last.snapshot.commit,
       cost: {
         costUsd: sumOrNull(turns.map((t) => t.result.usage.costUsd)),
@@ -424,9 +462,49 @@ class LoopRun {
       last = r.data.finalCommit;
       this.ctx.log?.(`${this.runId}: step ${String(i + 1)}/${String(steps)} ${describeStep(r.data)}`);
     }
-    writeJsonAtomic(runFile, { ...record, completedAt: this.ctx.now().toISOString() });
+    const unevaluated = allSnapshotsUnevaluated(this.runId, records);
+    if (unevaluated !== undefined) {
+      this.ctx.log?.(unevaluated.message);
+      return DomainResult.fail([unevaluated]);
+    }
+    // `--engine both`: parity counts over every step of the run (earlier invocations' steps included); absent otherwise.
+    const parity = runParityCounts(records);
+    writeJsonAtomic(runFile, { ...record, completedAt: this.ctx.now().toISOString(), ...(parity !== undefined ? { parity } : {}) });
     return DomainResult.ok({ kind: 'completed', runId: this.runId, resumedFromStep: done.length, steps: records });
   }
+}
+
+/**
+ * A run in which no snapshot was evaluated has no outcome (a systematic evaluator failure, such as every snapshot
+ * failing with TSCONFIG_NOT_FOUND, would otherwise pass as a completed run). Such a run fails with
+ * `LOOP_EVAL_ALL_FAILED`, which stops the grid, and is never marked complete; its step records and commits are kept,
+ * so it can be re-scored.
+ */
+export function allSnapshotsUnevaluated(runId: string, records: readonly StepRecord[]): { readonly code: string; readonly message: string } | undefined {
+  const snapshots = records.flatMap((r) => r.turns.map((t) => t.snapshot));
+  if (snapshots.length === 0 || snapshots.some((s) => s.evaluation !== null)) return undefined;
+  const codes = [...new Set(snapshots.map((s) => s.evaluationError?.code ?? 'unknown'))].sort();
+  return {
+    code: 'LOOP_EVAL_ALL_FAILED',
+    message: `${runId}: all ${String(snapshots.length)} snapshots failed evaluation (${codes.join(', ')}); the run is not marked complete`,
+  };
+}
+
+/** Parity counts over every evaluated turn of the given step records; undefined when none carries a parity block. */
+export function runParityCounts(steps: readonly StepRecord[]): RunParityCounts | undefined {
+  const c = { snapshots: 0, identical: 0, order: 0, divergent: 0, checkFailed: 0 };
+  for (const s of steps) {
+    for (const t of s.turns) {
+      const p = t.snapshot.evaluation?.parity;
+      if (p === undefined) continue;
+      c.snapshots++;
+      if (p.status === 'identical') c.identical++;
+      else if (p.status === 'order') c.order++;
+      else if (p.status === 'divergent') c.divergent++;
+      else c.checkFailed++;
+    }
+  }
+  return c.snapshots > 0 ? c : undefined;
 }
 
 /** One-line summary of a step for the console. */
@@ -437,6 +515,13 @@ export function describeStep(r: StepRecord): string {
   const ahs = ev?.ahs !== undefined && ev.ahs !== null ? ev.ahs.toFixed(3) : 'n/a';
   const repair = r.repair?.attempted === true ? ` repair ${String(r.repair.blockingBefore)}→${String(r.repair.blockingAfter)}` : '';
   return `${last?.result.status ?? 'n/a'} files=${String(last?.snapshot.sourceFiles.length ?? 0)} loc=${String(last?.snapshot.loc ?? 0)} blocking=${blocking} ahs=${ahs}${repair}`;
+}
+
+/** Gate steps whose snapshot had no evaluation, so the gate was not applied (R01: a harness failure to report). */
+export function gateEvaluationFailures(results: readonly LoopRunResult[]): number {
+  let n = 0;
+  for (const r of results) if (r.kind === 'completed') for (const s of r.steps) if (s.repair?.skipped === 'evaluation-failed') n++;
+  return n;
 }
 
 /** Runs (or resumes) one loop run. */

@@ -7,6 +7,17 @@ import type { DomainWarning } from '../shared/errors/domain-result.js';
 import { parseLayerA, parseLayerB, parseLayerC } from './layer-parsers.js';
 import { validateSpecSchema } from './spec-validator.js';
 
+/** Directory of the running entry script, symlinks resolved (`node_modules/.bin/daedalus` → the package's dist). */
+function entryDir(): string | undefined {
+  const argv1 = process.argv[1];
+  if (argv1 === undefined || argv1 === '') return undefined;
+  try {
+    return path.dirname(fs.realpathSync(argv1));
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * Directory where built-in presets live.
  * Resolved relative to the package root (two levels up from src/spec-parser/).
@@ -14,9 +25,13 @@ import { validateSpecSchema } from './spec-validator.js';
 function presetsDir(): string {
   // In compiled output (dist/spec-parser/), go up to package root
   // In source (src/spec-parser/), go up to package root
+  // `__dirname` exists under CommonJS (jest) and tsx; the compiled ESM output (dist/, the npx package) has none, so
+  // the package root is also found from the entry script (`<pkg>/dist/<dir>/<entry>.js`, bin links resolved).
+  const here = typeof __dirname === 'string' ? [__dirname] : [];
+  const entry = entryDir();
   const candidates = [
-    path.resolve(__dirname, '..', '..', 'presets'),
-    path.resolve(__dirname, '..', '..', '..', 'presets'),
+    ...here.flatMap((d) => [path.resolve(d, '..', '..', 'presets'), path.resolve(d, '..', '..', '..', 'presets')]),
+    ...(entry !== undefined ? [path.resolve(entry, '..', '..', 'presets')] : []),
     path.resolve(process.cwd(), 'presets'),
   ];
   for (const dir of candidates) {

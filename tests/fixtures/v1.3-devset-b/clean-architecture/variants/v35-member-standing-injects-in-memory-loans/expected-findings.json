@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "v35-member-standing-injects-in-memory-loans",
+  "kind": "violation",
+  "plants": "FF-P06",
+  "description": "A new domain service MemberStanding takes the concrete InMemoryLoanRepository through its constructor (parameter property) and queries it.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/domain/services/MemberStanding.ts",
+      "target": "src/infrastructure/persistence/InMemoryLoanRepository.ts",
+      "reason": "The domain imports an infrastructure class: the dependency points outward."
+    },
+    {
+      "ruleId": "FF-S04",
+      "ruleName": "no-domain-outward-dep",
+      "file": "src/domain/services/MemberStanding.ts",
+      "target": "src/infrastructure/persistence/InMemoryLoanRepository.ts",
+      "reason": "A domain file imports a file of another layer."
+    },
+    {
+      "ruleId": "FF-P06",
+      "ruleName": "domain-state-purity",
+      "file": "src/domain/services/MemberStanding.ts",
+      "target": "src/infrastructure/persistence/InMemoryLoanRepository.ts",
+      "reason": "A domain class holds infrastructure state: InMemoryLoanRepository is constructor-injected into it."
+    }
+  ]
+}

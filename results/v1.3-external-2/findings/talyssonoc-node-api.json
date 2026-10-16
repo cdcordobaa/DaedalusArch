@@ -1,0 +1,934 @@
+{
+  "runId": "run-1792125435748",
+  "projectPath": "<clones>/talyssonoc_node-api-boilerplate",
+  "specVersion": "1.0.0",
+  "ahsDeterministic": 0.677,
+  "verdict": "hard-block",
+  "scoring": {
+    "weights": {
+      "structural": 0.35,
+      "coupling": 0.2,
+      "pattern": 0.3,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0,
+      "integrity": 0
+    },
+    "fullModeWeights": {
+      "structural": 0.32,
+      "coupling": 0.18,
+      "pattern": 0.27,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0.04,
+      "integrity": 0.04
+    },
+    "thresholds": {
+      "pass": 0.8,
+      "warning": 0.65,
+      "softBlock": 0.5
+    },
+    "confidenceThresholds": {
+      "high": 0.85,
+      "medium": 0.6,
+      "iccMinimum": 0.7
+    },
+    "verdictSource": "ahsDeterministic"
+  },
+  "perDimensionScores": [
+    {
+      "dimension": "structural",
+      "avr": 0.6,
+      "violatedWeight": 3,
+      "weight": 0.35,
+      "effectiveWeight": 0.5384615384615385,
+      "violationCount": 3,
+      "functionCount": 5
+    },
+    {
+      "dimension": "pattern",
+      "avr": 0,
+      "violatedWeight": 0,
+      "weight": 0.3,
+      "effectiveWeight": 0.46153846153846156,
+      "violationCount": 0,
+      "functionCount": 5
+    }
+  ],
+  "violations": [
+    {
+      "id": "v-76343f58ec996061",
+      "type": "CUSTOM_bounded-context-modules",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-DS01",
+      "route": "symbolic",
+      "filePath": "src/__tests__/TestControls.ts",
+      "message": "src/__tests__/TestControls.ts lies in no declared bounded context",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "structural"
+    },
+    {
+      "id": "v-b726d85b22f3d491",
+      "type": "CUSTOM_bounded-context-modules",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-DS01",
+      "route": "symbolic",
+      "filePath": "src/__tests__/setup.ts",
+      "message": "src/__tests__/setup.ts lies in no declared bounded context",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "structural"
+    },
+    {
+      "id": "v-bb256fe3d396554c",
+      "type": "CUSTOM_context-isolation",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-DS02",
+      "route": "symbolic",
+      "filePath": "src/article/infrastructure/MongoFindArticles.ts",
+      "message": "src/article/infrastructure/MongoFindArticles.ts (src/article/) imports src/comment/infrastructure/CommentCollection.ts, which is not in the public API of src/comment/",
+      "deterministic": true,
+      "target": "src/comment/infrastructure/CommentCollection.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-ccb35c3c12c9f61a",
+      "type": "CUSTOM_layer-skip-graph",
+      "dimension": "structural",
+      "severity": "minor",
+      "functionId": "FF-S03",
+      "route": "symbolic",
+      "filePath": "src/article/interface/email/ArticleCreatedEmailListener.ts",
+      "message": "src/article/interface/email/ArticleCreatedEmailListener.ts (api) imports src/article/infrastructure/ArticleCollection.ts (infrastructure) sideways, with no allowed dependency between the layers",
+      "deterministic": true,
+      "target": "src/article/infrastructure/ArticleCollection.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    }
+  ],
+  "universalMetrics": {
+    "cyclicDependencyCount": 13,
+    "maxFanOut": 11,
+    "maxFanIn": 9,
+    "abstractionRatio": 0.5,
+    "averageInstability": 0.428,
+    "orphanFileCount": 1
+  },
+  "evaluationMode": "symbolic-only",
+  "durationMs": 104,
+  "droppedDimensions": [
+    {
+      "dimension": "coupling",
+      "reason": "none_declared",
+      "declared": 0,
+      "executed": 0
+    },
+    {
+      "dimension": "solid",
+      "reason": "none_declared",
+      "declared": 0,
+      "executed": 0
+    },
+    {
+      "dimension": "convention",
+      "reason": "none_declared",
+      "declared": 0,
+      "executed": 0
+    }
+  ],
+  "tiers": {
+    "scoringMode": "v1.3",
+    "tierTable": "Docs/v1.3/rule-tiers.md",
+    "style": "ddd",
+    "verdict": "fail",
+    "verdictRule": "any-blocking-violation",
+    "v12eVerdict": "warning",
+    "blockingAhs": 0.731,
+    "blocking": {
+      "rules": [
+        {
+          "functionId": "FF-DS01",
+          "name": "bounded-context-modules",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 2,
+          "violated": true
+        },
+        {
+          "functionId": "FF-DS02",
+          "name": "context-isolation",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 1,
+          "violated": true
+        },
+        {
+          "functionId": "FF-DT01",
+          "name": "aggregate-boundary",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-DT02",
+          "name": "repository-aggregate-root",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-DT03",
+          "name": "value-object-immutability",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-DT04",
+          "name": "domain-purity",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-S01",
+          "name": "dependency-direction-graph",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        }
+      ],
+      "violatedRules": 2,
+      "violationCount": 3
+    },
+    "advisory": {
+      "rules": [
+        {
+          "functionId": "FF-DT05",
+          "name": "domain-event-placement",
+          "dimension": "pattern",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-DT06",
+          "name": "application-service-thin",
+          "dimension": "pattern",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-S03",
+          "name": "layer-skip-graph",
+          "dimension": "structural",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 1,
+          "violated": true
+        }
+      ],
+      "violatedRules": 1,
+      "violationCount": 1
+    },
+    "notApplicable": [],
+    "blockingNotExecuted": []
+  },
+  "warnings": [
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: Exception",
+      "context": {
+        "filePath": "src/_lib/errors/BaseError.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/_lib/DDD (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/_lib/IdProvider.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/_lib/DDD (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/_lib/WithInvariants.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/_lib/DDD (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/_lib/events/EventProvider.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/_lib/DDD (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/article/application/useCases/CreateArticle.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/_lib/DDD (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/article/application/useCases/DeleteArticle.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/_lib/DDD (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/article/application/useCases/PublishArticle.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/_lib/DDD (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/article/domain/Article.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/_lib/DDD (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/article/infrastructure/ArticleMapper.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/_lib/DDD (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/comment/application/useCases/CreateComment.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/_lib/DDD (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/comment/domain/Comment.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/_lib/DDD (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/comment/infrastructure/CommentMapper.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/_lib/PartializeProperties (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/_lib/errors/BaseError.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/_lib/events/Event (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/_lib/events/EventConsumer.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/_lib/events/Event (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/_lib/events/EventProvider.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/_lib/events/Event (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/article/application/events/ArticleCreatedEvent.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/_lib/events/Publisher (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/_boot/pubSub.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/_lib/events/Publisher (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/_lib/events/EventProvider.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/_lib/events/Publisher (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/_lib/pubSub/EventEmitterPubSub.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/_lib/events/Subscriber (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/_boot/pubSub.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/_lib/events/Subscriber (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/_lib/events/EventConsumer.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/_lib/events/Subscriber (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/_lib/pubSub/EventEmitterPubSub.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/_sharedKernel/domain/ArticleId (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/_sharedKernel/infrastructure/ArticleIdProvider.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/_sharedKernel/domain/ArticleId (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/article/domain/Article.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/_sharedKernel/domain/ArticleId (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/article/infrastructure/MongoArticleRepository.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/_sharedKernel/domain/ArticleId (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/comment/domain/Comment.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/article/application/query/FindArticles (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/article/index.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/article/application/query/FindArticles (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/article/infrastructure/MongoFindArticles.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/article/application/query/FindArticles (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/article/interface/http/articleController/FindArticlesHandler.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/article/domain/ArticleRepository (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/article/application/useCases/CreateArticle.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/article/domain/ArticleRepository (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/article/application/useCases/DeleteArticle.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/article/domain/ArticleRepository (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/article/application/useCases/PublishArticle.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/article/domain/ArticleRepository (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/article/index.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/article/domain/ArticleRepository (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/article/infrastructure/MongoArticleRepository.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/article/domain/ArticleRepository (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/comment/application/useCases/CreateComment.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/comment/domain/CommentId (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/comment/domain/Comment.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/comment/domain/CommentId (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/comment/infrastructure/CommentIdProvider.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/comment/domain/CommentId (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/comment/infrastructure/MongoCommentRepository.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/comment/domain/CommentRepository (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/comment/application/useCases/CreateComment.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/comment/domain/CommentRepository (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/comment/index.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_008",
+      "message": "Import target outside the extracted set: @/comment/domain/CommentRepository (a declaration file reached through tsconfig paths; recorded as Package @)",
+      "context": {
+        "filePath": "src/comment/infrastructure/MongoCommentRepository.ts",
+        "severity": "info"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DS01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DS02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DT01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DT02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DT03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DT04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DT05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DT06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    }
+  ],
+  "functionExecution": {
+    "declared": 10,
+    "adrDerived": 0,
+    "compiled": 10,
+    "disabled": 0,
+    "dropped": [],
+    "skippedByMode": 0,
+    "noJudgeUnits": [],
+    "executed": 10,
+    "failed": []
+  },
+  "functionResults": [
+    {
+      "functionId": "FF-DS01",
+      "name": "bounded-context-modules",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": false,
+      "violationCount": 2,
+      "executionTimeMs": 24,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DS02",
+      "name": "context-isolation",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 54,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DT01",
+      "name": "aggregate-boundary",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 17,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S01",
+      "name": "dependency-direction-graph",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 20,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S03",
+      "name": "layer-skip-graph",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 13,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DT02",
+      "name": "repository-aggregate-root",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 13,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DT03",
+      "name": "value-object-immutability",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 22,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DT04",
+      "name": "domain-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 13,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DT05",
+      "name": "domain-event-placement",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 9,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DT06",
+      "name": "application-service-thin",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 3,
+      "truncated": false
+    }
+  ],
+  "disabledFunctions": [],
+  "graphStats": {
+    "nodeCount": 99,
+    "edgeCount": 237,
+    "layerCoverage": 0.5342465753424658,
+    "nodeCountByType": {
+      "File": 73,
+      "Class": 1,
+      "Interface": 1,
+      "Method": 0,
+      "Function": 0,
+      "Package": 24
+    },
+    "edgeCountByType": {
+      "IMPORTS": 235,
+      "IMPLEMENTS": 0,
+      "EXTENDS": 0,
+      "CONSTRUCTOR_INJECTS": 0,
+      "CALLS": 0,
+      "DECLARES": 2,
+      "CONTAINS": 0,
+      "FLOWS_TO": 0,
+      "RE_EXPORTS": 0
+    }
+  },
+  "layerAnnotation": {
+    "mapped": 39,
+    "unmapped": 34,
+    "unmappedFiles": [
+      "src/__tests__/setup.ts",
+      "src/__tests__/TestControls.ts",
+      "src/_lib/Application.ts",
+      "src/_lib/Context.ts",
+      "src/_lib/Environment.ts",
+      "src/_lib/IdProvider.ts",
+      "src/_lib/Initialize.ts",
+      "src/_lib/MongoProvider.ts",
+      "src/_lib/Predicate.ts",
+      "src/_lib/WithInvariants.ts",
+      "src/_lib/di/containerAdapters.ts",
+      "src/_lib/errors/BadRequestError.ts",
+      "src/_lib/errors/BaseError.ts",
+      "src/_lib/errors/ForbiddenError.ts",
+      "src/_lib/errors/NotFoundError.ts",
+      "src/_lib/errors/UnauthorizedError.ts",
+      "src/_lib/errors/ValidationError.ts",
+      "src/_lib/events/EventConsumer.ts",
+      "src/_lib/events/EventProvider.ts",
+      "src/_lib/http/handler.ts",
+      "src/_lib/http/HttpStatus.ts",
+      "src/_lib/http/runAsync.ts",
+      "src/_lib/logger/index.ts",
+      "src/_lib/pubSub/EventEmitterConsumer.ts",
+      "src/_lib/pubSub/EventEmitterProvider.ts",
+      "src/_lib/pubSub/EventEmitterPubSub.ts",
+      "src/_lib/repl/index.ts",
+      "src/_lib/http/middlewares/errorHandler.ts",
+      "src/_lib/http/middlewares/gracefulShutdown.ts",
+      "src/_lib/http/middlewares/httpLogger.ts",
+      "src/_lib/http/middlewares/requestContainer.ts",
+      "src/_lib/http/middlewares/statusHandler.ts",
+      "src/_lib/http/validation/Paginator.ts",
+      "src/_lib/http/validation/Validator.ts"
+    ]
+  },
+  "parseCoverage": {
+    "total": 73,
+    "parsed": 73,
+    "percentage": 100,
+    "skipped": []
+  },
+  "importResolution": {
+    "resolvedInternal": 143,
+    "external": 107,
+    "externalOutOfRootAlias": 0,
+    "unresolved": 0,
+    "droppedNoFileNode": 0,
+    "unsupportedDynamic": 0
+  },
+  "timings": {
+    "stages": [
+      {
+        "name": "parallel:extract-apg+parse-spec",
+        "durationMs": 610,
+        "status": "success"
+      },
+      {
+        "name": "ingest-apg",
+        "durationMs": 89,
+        "status": "success"
+      },
+      {
+        "name": "compile-functions",
+        "durationMs": 4,
+        "status": "success"
+      },
+      {
+        "name": "evaluate-symbolic",
+        "durationMs": 189,
+        "status": "success"
+      },
+      {
+        "name": "universal-metric:cyclicDependencyCount",
+        "durationMs": 65,
+        "status": "success"
+      },
+      {
+        "name": "compute-scores",
+        "durationMs": 105,
+        "status": "success"
+      }
+    ],
+    "totalMs": 997
+  },
+  "judge": {
+    "provider": "none",
+    "model": "none",
+    "runsPerUnit": 0
+  },
+  "instrumentVersion": 2
+}

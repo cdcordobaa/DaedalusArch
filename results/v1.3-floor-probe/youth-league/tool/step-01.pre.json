@@ -1,0 +1,108 @@
+{
+  "spec": "presets/layered.yaml",
+  "engine": "cypher-interp",
+  "scoringMode": "v1.3",
+  "instrumentVersion": 2,
+  "typecheckErrors": 0,
+  "typecheckSample": [],
+  "verdict": "fail",
+  "blockingAhs": 0.641,
+  "ahsV12e": 0.71,
+  "blockingViolationCount": 3,
+  "advisoryViolationCount": 8,
+  "blockingByRule": {
+    "FF-P01": 0,
+    "FF-S01": 1,
+    "FF-S02": 0,
+    "FF-S03": 2
+  },
+  "advisoryByRule": {
+    "FF-C02": 0,
+    "FF-C03": 1,
+    "FF-C04": 0,
+    "FF-C05": 0,
+    "FF-C06": 0,
+    "FF-CV03": 0,
+    "FF-CV05": 7,
+    "FF-CV06": 0,
+    "FF-SO01": 0,
+    "FF-SO02": 0,
+    "FF-SO03": 0
+  },
+  "blockingFindings": [
+    {
+      "rule": "FF-S01",
+      "file": "src/persistence/repositories.ts",
+      "line": 1,
+      "target": "src/business/entities.ts",
+      "message": "src/persistence/repositories.ts (persistence) imports from src/business/entities.ts (business)"
+    },
+    {
+      "rule": "FF-S03",
+      "file": "src/persistence/repositories.ts",
+      "line": 1,
+      "target": "src/business/entities.ts",
+      "message": "src/persistence/repositories.ts (persistence) skips layers to import src/business/entities.ts (business)"
+    },
+    {
+      "rule": "FF-S03",
+      "file": "src/presentation/server.ts",
+      "line": 2,
+      "target": "src/persistence/repositories.ts",
+      "message": "src/presentation/server.ts (presentation) skips layers to import src/persistence/repositories.ts (persistence)"
+    }
+  ],
+  "srcFiles": 7,
+  "loc": 203,
+  "layerAnnotation": {
+    "mapped": 7,
+    "unmapped": 0,
+    "unmappedFiles": []
+  },
+  "arm": "tool",
+  "step": 1,
+  "phase": "pre",
+  "filesTouched": [
+    "A src/business/entities.ts",
+    "A src/business/fixture-service.ts",
+    "A src/business/rules.ts",
+    "A src/business/team-service.ts",
+    "A src/persistence/repositories.ts",
+    "A src/presentation/controllers.ts",
+    "A src/presentation/server.ts"
+  ],
+  "checkDiff": {
+    "blocking": 3,
+    "advisory": 0,
+    "findings": [
+      {
+        "file": "src/persistence/repositories.ts",
+        "rule": "FF-S01",
+        "tier": "blocking",
+        "line": 1,
+        "target": "src/business/entities",
+        "reason": "persistence (position 0) may not import business (position 1): layers are ordered inner to outer and may only depend on themselves or inner layers",
+        "fix": "Do not import business from persistence (it may import: no other layer). Declare an interface for what you need in persistence, implement it in business, and inject the implementation from the composi"
+      },
+      {
+        "file": "src/persistence/repositories.ts",
+        "rule": "FF-S03",
+        "tier": "blocking",
+        "line": 1,
+        "target": "src/business/entities",
+        "reason": "persistence may not import business: closed layering allows only business>persistence, presentation>business",
+        "fix": "Do not import business from persistence (it may import: no other layer). Declare an interface for what you need in persistence, implement it in business, and inject the implementation from the composi"
+      },
+      {
+        "file": "src/presentation/server.ts",
+        "rule": "FF-S03",
+        "tier": "blocking",
+        "line": 2,
+        "target": "src/persistence/repositories",
+        "reason": "presentation may not import persistence: closed layering allows only business>persistence, presentation>business",
+        "fix": "Go through business: call a business service that wraps what you need from persistence, or move that type into business. presentation may import: business."
+      }
+    ],
+    "advisoryListed": []
+  }
+}

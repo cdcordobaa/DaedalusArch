@@ -89,7 +89,14 @@ export type Clause =
   | { readonly k: 'match'; readonly optional: boolean; readonly patterns: readonly PatternPart[]; readonly where: Expr | undefined }
   | { readonly k: 'unwind'; readonly expr: Expr; readonly alias: string }
   | { readonly k: 'with'; readonly projection: Projection; readonly where: Expr | undefined }
-  | { readonly k: 'return'; readonly projection: Projection };
+  | { readonly k: 'return'; readonly projection: Projection }
+  /**
+   * `CALL { part [UNION [ALL] part]* }`: a returning unit subquery, run per incoming row. A part that starts with `WITH`
+   * imports from the outer row through that projection; any other part sees no outer variable. `columns` is the
+   * first part's RETURN columns (every part returns the same set). The v1.3 FF-P05 rewrite (`v13-signature-types.ts`)
+   * emits it.
+   */
+  | { readonly k: 'call'; readonly parts: readonly Query[]; readonly unionAll: boolean; readonly columns: readonly string[] };
 
 export interface Query {
   readonly clauses: readonly Clause[];

@@ -1,0 +1,10 @@
+You are building a new TypeScript backend service in the current directory, in several feature steps.
+This is step 1 of 4 of "Farmers' market vendors".
+
+Feature request:
+Create a service for a weekly farmers' market. The market organiser defines market days and the stall pitches of the market (number, size, with or without power). Vendors register (business name, contact, products sold) and book a pitch for a market day. A pitch is never booked twice for the same market day, and a vendor holds at most one pitch per market day. Shoppers pay at the stalls with card readers from PayLane, which the market provides; PayLane posts each card sale to a webhook as JSON with the reader id, the amount and the time. The organiser links each reader to a vendor for a market day. A sale from a reader that is not linked to a vendor with a booking on that day is rejected. The service lists each vendor's card sales per market day. Keep the data in memory and expose the operations over HTTP.
+
+Put the source under src/. Organise the code following Clean Architecture.
+Organise the source code under src/ in exactly three folders: src/domain, src/application and src/infrastructure.
+Before you finish, type-check the project with exactly this command and fix every error it reports:
+/root/pilot/harness/bin/tsc --noEmit --incremental false -p /root/pilot/harness/runs/claude-code-cli/claude-sonnet-5-5/market-vendors/gate/run-0/tsconfig.json

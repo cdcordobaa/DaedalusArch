@@ -5,11 +5,12 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { DomainResult } from '../../../../src/shared/errors/domain-result.js';
-import { RESTARTS_LOG, RUN_JSON, WORK_DIR, readStepRecords, runDirFor, runLoop, stepRecordPath } from '../../../../scripts/lib/loop/loop.js';
+import { RESTARTS_LOG, RUN_JSON, WORK_DIR, gateEvaluationFailures, readStepRecords, runDirFor, runLoop, stepRecordPath } from '../../../../scripts/lib/loop/loop.js';
 import { loopRunId } from '../../../../scripts/lib/loop/plan.js';
 import { MAX_REPAIR_FINDINGS, repairPrompt, sha256, stepPrompt } from '../../../../scripts/lib/loop/prompts.js';
 import { SNAPSHOT_GIT_DIR, WorkTreeSnapshots } from '../../../../scripts/lib/loop/snapshot.js';
 import { stubEvaluator } from '../../../../scripts/lib/loop/stub.js';
+import { runOutcomes } from '../../../../scripts/lib/loop/pilot-metrics.js';
 import type { BlockingFinding, StepAgent, StepEvaluator, StepRecord, TurnInput } from '../../../../scripts/lib/loop/types.js';
 import { DEMO_TASK, context, spec, stubAgent, tmpRoot } from './helpers.js';
 
@@ -135,7 +136,63 @@ describe('multi-step loop (dry run)', () => {
     expect(s2?.turns).toHaveLength(1);
     expect(s2?.turns[0]?.snapshot.evaluation).toBeNull();
     expect(s2?.turns[0]?.snapshot.evaluationError).toEqual({ code: 'NEO4J_UNREACHABLE', message: 'down' });
-    expect(s2?.repair).toEqual({ attempted: false, blockingBefore: null, blockingAfter: null, cleared: null });
+    // R01: the gate did not see the snapshot, which is not "no blocking findings": the record says so explicitly.
+    expect(s2?.repair).toEqual({ attempted: false, blockingBefore: null, blockingAfter: null, cleared: null, skipped: 'evaluation-failed' });
+    expect(r.data.steps[0]?.repair).toEqual({ attempted: false, blockingBefore: 0, blockingAfter: null, cleared: null });
+  });
+
+  it('R01: the grid summary counts gate steps whose evaluation failed', async () => {
+    // The first snapshot is evaluated (a run with no evaluated snapshot fails with LOOP_EVAL_ALL_FAILED, F24); the
+    // other two fail evaluation.
+    let calls = 0;
+    const failing: StepEvaluator = {
+      id: 'down',
+      evaluate: (dir: string) => {
+        calls++;
+        return calls === 1 ? stubEvaluator().evaluate(dir) : Promise.resolve(DomainResult.fail([{ code: 'PIPELINE_FAILED', message: 'No tsconfig.json found' }]));
+      },
+    };
+    const r = await runLoop(context(out, stubAgent(), { evaluator: failing }), spec('gate'));
+    if (!r.success || r.data.kind !== 'completed') throw new Error('expected completion');
+    expect(gateEvaluationFailures([r.data])).toBe(2);
+  });
+
+  it('a step whose evaluation failed is unscored in the outcomes: a null count and total, never 0 (F18)', async () => {
+    let calls = 0;
+    const flaky: StepEvaluator = {
+      id: 'flaky',
+      evaluate: (dir: string) => {
+        calls++;
+        return calls === 2 ? Promise.resolve(DomainResult.fail([{ code: 'NEO4J_UNREACHABLE', message: 'down' }])) : stubEvaluator().evaluate(dir);
+      },
+    };
+    const r = await runLoop(context(out, stubAgent(), { evaluator: flaky }), spec('none'));
+    if (!r.success || r.data.kind !== 'completed') throw new Error('expected completion');
+    const o = runOutcomes(r.data.steps);
+    // Step 2 planted the violation but was not scored; step 3 still holds it and is flagged as following an
+    // unscored step (its count is an upper bound).
+    expect(o.newBlocking).toEqual([
+      { step: 2, count: null, findings: [] },
+      { step: 3, count: 1, findings: expect.any(Array) as unknown, afterUnscored: true },
+    ]);
+    expect(o.newBlockingTotal).toBeNull();
+    expect(o.unscoredSteps).toEqual([2]);
+    const clean = runOutcomes(await completed('gate'));
+    expect(clean.unscoredSteps).toEqual([]);
+    expect(clean.newBlockingTotal).toBe(0);
+  });
+
+  it('a run in which every snapshot failed evaluation fails and is never marked complete (F24)', async () => {
+    const down: StepEvaluator = { id: 'down', evaluate: () => Promise.resolve(DomainResult.fail([{ code: 'TSCONFIG_NOT_FOUND', message: 'no tsconfig' }])) };
+    const r = await runLoop(context(out, stubAgent(), { evaluator: down }), spec('gate'));
+    expect(r.success ? [] : r.errors.map((e) => e.code)).toEqual(['LOOP_EVAL_ALL_FAILED']);
+    expect(r.success ? '' : r.errors[0]?.message).toContain('all 3 snapshots failed evaluation (TSCONFIG_NOT_FOUND)');
+    const runDir = runDirFor(out, loopRunId(spec('gate')));
+    expect(readStepRecords(runDir, 3)).toHaveLength(3);
+    expect((JSON.parse(fs.readFileSync(path.join(runDir, RUN_JSON), 'utf8')) as { completedAt?: string }).completedAt).toBeUndefined();
+    // A rerun with the same evaluator does not turn it into a completed run.
+    const again = await runLoop(context(out, stubAgent(), { evaluator: down }), spec('gate'));
+    expect(again.success ? [] : again.errors.map((e) => e.code)).toEqual(['LOOP_EVAL_ALL_FAILED']);
   });
 
   it('an agent failure stops the run without a step record', async () => {

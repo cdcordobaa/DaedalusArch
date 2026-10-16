@@ -161,7 +161,7 @@ describe('plan and tasks files', () => {
 });
 
 describe('evaluator mapping (v1.3 scoring)', () => {
-  it('keeps the blocking findings only and fails without tiers', () => {
+  it('keeps the counted blocking findings only and fails without tiers or violations', () => {
     const row = (id: string, tier: 'blocking' | 'advisory', n: number): Record<string, unknown> => ({ functionId: id, name: id, dimension: 'structural', tier, tierSource: 'table', violationCount: n, violated: n > 0 });
     const result = {
       projectPath: '/p',
@@ -190,9 +190,16 @@ describe('evaluator mapping (v1.3 scoring)', () => {
         blockingNotExecuted: [],
       },
     } as unknown as EvaluateProjectResult;
-    const ev = toStepEvaluation(result);
-    if (!ev.success) throw new Error('mapping failed');
-    expect(ev.data).toEqual({
+    // The report's violations (the live evaluator asks for them): every counted blocking row, uncapped, with its
+    // template and id, and the violations handed on for the loop to write beside the turn.
+    const violations = [
+      { id: 'v2', type: 'LAYER_VIOLATION', functionId: 'FF-S01', route: 'symbolic', filePath: 'src/domain/b.ts', message: 'm2' },
+      { id: 'v3', type: 'MISSING_TEST', functionId: 'FF-CV05', route: 'symbolic', filePath: 'src/a.ts', message: 'm3' },
+      { id: 'v1', type: 'CUSTOM_core-isolation', functionId: 'FF-S01', route: 'symbolic', filePath: 'src/domain/a.ts', line: 3, target: 'src/infra/x.ts', message: 'm1' },
+    ];
+    const full = toStepEvaluation({ ...result, violations } as unknown as EvaluateProjectResult);
+    if (!full.success) throw new Error('mapping failed');
+    expect(full.data).toEqual({
       scoringMode: 'v1.3',
       ahs: 0.8,
       blockingAhs: 0.7,
@@ -201,12 +208,18 @@ describe('evaluator mapping (v1.3 scoring)', () => {
       blockingViolationCount: 2,
       advisoryViolationCount: 1,
       blockingByRule: { 'FF-S01': 2 },
+      advisoryByRule: { 'FF-CV05': 1 },
       blockingFindings: [
-        { ruleId: 'FF-S01', ruleName: 'layers', filePath: 'src/domain/a.ts', line: 3, target: 'src/infra/x.ts', message: 'm1' },
-        { ruleId: 'FF-S01', ruleName: 'layers', filePath: 'src/domain/b.ts', message: 'm2' },
+        { ruleId: 'FF-S01', ruleName: 'layers', template: 'dependency-direction', violationId: 'v2', filePath: 'src/domain/b.ts', message: 'm2' },
+        { ruleId: 'FF-S01', ruleName: 'layers', template: 'core-isolation', violationId: 'v1', filePath: 'src/domain/a.ts', line: 3, target: 'src/infra/x.ts', message: 'm1' },
       ],
       durationMs: 12,
+      reportViolations: violations,
     });
+    expect(full.data.reportViolations).toBe(violations);
+    // Without the violations (a capped per-rule listing) the counted rows cannot be told apart: no evaluation.
+    const capped = toStepEvaluation(result);
+    expect(capped.success ? [] : capped.errors.map((e) => e.code)).toEqual(['LOOP_EVAL_NO_VIOLATIONS']);
     const { tiers: _drop, ...noTiers } = result;
     const fail = toStepEvaluation(noTiers);
     expect(fail.success ? [] : fail.errors.map((e) => e.code)).toEqual(['LOOP_EVAL_NO_TIERS']);

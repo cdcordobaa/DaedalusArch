@@ -6,7 +6,7 @@
 - **Stories**: US-1.1, US-1.2, US-1.3, US-1.4, US-1.5, US-1.6
 - **Dependencies**: U0 complete, U1 complete (all shared types available)
 - **External**: ts-morph ^25.0.0 (already installed)
-- **Workspace root**: `/Volumes/Life-OS/Users/Arkatechie/Development/Archi-Firewall/DaedalusArch`
+- **Workspace root**: `<workspace>/DaedalusArch`
 
 ## Key Design Decisions (from Functional Design)
 - Node IDs: deterministic SHA-256({type}:{path}:{name})[0..16]

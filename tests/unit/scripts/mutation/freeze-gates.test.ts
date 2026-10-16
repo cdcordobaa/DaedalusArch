@@ -218,7 +218,7 @@ describe('scripts/u5a-freeze-gate.ts main', () => {
     if (call === undefined) throw new Error('call');
     expect(call.command).toBe(path.resolve(REPO, 'node_modules/.bin/tsx'));
     expect(call.args).toEqual([
-      'bin/firewall.ts', 'evaluate', '--project', '/tmp/copy', '--spec', 'specs/clean-arch.yaml', '--format', 'json', '--symbolic-only', '--neo4j-uri', 'bolt://localhost:7691',
+      'bin/firewall.ts', 'evaluate', '--project', '/tmp/copy', '--spec', 'specs/clean-arch.yaml', '--format', 'json', '--symbolic-only', '--neo4j-uri', 'bolt://localhost:7691', '--engine', 'neo4j',
     ]);
     expect(call.options.cwd).toBe(REPO);
     expect(Object.keys(call.options.env).sort()).toEqual(['HOME', 'NEO4J_PASSWORD', 'NEO4J_URI', 'NEO4J_USER', 'PATH']);

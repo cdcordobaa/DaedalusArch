@@ -1,0 +1,114 @@
+{
+  "duration_api_ms": 79948,
+  "stop_reason": "end_turn",
+  "session_id": "965e75a4-23ff-4ca8-a3d8-31ebc937fafc",
+  "total_cost_usd": 0.2670553,
+  "usage": {
+    "input_tokens": 16,
+    "cache_creation_input_tokens": 25376,
+    "cache_read_input_tokens": 117593,
+    "output_tokens": 15376,
+    "output_tokens_details": {
+      "thinking_tokens": 1603
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 25376,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 717,
+        "cache_read_input_tokens": 29906,
+        "cache_creation_input_tokens": 1382,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1382
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "modelUsage": {
+    "claude-sonnet-5-5": {
+      "inputTokens": 16,
+      "outputTokens": 15376,
+      "cacheReadInputTokens": 117593,
+      "cacheCreationInputTokens": 25376,
+      "webSearchRequests": 0,
+      "costUSD": 0.2670553,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "thinkingTokens": 1603,
+      "canonicalModel": "claude-sonnet-5-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01Eck5ufauyRvkQCxhQxuDhC",
+      "tool_input": {
+        "command": "find . -path ./node_modules -prune -o -type f -print | head -100 && cat /root/pilot/harness/runs/claude-code-cli/claude-sonnet-5-5/market-vendors/none/run-0/tsconfig.json && wc -l $(find src -name '*.ts')"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01Pag8EfCfwqVL9MX4hMFRWY",
+      "tool_input": {
+        "command": "cd /root/pilot/out/runs/claude-code-cli/claude-sonnet-5-5/market-vendors/none/run-0/work/src && python3 - <<'EOF'\nimport re\np='domain/entities.ts'\ns=open(p).read()\ns=s.replace('''  name: string;\n}\n\nexport interface Pitch''','''  name: string;\n  status: MarketDayStatus;\n}\n\nexport type MarketDayStatus = \"open\" | \"closed\" | \"settled\";\n\nexport interface Pitch''')\ns=s.replace('''  products: string[];\n}''','''  products: string[];\n  /** Fraction of each card sale kept by the market, 0..1. */\n  commissionRate: number;\n  /** Amount the vendor still owes the market from earlier settlements. */\n  balanceOwed: number;\n}''')\ns=s.replace('''  vendorId: string;\n}\n\nexport interface ReaderLink''','''  vendorId: string;\n  status: \"active\" | \"cancelled\";\n  /** Stall fee fixed when the booking was made. */\n  stallFee: number;\n  /** Whether the stall fee is still payable (false when cancelled in time). */\n  feeDue: boolean;\n}\n\nexport interface ReaderLink''')\ns+='''\nexport interface FeeSchedule {\n  stallFees: Record<PitchSize, number>;\n  powerSurcharge: number;\n}\n\nexport const DEFAULT_COMMISSION_RATE = 0.05;\n\nexport interface SettlementLine {\n  vendorId: string;\n  sales: number;\n  commissionRate: number;\n  commission: number;\n  stallFee: number;\n  carriedIn: number;\n  payout: number;\n  carriedOut: number;\n}\n\nexport interface Settlement {\n  marketDayId: string;\n  settledAt: string;\n  lines: SettlementLine[];\n}\n'''\nopen(p,'w').write(s)\n\np='domain/repositories.ts'\ns=open(p).read()\ns=s.replace('import type { Booking, CardSale, MarketDay, Pitch, ReaderLink, Vendor }','import type { Booking, CardSale, FeeSchedule, MarketDay, Pitch, ReaderLink, Settlement, Vendor }')\ns=s.replace('  add(day: MarketDay): void;','  add(day: MarketDay): void;\\n  save(day: MarketDay): void;')\ns=s.replace('  add(vendor: Vendor): void;','  add(vendor: Vendor): void;\\n  save(vendor: Vendor): void;')\ns=s.replace('  add(booking: Booking): void;','  add(booking: Booking): void;\\n  save(booking: Booking): void;\\n  get(id: string): Booking | undefined;')\ns+='''\nexport interface FeeScheduleRepository {\n  get(): FeeSchedule;\n  set(schedule: FeeSchedule): void;\n}\n\nexport interface SettlementRepository {\n  add(settlement: Settlement): void;\n  findByDay(dayId: string): Settlement | undefined;\n  list(): Settlement[];\n}\n'''\nopen(p,'w').write(s)\n\np='infrastructure/memory-repositories.ts'\ns=open(p).read()\ns=s.replace('import type { Booking, CardSale, MarketDay, Pitch, ReaderLink, Vendor }','import type { Booking, CardSale, FeeSchedule, MarketDay, Pitch, ReaderLink, Settlement, Vendor }')\ns=s.replace('  const sales: CardSale[] = [];\\n','  const sales: CardSale[] = [];\\n  const settlements: Settlement[] = [];\\n  let schedule: FeeSchedule = { stallFees: { small: 20, medium: 30, large: 45 }, powerSurcharge: 10 };\\n')\ns=s.replace('      add: (d) => void days.set(d.id, d),','      add: (d) => void days.set(d.id, d),\\n      save: (d) => void days.set(d.id, d),')\ns=s.replace('      add: (v) => void vendors.set(v.id, v),','      add: (v) => void vendors.set(v.id, v),\\n      save: (v) => void vendors.set(v.id, v),')\ns=s.replace('''      add: (b) => void bookings.push(b),\n      findByDayAndPitch: (d, p) => bookings.find((b) => b.marketDayId === d && b.pitchId === p),\n      findByDayAndVendor: (d, v) => bookings.find((b) => b.marketDayId === d && b.vendorId === v),''','''      add: (b) => void bookings.push(b),\n      save: (b) => {\n        const i = bookings.findIndex((x) => x.id === b.id);\n        if (i >= 0) bookings[i] = b;\n      },\n      get: (id) => bookings.find((b) => b.id === id),\n      findByDayAndPitch: (d, p) =>\n        bookings.find((b) => b.status === \"active\" && b.marketDayId === d && b.pitchId === p),\n      findByDayAndVendor: (d, v) =>\n        bookings.find((b) => b.status === \"active\" && b.marketDayId === d && b.vendorId === v),''')\ns=s.replace('''  };\n}''','''    fees: {\n      get: () => schedule,\n      set: (s) => void (schedule = s),\n    },\n    settlements: {\n      add: (s) => void settlements.push(s),\n      findByDay: (d) => settlements.find((s) => s.marketDayId === d),\n      list: () => [...settlements],\n    },\n  };\n}''')\nopen(p,'w').write(s)\nEOF\ncat > domain/pricing.ts <<'EOF'\nimport type { FeeSchedule, Pitch, SettlementLine } from \"./entities.js\";\n\nexport const HOURS_FREE_CANCELLATION = 48;\n\nexport const roundMoney = (n: number): number => Math.round((n + Number.EPSILON) * 100) / 100;\n\nexport const stallFeeFor = (schedule: FeeSchedule, pitch: Pitch): number =>\n  roundMoney(schedule.stallFees[pitch.size] + (pitch.hasPower ? schedule.powerSurcharge : 0));\n\n/** A market day starts at 00:00 UTC on its date. */\nexport const isFreeCancellation = (marketDate: string, now: Date): boolean =>\n  Date.parse(`${marketDate}T00:00:00.000Z`) - now.getTime() >= HOURS_FREE_CANCELLATION * 3600 * 1000;\n\nexport function settleVendor(input: {\n  vendorId: string;\n  sales: number;\n  commissionRate: number;\n  stallFee: number;\n  carriedIn: number;\n}): SettlementLine {\n  const sales = roundMoney(input.sales);\n  const commission = roundMoney(sales * input.commissionRate);\n  const net = roundMoney(sales - commission - input.stallFee - input.carriedIn);\n  return {\n    vendorId: input.vendorId,\n    sales,\n    commissionRate: input.commissionRate,\n    commission,\n    stallFee: input.stallFee,\n    carriedIn: input.carriedIn,\n    payout: Math.max(0, net),\n    carriedOut: Math.max(0, roundMoney(-net)),\n  };\n}\nEOF"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subagent_stats": {
+    "spawned": 0,
+    "requested": {
+      "background": 0,
+      "foreground": 0,
+      "unset": 0
+    },
+    "started_in_background": 0,
+    "max_depth": 0,
+    "spawned_by_subagents": 0,
+    "completed": 0,
+    "failed": 0,
+    "killed": {
+      "parent": 0,
+      "user": 0,
+      "system": 0
+    },
+    "refused": {
+      "depth_limit": 0,
+      "concurrency_limit": 0,
+      "budget": 0
+    },
+    "by_type": {}
+  },
+  "safety_stops": 0,
+  "is_error": false,
+  "num_turns": 28,
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "I added fees, commission, cancellation and settlement to the service, and the type-check command you gave ran with no errors. I didn't start the server or exercise any endpoint, so the behaviour itself is untested.\n\n**How it works**\n- **Fee schedule:** `GET/PUT /fee-schedule` sets the stall fee per pitch size and the power surcharge. The defaults are small 20, medium 30, large 45, power +10, which are numbers I picked. A booking records its stall fee when it is made, so later schedule changes don't affect it.\n- **Commission:** the default is 5% (`0.05`). The organiser can set a rate per vendor with `PUT /vendors/:id/commission {rate}`, or pass `commissionRate` when registering the vendor.\n- **Cancellation:** `DELETE /market-days/:dayId/bookings/:bookingId` frees the pitch. If it's at least 48 hours before the market day starts (00:00 UTC on its date), the stall fee is waived. A later cancellation still owes the fee, and it is charged at settlement. Cancelled bookings no longer appear in the booking list.\n- **Closing and settling:**\n  - `POST /market-days/:id/close` closes an open day.\n  - `POST /market-days/:id/settlement` settles a closed day.\n  - `GET /market-days/:id/settlement` returns the result.\n  - `GET /vendors/:id/payouts` returns a vendor's payout history and the balance they still owe.\n- **Payout rule:** payout is sales minus commission minus stall fee minus any balance carried in. It is never below zero, and any shortfall is carried into that vendor's next settlement.\n- **After settlement:** sales, bookings, cancellations and reader links on a settled day are rejected with a 409.\n\nI chose to leave sales and booking changes allowed on a *closed* but not yet settled day, since your request only blocks them once the day is settled. Say if you'd rather block them at close.\n\nThe new pricing and payout rules are in `src/domain/pricing.ts`. The orchestration is in `src/application/market-service.ts`. The new routes are in `src/infrastructure/http-app.ts`.",
+  "ttft_ms": 2038,
+  "type": "result",
+  "duration_ms": 81086,
+  "uuid": "d950b8b7-9005-4f06-be32-a18cface3165",
+  "ttft_stream_ms": 801,
+  "time_to_request_ms": 174,
+  "first_content_frame_ms": 802,
+  "queued_turn_count": 0,
+  "result_index": 0
+}

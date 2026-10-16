@@ -1,0 +1,49 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.6",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 20128,
+  "effort": null,
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "d68c66d27818a8985e559c413f44be9c1f9c04a809ce77369abdb4acca0710db",
+  "key": "3345089ae68ff221e669f88ed98bab4ce2e4b9506c0726bf52270be3041da10d-r0-0",
+  "model": "gemini-4-argon-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 1,
+    "evidence": [
+      "src/application/use-cases/StartSubscription.ts:6 — import { Request } from 'express' (web/transport package, infrastructure/presentation layer kind)",
+      "src/application/use-cases/StartSubscription.ts:14 — async execute(customerId: string, planCode: string, seats: number, request?: Request): Promise<SubscriptionSummary> exposes an HTTP Request parameter from 'express' in an application layer method signature"
+    ],
+    "pass": false,
+    "reasoning": "The file src/application/use-cases/StartSubscription.ts is in the application layer (kind: application), but the method signature StartSubscription.execute(customerId: string, planCode: string, seats: number, request?: Request) includes an optional parameter `request?: Request` imported from the `express` web/transport package. Under the rubric, a request type from a web or transport package in any method signature of an application file is a misplaced responsibility belonging to the infrastructure/delivery layer kind, even when the parameter is optional and unused.",
+    "violations": [
+      {
+        "filePath": "src/application/use-cases/StartSubscription.ts",
+        "message": "Method signature `StartSubscription.execute(customerId: string, planCode: string, seats: number, request?: Request)` in the application layer accepts an HTTP `Request` parameter imported from the `express` web package, which belongs to the infrastructure/delivery layer kind."
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe unit's responsibilities, signatures and annotations match the role of its declared layer.\n\n## Rubric\nPass: Every declaration in the file belongs to the role and kind of its declared layer, including its parameter, return and field types, its decorators and base classes, and its statements, and agrees with any ADR prose given. Calls into a layer that the layer model lets this layer depend on are part of that role.\nFail: The file carries something that belongs to a different layer kind. In a domain or application file: a request, response, HTTP context, status code or HTTP error, from a web or transport package or from the delivery layer, in any method or function signature (parameter or return) or thrown, even when the parameter is optional or unused. In a domain file also: any framework or ORM type, decorator or base class (dependency injection, routing, persistence mapping), even when the class logic is pure; or direct I/O, that is a database, ORM, query, HTTP or file client that the file itself creates, imports from a package or obtains from a global accessor, or persistence or I/O done through a class of a layer that the layer model does not let this layer depend on. A call to a class or interface of a layer that this layer may depend on is not misplaced I/O, whatever that layer does behind it. In an infrastructure or presentation file: a business rule, that is a domain invariant, calculation or decision that the domain or application layer should own. Constructor parameters of any file are dependency wiring when their types come from the file's own layer or from a layer it may depend on: an injected repository, gateway, client or service there is not by itself misplaced. A type the project declares itself is not a framework type, whatever its name.\nEvidence required: Name the file and cite the signature, decorator, declaration or statement that carries the misplaced responsibility, its package or origin, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\nStyle: clean-architecture. Layers are listed inner to outer: a layer may depend on the layers listed before it.\n- domain (kind: domain; may depend on: no other layer): src/domain/**\n- application (kind: application; may depend on: domain): src/application/**\n- infrastructure (kind: infrastructure; may depend on: domain, application): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/application/use-cases/StartSubscription.ts\nLayer: application\nUnit files:\n- src/application/use-cases/StartSubscription.ts\n\n## Source\n=====SOURCE-BEGIN src/application/use-cases/StartSubscription.ts=====\nimport { SubscriptionError } from '../../domain/errors/SubscriptionError';\nimport { Subscription } from '../../domain/model/Subscription';\nimport { PlanCatalog } from '../../domain/ports/PlanCatalog';\nimport { SubscriptionRepository } from '../../domain/ports/SubscriptionRepository';\nimport { SubscriptionSummary, summarise } from '../dto/SubscriptionSummary';\nimport { Request } from 'express';\n\nexport class StartSubscription {\n  constructor(\n    private readonly subscriptions: SubscriptionRepository,\n    private readonly plans: PlanCatalog,\n  ) {}\n\n  async execute(customerId: string, planCode: string, seats: number, request?: Request): Promise<SubscriptionSummary> {\n    if (!Number.isInteger(seats) || seats < 1) {\n      throw new SubscriptionError('invalid', 'A subscription needs at least one whole seat');\n    }\n    const plan = this.plans.find(planCode);\n    if (plan === undefined) throw new SubscriptionError('not-found', `Unknown plan ${planCode}`);\n    if ((await this.subscriptions.activeFor(customerId)).some((s) => s.planCode === planCode)) {\n      throw new SubscriptionError('state', `Customer ${customerId} already has plan ${planCode}`);\n    }\n    const subscription = Subscription.start(this.subscriptions.nextId(), customerId, plan, seats);\n    await this.subscriptions.save(subscription);\n    return summarise(subscription, plan);\n  }\n}\n\n=====SOURCE-END=====\n\n## Neighbourhood\nsrc/application/use-cases/StartSubscription.ts (layer application, kind application)\n  imports: package express; src/application/dto/SubscriptionSummary.ts (layer application, kind application); src/domain/errors/SubscriptionError.ts (layer domain, kind domain); src/domain/model/Subscription.ts (layer domain, kind domain); src/domain/ports/PlanCatalog.ts (layer domain, kind domain); src/domain/ports/SubscriptionRepository.ts (layer domain, kind domain)\n  imported by: src/infrastructure/http/SubscriptionController.ts (layer infrastructure, kind infrastructure); src/infrastructure/main.ts (layer infrastructure, kind infrastructure)\n  types: StartSubscription injects PlanCatalog in src/domain/ports/PlanCatalog.ts (layer domain, kind domain); StartSubscription injects SubscriptionRepository in src/domain/ports/SubscriptionRepository.ts (layer domain, kind domain); StartSubscription is injected into SubscriptionController in src/infrastructure/http/SubscriptionController.ts (layer infrastructure, kind infrastructure)\n\n## Candidate flags\nCandidates proposed by deterministic checks; verify, don't trust. Each line is a tool observation with its location, not a finding.\n- framework-in-core/framework-type-parameter at src/application/use-cases/StartSubscription.ts:14: application StartSubscription.execute parameter request: Request | undefined (express)\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric. Check each candidate flag against the source: a flag the source does not support must not count against the unit, and a violation the flags miss counts as much as one they name. Judge what each declaration is, not only what it does at run time.\n",
+  "provider": "agy",
+  "recordedAt": "2026-10-16T05:34:28.860Z",
+  "repetition": 0,
+  "requestHash": "3345089ae68ff221e669f88ed98bab4ce2e4b9506c0726bf52270be3041da10d",
+  "resolvedModel": "gemini-4-argon-high",
+  "response": "{\"confidence\":1,\"evidence\":[\"src/application/use-cases/StartSubscription.ts:6 — import { Request } from 'express' (web/transport package, infrastructure/presentation layer kind)\",\"src/application/use-cases/StartSubscription.ts:14 — async execute(customerId: string, planCode: string, seats: number, request?: Request): Promise<SubscriptionSummary> exposes an HTTP Request parameter from 'express' in an application layer method signature\"],\"pass\":false,\"reasoning\":\"The file src/application/use-cases/StartSubscription.ts is in the application layer (kind: application), but the method signature StartSubscription.execute(customerId: string, planCode: string, seats: number, request?: Request) includes an optional parameter `request?: Request` imported from the `express` web/transport package. Under the rubric, a request type from a web or transport package in any method signature of an application file is a misplaced responsibility belonging to the infrastructure/delivery layer kind, even when the parameter is optional and unused.\",\"violations\":[{\"filePath\":\"src/application/use-cases/StartSubscription.ts\",\"message\":\"Method signature `StartSubscription.execute(customerId: string, planCode: string, seats: number, request?: Request)` in the application layer accepts an HTTP `Request` parameter imported from the `express` web package, which belongs to the infrastructure/delivery layer kind.\"}]}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/application/use-cases/StartSubscription.ts",
+  "usage": {
+    "inputTokens": 14481,
+    "outputTokens": 1309
+  },
+  "usedOptions": {
+    "model": "gemini-4-argon-high"
+  }
+}

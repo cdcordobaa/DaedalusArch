@@ -1,0 +1,15 @@
+--- a/src/attendees/attendees.module.ts
++++ b/src/attendees/attendees.module.ts
+@@ -1,10 +1,12 @@
+ import { Module } from '@nestjs/common';
+ import { ATTENDEE_REPOSITORY } from '../domain/attendee-repository';
++import { RegistrationsModule } from '../registrations/registrations.module';
+ import { AttendeesController } from './attendees.controller';
+ import { AttendeesService } from './attendees.service';
+ import { InMemoryAttendeeRepository } from './in-memory-attendee.repository';
+ 
+ @Module({
++  imports: [RegistrationsModule],
+   controllers: [AttendeesController],
+   providers: [AttendeesService, { provide: ATTENDEE_REPOSITORY, useClass: InMemoryAttendeeRepository }],
+   exports: [ATTENDEE_REPOSITORY],

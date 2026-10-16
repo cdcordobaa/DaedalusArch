@@ -1,0 +1,22 @@
+--- a/src/application/ports/in/BookingView.ts
++++ b/src/application/ports/in/BookingView.ts
+@@ -1,4 +1,5 @@
+ import { Booking } from '../../../domain/model/Booking';
++import type { BookRoomCommand } from './BookRoom';
+ 
+ export interface BookingView {
+   id: string;
+@@ -7,10 +8,12 @@
+   checkOut: string;
+   totalCents: number;
+   status: string;
++  guests?: number;
+ }
+ 
+-export function toBookingView(booking: Booking): BookingView {
++export function toBookingView(booking: Booking, command?: Pick<BookRoomCommand, 'guests'>): BookingView {
+   return {
++    guests: command?.guests,
+     id: booking.id,
+     roomId: booking.roomId,
+     checkIn: booking.stay.checkIn.toISOString(),
