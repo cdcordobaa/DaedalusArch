@@ -12,7 +12,7 @@ const repo = {
   needs: 'offline',
   basis: 're-derived',
   slow: false,
-  how: 'count headings (backlog jobs, review findings); variants in results/v1.3-reference/after-member-facts/report.json; overlays with VIOLATION/Allowed comments in tests/fixtures/v1.3-reference/ddd/variants; Docs/v1.3/pilot-tasks.md JSON block; judge cassettes with 3 runs; RUNS_PER_EVALUATION; results/v1.3-cypher-interp/{bench.md,parity/parity-by-template.json}; Docs/v1.3/study2-outline.md §6; experiments/loop-demo/demo-tasks.json',
+  how: 'count headings (backlog jobs, review findings); variants in results/v1.3-reference/after-member-facts/report.json; overlays with VIOLATION/Allowed comments in tests/fixtures/v1.3-reference/ddd/variants; Docs/v1.3/pilot-tasks.md JSON block; judge cassettes with 3 runs; RUNS_PER_EVALUATION; results/v1.3-cypher-interp/{bench.md,parity/parity-by-template.json}; Docs/v1.3/study2-outline.md §6; the pilot dry run and the replay share those tasks',
   numbers: [
     N('h-nb-l1-jobs', 1, 'jobs in the backlog (### #n headings)', '26 new jobs'),
     N('h-nb-l3-findings', 3, 'findings in the post-merge review', '31 findings'),
@@ -28,7 +28,7 @@ const repo = {
     N('h-nb-l427-steps', 427, 'Study 2 step turns (outline §6)', '~900 steps', { known: { actual: '650–970 step turns', note: 'Docs/v1.3/study2-outline.md §6 gives a range of roughly 650–970 step turns; ~900 lies inside it but is not a figure the outline states' } }),
     N('h-nb-l531-ddd', 531, 'DDD overlays carrying a VIOLATION or Allowed comment', 'all 14 DDD overlays'),
     N('h-nb-l534-ref', 534, 'reference variants', 'all 71 variants'),
-    N('h-nb-l581-dry', 581, 'tasks x steps of the committed dry run (experiments/loop-demo)', '3 tasks × 4 steps', { known: { actual: '1 task × 3 steps', note: 'at HEAD the dry-run tasks file (experiments/loop-demo/demo-tasks.json) has 1 task of 3 steps; the 3 x 4 shape is the pilot tasks, used by the #142 replay, which is not merged at HEAD' } }),
+    N('h-nb-l581-dry', 581, 'tasks x steps of the pilot dry run and the replay (experiments/loop-pilot/plan.json; REPLAY_TAPES, merged with #142)', '3 tasks × 4 steps'),
     N('h-nb-l581-runs', 581, 'Study 2 runs (outline §6)', '~162 runs'),
     N('h-nb-l581-steps', 581, 'Study 2 step turns (outline §6)', '~900 steps', { known: { actual: '650–970 step turns', note: 'Docs/v1.3/study2-outline.md §6 gives a range of roughly 650–970 step turns; ~900 lies inside it but is not a figure the outline states' } }),
     N('h-nb-l581-arms', 581, 'Study 2 arms (outline §6)', '3 arms'),
@@ -81,8 +81,6 @@ const repo = {
     const arms = /\| Arms \| (\d+) \|/.exec(outline)[1];
     const usd = /about (\d+–\d+) USD/.exec(outline)[1];
     const days = /about (\d+–\d+) days/.exec(outline)[1];
-    const demo = ctx.json('experiments/loop-demo/demo-tasks.json');
-    const dt = demo.tasks ?? demo; const dsteps = [...new Set(dt.map((t) => t.steps.length))].join('/');
     return {
       'h-nb-l1-jobs': `${jobs} new jobs`,
       'h-nb-l3-findings': `${findings} findings`,
@@ -98,7 +96,7 @@ const repo = {
       'h-nb-l427-steps': `${turns} step turns`,
       'h-nb-l531-ddd': ddd,
       'h-nb-l534-ref': `all ${variants} variants`,
-      'h-nb-l581-dry': `${dt.length} ${dt.length === 1 ? 'task' : 'tasks'} × ${dsteps} steps`,
+      'h-nb-l581-dry': `${tasks.length} ${tasks.length === 1 ? 'task' : 'tasks'} × ${steps.join('/')} steps`,
       'h-nb-l581-runs': `~${runs} runs`,
       'h-nb-l581-steps': `${turns} step turns`,
       'h-nb-l581-arms': `${arms} arms`,
@@ -165,7 +163,7 @@ const external = {
     N('h-nb-l376-dup', 376, 'FF-S01/FF-S03 double count of the same edge (#161 §5.4)', 'up to 2×', { note: EXT('origin/v1.3-floor-probe (PR #161)') }),
     N('h-nb-l379-cal', 379, 'seeds in the analysis calibration run (#160)', '200-seed', { note: EXT('origin/v1.3-study2-analysis-rehearsal (PR #160)') }),
     N('h-nb-l379-checks', 379, 'rehearsal checks passing (#160)', '30/30', { note: EXT('origin/v1.3-study2-analysis-rehearsal (PR #160)') }),
-    N('h-nb-l430-snaps', 430, 'snapshots of the #142 replay', '39 snapshots', { note: EXT('origin/v1.3-loop-replay (PR #142)') }),
+    N('h-nb-l430-snaps', 430, 'snapshots of the #142 replay', '39 snapshots', { needs: 'needs-Neo4j', note: '#142 merged into v1.3 after the first run of this package; the count is a figure of its Neo4j replay (Docs/v1.3/loop-replay.md:42, group i-lr-neo4j); the expected count from the tapes is 39 (i-lr-snapshots)' }),
     N('h-nb-l581-lanes', 581, 'lane concurrency rule', 'max 2 lanes', { note: 'no lane rule exists in the tree at HEAD (scripts/lib/loop, Docs/v1.3/study2-outline.md); presumably on the #142/#146 branches' }),
     N('h-nb-l607-ext', 607, 'external set blocking findings (#133)', '283 blocking findings', { note: EXT('origin/v1.3-external-set (PR #133)') }),
     N('h-nb-l713-tasks', 713, 'new probe tasks of #161', 'four new probe tasks', { note: EXT('origin/v1.3-floor-probe (PR #161)') }),
