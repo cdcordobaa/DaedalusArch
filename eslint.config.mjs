@@ -51,7 +51,10 @@ export default tseslint.config(
     // anti-patterns and their own ambient typings), not code of this repository. tests/fixtures/v1.3-devset-b: the same
     // for the devset-b reference variants (copies of the reference projects plus planted variants).
     // tests/fixtures/v1.3-dynamic-imports: planted require()/import() edges (R03 of the 2026-10-16 review).
+    // tests/fixtures/v1.3-judge-steering: single unit files of CHECK-2 copies (judge steering-comment variants), whose
+    // imports resolve only inside their CHECK-2 project.
     // src/cypher-interp/generated: ANTLR output (scripts/v1.3/gen-cypher-parser.sh), not hand-written.
-    ignores: ['dist/**', 'node_modules/**', 'coverage/**', '*.cjs', '*.mjs', 'tests/fixtures/v1.3-cheap2/**', 'tests/fixtures/v1.3-devset-b/**', 'tests/fixtures/v1.3-dynamic-imports/**', 'src/cypher-interp/generated/**'],
+    // tests/fixtures/loop-acceptance: plain-JS demo services the acceptance runner starts (not TypeScript of this repo).
+    ignores: ['dist/**', 'node_modules/**', 'coverage/**', '*.cjs', '*.mjs', 'tests/fixtures/v1.3-cheap2/**', 'tests/fixtures/v1.3-devset-b/**', 'tests/fixtures/v1.3-dynamic-imports/**', 'tests/fixtures/v1.3-judge-steering/**', 'tests/fixtures/loop-acceptance/**', 'src/cypher-interp/generated/**'],
   },
 );

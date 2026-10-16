@@ -132,6 +132,69 @@ describe('Gemini API budget', () => {
     fs.rmSync(dir, { recursive: true, force: true });
   });
 
+  it('starts at zero only without a ledger file; a truncated or unreadable ledger is an error', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ens-ledger-'));
+    const file = path.join(dir, 'gemini-ledger.json');
+    expect(new SpendLedger(file).spent).toEqual({ calls: 0, inputTokens: 0, outputTokens: 0, usd: 0 });
+    fs.writeFileSync(file, '{"calls": 3, "inputTok');
+    expect(() => new SpendLedger(file)).toThrow(/not valid JSON/);
+    fs.writeFileSync(file, '{"calls": 3}');
+    expect(() => new SpendLedger(file)).toThrow(/does not hold/);
+    fs.rmSync(file);
+    fs.mkdirSync(file);
+    expect(() => new SpendLedger(file)).toThrow(/Cannot read the spend ledger/);
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  it('replaces the ledger file atomically and leaves no temp file', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ens-ledger-'));
+    const file = path.join(dir, 'gemini-ledger.json');
+    const ledger = new SpendLedger(file);
+    ledger.add(10, 20, 0.5);
+    ledger.add(1, 2, 0.25);
+    expect(JSON.parse(fs.readFileSync(file, 'utf8'))).toEqual({ calls: 2, inputTokens: 11, outputTokens: 22, usd: 0.75 });
+    expect(fs.readdirSync(dir)).toEqual(['gemini-ledger.json']);
+    // A rename that fails (here: the target became a non-empty directory) throws and removes its temp file.
+    fs.rmSync(file);
+    fs.mkdirSync(path.join(file, 'x'), { recursive: true });
+    expect(() => ledger.add(1, 1, 1)).toThrow();
+    expect(fs.readdirSync(dir)).toEqual(['gemini-ledger.json']);
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  it('reserves the worst case before the await, so concurrent calls cannot cross the cap', async () => {
+    const mock = new MockLLMProvider(verdict(true, 0.9));
+    let open: () => void = () => undefined;
+    const gate = new Promise<void>((r) => { open = r; });
+    const slow: LLMProvider = { name: 'slow', describe: () => mock.describe(), evaluate: async (...a) => { await gate; return mock.evaluate(...a); } };
+    const ledger = new SpendLedger();
+    // $1 per thousand output tokens and 1000 tokens of output per call: two calls fit under $2.50, a third does not.
+    const rater = new BudgetedRater(new ProviderRater('g', 'gemini-api', slow), { maxCalls: 10, maxTokens: 1e9, maxUsd: 2.5, usdPerMInput: 0, usdPerMOutput: 1000 }, ledger);
+    const pending = [rater.rate(REQUEST), rater.rate(REQUEST), rater.rate(REQUEST), rater.rate(REQUEST)];
+    expect(ledger.committed.calls).toBe(2);
+    expect(ledger.spent.calls).toBe(0);
+    open();
+    const results = await Promise.all(pending);
+    expect(results.map((r) => r.status)).toEqual(['valid', 'valid', 'skipped', 'skipped']);
+    expect(mock.getCallCount()).toBe(2);
+    // Settled at the reported usage; nothing is left reserved.
+    expect(ledger.committed).toEqual(ledger.spent);
+    expect(ledger.spent.calls).toBe(2);
+    expect(ledger.spent.usd).toBeLessThanOrEqual(2.5);
+  });
+
+  it('releases the reservation of a call the inner rater skipped, and charges one that threw', async () => {
+    const ledger = new SpendLedger();
+    const cap = { maxCalls: 1, maxTokens: 1e9, maxUsd: 5, usdPerMInput: 1, usdPerMOutput: 1 };
+    const skipping = new BudgetedRater({ id: 's', vendor: 'gemini-api', model: 'm', complete: () => Promise.resolve({ rater: 's', vendor: 'gemini-api', model: 'm', durationMs: 0, status: 'skipped', reason: 'off' }), rate: () => Promise.reject(new Error('unused')) }, cap, ledger);
+    expect((await skipping.complete(REQUEST)).status).toBe('skipped');
+    expect(ledger.committed.calls).toBe(0);
+    const throwing = new BudgetedRater({ id: 't', vendor: 'gemini-api', model: 'm', complete: () => Promise.reject(new Error('socket')), rate: () => Promise.reject(new Error('unused')) }, cap, ledger);
+    await expect(throwing.complete(REQUEST)).rejects.toThrow('socket');
+    expect(ledger.committed).toEqual(ledger.spent);
+    expect(ledger.spent).toMatchObject({ calls: 1, outputTokens: 1000 });
+  });
+
   it('is skipped without a model id or without the key in the environment', async () => {
     expect(await geminiApiRater({}, { env: { GEMINI_API_KEY: 'k' } }).rate(REQUEST)).toMatchObject({ status: 'skipped', reason: expect.stringContaining('--gemini-model') });
     expect(await geminiApiRater({ model: 'gemini-x' }, { env: {} }).rate(REQUEST)).toMatchObject({ status: 'skipped', reason: expect.stringContaining('GEMINI_API_KEY') });

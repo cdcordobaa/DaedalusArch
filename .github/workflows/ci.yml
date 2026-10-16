@@ -71,6 +71,15 @@ jobs:
         # D-U4-14 (Build and Test Step 5)
         run: npx tsc -p tsconfig.u4-tests.json
 
+      - name: Citation and personal-path guard
+        # Fails on citations of internal communications removed from the public tree (#132) and on personal
+        # absolute paths in Docs/, papers/, results/, experiments/, replication/ and aidlc-docs/.
+        run: npm run lint:citations
+
+      - name: Study 2 protocol consistency
+        # Fails when a protocol document contradicts Docs/v1.3/study2-deviation-2026-10-16.md §2 (arms, k, outcome, unit).
+        run: npm run lint:protocol
+
       - name: Lint
         # D-U0-16: lint tooling broken at 7cd15b4; repaired in U0 Step 11, findings are a recorded residual
         continue-on-error: true

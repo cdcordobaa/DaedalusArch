@@ -6,7 +6,7 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import type { GraphRepository } from '../../../src/shared/interfaces/graph-repository.js';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import { buildContext, parseArgs } from '../../../src/mcp-server/context.js';
-import { SPEC_TOOL_NAMES, TOOL_NAMES, createServer } from '../../../src/mcp-server/server.js';
+import { RULE_MINING_TOOL_NAMES, SPEC_TOOL_NAMES, TOOL_NAMES, createServer, toolNamesFor } from '../../../src/mcp-server/server.js';
 import { createSpecLoader, toProjectRelative } from '../../../src/mcp-server/tools.js';
 import type { ServerContext } from '../../../src/mcp-server/tools.js';
 import { CLEAN_ARCH_SPEC, FIXTURES } from './helpers.js';
@@ -349,5 +349,49 @@ describe('path and argument handling', () => {
       defaultSpecPath: 'flag.yaml',
       defaultProjectPath: '/env',
     });
+  });
+});
+
+describe('propose_rules (opt-in)', () => {
+  it('is not registered by default, and is registered after the ten tools with ruleMining', async () => {
+    const off = await connect(context());
+    expect((await off.client.listTools()).tools.map((t) => t.name)).not.toContain('propose_rules');
+    await off.close();
+    const on = await connect(context({ ruleMining: true }));
+    expect((await on.client.listTools()).tools.map((t) => t.name)).toEqual([...TOOL_NAMES, ...RULE_MINING_TOOL_NAMES]);
+    await on.close();
+    expect(toolNamesFor({})).toEqual(TOOL_NAMES);
+    expect(SPEC_TOOL_NAMES).not.toContain('propose_rules');
+  });
+
+  it('turns on with --rule-mining or DAEDALUS_RULE_MINING=1', () => {
+    expect(parseArgs(['--rule-mining']).ruleMining).toBe(true);
+    expect(parseArgs([]).ruleMining).toBeUndefined();
+    expect(buildContext(parseArgs([]), {}).ruleMining).toBe(false);
+    expect(buildContext(parseArgs([]), { DAEDALUS_RULE_MINING: '1' }).ruleMining).toBe(true);
+    expect(buildContext(parseArgs(['--rule-mining']), {}).ruleMining).toBe(true);
+  });
+
+  it('returns the mined rules of a project as labelled proposals with a compiling spec', async () => {
+    const { client, close } = await connect(context({ ruleMining: true }));
+    const project = path.join(process.cwd(), 'tests/fixtures/v1.3-reference/hexagonal/project');
+    const r = await call(client, 'propose_rules', { project, maxExceptions: 2 });
+    await close();
+    expect(r.isError).toBe(false);
+    const s = r.structured as { label: string; style: string; rules: { status: string; kind: string; exceptions: unknown[] }[]; spec: { valid: boolean; yaml: string } };
+    expect(s.label).toMatch(/^PROPOSED rules/);
+    expect(s.style).toBe('hexagonal');
+    expect(s.rules.length).toBeGreaterThan(0);
+    expect(s.rules.every((x) => x.status === 'proposal' && x.exceptions.length <= 2)).toBe(true);
+    expect(s.spec.valid).toBe(true);
+    expect(s.spec.yaml).toContain('allowed_dependencies');
+  }, 120_000);
+
+  it('fails clearly for a directory without src/', async () => {
+    const { client, close } = await connect(context({ ruleMining: true }));
+    const r = await call(client, 'propose_rules', { project: os.tmpdir() });
+    await close();
+    expect(r.isError).toBe(true);
+    expect(r.text).toMatch(/No src\/ directory/);
   });
 });

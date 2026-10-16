@@ -28,11 +28,14 @@ import type {
   NotChecked,
   RuleHit,
 } from './types.js';
+import { buildFixHint } from '../fix-hints/index.js';
+import type { FixHint } from '../fix-hints/types.js';
 
 /** The pre-v2 fields of a violation (what the import and naming checks build). */
 type BaseViolation = Pick<FileViolation, 'rule' | 'ruleName' | 'severity' | 'line' | 'subject' | 'reason' | 'fix'> & {
   readonly target?: string;
   readonly viaBarrels?: readonly string[];
+  readonly hint?: FixHint;
 };
 
 /** Naming templates a class declaration alone decides (the others need the graph or never fire). */
@@ -194,6 +197,8 @@ export interface CheckSourceInput {
   readonly content: string;
   /** Maps a line of `content` to the line reported (`check_diff` passes the new-file line numbers). */
   readonly lineOf?: (line: number) => number;
+  /** Attach a deterministic fix hint to each blocking import violation (Docs/v1.3/fix-hints.md). Off by default. */
+  readonly hints?: boolean;
   /**
    * MCP v2: the project as the fast checks may read it (barrels, entry files, the import graph for cycles). Without
    * it the check is spec-only: no barrel is followed and no cycle is checked.
@@ -260,6 +265,7 @@ function withMeta(meta: RuleMeta, file: string, row: BaseViolation, check: FileV
     location: `${file}:${String(row.line)}`,
     ...(row.target !== undefined ? { target: row.target } : {}),
     ...(row.viaBarrels !== undefined && row.viaBarrels.length > 0 ? { viaBarrels: row.viaBarrels } : {}),
+    ...(row.hint !== undefined ? { hint: row.hint } : {}),
   };
 }
 
@@ -347,6 +353,15 @@ export function checkSource(spec: ParsedSpec, input: CheckSourceInput): FileChec
     if (layer === null) continue;
     const target = res.to.path ?? res.to.package;
     for (const hit of res.violations) {
+      const hint =
+        input.hints === true && target !== undefined
+          ? buildFixHint(spec, {
+              ruleId: hit.ruleId,
+              filePath,
+              target,
+              isTypeOnly: imp.kind === 'type',
+            })
+          : undefined;
       const row: BaseViolation = {
         rule: hit.ruleId,
         ruleName: hit.ruleName,
@@ -356,6 +371,7 @@ export function checkSource(spec: ParsedSpec, input: CheckSourceInput): FileChec
         reason: hit.reason,
         fix: importFix(spec, hit, filePath, layer, res.to),
         ...(target !== undefined ? { target } : {}),
+        ...(hint !== undefined ? { hint } : {}),
       };
       // v1.3: string-literal require()/import() calls are IMPORTS edges of the evaluated graph (dynamicImports), so
       // they are scored like static imports (R03, post-merge review 2026-10-16); `advisories` stays empty.
