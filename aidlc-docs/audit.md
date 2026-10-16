@@ -1917,3 +1917,11 @@ Other changes in the same PR: paper wording (judge interval, distinct floor-prob
 **Context**: v1.3 spike follow-up; PR #151 left open for review.
 
 ---
+
+## v1.3 Construction — freeze runbook and dry run (scheduled task)
+**Timestamp**: 2026-10-16T04:30:00Z
+**User Input**: "Scheduled task: make the v1.3 freeze mechanical and error-free once the author answers the construct sheet. Write Docs/v1.3/freeze-runbook.md (apply answers, ADR-V13-03, dev re-score, full test suite, byte-identity snapshot, freeze sha in sealed-hashes.md, the hold-out run once with outputs committed unchanged, scoring, post-run rules); write scripts/v1.3/freeze-check.ts (every precondition, fails loudly, prints a hash manifest) and dry-run it on the current tip; dry-run the hold-out runner and scorer on a synthetic stand-in generated here, never reading a sealed path; decide and document the engine (Neo4j 5.26 reference) and the interpreter cross-check. Branch v1.3-freeze-dryrun from v1.3, one PR, no merge, no tag."
+**AI Response**: "Wrote the runbook (12 numbered steps, preconditions F1-F14), freeze-check.ts (dry run on the tip: 9 of 14 unmet, exactly F1-F4 and F8-F12), synthetic-holdout.ts (development set renamed, provisional ddd id with id map, one planted miss), and ran holdout-run.ts end to end on that stand-in on Neo4j 5.26.24 + APOC and on --engine cypher-interp: the planted miss is the only miss, and the two engines are byte-identical. Fixed in the runner: --expect-sha256 could never match the sealed-hashes value (different file naming), and --engine cypher-interp was missing. Prespec draft: names the runner's provenance file and the engine. No sealed path, .env or secret was read; nothing frozen, tagged or merged. The AI-DLC approval gates were not run interactively: a scheduled task with no one present; the stored prompt served as the requirements."
+**Context**: CONSTRUCTION, v1.3 validity cycle (FR-V11 hold-out). Preparation only; the author's answers and step 5 onward remain the author's.
+
+---

@@ -31,9 +31,9 @@ It is not a pre-registration of Study 2. It covers only the validation of the to
 ## 2. The run
 
 1. The author unseals the hold-out projects into a temporary directory outside the repository and outside any `node_modules` ancestry.
-2. One live run at X, with the same pipeline as the development runs: `scripts/v1.3/ue-baseline-live.ts`, then `ue-graph.ts`, then `ue-score.ts --base results/v1.3-holdout/run-1 --blind <hold-out manifests>`. One capped Neo4j, holding the cross-process lock (NFR-V2).
+2. One live run at X, with the same pipeline as the development runs: `scripts/v1.3/ue-baseline-live.ts`, then `ue-graph.ts`, then `ue-score.ts --base results/v1.3-holdout/run-1 --blind <hold-out manifests>`. One capped Neo4j, holding the cross-process lock (NFR-V2). The exact commands are `Docs/v1.3/freeze-runbook.md` §B (`scripts/v1.3/holdout-run.ts`, which runs this pipeline and the scoring of §3–§5). **Engine:** every reported figure comes from Neo4j 5.26.x with APOC core; the in-process interpreter (`--engine cypher-interp`) runs once afterwards as an engine cross-check (runbook §C). A difference is a defect under §6, and the Neo4j figures stand.
 3. **A repeat is allowed only to check determinism.** If a second run differs from the first in any finding, that is a defect, recorded under §6. The first run stands.
-4. The outputs are committed unchanged, with `run-provenance.json`, before anyone labels anything (§7).
+4. The outputs are committed unchanged, with `holdout-run-provenance.json` (the runner's provenance file), before anyone labels anything (§7).
 
 ## 3. Metrics
 
