@@ -1,0 +1,4 @@
+{ "variant": "v27-order-controller-triggers-invoicing", "spec": "presets/ddd.yaml", "findings": [
+  { "rule": "FF-DS02", "name": "context-isolation", "file": "src/ordering/api/OrderController.ts", "target": "src/billing/application/IssueInvoice.ts",
+    "reason": "ordering imports billing's IssueInvoice, which billing does not publish (its public API is index.ts and contracts/**), and ordering has no anti-corruption layer." }
+] }

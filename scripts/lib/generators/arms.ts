@@ -159,7 +159,8 @@ export function daedalusMcpConfig(input: DaedalusServerInput, req: ArmRequest): 
       [DAEDALUS_MCP_SERVER]: {
         type: 'stdio',
         command: input.nodeBinary,
-        args: [input.serverEntry, '--spec', input.specPath, '--project', req.outputDir],
+        // v1.3 npx mode: the server's engine default follows NEO4J_URI; an experiment arm names the reference engine.
+        args: [input.serverEntry, '--spec', input.specPath, '--project', req.outputDir, '--engine', 'neo4j'],
         env: {},
       },
     },

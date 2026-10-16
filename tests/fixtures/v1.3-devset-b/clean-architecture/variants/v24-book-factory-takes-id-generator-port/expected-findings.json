@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "v24-book-factory-takes-id-generator-port",
+  "kind": "violation",
+  "plants": "FF-S04",
+  "description": "Book (domain entity) gets a static register(ids: IdGenerator, ...) factory; IdGenerator is the application port, imported with import type.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/domain/entities/Book.ts",
+      "target": "src/application/ports/IdGenerator.ts",
+      "reason": "The domain imports an application-layer port (a type-only import is still a source dependency): the dependency points outward."
+    },
+    {
+      "ruleId": "FF-S04",
+      "ruleName": "no-domain-outward-dep",
+      "file": "src/domain/entities/Book.ts",
+      "target": "src/application/ports/IdGenerator.ts",
+      "reason": "A domain file imports a file of another layer."
+    }
+  ]
+}

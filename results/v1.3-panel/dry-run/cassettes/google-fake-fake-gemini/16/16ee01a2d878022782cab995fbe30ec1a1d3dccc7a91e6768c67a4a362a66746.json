@@ -1,0 +1,19 @@
+{
+  "answer": {
+    "inputTokens": 453,
+    "outputTokens": 20,
+    "servedModel": "fake-gemini",
+    "text": "{\"choice\":\"A\",\"reason\":\"fake google answer\"}"
+  },
+  "failedAttempts": [],
+  "itemKey": "bd8459f1b4c1e9b001fc9010",
+  "key": "16ee01a2d878022782cab995fbe30ec1a1d3dccc7a91e6768c67a4a362a66746",
+  "model": "fake-gemini",
+  "provider": "fake",
+  "request": {
+    "prompt": "## Architectural style\n- Aggregate boundary: Objects outside the aggregate may hold references only to the root. Inner entities are reached through the root. (Evans, *Domain-Driven Design* (2003), ch. 6 \"Aggregates\"; Vernon, *Implementing DDD* (2013), ch. 10)\n- Repository only for aggregate roots: Repositories are provided only for aggregate roots that actually need direct access. (Evans 2003, ch. 6 \"Repositories\"; Vernon 2013, ch. 12)\n- Value-object immutability: A value object is treated as immutable. Replace it rather than modify it. (Evans 2003, ch. 5 \"Value Objects\"; Vernon 2013, ch. 6)\n- Isolated domain: Domain code is separated from UI, application and infrastructure concerns. (Evans 2003, ch. 4 \"Isolating the Domain\" (Layered Architecture))\n- Bounded-context isolation: Each model applies within an explicit boundary. Integration across contexts is explicit, through a published interface, or translated by an anticorruption layer. (Evans 2003, ch. 14 \"Maintaining Model Integrity\" (Bounded Context, Context Map, Anticorruption Layer); Vernon 2013, ch. 2–3)\n\n## Code excerpt\nFile: src/billing/application/ports/OrderSource.ts\n```ts\n    1 | \n    2 | export interface BillableOrder {\n    3 |   readonly orderId: string;\n    4 |   readonly amountCents: number;\n    5 |   readonly currency: string;\n    6 | }\n    7 | \n    8 | export interface OrderSource {\n    9 |   billableOrder(orderId: string): Promise<BillableOrder | null>;\n   10 | }\n   11 | \n```\n\n## Reported finding\nsrc/billing/application/ports/OrderSource.ts (application) imports against the allowed direction from src/billing/acl/OrderingAcl.ts (infrastructure)\n\n## Question\nWould an architect following this style want this changed?\nA. no\nB. uncertain\nC. yes\n\nReply with JSON only: {\"choice\": \"<letter>\", \"reason\": \"<one sentence>\"}",
+    "system": "You are a software architect reviewing a TypeScript code base against an architectural style. Judge only from the material in the message: the style definition, the code excerpt and the reported finding. You have no tools. Reply with one JSON object and nothing else.",
+    "temperature": 0
+  },
+  "runIndex": 1
+}

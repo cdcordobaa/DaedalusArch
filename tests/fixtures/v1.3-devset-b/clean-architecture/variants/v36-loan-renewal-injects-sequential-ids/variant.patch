@@ -1,0 +1,19 @@
+--- /dev/null
++++ b/src/domain/services/LoanRenewal.ts
+@@ -0,0 +1,16 @@
++import type { SequentialIdGenerator } from '../../infrastructure/system/SequentialIdGenerator';
++import { Loan } from '../entities/Loan';
++import { LoanPeriod } from '../value-objects/LoanPeriod';
++
++export class LoanRenewal {
++  private readonly ids: SequentialIdGenerator;
++
++  constructor(ids: SequentialIdGenerator) {
++    this.ids = ids;
++  }
++
++  renew(loan: Loan, at: Date, period: LoanPeriod): Loan {
++    loan.close(at);
++    return Loan.open(this.ids.next('loan'), loan.bookId, loan.memberId, at, period);
++  }
++}

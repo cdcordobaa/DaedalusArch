@@ -1,0 +1,19 @@
+{
+  "answer": {
+    "inputTokens": 364,
+    "outputTokens": 20,
+    "servedModel": "fake-gemini",
+    "text": "{\"choice\":\"C\",\"reason\":\"fake google answer\"}"
+  },
+  "failedAttempts": [],
+  "itemKey": "31554964b73155895fde1744",
+  "key": "f56143b895b62f434cd3f75b72fca242d36a70af1047a2fd0c335b8aa3b5b11f",
+  "model": "fake-gemini",
+  "provider": "fake",
+  "request": {
+    "prompt": "## Architectural style\n- Core isolation, dependency direction: The application core communicates with the outside only through ports. It does not depend on adapters, UI or databases. (Cockburn, \"Hexagonal Architecture\" (2005))\n- Port-adapter: Each external actor talks to the application through a port. Adapters convert between the port and the technology; secondary (driven) adapters implement ports the core defines. (Cockburn 2005)\n\n## Code excerpt\nFile: src/domain/model/Money.ts\n```ts\n    1 | import { BookingError } from '../errors/BookingError';\n    2 | \n    3 | export class Money {\n    4 |   private constructor(readonly cents: number) {}\n    5 | \n    6 |   static ofCents(cents: number): Money {\n    7 |     if (!Number.isInteger(cents) || cents < 0) throw new BookingError('invalid', `Invalid amount: ${cents}`);\n    8 |     return new Money(cents);\n    9 |   }\n   10 | \n   11 |   times(factor: number): Money {\n   12 |     return Money.ofCents(this.cents * factor);\n   13 |   }\n   14 | \n   15 |   add(other: Money): Money {\n   16 |     return new Money(this.cents + other.cents);\n```\n\n## Reported finding\nsrc/domain/model/Money.ts (domain) imports against the allowed direction from src/adapters/outbound/persistence/InMemoryRoomRepository.ts (adapters-outbound) (line 1)\n\n## Question\nWould an architect following this style want this changed?\nA. yes\nB. uncertain\nC. no\n\nReply with JSON only: {\"choice\": \"<letter>\", \"reason\": \"<one sentence>\"}",
+    "system": "You are a software architect reviewing a TypeScript code base against an architectural style. Judge only from the material in the message: the style definition, the code excerpt and the reported finding. You have no tools. Reply with one JSON object and nothing else.",
+    "temperature": 0
+  },
+  "runIndex": 1
+}
