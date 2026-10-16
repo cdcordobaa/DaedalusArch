@@ -1,0 +1,364 @@
+diff --git a/src/adapters/inbound/http-app.ts b/src/adapters/inbound/http-app.ts
+new file mode 100644
+index 0000000..29e9cee
+--- /dev/null
++++ b/src/adapters/inbound/http-app.ts
+@@ -0,0 +1,44 @@
++import express, { NextFunction, Request, Response } from 'express';
++import { AnimalService, NotFoundError } from '../../application/animal-service';
++import { AdoptionService } from '../../application/adoption-service';
++
++export interface HttpDeps {
++  animals: AnimalService;
++  adoptions: AdoptionService;
++}
++
++export function createHttpApp(deps: HttpDeps): express.Express {
++  const app = express();
++  app.use(express.json());
++
++  app.post('/animals', (req, res) => {
++    res.status(201).json(deps.animals.register(req.body));
++  });
++  app.get('/animals', (_req, res) => {
++    res.json(deps.animals.list());
++  });
++  app.get('/animals/:id', (req, res) => {
++    res.json(deps.animals.get(req.params.id));
++  });
++  app.post('/animals/:id/ready', (req, res) => {
++    res.json(deps.animals.markReady(req.params.id));
++  });
++  app.post('/animals/:id/applications', (req, res) => {
++    res.status(201).json(deps.adoptions.submit(req.params.id, req.body));
++  });
++  app.get('/animals/:id/applications', (req, res) => {
++    res.json(deps.adoptions.listForAnimal(req.params.id));
++  });
++  app.post('/applications/:id/approve', (req, res) => {
++    res.json(deps.adoptions.approve(req.params.id));
++  });
++  app.post('/applications/:id/reject', (req, res) => {
++    res.json(deps.adoptions.reject(req.params.id));
++  });
++
++  app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
++    const status = err instanceof NotFoundError ? 404 : 400;
++    res.status(status).json({ error: err.message });
++  });
++  return app;
++}
+diff --git a/src/adapters/outbound/fake-mailer.ts b/src/adapters/outbound/fake-mailer.ts
+new file mode 100644
+index 0000000..a3bfe93
+--- /dev/null
++++ b/src/adapters/outbound/fake-mailer.ts
+@@ -0,0 +1,8 @@
++import { EmailMessage, Mailer } from '../../application/ports';
++
++export class FakeMailer implements Mailer {
++  readonly sent: (EmailMessage & { sentAt: string })[] = [];
++  send(message: EmailMessage): void {
++    this.sent.push({ ...message, sentAt: new Date().toISOString() });
++  }
++}
+diff --git a/src/adapters/outbound/in-memory-repositories.ts b/src/adapters/outbound/in-memory-repositories.ts
+new file mode 100644
+index 0000000..02a5335
+--- /dev/null
++++ b/src/adapters/outbound/in-memory-repositories.ts
+@@ -0,0 +1,29 @@
++import { Animal } from '../../domain/animal';
++import { AdoptionApplication } from '../../domain/adoption-application';
++import { AnimalRepository, ApplicationRepository } from '../../application/ports';
++
++export class InMemoryAnimalRepository implements AnimalRepository {
++  private readonly items = new Map<string, Animal>();
++  save(animal: Animal): void {
++    this.items.set(animal.id, animal);
++  }
++  findById(id: string): Animal | undefined {
++    return this.items.get(id);
++  }
++  findAll(): Animal[] {
++    return [...this.items.values()];
++  }
++}
++
++export class InMemoryApplicationRepository implements ApplicationRepository {
++  private readonly items = new Map<string, AdoptionApplication>();
++  save(app: AdoptionApplication): void {
++    this.items.set(app.id, app);
++  }
++  findById(id: string): AdoptionApplication | undefined {
++    return this.items.get(id);
++  }
++  findByAnimal(animalId: string): AdoptionApplication[] {
++    return [...this.items.values()].filter((a) => a.animalId === animalId);
++  }
++}
+diff --git a/src/adapters/outbound/uuid-generator.ts b/src/adapters/outbound/uuid-generator.ts
+new file mode 100644
+index 0000000..60bb80e
+--- /dev/null
++++ b/src/adapters/outbound/uuid-generator.ts
+@@ -0,0 +1,8 @@
++import { randomUUID } from 'node:crypto';
++import { IdGenerator } from '../../application/ports';
++
++export class UuidGenerator implements IdGenerator {
++  next(): string {
++    return randomUUID();
++  }
++}
+diff --git a/src/application/adoption-service.ts b/src/application/adoption-service.ts
+new file mode 100644
+index 0000000..7ed0c4b
+--- /dev/null
++++ b/src/application/adoption-service.ts
+@@ -0,0 +1,77 @@
++import { markAdopted } from '../domain/animal';
++import { AdoptionApplication, Applicant, decide } from '../domain/adoption-application';
++import { AnimalRepository, ApplicationRepository, IdGenerator, Mailer } from './ports';
++import { NotFoundError } from './animal-service';
++
++export class AdoptionService {
++  constructor(
++    private readonly animals: AnimalRepository,
++    private readonly applications: ApplicationRepository,
++    private readonly mailer: Mailer,
++    private readonly ids: IdGenerator,
++    private readonly now: () => Date = () => new Date(),
++  ) {}
++
++  submit(animalId: string, applicant: Applicant): AdoptionApplication {
++    const animal = this.animals.findById(animalId);
++    if (!animal) throw new NotFoundError(`Animal ${animalId} not found`);
++    if (animal.status !== 'ready') throw new Error('Animal is not available for adoption');
++    if (!applicant.email) throw new Error('applicant email is required');
++    const app: AdoptionApplication = {
++      id: this.ids.next(),
++      animalId,
++      applicant,
++      status: 'open',
++      submittedAt: this.now().toISOString(),
++    };
++    this.applications.save(app);
++    return app;
++  }
++
++  approve(applicationId: string): AdoptionApplication {
++    const app = this.getApplication(applicationId);
++    const animal = this.animals.findById(app.animalId);
++    if (!animal) throw new NotFoundError(`Animal ${app.animalId} not found`);
++    const at = this.now().toISOString();
++    const approved = decide(app, 'approved', at);
++    this.animals.save(markAdopted(animal));
++    this.applications.save(approved);
++    this.notify(approved, animal.name);
++    for (const other of this.applications.findByAnimal(animal.id)) {
++      if (other.id !== approved.id && other.status === 'open') {
++        const rejected = decide(other, 'rejected', at);
++        this.applications.save(rejected);
++        this.notify(rejected, animal.name);
++      }
++    }
++    return approved;
++  }
++
++  reject(applicationId: string): AdoptionApplication {
++    const app = this.getApplication(applicationId);
++    const rejected = decide(app, 'rejected', this.now().toISOString());
++    this.applications.save(rejected);
++    const animal = this.animals.findById(app.animalId);
++    this.notify(rejected, animal?.name ?? 'the animal');
++    return rejected;
++  }
++
++  listForAnimal(animalId: string): AdoptionApplication[] {
++    return this.applications.findByAnimal(animalId);
++  }
++
++  private getApplication(id: string): AdoptionApplication {
++    const app = this.applications.findById(id);
++    if (!app) throw new NotFoundError(`Application ${id} not found`);
++    return app;
++  }
++
++  private notify(app: AdoptionApplication, animalName: string): void {
++    const outcome = app.status === 'approved' ? 'approved' : 'not successful';
++    this.mailer.send({
++      to: app.applicant.email,
++      subject: `Your adoption application for ${animalName}`,
++      body: `Dear ${app.applicant.name}, your application to adopt ${animalName} was ${outcome}.`,
++    });
++  }
++}
+diff --git a/src/application/animal-service.ts b/src/application/animal-service.ts
+new file mode 100644
+index 0000000..7e85ae6
+--- /dev/null
++++ b/src/application/animal-service.ts
+@@ -0,0 +1,48 @@
++import { Animal, markReady } from '../domain/animal';
++import { AnimalRepository, IdGenerator } from './ports';
++
++export interface RegisterAnimalInput {
++  species: string;
++  name: string;
++  estimatedAgeYears: number;
++  intakeDate: string;
++  medicalNotes?: string;
++}
++
++export class AnimalService {
++  constructor(private readonly animals: AnimalRepository, private readonly ids: IdGenerator) {}
++
++  register(input: RegisterAnimalInput): Animal {
++    if (!input.species || !input.name) throw new Error('species and name are required');
++    const animal: Animal = {
++      id: this.ids.next(),
++      species: input.species,
++      name: input.name,
++      estimatedAgeYears: input.estimatedAgeYears,
++      intakeDate: input.intakeDate,
++      medicalNotes: input.medicalNotes ?? '',
++      status: 'registered',
++    };
++    this.animals.save(animal);
++    return animal;
++  }
++
++  markReady(id: string): Animal {
++    const animal = this.get(id);
++    const updated = markReady(animal);
++    this.animals.save(updated);
++    return updated;
++  }
++
++  get(id: string): Animal {
++    const animal = this.animals.findById(id);
++    if (!animal) throw new NotFoundError(`Animal ${id} not found`);
++    return animal;
++  }
++
++  list(): Animal[] {
++    return this.animals.findAll();
++  }
++}
++
++export class NotFoundError extends Error {}
+diff --git a/src/application/ports.ts b/src/application/ports.ts
+new file mode 100644
+index 0000000..b1f852b
+--- /dev/null
++++ b/src/application/ports.ts
+@@ -0,0 +1,28 @@
++import { Animal } from '../domain/animal';
++import { AdoptionApplication } from '../domain/adoption-application';
++
++export interface AnimalRepository {
++  save(animal: Animal): void;
++  findById(id: string): Animal | undefined;
++  findAll(): Animal[];
++}
++
++export interface ApplicationRepository {
++  save(app: AdoptionApplication): void;
++  findById(id: string): AdoptionApplication | undefined;
++  findByAnimal(animalId: string): AdoptionApplication[];
++}
++
++export interface EmailMessage {
++  to: string;
++  subject: string;
++  body: string;
++}
++
++export interface Mailer {
++  send(message: EmailMessage): void;
++}
++
++export interface IdGenerator {
++  next(): string;
++}
+diff --git a/src/config/main.ts b/src/config/main.ts
+new file mode 100644
+index 0000000..64a757a
+--- /dev/null
++++ b/src/config/main.ts
+@@ -0,0 +1,19 @@
++import { AnimalService } from '../application/animal-service';
++import { AdoptionService } from '../application/adoption-service';
++import { InMemoryAnimalRepository, InMemoryApplicationRepository } from '../adapters/outbound/in-memory-repositories';
++import { FakeMailer } from '../adapters/outbound/fake-mailer';
++import { UuidGenerator } from '../adapters/outbound/uuid-generator';
++import { createHttpApp } from '../adapters/inbound/http-app';
++
++const ids = new UuidGenerator();
++const animalRepo = new InMemoryAnimalRepository();
++const applicationRepo = new InMemoryApplicationRepository();
++export const mailer = new FakeMailer();
++
++const app = createHttpApp({
++  animals: new AnimalService(animalRepo, ids),
++  adoptions: new AdoptionService(animalRepo, applicationRepo, mailer, ids),
++});
++
++const port = Number(process.env.PORT ?? 3000);
++app.listen(port, () => console.log(`Shelter service listening on ${port}`));
+diff --git a/src/domain/adoption-application.ts b/src/domain/adoption-application.ts
+new file mode 100644
+index 0000000..d3fea1e
+--- /dev/null
++++ b/src/domain/adoption-application.ts
+@@ -0,0 +1,22 @@
++export type ApplicationStatus = 'open' | 'approved' | 'rejected';
++
++export interface Applicant {
++  name: string;
++  email: string;
++  phone?: string;
++  household: string;
++}
++
++export interface AdoptionApplication {
++  id: string;
++  animalId: string;
++  applicant: Applicant;
++  status: ApplicationStatus;
++  submittedAt: string;
++  decidedAt?: string;
++}
++
++export function decide(app: AdoptionApplication, status: 'approved' | 'rejected', at: string): AdoptionApplication {
++  if (app.status !== 'open') throw new Error(`Application ${app.id} is already ${app.status}`);
++  return { ...app, status, decidedAt: at };
++}
+diff --git a/src/domain/animal.ts b/src/domain/animal.ts
+new file mode 100644
+index 0000000..be635c9
+--- /dev/null
++++ b/src/domain/animal.ts
+@@ -0,0 +1,21 @@
++export type AnimalStatus = 'registered' | 'ready' | 'adopted';
++
++export interface Animal {
++  id: string;
++  species: string;
++  name: string;
++  estimatedAgeYears: number;
++  intakeDate: string;
++  medicalNotes: string;
++  status: AnimalStatus;
++}
++
++export function markReady(animal: Animal): Animal {
++  if (animal.status === 'adopted') throw new Error('Animal is already adopted');
++  return { ...animal, status: 'ready' };
++}
++
++export function markAdopted(animal: Animal): Animal {
++  if (animal.status !== 'ready') throw new Error('Animal is not ready for adoption');
++  return { ...animal, status: 'adopted' };
++}

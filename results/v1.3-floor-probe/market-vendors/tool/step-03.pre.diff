@@ -1,0 +1,282 @@
+diff --git a/src/business/sales-service.ts b/src/business/sales-service.ts
+index ab4f47b..6fa24af 100644
+--- a/src/business/sales-service.ts
++++ b/src/business/sales-service.ts
+@@ -1,39 +1,92 @@
+ import { randomUUID } from 'node:crypto';
+-import { BusinessError, CardSale, ReaderLink } from './models';
++import { BusinessError, CardSale, MarketDay, MerchantLink, Provider, ReaderLink } from './models';
+ import {
+   bookingRepository,
+   cardSaleRepository,
+   marketDayRepository,
++  merchantLinkRepository,
++  pollStateRepository,
+   readerLinkRepository,
+   vendorRepository,
+ } from '../persistence/repositories';
++import { tillwaveClient } from '../persistence/tillwave-client';
++
++function checkDay(marketDayId: string): MarketDay {
++  const day = marketDayRepository.find(marketDayId);
++  if (!day) throw new BusinessError('unknown market day', 404);
++  if (day.status === 'settled') throw new BusinessError('market day is settled', 409);
++  return day;
++}
++
++function checkOneProvider(vendorId: string, marketDayId: string, provider: Provider): void {
++  const other =
++    provider === 'paylane'
++      ? merchantLinkRepository.forVendorAndDay(vendorId, marketDayId).length
++      : readerLinkRepository.forVendorAndDay(vendorId, marketDayId).length;
++  if (other > 0) throw new BusinessError('vendor already uses another card provider on this market day', 409);
++}
++
++/** Same checks for every provider: a vendor with a booking on the day of a non-settled market day. */
++function acceptSale(provider: Provider, sourceId: string, vendorId: string, day: MarketDay, amount: number, time: string, externalId?: string): CardSale {
++  if (!(amount > 0)) throw new BusinessError('amount must be positive');
++  if (day.status === 'settled') throw new BusinessError('market day is settled', 409);
++  const booked = bookingRepository.activeForDay(day.id).some((b) => b.vendorId === vendorId);
++  if (!booked) throw new BusinessError('vendor has no booking on this market day', 422);
++  if (externalId) {
++    const existing = cardSaleRepository.findByExternalId(provider, externalId);
++    if (existing) return existing;
++  }
++  return cardSaleRepository.save({ id: randomUUID(), readerId: sourceId, externalId, vendorId, marketDayId: day.id, amount, time, provider });
++}
+ 
+ export const salesService = {
+   linkReader(readerId: string, marketDayId: string, vendorId: string): ReaderLink {
+-    if (!marketDayRepository.find(marketDayId)) throw new BusinessError('unknown market day', 404);
++    checkDay(marketDayId);
+     if (!vendorRepository.find(vendorId)) throw new BusinessError('unknown vendor', 404);
++    checkOneProvider(vendorId, marketDayId, 'paylane');
+     return readerLinkRepository.save({ readerId, marketDayId, vendorId });
+   },
+ 
++  linkMerchant(merchantId: string, marketDayId: string, vendorId: string): MerchantLink {
++    checkDay(marketDayId);
++    if (!vendorRepository.find(vendorId)) throw new BusinessError('unknown vendor', 404);
++    checkOneProvider(vendorId, marketDayId, 'tillwave');
++    return merchantLinkRepository.save({ merchantId, marketDayId, vendorId });
++  },
++
+   /** A PayLane card sale: accepted only from a reader linked to a vendor with a booking that day. */
+-  recordPayLaneSale(readerId: string, amount: number, time: string): CardSale {
+-    if (!(amount > 0)) throw new BusinessError('amount must be positive');
++  recordPayLaneSale(readerId: string, amount: number, time: string, externalId?: string): CardSale {
+     const day = marketDayRepository.findByDate(time.slice(0, 10));
+     if (!day) throw new BusinessError('no market day on the sale date', 422);
+-    if (day.status === 'settled') throw new BusinessError('market day is settled', 409);
+     const link = readerLinkRepository.find(day.id, readerId);
+     if (!link) throw new BusinessError('reader is not linked to a vendor for this market day', 422);
+-    const booked = bookingRepository.activeForDay(day.id).some((b) => b.vendorId === link.vendorId);
+-    if (!booked) throw new BusinessError('vendor has no booking on this market day', 422);
+-    return cardSaleRepository.save({
+-      id: randomUUID(),
+-      readerId,
+-      vendorId: link.vendorId,
+-      marketDayId: day.id,
+-      amount,
+-      time,
+-      provider: 'paylane',
+-    });
++    return acceptSale('paylane', readerId, link.vendorId, day, amount, time, externalId);
++  },
++
++  recordTillWaveSale(merchantId: string, amountCents: number, time: string, externalId: string): CardSale {
++    const day = marketDayRepository.findByDate(time.slice(0, 10));
++    if (!day) throw new BusinessError('no market day on the sale date', 422);
++    const link = merchantLinkRepository.find(day.id, merchantId);
++    if (!link) throw new BusinessError('merchant is not linked to a vendor for this market day', 422);
++    return acceptSale('tillwave', merchantId, link.vendorId, day, amountCents / 100, time, externalId);
++  },
++
++  /** Polls TillWave for new sales; rejected sales are logged and skipped. */
++  async pollTillWave(): Promise<{ accepted: number; rejected: number }> {
++    const { sales, cursor } = await tillwaveClient.salesSince(pollStateRepository.getCursor());
++    let accepted = 0;
++    let rejected = 0;
++    for (const s of sales) {
++      try {
++        salesService.recordTillWaveSale(s.merchant_id, s.amount_cents, s.created_at, s.id);
++        accepted++;
++      } catch (e) {
++        rejected++;
++        console.warn(`TillWave sale ${s.id} rejected: ${(e as Error).message}`);
++      }
++    }
++    if (cursor) pollStateRepository.setCursor(cursor);
++    return { accepted, rejected };
+   },
+ 
+   salesForVendor(vendorId: string, marketDayId?: string): CardSale[] {
+diff --git a/src/persistence/models.ts b/src/persistence/models.ts
+index 9a64c38..c075895 100644
+--- a/src/persistence/models.ts
++++ b/src/persistence/models.ts
+@@ -39,14 +39,24 @@ export interface ReaderLink {
+   vendorId: string;
+ }
+ 
++export type Provider = 'paylane' | 'tillwave';
++
++export interface MerchantLink {
++  merchantId: string;
++  marketDayId: string;
++  vendorId: string;
++}
++
+ export interface CardSale {
+   id: string;
++  /** PayLane reader id or TillWave merchant id */
+   readerId: string;
++  externalId?: string;
+   vendorId: string;
+   marketDayId: string;
+   amount: number;
+   time: string;
+-  provider: 'paylane';
++  provider: Provider;
+ }
+ 
+ export interface FeeSchedule {
+diff --git a/src/persistence/repositories.ts b/src/persistence/repositories.ts
+index a2bb515..0cab914 100644
+--- a/src/persistence/repositories.ts
++++ b/src/persistence/repositories.ts
+@@ -1,5 +1,17 @@
+-import { Booking, CardSale, FeeSchedule, MarketDay, Pitch, ReaderLink, Settlement, Vendor } from './models';
+-import { balances, bookings, cardSales, feeSchedule, marketDays, pitches, readerLinks, settlements, vendors } from './store';
++import { Booking, CardSale, FeeSchedule, MarketDay, MerchantLink, Pitch, ReaderLink, Settlement, Vendor } from './models';
++import {
++  balances,
++  bookings,
++  cardSales,
++  feeSchedule,
++  marketDays,
++  merchantLinks,
++  pitches,
++  pollState,
++  readerLinks,
++  settlements,
++  vendors,
++} from './store';
+ 
+ export const marketDayRepository = {
+   save: (d: MarketDay) => marketDays.upsert(d),
+@@ -32,6 +44,22 @@ export const bookingRepository = {
+ export const readerLinkRepository = {
+   save: (l: ReaderLink) => readerLinks.upsert(l),
+   find: (marketDayId: string, readerId: string) => readerLinks.get(`${marketDayId}|${readerId}`),
++  forVendorAndDay: (vendorId: string, marketDayId: string) =>
++    readerLinks.where((l) => l.vendorId === vendorId && l.marketDayId === marketDayId),
++};
++
++export const merchantLinkRepository = {
++  save: (l: MerchantLink) => merchantLinks.upsert(l),
++  find: (marketDayId: string, merchantId: string) => merchantLinks.get(`${marketDayId}|${merchantId}`),
++  forVendorAndDay: (vendorId: string, marketDayId: string) =>
++    merchantLinks.where((l) => l.vendorId === vendorId && l.marketDayId === marketDayId),
++};
++
++export const pollStateRepository = {
++  getCursor: () => pollState.tillwaveCursor,
++  setCursor: (c: string) => {
++    pollState.tillwaveCursor = c;
++  },
+ };
+ 
+ export const cardSaleRepository = {
+@@ -40,6 +68,8 @@ export const cardSaleRepository = {
+     cardSales.where((s) => s.vendorId === vendorId && s.marketDayId === marketDayId),
+   forVendor: (vendorId: string) => cardSales.where((s) => s.vendorId === vendorId),
+   forDay: (marketDayId: string) => cardSales.where((s) => s.marketDayId === marketDayId),
++  findByExternalId: (provider: string, externalId: string) =>
++    cardSales.where((s) => s.provider === provider && s.externalId === externalId)[0],
+ };
+ 
+ export const settlementRepository = {
+diff --git a/src/persistence/store.ts b/src/persistence/store.ts
+index 7cf317c..f688d17 100644
+--- a/src/persistence/store.ts
++++ b/src/persistence/store.ts
+@@ -1,4 +1,4 @@
+-import { Booking, CardSale, FeeSchedule, MarketDay, Pitch, ReaderLink, Settlement, Vendor } from './models';
++import { Booking, CardSale, FeeSchedule, MarketDay, MerchantLink, Pitch, ReaderLink, Settlement, Vendor } from './models';
+ 
+ /** In-memory tables. */
+ export class Table<T> {
+@@ -35,3 +35,5 @@ export const feeSchedule: FeeSchedule = {
+   powerSurcharge: 8,
+   defaultCommissionRate: 0.05,
+ };
++export const merchantLinks = new Table<MerchantLink>((l) => `${l.marketDayId}|${l.merchantId}`);
++export const pollState = { tillwaveCursor: undefined as string | undefined };
+diff --git a/src/persistence/tillwave-client.ts b/src/persistence/tillwave-client.ts
+new file mode 100644
+index 0000000..b929e66
+--- /dev/null
++++ b/src/persistence/tillwave-client.ts
+@@ -0,0 +1,21 @@
++export interface TillWaveSale {
++  id: string;
++  merchant_id: string;
++  amount_cents: number;
++  created_at: string;
++}
++
++/** TillWave HTTP API: sales since a cursor. */
++export const tillwaveClient = {
++  baseUrl: process.env.TILLWAVE_URL ?? 'https://api.tillwave.example',
++  apiKey: process.env.TILLWAVE_API_KEY ?? '',
++
++  async salesSince(cursor: string | undefined): Promise<{ sales: TillWaveSale[]; cursor: string | undefined }> {
++    const url = new URL('/v1/sales', this.baseUrl);
++    if (cursor) url.searchParams.set('since', cursor);
++    const res = await fetch(url, { headers: { authorization: `Bearer ${this.apiKey}` } });
++    if (!res.ok) throw new Error(`TillWave ${res.status}`);
++    const body = (await res.json()) as { data: TillWaveSale[]; next_cursor?: string };
++    return { sales: body.data, cursor: body.next_cursor ?? cursor };
++  },
++};
+diff --git a/src/presentation/routes.ts b/src/presentation/routes.ts
+index cbfea0c..550054b 100644
+--- a/src/presentation/routes.ts
++++ b/src/presentation/routes.ts
+@@ -51,8 +51,11 @@ router.post('/market-days/:dayId/settlement', (req, res) => {
+ router.get('/market-days/:dayId/settlement', (req, res) => {
+   res.json(settlementService.settlementsForDay(req.params.dayId));
+ });
++router.post('/market-days/:dayId/merchants', (req, res) => {
++  res.status(201).json(salesService.linkMerchant(req.body.merchantId, req.params.dayId, req.body.vendorId));
++});
+ // PayLane webhook
+ router.post('/webhooks/paylane', (req, res) => {
+-  const { readerId, amount, time } = req.body as { readerId: string; amount: number; time: string };
+-  res.status(201).json(salesService.recordPayLaneSale(readerId, Number(amount), time));
++  const { readerId, amount, time, id } = req.body as { readerId: string; amount: number; time: string; id?: string };
++  res.status(201).json(salesService.recordPayLaneSale(readerId, Number(amount), time, id));
+ });
+diff --git a/src/presentation/server.ts b/src/presentation/server.ts
+index 4390727..56d430f 100644
+--- a/src/presentation/server.ts
++++ b/src/presentation/server.ts
+@@ -1,6 +1,7 @@
+ import express, { NextFunction, Request, Response } from 'express';
+ import { BusinessError } from '../business/models';
+ import { router } from './routes';
++import { salesService } from '../business/sales-service';
+ 
+ const app = express();
+ app.use(express.json());
+@@ -10,4 +11,9 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+   res.status(status).json({ error: err.message });
+ });
+ 
++// TillWave does not call us: poll every 15 minutes
++setInterval(() => {
++  salesService.pollTillWave().catch((e) => console.error('TillWave poll failed', e));
++}, 15 * 60 * 1000);
++
+ app.listen(Number(process.env.PORT ?? 3000), () => console.log('market service listening'));
