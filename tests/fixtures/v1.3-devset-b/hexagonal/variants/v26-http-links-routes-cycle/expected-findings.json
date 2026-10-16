@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "variant": "v26-http-links-routes-cycle",
+  "kind": "violation",
+  "plants": "FF-S02",
+  "description": "BookingController imports linkTo from a new http/links.ts, which imports the route table from a new http/routes.ts, which imports BookingController to type its handlers.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "file": "src/adapters/inbound/http/BookingController.ts",
+      "target": "src/adapters/inbound/http/links.ts",
+      "reason": "Three-file import cycle BookingController -> links -> routes -> BookingController."
+    }
+  ]
+}

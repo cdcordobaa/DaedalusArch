@@ -1,0 +1,16 @@
+--- /dev/null
++++ b/src/domain/services/LoyaltyPolicy.ts
+@@ -0,0 +1,13 @@
++import { InMemoryBookingRepository } from '../../adapters/outbound/persistence/InMemoryBookingRepository';
++import { Money } from '../model/Money';
++
++const RETURNING_GUEST_DISCOUNT_CENTS = 1_000;
++
++export class LoyaltyPolicy {
++  constructor(private readonly bookings: InMemoryBookingRepository) {}
++
++  async discountFor(guestId: string): Promise<Money> {
++    const previous = (await this.bookings.findActive()).filter((b) => b.guestId === guestId);
++    return Money.ofCents(previous.length > 0 ? RETURNING_GUEST_DISCOUNT_CENTS : 0);
++  }
++}

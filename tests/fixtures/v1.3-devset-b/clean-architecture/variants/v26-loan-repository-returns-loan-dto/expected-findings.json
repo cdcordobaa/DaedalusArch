@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "v26-loan-repository-returns-loan-dto",
+  "kind": "violation",
+  "plants": "FF-S04",
+  "description": "The domain LoanRepository interface gains findOverdueSummaries(now): Promise<LoanDto[]>, importing the application LoanDto type (import type); InMemoryLoanRepository implements it.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/domain/repositories/LoanRepository.ts",
+      "target": "src/application/dto/LoanDto.ts",
+      "reason": "A domain repository interface imports an application DTO: the dependency points outward."
+    },
+    {
+      "ruleId": "FF-S04",
+      "ruleName": "no-domain-outward-dep",
+      "file": "src/domain/repositories/LoanRepository.ts",
+      "target": "src/application/dto/LoanDto.ts",
+      "reason": "A domain file imports a file of another layer."
+    }
+  ]
+}

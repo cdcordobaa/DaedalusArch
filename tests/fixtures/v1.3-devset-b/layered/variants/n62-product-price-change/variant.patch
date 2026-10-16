@@ -1,0 +1,66 @@
+--- a/src/business/services/CatalogService.ts
++++ b/src/business/services/CatalogService.ts
+@@ -1,5 +1,6 @@
+ import { ProductGateway } from '../../persistence/ProductGateway';
+ import { BusinessError } from '../errors/BusinessError';
++import { Money } from '../model/Money';
+ import { Product } from '../model/Product';
+ import { toProduct } from './RecordMapping';
+ 
+@@ -17,6 +18,14 @@
+     return toProduct(record);
+   }
+ 
++  changePrice(sku: string, priceCents: number): Product {
++    const current = this.getProduct(sku);
++    const price = Money.ofCents(priceCents);
++    if (price.cents === current.price.cents) return current;
++    this.products.updatePrice(sku, price.cents);
++    return this.getProduct(sku);
++  }
++
+   addProduct(sku: string, name: string, priceCents: number, stock: number): Product {
+     if (this.products.findBySku(sku) !== undefined) throw new BusinessError('CONFLICT', `Product ${sku} exists`);
+     this.products.insert({ sku, name, priceCents, stock });
+--- a/src/persistence/ProductGateway.ts
++++ b/src/persistence/ProductGateway.ts
+@@ -17,6 +17,11 @@
+     this.db.table<ProductRecord>('products').set(record.sku, { ...record });
+   }
+ 
++  updatePrice(sku: string, priceCents: number): void {
++    const row = this.findBySku(sku);
++    if (row !== undefined) this.db.table<ProductRecord>('products').set(sku, { ...row, priceCents });
++  }
++
+   updateStock(sku: string, stock: number): void {
+     const row = this.findBySku(sku);
+     if (row !== undefined) this.db.table<ProductRecord>('products').set(sku, { ...row, stock });
+--- a/src/presentation/Router.ts
++++ b/src/presentation/Router.ts
+@@ -10,6 +10,7 @@
+   constructor(catalog: CatalogController, orders: OrderController) {
+     this.routes.set('GET /products', () => catalog.list());
+     this.routes.set('POST /products', (r) => catalog.create(r));
++    this.routes.set('PUT /products/:sku/price', (r) => catalog.reprice(r));
+     this.routes.set('POST /orders', (r) => orders.place(r));
+     this.routes.set('GET /orders/:id', (r) => orders.show(r));
+     this.routes.set('POST /orders/:id/cancel', (r) => orders.cancel(r));
+--- a/src/presentation/http/CatalogController.ts
++++ b/src/presentation/http/CatalogController.ts
+@@ -10,6 +10,15 @@
+     return { status: 200, body: this.catalog.listProducts().map(renderProduct) };
+   }
+ 
++  reprice(request: HttpRequest): HttpResponse {
++    try {
++      const product = this.catalog.changePrice(String(request.params['sku']), Number(request.body['priceCents']));
++      return { status: 200, body: renderProduct(product) };
++    } catch (error) {
++      return errorResponse(error);
++    }
++  }
++
+   create(request: HttpRequest): HttpResponse {
+     try {
+       const product = this.catalog.addProduct(

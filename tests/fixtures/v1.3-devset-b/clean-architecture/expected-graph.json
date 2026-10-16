@@ -1,0 +1,471 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "clean",
+  "note": "Written by hand from the clean variant's source: the layer every file gets under spec.yaml, and every internal file-to-file import edge (one per importing file and imported file, type-only included; package imports excluded). Ground truth for graph-fidelity (FR-V2 link 1).",
+  "files": [
+    {
+      "path": "src/application/dto/BookDto.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/application/dto/LoanDto.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/application/ports/Clock.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/application/ports/IdGenerator.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/application/use-cases/BorrowBookUseCase.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/application/use-cases/ListOverdueLoansUseCase.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/application/use-cases/RegisterBookUseCase.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/application/use-cases/ReturnBookUseCase.ts",
+      "layer": "application"
+    },
+    {
+      "path": "src/domain/entities/Book.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/domain/entities/Loan.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/domain/entities/Member.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/domain/errors/DomainError.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/domain/repositories/BookRepository.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/domain/repositories/LoanRepository.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/domain/repositories/MemberRepository.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/domain/services/FineCalculator.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/domain/services/LoanPolicy.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/domain/value-objects/Isbn.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/domain/value-objects/LoanPeriod.ts",
+      "layer": "domain"
+    },
+    {
+      "path": "src/infrastructure/http/BookController.ts",
+      "layer": "infrastructure"
+    },
+    {
+      "path": "src/infrastructure/http/ErrorMapper.ts",
+      "layer": "infrastructure"
+    },
+    {
+      "path": "src/infrastructure/http/HttpTypes.ts",
+      "layer": "infrastructure"
+    },
+    {
+      "path": "src/infrastructure/http/LoanController.ts",
+      "layer": "infrastructure"
+    },
+    {
+      "path": "src/infrastructure/main.ts",
+      "layer": "infrastructure"
+    },
+    {
+      "path": "src/infrastructure/persistence/InMemoryBookRepository.ts",
+      "layer": "infrastructure"
+    },
+    {
+      "path": "src/infrastructure/persistence/InMemoryLoanRepository.ts",
+      "layer": "infrastructure"
+    },
+    {
+      "path": "src/infrastructure/persistence/InMemoryMemberRepository.ts",
+      "layer": "infrastructure"
+    },
+    {
+      "path": "src/infrastructure/system/SequentialIdGenerator.ts",
+      "layer": "infrastructure"
+    },
+    {
+      "path": "src/infrastructure/system/SystemClock.ts",
+      "layer": "infrastructure"
+    }
+  ],
+  "edges": [
+    {
+      "from": "src/application/dto/BookDto.ts",
+      "to": "src/domain/entities/Book.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/dto/LoanDto.ts",
+      "to": "src/domain/entities/Loan.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/use-cases/BorrowBookUseCase.ts",
+      "to": "src/application/dto/LoanDto.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/use-cases/BorrowBookUseCase.ts",
+      "to": "src/application/ports/Clock.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/use-cases/BorrowBookUseCase.ts",
+      "to": "src/application/ports/IdGenerator.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/use-cases/BorrowBookUseCase.ts",
+      "to": "src/domain/entities/Loan.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/use-cases/BorrowBookUseCase.ts",
+      "to": "src/domain/errors/DomainError.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/use-cases/BorrowBookUseCase.ts",
+      "to": "src/domain/repositories/BookRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/use-cases/BorrowBookUseCase.ts",
+      "to": "src/domain/repositories/LoanRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/use-cases/BorrowBookUseCase.ts",
+      "to": "src/domain/repositories/MemberRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/use-cases/BorrowBookUseCase.ts",
+      "to": "src/domain/services/LoanPolicy.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/use-cases/BorrowBookUseCase.ts",
+      "to": "src/domain/value-objects/LoanPeriod.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/use-cases/ListOverdueLoansUseCase.ts",
+      "to": "src/application/dto/LoanDto.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/use-cases/ListOverdueLoansUseCase.ts",
+      "to": "src/application/ports/Clock.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/use-cases/ListOverdueLoansUseCase.ts",
+      "to": "src/domain/repositories/LoanRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/use-cases/RegisterBookUseCase.ts",
+      "to": "src/application/dto/BookDto.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/use-cases/RegisterBookUseCase.ts",
+      "to": "src/application/ports/IdGenerator.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/use-cases/RegisterBookUseCase.ts",
+      "to": "src/domain/entities/Book.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/use-cases/RegisterBookUseCase.ts",
+      "to": "src/domain/repositories/BookRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/use-cases/RegisterBookUseCase.ts",
+      "to": "src/domain/value-objects/Isbn.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/use-cases/ReturnBookUseCase.ts",
+      "to": "src/application/dto/LoanDto.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/use-cases/ReturnBookUseCase.ts",
+      "to": "src/application/ports/Clock.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/use-cases/ReturnBookUseCase.ts",
+      "to": "src/domain/errors/DomainError.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/use-cases/ReturnBookUseCase.ts",
+      "to": "src/domain/repositories/BookRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/use-cases/ReturnBookUseCase.ts",
+      "to": "src/domain/repositories/LoanRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/application/use-cases/ReturnBookUseCase.ts",
+      "to": "src/domain/services/FineCalculator.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/entities/Book.ts",
+      "to": "src/domain/errors/DomainError.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/entities/Book.ts",
+      "to": "src/domain/value-objects/Isbn.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/entities/Loan.ts",
+      "to": "src/domain/errors/DomainError.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/entities/Loan.ts",
+      "to": "src/domain/value-objects/LoanPeriod.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/entities/Member.ts",
+      "to": "src/domain/errors/DomainError.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/repositories/BookRepository.ts",
+      "to": "src/domain/entities/Book.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/repositories/LoanRepository.ts",
+      "to": "src/domain/entities/Loan.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/repositories/MemberRepository.ts",
+      "to": "src/domain/entities/Member.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/services/FineCalculator.ts",
+      "to": "src/domain/entities/Loan.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/services/LoanPolicy.ts",
+      "to": "src/domain/entities/Loan.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/services/LoanPolicy.ts",
+      "to": "src/domain/entities/Member.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/services/LoanPolicy.ts",
+      "to": "src/domain/errors/DomainError.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/value-objects/Isbn.ts",
+      "to": "src/domain/errors/DomainError.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/domain/value-objects/LoanPeriod.ts",
+      "to": "src/domain/errors/DomainError.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/http/BookController.ts",
+      "to": "src/application/use-cases/RegisterBookUseCase.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/http/BookController.ts",
+      "to": "src/infrastructure/http/ErrorMapper.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/http/BookController.ts",
+      "to": "src/infrastructure/http/HttpTypes.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/http/ErrorMapper.ts",
+      "to": "src/domain/errors/DomainError.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/http/ErrorMapper.ts",
+      "to": "src/infrastructure/http/HttpTypes.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/http/LoanController.ts",
+      "to": "src/application/use-cases/BorrowBookUseCase.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/http/LoanController.ts",
+      "to": "src/application/use-cases/ListOverdueLoansUseCase.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/http/LoanController.ts",
+      "to": "src/application/use-cases/ReturnBookUseCase.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/http/LoanController.ts",
+      "to": "src/infrastructure/http/ErrorMapper.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/http/LoanController.ts",
+      "to": "src/infrastructure/http/HttpTypes.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/main.ts",
+      "to": "src/application/use-cases/BorrowBookUseCase.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/main.ts",
+      "to": "src/application/use-cases/ListOverdueLoansUseCase.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/main.ts",
+      "to": "src/application/use-cases/RegisterBookUseCase.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/main.ts",
+      "to": "src/application/use-cases/ReturnBookUseCase.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/main.ts",
+      "to": "src/infrastructure/http/BookController.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/main.ts",
+      "to": "src/infrastructure/http/LoanController.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/main.ts",
+      "to": "src/infrastructure/persistence/InMemoryBookRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/main.ts",
+      "to": "src/infrastructure/persistence/InMemoryLoanRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/main.ts",
+      "to": "src/infrastructure/persistence/InMemoryMemberRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/main.ts",
+      "to": "src/infrastructure/system/SequentialIdGenerator.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/main.ts",
+      "to": "src/infrastructure/system/SystemClock.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/persistence/InMemoryBookRepository.ts",
+      "to": "src/domain/entities/Book.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/persistence/InMemoryBookRepository.ts",
+      "to": "src/domain/repositories/BookRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/persistence/InMemoryLoanRepository.ts",
+      "to": "src/domain/entities/Loan.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/persistence/InMemoryLoanRepository.ts",
+      "to": "src/domain/repositories/LoanRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/persistence/InMemoryMemberRepository.ts",
+      "to": "src/domain/entities/Member.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/persistence/InMemoryMemberRepository.ts",
+      "to": "src/domain/repositories/MemberRepository.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/system/SequentialIdGenerator.ts",
+      "to": "src/application/ports/IdGenerator.ts",
+      "kind": "import"
+    },
+    {
+      "from": "src/infrastructure/system/SystemClock.ts",
+      "to": "src/application/ports/Clock.ts",
+      "kind": "import"
+    }
+  ]
+}
