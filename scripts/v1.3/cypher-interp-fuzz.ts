@@ -62,7 +62,7 @@ const outDir = path.resolve(opt('--out') ?? 'results/v1.3-cypher-interp/fuzz');
 const env = process.env;
 const secrets = [env.NEO4J_PASSWORD ?? ''].filter((s) => s !== '');
 const nullStore = {} as SnapshotStore;
-const TIMEOUT_MS = 10_000;
+const TIMEOUT_MS = 3_000;
 
 if ((env.NEO4J_URI ?? '') === '' || (env.NEO4J_PASSWORD ?? '') === '') {
   process.stderr.write('cypher-interp-fuzz needs live Neo4j: set NEO4J_URI and NEO4J_PASSWORD\n');
@@ -227,59 +227,89 @@ function jsonable(v: unknown): unknown {
   return v;
 }
 
+/** One graph's outcome, appended to `fuzz-progress.jsonl` as it completes (a rerun resumes after the last one). */
+interface SeedRecord {
+  seed: number;
+  nodes: number;
+  edges: number;
+  statements: number;
+  neo4jRows: number;
+  ms: number;
+  verdicts: Record<string, number>;
+  families: Record<string, Record<string, number>>;
+  ingestIssues: string[];
+}
+
+function readJsonl<T>(file: string): T[] {
+  if (!fs.existsSync(file)) return [];
+  return fs.readFileSync(file, 'utf8').split('\n').filter((l) => l.trim() !== '').map((l) => JSON.parse(l) as T);
+}
+
 async function graphFuzz(neo: GraphRepository): Promise<{ summary: Record<string, unknown>; mismatches: Mismatch[] }> {
-  const verdicts = new Map<string, number>();
-  const byLabel = new Map<string, Map<string, number>>();
-  const mismatches: Mismatch[] = [];
+  const progressFile = path.join(outDir, 'fuzz-progress.jsonl');
+  const mismatchFile = path.join(outDir, 'fuzz-mismatches.jsonl');
+  const done = new Map(readJsonl<SeedRecord>(progressFile).map((r) => [r.seed, r]));
+  // Mismatches of a seed that was interrupted are dropped: the seed runs again from the start.
+  const kept = readJsonl<Mismatch>(mismatchFile).filter((m) => done.has(m.seed));
+  fs.writeFileSync(mismatchFile, kept.map((m) => JSON.stringify(m) + '\n').join(''));
   const shrunk = new Map<string, number>();
-  const ingestIssues: { seed: number; issue: string }[] = [];
-  let statements = 0;
-  let neoRows = 0;
-  let nodes = 0;
-  let edges = 0;
+  for (const m of kept) if (m.minimised !== undefined) shrunk.set(`${m.label.replace(/ \[.*\]$/, '')}|${m.verdict}`, (shrunk.get(`${m.label.replace(/ \[.*\]$/, '')}|${m.verdict}`) ?? 0) + 1);
   const t0 = Date.now();
   for (let seed = from; seed < from + count; seed++) {
+    if (done.has(seed)) continue;
+    const ts = Date.now();
     const p = fuzzProject(seed);
-    nodes += (p.apg.nodes as unknown[]).length;
-    edges += (p.apg.edges as unknown[]).length;
+    const rec: SeedRecord = { seed, nodes: p.apg.nodes.length, edges: p.apg.edges.length, statements: 0, neo4jRows: 0, ms: 0, verdicts: {}, families: {}, ingestIssues: [] };
     const ingested = await ingestBoth(neo, p);
     let cand = ingested.cand;
-    const issues = ingested.issues;
-    for (const issue of issues) ingestIssues.push({ seed, issue });
-    if (issues.some((i) => i.startsWith('ingestAPG failed'))) continue;
-    const params = paramsFor(p, cand);
-    for (const s of STATEMENTS) {
-      const r = await runStatement(neo, cand, s, params[s.binding]);
-      statements += 1;
-      if (r.ref.success) neoRows += r.ref.data.records.length;
-      verdicts.set(r.verdict, (verdicts.get(r.verdict) ?? 0) + 1);
-      const fam = s.label.replace(/ \[.*\]$/, '');
-      let m = byLabel.get(fam);
-      if (m === undefined) byLabel.set(fam, (m = new Map()));
-      m.set(r.verdict, (m.get(r.verdict) ?? 0) + 1);
-      if (!isMismatch(r.verdict)) continue;
-      const mm: Mismatch = { seed, label: s.label, binding: s.binding, verdict: r.verdict, ...(r.detail !== undefined ? { detail: r.detail.slice(0, 1500) } : {}), text: s.text };
-      const sig = `${fam}|${r.verdict}`;
-      if ((shrunk.get(sig) ?? 0) < shrinkPer) {
-        shrunk.set(sig, (shrunk.get(sig) ?? 0) + 1);
-        process.stdout.write(`  seed ${String(seed)} ${s.label} (${s.binding}): ${r.verdict}; minimising...\n`);
-        mm.minimised = await shrink(neo, p, s, r.verdict);
-        process.stdout.write(`    -> ${mm.minimised.size} after ${String(mm.minimised.steps)} steps\n`);
-        // The shrinker re-ingested: restore this seed's graph for the rest of its statements.
-        cand = (await ingestBoth(neo, p)).cand;
+    rec.ingestIssues = ingested.issues;
+    if (!ingested.issues.some((i) => i.startsWith('ingestAPG failed'))) {
+      const params = paramsFor(p, cand);
+      for (const s of STATEMENTS) {
+        const r = await runStatement(neo, cand, s, params[s.binding]);
+        rec.statements += 1;
+        if (r.ref.success) rec.neo4jRows += r.ref.data.records.length;
+        rec.verdicts[r.verdict] = (rec.verdicts[r.verdict] ?? 0) + 1;
+        const fam = s.label.replace(/ \[.*\]$/, '');
+        const f = (rec.families[fam] ??= {});
+        f[r.verdict] = (f[r.verdict] ?? 0) + 1;
+        if (!isMismatch(r.verdict)) continue;
+        const mm: Mismatch = { seed, label: s.label, binding: s.binding, verdict: r.verdict, ...(r.detail !== undefined ? { detail: r.detail.slice(0, 1500) } : {}), text: s.text };
+        const sig = `${fam}|${r.verdict}`;
+        if ((shrunk.get(sig) ?? 0) < shrinkPer) {
+          shrunk.set(sig, (shrunk.get(sig) ?? 0) + 1);
+          process.stdout.write(`  seed ${String(seed)} ${s.label} (${s.binding}): ${r.verdict}; minimising...\n`);
+          mm.minimised = await shrink(neo, p, s, r.verdict);
+          process.stdout.write(`    -> ${mm.minimised.size} after ${String(mm.minimised.steps)} steps\n`);
+          // The shrinker re-ingested: restore this seed's graph for the rest of its statements.
+          cand = (await ingestBoth(neo, p)).cand;
+        }
+        fs.appendFileSync(mismatchFile, JSON.stringify(mm) + '\n');
       }
-      mismatches.push(mm);
-      fs.appendFileSync(path.join(outDir, 'fuzz-mismatches.jsonl'), JSON.stringify(mm) + '\n');
     }
-    if ((seed - from + 1) % 25 === 0) {
-      process.stdout.write(`seed ${String(seed)}: ${String(statements)} statements, ${[...verdicts].map(([k, n]) => `${k} ${String(n)}`).join(', ')} (${String(Math.round((Date.now() - t0) / 1000))} s)\n`);
-    }
+    rec.ms = Date.now() - ts;
+    fs.appendFileSync(progressFile, JSON.stringify(rec) + '\n');
+    done.set(seed, rec);
+    if ((seed - from + 1) % 25 === 0) process.stdout.write(`seed ${String(seed)}: ${String(done.size)} graphs done (${String(Math.round((Date.now() - t0) / 1000))} s this run)\n`);
   }
-  const families = [...byLabel].sort(([a], [b]) => a.localeCompare(b)).map(([family, m]) => ({ family, ...Object.fromEntries(m) }));
+  const recs = [...done.values()].filter((r) => r.seed >= from && r.seed < from + count).sort((a, b) => a.seed - b.seed);
+  const sum = (f: (r: SeedRecord) => number): number => recs.reduce((n, r) => n + f(r), 0);
+  const verdicts: Record<string, number> = {};
+  const families: Record<string, Record<string, number>> = {};
+  for (const r of recs) {
+    for (const [k, n] of Object.entries(r.verdicts)) verdicts[k] = (verdicts[k] ?? 0) + n;
+    for (const [fam, m] of Object.entries(r.families)) for (const [k, n] of Object.entries(m)) (families[fam] ??= {})[k] = ((families[fam] ??= {})[k] ?? 0) + n;
+  }
+  const mismatches = readJsonl<Mismatch>(mismatchFile).filter((m) => m.seed >= from && m.seed < from + count);
   return {
     summary: {
-      seeds: { from, count }, graphs: count, nodes, edges, statements, statementsPerGraph: STATEMENTS.length, neo4jRows: neoRows,
-      verdicts: Object.fromEntries(verdicts), seconds: Math.round((Date.now() - t0) / 1000), ingestIssues, families,
+      seeds: { from, count }, graphs: recs.length, nodes: sum((r) => r.nodes), edges: sum((r) => r.edges),
+      nodesPerGraph: { min: Math.min(...recs.map((r) => r.nodes)), max: Math.max(...recs.map((r) => r.nodes)) },
+      edgesPerGraph: { min: Math.min(...recs.map((r) => r.edges)), max: Math.max(...recs.map((r) => r.edges)) },
+      statements: sum((r) => r.statements), statementsPerGraph: STATEMENTS.length, neo4jRows: sum((r) => r.neo4jRows), verdicts,
+      seconds: Math.round(sum((r) => r.ms) / 1000),
+      ingestIssues: recs.flatMap((r) => r.ingestIssues.map((issue) => ({ seed: r.seed, issue }))),
+      families: Object.entries(families).sort(([a], [b]) => a.localeCompare(b)).map(([family, m]) => ({ family, ...m })),
     },
     mismatches,
   };
@@ -358,7 +388,6 @@ async function main(): Promise<number> {
   const neo = new Neo4jRepository({ neo4jUri: env.NEO4J_URI ?? '', neo4jUser: env.NEO4J_USER ?? 'neo4j', neo4jPassword: env.NEO4J_PASSWORD ?? '' });
   const lock = await acquireNeo4jLock(env.NEO4J_URI ?? '', { label: 'cypher-interp-fuzz', env, onWait: (t) => process.stderr.write(`${t}\n`) });
   fs.mkdirSync(outDir, { recursive: true });
-  fs.rmSync(path.join(outDir, 'fuzz-mismatches.jsonl'), { force: true });
   try {
     const result: Record<string, unknown> = {};
     let failing = 0;
