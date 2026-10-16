@@ -1065,16 +1065,17 @@ run after member facts. Between runs only the tool changed; the manifests did no
 \centering\small
 \caption{\devset{} Blocking-tier results on the 71-variant v1.3 reference set. Author view keys a cycle on its file
 set (the runner's own view after the fix round). Cells are $k/n$ with Wilson 95\% intervals where given in the
-source. These cases are the ones the fixes were made against.}
+source. These cases are the ones the fixes were made against. The 3 FF-P06 rows from the field-initialiser
+(\edge{FLOWS\_TO}) half are reported N/A and left out of every cell; an earlier count that included them gave 57/57.}
 \label{tab:v13-devset}
 \begin{tabular}{lccc}
 \toprule
 Measure & Baseline & After fix round & After member facts \\
 \midrule
-Pooled recall, author & 55/57 = 0.96 & 56/57 = 0.98 & 57/57 = 1.00 [0.94, 1.00] \\
-Pooled precision, author & 55/110 = 0.50 & 56/56 = 1.00 & 57/57 = 1.00 [0.94, 1.00] \\
-Pooled recall, blind & 51/67 = 0.76 & 52/67 = 0.78 & 53/67 = 0.79 [0.68, 0.87] \\
-Pooled precision, blind & 51/110 = 0.46 & 52/56 = 0.93 & 53/57 = 0.93 [0.83, 0.97] \\
+Pooled recall, author & 52/54 = 0.96 & 53/54 = 0.98 & 54/54 = 1.00 [0.93, 1.00] \\
+Pooled precision, author & 52/107 = 0.49 & 53/53 = 1.00 & 54/54 = 1.00 [0.93, 1.00] \\
+Pooled recall, blind & 48/64 = 0.75 & 49/64 = 0.77 & 50/64 = 0.78 [0.67, 0.86] \\
+Pooled precision, blind & 48/107 = 0.45 & 49/53 = 0.92 & 50/54 = 0.93 [0.82, 0.97] \\
 Clean variants passing & 4/5 & 5/5 & 5/5 \\
 Near-misses with any scored FP & 6/14 & 1/14 & 1/14 \\
 Near-misses with a blocking FP & 5/14 & 0/14 & 0/14 \\
@@ -1082,12 +1083,13 @@ Near-misses with a blocking FP & 5/14 & 0/14 & 0/14 \\
 \end{tabular}
 % src: baseline: Docs/DiagnosticRuns/v1.3-reference-baseline-2026-10-15.md ("Blocking recall" and "Blocking precision" tables, author cycle-normalised 55/57 and 55/110, blind expanded 51/67 and 51/110; negative control 1 of 5 fails; near-misses 6/14, 5/14)
 % src: after fix round: Docs/DiagnosticRuns/v1.3-reference-after-fixes-2026-10-15.md §1 (56/57, 56/56, 52/67, 52/56; 5/5 pass; 1/14, 0/14)
-% src: after member facts: Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md §3 (57/57 [0.94, 1.00], 57/57 [0.94, 1.00], 53/67 [0.68, 0.87], 53/57 [0.83, 0.97]; unchanged rows: 5/5 clean, 1/14, 0/14)
+% src: after member facts: Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md §3 (unchanged rows: 5/5 clean, 1/14, 0/14)
+% src: recall/precision cells, all three runs, FF-P06 FLOWS_TO rows N/A: Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md "Correction (2026-10-16)" (this run 54/54 [0.93, 1.00], 54/54 [0.93, 1.00], 50/64 [0.67, 0.86], 50/54 [0.82, 0.97]; after-fixes 53/54, 53/53, 49/64, 49/53; baseline 52/54, 52/107, 48/64, 48/107); PR #120
 \end{table}
 
 Three readings matter. First, against the author-manifests the tool now reports every expected blocking finding and
 no unexpected one, but the author-manifests were written with knowledge of the rules, so this is the most circular
-reading. Second, against the blind manifests blocking recall is 0.79: the 14 missing blind findings are reading
+reading. Second, against the blind manifests blocking recall is 0.78: the 14 missing blind findings are reading
 disagreements between the two manifests (for example, an adapter importing another adapter read as a direction
 violation or as a layer skip), which the fixes did not touch and which wait for the author's adjudication. Third, no
 style reaches a Wilson lower bound of 0.90, because no style has more than 15 expected blocking findings; the
@@ -1419,7 +1421,7 @@ $n = 15$). \explor{}
   \item \textbf{Development set only.} Every v1.3 number is on cases the changes were made against. The hold-out
         run is pre-specified in draft and not run.
   \item \textbf{Circular manifests.} The author-manifests saw the rules; the blind manifests disagree with them on
-        14 blocking findings, unadjudicated. % src: Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md §3 (blind 53/67)
+        14 blocking findings, unadjudicated. % src: Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md "Correction (2026-10-16)" (blind 50/64)
   \item \textbf{Small cells.} At most 15 expected blocking findings per style; no Wilson lower bound reaches 0.90.
   \item \textbf{No precision for the graph.} Fidelity is agreement; the adjudication of disagreements is not done.
   \item \textbf{Correct, not meaningful.} 0 incorrect of 2668 says the conditions hold, not that the findings are
