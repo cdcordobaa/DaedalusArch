@@ -6,6 +6,7 @@
  *
  * Usage (repository root, Neo4j env loaded):
  *   npx tsx scripts/v1.3/ue-baseline-live.ts --out results/v1.3-reference/baseline-pre-barrel
+ *   npx tsx scripts/v1.3/ue-baseline-live.ts --set devset-b --out results/v1.3-devset-b
  * `--engine cypher-interp` (v1.3 spike, Docs/v1.3/cypher-interpreter.md) passes the same flag to every CLI child: the
  * Cypher templates run in process over an in-memory graph; no Neo4j server, credentials or Neo4j lock are needed.
  * Writes <out>/raw/<style>/<variant>.json (replayable with --from-raw), <out>/evidence/<style>/<variant>.json,
@@ -34,7 +35,9 @@ if (engine !== 'neo4j' && engine !== 'cypher-interp') {
 const keepCli = rawArgv.includes('--keep-cli');
 const argv = (engineIdx >= 0 ? [...rawArgv.slice(0, engineIdx), ...rawArgv.slice(engineIdx + 2)] : rawArgv).filter((a) => a !== '--keep-cli');
 const outIdx = argv.indexOf('--out');
-const outDir = path.resolve(process.cwd(), outIdx >= 0 ? argv[outIdx + 1] ?? '' : 'results/v1.3-reference');
+const setIdx = argv.indexOf('--set');
+const defaultOut = setIdx >= 0 && argv[setIdx + 1] === 'devset-b' ? 'results/v1.3-devset-b' : 'results/v1.3-reference';
+const outDir = path.resolve(process.cwd(), outIdx >= 0 ? argv[outIdx + 1] ?? '' : defaultOut);
 const env = process.env;
 const secrets = [env.NEO4J_PASSWORD ?? ''].filter((s) => s !== '');
 const runner = new NodeProcessRunner();

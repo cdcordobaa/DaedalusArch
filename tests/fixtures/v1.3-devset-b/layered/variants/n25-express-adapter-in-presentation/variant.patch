@@ -1,0 +1,17 @@
+--- /dev/null
++++ b/src/presentation/http/ExpressAdapter.ts
+@@ -0,0 +1,14 @@
++import type { Request, Response } from 'express';
++import { Router } from '../Router';
++import { HttpRequest } from './HttpTypes';
++
++export function toHttpRequest(request: Request): HttpRequest {
++  return { params: { ...request.params }, body: { ...request.body } };
++}
++
++export function serveWithExpress(router: Router, route: string) {
++  return (request: Request, response: Response): void => {
++    const result = router.handle(route, toHttpRequest(request));
++    response.status(result.status).json(result.body);
++  };
++}

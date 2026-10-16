@@ -24,11 +24,14 @@ import { compileFunctions, compilerInputFromSpec, V13_COMPILE_OPTIONS } from '..
 import { createBaseline, saveBaseline } from '../baseline/index.js';
 import { loadBaseline, compareBaseline } from '../baseline/index.js';
 import * as path from 'node:path';
+import * as fs from 'node:fs';
 import type { LLMProviderConfig } from '../shared/types/llm-config.js';
 import { parseLLMOptions } from './llm-options.js';
 import { JUDGE_RUN_INCOMPLETE } from '../llm-critic/judge-stage.js';
 import { GRAPH_MODES } from '../apg-extractor/types.js';
 import type { GraphMode } from '../apg-extractor/types.js';
+import { runCheck, neo4jEngine, lexicalEngine, formatGateHuman, formatGateJSON, formatGateMarkdown } from '../ci-gate/index.js';
+import type { GateEngine } from '../ci-gate/index.js';
 
 // Load .env before anything else
 loadDotenv();
@@ -693,6 +696,91 @@ withLLMOptions(program
       process.removeListener('SIGINT', onSignal);
       process.removeListener('SIGTERM', onSignal);
       await cleanup();
+    }
+  });
+
+// ── check command (diff-aware PR gate, Docs/v1.3/ci-gate.md) ────────────────
+
+program
+  .command('check')
+  .description('Diff-aware gate: evaluate two commits, report findings new in head, fixed and unchanged; exit 1 only on new blocking findings')
+  .requiredOption('--base <ref>', 'Base commit (the pull request base)')
+  .requiredOption('--head <ref>', 'Head commit (the pull request head)')
+  .requiredOption('--spec <path>', 'AoC YAML spec, relative to the repository root (read from the base commit unless --spec-from head)')
+  .option('--project <dir>', 'Project directory relative to the repository root', '.')
+  .option('--repo <path>', 'Git repository', '.')
+  .option('--engine <name>', 'Engine: neo4j (full symbolic pipeline; needs NEO4J_PASSWORD) | lexical (in-process, no database; import and naming rules only)', 'neo4j')
+  .option('--spec-from <commit>', 'Commit the spec is read from: base | head', 'base')
+  .option('--format <fmt>', 'Output format: human | markdown | json', 'human')
+  .option('--out <path>', 'Write the --format output to this file instead of the terminal')
+  .option('--json-out <path>', 'Also write the JSON result to this file')
+  .option('--neo4j-uri <uri>', 'Neo4j bolt URI (neo4j engine)', process.env.NEO4J_URI ?? 'bolt://localhost:7687')
+  .option('--verbose', 'Enable verbose logging', false)
+  .action(async (opts: {
+    base: string;
+    head: string;
+    spec: string;
+    project: string;
+    repo: string;
+    engine: string;
+    specFrom: string;
+    format: string;
+    out?: string;
+    jsonOut?: string;
+    neo4jUri: string;
+    verbose: boolean;
+  }) => {
+    if (opts.engine !== 'neo4j' && opts.engine !== 'lexical') {
+      process.stderr.write('Error: --engine must be one of neo4j | lexical\n');
+      process.exitCode = 2;
+      return;
+    }
+    if (opts.specFrom !== 'base' && opts.specFrom !== 'head') {
+      process.stderr.write('Error: --spec-from must be one of base | head\n');
+      process.exitCode = 2;
+      return;
+    }
+    if (!['human', 'markdown', 'json'].includes(opts.format)) {
+      process.stderr.write('Error: --format must be one of human | markdown | json\n');
+      process.exitCode = 2;
+      return;
+    }
+    let engine: GateEngine;
+    if (opts.engine === 'neo4j') {
+      // BR-U3-80: no default password; stop before any connection.
+      const neo4jPassword = requireEnvForCli('NEO4J_PASSWORD');
+      if (neo4jPassword === undefined) return;
+      engine = neo4jEngine({
+        neo4jUri: opts.neo4jUri,
+        neo4jUser: process.env.NEO4J_USER ?? 'neo4j',
+        neo4jPassword,
+        apgStorePath: process.env.APG_STORE_PATH ?? '.apg-store',
+        verbose: opts.verbose,
+        makePipeline: createPipeline,
+      });
+    } else {
+      engine = lexicalEngine();
+    }
+    try {
+      const result = await runCheck({
+        repo: opts.repo,
+        base: opts.base,
+        head: opts.head,
+        spec: opts.spec,
+        project: opts.project,
+        specFrom: opts.specFrom,
+        engine,
+        ...(opts.verbose ? { log: (t: string) => { process.stderr.write(t); } } : {}),
+      });
+      const text = opts.format === 'json' ? formatGateJSON(result) + '\n' : opts.format === 'markdown' ? formatGateMarkdown(result) : formatGateHuman(result) + '\n';
+      if (opts.out !== undefined) fs.writeFileSync(opts.out, text);
+      else if (opts.format === 'human') process.stderr.write(text);
+      else process.stdout.write(text);
+      if (opts.jsonOut !== undefined) fs.writeFileSync(opts.jsonOut, formatGateJSON(result) + '\n');
+      process.exitCode = result.verdict === 'fail' ? 1 : 0;
+    } catch (err) {
+      process.stderr.write(`Error: ${err instanceof Error ? err.message : String(err)}\n`);
+      process.exitCode = 2;
     }
   });
 

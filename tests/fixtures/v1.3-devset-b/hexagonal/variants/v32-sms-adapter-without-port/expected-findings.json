@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "variant": "v32-sms-adapter-without-port",
+  "kind": "violation",
+  "plants": "FF-P03",
+  "description": "A new outbound SmsNotificationAdapter declares no implements clause (it only fits NotificationSender structurally) and the container passes it to CancelBookingService.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-P03",
+      "ruleName": "port-adapter-pattern",
+      "file": "src/adapters/outbound/sms/SmsNotificationAdapter.ts",
+      "reason": "An outbound class named *Adapter implements no port of the domain or application layer."
+    }
+  ]
+}

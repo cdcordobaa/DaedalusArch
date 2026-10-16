@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "v27-loan-period-reads-policy-limit-cycle",
+  "kind": "violation",
+  "plants": "FF-S02",
+  "description": "LoanPeriod (value object) imports MAX_LOAN_DAYS from LoanPolicy (domain service); LoanPolicy already imports Loan, and Loan imports LoanPeriod: a three-file cycle.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "file": "src/domain/entities/Loan.ts",
+      "target": "src/domain/value-objects/LoanPeriod.ts",
+      "reason": "Three-file import cycle Loan -> LoanPeriod -> LoanPolicy -> Loan (ADP); keyed on the lexicographically smallest path, target the next file of the cycle."
+    }
+  ]
+}
