@@ -1,0 +1,42 @@
+--- a/src/adapters/inbound/http/BookingController.ts
++++ b/src/adapters/inbound/http/BookingController.ts
+@@ -2,6 +2,7 @@
+ import { CancelBooking } from '../../../application/ports/in/CancelBooking';
+ import { BookingError } from '../../../domain/errors/BookingError';
+ import { HttpRequest, HttpResponse } from './HttpTypes';
++import { linkTo } from './links';
+ 
+ const STATUS = { 'not-found': 404, unavailable: 409, invalid: 400, 'payment-declined': 402 } as const;
+ 
+@@ -21,7 +22,7 @@
+         checkOut: String(request.body['checkOut']),
+         guests: Number(request.body['guests'] ?? 1),
+       });
+-      return { status: 201, body: view };
++      return { status: 201, body: { ...view, self: linkTo('booking.cancel', { id: view.id }) } };
+     } catch (error) {
+       return this.toResponse(error);
+     }
+--- /dev/null
++++ b/src/adapters/inbound/http/links.ts
+@@ -0,0 +1,5 @@
++import { ROUTES, RouteName } from './routes';
++
++export function linkTo(name: RouteName, params: Record<string, string> = {}): string {
++  return ROUTES[name].path.replace(/:([a-zA-Z]+)/g, (_, key: string) => encodeURIComponent(params[key] ?? ''));
++}
+--- /dev/null
++++ b/src/adapters/inbound/http/routes.ts
+@@ -0,0 +1,12 @@
++import { BookingController } from './BookingController';
++import { RoomController } from './RoomController';
++
++type Handler<C> = { [K in keyof C]: C[K] extends (...args: never[]) => unknown ? K : never }[keyof C];
++
++export const ROUTES = {
++  'booking.create': { method: 'POST', path: '/bookings', handler: 'create' as Handler<BookingController> },
++  'booking.cancel': { method: 'DELETE', path: '/bookings/:id', handler: 'cancel' as Handler<BookingController> },
++  'room.available': { method: 'GET', path: '/rooms/available', handler: 'available' as Handler<RoomController> },
++} as const;
++
++export type RouteName = keyof typeof ROUTES;

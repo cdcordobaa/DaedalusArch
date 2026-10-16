@@ -1,0 +1,31 @@
+--- /dev/null
++++ b/src/adapters/outbound/sms/SmsNotificationAdapter.ts
+@@ -0,0 +1,9 @@
++export class SmsNotificationAdapter {
++  readonly sent: { to: string; text: string }[] = [];
++
++  constructor(private readonly maxLength = 160) {}
++
++  async send(recipient: string, message: string): Promise<void> {
++    this.sent.push({ to: recipient, text: message.slice(0, this.maxLength) });
++  }
++}
+--- a/src/config/container.ts
++++ b/src/config/container.ts
+@@ -3,6 +3,7 @@
+ import { RoomController } from '../adapters/inbound/http/RoomController';
+ import { OutboxNotificationAdapter } from '../adapters/outbound/notification/OutboxNotificationAdapter';
+ import { FakePaymentGateway } from '../adapters/outbound/payment/FakePaymentGateway';
++import { SmsNotificationAdapter } from '../adapters/outbound/sms/SmsNotificationAdapter';
+ import { InMemoryBookingRepository } from '../adapters/outbound/persistence/InMemoryBookingRepository';
+ import { InMemoryGuestRepository } from '../adapters/outbound/persistence/InMemoryGuestRepository';
+ import { InMemoryRoomRepository } from '../adapters/outbound/persistence/InMemoryRoomRepository';
+@@ -26,7 +27,7 @@
+ 
+   const bookRoom = new BookRoomService(rooms, bookings, guests, payments, notifications);
+   return {
+-    bookings: new BookingController(bookRoom, new CancelBookingService(bookings, guests, payments, notifications)),
++    bookings: new BookingController(bookRoom, new CancelBookingService(bookings, guests, payments, new SmsNotificationAdapter())),
+     rooms: new RoomController(new FindAvailableRoomsService(rooms, bookings)),
+     cli: new BookingCli(bookRoom),
+   };

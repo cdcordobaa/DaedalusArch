@@ -1,0 +1,1428 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`architect HTML report: reference variants correct-reference matches its snapshot 1`] = `
+"<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:">
+<meta name="generator" content="daedalus-arch evaluate --html">
+<title>Architecture report: correct-reference</title>
+<style>
+:root{--bg:#f7f8fa;--fg:#1d2433;--muted:#5b6475;--panel:#fff;--line:#d9dee7;--code:#f1f3f7;
+--def:#c62828;--def-bg:#fdecec;--warn:#a15c00;--warn-bg:#fff4e0;--na:#55606e;--na-bg:#eceff3;
+--ok:#2e7d32;--ok-bg:#e8f5e9;--edge:#8a94a6;--hit:#fff1b8;--accent:#2952cc}
+@media (prefers-color-scheme:dark){:root{--bg:#12151b;--fg:#e6e9ef;--muted:#a3abba;--panel:#1b2029;--line:#2e3542;
+--code:#151a22;--def:#ff6b6b;--def-bg:#3a1d1f;--warn:#ffb74d;--warn-bg:#3a2c16;--na:#aab3c0;--na-bg:#262c36;
+--ok:#81c784;--ok-bg:#1d3320;--edge:#7c879a;--hit:#4a4214;--accent:#8fa8ff}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:16px;overflow-wrap:anywhere}
+h1{font-size:1.5rem;margin:.2rem 0}
+h2{font-size:1.25rem;margin:0 0 .5rem}
+h3{font-size:1.02rem;margin:0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.88em;overflow-wrap:anywhere}
+.muted{color:var(--muted)}
+section{margin:20px 0}
+.panel,.verdict-card,.finding,.diagram,.filters{background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.verdict-card{padding:16px 18px;border-left:8px solid var(--ok)}
+.verdict-fail .verdict-card{border-left-color:var(--def)}
+.verdict-word{margin:0;font-weight:800;letter-spacing:.08em;font-size:.9rem;color:var(--ok)}
+.verdict-fail .verdict-word{color:var(--def)}
+.explain{margin:.5rem 0 0;padding-left:1.2rem}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px;margin-top:14px}
+.panel{padding:14px 16px;min-width:0}
+.blockers{margin:.4rem 0 0;padding-left:1.1rem}
+.blockers li{margin-bottom:.4rem}
+.rule-name{font-weight:600;border-bottom:1px dotted var(--muted);cursor:help}
+.count{color:var(--def);font-weight:600}
+.scores{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:.4rem 0}
+.scores div{background:var(--code);border-radius:8px;padding:8px 10px}
+.scores dt{font-size:.82rem;color:var(--muted);cursor:help}
+.scores dd{margin:0;font-size:1.3rem;font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.stat{border-radius:8px;padding:8px 10px;display:flex;flex-direction:column}
+.stat-n{font-size:1.3rem;font-weight:700}
+.stat-l{font-size:.82rem;cursor:help}
+.stat-defining{background:var(--def-bg);color:var(--def)}
+.stat-warning{background:var(--warn-bg);color:var(--warn)}
+.stat-not-counted{background:var(--na-bg);color:var(--na)}
+.diagram{padding:14px 16px}
+.diagram-scroll{overflow-x:auto;max-width:100%}
+.layer-svg{display:block;width:100%;min-width:560px;height:auto;font-family:inherit}
+.layer rect{fill:var(--panel);stroke:var(--line);stroke-width:2}
+.layer-warning rect{fill:var(--warn-bg);stroke:var(--warn)}
+.layer-defining rect{fill:var(--def-bg);stroke:var(--def)}
+.layer-unassigned rect{stroke-dasharray:6 4}
+.layer{cursor:pointer}
+.layer.selected rect{stroke:var(--accent);stroke-width:4}
+.layer-name{font-weight:700;font-size:17px;fill:var(--fg)}
+.layer-sub{font-size:13px;fill:var(--muted)}
+.internal{font-size:12px;fill:var(--def)}
+.edge path{fill:none;stroke:var(--edge);stroke-width:1.6}
+.edge text{font-size:12px;fill:var(--muted)}
+.edge-forbidden path{stroke-dasharray:5 4}
+.edge-warning path{stroke:var(--warn);stroke-width:2.6}
+.edge-warning text{fill:var(--warn);font-weight:600}
+.edge-defining path{stroke:var(--def);stroke-width:3.4}
+.edge-defining text{fill:var(--def);font-weight:700}
+.edge-defining,.edge-warning{cursor:pointer}
+.edge.selected path{stroke:var(--accent)}
+.marker-defining path{fill:var(--def)}
+.marker-warning path{fill:var(--warn)}
+.marker-ok path{fill:var(--edge)}
+.legend{list-style:none;padding:0;margin:.6rem 0;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.88rem;color:var(--muted)}
+.sw{display:inline-block;width:26px;height:0;border-top:3px solid var(--edge);vertical-align:middle;margin-right:6px}
+.sw-defining{border-top-color:var(--def);border-top-width:4px}
+.sw-warning{border-top-color:var(--warn)}
+.sw-forbidden{border-top-style:dashed}
+.table-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:left;border-bottom:1px solid var(--line);padding:4px 8px}
+.filters{padding:12px 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px;margin-bottom:14px}
+.filters label{display:flex;flex-direction:column;font-size:.85rem;color:var(--muted);min-width:0}
+.filters select{margin-top:3px;font:inherit;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px;width:100%;max-width:100%;min-width:0}
+fieldset.tiers{grid-column:1/-1;border:0;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 16px;min-width:0}
+fieldset.tiers legend{font-size:.85rem;color:var(--muted);padding:0;margin-bottom:3px}
+.chk{flex-direction:row!important;align-items:center;gap:6px;color:var(--fg)!important;font-size:.92rem!important}
+.filter-status{grid-column:1/-1;margin:0;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.filter-status button{font:inherit;border:1px solid var(--line);background:var(--code);color:var(--fg);border-radius:6px;padding:3px 10px;cursor:pointer}
+#f-edge{color:var(--accent)}
+.finding-list{display:flex;flex-direction:column;gap:12px}
+.finding{padding:12px 16px;border-left:6px solid var(--na);min-width:0}
+.finding.tier-defining{border-left-color:var(--def)}
+.finding.tier-warning{border-left-color:var(--warn)}
+.finding header{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;margin-bottom:.3rem}
+.finding h3{cursor:help}
+.finding p{margin:.3rem 0}
+.loc{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.82rem;color:var(--muted);overflow-wrap:anywhere;min-width:0}
+.tier-badge{font-size:.78rem;font-weight:700;border-radius:999px;padding:1px 10px;background:var(--na-bg);color:var(--na);cursor:help;white-space:nowrap}
+.tier-defining .tier-badge{background:var(--def-bg);color:var(--def)}
+.tier-warning .tier-badge{background:var(--warn-bg);color:var(--warn)}
+.k{font-weight:600}
+.path{margin:.3rem 0}
+.path ol{list-style:none;margin:.2rem 0 0;padding:0;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.path li{background:var(--code);border-radius:6px;padding:2px 8px;min-width:0;max-width:100%}
+.path li+li::before{content:"→ ";color:var(--muted)}
+.layer-tag{font-size:.75rem;color:var(--muted);white-space:nowrap}
+figure.code{margin:.5rem 0;min-width:0}
+figure.code figcaption{font-size:.8rem;color:var(--muted);margin-bottom:2px}
+figure.code pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8px;padding:6px 0;overflow-x:auto;max-width:100%;font:12.5px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.row{display:block;width:max-content;min-width:100%;padding:0 10px;white-space:pre}
+.row.hit{background:var(--hit)}
+.ln{display:inline-block;min-width:3ch;text-align:right;margin-right:12px;color:var(--muted);user-select:none}
+.fix{background:var(--ok-bg);border-radius:8px;padding:6px 10px}
+.empty{color:var(--muted);font-style:italic}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="top">
+  <h1>Architecture report: correct-reference</h1>
+  <p class="muted">Spec <code>specs/clean-arch.yaml</code> · style clean-architecture · symbolic-only run · v1.3 scoring · run <code>run-1792112776375</code></p>
+</header>
+<section class="summary verdict-pass" aria-labelledby="summary-h">
+  <div class="verdict-card">
+    <p class="verdict-word">PASS</p>
+    <h2 id="summary-h">Passes: no defining rule is broken</h2>
+    <ul class="explain"><li>The verdict passes: no defining rule is broken.</li><li>Only defining rules can fail the verdict. Warnings (15 here) are listed for information and never fail it.</li><li>The scores are context: no score threshold is applied to the verdict.</li></ul>
+  </div>
+  <div class="summary-grid">
+    <div class="panel">
+      <h3>What blocks the verdict</h3>
+      <p class="muted">Nothing blocks the verdict.</p>
+    </div>
+    <div class="panel">
+      <h3>Scores</h3>
+      <dl class="scores">
+        <div><dt title="Health score over the defining rules only (1 = no defining rule broken)">Defining-rule score</dt><dd>1.00</dd></div>
+        <div><dt title="Health score over every deterministic rule, warnings included">Overall health score</dt><dd>0.95</dd></div>
+        <div><dt>Rules checked</dt><dd>22</dd></div>
+      </dl>
+      <div class="stats"><div class="stat stat-defining"><span class="stat-n">0</span><span class="stat-l" title="A defining rule states what the architecture is. One broken defining rule fails the verdict.">defining rule (can fail)</span></div><div class="stat stat-warning"><span class="stat-n">15</span><span class="stat-l" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span></div><div class="stat stat-not-counted"><span class="stat-n">0</span><span class="stat-l" title="This part of the rule cannot be measured reliably yet, so it is shown but does not count.">not counted (not applicable)</span></div></div>
+    </div>
+  </div>
+</section>
+<section class="diagram" aria-labelledby="diagram-h">
+  <h2 id="diagram-h">Layer diagram</h2>
+  <p class="muted">Outer layers on top, the core at the bottom. Arrows on the left point down the layers, arrows on the right point up. Click a layer or a highlighted arrow to filter the findings.</p>
+  <div class="diagram-scroll"><svg class="layer-svg" viewBox="0 0 900 328" role="img" aria-label="Layer dependency diagram">
+    <defs><marker id="arrow-defining" class="marker-defining" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z"/></marker><marker id="arrow-warning" class="marker-warning" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z"/></marker><marker id="arrow-ok" class="marker-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z"/></marker></defs>
+    <g class="edge edge-ok" data-edge="infrastructure&gt;application">
+  <title>infrastructure depends on application: 2 imports</title>
+  <path d="M300 60 C266 60 266 150 300 150" marker-end="url(#arrow-ok)"/>
+  <text x="269" y="109" text-anchor="end">2 imports</text>
+</g>
+<g class="edge edge-ok" data-edge="application&gt;domain">
+  <title>application depends on domain: 6 imports</title>
+  <path d="M300 168 C236 168 236 258 300 258" marker-end="url(#arrow-ok)"/>
+  <text x="246" y="217" text-anchor="end">6 imports</text>
+</g>
+<g class="edge edge-ok" data-edge="infrastructure&gt;domain">
+  <title>infrastructure depends on domain: 2 imports</title>
+  <path d="M300 60 C206 60 206 258 300 258" marker-end="url(#arrow-ok)"/>
+  <text x="224" y="163" text-anchor="end">2 imports</text>
+</g>
+    <g class="layer layer-warning" data-layer="infrastructure" tabindex="0" role="button">
+  <title>infrastructure (repository-impl, controller, middleware, orm-entity): src/infrastructure/**. Click to filter the findings.</title>
+  <rect x="300" y="20" width="300" height="62" rx="10"/>
+  <text class="layer-name" x="314" y="46">infrastructure</text>
+  <text class="layer-sub" x="314" y="67">2 files · 4 findings</text>
+  
+</g>
+<g class="layer layer-warning" data-layer="application" tabindex="0" role="button">
+  <title>application (use-case, dto, application-service): src/application/**. Click to filter the findings.</title>
+  <rect x="300" y="128" width="300" height="62" rx="10"/>
+  <text class="layer-name" x="314" y="154">application</text>
+  <text class="layer-sub" x="314" y="175">4 files · 6 findings</text>
+  
+</g>
+<g class="layer layer-warning" data-layer="domain" tabindex="0" role="button">
+  <title>domain (entity, value-object, domain-service, repository-interface): src/domain/**. Click to filter the findings.</title>
+  <rect x="300" y="236" width="300" height="62" rx="10"/>
+  <text class="layer-name" x="314" y="262">domain</text>
+  <text class="layer-sub" x="314" y="283">4 files · 5 findings</text>
+  
+</g>
+  </svg></div>
+  <ul class="legend">
+    <li><span class="sw sw-defining"></span>dependency with a defining-rule finding</li>
+    <li><span class="sw sw-warning"></span>dependency with warnings only</li>
+    <li><span class="sw sw-ok"></span>dependency without findings</li>
+    <li><span class="sw sw-forbidden"></span>dependency the spec does not allow, without a finding</li>
+  </ul>
+  <details><summary>The diagram as a table</summary>
+    <div class="table-wrap"><table><thead><tr><th>From layer</th><th>To layer</th><th>Imports</th><th>Allowed</th><th>Findings</th><th>Defining</th></tr></thead><tbody><tr><td>application</td><td>domain</td><td>6</td><td>yes</td><td>0</td><td>0</td></tr><tr><td>infrastructure</td><td>domain</td><td>2</td><td>yes</td><td>0</td><td>0</td></tr><tr><td>infrastructure</td><td>application</td><td>2</td><td>yes</td><td>0</td><td>0</td></tr></tbody></table></div>
+  </details>
+</section>
+<section class="findings" aria-labelledby="findings-h"><h2 id="findings-h">Findings</h2><form class="filters" id="filters" onsubmit="return false">
+  <fieldset class="tiers"><legend>Tier</legend><label class="chk chk-defining" title="A defining rule states what the architecture is. One broken defining rule fails the verdict."><input type="checkbox" data-filter-tier="defining" checked> defining rule (can fail) (0)</label><label class="chk chk-warning" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict."><input type="checkbox" data-filter-tier="warning" checked> warning (never fails) (15)</label><label class="chk chk-not-counted" title="This part of the rule cannot be measured reliably yet, so it is shown but does not count."><input type="checkbox" data-filter-tier="not-counted" checked> not counted (not applicable) (0)</label></fieldset>
+  <label>Rule <select id="f-rule"><option value="">All rules</option><option value="FF-CV05" title="Rule id: FF-CV05">Every file has a test</option><option value="FF-C03" title="Rule id: FF-C03">Instability fits the role</option></select></label>
+  <label>Layer <select id="f-layer"><option value="">All layers</option><option value="application">application</option><option value="domain">domain</option><option value="infrastructure">infrastructure</option></select></label>
+  <label>File <select id="f-file"><option value="">All files</option><option value="src/application/use-cases/CompleteTaskUseCase.ts">src/application/use-cases/CompleteTaskUseCase.ts</option><option value="src/application/use-cases/CreateTaskUseCase.ts">src/application/use-cases/CreateTaskUseCase.ts</option><option value="src/application/use-cases/ICompleteTaskUseCase.ts">src/application/use-cases/ICompleteTaskUseCase.ts</option><option value="src/application/use-cases/ICreateTaskUseCase.ts">src/application/use-cases/ICreateTaskUseCase.ts</option><option value="src/domain/entities/Category.ts">src/domain/entities/Category.ts</option><option value="src/domain/entities/Task.ts">src/domain/entities/Task.ts</option><option value="src/domain/repositories/ICategoryRepository.ts">src/domain/repositories/ICategoryRepository.ts</option><option value="src/domain/repositories/ITaskRepository.ts">src/domain/repositories/ITaskRepository.ts</option><option value="src/infrastructure/controllers/TaskController.ts">src/infrastructure/controllers/TaskController.ts</option><option value="src/infrastructure/repositories/InMemoryTaskRepository.ts">src/infrastructure/repositories/InMemoryTaskRepository.ts</option></select></label>
+  <p class="filter-status"><span id="f-count" aria-live="polite">Showing 15 findings</span> <span id="f-edge" hidden></span> <button type="button" id="f-clear">Clear filters</button></p>
+</form><div class="finding-list"><article class="finding tier-warning" data-tier="warning" data-rule="FF-CV05" data-layers="application" data-files="src/application/use-cases/CompleteTaskUseCase.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-CV05">Every file has a test</h3>
+    <span class="loc">src/application/use-cases/CompleteTaskUseCase.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> Each source file should have a matching test file.</p>
+  <p><span class="k">What was found:</span> Violation in src/application/use-cases/CompleteTaskUseCase.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/application/use-cases/CompleteTaskUseCase.ts</code> <span class="layer-tag">application</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Create a test file following the project test naming convention.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-CV05" data-layers="application" data-files="src/application/use-cases/CreateTaskUseCase.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-CV05">Every file has a test</h3>
+    <span class="loc">src/application/use-cases/CreateTaskUseCase.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> Each source file should have a matching test file.</p>
+  <p><span class="k">What was found:</span> Violation in src/application/use-cases/CreateTaskUseCase.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/application/use-cases/CreateTaskUseCase.ts</code> <span class="layer-tag">application</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Create a test file following the project test naming convention.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-CV05" data-layers="application" data-files="src/application/use-cases/ICompleteTaskUseCase.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-CV05">Every file has a test</h3>
+    <span class="loc">src/application/use-cases/ICompleteTaskUseCase.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> Each source file should have a matching test file.</p>
+  <p><span class="k">What was found:</span> Violation in src/application/use-cases/ICompleteTaskUseCase.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/application/use-cases/ICompleteTaskUseCase.ts</code> <span class="layer-tag">application</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Create a test file following the project test naming convention.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-CV05" data-layers="application" data-files="src/application/use-cases/ICreateTaskUseCase.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-CV05">Every file has a test</h3>
+    <span class="loc">src/application/use-cases/ICreateTaskUseCase.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> Each source file should have a matching test file.</p>
+  <p><span class="k">What was found:</span> Violation in src/application/use-cases/ICreateTaskUseCase.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/application/use-cases/ICreateTaskUseCase.ts</code> <span class="layer-tag">application</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Create a test file following the project test naming convention.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-CV05" data-layers="domain" data-files="src/domain/entities/Category.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-CV05">Every file has a test</h3>
+    <span class="loc">src/domain/entities/Category.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> Each source file should have a matching test file.</p>
+  <p><span class="k">What was found:</span> Violation in src/domain/entities/Category.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/domain/entities/Category.ts</code> <span class="layer-tag">domain</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Create a test file following the project test naming convention.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-CV05" data-layers="domain" data-files="src/domain/entities/Task.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-CV05">Every file has a test</h3>
+    <span class="loc">src/domain/entities/Task.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> Each source file should have a matching test file.</p>
+  <p><span class="k">What was found:</span> Violation in src/domain/entities/Task.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/domain/entities/Task.ts</code> <span class="layer-tag">domain</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Create a test file following the project test naming convention.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-CV05" data-layers="domain" data-files="src/domain/repositories/ICategoryRepository.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-CV05">Every file has a test</h3>
+    <span class="loc">src/domain/repositories/ICategoryRepository.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> Each source file should have a matching test file.</p>
+  <p><span class="k">What was found:</span> Violation in src/domain/repositories/ICategoryRepository.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/domain/repositories/ICategoryRepository.ts</code> <span class="layer-tag">domain</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Create a test file following the project test naming convention.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-CV05" data-layers="domain" data-files="src/domain/repositories/ITaskRepository.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-CV05">Every file has a test</h3>
+    <span class="loc">src/domain/repositories/ITaskRepository.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> Each source file should have a matching test file.</p>
+  <p><span class="k">What was found:</span> Violation in src/domain/repositories/ITaskRepository.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/domain/repositories/ITaskRepository.ts</code> <span class="layer-tag">domain</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Create a test file following the project test naming convention.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-CV05" data-layers="infrastructure" data-files="src/infrastructure/controllers/TaskController.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-CV05">Every file has a test</h3>
+    <span class="loc">src/infrastructure/controllers/TaskController.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> Each source file should have a matching test file.</p>
+  <p><span class="k">What was found:</span> Violation in src/infrastructure/controllers/TaskController.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/infrastructure/controllers/TaskController.ts</code> <span class="layer-tag">infrastructure</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Create a test file following the project test naming convention.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-CV05" data-layers="infrastructure" data-files="src/infrastructure/repositories/InMemoryTaskRepository.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-CV05">Every file has a test</h3>
+    <span class="loc">src/infrastructure/repositories/InMemoryTaskRepository.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> Each source file should have a matching test file.</p>
+  <p><span class="k">What was found:</span> Violation in src/infrastructure/repositories/InMemoryTaskRepository.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/infrastructure/repositories/InMemoryTaskRepository.ts</code> <span class="layer-tag">infrastructure</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Create a test file following the project test naming convention.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-C03" data-layers="application" data-files="src/application/use-cases/CompleteTaskUseCase.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-C03">Instability fits the role</h3>
+    <span class="loc">src/application/use-cases/CompleteTaskUseCase.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> How much a module depends on others, compared with how much others depend on it, should fit its layer.</p>
+  <p><span class="k">What was found:</span> Violation in src/application/use-cases/CompleteTaskUseCase.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/application/use-cases/CompleteTaskUseCase.ts</code> <span class="layer-tag">application</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Adjust the module boundaries or introduce abstractions to bring instability within range.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-C03" data-layers="application" data-files="src/application/use-cases/CreateTaskUseCase.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-C03">Instability fits the role</h3>
+    <span class="loc">src/application/use-cases/CreateTaskUseCase.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> How much a module depends on others, compared with how much others depend on it, should fit its layer.</p>
+  <p><span class="k">What was found:</span> Violation in src/application/use-cases/CreateTaskUseCase.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/application/use-cases/CreateTaskUseCase.ts</code> <span class="layer-tag">application</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Adjust the module boundaries or introduce abstractions to bring instability within range.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-C03" data-layers="domain" data-files="src/domain/repositories/ICategoryRepository.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-C03">Instability fits the role</h3>
+    <span class="loc">src/domain/repositories/ICategoryRepository.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> How much a module depends on others, compared with how much others depend on it, should fit its layer.</p>
+  <p><span class="k">What was found:</span> Violation in src/domain/repositories/ICategoryRepository.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/domain/repositories/ICategoryRepository.ts</code> <span class="layer-tag">domain</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Adjust the module boundaries or introduce abstractions to bring instability within range.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-C03" data-layers="infrastructure" data-files="src/infrastructure/controllers/TaskController.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-C03">Instability fits the role</h3>
+    <span class="loc">src/infrastructure/controllers/TaskController.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> How much a module depends on others, compared with how much others depend on it, should fit its layer.</p>
+  <p><span class="k">What was found:</span> Violation in src/infrastructure/controllers/TaskController.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/infrastructure/controllers/TaskController.ts</code> <span class="layer-tag">infrastructure</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Adjust the module boundaries or introduce abstractions to bring instability within range.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-C03" data-layers="infrastructure" data-files="src/infrastructure/repositories/InMemoryTaskRepository.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-C03">Instability fits the role</h3>
+    <span class="loc">src/infrastructure/repositories/InMemoryTaskRepository.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> How much a module depends on others, compared with how much others depend on it, should fit its layer.</p>
+  <p><span class="k">What was found:</span> Violation in src/infrastructure/repositories/InMemoryTaskRepository.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/infrastructure/repositories/InMemoryTaskRepository.ts</code> <span class="layer-tag">infrastructure</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Adjust the module boundaries or introduce abstractions to bring instability within range.</p>
+</article></div><p class="empty" id="f-empty" hidden>No finding matches these filters.</p></section>
+</main>
+<script>
+(function () {
+  'use strict';
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.finding'));
+  if (cards.length === 0) return;
+  var byId = function (id) { return document.getElementById(id); };
+  var rule = byId('f-rule'), layer = byId('f-layer'), file = byId('f-file');
+  var count = byId('f-count'), empty = byId('f-empty'), edgeNote = byId('f-edge'), clear = byId('f-clear');
+  var tierBoxes = Array.prototype.slice.call(document.querySelectorAll('[data-filter-tier]'));
+  var layerBoxes = Array.prototype.slice.call(document.querySelectorAll('.layer[data-layer]'));
+  var edgeGroups = Array.prototype.slice.call(document.querySelectorAll('.edge[data-edge][tabindex]'));
+  var edge = '';
+  var has = function (list, value) { return list.split('|').indexOf(value) >= 0; };
+
+  function apply() {
+    var tiers = {};
+    tierBoxes.forEach(function (b) { tiers[b.getAttribute('data-filter-tier')] = b.checked; });
+    var shown = 0;
+    cards.forEach(function (c) {
+      var ok = tiers[c.getAttribute('data-tier')] === true
+        && (rule.value === '' || c.getAttribute('data-rule') === rule.value)
+        && (layer.value === '' || has(c.getAttribute('data-layers'), layer.value))
+        && (file.value === '' || has(c.getAttribute('data-files'), file.value))
+        && (edge === '' || has(c.getAttribute('data-edges'), edge));
+      c.hidden = !ok;
+      if (ok) shown++;
+    });
+    count.textContent = 'Showing ' + shown + ' of ' + cards.length + ' finding' + (cards.length === 1 ? '' : 's');
+    empty.hidden = shown !== 0;
+    if (edge === '') { edgeNote.hidden = true; edgeNote.textContent = ''; }
+    else { edgeNote.hidden = false; edgeNote.textContent = 'on the dependency ' + edge.replace('>', ' \\u2192 '); }
+    layerBoxes.forEach(function (g) { g.classList.toggle('selected', layer.value !== '' && g.getAttribute('data-layer') === layer.value); });
+    edgeGroups.forEach(function (g) { g.classList.toggle('selected', edge !== '' && g.getAttribute('data-edge') === edge); });
+  }
+
+  function hasOption(select, value) {
+    return Array.prototype.some.call(select.options, function (o) { return o.value === value; });
+  }
+  function pickLayer(name) {
+    if (!hasOption(layer, name)) return;
+    edge = '';
+    layer.value = layer.value === name ? '' : name;
+    apply();
+    byId('findings-h').scrollIntoView({ block: 'start' });
+  }
+  function pickEdge(value) {
+    edge = edge === value ? '' : value;
+    layer.value = '';
+    apply();
+    byId('findings-h').scrollIntoView({ block: 'start' });
+  }
+  function activate(el, fn) {
+    el.addEventListener('click', fn);
+    el.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } });
+  }
+
+  [rule, layer, file].forEach(function (s) { s.addEventListener('change', function () { if (s === layer) edge = ''; apply(); }); });
+  tierBoxes.forEach(function (b) { b.addEventListener('change', apply); });
+  layerBoxes.forEach(function (g) { activate(g, function () { pickLayer(g.getAttribute('data-layer')); }); });
+  edgeGroups.forEach(function (g) { activate(g, function () { pickEdge(g.getAttribute('data-edge')); }); });
+  clear.addEventListener('click', function () {
+    tierBoxes.forEach(function (b) { b.checked = true; });
+    rule.value = ''; layer.value = ''; file.value = ''; edge = '';
+    apply();
+  });
+  apply();
+})();
+</script>
+</body>
+</html>
+"
+`;
+
+exports[`architect HTML report: reference variants variant-a-structural matches its snapshot 1`] = `
+"<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:">
+<meta name="generator" content="daedalus-arch evaluate --html">
+<title>Architecture report: variant-a-structural</title>
+<style>
+:root{--bg:#f7f8fa;--fg:#1d2433;--muted:#5b6475;--panel:#fff;--line:#d9dee7;--code:#f1f3f7;
+--def:#c62828;--def-bg:#fdecec;--warn:#a15c00;--warn-bg:#fff4e0;--na:#55606e;--na-bg:#eceff3;
+--ok:#2e7d32;--ok-bg:#e8f5e9;--edge:#8a94a6;--hit:#fff1b8;--accent:#2952cc}
+@media (prefers-color-scheme:dark){:root{--bg:#12151b;--fg:#e6e9ef;--muted:#a3abba;--panel:#1b2029;--line:#2e3542;
+--code:#151a22;--def:#ff6b6b;--def-bg:#3a1d1f;--warn:#ffb74d;--warn-bg:#3a2c16;--na:#aab3c0;--na-bg:#262c36;
+--ok:#81c784;--ok-bg:#1d3320;--edge:#7c879a;--hit:#4a4214;--accent:#8fa8ff}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:16px;overflow-wrap:anywhere}
+h1{font-size:1.5rem;margin:.2rem 0}
+h2{font-size:1.25rem;margin:0 0 .5rem}
+h3{font-size:1.02rem;margin:0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.88em;overflow-wrap:anywhere}
+.muted{color:var(--muted)}
+section{margin:20px 0}
+.panel,.verdict-card,.finding,.diagram,.filters{background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.verdict-card{padding:16px 18px;border-left:8px solid var(--ok)}
+.verdict-fail .verdict-card{border-left-color:var(--def)}
+.verdict-word{margin:0;font-weight:800;letter-spacing:.08em;font-size:.9rem;color:var(--ok)}
+.verdict-fail .verdict-word{color:var(--def)}
+.explain{margin:.5rem 0 0;padding-left:1.2rem}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px;margin-top:14px}
+.panel{padding:14px 16px;min-width:0}
+.blockers{margin:.4rem 0 0;padding-left:1.1rem}
+.blockers li{margin-bottom:.4rem}
+.rule-name{font-weight:600;border-bottom:1px dotted var(--muted);cursor:help}
+.count{color:var(--def);font-weight:600}
+.scores{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:.4rem 0}
+.scores div{background:var(--code);border-radius:8px;padding:8px 10px}
+.scores dt{font-size:.82rem;color:var(--muted);cursor:help}
+.scores dd{margin:0;font-size:1.3rem;font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.stat{border-radius:8px;padding:8px 10px;display:flex;flex-direction:column}
+.stat-n{font-size:1.3rem;font-weight:700}
+.stat-l{font-size:.82rem;cursor:help}
+.stat-defining{background:var(--def-bg);color:var(--def)}
+.stat-warning{background:var(--warn-bg);color:var(--warn)}
+.stat-not-counted{background:var(--na-bg);color:var(--na)}
+.diagram{padding:14px 16px}
+.diagram-scroll{overflow-x:auto;max-width:100%}
+.layer-svg{display:block;width:100%;min-width:560px;height:auto;font-family:inherit}
+.layer rect{fill:var(--panel);stroke:var(--line);stroke-width:2}
+.layer-warning rect{fill:var(--warn-bg);stroke:var(--warn)}
+.layer-defining rect{fill:var(--def-bg);stroke:var(--def)}
+.layer-unassigned rect{stroke-dasharray:6 4}
+.layer{cursor:pointer}
+.layer.selected rect{stroke:var(--accent);stroke-width:4}
+.layer-name{font-weight:700;font-size:17px;fill:var(--fg)}
+.layer-sub{font-size:13px;fill:var(--muted)}
+.internal{font-size:12px;fill:var(--def)}
+.edge path{fill:none;stroke:var(--edge);stroke-width:1.6}
+.edge text{font-size:12px;fill:var(--muted)}
+.edge-forbidden path{stroke-dasharray:5 4}
+.edge-warning path{stroke:var(--warn);stroke-width:2.6}
+.edge-warning text{fill:var(--warn);font-weight:600}
+.edge-defining path{stroke:var(--def);stroke-width:3.4}
+.edge-defining text{fill:var(--def);font-weight:700}
+.edge-defining,.edge-warning{cursor:pointer}
+.edge.selected path{stroke:var(--accent)}
+.marker-defining path{fill:var(--def)}
+.marker-warning path{fill:var(--warn)}
+.marker-ok path{fill:var(--edge)}
+.legend{list-style:none;padding:0;margin:.6rem 0;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.88rem;color:var(--muted)}
+.sw{display:inline-block;width:26px;height:0;border-top:3px solid var(--edge);vertical-align:middle;margin-right:6px}
+.sw-defining{border-top-color:var(--def);border-top-width:4px}
+.sw-warning{border-top-color:var(--warn)}
+.sw-forbidden{border-top-style:dashed}
+.table-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:left;border-bottom:1px solid var(--line);padding:4px 8px}
+.filters{padding:12px 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px;margin-bottom:14px}
+.filters label{display:flex;flex-direction:column;font-size:.85rem;color:var(--muted);min-width:0}
+.filters select{margin-top:3px;font:inherit;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px;width:100%;max-width:100%;min-width:0}
+fieldset.tiers{grid-column:1/-1;border:0;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 16px;min-width:0}
+fieldset.tiers legend{font-size:.85rem;color:var(--muted);padding:0;margin-bottom:3px}
+.chk{flex-direction:row!important;align-items:center;gap:6px;color:var(--fg)!important;font-size:.92rem!important}
+.filter-status{grid-column:1/-1;margin:0;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.filter-status button{font:inherit;border:1px solid var(--line);background:var(--code);color:var(--fg);border-radius:6px;padding:3px 10px;cursor:pointer}
+#f-edge{color:var(--accent)}
+.finding-list{display:flex;flex-direction:column;gap:12px}
+.finding{padding:12px 16px;border-left:6px solid var(--na);min-width:0}
+.finding.tier-defining{border-left-color:var(--def)}
+.finding.tier-warning{border-left-color:var(--warn)}
+.finding header{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;margin-bottom:.3rem}
+.finding h3{cursor:help}
+.finding p{margin:.3rem 0}
+.loc{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.82rem;color:var(--muted);overflow-wrap:anywhere;min-width:0}
+.tier-badge{font-size:.78rem;font-weight:700;border-radius:999px;padding:1px 10px;background:var(--na-bg);color:var(--na);cursor:help;white-space:nowrap}
+.tier-defining .tier-badge{background:var(--def-bg);color:var(--def)}
+.tier-warning .tier-badge{background:var(--warn-bg);color:var(--warn)}
+.k{font-weight:600}
+.path{margin:.3rem 0}
+.path ol{list-style:none;margin:.2rem 0 0;padding:0;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.path li{background:var(--code);border-radius:6px;padding:2px 8px;min-width:0;max-width:100%}
+.path li+li::before{content:"→ ";color:var(--muted)}
+.layer-tag{font-size:.75rem;color:var(--muted);white-space:nowrap}
+figure.code{margin:.5rem 0;min-width:0}
+figure.code figcaption{font-size:.8rem;color:var(--muted);margin-bottom:2px}
+figure.code pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8px;padding:6px 0;overflow-x:auto;max-width:100%;font:12.5px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.row{display:block;width:max-content;min-width:100%;padding:0 10px;white-space:pre}
+.row.hit{background:var(--hit)}
+.ln{display:inline-block;min-width:3ch;text-align:right;margin-right:12px;color:var(--muted);user-select:none}
+.fix{background:var(--ok-bg);border-radius:8px;padding:6px 10px}
+.empty{color:var(--muted);font-style:italic}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="top">
+  <h1>Architecture report: variant-a-structural</h1>
+  <p class="muted">Spec <code>specs/clean-arch.yaml</code> · style clean-architecture · symbolic-only run · v1.3 scoring · run <code>run-1792112778345</code></p>
+</header>
+<section class="summary verdict-fail" aria-labelledby="summary-h">
+  <div class="verdict-card">
+    <p class="verdict-word">FAIL</p>
+    <h2 id="summary-h">Fails: defining rules are broken</h2>
+    <ul class="explain"><li>The verdict fails because 3 defining rules are broken. Fixing every finding marked &quot;defining rule (can fail)&quot; turns it into a pass.</li><li>Only defining rules can fail the verdict. Warnings (11 here) are listed for information and never fail it.</li><li>The scores are context: no score threshold is applied to the verdict.</li></ul>
+  </div>
+  <div class="summary-grid">
+    <div class="panel">
+      <h3>What blocks the verdict</h3>
+      <ul class="blockers"><li><span class="rule-name" title="Rule id: FF-S01">Dependencies point inward</span> <span class="count">2 findings</span><br><span class="muted">A file may only depend on layers allowed for it. An inner layer must never import from an outer layer.</span></li><li><span class="rule-name" title="Rule id: FF-S02">No circular dependencies</span> <span class="count">2 findings</span><br><span class="muted">Files must not import each other in a loop.</span></li><li><span class="rule-name" title="Rule id: FF-S04">The core does not depend outward</span> <span class="count">1 finding</span><br><span class="muted">The domain (core) layer must not import from any outer layer.</span></li></ul>
+    </div>
+    <div class="panel">
+      <h3>Scores</h3>
+      <dl class="scores">
+        <div><dt title="Health score over the defining rules only (1 = no defining rule broken)">Defining-rule score</dt><dd>0.46</dd></div>
+        <div><dt title="Health score over every deterministic rule, warnings included">Overall health score</dt><dd>0.44</dd></div>
+        <div><dt>Rules checked</dt><dd>22</dd></div>
+      </dl>
+      <div class="stats"><div class="stat stat-defining"><span class="stat-n">5</span><span class="stat-l" title="A defining rule states what the architecture is. One broken defining rule fails the verdict.">defining rule (can fail)</span></div><div class="stat stat-warning"><span class="stat-n">11</span><span class="stat-l" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span></div><div class="stat stat-not-counted"><span class="stat-n">0</span><span class="stat-l" title="This part of the rule cannot be measured reliably yet, so it is shown but does not count.">not counted (not applicable)</span></div></div>
+    </div>
+  </div>
+</section>
+<section class="diagram" aria-labelledby="diagram-h">
+  <h2 id="diagram-h">Layer diagram</h2>
+  <p class="muted">Outer layers on top, the core at the bottom. Arrows on the left point down the layers, arrows on the right point up. Click a layer or a highlighted arrow to filter the findings.</p>
+  <div class="diagram-scroll"><svg class="layer-svg" viewBox="0 0 900 328" role="img" aria-label="Layer dependency diagram">
+    <defs><marker id="arrow-defining" class="marker-defining" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z"/></marker><marker id="arrow-warning" class="marker-warning" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z"/></marker><marker id="arrow-ok" class="marker-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z"/></marker></defs>
+    <g class="edge edge-ok" data-edge="application&gt;domain">
+  <title>application depends on domain: 1 import</title>
+  <path d="M300 168 C266 168 266 258 300 258" marker-end="url(#arrow-ok)"/>
+  <text x="269" y="217" text-anchor="end">1 import</text>
+</g>
+<g class="edge edge-ok" data-edge="infrastructure&gt;domain">
+  <title>infrastructure depends on domain: 2 imports</title>
+  <path d="M300 60 C236 60 236 258 300 258" marker-end="url(#arrow-ok)"/>
+  <text x="246" y="163" text-anchor="end">2 imports</text>
+</g>
+<g class="edge edge-defining" data-edge="application&gt;infrastructure" tabindex="0" role="button">
+  <title>application depends on infrastructure: 1 import · 1 finding (not allowed by the spec)</title>
+  <path d="M600 150 C634 150 634 60 600 60" marker-end="url(#arrow-defining)"/>
+  <text x="632" y="109" text-anchor="start">1 import · 1 finding</text>
+</g>
+<g class="edge edge-defining" data-edge="domain&gt;infrastructure" tabindex="0" role="button">
+  <title>domain depends on infrastructure: 1 import · 2 findings (not allowed by the spec)</title>
+  <path d="M600 258 C664 258 664 60 600 60" marker-end="url(#arrow-defining)"/>
+  <text x="654" y="163" text-anchor="start">1 import · 2 findings</text>
+</g>
+    <g class="layer layer-defining" data-layer="infrastructure" tabindex="0" role="button">
+  <title>infrastructure (repository-impl, controller, middleware, orm-entity): src/infrastructure/**. Click to filter the findings.</title>
+  <rect x="300" y="20" width="300" height="62" rx="10"/>
+  <text class="layer-name" x="314" y="46">infrastructure</text>
+  <text class="layer-sub" x="314" y="67">3 files · 7 findings (4 defining)</text>
+  <text class="internal" x="590" y="40" text-anchor="end">↻ 1 finding inside</text>
+</g>
+<g class="layer layer-defining" data-layer="application" tabindex="0" role="button">
+  <title>application (use-case, dto, application-service): src/application/**. Click to filter the findings.</title>
+  <rect x="300" y="128" width="300" height="62" rx="10"/>
+  <text class="layer-name" x="314" y="154">application</text>
+  <text class="layer-sub" x="314" y="175">1 file · 5 findings (1 defining)</text>
+  
+</g>
+<g class="layer layer-defining" data-layer="domain" tabindex="0" role="button">
+  <title>domain (entity, value-object, domain-service, repository-interface): src/domain/**. Click to filter the findings.</title>
+  <rect x="300" y="236" width="300" height="62" rx="10"/>
+  <text class="layer-name" x="314" y="262">domain</text>
+  <text class="layer-sub" x="314" y="283">2 files · 6 findings (3 defining)</text>
+  <text class="internal" x="590" y="256" text-anchor="end">↻ 1 finding inside</text>
+</g>
+  </svg></div>
+  <ul class="legend">
+    <li><span class="sw sw-defining"></span>dependency with a defining-rule finding</li>
+    <li><span class="sw sw-warning"></span>dependency with warnings only</li>
+    <li><span class="sw sw-ok"></span>dependency without findings</li>
+    <li><span class="sw sw-forbidden"></span>dependency the spec does not allow, without a finding</li>
+  </ul>
+  <details><summary>The diagram as a table</summary>
+    <div class="table-wrap"><table><thead><tr><th>From layer</th><th>To layer</th><th>Imports</th><th>Allowed</th><th>Findings</th><th>Defining</th></tr></thead><tbody><tr><td>domain</td><td>infrastructure</td><td>1</td><td>no</td><td>2</td><td>2</td></tr><tr><td>application</td><td>domain</td><td>1</td><td>yes</td><td>0</td><td>0</td></tr><tr><td>application</td><td>infrastructure</td><td>1</td><td>no</td><td>1</td><td>1</td></tr><tr><td>infrastructure</td><td>domain</td><td>2</td><td>yes</td><td>0</td><td>0</td></tr></tbody></table></div>
+  </details>
+</section>
+<section class="findings" aria-labelledby="findings-h"><h2 id="findings-h">Findings</h2><form class="filters" id="filters" onsubmit="return false">
+  <fieldset class="tiers"><legend>Tier</legend><label class="chk chk-defining" title="A defining rule states what the architecture is. One broken defining rule fails the verdict."><input type="checkbox" data-filter-tier="defining" checked> defining rule (can fail) (5)</label><label class="chk chk-warning" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict."><input type="checkbox" data-filter-tier="warning" checked> warning (never fails) (11)</label><label class="chk chk-not-counted" title="This part of the rule cannot be measured reliably yet, so it is shown but does not count."><input type="checkbox" data-filter-tier="not-counted" checked> not counted (not applicable) (0)</label></fieldset>
+  <label>Rule <select id="f-rule"><option value="">All rules</option><option value="FF-P02" title="Rule id: FF-P02">Depend on abstractions</option><option value="FF-S01" title="Rule id: FF-S01">Dependencies point inward</option><option value="FF-C06" title="Rule id: FF-C06">Enough abstractions</option><option value="FF-CV05" title="Rule id: FF-CV05">Every file has a test</option><option value="FF-C03" title="Rule id: FF-C03">Instability fits the role</option><option value="FF-S02" title="Rule id: FF-S02">No circular dependencies</option><option value="FF-S04" title="Rule id: FF-S04">The core does not depend outward</option><option value="FF-C01" title="Rule id: FF-C01">The domain is stable</option><option value="FF-P04" title="Rule id: FF-P04">Use cases stay isolated</option></select></label>
+  <label>Layer <select id="f-layer"><option value="">All layers</option><option value="application">application</option><option value="domain">domain</option><option value="infrastructure">infrastructure</option></select></label>
+  <label>File <select id="f-file"><option value="">All files</option><option value="src/application/use-cases/CreateTaskUseCase.ts">src/application/use-cases/CreateTaskUseCase.ts</option><option value="src/domain/entities/Task.ts">src/domain/entities/Task.ts</option><option value="src/domain/repositories/ITaskRepository.ts">src/domain/repositories/ITaskRepository.ts</option><option value="src/infrastructure/config/InfraConfig.ts">src/infrastructure/config/InfraConfig.ts</option><option value="src/infrastructure/repositories/CircularHelper.ts">src/infrastructure/repositories/CircularHelper.ts</option><option value="src/infrastructure/repositories/InMemoryTaskRepository.ts">src/infrastructure/repositories/InMemoryTaskRepository.ts</option></select></label>
+  <p class="filter-status"><span id="f-count" aria-live="polite">Showing 16 findings</span> <span id="f-edge" hidden></span> <button type="button" id="f-clear">Clear filters</button></p>
+</form><div class="finding-list"><article class="finding tier-defining" data-tier="defining" data-rule="FF-S01" data-layers="application|infrastructure" data-files="src/application/use-cases/CreateTaskUseCase.ts|src/infrastructure/repositories/InMemoryTaskRepository.ts" data-edges="application&gt;infrastructure">
+  <header>
+    <span class="tier-badge" title="A defining rule states what the architecture is. One broken defining rule fails the verdict.">defining rule (can fail)</span>
+    <h3 title="Rule id: FF-S01">Dependencies point inward</h3>
+    <span class="loc">src/application/use-cases/CreateTaskUseCase.ts:2</span>
+  </header>
+  <p><span class="k">The rule:</span> A file may only depend on layers allowed for it. An inner layer must never import from an outer layer.</p>
+  <p><span class="k">What was found:</span> src/application/use-cases/CreateTaskUseCase.ts (application) imports from src/infrastructure/repositories/InMemoryTaskRepository.ts (infrastructure)</p>
+  <div class="path"><span class="k">Edge path:</span><ol class="path-import"><li><code>src/application/use-cases/CreateTaskUseCase.ts</code> <span class="layer-tag">application</span></li><li><code>src/infrastructure/repositories/InMemoryTaskRepository.ts</code> <span class="layer-tag">infrastructure</span></li></ol></div>
+  <figure class="code"><figcaption><code>src/application/use-cases/CreateTaskUseCase.ts</code></figcaption><pre><span class="row"><span class="ln">1</span><span class="src">// VIOLATION #3: Application layer imports concrete InMemoryTaskRepository (infra) directly</span></span><span class="row hit"><span class="ln">2</span><span class="src">import { InMemoryTaskRepository } from &#39;../../infrastructure/repositories/InMemoryTaskRepository&#39;;</span></span><span class="row"><span class="ln">3</span><span class="src">import { Task } from &#39;../../domain/entities/Task&#39;;</span></span><span class="row"><span class="ln">4</span><span class="src"> </span></span></pre></figure>
+  <p class="fix"><span class="k">How to fix:</span> Move the dependency behind an interface in the correct layer, or restructure the import to respect layer boundaries.</p>
+</article>
+<article class="finding tier-defining" data-tier="defining" data-rule="FF-S01" data-layers="domain|infrastructure" data-files="src/domain/entities/Task.ts|src/infrastructure/config/InfraConfig.ts" data-edges="domain&gt;infrastructure">
+  <header>
+    <span class="tier-badge" title="A defining rule states what the architecture is. One broken defining rule fails the verdict.">defining rule (can fail)</span>
+    <h3 title="Rule id: FF-S01">Dependencies point inward</h3>
+    <span class="loc">src/domain/entities/Task.ts:2</span>
+  </header>
+  <p><span class="k">The rule:</span> A file may only depend on layers allowed for it. An inner layer must never import from an outer layer.</p>
+  <p><span class="k">What was found:</span> src/domain/entities/Task.ts (domain) imports from src/infrastructure/config/InfraConfig.ts (infrastructure)</p>
+  <div class="path"><span class="k">Edge path:</span><ol class="path-import"><li><code>src/domain/entities/Task.ts</code> <span class="layer-tag">domain</span></li><li><code>src/infrastructure/config/InfraConfig.ts</code> <span class="layer-tag">infrastructure</span></li></ol></div>
+  <figure class="code"><figcaption><code>src/domain/entities/Task.ts</code></figcaption><pre><span class="row"><span class="ln">1</span><span class="src">// VIOLATION #1: Domain entity imports InfraConfig from infrastructure layer (wrong direction)</span></span><span class="row hit"><span class="ln">2</span><span class="src">import { InfraConfig } from &#39;../../infrastructure/config/InfraConfig&#39;;</span></span><span class="row"><span class="ln">3</span><span class="src">import { ITaskRepository } from &#39;../repositories/ITaskRepository&#39;;</span></span><span class="row"><span class="ln">4</span><span class="src"> </span></span></pre></figure>
+  <p class="fix"><span class="k">How to fix:</span> Move the dependency behind an interface in the correct layer, or restructure the import to respect layer boundaries.</p>
+</article>
+<article class="finding tier-defining" data-tier="defining" data-rule="FF-S02" data-layers="domain" data-files="src/domain/entities/Task.ts|src/domain/repositories/ITaskRepository.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A defining rule states what the architecture is. One broken defining rule fails the verdict.">defining rule (can fail)</span>
+    <h3 title="Rule id: FF-S02">No circular dependencies</h3>
+    <span class="loc">src/domain/entities/Task.ts:3</span>
+  </header>
+  <p><span class="k">The rule:</span> Files must not import each other in a loop.</p>
+  <p><span class="k">What was found:</span> Circular dependency: src/domain/entities/Task.ts,src/domain/repositories/ITaskRepository.ts,src/domain/entities/Task.ts</p>
+  <div class="path"><span class="k">Cycle:</span><ol class="path-cycle"><li><code>src/domain/entities/Task.ts</code> <span class="layer-tag">domain</span></li><li><code>src/domain/repositories/ITaskRepository.ts</code> <span class="layer-tag">domain</span></li><li><code>src/domain/entities/Task.ts</code> <span class="layer-tag">domain</span></li></ol></div>
+  <figure class="code"><figcaption><code>src/domain/entities/Task.ts</code></figcaption><pre><span class="row"><span class="ln">1</span><span class="src">// VIOLATION #1: Domain entity imports InfraConfig from infrastructure layer (wrong direction)</span></span><span class="row"><span class="ln">2</span><span class="src">import { InfraConfig } from &#39;../../infrastructure/config/InfraConfig&#39;;</span></span><span class="row hit"><span class="ln">3</span><span class="src">import { ITaskRepository } from &#39;../repositories/ITaskRepository&#39;;</span></span><span class="row"><span class="ln">4</span><span class="src"> </span></span><span class="row"><span class="ln">5</span><span class="src">export class Task {</span></span></pre></figure>
+  <p class="fix"><span class="k">How to fix:</span> Break the cycle by extracting a shared interface or moving shared logic to a common module.</p>
+</article>
+<article class="finding tier-defining" data-tier="defining" data-rule="FF-S02" data-layers="infrastructure" data-files="src/infrastructure/repositories/CircularHelper.ts|src/infrastructure/repositories/InMemoryTaskRepository.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A defining rule states what the architecture is. One broken defining rule fails the verdict.">defining rule (can fail)</span>
+    <h3 title="Rule id: FF-S02">No circular dependencies</h3>
+    <span class="loc">src/infrastructure/repositories/CircularHelper.ts:2</span>
+  </header>
+  <p><span class="k">The rule:</span> Files must not import each other in a loop.</p>
+  <p><span class="k">What was found:</span> Circular dependency: src/infrastructure/repositories/CircularHelper.ts,src/infrastructure/repositories/InMemoryTaskRepository.ts,src/infrastructure/repositories/CircularHelper.ts</p>
+  <div class="path"><span class="k">Cycle:</span><ol class="path-cycle"><li><code>src/infrastructure/repositories/CircularHelper.ts</code> <span class="layer-tag">infrastructure</span></li><li><code>src/infrastructure/repositories/InMemoryTaskRepository.ts</code> <span class="layer-tag">infrastructure</span></li><li><code>src/infrastructure/repositories/CircularHelper.ts</code> <span class="layer-tag">infrastructure</span></li></ol></div>
+  <figure class="code"><figcaption><code>src/infrastructure/repositories/CircularHelper.ts</code></figcaption><pre><span class="row"><span class="ln">1</span><span class="src">// VIOLATION #4: circular — CircularHelper imports InMemoryTaskRepository, which imports CircularHelper</span></span><span class="row hit"><span class="ln">2</span><span class="src">import { InMemoryTaskRepository } from &#39;./InMemoryTaskRepository&#39;;</span></span><span class="row"><span class="ln">3</span><span class="src"> </span></span><span class="row"><span class="ln">4</span><span class="src">export class CircularHelper {</span></span></pre></figure>
+  <p class="fix"><span class="k">How to fix:</span> Break the cycle by extracting a shared interface or moving shared logic to a common module.</p>
+</article>
+<article class="finding tier-defining" data-tier="defining" data-rule="FF-S04" data-layers="domain|infrastructure" data-files="src/domain/entities/Task.ts|src/infrastructure/config/InfraConfig.ts" data-edges="domain&gt;infrastructure">
+  <header>
+    <span class="tier-badge" title="A defining rule states what the architecture is. One broken defining rule fails the verdict.">defining rule (can fail)</span>
+    <h3 title="Rule id: FF-S04">The core does not depend outward</h3>
+    <span class="loc">src/domain/entities/Task.ts:2</span>
+  </header>
+  <p><span class="k">The rule:</span> The domain (core) layer must not import from any outer layer.</p>
+  <p><span class="k">What was found:</span> Domain file src/domain/entities/Task.ts imports from src/infrastructure/config/InfraConfig.ts in infrastructure</p>
+  <div class="path"><span class="k">Edge path:</span><ol class="path-import"><li><code>src/domain/entities/Task.ts</code> <span class="layer-tag">domain</span></li><li><code>src/infrastructure/config/InfraConfig.ts</code> <span class="layer-tag">infrastructure</span></li></ol></div>
+  <figure class="code"><figcaption><code>src/domain/entities/Task.ts</code></figcaption><pre><span class="row"><span class="ln">1</span><span class="src">// VIOLATION #1: Domain entity imports InfraConfig from infrastructure layer (wrong direction)</span></span><span class="row hit"><span class="ln">2</span><span class="src">import { InfraConfig } from &#39;../../infrastructure/config/InfraConfig&#39;;</span></span><span class="row"><span class="ln">3</span><span class="src">import { ITaskRepository } from &#39;../repositories/ITaskRepository&#39;;</span></span><span class="row"><span class="ln">4</span><span class="src"> </span></span></pre></figure>
+  <p class="fix"><span class="k">How to fix:</span> Move the infrastructure dependency behind an interface defined in the domain layer.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-P02" data-layers="application" data-files="src/application/use-cases/CreateTaskUseCase.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-P02">Depend on abstractions</h3>
+    <span class="loc">src/application/use-cases/CreateTaskUseCase.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> Classes should receive their dependencies as interfaces rather than concrete classes.</p>
+  <p><span class="k">What was found:</span> Violation in src/application/use-cases/CreateTaskUseCase.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/application/use-cases/CreateTaskUseCase.ts</code> <span class="layer-tag">application</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Introduce an interface (port) in the higher-level module and have the lower-level module implement it.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-C06" data-layers="" data-files="" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-C06">Enough abstractions</h3>
+    <span class="loc">whole project</span>
+  </header>
+  <p><span class="k">The rule:</span> The share of interfaces and abstract classes should reach the threshold.</p>
+  <p><span class="k">What was found:</span> Abstraction ratio 0.2 below threshold</p>
+  <div class="path"><span class="k">Scope:</span> the whole project</div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Introduce interfaces or abstract classes to define contracts between layers.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-CV05" data-layers="application" data-files="src/application/use-cases/CreateTaskUseCase.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-CV05">Every file has a test</h3>
+    <span class="loc">src/application/use-cases/CreateTaskUseCase.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> Each source file should have a matching test file.</p>
+  <p><span class="k">What was found:</span> Violation in src/application/use-cases/CreateTaskUseCase.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/application/use-cases/CreateTaskUseCase.ts</code> <span class="layer-tag">application</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Create a test file following the project test naming convention.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-CV05" data-layers="domain" data-files="src/domain/entities/Task.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-CV05">Every file has a test</h3>
+    <span class="loc">src/domain/entities/Task.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> Each source file should have a matching test file.</p>
+  <p><span class="k">What was found:</span> Violation in src/domain/entities/Task.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/domain/entities/Task.ts</code> <span class="layer-tag">domain</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Create a test file following the project test naming convention.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-CV05" data-layers="domain" data-files="src/domain/repositories/ITaskRepository.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-CV05">Every file has a test</h3>
+    <span class="loc">src/domain/repositories/ITaskRepository.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> Each source file should have a matching test file.</p>
+  <p><span class="k">What was found:</span> Violation in src/domain/repositories/ITaskRepository.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/domain/repositories/ITaskRepository.ts</code> <span class="layer-tag">domain</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Create a test file following the project test naming convention.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-CV05" data-layers="infrastructure" data-files="src/infrastructure/config/InfraConfig.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-CV05">Every file has a test</h3>
+    <span class="loc">src/infrastructure/config/InfraConfig.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> Each source file should have a matching test file.</p>
+  <p><span class="k">What was found:</span> Violation in src/infrastructure/config/InfraConfig.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/infrastructure/config/InfraConfig.ts</code> <span class="layer-tag">infrastructure</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Create a test file following the project test naming convention.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-CV05" data-layers="infrastructure" data-files="src/infrastructure/repositories/CircularHelper.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-CV05">Every file has a test</h3>
+    <span class="loc">src/infrastructure/repositories/CircularHelper.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> Each source file should have a matching test file.</p>
+  <p><span class="k">What was found:</span> Violation in src/infrastructure/repositories/CircularHelper.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/infrastructure/repositories/CircularHelper.ts</code> <span class="layer-tag">infrastructure</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Create a test file following the project test naming convention.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-CV05" data-layers="infrastructure" data-files="src/infrastructure/repositories/InMemoryTaskRepository.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-CV05">Every file has a test</h3>
+    <span class="loc">src/infrastructure/repositories/InMemoryTaskRepository.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> Each source file should have a matching test file.</p>
+  <p><span class="k">What was found:</span> Violation in src/infrastructure/repositories/InMemoryTaskRepository.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/infrastructure/repositories/InMemoryTaskRepository.ts</code> <span class="layer-tag">infrastructure</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Create a test file following the project test naming convention.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-C03" data-layers="application" data-files="src/application/use-cases/CreateTaskUseCase.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-C03">Instability fits the role</h3>
+    <span class="loc">src/application/use-cases/CreateTaskUseCase.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> How much a module depends on others, compared with how much others depend on it, should fit its layer.</p>
+  <p><span class="k">What was found:</span> Violation in src/application/use-cases/CreateTaskUseCase.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/application/use-cases/CreateTaskUseCase.ts</code> <span class="layer-tag">application</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Adjust the module boundaries or introduce abstractions to bring instability within range.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-C01" data-layers="domain" data-files="src/domain/entities/Task.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-C01">The domain is stable</h3>
+    <span class="loc">src/domain/entities/Task.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> The domain layer should have few outgoing dependencies.</p>
+  <p><span class="k">What was found:</span> Violation in src/domain/entities/Task.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/domain/entities/Task.ts</code> <span class="layer-tag">domain</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Adjust the module boundaries or introduce abstractions to bring instability within range.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-P04" data-layers="application" data-files="src/application/use-cases/CreateTaskUseCase.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-P04">Use cases stay isolated</h3>
+    <span class="loc">src/application/use-cases/CreateTaskUseCase.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> A use case should not depend directly on infrastructure or on other use cases.</p>
+  <p><span class="k">What was found:</span> Violation in src/application/use-cases/CreateTaskUseCase.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/application/use-cases/CreateTaskUseCase.ts</code> <span class="layer-tag">application</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Inject dependencies through constructor parameters (ports) instead of importing directly.</p>
+</article></div><p class="empty" id="f-empty" hidden>No finding matches these filters.</p></section>
+</main>
+<script>
+(function () {
+  'use strict';
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.finding'));
+  if (cards.length === 0) return;
+  var byId = function (id) { return document.getElementById(id); };
+  var rule = byId('f-rule'), layer = byId('f-layer'), file = byId('f-file');
+  var count = byId('f-count'), empty = byId('f-empty'), edgeNote = byId('f-edge'), clear = byId('f-clear');
+  var tierBoxes = Array.prototype.slice.call(document.querySelectorAll('[data-filter-tier]'));
+  var layerBoxes = Array.prototype.slice.call(document.querySelectorAll('.layer[data-layer]'));
+  var edgeGroups = Array.prototype.slice.call(document.querySelectorAll('.edge[data-edge][tabindex]'));
+  var edge = '';
+  var has = function (list, value) { return list.split('|').indexOf(value) >= 0; };
+
+  function apply() {
+    var tiers = {};
+    tierBoxes.forEach(function (b) { tiers[b.getAttribute('data-filter-tier')] = b.checked; });
+    var shown = 0;
+    cards.forEach(function (c) {
+      var ok = tiers[c.getAttribute('data-tier')] === true
+        && (rule.value === '' || c.getAttribute('data-rule') === rule.value)
+        && (layer.value === '' || has(c.getAttribute('data-layers'), layer.value))
+        && (file.value === '' || has(c.getAttribute('data-files'), file.value))
+        && (edge === '' || has(c.getAttribute('data-edges'), edge));
+      c.hidden = !ok;
+      if (ok) shown++;
+    });
+    count.textContent = 'Showing ' + shown + ' of ' + cards.length + ' finding' + (cards.length === 1 ? '' : 's');
+    empty.hidden = shown !== 0;
+    if (edge === '') { edgeNote.hidden = true; edgeNote.textContent = ''; }
+    else { edgeNote.hidden = false; edgeNote.textContent = 'on the dependency ' + edge.replace('>', ' \\u2192 '); }
+    layerBoxes.forEach(function (g) { g.classList.toggle('selected', layer.value !== '' && g.getAttribute('data-layer') === layer.value); });
+    edgeGroups.forEach(function (g) { g.classList.toggle('selected', edge !== '' && g.getAttribute('data-edge') === edge); });
+  }
+
+  function hasOption(select, value) {
+    return Array.prototype.some.call(select.options, function (o) { return o.value === value; });
+  }
+  function pickLayer(name) {
+    if (!hasOption(layer, name)) return;
+    edge = '';
+    layer.value = layer.value === name ? '' : name;
+    apply();
+    byId('findings-h').scrollIntoView({ block: 'start' });
+  }
+  function pickEdge(value) {
+    edge = edge === value ? '' : value;
+    layer.value = '';
+    apply();
+    byId('findings-h').scrollIntoView({ block: 'start' });
+  }
+  function activate(el, fn) {
+    el.addEventListener('click', fn);
+    el.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } });
+  }
+
+  [rule, layer, file].forEach(function (s) { s.addEventListener('change', function () { if (s === layer) edge = ''; apply(); }); });
+  tierBoxes.forEach(function (b) { b.addEventListener('change', apply); });
+  layerBoxes.forEach(function (g) { activate(g, function () { pickLayer(g.getAttribute('data-layer')); }); });
+  edgeGroups.forEach(function (g) { activate(g, function () { pickEdge(g.getAttribute('data-edge')); }); });
+  clear.addEventListener('click', function () {
+    tierBoxes.forEach(function (b) { b.checked = true; });
+    rule.value = ''; layer.value = ''; file.value = ''; edge = '';
+    apply();
+  });
+  apply();
+})();
+</script>
+</body>
+</html>
+"
+`;
+
+exports[`architect HTML report: reference variants variant-b-pattern matches its snapshot 1`] = `
+"<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:">
+<meta name="generator" content="daedalus-arch evaluate --html">
+<title>Architecture report: variant-b-pattern</title>
+<style>
+:root{--bg:#f7f8fa;--fg:#1d2433;--muted:#5b6475;--panel:#fff;--line:#d9dee7;--code:#f1f3f7;
+--def:#c62828;--def-bg:#fdecec;--warn:#a15c00;--warn-bg:#fff4e0;--na:#55606e;--na-bg:#eceff3;
+--ok:#2e7d32;--ok-bg:#e8f5e9;--edge:#8a94a6;--hit:#fff1b8;--accent:#2952cc}
+@media (prefers-color-scheme:dark){:root{--bg:#12151b;--fg:#e6e9ef;--muted:#a3abba;--panel:#1b2029;--line:#2e3542;
+--code:#151a22;--def:#ff6b6b;--def-bg:#3a1d1f;--warn:#ffb74d;--warn-bg:#3a2c16;--na:#aab3c0;--na-bg:#262c36;
+--ok:#81c784;--ok-bg:#1d3320;--edge:#7c879a;--hit:#4a4214;--accent:#8fa8ff}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:16px;overflow-wrap:anywhere}
+h1{font-size:1.5rem;margin:.2rem 0}
+h2{font-size:1.25rem;margin:0 0 .5rem}
+h3{font-size:1.02rem;margin:0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.88em;overflow-wrap:anywhere}
+.muted{color:var(--muted)}
+section{margin:20px 0}
+.panel,.verdict-card,.finding,.diagram,.filters{background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.verdict-card{padding:16px 18px;border-left:8px solid var(--ok)}
+.verdict-fail .verdict-card{border-left-color:var(--def)}
+.verdict-word{margin:0;font-weight:800;letter-spacing:.08em;font-size:.9rem;color:var(--ok)}
+.verdict-fail .verdict-word{color:var(--def)}
+.explain{margin:.5rem 0 0;padding-left:1.2rem}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px;margin-top:14px}
+.panel{padding:14px 16px;min-width:0}
+.blockers{margin:.4rem 0 0;padding-left:1.1rem}
+.blockers li{margin-bottom:.4rem}
+.rule-name{font-weight:600;border-bottom:1px dotted var(--muted);cursor:help}
+.count{color:var(--def);font-weight:600}
+.scores{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:.4rem 0}
+.scores div{background:var(--code);border-radius:8px;padding:8px 10px}
+.scores dt{font-size:.82rem;color:var(--muted);cursor:help}
+.scores dd{margin:0;font-size:1.3rem;font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.stat{border-radius:8px;padding:8px 10px;display:flex;flex-direction:column}
+.stat-n{font-size:1.3rem;font-weight:700}
+.stat-l{font-size:.82rem;cursor:help}
+.stat-defining{background:var(--def-bg);color:var(--def)}
+.stat-warning{background:var(--warn-bg);color:var(--warn)}
+.stat-not-counted{background:var(--na-bg);color:var(--na)}
+.diagram{padding:14px 16px}
+.diagram-scroll{overflow-x:auto;max-width:100%}
+.layer-svg{display:block;width:100%;min-width:560px;height:auto;font-family:inherit}
+.layer rect{fill:var(--panel);stroke:var(--line);stroke-width:2}
+.layer-warning rect{fill:var(--warn-bg);stroke:var(--warn)}
+.layer-defining rect{fill:var(--def-bg);stroke:var(--def)}
+.layer-unassigned rect{stroke-dasharray:6 4}
+.layer{cursor:pointer}
+.layer.selected rect{stroke:var(--accent);stroke-width:4}
+.layer-name{font-weight:700;font-size:17px;fill:var(--fg)}
+.layer-sub{font-size:13px;fill:var(--muted)}
+.internal{font-size:12px;fill:var(--def)}
+.edge path{fill:none;stroke:var(--edge);stroke-width:1.6}
+.edge text{font-size:12px;fill:var(--muted)}
+.edge-forbidden path{stroke-dasharray:5 4}
+.edge-warning path{stroke:var(--warn);stroke-width:2.6}
+.edge-warning text{fill:var(--warn);font-weight:600}
+.edge-defining path{stroke:var(--def);stroke-width:3.4}
+.edge-defining text{fill:var(--def);font-weight:700}
+.edge-defining,.edge-warning{cursor:pointer}
+.edge.selected path{stroke:var(--accent)}
+.marker-defining path{fill:var(--def)}
+.marker-warning path{fill:var(--warn)}
+.marker-ok path{fill:var(--edge)}
+.legend{list-style:none;padding:0;margin:.6rem 0;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.88rem;color:var(--muted)}
+.sw{display:inline-block;width:26px;height:0;border-top:3px solid var(--edge);vertical-align:middle;margin-right:6px}
+.sw-defining{border-top-color:var(--def);border-top-width:4px}
+.sw-warning{border-top-color:var(--warn)}
+.sw-forbidden{border-top-style:dashed}
+.table-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:left;border-bottom:1px solid var(--line);padding:4px 8px}
+.filters{padding:12px 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px;margin-bottom:14px}
+.filters label{display:flex;flex-direction:column;font-size:.85rem;color:var(--muted);min-width:0}
+.filters select{margin-top:3px;font:inherit;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px;width:100%;max-width:100%;min-width:0}
+fieldset.tiers{grid-column:1/-1;border:0;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 16px;min-width:0}
+fieldset.tiers legend{font-size:.85rem;color:var(--muted);padding:0;margin-bottom:3px}
+.chk{flex-direction:row!important;align-items:center;gap:6px;color:var(--fg)!important;font-size:.92rem!important}
+.filter-status{grid-column:1/-1;margin:0;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.filter-status button{font:inherit;border:1px solid var(--line);background:var(--code);color:var(--fg);border-radius:6px;padding:3px 10px;cursor:pointer}
+#f-edge{color:var(--accent)}
+.finding-list{display:flex;flex-direction:column;gap:12px}
+.finding{padding:12px 16px;border-left:6px solid var(--na);min-width:0}
+.finding.tier-defining{border-left-color:var(--def)}
+.finding.tier-warning{border-left-color:var(--warn)}
+.finding header{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;margin-bottom:.3rem}
+.finding h3{cursor:help}
+.finding p{margin:.3rem 0}
+.loc{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.82rem;color:var(--muted);overflow-wrap:anywhere;min-width:0}
+.tier-badge{font-size:.78rem;font-weight:700;border-radius:999px;padding:1px 10px;background:var(--na-bg);color:var(--na);cursor:help;white-space:nowrap}
+.tier-defining .tier-badge{background:var(--def-bg);color:var(--def)}
+.tier-warning .tier-badge{background:var(--warn-bg);color:var(--warn)}
+.k{font-weight:600}
+.path{margin:.3rem 0}
+.path ol{list-style:none;margin:.2rem 0 0;padding:0;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.path li{background:var(--code);border-radius:6px;padding:2px 8px;min-width:0;max-width:100%}
+.path li+li::before{content:"→ ";color:var(--muted)}
+.layer-tag{font-size:.75rem;color:var(--muted);white-space:nowrap}
+figure.code{margin:.5rem 0;min-width:0}
+figure.code figcaption{font-size:.8rem;color:var(--muted);margin-bottom:2px}
+figure.code pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:8px;padding:6px 0;overflow-x:auto;max-width:100%;font:12.5px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.row{display:block;width:max-content;min-width:100%;padding:0 10px;white-space:pre}
+.row.hit{background:var(--hit)}
+.ln{display:inline-block;min-width:3ch;text-align:right;margin-right:12px;color:var(--muted);user-select:none}
+.fix{background:var(--ok-bg);border-radius:8px;padding:6px 10px}
+.empty{color:var(--muted);font-style:italic}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="top">
+  <h1>Architecture report: variant-b-pattern</h1>
+  <p class="muted">Spec <code>specs/clean-arch.yaml</code> · style clean-architecture · symbolic-only run · v1.3 scoring · run <code>run-1792112780134</code></p>
+</header>
+<section class="summary verdict-fail" aria-labelledby="summary-h">
+  <div class="verdict-card">
+    <p class="verdict-word">FAIL</p>
+    <h2 id="summary-h">Fails: defining rules are broken</h2>
+    <ul class="explain"><li>The verdict fails because 3 defining rules are broken. Fixing every finding marked &quot;defining rule (can fail)&quot; turns it into a pass.</li><li>Only defining rules can fail the verdict. Warnings (14 here) are listed for information and never fail it.</li><li>The scores are context: no score threshold is applied to the verdict.</li></ul>
+  </div>
+  <div class="summary-grid">
+    <div class="panel">
+      <h3>What blocks the verdict</h3>
+      <ul class="blockers"><li><span class="rule-name" title="Rule id: FF-P01">The domain is framework-free</span> <span class="count">1 finding</span><br><span class="muted">Domain code must not import frameworks or infrastructure libraries.</span></li><li><span class="rule-name" title="Rule id: FF-P03">Repository contracts live in the core</span> <span class="count">1 finding</span><br><span class="muted">Each repository interface belongs to the domain and its implementation to infrastructure.</span></li><li><span class="rule-name" title="Rule id: FF-S01">Dependencies point inward</span> <span class="count">2 findings</span><br><span class="muted">A file may only depend on layers allowed for it. An inner layer must never import from an outer layer.</span></li></ul>
+    </div>
+    <div class="panel">
+      <h3>Scores</h3>
+      <dl class="scores">
+        <div><dt title="Health score over the defining rules only (1 = no defining rule broken)">Defining-rule score</dt><dd>0.51</dd></div>
+        <div><dt title="Health score over every deterministic rule, warnings included">Overall health score</dt><dd>0.57</dd></div>
+        <div><dt>Rules checked</dt><dd>22</dd></div>
+      </dl>
+      <div class="stats"><div class="stat stat-defining"><span class="stat-n">4</span><span class="stat-l" title="A defining rule states what the architecture is. One broken defining rule fails the verdict.">defining rule (can fail)</span></div><div class="stat stat-warning"><span class="stat-n">14</span><span class="stat-l" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span></div><div class="stat stat-not-counted"><span class="stat-n">0</span><span class="stat-l" title="This part of the rule cannot be measured reliably yet, so it is shown but does not count.">not counted (not applicable)</span></div></div>
+    </div>
+  </div>
+</section>
+<section class="diagram" aria-labelledby="diagram-h">
+  <h2 id="diagram-h">Layer diagram</h2>
+  <p class="muted">Outer layers on top, the core at the bottom. Arrows on the left point down the layers, arrows on the right point up. Click a layer or a highlighted arrow to filter the findings.</p>
+  <div class="diagram-scroll"><svg class="layer-svg" viewBox="0 0 900 328" role="img" aria-label="Layer dependency diagram">
+    <defs><marker id="arrow-defining" class="marker-defining" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z"/></marker><marker id="arrow-warning" class="marker-warning" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z"/></marker><marker id="arrow-ok" class="marker-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z"/></marker></defs>
+    <g class="edge edge-ok" data-edge="application&gt;domain">
+  <title>application depends on domain: 2 imports</title>
+  <path d="M300 168 C266 168 266 258 300 258" marker-end="url(#arrow-ok)"/>
+  <text x="269" y="217" text-anchor="end">2 imports</text>
+</g>
+<g class="edge edge-ok" data-edge="infrastructure&gt;domain">
+  <title>infrastructure depends on domain: 1 import</title>
+  <path d="M300 60 C236 60 236 258 300 258" marker-end="url(#arrow-ok)"/>
+  <text x="246" y="163" text-anchor="end">1 import</text>
+</g>
+<g class="edge edge-defining" data-edge="application&gt;infrastructure" tabindex="0" role="button">
+  <title>application depends on infrastructure: 2 imports · 2 findings (not allowed by the spec)</title>
+  <path d="M600 150 C634 150 634 60 600 60" marker-end="url(#arrow-defining)"/>
+  <text x="632" y="109" text-anchor="start">2 imports · 2 findings</text>
+</g>
+    <g class="layer layer-defining" data-layer="infrastructure" tabindex="0" role="button">
+  <title>infrastructure (repository-impl, controller, middleware, orm-entity): src/infrastructure/**. Click to filter the findings.</title>
+  <rect x="300" y="20" width="300" height="62" rx="10"/>
+  <text class="layer-name" x="314" y="46">infrastructure</text>
+  <text class="layer-sub" x="314" y="67">1 file · 4 findings (3 defining)</text>
+  
+</g>
+<g class="layer layer-defining" data-layer="application" tabindex="0" role="button">
+  <title>application (use-case, dto, application-service): src/application/**. Click to filter the findings.</title>
+  <rect x="300" y="128" width="300" height="62" rx="10"/>
+  <text class="layer-name" x="314" y="154">application</text>
+  <text class="layer-sub" x="314" y="175">2 files · 10 findings (2 defining)</text>
+  
+</g>
+<g class="layer layer-defining" data-layer="domain" tabindex="0" role="button">
+  <title>domain (entity, value-object, domain-service, repository-interface): src/domain/**. Click to filter the findings.</title>
+  <rect x="300" y="236" width="300" height="62" rx="10"/>
+  <text class="layer-name" x="314" y="262">domain</text>
+  <text class="layer-sub" x="314" y="283">2 files · 5 findings (1 defining)</text>
+  
+</g>
+  </svg></div>
+  <ul class="legend">
+    <li><span class="sw sw-defining"></span>dependency with a defining-rule finding</li>
+    <li><span class="sw sw-warning"></span>dependency with warnings only</li>
+    <li><span class="sw sw-ok"></span>dependency without findings</li>
+    <li><span class="sw sw-forbidden"></span>dependency the spec does not allow, without a finding</li>
+  </ul>
+  <details><summary>The diagram as a table</summary>
+    <div class="table-wrap"><table><thead><tr><th>From layer</th><th>To layer</th><th>Imports</th><th>Allowed</th><th>Findings</th><th>Defining</th></tr></thead><tbody><tr><td>application</td><td>domain</td><td>2</td><td>yes</td><td>0</td><td>0</td></tr><tr><td>application</td><td>infrastructure</td><td>2</td><td>no</td><td>2</td><td>2</td></tr><tr><td>infrastructure</td><td>domain</td><td>1</td><td>yes</td><td>0</td><td>0</td></tr></tbody></table></div>
+  </details>
+</section>
+<section class="findings" aria-labelledby="findings-h"><h2 id="findings-h">Findings</h2><form class="filters" id="filters" onsubmit="return false">
+  <fieldset class="tiers"><legend>Tier</legend><label class="chk chk-defining" title="A defining rule states what the architecture is. One broken defining rule fails the verdict."><input type="checkbox" data-filter-tier="defining" checked> defining rule (can fail) (4)</label><label class="chk chk-warning" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict."><input type="checkbox" data-filter-tier="warning" checked> warning (never fails) (14)</label><label class="chk chk-not-counted" title="This part of the rule cannot be measured reliably yet, so it is shown but does not count."><input type="checkbox" data-filter-tier="not-counted" checked> not counted (not applicable) (0)</label></fieldset>
+  <label>Rule <select id="f-rule"><option value="">All rules</option><option value="FF-P02" title="Rule id: FF-P02">Depend on abstractions</option><option value="FF-S01" title="Rule id: FF-S01">Dependencies point inward</option><option value="FF-C06" title="Rule id: FF-C06">Enough abstractions</option><option value="FF-CV05" title="Rule id: FF-CV05">Every file has a test</option><option value="FF-C03" title="Rule id: FF-C03">Instability fits the role</option><option value="FF-P03" title="Rule id: FF-P03">Repository contracts live in the core</option><option value="FF-SO02" title="Rule id: FF-SO02">Small interfaces</option><option value="FF-P01" title="Rule id: FF-P01">The domain is framework-free</option><option value="FF-P04" title="Rule id: FF-P04">Use cases stay isolated</option></select></label>
+  <label>Layer <select id="f-layer"><option value="">All layers</option><option value="application">application</option><option value="domain">domain</option><option value="infrastructure">infrastructure</option></select></label>
+  <label>File <select id="f-file"><option value="">All files</option><option value="src/application/use-cases/CompleteTaskUseCase.ts">src/application/use-cases/CompleteTaskUseCase.ts</option><option value="src/application/use-cases/CreateTaskUseCase.ts">src/application/use-cases/CreateTaskUseCase.ts</option><option value="src/domain/entities/Task.ts">src/domain/entities/Task.ts</option><option value="src/domain/repositories/ITaskRepository.ts">src/domain/repositories/ITaskRepository.ts</option><option value="src/infrastructure/repositories/InMemoryTaskRepository.ts">src/infrastructure/repositories/InMemoryTaskRepository.ts</option></select></label>
+  <p class="filter-status"><span id="f-count" aria-live="polite">Showing 18 findings</span> <span id="f-edge" hidden></span> <button type="button" id="f-clear">Clear filters</button></p>
+</form><div class="finding-list"><article class="finding tier-defining" data-tier="defining" data-rule="FF-S01" data-layers="application|infrastructure" data-files="src/application/use-cases/CompleteTaskUseCase.ts|src/infrastructure/repositories/InMemoryTaskRepository.ts" data-edges="application&gt;infrastructure">
+  <header>
+    <span class="tier-badge" title="A defining rule states what the architecture is. One broken defining rule fails the verdict.">defining rule (can fail)</span>
+    <h3 title="Rule id: FF-S01">Dependencies point inward</h3>
+    <span class="loc">src/application/use-cases/CompleteTaskUseCase.ts:2</span>
+  </header>
+  <p><span class="k">The rule:</span> A file may only depend on layers allowed for it. An inner layer must never import from an outer layer.</p>
+  <p><span class="k">What was found:</span> src/application/use-cases/CompleteTaskUseCase.ts (application) imports from src/infrastructure/repositories/InMemoryTaskRepository.ts (infrastructure)</p>
+  <div class="path"><span class="k">Edge path:</span><ol class="path-import"><li><code>src/application/use-cases/CompleteTaskUseCase.ts</code> <span class="layer-tag">application</span></li><li><code>src/infrastructure/repositories/InMemoryTaskRepository.ts</code> <span class="layer-tag">infrastructure</span></li></ol></div>
+  <figure class="code"><figcaption><code>src/application/use-cases/CompleteTaskUseCase.ts</code></figcaption><pre><span class="row"><span class="ln">1</span><span class="src">import { Task } from &#39;../../domain/entities/Task&#39;;</span></span><span class="row hit"><span class="ln">2</span><span class="src">import { InMemoryTaskRepository } from &#39;../../infrastructure/repositories/InMemoryTaskRepository&#39;;</span></span><span class="row"><span class="ln">3</span><span class="src"> </span></span><span class="row"><span class="ln">4</span><span class="src">// VIOLATION #2: injects concrete InMemoryTaskRepository instead of ITaskRepository</span></span></pre></figure>
+  <p class="fix"><span class="k">How to fix:</span> Move the dependency behind an interface in the correct layer, or restructure the import to respect layer boundaries.</p>
+</article>
+<article class="finding tier-defining" data-tier="defining" data-rule="FF-S01" data-layers="application|infrastructure" data-files="src/application/use-cases/CreateTaskUseCase.ts|src/infrastructure/repositories/InMemoryTaskRepository.ts" data-edges="application&gt;infrastructure">
+  <header>
+    <span class="tier-badge" title="A defining rule states what the architecture is. One broken defining rule fails the verdict.">defining rule (can fail)</span>
+    <h3 title="Rule id: FF-S01">Dependencies point inward</h3>
+    <span class="loc">src/application/use-cases/CreateTaskUseCase.ts:2</span>
+  </header>
+  <p><span class="k">The rule:</span> A file may only depend on layers allowed for it. An inner layer must never import from an outer layer.</p>
+  <p><span class="k">What was found:</span> src/application/use-cases/CreateTaskUseCase.ts (application) imports from src/infrastructure/repositories/InMemoryTaskRepository.ts (infrastructure)</p>
+  <div class="path"><span class="k">Edge path:</span><ol class="path-import"><li><code>src/application/use-cases/CreateTaskUseCase.ts</code> <span class="layer-tag">application</span></li><li><code>src/infrastructure/repositories/InMemoryTaskRepository.ts</code> <span class="layer-tag">infrastructure</span></li></ol></div>
+  <figure class="code"><figcaption><code>src/application/use-cases/CreateTaskUseCase.ts</code></figcaption><pre><span class="row"><span class="ln">1</span><span class="src">import { Task } from &#39;../../domain/entities/Task&#39;;</span></span><span class="row hit"><span class="ln">2</span><span class="src">import { InMemoryTaskRepository } from &#39;../../infrastructure/repositories/InMemoryTaskRepository&#39;;</span></span><span class="row"><span class="ln">3</span><span class="src"> </span></span><span class="row"><span class="ln">4</span><span class="src">// VIOLATION #1: injects concrete InMemoryTaskRepository instead of ITaskRepository</span></span></pre></figure>
+  <p class="fix"><span class="k">How to fix:</span> Move the dependency behind an interface in the correct layer, or restructure the import to respect layer boundaries.</p>
+</article>
+<article class="finding tier-defining" data-tier="defining" data-rule="FF-P03" data-layers="infrastructure" data-files="src/infrastructure/repositories/InMemoryTaskRepository.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A defining rule states what the architecture is. One broken defining rule fails the verdict.">defining rule (can fail)</span>
+    <h3 title="Rule id: FF-P03">Repository contracts live in the core</h3>
+    <span class="loc">src/infrastructure/repositories/InMemoryTaskRepository.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> Each repository interface belongs to the domain and its implementation to infrastructure.</p>
+  <p><span class="k">What was found:</span> Violation in src/infrastructure/repositories/InMemoryTaskRepository.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/infrastructure/repositories/InMemoryTaskRepository.ts</code> <span class="layer-tag">infrastructure</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Encapsulate data access behind a repository interface.</p>
+</article>
+<article class="finding tier-defining" data-tier="defining" data-rule="FF-P01" data-layers="domain" data-files="src/domain/entities/Task.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A defining rule states what the architecture is. One broken defining rule fails the verdict.">defining rule (can fail)</span>
+    <h3 title="Rule id: FF-P01">The domain is framework-free</h3>
+    <span class="loc">src/domain/entities/Task.ts:2</span>
+  </header>
+  <p><span class="k">The rule:</span> Domain code must not import frameworks or infrastructure libraries.</p>
+  <p><span class="k">What was found:</span> Domain file src/domain/entities/Task.ts imports forbidden package @nestjs/common</p>
+  <div class="path"><span class="k">Edge path:</span><ol class="path-import"><li><code>src/domain/entities/Task.ts</code> <span class="layer-tag">domain</span></li><li><code>@nestjs/common</code> <span class="layer-tag">external package</span></li></ol></div>
+  <figure class="code"><figcaption><code>src/domain/entities/Task.ts</code></figcaption><pre><span class="row"><span class="ln">1</span><span class="src">// VIOLATION #4: Domain imports @nestjs/common (domain purity violation)</span></span><span class="row hit"><span class="ln">2</span><span class="src">import { Injectable } from &#39;@nestjs/common&#39;;</span></span><span class="row"><span class="ln">3</span><span class="src"> </span></span><span class="row"><span class="ln">4</span><span class="src">@Injectable()</span></span></pre></figure>
+  <p class="fix"><span class="k">How to fix:</span> Extract framework-specific code to an infrastructure or adapter layer.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-P02" data-layers="application" data-files="src/application/use-cases/CompleteTaskUseCase.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-P02">Depend on abstractions</h3>
+    <span class="loc">src/application/use-cases/CompleteTaskUseCase.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> Classes should receive their dependencies as interfaces rather than concrete classes.</p>
+  <p><span class="k">What was found:</span> Violation in src/application/use-cases/CompleteTaskUseCase.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/application/use-cases/CompleteTaskUseCase.ts</code> <span class="layer-tag">application</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Introduce an interface (port) in the higher-level module and have the lower-level module implement it.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-P02" data-layers="application" data-files="src/application/use-cases/CreateTaskUseCase.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-P02">Depend on abstractions</h3>
+    <span class="loc">src/application/use-cases/CreateTaskUseCase.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> Classes should receive their dependencies as interfaces rather than concrete classes.</p>
+  <p><span class="k">What was found:</span> Violation in src/application/use-cases/CreateTaskUseCase.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/application/use-cases/CreateTaskUseCase.ts</code> <span class="layer-tag">application</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Introduce an interface (port) in the higher-level module and have the lower-level module implement it.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-C06" data-layers="" data-files="" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-C06">Enough abstractions</h3>
+    <span class="loc">whole project</span>
+  </header>
+  <p><span class="k">The rule:</span> The share of interfaces and abstract classes should reach the threshold.</p>
+  <p><span class="k">What was found:</span> Abstraction ratio 0.2 below threshold</p>
+  <div class="path"><span class="k">Scope:</span> the whole project</div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Introduce interfaces or abstract classes to define contracts between layers.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-CV05" data-layers="application" data-files="src/application/use-cases/CompleteTaskUseCase.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-CV05">Every file has a test</h3>
+    <span class="loc">src/application/use-cases/CompleteTaskUseCase.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> Each source file should have a matching test file.</p>
+  <p><span class="k">What was found:</span> Violation in src/application/use-cases/CompleteTaskUseCase.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/application/use-cases/CompleteTaskUseCase.ts</code> <span class="layer-tag">application</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Create a test file following the project test naming convention.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-CV05" data-layers="application" data-files="src/application/use-cases/CreateTaskUseCase.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-CV05">Every file has a test</h3>
+    <span class="loc">src/application/use-cases/CreateTaskUseCase.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> Each source file should have a matching test file.</p>
+  <p><span class="k">What was found:</span> Violation in src/application/use-cases/CreateTaskUseCase.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/application/use-cases/CreateTaskUseCase.ts</code> <span class="layer-tag">application</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Create a test file following the project test naming convention.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-CV05" data-layers="domain" data-files="src/domain/entities/Task.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-CV05">Every file has a test</h3>
+    <span class="loc">src/domain/entities/Task.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> Each source file should have a matching test file.</p>
+  <p><span class="k">What was found:</span> Violation in src/domain/entities/Task.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/domain/entities/Task.ts</code> <span class="layer-tag">domain</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Create a test file following the project test naming convention.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-CV05" data-layers="domain" data-files="src/domain/repositories/ITaskRepository.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-CV05">Every file has a test</h3>
+    <span class="loc">src/domain/repositories/ITaskRepository.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> Each source file should have a matching test file.</p>
+  <p><span class="k">What was found:</span> Violation in src/domain/repositories/ITaskRepository.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/domain/repositories/ITaskRepository.ts</code> <span class="layer-tag">domain</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Create a test file following the project test naming convention.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-CV05" data-layers="infrastructure" data-files="src/infrastructure/repositories/InMemoryTaskRepository.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-CV05">Every file has a test</h3>
+    <span class="loc">src/infrastructure/repositories/InMemoryTaskRepository.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> Each source file should have a matching test file.</p>
+  <p><span class="k">What was found:</span> Violation in src/infrastructure/repositories/InMemoryTaskRepository.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/infrastructure/repositories/InMemoryTaskRepository.ts</code> <span class="layer-tag">infrastructure</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Create a test file following the project test naming convention.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-C03" data-layers="application" data-files="src/application/use-cases/CompleteTaskUseCase.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-C03">Instability fits the role</h3>
+    <span class="loc">src/application/use-cases/CompleteTaskUseCase.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> How much a module depends on others, compared with how much others depend on it, should fit its layer.</p>
+  <p><span class="k">What was found:</span> Violation in src/application/use-cases/CompleteTaskUseCase.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/application/use-cases/CompleteTaskUseCase.ts</code> <span class="layer-tag">application</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Adjust the module boundaries or introduce abstractions to bring instability within range.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-C03" data-layers="application" data-files="src/application/use-cases/CreateTaskUseCase.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-C03">Instability fits the role</h3>
+    <span class="loc">src/application/use-cases/CreateTaskUseCase.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> How much a module depends on others, compared with how much others depend on it, should fit its layer.</p>
+  <p><span class="k">What was found:</span> Violation in src/application/use-cases/CreateTaskUseCase.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/application/use-cases/CreateTaskUseCase.ts</code> <span class="layer-tag">application</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Adjust the module boundaries or introduce abstractions to bring instability within range.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-C03" data-layers="domain" data-files="src/domain/repositories/ITaskRepository.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-C03">Instability fits the role</h3>
+    <span class="loc">src/domain/repositories/ITaskRepository.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> How much a module depends on others, compared with how much others depend on it, should fit its layer.</p>
+  <p><span class="k">What was found:</span> Violation in src/domain/repositories/ITaskRepository.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/domain/repositories/ITaskRepository.ts</code> <span class="layer-tag">domain</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Adjust the module boundaries or introduce abstractions to bring instability within range.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-SO02" data-layers="domain" data-files="src/domain/repositories/ITaskRepository.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-SO02">Small interfaces</h3>
+    <span class="loc">src/domain/repositories/ITaskRepository.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> An interface should not declare too many methods.</p>
+  <p><span class="k">What was found:</span> Violation in src/domain/repositories/ITaskRepository.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/domain/repositories/ITaskRepository.ts</code> <span class="layer-tag">domain</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Break the interface into smaller, role-specific interfaces.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-P04" data-layers="application" data-files="src/application/use-cases/CompleteTaskUseCase.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-P04">Use cases stay isolated</h3>
+    <span class="loc">src/application/use-cases/CompleteTaskUseCase.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> A use case should not depend directly on infrastructure or on other use cases.</p>
+  <p><span class="k">What was found:</span> Violation in src/application/use-cases/CompleteTaskUseCase.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/application/use-cases/CompleteTaskUseCase.ts</code> <span class="layer-tag">application</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Inject dependencies through constructor parameters (ports) instead of importing directly.</p>
+</article>
+<article class="finding tier-warning" data-tier="warning" data-rule="FF-P04" data-layers="application" data-files="src/application/use-cases/CreateTaskUseCase.ts" data-edges="">
+  <header>
+    <span class="tier-badge" title="A warning is a metric, proxy or convention. It is reported for information and never fails the verdict.">warning (never fails)</span>
+    <h3 title="Rule id: FF-P04">Use cases stay isolated</h3>
+    <span class="loc">src/application/use-cases/CreateTaskUseCase.ts</span>
+  </header>
+  <p><span class="k">The rule:</span> A use case should not depend directly on infrastructure or on other use cases.</p>
+  <p><span class="k">What was found:</span> Violation in src/application/use-cases/CreateTaskUseCase.ts</p>
+  <div class="path"><span class="k">File:</span><ol class="path-file"><li><code>src/application/use-cases/CreateTaskUseCase.ts</code> <span class="layer-tag">application</span></li></ol></div>
+  
+  <p class="fix"><span class="k">How to fix:</span> Inject dependencies through constructor parameters (ports) instead of importing directly.</p>
+</article></div><p class="empty" id="f-empty" hidden>No finding matches these filters.</p></section>
+</main>
+<script>
+(function () {
+  'use strict';
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.finding'));
+  if (cards.length === 0) return;
+  var byId = function (id) { return document.getElementById(id); };
+  var rule = byId('f-rule'), layer = byId('f-layer'), file = byId('f-file');
+  var count = byId('f-count'), empty = byId('f-empty'), edgeNote = byId('f-edge'), clear = byId('f-clear');
+  var tierBoxes = Array.prototype.slice.call(document.querySelectorAll('[data-filter-tier]'));
+  var layerBoxes = Array.prototype.slice.call(document.querySelectorAll('.layer[data-layer]'));
+  var edgeGroups = Array.prototype.slice.call(document.querySelectorAll('.edge[data-edge][tabindex]'));
+  var edge = '';
+  var has = function (list, value) { return list.split('|').indexOf(value) >= 0; };
+
+  function apply() {
+    var tiers = {};
+    tierBoxes.forEach(function (b) { tiers[b.getAttribute('data-filter-tier')] = b.checked; });
+    var shown = 0;
+    cards.forEach(function (c) {
+      var ok = tiers[c.getAttribute('data-tier')] === true
+        && (rule.value === '' || c.getAttribute('data-rule') === rule.value)
+        && (layer.value === '' || has(c.getAttribute('data-layers'), layer.value))
+        && (file.value === '' || has(c.getAttribute('data-files'), file.value))
+        && (edge === '' || has(c.getAttribute('data-edges'), edge));
+      c.hidden = !ok;
+      if (ok) shown++;
+    });
+    count.textContent = 'Showing ' + shown + ' of ' + cards.length + ' finding' + (cards.length === 1 ? '' : 's');
+    empty.hidden = shown !== 0;
+    if (edge === '') { edgeNote.hidden = true; edgeNote.textContent = ''; }
+    else { edgeNote.hidden = false; edgeNote.textContent = 'on the dependency ' + edge.replace('>', ' \\u2192 '); }
+    layerBoxes.forEach(function (g) { g.classList.toggle('selected', layer.value !== '' && g.getAttribute('data-layer') === layer.value); });
+    edgeGroups.forEach(function (g) { g.classList.toggle('selected', edge !== '' && g.getAttribute('data-edge') === edge); });
+  }
+
+  function hasOption(select, value) {
+    return Array.prototype.some.call(select.options, function (o) { return o.value === value; });
+  }
+  function pickLayer(name) {
+    if (!hasOption(layer, name)) return;
+    edge = '';
+    layer.value = layer.value === name ? '' : name;
+    apply();
+    byId('findings-h').scrollIntoView({ block: 'start' });
+  }
+  function pickEdge(value) {
+    edge = edge === value ? '' : value;
+    layer.value = '';
+    apply();
+    byId('findings-h').scrollIntoView({ block: 'start' });
+  }
+  function activate(el, fn) {
+    el.addEventListener('click', fn);
+    el.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } });
+  }
+
+  [rule, layer, file].forEach(function (s) { s.addEventListener('change', function () { if (s === layer) edge = ''; apply(); }); });
+  tierBoxes.forEach(function (b) { b.addEventListener('change', apply); });
+  layerBoxes.forEach(function (g) { activate(g, function () { pickLayer(g.getAttribute('data-layer')); }); });
+  edgeGroups.forEach(function (g) { activate(g, function () { pickEdge(g.getAttribute('data-edge')); }); });
+  clear.addEventListener('click', function () {
+    tierBoxes.forEach(function (b) { b.checked = true; });
+    rule.value = ''; layer.value = ''; file.value = ''; edge = '';
+    apply();
+  });
+  apply();
+})();
+</script>
+</body>
+</html>
+"
+`;
