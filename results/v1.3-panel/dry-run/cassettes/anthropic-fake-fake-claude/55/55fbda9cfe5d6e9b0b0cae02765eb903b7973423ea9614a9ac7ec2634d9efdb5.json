@@ -1,0 +1,19 @@
+{
+  "answer": {
+    "inputTokens": 418,
+    "outputTokens": 20,
+    "servedModel": "fake-claude",
+    "text": "{\"choice\":\"A\",\"reason\":\"fake anthropic answer\"}"
+  },
+  "failedAttempts": [],
+  "itemKey": "7251cbd4b3a74ffe06aad7bc",
+  "key": "55fbda9cfe5d6e9b0b0cae02765eb903b7973423ea9614a9ac7ec2634d9efdb5",
+  "model": "fake-claude",
+  "provider": "fake",
+  "request": {
+    "prompt": "## Architectural style\n- Dependency direction: Source-code dependencies point only inward. Nothing in an inner circle knows anything about an outer circle. (Martin, *Clean Architecture* (2017), ch. 22 \"The Clean Architecture\", the Dependency Rule)\n- Domain purity: Entities and use cases do not depend on frameworks, databases or the UI. (Martin 2017, ch. 22; ch. 32 \"Frameworks are details\")\n- Repository / gateway placement: The data-access interface is owned by the inner layer, and the implementation lives in the outer layer (dependency inversion across the boundary). (Martin 2017, ch. 22 (interface adapters); ch. 11 (DIP))\n- Acyclic dependencies: The component dependency graph has no cycles. (Martin 2017, ch. 14 \"Component Coupling\", ADP)\n\n## Code excerpt\nFile: src/domain/entities/Loan.ts\n```ts\n    1 | import { Clock } from '../../application/ports/Clock';\n    2 | import { DomainError } from '../errors/DomainError';\n    3 | import { LoanPeriod } from '../value-objects/LoanPeriod';\n    4 | \n    5 | const DAY_MS = 24 * 60 * 60 * 1000;\n    6 | \n    7 | export class Loan {\n    8 |   private returnedAt: Date | undefined;\n    9 | \n   10 |   private constructor(\n   11 |     readonly id: string,\n   12 |     readonly bookId: string,\n   13 |     readonly memberId: string,\n   14 |     readonly borrowedAt: Date,\n   15 |     readonly dueAt: Date,\n   16 |   ) {}\n```\n\n## Reported finding\nsrc/domain/entities/Loan.ts (domain) imports from src/application/ports/Clock.ts (application) (line 1)\n\n## Question\nWould an architect following this style want this changed?\nA. yes\nB. no\nC. uncertain\n\nReply with JSON only: {\"choice\": \"<letter>\", \"reason\": \"<one sentence>\"}",
+    "system": "You are a software architect reviewing a TypeScript code base against an architectural style. Judge only from the material in the message: the style definition, the code excerpt and the reported finding. You have no tools. Reply with one JSON object and nothing else.",
+    "temperature": 0
+  },
+  "runIndex": 0
+}

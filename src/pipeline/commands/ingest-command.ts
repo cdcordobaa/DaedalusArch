@@ -15,6 +15,8 @@ export interface IngestCommandConfig {
   readonly commitSha?: CommitSha;
   readonly apgStorePath?: string;
   readonly driftThresholds?: DriftThresholds;
+  /** MT-B1 (OFF by default): `IngestionInput.literalThroughLayerlessBarrels`. */
+  readonly literalThroughLayerlessBarrels?: boolean;
 }
 
 export class IngestCommand implements PipelineCommand {
@@ -37,6 +39,7 @@ export class IngestCommand implements PipelineCommand {
       ...(this.config.commitSha !== undefined && { commitSha: this.config.commitSha }),
       ...(this.config.apgStorePath !== undefined && { apgStorePath: this.config.apgStorePath }),
       ...(this.config.driftThresholds !== undefined && { driftThresholds: this.config.driftThresholds }),
+      ...(this.config.literalThroughLayerlessBarrels === true && { literalThroughLayerlessBarrels: true }),
     };
 
     const result = await ingestAPG(input, this.graphRepo, this.snapshotStore);

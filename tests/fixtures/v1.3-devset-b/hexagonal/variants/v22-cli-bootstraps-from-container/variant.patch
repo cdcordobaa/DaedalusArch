@@ -1,0 +1,20 @@
+--- a/src/adapters/inbound/cli/BookingCli.ts
++++ b/src/adapters/inbound/cli/BookingCli.ts
+@@ -1,5 +1,6 @@
+ import { BookRoom } from '../../../application/ports/in/BookRoom';
+ import { BookingView } from '../../../application/ports/in/BookingView';
++import { createContainer } from '../../../config/container';
+ 
+ export function formatCliLine(view: BookingView): string {
+   return `${view.id}\t${view.roomId}\t${view.checkIn.slice(0, 10)}..${view.checkOut.slice(0, 10)}\t${view.status}`;
+@@ -9,6 +10,10 @@
+ export class BookingCli {
+   constructor(private readonly bookRoom: BookRoom) {}
+ 
++  static withDefaults(): BookingCli {
++    return createContainer().cli;
++  }
++
+   async run(argv: readonly string[]): Promise<string> {
+     const [command, roomId, guestId, checkIn, checkOut, guests] = argv;
+     if (command !== 'book' || !roomId || !guestId || !checkIn || !checkOut) {

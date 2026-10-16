@@ -1,0 +1,44 @@
+{
+  "attempts": 1,
+  "cliVersion": "1.3.6",
+  "configListingSha256": "b8cce56d63afd9cebbf745ed20c888d9ab0007207a513029027cc10be9494345",
+  "durationMs": 22223,
+  "effort": null,
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "d68c66d27818a8985e559c413f44be9c1f9c04a809ce77369abdb4acca0710db",
+  "key": "d35cf7d3b9b909813c0e6522fe5802c609b432df533972d25f40ca076f1067b2-r0-0",
+  "model": "gemini-4-argon-high",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.98,
+    "evidence": [
+      "src/claims/infrastructure/InMemoryClaimRepository.ts implements ClaimRepository from the domain layer using an in-memory Map<string, Claim> with byId(id: string) and save(claim: Claim) persistence methods.",
+      "All field types (Coverage, Map<string, Claim>) and method signatures use domain or standard types allowed in the infrastructure layer, and the class contains no domain business rules, invariants, calculations, or decisions."
+    ],
+    "pass": true,
+    "reasoning": "InMemoryClaimRepository in src/claims/infrastructure/InMemoryClaimRepository.ts belongs to the infrastructure layer and fulfills an infrastructure role by providing an in-memory implementation of the domain's ClaimRepository interface (byId and save). Its references to domain types (Claim, ClaimRepository, Coverage) are permitted by the layer model (infrastructure may depend on domain), and it contains no business rules, domain invariants, calculations, or decisions that belong in the domain or application layers. Cross-context import rules are out of scope for this rule.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities, signatures and annotations match the role of its declared layer.\n\n## Rubric\nPass: Every declaration in the file belongs to the role and kind of its declared layer, including its parameter, return and field types, its decorators and base classes, and its statements, and agrees with any ADR prose given. Calls into a layer that the layer model lets this layer depend on are part of that role.\nFail: The file carries something that belongs to a different layer kind. In a domain or application file: a request, response, HTTP context, status code or HTTP error, from a web or transport package or from the delivery layer, in any method or function signature (parameter or return) or thrown, even when the parameter is optional or unused. In a domain file also: any framework or ORM type, decorator or base class (dependency injection, routing, persistence mapping), even when the class logic is pure; or direct I/O, that is a database, ORM, query, HTTP or file client that the file itself creates, imports from a package or obtains from a global accessor, or persistence or I/O done through a class of a layer that the layer model does not let this layer depend on. A call to a class or interface of a layer that this layer may depend on is not misplaced I/O, whatever that layer does behind it. In an infrastructure or presentation file: a business rule, that is a domain invariant, calculation or decision that the domain or application layer should own. Constructor parameters of any file are dependency wiring when their types come from the file's own layer or from a layer it may depend on: an injected repository, gateway, client or service there is not by itself misplaced. A type the project declares itself is not a framework type, whatever its name.\nEvidence required: Name the file and cite the signature, decorator, declaration or statement that carries the misplaced responsibility, its package or origin, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\nStyle: ddd. Allowed dependencies are declared per layer: a layer may depend only on the layers it lists.\n- domain (kind: domain; may depend on: no other layer): src/*/domain/**, src/shared-kernel/**\n- application (kind: application; may depend on: domain): src/*/application/**\n- infrastructure (kind: infrastructure; may depend on: domain, application): src/*/infrastructure/**, src/*/acl/**\n- api (kind: presentation; may depend on: domain, application): src/*/api/**\n- composition (kind: application; may depend on: domain, application, infrastructure, api): src/main.ts\n\n## Unit\nKind: file\nId: src/claims/infrastructure/InMemoryClaimRepository.ts\nLayer: infrastructure\nUnit files:\n- src/claims/infrastructure/InMemoryClaimRepository.ts\n\n## Source\n=====SOURCE-BEGIN src/claims/infrastructure/InMemoryClaimRepository.ts=====\nimport { Claim } from '../domain/claim/Claim';\nimport { ClaimRepository } from '../domain/claim/ClaimRepository';\nimport { Coverage } from '../../policies/domain/policy/Coverage';\n\nexport class InMemoryClaimRepository implements ClaimRepository {\n  private readonly held = new Coverage('u5a', 0, 0);\n  private readonly claims = new Map<string, Claim>();\n\n  async byId(id: string): Promise<Claim | undefined> {\n    return this.claims.get(id);\n  }\n\n  async save(claim: Claim): Promise<void> {\n    this.claims.set(claim.id, claim);\n  }\n}\n\n=====SOURCE-END=====\n\n## Neighbourhood\nsrc/claims/infrastructure/InMemoryClaimRepository.ts (layer infrastructure, kind infrastructure)\n  imports: src/claims/domain/claim/Claim.ts (layer domain, kind domain); src/claims/domain/claim/ClaimRepository.ts (layer domain, kind domain); src/policies/domain/policy/Coverage.ts (layer domain, kind domain)\n  imported by: src/main.ts (layer composition, kind application)\n  types: InMemoryClaimRepository flows to Coverage in src/policies/domain/policy/Coverage.ts (layer domain, kind domain); InMemoryClaimRepository implements ClaimRepository in src/claims/domain/claim/ClaimRepository.ts (layer domain, kind domain)\n\n## Candidate flags\nCandidates proposed by deterministic checks; verify, don't trust. Each line is a tool observation with its location, not a finding.\n(none)\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric. Check each candidate flag against the source: a flag the source does not support must not count against the unit, and a violation the flags miss counts as much as one they name. Judge what each declaration is, not only what it does at run time.\n",
+  "provider": "agy",
+  "recordedAt": "2026-10-16T05:39:25.062Z",
+  "repetition": 0,
+  "requestHash": "d35cf7d3b9b909813c0e6522fe5802c609b432df533972d25f40ca076f1067b2",
+  "resolvedModel": "gemini-4-argon-high",
+  "response": "{\"confidence\":0.98,\"evidence\":[\"src/claims/infrastructure/InMemoryClaimRepository.ts implements ClaimRepository from the domain layer using an in-memory Map<string, Claim> with byId(id: string) and save(claim: Claim) persistence methods.\",\"All field types (Coverage, Map<string, Claim>) and method signatures use domain or standard types allowed in the infrastructure layer, and the class contains no domain business rules, invariants, calculations, or decisions.\"],\"pass\":true,\"reasoning\":\"InMemoryClaimRepository in src/claims/infrastructure/InMemoryClaimRepository.ts belongs to the infrastructure layer and fulfills an infrastructure role by providing an in-memory implementation of the domain's ClaimRepository interface (byId and save). Its references to domain types (Claim, ClaimRepository, Coverage) are permitted by the layer model (infrastructure may depend on domain), and it contains no business rules, domain invariants, calculations, or decisions that belong in the domain or application layers. Cross-context import rules are out of scope for this rule.\",\"violations\":[]}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/claims/infrastructure/InMemoryClaimRepository.ts",
+  "usage": {
+    "inputTokens": 14248,
+    "outputTokens": 1366
+  },
+  "usedOptions": {
+    "model": "gemini-4-argon-high"
+  }
+}

@@ -38,6 +38,44 @@ export interface LoopTask {
   readonly id: string;
   readonly title: string;
   readonly steps: readonly LoopStep[];
+  /** How the acceptance runner starts the task's service (`acceptance.ts`); used only when the plan enables it. */
+  readonly acceptance?: TaskAcceptance;
+}
+
+/** Per-task start block of the acceptance runner (argv arrays; `{{port}}` and `{{dir}}` are substituted). */
+export interface TaskAcceptance {
+  readonly startCommand?: readonly string[];
+  readonly buildCommand?: readonly string[];
+  readonly port?: number;
+  /** Path the readiness wait polls (any HTTP answer counts); default `/`. */
+  readonly healthPath?: string;
+}
+
+/** One acceptance test file run on a snapshot. */
+export interface AcceptanceFileResult {
+  readonly file: string;
+  readonly sha256: string;
+  readonly passed: number;
+  readonly failed: number;
+  readonly skipped: number;
+  /** Cancelled tests, plus 1 when the file crashed, timed out or never ran. */
+  readonly errors: number;
+  readonly timedOut: boolean;
+}
+
+/** The acceptance checks of one snapshot (`Docs/v1.3/acceptance-checks.md`). */
+export interface AcceptanceRecord {
+  readonly schema: 'loop-acceptance/v1';
+  readonly status: 'ran' | 'no-tests' | 'no-start-command' | 'build-failed' | 'service-not-ready' | 'runner-error';
+  readonly passed: number;
+  readonly failed: number;
+  readonly skipped: number;
+  readonly errors: number;
+  readonly durationMs: number;
+  /** sha256 of the sorted `file<TAB>sha256` manifest of the files run. */
+  readonly testFileSha256: string;
+  readonly files: readonly AcceptanceFileResult[];
+  readonly message?: string;
 }
 
 export interface LoopTasksFile {
@@ -134,6 +172,14 @@ export interface StepAgent {
 export interface BlockingFinding {
   readonly ruleId: string;
   readonly ruleName: string;
+  /**
+   * The Cypher template the finding comes from (recovered from its violation type as the labelling does,
+   * `scripts/v1.3/lib/labelling/findings.ts`); part of a finding's identity (`pilot-outcome-memo.md` §3). Absent
+   * when the evaluator does not report it (the stub, records written before the loop replay).
+   */
+  readonly template?: string;
+  /** The report violation's id (a hash of its discriminator), for the labelling. */
+  readonly violationId?: string;
   readonly filePath: string;
   readonly line?: number;
   readonly target?: string;
@@ -154,15 +200,91 @@ export interface StepEvaluation {
   readonly advisoryViolationCount: number;
   /** Blocking violations per rule id. */
   readonly blockingByRule: Readonly<Record<string, number>>;
-  /** The listed blocking findings (each rule capped as `evaluate_project` caps it). */
+  /**
+   * Advisory violations per rule id (rules with at least one). Needed for the pilot memo's advisory slope without
+   * FF-CV05 (`Docs/v1.3/pilot-outcome-memo.md` §4). Absent in records written before the loop replay added it.
+   */
+  readonly advisoryByRule?: Readonly<Record<string, number>>;
+  /**
+   * The listed blocking findings: every one when the evaluator returns the report's violations (the live
+   * evaluator), else each rule capped as `evaluate_project` caps it.
+   */
   readonly blockingFindings: readonly BlockingFinding[];
   readonly durationMs: number;
+  /**
+   * The report's violations (all tiers, uncapped). The loop writes them beside the turn
+   * (`turns/step-NN/report-<turnId>.json`, the input of `scripts/v1.3/check-correct.ts`) and leaves them out of the
+   * step record.
+   */
+  readonly reportViolations?: readonly unknown[];
+  /**
+   * The graph engine this evaluation was recorded on. Absent in the default mode (no `--engine`), so default records
+   * are unchanged; `neo4j` under `--engine both`, `cypher-interp` under `--engine cypher-interp`
+   * (`Docs/v1.3/loop-engine-tee.md`).
+   */
+  readonly engineOfRecord?: 'neo4j' | 'cypher-interp';
+  /** `--engine both` only: the interpreter's evaluation of the same snapshot compared with this one. */
+  readonly parity?: EngineParity;
+}
+
+/** The loop evaluator's graph engine (`--engine`, `Docs/v1.3/loop-engine-tee.md`). */
+export const LOOP_ENGINES = ['neo4j', 'cypher-interp', 'both'] as const;
+export type LoopEngine = (typeof LOOP_ENGINES)[number];
+
+export function parseLoopEngine(value: unknown): LoopEngine | undefined {
+  return typeof value === 'string' && (LOOP_ENGINES as readonly string[]).includes(value) ? (value as LoopEngine) : undefined;
+}
+
+/** Where a parity check landed (`Docs/v1.3/loop-engine-tee.md` §3). */
+export type ParityStatus = 'identical' | 'order' | 'divergent' | 'check-failed';
+
+/** A blocking finding's identity for parity: `(ruleId, template, filePath, target)`. */
+export interface ParityFindingKey {
+  readonly ruleId: string;
+  readonly template: string | null;
+  readonly filePath: string;
+  readonly target: string | null;
+}
+
+/** What differs between the engine of record and the check engine (empty fields left out). */
+export interface ParityDiff {
+  /** Blocking findings only on the engine of record / only on the check engine (at most 20 listed each). */
+  readonly onlyRecord?: readonly ParityFindingKey[];
+  readonly onlyCheck?: readonly ParityFindingKey[];
+  readonly onlyRecordTotal?: number;
+  readonly onlyCheckTotal?: number;
+  /** Rule id → [record, check] where the per-rule counts differ. */
+  readonly blockingByRule?: Readonly<Record<string, readonly [number, number]>>;
+  readonly advisoryByRule?: Readonly<Record<string, readonly [number, number]>>;
+  /** Scalar field → [record, check] where it differs. */
+  readonly fields?: Readonly<Record<string, readonly [unknown, unknown]>>;
+}
+
+export interface EngineParity {
+  readonly checkEngine: 'cypher-interp';
+  readonly status: ParityStatus;
+  /** Present when the status is not `identical`. */
+  readonly diff?: ParityDiff;
+  /** `check-failed` only: the check engine's first error. */
+  readonly checkError?: { readonly code: string; readonly message: string };
+  /** The check engine's own pipeline duration (ms; a timing field, zeroed by the replay's comparisons). */
+  readonly durationMs?: number;
+}
+
+/** `run.json` `parity` under `--engine both`: counts over every evaluated snapshot of the run. */
+export interface RunParityCounts {
+  readonly snapshots: number;
+  readonly identical: number;
+  readonly order: number;
+  readonly divergent: number;
+  readonly checkFailed: number;
 }
 
 /** The firewall run on a snapshot. A failure here is recorded on the step, never retried silently. */
 export interface StepEvaluator {
   readonly id: string;
-  evaluate(projectDir: string): Promise<DomainResult<StepEvaluation>>;
+  /** `runId` names the loop run of the snapshot (the live evaluator finds the run's pinned tsconfig with it). */
+  evaluate(projectDir: string, runId?: string): Promise<DomainResult<StepEvaluation>>;
 }
 
 export interface TypecheckResult {
@@ -193,6 +315,8 @@ export interface SnapshotMeasure {
   readonly evaluation: StepEvaluation | null;
   /** Code and message when the evaluator failed (the step is kept; the outcome is missing). */
   readonly evaluationError?: { readonly code: string; readonly message: string };
+  /** The acceptance checks of the snapshot; absent unless the plan enables them. */
+  readonly acceptance?: AcceptanceRecord;
 }
 
 export interface TurnRecord {
@@ -222,6 +346,8 @@ export interface StepRecord {
   readonly repairOutcome?: RepairOutcome;
   /** The spec the step's snapshots were evaluated against, when the plan sets one per task (`specs.ts`). */
   readonly evaluatorSpec?: StepSpecRef;
+  /** The acceptance checks of the step's final snapshot; absent unless the plan enables them. */
+  readonly acceptance?: AcceptanceRecord;
   /** Commit the next step starts from (the last turn's snapshot). */
   readonly finalCommit: string;
   /** Sum over the turns. */
@@ -274,4 +400,6 @@ export interface RunRecord {
   readonly createdAt: string;
   readonly completedAt?: string;
   readonly dryRun: boolean;
+  /** `--engine both` only, set at completion: parity counts over every step record of the run. */
+  readonly parity?: RunParityCounts;
 }

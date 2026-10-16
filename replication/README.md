@@ -127,7 +127,7 @@ raw file).
 | Study 1 SO4 score + aggregates | `npx tsx scripts/score-golden-cli.ts --case results/v1.3-study1-rerun/so4/case --out <dir>/score.json`, then `npx tsx scripts/v1.3/study1-rerun.ts so4-agg --run <dir> --out <dir>` | none | D | byte-identical |
 | Study 1 reports | `study1-rerun.ts e1` / `so4 --paths-root <dir>` | Neo4j + `../daedalus-e1-outcomes`, `../daedalus-corpus`, `../daedalus-so4` | D | not re-run |
 | labelling, reference: jobs, sample, correctness | `npx tsx scripts/v1.3/labelling-jobs.ts --reference results/v1.3-reference/after-member-facts/evidence --materialise <dir>/variants --out <dir>/jobs.json`, then `sample-findings.ts --jobs <dir>/jobs.json --seed 20261015 --tiers all --out <dir>/sample-all.json`, then `check-correct.ts --jobs <dir>/jobs.json --tiers all --out <dir>/correctness-all` | none | D (`jobs.json` holds absolute paths) | sample and correctness byte-identical |
-| labelling, E1 sample | `sample-findings.ts` on `results/v1.3-labelling/e1/jobs.json`, after rewriting its absolute paths to `results/v1.3-labelling/e1/reports/<file>` and `specs/clean-arch.yaml` | none | D | byte-identical |
+| labelling, E1 sample | `sample-findings.ts` on `results/v1.3-labelling/e1/jobs.json` (its paths have been repo- or workspace-relative since 2026-10-16), after rewriting them to `results/v1.3-labelling/e1/reports/<file>` and `specs/clean-arch.yaml` | none | D | byte-identical |
 | labelling, E1 correctness | `check-correct.ts` on the E1 jobs | `../daedalus-e1-outcomes` | D | not regenerable here |
 | labelling, meaningful labels | `npx tsx scripts/v1.3/label-meaningful.ts ... --provider codex --model gpt-5.6-terra --mode replay --cassette-dir results/v1.3-labelling/cassettes-codex` (live: `--mode record` with Codex CLI 0.162.1 and the reader's own `CODEX_HOME`) | M | M | only `--estimate` run. The one stored answer replays, but a label needs 2 runs. |
 
@@ -166,3 +166,32 @@ raw file).
 | `known-divergences.json` | the expected `KNOWN` lines and their finding ids |
 | `expected/graph-fidelity/` | expected output of the graph-fidelity harness on the fixtures |
 | `smoke-2026-10-15.txt` | the full log of the final smoke run (commit `23e0d9ea`: 160 IDENTICAL, 4 KNOWN, exit 0, 4 min) |
+
+## 6. Part 2: number-level replication (`npm run replicate:v1.3`)
+
+Added after the results that landed on v1.3 after this package (the 54/54 FF-P06 correction, the Cypher interpreter
+and its parity claim, judge v2 CHECK and the filter, wild, MCP v2, construct switches, fieldstate/cheap-fix, model
+panel, pilot readiness, and the design docs). Write-up and full table: [`Docs/v1.3/replication-2.md`](../Docs/v1.3/replication-2.md).
+
+Every number stated in `Docs/DiagnosticRuns/v1.3-*.md` and `Docs/v1.3/*.md` that asserts a fact about a result or the
+repository is registered in `replication/v1.3/groups/*.mjs` with its doc file:line, the value as stated, and how it is
+produced. `replication/v1.3/run.mjs` runs every group whose inputs are committed (no Neo4j, no model, no network;
+API keys and `NEO4J_*` are removed from every child process) and prints a pass/fail table.
+
+```bash
+npm run replicate:v1.3                                   # every offline group (about 1.5 h; the slow ones are ap-hosts seeding, the interpreter regeneration, the smoke run)
+npm run replicate:v1.3 -- --fast                         # skip the groups marked slow
+node replication/v1.3/run.mjs --list                     # groups, number counts, what each needs
+node replication/v1.3/run.mjs --group a-ref-ffp06        # one group (the 54/54 correction)
+node replication/v1.3/run.mjs --number <id>              # the group of one number, and that row
+node replication/v1.3/run.mjs --json rows.json && node replication/v1.3/report.mjs rows.json   # the per-doc tables of replication-2.md
+```
+
+Statuses: `PASS`, `FAIL` (differs from the doc), `KNOWN` (differs, recorded in the group with the reproduced value and
+a one-line cause; it turns into `FAIL` if the reproduced value changes), `ERROR`; numbers that are not run carry
+`needs-LLM`, `needs-Neo4j`, `needs-external` (input outside the repository, e.g. the sealed manifests or
+`../daedalus-e1-outcomes`) or `not-checkable` (no committed output or log behind the number). Exit 0 iff no FAIL and no
+ERROR.
+
+Note: at the v1.3 head `smoke.sh` (§2) no longer exits 0. The ISE measure and cheap-proxy outputs changed after this
+package was built (see `Docs/v1.3/replication-2.md`, §3).

@@ -1,0 +1,48 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9420,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "2f2c8a6f11d6559307554eb950b7f53ea5682a622c1e7f5b12848051c666aa02-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.88,
+    "evidence": [
+      "Subscription.start enforces the business rule 'seats > plan.maxSeats' and throws SubscriptionError, which is domain invariant logic",
+      "Subscription.resize checks that state is active and that seats are within plan limits, which are domain rules",
+      "Subscription.cancel guards the state transition from active to cancelled, which is domain behaviour",
+      "The file uses no decorators, ORM, HTTP, serialization or I/O; it only uses the domain modules SubscriptionError and Plan",
+      "hasId() is a trivial check that the id is set, with no storage or ORM behaviour, so it does not count as persistence logic"
+    ],
+    "pass": true,
+    "reasoning": "Subscription.ts is a domain entity, and everything in it is domain work: it enforces invariants (seat limits per plan, valid state transitions for resize and cancel), uses a factory method (start) and throws domain errors. It contains no persistence, transport, framework or orchestration logic. hasId() checks whether an id is set. That kind of method is sometimes linked to persistence, but it is a trivial check with no ORM or storage behaviour, so it does not put a responsibility from another layer into this file. The file matches the role of the domain layer.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- infrastructure (kind: infrastructure): src/infrastructure/**\n\n## Unit\nKind: file\nId: src/domain/model/Subscription.ts\nLayer: domain\nUnit files:\n- src/domain/model/Subscription.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/model/Subscription.ts=====\nimport { SubscriptionError } from '../errors/SubscriptionError';\nimport { Plan } from './Plan';\n\nexport type SubscriptionState = 'active' | 'cancelled';\n\nexport class Subscription {\n  id: string;\n  customerId: string;\n  planCode: string;\n  seats: number;\n  state: SubscriptionState;\n\n  constructor(id: string, customerId: string, planCode: string, seats: number, state: SubscriptionState = 'active') {\n    this.id = id;\n    this.customerId = customerId;\n    this.planCode = planCode;\n    this.seats = seats;\n    this.state = state;\n  }\n\n  static start(id: string, customerId: string, plan: Plan, seats: number): Subscription {\n    if (seats > plan.maxSeats) throw new SubscriptionError('invalid', `Plan ${plan.code} allows at most ${plan.maxSeats} seats`);\n    return new Subscription(id, customerId, plan.code, seats);\n  }\n\n  resize(plan: Plan, seats: number): void {\n    if (this.state !== 'active') throw new SubscriptionError('state', `Subscription ${this.id} is ${this.state}`);\n    if (seats > plan.maxSeats) throw new SubscriptionError('invalid', `Plan ${plan.code} allows at most ${plan.maxSeats} seats`);\n    this.seats = seats;\n  }\n\n  cancel(): void {\n    if (this.state === 'cancelled') throw new SubscriptionError('state', `Subscription ${this.id} is already cancelled`);\n    this.state = 'cancelled';\n  }\n\n  hasId(): boolean {\n    return this.id !== undefined;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/application/dto/SubscriptionSummary.ts\",\"to\":\"src/domain/model/Subscription.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/use-cases/StartSubscription.ts\",\"to\":\"src/domain/model/Subscription.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/model/Subscription.ts\",\"to\":\"src/domain/errors/SubscriptionError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/model/Subscription.ts\",\"to\":\"src/domain/model/Plan.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/ports/SubscriptionRepository.ts\",\"to\":\"src/domain/model/Subscription.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/persistence/InMemorySubscriptionRepository.ts\",\"to\":\"src/domain/model/Subscription.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/infrastructure/persistence/TypeOrmSubscriptionRepository.ts\",\"to\":\"src/domain/model/Subscription.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Subscription\",\"path\":\"src/domain/model/Subscription.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/dto/SubscriptionSummary.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/use-cases/StartSubscription.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/errors/SubscriptionError.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/model/Plan.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/model/Subscription.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/ports/SubscriptionRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/persistence/InMemorySubscriptionRepository.ts\"},{\"kind\":\"File\",\"layer\":\"infrastructure\",\"path\":\"src/infrastructure/persistence/TypeOrmSubscriptionRepository.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T02:51:48.718Z",
+  "repetition": 0,
+  "requestHash": "2f2c8a6f11d6559307554eb950b7f53ea5682a622c1e7f5b12848051c666aa02",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":585}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.88,\\\"reasoning\\\":\\\"Subscription.ts is a domain entity, and everything in it is domain work: it enforces invariants (seat limits per plan, valid state transitions for resize and cancel), uses a factory method (start) and throws domain errors. It contains no persistence, transport, framework or orchestration logic. hasId() checks whether an id is set. That kind of method is sometimes linked to persistence, but it is a trivial check with no ORM or storage behaviour, so it does not put a responsibility from another layer into this file. The file matches the role of the domain layer.\\\",\\\"evidence\\\":[\\\"Subscription.start enforces the business rule 'seats > plan.maxSeats' and throws SubscriptionError, which is domain invariant logic\\\",\\\"Subscription.resize checks that state is active and that seats are within plan limits, which are domain rules\\\",\\\"Subscription.cancel guards the state transition from active to cancelled, which is domain behaviour\\\",\\\"The file uses no decorators, ORM, HTTP, serialization or I/O; it only uses the domain modules SubscriptionError and Plan\\\",\\\"hasId() is a trivial check that the id is set, with no storage or ORM behaviour, so it does not count as persistence logic\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.88,\"evidence\":[\"Subscription.start enforces the business rule 'seats > plan.maxSeats' and throws SubscriptionError, which is domain invariant logic\",\"Subscription.resize checks that state is active and that seats are within plan limits, which are domain rules\",\"Subscription.cancel guards the state transition from active to cancelled, which is domain behaviour\",\"The file uses no decorators, ORM, HTTP, serialization or I/O; it only uses the domain modules SubscriptionError and Plan\",\"hasId() is a trivial check that the id is set, with no storage or ORM behaviour, so it does not count as persistence logic\"],\"pass\":true,\"reasoning\":\"Subscription.ts is a domain entity, and everything in it is domain work: it enforces invariants (seat limits per plan, valid state transitions for resize and cancel), uses a factory method (start) and throws domain errors. It contains no persistence, transport, framework or orchestration logic. hasId() checks whether an id is set. That kind of method is sometimes linked to persistence, but it is a trivial check with no ORM or storage behaviour, so it does not put a responsibility from another layer into this file. The file matches the role of the domain layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/domain/model/Subscription.ts",
+  "usage": {
+    "inputTokens": 3240,
+    "outputTokens": 585
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

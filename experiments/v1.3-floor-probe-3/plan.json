@@ -1,0 +1,26 @@
+{
+  "description": "v1.3 floor probe 3 (exploratory, not Study 2): 3 rehearsal tasks (PR #201) x arm none x k=4 x claude-sonnet-5-5 x 1 run. Profiles as in fixtures/v1.3-rehearsal-tasks/styles.json; DDD spec ise-step1 as in the loop pilot. Report: Docs/DiagnosticRuns/v1.3-floor-probe-3-2026-10-16.md.",
+  "tasksFile": "experiments/v1.3-floor-probe-3/tasks.json",
+  "adapters": [{ "adapterId": "claude-code-cli", "modelId": "claude-sonnet-5-5" }],
+  "arms": ["none"],
+  "runs": 1,
+  "orderSeed": 20261016,
+  "outRoot": "<local>",
+  "binary": "<local>",
+  "harnessRoot": "<local>",
+  "allowBash": true,
+  "timeoutMs": 1200000,
+  "taskProfiles": {
+    "repair-cafe": { "style": "hexagonal", "specMode": "static", "evaluatorSpec": "presets/hexagonal.yaml" },
+    "school-bus": { "style": "clean", "specMode": "static", "evaluatorSpec": "specs/clean-arch.yaml" },
+    "vineyard-harvest": {
+      "style": "ddd",
+      "specMode": "ise-step1",
+      "contexts": [
+        { "root": "src/picking/", "part": "picking" },
+        { "root": "src/cellar/", "part": "the cellar" }
+      ]
+    }
+  },
+  "callBudget": { "runs": 3, "stepTurns": 12, "maxRepairTurns": 0, "maxCalls": 12 }
+}

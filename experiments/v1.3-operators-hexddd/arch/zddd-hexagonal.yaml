@@ -1,0 +1,32 @@
+architecture:
+  style: hexagonal
+  layers:
+    - name: config
+      kind: application
+      directories: [src/main.ts, src/app.module.ts, src/config.ts, "src/**/*.module.ts"]
+      roles: [composition-root, module]
+    - name: application
+      kind: application
+      directories: ["src/**/domain/interactors/**"]
+      roles: [use-case]
+    - name: domain
+      kind: domain
+      directories: ["src/**/domain/**", "src/__lib__/**"]
+      roles: [entity, value-object, port]
+    - name: adapters-inbound
+      kind: presentation
+      directories: ["src/**/controllers/**"]
+      roles: [controller]
+    - name: adapters-outbound
+      kind: infrastructure
+      directories: ["src/**/dal/**"]
+      roles: [repository]
+  allowed_dependencies:
+    - from: application
+      to: [domain]
+    - from: adapters-inbound
+      to: [application, domain]
+    - from: adapters-outbound
+      to: [application, domain]
+    - from: config
+      to: [domain, application, adapters-inbound, adapters-outbound]
