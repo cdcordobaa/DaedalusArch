@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "spec": "spec.yaml",
+  "project": "Library loans: books, members, loans, fines.",
+  "canonicalSource": "Martin, R. C. (2017). Clean Architecture: A Craftsman's Guide to Software Structure and Design. Prentice Hall. Ch. 22 (The Clean Architecture: the Dependency Rule), ch. 11 (DIP), ch. 14 (ADP), ch. 26 (The Main Component).",
+  "styleDefinition": [
+    "Source-code dependencies point inward only: infrastructure -> application -> domain (the Dependency Rule).",
+    "The domain (entities, value objects, domain services, repository interfaces) depends on nothing outside itself and on no framework.",
+    "Use cases depend on abstractions (repository interfaces in the domain, ports such as Clock in the application), never on infrastructure classes.",
+    "Infrastructure implements the inner interfaces (repositories, gateways); controllers call use cases and exchange DTOs, not entities.",
+    "Main (the composition root) is the only module that knows every concrete class; it lives in the outermost circle.",
+    "No dependency cycles between components (ADP)."
+  ],
+  "authored": "2026-10-16",
+  "writtenBeforeToolRun": true,
+  "scopeRules": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-S04",
+      "ruleName": "no-domain-outward-dep",
+      "severity": "major",
+      "blockingCandidate": false
+    },
+    {
+      "ruleId": "FF-P01",
+      "ruleName": "domain-purity",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-P02",
+      "ruleName": "dependency-inversion",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-P03",
+      "ruleName": "repository-pattern",
+      "severity": "critical",
+      "blockingCandidate": true
+    },
+    {
+      "ruleId": "FF-P04",
+      "ruleName": "use-case-isolation",
+      "severity": "major",
+      "blockingCandidate": false
+    },
+    {
+      "ruleId": "FF-P05",
+      "ruleName": "controller-no-entity",
+      "severity": "major",
+      "blockingCandidate": false
+    },
+    {
+      "ruleId": "FF-P06",
+      "ruleName": "domain-state-purity",
+      "severity": "critical",
+      "blockingCandidate": true
+    }
+  ],
+  "notApplicable": [
+    {
+      "ruleId": "FF-S03",
+      "reason": "no-layer-skip applies to style layered only (template applicability)"
+    }
+  ],
+  "noViolatingVariant": [],
+  "outOfScope": "Coupling metrics (FF-C*), SOLID proxies (FF-SO*), naming and convention rules (FF-CV*) and the neuronal functions (FF-N*) are not compared: they are threshold proxies or conventions (FR-V6 makes them advisory), and they say nothing about whether a planted architectural violation is caught. The runner lists their rows separately as unscored.",
+  "variants": [
+    "clean",
+    "v21-application-barrel-reexports-composition-root",
+    "v22-use-case-formats-due-date-with-infrastructure-helper",
+    "v23-domain-error-builds-http-response",
+    "v24-book-factory-takes-id-generator-port",
+    "v25-domain-barrel-reexports-in-memory-repository",
+    "v26-loan-repository-returns-loan-dto",
+    "v27-loan-period-reads-policy-limit-cycle",
+    "v28-loan-dto-types-return-result-cycle",
+    "v29-http-barrel-error-mapper-cycle",
+    "v30-domain-error-extends-nestjs-http-exception",
+    "v31-loan-entity-typeorm-namespace-column",
+    "v32-loan-policy-nestjs-injectable",
+    "v33-typeorm-book-repository-without-port",
+    "v34-member-repository-implements-local-store",
+    "v35-member-standing-injects-in-memory-loans",
+    "v36-loan-renewal-injects-sequential-ids",
+    "n21-use-case-imports-port-under-infrastructure-folder",
+    "n22-member-counts-loans-one-way",
+    "n23-domain-membership-applications-folder",
+    "n24-domain-express-grace-helper",
+    "n25-caching-book-repository-aliased-port",
+    "n26-member-standing-holds-loan-repository-port",
+    "n61-register-member-feature",
+    "n62-find-book-by-isbn-feature"
+  ]
+}

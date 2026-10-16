@@ -1,0 +1,31 @@
+--- a/src/domain/repositories/LoanRepository.ts
++++ b/src/domain/repositories/LoanRepository.ts
+@@ -1,8 +1,10 @@
++import type { LoanDto } from '../../application/dto/LoanDto';
+ import { Loan } from '../entities/Loan';
+ 
+ export interface LoanRepository {
+   findById(id: string): Promise<Loan | undefined>;
+   findActiveByMember(memberId: string): Promise<Loan[]>;
+   findActive(): Promise<Loan[]>;
++  findOverdueSummaries(now: Date): Promise<LoanDto[]>;
+   save(loan: Loan): Promise<void>;
+ }
+--- a/src/infrastructure/persistence/InMemoryLoanRepository.ts
++++ b/src/infrastructure/persistence/InMemoryLoanRepository.ts
+@@ -1,3 +1,4 @@
++import { LoanDto, toLoanDto } from '../../application/dto/LoanDto';
+ import { Loan } from '../../domain/entities/Loan';
+ import { LoanRepository } from '../../domain/repositories/LoanRepository';
+ 
+@@ -16,6 +17,10 @@
+     return [...this.rows.values()].filter((loan) => loan.isActive);
+   }
+ 
++  async findOverdueSummaries(now: Date): Promise<LoanDto[]> {
++    return (await this.findActive()).filter((loan) => loan.isOverdue(now)).map((loan) => toLoanDto(loan, now));
++  }
++
+   async save(loan: Loan): Promise<void> {
+     this.rows.set(loan.id, loan);
+   }

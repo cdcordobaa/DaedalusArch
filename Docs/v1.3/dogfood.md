@@ -290,6 +290,7 @@ between the layers named.
 | D12 | I/O outside the adapters | 13 io rows (see 5.4); `neo4j-lock.ts` also reads env (3 config-surface flags) | Move `neo4j-lock.ts` to `neo4j-ingestion`; put baseline I/O behind a store port as snapshots are; let the CLI write the HTML; move the provenance experiment I/O to `scripts/` |
 | D13 | research code in product `src/` | reachability: `apg-enrich/ontology/**` (16 files), `fitness-compiler/cheap2-in-memory.ts`, `ise/outliers.ts`, `llm-critic/filter-explain.ts`, `spec-parser/preset-loader.ts` are reached by no product entry point (only by `scripts/` and tests) | Move them under `scripts/` or a separate research package, or wire them in |
 | D14 | hidden coupling on the node id format | co-change: `apg-extractor/id-generator.ts` and `neo4j-ingestion/graph-ingester.ts` changed together in 3 commits (confidence 0.75) with no import between them | Put the id format in `shared` and give it a contract test |
+| D15 | file cycle in the Cypher interpreter (added at the second re-run, §11) | `cypher-interp/parse.ts:11` ⇄ `typecheck.ts:15` (also through `functions.ts`) | Move `CypherSyntaxError` / `CypherUnsupportedError` to an `errors.ts` leaf |
 
 ## 7. Tool false positives and traps (issues, with file:line)
 
@@ -405,6 +406,19 @@ The same merge independently confirmed two items of this study:
   raised by another run.
 - Part of L3: the CLI bin now points to `src/cli/bin.ts`, which calls `main()`. The `dev` script still runs
   `src/cli/index.ts`.
+
+**Second re-run (merging `v1.3` at 80230fce).** `npm run self-check` failed again, this time with 8 new rows:
+
+| New rows | Edge | Triage |
+|---|---|---|
+| 2 | `report/architect/model.ts:13`, `:15` → `scoring-engine/rule-tiers.ts`, `tiered-scoring.ts` (dependency-direction) | **debt**: the report → scoring back edge again (D5); the new architect HTML report imports scoring internals |
+| 2 | `report/architect/model.ts:11`, `:12` → `construct-switches/pipeline.ts`, `layer-view.ts` | **debt**: the report reaches into the switch overlay for layer matching and the tier resolver (the D6 family: layer logic has no neutral home) |
+| 2 | `cypher-interp/parse.ts:11` ⇄ `typecheck.ts:15` (one cycle also through `functions.ts`) | **debt, new item D15**: the error classes live in `parse.ts`, so the type checker that `parse.ts` calls imports it back. Fix: move `CypherSyntaxError` / `CypherUnsupportedError` to an `errors.ts` leaf |
+| 1 | `cli/init-command.ts:9` → `ise/propose.ts` | spec too strict: the new `init` command wires ISE. Edge added |
+| 1 | `ise/propose.ts:18` → `fitness-compiler/index.ts` | spec too strict: rule proposals read the template catalogue, through the module's index. Edge added |
+
+The known list is now 37 rows. Twice in one night, the gate turned freshly merged couplings into a short, reviewable
+list. Most of them were legitimate new wiring, and every one of them was an edge no reviewer had been asked about.
 
 The tables in §0-§10 describe the run at b08ec387 and are not re-computed.
 

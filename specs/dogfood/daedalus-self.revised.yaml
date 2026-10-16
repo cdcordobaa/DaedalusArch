@@ -168,7 +168,8 @@ architecture:
     # Inbound adapters
     - from: cli
       # triage: + apg-extractor (the --graph-mode option values)
-      to: [shared, pipeline, spec-parser, fitness-compiler, scoring-engine, baseline, report, neo4j-ingestion, cypher-interp, llm-critic, apg-extractor]
+      # triage (second re-run, 80230fce, dogfood.md §11): + ise (the `init` command proposes a spec)
+      to: [shared, pipeline, spec-parser, fitness-compiler, scoring-engine, baseline, report, neo4j-ingestion, cypher-interp, llm-critic, apg-extractor, ise]
     - from: mcp-server
       # triage: + apg-extractor, apg-enrich (MCP v2 fast hints), report (fix text reuse), neo4j-ingestion (the server is
       # its own composition root: it builds the Neo4j repository for evaluate_project, as the CLI does)
@@ -205,7 +206,8 @@ architecture:
     - from: apg-enrich
       to: [shared, apg-extractor, llm-critic]
     - from: ise
-      to: [shared, apg-extractor, spec-parser]
+      # triage (second re-run, 80230fce): + fitness-compiler (rule proposals read the template catalogue, via its index)
+      to: [shared, apg-extractor, spec-parser, fitness-compiler]
     # Outbound adapters implement kernel ports and depend on nothing else
     - from: neo4j-ingestion
       to: [shared]

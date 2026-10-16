@@ -1,0 +1,49 @@
+--- /dev/null
++++ b/src/application/ports/infrastructure/OverdueNotifier.ts
+@@ -0,0 +1,3 @@
++export interface OverdueNotifier {
++  remind(email: string, loanIds: readonly string[]): Promise<void>;
++}
+--- /dev/null
++++ b/src/application/use-cases/RemindOverdueMembersUseCase.ts
+@@ -0,0 +1,28 @@
++import { LoanRepository } from '../../domain/repositories/LoanRepository';
++import { MemberRepository } from '../../domain/repositories/MemberRepository';
++import { Clock } from '../ports/Clock';
++import { OverdueNotifier } from '../ports/infrastructure/OverdueNotifier';
++
++export class RemindOverdueMembersUseCase {
++  constructor(
++    private readonly loans: LoanRepository,
++    private readonly members: MemberRepository,
++    private readonly notifier: OverdueNotifier,
++    private readonly clock: Clock,
++  ) {}
++
++  async execute(): Promise<number> {
++    const now = this.clock.now();
++    const overdue = (await this.loans.findActive()).filter((loan) => loan.isOverdue(now));
++    const byMember = new Map<string, string[]>();
++    for (const loan of overdue) byMember.set(loan.memberId, [...(byMember.get(loan.memberId) ?? []), loan.id]);
++    let sent = 0;
++    for (const [memberId, loanIds] of byMember) {
++      const member = await this.members.findById(memberId);
++      if (member === undefined) continue;
++      await this.notifier.remind(member.email, loanIds);
++      sent += 1;
++    }
++    return sent;
++  }
++}
+--- /dev/null
++++ b/src/infrastructure/system/ConsoleOverdueNotifier.ts
+@@ -0,0 +1,9 @@
++import { OverdueNotifier } from '../../application/ports/infrastructure/OverdueNotifier';
++
++export class ConsoleOverdueNotifier implements OverdueNotifier {
++  readonly sent: string[] = [];
++
++  async remind(email: string, loanIds: readonly string[]): Promise<void> {
++    this.sent.push(`${email}: ${loanIds.join(', ')}`);
++  }
++}

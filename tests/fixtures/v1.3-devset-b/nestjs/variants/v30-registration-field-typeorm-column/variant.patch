@@ -1,0 +1,11 @@
+--- a/src/domain/registration.ts
++++ b/src/domain/registration.ts
+@@ -1,6 +1,8 @@
++import { Column } from 'typeorm';
+ import { DomainError } from './domain-error';
+ 
+ export class Registration {
++  @Column({ nullable: true, type: 'timestamp' })
+   private cancelledAt: Date | undefined;
+ 
+   constructor(
