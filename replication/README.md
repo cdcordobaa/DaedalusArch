@@ -49,9 +49,12 @@ never written. It unsets every API key and the `NEO4J_*` variables first. It nee
 and takes about 4–5 minutes. Each file it checks is reported as one of:
 
 - `IDENTICAL`: byte-identical to the committed file (sha256 prefix shown).
-- `KNOWN`: a divergence listed in [`known-divergences.json`](known-divergences.json). Each one is explained in the
-  audit doc and is checked in a narrower form, so it is never just waved through (see below).
+- `KNOWN`: a divergence listed in [`known-divergences.json`](known-divergences.json). Each entry records the sha256
+  of the regenerated file, and the file is `KNOWN` only when it has that hash; any other content is a `DIFF`. Each one
+  is explained in the audit doc and is checked in a narrower form, so it is never just waved through (see below).
 - `DIFF` / `MISSING` / `EXTRA`: unexpected; the script exits 1.
+- `SKIPPED`: a step that could not run (the `apg2@72fa9203` replay needs the git history; a tarball or shallow clone
+  without that commit skips it). The summary line counts the skipped steps.
 
 | Step (`--only`) | What it regenerates | Compared against | Result on 2026-10-15 |
 |---|---|---|---|
