@@ -104,7 +104,8 @@ ground truth): style, rule counts by kind and level, exceptions, spec validity.
 | Commit | Content |
 |---|---|
 | `cdb2e8b8` | The miner, the emitter, their unit tests and §1 of this document. No evaluation had run. |
-| next commit | `analyseSnapshot` / `proposeFromAnalysis` split out of `proposeRules` (no behaviour change), the CLI command, the MCP tool, the evaluation scripts, the results and §2–§7. |
+| `+1` | `analyseSnapshot` / `proposeFromAnalysis` split out of `proposeRules` (no behaviour change), the CLI command, the MCP tool, the evaluation scripts, the offline and external results and §2–§7. |
+| `+2` | The live Neo4j downstream results and §4. |
 
 `src/rule-mining/miner.ts`, `emit.ts` and `types.ts` were not changed after the first evaluation run; no threshold was
 tuned. The evaluator was changed once after its first run, only to list every exception and to restrict the
@@ -251,7 +252,34 @@ All 355 emitted specs parse, validate against their project (`--rules v1.3`) and
 
 ## 4. Live check: the mined spec on the real engine
 
-DOWNSTREAM_PLACEHOLDER
+`scripts/v1.3/rule-mining-downstream.ts` mines each of the 71 reference variants on its own (brownfield), then runs
+`firewall evaluate --symbolic-only` (Neo4j 5.26.24 + APOC, v1.3 scoring) on the variant under the spec mined from it,
+and under the true spec for comparison (142 evaluations per target set; the P1–P5 probes were run too). "Rule-exact"
+is the reference comparison of `validate-reference` (`compareVariant`): the planted rule's expected finding is
+reported.
+
+| Target | Evaluation errors | Planted rule-exact, true spec | Planted rule-exact, mined spec | Expected findings, true / mined | Clean + near-miss with a blocking finding, true / mined |
+|---|---|---|---|---|---|
+| clean-architecture | 0 | 9/10 | 5/10 | 15 / 7 of 16 | 0 / 0 of 4 |
+| layered | 0 | 9/9 | 7/9 | 11 / 9 of 11 | 0 / 0 of 4 |
+| nestjs | 0 | 9/10 | 4/10 | 12 / 5 of 13 | 0 / 0 of 4 |
+| hexagonal | 0 | 11/11 | 7/11 | 16 / 9 of 16 | 0 / 0 of 4 |
+| ddd | 0 | 12/12 | 1/12 | 12 / 1 of 12 | 0 / 0 of 3 |
+| **total** | **0** | **50/52** | **24/52** | 66 / 31 of 68 | 0 / 0 of 19 |
+
+P1–P5 give exactly the same figures (`downstream.md`).
+
+- **Every mined spec runs on the real engine** through the existing templates: 0 evaluation errors in 142 runs.
+- **No false alarm at the verdict level:** none of the 19 clean or near-miss variants has a blocking finding under
+  the spec mined from it. The two rare-edge false alarms of §3.1 do reach the engine (hexagonal and ddd clean each
+  report one FF-S03 `layer-skip-graph` row), but FF-S03 is advisory outside the layered style.
+- **On dependency plants (FF-S01–S04) the mined spec is nearly as good as the hand-written one: 21/23 against
+  23/23.** The two misses: nestjs v02 (surfaced by the miner as a rare edge, but a total layer order cannot forbid
+  it, §1.3) and ddd v10 (no rule, §3.2).
+- **Everything else is the true spec's advantage**, as expected from §3.2: purity, ports, controllers and the DDD
+  tactical rules are not mined, so their functions are switched off in the mined spec. FF-P06 plants are reported
+  only as the import half (FF-S01) of the planted field.
+
 
 ## 5. Other projects
 
@@ -339,3 +367,10 @@ read-only, needs no Neo4j, and is **not** in `SPEC_TOOL_NAMES`, so the experimen
    lost file patterns (S-nestjs, the two misclassified external projects) put the rules on the wrong layers.
 9. **Reference projects are small** (27–31 files) and were written to have clean dependency structure; the external
    projects show the method on real code but give no accuracy figure. No E1 run.
+
+## 8. Test status
+
+`jest --maxWorkers=2 tests/unit`: 4764 passed, 6 failed in 5 suites (`mutation/expected`, `llm-critic/replay-no-binary`,
+`generators/skeleton`, `u5b/guards`, `u5b/score-golden-acceptance`). The same 6 fail on a clean `origin/v1.3`
+checkout in this container (shallow clone, root user, a pre-existing script outside the static-call rule), so none is
+caused by this branch. The new suites (`tests/unit/rule-mining/`, `propose_rules` in `mcp-server/server.test.ts`) pass.
