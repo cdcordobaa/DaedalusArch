@@ -8,6 +8,8 @@
 #   bash scripts/v1.3/judge-v22-check2-local.sh --yes      # do not ask before calling
 #
 # Options passed through: --budget <n> (hard cap on the call ledger, default 1000).
+# --set check3 runs the same steps on CHECK-3 (Docs/v1.3/judge-check3-plan.md): its own manifest, split, prompts,
+# ledger (results/v1.3-judge-check3/) and cassettes (check3-*), and the static self-check before any call.
 # Re-running resumes: entries already in the cassettes are answered from them and never called again.
 # Optional reproducibility check (needs Neo4j as for `firewall evaluate`): CHECK2_REHARVEST=1 re-seeds, re-plans and
 # re-harvests into a scratch dir and compares with the committed manifest, split and prompts before any call.
@@ -16,11 +18,13 @@ set -euo pipefail
 DRY=0
 YES=0
 BUDGET=1000
+SET=check2
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --dry-run) DRY=1 ;;
     --yes) YES=1 ;;
     --budget) BUDGET="$2"; shift ;;
+    --set) SET="$2"; shift ;;
     *) echo "unknown option $1" >&2; exit 2 ;;
   esac
   shift
@@ -35,16 +39,25 @@ ENVARGS=()
 for v in "${KEEP[@]}"; do
   if [[ -n "${!v:-}" ]]; then ENVARGS+=("$v=${!v}"); fi
 done
-run() { env -i "${ENVARGS[@]}" npx tsx scripts/v1.3/judge-v22-check2.ts "$@"; }
+run() { env -i "${ENVARGS[@]}" npx tsx scripts/v1.3/judge-v22-check2.ts "$@" --set "$SET"; }
+case "$SET" in
+  check2) RES=results/v1.3-judge-v22 ;;
+  check3) RES=results/v1.3-judge-check3 ;;
+  *) echo "--set must be check2 or check3" >&2; exit 2 ;;
+esac
 
-echo "== 1. Frozen inputs"
-sha256sum results/v1.3-judge-v22/check2-seed-manifest.json results/v1.3-judge-v22/check2-split.json \
-  results/v1.3-judge-v22/prompts/check2-v1.json results/v1.3-judge-v22/prompts/check2-v2.2.json
-env -i "${ENVARGS[@]}" npx jest --maxWorkers=2 tests/unit/llm-critic/judge-v22.test.ts tests/unit/llm-critic/judge-v2.test.ts tests/unit/scripts/v1.3/judge-v22-check2.test.ts >/dev/null 2>&1 \
+echo "== 1. Frozen inputs (${SET})"
+sha256sum "$RES/${SET}-seed-manifest.json" "$RES/${SET}-split.json" \
+  "$RES/prompts/${SET}-v1.json" "$RES/prompts/${SET}-v2.2.json"
+if [[ "$SET" == "check3" ]]; then
+  env -i "${ENVARGS[@]}" npx tsx scripts/v1.3/judge-check3-selfcheck.ts --set check3 \
+    || { echo "CHECK-3 static self-check failed: a clean base carries a seed pattern; stop" >&2; exit 1; }
+fi
+env -i "${ENVARGS[@]}" npx jest --maxWorkers=2 tests/unit/llm-critic/judge-v22.test.ts tests/unit/llm-critic/judge-v2.test.ts tests/unit/scripts/v1.3/judge-v22-check2.test.ts tests/unit/scripts/v1.3/judge-check3-selfcheck.test.ts >/dev/null 2>&1 \
   || { echo "unit tests failed: the judge texts or the decision rule moved; stop" >&2; exit 1; }
 echo "judge texts and decision rule: unit tests pass"
 
-if [[ "${CHECK2_REHARVEST:-0}" == "1" ]]; then
+if [[ "${CHECK2_REHARVEST:-0}" == "1" || "${CHECK3_REHARVEST:-0}" == "1" ]]; then
   WORK="$(mktemp -d)"
   echo "== 1b. Re-seed, re-plan and re-harvest into ${WORK} (Neo4j, no model)"
   run seed --out "$WORK" --check

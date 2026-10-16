@@ -60,6 +60,8 @@ import { createJudgeProvider } from '../../src/llm-critic/provider-factory.js';
 import { disposeJudgeProvider } from '../../src/llm-critic/judge-stage.js';
 import { JUDGE_V22_PERSONA, JUDGE_V22_REVISION, computeJudgeV22Sha256 } from '../../src/llm-critic/judge-v22.js';
 import { FROZEN_SHA256 } from '../../src/llm-critic/frozen.js';
+import { injectedFields, thisAccesses } from '../lib/mutation/antipatterns/common.js';
+import { openImportGraphProject } from '../lib/mutation/import-graph.js';
 import { applyOne, copyDir, eligibleSites, typecheck } from './judge-catch-seed.js';
 import type { SeedBase } from './judge-catch-seed.js';
 import { unitsHolding } from './judge-catch-run.js';
@@ -80,6 +82,8 @@ export type Check2Version = (typeof CHECK2_VERSIONS)[number];
 export interface Check2Base {
   readonly baseId: string;
   readonly style: string;
+  /** Fixture root holding the base; the set's root when absent. */
+  readonly root?: string;
 }
 
 export const CHECK2_BASES: readonly Check2Base[] = [
@@ -94,6 +98,41 @@ export const CHECK2_BASES: readonly Check2Base[] = [
   { baseId: 'hexagonal-parking', style: 'hexagonal' },
   { baseId: 'ddd-insurance', style: 'ddd' },
 ];
+
+/**
+ * CHECK-3 (`Docs/v1.3/judge-check3-plan.md`): CHECK-2 with the six layered bases rebuilt so that the clean base and
+ * the twin carry no repository bypass. In CHECK-2 every layered base had one business service holding the
+ * persistence layer's `PrismaService` (the only shape on which AP-REPO-BYPASS places a site), so every clean FF-N01
+ * business unit already bypassed the gateways (`Docs/DiagnosticRuns/v1.3-judge-v22-check2-2026-10-16.md` §0). In
+ * CHECK-3 that service goes through a new persistence gateway; the CHECK-2 version of the service (and of `main.ts`,
+ * which wires it) is kept in `<base>/seed-overlay/` and is laid over the base ONLY to build the AP-REPO-BYPASS seed.
+ * The AP-REPO-BYPASSn twin is applied to the clean base, on the same class and method, to the gateway field. The four
+ * other bases are CHECK-2's own files (same root), and the salt is CHECK-2's, so every draw whose eligible sites did
+ * not move is the CHECK-2 site.
+ */
+export const CHECK3_ROOT = 'tests/fixtures/v1.3-check3';
+export const RESULTS_CHECK3 = 'results/v1.3-judge-check3';
+export const CHECK3_BASES: readonly Check2Base[] = CHECK2_BASES.map((b) => ({ ...b, root: b.style === 'layered' ? CHECK3_ROOT : CHECK2_ROOT }));
+export const SEED_OVERLAY = 'seed-overlay';
+
+export interface CheckSet {
+  readonly set: 'CHECK-2' | 'CHECK-3';
+  /** Prefix of item ids, file names and cassette labels. */
+  readonly key: 'check2' | 'check3';
+  readonly root: string;
+  readonly results: string;
+  readonly salt: string;
+  readonly planDoc: string;
+  readonly bases: readonly Check2Base[];
+}
+
+export const CHECK_SETS: Readonly<Record<'check2' | 'check3', CheckSet>> = {
+  check2: { set: 'CHECK-2', key: 'check2', root: CHECK2_ROOT, results: RESULTS22, salt: CHECK2_SALT, planDoc: 'Docs/v1.3/judge-v22-plan.md §5', bases: CHECK2_BASES },
+  check3: { set: 'CHECK-3', key: 'check3', root: CHECK3_ROOT, results: RESULTS_CHECK3, salt: CHECK2_SALT, planDoc: 'Docs/v1.3/judge-check3-plan.md §4', bases: CHECK3_BASES },
+};
+
+/** The set every phase works on (`--set check2|check3`, default check2). */
+let active: CheckSet = CHECK_SETS.check2;
 
 const MO_DF01 = CATALOGUE_OPERATORS.find((o) => o.id === 'MO-DF01');
 const MO_DF01N = CATALOGUE_OPERATORS.find((o) => o.id === 'MO-DF01n');
@@ -134,6 +173,8 @@ export interface Check2Row {
   readonly addedComments: readonly string[];
   /** Touched files whose added lines were put into the file's own indentation and quote style (`normaliseAdded`). */
   readonly styleNormalised: readonly string[];
+  /** CHECK-3 AP-REPO-BYPASS seeds only: the `seed-overlay` files laid over the base before the operator ran. */
+  readonly overlayFiles?: readonly string[];
   readonly editSha256: string;
   readonly copyDir: string;
 }
@@ -184,7 +225,7 @@ export function seedOf(key: string): number {
   return createHash('sha256').update(key).digest().readUInt32BE(0);
 }
 
-const baseDir = (b: Check2Base): string => path.join(CHECK2_ROOT, b.baseId);
+const baseDir = (b: Check2Base): string => path.join(b.root ?? active.root, b.baseId);
 const evalSpecOf = (b: Check2Base): string => path.join(baseDir(b), 'spec.yaml');
 const seedSpecOf = (b: Check2Base): string => {
   const own = path.join(baseDir(b), 'seed-spec.yaml');
@@ -193,6 +234,36 @@ const seedSpecOf = (b: Check2Base): string => {
 
 function seedBase(b: Check2Base): SeedBase {
   return { baseId: b.baseId, kind: 'fixture', style: b.style, dir: path.resolve(REPO, baseDir(b), 'project'), specPath: path.resolve(REPO, seedSpecOf(b)) };
+}
+
+/** Project-relative files of a base's seeding-only overlay (CHECK-3 layered bases), or none. */
+export function overlayFilesOf(b: Check2Base): string[] {
+  const dir = path.resolve(REPO, baseDir(b), SEED_OVERLAY);
+  return fs.existsSync(dir) ? filesUnder(dir).map((f) => path.relative(dir, f).split(path.sep).join('/')) : [];
+}
+
+/** The base with its overlay laid over it, materialised under `<work>/overlay/<baseId>` (AP-REPO-BYPASS seeds only). */
+function overlayBase(b: Check2Base, sb: SeedBase, work: string): SeedBase {
+  const dir = path.join(work, 'overlay', b.baseId);
+  copyDir(sb.dir, dir);
+  for (const f of overlayFilesOf(b)) fs.copyFileSync(path.resolve(REPO, baseDir(b), SEED_OVERLAY, f), path.join(dir, f));
+  return { ...sb, dir };
+}
+
+/**
+ * The AP-REPO-BYPASSn site on the clean base for an AP-REPO-BYPASS seed drawn on the overlay: same file, class and
+ * method, on the one constructor-injected field of the clean class that the method reads (the persistence gateway).
+ */
+export function cleanTwinSite(dir: string, seedSite: MutationSite): MutationSite | undefined {
+  const handle = openImportGraphProject(dir, 'tsconfig.json');
+  const cls = handle.project.getSourceFile(path.join(dir, seedSite.filePath))?.getClass(seedSite.detail.class ?? '');
+  const m = cls?.getMethod(seedSite.detail.method ?? '');
+  if (cls === undefined || m === undefined) return undefined;
+  const fields = injectedFields(cls).filter((f) => thisAccesses(m, f.getName()).length > 0);
+  const [only] = fields;
+  if (only === undefined || fields.length !== 1) return undefined;
+  const field = only.getName();
+  return { filePath: seedSite.filePath, line: m.getStartLineNumber(), kind: 'repo-bypass', detail: { class: seedSite.detail.class ?? '', method: m.getName(), field } };
 }
 
 /** Holder class of a site (the class the edit lands in). */
@@ -342,17 +413,21 @@ async function seed(argv: readonly string[]): Promise<number> {
   const rows: Check2Row[] = [];
   const table: { baseId: string; family: string; operatorId: string; eligible: number; candidates: number; rejected: Record<string, number> }[] = [];
   const bases: { baseId: string; style: string; specPath: string; seedSpecPath: string; treeSha256: string; specSha256: string }[] = [];
-  for (const b of CHECK2_BASES) {
+  for (const b of active.bases) {
     const sb = seedBase(b);
+    const overlay = overlayFilesOf(b);
+    const ob = overlay.length > 0 ? overlayBase(b, sb, out) : undefined;
     bases.push({
       baseId: b.baseId, style: b.style, specPath: evalSpecOf(b), seedSpecPath: seedSpecOf(b), treeSha256: treeSha256(sb.dir),
       specSha256: sha256(fs.readFileSync(path.resolve(REPO, evalSpecOf(b)))),
+      ...(ob === undefined ? {} : { overlayFiles: overlay, overlayTreeSha256: treeSha256(path.resolve(REPO, baseDir(b), SEED_OVERLAY)) }),
     });
     copyDir(sb.dir, path.join(out, 'bases', b.baseId));
     for (const fam of FAMILIES) {
       let chosen: { pair: Family['pairs'][number]; sites: MutationSite[] } | undefined;
       for (const pair of fam.pairs) {
-        const r = await eligibleSites(REPO, sb, pair.positive);
+        // CHECK-3: the bypass seed is drawn on the overlay; the clean base has no injected ORM field in its business layer.
+        const r = await eligibleSites(REPO, ob !== undefined && pair.positive === AP_REPO_BYPASS ? ob : sb, pair.positive);
         table.push({ baseId: b.baseId, family: fam.family, operatorId: pair.positive.id, eligible: r.eligible.length, candidates: r.candidates, rejected: r.rejected });
         if (chosen === undefined && r.eligible.length > 0) chosen = { pair, sites: r.eligible };
       }
@@ -361,13 +436,21 @@ async function seed(argv: readonly string[]): Promise<number> {
         continue;
       }
       const { pair } = chosen;
+      const viaOverlay = ob !== undefined && pair.positive === AP_REPO_BYPASS;
       const pref = preferred(chosen.sites, pair.positive, b.style);
-      const rng = mulberry32(seedOf(`${CHECK2_SALT}|${b.baseId}|${fam.family}`));
+      const rng = mulberry32(seedOf(`${active.salt}|${b.baseId}|${fam.family}`));
       const index = Math.floor(rng.next() * pref.length);
       const site = pref[index] as MutationSite;
-      const tw = await eligibleSites(REPO, sb, pair.twin);
-      table.push({ baseId: b.baseId, family: fam.family, operatorId: pair.twin.id, eligible: tw.eligible.length, candidates: tw.candidates, rejected: tw.rejected });
-      const twin = pairTwin(site, tw.eligible);
+      let twin: { site: MutationSite; match: string } | undefined;
+      if (viaOverlay) {
+        const t = cleanTwinSite(sb.dir, site);
+        twin = t === undefined ? undefined : { site: t, match: 'same-member-clean-base' };
+        table.push({ baseId: b.baseId, family: fam.family, operatorId: pair.twin.id, eligible: t === undefined ? 0 : 1, candidates: t === undefined ? 0 : 1, rejected: {} });
+      } else {
+        const tw = await eligibleSites(REPO, sb, pair.twin);
+        table.push({ baseId: b.baseId, family: fam.family, operatorId: pair.twin.id, eligible: tw.eligible.length, candidates: tw.candidates, rejected: tw.rejected });
+        twin = pairTwin(site, tw.eligible);
+      }
       const seedId = `${b.baseId}__${pair.positive.id}`;
       const jobs: { op: MutationOperator; site: MutationSite; role: 'seed' | 'twin'; selection: Check2Row['selection'] }[] = [
         { op: pair.positive, site, role: 'seed', selection: { eligible: chosen.sites.length, preferred: pref.length, index } },
@@ -376,10 +459,13 @@ async function seed(argv: readonly string[]): Promise<number> {
       for (const job of jobs) {
         const rowId = `${b.baseId}__${job.op.id}`;
         const dest = path.join(out, 'copies', rowId);
-        const res0 = await applyOne(REPO, sb, job.op, job.site, dest);
+        // Only the CHECK-3 bypass seed starts from the overlay; its twin and every other row start from the clean base.
+        const from: SeedBase = (viaOverlay && job.role === 'seed' ? ob : undefined) ?? sb;
+        const overlayFiles = from === sb ? [] : overlay;
+        const res0 = await applyOne(REPO, from, job.op, job.site, dest);
         const touched = [...new Set([...res0.editedFiles, ...res0.createdFiles])].sort();
         const normalised = res0.status !== 'ok' ? [] : touched.filter((f) => {
-          const before = path.join(sb.dir, f);
+          const before = path.join(from.dir, f);
           const file = path.join(dest, f);
           const r = normaliseAdded(fs.existsSync(before) ? fs.readFileSync(before, 'utf8') : '', fs.readFileSync(file, 'utf8'));
           if (r.changed) fs.writeFileSync(file, r.text);
@@ -387,7 +473,7 @@ async function seed(argv: readonly string[]): Promise<number> {
         });
         const recheck = normalised.length > 0 ? typecheck(REPO, dest) : [];
         const res = recheck.length === 0 ? res0 : { ...res0, status: 'typecheck' as const, typecheckErrors: recheck };
-        const added = touched.flatMap((f) => {
+        const added = [...new Set([...touched, ...overlayFiles])].sort().flatMap((f) => {
           const before = path.join(sb.dir, f);
           return addedCommentLines(fs.existsSync(before) ? fs.readFileSync(before, 'utf8') : undefined, fs.readFileSync(path.join(dest, f), 'utf8')).map((l) => `${f}: ${l.trim()}`);
         });
@@ -396,7 +482,8 @@ async function seed(argv: readonly string[]): Promise<number> {
           rowId, family: fam.family, operatorId: job.op.id, role: job.role, probedFunction: pair.fn, baseId: b.baseId, style: b.style,
           specPath: evalSpecOf(b), seedSpecPath: seedSpecOf(b), site: job.site, selection: job.selection, status,
           editedFiles: res.editedFiles, createdFiles: res.createdFiles, typecheckErrors: res.typecheckErrors, addedComments: added, styleNormalised: normalised,
-          editSha256: sha256(touched.map((f) => `${f}\u0000${fs.readFileSync(path.join(dest, f), 'utf8')}`).join('\u0000')),
+          ...(overlayFiles.length === 0 ? {} : { overlayFiles }),
+          editSha256: sha256([...new Set([...touched, ...overlayFiles])].sort().map((f) => `${f}\u0000${fs.readFileSync(path.join(dest, f), 'utf8')}`).join('\u0000')),
           copyDir: path.join('copies', rowId),
         });
         process.stderr.write(`${rowId}: ${status}${res.typecheckErrors[0] !== undefined ? ` (${res.typecheckErrors[0]})` : ''}\n`);
@@ -404,13 +491,13 @@ async function seed(argv: readonly string[]): Promise<number> {
     }
   }
   const manifest = {
-    schema: 1, set: 'CHECK-2', salt: CHECK2_SALT, applySeed: 20261015,
+    schema: 1, set: active.set, salt: active.salt, applySeed: 20261015,
     families: FAMILIES.map((f) => ({ family: f.family, pairs: f.pairs.map((p) => ({ positive: p.positive.id, twin: p.twin.id, fn: p.fn })) })),
     bases, table, rows,
   };
   const text = `${JSON.stringify(manifest, null, 2)}\n`;
   fs.writeFileSync(path.join(out, 'seed-manifest.json'), text);
-  const committed = path.resolve(REPO, RESULTS22, 'check2-seed-manifest.json');
+  const committed = path.resolve(REPO, active.results, `${active.key}-seed-manifest.json`);
   const bad = rows.filter((r) => r.status !== 'ok');
   process.stdout.write(`${String(rows.length)} rows (${String(rows.filter((r) => r.role === 'seed').length)} seeds), ${String(bad.length)} not ok; manifest sha256 ${sha256(text)}\n`);
   if (check) {
@@ -469,7 +556,7 @@ export interface Check2Item extends SplitItem {
 }
 
 export interface Check2Split {
-  readonly set: 'CHECK-2';
+  readonly set: CheckSet['set'];
   readonly salt: string;
   readonly seedManifestSha256: string;
   readonly itemsSha256: string;
@@ -483,7 +570,7 @@ function plan(work: string, check: boolean): number {
   const manifest = JSON.parse(manifestText) as { rows: Check2Row[] };
   const rows = manifest.rows.filter((r) => r.status === 'ok');
   const projects = [
-    ...CHECK2_BASES.map((b) => ({ id: `base:${b.baseId}`, dir: path.join(work, 'bases', b.baseId), spec: evalSpecOf(b) })),
+    ...active.bases.map((b) => ({ id: `base:${b.baseId}`, dir: path.join(work, 'bases', b.baseId), spec: evalSpecOf(b) })),
     ...rows.map((r) => ({ id: r.rowId, dir: path.join(work, r.copyDir), spec: r.specPath })),
   ];
   const reports = new Map<string, ReportLike>();
@@ -521,7 +608,7 @@ function plan(work: string, check: boolean): number {
     m.set(r.probedFunction, s);
     baseUnits.set(r.baseId, m);
   }
-  for (const b of [...CHECK2_BASES].reverse()) {
+  for (const b of [...active.bases].reverse()) {
     const m = baseUnits.get(b.baseId);
     if (m === undefined) continue;
     targets.unshift({
@@ -535,9 +622,9 @@ function plan(work: string, check: boolean): number {
     writeJson(path.join(work, 'baseline', `${safe(t.id)}.json`), { neuralResults });
   }
   writeJson(path.join(work, 'plan.json'), { targets });
-  const styleOf = new Map(CHECK2_BASES.map((b) => [b.baseId, b.style]));
+  const styleOf = new Map(active.bases.map((b) => [b.baseId, b.style]));
   const items: Check2Item[] = targets.flatMap((t) => Object.entries(t.units).flatMap(([fn, us]) => us.map((u) => ({
-    itemId: `check2|${t.id}|${fn}|${u}`, round: 'check2', targetId: t.id, kind: t.kind, functionId: fn, unitId: u, baseId: t.baseId,
+    itemId: `${active.key}|${t.id}|${fn}|${u}`, round: active.key, targetId: t.id, kind: t.kind, functionId: fn, unitId: u, baseId: t.baseId,
     operatorId: t.operatorId, cluster: t.baseId, split: 'CHECK' as const, family: t.family, style: styleOf.get(t.baseId) ?? '',
     layeredBusiness: styleOf.get(t.baseId) === 'layered' && u.startsWith('src/business'),
   }))));
@@ -546,11 +633,11 @@ function plan(work: string, check: boolean): number {
   for (const k of ['seed', 'twin', 'clean']) counts[k] = items.filter((i) => i.kind === k).length;
   counts['layeredBusinessClean'] = items.filter((i) => i.kind === 'clean' && i.layeredBusiness).length;
   const split: Check2Split = {
-    set: 'CHECK-2', salt: CHECK2_SALT, seedManifestSha256: sha256(manifestText), itemsSha256: sha256(itemsText), counts,
+    set: active.set, salt: active.salt, seedManifestSha256: sha256(manifestText), itemsSha256: sha256(itemsText), counts,
     targets: targets.map(({ projectDir: _p, ...rest }) => rest), items,
   };
   const text = `${JSON.stringify(split, null, 2)}\n`;
-  const committed = path.resolve(REPO, RESULTS22, 'check2-split.json');
+  const committed = path.resolve(REPO, active.results, `${active.key}-split.json`);
   process.stdout.write(`${String(targets.length)} targets, ${String(items.length)} items (${JSON.stringify(counts)}); items sha256 ${split.itemsSha256}\n`);
   if (check) {
     const same = fs.existsSync(committed) && fs.readFileSync(committed, 'utf8') === text;
@@ -562,7 +649,7 @@ function plan(work: string, check: boolean): number {
 }
 
 export function readCheck2Split(): Check2Split {
-  return readJson<Check2Split>(path.resolve(REPO, RESULTS22, 'check2-split.json'));
+  return readJson<Check2Split>(path.resolve(REPO, active.results, `${active.key}-split.json`));
 }
 
 // ── harvest (mock evaluate per target; Neo4j, no model) ──
@@ -575,7 +662,7 @@ export interface Check2Prompts {
   readonly records: readonly { readonly itemId: string; readonly functionId: string; readonly unitId: string; readonly prompt: string; readonly promptSha256: string }[];
 }
 
-const promptsFile = (v: Check2Version): string => path.resolve(REPO, RESULTS22, 'prompts', `check2-${v}.json`);
+const promptsFile = (v: Check2Version): string => path.resolve(REPO, active.results, 'prompts', `${active.key}-${v}.json`);
 
 function entriesIn(dir: string): { functionId: string; unitId?: string; prompt?: string; runIndex: number }[] {
   const out: { functionId: string; unitId?: string; prompt?: string; runIndex: number }[] = [];
@@ -611,7 +698,7 @@ function harvest(work: string, version: Check2Version, check: boolean): number {
           process.stderr.write(`${t.id}: the cassette scrubbed part of the ${fn} ${u} prompt (an environment variable named like a secret has a value found in it); harvest under a minimal environment (env -i)\n`);
           return 1;
         }
-        records.push({ itemId: `check2|${t.id}|${fn}|${u}`, functionId: fn, unitId: u, prompt, promptSha256: sha256(prompt) });
+        records.push({ itemId: `${active.key}|${t.id}|${fn}|${u}`, functionId: fn, unitId: u, prompt, promptSha256: sha256(prompt) });
       }
     }
     if (/JUDGE_V2_FLAGS_UNAVAILABLE/.test(r.stdout + r.stderr)) process.stderr.write(`${t.id}: cheap flags unavailable\n`);
@@ -642,8 +729,8 @@ function harvest(work: string, version: Check2Version, check: boolean): number {
 // ── budget and record (the record phase is the only one that calls the judge) ──
 
 interface Ledger { calls: number; phases: { label: string; at: string; judgeAttempts: number; initProbes: number; hits: number; stop?: string }[] }
-const ledgerFile = (): string => path.resolve(REPO, RESULTS22, 'call-ledger.json');
-const labelOf = (v: Check2Version): string => `check2-${v}`;
+const ledgerFile = (): string => path.resolve(REPO, active.results, 'call-ledger.json');
+const labelOf = (v: Check2Version): string => `${active.key}-${v}`;
 
 function loadPrompts(version: Check2Version): Check2Prompts {
   const file = readJson<Check2Prompts>(promptsFile(version));
@@ -679,7 +766,7 @@ function budget(argv: readonly string[]): number {
   const runs = Number(arg(argv, '--runs', String(CHECK2_RUNS)));
   const ledger: Ledger = fs.existsSync(ledgerFile()) ? readJson<Ledger>(ledgerFile()) : { calls: 0, phases: [] };
   let total = 0;
-  process.stdout.write(`CHECK-2 call budget (runs per unit ${String(runs)}; each record phase adds 1 init probe when it calls):\n`);
+  process.stdout.write(`${active.set} call budget (runs per unit ${String(runs)}; each record phase adds 1 init probe when it calls):\n`);
   for (const v of CHECK2_VERSIONS) {
     const p = projectedCalls(v, runs);
     total += p.calls;
@@ -718,7 +805,7 @@ async function record(argv: readonly string[]): Promise<number> {
   const cassetteDir = path.resolve(REPO, CASSETTES22, label);
   // Everything already stored: replay (no pre-flight call); otherwise record (one init probe, then the misses).
   const mode = projected.calls === 0 ? 'replay' : 'record';
-  const parsed = parseLLMOptions(['--llm-provider=claude-cli', `--cassette-mode=${mode}`, `--cassette-dir=${cassetteDir}`], process.env, { projectRoot: path.resolve(REPO, RESULTS22) });
+  const parsed = parseLLMOptions(['--llm-provider=claude-cli', `--cassette-mode=${mode}`, `--cassette-dir=${cassetteDir}`], process.env, { projectRoot: path.resolve(REPO, active.results) });
   if (!parsed.success) {
     process.stderr.write(`${parsed.errors[0]?.message ?? 'bad options'}\n`);
     return 2;
@@ -781,8 +868,8 @@ async function record(argv: readonly string[]): Promise<number> {
     const rs = [...(out.get(r.itemId) ?? [])].sort((a, b) => a.runIndex - b.runIndex);
     return { itemId: r.itemId, runs: rs, verdict: majority(rs) };
   });
-  writeJson(path.resolve(REPO, RESULTS22, label, 'verdicts.json'), {
-    set: 'CHECK-2', runs, judgeVersion: version, revision: file.revision, textSha256: file.textSha256, complete: stopped === undefined, verdicts,
+  writeJson(path.resolve(REPO, active.results, label, 'verdicts.json'), {
+    set: active.set, runs, judgeVersion: version, revision: file.revision, textSha256: file.textSha256, complete: stopped === undefined, verdicts,
   });
   process.stdout.write(`${label}: ${String(phase.judgeAttempts)} calls + ${String(phase.initProbes)} init probe, ${String(phase.hits)} hits; ledger ${String(ledger.calls)}${stopped !== undefined ? `; STOPPED ${phase.stop ?? ''} (rerun to resume)` : ''}\n`);
   return stopped === undefined ? 0 : 3;
@@ -833,7 +920,7 @@ function row(name: string, m: Metrics): string {
 function score(): number {
   const split = readCheck2Split();
   const verdictsOf = (v: Check2Version): Map<string, ItemVerdict> => {
-    const f = path.resolve(REPO, RESULTS22, labelOf(v), 'verdicts.json');
+    const f = path.resolve(REPO, active.results, labelOf(v), 'verdicts.json');
     if (!fs.existsSync(f)) throw new Error(`no verdicts for ${v}: run record --judge-version ${v}`);
     const file = readJson<{ complete: boolean; verdicts: ItemVerdict[] }>(f);
     if (!file.complete) process.stdout.write(`WARNING: ${v} verdicts are incomplete\n`);
@@ -845,7 +932,7 @@ function score(): number {
   const v22 = (i: SplitItem): V => b.get(i.itemId)?.verdict ?? 'missing';
   const items = split.items;
   const lines: string[] = [];
-  lines.push(`CHECK-2: ${String(items.length)} items (${JSON.stringify(split.counts)}); unit verdict = majority of ${String(CHECK2_RUNS)} runs for both judges; items sha256 ${split.itemsSha256}.`, '');
+  lines.push(`${active.set}: ${String(items.length)} items (${JSON.stringify(split.counts)}); unit verdict = majority of ${String(CHECK2_RUNS)} runs for both judges; items sha256 ${split.itemsSha256}.`, '');
   lines.push('| Judge | Catch | Paired catch | Twin false fail | Paired twin false fail | Clean false fail (units) | Invalid units |', '|---|---|---|---|---|---|---|');
   lines.push(row('v1', metricsOf(items, v1)), row('v2.2', metricsOf(items, v22)));
   for (const [name, pred] of [
@@ -864,18 +951,24 @@ function score(): number {
     }
   }
   const d = decide(items, v1, v22);
-  lines.push('', `**Decision (rule fixed in Docs/v1.3/judge-v22-plan.md §5): ${d.outcome}**`, '', '| Check | Rule | v1 | v2.2 | Holds |', '|---|---|---|---|---|');
+  lines.push('', `**Decision (rule fixed in ${active.planDoc}): ${d.outcome}**`, '', '| Check | Rule | v1 | v2.2 | Holds |', '|---|---|---|---|---|');
   for (const c of d.checks) lines.push(`| ${c.id} | ${c.rule} | ${c.v1} | ${c.v22} | ${c.holds ? 'yes' : 'NO'} |`);
   lines.push('', 'Items whose verdict differs (v1 → v2.2):');
   for (const i of items) if (v1(i) !== v22(i)) lines.push(`- ${i.kind} ${i.family || 'clean'} ${i.targetId} ${i.functionId} ${i.unitId}: ${v1(i)} → ${v22(i)}`);
   const md = `${lines.join('\n')}\n`;
-  fs.writeFileSync(path.resolve(REPO, RESULTS22, 'check2-scores.md'), md);
-  writeJson(path.resolve(REPO, RESULTS22, 'check2-decision.json'), d);
+  fs.writeFileSync(path.resolve(REPO, active.results, `${active.key}-scores.md`), md);
+  writeJson(path.resolve(REPO, active.results, `${active.key}-decision.json`), d);
   process.stdout.write(md);
   return 0;
 }
 
 export async function main(argv: readonly string[]): Promise<number> {
+  const setKey = arg(argv, '--set', 'check2');
+  if (setKey !== 'check2' && setKey !== 'check3') {
+    process.stderr.write('--set must be check2 or check3\n');
+    return 2;
+  }
+  active = CHECK_SETS[setKey];
   const [phase, work] = argv;
   const check = argv.includes('--check');
   switch (phase) {
@@ -886,7 +979,7 @@ export async function main(argv: readonly string[]): Promise<number> {
     case 'record': return record(argv);
     case 'score': return score();
     default:
-      process.stderr.write('usage: judge-v22-check2.ts seed --out <work> [--check] | plan <work> [--check] | harvest <work> --judge-version v1|v2.2 [--check] | budget | record --judge-version v1|v2.2 [--runs 3] [--budget n] | score\n');
+      process.stderr.write('usage (each phase takes [--set check2|check3], default check2): judge-v22-check2.ts seed --out <work> [--check] | plan <work> [--check] | harvest <work> --judge-version v1|v2.2 [--check] | budget | record --judge-version v1|v2.2 [--runs 3] [--budget n] | score\n');
       return 2;
   }
 }
