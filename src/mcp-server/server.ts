@@ -1,5 +1,5 @@
 /**
- * MCP server wiring: registers the eight DaedalusArch tools on an `McpServer`. Transport-agnostic (`main.ts`
+ * MCP server wiring: registers the nine DaedalusArch tools on an `McpServer`. Transport-agnostic (`main.ts`
  * connects stdio; the tests connect an in-memory pair). Tools only read the spec and, for `evaluate_project`,
  * run the existing pipeline; none writes to the project under evaluation.
  */
@@ -13,6 +13,7 @@ import {
   evaluateProjectTool,
   explainViolationTool,
   getArchitectureSpec,
+  proposeRulesTool,
   suggestPlacementTool,
   whichLayerTool,
 } from './tools.js';
@@ -31,11 +32,12 @@ export const TOOL_NAMES: readonly string[] = Object.freeze([
   'check_file',
   'check_diff',
   'suggest_placement',
+  'propose_rules',
 ]);
 
 /** Tools that read only the spec: instant, no graph, no database (the set an experiment arm may allow-list). */
 export const SPEC_TOOL_NAMES: readonly string[] = Object.freeze(
-  TOOL_NAMES.filter((n) => n !== 'evaluate_project'),
+  TOOL_NAMES.filter((n) => n !== 'evaluate_project' && n !== 'propose_rules'),
 );
 
 const specArg = z
@@ -124,6 +126,15 @@ const placementShape = {
     .optional()
     .describe('Base name to use, e.g. "Order"; derived from the purpose when omitted.'),
   spec: specArg,
+};
+const proposeShape = {
+  project: z
+    .string()
+    .optional()
+    .describe("Project root (its src/ and tsconfig.json are read); defaults to the server's configured project."),
+  minConfidence: z.number().min(0).max(1).optional().describe('Leave rules below this confidence (0-1) out of the proposed spec; they are still listed.'),
+  includeSpec: z.boolean().optional().describe('Include the proposed spec YAML (default true).'),
+  maxExceptions: z.number().int().min(0).optional().describe('Exceptions listed per rule (default 20).'),
 };
 const explainShape = {
   rule: z.string().min(1).describe('Rule id, rule name or violation type.'),
@@ -233,6 +244,18 @@ export function createServer(ctx: ServerContext): McpServer {
       annotations: readOnly,
     },
     async (args) => toResult(await suggestPlacementTool(ctx, z.object(placementShape).parse(args))),
+  );
+
+  register(
+    'propose_rules',
+    {
+      title: 'Propose the implicit architecture rules of a project (proposals)',
+      description:
+        'For a project with no spec: mines the dependency rules its code already follows from its graph (deterministic, no LLM, no Neo4j) and returns them as PROPOSALS, each with evidence counts, a confidence (high/medium/low) and its exceptions (candidate violations, not confirmed ones), plus a proposed spec that compiles to the existing templates. Rule kinds: layer direction, rare and unobserved layer pairs, acyclicity, component direction, public-API use, port implementation, interface injection, framework-free core. Review before adopting. Takes seconds (extracts the project graph twice).',
+      inputSchema: proposeShape,
+      annotations: readOnly,
+    },
+    async (args) => toResult(await proposeRulesTool(ctx, z.object(proposeShape).parse(args))),
   );
 
   return server;

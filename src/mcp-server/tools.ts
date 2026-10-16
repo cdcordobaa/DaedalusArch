@@ -16,6 +16,8 @@ import { checkSource } from './file-check.js';
 import { checkDiff } from './diff-check.js';
 import { suggestPlacement } from './placement.js';
 import { normalisePath } from './layer-resolver.js';
+import { defaultPresetsDir, proposeRules, summariseProposal } from '../rule-mining/index.js';
+import type { ProposalSummary } from '../rule-mining/index.js';
 import type {
   ArchitectureSpecView,
   CheckImportResult,
@@ -214,4 +216,25 @@ export async function suggestPlacementTool(
   const loaded = await specFor(ctx, args.spec);
   if (!loaded.ok) return loaded;
   return ok(suggestPlacement(loaded.data.spec, { purpose: args.purpose, name: args.name }));
+}
+
+/**
+ * `propose_rules`: the implicit rules of a project that has no spec, mined from its graph (src/rule-mining). Every rule
+ * is labelled a proposal. Reads the project through a snapshot (src/ and tsconfig.json); no Neo4j, no LLM, no writes.
+ */
+export async function proposeRulesTool(
+  ctx: ServerContext,
+  args: { readonly project?: string | undefined; readonly minConfidence?: number | undefined; readonly includeSpec?: boolean | undefined; readonly maxExceptions?: number | undefined },
+): Promise<ToolOutcome<ProposalSummary>> {
+  const project = args.project ?? ctx.defaultProjectPath;
+  if (project === undefined) {
+    return fail('No project configured: pass `project` or start the server with --project <path>.');
+  }
+  if (!fs.existsSync(path.join(path.resolve(project), 'src'))) return fail(`No src/ directory under ${path.resolve(project)}: rule mining reads src/ and tsconfig.json.`);
+  try {
+    const proposal = await proposeRules(path.resolve(project), { presetsDir: defaultPresetsDir(), ...(args.minConfidence !== undefined && { minConfidence: args.minConfidence }) });
+    return ok(summariseProposal(proposal, { includeSpec: args.includeSpec ?? true, maxExceptions: args.maxExceptions ?? 20 }));
+  } catch (e: unknown) {
+    return fail(`Rule mining failed: ${e instanceof Error ? e.message : String(e)}`);
+  }
 }

@@ -75,7 +75,7 @@ async function call(client: Client, name: string, args: Record<string, unknown> 
 }
 
 describe('MCP server over an in-memory transport', () => {
-  it('exposes exactly the eight tools, each with a description and an input schema', async () => {
+  it('exposes exactly the nine tools, each with a description and an input schema', async () => {
     const { client, close } = await connect(context());
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name)).toEqual([...TOOL_NAMES]);
@@ -88,8 +88,10 @@ describe('MCP server over an in-memory transport', () => {
       'check_file',
       'check_diff',
       'suggest_placement',
+      'propose_rules',
     ]);
     expect(SPEC_TOOL_NAMES).not.toContain('evaluate_project');
+    expect(SPEC_TOOL_NAMES).not.toContain('propose_rules');
     expect(SPEC_TOOL_NAMES).toHaveLength(7);
     for (const tool of tools) {
       expect(tool.description?.length).toBeGreaterThan(40);
@@ -319,5 +321,30 @@ describe('path and argument handling', () => {
       defaultSpecPath: 'flag.yaml',
       defaultProjectPath: '/env',
     });
+  });
+});
+
+describe('propose_rules', () => {
+  it('returns the mined rules of a project as labelled proposals with a compiling spec', async () => {
+    const { client, close } = await connect(context());
+    const project = path.join(process.cwd(), 'tests/fixtures/v1.3-reference/hexagonal/project');
+    const r = await call(client, 'propose_rules', { project, maxExceptions: 2 });
+    await close();
+    expect(r.isError).toBe(false);
+    const s = r.structured as { label: string; style: string; rules: { status: string; kind: string; exceptions: unknown[] }[]; spec: { valid: boolean; yaml: string } };
+    expect(s.label).toMatch(/^PROPOSED rules/);
+    expect(s.style).toBe('hexagonal');
+    expect(s.rules.length).toBeGreaterThan(0);
+    expect(s.rules.every((x) => x.status === 'proposal' && x.exceptions.length <= 2)).toBe(true);
+    expect(s.spec.valid).toBe(true);
+    expect(s.spec.yaml).toContain('allowed_dependencies');
+  }, 120_000);
+
+  it('fails clearly for a directory without src/', async () => {
+    const { client, close } = await connect(context());
+    const r = await call(client, 'propose_rules', { project: os.tmpdir() });
+    await close();
+    expect(r.isError).toBe(true);
+    expect(r.text).toMatch(/No src\/ directory/);
   });
 });

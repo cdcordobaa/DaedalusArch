@@ -140,29 +140,48 @@ export function miningInput(graph: IseGraph, layerOf: ReadonlyMap<string, string
   };
 }
 
+export interface ProjectAnalysis {
+  readonly root: string;
+  readonly graph: IseGraph;
+  readonly inference: ReturnType<typeof inferFromGraph>;
+  readonly layerModel: LayerModel;
+  readonly apg2: ReturnType<typeof componentsOf>;
+  readonly input: MiningInput;
+}
+
+/** ISE, the parsed ISE spec and the APG v2 components of a snapshot directory (`root`, already a snapshot). */
+export async function analyseSnapshot(root: string, opts: Pick<ProposeOptions, 'presetsDir' | 'style'>): Promise<ProjectAnalysis> {
+  const graph = await loadIseGraph(root);
+  const inference = inferFromGraph(graph, { presetsDir: opts.presetsDir, ...(opts.style !== undefined ? { style: opts.style } : {}) });
+  const parsed = await parseSpecText(inference.specYaml);
+  if (!parsed.success) throw new Error(`rule mining: the ISE spec does not parse: ${parsed.errors.map((e) => e.message).join('; ')}`);
+  const layerModel = parsed.data.layerModel;
+  const components = [...componentsFromLayerModel(layerModel).filter((c) => c.kind !== 'layer'), ...folderComponents(graph.files)];
+  const res = await extractAPG(root, { ...V13_APG2_OPTIONS, components }, path.join(root, 'tsconfig.json'));
+  if (!res.success) throw new Error(`rule mining: APG v2 extraction failed: ${res.errors.map((e) => e.message).join('; ')}`);
+  const apg2 = componentsOf(res.data, relTo(root), layerModel);
+  const layerOf = new Map(inference.mapping.files.map((f) => [f.file, f.layer]));
+  return { root, graph, inference, layerModel, apg2, input: miningInput(graph, layerOf, layerModel, apg2) };
+}
+
+/** Mines and emits from an analysis; the spec is checked against `analysis.root`. */
+export async function proposeFromAnalysis(analysis: ProjectAnalysis, opts: ProposeOptions): Promise<Proposal> {
+  const inf = analysis.inference;
+  const mining = mineRules(analysis.input, inf.style, opts);
+  const top = inf.classification.ranked.find((r) => r.style === inf.style);
+  const header = [
+    `style: ${inf.style} (${opts.style !== undefined ? 'forced' : `ISE, confidence ${(top?.confidence ?? 0).toFixed(2)}`}); layers: ISE ${inf.mapping.mode}`,
+  ];
+  const specYaml = emitMinedSpec(inf.specYaml, mining, header, opts);
+  const check = await checkEmittedSpec(specYaml, analysis.root);
+  return { style: inf.style, styleConfidence: top?.confidence ?? 0, mining, specYaml, check };
+}
+
 /** Proposes the implicit rules of the project at `projectDir` (read through a snapshot; never written). */
 export async function proposeRules(projectDir: string, opts: ProposeOptions): Promise<Proposal> {
   const snap = snapshotSource(projectDir);
   try {
-    const root = fs.realpathSync(snap.dir);
-    const graph = await loadIseGraph(root);
-    const inf = inferFromGraph(graph, { presetsDir: opts.presetsDir, ...(opts.style !== undefined ? { style: opts.style } : {}) });
-    const parsed = await parseSpecText(inf.specYaml);
-    if (!parsed.success) throw new Error(`rule mining: the ISE spec does not parse: ${parsed.errors.map((e) => e.message).join('; ')}`);
-    const layerModel = parsed.data.layerModel;
-    const components = [...componentsFromLayerModel(layerModel).filter((c) => c.kind !== 'layer'), ...folderComponents(graph.files)];
-    const res = await extractAPG(root, { ...V13_APG2_OPTIONS, components }, path.join(root, 'tsconfig.json'));
-    if (!res.success) throw new Error(`rule mining: APG v2 extraction failed: ${res.errors.map((e) => e.message).join('; ')}`);
-    const layerOf = new Map(inf.mapping.files.map((f) => [f.file, f.layer]));
-    const input = miningInput(graph, layerOf, layerModel, componentsOf(res.data, relTo(root), layerModel));
-    const mining = mineRules(input, inf.style, opts);
-    const top = inf.classification.ranked.find((r) => r.style === inf.style);
-    const header = [
-      `style: ${inf.style} (${opts.style !== undefined ? 'forced' : `ISE, confidence ${(top?.confidence ?? 0).toFixed(2)}`}); layers: ISE ${inf.mapping.mode}`,
-    ];
-    const specYaml = emitMinedSpec(inf.specYaml, mining, header, opts);
-    const check = await checkEmittedSpec(specYaml, root);
-    return { style: inf.style, styleConfidence: top?.confidence ?? 0, mining, specYaml, check };
+    return await proposeFromAnalysis(await analyseSnapshot(fs.realpathSync(snap.dir), opts), opts);
   } finally {
     snap.dispose();
   }

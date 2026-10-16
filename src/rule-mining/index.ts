@@ -6,6 +6,8 @@ export {
 export type { MineOptions } from './miner.js';
 export { emitMinedSpec, emittedRules, topologicalOrder, linearAllowed } from './emit.js';
 export type { EmitOptions } from './emit.js';
-export { proposeRules, checkEmittedSpec, componentsOf, miningInput } from './propose.js';
-export type { ProposeOptions, Proposal, SpecCompileCheck } from './propose.js';
+export { proposeRules, proposeFromAnalysis, analyseSnapshot, checkEmittedSpec, componentsOf, miningInput } from './propose.js';
+export type { ProposeOptions, Proposal, ProjectAnalysis, SpecCompileCheck } from './propose.js';
 export type * from './types.js';
+export { PROPOSAL_LABEL, defaultPresetsDir, summariseProposal, formatProposalHuman } from './report.js';
+export type { ProposalSummary } from './report.js';

@@ -1,0 +1,589 @@
+# PROPOSED rules, mined from the code (daedalus mine-rules; src/rule-mining). Not a reviewed spec: review before use.
+# style: nestjs (ISE, confidence 1.00); layers: ISE preset-first
+# mined rules: 140 (140 emitted)
+# MR-001 [layer-direction, high 0.91] domain must not depend on infrastructure (24 edges infrastructure -> domain; 0/19 domain files import infrastructure)
+# MR-002 [layer-direction, high 0.94] domain must not depend on application (108 edges application -> domain; 0/19 domain files import application)
+# MR-003 [layer-direction, high 0.93] domain must not depend on presentation (58 edges presentation -> domain; 0/19 domain files import presentation)
+# MR-004 [layer-direction, medium 0.74] application must not depend on presentation (83 edges presentation -> application; 6/42 application files import presentation) -- 10 exception(s): src/user-collection/user-collection.resolver.ts -> src/guards/gql-auth.guard.ts, src/user-collection/user-collection.resolver.ts -> src/guards/gql-throttler.guard.ts, src/user-environment/user-environments.resolver.ts -> src/guards/gql-auth.guard.ts, ...
+# MR-005 [acyclic-files, high 0.99] no file lies on an import cycle (189/189 files do not)
+# MR-006 [component-direction, medium 0.60] folder component shortcode must not depend on admin (3 imports admin -> shortcode; 0/4 files import back)
+# MR-007 [component-direction, medium 0.68] folder component infra-config must not depend on user-history (3 imports user-history -> infra-config; 0/9 files import back)
+# MR-008 [component-direction, medium 0.57] folder component infra-config must not depend on admin (5 imports admin -> infra-config; 1/9 files import back) -- 1 exception(s): src/infra-config/infra-config.controller.ts -> src/admin/guards/rest-admin.guard.ts
+# MR-009 [component-direction, medium 0.56] folder component access-token must not depend on mock-server (2 imports mock-server -> access-token; 0/5 files import back)
+# MR-010 [component-direction, medium 0.59] folder component team-collection must not depend on mock-server (2 imports mock-server -> team-collection; 0/8 files import back)
+# MR-011 [component-direction, medium 0.59] folder component team-collection must not depend on published-docs (2 imports published-docs -> team-collection; 0/8 files import back)
+# MR-012 [component-direction, medium 0.59] folder component team-collection must not depend on access-token (2 imports access-token -> team-collection; 0/8 files import back)
+# MR-013 [component-direction, medium 0.67] folder component team-collection must not depend on orchestration (3 imports orchestration -> team-collection; 0/8 files import back)
+# MR-014 [component-direction, medium 0.71] folder component team-collection must not depend on team-request (4 imports team-request -> team-collection; 0/8 files import back)
+# MR-015 [component-direction, medium 0.59] folder component team-collection must not depend on admin (2 imports admin -> team-collection; 0/8 files import back)
+# MR-016 [component-direction, medium 0.63] folder component guards must not depend on user-settings (3 imports user-settings -> guards; 0/5 files import back)
+# MR-017 [component-direction, low 0.42] folder component guards must not depend on health (1 imports health -> guards; 0/5 files import back)
+# MR-018 [component-direction, medium 0.56] folder component guards must not depend on shortcode (2 imports shortcode -> guards; 0/5 files import back)
+# MR-019 [component-direction, medium 0.63] folder component guards must not depend on user-environment (3 imports user-environment -> guards; 0/5 files import back)
+# MR-020 [component-direction, medium 0.56] folder component guards must not depend on mock-server (2 imports mock-server -> guards; 0/5 files import back)
+# MR-021 [component-direction, medium 0.67] folder component guards must not depend on infra-token (4 imports infra-token -> guards; 0/5 files import back)
+# MR-022 [component-direction, medium 0.67] folder component guards must not depend on infra-config (4 imports infra-config -> guards; 0/5 files import back)
+# MR-023 [component-direction, medium 0.63] folder component guards must not depend on published-docs (3 imports published-docs -> guards; 0/5 files import back)
+# MR-024 [component-direction, medium 0.63] folder component guards must not depend on team-collection (3 imports team-collection -> guards; 0/5 files import back)
+# MR-025 [component-direction, low 0.42] folder component guards must not depend on auth (1 imports auth -> guards; 0/5 files import back)
+# MR-026 [component-direction, medium 0.67] folder component guards must not depend on orchestration (4 imports orchestration -> guards; 0/5 files import back)
+# MR-027 [component-direction, medium 0.56] folder component guards must not depend on team-invitation (2 imports team-invitation -> guards; 0/5 files import back)
+# MR-028 [component-direction, medium 0.56] folder component guards must not depend on team (2 imports team -> guards; 0/5 files import back)
+# MR-029 [component-direction, medium 0.56] folder component guards must not depend on user-collection (2 imports user-collection -> guards; 0/5 files import back)
+# MR-030 [component-direction, medium 0.63] folder component guards must not depend on user-history (3 imports user-history -> guards; 0/5 files import back)
+# MR-031 [component-direction, medium 0.56] folder component guards must not depend on team-request (2 imports team-request -> guards; 0/5 files import back)
+# MR-032 [component-direction, medium 0.67] folder component guards must not depend on admin (4 imports admin -> guards; 0/5 files import back)
+# MR-033 [component-direction, medium 0.56] folder component guards must not depend on team-environments (2 imports team-environments -> guards; 0/5 files import back)
+# MR-034 [component-direction, medium 0.56] folder component guards must not depend on user (2 imports user -> guards; 0/5 files import back)
+# MR-035 [component-direction, medium 0.56] folder component guards must not depend on user-request (2 imports user-request -> guards; 0/5 files import back)
+# MR-036 [component-direction, low 0.47] folder component auth must not depend on access-token (1 imports access-token -> auth; 0/18 files import back)
+# MR-037 [component-direction, low 0.47] folder component auth must not depend on team-collection (1 imports team-collection -> auth; 0/18 files import back)
+# MR-038 [component-direction, medium 0.68] folder component team-invitation must not depend on admin (3 imports admin -> team-invitation; 0/9 files import back)
+# MR-039 [component-direction, medium 0.50] folder component pubsub must not depend on infra-config (2 imports infra-config -> pubsub; 0/3 files import back)
+# MR-040 [component-direction, medium 0.50] folder component decorators must not depend on user-settings (2 imports user-settings -> decorators; 0/3 files import back)
+# MR-041 [component-direction, low 0.38] folder component decorators must not depend on shortcode (1 imports shortcode -> decorators; 0/3 files import back)
+# MR-042 [component-direction, medium 0.50] folder component decorators must not depend on user-environment (2 imports user-environment -> decorators; 0/3 files import back)
+# MR-043 [component-direction, low 0.38] folder component decorators must not depend on mock-server (1 imports mock-server -> decorators; 0/3 files import back)
+# MR-044 [component-direction, low 0.38] folder component decorators must not depend on infra-token (1 imports infra-token -> decorators; 0/3 files import back)
+# MR-045 [component-direction, low 0.38] folder component decorators must not depend on published-docs (1 imports published-docs -> decorators; 0/3 files import back)
+# MR-046 [component-direction, low 0.38] folder component decorators must not depend on access-token (1 imports access-token -> decorators; 0/3 files import back)
+# MR-047 [component-direction, medium 0.50] folder component decorators must not depend on auth (2 imports auth -> decorators; 0/3 files import back)
+# MR-048 [component-direction, low 0.38] folder component decorators must not depend on orchestration (1 imports orchestration -> decorators; 0/3 files import back)
+# MR-049 [component-direction, low 0.38] folder component decorators must not depend on team-invitation (1 imports team-invitation -> decorators; 0/3 files import back)
+# MR-050 [component-direction, low 0.38] folder component decorators must not depend on team (1 imports team -> decorators; 0/3 files import back)
+# MR-051 [component-direction, low 0.38] folder component decorators must not depend on user-collection (1 imports user-collection -> decorators; 0/3 files import back)
+# MR-052 [component-direction, medium 0.50] folder component decorators must not depend on user-history (2 imports user-history -> decorators; 0/3 files import back)
+# MR-053 [component-direction, low 0.38] folder component decorators must not depend on admin (1 imports admin -> decorators; 0/3 files import back)
+# MR-054 [component-direction, low 0.38] folder component decorators must not depend on user (1 imports user -> decorators; 0/3 files import back)
+# MR-055 [component-direction, low 0.38] folder component decorators must not depend on user-request (1 imports user-request -> decorators; 0/3 files import back)
+# MR-056 [component-direction, medium 0.74] folder component team must not depend on mock-server (5 imports mock-server -> team; 0/8 files import back)
+# MR-057 [component-direction, low 0.44] folder component team must not depend on infra-token (1 imports infra-token -> team; 0/8 files import back)
+# MR-058 [component-direction, medium 0.74] folder component team must not depend on published-docs (5 imports published-docs -> team; 0/8 files import back)
+# MR-059 [component-direction, low 0.44] folder component team must not depend on access-token (1 imports access-token -> team; 0/8 files import back)
+# MR-060 [component-direction, high 0.80] folder component team must not depend on team-collection (9 imports team-collection -> team; 0/8 files import back)
+# MR-061 [component-direction, medium 0.71] folder component team must not depend on orchestration (4 imports orchestration -> team; 0/8 files import back)
+# MR-062 [component-direction, high 0.82] folder component team must not depend on team-invitation (13 imports team-invitation -> team; 0/8 files import back)
+# MR-063 [component-direction, high 0.78] folder component team must not depend on team-request (7 imports team-request -> team; 0/8 files import back)
+# MR-064 [component-direction, medium 0.58] folder component team must not depend on admin (6 imports admin -> team; 1/8 files import back) -- 1 exception(s): src/team/team.resolver.ts -> src/admin/guards/gql-admin.guard.ts
+# MR-065 [component-direction, high 0.78] folder component team must not depend on team-environments (7 imports team-environments -> team; 0/8 files import back)
+# MR-066 [component-direction, medium 0.62] folder component types must not depend on user-settings (2 imports user-settings -> types; 0/13 files import back)
+# MR-067 [component-direction, medium 0.74] folder component types must not depend on shortcode (4 imports shortcode -> types; 0/13 files import back)
+# MR-068 [component-direction, high 0.82] folder component types must not depend on mock-server (8 imports mock-server -> types; 0/13 files import back)
+# MR-069 [component-direction, medium 0.70] folder component types must not depend on infra-token (3 imports infra-token -> types; 0/13 files import back)
+# MR-070 [component-direction, high 0.84] folder component types must not depend on infra-config (9 imports infra-config -> types; 0/13 files import back)
+# MR-071 [component-direction, high 0.80] folder component types must not depend on published-docs (6 imports published-docs -> types; 0/13 files import back)
+# MR-072 [component-direction, medium 0.74] folder component types must not depend on access-token (4 imports access-token -> types; 0/13 files import back)
+# MR-073 [component-direction, high 0.81] folder component types must not depend on team-collection (7 imports team-collection -> types; 0/13 files import back)
+# MR-074 [component-direction, high 0.82] folder component types must not depend on auth (8 imports auth -> types; 0/13 files import back)
+# MR-075 [component-direction, high 0.77] folder component types must not depend on orchestration (5 imports orchestration -> types; 0/13 files import back)
+# MR-076 [component-direction, medium 0.62] folder component types must not depend on team-invitation (2 imports team-invitation -> types; 0/13 files import back)
+# MR-077 [component-direction, medium 0.70] folder component types must not depend on team (3 imports team -> types; 0/13 files import back)
+# MR-078 [component-direction, medium 0.62] folder component types must not depend on interceptors (2 imports interceptors -> types; 0/13 files import back)
+# MR-079 [component-direction, high 0.84] folder component types must not depend on user-collection (10 imports user-collection -> types; 0/13 files import back)
+# MR-080 [component-direction, high 0.77] folder component types must not depend on user-history (5 imports user-history -> types; 0/13 files import back)
+# MR-081 [component-direction, medium 0.62] folder component types must not depend on team-request (2 imports team-request -> types; 0/13 files import back)
+# MR-082 [component-direction, high 0.80] folder component types must not depend on admin (6 imports admin -> types; 0/13 files import back)
+# MR-083 [component-direction, medium 0.74] folder component types must not depend on user (4 imports user -> types; 0/13 files import back)
+# MR-084 [component-direction, high 0.84] folder component types must not depend on user-request (10 imports user-request -> types; 0/13 files import back)
+# MR-085 [component-direction, low 0.40] folder component interceptors must not depend on auth (1 imports auth -> interceptors; 0/4 files import back)
+# MR-086 [component-direction, low 0.40] folder component mailer must not depend on auth (1 imports auth -> mailer; 0/4 files import back)
+# MR-087 [component-direction, low 0.40] folder component mailer must not depend on team-invitation (1 imports team-invitation -> mailer; 0/4 files import back)
+# MR-088 [component-direction, low 0.40] folder component mailer must not depend on admin (1 imports admin -> mailer; 0/4 files import back)
+# MR-089 [component-direction, medium 0.56] folder component user-collection must not depend on mock-server (2 imports mock-server -> user-collection; 0/5 files import back)
+# MR-090 [component-direction, medium 0.56] folder component user-collection must not depend on published-docs (2 imports published-docs -> user-collection; 0/5 files import back)
+# MR-091 [component-direction, medium 0.63] folder component user-collection must not depend on orchestration (3 imports orchestration -> user-collection; 0/5 files import back)
+# MR-092 [component-direction, low 0.40] folder component user-collection must not depend on user-request (3 imports user-request -> user-collection; 1/5 files import back) -- 1 exception(s): src/user-collection/user-collections.model.ts -> src/user-request/user-request.model.ts
+# MR-093 [component-direction, low 0.38] folder component prisma must not depend on user-settings (1 imports user-settings -> prisma; 0/3 files import back)
+# MR-094 [component-direction, low 0.38] folder component prisma must not depend on health (1 imports health -> prisma; 0/3 files import back)
+# MR-095 [component-direction, low 0.38] folder component prisma must not depend on shortcode (1 imports shortcode -> prisma; 0/3 files import back)
+# MR-096 [component-direction, low 0.38] folder component prisma must not depend on user-environment (1 imports user-environment -> prisma; 0/3 files import back)
+# MR-097 [component-direction, medium 0.60] folder component prisma must not depend on mock-server (4 imports mock-server -> prisma; 0/3 files import back)
+# MR-098 [component-direction, low 0.38] folder component prisma must not depend on infra-token (1 imports infra-token -> prisma; 0/3 files import back)
+# MR-099 [component-direction, medium 0.56] folder component prisma must not depend on infra-config (3 imports infra-config -> prisma; 0/3 files import back)
+# MR-100 [component-direction, medium 0.50] folder component prisma must not depend on published-docs (2 imports published-docs -> prisma; 0/3 files import back)
+# MR-101 [component-direction, low 0.38] folder component prisma must not depend on access-token (1 imports access-token -> prisma; 0/3 files import back)
+# MR-102 [component-direction, medium 0.50] folder component prisma must not depend on team-collection (2 imports team-collection -> prisma; 0/3 files import back)
+# MR-103 [component-direction, low 0.38] folder component prisma must not depend on guards (1 imports guards -> prisma; 0/3 files import back)
+# MR-104 [component-direction, low 0.38] folder component prisma must not depend on auth (1 imports auth -> prisma; 0/3 files import back)
+# MR-105 [component-direction, low 0.38] folder component prisma must not depend on team-invitation (1 imports team-invitation -> prisma; 0/3 files import back)
+# MR-106 [component-direction, low 0.38] folder component prisma must not depend on team (1 imports team -> prisma; 0/3 files import back)
+# MR-107 [component-direction, medium 0.50] folder component prisma must not depend on user-collection (2 imports user-collection -> prisma; 0/3 files import back)
+# MR-108 [component-direction, low 0.38] folder component prisma must not depend on user-history (1 imports user-history -> prisma; 0/3 files import back)
+# MR-109 [component-direction, medium 0.50] folder component prisma must not depend on team-request (2 imports team-request -> prisma; 0/3 files import back)
+# MR-110 [component-direction, low 0.38] folder component prisma must not depend on posthog (1 imports posthog -> prisma; 0/3 files import back)
+# MR-111 [component-direction, low 0.38] folder component prisma must not depend on admin (1 imports admin -> prisma; 0/3 files import back)
+# MR-112 [component-direction, low 0.38] folder component prisma must not depend on team-environments (1 imports team-environments -> prisma; 0/3 files import back)
+# MR-113 [component-direction, low 0.38] folder component prisma must not depend on user (1 imports user -> prisma; 0/3 files import back)
+# MR-114 [component-direction, low 0.38] folder component prisma must not depend on user-request (1 imports user-request -> prisma; 0/3 files import back)
+# MR-115 [component-direction, medium 0.57] folder component user-history must not depend on admin (2 imports admin -> user-history; 0/6 files import back)
+# MR-116 [component-direction, low 0.43] folder component team-request must not depend on mock-server (1 imports mock-server -> team-request; 0/6 files import back)
+# MR-117 [component-direction, medium 0.57] folder component team-request must not depend on orchestration (2 imports orchestration -> team-request; 0/6 files import back)
+# MR-118 [component-direction, medium 0.57] folder component team-request must not depend on admin (2 imports admin -> team-request; 0/6 files import back)
+# MR-119 [component-direction, high 0.80] folder component admin must not depend on infra-token (7 imports infra-token -> admin; 0/11 files import back)
+# MR-120 [component-direction, medium 0.58] folder component team-environments must not depend on access-token (2 imports access-token -> team-environments; 0/7 files import back)
+# MR-121 [component-direction, medium 0.58] folder component team-environments must not depend on admin (2 imports admin -> team-environments; 0/7 files import back)
+# MR-122 [component-direction, medium 0.67] folder component user must not depend on user-settings (4 imports user-settings -> user; 0/5 files import back)
+# MR-123 [component-direction, medium 0.67] folder component user must not depend on shortcode (4 imports shortcode -> user; 0/5 files import back)
+# MR-124 [component-direction, medium 0.67] folder component user must not depend on user-environment (4 imports user-environment -> user; 0/5 files import back)
+# MR-125 [component-direction, low 0.42] folder component user must not depend on mock-server (1 imports mock-server -> user; 0/5 files import back)
+# MR-126 [component-direction, medium 0.56] folder component user must not depend on infra-config (2 imports infra-config -> user; 0/5 files import back)
+# MR-127 [component-direction, medium 0.56] folder component user must not depend on published-docs (2 imports published-docs -> user; 0/5 files import back)
+# MR-128 [component-direction, low 0.42] folder component user must not depend on team-collection (1 imports team-collection -> user; 0/5 files import back)
+# MR-129 [component-direction, medium 0.73] folder component user must not depend on auth (7 imports auth -> user; 0/5 files import back)
+# MR-130 [component-direction, medium 0.67] folder component user must not depend on team-invitation (4 imports team-invitation -> user; 0/5 files import back)
+# MR-131 [component-direction, medium 0.50] folder component user must not depend on team (6 imports team -> user; 1/5 files import back) -- 1 exception(s): src/user/user.service.ts -> src/team/team.model.ts
+# MR-132 [component-direction, medium 0.56] folder component user must not depend on interceptors (2 imports interceptors -> user; 0/5 files import back)
+# MR-133 [component-direction, medium 0.56] folder component user must not depend on user-collection (2 imports user-collection -> user; 0/5 files import back)
+# MR-134 [component-direction, medium 0.63] folder component user must not depend on user-history (3 imports user-history -> user; 0/5 files import back)
+# MR-135 [component-direction, low 0.42] folder component user must not depend on team-request (1 imports team-request -> user; 0/5 files import back)
+# MR-136 [component-direction, medium 0.71] folder component user must not depend on admin (6 imports admin -> user; 0/5 files import back)
+# MR-137 [component-direction, low 0.42] folder component user must not depend on team-environments (1 imports team-environments -> user; 0/5 files import back)
+# MR-138 [component-direction, low 0.42] folder component user must not depend on user-request (1 imports user-request -> user; 0/5 files import back)
+# MR-139 [component-direction, medium 0.57] folder component user-request must not depend on orchestration (2 imports orchestration -> user-request; 0/6 files import back)
+# MR-140 [core-package-free, high 0.90] domain (a core layer: it may depend on no other layer) imports none of @nestjs-modules/mailer, @nestjs/apollo, @nestjs/config, @nestjs/core, @nestjs/jwt, @nestjs/passport, @nestjs/schedule, @nestjs/terminus, @nestjs/throttler, @prisma/adapter-pg, @prisma/client, argon2, bcrypt, class-transformer, class-validator, crypto, express, fp-ts, fs, graphql, graphql-subscriptions, passport-github2, passport-google-oauth20, passport-jwt, passport-microsoft, path, pg, posthog-node, rxjs -- 7 exception(s): src/plugins/GQLComplexityPlugin.ts -> @nestjs/apollo, src/plugins/GQLComplexityPlugin.ts -> graphql, src/types/input-types.args.ts -> class-transformer, ...
+# note: the mined allowed graph has a cycle between layers: the layer order is left as inferred
+
+spec_version: "1.0.0"
+
+architecture:
+  style: nestjs
+
+  layers:
+    # Layer order (inner → outer): domain → infrastructure → application → presentation
+    #
+    # NestJS dependency flow: Controller → Service → Repository → ORM/DB
+    # This maps to: presentation → application → infrastructure → domain
+    #
+    # Unlike clean-architecture (where infrastructure is outer and depends on
+    # application interfaces), NestJS treats infrastructure as an inner data-access
+    # layer that application services call directly.
+
+    - name: domain
+      directories:
+        - src/decorators/**
+        - src/errors.ts
+        - src/plugins/**
+        - src/types/**
+        - src/utils.ts
+      roles:
+        - entity
+        - value-object
+        - domain-service
+        - repository-interface
+
+    - name: infrastructure
+      directories:
+        - src/prisma/**
+        - src/admin/admin.model.ts
+        - src/admin/admin.resolver.ts
+        - src/admin/decorators/gql-admin.decorator.ts
+        - src/admin/infra.model.ts
+        - src/admin/infra.resolver.ts
+        - src/admin/input-types.args.ts
+        - src/admin/invited-user.model.ts
+        - src/team-environments/input-type.args.ts
+        - src/team-environments/team-environments.model.ts
+        - src/team-environments/team-environments.resolver.ts
+        - src/team-environments/team.resolver.ts
+        - src/user/user.data.handler.ts
+        - src/user/user.model.ts
+        - src/user/user.resolver.ts
+      file_patterns:
+        - "**/strategies/**"
+      roles:
+        - repository-impl
+        - orm-entity
+        - external-service
+        - middleware
+        - worker
+
+    - name: application
+      directories:
+        - src/user-collection/input-type.args.ts
+        - src/user-collection/user-collection.resolver.ts
+        - src/user-collection/user-collections.model.ts
+        - src/user-environment/user-environments.model.ts
+        - src/user-environment/user-environments.resolver.ts
+        - src/user-environment/user.resolver.ts
+        - src/user-request/input-type.args.ts
+        - src/user-request/resolvers/user-collection.resolver.ts
+        - src/user-request/resolvers/user-request.resolver.ts
+        - src/user-request/user-request.model.ts
+        - src/user-settings/user-settings.model.ts
+        - src/user-settings/user-settings.resolver.ts
+        - src/user-settings/user.resolver.ts
+      file_patterns:
+        - "**/*.service.ts"
+        - "**/dto/**"
+        - "**/*.dto.ts"
+      roles:
+        - use-case
+        - dto
+        - application-service
+        - processor
+
+    - name: presentation
+      directories:
+        - src/gql-schema.ts
+        - src/orchestration/sort/sort-team-collection.resolver.ts
+        - src/orchestration/sort/sort-user-collection.resolver.ts
+        - src/orchestration/sort/sort.model.ts
+      file_patterns:
+        - "**/*.controller.ts"
+        - "**/*.module.ts"
+        - "**/*.guard.ts"
+        - "**/*.interceptor.ts"
+      roles:
+        - controller
+        - module
+        - gateway
+        - guard
+        - interceptor
+      decorators:
+        - "@Controller"
+        - "@Module"
+
+fitness_functions:
+
+  # ── STRUCTURAL ──
+
+  # mined: MR-001 high 0.91, 0 exceptions; MR-002 high 0.94, 0 exceptions; MR-003 high 0.93, 0 exceptions; MR-004 medium 0.74, 10 exceptions
+  - id: FF-S01
+    name: dependency-direction
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: true
+
+  # mined: MR-005 high 0.99, 0 exceptions
+  - id: FF-S02
+    name: no-cyclic-deps
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: true
+
+  # mined: MR-140 high 0.90, 7 exceptions
+  - id: FF-P01
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+    forbidden_imports:
+      - "@nestjs-modules/mailer"
+      - "@nestjs/apollo"
+      - "@nestjs/config"
+      - "@nestjs/core"
+      - "@nestjs/jwt"
+      - "@nestjs/passport"
+      - "@nestjs/schedule"
+      - "@nestjs/terminus"
+      - "@nestjs/throttler"
+      - "@prisma/adapter-pg"
+      - "@prisma/client"
+      - argon2
+      - bcrypt
+      - class-transformer
+      - class-validator
+      - crypto
+      - express
+      - fp-ts
+      - fs
+      - graphql
+      - graphql-subscriptions
+      - passport-github2
+      - passport-google-oauth20
+      - passport-jwt
+      - passport-microsoft
+      - path
+      - pg
+      - posthog-node
+      - rxjs
+  # mined: MR-006 medium 0.60, 0 exceptions; MR-007 medium 0.68, 0 exceptions; MR-008 medium 0.57, 1 exception; MR-009 medium 0.56, 0 exceptions; MR-010 medium 0.59, 0 exceptions; MR-011 medium 0.59, 0 exceptions; MR-012 medium 0.59, 0 exceptions; MR-013 medium 0.67, 0 exceptions; MR-014 medium 0.71, 0 exceptions; MR-015 medium 0.59, 0 exceptions; MR-016 medium 0.63, 0 exceptions; MR-017 low 0.42, 0 exceptions; MR-018 medium 0.56, 0 exceptions; MR-019 medium 0.63, 0 exceptions; MR-020 medium 0.56, 0 exceptions; MR-021 medium 0.67, 0 exceptions; MR-022 medium 0.67, 0 exceptions; MR-023 medium 0.63, 0 exceptions; MR-024 medium 0.63, 0 exceptions; MR-025 low 0.42, 0 exceptions; MR-026 medium 0.67, 0 exceptions; MR-027 medium 0.56, 0 exceptions; MR-028 medium 0.56, 0 exceptions; MR-029 medium 0.56, 0 exceptions; MR-030 medium 0.63, 0 exceptions; MR-031 medium 0.56, 0 exceptions; MR-032 medium 0.67, 0 exceptions; MR-033 medium 0.56, 0 exceptions; MR-034 medium 0.56, 0 exceptions; MR-035 medium 0.56, 0 exceptions; MR-036 low 0.47, 0 exceptions; MR-037 low 0.47, 0 exceptions; MR-038 medium 0.68, 0 exceptions; MR-039 medium 0.50, 0 exceptions; MR-040 medium 0.50, 0 exceptions; MR-041 low 0.38, 0 exceptions; MR-042 medium 0.50, 0 exceptions; MR-043 low 0.38, 0 exceptions; MR-044 low 0.38, 0 exceptions; MR-045 low 0.38, 0 exceptions; MR-046 low 0.38, 0 exceptions; MR-047 medium 0.50, 0 exceptions; MR-048 low 0.38, 0 exceptions; MR-049 low 0.38, 0 exceptions; MR-050 low 0.38, 0 exceptions; MR-051 low 0.38, 0 exceptions; MR-052 medium 0.50, 0 exceptions; MR-053 low 0.38, 0 exceptions; MR-054 low 0.38, 0 exceptions; MR-055 low 0.38, 0 exceptions; MR-056 medium 0.74, 0 exceptions; MR-057 low 0.44, 0 exceptions; MR-058 medium 0.74, 0 exceptions; MR-059 low 0.44, 0 exceptions; MR-060 high 0.80, 0 exceptions; MR-061 medium 0.71, 0 exceptions; MR-062 high 0.82, 0 exceptions; MR-063 high 0.78, 0 exceptions; MR-064 medium 0.58, 1 exception; MR-065 high 0.78, 0 exceptions; MR-066 medium 0.62, 0 exceptions; MR-067 medium 0.74, 0 exceptions; MR-068 high 0.82, 0 exceptions; MR-069 medium 0.70, 0 exceptions; MR-070 high 0.84, 0 exceptions; MR-071 high 0.80, 0 exceptions; MR-072 medium 0.74, 0 exceptions; MR-073 high 0.81, 0 exceptions; MR-074 high 0.82, 0 exceptions; MR-075 high 0.77, 0 exceptions; MR-076 medium 0.62, 0 exceptions; MR-077 medium 0.70, 0 exceptions; MR-078 medium 0.62, 0 exceptions; MR-079 high 0.84, 0 exceptions; MR-080 high 0.77, 0 exceptions; MR-081 medium 0.62, 0 exceptions; MR-082 high 0.80, 0 exceptions; MR-083 medium 0.74, 0 exceptions; MR-084 high 0.84, 0 exceptions; MR-085 low 0.40, 0 exceptions; MR-086 low 0.40, 0 exceptions; MR-087 low 0.40, 0 exceptions; MR-088 low 0.40, 0 exceptions; MR-089 medium 0.56, 0 exceptions; MR-090 medium 0.56, 0 exceptions; MR-091 medium 0.63, 0 exceptions; MR-092 low 0.40, 1 exception; MR-093 low 0.38, 0 exceptions; MR-094 low 0.38, 0 exceptions; MR-095 low 0.38, 0 exceptions; MR-096 low 0.38, 0 exceptions; MR-097 medium 0.60, 0 exceptions; MR-098 low 0.38, 0 exceptions; MR-099 medium 0.56, 0 exceptions; MR-100 medium 0.50, 0 exceptions; MR-101 low 0.38, 0 exceptions; MR-102 medium 0.50, 0 exceptions; MR-103 low 0.38, 0 exceptions; MR-104 low 0.38, 0 exceptions; MR-105 low 0.38, 0 exceptions; MR-106 low 0.38, 0 exceptions; MR-107 medium 0.50, 0 exceptions; MR-108 low 0.38, 0 exceptions; MR-109 medium 0.50, 0 exceptions; MR-110 low 0.38, 0 exceptions; MR-111 low 0.38, 0 exceptions; MR-112 low 0.38, 0 exceptions; MR-113 low 0.38, 0 exceptions; MR-114 low 0.38, 0 exceptions; MR-115 medium 0.57, 0 exceptions; MR-116 low 0.43, 0 exceptions; MR-117 medium 0.57, 0 exceptions; MR-118 medium 0.57, 0 exceptions; MR-119 high 0.80, 0 exceptions; MR-120 medium 0.58, 0 exceptions; MR-121 medium 0.58, 0 exceptions; MR-122 medium 0.67, 0 exceptions; MR-123 medium 0.67, 0 exceptions; MR-124 medium 0.67, 0 exceptions; MR-125 low 0.42, 0 exceptions; MR-126 medium 0.56, 0 exceptions; MR-127 medium 0.56, 0 exceptions; MR-128 low 0.42, 0 exceptions; MR-129 medium 0.73, 0 exceptions; MR-130 medium 0.67, 0 exceptions; MR-131 medium 0.50, 1 exception; MR-132 medium 0.56, 0 exceptions; MR-133 medium 0.56, 0 exceptions; MR-134 medium 0.63, 0 exceptions; MR-135 low 0.42, 0 exceptions; MR-136 medium 0.71, 0 exceptions; MR-137 low 0.42, 0 exceptions; MR-138 low 0.42, 0 exceptions; MR-139 medium 0.57, 0 exceptions (APG v2: evaluated on a graph extracted with V13_APG2_OPTIONS)
+  - id: FF-A01
+    name: component-adp-cycle
+    dimension: structural
+    severity: advisory
+    route: symbolic
+    validated: false
+
+  # not mined: switched off (the style template would otherwise add them)
+  - id: FF-S03
+    name: no-layer-skip
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    # NestJS *.module.ts files are DI wiring — they import from all layers by design
+    exclude_paths:
+      - "**/*.module.ts"
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-S04
+    name: no-domain-outward-dep
+    dimension: structural
+    severity: major
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P02
+    name: dependency-inversion
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+    threshold: 0.85
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P03
+    name: repository-pattern
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P04
+    name: use-case-isolation
+    dimension: pattern
+    severity: major
+    route: symbolic
+    validated: true
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P05
+    name: controller-no-entity
+    dimension: pattern
+    severity: major
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-P06
+    name: domain-state-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C01
+    name: domain-stability
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    threshold: 0.3
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C02
+    name: module-fan-out
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    threshold: 12
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C03
+    name: component-instability
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    threshold: 0.8
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C04
+    name: no-orphan-files
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C05
+    name: max-fan-in
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    validated: false
+    threshold: 20
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-C06
+    name: abstraction-ratio
+    dimension: coupling
+    severity: advisory
+    route: symbolic
+    validated: false
+    threshold: 0.3
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-SO01
+    name: single-responsibility-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    validated: true
+    max_public_methods: 10
+    max_dependencies: 5
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-SO02
+    name: interface-segregation-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    validated: true
+    max_interface_methods: 5
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-SO03
+    name: inheritance-depth
+    dimension: solid
+    severity: minor
+    route: symbolic
+    validated: false
+    max_depth: 3
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-CV01
+    name: naming-conventions
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+    validated: true
+
+  - id: FF-CV02
+    name: naming-services
+    dimension: convention
+    severity: minor
+    route: symbolic
+    validated: false
+    pattern: "*Service|*UseCase"
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-CV03
+    name: naming-repos
+    dimension: convention
+    severity: minor
+    route: symbolic
+    validated: false
+    pattern: "*Repository|*Repo"
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-CV04
+    name: naming-controllers
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+    validated: false
+    pattern: "*Controller"
+
+  - id: FF-CV05
+    name: test-file-pairing
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-CV06
+    name: no-index-logic
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    validated: false
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-N01
+    name: architectural-integrity
+    dimension: integrity
+    severity: major
+    route: neuronal
+    validated: false
+    semantic_criteria:
+      rule: "The module's files form one coherent unit with a consistent abstraction and boundary."
+      rubric:
+        pass: "The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place."
+        fail: "The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions."
+        evidence_required: "Name each file involved and cite the declarations that show the split, the duplication or the bypass."
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+  - id: FF-N02
+    name: intent-alignment
+    dimension: semantic
+    severity: major
+    route: neuronal
+    validated: false
+    semantic_criteria:
+      rule: "The unit's responsibilities match the role of its declared layer."
+      rubric:
+        pass: "Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given."
+        fail: "The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file."
+        evidence_required: "Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to."
+    enabled: false
+    reason: "not mined: rule mining proposes only the rules the code follows"
+
+default_exclude_paths:
+  - "node_modules/**"
+  - "dist/**"
+  - "**/*.spec.ts"
+  - "**/*.test.ts"
+  - "test/**"
+  - "src/generated/**"
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70
