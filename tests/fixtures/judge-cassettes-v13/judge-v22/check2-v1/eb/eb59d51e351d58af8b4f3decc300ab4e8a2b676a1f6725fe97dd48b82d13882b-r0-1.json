@@ -1,0 +1,51 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 7758,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "eb59d51e351d58af8b4f3decc300ab4e8a2b676a1f6725fe97dd48b82d13882b-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "src/business/stock/Item.ts: `@Entity()` on `export class Item` declares the domain class as a TypeORM persistence entity (ORM mapping belongs to the infrastructure layer)",
+      "src/business/stock/Item.ts: `@Column()` on `sku: string;` maps the field to a database column (a persistence concern)",
+      "src/business/stock/Item.ts: `needsReorder(onHand)` is a genuine domain rule and fits the business layer"
+    ],
+    "pass": false,
+    "reasoning": "src/business/stock/Item.ts is declared in the business layer, which is a domain layer. Its business rule, needsReorder(onHand), fits that layer. However, the file also maps the class to a database: the class has TypeORM's @Entity() decorator and the sku field has @Column(). These decorators describe how the class is stored by the ORM, which is persistence work and belongs to the infrastructure layer (src/persistence/**). That puts framework and persistence concerns inside a domain entity. The import of 'typeorm' itself is a dependency-direction question and out of scope; the violation here is the mapping responsibility the decorators add.",
+    "violations": [
+      {
+        "filePath": "src/business/stock/Item.ts",
+        "message": "Domain entity Item does ORM mapping: the @Entity() decorator on class Item and the @Column() decorator on field sku are persistence/framework work that belongs in the infrastructure layer (src/persistence/**), for example in a separate ORM entity or mapping schema."
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**\n- business (kind: domain): src/business/**\n- presentation (kind: presentation): src/presentation/**\n\n## Unit\nKind: file\nId: src/business/stock/Item.ts\nLayer: business\nUnit files:\n- src/business/stock/Item.ts\n\n## Source\n=====SOURCE-BEGIN src/business/stock/Item.ts=====\nimport { Entity, Column } from 'typeorm';\n\n@Entity()\nexport class Item {\n  @Column()\n  sku: string;\n  description: string;\n  unitWeightGrams: number;\n  reorderLevel: number;\n\n  constructor(sku: string, description: string, unitWeightGrams: number, reorderLevel: number) {\n    this.sku = sku;\n    this.description = description;\n    this.unitWeightGrams = unitWeightGrams;\n    this.reorderLevel = reorderLevel;\n  }\n\n  needsReorder(onHand: number): boolean {\n    return onHand <= this.reorderLevel;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/business/services/ReceivingService.ts\",\"to\":\"src/business/stock/Item.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/business/stock/Bin.ts\",\"to\":\"src/business/stock/Item.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/business/stock/Item.ts\",\"to\":\"typeorm\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"business\",\"name\":\"Item\",\"path\":\"src/business/stock/Item.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/services/ReceivingService.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/stock/Bin.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/stock/Item.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"typeorm\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T03:33:52.217Z",
+  "repetition": 0,
+  "requestHash": "eb59d51e351d58af8b4f3decc300ab4e8a2b676a1f6725fe97dd48b82d13882b",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":679}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"src/business/stock/Item.ts is declared in the business layer, which is a domain layer. Its business rule, needsReorder(onHand), fits that layer. However, the file also maps the class to a database: the class has TypeORM's @Entity() decorator and the sku field has @Column(). These decorators describe how the class is stored by the ORM, which is persistence work and belongs to the infrastructure layer (src/persistence/**). That puts framework and persistence concerns inside a domain entity. The import of 'typeorm' itself is a dependency-direction question and out of scope; the violation here is the mapping responsibility the decorators add.\\\",\\\"evidence\\\":[\\\"src/business/stock/Item.ts: `@Entity()` on `export class Item` declares the domain class as a TypeORM persistence entity (ORM mapping belongs to the infrastructure layer)\\\",\\\"src/business/stock/Item.ts: `@Column()` on `sku: string;` maps the field to a database column (a persistence concern)\\\",\\\"src/business/stock/Item.ts: `needsReorder(onHand)` is a genuine domain rule and fits the business layer\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/business/stock/Item.ts\\\",\\\"message\\\":\\\"Domain entity Item does ORM mapping: the @Entity() decorator on class Item and the @Column() decorator on field sku are persistence/framework work that belongs in the infrastructure layer (src/persistence/**), for example in a separate ORM entity or mapping schema.\\\"}]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"src/business/stock/Item.ts: `@Entity()` on `export class Item` declares the domain class as a TypeORM persistence entity (ORM mapping belongs to the infrastructure layer)\",\"src/business/stock/Item.ts: `@Column()` on `sku: string;` maps the field to a database column (a persistence concern)\",\"src/business/stock/Item.ts: `needsReorder(onHand)` is a genuine domain rule and fits the business layer\"],\"pass\":false,\"reasoning\":\"src/business/stock/Item.ts is declared in the business layer, which is a domain layer. Its business rule, needsReorder(onHand), fits that layer. However, the file also maps the class to a database: the class has TypeORM's @Entity() decorator and the sku field has @Column(). These decorators describe how the class is stored by the ORM, which is persistence work and belongs to the infrastructure layer (src/persistence/**). That puts framework and persistence concerns inside a domain entity. The import of 'typeorm' itself is a dependency-direction question and out of scope; the violation here is the mapping responsibility the decorators add.\",\"violations\":[{\"filePath\":\"src/business/stock/Item.ts\",\"message\":\"Domain entity Item does ORM mapping: the @Entity() decorator on class Item and the @Column() decorator on field sku are persistence/framework work that belongs in the infrastructure layer (src/persistence/**), for example in a separate ORM entity or mapping schema.\"}]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/business/stock/Item.ts",
+  "usage": {
+    "inputTokens": 2412,
+    "outputTokens": 679
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

@@ -27,20 +27,26 @@ export interface McpArgs {
   readonly neural?: NeuralArgs;
   /** `--engine neo4j|cypher-interp`; absent = the NEO4J_URI default (`engine-default.ts`). */
   readonly engine?: string;
+  /** `--rule-mining`: also register the opt-in `propose_rules` tool. */
+  readonly ruleMining?: boolean;
 }
 
 const FLAGS: Readonly<Record<string, 'spec' | 'project' | 'engine' | 'fastRulesEngine'>> = { '--spec': 'spec', '--project': 'project', '--engine': 'engine', '--fast-rules-engine': 'fastRulesEngine' };
 
 /**
- * `--spec <path>`, `--project <path>`, `--engine <name>` and `--fast-rules-engine <name>` (also `--flag=value`), plus
- * the neural flags (`neural-context.ts`); unknown flags are ignored. Pure.
+ * `--spec <path>`, `--project <path>`, `--engine <name>` and `--fast-rules-engine <name>` (also `--flag=value`), `--hints`,
+ * `--rule-mining`, plus the neural flags (`neural-context.ts`); unknown flags are ignored. Pure.
  */
 export function parseArgs(argv: readonly string[]): McpArgs {
-  const out: { spec?: string; project?: string; engine?: string; fastRulesEngine?: string; hints?: boolean; neural?: NeuralArgs } = {};
+  const out: { spec?: string; project?: string; engine?: string; fastRulesEngine?: string; hints?: boolean; neural?: NeuralArgs; ruleMining?: boolean } = {};
   const neural = parseNeuralArgs(argv);
   if (neural !== undefined) out.neural = neural;
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i] ?? '';
+    if (arg === '--rule-mining') {
+      out.ruleMining = true;
+      continue;
+    }
     if (arg === '--hints') {
       out.hints = true;
       continue;
@@ -97,6 +103,7 @@ export function buildContext(args: McpArgs, env: NodeJS.ProcessEnv): ServerConte
     defaultSpecPath: args.spec ?? env.DAEDALUS_SPEC,
     defaultProjectPath: args.project ?? env.DAEDALUS_PROJECT,
     ...(args.hints === true || env.DAEDALUS_HINTS === '1' ? { hints: true } : {}),
+    ruleMining: args.ruleMining === true || env.DAEDALUS_RULE_MINING === '1',
     env,
     loadSpec: createSpecLoader(),
     evaluateDeps: {

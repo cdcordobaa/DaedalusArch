@@ -31,6 +31,8 @@ import type { SpecProposal } from '../ise/propose.js';
 import type { NeuralService } from './neural-service.js';
 import { explainAndFix, reviewUnit } from './neural-tools.js';
 import type { ExplainAndFixArgs, ExplainAndFixResult, FixHintSource, ReviewUnitArgs, ReviewUnitResult } from './neural-tools.js';
+import { defaultPresetsDir, proposeRules, summariseProposal } from '../rule-mining/index.js';
+import type { ProposalSummary } from '../rule-mining/index.js';
 import type {
   ArchitectureSpecView,
   CheckImportResult,
@@ -81,6 +83,8 @@ export interface ServerContext {
   readonly fixHints?: FixHintSource | undefined;
   /** Graph engine of `evaluate_project` and the template checks; absent = `neo4j` (the reference engine). */
   readonly graphEngine?: GraphEngine | undefined;
+  /** Register the opt-in `propose_rules` tool (rule mining). Off by default. */
+  readonly ruleMining?: boolean | undefined;
 }
 
 const ok = <T>(data: T): ToolOutcome<T> => ({ ok: true, data });
@@ -428,4 +432,25 @@ export async function explainAndFixTool(
     loaded.data.spec,
     args,
   );
+}
+
+/**
+ * `propose_rules`: the implicit rules of a project that has no spec, mined from its graph (src/rule-mining). Every rule
+ * is labelled a proposal. Reads the project through a snapshot (src/ and tsconfig.json); no Neo4j, no LLM, no writes.
+ */
+export async function proposeRulesTool(
+  ctx: ServerContext,
+  args: { readonly project?: string | undefined; readonly minConfidence?: number | undefined; readonly includeSpec?: boolean | undefined; readonly maxExceptions?: number | undefined },
+): Promise<ToolOutcome<ProposalSummary>> {
+  const project = args.project ?? ctx.defaultProjectPath;
+  if (project === undefined) {
+    return fail('No project configured: pass `project` or start the server with --project <path>.');
+  }
+  if (!fs.existsSync(path.join(path.resolve(project), 'src'))) return fail(`No src/ directory under ${path.resolve(project)}: rule mining reads src/ and tsconfig.json.`);
+  try {
+    const proposal = await proposeRules(path.resolve(project), { presetsDir: ctx.presetsDir ?? defaultPresetsDir(), ...(args.minConfidence !== undefined && { minConfidence: args.minConfidence }) });
+    return ok(summariseProposal(proposal, { includeSpec: args.includeSpec ?? true, maxExceptions: args.maxExceptions ?? 20 }));
+  } catch (e: unknown) {
+    return fail(`Rule mining failed: ${e instanceof Error ? e.message : String(e)}`);
+  }
 }

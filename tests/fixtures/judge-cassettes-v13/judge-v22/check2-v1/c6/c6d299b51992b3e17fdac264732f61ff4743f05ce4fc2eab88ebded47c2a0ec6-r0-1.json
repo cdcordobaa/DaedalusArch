@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6456,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "c6d299b51992b3e17fdac264732f61ff4743f05ce4fc2eab88ebded47c2a0ec6-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/business/stock/Item.ts: class Item only holds domain attributes (sku, description, unitWeightGrams, reorderLevel) and sets them in its constructor.",
+      "src/business/stock/Item.ts: needsReorder(onHand) returns onHand <= this.reorderLevel, a domain business rule that belongs in the business layer.",
+      "src/business/stock/Item.ts: no database, HTTP, framework or UI code appears in the file."
+    ],
+    "pass": true,
+    "reasoning": "src/business/stock/Item.ts is a plain domain entity. It holds stock item data (sku, description, unitWeightGrams, reorderLevel) and one business rule, needsReorder. It has no persistence, transport, framework or presentation logic, so every responsibility fits the domain kind of the business layer. No ADR prose was provided.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**\n- business (kind: domain): src/business/**\n- presentation (kind: presentation): src/presentation/**\n\n## Unit\nKind: file\nId: src/business/stock/Item.ts\nLayer: business\nUnit files:\n- src/business/stock/Item.ts\n\n## Source\n=====SOURCE-BEGIN src/business/stock/Item.ts=====\nexport class Item {\n  sku: string;\n  description: string;\n  unitWeightGrams: number;\n  reorderLevel: number;\n\n  constructor(sku: string, description: string, unitWeightGrams: number, reorderLevel: number) {\n    this.sku = sku;\n    this.description = description;\n    this.unitWeightGrams = unitWeightGrams;\n    this.reorderLevel = reorderLevel;\n  }\n\n  needsReorder(onHand: number): boolean {\n    return onHand <= this.reorderLevel;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/business/services/ReceivingService.ts\",\"to\":\"src/business/stock/Item.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/business/stock/Bin.ts\",\"to\":\"src/business/stock/Item.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"business\",\"name\":\"Item\",\"path\":\"src/business/stock/Item.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/services/ReceivingService.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/stock/Bin.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/stock/Item.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T02:44:30.029Z",
+  "repetition": 0,
+  "requestHash": "c6d299b51992b3e17fdac264732f61ff4743f05ce4fc2eab88ebded47c2a0ec6",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":405}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"src/business/stock/Item.ts is a plain domain entity. It holds stock item data (sku, description, unitWeightGrams, reorderLevel) and one business rule, needsReorder. It has no persistence, transport, framework or presentation logic, so every responsibility fits the domain kind of the business layer. No ADR prose was provided.\\\",\\\"evidence\\\":[\\\"src/business/stock/Item.ts: class Item only holds domain attributes (sku, description, unitWeightGrams, reorderLevel) and sets them in its constructor.\\\",\\\"src/business/stock/Item.ts: needsReorder(onHand) returns onHand <= this.reorderLevel, a domain business rule that belongs in the business layer.\\\",\\\"src/business/stock/Item.ts: no database, HTTP, framework or UI code appears in the file.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/business/stock/Item.ts: class Item only holds domain attributes (sku, description, unitWeightGrams, reorderLevel) and sets them in its constructor.\",\"src/business/stock/Item.ts: needsReorder(onHand) returns onHand <= this.reorderLevel, a domain business rule that belongs in the business layer.\",\"src/business/stock/Item.ts: no database, HTTP, framework or UI code appears in the file.\"],\"pass\":true,\"reasoning\":\"src/business/stock/Item.ts is a plain domain entity. It holds stock item data (sku, description, unitWeightGrams, reorderLevel) and one business rule, needsReorder. It has no persistence, transport, framework or presentation logic, so every responsibility fits the domain kind of the business layer. No ADR prose was provided.\",\"violations\":[]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/business/stock/Item.ts",
+  "usage": {
+    "inputTokens": 2321,
+    "outputTokens": 405
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

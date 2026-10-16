@@ -1,0 +1,255 @@
+{
+ "id": "reactive-resume-api",
+ "sha": "8da9d9da475da3372fed2ea527494e195fb18abb",
+ "label": "PROPOSED rules: mined from the code (deterministic, no LLM), not a reviewed spec. Review before use; exceptions are candidate violations, not confirmed ones.",
+ "style": "layered",
+ "styleConfidence": 1,
+ "layers": {
+  "persistence": 8,
+  "business": 105,
+  "presentation": 2
+ },
+ "allowedDependencies": [
+  "business>persistence",
+  "presentation>business",
+  "presentation>persistence"
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "statement": "persistence must not depend on business (47 edges business -> persistence; 1/8 persistence files import business)",
+   "subject": "persistence",
+   "object": "business",
+   "confidence": 0.746,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 8,
+    "importingFiles": 1,
+    "edges": 1,
+    "reverseEdges": 47
+   },
+   "exceptions": [
+    {
+     "file": "src/features/storage/router.ts",
+     "target": "src/middleware/rate-limit/index.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "statement": "persistence must not depend on presentation (3 edges presentation -> persistence; 0/8 persistence files import presentation)",
+   "subject": "persistence",
+   "object": "presentation",
+   "confidence": 0.667,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 8,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 3
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "statement": "business must not depend on presentation (15 edges presentation -> business; 0/105 business files import presentation)",
+   "subject": "business",
+   "object": "presentation",
+   "confidence": 0.929,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 105,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 15
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-004",
+   "kind": "acyclic-files",
+   "statement": "no file lies on an import cycle (115/115 files do not)",
+   "subject": "*",
+   "confidence": 0.991,
+   "level": "high",
+   "evidence": {
+    "files": 115,
+    "filesOnCycles": 0,
+    "cycles": 0
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "no-cyclic-deps",
+    "via": "fitness function FF-S02"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-005",
+   "kind": "component-direction",
+   "statement": "folder component features must not depend on routers (17 imports routers -> features; 0/100 files import back)",
+   "subject": "folder:features",
+   "object": "folder:routers",
+   "confidence": 0.935,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 100,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 17
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-006",
+   "kind": "component-direction",
+   "statement": "folder component middleware must not depend on features (19 imports features -> middleware; 0/1 files import back)",
+   "subject": "folder:middleware",
+   "object": "folder:features",
+   "confidence": 0.475,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 1,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 19
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-007",
+   "kind": "component-direction",
+   "statement": "folder component dto must not depend on features (21 imports features -> dto; 1/9 files import back)",
+   "subject": "folder:dto",
+   "object": "folder:features",
+   "confidence": 0.73,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 9,
+    "importingFiles": 1,
+    "edges": 1,
+    "reverseEdges": 21
+   },
+   "exceptions": [
+    {
+     "file": "src/dto/web-access.ts",
+     "target": "src/features/web-access/contracts.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-008",
+   "kind": "core-package-free",
+   "statement": "persistence (a core layer: it may depend on no other layer) imports none of @ai-sdk/anthropic, @ai-sdk/cerebras, @ai-sdk/cohere, @ai-sdk/deepseek, @ai-sdk/fireworks, @ai-sdk/google, @ai-sdk/groq, @ai-sdk/mistral, @ai-sdk/openai, @ai-sdk/openai-compatible, @ai-sdk/perplexity, @ai-sdk/togetherai, @ai-sdk/xai, @orpc/client, @reactive-resume/ai, @reactive-resume/docx, @reactive-resume/email, @reactive-resume/import, @reactive-resume/odt, @reactive-resume/pdf, @reactive-resume/resume, @reactive-resume/schema, ai, bcryptjs, dns, drizzle-zod, events, fflate, https, jsonrepair, ollama-ai-provider-v2, pdfjs-dist, resumable-stream, sanitize-html, tokenx, ts-pattern, util",
+   "subject": "persistence",
+   "confidence": 0.889,
+   "level": "high",
+   "evidence": {
+    "coreFiles": 8,
+    "packages": 37
+   },
+   "exceptions": [],
+   "params": {
+    "forbidden_imports": [
+     "@ai-sdk/anthropic",
+     "@ai-sdk/cerebras",
+     "@ai-sdk/cohere",
+     "@ai-sdk/deepseek",
+     "@ai-sdk/fireworks",
+     "@ai-sdk/google",
+     "@ai-sdk/groq",
+     "@ai-sdk/mistral",
+     "@ai-sdk/openai",
+     "@ai-sdk/openai-compatible",
+     "@ai-sdk/perplexity",
+     "@ai-sdk/togetherai",
+     "@ai-sdk/xai",
+     "@orpc/client",
+     "@reactive-resume/ai",
+     "@reactive-resume/docx",
+     "@reactive-resume/email",
+     "@reactive-resume/import",
+     "@reactive-resume/odt",
+     "@reactive-resume/pdf",
+     "@reactive-resume/resume",
+     "@reactive-resume/schema",
+     "ai",
+     "bcryptjs",
+     "dns",
+     "drizzle-zod",
+     "events",
+     "fflate",
+     "https",
+     "jsonrepair",
+     "ollama-ai-provider-v2",
+     "pdfjs-dist",
+     "resumable-stream",
+     "sanitize-html",
+     "tokenx",
+     "ts-pattern",
+     "util"
+    ]
+   },
+   "compilesTo": null,
+   "notRepresentable": "domain-purity checks the domain-kind layer only (business), not persistence",
+   "status": "proposal"
+  }
+ ],
+ "counts": {
+  "rules": 8,
+  "high": 4,
+  "medium": 3,
+  "low": 1,
+  "exceptions": 2,
+  "notRepresentable": 1
+ },
+ "spec": {
+  "valid": true,
+  "errors": [],
+  "compiled": [
+   "dependency-direction",
+   "no-cyclic-deps",
+   "no-layer-skip"
+  ]
+ }
+}
