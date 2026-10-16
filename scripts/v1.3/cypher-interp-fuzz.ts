@@ -202,13 +202,13 @@ function unjson(v: unknown): unknown {
   return v;
 }
 
-/** Replays every minimised repro of a fuzz-mismatches.jsonl with the current interpreter; returns the verdicts now. */
+/** Replays every mismatch of a fuzz-mismatches.jsonl (its minimised repro, else the seed's graph) with the current interpreter. */
 async function recheck(neo: GraphRepository, file: string): Promise<{ seed: number; label: string; was: Verdict; now: Verdict; detail?: string }[]> {
   const out: { seed: number; label: string; was: Verdict; now: Verdict; detail?: string }[] = [];
   for (const line of fs.readFileSync(file, 'utf8').split('\n').filter((l) => l.trim() !== '')) {
     const m = JSON.parse(line) as Mismatch;
-    if (m.minimised === undefined) continue;
-    const p = unjson(m.minimised.project) as FuzzProject;
+    // A minimised repro when there is one, else the seed's whole graph.
+    const p = m.minimised === undefined ? fuzzProject(m.seed) : unjson(m.minimised.project) as FuzzProject;
     const { cand } = await ingestBoth(neo, p);
     const s: Statement = { label: m.label, binding: m.binding as Statement['binding'], text: m.text };
     const r = await runStatement(neo, cand, s, paramsFor(p, cand)[s.binding]);
