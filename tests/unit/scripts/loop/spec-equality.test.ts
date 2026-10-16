@@ -6,7 +6,7 @@
 import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { checkSpecEquality, loadLoopPlan, validatePlan } from '../../../../scripts/lib/loop/plan.js';
+import { checkSpecEquality, loadLoopPlan, specFileSha256, validatePlan } from '../../../../scripts/lib/loop/plan.js';
 import type { LoopPlanFile } from '../../../../scripts/lib/loop/plan.js';
 import { tmpRoot } from './helpers.js';
 
@@ -81,5 +81,13 @@ describe('checkSpecEquality', () => {
     if (!r.success) expect(r.errors.map((e) => e.code)).toEqual(['LOOP_PLAN_SPEC_MISMATCH']);
     fs.writeFileSync(file, JSON.stringify(plan({ specSha256: SPEC_SHA })));
     expect(loadLoopPlan(file, REPO, {}, { requireSpecSha256: true }).success).toBe(true);
+  });
+});
+
+describe('specFileSha256 (the one R23 hashing helper, review item 8)', () => {
+  it('hashes the bytes or returns the read error', () => {
+    expect(specFileSha256(path.join(REPO, SPEC))).toEqual({ sha256: SPEC_SHA });
+    const missing = specFileSha256(path.join(tmp, 'absent.yaml'));
+    expect('error' in missing && missing.error).toMatch(/ENOENT/);
   });
 });

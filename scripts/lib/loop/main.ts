@@ -59,7 +59,7 @@ import { CODEX_CLI_ADAPTER_ID_VALUE } from '../generators/types.js';
 import { acceptanceRunner } from './acceptance.js';
 import { ClaudeStepAgent, CodexStepAgent } from './agents.js';
 import { checkIsolationPaths } from './isolation.js';
-import { firewallEvaluator, harnessSnapshotTsconfig, harnessTypechecker } from './evaluator.js';
+import { harnessTypechecker, loopEvaluatorOf } from './evaluator.js';
 import { evaluatorForEngine, parseLoopEngine } from './engine-tee.js';
 import type { LoopEngine } from './engine-tee.js';
 import { assertGateApplied, gateEvaluationFailures, restartCounts, runDirFor, runLoop } from './loop.js';
@@ -402,7 +402,7 @@ async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs
     deps.err(`PARITY ${p.status} ${runId ?? '?'}: ${JSON.stringify(p.diff ?? p.checkError ?? {})}\n`);
   };
   const evaluatorOf = (specFile: string): StepEvaluator =>
-    evaluatorForEngine(engine, evaluateDeps, deps.parentEnv, (d, env) => firewallEvaluator(specFile, env, d, harnessSnapshotTsconfig(plan.harnessRoot)), { onMismatch });
+    evaluatorForEngine(engine, evaluateDeps, deps.parentEnv, (d, env) => loopEvaluatorOf(plan.harnessRoot, env, d)(specFile), { onMismatch });
   const profiles = buildProfiles(loaded, repoRoot, evaluatorOf, iseDddFreezer(repoRoot));
   if (!profiles.success) return DomainResult.fail(profiles.errors);
   const extras = buildFrameExtras(loaded, repoRoot);

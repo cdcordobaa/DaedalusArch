@@ -320,6 +320,15 @@ function pinProblems(adapters: readonly unknown[], codex: unknown, isolation: un
   return errors;
 }
 
+/** R23's one hashing helper: the sha256 of a spec file's bytes, or the read error's message. */
+export function specFileSha256(file: string): { readonly sha256: string } | { readonly error: string } {
+  try {
+    return { sha256: createHash('sha256').update(fs.readFileSync(file)).digest('hex') };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
 /**
  * R23 (post-merge review 2026-10-16): in the daedalus-mcp arm the MCP server's spec (`daedalus.specPath`) and the
  * evaluator's spec (`evaluatorSpec`, repository-relative) must hold the same rules, or the tool's advice and the score
@@ -333,11 +342,8 @@ export function mcpSpecCheck(
     return DomainResult.fail([err('LOOP_PLAN_SPEC_MISMATCH', 'the daedalus-mcp arm needs daedalus.specPath and evaluatorSpec')]);
   }
   const hash = (file: string): string | undefined => {
-    try {
-      return createHash('sha256').update(fs.readFileSync(file)).digest('hex');
-    } catch {
-      return undefined;
-    }
+    const h = specFileSha256(file);
+    return 'sha256' in h ? h.sha256 : undefined;
   };
   const evaluatorFile = path.resolve(repoRoot, plan.evaluatorSpec);
   const mcp = hash(plan.daedalus.specPath);
@@ -449,13 +455,12 @@ export function checkSpecEquality(plan: LoopPlanFile, repoRoot: string, checks: 
   if (mcp && plan.daedalus !== undefined) files.push(['daedalus.specPath', path.resolve(repoRoot, plan.daedalus.specPath)]);
   const errors: DomainError[] = [];
   for (const [field, file] of files) {
-    let got: string;
-    try {
-      got = createHash('sha256').update(fs.readFileSync(file)).digest('hex');
-    } catch (e) {
-      errors.push(err('LOOP_FILE_UNREADABLE', `${field} ${file}: ${e instanceof Error ? e.message : String(e)}`));
+    const h = specFileSha256(file);
+    if ('error' in h) {
+      errors.push(err('LOOP_FILE_UNREADABLE', `${field} ${file}: ${h.error}`));
       continue;
     }
+    const got = h.sha256;
     if (got !== plan.specSha256) errors.push(err('LOOP_PLAN_SPEC_MISMATCH', `${field} ${file} has sha256 ${got}, the plan pins ${plan.specSha256}`));
   }
   return errors;
