@@ -73,6 +73,14 @@ export interface CompileOptions {
    */
   readonly memberFacts?: boolean;
   /**
+   * v1.3 field-level state, OFF by default and OFF in `V13_COMPILE_OPTIONS` (construct question Q8 is open; the Q8
+   * construct switch decides how FLOWS_TO rows are scored, not which fact feeds the field half): FF-P06
+   * domain-state-purity reads its field half from HOLDS_STATE_OF instead of FLOWS_TO (`applyFieldState`,
+   * `v13-rewrites.ts`). Needs a graph extracted with `ExtractorOptions.fieldState`
+   * (`V13_FIELD_STATE_OPTIONS`); on any other graph the field half returns no row.
+   */
+  readonly fieldState?: boolean;
+  /**
    * v1.3, absent by default: the construct-decision answers (`src/shared/construct-switches.ts`). Read by the compile
    * hook (`src/construct-switches/compile.ts`: preset additions, layer order, applicability, carrier functions). At the
    * status quo (every question at A) the hook is the identity.
@@ -94,6 +102,7 @@ function rewriteFlags(options: CompileOptions): V13RewriteFlags {
   return {
     edgeViews: options.edgeViews === true, roleTokens: options.roleTokens === true, memberFacts: options.memberFacts === true,
     signatureTypes: options.signatureTypes === true,
+    ...(options.fieldState === true ? { fieldState: true } : {}),
   };
 }
 

@@ -1,0 +1,2365 @@
+{
+ "id": "standardnotes-auth",
+ "stats": {
+  "signatureUses": 431,
+  "components": 9,
+  "componentSource": "declared",
+  "dependsOn": 25,
+  "deepImports": 77,
+  "exportsSymbol": 2,
+  "channels": 0,
+  "async": {
+   "publishes": 0,
+   "subscribes": 0,
+   "dynamicNames": 0
+  },
+  "io": {
+   "byCategory": {
+    "db": 374,
+    "http-out": 2,
+    "fs": 2,
+    "env": 0,
+    "clock": 12,
+    "random": 5,
+    "process": 0
+   }
+  },
+  "timingsMs": {
+   "typeFlow": 74.4,
+   "components": 15.5,
+   "async": 331.4,
+   "io": 236.9
+  }
+ },
+ "params": {
+  "domainLayer": "domain",
+  "applicationLayers": [
+   "application"
+  ],
+  "infraLayer": "infrastructure",
+  "controllerLayer": "infrastructure",
+  "threshold": 0.7,
+  "allowedAsync": [],
+  "compositionRootLayers": [],
+  "compositionRootPatterns": [
+   "^(?:.*/)?(?:main|bootstrap|composition-root|compositionRoot|container|di)\\.(?:ts|tsx|mts|cts)$",
+   "^(?:.*/)?[^/]+\\.(?:module|container)\\.(?:ts|tsx|mts|cts)$"
+  ],
+  "testPatterns": [
+   "^(?:.*/)?[^/]*\\.(?:spec|test)\\.(?:ts|tsx|mts|cts)$",
+   "^(?:.*/)?(?:__tests__|__mocks__|test|tests)/.*$",
+   "^(?:.*/)?[Tt]est[A-Z._-][^/]*$"
+  ],
+  "aclPatterns": [],
+  "minTypes": 4
+ },
+ "components": [
+  {
+   "name": "domain",
+   "kind": "layer"
+  },
+  {
+   "name": "application",
+   "kind": "layer"
+  },
+  {
+   "name": "infrastructure",
+   "kind": "layer"
+  },
+  {
+   "name": "Bootstrap",
+   "kind": "folder"
+  },
+  {
+   "name": "Controller",
+   "kind": "folder"
+  },
+  {
+   "name": "Domain",
+   "kind": "folder"
+  },
+  {
+   "name": "Infra",
+   "kind": "folder"
+  },
+  {
+   "name": "Mapping",
+   "kind": "folder"
+  },
+  {
+   "name": "Projection",
+   "kind": "folder"
+  }
+ ],
+ "parseCoverage": {
+  "total": 469,
+  "parsed": 469
+ },
+ "importResolution": {
+  "resolvedInternal": 1399,
+  "external": 728,
+  "externalOutOfRootAlias": 0,
+  "unresolved": 0,
+  "droppedNoFileNode": 0,
+  "unsupportedDynamic": 0
+ },
+ "counts": {
+  "boundary-type-leak": 32,
+  "component-adp-cycle": 20,
+  "component-sdp-violation": 12,
+  "component-main-sequence-distance": 1,
+  "deep-import-declared-api": 0,
+  "deep-import-inferred-api": 77,
+  "undeclared-async-coupling": 0,
+  "io-outside-adapters": 1,
+  "nondeterminism-in-core": 13
+ },
+ "rows": {
+  "boundary-type-leak": [
+   {
+    "filePath": "src/Controller/AuthController.ts",
+    "member": "AuthController.generateRecoveryCodes",
+    "leakedType": "GenerateRecoveryCodesRequestParams",
+    "target": "src/Infra/Http/Request/GenerateRecoveryCodesRequestParams.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/Controller/AuthController.ts",
+    "_line": 31,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Controller/AuthController.ts",
+    "member": "AuthController.generateRecoveryCodes",
+    "leakedType": "GenerateRecoveryCodesResponseBody",
+    "target": "src/Infra/Http/Response/GenerateRecoveryCodesResponseBody.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "return"
+    ],
+    "inferred": false,
+    "_file": "src/Controller/AuthController.ts",
+    "_line": 31,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Controller/AuthController.ts",
+    "member": "AuthController.recoveryKeyParams",
+    "leakedType": "RecoveryKeyParamsRequestParams",
+    "target": "src/Infra/Http/Request/RecoveryKeyParamsRequestParams.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/Controller/AuthController.ts",
+    "_line": 59,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Controller/AuthController.ts",
+    "member": "AuthController.recoveryKeyParams",
+    "leakedType": "RecoveryKeyParamsResponseBody",
+    "target": "src/Infra/Http/Response/RecoveryKeyParamsResponseBody.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "return"
+    ],
+    "inferred": false,
+    "_file": "src/Controller/AuthController.ts",
+    "_line": 59,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Controller/AuthenticatorsController.ts",
+    "member": "AuthenticatorsController.delete",
+    "leakedType": "DeleteAuthenticatorRequestParams",
+    "target": "src/Infra/Http/Request/DeleteAuthenticatorRequestParams.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/Controller/AuthenticatorsController.ts",
+    "_line": 58,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Controller/AuthenticatorsController.ts",
+    "member": "AuthenticatorsController.delete",
+    "leakedType": "DeleteAuthenticatorResponseBody",
+    "target": "src/Infra/Http/Response/DeleteAuthenticatorResponseBody.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "return"
+    ],
+    "inferred": false,
+    "_file": "src/Controller/AuthenticatorsController.ts",
+    "_line": 58,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Controller/AuthenticatorsController.ts",
+    "member": "AuthenticatorsController.generateAuthenticationOptions",
+    "leakedType": "GenerateAuthenticatorAuthenticationOptionsRequestParams",
+    "target": "src/Infra/Http/Request/GenerateAuthenticatorAuthenticationOptionsRequestParams.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/Controller/AuthenticatorsController.ts",
+    "_line": 133,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Controller/AuthenticatorsController.ts",
+    "member": "AuthenticatorsController.generateAuthenticationOptions",
+    "leakedType": "GenerateAuthenticatorAuthenticationOptionsResponseBody",
+    "target": "src/Infra/Http/Response/GenerateAuthenticatorAuthenticationOptionsResponseBody.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "return"
+    ],
+    "inferred": false,
+    "_file": "src/Controller/AuthenticatorsController.ts",
+    "_line": 133,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Controller/AuthenticatorsController.ts",
+    "member": "AuthenticatorsController.generateRegistrationOptions",
+    "leakedType": "GenerateAuthenticatorRegistrationOptionsRequestParams",
+    "target": "src/Infra/Http/Request/GenerateAuthenticatorRegistrationOptionsRequestParams.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/Controller/AuthenticatorsController.ts",
+    "_line": 83,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Controller/AuthenticatorsController.ts",
+    "member": "AuthenticatorsController.generateRegistrationOptions",
+    "leakedType": "GenerateAuthenticatorRegistrationOptionsResponseBody",
+    "target": "src/Infra/Http/Response/GenerateAuthenticatorRegistrationOptionsResponseBody.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "return"
+    ],
+    "inferred": false,
+    "_file": "src/Controller/AuthenticatorsController.ts",
+    "_line": 83,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Controller/AuthenticatorsController.ts",
+    "member": "AuthenticatorsController.list",
+    "leakedType": "ListAuthenticatorsRequestParams",
+    "target": "src/Infra/Http/Request/ListAuthenticatorsRequestParams.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/Controller/AuthenticatorsController.ts",
+    "_line": 32,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Controller/AuthenticatorsController.ts",
+    "member": "AuthenticatorsController.list",
+    "leakedType": "ListAuthenticatorsResponseBody",
+    "target": "src/Infra/Http/Response/ListAuthenticatorsResponseBody.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "return"
+    ],
+    "inferred": false,
+    "_file": "src/Controller/AuthenticatorsController.ts",
+    "_line": 32,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Controller/AuthenticatorsController.ts",
+    "member": "AuthenticatorsController.verifyRegistrationResponse",
+    "leakedType": "VerifyAuthenticatorRegistrationResponseRequestParams",
+    "target": "src/Infra/Http/Request/VerifyAuthenticatorRegistrationResponseRequestParams.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/Controller/AuthenticatorsController.ts",
+    "_line": 108,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Controller/AuthenticatorsController.ts",
+    "member": "AuthenticatorsController.verifyRegistrationResponse",
+    "leakedType": "VerifyAuthenticatorRegistrationResponseResponseBody",
+    "target": "src/Infra/Http/Response/VerifyAuthenticatorRegistrationResponseResponseBody.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "return"
+    ],
+    "inferred": false,
+    "_file": "src/Controller/AuthenticatorsController.ts",
+    "_line": 108,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Mapping/AuthenticatorChallengePersistenceMapper.ts",
+    "member": "AuthenticatorChallengePersistenceMapper.toDomain",
+    "leakedType": "TypeORMAuthenticatorChallenge",
+    "target": "src/Infra/TypeORM/TypeORMAuthenticatorChallenge.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/Mapping/AuthenticatorChallengePersistenceMapper.ts",
+    "_line": 9,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Mapping/AuthenticatorChallengePersistenceMapper.ts",
+    "member": "AuthenticatorChallengePersistenceMapper.toProjection",
+    "leakedType": "TypeORMAuthenticatorChallenge",
+    "target": "src/Infra/TypeORM/TypeORMAuthenticatorChallenge.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "return"
+    ],
+    "inferred": false,
+    "_file": "src/Mapping/AuthenticatorChallengePersistenceMapper.ts",
+    "_line": 34,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Mapping/AuthenticatorHttpMapper.ts",
+    "member": "AuthenticatorHttpMapper.toDomain",
+    "leakedType": "AuthenticatorHttpProjection",
+    "target": "src/Infra/Http/Projection/AuthenticatorHttpProjection.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/Mapping/AuthenticatorHttpMapper.ts",
+    "_line": 7,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Mapping/AuthenticatorHttpMapper.ts",
+    "member": "AuthenticatorHttpMapper.toProjection",
+    "leakedType": "AuthenticatorHttpProjection",
+    "target": "src/Infra/Http/Projection/AuthenticatorHttpProjection.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "return"
+    ],
+    "inferred": false,
+    "_file": "src/Mapping/AuthenticatorHttpMapper.ts",
+    "_line": 11,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Mapping/AuthenticatorPersistenceMapper.ts",
+    "member": "AuthenticatorPersistenceMapper.toDomain",
+    "leakedType": "TypeORMAuthenticator",
+    "target": "src/Infra/TypeORM/TypeORMAuthenticator.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/Mapping/AuthenticatorPersistenceMapper.ts",
+    "_line": 7,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Mapping/AuthenticatorPersistenceMapper.ts",
+    "member": "AuthenticatorPersistenceMapper.toProjection",
+    "leakedType": "TypeORMAuthenticator",
+    "target": "src/Infra/TypeORM/TypeORMAuthenticator.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "return"
+    ],
+    "inferred": false,
+    "_file": "src/Mapping/AuthenticatorPersistenceMapper.ts",
+    "_line": 41,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Mapping/CacheEntryPersistenceMapper.ts",
+    "member": "CacheEntryPersistenceMapper.toDomain",
+    "leakedType": "TypeORMCacheEntry",
+    "target": "src/Infra/TypeORM/TypeORMCacheEntry.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/Mapping/CacheEntryPersistenceMapper.ts",
+    "_line": 6,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Mapping/CacheEntryPersistenceMapper.ts",
+    "member": "CacheEntryPersistenceMapper.toProjection",
+    "leakedType": "TypeORMCacheEntry",
+    "target": "src/Infra/TypeORM/TypeORMCacheEntry.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "return"
+    ],
+    "inferred": false,
+    "_file": "src/Mapping/CacheEntryPersistenceMapper.ts",
+    "_line": 22,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Mapping/EmergencyAccessInvitationPersistenceMapper.ts",
+    "member": "EmergencyAccessInvitationPersistenceMapper.toDomain",
+    "leakedType": "TypeORMEmergencyAccessInvitation",
+    "target": "src/Infra/TypeORM/TypeORMEmergencyAccessInvitation.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/Mapping/EmergencyAccessInvitationPersistenceMapper.ts",
+    "_line": 10,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Mapping/EmergencyAccessInvitationPersistenceMapper.ts",
+    "member": "EmergencyAccessInvitationPersistenceMapper.toProjection",
+    "leakedType": "TypeORMEmergencyAccessInvitation",
+    "target": "src/Infra/TypeORM/TypeORMEmergencyAccessInvitation.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "return"
+    ],
+    "inferred": false,
+    "_file": "src/Mapping/EmergencyAccessInvitationPersistenceMapper.ts",
+    "_line": 50,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Mapping/Persistence/SettingPersistenceMapper.ts",
+    "member": "SettingPersistenceMapper.toDomain",
+    "leakedType": "TypeORMSetting",
+    "target": "src/Infra/TypeORM/TypeORMSetting.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/Mapping/Persistence/SettingPersistenceMapper.ts",
+    "_line": 6,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Mapping/Persistence/SettingPersistenceMapper.ts",
+    "member": "SettingPersistenceMapper.toProjection",
+    "leakedType": "TypeORMSetting",
+    "target": "src/Infra/TypeORM/TypeORMSetting.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "return"
+    ],
+    "inferred": false,
+    "_file": "src/Mapping/Persistence/SettingPersistenceMapper.ts",
+    "_line": 38,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Mapping/Persistence/SubscriptionSettingPersistenceMapper.ts",
+    "member": "SubscriptionSettingPersistenceMapper.toDomain",
+    "leakedType": "TypeORMSubscriptionSetting",
+    "target": "src/Infra/TypeORM/TypeORMSubscriptionSetting.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/Mapping/Persistence/SubscriptionSettingPersistenceMapper.ts",
+    "_line": 8,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Mapping/Persistence/SubscriptionSettingPersistenceMapper.ts",
+    "member": "SubscriptionSettingPersistenceMapper.toProjection",
+    "leakedType": "TypeORMSubscriptionSetting",
+    "target": "src/Infra/TypeORM/TypeORMSubscriptionSetting.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "return"
+    ],
+    "inferred": false,
+    "_file": "src/Mapping/Persistence/SubscriptionSettingPersistenceMapper.ts",
+    "_line": 42,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Mapping/SessionTracePersistenceMapper.ts",
+    "member": "SessionTracePersistenceMapper.toDomain",
+    "leakedType": "TypeORMSessionTrace",
+    "target": "src/Infra/TypeORM/TypeORMSessionTrace.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/Mapping/SessionTracePersistenceMapper.ts",
+    "_line": 9,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Mapping/SessionTracePersistenceMapper.ts",
+    "member": "SessionTracePersistenceMapper.toProjection",
+    "leakedType": "TypeORMSessionTrace",
+    "target": "src/Infra/TypeORM/TypeORMSessionTrace.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "return"
+    ],
+    "inferred": false,
+    "_file": "src/Mapping/SessionTracePersistenceMapper.ts",
+    "_line": 48,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Mapping/SharedVaultUserPersistenceMapper.ts",
+    "member": "SharedVaultUserPersistenceMapper.toDomain",
+    "leakedType": "TypeORMSharedVaultUser",
+    "target": "src/Infra/TypeORM/TypeORMSharedVaultUser.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "param"
+    ],
+    "inferred": false,
+    "_file": "src/Mapping/SharedVaultUserPersistenceMapper.ts",
+    "_line": 13,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Mapping/SharedVaultUserPersistenceMapper.ts",
+    "member": "SharedVaultUserPersistenceMapper.toProjection",
+    "leakedType": "TypeORMSharedVaultUser",
+    "target": "src/Infra/TypeORM/TypeORMSharedVaultUser.ts",
+    "fromLayer": "application",
+    "toLayer": "infrastructure",
+    "positions": [
+     "return"
+    ],
+    "inferred": false,
+    "_file": "src/Mapping/SharedVaultUserPersistenceMapper.ts",
+    "_line": 56,
+    "_importGraphSees": true
+   }
+  ],
+  "component-adp-cycle": [
+   {
+    "component": "Bootstrap",
+    "target": "Controller",
+    "kind": "folder",
+    "imports": 4,
+    "filePath": "Bootstrap",
+    "_file": "src/Bootstrap/Container.ts",
+    "_line": 159,
+    "_evidence": [
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Controller/AuthController.ts",
+      "line": 159
+     },
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Controller/SubscriptionInvitesController.ts",
+      "line": 162
+     },
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Controller/UserRequestsController.ts",
+      "line": 165
+     }
+    ]
+   },
+   {
+    "component": "Bootstrap",
+    "target": "Domain",
+    "kind": "folder",
+    "imports": 184,
+    "filePath": "Bootstrap",
+    "_file": "src/Bootstrap/Container.ts",
+    "_line": 20,
+    "_evidence": [
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Domain/UseCase/AuthenticateUser.ts",
+      "line": 20
+     },
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Domain/User/User.ts",
+      "line": 23
+     },
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Domain/Session/Session.ts",
+      "line": 24
+     }
+    ]
+   },
+   {
+    "component": "Bootstrap",
+    "target": "Infra",
+    "kind": "folder",
+    "imports": 71,
+    "filePath": "Bootstrap",
+    "_file": "src/Bootstrap/Container.ts",
+    "_line": 26,
+    "_evidence": [
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Infra/TypeORM/TypeORMSessionRepository.ts",
+      "line": 26
+     },
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Infra/TypeORM/TypeORMUserRepository.ts",
+      "line": 27
+     },
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Infra/Redis/RedisEphemeralSessionRepository.ts",
+      "line": 41
+     }
+    ]
+   },
+   {
+    "component": "Bootstrap",
+    "target": "Mapping",
+    "kind": "folder",
+    "imports": 12,
+    "filePath": "Bootstrap",
+    "_file": "src/Bootstrap/Container.ts",
+    "_line": 177,
+    "_evidence": [
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Mapping/SessionTracePersistenceMapper.ts",
+      "line": 177
+     },
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Mapping/AuthenticatorPersistenceMapper.ts",
+      "line": 185
+     },
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Mapping/AuthenticatorChallengePersistenceMapper.ts",
+      "line": 188
+     }
+    ]
+   },
+   {
+    "component": "Bootstrap",
+    "target": "Projection",
+    "kind": "folder",
+    "imports": 5,
+    "filePath": "Bootstrap",
+    "_file": "src/Bootstrap/Container.ts",
+    "_line": 28,
+    "_evidence": [
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Projection/SessionProjector.ts",
+      "line": 28
+     },
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Projection/UserProjector.ts",
+      "line": 33
+     },
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Projection/RoleProjector.ts",
+      "line": 52
+     }
+    ]
+   },
+   {
+    "component": "Controller",
+    "target": "Bootstrap",
+    "kind": "folder",
+    "imports": 2,
+    "filePath": "Controller",
+    "_file": "src/Controller/SubscriptionInvitesController.ts",
+    "_line": 19,
+    "_evidence": [
+     {
+      "file": "src/Controller/SubscriptionInvitesController.ts",
+      "target": "src/Bootstrap/Types.ts",
+      "line": 19
+     },
+     {
+      "file": "src/Controller/UserRequestsController.ts",
+      "target": "src/Bootstrap/Types.ts",
+      "line": 4
+     }
+    ]
+   },
+   {
+    "component": "Controller",
+    "target": "Domain",
+    "kind": "folder",
+    "imports": 14,
+    "filePath": "Controller",
+    "_file": "src/Controller/AuthController.ts",
+    "_line": 4,
+    "_evidence": [
+     {
+      "file": "src/Controller/AuthController.ts",
+      "target": "src/Domain/UseCase/GetUserKeyParamsRecovery/GetUserKeyParamsRecovery.ts",
+      "line": 4
+     },
+     {
+      "file": "src/Controller/AuthController.ts",
+      "target": "src/Domain/UseCase/GenerateRecoveryCodes/GenerateRecoveryCodes.ts",
+      "line": 8
+     },
+     {
+      "file": "src/Controller/AuthenticatorsController.ts",
+      "target": "src/Domain/Authenticator/Authenticator.ts",
+      "line": 3
+     }
+    ]
+   },
+   {
+    "component": "Controller",
+    "target": "Infra",
+    "kind": "folder",
+    "imports": 15,
+    "filePath": "Controller",
+    "_file": "src/Controller/AuthController.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/Controller/AuthController.ts",
+      "target": "src/Infra/Http/Request/RecoveryKeyParamsRequestParams.ts",
+      "line": 5
+     },
+     {
+      "file": "src/Controller/AuthController.ts",
+      "target": "src/Infra/Http/Response/RecoveryKeyParamsResponseBody.ts",
+      "line": 6
+     },
+     {
+      "file": "src/Controller/AuthController.ts",
+      "target": "src/Infra/Http/Response/GenerateRecoveryCodesResponseBody.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "Domain",
+    "target": "Bootstrap",
+    "kind": "folder",
+    "imports": 38,
+    "filePath": "Domain",
+    "_file": "src/Domain/Auth/AuthResponseFactory20161215.ts",
+    "_line": 7,
+    "_evidence": [
+     {
+      "file": "src/Domain/Auth/AuthResponseFactory20161215.ts",
+      "target": "src/Bootstrap/Types.ts",
+      "line": 7
+     },
+     {
+      "file": "src/Domain/Auth/AuthResponseFactory20200115.ts",
+      "target": "src/Bootstrap/Types.ts",
+      "line": 10
+     },
+     {
+      "file": "src/Domain/Auth/AuthResponseFactoryResolver.ts",
+      "target": "src/Bootstrap/Types.ts",
+      "line": 3
+     }
+    ]
+   },
+   {
+    "component": "Domain",
+    "target": "Infra",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "Domain",
+    "_file": "src/Domain/User/User.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/Domain/User/User.ts",
+      "target": "src/Infra/TypeORM/TypeORMEmergencyAccessInvitation.ts",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "component": "Domain",
+    "target": "Projection",
+    "kind": "folder",
+    "imports": 5,
+    "filePath": "Domain",
+    "_file": "src/Domain/Auth/AuthResponse.ts",
+    "_line": 1,
+    "_evidence": [
+     {
+      "file": "src/Domain/Auth/AuthResponse.ts",
+      "target": "src/Projection/SimpleUserProjection.ts",
+      "line": 1
+     },
+     {
+      "file": "src/Domain/Auth/AuthResponseFactory20161215.ts",
+      "target": "src/Projection/ProjectorInterface.ts",
+      "line": 8
+     },
+     {
+      "file": "src/Domain/Auth/AuthResponseFactory20200115.ts",
+      "target": "src/Projection/ProjectorInterface.ts",
+      "line": 11
+     }
+    ]
+   },
+   {
+    "component": "Infra",
+    "target": "Bootstrap",
+    "kind": "folder",
+    "imports": 36,
+    "filePath": "Infra",
+    "_file": "src/Infra/InversifyExpressUtils/AnnotatedAdminController.ts",
+    "_line": 11,
+    "_evidence": [
+     {
+      "file": "src/Infra/InversifyExpressUtils/AnnotatedAdminController.ts",
+      "target": "src/Bootstrap/Types.ts",
+      "line": 11
+     },
+     {
+      "file": "src/Infra/InversifyExpressUtils/AnnotatedAuthController.ts",
+      "target": "src/Bootstrap/Types.ts",
+      "line": 9
+     },
+     {
+      "file": "src/Infra/InversifyExpressUtils/AnnotatedAuthenticatorsController.ts",
+      "target": "src/Bootstrap/Types.ts",
+      "line": 10
+     }
+    ]
+   },
+   {
+    "component": "Infra",
+    "target": "Controller",
+    "kind": "folder",
+    "imports": 8,
+    "filePath": "Infra",
+    "_file": "src/Infra/InversifyExpressUtils/AnnotatedAuthController.ts",
+    "_line": 15,
+    "_evidence": [
+     {
+      "file": "src/Infra/InversifyExpressUtils/AnnotatedAuthController.ts",
+      "target": "src/Controller/AuthController.ts",
+      "line": 15
+     },
+     {
+      "file": "src/Infra/InversifyExpressUtils/AnnotatedAuthenticatorsController.ts",
+      "target": "src/Controller/AuthenticatorsController.ts",
+      "line": 11
+     },
+     {
+      "file": "src/Infra/InversifyExpressUtils/AnnotatedSubscriptionInvitesController.ts",
+      "target": "src/Controller/SubscriptionInvitesController.ts",
+      "line": 13
+     }
+    ]
+   },
+   {
+    "component": "Infra",
+    "target": "Domain",
+    "kind": "folder",
+    "imports": 191,
+    "filePath": "Infra",
+    "_file": "src/Infra/gRPC/AuthServer.ts",
+    "_line": 12,
+    "_evidence": [
+     {
+      "file": "src/Infra/gRPC/AuthServer.ts",
+      "target": "src/Domain/UseCase/AuthenticateRequest.ts",
+      "line": 12
+     },
+     {
+      "file": "src/Infra/gRPC/AuthServer.ts",
+      "target": "src/Domain/User/User.ts",
+      "line": 13
+     },
+     {
+      "file": "src/Infra/gRPC/AuthServer.ts",
+      "target": "src/Domain/UseCase/CreateCrossServiceToken/CreateCrossServiceToken.ts",
+      "line": 14
+     }
+    ]
+   },
+   {
+    "component": "Infra",
+    "target": "Mapping",
+    "kind": "folder",
+    "imports": 7,
+    "filePath": "Infra",
+    "_file": "src/Infra/InversifyExpressUtils/AnnotatedInternalController.ts",
+    "_line": 15,
+    "_evidence": [
+     {
+      "file": "src/Infra/InversifyExpressUtils/AnnotatedInternalController.ts",
+      "target": "src/Mapping/Http/SettingHttpRepresentation.ts",
+      "line": 15
+     },
+     {
+      "file": "src/Infra/InversifyExpressUtils/AnnotatedSettingsController.ts",
+      "target": "src/Mapping/Http/SettingHttpRepresentation.ts",
+      "line": 19
+     },
+     {
+      "file": "src/Infra/InversifyExpressUtils/AnnotatedSettingsController.ts",
+      "target": "src/Mapping/Http/SubscriptionSettingHttpRepresentation.ts",
+      "line": 20
+     }
+    ]
+   },
+   {
+    "component": "Infra",
+    "target": "Projection",
+    "kind": "folder",
+    "imports": 5,
+    "filePath": "Infra",
+    "_file": "src/Infra/InversifyExpressUtils/AnnotatedSessionsController.ts",
+    "_line": 15,
+    "_evidence": [
+     {
+      "file": "src/Infra/InversifyExpressUtils/AnnotatedSessionsController.ts",
+      "target": "src/Projection/ProjectorInterface.ts",
+      "line": 15
+     },
+     {
+      "file": "src/Infra/InversifyExpressUtils/AnnotatedSubscriptionTokensController.ts",
+      "target": "src/Projection/ProjectorInterface.ts",
+      "line": 16
+     },
+     {
+      "file": "src/Infra/InversifyExpressUtils/Base/BaseSessionsController.ts",
+      "target": "src/Projection/ProjectorInterface.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "Mapping",
+    "target": "Domain",
+    "kind": "folder",
+    "imports": 10,
+    "filePath": "Mapping",
+    "_file": "src/Mapping/AuthenticatorChallengePersistenceMapper.ts",
+    "_line": 3,
+    "_evidence": [
+     {
+      "file": "src/Mapping/AuthenticatorChallengePersistenceMapper.ts",
+      "target": "src/Domain/Authenticator/AuthenticatorChallenge.ts",
+      "line": 3
+     },
+     {
+      "file": "src/Mapping/AuthenticatorHttpMapper.ts",
+      "target": "src/Domain/Authenticator/Authenticator.ts",
+      "line": 3
+     },
+     {
+      "file": "src/Mapping/AuthenticatorPersistenceMapper.ts",
+      "target": "src/Domain/Authenticator/Authenticator.ts",
+      "line": 3
+     }
+    ]
+   },
+   {
+    "component": "Mapping",
+    "target": "Infra",
+    "kind": "folder",
+    "imports": 9,
+    "filePath": "Mapping",
+    "_file": "src/Mapping/AuthenticatorChallengePersistenceMapper.ts",
+    "_line": 4,
+    "_evidence": [
+     {
+      "file": "src/Mapping/AuthenticatorChallengePersistenceMapper.ts",
+      "target": "src/Infra/TypeORM/TypeORMAuthenticatorChallenge.ts",
+      "line": 4
+     },
+     {
+      "file": "src/Mapping/AuthenticatorHttpMapper.ts",
+      "target": "src/Infra/Http/Projection/AuthenticatorHttpProjection.ts",
+      "line": 4
+     },
+     {
+      "file": "src/Mapping/AuthenticatorPersistenceMapper.ts",
+      "target": "src/Infra/TypeORM/TypeORMAuthenticator.ts",
+      "line": 4
+     }
+    ]
+   },
+   {
+    "component": "Projection",
+    "target": "Bootstrap",
+    "kind": "folder",
+    "imports": 1,
+    "filePath": "Projection",
+    "_file": "src/Projection/SessionProjector.ts",
+    "_line": 3,
+    "_evidence": [
+     {
+      "file": "src/Projection/SessionProjector.ts",
+      "target": "src/Bootstrap/Types.ts",
+      "line": 3
+     }
+    ]
+   },
+   {
+    "component": "Projection",
+    "target": "Domain",
+    "kind": "folder",
+    "imports": 5,
+    "filePath": "Projection",
+    "_file": "src/Projection/PermissionProjector.ts",
+    "_line": 2,
+    "_evidence": [
+     {
+      "file": "src/Projection/PermissionProjector.ts",
+      "target": "src/Domain/Permission/Permission.ts",
+      "line": 2
+     },
+     {
+      "file": "src/Projection/RoleProjector.ts",
+      "target": "src/Domain/Role/Role.ts",
+      "line": 2
+     },
+     {
+      "file": "src/Projection/SessionProjector.ts",
+      "target": "src/Domain/Session/Session.ts",
+      "line": 5
+     }
+    ]
+   }
+  ],
+  "component-sdp-violation": [
+   {
+    "component": "Bootstrap",
+    "target": "Controller",
+    "kind": "folder",
+    "fromInstability": 0.038,
+    "toInstability": 0.308,
+    "filePath": "Bootstrap",
+    "_file": "src/Bootstrap/Container.ts",
+    "_line": 159,
+    "_evidence": [
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Controller/AuthController.ts",
+      "line": 159
+     },
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Controller/SubscriptionInvitesController.ts",
+      "line": 162
+     },
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Controller/UserRequestsController.ts",
+      "line": 165
+     }
+    ]
+   },
+   {
+    "component": "Bootstrap",
+    "target": "Domain",
+    "kind": "folder",
+    "fromInstability": 0.038,
+    "toInstability": 0.331,
+    "filePath": "Bootstrap",
+    "_file": "src/Bootstrap/Container.ts",
+    "_line": 20,
+    "_evidence": [
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Domain/UseCase/AuthenticateUser.ts",
+      "line": 20
+     },
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Domain/User/User.ts",
+      "line": 23
+     },
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Domain/Session/Session.ts",
+      "line": 24
+     }
+    ]
+   },
+   {
+    "component": "Bootstrap",
+    "target": "Infra",
+    "kind": "folder",
+    "fromInstability": 0.038,
+    "toInstability": 0.835,
+    "filePath": "Bootstrap",
+    "_file": "src/Bootstrap/Container.ts",
+    "_line": 26,
+    "_evidence": [
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Infra/TypeORM/TypeORMSessionRepository.ts",
+      "line": 26
+     },
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Infra/TypeORM/TypeORMUserRepository.ts",
+      "line": 27
+     },
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Infra/Redis/RedisEphemeralSessionRepository.ts",
+      "line": 41
+     }
+    ]
+   },
+   {
+    "component": "Bootstrap",
+    "target": "Mapping",
+    "kind": "folder",
+    "fromInstability": 0.038,
+    "toInstability": 0.647,
+    "filePath": "Bootstrap",
+    "_file": "src/Bootstrap/Container.ts",
+    "_line": 177,
+    "_evidence": [
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Mapping/SessionTracePersistenceMapper.ts",
+      "line": 177
+     },
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Mapping/AuthenticatorPersistenceMapper.ts",
+      "line": 185
+     },
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Mapping/AuthenticatorChallengePersistenceMapper.ts",
+      "line": 188
+     }
+    ]
+   },
+   {
+    "component": "Bootstrap",
+    "target": "Projection",
+    "kind": "folder",
+    "fromInstability": 0.038,
+    "toInstability": 0.308,
+    "filePath": "Bootstrap",
+    "_file": "src/Bootstrap/Container.ts",
+    "_line": 28,
+    "_evidence": [
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Projection/SessionProjector.ts",
+      "line": 28
+     },
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Projection/UserProjector.ts",
+      "line": 33
+     },
+     {
+      "file": "src/Bootstrap/Container.ts",
+      "target": "src/Projection/RoleProjector.ts",
+      "line": 52
+     }
+    ]
+   },
+   {
+    "component": "Controller",
+    "target": "Domain",
+    "kind": "folder",
+    "fromInstability": 0.308,
+    "toInstability": 0.331,
+    "filePath": "Controller",
+    "_file": "src/Controller/AuthController.ts",
+    "_line": 4,
+    "_evidence": [
+     {
+      "file": "src/Controller/AuthController.ts",
+      "target": "src/Domain/UseCase/GetUserKeyParamsRecovery/GetUserKeyParamsRecovery.ts",
+      "line": 4
+     },
+     {
+      "file": "src/Controller/AuthController.ts",
+      "target": "src/Domain/UseCase/GenerateRecoveryCodes/GenerateRecoveryCodes.ts",
+      "line": 8
+     },
+     {
+      "file": "src/Controller/AuthenticatorsController.ts",
+      "target": "src/Domain/Authenticator/Authenticator.ts",
+      "line": 3
+     }
+    ]
+   },
+   {
+    "component": "Controller",
+    "target": "Infra",
+    "kind": "folder",
+    "fromInstability": 0.308,
+    "toInstability": 0.835,
+    "filePath": "Controller",
+    "_file": "src/Controller/AuthController.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/Controller/AuthController.ts",
+      "target": "src/Infra/Http/Request/RecoveryKeyParamsRequestParams.ts",
+      "line": 5
+     },
+     {
+      "file": "src/Controller/AuthController.ts",
+      "target": "src/Infra/Http/Response/RecoveryKeyParamsResponseBody.ts",
+      "line": 6
+     },
+     {
+      "file": "src/Controller/AuthController.ts",
+      "target": "src/Infra/Http/Response/GenerateRecoveryCodesResponseBody.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "Domain",
+    "target": "Infra",
+    "kind": "folder",
+    "fromInstability": 0.331,
+    "toInstability": 0.835,
+    "filePath": "Domain",
+    "_file": "src/Domain/User/User.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/Domain/User/User.ts",
+      "target": "src/Infra/TypeORM/TypeORMEmergencyAccessInvitation.ts",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "component": "Mapping",
+    "target": "Infra",
+    "kind": "folder",
+    "fromInstability": 0.647,
+    "toInstability": 0.835,
+    "filePath": "Mapping",
+    "_file": "src/Mapping/AuthenticatorChallengePersistenceMapper.ts",
+    "_line": 4,
+    "_evidence": [
+     {
+      "file": "src/Mapping/AuthenticatorChallengePersistenceMapper.ts",
+      "target": "src/Infra/TypeORM/TypeORMAuthenticatorChallenge.ts",
+      "line": 4
+     },
+     {
+      "file": "src/Mapping/AuthenticatorHttpMapper.ts",
+      "target": "src/Infra/Http/Projection/AuthenticatorHttpProjection.ts",
+      "line": 4
+     },
+     {
+      "file": "src/Mapping/AuthenticatorPersistenceMapper.ts",
+      "target": "src/Infra/TypeORM/TypeORMAuthenticator.ts",
+      "line": 4
+     }
+    ]
+   },
+   {
+    "component": "Projection",
+    "target": "Domain",
+    "kind": "folder",
+    "fromInstability": 0.308,
+    "toInstability": 0.331,
+    "filePath": "Projection",
+    "_file": "src/Projection/PermissionProjector.ts",
+    "_line": 2,
+    "_evidence": [
+     {
+      "file": "src/Projection/PermissionProjector.ts",
+      "target": "src/Domain/Permission/Permission.ts",
+      "line": 2
+     },
+     {
+      "file": "src/Projection/RoleProjector.ts",
+      "target": "src/Domain/Role/Role.ts",
+      "line": 2
+     },
+     {
+      "file": "src/Projection/SessionProjector.ts",
+      "target": "src/Domain/Session/Session.ts",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "component": "application",
+    "target": "infrastructure",
+    "kind": "layer",
+    "fromInstability": 0.517,
+    "toInstability": 0.576,
+    "filePath": "application",
+    "_file": "src/Controller/AuthController.ts",
+    "_line": 5,
+    "_evidence": [
+     {
+      "file": "src/Controller/AuthController.ts",
+      "target": "src/Infra/Http/Request/RecoveryKeyParamsRequestParams.ts",
+      "line": 5
+     },
+     {
+      "file": "src/Controller/AuthController.ts",
+      "target": "src/Infra/Http/Response/RecoveryKeyParamsResponseBody.ts",
+      "line": 6
+     },
+     {
+      "file": "src/Controller/AuthController.ts",
+      "target": "src/Infra/Http/Response/GenerateRecoveryCodesResponseBody.ts",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "component": "domain",
+    "target": "infrastructure",
+    "kind": "layer",
+    "fromInstability": 0.336,
+    "toInstability": 0.576,
+    "filePath": "domain",
+    "_file": "src/Projection/SessionProjector.ts",
+    "_line": 3,
+    "_evidence": [
+     {
+      "file": "src/Projection/SessionProjector.ts",
+      "target": "src/Bootstrap/Types.ts",
+      "line": 3
+     },
+     {
+      "file": "src/Domain/Auth/AuthResponseFactory20161215.ts",
+      "target": "src/Bootstrap/Types.ts",
+      "line": 7
+     },
+     {
+      "file": "src/Domain/Auth/AuthResponseFactory20200115.ts",
+      "target": "src/Bootstrap/Types.ts",
+      "line": 10
+     }
+    ]
+   }
+  ],
+  "component-main-sequence-distance": [
+   {
+    "component": "Bootstrap",
+    "kind": "folder",
+    "abstractness": 0.2,
+    "instability": 0.038,
+    "distance": 0.762,
+    "filePath": "Bootstrap",
+    "_file": "src/Bootstrap/AuthServiceInterface.ts",
+    "_line": 1,
+    "_evidence": {
+     "files": 8,
+     "sample": [
+      "src/Bootstrap/AuthServiceInterface.ts",
+      "src/Bootstrap/Container.ts",
+      "src/Bootstrap/DataSource.ts",
+      "src/Bootstrap/Env.ts",
+      "src/Bootstrap/index.ts"
+     ]
+    }
+   }
+  ],
+  "deep-import-declared-api": [],
+  "deep-import-inferred-api": [
+   {
+    "filePath": "src/Controller/SubscriptionInvitesController.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 19,
+    "_file": "src/Controller/SubscriptionInvitesController.ts",
+    "_line": 19
+   },
+   {
+    "filePath": "src/Controller/UserRequestsController.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/Controller/UserRequestsController.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/Domain/Auth/AuthResponseFactory20161215.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 7,
+    "_file": "src/Domain/Auth/AuthResponseFactory20161215.ts",
+    "_line": 7
+   },
+   {
+    "filePath": "src/Domain/Auth/AuthResponseFactory20200115.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 10,
+    "_file": "src/Domain/Auth/AuthResponseFactory20200115.ts",
+    "_line": 10
+   },
+   {
+    "filePath": "src/Domain/Auth/AuthResponseFactoryResolver.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 3,
+    "_file": "src/Domain/Auth/AuthResponseFactoryResolver.ts",
+    "_line": 3
+   },
+   {
+    "filePath": "src/Domain/Encryption/CrypterNode.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 5,
+    "_file": "src/Domain/Encryption/CrypterNode.ts",
+    "_line": 5
+   },
+   {
+    "filePath": "src/Domain/Event/DomainEventFactory.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 30,
+    "_file": "src/Domain/Event/DomainEventFactory.ts",
+    "_line": 30
+   },
+   {
+    "filePath": "src/Domain/Handler/PredicateVerificationRequestedEventHandler.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 11,
+    "_file": "src/Domain/Handler/PredicateVerificationRequestedEventHandler.ts",
+    "_line": 11
+   },
+   {
+    "filePath": "src/Domain/Handler/SharedSubscriptionInvitationCreatedEventHandler.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/Domain/Handler/SharedSubscriptionInvitationCreatedEventHandler.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/Domain/Handler/SubscriptionCancelledEventHandler.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/Domain/Handler/SubscriptionCancelledEventHandler.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/Domain/Handler/SubscriptionExpiredEventHandler.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 5,
+    "_file": "src/Domain/Handler/SubscriptionExpiredEventHandler.ts",
+    "_line": 5
+   },
+   {
+    "filePath": "src/Domain/Handler/SubscriptionRefundedEventHandler.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 5,
+    "_file": "src/Domain/Handler/SubscriptionRefundedEventHandler.ts",
+    "_line": 5
+   },
+   {
+    "filePath": "src/Domain/Handler/SubscriptionRenewedEventHandler.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/Domain/Handler/SubscriptionRenewedEventHandler.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/Domain/Handler/UserDisabledSessionUserAgentLoggingEventHandler.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/Domain/Handler/UserDisabledSessionUserAgentLoggingEventHandler.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/Domain/Role/RoleService.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 6,
+    "_file": "src/Domain/Role/RoleService.ts",
+    "_line": 6
+   },
+   {
+    "filePath": "src/Domain/Setting/OfflineSettingService.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/Domain/Setting/OfflineSettingService.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/Domain/Setting/SubscriptionSettingsAssociationService.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 6,
+    "_file": "src/Domain/Setting/SubscriptionSettingsAssociationService.ts",
+    "_line": 6
+   },
+   {
+    "filePath": "src/Domain/UseCase/AuthenticateOfflineSubscriptionToken/AuthenticateOfflineSubscriptionToken.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 3,
+    "_file": "src/Domain/UseCase/AuthenticateOfflineSubscriptionToken/AuthenticateOfflineSubscriptionToken.ts",
+    "_line": 3
+   },
+   {
+    "filePath": "src/Domain/UseCase/AuthenticateRequest.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 3,
+    "_file": "src/Domain/UseCase/AuthenticateRequest.ts",
+    "_line": 3
+   },
+   {
+    "filePath": "src/Domain/UseCase/AuthenticateSubscriptionToken/AuthenticateSubscriptionToken.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 3,
+    "_file": "src/Domain/UseCase/AuthenticateSubscriptionToken/AuthenticateSubscriptionToken.ts",
+    "_line": 3
+   },
+   {
+    "filePath": "src/Domain/UseCase/AuthenticateUser.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 5,
+    "_file": "src/Domain/UseCase/AuthenticateUser.ts",
+    "_line": 5
+   },
+   {
+    "filePath": "src/Domain/UseCase/CancelSharedSubscriptionInvitation/CancelSharedSubscriptionInvitation.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 8,
+    "_file": "src/Domain/UseCase/CancelSharedSubscriptionInvitation/CancelSharedSubscriptionInvitation.ts",
+    "_line": 8
+   },
+   {
+    "filePath": "src/Domain/UseCase/CreateListedAccount/CreateListedAccount.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/Domain/UseCase/CreateListedAccount/CreateListedAccount.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/Domain/UseCase/CreateOfflineSubscriptionToken/CreateOfflineSubscriptionToken.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 8,
+    "_file": "src/Domain/UseCase/CreateOfflineSubscriptionToken/CreateOfflineSubscriptionToken.ts",
+    "_line": 8
+   },
+   {
+    "filePath": "src/Domain/UseCase/CreateSubscriptionToken/CreateSubscriptionToken.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 6,
+    "_file": "src/Domain/UseCase/CreateSubscriptionToken/CreateSubscriptionToken.ts",
+    "_line": 6
+   },
+   {
+    "filePath": "src/Domain/UseCase/DeclineSharedSubscriptionInvitation/DeclineSharedSubscriptionInvitation.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/Domain/UseCase/DeclineSharedSubscriptionInvitation/DeclineSharedSubscriptionInvitation.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/Domain/UseCase/DeleteOtherSessionsForUser.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/Domain/UseCase/DeleteOtherSessionsForUser.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/Domain/UseCase/DeleteSessionForUser.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 2,
+    "_file": "src/Domain/UseCase/DeleteSessionForUser.ts",
+    "_line": 2
+   },
+   {
+    "filePath": "src/Domain/UseCase/DeleteSetting/DeleteSetting.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 8,
+    "_file": "src/Domain/UseCase/DeleteSetting/DeleteSetting.ts",
+    "_line": 8
+   },
+   {
+    "filePath": "src/Domain/UseCase/GetActiveSessionsForUser.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 2,
+    "_file": "src/Domain/UseCase/GetActiveSessionsForUser.ts",
+    "_line": 2
+   },
+   {
+    "filePath": "src/Domain/UseCase/GetMfaSecret/GetMfaSecret.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 9,
+    "_file": "src/Domain/UseCase/GetMfaSecret/GetMfaSecret.ts",
+    "_line": 9
+   },
+   {
+    "filePath": "src/Domain/UseCase/GetUserFeatures/GetUserFeatures.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 3,
+    "_file": "src/Domain/UseCase/GetUserFeatures/GetUserFeatures.ts",
+    "_line": 3
+   },
+   {
+    "filePath": "src/Domain/UseCase/GetUserOfflineSubscription/GetUserOfflineSubscription.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 3,
+    "_file": "src/Domain/UseCase/GetUserOfflineSubscription/GetUserOfflineSubscription.ts",
+    "_line": 3
+   },
+   {
+    "filePath": "src/Domain/UseCase/GetUserSubscription/GetUserSubscription.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 3,
+    "_file": "src/Domain/UseCase/GetUserSubscription/GetUserSubscription.ts",
+    "_line": 3
+   },
+   {
+    "filePath": "src/Domain/UseCase/InviteToSharedSubscription/InviteToSharedSubscription.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 6,
+    "_file": "src/Domain/UseCase/InviteToSharedSubscription/InviteToSharedSubscription.ts",
+    "_line": 6
+   },
+   {
+    "filePath": "src/Domain/UseCase/ListSharedSubscriptionInvitations/ListSharedSubscriptionInvitations.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 3,
+    "_file": "src/Domain/UseCase/ListSharedSubscriptionInvitations/ListSharedSubscriptionInvitations.ts",
+    "_line": 3
+   },
+   {
+    "filePath": "src/Domain/UseCase/ProcessUserRequest/ProcessUserRequest.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 5,
+    "_file": "src/Domain/UseCase/ProcessUserRequest/ProcessUserRequest.ts",
+    "_line": 5
+   },
+   {
+    "filePath": "src/Domain/UseCase/ValidateMfaToken/ValidateMfaToken.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 6,
+    "_file": "src/Domain/UseCase/ValidateMfaToken/ValidateMfaToken.ts",
+    "_line": 6
+   },
+   {
+    "filePath": "src/Domain/UseCase/VerifyPredicate/VerifyPredicate.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 5,
+    "_file": "src/Domain/UseCase/VerifyPredicate/VerifyPredicate.ts",
+    "_line": 5
+   },
+   {
+    "filePath": "src/Domain/User/KeyParamsFactory.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 6,
+    "_file": "src/Domain/User/KeyParamsFactory.ts",
+    "_line": 6
+   },
+   {
+    "filePath": "src/Infra/InversifyExpressUtils/AnnotatedAdminController.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 11,
+    "_file": "src/Infra/InversifyExpressUtils/AnnotatedAdminController.ts",
+    "_line": 11
+   },
+   {
+    "filePath": "src/Infra/InversifyExpressUtils/AnnotatedAuthController.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 9,
+    "_file": "src/Infra/InversifyExpressUtils/AnnotatedAuthController.ts",
+    "_line": 9
+   },
+   {
+    "filePath": "src/Infra/InversifyExpressUtils/AnnotatedAuthenticatorsController.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 10,
+    "_file": "src/Infra/InversifyExpressUtils/AnnotatedAuthenticatorsController.ts",
+    "_line": 10
+   },
+   {
+    "filePath": "src/Infra/InversifyExpressUtils/AnnotatedFeaturesController.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 9,
+    "_file": "src/Infra/InversifyExpressUtils/AnnotatedFeaturesController.ts",
+    "_line": 9
+   },
+   {
+    "filePath": "src/Infra/InversifyExpressUtils/AnnotatedInternalController.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 10,
+    "_file": "src/Infra/InversifyExpressUtils/AnnotatedInternalController.ts",
+    "_line": 10
+   },
+   {
+    "filePath": "src/Infra/InversifyExpressUtils/AnnotatedListedController.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 5,
+    "_file": "src/Infra/InversifyExpressUtils/AnnotatedListedController.ts",
+    "_line": 5
+   },
+   {
+    "filePath": "src/Infra/InversifyExpressUtils/AnnotatedOfflineController.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 12,
+    "_file": "src/Infra/InversifyExpressUtils/AnnotatedOfflineController.ts",
+    "_line": 12
+   },
+   {
+    "filePath": "src/Infra/InversifyExpressUtils/AnnotatedSessionController.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 10,
+    "_file": "src/Infra/InversifyExpressUtils/AnnotatedSessionController.ts",
+    "_line": 10
+   },
+   {
+    "filePath": "src/Infra/InversifyExpressUtils/AnnotatedSessionsController.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 11,
+    "_file": "src/Infra/InversifyExpressUtils/AnnotatedSessionsController.ts",
+    "_line": 11
+   },
+   {
+    "filePath": "src/Infra/InversifyExpressUtils/AnnotatedSettingsController.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 11,
+    "_file": "src/Infra/InversifyExpressUtils/AnnotatedSettingsController.ts",
+    "_line": 11
+   },
+   {
+    "filePath": "src/Infra/InversifyExpressUtils/AnnotatedSubscriptionInvitesController.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 12,
+    "_file": "src/Infra/InversifyExpressUtils/AnnotatedSubscriptionInvitesController.ts",
+    "_line": 12
+   },
+   {
+    "filePath": "src/Infra/InversifyExpressUtils/AnnotatedSubscriptionSettingsController.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 10,
+    "_file": "src/Infra/InversifyExpressUtils/AnnotatedSubscriptionSettingsController.ts",
+    "_line": 10
+   },
+   {
+    "filePath": "src/Infra/InversifyExpressUtils/AnnotatedSubscriptionTokensController.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 11,
+    "_file": "src/Infra/InversifyExpressUtils/AnnotatedSubscriptionTokensController.ts",
+    "_line": 11
+   },
+   {
+    "filePath": "src/Infra/InversifyExpressUtils/AnnotatedUserRequestsController.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/Infra/InversifyExpressUtils/AnnotatedUserRequestsController.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/Infra/InversifyExpressUtils/AnnotatedUsersController.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 11,
+    "_file": "src/Infra/InversifyExpressUtils/AnnotatedUsersController.ts",
+    "_line": 11
+   },
+   {
+    "filePath": "src/Infra/InversifyExpressUtils/AnnotatedValetTokenController.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 9,
+    "_file": "src/Infra/InversifyExpressUtils/AnnotatedValetTokenController.ts",
+    "_line": 9
+   },
+   {
+    "filePath": "src/Infra/InversifyExpressUtils/AnnotatedWebSocketsController.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 11,
+    "_file": "src/Infra/InversifyExpressUtils/AnnotatedWebSocketsController.ts",
+    "_line": 11
+   },
+   {
+    "filePath": "src/Infra/InversifyExpressUtils/Middleware/AdminKeyMiddleware.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 6,
+    "_file": "src/Infra/InversifyExpressUtils/Middleware/AdminKeyMiddleware.ts",
+    "_line": 6
+   },
+   {
+    "filePath": "src/Infra/InversifyExpressUtils/Middleware/ApiGatewayOfflineAuthMiddleware.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 6,
+    "_file": "src/Infra/InversifyExpressUtils/Middleware/ApiGatewayOfflineAuthMiddleware.ts",
+    "_line": 6
+   },
+   {
+    "filePath": "src/Infra/InversifyExpressUtils/Middleware/LockMiddleware.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 5,
+    "_file": "src/Infra/InversifyExpressUtils/Middleware/LockMiddleware.ts",
+    "_line": 5
+   },
+   {
+    "filePath": "src/Infra/InversifyExpressUtils/Middleware/OfflineUserAuthMiddleware.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 5,
+    "_file": "src/Infra/InversifyExpressUtils/Middleware/OfflineUserAuthMiddleware.ts",
+    "_line": 5
+   },
+   {
+    "filePath": "src/Infra/Redis/LockRepository.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/Infra/Redis/LockRepository.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/Infra/Redis/RedisEphemeralSessionRepository.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/Infra/Redis/RedisEphemeralSessionRepository.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/Infra/Redis/RedisMfaSecretRepository.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/Infra/Redis/RedisMfaSecretRepository.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/Infra/Redis/RedisOfflineSubscriptionTokenRepository.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/Infra/Redis/RedisOfflineSubscriptionTokenRepository.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/Infra/Redis/RedisPKCERepository.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 5,
+    "_file": "src/Infra/Redis/RedisPKCERepository.ts",
+    "_line": 5
+   },
+   {
+    "filePath": "src/Infra/Redis/RedisSubscriptionTokenRepository.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/Infra/Redis/RedisSubscriptionTokenRepository.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/Infra/TypeORM/TypeORMOfflineSettingRepository.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/Infra/TypeORM/TypeORMOfflineSettingRepository.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/Infra/TypeORM/TypeORMOfflineUserSubscriptionRepository.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/Infra/TypeORM/TypeORMOfflineUserSubscriptionRepository.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/Infra/TypeORM/TypeORMRevokedSessionRepository.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/Infra/TypeORM/TypeORMRevokedSessionRepository.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/Infra/TypeORM/TypeORMRoleRepository.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 4,
+    "_file": "src/Infra/TypeORM/TypeORMRoleRepository.ts",
+    "_line": 4
+   },
+   {
+    "filePath": "src/Infra/TypeORM/TypeORMSessionRepository.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 6,
+    "_file": "src/Infra/TypeORM/TypeORMSessionRepository.ts",
+    "_line": 6
+   },
+   {
+    "filePath": "src/Infra/TypeORM/TypeORMSharedSubscriptionInvitationRepository.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 3,
+    "_file": "src/Infra/TypeORM/TypeORMSharedSubscriptionInvitationRepository.ts",
+    "_line": 3
+   },
+   {
+    "filePath": "src/Infra/TypeORM/TypeORMUserRepository.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 5,
+    "_file": "src/Infra/TypeORM/TypeORMUserRepository.ts",
+    "_line": 5
+   },
+   {
+    "filePath": "src/Infra/TypeORM/TypeORMUserSubscriptionRepository.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 5,
+    "_file": "src/Infra/TypeORM/TypeORMUserSubscriptionRepository.ts",
+    "_line": 5
+   },
+   {
+    "filePath": "src/Infra/WebSockets/WebSocketsClientService.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 3,
+    "_file": "src/Infra/WebSockets/WebSocketsClientService.ts",
+    "_line": 3
+   },
+   {
+    "filePath": "src/Projection/SessionProjector.ts",
+    "target": "src/Bootstrap/Types.ts",
+    "component": "Bootstrap",
+    "kind": "folder",
+    "line": 3,
+    "_file": "src/Projection/SessionProjector.ts",
+    "_line": 3
+   }
+  ],
+  "undeclared-async-coupling": [],
+  "io-outside-adapters": [
+   {
+    "filePath": "src/Domain/Profiler/HeapProfiler.ts",
+    "member": "HeapProfiler.takeHeapSnapshot",
+    "layer": "domain",
+    "category": "fs",
+    "apis": [
+     "fs:fs.readFileSync",
+     "fs:fs.unlinkSync"
+    ],
+    "line": 55,
+    "lines": [
+     55,
+     59
+    ],
+    "_file": "src/Domain/Profiler/HeapProfiler.ts",
+    "_line": 55,
+    "_importGraphSees": true
+   }
+  ],
+  "nondeterminism-in-core": [
+   {
+    "filePath": "src/Domain/Authenticator/AuthenticatorChallenge.ts",
+    "member": "AuthenticatorChallenge.isExpired",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 14,
+    "lines": [
+     14
+    ],
+    "_file": "src/Domain/Authenticator/AuthenticatorChallenge.ts",
+    "_line": 14,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/Domain/Profiler/HeapProfiler.ts",
+    "member": "HeapProfiler",
+    "layer": "domain",
+    "category": "random",
+    "apis": [
+     "crypto:randomUUID"
+    ],
+    "line": 21,
+    "lines": [
+     21
+    ],
+    "_file": "src/Domain/Profiler/HeapProfiler.ts",
+    "_line": 21,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Domain/Profiler/HeapProfiler.ts",
+    "member": "HeapProfiler.takeHeapSnapshot",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 47,
+    "lines": [
+     47
+    ],
+    "_file": "src/Domain/Profiler/HeapProfiler.ts",
+    "_line": 47,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/Domain/Session/SessionService.ts",
+    "member": "SessionService.createSession",
+    "layer": "domain",
+    "category": "random",
+    "apis": [
+     "uuid:uuidv4"
+    ],
+    "line": 261,
+    "lines": [
+     261
+    ],
+    "_file": "src/Domain/Session/SessionService.ts",
+    "_line": 261,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Domain/UseCase/GenerateAuthenticatorAuthenticationOptions/GenerateAuthenticatorAuthenticationOptions.ts",
+    "member": "GenerateAuthenticatorAuthenticationOptions.execute",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 61,
+    "lines": [
+     61
+    ],
+    "_file": "src/Domain/UseCase/GenerateAuthenticatorAuthenticationOptions/GenerateAuthenticatorAuthenticationOptions.ts",
+    "_line": 61,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/Domain/UseCase/GenerateAuthenticatorRegistrationOptions/GenerateAuthenticatorRegistrationOptions.ts",
+    "member": "GenerateAuthenticatorRegistrationOptions.execute",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 74,
+    "lines": [
+     74
+    ],
+    "_file": "src/Domain/UseCase/GenerateAuthenticatorRegistrationOptions/GenerateAuthenticatorRegistrationOptions.ts",
+    "_line": 74,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/Domain/UseCase/Register.ts",
+    "member": "Register.execute",
+    "layer": "domain",
+    "category": "random",
+    "apis": [
+     "uuid:uuidv4"
+    ],
+    "line": 72,
+    "lines": [
+     72
+    ],
+    "_file": "src/Domain/UseCase/Register.ts",
+    "_line": 72,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Domain/UseCase/SignIn.ts",
+    "member": "SignIn.sendSignInEmailNotification",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 161,
+    "lines": [
+     161
+    ],
+    "_file": "src/Domain/UseCase/SignIn.ts",
+    "_line": 161,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/Domain/UseCase/TraceSession/TraceSession.ts",
+    "member": "TraceSession.execute",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 37,
+    "lines": [
+     37,
+     48
+    ],
+    "_file": "src/Domain/UseCase/TraceSession/TraceSession.ts",
+    "_line": 37,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/Domain/UseCase/ValidateMfaToken/ValidateMfaToken.ts",
+    "member": "ValidateMfaToken.execute",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "Date.now()"
+    ],
+    "line": 29,
+    "lines": [
+     29
+    ],
+    "_file": "src/Domain/UseCase/ValidateMfaToken/ValidateMfaToken.ts",
+    "_line": 29,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/Domain/UseCase/VerifyAuthenticatorRegistrationResponse/VerifyAuthenticatorRegistrationResponse.ts",
+    "member": "VerifyAuthenticatorRegistrationResponse.execute",
+    "layer": "domain",
+    "category": "clock",
+    "apis": [
+     "new Date()"
+    ],
+    "line": 90,
+    "lines": [
+     90,
+     90
+    ],
+    "_file": "src/Domain/UseCase/VerifyAuthenticatorRegistrationResponse/VerifyAuthenticatorRegistrationResponse.ts",
+    "_line": 90,
+    "_importGraphSees": false
+   },
+   {
+    "filePath": "src/Domain/UseCase/VerifyMFA.ts",
+    "member": "VerifyMFA.execute",
+    "layer": "domain",
+    "category": "random",
+    "apis": [
+     "uuid:uuidv4"
+    ],
+    "line": 72,
+    "lines": [
+     72
+    ],
+    "_file": "src/Domain/UseCase/VerifyMFA.ts",
+    "_line": 72,
+    "_importGraphSees": true
+   },
+   {
+    "filePath": "src/Domain/UseCase/VerifyMFA.ts",
+    "member": "VerifyMFA.getMFATokenAndParamKeyFromRequestParams",
+    "layer": "domain",
+    "category": "random",
+    "apis": [
+     "uuid:uuidv4"
+    ],
+    "line": 184,
+    "lines": [
+     184
+    ],
+    "_file": "src/Domain/UseCase/VerifyMFA.ts",
+    "_line": 184,
+    "_importGraphSees": true
+   }
+  ]
+ }
+}

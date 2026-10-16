@@ -95,3 +95,30 @@ export function linkingEdges(g: MemGraph, fileA: string, fileB: string): APGEdge
     return (s === fileA && t === fileB) || (s === fileB && t === fileA);
   });
 }
+
+/**
+ * FF-P06 domain-state-purity: a domain Class holding an infrastructure Class or Interface through its field half
+ * (`fieldRel`: FLOWS_TO in the frozen text, HOLDS_STATE_OF in the field-state variant, `applyFieldState`) or through
+ * CONSTRUCTOR_INJECTS. Same columns and order as the Cypher (`cypher-templates.ts`); `relType` is the edge type.
+ */
+export function v13DomainStatePurity(
+  g: MemGraph, domainLayer: string, infraLayer: string, fieldRel: 'FLOWS_TO' | 'HOLDS_STATE_OF' = 'FLOWS_TO',
+): Row[] {
+  const rows: { filePath: string; class: string; target: string; targetName: string; relType: string; field: string; line: number | null }[] = [];
+  for (const e of g.edges) {
+    if (e.type !== fieldRel && e.type !== 'CONSTRUCTOR_INJECTS') continue;
+    const c = g.node(e.sourceId);
+    const t = g.node(e.targetId);
+    if (c.type !== 'Class' || (t.type !== 'Class' && t.type !== 'Interface')) continue;
+    if (g.layer.get(c.id) !== domainLayer || g.layer.get(t.id) !== infraLayer) continue;
+    const p = e.properties;
+    const field = typeof p.field === 'string' ? p.field : typeof p.parameterName === 'string' ? p.parameterName : '';
+    rows.push({
+      filePath: c.filePath, class: c.name, target: t.filePath, targetName: t.name, relType: e.type, field,
+      line: typeof p.line === 'number' ? p.line : null,
+    });
+  }
+  const key = (r: (typeof rows)[number]): string => [r.filePath, r.class, r.target, r.relType, r.field].join('\u0000');
+  rows.sort((a, b) => (key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : 0));
+  return rows.map((r) => ({ rule: 'domain-state-purity', ...r }));
+}

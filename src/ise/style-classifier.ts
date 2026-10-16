@@ -7,10 +7,13 @@
  * inversion across units, chain depth, sibling outer units, a composition root). Each style collects points; the
  * confidence of a style is its share of all points. The point values were fixed before the reference set was run.
  */
+import { boundedContexts, detectContexts } from './contexts.js';
 import type { IseGraph } from './graph-view.js';
-import { unitStructure } from './units.js';
+import { isLateral, unitStructure } from './units.js';
 import type { UnitStructure } from './units.js';
 import { NEST_DECORATORS, NEST_FILE_SUFFIX, STYLE_TOKENS, normaliseToken } from './vocabulary.js';
+
+export { boundedContexts };
 
 export const ISE_STYLES = ['clean-architecture', 'layered', 'hexagonal', 'nestjs', 'ddd'] as const;
 export type IseStyle = (typeof ISE_STYLES)[number];
@@ -30,7 +33,7 @@ export interface StyleFeatures {
   readonly nestModuleClasses: number;
   readonly classes: number;
   readonly nestSuffixFiles: number;
-  /** Top-level directories holding at least two DDD layer directories, one of them `domain`. */
+  /** Bounded-context folders: repeated internal layering (`contexts.ts`), united with the vocabulary detection. */
   readonly contexts: readonly string[];
   /** Cross-unit IMPLEMENTS edges, and those whose interface sits in a lower-level (inner) unit. */
   readonly crossImplements: number;
@@ -40,6 +43,14 @@ export interface StyleFeatures {
   readonly compositionRoots: readonly string[];
   /** Pairs of non-root units at the same level >= 1 with no edge between them (sibling outer units). */
   readonly siblingOuterPairs: number;
+  /**
+   * Outer units (level >= 1, imported by no unit but composition roots) by adapter direction: outbound ones implement
+   * an interface owned by a lower-level unit (a driven port); inbound ones implement none and call inward.
+   */
+  readonly inboundAdapters: readonly string[];
+  readonly outboundAdapters: readonly string[];
+  /** Interfaces owned and implemented inside the core (non-outer units) that an inbound adapter imports (driving ports). */
+  readonly drivingPorts: number;
 }
 
 const has = (tokens: readonly string[], list: readonly string[]): boolean => tokens.some((t) => list.includes(t));
@@ -52,24 +63,6 @@ function dirTokens(files: readonly string[], sourceRoot: string): { top: Set<str
     segs.forEach((s, i) => (i === 0 ? top : deep).add(normaliseToken(s)));
   }
   return { top, deep };
-}
-
-/** Contexts: top-level directories with >= 2 DDD layer subdirectories including a domain one. */
-export function boundedContexts(files: readonly string[], sourceRoot: string): string[] {
-  const children = new Map<string, Set<string>>();
-  for (const f of files) {
-    const segs = f.slice(sourceRoot.length).split('/');
-    if (segs.length < 3) continue;
-    const [top = '', child = ''] = segs;
-    const set = children.get(top) ?? new Set<string>();
-    set.add(normaliseToken(child));
-    children.set(top, set);
-  }
-  const layers: readonly string[] = STYLE_TOKENS.dddLayers;
-  return [...children]
-    .filter(([, c]) => c.has('domain') && [...c].filter((t) => layers.includes(t)).length >= 2)
-    .map(([top]) => `${sourceRoot}${top}/`)
-    .sort();
 }
 
 export function styleFeatures(graph: IseGraph, structure: UnitStructure = unitStructure(graph)): StyleFeatures {
@@ -90,7 +83,9 @@ export function styleFeatures(graph: IseGraph, structure: UnitStructure = unitSt
   const outCount = new Map<string, number>();
   for (const e of structure.edges) outCount.set(e.from, (outCount.get(e.from) ?? 0) + 1);
   const compositionRoots = structure.roots.filter((r) => (outCount.get(r) ?? 0) >= 2);
-  const linked = new Set(structure.edges.flatMap((e) => [`${e.from}\n${e.to}`, `${e.to}\n${e.from}`]));
+  const groupOf = new Map(structure.units.map((u) => [u.id, u.group]));
+  const ordered = structure.edges.filter((e) => !isLateral(groupOf, e));
+  const linked = new Set(ordered.flatMap((e) => [`${e.from}\n${e.to}`, `${e.to}\n${e.from}`]));
   const inner = structure.units.filter((u) => !compositionRoots.includes(u.id) && (level.get(u.id) ?? 0) >= 1);
   let siblingOuterPairs = 0;
   for (let i = 0; i < inner.length; i += 1) {
@@ -101,6 +96,27 @@ export function styleFeatures(graph: IseGraph, structure: UnitStructure = unitSt
       if (level.get(a.id) === level.get(b.id) && !linked.has(`${a.id}\n${b.id}`)) siblingOuterPairs += 1;
     }
   }
+  const outer = structure.units.filter(
+    (u) => !structure.roots.includes(u.id) && (level.get(u.id) ?? 0) >= 1 && !ordered.some((e) => e.to === u.id && !structure.roots.includes(e.from)),
+  );
+  const outerIds = new Set(outer.map((u) => u.id));
+  const implementsInner = (unit: string): boolean =>
+    graph.typeEdges.some((e) => {
+      if (e.kind !== 'implements' || unitOf.get(e.from.file) !== unit) return false;
+      const owner = unitOf.get(e.to.file);
+      return owner !== undefined && owner !== unit && (level.get(owner) ?? 0) < (level.get(unit) ?? 0);
+    });
+  const outboundAdapters = outer.filter((u) => implementsInner(u.id)).map((u) => u.id);
+  const inboundAdapters = outer.filter((u) => !implementsInner(u.id) && structure.edges.some((e) => e.from === u.id)).map((u) => u.id);
+  const coreUnit = (f: string): boolean => {
+    const u = unitOf.get(f);
+    return u !== undefined && !outerIds.has(u) && !structure.roots.includes(u);
+  };
+  const drivingPorts = new Set<string>();
+  for (const e of graph.typeEdges) {
+    if (e.kind !== 'implements' || e.to.kind !== 'interface' || !coreUnit(e.from.file) || !coreUnit(e.to.file)) continue;
+    if (graph.edges.some((x) => x.to === e.to.file && inboundAdapters.includes(unitOf.get(x.from) ?? ''))) drivingPorts.add(`${e.to.file}#${e.to.name}`);
+  }
   return {
     sourceRoot,
     topTokens: [...top].sort(),
@@ -109,12 +125,15 @@ export function styleFeatures(graph: IseGraph, structure: UnitStructure = unitSt
     nestModuleClasses: nestDecorated.filter((c) => c.decorators.includes('Module')).length,
     classes: classes.length,
     nestSuffixFiles: graph.files.filter((f) => NEST_FILE_SUFFIX.test(f)).length,
-    contexts: boundedContexts(graph.files, sourceRoot),
+    contexts: detectContexts(graph).contexts.map((c) => c.root),
     crossImplements,
     inwardImplements,
     maxLevel: Math.max(0, ...[...level.entries()].filter(([u]) => !compositionRoots.includes(u)).map(([, l]) => l)),
     compositionRoots,
     siblingOuterPairs,
+    inboundAdapters,
+    outboundAdapters,
+    drivingPorts: drivingPorts.size,
   };
 }
 
@@ -164,8 +183,11 @@ export function scoreStyles(f: StyleFeatures): StyleScore[] {
   if (has(f.deepTokens, STYLE_TOKENS.hexDirections)) give('hexagonal', 2, 'inbound/outbound (driving/driven) adapter directories');
   if (has([...T, ...f.deepTokens], STYLE_TOKENS.hexPorts) && has(f.deepTokens, STYLE_TOKENS.hexPortDirections)) give('hexagonal', 1, 'ports split by direction');
   if (has(T, STYLE_TOKENS.composition)) give('hexagonal', 1, 'top-level composition-root directory');
-  if (dip && f.siblingOuterPairs >= 1 && f.compositionRoots.length >= 1) {
-    give('hexagonal', 2, 'dependency inversion with independent sibling outer units and a composition root');
+  if (dip && f.inboundAdapters.length >= 1 && f.outboundAdapters.length >= 1 && f.siblingOuterPairs >= 1 && f.compositionRoots.length >= 1) {
+    give('hexagonal', 2, `dependency inversion with separate inbound (${f.inboundAdapters.join(', ')}) and outbound (${f.outboundAdapters.join(', ')}) adapter units and a composition root`);
+  }
+  if (f.drivingPorts >= 1 && f.outboundAdapters.length >= 1) {
+    give('hexagonal', 1, `${String(f.drivingPorts)} driving port(s): core-owned interfaces implemented in the core and called by an inbound adapter`);
   }
 
   // NestJS

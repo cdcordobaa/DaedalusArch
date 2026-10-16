@@ -1,0 +1,251 @@
+# ISE-inferred spec (exploratory prototype, src/ise). Review before use.
+# style: ddd (classified, confidence 0.75); layer mapping: preset-first
+# evidence: +4 2 bounded-context-like folders (src/billing/, src/ordering/) each with its own domain layer; +1 shared kernel next to the contexts; +1 context boundary directories (acl / contracts)
+# units: src/billing/=- (public-api), src/billing/acl/=infrastructure (preset-glob), src/billing/api/=api (preset-glob), src/billing/application/=application (preset-glob), src/billing/contracts/=- (public-api), src/billing/domain/=domain (preset-glob), src/billing/infrastructure/=infrastructure (preset-glob), src/main.ts=composition (preset-glob), src/ordering/=- (public-api), src/ordering/api/=api (preset-glob), src/ordering/application/=application (preset-glob), src/ordering/contracts/=- (public-api), src/ordering/domain/=domain (preset-glob), src/ordering/infrastructure/=infrastructure (preset-glob), src/shared-kernel/=domain (preset-glob)
+
+spec_version: "1.0.0"
+
+architecture:
+  style: ddd
+
+  layers:
+    - name: domain
+      kind: domain
+      directories:
+        - src/billing/domain/**
+        - src/ordering/domain/**
+        - src/shared-kernel/**
+      roles:
+        - aggregate
+        - entity
+        - value-object
+        - domain-event
+        - repository-interface
+
+    - name: application
+      kind: application
+      directories:
+        - src/billing/application/**
+        - src/ordering/application/**
+      roles:
+        - application-service
+        - port
+
+    - name: infrastructure
+      kind: infrastructure
+      directories:
+        - src/billing/infrastructure/**
+        - src/ordering/infrastructure/**
+        - src/billing/acl/**
+      roles:
+        - repository
+        - anti-corruption-layer
+
+    - name: api
+      kind: presentation
+      directories:
+        - src/billing/api/**
+        - src/ordering/api/**
+      roles:
+        - controller
+
+    # Composition root, outside every context. kind application is only a placeholder for the kind resolver.
+    - name: composition
+      kind: application
+      directories:
+        - src/main.ts
+      roles:
+        - composition-root
+
+  # Layering inside each context (`from` may import each layer in `to`); cross-context imports are FF-DS02's.
+  allowed_dependencies:
+    - from: application
+      to: [ domain ]
+    - from: infrastructure
+      to: [ application, domain ]
+    - from: api
+      to: [ application, domain ]
+    - from: composition
+      to: [ domain, application, infrastructure, api ]
+
+  ddd:
+    source_root: src/
+    contexts:
+      - name: billing
+        root: src/billing/
+        public_api:
+          - src/billing/index.ts
+          - src/billing/contracts/**
+        acl:
+          - src/billing/acl/**
+      - name: ordering
+        root: src/ordering/
+        public_api:
+          - src/ordering/index.ts
+          - src/ordering/contracts/**
+        acl: []
+    outside_contexts:
+      - src/main.ts
+      - src/shared-kernel/**
+    aggregates:
+      - name: Invoice
+        context: billing
+        module: src/billing/domain/invoice/**
+        root: src/billing/domain/invoice/Invoice.ts
+        inner_entities:
+          - src/billing/domain/invoice/InvoiceLine.ts
+      - name: Customer
+        context: ordering
+        module: src/ordering/domain/customer/**
+        root: src/ordering/domain/customer/Customer.ts
+        inner_entities: []
+      - name: Order
+        context: ordering
+        module: src/ordering/domain/order/**
+        root: src/ordering/domain/order/Order.ts
+        inner_entities:
+          - src/ordering/domain/order/OrderLine.ts
+    value_objects:
+      - src/**/value-objects/**
+    repositories:
+      - src/*/domain/**/*Repository.ts
+      - src/*/infrastructure/**/*Repository.ts
+    domain_event_types:
+      - DomainEvent
+    application_services:
+      - src/*/application/*.ts
+
+fitness_functions:
+
+  # ── STRATEGIC ──
+
+  - id: FF-DS01
+    name: bounded-context-modules
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DS02
+    name: context-isolation
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # ── TACTICAL ──
+
+  - id: FF-DT01
+    name: aggregate-boundary
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DT02
+    name: repository-aggregate-root
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Blocking per the sealed Docs/v1.3/rule-tiers.md. The check is still a method-name proxy (the extractor sees no
+  # readonly, accessors or visibility); see Docs/v1.3-ddd-notes.md §2 for the proposed ADR.
+  - id: FF-DT03
+    name: value-object-immutability
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Framework-free domain: the existing domain-purity template, unchanged, with the DDD package list.
+  - id: FF-DT04
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+    forbidden_imports:
+      - "@nestjs/*"
+      - typeorm
+      - express
+      - prisma
+      - "@prisma/*"
+      - sequelize
+      - mongoose
+      - "@mikro-orm/*"
+      - class-validator
+      - class-transformer
+      - inversify
+      - tsyringe
+
+  # Advisory per the sealed Docs/v1.3/rule-tiers.md (placement guideline).
+  - id: FF-DT05
+    name: domain-event-placement
+    dimension: pattern
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+  # Advisory heuristic: more methods than the threshold in an application service.
+  - id: FF-DT06
+    name: application-service-thin
+    dimension: pattern
+    severity: advisory
+    route: symbolic
+    validated: false
+    tier: advisory
+    threshold: 3
+
+  # ── LAYERING INSIDE EACH CONTEXT (hexagonal templates) ──
+
+  - id: FF-S01
+    name: dependency-direction-graph
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Advisory per the sealed Docs/v1.3/rule-tiers.md (hexagonal does not define strict layering).
+  - id: FF-S03
+    name: layer-skip-graph
+    dimension: structural
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70

@@ -51,12 +51,22 @@ describe('clones proxy', () => {
     }
   });
 
-  it('records a same-component clone without flagging it', async () => {
-    const fx = await runOn({ 'src/order/application/order.service.ts': GUARD_A, 'src/order/application/invoice.service.ts': GUARD_B }, ['clones']);
+  it('records a same-component clone without flagging it when cloneSameComponentFlags is off (the pre-fix proxy)', async () => {
+    const fx = await runOn({ 'src/order/application/order.service.ts': GUARD_A, 'src/order/application/invoice.service.ts': GUARD_B }, ['clones'], { cloneSameComponentFlags: false });
     try {
       expect(fx.enrichment.edges.filter((e) => e.type === 'SAME_LOGIC_AS')).toHaveLength(1);
       expect(fx.enrichment.edges[0]?.properties.crossComponent).toBe(false);
       expect(fx.flags('clones')).toEqual([]);
+    } finally {
+      fx.cleanup();
+    }
+  });
+
+  it('flags a same-component clone as the separate advisory kind same-component-<type> by default', async () => {
+    const fx = await runOn({ 'src/order/application/order.service.ts': GUARD_A, 'src/order/application/invoice.service.ts': GUARD_B }, ['clones']);
+    try {
+      expect(fx.flags('clones').map((f) => f.kind)).toEqual(['same-component-exact-structural', 'same-component-exact-structural']);
+      expect(fx.enrichment.summaries.clones).toMatchObject({ crossComponentPairs: 0, sameComponentPairs: 1 });
     } finally {
       fx.cleanup();
     }
