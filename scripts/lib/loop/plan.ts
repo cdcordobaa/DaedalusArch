@@ -15,6 +15,7 @@
  * default spec and may be left out only when every task has a profile. `callBudget`, when present, must equal the
  * budget the plan implies (`planCallBudget`), so the recorded figure cannot drift from the plan.
  */
+import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
@@ -167,6 +168,37 @@ export function validatePlan(raw: unknown): DomainResult<LoopPlanFile> {
     errors.push(err('LOOP_PLAN_INVALID', 'cassette must be { dir, mode: record | replay }'));
   }
   return errors.length > 0 ? DomainResult.fail(errors) : DomainResult.ok(raw as unknown as LoopPlanFile);
+}
+
+/**
+ * R23 (post-merge review 2026-10-16): in the daedalus-mcp arm the MCP server's spec (`daedalus.specPath`) and the
+ * evaluator's spec (`evaluatorSpec`, repository-relative) must hold the same rules, or the tool's advice and the score
+ * disagree. Compares the two files by sha256; returns both hashes, or undefined when the arm is not in the plan.
+ */
+export function mcpSpecCheck(
+  plan: Pick<LoopPlanFile, 'arms' | 'evaluatorSpec' | 'daedalus'>, repoRoot: string,
+): DomainResult<{ readonly mcpSpecSha256: string; readonly evaluatorSpecSha256: string } | undefined> {
+  if (!plan.arms.includes('daedalus-mcp')) return DomainResult.ok(undefined);
+  if (plan.daedalus === undefined || plan.evaluatorSpec === undefined) {
+    return DomainResult.fail([err('LOOP_PLAN_SPEC_MISMATCH', 'the daedalus-mcp arm needs daedalus.specPath and evaluatorSpec')]);
+  }
+  const hash = (file: string): string | undefined => {
+    try {
+      return createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+    } catch {
+      return undefined;
+    }
+  };
+  const evaluatorFile = path.resolve(repoRoot, plan.evaluatorSpec);
+  const mcp = hash(plan.daedalus.specPath);
+  const ev = hash(evaluatorFile);
+  if (mcp === undefined || ev === undefined) {
+    return DomainResult.fail([err('LOOP_PLAN_SPEC_MISMATCH', `cannot read ${mcp === undefined ? plan.daedalus.specPath : evaluatorFile}`)]);
+  }
+  if (mcp !== ev) {
+    return DomainResult.fail([err('LOOP_PLAN_SPEC_MISMATCH', `the MCP server's spec ${plan.daedalus.specPath} (sha256 ${mcp.slice(0, 12)}) differs from the evaluator spec ${plan.evaluatorSpec} (sha256 ${ev.slice(0, 12)})`)]);
+  }
+  return DomainResult.ok({ mcpSpecSha256: mcp, evaluatorSpecSha256: ev });
 }
 
 function validateProfiles(raw: unknown): DomainError[] {

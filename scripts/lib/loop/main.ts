@@ -44,7 +44,7 @@ import { ClaudeStepAgent, CodexStepAgent } from './agents.js';
 import { harnessTypechecker, loopEvaluatorOf } from './evaluator.js';
 import { gateEvaluationFailures, runLoop } from './loop.js';
 import type { LoopContext, LoopRunResult, TaskProfile } from './loop.js';
-import { loadLoopPlan, loopRunId, planCallBudget, scheduleLoopRuns } from './plan.js';
+import { loadLoopPlan, loopRunId, mcpSpecCheck, planCallBudget, scheduleLoopRuns } from './plan.js';
 import type { LoadedPlan, LocalOverrides } from './plan.js';
 import { iseDddFreezer } from './specs.js';
 import type { SpecFreezer } from './specs.js';
@@ -271,6 +271,9 @@ async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs
   const { plan } = loaded;
   if (isInsideOrEqual(repoRoot, plan.outRoot)) return DomainResult.fail([{ code: 'LOOP_PLAN_INVALID', message: 'outRoot must lie outside the repository' }]);
   if (deps.evaluateDeps === undefined) return DomainResult.fail([{ code: 'LOOP_NO_EVALUATOR', message: 'no evaluate_project wiring' }]);
+  // R23: the MCP arm's advice and the score must come from the same spec.
+  const specMatch = mcpSpecCheck(plan, repoRoot);
+  if (!specMatch.success) return DomainResult.fail(specMatch.errors);
   const ready = await ensureHarness(deps.runner, repoRoot, plan.harnessRoot);
   if (!ready.success) return DomainResult.fail(ready.errors);
   const install: SkeletonInstall = ready.data.install;
