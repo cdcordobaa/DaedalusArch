@@ -13,9 +13,9 @@ Each PR got a review comment with its verdict and per-check findings. Every HOLD
 
 ## Outcome
 
-- **56 PRs reviewed** (49 open at the start, plus #195–#201 opened during the review).
+- **65 PRs reviewed**: 49 open at the start, #195–#201 opened during the first pass, and #203–#210 and #212 caught by the 09:12 sweep.
 - **OK to merge: 2.** #135 (opt-in `includeViolations` fix, plus a test added during review) and #138 (additive `check` subcommand and GitHub Action).
-- **HOLD: 54.** Most are held because the author marked them do-not-merge-before-review. The substantive findings are below.
+- **HOLD: 63.** Most are held because the author marked them do-not-merge-before-review. The substantive findings are below.
 - **#143 was merged into v1.3 by the late train at 07:52 UTC, before its HOLD was posted** (merge `dffb1db8`). The findings now apply to v1.3 itself:
   - the MCP `check_file`, `check_diff` and `explain_violation` schemas gain an agent-settable `hints` parameter without `--hints`;
   - `schemas/report.schema.json`, which is marked FROZEN at U3-R10, gains `fixHints`.
@@ -94,3 +94,23 @@ Each PR got a review comment with its verdict and per-check findings. Every HOLD
 | #199 | HOLD | Author marked do-not-merge-before-review; otherwise clean: 39/39 parity matches JSON, --engine is opt-in, no frozen/sealed touch |
 | #200 | HOLD | Author marked do-not-merge-before-review; otherwise clean: demo table matches JSON, runner off by default, minimal env to child procs |
 | #201 | HOLD | Author marked do-not-merge; sealed-list domain check still pending (author); no sealed reads; one mis-cited sweep cell |
+
+## Pre-train sweep (09:12 UTC)
+
+A second pass ran at 09:12 UTC. All 9 PRs opened after the first pass (#203–#210, #212) were given `[hold]` before the 09:30 train, then reviewed. Other changes since the first pass:
+
+- #135, #138 and #202 merged, as expected.
+- #193 merged at 08:21, after its `:31` error was corrected (`f02417c6`).
+- #211 (foreman log, round 2) merged at 08:49 without review. Its merge-state lines are stale: it says #135 and #138 "can be closed" (both merged 08:20), gives v1.3 at `f0939a48` (it was `80230fce`), and lists #202 as open. Docs only.
+
+| PR | Verdict | Summary |
+|---|---|---|
+| #203 | HOLD | Author do-not-merge; stacked on unmerged #160 (merging lands #160 too); "proven" wording on synthetic data; mislabelled Holm column |
+| #204 | HOLD | Author do-not-merge; opt-in API adapters read GEMINI_API_KEY/OPENAI_API_KEY (env or --env-file .env); doc/body key and schema notes inaccurate |
+| #205 | HOLD | Author do-not-merge; otherwise clean (numbers recompute, opt-in tool, sealed guard); minor "3–20×" and "lane barely helps" nits |
+| #206 | HOLD | Author do-not-merge; ungated src/mcp-server change (evaluate_project cypher-interp honours tsconfigPath); F1 description stale |
+| #207 | HOLD | Author do-not-merge; parity.md header mislabels engine as 5.26.24 (ran vs 2025.12.1); title "version independent" from 2 versions |
+| #208 | HOLD | Author do-not-merge (prep only, no judge run). Checks clean: --strip-comments OFF by default, numbers match, no sealed/third-party. |
+| #209 | HOLD | Author do-not-merge; numbers recompute exactly, but report draws an unsupported "therefore" about Study 2's hexagonal floor from 6 non-hexagonal repos. |
+| #210 | HOLD | Author do-not-merge; otherwise clean: gate.shownRules is opt-in, the default path is unchanged, 13 tests as stated, no frozen edits. |
+| #212 | HOLD | Author do-not-merge; bundles 3 unmerged [hold] branches (#133, #139, view-coverage) incl. #133's 10/5 vs 11/4 verdict error; no vendored source. |
