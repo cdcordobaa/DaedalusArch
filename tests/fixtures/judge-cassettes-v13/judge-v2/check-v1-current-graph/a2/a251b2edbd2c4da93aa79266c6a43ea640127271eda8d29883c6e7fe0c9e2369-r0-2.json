@@ -1,0 +1,52 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 11479,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "a251b2edbd2c4da93aa79266c6a43ea640127271eda8d29883c6e7fe0c9e2369-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.8,
+    "evidence": [
+      "src/order/order.entity.ts: `@Entity('orders')` on class OrderEntity maps the class to a database table, which is an infrastructure responsibility.",
+      "src/order/order.entity.ts: `@PrimaryGeneratedColumn('uuid') id!: string;` hands identity generation to the database, which is an infrastructure responsibility.",
+      "src/order/order.entity.ts: `@Column()` on customerId, quantity and total defines the column schema, which is an infrastructure responsibility.",
+      "src/order/order.entity.ts: `hasId(): boolean { return this.id !== undefined; }` checks whether the database has assigned an id yet; there is no domain behaviour or invariant in the class."
+    ],
+    "pass": false,
+    "reasoning": "src/order/order.entity.ts is declared as domain, but its main responsibility is persistence. OrderEntity is a TypeORM table mapping. @Entity('orders') binds the class to the 'orders' table, @PrimaryGeneratedColumn('uuid') hands id generation to the database, and @Column() on customerId, quantity and total defines the column schema. Defining tables, columns and storage-generated keys belongs to the infrastructure layer. The class has no domain behaviour: there are no invariants and no business rules about quantity or total. Its only method, hasId(), checks whether the database has assigned an id yet, which is a persistence state check rather than a domain concept. The file is effectively a persistence model placed in the domain layer. This judgement is about the file's responsibilities, not about the typeorm import direction, which is out of scope.",
+    "violations": [
+      {
+        "filePath": "src/order/order.entity.ts",
+        "message": "OrderEntity is declared as domain but carries persistence responsibilities: @Entity('orders') maps it to a table, @PrimaryGeneratedColumn('uuid') hands id generation to the database, @Column() defines the schema for customerId, quantity and total, and hasId() checks whether an id has been assigned yet. These belong to the infrastructure layer (persistence model or repository mapping), not the domain layer."
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**, **/domain/**; file patterns: **/*.entity.ts\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/order/order.entity.ts\nLayer: domain\nUnit files:\n- src/order/order.entity.ts\n\n## Source\n=====SOURCE-BEGIN src/order/order.entity.ts=====\nimport { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';\n\n@Entity('orders')\nexport class OrderEntity {\n  @PrimaryGeneratedColumn('uuid')\n  id!: string;\n\n  @Column()\n  customerId!: string;\n\n  @Column()\n  quantity!: number;\n\n  @Column()\n  total!: number;\n\n  hasId(): boolean {\n    return this.id !== undefined;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/order/order.controller.ts\",\"to\":\"src/order/order.entity.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/order/order.entity.ts\",\"to\":\"typeorm\",\"type\":\"IMPORTS\"},{\"from\":\"src/order/order.service.ts\",\"to\":\"src/order/order.entity.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"OrderEntity\",\"path\":\"src/order/order.entity.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/order/order.service.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/order/order.entity.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/order/order.controller.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"typeorm\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T21:10:39.536Z",
+  "repetition": 0,
+  "requestHash": "a251b2edbd2c4da93aa79266c6a43ea640127271eda8d29883c6e7fe0c9e2369",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":1067}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.8,\\\"reasoning\\\":\\\"src/order/order.entity.ts is declared as domain, but its main responsibility is persistence. OrderEntity is a TypeORM table mapping. @Entity('orders') binds the class to the 'orders' table, @PrimaryGeneratedColumn('uuid') hands id generation to the database, and @Column() on customerId, quantity and total defines the column schema. Defining tables, columns and storage-generated keys belongs to the infrastructure layer. The class has no domain behaviour: there are no invariants and no business rules about quantity or total. Its only method, hasId(), checks whether the database has assigned an id yet, which is a persistence state check rather than a domain concept. The file is effectively a persistence model placed in the domain layer. This judgement is about the file's responsibilities, not about the typeorm import direction, which is out of scope.\\\",\\\"evidence\\\":[\\\"src/order/order.entity.ts: `@Entity('orders')` on class OrderEntity maps the class to a database table, which is an infrastructure responsibility.\\\",\\\"src/order/order.entity.ts: `@PrimaryGeneratedColumn('uuid') id!: string;` hands identity generation to the database, which is an infrastructure responsibility.\\\",\\\"src/order/order.entity.ts: `@Column()` on customerId, quantity and total defines the column schema, which is an infrastructure responsibility.\\\",\\\"src/order/order.entity.ts: `hasId(): boolean { return this.id !== undefined; }` checks whether the database has assigned an id yet; there is no domain behaviour or invariant in the class.\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/order/order.entity.ts\\\",\\\"message\\\":\\\"OrderEntity is declared as domain but carries persistence responsibilities: @Entity('orders') maps it to a table, @PrimaryGeneratedColumn('uuid') hands id generation to the database, @Column() defines the schema for customerId, quantity and total, and hasId() checks whether an id has been assigned yet. These belong to the infrastructure layer (persistence model or repository mapping), not the domain layer.\\\"}]}\",\"structured_output\":{\"confidence\":0.8,\"evidence\":[\"src/order/order.entity.ts: `@Entity('orders')` on class OrderEntity maps the class to a database table, which is an infrastructure responsibility.\",\"src/order/order.entity.ts: `@PrimaryGeneratedColumn('uuid') id!: string;` hands identity generation to the database, which is an infrastructure responsibility.\",\"src/order/order.entity.ts: `@Column()` on customerId, quantity and total defines the column schema, which is an infrastructure responsibility.\",\"src/order/order.entity.ts: `hasId(): boolean { return this.id !== undefined; }` checks whether the database has assigned an id yet; there is no domain behaviour or invariant in the class.\"],\"pass\":false,\"reasoning\":\"src/order/order.entity.ts is declared as domain, but its main responsibility is persistence. OrderEntity is a TypeORM table mapping. @Entity('orders') binds the class to the 'orders' table, @PrimaryGeneratedColumn('uuid') hands id generation to the database, and @Column() on customerId, quantity and total defines the column schema. Defining tables, columns and storage-generated keys belongs to the infrastructure layer. The class has no domain behaviour: there are no invariants and no business rules about quantity or total. Its only method, hasId(), checks whether the database has assigned an id yet, which is a persistence state check rather than a domain concept. The file is effectively a persistence model placed in the domain layer. This judgement is about the file's responsibilities, not about the typeorm import direction, which is out of scope.\",\"violations\":[{\"filePath\":\"src/order/order.entity.ts\",\"message\":\"OrderEntity is declared as domain but carries persistence responsibilities: @Entity('orders') maps it to a table, @PrimaryGeneratedColumn('uuid') hands id generation to the database, @Column() defines the schema for customerId, quantity and total, and hasId() checks whether an id has been assigned yet. These belong to the infrastructure layer (persistence model or repository mapping), not the domain layer.\"}]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/order/order.entity.ts",
+  "usage": {
+    "inputTokens": 2642,
+    "outputTokens": 1067
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

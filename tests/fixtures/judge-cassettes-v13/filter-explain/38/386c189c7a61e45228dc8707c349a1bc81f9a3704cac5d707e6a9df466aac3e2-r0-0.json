@@ -1,0 +1,36 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 9674,
+  "effort": "high",
+  "functionId": "filter-explain",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "386c189c7a61e45228dc8707c349a1bc81f9a3704cac5d707e6a9df466aac3e2-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": null,
+  "prompt": "## Finding\nRule: FF-CV05\nRule intent: Each source file has a paired test file.\nType: MISSING_TEST_FILE\nSeverity: advisory; tier: advisory (unscored)\nFile: src/domain/workshop.ts\nMessage: Violation in src/domain/workshop.ts\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Source (line-numbered)\n=====SOURCE-BEGIN src/domain/workshop.ts (layer domain)=====\n 1| import { DomainError } from './domain-error';\n 2| \n 3| export class Workshop {\n 4|   constructor(\n 5|     readonly id: string,\n 6|     readonly title: string,\n 7|     readonly capacity: number,\n 8|     readonly startsAt: Date,\n 9|     private seatsTaken = 0,\n10|   ) {\n11|     if (capacity < 1) throw new DomainError('invalid', 'A workshop needs at least one seat');\n12|   }\n13| \n14|   get seatsLeft(): number {\n15|     return this.capacity - this.seatsTaken;\n16|   }\n17| \n18|   takeSeat(): void {\n19|     if (this.seatsLeft === 0) throw new DomainError('conflict', `Workshop \"${this.title}\" is full`);\n20|     this.seatsTaken += 1;\n21|   }\n22| \n23|   releaseSeat(): void {\n24|     if (this.seatsTaken > 0) this.seatsTaken -= 1;\n25|   }\n26| }\n=====SOURCE-END=====\n\n## Instructions\nDecide confirm or dismiss. Confirm: the cited code has the problem the rule is meant to catch, in this project and layer model. Dismiss: the rule fired, but the code does not have that problem (a false positive of the rule's mechanism, a threshold artefact on sound code, or a case the style allows). Measurements stated in the finding (counts, ratios, missing files) are correct as measurements; judge what they mean for this code. explanation: one paragraph that justifies the decision from the code, citing file paths and line numbers exactly as numbered below. fix: one concrete change: for a confirm, how to fix the code; for a dismiss, what (if anything) the rule or its configuration should change. citations: the line ranges your explanation relies on; every one must name a file shown below and lines that exist.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T00:04:26.919Z",
+  "repetition": 0,
+  "requestHash": "386c189c7a61e45228dc8707c349a1bc81f9a3704cac5d707e6a9df466aac3e2",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":739}},\"result\":\"{\\\"decision\\\":\\\"confirm\\\",\\\"explanation\\\":\\\"The finding says src/domain/workshop.ts has no paired test file, and I take that as correct. This file holds real domain behaviour that a test should pin down, so it is not trivial code like a type-only module, a barrel or plain config. The constructor enforces an invariant: a workshop needs at least one seat, and it throws a DomainError when capacity < 1 (line 11). The seatsLeft getter derives a value from state (lines 14-16). takeSeat raises a 'conflict' DomainError once the workshop is full and otherwise increments the count (lines 18-21). releaseSeat guards against going below zero (lines 23-25). These are the core booking rules of the domain layer. A mistake in them, such as an off-by-one in the full check or a release that drives the count negative, would quietly corrupt seat accounting. That is exactly the gap the rule exists to catch. The severity is advisory, but the finding is accurate and worth acting on.\\\",\\\"fix\\\":\\\"Add src/domain/workshop.spec.ts (or workshop.test.ts, whichever convention the project uses) with unit tests for: the constructor rejects capacity 0 with an 'invalid' DomainError; seatsLeft starts at capacity and goes down after takeSeat; takeSeat on a full workshop throws a 'conflict' DomainError that names the title; releaseSeat adds a seat back, and calling it when no seats are taken leaves seatsLeft equal to capacity.\\\",\\\"citations\\\":[{\\\"filePath\\\":\\\"src/domain/workshop.ts\\\",\\\"startLine\\\":10,\\\"endLine\\\":12},{\\\"filePath\\\":\\\"src/domain/workshop.ts\\\",\\\"startLine\\\":14,\\\"endLine\\\":16},{\\\"filePath\\\":\\\"src/domain/workshop.ts\\\",\\\"startLine\\\":18,\\\"endLine\\\":25}]}\",\"structured_output\":{\"citations\":[{\"endLine\":12,\"filePath\":\"src/domain/workshop.ts\",\"startLine\":10},{\"endLine\":16,\"filePath\":\"src/domain/workshop.ts\",\"startLine\":14},{\"endLine\":25,\"filePath\":\"src/domain/workshop.ts\",\"startLine\":18}],\"decision\":\"confirm\",\"explanation\":\"The finding says src/domain/workshop.ts has no paired test file, and I take that as correct. This file holds real domain behaviour that a test should pin down, so it is not trivial code like a type-only module, a barrel or plain config. The constructor enforces an invariant: a workshop needs at least one seat, and it throws a DomainError when capacity < 1 (line 11). The seatsLeft getter derives a value from state (lines 14-16). takeSeat raises a 'conflict' DomainError once the workshop is full and otherwise increments the count (lines 18-21). releaseSeat guards against going below zero (lines 23-25). These are the core booking rules of the domain layer. A mistake in them, such as an off-by-one in the full check or a release that drives the count negative, would quietly corrupt seat accounting. That is exactly the gap the rule exists to catch. The severity is advisory, but the finding is accurate and worth acting on.\",\"fix\":\"Add src/domain/workshop.spec.ts (or workshop.test.ts, whichever convention the project uses) with unit tests for: the constructor rejects capacity 0 with an 'invalid' DomainError; seatsLeft starts at capacity and goes down after takeSeat; takeSeat on a full workshop throws a 'conflict' DomainError that names the title; releaseSeat adds a seat back, and calling it when no seats are taken leaves seatsLeft equal to capacity.\"}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "e18330f03acb8261",
+  "usage": {
+    "inputTokens": 2534,
+    "outputTokens": 739
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

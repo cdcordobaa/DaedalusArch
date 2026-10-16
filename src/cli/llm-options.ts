@@ -21,6 +21,7 @@
  * | `--cassette-omit-prompt`        | off                                       |
  * | `--cassette-project-id <id>`    | none (entries carry no `projectId`)       |
  * | `--judge-cli <path>`            | `~/.firewall/judge-cli/node_modules/.bin/claude` when it exists, else `claude` |
+ * | `--judge-version <v>`           | `v1` (the frozen judge; `v2` is the v1.3 development rubric, `judge-v2.ts`) |
  *
  * The judge binary is the pinned CLI installed under its own prefix (ADR-022 item 5; ADR-018 pin), so the author's
  * own `claude` install can update without moving the judge. `ClaudeCliProvider` still refuses any other version
@@ -37,6 +38,8 @@ import {
 } from '../llm-critic/frozen.js';
 import { configDirPlacementProblem } from '../llm-critic/claude-cli-provider.js';
 import type { JudgeRunSettings } from '../llm-critic/types.js';
+import type { JudgeVersion } from '../llm-critic/judge-v2.js';
+import { JUDGE_VERSIONS } from '../llm-critic/judge-v2.js';
 
 export type LLMProviderName = LLMProviderConfig['provider'];
 
@@ -68,6 +71,7 @@ const MODES: readonly VCRMode[] = ['record', 'replay'];
 const VALUE_OPTIONS = [
   '--llm-provider', '--llm-model', '--llm-effort', '--cassette-mode', '--cassette-dir',
   '--judge-repetition', '--judge-config-dir', '--judge-baseline-report', '--cassette-project-id', '--judge-cli',
+  '--judge-version',
 ] as const;
 const FLAG_OPTIONS = ['--cassette-omit-prompt'] as const;
 
@@ -159,6 +163,9 @@ export function parseLLMOptions(
     gemini = { apiKey, model, temperature: 0, maxTokens: JUDGE_MAX_TOKENS };
   }
 
+  const judgeVersion = (values['--judge-version'] ?? 'v1') as JudgeVersion;
+  if (!JUDGE_VERSIONS.includes(judgeVersion)) return configError(`--judge-version must be one of ${JUDGE_VERSIONS.join(', ')}`);
+
   const cassette = { mode, dir: values['--cassette-dir'] ?? DEFAULT_CASSETTE_DIR };
   const baselineReport = values['--judge-baseline-report'];
   return DomainResult.ok({
@@ -177,6 +184,8 @@ export function parseLLMOptions(
         ...(values['--cassette-project-id'] !== undefined ? { projectId: values['--cassette-project-id'] } : {}),
       },
       ...(baselineReport !== undefined ? { baselineReport } : {}),
+      // v1 is the default and leaves the settings as before (no field).
+      ...(judgeVersion !== 'v1' ? { judgeVersion } : {}),
     },
   });
 }
