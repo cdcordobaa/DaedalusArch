@@ -9,35 +9,49 @@ import { createPipeline } from '../pipeline/pipeline-factory.js';
 import { Neo4jRepository } from '../neo4j-ingestion/neo4j-repository.js';
 import { createSpecLoader } from './tools.js';
 import type { ServerContext } from './tools.js';
+import { fastRulesEngineOf, InterpEvaluator } from './interp-check.js';
 import { buildNeuralService, parseNeuralArgs } from './neural-context.js';
 import type { NeuralArgs } from './neural-context.js';
 import { createInterpEvaluator } from './interp-evaluator.js';
+import { fileCallLogger } from './call-log.js';
 import { resolveEngine } from '../cli/engine-default.js';
 import type { ResolvedEngine } from '../cli/engine-default.js';
 
 export interface McpArgs {
   readonly spec?: string;
   readonly project?: string;
+  /** `--fast-rules-engine fast|cypher-interp` (Docs/v1.3/mcp-interp-parity.md); absent = `DAEDALUS_FAST_RULES_ENGINE`, else `fast`. */
+  readonly fastRulesEngine?: string;
   /** `--hints`: fix hints on by default in check_file, check_diff and explain_violation. */
   readonly hints?: boolean;
   /** Neural arm flags (`--neural ...`); absent when no neural flag is given. */
   readonly neural?: NeuralArgs;
   /** `--engine neo4j|cypher-interp`; absent = the NEO4J_URI default (`engine-default.ts`). */
   readonly engine?: string;
+  /** `--rule-mining`: also register the opt-in `propose_rules` tool. */
+  readonly ruleMining?: boolean;
+  /** `--tsconfig <path>`: explicit tsconfig for `evaluate_project` extraction (ADR-032); absent = `DAEDALUS_TSCONFIG`. */
+  readonly tsconfig?: string;
+  /** `--call-log <abs path>` (Docs/v1.3/mcp-call-log.md); absent = off (DAEDALUS_CALL_LOG is read by `callLogPath`). */
+  readonly callLog?: string;
 }
 
-const FLAGS: Readonly<Record<string, 'spec' | 'project' | 'engine'>> = { '--spec': 'spec', '--project': 'project', '--engine': 'engine' };
+const FLAGS: Readonly<Record<string, 'spec' | 'project' | 'engine' | 'fastRulesEngine' | 'tsconfig' | 'callLog'>> = { '--spec': 'spec', '--project': 'project', '--engine': 'engine', '--fast-rules-engine': 'fastRulesEngine', '--tsconfig': 'tsconfig', '--call-log': 'callLog' };
 
 /**
- * `--spec <path>`, `--project <path>` and `--engine <name>` (also `--flag=value`), plus the neural flags
- * (`neural-context.ts`); unknown flags are ignored. Pure.
+ * `--spec <path>`, `--project <path>`, `--engine <name>`, `--fast-rules-engine <name>`, `--tsconfig <path>` and `--call-log <path>` (also `--flag=value`), `--hints`,
+ * `--rule-mining`, plus the neural flags (`neural-context.ts`); unknown flags are ignored. Pure.
  */
 export function parseArgs(argv: readonly string[]): McpArgs {
-  const out: { spec?: string; project?: string; engine?: string; hints?: boolean; neural?: NeuralArgs } = {};
+  const out: { spec?: string; project?: string; engine?: string; fastRulesEngine?: string; tsconfig?: string; callLog?: string; hints?: boolean; neural?: NeuralArgs; ruleMining?: boolean } = {};
   const neural = parseNeuralArgs(argv);
   if (neural !== undefined) out.neural = neural;
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i] ?? '';
+    if (arg === '--rule-mining') {
+      out.ruleMining = true;
+      continue;
+    }
     if (arg === '--hints') {
       out.hints = true;
       continue;
@@ -51,6 +65,12 @@ export function parseArgs(argv: readonly string[]): McpArgs {
     }
   }
   return out;
+}
+
+/** The call log path: `--call-log`, else DAEDALUS_CALL_LOG; undefined = off. */
+export function callLogPath(args: McpArgs, env: NodeJS.ProcessEnv): string | undefined {
+  const p = args.callLog ?? env.DAEDALUS_CALL_LOG;
+  return p === undefined || p === '' ? undefined : p;
 }
 
 /** The server's engine: `--engine`, else neo4j when NEO4J_URI is set, else cypher-interp. Undefined = unknown value. */
@@ -82,16 +102,24 @@ function realEntry(entry: string | undefined): string | undefined {
 }
 
 export function buildContext(args: McpArgs, env: NodeJS.ProcessEnv): ServerContext {
+  const fastRulesEngine = fastRulesEngineOf(args.fastRulesEngine, env);
+  const tsconfigPath = args.tsconfig ?? env.DAEDALUS_TSCONFIG;
   // Off unless `--neural` or DAEDALUS_NEURAL names a provider: the default server is unchanged.
   const neural = buildNeuralService(args.neural ?? parseNeuralArgs([], env), env);
   const graphEngine = serverEngine(args, env)?.engine ?? 'neo4j';
+  const projectPath = args.project ?? env.DAEDALUS_PROJECT;
+  // Off unless a call-log path is given; `main.ts` refuses a relative path or one inside the project first.
+  const logPath = callLogPath(args, env);
   return {
+    ...(fastRulesEngine === 'cypher-interp' && { fastRulesEngine, interp: new InterpEvaluator() }),
     ...(neural !== undefined ? { neural } : {}),
+    ...(logPath !== undefined ? { callLog: fileCallLogger(logPath, projectPath) } : {}),
     graphEngine,
     presetsDir: presetsDirFrom(env, realEntry(process.argv[1]), process.cwd()),
     defaultSpecPath: args.spec ?? env.DAEDALUS_SPEC,
-    defaultProjectPath: args.project ?? env.DAEDALUS_PROJECT,
+    defaultProjectPath: projectPath,
     ...(args.hints === true || env.DAEDALUS_HINTS === '1' ? { hints: true } : {}),
+    ruleMining: args.ruleMining === true || env.DAEDALUS_RULE_MINING === '1',
     env,
     loadSpec: createSpecLoader(),
     evaluateDeps: {
@@ -105,6 +133,7 @@ export function buildContext(args: McpArgs, env: NodeJS.ProcessEnv): ServerConte
       makePipeline: createPipeline,
       graphEngine,
       ...(graphEngine === 'cypher-interp' && { interp: createInterpEvaluator() }),
+      ...(tsconfigPath !== undefined && tsconfigPath !== '' && { tsconfigPath: path.resolve(tsconfigPath) }),
     },
   };
 }

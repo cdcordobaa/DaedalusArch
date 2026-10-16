@@ -1,0 +1,49 @@
+{
+  "spec": "presets/hexagonal.yaml",
+  "engine": "cypher-interp",
+  "scoringMode": "v1.3",
+  "instrumentVersion": 2,
+  "typecheckErrors": 0,
+  "typecheckSample": [],
+  "verdict": "fail",
+  "blockingViolationCount": 1,
+  "advisoryViolationCount": 12,
+  "blockingByRule": {
+    "FF-S01": 1
+  },
+  "advisoryByRule": {
+    "FF-CV05": 11,
+    "FF-P02": 1
+  },
+  "blockingFindings": [
+    {
+      "rule": "FF-S01",
+      "template": "dependency-direction-graph",
+      "file": "src/application/quote-repair.ts",
+      "line": 1,
+      "target": "src/adapters/outbound/spoke-supply-client.ts",
+      "message": "src/application/quote-repair.ts (application) imports against the allowed direction from src/adapters/outbound/spoke-supply-client.ts (adapters-outbound)"
+    }
+  ],
+  "srcFiles": 12,
+  "loc": 229,
+  "cell": "16.bike-repair.planted.x1",
+  "order": 16,
+  "domain": "bike-repair",
+  "style": "hexagonal",
+  "condition": "planted",
+  "step": "x1",
+  "filesTouched": [
+    "M src/adapters/inbound/http-routes.ts",
+    "M src/adapters/outbound/spoke-supply-client.ts",
+    "A src/application/order-missing-part.ts",
+    "M src/application/ports/parts-catalogue.ts",
+    "M src/config/main.ts",
+    "M src/domain/work-order.ts"
+  ],
+  "seedBlocking": 1,
+  "newBlockingIdentities": [],
+  "newSameShape": 0,
+  "newOther": 0,
+  "precedentSurvives": true
+}

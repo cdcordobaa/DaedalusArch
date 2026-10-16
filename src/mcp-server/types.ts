@@ -124,6 +124,8 @@ export interface CheckImportResult {
   readonly notes: readonly string[];
   /** MCP v2: `block` when a violation is blocking under v1.3. */
   readonly blockingVerdict?: BlockingVerdict;
+  /** Set only with `--fast-rules-engine cypher-interp` (Docs/v1.3/mcp-interp-parity.md): the compiled rules answered. */
+  readonly engine?: 'cypher-interp';
 }
 
 // ── explain_violation ────────────────────────────────────────────────────────
@@ -269,8 +271,9 @@ export interface FileCheckResult {
   /** v1 contract: the import-rule and naming-rule violations, now with their v1.3 fields. Every one is also in `findings`. */
   readonly violations: readonly FileViolation[];
   /**
-   * Same checks on `require()` and `import()` calls. The frozen firewall counts these calls but does not model them
-   * as edges (BR-U2-25), so they never lower the score; they are listed so the agent can avoid them anyway.
+   * Kept for the v1 contract; always empty since 2026-10-16. It listed rule hits of `require()` and `import()` calls
+   * as unscored, but the v1.3 extractor models string-literal calls as IMPORTS edges (`dynamicImports`) and evaluate
+   * scores them, so they are now in `violations` and `findings` like static imports (R03, post-merge review).
    */
   readonly advisories: readonly FileViolation[];
   /** Imports the spec alone cannot place (path aliases); `verdict` is `unknown` when there are any and no violation. */
@@ -295,6 +298,8 @@ export interface FileCheckResult {
   readonly notChecked: readonly NotChecked[];
   /** The project root was read (barrels followed, cycles checked, entry files found). */
   readonly projectAware: boolean;
+  /** Set only with `--fast-rules-engine cypher-interp` (Docs/v1.3/mcp-interp-parity.md): the compiled rules answered. */
+  readonly engine?: 'cypher-interp';
   /** v1.3 npx mode, only with `templates: true`: the compiled templates on the in-process interpreter. */
   readonly templates?: TemplateCheckResult;
 }
@@ -303,7 +308,8 @@ export interface DiffCheckResult {
   readonly verdict: FileVerdict;
   readonly summary: string;
   readonly files: readonly (FileCheckResult & {
-    readonly change: 'added' | 'modified' | 'renamed';
+    /** `affected` (cypher-interp only): a file outside the diff where the change made a rule fire. */
+    readonly change: 'added' | 'modified' | 'renamed' | 'affected';
     /**
      * `whole-file`: an added file, checked whole; `delta`: a modified file rebuilt from the diff and the project, and
      * reported as what the new content has that the old does not; `added-lines`: only the added lines were readable.
@@ -316,6 +322,8 @@ export interface DiffCheckResult {
   readonly blockingCount: number;
   readonly advisoryCount: number;
   readonly blockingSummary: string;
+  /** Set only with `--fast-rules-engine cypher-interp` (Docs/v1.3/mcp-interp-parity.md): the compiled rules answered. */
+  readonly engine?: 'cypher-interp';
   /** v1.3 npx mode, only with `templates: true`: the compiled templates on the in-process interpreter, whole diff. */
   readonly templates?: TemplateCheckResult;
 }

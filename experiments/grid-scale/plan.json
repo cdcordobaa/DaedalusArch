@@ -1,0 +1,41 @@
+{
+  "description": "DEMO ONLY: full-grid stub replay at Study 2 scale (6 made-up tasks x 3 fake models x 3 replicates x 3 arms, k = 5). Stub generator, cypher-interp evaluator. Not a study plan.",
+  "tasksFile": "experiments/grid-scale/tasks.json",
+  "adapters": [
+    {
+      "adapterId": "claude-code-cli",
+      "modelId": "fake-model-a"
+    },
+    {
+      "adapterId": "claude-code-cli",
+      "modelId": "fake-model-b"
+    },
+    {
+      "adapterId": "codex-cli",
+      "modelId": "fake-model-c"
+    }
+  ],
+  "arms": [
+    "none",
+    "gate",
+    "daedalus-mcp"
+  ],
+  "runs": 3,
+  "orderSeed": 20261016,
+  "outRoot": "<local>",
+  "binary": "<local>",
+  "harnessRoot": "<local>",
+  "allowBash": true,
+  "daedalus": {
+    "nodeBinary": "/usr/bin/node",
+    "serverEntry": "/opt/daedalus/dist/mcp-server/main.js",
+    "specPath": "/opt/daedalus/specs/clean-arch.yaml"
+  },
+  "evaluatorSpec": "specs/clean-arch.yaml",
+  "callBudget": {
+    "runs": 162,
+    "stepTurns": 810,
+    "maxRepairTurns": 270,
+    "maxCalls": 1080
+  }
+}

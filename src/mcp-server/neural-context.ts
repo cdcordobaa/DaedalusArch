@@ -6,6 +6,9 @@
  *   --neural off|claude-cli|mock|ensemble     (env DAEDALUS_NEURAL)
  *   --neural-cassettes <dir>                  cassette root (default .firewall/cassettes/mcp-neural)
  *   --neural-wait-ms <ms>                     latency budget of one tool call before `pending` (default 20000)
+ *   --strip-comments                          strip comments from the code the judge is shown (review_unit,
+ *                                             explain_and_fix), line for line; OFF by default
+ *                                             (Docs/v1.3/judge-steering-plan.md §7)
  *   --claude-config-dir <dir>                 isolated Claude config (default ~/.firewall/judge-claude-config)
  *   --judge-cli <path>                        Claude CLI binary (default ~/.firewall/judge-cli/node_modules/.bin/claude
  *                                             when it exists, else `claude` on PATH; the pre-flight pins 2.1.294)
@@ -59,6 +62,8 @@ export interface NeuralArgs {
   readonly geminiModel?: string;
   readonly geminiCap?: Partial<SpendCap>;
   readonly geminiLedger?: string;
+  /** `--strip-comments`: the judge is shown the code without comments. */
+  readonly stripComments?: boolean;
 }
 
 const VALUE_FLAGS = new Set([
@@ -120,6 +125,7 @@ export function parseNeuralArgs(argv: readonly string[], env: NodeJS.ProcessEnv 
   if (raters !== undefined) out.raters = raters as EnsembleRaterName[];
   if (rule !== undefined) out.rule = rule as CombinationRule;
   if (Object.keys(cap).length > 0) out.geminiCap = cap;
+  if (argv.includes('--strip-comments')) out.stripComments = true;
   return out;
 }
 
@@ -139,7 +145,7 @@ export function buildNeuralService(args: NeuralArgs | undefined, env: NodeJS.Pro
   const home = deps.home ?? os.homedir();
   const runner = deps.runner ?? new NodeProcessRunner();
   const cassette = { mode: 'record' as const, dir: path.resolve(deps.cwd ?? process.cwd(), args.cassettes ?? DEFAULT_NEURAL_CASSETTES) };
-  const waitMs = args.waitMs !== undefined ? { waitMs: args.waitMs } : {};
+  const waitMs = { ...(args.waitMs !== undefined ? { waitMs: args.waitMs } : {}), ...(args.stripComments === true ? { stripComments: true } : {}) };
   const configDir = expandHome(args.claudeConfigDir ?? JUDGE_CONFIG_DIR_DEFAULT, home);
   if (args.mode === 'mock') return new NeuralService({ judge: new SingleJudge(new MockLLMProvider(), { cassette }), ...waitMs });
   if (args.mode === 'claude-cli') {

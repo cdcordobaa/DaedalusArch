@@ -1,0 +1,202 @@
+{
+  "description": "Scale corpus (Docs/v1.3/scale.md \u00a71). Cloned with git clone --depth 1 into a temporary directory, never committed. The harness tsconfig is written outside the clone; the spec is the named preset. analysedFiles = source files after the tool default excludes (node_modules, dist, build, *.d.ts, *.spec.ts, *.test.ts).",
+  "pilot": {
+    "id": "hoppscotch",
+    "repository": "https://github.com/hoppscotch/hoppscotch",
+    "sha": "63273f8e599e73f0fb38c0739314e8d46b6bc83d",
+    "licence": "MIT",
+    "note": "pilot only: 868 analysed files, below the 1,000-file floor"
+  },
+  "dropped": [
+    {
+      "repository": "https://github.com/Unleash/unleash",
+      "reason": "AGPL-3.0 (not permissive)"
+    },
+    {
+      "repository": "https://github.com/medusajs/medusa",
+      "reason": "mixed licence (enterprise-edition materials)"
+    },
+    {
+      "repository": "https://github.com/botpress/botpress",
+      "reason": "3,008 .ts files, adds no scale point over the others"
+    }
+  ],
+  "repositories": [
+    {
+      "id": "nest",
+      "repository": "https://github.com/nestjs/nest",
+      "sha": "1c2f689518412cbc6a6bc09662dd5cfed779f2bf",
+      "licence": "MIT",
+      "description": "framework monorepo (packages + integration apps)",
+      "spec": "presets/nestjs.yaml",
+      "tsconfig": {
+        "include": [
+          "**/*.ts"
+        ],
+        "exclude": [
+          "**/node_modules/**"
+        ],
+        "compilerOptions": {
+          "target": "ES2022",
+          "module": "commonjs",
+          "moduleResolution": "node",
+          "experimentalDecorators": true,
+          "emitDecoratorMetadata": true,
+          "skipLibCheck": true,
+          "strict": false,
+          "noEmit": true
+        }
+      },
+      "analysedFiles": 1498,
+      "apgNodes": 6064,
+      "apgEdges": 10992
+    },
+    {
+      "id": "amplication",
+      "repository": "https://github.com/amplication/amplication",
+      "sha": "7656495d27f0dceff89657590c3f14149e45c7a6",
+      "licence": "Apache-2.0 (content outside ee/; ee/ excluded)",
+      "description": "NestJS + Prisma backend monorepo",
+      "spec": "presets/nestjs.yaml",
+      "tsconfig": {
+        "include": [
+          "**/*.ts"
+        ],
+        "exclude": [
+          "**/node_modules/**",
+          "ee/**"
+        ],
+        "compilerOptions": {
+          "target": "ES2022",
+          "module": "commonjs",
+          "moduleResolution": "node",
+          "experimentalDecorators": true,
+          "emitDecoratorMetadata": true,
+          "skipLibCheck": true,
+          "strict": false,
+          "noEmit": true
+        }
+      },
+      "analysedFiles": 2285,
+      "apgNodes": 6402,
+      "apgEdges": 15213
+    },
+    {
+      "id": "typeorm",
+      "repository": "https://github.com/typeorm/typeorm",
+      "sha": "fe92394287516feeada6e9c308ebe22deca2458e",
+      "licence": "MIT",
+      "description": "ORM library and test suite (Node backend layer)",
+      "spec": "presets/layered.yaml",
+      "tsconfig": {
+        "include": [
+          "**/*.ts"
+        ],
+        "exclude": [
+          "**/node_modules/**"
+        ],
+        "compilerOptions": {
+          "target": "ES2022",
+          "module": "commonjs",
+          "moduleResolution": "node",
+          "experimentalDecorators": true,
+          "emitDecoratorMetadata": true,
+          "skipLibCheck": true,
+          "strict": false,
+          "noEmit": true
+        }
+      },
+      "analysedFiles": 2637,
+      "apgNodes": 8866,
+      "apgEdges": 21682
+    },
+    {
+      "id": "prisma",
+      "repository": "https://github.com/prisma/prisma",
+      "sha": "55dba883a02626a88a2ec1fdf0dfa83cab39ef17",
+      "licence": "Apache-2.0",
+      "description": "ORM toolkit monorepo (client, engines glue, CLI)",
+      "spec": "presets/clean-architecture.yaml",
+      "tsconfig": {
+        "include": [
+          "**/*.ts"
+        ],
+        "exclude": [
+          "**/node_modules/**"
+        ],
+        "compilerOptions": {
+          "target": "ES2022",
+          "module": "commonjs",
+          "moduleResolution": "node",
+          "experimentalDecorators": true,
+          "emitDecoratorMetadata": true,
+          "skipLibCheck": true,
+          "strict": false,
+          "noEmit": true
+        }
+      },
+      "analysedFiles": 3189,
+      "apgNodes": 16417,
+      "apgEdges": 26135
+    },
+    {
+      "id": "payload",
+      "repository": "https://github.com/payloadcms/payload",
+      "sha": "2b3d9ca47f0a1f4e11f977d0bc86110f50978eaf",
+      "licence": "MIT",
+      "description": "headless CMS backend monorepo",
+      "spec": "presets/hexagonal.yaml",
+      "tsconfig": {
+        "include": [
+          "**/*.ts"
+        ],
+        "exclude": [
+          "**/node_modules/**"
+        ],
+        "compilerOptions": {
+          "target": "ES2022",
+          "module": "commonjs",
+          "moduleResolution": "node",
+          "experimentalDecorators": true,
+          "emitDecoratorMetadata": true,
+          "skipLibCheck": true,
+          "strict": false,
+          "noEmit": true
+        }
+      },
+      "analysedFiles": 4897,
+      "apgNodes": 13277,
+      "apgEdges": 23236
+    },
+    {
+      "id": "rocketchat",
+      "repository": "https://github.com/RocketChat/Rocket.Chat",
+      "sha": "80dceecf12fd1216dc3fdb9a4f42e51afbf23a75",
+      "licence": "MIT (content outside ee/ and apps/meteor/ee/; both excluded)",
+      "description": "chat server (Meteor + Node services) monorepo",
+      "spec": "presets/ddd.yaml",
+      "tsconfig": {
+        "include": [
+          "**/*.ts"
+        ],
+        "exclude": [
+          "**/node_modules/**",
+          "**/ee/**"
+        ],
+        "compilerOptions": {
+          "target": "ES2022",
+          "module": "commonjs",
+          "moduleResolution": "node",
+          "experimentalDecorators": true,
+          "emitDecoratorMetadata": true,
+          "skipLibCheck": true,
+          "strict": false,
+          "noEmit": true
+        }
+      },
+      "analysedFiles": 5507,
+      "apgNodes": 17560,
+      "apgEdges": 36570
+    }
+  ]
+}
