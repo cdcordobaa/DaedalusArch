@@ -16,6 +16,8 @@ import { checkSource } from './file-check.js';
 import { checkDiff } from './diff-check.js';
 import { suggestPlacement } from './placement.js';
 import { normalisePath } from './layer-resolver.js';
+import { proposeWithBuiltinPresets } from '../ise/propose.js';
+import type { SpecProposal } from '../ise/propose.js';
 import type {
   ArchitectureSpecView,
   CheckImportResult,
@@ -45,6 +47,8 @@ export interface ServerContext {
   readonly env: NodeJS.ProcessEnv;
   readonly evaluateDeps: EvaluateDeps;
   readonly loadSpec: (specPath: string) => Promise<ToolOutcome<LoadedSpec>>;
+  /** ISE spec proposal for `propose_spec` (default: the tool's own presets). */
+  readonly proposeSpec?: (projectDir: string) => Promise<SpecProposal>;
 }
 
 const ok = <T>(data: T): ToolOutcome<T> => ({ ok: true, data });
@@ -214,4 +218,24 @@ export async function suggestPlacementTool(
   const loaded = await specFor(ctx, args.spec);
   if (!loaded.ok) return loaded;
   return ok(suggestPlacement(loaded.data.spec, { purpose: args.purpose, name: args.name }));
+}
+
+/**
+ * `propose_spec`: the spec `firewall init` would write for a project without one (ISE), as data plus the commented
+ * YAML. Reads only the project's src/ and tsconfig.json; writes nothing.
+ */
+export async function proposeSpecTool(
+  ctx: ServerContext,
+  args: { readonly project?: string | undefined },
+): Promise<ToolOutcome<SpecProposal>> {
+  const project = args.project ?? ctx.defaultProjectPath;
+  if (project === undefined) {
+    return fail('No project configured: pass `project` or start the server with --project <path>.');
+  }
+  const propose = ctx.proposeSpec ?? proposeWithBuiltinPresets;
+  try {
+    return ok(await propose(path.resolve(project)));
+  } catch (e: unknown) {
+    return fail(`Cannot infer a spec for ${project}: ${e instanceof Error ? e.message : String(e)}`);
+  }
 }

@@ -1,7 +1,7 @@
 /**
- * MCP server wiring: registers the eight DaedalusArch tools on an `McpServer`. Transport-agnostic (`main.ts`
+ * MCP server wiring: registers the nine DaedalusArch tools on an `McpServer`. Transport-agnostic (`main.ts`
  * connects stdio; the tests connect an in-memory pair). Tools only read the spec and, for `evaluate_project`,
- * run the existing pipeline; none writes to the project under evaluation.
+ * run the existing pipeline; `propose_spec` reads the project's source; none writes to the project under evaluation.
  */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult, ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
@@ -13,6 +13,7 @@ import {
   evaluateProjectTool,
   explainViolationTool,
   getArchitectureSpec,
+  proposeSpecTool,
   suggestPlacementTool,
   whichLayerTool,
 } from './tools.js';
@@ -31,11 +32,12 @@ export const TOOL_NAMES: readonly string[] = Object.freeze([
   'check_file',
   'check_diff',
   'suggest_placement',
+  'propose_spec',
 ]);
 
 /** Tools that read only the spec: instant, no graph, no database (the set an experiment arm may allow-list). */
 export const SPEC_TOOL_NAMES: readonly string[] = Object.freeze(
-  TOOL_NAMES.filter((n) => n !== 'evaluate_project'),
+  TOOL_NAMES.filter((n) => n !== 'evaluate_project' && n !== 'propose_spec'),
 );
 
 const specArg = z
@@ -124,6 +126,12 @@ const placementShape = {
     .optional()
     .describe('Base name to use, e.g. "Order"; derived from the purpose when omitted.'),
   spec: specArg,
+};
+const proposeShape = {
+  project: z
+    .string()
+    .optional()
+    .describe("Project root (needs src/ and tsconfig.json); defaults to the server's configured project."),
 };
 const explainShape = {
   rule: z.string().min(1).describe('Rule id, rule name or violation type.'),
@@ -233,6 +241,18 @@ export function createServer(ctx: ServerContext): McpServer {
       annotations: readOnly,
     },
     async (args) => toResult(await suggestPlacementTool(ctx, z.object(placementShape).parse(args))),
+  );
+
+  register(
+    'propose_spec',
+    {
+      title: 'Propose a spec for a project without one',
+      description:
+        'Zero-config onboarding: infers the architecture style and the layer map from the code (ISE) and returns the spec `firewall init` would write: the commented YAML (every inferred mapping with its confidence and evidence), the mappings as data, files without a layer, and the ambiguous folders as questions to put to the user. It is an inferred spec, not author-declared: confirm it with the user before relying on it. Reads only src/ and tsconfig.json; writes nothing; no database. Takes seconds (builds the import graph).',
+      inputSchema: proposeShape,
+      annotations: readOnly,
+    },
+    async (args) => toResult(await proposeSpecTool(ctx, z.object(proposeShape).parse(args))),
   );
 
   return server;
