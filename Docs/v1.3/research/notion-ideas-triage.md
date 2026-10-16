@@ -4,6 +4,8 @@
 
 **Baseline.** `origin/v1.3` at `d65fddbb` (#163). Sources checked: `Docs/v1.3/`, `Docs/DiagnosticRuns/`, `Docs/*.md`, `aidlc-docs/`, `src/`, `presets/`, `results/`, and all 170 PRs (merged, closed and open). Open PRs are cited as evidence of work in flight, not as done work. Notion was only read, except for one status callout inserted at the top of the hub.
 
+> **Update 2026-10-16T05:26Z.** After the baseline, a late merge train merged #142 (loop replay), #153 (model panel harness) and #157 (neural arm as MCP tools) into v1.3 (tip `1dfddfab`). Rows that call these PRs open describe the baseline state. In Part 2, rank 1 ("merge #142") and rank 7's harness half are now done. The Gemini key and the panel run itself are still with the author.
+
 **Status vocabulary.**
 - **DONE**: cites a PR, doc or commit.
 - **SUPERSEDED**: names what replaced the item.
@@ -1001,7 +1003,7 @@ Duplicates across pages are merged. The ranking weighs:
 
 | Rank | Open item (Notion sources) | Objective | Owner / mapping | Next action |
 |---|---|---|---|---|
-| 1 | Study 2 readiness: the gate is 1/42 green, and the pilot ran without reaching its §5 decision (DDD unscored). Sources: v1.3 brief, roadmap, Ch5–7 outline | SO5, Study 2 once | Open PRs #146, #170. Night-backlog S1, S2, D1, D2, S3, E1, S4, C1. Night-plan B1/B2, W3-3 | Merge #142 (loop replay) so the loop-dependent jobs can start. Author: go for the dress rehearsal |
+| 1 | Study 2 readiness: the gate is 1/42 green, and the pilot ran without reaching its §5 decision (DDD unscored). Sources: v1.3 brief, roadmap, Ch5–7 outline | SO5, Study 2 once | Open PRs #146, #170. Night-backlog S1, S2, D1, D2, S3, E1, S4, C1. Night-plan B1/B2, W3-3 | #142 merged 2026-10-16 (late merge train), so loop-dependent jobs D1, D2, E1, S3 can start. Author: go for the dress rehearsal |
 | 2 | Construct sheet unanswered → freeze → sealed hold-out run once (207 cases). Sources: v1.3 brief, roadmap | SO4 headline, Study 2 timing | Author (night-backlog §3, row 1). Open PR #129 sheet, #164 freeze dry run. Night-backlog T1 | Author answers #129 and records ADR-V13-03, then freezes and runs the hold-out once |
 | 3 | Judge v2.2 single local run on CHECK-2. Sources: hub status, DSR frame, compliance register, v1.3 brief | SO3 claim level | Author (night-backlog §3, row 2). Open PR #141; night-plan X4 | Run `judge-v22-check2-local.sh` once. If it fails the pre-fixed rule, narrow the claim to "evidence beside the verdict, 0.76" |
 | 4 | Judge reframing without new calls: selective prediction and the symbolic–neural complementarity matrix. Sources: SRS (ICC/ablation promises), long-term ideas | SO3 | Open PR #165 (N1: unanimity does not meet the rule). Night-backlog N2 | Run N2; report N1's null honestly |
