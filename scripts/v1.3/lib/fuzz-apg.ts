@@ -27,6 +27,14 @@ export interface FuzzProject {
   readonly seed: number;
   readonly apg: APGResult;
   readonly layerModel: LayerModel;
+  /** `--cheap2` only: the batch-2 cheap-proxy facts, written after `ingestAPG` (see `cheapOverlay`). */
+  readonly overlay?: Overlay;
+}
+
+/** Nodes and relationships outside the APG types, written with the ingestion's own statement shapes. */
+export interface Overlay {
+  readonly nodes: readonly { readonly id: string; readonly label: string; readonly props: Readonly<Record<string, unknown>> }[];
+  readonly edges: readonly { readonly type: string; readonly from: string; readonly to: string; readonly props: Readonly<Record<string, unknown>> }[];
 }
 
 /** mulberry32: a 32-bit seeded PRNG, uniform in [0, 1). */
@@ -217,9 +225,19 @@ export function* shrinkCandidates(p: FuzzProject): Generator<FuzzProject> {
   for (const chunk of chunks(nodes.length)) {
     const keep = nodes.filter((_, i) => i < chunk[0] || i >= chunk[1]);
     const ids = new Set(keep.map((n) => n.id));
-    yield withApg(keep, edges.filter((e) => ids.has(e.sourceId) && ids.has(e.targetId)));
+    const ov = p.overlay;
+    const keptOverlay = ov === undefined ? {} : { overlay: { ...ov, edges: ov.edges.filter((e) => (ids.has(e.from) || ov.nodes.some((x) => x.id === e.from)) && (ids.has(e.to) || ov.nodes.some((x) => x.id === e.to))) } };
+    yield { ...withApg(keep, edges.filter((e) => ids.has(e.sourceId) && ids.has(e.targetId))), ...keptOverlay };
   }
   for (let i = 0; i < layers.length; i++) yield withLayers(layers.filter((_, j) => j !== i));
+  const ov = p.overlay;
+  if (ov !== undefined) {
+    for (let i = 0; i < ov.edges.length; i++) yield { ...p, overlay: { ...ov, edges: ov.edges.filter((_, j) => j !== i) } };
+    for (let i = 0; i < ov.nodes.length; i++) {
+      const id = ov.nodes[i]?.id;
+      yield { ...p, overlay: { nodes: ov.nodes.filter((_, j) => j !== i), edges: ov.edges.filter((e) => e.from !== id && e.to !== id) } };
+    }
+  }
   for (let i = 0; i < nodes.length; i++) {
     const n = nodes[i] as APGNode;
     for (const k of Object.keys(n.properties)) {
@@ -249,5 +267,47 @@ function chunks(n: number): [number, number][] {
 /** The size of a project, for reports: nodes, edges, layers. */
 export function sizeOf(p: FuzzProject): string {
   const { nodes, edges } = p.apg as unknown as { nodes: unknown[]; edges: unknown[] };
-  return `${String(nodes.length)} nodes, ${String(edges.length)} edges, ${String(p.layerModel.layers.length)} layers`;
+  const ov = p.overlay === undefined ? '' : `, overlay ${String(p.overlay.nodes.length)} nodes / ${String(p.overlay.edges.length)} edges`;
+  return `${String(nodes.length)} nodes, ${String(edges.length)} edges, ${String(p.layerModel.layers.length)} layers${ov}`;
+}
+
+/**
+ * The facts the batch-2 cheap proxies (`src/apg-enrich/cheap`) would add, for the cheap2 templates
+ * (`src/fitness-compiler/cheap2-templates.ts`), which no pipeline writes to the graph yet: EntryPoint and EnvKey nodes;
+ * THROWS, REACHES, READS_ENV, CO_CHANGES_WITH and REIMPLEMENTS relationships between the project's nodes; and the
+ * dotted `cheap.*` File properties. Values are as adversarial as the rest (wrong types, nulls, lists where scalars
+ * are expected and the reverse). A pure function of the project's seed and node ids.
+ */
+export function withCheapOverlay(p: FuzzProject): FuzzProject {
+  const r = new Rng(mulberry32((p.seed ^ 0x5c4ea92) >>> 0));
+  const apgNodes = p.apg.nodes as unknown as APGNode[];
+  const files = apgNodes.filter((n) => n.type === 'File');
+  const pick = (): string | undefined => (apgNodes.length > 0 ? r.pick(apgNodes).id : undefined);
+  const nodes: { id: string; label: string; props: Record<string, unknown> }[] = [];
+  const edges: { type: string; from: string; to: string; props: Record<string, unknown> }[] = [];
+  const v = (plausible: () => unknown): unknown => (r.chance(0.6) ? plausible() : value(r, ''));
+  const bool = (): unknown => v(() => r.chance(0.6));
+  for (let i = 0, n = r.int(0, 3); i < n; i++) {
+    nodes.push({ id: `entry:${String(i)}`, label: 'EntryPoint', props: { name: v(() => r.pick(NAMES)), file: v(() => r.pick(files.length > 0 ? files.map((f) => f.filePath) : [''])), entryKind: v(() => r.pick(['http', 'message', 'cli', 'HTTP', ''])) } });
+  }
+  for (let i = 0, n = r.int(0, 3); i < n; i++) nodes.push({ id: `env:${String(i)}`, label: 'EnvKey', props: { name: v(() => r.pick(['PORT', 'DB_URL', '', 'ñ', 'A.B'])) } });
+  const edge = (type: string, from: string | undefined, to: string | undefined, props: Record<string, unknown>): void => {
+    if (from !== undefined && to !== undefined) edges.push({ type, from, to, props });
+  };
+  for (let i = 0, n = r.int(0, 6); i < n; i++) edge('THROWS', pick(), pick(), { direct: bool(), frameworkHttp: bool(), unit: v(() => r.pick(NAMES)), errorType: v(() => r.pick(['HttpException', 'NotFoundException', ''])), module: v(() => r.pick(['@nestjs/common', ''])) });
+  for (const ep of nodes.filter((x) => x.label === 'EntryPoint')) for (let i = 0, n = r.int(0, 3); i < n; i++) edge('REACHES', ep.id, pick(), { withoutCore: bool(), infrastructure: bool(), unit: v(() => r.pick(NAMES)), depth: v(() => r.int(0, 6)) });
+  const envs = nodes.filter((x) => x.label === 'EnvKey');
+  for (let i = 0, n = envs.length > 0 ? r.int(0, 5) : 0; i < n; i++) edge('READS_ENV', pick(), r.pick(envs).id, { outsideConfig: bool(), via: v(() => r.pick(['process.env', 'ConfigService', ''])), lines: v(() => [r.int(1, 40)]) });
+  for (let i = 0, n = files.length > 1 ? r.int(0, 5) : 0; i < n; i++) edge('CO_CHANGES_WITH', r.pick(files).id, r.pick(files).id, { hiddenCoupling: bool(), support: v(() => r.int(1, 9)), confidence: v(() => r.pick([0.5, 1, 0.25])), reverseConfidence: v(() => r.pick([0.5, 1, 0.75])) });
+  for (let i = 0, n = r.int(0, 4); i < n; i++) edge('REIMPLEMENTS', pick(), pick(), { via: v(() => r.pick(['clone', 'concept', ''])), step: v(() => r.pick(['step-1', 'step-2', ''])), existingSince: v(() => r.pick(['step-0', ''])) });
+  // The dotted File properties go on the APG nodes themselves (ingested by `SET n = node` like any other).
+  const withProps = apgNodes.map((n) => {
+    if (n.type !== 'File' || !r.chance(0.5)) return n;
+    const extra: Record<string, unknown> = {};
+    if (r.chance(0.6)) extra['cheap.vendorSdkOutsideAdapters'] = v(() => (r.chance(0.2) ? [] : Array.from({ length: r.int(1, 3) }, () => r.pick(['aws-sdk', 'stripe', '@google-cloud/storage', '']))));
+    if (r.chance(0.6)) extra['cheap.componentUntested'] = bool();
+    if (r.chance(0.6)) extra['cheap.component'] = v(() => r.pick(['billing', 'orders', '', 'ñ']));
+    return { ...n, properties: { ...n.properties, ...extra } };
+  });
+  return { ...p, apg: { ...p.apg, nodes: withProps } as unknown as APGResult, overlay: { nodes, edges } };
 }

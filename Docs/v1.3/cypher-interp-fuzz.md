@@ -12,6 +12,7 @@ odd, and queries it is not meant to accept. Neo4j stays the reference engine. No
 |---|---|
 | Graph fuzz, final run (seeds 1-2000) | 2,000 graphs (59,637 nodes, 67,200 edges), 836,000 statements, 342,220 Neo4j rows, 0 ingestion differences: **821,236 equal**, 13,215 documented quirks (T20 8,763, T8 4,257, T2 195), 1,549 Neo4j timeouts (not compared), **0 mismatches** with the final code (41 as run, all in `universal-literal:orphanFileCount`/`cyclicDependencyCount`; replayed: 9 equal, 32 T20; they led to F10; §8) |
 | Development fuzz runs (before and between the fixes) | about 170 graphs and two 3,000-query rejection runs; 34 minimised mismatches and 139 rows-where-Neo4j-errors mutants → 9 interpreter bugs (F1-F9), all fixed; F10 came from the final run |
+| Supplement: the 7 cheap2 templates merged into `v1.3` after the branch point | seeds 1-2000 with `--cheap2` (the cheap-proxy facts those templates read, which no pipeline writes yet): 84,000 statements, 75,504 Neo4j rows, **0 mismatches** (102 T8 ties), 0 ingestion differences (`cheap2-supplement.json`) |
 | Rejection fuzz, 3,000 queries built around 59 unsupported constructs | **3,000/3,000 rejected** (`CypherInterp.Unsupported` or a syntax error), **0 returned rows**; Neo4j accepted 1,686 of them in a read transaction (they are valid Neo4j, outside the subset) |
 | Mutation fuzz, 3,000 random mutants of the template texts | 2,772 both fail with the same code, 168 same rows (163 equal, 3 T8, 2 T20), 28 rejected as unsupported, 10 empty (skipped); 22 differ, all Neo4j compile-time checks the interpreter does not make (T21: 19, T22: 3; §6). Before F9: 139 mutants returned rows where Neo4j failed |
 | Regression tests (`tests/unit/cypher-interp/fuzz-regressions.test.ts`) | 33 cases, one or more per finding; every expectation is Neo4j's live answer (`scripts/v1.3/cypher-interp-fuzz-live.ts`: 33/33; two F8/F10 cases are plan-order dependent in Neo4j and marked `neo4jMayRaise`, §6 T20) |
@@ -82,6 +83,13 @@ is reachable in some order (T20); if not, it stays a mismatch.
 
 `--recheck <fuzz-mismatches.jsonl>` replays every minimised repro against the current interpreter; every repro of
 every run was replayed after the last fix.
+
+**Templates added after the branch point.** Merging `v1.3` into this branch brought the cheap2 catalogue (7 templates,
+14 texts; 148 texts in all). No pipeline stage writes the facts they read (they run against in-memory mirrors in
+`scripts/v1.3/cheap2-eval.ts`), so on an ingested graph both engines return nothing. `--cheap2` adds those facts to
+each fuzz graph (`withCheapOverlay`: EntryPoint and EnvKey nodes, THROWS, REACHES, READS_ENV, CO_CHANGES_WITH and
+REIMPLEMENTS relationships, the dotted `cheap.*` File properties, all with the same adversarial values), written with
+the ingestion's own statement shapes on both engines; the cheap2 statements were then fuzzed over the same 2,000 seeds.
 
 ## 4. Rejection fuzz
 

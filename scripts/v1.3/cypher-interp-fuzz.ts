@@ -17,8 +17,9 @@
  *
  * Usage (repository root, NEO4J_URI / NEO4J_PASSWORD in the environment; holds the cross-process Neo4j lock):
  *   node --import tsx scripts/v1.3/cypher-interp-fuzz.ts --from 1 --count 2000 [--reject 3000] [--shrink-per 2]
- *     [--only <template substring>] --out results/v1.3-cypher-interp/fuzz
+ *     [--only <label substring>[,<substring>...]] --out results/v1.3-cypher-interp/fuzz
  *   ... --recheck <fuzz-mismatches.jsonl> --out <dir>   replays every minimised repro with the current interpreter
+ *   ... --cheap2   adds the batch-2 cheap-proxy facts (`withCheapOverlay`) the cheap2 templates read
  * Writes <out>/fuzz-summary.json, <out>/fuzz-mismatches.json (every mismatch, minimised repros) and <out>/fuzz.md.
  */
 import * as fs from 'node:fs';
@@ -41,7 +42,7 @@ import { acquireNeo4jLock } from '../../src/shared/process/neo4j-lock.js';
 import { scrubSecrets } from '../../src/shared/errors/scrub.js';
 import { classify, sweepTexts } from './lib/memory-sweep.js';
 import { permissive, statementParams, sweepParams } from './lib/memory-bindings.js';
-import { fuzzProject, mulberry32, shrinkCandidates, sizeOf } from './lib/fuzz-apg.js';
+import { fuzzProject, mulberry32, shrinkCandidates, sizeOf, withCheapOverlay } from './lib/fuzz-apg.js';
 import type { FuzzProject } from './lib/fuzz-apg.js';
 import { isMismatch, verdictOf } from './lib/fuzz-verdict.js';
 import type { Verdict } from './lib/fuzz-verdict.js';
@@ -58,6 +59,7 @@ const rejectN = Number(opt('--reject') ?? '0');
 const shrinkPer = Number(opt('--shrink-per') ?? '2');
 const only = opt('--only');
 const trace = argv.includes('--trace');
+const cheap2 = argv.includes('--cheap2');
 const outDir = path.resolve(opt('--out') ?? 'results/v1.3-cypher-interp/fuzz');
 const env = process.env;
 const secrets = [env.NEO4J_PASSWORD ?? ''].filter((s) => s !== '');
@@ -86,7 +88,7 @@ const STATEMENTS: Statement[] = [
   ...Object.entries(JUDGE_GRAPH_QUERIES).map(([k, q]) => ({ label: `judge-graph:${k}`, binding: 'none' as const, text: q })),
   ...Object.entries(UNIVERSAL_METRIC_QUERIES).map(([k, q]) => ({ label: `universal:${k}`, binding: 'none' as const, text: q })),
   ...Object.entries(UNIVERSAL_METRIC_QUERIES_LITERAL).map(([k, q]) => ({ label: `universal-literal:${k}`, binding: 'none' as const, text: q })),
-].filter((s) => only === undefined || s.label.includes(only));
+].filter((s) => only === undefined || only.split(',').some((o) => s.label.includes(o)));
 
 function paramsFor(p: FuzzProject, cand: MemoryGraphRepository): Record<'spec' | 'low' | 'high' | 'none', Record<string, unknown>> {
   const filePaths = cand.graph.nodesWithLabel('File').map((n) => String(n.properties.get('filePath') ?? ''));
@@ -116,6 +118,18 @@ async function ingestBoth(neo: GraphRepository, p: FuzzProject): Promise<{ cand:
   };
   const r = await ingestAPG({ apgResult: p.apg, layerModel: p.layerModel, mode: 'stateless' }, tee, nullStore);
   if (!r.success) issues.push(`ingestAPG failed: ${r.errors.map((e) => e.message).join('; ')}`);
+  // The cheap-proxy overlay (`--cheap2`), in the ingestion's own statement shapes (the interpreter's adapter accepts
+  // exactly these), one batch per label and per relationship type.
+  if (r.success && p.overlay !== undefined) {
+    for (const label of [...new Set(p.overlay.nodes.map((n) => n.label))]) {
+      const batch = p.overlay.nodes.filter((n) => n.label === label).map((n) => ({ ...n.props, id: n.id }));
+      await tee.executeQuery(`\n      UNWIND $batch AS node\n      CREATE (n:APGNode:${label})\n      SET n = node\n    `, { batch });
+    }
+    for (const type of [...new Set(p.overlay.edges.map((e) => e.type))]) {
+      const batch = p.overlay.edges.filter((e) => e.type === type).map((e) => ({ sourceId: e.from, targetId: e.to, props: { ...e.props } }));
+      await tee.executeQuery(`\n      UNWIND $batch AS edge\n      MATCH (src:APGNode {id: edge.sourceId})\n      MATCH (tgt:APGNode {id: edge.targetId})\n      CREATE (src)-[r:${type}]->(tgt)\n      SET r = edge.props\n    `, { batch });
+    }
+  }
   return { cand, issues };
 }
 
@@ -258,7 +272,7 @@ async function graphFuzz(neo: GraphRepository): Promise<{ summary: Record<string
   for (let seed = from; seed < from + count; seed++) {
     if (done.has(seed)) continue;
     const ts = Date.now();
-    const p = fuzzProject(seed);
+    const p = cheap2 ? withCheapOverlay(fuzzProject(seed)) : fuzzProject(seed);
     const rec: SeedRecord = { seed, nodes: p.apg.nodes.length, edges: p.apg.edges.length, statements: 0, neo4jRows: 0, ms: 0, verdicts: {}, families: {}, ingestIssues: [] };
     const ingested = await ingestBoth(neo, p);
     let cand = ingested.cand;
