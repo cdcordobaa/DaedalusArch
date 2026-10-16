@@ -31,7 +31,11 @@ function mcpBlocking(file: string): string[] {
 describe('R03: require()/import() are scored by check_file as evaluate scores them', () => {
   it('evaluate (v1.3 defaults) reports the dynamic-import edges as blocking findings', async () => {
     const graph = { healthCheck: () => Promise.resolve(true), close: () => Promise.resolve() } as unknown as GraphRepository;
-    const r = await evaluateProject({ projectPath: PROJECT, specPath: CLEAN_ARCH_SPEC, scoringMode: 'v1.3' }, { NEO4J_PASSWORD: 'unused', APG_STORE_PATH: fs.mkdtempSync(path.join(os.tmpdir(), 'r03-apg-')) }, {
+    // The fixture keeps no tsconfig.json of its own (every repo fixture with one is pinned by v12e-byte-identity).
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'r03-tsconfig-'));
+    const tsconfigPath = path.join(tmp, 'tsconfig.json');
+    fs.writeFileSync(tsconfigPath, JSON.stringify({ compilerOptions: { strict: true, module: 'commonjs', target: 'ES2022', moduleResolution: 'node' }, include: [`${PROJECT}/src/**/*.ts`] }));
+    const r = await evaluateProject({ projectPath: PROJECT, specPath: CLEAN_ARCH_SPEC, scoringMode: 'v1.3', tsconfigPath }, { NEO4J_PASSWORD: 'unused', APG_STORE_PATH: fs.mkdtempSync(path.join(os.tmpdir(), 'r03-apg-')) }, {
       makeGraph: () => graph,
       makePipeline: (config) => createPipeline({ ...config, graphEngine: 'cypher-interp' }),
     });
