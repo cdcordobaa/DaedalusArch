@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8009,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "f77b95e24b692b3c3f7cf95ae880a98a92ed3eb09844699f24b1514602309962-r0-2",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.95,
+    "evidence": [
+      "src/business/model/Vehicle.ts: serviceDue() is a pure domain rule: it returns true when odometerKm - lastServiceKm >= SERVICE_INTERVAL_KM.",
+      "src/business/model/Vehicle.ts: takeOutOfService() and returnToService() change only the entity's in-memory state (inService, lastServiceKm).",
+      "src/business/model/Vehicle.ts: the file has no imports and no calls to I/O, database, HTTP or UI code."
+    ],
+    "pass": true,
+    "reasoning": "Vehicle.ts is a plain domain entity. It holds vehicle state and pure business rules: checking whether a service is due against SERVICE_INTERVAL_KM, and the state changes for taking a vehicle out of service and returning it. It contains no persistence, transport, framework or presentation code, so everything in it fits the business (domain) layer.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**\n- business (kind: domain): src/business/**\n- presentation (kind: presentation): src/presentation/**\n\n## Unit\nKind: file\nId: src/business/model/Vehicle.ts\nLayer: business\nUnit files:\n- src/business/model/Vehicle.ts\n\n## Source\n=====SOURCE-BEGIN src/business/model/Vehicle.ts=====\nexport const SERVICE_INTERVAL_KM = 15_000;\n\nexport class Vehicle {\n  plate: string;\n  model: string;\n  odometerKm: number;\n  inService: boolean;\n  lastServiceKm: number;\n\n  constructor(plate: string, model: string, odometerKm: number, inService: boolean, lastServiceKm: number) {\n    this.plate = plate;\n    this.model = model;\n    this.odometerKm = odometerKm;\n    this.inService = inService;\n    this.lastServiceKm = lastServiceKm;\n  }\n\n  serviceDue(): boolean {\n    return this.odometerKm - this.lastServiceKm >= SERVICE_INTERVAL_KM;\n  }\n\n  takeOutOfService(): void {\n    this.inService = false;\n  }\n\n  returnToService(): void {\n    this.inService = true;\n    this.lastServiceKm = this.odometerKm;\n  }\n\n  hasPlate(): boolean {\n    return this.plate !== undefined;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/business/services/MaintenanceService.ts\",\"to\":\"src/business/model/Vehicle.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/business/services/MileageService.ts\",\"to\":\"src/business/model/Vehicle.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"business\",\"name\":\"Vehicle\",\"path\":\"src/business/model/Vehicle.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/model/Vehicle.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/services/MaintenanceService.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/services/MileageService.ts\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T03:11:38.761Z",
+  "repetition": 0,
+  "requestHash": "f77b95e24b692b3c3f7cf95ae880a98a92ed3eb09844699f24b1514602309962",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":423}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.95,\\\"reasoning\\\":\\\"Vehicle.ts is a plain domain entity. It holds vehicle state and pure business rules: checking whether a service is due against SERVICE_INTERVAL_KM, and the state changes for taking a vehicle out of service and returning it. It contains no persistence, transport, framework or presentation code, so everything in it fits the business (domain) layer.\\\",\\\"evidence\\\":[\\\"src/business/model/Vehicle.ts: serviceDue() is a pure domain rule: it returns true when odometerKm - lastServiceKm >= SERVICE_INTERVAL_KM.\\\",\\\"src/business/model/Vehicle.ts: takeOutOfService() and returnToService() change only the entity's in-memory state (inService, lastServiceKm).\\\",\\\"src/business/model/Vehicle.ts: the file has no imports and no calls to I/O, database, HTTP or UI code.\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.95,\"evidence\":[\"src/business/model/Vehicle.ts: serviceDue() is a pure domain rule: it returns true when odometerKm - lastServiceKm >= SERVICE_INTERVAL_KM.\",\"src/business/model/Vehicle.ts: takeOutOfService() and returnToService() change only the entity's in-memory state (inService, lastServiceKm).\",\"src/business/model/Vehicle.ts: the file has no imports and no calls to I/O, database, HTTP or UI code.\"],\"pass\":true,\"reasoning\":\"Vehicle.ts is a plain domain entity. It holds vehicle state and pure business rules: checking whether a service is due against SERVICE_INTERVAL_KM, and the state changes for taking a vehicle out of service and returning it. It contains no persistence, transport, framework or presentation code, so everything in it fits the business (domain) layer.\",\"violations\":[]}}",
+  "runIndex": 2,
+  "schemaVersion": 2,
+  "unitId": "src/business/model/Vehicle.ts",
+  "usage": {
+    "inputTokens": 2497,
+    "outputTokens": 423
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

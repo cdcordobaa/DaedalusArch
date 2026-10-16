@@ -768,7 +768,9 @@ async function record(argv: readonly string[]): Promise<number> {
         if ((phase.judgeAttempts + phase.hits) % 20 === 0) process.stderr.write(`${label}: ${String(phase.judgeAttempts)} calls, ${String(phase.hits)} hits\n`);
       }
     };
-    await Promise.all([worker(), worker(), worker()]);
+    // Concurrency only (default 3, the judge's MAX_CONCURRENCY); results and cassette keys do not depend on it.
+    const workers = Math.max(1, Number(arg(argv, '--workers', '3')));
+    await Promise.all(Array.from({ length: workers }, () => worker()));
     disposeJudgeProvider(cassette.innerProvider);
   }
   ledger.calls += phase.judgeAttempts;

@@ -28,8 +28,9 @@ done
 
 # Minimal environment for every phase. The cassette decorator scrubs the value of every variable whose name matches
 # KEY|TOKEN|SECRET|PASSWORD from what it stores; a short value such as MAX_THINKING_TOKENS=<digits> would otherwise be
-# redacted inside function ids and prompts. Only HOME, PATH, locale, proxy and Neo4j variables are passed on.
-KEEP=(HOME PATH TERM LANG LC_ALL HTTPS_PROXY HTTP_PROXY NO_PROXY https_proxy http_proxy no_proxy NODE_EXTRA_CA_CERTS NEO4J_URI NEO4J_USER NEO4J_PASSWORD)
+# redacted inside function ids and prompts. Only HOME, PATH, USER, LOGNAME, TMPDIR, locale, proxy and Neo4j variables are
+# passed on. USER and LOGNAME are needed: the judge CLI keeps its login in the macOS keychain under the user name.
+KEEP=(HOME PATH USER LOGNAME TMPDIR __CF_USER_TEXT_ENCODING TERM LANG LC_ALL HTTPS_PROXY HTTP_PROXY NO_PROXY https_proxy http_proxy no_proxy NODE_EXTRA_CA_CERTS NEO4J_URI NEO4J_USER NEO4J_PASSWORD)
 ENVARGS=()
 for v in "${KEEP[@]}"; do
   if [[ -n "${!v:-}" ]]; then ENVARGS+=("$v=${!v}"); fi
