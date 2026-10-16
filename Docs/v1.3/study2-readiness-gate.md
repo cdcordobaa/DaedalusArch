@@ -21,7 +21,11 @@ sha256sum Docs/v1.3/rule-tiers.md Docs/v1.3/style-rule-sources.md
 2. **No line is waived silently.** A line marked **[W]** may be closed by a written author decision instead of by the check. The decision is dated, names the line, states the residual threat, and is committed before the gate is declared green. Lines without **[W]** have no waiver.
 3. **Green means re-verified on the run commit.** Every command below is re-run at the commit that will run Study 2 (the "run commit"), and its output is stored in `results/v1.3-study2-gate/<line-id>.txt`. A status from an earlier commit does not carry over.
 4. **The author signs the go.** The final go is one commit that lists every line, its evidence file and its sha256, and carries an explicit author statement. An AI session cannot declare the go under a delegation (S13).
-5. **Order.** The pilot (`Docs/v1.3/pilot-outcome-memo.md`) runs first. Then the instrument freeze and the hold-out (V-lines). Then the dress rehearsal. Then the pre-registration is written (D10). Then this gate. Then Study 2.
+5. **Order.** The pilot (`Docs/v1.3/pilot-outcome-memo.md`) runs first. Then the instrument freeze and the hold-out (V-lines). Then the dress rehearsal. Then the pre-registration is written (D10). Then this gate. Then Study 2. *(2026-10-16: the validation pilot of the declared deviation runs after the pilot and before the freeze.)*
+
+**Note on rule 1 (2026-10-16).** The Study 2 primary outcome was switched to the level outcome Y by a declared deviation (`Docs/v1.3/study2-deviation-2026-10-16.md`), after the loop pilot and the floor probes were seen. That switch **does not use** rule 1's exception (an addendum written before the data it would excuse), and it does not claim to. It is reported as a deviation, with its timeline. Lines D1, D3, D10 and D11 are restated below for the new outcome; no restatement removes a check, lowers a threshold or adds a waiver, and V10(a), D1, D3 and V4 keep no waiver.
+
+<!-- study2-protocol: primary=Y-distinct-blocking-edges-at-step-k; k=4; arms=none,daedalus-mcp; unit=distinct-edge; fallback=do-not-run; order=freeze,hold-out,dress-rehearsal,pre-registration,gate,run; generators=claude-sonnet-5-5,codex-pin -->
 
 ## 1. Summary
 
@@ -113,7 +117,7 @@ sha256sum Docs/v1.3/rule-tiers.md Docs/v1.3/style-rule-sources.md
 ### V5. Human labels with an independent second rater who is not the director
 
 - **Check.** A second rater meeting `human-labelling-protocol.md` §5 (professional TypeScript developer, no part in the tool, the manifests or the thesis; `:52`) is named, has signed the conflict declaration, and has completed the hold-out labelling. The director is not that rater.
-- **Why.** "Meaningful" was never measured in v1.3 (the model labeller hit its limit; `Docs/DiagnosticRuns/v1.3-labelling-2026-10-15.md:7-10`). The director was proposed as the 30-item rater (`validation-protocol.md:33`), which conflicts with the protocol's own qualification (V13-TV-D1, `threats-register.md:545-552`). In Study 1, all "real-code precision" came from agent spot checks (`audit.md:1243`).
+- **Why.** "Meaningful" was never measured in v1.3 (the model labeller hit its limit; `Docs/DiagnosticRuns/v1.3-labelling-2026-10-15.md:7-10`). No independent second rater has been named yet, and whoever is named must meet the protocol's own qualification (`human-labelling-protocol.md:52`; V13-TV-D1 in `threats-register.md`). In Study 1, all "real-code precision" came from agent spot checks (`audit.md:1243`).
 - **Verify.** The rater's signed declaration is stored outside the public repo, and its sha256 and date are committed; `results/v1.3-holdout/labels/` holds the second rater's sheet; `scripts/v1.3` union-agreement output (PR #119) is committed.
 - **Pass.** Second rater ≠ author ≠ director; labelling complete on the protocol's option A or B; κ under V6's definition computed and reported (its value is reported, not gated here, beyond V6).
 - **Status.** RED. `human-labelling-protocol.md:3` "Status: defined; nothing labelled yet"; no rater named (`:44`).
@@ -140,7 +144,7 @@ sha256sum Docs/v1.3/rule-tiers.md Docs/v1.3/style-rule-sources.md
 - **Why.** Study 1 had no fidelity check: dynamic `import()` gave no edge, so DaedalusArch caught 0/6 MO-X01 seeds where dependency-cruiser caught 6/6 (`audit.md:1235`, `:1344`, `:1451`), and E1 never exercised `dynamicImports` at all (`Docs/DiagnosticRuns/v1.3-graph-fidelity-2026-10-14.md:28`). On 15 human-written projects the default view reached only 0.926 coverage and 0.904 confirmation pooled, 0.67–0.89 on the 9 barrel-heavy ones, against 1.000 for the literal view (PR #133, `origin/v1.3-external-set:Docs/DiagnosticRuns/v1.3-external-set-2026-10-16.md:170-176`). Agents can route around rules through barrels, `require` or dynamic imports (gaming, `study2-outline.md:146`). The fidelity sheets are unadjudicated (V13-TV-C6, `threats-register.md:156-173`).
 - **Verify.** `node --import tsx scripts/v1.3/graph-fidelity.ts project --views` on each rehearsal snapshot (as in PR #133 §4), summarised to `results/v1.3-study2-gate/V8.txt`; adjudication CSVs with no empty `human_verdict`.
 - **Pass.** Per snapshot coverage ≥ 0.95 for the view of record, pooled ≥ 0.98; guard counts present in every step record (D13); adjudication complete.
-- **Status.** RED. 0.926 pooled on the external set (PR #133 open); adjudication sheets empty; no fidelity run on any loop snapshot.
+- **Status.** RED, for two reasons only: no fidelity run on any loop snapshot, and the adjudication sheets are empty. (Corrected 2026-10-16: the 0.926 pooled figure from PR #133 is the frozen v1.2E graph, which `evaluate` on v1.3 does not use. Merged PR #149 measured the v1.3 literal view, read by the direction, cycle, layer, metric and context templates, at 1.000 / 1.000 on the external set, and the resolved view, read by four usage templates, at 0.927 / 0.904 by design under ADR-V13-01; `Docs/DiagnosticRuns/v1.3-default-view-coverage-2026-10-16.md` §3.)
 
 ### V9. MCP tools agree with the full evaluation for every Study 2 style
 
@@ -300,19 +304,20 @@ sha256sum Docs/v1.3/rule-tiers.md Docs/v1.3/style-rule-sources.md
 - **Why.** E1 had zero blocking findings in all 65 accepted cells (`study1-addenda.md:16`; `Docs/DiagnosticRuns/v1.3-study1-rerun-2026-10-15.md:83-90`): a floor effect that made the primary contrast unmeasurable. Power depends most on θ (`study2-power-notes.md:122-123`).
 - **Verify.** The pilot report and its per-run slope table.
 - **Pass.** Pilot complete; §5 decision recorded; if the advisory branch is taken, the pilot shows the advisory density growing per step (the fallback "is only useful if a pilot shows advisory density growing fast per step", `study2-power-notes.md:99-102`), otherwise this line is red.
-- **Status.** RED. `pilot-outcome-memo.md:3` "no pilot run has started".
+- **Restated 2026-10-16 (deviation record §2).** The advisory branch is no longer a Study 2 primary, so it cannot be run as one. D1 passes only if all of: (i) the memo §5 branch is recorded from the DDD re-score on `v1.3` (Neo4j); (ii) the validation pilot (`floor-escape-design-2026-10-16.md` §4) has run under its pre-committed rule and at least one confirmatory stratum passes its escape and validity criteria; (iii) the pilot reports the step-4 Y mean and θ per stratum. If no stratum passes, this line stays red and Study 2 does not run.
+- **Status.** RED. The loop pilot ran (#170); the §5 branch is zero on the #229 re-score, not yet on `v1.3`; the validation pilot has not run.
 
 ### D2. Task prompts and frames audited for hidden structure hints
 
 - **Check.** The sealed tasks, the step and repair frames, the tool sentence and any acceptance-check text are audited against `pilot-tasks.md` §1 ("never name a layer, a port, an interface or a pattern", `:10`); the frames are identical across arms apart from each arm's declared sentence.
 - **Why.** Addendum A1: a shared sentence silently gave every Study 1 arm the same structure. The repair prompt now adds plain-language rule lines (`loop-pilot-readiness.md:31`), which must describe the rule and never name a fix.
 - **Verify.** For the frames: `npx jest tests/unit/scripts/loop/pilot.test.ts` (frame and argv identity). For the sealed tasks: the unsealer's audit sheet (term list, verdict per step), stored outside the repo with its sha256 committed.
-- **Pass.** No banned term in any task step; frame identity tests pass.
+- **Pass.** No banned term in any task step; frame identity tests pass. *(2026-10-16: frames are identical across arms **within each spec rung**; the rung content (L2, L3, L4) differs by design and is hint-audited per rung.)*
 - **Status.** UNKNOWN (frames tested; sealed tasks not audited).
 
 ### D3. Power: required N ≤ budgeted N
 
-- **Check.** The power simulation is re-run with the pilot's θ, slope SD and erosion rate, and the chosen design reaches power ≥ 0.80 for each confirmatory contrast under the chosen correction, within the approved budget.
+- **Check.** The power simulation is re-run with the pilot's θ, slope SD and erosion rate, and the chosen design reaches power ≥ 0.80 for each confirmatory contrast under the chosen correction, within the approved budget. *(2026-10-16: for Y, the simulation is `scripts/v1.3/level-power-sim.ts` with the validation pilot's mean and θ per stratum; a contrast below 0.80 is demoted to secondary before D10, so it is not a confirmatory contrast. The pass rule is unchanged.)*
 - **Why.** At the outline's working grid (option B, 162 runs) power is 0.54 for `gate` halving the slope and 0.18 for `mcp` at a quarter; no option reaches 0.80 except under Poisson counts; the task-level test has power 0 with 6 tasks because the smallest two-sided p is 0.031 (`study2-power-notes.md:79-85`, `:106-123`). Study 1's SO4 already fell under its own floor (N = 75 < 80, `audit.md:1235`; TV-17).
 - **Verify.** `npx tsx scripts/v1.3/study2-power.ts --sims 400 --flips 999 --seed <seed> --out results/v1.3-study2-gate/power.json --md-out results/v1.3-study2-gate/power.md` with the pilot parameters.
 - **Pass.** Power ≥ 0.80 for every confirmatory contrast at the registered N; budgeted N (D4) ≥ 1.1 × the required N (margin for failed runs); the confirmatory unit (block or task) and the correction stated so the test can attain significance with 6 clusters.
@@ -368,7 +373,7 @@ sha256sum Docs/v1.3/rule-tiers.md Docs/v1.3/style-rule-sources.md
 
 ### D10. Pre-registration content complete
 
-- **Check.** The pre-registration (written later, as its own author-approved step) contains: hypotheses and the confirmatory contrasts; the primary outcome per memo §5; arms (D11, S5); tasks by hash only; models and pins; R, k and the N justification (D3); analysis, correction and confirmatory unit; exclusions, missing steps and resume rules (`study2-outline.md:100-103`); the stop rule (D4); the frozen-tunables table (S11); deviations procedure; this gate's go commit.
+- **Check.** The pre-registration (written later, as its own author-approved step) contains: hypotheses and the confirmatory contrasts; the primary outcome Y as defined in the deviation record (`study2-deviation-2026-10-16.md` §2), with the memo §5 branch result and the memo §5 outcomes as registered secondaries, and the deviation itself disclosed with its timeline (amended 2026-10-16; the original text said the primary outcome was the memo's); arms (D11, S5); tasks by hash only; models and pins; R, k and the N justification (D3); analysis, correction and confirmatory unit; exclusions, missing steps and resume rules (`study2-outline.md:100-103`); the stop rule (D4); the frozen-tunables table (S11); deviations procedure; this gate's go commit.
 - **Why.** Study 1 needed 25 prereg versions and several post-hoc ADRs (`corpus/prereg.json`, version 25; ADR-024/025/026/032/033).
 - **Verify.** A checklist review against this list, by the author and one other reader, recorded in the go commit.
 - **Pass.** Every item present.
@@ -380,7 +385,7 @@ sha256sum Docs/v1.3/rule-tiers.md Docs/v1.3/style-rule-sources.md
 - **Why.** The extra repair turn confounds feedback with compute (`study2-outline.md:62-65`, `:148`). Without (c), Study 2 cannot run `daedalus-mcp` on styled tasks at all.
 - **Verify.** The rehearsal plan loads with every chosen arm and every style (`loadLoopPlan` exits 0).
 - **Pass.** All four decided in writing; the plan loads.
-- **Status.** RED.
+- **Status.** RED. 2026-10-16: (a) placebo out and (b) `gate` dropped, both by the deviation record; the arms are `none` and `daedalus-mcp`. (c) per-task MCP spec and (d) S5 are still open.
 
 ### D12. Feature-dropping guard  [W]
 

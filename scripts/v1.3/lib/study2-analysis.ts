@@ -19,8 +19,9 @@
  */
 import { createRng, quantileSorted, wilson } from '../../lib/stats.js';
 import type { SeededRng } from '../../lib/stats.js';
-import type { LoopArm, RunRecord, StepRecord, TurnRecord } from '../../lib/loop/types.js';
+import type { BlockingFinding, LoopArm, RunRecord, StepRecord, TurnRecord } from '../../lib/loop/types.js';
 import { signFlipP } from './study2-power.js';
+import { findingIdentity as memoIdentity, runOutcomes } from '../../lib/loop/pilot-metrics.js';
 
 export const CV05_RULE = 'FF-CV05';
 export const CONFIRMATORY: readonly (readonly [LoopArm, LoopArm])[] = [['gate', 'none'], ['daedalus-mcp', 'none']];
@@ -42,6 +43,16 @@ export interface AnalysisOptions {
   readonly minStepsForSlope: number;
   /** Only the confirmatory table (the calibration loop uses this). */
   readonly primaryOnly?: boolean;
+  /**
+   * The determinism pack (A1; `Docs/v1.3/study2-analysis-determinism.md`). Absent = the #160 behaviour, unchanged.
+   * Present: exact sign-flip up to `plan.exactMaxUnits` units, a dedicated test generator, an `inference` field per
+   * contrast, both blocking scales side by side, and captions.
+   */
+  readonly plan?: AnalysisPlan;
+  /** Whether `seed` is the plan's seed or a CLI override (plan mode only). */
+  readonly seedSource?: 'plan' | 'cli-override';
+  /** Extra outcome columns (table T12); absent or empty = none. */
+  readonly outcomes?: readonly OutcomeId[];
 }
 
 export const DEFAULT_OPTIONS: AnalysisOptions = { seed: 20261016, resamples: 4999, flips: 9999, alpha: 0.05, minStepsForSlope: 3 };
@@ -63,6 +74,14 @@ export interface StepRow {
   readonly skeletonIntact: boolean;
   readonly evaluationError: boolean;
   readonly nonCompletedTurns: number;
+  /** Blocking count with FF-S01/FF-S03 findings on the same edge counted once; null without an evaluation. */
+  readonly distinctViolatingEdges: number | null;
+  /** FF-S01/FF-S03 listed findings removed as duplicates of an edge already counted, per rule. */
+  readonly edgeDuplicatesByRule: Readonly<Record<string, number>>;
+  /** The evaluation lists fewer blocking findings than it counts (a capped evaluator): the dedup is partial. */
+  readonly listingCapped: boolean;
+  /** Distinct blocking identities (memo §3) in the step's final snapshot; null without an evaluation. */
+  readonly identities: number | null;
 }
 
 export interface RunRow {
@@ -94,7 +113,9 @@ export type MetricId =
   | 'blockingAhsAuc'
   | 'locAtK'
   | 'filesAtK'
-  | 'typecheckErrorsPerStep';
+  | 'typecheckErrorsPerStep'
+  | 'distinctViolatingEdgesSlope'
+  | 'newIdentitiesFromStep2';
 
 export const METRIC_LABEL: Readonly<Record<MetricId, string>> = {
   blockingSlope: 'Erosion slope: blocking violations per step',
@@ -110,6 +131,8 @@ export const METRIC_LABEL: Readonly<Record<MetricId, string>> = {
   locAtK: 'LOC at step k (guard: feature dropping)',
   filesAtK: 'Source files at step k (guard: feature dropping)',
   typecheckErrorsPerStep: 'Type-check errors per step (guard)',
+  distinctViolatingEdgesSlope: 'Erosion slope: distinct violating edges per step (FF-S01/FF-S03 deduplicated)',
+  newIdentitiesFromStep2: 'Blocking identities first seen at step 2..k, per run (memo §3 identity)',
 };
 
 export function ols(points: readonly (readonly [number, number])[]): number | null {
@@ -144,10 +167,31 @@ function lastTurn(r: StepRecord): TurnRecord | undefined {
   return r.turns[r.turns.length - 1];
 }
 
+/** Rules whose findings on the same edge (`filePath → target`) count once in `distinctViolatingEdges` (#161 §3.7.3). */
+export const EDGE_DEDUP_RULES: readonly string[] = ['FF-S01', 'FF-S03'];
+
+/**
+ * Blocking count with the FF-S01/FF-S03 findings that share a file pair and direction counted once. Works on the
+ * listed findings: duplicates found among them are subtracted from `blockingViolationCount`. A finding without a
+ * target cannot be matched and counts as listed.
+ */
+export function distinctEdges(ev: { readonly blockingViolationCount: number; readonly blockingFindings: readonly BlockingFinding[] }): { readonly count: number; readonly duplicatesByRule: Record<string, number>; readonly capped: boolean } {
+  const seen = new Set<string>();
+  const dup: Record<string, number> = {};
+  for (const f of [...ev.blockingFindings].filter((x) => EDGE_DEDUP_RULES.includes(x.ruleId) && x.target !== undefined).sort((a, b) => a.ruleId.localeCompare(b.ruleId))) {
+    const edge = JSON.stringify([f.filePath, f.target]);
+    if (seen.has(edge)) dup[f.ruleId] = (dup[f.ruleId] ?? 0) + 1;
+    else seen.add(edge);
+  }
+  const removed = Object.values(dup).reduce((a, b) => a + b, 0);
+  return { count: Math.max(0, ev.blockingViolationCount - removed), duplicatesByRule: dup, capped: ev.blockingFindings.length < ev.blockingViolationCount };
+}
+
 function stepRow(r: StepRecord): StepRow {
   const t = lastTurn(r);
   const snap = t?.snapshot;
   const ev = snap?.evaluation ?? null;
+  const edges = ev === null ? null : distinctEdges(ev);
   const byRule = (ev as { advisoryByRule?: Readonly<Record<string, number>> } | null)?.advisoryByRule;
   const loc = snap?.loc ?? 0;
   return {
@@ -164,6 +208,10 @@ function stepRow(r: StepRecord): StepRow {
     skeletonIntact: r.turns.every((x) => x.snapshot.skeletonIntact),
     evaluationError: ev === null,
     nonCompletedTurns: r.turns.filter((x) => x.result.status !== 'completed').length,
+    distinctViolatingEdges: edges?.count ?? null,
+    edgeDuplicatesByRule: edges?.duplicatesByRule ?? {},
+    listingCapped: edges?.capped ?? false,
+    identities: ev === null ? null : new Set(ev.blockingFindings.map(memoIdentity)).size,
   };
 }
 
@@ -194,6 +242,9 @@ export function runRows(runs: readonly LoadedRun[], o: Pick<AnalysisOptions, 'mi
     };
     const ahsAuc = (f: (s: StepRow) => number | null): number | null => (pts(f).length >= o.minStepsForSlope ? auc(pts(f)) : null);
     const tc = rows.map((s) => s.typecheckErrors).filter((x): x is number => x !== null);
+    // Memo §3 count: identities first seen at step 2..k (earlier repair turns count as seen); null when a step lacks
+    // an evaluation, since a finding could then be first seen on the unevaluated step.
+    const newIds = steps.length === 0 || rows.some((s) => s.evaluationError) ? null : runOutcomes(steps).newBlockingTotal;
     const metrics: Record<MetricId, number | null> = {
       blockingSlope: slope((s) => s.blocking),
       blockingPerKlocSlope: slope(perKloc((s) => s.blocking)),
@@ -208,6 +259,8 @@ export function runRows(runs: readonly LoadedRun[], o: Pick<AnalysisOptions, 'mi
       locAtK: atK((s) => s.loc),
       filesAtK: atK((s) => s.files),
       typecheckErrorsPerStep: tc.length === 0 ? null : tc.reduce((a, b) => a + b, 0) / tc.length,
+      distinctViolatingEdgesSlope: slope((s) => s.distinctViolatingEdges),
+      newIdentitiesFromStep2: newIds,
     };
     return {
       runId: run.runId,
@@ -270,7 +323,122 @@ export interface ContrastResult {
   /** Holm-adjusted p and rejection, confirmatory contrasts only. */
   readonly holmP?: number | null;
   readonly holmReject?: boolean;
+  /** Plan mode only: how p and the CI were computed, and whether they disagree. */
+  readonly inference?: InferenceInfo;
 }
+
+// ── Determinism pack (A1): the analysis plan, exact inference, the inference field ──
+
+export type PrimaryScale = 'raw' | 'perKloc';
+export type ConfirmatoryInference = 'sign-flip' | 'bootstrap' | 'both-agree';
+export type OutcomeId = 'blockingCount' | 'blockingPerKloc' | 'distinctViolatingEdges' | 'newIdentitiesFromStep2';
+export const OUTCOME_IDS: readonly OutcomeId[] = ['blockingCount', 'blockingPerKloc', 'distinctViolatingEdges', 'newIdentitiesFromStep2'];
+export const OUTCOME_METRIC: Readonly<Record<OutcomeId, MetricId>> = {
+  blockingCount: 'blockingSlope', blockingPerKloc: 'blockingPerKlocSlope', distinctViolatingEdges: 'distinctViolatingEdgesSlope', newIdentitiesFromStep2: 'newIdentitiesFromStep2',
+};
+export const OUTCOME_SCALE: Readonly<Record<OutcomeId, PrimaryScale>> = { blockingCount: 'raw', blockingPerKloc: 'perKloc', distinctViolatingEdges: 'raw', newIdentitiesFromStep2: 'raw' };
+
+/** The analysis plan file (`scripts/v1.3/study2-analysis-plan.json`): tooling, not a pre-registration. */
+export interface AnalysisPlan {
+  readonly schema: 'study2-analysis-plan/v0-tooling';
+  readonly seed: number;
+  readonly flips: number;
+  readonly resamples: number;
+  readonly alpha: number;
+  /** Exact sign-flip enumeration up to this many units (2^n sign vectors). */
+  readonly exactMaxUnits: number;
+  /** Author slot (A3). null = unfilled: T2 stays on the raw slope and says so. */
+  readonly primaryScale: PrimaryScale | null;
+  /** Author slot (A1). null = unfilled: both decisions are reported, none is named confirmatory. */
+  readonly confirmatoryInference: ConfirmatoryInference | null;
+}
+
+export function parsePlan(raw: unknown): AnalysisPlan {
+  const o = raw as Record<string, unknown> | null;
+  if (o === null || typeof o !== 'object' || o.schema !== 'study2-analysis-plan/v0-tooling') throw new Error('plan: schema must be study2-analysis-plan/v0-tooling');
+  const posInt = (k: string, max = Number.MAX_SAFE_INTEGER): number => {
+    const v = o[k];
+    if (typeof v !== 'number' || !Number.isSafeInteger(v) || v <= 0 || v > max) throw new Error(`plan: ${k} must be a positive integer${max < Number.MAX_SAFE_INTEGER ? ` ≤ ${String(max)}` : ''}`);
+    return v;
+  };
+  const alpha = o.alpha;
+  if (typeof alpha !== 'number' || !(alpha > 0 && alpha < 1)) throw new Error('plan: alpha must be in (0, 1)');
+  const scale = o.primaryScale;
+  if (scale !== null && scale !== 'raw' && scale !== 'perKloc') throw new Error('plan: primaryScale must be null, "raw" or "perKloc"');
+  const inf = o.confirmatoryInference;
+  if (inf !== null && inf !== 'sign-flip' && inf !== 'bootstrap' && inf !== 'both-agree') throw new Error('plan: confirmatoryInference must be null, "sign-flip", "bootstrap" or "both-agree"');
+  return { schema: 'study2-analysis-plan/v0-tooling', seed: posInt('seed'), flips: posInt('flips'), resamples: posInt('resamples'), alpha, exactMaxUnits: posInt('exactMaxUnits', 24), primaryScale: scale, confirmatoryInference: inf };
+}
+
+export interface SignFlipResult {
+  readonly p: number;
+  readonly method: 'exact' | 'monte-carlo';
+  readonly units: number;
+  readonly flips: number | null;
+  /** Monte Carlo standard error of p; null when exact. */
+  readonly mcSe: number | null;
+}
+
+/**
+ * Two-sided sign-flip test of the mean: exact over all 2^n sign vectors when n ≤ exactMax, else Monte Carlo with
+ * (hits + 1) / (flips + 1). Same statistic and tie tolerance as `signFlipP`.
+ */
+export function signFlipTest(d: readonly number[], exactMax: number, flips: number, rng: SeededRng): SignFlipResult {
+  const n = d.length;
+  if (n === 0) return { p: 1, method: 'exact', units: 0, flips: null, mcSe: null };
+  const obs = Math.abs(d.reduce((x, y) => x + y, 0));
+  const eps = 1e-12 * (1 + obs);
+  if (n <= exactMax) {
+    let hits = 0;
+    const total = 2 ** n;
+    for (let m = 0; m < total; m += 1) {
+      let s = 0;
+      for (let i = 0; i < n; i += 1) s += (m >>> i) & 1 ? -(d[i] ?? 0) : d[i] ?? 0;
+      if (Math.abs(s) >= obs - eps) hits += 1;
+    }
+    return { p: hits / total, method: 'exact', units: n, flips: null, mcSe: null };
+  }
+  let hits = 1;
+  for (let b = 0; b < flips; b += 1) {
+    let s = 0;
+    for (let i = 0; i < n; i += 1) s += rng.next() < 0.5 ? -(d[i] ?? 0) : d[i] ?? 0;
+    if (Math.abs(s) >= obs - eps) hits += 1;
+  }
+  const p = hits / (flips + 1);
+  return { p, method: 'monte-carlo', units: n, flips, mcSe: Math.sqrt((p * (1 - p)) / flips) };
+}
+
+export interface InferenceInfo {
+  readonly test: {
+    readonly method: 'exact sign-flip' | 'Monte Carlo sign-flip';
+    readonly units: number;
+    readonly flips: number | null;
+    /** The seed of the test's own generator; null when exact (no randomness). */
+    readonly seed: number | null;
+    readonly mcSe: number | null;
+    /** Monte Carlo p within 3 SE of α or α/2 (the Holm thresholds for two contrasts): another seed could change the decision. */
+    readonly nearAlpha: boolean;
+  };
+  readonly taskLevelTest: { readonly method: 'exact sign-flip' | 'Monte Carlo sign-flip'; readonly units: number; readonly seed: number | null };
+  readonly bootstrap: { readonly method: 'two-stage cluster percentile (tasks, then blocks within task)'; readonly resamples: number; readonly seed: number };
+  readonly planSeed: number;
+  readonly seedSource: 'plan' | 'cli-override';
+  /** The bootstrap CI excludes 0. */
+  readonly bootstrapRejects: boolean | null;
+  /** Unadjusted p ≤ α. */
+  readonly signFlipRejects: boolean | null;
+  /** The two disagree; null when either is missing. */
+  readonly disagreement: boolean | null;
+}
+
+function nearAlpha(t: SignFlipResult | null, alpha: number): boolean {
+  const se = t?.mcSe ?? null;
+  if (t === null || se === null) return false;
+  return [alpha, alpha / 2].some((a) => Math.abs(t.p - a) <= 3 * se);
+}
+
+/** Offset of the sign-flip generator from the bootstrap generator of the same contrast (plan mode). */
+export const TEST_SEED_OFFSET = 100_000;
 
 const mean = (xs: readonly number[]): number => xs.reduce((a, b) => a + b, 0) / xs.length;
 const sd = (xs: readonly number[]): number => {
@@ -359,6 +527,7 @@ export function contrast(rows: readonly RunRow[], metric: MetricId, arm: LoopArm
   const md = n === 0 ? null : mean(diffs);
   const s = n < 2 ? null : sd(diffs);
   const rr = n === 0 ? null : relRedStat(blocks);
+  if (o.plan !== undefined) return planContrast(blocks, diffs, tasks, taskEffects, metric, arm, ref, o, o.plan, seedOffset, rng, md, s, rr);
   return {
     metric, arm, reference: ref, blocks: n, tasks: tasks.length,
     meanArm: n === 0 ? null : mean(blocks.map((b) => b.a)),
@@ -373,6 +542,48 @@ export function contrast(rows: readonly RunRow[], metric: MetricId, arm: LoopArm
     taskEffects,
     taskLevelP: tasks.length === 0 ? null : signFlipP(taskEffects.map((t) => t.meanDiff), o.flips, rng),
     taskLevelMinP: tasks.length === 0 ? null : Math.max(2 / 2 ** tasks.length, 0),
+  };
+}
+
+function planContrast(
+  blocks: readonly PairedBlock[], diffs: readonly number[], tasks: readonly string[], taskEffects: readonly TaskEffect[], metric: MetricId, arm: LoopArm, ref: LoopArm,
+  o: AnalysisOptions, plan: AnalysisPlan, seedOffset: number, rng: SeededRng, md: number | null, s: number | null, rr: number | null,
+): ContrastResult {
+  const n = blocks.length;
+  const ci = n === 0 ? { low: null, high: null } : twoStageBootstrap(blocks, meanDiffStat, o.resamples, o.alpha, rng);
+  const relCi = n === 0 ? { low: null, high: null } : twoStageBootstrap(blocks, relRedStat, o.resamples, o.alpha, rng);
+  // The test has its own generator: its p does not depend on how many bootstrap draws ran before it.
+  const testSeed = o.seed + TEST_SEED_OFFSET + seedOffset;
+  const testRng = createRng(testSeed);
+  const t = n === 0 ? null : signFlipTest(diffs, plan.exactMaxUnits, o.flips, testRng);
+  const tt = tasks.length === 0 ? null : signFlipTest(taskEffects.map((x) => x.meanDiff), plan.exactMaxUnits, o.flips, testRng);
+  const bootRejects = ci.low === null || ci.high === null ? null : ci.low > 0 || ci.high < 0;
+  const flipRejects = t === null ? null : t.p <= o.alpha;
+  const method = (r: SignFlipResult | null): 'exact sign-flip' | 'Monte Carlo sign-flip' => (r?.method === 'monte-carlo' ? 'Monte Carlo sign-flip' : 'exact sign-flip');
+  return {
+    metric, arm, reference: ref, blocks: n, tasks: tasks.length,
+    meanArm: n === 0 ? null : mean(blocks.map((b) => b.a)),
+    meanReference: n === 0 ? null : mean(blocks.map((b) => b.b)),
+    meanDiff: md,
+    ci,
+    sdDiff: s,
+    dz: md === null || s === null || !(s > 0) ? null : md / s,
+    relativeReduction: rr === null || !Number.isFinite(rr) ? null : rr,
+    relativeReductionCi: relCi,
+    p: t?.p ?? null,
+    taskEffects,
+    taskLevelP: tt?.p ?? null,
+    taskLevelMinP: tasks.length === 0 ? null : Math.max(2 / 2 ** tasks.length, 0),
+    inference: {
+      test: { method: method(t), units: n, flips: t?.flips ?? null, seed: t?.method === 'monte-carlo' ? testSeed : null, mcSe: t?.mcSe ?? null, nearAlpha: nearAlpha(t, o.alpha) },
+      taskLevelTest: { method: method(tt), units: tasks.length, seed: tt?.method === 'monte-carlo' ? testSeed : null },
+      bootstrap: { method: 'two-stage cluster percentile (tasks, then blocks within task)', resamples: o.resamples, seed: o.seed + seedOffset },
+      planSeed: plan.seed,
+      seedSource: o.seedSource ?? (o.seed === plan.seed ? 'plan' : 'cli-override'),
+      bootstrapRejects: bootRejects,
+      signFlipRejects: flipRejects,
+      disagreement: bootRejects === null || flipRejects === null ? null : bootRejects !== flipRejects,
+    },
   };
 }
 
@@ -677,6 +888,77 @@ export interface AnalysisReport {
   readonly missing: readonly MissingRow[];
   readonly trajectories: { readonly blocking: readonly TrajectoryPoint[]; readonly primary: readonly TrajectoryPoint[]; readonly ahs: readonly TrajectoryPoint[] };
   readonly notComputable: readonly { readonly item: string; readonly reason: string }[];
+  /** Plan mode only: the plan, and the confirmatory contrasts on both blocking scales (each with its own Holm). */
+  readonly plan?: PlanSection;
+  /** `--outcome` only: table T12. */
+  readonly outcomeColumns?: readonly OutcomeColumn[];
+}
+
+export interface PlanSection {
+  readonly plan: AnalysisPlan;
+  readonly seedSource: 'plan' | 'cli-override';
+  /** The scale T2 uses and whether the author slot chose it. */
+  readonly t2Scale: PrimaryScale;
+  readonly primaryScaleSlotFilled: boolean;
+  /** Both blocking scales; empty under the advisory branch (the memo fixes that scale: per KLOC). */
+  readonly scales: readonly { readonly scale: PrimaryScale; readonly metric: MetricId; readonly contrasts: readonly ContrastResult[] }[];
+}
+
+export interface OutcomeColumn {
+  readonly outcome: OutcomeId;
+  readonly metric: MetricId;
+  readonly scale: PrimaryScale;
+  readonly contrasts: readonly ContrastResult[];
+  /** The step-1 level per arm (reported apart from the change after step 1). */
+  readonly step1Level: readonly { readonly arm: LoopArm; readonly estimate: Estimate }[];
+  readonly notes: readonly string[];
+}
+
+const STEP1_VALUE: Readonly<Record<OutcomeId, (s: StepRow) => number | null>> = {
+  blockingCount: (s) => s.blocking,
+  blockingPerKloc: (s) => (s.blocking === null || s.kloc <= 0 ? null : s.blocking / s.kloc),
+  distinctViolatingEdges: (s) => s.distinctViolatingEdges,
+  newIdentitiesFromStep2: (s) => s.identities,
+};
+
+/** Holm over a contrast list, as for T2. */
+function withHolm(cs: readonly ContrastResult[], alpha: number): ContrastResult[] {
+  const adj = holmAdjust(cs.map((c) => c.p));
+  return cs.map((c, i) => ({ ...c, holmP: adj[i] ?? null, holmReject: (adj[i] ?? 1) <= alpha }));
+}
+
+/**
+ * Table T12. An outcome whose metric T2 or T2b already computed reuses those contrasts (same seeds), so one report
+ * never shows two p-values for the same contrast.
+ */
+export function outcomeColumns(rows: readonly RunRow[], arms: readonly LoopArm[], outcomes: readonly OutcomeId[], o: AnalysisOptions, computed: ReadonlyMap<MetricId, readonly ContrastResult[]> = new Map()): OutcomeColumn[] {
+  const pairs = CONFIRMATORY.filter(([a, b]) => arms.includes(a) && arms.includes(b));
+  return outcomes.map((outcome, oi) => {
+    const metric = OUTCOME_METRIC[outcome];
+    const contrasts = computed.get(metric) ?? withHolm(pairs.map(([a, b], i) => contrast(rows, metric, a, b, o, 400 + 10 * oi + i)), o.alpha);
+    const rng = createRng(o.seed + 600 + oi);
+    const step1Level = arms.map((arm) => ({
+      arm,
+      estimate: clusterMean(rows.filter((r) => r.arm === arm).flatMap((r) => {
+        const s = r.steps.find((x) => x.step === 1);
+        const v = s === undefined ? null : STEP1_VALUE[outcome](s);
+        return v === null || !Number.isFinite(v) ? [] : [{ task: r.taskId, v }];
+      }), o, rng),
+    }));
+    const notes: string[] = [];
+    if (outcome === 'distinctViolatingEdges') {
+      const steps = rows.flatMap((r) => r.steps);
+      const dup: Record<string, number> = {};
+      for (const st of steps) for (const [k, v] of Object.entries(st.edgeDuplicatesByRule)) dup[k] = (dup[k] ?? 0) + v;
+      const capped = steps.filter((st) => st.listingCapped).length;
+      notes.push(`Duplicates removed (same file pair and direction across ${EDGE_DEDUP_RULES.join('/')}): ${Object.keys(dup).length === 0 ? 'none' : Object.entries(dup).sort().map(([k, v]) => `${k} ${String(v)}`).join(', ')}.`);
+      notes.push(`Steps whose listed findings are fewer than their blocking count (capped listing; dedup partial): ${String(capped)} of ${String(steps.length)}.`);
+    }
+    if (outcome === 'newIdentitiesFromStep2') {
+      notes.push('Per-run count, not a slope: blocking identities (rule, template, file, target; cycles by file set) first seen at step 2..k, earlier repair turns counting as seen (`scripts/lib/loop/pilot-metrics.ts`). A run with an unevaluated step has no value. Step-1 level = distinct identities at step 1. No `check-correct` labels are applied.');
+    }
+    return { outcome, metric, scale: OUTCOME_SCALE[outcome], contrasts, step1Level, notes };
+  });
 }
 
 export const NOT_COMPUTABLE: readonly { readonly item: string; readonly reason: string }[] = [
@@ -706,9 +988,23 @@ export function analyse(study: readonly LoadedRun[], scheduled: readonly string[
     }
     notes.push('Under the advisory branch the `gate` arm still shows blocking findings only; whether `gate` gets the advisory subset or is dropped is undecided (memo §5, readiness gate D11b). The gate contrast is computed as designed and must be read with that caveat.');
   }
-  const confirmatory = CONFIRMATORY.filter(([a, b]) => arms.includes(a) && arms.includes(b)).map(([a, b], i) => contrast(rows, primaryMetric, a, b, o, 10 + i));
-  const adj = holmAdjust(confirmatory.map((c) => c.p));
-  const conf = confirmatory.map((c, i) => ({ ...c, holmP: adj[i] ?? null, holmReject: (adj[i] ?? 1) <= o.alpha }));
+  const pairs = CONFIRMATORY.filter(([a, b]) => arms.includes(a) && arms.includes(b));
+  let planSection: PlanSection | undefined;
+  if (o.plan !== undefined && decision.primary === 'blocking') {
+    const scales = (['raw', 'perKloc'] as const).map((scale, si) => {
+      const metric: MetricId = scale === 'raw' ? 'blockingSlope' : 'blockingPerKlocSlope';
+      // The raw scale keeps T2's offsets (10 + i), so T2 is the same computation whichever slot is filled.
+      return { scale, metric, contrasts: withHolm(pairs.map(([a, b], i) => contrast(rows, metric, a, b, o, (si === 0 ? 10 : 30) + i)), o.alpha) };
+    });
+    const t2Scale: PrimaryScale = o.plan.primaryScale ?? 'raw';
+    primaryMetric = t2Scale === 'raw' ? 'blockingSlope' : 'blockingPerKlocSlope';
+    planSection = { plan: o.plan, seedSource: o.seedSource ?? (o.seed === o.plan.seed ? 'plan' : 'cli-override'), t2Scale, primaryScaleSlotFilled: o.plan.primaryScale !== null, scales };
+    if (o.plan.primaryScale === null) notes.push('Primary scale slot UNFILLED (A3, author decision): T2 shows the raw slope as a placeholder; T2b shows both scales side by side, each with its own Holm.');
+  } else if (o.plan !== undefined) {
+    planSection = { plan: o.plan, seedSource: o.seedSource ?? (o.seed === o.plan.seed ? 'plan' : 'cli-override'), t2Scale: 'perKloc', primaryScaleSlotFilled: false, scales: [] };
+  }
+  const t2 = planSection?.t2Scale;
+  const conf = planSection?.scales.find((x) => x.scale === t2)?.contrasts ?? withHolm(pairs.map(([a, b], i) => contrast(rows, primaryMetric, a, b, o, 10 + i)), o.alpha);
   const noneSteps = rows.filter((r) => r.arm === 'none').flatMap((r) => r.steps);
   const floorCheck = {
     noneSteps: noneSteps.length,
@@ -733,8 +1029,14 @@ export function analyse(study: readonly LoadedRun[], scheduled: readonly string[
     confirmatory: conf,
     floorCheck,
   };
+  const extra = {
+    ...(planSection !== undefined ? { plan: planSection } : {}),
+    ...(o.outcomes !== undefined && o.outcomes.length > 0
+      ? { outcomeColumns: outcomeColumns(rows, arms, o.outcomes, o, new Map<MetricId, readonly ContrastResult[]>([[primaryMetric, conf], ...(planSection?.scales ?? []).map((x) => [x.metric, x.contrasts] as const)])) }
+      : {}),
+  };
   if (o.primaryOnly === true) {
-    return { ...base, secondaryContrasts: [], secondaryOutcomes: [], perModel: [], repair: null, cost: [], guards: [], missing: [], trajectories: { blocking: [], primary: [], ahs: [] }, notComputable: NOT_COMPUTABLE };
+    return { ...base, secondaryContrasts: [], secondaryOutcomes: [], perModel: [], repair: null, cost: [], guards: [], missing: [], trajectories: { blocking: [], primary: [], ahs: [] }, notComputable: NOT_COMPUTABLE, ...extra };
   }
   const secondaryContrasts = SECONDARY_CONTRASTS.filter(([a, b]) => arms.includes(a) && arms.includes(b)).map(([a, b], i) => contrast(rows, primaryMetric, a, b, o, 20 + i));
   const secondaryMetrics: MetricId[] = (
@@ -755,6 +1057,7 @@ export function analyse(study: readonly LoadedRun[], scheduled: readonly string[
   }));
   const value = (s: StepRow): number | null => {
     if (primaryMetric === 'blockingSlope') return s.blocking;
+    if (primaryMetric === 'blockingPerKlocSlope') return s.blocking === null || s.kloc <= 0 ? null : s.blocking / s.kloc;
     const v = primaryMetric === 'advisoryExclCv05PerKlocSlope' ? s.advisoryExclCv05 : s.advisoryTotal;
     return v === null || s.kloc <= 0 ? null : v / s.kloc;
   };
@@ -769,5 +1072,6 @@ export function analyse(study: readonly LoadedRun[], scheduled: readonly string[
     missing: missingTable(rows, scheduled, arms),
     trajectories: { blocking: trajectory(rows, arms, (s) => s.blocking), primary: trajectory(rows, arms, value), ahs: trajectory(rows, arms, (s) => s.ahs) },
     notComputable: NOT_COMPUTABLE,
+    ...extra,
   };
 }

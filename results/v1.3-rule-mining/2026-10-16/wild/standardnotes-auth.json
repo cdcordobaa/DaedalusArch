@@ -1,0 +1,577 @@
+{
+ "id": "standardnotes-auth",
+ "sha": "b7d2f3664e005aba6e4df14eb73dc3f2e622f5a2",
+ "label": "PROPOSED rules: mined from the code (deterministic, no LLM), not a reviewed spec. Review before use; exceptions are candidate violations, not confirmed ones.",
+ "style": "clean-architecture",
+ "styleConfidence": 0.75,
+ "layers": {
+  "infrastructure": 53,
+  "application": 77,
+  "domain": 338
+ },
+ "allowedDependencies": [
+  "application>domain",
+  "infrastructure>application",
+  "infrastructure>domain"
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "statement": "domain must not depend on application (84 edges application -> domain; 1/338 domain files import application)",
+   "subject": "domain",
+   "object": "application",
+   "confidence": 0.971,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 338,
+    "importingFiles": 1,
+    "edges": 1,
+    "reverseEdges": 84
+   },
+   "exceptions": [
+    {
+     "file": "src/Domain/User/User.ts",
+     "target": "src/Infra/TypeORM/TypeORMEmergencyAccessInvitation.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "statement": "domain must not depend on infrastructure (325 edges infrastructure -> domain; 39/338 domain files import infrastructure)",
+   "subject": "domain",
+   "object": "infrastructure",
+   "confidence": 0.785,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 338,
+    "importingFiles": 39,
+    "edges": 39,
+    "reverseEdges": 325
+   },
+   "exceptions": [
+    {
+     "file": "src/Domain/Auth/AuthResponseFactory20161215.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Domain/Auth/AuthResponseFactory20200115.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Domain/Auth/AuthResponseFactoryResolver.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Domain/Encryption/CrypterNode.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Domain/Event/DomainEventFactory.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Domain/Handler/PredicateVerificationRequestedEventHandler.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Domain/Handler/SharedSubscriptionInvitationCreatedEventHandler.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Domain/Handler/SubscriptionCancelledEventHandler.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Domain/Handler/SubscriptionExpiredEventHandler.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Domain/Handler/SubscriptionRefundedEventHandler.ts",
+     "target": "src/Bootstrap/Types.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "statement": "application must not depend on infrastructure (78 edges infrastructure -> application; 16/77 application files import infrastructure)",
+   "subject": "application",
+   "object": "infrastructure",
+   "confidence": 0.642,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 77,
+    "importingFiles": 16,
+    "edges": 16,
+    "reverseEdges": 78
+   },
+   "exceptions": [
+    {
+     "file": "src/Controller/SubscriptionInvitesController.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Controller/UserRequestsController.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Infra/Redis/LockRepository.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Infra/Redis/RedisEphemeralSessionRepository.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Infra/Redis/RedisMfaSecretRepository.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Infra/Redis/RedisOfflineSubscriptionTokenRepository.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Infra/Redis/RedisPKCERepository.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Infra/Redis/RedisSubscriptionTokenRepository.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Infra/TypeORM/TypeORMOfflineSettingRepository.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Infra/TypeORM/TypeORMOfflineUserSubscriptionRepository.ts",
+     "target": "src/Bootstrap/Types.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-004",
+   "kind": "acyclic-files",
+   "statement": "no file lies on an import cycle (463/469 files do not)",
+   "subject": "*",
+   "confidence": 0.985,
+   "level": "high",
+   "evidence": {
+    "files": 469,
+    "filesOnCycles": 6,
+    "cycles": 1
+   },
+   "exceptions": [
+    {
+     "file": "src/Domain/Permission/Permission.ts",
+     "target": "src/Domain/Role/Role.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/Domain/Role/Role.ts",
+     "target": "src/Domain/Permission/Permission.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/Domain/Role/Role.ts",
+     "target": "src/Domain/Subscription/OfflineUserSubscription.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/Domain/Role/Role.ts",
+     "target": "src/Domain/User/User.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/Domain/Session/RevokedSession.ts",
+     "target": "src/Domain/User/User.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/Domain/Subscription/OfflineUserSubscription.ts",
+     "target": "src/Domain/Role/Role.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/Domain/User/User.ts",
+     "target": "src/Domain/Role/Role.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/Domain/User/User.ts",
+     "target": "src/Domain/Session/RevokedSession.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/Domain/User/User.ts",
+     "target": "src/Infra/TypeORM/TypeORMEmergencyAccessInvitation.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/Infra/TypeORM/TypeORMEmergencyAccessInvitation.ts",
+     "target": "src/Domain/User/User.ts",
+     "detail": "edge on an import cycle"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "no-cyclic-deps",
+    "via": "fitness function FF-S02"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-005",
+   "kind": "component-direction",
+   "statement": "folder component Mapping must not depend on Bootstrap (12 imports Bootstrap -> Mapping; 0/13 files import back)",
+   "subject": "folder:Mapping",
+   "object": "folder:Bootstrap",
+   "confidence": 0.857,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 13,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 12
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-006",
+   "kind": "component-direction",
+   "statement": "folder component Projection must not depend on Bootstrap (5 imports Bootstrap -> Projection; 1/6 files import back)",
+   "subject": "folder:Projection",
+   "object": "folder:Bootstrap",
+   "confidence": 0.51,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 6,
+    "importingFiles": 1,
+    "edges": 1,
+    "reverseEdges": 5
+   },
+   "exceptions": [
+    {
+     "file": "src/Projection/SessionProjector.ts",
+     "target": "src/Bootstrap/Types.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-007",
+   "kind": "component-direction",
+   "statement": "folder component Projection must not depend on Infra (5 imports Infra -> Projection; 0/6 files import back)",
+   "subject": "folder:Projection",
+   "object": "folder:Infra",
+   "confidence": 0.714,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 6,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 5
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-008",
+   "kind": "component-direction",
+   "statement": "folder component Domain must not depend on Mapping (10 imports Mapping -> Domain; 0/332 files import back)",
+   "subject": "folder:Domain",
+   "object": "folder:Mapping",
+   "confidence": 0.906,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 332,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 10
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-009",
+   "kind": "component-direction",
+   "statement": "folder component Domain must not depend on Controller (14 imports Controller -> Domain; 0/332 files import back)",
+   "subject": "folder:Domain",
+   "object": "folder:Controller",
+   "confidence": 0.931,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 332,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 14
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-010",
+   "kind": "component-direction",
+   "statement": "folder component Domain must not depend on Bootstrap (184 imports Bootstrap -> Domain; 38/332 files import back)",
+   "subject": "folder:Domain",
+   "object": "folder:Bootstrap",
+   "confidence": 0.728,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 332,
+    "importingFiles": 38,
+    "edges": 38,
+    "reverseEdges": 184
+   },
+   "exceptions": [
+    {
+     "file": "src/Domain/Auth/AuthResponseFactory20161215.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Domain/Auth/AuthResponseFactory20200115.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Domain/Auth/AuthResponseFactoryResolver.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Domain/Encryption/CrypterNode.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Domain/Event/DomainEventFactory.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Domain/Handler/PredicateVerificationRequestedEventHandler.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Domain/Handler/SharedSubscriptionInvitationCreatedEventHandler.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Domain/Handler/SubscriptionCancelledEventHandler.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Domain/Handler/SubscriptionExpiredEventHandler.ts",
+     "target": "src/Bootstrap/Types.ts"
+    },
+    {
+     "file": "src/Domain/Handler/SubscriptionRefundedEventHandler.ts",
+     "target": "src/Bootstrap/Types.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-011",
+   "kind": "component-direction",
+   "statement": "folder component Domain must not depend on Infra (191 imports Infra -> Domain; 1/332 files import back)",
+   "subject": "folder:Domain",
+   "object": "folder:Infra",
+   "confidence": 0.984,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 332,
+    "importingFiles": 1,
+    "edges": 1,
+    "reverseEdges": 191
+   },
+   "exceptions": [
+    {
+     "file": "src/Domain/User/User.ts",
+     "target": "src/Infra/TypeORM/TypeORMEmergencyAccessInvitation.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-012",
+   "kind": "port-implementation",
+   "statement": "every *Repository class in application implements an interface declared in another layer (29/30)",
+   "subject": "application/Repository",
+   "confidence": 0.935,
+   "level": "high",
+   "evidence": {
+    "classes": 30,
+    "implementingAPort": 29
+   },
+   "exceptions": [
+    {
+     "file": "src/Infra/TypeORM/TypeORMCacheEntryRepository.ts",
+     "target": "TypeORMCacheEntryRepository",
+     "detail": "implements no interface"
+    }
+   ],
+   "compilesTo": null,
+   "notRepresentable": "the existing templates check the infrastructure-kind layer only (infrastructure), not application",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-013",
+   "kind": "core-package-free",
+   "statement": "domain (a core layer: it may depend on no other layer) imports none of @aws-sdk/client-s3, @aws-sdk/client-sns, @aws-sdk/client-sqs, @grpc/grpc-js, @simplewebauthn/typescript-types, @standardnotes/api, @standardnotes/common, @standardnotes/domain-events-infra, @standardnotes/grpc, @standardnotes/responses, @standardnotes/security, @standardnotes/settings, @standardnotes/sncrypto-node, @standardnotes/time, agentkeepalive, axios, crypto, dayjs, dotenv, express, fs, inversify-express-utils, ioredis, stream, typeorm, ua-parser-js",
+   "subject": "domain",
+   "confidence": 0.92,
+   "level": "high",
+   "evidence": {
+    "coreFiles": 338,
+    "packages": 26
+   },
+   "exceptions": [
+    {
+     "file": "src/Domain/Auth/AuthResponse20200115.ts",
+     "target": "@standardnotes/responses"
+    },
+    {
+     "file": "src/Domain/Auth/AuthResponseFactory20161215.ts",
+     "target": "@standardnotes/common"
+    },
+    {
+     "file": "src/Domain/Auth/AuthResponseFactory20161215.ts",
+     "target": "@standardnotes/security"
+    },
+    {
+     "file": "src/Domain/Auth/AuthResponseFactory20161215.ts",
+     "target": "crypto"
+    },
+    {
+     "file": "src/Domain/Auth/AuthResponseFactory20200115.ts",
+     "target": "@standardnotes/security"
+    },
+    {
+     "file": "src/Domain/Auth/AuthenticationMethodResolver.ts",
+     "target": "@standardnotes/security"
+    },
+    {
+     "file": "src/Domain/Email/offline-subscription-token-created.html.ts",
+     "target": "@standardnotes/common"
+    },
+    {
+     "file": "src/Domain/Email/shared-subscription-invitation-created.html.ts",
+     "target": "@standardnotes/common"
+    },
+    {
+     "file": "src/Domain/Email/user-email-changed.html.ts",
+     "target": "@standardnotes/common"
+    },
+    {
+     "file": "src/Domain/Email/user-invited-to-shared-vault.html.ts",
+     "target": "@standardnotes/common"
+    }
+   ],
+   "params": {
+    "forbidden_imports": [
+     "@aws-sdk/client-s3",
+     "@aws-sdk/client-sns",
+     "@aws-sdk/client-sqs",
+     "@grpc/grpc-js",
+     "@simplewebauthn/typescript-types",
+     "@standardnotes/api",
+     "@standardnotes/common",
+     "@standardnotes/domain-events-infra",
+     "@standardnotes/grpc",
+     "@standardnotes/responses",
+     "@standardnotes/security",
+     "@standardnotes/settings",
+     "@standardnotes/sncrypto-node",
+     "@standardnotes/time",
+     "agentkeepalive",
+     "axios",
+     "crypto",
+     "dayjs",
+     "dotenv",
+     "express",
+     "fs",
+     "inversify-express-utils",
+     "ioredis",
+     "stream",
+     "typeorm",
+     "ua-parser-js"
+    ]
+   },
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "domain-purity",
+    "via": "fitness function FF-P01 (domain-purity) forbidden_imports"
+   },
+   "status": "proposal"
+  }
+ ],
+ "counts": {
+  "rules": 13,
+  "high": 9,
+  "medium": 4,
+  "low": 0,
+  "exceptions": 224,
+  "notRepresentable": 1
+ },
+ "spec": {
+  "valid": true,
+  "errors": [],
+  "compiled": [
+   "dependency-direction",
+   "domain-purity",
+   "no-cyclic-deps"
+  ]
+ }
+}

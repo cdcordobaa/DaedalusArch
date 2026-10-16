@@ -14,6 +14,7 @@
  *
  * Nothing here is read by the frozen judge (v1), the evaluate pipeline or any default output.
  */
+import { randomBytes } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -195,38 +196,101 @@ export interface SpendState {
 
 const ZERO_SPEND: SpendState = Object.freeze({ calls: 0, inputTokens: 0, outputTokens: 0, usd: 0 });
 
-/** Spend so far, in memory or in a JSON file (so the cap holds across server restarts). */
+function plus(a: SpendState, calls: number, inputTokens: number, outputTokens: number, usd: number): SpendState {
+  return { calls: a.calls + calls, inputTokens: a.inputTokens + inputTokens, outputTokens: a.outputTokens + outputTokens, usd: a.usd + usd };
+}
+
+/** A worst-case amount held against the caps while a call is in flight. */
+export interface SpendReservation {
+  /** Releases the hold and charges what the call actually used. Only the first settle or release has an effect. */
+  settle(inputTokens: number, outputTokens: number, usd: number): void;
+  /** Releases the hold without a charge (the call was never made). */
+  release(): void;
+}
+
+/**
+ * Spend so far, in memory or in a JSON file (so the cap holds across server restarts). A missing file is a fresh
+ * ledger; an unreadable or malformed one is an error, never a reset to zero. The file is replaced atomically (temp
+ * file plus rename), so a crash mid-write leaves the previous ledger. Calls in flight hold a reservation, so
+ * concurrent calls cannot all pass the same check.
+ */
 export class SpendLedger {
   private state: SpendState;
+  private held: SpendState = ZERO_SPEND;
 
   constructor(private readonly file?: string) {
     this.state = file !== undefined ? readLedger(file) : ZERO_SPEND;
   }
 
+  /** Settled spend. */
   get spent(): SpendState {
     return this.state;
   }
 
+  /** Settled spend plus the reservations of calls in flight: what the caps are checked against. */
+  get committed(): SpendState {
+    return plus(this.state, this.held.calls, this.held.inputTokens, this.held.outputTokens, this.held.usd);
+  }
+
   add(inputTokens: number, outputTokens: number, usd: number): void {
-    const s = this.state;
-    this.state = { calls: s.calls + 1, inputTokens: s.inputTokens + inputTokens, outputTokens: s.outputTokens + outputTokens, usd: s.usd + usd };
-    if (this.file !== undefined) {
-      fs.mkdirSync(path.dirname(this.file), { recursive: true });
-      fs.writeFileSync(this.file, `${JSON.stringify(this.state, null, 2)}\n`);
-    }
+    this.state = plus(this.state, 1, inputTokens, outputTokens, usd);
+    if (this.file !== undefined) writeLedger(this.file, this.state);
+  }
+
+  reserve(inputTokens: number, outputTokens: number, usd: number): SpendReservation {
+    this.held = plus(this.held, 1, inputTokens, outputTokens, usd);
+    let open = true;
+    const release = (): boolean => {
+      if (!open) return false;
+      open = false;
+      this.held = plus(this.held, -1, -inputTokens, -outputTokens, -usd);
+      return true;
+    };
+    return {
+      settle: (inTok, outTok, spent) => {
+        if (release()) this.add(inTok, outTok, spent);
+      },
+      release: () => {
+        release();
+      },
+    };
   }
 }
 
 function readLedger(file: string): SpendState {
+  let text: string;
   try {
-    const v: unknown = JSON.parse(fs.readFileSync(file, 'utf8'));
-    if (isRecord(v) && typeof v.calls === 'number' && typeof v.inputTokens === 'number' && typeof v.outputTokens === 'number' && typeof v.usd === 'number') {
-      return { calls: v.calls, inputTokens: v.inputTokens, outputTokens: v.outputTokens, usd: v.usd };
-    }
-  } catch {
-    // no ledger yet
+    text = fs.readFileSync(file, 'utf8');
+  } catch (e) {
+    if (isRecord(e) && e.code === 'ENOENT') return ZERO_SPEND;
+    throw new Error(`Cannot read the spend ledger ${file}: ${e instanceof Error ? e.message : String(e)}`);
   }
-  return ZERO_SPEND;
+  let v: unknown;
+  try {
+    v = JSON.parse(text);
+  } catch {
+    throw new Error(`The spend ledger ${file} is not valid JSON (truncated?); fix or remove it by hand`);
+  }
+  if (isRecord(v) && typeof v.calls === 'number' && typeof v.inputTokens === 'number' && typeof v.outputTokens === 'number' && typeof v.usd === 'number') {
+    return { calls: v.calls, inputTokens: v.inputTokens, outputTokens: v.outputTokens, usd: v.usd };
+  }
+  throw new Error(`The spend ledger ${file} does not hold calls, inputTokens, outputTokens and usd numbers`);
+}
+
+function writeLedger(file: string, state: SpendState): void {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  const tmp = `${file}.${String(process.pid)}.${randomBytes(4).toString('hex')}.tmp`;
+  try {
+    fs.writeFileSync(tmp, `${JSON.stringify(state, null, 2)}\n`);
+    fs.renameSync(tmp, file);
+  } catch (e) {
+    fs.rmSync(tmp, { force: true });
+    throw e;
+  }
+}
+
+function estimateInputTokens(request: RaterRequest): number {
+  return Math.ceil((request.prompt.length + (request.systemPrompt?.length ?? 0)) / 4);
 }
 
 export function costUsd(cap: SpendCap, inputTokens: number, outputTokens: number): number {
@@ -261,10 +325,10 @@ export class BudgetedRater implements NeuralRater {
     this.cap = effectiveCap(cap);
   }
 
-  /** Why the next call of this size is refused, or `null` when it fits. */
+  /** Why the next call of this size is refused, or `null` when it fits. Calls in flight count at their worst case. */
   refusal(request: RaterRequest): string | null {
-    const s = this.ledger.spent;
-    const input = Math.ceil((request.prompt.length + (request.systemPrompt?.length ?? 0)) / 4);
+    const s = this.ledger.committed;
+    const input = estimateInputTokens(request);
     const output = request.options.maxTokens;
     if (s.calls + 1 > this.cap.maxCalls) return `call cap reached (${String(s.calls)}/${String(this.cap.maxCalls)})`;
     if (s.inputTokens + s.outputTokens + input + output > this.cap.maxTokens) return `token cap would be crossed (${String(s.inputTokens + s.outputTokens)} used, ${String(input + output)} needed, cap ${String(this.cap.maxTokens)})`;
@@ -278,12 +342,25 @@ export class BudgetedRater implements NeuralRater {
     if (refused !== null) {
       return { rater: this.id, vendor: this.vendor, model: this.model, durationMs: 0, status: 'skipped', reason: `BUDGET_EXHAUSTED: ${refused}` };
     }
-    const out = await this.inner.complete(request);
-    if (out.status === 'skipped') return out;
-    const estimateIn = Math.ceil((request.prompt.length + (request.systemPrompt?.length ?? 0)) / 4);
+    // The worst case is held before the await and settled after it, so concurrent calls see each other.
+    const worstIn = estimateInputTokens(request);
+    const worstOut = request.options.maxTokens;
+    const reservation = this.ledger.reserve(worstIn, worstOut, costUsd(this.cap, worstIn, worstOut));
+    let out: RaterCompletion;
+    try {
+      out = await this.inner.complete(request);
+    } catch (e) {
+      // A call that threw may still have been billed: it is charged at the worst case.
+      reservation.settle(worstIn, worstOut, costUsd(this.cap, worstIn, worstOut));
+      throw e;
+    }
+    if (out.status === 'skipped') {
+      reservation.release();
+      return out;
+    }
     // A failed call may still have been billed: it is charged at the worst-case estimate.
-    const used = out.status === 'ok' ? out.usage : { inputTokens: estimateIn, outputTokens: request.options.maxTokens };
-    this.ledger.add(used.inputTokens, used.outputTokens, costUsd(this.cap, used.inputTokens, used.outputTokens));
+    const used = out.status === 'ok' ? out.usage : { inputTokens: worstIn, outputTokens: worstOut };
+    reservation.settle(used.inputTokens, used.outputTokens, costUsd(this.cap, used.inputTokens, used.outputTokens));
     return out;
   }
 

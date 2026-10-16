@@ -5,6 +5,10 @@
 > sealed tasks. It says how a task should be built and audited; the author applies it to the sealed list (readiness
 > gate D2) without disclosing that list.
 
+> **Amendment, 2026-10-16.** By the declared deviation (`Docs/v1.3/study2-deviation-2026-10-16.md`), Study 2's primary outcome is the level Y (distinct blocking edges at step k = 4), not a slope; the arms are `none` and `daedalus-mcp`; k = 4, so every defining pressure of a style must fall in steps 1–4. The base-rate targets of §5 were computed for the superseded slope outcome; for Y the validation pilot's go rule (`floor-escape-design-2026-10-16.md` §4) and the level simulation apply. The distinct-edge count of §5.6 is now the primary count unit.
+
+<!-- study2-protocol: primary=Y-distinct-blocking-edges-at-step-k; k=4; arms=none,daedalus-mcp; unit=distinct-edge; fallback=do-not-run; order=freeze,hold-out,dress-rehearsal,pre-registration,gate,run; generators=claude-sonnet-5-5,codex-pin -->
+
 Related: `Docs/DiagnosticRuns/v1.3-floor-probe-2026-10-16.md` (the probe, "probe" below), `Docs/v1.3/pilot-tasks.md`,
 `Docs/v1.3/pilot-outcome-memo.md`, `Docs/v1.3/study2-outline.md`, `Docs/v1.3/study2-power-notes.md` (PR #119),
 `Docs/v1.3/study2-readiness-gate.md` and `study2-dress-rehearsal.md` (branch `v1.3-study2-readiness`), the analysis
@@ -108,7 +112,7 @@ layout gives variance; Hexagonal and Clean with the folder sentence given do not
 - Every step is something a real product owner of that domain would write; read it aloud to someone who has never
   heard of architecture styles, and it must still make sense as a feature.
 - The pressure comes from **where the information or the effect lives**, never from a required implementation.
-- One pressure family per later step, at most two; k ≥ 5 steps (power, §5).
+- One pressure family per later step, at most two; k = 4 steps, with every defining pressure in steps 1–4 (amended 2026-10-16; the slope-power text said k ≥ 5, now superseded).
 - No step forces a violation: each has a clean solution of similar size. If the only sane solution is the violation,
   the step measures the task, not the arm.
 - Use fictional providers with short, made-up names (no real company or product), as the pilot does, and check that
@@ -137,7 +141,7 @@ structure.
 
 | Arm | May carry | Must not carry |
 |---|---|---|
-| `none`, `gate`, `daedalus-mcp` with the layout frame | the style sentence and the preset-derived folder sentence, **identical across these arms** (gate D2), plus each arm's one declared sentence (the MCP tool sentence; the gate's repair text) | any of §3.1 in step requests; in the repair text, a fix (the repair lines describe the rule, never what to move where, `loop-pilot-readiness.md:31`) |
+| `none` and `daedalus-mcp` with the layout frame (`gate` dropped, superseded 2026-10-16) | the style sentence and the preset-derived folder sentence, **identical across these arms** (gate D2), plus each arm's one declared sentence (the MCP tool sentence; the gate's repair text) | any of §3.1 in step requests; in the repair text, a fix (the repair lines describe the rule, never what to move where, `loop-pilot-readiness.md:31`) |
 | a **no-hint** arm (if S5 adopts one) | the step requests only, with the generic frame | the style sentence, the folder sentence, any preset folder, any layer word. Its frame must pass the audit **with no `--frame-may-name-layout`**. |
 | the self-review placebo (if adopted) | one generic "review your work" turn | any rule id, layer word or folder name |
 
@@ -179,6 +183,8 @@ node Docs/v1.3/study2-task-design/hint-audit.mjs --preset presets/ddd.yaml --tas
 # a frame of a layout arm (layout words become WARN) vs a no-hint arm (they FAIL)
 node Docs/v1.3/study2-task-design/hint-audit.mjs --preset presets/hexagonal.yaml --frame <frame.txt> --frame-may-name-layout
 node Docs/v1.3/study2-task-design/hint-audit.mjs --preset presets/hexagonal.yaml --frame <frame.txt>
+# a frame of a spec rung (floor-escape design §3.3): L2 = --frame-may-name-layout; L3/L4 also FAIL on fix instructions
+node Docs/v1.3/study2-task-design/hint-audit.mjs --preset presets/hexagonal.yaml --frame <frame.txt> --frame-rung L3
 # any text, from stdin; machine-readable output
 echo "<prompt>" | node Docs/v1.3/study2-task-design/hint-audit.mjs --preset presets/layered.yaml --json -
 ```
@@ -186,7 +192,9 @@ echo "<prompt>" | node Docs/v1.3/study2-task-design/hint-audit.mjs --preset pres
 What it greps: the generic FAIL and WARN lists of §3.1; the layer names of the preset's `architecture.layers` (split
 on `-`, ordinary words as WARN); every `src/…` directory and context root in the preset as a folder pattern; any
 `src/` path, glob or file name; role-suffixed identifiers; `--term` extra FAIL terms; `--allow` waivers (printed as
-WAIVED, so a waiver is visible on the sheet). Exit 0 = no FAIL hit, 1 = at least one, 2 = usage error.
+WAIVED, so a waiver is visible on the sheet); persistence words (2026-10-16, floor-escape design §3.6): `orm`,
+`typeorm` FAIL, `database`, `table`, `column` (and plurals) WARN; in an L3/L4 frame (`--frame-rung`), fix instructions
+(`move`, `refactor`, `break the cycle`, …) FAIL. Exit 0 = no FAIL hit, 1 = at least one, 2 = usage error.
 
 Calibration (2026-10-16): the pilot tasks block (12 steps) and the probe's 6 tasks (28 steps) give **0 FAIL** under
 each of the four presets (hexagonal, clean, DDD, layered); the probe's hexagonal frame gives 0 FAIL as a layout frame and 21 FAIL as a no-hint

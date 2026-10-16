@@ -14,20 +14,40 @@
  * run's step-1 snapshot, constrained to the declared `contexts`, then frozen; `specs.ts`). `evaluatorSpec` is the
  * default spec and may be left out only when every task has a profile. `callBudget`, when present, must equal the
  * budget the plan implies (`planCallBudget`), so the recorded figure cannot drift from the plan.
+ *
+ * Frame extras (`frame`, optional, off by default; `Docs/v1.3/floor-escape-design-2026-10-16.md` §3.2, §3.3):
+ * `specRung` L2 (today's frame, the default), L3 (one plain sentence per blocking rule of the task's evaluator spec)
+ * or L4 (L3 plus the spec file in the cwd and a file-read log), and `attention` (one sentence, identical across arms).
+ * L3 and L4 need a static spec for every task (a static profile or the default `evaluatorSpec`); a DDD spec frozen
+ * after step 1 does not exist before step 1, so it cannot be stated in the frame (decision D15, not taken here).
+ *
+ * Spec equality (review finding R23; `Docs/v1.3/study2-tunables.md` §4): a plan may pin `specSha256`. `loadLoopPlan` then
+ * checks that the evaluator spec and, for the `daedalus-mcp` arm, the MCP server's spec both hash to it, so the arm's
+ * tools answer from the spec that is scored. A `daedalus-mcp` plan cannot carry `taskProfiles`, so one spec covers
+ * every task. Without `specSha256` nothing changes, unless the caller asks for it (`requireSpecSha256`, from
+ * `DAEDALUS_LOOP_REQUIRE_SPEC_SHA256=1` in `main.ts`; OFF by default).
+ *
+ * Pins and isolation (optional, OFF when absent; `Docs/v1.3/loop-isolation.md`): `adapters[].cliVersion` pins the CLI
+ * version (a Codex value must equal `codex.cliVersion`); `generatorIsolation.claudeConfigDir` (`"<local>"` filled from
+ * `--claude-config-dir`) isolates every Claude spawn and requires `cliVersion` on every Claude adapter.
  */
+import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import type { DomainError } from '../../../src/shared/errors/domain-result.js';
 import { mulberry32 } from '../mutation/rng.js';
+import type { AcceptancePlan } from './acceptance.js';
 import type { DaedalusServerInput } from '../generators/arms.js';
 import type { CodexPlanBlock } from '../generators/schedule.js';
 import { GENERATOR_ADAPTER_IDS } from '../generators/types.js';
 import type { GeneratorAdapterId } from '../generators/types.js';
 import { CONTEXT_ROOT_RE, LOOP_STYLES } from './style.js';
 import type { LoopContextDecl, LoopStyle } from './style.js';
-import { LOOP_ARMS } from './types.js';
-import type { LoopArm, LoopRunSpec, LoopTask, LoopTasksFile } from './types.js';
+import { SPEC_RUNGS } from './prompts.js';
+import type { SpecRung } from './prompts.js';
+import { LOOP_ARMS, parseLoopEngine } from './types.js';
+import type { LoopArm, LoopEngine, LoopRunSpec, LoopTask, LoopTasksFile, TaskAcceptance } from './types.js';
 
 /** A task's style and evaluator spec. */
 export interface TaskProfilePlan {
@@ -40,6 +60,12 @@ export interface TaskProfilePlan {
   readonly contexts?: readonly LoopContextDecl[];
 }
 
+/** Frame extras of a plan (module header). Absent, or `{ specRung: 'L2', attention: false }`: today's frames. */
+export interface FramePlan {
+  readonly specRung?: SpecRung;
+  readonly attention?: boolean;
+}
+
 /** Model calls a plan implies: one per step turn, plus at most one repair turn per gate step. */
 export interface CallBudget {
   readonly runs: number;
@@ -48,11 +74,18 @@ export interface CallBudget {
   readonly maxCalls: number;
 }
 
+/** The gate arm's held-out-rule setting. */
+export interface GatePlan {
+  readonly shownRules?: readonly string[];
+}
+
 export interface LoopPlanFile {
   readonly description: string;
   /** Repository-relative or absolute path of the tasks file. */
   readonly tasksFile: string;
-  readonly adapters: readonly { readonly adapterId: GeneratorAdapterId; readonly modelId: string }[];
+  readonly adapters: readonly { readonly adapterId: GeneratorAdapterId; readonly modelId: string; readonly cliVersion?: string }[];
+  /** Claude generator isolation (gate S3); the E1 environment when absent. */
+  readonly generatorIsolation?: { readonly claudeConfigDir: string };
   readonly arms: readonly LoopArm[];
   readonly runs: number;
   readonly orderSeed: number;
@@ -71,14 +104,33 @@ export interface LoopPlanFile {
   readonly evaluatorSpec?: string;
   /** Per-task style and spec, keyed by task id. */
   readonly taskProfiles?: Readonly<Record<string, TaskProfilePlan>>;
+  /** Frame extras (module header); absent = today's frames. */
+  readonly frame?: FramePlan;
   /** The recorded call budget; checked against `planCallBudget`. */
   readonly callBudget?: CallBudget;
+  /**
+   * Gate arm: the blocking rules its repair feedback may show; every other blocking rule is withheld but still scored.
+   * Absent: every rule is shown (the default). `Docs/v1.3/gate-heldout-rules.md`.
+   */
+  readonly gate?: GatePlan;
+  /**
+   * The evaluator's graph engine (`Docs/v1.3/loop-engine-tee.md`); `--engine` overrides it. Absent = the default
+   * wiring, unchanged.
+   */
+  readonly engine?: LoopEngine;
   /** Recorded for a judge-mode evaluator (the symbolic evaluator makes no model call). */
   readonly cassette?: { readonly dir: string; readonly mode: 'record' | 'replay' };
+  /** sha256 of the spec file every task is scored against (and the `daedalus-mcp` server reads); checked at load. */
+  readonly specSha256?: string;
+  /** Per-snapshot acceptance checks (`acceptance.ts`, gate D12); off unless `enabled` is true. */
+  readonly acceptance?: AcceptancePlan;
 }
 
 const ID_RE = /^[a-z0-9][a-z0-9-]*$/;
 const MODEL_RE = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+const SHA256_RE = /^[0-9a-f]{64}$/;
+export const SPEC_SHA_ENV = 'DAEDALUS_LOOP_REQUIRE_SPEC_SHA256';
+const VERSION_RE = /^\d+\.\d+\.\d+$/;
 export const LOCAL = '<local>';
 
 function err(code: string, message: string): DomainError {
@@ -115,10 +167,44 @@ export function validateTasks(raw: unknown): DomainResult<LoopTasksFile> {
       steps.push({ id: s.id, request: s.request });
     }
     if (steps.length === 0) errors.push(err('LOOP_TASKS_INVALID', `task ${t.id} has no steps`));
+    if (t.acceptance !== undefined) {
+      const a = validateTaskAcceptance(t.id, t.acceptance);
+      errors.push(...a.errors);
+      tasks.push({ id: t.id, title: t.title, steps, acceptance: a.value });
+      continue;
+    }
     tasks.push({ id: t.id, title: t.title, steps });
   }
   if (tasks.length === 0) errors.push(err('LOOP_TASKS_INVALID', 'the tasks file lists no task'));
   return errors.length > 0 ? DomainResult.fail(errors) : DomainResult.ok({ description: raw.description, tasks });
+}
+
+function isArgv(v: unknown): v is string[] {
+  return Array.isArray(v) && v.length > 0 && v.every((a) => typeof a === 'string' && a !== '');
+}
+
+/** A task's optional acceptance start block (`acceptance.ts`). */
+function validateTaskAcceptance(taskId: string, raw: unknown): { readonly value: TaskAcceptance; readonly errors: DomainError[] } {
+  const bad = (m: string): DomainError => err('LOOP_TASKS_INVALID', `task ${taskId}: acceptance ${m}`);
+  if (!isRecord(raw)) return { value: {}, errors: [bad('must be { startCommand?, buildCommand?, port?, healthPath? }')] };
+  const errors: DomainError[] = [];
+  if (raw.startCommand !== undefined && !isArgv(raw.startCommand)) errors.push(bad('startCommand must be a non-empty argv array of strings'));
+  if (raw.buildCommand !== undefined && !isArgv(raw.buildCommand)) errors.push(bad('buildCommand must be a non-empty argv array of strings'));
+  if (raw.port !== undefined && (!Number.isInteger(raw.port) || (raw.port as number) < 1 || (raw.port as number) > 65535)) errors.push(bad('port must be an integer in 1..65535'));
+  if (raw.healthPath !== undefined && (typeof raw.healthPath !== 'string' || !raw.healthPath.startsWith('/'))) errors.push(bad('healthPath must start with /'));
+  return { value: raw, errors };
+}
+
+function validateAcceptancePlan(raw: unknown): DomainError[] {
+  const bad = (m: string): DomainError => err('LOOP_PLAN_INVALID', `acceptance ${m}`);
+  if (!isRecord(raw)) return [bad('must be { enabled, testsRoot, timeoutMs?, startTimeoutMs? }')];
+  const errors: DomainError[] = [];
+  if (typeof raw.enabled !== 'boolean') errors.push(bad('enabled must be a boolean'));
+  if (typeof raw.testsRoot !== 'string' || !path.isAbsolute(raw.testsRoot)) errors.push(bad('testsRoot must be an absolute path'));
+  for (const k of ['timeoutMs', 'startTimeoutMs']) {
+    if (raw[k] !== undefined && (!Number.isInteger(raw[k]) || (raw[k] as number) <= 0)) errors.push(bad(`${k} must be a positive integer`));
+  }
+  return errors;
 }
 
 export function validatePlan(raw: unknown): DomainResult<LoopPlanFile> {
@@ -129,6 +215,7 @@ export function validatePlan(raw: unknown): DomainResult<LoopPlanFile> {
   };
   for (const k of ['description', 'tasksFile', 'outRoot', 'binary', 'harnessRoot']) str(k);
   if (raw.evaluatorSpec !== undefined) str('evaluatorSpec');
+  if (raw.engine !== undefined && parseLoopEngine(raw.engine) === undefined) errors.push(err('LOOP_PLAN_INVALID', 'engine must be neo4j, cypher-interp or both'));
   if (raw.evaluatorSpec === undefined && raw.taskProfiles === undefined) errors.push(err('LOOP_PLAN_INVALID', 'evaluatorSpec must be a non-empty string (or every task needs a taskProfiles entry)'));
   if (raw.taskProfiles !== undefined) errors.push(...validateProfiles(raw.taskProfiles));
   if (raw.taskProfiles !== undefined && Array.isArray(raw.arms) && raw.arms.includes('daedalus-mcp')) {
@@ -160,13 +247,108 @@ export function validatePlan(raw: unknown): DomainResult<LoopPlanFile> {
   ) {
     errors.push(err('LOOP_PLAN_INVALID', 'adapters must be [{ adapterId: claude-code-cli | codex-cli, modelId }]'));
   }
+  if (Array.isArray(adapters)) errors.push(...pinProblems(adapters, raw.codex, raw.generatorIsolation));
   if (Array.isArray(arms) && arms.includes('daedalus-mcp') && !isRecord(raw.daedalus)) {
     errors.push(err('LOOP_PLAN_INVALID', 'the daedalus-mcp arm needs a daedalus block { nodeBinary, serverEntry, specPath }'));
   }
+  if (raw.frame !== undefined) errors.push(...validateFrame(raw.frame, raw.taskProfiles));
+  if (raw.gate !== undefined) errors.push(...validateGate(raw.gate, raw.arms));
+  if (raw.acceptance !== undefined) errors.push(...validateAcceptancePlan(raw.acceptance));
   if (raw.cassette !== undefined && (!isRecord(raw.cassette) || typeof raw.cassette.dir !== 'string' || !['record', 'replay'].includes(String(raw.cassette.mode)))) {
     errors.push(err('LOOP_PLAN_INVALID', 'cassette must be { dir, mode: record | replay }'));
   }
+  if (raw.specSha256 !== undefined && (typeof raw.specSha256 !== 'string' || !SHA256_RE.test(raw.specSha256))) {
+    errors.push(err('LOOP_PLAN_INVALID', 'specSha256 must be a lower-case 64-hex sha256'));
+  }
   return errors.length > 0 ? DomainResult.fail(errors) : DomainResult.ok(raw as unknown as LoopPlanFile);
+}
+
+function validateFrame(raw: unknown, profiles: unknown): DomainError[] {
+  if (!isRecord(raw) || Object.keys(raw).some((k) => k !== 'specRung' && k !== 'attention')) {
+    return [err('LOOP_PLAN_INVALID', 'frame must be { specRung?: L2 | L3 | L4, attention?: boolean }')];
+  }
+  const errors: DomainError[] = [];
+  if (raw.specRung !== undefined && !(SPEC_RUNGS as readonly unknown[]).includes(raw.specRung)) {
+    errors.push(err('LOOP_PLAN_INVALID', `frame.specRung must be one of ${SPEC_RUNGS.join(', ')}`));
+  }
+  if (raw.attention !== undefined && typeof raw.attention !== 'boolean') errors.push(err('LOOP_PLAN_INVALID', 'frame.attention must be a boolean'));
+  if ((raw.specRung === 'L3' || raw.specRung === 'L4') && isRecord(profiles)) {
+    for (const [id, p] of Object.entries(profiles)) {
+      if (isRecord(p) && p.specMode === 'ise-step1') errors.push(err('LOOP_PLAN_INVALID', `taskProfiles.${id}: an ${raw.specRung} frame needs a static spec (ise-step1 has none before step 1)`));
+    }
+  }
+  return errors;
+}
+
+function validateGate(raw: unknown, arms: unknown): DomainError[] {
+  if (!isRecord(raw) || Object.keys(raw).some((k) => k !== 'shownRules')) return [err('LOOP_PLAN_INVALID', 'gate must be { shownRules? }')];
+  const errors: DomainError[] = [];
+  const shown = raw.shownRules;
+  if (shown !== undefined) {
+    if (!Array.isArray(shown) || shown.length === 0 || !shown.every((r) => typeof r === 'string' && r.trim() !== '') || new Set(shown).size !== shown.length) {
+      errors.push(err('LOOP_PLAN_INVALID', 'gate.shownRules must be a non-empty list of distinct rule ids'));
+    }
+    if (!Array.isArray(arms) || !arms.includes('gate')) errors.push(err('LOOP_PLAN_INVALID', 'gate.shownRules needs the gate arm'));
+  }
+  return errors;
+}
+
+/** The rung and attention flag a plan's frames carry (defaults: L2, no attention). */
+export function planFrame(plan: Pick<LoopPlanFile, 'frame'>): { readonly specRung: SpecRung; readonly attention: boolean } {
+  return { specRung: plan.frame?.specRung ?? 'L2', attention: plan.frame?.attention ?? false };
+}
+
+/** `adapters[].cliVersion` and `generatorIsolation` (module header). */
+function pinProblems(adapters: readonly unknown[], codex: unknown, isolation: unknown): DomainError[] {
+  const errors: DomainError[] = [];
+  const bad = (m: string): void => {
+    errors.push(err('LOOP_PLAN_INVALID', m));
+  };
+  const codexVersion = isRecord(codex) ? codex.cliVersion : undefined;
+  for (const a of adapters) {
+    if (!isRecord(a) || a.cliVersion === undefined) continue;
+    if (typeof a.cliVersion !== 'string' || !VERSION_RE.test(a.cliVersion)) bad(`adapters[${String(a.adapterId)}].cliVersion must be x.y.z`);
+    else if (a.adapterId === 'codex-cli' && a.cliVersion !== codexVersion) bad(`adapters[codex-cli].cliVersion ${a.cliVersion} differs from codex.cliVersion`);
+  }
+  if (isolation === undefined) return errors;
+  if (!isRecord(isolation) || typeof isolation.claudeConfigDir !== 'string' || isolation.claudeConfigDir === '' || Object.keys(isolation).some((k) => k !== 'claudeConfigDir')) {
+    bad('generatorIsolation must be { claudeConfigDir }');
+  }
+  if (adapters.some((a) => isRecord(a) && a.adapterId === 'claude-code-cli' && a.cliVersion === undefined)) {
+    bad('generatorIsolation needs cliVersion on every claude-code-cli adapter');
+  }
+  return errors;
+}
+
+/**
+ * R23 (post-merge review 2026-10-16): in the daedalus-mcp arm the MCP server's spec (`daedalus.specPath`) and the
+ * evaluator's spec (`evaluatorSpec`, repository-relative) must hold the same rules, or the tool's advice and the score
+ * disagree. Compares the two files by sha256; returns both hashes, or undefined when the arm is not in the plan.
+ */
+export function mcpSpecCheck(
+  plan: Pick<LoopPlanFile, 'arms' | 'evaluatorSpec' | 'daedalus'>, repoRoot: string,
+): DomainResult<{ readonly mcpSpecSha256: string; readonly evaluatorSpecSha256: string } | undefined> {
+  if (!plan.arms.includes('daedalus-mcp')) return DomainResult.ok(undefined);
+  if (plan.daedalus === undefined || plan.evaluatorSpec === undefined) {
+    return DomainResult.fail([err('LOOP_PLAN_SPEC_MISMATCH', 'the daedalus-mcp arm needs daedalus.specPath and evaluatorSpec')]);
+  }
+  const hash = (file: string): string | undefined => {
+    try {
+      return createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+    } catch {
+      return undefined;
+    }
+  };
+  const evaluatorFile = path.resolve(repoRoot, plan.evaluatorSpec);
+  const mcp = hash(plan.daedalus.specPath);
+  const ev = hash(evaluatorFile);
+  if (mcp === undefined || ev === undefined) {
+    return DomainResult.fail([err('LOOP_PLAN_SPEC_MISMATCH', `cannot read ${mcp === undefined ? plan.daedalus.specPath : evaluatorFile}`)]);
+  }
+  if (mcp !== ev) {
+    return DomainResult.fail([err('LOOP_PLAN_SPEC_MISMATCH', `the MCP server's spec ${plan.daedalus.specPath} (sha256 ${mcp.slice(0, 12)}) differs from the evaluator spec ${plan.evaluatorSpec} (sha256 ${ev.slice(0, 12)})`)]);
+  }
+  return DomainResult.ok({ mcpSpecSha256: mcp, evaluatorSpecSha256: ev });
 }
 
 function validateProfiles(raw: unknown): DomainError[] {
@@ -239,6 +421,44 @@ export interface LocalOverrides {
   readonly binary?: string;
   readonly harnessRoot?: string;
   readonly outRoot?: string;
+  readonly claudeConfigDir?: string;
+}
+
+/** Plan-load checks a caller turns on (all OFF by default). */
+export interface PlanLoadChecks {
+  /** A plan with the `daedalus-mcp` arm must pin `specSha256` (R23). */
+  readonly requireSpecSha256?: boolean;
+}
+
+/**
+ * R23: when the plan pins `specSha256`, the evaluator spec and (for the `daedalus-mcp` arm) the MCP server's spec must
+ * hash to it. With `requireSpecSha256`, a `daedalus-mcp` plan without the pin is refused.
+ */
+export function checkSpecEquality(plan: LoopPlanFile, repoRoot: string, checks: PlanLoadChecks = {}): DomainError[] {
+  const mcp = plan.arms.includes('daedalus-mcp');
+  if (plan.specSha256 === undefined) {
+    return mcp && checks.requireSpecSha256 === true
+      ? [err('LOOP_PLAN_INVALID', `the daedalus-mcp arm needs specSha256 (${SPEC_SHA_ENV}=1)`)]
+      : [];
+  }
+  const files: [string, string][] = [];
+  if (plan.evaluatorSpec !== undefined) files.push(['evaluatorSpec', path.resolve(repoRoot, plan.evaluatorSpec)]);
+  for (const [id, p] of Object.entries(plan.taskProfiles ?? {})) {
+    if (p.evaluatorSpec !== undefined) files.push([`taskProfiles.${id}.evaluatorSpec`, path.resolve(repoRoot, p.evaluatorSpec)]);
+  }
+  if (mcp && plan.daedalus !== undefined) files.push(['daedalus.specPath', path.resolve(repoRoot, plan.daedalus.specPath)]);
+  const errors: DomainError[] = [];
+  for (const [field, file] of files) {
+    let got: string;
+    try {
+      got = createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+    } catch (e) {
+      errors.push(err('LOOP_FILE_UNREADABLE', `${field} ${file}: ${e instanceof Error ? e.message : String(e)}`));
+      continue;
+    }
+    if (got !== plan.specSha256) errors.push(err('LOOP_PLAN_SPEC_MISMATCH', `${field} ${file} has sha256 ${got}, the plan pins ${plan.specSha256}`));
+  }
+  return errors;
 }
 
 export interface LoadedPlan {
@@ -248,7 +468,7 @@ export interface LoadedPlan {
 }
 
 /** Loads the plan (with `"<local>"` fields filled from the overrides) and its tasks file. */
-export function loadLoopPlan(planFile: string, repoRoot: string, local: LocalOverrides = {}): DomainResult<LoadedPlan> {
+export function loadLoopPlan(planFile: string, repoRoot: string, local: LocalOverrides = {}, checks: PlanLoadChecks = {}): DomainResult<LoadedPlan> {
   const raw = readJson(planFile);
   if (!raw.success) return DomainResult.fail(raw.errors);
   const filled: Record<string, unknown> = isRecord(raw.data) ? { ...raw.data } : {};
@@ -257,6 +477,13 @@ export function loadLoopPlan(planFile: string, repoRoot: string, local: LocalOve
     if (v !== undefined && (filled[k] === LOCAL || filled[k] === undefined)) filled[k] = v;
     else if (v !== undefined) return DomainResult.fail([err('LOOP_PLAN_INVALID', `--${k === 'harnessRoot' ? 'harness-root' : k === 'outRoot' ? 'out-root' : k} given but the plan pins ${k}`)]);
   }
+  const cfg = local.claudeConfigDir;
+  if (cfg !== undefined) {
+    const iso = filled.generatorIsolation;
+    if (!isRecord(iso)) return DomainResult.fail([err('LOOP_PLAN_INVALID', '--claude-config-dir given but the plan has no generatorIsolation block')]);
+    if (iso.claudeConfigDir !== LOCAL) return DomainResult.fail([err('LOOP_PLAN_INVALID', '--claude-config-dir given but the plan pins claudeConfigDir')]);
+    filled.generatorIsolation = { ...iso, claudeConfigDir: cfg };
+  }
   const plan = validatePlan(filled);
   if (!plan.success) return DomainResult.fail(plan.errors);
   const tasksPath = path.resolve(repoRoot, plan.data.tasksFile);
@@ -264,8 +491,15 @@ export function loadLoopPlan(planFile: string, repoRoot: string, local: LocalOve
   if (!rawTasks.success) return DomainResult.fail(rawTasks.errors);
   const tasks = validateTasks(rawTasks.data);
   if (!tasks.success) return DomainResult.fail(tasks.errors);
-  const cross = checkPlanAgainstTasks(plan.data, tasks.data);
+  const cross = [...checkPlanAgainstTasks(plan.data, tasks.data), ...checkSpecEquality(plan.data, repoRoot, checks)];
   if (cross.length > 0) return DomainResult.fail(cross);
+  const acc = plan.data.acceptance;
+  if (acc?.enabled === true) {
+    const rel = path.relative(path.resolve(plan.data.outRoot), path.resolve(acc.testsRoot));
+    if (rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel))) {
+      return DomainResult.fail([err('LOOP_PLAN_INVALID', 'acceptance.testsRoot must lie outside outRoot (the agents work under it)')]);
+    }
+  }
   return DomainResult.ok({ plan: plan.data, tasks: tasks.data, tasksPath });
 }
 

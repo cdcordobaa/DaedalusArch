@@ -1,0 +1,267 @@
+commit a09530a agentproof
+after task 3
+
+
+diff --git a/src/adapters/inbound/http.ts b/src/adapters/inbound/http.ts
+index db23a71..7c57e97 100644
+--- a/src/adapters/inbound/http.ts
++++ b/src/adapters/inbound/http.ts
+@@ -7,6 +7,7 @@ export interface HttpRequest {
+ export interface HttpResponse {
+   status: number;
+   body: unknown;
++  headers?: Record<string, string>;
+ }
+ 
+ export type HttpHandler = (request: HttpRequest) => Promise<HttpResponse>;
+diff --git a/src/adapters/inbound/reports-handler.ts b/src/adapters/inbound/reports-handler.ts
+new file mode 100644
+index 0000000..83dbc82
+--- /dev/null
++++ b/src/adapters/inbound/reports-handler.ts
+@@ -0,0 +1,61 @@
++import type {
++  DoctorUtilizationReport,
++  DoctorUtilizationReportUseCase,
++} from "../../application/doctor-utilization-report.js";
++import { DomainError } from "../../domain/errors.js";
++import type { HttpHandler, HttpRequest, HttpResponse } from "./http.js";
++
++export function createReportsHandler(doctorUtilization: DoctorUtilizationReportUseCase): HttpHandler {
++  return async (request: HttpRequest): Promise<HttpResponse> => {
++    const url = new URL(request.path, "http://localhost");
++    const route = url.pathname;
++    if (request.method !== "GET" || !route.startsWith("/reports/doctor-utilization")) {
++      return { status: 404, body: { error: "Route not found" } };
++    }
++    const date = url.searchParams.get("date");
++    if (!date) return { status: 400, body: { error: "date query parameter is required (YYYY-MM-DD)" } };
++
++    try {
++      if (route === "/reports/doctor-utilization") {
++        return { status: 200, body: await doctorUtilization.execute(date) };
++      }
++      if (route === "/reports/doctor-utilization.csv") {
++        return {
++          status: 200,
++          headers: { "content-type": "text/csv; charset=utf-8" },
++          body: toCsv(await doctorUtilization.execute(date)),
++        };
++      }
++      return { status: 404, body: { error: "Route not found" } };
++    } catch (error) {
++      if (error instanceof DomainError) return { status: 400, body: { error: error.message } };
++      console.error(error);
++      return { status: 500, body: { error: "Internal server error" } };
++    }
++  };
++}
++
++function toCsv(report: DoctorUtilizationReport): string {
++  const header = "date,doctor_id,doctor_name,booked_slots,cancelled_slots,available_slots,utilization_percent";
++  const lines = report.doctors.map((row) =>
++    [
++      report.date,
++      row.doctorId,
++      row.doctorName,
++      row.bookedSlots,
++      row.cancelledSlots,
++      report.availableSlotsPerDay,
++      row.utilizationPercent,
++    ]
++      .map(csvCell)
++      .join(","),
++  );
++  return [header, ...lines].join("\r\n") + "\r\n";
++}
++
++/** Quotes when needed and neutralises spreadsheet formula prefixes. */
++function csvCell(value: string | number): string {
++  let text = String(value);
++  if (typeof value === "string" && /^[=+\-@\t\r]/.test(text)) text = `'${text}`;
++  return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
++}
+diff --git a/src/adapters/inbound/router.ts b/src/adapters/inbound/router.ts
+new file mode 100644
+index 0000000..ed73f31
+--- /dev/null
++++ b/src/adapters/inbound/router.ts
+@@ -0,0 +1,9 @@
++import type { HttpHandler } from "./http.js";
++
++/** Dispatches to the handler whose path prefix matches first. */
++export function createRouter(routes: ReadonlyArray<[prefix: string, handler: HttpHandler]>): HttpHandler {
++  return async (request) => {
++    const route = routes.find(([prefix]) => request.path.startsWith(prefix));
++    return route ? route[1](request) : { status: 404, body: { error: "Route not found" } };
++  };
++}
+diff --git a/src/adapters/outbound/in-memory-appointment-repository.ts b/src/adapters/outbound/in-memory-appointment-repository.ts
+index 2b5372f..45b206b 100644
+--- a/src/adapters/outbound/in-memory-appointment-repository.ts
++++ b/src/adapters/outbound/in-memory-appointment-repository.ts
+@@ -16,4 +16,11 @@ export class InMemoryAppointmentRepository implements AppointmentRepository {
+   async findBySlot(slot: TimeSlot): Promise<Appointment[]> {
+     return [...this.byId.values()].filter((a) => a.slot.equals(slot));
+   }
++
++  async findStartingBetween(from: Date, to: Date): Promise<Appointment[]> {
++    return [...this.byId.values()].filter((a) => {
++      const start = a.slot.start.getTime();
++      return start >= from.getTime() && start < to.getTime();
++    });
++  }
+ }
+diff --git a/src/adapters/outbound/in-memory-doctor-repository.ts b/src/adapters/outbound/in-memory-doctor-repository.ts
+index 1c0941f..462d55c 100644
+--- a/src/adapters/outbound/in-memory-doctor-repository.ts
++++ b/src/adapters/outbound/in-memory-doctor-repository.ts
+@@ -11,4 +11,8 @@ export class InMemoryDoctorRepository implements DoctorRepository {
+   async findById(id: string): Promise<Doctor | undefined> {
+     return this.byId.get(id);
+   }
++
++  async findAll(): Promise<Doctor[]> {
++    return [...this.byId.values()];
++  }
+ }
+diff --git a/src/application/doctor-utilization-report.ts b/src/application/doctor-utilization-report.ts
+new file mode 100644
+index 0000000..b35a928
+--- /dev/null
++++ b/src/application/doctor-utilization-report.ts
+@@ -0,0 +1,59 @@
++import { DomainError } from "../domain/errors.js";
++import { AVAILABLE_SLOTS_PER_DAY } from "../domain/time-slot.js";
++import type { AppointmentRepository } from "./ports/appointment-repository.js";
++import type { DoctorRepository } from "./ports/doctor-repository.js";
++
++export interface DoctorUtilizationRow {
++  doctorId: string;
++  doctorName: string;
++  bookedSlots: number;
++  cancelledSlots: number;
++  /** bookedSlots / AVAILABLE_SLOTS_PER_DAY, as a percentage rounded to one decimal. */
++  utilizationPercent: number;
++}
++
++export interface DoctorUtilizationReport {
++  date: string;
++  availableSlotsPerDay: number;
++  doctors: DoctorUtilizationRow[];
++}
++
++const DAY_MS = 24 * 60 * 60 * 1000;
++
++/** Read-only: per-doctor booked/cancelled counts for one UTC day. */
++export class DoctorUtilizationReportUseCase {
++  constructor(
++    private readonly appointments: AppointmentRepository,
++    private readonly doctors: DoctorRepository,
++  ) {}
++
++  async execute(date: string): Promise<DoctorUtilizationReport> {
++    const dayStart = parseDay(date);
++    const [doctors, appointments] = await Promise.all([
++      this.doctors.findAll(),
++      this.appointments.findStartingBetween(dayStart, new Date(dayStart.getTime() + DAY_MS)),
++    ]);
++
++    const rows = doctors.map((doctor): DoctorUtilizationRow => {
++      const own = appointments.filter((a) => a.doctorId === doctor.id);
++      const bookedSlots = own.filter((a) => a.status === "booked").length;
++      return {
++        doctorId: doctor.id,
++        doctorName: doctor.name,
++        bookedSlots,
++        cancelledSlots: own.filter((a) => a.status === "cancelled").length,
++        utilizationPercent: Math.round((bookedSlots / AVAILABLE_SLOTS_PER_DAY) * 1000) / 10,
++      };
++    });
++    rows.sort((a, b) => a.doctorName.localeCompare(b.doctorName));
++    return { date, availableSlotsPerDay: AVAILABLE_SLOTS_PER_DAY, doctors: rows };
++  }
++}
++
++function parseDay(date: string): Date {
++  const day = /^\d{4}-\d{2}-\d{2}$/.test(date) ? new Date(`${date}T00:00:00Z`) : undefined;
++  if (!day || Number.isNaN(day.getTime()) || day.toISOString().slice(0, 10) !== date) {
++    throw new DomainError("date must be a valid YYYY-MM-DD day");
++  }
++  return day;
++}
+diff --git a/src/application/ports/appointment-repository.ts b/src/application/ports/appointment-repository.ts
+index 7d93ee1..85871e5 100644
+--- a/src/application/ports/appointment-repository.ts
++++ b/src/application/ports/appointment-repository.ts
+@@ -5,4 +5,6 @@ export interface AppointmentRepository {
+   save(appointment: Appointment): Promise<void>;
+   findById(id: string): Promise<Appointment | undefined>;
+   findBySlot(slot: TimeSlot): Promise<Appointment[]>;
++  /** Appointments (any status) whose slot starts in [from, to). */
++  findStartingBetween(from: Date, to: Date): Promise<Appointment[]>;
+ }
+diff --git a/src/application/ports/doctor-repository.ts b/src/application/ports/doctor-repository.ts
+index fa8e7e9..f2c9cef 100644
+--- a/src/application/ports/doctor-repository.ts
++++ b/src/application/ports/doctor-repository.ts
+@@ -3,4 +3,5 @@ import type { Doctor } from "../../domain/doctor.js";
+ export interface DoctorRepository {
+   save(doctor: Doctor): Promise<void>;
+   findById(id: string): Promise<Doctor | undefined>;
++  findAll(): Promise<Doctor[]>;
+ }
+diff --git a/src/config/composition-root.ts b/src/config/composition-root.ts
+index cb18bbf..d9c85a6 100644
+--- a/src/config/composition-root.ts
++++ b/src/config/composition-root.ts
+@@ -1,5 +1,7 @@
+ import { createAppointmentsHandler } from "../adapters/inbound/appointments-handler.js";
+ import type { HttpHandler } from "../adapters/inbound/http.js";
++import { createReportsHandler } from "../adapters/inbound/reports-handler.js";
++import { createRouter } from "../adapters/inbound/router.js";
+ import { ConsoleNotificationSender } from "../adapters/outbound/console-notification-sender.js";
+ import { InMemoryAppointmentRepository } from "../adapters/outbound/in-memory-appointment-repository.js";
+ import { InMemoryDoctorRepository } from "../adapters/outbound/in-memory-doctor-repository.js";
+@@ -9,6 +11,7 @@ import { UuidIdGenerator } from "../adapters/outbound/uuid-id-generator.js";
+ import { AppointmentNotifier } from "../application/appointment-notifier.js";
+ import { BookAppointmentUseCase } from "../application/book-appointment.js";
+ import { CancelAppointmentUseCase } from "../application/cancel-appointment.js";
++import { DoctorUtilizationReportUseCase } from "../application/doctor-utilization-report.js";
+ import { GetAppointmentUseCase } from "../application/get-appointment.js";
+ import type { Clock } from "../application/ports/clock.js";
+ import type { DoctorRepository } from "../application/ports/doctor-repository.js";
+@@ -37,7 +40,7 @@ export function createApp(options: AppOptions = {}): App {
+   const notifier = new AppointmentNotifier(options.notificationSender ?? new ConsoleNotificationSender());
+   const lock = new SchedulingLock();
+ 
+-  const handle = createAppointmentsHandler({
++  const appointmentsHandler = createAppointmentsHandler({
+     book: new BookAppointmentUseCase(
+       appointments,
+       patients,
+@@ -51,6 +54,11 @@ export function createApp(options: AppOptions = {}): App {
+     cancel: new CancelAppointmentUseCase(appointments, patients, clock, notifier, lock),
+     reschedule: new RescheduleAppointmentUseCase(appointments, patients, clock, notifier, lock),
+   });
++  const reportsHandler = createReportsHandler(new DoctorUtilizationReportUseCase(appointments, doctors));
++  const handle = createRouter([
++    ["/appointments", appointmentsHandler],
++    ["/reports/", reportsHandler],
++  ]);
+ 
+   return { handle, patients, doctors };
+ }
+diff --git a/src/domain/time-slot.ts b/src/domain/time-slot.ts
+index 21130f3..cba473a 100644
+--- a/src/domain/time-slot.ts
++++ b/src/domain/time-slot.ts
+@@ -2,6 +2,8 @@ import { DomainError } from "./errors.js";
+ 
+ export const SLOT_MINUTES = 30;
+ const SLOT_MS = SLOT_MINUTES * 60 * 1000;
++/** Slots a doctor can take per day (8 hours of 30-minute slots). */
++export const AVAILABLE_SLOTS_PER_DAY = 16;
+ 
+ /** A 30-minute slot, aligned to :00 or :30 (UTC). Immutable value object. */
+ export class TimeSlot {

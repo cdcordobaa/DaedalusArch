@@ -56,13 +56,16 @@ export function constructRuleTier(ruleId: string, style: string | undefined, ans
   return base;
 }
 
-/** A row-level tier: a rule whose rows are split between two tiers by a switch (Q3 C). */
+/** A row-level tier: a rule whose rows are split between two tiers by a switch (Q3 C, Q24 B). */
 export interface RowTierResolver {
   /** The tier of one row of `ruleId`, or undefined when the rule's tier applies. */
-  readonly tierOf: (ruleId: string, row: { readonly filePath: string; readonly target?: string }) => RuleTier | undefined;
+  readonly tierOf: (ruleId: string, row: { readonly filePath: string; readonly target?: string; readonly discriminator?: readonly string[] }) => RuleTier | undefined;
   /** How the moved part is named in a report. */
   readonly label: (ruleId: string) => string;
 }
+
+/** Q24 B: the discriminator head of an inward-bypass row (`rows.ts`, q24InwardBypass). */
+export const Q24_BYPASS_DISCRIMINATOR = 'bypass';
 
 /**
  * Q3 C: a file cycle inside one layer and one module is advisory (a proxy for ADP); a cycle across layers or modules
@@ -72,10 +75,18 @@ export interface RowTierResolver {
 export function constructRowTiers(
   style: string | undefined, layerModel: LayerModel, answers: ConstructAnswers, layerOf: (file: string) => string | null = fileLayerAssigner(layerModel),
 ): RowTierResolver | undefined {
-  if (answers.Q3 !== 'C') return undefined;
+  const q3 = answers.Q3 === 'C';
+  // Q24 B adds its rows to FF-S03 as advisory rows (catalogue: "an advisory FF-S03 row"). They keep that tier when
+  // another switch makes the rule blocking (Q5 B in hexagonal), instead of turning blocking with it (R10).
+  const q24 = answers.Q24 === 'B';
+  if (!q3 && !q24) return undefined;
   const s = style?.toLowerCase();
   return {
-    tierOf: (ruleId, row) => (ruleId === 'FF-S02' && cycleInOneComponent(cycleFiles(row.filePath, row.target), layerOf, s, layerModel) ? 'advisory' : undefined),
-    label: () => 'in-component cycles (construct switch Q3 C)',
+    tierOf: (ruleId, row) => {
+      if (q3 && ruleId === 'FF-S02' && cycleInOneComponent(cycleFiles(row.filePath, row.target), layerOf, s, layerModel)) return 'advisory';
+      if (q24 && ruleId === 'FF-S03' && row.discriminator?.[0] === Q24_BYPASS_DISCRIMINATOR) return 'advisory';
+      return undefined;
+    },
+    label: (ruleId) => (ruleId === 'FF-S03' ? 'inward-bypass rows (construct switch Q24 B)' : 'in-component cycles (construct switch Q3 C)'),
   };
 }

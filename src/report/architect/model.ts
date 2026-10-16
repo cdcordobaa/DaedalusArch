@@ -91,7 +91,8 @@ export interface BlockerRow {
 
 export interface SummaryModel {
   readonly scoringMode: 'v1.3' | 'v1.2e';
-  readonly verdict: 'pass' | 'fail';
+  /** `incomplete` (v1.3 only): nothing broken, but a defining rule could not run, so the verdict is not a pass. */
+  readonly verdict: 'pass' | 'fail' | 'incomplete';
   readonly headline: string;
   readonly explanation: readonly string[];
   readonly blockers: readonly BlockerRow[];
@@ -309,11 +310,14 @@ export function buildArchitectModel(input: ArchitectReportInput): ArchitectRepor
     }));
     const notExecuted = tiers.blockingNotExecuted.map((id) => ({ ruleId: String(id), title: titleOf(String(id)) }));
     const fail = tiers.verdict === 'fail';
+    const incomplete = tiers.verdict === 'incomplete';
     const n = blockers.length;
     const explanation = [
       fail
         ? `The verdict fails because ${String(n)} defining rule${n === 1 ? ' is' : 's are'} broken. Fixing every finding marked "${TIER_LABELS.defining}" turns it into a pass.`
-        : 'The verdict passes: no defining rule is broken.',
+        : incomplete
+          ? 'The verdict is incomplete: no defining rule is broken, but at least one could not run, so the run cannot pass.'
+          : 'The verdict passes: no defining rule is broken.',
       `Only defining rules can fail the verdict. Warnings (${String(counts.warning)} here) are listed for information and never fail it.`,
       'The scores are context: no score threshold is applied to the verdict.',
       ...(counts['not-counted'] > 0 ? [`${String(counts['not-counted'])} finding(s) belong to a part of a rule that is not applicable yet and are not counted.`] : []),
@@ -322,7 +326,7 @@ export function buildArchitectModel(input: ArchitectReportInput): ArchitectRepor
     summary = {
       scoringMode: 'v1.3',
       verdict: tiers.verdict,
-      headline: fail ? 'Fails: defining rules are broken' : 'Passes: no defining rule is broken',
+      headline: fail ? 'Fails: defining rules are broken' : incomplete ? 'Incomplete: a defining rule could not run' : 'Passes: no defining rule is broken',
       explanation,
       blockers,
       notExecuted,

@@ -13,6 +13,14 @@
  * - The repair prompt says, in plain words, what each blocking rule it lists means (`RULE_PLAIN`), then lists the
  *   findings one per line as before.
  *
+ * - Frame extras (`FrameExtras`, off by default; `Docs/v1.3/floor-escape-design-2026-10-16.md` §3.2, §3.3): a plan
+ *   may select a spec rung and an attention sentence. L2 is today's frame. L3 adds one plain sentence per blocking
+ *   rule of the task's evaluator spec (`ruleStatement`, from `RULE_PLAIN` with the fix clauses left out); L4 adds, on
+ *   top of L3, one sentence naming the spec file the harness places in the cwd (`L4_SPEC_FILE`, `rungs.ts`). The
+ *   attention sentence is the same for every arm and rung. The extras go in one block just before the type-check
+ *   sentence, so the frame stays identical across arms; with no extras (or L2 and no attention) every template is
+ *   unchanged byte for byte.
+ *
  * All templates are plain text with `{{…}}` slots and are hashed into every turn record (`promptSha256`), so a
  * change in wording shows in the data.
  */
@@ -101,16 +109,79 @@ export function sha256(text: string): string {
   return createHash('sha256').update(text, 'utf8').digest('hex');
 }
 
-/** The frame template a step uses (the hash of each is recorded at the pilot freeze). */
-export function stepTemplate(stepIndex: number, frame?: StyleFrame): string {
-  if (frame === undefined) return stepIndex === 0 ? FIRST_STEP_TEMPLATE : NEXT_STEP_TEMPLATE;
-  return stepIndex === 0 ? STYLED_FIRST_STEP_TEMPLATE : STYLED_NEXT_STEP_TEMPLATE;
+/** Spec rungs of the frame (`floor-escape-design-2026-10-16.md` §3.3). L1 is declared construct-invalid and not offered. */
+export type SpecRung = 'L2' | 'L3' | 'L4';
+
+export const SPEC_RUNGS: readonly SpecRung[] = Object.freeze(['L2', 'L3', 'L4']);
+
+/** The attention sentence, identical across arms and rungs (§3.2; DRAFT wording, hint-audited). */
+export const ATTENTION_SENTENCE = 'Check your work against the architecture described here as you go.';
+
+/** L3: the line before the rule sentences (DRAFT wording). */
+export const L3_LEAD = 'The architecture has these rules:';
+
+/** L4: the name of the evaluator spec file the harness places in the cwd (`rungs.ts`). */
+export const L4_SPEC_FILE = 'architecture-spec.yaml';
+
+/** L4: the sentence naming the spec file (DRAFT wording; the spec is the test oracle, methodology review B5). */
+export const L4_SENTENCE = `The file ${L4_SPEC_FILE} in the current directory is the architecture specification the code is checked against.`;
+
+/** What a plan adds to every step frame of a task (off by default). */
+export interface FrameExtras {
+  readonly rung: SpecRung;
+  /** L3/L4: one sentence per blocking rule of the task's spec (`ruleStatement`), in spec order. */
+  readonly ruleSentences: readonly string[];
+  readonly attention: boolean;
 }
 
-export function stepPrompt(task: LoopTask, stepIndex: number, typecheckCommand: string, frame?: StyleFrame): string {
+/** The sentence that announces where the extras block ends (the type-check sentence of every frame). */
+const EXTRAS_BEFORE = 'Before you finish, type-check the project';
+
+/** A later clause of `RULE_PLAIN` that tells the agent what to do (a fix), not what the rule is. */
+const FIX_CLAUSE = /^(?:break|go|keep|move|put|use|split|fix|make|extract|wire|place)\b/i;
+
+/**
+ * The L3 sentence of a rule: "It is a violation when <the first clause of RULE_PLAIN>", then the later clauses that
+ * state the rule (e.g. "dependencies must point inward"), never the ones that say how to fix it ("break the cycle…",
+ * "go through a port…", "keep the domain free…"). `undefined` for a rule with no plain meaning.
+ */
+export function ruleStatement(ruleName: string): string | undefined {
+  const plain = RULE_PLAIN[ruleName];
+  if (plain === undefined) return undefined;
+  const [first = '', ...rest] = plain.split(/;\s*/);
+  const kept = [first, ...rest.filter((c) => !FIX_CLAUSE.test(c.trim()))];
+  return `It is a violation when ${kept.join('; ')}.`;
+}
+
+/** The lines the extras add to a frame (empty for no extras, or L2 without attention). */
+export function frameExtrasLines(extras?: FrameExtras): readonly string[] {
+  if (extras === undefined) return [];
+  const lines: string[] = [];
+  if (extras.rung === 'L3' || extras.rung === 'L4') {
+    if (extras.ruleSentences.length === 0) throw new Error(`a ${extras.rung} frame needs at least one rule sentence`);
+    lines.push(L3_LEAD, ...extras.ruleSentences.map((s) => `- ${s}`));
+  }
+  if (extras.rung === 'L4') lines.push(L4_SENTENCE);
+  if (extras.attention) lines.push(ATTENTION_SENTENCE);
+  return lines;
+}
+
+/** The frame template a step uses (the hash of each is recorded at the pilot freeze). */
+export function stepTemplate(stepIndex: number, frame?: StyleFrame, extras?: FrameExtras): string {
+  const base =
+    frame === undefined ? (stepIndex === 0 ? FIRST_STEP_TEMPLATE : NEXT_STEP_TEMPLATE) : stepIndex === 0 ? STYLED_FIRST_STEP_TEMPLATE : STYLED_NEXT_STEP_TEMPLATE;
+  const lines = frameExtrasLines(extras);
+  if (lines.length === 0) return base;
+  const at = base.indexOf(EXTRAS_BEFORE);
+  // The extras are literal text: braces are escaped so `fill` cannot read them as slots.
+  const block = lines.map((l) => l.replace(/\{\{/g, '{ {')).join('\n');
+  return `${base.slice(0, at)}${block}\n${base.slice(at)}`;
+}
+
+export function stepPrompt(task: LoopTask, stepIndex: number, typecheckCommand: string, frame?: StyleFrame, extras?: FrameExtras): string {
   const step = task.steps[stepIndex];
   if (step === undefined) throw new RangeError(`task ${task.id} has no step ${String(stepIndex)}`);
-  return fill(stepTemplate(stepIndex, frame), {
+  return fill(stepTemplate(stepIndex, frame, extras), {
     STEP_NUMBER: String(stepIndex + 1),
     STEP_COUNT: String(task.steps.length),
     TASK_TITLE: task.title,
@@ -169,7 +240,7 @@ export function formatFinding(f: BlockingFinding): string {
 
 export function repairPrompt(findings: readonly BlockingFinding[], blockingCount: number, typecheckCommand: string): string {
   const listed = findings.slice(0, MAX_REPAIR_FINDINGS).map(formatFinding);
-  const more = blockingCount - listed.length;
+  const more = Math.max(0, blockingCount - listed.length);
   if (more > 0) listed.push(`- … and ${String(more)} more`);
   return fill(REPAIR_TEMPLATE, {
     FINDING_COUNT: String(blockingCount),

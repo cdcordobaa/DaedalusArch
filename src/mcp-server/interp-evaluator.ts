@@ -33,6 +33,8 @@ export interface InterpEvaluateInput {
   readonly scoringMode: ScoringMode;
   /** Absolute path → content (`null` = removed), applied in memory before extraction. */
   readonly overrides?: ReadonlyMap<string, string | null>;
+  /** Explicit tsconfig for the extractor (absent = `<project>/tsconfig.json`); part of the cache key with its mtime. */
+  readonly tsconfigPath?: string;
 }
 
 export type InterpEvaluator = (input: InterpEvaluateInput) => Promise<DomainResult<InterpEvaluation>>;
@@ -100,7 +102,16 @@ export function createInterpEvaluator(deps: InterpEvaluatorDeps = {}): InterpEva
     } catch {
       return Result.fail([{ code: 'SPEC_NOT_FOUND', message: `Spec file not found: ${specPath}` }]);
     }
-    const key = [projectPath, projectFingerprint(projectPath), specPath, String(specMtime), input.scoringMode, overridesKey(input.overrides)].join('|');
+    const tsconfigPath = input.tsconfigPath !== undefined ? path.resolve(input.tsconfigPath) : undefined;
+    let tsconfigKey = '';
+    if (tsconfigPath !== undefined) {
+      try {
+        tsconfigKey = `${tsconfigPath}@${String(fs.statSync(tsconfigPath).mtimeMs)}`;
+      } catch {
+        tsconfigKey = `${tsconfigPath}@missing`;
+      }
+    }
+    const key = [projectPath, projectFingerprint(projectPath), specPath, String(specMtime), input.scoringMode, overridesKey(input.overrides), tsconfigKey].join('|');
     const hit = cache.get(key);
     if (hit !== undefined) {
       cache.delete(key);
@@ -121,6 +132,7 @@ export function createInterpEvaluator(deps: InterpEvaluatorDeps = {}): InterpEva
       apgStorePath,
       scoringMode: input.scoringMode,
       graphEngine: 'cypher-interp',
+      ...(tsconfigPath !== undefined && { tsconfigPath }),
       ...(input.overrides !== undefined && input.overrides.size > 0 && { sourceOverrides: input.overrides }),
     };
     const { executor, cleanup } = makePipeline(config);

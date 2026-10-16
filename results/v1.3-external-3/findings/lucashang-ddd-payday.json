@@ -1,0 +1,761 @@
+{
+  "runId": "run-1792150925705",
+  "projectPath": "<clones>/lucashang-ddd-payday/.",
+  "specVersion": "1.0.0",
+  "ahsDeterministic": 0.785,
+  "verdict": "hard-block",
+  "scoring": {
+    "weights": {
+      "structural": 0.35,
+      "coupling": 0.2,
+      "pattern": 0.3,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0,
+      "integrity": 0
+    },
+    "fullModeWeights": {
+      "structural": 0.32,
+      "coupling": 0.18,
+      "pattern": 0.27,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0.04,
+      "integrity": 0.04
+    },
+    "thresholds": {
+      "pass": 0.8,
+      "warning": 0.65,
+      "softBlock": 0.5
+    },
+    "confidenceThresholds": {
+      "high": 0.85,
+      "medium": 0.6,
+      "iccMinimum": 0.7
+    },
+    "verdictSource": "ahsDeterministic"
+  },
+  "perDimensionScores": [
+    {
+      "dimension": "structural",
+      "avr": 0.4,
+      "violatedWeight": 2,
+      "weight": 0.35,
+      "effectiveWeight": 0.5384615384615385,
+      "violationCount": 2,
+      "functionCount": 5
+    },
+    {
+      "dimension": "pattern",
+      "avr": 0,
+      "violatedWeight": 0,
+      "weight": 0.3,
+      "effectiveWeight": 0.46153846153846156,
+      "violationCount": 0,
+      "functionCount": 5
+    }
+  ],
+  "violations": [
+    {
+      "id": "v-b54c517e13ff99ef",
+      "type": "CUSTOM_context-isolation",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-DS02",
+      "route": "symbolic",
+      "filePath": "src/modules/accounts/useCases/createAccount/CreateAccountUseCase.ts",
+      "message": "src/modules/accounts/useCases/createAccount/CreateAccountUseCase.ts (src/modules/accounts/) imports src/modules/users/repositories/IUserRepository.ts, which is not in the public API of src/modules/users/",
+      "deterministic": true,
+      "target": "src/modules/users/repositories/IUserRepository.ts",
+      "line": 9,
+      "lines": [
+        9
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-869b6fea3cd985f4",
+      "type": "CUSTOM_context-isolation",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-DS02",
+      "route": "symbolic",
+      "filePath": "src/modules/accounts/useCases/createAccount/index.ts",
+      "message": "src/modules/accounts/useCases/createAccount/index.ts (src/modules/accounts/) imports src/modules/users/repositories/implementations/fake/fakeUserRepository.ts, which is not in the public API of src/modules/users/",
+      "deterministic": true,
+      "target": "src/modules/users/repositories/implementations/fake/fakeUserRepository.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-01ffd065fa7df17a",
+      "type": "CUSTOM_context-isolation",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-DS02",
+      "route": "symbolic",
+      "filePath": "src/modules/users/useCases/createUser/CreateUserUseCase.ts",
+      "message": "src/modules/users/useCases/createUser/CreateUserUseCase.ts (src/modules/users/) imports src/modules/accounts/useCases/createAccount/CreateAccountUseCase.ts, which is not in the public API of src/modules/accounts/",
+      "deterministic": true,
+      "target": "src/modules/accounts/useCases/createAccount/CreateAccountUseCase.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-5774874ec8293f9d",
+      "type": "CUSTOM_context-isolation",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-DS02",
+      "route": "symbolic",
+      "filePath": "src/modules/users/useCases/createUser/index.ts",
+      "message": "src/modules/users/useCases/createUser/index.ts (src/modules/users/) imports src/modules/accounts/useCases/createAccount/index.ts, which is not in the public API of src/modules/accounts/",
+      "deterministic": true,
+      "target": "src/modules/accounts/useCases/createAccount/index.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-686c88c5e186a5ef",
+      "type": "CUSTOM_dependency-direction-graph",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S01",
+      "route": "symbolic",
+      "filePath": "src/modules/accounts/infra/http/routes/index.ts",
+      "message": "src/modules/accounts/infra/http/routes/index.ts (api) imports against the allowed direction from src/modules/accounts/useCases/deposit/index.ts (composition)",
+      "deterministic": true,
+      "target": "src/modules/accounts/useCases/deposit/index.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-b7f0c76f7ba979b0",
+      "type": "CUSTOM_dependency-direction-graph",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S01",
+      "route": "symbolic",
+      "filePath": "src/modules/accounts/infra/http/routes/index.ts",
+      "message": "src/modules/accounts/infra/http/routes/index.ts (api) imports against the allowed direction from src/modules/accounts/useCases/withdraw/index.ts (composition)",
+      "deterministic": true,
+      "target": "src/modules/accounts/useCases/withdraw/index.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-d691cdabd9bc343c",
+      "type": "CUSTOM_dependency-direction-graph",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S01",
+      "route": "symbolic",
+      "filePath": "src/modules/accounts/useCases/createAccount/CreateAccountUseCase.ts",
+      "message": "src/modules/accounts/useCases/createAccount/CreateAccountUseCase.ts (application) imports against the allowed direction from src/modules/accounts/mappers/accountMap.ts (infrastructure)",
+      "deterministic": true,
+      "target": "src/modules/accounts/mappers/accountMap.ts",
+      "line": 7,
+      "lines": [
+        7
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-e0c3a5f9f1942413",
+      "type": "CUSTOM_dependency-direction-graph",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S01",
+      "route": "symbolic",
+      "filePath": "src/modules/accounts/useCases/deposit/DepositDTOValidation.ts",
+      "message": "src/modules/accounts/useCases/deposit/DepositDTOValidation.ts (application) imports against the allowed direction from src/shared/validators/implementations/MyDtoValidator.ts (infrastructure)",
+      "deterministic": true,
+      "target": "src/shared/validators/implementations/MyDtoValidator.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-0910015bfb6daaea",
+      "type": "CUSTOM_dependency-direction-graph",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S01",
+      "route": "symbolic",
+      "filePath": "src/modules/accounts/useCases/deposit/DepositUseCase.ts",
+      "message": "src/modules/accounts/useCases/deposit/DepositUseCase.ts (application) imports against the allowed direction from src/modules/accounts/mappers/accountMap.ts (infrastructure)",
+      "deterministic": true,
+      "target": "src/modules/accounts/mappers/accountMap.ts",
+      "line": 6,
+      "lines": [
+        6
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-4a34aa895c93c2a7",
+      "type": "CUSTOM_dependency-direction-graph",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S01",
+      "route": "symbolic",
+      "filePath": "src/modules/accounts/useCases/withdraw/WithdrawDTOValidation.ts",
+      "message": "src/modules/accounts/useCases/withdraw/WithdrawDTOValidation.ts (application) imports against the allowed direction from src/shared/validators/implementations/MyDtoValidator.ts (infrastructure)",
+      "deterministic": true,
+      "target": "src/shared/validators/implementations/MyDtoValidator.ts",
+      "line": 2,
+      "lines": [
+        2
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-b0563f81f43535da",
+      "type": "CUSTOM_dependency-direction-graph",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S01",
+      "route": "symbolic",
+      "filePath": "src/modules/accounts/useCases/withdraw/WithdrawUseCase.ts",
+      "message": "src/modules/accounts/useCases/withdraw/WithdrawUseCase.ts (application) imports against the allowed direction from src/modules/accounts/mappers/accountMap.ts (infrastructure)",
+      "deterministic": true,
+      "target": "src/modules/accounts/mappers/accountMap.ts",
+      "line": 6,
+      "lines": [
+        6
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-09ecd2dcc8f5be8e",
+      "type": "CUSTOM_dependency-direction-graph",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S01",
+      "route": "symbolic",
+      "filePath": "src/modules/users/infra/http/routes/index.ts",
+      "message": "src/modules/users/infra/http/routes/index.ts (api) imports against the allowed direction from src/modules/users/useCases/createUser/index.ts (composition)",
+      "deterministic": true,
+      "target": "src/modules/users/useCases/createUser/index.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-90ad94803951841e",
+      "type": "CUSTOM_dependency-direction-graph",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S01",
+      "route": "symbolic",
+      "filePath": "src/modules/users/useCases/createUser/CreateUserUseCase.ts",
+      "message": "src/modules/users/useCases/createUser/CreateUserUseCase.ts (application) imports against the allowed direction from src/modules/users/mappers/userMap.ts (infrastructure)",
+      "deterministic": true,
+      "target": "src/modules/users/mappers/userMap.ts",
+      "line": 7,
+      "lines": [
+        7
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    }
+  ],
+  "universalMetrics": {
+    "cyclicDependencyCount": 2,
+    "maxFanOut": 10,
+    "maxFanIn": 16,
+    "abstractionRatio": 0.39,
+    "averageInstability": 0.448,
+    "orphanFileCount": 1
+  },
+  "evaluationMode": "symbolic-only",
+  "durationMs": 86,
+  "droppedDimensions": [
+    {
+      "dimension": "coupling",
+      "reason": "none_declared",
+      "declared": 0,
+      "executed": 0
+    },
+    {
+      "dimension": "solid",
+      "reason": "none_declared",
+      "declared": 0,
+      "executed": 0
+    },
+    {
+      "dimension": "convention",
+      "reason": "none_declared",
+      "declared": 0,
+      "executed": 0
+    }
+  ],
+  "tiers": {
+    "scoringMode": "v1.3",
+    "tierTable": "Docs/v1.3/rule-tiers.md",
+    "style": "ddd",
+    "verdict": "fail",
+    "verdictRule": "any-blocking-violation",
+    "v12eVerdict": "warning",
+    "blockingAhs": 0.731,
+    "blocking": {
+      "rules": [
+        {
+          "functionId": "FF-DS01",
+          "name": "bounded-context-modules",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-DS02",
+          "name": "context-isolation",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 4,
+          "violated": true
+        },
+        {
+          "functionId": "FF-DT01",
+          "name": "aggregate-boundary",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-DT02",
+          "name": "repository-aggregate-root",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-DT03",
+          "name": "value-object-immutability",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-DT04",
+          "name": "domain-purity",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-S01",
+          "name": "dependency-direction-graph",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 9,
+          "violated": true
+        }
+      ],
+      "violatedRules": 2,
+      "violationCount": 13
+    },
+    "advisory": {
+      "rules": [
+        {
+          "functionId": "FF-DT05",
+          "name": "domain-event-placement",
+          "dimension": "pattern",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-DT06",
+          "name": "application-service-thin",
+          "dimension": "pattern",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-S03",
+          "name": "layer-skip-graph",
+          "dimension": "structural",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        }
+      ],
+      "violatedRules": 0,
+      "violationCount": 0
+    },
+    "notApplicable": [],
+    "blockingNotExecuted": []
+  },
+  "warnings": [
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: MigrationInterface",
+      "context": {
+        "filePath": "src/infra/database/typeorm/migrations/1619998527483-user_table.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_005",
+      "message": "CONSTRUCTOR_INJECTS type unresolvable: import(\"<clones>/lucashang-ddd-payday/src/shared/validators/implementations/MyDtoValidator\").ValidationProps[]",
+      "context": {
+        "filePath": "src/shared/validators/implementations/MyDtoValidator.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DS01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DS02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DT01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DT02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DT03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DT04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DT05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-DT06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    }
+  ],
+  "functionExecution": {
+    "declared": 10,
+    "adrDerived": 0,
+    "compiled": 10,
+    "disabled": 0,
+    "dropped": [],
+    "skippedByMode": 0,
+    "noJudgeUnits": [],
+    "executed": 10,
+    "failed": []
+  },
+  "functionResults": [
+    {
+      "functionId": "FF-DS01",
+      "name": "bounded-context-modules",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 21,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DS02",
+      "name": "context-isolation",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": false,
+      "violationCount": 4,
+      "executionTimeMs": 49,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DT01",
+      "name": "aggregate-boundary",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 13,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S01",
+      "name": "dependency-direction-graph",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": false,
+      "violationCount": 9,
+      "executionTimeMs": 21,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S03",
+      "name": "layer-skip-graph",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 12,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DT02",
+      "name": "repository-aggregate-root",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 16,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DT03",
+      "name": "value-object-immutability",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 25,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DT04",
+      "name": "domain-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 11,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DT05",
+      "name": "domain-event-placement",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 10,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-DT06",
+      "name": "application-service-thin",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 4,
+      "truncated": false
+    }
+  ],
+  "disabledFunctions": [],
+  "graphStats": {
+    "nodeCount": 217,
+    "edgeCount": 448,
+    "layerCoverage": 0.8688524590163934,
+    "nodeCountByType": {
+      "File": 61,
+      "Class": 36,
+      "Interface": 23,
+      "Method": 85,
+      "Function": 5,
+      "Package": 7
+    },
+    "edgeCountByType": {
+      "IMPORTS": 191,
+      "IMPLEMENTS": 10,
+      "EXTENDS": 17,
+      "CONSTRUCTOR_INJECTS": 15,
+      "CALLS": 66,
+      "DECLARES": 64,
+      "CONTAINS": 85,
+      "FLOWS_TO": 0,
+      "RE_EXPORTS": 0
+    }
+  },
+  "layerAnnotation": {
+    "mapped": 53,
+    "unmapped": 8,
+    "unmappedFiles": [
+      "src/core/logic/GenericAppError.ts",
+      "src/core/logic/GenericErrors.ts",
+      "src/core/logic/Guard.ts",
+      "src/core/logic/GuardValidators.ts",
+      "src/core/logic/Result.ts",
+      "src/shared/utils/types.ts",
+      "src/modules/accounts/domain/index.ts",
+      "src/modules/users/domain/index.ts"
+    ]
+  },
+  "parseCoverage": {
+    "total": 61,
+    "parsed": 61,
+    "percentage": 100,
+    "skipped": []
+  },
+  "importResolution": {
+    "resolvedInternal": 170,
+    "external": 15,
+    "externalOutOfRootAlias": 0,
+    "unresolved": 0,
+    "droppedNoFileNode": 0,
+    "unsupportedDynamic": 0
+  },
+  "timings": {
+    "stages": [
+      {
+        "name": "parallel:extract-apg+parse-spec",
+        "durationMs": 551,
+        "status": "success"
+      },
+      {
+        "name": "ingest-apg",
+        "durationMs": 87,
+        "status": "success"
+      },
+      {
+        "name": "compile-functions",
+        "durationMs": 4,
+        "status": "success"
+      },
+      {
+        "name": "evaluate-symbolic",
+        "durationMs": 183,
+        "status": "success"
+      },
+      {
+        "name": "universal-metric:cyclicDependencyCount",
+        "durationMs": 51,
+        "status": "success"
+      },
+      {
+        "name": "compute-scores",
+        "durationMs": 87,
+        "status": "success"
+      }
+    ],
+    "totalMs": 912
+  },
+  "judge": {
+    "provider": "none",
+    "model": "none",
+    "runsPerUnit": 0
+  },
+  "instrumentVersion": 2
+}

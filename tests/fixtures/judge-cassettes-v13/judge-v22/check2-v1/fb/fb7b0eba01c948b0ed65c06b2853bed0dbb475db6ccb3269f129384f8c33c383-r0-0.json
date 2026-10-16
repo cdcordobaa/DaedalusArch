@@ -1,0 +1,51 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 8407,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "fb7b0eba01c948b0ed65c06b2853bed0dbb475db6ccb3269f129384f8c33c383-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.88,
+    "evidence": [
+      "src/domain/model/Spot.ts: `@Entity()` decorator on class Spot declares it as a TypeORM persistence entity (ORM table mapping, an infrastructure responsibility)",
+      "src/domain/model/Spot.ts: `@Column()` on field `code` maps the field to a database column (infrastructure persistence concern)",
+      "src/domain/model/Spot.ts: `priceFor(hours)` holds the pricing business rule, which is a valid domain responsibility; the persistence mapping is the misplaced part"
+    ],
+    "pass": false,
+    "reasoning": "Spot is declared in the domain layer and contains real domain logic: the pricing rule in priceFor. The class also carries ORM persistence mapping, though. It is annotated with TypeORM's @Entity() decorator, and its code field uses @Column(). These decorators make the domain model also act as a database table mapping, and that responsibility belongs to the infrastructure layer (adapters-outbound/persistence). This judgement is not about which way the import points. It is about where the persistence-mapping responsibility sits, and here it is inside a domain file.",
+    "violations": [
+      {
+        "filePath": "src/domain/model/Spot.ts",
+        "message": "Domain entity Spot carries ORM persistence mapping through TypeORM's @Entity() on the class and @Column() on `code`. This persistence responsibility belongs to the infrastructure layer (adapters-outbound). It should move to a separate persistence model or mapping there."
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**\n- application (kind: application): src/application/**\n- adapters-inbound (kind: presentation): src/adapters/inbound/**\n- adapters-outbound (kind: infrastructure): src/adapters/outbound/**\n- config (kind: application): src/config/**\n\n## Unit\nKind: file\nId: src/domain/model/Spot.ts\nLayer: domain\nUnit files:\n- src/domain/model/Spot.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/model/Spot.ts=====\nimport { Entity, Column } from 'typeorm';\n\n@Entity()\nexport class Spot {\n  @Column()\n  code: string;\n  level: number;\n  electric: boolean;\n  hourlyRateCents: number;\n\n  constructor(code: string, level: number, electric: boolean, hourlyRateCents: number) {\n    this.code = code;\n    this.level = level;\n    this.electric = electric;\n    this.hourlyRateCents = hourlyRateCents;\n  }\n\n  priceFor(hours: number): number {\n    const base = hours * this.hourlyRateCents;\n    return hours >= 8 ? Math.round(base * 0.8) : base;\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/adapters/outbound/persistence/InMemorySpotRepository.ts\",\"to\":\"src/domain/model/Spot.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/application/ports/out/SpotRepository.ts\",\"to\":\"src/domain/model/Spot.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/domain/model/Spot.ts\",\"to\":\"typeorm\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"domain\",\"name\":\"Spot\",\"path\":\"src/domain/model/Spot.ts\"},{\"kind\":\"File\",\"layer\":\"adapters-outbound\",\"path\":\"src/adapters/outbound/persistence/InMemorySpotRepository.ts\"},{\"kind\":\"File\",\"layer\":\"application\",\"path\":\"src/application/ports/out/SpotRepository.ts\"},{\"kind\":\"File\",\"layer\":\"domain\",\"path\":\"src/domain/model/Spot.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"typeorm\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T03:01:45.352Z",
+  "repetition": 0,
+  "requestHash": "fb7b0eba01c948b0ed65c06b2853bed0dbb475db6ccb3269f129384f8c33c383",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":689}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.88,\\\"reasoning\\\":\\\"Spot is declared in the domain layer and contains real domain logic: the pricing rule in priceFor. The class also carries ORM persistence mapping, though. It is annotated with TypeORM's @Entity() decorator, and its code field uses @Column(). These decorators make the domain model also act as a database table mapping, and that responsibility belongs to the infrastructure layer (adapters-outbound/persistence). This judgement is not about which way the import points. It is about where the persistence-mapping responsibility sits, and here it is inside a domain file.\\\",\\\"evidence\\\":[\\\"src/domain/model/Spot.ts: `@Entity()` decorator on class Spot declares it as a TypeORM persistence entity (ORM table mapping, an infrastructure responsibility)\\\",\\\"src/domain/model/Spot.ts: `@Column()` on field `code` maps the field to a database column (infrastructure persistence concern)\\\",\\\"src/domain/model/Spot.ts: `priceFor(hours)` holds the pricing business rule, which is a valid domain responsibility; the persistence mapping is the misplaced part\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/domain/model/Spot.ts\\\",\\\"message\\\":\\\"Domain entity Spot carries ORM persistence mapping through TypeORM's @Entity() on the class and @Column() on `code`. This persistence responsibility belongs to the infrastructure layer (adapters-outbound). It should move to a separate persistence model or mapping there.\\\"}]}\",\"structured_output\":{\"confidence\":0.88,\"evidence\":[\"src/domain/model/Spot.ts: `@Entity()` decorator on class Spot declares it as a TypeORM persistence entity (ORM table mapping, an infrastructure responsibility)\",\"src/domain/model/Spot.ts: `@Column()` on field `code` maps the field to a database column (infrastructure persistence concern)\",\"src/domain/model/Spot.ts: `priceFor(hours)` holds the pricing business rule, which is a valid domain responsibility; the persistence mapping is the misplaced part\"],\"pass\":false,\"reasoning\":\"Spot is declared in the domain layer and contains real domain logic: the pricing rule in priceFor. The class also carries ORM persistence mapping, though. It is annotated with TypeORM's @Entity() decorator, and its code field uses @Column(). These decorators make the domain model also act as a database table mapping, and that responsibility belongs to the infrastructure layer (adapters-outbound/persistence). This judgement is not about which way the import points. It is about where the persistence-mapping responsibility sits, and here it is inside a domain file.\",\"violations\":[{\"filePath\":\"src/domain/model/Spot.ts\",\"message\":\"Domain entity Spot carries ORM persistence mapping through TypeORM's @Entity() on the class and @Column() on `code`. This persistence responsibility belongs to the infrastructure layer (adapters-outbound). It should move to a separate persistence model or mapping there.\"}]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/model/Spot.ts",
+  "usage": {
+    "inputTokens": 2520,
+    "outputTokens": 689
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

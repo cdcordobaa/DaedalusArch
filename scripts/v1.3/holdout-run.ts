@@ -1,7 +1,7 @@
 /**
  * The one-time v1.3 hold-out run and its scoring (Docs/v1.3/holdout-prespec.md). Entry file: no exports.
  * Usage (repository root):
- *   npx tsx scripts/v1.3/holdout-run.ts --dry-run --holdout <unsealed dir> [--id-map <file>] [--expect-sha256 <hex>]
+ *   npx tsx scripts/v1.3/holdout-run.ts --dry-run --holdout <unsealed dir> [--id-map <file>] [--expect-sha256 <hex>] [--expect-sealed-sha256 <hex>]
  *   NEO4J_URI=... NEO4J_PASSWORD=... npx tsx scripts/v1.3/holdout-run.ts --commit <FREEZE_SHA> --holdout <unsealed dir>
  *     --out results/v1.3-holdout/run-1 [--id-map <file>] [--deferred FF-DS01] [--graph-adjudication <file>]
  *   npx tsx scripts/v1.3/holdout-run.ts --commit <FREEZE_SHA> --holdout <dir> --from-raw results/v1.3-holdout/run-1 --out <dir>
