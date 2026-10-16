@@ -1510,3 +1510,19 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **Context**: v1.3 spike, outside the v1.3 study stages. Harness only; no labels produced.
 
 ---
+
+## v1.3 CONSTRUCTION — loop replay (scheduled task, no live user)
+**Timestamp**: 2026-10-16T01:40:00Z
+**User Input**: (scheduled task prompt) Prove the firewall-in-the-loop harness end to end without any LLM: a deterministic scripted agent replaying recorded edits for at least 2 pilot tasks under none / daedalus-mcp / gate, on the in-process engine or Neo4j 5.26 + APOC; assert memo-defined metrics, per-step latency, gate exactness, consistency with a full evaluation, byte reproducibility; jest integration test, npm script, Docs/v1.3/loop-replay.md; one PR into v1.3, not merged.
+**AI Response**: "Branch v1.3-loop-replay from origin/v1.3. `--engine cypher-interp` is not on v1.3, so Neo4j 5.26.24 + APOC 5.26.24 from the tarball. Scripted agent and tapes for market-vendors, shelter-adoptions and relief-volunteers; replay CLI (npm run loop:replay) and jest test (npm run test:loop-replay). Plumbing bugs found and fixed: missing tsconfig for the live evaluator, DDD freeze accepting an uncompilable spec, report/template not persisted for the memo §3 labelling, advisory counts per rule missing for memo §4, non-deterministic snapshot commit dates for the replay. Tool gap recorded, not fixed: check_file/check_diff do not check the hexagonal graph or DDD context rules. No LLM called. Interactive approval gates were not run: no live user."
+**Context**: v1.3 loop pilot readiness; the pilot itself has not run and still needs the author's go.
+
+---
+
+## v1.3 CONSTRUCTION — night plan tracker update (scheduled task)
+**Timestamp**: 2026-10-16T05:00:00Z
+**User Input**: "scheduled tracker update"
+**AI Response**: "Night plan tracker refreshed from the PR list into v1.3 and the remote branches: 15 [x], 31 [~], 6 [ ], 3 [!]; no PR marked hold. Merge shas added to every merged item. Newly [x]: A4 model panel (#153, e46aa6b8), Y4 loop replay (#142, c4076100), local post-merge review (#152, 50a32841). B1 and B2 moved to [~] with PRs #161 and #160. PR numbers filled in: G2 #149, A1 #168, A3 #166, A5 #147, Y1 #162, J4 #150, X3 #183, Z1 #151, D1 #155, D2 #154. J5 has branch v1.3-scale and no PR; A2 has branch v1.3-validity-predictive and no PR; C1, W3-2 and W3-3 have no branch."
+**Context**: CONSTRUCTION, v1.3 validity cycle; tracker-only update, docs only.
+
+---
