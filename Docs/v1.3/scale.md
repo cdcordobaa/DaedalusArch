@@ -96,7 +96,17 @@ The golden suite (`GOLDEN_REQUIRED=1 npm run test:golden`) passes its snapshot s
 - `tests/unit/graph-accelerator/cycle-queries.test.ts` compares the answers with a brute-force reading of the Cypher text: every relationship-distinct walk, then the WHERE, DISTINCT, aggregation, ORDER BY and LIMIT clauses. It covers 300 seeded graphs in both views, with and without excludes. The unit tests also cover every guard.
 - `scripts/v1.3/scale/differential.ts` does the same on the large projects, with a long Neo4j timeout. Results are in `results/v1.3-scale/differential/`:
 
-PLACEHOLDER_DIFF_TABLE
+| Project | Neo4j timeout | FF-S02 frozen | FF-S02 literal | FF-S02 frozen + excludes | FF-S02 literal + excludes | metric frozen | metric literal |
+|---|---|---|---|---|---|---|---|
+| hoppscotch (pilot) | 10 min | identical (9 ms vs 25.0 s) | identical (16 ms vs 29.7 s) | identical (7 ms vs 0.5 s) | identical (6 ms vs 0.5 s) | identical (5 ms vs 2.9 s) | identical (4 ms vs 5.3 s) |
+| nest | 20 min | identical (16 ms vs 15.0 s) | identical (13 ms vs 13.2 s) | identical (14 ms vs 24.6 s) | identical (15 ms vs 21.6 s) | identical (10 ms vs 45.0 s) | identical (9 ms vs 50.3 s) |
+| amplication | 5 min | Neo4j timed out | Neo4j timed out | identical (24 ms vs 90.3 s) | identical (16 ms vs 26.0 s) | Neo4j timed out | Neo4j timed out |
+| typeorm | 5 min | Neo4j timed out | Neo4j timed out | Neo4j timed out | Neo4j timed out | Neo4j timed out | Neo4j timed out |
+| prisma | 5 min | identical (34 ms vs 5.4 s) | identical (38 ms vs 6.2 s) | identical (21 ms vs 22.0 s) | identical (17 ms vs 23.0 s) | identical (22 ms vs 26.3 s) | identical (16 ms vs 38.9 s) |
+| payload | 5 min | Neo4j timed out | Neo4j timed out | Neo4j timed out | Neo4j timed out | Neo4j timed out | Neo4j timed out |
+| rocketchat | 5 min | Neo4j timed out | Neo4j timed out | Neo4j timed out | identical (43 ms vs 8.2 s) | Neo4j timed out | Neo4j timed out |
+
+In total: 21 query forms identical, 0 different, 21 that Neo4j could not finish within the timeout (the in-memory answer took 10–63 ms on each). Excludes: `**/index.ts` and `**/*.module.ts` (barrels and Nest modules, which sit on many cycles). "Frozen" is the v1.2E text, "literal" the v1.3 edge view the pipeline compiles. Where Neo4j cannot finish, there is no Neo4j answer to compare with. There the evidence is the random-graph tests against Neo4j and the brute-force tests above. The in-memory rows are those the pipeline now reports in place of the old EVAL_002 failure or `null` metric.
 
 ## 5. Extraction
 
