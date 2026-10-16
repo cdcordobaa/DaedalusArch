@@ -20,6 +20,7 @@ import picomatch from 'picomatch';
 import { parseSpec } from '../../src/spec-parser/spec-parser.js';
 import { readSpecExcludePaths } from '../../src/spec-parser/exclude-paths.js';
 import { resolveLayer } from '../../src/mcp-server/layer-resolver.js';
+import { cohenKappa, spearman, summariseEvaluation, type EvalSummary } from './lib/spec-author-agreement.js';
 
 interface Entry { readonly id: string; readonly root: string }
 interface RepoLabels {
@@ -76,62 +77,11 @@ async function labels(): Promise<void> {
   }
 }
 
-// ── agreement statistics ────────────────────────────────────────────────────
-
-/** Cohen's kappa of two label vectors; `null` when expected agreement is 1 (a single label). */
-export function cohenKappa(a: readonly string[], b: readonly string[]): { kappa: number | null; po: number; pe: number; n: number } {
-  const n = a.length;
-  if (n === 0) return { kappa: null, po: 0, pe: 0, n };
-  let agree = 0;
-  const ca = new Map<string, number>();
-  const cb = new Map<string, number>();
-  for (let i = 0; i < n; i++) {
-    if (a[i] === b[i]) agree++;
-    ca.set(a[i]!, (ca.get(a[i]!) ?? 0) + 1);
-    cb.set(b[i]!, (cb.get(b[i]!) ?? 0) + 1);
-  }
-  const po = agree / n;
-  let pe = 0;
-  for (const [k, v] of ca) pe += (v / n) * ((cb.get(k) ?? 0) / n);
-  return { kappa: pe >= 1 ? null : (po - pe) / (1 - pe), po, pe, n };
-}
-
-function ranks(xs: readonly number[]): number[] {
-  const idx = xs.map((v, i) => [v, i] as const).sort((p, q) => p[0] - q[0]);
-  const r = new Array<number>(xs.length);
-  for (let i = 0; i < idx.length;) {
-    let j = i;
-    while (j + 1 < idx.length && idx[j + 1]![0] === idx[i]![0]) j++;
-    for (let k = i; k <= j; k++) r[idx[k]![1]] = (i + j) / 2 + 1;
-    i = j + 1;
-  }
-  return r;
-}
-function pearson(x: readonly number[], y: readonly number[]): number | null {
-  const n = x.length;
-  const mx = x.reduce((s, v) => s + v, 0) / n;
-  const my = y.reduce((s, v) => s + v, 0) / n;
-  let sxy = 0, sxx = 0, syy = 0;
-  for (let i = 0; i < n; i++) { sxy += (x[i]! - mx) * (y[i]! - my); sxx += (x[i]! - mx) ** 2; syy += (y[i]! - my) ** 2; }
-  return sxx === 0 || syy === 0 ? null : sxy / Math.sqrt(sxx * syy);
-}
-export function spearman(x: readonly number[], y: readonly number[]): number | null { return pearson(ranks(x), ranks(y)); }
-
 type ReasonClass = 'directory-choice' | 'mapped-vs-unmapped' | 'excluded-vs-included' | 'role-naming';
 function reasonClass(la: string, lb: string, kindA: string | undefined, kindB: string | undefined): ReasonClass {
   if (la === 'excluded' || lb === 'excluded') return 'excluded-vs-included';
   if (la === 'unmapped' || lb === 'unmapped') return 'mapped-vs-unmapped';
   return kindA !== undefined && kindA === kindB ? 'role-naming' : 'directory-choice';
-}
-
-interface EvalSummary { blocking: number; perRule: Record<string, number>; verdict: string }
-/** Blocking count, per-rule blocking and verdict from a `firewall evaluate --format json` output. */
-export function summariseEvaluation(json: unknown): EvalSummary {
-  const r = json as { violations?: { functionId?: string; tier?: string; blocking?: boolean }[]; verdict?: string; scoring?: { verdict?: string; blockingCount?: number } };
-  const vs = (r.violations ?? []).filter((v) => v.blocking === true || v.tier === 'blocking');
-  const perRule: Record<string, number> = {};
-  for (const v of vs) perRule[String(v.functionId)] = (perRule[String(v.functionId)] ?? 0) + 1;
-  return { blocking: r.scoring?.blockingCount ?? vs.length, perRule, verdict: String(r.scoring?.verdict ?? r.verdict ?? 'unknown') };
 }
 
 async function compare(): Promise<void> {
@@ -145,6 +95,8 @@ async function compare(): Promise<void> {
   const rows = [];
   const pooledA: string[] = [];
   const pooledB: string[] = [];
+  const pooledMA: string[] = [];
+  const pooledMB: string[] = [];
   for (const b of B) {
     const a = A.find((x) => x.id === b.id);
     if (a === undefined) throw new Error(`${b.id}: missing in A`);
@@ -158,6 +110,11 @@ async function compare(): Promise<void> {
     const primary = sameNames ? cohenKappa(la, lb) : cohenKappa(ka, kb);
     pooledA.push(...(sameNames ? la : ka).map((l) => `${b.id}:${l}`));
     pooledB.push(...(sameNames ? lb : kb).map((l) => `${b.id}:${l}`));
+    // Post-hoc sensitivity (not in the plan): `excluded` and `unmapped` merged into one `outside` label.
+    const merge = (l: string): string => (l === 'excluded' || l === 'unmapped' ? 'outside' : l);
+    const outsideMerged = cohenKappa((sameNames ? la : ka).map(merge), (sameNames ? lb : kb).map(merge));
+    pooledMA.push(...(sameNames ? la : ka).map((l) => `${b.id}:${merge(l)}`));
+    pooledMB.push(...(sameNames ? lb : kb).map((l) => `${b.id}:${merge(l)}`));
     const mappedIdx = files.map((_, i) => i).filter((i) => !['excluded', 'unmapped'].includes(la[i]!) && !['excluded', 'unmapped'].includes(lb[i]!));
     const mappedBoth = cohenKappa(mappedIdx.map((i) => (sameNames ? la : ka)[i]!), mappedIdx.map((i) => (sameNames ? lb : kb)[i]!));
     const disagreements = files.flatMap((f, i) => (la[i] === lb[i] ? [] : [{
@@ -172,11 +129,12 @@ async function compare(): Promise<void> {
     }
     rows.push({
       id: b.id, files: files.length, filesInOneSetOnly: onlyOne.length, labelBasis: sameNames ? 'layer-name' : 'kind',
-      primary, kind: cohenKappa(ka, kb), mappedBoth, reliable: primary.kappa !== null ? primary.kappa >= 0.8 : primary.po >= 0.8,
+      primary, kind: cohenKappa(ka, kb), mappedBoth, outsideMerged, reliable: primary.kappa !== null ? primary.kappa >= 0.8 : primary.po >= 0.8,
       reasons, disagreements, evalA: ev['a'], evalB: ev['b'],
     });
   }
   const pooled = cohenKappa(pooledA, pooledB);
+  const pooledMerged = cohenKappa(pooledMA, pooledMB);
   const reliableRepos = rows.filter((r) => r.reliable).length;
   const withEval = rows.filter((r) => r.evalA !== null && r.evalB !== null);
   const diffs = withEval.map((r) => r.evalB!.blocking - r.evalA!.blocking);
@@ -184,7 +142,7 @@ async function compare(): Promise<void> {
   const sdDiff = diffs.length > 1 && meanDiff !== null ? Math.sqrt(diffs.reduce((s, v) => s + (v - meanDiff) ** 2, 0) / (diffs.length - 1)) : null;
   const verdictKappa = cohenKappa(withEval.map((r) => r.evalA!.verdict), withEval.map((r) => r.evalB!.verdict));
   const summary = {
-    pooledKappa: pooled, reliableRepos, repos: rows.length,
+    pooledKappa: pooled, pooledKappaOutsideMergedPostHoc: pooledMerged, reliableRepos, repos: rows.length,
     instrumentReliable: pooled.kappa !== null && pooled.kappa >= 0.8 && reliableRepos >= 12,
     blocking: withEval.length === 0 ? null : {
       repos: withEval.length,
@@ -195,19 +153,21 @@ async function compare(): Promise<void> {
     },
   };
   fs.writeFileSync(path.join(outDir, 'agreement.json'), JSON.stringify({ summary, rows }, null, 1) + '\n');
+  const perRuleText = (m: Record<string, number>): string => Object.entries(m).map(([k, v]) => `${k} ${v}`).join(', ') || '-';
   const f2 = (x: number | null | undefined): string => (x === null || x === undefined ? 'n/a' : x.toFixed(2));
   const md = [
     '# K2 agreement tables (generated by scripts/v1.3/spec-author-agreement.ts)', '',
     `Pooled file-to-layer kappa: ${f2(pooled.kappa)} (raw agreement ${f2(pooled.po)}, n = ${pooled.n}); repos with kappa >= 0.80: ${reliableRepos}/${rows.length}; instrument-level criterion met: ${summary.instrumentReliable ? 'yes' : 'no'}.`, '',
-    '| repo | files | basis | kappa (primary) | raw agr. | kappa (kind) | kappa (mapped both) | reliable | disagreement classes |',
-    '|---|---:|---|---:|---:|---:|---:|---|---|',
-    ...rows.map((r) => `| ${r.id} | ${r.files} | ${r.labelBasis} | ${f2(r.primary.kappa)} | ${f2(r.primary.po)} | ${f2(r.kind.kappa)} | ${f2(r.mappedBoth.kappa)} (n=${r.mappedBoth.n}) | ${r.reliable ? 'yes' : 'no'} | ${Object.entries(r.reasons).map(([k, v]) => `${k} ${v}`).join(', ') || '-'} |`),
+    `Post-hoc sensitivity (not pre-stated): pooled kappa with excluded and unmapped merged = ${f2(pooledMerged.kappa)}.`, '',
+    '| repo | files | basis | kappa (primary) | raw agr. | kappa (kind) | kappa (mapped both) | kappa (excl.=unmapped, post hoc) | reliable | disagreement classes |',
+    '|---|---:|---|---:|---:|---:|---:|---:|---|---|',
+    ...rows.map((r) => `| ${r.id} | ${r.files} | ${r.labelBasis} | ${f2(r.primary.kappa)} | ${f2(r.primary.po)} | ${f2(r.kind.kappa)} | ${f2(r.mappedBoth.kappa)} (n=${r.mappedBoth.n}) | ${f2(r.outsideMerged.kappa)} | ${r.reliable ? 'yes' : 'no'} | ${Object.entries(r.reasons).map(([k, v]) => `${k} ${v}`).join(', ') || '-'} |`),
     '',
   ];
   if (summary.blocking !== null) {
     md.push('## Blocking counts and verdicts (same tool commit, cypher-interp, --scoring v1.3)', '',
-      '| repo | blocking A | blocking B | B - A | verdict A | verdict B |', '|---|---:|---:|---:|---|---|',
-      ...withEval.map((r) => `| ${r.id} | ${r.evalA!.blocking} | ${r.evalB!.blocking} | ${r.evalB!.blocking - r.evalA!.blocking} | ${r.evalA!.verdict} | ${r.evalB!.verdict} |`),
+      '| repo | blocking A | blocking B | B - A | verdict A | verdict B | blocking per rule A | blocking per rule B |', '|---|---:|---:|---:|---|---|---|---|',
+      ...withEval.map((r) => `| ${r.id} | ${r.evalA!.blocking} | ${r.evalB!.blocking} | ${r.evalB!.blocking - r.evalA!.blocking} | ${r.evalA!.verdict} | ${r.evalB!.verdict} | ${perRuleText(r.evalA!.perRule)} | ${perRuleText(r.evalB!.perRule)} |`),
       '', `Spearman rho (A vs B blocking, ${withEval.length} repos): ${f2(summary.blocking.spearman)}. Bland-Altman: mean B - A = ${f2(meanDiff)}, SD = ${f2(sdDiff)}, 95 % limits of agreement = [${summary.blocking.loa ? summary.blocking.loa.map(f2).join(', ') : 'n/a'}]. Same verdict: ${summary.blocking.verdictSame}/${withEval.length}; verdict kappa ${f2(verdictKappa.kappa)}.`, '');
   }
   fs.writeFileSync(path.join(outDir, 'agreement.md'), md.join('\n'));
