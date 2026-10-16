@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "style": "hexagonal",
+  "variant": "v25-driving-port-type-cycle",
+  "kind": "violation",
+  "plants": "FF-S02",
+  "description": "BookingView type-imports BookRoomCommand from BookRoom (import type) to copy the guest count into the view, while BookRoom already imports BookingView.",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S02",
+      "ruleName": "no-cyclic-deps",
+      "file": "src/application/ports/in/BookRoom.ts",
+      "target": "src/application/ports/in/BookingView.ts",
+      "reason": "Two-file import cycle BookRoom -> BookingView -> BookRoom (one leg is a type-only import, still a dependency edge)."
+    }
+  ]
+}

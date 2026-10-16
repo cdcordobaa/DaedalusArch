@@ -1,0 +1,52 @@
+--- /dev/null
++++ b/src/adapters/inbound/http/config/routes.ts
+@@ -0,0 +1,17 @@
++import { BookingController } from '../BookingController';
++import { HttpRequest, HttpResponse } from '../HttpTypes';
++import { RoomController } from '../RoomController';
++
++export interface Route {
++  method: 'GET' | 'POST' | 'DELETE';
++  path: string;
++  handle(request: HttpRequest): Promise<HttpResponse>;
++}
++
++export function buildRoutes(bookings: BookingController, rooms: RoomController): Route[] {
++  return [
++    { method: 'POST', path: '/bookings', handle: (r) => bookings.create(r) },
++    { method: 'DELETE', path: '/bookings/:id', handle: (r) => bookings.cancel(r) },
++    { method: 'GET', path: '/rooms/available', handle: (r) => rooms.available(r) },
++  ];
++}
+--- a/src/config/container.ts
++++ b/src/config/container.ts
+@@ -1,5 +1,6 @@
+ import { BookingCli } from '../adapters/inbound/cli/BookingCli';
+ import { BookingController } from '../adapters/inbound/http/BookingController';
++import { buildRoutes, Route } from '../adapters/inbound/http/config/routes';
+ import { RoomController } from '../adapters/inbound/http/RoomController';
+ import { OutboxNotificationAdapter } from '../adapters/outbound/notification/OutboxNotificationAdapter';
+ import { FakePaymentGateway } from '../adapters/outbound/payment/FakePaymentGateway';
+@@ -14,6 +15,7 @@
+   bookings: BookingController;
+   rooms: RoomController;
+   cli: BookingCli;
++  routes: Route[];
+ }
+ 
+ /** Composition root: the one place that plugs concrete adapters into the ports. */
+@@ -25,9 +27,12 @@
+   const notifications = new OutboxNotificationAdapter();
+ 
+   const bookRoom = new BookRoomService(rooms, bookings, guests, payments, notifications);
++  const bookingController = new BookingController(bookRoom, new CancelBookingService(bookings, guests, payments, notifications));
++  const roomController = new RoomController(new FindAvailableRoomsService(rooms, bookings));
+   return {
+-    bookings: new BookingController(bookRoom, new CancelBookingService(bookings, guests, payments, notifications)),
+-    rooms: new RoomController(new FindAvailableRoomsService(rooms, bookings)),
++    bookings: bookingController,
++    rooms: roomController,
+     cli: new BookingCli(bookRoom),
++    routes: buildRoutes(bookingController, roomController),
+   };
+ }

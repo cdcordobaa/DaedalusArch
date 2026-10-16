@@ -118,7 +118,7 @@ describe('Claude Code step agent: argv per arm', () => {
     ]);
     expect(p.data.mcpConfig).toEqual({
       mcpServers: {
-        'daedalus-arch': { type: 'stdio', command: '/usr/bin/node', args: [DAEDALUS.serverEntry, '--spec', DAEDALUS.specPath, '--project', cwd], env: {} },
+        'daedalus-arch': { type: 'stdio', command: '/usr/bin/node', args: [DAEDALUS.serverEntry, '--spec', DAEDALUS.specPath, '--project', cwd, '--engine', 'neo4j'], env: {} },
       },
     });
   });

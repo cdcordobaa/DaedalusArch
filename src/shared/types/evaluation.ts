@@ -278,6 +278,8 @@ export interface JudgeProvenance extends ProviderDescription {
   readonly configListingSha256?: string;    // claude-cli
   readonly provenanceMixed?: boolean;       // replay found differing values across entries (BR-U4-CAS-10)
   readonly seededList?: readonly string[];  // sorted; [] in every reported run (BR-U4-SEL-06)
+  readonly judgeVersion?: 'v2';             // v1.3: set only on a judge v2 run (v1 is the frozen default)
+  readonly judgeRevision?: string;          // v1.3: the v2 text revision (`JUDGE_V2_REVISION`)
 }
 
 // Types referenced by NeuralResultRow, verbatim from U4 DE §2.2 and §4.2 (C10 row 14 needs them;
@@ -365,6 +367,8 @@ export interface EvaluationReport {
   readonly neuralResults?: readonly NeuralResultRow[];
   /** v1.3 scoring mode only (FR-V6, Docs/v1.3/rule-tiers.md): the tiered verdict; absent in the v1.2E mode. */
   readonly tiers?: TieredScoring;
+  /** `firewall evaluate --hints` only (Docs/v1.3/fix-hints.md): a deterministic fix hint per blocking violation; absent otherwise. */
+  readonly fixHints?: readonly import('../../fix-hints/types.js').ReportFixHint[];
 }
 
 /** Scoring mode: `v1.2e` (the registered Study 1 scoring, unchanged) or `v1.3` (rule tiers, FR-V6). */

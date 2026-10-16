@@ -1,0 +1,46 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 6883,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "85f7d23089bbe83472785c0e65b447d29a735fadde083d49e71356b7611cd40c-r0-0",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.93,
+    "evidence": [
+      "src/domain/registration.ts: `export class Registration` has no decorators or base class; the constructor takes only string and Date fields",
+      "src/domain/registration.ts: `cancel(at: Date): void` enforces the domain rule by throwing `new DomainError('conflict', ...)`. DomainError comes from './domain-error', a project-declared domain type",
+      "src/domain/registration.ts: the only import is `import { DomainError } from './domain-error'`. There are no framework, ORM, HTTP or file-system imports and no I/O statements"
+    ],
+    "pass": true,
+    "reasoning": "The file passes. src/domain/registration.ts is a plain domain entity. It has no decorators, no base class and no framework or transport types in any signature. It does no persistence or I/O. Its only import is the project's own DomainError from the domain layer. Its methods carry real domain rules: the isActive state, and the rule that a registration that is already cancelled cannot be cancelled again. The 'conflict' passed to DomainError is a string label for a project-defined error type. It is not an HTTP status code or a delivery-layer exception. The deterministic checks raised no candidate flags, and I found no violation of my own.",
+    "violations": []
+  },
+  "prompt": "## Rule\nThe unit's responsibilities, signatures and annotations match the role of its declared layer.\n\n## Rubric\nPass: Every declaration in the file belongs to the role and kind of its declared layer, including its parameter, return and field types, its decorators and base classes, and its statements, and agrees with any ADR prose given.\nFail: The file carries something that belongs to a different layer kind. In a domain or application file: a type of a web, transport or framework package in any signature (parameter, return or field), even when the parameter is optional or unused; or a request, response, status code or HTTP error of the delivery layer. In a domain file also: a framework or ORM decorator or base class (dependency injection, routing, persistence mapping), even when the class logic is pure; or persistence or I/O (queries, database or ORM clients, HTTP or file access). In an infrastructure or presentation file: a business rule, that is a domain invariant, calculation or decision that the domain or application layer should own. A type the project declares itself is not a framework type, whatever its name.\nEvidence required: Name the file and cite the signature, decorator, declaration or statement that carries the misplaced responsibility, its package or origin, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- domain (kind: domain): src/domain/**, src/core/**, src/entities/**, src/models/**\n- infrastructure (kind: infrastructure): src/infrastructure/**, src/persistence/**, src/adapters/**, src/prisma/**, src/lib/**, src/common/middleware/**, src/common/filters/**, src/common/pipes/**; file patterns: **/*.repository.ts, **/*.worker.ts, **/workers/**, **/strategies/**\n- application (kind: application): src/application/**, src/use-cases/**, src/services/**; file patterns: **/*.service.ts, **/*.processor.ts, **/dto/**, **/*.dto.ts\n- presentation (kind: presentation): src/controllers/**, src/gateways/**, src/common/guards/**, src/common/interceptors/**; file patterns: **/*.controller.ts, **/*.module.ts, **/*.guard.ts, **/*.interceptor.ts, **/*.gateway.ts\n\n## Unit\nKind: file\nId: src/domain/registration.ts\nLayer: domain\nUnit files:\n- src/domain/registration.ts\n\n## Source\n=====SOURCE-BEGIN src/domain/registration.ts=====\nimport { DomainError } from './domain-error';\n\nexport class Registration {\n  private cancelledAt: Date | undefined;\n\n  constructor(\n    readonly id: string,\n    readonly workshopId: string,\n    readonly attendeeId: string,\n    readonly registeredAt: Date,\n  ) {}\n\n  get isActive(): boolean {\n    return this.cancelledAt === undefined;\n  }\n\n  cancel(at: Date): void {\n    if (!this.isActive) throw new DomainError('conflict', `Registration ${this.id} is already cancelled`);\n    this.cancelledAt = at;\n  }\n\n  hasCancelledAt(): boolean {\n    return this.cancelledAt !== undefined;\n  }\n}\n\n=====SOURCE-END=====\n\n## Neighbourhood\nsrc/domain/registration.ts (layer domain, kind domain)\n  imports: src/domain/domain-error.ts (layer domain, kind domain)\n  imported by: src/domain/registration-policy.ts (layer domain, kind domain); src/domain/registration-repository.ts (layer domain, kind domain); src/registrations/dto/registration-response.dto.ts (layer application, kind application); src/registrations/in-memory-registration.repository.ts (layer infrastructure, kind infrastructure); src/registrations/registrations.service.ts (layer application, kind application)\n\n## Candidate flags\nCandidates proposed by deterministic checks; verify, don't trust. Each line is a tool observation with its location, not a finding.\n(none)\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric. Check each candidate flag against the source: a flag the source does not support must not count against the unit, and a violation the flags miss counts as much as one they name. Judge what each declaration is, not only what it does at run time.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-15T20:55:01.259Z",
+  "repetition": 0,
+  "requestHash": "85f7d23089bbe83472785c0e65b447d29a735fadde083d49e71356b7611cd40c",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":564}},\"result\":\"{\\\"pass\\\":true,\\\"confidence\\\":0.93,\\\"reasoning\\\":\\\"The file passes. src/domain/registration.ts is a plain domain entity. It has no decorators, no base class and no framework or transport types in any signature. It does no persistence or I/O. Its only import is the project's own DomainError from the domain layer. Its methods carry real domain rules: the isActive state, and the rule that a registration that is already cancelled cannot be cancelled again. The 'conflict' passed to DomainError is a string label for a project-defined error type. It is not an HTTP status code or a delivery-layer exception. The deterministic checks raised no candidate flags, and I found no violation of my own.\\\",\\\"evidence\\\":[\\\"src/domain/registration.ts: `export class Registration` has no decorators or base class; the constructor takes only string and Date fields\\\",\\\"src/domain/registration.ts: `cancel(at: Date): void` enforces the domain rule by throwing `new DomainError('conflict', ...)`. DomainError comes from './domain-error', a project-declared domain type\\\",\\\"src/domain/registration.ts: the only import is `import { DomainError } from './domain-error'`. There are no framework, ORM, HTTP or file-system imports and no I/O statements\\\"],\\\"violations\\\":[]}\",\"structured_output\":{\"confidence\":0.93,\"evidence\":[\"src/domain/registration.ts: `export class Registration` has no decorators or base class; the constructor takes only string and Date fields\",\"src/domain/registration.ts: `cancel(at: Date): void` enforces the domain rule by throwing `new DomainError('conflict', ...)`. DomainError comes from './domain-error', a project-declared domain type\",\"src/domain/registration.ts: the only import is `import { DomainError } from './domain-error'`. There are no framework, ORM, HTTP or file-system imports and no I/O statements\"],\"pass\":true,\"reasoning\":\"The file passes. src/domain/registration.ts is a plain domain entity. It has no decorators, no base class and no framework or transport types in any signature. It does no persistence or I/O. Its only import is the project's own DomainError from the domain layer. Its methods carry real domain rules: the isActive state, and the rule that a registration that is already cancelled cannot be cancelled again. The 'conflict' passed to DomainError is a string label for a project-defined error type. It is not an HTTP status code or a delivery-layer exception. The deterministic checks raised no candidate flags, and I found no violation of my own.\",\"violations\":[]}}",
+  "runIndex": 0,
+  "schemaVersion": 2,
+  "unitId": "src/domain/registration.ts",
+  "usage": {
+    "inputTokens": 2991,
+    "outputTokens": 564
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}

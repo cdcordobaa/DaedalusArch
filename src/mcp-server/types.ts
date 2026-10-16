@@ -9,8 +9,9 @@ import type {
   Route,
   LayerKind,
 } from '../shared/types/enums.js';
-import type { ViolationType } from '../shared/taxonomy/violation-types.js';
+import type { Violation, ViolationType } from '../shared/taxonomy/violation-types.js';
 import type { ScoringMode, TieredScoring } from '../shared/types/evaluation.js';
+import type { FixHint } from '../fix-hints/types.js';
 import type { RuleTier } from '../scoring-engine/rule-tiers.js';
 import type { EdgeView } from '../fitness-compiler/edge-views.js';
 
@@ -144,6 +145,8 @@ export interface RuleExplanation {
   readonly applicableStyles: readonly string[] | null;
   /** Rule-specific context from the spec, when one was supplied. */
   readonly specContext: readonly string[];
+  /** With hints on: the fix-hint family of the rule and whether it is blocking for the spec's style (Docs/v1.3/fix-hints.md). */
+  readonly fixHint?: { readonly family: string; readonly blocking: boolean; readonly template: string };
 }
 
 // ── evaluate_project ─────────────────────────────────────────────────────────
@@ -176,6 +179,16 @@ export interface EvaluateProjectResult {
   readonly scoringMode: ScoringMode;
   /** v1.3 mode only: blocking and advisory counts per rule, N/A parts with denominators; `ahs` stays the v1.2E AHS. */
   readonly tiers?: TieredScoring;
+  /**
+   * Every violation of the report, uncapped, as the pipeline produced it (type, discriminator, evidence). Present only
+   * when the caller asks (`includeViolations`; the loop harness does, the MCP tool does not).
+   */
+  readonly violations?: readonly Violation[];
+  /** v1.3 npx mode: set when the in-process interpreter answered (absent = Neo4j, the reference engine). */
+  readonly engine?: 'cypher-interp';
+  /** cypher-interp only: wall time of the call, and whether the unchanged project was answered from the cache. */
+  readonly latencyMs?: number;
+  readonly cache?: 'hit' | 'miss';
 }
 
 // ── Environment ──────────────────────────────────────────────────────────────
@@ -226,6 +239,11 @@ export interface FileViolation {
   readonly target?: string;
   /** Resolved view: the barrels an import went through to reach `target`. */
   readonly viaBarrels?: readonly string[];
+  /**
+   * Deterministic fix hint (Docs/v1.3/fix-hints.md): only when hints are on (`hints: true` or the server's `--hints`)
+   * and the rule is blocking under the v1.3 tiers for the spec's style. Spec-only: no graph facts.
+   */
+  readonly hint?: FixHint;
 }
 
 /** An active v1.3 rule the fast path does not decide, and why (run evaluate_project for it). */
@@ -277,6 +295,8 @@ export interface FileCheckResult {
   readonly notChecked: readonly NotChecked[];
   /** The project root was read (barrels followed, cycles checked, entry files found). */
   readonly projectAware: boolean;
+  /** v1.3 npx mode, only with `templates: true`: the compiled templates on the in-process interpreter. */
+  readonly templates?: TemplateCheckResult;
 }
 
 export interface DiffCheckResult {
@@ -296,6 +316,43 @@ export interface DiffCheckResult {
   readonly blockingCount: number;
   readonly advisoryCount: number;
   readonly blockingSummary: string;
+  /** v1.3 npx mode, only with `templates: true`: the compiled templates on the in-process interpreter, whole diff. */
+  readonly templates?: TemplateCheckResult;
+}
+
+// ── Template checks (v1.3 npx mode) ──────────────────────────────────────────
+
+/** A finding of a compiled Cypher template that the change introduces (the rule of record, not a fast restatement). */
+export interface TemplateFinding {
+  readonly ruleId: string;
+  readonly ruleName: string;
+  /** The v1.3 tier the pipeline's scoring used (rule-tiers.md). */
+  readonly tier: RuleTier;
+  readonly construct: string;
+  readonly source: string;
+  readonly severity: Severity;
+  readonly type: ViolationType;
+  /** Project-relative. */
+  readonly filePath: string;
+  readonly line?: number;
+  readonly target?: string;
+  readonly message: string;
+}
+
+export interface TemplateCheckResult {
+  /** `skipped`: `reason` says why (Neo4j engine, no project root, an evaluation failure). */
+  readonly status: 'checked' | 'skipped';
+  readonly reason?: string;
+  readonly engine: 'cypher-interp';
+  /** Template findings after the change that were not there before (matched without line numbers). */
+  readonly introduced: readonly TemplateFinding[];
+  /** Template findings before the change that are gone after it. */
+  readonly clearedCount: number;
+  /** `block` when an introduced finding is blocking; `unknown` when skipped. */
+  readonly blockingVerdict: BlockingVerdict;
+  /** Wall time of the two whole-project evaluations (a cache hit is a file walk only). */
+  readonly latencyMs?: { readonly before: number; readonly after: number };
+  readonly cache?: { readonly before: 'hit' | 'miss'; readonly after: 'hit' | 'miss' };
 }
 
 // ── suggest_placement (v1.3 loop) ────────────────────────────────────────────
