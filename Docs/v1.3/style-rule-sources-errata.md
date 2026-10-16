@@ -13,3 +13,13 @@
 | Missing rows | FF-P02, FF-P04, FF-P05, FF-P06, FF-DT05, FF-DS01, FF-DS02 and FF-S04 (in DDD) have no source row. Any of them that blocks needs one before the freeze. |
 
 Wording marked *(recalled)* in the verification file must be checked in print before thesis use.
+
+## Supplement for the missing rows (2026-10-16)
+
+The missing rows are in `Docs/v1.3/style-rule-sources-supplement.md`. That file uses the same table format and changes no tier. The findings for the author:
+- **FF-DS01** (blocking in the DDD preset, with no sealed tier row by id) has only a weak source basis. Decide its tier by ADR before the freeze, or report it outside the blocking verdict.
+- **FF-DS02** maps to the sealed "DDD, bounded-context isolation" row. Its tier is defensible if it is declared stricter than Evans.
+- **FF-P06** and **FF-S04** are defensible as blocking in Clean (and FF-P06 in DDD and Hexagonal). In NestJS they rest on the preset's Clean reading, not on the NestJS docs.
+- The **FF-DT05** source (DDD Reference 2015, pp. 10 and 13) is stronger than its advisory reason states.
+- The sealed advisory reasons for **FF-P04** and **FF-P05** understate Martin. Advisory still holds on proxy and P2 grounds.
+- **FF-S04 in DDD** needs no row: the DDD preset does not declare it (construct-decisions Q11 A).

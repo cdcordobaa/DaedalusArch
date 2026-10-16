@@ -1535,6 +1535,11 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 
 ---
 
+## v1.3 threats register, role separation, seed floor (scheduled task, documentation only)
+**Timestamp**: 2026-10-16T00:00:00Z
+**User Input**: "(scheduled task) Write a full v1.3 threats-to-validity register, a role-separation plan before the hold-out run, and a seed-floor plan; list cross-document number inconsistencies; no code changes, no re-scoring, no sealed directory opened."
+**AI Response**: "Added Docs/v1.3/threats-register.md (31 threats across construct, internal, external, conclusion, reliability and researcher degrees of freedom; Appendix A lists 10 inconsistencies, none fixed), Docs/v1.3/role-separation-plan.md (role matrix; independent R1 not the director; Gemini/Codex as non-Claude key writers K-G/K-X; order of work before freeze) and Docs/v1.3/seed-floor-plan.md (planted variants per style 10/9/10/11/12 vs floor 20; 48 named variants, not created). Branch v1.3-threats, one PR into v1.3, not merged."
+**Context**: v1.3 validity cycle, after PR #120; documentation only.
 ## v1.3 — blind misses diagnosis (v1.3-blind-misses)
 **Timestamp**: 2026-10-16T12:00:00Z
 **User Input**: "Classify every blind miss (14) and blind false alarm (4) of the after-member-facts run as extractor gap, rule/construct gap (mapped to Q1–Q25), key error or layer mapping; fix extractor gaps with tests (behind an off-by-default option if default results change); put construct gaps behind a switch only if none exists; re-score author and blind views; write Docs/DiagnosticRuns/v1.3-blind-misses-2026-10-16.md; one PR into v1.3, not merged."
@@ -1566,5 +1571,28 @@ Earlier the same night: 15 PRs merged into v1.3 (tip b08ec387), all gated (tsc, 
 **User Input**: "Scheduled task: triage every idea, decision, promise and conflict in the Notion thesis hub and its linked pages against origin/v1.3; write Docs/v1.3/research/notion-ideas-triage.md; insert a status callout at the top of the hub (insert only); open one PR into v1.3, do not merge."
 **AI Response**: "Fetched the hub, the 18 pages it mentions, its Next Actions DB, long-term ideas, the v1.3 brief and the roadmap (read-only). Classified 597 page rows: 263 DONE, 147 SUPERSEDED, 95 OPEN, 43 OUT, 49 UNCLEAR. Wrote the triage with per-page tables, 17 ranked open items mapped to the night backlog/plan or NEW, and 16 groups of now-wrong statements. Documentation only; no code, template, preset or sealed file touched. Option taken under delegation: the AI-DLC stage workflow was not run because this is a documentation triage, not a development task."
 **Context**: v1.3 validity cycle, documentation triage
+
+---
+## v1.3 CONSTRUCTION — night plan tracker update (scheduled task)
+**Timestamp**: 2026-10-16T10:30:00Z
+**User Input**: "scheduled tracker update"
+**AI Response**: "Night plan tracker refreshed from the PR list into v1.3 (all states) and the remote branches; hold reasons taken from the W3-1 review verdicts (Docs/v1.3/overnight-pr-review.md). 28 [x], 4 [~], 0 [ ], 63 [!]. Newly [x] with merge shas: A3 #166 db75b708, X2 #137 92d7a411, B1 #161 6384b821, J1 #134 a893b0eb, J2 #143 dffb1db8 (merged before its HOLD), I3b #135 3292ebed, J6 #138 2f1a3a4e, J7 #140 8c6abe09, J4 #150 5f52a9f6, X3 #183 9768def4, merge trains, W3-1 review (#202, #214). Moved to [!] (PR titled [hold]): R1, X1, G2, A1, A5, R2, Y5, Y1, X4, J3, G1, B2, Y2, Y3, J5, Z1, D1, D2. PR numbers filled in: C1 #195, W3-3 #201, W3-2 #212, J5 #188, P1 #192, judge v2.2 run #191, pilot run #170. New section 7 lists the other PRs into v1.3 (38 held, #215 open). A2 still has a branch and no PR. aidlc-state Current Stage: next author gate is reverting or gating #143."
+**Context**: CONSTRUCTION, v1.3 validity cycle; tracker-only update, docs only.
+
+---
+
+## v1.3 RESEARCH — research gaps and evidence map (scheduled task)
+**Timestamp**: 2026-10-16T12:00:00Z
+**User Input**: "Scheduled task: write Docs/v1.3/research/research-gaps-and-evidence.md: an evidence map with 1–3 verified published precedents for each validity and backlog job, a gap analysis, a master's vs doctoral scope separation (doctoral agenda kept separate), and Related-work / Future-work paragraphs using verified citations only. Documentation only; one PR into v1.3, not merged."
+**AI Response**: "Wrote the memo on branch v1.3-research-gaps. 52 DOIs checked against Crossref and 47 arXiv IDs against the arXiv API on 2026-10-16. Preprints are marked as such, venues not confirmed by a record are flagged, and one wrong DOI (Kapus & Cadar) was replaced by the verified one. Full texts not re-read. No code, rule, template, preset, result or registered artefact changed; no LLM judge call; no Study 2 or hold-out material touched. Options taken under delegation: ranking of master's work (hold-out first, Study 2 last); 7 doctoral RQs; status figures from open PRs (#161, #165, #166, #167) quoted as claims, not reviewed results."
+**Context**: v1.3 research memo, outside the study stages. AI-DLC approval gates not run interactively (scheduled task, documentation only).
+
+---
+
+## v1.3 research — tool landscape (scheduled task)
+**Timestamp**: 2026-10-16T04:25:00Z
+**User Input**: "Scheduled task: write Docs/v1.3/research/tool-landscape.md, a verified comparison of architecture-conformance, graph-query, smell-research, AI-reviewer/SDD and MCP code-quality tools against DaedalusArch (capability matrix, positioning incl. precise jQAssistant differences, cheap comparison experiments mapped to backlog jobs). Documentation only; no code, no LLM-judge calls; branch v1.3-research-tools; one PR into v1.3, not merged."
+**AI Response**: "Wrote Docs/v1.3/research/tool-landscape.md. Facts were verified online from official docs, registries and papers (accessed 2026-10-16), with unverified items marked. Key corrections to the 2026-10-10 Notion landscape: Sonar acquired Structure101 (2024-10-15) and no longer sells it; Sonar Architecture supports TypeScript; Sonargraph's Zügel MCP server checks proposed dependencies against its architecture DSL (Java/Python/C#, not TS); jQAssistant's jMolecules plugin ships hexagonal/DDD/onion rule packs (Java, annotation-driven, hard-coded Cypher). Proposed new backlog jobs J2–J6 (jQAssistant arm, expressibility matrix, community MCP servers, Sonar arm, Semgrep/CodeQL translation). Options taken under delegation: no AI-DLC stage gates were run, because this is a documentation-only scheduled task with no one present; and the night-backlog rule 7 ('no literature review') was read as overridden by this task's explicit request for a tool comparison."
+**Context**: v1.3 research note, outside the study stages; no frozen artefact touched.
 
 ---
