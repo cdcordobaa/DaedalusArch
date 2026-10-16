@@ -83,7 +83,7 @@ function harvest(round: string, work: string, outDir: string, version: 'v1' | 'v
     const cas = path.join(work, `${version}-harvest-cassettes`, safe(t.id));
     fs.rmSync(cas, { recursive: true, force: true });
     const args = ['bin/firewall.ts', 'evaluate', '--project', t.projectDir, '--spec', t.specPath, '--format', 'json',
-      '--neo4j-uri', process.env['NEO4J_URI'] ?? '', '--llm-provider', 'mock', '--judge-version', version,
+      '--neo4j-uri', process.env['NEO4J_URI'] ?? '', '--engine', 'neo4j', '--llm-provider', 'mock', '--judge-version', version,
       '--cassette-dir', cas, '--judge-baseline-report', path.join(work, 'baseline', `${safe(t.id)}.json`)];
     const r = spawnSync(tsx, args, { cwd: REPO, env: process.env, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024, timeout: 3_600_000 });
     const got = entriesIn(cas).filter((e) => e.runIndex === 0 && e.prompt !== undefined);

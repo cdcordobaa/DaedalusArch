@@ -1,0 +1,314 @@
+diff --git a/src/adapters/inbound/routes.ts b/src/adapters/inbound/routes.ts
+new file mode 100644
+index 0000000..c7c4c26
+--- /dev/null
++++ b/src/adapters/inbound/routes.ts
+@@ -0,0 +1,25 @@
++import { Router } from 'express';
++import { FoodBankService } from '../../application/food-bank-service';
++
++export function foodBankRoutes(service: FoodBankService): Router {
++  const r = Router();
++  r.post('/households', (req, res) => {
++    res.status(201).json(service.registerHousehold(req.body));
++  });
++  r.get('/households', (_req, res) => {
++    res.json(service.listHouseholds());
++  });
++  r.post('/inventory', (req, res) => {
++    res.status(201).json(service.addItem(req.body));
++  });
++  r.get('/inventory', (_req, res) => {
++    res.json(service.listInventory());
++  });
++  r.put('/households/:id/slot', (req, res) => {
++    res.json(service.bookSlot(req.params.id, Number(req.body.weekday), Number(req.body.hour)));
++  });
++  r.post('/households/:id/pickups', (req, res) => {
++    res.status(201).json(service.recordPickup(req.params.id, req.body.items ?? []));
++  });
++  return r;
++}
+diff --git a/src/adapters/inbound/server.ts b/src/adapters/inbound/server.ts
+new file mode 100644
+index 0000000..f943335
+--- /dev/null
++++ b/src/adapters/inbound/server.ts
+@@ -0,0 +1,11 @@
++import express, { NextFunction, Request, Response, Router } from 'express';
++
++export function createServer(...routers: Router[]): express.Express {
++  const app = express();
++  app.use(express.json());
++  routers.forEach((r) => app.use(r));
++  app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
++    res.status(400).json({ error: err.message });
++  });
++  return app;
++}
+diff --git a/src/adapters/outbound/memory-store.ts b/src/adapters/outbound/memory-store.ts
+new file mode 100644
+index 0000000..4d176af
+--- /dev/null
++++ b/src/adapters/outbound/memory-store.ts
+@@ -0,0 +1,56 @@
++import { Household } from '../../domain/household';
++import { InventoryItem } from '../../domain/inventory';
++import { Pickup, SlotBooking } from '../../domain/pickup';
++import { BookingRepository, HouseholdRepository, InventoryRepository, PickupRepository } from '../../application/ports';
++
++export class MemoryHouseholdRepository implements HouseholdRepository {
++  private readonly data = new Map<string, Household>();
++  save(h: Household): void {
++    this.data.set(h.id, h);
++  }
++  get(id: string): Household | undefined {
++    return this.data.get(id);
++  }
++  list(): Household[] {
++    return [...this.data.values()];
++  }
++}
++
++export class MemoryInventoryRepository implements InventoryRepository {
++  private readonly data = new Map<string, InventoryItem>();
++  save(item: InventoryItem): void {
++    this.data.set(item.id, item);
++  }
++  get(id: string): InventoryItem | undefined {
++    return this.data.get(id);
++  }
++  list(): InventoryItem[] {
++    return [...this.data.values()];
++  }
++}
++
++export class MemoryBookingRepository implements BookingRepository {
++  private readonly data = new Map<string, SlotBooking>();
++  save(b: SlotBooking): void {
++    this.data.set(b.householdId, b);
++  }
++  forHousehold(householdId: string): SlotBooking | undefined {
++    return this.data.get(householdId);
++  }
++  inSlot(weekday: number, hour: number): SlotBooking[] {
++    return [...this.data.values()].filter((b) => b.weekday === weekday && b.hour === hour);
++  }
++  remove(householdId: string): void {
++    this.data.delete(householdId);
++  }
++}
++
++export class MemoryPickupRepository implements PickupRepository {
++  private readonly data: Pickup[] = [];
++  save(p: Pickup): void {
++    this.data.push(p);
++  }
++  list(): Pickup[] {
++    return [...this.data];
++  }
++}
+diff --git a/src/application/food-bank-service.ts b/src/application/food-bank-service.ts
+new file mode 100644
+index 0000000..ddbb814
+--- /dev/null
++++ b/src/application/food-bank-service.ts
+@@ -0,0 +1,66 @@
++import { randomUUID } from 'node:crypto';
++import { DietaryNeed, Household } from '../domain/household';
++import { InventoryItem, takeFrom } from '../domain/inventory';
++import { Pickup, PickupLine, SLOT_CAPACITY, SlotBooking, validateSlot } from '../domain/pickup';
++import { BookingRepository, HouseholdRepository, InventoryRepository, PickupRepository } from './ports';
++
++export class FoodBankService {
++  constructor(
++    private readonly households: HouseholdRepository,
++    private readonly inventory: InventoryRepository,
++    private readonly bookings: BookingRepository,
++    private readonly pickups: PickupRepository,
++    private readonly today: () => string = () => new Date().toISOString().slice(0, 10),
++  ) {}
++
++  registerHousehold(input: { name: string; postcode: string; people: number; dietaryNeeds?: DietaryNeed[] }): Household {
++    if (!input.name || !input.postcode) throw new Error('name and postcode are required');
++    if (!(input.people > 0)) throw new Error('people must be at least 1');
++    const h: Household = { id: randomUUID(), name: input.name, postcode: input.postcode, people: input.people, dietaryNeeds: input.dietaryNeeds ?? [] };
++    this.households.save(h);
++    return h;
++  }
++
++  listHouseholds(): Household[] {
++    return this.households.list();
++  }
++
++  addItem(input: { name: string; category: string; quantity: number; bestBefore: string }): InventoryItem {
++    if (!(input.quantity > 0)) throw new Error('quantity must be positive');
++    const item: InventoryItem = { id: randomUUID(), ...input };
++    this.inventory.save(item);
++    return item;
++  }
++
++  listInventory(): InventoryItem[] {
++    return this.inventory.list();
++  }
++
++  bookSlot(householdId: string, weekday: number, hour: number): SlotBooking {
++    if (!this.households.get(householdId)) throw new Error('Unknown household');
++    validateSlot(weekday, hour);
++    const taken = this.bookings.inSlot(weekday, hour).filter((b) => b.householdId !== householdId);
++    if (taken.length >= SLOT_CAPACITY) throw new Error('This slot is full');
++    const booking: SlotBooking = { householdId, weekday, hour };
++    this.bookings.save(booking);
++    return booking;
++  }
++
++  recordPickup(householdId: string, items: { itemId: string; quantity: number }[]): Pickup {
++    if (!this.households.get(householdId)) throw new Error('Unknown household');
++    const today = this.today();
++    // validate everything first so that a bad line changes nothing
++    const updates: InventoryItem[] = [];
++    const lines: PickupLine[] = [];
++    for (const line of items) {
++      const item = this.inventory.get(line.itemId);
++      if (!item) throw new Error(`Unknown item ${line.itemId}`);
++      updates.push(takeFrom(item, line.quantity, today));
++      lines.push({ itemId: item.id, name: item.name, category: item.category, quantity: line.quantity });
++    }
++    updates.forEach((u) => this.inventory.save(u));
++    const pickup: Pickup = { id: randomUUID(), householdId, date: today, lines };
++    this.pickups.save(pickup);
++    return pickup;
++  }
++}
+diff --git a/src/application/ports.ts b/src/application/ports.ts
+new file mode 100644
+index 0000000..743ba06
+--- /dev/null
++++ b/src/application/ports.ts
+@@ -0,0 +1,27 @@
++import { Household } from '../domain/household';
++import { InventoryItem } from '../domain/inventory';
++import { Pickup, SlotBooking } from '../domain/pickup';
++
++export interface HouseholdRepository {
++  save(h: Household): void;
++  get(id: string): Household | undefined;
++  list(): Household[];
++}
++
++export interface InventoryRepository {
++  save(item: InventoryItem): void;
++  get(id: string): InventoryItem | undefined;
++  list(): InventoryItem[];
++}
++
++export interface BookingRepository {
++  save(b: SlotBooking): void;
++  forHousehold(householdId: string): SlotBooking | undefined;
++  inSlot(weekday: number, hour: number): SlotBooking[];
++  remove(householdId: string): void;
++}
++
++export interface PickupRepository {
++  save(p: Pickup): void;
++  list(): Pickup[];
++}
+diff --git a/src/config/main.ts b/src/config/main.ts
+new file mode 100644
+index 0000000..a49b911
+--- /dev/null
++++ b/src/config/main.ts
+@@ -0,0 +1,18 @@
++import { FoodBankService } from '../application/food-bank-service';
++import {
++  MemoryBookingRepository,
++  MemoryHouseholdRepository,
++  MemoryInventoryRepository,
++  MemoryPickupRepository,
++} from '../adapters/outbound/memory-store';
++import { foodBankRoutes } from '../adapters/inbound/routes';
++import { createServer } from '../adapters/inbound/server';
++
++const households = new MemoryHouseholdRepository();
++const inventory = new MemoryInventoryRepository();
++const bookings = new MemoryBookingRepository();
++const pickups = new MemoryPickupRepository();
++
++const foodBank = new FoodBankService(households, inventory, bookings, pickups);
++
++createServer(foodBankRoutes(foodBank)).listen(Number(process.env.PORT ?? 3000), () => console.log('food bank service listening'));
+diff --git a/src/domain/household.ts b/src/domain/household.ts
+new file mode 100644
+index 0000000..2984899
+--- /dev/null
++++ b/src/domain/household.ts
+@@ -0,0 +1,9 @@
++export type DietaryNeed = 'nut-allergy' | 'vegetarian' | 'halal';
++
++export interface Household {
++  id: string;
++  name: string;
++  postcode: string;
++  people: number;
++  dietaryNeeds: DietaryNeed[];
++}
+diff --git a/src/domain/inventory.ts b/src/domain/inventory.ts
+new file mode 100644
+index 0000000..7732646
+--- /dev/null
++++ b/src/domain/inventory.ts
+@@ -0,0 +1,18 @@
++export interface InventoryItem {
++  id: string;
++  name: string;
++  category: string;
++  quantity: number;
++  bestBefore: string; // YYYY-MM-DD
++}
++
++export function isExpired(item: InventoryItem, today: string): boolean {
++  return item.bestBefore < today;
++}
++
++export function takeFrom(item: InventoryItem, quantity: number, today: string): InventoryItem {
++  if (quantity <= 0) throw new Error('quantity must be positive');
++  if (isExpired(item, today)) throw new Error(`${item.name} is past its best-before date`);
++  if (item.quantity < quantity) throw new Error(`Only ${item.quantity} of ${item.name} left`);
++  return { ...item, quantity: item.quantity - quantity };
++}
+diff --git a/src/domain/pickup.ts b/src/domain/pickup.ts
+new file mode 100644
+index 0000000..0e71f0d
+--- /dev/null
++++ b/src/domain/pickup.ts
+@@ -0,0 +1,30 @@
++export const SLOT_CAPACITY = 12;
++
++export interface SlotBooking {
++  householdId: string;
++  weekday: number; // 1 = Monday ... 7 = Sunday
++  hour: number;
++}
++
++export interface PickupLine {
++  itemId: string;
++  name: string;
++  category: string;
++  quantity: number;
++}
++
++export interface Pickup {
++  id: string;
++  householdId: string;
++  date: string;
++  lines: PickupLine[];
++}
++
++export function slotKey(weekday: number, hour: number): string {
++  return `${weekday}@${hour}`;
++}
++
++export function validateSlot(weekday: number, hour: number): void {
++  if (!Number.isInteger(weekday) || weekday < 1 || weekday > 7) throw new Error('weekday must be 1..7');
++  if (!Number.isInteger(hour) || hour < 0 || hour > 23) throw new Error('hour must be 0..23');
++}
