@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "style": "clean-architecture",
+  "variant": "v23-domain-error-builds-http-response",
+  "kind": "violation",
+  "plants": "FF-S01",
+  "description": "DomainError (domain/errors) imports HttpResponse and fail from the HTTP adapter to add toResponse(status).",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/domain/errors/DomainError.ts",
+      "target": "src/infrastructure/http/HttpTypes.ts",
+      "reason": "The domain imports an infrastructure (HTTP adapter) module: the dependency points outward."
+    },
+    {
+      "ruleId": "FF-S04",
+      "ruleName": "no-domain-outward-dep",
+      "file": "src/domain/errors/DomainError.ts",
+      "target": "src/infrastructure/http/HttpTypes.ts",
+      "reason": "A domain file imports a file of another layer."
+    }
+  ]
+}
