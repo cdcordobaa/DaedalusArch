@@ -1,0 +1,128 @@
+{
+  "duration_api_ms": 100606,
+  "stop_reason": "end_turn",
+  "session_id": "2a04c9e1-df0d-4f13-b2e0-39c995120021",
+  "total_cost_usd": 0.2816804,
+  "usage": {
+    "input_tokens": 16,
+    "cache_creation_input_tokens": 21935,
+    "cache_read_input_tokens": 93784,
+    "output_tokens": 18453,
+    "output_tokens_details": {
+      "thinking_tokens": 1353
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 21935,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 863,
+        "cache_read_input_tokens": 27575,
+        "cache_creation_input_tokens": 272,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 272
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "modelUsage": {
+    "claude-sonnet-5-5": {
+      "inputTokens": 16,
+      "outputTokens": 18453,
+      "cacheReadInputTokens": 93784,
+      "cacheCreationInputTokens": 21935,
+      "webSearchRequests": 0,
+      "costUSD": 0.2816804,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "thinkingTokens": 1353,
+      "canonicalModel": "claude-sonnet-5-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01SuyXAcXxNxExqoUVxjAQaN",
+      "tool_input": {
+        "command": "cd /tmp/claude-0/-home-user-DaedalusArch/a83fccad-843c-5015-8db8-a37911ed0199/scratchpad/harness/runs/claude-code-cli/claude-sonnet-5-5/school-bus/none/run-0/ && cat tsconfig.json; ls -a; pwd; ls /tmp/claude-0/-home-user-DaedalusArch/a83fccad-843c-5015-8db8-a37911ed0199/scratchpad/harness; ls -a /tmp/claude-0/-home-user-DaedalusArch/a83fccad-843c-5015-8db8-a37911ed0199/scratchpad/out/runs/claude-code-cli/claude-sonnet-5-5/school-bus/none/run-0/work"
+      }
+    },
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_01Vrebxp47q1QycKPcXgFwMY",
+      "tool_input": {
+        "file_path": "/tmp/claude-0/-home-user-DaedalusArch/a83fccad-843c-5015-8db8-a37911ed0199/scratchpad/harness/runs/claude-code-cli/claude-sonnet-5-5/school-bus/none/run-0/tsconfig.json"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01JJBJefGnAvTEBf8TVFHrrm",
+      "tool_input": {
+        "command": "cat package.json; ls node_modules node_modules/@types 2>/dev/null"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01B5rd6DcZzjhTDbHwHhzLBT",
+      "tool_input": {
+        "command": "mkdir -p src/domain src/application src/infrastructure\ncat > src/domain/errors.ts <<'EOF'\nexport class NotFoundError extends Error {}\nexport class ValidationError extends Error {}\nEOF\ncat > src/domain/route.ts <<'EOF'\nimport { ValidationError } from \"./errors.js\";\n\nexport interface Stop {\n  id: string;\n  name: string;\n  latitude: number;\n  longitude: number;\n  /** Scheduled time of day in minutes after midnight. */\n  scheduledMinutes: number;\n}\n\nexport interface Route {\n  id: string;\n  name: string;\n  stops: Stop[];\n}\n\nexport function parseTimeOfDay(value: string): number {\n  const m = /^([01]?\\d|2[0-3]):([0-5]\\d)$/.exec(value);\n  if (!m) throw new ValidationError(`Invalid time \"${value}\", expected HH:MM`);\n  return Number(m[1]) * 60 + Number(m[2]);\n}\n\nexport function formatTimeOfDay(minutes: number): string {\n  const day = 24 * 60;\n  const n = ((Math.round(minutes) % day) + day) % day;\n  const h = String(Math.floor(n / 60)).padStart(2, \"0\");\n  const mm = String(n % 60).padStart(2, \"0\");\n  return `${h}:${mm}`;\n}\n\nexport function validateCoordinates(latitude: unknown, longitude: unknown): void {\n  if (\n    typeof latitude !== \"number\" || typeof longitude !== \"number\" ||\n    !Number.isFinite(latitude) || !Number.isFinite(longitude) ||\n    Math.abs(latitude) > 90 || Math.abs(longitude) > 180\n  ) {\n    throw new ValidationError(\"latitude and longitude must be valid numbers\");\n  }\n}\nEOF\ncat > src/domain/pupil.ts <<'EOF'\nexport interface Pupil {\n  id: string;\n  name: string;\n  school: string;\n  parentEmail: string;\n  morningStopId: string;\n  afternoonStopId: string;\n}\n\nexport type Trip = \"morning\" | \"afternoon\";\nEOF\ncat > src/domain/busRun.ts <<'EOF'\nimport type { Route, Stop } from \"./route.js\";\n\nexport interface Position {\n  unitId: string;\n  latitude: number;\n  longitude: number;\n  time: Date;\n}\n\nexport interface StopPassage {\n  stopIndex: number;\n  /** Minutes late (negative = early) when the bus passed the stop. */\n  delayMinutes: number;\n  passedAt: Date;\n}\n\n/** A unit linked to the route it drives on a given day. */\nexport interface BusRun {\n  unitId: string;\n  routeId: string;\n  date: string; // YYYY-MM-DD\n  lastPassage?: StopPassage;\n  lastPosition?: Position;\n}\n\nexport const STOP_RADIUS_METERS = 100;\n\nexport function distanceMeters(aLat: number, aLon: number, bLat: number, bLon: number): number {\n  const rad = Math.PI / 180;\n  const dLat = (bLat - aLat) * rad;\n  const dLon = (bLon - aLon) * rad;\n  const h =\n    Math.sin(dLat / 2) ** 2 +\n    Math.cos(aLat * rad) * Math.cos(bLat * rad) * Math.sin(dLon / 2) ** 2;\n  return 2 * 6371000 * Math.asin(Math.min(1, Math.sqrt(h)));\n}\n\nexport function minutesOfDay(time: Date, utcOffsetMinutes: number): number {\n  const shifted = new Date(time.getTime() + utcOffsetMinutes * 60000);\n  return shifted.getUTCHours() * 60 + shifted.getUTCMinutes() + shifted.getUTCSeconds() / 60;\n}\n\n/**\n * Applies a GPS fix to the run: if the bus is at a stop further along the\n * route than the last one passed, records the passage and its delay.\n */\nexport function applyPosition(run: BusRun, route: Route, position: Position, utcOffsetMinutes: number): void {\n  run.lastPosition = position;\n  const from = run.lastPassage ? run.lastPassage.stopIndex + 1 : 0;\n  for (let i = from; i < route.stops.length; i++) {\n    const stop = route.stops[i] as Stop;\n    if (distanceMeters(stop.latitude, stop.longitude, position.latitude, position.longitude) <= STOP_RADIUS_METERS) {\n      run.lastPassage = {\n        stopIndex: i,\n        delayMinutes: minutesOfDay(position.time, utcOffsetMinutes) - stop.scheduledMinutes,\n        passedAt: position.time,\n      };\n      return;\n    }\n  }\n}\n\nexport interface Estimate {\n  status: \"estimated\" | \"passed\" | \"no-live-data\";\n  delayMinutes: number;\n  estimatedMinutes: number;\n}\n\nexport function estimateArrival(run: BusRun | undefined, route: Route, stopId: string): Estimate {\n  const index = route.stops.findIndex((s) => s.id === stopId);\n  const stop = route.stops[index] as Stop;\n  if (!run) return { status: \"no-live-data\", delayMinutes: 0, estimatedMinutes: stop.scheduledMinutes };\n  const passage = run.lastPassage;\n  if (passage && passage.stopIndex >= index) {\n    return { status: \"passed\", delayMinutes: passage.delayMinutes, estimatedMinutes: stop.scheduledMinutes + passage.delayMinutes };\n  }\n  const delay = passage ? passage.delayMinutes : 0;\n  return { status: \"estimated\", delayMinutes: delay, estimatedMinutes: stop.scheduledMinutes + delay };\n}\nEOF\ncat > src/application/ports.ts <<'EOF'\nimport type { Route } from \"../domain/route.js\";\nimport type { Pupil } from \"../domain/pupil.js\";\nimport type { BusRun } from \"../domain/busRun.js\";\n\nexport interface RouteRepository {\n  save(route: Route): void;\n  findById(id: string): Route | undefined;\n  findByStopId(stopId: string): Route | undefined;\n  list(): Route[];\n}\n\nexport interface PupilRepository {\n  save(pupil: Pupil): void;\n  findById(id: string): Pupil | undefined;\n  list(): Pupil[];\n}\n\nexport interface BusRunRepository {\n  save(run: BusRun): void;\n  findByUnitId(unitId: string): BusRun | undefined;\n  findByRouteAndDate(routeId: string, date: string): BusRun | undefined;\n}\n\nexport interface IdGenerator {\n  next(): string;\n}\n\nexport interface Clock {\n  now(): Date;\n}\nEOF\ncat > src/application/busTrackingService.ts <<'EOF'\nimport { NotFoundError, ValidationError } from \"../domain/errors.js\";\nimport { formatTimeOfDay, parseTimeOfDay, validateCoordinates, type Route } from \"../domain/route.js\";\nimport type { Pupil, Trip } from \"../domain/pupil.js\";\nimport { applyPosition, estimateArrival, type BusRun, type Position } from \"../domain/busRun.js\";\nimport type { BusRunRepository, Clock, IdGenerator, PupilRepository, RouteRepository } from \"./ports.js\";\n\nexport interface StopInput {\n  name: string;\n  latitude: number;\n  longitude: number;\n  scheduledTime: string;\n}\n\nexport interface PupilInput {\n  name: string;\n  school: string;\n  parentEmail: string;\n  morningStopId: string;\n  afternoonStopId: string;\n}\n\nexport interface PositionInput {\n  unitId: string;\n  latitude: number;\n  longitude: number;\n  time: string;\n}\n\nexport interface EtaResult {\n  pupilId: string;\n  trip: Trip;\n  stopId: string;\n  stopName: string;\n  routeId: string;\n  scheduledTime: string;\n  delayMinutes: number;\n  estimatedTime: string;\n  status: \"estimated\" | \"passed\" | \"no-live-data\";\n}\n\nfunction requireString(value: unknown, field: string): string {\n  if (typeof value !== \"string\" || value.trim() === \"\") throw new ValidationError(`${field} is required`);\n  return value.trim();\n}\n\nexport class BusTrackingService {\n  constructor(\n    private readonly routes: RouteRepository,\n    private readonly pupils: PupilRepository,\n    private readonly runs: BusRunRepository,\n    private readonly ids: IdGenerator,\n    private readonly clock: Clock,\n    private readonly utcOffsetMinutes: number,\n  ) {}\n\n  createRoute(name: string, stops: StopInput[]): Route {\n    const routeName = requireString(name, \"name\");\n    if (!Array.isArray(stops) || stops.length === 0) throw new ValidationError(\"stops must be a non-empty list\");\n    const route: Route = {\n      id: this.ids.next(),\n      name: routeName,\n      stops: stops.map((s) => {\n        validateCoordinates(s?.latitude, s?.longitude);\n        return {\n          id: this.ids.next(),\n          name: requireString(s.name, \"stop name\"),\n          latitude: s.latitude,\n          longitude: s.longitude,\n          scheduledMinutes: parseTimeOfDay(requireString(s.scheduledTime, \"scheduledTime\")),\n        };\n      }),\n    };\n    for (let i = 1; i < route.stops.length; i++) {\n      const prev = route.stops[i - 1];\n      const cur = route.stops[i];\n      if (prev && cur && cur.scheduledMinutes < prev.scheduledMinutes) {\n        throw new ValidationError(\"stops must be in scheduled order\");\n      }\n    }\n    this.routes.save(route);\n    return route;\n  }\n\n  listRoutes(): Route[] {\n    return this.routes.list();\n  }\n\n  getRoute(id: string): Route {\n    const route = this.routes.findById(id);\n    if (!route) throw new NotFoundError(`Route ${id} not found`);\n    return route;\n  }\n\n  createPupil(input: PupilInput): Pupil {\n    const pupil: Pupil = {\n      id: this.ids.next(),\n      name: requireString(input.name, \"name\"),\n      school: requireString(input.school, \"school\"),\n      parentEmail: requireString(input.parentEmail, \"parentEmail\"),\n      morningStopId: requireString(input.morningStopId, \"morningStopId\"),\n      afternoonStopId: requireString(input.afternoonStopId, \"afternoonStopId\"),\n    };\n    if (!/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(pupil.parentEmail)) throw new ValidationError(\"parentEmail is invalid\");\n    for (const stopId of [pupil.morningStopId, pupil.afternoonStopId]) {\n      if (!this.routes.findByStopId(stopId)) throw new ValidationError(`Unknown stop ${stopId}`);\n    }\n    this.pupils.save(pupil);\n    return pupil;\n  }\n\n  listPupils(): Pupil[] {\n    return this.pupils.list();\n  }\n\n  getPupil(id: string): Pupil {\n    const pupil = this.pupils.findById(id);\n    if (!pupil) throw new NotFoundError(`Pupil ${id} not found`);\n    return pupil;\n  }\n\n  /** Links a unit to the route it drives on the given day (default today); resets its progress. */\n  linkUnit(unitId: string, routeId: string, date?: string): BusRun {\n    const id = requireString(unitId, \"unitId\");\n    this.getRoute(routeId);\n    const day = date === undefined ? this.clock.now().toISOString().slice(0, 10) : date;\n    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(day)) throw new ValidationError(\"date must be YYYY-MM-DD\");\n    const run: BusRun = { unitId: id, routeId, date: day };\n    this.runs.save(run);\n    return run;\n  }\n\n  /** Records a GPS fix. Returns false when the unit is not linked to a route. */\n  recordPosition(input: PositionInput): boolean {\n    const unitId = requireString(input?.unitId, \"unitId\");\n    validateCoordinates(input.latitude, input.longitude);\n    const time = new Date(input.time);\n    if (typeof input.time !== \"string\" || Number.isNaN(time.getTime())) throw new ValidationError(\"time must be an ISO date-time\");\n    const position: Position = { unitId, latitude: input.latitude, longitude: input.longitude, time };\n    const run = this.runs.findByUnitId(unitId);\n    if (!run) return false;\n    const route = this.routes.findById(run.routeId);\n    if (!route) return false;\n    applyPosition(run, route, position, this.utcOffsetMinutes);\n    this.runs.save(run);\n    return true;\n  }\n\n  getEta(pupilId: string, trip: Trip): EtaResult {\n    if (trip !== \"morning\" && trip !== \"afternoon\") throw new ValidationError(\"trip must be morning or afternoon\");\n    const pupil = this.getPupil(pupilId);\n    const stopId = trip === \"morning\" ? pupil.morningStopId : pupil.afternoonStopId;\n    const route = this.routes.findByStopId(stopId);\n    if (!route) throw new NotFoundError(`Stop ${stopId} not found`);\n    const today = this.clock.now().toISOString().slice(0, 10);\n    const run = this.runs.findByRouteAndDate(route.id, today);\n    const estimate = estimateArrival(run, route, stopId);\n    const stop = route.stops.find((s) => s.id === stopId);\n    if (!stop) throw new NotFoundError(`Stop ${stopId} not found`);\n    return {\n      pupilId,\n      trip,\n      stopId,\n      stopName: stop.name,\n      routeId: route.id,\n      scheduledTime: formatTimeOfDay(stop.scheduledMinutes),\n      delayMinutes: Math.round(estimate.delayMinutes * 10) / 10,\n      estimatedTime: formatTimeOfDay(estimate.estimatedMinutes),\n      status: estimate.status,\n    };\n  }\n}\nEOF\ncat > src/infrastructure/inMemoryRepositories.ts <<'EOF'\nimport { randomUUID } from \"node:crypto\";\nimport type { BusRunRepository, Clock, IdGenerator, PupilRepository, RouteRepository } from \"../application/ports.js\";\nimport type { Route } from \"../domain/route.js\";\nimport type { Pupil } from \"../domain/pupil.js\";\nimport type { BusRun } from \"../domain/busRun.js\";\n\nexport class InMemoryRouteRepository implements RouteRepository {\n  private readonly items = new Map<string, Route>();\n  save(route: Route): void { this.items.set(route.id, route); }\n  findById(id: string): Route | undefined { return this.items.get(id); }\n  findByStopId(stopId: string): Route | undefined {\n    return [...this.items.values()].find((r) => r.stops.some((s) => s.id === stopId));\n  }\n  list(): Route[] { return [...this.items.values()]; }\n}\n\nexport class InMemoryPupilRepository implements PupilRepository {\n  private readonly items = new Map<string, Pupil>();\n  save(pupil: Pupil): void { this.items.set(pupil.id, pupil); }\n  findById(id: string): Pupil | undefined { return this.items.get(id); }\n  list(): Pupil[] { return [...this.items.values()]; }\n}\n\nexport class InMemoryBusRunRepository implements BusRunRepository {\n  private readonly items = new Map<string, BusRun>();\n  save(run: BusRun): void { this.items.set(run.unitId, run); }\n  findByUnitId(unitId: string): BusRun | undefined { return this.items.get(unitId); }\n  findByRouteAndDate(routeId: string, date: string): BusRun | undefined {\n    return [...this.items.values()].find((r) => r.routeId === routeId && r.date === date);\n  }\n}\n\nexport class UuidGenerator implements IdGenerator {\n  next(): string { return randomUUID(); }\n}\n\nexport class SystemClock implements Clock {\n  now(): Date { return new Date(); }\n}\nEOF\ncat > src/infrastructure/httpApp.ts <<'EOF'\nimport express from \"express\";\nimport type { NextFunction, Request, Response } from \"express\";\nimport type { BusTrackingService } from \"../application/busTrackingService.js\";\nimport { NotFoundError, ValidationError } from \"../domain/errors.js\";\nimport type { Trip } from \"../domain/pupil.js\";\n\nexport function createHttpApp(service: BusTrackingService): express.Express {\n  const app = express();\n  app.use(express.json());\n\n  app.post(\"/routes\", (req: Request, res: Response) => {\n    res.status(201).json(service.createRoute(req.body?.name, req.body?.stops));\n  });\n  app.get(\"/routes\", (_req: Request, res: Response) => {\n    res.json(service.listRoutes());\n  });\n  app.get(\"/routes/:id\", (req: Request, res: Response) => {\n    res.json(service.getRoute(String(req.params[\"id\"])));\n  });\n\n  app.post(\"/pupils\", (req: Request, res: Response) => {\n    res.status(201).json(service.createPupil(req.body ?? {}));\n  });\n  app.get(\"/pupils\", (_req: Request, res: Response) => {\n    res.json(service.listPupils());\n  });\n  app.get(\"/pupils/:id\", (req: Request, res: Response) => {\n    res.json(service.getPupil(String(req.params[\"id\"])));\n  });\n  app.get(\"/pupils/:id/eta\", (req: Request, res: Response) => {\n    const trip = String(req.query[\"trip\"] ?? \"morning\") as Trip;\n    res.json(service.getEta(String(req.params[\"id\"]), trip));\n  });\n\n  app.put(\"/units/:unitId/route\", (req: Request, res: Response) => {\n    const run = service.linkUnit(String(req.params[\"unitId\"]), req.body?.routeId, req.body?.date);\n    res.json({ unitId: run.unitId, routeId: run.routeId, date: run.date });\n  });\n\n  app.post(\"/webhooks/trackbus\", (req: Request, res: Response) => {\n    const linked = service.recordPosition(req.body ?? {});\n    res.status(202).json({ accepted: true, linked });\n  });\n\n  app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {\n    if (err instanceof ValidationError) {\n      res.status(400).json({ error: err.message });\n    } else if (err instanceof NotFoundError) {\n      res.status(404).json({ error: err.message });\n    } else if (err instanceof SyntaxError) {\n      res.status(400).json({ error: \"Invalid JSON\" });\n    } else {\n      res.status(500).json({ error: \"Internal error\" });\n    }\n  });\n\n  return app;\n}\nEOF\ncat > src/infrastructure/server.ts <<'EOF'\nimport { BusTrackingService } from \"../application/busTrackingService.js\";\nimport { createHttpApp } from \"./httpApp.js\";\nimport {\n  InMemoryBusRunRepository,\n  InMemoryPupilRepository,\n  InMemoryRouteRepository,\n  SystemClock,\n  UuidGenerator,\n} from \"./inMemoryRepositories.js\";\n\nconst utcOffsetMinutes = Number(process.env[\"UTC_OFFSET_MINUTES\"] ?? 0);\nconst service = new BusTrackingService(\n  new InMemoryRouteRepository(),\n  new InMemoryPupilRepository(),\n  new InMemoryBusRunRepository(),\n  new UuidGenerator(),\n  new SystemClock(),\n  Number.isFinite(utcOffsetMinutes) ? utcOffsetMinutes : 0,\n);\n\nconst port = Number(process.env[\"PORT\"] ?? 3000);\ncreateHttpApp(service).listen(port, () => {\n  console.log(`School bus tracking listening on ${port}`);\n});\nEOF\n/tmp/claude-0/-home-user-DaedalusArch/a83fccad-843c-5015-8db8-a37911ed0199/scratchpad/harness/bin/tsc --noEmit --incremental false -p /tmp/claude-0/-home-user-DaedalusArch/a83fccad-843c-5015-8db8-a37911ed0199/scratchpad/harness/runs/claude-code-cli/claude-sonnet-5-5/school-bus/none/run-0/tsconfig.json"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subagent_stats": {
+    "spawned": 0,
+    "requested": {
+      "background": 0,
+      "foreground": 0,
+      "unset": 0
+    },
+    "started_in_background": 0,
+    "max_depth": 0,
+    "spawned_by_subagents": 0,
+    "completed": 0,
+    "failed": 0,
+    "killed": {
+      "parent": 0,
+      "user": 0,
+      "system": 0
+    },
+    "refused": {
+      "depth_limit": 0,
+      "concurrency_limit": 0,
+      "budget": 0
+    },
+    "by_type": {}
+  },
+  "safety_stops": 0,
+  "is_error": false,
+  "num_turns": 17,
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "Step 1 is built, and the type-check command you gave ran with no errors. I haven't started the server or sent it any requests, so none of the endpoints have been exercised.\n\nEarly on, a couple of shell commands were denied, so I couldn't read the harness `tsconfig.json`. I wrote the code to be tolerant of module settings instead, using `.js` suffixes on relative imports.\n\n**Layout**\n- `src/domain`:\n  - the route/stop, pupil, and bus-run models;\n  - the delay and ETA logic;\n  - time and coordinate validation;\n  - the error types.\n- `src/application`:\n  - `BusTrackingService`, which holds all the operations;\n  - the repository, clock, and id-generator interfaces it depends on.\n- `src/infrastructure`: the in-memory repositories, the Express HTTP app, and `server.ts`, which starts it (port from `PORT`, default 3000).\n\n**HTTP operations**\n- `POST /routes` creates a route from a name and stops, each with name, latitude, longitude, and `scheduledTime` as `HH:MM`. Stops must be in time order. `GET /routes` and `GET /routes/:id` read them back.\n- `POST /pupils` takes name, school, parent e-mail, `morningStopId`, and `afternoonStopId`. `GET /pupils` and `GET /pupils/:id` read them back.\n- `PUT /units/:unitId/route` with `{routeId, date?}` links a unit to a route for that day (today by default). Re-linking resets the bus's progress.\n- `POST /webhooks/trackbus` takes `{unitId, latitude, longitude, time}` and always answers 202 for valid input, with `linked: false` if the unit has no route. Invalid input gets a 400.\n- `GET /pupils/:id/eta?trip=morning|afternoon` returns the scheduled time, the delay, the estimated time, and a status.\n\n**How the delay works**\n- A bus counts as having passed a stop when a GPS fix lands within 100 m of it. Only stops after the last one passed are checked.\n- The delay is the fix time of day minus the stop's scheduled time, so an early bus gives a negative delay.\n- The estimate is the stop's scheduled time plus the delay from the last stop passed.\n- The status is `no-live-data` (no bus linked today, or none that has passed a stop yet), `estimated`, or `passed` (the bus has already gone by the pupil's stop).\n- Scheduled times are treated as UTC unless you set `UTC_OFFSET_MINUTES`, so set that to your district's offset.",
+  "ttft_ms": 2890,
+  "type": "result",
+  "duration_ms": 101993,
+  "uuid": "8d25e068-cdb3-46f3-b049-d8d8187c4552",
+  "ttft_stream_ms": 1388,
+  "time_to_request_ms": 275,
+  "first_content_frame_ms": 1388,
+  "queued_turn_count": 0,
+  "result_index": 0
+}

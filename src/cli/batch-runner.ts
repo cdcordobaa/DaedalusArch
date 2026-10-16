@@ -68,6 +68,7 @@ function buildConfig(projectPath: string, opts: BatchOptions, neo4jPassword: str
     diff: false,
     verbose: opts.verbose,
     apgStorePath: process.env['APG_STORE_PATH'] ?? '.apg-store',
+    ...(opts.graphEngine === 'cypher-interp' && { graphEngine: 'cypher-interp' as const }),
   };
 }
 
@@ -164,14 +165,16 @@ export async function runBatch(
     return 2;
   }
 
-  // BR-U3-80: no default password; stop before any connection.
-  let neo4jPassword: string;
-  try {
-    neo4jPassword = requireEnv('NEO4J_PASSWORD');
-  } catch (err) {
-    if (!(err instanceof MissingEnvError)) throw err;
-    process.stderr.write(missingEnvMessage(err));
-    return 2;
+  // BR-U3-80: no default password; stop before any connection. The in-process engine opens none and reads none.
+  let neo4jPassword = '';
+  if (opts.graphEngine !== 'cypher-interp') {
+    try {
+      neo4jPassword = requireEnv('NEO4J_PASSWORD');
+    } catch (err) {
+      if (!(err instanceof MissingEnvError)) throw err;
+      process.stderr.write(missingEnvMessage(err));
+      return 2;
+    }
   }
 
   const projects = discoverProjects(opts.dir);

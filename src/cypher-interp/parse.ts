@@ -5,8 +5,11 @@
  *
  * Two error classes, never a guess:
  * - `CypherSyntaxError`: the text does not parse under Neo4j's grammar (Neo4j would reject it too);
- * - `CypherUnsupportedError`: valid Cypher outside the interpreter's subset (writes, CALL, UNION, GDS, QPP, ...).
+ * - `CypherUnsupportedError`: valid Cypher outside the interpreter's subset (writes, procedure CALL, top-level UNION,
+ *   GDS, QPP, ...). `CALL { ... [UNION [ALL] ...] }` returning unit subqueries are in the subset.
  */
+import { checkStaticTypes } from './typecheck.js';
+import { simplifyQuery } from './simplify.js';
 import { BaseErrorListener, CharStream, CommonTokenStream, ParserRuleContext, TerminalNode } from 'antlr4ng';
 import type { ParseTree, RecognitionException, Recognizer, Token, ATNSimulator } from 'antlr4ng';
 import { Cypher25Lexer } from './generated/Cypher25Lexer.js';
@@ -29,6 +32,21 @@ export class CypherUnsupportedError extends Error {
     this.name = 'CypherUnsupportedError';
   }
 }
+
+/** Grammar clause rules → the Cypher a reader recognises, for `CypherUnsupportedError` messages. */
+const CLAUSE_NAMES: Readonly<Record<string, string>> = {
+  createClause: 'CREATE (write clause)', mergeClause: 'MERGE (write clause)', setClause: 'SET (write clause)', deleteClause: 'DELETE / DETACH DELETE (write clause)',
+  removeClause: 'REMOVE (write clause)', foreachClause: 'FOREACH (write clause)', loadCSVClause: 'LOAD CSV', callClause: 'CALL procedure',
+  subqueryClause: 'CALL { } subquery', insertClause: 'INSERT (write clause)', finishClause: 'FINISH', useClause: 'USE', orderBySkipLimitClause: 'standalone ORDER BY / SKIP / LIMIT',
+  filterClause: 'FILTER (Cypher 25 only)', letClause: 'LET (Cypher 25 only)', showIndexCommand: 'SHOW', terminateCommand: 'TERMINATE',
+};
+
+/** Grammar expression rules → the Cypher a reader recognises. */
+const EXPRESSION_NAMES: Readonly<Record<string, string>> = {
+  countExpression: 'COUNT { } subquery', collectExpression: 'COLLECT { } subquery', mapProjection: 'map projection',
+  patternComprehension: 'pattern comprehension', shortestPathExpression: 'shortestPath', patternExpression: 'pattern expression',
+  normalizeFunction: 'normalize()', trimFunction: 'trim(... FROM ...)',
+};
 
 class ThrowingListener extends BaseErrorListener {
   readonly errors: string[] = [];
@@ -99,18 +117,50 @@ class Builder {
   }
 
   queryWithLocalDefinitions(c: Ctx): Query {
+    const { parts, all } = this.unionParts(c);
+    if (parts.length !== 1) throw new CypherUnsupportedError(`UNION${all ? ' ALL' : ''} outside a CALL { } subquery`);
+    return parts[0] as Query;
+  }
+
+  /** The `singleQuery` parts of a query body and whether they are joined by `UNION ALL` (mixing is an error). */
+  unionParts(c: Ctx): { parts: Query[]; all: boolean } {
     if (rule(c, 'localDefinition') !== undefined) throw new CypherUnsupportedError('DEFINE');
     const next = need(c, 'nextStatement');
     const regs = rules(next, 'regularQuery');
     if (regs.length !== 1) throw new CypherUnsupportedError('NEXT');
-    const reg = regs[0] as Ctx;
-    const union = rule(reg, 'union');
+    const union = rule(regs[0] as Ctx, 'union');
     if (union === undefined) throw new CypherUnsupportedError('WHEN query');
-    const singles = rules(union, 'singleQuery');
-    if (singles.length !== 1) throw new CypherUnsupportedError('UNION');
-    const single = singles[0] as Ctx;
-    if (rule(single, 'clause') === undefined) throw new CypherUnsupportedError('braced query');
-    return { clauses: rules(single, 'clause').map((cl) => this.clause(cl)) };
+    const alls = kids(union).filter((k) => isTok(k, 'ALL')).length;
+    const unions = kids(union).filter((k) => isTok(k, 'UNION')).length;
+    if (alls !== 0 && alls !== unions) throw new CypherSyntaxError('Invalid combination of UNION and UNION ALL');
+    const parts = rules(union, 'singleQuery').map((single) => {
+      if (rule(single, 'clause') === undefined) throw new CypherUnsupportedError('braced query');
+      return { clauses: rules(single, 'clause').map((cl) => this.clause(cl)) };
+    });
+    return { parts, all: unions > 0 && alls === unions };
+  }
+
+  /**
+   * `CALL { part [UNION [ALL] part]* }`: returning unit subqueries; a part may import outer variables with a leading
+   * `WITH`. OPTIONAL, scoped `CALL ( ) { }` and IN TRANSACTIONS stay rejected. Parts must end in RETURN with named
+   * columns, the same set in every part (any order, as Neo4j accepts).
+   */
+  subqueryClause(c: Ctx): Clause {
+    if (hasTok(c, 'OPTIONAL')) throw new CypherUnsupportedError('OPTIONAL CALL { } subquery');
+    if (rule(c, 'subqueryScope') !== undefined) throw new CypherUnsupportedError('scoped CALL ( ) { } subquery (correlated)');
+    if (rule(c, 'subqueryInTransactionsParameters') !== undefined) throw new CypherUnsupportedError('CALL { } IN TRANSACTIONS');
+    const { parts, all } = this.unionParts(need(c, 'queryWithLocalDefinitions'));
+    let columns: string[] | undefined;
+    for (const p of parts) {
+      const last = p.clauses[p.clauses.length - 1];
+      if (last?.k !== 'return' || last.projection.star) throw new CypherUnsupportedError('CALL { } subquery that does not end in RETURN with named columns');
+      const cols = last.projection.items.map((i) => i.alias);
+      if (columns === undefined) columns = cols;
+      else if (cols.length !== columns.length || cols.some((x) => !(columns ?? []).includes(x))) {
+        throw new CypherSyntaxError('All sub queries in an UNION must have the same return column names');
+      }
+    }
+    return { k: 'call', parts, unionAll: all, columns: columns ?? [] };
   }
 
   clause(c: Ctx): Clause {
@@ -123,7 +173,11 @@ class Builder {
       }
       case 'returnClause': return { k: 'return', projection: this.returnBody(need(inner, 'returnBody'), 'RETURN') };
       case 'unwindClause': return { k: 'unwind', expr: this.expression(need(inner, 'expression')), alias: this.variable(need(inner, 'variable')) };
-      default: throw new CypherUnsupportedError(`clause ${ruleOf(inner) ?? '?'}`);
+      case 'subqueryClause': return this.subqueryClause(inner);
+      default: {
+        const r = ruleOf(inner) ?? '?';
+        throw new CypherUnsupportedError(`${CLAUSE_NAMES[r] ?? `clause ${r}`} (${r}); the interpreter runs read-only MATCH / OPTIONAL MATCH / WITH / UNWIND / RETURN queries`);
+      }
     }
   }
 
@@ -217,7 +271,9 @@ class Builder {
   properties(c: Ctx): Expr {
     const m = rule(c, 'map');
     if (m !== undefined) return this.map(m);
-    return this.parameter(need(c, 'parameter'));
+    // Every pattern here is a MATCH (or EXISTS) pattern, where Neo4j rejects a parameter map (`-[*1..$max]->` parses
+    // as one; fuzz finding F9).
+    throw new CypherSyntaxError('Parameter maps cannot be used in `MATCH` patterns (use a literal map instead)');
   }
 
   labelExpression(c: Ctx): LabelExpr {
@@ -422,7 +478,10 @@ class Builder {
       case 'listComprehension': return this.listComprehension(inner);
       case 'listItemsPredicate': return this.listItemsPredicate(inner);
       case 'reduceExpression': return this.reduceExpression(inner);
-      default: throw new CypherUnsupportedError(`expression ${ruleOf(inner) ?? '?'}`);
+      default: {
+        const r = ruleOf(inner) ?? '?';
+        throw new CypherUnsupportedError(EXPRESSION_NAMES[r] !== undefined ? `${EXPRESSION_NAMES[r]} (${r})` : `expression ${r}`);
+      }
     }
   }
 
@@ -579,7 +638,10 @@ export function parseCypher(text: string): Query {
   parser.addErrorListener(listener);
   const tree = parser.statements();
   if (listener.errors.length > 0) throw new CypherSyntaxError(`Invalid Cypher: ${listener.errors.join('; ')}`);
-  const q = new Builder(text).statements(tree);
+  const built = new Builder(text).statements(tree);
+  // Neo4j's semantic analysis runs on the query as written, its simplifications after it.
+  checkStaticTypes(built);
+  const q = simplifyQuery(built);
   cache.set(text, q);
   return q;
 }

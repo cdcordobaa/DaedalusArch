@@ -1,0 +1,840 @@
+{
+  "project/check_file": {
+    "ok": true,
+    "data": {
+      "path": "src/application/services/CancelBookingService.ts",
+      "layer": "application",
+      "verdict": "clean",
+      "summary": "src/application/services/CancelBookingService.ts (application): clean.",
+      "violations": [],
+      "advisories": [],
+      "unresolved": [],
+      "checkedRules": [
+        "FF-P01",
+        "FF-CV02",
+        "FF-CV03",
+        "FF-S01",
+        "FF-S02",
+        "FF-S03",
+        "FF-S04",
+        "FF-P03",
+        "FF-P06"
+      ],
+      "notes": [],
+      "findings": [
+        {
+          "rule": "FF-S01",
+          "ruleName": "dependency-direction-graph",
+          "severity": "critical",
+          "line": 1,
+          "subject": "import \"../../adapters/outbound/persistence/InMemoryBookingRepository\"",
+          "reason": "application may not import adapters-outbound: the allowed edge runs adapters-outbound -> application, not the reverse",
+          "fix": "Remove the import of adapters-outbound from application (application may import: domain). Declare a port (interface) in application or an inner layer for what you need, implement it in adapters-outbound, and wire it in the composition root.",
+          "ruleId": "FF-S01",
+          "tier": "blocking",
+          "tierSource": "table",
+          "construct": "Dependency rule over the allowed-dependency graph (adapters depend on ports, never the reverse)",
+          "source": "Cockburn, \"Hexagonal Architecture\" (2005). The application core communicates with the outside only through ports. It does not depend on adapters, UI or databases.",
+          "edgeView": "literal",
+          "check": "spec",
+          "file": "src/application/services/CancelBookingService.ts",
+          "location": "src/application/services/CancelBookingService.ts:1",
+          "target": "src/adapters/outbound/persistence/InMemoryBookingRepository.ts"
+        }
+      ],
+      "blockingVerdict": "block",
+      "blockingCount": 1,
+      "advisoryCount": 0,
+      "blockingSummary": "BLOCK: 1 blocking violation(s) of FF-S01 (v1.3 tiers); fix them before writing. 0 advisory, 0 hint(s).",
+      "hints": [],
+      "notChecked": [
+        {
+          "ruleId": "FF-P02",
+          "ruleName": "port-dependency-inversion",
+          "tier": "advisory",
+          "reason": "a ratio over every injected dependency of a class, read from the graph"
+        },
+        {
+          "ruleId": "FF-C02",
+          "ruleName": "module-fan-out",
+          "tier": "advisory",
+          "reason": "a metric over the whole graph"
+        },
+        {
+          "ruleId": "FF-C03",
+          "ruleName": "component-instability",
+          "tier": "advisory",
+          "reason": "a metric over the whole graph"
+        },
+        {
+          "ruleId": "FF-C04",
+          "ruleName": "no-orphan-files",
+          "tier": "advisory",
+          "reason": "a metric over the whole graph"
+        },
+        {
+          "ruleId": "FF-C05",
+          "ruleName": "max-fan-in",
+          "tier": "advisory",
+          "reason": "a metric over the whole graph"
+        },
+        {
+          "ruleId": "FF-C06",
+          "ruleName": "abstraction-ratio",
+          "tier": "advisory",
+          "reason": "a metric over the whole graph"
+        },
+        {
+          "ruleId": "FF-SO01",
+          "ruleName": "single-responsibility-proxy",
+          "tier": "advisory",
+          "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+        },
+        {
+          "ruleId": "FF-SO02",
+          "ruleName": "interface-segregation-proxy",
+          "tier": "advisory",
+          "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+        },
+        {
+          "ruleId": "FF-SO03",
+          "ruleName": "inheritance-depth",
+          "tier": "advisory",
+          "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+        },
+        {
+          "ruleId": "FF-CV05",
+          "ruleName": "test-file-pairing",
+          "tier": "advisory",
+          "reason": "reads every file of the project"
+        },
+        {
+          "ruleId": "FF-CV06",
+          "ruleName": "no-index-logic",
+          "tier": "advisory",
+          "reason": "reads every file of the project"
+        },
+        {
+          "ruleId": "FF-N01",
+          "ruleName": "architectural-integrity",
+          "tier": "advisory",
+          "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+        },
+        {
+          "ruleId": "FF-N02",
+          "ruleName": "intent-alignment",
+          "tier": "advisory",
+          "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+        }
+      ],
+      "projectAware": true
+    }
+  },
+  "project/check_diff": {
+    "ok": true,
+    "data": {
+      "verdict": "clean",
+      "summary": "2 source file(s) checked: clean.",
+      "files": [
+        {
+          "path": "src/application/services/CancelBookingService.ts",
+          "layer": "application",
+          "verdict": "clean",
+          "summary": "src/application/services/CancelBookingService.ts (application): clean.",
+          "violations": [],
+          "advisories": [],
+          "unresolved": [],
+          "checkedRules": [
+            "FF-P01",
+            "FF-CV02",
+            "FF-CV03",
+            "FF-S01",
+            "FF-S02",
+            "FF-S03",
+            "FF-S04",
+            "FF-P03",
+            "FF-P06"
+          ],
+          "notes": [
+            "rebuilt from the diff and the project: findings are those the new content has and the old did not"
+          ],
+          "findings": [
+            {
+              "rule": "FF-S01",
+              "ruleName": "dependency-direction-graph",
+              "severity": "critical",
+              "line": 1,
+              "subject": "import \"../../adapters/outbound/persistence/InMemoryBookingRepository\"",
+              "reason": "application may not import adapters-outbound: the allowed edge runs adapters-outbound -> application, not the reverse",
+              "fix": "Remove the import of adapters-outbound from application (application may import: domain). Declare a port (interface) in application or an inner layer for what you need, implement it in adapters-outbound, and wire it in the composition root.",
+              "ruleId": "FF-S01",
+              "tier": "blocking",
+              "tierSource": "table",
+              "construct": "Dependency rule over the allowed-dependency graph (adapters depend on ports, never the reverse)",
+              "source": "Cockburn, \"Hexagonal Architecture\" (2005). The application core communicates with the outside only through ports. It does not depend on adapters, UI or databases.",
+              "edgeView": "literal",
+              "check": "spec",
+              "file": "src/application/services/CancelBookingService.ts",
+              "location": "src/application/services/CancelBookingService.ts:1",
+              "target": "src/adapters/outbound/persistence/InMemoryBookingRepository.ts"
+            }
+          ],
+          "blockingVerdict": "block",
+          "blockingCount": 1,
+          "advisoryCount": 0,
+          "blockingSummary": "BLOCK: 1 blocking violation(s) of FF-S01 (v1.3 tiers); fix them before writing. 0 advisory, 0 hint(s).",
+          "hints": [],
+          "notChecked": [
+            {
+              "ruleId": "FF-P02",
+              "ruleName": "port-dependency-inversion",
+              "tier": "advisory",
+              "reason": "a ratio over every injected dependency of a class, read from the graph"
+            },
+            {
+              "ruleId": "FF-C02",
+              "ruleName": "module-fan-out",
+              "tier": "advisory",
+              "reason": "a metric over the whole graph"
+            },
+            {
+              "ruleId": "FF-C03",
+              "ruleName": "component-instability",
+              "tier": "advisory",
+              "reason": "a metric over the whole graph"
+            },
+            {
+              "ruleId": "FF-C04",
+              "ruleName": "no-orphan-files",
+              "tier": "advisory",
+              "reason": "a metric over the whole graph"
+            },
+            {
+              "ruleId": "FF-C05",
+              "ruleName": "max-fan-in",
+              "tier": "advisory",
+              "reason": "a metric over the whole graph"
+            },
+            {
+              "ruleId": "FF-C06",
+              "ruleName": "abstraction-ratio",
+              "tier": "advisory",
+              "reason": "a metric over the whole graph"
+            },
+            {
+              "ruleId": "FF-SO01",
+              "ruleName": "single-responsibility-proxy",
+              "tier": "advisory",
+              "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+            },
+            {
+              "ruleId": "FF-SO02",
+              "ruleName": "interface-segregation-proxy",
+              "tier": "advisory",
+              "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+            },
+            {
+              "ruleId": "FF-SO03",
+              "ruleName": "inheritance-depth",
+              "tier": "advisory",
+              "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+            },
+            {
+              "ruleId": "FF-CV05",
+              "ruleName": "test-file-pairing",
+              "tier": "advisory",
+              "reason": "reads every file of the project"
+            },
+            {
+              "ruleId": "FF-CV06",
+              "ruleName": "no-index-logic",
+              "tier": "advisory",
+              "reason": "reads every file of the project"
+            },
+            {
+              "ruleId": "FF-N01",
+              "ruleName": "architectural-integrity",
+              "tier": "advisory",
+              "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+            },
+            {
+              "ruleId": "FF-N02",
+              "ruleName": "intent-alignment",
+              "tier": "advisory",
+              "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+            }
+          ],
+          "projectAware": true,
+          "change": "modified",
+          "basis": "delta"
+        },
+        {
+          "path": "src/application/services/ExportBookings.ts",
+          "layer": "application",
+          "verdict": "clean",
+          "summary": "src/application/services/ExportBookings.ts (application): clean.",
+          "violations": [],
+          "advisories": [],
+          "unresolved": [],
+          "checkedRules": [
+            "FF-P01",
+            "FF-CV02",
+            "FF-CV03",
+            "FF-S01",
+            "FF-S02",
+            "FF-S03",
+            "FF-S04",
+            "FF-P03",
+            "FF-P06"
+          ],
+          "notes": [],
+          "findings": [],
+          "blockingVerdict": "pass",
+          "blockingCount": 0,
+          "advisoryCount": 0,
+          "blockingSummary": "PASS: no blocking violation (v1.3 tiers); 0 advisory, 0 hint(s).",
+          "hints": [],
+          "notChecked": [
+            {
+              "ruleId": "FF-P02",
+              "ruleName": "port-dependency-inversion",
+              "tier": "advisory",
+              "reason": "a ratio over every injected dependency of a class, read from the graph"
+            },
+            {
+              "ruleId": "FF-C02",
+              "ruleName": "module-fan-out",
+              "tier": "advisory",
+              "reason": "a metric over the whole graph"
+            },
+            {
+              "ruleId": "FF-C03",
+              "ruleName": "component-instability",
+              "tier": "advisory",
+              "reason": "a metric over the whole graph"
+            },
+            {
+              "ruleId": "FF-C04",
+              "ruleName": "no-orphan-files",
+              "tier": "advisory",
+              "reason": "a metric over the whole graph"
+            },
+            {
+              "ruleId": "FF-C05",
+              "ruleName": "max-fan-in",
+              "tier": "advisory",
+              "reason": "a metric over the whole graph"
+            },
+            {
+              "ruleId": "FF-C06",
+              "ruleName": "abstraction-ratio",
+              "tier": "advisory",
+              "reason": "a metric over the whole graph"
+            },
+            {
+              "ruleId": "FF-SO01",
+              "ruleName": "single-responsibility-proxy",
+              "tier": "advisory",
+              "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+            },
+            {
+              "ruleId": "FF-SO02",
+              "ruleName": "interface-segregation-proxy",
+              "tier": "advisory",
+              "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+            },
+            {
+              "ruleId": "FF-SO03",
+              "ruleName": "inheritance-depth",
+              "tier": "advisory",
+              "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+            },
+            {
+              "ruleId": "FF-CV05",
+              "ruleName": "test-file-pairing",
+              "tier": "advisory",
+              "reason": "reads every file of the project"
+            },
+            {
+              "ruleId": "FF-CV06",
+              "ruleName": "no-index-logic",
+              "tier": "advisory",
+              "reason": "reads every file of the project"
+            },
+            {
+              "ruleId": "FF-N01",
+              "ruleName": "architectural-integrity",
+              "tier": "advisory",
+              "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+            },
+            {
+              "ruleId": "FF-N02",
+              "ruleName": "intent-alignment",
+              "tier": "advisory",
+              "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+            }
+          ],
+          "projectAware": true,
+          "change": "added",
+          "basis": "whole-file"
+        }
+      ],
+      "skipped": [],
+      "blockingVerdict": "block",
+      "blockingCount": 1,
+      "advisoryCount": 0,
+      "blockingSummary": "BLOCK: 1 blocking violation(s) of FF-S01 (v1.3 tiers); fix them before writing. 0 advisory, 0 hint(s)."
+    }
+  },
+  "project/check_import": {
+    "ok": true,
+    "data": {
+      "verdict": "allowed",
+      "from": {
+        "path": "src/application/services/CancelBookingService.ts",
+        "layer": "application"
+      },
+      "to": {
+        "specifier": "../../adapters/outbound/persistence/InMemoryBookingRepository",
+        "kind": "internal",
+        "path": "src/adapters/outbound/persistence/InMemoryBookingRepository",
+        "layer": "adapters-outbound"
+      },
+      "violations": [],
+      "checkedRules": [
+        "FF-P01"
+      ],
+      "notes": [],
+      "blockingVerdict": "pass"
+    }
+  },
+  "spec-only/check_file": {
+    "ok": true,
+    "data": {
+      "path": "src/application/services/CancelBookingService.ts",
+      "layer": "application",
+      "verdict": "clean",
+      "summary": "src/application/services/CancelBookingService.ts (application): clean.",
+      "violations": [],
+      "advisories": [],
+      "unresolved": [],
+      "checkedRules": [
+        "FF-P01",
+        "FF-CV02",
+        "FF-CV03",
+        "FF-S01",
+        "FF-S03",
+        "FF-S04",
+        "FF-P03",
+        "FF-P06"
+      ],
+      "notes": [
+        "spec-only: no project root, so barrels are not followed (resolved view = literal view), entry files are the declared public APIs only, and cycles are not checked"
+      ],
+      "findings": [
+        {
+          "rule": "FF-S01",
+          "ruleName": "dependency-direction-graph",
+          "severity": "critical",
+          "line": 1,
+          "subject": "import \"../../adapters/outbound/persistence/InMemoryBookingRepository\"",
+          "reason": "application may not import adapters-outbound: the allowed edge runs adapters-outbound -> application, not the reverse",
+          "fix": "Remove the import of adapters-outbound from application (application may import: domain). Declare a port (interface) in application or an inner layer for what you need, implement it in adapters-outbound, and wire it in the composition root.",
+          "ruleId": "FF-S01",
+          "tier": "blocking",
+          "tierSource": "table",
+          "construct": "Dependency rule over the allowed-dependency graph (adapters depend on ports, never the reverse)",
+          "source": "Cockburn, \"Hexagonal Architecture\" (2005). The application core communicates with the outside only through ports. It does not depend on adapters, UI or databases.",
+          "edgeView": "literal",
+          "check": "spec",
+          "file": "src/application/services/CancelBookingService.ts",
+          "location": "src/application/services/CancelBookingService.ts:1",
+          "target": "src/adapters/outbound/persistence/InMemoryBookingRepository.ts"
+        }
+      ],
+      "blockingVerdict": "block",
+      "blockingCount": 1,
+      "advisoryCount": 0,
+      "blockingSummary": "BLOCK: 1 blocking violation(s) of FF-S01 (v1.3 tiers); fix them before writing. 0 advisory, 0 hint(s).",
+      "hints": [],
+      "notChecked": [
+        {
+          "ruleId": "FF-S02",
+          "ruleName": "no-cyclic-deps",
+          "tier": "blocking",
+          "reason": "a cycle needs the whole import graph: no project root is configured, so run evaluate_project (or start the server with --project)"
+        },
+        {
+          "ruleId": "FF-P02",
+          "ruleName": "port-dependency-inversion",
+          "tier": "advisory",
+          "reason": "a ratio over every injected dependency of a class, read from the graph"
+        },
+        {
+          "ruleId": "FF-C02",
+          "ruleName": "module-fan-out",
+          "tier": "advisory",
+          "reason": "a metric over the whole graph"
+        },
+        {
+          "ruleId": "FF-C03",
+          "ruleName": "component-instability",
+          "tier": "advisory",
+          "reason": "a metric over the whole graph"
+        },
+        {
+          "ruleId": "FF-C04",
+          "ruleName": "no-orphan-files",
+          "tier": "advisory",
+          "reason": "a metric over the whole graph"
+        },
+        {
+          "ruleId": "FF-C05",
+          "ruleName": "max-fan-in",
+          "tier": "advisory",
+          "reason": "a metric over the whole graph"
+        },
+        {
+          "ruleId": "FF-C06",
+          "ruleName": "abstraction-ratio",
+          "tier": "advisory",
+          "reason": "a metric over the whole graph"
+        },
+        {
+          "ruleId": "FF-SO01",
+          "ruleName": "single-responsibility-proxy",
+          "tier": "advisory",
+          "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+        },
+        {
+          "ruleId": "FF-SO02",
+          "ruleName": "interface-segregation-proxy",
+          "tier": "advisory",
+          "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+        },
+        {
+          "ruleId": "FF-SO03",
+          "ruleName": "inheritance-depth",
+          "tier": "advisory",
+          "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+        },
+        {
+          "ruleId": "FF-CV05",
+          "ruleName": "test-file-pairing",
+          "tier": "advisory",
+          "reason": "reads every file of the project"
+        },
+        {
+          "ruleId": "FF-CV06",
+          "ruleName": "no-index-logic",
+          "tier": "advisory",
+          "reason": "reads every file of the project"
+        },
+        {
+          "ruleId": "FF-N01",
+          "ruleName": "architectural-integrity",
+          "tier": "advisory",
+          "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+        },
+        {
+          "ruleId": "FF-N02",
+          "ruleName": "intent-alignment",
+          "tier": "advisory",
+          "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+        }
+      ],
+      "projectAware": false
+    }
+  },
+  "spec-only/check_diff": {
+    "ok": true,
+    "data": {
+      "verdict": "clean",
+      "summary": "2 source file(s) checked: clean.",
+      "files": [
+        {
+          "path": "src/application/services/CancelBookingService.ts",
+          "layer": "application",
+          "verdict": "clean",
+          "summary": "src/application/services/CancelBookingService.ts (application): clean.",
+          "violations": [],
+          "advisories": [],
+          "unresolved": [],
+          "checkedRules": [
+            "FF-P01",
+            "FF-CV02",
+            "FF-CV03",
+            "FF-S01",
+            "FF-S03",
+            "FF-S04",
+            "FF-P03",
+            "FF-P06"
+          ],
+          "notes": [
+            "spec-only: no project root, so barrels are not followed (resolved view = literal view), entry files are the declared public APIs only, and cycles are not checked",
+            "only added lines were checked"
+          ],
+          "findings": [
+            {
+              "rule": "FF-S01",
+              "ruleName": "dependency-direction-graph",
+              "severity": "critical",
+              "line": 1,
+              "subject": "import \"../../adapters/outbound/persistence/InMemoryBookingRepository\"",
+              "reason": "application may not import adapters-outbound: the allowed edge runs adapters-outbound -> application, not the reverse",
+              "fix": "Remove the import of adapters-outbound from application (application may import: domain). Declare a port (interface) in application or an inner layer for what you need, implement it in adapters-outbound, and wire it in the composition root.",
+              "ruleId": "FF-S01",
+              "tier": "blocking",
+              "tierSource": "table",
+              "construct": "Dependency rule over the allowed-dependency graph (adapters depend on ports, never the reverse)",
+              "source": "Cockburn, \"Hexagonal Architecture\" (2005). The application core communicates with the outside only through ports. It does not depend on adapters, UI or databases.",
+              "edgeView": "literal",
+              "check": "spec",
+              "file": "src/application/services/CancelBookingService.ts",
+              "location": "src/application/services/CancelBookingService.ts:1",
+              "target": "src/adapters/outbound/persistence/InMemoryBookingRepository.ts"
+            }
+          ],
+          "blockingVerdict": "block",
+          "blockingCount": 1,
+          "advisoryCount": 0,
+          "blockingSummary": "BLOCK: 1 blocking violation(s) of FF-S01 (v1.3 tiers); fix them before writing. 0 advisory, 0 hint(s).",
+          "hints": [],
+          "notChecked": [
+            {
+              "ruleId": "FF-S02",
+              "ruleName": "no-cyclic-deps",
+              "tier": "blocking",
+              "reason": "a cycle needs the whole import graph: no project root is configured, so run evaluate_project (or start the server with --project)"
+            },
+            {
+              "ruleId": "FF-P02",
+              "ruleName": "port-dependency-inversion",
+              "tier": "advisory",
+              "reason": "a ratio over every injected dependency of a class, read from the graph"
+            },
+            {
+              "ruleId": "FF-C02",
+              "ruleName": "module-fan-out",
+              "tier": "advisory",
+              "reason": "a metric over the whole graph"
+            },
+            {
+              "ruleId": "FF-C03",
+              "ruleName": "component-instability",
+              "tier": "advisory",
+              "reason": "a metric over the whole graph"
+            },
+            {
+              "ruleId": "FF-C04",
+              "ruleName": "no-orphan-files",
+              "tier": "advisory",
+              "reason": "a metric over the whole graph"
+            },
+            {
+              "ruleId": "FF-C05",
+              "ruleName": "max-fan-in",
+              "tier": "advisory",
+              "reason": "a metric over the whole graph"
+            },
+            {
+              "ruleId": "FF-C06",
+              "ruleName": "abstraction-ratio",
+              "tier": "advisory",
+              "reason": "a metric over the whole graph"
+            },
+            {
+              "ruleId": "FF-SO01",
+              "ruleName": "single-responsibility-proxy",
+              "tier": "advisory",
+              "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+            },
+            {
+              "ruleId": "FF-SO02",
+              "ruleName": "interface-segregation-proxy",
+              "tier": "advisory",
+              "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+            },
+            {
+              "ruleId": "FF-SO03",
+              "ruleName": "inheritance-depth",
+              "tier": "advisory",
+              "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+            },
+            {
+              "ruleId": "FF-CV05",
+              "ruleName": "test-file-pairing",
+              "tier": "advisory",
+              "reason": "reads every file of the project"
+            },
+            {
+              "ruleId": "FF-CV06",
+              "ruleName": "no-index-logic",
+              "tier": "advisory",
+              "reason": "reads every file of the project"
+            },
+            {
+              "ruleId": "FF-N01",
+              "ruleName": "architectural-integrity",
+              "tier": "advisory",
+              "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+            },
+            {
+              "ruleId": "FF-N02",
+              "ruleName": "intent-alignment",
+              "tier": "advisory",
+              "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+            }
+          ],
+          "projectAware": false,
+          "change": "modified",
+          "basis": "added-lines"
+        },
+        {
+          "path": "src/application/services/ExportBookings.ts",
+          "layer": "application",
+          "verdict": "clean",
+          "summary": "src/application/services/ExportBookings.ts (application): clean.",
+          "violations": [],
+          "advisories": [],
+          "unresolved": [],
+          "checkedRules": [
+            "FF-P01",
+            "FF-CV02",
+            "FF-CV03",
+            "FF-S01",
+            "FF-S03",
+            "FF-S04",
+            "FF-P03",
+            "FF-P06"
+          ],
+          "notes": [
+            "spec-only: no project root, so barrels are not followed (resolved view = literal view), entry files are the declared public APIs only, and cycles are not checked"
+          ],
+          "findings": [],
+          "blockingVerdict": "pass",
+          "blockingCount": 0,
+          "advisoryCount": 0,
+          "blockingSummary": "PASS: no blocking violation (v1.3 tiers); 0 advisory, 0 hint(s).",
+          "hints": [],
+          "notChecked": [
+            {
+              "ruleId": "FF-S02",
+              "ruleName": "no-cyclic-deps",
+              "tier": "blocking",
+              "reason": "a cycle needs the whole import graph: no project root is configured, so run evaluate_project (or start the server with --project)"
+            },
+            {
+              "ruleId": "FF-P02",
+              "ruleName": "port-dependency-inversion",
+              "tier": "advisory",
+              "reason": "a ratio over every injected dependency of a class, read from the graph"
+            },
+            {
+              "ruleId": "FF-C02",
+              "ruleName": "module-fan-out",
+              "tier": "advisory",
+              "reason": "a metric over the whole graph"
+            },
+            {
+              "ruleId": "FF-C03",
+              "ruleName": "component-instability",
+              "tier": "advisory",
+              "reason": "a metric over the whole graph"
+            },
+            {
+              "ruleId": "FF-C04",
+              "ruleName": "no-orphan-files",
+              "tier": "advisory",
+              "reason": "a metric over the whole graph"
+            },
+            {
+              "ruleId": "FF-C05",
+              "ruleName": "max-fan-in",
+              "tier": "advisory",
+              "reason": "a metric over the whole graph"
+            },
+            {
+              "ruleId": "FF-C06",
+              "ruleName": "abstraction-ratio",
+              "tier": "advisory",
+              "reason": "a metric over the whole graph"
+            },
+            {
+              "ruleId": "FF-SO01",
+              "ruleName": "single-responsibility-proxy",
+              "tier": "advisory",
+              "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+            },
+            {
+              "ruleId": "FF-SO02",
+              "ruleName": "interface-segregation-proxy",
+              "tier": "advisory",
+              "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+            },
+            {
+              "ruleId": "FF-SO03",
+              "ruleName": "inheritance-depth",
+              "tier": "advisory",
+              "reason": "a proxy over the class graph (members, injections, inheritance chains)"
+            },
+            {
+              "ruleId": "FF-CV05",
+              "ruleName": "test-file-pairing",
+              "tier": "advisory",
+              "reason": "reads every file of the project"
+            },
+            {
+              "ruleId": "FF-CV06",
+              "ruleName": "no-index-logic",
+              "tier": "advisory",
+              "reason": "reads every file of the project"
+            },
+            {
+              "ruleId": "FF-N01",
+              "ruleName": "architectural-integrity",
+              "tier": "advisory",
+              "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+            },
+            {
+              "ruleId": "FF-N02",
+              "ruleName": "intent-alignment",
+              "tier": "advisory",
+              "reason": "an LLM judge dimension (reported, non-blocking in v1.3)"
+            }
+          ],
+          "projectAware": false,
+          "change": "added",
+          "basis": "whole-file"
+        }
+      ],
+      "skipped": [],
+      "blockingVerdict": "block",
+      "blockingCount": 1,
+      "advisoryCount": 0,
+      "blockingSummary": "BLOCK: 1 blocking violation(s) of FF-S01 (v1.3 tiers); fix them before writing. 0 advisory, 0 hint(s)."
+    }
+  },
+  "spec-only/check_import": {
+    "ok": true,
+    "data": {
+      "verdict": "allowed",
+      "from": {
+        "path": "src/application/services/CancelBookingService.ts",
+        "layer": "application"
+      },
+      "to": {
+        "specifier": "../../adapters/outbound/persistence/InMemoryBookingRepository",
+        "kind": "internal",
+        "path": "src/adapters/outbound/persistence/InMemoryBookingRepository",
+        "layer": "adapters-outbound"
+      },
+      "violations": [],
+      "checkedRules": [
+        "FF-P01"
+      ],
+      "notes": [],
+      "blockingVerdict": "pass"
+    }
+  }
+}

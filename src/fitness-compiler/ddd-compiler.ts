@@ -22,10 +22,12 @@ function compilerError(message: string): CompilerError {
   return { code: 'COMPILATION_FAILED', message, stage: 'fitness-compiler', critical: true };
 }
 
-function toQuery(ff: FitnessFunction, template: CypherTemplate | undefined, params: Record<string, unknown>, rewrites: V13RewriteFlags): CypherQuery | CompilerError {
+function toQuery(ff: FitnessFunction, template: CypherTemplate | undefined, params: Record<string, unknown>, rewrites: V13RewriteFlags, allowEmptyAggregates = false): CypherQuery | CompilerError {
   if (template === undefined) return compilerError(`${String(ff.id)}: no template ${ff.name}`);
   for (const name of template.requiredParams) {
     const value = params[name];
+    // Loop-pilot T1 option d (`empty-aggregates.ts`, opt-in): an empty `aggregates` list binds, and the rule finds nothing.
+    if (allowEmptyAggregates && name === 'aggregates' && Array.isArray(value)) continue;
     if (value == null || (Array.isArray(value) && value.length === 0)) {
       return { ...compilerError(`BR-SPEC-10 ${String(ff.id)}: ${name}`), code: 'MISSING_REQUIRED_PARAM' };
     }
@@ -49,7 +51,7 @@ function toQuery(ff: FitnessFunction, template: CypherTemplate | undefined, para
   };
 }
 
-export function compileDddFunctions(input: CompilerInput, core: CoreCompile, rewrites: V13RewriteFlags = NO_V13_REWRITES): DomainResult<CompiledFunctions> {
+export function compileDddFunctions(input: CompilerInput, core: CoreCompile, rewrites: V13RewriteFlags = NO_V13_REWRITES, allowEmptyAggregates = false): DomainResult<CompiledFunctions> {
   const enabled = input.fitnessFunctions.filter((f) => f.enabled);
   const own = enabled.filter((f) => DDD_TEMPLATES.has(f.name));
   const hex = enabled.filter((f) => HEXAGONAL_TEMPLATES.has(f.name));
@@ -68,7 +70,7 @@ export function compileDddFunctions(input: CompilerInput, core: CoreCompile, rew
   for (const ff of own) {
     // v1.3 member facts: FF-DT03 reads the class-member facts instead of the setter-name proxy.
     const template = (rewrites.memberFacts === true ? DDD_MEMBER_FACT_TEMPLATES.get(ff.name) : undefined) ?? DDD_TEMPLATES.get(ff.name);
-    const q = toQuery(ff, template, buildDddParams(ff, ddd.binding, template), rewrites);
+    const q = toQuery(ff, template, buildDddParams(ff, ddd.binding, template), rewrites, allowEmptyAggregates);
     if ('cypher' in q) queries.push(q); else errors.push(q);
   }
   if (hexBound?.ok) {

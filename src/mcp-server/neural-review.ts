@@ -26,6 +26,7 @@ import { CHARS_PER_TOKEN, FROZEN_SHA256, JUDGE_TOKEN_BUDGET, TRUNCATION_MARKER }
 import { canonicalJSON } from '../llm-critic/canonical-json.js';
 import { checkTextReferences, shownFileOf } from '../llm-critic/filter-explain.js';
 import type { ShownFile } from '../llm-critic/filter-explain.js';
+import { stripComments } from '../llm-critic/strip-comments.js';
 import { resolveLayer } from './layer-resolver.js';
 
 /** Judge versions an agent may ask for. `v2.2` is accepted only when this build carries it (`JUDGE_PROFILES`). */
@@ -142,11 +143,18 @@ export interface ReviewPromptInput {
   readonly files: readonly ReviewFile[];
   readonly profile: JudgeProfile;
   readonly functionId?: ReviewFunctionId;
+  /** Strip comments from the shown code, line for line (`--strip-comments`; OFF by default). */
+  readonly stripComments?: boolean;
+}
+
+/** The files as the judge is shown them: unchanged by default, without comments when `strip` is on. */
+export function shownReviewFiles(files: readonly ReviewFile[], strip: boolean | undefined): readonly ReviewFile[] {
+  return strip === true ? files.map((f) => ({ path: f.path, content: stripComments(f.content.replace(/\r\n/g, '\n'), f.path) })) : files;
 }
 
 /** The judge prompt of one unit (the judge's template, sections and budgets; no graph). */
 export function buildReviewPrompt(input: ReviewPromptInput): ReviewPrompt {
-  const files = [...input.files].sort((a, b) => sortStrings(a.path, b.path));
+  const files = [...shownReviewFiles(input.files, input.stripComments)].sort((a, b) => sortStrings(a.path, b.path));
   const functionId = input.functionId ?? defaultFunctionOf(files);
   const unitKind: JudgeUnitKind = files.length === 1 && functionId === FF_N02_ID ? 'file' : 'module';
   const unitId = unitKind === 'file' ? (files[0]?.path ?? '') : commonDir(files.map((f) => f.path));
@@ -195,13 +203,15 @@ export function reviewCacheKey(input: {
   readonly layerModel: string;
   readonly judgeId: string;
   readonly files: readonly ReviewFile[];
+  /** Part of the key only when on, so the default key is unchanged. */
+  readonly stripComments?: boolean;
 }): string {
   const files = [...input.files]
     .sort((a, b) => sortStrings(a.path, b.path))
     .map((f) => ({ path: f.path, sha256: createHash('sha256').update(f.content.replace(/\r\n/g, '\n')).digest('hex') }));
   return createHash('sha256').update(canonicalJSON({
     tool: 'review_unit', version: input.profile.version, revision: input.profile.revision, functionId: input.functionId,
-    layerModel: input.layerModel, judge: input.judgeId, files,
+    layerModel: input.layerModel, judge: input.judgeId, files, ...(input.stripComments === true ? { stripComments: true } : {}),
   })).digest('hex');
 }
 

@@ -1,0 +1,123 @@
+{
+  "schema": "loop-step/v1",
+  "runId": "claude-code-cli/claude-sonnet-5-5/relief-volunteers/gate/run-0",
+  "spec": {
+    "adapterId": "claude-code-cli",
+    "modelId": "claude-sonnet-5-5",
+    "taskId": "relief-volunteers",
+    "arm": "gate",
+    "runIndex": 0
+  },
+  "stepIndex": 2,
+  "stepId": "licence-registry",
+  "startedAt": "2026-10-16T04:11:45.817Z",
+  "finishedAt": "2026-10-16T04:12:35.550Z",
+  "turns": [
+    {
+      "turnId": "step-03",
+      "kind": "step",
+      "promptSha256": "8dae07e1e26ca3f224b01be86b71cddf2a5e543f900c0605a7f7cee172749eb5",
+      "result": {
+        "status": "completed",
+        "usage": {
+          "costUsd": 0.16163870000000002,
+          "inputTokens": 14,
+          "outputTokens": 7541,
+          "cacheReadTokens": 86127,
+          "cacheCreationTokens": 19397,
+          "numTurns": 23,
+          "durationMs": 47079
+        },
+        "wallMs": 47610,
+        "attempts": [
+          {
+            "startedAt": "2026-10-16T04:11:45.818Z",
+            "outcome": "completed"
+          }
+        ],
+        "interruptions": [],
+        "argv": [
+          "-p",
+          "<prompt>",
+          "--model",
+          "claude-sonnet-5-5",
+          "--output-format",
+          "json",
+          "--safe-mode",
+          "--restricted",
+          "--tools",
+          "Read,Write,Edit,Glob,Grep,Bash",
+          "--allowedTools",
+          "Bash(/root/pilot/harness/bin/tsc --noEmit --incremental false -p /root/pilot/harness/runs/claude-code-cli/claude-sonnet-5-5/relief-volunteers/gate/run-0/tsconfig.json)",
+          "--disallowedTools",
+          "Write(node_modules/**)",
+          "Edit(node_modules/**)",
+          "--permission-mode",
+          "acceptEdits",
+          "--permission-prompts",
+          "none",
+          "--no-session-persistence",
+          "--strict-mcp-config"
+        ],
+        "envelopePath": "envelope-step-03.json",
+        "permissionDenials": 2
+      },
+      "snapshot": {
+        "commit": "3db4320aaaf4f129409902c62c44e56d34f4e049",
+        "sourceFiles": [
+          "deployment/acl/registry-volunteer-directory.ts",
+          "deployment/api/routes.ts",
+          "deployment/application/deployment-service.ts",
+          "deployment/domain/incident.ts",
+          "deployment/domain/ports.ts",
+          "deployment/infrastructure/in-memory-repositories.ts",
+          "main.ts",
+          "registry/acl/licence-csv-registry.ts",
+          "registry/acl/medcert-verifier.ts",
+          "registry/api/routes.ts",
+          "registry/application/registry-service.ts",
+          "registry/domain/ports.ts",
+          "registry/domain/volunteer.ts",
+          "registry/infrastructure/in-memory-volunteer-repository.ts",
+          "shared/http.ts"
+        ],
+        "treeFileCount": 15,
+        "loc": 748,
+        "diff": {
+          "added": 1,
+          "modified": 3,
+          "deleted": 0
+        },
+        "skeletonIntact": true,
+        "typecheck": {
+          "errors": 0,
+          "codes": []
+        },
+        "evaluation": null,
+        "evaluationError": {
+          "code": "PIPELINE_FAILED",
+          "message": "BR-SPEC-10 FF-DT01: aggregates; BR-SPEC-10 FF-DT02: aggregates"
+        }
+      }
+    }
+  ],
+  "repair": {
+    "attempted": false,
+    "blockingBefore": null,
+    "blockingAfter": null,
+    "cleared": null,
+    "skipped": "evaluation-failed"
+  },
+  "evaluatorSpec": {
+    "kind": "frozen-after-step-1",
+    "path": "spec/frozen-spec.yaml",
+    "sha256": "6c2c0180d38b1d1d9d47b2f77d1bf30726b5048d2d10c31cc5253059a07c89aa"
+  },
+  "finalCommit": "3db4320aaaf4f129409902c62c44e56d34f4e049",
+  "cost": {
+    "costUsd": 0.16163870000000002,
+    "inputTokens": 14,
+    "outputTokens": 7541,
+    "wallMs": 47610
+  }
+}

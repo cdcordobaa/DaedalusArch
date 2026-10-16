@@ -71,7 +71,7 @@ function finding(ff: FitnessFunction, line: number, subject: string, reason: str
 function fileTargets(ctx: FastContext): { line: number; specifier: string; path: string; layer: string | null }[] {
   const out: { line: number; specifier: string; path: string; layer: string | null }[] = [];
   for (const e of ctx.edges) {
-    if (e.imp.kind === 'require' || e.imp.kind === 'dynamic') continue;
+    // String-literal require()/import() calls are IMPORTS edges of the v1.3 graph (dynamicImports, R03).
     if (e.literal.kind === 'file') out.push({ line: e.imp.line, specifier: e.imp.specifier, path: e.literal.path, layer: e.literalLayer });
   }
   return out;
@@ -80,7 +80,12 @@ function fileTargets(ctx: FastContext): { line: number; specifier: string; path:
 function resolvedFileTargets(ctx: FastContext): { line: number; specifier: string; path: string; via: readonly string[] }[] {
   const out: { line: number; specifier: string; path: string; via: readonly string[] }[] = [];
   for (const e of ctx.edges) {
-    if (e.imp.kind === 'require' || e.imp.kind === 'dynamic') continue;
+    // A require()/import() edge ends at the module it names, with no per-name barrel routing (as the extractor's
+    // dynamicImports edge does, R03).
+    if (e.imp.kind === 'require' || e.imp.kind === 'dynamic') {
+      if (e.literal.kind === 'file') out.push({ line: e.imp.line, specifier: e.imp.specifier, path: e.literal.path, via: [] });
+      continue;
+    }
     for (const r of e.resolved) if (r.target.kind === 'file') out.push({ line: e.imp.line, specifier: e.imp.specifier, path: r.target.path, via: r.viaBarrels });
   }
   return out;

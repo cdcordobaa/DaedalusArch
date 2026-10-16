@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "style": "nestjs",
+  "variant": "v35-registration-policy-injects-system-clock",
+  "kind": "violation",
+  "plants": "FF-P06",
+  "description": "RegistrationPolicy (domain service) takes a new SystemClock (src/infrastructure) as a constructor parameter property, imported with import type; RegistrationsService builds it with new RegistrationPolicy(new SystemClock()).",
+  "patch": "variant.patch",
+  "expectedFindings": [
+    {
+      "ruleId": "FF-S01",
+      "ruleName": "dependency-direction",
+      "file": "src/domain/registration-policy.ts",
+      "target": "src/infrastructure/system-clock.ts",
+      "reason": "Domain imports infrastructure (type-only import)."
+    },
+    {
+      "ruleId": "FF-S04",
+      "ruleName": "no-domain-outward-dep",
+      "file": "src/domain/registration-policy.ts",
+      "target": "src/infrastructure/system-clock.ts",
+      "reason": "A domain file imports a file of another layer."
+    },
+    {
+      "ruleId": "FF-P06",
+      "ruleName": "domain-state-purity",
+      "file": "src/domain/registration-policy.ts",
+      "target": "src/infrastructure/system-clock.ts",
+      "reason": "A domain class holds infrastructure state through constructor injection (clock: SystemClock)."
+    }
+  ]
+}

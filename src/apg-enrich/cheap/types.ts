@@ -163,6 +163,12 @@ export interface CheapOptions {
   readonly vocabularyLeakThreshold: number;
   /** Louvain resolution parameter. */
   readonly louvainResolution: number;
+  /**
+   * Communities: also link files by the literal view's RE_EXPORTS edges (barrel to re-exported file), so a file reached
+   * only through a barrel is joined to its importers (R14, post-merge review 2026-10-16). Opt-in: off reproduces the
+   * committed outputs; absent from the defaults so the options object is unchanged.
+   */
+  readonly communityReExports?: boolean;
   /** Batch 2, config surface: an env key read in MORE than this many components is flagged. */
   readonly envSharedComponents: number;
   /** Batch 2, co-change: minimum number of commits a file pair changed together in (support). */

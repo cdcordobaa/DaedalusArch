@@ -1,0 +1,10 @@
+The current directory holds a TypeScript backend service built in earlier feature steps.
+This is step 2 of 4 of "Farmers' market vendors". Extend the existing service; keep every existing feature working.
+
+Feature request:
+Add vendor fees and payouts. Each pitch size has a stall fee per market day, with a surcharge for power, and the market keeps a commission of every card sale (5% by default; the organiser can set a different rate per vendor). A vendor can cancel a booking up to 48 hours before the market day without paying the stall fee. After a market day is closed, the organiser runs its settlement: each vendor's payout is their card sales for the day minus the commission and the stall fee. A payout is never negative: what the vendor still owes is carried into their next settlement. A settled market day can no longer receive sales or booking changes.
+
+Keep the source under src/ and follow the architecture the project already uses (Clean Architecture).
+Organise the source code under src/ in exactly three folders: src/domain, src/application and src/infrastructure.
+Before you finish, type-check the project with exactly this command and fix every error it reports:
+/root/pilot/harness/bin/tsc --noEmit --incremental false -p /root/pilot/harness/runs/claude-code-cli/claude-sonnet-5-5/market-vendors/none/run-0/tsconfig.json

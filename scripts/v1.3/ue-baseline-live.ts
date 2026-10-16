@@ -6,10 +6,15 @@
  *
  * Usage (repository root, Neo4j env loaded):
  *   npx tsx scripts/v1.3/ue-baseline-live.ts --out results/v1.3-reference/baseline-pre-barrel
+ *   npx tsx scripts/v1.3/ue-baseline-live.ts --set devset-b --out results/v1.3-devset-b
  * `--engine cypher-interp` (v1.3 spike, Docs/v1.3/cypher-interpreter.md) passes the same flag to every CLI child: the
  * Cypher templates run in process over an in-memory graph; no Neo4j server, credentials or Neo4j lock are needed.
  * Writes <out>/raw/<style>/<variant>.json (replayable with --from-raw), <out>/evidence/<style>/<variant>.json,
  * <out>/report.json and <out>/report.md.
+ * `--keep-cli` also writes <out>/cli/<style>/<variant>.json: the CLI's whole JSON result (AHS, per-dimension scores,
+ * universal metrics, tiers, function results, graph stats, violations) with the run-volatile fields removed (`runId`,
+ * `durationMs`, `executionTimeMs`, `timings`) and the temporary project path replaced by `<project>`, so two runs (two
+ * engines) can be compared field by field (`scripts/v1.3/cypher-interp-compare-runs.ts`).
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -27,9 +32,12 @@ if (engine !== 'neo4j' && engine !== 'cypher-interp') {
   process.stderr.write('--engine must be neo4j or cypher-interp\n');
   process.exit(2);
 }
-const argv = engineIdx >= 0 ? [...rawArgv.slice(0, engineIdx), ...rawArgv.slice(engineIdx + 2)] : rawArgv;
+const keepCli = rawArgv.includes('--keep-cli');
+const argv = (engineIdx >= 0 ? [...rawArgv.slice(0, engineIdx), ...rawArgv.slice(engineIdx + 2)] : rawArgv).filter((a) => a !== '--keep-cli');
 const outIdx = argv.indexOf('--out');
-const outDir = path.resolve(process.cwd(), outIdx >= 0 ? argv[outIdx + 1] ?? '' : 'results/v1.3-reference');
+const setIdx = argv.indexOf('--set');
+const defaultOut = setIdx >= 0 && argv[setIdx + 1] === 'devset-b' ? 'results/v1.3-devset-b' : 'results/v1.3-reference';
+const outDir = path.resolve(process.cwd(), outIdx >= 0 ? argv[outIdx + 1] ?? '' : defaultOut);
 const env = process.env;
 const secrets = [env.NEO4J_PASSWORD ?? ''].filter((s) => s !== '');
 const runner = new NodeProcessRunner();
@@ -43,7 +51,7 @@ for (const k of ['PATH', 'HOME', 'NEO4J_URI', 'NEO4J_USER', 'NEO4J_PASSWORD']) {
 
 async function evaluate(projectDir: string, specPath: string): Promise<readonly ActualFinding[]> {
   const args = [CLI_ENTRY, 'evaluate', '--project', projectDir, '--spec', specPath, '--format', 'json', '--symbolic-only', '--neo4j-uri', env.NEO4J_URI ?? '',
-    ...(engine === 'neo4j' ? [] : ['--engine', engine])];
+    '--engine', engine];
   const started = Date.now();
   const run = await runner.run(tsx, args, { cwd: repoRoot, env: childEnv, timeoutMs: 600_000 });
   if (!run.success) throw new Error(run.errors.map((e) => e.message).join('; '));
@@ -55,6 +63,11 @@ async function evaluate(projectDir: string, specPath: string): Promise<readonly 
   if (!Array.isArray(parsed.violations)) throw new Error('evaluate output has no violations array');
   const style = path.basename(path.dirname(projectDir));
   const variant = path.basename(projectDir);
+  if (keepCli) {
+    const cliFile = path.join(outDir, 'cli', style, `${variant}.json`);
+    fs.mkdirSync(path.dirname(cliFile), { recursive: true });
+    fs.writeFileSync(cliFile, JSON.stringify(stableCliResult(JSON.parse(stdout.slice(start)), projectDir), null, 2) + '\n');
+  }
   const full = parsed.violations.map((v) => {
     const o: Record<string, unknown> = { ...v };
     if (typeof o.filePath === 'string') o.filePath = normaliseFindingPath(o.filePath, projectDir);
@@ -70,6 +83,18 @@ async function evaluate(projectDir: string, specPath: string): Promise<readonly 
       const target = normaliseFindingPath(typeof v.target === 'string' ? v.target : '', projectDir);
       return { ruleId: v.functionId as string, file: normaliseFindingPath(v.filePath as string, projectDir), ...(target !== '' ? { target } : {}) };
     });
+}
+
+const VOLATILE_KEYS = new Set(['runId', 'durationMs', 'executionTimeMs', 'timings']);
+
+/** The CLI result without the fields that change run to run; the temporary project directory becomes `<project>`. */
+function stableCliResult(v: unknown, projectDir: string): unknown {
+  if (typeof v === 'string') return v.split(projectDir).join('<project>');
+  if (Array.isArray(v)) return v.map((x) => stableCliResult(x, projectDir));
+  if (v !== null && typeof v === 'object') {
+    return Object.fromEntries(Object.entries(v as Record<string, unknown>).filter(([k]) => !VOLATILE_KEYS.has(k)).map(([k, x]) => [k, stableCliResult(x, projectDir)]));
+  }
+  return v;
 }
 
 // The in-process engine touches no database: no cross-process Neo4j lock (validate-reference-main takes it from NEO4J_URI).

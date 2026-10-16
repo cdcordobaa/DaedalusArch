@@ -5,6 +5,9 @@
  *
  * Note for callers: the pipeline ingests the project's graph into Neo4j and clears the previous one (as the CLI
  * does), so the target database must be a scratch instance.
+ *
+ * v1.3 npx mode: with `graphEngine: 'cypher-interp'` the same pipeline runs on the in-process Cypher interpreter
+ * (`interp-evaluator.ts`): no database, no credentials, the template text executed unchanged.
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -13,11 +16,12 @@ import type { EvaluationReport, ScoringMode } from '../shared/types/evaluation.j
 import type { DomainResult } from '../shared/errors/domain-result.js';
 import { DomainResult as Result } from '../shared/errors/domain-result.js';
 import { neo4jScrubPolicy, scrubWithPolicy } from '../shared/errors/scrub.js';
-import type { PipelineConfig } from '../pipeline/types.js';
+import type { ExtractorDefaults, PipelineConfig } from '../pipeline/types.js';
 import type { PipelineBundle } from '../pipeline/pipeline-factory.js';
 import { MissingEnvError, requireEnv } from '../cli/require-env.js';
 import type { EvaluateProjectResult, Neo4jEnv, RuleViolationGroup } from './types.js';
 import type { GraphEngine } from '../cypher-interp/engine.js';
+import type { InterpEvaluator } from './interp-evaluator.js';
 
 /** Violations listed per rule; `count` always holds the full number. */
 export const MAX_LISTED_PER_RULE = 25;
@@ -29,9 +33,11 @@ export interface EvaluateDeps {
   readonly makeGraph: (env: Neo4jEnv) => GraphRepository;
   readonly makePipeline: (config: PipelineConfig) => Pick<PipelineBundle, 'executor' | 'cleanup'>;
   readonly connectTimeoutMs?: number;
-  /** `cypher-interp` runs the pipeline in process (no Neo4j, no credentials); default `neo4j`. */
+  /** Absent = `neo4j` (the reference engine). */
   readonly graphEngine?: GraphEngine;
-  /** ADR-032: explicit tsconfig for extraction; absent = `<project>/tsconfig.json`. */
+  /** Required for `cypher-interp`: the in-process pipeline with its result cache. */
+  readonly interp?: InterpEvaluator;
+  /** ADR-032: server-wide explicit tsconfig for extraction (`--tsconfig`); a per-call `tsconfigPath` wins; absent = `<project>/tsconfig.json`. */
   readonly tsconfigPath?: string;
 }
 
@@ -42,9 +48,11 @@ export interface EvaluateInput {
   readonly scoringMode?: ScoringMode;
   /**
    * Explicit tsconfig for the extractor (ADR-032; absent = `<project>/tsconfig.json`). The loop harness passes the
-   * pinned per-run tsconfig, because the agent's work tree has none of its own.
+   * pinned per-run tsconfig, because the agent's work tree has none of its own (R01).
    */
   readonly tsconfigPath?: string;
+  /** Extractor defaults (R02; absent = the v1.3 defaults). `v1.2e` with scoring `v1.2e` measures the v1.2E graph. */
+  readonly extractorDefaults?: ExtractorDefaults;
   /** Also return the report's violations, uncapped (`EvaluateProjectResult.violations`). */
   readonly includeViolations?: boolean;
 }
@@ -115,13 +123,11 @@ export async function evaluateProject(
   if (!fs.existsSync(input.specPath)) {
     return failure('SPEC_NOT_FOUND', `Spec file not found: ${input.specPath}`);
   }
+  if (deps.graphEngine === 'cypher-interp') return evaluateInProcess(projectPath, input, scoringMode, deps);
 
-  const inProcess = deps.graphEngine === 'cypher-interp';
   let neo4j: Neo4jEnv;
   try {
-    neo4j = inProcess
-      ? { uri: '', user: '', password: '', apgStorePath: env.APG_STORE_PATH ?? '.apg-store' }
-      : neo4jEnvFrom(env);
+    neo4j = neo4jEnvFrom(env);
   } catch (err) {
     if (err instanceof MissingEnvError) {
       return failure(
@@ -137,14 +143,12 @@ export async function evaluateProject(
     neo4jPassword: neo4j.password,
   });
 
-  let up = true;
-  if (!inProcess) {
-    const graph = deps.makeGraph(neo4j);
-    try {
-      up = await reachable(graph, deps.connectTimeoutMs ?? DEFAULT_CONNECT_TIMEOUT_MS);
-    } finally {
-      await graph.close().catch(() => undefined);
-    }
+  const graph = deps.makeGraph(neo4j);
+  let up: boolean;
+  try {
+    up = await reachable(graph, deps.connectTimeoutMs ?? DEFAULT_CONNECT_TIMEOUT_MS);
+  } finally {
+    await graph.close().catch(() => undefined);
   }
   if (!up) {
     return failure(
@@ -169,11 +173,11 @@ export async function evaluateProject(
     verbose: false,
     apgStorePath: neo4j.apgStorePath,
     scoringMode,
-    ...(inProcess && { graphEngine: 'cypher-interp' as const }),
     // Per-call tsconfig (loop harness) wins over the server-wide one (deps, ADR-032).
     ...(input.tsconfigPath !== undefined
       ? { tsconfigPath: path.resolve(input.tsconfigPath) }
       : deps.tsconfigPath !== undefined ? { tsconfigPath: deps.tsconfigPath } : {}),
+    ...(input.extractorDefaults !== undefined ? { extractorDefaults: input.extractorDefaults } : {}),
   };
   const { executor, cleanup } = deps.makePipeline(config);
   try {
@@ -206,4 +210,39 @@ export async function evaluateProject(
   } finally {
     await cleanup();
   }
+}
+
+/** The cypher-interp path: no connection, no credential; the report summarised exactly as on Neo4j. */
+async function evaluateInProcess(
+  projectPath: string,
+  input: EvaluateInput,
+  scoringMode: ScoringMode,
+  deps: EvaluateDeps,
+): Promise<DomainResult<EvaluateProjectResult>> {
+  if (deps.interp === undefined) return failure('ENGINE_UNAVAILABLE', 'cypher-interp selected but no in-process evaluator is wired.');
+  const specPath = input.specPath;
+  // The explicit tsconfig and the uncapped violations reach the interpreter path exactly as the Neo4j path above.
+  const tsconfigPath = input.tsconfigPath ?? deps.tsconfigPath;
+  const res = await deps.interp({ projectPath, specPath, scoringMode, ...(tsconfigPath !== undefined ? { tsconfigPath } : {}) });
+  if (!res.success) {
+    const [first] = res.errors;
+    return failure('PIPELINE_FAILED', res.errors.map((e) => e.message).join('; ') || (first?.code ?? 'evaluation failed'));
+  }
+  const { report, latencyMs, cache } = res.data;
+  return Result.ok({
+    projectPath,
+    specPath,
+    evaluationMode: 'symbolic-only',
+    ahs: report.ahsDeterministic ?? null,
+    verdict: report.verdict,
+    violationCount: report.violations.length,
+    byRule: groupByRule(report),
+    durationMs: report.durationMs,
+    scoringMode,
+    ...(report.tiers !== undefined && { tiers: report.tiers }),
+    ...(input.includeViolations === true && { violations: report.violations }),
+    engine: 'cypher-interp',
+    latencyMs,
+    cache,
+  });
 }
