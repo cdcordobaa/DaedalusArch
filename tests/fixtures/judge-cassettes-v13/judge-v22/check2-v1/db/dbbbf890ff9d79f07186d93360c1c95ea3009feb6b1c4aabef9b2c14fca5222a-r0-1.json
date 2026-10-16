@@ -1,0 +1,51 @@
+{
+  "attempts": 1,
+  "cliVersion": "2.1.294",
+  "configListingSha256": "47aa04258852fab9a706f3f0c14cee22306d69fbb6fdfbde8c11854bd54997bc",
+  "durationMs": 11336,
+  "effort": "high",
+  "functionId": "FF-N02",
+  "ignoredOptions": [
+    "maxTokens"
+  ],
+  "isolationProbeSha256": "97a2e2d0af1100c13c55e028c1a0c71f069093c3d08705af122aaeb302f1a641",
+  "key": "dbbbf890ff9d79f07186d93360c1c95ea3009feb6b1c4aabef9b2c14fca5222a-r0-1",
+  "model": "claude-opus-5-5",
+  "outcome": {
+    "kind": "valid"
+  },
+  "parsedVerdict": {
+    "confidence": 0.85,
+    "evidence": [
+      "src/business/entities/Appointment.ts: `@Entity()` on `export class Appointment` marks the domain entity as a TypeORM table, which is persistence work (infrastructure).",
+      "src/business/entities/Appointment.ts: `@Column()` on the `id` property is a database column mapping, which is persistence work (infrastructure).",
+      "src/business/entities/Appointment.ts: `endsAt()`, `overlaps()` and `cancel(now)` hold valid domain rules, so they are fine where they are."
+    ],
+    "pass": false,
+    "reasoning": "This file fails the rule. Appointment.ts sits in the business (domain) layer, and most of it fits that role: it defines the appointment status type, and endsAt(), overlaps() and cancel() hold real scheduling rules, including the \"cancel up to two hours before start\" rule. The problem is that the class is also marked up as a TypeORM table mapping: @Entity() is on the class and @Column() is on the `id` field. Saying how an object is stored in a database is a persistence job, which belongs to the infrastructure layer (src/persistence/**), not to a domain entity. I'm not judging which files import which, since a separate tool checks that. The issue is that the domain class itself declares its own storage mapping.",
+    "violations": [
+      {
+        "filePath": "src/business/entities/Appointment.ts",
+        "message": "The domain entity Appointment declares how it is stored in the database: `@Entity()` on the class and `@Column()` on `id`. That mapping is persistence work for the infrastructure layer (src/persistence/**). Move it into a persistence-layer schema or record class with a mapper, and keep Appointment free of ORM code."
+      }
+    ]
+  },
+  "prompt": "## Rule\nThe unit's responsibilities match the role of its declared layer.\n\n## Rubric\nPass: Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given.\nFail: The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file.\nEvidence required: Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to.\nOut of scope: import direction and layer-dependency rules, which are checked symbolically.\n\n## Layer model\n- persistence (kind: infrastructure): src/persistence/**\n- business (kind: domain): src/business/**\n- presentation (kind: presentation): src/presentation/**\n\n## Unit\nKind: file\nId: src/business/entities/Appointment.ts\nLayer: business\nUnit files:\n- src/business/entities/Appointment.ts\n\n## Source\n=====SOURCE-BEGIN src/business/entities/Appointment.ts=====\nimport { SchedulingError } from '../errors/SchedulingError';\nimport { Entity, Column } from 'typeorm';\n\nexport type AppointmentStatus = 'booked' | 'cancelled' | 'attended';\n\n@Entity()\nexport class Appointment {\n  @Column()\n  id: string;\n  patientId: string;\n  practitionerId: string;\n  startsAt: Date;\n  minutes: number;\n  status: AppointmentStatus;\n\n  constructor(id: string, patientId: string, practitionerId: string, startsAt: Date, minutes: number, status: AppointmentStatus) {\n    this.id = id;\n    this.patientId = patientId;\n    this.practitionerId = practitionerId;\n    this.startsAt = startsAt;\n    this.minutes = minutes;\n    this.status = status;\n  }\n\n  endsAt(): Date {\n    return new Date(this.startsAt.getTime() + this.minutes * 60_000);\n  }\n\n  overlaps(other: Appointment): boolean {\n    return this.startsAt < other.endsAt() && other.startsAt < this.endsAt();\n  }\n\n  cancel(now: Date): void {\n    if (this.status !== 'booked') throw new SchedulingError('rejected', `Appointment ${this.id} is ${this.status}`);\n    if (this.startsAt.getTime() - now.getTime() < 2 * 3_600_000) {\n      throw new SchedulingError('rejected', 'Appointments can be cancelled up to two hours before they start');\n    }\n    this.status = 'cancelled';\n  }\n}\n\n=====SOURCE-END=====\n\n## Graph excerpt\n{\"edges\":[{\"from\":\"src/business/entities/Appointment.ts\",\"to\":\"src/business/errors/SchedulingError.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/business/entities/Appointment.ts\",\"to\":\"typeorm\",\"type\":\"IMPORTS\"},{\"from\":\"src/business/services/SchedulingService.ts\",\"to\":\"src/business/entities/Appointment.ts\",\"type\":\"IMPORTS\"},{\"from\":\"src/presentation/presenters/AppointmentPresenter.ts\",\"to\":\"src/business/entities/Appointment.ts\",\"type\":\"IMPORTS\"}],\"nodes\":[{\"kind\":\"Class\",\"layer\":\"business\",\"name\":\"Appointment\",\"path\":\"src/business/entities/Appointment.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/entities/Appointment.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/errors/SchedulingError.ts\"},{\"kind\":\"File\",\"layer\":\"business\",\"path\":\"src/business/services/SchedulingService.ts\"},{\"kind\":\"File\",\"layer\":\"presentation\",\"path\":\"src/presentation/presenters/AppointmentPresenter.ts\"},{\"kind\":\"Package\",\"layer\":null,\"path\":\"typeorm\"}]}\n\n## Instructions\nJudge the unit against the rule and rubric. Return the JSON object the schema requires. Set pass to false if any file of the unit fails the rubric.\n",
+  "provider": "claude-cli",
+  "recordedAt": "2026-10-16T03:06:45.263Z",
+  "repetition": 0,
+  "requestHash": "dbbbf890ff9d79f07186d93360c1c95ea3009feb6b1c4aabef9b2c14fca5222a",
+  "resolvedModel": "claude-opus-5-5",
+  "response": "{\"is_error\":false,\"modelUsage\":{\"claude-opus-5-5\":{\"inputTokens\":2,\"outputTokens\":769}},\"result\":\"{\\\"pass\\\":false,\\\"confidence\\\":0.85,\\\"reasoning\\\":\\\"This file fails the rule. Appointment.ts sits in the business (domain) layer, and most of it fits that role: it defines the appointment status type, and endsAt(), overlaps() and cancel() hold real scheduling rules, including the \\\\\\\"cancel up to two hours before start\\\\\\\" rule. The problem is that the class is also marked up as a TypeORM table mapping: @Entity() is on the class and @Column() is on the `id` field. Saying how an object is stored in a database is a persistence job, which belongs to the infrastructure layer (src/persistence/**), not to a domain entity. I'm not judging which files import which, since a separate tool checks that. The issue is that the domain class itself declares its own storage mapping.\\\",\\\"evidence\\\":[\\\"src/business/entities/Appointment.ts: `@Entity()` on `export class Appointment` marks the domain entity as a TypeORM table, which is persistence work (infrastructure).\\\",\\\"src/business/entities/Appointment.ts: `@Column()` on the `id` property is a database column mapping, which is persistence work (infrastructure).\\\",\\\"src/business/entities/Appointment.ts: `endsAt()`, `overlaps()` and `cancel(now)` hold valid domain rules, so they are fine where they are.\\\"],\\\"violations\\\":[{\\\"filePath\\\":\\\"src/business/entities/Appointment.ts\\\",\\\"message\\\":\\\"The domain entity Appointment declares how it is stored in the database: `@Entity()` on the class and `@Column()` on `id`. That mapping is persistence work for the infrastructure layer (src/persistence/**). Move it into a persistence-layer schema or record class with a mapper, and keep Appointment free of ORM code.\\\"}]}\",\"structured_output\":{\"confidence\":0.85,\"evidence\":[\"src/business/entities/Appointment.ts: `@Entity()` on `export class Appointment` marks the domain entity as a TypeORM table, which is persistence work (infrastructure).\",\"src/business/entities/Appointment.ts: `@Column()` on the `id` property is a database column mapping, which is persistence work (infrastructure).\",\"src/business/entities/Appointment.ts: `endsAt()`, `overlaps()` and `cancel(now)` hold valid domain rules, so they are fine where they are.\"],\"pass\":false,\"reasoning\":\"This file fails the rule. Appointment.ts sits in the business (domain) layer, and most of it fits that role: it defines the appointment status type, and endsAt(), overlaps() and cancel() hold real scheduling rules, including the \\\"cancel up to two hours before start\\\" rule. The problem is that the class is also marked up as a TypeORM table mapping: @Entity() is on the class and @Column() is on the `id` field. Saying how an object is stored in a database is a persistence job, which belongs to the infrastructure layer (src/persistence/**), not to a domain entity. I'm not judging which files import which, since a separate tool checks that. The issue is that the domain class itself declares its own storage mapping.\",\"violations\":[{\"filePath\":\"src/business/entities/Appointment.ts\",\"message\":\"The domain entity Appointment declares how it is stored in the database: `@Entity()` on the class and `@Column()` on `id`. That mapping is persistence work for the infrastructure layer (src/persistence/**). Move it into a persistence-layer schema or record class with a mapper, and keep Appointment free of ORM code.\"}]}}",
+  "runIndex": 1,
+  "schemaVersion": 2,
+  "unitId": "src/business/entities/Appointment.ts",
+  "usage": {
+    "inputTokens": 2847,
+    "outputTokens": 769
+  },
+  "usedOptions": {
+    "effort": "high",
+    "model": "claude-opus-5-5"
+  }
+}
