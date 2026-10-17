@@ -1,12 +1,12 @@
 # v1.3 evidence compendium: a one-page map
 
-**Compiled 2026-10-16 from `origin/v1.3` at `81933889`** (after merge train MT6 and the protocol reconciliation), with the four documents of PR #244 and #245 (`c49acf03`) added. This folder aggregates the v1.3 evidence for the thesis. It adds no new measurement. Every number on this page was checked against its primary report, its committed results file or the replication output. Each one is also a row of the claims ledger, where `scripts/v1.3/claims-ledger-check.mjs` confirms that the cited line still states it.
+**Compiled 2026-10-16 from `origin/v1.3` at `81933889`** (after merge train MT6 and the protocol reconciliation), with the four documents of PR #244 and #245 (`c49acf03`) added. **The ledger, nulls, timeline and open items were extended by the daily thesis sync of 2026-10-17 from `origin/main` at `662329ee`** (merge train MT7, #247, #248); the objective tables below are as compiled on 2026-10-16, and the newer evidence is in the ledger parts `claims-ledger/mt7-*.md` and in `nulls-and-limits.md` section 4. This folder aggregates the v1.3 evidence for the thesis. It adds no new measurement. Every number on this page was checked against its primary report, its committed results file or the replication output. Each one is also a row of the claims ledger, where `scripts/v1.3/claims-ledger-check.mjs` confirms that the cited line still states it.
 
 | File | What it holds |
 |---|---|
-| [`claims-ledger.md`](claims-ledger.md) | Every quantitative claim in `Docs/v1.3`, `Docs/DiagnosticRuns/v1.3-*`, `papers/` and the readiness dashboard (4,952 rows in eleven parts), plus 177 **conflicts** between documents (108 that change a number the thesis may quote), each with the correct value from the primary source |
-| [`nulls-and-limits.md`](nulls-and-limits.md) | Every null or negative result and every limitation, with its source and suggested wording |
-| [`timeline.md`](timeline.md) | The v1.3 story from 2026-10-14 to now, with PR numbers |
+| [`claims-ledger.md`](claims-ledger.md) | Every quantitative claim in `Docs/v1.3`, `Docs/DiagnosticRuns/v1.3-*`, `papers/` and the readiness dashboard (5,946 rows in sixteen parts after the 2026-10-17 sync, which added 994 rows from merge train MT7, #247 and #248), plus 186 **conflicts** between documents (K001–K186; K178–K186 added on 2026-10-17) and seven conflict rows revisited after the replication errata (KR01–KR07), each with the correct value from the primary source |
+| [`nulls-and-limits.md`](nulls-and-limits.md) | Every null or negative result and every limitation, with its source and suggested wording (section 4, M01–M31: added on 2026-10-17) |
+| [`timeline.md`](timeline.md) | The v1.3 story from 2026-10-14 to now, with PR numbers, and one line per daily thesis sync |
 | [`open-items.md`](open-items.md) | What remains before Study 2 and before the defence |
 
 **Status key.** **GREEN**: the claim rests on committed, reproducible evidence, stated within its scope. **AMBER**: evidence exists, but it is development-only, partial, below a stated target, or rests partly on unmerged work. **RED**: the evidence does not exist yet, or the result is null. Two facts bound every row: **the sealed v1.3 hold-out has not been run**, and **Study 2 has not been run**. No v1.3 figure is a held-out estimate.

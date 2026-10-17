@@ -1,6 +1,6 @@
 # Claims ledger (v1.3)
 
-**Compiled 2026-10-16 from `origin/v1.3` at `81933889`, with the documents of PR #244 and #245 (`c49acf03`) added.** This ledger lists every quantitative claim in `Docs/v1.3/**/*.md`, `Docs/DiagnosticRuns/v1.3-*` (including the audit appendices), `papers/` (LaTeX sources, READMEs, STATUS, review and revision notes) and the Study 2 readiness dashboard. That is 154 documents and 4,952 claims. Four of the documents were merged at 15:10–15:19 UTC (PR #244, #245) and form the last part. For each claim it gives the exact statement, the number strings as the line writes them, the source `file:line`, the evidence type, the data set, a status and, where one exists, the replication group of `replication/v1.3`. The claims tables are split into ten parts by objective, listed below. This file also holds the **conflicts** between documents and the correct values.
+**Compiled 2026-10-16 from `origin/v1.3` at `81933889`, with the documents of PR #244 and #245 (`c49acf03`) added; extended on 2026-10-17 (daily thesis sync) from `origin/main` at `662329ee` with the documents of merge train MT7 and of #247 and #248.** This ledger lists every quantitative claim in `Docs/v1.3/**/*.md`, `Docs/DiagnosticRuns/v1.3-*` (including the audit appendices), `papers/` (LaTeX sources, READMEs, STATUS, review and revision notes) and the Study 2 readiness dashboard. At compilation that was 154 documents and 4,952 claims; the 2026-10-17 sync added 994 claims from 49 new or changed documents (five MT7 parts), for 5,946 in all. For each claim it gives the exact statement, the number strings as the line writes them, the source `file:line`, the evidence type, the data set, a status and, where one exists, the replication group of `replication/v1.3`. The claims tables are split into sixteen parts, listed below. This file also holds the **conflicts** between documents and the correct values.
 
 ## Method
 
@@ -21,21 +21,26 @@
 | Part | ids | claims | established | null | exploratory | superseded |
 |---|---|---|---|---|---|---|
 | [SO1: specifications, rules and construct decisions](claims-ledger/so1-specs-rules-constructs.md) | C0001–C0333 | 333 | 155 | 22 | 151 | 5 |
-| [SO2: property graph, graph fidelity, reference set, interpreter and MCP tooling](claims-ledger/so2-graph-reference-tooling.md) | C0334–C1014 | 681 | 488 | 27 | 105 | 61 |
+| [SO2: property graph, graph fidelity, reference set, interpreter and MCP tooling](claims-ledger/so2-graph-reference-tooling.md) | C0334–C1014 | 681 | 491 | 27 | 105 | 58 |
 | [SO3: the LLM judge, model panel and cheap semantic proxies](claims-ledger/so3-judge.md) | C1015–C1521 | 507 | 389 | 35 | 65 | 18 |
 | [SO4: validity of the findings (labelling, external and wild sets, convergent, fix mining, metamorphic, mutation)](claims-ledger/so4-validity.md) | C1522–C2491 | 970 | 741 | 103 | 105 | 21 |
-| [SO5: Study 1 rerun, floor probes, spec ladder, spec-author reliability, power and pilot](claims-ledger/so5-study1-probes-power.md) | C2492–C2925 | 434 | 91 | 66 | 264 | 13 |
-| [SO5: Study 2 protocol, deviation record, readiness gate and dashboard](claims-ledger/so5-study2-protocol-readiness.md) | C2926–C3171 | 246 | 81 | 38 | 58 | 69 |
-| [Tool surface and research memos](claims-ledger/tooling-and-research-memos.md) | C3172–C3410 | 239 | 162 | 28 | 38 | 11 |
-| [Synthesis and governance documents (secondary)](claims-ledger/synthesis-and-governance.md) | C3411–C3762 | 352 | 189 | 83 | 64 | 16 |
+| [SO5: Study 1 rerun, floor probes, spec ladder, spec-author reliability, power and pilot](claims-ledger/so5-study1-probes-power.md) | C2492–C2925 | 434 | 93 | 66 | 264 | 11 |
+| [SO5: Study 2 protocol, deviation record, readiness gate and dashboard](claims-ledger/so5-study2-protocol-readiness.md) | C2926–C3171 | 246 | 86 | 44 | 48 | 68 |
+| [Tool surface and research memos](claims-ledger/tooling-and-research-memos.md) | C3172–C3410 | 239 | 161 | 28 | 38 | 12 |
+| [Synthesis and governance documents (secondary)](claims-ledger/synthesis-and-governance.md) | C3411–C3762 | 352 | 191 | 84 | 61 | 16 |
 | [Replication part 2 and the reproducibility audit](claims-ledger/replication-and-audit.md) | C3763–C3982 | 220 | 185 | 7 | 19 | 9 |
-| [Papers (secondary)](claims-ledger/papers.md) | C3983–C4795 | 813 | 611 | 76 | 104 | 22 |
+| [Papers (secondary)](claims-ledger/papers.md) | C3983–C4795 | 813 | 620 | 76 | 95 | 22 |
 | [SO4 additions after #244 and #245: jury fixes, external cluster bootstrap, barrel-cycle sensitivity, labeller calibration plan](claims-ledger/so4-jury-fixes-and-calibration.md) | C4796–C4952 | 157 | 126 | 13 | 18 | 0 |
-| **total** | C0001–C4952 | **4,952** | 3218 | 498 | 991 | 245 |
+| [MT7 additions: interpreter, scale, harness, freeze and Study 2 instrument](claims-ledger/mt7-a-tooling-harness.md) | C4953–C5221 | 269 | 192 | 14 | 63 | 0 |
+| [MT7 additions: advisory noise and filters, options effects, predictive-validity pre-specification](claims-ledger/mt7-b-validity-advisory.md) | C5222–C5460 | 239 | 175 | 29 | 34 | 1 |
+| [MT7 additions: loop pilot, T1 options, precedent and ORM probes, floor-escape repairs, agent proof](claims-ledger/mt7-c-pilot-probes.md) | C5461–C5576 | 116 | 49 | 39 | 28 | 0 |
+| [MT7 additions: CHECK-3 judge bases, replication errata, post-merge verification and post-review fixes](claims-ledger/mt7-d-judge-replication-verification.md) | C5577–C5786 | 210 | 167 | 14 | 21 | 8 |
+| [MT7 additions: contribution statement, FX2 status, limitations register, earlier claims ledger, merge-train and governance documents (secondary)](claims-ledger/mt7-e-synthesis-governance.md) | C5787–C5946 | 160 | 106 | 29 | 12 | 13 |
+| **total** | C0001–C5946 | **5,946** | 3927 | 630 | 1127 | 262 |
 
-By evidence type: descriptive 1,059, criterion 1,000, neural 711, correctness 642, reliability 466, pilot 386, power 315, convergent 158, mutation 147, metamorphic 68.
+By evidence type: descriptive 1,442, criterion 1,069, neural 812, correctness 764, reliability 678, pilot 460, power 335, convergent 163, mutation 153, metamorphic 70.
 
-By set: development 2,981, external 828, wild 419, none 381, synthetic 335, hold-out 8.
+By set: development 3,522, external 940, wild 542, none 528, synthetic 404, hold-out 10.
 
 A claim keeps its status in its own context. For example, `established` on a development-set row means established **as a development-set figure**. No v1.3 row is a held-out estimate.
 
@@ -155,6 +160,15 @@ A conflict, in this register, is a case where a document states a value for a qu
 | K173 | bank-server under the interpreter | killed after 25 minutes; FF-S02 is the cause | `killed after 25 minutes` | `Docs/DiagnosticRuns/v1.3-external-set-2-2026-10-16.md:116` | **unresolved**: the FF-S02 template alone, same pin and spec, finishes in a median 16.0 s (3 runs) on the interpreter; the cause of the 25-minute run is not established | `Docs/DiagnosticRuns/v1.3-jury-fixes-2026-10-16/b1-bank-server.json` (`cypherInterp.median`); a re-run of `firewall evaluate --engine cypher-interp` on bank-server would settle it |
 | K174 | external correctness: interval | 283/283 with finding-level Wilson only | `[0.987, 1.000]` | `Docs/v1.3/hold-queue-triage-2026-10-16.md:303` | quote with the clustered bound: 11/11 repositories fully correct, repository-level Wilson [0.741, 1]; 69/69 outside the three largest repositories, Wilson [0.947, 1] | `Docs/DiagnosticRuns/v1.3-external-cluster-bootstrap-2026-10-16.md:43`; its JSON sidecar (`repositoryLevel.wilson95`) |
 | K175 | external correctness: interval | 283/283 with finding-level Wilson only | `283/283` | `Docs/v1.3/research/distinction-readiness.md:342` | as K174 | as K174 |
+| K178 | largest expected blocking cell per style | no style has more than 15 (R24 banner added in MT7) | `no style has more than 15 expected blocking findings` | `Docs/DiagnosticRuns/v1.3-reference-baseline-2026-10-15.md:5` | 19 (blind-expanded hexagonal as scored; author view at most 13); 18 after the FF-P06 N/A correction | `Docs/DiagnosticRuns/v1.3-reference-baseline-2026-10-15.md:61` (corrected by #236); audit B-1; K004–K009; sync 2026-10-17 (C5443) |
+| K179 | reference-set blocking recall, blind view (earlier ledger of #220) | 53/67 | `53/67` | `Docs/v1.3/claims-ledger.md:47` | 50/64 = 0.78 after the FF-P06 N/A correction (same corrected baseline as 54/54; 53/67 before it, K155) | `Docs/DiagnosticRuns/v1.3-reference-after-member-facts-2026-10-15.md:20`; decision-chronology row 7; sync 2026-10-17 (C5811) |
+| K180 | interpreter parity: judge-graph statements equal | 1,516 | `1,516 statements equal` | `Docs/v1.3/npx-mode.md:240` | 1,540 (4 × 385); 1,516 is the spike's 4 × 379 | `Docs/v1.3/cypher-interpreter.md:547` (corrected by #248); C0939; sync 2026-10-17 (C3284) |
+| K181 | checkable findings, reference set and E1 (earlier ledger of #220) | 2,668 | `0 incorrect of 2,668 checkable` | `Docs/v1.3/claims-ledger.md:48` | 2,669 (1,485 reference + 1,184 E1) | `results/v1.3-labelling/reference/correctness-all/correctness.json`; K045–K054; sync 2026-10-17 (C5812) |
+| K182 | sensitivity of the validation set to rule defects (earlier ledger of #220) | 90 of 273 (33 %), "106 survive" | `90 of 273 measurable mutants change an expected result (33%)` | `Docs/v1.3/claims-ledger.md:53` | 90/273 (33 %) is the strict kill without semantic rule tests; with them 164/273 (60 %). Quote both | `Docs/DiagnosticRuns/v1.3-rule-mutation-semantic-tests-2026-10-16.md:9`; K063–K065; sync 2026-10-17 (C5819) |
+| K183 | result files with absolute local paths | about 99 | `about 99 result files contain absolute local paths` | `Docs/v1.3/limitations-register.md:41` | rewritten to relative paths later on 2026-10-16; no longer a current limitation | `Docs/DiagnosticRuns/v1.3-repro-audit-2026-10-16.md:31`; sync 2026-10-17 (C5910) |
+| K184 | cheap-semantics seeds on one fixture (banner) | 10 of the 11 | `10 of the 11 seeds sit on one 8-file fixture` | `Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md:3` | 11 of 11 seeds sit on the one fixture (R28 correction on lines 5 and 156 of the same file) | `Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md:5`; K023–K028; sync 2026-10-17 |
+| K185 | cheap-semantics seeds on one fixture (limits) | 10 on one fixture | `11 seeds, 10 on one fixture` | `Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md:155` | 11 of 11 (as K184) | `Docs/DiagnosticRuns/cheap-semantics-2026-10-15.md:156`; sync 2026-10-17 |
+| K186 | interpreter parity run wall time | 4.5 min | `(4.5 min` | `Docs/v1.3/cypher-interpreter.md:258` | 5m20s for the 81-project parity run (line 293 of the same file); 4.5 min is not reproduced (replication e-ci-par-wall: not checkable). Internal inconsistency, not quoted by the thesis | `Docs/v1.3/cypher-interpreter.md:293`; sync 2026-10-17 |
 
 ### Rounding and wording-only differences
 
@@ -234,6 +248,22 @@ A conflict, in this register, is a case where a document states a value for a qu
 | K166 | triage of Notion claims: recall/precision | 57/57 | `57/57` | `Docs/v1.3/research/notion-ideas-triage.md:928` | 54/54 + 3 N/A | `papers/STATUS.md:30` |
 | K167 | triage of Notion claims: judge catch round 2 | 21/24 (0.88) | `21/24 (0.88)` | `Docs/v1.3/research/notion-ideas-triage.md:929` | 16/21 = 0.76 [0.55, 0.89] | `Docs/DiagnosticRuns/v1.3-judge-catch-round2-2026-10-15.md:5` |
 | K168 | triage of Notion claims: checkable findings | 2,668 | `2,668` | `Docs/v1.3/research/notion-ideas-triage.md:931` | 2,669 | audit E-7 |
+
+### Conflict rows revisited after the replication errata (sync 2026-10-17)
+
+The replication errata of #236 (`Docs/v1.3/replication-errata-2026-10-16.md`, merged in MT7) classified the 58 mismatches of replication part 2. For the rows below it found that the **document was right and the replication group was wrong** (class d), or that the figure is correct for its own commit. The conflict rows above were written from the replication output before the errata, so their "correct value" cell is contradicted by the errata. The original rows are kept unchanged for the record; this table states which value the thesis should use. Each row cites the errata line.
+
+| id | conflict rows | earlier "correct value" | errata finding | numbers | source | value to use |
+|---|---|---|---|---|---|---|
+| KR01 | K041–K044 (C1512–C1515) | 320–455 prompt tokens; about 320 / 455 / 690 | every adapter also bills the response schema (34.5 tokens); averages 354.5, 489.4, 722 | `354.5, 489.4 and 722` | `Docs/v1.3/replication-errata-2026-10-16.md:151` | the document's 350–500 and about 355 / 490 / 725 (model-panel.md:196) |
+| KR02 | K059 (C2382) | 39 candidates | the pool is the 37 probed plus 1 unresolved name; the 2 Study 1 projects were excluded by name | `38` | `Docs/v1.3/replication-errata-2026-10-16.md:149` | 38 (wild.md:13) |
+| KR03 | K099 (C3785) | 43 at the doc commit | at the audit's only commit `b1d97881` the §7 jest command runs 49 tests, all pass | `49 at HEAD` | `Docs/v1.3/replication-errata-2026-10-16.md:148` | 49 at the audit commit (93 at the replication HEAD is a different commit) |
+| KR04 | K103, K104 (C2452, C2453) | 0.13 | the runner-up confidence is exactly 0.125; 0.12 (half to even) and 0.13 are both correct roundings | `clean (0.12), layered (0.12)` | `Docs/v1.3/replication-errata-2026-10-16.md:150` | 0.125 (rounding only; not a conflict) |
+| KR05 | K095, K096 (C3962, C3963) | 650–970 | ~900 lies inside the outline's 650–970 range | `~900 steps` | `Docs/v1.3/replication-errata-2026-10-16.md:152` | ~900 as a rough figure within 650–970 (not a conflict) |
+| KR06 | K144, K145 (C1272, C1273) | Package:typeorm at HEAD | the table is a correct historical diagnosis at the round-2 commit; the later F-P01-ALIAS fix changed the behaviour on purpose | `IMPORTS **none**` | `Docs/v1.3/replication-errata-2026-10-16.md:146` | "none" at the round-2 commit (dated figure, not an error) |
+| KR07 | K057 (C1992) | 0 lines at HEAD | 9 answer-leaking lines at the doc commit `2c1098c7`; `10968ceb` later scrubbed the sheet | `9 excerpt lines` | `Docs/v1.3/replication-errata-2026-10-16.md:147` | 9 at the doc commit, 0 after `10968ceb` (dated figure) |
+
+Status convention: several rows (for example C1169, C1201, C1210, C1270, C1300, C1511, C1517, C1951, C1952, C1971, C1972) stay `superseded` although #236 corrected their source line in place, so the cited line now states the correct value. In those rows `superseded` refers to the value the document stated at compilation, which the notes give. Rows C0980, C0990, C1012, C2844 and C3077 were moved to `established` in this sync because their notes already recorded the in-place correction (conflicts K017–K021 resolved in the source).
 
 ### Checked and not a conflict
 
