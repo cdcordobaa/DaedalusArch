@@ -38,6 +38,8 @@
 
 The experiments so far tested the wrong level. The proposed framing: **the model supplies grounded facts (K2m, K3) and the rules reason over them**, as in IRIS and LLift. The model is not an open-ended judge.
 
+**Plan:** [`03-gap-closing-plan.md`](03-gap-closing-plan.md). Close the instrument's gaps in the order of the chain of trust; Study 2 waits for the instrument-ready gate.
+
 ## Waiting on you
 1. **L4:** the definition of a meaningful finding. It blocks the codebook and the rater's labels.
 2. **D1:** the changes you want made to the decision sheet.
