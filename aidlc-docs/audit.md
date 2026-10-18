@@ -2308,3 +2308,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: Delegated fix job on main; decision-chronology rows 13-15.
 
 ---
+
+## Decision board settled (ops/ working surface)
+**Timestamp**: 2026-10-18T22:49:00Z
+**User Input**: "Picked all decisions on the decision board (v2, after the examiner review); in chat confirmed M3 = redesign Study 2 around drift (knowing the registered simulation puts trend outcomes at power ≤ 0.08), M2 = greenfield confirmatory only, D3 = rater labels meaning (~60 findings + K3 cases), M1 = claim F1–F3 plus Study 2."
+**AI Response**: "Recorded all choices in ops/decisions.md. Against the recommendation: M3, M5, D2b, D5, N3, plus D1 'with changes', which are still to come. Still open: L4 (meaning definition), the D1 changes, reading NS-01. Pending post-seal changes (M3, D5, N3, V4 if triggered) to be written as one dated deviation list for the director."
+**Context**: Planning decisions; no runs; sources ops/01-instrument-map.md v3, ops/02-defensibility-conditions.md, ops/notes/rev-02-examiner-fable.md.
+
+---
