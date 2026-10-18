@@ -80,5 +80,83 @@ Study 2 moves past its design note only when all of these hold:
 
 **On the thesis date.** If the thesis goes out at the end of October, Study 2 may not fit after this gate. Whether it is then reported as designed future work is a separate decision. It is not settled here.
 
+---
+
+## 4. The issues, their dependencies and their place on the map
+
+Each gap is an issue with an id. "Depends on" lists what must close first. **Owner:** `A` is the agent, `Y` is you. Status is as of 2026-10-18.
+
+| Id | Issue | Part | Depends on | Owner | Status |
+|---|---|---|---|---|---|
+| G01 | F23, the sealed-list overlap check | C3 | — | A | running |
+| G02 | Expected blocking findings per style (V4 count) | C3 | — | A | running |
+| G03 | V4 ADR, only if G02 shows a shortfall | C3, C6 | G02 | A, then Y signs | waiting |
+| G04 | Fix N33: unresolved `paths` alias | C1a/b | — | A | starting |
+| G05 | Fix N38: optional constructor parameters are invisible. This may also explain the 4 seeds that both the rules and the judge miss (express `Request` optional parameters, NS-01 §3) | C1a/b | — | A | starting |
+| G06 | Link 1 registered as matched to the compiler, with the DDD limit (D6) | C1a/b | G04, G05 | A | waiting |
+| G07 | Stale ledger line 274; MCP tool counts (11 = 9 spec + 2 neural) | C1c | — | A | starting |
+| G08 | Formal identity of a violation across commits | C1e | — | A | starting |
+| G09 | Decision-sheet changes, then confirm (D1) | C2 | — | **Y** | open |
+| G10 | DDD cycle rule, with ADR and tests (D5) | C2 | — | A | waiting for G04/G05 to land |
+| G11 | Q26 application purity, with ADR and tests (N3) | C2 | — | A | waiting for G04/G05 to land |
+| G12 | Wiring imports in Layered stated as a construct limit (D2b) | C2 | — | A | starting |
+| G13 | SO1 rule-count promise argued as a declared deviation | C2 | — | A | starting |
+| G14 | One dated deviation list for the director | all | G03, G10, G11, G19 | A, then Y sends | waiting |
+| G15 | Three threat-register rows: contamination, evasion, role overlap | all | — | A | starting |
+| G16 | Meaning codebook and stratified sample | C3m | — | A | running |
+| G17 | What counts as a meaningful finding (L4) | C3m | G16 | **Y** | open |
+| G18 | Rater labels, κ and meaningful precision | C3m | G17, G22, a rater | Y + rater, A analyses | waiting |
+| G19 | Study 2 drift design note (M3) | C6 | — | A | running |
+| G20 | Adversarial review of G19, then the director at design stage | C6 | G19, G14 | A, then Y | waiting |
+| G21 | A2 facts contract, plus six K3/K2m cases with twins | C1d | — | A | running |
+| G22 | **Freeze tag** | all | G01, G03, G04, G05, G07, G10, G11, `verify-claims` 0 FAIL | A, Y OKs | waiting |
+| G23 | Hold-out, run once on Neo4j | C3 | G22 | A | waiting |
+| G24 | NS 2-case pilot, about 10–20 calls, counted first | C1d | G21, NS-01 read | A, Y OKs | waiting |
+| G25 | NS 6-case run, two vendors | C1d, C4 | G24 | A, Y OKs | waiting |
+| G26 | Efficiency design and question set (M5) | C1c | — | A | running |
+| G27 | Efficiency run, counted first | C1c | G26, G22 | A, Y OKs | waiting |
+| G28 | Drift description on human histories | C5 | — | A | running |
+| G29 | **Instrument-ready gate check** (§3) | all | G06, G15, G18 (or declared pending), G22, G23, G24, G14 | A, Y signs | waiting |
+| G30 | Study 2: power simulation, readiness gate, pilot, pre-registration, the single run | C6 | G29, G20 | A, Y signs | waiting |
+
+```mermaid
+flowchart LR
+  G02 --> G03
+  G04 --> G06
+  G05 --> G06
+  G03 --> G14
+  G10 --> G14
+  G11 --> G14
+  G19 --> G14
+  G16 --> G17
+  G17 --> G18
+  G19 --> G20
+  G14 --> G20
+  G21 --> G24
+  G24 --> G25
+  G26 --> G27
+  G01 --> G22
+  G03 --> G22
+  G04 --> G22
+  G05 --> G22
+  G07 --> G22
+  G10 --> G22
+  G11 --> G22
+  G22 --> G23
+  G22 --> G18
+  G22 --> G27
+  G06 --> G29
+  G15 --> G29
+  G18 --> G29
+  G23 --> G29
+  G24 --> G29
+  G14 --> G29
+  G29 --> G30
+  G20 --> G30
+```
+
+**Your three issues** are G09 (the D1 changes), G17 (L4), and reading NS-01 for G24. Every other issue upstream of the freeze (G22) is agent work with zero model calls.
+
 ## Changelog
+- 2026-10-18: §4 issue list G01–G30 with dependencies and map parts.
 - 2026-10-18 v1: replaces the rejected one-week sprint plan.
