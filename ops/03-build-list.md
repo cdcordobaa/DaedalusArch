@@ -33,7 +33,7 @@
 
 | Part | What the map says | Today | Build | Done when | SO |
 |---|---|---|---|---|---|
-| C5 Drift | conformance across a window of commits | **Not built** as a metric | the **drift metric**, which is also Study 2's primary outcome (M3) *(design in progress)*. A description on human histories *(in progress)* | it runs on recorded agent sessions and on human histories | SO5 |
+| C5 Drift | conformance across a window of commits | **Not built** as a metric | the **drift metric**, which is also Study 2's primary outcome (M3). Design: **done** (`ops/notes/s2d-01-study2-drift-design.md`). Implementation: next. A description on human histories: **done** (`Docs/DiagnosticRuns/v1.3-drift-descriptive-2026-10-18.md`) | it runs on recorded agent sessions and on human histories | SO5 |
 | C6 Control | the instrument in the agent loop and at the PR | **Built** (MCP server, CI gate) | the **evasion check** (M6) and the **Gemini generator adapter** (CDX) | both work on a dry run | SO5 |
 
 ## Then: check the built instrument once, before Study 2

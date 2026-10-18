@@ -38,7 +38,7 @@
 
 The experiments so far tested the wrong level. The proposed framing: **the model supplies grounded facts (K2m, K3) and the rules reason over them**, as in IRIS and LLift. The model is not an open-ended judge.
 
-**Plan:** [`03-build-list.md`](03-build-list.md). Build what the map defines, check the built instrument once, then run Study 2.
+**North star:** [`04-north-star.md`](04-north-star.md). Each part passes its own test; the whole instrument is checked for applicability and validity; each objective needs both. **Plan:** [`03-build-list.md`](03-build-list.md). Build what the map defines, check the built instrument once, then run Study 2.
 
 ## Waiting on you
 1. **L4:** the definition of a meaningful finding. It blocks the codebook and the rater's labels.
