@@ -1,5 +1,6 @@
 import { resolve, dirname } from 'node:path';
 import { SourceFile, SyntaxKind, Node } from 'ts-morph';
+import type { Type } from 'ts-morph';
 import type { APGEdge, APGNode, FlowsToStats, ImportResolutionStats } from '../shared/types/apg.js';
 import type { ExtractorWarning } from '../shared/types/apg.js';
 import type { EdgeType } from '../shared/types/enums.js';
@@ -21,6 +22,17 @@ import {
   resolveReExportTargets,
 } from './import-resolver.js';
 import type { StatementResolution } from './import-resolver.js';
+
+/**
+ * v1.3 N38: the type a constructor parameter injects. A union whose members, without `null` and `undefined`, are
+ * exactly one type is that type (`T | undefined` from `x?: T` under strictNullChecks); anything else is unchanged.
+ */
+function injectedType(type: Type): Type {
+  if (!type.isUnion()) return type;
+  const rest = type.getUnionTypes().filter((t) => !t.isNull() && !t.isUndefined());
+  const [only] = rest;
+  return rest.length === 1 && only !== undefined ? only : type;
+}
 
 // Warning code EXTRACTOR_001 ("External import skipped") is retired and reserved
 // (FR-v1.2E-09, BR-U2-02): never emitted, never reused.
@@ -230,7 +242,10 @@ export function extractEdges(
 
           // Resolve type to an extracted node
           try {
-            const typeSymbol = param.getType().getSymbol() ?? param.getType().getAliasSymbol();
+            // v1.3 N38: under strictNullChecks `x?: T` (and `x: T | null`) is a union without a symbol; inject the
+            // one non-nullable member, as field-state.ts does (`nullableInjects`, OFF in v1.2E). Several classes: skipped.
+            const paramType = opts.nullableInjects ? injectedType(param.getType()) : param.getType();
+            const typeSymbol = paramType.getSymbol() ?? paramType.getAliasSymbol();
             if (!typeSymbol) continue;
             const decls = typeSymbol.getDeclarations();
             if (decls.length === 0) continue;
