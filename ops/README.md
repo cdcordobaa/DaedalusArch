@@ -13,7 +13,7 @@ This folder is where the author and the agent plan, track and decide. It replace
 | [`00-overview.md`](00-overview.md) | Both tracks on one screen: status per objective, the next move, and what is waiting on you |
 | [`01-instrument-map.md`](01-instrument-map.md) | The instrument split into parts C1–C6, the three neural roles, what counts as a rule, and drift as the main outcome (draft) |
 | [`02-defensibility-conditions.md`](02-defensibility-conditions.md) | For every claim: the condition that makes it defensible, the evidence now, the gap and how it closes |
-| [`03-gap-closing-plan.md`](03-gap-closing-plan.md) | The order in which gaps close, and the instrument-ready gate before Study 2 |
+| [`03-build-list.md`](03-build-list.md) | What still has to be built, per map part, before Study 2 |
 | [`track-1-instrument.md`](track-1-instrument.md) | SO1–SO3, the instrument, read three ways: per objective, per link of the chain, and applied to a few projects |
 | [`track-2-scale.md`](track-2-scale.md) | SO4–SO5, the instrument at scale: validity beyond the development set, and the agent study |
 | [`decisions.md`](decisions.md) | Open author decisions, each with its options, a recommendation and its cost |
