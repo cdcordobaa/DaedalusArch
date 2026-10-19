@@ -36,6 +36,8 @@ In the brownfield pilot, arm G (graph tools plus files) scored below arm R (file
 
 - **Morning 2026-10-19, Claude arms complete (6 G-v2, 6 R-v2):** luizomf a tie; zeldaplay G-v2 closer to A (verdict 1/3 vs 0/3, κ median 0.48 vs 0.39, 3 extra findings vs 12). Pooled finding precision 0.90 vs 0.69. R-v2 rarely opens a file (0 tools on zeldaplay), so it is effectively "docs in the prompt". Still one vendor: the Gemini arm's call path works on small prompts but stalls on the real one (re-pilot report §9).
 
+- **Afternoon 2026-10-19, Gemini arm X 6/6** (re-pilot report §10). X has docs and the file list, with no graph and no tools. It reproduced A's findings exactly: precision 1.00, verdict 6/6, 0 extra findings on zeldaplay. **The graph's added value is not shown in this pilot.** G-v2's lead over R-v2 may come from a weak Claude R arm. The design rule (same reading in every arm, graph on top) stands. The claim "the graph improves derivation" does not.
+
 ## What would show we're wrong
 
 - The diff shows G's differences from A are plain errors, not matches with the real import structure.

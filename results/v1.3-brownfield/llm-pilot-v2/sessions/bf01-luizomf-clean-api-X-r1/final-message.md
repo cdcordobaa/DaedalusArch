@@ -1,1 +1,70 @@
-LLM_CLI_TIMEOUT: agy timed out after 872019 ms
+```yaml
+architecture:
+  style: clean-architecture
+
+  layers:
+    - name: domain
+      kind: domain
+      directories:
+        - src/domain/**
+      roles:
+        - entity
+        - value-object
+        - use-case-interface
+
+    - name: application
+      kind: application
+      directories:
+        - src/application/**
+      roles:
+        - use-case
+        - port
+        - repository-interface
+        - validator
+        - error
+
+    - name: presentation
+      kind: presentation
+      directories:
+        - src/presentation/**
+      roles:
+        - controller
+        - middleware
+        - response-handler
+
+    - name: infrastructure
+      kind: infrastructure
+      directories:
+        - src/infrastructure/**
+      roles:
+        - repository-impl
+        - adapter
+        - route
+        - middleware
+
+    - name: main
+      directories:
+        - src/main/**
+      roles:
+        - factory
+        - composition-root
+
+fitness_overrides:
+  - id: FF-P01
+    enabled: true
+    reason: "The repository uses Knex query builder alongside Express in the infrastructure layer, so knex is added to domain forbidden_imports."
+    params:
+      forbidden_imports:
+        - "@nestjs/*"
+        - typeorm
+        - express
+        - knex
+        - prisma
+        - "@prisma/*"
+        - sequelize
+
+```
+
+```json
+{"units":[{"citations":[{"file":"README.md","line":19,"quote":"This is the \"domain\" or \"entities\" layer. Here's the description by Uncle Bob:","type":"doc"},{"file":"README.md","line":122,"quote":"├── domain - Domain Layer","type":"doc"},{"count":16,"glob":"src/domain/**","type":"pattern"},{"count":9,"glob":"src/domain/models/**","type":"pattern"},{"count":7,"glob":"src/domain/use-cases/**","type":"pattern"}],"claim":"The domain layer lives under src/domain/** and contains domain models and use-case interfaces.","id":"layer:domain","origin":"proposed"},{"citations":[{"file":"README.md","line":27,"quote":"This is the **\"Use Cases\"** layer. Here you may add the application **Use cases**. Here's the description by Uncle Bob:","type":"doc"},{"file":"README.md","line":86,"quote":"├── application - Application or Use cases layer","type":"doc"},{"count":76,"glob":"src/application/**","type":"pattern"},{"count":23,"glob":"src/application/ports/**","type":"pattern"},{"count":14,"glob":"src/application/use-cases/**","type":"pattern"},{"count":18,"glob":"src/application/validation/**","type":"pattern"},{"count":21,"glob":"src/application/errors/**","type":"pattern"}],"claim":"The application layer lives under src/application/** and contains concrete use cases, ports (including repository interfaces), validations, and application errors.","id":"layer:application","origin":"proposed"},{"citations":[{"file":"README.md","line":37,"quote":"This is the \"Interface Adapters\" layer. I don't really like that name, because I think it's confusing (it's now called presentation). The behavior of software in this layer is not the same as the \"Adapter\" design pattern by Gof, as it must not depend on external layers.","type":"doc"},{"file":"README.md","line":39,"quote":"I'm using the name **\"Presentation\"** for this layer.","type":"doc"},{"file":"README.md","line":157,"quote":"└── presentation - Presentation layer","type":"doc"},{"count":26,"glob":"src/presentation/**","type":"pattern"},{"count":14,"glob":"src/presentation/controllers/**","type":"pattern"},{"count":4,"glob":"src/presentation/middlewares/**","type":"pattern"},{"count":8,"glob":"src/presentation/responses/**","type":"pattern"}],"claim":"The presentation layer (interface adapters) lives under src/presentation/** and contains concrete controllers, application-specific middlewares, and response classes.","id":"layer:presentation","origin":"proposed"},{"citations":[{"file":"README.md","line":51,"quote":"This folder (layer) is where we add everything related to external \"**Frameworks and Drivers**\". Here you can add the repositories, external frameworks, web and so on.","type":"doc"},{"file":"README.md","line":132,"quote":"├── infrastructure - Infrastructure layer","type":"doc"},{"count":33,"glob":"src/infrastructure/**","type":"pattern"},{"count":15,"glob":"src/infrastructure/express/**","type":"pattern"},{"count":9,"glob":"src/infrastructure/knex/**","type":"pattern"},{"count":9,"glob":"src/infrastructure/repositories/**","type":"pattern"}],"claim":"The infrastructure layer lives under src/infrastructure/** and contains external frameworks and drivers including Express adapters/routes/setup, Knex configuration/migrations/seeds, and SQL repository implementations.","id":"layer:infrastructure","origin":"proposed"},{"citations":[{"file":"README.md","line":61,"quote":"This layer is where we put everything together. It's the \"dirty layer\", because most factories will be here. It may depend on all other layers in the system.","type":"doc"},{"file":"README.md","line":149,"quote":"├── main - Main layer","type":"doc"},{"count":9,"glob":"src/main/**","type":"pattern"},{"count":9,"glob":"src/main/factories/**","type":"pattern"}],"claim":"The main layer lives under src/main/** and contains the composition-root factories that wire controllers, middlewares, use cases, and repositories together.","id":"layer:main","origin":"proposed"},{"citations":[{"file":"README.md","line":74,"quote":">The overriding rule that makes this architecture work is The Dependency Rule. This rule says that source code dependencies can only point inwards. Nothing in an inner circle can know anything at all about something in an outer circle. In particular, the name of something declared in an outer circle must not be mentioned by the code in the an inner circle. That includes, functions, classes. variables, or any other named software entity.","type":"doc"},{"file":"README.md","line":78,"quote":"In our case, data enter the system via \"express routes\" (infrastructure layer) to the \"controllers\" (adapters layer), to the \"use cases\" (application layer), to the \"domain\" (domain/entities layer). Then the system outputs via \"domain\" -> \"use cases\" -> \"presentation\" -> \"infrastructure\". I'm using the \"main\" layer to create factories for \"middlewares\", and \"controllers\" (and possibly other factories).","type":"doc"},{"file":"README.md","line":61,"quote":"This layer is where we put everything together. It's the \"dirty layer\", because most factories will be here. It may depend on all other layers in the system.","type":"doc"},{"count":16,"glob":"src/domain/**","type":"pattern"},{"count":76,"glob":"src/application/**","type":"pattern"},{"count":26,"glob":"src/presentation/**","type":"pattern"},{"count":33,"glob":"src/infrastructure/**","type":"pattern"},{"count":9,"glob":"src/main/**","type":"pattern"}],"claim":"Layers are ordered from innermost to outermost as domain, application, presentation, infrastructure, and main, with dependencies pointing inward and main allowed to depend on all other layers while src/common/** is left out as a cross-cutting concern folder.","id":"order","origin":"proposed"},{"citations":[{"file":"README.md","line":5,"quote":"This is my attempt to create an API with [node.js](https://nodejs.org/en/) and [typescript](https://www.typescriptlang.org/) following the principles of [clean architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html). I'm using [express.js](https://expressjs.com/pt-br/), but the idea is that you can replace it with any framework you want.","type":"doc"},{"file":"README.md","line":7,"quote":"For data storage, I'm using [knex query builder](http://knexjs.org/), so you can use Postgres, MSSQL, MySQL, MariaDB, SQLite3, Oracle, and Amazon Redshift. Again, you can change the data storage with anything you want. You can create new repositories in `src/infrastructure/repositories`. You can add NoSQL too if needed, but you'll have to create your own repository (I might create an example in the future).","type":"doc"},{"file":"README.md","line":74,"quote":">The overriding rule that makes this architecture work is The Dependency Rule. This rule says that source code dependencies can only point inwards. Nothing in an inner circle can know anything at all about something in an outer circle. In particular, the name of something declared in an outer circle must not be mentioned by the code in the an inner circle. That includes, functions, classes. variables, or any other named software entity.","type":"doc"},{"count":9,"glob":"src/infrastructure/knex/**","type":"pattern"},{"count":15,"glob":"src/infrastructure/express/**","type":"pattern"}],"claim":"FF-P01 (domain-purity) adds knex to forbidden_imports alongside express because Knex is the persistence query builder confined to the infrastructure layer.","id":"ff:FF-P01","origin":"proposed"}]}
+```

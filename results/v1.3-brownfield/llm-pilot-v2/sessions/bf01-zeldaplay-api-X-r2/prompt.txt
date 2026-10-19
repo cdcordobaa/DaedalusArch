@@ -1,0 +1,585 @@
+You are deriving the architecture spec of an existing TypeScript repository from its docs and its code.
+
+Repository: a clone pinned at commit 65f6a6e7bc502f3939dd0d3a037afae40bba1cb1. Analysis root: `apps/api`. Every glob in the spec, and every pattern citation, is relative to the analysis root. Doc citation paths are relative to the repository root.
+Declared style: `nestjs` (the repository states this style). Keep it.
+
+The spec format is the preset at the end of this message. A spec copies the preset's fitness_functions and authors the `architecture:` block: the layers in the preset's order semantics, each layer's `directories` and `file_patterns` globs (relative to the analysis root), `roles`, `decorators` and optional `kind`. It may also change `default_exclude_paths` and make fitness-function changes (enable or disable a function, or change a parameter such as `forbidden_imports`) when the repository gives evidence for them. The spec is validated against its schema: `kind`, when given, must be one of domain, application, infrastructure, presentation; a folder that belongs to no layer (for example a cross-cutting helper folder) is left out of every layer, not given a layer of its own kind.
+
+Your task: propose the norm set this repository's authors intend (the layers, which folders and files belong to each, the layer order, the enabled functions and their parameters, the excludes), as a careful architect writing this spec for the team would. The intended norm is not necessarily what most files do today.
+
+Tools: You have no tools. Work from the docs and the file list in this message; you cannot open other files.
+
+Reading procedure, in this order:
+1. Read the repository docs supplied below in full. They state the declared intent. Cite them (doc citations) for every unit they bear on.
+2. Inspect the structure: the tracked file list below. Cite folder membership with pattern citations.
+3. (No graph step: you have no graph tools.)
+
+Evidence is required for every unit, and it is checked as soon as you answer: a session whose answer has no citation that passes its check, or no passing doc citation while docs are supplied, fails.
+
+Citation types, each checked mechanically at the pinned commit:
+- doc: {"type": "doc", "file": "<path relative to the repository root>", "line": <1-based line number, as numbered below>, "quote": "<verbatim text from that one line>"}
+- pattern: {"type": "pattern", "glob": "<glob relative to the analysis root>", "count": <number of tracked files under the analysis root it matches (picomatch, dot files included); the file list below is that set>}
+
+Units, one evidence entry each: "layer:<name>" for every layer; "order" for the layer order; "ff:<function id>" for every fitness-function change; "exclude:<glob>" for every path added to or removed from the preset's default_exclude_paths; "ddd" only if the style is ddd.
+
+Final answer: a JSON object with two fields: "spec_yaml" (a string holding the YAML described next) and "evidence" (the evidence object described next).
+1. spec_yaml: top-level keys `architecture` (the full block, style included), `default_exclude_paths` (the full list; leave it out to keep the preset's) and `fitness_overrides` (optional list of {id, enabled, reason, params}).
+2. evidence: {"units": [{"id": "layer:domain", "claim": "<one sentence>", "origin": "proposed", "citations": [ ... ]}, ...]}.
+
+=== Repository docs (line-numbered) ===
+--- Contributing.md ---
+   1| # How to contribute
+   2| 
+   3| We love pull requests. And following this guidelines will make your pull request easier to merge.
+   4| 
+   5| If you want to contribute but don’t know what to do, take a look at these two labels: [help wanted](https://github.com/jmcdo29/zeldaplayn/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) and [good first issue](https://github.com/jmcdo29/zeldaplay/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+   6| 
+   7| _[Use GitHub interface](https://blog.sapegin.me/all/open-source-for-everyone/) for simple documentation changes, otherwise follow the steps below._
+   8| 
+   9| ## Prerequisites
+  10| 
+  11| - If it’s your first pull request, watch [this amazing course](http://makeapullrequest.com/) by [Kent C. Dodds](https://twitter.com/kentcdodds).
+  12| - Install [EditorConfig](http://editorconfig.org/) plugin for your code editor to make sure it uses correct settings.
+  13| - Fork the repository and clone your fork.
+  14| - Install dependencies: `npm install`.
+  15| 
+  16| ## Development workflow
+  17| 
+  18| Run linters and tests:
+  19| 
+  20| ```bash
+  21| npm test
+  22| ```
+  23| 
+  24| Or run tests in watch mode:
+  25| 
+  26| ```bash
+  27| npm run test:watch
+  28| ```
+  29| 
+  30| To update Jest snapshots:
+  31| 
+  32| ```bash
+  33| npm run test:jest -- -u
+  34| ```
+  35| 
+  36| **Don’t forget to add tests and update documentation for your changes.**
+  37| 
+  38| **Please update npm lock file (`package-lock.json`) if you add or update dependencies.**
+  39| 
+  40| ## Other notes
+  41| 
+  42| - If you have commit access to repository and want to make big change or not sure about something, make a new branch and open pull request.
+  43| - We’re using [Prettier](https://github.com/prettier/prettier) to format code, so don’t worry much about code formatting.
+  44| - Don’t commit generated files, like minified JavaScript.
+  45| - Don’t change version number and change log.
+  46| 
+  47| ## Need help?
+  48| 
+  49| If you want to contribute but have any questions, concerns or doubts, feel free to ping maintainers. Ideally create a pull request with `WIP` (Work in progress) in its title and ask questions in the pull request description.
+  50| 
+
+--- README.md ---
+   1| # Tabletop Companion
+   2| 
+   3| <p align="center"><a href="/"><img src="./d20.svg" width=300 height=300 alt="d20 logo" align="center"></a></p>
+   4| 
+   5| <div align="center">
+   6| 
+   7| [![code style: prettier](https://badgen.net/badge/Code%20style/prettier/cyan?icon=typescript)](https://github.com/prettier/prettier) [![Nx](https://badgen.net/badge/Built%20With/Nx/8A2BE2)](https://nx.dev/getting-started/what-is-nx) [![MIT license](https://badgen.net/badge/License/MIT/66CC00)](http://opensource.org/licenses/MIT) [![Jest](https://badgen.net/badge/Tested%20With/Jest/800000)](https://jestjs.io) [![Cypress](https://badgen.net/badge/Tested%20With/Cypress/2e3138)](https://www.cypress.io) [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=jmcdo29/zeldaPlay)](https://dependabot.com) [![Known Vulnerabilities](https://snyk.io/test/github/jmcdo29/zeldaPlay/badge.svg?targetFile=package.json)](https://snyk.io/test/github/jmcdo29/zeldaPlay?targetFile=package.json) [![Discord Chat](https://badgen.net/badge/Chat%20on/Discord/blue?icon=discord)](https://discord.gg/hGuDEgG) [![Heroku](https://badgen.net/badge/Running%20on/Heroku/79589f)](https://heroku.com) [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/) [![Coffee](https://badgen.net/badge/Buy%20Me/A%20Coffee/purple?icon=kofi)](https://www.buymeacoffee.com/jmcdo29)
+   8| 
+   9| </div>
+  10| 
+  11| The tabletop companion is a multi-use tool for Dungeon/Game Masters and players alike with features such as campaign, attribute, stat, skill, enemy, and party tracking, die/dice rolling, character creation, manual references (if available), homebrew set up, and many more features to come. Currently the tool is [hosted on Heroku](https://zeldaplay.herokuapp.com) and is available to use for free. This project is still in early phases of development and is backed by a single developer, so it will take a long time to get this into a ready state for stable use. If you would like to know more about the project [you can email me here](mailto://jmcdo29@gmail.com). This project is written using [NestJS](https://docs.nestjs.com) for the server and [Angular](https://angular.io) as the front end service while using [Nx](https://nx.dev) as a tool for development.
+  12| 
+  13| ## Built With
+  14| 
+  15| <a href="https://nx.dev/getting-started/what-is-nx" align="left"><img src="https://raw.githubusercontent.com/nrwl/nx/master/nx-logo.png" width="50" alt="Nx Logo"></a> <a href="https://angular.io"><img src="https://angular.io/assets/images/logos/angular/angular.svg" width=50 alt="Angular Logo"></a> <a href="https://docs.nestjs.com"><img src="https://d33wubrfki0l68.cloudfront.net/49c2be6f2607b5c12dd27f8ecc8521723447975d/f05c5/logo-small.cbbeba89.svg" width=50 alt="Nest Logo"></a>
+  16| 
+
+=== Tracked files under the analysis root (106) ===
+jest.config.js
+src/app/.gitkeep
+src/app/ability-score/ability-score.controller.ts
+src/app/ability-score/ability-score.module.ts
+src/app/ability-score/ability-score.service.spec.ts
+src/app/ability-score/ability-score.service.ts
+src/app/ability-score/models/ability-score-id.ts
+src/app/ability-score/models/ability-score-insert.ts
+src/app/ability-score/models/ability-score-update.ts
+src/app/ability-score/models/ability-score.dto.ts
+src/app/ability-score/models/index.ts
+src/app/app.controller.ts
+src/app/app.module.ts
+src/app/app.service.spec.ts
+src/app/app.service.ts
+src/app/auth/auth.controller.spec.ts
+src/app/auth/auth.controller.ts
+src/app/auth/auth.module.ts
+src/app/auth/auth.service.spec.ts
+src/app/auth/auth.service.ts
+src/app/auth/google/google-core.module.ts
+src/app/auth/google/google.constants.ts
+src/app/auth/google/google.interface.ts
+src/app/auth/google/google.module.ts
+src/app/auth/google/google.service.spec.ts
+src/app/auth/google/google.service.ts
+src/app/auth/local/local.module.ts
+src/app/auth/local/local.service.spec.ts
+src/app/auth/local/local.service.ts
+src/app/auth/models/auth.dto.ts
+src/app/auth/models/google.payload.ts
+src/app/auth/models/index.ts
+src/app/auth/models/login.dto.ts
+src/app/auth/models/oauth.model.ts
+src/app/auth/models/signup.dto.ts
+src/app/auth/oauth.controller.spec.ts
+src/app/auth/oauth.controller.ts
+src/app/auth/user/models/google-user.model.ts
+src/app/auth/user/models/index.ts
+src/app/auth/user/models/user-id.graphql.ts
+src/app/auth/user/models/user-update-data.graphql.ts
+src/app/auth/user/models/user.graphql.ts
+src/app/auth/user/user.controller.ts
+src/app/auth/user/user.service.spec.ts
+src/app/auth/user/user.service.ts
+src/app/character/character.controller.ts
+src/app/character/character.module.ts
+src/app/character/character.service.spec.ts
+src/app/character/character.service.ts
+src/app/character/models/character-id.dto.ts
+src/app/character/models/character-insert-data.dto.ts
+src/app/character/models/character-update-data.dto.ts
+src/app/character/models/character.dto.ts
+src/app/character/models/index.ts
+src/app/config/config.constants.ts
+src/app/config/config.module.ts
+src/app/config/config.service.spec.ts
+src/app/config/config.service.ts
+src/app/config/interfaces/config-options.interface.ts
+src/app/config/model/env.model.ts
+src/app/cookie/cookie.module.ts
+src/app/cookie/cookie.service.spec.ts
+src/app/cookie/cookie.service.ts
+src/app/database/database-core.module.ts
+src/app/database/database.constants.ts
+src/app/database/database.decorator.ts
+src/app/database/database.module.ts
+src/app/database/database.provider.ts
+src/app/database/database.service.spec.ts
+src/app/database/database.service.ts
+src/app/database/interfaces/database-options.interface.ts
+src/app/database/interfaces/database-test-options.interface.ts
+src/app/database/interfaces/database.interface.ts
+src/app/guards/cookie.guard.spec.ts
+src/app/guards/cookie.guard.ts
+src/app/interfaces/req-with-user.interface.ts
+src/app/models/app-controller.model.ts
+src/app/models/index.ts
+src/app/models/message.graphql.ts
+src/app/options/config.config.ts
+src/app/options/database.config.ts
+src/app/options/google.config.ts
+src/app/options/index.ts
+src/app/options/ogma.config.ts
+src/app/options/redis.config.ts
+src/app/redis/redis-core.module.ts
+src/app/redis/redis.constants.ts
+src/app/redis/redis.module.ts
+src/app/redis/redis.service.spec.ts
+src/app/redis/redis.service.ts
+src/app/spell/models/graphql-returns.spec.ts
+src/app/spell/spell.module.ts
+src/app/spell/spell.service.spec.ts
+src/app/spell/spell.service.ts
+src/app/validators/abiltiyScore.ts
+src/app/validators/index.ts
+src/app/validators/isCustomId.ts
+src/app/validators/isEmail.ts
+src/app/validators/isPassword.ts
+src/app/validators/messages.ts
+src/config.main.ts
+src/main.ts
+src/spelunk.ts
+tsconfig.app.json
+tsconfig.json
+tsconfig.spec.json
+
+=== The preset (`presets/nestjs.yaml`) ===
+```yaml
+# Architectonic Firewall — NestJS Preset
+# Supports both layered-directory and feature-module (co-located) projects.
+#
+# Layer assignment uses TWO strategies:
+#   1. directories — for projects with explicit layer folders (src/domain/, etc.)
+#   2. file_patterns — for co-located feature modules where *.controller.ts,
+#      *.service.ts, *.repository.ts live in the same folder
+#
+# file_patterns act as a fallback: if a file matches a directory glob, that
+# takes priority. If not, the file name determines the layer. This means both
+# project shapes work out of the box.
+
+spec_version: "1.0.0"
+
+architecture:
+  style: nestjs
+
+  layers:
+    # Layer order (inner → outer): domain → infrastructure → application → presentation
+    #
+    # NestJS dependency flow: Controller → Service → Repository → ORM/DB
+    # This maps to: presentation → application → infrastructure → domain
+    #
+    # Unlike clean-architecture (where infrastructure is outer and depends on
+    # application interfaces), NestJS treats infrastructure as an inner data-access
+    # layer that application services call directly.
+
+    - name: domain
+      directories:
+        - src/domain/**
+        - src/core/**
+        - src/entities/**
+        - src/models/**
+      roles:
+        - entity
+        - value-object
+        - domain-service
+        - repository-interface
+
+    - name: infrastructure
+      directories:
+        - src/infrastructure/**
+        - src/persistence/**
+        - src/adapters/**
+        - src/prisma/**
+        - src/lib/**
+        - src/common/middleware/**
+        - src/common/filters/**
+        - src/common/pipes/**
+      file_patterns:
+        - "**/*.repository.ts"
+        - "**/*.worker.ts"
+        - "**/workers/**"
+        - "**/strategies/**"
+      roles:
+        - repository-impl
+        - orm-entity
+        - external-service
+        - middleware
+        - worker
+
+    - name: application
+      directories:
+        - src/application/**
+        - src/use-cases/**
+        - src/services/**
+      file_patterns:
+        - "**/*.service.ts"
+        - "**/*.processor.ts"
+        - "**/dto/**"
+        - "**/*.dto.ts"
+      roles:
+        - use-case
+        - dto
+        - application-service
+        - processor
+
+    - name: presentation
+      directories:
+        - src/controllers/**
+        - src/gateways/**
+        - src/common/guards/**
+        - src/common/interceptors/**
+      file_patterns:
+        - "**/*.controller.ts"
+        - "**/*.module.ts"
+        - "**/*.guard.ts"
+        - "**/*.interceptor.ts"
+        - "**/*.gateway.ts"
+      roles:
+        - controller
+        - module
+        - gateway
+        - guard
+        - interceptor
+      decorators:
+        - "@Controller"
+        - "@Module"
+
+fitness_functions:
+
+  # ── STRUCTURAL ──
+
+  - id: FF-S01
+    name: dependency-direction
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: true
+
+  - id: FF-S02
+    name: no-cyclic-deps
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: true
+
+  - id: FF-S03
+    name: no-layer-skip
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    # NestJS *.module.ts files are DI wiring — they import from all layers by design
+    exclude_paths:
+      - "**/*.module.ts"
+
+  - id: FF-S04
+    name: no-domain-outward-dep
+    dimension: structural
+    severity: major
+    route: symbolic
+    validated: false
+
+  # ── PATTERN ──
+
+  - id: FF-P01
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+    forbidden_imports:
+      - typeorm
+      - express
+      - prisma
+      - "@prisma/*"
+      - sequelize
+
+  - id: FF-P02
+    name: dependency-inversion
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+    threshold: 0.85
+
+  - id: FF-P03
+    name: repository-pattern
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+
+  - id: FF-P04
+    name: use-case-isolation
+    dimension: pattern
+    severity: major
+    route: symbolic
+    validated: true
+
+  - id: FF-P05
+    name: controller-no-entity
+    dimension: pattern
+    severity: major
+    route: symbolic
+    validated: false
+
+  # FR-21 (U3-R6; BR-U3-22..24): domain class holding infrastructure state (FLOWS_TO | CONSTRUCTOR_INJECTS)
+  - id: FF-P06
+    name: domain-state-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+
+  # ── COUPLING ──
+
+  - id: FF-C01
+    name: domain-stability
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    threshold: 0.3
+
+  - id: FF-C02
+    name: module-fan-out
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    threshold: 12
+
+  - id: FF-C03
+    name: component-instability
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    threshold: 0.8
+
+  - id: FF-C04
+    name: no-orphan-files
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    validated: false
+
+  - id: FF-C05
+    name: max-fan-in
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    validated: false
+    threshold: 20
+
+  - id: FF-C06
+    name: abstraction-ratio
+    dimension: coupling
+    severity: advisory
+    route: symbolic
+    validated: false
+    threshold: 0.3
+
+  # ── SOLID ──
+
+  - id: FF-SO01
+    name: single-responsibility-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    validated: true
+    max_public_methods: 10
+    max_dependencies: 5
+
+  - id: FF-SO02
+    name: interface-segregation-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    validated: true
+    max_interface_methods: 5
+
+  - id: FF-SO03
+    name: inheritance-depth
+    dimension: solid
+    severity: minor
+    route: symbolic
+    validated: false
+    max_depth: 3
+
+  # ── CONVENTION ──
+
+  - id: FF-CV01
+    name: naming-conventions
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "ADR-016 b (B&T Step 31): cannot fire; per-layer naming patterns compile to .* and no requirement supplies them (SP-FF-CV01 not fired)"
+    validated: true
+
+  - id: FF-CV02
+    name: naming-services
+    dimension: convention
+    severity: minor
+    route: symbolic
+    validated: false
+    pattern: "*Service|*UseCase"
+
+  - id: FF-CV03
+    name: naming-repos
+    dimension: convention
+    severity: minor
+    route: symbolic
+    validated: false
+    pattern: "*Repository|*Repo"
+
+  - id: FF-CV04
+    name: naming-controllers
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "ADR-016 b (B&T Step 31): cannot fire; class decorators are not ingested (BR-U2-31), so no controller is selected (SP-FF-CV04 not fired)"
+    validated: false
+    pattern: "*Controller"
+
+  - id: FF-CV05
+    name: test-file-pairing
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    validated: false
+
+  - id: FF-CV06
+    name: no-index-logic
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    validated: false
+
+  # ── NEURONAL ──
+
+  - id: FF-N01
+    name: architectural-integrity
+    dimension: integrity
+    severity: major
+    route: neuronal
+    validated: false
+    semantic_criteria:
+      rule: "The module's files form one coherent unit with a consistent abstraction and boundary."
+      rubric:
+        pass: "The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place."
+        fail: "The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions."
+        evidence_required: "Name each file involved and cite the declarations that show the split, the duplication or the bypass."
+
+  - id: FF-N02
+    name: intent-alignment
+    dimension: semantic
+    severity: major
+    route: neuronal
+    validated: false
+    semantic_criteria:
+      rule: "The unit's responsibilities match the role of its declared layer."
+      rubric:
+        pass: "Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given."
+        fail: "The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file."
+        evidence_required: "Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to."
+
+default_exclude_paths:
+  - "node_modules/**"
+  - "dist/**"
+  - "**/*.spec.ts"
+  - "**/*.test.ts"
+  - "test/**"
+  - "src/generated/**"
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70
+```
