@@ -140,3 +140,5 @@ npx tsx scripts/v1.3/study2-analyse.ts --out-root $G/merged --out $G/analysis --
 
 The author still has to confirm that the six made-up task domains do not overlap the sealed list (backlog §3); this
 session never read that list.
+
+**F23 outcome, 2026-10-19.** Two of the six demo domains overlapped the sealed list. recipe-box is now stamp-catalogue, and gym-log is now tide-tables (`experiments/grid-scale/tasks.json`; schedule fingerprint updated in `tests/unit/scripts/loop/plan-gemini.test.ts`). The replay figures above were produced on the old six. They are stub tooling figures with no model call, so nothing is dropped. The two new domains still need one F23 pass. Detail: `Docs/DiagnosticRuns/v1.3-f23-and-v4-count-2026-10-18.md` Part 3.

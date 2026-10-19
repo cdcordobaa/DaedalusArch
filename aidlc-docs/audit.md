@@ -2388,3 +2388,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: Docs/DiagnosticRuns/v1.3-brownfield-llm-repilot-2026-10-19.md §9; ops/notes/ns-03-graph-complements-reading.md
 
 ---
+
+## v1.4 research ops: F23 sealed-list overlap check done
+**Timestamp**: 2026-10-19T17:10:06Z
+**User Input**: "The author and a separately run Fable examiner did F23. The hash matches. The author found 1 overlap (gym-log), the examiner 2 (gym-log, recipe-box), plus six borderline. The examiner says the sealed list names no styles."
+**AI Response**: "Took the union: replaced the two grid-scale demo tasks (recipe-box → stamp-catalogue, gym-log → tide-tables), updated the grid-scale test fixture and the schedule fingerprint, and recorded the outcome in the F23 note Part 3, triage Q7 and grid-scale-replay.md. No sealed content was recorded. Declared deviation: a Claude-family examiner read the sealed list, with no transcript and no tools. The V4 style assumption is not confirmed by the list; the styles move to the pre-registration decision. The two new domains need one more F23 pass."
+**Context**: v1.4 instrument track, F23 (gate S14, defensibility row 1.4); no model calls by this session
+
+---

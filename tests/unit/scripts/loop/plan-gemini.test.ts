@@ -94,7 +94,8 @@ describe('regression: every committed loop plan validates and schedules as befor
     'experiments/loop-demo/plan.dry-run.json': '8114e707026dc165ea5dd72dd1b503201ba9e8bb64630e52dfdf652045f9b73e',
     'experiments/loop-pilot/plan.json': '9c9a9ccd8be79228a972f098df532d52b4a3c4394a1ae400c8a16e311d63a696',
     'experiments/v1.3-floor-probe-3/plan.json': 'f3f2bc65402978f22431a6abf6077e90dc3900d2716cc8ebda4ba1631f2e06d3',
-    'experiments/grid-scale/plan.json': '78946ae74a5cd2d398552835b388c8969135194aba4d8742c6ee6c586b1667db',
+    // 2026-10-19 F23: recipe-box and gym-log replaced (sealed-list overlap), so the grid-scale schedule changed on purpose.
+    'experiments/grid-scale/plan.json': '7cd106e5dca2005f1afd9ec6b59cbe8f582907a8874c6e60cf67b6ee9cba4584',
   };
 
   function planFiles(dir: string): string[] {

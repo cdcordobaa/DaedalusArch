@@ -1,0 +1,1 @@
+../../../ops/notes/mean-01-codebook-and-sample.md
