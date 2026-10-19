@@ -12,6 +12,10 @@
  * containing "superseded" or "corrected", and everything above `<!-- protocol-check: historical-above -->`
  * (used where the original text must stay byte-identical, as in the pilot memo).
  *
+ * The exploratory study (Docs/v1.4/exploratory-study-registration.md) is not a Study 2 protocol document. It holds its
+ * own ```exploratory-protocol block; its `<!-- exploratory-protocol: ... -->` line must match that block, it must say
+ * `claims=none`, and it must cite the deviation record.
+ *
  * Usage: node scripts/v1.3/protocol-consistency-check.mjs [--root <dir>]. Exit 0 when consistent, 1 otherwise.
  */
 import { readFileSync, existsSync } from 'node:fs';
@@ -19,6 +23,7 @@ import path from 'node:path';
 
 const DEVIATION = 'Docs/v1.4/study2-deviation-2026-10-19-drift.md';
 const DEVIATION_FILE = path.basename(DEVIATION);
+export const EXPLORATORY = 'Docs/v1.4/exploratory-study-registration.md';
 
 export const PROTOCOL_DOCS = [
   DEVIATION,
@@ -113,6 +118,28 @@ export function checkDoc(rel, text, canonical) {
   return errors;
 }
 
+const EXP_TAG = /<!--\s*exploratory-protocol:\s*(.*?)\s*-->/g;
+
+export function checkExploratory(rel, text) {
+  const m = /```exploratory-protocol\n([\s\S]*?)```/.exec(text);
+  if (!m) return [`${rel}: no \`\`\`exploratory-protocol block`];
+  const block = Object.fromEntries(
+    m[1].split('\n').map((l) => l.trim()).filter(Boolean).map((l) => l.split('=').map((s) => s.trim())),
+  );
+  const errors = [];
+  if (!text.includes(DEVIATION_FILE)) errors.push(`${rel}: does not cite ${DEVIATION}`);
+  if (block.claims !== 'none') errors.push(`${rel}: exploratory block has claims=${block.claims ?? '(missing)'}, must be none`);
+  const tags = [...text.matchAll(EXP_TAG)];
+  if (tags.length === 0) errors.push(`${rel}: no <!-- exploratory-protocol: ... --> line`);
+  for (const t of tags) {
+    const got = parseTag(t[1]);
+    for (const k of new Set([...Object.keys(block), ...Object.keys(got)])) {
+      if (got[k] !== block[k]) errors.push(`${rel}: exploratory line has ${k}=${got[k] ?? '(missing)'}, block ${k}=${block[k] ?? '(missing)'}`);
+    }
+  }
+  return errors;
+}
+
 export function run(root) {
   const devPath = path.join(root, DEVIATION);
   if (!existsSync(devPath)) return [`missing ${DEVIATION}`];
@@ -127,6 +154,9 @@ export function run(root) {
     }
     errors.push(...checkDoc(rel, readFileSync(p, 'utf8'), canonical));
   }
+  const expPath = path.join(root, EXPLORATORY);
+  if (!existsSync(expPath)) errors.push(`missing ${EXPLORATORY}`);
+  else errors.push(...checkExploratory(EXPLORATORY, readFileSync(expPath, 'utf8')));
   return errors;
 }
 
@@ -141,9 +171,20 @@ export function selfTest(canonical) {
     { name: 'marked superseded line passes', text: `${good}Superseded: \`none\`, \`gate\`, \`daedalus-mcp\`.\n`, expectFail: false },
     { name: 'historical-above passes', text: `v2 amends nothing.\n<!-- protocol-check: historical-above -->\n${good}`, expectFail: false },
   ];
-  return cases
-    .filter((c) => (checkDoc('Docs/v1.3/x.md', c.text, canonical).length > 0) !== c.expectFail)
-    .map((c) => `self-test failed: ${c.name}`);
+  const exp = `cites ${DEVIATION_FILE}\n<!-- exploratory-protocol: claims=none; k=5 -->\n\`\`\`exploratory-protocol\nclaims=none\nk=5\n\`\`\`\n`;
+  const expCases = [
+    { name: 'consistent exploratory registration passes', text: exp, expectFail: false },
+    { name: 'exploratory line out of step with its block is caught', text: exp.replace('k=5 -->', 'k=4 -->'), expectFail: true },
+    { name: 'exploratory confirmatory claim is caught', text: exp.replaceAll('claims=none', 'claims=H1'), expectFail: true },
+  ];
+  return [
+    ...cases
+      .filter((c) => (checkDoc('Docs/v1.3/x.md', c.text, canonical).length > 0) !== c.expectFail)
+      .map((c) => `self-test failed: ${c.name}`),
+    ...expCases
+      .filter((c) => (checkExploratory('Docs/v1.4/x.md', c.text).length > 0) !== c.expectFail)
+      .map((c) => `self-test failed: ${c.name}`),
+  ];
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
@@ -157,5 +198,5 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     console.error(`protocol consistency: ${errors.length} problem(s) in ${PROTOCOL_DOCS.length} documents`);
     process.exit(1);
   }
-  console.log(`protocol consistency: OK (${PROTOCOL_DOCS.length} documents agree with ${DEVIATION} §2)`);
+  console.log(`protocol consistency: OK (${PROTOCOL_DOCS.length} documents agree with ${DEVIATION} §2; ${EXPLORATORY} agrees with its own block)`);
 }

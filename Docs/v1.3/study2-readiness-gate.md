@@ -115,6 +115,7 @@ sha256sum Docs/v1.3/rule-tiers.md Docs/v1.3/style-rule-sources.md
 - **Verify.** Read the claim-level table of `Docs/DiagnosticRuns/v1.3-holdout-<date>.md`. The person who unseals the task list confirms, without writing it down, which styles the sealed tasks use, and signs a one-line statement "every Study 2 style is validated at the point estimate or better".
 - **Pass.** As in Check, for every Study 2 style. A style that is only "characterised" makes this line red; Study 2 then cannot use blocking counts as its outcome for that style. No waiver. The lower-bound check is reported but is not part of the pass, because with fewer than 35 expected findings per style it cannot pass even with a perfect result (`holdout-prespec.md:73`; V13-TV-S1).
 - **Status.** RED: depends on V3, V5 and V8. The FR-V11 report does not exist.
+- **Note, 2026-10-19.** Decision V4 chose option (c) (`ops/decisions.md:22`). One bar and the "characterised" route are drafted in ADR-V14-04, `Docs/v1.4/adr-v4-holdout-bar.md` (proposed, unsigned). Once signed before the freeze, the Pass line above is read through it.
 
 ### V5. Human labels with an independent second rater who is not the director
 
@@ -123,6 +124,7 @@ sha256sum Docs/v1.3/rule-tiers.md Docs/v1.3/style-rule-sources.md
 - **Verify.** The rater's signed declaration is stored outside the public repo, and its sha256 and date are committed; `results/v1.3-holdout/labels/` holds the second rater's sheet; `scripts/v1.3` union-agreement output (PR #119) is committed.
 - **Pass.** Second rater ≠ author ≠ director; labelling complete on the protocol's option A or B; κ under V6's definition computed and reported (its value is reported, not gated here, beyond V6).
 - **Status.** RED. `human-labelling-protocol.md:3` "Status: defined; nothing labelled yet"; no rater named (`:44`).
+- **Note, 2026-10-19.** Timing: the rater's labels come after the study (deviation in `Docs/v1.4/study2-deviation-2026-10-19-drift.md` §7). Scope: the planned labels are MEAN-01's external-set meaning labels, not the hold-out, so they close this line only in part. The scope deviation is drafted, unsigned, in `Docs/v1.4/deviation-x1-and-so3a.md`.
 
 ### V6. One κ definition fixed before any label
 
@@ -396,6 +398,7 @@ sha256sum Docs/v1.3/rule-tiers.md Docs/v1.3/style-rule-sources.md
 - **Verify.** Acceptance results present in every rehearsal step record.
 - **Pass.** As in Check. **[W]**: the author may rely on LOC and file trajectories only, declaring the residual in writing.
 - **Status.** RED (no acceptance-check code).
+- **Note, 2026-10-19.** Under the drift record §7, D12 has **no waiver**: the [W] mark in the heading no longer applies (REV-03; `Docs/v1.4/study2-deviation-2026-10-19-drift.md` §7).
 
 ### D13. Gaming guards recorded per step
 
