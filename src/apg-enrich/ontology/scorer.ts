@@ -9,6 +9,7 @@
  */
 import type { APGResult } from '../../shared/types/apg.js';
 import type { CheapEnrichment } from '../cheap/types.js';
+import type { Ns02Block } from './fact-scorer.js';
 import type { CodeSite, OntologyFinding, OntologyResult } from './types.js';
 
 export interface SiteRef {
@@ -44,6 +45,8 @@ export interface ExpectedSemanticManifest {
   readonly description?: string;
   readonly expect: Readonly<Record<FindingKind, readonly ExpectedItem[]>>;
   readonly forbid: Readonly<Record<FindingKind, readonly ExpectedItem[]>>;
+  /** NS-02 cases (v1.4 U3): expected A2 facts and Sem verdicts, scored by `fact-scorer.ts`; the legacy scoring ignores it. */
+  readonly ns02?: Ns02Block;
 }
 
 /** A judge outcome on a case: the files of the units the judge failed (majority verdict). */

@@ -1,0 +1,45 @@
+{
+  "itemId": "component:sales",
+  "itemName": "component:sales",
+  "key": "12cbe2482634081bde40d809d8c0b27557a2ba32c5659c1254e894985a91fde1",
+  "parts": {
+    "model": "mock-ontology",
+    "pass": "capability",
+    "promptHash": "9cae01fd85680a95af90b8c98637a84333d3a0730ff783b62d4ee8fce5c628aa",
+    "promptVersion": "ontology-v0.2",
+    "provider": "mock",
+    "runIndex": 1,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "1c83830bfa99ad49d460d30b4c3202dea92d0aeeb55aa17addec0d18e16c9cd5"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of component \"sales\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- QuoteService (node ada8058f8f4ed5b8), file src/sales/application/quote.service.ts, declaration line 3: \"export class QuoteService {\"\n  component sales, layer application; responsibilities: Quote prices for customers\n- Client (node bef84812ea6fda02), file src/sales/domain/client.ts, declaration line 1: \"export class Client {\"\n  component sales, layer domain; responsibilities: Represent a sales customer and decide VIP status",
+  "recordedAt": "2026-10-15T00:00:00.000Z",
+  "resolvedModel": "mock-ontology",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.8,
+        "description": "Sales quoting",
+        "evidence": [
+          {
+            "endLine": 3,
+            "file": "src/sales/application/quote.service.ts",
+            "nodeId": "ada8058f8f4ed5b8",
+            "quote": "export class QuoteService {",
+            "startLine": 3
+          }
+        ],
+        "name": "Sales quoting",
+        "realizedBy": [
+          "bef84812ea6fda02",
+          "ada8058f8f4ed5b8"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 205,
+    "outputTokens": 75
+  }
+}

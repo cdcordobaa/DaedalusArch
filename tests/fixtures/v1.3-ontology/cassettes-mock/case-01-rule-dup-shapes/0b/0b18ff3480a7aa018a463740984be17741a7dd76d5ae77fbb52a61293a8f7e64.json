@@ -1,0 +1,45 @@
+{
+  "itemId": "component:checkout",
+  "itemName": "component:checkout",
+  "key": "0b18ff3480a7aa018a463740984be17741a7dd76d5ae77fbb52a61293a8f7e64",
+  "parts": {
+    "model": "mock-ontology",
+    "pass": "capability",
+    "promptHash": "f45a98080a66f77f6248ccb81d15d30b218e338dd4b9354875400feea2c94349",
+    "promptVersion": "ontology-v0.2",
+    "provider": "mock",
+    "runIndex": 0,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "1c83830bfa99ad49d460d30b4c3202dea92d0aeeb55aa17addec0d18e16c9cd5"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of component \"checkout\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- ShippingPolicy (node 2129045aa2d7117d), file src/checkout/domain/shipping-policy.ts, declaration line 8: \"export class ShippingPolicy {\"\n  component checkout, layer domain; responsibilities: Compute the shipping charge, free above a threshold\n- CheckoutService (node cf115feba907f542), file src/checkout/application/checkout.service.ts, declaration line 9: \"export class CheckoutService {\"\n  component checkout, layer application; responsibilities: Summarise a checkout with its shipping charge",
+  "recordedAt": "2026-10-15T00:00:00.000Z",
+  "resolvedModel": "mock-ontology",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.8,
+        "description": "Checkout pricing",
+        "evidence": [
+          {
+            "endLine": 8,
+            "file": "src/checkout/domain/shipping-policy.ts",
+            "nodeId": "2129045aa2d7117d",
+            "quote": "export class ShippingPolicy {",
+            "startLine": 8
+          }
+        ],
+        "name": "Checkout pricing",
+        "realizedBy": [
+          "2129045aa2d7117d",
+          "cf115feba907f542"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 223,
+    "outputTokens": 77
+  }
+}

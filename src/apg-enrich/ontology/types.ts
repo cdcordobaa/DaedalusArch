@@ -107,8 +107,17 @@ export interface CapabilityPassOut {
 export const RULE_OPERATORS = ['>=', '>', '<=', '<', '==', '!=', 'other'] as const;
 export type RuleOperator = (typeof RULE_OPERATORS)[number];
 
+/**
+ * What kind of check a rule is (v1.4 U3, BR-U3-11): `business`, a rule of the domain that must hold whichever entry
+ * point is used; `input-validation`, a check of the form, type or size of incoming data. Only business rules are
+ * clustered (BR-U3-18).
+ */
+export const RULE_KINDS = ['business', 'input-validation'] as const;
+export type RuleKind = (typeof RULE_KINDS)[number];
+
 export interface RuleOut {
   readonly statement: string;
+  readonly kind: RuleKind;
   readonly subject: string;
   readonly operator: RuleOperator;
   readonly threshold: number | null;

@@ -89,8 +89,8 @@ describe('ontology passes (mock provider)', () => {
 
   it('(c) asks only the cheap proxies\' candidate classes and requires enforcedBy to be a candidate method', async () => {
     const { mock, go } = run(input, [{ pass: 'rules', item: 'OrderNotificationService', answer: { rules: [
-      { statement: 'Large orders get 10% off', subject: 'line count', operator: '>', threshold: 3, unit: 'lines', enforcedBy: 'OrderNotificationService.sendConfirmation', confidence: 0.9, evidence: [c('OrderNotificationService.sendConfirmation', 'order.lines.length > 3')] },
-      { statement: 'Subtotal sums lines', subject: 'subtotal', operator: 'other', threshold: null, unit: null, enforcedBy: 'Order.subtotal', confidence: 0.9, evidence: [c('OrderNotificationService.sendConfirmation', 'order.lines.length > 3')] },
+      { statement: 'Large orders get 10% off', kind: 'business', subject: 'line count', operator: '>', threshold: 3, unit: 'lines', enforcedBy: 'OrderNotificationService.sendConfirmation', confidence: 0.9, evidence: [c('OrderNotificationService.sendConfirmation', 'order.lines.length > 3')] },
+      { statement: 'Subtotal sums lines', kind: 'business', subject: 'subtotal', operator: 'other', threshold: null, unit: null, enforcedBy: 'Order.subtotal', confidence: 0.9, evidence: [c('OrderNotificationService.sendConfirmation', 'order.lines.length > 3')] },
     ] } }]);
     const { result } = await go();
     const asked = [...new Set(mock.received().filter((r) => r.pass === 'rules').map((r) => r.itemName))];

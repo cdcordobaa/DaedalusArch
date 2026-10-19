@@ -1,0 +1,29 @@
+{
+  "case": "case-02-misplaced-pricing",
+  "writtenAt": "2026-10-18",
+  "writtenBefore": "any model run on this case",
+  "derivedFrom": "the parent manifest's own expect / forbid items (tests/fixtures/v1.3-ontology/case-02-misplaced-pricing/expected-semantic.json, unchanged) and NS-02 section 3, pair 4. Not from the hand-written mock answers, which already existed.",
+  "note": "Sidecar ns02 block (v1.4 U3, design section 5.1, D10). A forbidden 'non-declared naturalLayer' item is written once per layer kind other than the class's declared one.",
+  "ns02": {
+    "set": "NS-02 K3/K2m set, pair 4 of 6 (pilot defect case)",
+    "knowledgeLevel": "K3",
+    "twin": "case-04b-control-clean-notification",
+    "layers": "tests/fixtures/v1.3-ontology/layers.json (no declared context)",
+    "expectedFacts": [
+      { "subject": "OrderNotificationService", "predicate": "inLayer", "value": "application", "source": "parser", "polarity": "required" },
+      { "subject": "OrderNotificationService", "predicate": "hasResponsibility", "value": { "naturalLayer": "domain" }, "source": "model", "polarity": "required" },
+      { "subject": "Order", "predicate": "hasResponsibility", "value": { "naturalLayer": "application" }, "source": "model", "polarity": "forbidden" },
+      { "subject": "Order", "predicate": "hasResponsibility", "value": { "naturalLayer": "infrastructure" }, "source": "model", "polarity": "forbidden" },
+      { "subject": "Order", "predicate": "hasResponsibility", "value": { "naturalLayer": "presentation" }, "source": "model", "polarity": "forbidden" },
+      { "subject": "PlaceOrderUseCase", "predicate": "hasResponsibility", "value": { "naturalLayer": "domain" }, "source": "model", "polarity": "forbidden" },
+      { "subject": "PlaceOrderUseCase", "predicate": "hasResponsibility", "value": { "naturalLayer": "infrastructure" }, "source": "model", "polarity": "forbidden" },
+      { "subject": "PlaceOrderUseCase", "predicate": "hasResponsibility", "value": { "naturalLayer": "presentation" }, "source": "model", "polarity": "forbidden" },
+      { "subject": "ConsoleMailer", "predicate": "hasResponsibility", "value": { "naturalLayer": "domain" }, "source": "model", "polarity": "forbidden" },
+      { "subject": "ConsoleMailer", "predicate": "hasResponsibility", "value": { "naturalLayer": "application" }, "source": "model", "polarity": "forbidden" },
+      { "subject": "ConsoleMailer", "predicate": "hasResponsibility", "value": { "naturalLayer": "presentation" }, "source": "model", "polarity": "forbidden" }
+    ],
+    "expectedVerdicts": [
+      { "rule": "SEM-MISPLACED", "verdict": "fail", "sites": ["OrderNotificationService.sendConfirmation"] }
+    ]
+  }
+}

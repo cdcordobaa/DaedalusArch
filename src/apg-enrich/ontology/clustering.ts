@@ -2,7 +2,10 @@
  * Ontology v0 pass (d): clustering of rules, concepts and capabilities across components.
  *
  * Deterministic first: items with the same normalised name (rules: the same normalised statement) are merged without
- * a model call. Then embedding-free candidate pairs across components are proposed:
+ * a model call. Then embedding-free candidate pairs across components are proposed. Concepts are also paired inside
+ * one declared bounded context (both items carry the same non-null `context`; decision N4, v1.4 U3 BR-U3-08), so a
+ * fragmentation inside a context can be found; two concepts in the same undeclared (directory) component are not
+ * paired, and rules and capabilities are never paired within a component:
  * - rules: the same operator with thresholds equal up to a decimal scale, or the same operator with a subject-token
  *   Jaccard of at least 0.5;
  * - concepts: a name-token Jaccard of at least 0.5, or a field-name Jaccard of the defining classes of at least 0.3;
@@ -15,7 +18,7 @@ import type { PassContext } from './passes.js';
 import type { AdjudicationSide } from './prompts.js';
 import { ADJUDICATION_SCHEMA, ONTOLOGY_SYSTEM, adjudicationPrompt } from './prompts.js';
 import { equalUpToDecimalScale, jaccard, normName, tokens } from './text.js';
-import type { AdjudicationOut, RuleOperator } from './types.js';
+import type { AdjudicationOut, RuleOperator, SemProvenance } from './types.js';
 import { hostIndependentCompare } from '../../shared/collation.js';
 
 export interface ClusterItem {
@@ -28,6 +31,13 @@ export interface ClusterItem {
   readonly quotes: readonly string[];
   readonly rule?: { readonly subject: string; readonly operator: RuleOperator; readonly threshold: number | null };
   readonly fields?: readonly string[];
+  /** Concepts only: the class's declared bounded context, or null when its component is a directory fallback. */
+  readonly context?: string | null;
+}
+
+/** Whether two items of one component may still be paired: concepts in the same declared context (N4). */
+function sameDeclaredContext(a: ClusterItem, b: ClusterItem): boolean {
+  return a.kind === 'concept' && a.context !== undefined && a.context !== null && a.context === b.context;
 }
 
 export interface CandidatePair {
@@ -43,6 +53,8 @@ export interface AdjudicationRecord {
   readonly basis: string;
   readonly verdicts: readonly (boolean | null)[];
   readonly merged: boolean;
+  /** The valid answers, run by run (A2 provenance: served model, prompt hash, the model's confidence). */
+  readonly answers: readonly { readonly runIndex: number; readonly same: boolean; readonly confidence: number; readonly provenance: SemProvenance }[];
 }
 
 export interface ClusterResult {
@@ -82,7 +94,7 @@ export function candidatePairs(items: readonly ClusterItem[], decimalScaleMaxPow
     for (let j = i + 1; j < items.length; j++) {
       const a = items[i];
       const b = items[j];
-      if (a === undefined || b?.kind !== a.kind || a.component === b.component) continue;
+      if (a === undefined || b?.kind !== a.kind || (a.component === b.component && !sameDeclaredContext(a, b))) continue;
       if (exactKey(a) === exactKey(b)) continue;
       const nameJ = jaccard(tokens(a.text), tokens(b.text));
       let score = 0;
@@ -141,18 +153,20 @@ export async function cluster(p: PassContext, items: readonly ClusterItem[], opt
     const itemId = sha256Hex(canonicalJSON([a.key, b.key])).slice(0, 16);
     const prompt = adjudicationPrompt(side(a), side(b));
     const verdicts: (boolean | null)[] = [];
+    const answers: AdjudicationRecord['answers'][number][] = [];
     for (let runIndex = 0; runIndex < p.runs; runIndex++) {
       const r = await p.caller.call<AdjudicationOut>({
         pass: 'adjudicate', itemId, itemName: `${a.text} ~ ${b.text}`, runIndex, system: ONTOLOGY_SYSTEM, prompt, schema: ADJUDICATION_SCHEMA,
       });
       verdicts.push(r.kind === 'ok' ? r.value.same : null);
+      if (r.kind === 'ok') answers.push({ runIndex, same: r.value.same, confidence: r.value.confidence, provenance: r.provenance });
     }
     const valid = verdicts.filter((v): v is boolean => v !== null);
     const merged = valid.length > 0 && valid.every((v) => v);
     if (valid.length >= 2) p.tallies.adjudicate.add(valid.every((v) => v === valid[0]) ? 1 : 0, valid.every((v) => v === valid[0]) ? 1 : 0, 1);
     p.accepted.adjudicate += valid.length;
     if (merged) uf.union(a.key, b.key);
-    adjudications.push({ a: a.key, b: b.key, basis: pair.basis, verdicts, merged });
+    adjudications.push({ a: a.key, b: b.key, basis: pair.basis, verdicts, merged, answers });
   }
   const groups = new Map<string, string[]>();
   for (const it of items) {

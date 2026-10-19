@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "case": "case-06t-control-input-check-in-controller",
+  "writtenAt": "2026-10-18",
+  "writtenBefore": "any NS-02 pipeline change, prompt change or model run on this case (NS-02, ops/notes/ns-02-facts-contract-and-cases.md)",
+  "planted": "control",
+  "description": "Almost the same code shape: the controller checks dto.quantity, but only that it is a whole number (input checking, a presentation concern), and the Order aggregate enforces the purchase limit in Order.create. Nothing is misplaced.",
+  "expect": {
+    "ruleDuplications": [],
+    "misplacedResponsibilities": [],
+    "conceptFragmentations": [],
+    "capabilityScatter": []
+  },
+  "forbid": {
+    "ruleDuplications": [],
+    "misplacedResponsibilities": [
+      {
+        "file": "src/ordering/presentation/order.controller.ts",
+        "class": "OrderController"
+      },
+      {
+        "file": "src/ordering/domain/order.ts",
+        "class": "Order"
+      },
+      {
+        "file": "src/ordering/application/place-order.service.ts",
+        "class": "PlaceOrderService"
+      }
+    ],
+    "conceptFragmentations": [],
+    "capabilityScatter": []
+  },
+  "cheapExpectation": {
+    "misplacedResponsibilities": "no-flag"
+  },
+  "ns02": {
+    "set": "NS-02 K3/K2m set, pair 2 of 6",
+    "knowledgeLevel": "K3",
+    "twin": "case-06-invariant-only-in-controller",
+    "layers": "layers.json in this directory (declares the DDD contexts)",
+    "expectedFacts": [
+      {
+        "subject": "OrderController.create",
+        "predicate": "enforcesRule",
+        "value": {
+          "kind": "input-validation"
+        },
+        "source": "model",
+        "polarity": "required",
+        "note": "kind business here would be the false fact that fails the twin"
+      },
+      {
+        "subject": "Order.create",
+        "predicate": "enforcesRule",
+        "value": {
+          "kind": "business",
+          "subject": "units per order",
+          "operator": "<=",
+          "threshold": 20
+        },
+        "source": "model",
+        "polarity": "required"
+      },
+      {
+        "subject": "Order",
+        "predicate": "inLayer",
+        "value": "domain",
+        "source": "parser",
+        "polarity": "required"
+      }
+    ],
+    "expectedVerdicts": [
+      {
+        "rule": "SEM-MISPLACED",
+        "verdict": "pass"
+      }
+    ],
+    "harnessStatus": "Findable (as a pass) by the current pipeline.",
+    "factPolarity": "required: the run must produce it (agreed); forbidden: producing it is a false fact; tolerated: either answer, the verdict must not depend on it. Subjects are APG names (Class or Class.method), as in the mock-answer scripts."
+  }
+}

@@ -4,10 +4,11 @@
  * and run `npx tsx scripts/v1.3/ontology-run.ts --fixtures --provider mock`).
  */
 import { LAYER_KINDS } from '../../shared/types/enums.js';
-import { RULE_OPERATORS } from './types.js';
+import { RULE_KINDS, RULE_OPERATORS } from './types.js';
 import type { ClassUnit, GroupUnit, MethodUnit } from './units.js';
 
-export const PROMPT_VERSION = 'ontology-v0.1';
+/** v0.2 (v1.4 U3): the rule pass also returns input checks, each rule with its `kind` (BR-U3-11). */
+export const PROMPT_VERSION = 'ontology-v0.2';
 
 export const ONTOLOGY_SYSTEM = [
   'You are a software architecture analyst building a semantic model of a TypeScript code base.',
@@ -103,9 +104,10 @@ export const RULE_SCHEMA = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['statement', 'subject', 'operator', 'threshold', 'unit', 'enforcedBy', 'confidence', 'evidence'],
+        required: ['statement', 'kind', 'subject', 'operator', 'threshold', 'unit', 'enforcedBy', 'confidence', 'evidence'],
         properties: {
           statement: { type: 'string' },
+          kind: { type: 'string', enum: [...RULE_KINDS] },
           subject: { type: 'string' },
           operator: { type: 'string', enum: [...RULE_OPERATORS] },
           threshold: { type: ['number', 'null'] },
@@ -190,8 +192,8 @@ export function capabilityPrompt(group: GroupUnit, members: readonly { readonly 
 export function rulePrompt(cls: ClassUnit, candidates: readonly MethodUnit[]): string {
   return [
     '## Task',
-    'Extract the business rules enforced by the candidate methods below. A business rule is a policy of the business domain (a threshold, an eligibility condition, a limit, a rate), not a technical check (a null check, formatting, parsing). State each rule in plain business language with the subject it constrains, the comparison operator and threshold normalised to the most natural business unit, and the unit. Write the rule as the business would state it, independent of how the code is shaped (`!(a < b)` states `a >= b`).',
-    'Set enforcedBy to the node id of the method that enforces the rule. Cite that method and quote the code that enforces it. Return an empty list when the candidates enforce no business rule.',
+    'Extract the rules enforced by the candidate methods below: the business rules, and the limits or thresholds checked on incoming data. Label each rule with its kind. kind "business": a rule of the business domain (a threshold, an eligibility condition, a limit, a rate) that must hold whichever entry point is used. kind "input-validation": a check of the form, type or size of incoming data. Leave out null checks, formatting and parsing. State each rule in plain business language with the subject it constrains, the comparison operator and threshold normalised to the most natural business unit, and the unit. Write the rule as the business would state it, independent of how the code is shaped (`!(a < b)` states `a >= b`).',
+    'Set enforcedBy to the node id of the method that enforces the rule. Cite that method and quote the code that enforces it. Return an empty list when the candidates enforce no such rule.',
     '',
     '## Class',
     ...classHeader(cls),

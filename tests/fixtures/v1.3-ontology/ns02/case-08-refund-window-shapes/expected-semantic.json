@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "case": "case-08-refund-window-shapes",
+  "writtenAt": "2026-10-18",
+  "writtenBefore": "any NS-02 pipeline change, prompt change or model run on this case (NS-02, ops/notes/ns-02-facts-contract-and-cases.md)",
+  "planted": "rule-duplication",
+  "description": "One business rule, the 30-day refund window, implemented in two contexts with different shapes and units: `days <= 30` (whole days) in returns, and `!(nowMs - purchasedAtMs > REFUND_WINDOW_MS)` with 2,592,000,000 ms in support. 30 and 2,592,000,000 are not equal up to a power of ten, so the deterministic verifier cannot confirm it: the expected finding is a model-only duplication (verified: false). This tests the edge of propose-interpret-verify that case-01 does not.",
+  "expect": {
+    "ruleDuplications": [
+      {
+        "id": "refund-window-30-days",
+        "rule": "A purchase can be returned or refunded within 30 days.",
+        "sites": [
+          {
+            "file": "src/returns/domain/return-policy.ts",
+            "class": "ReturnPolicy",
+            "method": "accepts"
+          },
+          {
+            "file": "src/support/application/refund-eligibility.service.ts",
+            "class": "RefundEligibilityService",
+            "method": "isRefundable"
+          }
+        ],
+        "expectedVerification": false
+      }
+    ],
+    "misplacedResponsibilities": [],
+    "conceptFragmentations": [],
+    "capabilityScatter": []
+  },
+  "forbid": {
+    "ruleDuplications": [],
+    "misplacedResponsibilities": [
+      {
+        "file": "src/support/domain/ticket.ts",
+        "class": "Ticket"
+      }
+    ],
+    "conceptFragmentations": [],
+    "capabilityScatter": []
+  },
+  "cheapExpectation": {
+    "ruleDuplications": "miss",
+    "why": "No shared literal (30 vs 2592000000), different shape, different identifiers."
+  },
+  "ns02": {
+    "set": "NS-02 K3/K2m set, pair 6 of 6",
+    "knowledgeLevel": "K2m (same rule, different shape AND different unit)",
+    "twin": "case-08t-control-same-window-different-rules",
+    "layers": "layers.json in this directory (declares the DDD contexts)",
+    "expectedFacts": [
+      {
+        "subject": "ReturnPolicy.accepts",
+        "predicate": "enforcesRule",
+        "value": {
+          "kind": "business",
+          "operator": "<=",
+          "threshold": 30,
+          "unit": "days"
+        },
+        "source": "model",
+        "polarity": "required"
+      },
+      {
+        "subject": "RefundEligibilityService.isRefundable",
+        "predicate": "enforcesRule",
+        "value": {
+          "kind": "business",
+          "operator": "<=",
+          "threshold": 2592000000,
+          "unit": "ms"
+        },
+        "source": "model",
+        "polarity": "required",
+        "note": "threshold 30 with unit days is equally correct"
+      },
+      {
+        "subject": "ReturnPolicy.accepts",
+        "predicate": "sameRuleAs",
+        "value": {
+          "other": "RefundEligibilityService.isRefundable",
+          "same": true
+        },
+        "source": "model",
+        "polarity": "required"
+      },
+      {
+        "subject": "ReturnPolicy.accepts",
+        "predicate": "ruleEquivalenceVerified",
+        "value": {
+          "other": "RefundEligibilityService.isRefundable",
+          "verified": false
+        },
+        "source": "parser",
+        "polarity": "required",
+        "note": "no decimal-scale match; unit conversion is outside the v0 verifier"
+      }
+    ],
+    "expectedVerdicts": [
+      {
+        "rule": "SEM-DUP",
+        "verdict": "fail",
+        "sites": [
+          "ReturnPolicy.accepts",
+          "RefundEligibilityService.isRefundable"
+        ],
+        "note": "reported as model-only (verified: false)"
+      }
+    ],
+    "harnessStatus": "Findable by the current pipeline if the pass-(d) candidate matcher pairs the two rules (same operator and either equal-up-to-scale thresholds or subject Jaccard >= 0.5). If the model states one in days and one in ms with different subjects, no pair is proposed and the case is missed for a matcher reason, not a model reason; the run report must say which.",
+    "factPolarity": "required: the run must produce it (agreed); forbidden: producing it is a false fact; tolerated: either answer, the verdict must not depend on it. Subjects are APG names (Class or Class.method), as in the mock-answer scripts."
+  }
+}

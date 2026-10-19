@@ -61,7 +61,7 @@ export interface OntologyOptions {
   readonly maxAdjudicationPairs: number;
   /** Use only assertions both runs agree on for capabilities and findings. */
   readonly requireAgreement: boolean;
-  /** Differently-named defining classes for concept fragmentation. */
+  /** Differently-named defining classes inside one declared bounded context for concept fragmentation (N4). */
   readonly minFragmentClasses: number;
   /** Components a capability must span to be scattered. */
   readonly scatterMinComponents: number;
@@ -80,7 +80,8 @@ export const DEFAULT_ONTOLOGY_OPTIONS = Object.freeze({
   ruleMinDensity: 1,
   maxAdjudicationPairs: 40,
   requireAgreement: true,
-  minFragmentClasses: 3,
+  // v1.4 U3 (decision N4, BR-U3-07): two differently-named definers inside one declared context (was 3 across >= 2 components).
+  minFragmentClasses: 2,
   scatterMinComponents: 3,
   decimalScaleMaxPower: 3,
 });
@@ -91,13 +92,14 @@ function resolveOptions(o: OntologyOptionsInput): OntologyOptions {
   return { ...DEFAULT_ONTOLOGY_OPTIONS, ...o };
 }
 
-/** Content hash of the project's files (APG File nodes), for the default run id. */
-function projectHash(apg: APGResult, read: FileReader): string {
+/** Content hash of the project's files (APG File nodes), for the default run id and the A2 `project.contentHash`. */
+export function projectHash(apg: APGResult, read: FileReader): string {
   const files = apg.nodes.filter((n) => n.type === 'File').map((n) => n.filePath).sort();
   return sha256Hex(canonicalJSON(files.map((f) => [f, sha256Hex(read(f) ?? '')])));
 }
 
-function semId(label: string, parts: unknown): string {
+/** The id of a Sem node or edge (A2 reuses it for the cluster ids `conceptId`, `ruleId`, `capabilityId`). */
+export function semId(label: string, parts: unknown): string {
   return `sem:${label}:${sha256Hex(canonicalJSON(parts)).slice(0, 16)}`;
 }
 
@@ -213,12 +215,38 @@ export function estimateOntology(input: OntologyInput, o: OntologyOptionsInput):
 
 // ── Run ──────────────────────────────────────────────────────────────────────────────────────────────────────────
 
+/** A concept cluster item: the class and its kept concept assertion. */
+export interface ConceptMember {
+  readonly cls: ClassUnit;
+  readonly c: Kept<ConceptOut>;
+}
+
+/** The run's fact policy (v1.4 U3, BR-U3-06): `agreed-only` when `requireAgreement`, else `any`. */
+export type FactPolicy = 'agreed-only' | 'any';
+export const FACT_POLICIES: readonly FactPolicy[] = ['agreed-only', 'any'];
+
 export interface OntologyRunDetail {
   readonly result: OntologyResult;
   readonly classSemantics: readonly ClassSemantics[];
   readonly groupSemantics: readonly GroupSemantics[];
+  /** Every kept rule site, `input-validation` ones included (only business rules are clustered, BR-U3-18). */
   readonly ruleSites: readonly RuleSite[];
   readonly clusters: { readonly rules: ClusterResult; readonly concepts: ClusterResult; readonly capabilities: ClusterResult };
+  /** The cluster items behind the cluster keys (A2: the facts are built from them). */
+  readonly clusterItems: {
+    readonly rules: ReadonlyMap<string, RuleSite>;
+    readonly concepts: ReadonlyMap<string, ConceptMember>;
+    readonly capabilities: ReadonlyMap<string, GroupSemantics['capabilities'][number]>;
+  };
+  /** The verifier setting the run used (A2 `ruleEquivalenceVerified`). */
+  readonly decimalScaleMaxPower: number;
+  readonly runs: number;
+  readonly units: OntologyUnits;
+  /** `recordedAt` of each answer used, by `<promptHash>|<runIndex>` (`recordedKey`). */
+  readonly recordedAt: ReadonlyMap<string, string>;
+  readonly factPolicy: FactPolicy;
+  /** The run's `now()` (the A2 date of parser facts when the run used no recorded answer). */
+  readonly ranAt: string;
 }
 
 export async function runOntology(input: OntologyInput, o: OntologyOptionsInput): Promise<OntologyRunDetail> {
@@ -231,10 +259,10 @@ export async function runOntology(input: OntologyInput, o: OntologyOptionsInput)
   const ruleSites = caller.stopped === null ? await rulePass(p, units.ruleCandidates) : [];
 
   const clsById = new Map(units.classes.map((c) => [c.nodeId, c]));
-  // Rules
+  // Rules: only business rules are clustered (BR-U3-18); input checks stay rule sites (A2 `enforcesRule` facts) only.
   const ruleItems: ClusterItem[] = [];
   const ruleByKey = new Map<string, RuleSite>();
-  ruleSites.filter((r) => keep(r.rule)).forEach((r, i) => {
+  ruleSites.filter((r) => keep(r.rule) && r.rule.out.kind === 'business').forEach((r, i) => {
     const key = `rule:${String(i).padStart(4, '0')}:${r.rule.out.enforcedBy}`;
     ruleByKey.set(key, r);
     ruleItems.push({
@@ -246,13 +274,13 @@ export async function runOntology(input: OntologyInput, o: OntologyOptionsInput)
   });
   // Concepts
   const conceptItems: ClusterItem[] = [];
-  const conceptByKey = new Map<string, { cls: ClassUnit; c: Kept<ConceptOut> }>();
+  const conceptByKey = new Map<string, ConceptMember>();
   for (const s of classSemantics) {
     s.concepts.filter(keep).forEach((c, i) => {
       const key = `concept:${s.cls.nodeId}:${String(i)}`;
       conceptByKey.set(key, { cls: s.cls, c });
       conceptItems.push({
-        key, kind: 'concept', component: s.cls.component, text: c.out.name, where: `${s.cls.name} (${c.out.relation}), ${s.cls.file}, component ${s.cls.component}`,
+        key, kind: 'concept', component: s.cls.component, context: s.cls.declaredContext, text: c.out.name, where: `${s.cls.name} (${c.out.relation}), ${s.cls.file}, component ${s.cls.component}`,
         quotes: c.evidence.map((e) => e.quote), ...(c.out.relation === 'defines' ? { fields: s.cls.fields } : {}),
       });
     });
@@ -330,7 +358,7 @@ export async function runOntology(input: OntologyInput, o: OntologyOptionsInput)
 
   // Concepts, SemEMBODIES, fragmentation
   for (const keys of concepts.clusters) {
-    const members = keys.map((k) => conceptByKey.get(k)).filter((m): m is { cls: ClassUnit; c: Kept<ConceptOut> } => m !== undefined);
+    const members = keys.map((k) => conceptByKey.get(k)).filter((m): m is ConceptMember => m !== undefined);
     const first = members[0];
     if (first === undefined) continue;
     const id = semId('SemBusinessConcept', keys);
@@ -339,12 +367,16 @@ export async function runOntology(input: OntologyInput, o: OntologyOptionsInput)
     nodes.push({ id, label: 'SemBusinessConcept', name: names[0] ?? first.c.out.name, properties: { names }, provenance: first.c.provenance, confidence: conf, evidence: dedupEvidence(members.flatMap((m) => m.c.evidence)), agreement: mergeAgreement(members.map((m) => m.c)) });
     for (const m of members) edge('SemEMBODIES', m.cls.nodeId, id, { provenance: m.c.provenance, agreement: m.c.agreement, evidence: m.c.evidence, confidence: m.c.out.confidence }, { relation: m.c.out.relation });
     const definers = [...new Map(members.filter((m) => m.c.out.relation === 'defines').map((m) => [m.cls.nodeId, m.cls])).values()].sort((a, b) => hostIndependentCompare(a.nodeId, b.nodeId));
-    const distinctNames = new Set(definers.map((c) => c.name));
-    const components = [...new Set(definers.map((c) => c.component))].sort();
-    if (distinctNames.size < options.minFragmentClasses || components.length < 2) continue;
-    const overlaps: number[] = [];
-    for (let i = 0; i < definers.length; i++) for (let j = i + 1; j < definers.length; j++) overlaps.push(jaccard(definers[i]?.fields ?? [], definers[j]?.fields ?? []));
-    findings.push({ kind: 'concept-fragmentation', conceptId: id, concept: names[0] ?? '', classes: definers.map((c) => site(c)), components, fieldOverlap: mean(overlaps), confidence: conf });
+    // N4 (BR-U3-07): one finding per declared context with >= minFragmentClasses differently-named definers. Definers
+    // without a declared context never count; identity across contexts stays a fact (sameConceptAs) with no finding.
+    const byContext = new Map<string, ClassUnit[]>();
+    for (const c of definers) if (c.declaredContext !== null) byContext.set(c.declaredContext, [...(byContext.get(c.declaredContext) ?? []), c]);
+    for (const [context, inCtx] of [...byContext.entries()].sort((a, b) => hostIndependentCompare(a[0], b[0]))) {
+      if (new Set(inCtx.map((c) => c.name)).size < options.minFragmentClasses) continue;
+      const overlaps: number[] = [];
+      for (let i = 0; i < inCtx.length; i++) for (let j = i + 1; j < inCtx.length; j++) overlaps.push(jaccard(inCtx[i]?.fields ?? [], inCtx[j]?.fields ?? []));
+      findings.push({ kind: 'concept-fragmentation', conceptId: id, concept: names[0] ?? '', classes: inCtx.map((c) => site(c)), components: [context], fieldOverlap: mean(overlaps), confidence: conf });
+    }
   }
 
   // Capabilities, SemREALIZES, scatter
@@ -387,5 +419,10 @@ export async function runOntology(input: OntologyInput, o: OntologyOptionsInput)
     budget: options.budget,
     stopped: caller.stopped,
   };
-  return { result, classSemantics, groupSemantics, ruleSites, clusters: { rules, concepts, capabilities } };
+  return {
+    result, classSemantics, groupSemantics, ruleSites, clusters: { rules, concepts, capabilities },
+    clusterItems: { rules: ruleByKey, concepts: conceptByKey, capabilities: capByKey }, decimalScaleMaxPower: options.decimalScaleMaxPower, runs: options.runs,
+    units, recordedAt: caller.recordedDates(), factPolicy: options.requireAgreement ? 'agreed-only' : 'any',
+    ranAt: (options.now ?? ((): string => new Date().toISOString()))(),
+  };
 }

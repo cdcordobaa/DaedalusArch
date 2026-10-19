@@ -13,7 +13,7 @@
 import type { MethodDeclaration, SourceFile } from 'ts-morph';
 import type { APGNode } from '../../shared/types/apg.js';
 import type { LayerKind } from '../../shared/types/enums.js';
-import { classesOf } from '../cheap/context.js';
+import { classesOf, declaredContextOf } from '../cheap/context.js';
 import type { CheapContext } from '../cheap/context.js';
 import type { CheapEnrichment, Evidence } from '../cheap/types.js';
 import { hostIndependentCompare } from '../../shared/collation.js';
@@ -40,6 +40,8 @@ export interface ClassUnit {
   readonly file: string;
   readonly span: Evidence;
   readonly component: string;
+  /** The declared DDD bounded context (a `ddd.contexts[].root` prefix matched), or null for a directory fallback. */
+  readonly declaredContext: string | null;
   readonly layer: string | null;
   readonly layerKind: LayerKind | null;
   readonly fields: readonly string[];
@@ -162,7 +164,7 @@ export function buildUnits(ctx: CheapContext, cheap: CheapEnrichment, opts: { re
         .map((f) => `${f.proxy}/${f.kind}: ${f.message}`);
       const fieldsProp = nodeById.get(nodeId)?.properties.fields;
       const unit: ClassUnit = {
-        nodeId, name, file, span, component: info.component, layer: info.layer, layerKind: info.layerKind,
+        nodeId, name, file, span, component: info.component, declaredContext: declaredContextOf(file, ctx.layerModel), layer: info.layer, layerKind: info.layerKind,
         fields: Array.isArray(fieldsProp) ? fieldsProp.filter((x): x is string => typeof x === 'string') : [],
         methods, neighbours: dedup.slice(0, MAX_NEIGHBOURS), cheapFacts, cheapFlags,
         numberedSource: numberLines(sf, span),

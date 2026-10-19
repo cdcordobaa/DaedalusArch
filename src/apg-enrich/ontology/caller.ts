@@ -23,6 +23,11 @@ export type CallOutcome<T> =
   | { readonly kind: 'budget' }
   | { readonly kind: 'stopped' };
 
+/** The key of `ModelCaller.recordedDates()`. */
+export function recordedKey(promptHash: string, runIndex: number): string {
+  return `${promptHash}|${String(runIndex)}`;
+}
+
 export interface CallerOptions {
   readonly provider: OntologyProvider;
   readonly cache: OntologyCache;
@@ -44,11 +49,18 @@ export class ModelCaller {
   private stop: OntologyStop | null = null;
   private readonly ajv = new Ajv({ strict: false, allErrors: false });
   private readonly validators = new Map<string, ValidateFunction>();
+  /** `recordedAt` of every answer used, by `<promptHash>|<runIndex>` (A2 fact dates; a replay keeps the recorded date). */
+  private readonly recorded = new Map<string, string>();
 
   constructor(private readonly options: CallerOptions) {}
 
   get stopped(): OntologyStop | null {
     return this.stop;
+  }
+
+  /** When each answer used by this run was recorded, keyed `<promptHash>|<runIndex>` (see `recordedKey`). */
+  recordedDates(): ReadonlyMap<string, string> {
+    return new Map(this.recorded);
   }
 
   stats(): CallStats {
@@ -98,6 +110,7 @@ export class ModelCaller {
         this.invalid++;
         return { kind: 'invalid', reason: `cached answer fails the ${req.pass} schema` };
       }
+      this.recorded.set(recordedKey(promptHash, req.runIndex), hit.recordedAt);
       return { kind: 'ok', value: hit.response as T, provenance: provenance(hit.resolvedModel), cached: true };
     }
     if (this.options.cache.mode === 'replay') {
@@ -129,6 +142,8 @@ export class ModelCaller {
         lastReason = `answer fails the ${req.pass} schema: ${this.ajv.errorsText(validate.errors)}`;
         continue;
       }
+      const recordedAt = (this.options.now ?? ((): string => new Date().toISOString()))();
+      this.recorded.set(recordedKey(promptHash, req.runIndex), recordedAt);
       this.options.cache.put({
         schemaVersion: ONTOLOGY_CACHE_SCHEMA_VERSION,
         key,
@@ -142,7 +157,7 @@ export class ModelCaller {
         response: res.data.json,
         resolvedModel: res.data.model,
         usage: res.data.usage,
-        recordedAt: (this.options.now ?? ((): string => new Date().toISOString()))(),
+        recordedAt,
       });
       return { kind: 'ok', value: res.data.json as T, provenance: provenance(res.data.model), cached: false };
     }

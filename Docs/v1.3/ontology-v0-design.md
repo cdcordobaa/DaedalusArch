@@ -284,3 +284,33 @@ Commands are in the README section "Ontology v0". For a first live run:
 - No persistence to Neo4j and no report integration.
 - No cross-vendor provider.
 - No capability-scatter case in the ground truth: the finding is implemented and unit-tested only.
+
+## 13. Ontology v0.2 (v1.4 U3)
+
+This section is appended; §1 to §12 are unchanged, because the claims ledger and the replication group `g-onto-mock` cite them by line and value. Design: `aidlc-docs/construction/v1.4/U3/functional-design/design.md`. Decision record: `ADR-V13-N4` in `Docs/v1.3/adr-v13.md`.
+
+**A2, the facts file.** Every run now also writes `facts.json` beside `result.json` (`src/apg-enrich/ontology/facts.ts`).
+- It holds facts only: parser facts (`inLayer`, `inContext`, `logicDensity`, the verifier's `ruleEquivalenceVerified`, exact-name merges) and model facts (`hasResponsibility`, `embodiesConcept`, `enforcesRule`, `realizesCapability`, and the pass (d) `sameConceptAs` / `sameRuleAs` adjudications). The run's findings are verdicts and never enter A2.
+- Four invariants are checked on write (subjects are A1 nodes; a model fact has a served model, a prompt hash and grounded evidence; a parser fact has none of these; a closed, verdict-free vocabulary), plus a fifth: ids are content hashes, unique and sorted, so a record and its replay give the same bytes. Dates come from the cassettes.
+- Two changes to the NS-02 contract: `embodiesConcept` and `enforcesRule` carry the deterministic cluster id (`conceptId`, `ruleId`; left out of the fact id), and `inContext` is `{ context, declared }`.
+- `producer.factPolicy` records the run's policy: `agreed-only` (the default) or `any`. It is run-level: `any` changes the pass (b) prompts and the pass (d) pairs, so it needs its own calls.
+
+**The loader and the Sem rules.** `loadFacts` writes A1 + A2 into a `GraphRepository` through the ingestion's own statements (`facts-loader.ts`). The three Sem rules are Cypher (`sem-rules.ts`) and run on the in-process interpreter: SEM-MISPLACED (site: the Class), SEM-DUP (one business-rule cluster in two contexts, `verified` per pair) and SEM-FRAG (N4). On the six mock replays they give the same verdicts as the pipeline's findings. A1 alone gives no verdict (the ablation row).
+
+**N4.** Concept fragmentation is a finding only inside one declared bounded context (`ddd.contexts`), with at least `minFragmentClasses` differently-named definers. That default is now **2** (it was 3, across at least 2 components). Concepts are also paired for pass (d) inside one declared context; two concepts of one undeclared (directory) component are still not paired. Identity across contexts is a `sameConceptAs` fact with no finding.
+
+**Prompt `ontology-v0.2`.** Pass (c) now asks for the business rules and the limits or thresholds checked on incoming data, each with a `kind`: `business` (a rule of the domain that must hold whichever entry point is used) or `input-validation` (a check of the form, type or size of incoming data). Null checks and parsing stay excluded. Only business rules are clustered, so an input check never becomes a rule duplication. Every mock answer was given `kind: business` and the mock cassettes were re-recorded (zero model calls).
+
+**New mock baseline (v0.2).** §9 keeps the v0.1 figures.
+
+| Measure | v0.2 value |
+|---|---|
+| Planted defects found | 2 of 3: case-03 plants Customer across three directory components with no declared context, which N4 makes correct DDD, so it is out of scope |
+| Forbidden hits / unexpected | 0 of 14 / 0 |
+| Planted hallucinations rejected | 4 of 4 |
+| Accepted assertions | 128 |
+| Mock record calls / replay cache hits | 110 / 110 (0 provider calls on replay) |
+
+**Vendor-neutral route.** `--provider claude-cli|gemini-api|gemini-agy|mock` through `routes.ts`; `LlmOntologyProvider` adapts any `LLMProvider`. The Gemini routes need `--model`. Estimate and replay never open a route. The Gemini routes are mock-tested only.
+
+**§12, as of v0.2.** "No cross-vendor provider": the route is built, mock-tested only, never run live. "No persistence to Neo4j": A2 loads into the in-process graph with Neo4j-compatible statements; Neo4j itself is not run. The other items stand.
