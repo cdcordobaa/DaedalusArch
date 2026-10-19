@@ -11,6 +11,9 @@
  *   `DEFAULT_GENERATOR_TIMEOUT_MS`, so no generator gets more wall time than another).
  * - `homes` are machine-local (`"<local>"`, filled by `--gemini-home-none` / `--gemini-home-mcp`); `binary` is the
  *   absolute agy path (default: the plan's `binary`).
+ * - Version (`checkAgyGenLiveVersion`): a live run accepts only the agy versions accepted for exploratory runs
+ *   (`AGY_EXPLORATORY_VERSIONS`, shared with BF-01; 1.4.2 among them) or the frozen labeller pin; the per-turn
+ *   `agy --version` check against `cliVersion` stays (`GeminiStepAgent`).
  * - S4 guard (`checkS4Result`): a live wiring refuses `agy-cli` unless `s4Result` names a committed result whose
  *   verdict is `pass` for this CLI version, this model and every arm of the plan. A result marked `synthetic` is refused
  *   unless the caller passes `allowSynthetic` (only the recorded dry run does).
@@ -22,6 +25,8 @@ import type { DomainError } from '../../../src/shared/errors/domain-result.js';
 import { AGY_GEN_PRINT_TIMEOUT_MAX_S, AGY_GEN_PRINT_TIMEOUT_MIN_S, agyGenArmOf, createAgyGenCliConfig } from './agy-gen-cli.js';
 import type { AgyGenArm, AgyGenCliConfig } from './agy-gen-cli.js';
 import { createGeneratorCliConfig } from './config.js';
+import { AGY_PINNED_VERSION } from '../../../src/llm-critic/agy-cli-provider.js';
+import { AGY_EXPLORATORY_VERSIONS } from '../agy-exploratory.js';
 
 export const GEMINI_LOCAL = '<local>';
 export const S4_RESULT_SCHEMA = 'agy-gen-s4/v1';
@@ -57,7 +62,7 @@ export function geminiBlockProblems(block: unknown, present: boolean): DomainErr
   const unknown = Object.keys(block).filter((k) => !KEYS.has(k));
   if (unknown.length > 0) errors.push(bad(`gemini has unknown keys: ${unknown.sort().join(', ')}`));
   if (typeof block.enabled !== 'boolean') errors.push(bad('gemini.enabled must be a boolean'));
-  else if (present && block.enabled !== true) errors.push(bad('an agy-cli adapter needs gemini.enabled: true (the Gemini generator is off by default)'));
+  else if (present && !block.enabled) errors.push(bad('an agy-cli adapter needs gemini.enabled: true (the Gemini generator is off by default)'));
   if (typeof block.cliVersion !== 'string' || !VERSION_RE.test(block.cliVersion)) errors.push(bad('gemini.cliVersion must be x.y.z'));
   if (block.binary !== undefined && (typeof block.binary !== 'string' || (block.binary !== GEMINI_LOCAL && !path.isAbsolute(block.binary)))) {
     errors.push(bad('gemini.binary must be an absolute path'));
@@ -145,10 +150,26 @@ export function checkS4Result(
   const r = raw as unknown as S4Result;
   if (r.synthetic === true && o.allowSynthetic !== true) return fail('LOOP_GEMINI_S4_SYNTHETIC', `${block.s4Result} is a synthetic S4 result; only the recorded dry run may use it`);
   if (r.cliVersion !== block.cliVersion || r.modelId !== modelId) {
-    return fail('LOOP_GEMINI_S4_MISMATCH', `${block.s4Result} is for agy ${String(r.cliVersion)} and model ${String(r.modelId)}, the plan pins ${block.cliVersion} and ${modelId}`);
+    return fail('LOOP_GEMINI_S4_MISMATCH', `${block.s4Result} is for agy ${r.cliVersion} and model ${r.modelId}, the plan pins ${block.cliVersion} and ${modelId}`);
   }
   const needed = [...new Set(arms.map(agyGenArmOf))].sort();
   const notPassed = needed.filter((a) => r.arms[a] !== 'pass');
   if (notPassed.length > 0) return fail('LOOP_GEMINI_S4_FAILED', `the S4 result does not pass for arm(s) ${notPassed.join(', ')}`);
   return DomainResult.ok(r);
+}
+
+/** agy versions a live Gemini generator run accepts: the exploratory versions, then the frozen labeller pin. */
+export const AGY_GEN_LIVE_VERSIONS: readonly string[] = Object.freeze([...AGY_EXPLORATORY_VERSIONS, AGY_PINNED_VERSION]);
+
+/**
+ * A live run's `gemini.cliVersion` is one of `AGY_GEN_LIVE_VERSIONS` (`LOOP_GEMINI_VERSION_UNLISTED` otherwise);
+ * `exploratory` is true for any version other than the frozen labeller pin. Dry runs (scripted runners) are not checked.
+ */
+export function checkAgyGenLiveVersion(cliVersion: string): DomainResult<{ readonly exploratory: boolean }> {
+  if (!AGY_GEN_LIVE_VERSIONS.includes(cliVersion)) {
+    return DomainResult.fail([
+      { code: 'LOOP_GEMINI_VERSION_UNLISTED', message: `agy ${cliVersion} is neither an exploratory version (${AGY_EXPLORATORY_VERSIONS.join(', ')}) nor the labeller pin ${AGY_PINNED_VERSION}` },
+    ]);
+  }
+  return DomainResult.ok({ exploratory: cliVersion !== AGY_PINNED_VERSION });
 }

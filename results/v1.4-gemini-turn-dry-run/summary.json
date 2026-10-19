@@ -1,0 +1,86 @@
+{
+  "schema": "gemini-turn-dry-run/v1",
+  "note": "Fake agy binary through the real NodeProcessRunner: no agy process, no model call, not a measurement. Paths are placeholders; env values are not recorded.",
+  "template": "experiments/loop-gemini/gemini-plan.template.json",
+  "adapterId": "agy-cli",
+  "modelId": "gemini-4-argon-high",
+  "cliVersion": "1.4.2",
+  "versionCheck": {
+    "accepted": true,
+    "exploratory": true
+  },
+  "s4": {
+    "usedRecord": "results/v1.4-gemini-s4-dry-run/s4-result.synthetic.json",
+    "withoutAllowSynthetic": "LOOP_GEMINI_S4_SYNTHETIC",
+    "withAllowSynthetic": "accepted"
+  },
+  "probe": {
+    "cliVersion": "1.4.2"
+  },
+  "versionCalls": 2,
+  "modelCall": {
+    "stoppedOnResult": true,
+    "timedOut": false,
+    "exitCode": -1,
+    "endedWithin30s": true,
+    "hardKillSeconds": 90
+  },
+  "turn": {
+    "turnId": "step-01",
+    "status": "completed",
+    "attempts": [
+      "completed"
+    ],
+    "argv": [
+      "--output-format",
+      "stream-json",
+      "--model",
+      "gemini-4-argon-high",
+      "--sandbox",
+      "--disable-slash-commands",
+      "--print-timeout",
+      "60s"
+    ],
+    "usage": {
+      "inputTokens": 100,
+      "outputTokens": 50,
+      "costUsd": null
+    },
+    "envNames": [
+      "AGY_CLI_DISABLE_AUTO_UPDATE",
+      "HOME",
+      "LANG",
+      "PATH",
+      "USER"
+    ],
+    "blocking": 0
+  },
+  "process": {
+    "logFound": true,
+    "calls": 1
+  },
+  "filesWritten": [
+    "src/application/notes-service.ts",
+    "src/domain/notes.ts"
+  ],
+  "mcpConfig": {
+    "mcpServers": {
+      "daedalus-arch": {
+        "type": "stdio",
+        "command": "<node>",
+        "args": [
+          "<server-entry>",
+          "--spec",
+          "<spec>",
+          "--project",
+          "<cwd>",
+          "--engine",
+          "neo4j",
+          "--call-log",
+          "<out-root>/runs/agy-cli/gemini-4-argon-high/notes/daedalus-mcp/run-0/calls/step-01.jsonl"
+        ],
+        "env": {}
+      }
+    }
+  }
+}

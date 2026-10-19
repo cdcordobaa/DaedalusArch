@@ -2412,3 +2412,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 instrument track, Study 2 protocol; no model calls
 
 ---
+
+## v1.4 construction: U11 Gemini generator ready for S4 (BUILD-G)
+**Timestamp**: 2026-10-19T22:03:53Z
+**User Input**: "Scheduled routine BUILD-G: make the agy Gemini generator ready for a live S4 probe and the exploratory study, with zero model calls: stop on the result event, allow agy 1.4.2 for exploratory runs, implement the S4 probe exactly as specified (cap 30, dry run, estimate, runbook), a setup script for the two generator homes and the model pin in the plan template, and one stub turn through the loop. Open a PR, do not merge."
+**AI Response**: "New unit U11 (plan and code summary under aidlc-docs/construction/v1.4/U11/). The Gemini turn now ends on agy's result event (fake-agy test that hangs). agy 1.4.2 is accepted through the shared exploratory-version constant (labeller pin 1.3.2 unchanged). The S4 probe code covers G0-G12 with 24 planned calls and a counter that refuses any call past 30; its dry run passes both arms (synthetic record). Added a homes setup script (no sign-in) and a plan template pinning gemini-4-argon-high on agy 1.4.2. One stub turn through the loop completed and stopped on the result line. No model was called; the live probe is left to the coordinator (runbook in Docs/v1.4/gemini-generator.md)."
+**Context**: v1.4 construction, U11 Code Generation; S4 probe not run; PR opened, not merged
+
+---

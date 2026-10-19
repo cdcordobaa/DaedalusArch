@@ -16,6 +16,9 @@
  *
  * The print timeout is read from stderr, never from the exit code (agy exits 0). `costUsd` is always null (a
  * subscription; no figure is recorded).
+ *
+ * agy 1.4.2 prints its `result` event and then never exits: the agent ends the process on that line
+ * (`stopOnLine: isAgyResultLine`), and such a run counts as exit 0 (`agyGenExitCode`).
  */
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import type { DomainError } from '../../../src/shared/errors/domain-result.js';
@@ -96,7 +99,7 @@ export function parseAgyGenRun(stdout: string, secrets: readonly string[]): Doma
   const denied = deniedToolCount(stream);
   const durationS = num((r as Record<string, unknown> | null)?.duration_seconds);
   const sessionId = conversationId(stdout);
-  const isError = r === null || r.status !== 'SUCCESS' || (typeof r.error === 'string' && r.error !== '');
+  const isError = r?.status !== 'SUCCESS' || (typeof r.error === 'string' && r.error !== '');
   const scrubbed = scrubDeep(
     {
       agy: true,
@@ -137,8 +140,16 @@ export function agyTimedOut(cli: ProcessResult): boolean {
   return cli.timedOut || matches(AGY_CLASSIFIER.TIMEOUT, cli.stderr);
 }
 
+/**
+ * The exit code as agy meant it: a run the harness ended on the result event (`stoppedOnOutput`, agy 1.4.2 prints its
+ * result and never exits) has the signal exit -1 but finished; it counts as exit 0, as in the labeller provider.
+ */
+export function agyGenExitCode(cli: ProcessResult, stream: AgyStream = readAgyStream(cli.stdout)): number {
+  return cli.stoppedOnOutput === true && stream.result !== null ? 0 : cli.exitCode;
+}
+
 function erroring(cli: ProcessResult, stream: AgyStream): boolean {
-  return cli.exitCode !== 0 || stream.result === null || stream.result.status !== 'SUCCESS' || (typeof stream.result.error === 'string' && stream.result.error !== '');
+  return agyGenExitCode(cli, stream) !== 0 || stream.result?.status !== 'SUCCESS' || (typeof stream.result.error === 'string' && stream.result.error !== '');
 }
 
 /** The attempt disposition of design §3.5 (`changed`: files the agent changed since the last snapshot). */

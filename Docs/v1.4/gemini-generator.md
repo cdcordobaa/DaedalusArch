@@ -1,12 +1,15 @@
 # Gemini generator adapter (`agy-cli`)
 
-**Status: built, off by default, dry-run only, NOT yet through its S4 confinement probe.** Decision CDX
+**Status: built, off by default, dry-run only, NOT yet through its S4 confinement probe.** U11 (BUILD-G, 2026-10-19)
+made it ready for the probe: the turn ends on agy's result event, agy 1.4.2 is accepted for exploratory runs, the S4
+probe code exists (dry-run tested, never run live), the two generator homes have a setup script, and the plan template
+pins the model (see "S4 runbook" below). Decision CDX
 (`ops/decisions.md`): Gemini is registered as the Codex substitute for Study 2, with its own S4 probe. Design:
 `aidlc-docs/construction/v1.4/U5/functional-design/design.md` Part B. Probe: `Docs/v1.4/gemini-s4-probe-spec.md`.
 
-**Protocol note.** The `study2-protocol` line still says `generators=claude-sonnet-5-5,codex-pin`, and
-`scripts/v1.3/protocol-consistency-check.mjs` enforces it. This adapter touches no protocol document. The substitution
-of Gemini for Codex is carried by the dated M3/CDX deviation (orchestrator lane), not by this code.
+**Protocol note.** Since the second deviation (`Docs/v1.4/study2-deviation-2026-10-19-drift.md`) the
+`study2-protocol` line says `generators=claude-sonnet-5-5,gemini-pin`. This adapter touches no protocol document; the
+exact Gemini model id and agy version are fixed in the plan template below.
 
 ## Route and why
 
@@ -114,3 +117,53 @@ call; not a measurement.
 1. The S4 probe run and passed (`Docs/v1.4/gemini-s4-probe-spec.md`: 24 model calls, cap 30; the author's OK, Q6).
 2. The two generator homes created and signed in; the model pin chosen.
 3. The dated CDX deviation recorded (the protocol line), outside this unit.
+
+## U11 additions (BUILD-G)
+
+| Item | Where |
+|---|---|
+| The turn ends on the `result` event: agy 1.4.2 prints its result and never exits. `driveTurn` gained one optional `CallPlan.stopOnLine` (Claude and Codex pass none); `GeminiStepAgent` passes `isAgyResultLine`; a run ended that way counts as exit 0 (`agyGenExitCode`) | `scripts/lib/loop/agents.ts`, `scripts/lib/generators/agy-gen-events.ts`; test `tests/unit/scripts/loop/agents-gemini-hang.test.ts` (a fake agy that prints a result and hangs) |
+| agy 1.4.2 accepted for exploratory runs: `AGY_EXPLORATORY_VERSIONS` (1.3.6, 1.4.2) moved to a shared module and re-exported by BF-01; a live grid or probe accepts only those or the frozen labeller pin 1.3.2 (`checkAgyGenLiveVersion`, `LOOP_GEMINI_VERSION_UNLISTED`). The per-turn `agy --version` check against `gemini.cliVersion` stays | `scripts/lib/agy-exploratory.ts`, `scripts/lib/generators/agy-gen-plan.ts`, `scripts/lib/loop/main.ts` |
+| The plan template: `agy-cli` / **`gemini-4-argon-high`** / agy **1.4.2**, `gemini.s4Result` = `tests/fixtures/agy-gen-cli/s4-result.json`. Its `tasksFile` is a placeholder (the demo tasks) | `experiments/loop-gemini/gemini-plan.template.json` |
+| The S4 probe (G0–G12, 24 calls, cap 30, a counter that refuses the 31st call; `--estimate`, `--dry-run`) | `scripts/generator/probes/agy-gen-confinement.ts`, `-cli.ts`, `-dry-run.ts`; recorded dry run `results/v1.4-gemini-s4-dry-run/` (synthetic, refused by every live wiring) |
+| The generator homes: create and validate, no sign-in, no credential read | `scripts/v1.4/gemini-homes.ts` |
+| One stub turn end to end through the loop under the template, a fake agy that hangs, the real process runner | `scripts/v1.4/gemini-turn-dry-run.ts`; record `results/v1.4-gemini-turn-dry-run/summary.json` |
+
+## S4 runbook (the coordinator, locally)
+
+Nothing below has been run. Steps 1–3 make no model call; step 4 makes at most 30 (24 planned). Paths are examples:
+keep both homes and every root outside the repository, and never use the labeller home.
+
+```bash
+# 1. The two generator homes (once): create, then sign each in by hand (the labeller's pty relay, HOME=<home> agy),
+#    then check again. The script never signs in and never opens a credential file.
+npx tsx scripts/v1.4/gemini-homes.ts --create --home-none ~/.firewall/gemini-gen-none --home-mcp ~/.firewall/gemini-gen-mcp
+npx tsx scripts/v1.4/gemini-homes.ts --home-none ~/.firewall/gemini-gen-none --home-mcp ~/.firewall/gemini-gen-mcp \
+  --out-root ~/daedalus-out/gemini-s4 --harness-root ~/daedalus-h/gemini-s4
+
+# 2. The call count and a dry run (scripted agy, no model call).
+npx tsx scripts/generator/probes/agy-gen-confinement-cli.ts --estimate
+npx tsx scripts/generator/probes/agy-gen-confinement-cli.ts --dry-run --no-record --plan experiments/loop-gemini/gemini-plan.template.json
+
+# 3. Build the MCP server the daedalus-mcp arm starts (dist/mcp-server/main.js), and check agy is 1.4.2.
+npm run build && agy --version
+
+# 4. THE LIVE PROBE: 24 model calls, hard cap 30, about 48-120 min, subscription quota on the two generator homes.
+npx tsx scripts/generator/probes/agy-gen-confinement-cli.ts \
+  --plan experiments/loop-gemini/gemini-plan.template.json \
+  --binary "$(command -v agy)" \
+  --harness-root ~/daedalus-h/gemini-s4 --out-root ~/daedalus-out/gemini-s4 \
+  --gemini-home-none ~/.firewall/gemini-gen-none --gemini-home-mcp ~/.firewall/gemini-gen-mcp
+```
+
+- Exit 0: both arms pass; the run wrote `tests/fixtures/agy-gen-cli/s4-result.json` and `tests/fixtures/agy-gen-cli/s4-streams/`
+  (paths as placeholders, streams scrubbed). Review and commit them; a live grid then accepts the template.
+- Exit 1: a probe or G0 failed. The arm is stopped (ADR-029); the result stays under `<out-root>/probes/agy-s4-<stamp>/`
+  and is not copied. If G0 or G9 failed, Gemini runs `none` cells only (the spec's pre-registered rule).
+- Exit 2: the run stopped early (the call cap, `LOOP_GEMINI_AUTH`, a usage limit, a version drift) or a setup error. The
+  partial result names the code; nothing is copied into the repository.
+- `--only G5 --arms none` re-runs single probes for diagnosis; a partial run never marks an arm as passed and is never
+  copied. `--max-calls <n>` lowers the cap (never above 30).
+- The probe fills the template's `daedalus` `<local>` fields with this checkout's node, `dist/mcp-server/main.js` and the
+  evaluator spec. A grid run needs a copy of the template with the frozen tasks and concrete `daedalus` paths.
+

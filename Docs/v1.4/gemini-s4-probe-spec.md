@@ -1,6 +1,7 @@
 # Gemini generator S4 confinement probe: specification
 
-**Status: SPEC ONLY, NOT RUN.** No probe in this document has been executed, and no model was called to write it.
+**Status: NOT RUN. The probe code exists since U11 (`scripts/generator/probes/agy-gen-confinement.ts`; dry-run
+tested; runbook in `Docs/v1.4/gemini-generator.md`).** No probe in this document has been executed, and no model was called to write it.
 Decision CDX (`ops/decisions.md`): Gemini over the Antigravity CLI `agy` is the Codex substitute for Study 2, with its
 own S4 probe. s2d-01 §7 says "the Gemini S4 probe is counted in the CDX note"; this spec is that count. Design:
 `aidlc-docs/construction/v1.4/U5/functional-design/design.md` §3.4 and §4. Adapter: `Docs/v1.4/gemini-generator.md`.

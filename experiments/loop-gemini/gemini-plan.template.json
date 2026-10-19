@@ -1,0 +1,26 @@
+{
+  "description": "TEMPLATE, Gemini generator lane (agy-cli) of the exploratory study, and the plan the S4 probe reads (Docs/v1.4/gemini-s4-probe-spec.md). Model pin gemini-4-argon-high; agy 1.4.2, accepted for exploratory runs (AGY_EXPLORATORY_VERSIONS; the labeller pin 1.3.2 is unchanged). The tasksFile is a placeholder (the demo tasks): replace it with the frozen study tasks before a grid run. <local> fields are filled by flags; the S4 probe fills the daedalus block with this checkout's node, dist/mcp-server/main.js and the evaluator spec. Runbook: Docs/v1.4/gemini-generator.md.",
+  "tasksFile": "experiments/loop-demo/demo-tasks.json",
+  "adapters": [{ "adapterId": "agy-cli", "modelId": "gemini-4-argon-high", "cliVersion": "1.4.2" }],
+  "arms": ["none", "daedalus-mcp"],
+  "runs": 1,
+  "orderSeed": 20261019,
+  "outRoot": "<local>",
+  "binary": "<local>",
+  "harnessRoot": "<local>",
+  "allowBash": true,
+  "daedalus": {
+    "nodeBinary": "<local>",
+    "serverEntry": "<local>",
+    "specPath": "<local>"
+  },
+  "evaluatorSpec": "specs/clean-arch.yaml",
+  "gemini": {
+    "enabled": true,
+    "cliVersion": "1.4.2",
+    "printTimeoutS": 1170,
+    "allowCommand": true,
+    "homes": { "none": "<local>", "daedalus-mcp": "<local>" },
+    "s4Result": "tests/fixtures/agy-gen-cli/s4-result.json"
+  }
+}
