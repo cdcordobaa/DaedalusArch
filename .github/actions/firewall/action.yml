@@ -80,18 +80,28 @@ runs:
         fi
 
         REPORT_PATH="${{ runner.temp }}/firewall-report.json"
+        LOG_PATH="${{ runner.temp }}/firewall-evaluate.log"
 
-        npx tsx src/cli/cli.ts evaluate \
+        # src/cli/bin.ts is the executable entry (it calls main()); src/cli/cli.ts only defines the commands.
+        # A blocking verdict exits non-zero by design, so the exit code is ignored here and the verdict is read
+        # from the report; an empty or unparsable report fails the step instead of posting an empty verdict.
+        npx tsx src/cli/bin.ts evaluate \
           --project "${{ inputs.project-path }}" \
           --spec "${{ inputs.spec-path }}" \
           --neo4j-uri "${{ inputs.neo4j-uri }}" \
           --format json \
           $MODE_FLAG \
-          > "$REPORT_PATH" 2>/dev/null || true
+          > "$REPORT_PATH" 2>"$LOG_PATH" || true
 
         # Parse results from JSON report
-        AHS_SCORE=$(jq -r '.ahsDeterministic' "$REPORT_PATH" 2>/dev/null || echo "0")
-        VERDICT=$(jq -r '.verdict' "$REPORT_PATH" 2>/dev/null || echo "error")
+        AHS_SCORE=$(jq -r '.ahsDeterministic // empty' "$REPORT_PATH" 2>/dev/null || true)
+        VERDICT=$(jq -r '.verdict // empty' "$REPORT_PATH" 2>/dev/null || true)
+        if [ -z "$VERDICT" ] || [ -z "$AHS_SCORE" ]; then
+          echo "::error::firewall evaluate produced no report (verdict='$VERDICT', ahs='$AHS_SCORE')"
+          tail -n 50 "$LOG_PATH" || true
+          exit 1
+        fi
+        echo "Firewall verdict: $VERDICT (AHS $AHS_SCORE, $(jq '.violations | length' "$REPORT_PATH") violations)"
 
         echo "ahs-score=$AHS_SCORE" >> "$GITHUB_OUTPUT"
         echo "verdict=$VERDICT" >> "$GITHUB_OUTPUT"
