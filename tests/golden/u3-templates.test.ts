@@ -334,9 +334,13 @@ describeU3('U3-R9 one assembly point (BR-U3-50, 55, 56, 64)', () => {
     const neo4j = neo4jConfig();
     const apgStore = fs.mkdtempSync(path.join(os.tmpdir(), 'u3-r9-cli13-'));
     try {
+      // FR-V6 is a property of the sealed rule set. Since v1.4 U2 the v1.3 CLI adds the post-seal rules by default
+      // (ADR-V14-01/02, Docs/v1.4/adr-v14.md; FF-P07 here, which moves the AHS), so this run keeps the sealed set with
+      // `--post-seal off` (BR-U2-10).
       const out = spawnSync(path.join(REPO_ROOT, 'node_modules', '.bin', 'tsx'), [
         path.join(REPO_ROOT, 'bin', 'firewall.ts'), 'evaluate',
         '--project', c.projectPath, '--spec', c.specPath, '--symbolic-only', '--format', 'json', '--neo4j-uri', neo4j.uri, '--engine', 'neo4j',
+        '--post-seal', 'off',
       ], {
         cwd: REPO_ROOT,
         encoding: 'utf8',
