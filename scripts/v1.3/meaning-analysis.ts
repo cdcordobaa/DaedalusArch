@@ -14,7 +14,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { analyse } from './lib/meaning/analyse.js';
 import { MEANING_LIB_DIR, MeaningInputError, hashFiles, loadSample, loadSheet, scriptHashPaths } from './lib/meaning/load.js';
-import { displayPath, renderJson, renderMarkdown } from './lib/meaning/report.js';
+import { displayPath, physicalPath, renderJson, renderMarkdown } from './lib/meaning/report.js';
 import { SimulateError, parseTable, simulateSheets } from './lib/meaning/simulate.js';
 import type { Field, Sheet } from './lib/meaning/types.js';
 import { FIELDS, PROTOCOL } from './lib/meaning/types.js';
@@ -52,9 +52,14 @@ export function repoRoot(cwd: string): string {
   return execFileSync('git', ['rev-parse', '--show-toplevel'], { cwd, encoding: 'utf-8' }).trim();
 }
 
-/** BR-54, BR-60: true when `dir` is `results/` or under it. */
+/**
+ * BR-54, BR-60: true when `dir` is `results/` or under it. Both paths are made physical (realpath of the deepest
+ * existing ancestor, so a symlinked route cannot escape) and compared case-folded, because the repo volume may be
+ * case-insensitive (`Results/` is `results/` there). Folding on a case-sensitive volume only refuses more.
+ */
 export function isUnderResults(dir: string, root: string): boolean {
-  const rel = path.relative(path.resolve(root), path.resolve(dir)).split(path.sep).join('/');
+  const fold = (p: string): string => physicalPath(p).toLowerCase();
+  const rel = path.relative(fold(root), fold(dir)).split(path.sep).join('/');
   return rel === 'results' || rel.startsWith('results/');
 }
 

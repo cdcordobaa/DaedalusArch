@@ -4,6 +4,7 @@
  * Markdown rounds to 3 decimals and prints an undefined figure as the word `undefined`; JSON keeps full precision,
  * with `null` for undefined and keys sorted. Neither output carries a time, a host name, an absolute path or a note.
  */
+import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { CODE_COLUMNS, CROSS_CATEGORIES } from './crosstab.js';
 import type { AgreementBlock, BootInterval, MeaningAnalysis, PrecisionBlock, PrecisionRow, SimpleInterval } from './types.js';
@@ -15,8 +16,27 @@ export const SINGLE_RATER_AUTHOR = 'single-rater, descriptive, not validated';
 export const SINGLE_RATER_RATER = 'single-rater: agreement not computed';
 
 /** BR-53: a repo-relative path, or `<outside repo>/<basename>` for a file outside the repo. */
+/**
+ * The physical path: the deepest existing ancestor is resolved with realpath (so a symlinked route into the repo
+ * and the physical path agree), and the not-yet-existing tail is appended unchanged.
+ */
+export function physicalPath(p: string): string {
+  let head = path.resolve(p);
+  const tail: string[] = [];
+  for (;;) {
+    try {
+      return path.join(fs.realpathSync.native(head), ...tail);
+    } catch {
+      const parent = path.dirname(head);
+      if (parent === head) return path.join(head, ...tail);
+      tail.unshift(path.basename(head));
+      head = parent;
+    }
+  }
+}
+
 export function displayPath(absPath: string, repoRoot: string): string {
-  const rel = path.relative(path.resolve(repoRoot), path.resolve(absPath));
+  const rel = path.relative(physicalPath(repoRoot), physicalPath(absPath));
   if (rel === '' || rel.startsWith('..') || path.isAbsolute(rel)) return `<outside repo>/${path.basename(absPath)}`;
   return rel.split(path.sep).join('/');
 }

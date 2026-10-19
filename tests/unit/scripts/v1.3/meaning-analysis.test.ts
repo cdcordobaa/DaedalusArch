@@ -19,7 +19,7 @@ import {
 } from '../../../../scripts/v1.3/lib/meaning/report.js';
 import { SimulateError, simulateSheets, type Table4 } from '../../../../scripts/v1.3/lib/meaning/simulate.js';
 import type { AnalysisConfig, Field, Sample, Sheet } from '../../../../scripts/v1.3/lib/meaning/types.js';
-import { main } from '../../../../scripts/v1.3/meaning-analysis.js';
+import { isUnderResults, main } from '../../../../scripts/v1.3/meaning-analysis.js';
 
 jest.setTimeout(120_000);
 
@@ -114,6 +114,14 @@ describe('agreement (BR-10 to BR-19)', () => {
     expect(b.result).toBe('FAIL');
     expect(b.prevalenceNote).toBe(true);
     expect(renderMarkdown(run(rater, author))).toContain(PREVALENCE_NOTE);
+  });
+
+  it('BR-17: no prevalence note when κ passes', () => {
+    const { rater, author } = sim([30, 0, 0, 30], { tableB: [28, 1, 1, 30] });
+    const b = agreement(S60, rater, author, 'A_practitioner', cfg());
+    expect(b.result).toBe('PASS');
+    expect(b.prevalenceNote).toBe(false);
+    expect(renderMarkdown(run(rater, author))).not.toContain(PREVALENCE_NOTE);
   });
 
   it('T5: all not-yes on both sheets gives κ undefined, FAIL, no crash, interval undefined', () => {
@@ -483,6 +491,30 @@ describe('CLI guards (BR-07, BR-43, BR-54, BR-60)', () => {
     expect(main(['simulate', '--sample', REAL_SAMPLE, '--table-a', '20,10,5,25', '--seed', '1', '--out', target], REPO, c.io)).toBe(2);
     expect(fs.existsSync(path.join(REPO, target))).toBe(false);
     expect(c.err()).toContain('refused');
+  });
+
+  it('T21: simulate --out Results/... (another case) exits 2 and writes nothing', () => {
+    const c = capture();
+    const target = 'Results/v1.3-meaning/labels-u7-case-test';
+    expect(main(['simulate', '--sample', REAL_SAMPLE, '--table-a', '20,10,5,25', '--seed', '1', '--out', target], REPO, c.io)).toBe(2);
+    expect(fs.existsSync(path.join(REPO, 'results/v1.3-meaning/labels-u7-case-test'))).toBe(false);
+    expect(c.err()).toContain('refused');
+  });
+
+  it('T21: the results guard folds case and follows a symlinked route to the root', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'u7-guard-'));
+    try {
+      fs.mkdirSync(path.join(root, 'repo', 'results'), { recursive: true });
+      const repo = path.join(root, 'repo');
+      fs.symlinkSync(repo, path.join(root, 'link'));
+      expect(isUnderResults(path.join(repo, 'RESULTS', 'x'), repo)).toBe(true);
+      expect(isUnderResults(path.join(root, 'link', 'results', 'new', 'deeper'), repo)).toBe(true);
+      expect(isUnderResults(path.join(repo, 'results'), path.join(root, 'link'))).toBe(true);
+      expect(isUnderResults(path.join(repo, 'resultsX'), repo)).toBe(false);
+      expect(isUnderResults(path.join(root, 'elsewhere'), repo)).toBe(false);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
   });
 
   it('T21: a SYNTHETIC analyse --out under results/ exits 2', () => {

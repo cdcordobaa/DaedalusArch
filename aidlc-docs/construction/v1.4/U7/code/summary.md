@@ -80,10 +80,10 @@ sha256 of the files every output records (BR-07), at this commit:
 | `scripts/v1.3/lib/meaning/crosstab.ts` | `47c5c932f49e04adc1dfddc6cad2b13761806740d26a68dbc25485d8ce2fd2be` |
 | `scripts/v1.3/lib/meaning/load.ts` | `87607d351727fb26cf343cb3d0c4c7cb1b5e96c9725283e99c2817d593b07316` |
 | `scripts/v1.3/lib/meaning/precision.ts` | `f606aabb35be76f1fcfee26a058441c4ec0c226515bb4ae119680aa64636da6b` |
-| `scripts/v1.3/lib/meaning/report.ts` | `90d6e7860f79a8cdba0db0c53bfa5e965234cdc581e8648bd6faaa6c231d532d` |
+| `scripts/v1.3/lib/meaning/report.ts` | `628117f8fa85649cad62051e9a280049dd14772c9b1776dd121fa595991cfd58` |
 | `scripts/v1.3/lib/meaning/simulate.ts` | `9f63f70a2eba758771bea9d917f83d6720b73ba77e2cbc687f4cc18242285dee` |
 | `scripts/v1.3/lib/meaning/types.ts` | `ddee2755d33b83f43025424c7aaf609f3aef57ca19e283144b68ebd49725b18f` |
-| `scripts/v1.3/meaning-analysis.ts` | `6f3982b0791de218072c4e97582515be77883de6a703895e5c05a45a5b8e1962` |
+| `scripts/v1.3/meaning-analysis.ts` | `e8506968db1b2b80a109ef775c5257cfb769ea4d25bcd4203b24da068b460d6c` |
 
 Any change to these files after review changes the hashes. Record the final ones at sign-off.
 
@@ -109,3 +109,18 @@ Q1 (L4 primary field) to Q5 still need the author's answer, or acceptance of the
 - **Q5:** the cluster is the (stratum, project) cell.
 
 The code implements each default, and none of them blocks the code.
+
+## 7. Integration fixes and open test TODOs (2026-10-18)
+
+Fixed before merge: the results guard (BR-54, BR-60) now makes both paths physical (realpath of the deepest existing ancestor) and compares them case-folded, so `Results/...` on a case-insensitive volume and a symlinked route into the repo are refused. `displayPath` uses the same physical paths, so repo inputs given through a symlink keep their repo-relative provenance (BR-53). New tests: T21 `Results/...` case, a guard unit test (case, symlink, sibling, outside), and BR-17 absence when κ passes. The two hashes above are updated.
+
+Low test gaps left as TODO (no code defect known):
+- [ ] BR-25: values of the sensitivity rows ('yes by both raters', 'rater's unsure dropped', 'items the rater coded M dropped') on a sheet that carries M codes.
+- [ ] BR-24: Kish n_eff with blank items (weight N_h/m_h).
+- [ ] BR-17: no note when the prevalence index is below 0.5 with AC1 >= 0.60.
+- [ ] BR-19/BR-27: per-style 2x2 counts and per-style yes/no/unsure/blank counts.
+- [ ] BR-05: the warning when the rater column differs across answered rows.
+- [ ] BR-41/Q5: a project in two strata is resampled independently; sorted order of strata and cells.
+- [ ] BR-42: undefinedResamples > 0 for p-hat inside a resample.
+- [ ] D8 note: with --blank and --unsure-rater together, unsure conversions can land on blanked items, so fewer than k unsure items reach the κ table.
+- [ ] Author to accept D6 (a 16+ hex prefix satisfies --expect-sample-sha256).
