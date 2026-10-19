@@ -6,6 +6,8 @@
 
 **Review revisions (2026-10-18).** Checked against the code: the tar export no longer pipes binary data through the string-capturing `ProcessRunner` (DR-15); the call log is per session, because `mcp-call/v1` lines carry no session id (DR-11); lanes are dealt per condition, because alternate dealing does not guarantee the per-condition balance T-PLAN asserted (DR-4); the live/dry split of `--block all` resolves the conflict between the pilot-gate exit and the 150-record dry run (DR-25); new rules for personal-path redaction in the public run dir (DR-27a), the spawn budget for re-runs (DR-24a), R reads outside the tree (DR-23), injected sleepers (DR-21), the anchored `architecture:` match (DR-7), truncated output and the model check without an envelope (DR-22), robust path stripping (SC-8), and rescoring after a key correction (SC-11). Author question 8 is new.
 
+**Amendment A1 (2026-10-19, author-approved; `aidlc-docs/construction/v1.4/U8/amendments/A1-graph-complements-reading.md`, source `ops/notes/ns-03-graph-complements-reading.md`).** The graph complements reading; it does not replace it. G becomes **files plus graph tools**: it keeps R's Read, Grep and Glob, R's cwd (the tree) and R's reading instruction, and adds the MCP tools with an instruction to check and quantify the answer with them and cite them. There is no graph-only arm. §2.9 states the rules that change; where §2.9 and an earlier rule differ, §2.9 wins. The call count is unchanged (150; §2.9, DR-A1-6).
+
 **Inputs read:** `ops/notes/eff-01-efficiency-design.md` (the EFF-01 note; § numbers below refer to it unless marked), `experiments/eff-01/{questions.json,answers.json,repos.json,derive-answers.mjs}`, `src/mcp-server/{server.ts,main.ts,call-log.ts,evaluate-project.ts}`, the headless-model harness in `scripts/lib/generators/{argv,arms,envelope,model-usage,retry,outcome,env,types}.ts`, `scripts/lib/loop/{agents,isolation}.ts`, `scripts/v1.3/lib/mcp-smoke.ts` with `scripts/v1.3/mcp-smoke.ts` and its test, `scripts/lib/stats.ts`, `experiments/loop-pilot/plan.json`, and one recorded envelope from `experiments/v1.3-floor-probe-3/` (to confirm the usage field names).
 
 ---
@@ -128,6 +130,18 @@ Rule ids are cited in the plan and the tests.
   - `--questions-sha256 <hex>`, equal to the SHA-256 of `questions.json` (the frozen set, §12.1).
   - If any is missing or differs, the driver exits 2 before it spawns anything, the `--version` probe included: the guard is the first check after flag parsing, and `NodeProcessRunner` is constructed only after it passes. The approval itself is the author's (§12.2). The flags only make sure the count and the set in hand are the ones approved.
   - **Dry run:** only `StubEff01Runner` is constructed. `--claude`, `--config-dir` and `--confirm-sessions` are refused without `--live`, so no code path of a dry run can reach the real CLI.
+
+### 2.9 Amendment A1: files plus graph vs files only
+
+- **DR-A1-1. Condition sentences.** R and G share one reading sentence; G adds the graph sentence after it. N is unchanged.
+  - R: "You can read the project's files with the Read, Grep and Glob tools; the project root is the working directory. Read the project's docs (README, ADRs, code comments) and its code before you answer."
+  - G: the R sentence, then "You can also query the project through the daedalus-arch MCP tools; the server is configured with this project and its spec. Use them to check and quantify your answer, and cite the tool results you relied on."
+- **DR-A1-2. G's argv** (replaces DR-9's G line): common head, then `--tools Read,Grep,Glob --strict-mcp-config --mcp-config <H>/mcp/<sessionKey>.json --allowedTools <the 11 rules> --permission-prompts none --no-session-persistence`. The only difference from R is the MCP config and the 11 allow rules.
+- **DR-A1-3. G's cwd** (replaces DR-12 for G) is the tree, as for R. Only N runs in an empty directory, and only N's cwd is checked for emptiness.
+- **DR-A1-4. G's confinement** (replaces DR-23 for G): a built-in tool other than Read, Grep or Glob is a leak; so is an `mcp__` tool of any other server, and a Read, Grep or Glob outside the tree (`read-outside-tree`, as for R). The init event must list `daedalus-arch` as `connected`; when it carries a `tools` list, G's built-ins are exactly {Read, Grep, Glob} and the 11 `mcp__daedalus-arch__*` tools are listed. The tree check (DR-16) covers G as before.
+- **DR-A1-5. Graph evidence in scoring.** For every scored G session the scorer records `graphEvidence = {toolCalls, cited}`: `toolCalls` is the number of `mcp__daedalus-arch__*` tool uses in the transcript, and `cited` is true when the final text names a daedalus-arch tool (`mcp__daedalus-arch__<tool>` or a bare tool name from `TOOL_NAMES`). The primary score does not change. The item table gains `graphUnusedRuns` (G runs with `toolCalls` = 0) and `graphUncitedRuns` (G runs with `cited` false); both are `null` for R and N rows. A G arm that never used the graph shows up as such.
+- **DR-A1-6. The call count is unchanged in shape:** calibration 2 (R, G), pilot 8, main 120 (20 questions × {R, G} × 3), N 20, total 150; the variants are still 90 and 50.
+- **Tests.** T-ARGV pins G's new argv, T-CONF pins G's Read inside the tree as clean and a Bash or an outside read as leaks, T-ISO pins G's cwd as the tree, and T-A1 (`score.test.ts`, `driver.test.ts`) pins `graphEvidence` and the two item columns.
 
 ---
 
