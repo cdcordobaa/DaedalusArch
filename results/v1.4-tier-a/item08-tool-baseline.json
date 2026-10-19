@@ -1,0 +1,291 @@
+{
+ "item": "08",
+ "question": "C3 tool baseline: parity with dependency-cruiser on shared rules (N61) and blocking rules no compared tool can express",
+ "inputs": [
+  {
+   "path": "results/v1.3-validity-convergent/translation-table.json",
+   "sha256": "0936e610c08c7a5e67d7219762d5aeb4db0de1c90fb501197d8afc2c8d123c1f"
+  },
+  {
+   "path": "results/v1.3-validity-convergent/agreement.json",
+   "sha256": "687795bb77f00a5172d8d41fb72b66ea8879c74991691654ddbdc37ac121af4a"
+  },
+  {
+   "path": "results/tool-comparison/recall.csv",
+   "sha256": "a22bc09a5fcdd800c5a16dcdb73f4f7e889b56794cc38e703d5bb099fe2ae314"
+  },
+  {
+   "path": "results/tool-comparison/recall-dts.csv",
+   "sha256": "8080f7693c3732b10d205bdfdeefdc647a4d27dcc39ea85c8ced47e3ee450497"
+  },
+  {
+   "path": "src/scoring-engine/rule-tiers.ts",
+   "sha256": "ca0d29ca36669378a8485e56cbcbad3d5f40c3dbfa0655237f96682d2ab48d7b"
+  }
+ ],
+ "rowsTotal": 89,
+ "rowsPerStyle": {
+  "clean-architecture": 22,
+  "layered": 15,
+  "nestjs": 22,
+  "hexagonal": 20,
+  "ddd": 10
+ },
+ "expressible": {
+  "depcruise": 31,
+  "boundaries": 20,
+  "archunit": 19
+ },
+ "noToolRows": 57,
+ "noToolDistinctTemplates": 21,
+ "noToolBlocking": {
+  "styleRows": 7,
+  "distinctRuleTemplates": 4,
+  "distinctRuleIds": 3,
+  "rows": [
+   {
+    "style": "clean-architecture",
+    "ruleId": "FF-P03",
+    "template": "repository-pattern",
+    "reason": "a repository class in infrastructure must IMPLEMENT a domain interface (class roles, IMPLEMENTS)"
+   },
+   {
+    "style": "clean-architecture",
+    "ruleId": "FF-P06",
+    "template": "domain-state-purity",
+    "reason": "a domain class must not hold infrastructure state (constructor injection of an infrastructure type; field data flow)"
+   },
+   {
+    "style": "nestjs",
+    "ruleId": "FF-P03",
+    "template": "repository-pattern",
+    "reason": "a repository class in infrastructure must IMPLEMENT a domain interface (class roles, IMPLEMENTS)"
+   },
+   {
+    "style": "nestjs",
+    "ruleId": "FF-P06",
+    "template": "domain-state-purity",
+    "reason": "a domain class must not hold infrastructure state (constructor injection of an infrastructure type; field data flow)"
+   },
+   {
+    "style": "hexagonal",
+    "ruleId": "FF-P03",
+    "template": "port-adapter-pattern",
+    "reason": "an outbound adapter class must IMPLEMENT a port interface of the core (class roles, IMPLEMENTS)"
+   },
+   {
+    "style": "hexagonal",
+    "ruleId": "FF-P06",
+    "template": "domain-state-purity",
+    "reason": "a domain class must not hold infrastructure state (constructor injection of an infrastructure type; field data flow)"
+   },
+   {
+    "style": "ddd",
+    "ruleId": "FF-DT03",
+    "template": "value-object-immutability",
+    "reason": "mutable members (setters, non-readonly fields) of value-object classes"
+   }
+  ],
+  "templates": [
+   "FF-P03 repository-pattern",
+   "FF-P06 domain-state-purity",
+   "FF-P03 port-adapter-pattern",
+   "FF-DT03 value-object-immutability"
+  ],
+  "ids": [
+   "FF-P03",
+   "FF-P06",
+   "FF-DT03"
+  ]
+ },
+ "mapClaimCheck": {
+  "claim": "4 blocking rules in 7 style rows that no compared tool can express (ops/01-instrument-map.md:177)",
+  "styleRowsMatch": true,
+  "distinctRuleTemplatesMatch": true,
+  "note": "4 counts distinct rule templates (FF-P03 has two templates: repository-pattern, port-adapter-pattern); distinct rule ids are 3"
+ },
+ "blockingRowsExpressibleInDepcruise": 21,
+ "blockingRowsDepcruiseParity": {
+  "exact parity": 17,
+  "parity up to classified external causes": 4
+ },
+ "importDirectionRulesOursVsDepcruise": {
+  "rules": [
+   "FF-S01 dependency-direction",
+   "FF-S01 dependency-direction-graph",
+   "FF-S03 no-layer-skip",
+   "FF-S03 layer-skip-graph",
+   "FF-S04 no-domain-outward-dep",
+   "FF-S04 core-isolation",
+   "FF-P01 domain-purity",
+   "FF-DT04 domain-purity",
+   "FF-DS02 context-isolation",
+   "FF-DT01 aggregate-boundary",
+   "FF-DT02 repository-aggregate-root"
+  ],
+  "agreementRows": 29,
+  "shared": 722,
+  "disagreements": 0
+ },
+ "study1Seeds": {
+  "note": "N61 source data (papers/paper2-tool/main.tex:907-915 cites these files). Seeds only; twins omitted.",
+  "registered": [
+   {
+    "group": "MO-S01",
+    "rule": "FF-S01",
+    "n": 8,
+    "ours": 8,
+    "oursCi": "0.676-1",
+    "depcruise": 8,
+    "depcruiseCi": "0.676-1",
+    "oursOnly": 0,
+    "depcruiseOnly": 0
+   },
+   {
+    "group": "MO-X01",
+    "rule": "FF-S01",
+    "n": 6,
+    "ours": 0,
+    "oursCi": "0-0.39",
+    "depcruise": 6,
+    "depcruiseCi": "0.61-1",
+    "oursOnly": 0,
+    "depcruiseOnly": 6
+   },
+   {
+    "group": "MO-S03",
+    "rule": "FF-S03",
+    "n": 2,
+    "ours": 2,
+    "oursCi": "0.342-1",
+    "depcruise": 2,
+    "depcruiseCi": "0.342-1",
+    "oursOnly": 0,
+    "depcruiseOnly": 0
+   },
+   {
+    "group": "MO-P01",
+    "rule": "FF-P01",
+    "n": 13,
+    "ours": 13,
+    "oursCi": "0.772-1",
+    "depcruise": 4,
+    "depcruiseCi": "0.127-0.576",
+    "oursOnly": 9,
+    "depcruiseOnly": 0
+   },
+   {
+    "group": "MO-C04",
+    "rule": "FF-C04",
+    "n": 14,
+    "ours": 14,
+    "oursCi": "0.785-1",
+    "depcruise": 14,
+    "depcruiseCi": "0.785-1",
+    "oursOnly": 0,
+    "depcruiseOnly": 0
+   },
+   {
+    "group": "in-coverage seeds",
+    "rule": "all",
+    "n": 37,
+    "ours": 37,
+    "oursCi": "0.906-1",
+    "depcruise": 28,
+    "depcruiseCi": "0.599-0.866",
+    "oursOnly": 9,
+    "depcruiseOnly": 0
+   },
+   {
+    "group": "all seeds",
+    "rule": "all",
+    "n": 43,
+    "ours": 37,
+    "oursCi": "0.727-0.934",
+    "depcruise": 34,
+    "depcruiseCi": "0.648-0.886",
+    "oursOnly": 9,
+    "depcruiseOnly": 6
+   }
+  ],
+  "dtsPostHoc": [
+   {
+    "group": "MO-S01",
+    "rule": "FF-S01",
+    "n": 8,
+    "ours": 8,
+    "oursCi": "0.676-1",
+    "depcruise": 8,
+    "depcruiseCi": "0.676-1",
+    "oursOnly": 0,
+    "depcruiseOnly": 0
+   },
+   {
+    "group": "MO-X01",
+    "rule": "FF-S01",
+    "n": 6,
+    "ours": 0,
+    "oursCi": "0-0.39",
+    "depcruise": 6,
+    "depcruiseCi": "0.61-1",
+    "oursOnly": 0,
+    "depcruiseOnly": 6
+   },
+   {
+    "group": "MO-S03",
+    "rule": "FF-S03",
+    "n": 2,
+    "ours": 2,
+    "oursCi": "0.342-1",
+    "depcruise": 2,
+    "depcruiseCi": "0.342-1",
+    "oursOnly": 0,
+    "depcruiseOnly": 0
+   },
+   {
+    "group": "MO-P01",
+    "rule": "FF-P01",
+    "n": 13,
+    "ours": 13,
+    "oursCi": "0.772-1",
+    "depcruise": 12,
+    "depcruiseCi": "0.667-0.986",
+    "oursOnly": 1,
+    "depcruiseOnly": 0
+   },
+   {
+    "group": "MO-C04",
+    "rule": "FF-C04",
+    "n": 14,
+    "ours": 14,
+    "oursCi": "0.785-1",
+    "depcruise": 14,
+    "depcruiseCi": "0.785-1",
+    "oursOnly": 0,
+    "depcruiseOnly": 0
+   },
+   {
+    "group": "in-coverage seeds",
+    "rule": "all",
+    "n": 37,
+    "ours": 37,
+    "oursCi": "0.906-1",
+    "depcruise": 36,
+    "depcruiseCi": "0.862-0.995",
+    "oursOnly": 1,
+    "depcruiseOnly": 0
+   },
+   {
+    "group": "all seeds",
+    "rule": "all",
+    "n": 43,
+    "ours": 37,
+    "oursCi": "0.727-0.934",
+    "depcruise": 42,
+    "depcruiseCi": "0.879-0.996",
+    "oursOnly": 1,
+    "depcruiseOnly": 6
+   }
+  ]
+ }
+}

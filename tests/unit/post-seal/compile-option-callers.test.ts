@@ -79,7 +79,10 @@ describe('V13 compile option callers', () => {
     // Exempt, each with its reason (ADR-V14-02, "Callers"): run-experiment.ts runs the registered v1.2E plans with
     // --scoring v1.2e, where --post-seal is not read; judge-catch-run.ts is byte-frozen (Docs/v1.3/judge-catch-frozen.md);
     // freeze-gate-main.ts is the U5a gate, whose argv is pinned by tests/unit/scripts/mutation/freeze-gates.test.ts.
-    const exempt = new Set(['scripts/run-experiment.ts', 'scripts/v1.3/judge-catch-run.ts', 'scripts/lib/freeze-gate-main.ts']);
+    // tier-a/item07-c1a-rerun.ts runs `bin/firewall.ts` inside historical arm trees (50a32841, the PR #253 merge
+    // 6c623584) whose CLI predates --post-seal (PR #255), so the flag would be rejected; those trees use the sealed
+    // rule set by construction (Docs/DiagnosticRuns/v1.4-tier-a-zero-call-2026-10-19.md, item 7).
+    const exempt = new Set(['scripts/run-experiment.ts', 'scripts/v1.3/judge-catch-run.ts', 'scripts/lib/freeze-gate-main.ts', 'scripts/v1.4/tier-a/item07-c1a-rerun.ts']);
     expect(missing.filter((f) => !exempt.has(f))).toEqual([]);
   });
 });
