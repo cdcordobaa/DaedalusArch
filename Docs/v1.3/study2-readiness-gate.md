@@ -25,7 +25,9 @@ sha256sum Docs/v1.3/rule-tiers.md Docs/v1.3/style-rule-sources.md
 
 **Note on rule 1 (2026-10-16).** The Study 2 primary outcome was switched to the level outcome Y by a declared deviation (`Docs/v1.3/study2-deviation-2026-10-16.md`), after the loop pilot and the floor probes were seen. That switch **does not use** rule 1's exception (an addendum written before the data it would excuse), and it does not claim to. It is reported as a deviation, with its timeline. Lines D1, D3, D10 and D11 are restated below for the new outcome; no restatement removes a check, lowers a threshold or adds a waiver, and V10(a), D1, D3 and V4 keep no waiver.
 
-<!-- study2-protocol: primary=Y-distinct-blocking-edges-at-step-k; k=4; arms=none,daedalus-mcp; unit=distinct-edge; fallback=do-not-run; order=freeze,hold-out,dress-rehearsal,pre-registration,gate,run; generators=claude-sonnet-5-5,codex-pin -->
+<!-- study2-protocol: primary=D-new-blocking-identities-steps-2-to-k; k=5; arms=none,daedalus-mcp; cells=none@L2,none@L3,mcp@L2; start=shared-step-1; unit=distinct-edge; tasks=new-4-layered-2-ddd-sealed-at-freeze; fallback=run-exploratory; order=freeze,hold-out,pilot-and-rehearsal,pre-registration,gate,run; generators=claude-sonnet-5-5,gemini-pin -->
+
+> **Protocol superseded 2026-10-19.** Study 2's protocol is now the drift record `Docs/v1.4/study2-deviation-2026-10-19-drift.md` (primary D over steps 2–5, k = 5, three cells, new tasks, Claude Sonnet + Gemini, exploratory fallback). Where this document states the level outcome, k = 4, five cells, the sealed tasks, `do-not-run` or the Codex pin, the drift record wins.
 
 ## 1. Summary
 
