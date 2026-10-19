@@ -508,6 +508,7 @@ function enableExtractCache(): void {
 
 async function evaluateCase(c: Case, apgStore: string): Promise<{ rows: readonly ActualFinding[]; failures: string[] }> {
   const { executor, cleanup } = createPipeline({
+    postSealRules: false, // v1.4 U2: the sealed v1.3 rule set (BR-U2-10)
     projectPath: c.projectDir, specFilePath: c.specPath, neo4jUri: '', neo4jUser: 'neo4j', neo4jPassword: '',
     evaluationMode: 'symbolic-only', pipelineMode: 'stateless', persist: false, diff: false, verbose: false,
     apgStorePath: apgStore, instrumentVersion: parseInstrumentVersion('v2'), neuralAggregation: parseNeuralAggregation('registered'),

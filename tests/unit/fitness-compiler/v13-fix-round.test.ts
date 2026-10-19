@@ -6,7 +6,7 @@
  * Each is off without its option, so the v1.2E compile (`{}`) is the frozen text.
  */
 import * as path from 'node:path';
-import { compileFunctions, V13_COMPILE_OPTIONS } from '../../../src/fitness-compiler/fitness-compiler.js';
+import { compileFunctions, V13_COMPILE_OPTIONS, V13_SEALED_COMPILE_OPTIONS } from '../../../src/fitness-compiler/fitness-compiler.js';
 import type { CompileOptions } from '../../../src/fitness-compiler/fitness-compiler.js';
 import { compilerInputFromSpec } from '../../../src/fitness-compiler/compiler-input.js';
 import { CYPHER_TEMPLATES } from '../../../src/fitness-compiler/cypher-templates.js';
@@ -45,7 +45,8 @@ describe('v1.2E compile is unchanged', () => {
 
   it('V13_COMPILE_OPTIONS turns every v1.3 rewrite on', () => {
     // The construct switches (src/shared/construct-switches.ts) ride along; at the status quo they change nothing.
-    expect(V13_COMPILE_OPTIONS).toEqual({ edgeViews: true, styleApplicability: true, roleTokens: true, memberFacts: true, signatureTypes: true, constructSwitches: CONSTRUCT_ANSWERS });
+    // v1.4 U2: the post-seal rules ride along too (`postSealRules`, Docs/v1.4/adr-v14.md); V13_SEALED_COMPILE_OPTIONS keeps them off.
+    expect(V13_COMPILE_OPTIONS).toEqual({ edgeViews: true, styleApplicability: true, roleTokens: true, memberFacts: true, signatureTypes: true, constructSwitches: CONSTRUCT_ANSWERS, postSealRules: true });
   });
 });
 
@@ -77,7 +78,8 @@ describe('fix 3: FF-P06 style applicability (ADR-V13-02 draft)', () => {
 
   it('only FF-P06 changes applicability: the same function set otherwise', async () => {
     for (const spec of SPECS) {
-      const a = (await compile(spec, V13_COMPILE_OPTIONS)).symbolicQueries.map((q) => q.name);
+      // v1.4 U2: the sealed rule set (the post-seal rules add functions; tests/unit/post-seal covers them).
+      const a = (await compile(spec, V13_SEALED_COMPILE_OPTIONS)).symbolicQueries.map((q) => q.name);
       const b = (await compile(spec, {})).symbolicQueries.map((q) => q.name).filter((n) => !(spec === 'presets/layered.yaml' && n === 'domain-state-purity'));
       expect([spec, a]).toEqual([spec, b]);
     }

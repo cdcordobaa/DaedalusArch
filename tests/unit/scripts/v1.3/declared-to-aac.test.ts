@@ -2,7 +2,8 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { parseSpec } from '../../../../src/spec-parser/index.js';
-import { compileFunctions, V13_COMPILE_OPTIONS } from '../../../../src/fitness-compiler/index.js';
+// v1.4 U2: the declared rules exactly, so the sealed rule set (the post-seal overlay would add FF-P07; Docs/v1.4/adr-v14.md).
+import { compileFunctions, V13_SEALED_COMPILE_OPTIONS } from '../../../../src/fitness-compiler/index.js';
 import { compilerInputFromSpec } from '../../../../src/fitness-compiler/compiler-input.js';
 import { assignLayers } from '../../../../scripts/v1.3/lib/layer-assignment.js';
 import {
@@ -24,7 +25,7 @@ async function specRoundTrip(t: Translation): Promise<{ layerOf: Map<string, str
     const a = assignLayers(files, spec.layerModel);
     const layerOf = new Map(a.assignments.map((x) => [x.file, x.layer]));
     const allowed = new Set((spec.layerModel.allowedDependencies ?? []).map((e) => `${e.from}>${e.to}`));
-    const compiled = compileFunctions(compilerInputFromSpec(spec), V13_COMPILE_OPTIONS);
+    const compiled = compileFunctions(compilerInputFromSpec(spec), V13_SEALED_COMPILE_OPTIONS);
     if (!compiled.success) throw new Error(compiled.errors.map((e) => e.message).join('; '));
     return { layerOf, allowed, compiled: compiled.data.symbolicQueries.map((c) => String(c.functionId)).sort() };
   } finally {
@@ -231,7 +232,7 @@ describe('declared-to-aac: per-file rule off (D6)', () => {
       if (!parsed.success) throw new Error(parsed.errors.map((e) => e.message).join('; '));
       const ff = parsed.data.fitnessFunctions.find((f) => String(f.id) === 'FF-S03');
       expect(ff?.excludePaths).toEqual(['libs/a/src/**']);
-      const compiled = compileFunctions(compilerInputFromSpec(parsed.data), V13_COMPILE_OPTIONS);
+      const compiled = compileFunctions(compilerInputFromSpec(parsed.data), V13_SEALED_COMPILE_OPTIONS);
       if (!compiled.success) throw new Error('compile');
       const q = compiled.data.symbolicQueries.find((x) => String(x.functionId) === 'FF-S03');
       const patterns = (q?.params.excludePatterns ?? []) as string[];

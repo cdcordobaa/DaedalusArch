@@ -14,7 +14,7 @@ import * as path from 'node:path';
 import picomatch from 'picomatch';
 import { compareVariant } from './lib/compare.js';
 import type { ActualFinding } from './lib/compare.js';
-import { loadAllReferences } from './lib/reference-model.js';
+import { loadAllReferences, postSealScopeOf } from './lib/reference-model.js';
 import type { LoadedReference } from './lib/reference-model.js';
 import { must } from './lib/must.js';
 
@@ -122,7 +122,11 @@ function match(expected: readonly Finding[], actual: readonly Finding[]): { pair
 
 // ── Loading ──────────────────────────────────────────────────────────────────
 
-const refs = loadAllReferences(process.cwd());
+// v1.4 U2: the post-seal rules are compared only for outputs that were produced with them (each raw file's
+// `postSealRules`, absent = false); a mixed set is refused.
+const rawFlags = fs.readdirSync(path.join(BASE, 'raw')).filter((style) => fs.statSync(path.join(BASE, 'raw', style)).isDirectory()).flatMap((style) => fs.readdirSync(path.join(BASE, 'raw', style)).filter((f) => f.endsWith('.json'))
+  .map((f) => (JSON.parse(fs.readFileSync(path.join(BASE, 'raw', style, f), 'utf8')) as { postSealRules?: boolean }).postSealRules));
+const refs = loadAllReferences(process.cwd(), undefined, undefined, { postSeal: postSealScopeOf(rawFlags) });
 const mapping = (JSON.parse(fs.readFileSync(path.join(BASE, 'blind-rule-mapping.json'), 'utf8')) as { mapping: MappingRow[] }).mapping;
 const blindKey = JSON.parse(fs.readFileSync(path.join(BLIND, 'blind-key.json'), 'utf8')) as Record<string, string>;
 const caseOf = new Map<string, string>(); // style/variant -> case-XX

@@ -73,7 +73,7 @@ async function main(): Promise<number> {
     ...(argv.includes('--skip-excluded-sources') && { sourceScope: 'analysed' as const }),
     onAcceleration: (e) => { accelerations.push({ query: e.query.name, filter: e.query.filter, engine: e.engine, ms: Math.round(e.durationMs) }); },
   };
-  const bundle = createPipeline(config);
+  const bundle = createPipeline({ ...config, postSealRules: false }); // v1.4 U2: the sealed v1.3 rule set (BR-U2-10)
   const stageRss: { name: string; peakRssMb: number }[] = [];
   for (const command of bundle.commands) {
     const run = command.execute.bind(command);

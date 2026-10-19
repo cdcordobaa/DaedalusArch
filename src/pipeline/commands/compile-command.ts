@@ -15,6 +15,7 @@ import { applyConstructCompileOverlays } from '../../construct-switches/compile.
 import type { ConstructAnswers } from '../../shared/construct-switches.js';
 import { excludeAggregateRules } from '../../fitness-compiler/empty-aggregates.js';
 import type { EmptyAggregatePolicy } from '../../fitness-compiler/empty-aggregates.js';
+import { postSealOverlay } from '../../fitness-compiler/post-seal-rules.js';
 
 /**
  * Run-scoped holder for the declared-side counts (BR-U3-52), written by `CompileCommand` next to the
@@ -38,6 +39,11 @@ export class CompileCommand implements PipelineCommand {
     private readonly constructAnswers: ConstructAnswers | undefined = CONSTRUCT_ANSWERS,
     /** Loop-pilot T1 (`empty-aggregates.ts`): undefined = the compiler's default, `fail` (BR-SPEC-10). */
     private readonly emptyAggregates?: EmptyAggregatePolicy,
+    /**
+     * v1.4 U2 post-seal rules (`post-seal-rules.ts`): absent constructor argument = on, the v1.3 scoring the switch file
+     * implies; `createPipeline` passes `config.postSealRules ?? scoringMode === 'v1.3'`.
+     */
+    private readonly postSealRules = true,
   ) {}
 
   async execute(context: FirewallContext): Promise<DomainResultType<void>> {
@@ -45,7 +51,7 @@ export class CompileCommand implements PipelineCommand {
 
     // v1.3 edge views (ADR-V13-01): a no-op on a v1.2E graph, so the frozen results are unchanged.
     const { constructSwitches: _fromFile, ...v13 } = { ...V13_COMPILE_OPTIONS };
-    const options = { ...v13, ...(this.constructAnswers !== undefined ? { constructSwitches: this.constructAnswers } : {}), instrumentVersion: this.instrumentVersion,
+    const options = { ...v13, postSealRules: this.postSealRules, ...(this.constructAnswers !== undefined ? { constructSwitches: this.constructAnswers } : {}), instrumentVersion: this.instrumentVersion,
       ...(this.emptyAggregates !== undefined ? { emptyAggregates: this.emptyAggregates } : {}) };
     const result = compileFunctions(compilerInputFromSpec(parsedSpec), options);
 
@@ -59,10 +65,17 @@ export class CompileCommand implements PipelineCommand {
     // BR-U3-52: declared, adrDerived and dropped ids by id sets, computed where the spec is at hand.
     // The declared side is the spec as the switches declare it: a carrier rule a switch adds (Q5 D, Q16 B, Q17 C) is
     // declared by the switch, so identity I1 holds (R09); at the status quo the overlay is the spec itself.
-    const overlaid = applyConstructCompileOverlays(compilerInputFromSpec(parsedSpec), this.constructAnswers);
+    // v1.4 U2 (BR-U2-03.7): the post-seal overlay first, in the compiler's order, so a rule it adds (FF-P07, the ddd
+    // FF-S02) is declared and identity I1 holds; its ids are recorded apart (`postSealAdded`).
+    const postSeal = this.postSealRules ? postSealOverlay(compilerInputFromSpec(parsedSpec)) : undefined;
+    const overlaid = applyConstructCompileOverlays(postSeal?.value ?? compilerInputFromSpec(parsedSpec), this.constructAnswers);
     // T1 option c: an excluded aggregate rule is not declared either (it is recorded by the COMPILER_006 warning).
     const declared = (this.emptyAggregates === 'exclude' ? excludeAggregateRules(overlaid).input : overlaid).fitnessFunctions;
-    this.factsHolder.facts = compileFactsOf(declared, result.data, this.instrumentVersion);
+    this.factsHolder.facts = {
+      ...compileFactsOf(declared, result.data, this.instrumentVersion),
+      postSealRules: this.postSealRules,
+      postSealAdded: postSeal?.added ?? [],
+    };
 
     // Compiler warnings travel in CompiledFunctions.warnings; route them to the context so
     // COMPILER_004 for style- and kind-disabled functions reaches the report (BR-U3-56, ADR-016 c).

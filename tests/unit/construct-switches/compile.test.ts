@@ -5,7 +5,7 @@
 import { CONSTRUCT_ANSWERS, STATUS_QUO_ANSWERS, withAnswers } from '../../../src/shared/construct-switches.js';
 import type { ConstructAnswers } from '../../../src/shared/construct-switches.js';
 import { compilerInputFromSpec } from '../../../src/fitness-compiler/compiler-input.js';
-import { compileFunctions, V13_COMPILE_OPTIONS } from '../../../src/fitness-compiler/fitness-compiler.js';
+import { compileFunctions, V13_COMPILE_OPTIONS, V13_SEALED_COMPILE_OPTIONS } from '../../../src/fitness-compiler/fitness-compiler.js';
 import { applyConstructCompileOverlays, CONSTRUCT_CARRIER_NAME } from '../../../src/construct-switches/compile.js';
 import { CONSTRUCT_COMPOSITION_ROOT_GLOBS } from '../../../src/construct-switches/overlays.js';
 import { presetSpec } from './fixtures.js';
@@ -91,7 +91,10 @@ describe('Q13 C nestjs layer order', () => {
 
 describe('Q16 B FF-S02 in ddd', () => {
   it('adds no-cyclic-deps to the ddd compile', async () => {
-    expect((await compiled('ddd', STATUS_QUO_ANSWERS)).ids).not.toContain('FF-S02');
+    // The sealed rule set: v1.4 U2's post-seal FF-S02 (D5, the same change as Q16 B) is tested in tests/unit/post-seal.
+    const { constructSwitches: _c, ...sealed } = V13_SEALED_COMPILE_OPTIONS;
+    const r = compileFunctions(compilerInputFromSpec(await presetSpec('ddd')), { ...sealed, constructSwitches: STATUS_QUO_ANSWERS });
+    expect(r.success && r.data.symbolicQueries.map((q) => String(q.functionId))).not.toContain('FF-S02');
     const c = await compiled('ddd', withAnswers({ Q16: 'B' }));
     expect(c.ids).toContain('FF-S02');
     expect(c.cypher.get('FF-S02')).toContain('IMPORTS|RE_EXPORTS*2..');

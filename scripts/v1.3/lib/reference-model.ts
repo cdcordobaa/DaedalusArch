@@ -29,6 +29,7 @@ import { Ajv } from 'ajv';
 import type { ValidateFunction } from 'ajv';
 import YAML from 'yaml';
 import { ruleTier } from '../../../src/scoring-engine/rule-tiers.js';
+import { postSealRulesFor } from '../../../src/fitness-compiler/post-seal-rules.js';
 import type { RuleTier } from '../../../src/scoring-engine/rule-tiers.js';
 
 export const REFERENCE_ROOT = 'tests/fixtures/v1.3-reference';
@@ -339,16 +340,47 @@ function loadOverlayReference(repoRoot: string, style: ReferenceStyle, dir: stri
   return { style, format: 'overlay', dir, projectDir, specPath, descriptor, graph, variants };
 }
 
-/** Loads and schema-validates one style's reference project. */
-export function loadReference(repoRoot: string, style: ReferenceStyle, root: string = REFERENCE_ROOT): LoadedReference {
-  const dir = path.resolve(repoRoot, root, style);
-  return (OVERLAY_REFERENCE_STYLES as readonly string[]).includes(style)
-    ? loadOverlayReference(repoRoot, style, dir)
-    : loadPatchReference(repoRoot, style, dir);
+/**
+ * v1.4 U2: whether to compare the post-seal rules too (`src/fitness-compiler/post-seal-rules.ts`). Default false, so
+ * re-scoring a saved pre-U2 output gives its committed score unchanged. A scorer turns it on only for outputs produced
+ * with the post-seal rules (`postSealScopeOf`).
+ */
+export interface LoadReferenceOptions {
+  readonly postSeal?: boolean;
 }
 
-export function loadAllReferences(repoRoot: string, styles: readonly ReferenceStyle[] = REFERENCE_STYLES, root: string = REFERENCE_ROOT): LoadedReference[] {
-  return styles.map((s) => loadReference(repoRoot, s, root));
+/** The scope rules plus the post-seal rules of the style that are not in it yet, each with its v1.3 tier (v1.4 U2). */
+export function withPostSealScope(rules: readonly ScopeRule[], style: string): ScopeRule[] {
+  const have = new Set(rules.map((r) => r.ruleId));
+  const added = postSealRulesFor(style).filter((r) => !have.has(r.ruleId)).map((r): ScopeRule => {
+    const tier = ruleTier(r.ruleId, style).tier;
+    return { ruleId: r.ruleId, ruleName: r.name, severity: r.severity, blockingCandidate: tier === 'blocking', tier };
+  });
+  return [...rules, ...added];
+}
+
+/**
+ * The post-seal flag of a set of saved outputs (each output's `postSealRules`, absent = false). A mixed set is
+ * refused: its outputs were scored over different rule sets.
+ */
+export function postSealScopeOf(flags: readonly (boolean | undefined)[]): boolean {
+  const on = flags.filter((f) => f === true).length;
+  if (on > 0 && on < flags.length) throw new Error(`post-seal scope: ${String(on)} of ${String(flags.length)} outputs were produced with the post-seal rules; score them apart`);
+  return flags.length > 0 && on === flags.length;
+}
+
+/** Loads and schema-validates one style's reference project. */
+export function loadReference(repoRoot: string, style: ReferenceStyle, root: string = REFERENCE_ROOT, opts: LoadReferenceOptions = {}): LoadedReference {
+  const dir = path.resolve(repoRoot, root, style);
+  const ref = (OVERLAY_REFERENCE_STYLES as readonly string[]).includes(style)
+    ? loadOverlayReference(repoRoot, style, dir)
+    : loadPatchReference(repoRoot, style, dir);
+  if (opts.postSeal !== true) return ref;
+  return { ...ref, descriptor: { ...ref.descriptor, scopeRules: withPostSealScope(ref.descriptor.scopeRules, style) } };
+}
+
+export function loadAllReferences(repoRoot: string, styles: readonly ReferenceStyle[] = REFERENCE_STYLES, root: string = REFERENCE_ROOT, opts: LoadReferenceOptions = {}): LoadedReference[] {
+  return styles.map((s) => loadReference(repoRoot, s, root, opts));
 }
 
 // ── Rule-id mapping (hold-out manifests written with provisional ids) ─────────

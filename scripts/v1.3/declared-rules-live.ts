@@ -5,7 +5,7 @@
  * runs the same cases through the real pipeline and checks that the live rows equal the in-memory ones.
  *
  * For each case: parse the translated spec (`<out>/spec.yaml`), extract the APG with the v1.3 defaults and the case's
- * tsconfig, ingest it with the spec's layer model, compile with `V13_COMPILE_OPTIONS` (edge views on: both templates
+ * tsconfig, ingest it with the spec's layer model, compile with `V13_SEALED_COMPILE_OPTIONS` (edge views on: both templates
  * read the literal view), run `evaluateSymbolic`, and compare the FF-S01/FF-S03 (source, target) pairs with the
  * in-memory evaluation on the same extraction. Writes `<out>/live.json`; exit code 1 when any case differs.
  *
@@ -16,7 +16,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { extractAPG, V13_DEFAULT_OPTIONS } from '../../src/apg-extractor/index.js';
-import { compileFunctions, V13_COMPILE_OPTIONS } from '../../src/fitness-compiler/index.js';
+import { compileFunctions, V13_SEALED_COMPILE_OPTIONS } from '../../src/fitness-compiler/index.js';
 import { compilerInputFromSpec } from '../../src/fitness-compiler/compiler-input.js';
 import { globToRegex } from '../../src/fitness-compiler/glob-to-regex.js';
 import { evaluateSymbolic } from '../../src/evaluation-engine/index.js';
@@ -43,7 +43,7 @@ async function liveCase(repo: Neo4jRepository, c: CaseInput): Promise<{ id: stri
   const apg: APGResult = ext.data;
   const ing = await ingestAPG({ apgResult: apg, layerModel: spec.layerModel, mode: 'stateless' }, repo, nullStore);
   if (!ing.success) throw new Error(`${c.id}: ingest: ${ing.errors.map((e) => e.message).join('; ')}`);
-  const compiled = compileFunctions(compilerInputFromSpec(spec), V13_COMPILE_OPTIONS);
+  const compiled = compileFunctions(compilerInputFromSpec(spec), V13_SEALED_COMPILE_OPTIONS);
   if (!compiled.success) throw new Error(`${c.id}: compile: ${compiled.errors.map((e) => e.message).join('; ')}`);
   const r = await evaluateSymbolic({ queries: compiled.data.symbolicQueries, graphRepository: repo, knownSecrets: [], apg });
   if (!r.success) throw new Error(`${c.id}: evaluate: ${r.errors.map((e) => e.message).join('; ')}`);

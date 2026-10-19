@@ -1,7 +1,7 @@
 import type { FunctionId } from '../shared/types/value-objects.js';
 import { DomainResult } from '../shared/errors/domain-result.js';
 import { FIELD_TO_YAML_KEY } from '../spec-parser/function-fields.js';
-import type { CompilerError, CompilerInput } from './types.js';
+import type { CompilerError, CompilerInput, CypherTemplate } from './types.js';
 import { CYPHER_TEMPLATES } from './cypher-templates.js';
 import { bindLayerParams } from './layer-binding.js';
 import { isTemplateApplicable } from './template-applicability.js';
@@ -29,18 +29,18 @@ function isBound(parameter: string, value: unknown): boolean {
  * Sorted by function id, then by `requiredParams` order. Uses the compiler's own `buildParams` and
  * `isTemplateApplicable`, so the checker and the compiler cannot disagree.
  */
-export function findUnboundParameters(input: CompilerInput): readonly UnboundParameter[] {
+export function findUnboundParameters(input: CompilerInput, templates: ReadonlyMap<string, CypherTemplate> = CYPHER_TEMPLATES): readonly UnboundParameter[] {
   const { enabled } = filterEnabled(input.fitnessFunctions);
   const binding = bindLayerParams(input.layerModel.layers);
   const perFunction: { id: string; unbound: UnboundParameter[] }[] = [];
 
   for (const ff of enabled) {
     if (ff.route === 'neuronal') continue;
-    const template = CYPHER_TEMPLATES.get(ff.name);
+    const template = templates.get(ff.name);
     if (!template) continue;
     if (!isTemplateApplicable(template, input.style, binding, input.layerModel).applicable) continue;
 
-    const params = buildParams(ff, input.layerModel, binding);
+    const params = buildParams(ff, input.layerModel, binding, templates);
     const unbound: UnboundParameter[] = [];
     for (const parameter of template.requiredParams) {
       if (isBound(parameter, params[parameter])) continue;
@@ -55,11 +55,13 @@ export function findUnboundParameters(input: CompilerInput): readonly UnboundPar
 }
 
 /**
+ * `templates` is the compiler's active catalogue (default the frozen one; v1.4 U2 passes the post-seal template too).
+ *
  * Fatal form of BR-SPEC-10: one `MISSING_REQUIRED_PARAM` error per unbound pair, message
  * `BR-SPEC-10 <id>: <parameter>`. Always fatal, independent of strict mode (FR-08).
  */
-export function checkBoundParameters(input: CompilerInput): DomainResult<undefined> {
-  const unbound = findUnboundParameters(input);
+export function checkBoundParameters(input: CompilerInput, templates: ReadonlyMap<string, CypherTemplate> = CYPHER_TEMPLATES): DomainResult<undefined> {
+  const unbound = findUnboundParameters(input, templates);
   if (unbound.length === 0) return DomainResult.ok(undefined);
   return DomainResult.fail<undefined>(unbound.map((u): CompilerError => ({
     code: 'MISSING_REQUIRED_PARAM',

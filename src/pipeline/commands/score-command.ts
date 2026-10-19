@@ -33,6 +33,8 @@ export interface ScoreCommandConfig {
   readonly style?: string;
   /** v1.3 construct switches: the switch-aware tier lookup (absent at the status quo). */
   readonly tierResolver?: ConstructTierResolver;
+  /** v1.4 U2: the post-seal rules were compiled (v1.3 mode only). */
+  readonly postSealRules?: boolean;
 }
 
 /** U4's warning for a neural function with zero selected units (U4 BR-U4-AGG-09). */
@@ -80,6 +82,7 @@ export class ScoreCommand implements PipelineCommand {
       ...(this.config.scoringMode !== undefined && { scoringMode: this.config.scoringMode }),
       ...(this.config.style !== undefined && { style: this.config.style }),
       ...(this.config.tierResolver !== undefined && { tierResolver: this.config.tierResolver }),
+      ...(this.config.postSealRules === true && { postSealRules: true }),
     });
 
     if (!result.success) {

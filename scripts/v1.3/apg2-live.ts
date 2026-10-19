@@ -10,7 +10,7 @@
  *
  * Mode `reference`: for every variant of the five v1.3 dev reference projects (71), materialise it, extract with
  * `V13_APG2_OPTIONS` (components from the spec's layer model), ingest, run the APG v2 templates live (and their mirrors),
- * and evaluate the spec's v1.3 rules (`compileFunctions` with `V13_COMPILE_OPTIONS`, `evaluateSymbolic`) on the same
+ * and evaluate the spec's v1.3 rules (`compileFunctions` with `V13_SEALED_COMPILE_OPTIONS`, `evaluateSymbolic`) on the same
  * graph. Then extract with `V13_DEFAULT_OPTIONS`, ingest, and evaluate the v1.3 rules again: the two v1.3 finding lists
  * must be equal (the APG v2 edges must not change any v1.3 rule's rows in Neo4j).
  *
@@ -31,7 +31,7 @@ import type { LayerKind } from '../../src/shared/types/enums.js';
 import { APG2_TEMPLATES, APG2_TEMPLATE_TIERS } from '../../src/fitness-compiler/apg2-templates.js';
 import { APG2_IN_MEMORY, apg2Params, memGraph } from '../../src/fitness-compiler/apg2-in-memory.js';
 import type { Apg2Params, Row } from '../../src/fitness-compiler/apg2-in-memory.js';
-import { compileFunctions, instantiateTemplate, V13_COMPILE_OPTIONS } from '../../src/fitness-compiler/index.js';
+import { compileFunctions, instantiateTemplate, V13_SEALED_COMPILE_OPTIONS } from '../../src/fitness-compiler/index.js';
 import { compilerInputFromSpec } from '../../src/fitness-compiler/compiler-input.js';
 import { evaluateSymbolic } from '../../src/evaluation-engine/index.js';
 import { ingestAPG, Neo4jRepository } from '../../src/neo4j-ingestion/index.js';
@@ -203,7 +203,7 @@ async function fixtures(repo: Neo4jRepository, out: string): Promise<number> {
 interface V13Finding { readonly ruleId: string; readonly file: string; readonly target?: string; readonly message?: string }
 
 async function v13Findings(repo: Neo4jRepository, spec: ParsedSpec, apg: APGResult, projectDir: string): Promise<V13Finding[]> {
-  const compiled = compileFunctions(compilerInputFromSpec(spec), V13_COMPILE_OPTIONS);
+  const compiled = compileFunctions(compilerInputFromSpec(spec), V13_SEALED_COMPILE_OPTIONS);
   if (!compiled.success) throw new Error(`compile: ${compiled.errors.map((e) => e.message).join('; ')}`);
   const r = await evaluateSymbolic({ queries: compiled.data.symbolicQueries, graphRepository: repo, knownSecrets: [], apg });
   if (!r.success) throw new Error(`evaluate: ${r.errors.map((e) => e.message).join('; ')}`);

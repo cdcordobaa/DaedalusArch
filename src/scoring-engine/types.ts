@@ -37,6 +37,8 @@ export interface ScoringInput {
   readonly style?: string;
   /** v1.3 construct switches: a switch-aware tier lookup (absent at the status quo; `ruleTier` applies). */
   readonly tierResolver?: TierResolver;
+  /** v1.4 U2: the post-seal rules were compiled (v1.3 mode only); `tiers.tierTable` then names both tier records. */
+  readonly postSealRules?: boolean;
 }
 
 export type ScoringErrorCode =

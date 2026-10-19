@@ -142,7 +142,7 @@ async function main(): Promise<number> {
           verbose: false, apgStorePath: path.join(work, '.apg-store'), scoringMode: a.scoringMode, instrumentVersion: a.instrumentVersion,
           graphRepository: tee,
         };
-        const { executor, context } = createPipeline(config);
+        const { executor, context } = createPipeline({ ...config, postSealRules: false }); // v1.4 U2: the sealed v1.3 rule set (BR-U2-10)
         const start = tee.entries.length;
         const result = await executor.execute();
         if (!result.success) throw new Error(`${proj.id} ${a.arm}: ${result.errors.map((e) => e.message).join('; ')}`);
