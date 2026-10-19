@@ -5,7 +5,8 @@
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import type { ProcessRunner } from '../../../../../src/shared/interfaces/process-runner.js';
+import { DomainResult } from '../../../../../src/shared/errors/domain-result.js';
+import type { ProcessResult, ProcessRunner } from '../../../../../src/shared/interfaces/process-runner.js';
 import { makeStubRunner, runEff01, sessionPrompts } from '../../../../../scripts/v1.3/lib/eff01/driver.js';
 import type { DriverOptions } from '../../../../../scripts/v1.3/lib/eff01/driver.js';
 import { parseRunFlags } from '../../../../../scripts/v1.3/lib/eff01/cli.js';
@@ -177,6 +178,43 @@ describe('EFF-01 dry-run gates and failures (T-DRY)', () => {
     expect(records(o.out).filter((r) => r.lane === 1)).toHaveLength(60);
   });
 
+  it('DR-16: a tree-changed session stops the whole run (exit 1) on the first occurrence, with no re-run', async () => {
+    const target = 'main/ddd-forum/DF-Q03/R/run-1';
+    const o = opts({ blocks: ['main'], behaviour: only((id) => id === target, 'tree-write') });
+    const r = await runEff01(o);
+    expect(r.exitCode).toBe(1);
+    expect(readRecord(o.out, target)?.status).toBe('tree-changed');
+    expect(readRecord(o.out, `${target}-rerun`)).toBeFalsy();
+    expect(r.messages.some((m) => m.includes('the tree changed'))).toBe(true);
+  });
+
+  it('DR-25/DR-A1-4: a G built-in leak or a disconnected MCP server in the pilot fails the gate before main', async () => {
+    for (const b of ['leak-builtin-in-G', 'mcp-not-connected'] as StubBehaviour[]) {
+      const o = opts({ behaviour: only((id, c) => id.startsWith('pilot/') && c === 'G', b) });
+      expect((await runEff01(o)).exitCode).toBe(1);
+      expect(records(o.out).some((x) => x.block === 'main')).toBe(false);
+      const gate = JSON.parse(fs.readFileSync(path.join(o.out, 'pilot-gate.json'), 'utf8')) as { pass: boolean; leaks: string[] };
+      expect(gate.pass).toBe(false);
+      expect(gate.leaks.length).toBeGreaterThan(0);
+      expect(gate.leaks.every((id) => id.includes('/G/'))).toBe(true);
+    }
+  });
+
+  it('wrong and no-graph: a wrong answer scores below 1, and an unused graph shows in graphUnusedRuns (DR-A1-5)', async () => {
+    const o = opts({
+      blocks: ['main'],
+      behaviour: (id, c) => (id.startsWith('main/ddd-forum/DF-Q02/R/') ? 'wrong' : id.startsWith('main/ddd-forum/DF-Q01/G/run-1') && c === 'G' ? 'no-graph' : 'key'),
+    });
+    expect((await runEff01(o)).exitCode).toBe(0);
+    const scored = scoreRun({ runDir: o.out, repoRoot: REPO });
+    if (!scored.success) throw new Error(scored.errors[0]?.message);
+    expect(scored.data.items.find((r) => r.questionId === 'DF-Q02' && r.condition === 'R')?.acc).toBeLessThan(1);
+    const g = scored.data.items.find((r) => r.questionId === 'DF-Q01' && r.condition === 'G');
+    expect(g?.graphUnusedRuns).toBe(1);
+    expect(g?.graphUncitedRuns).toBe(1);
+    expect(scored.data.items.find((r) => r.questionId === 'DF-Q01' && r.condition === 'R')?.graphUnusedRuns).toBeNull();
+  });
+
   it('a dry run refuses --out inside experiments/, --claude, --config-dir and --confirm-sessions', async () => {
     expect((await runEff01(opts({ out: path.join(REPO, 'experiments/eff-01/run-dry') }))).exitCode).toBe(2);
     expect(fs.existsSync(path.join(REPO, 'experiments/eff-01/run-dry'))).toBe(false);
@@ -193,8 +231,15 @@ describe('EFF-01 live guard (T-GUARD)', () => {
   if (!prompts.success) throw new Error('prompts');
   const stubPrompts = prompts.data;
 
-  function live(over: Partial<DriverOptions> = {}, behaviour?: StubBehaviour | ((id: string, c: Eff01Condition) => StubBehaviour)) {
-    const factory = jest.fn((): ProcessRunner => makeStubRunner(ins, stubPrompts, { fixtureTree: FIXTURE_TREE, model: 'claude-sonnet-5-5', ...(behaviour !== undefined ? { behaviour } : {}) }));
+  function live(
+    over: Partial<DriverOptions> = {},
+    behaviour?: StubBehaviour | ((id: string, c: Eff01Condition) => StubBehaviour),
+    wrap: (r: ProcessRunner) => ProcessRunner = (r) => r,
+    stubCliVersion?: string,
+  ) {
+    const factory = jest.fn((): ProcessRunner =>
+      wrap(makeStubRunner(ins, stubPrompts, { fixtureTree: FIXTURE_TREE, model: 'claude-sonnet-5-5', ...(behaviour !== undefined ? { behaviour } : {}), ...(stubCliVersion !== undefined ? { cliVersion: stubCliVersion } : {}) })),
+    );
     const config = tmpDir('config');
     const entry = path.join(tmpDir('dist'), 'main.js');
     fs.writeFileSync(entry, '// built server stand-in\n');
@@ -260,6 +305,61 @@ describe('EFF-01 live guard (T-GUARD)', () => {
     expect(records(o.out)).toHaveLength(0);
     fs.rmSync(path.join(o.out, 'local-check.json'));
     expect((await runEff01({ ...o, clock: fakeClock(), sleep: zeroSleep() })).exitCode).toBe(2);
+  });
+
+  /** Rewrites the ProcessResult of matching calls; everything else passes through. */
+  const rewriting = (pick: (args: readonly string[], n: number) => boolean, edit: (r: ProcessResult) => ProcessResult) => (inner: ProcessRunner): ProcessRunner => {
+    let n = 0;
+    return {
+      run: async (command, args, options) => {
+        const r = await inner.run(command, args, options);
+        if (!r.success || !pick(args, n++)) return r;
+        return DomainResult.ok(edit(r.data));
+      },
+    } as ProcessRunner;
+  };
+  const isSession = (args: readonly string[]): boolean => args[0] === '-p' && args[1] !== 'Reply OK';
+
+  it('DR-29: a claude --version that differs from the pin at start exits 2 and runs no session', async () => {
+    const { o } = live({}, undefined, undefined, '9.9.9');
+    const r = await runEff01(o);
+    expect(r.exitCode).toBe(2);
+    expect(r.messages.join('\n')).toContain('9.9.9');
+    expect(records(o.out)).toHaveLength(0);
+  });
+
+  it('DR-29: a version change by the end marks every record of the invocation cliDrift: true', async () => {
+    let versions = 0;
+    const { o } = live({}, undefined, rewriting((args) => args[0] === '--version' && versions++ > 0, (p) => ({ ...p, stdout: '9.9.9 (Claude Code)\n' })));
+    expect((await runEff01(o)).exitCode).toBe(0);
+    const recs = records(o.out);
+    expect(recs).toHaveLength(10);
+    expect(recs.every((x) => (x as SessionRecord & { cliDrift?: boolean }).cliDrift === true)).toBe(true);
+  });
+
+  it('DR-25: a session that rejected --max-turns fails the pilot gate (exit 1)', async () => {
+    const { o } = live({}, undefined, rewriting((args) => isSession(args), (p) => ({ ...p, stderr: "error: unknown option '--max-turns'\n" })));
+    expect((await runEff01(o)).exitCode).toBe(1);
+    const gate = JSON.parse(fs.readFileSync(path.join(o.out, 'pilot-gate.json'), 'utf8')) as { pass: boolean; maxTurnsRejected: string[] };
+    expect(gate.pass).toBe(false);
+    expect(gate.maxTurnsRejected.length).toBeGreaterThan(0);
+  });
+
+  it('DR-22: an is_error result that is not error_max_turns is completed with agentError: true', async () => {
+    const target = 'pilot/ddd-forum/DF-Q02/R/run-1';
+    const toError = (p: ProcessResult): ProcessResult => ({
+      ...p,
+      stdout: p.stdout.replace('"subtype":"success","is_error":false', '"subtype":"error_during_execution","is_error":true'),
+    });
+    const picked = live({}, undefined, (inner) => {
+      const spec = planned.data.sessions.find((x) => x.sessionId === target);
+      if (spec === undefined) throw new Error(target);
+      const prompt = stubPrompts.promptOf(spec);
+      return rewriting((args) => args[0] === '-p' && args[1] === prompt, toError)(inner);
+    });
+    expect((await runEff01(picked.o)).exitCode).toBeLessThan(2);
+    const rec = readRecord(picked.o.out, target);
+    expect(rec).toMatchObject({ status: 'completed', isError: true, agentError: true, resultSubtype: 'error_during_execution' });
   });
 
   it('a dry run with --behaviour is fine but --live refuses it', async () => {

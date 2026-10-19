@@ -184,7 +184,7 @@ This plan is the single source of truth for the unit's code generation. Mark eac
 - [x] Record in this plan's completion notes the exact commands a live pilot would use (8 sessions plus 2 calibration), marked **not run, needs the author's OK**.
 
 ### Step 12: Code summary
-- [ ] Write `aidlc-docs/construction/v1.4/U8/code/summary.md`. It lists the files created, the rule-to-test map, the `--max-turns` finding, the risks still open (design §7, items 1, 3 and 13), and the author questions (1 to 8). Markdown only; no application code in `aidlc-docs/`. *Not done in the code-generation session: its file-writing tool refused this file as a report file. The full summary text is in the PR description, ready to commit as this file.*
+- [x] Write `aidlc-docs/construction/v1.4/U8/code/summary.md`. It lists the files created, the rule-to-test map, the `--max-turns` finding, the risks still open (design §7, items 1, 3 and 13), and the author questions (1 to 8). Markdown only; no application code in `aidlc-docs/`. *Not done in the code-generation session (its file-writing tool refused this file); committed from the PR description at integration, 2026-10-18.*
 
 ## Completion notes (2026-10-18)
 
