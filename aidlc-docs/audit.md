@@ -2412,3 +2412,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 instrument track, Study 2 protocol; no model calls
 
 ---
+
+## v1.4 research ops: C4-01 and MEAN-02 design notes
+**Timestamp**: 2026-10-19T21:29:31Z
+**User Input**: "Write the C4-01 interpretation design (link L7) and the MEAN-02 agentic meaning design (link L8) of the trusted-instrument path, zero model calls; then add the REV-05 Fable review's conditions: F3 rewording, scoring-only semantic path in the first study, the NS-02 build items, a C1d heuristic baseline, non-author cases, a task bank, blind twins, the vendor-split rule, edge-kind strata, and the 'consequential / style-fidelity, never practitioner' wording."
+**AI Response**: "Wrote ops/notes/c4-01-interpretation-design.md (A5 contract c4-v0.2, routes, 6 cases + 6 twins + 3 non-author targets, keyword and heuristic baselines, proposed bars >= 5/6 and 0 twin false exceptions, F3 proposed rewrite, scoring-only in the first study, caps 48 pilot / 160 six-case / 48 non-author) and ops/notes/mean-02-agentic-meaning-design.md (consequence test with task bank, blind repaired and placebo twins, vendor split, 24 items in 6 rule-family x edge-kind strata, field B panel reusing panel-authority-v1, rule-source grounding, caps 22 pilot / 264 main sessions / 300 panel calls per vendor). Found two code gaps: C4 context takes SEM verdicts only, and the gemini-agy ontology route does not pass the agy exploratory versions. MEAN-01 sample not opened."
+**Context**: v1.4 instrument track, trust path links L7 and L8; design only, no model calls
+
+---
