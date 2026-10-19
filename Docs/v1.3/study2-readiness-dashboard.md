@@ -4,7 +4,9 @@
 
 **Update 2026-10-16 (after 13:50 UTC).** The author delegated AD1 and AD5 and the protocol questions behind them. They are recorded as a declared deviation in `Docs/v1.3/study2-deviation-2026-10-16.md`, and the rows below that depend on them are amended (AD1, AD5; §1 steps 2–4, 8 and 10; D1, D3, D10, D11, R-01–R-03). The protocol: primary outcome Y (distinct blocking edges at step k = 4), arms `none` and `daedalus-mcp`, generators Sonnet 5.5 and the Codex pin, no new waivers, and **Study 2 does not run** if no stratum passes the validation pilot. The 12:00Z counts above are not re-taken.
 
-<!-- study2-protocol: primary=Y-distinct-blocking-edges-at-step-k; k=4; arms=none,daedalus-mcp; unit=distinct-edge; fallback=do-not-run; order=freeze,hold-out,dress-rehearsal,pre-registration,gate,run; generators=claude-sonnet-5-5,codex-pin -->
+<!-- study2-protocol: primary=D-new-blocking-identities-steps-2-to-k; k=5; arms=none,daedalus-mcp; cells=none@L2,none@L3,mcp@L2; start=shared-step-1; unit=distinct-edge; tasks=new-4-layered-2-ddd-sealed-at-freeze; fallback=run-exploratory; order=freeze,hold-out,pilot-and-rehearsal,pre-registration,gate,run; generators=claude-sonnet-5-5,gemini-pin -->
+
+> **Protocol superseded 2026-10-19.** Study 2's protocol is now the drift record `Docs/v1.4/study2-deviation-2026-10-19-drift.md` (primary D over steps 2–5, k = 5, three cells, new tasks, Claude Sonnet + Gemini, exploratory fallback). Where this document states the level outcome, k = 4, five cells, the sealed tasks, `do-not-run` or the Codex pin, the drift record wins.
 
 **Evidence base.**
 - Statuses were taken on `origin/v1.3` at `890a570c`, after merge train MT5 (11:20 to 11:48 UTC).

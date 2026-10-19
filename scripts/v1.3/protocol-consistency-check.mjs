@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Study 2 protocol consistency check (Docs/v1.3/study2-deviation-2026-10-16.md §2).
+ * Study 2 protocol consistency check (Docs/v1.4/study2-deviation-2026-10-19-drift.md §2; it superseded the
+ * 2026-10-16 record's §2).
  *
  * The deviation record holds the canonical protocol in a ```study2-protocol block. Every protocol document must
  *   1. cite the deviation record,
@@ -16,10 +17,12 @@
 import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 
-const DEVIATION = 'Docs/v1.3/study2-deviation-2026-10-16.md';
+const DEVIATION = 'Docs/v1.4/study2-deviation-2026-10-19-drift.md';
+const DEVIATION_FILE = path.basename(DEVIATION);
 
 export const PROTOCOL_DOCS = [
   DEVIATION,
+  'Docs/v1.3/study2-deviation-2026-10-16.md',
   'Docs/v1.3/study2-outline-v2.md',
   'Docs/v1.3/gap-closing-plan.md',
   'Docs/v1.3/study2-readiness-gate.md',
@@ -80,7 +83,7 @@ export function parseTag(body) {
 
 export function checkDoc(rel, text, canonical) {
   const errors = [];
-  if (rel !== DEVIATION && !text.includes('study2-deviation-2026-10-16.md')) {
+  if (rel !== DEVIATION && !text.includes(DEVIATION_FILE)) {
     errors.push(`${rel}: does not cite ${DEVIATION}`);
   }
   const tags = [...text.matchAll(TAG)];
@@ -93,7 +96,7 @@ export function checkDoc(rel, text, canonical) {
     for (const k of Object.keys(got)) if (!(k in canonical)) errors.push(`${rel}: protocol line has unknown key ${k}`);
   }
   // The deviation record quotes every superseded statement in its "Replaces" column, so it is not scanned.
-  if (rel === DEVIATION) return errors;
+  if (rel === DEVIATION || rel === 'Docs/v1.3/study2-deviation-2026-10-16.md') return errors;
   const lines = text.split('\n');
   const histIdx = lines.findIndex((l) => l.includes('<!-- protocol-check: historical-above -->'));
   let skipping = false;
@@ -129,11 +132,11 @@ export function run(root) {
 
 /** Proves the check can fail: a wrong tag value, a missing citation and a superseded statement must each be caught. */
 export function selfTest(canonical) {
-  const good = `cites study2-deviation-2026-10-16.md\n<!-- study2-protocol: ${Object.entries(canonical).map(([k, v]) => `${k}=${v}`).join('; ')} -->\n`;
+  const good = `cites ${DEVIATION_FILE}\n<!-- study2-protocol: ${Object.entries(canonical).map(([k, v]) => `${k}=${v}`).join('; ')} -->\n`;
   const cases = [
     { name: 'consistent doc passes', text: good, expectFail: false },
-    { name: 'wrong k is caught', text: good.replace('k=4', 'k=6'), expectFail: true },
-    { name: 'missing citation is caught', text: good.replace('study2-deviation-2026-10-16.md', 'x.md'), expectFail: true },
+    { name: 'wrong k is caught', text: good.replace(`k=${canonical.k}`, 'k=99'), expectFail: true },
+    { name: 'missing citation is caught', text: good.replace(DEVIATION_FILE, 'x.md'), expectFail: true },
     { name: 'three-arm set is caught', text: `${good}Arms: \`none\`, \`gate\`, \`daedalus-mcp\`.\n`, expectFail: true },
     { name: 'marked superseded line passes', text: `${good}Superseded: \`none\`, \`gate\`, \`daedalus-mcp\`.\n`, expectFail: false },
     { name: 'historical-above passes', text: `v2 amends nothing.\n<!-- protocol-check: historical-above -->\n${good}`, expectFail: false },
