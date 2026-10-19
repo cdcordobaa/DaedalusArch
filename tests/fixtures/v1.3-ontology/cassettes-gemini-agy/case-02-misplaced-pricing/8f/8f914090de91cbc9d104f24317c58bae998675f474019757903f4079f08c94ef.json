@@ -1,0 +1,72 @@
+{
+  "itemId": "6860bbf1a3b5131d",
+  "itemName": "PlaceOrderUseCase",
+  "key": "8f914090de91cbc9d104f24317c58bae998675f474019757903f4079f08c94ef",
+  "parts": {
+    "model": "gemini-4-argon-high",
+    "pass": "responsibility",
+    "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+    "promptVersion": "ontology-v0.3",
+    "provider": "gemini-agy",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass PlaceOrderUseCase (node 6860bbf1a3b5131d), file src/ordering/application/place-order.use-case.ts, lines 4-12.\nComponent: ordering. Declared layer: application (kind application).\nMethods:\n- execute (node c12d39f40d4561ac, lines 7-11, logic density 0)\nFields: placed\n\n## APG neighbourhood\nGraph statistics: 1 methods; fan-out 0; fan-in 0.\n- (none)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- PlaceOrderUseCase: nameRole=\"service\"\n- PlaceOrderUseCase: behaviourRole=\"coordination\"\n- PlaceOrderUseCase: ioCategories=[]\n- PlaceOrderUseCase: lcom4=1\n- PlaceOrderUseCase: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- PlaceOrderUseCase.execute: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n\n## Source\n=====SOURCE-BEGIN src/ordering/application/place-order.use-case.ts\n 4| export class PlaceOrderUseCase {\n 5|   private readonly placed: Order[] = [];\n 6| \n 7|   execute(id: string, customerEmail: string, lines: readonly OrderLine[]): Order {\n 8|     const order = new Order(id, customerEmail, lines);\n 9|     this.placed.push(order);\n10|     return order;\n11|   }\n12| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-19T23:38:33.731Z",
+  "resolvedModel": "gemini-4-argon-high",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.95,
+        "evidence": [
+          {
+            "endLine": 8,
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "nodeId": "c12d39f40d4561ac",
+            "quote": "const order = new Order(id, customerEmail, lines);",
+            "startLine": 8
+          }
+        ],
+        "name": "Order",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.9,
+        "evidence": [
+          {
+            "endLine": 7,
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "nodeId": "c12d39f40d4561ac",
+            "quote": "execute(id: string, customerEmail: string, lines: readonly OrderLine[]): Order {",
+            "startLine": 7
+          }
+        ],
+        "name": "OrderLine",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.95,
+        "description": "Orchestrates placing a customer order by creating a new Order from the given identifier, customer email, and order lines, recording it as placed, and returning it.",
+        "evidence": [
+          {
+            "endLine": 11,
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "nodeId": "c12d39f40d4561ac",
+            "quote": "const order = new Order(id, customerEmail, lines);",
+            "startLine": 7
+          }
+        ],
+        "name": "Order Placement",
+        "naturalLayer": "application"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 8827,
+    "outputTokens": 2124
+  }
+}

@@ -1,0 +1,994 @@
+{
+  "runId": "ontology-v0-6deb7ec61cd2",
+  "provider": {
+    "provider": "gemini-agy",
+    "model": "gemini-4-argon-high"
+  },
+  "nodes": [
+    {
+      "id": "sem:SemBusinessConcept:384903f65c1d573a",
+      "label": "SemBusinessConcept",
+      "name": "OrderLine",
+      "properties": {
+        "names": [
+          "OrderLine"
+        ]
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "confidence": 0.925,
+      "evidence": [
+        {
+          "endLine": 7,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "execute(id: string, customerEmail: string, lines: readonly OrderLine[]): Order {",
+          "startLine": 7,
+          "grounded": true
+        },
+        {
+          "endLine": 11,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "readonly lines: readonly OrderLine[],",
+          "startLine": 11,
+          "grounded": true
+        },
+        {
+          "endLine": 15,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "3d1d8ec86b5e61c8",
+          "quote": "return this.lines.reduce((acc, l) => acc + l.price * l.quantity, 0);",
+          "startLine": 15,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemBusinessConcept:824b338744229d63",
+      "label": "SemBusinessConcept",
+      "name": "Order",
+      "properties": {
+        "names": [
+          "Order"
+        ]
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "confidence": 0.9833333333333334,
+      "evidence": [
+        {
+          "endLine": 8,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "const order = new Order(id, customerEmail, lines);",
+          "startLine": 8,
+          "grounded": true
+        },
+        {
+          "endLine": 12,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "export class Order {",
+          "startLine": 7,
+          "grounded": true
+        },
+        {
+          "endLine": 8,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const subtotal = order.subtotal();",
+          "startLine": 8,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemBusinessRule:052077d51d5c9c93",
+      "label": "SemBusinessRule",
+      "name": "An order with more than 3 lines receives a 10% discount on the subtotal.",
+      "properties": {
+        "subject": "order line count",
+        "operator": ">",
+        "threshold": 3,
+        "unit": "lines",
+        "statements": [
+          "An order with more than 3 lines receives a 10% discount on the subtotal."
+        ]
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "b9072d5ff95878bae69b4f0b502a25997b313a93e466e8c22ff783b3b3e4db8f",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "endLine": 9,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const discount = order.lines.length > 3 ? subtotal * 0.1 : 0;",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemCapability:41b433b86a630b93",
+      "label": "SemCapability",
+      "name": "Customer notification",
+      "properties": {
+        "description": "Dispatching and delivering order confirmation notifications to customers via email.",
+        "names": [
+          "Customer notification"
+        ],
+        "groups": [
+          "component:notifications"
+        ]
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "efce1f58df9cbf18d14cbd1c9d5920b8b44ede959565a6c5d40875a7638521de",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "ee110f001f97012a",
+          "quote": "export class OrderNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 3,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "9e5dca9006c883b8",
+          "quote": "export class ConsoleMailer implements Mailer {",
+          "startLine": 3,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemCapability:744335ec228fc526",
+      "label": "SemCapability",
+      "name": "Order pricing",
+      "properties": {
+        "description": "Calculating order discounts and final payable amounts for customer orders.",
+        "names": [
+          "Order pricing"
+        ],
+        "groups": [
+          "component:notifications"
+        ]
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "efce1f58df9cbf18d14cbd1c9d5920b8b44ede959565a6c5d40875a7638521de",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "ee110f001f97012a",
+          "quote": "export class OrderNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemCapability:ee5bdf732296fa34",
+      "label": "SemCapability",
+      "name": "Order placement",
+      "properties": {
+        "description": "Enables placing new orders and representing order data within the ordering domain.",
+        "names": [
+          "Order placement"
+        ],
+        "groups": [
+          "component:ordering"
+        ]
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "8615d4973f7d8c6024c14a9838c5dd6560f92c023e26da70cb3f3e3c69ffae64",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "6860bbf1a3b5131d",
+          "quote": "export class PlaceOrderUseCase {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 7,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "export class Order {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemResponsibility:0f5fd7f1e3f73e4f",
+      "label": "SemResponsibility",
+      "name": "Order representation",
+      "properties": {
+        "description": "Represents a customer order containing its unique identifier, customer email, and line items.",
+        "naturalLayer": "domain",
+        "classId": "99595122f2958507"
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "agreement": "agreed",
+      "evidence": [
+        {
+          "endLine": 12,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "readonly lines: readonly OrderLine[],",
+          "startLine": 8,
+          "grounded": true
+        }
+      ],
+      "confidence": 1
+    },
+    {
+      "id": "sem:SemResponsibility:41fef82f00f207cb",
+      "label": "SemResponsibility",
+      "name": "Order discount and payable calculation",
+      "properties": {
+        "description": "Calculates volume-based order discount and the net payable amount based on order line count and subtotal.",
+        "naturalLayer": "domain",
+        "classId": "ee110f001f97012a"
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "2ed70a34f867c1eaef6aff7c7ca7bfdc7ae88b78e0c10ee2e7183c1dfd1528d2",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "agreement": "agreed",
+      "evidence": [
+        {
+          "endLine": 10,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const discount = order.lines.length > 3 ? subtotal * 0.1 : 0;",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "confidence": 0.95
+    },
+    {
+      "id": "sem:SemResponsibility:44a3f3ea1e361923",
+      "label": "SemResponsibility",
+      "name": "Place Order",
+      "properties": {
+        "description": "Orchestrates placing a new order by instantiating an Order from the given identifier, customer email, and order lines, recording it in the placed orders collection, and returning the created order.",
+        "naturalLayer": "application",
+        "classId": "6860bbf1a3b5131d"
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "agreement": "agreed",
+      "evidence": [
+        {
+          "endLine": 10,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "const order = new Order(id, customerEmail, lines);",
+          "startLine": 8,
+          "grounded": true
+        }
+      ],
+      "confidence": 1
+    },
+    {
+      "id": "sem:SemResponsibility:60afbfc937bef5ee",
+      "label": "SemResponsibility",
+      "name": "Order subtotal calculation",
+      "properties": {
+        "description": "Calculates the order subtotal by summing the product of price and quantity across all order lines.",
+        "naturalLayer": "domain",
+        "classId": "99595122f2958507"
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "agreement": "single-run",
+      "evidence": [
+        {
+          "endLine": 16,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "3d1d8ec86b5e61c8",
+          "quote": "return this.lines.reduce((acc, l) => acc + l.price * l.quantity, 0);",
+          "startLine": 14,
+          "grounded": true
+        }
+      ],
+      "confidence": 1
+    },
+    {
+      "id": "sem:SemResponsibility:8ac1a13adb7688bf",
+      "label": "SemResponsibility",
+      "name": "Email notification delivery adapter",
+      "properties": {
+        "description": "Implements the Mailer port as an in-memory adapter that records outgoing email messages (recipient, subject, and body).",
+        "naturalLayer": "infrastructure",
+        "classId": "9e5dca9006c883b8"
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "9dbdd9e58ad09d58175707412ac9de81475f99911ab8077e9970c6e3d8d9ce6b",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "agreement": "agreed",
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "9e5dca9006c883b8",
+          "quote": "export class ConsoleMailer implements Mailer {",
+          "startLine": 3,
+          "grounded": true
+        },
+        {
+          "endLine": 9,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "a1ab40e4bf0d3824",
+          "quote": "this.sent.push(`${to}|${subject}|${body}`);",
+          "startLine": 6,
+          "grounded": true
+        }
+      ],
+      "confidence": 0.95
+    },
+    {
+      "id": "sem:SemResponsibility:cf9ea9a1f020a418",
+      "label": "SemResponsibility",
+      "name": "Order confirmation notification dispatch",
+      "properties": {
+        "description": "Coordinates sending an order confirmation notification to the customer with the order ID and payable total via the mailer port.",
+        "naturalLayer": "application",
+        "classId": "ee110f001f97012a"
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "2ed70a34f867c1eaef6aff7c7ca7bfdc7ae88b78e0c10ee2e7183c1dfd1528d2",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "agreement": "agreed",
+      "evidence": [
+        {
+          "endLine": 11,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "await this.mailer.send(order.customerEmail, 'Order confirmed', `Order ${order.id}: you pay ${payable.toFixed(2)}`);",
+          "startLine": 11,
+          "grounded": true
+        }
+      ],
+      "confidence": 0.95
+    }
+  ],
+  "edges": [
+    {
+      "id": "sem:SemEMBODIES:15b84d8f59b754ab",
+      "type": "SemEMBODIES",
+      "sourceId": "ee110f001f97012a",
+      "targetId": "sem:SemBusinessConcept:824b338744229d63",
+      "properties": {
+        "relation": "uses"
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "2ed70a34f867c1eaef6aff7c7ca7bfdc7ae88b78e0c10ee2e7183c1dfd1528d2",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "endLine": 8,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const subtotal = order.subtotal();",
+          "startLine": 8,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemEMBODIES:65121e93516be3a6",
+      "type": "SemEMBODIES",
+      "sourceId": "6860bbf1a3b5131d",
+      "targetId": "sem:SemBusinessConcept:824b338744229d63",
+      "properties": {
+        "relation": "uses"
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "confidence": 1,
+      "evidence": [
+        {
+          "endLine": 8,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "const order = new Order(id, customerEmail, lines);",
+          "startLine": 8,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemEMBODIES:92fef2c7a4dd4619",
+      "type": "SemEMBODIES",
+      "sourceId": "99595122f2958507",
+      "targetId": "sem:SemBusinessConcept:824b338744229d63",
+      "properties": {
+        "relation": "defines"
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "confidence": 1,
+      "evidence": [
+        {
+          "endLine": 12,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "export class Order {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemEMBODIES:c5d8ccdf4f023600",
+      "type": "SemEMBODIES",
+      "sourceId": "6860bbf1a3b5131d",
+      "targetId": "sem:SemBusinessConcept:384903f65c1d573a",
+      "properties": {
+        "relation": "uses"
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "endLine": 7,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "execute(id: string, customerEmail: string, lines: readonly OrderLine[]): Order {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemEMBODIES:ea06897752de15c8",
+      "type": "SemEMBODIES",
+      "sourceId": "99595122f2958507",
+      "targetId": "sem:SemBusinessConcept:384903f65c1d573a",
+      "properties": {
+        "relation": "uses"
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "endLine": 11,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "readonly lines: readonly OrderLine[],",
+          "startLine": 11,
+          "grounded": true
+        },
+        {
+          "endLine": 15,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "3d1d8ec86b5e61c8",
+          "quote": "return this.lines.reduce((acc, l) => acc + l.price * l.quantity, 0);",
+          "startLine": 15,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemENFORCES:72ac93f5a5592465",
+      "type": "SemENFORCES",
+      "sourceId": "4309cdf457262c68",
+      "targetId": "sem:SemBusinessRule:052077d51d5c9c93",
+      "properties": {},
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "b9072d5ff95878bae69b4f0b502a25997b313a93e466e8c22ff783b3b3e4db8f",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "endLine": 9,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const discount = order.lines.length > 3 ? subtotal * 0.1 : 0;",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemMISPLACED_IN:d2408b55c215d4c0",
+      "type": "SemMISPLACED_IN",
+      "sourceId": "sem:SemResponsibility:41fef82f00f207cb",
+      "targetId": "layer:domain",
+      "properties": {
+        "classLayer": "application",
+        "naturalLayer": "domain"
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "2ed70a34f867c1eaef6aff7c7ca7bfdc7ae88b78e0c10ee2e7183c1dfd1528d2",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "endLine": 10,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const discount = order.lines.length > 3 ? subtotal * 0.1 : 0;",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemREALIZES:27464b95253794a0",
+      "type": "SemREALIZES",
+      "sourceId": "ee110f001f97012a",
+      "targetId": "sem:SemCapability:744335ec228fc526",
+      "properties": {},
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "efce1f58df9cbf18d14cbd1c9d5920b8b44ede959565a6c5d40875a7638521de",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "ee110f001f97012a",
+          "quote": "export class OrderNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemREALIZES:47efc0765f071d7c",
+      "type": "SemREALIZES",
+      "sourceId": "9e5dca9006c883b8",
+      "targetId": "sem:SemCapability:41b433b86a630b93",
+      "properties": {},
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "efce1f58df9cbf18d14cbd1c9d5920b8b44ede959565a6c5d40875a7638521de",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "ee110f001f97012a",
+          "quote": "export class OrderNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 3,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "9e5dca9006c883b8",
+          "quote": "export class ConsoleMailer implements Mailer {",
+          "startLine": 3,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemREALIZES:552b1bd7185e4b4e",
+      "type": "SemREALIZES",
+      "sourceId": "99595122f2958507",
+      "targetId": "sem:SemCapability:ee5bdf732296fa34",
+      "properties": {},
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "8615d4973f7d8c6024c14a9838c5dd6560f92c023e26da70cb3f3e3c69ffae64",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "6860bbf1a3b5131d",
+          "quote": "export class PlaceOrderUseCase {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 7,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "export class Order {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemREALIZES:61d92e00b6e49582",
+      "type": "SemREALIZES",
+      "sourceId": "6860bbf1a3b5131d",
+      "targetId": "sem:SemCapability:ee5bdf732296fa34",
+      "properties": {},
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "8615d4973f7d8c6024c14a9838c5dd6560f92c023e26da70cb3f3e3c69ffae64",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "6860bbf1a3b5131d",
+          "quote": "export class PlaceOrderUseCase {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 7,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "export class Order {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemREALIZES:812ba4e8da6f90c9",
+      "type": "SemREALIZES",
+      "sourceId": "ee110f001f97012a",
+      "targetId": "sem:SemCapability:41b433b86a630b93",
+      "properties": {},
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "efce1f58df9cbf18d14cbd1c9d5920b8b44ede959565a6c5d40875a7638521de",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "ee110f001f97012a",
+          "quote": "export class OrderNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 3,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "9e5dca9006c883b8",
+          "quote": "export class ConsoleMailer implements Mailer {",
+          "startLine": 3,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemRESPONSIBLE_FOR:1db060da65404306",
+      "type": "SemRESPONSIBLE_FOR",
+      "sourceId": "99595122f2958507",
+      "targetId": "sem:SemResponsibility:60afbfc937bef5ee",
+      "properties": {},
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "confidence": 1,
+      "evidence": [
+        {
+          "endLine": 16,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "3d1d8ec86b5e61c8",
+          "quote": "return this.lines.reduce((acc, l) => acc + l.price * l.quantity, 0);",
+          "startLine": 14,
+          "grounded": true
+        }
+      ],
+      "agreement": "single-run"
+    },
+    {
+      "id": "sem:SemRESPONSIBLE_FOR:8565c5e3290d334a",
+      "type": "SemRESPONSIBLE_FOR",
+      "sourceId": "ee110f001f97012a",
+      "targetId": "sem:SemResponsibility:41fef82f00f207cb",
+      "properties": {},
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "2ed70a34f867c1eaef6aff7c7ca7bfdc7ae88b78e0c10ee2e7183c1dfd1528d2",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "endLine": 10,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const discount = order.lines.length > 3 ? subtotal * 0.1 : 0;",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemRESPONSIBLE_FOR:8b017fbff14b6b15",
+      "type": "SemRESPONSIBLE_FOR",
+      "sourceId": "6860bbf1a3b5131d",
+      "targetId": "sem:SemResponsibility:44a3f3ea1e361923",
+      "properties": {},
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "confidence": 1,
+      "evidence": [
+        {
+          "endLine": 10,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "const order = new Order(id, customerEmail, lines);",
+          "startLine": 8,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemRESPONSIBLE_FOR:a1ba131f1c6161ad",
+      "type": "SemRESPONSIBLE_FOR",
+      "sourceId": "ee110f001f97012a",
+      "targetId": "sem:SemResponsibility:cf9ea9a1f020a418",
+      "properties": {},
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "2ed70a34f867c1eaef6aff7c7ca7bfdc7ae88b78e0c10ee2e7183c1dfd1528d2",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "endLine": 11,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "await this.mailer.send(order.customerEmail, 'Order confirmed', `Order ${order.id}: you pay ${payable.toFixed(2)}`);",
+          "startLine": 11,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemRESPONSIBLE_FOR:fcc395fae2c55ec7",
+      "type": "SemRESPONSIBLE_FOR",
+      "sourceId": "99595122f2958507",
+      "targetId": "sem:SemResponsibility:0f5fd7f1e3f73e4f",
+      "properties": {},
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "confidence": 1,
+      "evidence": [
+        {
+          "endLine": 12,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "readonly lines: readonly OrderLine[],",
+          "startLine": 8,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemRESPONSIBLE_FOR:fd69572216ef9944",
+      "type": "SemRESPONSIBLE_FOR",
+      "sourceId": "9e5dca9006c883b8",
+      "targetId": "sem:SemResponsibility:8ac1a13adb7688bf",
+      "properties": {},
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "9dbdd9e58ad09d58175707412ac9de81475f99911ab8077e9970c6e3d8d9ce6b",
+        "runId": "ontology-v0-6deb7ec61cd2",
+        "temperature": null
+      },
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "9e5dca9006c883b8",
+          "quote": "export class ConsoleMailer implements Mailer {",
+          "startLine": 3,
+          "grounded": true
+        },
+        {
+          "endLine": 9,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "a1ab40e4bf0d3824",
+          "quote": "this.sent.push(`${to}|${subject}|${body}`);",
+          "startLine": 6,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    }
+  ],
+  "findings": [
+    {
+      "kind": "misplaced-responsibility",
+      "responsibilityId": "sem:SemResponsibility:41fef82f00f207cb",
+      "responsibility": "Order discount and payable calculation",
+      "site": {
+        "nodeId": "4309cdf457262c68",
+        "file": "src/notifications/application/order-notification.service.ts",
+        "className": "OrderNotificationService",
+        "methodName": "sendConfirmation",
+        "component": "notifications"
+      },
+      "classLayer": "application",
+      "naturalLayer": "domain",
+      "citedLogicDensity": 4,
+      "confidence": 0.95
+    }
+  ],
+  "hallucinations": [],
+  "acceptedAssertions": {
+    "responsibility": 24,
+    "capability": 6,
+    "rules": 2,
+    "adjudicate": 4
+  },
+  "agreement": {
+    "responsibility": {
+      "items": 8,
+      "meanJaccard": 0.7083333333333333,
+      "agreedAssertions": 10,
+      "totalAssertions": 13
+    },
+    "capability": {
+      "items": 2,
+      "meanJaccard": 1,
+      "agreedAssertions": 3,
+      "totalAssertions": 3
+    },
+    "rules": {
+      "items": 2,
+      "meanJaccard": 1,
+      "agreedAssertions": 1,
+      "totalAssertions": 1
+    },
+    "adjudicate": {
+      "items": 2,
+      "meanJaccard": 1,
+      "agreedAssertions": 2,
+      "totalAssertions": 2
+    }
+  },
+  "calls": {
+    "providerCalls": 20,
+    "cacheHits": 0,
+    "invalid": 0,
+    "skippedForBudget": 0,
+    "cassetteMisses": 0,
+    "usage": {
+      "inputTokens": 172021,
+      "outputTokens": 36274
+    }
+  },
+  "budget": 20,
+  "stopped": null
+}

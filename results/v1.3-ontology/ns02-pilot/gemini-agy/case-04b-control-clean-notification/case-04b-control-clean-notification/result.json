@@ -1,0 +1,490 @@
+{
+  "runId": "ontology-v0-10f5a0a2a22a",
+  "provider": {
+    "provider": "gemini-agy",
+    "model": "gemini-4-argon-high"
+  },
+  "nodes": [
+    {
+      "id": "sem:SemBusinessConcept:93ea4b31a959efa2",
+      "label": "SemBusinessConcept",
+      "name": "Shipment",
+      "properties": {
+        "names": [
+          "Shipment"
+        ]
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "e47e261dfbd8b1df48a1ee81a930d280f5310e10b646c6e79a8bb661bea29ba1",
+        "runId": "ontology-v0-10f5a0a2a22a",
+        "temperature": null
+      },
+      "confidence": 0.975,
+      "evidence": [
+        {
+          "endLine": 9,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "1e7c92c05d631e52",
+          "quote": "async sendShipped(shipment: Shipment): Promise<void> {",
+          "startLine": 7,
+          "grounded": true
+        },
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        },
+        {
+          "endLine": 6,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "    readonly id: string,\n    readonly recipientEmail: string,\n    readonly shippedAt: Date,\n    readonly carrier: string,",
+          "startLine": 3,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemCapability:41b433b86a630b93",
+      "label": "SemCapability",
+      "name": "Shipment notification",
+      "properties": {
+        "description": "Notifying customers or external parties about shipment events and delivery status updates.",
+        "names": [
+          "Shipment notification"
+        ],
+        "groups": [
+          "component:notifications"
+        ]
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "59de78b0ffd3232d2830ad196edab33ae52c5a1cf84fefa518533c177b2562e7",
+        "runId": "ontology-v0-10f5a0a2a22a",
+        "temperature": null
+      },
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "21902eaf2ee28c4a",
+          "quote": "export class ShipmentNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemCapability:7de046067536b2df",
+      "label": "SemCapability",
+      "name": "Customer shipping notification",
+      "properties": {
+        "description": "Representing shipment records and sending notifications to customers regarding their deliveries.",
+        "names": [
+          "Customer shipping notification"
+        ],
+        "groups": [
+          "community:0"
+        ]
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "edae8b893c0e70eaf2c257208d5c85fd8ddcd3f429963ca50187edb210908afb",
+        "runId": "ontology-v0-10f5a0a2a22a",
+        "temperature": null
+      },
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "21902eaf2ee28c4a",
+          "quote": "export class ShipmentNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemCapability:e0fbe32fc89ccd27",
+      "label": "SemCapability",
+      "name": "Order shipping and delivery management",
+      "properties": {
+        "description": "Represents delivery and shipping information in the domain model to support order fulfillment and delivery tracking.",
+        "names": [
+          "Order shipping and delivery management"
+        ],
+        "groups": [
+          "component:shipping"
+        ]
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "c7385efd69bc3859fe04fe528dd7a6fe52cd76774119804a9c801011cec2484a",
+        "runId": "ontology-v0-10f5a0a2a22a",
+        "temperature": null
+      },
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemResponsibility:a1b3a0812214331e",
+      "label": "SemResponsibility",
+      "name": "Shipment domain data representation",
+      "properties": {
+        "description": "Represent a shipment record with its identifier, recipient email address, dispatch timestamp, and carrier.",
+        "naturalLayer": "domain",
+        "classId": "e4b465cb4e5c3815"
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "a7dbb2b5d8aea7fd4394004b8add9f61f0cd0a4ddd11c1462b305e8bfaebaaca",
+        "runId": "ontology-v0-10f5a0a2a22a",
+        "temperature": null
+      },
+      "agreement": "agreed",
+      "evidence": [
+        {
+          "endLine": 7,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "  constructor(\n    readonly id: string,\n    readonly recipientEmail: string,\n    readonly shippedAt: Date,\n    readonly carrier: string,\n  ) {}",
+          "startLine": 2,
+          "grounded": true
+        }
+      ],
+      "confidence": 1
+    },
+    {
+      "id": "sem:SemResponsibility:ac01af0f0852ed55",
+      "label": "SemResponsibility",
+      "name": "Sending Shipment Notifications",
+      "properties": {
+        "description": "Formats a shipment notification message containing the shipping date and carrier and sends an email notification to the shipment recipient via the Mailer port.",
+        "naturalLayer": "application",
+        "classId": "21902eaf2ee28c4a"
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "e47e261dfbd8b1df48a1ee81a930d280f5310e10b646c6e79a8bb661bea29ba1",
+        "runId": "ontology-v0-10f5a0a2a22a",
+        "temperature": null
+      },
+      "agreement": "agreed",
+      "evidence": [
+        {
+          "endLine": 10,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "1e7c92c05d631e52",
+          "quote": "await this.mailer.send(shipment.recipientEmail, 'Your order has shipped', `Shipped on ${day} with ${shipment.carrier}.`);",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "confidence": 0.95
+    }
+  ],
+  "edges": [
+    {
+      "id": "sem:SemEMBODIES:9d78f80ef3739af0",
+      "type": "SemEMBODIES",
+      "sourceId": "e4b465cb4e5c3815",
+      "targetId": "sem:SemBusinessConcept:93ea4b31a959efa2",
+      "properties": {
+        "relation": "defines"
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "a7dbb2b5d8aea7fd4394004b8add9f61f0cd0a4ddd11c1462b305e8bfaebaaca",
+        "runId": "ontology-v0-10f5a0a2a22a",
+        "temperature": null
+      },
+      "confidence": 1,
+      "evidence": [
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        },
+        {
+          "endLine": 6,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "    readonly id: string,\n    readonly recipientEmail: string,\n    readonly shippedAt: Date,\n    readonly carrier: string,",
+          "startLine": 3,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemEMBODIES:d0a76178bdc38421",
+      "type": "SemEMBODIES",
+      "sourceId": "21902eaf2ee28c4a",
+      "targetId": "sem:SemBusinessConcept:93ea4b31a959efa2",
+      "properties": {
+        "relation": "uses"
+      },
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "e47e261dfbd8b1df48a1ee81a930d280f5310e10b646c6e79a8bb661bea29ba1",
+        "runId": "ontology-v0-10f5a0a2a22a",
+        "temperature": null
+      },
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "endLine": 9,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "1e7c92c05d631e52",
+          "quote": "async sendShipped(shipment: Shipment): Promise<void> {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemREALIZES:6e0a8286ef556a95",
+      "type": "SemREALIZES",
+      "sourceId": "e4b465cb4e5c3815",
+      "targetId": "sem:SemCapability:7de046067536b2df",
+      "properties": {},
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "edae8b893c0e70eaf2c257208d5c85fd8ddcd3f429963ca50187edb210908afb",
+        "runId": "ontology-v0-10f5a0a2a22a",
+        "temperature": null
+      },
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "21902eaf2ee28c4a",
+          "quote": "export class ShipmentNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemREALIZES:8b0caed2d2e765ff",
+      "type": "SemREALIZES",
+      "sourceId": "21902eaf2ee28c4a",
+      "targetId": "sem:SemCapability:7de046067536b2df",
+      "properties": {},
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "edae8b893c0e70eaf2c257208d5c85fd8ddcd3f429963ca50187edb210908afb",
+        "runId": "ontology-v0-10f5a0a2a22a",
+        "temperature": null
+      },
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "21902eaf2ee28c4a",
+          "quote": "export class ShipmentNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemREALIZES:cc3312acbfbaf57f",
+      "type": "SemREALIZES",
+      "sourceId": "e4b465cb4e5c3815",
+      "targetId": "sem:SemCapability:e0fbe32fc89ccd27",
+      "properties": {},
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "c7385efd69bc3859fe04fe528dd7a6fe52cd76774119804a9c801011cec2484a",
+        "runId": "ontology-v0-10f5a0a2a22a",
+        "temperature": null
+      },
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemREALIZES:e336d7f507cc8ddd",
+      "type": "SemREALIZES",
+      "sourceId": "21902eaf2ee28c4a",
+      "targetId": "sem:SemCapability:41b433b86a630b93",
+      "properties": {},
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "59de78b0ffd3232d2830ad196edab33ae52c5a1cf84fefa518533c177b2562e7",
+        "runId": "ontology-v0-10f5a0a2a22a",
+        "temperature": null
+      },
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "21902eaf2ee28c4a",
+          "quote": "export class ShipmentNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemRESPONSIBLE_FOR:2a5d01ac54da7a97",
+      "type": "SemRESPONSIBLE_FOR",
+      "sourceId": "21902eaf2ee28c4a",
+      "targetId": "sem:SemResponsibility:ac01af0f0852ed55",
+      "properties": {},
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "e47e261dfbd8b1df48a1ee81a930d280f5310e10b646c6e79a8bb661bea29ba1",
+        "runId": "ontology-v0-10f5a0a2a22a",
+        "temperature": null
+      },
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "endLine": 10,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "1e7c92c05d631e52",
+          "quote": "await this.mailer.send(shipment.recipientEmail, 'Your order has shipped', `Shipped on ${day} with ${shipment.carrier}.`);",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    },
+    {
+      "id": "sem:SemRESPONSIBLE_FOR:7f4f0e2b66963348",
+      "type": "SemRESPONSIBLE_FOR",
+      "sourceId": "e4b465cb4e5c3815",
+      "targetId": "sem:SemResponsibility:a1b3a0812214331e",
+      "properties": {},
+      "provenance": {
+        "model": "gemini-4-argon-high",
+        "promptHash": "a7dbb2b5d8aea7fd4394004b8add9f61f0cd0a4ddd11c1462b305e8bfaebaaca",
+        "runId": "ontology-v0-10f5a0a2a22a",
+        "temperature": null
+      },
+      "confidence": 1,
+      "evidence": [
+        {
+          "endLine": 7,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "  constructor(\n    readonly id: string,\n    readonly recipientEmail: string,\n    readonly shippedAt: Date,\n    readonly carrier: string,\n  ) {}",
+          "startLine": 2,
+          "grounded": true
+        }
+      ],
+      "agreement": "agreed"
+    }
+  ],
+  "findings": [],
+  "hallucinations": [],
+  "acceptedAssertions": {
+    "responsibility": 8,
+    "capability": 6,
+    "rules": 0,
+    "adjudicate": 0
+  },
+  "agreement": {
+    "responsibility": {
+      "items": 4,
+      "meanJaccard": 1,
+      "agreedAssertions": 4,
+      "totalAssertions": 4
+    },
+    "capability": {
+      "items": 3,
+      "meanJaccard": 1,
+      "agreedAssertions": 3,
+      "totalAssertions": 3
+    },
+    "rules": {
+      "items": 0,
+      "meanJaccard": null,
+      "agreedAssertions": 0,
+      "totalAssertions": 0
+    },
+    "adjudicate": {
+      "items": 0,
+      "meanJaccard": null,
+      "agreedAssertions": 0,
+      "totalAssertions": 0
+    }
+  },
+  "calls": {
+    "providerCalls": 10,
+    "cacheHits": 0,
+    "invalid": 0,
+    "skippedForBudget": 0,
+    "cassetteMisses": 0,
+    "usage": {
+      "inputTokens": 85040,
+      "outputTokens": 14494
+    }
+  },
+  "budget": 20,
+  "stopped": null
+}
