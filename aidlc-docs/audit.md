@@ -2413,6 +2413,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+## v1.4 research ops: DOCS-X, exploratory registration, V4 ADR, deviations, signing sheet
+**Timestamp**: 2026-10-19T21:54:39Z
+**User Input**: "Scheduled routine DOCS-X (documents only, zero model calls): register the exploratory study that runs before confirmatory Study 2; draft the single V4 hold-out bar; draft the X-1 and SO3-a deviations; write the one-page signing sheet; propose the F3 rewording around C4 + C1d; fix TRUST-01 per REV-05 §7 and the stale documents of REV-04 §6; open a PR, do not merge."
+**AI Response**: "Wrote Docs/v1.4/exploratory-study-registration.md (estimands REV-05 §3 items 1-8 plus SO5 taxonomy material; three drift cells plus optional in-loop semantic and evaluate cells; staged stop rule; 24-snapshot semantic sample; seeded recall and per-snapshot coverage on agent code; 312 core turns, cap 468; no Holm, no H1/H2), with its own exploratory-protocol block checked by lint:protocol (script extended, with self-tests). The drift record stays the confirmatory protocol and got one dated pointer note. Drafted ADR-V14-04 (one V4 bar, the characterised route, the per-arm non-differential miss check), the X-1 and SO3-a deviations (deviation list rows 12-13; row 7 updated), the signing sheet (V1 answers with sources, Q-A to Q-E, the 9 adjudication rows, MEAN-01 §12, G0.9 criteria; five items flagged), and the F3 proposed change. Fixed TRUST-01 and REV-04 §6 items 3-11 and 13-15. Every signature is left to the author. No model call, no sealed path read, no MEAN-01 sample opened."
+**Context**: v1.4 research ops, decisions EXP, EXPT, SEM, F3, V4, U6, SIGN (ops/decisions.md, 2026-10-19); branch docs-x/exploratory-registration; no study run approved
 ## v1.4 Tier A: TIER-A3 DDD B2 (interpreter) and V9 fast path
 **Timestamp**: 2026-10-19T21:32:31Z
 **User Input**: "Scheduled routine TIER-A3, zero model calls, interpreter only: re-score the 8 kept DDD loop-pilot snapshots with declared aggregates and with/without acl: [] (B2), and check the MCP fast path against the full evaluation on stored Layered and DDD snapshots (V9). Do not decide D15. Open a PR, do not merge."
