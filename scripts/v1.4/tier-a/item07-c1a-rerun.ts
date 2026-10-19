@@ -50,7 +50,8 @@ function arg(name: string): string | undefined {
 function args(name: string): string[] {
   const out: string[] = [];
   process.argv.forEach((a, i) => {
-    if (a === name && process.argv[i + 1]) out.push(process.argv[i + 1]);
+    const v = process.argv[i + 1];
+    if (a === name && v !== undefined && v !== '') out.push(v);
   });
   return out;
 }
@@ -62,7 +63,7 @@ const raw = arg('--raw');
 const trees = Object.fromEntries(
   args('--tree').map((t) => {
     const [k, v] = t.split('=');
-    return [k, resolve(v)];
+    return [k ?? '', resolve(v ?? '')];
   }),
 ) as Record<string, string>;
 
@@ -159,11 +160,15 @@ for (const repo of REPOS) {
   const armDiffs: Report = {};
   const arms = Object.keys(runs);
   for (let i = 0; i < arms.length; i++)
-    for (let j = i + 1; j < arms.length; j++)
+    for (let j = i + 1; j < arms.length; j++) {
+      const a = runs[arms[i] as string];
+      const b = runs[arms[j] as string];
+      if (a === undefined || b === undefined) continue;
       armDiffs[`${arms[i]}->${arms[j]}`] = {
-        allViolations: diffIds(runs[arms[i]].violationIds, runs[arms[j]].violationIds),
-        blocking: diffIds(runs[arms[i]].blockingViolationIds, runs[arms[j]].blockingViolationIds),
+        allViolations: diffIds(a.violationIds, b.violationIds),
+        blocking: diffIds(a.blockingViolationIds, b.blockingViolationIds),
       };
+    }
   result.repos[repo.id] = {
     url: entry.url,
     sha: entry.sha,
