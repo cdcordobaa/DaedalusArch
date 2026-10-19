@@ -76,6 +76,11 @@ describe('the ddd reference v09 overlay through the pipeline (cypher-interp, v1.
       const off = await runPipeline(m.projectDir, ref.specPath, { postSealRules: false });
       if (!off.success) throw new Error(off.errors.map((e) => e.message).join('; '));
       expect(off.data.violations.filter((x) => String(x.functionId) === 'FF-S02')).toEqual([]);
+      // ADR-V14-03: the report carries the post-seal flag and the overlay's added ids only when the rules were compiled.
+      expect(on.data.postSealRules).toBe(true);
+      expect(on.data.postSealAdded).toEqual(expect.arrayContaining(['FF-S02']));
+      expect(off.data.postSealRules).toBeUndefined();
+      expect(off.data.postSealAdded).toBeUndefined();
     } finally {
       fs.rmSync(scratch, { recursive: true, force: true });
     }

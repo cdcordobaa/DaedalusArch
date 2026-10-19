@@ -84,7 +84,7 @@ interface Report {
 function evaluate(dir: string, spec: string): Report {
   let out: Buffer;
   try {
-    out = execFileSync('npx', ['tsx', path.join(REPO, 'bin/firewall.ts'), 'evaluate', '--project', dir, '--spec', spec, '--symbolic-only', '--engine', 'cypher-interp', '--scoring', 'v1.3', '--format', 'json'], {
+    out = execFileSync('npx', ['tsx', path.join(REPO, 'bin/firewall.ts'), 'evaluate', '--post-seal', 'off', '--project', dir, '--spec', spec, '--symbolic-only', '--engine', 'cypher-interp', '--scoring', 'v1.3', '--format', 'json'], {
       cwd: REPO, env: CHILD_ENV, maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'],
     });
   } catch (e) {

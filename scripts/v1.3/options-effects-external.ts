@@ -42,7 +42,7 @@ for (const k of ['PATH', 'HOME']) { const v = process.env[k]; if (v !== undefine
 
 function evaluate(projectDir: string, spec: string, filter: string): Report {
   const r = spawnSync(path.join(repo, 'node_modules/.bin/tsx'), [
-    'bin/firewall.ts', 'evaluate', '--engine', 'cypher-interp', '--project', projectDir, '--spec', spec,
+    'bin/firewall.ts', 'evaluate', '--post-seal', 'off', '--engine', 'cypher-interp', '--project', projectDir, '--spec', spec,
     '--symbolic-only', '--format', 'json', '--advisory-filter', filter,
   ], { cwd: repo, env: childEnv, encoding: 'utf8', maxBuffer: 512 * 1024 * 1024, timeout: 900_000 });
   const start = r.stdout.indexOf('{');

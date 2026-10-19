@@ -102,7 +102,7 @@ function specLayers(specText: string): InferredLayer[] {
 }
 
 async function evaluate(copy: string, spec: string, tsconfig: string, uri: string): Promise<{ findings: Finding[]; tiers: Tiers }> {
-  const run = await runner.run(tsx, [CLI_ENTRY, 'evaluate', '--project', copy, '--spec', spec, '--format', 'json', '--symbolic-only', '--tsconfig', tsconfig, '--neo4j-uri', uri, '--engine', 'neo4j'],
+  const run = await runner.run(tsx, [CLI_ENTRY, 'evaluate', '--post-seal', 'off', '--project', copy, '--spec', spec, '--format', 'json', '--symbolic-only', '--tsconfig', tsconfig, '--neo4j-uri', uri, '--engine', 'neo4j'],
     { cwd: repoRoot, env: childEnv, timeoutMs: 600_000 });
   if (!run.success || run.data.timedOut) throw new Error('evaluate did not finish');
   const stdout = run.data.stdout;

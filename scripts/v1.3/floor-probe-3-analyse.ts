@@ -127,7 +127,7 @@ function main(): void {
       const kloc = loc / 1000;
       let out: Buffer;
       try {
-        out = execFileSync('npx', ['tsx', path.join(REPO, 'bin/firewall.ts'), 'evaluate', '--project', tree, '--spec', specPath, '--symbolic-only', '--engine', 'cypher-interp', '--scoring', 'v1.3', '--tsconfig', tsconfig, '--format', 'json'], { cwd: REPO, env: buildChildEnv(process.env, FIREWALL_ENV_ALLOW), maxBuffer: 256 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] });
+        out = execFileSync('npx', ['tsx', path.join(REPO, 'bin/firewall.ts'), 'evaluate', '--post-seal', 'off', '--project', tree, '--spec', specPath, '--symbolic-only', '--engine', 'cypher-interp', '--scoring', 'v1.3', '--tsconfig', tsconfig, '--format', 'json'], { cwd: REPO, env: buildChildEnv(process.env, FIREWALL_ENV_ALLOW), maxBuffer: 256 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] });
       } catch (e) {
         // Not scored (e.g. the frozen DDD spec is rejected by the pipeline): recorded, and left out of every slope.
         const stderr = (e as { stderr?: Buffer }).stderr?.toString('utf8') ?? String(e);

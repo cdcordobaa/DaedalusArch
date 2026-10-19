@@ -75,7 +75,7 @@ for (const k of ['PATH', 'HOME']) {
 }
 
 async function evaluate(projectDir: string, specPath: string): Promise<RunSummary & { rows: number }> {
-  const args = [CLI_ENTRY, 'evaluate', '--project', projectDir, '--spec', specPath, '--format', 'json', '--symbolic-only', '--neo4j-uri', '', '--engine', 'cypher-interp', ...extraCliArgs];
+  const args = [CLI_ENTRY, 'evaluate', '--post-seal', 'off', '--project', projectDir, '--spec', specPath, '--format', 'json', '--symbolic-only', '--neo4j-uri', '', '--engine', 'cypher-interp', ...extraCliArgs];
   const run = await runner.run(tsx, args, { cwd: repoRoot, env: childEnv, timeoutMs: 600_000 });
   if (!run.success) throw new Error(run.errors.map((e) => e.message).join('; '));
   if (run.data.timedOut) throw new Error(`evaluation of ${projectDir} timed out`);

@@ -70,7 +70,7 @@ function runDepcruise(p: Pilot, root: string): { out: DcOut; wallMs: number; ver
 }
 
 function runOurs(root: string, spec: string, tsconfig: string | undefined): { violations: OursViolation[]; wallMs: number; errors: unknown; files: number } {
-  const args = ['tsx', path.join(REPO, 'bin/firewall.ts'), 'evaluate', '--project', root, '--spec', spec, '--format', 'json', '--symbolic-only', '--engine', 'cypher-interp'];
+  const args = ['tsx', path.join(REPO, 'bin/firewall.ts'), 'evaluate', '--post-seal', 'off', '--project', root, '--spec', spec, '--format', 'json', '--symbolic-only', '--engine', 'cypher-interp'];
   if (tsconfig !== undefined) args.push('--tsconfig', path.join(root, tsconfig));
   const t = Date.now();
   const r = sh('npx', args, REPO);

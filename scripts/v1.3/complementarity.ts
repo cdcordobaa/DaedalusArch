@@ -219,7 +219,7 @@ interface Project {
 function evaluateSymbolic(repoRoot: string, p: Project, cacheDir: string): ReportLike {
   const cache = path.join(cacheDir, `${safe(p.key)}.json`);
   if (fs.existsSync(cache)) return readJson<ReportLike>(cache);
-  const r = spawnSync('npx', ['tsx', 'bin/firewall.ts', 'evaluate', '--project', p.dir, '--spec', p.spec, '--format', 'json', '--symbolic-only', '--engine', 'cypher-interp', '--scoring', 'v1.3'], {
+  const r = spawnSync('npx', ['tsx', 'bin/firewall.ts', 'evaluate', '--post-seal', 'on', '--project', p.dir, '--spec', p.spec, '--format', 'json', '--symbolic-only', '--engine', 'cypher-interp', '--scoring', 'v1.3'], {
     cwd: repoRoot, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024,
   });
   // Exit 1 is a failing verdict; anything else without a report is an error.

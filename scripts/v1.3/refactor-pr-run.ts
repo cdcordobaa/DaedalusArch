@@ -256,7 +256,7 @@ async function cliCheck(reposDir: string, n: number, maxFiles: number, cacheDir:
       const root = path.join(clone, e.root);
       writeHarness(clone, root, e);
       const t0 = performance.now();
-      const r = spawnSync('npx', ['tsx', 'src/cli/bin.ts', 'evaluate', root, '--spec', e.spec, '--format', 'json', '--symbolic-only', '--engine', 'cypher-interp', '--tsconfig', path.join(root, HARNESS)], { cwd: REPO, encoding: 'utf8', maxBuffer: 1024 * 1024 * 1024, timeout: 30 * 60 * 1000 });
+      const r = spawnSync('npx', ['tsx', 'src/cli/bin.ts', 'evaluate', '--post-seal', 'off', root, '--spec', e.spec, '--format', 'json', '--symbolic-only', '--engine', 'cypher-interp', '--tsconfig', path.join(root, HARNESS)], { cwd: REPO, encoding: 'utf8', maxBuffer: 1024 * 1024 * 1024, timeout: 30 * 60 * 1000 });
       let cliKeys: string[] | undefined;
       let error: string | undefined;
       try {

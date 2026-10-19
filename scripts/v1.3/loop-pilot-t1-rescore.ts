@@ -90,7 +90,7 @@ function materialise(runDir: string, commit: string, tree: string, nodeModules: 
 
 function evaluate(tree: string, spec: string, tsconfig: string, policy: string): { report?: Report; error?: string } {
   try {
-    const out = execFileSync('npx', ['tsx', path.join(REPO, 'bin/firewall.ts'), 'evaluate', '--project', tree, '--spec', spec, '--symbolic-only',
+    const out = execFileSync('npx', ['tsx', path.join(REPO, 'bin/firewall.ts'), 'evaluate', '--post-seal', 'off', '--project', tree, '--spec', spec, '--symbolic-only',
       '--scoring', 'v1.3', '--tsconfig', tsconfig, '--format', 'json', '--engine', 'cypher-interp', '--empty-aggregates', policy],
     { cwd: REPO, env: buildChildEnv(process.env, FIREWALL_ENV_ALLOW), maxBuffer: 256 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] });
     return { report: JSON.parse(out.toString('utf8')) as Report };

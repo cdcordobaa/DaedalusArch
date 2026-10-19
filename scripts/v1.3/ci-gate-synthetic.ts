@@ -58,7 +58,7 @@ async function main(argv: readonly string[]): Promise<number> {
       neo4jUser: process.env.NEO4J_USER ?? 'neo4j',
       neo4jPassword: password,
       apgStorePath: process.env.APG_STORE_PATH ?? '.apg-store',
-      makePipeline: createPipeline,
+      makePipeline: (config) => createPipeline({ ...config, postSealRules: false }), // v1.4 U2 (BR-U2-10): sealed v1.3 figure
     });
   } else {
     process.stderr.write('--engine must be one of lexical | neo4j\n');

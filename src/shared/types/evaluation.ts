@@ -333,7 +333,7 @@ export interface ReportScoring {
 // FR-13, FR-14: what the scoring stage produces; run-level fields are added by the report builder (U3)
 export type ScoredReport = Omit<EvaluationReport,
   'warnings' | 'functionExecution' | 'functionResults' | 'graphStats' | 'layerAnnotation' |
-  'parseCoverage' | 'importResolution' | 'timings' | 'judge' | 'disabledFunctions' | 'neuralResults' | 'instrumentVersion'>;
+  'parseCoverage' | 'importResolution' | 'timings' | 'judge' | 'disabledFunctions' | 'neuralResults' | 'instrumentVersion' | 'postSealRules' | 'postSealAdded'>;
 
 export interface EvaluationReport {
   readonly runId: RunId;
@@ -363,6 +363,10 @@ export interface EvaluationReport {
   readonly judge: JudgeProvenance;
   /** Symbolic instrument version (ADR-026): 1 = no role exemptions, 2 = role exemptions; absent in reports before v2. */
   readonly instrumentVersion?: 1 | 2;
+  /** v1.4 U2 (ADR-V14-03): true only when the post-seal rules were compiled; absent = the sealed rule set. */
+  readonly postSealRules?: true;
+  /** v1.4 U2 (ADR-V14-03): the ids the post-seal overlay added (origin `post-seal`); present exactly with postSealRules. */
+  readonly postSealAdded?: readonly string[];
   // FR-33: present in full and neuronal-only modes, absent in symbolic-only (schema if/then, BR-U3-65; C10 row 14)
   readonly neuralResults?: readonly NeuralResultRow[];
   /** v1.3 scoring mode only (FR-V6, Docs/v1.3/rule-tiers.md): the tiered verdict; absent in the v1.2E mode. */

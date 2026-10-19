@@ -35,7 +35,7 @@ function arg(argv: readonly string[], name: string): string | undefined {
 
 function evaluate(repoRoot: string, projectDir: string, specPath: string): Violation[] {
   const tsx = path.join(repoRoot, 'node_modules/.bin/tsx');
-  const r = spawnSync(tsx, [CLI_ENTRY, 'evaluate', '--project', projectDir, '--spec', specPath, '--format', 'json', '--symbolic-only', '--engine', 'cypher-interp'], {
+  const r = spawnSync(tsx, [CLI_ENTRY, 'evaluate', '--post-seal', 'off', '--project', projectDir, '--spec', specPath, '--format', 'json', '--symbolic-only', '--engine', 'cypher-interp'], {
     cwd: repoRoot, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024, env: { PATH: process.env.PATH ?? '', HOME: process.env.HOME ?? '' },
   });
   const v = violationsFromOutput(r.stdout);

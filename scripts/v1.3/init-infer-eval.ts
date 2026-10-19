@@ -50,7 +50,7 @@ function fromInferredEvaluator(env: NodeJS.ProcessEnv): (dir: string) => Promise
   }
   const tsx = path.resolve('node_modules/.bin/tsx');
   return async (dir) => {
-    const run = await runner.run(tsx, ['bin/firewall.ts', 'evaluate', '--project', dir, '--from-inferred', '--format', 'json', '--symbolic-only', '--neo4j-uri', env.NEO4J_URI ?? ''], { cwd: process.cwd(), env: childEnv, timeoutMs: 600_000 });
+    const run = await runner.run(tsx, ['bin/firewall.ts', 'evaluate', '--post-seal', 'off', '--project', dir, '--from-inferred', '--format', 'json', '--symbolic-only', '--neo4j-uri', env.NEO4J_URI ?? ''], { cwd: process.cwd(), env: childEnv, timeoutMs: 600_000 });
     if (!run.success) throw new Error(run.errors.map((e) => e.message).join('; '));
     const start = run.data.stdout.indexOf('{');
     if (start < 0) throw new Error((run.data.stderr.split('\n').find((l) => l.startsWith('Error')) ?? run.data.stderr).trim());
