@@ -7,7 +7,7 @@ The working copy is the decision board, a private claude.ai artifact the author 
 ## Still open (yours)
 
 - **The 9 spec–manifest disagreement rows (C3).** U6 will deliver a short adjudication sheet.
-- **F23.** An action only you may do: compare 18 domains with the sealed list.
+- ~~**F23.**~~ *Done 2026-10-19:* the author and an examiner compared the domains with the sealed list; two demo tasks were replaced (`Docs/DiagnosticRuns/v1.3-f23-and-v4-count-2026-10-18.md`, Part 3).
 
 ## Settled in chat, 2026-10-19
 
@@ -76,6 +76,7 @@ Settled earlier: **D4**, the thinking note first (NS-01).
 **Post-seal changes now pending: M3, D5, N3 (and V4 if the count triggers it).** Each one is a declared deviation. The examiner review flags the count of deviations as a risk in its own right. I'll write them up together as one dated list, so the director sees all of them at once.
 
 ## Changelog
+- 2026-10-19 (evening): F23 marked done under "Still open" (REV-04 §6 item 7).
 - 2026-10-19: the drift record, tasks, fallback, generators, styles, label timing, V4 (c), U6 under the spec-derived principle, the signing sheet, D15 (pending B2) and the automated FP/FN review.
 - 2026-10-18: all board decisions recorded except L4, plus the D1 changes. M2, M3, D3 and M1 were confirmed in chat.
 - 2026-10-18: D4 settled.

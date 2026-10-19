@@ -30,7 +30,7 @@ Both fields are collected on every item, whatever L4 says. L4 only picks which f
 L4_PRIMARY = A_practitioner        # L4 = A (recommended). For L4 = B, change this line to: L4_PRIMARY = B_style_fidelity
 ```
 
-> AUTHOR: L4 = A or B, plus date. This line, and nothing else, changes between the two.
+> **L4 settled: A, practitioner** (author, 2026-10-18, `ops/decisions.md:35`). The line above already holds A. This line, and nothing else, would change between the two.
 
 ## 3. Codebook
 
@@ -294,7 +294,7 @@ Fixed before any label, for the primary field and the stratified p̂:
 
 ## 11. Blockers
 
-- **B1. L4 is open.** Without it, §2's line has no value. The sample, the packet and the calibration do not depend on L4. The κ gate and the headline do.
+- **B1. L4** — *settled 2026-10-18 as A (`ops/decisions.md:35`); kept for the record.* Without it, §2's line would have no value. The sample, the packet and the calibration do not depend on L4. The κ gate and the headline do.
 - **B2. The rater's qualification and V5's scope.** V5 asks for hold-out labelling by a qualified rater. These are external-set meaning labels, possibly by a classmate. A written deviation (or V5 amendment) is needed to say what these labels close.
 - **B3. Rater time.** About 2 h 25 min for MEAN-01 leaves at most about 30 minutes of a 2–3 h budget for the K3 cases and the 26 K-level assignments. Either book more time, or cut K-levels.
 - **B4. V6 pointers.** For V6 to turn green, `Docs/v1.3/validation-protocol.md` §3, `Docs/v1.3/labelling.md` §6 and `Docs/v1.3/human-labelling-protocol.md` §6 each need one line pointing to §4 here for the C3m labels. Not done here: those are frozen documents, and the pointers are the author's edit.
