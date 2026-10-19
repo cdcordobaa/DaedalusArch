@@ -1,0 +1,218 @@
+{
+ "item": "09",
+ "question": "C3 external correctness 283/283: verify counts and repositories; finding-level, repository-level and cluster-adjusted intervals",
+ "inputs": [
+  {
+   "path": "results/v1.3-external-correctness/blocking/correctness.csv",
+   "sha256": "4bd6c579e137c803d9a31680ae2f67d3bf7c8eb684ed922b495166e4fd09b1b3"
+  },
+  {
+   "path": "results/v1.3-external/selection.json",
+   "sha256": "039ea21a7d898a8fffa91c67790cafbe9906982d0293679d3b7b4b15e66ac6ef"
+  },
+  {
+   "path": "Docs/DiagnosticRuns/v1.3-external-cluster-bootstrap-2026-10-16.json",
+   "sha256": "50ecb6919e5d76cdcfd8efcf106ddf41a2d116792f2b9a49a1f05e05f21782b6"
+  }
+ ],
+ "z": 1.959963984540054,
+ "rowsInCsv": 283,
+ "tiersInCsv": [
+  "blocking"
+ ],
+ "verdicts": {
+  "correct": 283
+ },
+ "unknownProjects": [],
+ "repositories": {
+  "selected": 15,
+  "withBlockingFindings": 11,
+  "withoutBlockingFindings": [
+   "bulletproof-nodejs",
+   "dannielhugo-clean",
+   "ddialar-hexagonal-boilerplate",
+   "zeldaplay-api"
+  ],
+  "allCorrect": 11
+ },
+ "clusterSizes": {
+  "sizes": [
+   92,
+   72,
+   50,
+   20,
+   18,
+   9,
+   8,
+   6,
+   4,
+   3,
+   1
+  ],
+  "sum": 283,
+  "sumSquares": 17079,
+  "mean": 25.7273,
+  "sizeWeightedMean": 60.3498,
+  "coefficientOfVariation": 1.1601,
+  "top3": [
+   "ddd-forum",
+   "neoteric-nestjs-auth",
+   "finance-project-ddd"
+  ],
+  "top3Findings": 214
+ },
+ "findingLevel": {
+  "k": 283,
+  "n": 283,
+  "p": 1,
+  "wilson95": [
+   0.9866,
+   1
+  ],
+  "clopperPearson95": [
+   0.987,
+   1
+  ],
+  "ruleOfThreeLower": 0.9894,
+  "exactOneSidedLower95": 0.9895
+ },
+ "repositoryLevel": {
+  "unit": "repository; success = every blocking finding of the repository correct",
+  "k": 11,
+  "n": 11,
+  "wilson95": [
+   0.7412,
+   1
+  ],
+  "clopperPearson95": [
+   0.7151,
+   1
+  ],
+  "ruleOfThreeLower": 0.7273,
+  "exactOneSidedLower95": 0.7616
+ },
+ "clusterAdjusted": {
+  "method": "Kish design effect for unequal cluster sizes, Deff = 1 + (sum(m^2)/sum(m) - 1) * icc; n_eff = n / Deff; Wilson on (p, n_eff). The ICC cannot be estimated at zero errors, so a grid is reported. icc = 1 (every finding in a repository shares one outcome) is the worst case and gives n_eff = (sum m)^2 / sum(m^2).",
+  "grid": [
+   {
+    "icc": 0,
+    "deff": 1,
+    "nEff": 283,
+    "wilson95": [
+     0.9866,
+     1
+    ],
+    "ruleOfThreeLower": 0.9894
+   },
+   {
+    "icc": 0.01,
+    "deff": 1.5935,
+    "nEff": 177.5967,
+    "wilson95": [
+     0.9788,
+     1
+    ],
+    "ruleOfThreeLower": 0.9831
+   },
+   {
+    "icc": 0.05,
+    "deff": 3.9675,
+    "nEff": 71.3297,
+    "wilson95": [
+     0.9489,
+     1
+    ],
+    "ruleOfThreeLower": 0.9579
+   },
+   {
+    "icc": 0.1,
+    "deff": 6.935,
+    "nEff": 40.8076,
+    "wilson95": [
+     0.914,
+     1
+    ],
+    "ruleOfThreeLower": 0.9265
+   },
+   {
+    "icc": 0.2,
+    "deff": 12.87,
+    "nEff": 21.9892,
+    "wilson95": [
+     0.8513,
+     1
+    ],
+    "ruleOfThreeLower": 0.8636
+   },
+   {
+    "icc": 0.3,
+    "deff": 18.8049,
+    "nEff": 15.0492,
+    "wilson95": [
+     0.7966,
+     1
+    ],
+    "ruleOfThreeLower": 0.8007
+   },
+   {
+    "icc": 0.5,
+    "deff": 30.6749,
+    "nEff": 9.2258,
+    "wilson95": [
+     0.706,
+     1
+    ],
+    "ruleOfThreeLower": 0.6748
+   },
+   {
+    "icc": 1,
+    "deff": 60.3498,
+    "nEff": 4.6893,
+    "wilson95": [
+     0.5497,
+     1
+    ],
+    "ruleOfThreeLower": 0.3602
+   }
+  ],
+  "worstCase": {
+   "icc": 1,
+   "deff": 60.3498,
+   "nEff": 4.6893,
+   "wilson95": [
+    0.5497,
+    1
+   ],
+   "ruleOfThreeLower": 0.3602
+  }
+ },
+ "withoutTop3": {
+  "k": 69,
+  "n": 69,
+  "wilson95": [
+   0.9473,
+   1
+  ]
+ },
+ "clusterBootstrap": {
+  "seed": 20261016,
+  "resamples": 10000,
+  "estimate": 1,
+  "ci95": [
+   1,
+   1
+  ],
+  "undefinedResamples": 0,
+  "note": "degenerate at zero errors: every resample has ratio 1"
+ },
+ "ledgerChecks": {
+  "K174 / map: 283/283": true,
+  "map: 11/11 repos": true,
+  "K174: repository-level Wilson [0.741, 1]": true,
+  "K174: 69/69 outside the three largest, Wilson [0.947, 1]": true,
+  "v1.3 report: 15 repositories, 4 with no blocking finding": true,
+  "prior JSON finding-level Wilson low equals recomputed": true,
+  "prior JSON repository-level Wilson low equals recomputed": true
+ },
+ "discrepancies": []
+}
