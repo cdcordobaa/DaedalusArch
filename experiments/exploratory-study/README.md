@@ -41,9 +41,10 @@ with an empty per-run `HOME`, the dedicated config dir and `DISABLE_AUTOUPDATER=
    outside the repository, the out-root and the real `~/.claude`.
 3. **`daedalus` block** (L2 plan): the `/opt/daedalus/...` paths are placeholders. Point them at a build of the MCP
    server at the run commit, outside every cwd.
-4. **`vineyard-harvest` spec**: `specs/vineyard-harvest-ddd.yaml` does not exist yet. It is the rehearsal spec built on
-   `presets/ddd.yaml` that declares `src/picking/` and `src/cellar/` (rehearsal README "Before any run" item 4), and it
-   depends on D15 (the DDD spec mode). L3 and the per-task MCP spec both need it static.
+4. **`vineyard-harvest` spec**: the templates name the candidate static rehearsal spec
+   `fixtures/v1.3-rehearsal-tasks/specs/vineyard-harvest.ddd.yaml` (`presets/ddd.yaml` constrained to `src/picking/` and
+   `src/cellar/`, no aggregate declared; rehearsal README "Before any run" item 4). The author approves or replaces it;
+   whether DDD runs with a static spec at all is D15. L3 and the per-task MCP spec both need it static.
 5. **The shared start** (one step-1 tree per block, all cells branching at step 2) is not a harness feature. These
    templates run every cell from step 1; D at steps 2–5 is still computable per run, but the cells do not share
    their step-1 tree.

@@ -40,5 +40,5 @@ npx tsx scripts/v1.4/loop-archive.ts --out-root <out-root> --tar <abs>.tar --man
 6. **S12 on real out-roots**: archive the pilot/rehearsal out-roots, commit the manifest and the tar sha256, and run
    the path-free scan and the repository's secret scan on the committed results.
 
-Not decided here: the `vineyard-harvest` static spec (D15), the `daedalus` block paths, the shared step-1 start (not
+Not decided here: the `vineyard-harvest` static spec (a candidate is `fixtures/v1.3-rehearsal-tasks/specs/vineyard-harvest.ddd.yaml`, for the author to approve; D15 is the author's), the `daedalus` block paths, the shared step-1 start (not
 a harness feature; the templates run every cell from step 1), and the Gemini lane's plan.
