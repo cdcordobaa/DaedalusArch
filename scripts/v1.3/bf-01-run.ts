@@ -51,13 +51,13 @@ export const DESIGN: 'v1' | 'v2' = process.argv.includes('--design') && process.
 export const MODEL = 'claude-sonnet-5-5';
 /** The cross-vendor arm X (v2): Gemini 4 Argon (High) through the repo's agy labeller route, one shot, no tools. */
 export const GEMINI_MODEL = 'gemini-4-argon-high';
-/** Author decision 2026-10-19: agy 1.3.6 is accepted for exploratory runs; the frozen labeller pin (1.3.2) is unchanged. */
-export const AGY_EXPLORATORY_VERSIONS: readonly string[] = ['1.3.6'];
+/** Author decisions 2026-10-19: agy 1.3.6, then 1.4.2 (auto-updated that morning), accepted for exploratory runs; the frozen labeller pin (1.3.2) is unchanged. */
+export const AGY_EXPLORATORY_VERSIONS: readonly string[] = ['1.3.6', '1.4.2'];
 /** The labeller's 240 s print timeout is too short for the one-shot derivation (X probe 2026-10-19 timed out at 272 s); inside TIMEOUT_MS. */
 export const X_PRINT_TIMEOUT_S = 840;
 export const modelFor = (arm: Arm): string => (arm === 'X' ? GEMINI_MODEL : MODEL);
 /** Hard caps on spawns, counted in the ledger before each start. v2: 18 sessions + 1 retry per arm. */
-export const HARD_CAP = DESIGN === 'v1' ? 14 : 20; // v2: N = 18 planned + 2 (author's rule: N + 2, probes and retries included)
+export const HARD_CAP = DESIGN === 'v1' ? 14 : 24; // v2: N = 18 planned + 2 (author's rule: N + 2, probes and retries included); + 4 for Gemini (author 2026-10-19, after 3 agy spawns were lost to the agy no-exit bug)
 export const RETRY_PER_ARM = 1;
 export const TIMEOUT_MS = 900_000;
 export const TURN_CAP = 40;
@@ -366,8 +366,8 @@ export function compose(style: string, derived: { architecture?: unknown; defaul
 
 // ── One session ──────────────────────────────────────────────────────────────────────────────────────────────────
 
-/** Per-engine caps inside HARD_CAP: v2 = Claude 12 + 2 retries, Gemini 6 + 1 retry. */
-export const ENGINE_CAP: Record<'claude' | 'agy', number> = DESIGN === 'v1' ? { claude: 14, agy: 0 } : { claude: 14, agy: 7 };
+/** Per-engine caps inside HARD_CAP: v2 = Claude 12 + 2 retries, Gemini 6 + 1 retry, + 4 Gemini after the no-exit bug (author 2026-10-19). */
+export const ENGINE_CAP: Record<'claude' | 'agy', number> = DESIGN === 'v1' ? { claude: 14, agy: 0 } : { claude: 14, agy: 11 };
 interface Ledger { hardCap: number; spawns: { n: number; sid: string; engine?: string; attemptOf: string; startedAt: string; endedAt?: string; status?: string }[] }
 const LEDGER = path.join(OUT, 'ledger.json');
 function readLedger(file = LEDGER): Ledger { return fs.existsSync(file) ? (JSON.parse(fs.readFileSync(file, 'utf8')) as Ledger) : { hardCap: HARD_CAP, spawns: [] }; }

@@ -74,6 +74,7 @@ function signalTree(child: ChildProcess, signal: NodeJS.Signals): void {
  * - On timeout the process group receives SIGTERM, then SIGKILL after 2 s;
  *   the result has `timedOut: true`.
  * - A child that ends by a signal has `exitCode: -1`.
+ * - `stopOnLine` returning true on a stdout line ends the run the same way; the result has `stoppedOnOutput: true`.
  * - Each stream is capped at `maxOutputBytes` (default 10 MiB); `truncated: true` when exceeded.
  * - A spawn failure returns `DomainResult.fail` with code `PROCESS_SPAWN_FAILED` and the
  *   `errno` code in context; the message never contains environment values.
@@ -88,6 +89,8 @@ export class NodeProcessRunner implements ProcessRunner {
       let spawned = false;
       let settled = false;
       let timedOut = false;
+      let stoppedOnOutput = false;
+      let pendingLine = '';
       let timeoutTimer: NodeJS.Timeout | undefined;
 
       const child = spawn(command, [...args], {
@@ -129,6 +132,25 @@ export class NodeProcessRunner implements ProcessRunner {
 
       child.stdout.on('data', (chunk: Buffer) => {
         stdout.push(chunk);
+        if (options.stopOnLine === undefined || stoppedOnOutput || timedOut) {
+          return;
+        }
+        pendingLine += chunk.toString('utf8');
+        let nl = pendingLine.indexOf('\n');
+        while (nl >= 0) {
+          const line = pendingLine.slice(0, nl);
+          pendingLine = pendingLine.slice(nl + 1);
+          if (options.stopOnLine(line)) {
+            stoppedOnOutput = true;
+            pendingLine = '';
+            signalTree(child, 'SIGTERM');
+            setTimeout(() => {
+              signalTree(child, 'SIGKILL');
+            }, KILL_GRACE_MS).unref();
+            return;
+          }
+          nl = pendingLine.indexOf('\n');
+        }
       });
       child.stderr.on('data', (chunk: Buffer) => {
         stderr.push(chunk);
@@ -157,6 +179,7 @@ export class NodeProcessRunner implements ProcessRunner {
           timedOut,
           durationMs,
           ...(truncated ? { truncated: true } : {}),
+          ...(stoppedOnOutput ? { stoppedOnOutput: true } : {}),
         };
         resolve(DomainResult.ok(result));
       });

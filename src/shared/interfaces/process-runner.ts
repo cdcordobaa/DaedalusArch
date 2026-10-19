@@ -12,6 +12,11 @@ export interface ProcessRunOptions {
   readonly env: Readonly<Record<string, string>>;
   /** Per-stream cap on captured output; excess is dropped and `truncated` set (D-U0-7). Default 10 MiB. */
   readonly maxOutputBytes?: number;
+  /**
+   * Called on every complete stdout line. Returning true ends the run there: the process group is signalled as on a
+   * timeout and the result has `stoppedOnOutput: true` (for a CLI that prints its answer but never exits).
+   */
+  readonly stopOnLine?: (line: string) => boolean;
 }
 
 export interface ProcessResult {
@@ -24,6 +29,8 @@ export interface ProcessResult {
   readonly durationMs: number;
   /** Present and true when stdout or stderr exceeded `maxOutputBytes` (D-U0-7). */
   readonly truncated?: boolean;
+  /** Present and true when `stopOnLine` ended the run; `exitCode` is then the signal exit (-1). */
+  readonly stoppedOnOutput?: boolean;
 }
 
 export interface ProcessRunner {

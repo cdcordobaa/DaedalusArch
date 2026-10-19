@@ -122,6 +122,28 @@ describe('NodeProcessRunner', () => {
     expect(result.timedOut).toBe(false);
   });
 
+  it('stops a child that prints a matching line and then never exits', async () => {
+    if (process.platform === 'win32') {
+      return;
+    }
+    const startedAt = Date.now();
+    const result = data(
+      await runner.run('/bin/sh', ['-c', 'echo one; echo \'{"event":"result"}\'; sleep 10'], {
+        timeoutMs: 20_000, env: {}, stopOnLine: (line) => line.includes('"result"'),
+      }),
+    );
+    expect(Date.now() - startedAt).toBeLessThan(5_000);
+    expect(result.stoppedOnOutput).toBe(true);
+    expect(result.timedOut).toBe(false);
+    expect(result.stdout).toContain('{"event":"result"}');
+  });
+
+  it('does not stop when no line matches', async () => {
+    const result = data(await runner.run(NODE, ['-e', "console.log('a');console.log('b')"], { timeoutMs: 10_000, env: {}, stopOnLine: () => false }));
+    expect(result.exitCode).toBe(0);
+    expect('stoppedOnOutput' in result).toBe(false);
+  });
+
   it('kills a timed-out child and its grandchild', async () => {
     if (process.platform === 'win32') {
       return;

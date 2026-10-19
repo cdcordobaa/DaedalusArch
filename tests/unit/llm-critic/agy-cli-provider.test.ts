@@ -10,7 +10,7 @@ import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import {
   AGY_ENV_SET, AGY_LABELLER_MODEL, AGY_PINNED_VERSION, AGY_REQUIRED_DENY, AgyCliProvider, answerText, buildAgyArgs,
   buildAgyChildEnv, checkAgyHome, checkAgyIsolation, checkAgySettings, classifyAgyResult, composeAgyPrompt,
-  createAgyNeutralCwd, deniedToolCount, executedTools, findAgyAncestorContext, parseAgyVersion, readAgyStream,
+  createAgyNeutralCwd, deniedToolCount, executedTools, findAgyAncestorContext, isAgyResultLine, parseAgyVersion, readAgyStream,
 } from '../../../src/llm-critic/agy-cli-provider.js';
 import { CassetteLLMProvider, buildJudgeRequest } from '../../../src/llm-critic/cassette-provider.js';
 import { canonicalJSON } from '../../../src/llm-critic/canonical-json.js';
@@ -110,6 +110,21 @@ describe('agy stream reading and classification (probe fixtures)', () => {
     expect(s.result?.structured_output).toBeDefined();
     expect(answerText(s.result ?? {})).toBe(canonicalJSON(s.result?.structured_output));
     expect(classifyAgyResult(proc(text('stream-json-clean.ndjson')), 'gemini-3.1-pro-high', []).error).toBeNull();
+  });
+
+  it('accepts a run stopped on its result event (agy prints the answer and never exits; 2026-10-19)', () => {
+    const out = text('stream-json-clean.ndjson');
+    const resultLine = out.split('\n').find((l) => isAgyResultLine(l));
+    expect(resultLine).toBeDefined();
+    expect(out.split('\n').filter((l) => isAgyResultLine(l))).toHaveLength(1);
+    const stopped = proc(out, { exitCode: -1, stoppedOnOutput: true });
+    expect(classifyAgyResult(stopped, 'gemini-3.1-pro-high', []).error).toBeNull();
+    // A signal exit without the stop flag stays an exit failure, and a stop with no result event is still no answer.
+    expect(classifyAgyResult(proc(out, { exitCode: -1 }), 'gemini-3.1-pro-high', []).error?.code).toBe('LLM_CLI_EXIT');
+    const noResult = out.split('\n').filter((l) => !isAgyResultLine(l)).join('\n');
+    expect(classifyAgyResult(proc(noResult, { exitCode: -1, stoppedOnOutput: true }), 'gemini-3.1-pro-high', []).error).not.toBeNull();
+    expect(isAgyResultLine('{"event":"step_update","step_update":{"text_delta":"\\"result\\""}}')).toBe(false);
+    expect(isAgyResultLine('not json "result"')).toBe(false);
   });
 
   it('reads a single json envelope as the result', () => {
