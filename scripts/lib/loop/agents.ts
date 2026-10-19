@@ -49,7 +49,7 @@ import type { AttemptDisposition } from '../generators/outcome.js';
 import { DEFAULT_RETRY_POLICY, realSleep, runWithRetries, systemClock } from '../generators/retry.js';
 import type { Clock, RetryPolicy, Sleeper } from '../generators/retry.js';
 import { AGY_GEN_CLI_ADAPTER_ID, CLAUDE_CODE_ADAPTER_ID, CODEX_CLI_ADAPTER_ID_VALUE } from '../generators/types.js';
-import { parseAgyVersion } from '../../../src/llm-critic/agy-cli-provider.js';
+import { isAgyResultLine, parseAgyVersion } from '../../../src/llm-critic/agy-cli-provider.js';
 import { agyGenArmOf, buildAgyGenArgs, buildAgyGenChildEnv, checkAgyGenHome, checkAncestors, writeAgyTurnFiles } from '../generators/agy-gen-cli.js';
 import type { AgyGenArm, AgyGenCliConfig } from '../generators/agy-gen-cli.js';
 import { agyGenAttemptDisposition, agyGenStop, agyGenTurnStatus, parseAgyGenRun } from '../generators/agy-gen-events.js';
@@ -154,6 +154,11 @@ interface CallPlan {
    * `cli.timedOut`) would read as completed.
    */
   readonly status?: (cli: ProcessResult | null, exhausted: boolean, envelope: ParsedEnvelope | null, modelId: string) => TurnStatus;
+  /**
+   * Ends the process on a matching stdout line (`ProcessRunOptions.stopOnLine`); absent for Claude and Codex. The Gemini
+   * agent passes `isAgyResultLine`: agy 1.4.2 prints its result event and then never exits.
+   */
+  readonly stopOnLine?: (line: string) => boolean;
 }
 
 /** The shared turn driver: retries, interruptions, envelope, status and usage. */
@@ -179,6 +184,7 @@ async function driveTurn(
           env: plan.env,
           timeoutMs: config.timeoutMs,
           ...(plan.stdin !== undefined ? { stdin: plan.stdin } : {}),
+          ...(plan.stopOnLine !== undefined ? { stopOnLine: plan.stopOnLine } : {}),
         });
         const cli = call.success ? call.data : null;
         last.envelope = cli === null ? null : plan.parse(cli);
@@ -531,6 +537,8 @@ export class GeminiStepAgent implements StepAgent {
         },
         disposition: agyGenAttemptDisposition,
         status: agyGenTurnStatus,
+        // agy 1.4.2 prints its result event and never exits: the turn ends on that line, not at the print timeout.
+        stopOnLine: isAgyResultLine,
         envRecord: () => ({ schema: 'loop-agy-env/v1', envNames: Object.keys(env).sort(), cliVersion: this.probedVersion, homeListingSha256: listingSha256 }),
       },
       planned.prompt,

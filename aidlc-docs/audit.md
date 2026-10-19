@@ -2423,6 +2423,17 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **User Input**: "Scheduled routine: run seven zero-call analyses that close instrument-map gaps with data already in the repo or public clones (N123 re-score with the identity module, type-resolution rate and FLOWS_TO yield, extractor-fix re-run on msc29 and felixle, tool-baseline row, clustered interval for 283/283, SO1-4 expressiveness, V11 leakage census). One note, outputs under results/v1.4-tier-a/, a PR to main, no merge."
 **AI Response**: "Did all seven with no model calls and no Neo4j. N123 holds under the G08 rename continuation (0.808 vs 0.833, difference -0.025 [-0.099, 0.050]). Type-resolution rate 0.812 over 60 external repos. FLOWS_TO is 0 on the corpus bases but 96 edges in 21/60 external repos. The N33 fix gives msc29 99/99 and felixle 884/884 edges with no verdict change. dependency-cruiser parity holds on 21 blocking rows, and 7 blocking style rows have no tool equivalent. 283/283 verified, with cluster-adjusted intervals. Expressiveness 27/28. Leakage census reproduced byte for byte; the sealed-list half of V11 is left to the author. Note: Docs/DiagnosticRuns/v1.4-tier-a-zero-call-2026-10-19.md. The map, ledgers and nulls register are unedited; the corrections are proposed in the note §0."
 **Context**: v1.4 instrument track, TIER-A2 (map parts C1a, C1e, C3, C5; SO1-4; gate V11); scheduled routine, no model calls
+
+---
+
+## v1.4 construction: U11 Gemini generator ready for S4 (BUILD-G)
+**Timestamp**: 2026-10-19T22:03:53Z
+**User Input**: "Scheduled routine BUILD-G: make the agy Gemini generator ready for a live S4 probe and the exploratory study, with zero model calls: stop on the result event, allow agy 1.4.2 for exploratory runs, implement the S4 probe exactly as specified (cap 30, dry run, estimate, runbook), a setup script for the two generator homes and the model pin in the plan template, and one stub turn through the loop. Open a PR, do not merge."
+**AI Response**: "New unit U11 (plan and code summary under aidlc-docs/construction/v1.4/U11/). The Gemini turn now ends on agy's result event (fake-agy test that hangs). agy 1.4.2 is accepted through the shared exploratory-version constant (labeller pin 1.3.2 unchanged). The S4 probe code covers G0-G12 with 24 planned calls and a counter that refuses any call past 30; its dry run passes both arms (synthetic record). Added a homes setup script (no sign-in) and a plan template pinning gemini-4-argon-high on agy 1.4.2. One stub turn through the loop completed and stopped on the result line. No model was called; the live probe is left to the coordinator (runbook in Docs/v1.4/gemini-generator.md)."
+**Context**: v1.4 construction, U11 Code Generation; S4 probe not run; PR opened, not merged
+
+---
+
 ## v1.4 research ops: DOCS-X, exploratory registration, V4 ADR, deviations, signing sheet
 **Timestamp**: 2026-10-19T21:54:39Z
 **User Input**: "Scheduled routine DOCS-X (documents only, zero model calls): register the exploratory study that runs before confirmatory Study 2; draft the single V4 hold-out bar; draft the X-1 and SO3-a deviations; write the one-page signing sheet; propose the F3 rewording around C4 + C1d; fix TRUST-01 per REV-05 §7 and the stale documents of REV-04 §6; open a PR, do not merge."

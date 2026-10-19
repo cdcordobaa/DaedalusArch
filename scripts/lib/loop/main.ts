@@ -57,7 +57,7 @@ import { checkSkeletonIntact, ensureHarness, prepareCellDir } from '../generator
 import type { SkeletonInstall } from '../generators/skeleton.js';
 import { AGY_GEN_CLI_ADAPTER_ID, CLAUDE_CODE_ADAPTER_ID, CODEX_CLI_ADAPTER_ID_VALUE } from '../generators/types.js';
 import { agyGenArmOf } from '../generators/agy-gen-cli.js';
-import { agyGenConfigFromPlan, checkS4Result } from '../generators/agy-gen-plan.js';
+import { agyGenConfigFromPlan, checkAgyGenLiveVersion, checkS4Result } from '../generators/agy-gen-plan.js';
 import type { GeminiHomes } from '../generators/agy-gen-plan.js';
 import { acceptanceRunner } from './acceptance.js';
 import { ClaudeStepAgent, CodexStepAgent, GeminiStepAgent } from './agents.js';
@@ -389,6 +389,8 @@ async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs
     if (a.adapterId !== AGY_GEN_CLI_ADAPTER_ID) continue;
     const s4 = checkS4Result(repoRoot, plan.gemini, a.modelId, plan.arms);
     if (!s4.success) return DomainResult.fail(s4.errors);
+    const version = checkAgyGenLiveVersion(plan.gemini?.cliVersion ?? '');
+    if (!version.success) return DomainResult.fail(version.errors);
   }
   // A plan with a pin or isolation probes its adapters before the skeleton install; any other plan keeps the old order.
   const pinned = isolation !== undefined || plan.adapters.some((a) => a.cliVersion !== undefined);
