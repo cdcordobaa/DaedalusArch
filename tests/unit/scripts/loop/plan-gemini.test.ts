@@ -209,14 +209,15 @@ describe('the two stop codes end the grid', () => {
     if (!tasks.success) throw new Error('tasks');
     const c = agyGenConfigFromPlan(p.data, MODEL, REPO);
     if (!c.success) throw new Error(codes(c));
-    const runner = new CountingRunner((_c, args, o) => answer(args, o));
+    // Design R3: the turn checks `agy --version` against the pin first; it is answered here and not counted as a call.
+    const runner = new CountingRunner((_c, args, o) => (args[0] === '--version' ? { exitCode: 0, stdout: 'agy 0.0.0\n', stderr: '', timedOut: false, durationMs: 1 } : answer(args, o)));
     const agent = new GeminiStepAgent(c.data, { runner, parentEnv: { PATH: '/bin' }, sleep: () => Promise.resolve() });
     const result = await runLoopGrid(
       { plan: p.data, tasks: tasks.data, tasksPath: 'demo' },
       { agents: new Map([[`agy-cli/${MODEL}`, agent]]), evaluator: stubEvaluator(), typechecker: stubTypechecker(), prepareWorkDir: prepareDryRunWorkDir, skeletonIntact: () => true },
       { dryRun: true, now: () => new Date(0), planSha256: 'x', tasksSha256: 'x' },
     );
-    return { result, calls: runner.calls.length };
+    return { result, calls: runner.calls.filter((c) => c.args[0] !== '--version').length };
   }
 
   it('LOOP_GEMINI_AUTH stops the grid after one call', async () => {
