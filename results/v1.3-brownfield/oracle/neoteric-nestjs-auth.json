@@ -1,0 +1,225 @@
+{
+ "id": "neoteric-nestjs-auth",
+ "style": "nestjs",
+ "layersPresent": [
+  "application",
+  "domain",
+  "infrastructure",
+  "presentation"
+ ],
+ "filesMapped": 155,
+ "files": 183,
+ "declaredAllowed": [
+  "application>domain",
+  "application>infrastructure",
+  "infrastructure>domain",
+  "presentation>application",
+  "presentation>domain",
+  "presentation>infrastructure"
+ ],
+ "graphs": {
+  "observed": {
+   "mined": [
+    "application>domain",
+    "application>infrastructure",
+    "domain>application",
+    "infrastructure>application",
+    "infrastructure>domain",
+    "presentation>application",
+    "presentation>domain",
+    "presentation>infrastructure"
+   ],
+   "tp": 6,
+   "fp": 2,
+   "fn": 0
+  },
+  "strict": {
+   "mined": [
+    "application>domain",
+    "application>infrastructure",
+    "infrastructure>application",
+    "infrastructure>domain",
+    "presentation>application",
+    "presentation>domain",
+    "presentation>infrastructure"
+   ],
+   "tp": 6,
+   "fp": 1,
+   "fn": 0
+  },
+  "full": {
+   "mined": [
+    "application>domain",
+    "application>infrastructure",
+    "infrastructure>application",
+    "infrastructure>domain",
+    "presentation>application",
+    "presentation>domain",
+    "presentation>infrastructure"
+   ],
+   "tp": 6,
+   "fp": 1,
+   "fn": 0
+  }
+ },
+ "forbidding": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "domain>infrastructure",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "domain>application",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "domain>presentation",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-004",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "infrastructure>presentation",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-005",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "application>presentation",
+   "declaredForbids": true
+  }
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.917,
+   "subject": "domain",
+   "object": "infrastructure",
+   "statement": "domain must not depend on infrastructure (26 edges infrastructure -> domain; 0/20 domain files import infrastructure)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.869,
+   "subject": "domain",
+   "object": "application",
+   "statement": "domain must not depend on application (49 edges application -> domain; 1/20 domain files import application)",
+   "exceptions": [
+    {
+     "file": "src/app/user/entity/user.entity.ts",
+     "target": "src/app/user/user.validator.ts"
+    }
+   ]
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.938,
+   "subject": "domain",
+   "object": "presentation",
+   "statement": "domain must not depend on presentation (63 edges presentation -> domain; 0/20 domain files import presentation)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-004",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.92,
+   "subject": "infrastructure",
+   "object": "presentation",
+   "statement": "infrastructure must not depend on presentation (20 edges presentation -> infrastructure; 0/28 infrastructure files import presentation)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-005",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.975,
+   "subject": "application",
+   "object": "presentation",
+   "statement": "application must not depend on presentation (93 edges presentation -> application; 0/66 application files import presentation)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-006",
+   "kind": "component-direction",
+   "level": "high",
+   "confidence": 0.795,
+   "subject": "folder:app",
+   "object": "folder:migrations",
+   "statement": "folder component app must not depend on migrations (4 imports migrations -> app; 0/173 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-007",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.476,
+   "subject": "folder:config",
+   "object": "folder:app",
+   "statement": "folder component config must not depend on app (20 imports app -> config; 0/1 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-008",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.25,
+   "subject": "folder:config",
+   "object": "folder:base",
+   "statement": "folder component config must not depend on base (1 imports base -> config; 0/1 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-009",
+   "kind": "public-api",
+   "level": "high",
+   "confidence": 0.955,
+   "subject": "folder:config",
+   "statement": "imports into folder component config go through its entry files (src/config/index.ts): 21/21",
+   "exceptions": []
+  },
+  {
+   "id": "MR-010",
+   "kind": "public-api",
+   "level": "high",
+   "confidence": 0.909,
+   "subject": "folder:base",
+   "statement": "imports into folder component base go through its entry files (src/base/index.ts): 10/10",
+   "exceptions": []
+  },
+  {
+   "id": "MR-011",
+   "kind": "core-package-free",
+   "level": "high",
+   "confidence": 0.857,
+   "subject": "domain",
+   "statement": "domain (a core layer: it may depend on no other layer) imports none of @nestjs/common, @nestjs/core, @nestjs/graphql, @nestjs/microservices, @nestjs/passport, async, aws-sdk, axios, class-transformer, cls-hooked, crypto, faker, firebase-admin, googleapis, graphql, graphql-subscriptions, lodash, luxon, mongodb, multer-s3, nestjs-command, nodemailer, passport-jwt, path, rxjs, twing, uuid, voucher-code-generator",
+   "exceptions": [
+    {
+     "file": "src/app/_helpers/entity/extended-entity.ts",
+     "target": "luxon"
+    },
+    {
+     "file": "src/app/user/entity/user.entity.ts",
+     "target": "luxon"
+    }
+   ]
+  }
+ ]
+}

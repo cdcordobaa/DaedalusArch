@@ -1,0 +1,99 @@
+{
+ "duration_api_ms": 15856,
+ "stop_reason": "end_turn",
+ "session_id": "8c462a9e-f034-4bc7-a66b-89eb43c0185b",
+ "total_cost_usd": 0.0902138,
+ "usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 15475,
+  "cache_read_input_tokens": 41318,
+  "output_tokens": 2417,
+  "output_tokens_details": {
+   "thinking_tokens": 549
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 15475,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1658,
+    "cache_read_input_tokens": 18855,
+    "cache_creation_input_tokens": 762,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 762
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-sonnet-5-5": {
+   "inputTokens": 6,
+   "outputTokens": 2417,
+   "cacheReadInputTokens": 41318,
+   "cacheCreationInputTokens": 15475,
+   "webSearchRequests": 0,
+   "costUSD": 0.0902138,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 549,
+   "canonicalModel": "claude-sonnet-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "```yaml\narchitecture:\n  style: clean-architecture\n  layers:\n    - name: domain\n      kind: domain\n      directories:\n        - src/domain/**\n      file_patterns:\n        - \"src/domain/**/*.ts\"\n      roles:\n        - entity\n        - value-object\n        - dto\n      decorators: []\n    - name: application\n      kind: application\n      directories:\n        - src/application/**\n      file_patterns:\n        - \"src/application/**/*.ts\"\n      roles:\n        - use-case\n        - repository-interface\n        - dto\n        - application-service\n      decorators: []\n    - name: presentation\n      kind: presentation\n      directories:\n        - src/presentation/**\n      file_patterns:\n        - \"src/presentation/**/*.ts\"\n      roles:\n        - controller\n        - middleware\n      decorators: []\n    - name: infrastructure\n      kind: infrastructure\n      directories:\n        - src/infrastructure/**\n      file_patterns:\n        - \"src/infrastructure/**/*.ts\"\n      roles:\n        - repository-impl\n        - orm-entity\n      decorators: []\n    - name: main\n      kind: infrastructure\n      directories:\n        - src/main/**\n      file_patterns:\n        - \"src/main/**/*.ts\"\n      roles:\n        - application-service\n      decorators: []\ndefault_exclude_paths:\n  - \"node_modules/**\"\n  - \"dist/**\"\n  - \"**/*.spec.ts\"\n  - \"**/*.test.ts\"\n```\n\n```json\n{\"units\": [\n{\"id\": \"layer:domain\", \"claim\": \"Domain holds models and use-case interfaces, the innermost entities layer.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 17, \"quote\": \"### domain layer\"},\n{\"type\": \"pattern\", \"glob\": \"src/domain/**\", \"count\": 17}]},\n{\"id\": \"layer:application\", \"claim\": \"Application holds use cases, ports, errors and validations.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 25, \"quote\": \"### application layer\"},\n{\"type\": \"pattern\", \"glob\": \"src/application/**\", \"count\": 72}]},\n{\"id\": \"layer:presentation\", \"claim\": \"Presentation holds controllers, middlewares and response classes.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 39, \"quote\": \"I'm using the name **\\\"Presentation\\\"** for this layer.\"},\n{\"type\": \"pattern\", \"glob\": \"src/presentation/**\", \"count\": 24}]},\n{\"id\": \"layer:infrastructure\", \"claim\": \"Infrastructure holds express, knex and repository implementations (frameworks and drivers).\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 51, \"quote\": \"This folder (layer) is where we add everything related to external \\\"**Frameworks and Drivers**\\\". Here you can add the repositories, external frameworks, web and so on.\"},\n{\"type\": \"pattern\", \"glob\": \"src/infrastructure/**\", \"count\": 36}]},\n{\"id\": \"layer:main\", \"claim\": \"Main is the composition root with factories that wire everything; it may depend on all layers. The common folder is cross-cutting and belongs to no layer.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 61, \"quote\": \"This layer is where we put everything together. It's the \\\"dirty layer\\\", because most factories will be here. It may depend on all other layers in the system.\"},\n{\"type\": \"pattern\", \"glob\": \"src/main/**\", \"count\": 9}]},\n{\"id\": \"order\", \"claim\": \"Dependencies point inward: main, then infrastructure, then presentation, then application, then domain.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 74, \"quote\": \"The overriding rule that makes this architecture work is The Dependency Rule. This rule says that source code dependencies can only point inwards.\"},\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 78, \"quote\": \"In our case, data enter the system via \\\"express routes\\\" (infrastructure layer) to the \\\"controllers\\\" (adapters layer), to the \\\"use cases\\\" (application layer), to the \\\"domain\\\" (domain/entities layer).\"}]}\n]}\n```",
+ "ttft_ms": 4318,
+ "type": "result",
+ "duration_ms": 16351,
+ "uuid": "bce69132-4733-4d7a-9f2d-55323347f54c",
+ "ttft_stream_ms": 1439,
+ "time_to_request_ms": 403,
+ "first_content_frame_ms": 1439,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

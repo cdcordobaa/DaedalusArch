@@ -1,0 +1,99 @@
+{
+ "duration_api_ms": 27313,
+ "stop_reason": "end_turn",
+ "session_id": "9c84a27c-f72b-4717-b12b-f4c1d1173b72",
+ "total_cost_usd": 0.0659999,
+ "usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 4706,
+  "cache_read_input_tokens": 51339,
+  "output_tokens": 4203,
+  "output_tokens_details": {
+   "thinking_tokens": 1401
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4706,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3170,
+    "cache_read_input_tokens": 19447,
+    "cache_creation_input_tokens": 1205,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1205
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-sonnet-5-5": {
+   "inputTokens": 6,
+   "outputTokens": 4203,
+   "cacheReadInputTokens": 51339,
+   "cacheCreationInputTokens": 4706,
+   "webSearchRequests": 0,
+   "costUSD": 0.0659999,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1401,
+   "canonicalModel": "claude-sonnet-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 5,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "```yaml\narchitecture:\n  style: nestjs\n  layers:\n    - name: domain\n      kind: domain\n      directories:\n        - src/app/**/models/**\n        - src/app/interfaces/**\n      roles:\n        - entity\n        - value-object\n        - dto\n      \n    - name: infrastructure\n      kind: infrastructure\n      directories:\n        - src/app/database/**\n        - src/app/redis/**\n        - src/app/cookie/**\n        - src/app/config/**\n        - src/app/options/**\n      file_patterns:\n        - \"**/*.repository.ts\"\n        - \"**/strategies/**\"\n      roles:\n        - repository-impl\n        - external-service\n        - middleware\n    - name: application\n      kind: application\n      file_patterns:\n        - \"**/*.service.ts\"\n        - \"**/*.dto.ts\"\n      roles:\n        - application-service\n        - dto\n    - name: presentation\n      kind: presentation\n      directories:\n        - src/app/guards/**\n      file_patterns:\n        - \"**/*.controller.ts\"\n        - \"**/*.module.ts\"\n        - \"**/*.guard.ts\"\n      roles:\n        - controller\n        - module\n        - guard\n      decorators:\n        - \"@Controller\"\n        - \"@Module\"\n```\n\n```json\n{\"units\": [\n{\"id\": \"layer:domain\", \"claim\": \"Domain holds the per-feature models folders (DTO/GraphQL types) and shared interfaces; the 11 files under models import non-models files in 25 edges (mostly the cross-cutting validators, which are left out of every layer).\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"pattern\", \"glob\": \"src/app/**/models/**\", \"count\": 25},\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 11, \"quote\": \"This project is written using [NestJS](https://docs.nestjs.com) for the server\"},\n{\"type\": \"stat\", \"query\": \"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath CONTAINS '/models/' AND NOT b.filePath CONTAINS '/models/' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator\", \"numerator\": 25, \"denominator\": 11}]},\n{\"id\": \"layer:infrastructure\", \"claim\": \"Infrastructure is the inner data-access and technical-config layer (database, redis, cookie, config, options) that services call directly, per the NestJS preset; 16 import edges from 8 services/controllers go into these folders.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"pattern\", \"glob\": \"src/app/database/**\", \"count\": 10},\n{\"type\": \"pattern\", \"glob\": \"src/app/redis/**\", \"count\": 5},\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 11, \"quote\": \"This project is written using [NestJS](https://docs.nestjs.com) for the server\"},\n{\"type\": \"stat\", \"query\": \"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE (a.filePath =~ '.*\\\\.(service|controller)\\\\.ts') AND b.filePath =~ 'src/app/(database|redis|cookie|config)/.*' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator\", \"numerator\": 16, \"denominator\": 8}]},\n{\"id\": \"layer:application\", \"claim\": \"Application consists of the co-located *.service.ts feature services, which orchestrate the infrastructure layer; 16 edges from services/controllers go to infrastructure.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"pattern\", \"glob\": \"**/*.service.ts\", \"count\": 12},\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 11, \"quote\": \"This project is written using [NestJS](https://docs.nestjs.com) for the server\"},\n{\"type\": \"stat\", \"query\": \"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE (a.filePath =~ '.*\\\\.(service|controller)\\\\.ts') AND b.filePath =~ 'src/app/(database|redis|cookie|config)/.*' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator\", \"numerator\": 16, \"denominator\": 8}]},\n{\"id\": \"layer:presentation\", \"claim\": \"Presentation holds controllers, Nest modules and guards, the outermost entry points of the API.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"pattern\", \"glob\": \"**/*.controller.ts\", \"count\": 6},\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 11, \"quote\": \"This project is written using [NestJS](https://docs.nestjs.com) for the server\"},\n{\"type\": \"stat\", \"query\": \"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE (a.filePath =~ 'src/app/(database|redis|cookie|config|options)/.*') AND (b.filePath =~ '.*(controller|guard)\\\\.ts' OR b.filePath =~ '.*\\\\.service\\\\.ts') AND NOT b.filePath =~ 'src/app/(database|redis|cookie|config|options)/.*' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator\", \"numerator\": 0, \"denominator\": 0}]},\n{\"id\": \"order\", \"claim\": \"Order is domain, infrastructure, application, presentation (preset NestJS flow Controller to Service to data access); 16 service/controller edges follow it into infrastructure and 0 edges from infrastructure folders go back to services, controllers or guards.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 11, \"quote\": \"This project is written using [NestJS](https://docs.nestjs.com) for the server\"},\n{\"type\": \"pattern\", \"glob\": \"src/app/**/models/**\", \"count\": 25},\n{\"type\": \"stat\", \"query\": \"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE (a.filePath =~ '.*\\\\.(service|controller)\\\\.ts') AND b.filePath =~ 'src/app/(database|redis|cookie|config)/.*' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator\", \"numerator\": 16, \"denominator\": 8}]}\n]}\n```",
+ "ttft_ms": 1884,
+ "type": "result",
+ "duration_ms": 27367,
+ "uuid": "24008d38-831f-494a-bfbc-3f9bfff99da3",
+ "ttft_stream_ms": 914,
+ "time_to_request_ms": 29,
+ "first_content_frame_ms": 914,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

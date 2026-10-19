@@ -1,0 +1,345 @@
+{
+ "id": "bulletproof-nodejs",
+ "style": "layered",
+ "layersPresent": [
+  "business",
+  "persistence",
+  "presentation"
+ ],
+ "filesMapped": 12,
+ "files": 25,
+ "declaredAllowed": [
+  "business>persistence",
+  "presentation>business"
+ ],
+ "graphs": {
+  "observed": {
+   "mined": [
+    "presentation>business"
+   ],
+   "tp": 1,
+   "fp": 0,
+   "fn": 1
+  },
+  "strict": {
+   "mined": [
+    "presentation>business"
+   ],
+   "tp": 1,
+   "fp": 0,
+   "fn": 1
+  },
+  "full": {
+   "mined": [],
+   "tp": 0,
+   "fp": 0,
+   "fn": 2
+  }
+ },
+ "forbidding": [
+  {
+   "id": "MR-001",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "pair": "persistence>business",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "pair": "persistence>presentation",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "pair": "business>persistence",
+   "declaredForbids": false
+  },
+  {
+   "id": "MR-004",
+   "kind": "layer-direction",
+   "level": "low",
+   "pair": "business>presentation",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-005",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "pair": "presentation>persistence",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-006",
+   "kind": "layer-rare-edge",
+   "level": "low",
+   "pair": "presentation>business",
+   "declaredForbids": false
+  }
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "confidence": 0.2,
+   "subject": "persistence",
+   "object": "business",
+   "statement": "persistence must not depend on business (no import between them either way)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "confidence": 0.219,
+   "subject": "persistence",
+   "object": "presentation",
+   "statement": "persistence must not depend on presentation (no import between them either way)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "confidence": 0.2,
+   "subject": "business",
+   "object": "persistence",
+   "statement": "business must not depend on persistence (no import between them either way)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-004",
+   "kind": "layer-direction",
+   "level": "low",
+   "confidence": 0.4,
+   "subject": "business",
+   "object": "presentation",
+   "statement": "business must not depend on presentation (1 edges presentation -> business; 0/4 business files import presentation)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-005",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "confidence": 0.219,
+   "subject": "presentation",
+   "object": "persistence",
+   "statement": "presentation must not depend on persistence (no import between them either way)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-006",
+   "kind": "layer-rare-edge",
+   "level": "low",
+   "confidence": 0.375,
+   "subject": "presentation",
+   "object": "business",
+   "statement": "presentation should not depend on business (1/7 presentation files imports it; nothing goes back)",
+   "exceptions": [
+    {
+     "file": "src/api/routes/auth.ts",
+     "target": "src/services/auth.ts"
+    }
+   ]
+  },
+  {
+   "id": "MR-007",
+   "kind": "acyclic-files",
+   "level": "high",
+   "confidence": 0.962,
+   "subject": "*",
+   "statement": "no file lies on an import cycle (25/25 files do not)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-008",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.333,
+   "subject": "folder:subscribers",
+   "object": "folder:services",
+   "statement": "folder component subscribers must not depend on services (1 imports services -> subscribers; 0/2 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-009",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.333,
+   "subject": "folder:subscribers",
+   "object": "folder:loaders",
+   "statement": "folder component subscribers must not depend on loaders (1 imports loaders -> subscribers; 0/2 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-010",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.25,
+   "subject": "folder:models",
+   "object": "folder:loaders",
+   "statement": "folder component models must not depend on loaders (1 imports loaders -> models; 0/1 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-011",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.333,
+   "subject": "folder:services",
+   "object": "folder:api",
+   "statement": "folder component services must not depend on api (1 imports api -> services; 0/2 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-012",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.333,
+   "subject": "folder:services",
+   "object": "folder:jobs",
+   "statement": "folder component services must not depend on jobs (1 imports jobs -> services; 0/2 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-013",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.25,
+   "subject": "folder:interfaces",
+   "object": "folder:subscribers",
+   "statement": "folder component interfaces must not depend on subscribers (1 imports subscribers -> interfaces; 0/1 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-014",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.25,
+   "subject": "folder:interfaces",
+   "object": "folder:models",
+   "statement": "folder component interfaces must not depend on models (1 imports models -> interfaces; 0/1 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-015",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.333,
+   "subject": "folder:interfaces",
+   "object": "folder:services",
+   "statement": "folder component interfaces must not depend on services (2 imports services -> interfaces; 0/1 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-016",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.333,
+   "subject": "folder:interfaces",
+   "object": "folder:api",
+   "statement": "folder component interfaces must not depend on api (2 imports api -> interfaces; 0/1 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-017",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.438,
+   "subject": "folder:api",
+   "object": "folder:loaders",
+   "statement": "folder component api must not depend on loaders (1 imports loaders -> api; 0/7 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-018",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.25,
+   "subject": "folder:config",
+   "object": "folder:services",
+   "statement": "folder component config must not depend on services (1 imports services -> config; 0/1 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-019",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.429,
+   "subject": "folder:config",
+   "object": "folder:loaders",
+   "statement": "folder component config must not depend on loaders (6 imports loaders -> config; 0/1 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-020",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.333,
+   "subject": "folder:config",
+   "object": "folder:api",
+   "statement": "folder component config must not depend on api (2 imports api -> config; 0/1 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-021",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.25,
+   "subject": "folder:decorators",
+   "object": "folder:services",
+   "statement": "folder component decorators must not depend on services (1 imports services -> decorators; 0/1 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-022",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.25,
+   "subject": "folder:jobs",
+   "object": "folder:loaders",
+   "statement": "folder component jobs must not depend on loaders (1 imports loaders -> jobs; 0/1 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-023",
+   "kind": "public-api",
+   "level": "high",
+   "confidence": 0.909,
+   "subject": "folder:config",
+   "statement": "imports into folder component config go through its entry files (src/config/index.ts): 10/10",
+   "exceptions": []
+  },
+  {
+   "id": "MR-024",
+   "kind": "core-package-free",
+   "level": "medium",
+   "confidence": 0.5,
+   "subject": "persistence",
+   "statement": "persistence (a core layer: it may depend on no other layer) imports none of agendash, argon2, celebrate, crypto, event-dispatch, express, express-basic-auth, express-jwt, jsonwebtoken, typedi, winston",
+   "exceptions": []
+  },
+  {
+   "id": "MR-025",
+   "kind": "core-package-free",
+   "level": "high",
+   "confidence": 0.8,
+   "subject": "business",
+   "statement": "business (a core layer: it may depend on no other layer) imports none of agendash, celebrate, express, express-basic-auth, express-jwt",
+   "exceptions": []
+  },
+  {
+   "id": "MR-026",
+   "kind": "core-package-free",
+   "level": "high",
+   "confidence": 0.875,
+   "subject": "presentation",
+   "statement": "presentation (a core layer: it may depend on no other layer) imports none of argon2, crypto, event-dispatch, jsonwebtoken",
+   "exceptions": []
+  }
+ ]
+}

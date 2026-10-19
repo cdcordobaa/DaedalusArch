@@ -1,0 +1,91 @@
+{
+ "design": "ops/notes/bf-01-brownfield-norm-derivation.md §7",
+ "model": "claude-sonnet-5-5",
+ "repos": [
+  "luizomf-clean-api",
+  "zeldaplay-api"
+ ],
+ "arms": [
+  "G",
+  "R"
+ ],
+ "runs": 3,
+ "sessions": 12,
+ "retryCeiling": "1 per arm (infrastructure, timeout, unreadable envelope only)",
+ "hardCap": 14,
+ "caps": {
+  "timeoutMs": 900000,
+  "turns": "40 (after the fact)",
+  "processedTokens": "600000 (after the fact)"
+ },
+ "order": [
+  "bf01-luizomf-clean-api-G-r1",
+  "bf01-luizomf-clean-api-R-r1",
+  "bf01-zeldaplay-api-G-r1",
+  "bf01-zeldaplay-api-R-r1",
+  "bf01-luizomf-clean-api-G-r2",
+  "bf01-luizomf-clean-api-R-r2",
+  "bf01-zeldaplay-api-G-r2",
+  "bf01-zeldaplay-api-R-r2",
+  "bf01-luizomf-clean-api-G-r3",
+  "bf01-luizomf-clean-api-R-r3",
+  "bf01-zeldaplay-api-G-r3",
+  "bf01-zeldaplay-api-R-r3"
+ ],
+ "argv": {
+  "R": [
+   "-p",
+   "<prompt>",
+   "--model",
+   "claude-sonnet-5-5",
+   "--output-format",
+   "stream-json",
+   "--verbose",
+   "--restricted",
+   "--disable-slash-commands",
+   "--tools",
+   "Read,Grep,Glob",
+   "--disallowedTools",
+   "Write",
+   "Edit",
+   "Bash",
+   "WebFetch",
+   "WebSearch",
+   "--permission-prompts",
+   "none",
+   "--no-session-persistence",
+   "--strict-mcp-config"
+  ],
+  "G": [
+   "-p",
+   "<prompt>",
+   "--model",
+   "claude-sonnet-5-5",
+   "--output-format",
+   "stream-json",
+   "--verbose",
+   "--restricted",
+   "--disable-slash-commands",
+   "--tools",
+   "Read,Grep,Glob",
+   "--allowedTools",
+   "mcp__daedalus-facts__folder_dependency_matrix",
+   "mcp__daedalus-facts__fan_in",
+   "mcp__daedalus-facts__class_suffix_stats",
+   "mcp__daedalus-facts__implements_by_folder",
+   "mcp__daedalus-facts__query_graph",
+   "--disallowedTools",
+   "Write",
+   "Edit",
+   "Bash",
+   "WebFetch",
+   "WebSearch",
+   "--permission-prompts",
+   "none",
+   "--no-session-persistence",
+   "--strict-mcp-config",
+   "--mcp-config",
+   "<harness>/runs/bf01-luizomf-clean-api-G-r1/mcp-G.json"
+  ]
+ }
+}

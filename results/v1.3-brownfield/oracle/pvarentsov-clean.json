@@ -1,0 +1,426 @@
+{
+ "id": "pvarentsov-clean",
+ "style": "clean-architecture",
+ "layersPresent": [
+  "application",
+  "domain",
+  "infrastructure",
+  "main",
+  "presentation"
+ ],
+ "filesMapped": 184,
+ "files": 184,
+ "declaredAllowed": [
+  "application>domain",
+  "infrastructure>application",
+  "infrastructure>domain",
+  "infrastructure>presentation",
+  "main>application",
+  "main>domain",
+  "main>infrastructure",
+  "main>presentation",
+  "presentation>application",
+  "presentation>domain"
+ ],
+ "graphs": {
+  "observed": {
+   "mined": [
+    "application>domain",
+    "infrastructure>domain",
+    "main>application",
+    "main>domain",
+    "main>infrastructure",
+    "main>presentation",
+    "presentation>domain",
+    "presentation>infrastructure"
+   ],
+   "tp": 7,
+   "fp": 1,
+   "fn": 3
+  },
+  "strict": {
+   "mined": [
+    "application>domain",
+    "infrastructure>domain",
+    "main>application",
+    "main>domain",
+    "main>infrastructure",
+    "main>presentation",
+    "presentation>domain",
+    "presentation>infrastructure"
+   ],
+   "tp": 7,
+   "fp": 1,
+   "fn": 3
+  },
+  "full": {
+   "mined": [
+    "application>domain",
+    "infrastructure>domain",
+    "main>application",
+    "main>domain",
+    "main>infrastructure",
+    "main>presentation",
+    "presentation>domain",
+    "presentation>infrastructure"
+   ],
+   "tp": 7,
+   "fp": 1,
+   "fn": 3
+  }
+ },
+ "forbidding": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "domain>application",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "domain>presentation",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "domain>infrastructure",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-004",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "domain>main",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-005",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "pair": "application>presentation",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-006",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "pair": "application>infrastructure",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-007",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "application>main",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-008",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "pair": "presentation>application",
+   "declaredForbids": false
+  },
+  {
+   "id": "MR-009",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "presentation>main",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-010",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "pair": "infrastructure>application",
+   "declaredForbids": false
+  },
+  {
+   "id": "MR-011",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "infrastructure>presentation",
+   "declaredForbids": false
+  },
+  {
+   "id": "MR-012",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "infrastructure>main",
+   "declaredForbids": true
+  }
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.981,
+   "subject": "domain",
+   "object": "application",
+   "statement": "domain must not depend on application (131 edges application -> domain; 0/84 domain files import application)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.971,
+   "subject": "domain",
+   "object": "presentation",
+   "statement": "domain must not depend on presentation (55 edges presentation -> domain; 0/84 domain files import presentation)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.976,
+   "subject": "domain",
+   "object": "infrastructure",
+   "statement": "domain must not depend on infrastructure (82 edges infrastructure -> domain; 0/84 domain files import infrastructure)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-004",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.918,
+   "subject": "domain",
+   "object": "main",
+   "statement": "domain must not depend on main (13 edges main -> domain; 0/84 domain files import main)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-005",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "confidence": 0.46,
+   "subject": "application",
+   "object": "presentation",
+   "statement": "application must not depend on presentation (no import between them either way)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-006",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "confidence": 0.46,
+   "subject": "application",
+   "object": "infrastructure",
+   "statement": "application must not depend on infrastructure (no import between them either way)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-007",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.892,
+   "subject": "application",
+   "object": "main",
+   "statement": "application must not depend on main (17 edges main -> application; 0/17 application files import main)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-008",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "confidence": 0.46,
+   "subject": "presentation",
+   "object": "application",
+   "statement": "presentation must not depend on application (no import between them either way)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-009",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.876,
+   "subject": "presentation",
+   "object": "main",
+   "statement": "presentation must not depend on main (9 edges main -> presentation; 0/37 presentation files import main)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-010",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "confidence": 0.46,
+   "subject": "infrastructure",
+   "object": "application",
+   "statement": "infrastructure must not depend on application (no import between them either way)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-011",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.924,
+   "subject": "infrastructure",
+   "object": "presentation",
+   "statement": "infrastructure must not depend on presentation (18 edges presentation -> infrastructure; 0/39 infrastructure files import presentation)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-012",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.926,
+   "subject": "infrastructure",
+   "object": "main",
+   "statement": "infrastructure must not depend on main (19 edges main -> infrastructure; 0/39 infrastructure files import main)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-013",
+   "kind": "acyclic-files",
+   "level": "high",
+   "confidence": 0.995,
+   "subject": "*",
+   "statement": "no file lies on an import cycle (184/184 files do not)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-014",
+   "kind": "component-direction",
+   "level": "high",
+   "confidence": 0.949,
+   "subject": "folder:infrastructure",
+   "object": "folder:application",
+   "statement": "folder component infrastructure must not depend on application (37 imports application -> infrastructure; 0/39 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-015",
+   "kind": "component-direction",
+   "level": "high",
+   "confidence": 0.978,
+   "subject": "folder:core",
+   "object": "folder:infrastructure",
+   "statement": "folder component core must not depend on infrastructure (82 imports infrastructure -> core; 0/101 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-016",
+   "kind": "component-direction",
+   "level": "high",
+   "confidence": 0.979,
+   "subject": "folder:core",
+   "object": "folder:application",
+   "statement": "folder component core must not depend on application (85 imports application -> core; 0/101 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-017",
+   "kind": "port-implementation",
+   "level": "high",
+   "confidence": 0.944,
+   "subject": "application/Service",
+   "statement": "every *Service class in application implements an interface declared in another layer (17/17)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-018",
+   "kind": "port-implementation",
+   "level": "high",
+   "confidence": 0.952,
+   "subject": "infrastructure/Adapter",
+   "statement": "every *Adapter class in infrastructure implements an interface declared in another layer (20/20)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-019",
+   "kind": "inject-abstractions",
+   "level": "high",
+   "confidence": 0.955,
+   "subject": "application",
+   "statement": "classes of application inject interfaces across layers, not concrete classes (21/21)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-020",
+   "kind": "inject-abstractions",
+   "level": "high",
+   "confidence": 0.833,
+   "subject": "infrastructure",
+   "statement": "classes of infrastructure inject interfaces across layers, not concrete classes (5/5)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-021",
+   "kind": "inject-abstractions",
+   "level": "high",
+   "confidence": 0.933,
+   "subject": "presentation",
+   "statement": "classes of presentation inject interfaces across layers, not concrete classes (14/14)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-022",
+   "kind": "core-package-free",
+   "level": "high",
+   "confidence": 0.906,
+   "subject": "domain",
+   "statement": "domain (a core layer: it may depend on no other layer) imports none of @nestjs/common, @nestjs/core, @nestjs/cqrs, @nestjs/jwt, @nestjs/passport, @nestjs/platform-express, @nestjs/swagger, @nestjs/typeorm, class-transformer, class-validator, env-var, express, minio, module-alias, passport-jwt, passport-local, path, rxjs, stream, typeorm, typeorm-transactional-cls-hooked, url, uuid",
+   "exceptions": [
+    {
+     "file": "src/core/common/util/class-validator/ClassValidator.ts",
+     "target": "class-validator"
+    },
+    {
+     "file": "src/core/domain/media/entity/Media.ts",
+     "target": "class-validator"
+    },
+    {
+     "file": "src/core/domain/media/entity/Media.ts",
+     "target": "uuid"
+    },
+    {
+     "file": "src/core/domain/media/usecase/dto/MediaUseCaseDto.ts",
+     "target": "class-transformer"
+    },
+    {
+     "file": "src/core/domain/media/value-object/FileMetadata.ts",
+     "target": "class-validator"
+    },
+    {
+     "file": "src/core/domain/post/entity/Post.ts",
+     "target": "class-validator"
+    },
+    {
+     "file": "src/core/domain/post/entity/Post.ts",
+     "target": "uuid"
+    },
+    {
+     "file": "src/core/domain/post/entity/PostImage.ts",
+     "target": "class-validator"
+    },
+    {
+     "file": "src/core/domain/post/entity/PostOwner.ts",
+     "target": "class-validator"
+    },
+    {
+     "file": "src/core/domain/post/usecase/dto/PostUseCaseDto.ts",
+     "target": "class-transformer"
+    },
+    {
+     "file": "src/core/domain/user/entity/User.ts",
+     "target": "class-validator"
+    },
+    {
+     "file": "src/core/domain/user/entity/User.ts",
+     "target": "uuid"
+    },
+    {
+     "file": "src/core/domain/user/usecase/dto/UserUseCaseDto.ts",
+     "target": "class-transformer"
+    }
+   ]
+  }
+ ]
+}

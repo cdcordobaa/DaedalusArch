@@ -1,0 +1,479 @@
+{
+ "id": "ddd-forum",
+ "sha": "3aa0b8d3ad3b58c111c57974fb321ddb230bde73",
+ "head": "3aa0b8d3ad3b58c111c57974fb321ddb230bde73",
+ "declaredStyle": "ddd",
+ "tsconfigNotes": [],
+ "label": "PROPOSED rules: mined from the code (deterministic, no LLM), not a reviewed spec. Review before use; exceptions are candidate violations, not confirmed ones.",
+ "style": "clean-architecture",
+ "styleConfidence": 0.5,
+ "layers": {
+  "domain": 20,
+  "infrastructure": 227
+ },
+ "allowedDependencies": [
+  "infrastructure>domain"
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "statement": "domain must not depend on infrastructure (243 edges infrastructure -> domain; 0/20 domain files import infrastructure)",
+   "subject": "domain",
+   "object": "infrastructure",
+   "confidence": 0.948,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 20,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 243
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-002",
+   "kind": "acyclic-files",
+   "statement": "no file lies on an import cycle (235/248 files do not)",
+   "subject": "*",
+   "confidence": 0.944,
+   "level": "high",
+   "evidence": {
+    "files": 248,
+    "filesOnCycles": 13,
+    "cycles": 4
+   },
+   "exceptions": [
+    {
+     "file": "src/modules/forum/domain/events/commentPosted.ts",
+     "target": "src/modules/forum/domain/post.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/forum/domain/events/commentVotesChanged.ts",
+     "target": "src/modules/forum/domain/post.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/forum/domain/events/memberCreated.ts",
+     "target": "src/modules/forum/domain/member.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/forum/domain/events/postCreated.ts",
+     "target": "src/modules/forum/domain/post.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/forum/domain/events/postVotesChanged.ts",
+     "target": "src/modules/forum/domain/post.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/forum/domain/member.ts",
+     "target": "src/modules/forum/domain/events/memberCreated.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/forum/domain/post.ts",
+     "target": "src/modules/forum/domain/events/commentPosted.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/forum/domain/post.ts",
+     "target": "src/modules/forum/domain/events/commentVotesChanged.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/forum/domain/post.ts",
+     "target": "src/modules/forum/domain/events/postCreated.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/forum/domain/post.ts",
+     "target": "src/modules/forum/domain/events/postVotesChanged.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/users/domain/events/userCreated.ts",
+     "target": "src/modules/users/domain/user.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/users/domain/events/userDeleted.ts",
+     "target": "src/modules/users/domain/user.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/users/domain/events/userLoggedIn.ts",
+     "target": "src/modules/users/domain/user.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/users/domain/user.ts",
+     "target": "src/modules/users/domain/events/userCreated.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/users/domain/user.ts",
+     "target": "src/modules/users/domain/events/userDeleted.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/users/domain/user.ts",
+     "target": "src/modules/users/domain/events/userLoggedIn.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/shared/domain/AggregateRoot.ts",
+     "target": "src/shared/domain/events/DomainEvents.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/shared/domain/events/DomainEvents.ts",
+     "target": "src/shared/domain/AggregateRoot.ts",
+     "detail": "edge on an import cycle"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "no-cyclic-deps",
+    "via": "fitness function FF-S02"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-003",
+   "kind": "component-direction",
+   "statement": "folder component shared must not depend on modules (271 imports modules -> shared; 4/38 files import back)",
+   "subject": "folder:shared",
+   "object": "folder:modules",
+   "confidence": 0.841,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 38,
+    "importingFiles": 4,
+    "edges": 9,
+    "reverseEdges": 271
+   },
+   "exceptions": [
+    {
+     "file": "src/shared/infra/http/api/v1.ts",
+     "target": "src/modules/forum/infra/http/routes/index.ts"
+    },
+    {
+     "file": "src/shared/infra/http/api/v1.ts",
+     "target": "src/modules/forum/infra/http/routes/post.ts"
+    },
+    {
+     "file": "src/shared/infra/http/api/v1.ts",
+     "target": "src/modules/users/infra/http/routes/index.ts"
+    },
+    {
+     "file": "src/shared/infra/http/graphql/server.ts",
+     "target": "src/modules/forum/mappers/memberDetailsMap.ts"
+    },
+    {
+     "file": "src/shared/infra/http/graphql/server.ts",
+     "target": "src/modules/forum/mappers/postDetailsMap.ts"
+    },
+    {
+     "file": "src/shared/infra/http/graphql/server.ts",
+     "target": "src/modules/forum/repos/index.ts"
+    },
+    {
+     "file": "src/shared/infra/http/graphql/server.ts",
+     "target": "src/modules/forum/useCases/post/getRecentPosts/index.ts"
+    },
+    {
+     "file": "src/shared/infra/http/index.ts",
+     "target": "src/modules/users/services/index.ts"
+    },
+    {
+     "file": "src/shared/infra/http/utils/Middleware.ts",
+     "target": "src/modules/users/services/authService.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-004",
+   "kind": "component-direction",
+   "statement": "folder component config must not depend on shared (2 imports shared -> config; 0/2 files import back)",
+   "subject": "folder:config",
+   "object": "folder:shared",
+   "confidence": 0.444,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 2,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 2
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-005",
+   "kind": "component-direction",
+   "statement": "folder component config must not depend on modules (2 imports modules -> config; 0/2 files import back)",
+   "subject": "folder:config",
+   "object": "folder:modules",
+   "confidence": 0.444,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 2,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 2
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-006",
+   "kind": "public-api",
+   "statement": "imports into folder component config go through its entry files (src/config/index.ts): 4/4",
+   "subject": "folder:config",
+   "confidence": 0.8,
+   "level": "high",
+   "evidence": {
+    "incomingImports": 4,
+    "viaEntryFiles": 4,
+    "entryFiles": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "deep-import-inferred-api",
+    "via": "APG v2 folder component entry files"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-007",
+   "kind": "port-implementation",
+   "statement": "every *Case class in infrastructure implements an interface declared in another layer (4/4)",
+   "subject": "infrastructure/Case",
+   "confidence": 0.8,
+   "level": "high",
+   "evidence": {
+    "classes": 4,
+    "implementingAPort": 4
+   },
+   "exceptions": [],
+   "compilesTo": null,
+   "notRepresentable": "the existing template binds the roles Repository, Repo; Case is not one",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-008",
+   "kind": "port-implementation",
+   "statement": "every *Changed class in infrastructure implements an interface declared in another layer (4/4)",
+   "subject": "infrastructure/Changed",
+   "confidence": 0.8,
+   "level": "high",
+   "evidence": {
+    "classes": 4,
+    "implementingAPort": 4
+   },
+   "exceptions": [],
+   "compilesTo": null,
+   "notRepresentable": "the existing template binds the roles Repository, Repo; Changed is not one",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-009",
+   "kind": "port-implementation",
+   "statement": "every *Comment class in infrastructure implements an interface declared in another layer (3/4)",
+   "subject": "infrastructure/Comment",
+   "confidence": 0.6,
+   "level": "medium",
+   "evidence": {
+    "classes": 4,
+    "implementingAPort": 3
+   },
+   "exceptions": [
+    {
+     "file": "src/modules/forum/domain/comment.ts",
+     "target": "Comment",
+     "detail": "implements no interface"
+    }
+   ],
+   "compilesTo": null,
+   "notRepresentable": "the existing template binds the roles Repository, Repo; Comment is not one",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-010",
+   "kind": "port-implementation",
+   "statement": "every *Created class in infrastructure implements an interface declared in another layer (4/4)",
+   "subject": "infrastructure/Created",
+   "confidence": 0.8,
+   "level": "high",
+   "evidence": {
+    "classes": 4,
+    "implementingAPort": 4
+   },
+   "exceptions": [],
+   "compilesTo": null,
+   "notRepresentable": "the existing template binds the roles Repository, Repo; Created is not one",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-011",
+   "kind": "port-implementation",
+   "statement": "every *Post class in infrastructure implements an interface declared in another layer (5/6)",
+   "subject": "infrastructure/Post",
+   "confidence": 0.714,
+   "level": "medium",
+   "evidence": {
+    "classes": 6,
+    "implementingAPort": 5
+   },
+   "exceptions": [
+    {
+     "file": "src/modules/forum/domain/post.ts",
+     "target": "Post",
+     "detail": "implements no interface"
+    }
+   ],
+   "compilesTo": null,
+   "notRepresentable": "the existing template binds the roles Repository, Repo; Post is not one",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-012",
+   "kind": "port-implementation",
+   "statement": "every *Posted class in infrastructure implements an interface declared in another layer (2/2)",
+   "subject": "infrastructure/Posted",
+   "confidence": 0.667,
+   "level": "medium",
+   "evidence": {
+    "classes": 2,
+    "implementingAPort": 2
+   },
+   "exceptions": [],
+   "compilesTo": null,
+   "notRepresentable": "the existing template binds the roles Repository, Repo; Posted is not one",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-013",
+   "kind": "port-implementation",
+   "statement": "every *Posts class in infrastructure implements an interface declared in another layer (2/2)",
+   "subject": "infrastructure/Posts",
+   "confidence": 0.667,
+   "level": "medium",
+   "evidence": {
+    "classes": 2,
+    "implementingAPort": 2
+   },
+   "exceptions": [],
+   "compilesTo": null,
+   "notRepresentable": "the existing template binds the roles Repository, Repo; Posts is not one",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-014",
+   "kind": "port-implementation",
+   "statement": "every *Stats class in infrastructure implements an interface declared in another layer (2/2)",
+   "subject": "infrastructure/Stats",
+   "confidence": 0.667,
+   "level": "medium",
+   "evidence": {
+    "classes": 2,
+    "implementingAPort": 2
+   },
+   "exceptions": [],
+   "compilesTo": null,
+   "notRepresentable": "the existing template binds the roles Repository, Repo; Stats is not one",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-015",
+   "kind": "core-package-free",
+   "statement": "domain (a core layer: it may depend on no other layer) imports none of apollo-server-express, bcrypt-nodejs, body-parser, compression, cors, express, express-rate-limit, fs, graphql-iso-date, helmet, jsonwebtoken, lodash, morgan, path, rand-token, redis, sequelize, slug, uuid",
+   "subject": "domain",
+   "confidence": 0.905,
+   "level": "high",
+   "evidence": {
+    "coreFiles": 20,
+    "packages": 19
+   },
+   "exceptions": [
+    {
+     "file": "src/shared/domain/UniqueEntityID.ts",
+     "target": "uuid"
+    }
+   ],
+   "params": {
+    "forbidden_imports": [
+     "apollo-server-express",
+     "bcrypt-nodejs",
+     "body-parser",
+     "compression",
+     "cors",
+     "express",
+     "express-rate-limit",
+     "fs",
+     "graphql-iso-date",
+     "helmet",
+     "jsonwebtoken",
+     "lodash",
+     "morgan",
+     "path",
+     "rand-token",
+     "redis",
+     "sequelize",
+     "slug",
+     "uuid"
+    ]
+   },
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "domain-purity",
+    "via": "fitness function FF-P01 (domain-purity) forbidden_imports"
+   },
+   "status": "proposal"
+  }
+ ],
+ "counts": {
+  "rules": 15,
+  "high": 8,
+  "medium": 5,
+  "low": 2,
+  "exceptions": 30,
+  "notRepresentable": 8
+ },
+ "spec": {
+  "valid": true,
+  "errors": [],
+  "compiled": [
+   "dependency-direction",
+   "domain-purity",
+   "no-cyclic-deps"
+  ]
+ }
+}

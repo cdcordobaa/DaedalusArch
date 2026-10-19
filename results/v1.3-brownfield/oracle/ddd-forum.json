@@ -1,0 +1,733 @@
+{
+ "id": "ddd-forum",
+ "style": "ddd",
+ "layersPresent": [
+  "api",
+  "application",
+  "composition",
+  "domain",
+  "infrastructure"
+ ],
+ "filesMapped": 246,
+ "files": 248,
+ "declaredAllowed": [
+  "api>application",
+  "api>domain",
+  "application>domain",
+  "composition>api",
+  "composition>application",
+  "composition>domain",
+  "composition>infrastructure",
+  "infrastructure>application",
+  "infrastructure>domain"
+ ],
+ "graphs": {
+  "observed": {
+   "mined": [
+    "api>application",
+    "api>composition",
+    "api>domain",
+    "api>infrastructure",
+    "application>api",
+    "application>domain",
+    "application>infrastructure",
+    "composition>api",
+    "composition>application",
+    "composition>infrastructure",
+    "domain>application",
+    "domain>infrastructure",
+    "infrastructure>application",
+    "infrastructure>composition",
+    "infrastructure>domain"
+   ],
+   "tp": 8,
+   "fp": 7,
+   "fn": 1
+  },
+  "strict": {
+   "mined": [
+    "api>application",
+    "api>composition",
+    "api>domain",
+    "api>infrastructure",
+    "application>domain",
+    "composition>api",
+    "composition>application",
+    "composition>infrastructure",
+    "infrastructure>application",
+    "infrastructure>composition",
+    "infrastructure>domain"
+   ],
+   "tp": 8,
+   "fp": 3,
+   "fn": 1
+  },
+  "full": {
+   "mined": [
+    "api>application",
+    "api>composition",
+    "api>domain",
+    "api>infrastructure",
+    "application>domain",
+    "composition>api",
+    "composition>infrastructure",
+    "infrastructure>application",
+    "infrastructure>composition",
+    "infrastructure>domain"
+   ],
+   "tp": 7,
+   "fp": 3,
+   "fn": 2
+  }
+ },
+ "forbidding": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "domain>application",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "domain>infrastructure",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "level": "medium",
+   "pair": "domain>api",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-004",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "pair": "domain>composition",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-005",
+   "kind": "layer-direction",
+   "level": "medium",
+   "pair": "application>infrastructure",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-006",
+   "kind": "layer-direction",
+   "level": "medium",
+   "pair": "application>api",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-007",
+   "kind": "layer-direction",
+   "level": "low",
+   "pair": "application>composition",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-008",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "infrastructure>api",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-009",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "pair": "composition>domain",
+   "declaredForbids": false
+  },
+  {
+   "id": "MR-010",
+   "kind": "layer-rare-edge",
+   "level": "low",
+   "pair": "composition>application",
+   "declaredForbids": false
+  }
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.933,
+   "subject": "domain",
+   "object": "application",
+   "statement": "domain must not depend on application (280 edges application -> domain; 2/63 domain files import application)",
+   "exceptions": [
+    {
+     "file": "src/modules/forum/domain/post.ts",
+     "target": "src/modules/forum/useCases/post/editPost/EditPostErrors.ts"
+    },
+    {
+     "file": "src/modules/forum/domain/services/postService.ts",
+     "target": "src/modules/forum/useCases/comments/downvoteComment/DownvoteCommentResponse.ts"
+    },
+    {
+     "file": "src/modules/forum/domain/services/postService.ts",
+     "target": "src/modules/forum/useCases/comments/upvoteComment/UpvoteCommentResonse.ts"
+    },
+    {
+     "file": "src/modules/forum/domain/services/postService.ts",
+     "target": "src/modules/forum/useCases/post/downvotePost/DownvotePostResponse.ts"
+    },
+    {
+     "file": "src/modules/forum/domain/services/postService.ts",
+     "target": "src/modules/forum/useCases/post/upvotePost/UpvotePostResponse.ts"
+    }
+   ]
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.869,
+   "subject": "domain",
+   "object": "infrastructure",
+   "statement": "domain must not depend on infrastructure (93 edges infrastructure -> domain; 2/63 domain files import infrastructure)",
+   "exceptions": [
+    {
+     "file": "src/modules/forum/repos/index.ts",
+     "target": "src/modules/forum/repos/implementations/commentRepo.ts"
+    },
+    {
+     "file": "src/modules/forum/repos/index.ts",
+     "target": "src/modules/forum/repos/implementations/sequelizeCommentVotesRepo.ts"
+    },
+    {
+     "file": "src/modules/forum/repos/index.ts",
+     "target": "src/modules/forum/repos/implementations/sequelizeMemberRepo.ts"
+    },
+    {
+     "file": "src/modules/forum/repos/index.ts",
+     "target": "src/modules/forum/repos/implementations/sequelizePostRepo.ts"
+    },
+    {
+     "file": "src/modules/forum/repos/index.ts",
+     "target": "src/modules/forum/repos/implementations/sequelizePostVotesRepo.ts"
+    },
+    {
+     "file": "src/modules/forum/repos/index.ts",
+     "target": "src/shared/infra/database/sequelize/models/index.ts"
+    },
+    {
+     "file": "src/modules/users/repos/index.ts",
+     "target": "src/modules/users/repos/implementations/sequelizeUserRepo.ts"
+    },
+    {
+     "file": "src/modules/users/repos/index.ts",
+     "target": "src/shared/infra/database/sequelize/models/index.ts"
+    }
+   ]
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "level": "medium",
+   "confidence": 0.738,
+   "subject": "domain",
+   "object": "api",
+   "statement": "domain must not depend on api (3 edges api -> domain; 0/63 domain files import api)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-004",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "confidence": 0.369,
+   "subject": "domain",
+   "object": "composition",
+   "statement": "domain must not depend on composition (no import between them either way)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-005",
+   "kind": "layer-direction",
+   "level": "medium",
+   "confidence": 0.655,
+   "subject": "application",
+   "object": "infrastructure",
+   "statement": "application must not depend on infrastructure (6 edges infrastructure -> application; 1/113 application files import infrastructure)",
+   "exceptions": [
+    {
+     "file": "src/modules/users/services/index.ts",
+     "target": "src/modules/users/services/redis/redisAuthService.ts"
+    },
+    {
+     "file": "src/modules/users/services/index.ts",
+     "target": "src/modules/users/services/redis/redisConnection.ts"
+    }
+   ]
+  },
+  {
+   "id": "MR-006",
+   "kind": "layer-direction",
+   "level": "medium",
+   "confidence": 0.641,
+   "subject": "application",
+   "object": "api",
+   "statement": "application must not depend on api (85 edges api -> application; 21/113 application files import api)",
+   "exceptions": [
+    {
+     "file": "src/modules/forum/useCases/comments/downvoteComment/index.ts",
+     "target": "src/modules/forum/useCases/comments/downvoteComment/DownvoteCommentController.ts"
+    },
+    {
+     "file": "src/modules/forum/useCases/comments/getCommentByCommentId/index.ts",
+     "target": "src/modules/forum/useCases/comments/getCommentByCommentId/GetCommentByCommentIdController.ts"
+    },
+    {
+     "file": "src/modules/forum/useCases/comments/getCommentsByPostSlug/index.ts",
+     "target": "src/modules/forum/useCases/comments/getCommentsByPostSlug/GetCommentsByPostSlugController.ts"
+    },
+    {
+     "file": "src/modules/forum/useCases/comments/replyToComment/index.ts",
+     "target": "src/modules/forum/useCases/comments/replyToComment/ReplyToCommentController.ts"
+    },
+    {
+     "file": "src/modules/forum/useCases/comments/replyToPost/index.ts",
+     "target": "src/modules/forum/useCases/comments/replyToPost/ReplyToPostController.ts"
+    },
+    {
+     "file": "src/modules/forum/useCases/comments/upvoteComment/index.ts",
+     "target": "src/modules/forum/useCases/comments/upvoteComment/UpvoteCommentController.ts"
+    },
+    {
+     "file": "src/modules/forum/useCases/members/getCurrentMember/index.ts",
+     "target": "src/modules/forum/useCases/members/getCurrentMember/GetCurrentMemberController.ts"
+    },
+    {
+     "file": "src/modules/forum/useCases/members/getMemberByUserName/index.ts",
+     "target": "src/modules/forum/useCases/members/getMemberByUserName/GetMemberByUserNameController.ts"
+    },
+    {
+     "file": "src/modules/forum/useCases/post/createPost/index.ts",
+     "target": "src/modules/forum/useCases/post/createPost/CreatePostController.ts"
+    },
+    {
+     "file": "src/modules/forum/useCases/post/downvotePost/index.ts",
+     "target": "src/modules/forum/useCases/post/downvotePost/DownvotePostController.ts"
+    },
+    {
+     "file": "src/modules/forum/useCases/post/getPopularPosts/index.ts",
+     "target": "src/modules/forum/useCases/post/getPopularPosts/GetPopularPostsController.ts"
+    },
+    {
+     "file": "src/modules/forum/useCases/post/getPostBySlug/index.ts",
+     "target": "src/modules/forum/useCases/post/getPostBySlug/GetPostBySlugController.ts"
+    },
+    {
+     "file": "src/modules/forum/useCases/post/getRecentPosts/index.ts",
+     "target": "src/modules/forum/useCases/post/getRecentPosts/GetRecentPostsController.ts"
+    },
+    {
+     "file": "src/modules/forum/useCases/post/upvotePost/index.ts",
+     "target": "src/modules/forum/useCases/post/upvotePost/UpvotePostController.ts"
+    },
+    {
+     "file": "src/modules/users/useCases/createUser/index.ts",
+     "target": "src/modules/users/useCases/createUser/CreateUserController.ts"
+    },
+    {
+     "file": "src/modules/users/useCases/deleteUser/index.ts",
+     "target": "src/modules/users/useCases/deleteUser/DeleteUserController.ts"
+    },
+    {
+     "file": "src/modules/users/useCases/getCurrentUser/index.ts",
+     "target": "src/modules/users/useCases/getCurrentUser/GetCurrentUserController.ts"
+    },
+    {
+     "file": "src/modules/users/useCases/getUserByUserName/index.ts",
+     "target": "src/modules/users/useCases/getUserByUserName/GetUserByUserNameController.ts"
+    },
+    {
+     "file": "src/modules/users/useCases/login/index.ts",
+     "target": "src/modules/users/useCases/login/LoginController.ts"
+    },
+    {
+     "file": "src/modules/users/useCases/logout/index.ts",
+     "target": "src/modules/users/useCases/logout/LogoutController.ts"
+    },
+    {
+     "file": "src/modules/users/useCases/refreshAccessToken/index.ts",
+     "target": "src/modules/users/useCases/refreshAccessToken/RefreshAccessTokenController.ts"
+    }
+   ]
+  },
+  {
+   "id": "MR-007",
+   "kind": "layer-direction",
+   "level": "low",
+   "confidence": 0.496,
+   "subject": "application",
+   "object": "composition",
+   "statement": "application must not depend on composition (1 edges composition -> application; 0/113 application files import composition)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-008",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.881,
+   "subject": "infrastructure",
+   "object": "api",
+   "statement": "infrastructure must not depend on api (10 edges api -> infrastructure; 0/31 infrastructure files import api)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-009",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "confidence": 0.369,
+   "subject": "composition",
+   "object": "domain",
+   "statement": "composition must not depend on domain (no import between them either way)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-010",
+   "kind": "layer-rare-edge",
+   "level": "low",
+   "confidence": 0.25,
+   "subject": "composition",
+   "object": "application",
+   "statement": "composition should not depend on application (1/3 composition files imports it; nothing goes back)",
+   "exceptions": [
+    {
+     "file": "src/index.ts",
+     "target": "src/modules/forum/subscriptions/index.ts"
+    }
+   ]
+  },
+  {
+   "id": "MR-011",
+   "kind": "acyclic-files",
+   "level": "high",
+   "confidence": 0.944,
+   "subject": "*",
+   "statement": "no file lies on an import cycle (235/248 files do not)",
+   "exceptions": [
+    {
+     "file": "src/modules/forum/domain/events/commentPosted.ts",
+     "target": "src/modules/forum/domain/post.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/forum/domain/events/commentVotesChanged.ts",
+     "target": "src/modules/forum/domain/post.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/forum/domain/events/memberCreated.ts",
+     "target": "src/modules/forum/domain/member.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/forum/domain/events/postCreated.ts",
+     "target": "src/modules/forum/domain/post.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/forum/domain/events/postVotesChanged.ts",
+     "target": "src/modules/forum/domain/post.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/forum/domain/member.ts",
+     "target": "src/modules/forum/domain/events/memberCreated.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/forum/domain/post.ts",
+     "target": "src/modules/forum/domain/events/commentPosted.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/forum/domain/post.ts",
+     "target": "src/modules/forum/domain/events/commentVotesChanged.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/forum/domain/post.ts",
+     "target": "src/modules/forum/domain/events/postCreated.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/forum/domain/post.ts",
+     "target": "src/modules/forum/domain/events/postVotesChanged.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/users/domain/events/userCreated.ts",
+     "target": "src/modules/users/domain/user.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/users/domain/events/userDeleted.ts",
+     "target": "src/modules/users/domain/user.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/users/domain/events/userLoggedIn.ts",
+     "target": "src/modules/users/domain/user.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/users/domain/user.ts",
+     "target": "src/modules/users/domain/events/userCreated.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/users/domain/user.ts",
+     "target": "src/modules/users/domain/events/userDeleted.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/users/domain/user.ts",
+     "target": "src/modules/users/domain/events/userLoggedIn.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/shared/domain/AggregateRoot.ts",
+     "target": "src/shared/domain/events/DomainEvents.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/shared/domain/events/DomainEvents.ts",
+     "target": "src/shared/domain/AggregateRoot.ts",
+     "detail": "edge on an import cycle"
+    }
+   ]
+  },
+  {
+   "id": "MR-012",
+   "kind": "component-direction",
+   "level": "high",
+   "confidence": 0.841,
+   "subject": "folder:shared",
+   "object": "folder:modules",
+   "statement": "folder component shared must not depend on modules (271 imports modules -> shared; 4/38 files import back)",
+   "exceptions": [
+    {
+     "file": "src/shared/infra/http/api/v1.ts",
+     "target": "src/modules/forum/infra/http/routes/index.ts"
+    },
+    {
+     "file": "src/shared/infra/http/api/v1.ts",
+     "target": "src/modules/forum/infra/http/routes/post.ts"
+    },
+    {
+     "file": "src/shared/infra/http/api/v1.ts",
+     "target": "src/modules/users/infra/http/routes/index.ts"
+    },
+    {
+     "file": "src/shared/infra/http/graphql/server.ts",
+     "target": "src/modules/forum/mappers/memberDetailsMap.ts"
+    },
+    {
+     "file": "src/shared/infra/http/graphql/server.ts",
+     "target": "src/modules/forum/mappers/postDetailsMap.ts"
+    },
+    {
+     "file": "src/shared/infra/http/graphql/server.ts",
+     "target": "src/modules/forum/repos/index.ts"
+    },
+    {
+     "file": "src/shared/infra/http/graphql/server.ts",
+     "target": "src/modules/forum/useCases/post/getRecentPosts/index.ts"
+    },
+    {
+     "file": "src/shared/infra/http/index.ts",
+     "target": "src/modules/users/services/index.ts"
+    },
+    {
+     "file": "src/shared/infra/http/utils/Middleware.ts",
+     "target": "src/modules/users/services/authService.ts"
+    }
+   ]
+  },
+  {
+   "id": "MR-013",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.444,
+   "subject": "folder:config",
+   "object": "folder:shared",
+   "statement": "folder component config must not depend on shared (2 imports shared -> config; 0/2 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-014",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.444,
+   "subject": "folder:config",
+   "object": "folder:modules",
+   "statement": "folder component config must not depend on modules (2 imports modules -> config; 0/2 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-015",
+   "kind": "public-api",
+   "level": "high",
+   "confidence": 0.8,
+   "subject": "folder:config",
+   "statement": "imports into folder component config go through its entry files (src/config/index.ts): 4/4",
+   "exceptions": []
+  },
+  {
+   "id": "MR-016",
+   "kind": "port-implementation",
+   "level": "high",
+   "confidence": 0.8,
+   "subject": "application/Case",
+   "statement": "every *Case class in application implements an interface declared in another layer (4/4)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-017",
+   "kind": "port-implementation",
+   "level": "medium",
+   "confidence": 0.667,
+   "subject": "application/Changed",
+   "statement": "every *Changed class in application implements an interface declared in another layer (2/2)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-018",
+   "kind": "port-implementation",
+   "level": "high",
+   "confidence": 0.75,
+   "subject": "application/Comment",
+   "statement": "every *Comment class in application implements an interface declared in another layer (3/3)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-019",
+   "kind": "port-implementation",
+   "level": "medium",
+   "confidence": 0.667,
+   "subject": "application/Name",
+   "statement": "every *Name class in application implements an interface declared in another layer (2/2)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-020",
+   "kind": "port-implementation",
+   "level": "high",
+   "confidence": 0.833,
+   "subject": "application/Post",
+   "statement": "every *Post class in application implements an interface declared in another layer (5/5)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-021",
+   "kind": "port-implementation",
+   "level": "medium",
+   "confidence": 0.667,
+   "subject": "application/Posts",
+   "statement": "every *Posts class in application implements an interface declared in another layer (2/2)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-022",
+   "kind": "port-implementation",
+   "level": "medium",
+   "confidence": 0.667,
+   "subject": "application/Slug",
+   "statement": "every *Slug class in application implements an interface declared in another layer (2/2)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-023",
+   "kind": "port-implementation",
+   "level": "medium",
+   "confidence": 0.667,
+   "subject": "application/Stats",
+   "statement": "every *Stats class in application implements an interface declared in another layer (2/2)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-024",
+   "kind": "port-implementation",
+   "level": "high",
+   "confidence": 0.857,
+   "subject": "infrastructure/Repo",
+   "statement": "every *Repo class in infrastructure implements an interface declared in another layer (6/6)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-025",
+   "kind": "inject-abstractions",
+   "level": "high",
+   "confidence": 0.878,
+   "subject": "application",
+   "statement": "classes of application inject interfaces across layers, not concrete classes (43/48)",
+   "exceptions": [
+    {
+     "file": "src/modules/forum/useCases/comments/downvoteComment/DownvoteComment.ts",
+     "target": "src/modules/forum/domain/services/postService.ts",
+     "detail": "DownvoteComment injects class PostService"
+    },
+    {
+     "file": "src/modules/forum/useCases/comments/replyToComment/ReplyToComment.ts",
+     "target": "src/modules/forum/domain/services/postService.ts",
+     "detail": "ReplyToComment injects class PostService"
+    },
+    {
+     "file": "src/modules/forum/useCases/comments/upvoteComment/UpvoteComment.ts",
+     "target": "src/modules/forum/domain/services/postService.ts",
+     "detail": "UpvoteComment injects class PostService"
+    },
+    {
+     "file": "src/modules/forum/useCases/post/downvotePost/DownvotePost.ts",
+     "target": "src/modules/forum/domain/services/postService.ts",
+     "detail": "DownvotePost injects class PostService"
+    },
+    {
+     "file": "src/modules/forum/useCases/post/upvotePost/UpvotePost.ts",
+     "target": "src/modules/forum/domain/services/postService.ts",
+     "detail": "UpvotePost injects class PostService"
+    }
+   ]
+  },
+  {
+   "id": "MR-026",
+   "kind": "inject-abstractions",
+   "level": "high",
+   "confidence": 0.75,
+   "subject": "infrastructure",
+   "statement": "classes of infrastructure inject interfaces across layers, not concrete classes (3/3)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-027",
+   "kind": "core-package-free",
+   "level": "high",
+   "confidence": 0.953,
+   "subject": "domain",
+   "statement": "domain (a core layer: it may depend on no other layer) imports none of apollo-server-express, body-parser, compression, cors, express, express-rate-limit, fs, graphql-iso-date, helmet, jsonwebtoken, lodash, morgan, path, rand-token, redis, sequelize, uuid",
+   "exceptions": [
+    {
+     "file": "src/modules/forum/domain/comment.ts",
+     "target": "lodash"
+    },
+    {
+     "file": "src/modules/forum/domain/post.ts",
+     "target": "lodash"
+    },
+    {
+     "file": "src/shared/domain/UniqueEntityID.ts",
+     "target": "uuid"
+    }
+   ]
+  }
+ ]
+}

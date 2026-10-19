@@ -1,0 +1,99 @@
+{
+ "duration_api_ms": 19693,
+ "stop_reason": "end_turn",
+ "session_id": "8de136b1-7f4e-4507-a89c-c7b9ce2323a1",
+ "total_cost_usd": 0.0678222,
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 9521,
+  "cache_read_input_tokens": 4142,
+  "output_tokens": 2932,
+  "output_tokens_details": {
+   "thinking_tokens": 1575
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 9521,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2932,
+    "cache_read_input_tokens": 4142,
+    "cache_creation_input_tokens": 9521,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 9521
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-sonnet-5-5": {
+   "inputTokens": 2,
+   "outputTokens": 2932,
+   "cacheReadInputTokens": 4142,
+   "cacheCreationInputTokens": 9521,
+   "webSearchRequests": 0,
+   "costUSD": 0.0678222,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1575,
+   "canonicalModel": "claude-sonnet-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 1,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "```yaml\narchitecture:\n  style: nestjs\n  layers:\n    - name: domain\n      kind: domain\n      directories:\n        - src/app/models/**\n        - src/app/interfaces/**\n      roles:\n        - entity\n        - value-object\n        - repository-interface\n    - name: infrastructure\n      kind: infrastructure\n      directories:\n        - src/app/database/**\n        - src/app/redis/**\n        - src/app/config/**\n        - src/app/cookie/**\n        - src/app/options/**\n        - src/app/auth/google/**\n        - src/app/auth/local/**\n      file_patterns:\n        - \"**/*.repository.ts\"\n        - \"**/strategies/**\"\n      roles:\n        - repository-impl\n        - external-service\n        - middleware\n    - name: application\n      kind: application\n      directories:\n        - src/app/*/models/**\n        - src/app/auth/user/models/**\n      file_patterns:\n        - \"**/*.service.ts\"\n        - \"**/*.processor.ts\"\n        - \"**/dto/**\"\n        - \"**/*.dto.ts\"\n      roles:\n        - application-service\n        - dto\n        - processor\n    - name: presentation\n      kind: presentation\n      directories:\n        - src/app/guards/**\n      file_patterns:\n        - \"**/*.controller.ts\"\n        - \"**/*.module.ts\"\n        - \"**/*.guard.ts\"\n        - \"**/*.interceptor.ts\"\n        - \"**/*.gateway.ts\"\n      roles:\n        - controller\n        - module\n        - guard\n        - interceptor\n      decorators:\n        - \"@Controller\"\n        - \"@Module\"\n```\n\n```json\n{\"units\": [\n{\"id\": \"layer:domain\", \"claim\": \"Domain is limited to the app-level shared models and interfaces; the validators folder is left out as a cross-cutting helper.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 11, \"quote\": \"This project is written using [NestJS](https://docs.nestjs.com) for the server\"},\n{\"type\": \"pattern\", \"glob\": \"src/app/{models,interfaces}/**\", \"count\": 4}]},\n{\"id\": \"layer:infrastructure\", \"claim\": \"Infrastructure holds the technical plumbing modules (database, redis, config, cookie, options) and the Google/local auth adapters.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 11, \"quote\": \"This project is written using [NestJS](https://docs.nestjs.com) for the server\"},\n{\"type\": \"pattern\", \"glob\": \"src/app/{database,redis,config,cookie,options}/**\", \"count\": 30}]},\n{\"id\": \"layer:application\", \"claim\": \"Application holds the feature services and the DTO/model classes in each feature's models folder.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 11, \"quote\": \"This project is written using [NestJS](https://docs.nestjs.com) for the server\"},\n{\"type\": \"pattern\", \"glob\": \"src/app/*/models/**\", \"count\": 17}]},\n{\"id\": \"layer:presentation\", \"claim\": \"Presentation holds controllers, modules and guards, which sit next to the services in each feature folder.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 11, \"quote\": \"This project is written using [NestJS](https://docs.nestjs.com) for the server\"},\n{\"type\": \"pattern\", \"glob\": \"src/app/**/*.controller.ts\", \"count\": 6}]},\n{\"id\": \"order\", \"claim\": \"The preset's NestJS order is kept: presentation calls application, application calls infrastructure, and domain is innermost.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 11, \"quote\": \"This project is written using [NestJS](https://docs.nestjs.com) for the server\"},\n{\"type\": \"pattern\", \"glob\": \"src/app/**/*.service.ts\", \"count\": 12}]}\n]}\n```",
+ "ttft_ms": 13877,
+ "type": "result",
+ "duration_ms": 20102,
+ "uuid": "25de8dce-e2b0-4b3e-a4aa-274b0eb3ca30",
+ "ttft_stream_ms": 1195,
+ "time_to_request_ms": 411,
+ "first_content_frame_ms": 1195,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

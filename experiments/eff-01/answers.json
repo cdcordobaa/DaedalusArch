@@ -1,0 +1,511 @@
+{
+ "generatedBy": "experiments/eff-01/derive-answers.mjs",
+ "typescript": "5.9.3",
+ "repos": {
+  "event-sourcing-ddd": {
+   "pin": "55fa9ef395594911feaa9051e07b3a21a87f3abd",
+   "files": 58,
+   "internalImportStatements": 146,
+   "crossCheckAgainstInstrument": {
+    "direction rows = FF-S01 u FF-S03 rows": {
+     "mine": 23,
+     "instrument": 23,
+     "equal": true
+    },
+    "files = parseCoverage.total (the key drops *.spec.ts / *.test.ts, as ddd-forum's tsconfig does; the instrument parses 250 of the 251 .ts files, test files included; no answer-bearing count moves)": {
+     "mine": 58,
+     "instrument": 58,
+     "equal": true
+    },
+    "files on cycles = universalMetrics.cyclicDependencyCount": {
+     "mine": 0,
+     "instrument": 0,
+     "equal": true
+    },
+    "max fan-in = universalMetrics.maxFanIn": {
+     "mine": 17,
+     "instrument": 17,
+     "equal": true
+    },
+    "cross-context imports vs FF-DS02 rows (FF-DS02 asserted only where public_api is declared narrower than the context)": {
+     "mine": 1,
+     "instrument": 0,
+     "equal": false
+    }
+   },
+   "answers": {
+    "ES-Q01": {
+     "template": "layer-of-file",
+     "truthSource": "spec globs",
+     "answer": "infrastructure",
+     "evidence": {
+      "file": "src/projection/book/ReadModel.ts"
+     }
+    },
+    "ES-Q02": {
+     "template": "direction-violation-count",
+     "truthSource": "tsc import graph + spec",
+     "answer": 23,
+     "evidence": {
+      "rows": [
+       "src/commandHandlers/book/CreateBookCommandHandler.ts:5 -> src/constants/types.ts (application->composition)",
+       "src/commandHandlers/book/UpdateBookAuthorCommandHandler.ts:4 -> src/constants/types.ts (application->composition)",
+       "src/commandHandlers/user/CreateUserCommandHandler.ts:2 -> src/constants/types.ts (application->composition)",
+       "src/commands/book/CreateBook.ts:1 -> src/constants/commands.ts (application->composition)",
+       "src/eventHandlers/author/AuthorCreatedEventHandler.ts:1 -> src/constants/types.ts (application->composition)",
+       "src/eventHandlers/book/BookAuthorChangedEventHandler.ts:1 -> src/constants/types.ts (application->composition)",
+       "src/eventHandlers/book/BookAuthorChangedEventHandler.ts:8 -> src/projection/author/ReadModel.ts (application->infrastructure)",
+       "src/eventHandlers/book/BookCreatedEventHandler.ts:1 -> src/constants/types.ts (application->composition)",
+       "src/eventHandlers/book/BookCreatedEventHandler.ts:8 -> src/projection/book/ReadModel.ts (application->infrastructure)",
+       "src/eventHandlers/book/BookCreatedEventHandler.ts:9 -> src/projection/author/ReadModel.ts (application->infrastructure)",
+       "src/eventHandlers/book/FakeNotificationEventHandler.ts:1 -> src/constants/types.ts (application->composition)",
+       "src/eventHandlers/user/UserCreatedEventHandler.ts:1 -> src/constants/types.ts (application->composition)",
+       "src/infrastructure/db/mongodb.ts:2 -> src/config/main.ts (infrastructure->composition)",
+       "src/infrastructure/eventHandler/index.ts:1 -> src/constants/types.ts (infrastructure->composition)",
+       "src/infrastructure/repositories/BookRepository.ts:1 -> src/constants/types.ts (infrastructure->composition)",
+       "src/infrastructure/repositories/UserRepository.ts:1 -> src/constants/types.ts (infrastructure->composition)",
+       "src/interfaces/http/controllers/BookController.ts:11 -> src/constants/types.ts (api->composition)",
+       "src/interfaces/http/controllers/BookController.ts:13 -> src/infrastructure/commandBus/index.ts (api->infrastructure)",
+       "src/interfaces/http/controllers/BookController.ts:16 -> src/projection/book/ReadModel.ts (api->infrastructure)",
+       "src/interfaces/http/controllers/UserController.ts:2 -> src/constants/types.ts (api->composition)",
+       "src/interfaces/http/controllers/UserController.ts:3 -> src/infrastructure/commandBus/index.ts (api->infrastructure)",
+       "src/projection/author/ReadModel.ts:1 -> src/constants/types.ts (infrastructure->composition)",
+       "src/projection/book/ReadModel.ts:1 -> src/constants/types.ts (infrastructure->composition)"
+      ]
+     }
+    },
+    "ES-Q03": {
+     "template": "files-importing-against-direction-from-layer",
+     "truthSource": "tsc import graph + spec",
+     "answer": [
+      "src/interfaces/http/controllers/BookController.ts",
+      "src/interfaces/http/controllers/UserController.ts"
+     ],
+     "evidence": {
+      "rows": [
+       "src/interfaces/http/controllers/BookController.ts:11 -> src/constants/types.ts (composition)",
+       "src/interfaces/http/controllers/BookController.ts:13 -> src/infrastructure/commandBus/index.ts (infrastructure)",
+       "src/interfaces/http/controllers/BookController.ts:16 -> src/projection/book/ReadModel.ts (infrastructure)",
+       "src/interfaces/http/controllers/UserController.ts:2 -> src/constants/types.ts (composition)",
+       "src/interfaces/http/controllers/UserController.ts:3 -> src/infrastructure/commandBus/index.ts (infrastructure)"
+      ]
+     }
+    },
+    "ES-Q04": {
+     "template": "top-violating-layer-pair",
+     "truthSource": "tsc import graph + spec",
+     "answer": {
+      "pair": "application->composition",
+      "count": 9
+     },
+     "evidence": {
+      "allPairs": {
+       "application->composition": 9,
+       "infrastructure->composition": 6,
+       "api->infrastructure": 3,
+       "application->infrastructure": 3,
+       "api->composition": 2
+      }
+     }
+    },
+    "ES-Q05": {
+     "template": "files-in-import-cycles",
+     "truthSource": "tsc import graph (Tarjan SCC)",
+     "answer": {
+      "files": 0,
+      "largestCycleGroup": 0
+     },
+     "evidence": {
+      "stronglyConnectedComponents": []
+     }
+    },
+    "ES-Q06": {
+     "template": "max-fan-in-file",
+     "truthSource": "tsc import graph",
+     "answer": {
+      "files": [
+       "src/constants/types.ts"
+      ],
+      "importers": 17
+     },
+     "evidence": {
+      "top5": [
+       {
+        "file": "src/constants/types.ts",
+        "importers": 17
+       },
+       {
+        "file": "src/core/IEvent.ts",
+        "importers": 10
+       },
+       {
+        "file": "src/core/IEventHandler.ts",
+        "importers": 7
+       },
+       {
+        "file": "src/core/ICommandHandler.ts",
+        "importers": 6
+       },
+       {
+        "file": "src/core/IEventStore.ts",
+        "importers": 5
+       }
+      ]
+     }
+    },
+    "ES-Q07": {
+     "template": "cross-context-imports",
+     "truthSource": "tsc import graph + spec ddd.contexts roots",
+     "answer": {
+      "book->user": 1,
+      "user->book": 0
+     },
+     "evidence": {
+      "rows": [
+       "src/domain/book/events/AuthorCreated.ts:3 -> src/domain/user/events/UserCreated.ts"
+      ]
+     }
+    },
+    "ES-Q08": {
+     "template": "hypothetical-import-allowed",
+     "truthSource": "spec",
+     "answer": {
+      "allowed": true,
+      "fromLayer": "infrastructure",
+      "toLayer": "application"
+     },
+     "evidence": {
+      "allowedFrom": [
+       "application",
+       "domain",
+       "infrastructure"
+      ]
+     }
+    },
+    "ES-Q09": {
+     "template": "implementer-of-interface",
+     "truthSource": "TypeScript AST heritage clauses",
+     "answer": [
+      {
+       "file": "src/infrastructure/repositories/BookRepository.ts",
+       "class": "BookRepository"
+      }
+     ],
+     "evidence": {
+      "source": "class heritage clauses (implements), TypeScript AST"
+     }
+    },
+    "ES-Q10": {
+     "template": "blocking-verdict",
+     "truthSource": "instrument report (committed, results/v1.3-external/findings)",
+     "answer": {
+      "verdict": "fail",
+      "blockingRules": [
+       "FF-S01"
+      ]
+     },
+     "evidence": {
+      "source": "results/v1.3-external/findings/event-sourcing-ddd.json",
+      "note": "instrument-defined truth; secondary analysis only"
+     }
+    }
+   }
+  },
+  "ddd-forum": {
+   "pin": "3aa0b8d3ad3b58c111c57974fb321ddb230bde73",
+   "files": 248,
+   "internalImportStatements": 919,
+   "crossCheckAgainstInstrument": {
+    "direction rows = FF-S01 u FF-S03 rows": {
+     "mine": 50,
+     "instrument": 50,
+     "equal": true
+    },
+    "files = parseCoverage.total (the key drops *.spec.ts / *.test.ts, as ddd-forum's tsconfig does; the instrument parses 250 of the 251 .ts files, test files included; no answer-bearing count moves)": {
+     "mine": 248,
+     "instrument": 250,
+     "equal": false
+    },
+    "files on cycles = universalMetrics.cyclicDependencyCount": {
+     "mine": 13,
+     "instrument": 13,
+     "equal": true
+    },
+    "max fan-in = universalMetrics.maxFanIn": {
+     "mine": 75,
+     "instrument": 75,
+     "equal": true
+    },
+    "cross-context imports vs FF-DS02 rows (FF-DS02 asserted only where public_api is declared narrower than the context)": {
+     "mine": 26,
+     "instrument": 26,
+     "equal": true
+    }
+   },
+   "answers": {
+    "DF-Q01": {
+     "template": "layer-of-file",
+     "truthSource": "spec globs",
+     "answer": "api",
+     "evidence": {
+      "file": "src/modules/forum/useCases/post/createPost/CreatePostController.ts"
+     }
+    },
+    "DF-Q02": {
+     "template": "direction-violation-count",
+     "truthSource": "tsc import graph + spec",
+     "answer": 50,
+     "evidence": {
+      "rows": [
+       "src/modules/forum/domain/post.ts:22 -> src/modules/forum/useCases/post/editPost/EditPostErrors.ts (domain->application)",
+       "src/modules/forum/domain/services/postService.ts:8 -> src/modules/forum/useCases/post/upvotePost/UpvotePostResponse.ts (domain->application)",
+       "src/modules/forum/domain/services/postService.ts:9 -> src/modules/forum/useCases/post/downvotePost/DownvotePostResponse.ts (domain->application)",
+       "src/modules/forum/domain/services/postService.ts:11 -> src/modules/forum/useCases/comments/upvoteComment/UpvoteCommentResonse.ts (domain->application)",
+       "src/modules/forum/domain/services/postService.ts:12 -> src/modules/forum/useCases/comments/downvoteComment/DownvoteCommentResponse.ts (domain->application)",
+       "src/modules/forum/repos/index.ts:2 -> src/modules/forum/repos/implementations/sequelizeMemberRepo.ts (domain->infrastructure)",
+       "src/modules/forum/repos/index.ts:3 -> src/shared/infra/database/sequelize/models/index.ts (domain->infrastructure)",
+       "src/modules/forum/repos/index.ts:4 -> src/modules/forum/repos/implementations/sequelizePostRepo.ts (domain->infrastructure)",
+       "src/modules/forum/repos/index.ts:5 -> src/modules/forum/repos/implementations/commentRepo.ts (domain->infrastructure)",
+       "src/modules/forum/repos/index.ts:6 -> src/modules/forum/repos/implementations/sequelizePostVotesRepo.ts (domain->infrastructure)",
+       "src/modules/forum/repos/index.ts:7 -> src/modules/forum/repos/implementations/sequelizeCommentVotesRepo.ts (domain->infrastructure)",
+       "src/modules/forum/useCases/comments/downvoteComment/index.ts:5 -> src/modules/forum/useCases/comments/downvoteComment/DownvoteCommentController.ts (application->api)",
+       "src/modules/forum/useCases/comments/getCommentByCommentId/GetCommentByCommentIdController.ts:5 -> src/modules/forum/mappers/commentDetailsMap.ts (api->infrastructure)",
+       "src/modules/forum/useCases/comments/getCommentByCommentId/index.ts:4 -> src/modules/forum/useCases/comments/getCommentByCommentId/GetCommentByCommentIdController.ts (application->api)",
+       "src/modules/forum/useCases/comments/getCommentsByPostSlug/GetCommentsByPostSlugController.ts:6 -> src/modules/forum/mappers/commentDetailsMap.ts (api->infrastructure)",
+       "src/modules/forum/useCases/comments/getCommentsByPostSlug/index.ts:4 -> src/modules/forum/useCases/comments/getCommentsByPostSlug/GetCommentsByPostSlugController.ts (application->api)",
+       "src/modules/forum/useCases/comments/replyToComment/index.ts:4 -> src/modules/forum/useCases/comments/replyToComment/ReplyToCommentController.ts (application->api)",
+       "src/modules/forum/useCases/comments/replyToPost/index.ts:4 -> src/modules/forum/useCases/comments/replyToPost/ReplyToPostController.ts (application->api)",
+       "src/modules/forum/useCases/comments/upvoteComment/index.ts:5 -> src/modules/forum/useCases/comments/upvoteComment/UpvoteCommentController.ts (application->api)",
+       "src/modules/forum/useCases/members/getCurrentMember/GetCurrentMemberController.ts:6 -> src/modules/forum/mappers/memberDetailsMap.ts (api->infrastructure)",
+       "src/modules/forum/useCases/members/getCurrentMember/index.ts:2 -> src/modules/forum/useCases/members/getCurrentMember/GetCurrentMemberController.ts (application->api)",
+       "src/modules/forum/useCases/members/getMemberByUserName/GetMemberByUserNameController.ts:7 -> src/modules/forum/mappers/memberDetailsMap.ts (api->infrastructure)",
+       "src/modules/forum/useCases/members/getMemberByUserName/index.ts:4 -> src/modules/forum/useCases/members/getMemberByUserName/GetMemberByUserNameController.ts (application->api)",
+       "src/modules/forum/useCases/post/createPost/index.ts:4 -> src/modules/forum/useCases/post/createPost/CreatePostController.ts (application->api)",
+       "src/modules/forum/useCases/post/downvotePost/index.ts:5 -> src/modules/forum/useCases/post/downvotePost/DownvotePostController.ts (application->api)",
+       "src/modules/forum/useCases/post/getPopularPosts/GetPopularPostsController.ts:6 -> src/modules/forum/mappers/postDetailsMap.ts (api->infrastructure)",
+       "src/modules/forum/useCases/post/getPopularPosts/index.ts:4 -> src/modules/forum/useCases/post/getPopularPosts/GetPopularPostsController.ts (application->api)",
+       "src/modules/forum/useCases/post/getPostBySlug/GetPostBySlugController.ts:2 -> src/modules/forum/mappers/postDetailsMap.ts (api->infrastructure)",
+       "src/modules/forum/useCases/post/getPostBySlug/index.ts:4 -> src/modules/forum/useCases/post/getPostBySlug/GetPostBySlugController.ts (application->api)",
+       "src/modules/forum/useCases/post/getRecentPosts/GetRecentPostsController.ts:6 -> src/modules/forum/mappers/postDetailsMap.ts (api->infrastructure)",
+       "src/modules/forum/useCases/post/getRecentPosts/index.ts:4 -> src/modules/forum/useCases/post/getRecentPosts/GetRecentPostsController.ts (application->api)",
+       "src/modules/forum/useCases/post/upvotePost/index.ts:5 -> src/modules/forum/useCases/post/upvotePost/UpvotePostController.ts (application->api)",
+       "src/modules/users/repos/index.ts:2 -> src/modules/users/repos/implementations/sequelizeUserRepo.ts (domain->infrastructure)",
+       "src/modules/users/repos/index.ts:3 -> src/shared/infra/database/sequelize/models/index.ts (domain->infrastructure)",
+       "src/modules/users/services/index.ts:2 -> src/modules/users/services/redis/redisConnection.ts (application->infrastructure)",
+       "src/modules/users/services/index.ts:3 -> src/modules/users/services/redis/redisAuthService.ts (application->infrastructure)",
+       "src/modules/users/services/redis/redisAuthService.ts:6 -> src/config/index.ts (infrastructure->composition)",
+       "src/modules/users/services/redis/redisConnection.ts:4 -> src/config/index.ts (infrastructure->composition)",
+       "src/modules/users/useCases/createUser/index.ts:3 -> src/modules/users/useCases/createUser/CreateUserController.ts (application->api)",
+       "src/modules/users/useCases/deleteUser/index.ts:3 -> src/modules/users/useCases/deleteUser/DeleteUserController.ts (application->api)",
+       "src/modules/users/useCases/getCurrentUser/GetCurrentUserController.ts:5 -> src/modules/users/mappers/userMap.ts (api->infrastructure)",
+       "src/modules/users/useCases/getCurrentUser/index.ts:1 -> src/modules/users/useCases/getCurrentUser/GetCurrentUserController.ts (application->api)",
+       "src/modules/users/useCases/getUserByUserName/index.ts:3 -> src/modules/users/useCases/getUserByUserName/GetUserByUserNameController.ts (application->api)",
+       "src/modules/users/useCases/login/index.ts:3 -> src/modules/users/useCases/login/LoginController.ts (application->api)",
+       "src/modules/users/useCases/logout/index.ts:5 -> src/modules/users/useCases/logout/LogoutController.ts (application->api)",
+       "src/modules/users/useCases/refreshAccessToken/index.ts:5 -> src/modules/users/useCases/refreshAccessToken/RefreshAccessTokenController.ts (application->api)",
+       "src/shared/infra/http/app.ts:8 -> src/config/index.ts (api->composition)",
+       "src/shared/infra/http/graphql/server.ts:3 -> src/modules/forum/mappers/postDetailsMap.ts (api->infrastructure)",
+       "src/shared/infra/http/graphql/server.ts:6 -> src/modules/forum/mappers/memberDetailsMap.ts (api->infrastructure)",
+       "src/shared/infra/http/utils/Middleware.ts:2 -> src/config/index.ts (api->composition)"
+      ]
+     }
+    },
+    "DF-Q03": {
+     "template": "files-importing-against-direction-from-layer",
+     "truthSource": "tsc import graph + spec",
+     "answer": [
+      "src/modules/forum/domain/post.ts",
+      "src/modules/forum/domain/services/postService.ts",
+      "src/modules/forum/repos/index.ts",
+      "src/modules/users/repos/index.ts"
+     ],
+     "evidence": {
+      "rows": [
+       "src/modules/forum/domain/post.ts:22 -> src/modules/forum/useCases/post/editPost/EditPostErrors.ts (application)",
+       "src/modules/forum/domain/services/postService.ts:8 -> src/modules/forum/useCases/post/upvotePost/UpvotePostResponse.ts (application)",
+       "src/modules/forum/domain/services/postService.ts:9 -> src/modules/forum/useCases/post/downvotePost/DownvotePostResponse.ts (application)",
+       "src/modules/forum/domain/services/postService.ts:11 -> src/modules/forum/useCases/comments/upvoteComment/UpvoteCommentResonse.ts (application)",
+       "src/modules/forum/domain/services/postService.ts:12 -> src/modules/forum/useCases/comments/downvoteComment/DownvoteCommentResponse.ts (application)",
+       "src/modules/forum/repos/index.ts:2 -> src/modules/forum/repos/implementations/sequelizeMemberRepo.ts (infrastructure)",
+       "src/modules/forum/repos/index.ts:3 -> src/shared/infra/database/sequelize/models/index.ts (infrastructure)",
+       "src/modules/forum/repos/index.ts:4 -> src/modules/forum/repos/implementations/sequelizePostRepo.ts (infrastructure)",
+       "src/modules/forum/repos/index.ts:5 -> src/modules/forum/repos/implementations/commentRepo.ts (infrastructure)",
+       "src/modules/forum/repos/index.ts:6 -> src/modules/forum/repos/implementations/sequelizePostVotesRepo.ts (infrastructure)",
+       "src/modules/forum/repos/index.ts:7 -> src/modules/forum/repos/implementations/sequelizeCommentVotesRepo.ts (infrastructure)",
+       "src/modules/users/repos/index.ts:2 -> src/modules/users/repos/implementations/sequelizeUserRepo.ts (infrastructure)",
+       "src/modules/users/repos/index.ts:3 -> src/shared/infra/database/sequelize/models/index.ts (infrastructure)"
+      ]
+     }
+    },
+    "DF-Q04": {
+     "template": "top-violating-layer-pair",
+     "truthSource": "tsc import graph + spec",
+     "answer": {
+      "pair": "application->api",
+      "count": 21
+     },
+     "evidence": {
+      "allPairs": {
+       "application->api": 21,
+       "api->infrastructure": 10,
+       "domain->infrastructure": 8,
+       "domain->application": 5,
+       "api->composition": 2,
+       "application->infrastructure": 2,
+       "infrastructure->composition": 2
+      }
+     }
+    },
+    "DF-Q05": {
+     "template": "files-in-import-cycles",
+     "truthSource": "tsc import graph (Tarjan SCC)",
+     "answer": {
+      "files": 13,
+      "largestCycleGroup": 5
+     },
+     "evidence": {
+      "stronglyConnectedComponents": [
+       [
+        "src/modules/forum/domain/events/commentPosted.ts",
+        "src/modules/forum/domain/events/commentVotesChanged.ts",
+        "src/modules/forum/domain/events/postCreated.ts",
+        "src/modules/forum/domain/events/postVotesChanged.ts",
+        "src/modules/forum/domain/post.ts"
+       ],
+       [
+        "src/modules/users/domain/events/userCreated.ts",
+        "src/modules/users/domain/events/userDeleted.ts",
+        "src/modules/users/domain/events/userLoggedIn.ts",
+        "src/modules/users/domain/user.ts"
+       ],
+       [
+        "src/modules/forum/domain/events/memberCreated.ts",
+        "src/modules/forum/domain/member.ts"
+       ],
+       [
+        "src/shared/domain/AggregateRoot.ts",
+        "src/shared/domain/events/DomainEvents.ts"
+       ]
+      ]
+     }
+    },
+    "DF-Q06": {
+     "template": "max-fan-in-file",
+     "truthSource": "tsc import graph",
+     "answer": {
+      "files": [
+       "src/shared/core/Result.ts"
+      ],
+      "importers": 75
+     },
+     "evidence": {
+      "top5": [
+       {
+        "file": "src/shared/core/Result.ts",
+        "importers": 75
+       },
+       {
+        "file": "src/shared/domain/UniqueEntityID.ts",
+        "importers": 33
+       },
+       {
+        "file": "src/shared/core/AppError.ts",
+        "importers": 28
+       },
+       {
+        "file": "src/shared/core/UseCase.ts",
+        "importers": 23
+       },
+       {
+        "file": "src/modules/forum/domain/memberId.ts",
+        "importers": 22
+       }
+      ]
+     }
+    },
+    "DF-Q07": {
+     "template": "cross-context-imports",
+     "truthSource": "tsc import graph + spec ddd.contexts roots",
+     "answer": {
+      "forum->users": 26,
+      "users->forum": 0
+     },
+     "evidence": {
+      "rows": [
+       "src/modules/forum/domain/member.ts:5 -> src/modules/users/domain/userId.ts",
+       "src/modules/forum/domain/member.ts:6 -> src/modules/users/domain/userName.ts",
+       "src/modules/forum/domain/memberDetails.ts:5 -> src/modules/users/domain/userName.ts",
+       "src/modules/forum/dtos/memberDTO.ts:2 -> src/modules/users/dtos/userDTO.ts",
+       "src/modules/forum/mappers/memberDetailsMap.ts:4 -> src/modules/users/domain/userName.ts",
+       "src/modules/forum/mappers/memberMap.ts:5 -> src/modules/users/domain/userName.ts",
+       "src/modules/forum/mappers/memberMap.ts:6 -> src/modules/users/domain/userId.ts",
+       "src/modules/forum/subscriptions/afterUserCreated.ts:2 -> src/modules/users/domain/user.ts",
+       "src/modules/forum/subscriptions/afterUserCreated.ts:3 -> src/modules/users/domain/events/userCreated.ts",
+       "src/modules/forum/useCases/comments/downvoteComment/DownvoteCommentController.ts:4 -> src/modules/users/infra/http/models/decodedRequest.ts",
+       "src/modules/forum/useCases/comments/getCommentByCommentId/GetCommentByCommentIdController.ts:7 -> src/modules/users/infra/http/models/decodedRequest.ts",
+       "src/modules/forum/useCases/comments/getCommentsByPostSlug/GetCommentsByPostSlugController.ts:7 -> src/modules/users/infra/http/models/decodedRequest.ts",
+       "src/modules/forum/useCases/comments/replyToComment/ReplyToCommentController.ts:3 -> src/modules/users/infra/http/models/decodedRequest.ts",
+       "src/modules/forum/useCases/comments/replyToPost/ReplyToPostController.ts:4 -> src/modules/users/infra/http/models/decodedRequest.ts",
+       "src/modules/forum/useCases/comments/upvoteComment/UpvoteCommentController.ts:4 -> src/modules/users/infra/http/models/decodedRequest.ts",
+       "src/modules/forum/useCases/members/createMember/CreateMember.ts:5 -> src/modules/users/repos/userRepo.ts",
+       "src/modules/forum/useCases/members/createMember/CreateMember.ts:9 -> src/modules/users/domain/user.ts",
+       "src/modules/forum/useCases/members/createMember/index.ts:3 -> src/modules/users/repos/index.ts",
+       "src/modules/forum/useCases/members/getCurrentMember/GetCurrentMemberController.ts:4 -> src/modules/users/infra/http/models/decodedRequest.ts",
+       "src/modules/forum/useCases/members/getMemberByUserName/GetMemberByUserNameController.ts:9 -> src/modules/users/infra/http/models/decodedRequest.ts",
+       "src/modules/forum/useCases/post/createPost/CreatePostController.ts:4 -> src/modules/users/infra/http/models/decodedRequest.ts",
+       "src/modules/forum/useCases/post/downvotePost/DownvotePostController.ts:4 -> src/modules/users/infra/http/models/decodedRequest.ts",
+       "src/modules/forum/useCases/post/getPopularPosts/GetPopularPostsController.ts:7 -> src/modules/users/infra/http/models/decodedRequest.ts",
+       "src/modules/forum/useCases/post/getPostBySlug/GetPostBySlugController.ts:8 -> src/modules/users/infra/http/models/decodedRequest.ts",
+       "src/modules/forum/useCases/post/getRecentPosts/GetRecentPostsController.ts:7 -> src/modules/users/infra/http/models/decodedRequest.ts",
+       "src/modules/forum/useCases/post/upvotePost/UpvotePostController.ts:4 -> src/modules/users/infra/http/models/decodedRequest.ts"
+      ]
+     }
+    },
+    "DF-Q08": {
+     "template": "hypothetical-import-allowed",
+     "truthSource": "spec",
+     "answer": {
+      "allowed": false,
+      "fromLayer": "domain",
+      "toLayer": "infrastructure"
+     },
+     "evidence": {
+      "allowedFrom": [
+       "domain"
+      ]
+     }
+    },
+    "DF-Q09": {
+     "template": "implementer-of-interface",
+     "truthSource": "TypeScript AST heritage clauses",
+     "answer": [
+      {
+       "file": "src/modules/forum/repos/implementations/sequelizePostRepo.ts",
+       "class": "PostRepo"
+      }
+     ],
+     "evidence": {
+      "source": "class heritage clauses (implements), TypeScript AST"
+     }
+    },
+    "DF-Q10": {
+     "template": "blocking-verdict",
+     "truthSource": "instrument report (committed, results/v1.3-external/findings)",
+     "answer": {
+      "verdict": "fail",
+      "blockingRules": [
+       "FF-DS02",
+       "FF-DT01",
+       "FF-DT02",
+       "FF-S01"
+      ]
+     },
+     "evidence": {
+      "source": "results/v1.3-external/findings/ddd-forum.json",
+      "note": "instrument-defined truth; secondary analysis only"
+     }
+    }
+   }
+  }
+ }
+}

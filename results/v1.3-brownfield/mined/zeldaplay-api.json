@@ -1,0 +1,127 @@
+{
+ "id": "zeldaplay-api",
+ "sha": "65f6a6e7bc502f3939dd0d3a037afae40bba1cb1",
+ "head": "65f6a6e7bc502f3939dd0d3a037afae40bba1cb1",
+ "declaredStyle": "nestjs",
+ "tsconfigNotes": [],
+ "label": "PROPOSED rules: mined from the code (deterministic, no LLM), not a reviewed spec. Review before use; exceptions are candidate violations, not confirmed ones.",
+ "style": "nestjs",
+ "styleConfidence": 1,
+ "layers": {
+  "presentation": 23,
+  "application": 20
+ },
+ "allowedDependencies": [
+  "presentation>application"
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "statement": "application must not depend on presentation (29 edges presentation -> application; 0/20 application files import presentation)",
+   "subject": "application",
+   "object": "presentation",
+   "confidence": 0.921,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 20,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 29
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-002",
+   "kind": "acyclic-files",
+   "statement": "no file lies on an import cycle (85/85 files do not)",
+   "subject": "*",
+   "confidence": 0.988,
+   "level": "high",
+   "evidence": {
+    "files": 85,
+    "filesOnCycles": 0,
+    "cycles": 0
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "no-cyclic-deps",
+    "via": "fitness function FF-S02"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-003",
+   "kind": "core-package-free",
+   "statement": "application (a core layer: it may depend on no other layer) imports none of @golevelup/nestjs-modules, @nestjs/core, compression, fs, helmet, nest-cookies, nestjs-spelunker, path, redis",
+   "subject": "application",
+   "confidence": 0.857,
+   "level": "high",
+   "evidence": {
+    "coreFiles": 20,
+    "packages": 9
+   },
+   "exceptions": [
+    {
+     "file": "src/app/config/config.service.ts",
+     "target": "fs"
+    },
+    {
+     "file": "src/app/config/config.service.ts",
+     "target": "path"
+    },
+    {
+     "file": "src/app/config/config.service.ts",
+     "target": "redis"
+    },
+    {
+     "file": "src/app/cookie/cookie.service.ts",
+     "target": "nest-cookies"
+    },
+    {
+     "file": "src/app/redis/redis.service.ts",
+     "target": "redis"
+    }
+   ],
+   "params": {
+    "forbidden_imports": [
+     "@golevelup/nestjs-modules",
+     "@nestjs/core",
+     "compression",
+     "fs",
+     "helmet",
+     "nest-cookies",
+     "nestjs-spelunker",
+     "path",
+     "redis"
+    ]
+   },
+   "compilesTo": null,
+   "notRepresentable": "domain-purity checks the domain-kind layer only (domain), not application",
+   "status": "proposal"
+  }
+ ],
+ "counts": {
+  "rules": 3,
+  "high": 3,
+  "medium": 0,
+  "low": 0,
+  "exceptions": 5,
+  "notRepresentable": 1
+ },
+ "spec": {
+  "valid": true,
+  "errors": [],
+  "compiled": [
+   "dependency-direction",
+   "no-cyclic-deps"
+  ]
+ }
+}

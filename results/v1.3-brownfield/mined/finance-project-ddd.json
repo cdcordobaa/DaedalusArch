@@ -1,0 +1,304 @@
+{
+ "id": "finance-project-ddd",
+ "sha": "9f0725a83be4863db3da230e3bf9c5fa3f6c9a7d",
+ "head": "9f0725a83be4863db3da230e3bf9c5fa3f6c9a7d",
+ "declaredStyle": "ddd",
+ "tsconfigNotes": [],
+ "label": "PROPOSED rules: mined from the code (deterministic, no LLM), not a reviewed spec. Review before use; exceptions are candidate violations, not confirmed ones.",
+ "style": "nestjs",
+ "styleConfidence": 0.667,
+ "layers": {
+  "presentation": 11,
+  "domain": 5,
+  "application": 144,
+  "infrastructure": 5
+ },
+ "allowedDependencies": [
+  "application>domain",
+  "infrastructure>application",
+  "presentation>application",
+  "presentation>domain",
+  "presentation>infrastructure"
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "statement": "domain must not depend on infrastructure (1 edges infrastructure -> domain; 0/5 domain files import infrastructure)",
+   "subject": "domain",
+   "object": "infrastructure",
+   "confidence": 0.417,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 5,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "statement": "domain must not depend on application (12 edges application -> domain; 0/5 domain files import application)",
+   "subject": "domain",
+   "object": "application",
+   "confidence": 0.769,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 5,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 12
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "statement": "domain must not depend on presentation (2 edges presentation -> domain; 0/5 domain files import presentation)",
+   "subject": "domain",
+   "object": "presentation",
+   "confidence": 0.556,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 5,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 2
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-004",
+   "kind": "layer-rare-edge",
+   "statement": "infrastructure should not depend on domain (1/5 infrastructure files imports it; nothing goes back)",
+   "subject": "infrastructure",
+   "object": "domain",
+   "confidence": 0.333,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 5,
+    "importingFiles": 1,
+    "edges": 1,
+    "reverseEdges": 0
+   },
+   "exceptions": [
+    {
+     "file": "src/modules/user/infra/services/strategies/jwt.strategy.ts",
+     "target": "src/config/env.ts"
+    }
+   ],
+   "compilesTo": null,
+   "notRepresentable": "style nestjs orders its layers totally: dependency-direction allows every inward import, and no-layer-skip applies to the layered style only",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-005",
+   "kind": "layer-direction",
+   "statement": "infrastructure must not depend on presentation (4 edges presentation -> infrastructure; 0/5 infrastructure files import presentation)",
+   "subject": "infrastructure",
+   "object": "presentation",
+   "confidence": 0.667,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 5,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 4
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-006",
+   "kind": "layer-direction",
+   "statement": "application must not depend on infrastructure (20 edges infrastructure -> application; 0/144 application files import infrastructure)",
+   "subject": "application",
+   "object": "infrastructure",
+   "confidence": 0.946,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 144,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 20
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-007",
+   "kind": "layer-direction",
+   "statement": "application must not depend on presentation (59 edges presentation -> application; 7/144 application files import presentation)",
+   "subject": "application",
+   "object": "presentation",
+   "confidence": 0.832,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 144,
+    "importingFiles": 7,
+    "edges": 7,
+    "reverseEdges": 59
+   },
+   "exceptions": [
+    {
+     "file": "src/modules/budget-box/infra/budget-box.service.ts",
+     "target": "src/utils/check-result.interceptor.ts"
+    },
+    {
+     "file": "src/modules/budget-box/infra/resolver/budget-box.resolver.ts",
+     "target": "src/modules/user/infra/services/guards/jwt-auth.guard.ts"
+    },
+    {
+     "file": "src/modules/shared/index.ts",
+     "target": "src/modules/shared/infra/shared.module.ts"
+    },
+    {
+     "file": "src/modules/transaction/infra/resolver/transaction.resolver.ts",
+     "target": "src/modules/user/infra/services/guards/jwt-auth.guard.ts"
+    },
+    {
+     "file": "src/modules/transaction/infra/transaction.service.ts",
+     "target": "src/utils/check-result.interceptor.ts"
+    },
+    {
+     "file": "src/modules/user/infra/resolver/user.resolver.ts",
+     "target": "src/modules/user/infra/services/guards/jwt-auth.guard.ts"
+    },
+    {
+     "file": "src/modules/user/infra/user.service.ts",
+     "target": "src/utils/check-result.interceptor.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-008",
+   "kind": "component-direction",
+   "statement": "folder component config must not depend on modules (14 imports modules -> config; 0/4 files import back)",
+   "subject": "folder:config",
+   "object": "folder:modules",
+   "confidence": 0.747,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 4,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 14
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-009",
+   "kind": "component-direction",
+   "statement": "folder component utils must not depend on modules (3 imports modules -> utils; 0/1 files import back)",
+   "subject": "folder:utils",
+   "object": "folder:modules",
+   "confidence": 0.375,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 1,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 3
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-010",
+   "kind": "core-package-free",
+   "statement": "domain (a core layer: it may depend on no other layer) imports none of @nestjs/common, @nestjs/graphql, @nestjs/jwt, @nestjs/passport, express, mongodb, mongoose, passport-jwt, path, ua-parser-js, validator",
+   "subject": "domain",
+   "confidence": 0.833,
+   "level": "high",
+   "evidence": {
+    "coreFiles": 5,
+    "packages": 11
+   },
+   "exceptions": [],
+   "params": {
+    "forbidden_imports": [
+     "@nestjs/common",
+     "@nestjs/graphql",
+     "@nestjs/jwt",
+     "@nestjs/passport",
+     "express",
+     "mongodb",
+     "mongoose",
+     "passport-jwt",
+     "path",
+     "ua-parser-js",
+     "validator"
+    ]
+   },
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "domain-purity",
+    "via": "fitness function FF-P01 (domain-purity) forbidden_imports"
+   },
+   "status": "proposal"
+  }
+ ],
+ "counts": {
+  "rules": 10,
+  "high": 4,
+  "medium": 3,
+  "low": 3,
+  "exceptions": 8,
+  "notRepresentable": 1
+ },
+ "spec": {
+  "valid": true,
+  "errors": [],
+  "compiled": [
+   "dependency-direction",
+   "domain-purity"
+  ]
+ }
+}

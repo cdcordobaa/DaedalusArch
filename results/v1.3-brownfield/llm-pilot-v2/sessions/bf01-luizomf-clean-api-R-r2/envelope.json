@@ -1,0 +1,99 @@
+{
+ "duration_api_ms": 16194,
+ "stop_reason": "end_turn",
+ "session_id": "efa2143e-52eb-4321-a50b-f76f1113e3d4",
+ "total_cost_usd": 0.0353902,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 1297,
+  "cache_read_input_tokens": 36642,
+  "output_tokens": 2653,
+  "output_tokens_details": {
+   "thinking_tokens": 331
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 1297,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2040,
+    "cache_read_input_tokens": 18321,
+    "cache_creation_input_tokens": 1297,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1297
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-sonnet-5-5": {
+   "inputTokens": 4,
+   "outputTokens": 2653,
+   "cacheReadInputTokens": 36642,
+   "cacheCreationInputTokens": 1297,
+   "webSearchRequests": 0,
+   "costUSD": 0.0353902,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 331,
+   "canonicalModel": "claude-sonnet-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 3,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "The layer order below puts `presentation` before `infrastructure`. That follows the README's data flow, where express routes (infrastructure) call controllers (presentation). I made two choices the README doesn't state outright:\n- **`common`:** It is left out of every layer, as a cross-cutting concern.\n- **`main`:** It is a composition-root layer with `kind: infrastructure`, placed outermost.\n\nTwo greps support the layering: `src/domain` has no imports from the outer layers or `common`, and `src/application` has no imports from `presentation`, `infrastructure` or `main`. I did not read the other layers' imports, so the order for those layers rests on the README.\n\nThe one fitness-function change is FF-P01. Its `forbidden_imports` gain `knex` and `pg`, since the README names knex as the data-storage detail. The preset's default excludes are unchanged.\n\n```yaml\narchitecture:\n  style: clean-architecture\n  layers:\n    - name: domain\n      kind: domain\n      directories:\n        - src/domain/**\n      file_patterns:\n        - \"src/domain/**/*.ts\"\n      roles: [entity, value-object, domain-service]\n    - name: application\n      kind: application\n      directories:\n        - src/application/**\n      file_patterns:\n        - \"src/application/**/*.ts\"\n      roles: [use-case, dto, application-service, repository-interface]\n    - name: presentation\n      kind: presentation\n      directories:\n        - src/presentation/**\n      file_patterns:\n        - \"src/presentation/**/*.ts\"\n      roles: [controller, middleware]\n    - name: infrastructure\n      kind: infrastructure\n      directories:\n        - src/infrastructure/**\n      file_patterns:\n        - \"src/infrastructure/**/*.ts\"\n      roles: [repository-impl, orm-entity]\n    - name: main\n      kind: infrastructure\n      directories:\n        - src/main/**\n      file_patterns:\n        - \"src/main/**/*.ts\"\n      roles: [factory]\nfitness_overrides:\n  - id: FF-P01\n    enabled: true\n    reason: \"README names knex as the replaceable data-storage detail; inner layers must not import it\"\n    params:\n      forbidden_imports: [\"@nestjs/*\", typeorm, express, prisma, \"@prisma/*\", sequelize, knex, pg]\n```\n\n```json\n{\"units\": [\n{\"id\":\"layer:domain\",\"claim\":\"Domain holds entities/models and use-case interfaces and imports nothing from outer layers.\",\"origin\":\"proposed\",\"citations\":[{\"type\":\"doc\",\"file\":\"README.md\",\"line\":19,\"quote\":\"This is the \\\"domain\\\" or \\\"entities\\\" layer. Here's the description by Uncle Bob:\"},{\"type\":\"pattern\",\"glob\":\"src/domain/**\",\"count\":17}]},\n{\"id\":\"layer:application\",\"claim\":\"Application holds use cases, ports, errors and validations, depending only on domain.\",\"origin\":\"proposed\",\"citations\":[{\"type\":\"doc\",\"file\":\"README.md\",\"line\":27,\"quote\":\"This is the **\\\"Use Cases\\\"** layer. Here you may add the application **Use cases**. Here's the description by Uncle Bob:\"},{\"type\":\"pattern\",\"glob\":\"src/application/**\",\"count\":68}]},\n{\"id\":\"layer:presentation\",\"claim\":\"Presentation holds controllers, middlewares and response classes.\",\"origin\":\"proposed\",\"citations\":[{\"type\":\"doc\",\"file\":\"README.md\",\"line\":39,\"quote\":\"I'm using the name **\\\"Presentation\\\"** for this layer.\"},{\"type\":\"pattern\",\"glob\":\"src/presentation/**\",\"count\":24}]},\n{\"id\":\"layer:infrastructure\",\"claim\":\"Infrastructure holds express, knex and repository implementations (frameworks and drivers).\",\"origin\":\"proposed\",\"citations\":[{\"type\":\"doc\",\"file\":\"README.md\",\"line\":51,\"quote\":\"This folder (layer) is where we add everything related to external \\\"**Frameworks and Drivers**\\\". Here you can add the repositories, external frameworks, web and so on.\"},{\"type\":\"pattern\",\"glob\":\"src/infrastructure/**\",\"count\":38}]},\n{\"id\":\"layer:main\",\"claim\":\"Main is the composition root with factories and may depend on all layers.\",\"origin\":\"proposed\",\"citations\":[{\"type\":\"doc\",\"file\":\"README.md\",\"line\":61,\"quote\":\"This layer is where we put everything together. It's the \\\"dirty layer\\\", because most factories will be here. It may depend on all other layers in the system.\"},{\"type\":\"pattern\",\"glob\":\"src/main/**\",\"count\":9}]},\n{\"id\":\"order\",\"claim\":\"Order from inner to outer: domain, application, presentation, infrastructure, main; dependencies point inwards; common is cross-cutting and in no layer.\",\"origin\":\"proposed\",\"citations\":[{\"type\":\"doc\",\"file\":\"README.md\",\"line\":74,\"quote\":\"The overriding rule that makes this architecture work is The Dependency Rule. This rule says that source code dependencies can only point inwards. Nothing in an inner circle can know anything at all about something in an outer circle. In particular, the name of something declared in an outer circle must not be mentioned by the code in the an inner circle. That includes, functions, classes. variables, or any other named software entity.\"},{\"type\":\"doc\",\"file\":\"README.md\",\"line\":78,\"quote\":\"In our case, data enter the system via \\\"express routes\\\" (infrastructure layer) to the \\\"controllers\\\" (adapters layer), to the \\\"use cases\\\" (application layer), to the \\\"domain\\\" (domain/entities layer).\"},{\"type\":\"pattern\",\"glob\":\"src/common/**\",\"count\":21}]},\n{\"id\":\"ff:FF-P01\",\"claim\":\"Domain purity also forbids knex and pg imports in inner layers.\",\"origin\":\"proposed\",\"citations\":[{\"type\":\"doc\",\"file\":\"README.md\",\"line\":7,\"quote\":\"For data storage, I'm using [knex query builder](http://knexjs.org/), so you can use Postgres, MSSQL, MySQL, MariaDB, SQLite3, Oracle, and Amazon Redshift.\"},{\"type\":\"pattern\",\"glob\":\"src/infrastructure/knex/**\",\"count\":9}]}\n]}\n```",
+ "ttft_ms": 4119,
+ "type": "result",
+ "duration_ms": 16558,
+ "uuid": "31770cc4-31d4-4c18-99d9-7a42b143a7bf",
+ "ttft_stream_ms": 1513,
+ "time_to_request_ms": 337,
+ "first_content_frame_ms": 1513,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

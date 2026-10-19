@@ -1,0 +1,87 @@
+```yaml
+architecture:
+  style: clean-architecture
+  layers:
+    - name: domain
+      kind: domain
+      directories:
+        - src/domain/**
+      file_patterns:
+        - src/domain/**/*.ts
+      roles:
+        - entity
+        - value-object
+        - use-case-interface
+    - name: application
+      kind: application
+      directories:
+        - src/application/**
+      file_patterns:
+        - src/application/**/*.ts
+      roles:
+        - use-case
+        - port
+        - validation
+        - dto
+    - name: presentation
+      kind: presentation
+      directories:
+        - src/presentation/**
+      file_patterns:
+        - src/presentation/**/*.ts
+      roles:
+        - controller
+        - middleware
+        - response
+    - name: infrastructure
+      kind: infrastructure
+      directories:
+        - src/infrastructure/**
+      file_patterns:
+        - src/infrastructure/**/*.ts
+      roles:
+        - repository-impl
+        - orm-entity
+        - middleware
+    - name: main
+      kind: infrastructure
+      directories:
+        - src/main/**
+      file_patterns:
+        - src/main/**/*.ts
+      roles:
+        - factory
+default_exclude_paths:
+  - "node_modules/**"
+  - "dist/**"
+  - "**/*.spec.ts"
+  - "**/*.test.ts"
+```
+
+```json
+{"units":[
+{"id":"layer:domain","claim":"Domain holds entities/models and use-case interfaces under src/domain and imports no other layer.","origin":"proposed","citations":[
+{"type":"doc","file":"README.md","line":19,"quote":"This is the \"domain\" or \"entities\" layer. Here's the description by Uncle Bob:"},
+{"type":"pattern","glob":"src/domain/**/*.ts","count":16},
+{"type":"stat","query":"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath STARTS WITH 'src/domain/' AND NOT b.filePath STARTS WITH 'src/domain/' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator","numerator":0,"denominator":0}]},
+{"id":"layer:application","claim":"Application holds use cases, ports, validations and errors, depending only on domain (and the common helpers).","origin":"proposed","citations":[
+{"type":"doc","file":"README.md","line":27,"quote":"This is the **\"Use Cases\"** layer. Here you may add the application **Use cases**. Here's the description by Uncle Bob:"},
+{"type":"pattern","glob":"src/application/**/*.ts","count":62},
+{"type":"stat","query":"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath STARTS WITH 'src/application/' AND b.filePath STARTS WITH 'src/domain/' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator","numerator":39,"denominator":25}]},
+{"id":"layer:presentation","claim":"Presentation holds controllers, middlewares and response classes that depend inward on application and domain.","origin":"proposed","citations":[
+{"type":"doc","file":"README.md","line":39,"quote":"I'm using the name **\"Presentation\"** for this layer."},
+{"type":"pattern","glob":"src/presentation/**/*.ts","count":26},
+{"type":"stat","query":"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath STARTS WITH 'src/presentation/' AND b.filePath STARTS WITH 'src/application/' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator","numerator":47,"denominator":13}]},
+{"id":"layer:infrastructure","claim":"Infrastructure holds express, knex and repository implementations (frameworks and drivers) that depend inward on application and domain.","origin":"proposed","citations":[
+{"type":"doc","file":"README.md","line":51,"quote":"This folder (layer) is where we add everything related to external \"**Frameworks and Drivers**\". Here you can add the repositories, external frameworks, web and so on."},
+{"type":"pattern","glob":"src/infrastructure/**/*.ts","count":35},
+{"type":"stat","query":"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath STARTS WITH 'src/infrastructure/' AND b.filePath STARTS WITH 'src/application/' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator","numerator":28,"denominator":7}]},
+{"id":"layer:main","claim":"Main is the composition layer holding factories that may depend on every other layer; src/common is deliberately left outside all layers as a cross-cutting concern.","origin":"proposed","citations":[
+{"type":"doc","file":"README.md","line":61,"quote":"This layer is where we put everything together. It's the \"dirty layer\", because most factories will be here. It may depend on all other layers in the system."},
+{"type":"pattern","glob":"src/main/**/*.ts","count":9},
+{"type":"stat","query":"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath STARTS WITH 'src/main/' AND (b.filePath STARTS WITH 'src/presentation/' OR b.filePath STARTS WITH 'src/infrastructure/' OR b.filePath STARTS WITH 'src/application/') RETURN count(*) AS numerator, count(DISTINCT a) AS denominator","numerator":38,"denominator":9}]},
+{"id":"order","claim":"Order is domain, application, presentation, infrastructure, main (innermost first); inward imports dominate, with 9 infrastructure-to-main edges violating it.","origin":"proposed","citations":[
+{"type":"doc","file":"README.md","line":74,"quote":">The overriding rule that makes this architecture work is The Dependency Rule. This rule says that source code dependencies can only point inwards. Nothing in an inner circle can know anything at all about something in an outer circle. In particular, the name of something declared in an outer circle must not be mentioned by the code in the an inner circle. That includes, functions, classes. variables, or any other named software entity."},
+{"type":"stat","query":"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath STARTS WITH 'src/infrastructure/' AND b.filePath STARTS WITH 'src/main/' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator","numerator":9,"denominator":3}]}
+]}
+```

@@ -1,0 +1,1040 @@
+{
+  "runId": "run-1792366640434",
+  "projectPath": "tmp/brownfield-clones/bulletproof-nodejs/.",
+  "specVersion": "1.0.0",
+  "ahsDeterministic": 0.71,
+  "verdict": "hard-block",
+  "scoring": {
+    "weights": {
+      "structural": 0.35,
+      "coupling": 0.2,
+      "pattern": 0.3,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0,
+      "integrity": 0
+    },
+    "fullModeWeights": {
+      "structural": 0.32,
+      "coupling": 0.18,
+      "pattern": 0.27,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0.04,
+      "integrity": 0.04
+    },
+    "thresholds": {
+      "pass": 0.8,
+      "warning": 0.65,
+      "softBlock": 0.5
+    },
+    "confidenceThresholds": {
+      "high": 0.85,
+      "medium": 0.6,
+      "iccMinimum": 0.7
+    },
+    "verdictSource": "ahsDeterministic"
+  },
+  "perDimensionScores": [
+    {
+      "dimension": "structural",
+      "avr": 0.667,
+      "violatedWeight": 2,
+      "weight": 0.35,
+      "effectiveWeight": 0.35,
+      "violationCount": 2,
+      "functionCount": 3
+    },
+    {
+      "dimension": "coupling",
+      "avr": 0.2,
+      "violatedWeight": 1,
+      "weight": 0.2,
+      "effectiveWeight": 0.2,
+      "violationCount": 1,
+      "functionCount": 5
+    },
+    {
+      "dimension": "pattern",
+      "avr": 0,
+      "violatedWeight": 0,
+      "weight": 0.3,
+      "effectiveWeight": 0.3,
+      "violationCount": 0,
+      "functionCount": 1
+    },
+    {
+      "dimension": "solid",
+      "avr": 0,
+      "violatedWeight": 0,
+      "weight": 0.1,
+      "effectiveWeight": 0.1,
+      "violationCount": 0,
+      "functionCount": 3
+    },
+    {
+      "dimension": "convention",
+      "avr": 0.333,
+      "violatedWeight": 1,
+      "weight": 0.05,
+      "effectiveWeight": 0.05,
+      "violationCount": 1,
+      "functionCount": 3
+    }
+  ],
+  "violations": [
+    {
+      "id": "v-98ba6156ff888500",
+      "type": "LAYER_VIOLATION",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S01",
+      "route": "symbolic",
+      "filePath": "src/models/user.ts",
+      "message": "src/models/user.ts (persistence) imports from src/interfaces/IUser.ts (business)",
+      "deterministic": true,
+      "target": "src/interfaces/IUser.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-0927f3d81726a665",
+      "type": "LAYER_SKIP",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S03",
+      "route": "symbolic",
+      "filePath": "src/models/user.ts",
+      "message": "src/models/user.ts (persistence) skips layers to import src/interfaces/IUser.ts (business)",
+      "deterministic": true,
+      "target": "src/interfaces/IUser.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-e75c9845a74328d5",
+      "type": "INSTABILITY_VIOLATION",
+      "dimension": "coupling",
+      "severity": "major",
+      "functionId": "FF-C03",
+      "route": "symbolic",
+      "filePath": "src/services/auth.ts",
+      "message": "Violation in src/services/auth.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "evidence": [
+        "instability=0.8333333333333334"
+      ],
+      "tag": "topological"
+    },
+    {
+      "id": "v-44d292c7ec96c6c2",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/api/index.ts",
+      "message": "Violation in src/api/index.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-fa346839c4cb1f7d",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/api/middlewares/attachCurrentUser.ts",
+      "message": "Violation in src/api/middlewares/attachCurrentUser.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-2c1358b43fbb86f0",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/api/middlewares/index.ts",
+      "message": "Violation in src/api/middlewares/index.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-5c755fe0914fbfa9",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/api/middlewares/isAuth.ts",
+      "message": "Violation in src/api/middlewares/isAuth.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-f19777c2928886e8",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/api/routes/agendash.ts",
+      "message": "Violation in src/api/routes/agendash.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-f558e1175f052757",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/api/routes/auth.ts",
+      "message": "Violation in src/api/routes/auth.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-58a49934e0c1cde6",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/api/routes/user.ts",
+      "message": "Violation in src/api/routes/user.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-9e22b0e303c0dcb9",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/decorators/eventDispatcher.ts",
+      "message": "Violation in src/decorators/eventDispatcher.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-c38a255ab5ec5804",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/interfaces/IUser.ts",
+      "message": "Violation in src/interfaces/IUser.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-5e9597679a72f1ef",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/jobs/emailSequence.ts",
+      "message": "Violation in src/jobs/emailSequence.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-92133c9c07485386",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/models/user.ts",
+      "message": "Violation in src/models/user.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b4452c40b31debe8",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/services/auth.ts",
+      "message": "Violation in src/services/auth.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-98776981fafd3251",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/services/mailer.ts",
+      "message": "Violation in src/services/mailer.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b186b382a46dd2bc",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/subscribers/events.ts",
+      "message": "Violation in src/subscribers/events.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    },
+    {
+      "id": "v-b9402e4486bd53fb",
+      "type": "MISSING_TEST_FILE",
+      "dimension": "convention",
+      "severity": "advisory",
+      "functionId": "FF-CV05",
+      "route": "symbolic",
+      "filePath": "src/subscribers/user.ts",
+      "message": "Violation in src/subscribers/user.ts",
+      "deterministic": true,
+      "discriminator": [],
+      "tag": "pattern-proxy"
+    }
+  ],
+  "universalMetrics": {
+    "cyclicDependencyCount": 0,
+    "maxFanOut": 7,
+    "maxFanIn": 10,
+    "abstractionRatio": 0.333,
+    "averageInstability": 0.502,
+    "orphanFileCount": 0
+  },
+  "evaluationMode": "symbolic-only",
+  "durationMs": 19,
+  "droppedDimensions": [],
+  "tiers": {
+    "scoringMode": "v1.3",
+    "tierTable": "Docs/v1.3/rule-tiers.md",
+    "style": "layered",
+    "verdict": "fail",
+    "verdictRule": "any-blocking-violation",
+    "v12eVerdict": "warning",
+    "blockingAhs": 0.641,
+    "blocking": {
+      "rules": [
+        {
+          "functionId": "FF-P01",
+          "name": "domain-purity",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-S01",
+          "name": "dependency-direction",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 1,
+          "violated": true
+        },
+        {
+          "functionId": "FF-S02",
+          "name": "no-cyclic-deps",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-S03",
+          "name": "no-layer-skip",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 1,
+          "violated": true
+        }
+      ],
+      "violatedRules": 2,
+      "violationCount": 2
+    },
+    "advisory": {
+      "rules": [
+        {
+          "functionId": "FF-C02",
+          "name": "module-fan-out",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-C03",
+          "name": "component-instability",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 1,
+          "violated": true
+        },
+        {
+          "functionId": "FF-C04",
+          "name": "no-orphan-files",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-C05",
+          "name": "max-fan-in",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-C06",
+          "name": "abstraction-ratio",
+          "dimension": "coupling",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-CV03",
+          "name": "naming-repos",
+          "dimension": "convention",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-CV05",
+          "name": "test-file-pairing",
+          "dimension": "convention",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 15,
+          "violated": true
+        },
+        {
+          "functionId": "FF-CV06",
+          "name": "no-index-logic",
+          "dimension": "convention",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-SO01",
+          "name": "single-responsibility-proxy",
+          "dimension": "solid",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-SO02",
+          "name": "interface-segregation-proxy",
+          "dimension": "solid",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-SO03",
+          "name": "inheritance-depth",
+          "dimension": "solid",
+          "tier": "advisory",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        }
+      ],
+      "violatedRules": 2,
+      "violationCount": 16
+    },
+    "notApplicable": [],
+    "blockingNotExecuted": []
+  },
+  "warnings": [
+    {
+      "code": "SPEC_001",
+      "message": "Unknown field \"default_exclude_paths\" in spec (ignored)",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "COMPILER_004",
+      "message": "FF-C01 (domain-stability) disabled: not applicable to style layered",
+      "context": {
+        "functionId": "FF-C01"
+      },
+      "stage": "compile-functions"
+    },
+    {
+      "code": "COMPILER_004",
+      "message": "FF-CV02 (naming-services) disabled: no application layer",
+      "context": {
+        "functionId": "FF-CV02"
+      },
+      "stage": "compile-functions"
+    },
+    {
+      "code": "COMPILER_004",
+      "message": "FF-P02 (dependency-inversion) disabled: not applicable to style layered",
+      "context": {
+        "functionId": "FF-P02"
+      },
+      "stage": "compile-functions"
+    },
+    {
+      "code": "COMPILER_004",
+      "message": "FF-P03 (repository-pattern) disabled: not applicable to style layered",
+      "context": {
+        "functionId": "FF-P03"
+      },
+      "stage": "compile-functions"
+    },
+    {
+      "code": "COMPILER_004",
+      "message": "FF-P04 (use-case-isolation) disabled: not applicable to style layered",
+      "context": {
+        "functionId": "FF-P04"
+      },
+      "stage": "compile-functions"
+    },
+    {
+      "code": "COMPILER_004",
+      "message": "FF-P05 (controller-no-entity) disabled: not applicable to style layered",
+      "context": {
+        "functionId": "FF-P05"
+      },
+      "stage": "compile-functions"
+    },
+    {
+      "code": "COMPILER_004",
+      "message": "FF-P06 (domain-state-purity) disabled: not applicable to style layered (v1.3: FF-P06 needs a style with an isolated domain; layered permits the business layer to use the layer below (ADR-V13-02 draft))",
+      "context": {
+        "functionId": "FF-P06"
+      },
+      "stage": "compile-functions"
+    },
+    {
+      "code": "COMPILER_004",
+      "message": "FF-S04 (no-domain-outward-dep) disabled: not applicable to style layered",
+      "context": {
+        "functionId": "FF-S04"
+      },
+      "stage": "compile-functions"
+    }
+  ],
+  "functionExecution": {
+    "declared": 27,
+    "adrDerived": 0,
+    "compiled": 17,
+    "disabled": 10,
+    "dropped": [],
+    "skippedByMode": 2,
+    "noJudgeUnits": [],
+    "executed": 15,
+    "failed": []
+  },
+  "functionResults": [
+    {
+      "functionId": "FF-S01",
+      "name": "dependency-direction",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 42,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S03",
+      "name": "no-layer-skip",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 11,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C02",
+      "name": "module-fan-out",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 3,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C03",
+      "name": "component-instability",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": false,
+      "violationCount": 1,
+      "executionTimeMs": 6,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C04",
+      "name": "no-orphan-files",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 9,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C05",
+      "name": "max-fan-in",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-C06",
+      "name": "abstraction-ratio",
+      "dimension": "coupling",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 4,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-S02",
+      "name": "no-cyclic-deps",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 42,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO03",
+      "name": "inheritance-depth",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "topological",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV03",
+      "name": "naming-repos",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV05",
+      "name": "test-file-pairing",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": false,
+      "violationCount": 15,
+      "executionTimeMs": 12,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-CV06",
+      "name": "no-index-logic",
+      "dimension": "convention",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 4,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P01",
+      "name": "domain-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 6,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO01",
+      "name": "single-responsibility-proxy",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 2,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-SO02",
+      "name": "interface-segregation-proxy",
+      "dimension": "solid",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 1,
+      "truncated": false
+    }
+  ],
+  "disabledFunctions": [
+    {
+      "functionId": "FF-C01",
+      "name": "domain-stability",
+      "reason": "not applicable to style layered"
+    },
+    {
+      "functionId": "FF-CV01",
+      "name": "naming-conventions",
+      "reason": "ADR-016 b (B&T Step 31): cannot fire; per-layer naming patterns compile to .* and no requirement supplies them (SP-FF-CV01 not fired)"
+    },
+    {
+      "functionId": "FF-CV02",
+      "name": "naming-services",
+      "reason": "no application layer"
+    },
+    {
+      "functionId": "FF-CV04",
+      "name": "naming-controllers",
+      "reason": "ADR-016 b (B&T Step 31): cannot fire; class decorators are not ingested (BR-U2-31), so no controller is selected (SP-FF-CV04 not fired)"
+    },
+    {
+      "functionId": "FF-P02",
+      "name": "dependency-inversion",
+      "reason": "not applicable to style layered"
+    },
+    {
+      "functionId": "FF-P03",
+      "name": "repository-pattern",
+      "reason": "not applicable to style layered"
+    },
+    {
+      "functionId": "FF-P04",
+      "name": "use-case-isolation",
+      "reason": "not applicable to style layered"
+    },
+    {
+      "functionId": "FF-P05",
+      "name": "controller-no-entity",
+      "reason": "not applicable to style layered"
+    },
+    {
+      "functionId": "FF-P06",
+      "name": "domain-state-purity",
+      "reason": "not applicable to style layered (v1.3: FF-P06 needs a style with an isolated domain; layered permits the business layer to use the layer below (ADR-V13-02 draft))"
+    },
+    {
+      "functionId": "FF-S04",
+      "name": "no-domain-outward-dep",
+      "reason": "not applicable to style layered"
+    }
+  ],
+  "graphStats": {
+    "nodeCount": 62,
+    "edgeCount": 106,
+    "layerCoverage": 0.6,
+    "nodeCountByType": {
+      "File": 25,
+      "Class": 4,
+      "Interface": 2,
+      "Method": 8,
+      "Function": 2,
+      "Package": 21
+    },
+    "edgeCountByType": {
+      "IMPORTS": 87,
+      "IMPLEMENTS": 0,
+      "EXTENDS": 0,
+      "CONSTRUCTOR_INJECTS": 1,
+      "CALLS": 1,
+      "DECLARES": 8,
+      "CONTAINS": 8,
+      "FLOWS_TO": 0,
+      "RE_EXPORTS": 1
+    }
+  },
+  "layerAnnotation": {
+    "mapped": 15,
+    "unmapped": 10,
+    "unmappedFiles": [
+      "src/app.ts",
+      "src/config/index.ts",
+      "src/loaders/agenda.ts",
+      "src/loaders/dependencyInjector.ts",
+      "src/loaders/events.ts",
+      "src/loaders/express.ts",
+      "src/loaders/index.ts",
+      "src/loaders/jobs.ts",
+      "src/loaders/logger.ts",
+      "src/loaders/mongoose.ts"
+    ]
+  },
+  "parseCoverage": {
+    "total": 25,
+    "parsed": 25,
+    "percentage": 100,
+    "skipped": []
+  },
+  "importResolution": {
+    "resolvedInternal": 41,
+    "external": 43,
+    "externalOutOfRootAlias": 0,
+    "unresolved": 0,
+    "droppedNoFileNode": 0,
+    "unsupportedDynamic": 0
+  },
+  "timings": {
+    "stages": [
+      {
+        "name": "parallel:extract-apg+parse-spec",
+        "durationMs": 603,
+        "status": "success"
+      },
+      {
+        "name": "ingest-apg",
+        "durationMs": 142,
+        "status": "success"
+      },
+      {
+        "name": "compile-functions",
+        "durationMs": 3,
+        "status": "success"
+      },
+      {
+        "name": "evaluate-symbolic",
+        "durationMs": 147,
+        "status": "success"
+      },
+      {
+        "name": "universal-metric:cyclicDependencyCount",
+        "durationMs": 7,
+        "status": "success"
+      },
+      {
+        "name": "compute-scores",
+        "durationMs": 19,
+        "status": "success"
+      }
+    ],
+    "totalMs": 914
+  },
+  "judge": {
+    "provider": "none",
+    "model": "none",
+    "runsPerUnit": 0
+  },
+  "instrumentVersion": 2
+}

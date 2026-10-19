@@ -1,0 +1,882 @@
+{
+  "runId": "run-1792366695934",
+  "projectPath": "tmp/brownfield-clones/neoteric-nestjs-auth/.",
+  "specVersion": "1.0.0",
+  "ahsDeterministic": 0.462,
+  "verdict": "hard-block",
+  "scoring": {
+    "weights": {
+      "structural": 0.35,
+      "coupling": 0.2,
+      "pattern": 0.3,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0,
+      "integrity": 0
+    },
+    "fullModeWeights": {
+      "structural": 0.32,
+      "coupling": 0.18,
+      "pattern": 0.27,
+      "solid": 0.1,
+      "convention": 0.05,
+      "semantic": 0.04,
+      "integrity": 0.04
+    },
+    "thresholds": {
+      "pass": 0.8,
+      "warning": 0.65,
+      "softBlock": 0.5
+    },
+    "confidenceThresholds": {
+      "high": 0.85,
+      "medium": 0.6,
+      "iccMinimum": 0.7
+    },
+    "verdictSource": "ahsDeterministic"
+  },
+  "perDimensionScores": [
+    {
+      "dimension": "structural",
+      "avr": 1,
+      "violatedWeight": 1,
+      "weight": 0.35,
+      "effectiveWeight": 0.5384615384615385,
+      "violationCount": 1,
+      "functionCount": 1
+    },
+    {
+      "dimension": "pattern",
+      "avr": 0,
+      "violatedWeight": 0,
+      "weight": 0.3,
+      "effectiveWeight": 0.46153846153846156,
+      "violationCount": 0,
+      "functionCount": 1
+    }
+  ],
+  "violations": [
+    {
+      "id": "v-1a7b594564fef46a",
+      "type": "LAYER_VIOLATION",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S01",
+      "route": "symbolic",
+      "filePath": "src/app/_helpers/graphql/index.ts",
+      "message": "src/app/_helpers/graphql/index.ts (application) re-exports from src/app/_helpers/graphql/graphql.guard.ts (presentation)",
+      "deterministic": true,
+      "target": "src/app/_helpers/graphql/graphql.guard.ts",
+      "line": 1,
+      "lines": [
+        1
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "RE_EXPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-9563ac5515d79944",
+      "type": "LAYER_VIOLATION",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S01",
+      "route": "symbolic",
+      "filePath": "src/app/app.dispatcher.ts",
+      "message": "src/app/app.dispatcher.ts (application) imports from src/app/app.module.ts (presentation)",
+      "deterministic": true,
+      "target": "src/app/app.module.ts",
+      "line": 10,
+      "lines": [
+        10
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-193a2c37ae876773",
+      "type": "LAYER_VIOLATION",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S01",
+      "route": "symbolic",
+      "filePath": "src/app/index.ts",
+      "message": "src/app/index.ts (application) re-exports from src/app/app.module.ts (presentation)",
+      "deterministic": true,
+      "target": "src/app/app.module.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "RE_EXPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-c1cb3026f9fabfca",
+      "type": "LAYER_VIOLATION",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S01",
+      "route": "symbolic",
+      "filePath": "src/app/security/index.ts",
+      "message": "src/app/security/index.ts (application) re-exports from src/app/security/security.module.ts (presentation)",
+      "deterministic": true,
+      "target": "src/app/security/security.module.ts",
+      "line": 4,
+      "lines": [
+        4
+      ],
+      "isTypeOnly": false,
+      "discriminator": [
+        "RE_EXPORTS"
+      ],
+      "tag": "structural"
+    }
+  ],
+  "universalMetrics": {
+    "cyclicDependencyCount": 25,
+    "maxFanOut": 21,
+    "maxFanIn": 32,
+    "abstractionRatio": 0.049,
+    "averageInstability": 0.492,
+    "orphanFileCount": 5
+  },
+  "evaluationMode": "symbolic-only",
+  "durationMs": 2135,
+  "droppedDimensions": [
+    {
+      "dimension": "coupling",
+      "reason": "disabled_by_spec",
+      "declared": 6,
+      "executed": 0
+    },
+    {
+      "dimension": "solid",
+      "reason": "disabled_by_spec",
+      "declared": 3,
+      "executed": 0
+    },
+    {
+      "dimension": "convention",
+      "reason": "disabled_by_spec",
+      "declared": 6,
+      "executed": 0
+    }
+  ],
+  "tiers": {
+    "scoringMode": "v1.3",
+    "tierTable": "Docs/v1.3/rule-tiers.md",
+    "style": "nestjs",
+    "verdict": "fail",
+    "verdictRule": "any-blocking-violation",
+    "v12eVerdict": "hard-block",
+    "blockingAhs": 0.462,
+    "blocking": {
+      "rules": [
+        {
+          "functionId": "FF-P01",
+          "name": "domain-purity",
+          "dimension": "pattern",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 0,
+          "violated": false
+        },
+        {
+          "functionId": "FF-S01",
+          "name": "dependency-direction",
+          "dimension": "structural",
+          "tier": "blocking",
+          "tierSource": "table",
+          "violationCount": 4,
+          "violated": true
+        }
+      ],
+      "violatedRules": 1,
+      "violationCount": 4
+    },
+    "advisory": {
+      "rules": [],
+      "violatedRules": 0,
+      "violationCount": 0
+    },
+    "notApplicable": [],
+    "blockingNotExecuted": []
+  },
+  "warnings": [
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: CanActivate",
+      "context": {
+        "filePath": "src/app/home-favorite/home-favorite.guard.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: CanActivate",
+      "context": {
+        "filePath": "src/app/home/home.guard.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: ExceptionFilter",
+      "context": {
+        "filePath": "src/app/_helpers/filters/http-exception.filter.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: ExceptionFilter",
+      "context": {
+        "filePath": "src/app/_helpers/filters/twig-exception.filter.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: GqlOptionsFactory",
+      "context": {
+        "filePath": "src/app/_helpers/graphql/gql-config.service.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: LoggerService",
+      "context": {
+        "filePath": "src/app/app.logger.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: MigrationInterface",
+      "context": {
+        "filePath": "src/migrations/1554826342372-UserConversation.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: MigrationInterface",
+      "context": {
+        "filePath": "src/migrations/1555006181991-Home.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: MigrationInterface",
+      "context": {
+        "filePath": "src/migrations/1555006376049-HomeFavorite.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: MigrationInterface",
+      "context": {
+        "filePath": "src/migrations/1555332883287-Conversation.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: MulterOptionsFactory",
+      "context": {
+        "filePath": "src/app/media/multer-config.service.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: NestMiddleware",
+      "context": {
+        "filePath": "src/app/_helpers/middleware/request-context.middleware.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: OnModuleInit",
+      "context": {
+        "filePath": "src/app/message/message.cron.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: OnModuleInit",
+      "context": {
+        "filePath": "src/app/security/voter/voter.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: PipeTransform",
+      "context": {
+        "filePath": "src/app/home/pipe/home.pipe.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_004",
+      "message": "IMPLEMENTS target not in extracted set: ValidatorConstraintInterface",
+      "context": {
+        "filePath": "src/app/user/user.validator.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_005",
+      "message": "CONSTRUCTOR_INJECTS type unresolvable: IterableIterator<import(\"tmp/brownfield-clones/neoteric-nestjs-auth/src/app/security/voter/voter\").Voter>",
+      "context": {
+        "filePath": "src/app/security/access-decision/access-decision-manager.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module exports element not in extracted set: ...PROVIDERS",
+      "context": {
+        "filePath": "src/app/security/security.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module exports element not in extracted set: ...databaseProviders",
+      "context": {
+        "filePath": "src/app/database/database.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: ...MODULES",
+      "context": {
+        "filePath": "src/app/home/home.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: CommandModule",
+      "context": {
+        "filePath": "src/app/app.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: GraphQLModule",
+      "context": {
+        "filePath": "src/app/app.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: HttpModule",
+      "context": {
+        "filePath": "src/app/message/message.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module imports element not in extracted set: MulterModule",
+      "context": {
+        "filePath": "src/app/media/media.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module providers element not in extracted set: ...PROVIDERS",
+      "context": {
+        "filePath": "src/app/contract/contract.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module providers element not in extracted set: ...PROVIDERS",
+      "context": {
+        "filePath": "src/app/home/home.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module providers element not in extracted set: ...PROVIDERS",
+      "context": {
+        "filePath": "src/app/security/security.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module providers element not in extracted set: ...PROVIDERS",
+      "context": {
+        "filePath": "src/app/user/user.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module providers element not in extracted set: ...databaseProviders",
+      "context": {
+        "filePath": "src/app/database/database.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module providers element not in extracted set: ...homeFavoriteProviders",
+      "context": {
+        "filePath": "src/app/home-favorite/home-favorite.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module providers element not in extracted set: ...homeMediaProviders",
+      "context": {
+        "filePath": "src/app/home-media/home-media.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "EXTRACTOR_010",
+      "message": "@Module providers element not in extracted set: ...messageProviders",
+      "context": {
+        "filePath": "src/app/message/message.module.ts"
+      },
+      "stage": "extract-apg"
+    },
+    {
+      "code": "SPEC_001",
+      "message": "Unknown field \"default_exclude_paths\" in spec (ignored)",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-C06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-CV06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-N02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P05\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-P06\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-S04\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO01\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO02\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "SPEC_002",
+      "message": "Template function \"FF-SO03\" overridden by spec declaration",
+      "stage": "parse-spec"
+    },
+    {
+      "code": "COMPILER_002",
+      "message": "No Cypher template for function \"component-adp-cycle\"",
+      "context": {
+        "functionId": "FF-A01"
+      },
+      "stage": "compile-functions"
+    },
+    {
+      "code": "COMPILER_002",
+      "message": "No Cypher template for function \"deep-import-inferred-api\"",
+      "context": {
+        "functionId": "FF-A02"
+      },
+      "stage": "compile-functions"
+    }
+  ],
+  "functionExecution": {
+    "declared": 29,
+    "adrDerived": 0,
+    "compiled": 2,
+    "disabled": 25,
+    "dropped": [
+      "FF-A01",
+      "FF-A02"
+    ],
+    "skippedByMode": 0,
+    "noJudgeUnits": [],
+    "executed": 2,
+    "failed": []
+  },
+  "functionResults": [
+    {
+      "functionId": "FF-S01",
+      "name": "dependency-direction",
+      "dimension": "structural",
+      "route": "symbolic",
+      "tag": "structural",
+      "passed": false,
+      "violationCount": 4,
+      "executionTimeMs": 126,
+      "truncated": false
+    },
+    {
+      "functionId": "FF-P01",
+      "name": "domain-purity",
+      "dimension": "pattern",
+      "route": "symbolic",
+      "tag": "pattern-proxy",
+      "passed": true,
+      "violationCount": 0,
+      "executionTimeMs": 22,
+      "truncated": false
+    }
+  ],
+  "disabledFunctions": [
+    {
+      "functionId": "FF-C01",
+      "name": "domain-stability",
+      "reason": "not mined: rule mining proposes only the rules the code follows"
+    },
+    {
+      "functionId": "FF-C02",
+      "name": "module-fan-out",
+      "reason": "not mined: rule mining proposes only the rules the code follows"
+    },
+    {
+      "functionId": "FF-C03",
+      "name": "component-instability",
+      "reason": "not mined: rule mining proposes only the rules the code follows"
+    },
+    {
+      "functionId": "FF-C04",
+      "name": "no-orphan-files",
+      "reason": "not mined: rule mining proposes only the rules the code follows"
+    },
+    {
+      "functionId": "FF-C05",
+      "name": "max-fan-in",
+      "reason": "not mined: rule mining proposes only the rules the code follows"
+    },
+    {
+      "functionId": "FF-C06",
+      "name": "abstraction-ratio",
+      "reason": "not mined: rule mining proposes only the rules the code follows"
+    },
+    {
+      "functionId": "FF-CV01",
+      "name": "naming-conventions",
+      "reason": "not mined: rule mining proposes only the rules the code follows"
+    },
+    {
+      "functionId": "FF-CV02",
+      "name": "naming-services",
+      "reason": "not mined: rule mining proposes only the rules the code follows"
+    },
+    {
+      "functionId": "FF-CV03",
+      "name": "naming-repos",
+      "reason": "not mined: rule mining proposes only the rules the code follows"
+    },
+    {
+      "functionId": "FF-CV04",
+      "name": "naming-controllers",
+      "reason": "not mined: rule mining proposes only the rules the code follows"
+    },
+    {
+      "functionId": "FF-CV05",
+      "name": "test-file-pairing",
+      "reason": "not mined: rule mining proposes only the rules the code follows"
+    },
+    {
+      "functionId": "FF-CV06",
+      "name": "no-index-logic",
+      "reason": "not mined: rule mining proposes only the rules the code follows"
+    },
+    {
+      "functionId": "FF-N01",
+      "name": "architectural-integrity",
+      "reason": "not mined: rule mining proposes only the rules the code follows"
+    },
+    {
+      "functionId": "FF-N02",
+      "name": "intent-alignment",
+      "reason": "not mined: rule mining proposes only the rules the code follows"
+    },
+    {
+      "functionId": "FF-P02",
+      "name": "dependency-inversion",
+      "reason": "not mined: rule mining proposes only the rules the code follows"
+    },
+    {
+      "functionId": "FF-P03",
+      "name": "repository-pattern",
+      "reason": "not mined: rule mining proposes only the rules the code follows"
+    },
+    {
+      "functionId": "FF-P04",
+      "name": "use-case-isolation",
+      "reason": "not mined: rule mining proposes only the rules the code follows"
+    },
+    {
+      "functionId": "FF-P05",
+      "name": "controller-no-entity",
+      "reason": "not mined: rule mining proposes only the rules the code follows"
+    },
+    {
+      "functionId": "FF-P06",
+      "name": "domain-state-purity",
+      "reason": "not mined: rule mining proposes only the rules the code follows"
+    },
+    {
+      "functionId": "FF-S02",
+      "name": "no-cyclic-deps",
+      "reason": "not mined: rule mining proposes only the rules the code follows"
+    },
+    {
+      "functionId": "FF-S03",
+      "name": "no-layer-skip",
+      "reason": "not mined: rule mining proposes only the rules the code follows"
+    },
+    {
+      "functionId": "FF-S04",
+      "name": "no-domain-outward-dep",
+      "reason": "not mined: rule mining proposes only the rules the code follows"
+    },
+    {
+      "functionId": "FF-SO01",
+      "name": "single-responsibility-proxy",
+      "reason": "not mined: rule mining proposes only the rules the code follows"
+    },
+    {
+      "functionId": "FF-SO02",
+      "name": "interface-segregation-proxy",
+      "reason": "not mined: rule mining proposes only the rules the code follows"
+    },
+    {
+      "functionId": "FF-SO03",
+      "name": "inheritance-depth",
+      "reason": "not mined: rule mining proposes only the rules the code follows"
+    }
+  ],
+  "graphStats": {
+    "nodeCount": 753,
+    "edgeCount": 1900,
+    "layerCoverage": 0.9782608695652174,
+    "nodeCountByType": {
+      "File": 184,
+      "Class": 193,
+      "Interface": 10,
+      "Method": 314,
+      "Function": 11,
+      "Package": 41
+    },
+    "edgeCountByType": {
+      "IMPORTS": 876,
+      "IMPLEMENTS": 3,
+      "EXTENDS": 36,
+      "CONSTRUCTOR_INJECTS": 67,
+      "CALLS": 243,
+      "DECLARES": 214,
+      "CONTAINS": 314,
+      "FLOWS_TO": 32,
+      "RE_EXPORTS": 54
+    }
+  },
+  "layerAnnotation": {
+    "mapped": 180,
+    "unmapped": 4,
+    "unmappedFiles": [
+      "src/cli.ts",
+      "src/index.ts",
+      "src/base/index.ts",
+      "src/app/_helpers/facebook/facebook-token.strategy.js"
+    ]
+  },
+  "parseCoverage": {
+    "total": 184,
+    "parsed": 184,
+    "percentage": 100,
+    "skipped": []
+  },
+  "importResolution": {
+    "resolvedInternal": 503,
+    "external": 267,
+    "externalOutOfRootAlias": 0,
+    "unresolved": 0,
+    "droppedNoFileNode": 0,
+    "unsupportedDynamic": 0
+  },
+  "timings": {
+    "stages": [
+      {
+        "name": "parallel:extract-apg+parse-spec",
+        "durationMs": 1573,
+        "status": "success"
+      },
+      {
+        "name": "ingest-apg",
+        "durationMs": 141,
+        "status": "success"
+      },
+      {
+        "name": "compile-functions",
+        "durationMs": 4,
+        "status": "success"
+      },
+      {
+        "name": "evaluate-symbolic",
+        "durationMs": 149,
+        "status": "success"
+      },
+      {
+        "name": "universal-metric:cyclicDependencyCount",
+        "durationMs": 2103,
+        "status": "success"
+      },
+      {
+        "name": "compute-scores",
+        "durationMs": 2135,
+        "status": "success"
+      }
+    ],
+    "totalMs": 4002
+  },
+  "judge": {
+    "provider": "none",
+    "model": "none",
+    "runsPerUnit": 0
+  },
+  "instrumentVersion": 2
+}

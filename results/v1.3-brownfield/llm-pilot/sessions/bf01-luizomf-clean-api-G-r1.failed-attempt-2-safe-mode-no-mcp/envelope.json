@@ -1,0 +1,99 @@
+{
+ "duration_api_ms": 18674,
+ "stop_reason": "end_turn",
+ "session_id": "c5abf567-ee46-42bf-8fa4-ab4cbaf5cf80",
+ "total_cost_usd": 0.0957798,
+ "usage": {
+  "input_tokens": 8,
+  "cache_creation_input_tokens": 16253,
+  "cache_read_input_tokens": 40518,
+  "output_tokens": 2670,
+  "output_tokens_details": {
+   "thinking_tokens": 892
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 16253,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1872,
+    "cache_read_input_tokens": 15120,
+    "cache_creation_input_tokens": 4356,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4356
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-sonnet-5-5": {
+   "inputTokens": 8,
+   "outputTokens": 2670,
+   "cacheReadInputTokens": 40518,
+   "cacheCreationInputTokens": 16253,
+   "webSearchRequests": 0,
+   "costUSD": 0.0957798,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 892,
+   "canonicalModel": "claude-sonnet-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 10,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "```yaml\narchitecture:\n  style: clean-architecture\n  layers:\n    - name: domain\n      directories:\n        - src/domain/**\n      roles:\n        - entity\n        - value-object\n        - domain-service\n        - repository-interface\n    - name: application\n      directories:\n        - src/application/**\n      roles:\n        - use-case\n        - dto\n        - application-service\n    - name: presentation\n      directories:\n        - src/presentation/**\n      roles:\n        - controller\n        - middleware\n    - name: infrastructure\n      directories:\n        - src/infrastructure/**\n      roles:\n        - repository-impl\n        - orm-entity\n    - name: main\n      directories:\n        - src/main/**\n      roles:\n        - application-service\n```\n\n```json\n{\"units\": [\n{\"id\": \"layer:domain\", \"claim\": \"The domain layer holds the models and the use-case interfaces under src/domain.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 17, \"quote\": \"### domain layer\"},\n{\"type\": \"pattern\", \"glob\": \"src/domain/**\", \"count\": 16}]},\n{\"id\": \"layer:application\", \"claim\": \"The application layer holds use cases, ports, errors and validation under src/application.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 25, \"quote\": \"### application layer\"},\n{\"type\": \"pattern\", \"glob\": \"src/application/**\", \"count\": 78}]},\n{\"id\": \"layer:presentation\", \"claim\": \"The presentation layer (interface adapters) holds the controllers, middlewares and responses under src/presentation.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 35, \"quote\": \"### adapters (presentation) layer\"},\n{\"type\": \"pattern\", \"glob\": \"src/presentation/**\", \"count\": 26}]},\n{\"id\": \"layer:infrastructure\", \"claim\": \"The infrastructure layer holds the express, knex and repository implementations under src/infrastructure.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 49, \"quote\": \"### infrastructure layer\"},\n{\"type\": \"pattern\", \"glob\": \"src/infrastructure/**\", \"count\": 32}]},\n{\"id\": \"layer:main\", \"claim\": \"The main layer holds the factories that wire everything together and may depend on all other layers.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 59, \"quote\": \"### main layer\"},\n{\"type\": \"pattern\", \"glob\": \"src/main/**\", \"count\": 9}]},\n{\"id\": \"order\", \"claim\": \"Layers are ordered from the innermost to the outermost: domain, application, presentation, infrastructure, main. Data flows from infrastructure through presentation and application to domain.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 78, \"quote\": \"In our case, data enter the system via \\\"express routes\\\" (infrastructure layer) to the \\\"controllers\\\" (adapters layer), to the \\\"use cases\\\" (application layer), to the \\\"domain\\\" (domain/entities layer).\"},\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 61, \"quote\": \"This layer is where we put everything together. It's the \\\"dirty layer\\\", because most factories will be here. It may depend on all other layers in the system.\"}]}\n]}\n```",
+ "ttft_ms": 1693,
+ "type": "result",
+ "duration_ms": 19094,
+ "uuid": "35ad9c67-b6df-4ebe-9429-67df54488ed8",
+ "ttft_stream_ms": 1247,
+ "time_to_request_ms": 339,
+ "first_content_frame_ms": 1248,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

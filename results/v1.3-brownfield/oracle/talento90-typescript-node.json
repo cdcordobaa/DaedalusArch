@@ -1,0 +1,218 @@
+{
+ "id": "talento90-typescript-node",
+ "style": "layered",
+ "layersPresent": [
+  "business",
+  "persistence",
+  "presentation"
+ ],
+ "filesMapped": 29,
+ "files": 35,
+ "declaredAllowed": [
+  "business>persistence",
+  "presentation>business"
+ ],
+ "graphs": {
+  "observed": {
+   "mined": [
+    "business>persistence",
+    "persistence>business",
+    "presentation>business"
+   ],
+   "tp": 2,
+   "fp": 1,
+   "fn": 0
+  },
+  "strict": {
+   "mined": [
+    "business>persistence",
+    "persistence>business",
+    "presentation>business"
+   ],
+   "tp": 2,
+   "fp": 1,
+   "fn": 0
+  },
+  "full": {
+   "mined": [
+    "business>persistence",
+    "persistence>business",
+    "presentation>business"
+   ],
+   "tp": 2,
+   "fp": 1,
+   "fn": 0
+  }
+ },
+ "forbidding": [
+  {
+   "id": "MR-001",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "pair": "persistence>presentation",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "business>presentation",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "pair": "presentation>persistence",
+   "declaredForbids": true
+  }
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "confidence": 0.395,
+   "subject": "persistence",
+   "object": "presentation",
+   "statement": "persistence must not depend on presentation (no import between them either way)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.791,
+   "subject": "business",
+   "object": "presentation",
+   "statement": "business must not depend on presentation (12 edges presentation -> business; 0/6 business files import presentation)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "confidence": 0.395,
+   "subject": "presentation",
+   "object": "persistence",
+   "statement": "presentation must not depend on persistence (no import between them either way)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-004",
+   "kind": "acyclic-files",
+   "level": "high",
+   "confidence": 0.972,
+   "subject": "*",
+   "statement": "no file lies on an import cycle (35/35 files do not)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-005",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.6,
+   "subject": "folder:entities",
+   "object": "folder:server",
+   "statement": "folder component entities must not depend on server (4 imports server -> entities; 0/3 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-006",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.375,
+   "subject": "folder:entities",
+   "object": "folder:lib",
+   "statement": "folder component entities must not depend on lib (1 imports lib -> entities; 0/3 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-007",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.5,
+   "subject": "folder:entities",
+   "object": "folder:managers",
+   "statement": "folder component entities must not depend on managers (2 imports managers -> entities; 0/3 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-008",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.5,
+   "subject": "folder:entities",
+   "object": "folder:repositories",
+   "statement": "folder component entities must not depend on repositories (2 imports repositories -> entities; 0/3 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-009",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.729,
+   "subject": "folder:lib",
+   "object": "folder:server",
+   "statement": "folder component lib must not depend on server (7 imports server -> lib; 0/5 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-010",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.556,
+   "subject": "folder:lib",
+   "object": "folder:managers",
+   "statement": "folder component lib must not depend on managers (2 imports managers -> lib; 0/5 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-011",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.5,
+   "subject": "folder:managers",
+   "object": "folder:server",
+   "statement": "folder component managers must not depend on server (2 imports server -> managers; 0/3 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-012",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.5,
+   "subject": "folder:repositories",
+   "object": "folder:managers",
+   "statement": "folder component repositories must not depend on managers (2 imports managers -> repositories; 0/3 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-013",
+   "kind": "public-api",
+   "level": "high",
+   "confidence": 0.9,
+   "subject": "folder:entities",
+   "statement": "imports into folder component entities go through its entry files (src/entities/index.ts): 9/9",
+   "exceptions": []
+  },
+  {
+   "id": "MR-014",
+   "kind": "public-api",
+   "level": "medium",
+   "confidence": 0.667,
+   "subject": "folder:managers",
+   "statement": "imports into folder component managers go through its entry files (src/managers/index.ts): 2/2",
+   "exceptions": []
+  },
+  {
+   "id": "MR-015",
+   "kind": "public-api",
+   "level": "high",
+   "confidence": 0.75,
+   "subject": "folder:repositories",
+   "statement": "imports into folder component repositories go through its entry files (src/repositories/index.ts): 3/3",
+   "exceptions": []
+  }
+ ]
+}

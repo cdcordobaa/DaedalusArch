@@ -1,0 +1,480 @@
+{
+ "date": "2026-10-18",
+ "toolCommit": "5856478a (working tree on ops/working-surface-2026-10-18; src/rule-mining unchanged)",
+ "clones": {
+  "location": "tmp/brownfield-clones/<id> (git-ignored by tmp/ in .gitignore)",
+  "method": "git clone --filter=blob:none --no-checkout, then checkout --detach <sha>; zeldaplay-api sparse-checkout --cone apps/api; hooks disabled; no npm install, no repo scripts, no build",
+  "sizeTotal": "about 33 MB",
+  "headsMatchPins": true
+ },
+ "engine": "cypher-interp (in-process); Neo4j never started",
+ "models": "none (no LLM or API call)",
+ "commands": {
+  "mine": "npx tsx scripts/v1.3/brownfield-mine.ts --selection results/v1.3-external/selection.json --repos tmp/brownfield-clones --out results/v1.3-brownfield --oracle-specs results/v1.3-external/specs",
+  "labels": "npx tsx scripts/v1.3/spec-author-agreement.ts labels --selection results/v1.3-external/selection.json --repos tmp/brownfield-clones --specs <a|b|mined specs dir> --out results/v1.3-brownfield/labels/labels-<a|b|m>.json (mined specs copied to <id>.yaml in a scratch dir)",
+  "evaluate": "npx tsx bin/firewall.ts evaluate --project tmp/brownfield-clones/<id>/<root> --spec <spec> --symbolic-only --engine cypher-interp --scoring v1.3 --format json",
+  "agreement": "npx tsx scripts/v1.3/spec-author-agreement.ts compare --a labels-<x>.json --b labels-<y>.json --eval-a evaluate/<x> --eval-b evaluate/<y> --out agreement-<xy>",
+  "score": "python3 -I scripts/v1.3/brownfield-score.py results/v1.3-brownfield"
+ },
+ "mineRuns": [
+  {
+   "id": "pvarentsov-clean",
+   "head": "b6e0518ee4e092917015f4d448ad7fccd404e12e",
+   "shaOk": true,
+   "ms": 1488,
+   "files": 184,
+   "style": "clean-architecture",
+   "styleConfidence": 0.7,
+   "rules": 11,
+   "exceptions": 13,
+   "specValid": true
+  },
+  {
+   "id": "luizomf-clean-api",
+   "head": "7fb1ba431f8dd3d9f581798c072019eceb72d73e",
+   "shaOk": true,
+   "ms": 917,
+   "files": 125,
+   "style": "clean-architecture",
+   "styleConfidence": 0.875,
+   "rules": 20,
+   "exceptions": 1,
+   "specValid": true
+  },
+  {
+   "id": "dannielhugo-clean",
+   "head": "fe9d87785892f42aae325e7b9fb61033f14458b4",
+   "shaOk": true,
+   "ms": 570,
+   "files": 69,
+   "style": "clean-architecture",
+   "styleConfidence": 0.6,
+   "rules": 10,
+   "exceptions": 3,
+   "specValid": true
+  },
+  {
+   "id": "bulletproof-nodejs",
+   "head": "7ce1b4690c4e96659cb1ed0d367b08b3ab35a24b",
+   "shaOk": true,
+   "ms": 405,
+   "files": 25,
+   "style": "layered",
+   "styleConfidence": 0.6666666666666666,
+   "rules": 21,
+   "exceptions": 0,
+   "specValid": true
+  },
+  {
+   "id": "w3tec-express-boilerplate",
+   "head": "17727010f7f098d8ca8b78da0a5b3c7297659381",
+   "shaOk": true,
+   "ms": 541,
+   "files": 58,
+   "style": "layered",
+   "styleConfidence": 1,
+   "rules": 14,
+   "exceptions": 4,
+   "specValid": true
+  },
+  {
+   "id": "talento90-typescript-node",
+   "head": "0bf9796f8a739cf9cc5d51202bbf05b899fe740c",
+   "shaOk": true,
+   "ms": 716,
+   "files": 35,
+   "style": "layered",
+   "styleConfidence": 0.6666666666666666,
+   "rules": 16,
+   "exceptions": 1,
+   "specValid": true
+  },
+  {
+   "id": "zeldaplay-api",
+   "head": "65f6a6e7bc502f3939dd0d3a037afae40bba1cb1",
+   "shaOk": true,
+   "ms": 740,
+   "files": 85,
+   "style": "nestjs",
+   "styleConfidence": 1,
+   "rules": 3,
+   "exceptions": 5,
+   "specValid": true
+  },
+  {
+   "id": "neoteric-nestjs-auth",
+   "head": "dc294e4ce2436579dea9958e24b90c0cc0ef2569",
+   "shaOk": true,
+   "ms": 1870,
+   "files": 183,
+   "style": "nestjs",
+   "styleConfidence": 0.8571428571428571,
+   "rules": 9,
+   "exceptions": 11,
+   "specValid": true
+  },
+  {
+   "id": "vivify-nestjs-boilerplate",
+   "head": "e148f3d7bcac20c969259c33bfd73604fa7704bd",
+   "shaOk": true,
+   "ms": 396,
+   "files": 33,
+   "style": "nestjs",
+   "styleConfidence": 1,
+   "rules": 6,
+   "exceptions": 7,
+   "specValid": true
+  },
+  {
+   "id": "conduit-ports-adapters",
+   "head": "9aac90c91ede17f34a3a025cc1becabec9cb86da",
+   "shaOk": true,
+   "ms": 685,
+   "files": 36,
+   "style": "clean-architecture",
+   "styleConfidence": 0.4,
+   "rules": 5,
+   "exceptions": 0,
+   "specValid": true
+  },
+  {
+   "id": "ddialar-hexagonal-boilerplate",
+   "head": "cc6ebdc572db561505ad59f1c327ddcd898178c4",
+   "shaOk": true,
+   "ms": 284,
+   "files": 19,
+   "style": "hexagonal",
+   "styleConfidence": 0.5,
+   "rules": 12,
+   "exceptions": 2,
+   "specValid": true
+  },
+  {
+   "id": "nest-products-hexagonal",
+   "head": "c809e70c8efec173509cbed726993f0afb01528c",
+   "shaOk": true,
+   "ms": 396,
+   "files": 23,
+   "style": "clean-architecture",
+   "styleConfidence": 0.5,
+   "rules": 9,
+   "exceptions": 4,
+   "specValid": true
+  },
+  {
+   "id": "ddd-forum",
+   "head": "3aa0b8d3ad3b58c111c57974fb321ddb230bde73",
+   "shaOk": true,
+   "ms": 1389,
+   "files": 248,
+   "style": "clean-architecture",
+   "styleConfidence": 0.5,
+   "rules": 15,
+   "exceptions": 30,
+   "specValid": true
+  },
+  {
+   "id": "finance-project-ddd",
+   "head": "9f0725a83be4863db3da230e3bf9c5fa3f6c9a7d",
+   "shaOk": true,
+   "ms": 2431,
+   "files": 166,
+   "style": "nestjs",
+   "styleConfidence": 0.6666666666666666,
+   "rules": 10,
+   "exceptions": 8,
+   "specValid": true
+  },
+  {
+   "id": "event-sourcing-ddd",
+   "head": "55fa9ef395594911feaa9051e07b3a21a87f3abd",
+   "shaOk": true,
+   "ms": 832,
+   "files": 58,
+   "style": "clean-architecture",
+   "styleConfidence": 0.6666666666666666,
+   "rules": 29,
+   "exceptions": 2,
+   "specValid": true
+  }
+ ],
+ "determinism": "second mining run: 15/15 mined specs byte-identical",
+ "evaluateRuns": [
+  {
+   "id": "pvarentsov-clean",
+   "side": "a",
+   "exit": 1,
+   "seconds": 4
+  },
+  {
+   "id": "pvarentsov-clean",
+   "side": "b",
+   "exit": 0,
+   "seconds": 3
+  },
+  {
+   "id": "pvarentsov-clean",
+   "side": "mined",
+   "exit": 1,
+   "seconds": 3
+  },
+  {
+   "id": "luizomf-clean-api",
+   "side": "a",
+   "exit": 1,
+   "seconds": 4
+  },
+  {
+   "id": "luizomf-clean-api",
+   "side": "b",
+   "exit": 1,
+   "seconds": 3
+  },
+  {
+   "id": "luizomf-clean-api",
+   "side": "mined",
+   "exit": 1,
+   "seconds": 3
+  },
+  {
+   "id": "dannielhugo-clean",
+   "side": "a",
+   "exit": 0,
+   "seconds": 3
+  },
+  {
+   "id": "dannielhugo-clean",
+   "side": "b",
+   "exit": 0,
+   "seconds": 3
+  },
+  {
+   "id": "dannielhugo-clean",
+   "side": "mined",
+   "exit": 0,
+   "seconds": 3
+  },
+  {
+   "id": "bulletproof-nodejs",
+   "side": "a",
+   "exit": 0,
+   "seconds": 3
+  },
+  {
+   "id": "bulletproof-nodejs",
+   "side": "b",
+   "exit": 1,
+   "seconds": 2
+  },
+  {
+   "id": "bulletproof-nodejs",
+   "side": "mined",
+   "exit": 1,
+   "seconds": 3
+  },
+  {
+   "id": "w3tec-express-boilerplate",
+   "side": "a",
+   "exit": 1,
+   "seconds": 4
+  },
+  {
+   "id": "w3tec-express-boilerplate",
+   "side": "b",
+   "exit": 1,
+   "seconds": 4
+  },
+  {
+   "id": "w3tec-express-boilerplate",
+   "side": "mined",
+   "exit": 1,
+   "seconds": 4
+  },
+  {
+   "id": "talento90-typescript-node",
+   "side": "a",
+   "exit": 1,
+   "seconds": 3
+  },
+  {
+   "id": "talento90-typescript-node",
+   "side": "b",
+   "exit": 1,
+   "seconds": 3
+  },
+  {
+   "id": "talento90-typescript-node",
+   "side": "mined",
+   "exit": 1,
+   "seconds": 3
+  },
+  {
+   "id": "zeldaplay-api",
+   "side": "a",
+   "exit": 0,
+   "seconds": 4
+  },
+  {
+   "id": "zeldaplay-api",
+   "side": "b",
+   "exit": 1,
+   "seconds": 3
+  },
+  {
+   "id": "zeldaplay-api",
+   "side": "mined",
+   "exit": 0,
+   "seconds": 4
+  },
+  {
+   "id": "neoteric-nestjs-auth",
+   "side": "a",
+   "exit": 1,
+   "seconds": 8
+  },
+  {
+   "id": "neoteric-nestjs-auth",
+   "side": "b",
+   "exit": 1,
+   "seconds": 7
+  },
+  {
+   "id": "neoteric-nestjs-auth",
+   "side": "mined",
+   "exit": 1,
+   "seconds": 6
+  },
+  {
+   "id": "vivify-nestjs-boilerplate",
+   "side": "a",
+   "exit": 1,
+   "seconds": 2
+  },
+  {
+   "id": "vivify-nestjs-boilerplate",
+   "side": "b",
+   "exit": 1,
+   "seconds": 3
+  },
+  {
+   "id": "vivify-nestjs-boilerplate",
+   "side": "mined",
+   "exit": 1,
+   "seconds": 4
+  },
+  {
+   "id": "conduit-ports-adapters",
+   "side": "a",
+   "exit": 1,
+   "seconds": 3
+  },
+  {
+   "id": "conduit-ports-adapters",
+   "side": "b",
+   "exit": 0,
+   "seconds": 3
+  },
+  {
+   "id": "conduit-ports-adapters",
+   "side": "mined",
+   "exit": 0,
+   "seconds": 3
+  },
+  {
+   "id": "ddialar-hexagonal-boilerplate",
+   "side": "a",
+   "exit": 0,
+   "seconds": 3
+  },
+  {
+   "id": "ddialar-hexagonal-boilerplate",
+   "side": "b",
+   "exit": 0,
+   "seconds": 2
+  },
+  {
+   "id": "ddialar-hexagonal-boilerplate",
+   "side": "mined",
+   "exit": 0,
+   "seconds": 3
+  },
+  {
+   "id": "nest-products-hexagonal",
+   "side": "a",
+   "exit": 1,
+   "seconds": 3
+  },
+  {
+   "id": "nest-products-hexagonal",
+   "side": "b",
+   "exit": 0,
+   "seconds": 3
+  },
+  {
+   "id": "nest-products-hexagonal",
+   "side": "mined",
+   "exit": 1,
+   "seconds": 4
+  },
+  {
+   "id": "ddd-forum",
+   "side": "a",
+   "exit": 1,
+   "seconds": 8
+  },
+  {
+   "id": "ddd-forum",
+   "side": "b",
+   "exit": 1,
+   "seconds": 7
+  },
+  {
+   "id": "ddd-forum",
+   "side": "mined",
+   "exit": 1,
+   "seconds": 7
+  },
+  {
+   "id": "finance-project-ddd",
+   "side": "a",
+   "exit": 1,
+   "seconds": 7
+  },
+  {
+   "id": "finance-project-ddd",
+   "side": "b",
+   "exit": 1,
+   "seconds": 7
+  },
+  {
+   "id": "finance-project-ddd",
+   "side": "mined",
+   "exit": 1,
+   "seconds": 8
+  },
+  {
+   "id": "event-sourcing-ddd",
+   "side": "a",
+   "exit": 1,
+   "seconds": 3
+  },
+  {
+   "id": "event-sourcing-ddd",
+   "side": "b",
+   "exit": 1,
+   "seconds": 3
+  },
+  {
+   "id": "event-sourcing-ddd",
+   "side": "mined",
+   "exit": 1,
+   "seconds": 3
+  }
+ ],
+ "evaluateExitCodes": "0 = pass, 1 = fail verdict; no run errored (no exit 2)",
+ "reproductionChecks": {
+  "A blocking 283 per repo as #133/K2": true,
+  "B blocking 319 as K2": true,
+  "A vs B kappa 0.77, 4/15, verdict 10/15, kappa 0.21, LoA [-28.16, 32.96] as N01/N02": true
+ }
+}

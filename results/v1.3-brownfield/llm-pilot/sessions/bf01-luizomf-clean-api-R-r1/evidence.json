@@ -1,0 +1,88 @@
+{
+ "units": [
+  {
+   "id": "layer:domain",
+   "claim": "src/domain holds the entities/models and use-case interfaces, the innermost layer.",
+   "origin": "proposed",
+   "citations": [
+    {
+     "type": "doc",
+     "file": "README.md",
+     "line": 122,
+     "quote": "├── domain - Domain Layer"
+    }
+   ]
+  },
+  {
+   "id": "layer:application",
+   "claim": "src/application holds use cases, ports (including repository interfaces), errors and validations.",
+   "origin": "proposed",
+   "citations": [
+    {
+     "type": "doc",
+     "file": "README.md",
+     "line": 85,
+     "quote": "src - ROOT"
+    },
+    {
+     "type": "doc",
+     "file": "README.md",
+     "line": 86,
+     "quote": "├── application - Application or Use cases layer"
+    }
+   ]
+  },
+  {
+   "id": "layer:presentation",
+   "claim": "src/presentation holds controllers, middlewares and responses, the interface-adapters layer.",
+   "origin": "proposed",
+   "citations": [
+    {
+     "type": "doc",
+     "file": "README.md",
+     "line": 157,
+     "quote": "└── presentation - Presentation layer"
+    }
+   ]
+  },
+  {
+   "id": "layer:infrastructure",
+   "claim": "src/infrastructure holds express, knex and repository implementations (frameworks and drivers).",
+   "origin": "proposed",
+   "citations": [
+    {
+     "type": "doc",
+     "file": "README.md",
+     "line": 132,
+     "quote": "├── infrastructure - Infrastructure layer"
+    }
+   ]
+  },
+  {
+   "id": "layer:main",
+   "claim": "src/main is the composition layer with factories, allowed to depend on all other layers.",
+   "origin": "proposed",
+   "citations": [
+    {
+     "type": "doc",
+     "file": "README.md",
+     "line": 61,
+     "quote": "This layer is where we put everything together. It's the \"dirty layer\", because most factories will be here. It may depend on all other layers in the system."
+    }
+   ]
+  },
+  {
+   "id": "order",
+   "claim": "Layers are ordered inward to outward: domain, application, presentation, infrastructure, main, and dependencies point inwards only.",
+   "origin": "proposed",
+   "citations": [
+    {
+     "type": "doc",
+     "file": "README.md",
+     "line": 74,
+     "quote": ">The overriding rule that makes this architecture work is The Dependency Rule. This rule says that source code dependencies can only point inwards. Nothing in an inner circle can know anything at all about something in an outer circle. In particular, the name of something declared in an outer circle must not be mentioned by the code in the an inner circle. That includes, functions, classes. variables, or any other named software entity."
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,342 @@
+You are deriving the architecture spec of an existing TypeScript repository from its code and its docs.
+
+Repository: the current working directory, a clone pinned at commit 7fb1ba431f8dd3d9f581798c072019eceb72d73e. Analysis root: the working directory itself. Every glob in the spec, and every pattern citation, is relative to the analysis root.
+Declared style: `clean-architecture` (the repository states this style). Keep it.
+
+The spec format is the preset at the end of this message. A spec for a repository copies the preset's fitness_functions and authors the `architecture:` block: the layers in the preset's order semantics, each layer's `directories` and `file_patterns` globs (relative to the analysis root), `roles`, `decorators` and optional `kind`. It may also change `default_exclude_paths` and make fitness-function changes (enable or disable a function, or change a parameter such as `forbidden_imports`) when the repository gives evidence for them.
+
+Your task: propose the norm set this repository's authors intend: the layers, which folders and files belong to each, the layer order, the enabled functions and their parameters, and the excludes, as a careful architect writing this spec for the team would. The intended norm is not necessarily what most files do today. Every unit you propose must cite evidence that you did not produce yourself (the citation types below). A unit without a citation that passes its check is dropped.
+
+Tools:
+- Read, Grep and Glob on the files of this repository. You have no graph tools, so you cannot give stat citations.
+- Stay inside the working directory. Do not run anything. You cannot write files: your final message is the output.
+
+Citation types. Each is checked mechanically at the pinned commit, and a citation that fails its check does not count:
+- doc: {"type": "doc", "file": "<path relative to the working directory>", "line": <1-based line number>, "quote": "<verbatim text from that one line>"}
+- pattern: {"type": "pattern", "glob": "<glob relative to the analysis root>", "count": <number of git-tracked files under the analysis root that the glob matches (picomatch, dot files included)>}
+- stat: {"type": "stat", "query": "<read-only Cypher that returns one row with columns numerator and denominator>", "numerator": <n>, "denominator": <d>}. It is re-run on the same parser graph and must give the same two numbers.
+
+Units, one evidence entry each:
+- "layer:<name>" for every layer in your architecture block (its membership: directories and file_patterns);
+- "order" for the layer order;
+- "ff:<function id>" for every fitness-function change you make;
+- "exclude:<glob>" for every path you add to or remove from the preset's default_exclude_paths;
+- "ddd" for the ddd declarations, only if the style is ddd.
+
+Final answer: exactly two fenced code blocks and nothing after them.
+1. A ```yaml block with the top-level keys `architecture` (the full block, style included), `default_exclude_paths` (the full list; leave the key out to keep the preset's list) and `fitness_overrides` (optional: a list of {id, enabled, reason, params}, where params maps parameter names to values).
+2. A ```json block: {"units": [{"id": "layer:domain", "claim": "<one sentence>", "origin": "proposed", "citations": [ ... ]}, ...]}.
+
+Keep to at most 35 tool calls.
+
+The preset (`presets/clean-architecture.yaml`):
+
+```yaml
+# Architectonic Firewall — Clean Architecture Preset
+# Canonical fitness functions with empirically calibrated thresholds.
+# Use as a starting point; override thresholds and exclude_paths per project.
+
+spec_version: "1.0.0"
+
+architecture:
+  style: clean-architecture
+
+  layers:
+    - name: domain
+      directories:
+        - src/domain/**
+      roles:
+        - entity
+        - value-object
+        - domain-service
+        - repository-interface
+
+    - name: application
+      directories:
+        - src/application/**
+      roles:
+        - use-case
+        - dto
+        - application-service
+
+    - name: infrastructure
+      directories:
+        - src/infrastructure/**
+      roles:
+        - repository-impl
+        - controller
+        - middleware
+        - orm-entity
+
+fitness_functions:
+
+  # ── STRUCTURAL ──
+
+  - id: FF-S01
+    name: dependency-direction
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: true
+
+  - id: FF-S02
+    name: no-cyclic-deps
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: true
+
+  - id: FF-S03
+    name: no-layer-skip
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+
+  - id: FF-S04
+    name: no-domain-outward-dep
+    dimension: structural
+    severity: major
+    route: symbolic
+    validated: false
+
+  # ── PATTERN ──
+
+  - id: FF-P01
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+    forbidden_imports:
+      - "@nestjs/*"
+      - typeorm
+      - express
+      - prisma
+      - "@prisma/*"
+      - sequelize
+
+  - id: FF-P02
+    name: dependency-inversion
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+    threshold: 0.85
+
+  - id: FF-P03
+    name: repository-pattern
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+
+  - id: FF-P04
+    name: use-case-isolation
+    dimension: pattern
+    severity: major
+    route: symbolic
+    validated: true
+
+  - id: FF-P05
+    name: controller-no-entity
+    dimension: pattern
+    severity: major
+    route: symbolic
+    validated: false
+
+  # FR-21 (U3-R6; BR-U3-22..24): domain class holding infrastructure state (FLOWS_TO | CONSTRUCTOR_INJECTS)
+  - id: FF-P06
+    name: domain-state-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+
+  # ── COUPLING ──
+
+  - id: FF-C01
+    name: domain-stability
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    threshold: 0.3
+
+  - id: FF-C02
+    name: module-fan-out
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    threshold: 10
+
+  - id: FF-C03
+    name: component-instability
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+
+  - id: FF-C04
+    name: no-orphan-files
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    validated: false
+
+  - id: FF-C05
+    name: max-fan-in
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    validated: false
+    threshold: 15
+
+  - id: FF-C06
+    name: abstraction-ratio
+    dimension: coupling
+    severity: advisory
+    route: symbolic
+    validated: false
+    threshold: 0.3
+
+  # ── SOLID ──
+
+  - id: FF-SO01
+    name: single-responsibility-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    validated: true
+    max_public_methods: 10
+    max_dependencies: 5
+
+  - id: FF-SO02
+    name: interface-segregation-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    validated: true
+    max_interface_methods: 5
+
+  - id: FF-SO03
+    name: inheritance-depth
+    dimension: solid
+    severity: minor
+    route: symbolic
+    validated: false
+    max_depth: 3
+
+  # ── CONVENTION ──
+
+  - id: FF-CV01
+    name: naming-conventions
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "ADR-016 b (B&T Step 31): cannot fire; per-layer naming patterns compile to .* and no requirement supplies them (SP-FF-CV01 not fired)"
+    validated: true
+
+  - id: FF-CV02
+    name: naming-services
+    dimension: convention
+    severity: minor
+    route: symbolic
+    validated: false
+    pattern: "*Service|*UseCase"
+
+  - id: FF-CV03
+    name: naming-repos
+    dimension: convention
+    severity: minor
+    route: symbolic
+    validated: false
+    pattern: "*Repository|*Repo"
+
+  - id: FF-CV04
+    name: naming-controllers
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "ADR-016 b (B&T Step 31): cannot fire; class decorators are not ingested (BR-U2-31), so no controller is selected (SP-FF-CV04 not fired)"
+    validated: false
+    pattern: "*Controller"
+
+  - id: FF-CV05
+    name: test-file-pairing
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    validated: false
+
+  - id: FF-CV06
+    name: no-index-logic
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    validated: false
+
+  # ── NEURONAL ──
+
+  - id: FF-N01
+    name: architectural-integrity
+    dimension: integrity
+    severity: major
+    route: neuronal
+    validated: false
+    semantic_criteria:
+      rule: "The module's files form one coherent unit with a consistent abstraction and boundary."
+      rubric:
+        pass: "The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place."
+        fail: "The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions."
+        evidence_required: "Name each file involved and cite the declarations that show the split, the duplication or the bypass."
+
+  - id: FF-N02
+    name: intent-alignment
+    dimension: semantic
+    severity: major
+    route: neuronal
+    validated: false
+    semantic_criteria:
+      rule: "The unit's responsibilities match the role of its declared layer."
+      rubric:
+        pass: "Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given."
+        fail: "The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file."
+        evidence_required: "Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to."
+
+default_exclude_paths:
+  - "node_modules/**"
+  - "dist/**"
+  - "**/*.spec.ts"
+  - "**/*.test.ts"
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70
+```

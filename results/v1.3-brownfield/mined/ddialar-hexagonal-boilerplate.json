@@ -1,0 +1,317 @@
+{
+ "id": "ddialar-hexagonal-boilerplate",
+ "sha": "cc6ebdc572db561505ad59f1c327ddcd898178c4",
+ "head": "cc6ebdc572db561505ad59f1c327ddcd898178c4",
+ "declaredStyle": "hexagonal",
+ "tsconfigNotes": [],
+ "label": "PROPOSED rules: mined from the code (deterministic, no LLM), not a reviewed spec. Review before use; exceptions are candidate violations, not confirmed ones.",
+ "style": "hexagonal",
+ "styleConfidence": 0.5,
+ "layers": {
+  "domain": 9,
+  "adapters-inbound": 1,
+  "application": 8,
+  "config": 1
+ },
+ "allowedDependencies": [
+  "adapters-inbound>application",
+  "adapters-inbound>domain",
+  "config>adapters-inbound",
+  "config>application"
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "statement": "domain must not depend on application (2 edges application -> domain; 0/9 domain files import application)",
+   "subject": "domain",
+   "object": "application",
+   "confidence": 0.6,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 9,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 2
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "hexagonal",
+    "template": "dependency-direction-graph",
+    "via": "architecture.allowed_dependencies (the reverse edge is listed, this one is not)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "statement": "domain must not depend on adapters-inbound (1 edges adapters-inbound -> domain; 0/9 domain files import adapters-inbound)",
+   "subject": "domain",
+   "object": "adapters-inbound",
+   "confidence": 0.45,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 9,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "hexagonal",
+    "template": "dependency-direction-graph",
+    "via": "architecture.allowed_dependencies (the reverse edge is listed, this one is not)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-unobserved",
+   "statement": "domain must not depend on config (no import between them either way)",
+   "subject": "domain",
+   "object": "config",
+   "confidence": 0.225,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 9,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 0
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "hexagonal",
+    "template": "layer-skip-graph",
+    "via": "architecture.allowed_dependencies (no edge listed in either direction)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-004",
+   "kind": "layer-rare-edge",
+   "statement": "application should not depend on domain (1/8 application files imports it; nothing goes back)",
+   "subject": "application",
+   "object": "domain",
+   "confidence": 0.389,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 8,
+    "importingFiles": 1,
+    "edges": 2,
+    "reverseEdges": 0
+   },
+   "exceptions": [
+    {
+     "file": "src/adapters/transportLayer/server/server.ts",
+     "target": "src/utils/index.ts"
+    },
+    {
+     "file": "src/adapters/transportLayer/server/server.ts",
+     "target": "src/utils/logger/index.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "hexagonal",
+    "template": "layer-skip-graph",
+    "via": "architecture.allowed_dependencies (no edge listed in either direction)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-005",
+   "kind": "layer-direction",
+   "statement": "application must not depend on adapters-inbound (1 edges adapters-inbound -> application; 0/8 application files import adapters-inbound)",
+   "subject": "application",
+   "object": "adapters-inbound",
+   "confidence": 0.444,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 8,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "hexagonal",
+    "template": "dependency-direction-graph",
+    "via": "architecture.allowed_dependencies (the reverse edge is listed, this one is not)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-006",
+   "kind": "layer-direction",
+   "statement": "application must not depend on config (1 edges config -> application; 0/8 application files import config)",
+   "subject": "application",
+   "object": "config",
+   "confidence": 0.444,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 8,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "hexagonal",
+    "template": "dependency-direction-graph",
+    "via": "architecture.allowed_dependencies (the reverse edge is listed, this one is not)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-007",
+   "kind": "layer-direction",
+   "statement": "adapters-inbound must not depend on config (1 edges config -> adapters-inbound; 0/1 adapters-inbound files import config)",
+   "subject": "adapters-inbound",
+   "object": "config",
+   "confidence": 0.25,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 1,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "hexagonal",
+    "template": "dependency-direction-graph",
+    "via": "architecture.allowed_dependencies (the reverse edge is listed, this one is not)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-008",
+   "kind": "layer-unobserved",
+   "statement": "config must not depend on domain (no import between them either way)",
+   "subject": "config",
+   "object": "domain",
+   "confidence": 0.225,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 1,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 0
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "hexagonal",
+    "template": "layer-skip-graph",
+    "via": "architecture.allowed_dependencies (no edge listed in either direction)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-009",
+   "kind": "acyclic-files",
+   "statement": "no file lies on an import cycle (19/19 files do not)",
+   "subject": "*",
+   "confidence": 0.95,
+   "level": "high",
+   "evidence": {
+    "files": 19,
+    "filesOnCycles": 0,
+    "cycles": 0
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "no-cyclic-deps",
+    "via": "fitness function FF-S02"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-010",
+   "kind": "component-direction",
+   "statement": "folder component utils must not depend on adapters (1 imports adapters -> utils; 0/2 files import back)",
+   "subject": "folder:utils",
+   "object": "folder:adapters",
+   "confidence": 0.333,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 2,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-011",
+   "kind": "core-package-free",
+   "statement": "domain (a core layer: it may depend on no other layer) imports none of body-parser, express, http, swagger-ui-express",
+   "subject": "domain",
+   "confidence": 0.9,
+   "level": "high",
+   "evidence": {
+    "coreFiles": 9,
+    "packages": 4
+   },
+   "exceptions": [],
+   "params": {
+    "forbidden_imports": [
+     "body-parser",
+     "express",
+     "http",
+     "swagger-ui-express"
+    ]
+   },
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "domain-purity",
+    "via": "fitness function FF-P01 (domain-purity) forbidden_imports"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-012",
+   "kind": "core-package-free",
+   "statement": "application (a core layer: it may depend on no other layer) imports none of bunyan",
+   "subject": "application",
+   "confidence": 0.889,
+   "level": "high",
+   "evidence": {
+    "coreFiles": 8,
+    "packages": 1
+   },
+   "exceptions": [],
+   "params": {
+    "forbidden_imports": [
+     "bunyan"
+    ]
+   },
+   "compilesTo": null,
+   "notRepresentable": "domain-purity checks the domain-kind layer only (domain), not application",
+   "status": "proposal"
+  }
+ ],
+ "counts": {
+  "rules": 12,
+  "high": 3,
+  "medium": 1,
+  "low": 8,
+  "exceptions": 2,
+  "notRepresentable": 1
+ },
+ "spec": {
+  "valid": true,
+  "errors": [],
+  "compiled": [
+   "dependency-direction-graph",
+   "domain-purity",
+   "layer-skip-graph",
+   "no-cyclic-deps"
+  ]
+ }
+}

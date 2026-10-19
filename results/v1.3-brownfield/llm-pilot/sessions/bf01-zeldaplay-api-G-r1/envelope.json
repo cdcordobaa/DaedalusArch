@@ -1,0 +1,99 @@
+{
+ "duration_api_ms": 14311,
+ "stop_reason": "end_turn",
+ "session_id": "925e21fd-3c94-4ed4-b156-cd69b5ff64c8",
+ "total_cost_usd": 0.07529240000000001,
+ "usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 13192,
+  "cache_read_input_tokens": 34624,
+  "output_tokens": 1905,
+  "output_tokens_details": {
+   "thinking_tokens": 469
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 13192,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1087,
+    "cache_read_input_tokens": 17244,
+    "cache_creation_input_tokens": 1857,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1857
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-sonnet-5-5": {
+   "inputTokens": 6,
+   "outputTokens": 1905,
+   "cacheReadInputTokens": 34624,
+   "cacheCreationInputTokens": 13192,
+   "webSearchRequests": 0,
+   "costUSD": 0.07529240000000001,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 469,
+   "canonicalModel": "claude-sonnet-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 9,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "The repository has no layer folders. It is organised as feature modules under `src/app`, so I classified files by suffix and put the two data-access folders (`database`, `redis`) in infrastructure. I left the preset's fitness functions and excludes unchanged. I didn't read any file contents, and I didn't check the DTO globs I put in the application layer (`**/models/*.dto.ts`, `**/models/*.graphql.ts`) against the repository, so those two have no pattern citation.\n\n```yaml\narchitecture:\n  style: nestjs\n  layers:\n    - name: infrastructure\n      directories:\n        - src/app/database/**\n        - src/app/redis/**\n      roles:\n        - repository-impl\n        - external-service\n    - name: application\n      file_patterns:\n        - \"**/*.service.ts\"\n        - \"**/models/*.dto.ts\"\n        - \"**/models/*.graphql.ts\"\n      roles:\n        - application-service\n        - dto\n    - name: presentation\n      directories:\n        - src/app/guards/**\n      file_patterns:\n        - \"**/*.controller.ts\"\n        - \"**/*.module.ts\"\n        - \"**/*.guard.ts\"\n      roles:\n        - controller\n        - module\n        - guard\n      decorators:\n        - \"@Controller\"\n        - \"@Module\"\n```\n\n```json\n{\"units\": [\n{\"id\": \"layer:infrastructure\", \"claim\": \"The database and redis folders hold the data-access and connection code that services call into.\", \"origin\": \"proposed\", \"citations\": [{\"type\": \"pattern\", \"glob\": \"src/app/database/**\", \"count\": 10}, {\"type\": \"pattern\", \"glob\": \"src/app/redis/**\", \"count\": 5}]},\n{\"id\": \"layer:application\", \"claim\": \"Business logic lives in *.service.ts files co-located in feature modules.\", \"origin\": \"proposed\", \"citations\": [{\"type\": \"pattern\", \"glob\": \"**/*.service.ts\", \"count\": 12}]},\n{\"id\": \"layer:presentation\", \"claim\": \"Controllers, Nest modules and guards form the outer transport and wiring layer.\", \"origin\": \"proposed\", \"citations\": [{\"type\": \"pattern\", \"glob\": \"**/*.controller.ts\", \"count\": 6}, {\"type\": \"pattern\", \"glob\": \"**/*.module.ts\", \"count\": 14}, {\"type\": \"pattern\", \"glob\": \"src/app/guards/**\", \"count\": 2}]},\n{\"id\": \"order\", \"claim\": \"Dependencies flow from presentation (controllers) to application (services) to infrastructure (database, redis), as in the NestJS preset.\", \"origin\": \"proposed\", \"citations\": [{\"type\": \"pattern\", \"glob\": \"**/*.controller.ts\", \"count\": 6}, {\"type\": \"pattern\", \"glob\": \"**/*.service.ts\", \"count\": 12}]}\n]}\n```",
+ "ttft_ms": 1894,
+ "type": "result",
+ "duration_ms": 14493,
+ "uuid": "73808db3-eda9-4b19-8bac-0e87ace27a54",
+ "ttft_stream_ms": 1564,
+ "time_to_request_ms": 30,
+ "first_content_frame_ms": 1565,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

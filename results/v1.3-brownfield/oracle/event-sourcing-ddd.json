@@ -1,0 +1,536 @@
+{
+ "id": "event-sourcing-ddd",
+ "style": "ddd",
+ "layersPresent": [
+  "api",
+  "application",
+  "composition",
+  "domain",
+  "infrastructure"
+ ],
+ "filesMapped": 58,
+ "files": 58,
+ "declaredAllowed": [
+  "api>application",
+  "api>domain",
+  "application>domain",
+  "composition>api",
+  "composition>application",
+  "composition>domain",
+  "composition>infrastructure",
+  "infrastructure>application",
+  "infrastructure>domain"
+ ],
+ "graphs": {
+  "observed": {
+   "mined": [
+    "api>application",
+    "api>composition",
+    "api>infrastructure",
+    "application>composition",
+    "application>domain",
+    "application>infrastructure",
+    "composition>api",
+    "composition>application",
+    "composition>domain",
+    "composition>infrastructure",
+    "infrastructure>composition",
+    "infrastructure>domain"
+   ],
+   "tp": 7,
+   "fp": 5,
+   "fn": 2
+  },
+  "strict": {
+   "mined": [
+    "api>application",
+    "api>composition",
+    "api>infrastructure",
+    "application>composition",
+    "application>domain",
+    "application>infrastructure",
+    "composition>api",
+    "composition>application",
+    "composition>domain",
+    "composition>infrastructure",
+    "infrastructure>composition",
+    "infrastructure>domain"
+   ],
+   "tp": 7,
+   "fp": 5,
+   "fn": 2
+  },
+  "full": {
+   "mined": [
+    "api>application",
+    "api>composition",
+    "api>infrastructure",
+    "application>composition",
+    "application>domain",
+    "application>infrastructure",
+    "composition>api",
+    "composition>application",
+    "composition>infrastructure",
+    "infrastructure>composition",
+    "infrastructure>domain"
+   ],
+   "tp": 6,
+   "fp": 5,
+   "fn": 3
+  }
+ },
+ "forbidding": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "domain>application",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "domain>infrastructure",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "pair": "domain>api",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-004",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "domain>composition",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-005",
+   "kind": "layer-direction",
+   "level": "medium",
+   "pair": "application>api",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-006",
+   "kind": "layer-direction",
+   "level": "medium",
+   "pair": "infrastructure>application",
+   "declaredForbids": false
+  },
+  {
+   "id": "MR-007",
+   "kind": "layer-direction",
+   "level": "medium",
+   "pair": "infrastructure>api",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-008",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "pair": "api>domain",
+   "declaredForbids": false
+  },
+  {
+   "id": "MR-009",
+   "kind": "layer-rare-edge",
+   "level": "low",
+   "pair": "composition>domain",
+   "declaredForbids": false
+  }
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.924,
+   "subject": "domain",
+   "object": "application",
+   "statement": "domain must not depend on application (26 edges application -> domain; 0/24 domain files import application)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.916,
+   "subject": "domain",
+   "object": "infrastructure",
+   "statement": "domain must not depend on infrastructure (21 edges infrastructure -> domain; 0/24 domain files import infrastructure)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "confidence": 0.411,
+   "subject": "domain",
+   "object": "api",
+   "statement": "domain must not depend on api (no import between them either way)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-004",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.853,
+   "subject": "domain",
+   "object": "composition",
+   "statement": "domain must not depend on composition (8 edges composition -> domain; 0/24 domain files import composition)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-005",
+   "kind": "layer-direction",
+   "level": "medium",
+   "confidence": 0.688,
+   "subject": "application",
+   "object": "api",
+   "statement": "application must not depend on api (3 edges api -> application; 0/11 application files import api)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-006",
+   "kind": "layer-direction",
+   "level": "medium",
+   "confidence": 0.692,
+   "subject": "infrastructure",
+   "object": "application",
+   "statement": "infrastructure must not depend on application (3 edges application -> infrastructure; 0/12 infrastructure files import application)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-007",
+   "kind": "layer-direction",
+   "level": "medium",
+   "confidence": 0.692,
+   "subject": "infrastructure",
+   "object": "api",
+   "statement": "infrastructure must not depend on api (3 edges api -> infrastructure; 0/12 infrastructure files import api)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-008",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "confidence": 0.411,
+   "subject": "api",
+   "object": "domain",
+   "statement": "api must not depend on domain (no import between them either way)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-009",
+   "kind": "layer-rare-edge",
+   "level": "low",
+   "confidence": 0.333,
+   "subject": "composition",
+   "object": "domain",
+   "statement": "composition should not depend on domain (1/5 composition files imports it; nothing goes back)",
+   "exceptions": [
+    {
+     "file": "src/entrypoint.ts",
+     "target": "src/core/Command.ts"
+    },
+    {
+     "file": "src/entrypoint.ts",
+     "target": "src/core/ICommandHandler.ts"
+    },
+    {
+     "file": "src/entrypoint.ts",
+     "target": "src/core/IEventHandler.ts"
+    },
+    {
+     "file": "src/entrypoint.ts",
+     "target": "src/core/IEventStore.ts"
+    },
+    {
+     "file": "src/entrypoint.ts",
+     "target": "src/domain/book/IBookRepository.ts"
+    },
+    {
+     "file": "src/entrypoint.ts",
+     "target": "src/domain/book/events/index.ts"
+    },
+    {
+     "file": "src/entrypoint.ts",
+     "target": "src/domain/user/IUserRepository.ts"
+    },
+    {
+     "file": "src/entrypoint.ts",
+     "target": "src/domain/user/events/index.ts"
+    }
+   ]
+  },
+  {
+   "id": "MR-010",
+   "kind": "acyclic-files",
+   "level": "high",
+   "confidence": 0.983,
+   "subject": "*",
+   "statement": "no file lies on an import cycle (58/58 files do not)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-011",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.606,
+   "subject": "folder:infrastructure",
+   "object": "folder:interfaces",
+   "statement": "folder component infrastructure must not depend on interfaces (2 imports interfaces -> infrastructure; 0/10 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-012",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.5,
+   "subject": "folder:projection",
+   "object": "folder:eventHandlers",
+   "statement": "folder component projection must not depend on eventHandlers (3 imports eventHandlers -> projection; 0/2 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-013",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.333,
+   "subject": "folder:projection",
+   "object": "folder:interfaces",
+   "statement": "folder component projection must not depend on interfaces (1 imports interfaces -> projection; 0/2 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-014",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.25,
+   "subject": "folder:config",
+   "object": "folder:infrastructure",
+   "statement": "folder component config must not depend on infrastructure (1 imports infrastructure -> config; 0/1 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-015",
+   "kind": "component-direction",
+   "level": "high",
+   "confidence": 0.826,
+   "subject": "folder:domain",
+   "object": "folder:eventHandlers",
+   "statement": "folder component domain must not depend on eventHandlers (10 imports eventHandlers -> domain; 0/10 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-016",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.727,
+   "subject": "folder:domain",
+   "object": "folder:infrastructure",
+   "statement": "folder component domain must not depend on infrastructure (4 imports infrastructure -> domain; 0/10 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-017",
+   "kind": "component-direction",
+   "level": "high",
+   "confidence": 0.758,
+   "subject": "folder:domain",
+   "object": "folder:commandHandlers",
+   "statement": "folder component domain must not depend on commandHandlers (5 imports commandHandlers -> domain; 0/10 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-018",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.556,
+   "subject": "folder:constants",
+   "object": "folder:eventHandlers",
+   "statement": "folder component constants must not depend on eventHandlers (5 imports eventHandlers -> constants; 0/2 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-019",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.5,
+   "subject": "folder:constants",
+   "object": "folder:infrastructure",
+   "statement": "folder component constants must not depend on infrastructure (3 imports infrastructure -> constants; 0/2 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-020",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.444,
+   "subject": "folder:constants",
+   "object": "folder:interfaces",
+   "statement": "folder component constants must not depend on interfaces (2 imports interfaces -> constants; 0/2 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-021",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.444,
+   "subject": "folder:constants",
+   "object": "folder:projection",
+   "statement": "folder component constants must not depend on projection (2 imports projection -> constants; 0/2 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-022",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.5,
+   "subject": "folder:constants",
+   "object": "folder:commandHandlers",
+   "statement": "folder component constants must not depend on commandHandlers (3 imports commandHandlers -> constants; 0/2 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-023",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.333,
+   "subject": "folder:constants",
+   "object": "folder:commands",
+   "statement": "folder component constants must not depend on commands (1 imports commands -> constants; 0/2 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-024",
+   "kind": "component-direction",
+   "level": "high",
+   "confidence": 0.778,
+   "subject": "folder:core",
+   "object": "folder:eventHandlers",
+   "statement": "folder component core must not depend on eventHandlers (5 imports eventHandlers -> core; 0/14 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-025",
+   "kind": "component-direction",
+   "level": "high",
+   "confidence": 0.867,
+   "subject": "folder:core",
+   "object": "folder:infrastructure",
+   "statement": "folder component core must not depend on infrastructure (13 imports infrastructure -> core; 0/14 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-026",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.747,
+   "subject": "folder:core",
+   "object": "folder:projection",
+   "statement": "folder component core must not depend on projection (4 imports projection -> core; 0/14 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-027",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.7,
+   "subject": "folder:core",
+   "object": "folder:commandHandlers",
+   "statement": "folder component core must not depend on commandHandlers (3 imports commandHandlers -> core; 0/14 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-028",
+   "kind": "component-direction",
+   "level": "high",
+   "confidence": 0.862,
+   "subject": "folder:core",
+   "object": "folder:domain",
+   "statement": "folder component core must not depend on domain (12 imports domain -> core; 0/14 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-029",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.7,
+   "subject": "folder:core",
+   "object": "folder:commands",
+   "statement": "folder component core must not depend on commands (3 imports commands -> core; 0/14 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-030",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.563,
+   "subject": "folder:commands",
+   "object": "folder:interfaces",
+   "statement": "folder component commands must not depend on interfaces (3 imports interfaces -> commands; 0/3 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-031",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.563,
+   "subject": "folder:commands",
+   "object": "folder:commandHandlers",
+   "statement": "folder component commands must not depend on commandHandlers (3 imports commandHandlers -> commands; 0/3 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-032",
+   "kind": "port-implementation",
+   "level": "high",
+   "confidence": 0.889,
+   "subject": "application/Handler",
+   "statement": "every *Handler class in application implements an interface declared in another layer (8/8)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-033",
+   "kind": "port-implementation",
+   "level": "high",
+   "confidence": 0.75,
+   "subject": "infrastructure/Repository",
+   "statement": "every *Repository class in infrastructure implements an interface declared in another layer (3/3)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-034",
+   "kind": "inject-abstractions",
+   "level": "high",
+   "confidence": 0.857,
+   "subject": "application",
+   "statement": "classes of application inject interfaces across layers, not concrete classes (6/6)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-035",
+   "kind": "inject-abstractions",
+   "level": "high",
+   "confidence": 0.75,
+   "subject": "infrastructure",
+   "statement": "classes of infrastructure inject interfaces across layers, not concrete classes (3/3)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-036",
+   "kind": "core-package-free",
+   "level": "high",
+   "confidence": 0.96,
+   "subject": "domain",
+   "statement": "domain (a core layer: it may depend on no other layer) imports none of body-parser, dotenv, events, express, inversify, inversify-express-utils, ioredis, module-alias, mongodb, reflect-metadata",
+   "exceptions": []
+  }
+ ]
+}
