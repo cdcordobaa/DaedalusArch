@@ -1,31 +1,36 @@
 /**
  * Style slot of the loop prompts (v1.3 loop pilot; `Docs/v1.3/pilot-tasks.md` §3, `Docs/v1.3/loop-pilot-readiness.md`).
  *
- * A plan may give each task a target style (`clean | hexagonal | ddd`). The step frame then names that style with two
- * sentences instead of the fixed "Clean Architecture" wording:
+ * A plan may give each task a target style (`clean | hexagonal | ddd | layered`). The step frame then names that style
+ * with two sentences instead of the fixed "Clean Architecture" wording:
  * - the style sentence of `pilot-tasks.md` §3, word for word (for DDD it names the plan's bounded contexts);
  * - a folder-layout sentence derived from the style's canonical preset (`presets/<style>.yaml`), the way the E1
  *   templates carry the Clean layout (`Docs/generator-protocol.md` §5): for Clean and Hexagonal, the preset's layer
- *   folders in preset order; for DDD, the per-context sub-folders of the preset's `src/*\/<folder>/**` globs and the
- *   composition-root file. Preset folders that are neither per-context nor the composition root (the DDD preset's
+ *   folders in preset order (Layered too; `presets/layered.yaml` lists them bottom-up); for DDD, the per-context
+ *   sub-folders of the preset's `src/*\/<folder>/**` globs and the composition-root file. Preset folders that are neither per-context nor the composition root (the DDD preset's
  *   `src/shared-kernel/**`) are not named: the pilot spec declares only the plan's contexts, and where the agent puts
  *   shared code is part of the step-4 pressure (`pilot-tasks.md` §3).
  *
  * A task with no style keeps the original frames byte for byte (`prompts.ts`).
+ *
+ * Layered (BUILD-L, REV-04 P16): the style and layout sentences are the floor probe's layered frame word for word
+ * (`results/v1.3-floor-probe/tasks.json` `frames.layered`), so the rehearsal frame of `ice-rink` is unchanged by the
+ * move from a copied frame to a harness frame.
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { parse as parseYaml } from 'yaml';
 
-export type LoopStyle = 'clean' | 'hexagonal' | 'ddd';
+export type LoopStyle = 'clean' | 'hexagonal' | 'ddd' | 'layered';
 
-export const LOOP_STYLES: readonly LoopStyle[] = Object.freeze(['clean', 'hexagonal', 'ddd']);
+export const LOOP_STYLES: readonly LoopStyle[] = Object.freeze(['clean', 'hexagonal', 'ddd', 'layered']);
 
 /** The canonical preset each style's layout sentence is derived from (repository-relative). */
 export const STYLE_PRESETS: Readonly<Record<LoopStyle, string>> = Object.freeze({
   clean: 'presets/clean-architecture.yaml',
   hexagonal: 'presets/hexagonal.yaml',
   ddd: 'presets/ddd.yaml',
+  layered: 'presets/layered.yaml',
 });
 
 /** A bounded context of a DDD task: its root folder and the part of the system it holds (plain words). */
@@ -69,6 +74,8 @@ export function styleSentence(style: LoopStyle, contexts: readonly LoopContextDe
       return 'Organise the code following Hexagonal Architecture (ports and adapters).';
     case 'ddd':
       return `Organise the code following Domain-Driven Design, with one bounded context per part: ${contextClause(contexts)}.`;
+    case 'layered':
+      return 'Organise the code following Layered Architecture (presentation, business and persistence layers).';
   }
 }
 
@@ -80,6 +87,8 @@ export function styleName(style: LoopStyle, contexts: readonly LoopContextDecl[]
       return 'Hexagonal Architecture, ports and adapters';
     case 'ddd':
       return `Domain-Driven Design, one bounded context per part: ${contextClause(contexts)}`;
+    case 'layered':
+      return 'Layered Architecture';
   }
 }
 

@@ -1,0 +1,9 @@
+Organise the code following Clean Architecture.
+Organise the source code under src/ in exactly three folders: src/domain, src/application and src/infrastructure.
+The architecture has these rules:
+- It is a violation when code in an inner layer imports code from an outer layer; dependencies must point inward, towards the domain.
+- It is a violation when some files import each other in a circle.
+- It is a violation when the domain imports code outside it; the domain must not depend on the application, infrastructure or framework code.
+- It is a violation when the domain imports a framework, an HTTP library or an I/O module.
+- It is a violation when a repository is not split into an interface in the domain and an implementation in infrastructure, or code uses the concrete repository class instead of its interface.
+- It is a violation when a domain class receives an infrastructure or framework object through its constructor.

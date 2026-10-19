@@ -113,7 +113,7 @@ The neural arm still enters Study 2 in one place: the judge dimensions FF-N01 an
 The arm runs only if all of the following hold at the run commit. Otherwise the pre-registration drops it, or drops the failing style from it, before the first call (gate V9 allows this):
 
 - **Tool–graph agreement (gate V9).** Probe 1 found that `check_import` does not apply the hexagonal graph rules. For application → outbound adapter it returns `allowed` / `pass`, while the graph scores FF-S01 blocking. It also found that `check_file` and `check_diff` carry two verdicts that disagree: the legacy `verdict` against `blockingVerdict` (`Docs/DiagnosticRuns/v1.3-floor-probe-2026-10-16.md` §3.7). The loop replay found the tools miss `dependency-direction-graph`, `core-isolation` and `context-isolation` (`Docs/v1.3/loop-replay.md`). **Pending:** a fix, and 100 % blocking agreement per Study 2 style.
-- **Per-task spec (gate D11c, ambiguity A25).** The plan loader refuses `taskProfiles` together with `daedalus-mcp` (`scripts/lib/loop/plan.ts`). **Pending:** a harness change, or one style per MCP server configuration.
+- **Per-task spec (gate D11c, ambiguity A25).** The plan loader refuses `taskProfiles` together with `daedalus-mcp` (`scripts/lib/loop/plan.ts`). **Pending:** a harness change, or one style per MCP server configuration. *2026-10-19 (BUILD-L, U10):* the harness change is built: a `daedalus-mcp` plan may carry static `taskProfiles`, and each task's MCP server reads that task's evaluator spec (`mcpSpecFor`, `scripts/lib/loop/plan.ts`).
 - **Confinement with the server attached (gate S4)**, for each CLI. **Pending.** The pilot left the arm out for this reason.
 - **Call log outside the cwd (gate D6).** **Pending.**
 

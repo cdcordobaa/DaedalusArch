@@ -118,6 +118,13 @@ export function turnStatus(cli: ProcessResult | null, exhausted: boolean, envelo
   return 'completed';
 }
 
+/** The MCP server input of a task's turns: `deps.daedalus` with the task's own spec when the plan gives one. */
+export function daedalusFor(deps: Pick<StepAgentDeps, 'daedalus' | 'daedalusSpecByTask'>, taskId: string | undefined): DaedalusServerInput | undefined {
+  const base = deps.daedalus;
+  const specPath = taskId !== undefined ? deps.daedalusSpecByTask?.get(taskId) : undefined;
+  return base !== undefined && specPath !== undefined ? { ...base, specPath } : base;
+}
+
 /** The argv with the prompt value replaced, for the record (the prompt is hashed separately). */
 export function redactPrompt(args: readonly string[], prompt: string): readonly string[] {
   return args.map((a) => (a === prompt ? PROMPT_PLACEHOLDER : a));
@@ -132,6 +139,11 @@ export interface StepAgentDeps {
   readonly knownSecrets?: readonly string[];
   /** Required for the `daedalus-mcp` arm. */
   readonly daedalus?: DaedalusServerInput;
+  /**
+   * Per-task MCP spec (`plan.ts` `mcpSpecFor`): the spec file a task's server reads instead of `daedalus.specPath`.
+   * Absent, or no entry for the task: `daedalus.specPath`, as before.
+   */
+  readonly daedalusSpecByTask?: ReadonlyMap<string, string>;
   /** Claude only: the pinned `claude --version` (x.y.z); the probe refuses any other. Unpinned when absent. */
   readonly cliVersion?: string;
   /** Claude only: the isolation of every spawn. The E1 environment when absent. */
@@ -277,10 +289,11 @@ export class ClaudeStepAgent implements StepAgent {
   }
 
   /** The argv, prompt and MCP config of one turn (no process is spawned). */
-  plan(input: Pick<TurnInput, 'runId' | 'cwd' | 'prompt' | 'arm'>): DomainResult<{ args: readonly string[]; prompt: string; mcpConfigPath: string | null; mcpConfig: unknown }> {
+  plan(input: Pick<TurnInput, 'runId' | 'cwd' | 'prompt' | 'arm'> & Partial<Pick<TurnInput, 'taskId'>>): DomainResult<{ args: readonly string[]; prompt: string; mcpConfigPath: string | null; mcpConfig: unknown }> {
+    const daedalus = daedalusFor(this.deps, input.taskId);
     const call = buildArmCall(this.config, { runId: input.runId, outputDir: input.cwd }, input.prompt, {
       arm: generatorArmFor(input.arm),
-      ...(this.deps.daedalus !== undefined ? { daedalus: this.deps.daedalus } : {}),
+      ...(daedalus !== undefined ? { daedalus } : {}),
     });
     if (!call.success) return DomainResult.fail(call.errors);
     return DomainResult.ok({ args: call.data.args, prompt: call.data.prompt, mcpConfigPath: call.data.mcpConfigPath, mcpConfig: call.data.mcpConfig });
@@ -392,18 +405,19 @@ export class CodexStepAgent implements StepAgent {
   }
 
   /** The argument set and stdin prompt of one turn (no process is spawned). */
-  plan(input: Pick<TurnInput, 'runId' | 'cwd' | 'prompt' | 'arm' | 'callLogPath'>): DomainResult<{ args: readonly string[]; prompt: string }> {
+  plan(input: Pick<TurnInput, 'runId' | 'cwd' | 'prompt' | 'arm' | 'callLogPath'> & Partial<Pick<TurnInput, 'taskId'>>): DomainResult<{ args: readonly string[]; prompt: string }> {
     const arm = generatorArmFor(input.arm);
     const denies = codexReadDenies(this.config, input.cwd, path.dirname(path.resolve(this.deps.repoRoot)));
     const base = buildCodexArgs(this.config, input.cwd, denies);
     const prompt = armPrompt(input.prompt, arm);
     if (arm === 'none') return DomainResult.ok({ args: base, prompt });
-    if (arm !== 'daedalus-mcp' || this.deps.daedalus === undefined) {
+    const daedalus = daedalusFor(this.deps, input.taskId);
+    if (arm !== 'daedalus-mcp' || daedalus === undefined) {
       return DomainResult.fail([{ code: 'ARM_NOT_CONFIGURED', message: `the ${arm} arm needs nodeBinary, serverEntry and specPath` }]);
     }
-    const errors = checkDaedalusInput(this.deps.daedalus, { runId: input.runId, outputDir: input.cwd });
+    const errors = checkDaedalusInput(daedalus, { runId: input.runId, outputDir: input.cwd });
     if (errors.length > 0) return DomainResult.fail(errors);
-    return DomainResult.ok({ args: withCodexMcpServer(base, this.deps.daedalus, input.cwd, input.callLogPath), prompt });
+    return DomainResult.ok({ args: withCodexMcpServer(base, daedalus, input.cwd, input.callLogPath), prompt });
   }
 
   async runTurn(input: TurnInput): Promise<DomainResult<TurnResult>> {
@@ -488,6 +502,7 @@ export class GeminiStepAgent implements StepAgent {
     writeHarnessTsconfig(this.config.harnessRoot, input.runId, input.cwd);
     const ambient = checkAncestors(input.cwd);
     if (!ambient.success) return DomainResult.fail(ambient.errors);
+    const daedalus = daedalusFor(this.deps, input.taskId);
     const files = writeAgyTurnFiles(planned.home, {
       arm: planned.arm,
       runId: input.runId,
@@ -495,7 +510,7 @@ export class GeminiStepAgent implements StepAgent {
       cwd: input.cwd,
       allowCommand: this.config.allowCommand,
       ...(input.callLogPath !== undefined ? { callLogPath: input.callLogPath } : {}),
-      ...(this.deps.daedalus !== undefined ? { daedalus: this.deps.daedalus } : {}),
+      ...(daedalus !== undefined ? { daedalus } : {}),
     });
     if (!files.success) return DomainResult.fail(files.errors);
     const secrets = this.deps.knownSecrets ?? [];

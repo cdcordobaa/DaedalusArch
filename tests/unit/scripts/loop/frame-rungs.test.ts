@@ -35,8 +35,8 @@ import { DEMO_TASK, context, spec, stubAgent, tmpRoot } from './helpers.js';
 const REPO = path.resolve(__dirname, '../../../..');
 const read = (rel: string): string => fs.readFileSync(path.join(REPO, rel), 'utf8');
 const AUDIT = path.join(REPO, 'Docs/v1.3/study2-task-design/hint-audit.mjs');
-const STATIC_STYLES: readonly LoopStyle[] = ['clean', 'hexagonal'];
-const SPEC_OF: Readonly<Record<string, string>> = { clean: 'specs/clean-arch.yaml', hexagonal: 'presets/hexagonal.yaml' };
+const STATIC_STYLES: readonly LoopStyle[] = ['clean', 'hexagonal', 'layered'];
+const SPEC_OF: Readonly<Record<string, string>> = { clean: 'specs/clean-arch.yaml', hexagonal: 'presets/hexagonal.yaml', layered: 'presets/layered.yaml' };
 const FIX_WORDS = /\b(?:move|moving|relocate|restructure|refactor|break the cycle|go through a port|keep the domain free)\b/i;
 
 function extras(rung: FrameExtras['rung'], attention: boolean, specRel = 'presets/hexagonal.yaml'): FrameExtras {

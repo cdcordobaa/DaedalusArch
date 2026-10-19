@@ -9,8 +9,8 @@
  * drawn from `orderSeed` with mulberry32 (one generator consumed block by block, as BR-U5a-51), so drift during a
  * session window hits every arm of a block alike.
  *
- * Per-task profiles (`taskProfiles`, optional): a task's target style (`clean | hexagonal | ddd`, the style slot of the
- * step frames) and its evaluator spec: `static` (a spec file) or `ise-step1` (DDD only: a spec the ISE infers from the
+ * Per-task profiles (`taskProfiles`, optional): a task's target style (`clean | hexagonal | ddd | layered`, the style
+ * slot of the step frames) and its evaluator spec: `static` (a spec file) or `ise-step1` (DDD only: a spec the ISE infers from the
  * run's step-1 snapshot, constrained to the declared `contexts`, then frozen; `specs.ts`). `evaluatorSpec` is the
  * default spec and may be left out only when every task has a profile. `callBudget`, when present, must equal the
  * budget the plan implies (`planCallBudget`), so the recorded figure cannot drift from the plan.
@@ -23,9 +23,16 @@
  *
  * Spec equality (review finding R23; `Docs/v1.3/study2-tunables.md` §4): a plan may pin `specSha256`. `loadLoopPlan` then
  * checks that the evaluator spec and, for the `daedalus-mcp` arm, the MCP server's spec both hash to it, so the arm's
- * tools answer from the spec that is scored. A `daedalus-mcp` plan cannot carry `taskProfiles`, so one spec covers
- * every task. Without `specSha256` nothing changes, unless the caller asks for it (`requireSpecSha256`, from
- * `DAEDALUS_LOOP_REQUIRE_SPEC_SHA256=1` in `main.ts`; OFF by default).
+ * tools answer from the spec that is scored. Without `specSha256` nothing changes, unless the caller asks for it
+ * (`requireSpecSha256`, from `DAEDALUS_LOOP_REQUIRE_SPEC_SHA256=1` in `main.ts`; OFF by default).
+ *
+ * Per-task MCP spec (gate D11c, ambiguity A25; BUILD-L): a `daedalus-mcp` plan may carry `taskProfiles`. Every profile
+ * must then be `static` (the server reads its spec before step 1, so `ise-step1` has nothing to serve), and the MCP
+ * server of a task's turns reads that task's evaluator spec (`mcpSpecFor`): the profile's file for a profiled task,
+ * `daedalus.specPath` for any other. So the tools and the score read the same file by construction. A profile may pin
+ * its own `specSha256`; the plan's `specSha256` covers the default spec and every profile without a pin, and
+ * `requireSpecSha256` is met by the plan pin or, when the plan has no default `evaluatorSpec`, by a pin on every
+ * profile. A plan without `taskProfiles` is checked exactly as before.
  *
  * Pins and isolation (optional, OFF when absent; `Docs/v1.3/loop-isolation.md`): `adapters[].cliVersion` pins the CLI
  * version (a Codex value must equal `codex.cliVersion`); `generatorIsolation.claudeConfigDir` (`"<local>"` filled from
@@ -70,6 +77,8 @@ export interface TaskProfilePlan {
   readonly evaluatorSpec?: string;
   /** DDD: the bounded contexts the frame names and the spec declares. */
   readonly contexts?: readonly LoopContextDecl[];
+  /** sha256 of this profile's spec file; checked at load (module header, per-task MCP spec). */
+  readonly specSha256?: string;
 }
 
 /** Frame extras of a plan (module header). Absent, or `{ specRung: 'L2', attention: false }`: today's frames. */
@@ -232,8 +241,12 @@ export function validatePlan(raw: unknown): DomainResult<LoopPlanFile> {
   if (raw.engine !== undefined && parseLoopEngine(raw.engine) === undefined) errors.push(err('LOOP_PLAN_INVALID', 'engine must be neo4j, cypher-interp or both'));
   if (raw.evaluatorSpec === undefined && raw.taskProfiles === undefined) errors.push(err('LOOP_PLAN_INVALID', 'evaluatorSpec must be a non-empty string (or every task needs a taskProfiles entry)'));
   if (raw.taskProfiles !== undefined) errors.push(...validateProfiles(raw.taskProfiles));
-  if (raw.taskProfiles !== undefined && Array.isArray(raw.arms) && raw.arms.includes('daedalus-mcp')) {
-    errors.push(err('LOOP_PLAN_INVALID', 'taskProfiles cannot be combined with the daedalus-mcp arm (its MCP server has one spec)'));
+  if (isRecord(raw.taskProfiles) && Array.isArray(raw.arms) && raw.arms.includes('daedalus-mcp')) {
+    for (const [id, p] of Object.entries(raw.taskProfiles)) {
+      if (isRecord(p) && (p.specMode ?? 'static') !== 'static') {
+        errors.push(err('LOOP_PLAN_INVALID', `taskProfiles.${id}: the daedalus-mcp arm needs a static spec (its MCP server reads the spec before step 1)`));
+      }
+    }
   }
   if (raw.callBudget !== undefined) {
     const b = raw.callBudget;
@@ -349,14 +362,28 @@ export function specFileSha256(file: string): { readonly sha256: string } | { re
 }
 
 /**
+ * The spec file the MCP server of a task's `daedalus-mcp` turns reads (module header, per-task MCP spec): the task's
+ * static profile spec (absolute), else `daedalus.specPath`; undefined when the plan has no daedalus block.
+ */
+export function mcpSpecFor(plan: Pick<LoopPlanFile, 'daedalus' | 'taskProfiles'>, taskId: string, repoRoot: string): string | undefined {
+  if (plan.daedalus === undefined) return undefined;
+  const p = plan.taskProfiles?.[taskId];
+  if (p !== undefined && (p.specMode ?? 'static') === 'static' && p.evaluatorSpec !== undefined) return path.resolve(repoRoot, p.evaluatorSpec);
+  return plan.daedalus.specPath;
+}
+
+/**
  * R23 (post-merge review 2026-10-16): in the daedalus-mcp arm the MCP server's spec (`daedalus.specPath`) and the
  * evaluator's spec (`evaluatorSpec`, repository-relative) must hold the same rules, or the tool's advice and the score
  * disagree. Compares the two files by sha256; returns both hashes, or undefined when the arm is not in the plan.
  */
 export function mcpSpecCheck(
-  plan: Pick<LoopPlanFile, 'arms' | 'evaluatorSpec' | 'daedalus'>, repoRoot: string,
+  plan: Pick<LoopPlanFile, 'arms' | 'evaluatorSpec' | 'daedalus'> & Partial<Pick<LoopPlanFile, 'taskProfiles'>>, repoRoot: string,
 ): DomainResult<{ readonly mcpSpecSha256: string; readonly evaluatorSpecSha256: string } | undefined> {
   if (!plan.arms.includes('daedalus-mcp')) return DomainResult.ok(undefined);
+  // Per-task MCP spec: a profiled task's server reads its evaluator spec itself (`mcpSpecFor`). The default pair is
+  // compared only when some task can fall back to it, i.e. when the plan names a default evaluatorSpec.
+  if (plan.taskProfiles !== undefined && plan.evaluatorSpec === undefined) return DomainResult.ok(undefined);
   if (plan.daedalus === undefined || plan.evaluatorSpec === undefined) {
     return DomainResult.fail([err('LOOP_PLAN_SPEC_MISMATCH', 'the daedalus-mcp arm needs daedalus.specPath and evaluatorSpec')]);
   }
@@ -393,6 +420,8 @@ function validateProfiles(raw: unknown): DomainError[] {
     if (mode === 'static' && (typeof p.evaluatorSpec !== 'string' || p.evaluatorSpec === '')) bad('a static profile needs evaluatorSpec');
     if (mode === 'ise-step1' && p.evaluatorSpec !== undefined) bad('an ise-step1 profile has no evaluatorSpec (the spec is frozen after step 1)');
     if (mode === 'ise-step1' && p.style !== 'ddd') bad('ise-step1 is for the ddd style only');
+    if (p.specSha256 !== undefined && (typeof p.specSha256 !== 'string' || !SHA256_RE.test(p.specSha256))) bad('specSha256 must be a lower-case 64-hex sha256');
+    if (p.specSha256 !== undefined && mode !== 'static') bad('only a static profile pins specSha256');
     const ctx = p.contexts;
     if (p.style === 'ddd') {
       const ok =
@@ -457,30 +486,40 @@ export interface PlanLoadChecks {
 
 /**
  * R23: when the plan pins `specSha256`, the evaluator spec and (for the `daedalus-mcp` arm) the MCP server's spec must
- * hash to it. With `requireSpecSha256`, a `daedalus-mcp` plan without the pin is refused.
+ * hash to it. With `requireSpecSha256`, a `daedalus-mcp` plan without the pin is refused. A profile's own `specSha256`
+ * replaces the plan pin for that profile's spec (module header, per-task MCP spec).
  */
 export function checkSpecEquality(plan: LoopPlanFile, repoRoot: string, checks: PlanLoadChecks = {}): DomainError[] {
   const mcp = plan.arms.includes('daedalus-mcp');
-  if (plan.specSha256 === undefined) {
+  const profiles = Object.entries(plan.taskProfiles ?? {});
+  const profilePinned = profiles.some(([, p]) => p.specSha256 !== undefined);
+  if (plan.specSha256 === undefined && !profilePinned) {
     return mcp && checks.requireSpecSha256 === true
       ? [err('LOOP_PLAN_INVALID', `the daedalus-mcp arm needs specSha256 (${SPEC_SHA_ENV}=1)`)]
       : [];
   }
-  const files: [string, string][] = [];
-  if (plan.evaluatorSpec !== undefined) files.push(['evaluatorSpec', path.resolve(repoRoot, plan.evaluatorSpec)]);
-  for (const [id, p] of Object.entries(plan.taskProfiles ?? {})) {
-    if (p.evaluatorSpec !== undefined) files.push([`taskProfiles.${id}.evaluatorSpec`, path.resolve(repoRoot, p.evaluatorSpec)]);
-  }
-  if (mcp && plan.daedalus !== undefined) files.push(['daedalus.specPath', path.resolve(repoRoot, plan.daedalus.specPath)]);
   const errors: DomainError[] = [];
-  for (const [field, file] of files) {
+  if (plan.specSha256 === undefined && mcp && checks.requireSpecSha256 === true) {
+    // Profile pins only: they meet the requirement when no task can fall back to an unpinned default spec.
+    if (plan.evaluatorSpec !== undefined || profiles.some(([, p]) => p.specSha256 === undefined)) {
+      errors.push(err('LOOP_PLAN_INVALID', `the daedalus-mcp arm needs specSha256 on the plan or on every profile with no default evaluatorSpec (${SPEC_SHA_ENV}=1)`));
+    }
+  }
+  const files: [string, string, string | undefined][] = [];
+  if (plan.evaluatorSpec !== undefined) files.push(['evaluatorSpec', path.resolve(repoRoot, plan.evaluatorSpec), plan.specSha256]);
+  for (const [id, p] of profiles) {
+    if (p.evaluatorSpec !== undefined) files.push([`taskProfiles.${id}.evaluatorSpec`, path.resolve(repoRoot, p.evaluatorSpec), p.specSha256 ?? plan.specSha256]);
+  }
+  if (mcp && plan.daedalus !== undefined) files.push(['daedalus.specPath', path.resolve(repoRoot, plan.daedalus.specPath), plan.specSha256]);
+  for (const [field, file, pin] of files) {
+    if (pin === undefined) continue;
     const h = specFileSha256(file);
     if ('error' in h) {
       errors.push(err('LOOP_FILE_UNREADABLE', `${field} ${file}: ${h.error}`));
       continue;
     }
     const got = h.sha256;
-    if (got !== plan.specSha256) errors.push(err('LOOP_PLAN_SPEC_MISMATCH', `${field} ${file} has sha256 ${got}, the plan pins ${plan.specSha256}`));
+    if (got !== pin) errors.push(err('LOOP_PLAN_SPEC_MISMATCH', `${field} ${file} has sha256 ${got}, the plan pins ${pin}`));
   }
   return errors;
 }

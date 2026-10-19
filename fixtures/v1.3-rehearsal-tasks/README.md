@@ -10,7 +10,9 @@ it. They are **never to be used in Study 2**.
 | `tasks.json` | yes, step by step (`request` only) | The tasks, in the harness's `LoopTasksFile` format (`scripts/lib/loop/types.ts`; `validateTasks` in `scripts/lib/loop/plan.ts`). |
 | `styles.json` | no (it selects the harness's style frame) | Target style, evaluator spec and DDD contexts per task. |
 | `design-notes.md` | **never** | Author commentary: which blocking-tier edge each step is aimed at, and why the step is not contrived. |
-| `hint-audit/` | no | The frames the harness would send (`frame-<task>.txt`, generated from `scripts/lib/loop/style.ts`; the layered one copied from the floor probe), and the output of `Docs/v1.3/study2-task-design/hint-audit.mjs` on every request and frame. |
+| `hint-audit/` | no | The frames the harness sends, written by `scripts/v1.4/rehearsal-frames.ts` from `scripts/lib/loop/style.ts`, `prompts.ts` and `rungs.ts`: `frame-<task>.txt` (L2) and `frame-<task>.L3.txt` (L3, one plain sentence per blocking rule), and the output of `Docs/v1.3/study2-task-design/hint-audit.mjs` on every request and frame. |
+| `specs/vineyard-harvest.ddd.yaml` | no | The static DDD rehearsal spec (item 4 below), written by the same script. |
+| `hashes.json` | no | The sha256 of `tasks.json`, of each task's compact `JSON.stringify(task)` and of every frame file and the DDD spec (item 3 below). `npx tsx scripts/v1.4/rehearsal-frames.ts --check` fails when any is stale. |
 
 ## Before any run (author)
 
@@ -22,11 +24,18 @@ it. They are **never to be used in Study 2**.
    `JSON.stringify(task)`, as `pilot-tasks.md` §5 does) in the rehearsal provenance before the first model call. The
    dress-rehearsal plan expects its tasks file at `experiments/study2-rehearsal/rehearsal-tasks.json`; copy this file
    there unchanged if these tasks replace the pilot tasks it currently names.
+   *2026-10-19 (BUILD-L):* the hashes are recorded in `hashes.json` (the per-task hashes use compact
+   `JSON.stringify(task)`, as `pilot-tasks.md` §5). `tasks.json` is unchanged by BUILD-L. The author copies them into the
+   provenance of the run that uses these tasks.
 4. **DDD spec.** `vineyard-harvest` needs a rehearsal spec built on `presets/ddd.yaml` that declares `src/picking/` and
-   `src/cellar/`, written and hashed before any run (as for the pilot's DDD spec).
-5. **Layered.** `ice-rink` targets Layered, which the loop harness cannot frame yet (`styles.json` note). It is a spare:
-   use it only if Study 2 adopts Layered; otherwise the rehearsal runs the other three (one per loop style, which is
-   what the dress rehearsal's Latin square needs).
+   `src/cellar/`, written and hashed before any run (as for the pilot's DDD spec). *2026-10-19 (BUILD-L):* a candidate is
+   `specs/vineyard-harvest.ddd.yaml` (the preset constrained to the two contexts by the loop's own `constrainDddSpec`,
+   static, no aggregate declared), hashed in `hashes.json`. **The author approves it or replaces it**; it is not the
+   D15 decision.
+5. **Layered.** `ice-rink` targets Layered. *2026-10-19 (BUILD-L):* the loop harness now has a `layered` style
+   (`scripts/lib/loop/style.ts`), whose sentences are the floor probe's layered frame word for word, so
+   `frame-ice-rink.txt` is now the harness's own frame and its bytes did not change. The drift record names `ice-rink`
+   as a pilot task (`Docs/v1.4/study2-deviation-2026-10-19-drift.md` §2 "Tasks").
 
 ## Hint audit (run 2026-10-16)
 
@@ -44,6 +53,24 @@ node $A --preset presets/layered.yaml            --task ice-rink         $T/task
 | `school-bus` | clean | **0** / 1 | 0 | FAIL (as expected) |
 | `vineyard-harvest` | ddd | **0** / 12 | 0 | FAIL (as expected) |
 | `ice-rink` | layered | **0** / 6 | 0 | FAIL (as expected) |
+
+The last column is the frame audited *as if it were a no-hint arm*: every styled frame names its style and folders, so
+that audit must FAIL; it is a check that the audit sees the hints, not a defect. (REV-03 read the `ice-rink` row as a
+failed audit; the frame's own audit, the layout-arm column, was 0 FAIL then and is now.)
+
+**L2 and L3 frames, re-audited 2026-10-19 (BUILD-L)** on the files `scripts/v1.4/rehearsal-frames.ts` writes, with
+`--frame-rung L2` and `--frame-rung L3` (an L3 frame may name layers and rule words, WARN; a fix instruction FAILs):
+
+| Task | L2 frame (FAIL) | L3 frame (FAIL / WARN) |
+|---|---|---|
+| `repair-cafe` | 0 | **0** / 61 |
+| `school-bus` | 0 | **0** / 43 |
+| `vineyard-harvest` (with `specs/vineyard-harvest.ddd.yaml`) | 0 | **0** / 65 |
+| `ice-rink` (Layered wording, `RULE_PLAIN_BY_STYLE`) | 0 | **0** / 55 |
+
+The L2 outputs equal the 2026-10-16 `<task>.frame-layout-arm.txt` files byte for byte. The L3 outputs are
+`hint-audit/<task>.frame-L3.txt`. The WARN hits in the L3 frames are the rule sentences' layer and role words, which
+the L3 rung states on purpose (floor-escape design §3.3); none is a fix instruction.
 
 Every request passes. Each of the four presets run over all four tasks (so no request hints at another style either)
 also gives 0 FAIL on all 20 steps. Verdicts on the WARN hits (each is ordinary product language, not a structure hint):

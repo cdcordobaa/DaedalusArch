@@ -36,7 +36,7 @@ import { JUDGE_V2_SHA256, JUDGE_V2_VALUES } from '../../../src/llm-critic/judge-
 import { DAEDALUS_DENIED_TOOLS, ARM_TOOL_SENTENCES } from '../../lib/generators/arms.js';
 import {
   ATTENTION_SENTENCE, FIRST_STEP_TEMPLATE, FIX_CLAUSE, L3_LEAD, L4_SENTENCE, MAX_REPAIR_FINDINGS, NEXT_STEP_TEMPLATE,
-  REPAIR_TEMPLATE, RULE_PLAIN, STYLED_FIRST_STEP_TEMPLATE, STYLED_NEXT_STEP_TEMPLATE,
+  REPAIR_TEMPLATE, RULE_PLAIN, RULE_PLAIN_BY_STYLE, STYLED_FIRST_STEP_TEMPLATE, STYLED_NEXT_STEP_TEMPLATE,
 } from '../../lib/loop/prompts.js';
 import { LOOP_STYLES, STYLE_PRESETS, layoutSentence, styleSentence } from '../../lib/loop/style.js';
 import { createServer, NEURAL_TOOL_NAMES, SERVER_NAME, SERVER_VERSION, SPEC_TOOL_NAMES, TOOL_NAMES } from '../../../src/mcp-server/server.js';
@@ -156,6 +156,7 @@ export async function buildTunablesManifest(repoRoot: string): Promise<TunablesM
   e['frame/styled-next-step'] = sha256Hex(STYLED_NEXT_STEP_TEMPLATE);
   e['frame/repair'] = sha256Hex(REPAIR_TEMPLATE);
   e['frame/rule-plain'] = valueSha256(RULE_PLAIN);
+  e['frame/rule-plain-by-style'] = valueSha256(RULE_PLAIN_BY_STYLE);
   e['frame/max-repair-findings'] = valueSha256(MAX_REPAIR_FINDINGS);
   e['frame/style-presets'] = valueSha256(STYLE_PRESETS);
   e['frame/arm-tool-sentences'] = valueSha256(ARM_TOOL_SENTENCES);

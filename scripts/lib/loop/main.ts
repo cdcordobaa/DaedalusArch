@@ -67,7 +67,7 @@ import { evaluatorForEngine, parseLoopEngine } from './engine-tee.js';
 import type { LoopEngine } from './engine-tee.js';
 import { assertGateApplied, gateEvaluationFailures, restartCounts, runDirFor, runLoop } from './loop.js';
 import type { LoopContext, LoopRunResult, TaskProfile } from './loop.js';
-import { loadLoopPlan, loopRunId, mcpSpecCheck, planCallBudget, planFrame, scheduleLoopRuns, SPEC_SHA_ENV } from './plan.js';
+import { loadLoopPlan, loopRunId, mcpSpecCheck, mcpSpecFor, planCallBudget, planFrame, scheduleLoopRuns, SPEC_SHA_ENV } from './plan.js';
 import { taskFrameExtras } from './rungs.js';
 import type { TaskFrameExtras } from './rungs.js';
 import type { LoadedPlan, LocalOverrides } from './plan.js';
@@ -318,9 +318,15 @@ export function buildFrameExtras(loaded: LoadedPlan, repoRoot: string): DomainRe
   return DomainResult.ok(out);
 }
 
-/** Where the dry-run stub writes a step of a task of the given style (DDD: the declared contexts in turn, one folder per aggregate, every context at step 1). */
+/**
+ * Where the dry-run stub writes a step of a task of the given style (DDD: the declared contexts in turn, one folder per
+ * aggregate, every context at step 1).
+ */
 export function stubLayoutFor(style: LoopStyle | undefined, contextRoots: readonly string[], stepIndex: number): StubLayout {
   if (style === 'hexagonal') return { domain: 'src/domain', application: 'src/application', infrastructure: 'src/adapters/outbound' };
+  // Layered: the preset's three folders; the stub firewall keys on `domain` and `infrastructure` folder names, so the
+  // stub nests them inside business and persistence to keep its planted dependency visible.
+  if (style === 'layered') return { domain: 'src/business/domain', application: 'src/presentation', infrastructure: 'src/persistence/infrastructure' };
   if (style === 'ddd' && contextRoots.length > 0) {
     const roots = contextRoots.map((r) => r.replace(/\/$/, ''));
     const root = roots[stepIndex % roots.length] ?? '';
@@ -398,7 +404,17 @@ async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs
     if (!ready.success) return DomainResult.fail(ready.errors);
     install = ready.data.install;
   }
-  const common = { runner: deps.runner, parentEnv: deps.parentEnv, clock: deps.clock, sleep: deps.sleep, ...(plan.daedalus !== undefined ? { daedalus: plan.daedalus } : {}) };
+  // Per-task MCP spec (D11c): a profiled task's MCP server reads that task's evaluator spec (`mcpSpecFor`).
+  const specByTask = new Map<string, string>();
+  for (const t of loaded.tasks.tasks) {
+    const spec = mcpSpecFor(plan, t.id, repoRoot);
+    if (plan.taskProfiles?.[t.id] !== undefined && spec !== undefined) specByTask.set(t.id, spec);
+  }
+  const common = {
+    runner: deps.runner, parentEnv: deps.parentEnv, clock: deps.clock, sleep: deps.sleep,
+    ...(plan.daedalus !== undefined ? { daedalus: plan.daedalus } : {}),
+    ...(plan.daedalus !== undefined && specByTask.size > 0 ? { daedalusSpecByTask: specByTask } : {}),
+  };
   const agents = new Map<string, StepAgent>();
   for (const a of plan.adapters) {
     const kind = liveAgentKind(a.adapterId);
