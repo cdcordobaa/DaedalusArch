@@ -187,7 +187,7 @@ From the AI-DLC read-only verification of U4:
 - **Results guard.** `results/v1.4-drift-check/**` is allowed by the v1.4 extension of `V13_RESULTS_DIR_PATTERN` (`tests/golden/check-changes-log.ts`, merged with U2 in PR #255, citing the v1.4 AI-DLC cycle). The v1.2E rules are unchanged.
 - **Explode-edges successor bug fixed.** Under `cycleIdentity: 'explode-edges'` with `renamePolicy: 'continue'`, the successor of an exploded cycle edge was chosen by its position in the key list, and `canonicalCycle` re-rotates a renamed cycle, so positions shift. `successorKey` (`scripts/lib/drift/identity.ts`) now maps an edge key `u|v` to `ρ(u)|ρ(v)`; `buildLineages` (`lineage.ts`) and `carry` (`study2-d.ts`) both use it. Tests that fail without the fix: `lineage.test.ts` ("explode-edges with a rename") and `study2-d.test.ts` (D = 0 for a renamed cycle sharing an edge with a plain FF-S01).
 - **Edge-grain planted cases.** `identity-errors.test.ts` gains seven planted histories on the edge grain, run under `STUDY2_S2D01` (sorted-files cycles) and under its explode-edges option: identity errors = 0 under both.
-- **Cited sources.** `scripts/v1.3/drift-descriptive.py`, `Docs/DiagnosticRuns/v1.3-drift-descriptive-2026-10-18.md` and the `ops/notes/` files this unit cites land with PR #252; this PR is merged after #252.
+- **Cited sources.** `scripts/v1.3/drift-descriptive.py`, `Docs/DiagnosticRuns/v1.3-drift-descriptive-2026-10-18.md` and the `ops/notes/` files this unit cites landed on main with PR #252, before this PR.
 
 TODOs (not fixed here):
 
