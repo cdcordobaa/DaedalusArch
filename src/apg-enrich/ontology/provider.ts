@@ -16,10 +16,10 @@ import type { LLMEffort, LLMProvider } from '../../shared/interfaces/llm-provide
 import { DomainResult } from '../../shared/errors/domain-result.js';
 import { parseEnvelope, resolveActualModel } from '../../llm-critic/claude-cli-provider.js';
 import { JUDGE_EFFORT, JUDGE_MAX_TOKENS, JUDGE_MODEL } from '../../llm-critic/frozen.js';
-import type { PassId } from './types.js';
+import type { CallPass } from './types.js';
 
 export interface OntologyModelRequest {
-  readonly pass: PassId;
+  readonly pass: CallPass;
   /** The item's stable id (a class node id, a group id, a pair key). */
   readonly itemId: string;
   /** A readable name of the item (class name, group id); metadata only. */

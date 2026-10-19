@@ -46,6 +46,11 @@ import { knownSecretsFrom } from './cassette-provider.js';
 
 /** `agy --version` at the probe; the cask said 1.1.23 but the binary had self-updated in place. */
 export const AGY_PINNED_VERSION = '1.3.2';
+/**
+ * Author decisions 2026-10-19: agy 1.3.6, then 1.4.2 (auto-updated that morning), accepted for exploratory runs only;
+ * the frozen labeller pin (`AGY_PINNED_VERSION`) is unchanged. One list, shared by BF-01 and the ontology route.
+ */
+export const AGY_EXPLORATORY_VERSIONS: readonly string[] = Object.freeze(['1.3.6', '1.4.2']);
 /** Strongest generally available Gemini Pro id listed by `agy models` (BR-U4-VRD-09; `Docs/labeller-route.md`). */
 export const AGY_LABELLER_MODEL = 'gemini-3.1-pro-high';
 export const AGY_HOME_DEFAULT = '~/.firewall/labeller-agy-home';

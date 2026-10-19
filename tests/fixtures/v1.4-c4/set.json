@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "set": "C4-01 seeded interpretation cases (v1.4 U9)",
+  "writtenAt": "2026-10-19",
+  "pathsRelativeTo": "tests/fixtures/v1.4-c4",
+  "note": "Six cases plus six twins (C4-01 \u00a76). Each manifest is hashed here; a test checks the hashes, so a changed answer is visible in review. Pilot = pairs 1 and 2 (C4-01 \u00a77). All twelve are author/Claude-written (see each manifest's authorship); X1 to X3 are the non-author row (C4-01 \u00a76.1), still to be filled, and are scored separately, never pooled.",
+  "pilotPairs": [
+    "1",
+    "2"
+  ],
+  "pairs": [
+    {
+      "pair": "1",
+      "case": {
+        "id": "c4-01-adr-permits-read-skip",
+        "manifest": "c4-01-adr-permits-read-skip/expected-c4.json",
+        "manifestSha256": "eacd6fe4643093d6fd1835ea12658efb391a271242679a536223e8600c8c81c9"
+      },
+      "twin": {
+        "id": "c4-01t-no-adr",
+        "manifest": "c4-01t-no-adr/expected-c4.json",
+        "manifestSha256": "6254f2b7d322e824bc9536778ee12132350744bba8310b212059b99b405bda25"
+      }
+    },
+    {
+      "pair": "2",
+      "case": {
+        "id": "c4-02-legacy-exception",
+        "manifest": "c4-02-legacy-exception/expected-c4.json",
+        "manifestSha256": "098c81d26a8f0bdfa40c35d5b1c0592965076e1be1bc46f8f5297110927541c7"
+      },
+      "twin": {
+        "id": "c4-02t-no-legacy-record",
+        "manifest": "c4-02t-no-legacy-record/expected-c4.json",
+        "manifestSha256": "962e27d62ff1a1d0071dea10245ea0cfd6cf4660577ffd5fa4114a63d6b84bdb"
+      }
+    },
+    {
+      "pair": "3",
+      "case": {
+        "id": "c4-03-shared-kernel",
+        "manifest": "c4-03-shared-kernel/expected-c4.json",
+        "manifestSha256": "481d55b0d6b07c4f9083eefdfe511aced697b67ff5553381af5e4102396f5c30"
+      },
+      "twin": {
+        "id": "c4-03t-translate-through-acl",
+        "manifest": "c4-03t-translate-through-acl/expected-c4.json",
+        "manifestSha256": "daa92f349e5d129bd2cd4125a87fbb4416f1e0caed81db62cd2e00ab9796bad8"
+      }
+    },
+    {
+      "pair": "4",
+      "case": {
+        "id": "c4-04-accepted-adr",
+        "manifest": "c4-04-accepted-adr/expected-c4.json",
+        "manifestSha256": "f8a3c1eeeb1ad423d578e7e5b04665a7247b5917ee167553a500bfc38756775d"
+      },
+      "twin": {
+        "id": "c4-04t-superseded-adr",
+        "manifest": "c4-04t-superseded-adr/expected-c4.json",
+        "manifestSha256": "ac6701936ef4d830f3321cecdfa1123b8a62c8c4c41b9aa430ace908ece935c5"
+      }
+    },
+    {
+      "pair": "5",
+      "case": {
+        "id": "c4-05-intent-contradicted",
+        "manifest": "c4-05-intent-contradicted/expected-c4.json",
+        "manifestSha256": "b5293f14f4512cdc1d339ff0e4457fe540c1b4c2d49f66f7fe1774e6de0c8e25"
+      },
+      "twin": {
+        "id": "c4-05t-readme-silent",
+        "manifest": "c4-05t-readme-silent/expected-c4.json",
+        "manifestSha256": "9379ed8f9833e5ab2828de7f4c76987a88236107337f207fbbbe61617df8a315"
+      }
+    },
+    {
+      "pair": "6",
+      "case": {
+        "id": "c4-06-sem-documented",
+        "manifest": "c4-06-sem-documented/expected-c4.json",
+        "manifestSha256": "83ec39743bc70a43deb6f0d5d735f3417b18d7f7e391e741eecc9f616d097ddb"
+      },
+      "twin": {
+        "id": "c4-06t-ns02-case-02",
+        "manifest": "c4-06t-ns02-case-02/expected-c4.json",
+        "manifestSha256": "215c64fa752e6b710193c4a41f0db335a69dc0270f6d4b6accef402a4f2fac2d"
+      }
+    }
+  ],
+  "nonAuthor": [
+    {
+      "id": "X1",
+      "status": "to-be-filled",
+      "kind": "real-external-finding",
+      "selection": "a zero-call script greps each results/v1.3-external*/ project's README, docs/ and ADRs for the site file, class or folder of its blocking findings; the first hit in seeded order with a permission-like sentence. It excludes the MEAN-01 sample and its siblings without printing their ids.",
+      "answerBy": "the author, from the developers' own text, committed and hashed before any C4 call",
+      "contamination": "public repository: models may have seen it"
+    },
+    {
+      "id": "X2",
+      "status": "to-be-filled",
+      "kind": "real-external-finding",
+      "selection": "as X1, the first hit without a permission-like sentence",
+      "answerBy": "the author, as X1",
+      "contamination": "public repository: models may have seen it"
+    },
+    {
+      "id": "X3",
+      "status": "to-be-filled",
+      "kind": "gemini-written-pair",
+      "selection": "one exception case and its twin, written by a Gemini session from the fixed brief in README.md",
+      "answerBy": "the Gemini session writes the manifest; committed, hashed and read by the author before any C4 call",
+      "contamination": "none known"
+    }
+  ]
+}

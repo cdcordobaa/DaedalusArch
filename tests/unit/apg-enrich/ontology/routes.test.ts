@@ -2,8 +2,9 @@
  * v1.4 U3 D5: the route registry. `describeRoute` is pure; `openRoute` never calls a factory, and never reads
  * GEMINI_API_KEY, in estimate or replay mode; a Gemini route needs a model. Spied fake factories only.
  */
-import { DEFAULT_ROUTE_DEPS, NoCallProvider, ONTOLOGY_ROUTES, checkRoute, describeRoute, openRoute } from '../../../../src/apg-enrich/ontology/index.js';
+import { DEFAULT_ROUTE_DEPS, NoCallProvider, ONTOLOGY_ROUTES, agyExploratoryVersions, checkRoute, describeRoute, openRoute } from '../../../../src/apg-enrich/ontology/index.js';
 import type { OpenedRoute, RouteDeps } from '../../../../src/apg-enrich/ontology/index.js';
+import { AGY_EXPLORATORY_VERSIONS, AGY_PINNED_VERSION } from '../../../../src/llm-critic/agy-cli-provider.js';
 import { JUDGE_MODEL } from '../../../../src/llm-critic/frozen.js';
 import { DomainResult } from '../../../../src/shared/errors/domain-result.js';
 import type { LLMProvider } from '../../../../src/shared/interfaces/llm-provider.js';
@@ -14,14 +15,15 @@ const FAKE_LLM: LLMProvider = {
   evaluate: () => Promise.resolve(DomainResult.fail([{ code: 'LLM_CALL_FAILED', message: 'fake' }])),
 };
 
-function fakeDeps(): { deps: RouteDeps; calls: string[] } {
+function fakeDeps(): { deps: RouteDeps; calls: string[]; agyVersions: (readonly string[] | undefined)[] } {
   const calls: string[] = [];
+  const agyVersions: (readonly string[] | undefined)[] = [];
   const deps: RouteDeps = {
     claudeCli: (cfg) => { calls.push(`claude:${cfg.model}`); return Promise.resolve(DomainResult.ok<OpenedRoute>({ provider: new NoCallProvider(describeRoute({ route: 'claude-cli' })), dispose: () => undefined, ready: 'ready' })); },
     geminiApi: (cfg) => { calls.push(`gemini-api:${cfg.model}:${String(cfg.temperature)}:${String(cfg.maxTokens)}`); return Promise.resolve(DomainResult.ok(FAKE_LLM)); },
-    agyCli: (cfg) => { calls.push(`agy:${cfg.model}`); return Promise.resolve(DomainResult.ok(FAKE_LLM)); },
+    agyCli: (cfg) => { calls.push(`agy:${cfg.model}`); agyVersions.push(cfg.exploratoryVersions); return Promise.resolve(DomainResult.ok(FAKE_LLM)); },
   };
-  return { deps, calls };
+  return { deps, calls, agyVersions };
 }
 
 /** Counts reads of GEMINI_API_KEY while `fn` runs (process.env swapped for a counting proxy). */
@@ -90,6 +92,43 @@ describe('ontology routes', () => {
     await openRoute({ route: 'claude-cli' }, deps, { mode: 'record' });
     expect(calls).toEqual(['gemini-api:gemini-x:0:64', 'agy:gemini-y', `claude:${JUDGE_MODEL}`]);
     expect(await openRoute({ route: 'mock' }, deps, { mode: 'record' })).toMatchObject({ success: false, errors: [{ code: 'ONTOLOGY_ROUTE_MOCK' }] });
+  });
+
+  describe('gemini-agy exploratory versions (U9 S1; C4-01 §3 gap 2)', () => {
+    it('the shared list is 1.3.6 and 1.4.2, and the frozen labeller pin stays 1.3.2', () => {
+      expect([...AGY_EXPLORATORY_VERSIONS]).toEqual(['1.3.6', '1.4.2']);
+      expect(AGY_PINNED_VERSION).toBe('1.3.2');
+      expect(Object.isFrozen(AGY_EXPLORATORY_VERSIONS)).toBe(true);
+    });
+
+    it('an exploratory gemini-agy record passes the shared constant itself (not a copy) to the agy factory', async () => {
+      const { deps, agyVersions } = fakeDeps();
+      const r = await openRoute({ route: 'gemini-agy', model: 'gemini-y', exploratory: true }, deps, { mode: 'record' });
+      expect(r.success).toBe(true);
+      expect(agyVersions).toHaveLength(1);
+      expect(agyVersions[0]).toBe(AGY_EXPLORATORY_VERSIONS);
+      expect(agyExploratoryVersions({ route: 'gemini-agy', exploratory: true })).toBe(AGY_EXPLORATORY_VERSIONS);
+    });
+
+    it('without the exploratory label the strict pin holds: no extra versions are passed', async () => {
+      const { deps, agyVersions } = fakeDeps();
+      await openRoute({ route: 'gemini-agy', model: 'gemini-y' }, deps, { mode: 'record' });
+      expect(agyVersions).toEqual([undefined]);
+      expect(agyExploratoryVersions({ route: 'gemini-agy' })).toBeUndefined();
+    });
+
+    it('exploratory is refused on any other route, and the cache key (describeRoute) does not change with it', () => {
+      for (const route of ['claude-cli', 'mock'] as const) {
+        expect(checkRoute({ route, exploratory: true })).toMatchObject({ success: false, errors: [{ code: 'ONTOLOGY_ROUTE_EXPLORATORY_AGY_ONLY' }] });
+      }
+      expect(describeRoute({ route: 'gemini-agy', model: 'g', exploratory: true })).toEqual(describeRoute({ route: 'gemini-agy', model: 'g' }));
+    });
+
+    it('estimate and replay never reach the agy factory, exploratory or not', async () => {
+      const { deps, calls } = fakeDeps();
+      for (const mode of ['estimate', 'replay'] as const) await openRoute({ route: 'gemini-agy', model: 'g', exploratory: true }, deps, { mode });
+      expect(calls).toEqual([]);
+    });
   });
 
   it('the real gemini-api factory refuses to build a provider when the key is absent (no construction, no call)', async () => {

@@ -43,16 +43,15 @@ import { analyseTranscript } from './lib/mcp-smoke.js';
 import { FACTS_SERVER, FACT_TOOLS, buildFactsGraph, readOnlyQuery } from './lib/bf-01-facts.js';
 import { checkCitation } from './bf-01-verify-evidence.js';
 import { LAYER_KINDS } from '../../src/shared/types/enums.js';
-import { AGY_HOME_DEFAULT, AgyCliProvider, checkAgyIsolation, expandHome } from '../../src/llm-critic/agy-cli-provider.js';
+import { AGY_EXPLORATORY_VERSIONS, AGY_HOME_DEFAULT, AgyCliProvider, checkAgyIsolation, expandHome } from '../../src/llm-critic/agy-cli-provider.js';
 import type { LLMProvider, LLMResponse } from '../../src/shared/interfaces/llm-provider.js';
-import { AGY_EXPLORATORY_VERSIONS } from '../lib/agy-exploratory.js';
 
 /** v1 = the 2026-10-19 pilot as run; v2 = the redesign after it (ops/notes/bf-01 "v2 after pilot"). Default v2. */
 export const DESIGN: 'v1' | 'v2' = process.argv.includes('--design') && process.argv[process.argv.indexOf('--design') + 1] === 'v1' ? 'v1' : 'v2';
 export const MODEL = 'claude-sonnet-5-5';
 /** The cross-vendor arm X (v2): Gemini 4 Argon (High) through the repo's agy labeller route, one shot, no tools. */
 export const GEMINI_MODEL = 'gemini-4-argon-high';
-/** Author decisions 2026-10-19: agy 1.3.6, then 1.4.2 (auto-updated that morning), accepted for exploratory runs; the frozen labeller pin (1.3.2) is unchanged. Shared with the Gemini generator. */
+/** Author decisions 2026-10-19: the exploratory agy versions; one shared list (`src/llm-critic/agy-cli-provider.ts`). */
 export { AGY_EXPLORATORY_VERSIONS };
 /** The labeller's 240 s print timeout is too short for the one-shot derivation (X probe 2026-10-19 timed out at 272 s); inside TIMEOUT_MS. */
 export const X_PRINT_TIMEOUT_S = 840;
