@@ -1,0 +1,1103 @@
+{
+ "item": "07 C1a: N33/N38 extractor fixes re-run on msc29-clean and felixle-node-core",
+ "command": "npx tsx bin/firewall.ts evaluate --project <clones>/<id>/<root> --spec <committed spec> --symbolic-only --engine cypher-interp --format json  (cwd = the arm tree; NEO4J_* unset)",
+ "trees": {
+  "orig": {
+   "commit": "50a32841d1771d1cf80473e78adf2c28e1458f03",
+   "dirty": false
+  },
+  "prefix": {
+   "commit": "6abc8f0a2c534f9ac42110d6c9f5f8ff350b5a44",
+   "dirty": false
+  },
+  "fix": {
+   "commit": "6c6235843dcc1db380cceff4068492c64922cb89",
+   "dirty": false
+  },
+  "current": {
+   "commit": "ffcbaf055edaef0d769993049b0d06232a3be260",
+   "dirty": false
+  }
+ },
+ "node": "v22.22.0",
+ "repos": {
+  "msc29-clean": {
+   "url": "https://github.com/MSC29/clean-architecture-typescript.git",
+   "sha": "c7a4ef5eab71cb53f3d4377aef83cd225965785e",
+   "root": ".",
+   "tsconfig": "tsconfig.json",
+   "spec": "results/v1.3-external-3/specs/msc29-clean.yaml",
+   "selection": "results/v1.3-external-3/selection.json",
+   "committedReport": "results/v1.3-external-3/findings/msc29-clean.json",
+   "committed": {
+    "verdict": "pass",
+    "tierVerdict": "pass",
+    "verdictRule": "any-blocking-violation",
+    "v12eVerdict": "pass",
+    "ahsDeterministic": 0.908,
+    "blockingAhs": 1,
+    "graphStats": {
+     "nodeCount": 167,
+     "edgeCount": 212,
+     "layerCoverage": 0.8181818181818182,
+     "nodeCountByType": {
+      "File": 66,
+      "Class": 30,
+      "Interface": 19,
+      "Method": 48,
+      "Function": 0,
+      "Package": 4
+     },
+     "edgeCountByType": {
+      "IMPORTS": 92,
+      "IMPLEMENTS": 11,
+      "EXTENDS": 4,
+      "CONSTRUCTOR_INJECTS": 4,
+      "CALLS": 4,
+      "DECLARES": 49,
+      "CONTAINS": 48,
+      "FLOWS_TO": 0,
+      "RE_EXPORTS": 0
+     }
+    },
+    "importResolution": {
+     "resolvedInternal": 50,
+     "external": 53,
+     "externalOutOfRootAlias": 0,
+     "unresolved": 93,
+     "droppedNoFileNode": 0,
+     "unsupportedDynamic": 0
+    },
+    "universalMetrics": {
+     "cyclicDependencyCount": 0,
+     "maxFanOut": 3,
+     "maxFanIn": 7,
+     "abstractionRatio": 0.388,
+     "averageInstability": 0.59,
+     "orphanFileCount": 31
+    },
+    "blockingViolationCount": 0,
+    "blockingViolatedRules": 0,
+    "blockingByRule": {
+     "FF-P01": 0,
+     "FF-P03": 0,
+     "FF-P06": 0,
+     "FF-S01": 0,
+     "FF-S02": 0,
+     "FF-S04": 0
+    },
+    "advisoryViolationCount": 95,
+    "violationsTotal": 95,
+    "violationsByRule": {
+     "FF-C03": 11,
+     "FF-C04": 30,
+     "FF-CV03": 1,
+     "FF-CV05": 53
+    },
+    "blockingViolationIds": [],
+    "blockingViolationIdCount": 0
+   },
+   "runs": {
+    "orig": {
+     "exit": 0,
+     "wallMs": 3274,
+     "stderr": [
+      ""
+     ],
+     "cloneDirtyAfter": 0,
+     "verdict": "pass",
+     "tierVerdict": "pass",
+     "verdictRule": "any-blocking-violation",
+     "v12eVerdict": "pass",
+     "ahsDeterministic": 0.908,
+     "blockingAhs": 1,
+     "graphStats": {
+      "nodeCount": 167,
+      "edgeCount": 212,
+      "layerCoverage": 0.8181818181818182,
+      "nodeCountByType": {
+       "File": 66,
+       "Class": 30,
+       "Interface": 19,
+       "Method": 48,
+       "Function": 0,
+       "Package": 4
+      },
+      "edgeCountByType": {
+       "IMPORTS": 92,
+       "IMPLEMENTS": 11,
+       "EXTENDS": 4,
+       "CONSTRUCTOR_INJECTS": 4,
+       "CALLS": 4,
+       "DECLARES": 49,
+       "CONTAINS": 48,
+       "FLOWS_TO": 0,
+       "RE_EXPORTS": 0
+      }
+     },
+     "importResolution": {
+      "resolvedInternal": 50,
+      "external": 53,
+      "externalOutOfRootAlias": 0,
+      "unresolved": 93,
+      "droppedNoFileNode": 0,
+      "unsupportedDynamic": 0
+     },
+     "universalMetrics": {
+      "cyclicDependencyCount": 0,
+      "maxFanOut": 3,
+      "maxFanIn": 7,
+      "abstractionRatio": 0.388,
+      "averageInstability": 0.59,
+      "orphanFileCount": 31
+     },
+     "blockingViolationCount": 0,
+     "blockingViolatedRules": 0,
+     "blockingByRule": {
+      "FF-P01": 0,
+      "FF-P03": 0,
+      "FF-P06": 0,
+      "FF-S01": 0,
+      "FF-S02": 0,
+      "FF-S04": 0
+     },
+     "advisoryViolationCount": 95,
+     "violationsTotal": 95,
+     "violationsByRule": {
+      "FF-C03": 11,
+      "FF-C04": 30,
+      "FF-CV03": 1,
+      "FF-CV05": 53
+     },
+     "blockingViolationIds": [],
+     "vsCommitted": {
+      "allViolations": {
+       "onlyFirst": 0,
+       "onlySecond": 0,
+       "both": 95
+      },
+      "blocking": {
+       "onlyFirst": 0,
+       "onlySecond": 0,
+       "both": 0
+      }
+     },
+     "blockingViolationIdCount": 0
+    },
+    "prefix": {
+     "exit": 0,
+     "wallMs": 3532,
+     "stderr": [
+      "daedalus: graph engine cypher-interp (in-process, no database) [--engine]"
+     ],
+     "cloneDirtyAfter": 0,
+     "verdict": "pass",
+     "tierVerdict": "pass",
+     "verdictRule": "any-blocking-violation",
+     "v12eVerdict": "pass",
+     "ahsDeterministic": 0.908,
+     "blockingAhs": 1,
+     "graphStats": {
+      "nodeCount": 167,
+      "edgeCount": 212,
+      "layerCoverage": 0.8181818181818182,
+      "nodeCountByType": {
+       "File": 66,
+       "Class": 30,
+       "Interface": 19,
+       "Method": 48,
+       "Function": 0,
+       "Package": 4
+      },
+      "edgeCountByType": {
+       "IMPORTS": 92,
+       "IMPLEMENTS": 11,
+       "EXTENDS": 4,
+       "CONSTRUCTOR_INJECTS": 4,
+       "CALLS": 4,
+       "DECLARES": 49,
+       "CONTAINS": 48,
+       "FLOWS_TO": 0,
+       "RE_EXPORTS": 0
+      }
+     },
+     "importResolution": {
+      "resolvedInternal": 50,
+      "external": 53,
+      "externalOutOfRootAlias": 0,
+      "unresolved": 93,
+      "droppedNoFileNode": 0,
+      "unsupportedDynamic": 0
+     },
+     "universalMetrics": {
+      "cyclicDependencyCount": 0,
+      "maxFanOut": 3,
+      "maxFanIn": 7,
+      "abstractionRatio": 0.388,
+      "averageInstability": 0.59,
+      "orphanFileCount": 31
+     },
+     "blockingViolationCount": 0,
+     "blockingViolatedRules": 0,
+     "blockingByRule": {
+      "FF-P01": 0,
+      "FF-P03": 0,
+      "FF-P06": 0,
+      "FF-S01": 0,
+      "FF-S02": 0,
+      "FF-S04": 0
+     },
+     "advisoryViolationCount": 95,
+     "violationsTotal": 95,
+     "violationsByRule": {
+      "FF-C03": 11,
+      "FF-C04": 30,
+      "FF-CV03": 1,
+      "FF-CV05": 53
+     },
+     "blockingViolationIds": [],
+     "vsCommitted": {
+      "allViolations": {
+       "onlyFirst": 0,
+       "onlySecond": 0,
+       "both": 95
+      },
+      "blocking": {
+       "onlyFirst": 0,
+       "onlySecond": 0,
+       "both": 0
+      }
+     },
+     "blockingViolationIdCount": 0
+    },
+    "fix": {
+     "exit": 0,
+     "wallMs": 3791,
+     "stderr": [
+      "daedalus: graph engine cypher-interp (in-process, no database) [--engine]"
+     ],
+     "cloneDirtyAfter": 0,
+     "verdict": "pass",
+     "tierVerdict": "pass",
+     "verdictRule": "any-blocking-violation",
+     "v12eVerdict": "pass",
+     "ahsDeterministic": 0.908,
+     "blockingAhs": 1,
+     "graphStats": {
+      "nodeCount": 166,
+      "edgeCount": 223,
+      "layerCoverage": 0.8181818181818182,
+      "nodeCountByType": {
+       "File": 66,
+       "Class": 30,
+       "Interface": 19,
+       "Method": 48,
+       "Function": 0,
+       "Package": 3
+      },
+      "edgeCountByType": {
+       "IMPORTS": 103,
+       "IMPLEMENTS": 11,
+       "EXTENDS": 4,
+       "CONSTRUCTOR_INJECTS": 4,
+       "CALLS": 4,
+       "DECLARES": 49,
+       "CONTAINS": 48,
+       "FLOWS_TO": 0,
+       "RE_EXPORTS": 0
+      }
+     },
+     "importResolution": {
+      "resolvedInternal": 99,
+      "external": 4,
+      "externalOutOfRootAlias": 0,
+      "unresolved": 93,
+      "droppedNoFileNode": 0,
+      "unsupportedDynamic": 0
+     },
+     "universalMetrics": {
+      "cyclicDependencyCount": 0,
+      "maxFanOut": 5,
+      "maxFanIn": 10,
+      "abstractionRatio": 0.388,
+      "averageInstability": 0.644,
+      "orphanFileCount": 11
+     },
+     "blockingViolationCount": 0,
+     "blockingViolatedRules": 0,
+     "blockingByRule": {
+      "FF-P01": 0,
+      "FF-P03": 0,
+      "FF-P06": 0,
+      "FF-S01": 0,
+      "FF-S02": 0,
+      "FF-S04": 0
+     },
+     "advisoryViolationCount": 87,
+     "violationsTotal": 87,
+     "violationsByRule": {
+      "FF-C03": 23,
+      "FF-C04": 10,
+      "FF-CV03": 1,
+      "FF-CV05": 53
+     },
+     "blockingViolationIds": [],
+     "vsCommitted": {
+      "allViolations": {
+       "onlyFirst": 20,
+       "onlySecond": 12,
+       "both": 75
+      },
+      "blocking": {
+       "onlyFirst": 0,
+       "onlySecond": 0,
+       "both": 0
+      }
+     },
+     "blockingViolationIdCount": 0
+    },
+    "current": {
+     "exit": 0,
+     "wallMs": 3177,
+     "stderr": [
+      "daedalus: graph engine cypher-interp (in-process, no database) [--engine]"
+     ],
+     "cloneDirtyAfter": 0,
+     "verdict": "pass",
+     "tierVerdict": "pass",
+     "verdictRule": "any-blocking-violation",
+     "v12eVerdict": "pass",
+     "ahsDeterministic": 0.908,
+     "blockingAhs": 1,
+     "graphStats": {
+      "nodeCount": 166,
+      "edgeCount": 223,
+      "layerCoverage": 0.8181818181818182,
+      "nodeCountByType": {
+       "File": 66,
+       "Class": 30,
+       "Interface": 19,
+       "Method": 48,
+       "Function": 0,
+       "Package": 3
+      },
+      "edgeCountByType": {
+       "IMPORTS": 103,
+       "IMPLEMENTS": 11,
+       "EXTENDS": 4,
+       "CONSTRUCTOR_INJECTS": 4,
+       "CALLS": 4,
+       "DECLARES": 49,
+       "CONTAINS": 48,
+       "FLOWS_TO": 0,
+       "RE_EXPORTS": 0
+      }
+     },
+     "importResolution": {
+      "resolvedInternal": 99,
+      "external": 4,
+      "externalOutOfRootAlias": 0,
+      "unresolved": 93,
+      "droppedNoFileNode": 0,
+      "unsupportedDynamic": 0
+     },
+     "universalMetrics": {
+      "cyclicDependencyCount": 0,
+      "maxFanOut": 5,
+      "maxFanIn": 10,
+      "abstractionRatio": 0.388,
+      "averageInstability": 0.644,
+      "orphanFileCount": 11
+     },
+     "blockingViolationCount": 0,
+     "blockingViolatedRules": 0,
+     "blockingByRule": {
+      "FF-P01": 0,
+      "FF-P03": 0,
+      "FF-P06": 0,
+      "FF-P07": 0,
+      "FF-S01": 0,
+      "FF-S02": 0,
+      "FF-S04": 0
+     },
+     "advisoryViolationCount": 87,
+     "violationsTotal": 87,
+     "violationsByRule": {
+      "FF-C03": 23,
+      "FF-C04": 10,
+      "FF-CV03": 1,
+      "FF-CV05": 53
+     },
+     "blockingViolationIds": [],
+     "vsCommitted": {
+      "allViolations": {
+       "onlyFirst": 20,
+       "onlySecond": 12,
+       "both": 75
+      },
+      "blocking": {
+       "onlyFirst": 0,
+       "onlySecond": 0,
+       "both": 0
+      }
+     },
+     "blockingViolationIdCount": 0
+    }
+   },
+   "armDiffs": {
+    "orig->prefix": {
+     "allViolations": {
+      "onlyFirst": 0,
+      "onlySecond": 0,
+      "both": 95
+     },
+     "blocking": {
+      "onlyFirst": 0,
+      "onlySecond": 0,
+      "both": 0
+     }
+    },
+    "orig->fix": {
+     "allViolations": {
+      "onlyFirst": 20,
+      "onlySecond": 12,
+      "both": 75
+     },
+     "blocking": {
+      "onlyFirst": 0,
+      "onlySecond": 0,
+      "both": 0
+     }
+    },
+    "orig->current": {
+     "allViolations": {
+      "onlyFirst": 20,
+      "onlySecond": 12,
+      "both": 75
+     },
+     "blocking": {
+      "onlyFirst": 0,
+      "onlySecond": 0,
+      "both": 0
+     }
+    },
+    "prefix->fix": {
+     "allViolations": {
+      "onlyFirst": 20,
+      "onlySecond": 12,
+      "both": 75
+     },
+     "blocking": {
+      "onlyFirst": 0,
+      "onlySecond": 0,
+      "both": 0
+     }
+    },
+    "prefix->current": {
+     "allViolations": {
+      "onlyFirst": 20,
+      "onlySecond": 12,
+      "both": 75
+     },
+     "blocking": {
+      "onlyFirst": 0,
+      "onlySecond": 0,
+      "both": 0
+     }
+    },
+    "fix->current": {
+     "allViolations": {
+      "onlyFirst": 0,
+      "onlySecond": 0,
+      "both": 87
+     },
+     "blocking": {
+      "onlyFirst": 0,
+      "onlySecond": 0,
+      "both": 0
+     }
+    }
+   }
+  },
+  "felixle-node-core": {
+   "url": "https://github.com/felixle236/node-core.git",
+   "sha": "23b7d8eb00bc198d09b8ce2bd3613cf1f1a68e23",
+   "root": ".",
+   "tsconfig": "tsconfig.json",
+   "spec": "results/v1.3-external-2/specs/felixle-node-core.yaml",
+   "selection": "results/v1.3-external-2/selection.json",
+   "committedReport": "results/v1.3-external-2/findings/felixle-node-core.json",
+   "committed": {
+    "verdict": "hard-block",
+    "tierVerdict": "fail",
+    "verdictRule": "any-blocking-violation",
+    "v12eVerdict": "hard-block",
+    "ahsDeterministic": 0.401,
+    "blockingAhs": 0.487,
+    "graphStats": {
+     "nodeCount": 894,
+     "edgeCount": 2054,
+     "layerCoverage": 0.7669491525423728,
+     "nodeCountByType": {
+      "File": 236,
+      "Class": 196,
+      "Interface": 35,
+      "Method": 329,
+      "Function": 46,
+      "Package": 52
+     },
+     "edgeCountByType": {
+      "IMPORTS": 1101,
+      "IMPLEMENTS": 64,
+      "EXTENDS": 54,
+      "CONSTRUCTOR_INJECTS": 109,
+      "CALLS": 102,
+      "DECLARES": 277,
+      "CONTAINS": 329,
+      "FLOWS_TO": 18,
+      "RE_EXPORTS": 0
+     }
+    },
+    "importResolution": {
+     "resolvedInternal": 779,
+     "external": 368,
+     "externalOutOfRootAlias": 0,
+     "unresolved": 0,
+     "droppedNoFileNode": 0,
+     "unsupportedDynamic": 6
+    },
+    "universalMetrics": {
+     "cyclicDependencyCount": 4,
+     "maxFanOut": 26,
+     "maxFanIn": 64,
+     "abstractionRatio": 0.152,
+     "averageInstability": 0.559,
+     "orphanFileCount": 11
+    },
+    "blockingViolationCount": 7,
+    "blockingViolatedRules": 3,
+    "blockingByRule": {
+     "FF-P01": 0,
+     "FF-P03": 1,
+     "FF-P06": 0,
+     "FF-S01": 4,
+     "FF-S02": 2,
+     "FF-S04": 0
+    },
+    "advisoryViolationCount": 297,
+    "violationsTotal": 304,
+    "violationsByRule": {
+     "FF-C02": 10,
+     "FF-C03": 66,
+     "FF-C04": 11,
+     "FF-C05": 11,
+     "FF-C06": 1,
+     "FF-CV05": 181,
+     "FF-P02": 5,
+     "FF-P03": 1,
+     "FF-S01": 4,
+     "FF-S02": 2,
+     "FF-SO01": 10,
+     "FF-SO02": 2
+    },
+    "blockingViolationIds": [
+     "v-1254de66499436eb",
+     "v-459ebdd84c6af3a2",
+     "v-4673f97fc1130a54",
+     "v-61f2809ddb30a12a",
+     "v-6dfdf9beb5aa336c",
+     "v-70bc80a0dabb2b44",
+     "v-ce27d41073763d9b"
+    ],
+    "blockingViolationIdCount": 7
+   },
+   "runs": {
+    "orig": {
+     "exit": 1,
+     "wallMs": 5840,
+     "stderr": [
+      ""
+     ],
+     "cloneDirtyAfter": 0,
+     "verdict": "hard-block",
+     "tierVerdict": "fail",
+     "verdictRule": "any-blocking-violation",
+     "v12eVerdict": "hard-block",
+     "ahsDeterministic": 0.401,
+     "blockingAhs": 0.487,
+     "graphStats": {
+      "nodeCount": 894,
+      "edgeCount": 2054,
+      "layerCoverage": 0.7669491525423728,
+      "nodeCountByType": {
+       "File": 236,
+       "Class": 196,
+       "Interface": 35,
+       "Method": 329,
+       "Function": 46,
+       "Package": 52
+      },
+      "edgeCountByType": {
+       "IMPORTS": 1101,
+       "IMPLEMENTS": 64,
+       "EXTENDS": 54,
+       "CONSTRUCTOR_INJECTS": 109,
+       "CALLS": 102,
+       "DECLARES": 277,
+       "CONTAINS": 329,
+       "FLOWS_TO": 18,
+       "RE_EXPORTS": 0
+      }
+     },
+     "importResolution": {
+      "resolvedInternal": 779,
+      "external": 368,
+      "externalOutOfRootAlias": 0,
+      "unresolved": 0,
+      "droppedNoFileNode": 0,
+      "unsupportedDynamic": 6
+     },
+     "universalMetrics": {
+      "cyclicDependencyCount": 4,
+      "maxFanOut": 26,
+      "maxFanIn": 64,
+      "abstractionRatio": 0.152,
+      "averageInstability": 0.559,
+      "orphanFileCount": 11
+     },
+     "blockingViolationCount": 7,
+     "blockingViolatedRules": 3,
+     "blockingByRule": {
+      "FF-P01": 0,
+      "FF-P03": 1,
+      "FF-P06": 0,
+      "FF-S01": 4,
+      "FF-S02": 2,
+      "FF-S04": 0
+     },
+     "advisoryViolationCount": 297,
+     "violationsTotal": 304,
+     "violationsByRule": {
+      "FF-C02": 10,
+      "FF-C03": 66,
+      "FF-C04": 11,
+      "FF-C05": 11,
+      "FF-C06": 1,
+      "FF-CV05": 181,
+      "FF-P02": 5,
+      "FF-P03": 1,
+      "FF-S01": 4,
+      "FF-S02": 2,
+      "FF-SO01": 10,
+      "FF-SO02": 2
+     },
+     "blockingViolationIds": [
+      "v-1254de66499436eb",
+      "v-459ebdd84c6af3a2",
+      "v-4673f97fc1130a54",
+      "v-61f2809ddb30a12a",
+      "v-6dfdf9beb5aa336c",
+      "v-70bc80a0dabb2b44",
+      "v-ce27d41073763d9b"
+     ],
+     "vsCommitted": {
+      "allViolations": {
+       "onlyFirst": 0,
+       "onlySecond": 0,
+       "both": 304
+      },
+      "blocking": {
+       "onlyFirst": 0,
+       "onlySecond": 0,
+       "both": 7
+      }
+     },
+     "blockingViolationIdCount": 7
+    },
+    "prefix": {
+     "exit": 1,
+     "wallMs": 5564,
+     "stderr": [
+      "daedalus: graph engine cypher-interp (in-process, no database) [--engine]"
+     ],
+     "cloneDirtyAfter": 0,
+     "verdict": "hard-block",
+     "tierVerdict": "fail",
+     "verdictRule": "any-blocking-violation",
+     "v12eVerdict": "hard-block",
+     "ahsDeterministic": 0.421,
+     "blockingAhs": 0.487,
+     "graphStats": {
+      "nodeCount": 894,
+      "edgeCount": 2054,
+      "layerCoverage": 0.7669491525423728,
+      "nodeCountByType": {
+       "File": 236,
+       "Class": 196,
+       "Interface": 35,
+       "Method": 329,
+       "Function": 46,
+       "Package": 52
+      },
+      "edgeCountByType": {
+       "IMPORTS": 1101,
+       "IMPLEMENTS": 64,
+       "EXTENDS": 54,
+       "CONSTRUCTOR_INJECTS": 109,
+       "CALLS": 102,
+       "DECLARES": 277,
+       "CONTAINS": 329,
+       "FLOWS_TO": 18,
+       "RE_EXPORTS": 0
+      }
+     },
+     "importResolution": {
+      "resolvedInternal": 779,
+      "external": 368,
+      "externalOutOfRootAlias": 0,
+      "unresolved": 0,
+      "droppedNoFileNode": 0,
+      "unsupportedDynamic": 6
+     },
+     "universalMetrics": {
+      "cyclicDependencyCount": 4,
+      "maxFanOut": 26,
+      "maxFanIn": 64,
+      "abstractionRatio": 0.152,
+      "averageInstability": 0.559,
+      "orphanFileCount": 11
+     },
+     "blockingViolationCount": 7,
+     "blockingViolatedRules": 3,
+     "blockingByRule": {
+      "FF-P01": 0,
+      "FF-P03": 1,
+      "FF-P06": 0,
+      "FF-S01": 4,
+      "FF-S02": 2,
+      "FF-S04": 0
+     },
+     "advisoryViolationCount": 297,
+     "violationsTotal": 304,
+     "violationsByRule": {
+      "FF-C02": 10,
+      "FF-C03": 66,
+      "FF-C04": 11,
+      "FF-C05": 11,
+      "FF-C06": 1,
+      "FF-CV05": 181,
+      "FF-P02": 5,
+      "FF-P03": 1,
+      "FF-S01": 4,
+      "FF-S02": 2,
+      "FF-SO01": 10,
+      "FF-SO02": 2
+     },
+     "blockingViolationIds": [
+      "v-1254de66499436eb",
+      "v-459ebdd84c6af3a2",
+      "v-4673f97fc1130a54",
+      "v-61f2809ddb30a12a",
+      "v-6dfdf9beb5aa336c",
+      "v-70bc80a0dabb2b44",
+      "v-ce27d41073763d9b"
+     ],
+     "vsCommitted": {
+      "allViolations": {
+       "onlyFirst": 0,
+       "onlySecond": 0,
+       "both": 304
+      },
+      "blocking": {
+       "onlyFirst": 0,
+       "onlySecond": 0,
+       "both": 7
+      }
+     },
+     "blockingViolationIdCount": 7
+    },
+    "fix": {
+     "exit": 1,
+     "wallMs": 5156,
+     "stderr": [
+      "daedalus: graph engine cypher-interp (in-process, no database) [--engine]"
+     ],
+     "cloneDirtyAfter": 0,
+     "verdict": "hard-block",
+     "tierVerdict": "fail",
+     "verdictRule": "any-blocking-violation",
+     "v12eVerdict": "hard-block",
+     "ahsDeterministic": 0.421,
+     "blockingAhs": 0.487,
+     "graphStats": {
+      "nodeCount": 893,
+      "edgeCount": 2099,
+      "layerCoverage": 0.7669491525423728,
+      "nodeCountByType": {
+       "File": 236,
+       "Class": 196,
+       "Interface": 35,
+       "Method": 329,
+       "Function": 46,
+       "Package": 51
+      },
+      "edgeCountByType": {
+       "IMPORTS": 1146,
+       "IMPLEMENTS": 64,
+       "EXTENDS": 54,
+       "CONSTRUCTOR_INJECTS": 109,
+       "CALLS": 102,
+       "DECLARES": 277,
+       "CONTAINS": 329,
+       "FLOWS_TO": 18,
+       "RE_EXPORTS": 0
+      }
+     },
+     "importResolution": {
+      "resolvedInternal": 885,
+      "external": 262,
+      "externalOutOfRootAlias": 0,
+      "unresolved": 0,
+      "droppedNoFileNode": 0,
+      "unsupportedDynamic": 6
+     },
+     "universalMetrics": {
+      "cyclicDependencyCount": 4,
+      "maxFanOut": 27,
+      "maxFanIn": 64,
+      "abstractionRatio": 0.152,
+      "averageInstability": 0.545,
+      "orphanFileCount": 3
+     },
+     "blockingViolationCount": 7,
+     "blockingViolatedRules": 3,
+     "blockingByRule": {
+      "FF-P01": 0,
+      "FF-P03": 1,
+      "FF-P06": 0,
+      "FF-S01": 4,
+      "FF-S02": 2,
+      "FF-S04": 0
+     },
+     "advisoryViolationCount": 294,
+     "violationsTotal": 301,
+     "violationsByRule": {
+      "FF-C02": 13,
+      "FF-C03": 67,
+      "FF-C04": 3,
+      "FF-C05": 12,
+      "FF-C06": 1,
+      "FF-CV05": 181,
+      "FF-P02": 5,
+      "FF-P03": 1,
+      "FF-S01": 4,
+      "FF-S02": 2,
+      "FF-SO01": 10,
+      "FF-SO02": 2
+     },
+     "blockingViolationIds": [
+      "v-1254de66499436eb",
+      "v-459ebdd84c6af3a2",
+      "v-4673f97fc1130a54",
+      "v-61f2809ddb30a12a",
+      "v-6dfdf9beb5aa336c",
+      "v-70bc80a0dabb2b44",
+      "v-ce27d41073763d9b"
+     ],
+     "vsCommitted": {
+      "allViolations": {
+       "onlyFirst": 10,
+       "onlySecond": 7,
+       "both": 294
+      },
+      "blocking": {
+       "onlyFirst": 0,
+       "onlySecond": 0,
+       "both": 7
+      }
+     },
+     "blockingViolationIdCount": 7
+    },
+    "current": {
+     "exit": 1,
+     "wallMs": 5348,
+     "stderr": [
+      "daedalus: graph engine cypher-interp (in-process, no database) [--engine]"
+     ],
+     "cloneDirtyAfter": 0,
+     "verdict": "hard-block",
+     "tierVerdict": "fail",
+     "verdictRule": "any-blocking-violation",
+     "v12eVerdict": "hard-block",
+     "ahsDeterministic": 0.392,
+     "blockingAhs": 0.41,
+     "graphStats": {
+      "nodeCount": 893,
+      "edgeCount": 2099,
+      "layerCoverage": 0.7669491525423728,
+      "nodeCountByType": {
+       "File": 236,
+       "Class": 196,
+       "Interface": 35,
+       "Method": 329,
+       "Function": 46,
+       "Package": 51
+      },
+      "edgeCountByType": {
+       "IMPORTS": 1146,
+       "IMPLEMENTS": 64,
+       "EXTENDS": 54,
+       "CONSTRUCTOR_INJECTS": 109,
+       "CALLS": 102,
+       "DECLARES": 277,
+       "CONTAINS": 329,
+       "FLOWS_TO": 18,
+       "RE_EXPORTS": 0
+      }
+     },
+     "importResolution": {
+      "resolvedInternal": 885,
+      "external": 262,
+      "externalOutOfRootAlias": 0,
+      "unresolved": 0,
+      "droppedNoFileNode": 0,
+      "unsupportedDynamic": 6
+     },
+     "universalMetrics": {
+      "cyclicDependencyCount": 4,
+      "maxFanOut": 27,
+      "maxFanIn": 64,
+      "abstractionRatio": 0.152,
+      "averageInstability": 0.545,
+      "orphanFileCount": 3
+     },
+     "blockingViolationCount": 8,
+     "blockingViolatedRules": 4,
+     "blockingByRule": {
+      "FF-P01": 0,
+      "FF-P03": 1,
+      "FF-P06": 0,
+      "FF-P07": 1,
+      "FF-S01": 4,
+      "FF-S02": 2,
+      "FF-S04": 0
+     },
+     "advisoryViolationCount": 294,
+     "violationsTotal": 302,
+     "violationsByRule": {
+      "FF-C02": 13,
+      "FF-C03": 67,
+      "FF-C04": 3,
+      "FF-C05": 12,
+      "FF-C06": 1,
+      "FF-CV05": 181,
+      "FF-P02": 5,
+      "FF-P03": 1,
+      "FF-P07": 1,
+      "FF-S01": 4,
+      "FF-S02": 2,
+      "FF-SO01": 10,
+      "FF-SO02": 2
+     },
+     "blockingViolationIds": [
+      "v-1254de66499436eb",
+      "v-37f320f5df703792",
+      "v-459ebdd84c6af3a2",
+      "v-4673f97fc1130a54",
+      "v-61f2809ddb30a12a",
+      "v-6dfdf9beb5aa336c",
+      "v-70bc80a0dabb2b44",
+      "v-ce27d41073763d9b"
+     ],
+     "vsCommitted": {
+      "allViolations": {
+       "onlyFirst": 10,
+       "onlySecond": 8,
+       "both": 294
+      },
+      "blocking": {
+       "onlyFirst": 0,
+       "onlySecond": 1,
+       "both": 7
+      }
+     },
+     "blockingViolationIdCount": 8
+    }
+   },
+   "armDiffs": {
+    "orig->prefix": {
+     "allViolations": {
+      "onlyFirst": 0,
+      "onlySecond": 0,
+      "both": 304
+     },
+     "blocking": {
+      "onlyFirst": 0,
+      "onlySecond": 0,
+      "both": 7
+     }
+    },
+    "orig->fix": {
+     "allViolations": {
+      "onlyFirst": 10,
+      "onlySecond": 7,
+      "both": 294
+     },
+     "blocking": {
+      "onlyFirst": 0,
+      "onlySecond": 0,
+      "both": 7
+     }
+    },
+    "orig->current": {
+     "allViolations": {
+      "onlyFirst": 10,
+      "onlySecond": 8,
+      "both": 294
+     },
+     "blocking": {
+      "onlyFirst": 0,
+      "onlySecond": 1,
+      "both": 7
+     }
+    },
+    "prefix->fix": {
+     "allViolations": {
+      "onlyFirst": 10,
+      "onlySecond": 7,
+      "both": 294
+     },
+     "blocking": {
+      "onlyFirst": 0,
+      "onlySecond": 0,
+      "both": 7
+     }
+    },
+    "prefix->current": {
+     "allViolations": {
+      "onlyFirst": 10,
+      "onlySecond": 8,
+      "both": 294
+     },
+     "blocking": {
+      "onlyFirst": 0,
+      "onlySecond": 1,
+      "both": 7
+     }
+    },
+    "fix->current": {
+     "allViolations": {
+      "onlyFirst": 0,
+      "onlySecond": 1,
+      "both": 301
+     },
+     "blocking": {
+      "onlyFirst": 0,
+      "onlySecond": 1,
+      "both": 7
+     }
+    }
+   }
+  }
+ }
+}

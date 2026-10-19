@@ -29,6 +29,10 @@ export type { ScriptedAnswers, ScriptedEntry } from './scripted-provider.js';
 export { buildUnits } from './units.js';
 export * from './reading.js';
 export * from './interpretation.js';
+export * from './c4-findings.js';
+export * from './c4-contract.js';
+export * from './c4-runner.js';
+export * from './c4-scorer.js';
 export { verifyRuleDuplication, comparisonPatterns, numericConstants } from './verify.js';
 
 /** Extracts the APG, runs the cheap proxies and opens the project: everything `runOntology` needs. */

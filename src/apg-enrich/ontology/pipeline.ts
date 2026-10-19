@@ -146,6 +146,16 @@ function newPassContext(caller: ModelCaller, index: GroundingIndex, runs: number
   return { caller, index, runs, hallucinations: [] as Hallucination[], accepted, tallies };
 }
 
+/**
+ * The units of a project with no provider and no call: the code, spans, graph neighbourhoods and docs the C1d passes
+ * read. C4 (`interpretation.ts`) assembles its context from them (v1.4 U9).
+ */
+export function unitsOf(input: OntologyInput, ruleMinDensity: number = DEFAULT_ONTOLOGY_OPTIONS.ruleMinDensity): OntologyUnits {
+  const root = path.resolve(input.projectRoot);
+  const ctx = buildContext({ apg: input.apg, project: input.project, projectRoot: root, ...(input.layerModel !== undefined ? { layerModel: input.layerModel } : {}) }, DEFAULT_CHEAP_OPTIONS);
+  return buildUnits(ctx, input.cheap, { ruleMinDensity, docs: input.docs ?? [] });
+}
+
 interface Prepared {
   readonly units: OntologyUnits;
   readonly index: GroundingIndex;

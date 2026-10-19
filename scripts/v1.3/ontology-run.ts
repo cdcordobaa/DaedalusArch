@@ -25,6 +25,8 @@
  *                                environment, only when a live record opens; gemini-agy uses LABELLER_AGY_HOME and the
  *                                agy isolation pre-flight. Estimate and replay never open a route.
  *   --model <id>                 required for the Gemini routes (no default); claude-cli default is the judge's model
+ *   --exploratory                gemini-agy only: the agy pre-flight also accepts the shared exploratory versions
+ *                                (AGY_EXPLORATORY_VERSIONS, 1.3.6 and 1.4.2); without it the frozen pin 1.3.2 holds
  *   --temperature <t>            gemini-api only (default: the P4 labeller's temperature, LABELLER_TEMPERATURE)
  *   --fact-policy agreed-only|any default agreed-only: model facts used only when both runs agree. `any` is a run-level
  *                                setting (it changes the pass (b) prompts and the pass (d) pairs), so it needs its own
@@ -160,6 +162,7 @@ export async function main(argv: readonly string[], deps: RouteDeps = DEFAULT_RO
     ...(model !== undefined ? { model } : {}),
     ...(temperatureArg !== undefined ? { temperature: Number(temperatureArg) } : providerName === 'gemini-api' ? { temperature: LABELLER_TEMPERATURE } : {}),
     ...(providerName === 'gemini-api' ? { maxTokens: LABELLER_API_MAX_TOKENS } : {}),
+    ...(argv.includes('--exploratory') ? { exploratory: true } : {}),
   };
   const routeOk = checkRoute(spec);
   if (!routeOk.success) {

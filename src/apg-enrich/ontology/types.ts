@@ -18,6 +18,9 @@ export type SemEdgeType = (typeof SEM_EDGE_TYPES)[number];
 export const PASS_IDS = ['responsibility', 'capability', 'rules', 'adjudicate'] as const;
 export type PassId = (typeof PASS_IDS)[number];
 
+/** A model call's pass: one of the four C1d passes, or `interpret`, the C4 call (v1.4 U9; C4-01). */
+export type CallPass = PassId | 'interpret';
+
 /** Who produced an assertion. `temperature` is null when the route sends none (the Claude CLI has no such flag). */
 export interface SemProvenance {
   readonly model: string;
@@ -244,7 +247,7 @@ export interface CallStats {
 export interface OntologyStop {
   readonly code: string;
   readonly message: string;
-  readonly pass: PassId;
+  readonly pass: CallPass;
 }
 
 export interface OntologyResult {

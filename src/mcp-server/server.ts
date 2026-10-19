@@ -2,7 +2,8 @@
  * MCP server wiring: registers the eleven DaedalusArch tools (MCP v2: the eight v1 tools with v1.3 fields added, plus
  * `infer_spec` and `explain_finding`; then `propose_spec`) on an `McpServer`, plus the two neural-arm tools
  * (`review_unit`, `explain_and_fix`) when the server runs with `--neural` (Docs/v1.3/neural-arm-agent-tools.md), and
- * `propose_rules` (rule mining) only with `--rule-mining` / `DAEDALUS_RULE_MINING=1` (off by default). Transport-agnostic (`main.ts`
+ * `propose_rules` (rule mining) only with `--rule-mining` / `DAEDALUS_RULE_MINING=1` (off by default), and the read-only
+ * `semantic_facts` only with `--semantic-facts <dir>` / `DAEDALUS_SEMANTIC_FACTS` (v1.4 U9, off by default). Transport-agnostic (`main.ts`
  * connects stdio; the tests connect an in-memory pair). Tools only read the spec and, for `evaluate_project`,
  * run the existing pipeline; `propose_spec` reads the project's source; none writes to the project under evaluation.
  */
@@ -28,6 +29,7 @@ import {
 import { REVIEW_JUDGE_VERSIONS } from './neural-review.js';
 import type { ServerContext, ToolOutcome } from './tools.js';
 import { withCallLog } from './call-log.js';
+import { SEMANTIC_FACTS_TOOL, semanticFactsTool } from './semantic-facts.js';
 
 export const SERVER_NAME = 'daedalus-arch';
 export const SERVER_VERSION = '0.2.0';
@@ -50,9 +52,12 @@ export const TOOL_NAMES: readonly string[] = Object.freeze([
 /** Opt-in tools, registered after `TOOL_NAMES` only when the context enables them (`ServerContext.ruleMining`). */
 export const RULE_MINING_TOOL_NAMES: readonly string[] = Object.freeze(['propose_rules']);
 
+/** v1.4 U9: the read-only semantic tool, registered last and only with `--semantic-facts` (`ServerContext.semanticFacts`). */
+export const SEMANTIC_TOOL_NAMES: readonly string[] = Object.freeze([SEMANTIC_FACTS_TOOL]);
+
 /** The tools a server built from `ctx` registers, in registration order. */
-export function toolNamesFor(ctx: Pick<ServerContext, 'ruleMining'>): readonly string[] {
-  return ctx.ruleMining === true ? [...TOOL_NAMES, ...RULE_MINING_TOOL_NAMES] : TOOL_NAMES;
+export function toolNamesFor(ctx: Pick<ServerContext, 'ruleMining' | 'semanticFacts'>): readonly string[] {
+  return [...TOOL_NAMES, ...(ctx.ruleMining === true ? RULE_MINING_TOOL_NAMES : []), ...(ctx.semanticFacts !== undefined ? SEMANTIC_TOOL_NAMES : [])];
 }
 
 /** Tools that read only the spec: instant, no graph, no database (the set an experiment arm may allow-list). */
@@ -81,6 +86,12 @@ const hintsArg = z
   .describe(
     "Attach a deterministic fix hint to each blocking violation: what is wrong, the edge and the allowed-dependency rule it breaks, the target layer and folder, and the minimal structural fix. Defaults to the server's --hints setting (off).",
   );
+
+const semanticFactsShape = {
+  file: z.string().optional().describe('Only facts and findings that cite this project-relative file.'),
+  policy: z.enum(['agreed-only', 'any']).optional().describe('agreed-only (default): model facts both runs agreed on; any: also single-run facts.'),
+  includeStale: z.boolean().optional().describe('Also list facts and findings whose cited code no longer matches the project.'),
+};
 
 function toResult<T extends object>(outcome: ToolOutcome<T>): CallToolResult {
   if (!outcome.ok) return { isError: true, content: [{ type: 'text', text: outcome.message }] };
@@ -416,6 +427,18 @@ export function createServer(ctx: ServerContext): McpServer {
       annotations: readOnly,
     },
     async (args) => toResult(await proposeRulesTool(ctx, z.object(proposeRulesShape).parse(args))),
+  );
+  if (ctx.semanticFacts !== undefined) register(
+    SEMANTIC_FACTS_TOOL,
+    {
+      title: 'Semantic facts and Sem findings of this project (read-only, opt-in)',
+      description:
+        'Returns the recorded semantic facts (A2: what a model said each class is responsible for, which business rules a method enforces, which concept a class defines; each with its grounded code citations) and the Sem rule findings over them (SEM-MISPLACED, SEM-DUP, SEM-FRAG), checked against the code as it is now: a fact whose cited lines changed is stale and left out unless includeStale. '
+        + 'Facts, not verdicts: the findings are advisory here and never block. Reads only the recorded A2 files and the project; writes nothing; calls no model; no network.',
+      inputSchema: semanticFactsShape,
+      annotations: readOnly,
+    },
+    (args) => Promise.resolve(toResult({ ok: true, data: semanticFactsTool(ctx.semanticFacts, ctx.defaultProjectPath, z.object(semanticFactsShape).parse(args)) })),
   );
 
   return server;
