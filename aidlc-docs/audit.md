@@ -2380,3 +2380,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: research track C2; author decisions pending: the research dir's synced skills, the agy 1.3.6 call path.
 
 ---
+
+## v1.4 research ops: BF-01 re-pilot unblocked
+**Timestamp**: 2026-10-19T15:13:56Z
+**User Input**: "Start unblocking. Research config dir: allow the synced skills and plugins and verify at run time. OK to spend about 3 tiny agy calls outside the pilot cap to find why 1.3.6 hangs. The author will rate the meaning labels."
+**AI Response**: "Listing check tolerates skills/synced and plugins/synced; every Claude session must show 0 skills, 0 slash commands and built-in plugins only in its init event (self-test 11/11). Ran the 3 remaining Claude sessions (spawns 15-17, all valid). Re-scored all 12 on main d3461863. Gemini: 3 tiny calls all succeed, so the hang is specific to the full-size call; next step needs the author's OK. Explained that the author is already rater Au in MEAN-01, so a second rater is still needed for kappa."
+**Context**: Docs/DiagnosticRuns/v1.3-brownfield-llm-repilot-2026-10-19.md §9; ops/notes/ns-03-graph-complements-reading.md
+
+---

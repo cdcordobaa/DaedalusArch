@@ -107,7 +107,9 @@ export function plan(): PlannedSession[] {
  * `judge`: the frozen judge dir, ADR-018 listing check unchanged. Never used for MCP runs again (author, 2026-10-19).
  * `research`: `~/.firewall/research-claude-config`, signed in by the author for research sessions. Its listing check is
  * the ADR-018 check (names only, plus the settings.json key rule) with exactly these failures allowed:
- * - `plugins/` and `skills/` when EMPTY (the CLI recreates them at start); any entry inside them still fails;
+ * - `plugins/` and `skills/` when EMPTY (the CLI recreates them at start), plus `plugins/synced/**` and `skills/synced/**`
+ *   (the CLI syncs the account's skills and plugins at start; author, 2026-10-19), paired with the run-time check
+ *   `initExtensionViolations` (0 skills, 0 slash commands, built-in plugins only); any other entry inside them fails;
  * - `state/**` (the CLI's MCP discovery state, `state/mcp-discover-verdicts.json`);
  * - `settings.json` whose only problem is keys the CLI itself writes (`RESEARCH_CLI_SETTINGS_KEYS`).
  * Everything else still fails: history, `projects/*.jsonl`, any CLAUDE.md, any MCP config file (the only MCP server a
@@ -124,9 +126,13 @@ export function claudeIso(kind: ConfigKind = CONFIG_KIND): ClaudeIsolation {
 
 /** Which listing failures the research dir tolerates (pure; the failures carry entry names and reasons only). */
 export function researchListingFailures(failures: readonly { readonly entry: string; readonly reason: string }[]): { entry: string; reason: string }[] {
-  const under = (dir: string): boolean => failures.some((f) => f.entry.startsWith(`${dir}/`));
+  const synced = (e: string): boolean => /^(plugins|skills)\/synced(\/|$)/.test(e);
+  const under = (dir: string): boolean => failures.some((f) => f.entry.startsWith(`${dir}/`) && !synced(f.entry));
   const allowed = (f: { entry: string; reason: string }): boolean => {
     if ((f.entry === 'plugins' || f.entry === 'skills') && !under(f.entry)) return true;
+    // The CLI syncs the account's skills and plugins here at every start (2026-10-19). Tolerated because every session
+    // runs with --disable-slash-commands and initExtensionViolations() fails any session whose init shows one loaded.
+    if (synced(f.entry)) return !/(^|\/)CLAUDE\.md$|(^|\/)\.?mcp(_config|-config)?\.json$/i.test(f.entry);
     if (f.entry === 'state' || f.entry.startsWith('state/')) return !/(^|\/)CLAUDE\.md$|(^|\/)\.?mcp(_config|-config)?\.json$/i.test(f.entry);
     const keys = /^settings\.json has disallowed keys: (.+)$/.exec(f.reason);
     if (f.entry === 'settings.json' && keys !== null) return (keys[1] ?? '').split(/,\s*/).every((k) => RESEARCH_CLI_SETTINGS_KEYS.includes(k.trim()));
@@ -376,14 +382,47 @@ interface SessionMeta {
   promptSha256: string; argv: readonly string[]; configListingSha256: string;
 }
 
-function initMcp(stdout: string): unknown {
+interface InitEvent { type?: string; subtype?: string; mcp_servers?: unknown; tools?: unknown; model?: string; skills?: unknown; slash_commands?: unknown; plugins?: unknown }
+
+function initEvent(stdout: string): InitEvent | null {
   for (const line of stdout.split(/\r?\n/)) {
     try {
-      const ev = JSON.parse(line) as { type?: string; subtype?: string; mcp_servers?: unknown; tools?: unknown; model?: string };
-      if (ev.type === 'system' && ev.subtype === 'init') return { mcp_servers: ev.mcp_servers ?? null, tools: ev.tools ?? null, model: ev.model ?? null };
+      const ev = JSON.parse(line) as InitEvent;
+      if (ev.type === 'system' && ev.subtype === 'init') return ev;
     } catch { /* not JSON */ }
   }
   return null;
+}
+
+function initMcp(stdout: string): unknown {
+  const ev = initEvent(stdout);
+  return ev === null ? null : { mcp_servers: ev.mcp_servers ?? null, tools: ev.tools ?? null, model: ev.model ?? null, skills: ev.skills ?? null, slash_commands: ev.slash_commands ?? null, plugins: ev.plugins ?? null };
+}
+
+/**
+ * Run-time half of the research-dir rule (author, 2026-10-19): the CLI syncs the account's skills and plugins into
+ * the config dir, so the listing check tolerates `skills/synced/**` and `plugins/synced/**`; in exchange every Claude
+ * session's init event must show 0 skills, 0 slash commands and only the CLI's built-in plugins (`path: builtin`).
+ * Anything else is an isolation violation and invalidates the session. Pure.
+ */
+export function initExtensionViolations(stdout: string): string[] {
+  const ev = initEvent(stdout);
+  if (ev === null) return ['init: no init event'];
+  const bad: string[] = [];
+  const list = (v: unknown): unknown[] | null => (Array.isArray(v) ? v : null);
+  const skills = list(ev.skills);
+  const cmds = list(ev.slash_commands);
+  const plugins = list(ev.plugins);
+  if (skills === null) bad.push('init: skills field missing');
+  else if (skills.length > 0) bad.push(`init: ${String(skills.length)} skills loaded`);
+  if (cmds === null) bad.push('init: slash_commands field missing');
+  else if (cmds.length > 0) bad.push(`init: ${String(cmds.length)} slash commands loaded`);
+  if (plugins === null) bad.push('init: plugins field missing');
+  else for (const p of plugins) {
+    const pp = p as { name?: unknown; path?: unknown };
+    if (pp.path !== 'builtin') bad.push(`init: non-builtin plugin ${String(pp.name)}`);
+  }
+  return bad;
 }
 
 function confinement(calls: readonly { name: string; input: Readonly<Record<string, unknown>> }[], cwd: string): string[] {
@@ -487,7 +526,7 @@ export async function runSession(s: PlannedSession, runner: ProcessRunner, outRo
     sid: s.sid, repo: s.repo, arm: s.arm, run: s.run, attempt, model: modelFor(s.arm), cliVersion,
     status, modelValid: envelope !== null && judgeModelUsage(modelFor(s.arm), envelope.summary).valid, usage, processedTokens: processed, wallMs,
     exitCode: cli?.exitCode ?? null, timedOut: cli?.timedOut ?? null, capFlags, mcp: initMcp(stdout), toolCalls,
-    confinementViolations: s.arm === 'X' ? [] : confinement(t.calls, cwd), output,
+    confinementViolations: s.arm === 'X' ? [] : [...confinement(t.calls, cwd), ...(CONFIG_KIND === 'research' ? initExtensionViolations(stdout) : [])], output,
     evidenceGate: DESIGN === 'v2' ? await evidenceGate(s, dir) : null,
     promptSha256: createHash('sha256').update(prompt).digest('hex'), argv: args.map((a) => (a === prompt ? '<prompt>' : scrub(a))),
     configListingSha256: okIso.data.configListingSha256,
@@ -608,7 +647,7 @@ export class StubRunner implements ProcessRunner {
     const units = [...preset.architecture.layers.map((l) => ({ id: `layer:${l.name}`, claim: 'stub', origin: 'proposed', citations: cits })), { id: 'order', claim: 'stub', origin: 'proposed', citations: [{ type: 'doc', file: 'README.md', line: 1, quote: 'certainly-not-on-line-1 \u0000' }] }];
     const final = `Stub derivation.\n\n\`\`\`yaml\n${YAML.stringify({ architecture: (preset as { architecture: unknown }).architecture })}\`\`\`\n\n\`\`\`json\n${JSON.stringify({ units })}\n\`\`\`\n`;
     const lines = [
-      JSON.stringify({ type: 'system', subtype: 'init', tools: isG ? ['Read', 'Grep', 'Glob', ...FACT_TOOLS.map((t) => `mcp__${FACTS_SERVER}__${t}`)] : ['Read', 'Grep', 'Glob'], mcp_servers: isG ? [{ name: FACTS_SERVER, status: 'connected' }] : [], model: MODEL }),
+      JSON.stringify({ type: 'system', subtype: 'init', skills: [], slash_commands: [], plugins: [{ name: 'cc-plugin-telemetry', path: 'builtin' }], tools: isG ? ['Read', 'Grep', 'Glob', ...FACT_TOOLS.map((t) => `mcp__${FACTS_SERVER}__${t}`)] : ['Read', 'Grep', 'Glob'], mcp_servers: isG ? [{ name: FACTS_SERVER, status: 'connected' }] : [], model: MODEL }),
       JSON.stringify({ type: 'assistant', message: { content: [{ type: 'tool_use', id: 'toolu_stub_0', name: 'Read', input: { file_path: path.join(cwd, 'README.md') } }] } }),
       JSON.stringify({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: 'toolu_stub_0', content: [{ type: 'text', text: '(readme)' }] }] } }),
       JSON.stringify({ type: 'result', subtype: 'success', is_error: false, num_turns: 2, duration_ms: 5, total_cost_usd: 0, result: final, usage: { input_tokens: 10, output_tokens: 100, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 }, modelUsage: { [MODEL]: { outputTokens: 100 } } }),
@@ -736,6 +775,8 @@ async function main(): Promise<void> {
       const expected = s.arm === 'G' ? [FACTS_SERVER] : [];
       if (JSON.stringify(servers.map((x) => x.name).sort()) !== JSON.stringify(expected)) { process.stdout.write(`unexpected MCP servers ${JSON.stringify(servers)}: stopping\n`); return; }
       if (s.arm === 'G' && !servers.some((x) => x.name === FACTS_SERVER && x.status === 'connected')) { process.stdout.write(`G session without a connected ${FACTS_SERVER} server: stopping\n`); return; }
+      const initBad = m.confinementViolations.filter((v) => v.startsWith('init:'));
+      if (initBad.length > 0) { process.stdout.write(`skills or plugins reached the session ${JSON.stringify(initBad)}: stopping\n`); return; }
       if (/not logged in|\/login/i.test(finalText)) { process.stdout.write('CLI not logged in under the judge config dir: stopping\n'); return; }
       if (!RETRYABLE.has(m.status) && (m.status !== 'completed' || !m.modelValid)) { process.stdout.write(`session status ${m.status}: stopping the pilot\n`); return; }
       if (RETRYABLE.has(m.status) && retries[s.arm] < RETRY_PER_ARM) {

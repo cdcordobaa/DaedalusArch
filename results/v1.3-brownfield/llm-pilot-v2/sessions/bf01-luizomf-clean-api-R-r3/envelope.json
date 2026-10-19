@@ -1,0 +1,99 @@
+{
+ "duration_api_ms": 23187,
+ "stop_reason": "end_turn",
+ "session_id": "c668d8f8-9969-4e20-90ec-b6042b35441d",
+ "total_cost_usd": 0.1144766,
+ "usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 20098,
+  "cache_read_input_tokens": 40426,
+  "output_tokens": 3003,
+  "output_tokens_details": {
+   "thinking_tokens": 613
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 20098,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2306,
+    "cache_read_input_tokens": 18882,
+    "cache_creation_input_tokens": 4439,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4439
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-sonnet-5-5": {
+   "inputTokens": 6,
+   "outputTokens": 3003,
+   "cacheReadInputTokens": 40426,
+   "cacheCreationInputTokens": 20098,
+   "webSearchRequests": 0,
+   "costUSD": 0.1144766,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 613,
+   "canonicalModel": "claude-sonnet-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 3,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "```yaml\narchitecture:\n  style: clean-architecture\n  layers:\n    - name: domain\n      kind: domain\n      directories:\n        - src/domain/**\n      file_patterns:\n        - src/domain/**/*.ts\n      roles:\n        - entity\n        - value-object\n        - repository-interface\n      decorators: []\n    - name: application\n      kind: application\n      directories:\n        - src/application/**\n      file_patterns:\n        - src/application/**/*.ts\n      roles:\n        - use-case\n        - dto\n        - application-service\n        - repository-interface\n      decorators: []\n    - name: presentation\n      kind: presentation\n      directories:\n        - src/presentation/**\n      file_patterns:\n        - src/presentation/**/*.ts\n      roles:\n        - controller\n        - middleware\n      decorators: []\n    - name: infrastructure\n      kind: infrastructure\n      directories:\n        - src/infrastructure/**\n      file_patterns:\n        - src/infrastructure/**/*.ts\n      roles:\n        - repository-impl\n        - orm-entity\n      decorators: []\n    - name: main\n      kind: infrastructure\n      directories:\n        - src/main/**\n      file_patterns:\n        - src/main/**/*.ts\n      roles:\n        - application-service\n      decorators: []\ndefault_exclude_paths:\n  - \"node_modules/**\"\n  - \"dist/**\"\n  - \"**/*.spec.ts\"\n  - \"**/*.test.ts\"\nfitness_overrides:\n  - id: FF-P01\n    enabled: true\n    reason: \"Domain must stay free of frameworks; this repo uses express and knex, so both are added to the forbidden imports.\"\n    params:\n      forbidden_imports:\n        - \"@nestjs/*\"\n        - typeorm\n        - express\n        - knex\n        - prisma\n        - \"@prisma/*\"\n        - sequelize\n```\n\n```json\n{\"units\": [\n{\"id\": \"layer:domain\", \"claim\": \"The domain layer holds the models and the use-case interfaces and depends on nothing else.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 19, \"quote\": \"This is the \\\"domain\\\" or \\\"entities\\\" layer. Here's the description by Uncle Bob:\"},\n{\"type\": \"pattern\", \"glob\": \"src/domain/**/*.ts\", \"count\": 16}]},\n{\"id\": \"layer:application\", \"claim\": \"The application layer holds the use cases, ports, errors and concrete validations.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 27, \"quote\": \"This is the **\\\"Use Cases\\\"** layer. Here you may add the application **Use cases**. Here's the description by Uncle Bob:\"},\n{\"type\": \"pattern\", \"glob\": \"src/application/**/*.ts\", \"count\": 66}]},\n{\"id\": \"layer:presentation\", \"claim\": \"The presentation layer holds the controllers, middlewares and response classes that adapt use cases to the web.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 39, \"quote\": \"I'm using the name **\\\"Presentation\\\"** for this layer.\"},\n{\"type\": \"pattern\", \"glob\": \"src/presentation/**/*.ts\", \"count\": 22}]},\n{\"id\": \"layer:infrastructure\", \"claim\": \"The infrastructure layer holds the express, knex and repository implementations (frameworks and drivers).\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 51, \"quote\": \"This folder (layer) is where we add everything related to external \\\"**Frameworks and Drivers**\\\". Here you can add the repositories, external frameworks, web and so on.\"},\n{\"type\": \"pattern\", \"glob\": \"src/infrastructure/**/*.ts\", \"count\": 36}]},\n{\"id\": \"layer:main\", \"claim\": \"The main layer is the composition root. It holds the factories that wire everything together and may depend on all other layers. src/common is a cross-cutting folder and belongs to no layer.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 61, \"quote\": \"This layer is where we put everything together. It's the \\\"dirty layer\\\", because most factories will be here. It may depend on all other layers in the system.\"},\n{\"type\": \"pattern\", \"glob\": \"src/main/**/*.ts\", \"count\": 9}]},\n{\"id\": \"order\", \"claim\": \"Layers are ordered from innermost to outermost: domain, application, presentation, infrastructure, main. Dependencies point inwards, and main may depend on everything.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 74, \"quote\": \">The overriding rule that makes this architecture work is The Dependency Rule. This rule says that source code dependencies can only point inwards. Nothing in an inner circle can know anything at all about something in an outer circle. In particular, the name of something declared in an outer circle must not be mentioned by the code in the an inner circle. That includes, functions, classes. variables, or any other named software entity.\"},\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 61, \"quote\": \"This layer is where we put everything together. It's the \\\"dirty layer\\\", because most factories will be here. It may depend on all other layers in the system.\"}]},\n{\"id\": \"ff:FF-P01\", \"claim\": \"Domain purity also forbids express and knex, the frameworks this repository uses.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 45, \"quote\": \">Similarly, data is converted, in this layer, from the form most convenient for entities and use cases, into the form most convenient for whatever persistence framework is being used. i.e. The Database. No code inward of this circle should know anything at all about the database. If the database is a SQL database, then all the SQL should be restricted to this layer, and in particular to the parts of this layer that have to do with the database.\"},\n{\"type\": \"pattern\", \"glob\": \"src/domain/**/*.ts\", \"count\": 16}]}\n]}\n```",
+ "ttft_ms": 8281,
+ "type": "result",
+ "duration_ms": 24154,
+ "uuid": "32912a36-4c81-451d-bc91-7945ecba883b",
+ "ttft_stream_ms": 5141,
+ "time_to_request_ms": 811,
+ "first_content_frame_ms": 5141,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

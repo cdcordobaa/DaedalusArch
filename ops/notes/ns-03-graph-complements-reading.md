@@ -34,6 +34,8 @@ In the brownfield pilot, arm G (graph tools plus files) scored below arm R (file
 - **The mechanism diff (v1, zero calls):** none of G's differences from A were "right about the code", and none were plain errors. **G's v1 problem was omission:** it never opened a file. The substitution half of NS-03 holds. The drift interpretation ("G measured intent vs code") is **not supported**.
 - **Re-pilot v2:** 9 valid sessions out of 18 planned (5 G-v2, 4 R-v2), all passing the citation gate. With the same reading procedure, **G-v2 ties R-v2 or beats it.** On luizomf both arms reach κ 0.90 against A, and G-v2 recovers 27/27 findings. On zeldaplay G-v2 has 1 extra finding against R-v2's 9, and slightly higher κ against A and against code reality. **NS-03's design rule is provisionally supported.** This is a tiny sample, and the Gemini arm hasn't run yet.
 
+- **Morning 2026-10-19, Claude arms complete (6 G-v2, 6 R-v2):** luizomf a tie; zeldaplay G-v2 closer to A (verdict 1/3 vs 0/3, κ median 0.48 vs 0.39, 3 extra findings vs 12). Pooled finding precision 0.90 vs 0.69. R-v2 rarely opens a file (0 tools on zeldaplay), so it is effectively "docs in the prompt". Still one vendor: the Gemini arm's call path works on small prompts but stalls on the real one (re-pilot report §9).
+
 ## What would show we're wrong
 
 - The diff shows G's differences from A are plain errors, not matches with the real import structure.
