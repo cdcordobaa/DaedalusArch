@@ -1,0 +1,22 @@
+{
+ "schemaVersion": 1,
+ "date": "2026-10-19",
+ "modelCalls": 0,
+ "repoBase": "84199f25",
+ "neo4j": {
+  "source": "neo4j-community-5.26.24-unix.tar.gz from dist.neo4j.org (docker daemon not available in the sandbox)",
+  "tarballSha256": "9e17d344f00a50a5befb8ef8eb29f08bb56945e5334562c05457a03651657c85",
+  "dbmsComponents": "Neo4j Kernel 5.26.24 community",
+  "apoc": { "jar": "labs/apoc-5.26.24-core.jar copied to plugins/", "sha256": "b77fb62b7740e4d61285c4c1a0591da75bc8d183220926ef041068e217ec74de", "version": "5.26.24" },
+  "config": { "server.memory.heap.initial_size": "512m", "server.memory.heap.max_size": "512m", "server.memory.pagecache.size": "256m", "server.default_listen_address": "127.0.0.1", "dbms.security.procedures.unrestricted": "apoc.*" },
+  "instances": 1,
+  "password": "generated into a 0600 scratch env file, never printed or committed"
+ },
+ "jdk": "openjdk version \"21.0.12.1\" 2026-08-18",
+ "node": "v22.22.0",
+ "commands": [
+  "npx tsx scripts/v1.4/ddd-b2-t1-rescore.ts --engine neo4j --work <scratch> --node-modules <skeleton node_modules> --dest results/v1.4-ddd-t1-d8",
+  "npx tsx scripts/v1.3/check-correct.ts --jobs <scratch>/check-correct-jobs-neo4j.json --tiers blocking --out <scratch>/cc",
+  "npx tsx scripts/v1.4/ddd-t1-d8-parity.ts"
+ ]
+}
