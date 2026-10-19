@@ -1,0 +1,411 @@
+{
+ "id": "finance-project-ddd",
+ "style": "ddd",
+ "layersPresent": [
+  "api",
+  "application",
+  "composition",
+  "domain",
+  "infrastructure"
+ ],
+ "filesMapped": 150,
+ "files": 166,
+ "declaredAllowed": [
+  "api>application",
+  "api>domain",
+  "application>domain",
+  "composition>api",
+  "composition>application",
+  "composition>domain",
+  "composition>infrastructure",
+  "infrastructure>application",
+  "infrastructure>domain"
+ ],
+ "graphs": {
+  "observed": {
+   "mined": [
+    "api>application",
+    "api>composition",
+    "api>domain",
+    "api>infrastructure",
+    "application>composition",
+    "application>domain",
+    "application>infrastructure",
+    "composition>api",
+    "composition>application",
+    "composition>domain",
+    "composition>infrastructure",
+    "domain>composition",
+    "domain>infrastructure",
+    "infrastructure>composition",
+    "infrastructure>domain"
+   ],
+   "tp": 8,
+   "fp": 7,
+   "fn": 1
+  },
+  "strict": {
+   "mined": [
+    "api>application",
+    "api>composition",
+    "api>domain",
+    "api>infrastructure",
+    "application>domain",
+    "application>infrastructure",
+    "composition>api",
+    "composition>application",
+    "composition>domain",
+    "composition>infrastructure",
+    "infrastructure>domain"
+   ],
+   "tp": 8,
+   "fp": 3,
+   "fn": 1
+  },
+  "full": {
+   "mined": [
+    "api>composition",
+    "application>domain",
+    "application>infrastructure",
+    "composition>api",
+    "composition>application",
+    "composition>domain",
+    "composition>infrastructure",
+    "infrastructure>domain"
+   ],
+   "tp": 6,
+   "fp": 2,
+   "fn": 3
+  }
+ },
+ "forbidding": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "domain>application",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "domain>infrastructure",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "level": "medium",
+   "pair": "domain>api",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-004",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "domain>composition",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-005",
+   "kind": "layer-direction",
+   "level": "low",
+   "pair": "application>api",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-006",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "application>composition",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-007",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "infrastructure>application",
+   "declaredForbids": false
+  },
+  {
+   "id": "MR-008",
+   "kind": "layer-direction",
+   "level": "low",
+   "pair": "infrastructure>api",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-009",
+   "kind": "layer-direction",
+   "level": "medium",
+   "pair": "infrastructure>composition",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-010",
+   "kind": "layer-rare-edge",
+   "level": "low",
+   "pair": "api>domain",
+   "declaredForbids": false
+  },
+  {
+   "id": "MR-011",
+   "kind": "layer-rare-edge",
+   "level": "low",
+   "pair": "api>application",
+   "declaredForbids": false
+  },
+  {
+   "id": "MR-012",
+   "kind": "layer-rare-edge",
+   "level": "low",
+   "pair": "api>infrastructure",
+   "declaredForbids": true
+  }
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.96,
+   "subject": "domain",
+   "object": "application",
+   "statement": "domain must not depend on application (64 edges application -> domain; 0/39 domain files import application)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.841,
+   "subject": "domain",
+   "object": "infrastructure",
+   "statement": "domain must not depend on infrastructure (30 edges infrastructure -> domain; 2/39 domain files import infrastructure)",
+   "exceptions": [
+    {
+     "file": "src/modules/budget-box/domain/services/can-allocate-percentage-to-budget-box.domain-service.ts",
+     "target": "src/modules/budget-box/infra/services/queries/budget-box-query.interface.ts"
+    },
+    {
+     "file": "src/modules/budget-box/domain/services/can-change-budget-box-percentage.domain-service.ts",
+     "target": "src/modules/budget-box/infra/services/queries/budget-box-query.interface.ts"
+    }
+   ]
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "level": "medium",
+   "confidence": 0.65,
+   "subject": "domain",
+   "object": "api",
+   "statement": "domain must not depend on api (2 edges api -> domain; 0/39 domain files import api)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-004",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.75,
+   "subject": "domain",
+   "object": "composition",
+   "statement": "domain must not depend on composition (20 edges composition -> domain; 3/39 domain files import composition)",
+   "exceptions": [
+    {
+     "file": "src/modules/transaction/domain/services/create-percentage-transaction-calculation.domain-service.ts",
+     "target": "src/config/env.ts"
+    },
+    {
+     "file": "src/modules/transaction/domain/services/create-single-calculation.domain-service.ts",
+     "target": "src/config/env.ts"
+    },
+    {
+     "file": "src/modules/transaction/domain/transaction.aggregate.ts",
+     "target": "src/config/env.ts"
+    }
+   ]
+  },
+  {
+   "id": "MR-005",
+   "kind": "layer-direction",
+   "level": "low",
+   "confidence": 0.489,
+   "subject": "application",
+   "object": "api",
+   "statement": "application must not depend on api (1 edges api -> application; 0/45 application files import api)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-006",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.819,
+   "subject": "application",
+   "object": "composition",
+   "statement": "application must not depend on composition (57 edges composition -> application; 4/45 application files import composition)",
+   "exceptions": [
+    {
+     "file": "src/modules/budget-box/application/use-cases/create-budget-box/create-budget-box.use-case.ts",
+     "target": "src/config/env.ts"
+    },
+    {
+     "file": "src/modules/transaction/application/use-cases/create-expense/create-expense.use-case.ts",
+     "target": "src/config/env.ts"
+    },
+    {
+     "file": "src/modules/transaction/application/use-cases/percentage-capital-inflow-posting/percentage-capital-inflow-posting.use-case.ts",
+     "target": "src/config/env.ts"
+    },
+    {
+     "file": "src/modules/transaction/application/use-cases/posting-to-benefit/posting-to-benefit.use-case.ts",
+     "target": "src/config/env.ts"
+    }
+   ]
+  },
+  {
+   "id": "MR-007",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.848,
+   "subject": "infrastructure",
+   "object": "application",
+   "statement": "infrastructure must not depend on application (8 edges application -> infrastructure; 0/21 infrastructure files import application)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-008",
+   "kind": "layer-direction",
+   "level": "low",
+   "confidence": 0.477,
+   "subject": "infrastructure",
+   "object": "api",
+   "statement": "infrastructure must not depend on api (1 edges api -> infrastructure; 0/21 infrastructure files import api)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-009",
+   "kind": "layer-direction",
+   "level": "medium",
+   "confidence": 0.612,
+   "subject": "infrastructure",
+   "object": "composition",
+   "statement": "infrastructure must not depend on composition (19 edges composition -> infrastructure; 4/21 infrastructure files import composition)",
+   "exceptions": [
+    {
+     "file": "src/modules/budget-box/infra/repo/budget-box.mapper.ts",
+     "target": "src/config/env.ts"
+    },
+    {
+     "file": "src/modules/shared/infra/connections/budget-box-connection.ts",
+     "target": "src/config/env.ts"
+    },
+    {
+     "file": "src/modules/shared/infra/connections/connection.ts",
+     "target": "src/config/mongo.config.ts"
+    },
+    {
+     "file": "src/modules/shared/infra/connections/transaction-connection.ts",
+     "target": "src/config/env.ts"
+    }
+   ]
+  },
+  {
+   "id": "MR-010",
+   "kind": "layer-rare-edge",
+   "level": "low",
+   "confidence": 0.47,
+   "subject": "api",
+   "object": "domain",
+   "statement": "api should not depend on domain (1/32 api files imports it; nothing goes back)",
+   "exceptions": [
+    {
+     "file": "src/modules/transaction/infra/types/transaction.types.ts",
+     "target": "src/modules/transaction/domain/transaction-status.value-object.ts"
+    },
+    {
+     "file": "src/modules/transaction/infra/types/transaction.types.ts",
+     "target": "src/modules/transaction/domain/transaction-type.value-object.ts"
+    }
+   ]
+  },
+  {
+   "id": "MR-011",
+   "kind": "layer-rare-edge",
+   "level": "low",
+   "confidence": 0.47,
+   "subject": "api",
+   "object": "application",
+   "statement": "api should not depend on application (1/32 api files imports it; nothing goes back)",
+   "exceptions": [
+    {
+     "file": "src/modules/user/infra/resolver/user.resolver.ts",
+     "target": "src/modules/user/application/use-cases/signin/jwt-payload.interface.ts"
+    }
+   ]
+  },
+  {
+   "id": "MR-012",
+   "kind": "layer-rare-edge",
+   "level": "low",
+   "confidence": 0.47,
+   "subject": "api",
+   "object": "infrastructure",
+   "statement": "api should not depend on infrastructure (1/32 api files imports it; nothing goes back)",
+   "exceptions": [
+    {
+     "file": "src/modules/user/infra/services/strategies/jwt.strategy.ts",
+     "target": "src/modules/user/infra/entities/user.schema.ts"
+    }
+   ]
+  },
+  {
+   "id": "MR-013",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.747,
+   "subject": "folder:config",
+   "object": "folder:modules",
+   "statement": "folder component config must not depend on modules (14 imports modules -> config; 0/4 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-014",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.375,
+   "subject": "folder:utils",
+   "object": "folder:modules",
+   "statement": "folder component utils must not depend on modules (3 imports modules -> utils; 0/1 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-015",
+   "kind": "inject-abstractions",
+   "level": "high",
+   "confidence": 0.833,
+   "subject": "application",
+   "statement": "classes of application inject interfaces across layers, not concrete classes (5/5)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-016",
+   "kind": "inject-abstractions",
+   "level": "medium",
+   "confidence": 0.667,
+   "subject": "domain",
+   "statement": "classes of domain inject interfaces across layers, not concrete classes (2/2)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-017",
+   "kind": "core-package-free",
+   "level": "high",
+   "confidence": 0.975,
+   "subject": "domain",
+   "statement": "domain (a core layer: it may depend on no other layer) imports none of @nestjs/core, @nestjs/graphql, @nestjs/jwt, @nestjs/mongoose, @nestjs/passport, @nestjs/platform-express, crypto, env-var, express, graphql-voyager, helmet, module-alias, mongodb, mongoose, passport-jwt, path, ua-parser-js",
+   "exceptions": []
+  }
+ ]
+}

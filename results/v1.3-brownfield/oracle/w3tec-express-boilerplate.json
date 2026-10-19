@@ -1,0 +1,206 @@
+{
+ "id": "w3tec-express-boilerplate",
+ "style": "layered",
+ "layersPresent": [
+  "business",
+  "persistence",
+  "presentation"
+ ],
+ "filesMapped": 29,
+ "files": 58,
+ "declaredAllowed": [
+  "business>persistence",
+  "presentation>business"
+ ],
+ "graphs": {
+  "observed": {
+   "mined": [
+    "business>persistence",
+    "presentation>business",
+    "presentation>persistence"
+   ],
+   "tp": 2,
+   "fp": 1,
+   "fn": 0
+  },
+  "strict": {
+   "mined": [
+    "business>persistence",
+    "presentation>business",
+    "presentation>persistence"
+   ],
+   "tp": 2,
+   "fp": 1,
+   "fn": 0
+  },
+  "full": {
+   "mined": [
+    "business>persistence",
+    "presentation>business",
+    "presentation>persistence"
+   ],
+   "tp": 2,
+   "fp": 1,
+   "fn": 0
+  }
+ },
+ "forbidding": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "persistence>business",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "persistence>presentation",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "level": "medium",
+   "pair": "business>presentation",
+   "declaredForbids": true
+  }
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.791,
+   "subject": "persistence",
+   "object": "business",
+   "statement": "persistence must not depend on business (6 edges business -> persistence; 0/12 persistence files import business)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.769,
+   "subject": "persistence",
+   "object": "presentation",
+   "statement": "persistence must not depend on presentation (5 edges presentation -> persistence; 0/12 persistence files import presentation)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "level": "medium",
+   "confidence": 0.667,
+   "subject": "business",
+   "object": "presentation",
+   "statement": "business must not depend on presentation (5 edges presentation -> business; 0/4 business files import presentation)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-004",
+   "kind": "component-direction",
+   "level": "high",
+   "confidence": 0.823,
+   "subject": "folder:api",
+   "object": "folder:database",
+   "statement": "folder component api must not depend on database (6 imports database -> api; 0/24 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-005",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.72,
+   "subject": "folder:api",
+   "object": "folder:auth",
+   "statement": "folder component api must not depend on auth (3 imports auth -> api; 0/24 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-006",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.444,
+   "subject": "folder:lib",
+   "object": "folder:loaders",
+   "statement": "folder component lib must not depend on loaders (1 imports loaders -> lib; 0/8 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-007",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.593,
+   "subject": "folder:lib",
+   "object": "folder:api",
+   "statement": "folder component lib must not depend on api (2 imports api -> lib; 0/8 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-008",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.444,
+   "subject": "folder:lib",
+   "object": "folder:auth",
+   "statement": "folder component lib must not depend on auth (1 imports auth -> lib; 0/8 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-009",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.593,
+   "subject": "folder:lib",
+   "object": "folder:decorators",
+   "statement": "folder component lib must not depend on decorators (2 imports decorators -> lib; 0/8 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-010",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.5,
+   "subject": "folder:auth",
+   "object": "folder:loaders",
+   "statement": "folder component auth must not depend on loaders (2 imports loaders -> auth; 0/3 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-011",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.656,
+   "subject": "folder:decorators",
+   "object": "folder:api",
+   "statement": "folder component decorators must not depend on api (7 imports api -> decorators; 0/3 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-012",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.375,
+   "subject": "folder:decorators",
+   "object": "folder:auth",
+   "statement": "folder component decorators must not depend on auth (1 imports auth -> decorators; 0/3 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-013",
+   "kind": "core-package-free",
+   "level": "high",
+   "confidence": 0.846,
+   "subject": "persistence",
+   "statement": "persistence (a core layer: it may depend on no other layer) imports none of class-transformer, compression, dataloader, event-dispatch, express, helmet, morgan, routing-controllers, routing-controllers-openapi, type-graphql, typedi, typeorm-typedi-extensions",
+   "exceptions": [
+    {
+     "file": "src/api/models/User.ts",
+     "target": "class-transformer"
+    }
+   ]
+  }
+ ]
+}

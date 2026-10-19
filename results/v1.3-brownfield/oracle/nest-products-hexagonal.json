@@ -1,0 +1,398 @@
+{
+ "id": "nest-products-hexagonal",
+ "style": "hexagonal",
+ "layersPresent": [
+  "adapters-inbound",
+  "adapters-outbound",
+  "application",
+  "config",
+  "domain"
+ ],
+ "filesMapped": 23,
+ "files": 23,
+ "declaredAllowed": [
+  "adapters-inbound>application",
+  "adapters-inbound>domain",
+  "adapters-outbound>application",
+  "adapters-outbound>domain",
+  "application>domain",
+  "config>adapters-inbound",
+  "config>adapters-outbound",
+  "config>application",
+  "config>domain"
+ ],
+ "graphs": {
+  "observed": {
+   "mined": [
+    "adapters-inbound>application",
+    "adapters-inbound>domain",
+    "adapters-outbound>domain",
+    "application>adapters-outbound",
+    "application>domain",
+    "config>adapters-inbound",
+    "config>adapters-outbound",
+    "config>application",
+    "config>domain"
+   ],
+   "tp": 8,
+   "fp": 1,
+   "fn": 1
+  },
+  "strict": {
+   "mined": [
+    "adapters-inbound>application",
+    "adapters-inbound>domain",
+    "adapters-outbound>domain",
+    "application>adapters-outbound",
+    "application>domain",
+    "config>adapters-inbound",
+    "config>adapters-outbound",
+    "config>application",
+    "config>domain"
+   ],
+   "tp": 8,
+   "fp": 1,
+   "fn": 1
+  },
+  "full": {
+   "mined": [
+    "adapters-inbound>application",
+    "adapters-inbound>domain",
+    "adapters-outbound>domain",
+    "application>domain",
+    "config>adapters-inbound",
+    "config>application"
+   ],
+   "tp": 6,
+   "fp": 0,
+   "fn": 3
+  }
+ },
+ "forbidding": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "level": "medium",
+   "pair": "domain>application",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "level": "medium",
+   "pair": "domain>adapters-inbound",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "level": "medium",
+   "pair": "domain>adapters-outbound",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-004",
+   "kind": "layer-direction",
+   "level": "low",
+   "pair": "domain>config",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-005",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "application>adapters-inbound",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-006",
+   "kind": "layer-rare-edge",
+   "level": "low",
+   "pair": "application>adapters-outbound",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-007",
+   "kind": "layer-direction",
+   "level": "medium",
+   "pair": "application>config",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-008",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "pair": "adapters-inbound>adapters-outbound",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-009",
+   "kind": "layer-direction",
+   "level": "low",
+   "pair": "adapters-inbound>config",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-010",
+   "kind": "layer-direction",
+   "level": "medium",
+   "pair": "adapters-outbound>application",
+   "declaredForbids": false
+  },
+  {
+   "id": "MR-011",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "pair": "adapters-outbound>adapters-inbound",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-012",
+   "kind": "layer-direction",
+   "level": "low",
+   "pair": "adapters-outbound>config",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-013",
+   "kind": "layer-rare-edge",
+   "level": "low",
+   "pair": "config>domain",
+   "declaredForbids": false
+  },
+  {
+   "id": "MR-014",
+   "kind": "layer-rare-edge",
+   "level": "low",
+   "pair": "config>adapters-outbound",
+   "declaredForbids": false
+  }
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "level": "medium",
+   "confidence": 0.738,
+   "subject": "domain",
+   "object": "application",
+   "statement": "domain must not depend on application (12 edges application -> domain; 0/4 domain files import application)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "level": "medium",
+   "confidence": 0.533,
+   "subject": "domain",
+   "object": "adapters-inbound",
+   "statement": "domain must not depend on adapters-inbound (2 edges adapters-inbound -> domain; 0/4 domain files import adapters-inbound)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "level": "medium",
+   "confidence": 0.6,
+   "subject": "domain",
+   "object": "adapters-outbound",
+   "statement": "domain must not depend on adapters-outbound (3 edges adapters-outbound -> domain; 0/4 domain files import adapters-outbound)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-004",
+   "kind": "layer-direction",
+   "level": "low",
+   "confidence": 0.4,
+   "subject": "domain",
+   "object": "config",
+   "statement": "domain must not depend on config (1 edges config -> domain; 0/4 domain files import config)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-005",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.762,
+   "subject": "application",
+   "object": "adapters-inbound",
+   "statement": "application must not depend on adapters-inbound (6 edges adapters-inbound -> application; 0/8 application files import adapters-inbound)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-006",
+   "kind": "layer-rare-edge",
+   "level": "low",
+   "confidence": 0.389,
+   "subject": "application",
+   "object": "adapters-outbound",
+   "statement": "application should not depend on adapters-outbound (1/8 application files imports it; nothing goes back)",
+   "exceptions": [
+    {
+     "file": "src/application/application.module.ts",
+     "target": "src/infrastructure/adapters/repository/product.repository.mongo.ts"
+    },
+    {
+     "file": "src/application/application.module.ts",
+     "target": "src/infrastructure/adapters/repository/schema/product.schema.ts"
+    }
+   ]
+  },
+  {
+   "id": "MR-007",
+   "kind": "layer-direction",
+   "level": "medium",
+   "confidence": 0.593,
+   "subject": "application",
+   "object": "config",
+   "statement": "application must not depend on config (2 edges config -> application; 0/8 application files import config)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-008",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "confidence": 0.267,
+   "subject": "adapters-inbound",
+   "object": "adapters-outbound",
+   "statement": "adapters-inbound must not depend on adapters-outbound (no import between them either way)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-009",
+   "kind": "layer-direction",
+   "level": "low",
+   "confidence": 0.444,
+   "subject": "adapters-inbound",
+   "object": "config",
+   "statement": "adapters-inbound must not depend on config (2 edges config -> adapters-inbound; 0/2 adapters-inbound files import config)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-010",
+   "kind": "layer-direction",
+   "level": "medium",
+   "confidence": 0.533,
+   "subject": "adapters-outbound",
+   "object": "application",
+   "statement": "adapters-outbound must not depend on application (2 edges application -> adapters-outbound; 0/4 adapters-outbound files import application)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-011",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "confidence": 0.267,
+   "subject": "adapters-outbound",
+   "object": "adapters-inbound",
+   "statement": "adapters-outbound must not depend on adapters-inbound (no import between them either way)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-012",
+   "kind": "layer-direction",
+   "level": "low",
+   "confidence": 0.4,
+   "subject": "adapters-outbound",
+   "object": "config",
+   "statement": "adapters-outbound must not depend on config (1 edges config -> adapters-outbound; 0/4 adapters-outbound files import config)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-013",
+   "kind": "layer-rare-edge",
+   "level": "low",
+   "confidence": 0.333,
+   "subject": "config",
+   "object": "domain",
+   "statement": "config should not depend on domain (1/5 config files imports it; nothing goes back)",
+   "exceptions": [
+    {
+     "file": "src/app.module.ts",
+     "target": "src/domain/domain.module.ts"
+    }
+   ]
+  },
+  {
+   "id": "MR-014",
+   "kind": "layer-rare-edge",
+   "level": "low",
+   "confidence": 0.333,
+   "subject": "config",
+   "object": "adapters-outbound",
+   "statement": "config should not depend on adapters-outbound (1/5 config files imports it; nothing goes back)",
+   "exceptions": [
+    {
+     "file": "src/infrastructure/infrastructure.module.ts",
+     "target": "src/infrastructure/adapters/repository/schema/product.schema.ts"
+    }
+   ]
+  },
+  {
+   "id": "MR-015",
+   "kind": "acyclic-files",
+   "level": "high",
+   "confidence": 0.958,
+   "subject": "*",
+   "statement": "no file lies on an import cycle (23/23 files do not)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-016",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.667,
+   "subject": "folder:domain",
+   "object": "folder:infrastructure",
+   "statement": "folder component domain must not depend on infrastructure (5 imports infrastructure -> domain; 0/4 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-017",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.738,
+   "subject": "folder:domain",
+   "object": "folder:application",
+   "statement": "folder component domain must not depend on application (12 imports application -> domain; 0/4 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-018",
+   "kind": "component-direction",
+   "level": "medium",
+   "confidence": 0.544,
+   "subject": "folder:application",
+   "object": "folder:infrastructure",
+   "statement": "folder component application must not depend on infrastructure (7 imports infrastructure -> application; 1/8 files import back)",
+   "exceptions": [
+    {
+     "file": "src/application/application.module.ts",
+     "target": "src/infrastructure/adapters/repository/product.repository.mongo.ts"
+    },
+    {
+     "file": "src/application/application.module.ts",
+     "target": "src/infrastructure/adapters/repository/schema/product.schema.ts"
+    }
+   ]
+  },
+  {
+   "id": "MR-019",
+   "kind": "inject-abstractions",
+   "level": "high",
+   "confidence": 0.833,
+   "subject": "application",
+   "statement": "classes of application inject interfaces across layers, not concrete classes (5/5)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-020",
+   "kind": "core-package-free",
+   "level": "high",
+   "confidence": 0.8,
+   "subject": "domain",
+   "statement": "domain (a core layer: it may depend on no other layer) imports none of @nestjs/core, @nestjs/mongoose, dotenv, express, fs, mongoose",
+   "exceptions": []
+  }
+ ]
+}

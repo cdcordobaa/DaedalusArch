@@ -1,0 +1,99 @@
+{
+ "duration_api_ms": 17470,
+ "stop_reason": "end_turn",
+ "session_id": "4d2b93c8-d1bc-4e0b-8c27-d56fe3fdc9cf",
+ "total_cost_usd": 0.0495386,
+ "usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 5344,
+  "cache_read_input_tokens": 31306,
+  "output_tokens": 2502,
+  "output_tokens_details": {
+   "thinking_tokens": 820
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5344,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1433,
+    "cache_read_input_tokens": 12054,
+    "cache_creation_input_tokens": 2916,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 2916
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-sonnet-5-5": {
+   "inputTokens": 6,
+   "outputTokens": 2502,
+   "cacheReadInputTokens": 31306,
+   "cacheCreationInputTokens": 5344,
+   "webSearchRequests": 0,
+   "costUSD": 0.0495386,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 820,
+   "canonicalModel": "claude-sonnet-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 10,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "```yaml\narchitecture:\n  style: nestjs\n  layers:\n    - name: domain\n      directories:\n        - src/app/**/models/**\n      roles:\n        - entity\n        - value-object\n    - name: infrastructure\n      directories:\n        - src/app/database/**\n        - src/app/redis/**\n        - src/app/config/**\n        - src/app/options/**\n      file_patterns:\n        - \"**/*.repository.ts\"\n      roles:\n        - repository-impl\n        - external-service\n    - name: application\n      file_patterns:\n        - \"**/*.service.ts\"\n        - \"**/*.dto.ts\"\n      roles:\n        - application-service\n        - dto\n    - name: presentation\n      directories:\n        - src/app/guards/**\n      file_patterns:\n        - \"**/*.controller.ts\"\n        - \"**/*.module.ts\"\n        - \"**/*.guard.ts\"\n      roles:\n        - controller\n        - module\n        - guard\n      decorators:\n        - \"@Controller\"\n        - \"@Module\"\n```\n\n```json\n{\"units\": [\n{\"id\": \"layer:domain\", \"claim\": \"Per-feature models folders hold the data shapes (GraphQL models, payloads, DTO types) and form the innermost layer.\", \"origin\": \"proposed\", \"citations\": [{\"type\": \"pattern\", \"glob\": \"src/app/**/models/**\", \"count\": 25}]},\n{\"id\": \"layer:infrastructure\", \"claim\": \"Database, Redis, config and options folders hold the technical data-access and configuration plumbing.\", \"origin\": \"proposed\", \"citations\": [{\"type\": \"pattern\", \"glob\": \"src/app/database/**\", \"count\": 10}, {\"type\": \"pattern\", \"glob\": \"src/app/redis/**\", \"count\": 5}, {\"type\": \"pattern\", \"glob\": \"src/app/config/**\", \"count\": 6}, {\"type\": \"pattern\", \"glob\": \"src/app/options/**\", \"count\": 6}]},\n{\"id\": \"layer:application\", \"claim\": \"Feature services (*.service.ts) carry the application logic.\", \"origin\": \"proposed\", \"citations\": [{\"type\": \"pattern\", \"glob\": \"src/app/**/*.service.ts\", \"count\": 12}]},\n{\"id\": \"layer:presentation\", \"claim\": \"Controllers, modules and guards form the outer, transport and wiring layer.\", \"origin\": \"proposed\", \"citations\": [{\"type\": \"pattern\", \"glob\": \"src/app/**/*.controller.ts\", \"count\": 6}, {\"type\": \"pattern\", \"glob\": \"src/app/**/*.module.ts\", \"count\": 14}]},\n{\"id\": \"order\", \"claim\": \"The preset's order (domain, infrastructure, application, presentation) fits the NestJS flow of controllers calling services, which call data access and models.\", \"origin\": \"proposed\", \"citations\": [{\"type\": \"pattern\", \"glob\": \"src/app/**/*.controller.ts\", \"count\": 6}, {\"type\": \"pattern\", \"glob\": \"src/app/**/*.service.ts\", \"count\": 12}]}\n]}\n```",
+ "ttft_ms": 1896,
+ "type": "result",
+ "duration_ms": 17799,
+ "uuid": "930897a1-591e-4bcb-8f63-d0a176a8e370",
+ "ttft_stream_ms": 1538,
+ "time_to_request_ms": 271,
+ "first_content_frame_ms": 1538,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

@@ -22,7 +22,7 @@
 | C3m Meaning | about 60 correct findings | rater and author | κ; meaningful precision | codebook in progress |
 | C4 Interpret | gold findings plus intent cases | answers written first | catch rate; false fails | 16/21 (judge, F3) |
 | C5 Drift | human histories | the fix-mining survival table | reproduces it exactly | **done**: reproduces it |
-| C6 Control | scripted tool calls; a dry-run agent step | expected tool answers; the evasion checklist | tools correct; evasion check runs | MCP 11 tools; evasion check not built |
+| C6 Control | scripted tool calls; a dry-run agent step | expected tool answers; the evasion checklist | tools correct; evasion check runs | MCP: 11 tools, or 13 with `--neural`; evasion check being built (U5) |
 
 ## Layer 2: the whole instrument
 

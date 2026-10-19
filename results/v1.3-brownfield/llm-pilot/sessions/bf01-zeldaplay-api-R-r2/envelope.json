@@ -1,0 +1,99 @@
+{
+ "duration_api_ms": 14637,
+ "stop_reason": "end_turn",
+ "session_id": "5bfb65a0-0a16-40b4-91d3-bf9420ca2ec3",
+ "total_cost_usd": 0.0345384,
+ "usage": {
+  "input_tokens": 8,
+  "cache_creation_input_tokens": 2713,
+  "cache_read_input_tokens": 47404,
+  "output_tokens": 1893,
+  "output_tokens_details": {
+   "thinking_tokens": 545
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 2713,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 869,
+    "cache_read_input_tokens": 13712,
+    "cache_creation_input_tokens": 1034,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1034
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-sonnet-5-5": {
+   "inputTokens": 8,
+   "outputTokens": 1893,
+   "cacheReadInputTokens": 47404,
+   "cacheCreationInputTokens": 2713,
+   "webSearchRequests": 0,
+   "costUSD": 0.0345384,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 545,
+   "canonicalModel": "claude-sonnet-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 10,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "```yaml\narchitecture:\n  style: nestjs\n  layers:\n    - name: infrastructure\n      directories:\n        - src/app/database/**\n        - src/app/redis/**\n      file_patterns:\n        - \"**/*.repository.ts\"\n      roles:\n        - repository-impl\n        - external-service\n    - name: application\n      directories:\n        - src/app/**/models/**\n      file_patterns:\n        - \"**/*.service.ts\"\n        - \"**/*.dto.ts\"\n      roles:\n        - application-service\n        - dto\n    - name: presentation\n      file_patterns:\n        - \"**/*.controller.ts\"\n        - \"**/*.module.ts\"\n        - \"**/*.guard.ts\"\n      roles:\n        - controller\n        - module\n        - guard\n      decorators:\n        - \"@Controller\"\n        - \"@Module\"\n```\n\n```json\n{\"units\": [\n{\"id\": \"layer:infrastructure\", \"claim\": \"The database and redis folders hold the data-access and external-store infrastructure.\", \"origin\": \"proposed\", \"citations\": [{\"type\": \"pattern\", \"glob\": \"src/app/database/**\", \"count\": 10}, {\"type\": \"pattern\", \"glob\": \"src/app/redis/**\", \"count\": 5}]},\n{\"id\": \"layer:application\", \"claim\": \"Services and the per-feature models/DTO folders form the application layer.\", \"origin\": \"proposed\", \"citations\": [{\"type\": \"pattern\", \"glob\": \"src/**/*.service.ts\", \"count\": 12}, {\"type\": \"pattern\", \"glob\": \"src/**/models/**\", \"count\": 25}]},\n{\"id\": \"layer:presentation\", \"claim\": \"Controllers, Nest modules and guards form the outer presentation and wiring layer.\", \"origin\": \"proposed\", \"citations\": [{\"type\": \"pattern\", \"glob\": \"src/**/*.controller.ts\", \"count\": 6}, {\"type\": \"pattern\", \"glob\": \"src/**/*.module.ts\", \"count\": 14}, {\"type\": \"pattern\", \"glob\": \"src/**/*.guard.ts\", \"count\": 1}]},\n{\"id\": \"order\", \"claim\": \"The preset order is kept: infrastructure is inner, then application, then presentation, following the Controller to Service to data-access flow.\", \"origin\": \"proposed\", \"citations\": [{\"type\": \"pattern\", \"glob\": \"src/**/*.controller.ts\", \"count\": 6}, {\"type\": \"pattern\", \"glob\": \"src/**/*.service.ts\", \"count\": 12}]}\n]}\n```",
+ "ttft_ms": 2172,
+ "type": "result",
+ "duration_ms": 15149,
+ "uuid": "67c8a99f-2a72-4b05-b4c7-a396b7638df5",
+ "ttft_stream_ms": 1323,
+ "time_to_request_ms": 429,
+ "first_content_frame_ms": 1323,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

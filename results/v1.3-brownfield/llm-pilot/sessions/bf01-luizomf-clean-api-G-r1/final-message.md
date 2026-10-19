@@ -1,0 +1,53 @@
+```yaml
+architecture:
+  style: clean-architecture
+  layers:
+    - name: domain
+      directories:
+        - src/domain/**
+      roles:
+        - entity
+        - value-object
+        - domain-service
+        - repository-interface
+    - name: application
+      directories:
+        - src/application/**
+      roles:
+        - use-case
+        - dto
+        - application-service
+    - name: presentation
+      directories:
+        - src/presentation/**
+      roles:
+        - controller
+        - middleware
+    - name: infrastructure
+      directories:
+        - src/infrastructure/**
+      roles:
+        - repository-impl
+        - middleware
+    - name: main
+      directories:
+        - src/main/**
+      roles:
+        - application-service
+default_exclude_paths:
+  - "node_modules/**"
+  - "dist/**"
+  - "**/*.spec.ts"
+  - "**/*.test.ts"
+```
+
+```json
+{"units": [
+{"id": "layer:domain", "claim": "The domain layer is src/domain, the innermost entities layer.", "origin": "proposed", "citations": [{"type": "doc", "file": "README.md", "line": 122, "quote": "├── domain - Domain Layer"}]},
+{"id": "layer:application", "claim": "The application layer in src/application holds use cases, ports, errors and validation.", "origin": "proposed", "citations": [{"type": "doc", "file": "README.md", "line": 86, "quote": "├── application - Application or Use cases layer"}]},
+{"id": "layer:presentation", "claim": "The presentation (interface adapters) layer in src/presentation holds controllers, responses and middlewares.", "origin": "proposed", "citations": [{"type": "doc", "file": "README.md", "line": 157, "quote": "└── presentation - Presentation layer"}]},
+{"id": "layer:infrastructure", "claim": "The infrastructure layer in src/infrastructure holds the express and knex frameworks and the repository implementations.", "origin": "proposed", "citations": [{"type": "doc", "file": "README.md", "line": 132, "quote": "├── infrastructure - Infrastructure layer"}]},
+{"id": "layer:main", "claim": "The main layer in src/main is the composition root with factories, and may depend on all other layers.", "origin": "proposed", "citations": [{"type": "doc", "file": "README.md", "line": 149, "quote": "├── main - Main layer"}, {"type": "doc", "file": "README.md", "line": 61, "quote": "It may depend on all other layers in the system."}]},
+{"id": "order", "claim": "Layers run from the inside out as domain, application, presentation, infrastructure, main, and data flows between them in that order.", "origin": "proposed", "citations": [{"type": "doc", "file": "README.md", "line": 78, "quote": "In our case, data enter the system via \"express routes\" (infrastructure layer) to the \"controllers\" (adapters layer), to the \"use cases\" (application layer), to the \"domain\" (domain/entities layer)."}]}
+]}
+```

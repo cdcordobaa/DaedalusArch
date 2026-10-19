@@ -2316,3 +2316,51 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: Planning decisions; no runs; sources ops/01-instrument-map.md v3, ops/02-defensibility-conditions.md, ops/notes/rev-02-examiner-fable.md.
 
 ---
+
+## v1.4 instrument-alignment cycle: start (orchestrated, parallel)
+**Timestamp**: 2026-10-18T23:40:00Z
+**User Input**: "Make the AI-DLC plan and run it, in parallel, with as many agents and workflows as possible, starting now; the agent orchestrates everything."
+**AI Response**: "Opened the v1.4 instrument-alignment cycle for the code units of the build list only (ops/03-build-list.md), with research work kept outside AI-DLC. Inception is minimal: requirements = instrument map v3, build list, north star, decisions. No user stories, because nothing faces end users. Units: U2 norm rules (D5, N3); U3 semantic-layer facts (C1d); U4 identity and drift metric (C1e, C5); U5 control (evasion check, Gemini adapter); U6 recall fixes (design only, blocked on the author's adjudications); U7 meaning analysis; U8 efficiency harness. U1 (extractor N33/N38) is already in progress. Machine limits respected: at most 2 concurrent build lanes. PRs are opened, not merged; the author's PR review is the code-approval gate. No model calls."
+**Context**: v1.4 inception and construction; standing instruction to proceed without pausing, escalating only conflicts.
+
+---
+
+## Remaining decisions cleared
+**Timestamp**: 2026-10-19T00:30:00Z
+**User Input**: "D1: confirm the decision sheet as written. L4: practitioner reading, with style fidelity as a second field. Standing OK for the brownfield pilot (12 sessions), the NS pilot (26 calls) and the efficiency test (150 sessions)."
+**AI Response**: "Recorded in ops/decisions.md and on the decision board. Started the brownfield pilot. The NS pilot waits for U3 and the efficiency test for U8. Still the author's: the 9 adjudication rows and F23."
+**Context**: v1.4 cycle; research runs outside AI-DLC; counts reported before each run.
+
+---
+
+## BF-01 brownfield LLM pilot run
+**Timestamp**: 2026-10-19T00:37:12Z
+**User Input**: "Run the 12-session brownfield norm-derivation pilot under the standing OK (hard cap 14), score it against the baseline, and write the diagnostic report."
+**AI Response**: "Built the read-only fact server, the driver, the evidence check and the scorer (scripts/v1.3/bf-01-*); the dry run passed with zero calls. The live run used 12 of 14 spawns with zero inference: the judge config dir is not logged in ('Not logged in'). The driver did not stop on the first failure; that is fixed now (fail-fast). The G sessions also showed no MCP server in init (cause open). The 2 remaining spawns are not used. Report: Docs/DiagnosticRuns/v1.3-brownfield-llm-pilot-2026-10-19.md."
+**Context**: research track C2; the author must log in the judge config dir and decide whether the 12 zero-inference spawns count against the cap.
+
+---
+
+## BF-01 second attempt blocked by the config-dir check
+**Timestamp**: 2026-10-19T00:45:00Z
+**User Input**: "Cap reset (12 sessions, max 14); run one G probe first, then the rest with fail-fast."
+**AI Response**: "Archived the zero-inference run and reset the ledger. The G probe was refused before any spawn: since the re-login, the judge config dir fails the ADR-018 names-only listing check (plugins/, skills/, history and project transcripts, a settings.json key 'tui', chrome/). No file in it was opened. 0 sessions used. The author must clear the dir or waive the check."
+**Context**: research track C2; blocked on the author.
+
+---
+
+## BF-01 pilot completed after cap reset
+**Timestamp**: 2026-10-19T01:20:00Z
+**User Input**: "Config dir cleaned and checked; run the G probe, then the rest of the 12 with fail-fast (max 14), score, and update the report."
+**AI Response**: "14/14 spawns used: 1 probe not logged in (isolated HOME hides the Keychain login; switched to the judge route's real HOME, added an auth preflight), 1 probe discarded (--safe-mode disables --mcp-config servers; dropped it in both arms, sessions run from clone copies outside the repo, --disable-slash-commands), then all 12 planned sessions completed and valid. Scored vs A: G mapping 0.65/0.91, rules 18/36, findings 18/27 (one session with unparseable evidence); R 0.82/0.87, 28/36, 27/27; miner 0/9, B 0/9 on this pair. Citations verified 33/33 (G) and 50/50 (R); no stat citations. Report: Docs/DiagnosticRuns/v1.3-brownfield-llm-pilot-2026-10-19.md."
+**Context**: research track C2; the full 15-repo run needs the author's OK; the shared-prior limit stands.
+
+---
+
+## v1.4 amendment A1: the graph complements reading
+**Timestamp**: 2026-10-19T03:00:00Z
+**User Input**: "Add the design rule from the brownfield pilot to the AI-DLC units, to be safe, and capture the finding the same way as before."
+**AI Response**: "Wrote ops/notes/ns-03-graph-complements-reading.md (preliminary until the zero-call diff confirms). Added the design rule to the map's neural-layer section. Added amendment A1 to U3 (already built as PR #254, so it lands as a follow-up after the author's review) and to U8 (design not yet fixed). Updated the build list."
+**Context**: AI-DLC v1.4 construction; change request from a research finding.
+
+---

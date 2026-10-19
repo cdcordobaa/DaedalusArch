@@ -1,0 +1,313 @@
+{
+ "id": "neoteric-nestjs-auth",
+ "sha": "dc294e4ce2436579dea9958e24b90c0cc0ef2569",
+ "head": "dc294e4ce2436579dea9958e24b90c0cc0ef2569",
+ "declaredStyle": "nestjs",
+ "tsconfigNotes": [],
+ "label": "PROPOSED rules: mined from the code (deterministic, no LLM), not a reviewed spec. Review before use; exceptions are candidate violations, not confirmed ones.",
+ "style": "nestjs",
+ "styleConfidence": 0.857,
+ "layers": {
+  "application": 151,
+  "presentation": 28,
+  "domain": 1
+ },
+ "allowedDependencies": [
+  "application>domain",
+  "presentation>application",
+  "presentation>domain"
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "statement": "domain must not depend on application (18 edges application -> domain; 0/1 domain files import application)",
+   "subject": "domain",
+   "object": "application",
+   "confidence": 0.474,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 1,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 18
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "statement": "domain must not depend on presentation (3 edges presentation -> domain; 0/1 domain files import presentation)",
+   "subject": "domain",
+   "object": "presentation",
+   "confidence": 0.375,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 1,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 3
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "statement": "application must not depend on presentation (142 edges presentation -> application; 11/151 application files import presentation)",
+   "subject": "application",
+   "object": "presentation",
+   "confidence": 0.849,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 151,
+    "importingFiles": 11,
+    "edges": 11,
+    "reverseEdges": 142
+   },
+   "exceptions": [
+    {
+     "file": "src/app/_helpers/graphql/index.ts",
+     "target": "src/app/_helpers/graphql/graphql.guard.ts"
+    },
+    {
+     "file": "src/app/app.dispatcher.ts",
+     "target": "src/app/app.module.ts"
+    },
+    {
+     "file": "src/app/contract/contract.resolver.ts",
+     "target": "src/app/_helpers/graphql/graphql.guard.ts"
+    },
+    {
+     "file": "src/app/home-favorite/home-favorite.resolver.ts",
+     "target": "src/app/_helpers/graphql/graphql.guard.ts"
+    },
+    {
+     "file": "src/app/home-media/home-media.resolver.ts",
+     "target": "src/app/_helpers/graphql/graphql.guard.ts"
+    },
+    {
+     "file": "src/app/home/home.resolver.ts",
+     "target": "src/app/_helpers/graphql/graphql.guard.ts"
+    },
+    {
+     "file": "src/app/index.ts",
+     "target": "src/app/app.module.ts"
+    },
+    {
+     "file": "src/app/message/resolvers/message.resolver.ts",
+     "target": "src/app/_helpers/graphql/graphql.guard.ts"
+    },
+    {
+     "file": "src/app/message/resolvers/user-conversation.resolver.ts",
+     "target": "src/app/_helpers/graphql/graphql.guard.ts"
+    },
+    {
+     "file": "src/app/security/index.ts",
+     "target": "src/app/security/security.module.ts"
+    },
+    {
+     "file": "src/app/user/user.resolver.ts",
+     "target": "src/app/_helpers/graphql/graphql.guard.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-004",
+   "kind": "component-direction",
+   "statement": "folder component app must not depend on migrations (4 imports migrations -> app; 0/173 files import back)",
+   "subject": "folder:app",
+   "object": "folder:migrations",
+   "confidence": 0.795,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 173,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 4
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-005",
+   "kind": "component-direction",
+   "statement": "folder component config must not depend on app (20 imports app -> config; 0/1 files import back)",
+   "subject": "folder:config",
+   "object": "folder:app",
+   "confidence": 0.476,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 1,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 20
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-006",
+   "kind": "component-direction",
+   "statement": "folder component config must not depend on base (1 imports base -> config; 0/1 files import back)",
+   "subject": "folder:config",
+   "object": "folder:base",
+   "confidence": 0.25,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 1,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-007",
+   "kind": "public-api",
+   "statement": "imports into folder component config go through its entry files (src/config/index.ts): 21/21",
+   "subject": "folder:config",
+   "confidence": 0.955,
+   "level": "high",
+   "evidence": {
+    "incomingImports": 21,
+    "viaEntryFiles": 21,
+    "entryFiles": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "deep-import-inferred-api",
+    "via": "APG v2 folder component entry files"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-008",
+   "kind": "public-api",
+   "statement": "imports into folder component base go through its entry files (src/base/index.ts): 10/10",
+   "subject": "folder:base",
+   "confidence": 0.909,
+   "level": "high",
+   "evidence": {
+    "incomingImports": 10,
+    "viaEntryFiles": 10,
+    "entryFiles": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "deep-import-inferred-api",
+    "via": "APG v2 folder component entry files"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-009",
+   "kind": "core-package-free",
+   "statement": "domain (a core layer: it may depend on no other layer) imports none of @nestjs/common, @nestjs/core, @nestjs/graphql, @nestjs/passport, @nestjs/swagger, async, aws-sdk, axios, class-transformer, class-validator, cls-hooked, cors, crypto, express, faker, firebase-admin, googleapis, graphql, graphql-subscriptions, helmet, jsonwebtoken, lodash, luxon, mongodb, multer-s3, nestjs-command, nodemailer, passport-jwt, path, qs-middleware, rxjs, twing, uuid, voucher-code-generator, winston",
+   "subject": "domain",
+   "confidence": 0.5,
+   "level": "medium",
+   "evidence": {
+    "coreFiles": 1,
+    "packages": 35
+   },
+   "exceptions": [],
+   "params": {
+    "forbidden_imports": [
+     "@nestjs/common",
+     "@nestjs/core",
+     "@nestjs/graphql",
+     "@nestjs/passport",
+     "@nestjs/swagger",
+     "async",
+     "aws-sdk",
+     "axios",
+     "class-transformer",
+     "class-validator",
+     "cls-hooked",
+     "cors",
+     "crypto",
+     "express",
+     "faker",
+     "firebase-admin",
+     "googleapis",
+     "graphql",
+     "graphql-subscriptions",
+     "helmet",
+     "jsonwebtoken",
+     "lodash",
+     "luxon",
+     "mongodb",
+     "multer-s3",
+     "nestjs-command",
+     "nodemailer",
+     "passport-jwt",
+     "path",
+     "qs-middleware",
+     "rxjs",
+     "twing",
+     "uuid",
+     "voucher-code-generator",
+     "winston"
+    ]
+   },
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "domain-purity",
+    "via": "fitness function FF-P01 (domain-purity) forbidden_imports"
+   },
+   "status": "proposal"
+  }
+ ],
+ "counts": {
+  "rules": 9,
+  "high": 4,
+  "medium": 1,
+  "low": 4,
+  "exceptions": 11,
+  "notRepresentable": 0
+ },
+ "spec": {
+  "valid": true,
+  "errors": [],
+  "compiled": [
+   "dependency-direction",
+   "domain-purity"
+  ]
+ }
+}

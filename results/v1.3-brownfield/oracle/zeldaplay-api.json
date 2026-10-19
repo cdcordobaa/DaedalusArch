@@ -1,0 +1,126 @@
+{
+ "id": "zeldaplay-api",
+ "style": "nestjs",
+ "layersPresent": [
+  "application",
+  "infrastructure",
+  "presentation"
+ ],
+ "filesMapped": 79,
+ "files": 85,
+ "declaredAllowed": [
+  "application>infrastructure",
+  "presentation>application",
+  "presentation>infrastructure"
+ ],
+ "graphs": {
+  "observed": {
+   "mined": [
+    "application>infrastructure",
+    "presentation>application",
+    "presentation>infrastructure"
+   ],
+   "tp": 3,
+   "fp": 0,
+   "fn": 0
+  },
+  "strict": {
+   "mined": [
+    "application>infrastructure",
+    "presentation>application",
+    "presentation>infrastructure"
+   ],
+   "tp": 3,
+   "fp": 0,
+   "fn": 0
+  },
+  "full": {
+   "mined": [
+    "application>infrastructure",
+    "presentation>application",
+    "presentation>infrastructure"
+   ],
+   "tp": 3,
+   "fp": 0,
+   "fn": 0
+  }
+ },
+ "forbidding": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "infrastructure>application",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "infrastructure>presentation",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "application>presentation",
+   "declaredForbids": true
+  }
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.866,
+   "subject": "infrastructure",
+   "object": "application",
+   "statement": "infrastructure must not depend on application (10 edges application -> infrastructure; 0/20 infrastructure files import application)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.902,
+   "subject": "infrastructure",
+   "object": "presentation",
+   "statement": "infrastructure must not depend on presentation (18 edges presentation -> infrastructure; 0/20 infrastructure files import presentation)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.951,
+   "subject": "application",
+   "object": "presentation",
+   "statement": "application must not depend on presentation (41 edges presentation -> application; 0/38 application files import presentation)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-004",
+   "kind": "acyclic-files",
+   "level": "high",
+   "confidence": 0.988,
+   "subject": "*",
+   "statement": "no file lies on an import cycle (85/85 files do not)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-005",
+   "kind": "core-package-free",
+   "level": "high",
+   "confidence": 0.905,
+   "subject": "infrastructure",
+   "statement": "infrastructure (a core layer: it may depend on no other layer) imports none of @nestjs/core, bcrypt, nest-cookies",
+   "exceptions": [
+    {
+     "file": "src/app/cookie/cookie.service.ts",
+     "target": "nest-cookies"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,409 @@
+{
+ "id": "conduit-ports-adapters",
+ "style": "hexagonal",
+ "layersPresent": [
+  "adapters-inbound",
+  "adapters-outbound",
+  "application",
+  "config",
+  "domain"
+ ],
+ "filesMapped": 34,
+ "files": 36,
+ "declaredAllowed": [
+  "adapters-inbound>application",
+  "adapters-inbound>domain",
+  "adapters-outbound>application",
+  "adapters-outbound>domain",
+  "application>domain",
+  "config>adapters-inbound",
+  "config>adapters-outbound",
+  "config>application",
+  "config>domain"
+ ],
+ "graphs": {
+  "observed": {
+   "mined": [
+    "adapters-inbound>adapters-outbound",
+    "adapters-inbound>application",
+    "adapters-outbound>application",
+    "adapters-outbound>domain",
+    "application>domain",
+    "config>adapters-inbound"
+   ],
+   "tp": 5,
+   "fp": 1,
+   "fn": 4
+  },
+  "strict": {
+   "mined": [
+    "adapters-inbound>adapters-outbound",
+    "adapters-inbound>application",
+    "adapters-outbound>application",
+    "adapters-outbound>domain",
+    "application>domain",
+    "config>adapters-inbound"
+   ],
+   "tp": 5,
+   "fp": 1,
+   "fn": 4
+  },
+  "full": {
+   "mined": [
+    "adapters-inbound>adapters-outbound",
+    "adapters-inbound>application",
+    "adapters-outbound>domain",
+    "application>domain"
+   ],
+   "tp": 3,
+   "fp": 1,
+   "fn": 6
+  }
+ },
+ "forbidding": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "domain>application",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "pair": "domain>adapters-inbound",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "domain>adapters-outbound",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-004",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "pair": "domain>config",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-005",
+   "kind": "layer-direction",
+   "level": "medium",
+   "pair": "application>adapters-inbound",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-006",
+   "kind": "layer-direction",
+   "level": "medium",
+   "pair": "application>adapters-outbound",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-007",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "pair": "application>config",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-008",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "pair": "adapters-inbound>domain",
+   "declaredForbids": false
+  },
+  {
+   "id": "MR-009",
+   "kind": "layer-direction",
+   "level": "low",
+   "pair": "adapters-inbound>config",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-010",
+   "kind": "layer-rare-edge",
+   "level": "low",
+   "pair": "adapters-outbound>application",
+   "declaredForbids": false
+  },
+  {
+   "id": "MR-011",
+   "kind": "layer-direction",
+   "level": "medium",
+   "pair": "adapters-outbound>adapters-inbound",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-012",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "pair": "adapters-outbound>config",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-013",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "pair": "config>domain",
+   "declaredForbids": false
+  },
+  {
+   "id": "MR-014",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "pair": "config>application",
+   "declaredForbids": false
+  },
+  {
+   "id": "MR-015",
+   "kind": "layer-rare-edge",
+   "level": "low",
+   "pair": "config>adapters-inbound",
+   "declaredForbids": false
+  },
+  {
+   "id": "MR-016",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "pair": "config>adapters-outbound",
+   "declaredForbids": false
+  }
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.831,
+   "subject": "domain",
+   "object": "application",
+   "statement": "domain must not depend on application (9 edges application -> domain; 0/12 domain files import application)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "confidence": 0.231,
+   "subject": "domain",
+   "object": "adapters-inbound",
+   "statement": "domain must not depend on adapters-inbound (no import between them either way)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.821,
+   "subject": "domain",
+   "object": "adapters-outbound",
+   "statement": "domain must not depend on adapters-outbound (8 edges adapters-outbound -> domain; 0/12 domain files import adapters-outbound)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-004",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "confidence": 0.346,
+   "subject": "domain",
+   "object": "config",
+   "statement": "domain must not depend on config (no import between them either way)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-005",
+   "kind": "layer-direction",
+   "level": "medium",
+   "confidence": 0.675,
+   "subject": "application",
+   "object": "adapters-inbound",
+   "statement": "application must not depend on adapters-inbound (3 edges adapters-inbound -> application; 0/9 application files import adapters-inbound)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-006",
+   "kind": "layer-direction",
+   "level": "medium",
+   "confidence": 0.675,
+   "subject": "application",
+   "object": "adapters-outbound",
+   "statement": "application must not depend on adapters-outbound (3 edges adapters-outbound -> application; 0/9 application files import adapters-outbound)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-007",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "confidence": 0.338,
+   "subject": "application",
+   "object": "config",
+   "statement": "application must not depend on config (no import between them either way)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-008",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "confidence": 0.231,
+   "subject": "adapters-inbound",
+   "object": "domain",
+   "statement": "adapters-inbound must not depend on domain (no import between them either way)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-009",
+   "kind": "layer-direction",
+   "level": "low",
+   "confidence": 0.25,
+   "subject": "adapters-inbound",
+   "object": "config",
+   "statement": "adapters-inbound must not depend on config (1 edges config -> adapters-inbound; 0/1 adapters-inbound files import config)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-010",
+   "kind": "layer-rare-edge",
+   "level": "low",
+   "confidence": 0.4,
+   "subject": "adapters-outbound",
+   "object": "application",
+   "statement": "adapters-outbound should not depend on application (1/9 adapters-outbound files imports it; nothing goes back)",
+   "exceptions": [
+    {
+     "file": "src/ports/adapters/db/domains.ts",
+     "target": "src/core/article/use-cases/add-comment-to-an-article-adapter.ts"
+    },
+    {
+     "file": "src/ports/adapters/db/domains.ts",
+     "target": "src/core/article/use-cases/register-article-adapter.ts"
+    },
+    {
+     "file": "src/ports/adapters/db/domains.ts",
+     "target": "src/core/user/use-cases/register-user-adapter.ts"
+    }
+   ]
+  },
+  {
+   "id": "MR-011",
+   "kind": "layer-direction",
+   "level": "medium",
+   "confidence": 0.675,
+   "subject": "adapters-outbound",
+   "object": "adapters-inbound",
+   "statement": "adapters-outbound must not depend on adapters-inbound (3 edges adapters-inbound -> adapters-outbound; 0/9 adapters-outbound files import adapters-inbound)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-012",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "confidence": 0.338,
+   "subject": "adapters-outbound",
+   "object": "config",
+   "statement": "adapters-outbound must not depend on config (no import between them either way)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-013",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "confidence": 0.346,
+   "subject": "config",
+   "object": "domain",
+   "statement": "config must not depend on domain (no import between them either way)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-014",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "confidence": 0.338,
+   "subject": "config",
+   "object": "application",
+   "statement": "config must not depend on application (no import between them either way)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-015",
+   "kind": "layer-rare-edge",
+   "level": "low",
+   "confidence": 0.25,
+   "subject": "config",
+   "object": "adapters-inbound",
+   "statement": "config should not depend on adapters-inbound (1/3 config files imports it; nothing goes back)",
+   "exceptions": [
+    {
+     "file": "src/app.ts",
+     "target": "src/ports/express/server.ts"
+    }
+   ]
+  },
+  {
+   "id": "MR-016",
+   "kind": "layer-unobserved",
+   "level": "low",
+   "confidence": 0.338,
+   "subject": "config",
+   "object": "adapters-outbound",
+   "statement": "config must not depend on adapters-outbound (no import between them either way)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-017",
+   "kind": "acyclic-files",
+   "level": "high",
+   "confidence": 0.973,
+   "subject": "*",
+   "statement": "no file lies on an import cycle (36/36 files do not)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-018",
+   "kind": "component-direction",
+   "level": "low",
+   "confidence": 0.444,
+   "subject": "folder:helpers",
+   "object": "folder:ports",
+   "statement": "folder component helpers must not depend on ports (2 imports ports -> helpers; 0/2 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-019",
+   "kind": "component-direction",
+   "level": "high",
+   "confidence": 0.891,
+   "subject": "folder:core",
+   "object": "folder:ports",
+   "statement": "folder component core must not depend on ports (14 imports ports -> core; 0/21 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-020",
+   "kind": "core-package-free",
+   "level": "high",
+   "confidence": 0.846,
+   "subject": "domain",
+   "statement": "domain (a core layer: it may depend on no other layer) imports none of argon2, cors, dotenv, express, fp-ts, jose, module-alias, path, slugify, uuid",
+   "exceptions": [
+    {
+     "file": "src/core/types/url.ts",
+     "target": "fp-ts"
+    }
+   ]
+  },
+  {
+   "id": "MR-021",
+   "kind": "core-package-free",
+   "level": "high",
+   "confidence": 0.75,
+   "subject": "config",
+   "statement": "config (a core layer: it may depend on no other layer) imports none of argon2, cors, express, fp-ts, io-ts, io-ts-types, jose, slugify, url, uuid",
+   "exceptions": []
+  }
+ ]
+}

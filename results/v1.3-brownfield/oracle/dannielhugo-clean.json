@@ -1,0 +1,309 @@
+{
+ "id": "dannielhugo-clean",
+ "style": "clean-architecture",
+ "layersPresent": [
+  "application",
+  "domain",
+  "infrastructure",
+  "presentation"
+ ],
+ "filesMapped": 68,
+ "files": 69,
+ "declaredAllowed": [
+  "application>domain",
+  "infrastructure>application",
+  "infrastructure>domain",
+  "infrastructure>presentation",
+  "presentation>application",
+  "presentation>domain"
+ ],
+ "graphs": {
+  "observed": {
+   "mined": [
+    "application>domain",
+    "infrastructure>application",
+    "infrastructure>domain",
+    "infrastructure>presentation",
+    "presentation>application",
+    "presentation>domain"
+   ],
+   "tp": 6,
+   "fp": 0,
+   "fn": 0
+  },
+  "strict": {
+   "mined": [
+    "application>domain",
+    "infrastructure>application",
+    "infrastructure>domain",
+    "infrastructure>presentation",
+    "presentation>application",
+    "presentation>domain"
+   ],
+   "tp": 6,
+   "fp": 0,
+   "fn": 0
+  },
+  "full": {
+   "mined": [
+    "application>domain",
+    "infrastructure>application",
+    "infrastructure>domain",
+    "presentation>application",
+    "presentation>domain"
+   ],
+   "tp": 5,
+   "fp": 0,
+   "fn": 1
+  }
+ },
+ "forbidding": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "domain>application",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "domain>presentation",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "domain>infrastructure",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-004",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "application>presentation",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-005",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "application>infrastructure",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-006",
+   "kind": "layer-direction",
+   "level": "high",
+   "pair": "presentation>infrastructure",
+   "declaredForbids": true
+  },
+  {
+   "id": "MR-007",
+   "kind": "layer-rare-edge",
+   "level": "low",
+   "pair": "infrastructure>presentation",
+   "declaredForbids": false
+  }
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.916,
+   "subject": "domain",
+   "object": "application",
+   "statement": "domain must not depend on application (37 edges application -> domain; 0/16 domain files import application)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.909,
+   "subject": "domain",
+   "object": "presentation",
+   "statement": "domain must not depend on presentation (28 edges presentation -> domain; 0/16 domain files import presentation)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.882,
+   "subject": "domain",
+   "object": "infrastructure",
+   "statement": "domain must not depend on infrastructure (15 edges infrastructure -> domain; 0/16 domain files import infrastructure)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-004",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.847,
+   "subject": "application",
+   "object": "presentation",
+   "statement": "application must not depend on presentation (9 edges presentation -> application; 0/16 application files import presentation)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-005",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.9,
+   "subject": "application",
+   "object": "infrastructure",
+   "statement": "application must not depend on infrastructure (22 edges infrastructure -> application; 0/16 application files import infrastructure)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-006",
+   "kind": "layer-direction",
+   "level": "high",
+   "confidence": 0.844,
+   "subject": "presentation",
+   "object": "infrastructure",
+   "statement": "presentation must not depend on infrastructure (8 edges infrastructure -> presentation; 0/19 presentation files import infrastructure)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-007",
+   "kind": "layer-rare-edge",
+   "level": "low",
+   "confidence": 0.444,
+   "subject": "infrastructure",
+   "object": "presentation",
+   "statement": "infrastructure should not depend on presentation (1/17 infrastructure files imports it; nothing goes back)",
+   "exceptions": [
+    {
+     "file": "src/frameworks/register.ts",
+     "target": "src/data/core/errors/application-error-factory.impl.ts"
+    },
+    {
+     "file": "src/frameworks/register.ts",
+     "target": "src/data/db/index.ts"
+    },
+    {
+     "file": "src/frameworks/register.ts",
+     "target": "src/data/deposit/deposit.repository.impl.ts"
+    },
+    {
+     "file": "src/frameworks/register.ts",
+     "target": "src/data/deposit/deposit.validator.impl.ts"
+    },
+    {
+     "file": "src/frameworks/register.ts",
+     "target": "src/data/signup/signup.repository.impl.ts"
+    },
+    {
+     "file": "src/frameworks/register.ts",
+     "target": "src/data/signup/signup.validator.impl.ts"
+    },
+    {
+     "file": "src/frameworks/register.ts",
+     "target": "src/data/transfer/transfer.repository.impl.ts"
+    },
+    {
+     "file": "src/frameworks/register.ts",
+     "target": "src/data/transfer/transfer.validator.impl.ts"
+    }
+   ]
+  },
+  {
+   "id": "MR-008",
+   "kind": "acyclic-files",
+   "level": "high",
+   "confidence": 0.986,
+   "subject": "*",
+   "statement": "no file lies on an import cycle (68/68 files do not)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-009",
+   "kind": "component-direction",
+   "level": "high",
+   "confidence": 0.844,
+   "subject": "folder:data",
+   "object": "folder:frameworks",
+   "statement": "folder component data must not depend on frameworks (8 imports frameworks -> data; 0/19 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-010",
+   "kind": "component-direction",
+   "level": "high",
+   "confidence": 0.944,
+   "subject": "folder:app",
+   "object": "folder:data",
+   "statement": "folder component app must not depend on data (37 imports data -> app; 0/32 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-011",
+   "kind": "component-direction",
+   "level": "high",
+   "confidence": 0.944,
+   "subject": "folder:app",
+   "object": "folder:frameworks",
+   "statement": "folder component app must not depend on frameworks (37 imports frameworks -> app; 0/32 files import back)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-012",
+   "kind": "port-implementation",
+   "level": "high",
+   "confidence": 0.75,
+   "subject": "application/Interactor",
+   "statement": "every *Interactor class in application implements an interface declared in another layer (3/3)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-013",
+   "kind": "port-implementation",
+   "level": "medium",
+   "confidence": 0.667,
+   "subject": "presentation/Model",
+   "statement": "every *Model class in presentation implements an interface declared in another layer (2/2)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-014",
+   "kind": "port-implementation",
+   "level": "high",
+   "confidence": 0.75,
+   "subject": "presentation/Repository",
+   "statement": "every *Repository class in presentation implements an interface declared in another layer (3/3)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-015",
+   "kind": "port-implementation",
+   "level": "high",
+   "confidence": 0.75,
+   "subject": "presentation/Validator",
+   "statement": "every *Validator class in presentation implements an interface declared in another layer (3/3)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-016",
+   "kind": "inject-abstractions",
+   "level": "high",
+   "confidence": 0.75,
+   "subject": "application",
+   "statement": "classes of application inject interfaces across layers, not concrete classes (3/3)",
+   "exceptions": []
+  },
+  {
+   "id": "MR-017",
+   "kind": "core-package-free",
+   "level": "high",
+   "confidence": 0.941,
+   "subject": "domain",
+   "statement": "domain (a core layer: it may depend on no other layer) imports none of awilix, body-parser, express, joi, lokijs",
+   "exceptions": []
+  }
+ ]
+}

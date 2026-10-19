@@ -1,0 +1,99 @@
+{
+ "duration_api_ms": 18406,
+ "stop_reason": "end_turn",
+ "session_id": "34cc52e4-9d15-4e87-ad11-841b338e688d",
+ "total_cost_usd": 0.05076130000000001,
+ "usage": {
+  "input_tokens": 8,
+  "cache_creation_input_tokens": 4543,
+  "cache_read_input_tokens": 71033,
+  "output_tokens": 2547,
+  "output_tokens_details": {
+   "thinking_tokens": 685
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4543,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1546,
+    "cache_read_input_tokens": 21324,
+    "cache_creation_input_tokens": 4543,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4543
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-sonnet-5-5": {
+   "inputTokens": 8,
+   "outputTokens": 2547,
+   "cacheReadInputTokens": 71033,
+   "cacheCreationInputTokens": 4543,
+   "webSearchRequests": 0,
+   "costUSD": 0.05076130000000001,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 685,
+   "canonicalModel": "claude-sonnet-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 11,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "```yaml\narchitecture:\n  style: clean-architecture\n  layers:\n    - name: domain\n      directories:\n        - src/domain/**\n      roles:\n        - entity\n        - value-object\n        - domain-service\n    - name: application\n      directories:\n        - src/application/**\n      roles:\n        - use-case\n        - dto\n        - application-service\n        - repository-interface\n    - name: presentation\n      directories:\n        - src/presentation/**\n      roles:\n        - controller\n        - middleware\n    - name: infrastructure\n      directories:\n        - src/infrastructure/**\n      roles:\n        - repository-impl\n        - orm-entity\n    - name: main\n      directories:\n        - src/main/**\n      roles:\n        - factory\ndefault_exclude_paths:\n  - \"node_modules/**\"\n  - \"dist/**\"\n  - \"**/*.spec.ts\"\n  - \"**/*.test.ts\"\n```\n\n```json\n{\"units\": [\n{\"id\":\"layer:domain\",\"claim\":\"The domain (entities) layer holds models and use-case contracts in src/domain.\",\"origin\":\"proposed\",\"citations\":[{\"type\":\"doc\",\"file\":\"README.md\",\"line\":122,\"quote\":\"├── domain - Domain Layer\"},{\"type\":\"pattern\",\"glob\":\"src/domain/**\",\"count\":16}]},\n{\"id\":\"layer:application\",\"claim\":\"The application layer holds use cases, ports, errors and validation.\",\"origin\":\"proposed\",\"citations\":[{\"type\":\"doc\",\"file\":\"README.md\",\"line\":86,\"quote\":\"├── application - Application or Use cases layer\"},{\"type\":\"pattern\",\"glob\":\"src/application/**\",\"count\":76}]},\n{\"id\":\"layer:presentation\",\"claim\":\"The presentation (interface adapters) layer holds controllers, middlewares and responses.\",\"origin\":\"proposed\",\"citations\":[{\"type\":\"doc\",\"file\":\"README.md\",\"line\":157,\"quote\":\"└── presentation - Presentation layer\"},{\"type\":\"pattern\",\"glob\":\"src/presentation/**\",\"count\":26}]},\n{\"id\":\"layer:infrastructure\",\"claim\":\"The infrastructure layer holds express, knex and repository implementations.\",\"origin\":\"proposed\",\"citations\":[{\"type\":\"doc\",\"file\":\"README.md\",\"line\":132,\"quote\":\"├── infrastructure - Infrastructure layer\"},{\"type\":\"pattern\",\"glob\":\"src/infrastructure/**\",\"count\":33}]},\n{\"id\":\"layer:main\",\"claim\":\"The main layer composes factories wiring all other layers and may depend on all of them.\",\"origin\":\"proposed\",\"citations\":[{\"type\":\"doc\",\"file\":\"README.md\",\"line\":149,\"quote\":\"├── main - Main layer\"},{\"type\":\"pattern\",\"glob\":\"src/main/**\",\"count\":9}]},\n{\"id\":\"order\",\"claim\":\"Layers are ordered from innermost (domain) to outermost (main), with dependencies pointing inward.\",\"origin\":\"proposed\",\"citations\":[{\"type\":\"doc\",\"file\":\"README.md\",\"line\":61,\"quote\":\"This layer is where we put everything together. It's the \\\"dirty layer\\\", because most factories will be here. It may depend on all other layers in the system.\"},{\"type\":\"doc\",\"file\":\"README.md\",\"line\":78,\"quote\":\"In our case, data enter the system via \\\"express routes\\\" (infrastructure layer) to the \\\"controllers\\\" (adapters layer), to the \\\"use cases\\\" (application layer), to the \\\"domain\\\" (domain/entities layer). Then the system outputs via \\\"domain\\\" -> \\\"use cases\\\" -> \\\"presentation\\\" -> \\\"infrastructure\\\". I'm using the \\\"main\\\" layer to create factories for \\\"middlewares\\\", and \\\"controllers\\\" (and possibly other factories).\".slice(0,0)}]}\n]}\n```",
+ "ttft_ms": 1372,
+ "type": "result",
+ "duration_ms": 18558,
+ "uuid": "1d679ca0-bb94-468f-b8bc-d8b5afb2b8c9",
+ "ttft_stream_ms": 983,
+ "time_to_request_ms": 34,
+ "first_content_frame_ms": 984,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

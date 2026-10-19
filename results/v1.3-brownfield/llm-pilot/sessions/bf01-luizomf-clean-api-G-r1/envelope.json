@@ -1,0 +1,99 @@
+{
+ "duration_api_ms": 13779,
+ "stop_reason": "end_turn",
+ "session_id": "21384bf3-1dfb-464d-9cb6-4afa3e1414a4",
+ "total_cost_usd": 0.1011449,
+ "usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 20028,
+  "cache_read_input_tokens": 26009,
+  "output_tokens": 1842,
+  "output_tokens_details": {
+   "thinking_tokens": 497
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 20028,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1530,
+    "cache_read_input_tokens": 15340,
+    "cache_creation_input_tokens": 4688,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4688
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-sonnet-5-5": {
+   "inputTokens": 6,
+   "outputTokens": 1842,
+   "cacheReadInputTokens": 26009,
+   "cacheCreationInputTokens": 20028,
+   "webSearchRequests": 0,
+   "costUSD": 0.1011449,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 497,
+   "canonicalModel": "claude-sonnet-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 5,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "```yaml\narchitecture:\n  style: clean-architecture\n  layers:\n    - name: domain\n      directories:\n        - src/domain/**\n      roles:\n        - entity\n        - value-object\n        - domain-service\n        - repository-interface\n    - name: application\n      directories:\n        - src/application/**\n      roles:\n        - use-case\n        - dto\n        - application-service\n    - name: presentation\n      directories:\n        - src/presentation/**\n      roles:\n        - controller\n        - middleware\n    - name: infrastructure\n      directories:\n        - src/infrastructure/**\n      roles:\n        - repository-impl\n        - middleware\n    - name: main\n      directories:\n        - src/main/**\n      roles:\n        - application-service\ndefault_exclude_paths:\n  - \"node_modules/**\"\n  - \"dist/**\"\n  - \"**/*.spec.ts\"\n  - \"**/*.test.ts\"\n```\n\n```json\n{\"units\": [\n{\"id\": \"layer:domain\", \"claim\": \"The domain layer is src/domain, the innermost entities layer.\", \"origin\": \"proposed\", \"citations\": [{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 122, \"quote\": \"├── domain - Domain Layer\"}]},\n{\"id\": \"layer:application\", \"claim\": \"The application layer in src/application holds use cases, ports, errors and validation.\", \"origin\": \"proposed\", \"citations\": [{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 86, \"quote\": \"├── application - Application or Use cases layer\"}]},\n{\"id\": \"layer:presentation\", \"claim\": \"The presentation (interface adapters) layer in src/presentation holds controllers, responses and middlewares.\", \"origin\": \"proposed\", \"citations\": [{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 157, \"quote\": \"└── presentation - Presentation layer\"}]},\n{\"id\": \"layer:infrastructure\", \"claim\": \"The infrastructure layer in src/infrastructure holds the express and knex frameworks and the repository implementations.\", \"origin\": \"proposed\", \"citations\": [{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 132, \"quote\": \"├── infrastructure - Infrastructure layer\"}]},\n{\"id\": \"layer:main\", \"claim\": \"The main layer in src/main is the composition root with factories, and may depend on all other layers.\", \"origin\": \"proposed\", \"citations\": [{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 149, \"quote\": \"├── main - Main layer\"}, {\"type\": \"doc\", \"file\": \"README.md\", \"line\": 61, \"quote\": \"It may depend on all other layers in the system.\"}]},\n{\"id\": \"order\", \"claim\": \"Layers run from the inside out as domain, application, presentation, infrastructure, main, and data flows between them in that order.\", \"origin\": \"proposed\", \"citations\": [{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 78, \"quote\": \"In our case, data enter the system via \\\"express routes\\\" (infrastructure layer) to the \\\"controllers\\\" (adapters layer), to the \\\"use cases\\\" (application layer), to the \\\"domain\\\" (domain/entities layer).\"}]}\n]}\n```",
+ "ttft_ms": 1395,
+ "type": "result",
+ "duration_ms": 13877,
+ "uuid": "03d98d9a-057e-486b-8799-09e0099d125f",
+ "ttft_stream_ms": 1036,
+ "time_to_request_ms": 40,
+ "first_content_frame_ms": 1036,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

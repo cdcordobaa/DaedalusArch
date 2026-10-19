@@ -6,13 +6,17 @@ The working copy is the decision board, a private claude.ai artifact the author 
 
 ## Still open (yours)
 
-- **L4: what counts as a meaningful finding.** Choose between the practitioner reading ("a competent developer of that style would ask for it to change in review") and the style-fidelity reading. My recommendation is the practitioner reading, with the style-fidelity question kept as a second field on each label. It blocks the codebook, and with it the rater's labels (D3).
-- **D1: the changes.** You chose "confirm the decision sheet *with changes*". Write the changes below, or on the board's D1 note. Until they arrive, nothing that depends on the sheet moves.
-- **NS01: read NS-01.** It blocks the 2-case pilot.
+- **The 9 spec–manifest disagreement rows (C3).** U6 will deliver a short adjudication sheet.
+- **F23.** An action only you may do: compare 18 domains with the sealed list.
 
-> AUTHOR: (D1 changes here)
-
----
+## Settled in chat, 2026-10-18 (late)
+- **D1:** confirm the decision sheet **as written**, with no changes.
+- **L4:** **practitioner reading**: a finding is meaningful if a competent developer of that style would ask for it to change in review. Style fidelity is recorded as a second field.
+- **Standing OK for three counted runs.** Each one is still reported with its count before it starts:
+  - the brownfield pilot, 12 sessions (at most 14);
+  - the NS pilot, 26 calls (cap 40);
+  - the efficiency test, 150 sessions.
+- **NS-01 reading:** no longer a gate. Your answers to N1–N4 settled its questions.
 
 ## Settled on 2026-10-18 (decision board, v2)
 
@@ -26,6 +30,8 @@ The working copy is the decision board, a private claude.ai artifact the author 
 | **D5** | DDD gets a declared post-seal cycle rule, with an ADR | An ADR plus the rule. It counts as a deviation and changes the tiers Study 2 is scored on |
 | **N3** | Q26, application purity, is added as a declared post-seal rule, with an ADR | An ADR plus the rule. The 12 framework-leak seeds become rule hits, and the K-tally is redone |
 | **D1** | Confirm the decision sheet, with changes | The changes are still to come (see above) |
+
+**Clarified by the author on 2026-10-18:** norms come from two sources. In **greenfield** they are declared from the spec and the style library: this is the current focus. In **brownfield** an LLM derives them from the graph, the code, the style and the docs: this is an exploratory track that **runs in parallel now**, so it produces results (author, 2026-10-18).
 
 **These match my recommendation:**
 - **D2a:** run F23 now.

@@ -25,7 +25,7 @@
 - Exceptions live only in C2. C4 proposes them, and a human accepts them (finding 6).
 - The status figures are corrected (finding 5), with two notes:
   - **Parity.** 72,388 statements over 81 projects *is* now on main, in `Docs/v1.3/cypher-interpreter.md:20`, after #151. The claims ledger still calls it unmerged (`Docs/v1.3/compendium/claims-ledger.md:274`). That ledger line is stale, so REV-01 was half right here.
-  - **MCP tool counts.** The 11 tools break down as 9 spec tools, which Study 2's arm allow-lists, plus the neural tools `review_unit` and `explain_and_fix`, which it excludes (`Docs/v1.3/study2-outline-v2.md:43` and §3).
+  - **MCP tool counts (corrected 2026-10-18, `ops/notes/g07-ledger-and-tool-counts.md`).** The 11 tools are the 9 spec tools that Study 2's arm allow-lists, plus `evaluate_project` and `propose_spec`. The neural tools `review_unit` and `explain_and_fix` come only with `--neural`, which makes 13. Study 2 excludes them (`Docs/v1.3/study2-outline-v2.md:43` and §3). The earlier "9 + 2 neural" was wrong.
 - New: a norm-reliability part (C2r), the chain of trust (§5), and the risks (§6).
 
 ---
@@ -137,7 +137,7 @@ flowchart TD
 - **N2** proposes norms into C2.
 - **N3** interprets findings in C4.
 
-In all three it reads the code **only through C1c**, the query layer. That is the operational form of NS-01's Claim B: the model supplies facts, and the rules reason over them.
+~~In all three it reads the code only through C1c, the query layer.~~ **Corrected 2026-10-19, after the brownfield pilot (`ops/notes/ns-03-graph-complements-reading.md`): in every role the model reads the code and the docs, then uses the graph (C1c) to check and quantify what it found. The graph complements reading; it never replaces it.** Every output cites both kinds of evidence. Results are scored against two references, declared intent and code reality, and the gap between them is a measure of drift. This remains the operational form of NS-01's Claim B: the model supplies facts, and the rules reason over them.
 
 **One engine, two sources of rules.** "Violates a rule" and "doesn't fit the rest of the graph" are the same mechanism. A deviation is a norm *mined* from G, such as "47 of 50 use cases go through a repository", which C3 then checks like any other rule. **One caveat (REV-01 §6):** this holds only for K0 and K1 knowledge. A mined majority rule needs a count-and-threshold query shape that the sealed templates don't have. K2m and K3 rules also need facts from A2. So for the higher knowledge levels, some of C3's variety leaks into C1d.
 
@@ -305,6 +305,7 @@ The working mode still holds: a note before any call, 2-case pilots, and the dir
 6. Should the efficiency test (C1c) be a sanity check, or a thesis result? REV-01 recommends a sanity check.
 
 ## Changelog
+- 2026-10-19: corrected the neural-layer rule. The graph complements reading (NS-03).
 - 2026-10-18 v3: after REV-02 and the conditions register. New part C3m (meaning) is the weakest link. C2r corrected to two Claude sessions. §1 claim is now F1–F3 plus Study 2. New §7b, SO-to-parts. §8 is now a four-week path with a cut list and confirmatory conditions. C1 split into imports vs DDD class facts. C3 gains the tool baseline and the clustered bound.
 - 2026-10-18 v2: four planes, C1e, C2r, artifacts A1–A6, per-part evaluation, chain of trust, risks, studies on the map, ordered work. Drift moved out of Study 2. Figures corrected after REV-01.
 - 2026-10-18 v1: first draft, from the author's decomposition.

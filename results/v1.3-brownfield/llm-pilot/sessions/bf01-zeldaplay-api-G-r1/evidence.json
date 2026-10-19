@@ -1,0 +1,72 @@
+{
+ "units": [
+  {
+   "id": "layer:infrastructure",
+   "claim": "The database and redis folders hold the data-access and connection code that services call into.",
+   "origin": "proposed",
+   "citations": [
+    {
+     "type": "pattern",
+     "glob": "src/app/database/**",
+     "count": 10
+    },
+    {
+     "type": "pattern",
+     "glob": "src/app/redis/**",
+     "count": 5
+    }
+   ]
+  },
+  {
+   "id": "layer:application",
+   "claim": "Business logic lives in *.service.ts files co-located in feature modules.",
+   "origin": "proposed",
+   "citations": [
+    {
+     "type": "pattern",
+     "glob": "**/*.service.ts",
+     "count": 12
+    }
+   ]
+  },
+  {
+   "id": "layer:presentation",
+   "claim": "Controllers, Nest modules and guards form the outer transport and wiring layer.",
+   "origin": "proposed",
+   "citations": [
+    {
+     "type": "pattern",
+     "glob": "**/*.controller.ts",
+     "count": 6
+    },
+    {
+     "type": "pattern",
+     "glob": "**/*.module.ts",
+     "count": 14
+    },
+    {
+     "type": "pattern",
+     "glob": "src/app/guards/**",
+     "count": 2
+    }
+   ]
+  },
+  {
+   "id": "order",
+   "claim": "Dependencies flow from presentation (controllers) to application (services) to infrastructure (database, redis), as in the NestJS preset.",
+   "origin": "proposed",
+   "citations": [
+    {
+     "type": "pattern",
+     "glob": "**/*.controller.ts",
+     "count": 6
+    },
+    {
+     "type": "pattern",
+     "glob": "**/*.service.ts",
+     "count": 12
+    }
+   ]
+  }
+ ]
+}

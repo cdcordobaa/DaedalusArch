@@ -1,0 +1,341 @@
+{
+ "id": "pvarentsov-clean",
+ "sha": "b6e0518ee4e092917015f4d448ad7fccd404e12e",
+ "head": "b6e0518ee4e092917015f4d448ad7fccd404e12e",
+ "declaredStyle": "clean-architecture",
+ "tsconfigNotes": [],
+ "label": "PROPOSED rules: mined from the code (deterministic, no LLM), not a reviewed spec. Review before use; exceptions are candidate violations, not confirmed ones.",
+ "style": "clean-architecture",
+ "styleConfidence": 0.7,
+ "layers": {
+  "application": 43,
+  "domain": 101,
+  "infrastructure": 39
+ },
+ "allowedDependencies": [
+  "application>domain",
+  "application>infrastructure",
+  "infrastructure>domain"
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "statement": "domain must not depend on application (85 edges application -> domain; 0/101 domain files import application)",
+   "subject": "domain",
+   "object": "application",
+   "confidence": 0.979,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 101,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 85
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "statement": "domain must not depend on infrastructure (82 edges infrastructure -> domain; 0/101 domain files import infrastructure)",
+   "subject": "domain",
+   "object": "infrastructure",
+   "confidence": 0.978,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 101,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 82
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "statement": "infrastructure must not depend on application (37 edges application -> infrastructure; 0/39 infrastructure files import application)",
+   "subject": "infrastructure",
+   "object": "application",
+   "confidence": 0.949,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 39,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 37
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-004",
+   "kind": "acyclic-files",
+   "statement": "no file lies on an import cycle (184/184 files do not)",
+   "subject": "*",
+   "confidence": 0.995,
+   "level": "high",
+   "evidence": {
+    "files": 184,
+    "filesOnCycles": 0,
+    "cycles": 0
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "no-cyclic-deps",
+    "via": "fitness function FF-S02"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-005",
+   "kind": "component-direction",
+   "statement": "folder component infrastructure must not depend on application (37 imports application -> infrastructure; 0/39 files import back)",
+   "subject": "folder:infrastructure",
+   "object": "folder:application",
+   "confidence": 0.949,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 39,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 37
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-006",
+   "kind": "component-direction",
+   "statement": "folder component core must not depend on infrastructure (82 imports infrastructure -> core; 0/101 files import back)",
+   "subject": "folder:core",
+   "object": "folder:infrastructure",
+   "confidence": 0.978,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 101,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 82
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-007",
+   "kind": "component-direction",
+   "statement": "folder component core must not depend on application (85 imports application -> core; 0/101 files import back)",
+   "subject": "folder:core",
+   "object": "folder:application",
+   "confidence": 0.979,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 101,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 85
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-008",
+   "kind": "port-implementation",
+   "statement": "every *Adapter class in infrastructure implements an interface declared in another layer (20/20)",
+   "subject": "infrastructure/Adapter",
+   "confidence": 0.952,
+   "level": "high",
+   "evidence": {
+    "classes": 20,
+    "implementingAPort": 20
+   },
+   "exceptions": [],
+   "compilesTo": null,
+   "notRepresentable": "the existing template binds the roles Repository, Repo; Adapter is not one",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-009",
+   "kind": "inject-abstractions",
+   "statement": "classes of application inject interfaces across layers, not concrete classes (14/14)",
+   "subject": "application",
+   "confidence": 0.933,
+   "level": "high",
+   "evidence": {
+    "crossLayerInjections": 14,
+    "ofInterfaces": 14
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-inversion",
+    "via": "fitness function FF-P02 (dependency-inversion)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-010",
+   "kind": "inject-abstractions",
+   "statement": "classes of infrastructure inject interfaces across layers, not concrete classes (5/5)",
+   "subject": "infrastructure",
+   "confidence": 0.833,
+   "level": "high",
+   "evidence": {
+    "crossLayerInjections": 5,
+    "ofInterfaces": 5
+   },
+   "exceptions": [],
+   "compilesTo": null,
+   "notRepresentable": "the existing templates check the application-kind layer only (application), not infrastructure",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-011",
+   "kind": "core-package-free",
+   "statement": "domain (a core layer: it may depend on no other layer) imports none of @nestjs/common, @nestjs/core, @nestjs/cqrs, @nestjs/jwt, @nestjs/passport, @nestjs/platform-express, @nestjs/swagger, @nestjs/typeorm, class-transformer, class-validator, env-var, express, minio, passport-jwt, passport-local, path, rxjs, stream, typeorm, typeorm-transactional-cls-hooked, url, uuid",
+   "subject": "domain",
+   "confidence": 0.922,
+   "level": "high",
+   "evidence": {
+    "coreFiles": 101,
+    "packages": 22
+   },
+   "exceptions": [
+    {
+     "file": "src/core/common/util/class-validator/ClassValidator.ts",
+     "target": "class-validator"
+    },
+    {
+     "file": "src/core/domain/media/entity/Media.ts",
+     "target": "class-validator"
+    },
+    {
+     "file": "src/core/domain/media/entity/Media.ts",
+     "target": "uuid"
+    },
+    {
+     "file": "src/core/domain/media/usecase/dto/MediaUseCaseDto.ts",
+     "target": "class-transformer"
+    },
+    {
+     "file": "src/core/domain/media/value-object/FileMetadata.ts",
+     "target": "class-validator"
+    },
+    {
+     "file": "src/core/domain/post/entity/Post.ts",
+     "target": "class-validator"
+    },
+    {
+     "file": "src/core/domain/post/entity/Post.ts",
+     "target": "uuid"
+    },
+    {
+     "file": "src/core/domain/post/entity/PostImage.ts",
+     "target": "class-validator"
+    },
+    {
+     "file": "src/core/domain/post/entity/PostOwner.ts",
+     "target": "class-validator"
+    },
+    {
+     "file": "src/core/domain/post/usecase/dto/PostUseCaseDto.ts",
+     "target": "class-transformer"
+    },
+    {
+     "file": "src/core/domain/user/entity/User.ts",
+     "target": "class-validator"
+    },
+    {
+     "file": "src/core/domain/user/entity/User.ts",
+     "target": "uuid"
+    },
+    {
+     "file": "src/core/domain/user/usecase/dto/UserUseCaseDto.ts",
+     "target": "class-transformer"
+    }
+   ],
+   "params": {
+    "forbidden_imports": [
+     "@nestjs/common",
+     "@nestjs/core",
+     "@nestjs/cqrs",
+     "@nestjs/jwt",
+     "@nestjs/passport",
+     "@nestjs/platform-express",
+     "@nestjs/swagger",
+     "@nestjs/typeorm",
+     "class-transformer",
+     "class-validator",
+     "env-var",
+     "express",
+     "minio",
+     "passport-jwt",
+     "passport-local",
+     "path",
+     "rxjs",
+     "stream",
+     "typeorm",
+     "typeorm-transactional-cls-hooked",
+     "url",
+     "uuid"
+    ]
+   },
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "domain-purity",
+    "via": "fitness function FF-P01 (domain-purity) forbidden_imports"
+   },
+   "status": "proposal"
+  }
+ ],
+ "counts": {
+  "rules": 11,
+  "high": 11,
+  "medium": 0,
+  "low": 0,
+  "exceptions": 13,
+  "notRepresentable": 2
+ },
+ "spec": {
+  "valid": true,
+  "errors": [],
+  "compiled": [
+   "dependency-direction",
+   "dependency-inversion",
+   "domain-purity",
+   "no-cyclic-deps"
+  ]
+ }
+}

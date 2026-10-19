@@ -1,0 +1,209 @@
+{
+ "id": "vivify-nestjs-boilerplate",
+ "sha": "e148f3d7bcac20c969259c33bfd73604fa7704bd",
+ "head": "e148f3d7bcac20c969259c33bfd73604fa7704bd",
+ "declaredStyle": "nestjs",
+ "tsconfigNotes": [],
+ "label": "PROPOSED rules: mined from the code (deterministic, no LLM), not a reviewed spec. Review before use; exceptions are candidate violations, not confirmed ones.",
+ "style": "nestjs",
+ "styleConfidence": 1,
+ "layers": {
+  "domain": 11,
+  "presentation": 15,
+  "application": 4
+ },
+ "allowedDependencies": [
+  "application>presentation",
+  "presentation>application",
+  "presentation>domain"
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "statement": "domain must not depend on application (1 edges application -> domain; 0/11 domain files import application)",
+   "subject": "domain",
+   "object": "application",
+   "confidence": 0.458,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 11,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "statement": "domain must not depend on presentation (8 edges presentation -> domain; 1/11 domain files import presentation)",
+   "subject": "domain",
+   "object": "presentation",
+   "confidence": 0.667,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 11,
+    "importingFiles": 1,
+    "edges": 1,
+    "reverseEdges": 8
+   },
+   "exceptions": [
+    {
+     "file": "src/modules/common/index.ts",
+     "target": "src/modules/common/common.module.ts"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-rare-edge",
+   "statement": "application should not depend on domain (1/4 application files imports it; nothing goes back)",
+   "subject": "application",
+   "object": "domain",
+   "confidence": 0.3,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 4,
+    "importingFiles": 1,
+    "edges": 1,
+    "reverseEdges": 0
+   },
+   "exceptions": [
+    {
+     "file": "src/modules/auth/auth.service.ts",
+     "target": "src/utils/Hash.ts"
+    }
+   ],
+   "compilesTo": null,
+   "notRepresentable": "style nestjs orders its layers totally: dependency-direction allows every inward import, and no-layer-skip applies to the layered style only",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-004",
+   "kind": "acyclic-files",
+   "statement": "no file lies on an import cycle (30/33 files do not)",
+   "subject": "*",
+   "confidence": 0.882,
+   "level": "high",
+   "evidence": {
+    "files": 33,
+    "filesOnCycles": 3,
+    "cycles": 1
+   },
+   "exceptions": [
+    {
+     "file": "src/modules/auth/auth.controller.ts",
+     "target": "src/modules/auth/index.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/auth/auth.module.ts",
+     "target": "src/modules/auth/auth.controller.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/auth/index.ts",
+     "target": "src/modules/auth/auth.controller.ts",
+     "detail": "edge on an import cycle"
+    },
+    {
+     "file": "src/modules/auth/index.ts",
+     "target": "src/modules/auth/auth.module.ts",
+     "detail": "edge on an import cycle"
+    }
+   ],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "no-cyclic-deps",
+    "via": "fitness function FF-S02"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-005",
+   "kind": "component-direction",
+   "statement": "folder component utils must not depend on modules (2 imports modules -> utils; 0/1 files import back)",
+   "subject": "folder:utils",
+   "object": "folder:modules",
+   "confidence": 0.333,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 1,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 2
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-006",
+   "kind": "core-package-free",
+   "statement": "domain (a core layer: it may depend on no other layer) imports none of @nestjs/jwt, @nestjs/passport, @nestjs/swagger, dotenv, fs, passport-jwt",
+   "subject": "domain",
+   "confidence": 0.833,
+   "level": "high",
+   "evidence": {
+    "coreFiles": 11,
+    "packages": 6
+   },
+   "exceptions": [
+    {
+     "file": "src/swagger/index.ts",
+     "target": "@nestjs/swagger"
+    }
+   ],
+   "params": {
+    "forbidden_imports": [
+     "@nestjs/jwt",
+     "@nestjs/passport",
+     "@nestjs/swagger",
+     "dotenv",
+     "fs",
+     "passport-jwt"
+    ]
+   },
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "domain-purity",
+    "via": "fitness function FF-P01 (domain-purity) forbidden_imports"
+   },
+   "status": "proposal"
+  }
+ ],
+ "counts": {
+  "rules": 6,
+  "high": 2,
+  "medium": 1,
+  "low": 3,
+  "exceptions": 7,
+  "notRepresentable": 1
+ },
+ "spec": {
+  "valid": true,
+  "errors": [],
+  "compiled": [
+   "dependency-direction",
+   "domain-purity",
+   "no-cyclic-deps"
+  ]
+ }
+}

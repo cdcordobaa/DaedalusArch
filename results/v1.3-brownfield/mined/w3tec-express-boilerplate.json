@@ -1,0 +1,381 @@
+{
+ "id": "w3tec-express-boilerplate",
+ "sha": "17727010f7f098d8ca8b78da0a5b3c7297659381",
+ "head": "17727010f7f098d8ca8b78da0a5b3c7297659381",
+ "declaredStyle": "layered",
+ "tsconfigNotes": [],
+ "label": "PROPOSED rules: mined from the code (deterministic, no LLM), not a reviewed spec. Review before use; exceptions are candidate violations, not confirmed ones.",
+ "style": "layered",
+ "styleConfidence": 1,
+ "layers": {
+  "business": 27,
+  "presentation": 18,
+  "persistence": 12
+ },
+ "allowedDependencies": [
+  "business>persistence",
+  "presentation>business",
+  "presentation>persistence"
+ ],
+ "rules": [
+  {
+   "id": "MR-001",
+   "kind": "layer-direction",
+   "statement": "persistence must not depend on business (13 edges business -> persistence; 0/12 persistence files import business)",
+   "subject": "persistence",
+   "object": "business",
+   "confidence": 0.857,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 12,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 13
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-002",
+   "kind": "layer-direction",
+   "statement": "persistence must not depend on presentation (13 edges presentation -> persistence; 0/12 persistence files import presentation)",
+   "subject": "persistence",
+   "object": "presentation",
+   "confidence": 0.857,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 12,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 13
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-003",
+   "kind": "layer-direction",
+   "statement": "business must not depend on presentation (10 edges presentation -> business; 0/27 business files import presentation)",
+   "subject": "business",
+   "object": "presentation",
+   "confidence": 0.877,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 27,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 10
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "frozen",
+    "template": "dependency-direction",
+    "via": "the order of architecture.layers"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-004",
+   "kind": "component-direction",
+   "statement": "folder component api must not depend on database (6 imports database -> api; 0/24 files import back)",
+   "subject": "folder:api",
+   "object": "folder:database",
+   "confidence": 0.823,
+   "level": "high",
+   "evidence": {
+    "fromFiles": 24,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 6
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-005",
+   "kind": "component-direction",
+   "statement": "folder component api must not depend on auth (3 imports auth -> api; 0/24 files import back)",
+   "subject": "folder:api",
+   "object": "folder:auth",
+   "confidence": 0.72,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 24,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 3
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-006",
+   "kind": "component-direction",
+   "statement": "folder component lib must not depend on loaders (1 imports loaders -> lib; 0/8 files import back)",
+   "subject": "folder:lib",
+   "object": "folder:loaders",
+   "confidence": 0.444,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 8,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-007",
+   "kind": "component-direction",
+   "statement": "folder component lib must not depend on api (2 imports api -> lib; 0/8 files import back)",
+   "subject": "folder:lib",
+   "object": "folder:api",
+   "confidence": 0.593,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 8,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 2
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-008",
+   "kind": "component-direction",
+   "statement": "folder component lib must not depend on auth (1 imports auth -> lib; 0/8 files import back)",
+   "subject": "folder:lib",
+   "object": "folder:auth",
+   "confidence": 0.444,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 8,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-009",
+   "kind": "component-direction",
+   "statement": "folder component lib must not depend on decorators (2 imports decorators -> lib; 0/8 files import back)",
+   "subject": "folder:lib",
+   "object": "folder:decorators",
+   "confidence": 0.593,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 8,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 2
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-010",
+   "kind": "component-direction",
+   "statement": "folder component auth must not depend on loaders (2 imports loaders -> auth; 0/3 files import back)",
+   "subject": "folder:auth",
+   "object": "folder:loaders",
+   "confidence": 0.5,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 3,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 2
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-011",
+   "kind": "component-direction",
+   "statement": "folder component decorators must not depend on api (7 imports api -> decorators; 0/3 files import back)",
+   "subject": "folder:decorators",
+   "object": "folder:api",
+   "confidence": 0.656,
+   "level": "medium",
+   "evidence": {
+    "fromFiles": 3,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 7
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-012",
+   "kind": "component-direction",
+   "statement": "folder component decorators must not depend on auth (1 imports auth -> decorators; 0/3 files import back)",
+   "subject": "folder:decorators",
+   "object": "folder:auth",
+   "confidence": 0.375,
+   "level": "low",
+   "evidence": {
+    "fromFiles": 3,
+    "importingFiles": 0,
+    "edges": 0,
+    "reverseEdges": 1
+   },
+   "exceptions": [],
+   "compilesTo": {
+    "catalogue": "apg2",
+    "template": "component-adp-cycle",
+    "via": "APG v2 folder components (an import against the rule closes a component cycle)"
+   },
+   "status": "proposal"
+  },
+  {
+   "id": "MR-013",
+   "kind": "inject-abstractions",
+   "statement": "classes of business inject interfaces across layers, not concrete classes (4/4)",
+   "subject": "business",
+   "confidence": 0.8,
+   "level": "high",
+   "evidence": {
+    "crossLayerInjections": 4,
+    "ofInterfaces": 4
+   },
+   "exceptions": [],
+   "compilesTo": null,
+   "notRepresentable": "the existing templates check the application-kind layer only (none), not business",
+   "status": "proposal"
+  },
+  {
+   "id": "MR-014",
+   "kind": "core-package-free",
+   "statement": "persistence (a core layer: it may depend on no other layer) imports none of bcrypt, class-transformer, class-validator, class-validator-jsonschema, compression, dataloader, event-dispatch, express, express-basic-auth, express-graphql, express-status-monitor, faker, glob, helmet, microframework-w3tec, morgan, routing-controllers, routing-controllers-openapi, serve-favicon, swagger-ui-express, type-graphql, typedi, typeorm-seeding, typeorm-typedi-extensions, uuid, winston",
+   "subject": "persistence",
+   "confidence": 0.846,
+   "level": "high",
+   "evidence": {
+    "coreFiles": 12,
+    "packages": 26
+   },
+   "exceptions": [
+    {
+     "file": "src/lib/graphql/graphql-error-handling.ts",
+     "target": "uuid"
+    },
+    {
+     "file": "src/lib/graphql/index.ts",
+     "target": "dataloader"
+    },
+    {
+     "file": "src/lib/graphql/index.ts",
+     "target": "typedi"
+    },
+    {
+     "file": "src/lib/logger/Logger.ts",
+     "target": "winston"
+    }
+   ],
+   "params": {
+    "forbidden_imports": [
+     "bcrypt",
+     "class-transformer",
+     "class-validator",
+     "class-validator-jsonschema",
+     "compression",
+     "dataloader",
+     "event-dispatch",
+     "express",
+     "express-basic-auth",
+     "express-graphql",
+     "express-status-monitor",
+     "faker",
+     "glob",
+     "helmet",
+     "microframework-w3tec",
+     "morgan",
+     "routing-controllers",
+     "routing-controllers-openapi",
+     "serve-favicon",
+     "swagger-ui-express",
+     "type-graphql",
+     "typedi",
+     "typeorm-seeding",
+     "typeorm-typedi-extensions",
+     "uuid",
+     "winston"
+    ]
+   },
+   "compilesTo": null,
+   "notRepresentable": "domain-purity checks the domain-kind layer only (business), not persistence",
+   "status": "proposal"
+  }
+ ],
+ "counts": {
+  "rules": 14,
+  "high": 6,
+  "medium": 5,
+  "low": 3,
+  "exceptions": 4,
+  "notRepresentable": 2
+ },
+ "spec": {
+  "valid": true,
+  "errors": [],
+  "compiled": [
+   "dependency-direction",
+   "no-layer-skip"
+  ]
+ }
+}
