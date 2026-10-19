@@ -2396,3 +2396,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 instrument track, F23 (gate S14, defensibility row 1.4); no model calls by this session
 
 ---
+
+## v1.4 research ops: agy no-exit fix and BF-01 Gemini arm complete
+**Timestamp**: 2026-10-19T18:14:55Z
+**User Input**: "Make the full-size Gemini call; then go ahead with the Gemini fix and the cap raise."
+**AI Response**: "Made one full-size diagnostic call outside the cap. agy printed a valid result at 216 s and never exited, and the route discarded it on timeout. Fixed it (PR #268): the runner stops on the result event, agy 1.4.2 is allowed for exploratory runs, and the labeller pin is unchanged. Caps raised by the author: Gemini 7→11, hard 20→24. Ran the 6 X sessions: all valid, 0 violations, finding precision 1.00, verdict = A 6/6. Reading: derivation works across vendors; the graph's added value is not shown (X has no graph). Recorded in re-pilot report §10 and NS-03."
+**Context**: v1.4 instrument track, BF-01 re-pilot v2 complete (18/18 sessions, 23/24 spawns)
+
+---
