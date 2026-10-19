@@ -43,6 +43,8 @@ The code items above run as AI-DLC units: U2 norm rules, U3 semantic facts, U4 i
 
 **Amendment A1 (2026-10-19): the graph complements reading.** It is added to U3 (a follow-up on PR #254) and U8 (before its design is fixed). See `aidlc-docs/construction/v1.4/U3/amendments/` and `U8/amendments/`, and `ops/notes/ns-03-graph-complements-reading.md`.
 
+**Deviations (2026-10-18): one dated list.** The post-seal changes are listed together in [`notes/deviations-v14.md`](notes/deviations-v14.md): ADR-V14-01 (FF-S02 in DDD, D5), ADR-V14-02 (application purity, N3), ADR-V14-03 (report schema), and M3 (Study 2 drift redesign), whose record is still pending.
+
 ## Then: check the built instrument once, before Study 2
 
 Each check is counted first, and you OK it before it runs.
@@ -63,4 +65,5 @@ Then **Study 2**, with its reviewed design taken to the director first.
 - **The 9 disagreement rows (C3):** for each, decide whether the spec or the blind manifest is right. This has to happen before the freeze.
 
 ## Changelog
+- 2026-10-18: linked the dated deviation list (`notes/deviations-v14.md`).
 - 2026-10-18: replaces the gap-closing plan with one build list per map part. The issue numbering, waves and gates are dropped as too complex.
