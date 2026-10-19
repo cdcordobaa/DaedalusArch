@@ -7,7 +7,9 @@
 
 > **Amendment, 2026-10-16.** By the declared deviation (`Docs/v1.3/study2-deviation-2026-10-16.md`), Study 2's primary outcome is the level Y (distinct blocking edges at step k = 4), not a slope; the arms are `none` and `daedalus-mcp`; k = 4, so every defining pressure of a style must fall in steps 1–4. The base-rate targets of §5 were computed for the superseded slope outcome; for Y the validation pilot's go rule (`floor-escape-design-2026-10-16.md` §4) and the level simulation apply. The distinct-edge count of §5.6 is now the primary count unit.
 
-<!-- study2-protocol: primary=Y-distinct-blocking-edges-at-step-k; k=4; arms=none,daedalus-mcp; unit=distinct-edge; fallback=do-not-run; order=freeze,hold-out,dress-rehearsal,pre-registration,gate,run; generators=claude-sonnet-5-5,codex-pin -->
+<!-- study2-protocol: primary=D-new-blocking-identities-steps-2-to-k; k=5; arms=none,daedalus-mcp; cells=none@L2,none@L3,mcp@L2; start=shared-step-1; unit=distinct-edge; tasks=new-4-layered-2-ddd-sealed-at-freeze; fallback=run-exploratory; order=freeze,hold-out,pilot-and-rehearsal,pre-registration,gate,run; generators=claude-sonnet-5-5,gemini-pin -->
+
+> **Protocol superseded 2026-10-19.** Study 2's protocol is now the drift record `Docs/v1.4/study2-deviation-2026-10-19-drift.md` (primary D over steps 2–5, k = 5, three cells, new tasks, Claude Sonnet + Gemini, exploratory fallback). Where this document states the level outcome, k = 4, five cells, the sealed tasks, `do-not-run` or the Codex pin, the drift record wins.
 
 Related: `Docs/DiagnosticRuns/v1.3-floor-probe-2026-10-16.md` (the probe, "probe" below), `Docs/v1.3/pilot-tasks.md`,
 `Docs/v1.3/pilot-outcome-memo.md`, `Docs/v1.3/study2-outline.md`, `Docs/v1.3/study2-power-notes.md` (PR #119),

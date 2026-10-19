@@ -1,6 +1,8 @@
 # Study 2 declared deviation: primary outcome switched to the level outcome Y (2026-10-16)
 
-<!-- study2-protocol: primary=Y-distinct-blocking-edges-at-step-k; k=4; arms=none,daedalus-mcp; unit=distinct-edge; fallback=do-not-run; order=freeze,hold-out,dress-rehearsal,pre-registration,gate,run; generators=claude-sonnet-5-5,codex-pin -->
+<!-- study2-protocol: primary=D-new-blocking-identities-steps-2-to-k; k=5; arms=none,daedalus-mcp; cells=none@L2,none@L3,mcp@L2; start=shared-step-1; unit=distinct-edge; tasks=new-4-layered-2-ddd-sealed-at-freeze; fallback=run-exploratory; order=freeze,hold-out,pilot-and-rehearsal,pre-registration,gate,run; generators=claude-sonnet-5-5,gemini-pin -->
+
+> **Protocol superseded 2026-10-19.** Study 2's protocol is now the drift record `Docs/v1.4/study2-deviation-2026-10-19-drift.md` (primary D over steps 2–5, k = 5, three cells, new tasks, Claude Sonnet + Gemini, exploratory fallback). Where this document states the level outcome, k = 4, five cells, the sealed tasks, `do-not-run` or the Codex pin, the drift record wins.
 
 **Status: declared deviation, dated 2026-10-16. Not a pre-registration.** The author decided it on 2026-10-16 at 13:50 UTC, under the delegation "unblock everything". An AI session wrote it down as the author decided it and did not take the decision. Study 2 has not been pre-registered (`study2-outline-v2.md` header; gate D10 RED), so this changes a plan, not a registration. It is still a change made **after** the loop pilot, three floor probes and the precedent probe were seen. The thesis therefore reports it as a **deviation** from the pilot memo's pre-committed rule, not as an addendum written before the data (gate rule 1).
 

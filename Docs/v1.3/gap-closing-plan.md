@@ -11,7 +11,9 @@ Numbers are quoted from the docs. Where no run exists the plan says **pending**.
 
 **Amendment, 2026-10-16 (declared deviation).** Decision 5 and steps 5.2 and 5.5 are superseded by `Docs/v1.3/study2-deviation-2026-10-16.md`: the Study 2 primary outcome is the level outcome Y (distinct blocking edges at step k = 4), the arms are `none` and `daedalus-mcp`, the generators are Sonnet 5.5 and the Codex pin, and if neither confirmatory stratum passes the validation pilot Study 2 does not run. The superseded text is kept below and marked.
 
-<!-- study2-protocol: primary=Y-distinct-blocking-edges-at-step-k; k=4; arms=none,daedalus-mcp; unit=distinct-edge; fallback=do-not-run; order=freeze,hold-out,dress-rehearsal,pre-registration,gate,run; generators=claude-sonnet-5-5,codex-pin -->
+<!-- study2-protocol: primary=D-new-blocking-identities-steps-2-to-k; k=5; arms=none,daedalus-mcp; cells=none@L2,none@L3,mcp@L2; start=shared-step-1; unit=distinct-edge; tasks=new-4-layered-2-ddd-sealed-at-freeze; fallback=run-exploratory; order=freeze,hold-out,pilot-and-rehearsal,pre-registration,gate,run; generators=claude-sonnet-5-5,gemini-pin -->
+
+> **Protocol superseded 2026-10-19.** Study 2's protocol is now the drift record `Docs/v1.4/study2-deviation-2026-10-19-drift.md` (primary D over steps 2–5, k = 5, three cells, new tasks, Claude Sonnet + Gemini, exploratory fallback). Where this document states the level outcome, k = 4, five cells, the sealed tasks, `do-not-run` or the Codex pin, the drift record wins.
 
 **Owners.**
 

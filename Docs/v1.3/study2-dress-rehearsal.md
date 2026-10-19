@@ -4,7 +4,9 @@
 
 **Amendment, 2026-10-16.** The arms are now `none` and `daedalus-mcp`, crossed with the five cells none@L2, none@L3, none@L4, mcp@L2 and mcp@L4, and the generators are Sonnet 5.5 and the Codex pin (`Docs/v1.3/study2-deviation-2026-10-16.md`). The rehearsal exercises every cell type and both generators, with 0 evaluation errors (S7). It runs at k = 4, the Study 2 horizon (k = 4 also leaves the per-run slope, now a registered secondary, a residual). Its size is re-stated below; the original three-arm and five-arm figures are kept and marked superseded. In Study 2's canonical order the rehearsal comes after the freeze and the hold-out and before the pre-registration.
 
-<!-- study2-protocol: primary=Y-distinct-blocking-edges-at-step-k; k=4; arms=none,daedalus-mcp; unit=distinct-edge; fallback=do-not-run; order=freeze,hold-out,dress-rehearsal,pre-registration,gate,run; generators=claude-sonnet-5-5,codex-pin -->
+<!-- study2-protocol: primary=D-new-blocking-identities-steps-2-to-k; k=5; arms=none,daedalus-mcp; cells=none@L2,none@L3,mcp@L2; start=shared-step-1; unit=distinct-edge; tasks=new-4-layered-2-ddd-sealed-at-freeze; fallback=run-exploratory; order=freeze,hold-out,pilot-and-rehearsal,pre-registration,gate,run; generators=claude-sonnet-5-5,gemini-pin -->
+
+> **Protocol superseded 2026-10-19.** Study 2's protocol is now the drift record `Docs/v1.4/study2-deviation-2026-10-19-drift.md` (primary D over steps 2–5, k = 5, three cells, new tasks, Claude Sonnet + Gemini, exploratory fallback). Where this document states the level outcome, k = 4, five cells, the sealed tasks, `do-not-run` or the Codex pin, the drift record wins.
 
 ## 1. When it runs
 

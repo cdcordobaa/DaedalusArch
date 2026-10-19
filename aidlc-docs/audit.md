@@ -2405,6 +2405,14 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+## v1.4 research ops: Study 2 drift deviation recorded
+**Timestamp**: 2026-10-19T20:00:12Z
+**User Input**: "Register that Study 2 changes to measure drift. Keep DDD in the pilot, use Gemini as the generator (with Claude Sonnet), labels after the study. Tasks: new tasks, retire the sealed list. Fallback: run, labelled exploratory."
+**AI Response**: "Wrote the second declared deviation, Docs/v1.4/study2-deviation-2026-10-19-drift.md (s2d-01 with REV-03's three changes). It is now the protocol's single source: the consistency check reads it, and the 9 protocol documents carry its line plus a supersession note (lint: 10 documents agree). The deviation list gains M3 (declared), CDX, the retired sealed list, V5 timing and the examiner's read of the sealed list."
+**Context**: v1.4 instrument track, Study 2 protocol; no model calls
+
+---
+
 ## v1.4 research ops: TIER-A2 zero-call instrument-map analyses
 **Timestamp**: 2026-10-19T20:40:00Z
 **User Input**: "Scheduled routine: run seven zero-call analyses that close instrument-map gaps with data already in the repo or public clones (N123 re-score with the identity module, type-resolution rate and FLOWS_TO yield, extractor-fix re-run on msc29 and felixle, tool-baseline row, clustered interval for 283/283, SO1-4 expressiveness, V11 leakage census). One note, outputs under results/v1.4-tier-a/, a PR to main, no merge."
