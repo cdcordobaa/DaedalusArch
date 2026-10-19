@@ -2404,3 +2404,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 instrument track, BF-01 re-pilot v2 complete (18/18 sessions, 23/24 spawns)
 
 ---
+
+## v1.4 research ops: TIER-A1 drift D on existing data (zero calls)
+**Timestamp**: 2026-10-19T20:32:00Z
+**User Input**: "Scheduled routine: recompute Study 2's drift D, Y1 and Y at the last step on every committed run with per-step scored snapshots, check the s2d-01 power inputs (1, 2, 5), run gate D9 with a planted effect, write the report, and open a PR without merging. Zero model calls, cypher-interp only, no sealed reads."
+**AI Response**: "Added scripts/v1.4/drift-existing.ts (uses driftRun with STUDY2_S2D01 and the level-power-sim test functions unchanged); outputs in results/v1.4-drift-existing/. 27 cells, 24 scored, 3 DDD unscored (T1, not fixed). s2d-01 inputs reproduce (D 1, 2, 5). Every non-zero D is Opus by hand; every Sonnet harness run has Y1 = 0 and D = 0; no Sonnet or Gemini Layered run exists. D9: planted removals recovered exactly (0 mismatches); RR 1 size about 0.02 per hypothesis, 0.035 family-wise; RR 0.25 power 0.999 or more; RR 0.5 power 0.755 (independent) and 0.892 (shared), below s2d-01's 0.79 and 0.93, whose uncommitted driver could not be checked. The deviation file Docs/v1.4/study2-deviation-2026-10-19-drift.md is not on main. No evaluator re-run was needed. Report: Docs/DiagnosticRuns/v1.4-drift-on-existing-data-2026-10-19.md."
+**Context**: v1.4 Study 2 drift, TIER-A1, gate D9 on existing data; no model calls, no Neo4j, no sealed reads
+
+---
