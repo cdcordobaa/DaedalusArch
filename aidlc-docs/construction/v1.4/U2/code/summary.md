@@ -105,7 +105,7 @@ The AI-DLC read-only verification of U2 found these after PR #255 was merged. Fi
 
 - **Report origin end to end (BR-U2-03.7, BR-U2-08).** `report-builder.ts` now writes `postSealRules: true` and `postSealAdded` from the compile facts when the post-seal rules were compiled, and the report schema has both as optional fields. A report with the rules off is unchanged. Test: `tests/unit/post-seal/ddd-cycle.test.ts` (v09 through the pipeline, on and off).
 - **Frozen schema amendment declared.** ADR-V14-03 (`Docs/v1.4/adr-v14.md`) declares the three schema changes (`tierSource` `post-seal`, `postSealRules`, `postSealAdded`), each dated in the schema `$comment`.
-- **BR-U2-10, CLI path.** Every script that runs `firewall evaluate` passes `--post-seal` explicitly: `off` everywhere except `scripts/v1.3/complementarity.ts` (`on`, the forward K-tally run). `scripts/run-experiment.ts` uses `--scoring v1.2e`, where the flag is not read.
+- **BR-U2-10, CLI path.** Every script that runs `firewall evaluate` passes `--post-seal` explicitly: `off` everywhere except `scripts/v1.3/complementarity.ts` (`on`, the forward K-tally run). Exempt: `scripts/run-experiment.ts` (`--scoring v1.2e`, the flag is not read), `scripts/v1.3/judge-catch-run.ts` (byte-frozen) and `scripts/lib/freeze-gate-main.ts` (U5a gate, argv pinned by its test); see TODO 6.
 - **BR-U2-10, unlisted pipeline callers.** `scripts/sdd/lib/full-eval.ts`, `scripts/v1.3/loop-fault-drills.ts`, `scripts/v1.3/ci-gate-synthetic.ts` and `scripts/v1.3/grid-scale-replay.ts` pass `postSealRules: false` (sealed).
 - **Caller test widened.** `tests/unit/post-seal/compile-option-callers.test.ts` now also fails when a pipeline-building script does not set `postSealRules`, or a CLI-calling script does not pass `--post-seal`.
 - **ADR-V14-02 effect table.** The header-only FF-P07 table is replaced by a sentence (no rows).
@@ -117,6 +117,7 @@ TODOs (not fixed here):
 3. Test gaps (design §6.1): the identity test compares `compile({})` with `compile({ postSealRules: false })`, not with pre-change output; the `loadReference` test checks only that FF-P07 and FF-S02 are absent, not equality with the pre-U2 scope; the I1 reference test does not assert the absence of `REPORT_COUNTS_INCONSISTENT`.
 4. Test gap (design §6.2): the FF-P07 positives assert `ruleTier('FF-P07', style)`, not the tier and `tierSource` of the emitted report rows.
 5. The dated deviation list in `ops/` lives on PR #252, not on main. ADR-V14-03 is to be added to it when #252 lands.
+6. `scripts/v1.3/judge-catch-run.ts` (byte-frozen) and `scripts/lib/freeze-gate-main.ts` (U5a gate) still take the CLI default `--post-seal on`. A re-run of their figures needs `--post-seal off` added by hand, or an author decision to unfreeze them.
 
 ## Author defaults in force (Proposed in the ADRs)
 

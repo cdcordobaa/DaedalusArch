@@ -76,7 +76,10 @@ describe('V13 compile option callers', () => {
         if (/(?:firewall\.ts'\)?|CLI_ENTRY|cli\/bin\.ts'), 'evaluate',/.test(line) && !line.includes("'--post-seal'")) missing.push(path.relative(ROOT, f).split(path.sep).join('/'));
       }
     }
-    // run-experiment.ts runs the registered v1.2E plans with --scoring v1.2e, where --post-seal is not read.
-    expect(missing.filter((f) => f !== 'scripts/run-experiment.ts')).toEqual([]);
+    // Exempt, each with its reason (ADR-V14-02, "Callers"): run-experiment.ts runs the registered v1.2E plans with
+    // --scoring v1.2e, where --post-seal is not read; judge-catch-run.ts is byte-frozen (Docs/v1.3/judge-catch-frozen.md);
+    // freeze-gate-main.ts is the U5a gate, whose argv is pinned by tests/unit/scripts/mutation/freeze-gates.test.ts.
+    const exempt = new Set(['scripts/run-experiment.ts', 'scripts/v1.3/judge-catch-run.ts', 'scripts/lib/freeze-gate-main.ts']);
+    expect(missing.filter((f) => !exempt.has(f))).toEqual([]);
   });
 });
