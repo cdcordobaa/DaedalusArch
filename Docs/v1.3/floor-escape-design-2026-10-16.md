@@ -4,7 +4,9 @@ Synthesis of five floor-escape proposals and their ten adversarial reviews (two 
 
 > **Amendment, 2026-10-16.** The author adopted this design's Decision 1 B as a declared, dated deviation (`Docs/v1.3/study2-deviation-2026-10-16.md`), which is the protocol's single source. This file was amended in the same change: the "neither passes" fallback is now **do not run** (§4); the order follows the canonical sequence (§3.1); pilot T1 is marked **open** (§3.1); the count unit cites A26 as amended (§3.4); the V10 waiver option is removed and the grid is costed for two generators (§3.7, Decision 3); probe 3's status is updated (§4).
 
-<!-- study2-protocol: primary=Y-distinct-blocking-edges-at-step-k; k=4; arms=none,daedalus-mcp; unit=distinct-edge; fallback=do-not-run; order=freeze,hold-out,dress-rehearsal,pre-registration,gate,run; generators=claude-sonnet-5-5,codex-pin -->
+<!-- study2-protocol: primary=D-new-blocking-identities-steps-2-to-k; k=5; arms=none,daedalus-mcp; cells=none@L2,none@L3,mcp@L2; start=shared-step-1; unit=distinct-edge; tasks=new-4-layered-2-ddd-sealed-at-freeze; fallback=run-exploratory; order=freeze,hold-out,pilot-and-rehearsal,pre-registration,gate,run; generators=claude-sonnet-5-5,gemini-pin -->
+
+> **Protocol superseded 2026-10-19.** Study 2's protocol is now the drift record `Docs/v1.4/study2-deviation-2026-10-19-drift.md` (primary D over steps 2–5, k = 5, three cells, new tasks, Claude Sonnet + Gemini, exploratory fallback). Where this document states the level outcome, k = 4, five cells, the sealed tasks, `do-not-run` or the Codex pin, the drift record wins.
 
 ## 1. The problem in numbers
 

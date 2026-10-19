@@ -2404,3 +2404,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 instrument track, BF-01 re-pilot v2 complete (18/18 sessions, 23/24 spawns)
 
 ---
+
+## v1.4 research ops: Study 2 drift deviation recorded
+**Timestamp**: 2026-10-19T20:00:12Z
+**User Input**: "Register that Study 2 changes to measure drift. Keep DDD in the pilot, use Gemini as the generator (with Claude Sonnet), labels after the study. Tasks: new tasks, retire the sealed list. Fallback: run, labelled exploratory."
+**AI Response**: "Wrote the second declared deviation, Docs/v1.4/study2-deviation-2026-10-19-drift.md (s2d-01 with REV-03's three changes). It is now the protocol's single source: the consistency check reads it, and the 9 protocol documents carry its line plus a supersession note (lint: 10 documents agree). The deviation list gains M3 (declared), CDX, the retired sealed list, V5 timing and the examiner's read of the sealed list."
+**Context**: v1.4 instrument track, Study 2 protocol; no model calls
+
+---
