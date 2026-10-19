@@ -2448,3 +2448,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 Study 2 drift, TIER-A1, gate D9 on existing data; no model calls, no Neo4j, no sealed reads
 
 ---
+
+## v1.4 Tier A: TIER-A4 DDD T1 on Neo4j and D8 parity
+**Timestamp**: 2026-10-19T22:21:54Z
+**User Input**: "Scheduled routine TIER-A4, zero model calls: start one capped Neo4j at the pinned version, re-score the TIER-A3 snapshots (8 DDD under four spec variants, Layered probe 1, Clean/Hex loop) with --engine neo4j, compare with the committed cypher-interp outputs, and check interpreter/Neo4j parity per snapshot, per rule and file set (D8). Report, outputs, PR to main, do not merge."
+**AI Response**: "No docker daemon in the sandbox, so ran the official neo4j-community-5.26.24 tarball with bundled APOC 5.26.24 on JDK 21, heap 512m, page cache 256m, 127.0.0.1. Ran scripts/v1.4/ddd-b2-t1-rescore.ts --engine neo4j unchanged (124 evaluations, 0 unscored, 26 new blocking findings, 26 correct by check-correct) and a new scripts/v1.4/ddd-t1-d8-parity.ts. T1 rows 124/124 and drift rows 30/30 identical to the interpreter; all 124 CLI reports byte-identical; every rule row agrees on count, identity and file set. TIER-A3's B2 figures hold on Neo4j unchanged; DDD tactical-rule parity is vacuous (no violations). Report Docs/DiagnosticRuns/v1.4-ddd-t1-and-d8-2026-10-19.md, outputs results/v1.4-ddd-t1-d8/."
+**Context**: v1.4 instrument track, REV-04 P15/P19 Neo4j half, gate D8; D15 left to the author; no sealed reads, MEAN-01 sample not opened
+
+---
