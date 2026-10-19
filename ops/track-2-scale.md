@@ -57,7 +57,7 @@
 | Study 2 design | declared deviation. Y = distinct blocking edges at step 4. Five cells: `none` at L2/L3/L4, `daedalus-mcp` at L2/L4. 24 blocks. Power at RR 0.25: 1.00 / 1.00 / 0.92. At RR 0.5: 0.88 / 0.88 / 0.70. Pilot bar: mean Y ≥ 1.5 at step 4. If no stratum passes, Study 2 does not run | AMBER (design) |
 | DDD in Study 2 | aggregates are declared only in the evaluator's spec. Y uses FF-DS01, FF-DS02, FF-DT03, FF-DT04, FF-S01 and FF-S02. Reaching the bar is about a coin flip. If DDD fails, Study 2 runs on Layered only (12 blocks) and DDD is reported as "characterised, not confirmatory" | AMBER |
 | Readiness | 1 of 42 gate lines GREEN at 2026-10-16 12:00Z. That count was not re-taken after the deviation | RED |
-| Generators | Sonnet 5.5 now. Codex is back about Nov 9. A Gemini adapter is to be built as insurance, off by default | AMBER |
+| Generators | Sonnet 5.5 and Gemini (CDX, `decisions.md:19`). The Gemini coding-agent adapter exists (PR #257), off by default; its S4 probe has not run. *(Updated 2026-10-19; the Codex pin is no longer required.)* | AMBER |
 
 ---
 
@@ -68,7 +68,7 @@ The zero-cost steps come first. Each one either kills a risk or tells us whether
 | # | Objective | Move | Cost | Owner | Gate |
 |---|---|---|---|---|---|
 | 1 | both | Confirm the decision sheet, OK F23, confirm the composition slot (`decisions.md` D1, D2) | 0 | you | — |
-| 2 | SO5 | **B2:** re-score the 12 kept DDD snapshots with and without `acl: []`, which gives the expected DDD Y | 0 | agent | decides whether DDD stays in |
+| 2 | SO5 | **B2:** re-score the 8 kept DDD snapshots (8, not 12: `notes/rev-04-gaps-and-promises-2026-10-19.md:74`) with and without `acl: []`, which gives the expected DDD Y | 0 | agent | decides whether DDD stays in |
 | 3 | SO5 | T1: re-score the 8 pilot snapshots on Neo4j | 0 | agent | — |
 | 4 | SO4 | F23, the sealed-list overlap check | 0 | agent, after your OK | required before the pilot |
 | 5 | SO5 | Prerequisites: the layered frame, per-task MCP spec (A25), DDD L3/L4 frames, the binding check, k = 4 fixtures | 0 | agent | — |
@@ -78,4 +78,5 @@ The zero-cost steps come first. Each one either kills a risk or tells us whether
 | 9 | SO5 | From about Nov 9: Codex pin, confinement probes, dress rehearsal, pre-registration, gate, **Study 2 once** | the study budget | you sign | readiness gate |
 
 ## Changelog
+- 2026-10-19: Gemini adapter marked as existing (PR #257); DDD snapshot count corrected to 8 (REV-04 §6 item 5).
 - 2026-10-18: first version.
