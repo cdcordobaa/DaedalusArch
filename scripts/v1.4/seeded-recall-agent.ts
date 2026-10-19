@@ -118,6 +118,7 @@ async function evaluate(projectDir: string, specPath: string, apgStore: string):
     apgStorePath: apgStore, tsconfigPath: path.join(projectDir, 'tsconfig.json'),
     instrumentVersion: parseInstrumentVersion('v2'), neuralAggregation: parseNeuralAggregation('registered'),
     scoringMode: parseScoringMode('v1.3'), graphEngine: 'cypher-interp',
+    postSealRules: true, // v1.4 U2 (ADR-V14-02): the declared post-seal overlay is part of the blocking tier (drift record §2)
   });
   try {
     const result = await executor.execute();

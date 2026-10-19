@@ -24,7 +24,12 @@ afterEach(() => {
 
 describe('S12 archive', () => {
   it('archives records and the snapshot store, not the work tree, with relative paths only', () => {
-    fs.symlinkSync('/etc', path.join(out, 'runs', 'link'));
+    // A link to a directory outside the out-root (not a system directory: a recursive listing below must not follow
+    // it into unreadable files on a non-root runner).
+    const elsewhere = path.join(tmp, 'elsewhere');
+    fs.mkdirSync(elsewhere);
+    fs.writeFileSync(path.join(elsewhere, 'outside.txt'), 'outside\n');
+    fs.symlinkSync(elsewhere, path.join(out, 'runs', 'link'));
     const m = buildManifest(out);
     const paths = m.entries.map((e) => e.path);
     expect(paths).toContain('schedule.json');
