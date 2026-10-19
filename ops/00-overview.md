@@ -8,7 +8,7 @@
 
 **One sentence.** The deterministic instrument is correct on the projects where we have truth. The parts the thesis leans on hardest, *meaning* and the *neural* half, are still unmeasured. Study 2 is designed and runs once, earliest about Nov 18–22, and only if the pilot clears its bar.
 
-**Instrument map (draft v2):** [`01-instrument-map.md`](01-instrument-map.md) covers four planes and ten parts, the artifacts between them, the chain of trust (the weakest link is C2r, norm reliability) and the ordered work left. It has been reviewed adversarially ([`notes/rev-01-instrument-map-fable.md`](notes/rev-01-instrument-map-fable.md)).
+**Instrument map (draft v3):** [`01-instrument-map.md`](01-instrument-map.md) covers four planes and ten parts, the artifacts between them, the chain of trust (v3: the weakest link is C3m, meaning; C2r is second, `01-instrument-map.md:196`) and the ordered work left. It has been reviewed adversarially ([`notes/rev-01-instrument-map-fable.md`](notes/rev-01-instrument-map-fable.md)).
 
 ## Track 1: the instrument → [`track-1-instrument.md`](track-1-instrument.md)
 
@@ -41,11 +41,13 @@ The experiments so far tested the wrong level. The proposed framing: **the model
 **North star:** [`04-north-star.md`](04-north-star.md). Each part passes its own test; the whole instrument is checked for applicability and validity; each objective needs both. **Plan:** [`03-build-list.md`](03-build-list.md). Build what the map defines, check the built instrument once, then run Study 2.
 
 ## Waiting on you
-1. **L4:** the definition of a meaningful finding. It blocks the codebook and the rater's labels.
-2. **D1:** the changes you want made to the decision sheet.
-3. **Read NS-01.** It blocks the 2-case pilot.
+*Updated 2026-10-19 (evening). L4 (practitioner), D1 (as written) and the NS-01 reading were settled on 2026-10-18 (`decisions.md:34-40`).*
+1. **The signing sheet:** V1 answers, ADR-V14 Q-A to Q-E, the 9 adjudication rows, MEAN-01 §12, U6 G0.9 ([`notes/signing-sheet-2026-10-19.md`](notes/signing-sheet-2026-10-19.md)).
+2. **The V4 ADR**, before the freeze ([`../Docs/v1.4/adr-v4-holdout-bar.md`](../Docs/v1.4/adr-v4-holdout-bar.md)).
+3. **X-1 and SO3-a** ([`../Docs/v1.4/deviation-x1-and-so3a.md`](../Docs/v1.4/deviation-x1-and-so3a.md)), and the **F3 rewording** (`Docs/v1.3/contribution-statement.md`, last section).
+4. **The exploratory study's counts** ([`../Docs/v1.4/exploratory-study-registration.md`](../Docs/v1.4/exploratory-study-registration.md) §10). No study runs without your OK.
 
-Everything else was settled on 2026-10-18. See [`decisions.md`](decisions.md).
+See [`decisions.md`](decisions.md).
 
 ## What the agent does next (zero model calls)
 Within the current thread, after you have read NS-01:
@@ -57,6 +59,7 @@ Study 2 work (B2, T1, F23, the prerequisites) waits until the thread pauses.
 **Running now:** nothing.
 
 ## Changelog
+- 2026-10-19: map v3 and its weakest link (C3m) stated; the waiting list replaced (L4, D1 and NS-01 were settled on 2026-10-18).
 - 2026-10-18: the board's decisions are settled; the waiting list is down to three.
 - 2026-10-18: link to the instrument map (draft).
 - 2026-10-18: working mode added; current thread = neuro-symbolic; NS-01 written.
