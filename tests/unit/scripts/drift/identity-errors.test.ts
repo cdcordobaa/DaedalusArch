@@ -13,7 +13,7 @@ import * as path from 'node:path';
 import { handcheckCsv, handcheckSample, type HandcheckRepo } from '../../../../scripts/lib/drift/handcheck.js';
 import { buildLineages } from '../../../../scripts/lib/drift/lineage.js';
 import { forEachMinedRepo } from '../../../../scripts/lib/drift/metrics.js';
-import { G08_PROPOSED, LEGACY_FIXES_MINED, type IdFinding, type Lineage, type Snapshot, type Transition } from '../../../../scripts/lib/drift/types.js';
+import { G08_PROPOSED, LEGACY_FIXES_MINED, STUDY2_S2D01, type IdentityOptions, type IdFinding, type Lineage, type Snapshot, type Transition } from '../../../../scripts/lib/drift/types.js';
 import { K, cyc, dep, fileLevel, snap } from './fixtures.js';
 
 /** [key, born, ended, cause, finalKey, derivedFrom] with '' for absent. */
@@ -111,6 +111,57 @@ describe('T-HC (a): planted histories, identity errors = 0', () => {
     it(`${label}: identity errors = 0`, () => {
       const errors: string[] = [];
       for (const p of PLANTED) {
+        const got = new Set(buildLineages(p.snaps, p.tr ?? [], opts).lineages.map(rowOf));
+        const want = new Set(pick(p).map(rowStr));
+        for (const w of want) if (!got.has(w)) errors.push(`${p.name}: missing ${w}`);
+        for (const g of got) if (!want.has(g)) errors.push(`${p.name}: unexpected ${g}`);
+      }
+      expect(errors).toEqual([]);
+    });
+  }
+});
+
+/**
+ * T-HC (a) on the edge grain (U4 verification): Study 2's unit is E, so the planted histories also run under
+ * STUDY2_S2D01 (cycles as sorted file sets) and under its Q2 option explode-edges (one key per directed cycle edge),
+ * with renames, a re-rotated cycle and a cycle edge shared with a plain FF-S01. Expected rows written before the run.
+ */
+interface EdgePlanted {
+  readonly name: string;
+  readonly snaps: readonly Snapshot[];
+  readonly tr?: readonly (Transition | undefined)[];
+  readonly sorted: readonly Row[];
+  readonly explode: readonly Row[];
+}
+const E = (a: string, b: string): string => `${a}|${b}`;
+const EDGE_PLANTED: readonly EdgePlanted[] = [
+  { name: 'E: unchanged edge', snaps: [snap('0', [AT]), snap('1', [AT])], sorted: [[E(A, T), 0, null]], explode: [[E(A, T), 0, null]] },
+  { name: 'E: FF-S01 and FF-S03 on one edge share it; it ends only when both go', snaps: [snap('0', [AT, dep(A, T, 'FF-S03')]), snap('1', [dep(A, T, 'FF-S03')]), snap('2', [], { extraFiles: [A, T] })],
+    sorted: [[E(A, T), 0, 2, 'FIXED-BY-DEV']], explode: [[E(A, T), 0, 2, 'FIXED-BY-DEV']] },
+  { name: 'E: source renamed', snaps: [snap('0', [AT]), snap('1', [A1T])], tr: one({ [A]: A1 }),
+    sorted: [[E(A, T), 0, null, '', E(A1, T)]], explode: [[E(A, T), 0, null, '', E(A1, T)]] },
+  { name: 'E: two-cycle renamed', snaps: [snap('0', [cyc(cA, cB, cA)]), snap('1', [cyc('z.ts', cB, 'z.ts')])], tr: one({ [cA]: 'z.ts' }),
+    sorted: [['cycle-files#a.ts;b.ts', 0, null, '', 'cycle-files#b.ts;z.ts']],
+    explode: [[E(cA, cB), 0, null, '', E('z.ts', cB)], [E(cB, cA), 0, null, '', E(cB, 'z.ts')]] },
+  { name: 'E: three-cycle renamed, re-rotated by canonicalCycle', snaps: [snap('0', [cyc(cA, cB, cC, cA)]), snap('1', [cyc('z.ts', cB, cC, 'z.ts')])], tr: one({ [cA]: 'z.ts' }),
+    sorted: [['cycle-files#a.ts;b.ts;c.ts', 0, null, '', 'cycle-files#b.ts;c.ts;z.ts']],
+    explode: [[E(cA, cB), 0, null, '', E('z.ts', cB)], [E(cB, cC), 0, null], [E(cC, cA), 0, null, '', E(cC, 'z.ts')]] },
+  { name: 'E: three-cycle renamed, a plain FF-S01 on one of its edges', snaps: [snap('0', [dep(cB, cC), cyc(cA, cB, cC, cA)]), snap('1', [dep(cB, cC), cyc('z.ts', cB, cC, 'z.ts')])], tr: one({ [cA]: 'z.ts' }),
+    sorted: [[E(cB, cC), 0, null], ['cycle-files#a.ts;b.ts;c.ts', 0, null, '', 'cycle-files#b.ts;c.ts;z.ts']],
+    explode: [[E(cA, cB), 0, null, '', E('z.ts', cB)], [E(cB, cC), 0, null], [E(cC, cA), 0, null, '', E(cC, 'z.ts')]] },
+  { name: 'E: a cycle broken by removing one edge, files stay', snaps: [snap('0', [cyc(cC, cD, cC)]), snap('1', [], { extraFiles: [cC, cD], extraEdges: [E(cC, cD)] })],
+    sorted: [['cycle-files#c.ts;d.ts', 0, 1, 'FIXED-BY-DEV']], explode: [[E(cC, cD), 0, 1, 'FIXED-BY-DEV'], [E(cD, cC), 0, 1, 'FIXED-BY-DEV']] },
+];
+
+describe('T-HC (a) on the edge grain: identity errors = 0', () => {
+  const presets: readonly [string, IdentityOptions, (p: EdgePlanted) => readonly Row[]][] = [
+    ['STUDY2_S2D01', STUDY2_S2D01, (p) => p.sorted],
+    ['STUDY2_S2D01 + explode-edges', { ...STUDY2_S2D01, cycleIdentity: 'explode-edges' }, (p) => p.explode],
+  ];
+  for (const [label, opts, pick] of presets) {
+    it(`${label}: identity errors = 0`, () => {
+      const errors: string[] = [];
+      for (const p of EDGE_PLANTED) {
         const got = new Set(buildLineages(p.snaps, p.tr ?? [], opts).lineages.map(rowOf));
         const want = new Set(pick(p).map(rowStr));
         for (const w of want) if (!got.has(w)) errors.push(`${p.name}: missing ${w}`);

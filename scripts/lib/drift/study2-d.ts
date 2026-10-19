@@ -13,7 +13,7 @@
  * (`runOutcomes().newBlockingTotal` in `scripts/lib/loop/pilot-metrics.ts`) is not touched (D-8). Pure.
  */
 import type { StepRecord } from '../loop/types.js';
-import { assertSameContext, fineKey, fromBlockingFinding, fromProbeFinding, keysFor, mapFinding } from './identity.js';
+import { assertSameContext, fineKey, fromBlockingFinding, fromProbeFinding, keysFor, mapFinding, successorKey } from './identity.js';
 import { D_CONSTRUCT, type DriftParams, type DriftRun, type IdFinding, type RenameMap, type Snapshot } from './types.js';
 
 export interface StepInput {
@@ -56,10 +56,7 @@ function carry(ids: IdMap, rho: RenameMap | undefined, params: DriftParams): IdM
   const out: IdMap = new Map();
   for (const [k, f] of ids) {
     const mf = mapFinding(f, rho);
-    const ks = keysFor(mf, params);
-    const orig = keysFor(f, params);
-    const j = orig.indexOf(k);
-    const nk = ks.length === orig.length && j >= 0 ? ks[j] : ks.length === 1 ? ks[0] : undefined;
+    const nk = successorKey(k, f, mf, rho, (x) => keysFor(x, params)); // ID-8: an edge key maps by ρ, not by position
     out.set(nk ?? k, mf);
   }
   return out;

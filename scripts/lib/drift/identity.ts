@@ -129,6 +129,25 @@ export function mapFinding(f: IdFinding, rho: RenameMap): IdFinding {
   };
 }
 
+/**
+ * The key an identity `k` of `f` carries after ρ (ID-8, ID-10). An edge key `u|v` (E grain, an exploded cycle edge
+ * included) maps to `ρ(u)|ρ(v)` when the mapped finding holds that key: never by position, because `canonicalCycle`
+ * re-rotates a renamed cycle and the positions of its edges shift. Any other key keeps its position in the key list,
+ * or is the mapped finding's only key.
+ */
+export function successorKey(k: string, f: IdFinding, mapped: IdFinding, rho: RenameMap, keyFn: (x: IdFinding) => readonly string[]): string | undefined {
+  const ks = keyFn(mapped);
+  const parts = k.split('|');
+  if (parts.length === 2 && !k.includes('#')) {
+    const edge = `${rho.get(parts[0] ?? '') ?? parts[0] ?? ''}|${rho.get(parts[1] ?? '') ?? parts[1] ?? ''}`;
+    if (ks.includes(edge)) return edge;
+  }
+  const orig = keyFn(f);
+  const j = orig.indexOf(k);
+  if (ks.length === orig.length && j >= 0) return ks[j];
+  return ks.length === 1 ? ks[0] : undefined;
+}
+
 // ── Adapters ────────────────────────────────────────────────────────────────
 
 /** A fix-mining record (`MinedViolation`, a `pairs.json.gz` finding) as an `IdFinding`. */

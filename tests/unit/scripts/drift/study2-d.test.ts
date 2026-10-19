@@ -95,6 +95,14 @@ describe('D rules (D-1 to D-7)', () => {
     expect(driftRun(steps, STUDY2_S2D01).D).toBe(0);
     expect(driftRun(steps, { ...STUDY2_S2D01, renamePolicy: 'end' }).D).toBe(1);
   });
+  it('explode-edges: a renamed cycle sharing an edge with a plain FF-S01 adds nothing new (ID-8; U4 verification)', () => {
+    const p: DriftParams = { ...STUDY2_S2D01, cycleIdentity: 'explode-edges' };
+    const plain = dep('b.ts', 'c.ts');
+    const before: IdFinding = { functionId: 'FF-S02', filePath: 'a.ts,b.ts,c.ts,a.ts', target: 'b.ts', tier: 'blocking' };
+    const after: IdFinding = { functionId: 'FF-S02', filePath: 'z.ts,b.ts,c.ts,z.ts', target: 'b.ts', tier: 'blocking' };
+    const r = driftRun([st(1, [plain, before]), st(2, [plain, after], { rename: new Map([['a.ts', 'z.ts']]) })], p);
+    expect(r.D).toBe(0);
+  });
   it("a missing ρ under 'continue' is flagged, not treated as rename-free (D-2)", () => {
     expect(driftRun([st(1, [a]), { step: 2, final: snap('s2', [a]) }], STUDY2_S2D01).renameMapMissing).toBe(true);
   });

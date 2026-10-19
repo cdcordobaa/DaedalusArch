@@ -18,7 +18,7 @@
  * Pure.
  */
 import { classifyDisappearance } from '../../v1.3/lib/fixes-mined.js';
-import { assertSameContext, cycleMembers, findingEdges, findingFiles, keysFor, mapFinding } from './identity.js';
+import { assertSameContext, cycleMembers, findingEdges, findingFiles, keysFor, mapFinding, successorKey } from './identity.js';
 import type { Cause, IdFinding, IdentityOptions, Lineage, Snapshot, Transition } from './types.js';
 
 export type KeyFn = (f: IdFinding) => readonly string[];
@@ -69,12 +69,6 @@ function index(s: Snapshot, keyFn: KeyFn): Map<string, Slot> {
   return m;
 }
 
-/** The successor key of an occurrence under ρ (positional for a key set; ID-8). */
-function successor(occ: Occ, mapped: IdFinding, keyFn: KeyFn): string | undefined {
-  const ks = keyFn(mapped);
-  if (ks.length === occ.n) return ks[occ.idx];
-  return ks.length === 1 ? ks[0] : undefined;
-}
 
 const strictSubset = (a: ReadonlySet<string>, b: ReadonlySet<string>): boolean => a.size < b.size && [...a].every((x) => b.has(x));
 
@@ -141,7 +135,7 @@ export function buildLineages(
           continue;
         }
         mapped = mapFinding(o.occ.f, rho);
-        succ = successor(o.occ, mapped, keyFn);
+        succ = successorKey(o.curKey, o.occ.f, mapped, rho, keyFn); // ID-8: an edge key maps by ρ, not by position
       }
       if (succ !== undefined && cur.has(succ)) {
         const c = claims.get(succ) ?? [];

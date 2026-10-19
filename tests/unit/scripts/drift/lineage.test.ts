@@ -194,6 +194,29 @@ describe('sequence rules', () => {
   });
 });
 
+describe('explode-edges with a rename (ID-8, ID-10; U4 verification)', () => {
+  // canonicalCycle re-rotates a renamed cycle, so an exploded edge's successor must be rho(u)|rho(v), never its position.
+  const o: IdentityOptions = { ...G08_PROPOSED, grain: 'edge', cycleIdentity: 'explode-edges', edgeOnly: true, merged: true };
+  const before = cyc('a.ts', 'b.ts', 'c.ts', 'a.ts');
+  const after = cyc('z.ts', 'b.ts', 'c.ts', 'z.ts');
+  const rho = [undefined, tr({ 'a.ts': 'z.ts' })];
+  it('each edge of a renamed cycle continues to its rho-mapped edge', () => {
+    const { lineages } = buildLineages([snap('0', [before]), snap('1', [after])], rho, o);
+    expect(one(lineages, 'a.ts|b.ts')).toMatchObject({ ended: null, finalKey: 'z.ts|b.ts', renamedAt: [1] });
+    expect(one(lineages, 'b.ts|c.ts')).toMatchObject({ ended: null });
+    expect(one(lineages, 'b.ts|c.ts').finalKey).toBeUndefined();
+    expect(one(lineages, 'c.ts|a.ts')).toMatchObject({ ended: null, finalKey: 'c.ts|z.ts', renamedAt: [1] });
+    expect(lineages.filter((l) => l.born === 1)).toEqual([]);
+  });
+  it('a plain FF-S01 on a cycle edge does not make that edge MERGED or start a new lineage', () => {
+    const plain = dep('b.ts', 'c.ts');
+    const { lineages } = buildLineages([snap('0', [plain, before]), snap('1', [plain, after])], rho, o);
+    expect(lineages.filter((l) => l.cause === 'MERGED')).toEqual([]);
+    expect(lineages.filter((l) => l.born === 1)).toEqual([]);
+    expect(one(lineages, 'b.ts|c.ts')).toMatchObject({ ended: null, ruleIds: ['FF-S01', 'FF-S02'] });
+  });
+});
+
 describe('the legacy preset reproduces lineages() of scripts/v1.3/fixes-mined-run.ts', () => {
   // A hand-built 6-point grid; snapshots carry files (for filesStay) and no edges, as the committed walk did not keep
   // a cause per lineage. The expected values were derived by reading `lineages()` and written here first.
