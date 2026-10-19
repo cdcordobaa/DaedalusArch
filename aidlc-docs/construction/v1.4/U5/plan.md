@@ -20,7 +20,7 @@
 
 ## Part A: the evasion check
 
-- [ ] **Step 1. Fixtures.** Create `tests/fixtures/v1.4-evasion/` with a `README.md` stating that the fixtures are synthetic and hand-written. Add one Layered spec, `spec.yaml`, copied verbatim from `presets/layered.yaml` (layers persistence, business, presentation; closed layering), as `tests/fixtures/v1.3-reference/layered/spec.yaml` does. Do not invent a four-layer spec. Add one Hexagonal spec for the `allowedDependencies` derivation. Then add one case directory per planted case, each with `t0/src/**` and `t1/src/**`, the blocking findings of each snapshot (`t0.findings.json`, `t1.findings.json`, in the loop `BlockingFinding` shape) and `expected.json` (the removed identities, expected signals, expected class):
+- [x] **Step 1. Fixtures.** Create `tests/fixtures/v1.4-evasion/` with a `README.md` stating that the fixtures are synthetic and hand-written. Add one Layered spec, `spec.yaml`, copied verbatim from `presets/layered.yaml` (layers persistence, business, presentation; closed layering), as `tests/fixtures/v1.3-reference/layered/spec.yaml` does. Do not invent a four-layer spec. Add one Hexagonal spec for the `allowedDependencies` derivation. Then add one case directory per planted case, each with `t0/src/**` and `t1/src/**`, the blocking findings of each snapshot (`t0.findings.json`, `t1.findings.json`, in the loop `BlockingFinding` shape) and `expected.json` (the removed identities, expected signals, expected class):
   - `relocated-unmapped`
   - `relocated-unguarded`
   - `wrapped`
@@ -35,14 +35,14 @@
   - `tool-tell`, a comment naming `check_import`, for the EV-06 redaction
   - `outside-context`, a DDD spec with an `outside_contexts` file
   - `observed-pair`, a finding on a placement pair the spec does not guard: listed, never counted (EV-06a)
-- [ ] **Step 2. Identity and rename seam.** Create `scripts/v1.3/lib/evasion/identity.ts`. It exports:
+- [x] **Step 2. Identity and rename seam.** Create `scripts/v1.3/lib/evasion/identity.ts`. It exports:
   - `type IdentityOf = (f: BlockingFinding) => readonly string[]`;
   - `defaultIdentity`. When `scripts/lib/drift/identity.ts` exists at build time (U4 plan Step 3), this is `(f) => edgeKeys(fromBlockingFinding(f), STUDY2_S2D01)`, with the preset from `scripts/lib/drift/types.ts`. Otherwise it is `(f) => [findingIdentity(f)]` from `scripts/lib/loop/pilot-metrics.ts`;
   - `IDENTITY_NAME: 'u4-edge' | 'pilot-metrics'`;
   - `renameMap(gitDir, a, b)`. This is U4's `renameMapBetween` when present. Otherwise it is a local `spawnSync('git', ['--git-dir=<gitDir>', 'diff', '--name-status', '-M50%', '-l5000', a, b, '--', 'src'])` with an R/C/D/A/M parser (a C row is not a rename), marked for removal when U4 lands. It returns the map and `renameDetection: 'full' | 'skipped'`. It is local git only, with no network.
 
   Do not edit any U4 file, `pilot-metrics.ts` or `study2-analysis.ts`.
-- [ ] **Step 3. Tree import graph.** Create `scripts/v1.3/lib/evasion/import-graph.ts`:
+- [x] **Step 3. Tree import graph.** Create `scripts/v1.3/lib/evasion/import-graph.ts`:
   - `readTree(dir)`: the `src/**/*.ts` files, with test files marked;
   - `readTree(gitDir, commit)`: only `src/` of the commit (`git archive <commit> -- src`, or `ls-tree` and `cat-file`);
   - `buildGraph(tree)`: edges with their kind, from `scanImports`, resolved with the existing `resolveRelative` (both in `scripts/v1.3/lib/snapshot-measures.ts`; reuse, don't re-implement); an unresolved relative specifier is counted;
@@ -52,14 +52,14 @@
   - `observedPairsNotInSpec(guarded, identities)`: listed only (EV-06a).
 
   Pure functions only; the spec is parsed once by the caller.
-- [ ] **Step 4. A1 acceptance.** Create `scripts/v1.3/lib/evasion/acceptance-rate.ts`. It exports `stepPasses(record)` (rule A1), `cellAcceptance(runs, fromStep)` and `acceptanceGap(cells, contrast)`. These implement the paired block rule (EV-03, with `blockKey` from `scripts/v1.3/lib/study2-analysis.ts`), the bar of 10 points both one-sided and two-sided (`flag`, `flagTwoSided`; design Q5), and the coverage flag below 0.9.
-- [ ] **Step 5. A2 signals.** Create `scripts/v1.3/lib/evasion/moved-only.ts`. It exports:
+- [x] **Step 4. A1 acceptance.** Create `scripts/v1.3/lib/evasion/acceptance-rate.ts`. It exports `stepPasses(record)` (rule A1), `cellAcceptance(runs, fromStep)` and `acceptanceGap(cells, contrast)`. These implement the paired block rule (EV-03, with `blockKey` from `scripts/v1.3/lib/study2-analysis.ts`), the bar of 10 points both one-sided and two-sided (`flag`, `flagTwoSided`; design Q5), and the coverage flag below 0.9.
+- [x] **Step 5. A2 signals.** Create `scripts/v1.3/lib/evasion/moved-only.ts`. It exports:
   - `removedIdentities(prev, cur, identityOf, rename)`: E_{t−1} is mapped through ρ first (EV-06b);
   - `avoidedEligible(...)`;
   - one function per signal (`relocatedUnmapped`, `relocatedUnguarded`, `wrapped`, `inlined` with the declaration-token Jaccard ≥ 0.6, `dynamicEscape`, `deleted`);
   - the cycle rule (signals per member edge gone at t; unknown members only allow `deleted` and none) and the edgeless rule (design §2.2);
   - `classifyDiff(signals)`, which applies the fixed severity order (EV-04) and keeps all fired signals.
-- [ ] **Step 6. A3 out-of-scope and the §2.5a extras.** Create `scripts/v1.3/lib/evasion/out-of-scope.ts`. It exports:
+- [x] **Step 6. A3 out-of-scope and the §2.5a extras.** Create `scripts/v1.3/lib/evasion/out-of-scope.ts`. It exports:
   - `outOfScope(tree, graph, spec, guarded)`, which returns `unmappedFiles`, `unmappedShare`, `outOfScopeEdges[]` and `declaredOutsideEdges`;
   - `newOutOfScopeEdges(runSnapshots)` (new by file pair).
 
@@ -67,12 +67,12 @@
   - `sizeByStep(steps)`: `loc` and the `sourceFiles` count from the step records, with no parsing;
   - `importKindsByStep(trees)`: `treeMeasures` of `snapshot-measures.ts`, giving the kinds and barrels;
   - `mechanism(steps)`: the share of `daedalus-mcp` steps with `process.calls > 0`, with `logFound === false` counted apart and `noMechanism` set below 0.8.
-- [ ] **Step 7. Sample and packet.** Create `scripts/v1.3/lib/evasion/sample.ts`:
+- [x] **Step 7. Sample and packet.** Create `scripts/v1.3/lib/evasion/sample.ts`:
   - `drawSample(pool, { perArm, seed })`, seeded with the existing `mulberry32` and `seededSample` of `scripts/v1.3/lib/graph-fidelity.ts` (reuse, don't re-implement). Flagged diffs come first, up to half the sample, then a uniform draw from the rest, with the shortfall reported.
   - `renderPacket(items, diffs)`: `README.md` with the key sha256 and the instruction to hand over `packet/` only; `E-NN.md`; and `form.csv` with the classes `resolved | moved-only | wrapped-or-inlined | feature-dropped`. Test files and the denied strings are stripped. The tool and firewall tokens are redacted in the diff text, with per-item counts in the key only (EV-06).
   - `unblind(labels, key, keySha256)`: refuses on a hash mismatch (EV-07). It computes counts per arm, the heuristic agreement 2×2, and both bars, `evasionHumanRead` (moved-only) and `evasionHumanReadBroad` (plus wrapped/inlined) (design Q4).
-- [ ] **Step 8. Analysis core and report.** Create `scripts/v1.3/lib/evasion/analyse.ts`. It exports `analyseEvasion(loaded, opts, io)`, where `io` gives `checkout(runDir, commit) → dir` and `readSpec(path)`, so the tests inject trees. It builds the `study2-evasion/v1` object exactly as in design §2.6, including `size`, `importKinds`, `mechanism` and the `notHere` lines for s2d-01 §5.4 and §5.7, plus `renderEvasionMd(report)`. It processes one run at a time and holds at most two trees in memory. Deterministic: no clock in the json, sorted keys and arrays (EV-10 placeholders for the out-root).
-- [ ] **Step 9. Entry CLI.** Create `scripts/v1.3/study2-evasion.ts`:
+- [x] **Step 8. Analysis core and report.** Create `scripts/v1.3/lib/evasion/analyse.ts`. It exports `analyseEvasion(loaded, opts, io)`, where `io` gives `checkout(runDir, commit) → dir` and `readSpec(path)`, so the tests inject trees. It builds the `study2-evasion/v1` object exactly as in design §2.6, including `size`, `importKinds`, `mechanism` and the `notHere` lines for s2d-01 §5.4 and §5.7, plus `renderEvasionMd(report)`. It processes one run at a time and holds at most two trees in memory. Deterministic: no clock in the json, sorted keys and arrays (EV-10 placeholders for the out-root).
+- [x] **Step 9. Entry CLI.** Create `scripts/v1.3/study2-evasion.ts`:
 
   ```text
   npx tsx scripts/v1.3/study2-evasion.ts --out-root <loop out-root> --out <dir>
@@ -81,7 +81,7 @@
   ```
 
   It reads each run's `src/` snapshots into an OS temp scratch directory, removed per run and again in a `finally`. Exit codes: 0 done; 1 a snapshot unreadable (recorded); 2 usage. The header comment says it makes no model, network or Neo4j call (EV-09).
-- [ ] **Step 10. Evasion unit tests.** Create `tests/unit/scripts/v1.3/evasion/`:
+- [x] **Step 10. Evasion unit tests.** Create `tests/unit/scripts/v1.3/evasion/`:
   - `import-graph.test.ts`: resolution and placement, plus the unresolved count;
   - `acceptance-rate.test.ts`: every status, pairing, the bar and coverage;
   - `moved-only.test.ts`: each Step 1 case gives its `expected.json`, `true-fix-dip` gives `none`, and `rename-only` gives no eligible diff;
@@ -91,8 +91,8 @@
   - `analyse.test.ts`: byte-identical json on two runs, no absolute path in the output, and steps before `fromStep` ignored (EV-01).
 
   Run `npx jest tests/unit/scripts/v1.3/evasion --maxWorkers=2`.
-- [ ] **Step 11. Evasion dry run, recorded.** Copy `experiments/loop-demo/plan.dry-run.json` and its demo tasks into an OS temp scratch directory. Set arms to `none` and `daedalus-mcp`, set 2 runs, and point the out-root at the scratch directory. Do not add frames: the demo plan has none, and frames need task profiles. Run `npx tsx scripts/loop-harness-cli.ts --plan <scratch plan> --dry-run` (stub generator, stub evaluator, no Neo4j). Then run `study2-evasion.ts` over it with `--h2 none@-,daedalus-mcp@- --spec specs/clean-arch.yaml --out results/v1.4-evasion-dry-run`. Add `results/v1.4-evasion-dry-run/README.md` giving the command lines (paths as placeholders), the statement "stub data, not a measurement", and what each section showed. The stub never removes a finding outside the gate arm, so expect avoided diffs only. Also run the CLI over an out-root assembled from the Step 1 fixtures, with hand-built step records that carry `acceptance` records so the sample pool is non-empty (a small fixture out-root builder in the test helpers), and record both runs.
-- [ ] **Step 12. Evasion doc.** Create `Docs/v1.4/evasion-check.md` (the v1.4 docs folder, as U2 uses; not a `Docs/v1.3/study2-*` name, a family that carries the enforced protocol line). It gives the pre-registrable text of A1–A3 and the §2.5a coverage table, the sample and blind-read procedure, the bars and margins (10 points, with both readings; 0 moved-only in mcp, with both class sets; 1 edge per snapshot, marked as a design proposal), the class order, the limits (R6–R10, R13–R15), the open author questions Q2–Q5, and the commands. It links s2d-01 §5 and REV-03 finding 5. It is marked as a candidate for the pre-registration, not as registered.
+- [x] **Step 11. Evasion dry run, recorded.** Copy `experiments/loop-demo/plan.dry-run.json` and its demo tasks into an OS temp scratch directory. Set arms to `none` and `daedalus-mcp`, set 2 runs, and point the out-root at the scratch directory. Do not add frames: the demo plan has none, and frames need task profiles. Run `npx tsx scripts/loop-harness-cli.ts --plan <scratch plan> --dry-run` (stub generator, stub evaluator, no Neo4j). Then run `study2-evasion.ts` over it with `--h2 none@-,daedalus-mcp@- --spec specs/clean-arch.yaml --out results/v1.4-evasion-dry-run`. Add `results/v1.4-evasion-dry-run/README.md` giving the command lines (paths as placeholders), the statement "stub data, not a measurement", and what each section showed. The stub never removes a finding outside the gate arm, so expect avoided diffs only. Also run the CLI over an out-root assembled from the Step 1 fixtures, with hand-built step records that carry `acceptance` records so the sample pool is non-empty (a small fixture out-root builder in the test helpers), and record both runs.
+- [x] **Step 12. Evasion doc.** Create `Docs/v1.4/evasion-check.md` (the v1.4 docs folder, as U2 uses; not a `Docs/v1.3/study2-*` name, a family that carries the enforced protocol line). It gives the pre-registrable text of A1–A3 and the §2.5a coverage table, the sample and blind-read procedure, the bars and margins (10 points, with both readings; 0 moved-only in mcp, with both class sets; 1 edge per snapshot, marked as a design proposal), the class order, the limits (R6–R10, R13–R15), the open author questions Q2–Q5, and the commands. It links s2d-01 §5 and REV-03 finding 5. It is marked as a candidate for the pre-registration, not as registered.
 
 ## Part B: the Gemini generator adapter
 

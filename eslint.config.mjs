@@ -55,6 +55,7 @@ export default tseslint.config(
     // imports resolve only inside their CHECK-2 project.
     // src/cypher-interp/generated: ANTLR output (scripts/v1.3/gen-cypher-parser.sh), not hand-written.
     // tests/fixtures/loop-acceptance: plain-JS demo services the acceptance runner starts (not TypeScript of this repo).
-    ignores: ['dist/**', 'node_modules/**', 'coverage/**', '*.cjs', '*.mjs', 'tests/fixtures/v1.3-cheap2/**', 'tests/fixtures/v1.3-devset-b/**', 'tests/fixtures/v1.3-dynamic-imports/**', 'tests/fixtures/v1.3-judge-steering/**', 'tests/fixtures/loop-acceptance/**', 'src/cypher-interp/generated/**'],
+    // tests/fixtures/v1.4-evasion: planted two-snapshot project trees of the Study 2 evasion check (U5), not repo code.
+    ignores: ['dist/**', 'node_modules/**', 'coverage/**', '*.cjs', '*.mjs', 'tests/fixtures/v1.3-cheap2/**', 'tests/fixtures/v1.3-devset-b/**', 'tests/fixtures/v1.3-dynamic-imports/**', 'tests/fixtures/v1.3-judge-steering/**', 'tests/fixtures/loop-acceptance/**', 'tests/fixtures/v1.4-evasion/**', 'src/cypher-interp/generated/**'],
   },
 );
