@@ -5,6 +5,7 @@
  */
 import { MockFailure, MockOntologyProvider, NoCallProvider, aggregate, createScriptedResponder, diskReader, estimateOntology, runOntology, scoreCase } from '../../../../src/apg-enrich/ontology/index.js';
 import type { CaseScore, OntologyInput, OntologyResult } from '../../../../src/apg-enrich/ontology/index.js';
+import { prepareOntologyInput } from '../../../../src/apg-enrich/ontology/index.js';
 import { buildContext } from '../../../../src/apg-enrich/cheap/context.js';
 import { DEFAULT_CHEAP_OPTIONS } from '../../../../src/apg-enrich/cheap/types.js';
 import { PROMPT_VERSION, buildUnits } from '../../../../src/apg-enrich/ontology/index.js';
@@ -85,6 +86,22 @@ describe('ontology pipeline on the planted cases (cassette replay)', () => {
     expect(detail.clusters.rules.adjudications).toEqual([]);
     expect(detail.result.findings.filter((f) => f.kind === 'semantic-rule-duplication')).toEqual([]);
     expect(detail.result.nodes.filter((n) => n.label === 'SemBusinessRule')).toEqual([]);
+  }, 60_000);
+
+  it('BR-U3-07/09 positive: case-03 with one declared context around all three definers gives one in-context fragmentation finding; split into one context per component it gives none', async () => {
+    const c = 'case-03-concept-fragmentation';
+    const ctx = (name: string, root: string) => ({ name, root, publicApi: [], acl: [] });
+    const ddd = (contexts: ReturnType<typeof ctx>[]) => ({ sourceRoot: 'src/', contexts, outsideContexts: [], aggregates: [], valueObjects: [], repositories: [], domainEventTypes: [], applicationServices: [] });
+    const run = async (contexts: ReturnType<typeof ctx>[]) => {
+      const input = await prepareOntologyInput(`${FIXTURES}/${c}`, { layerModel: { ...LAYERS, ddd: ddd(contexts) } });
+      const mock = new MockOntologyProvider(createScriptedResponder(mockAnswers(c), input.apg, diskReader(input.projectRoot)));
+      return (await runOntology(input, { provider: mock })).result.findings.filter((f) => f.kind === 'concept-fragmentation');
+    };
+    const one = await run([ctx('customers', 'src')]);
+    expect(one).toHaveLength(1);
+    expect(one[0]).toMatchObject({ components: ['customers'] });
+    expect((one[0] as { classes: unknown[] }).classes.length).toBeGreaterThanOrEqual(2);
+    expect(await run([ctx('sales', 'src/sales'), ctx('billing', 'src/billing'), ctx('accounts', 'src/accounts')])).toEqual([]);
   }, 60_000);
 
   it('BR-U3-11: the rule prompt asks for business rules and input checks with their kind, and names no case', () => {

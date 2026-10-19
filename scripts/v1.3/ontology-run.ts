@@ -98,6 +98,11 @@ function readLayers(file: string): LayerModel {
   return JSON.parse(fs.readFileSync(file, 'utf8')) as LayerModel;
 }
 
+/** Design §3.1: `facts.json` records the layer model path repo-relative (cwd-relative, posix), never an absolute path. */
+export function repoRelative(p: string | null): string | null {
+  return p === null ? null : path.relative(process.cwd(), path.resolve(p)).split(path.sep).join('/');
+}
+
 async function layerModelOf(argv: readonly string[], fixtures: boolean): Promise<{ model: LayerModel | undefined; path: string | null }> {
   const spec = arg(argv, '--spec');
   if (spec !== undefined) {
@@ -227,7 +232,7 @@ export async function main(argv: readonly string[], deps: RouteDeps = DEFAULT_RO
         break;
       }
       // A2 and the Sem rules (facts through the query layer; in-process graph, no Neo4j).
-      const facts = buildFacts(detail, input, { projectId: t.id, layerModelPath: layers.path });
+      const facts = buildFacts(detail, input, { projectId: t.id, layerModelPath: repoRelative(layers.path) });
       fs.writeFileSync(path.join(dir, 'facts.json'), `${JSON.stringify(facts, null, 2)}\n`);
       const repo = new MemoryGraphRepository();
       const loaded = await loadFacts(input.apg, layers.model, facts, repo);

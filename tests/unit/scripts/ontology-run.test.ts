@@ -11,7 +11,7 @@ import { cheapOutcome, prepareOntologyInput, resolveSubject } from '../../../src
 import type { ExpectedSemanticManifest, Ns02Block, RouteDeps } from '../../../src/apg-enrich/ontology/index.js';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import type { LayerModel } from '../../../src/shared/types/spec.js';
-import { FIXTURES, NS02_SET, fixtureCases, main, ns02Targets } from '../../../scripts/v1.3/ontology-run.js';
+import { FIXTURES, NS02_SET, fixtureCases, main, ns02Targets, repoRelative } from '../../../scripts/v1.3/ontology-run.js';
 
 // The two regexes replication/v1.3/groups/g-ontology.mjs parses (BR-U3-17).
 const RUN_LINE = /^(case-[\w-]+): (\d+) Sem nodes, (\d+) Sem edges, (\d+) findings, (\d+) rejected \(hallucinations\); calls (\d+), cache hits (\d+)/gm;
@@ -143,6 +143,14 @@ describe('ontology-run script', () => {
     expect(ids.some((id) => id?.startsWith('case-06'))).toBe(false);
     expect(ids).toEqual(expect.arrayContaining(['case-09-limit-only-in-controller', 'case-09t-control-length-check-in-controller', 'case-02-misplaced-pricing']));
   }, 180_000);
+});
+
+describe('A2 layer model path (design §3.1)', () => {
+  it('is written repo-relative even when --layers is absolute', () => {
+    expect(repoRelative(path.resolve(FIXTURES, 'layers.json'))).toBe(`${FIXTURES}/layers.json`);
+    expect(repoRelative(`${FIXTURES}/layers.json`)).toBe(`${FIXTURES}/layers.json`);
+    expect(repoRelative(null)).toBeNull();
+  });
 });
 
 describe('NS-02 set index', () => {
