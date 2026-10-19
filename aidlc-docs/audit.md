@@ -2412,3 +2412,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 instrument track, Study 2 protocol; no model calls
 
 ---
+
+## v1.4 construction: U10 loop and validity (BUILD-L)
+**Timestamp**: 2026-10-19T22:20:00Z
+**User Input**: "Scheduled routine BUILD-L: zero-call builds for the instrument and the exploratory study (layered loop style and frames, per-task MCP spec, drift power mode, L1 coverage check, seeded recall on agent snapshots, isolation-on plan template with S1/S12/D6); new unit U10; PR to main, do not merge."
+**AI Response**: "Built all six items with zero model calls and no Neo4j. Rehearsal L2/L3 frames all 0 FAIL in the hint audit; power table reproduced in 22/24 cells (two H2 cells off, RR 0.25 exact); coverage 97/104 snapshots pass (7 floor-probe-2 C2 fails); seeded recall Clean 0.84, Hexagonal 0.90, Layered 0.71 (1.00 without the 4 direction-mismatched operators), DDD not covered. Approval gates skipped (unattended run, PR is the review point). Plan and summary in aidlc-docs/construction/v1.4/U10/."
+**Context**: v1.4 construction, unit U10; author decisions pending: DDD rehearsal spec, CLI pin value, Layered L3 wording, power lower-bound clustering
+
+---

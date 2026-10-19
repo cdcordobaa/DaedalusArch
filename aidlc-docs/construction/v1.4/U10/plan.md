@@ -38,14 +38,14 @@ This plan is the single source of truth for the unit's code generation. Each ste
 - [x] Level path byte-identical for the same arguments.
 
 ### Step 4: L1 per-snapshot coverage check (V8 restated)
-- [ ] Script + lib: per snapshot, unmapped share, unparsed files, files the extractor does not read, barrel / `require` / `import()` counts, pass/fail against the TRUST-01 L1 bar; per-store aggregates.
-- [ ] Tests on fixture trees.
-- [ ] Run on the committed floor-probe and loop-pilot snapshots; commit outputs.
+- [x] Script + lib: per snapshot, unmapped share, unparsed files, files the extractor does not read, barrel / `require` / `import()` counts, pass/fail against the TRUST-01 L1 bar; per-store aggregates.
+- [x] Tests on fixture trees.
+- [x] Run on the committed floor-probe and loop-pilot snapshots; commit outputs.
 
 ### Step 5: seeded recall on agent snapshots (REV-05 §5 item 1)
-- [ ] Script + lib: the existing mutation operators on step-k snapshots, detection per operator and per style, `cypher-interp`.
-- [ ] Tests on a fixture.
-- [ ] Run on the committed loop-pilot and floor-probe snapshots; outputs under `results/v1.4-seeded-recall-agent/`; a DiagnosticRuns note.
+- [x] Script + lib: the existing mutation operators on step-k snapshots, detection per operator and per style, `cypher-interp`.
+- [x] Tests on a fixture.
+- [x] Run on the committed loop-pilot and floor-probe snapshots; outputs under `results/v1.4-seeded-recall-agent/`; a DiagnosticRuns note.
 
 ### Step 6: isolation ON in an exploratory plan template, S1, S12, D6 (P26, P29)
 - [x] `experiments/exploratory-study/plan-L2.template.json`, `plan-L3.template.json`: `cliVersion` pinned (placeholder `2.1.294`, author to confirm), `generatorIsolation.claudeConfigDir: "<local>"`, tasks `ice-rink` and `vineyard-harvest` (the candidate DDD rehearsal spec), `callBudget` = `planCallBudget`; test loads both.
@@ -55,6 +55,6 @@ This plan is the single source of truth for the unit's code generation. Each ste
 - [x] `Docs/v1.4/loop-isolation-exploratory.md`: what is built and what needs live runs.
 
 ### Step 7: close
-- [ ] Code summary `aidlc-docs/construction/v1.4/U10/code/summary.md`.
-- [ ] One `aidlc-docs/audit.md` entry (append only).
+- [x] Code summary `aidlc-docs/construction/v1.4/U10/code/summary.md`.
+- [x] One `aidlc-docs/audit.md` entry (append only).
 - [ ] Full checks (jest on the touched suites with `--maxWorkers=2`, `tsc --noEmit` on `tsconfig.json` and `tsconfig.scripts.json`, ESLint on changed files), push, PR to `main` titled "BUILD-L: loop and validity (U10)". Not merged.
