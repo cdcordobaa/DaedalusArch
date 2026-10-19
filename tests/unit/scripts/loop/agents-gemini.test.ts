@@ -84,12 +84,25 @@ function stream(name: string, arm: string): string {
   return fs.readFileSync(path.join(FIX, name), 'utf8').replace(/<TYPECHECK>/g, typecheckCommand(H, runIdOf(arm))).replace(/<CWD>/g, '/w');
 }
 
+/** Answers `agy --version` (checked before every turn, design R3) without consuming a script or a cliCalls entry. */
+class VersionedRunner extends FakeGeneratorRunner {
+  version = '0.0.0';
+  versionCalls = 0;
+  override run(command: string, args: readonly string[], options: Parameters<FakeGeneratorRunner['run']>[2]): ReturnType<FakeGeneratorRunner['run']> {
+    if (command === binary && args[0] === '--version') {
+      this.versionCalls++;
+      return Promise.resolve(DomainResult.ok({ exitCode: 0, stdout: `agy ${this.version}\n`, stderr: '', timedOut: false, durationMs: 1 }));
+    }
+    return super.run(command, args, options);
+  }
+}
+
 const agent = (runner: FakeGeneratorRunner, extra: Partial<ConstructorParameters<typeof GeminiStepAgent>[1]> = {}): GeminiStepAgent =>
   new GeminiStepAgent(config, { runner, daedalus: DAEDALUS, sleep: () => Promise.resolve(), parentEnv: { PATH: '/bin', HOME: '/real', GEMINI_API_KEY: 'k' }, ...extra });
 
 describe('GeminiStepAgent: one turn per arm', () => {
   it.each(['none', 'daedalus-mcp', 'gate'] as const)('%s: completed, prompt on stdin, the argv recorded, the arm home as HOME', async (arm: 'none' | 'daedalus-mcp' | 'gate') => {
-    const runner = new FakeGeneratorRunner(binary, [{ stdout: stream(arm === 'daedalus-mcp' ? 'stream-gen-mcp-completed.ndjson' : 'stream-gen-completed.ndjson', arm) }]);
+    const runner = new VersionedRunner(binary, [{ stdout: stream(arm === 'daedalus-mcp' ? 'stream-gen-mcp-completed.ndjson' : 'stream-gen-completed.ndjson', arm) }]);
     const t = input(arm);
     const r = await agent(runner).runTurn(t);
     if (!r.success) throw new Error(r.errors.map((e) => `${e.code} ${e.message}`).join(','));
@@ -107,7 +120,7 @@ describe('GeminiStepAgent: one turn per arm', () => {
   });
 
   it('daedalus-mcp: the MCP config is written per turn with --project <cwd> and --call-log', async () => {
-    const runner = new FakeGeneratorRunner(binary, [{ stdout: stream('stream-gen-mcp-completed.ndjson', 'daedalus-mcp') }]);
+    const runner = new VersionedRunner(binary, [{ stdout: stream('stream-gen-mcp-completed.ndjson', 'daedalus-mcp') }]);
     const t = input('daedalus-mcp', { callLogPath: path.join(tmp, 'out', 'calls', 'step-02.jsonl') });
     const r = await agent(runner).runTurn(t);
     expect(r.success).toBe(true);
@@ -120,11 +133,11 @@ describe('GeminiStepAgent: one turn per arm', () => {
   it('the exit-0 print timeout gives timeout through the status hook; without files it is retried as infrastructure', async () => {
     const stderr = fs.readFileSync(path.join(FIX, 'stream-gen-print-timeout.stderr.txt'), 'utf8');
     const s = { stdout: stream('stream-gen-print-timeout.ndjson', 'none'), stderr };
-    const r = await agent(new FakeGeneratorRunner(binary, [s])).runTurn(input('none'));
+    const r = await agent(new VersionedRunner(binary, [s])).runTurn(input('none'));
     if (!r.success) throw new Error('turn');
     expect(r.data.status).toBe('timeout');
     const t = input('none', { changedFiles: () => 0 });
-    const r2 = await agent(new FakeGeneratorRunner(binary, [s, s, s])).runTurn(t);
+    const r2 = await agent(new VersionedRunner(binary, [s, s, s])).runTurn(t);
     if (!r2.success) throw new Error('turn');
     expect(r2.data.status).toBe('infrastructure');
     expect(r2.data.attempts.map((a) => a.outcome)).toEqual(['timeout-no-files', 'timeout-no-files', 'timeout-no-files']);
@@ -132,7 +145,7 @@ describe('GeminiStepAgent: one turn per arm', () => {
   });
 
   it('a usage limit pauses, archives and restores, then resumes the same turn', async () => {
-    const runner = new FakeGeneratorRunner(binary, [{ stdout: stream('stream-gen-usage-limit.ndjson', 'none'), exitCode: 1 }, { stdout: stream('stream-gen-completed.ndjson', 'none') }]);
+    const runner = new VersionedRunner(binary, [{ stdout: stream('stream-gen-usage-limit.ndjson', 'none'), exitCode: 1 }, { stdout: stream('stream-gen-completed.ndjson', 'none') }]);
     const sleeps: number[] = [];
     let now = 1_767_220_000_000;
     const t = input('none');
@@ -147,23 +160,52 @@ describe('GeminiStepAgent: one turn per arm', () => {
   });
 
   it('a model mismatch is recorded as model-mismatch', async () => {
-    const r = await agent(new FakeGeneratorRunner(binary, [{ stdout: stream('stream-gen-model-mismatch.ndjson', 'none') }])).runTurn(input('none'));
+    const r = await agent(new VersionedRunner(binary, [{ stdout: stream('stream-gen-model-mismatch.ndjson', 'none') }])).runTurn(input('none'));
     expect(r.success ? r.data.status : null).toBe('model-mismatch');
   });
 
   it('the auth and tool-escape stops fail the turn (no retry); the envelope is kept', async () => {
-    const authRunner = new FakeGeneratorRunner(binary, [{ stderr: 'Error: authentication required', exitCode: 1 }]);
+    const authRunner = new VersionedRunner(binary, [{ stderr: 'Error: authentication required', exitCode: 1 }]);
     const a = await agent(authRunner).runTurn(input('none'));
     expect(a.success ? null : a.errors[0]?.code).toBe('LOOP_GEMINI_AUTH');
     expect(authRunner.cliCalls).toHaveLength(1);
     const t = input('none');
-    const e = await agent(new FakeGeneratorRunner(binary, [{ stdout: stream('stream-gen-tool-escape.ndjson', 'none') }])).runTurn(t);
+    const e = await agent(new VersionedRunner(binary, [{ stdout: stream('stream-gen-tool-escape.ndjson', 'none') }])).runTurn(t);
     expect(e.success ? null : e.errors[0]?.code).toBe('LOOP_GEMINI_TOOL_ESCAPE');
     expect(fs.existsSync(path.join(t.recordDir, 'envelope-step-02.json'))).toBe(true);
   });
 
+  it('§3.5: a forbidden step in an attempt that is then retried still stops the turn (every attempt is checked)', async () => {
+    const stderr = fs.readFileSync(path.join(FIX, 'stream-gen-print-timeout.stderr.txt'), 'utf8');
+    const runner = new VersionedRunner(binary, [{ stdout: stream('stream-gen-tool-escape.ndjson', 'none'), stderr }, { stdout: stream('stream-gen-completed.ndjson', 'none') }]);
+    const t = input('none', { changedFiles: () => 0 });
+    const r = await agent(runner).runTurn(t);
+    expect(runner.cliCalls).toHaveLength(2);
+    expect(r.success ? null : r.errors[0]?.code).toBe('LOOP_GEMINI_TOOL_ESCAPE');
+  });
+
+  it('a forbidden step before a usage-limit pause still stops the resumed turn', async () => {
+    const limited = stream('stream-gen-tool-escape.ndjson', 'none') + stream('stream-gen-usage-limit.ndjson', 'none');
+    const runner = new VersionedRunner(binary, [{ stdout: limited, exitCode: 1 }, { stdout: stream('stream-gen-completed.ndjson', 'none') }]);
+    const r = await agent(runner).runTurn(input('none'));
+    expect(runner.cliCalls).toHaveLength(2);
+    expect(r.success ? null : r.errors[0]?.code).toBe('LOOP_GEMINI_TOOL_ESCAPE');
+  });
+
+  it('R3: the version pin is checked before every turn; a drifted agy fails the turn before any spawn', async () => {
+    const runner = new VersionedRunner(binary, [{ stdout: stream('stream-gen-completed.ndjson', 'none') }, { stdout: stream('stream-gen-completed.ndjson', 'none') }]);
+    const a = agent(runner);
+    expect((await a.runTurn(input('none'))).success).toBe(true);
+    expect(runner.versionCalls).toBe(1);
+    runner.version = '1.3.2';
+    const r = await a.runTurn(input('none', { turnId: 'step-03' }));
+    expect(r.success ? null : r.errors[0]?.code).toBe('LOOP_CLI_VERSION_MISMATCH');
+    expect(runner.versionCalls).toBe(2);
+    expect(runner.cliCalls).toHaveLength(1);
+  });
+
   it('an ambient rule file above the cwd fails closed before any spawn', async () => {
-    const runner = new FakeGeneratorRunner(binary, [{ stdout: stream('stream-gen-completed.ndjson', 'none') }]);
+    const runner = new VersionedRunner(binary, [{ stdout: stream('stream-gen-completed.ndjson', 'none') }]);
     const t = input('none');
     fs.writeFileSync(path.join(tmp, 'out', 'AGENTS.md'), 'canary');
     const r = await agent(runner).runTurn(t);

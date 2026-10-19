@@ -165,8 +165,8 @@
   - a grep for absolute personal paths in `results/v1.4-*`, `Docs/v1.4/evasion-check.md`, `Docs/v1.4/gemini-*.md` and the new fixtures, which must come back empty.
 
   List any test that needs Neo4j as skipped, with its name (none expected).
-- [ ] **Step 26. Code summary.** Create `aidlc-docs/construction/v1.4/U5/code/summary.md` (markdown only). It gives the files created and edited, the test counts, the dry-run result paths, the open S4 prerequisites and the author questions still open. Mark this plan's checkboxes as the steps complete.
-  - **Status 2026-10-18:** the build agent's harness refused to create `code/summary.md` (its rule: an agent does not write report files). The summary is in the PR description instead; the orchestrator can commit it to `code/summary.md` from there. Every other checkbox is ticked.
+- [x] **Step 26. Code summary.** Create `aidlc-docs/construction/v1.4/U5/code/summary.md` (markdown only). It gives the files created and edited, the test counts, the dry-run result paths, the open S4 prerequisites and the author questions still open. Mark this plan's checkboxes as the steps complete.
+  - **Status 2026-10-18:** the build agent's harness refused to create `code/summary.md` (its rule: an agent does not write report files). The summary was committed to `code/summary.md` from the PR description at integration (2026-10-18). Every other checkbox is ticked.
 
 ---
 

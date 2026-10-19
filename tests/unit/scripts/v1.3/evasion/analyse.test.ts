@@ -85,6 +85,16 @@ describe('analyseEvasion over the fixture out-root', () => {
     expect(rep.acceptance['none@L2']?.stepsWithRecord).toBe(0);
   });
 
+  it('EV-05: diffs from a non-H2 cell (none@L3) are counted but never enter the sample pool', async () => {
+    const withL3 = [...grid(), ...grid().filter((g) => g.arm === 'none').map((g) => ({ ...g, rung: 'L3' as const }))];
+    const r = await analyseEvasion(loadedRuns(withL3), (id) => `/x/${id}`, OPTS, fixtureIO());
+    const rep = asRep(r.report);
+    expect(rep.cells).toContain('none@L3');
+    expect(rep.movedOnly['none@L3']).toBeDefined();
+    expect(rep.sample).toMatchObject({ pool: 24, drawn: { 'daedalus-mcp@L2': 10, 'none@L2': 10 } });
+    expect(Object.keys(rep.sample.drawn as Record<string, number>)).not.toContain('none@L3');
+  });
+
   it('EV-02: a step without an evaluation is excluded and counted; without acceptance it never passes', async () => {
     const runs = loadedRuns([
       { caseName: 'wrapped', arm: 'none', rung: 'L2', evaluated: [true, false] },

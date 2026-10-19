@@ -501,7 +501,12 @@ export class GeminiStepAgent implements StepAgent {
     const secrets = this.deps.knownSecrets ?? [];
     const env = buildAgyGenChildEnv(this.deps.parentEnv ?? process.env, planned.home);
     const stopCtx = { arm: planned.arm, allowCommand: this.config.allowCommand, typecheckCommand: typecheckCommand(this.config.harnessRoot, input.runId) };
-    const last: { cli: ProcessResult | null } = { cli: null };
+    // Design R3: the version pin is checked before every turn (agy self-updates), not only at probe time.
+    const pin = await this.checkVersionPin(env);
+    if (!pin.success) return DomainResult.fail(pin.errors);
+    // Design §3.5 (stop row): every attempt's process result is kept, so a forbidden step completed in an attempt that
+    // was then retried (print timeout with no files, usage-limit pause and resume) still stops the grid.
+    const seen: ProcessResult[] = [];
     let listingSha256 = '';
     const driven = await driveTurn(
       input,
@@ -520,7 +525,7 @@ export class GeminiStepAgent implements StepAgent {
             : DomainResult.fail([{ code: 'GEN_AGY_HOME_FORBIDDEN', message: `the ${planned.arm} generator home fails ${String(home.problems.length)} check(s)`, context: { problems: [...home.problems] } }]);
         },
         parse: (cli) => {
-          last.cli = cli;
+          seen.push(cli);
           const p = parseAgyGenRun(cli.stdout, secrets);
           return p.success ? p.data : null;
         },
@@ -531,7 +536,26 @@ export class GeminiStepAgent implements StepAgent {
       planned.prompt,
     );
     if (!driven.success) return driven;
-    const stop = agyGenStop(last.cli, stopCtx, secrets);
-    return stop === null ? driven : DomainResult.fail([stop]);
+    for (const cli of seen) {
+      const stop = agyGenStop(cli, stopCtx, secrets);
+      if (stop !== null) return DomainResult.fail([stop]);
+    }
+    return driven;
+  }
+
+  /** `agy --version` in the turn's environment equals the pin (`LOOP_CLI_VERSION_MISMATCH`); no model call. */
+  private async checkVersionPin(env: Readonly<Record<string, string>>): Promise<DomainResult<void>> {
+    const r = await this.deps.runner.run(this.config.binary, ['--version'], { env, timeoutMs: VERSION_TIMEOUT_MS, stdin: '' });
+    if (!r.success || r.data.exitCode !== 0 || r.data.timedOut) {
+      return DomainResult.fail([{ code: 'LOOP_CLI_UNAVAILABLE', message: 'the agy CLI is not available at the gemini binary path' }]);
+    }
+    const version = parseAgyVersion(r.data.stdout);
+    if (version !== this.config.cliVersion) {
+      return DomainResult.fail([
+        { code: 'LOOP_CLI_VERSION_MISMATCH', message: `agy --version reports ${version ?? 'no version'} before the turn, the plan pins ${this.config.cliVersion}`, context: { found: version, pinned: this.config.cliVersion } },
+      ]);
+    }
+    this.probedVersion = version;
+    return DomainResult.ok(undefined);
   }
 }
