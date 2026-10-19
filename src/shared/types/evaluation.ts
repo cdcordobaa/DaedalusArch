@@ -397,8 +397,8 @@ export interface TierRuleRow {
   readonly name: string;
   readonly dimension: Dimension;
   readonly tier: 'blocking' | 'advisory';
-  /** `table`: Docs/v1.3/rule-tiers.md; `untiered-default`: an id the table does not list (advisory). */
-  readonly tierSource: 'table' | 'untiered-default';
+  /** `table`: Docs/v1.3/rule-tiers.md; `untiered-default`: an id the table does not list (advisory); `post-seal`: Docs/v1.4/rule-tiers-post-seal.md (v1.4 U2). */
+  readonly tierSource: 'table' | 'untiered-default' | 'post-seal';
   /** LLM judge rule (FF-N01, FF-N02): reported, non-blocking in v1.3. */
   readonly judge?: true;
   /** Violations that count (for a partial rule, the applicable rows only). */

@@ -193,6 +193,7 @@ async function main(): Promise<void> {
 
 async function evaluateVariant(projectDir: string, specPath: string, apgStorePath: string) {
   const { executor, context, cleanup } = createPipeline({
+    postSealRules: false, // v1.4 U2: the sealed v1.3 rule set (BR-U2-10)
     projectPath: projectDir, specFilePath: specPath, neo4jUri: uri, neo4jUser: user, neo4jPassword: password,
     evaluationMode: 'symbolic-only', pipelineMode: 'stateless', persist: false, diff: false, verbose: false,
     apgStorePath, llmConfig: undefined, instrumentVersion: 2, neuralAggregation: 'registered', scoringMode: 'v1.3',

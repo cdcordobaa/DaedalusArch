@@ -227,7 +227,8 @@ describe('CompileCommand', () => {
         layerModel: expect.any(Object),
         scoringWeights: expect.any(Object),
       }),
-      { instrumentVersion: 2, constructSwitches: CONSTRUCT_ANSWERS }, // ADR-026 default; the switch file (R30: explicit)
+      // ADR-026 default; the switch file (R30: explicit); v1.4 U2: the post-seal rules, on by default (Docs/v1.4/adr-v14.md).
+      { instrumentVersion: 2, constructSwitches: CONSTRUCT_ANSWERS, postSealRules: true },
     );
     expect(context.getCompiledFunctions()).toBe(compiled);
   });
@@ -330,6 +331,7 @@ describe('U3-R9 warning routing and compile facts', () => {
 
     await new CompileCommand(holder).execute(context);
 
-    expect(holder.facts).toEqual({ declared: 4, adrDerived: 0, dropped: ['FF-A', 'FF-B'], instrumentVersion: 2 });
+    // v1.4 U2: the facts also record the post-seal flag; this stub spec has no style, so the overlay adds nothing.
+    expect(holder.facts).toEqual({ declared: 4, adrDerived: 0, dropped: ['FF-A', 'FF-B'], instrumentVersion: 2, postSealRules: true, postSealAdded: [] });
   });
 });

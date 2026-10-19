@@ -153,6 +153,17 @@ function resolveScoringMode(value: string, flag: string): ScoringMode | undefine
   return undefined;
 }
 
+/** `--post-seal` value (v1.4 U2): `on` (default) or `off`; anything else exits 2. Read only under `v1.3` rules. */
+function resolvePostSeal(value: string): boolean | undefined {
+  if (value === 'on') return true;
+  if (value === 'off') return false;
+  process.stderr.write('Error: --post-seal must be one of on | off\n');
+  process.exitCode = 2;
+  return undefined;
+}
+
+const POST_SEAL_HELP = 'Post-seal rules (v1.4, Docs/v1.4/adr-v14.md): on (default; FF-S02 in ddd, FF-P07 application-purity) | off (the sealed v1.3 rule set, to re-run a registered figure). Ignored under v1.2e';
+
 /** `--instrument` value (ADR-026): `v1` or `v2`; anything else exits 2. */
 function resolveInstrument(value: string): InstrumentVersion | undefined {
   const v = parseInstrumentVersion(value);
@@ -275,6 +286,7 @@ withLLMOptions(program
   .option('--tsconfig <path>', 'Explicit tsconfig for APG extraction; the project\'s own tsconfig.json is then ignored (ADR-032)')
   .option('--scoring <mode>', 'Scoring mode: v1.3 (rule tiers, default; verdict from blocking rules) | v1.2e (the registered Study 1 scoring; on the default v1.3 graph its universal metrics count both re-export edge views, so pair it with --extractor v1.2e for the v1.2E graph)', 'v1.3')
   .option('--extractor <defaults>', 'Extractor defaults: v1.3 (default; literal and resolved re-export edges, dynamic imports, module wiring, member facts) | v1.2e (the registered v1.2E graph)', 'v1.3')
+  .option('--post-seal <on|off>', POST_SEAL_HELP, 'on')
   .option('--resolved-edges-in-literal-view', 'Off by default. Keep an import\'s edge to the declaring file in the literal view when it goes through a barrel (MT-B1, Docs/DiagnosticRuns/v1.3-metamorphic-2026-10-16.md)', false)
   .option('--literal-through-layerless-barrels', 'Off by default. At graph build, an import through barrels that belong to no layer (and are no declared DDD public API) also keeps its edge to the declaring file in the literal view (MT-B1 fix, Docs/DiagnosticRuns/v1.3-mtb1-fix-2026-10-16.md)', false)
   .option('--advisory-filter <options>', `Advisory post-filters, off by default (comma list, all or none): ${ADVISORY_FILTER_OPTIONS.join(', ')}. Matched advisory rows move to advisoryFilter.suppressed; blocking rows never change`, 'none')
@@ -308,6 +320,7 @@ withLLMOptions(program
     instrument: string;
     neuralAggregation: string;
     scoring: string;
+    postSeal: string;
     advisoryFilter: string;
     extractor: string;
     hints: boolean;
@@ -343,6 +356,8 @@ withLLMOptions(program
     if (graphMode === undefined) return;
     const scoringMode = resolveScoringMode(opts.scoring, '--scoring');
     if (scoringMode === undefined) return;
+    const postSeal = resolvePostSeal(opts.postSeal);
+    if (postSeal === undefined) return;
     if (!(EXTRACTOR_DEFAULTS as readonly string[]).includes(opts.extractor)) {
       process.stderr.write(`Error: --extractor must be one of ${EXTRACTOR_DEFAULTS.join(' | ')}\n`);
       process.exitCode = 2;
@@ -404,6 +419,8 @@ withLLMOptions(program
       instrumentVersion,
       neuralAggregation,
       scoringMode,
+      // v1.4 U2: on by default under v1.3 (the pipeline's own default); --post-seal off keeps the sealed rule set.
+      ...(scoringMode === 'v1.3' && !postSeal && { postSealRules: false }),
       ...(advisoryFilter.length > 0 && { advisoryFilter }),
       ...(extractorDefaults !== 'v1.3' && { extractorDefaults }),
       ...(graphEngine !== 'neo4j' && { graphEngine }),
@@ -629,17 +646,21 @@ program
   .requiredOption('--spec <path>', 'Path to AoC YAML spec')
   .option('--project <path>', 'Path to TypeScript project (for directory checks)', '.')
   .option('--rules <set>', 'Rule set the template check accepts: v1.3 (default; adds the v1.3 extension templates) | v1.2e (frozen templates only)', 'v1.3')
+  .option('--post-seal <on|off>', POST_SEAL_HELP, 'on')
   .option('--reject-empty-aggregates', 'Reject a ddd spec that keeps FF-DT01/FF-DT02 with no aggregate declared (loop-pilot T1 option b; off by default)', false)
   .option('--engine <name>', `${ENGINE_OPTION_HELP} validate never connects; with cypher-interp it also parses every compiled query with the interpreter (subset check).`)
   .action(async (opts: {
     spec: string;
     project: string;
     rules: string;
+    postSeal: string;
     rejectEmptyAggregates: boolean;
     engine?: string;
   }, cmd: Command) => {
     const rules = resolveScoringMode(opts.rules, '--rules');
     if (rules === undefined) return;
+    const postSeal = resolvePostSeal(opts.postSeal);
+    if (postSeal === undefined) return;
     const graphEngine = engineFor(opts.engine, cmd);
     if (graphEngine === undefined) return;
     const parseResult = await parseSpec({ specFilePath: opts.spec });
@@ -674,7 +695,7 @@ program
     // C9 parity (FR-08, BR-U1-11): the spec must also compile; the denominator is visible (FR-20, BR-U1-19).
     const spec = parseResult.data;
     // v1.3 rules also resolve the v1.3 module-wiring templates; v1.2e compiles exactly as before.
-    const compiled = compileFunctions(compilerInputFromSpec(spec), rules === 'v1.3' ? { ...V13_COMPILE_OPTIONS, v13Templates: true } : {});
+    const compiled = compileFunctions(compilerInputFromSpec(spec), rules === 'v1.3' ? { ...V13_COMPILE_OPTIONS, postSealRules: postSeal, v13Templates: true } : {});
     if (!compiled.success) {
       process.stderr.write(`Spec compilation failed with ${String(compiled.errors.length)} error(s):\n`);
       for (const error of compiled.errors) {

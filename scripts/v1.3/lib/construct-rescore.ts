@@ -27,7 +27,7 @@ import type { ConstructAnswers } from '../../../src/shared/construct-switches.js
 import { isStatusQuo, STATUS_QUO_ANSWERS } from '../../../src/shared/construct-switches.js';
 import { parseSpec, specExcludePathsFromYaml } from '../../../src/spec-parser/index.js';
 import { compilerInputFromSpec } from '../../../src/fitness-compiler/compiler-input.js';
-import { compileFunctions, V13_COMPILE_OPTIONS } from '../../../src/fitness-compiler/fitness-compiler.js';
+import { compileFunctions, V13_SEALED_COMPILE_OPTIONS } from '../../../src/fitness-compiler/fitness-compiler.js';
 import { extractAPG } from '../../../src/apg-extractor/index.js';
 import { applyConstructCompileOverlays, CONSTRUCT_CARRIER_NAME } from '../../../src/construct-switches/compile.js';
 import type { ConstructGraph } from '../../../src/construct-switches/graph.js';
@@ -193,7 +193,7 @@ async function rescoreStyle(
   const input0 = compilerInputFromSpec(spec);
   const overlaid = applyConstructCompileOverlays(input0, answers);
   const compiledIds = (a: ConstructAnswers): string[] => {
-    const r = compileFunctions(compilerInputFromSpec(spec), { ...V13_COMPILE_OPTIONS, constructSwitches: a });
+    const r = compileFunctions(compilerInputFromSpec(spec), { ...V13_SEALED_COMPILE_OPTIONS, constructSwitches: a });
     if (!r.success) throw new Error(`${ref.style}: compile failed: ${r.errors.map((e) => e.message).join('; ')}`);
     return [...r.data.symbolicQueries.map((q) => String(q.functionId)), ...r.data.hybridPairs.map((p) => String(p.functionId))];
   };

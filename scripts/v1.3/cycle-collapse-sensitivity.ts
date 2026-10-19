@@ -28,7 +28,7 @@ import { parseSpec, readSpecExcludePaths } from '../../src/spec-parser/index.js'
 import { extractAPG } from '../../src/apg-extractor/index.js';
 import { buildFileGraph, stronglyConnectedComponents, SCC_TEMPLATE_NAME } from '../../src/evaluation-engine/scc-cycles.js';
 import { compilerInputFromSpec } from '../../src/fitness-compiler/compiler-input.js';
-import { compileFunctions, V13_COMPILE_OPTIONS } from '../../src/fitness-compiler/fitness-compiler.js';
+import { compileFunctions, V13_SEALED_COMPILE_OPTIONS } from '../../src/fitness-compiler/fitness-compiler.js';
 import type { APGNode } from '../../src/shared/types/apg.js';
 import type { LayerModel } from '../../src/shared/types/spec.js';
 
@@ -99,7 +99,7 @@ async function main(): Promise<void> {
       const root = fs.realpathSync(path.join(reposDir, id));
       const ex = await extractAPG(root, { excludePatterns: readSpecExcludePaths(specPath) });
       if (!ex.success) throw new Error(`${id}: extract failed: ${ex.errors.map((e) => e.message).join('; ')}`);
-      const compiled = compileFunctions(compilerInputFromSpec(parsed.data), { ...V13_COMPILE_OPTIONS });
+      const compiled = compileFunctions(compilerInputFromSpec(parsed.data), { ...V13_SEALED_COMPILE_OPTIONS });
       const q = compiled.success ? compiled.data.symbolicQueries.find((x) => x.name === SCC_TEMPLATE_NAME) : undefined;
       const excludePatterns = Array.isArray(q?.params.excludePatterns) ? q.params.excludePatterns.map(String) : [];
       const literal = { nodes: ex.data.nodes, edges: ex.data.edges.filter((e) => !(e.type === 'IMPORTS' && e.properties.viaReExport === true)) };

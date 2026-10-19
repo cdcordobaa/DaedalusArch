@@ -221,8 +221,8 @@ export interface FileViolation {
   readonly ruleId: string;
   /** v1.3 tier (Docs/v1.3/rule-tiers.md, by the spec's style): only `blocking` findings fail a v1.3 verdict. */
   readonly tier: RuleTier;
-  /** `table` (rule-tiers.md), `untiered-default` (not in the table: advisory), `hint` (APG v2 / cheap proxy: advisory by design). */
-  readonly tierSource: 'table' | 'untiered-default' | 'hint';
+  /** `table` (rule-tiers.md), `untiered-default` (not in the table: advisory), `post-seal` (Docs/v1.4/rule-tiers-post-seal.md, v1.4 U2), `hint` (APG v2 / cheap proxy: advisory by design). */
+  readonly tierSource: 'table' | 'untiered-default' | 'post-seal' | 'hint';
   /** APG v2 hints only: the tier APG2_TEMPLATE_TIERS proposes, not in force until an ADR adds it to the sealed table. */
   readonly candidateTier?: RuleTier;
   /** The architectural construct the rule encodes. */
@@ -421,7 +421,7 @@ export interface FindingExplanation {
   readonly ruleId: string;
   readonly ruleName: string;
   readonly tier: RuleTier;
-  readonly tierSource: 'table' | 'untiered-default' | 'hint';
+  readonly tierSource: 'table' | 'untiered-default' | 'post-seal' | 'hint';
   readonly candidateTier?: RuleTier;
   readonly construct: string;
   readonly literature: {

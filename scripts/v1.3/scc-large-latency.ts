@@ -24,7 +24,7 @@ import { ingestAPG } from '../../src/neo4j-ingestion/index.js';
 import { MemoryGraphRepository } from '../../src/cypher-interp/repository.js';
 import { parseSpec, readSpecExcludePaths } from '../../src/spec-parser/index.js';
 import { compilerInputFromSpec } from '../../src/fitness-compiler/compiler-input.js';
-import { compileFunctions, V13_COMPILE_OPTIONS } from '../../src/fitness-compiler/fitness-compiler.js';
+import { compileFunctions, V13_SEALED_COMPILE_OPTIONS } from '../../src/fitness-compiler/fitness-compiler.js';
 import { evaluateSymbolic } from '../../src/evaluation-engine/symbolic-evaluator.js';
 import { buildFileGraph, findSccViolations, stronglyConnectedComponents, SCC_TEMPLATE_NAME } from '../../src/evaluation-engine/scc-cycles.js';
 import type { SnapshotStore } from '../../src/shared/interfaces/snapshot-store.js';
@@ -57,7 +57,7 @@ async function main(): Promise<void> {
   const parsed = await parseSpec({ specFilePath: specPath });
   if (!parsed.success) throw new Error(`spec: ${parsed.errors.map((e) => e.message).join('; ')}`);
   const spec = parsed.data;
-  const compiled = compileFunctions(compilerInputFromSpec(spec), { ...V13_COMPILE_OPTIONS });
+  const compiled = compileFunctions(compilerInputFromSpec(spec), { ...V13_SEALED_COMPILE_OPTIONS });
   if (!compiled.success) throw new Error(`compile: ${compiled.errors.map((e) => e.message).join('; ')}`);
   const query = compiled.data.symbolicQueries.find((q) => q.name === SCC_TEMPLATE_NAME && q.source === 'template');
   if (query === undefined) throw new Error('the spec compiles no FF-S02 (no-cyclic-deps) template');

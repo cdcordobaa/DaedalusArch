@@ -22,7 +22,7 @@ import picomatch from 'picomatch';
 import ts from 'typescript';
 import { DEFAULT_EXCLUDE_PATTERNS } from '../../src/apg-extractor/types.js';
 import { compilerInputFromSpec } from '../../src/fitness-compiler/compiler-input.js';
-import { compileFunctions, V13_COMPILE_OPTIONS } from '../../src/fitness-compiler/fitness-compiler.js';
+import { compileFunctions, V13_SEALED_COMPILE_OPTIONS } from '../../src/fitness-compiler/fitness-compiler.js';
 import { parseSpec, specExcludePathsFromYaml } from '../../src/spec-parser/index.js';
 import {
   archunitChecks, boundariesGroups, buildIr, dcGlob, CAPABILITY, cycleEdges, depcruiseRules, KIND_UNIT, key, packageName, TEMPLATE_KIND, TOOLS, UNEXPRESSIBLE,
@@ -74,7 +74,7 @@ function projects(): void {
 async function translate(p: Project): Promise<{ ir: Ir; files: string[] }> {
   const parsed = await parseSpec({ specFilePath: p.spec });
   if (!parsed.success) throw new Error(`spec ${p.spec}: ${parsed.errors.map((e) => e.message).join('; ')}`);
-  const compiled = compileFunctions(compilerInputFromSpec(parsed.data), V13_COMPILE_OPTIONS);
+  const compiled = compileFunctions(compilerInputFromSpec(parsed.data), V13_SEALED_COMPILE_OPTIONS);
   if (!compiled.success) throw new Error(`compile ${p.spec}: ${compiled.errors.map((e) => e.message).join('; ')}`);
   const excludes = [...new Set([...DEFAULT_EXCLUDE_PATTERNS, ...specExcludePathsFromYaml(fs.readFileSync(p.spec, 'utf8'))])];
   const ir = buildIr(parsed.data, [...compiled.data.symbolicQueries, ...compiled.data.hybridPairs.map((h) => h.symbolicQuery)], excludes);
@@ -304,7 +304,7 @@ async function translationTable(): Promise<void> {
   for (const [style, spec] of specs) {
     const parsed = await parseSpec({ specFilePath: path.join(REPO, spec) });
     if (!parsed.success) throw new Error(spec);
-    const compiled = compileFunctions(compilerInputFromSpec(parsed.data), V13_COMPILE_OPTIONS);
+    const compiled = compileFunctions(compilerInputFromSpec(parsed.data), V13_SEALED_COMPILE_OPTIONS);
     if (!compiled.success) throw new Error(spec);
     const ir = buildIr(parsed.data, compiled.data.symbolicQueries, DEFAULT_EXCLUDE_PATTERNS);
     const dc = depcruiseRules(ir); const eb = boundariesGroups(ir); const au = archunitChecks(ir);

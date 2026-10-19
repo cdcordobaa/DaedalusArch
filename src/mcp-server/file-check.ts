@@ -220,8 +220,15 @@ export function fileCheckedRulesV2(spec: ParsedSpec, projectAware: boolean): rea
     .map((ff) => String(ff.id));
 }
 
+/**
+ * v1.4 U2 (BR-U2-09, author question Q-D default): FF-P07 has no TypeScript re-statement; Cypher stays its only
+ * definition, so the fast path names where it is checked.
+ */
+export const APPLICATION_PURITY_FAST_NOTE = 'FF-P07 application-purity is checked by the compiled Cypher only (--fast-rules-engine cypher-interp, evaluate_project)';
+
 /** Why the fast path leaves a rule to evaluate_project. */
 function notCheckedReason(name: string, projectAware: boolean): string {
+  if (name === 'application-purity') return APPLICATION_PURITY_FAST_NOTE;
   if (name === 'no-cyclic-deps' && !projectAware) return 'a cycle needs the whole import graph: no project root is configured, so run evaluate_project (or start the server with --project)';
   if (['domain-stability', 'module-fan-out', 'component-instability', 'max-fan-in', 'abstraction-ratio', 'no-orphan-files'].includes(name)) return 'a metric over the whole graph';
   if (['dependency-inversion', 'port-dependency-inversion'].includes(name)) return 'a ratio over every injected dependency of a class, read from the graph';
@@ -412,6 +419,11 @@ export function checkSource(spec: ParsedSpec, input: CheckSourceInput): FileChec
     notes.push('spec-only: no project root, so barrels are not followed (resolved view = literal view), entry files are the declared public APIs only, and cycles are not checked');
   }
   if (ctx.ast.partial) notes.push('the text does not parse whole (partial content): class-level checks may be incomplete');
+  // v1.4 U2: an application file under a spec with FF-P07 active is told where that rule is checked.
+  if (layer !== null && spec.layerModel.layers.some((l) => l.name === layer && l.kind === 'application')
+    && spec.fitnessFunctions.some((ff) => ff.name === 'application-purity' && v13RuleStates(spec).get(String(ff.id))?.status === 'active')) {
+    notes.push(APPLICATION_PURITY_FAST_NOTE);
+  }
   const blockingVerdict = blockingVerdictOf(findings, unresolved.length);
   const blockingCount = findings.filter((v) => v.tier === 'blocking').length;
   return {

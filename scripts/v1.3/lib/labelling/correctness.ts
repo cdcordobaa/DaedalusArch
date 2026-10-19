@@ -18,6 +18,8 @@ import type { Finding } from './findings.js';
 import type { ImportFact, SourceFacts } from './source-facts.js';
 import type { SpecView } from './spec-facts.js';
 import { contextOf, forbiddenMatch, globMatch, namePatternRegex, useCaseLayers } from './spec-facts.js';
+import { APG2_COMPOSITION_ROOT_NAME_PATTERNS, APG2_TEST_PATTERNS, COMPOSITION_ROOT_ROLE } from '../../../../src/shared/apg2-scope.js';
+import { POST_SEAL_RULES } from '../../../../src/fitness-compiler/post-seal-rules.js';
 
 export type CorrectnessVerdict = 'correct' | 'incorrect' | 'not-checkable';
 
@@ -58,6 +60,7 @@ export const TEMPLATE_VIEWS: Readonly<Record<string, View>> = Object.freeze({
   'core-isolation': 'literal',
   'context-isolation': 'literal',
   'domain-purity': 'resolved',
+  'application-purity': 'resolved',
   'aggregate-boundary': 'resolved',
   'repository-aggregate-root': 'resolved',
 });
@@ -181,6 +184,38 @@ function domainPurity(c: Ctx): Outcome {
   const layer = spec.layerOf(f.file);
   c.checks.push(`layer by spec globs: ${f.file} -> ${layer ?? 'none'}`);
   if (layer !== domain) return no(`${f.file} is not in the domain layer ${domain}`);
+  const matched = forbiddenMatch(forbidden, f.target);
+  if (matched === undefined) return no(`${f.target} matches no forbidden import`);
+  const lines = claimedLines(f);
+  const rel = relTypeOf(f);
+  const stmts = src.importsAt(f.file, lines).filter((s) => rel === undefined || s.kind === rel);
+  if (stmts.length === 0) return no(`no import statement at ${f.file}:${lines.join(',')}`);
+  const direct = stmts.find((s) => s.packageRoot === f.target || (s.resolvedFile === undefined && s.specifier === f.target));
+  if (direct !== undefined) return ok(`'${direct.specifier}' at line ${String(direct.startLine)} imports ${f.target} (forbidden by '${matched}')`);
+  const via = stmts.find((s) => src.packagesReached(s).includes(f.target ?? ''));
+  if (via !== undefined) return ok(`'${via.specifier}' at line ${String(via.startLine)} imports a name re-exported from ${f.target} (forbidden by '${matched}')`);
+  return no(`the statement(s) at that line do not import ${f.target}: ${stmts.map((s) => `'${s.specifier}'`).join(', ')}`);
+}
+
+/**
+ * FF-P07 application-purity (v1.4 U2, ADR-V14-02): the `domainPurity` check over the application-kind layers, minus
+ * composition roots (a layer with role composition-root or detected as one, or a file named like one) and test files.
+ * The forbidden list is the spec's FF-P07 list, else the post-seal default (`POST_SEAL_RULES`).
+ */
+function applicationPurity(c: Ctx): Outcome {
+  const { f, spec, src } = c;
+  if (!src.exists(f.file)) return no(`file ${f.file} does not exist`);
+  if (f.target === undefined) return no('the finding names no package');
+  if (spec.applicationLayers.length === 0) return na('the spec binds no application layer');
+  const forbidden = spec.functions.get(f.ruleId)?.forbiddenImports ?? POST_SEAL_RULES.find((r) => r.ruleId === f.ruleId)?.forbiddenImports;
+  if (forbidden === undefined || forbidden.length === 0) return na(`the spec gives ${f.ruleId} no forbidden imports`);
+  const layer = spec.layerOf(f.file);
+  c.checks.push(`layer by spec globs: ${f.file} -> ${layer ?? 'none'}`);
+  if (layer === null || !spec.applicationLayers.includes(layer)) return no(`${f.file} is not in an application layer (${spec.applicationLayers.join(', ')})`);
+  const roleRoots = spec.layers.filter((l) => l.role.split(',').map((r) => r.trim()).includes(COMPOSITION_ROOT_ROLE)).map((l) => l.name);
+  if (roleRoots.includes(layer) || spec.compositionRoots.includes(layer)) return no(`${layer} is a composition-root layer`);
+  if (APG2_COMPOSITION_ROOT_NAME_PATTERNS.some((p) => new RegExp(p).test(f.file))) return no(`${f.file} is named as a composition root`);
+  if (APG2_TEST_PATTERNS.some((p) => new RegExp(p).test(f.file))) return no(`${f.file} is a test file`);
   const matched = forbiddenMatch(forbidden, f.target);
   if (matched === undefined) return no(`${f.target} matches no forbidden import`);
   const lines = claimedLines(f);
@@ -419,6 +454,7 @@ export const CHECKERS: Readonly<Record<string, (c: Ctx) => Outcome>> = Object.fr
   'no-layer-skip': noLayerSkip,
   'no-domain-outward-dep': domainOutward,
   'domain-purity': domainPurity,
+  'application-purity': applicationPurity,
   'repository-pattern': repositoryPattern,
   'domain-state-purity': domainStatePurity,
   'dependency-direction-graph': dependencyDirectionGraph,
@@ -469,6 +505,9 @@ export const BLOCKING_COVERAGE: readonly CoverageRow[] = Object.freeze([
   { style: 'ddd', ruleId: 'FF-DT02', template: 'repository-aggregate-root', coverage: 'full' },
   { style: 'ddd', ruleId: 'FF-DT03', template: 'value-object-immutability', coverage: 'full', note: 'the frozen setter-name proxy, and the v1.3 member-fact clauses (public mutable field, set accessor, mutator method)' },
   { style: 'ddd', ruleId: 'FF-DT04', template: 'domain-purity', coverage: 'full' },
+  // v1.4 U2 post-seal rules (ADR-V14-01, ADR-V14-02; tiers in Docs/v1.4/rule-tiers-post-seal.md).
+  { style: 'ddd', ruleId: 'FF-S02', template: 'no-cyclic-deps', coverage: 'full', note: 'post-seal membership (D5); tier from the sealed FF-S02 row' },
+  ...['clean-architecture', 'hexagonal', 'nestjs', 'ddd'].map((style) => ({ style, ruleId: 'FF-P07', template: 'application-purity', coverage: 'full' as const, note: 'post-seal (N3)' })),
 ]);
 
 /** Blocking constructs no deterministic check covers (rule-tiers.md), with the reason. */

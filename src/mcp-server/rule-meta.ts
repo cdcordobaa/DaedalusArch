@@ -120,6 +120,8 @@ const OTHER_SOURCES: Readonly<Record<string, string>> = {
   'nondeterminism-in-core': 'Cockburn 2005; Martin 2017, ch. 22 (clock, random and environment reads are hidden inputs; a testability guideline)',
   'repository-bypass': 'Evans 2003, ch. 6 "Repositories"; Fowler 2002, "Repository" (clients go through the repository, not the persistence technology)',
   'framework-in-core': 'Martin 2017, ch. 32 "Frameworks are details"; Cockburn 2005 (the use case does not know the delivery mechanism)',
+  // v1.4 U2 post-seal rule FF-P07 (ADR-V14-02, Docs/v1.4/rule-tiers-post-seal.md).
+  'application-purity': 'Martin 2017, ch. 21 "Screaming Architecture" (the Web is a delivery mechanism) and ch. 22 (the web is a detail in the outer circle); Cockburn 2005 (the use case does not know the delivery mechanism); post-seal, ADR-V14-02',
 };
 
 /** The construct each template checks (a short name for the agent and the report). */
@@ -132,6 +134,7 @@ export const CONSTRUCTS: Readonly<Record<string, string>> = Object.freeze({
   'no-domain-outward-dep': 'Core isolation: the domain depends on no other layer',
   'core-isolation': 'Core isolation: the core depends on no adapter, UI or database',
   'domain-purity': 'Framework-free domain',
+  'application-purity': 'Delivery mechanism is a detail: no HTTP framework in the application layer',
   'domain-state-purity': 'Core isolation of state: the domain holds no infrastructure object',
   'dependency-inversion': 'Dependency inversion ratio (proxy)',
   'port-dependency-inversion': 'Use cases depend on ports (ratio proxy)',
@@ -163,8 +166,8 @@ export interface RuleMeta {
   readonly ruleId: string;
   readonly ruleName: string;
   readonly tier: RuleTier;
-  /** `table`: rule-tiers.md; `untiered-default`: an id the table does not list (advisory by default); `hint`: APG v2 / cheap proxy, advisory by design. */
-  readonly tierSource: 'table' | 'untiered-default' | 'hint';
+  /** `table`: rule-tiers.md; `untiered-default`: an id the table does not list (advisory by default); `post-seal`: the v1.4 post-seal record (Docs/v1.4/rule-tiers-post-seal.md); `hint`: APG v2 / cheap proxy, advisory by design. */
+  readonly tierSource: 'table' | 'untiered-default' | 'post-seal' | 'hint';
   /** APG v2 only: the tier `APG2_TEMPLATE_TIERS` proposes (not in force until an ADR adds it to the sealed table). */
   readonly candidateTier?: RuleTier;
   readonly construct: string;

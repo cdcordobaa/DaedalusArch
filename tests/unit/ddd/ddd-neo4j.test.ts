@@ -34,6 +34,18 @@ const KNOWN_GOT: Readonly<Record<string, readonly string[]>> = {
  * (aidlc-docs/construction/v1.3-member-facts/notes.md).
  */
 const KNOWN_GOT_V13: Readonly<Record<string, readonly string[]>> = {};
+/**
+ * Findings the v1.3 compile adds on top of a variant's manifest. ADR-V14-01 (`Docs/v1.4/adr-v14.md`, decision D5)
+ * adds FF-S02 `no-cyclic-deps` to the DDD rule set post-seal, on in V13_COMPILE_OPTIONS. Its declared effect is one
+ * added row on v09 (`results/v1.4-u2/fixture-delta.md`): the cycle PlaceOrder -> CustomerRepository -> Customer ->
+ * PlaceOrder. The hand manifests are not edited (ADR-V14-01, "What is not changed"), so the row is listed here. A cycle
+ * row is keyed by its sorted file set, as in tests/unit/post-seal/ddd-cycle.test.ts.
+ */
+const POST_SEAL_EXTRA_V13: Readonly<Record<string, readonly string[]>> = {
+  'v09-domain-imports-application': [
+    `FF-S02 cycle{${['src/ordering/application/PlaceOrder.ts', 'src/ordering/domain/customer/Customer.ts', 'src/ordering/domain/customer/CustomerRepository.ts'].join(' ')}}`,
+  ],
+};
 
 const env = resolveGoldenEnv();
 const describeNeo4j = env.enabled ? describe : describe.skip;
@@ -79,13 +91,20 @@ describeNeo4j('DDD reference project on Neo4j', () => {
       if (!r.success) throw new Error(`${String(q.functionId)}: ${r.errors.map((e) => e.message).join('; ')}`);
       const mapping = must(CYPHER_TEMPLATES.get(q.name) ?? getExtensionTemplate(q.name), q.name).resultMapping;
       for (const row of r.data.records) {
+        const cycle = mapping.cycleColumn !== undefined ? row[mapping.cycleColumn] : undefined;
+        if (Array.isArray(cycle)) {
+          if (!cycle.every((f): f is string => typeof f === 'string')) throw new Error(`${String(q.functionId)}: unexpected cycle shape`);
+          got.add(`${String(q.functionId)} cycle{${[...new Set(cycle)].sort().join(' ')}}`);
+          continue;
+        }
         const file = row[mapping.filePathColumn];
         const target = mapping.targetColumn !== undefined ? row[mapping.targetColumn] : undefined;
         if (typeof file !== 'string' || (target != null && typeof target !== 'string')) throw new Error(`${String(q.functionId)}: unexpected row shape`);
         got.add(`${String(q.functionId)} ${file}${typeof target === 'string' ? ` -> ${target}` : ''}`);
       }
     }
-    const expected = id === 'clean' ? [] : manifestKeys(readVariant(id).manifest);
+    const extra = mode === 'v1.3 compile' ? (POST_SEAL_EXTRA_V13[id] ?? []) : [];
+    const expected = [...(id === 'clean' ? [] : manifestKeys(readVariant(id).manifest)), ...extra].sort();
     expect([...got].sort()).toEqual(id in known ? [...(known[id] ?? [])].sort() : expected);
   });
 });

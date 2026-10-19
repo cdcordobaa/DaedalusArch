@@ -31,7 +31,7 @@ async function capture(variant: string, outDir: string, password: string): Promi
     neuralAggregation: 'registered',
     scoringMode: 'v1.3',
   };
-  const { executor, context, cleanup } = createPipeline(config);
+  const { executor, context, cleanup } = createPipeline({ ...config, postSealRules: false }); // v1.4 U2: the sealed v1.3 rule set (BR-U2-10)
   try {
     const result = await executor.execute();
     if (!result.success) throw new Error(`${variant}: ${result.errors.map((e) => e.message).join('; ')}`);

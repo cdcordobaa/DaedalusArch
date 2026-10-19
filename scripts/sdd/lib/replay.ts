@@ -86,7 +86,7 @@ function context(root: string, repoRoot: string): ServerContext {
   const refuse = (): never => {
     throw new Error('evaluate_project is not part of the replay');
   };
-  return { defaultProjectPath: root, env: {}, loadSpec: createSpecLoader(), presetsDir: path.join(repoRoot, 'presets'), evaluateDeps: { makeGraph: refuse, makePipeline: refuse } };
+  return { defaultProjectPath: root, env: {}, loadSpec: createSpecLoader({ postSeal: false }) /* v1.4 U2: the demo was recorded on the sealed v1.3 rule set (BR-U2-10) */, presetsDir: path.join(repoRoot, 'presets'), evaluateDeps: { makeGraph: refuse, makePipeline: refuse } };
 }
 
 async function callInProcess(root: string, repoRoot: string, e: ToolCallEvent): Promise<{ isError: boolean; result: unknown; ms: number }> {

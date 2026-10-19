@@ -30,6 +30,9 @@ import { CONSTRUCT_ANSWERS } from '../shared/construct-switches.js';
 import type { ConstructAnswers } from '../shared/construct-switches.js';
 import { applyConstructCompileOverlays, constructApplicability, constructSwitchesActive, CONSTRUCT_TEMPLATES } from '../construct-switches/compile.js';
 import type { EmptyAggregatePolicy } from './empty-aggregates.js';
+import { POST_SEAL_TEMPLATES, postSealOverlay } from './post-seal-rules.js';
+import { compositionRootLayers } from './apg2-in-memory.js';
+import { APG2_COMPOSITION_ROOT_NAME_PATTERNS, APG2_TEST_PATTERNS } from '../shared/apg2-scope.js';
 import {
   aggregateRulesWithoutAggregates, EMPTY_AGGREGATES_REASON, EXCLUDED_AGGREGATE_RULES, excludeAggregateRules, excludedAggregateRulesMessage,
 } from './empty-aggregates.js';
@@ -101,11 +104,30 @@ export interface CompileOptions {
    * (BR-SPEC-10), `not-applicable` (option a), `exclude` (option c) or `vacuous` (option d).
    */
   readonly emptyAggregates?: EmptyAggregatePolicy;
+  /**
+   * v1.4 U2, OFF by default and ON in `V13_COMPILE_OPTIONS`: the post-seal rules (`post-seal-rules.ts`,
+   * `Docs/v1.4/adr-v14.md`): FF-S02 no-cyclic-deps in ddd (D5) and FF-P07 application-purity (N3), added to the spec
+   * of their styles before the construct overlays. `V13_SEALED_COMPILE_OPTIONS` keeps the sealed rule set.
+   */
+  readonly postSealRules?: boolean;
 }
 
-/** The v1.3 compile options for the pipeline (the frozen v1.2E reproduction passes `{}`). */
-export const V13_COMPILE_OPTIONS: Readonly<CompileOptions> = Object.freeze({
+/**
+ * The v1.3 compile options with the sealed rule set: the value `V13_COMPILE_OPTIONS` had before v1.4 U2, with the
+ * post-seal rules off. A caller that regenerates a registered v1.3 figure uses it, so the figure is reproduced
+ * unchanged (design BR-U2-10; the caller table is in `Docs/v1.4/adr-v14.md`, ADR-V14-02).
+ */
+export const V13_SEALED_COMPILE_OPTIONS: Readonly<CompileOptions> = Object.freeze({
   edgeViews: true, styleApplicability: true, roleTokens: true, memberFacts: true, signatureTypes: true, constructSwitches: CONSTRUCT_ANSWERS,
+  postSealRules: false,
+});
+
+/**
+ * The v1.3 compile options for the pipeline (the frozen v1.2E reproduction passes `{}`): the sealed set plus the
+ * post-seal rules (v1.4 U2).
+ */
+export const V13_COMPILE_OPTIONS: Readonly<CompileOptions> = Object.freeze({
+  ...V13_SEALED_COMPILE_OPTIONS, postSealRules: true,
 });
 
 function rewriteFlags(options: CompileOptions): V13RewriteFlags {
@@ -119,13 +141,17 @@ function rewriteFlags(options: CompileOptions): V13RewriteFlags {
 type TemplateCatalogue = ReadonlyMap<string, CypherTemplate>;
 
 export function compileFunctions(rawInput: CompilerInput, options: CompileOptions = {}): DomainResult<CompiledFunctions> {
+  // v1.4 U2 post-seal rules (BR-U2-03.4): before the construct overlays, so Q16 B's FF-S02 guard sees the post-seal FF-S02.
+  const postSeal = options.postSealRules === true ? postSealOverlay(rawInput) : undefined;
+  const sealedInput = postSeal?.value ?? rawInput;
   // v1.3 construct switches: the spec as the chosen options declare it (identity at the status quo).
-  const overlaid = applyConstructCompileOverlays(rawInput, options.constructSwitches);
+  const overlaid = applyConstructCompileOverlays(sealedInput, options.constructSwitches);
   // Loop-pilot T1 (`empty-aggregates.ts`): only a non-default policy on a ddd spec with no aggregate changes the input.
   const t1 = emptyAggregateInput(overlaid, options.emptyAggregates);
-  if (t1.warnings.length > 0) {
+  const extra = [...(postSeal?.warnings ?? []), ...t1.warnings];
+  if (extra.length > 0) {
     const compiled = compileStyle(t1.input, options);
-    return compiled.success ? DomainResult.ok({ ...compiled.data, warnings: [...compiled.data.warnings, ...t1.warnings] }) : compiled;
+    return compiled.success ? DomainResult.ok({ ...compiled.data, warnings: [...compiled.data.warnings, ...extra] }) : compiled;
   }
   return compileStyle(t1.input, options);
 }
@@ -159,9 +185,11 @@ function compileStyle(input: CompilerInput, options: CompileOptions): DomainResu
 
 function compileFunctionsCore(input: CompilerInput, options: CompileOptions): DomainResult<CompiledFunctions> {
   const instrumentVersion = options.instrumentVersion ?? INSTRUMENT_VERSION;
-  const base: TemplateCatalogue = options.v13Templates === true
+  const frozen: TemplateCatalogue = options.v13Templates === true
     ? new Map([...CYPHER_TEMPLATES, ...V13_CYPHER_TEMPLATES])
     : CYPHER_TEMPLATES;
+  // v1.4 U2: the post-seal template (`application-purity`), only when the post-seal rules are on.
+  const base: TemplateCatalogue = options.postSealRules === true ? new Map([...frozen, ...POST_SEAL_TEMPLATES]) : frozen;
   // v1.3 construct switches: the carrier template of the switch-declared rules (only when a switch is set).
   const templates: TemplateCatalogue = constructSwitchesActive(options.constructSwitches) ? new Map([...base, ...CONSTRUCT_TEMPLATES]) : base;
   const { fitnessFunctions, adrRules, layerModel } = input;
@@ -187,7 +215,8 @@ function compileFunctionsCore(input: CompilerInput, options: CompileOptions): Do
 
   // C6 BR-SPEC-10 (FR-08, BR-U1-09): every required parameter of every applicable function must be bound.
   // Runs the same applicability (C5) and buildParams as below; always fatal, independent of strictMode.
-  const bound = checkBoundParameters(input);
+  // v1.4 U2: the post-seal template is checked too (only when on); the other catalogues stay outside the check.
+  const bound = checkBoundParameters(input, options.postSealRules === true ? new Map([...CYPHER_TEMPLATES, ...POST_SEAL_TEMPLATES]) : CYPHER_TEMPLATES);
   if (!bound.success) return DomainResult.fail<CompiledFunctions>(bound.errors);
 
   // C4: bind layer parameters by resolved kind (FR-19). Reads only LayerDefinition.kind.
@@ -509,6 +538,15 @@ export function buildParams(
   const template = templates.get(ff.name);
   const params: Record<string, unknown> = {};
   if (!template) return params;
+
+  // v1.4 U2 (FF-P07 application-purity): composition roots by layer role and by file name, and test files. Bound
+  // only for a template that declares them (no template before U2 does, so no existing query's params change).
+  const declared = new Set([...template.requiredParams, ...template.optionalParams]);
+  if (declared.has('compositionRootLayers')) {
+    candidates.compositionRootLayers = compositionRootLayers({ ...layerModel, layers: layers.map((l) => ({ ...l, role: (l.role as string | undefined) ?? '' })) });
+  }
+  if (declared.has('compositionRootPatterns')) candidates.compositionRootPatterns = [...APG2_COMPOSITION_ROOT_NAME_PATTERNS];
+  if (declared.has('testPatterns')) candidates.testPatterns = [...APG2_TEST_PATTERNS];
   for (const name of [...template.requiredParams, ...template.optionalParams]) {
     if (name in params) continue;
     const value = candidates[name];

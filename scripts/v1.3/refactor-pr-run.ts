@@ -123,7 +123,7 @@ async function evaluateAt(clone: string, e: CorpusEntry, sha: string, tree: stri
     graphEngine: 'cypher-interp',
     graphRepository: repo,
   };
-  const { executor, cleanup } = createPipeline(config);
+  const { executor, cleanup } = createPipeline({ ...config, postSealRules: false }); // v1.4 U2: the sealed v1.3 rule set (BR-U2-10)
   try {
     const result = await executor.execute();
     if (!result.success) return empty(`pipeline: ${result.errors.map((x) => x.message).join('; ').slice(0, 400)}`);
