@@ -2413,6 +2413,19 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+## v1.4 research ops: C4-01 and MEAN-02 design notes
+**Timestamp**: 2026-10-19T21:29:31Z
+**User Input**: "Write the C4-01 interpretation design (link L7) and the MEAN-02 agentic meaning design (link L8) of the trusted-instrument path, zero model calls; then add the REV-05 Fable review's conditions: F3 rewording, scoring-only semantic path in the first study, the NS-02 build items, a C1d heuristic baseline, non-author cases, a task bank, blind twins, the vendor-split rule, edge-kind strata, and the 'consequential / style-fidelity, never practitioner' wording."
+**AI Response**: "Wrote ops/notes/c4-01-interpretation-design.md (A5 contract c4-v0.2, routes, 6 cases + 6 twins + 3 non-author targets, keyword and heuristic baselines, proposed bars >= 5/6 and 0 twin false exceptions, F3 proposed rewrite, scoring-only in the first study, caps 48 pilot / 160 six-case / 48 non-author) and ops/notes/mean-02-agentic-meaning-design.md (consequence test with task bank, blind repaired and placebo twins, vendor split, 24 items in 6 rule-family x edge-kind strata, field B panel reusing panel-authority-v1, rule-source grounding, caps 22 pilot / 264 main sessions / 300 panel calls per vendor). Found two code gaps: C4 context takes SEM verdicts only, and the gemini-agy ontology route does not pass the agy exploratory versions. MEAN-01 sample not opened."
+**Context**: v1.4 instrument track, trust path links L7 and L8; design only, no model calls
+
+---
+
+## v1.4 research ops: REV-06 and revised C4-01/MEAN-02
+**Timestamp**: 2026-10-19T21:47:05Z
+**User Input**: "Save the Fable review REV-06 of the C4-01 and MEAN-02 design notes, and revise both notes to answer every finding (B1-B4, M1-M8, minors), applying the coordinator's provisional choices where REV-06 leaves the call to the author."
+**AI Response**: "Saved ops/notes/rev-06-c4-mean02-fable.md verbatim. C4-01: 'most of C4 is built' restated as 'the SEM-only prompt is built'; edge-site model added as a medium build item; Gemini C4/L3 results exploratory until a dated agy pin (provisional); --interpret finding allowlist, X1/X2 on the target only, caps at the upper bound (pilot 48, non-author 32 per vendor); scoring-only sample restated as cell (3) x style x generator with m from --estimate; X1/X2 second blind keying by a Gemini session and the keyword filter dropped (provisional); F3 and the claim say 'by construction'; A5 gains proposed/accepted/changed counts; C4's Study 2 role is evasion detection (provisional); Wilson intervals on every bar. MEAN-02: single-vendor mechanics pilot now, both vendor directions after the Gemini generator passes S4 (provisional); exact sign test primary on S3+S5+S6 with S1 as positive control, Wilcoxon secondary, tie rule, exact power table, 'pilot-scale' in the claim; acceptance test hidden from the agent so success is descriptive; placebo coupling check; whole-style panel text and the claim renamed 'style-fidelity consensus' (provisional); eligibility-first stop rule, session/turn/wall-time budgets; 912 panel worst case accepted as uncovered at cap 300. Each provisional choice carries an AUTHOR line. PR supersedes #275."
+**Context**: v1.4 instrument track, trust path links L7 and L8; design only, zero model calls, no builds, MEAN-01 sample not opened
 ## v1.4 research ops: TIER-A1 drift D on existing data (zero calls)
 **Timestamp**: 2026-10-19T20:32:00Z
 **User Input**: "Scheduled routine: recompute Study 2's drift D, Y1 and Y at the last step on every committed run with per-step scored snapshots, check the s2d-01 power inputs (1, 2, 5), run gate D9 with a planted effect, write the report, and open a PR without merging. Zero model calls, cypher-interp only, no sealed reads."
