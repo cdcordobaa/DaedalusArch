@@ -2412,3 +2412,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 instrument track, Study 2 protocol; no model calls
 
 ---
+
+## v1.4 Tier A: TIER-A3 DDD B2 (interpreter) and V9 fast path
+**Timestamp**: 2026-10-19T21:32:31Z
+**User Input**: "Scheduled routine TIER-A3, zero model calls, interpreter only: re-score the 8 kept DDD loop-pilot snapshots with declared aggregates and with/without acl: [] (B2), and check the MCP fast path against the full evaluation on stored Layered and DDD snapshots (V9). Do not decide D15. Open a PR, do not merge."
+**AI Response**: "Ran scripts/v1.4/ddd-b2-t1-rescore.ts (cypher-interp), ddd-b2-rule-reach.ts, check-correct (deterministic) and mcp-fast-vs-full-loop.ts. B2: 0/64 DDD evaluation errors; D = 0 in both arms on the sealed rule set under every option, 1 in the none arm with post-seal on (one correct FF-S02 cycle); FF-DT01/02/03 cannot fire on any of the 8 trees (no inner-entity or value-object files), so declared aggregates fix scoring but not reach; acl: [] adds 2 persistent FF-DS02 per step. V9: 138/138 step diffs agree on answer, rules and files, both engines. Report Docs/DiagnosticRuns/v1.4-ddd-b2-and-v9-2026-10-19.md, outputs results/v1.4-ddd-b2-v9/."
+**Context**: v1.4 instrument track, REV-04 P15 (B2 part) and P19; D15 left to the author; Neo4j T1/D8 separate
+
+---
