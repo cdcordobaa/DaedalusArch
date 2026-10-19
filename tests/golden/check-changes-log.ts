@@ -265,10 +265,12 @@ export const LABELS_RESULTS_DIR = 'labels';
  * 15): `results/v1.3/**` and `results/v1.3-<name>/**`, where `<name>` starts with a lower-case letter or digit. Only the
  * guard of `tests/unit/scripts/u5b/guards.test.ts` uses it. `resultsPathAllowed` (BR-U1-42 / BR-U5b-56, the v1.2E
  * rule) is unchanged, and a folder that is a registered plan id keeps the plan's RunRecord checks.
+ * The v1.4 AI-DLC cycle (`aidlc-docs/inception/v1.4/`) extends it to its unit folders, `results/v1.4-<name>/**` (one
+ * folder per unit, e.g. `results/v1.4-u2/`); a bare `results/v1.4/` is not allowed. The v1.2E rules stay unchanged.
  */
-export const V13_RESULTS_DIR_PATTERN = /^v1\.3(?:-[a-z0-9][a-z0-9.-]*)?$/;
+export const V13_RESULTS_DIR_PATTERN = /^(?:v1\.3(?:-[a-z0-9][a-z0-9.-]*)?|v1\.4-[a-z0-9][a-z0-9.-]*)$/;
 
-/** Whether a `results/` path lies in a v1.3 result folder that is not a registered plan's (`V13_RESULTS_DIR_PATTERN`). */
+/** Whether a `results/` path lies in a v1.3 or v1.4 result folder that is not a registered plan's (`V13_RESULTS_DIR_PATTERN`). */
 export function v13ResultsPath(file: string, registeredPlanIds: readonly string[]): boolean {
   const m = /^results\/([^/]+)\/.+/.exec(file);
   const top = m?.[1];
