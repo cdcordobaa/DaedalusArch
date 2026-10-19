@@ -66,6 +66,21 @@ export interface ExtractorOptions {
    */
   aliasDeclarationPackages?: boolean;
   /**
+   * v1.3 (finding N33, and N32), ON by default on the v1.3 branch; OFF in the frozen v1.2E instrument. A specifier
+   * without a `node:` prefix whose first segment is a Node built-in name (`domain/entities/x`, `events/bus`) is
+   * resolved through the tsconfig `paths` and `baseUrl` rules first, as tsc does; when that reaches a project source
+   * file (not a declaration file, not under `node_modules`), the import is that file. Otherwise it stays the built-in
+   * Package. Off: every built-in-named specifier is the built-in Package (the v1.2E behaviour).
+   */
+  aliasShadowsBuiltins?: boolean;
+  /**
+   * v1.3 (finding N38), ON by default on the v1.3 branch; OFF in the frozen v1.2E instrument. A constructor parameter
+   * whose type is a union of exactly one type with `null` and/or `undefined` (`x?: T` under `strictNullChecks`,
+   * `x: T | null`) writes CONSTRUCTOR_INJECTS to `T`. Off: such a parameter writes no edge under strict null checks
+   * (the v1.2E behaviour).
+   */
+  nullableInjects?: boolean;
+  /**
    * v1.3 field-level state facts, OFF in both `V12E_DEFAULT_OPTIONS` and `V13_DEFAULT_OPTIONS`; ON in
    * `V13_FIELD_STATE_OPTIONS`. Adds HOLDS_STATE_OF edges (Class → Class | Interface) for what an instance field holds:
    * its declared type, a property-injection decorator, a `new` initialiser, or a constructor-body assignment from `new`
@@ -217,6 +232,8 @@ export const V12E_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object
   resolvedEdgesInLiteralView: false,
   memberFacts: false,
   aliasDeclarationPackages: false,
+  aliasShadowsBuiltins: false,
+  nullableInjects: false,
   fieldState: false,
   apg2: false,
   components: [],
@@ -224,8 +241,8 @@ export const V12E_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object
 
 /**
  * The v1.3 extractor defaults (FR-V1, ADR-V13-01): dynamic import edges, NestJS module wiring and literal +
- * resolved re-export edges, class-member facts and Package edges for `paths` aliases onto declaration stubs
- * (F-P01-ALIAS) are ON. The flags stay, so a caller can still turn each one off explicitly.
+ * resolved re-export edges, class-member facts, Package edges for `paths` aliases onto declaration stubs
+ * (F-P01-ALIAS), aliases that shadow built-in names (N33) and nullable constructor injections (N38) are ON. The flags stay, so a caller can still turn each one off explicitly.
  */
 export const V13_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.freeze({
   ...V12E_DEFAULT_OPTIONS,
@@ -234,6 +251,8 @@ export const V13_DEFAULT_OPTIONS: Readonly<Required<ExtractorOptions>> = Object.
   reExportEdges: 'both',
   memberFacts: true,
   aliasDeclarationPackages: true,
+  aliasShadowsBuiltins: true,
+  nullableInjects: true,
 });
 
 /**
