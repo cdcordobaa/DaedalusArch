@@ -49,6 +49,9 @@ const CLAUDE_MODEL_ID = /claude-(?!code-cli\b)[a-z0-9]/i;
 /** BR-U5a-51 for the Codex arm (ADR-029): an OpenAI model id literal (`gpt-…`, `o3`, `codex-mini…`). */
 const OPENAI_MODEL_ID = /\bgpt-[0-9]|\bo[0-9]-|\bcodex-mini/i;
 
+/** BR-U5a-51 for the Gemini generator (decision CDX): a Gemini model id literal (`gemini-3…`). */
+const GEMINI_MODEL_ID = /\bgemini-[0-9]/i;
+
 /** D-U5a-13: tokens no U5a script may contain. */
 const BANNED_TOKENS = /import\.meta|__dirname|__filename|\brequire\(/;
 
@@ -267,6 +270,13 @@ describe('U5a architecture (BR-U5a-06, 51, 53; D-U5a-13)', () => {
     expect(offenders).toEqual([]);
     expect(OPENAI_MODEL_ID.test("const m = 'gpt-5.6-terra';")).toBe(true);
     expect(OPENAI_MODEL_ID.test("const a = 'codex-cli';")).toBe(false);
+  });
+
+  it('(c) no generator module hard-codes a Gemini model id (BR-U5a-51; decision CDX, the agy-cli adapter)', () => {
+    const offenders = walkTs('scripts/lib/generators').filter((file) => GEMINI_MODEL_ID.test(read(file)));
+    expect(offenders).toEqual([]);
+    expect(GEMINI_MODEL_ID.test("const m = 'gemini-3.1-pro-high';")).toBe(true);
+    expect(GEMINI_MODEL_ID.test("const a = 'agy-cli';")).toBe(false);
   });
 
   it('(d) U5a scripts use no import.meta, __dirname, __filename or require( (D-U5a-13)', () => {

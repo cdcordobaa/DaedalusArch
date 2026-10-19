@@ -30,6 +30,10 @@
  * Pins and isolation (optional, OFF when absent; `Docs/v1.3/loop-isolation.md`): `adapters[].cliVersion` pins the CLI
  * version (a Codex value must equal `codex.cliVersion`); `generatorIsolation.claudeConfigDir` (`"<local>"` filled from
  * `--claude-config-dir`) isolates every Claude spawn and requires `cliVersion` on every Claude adapter.
+ *
+ * Gemini (decision CDX; off by default): an `agy-cli` adapter is accepted only with a `gemini` block whose `enabled` is
+ * exactly true, and its `cliVersion` must equal `gemini.cliVersion` (`agy-gen-plan.ts`). A plan without `agy-cli`
+ * validates, schedules and reports errors exactly as before.
  */
 import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
@@ -40,8 +44,16 @@ import { mulberry32 } from '../mutation/rng.js';
 import type { AcceptancePlan } from './acceptance.js';
 import type { DaedalusServerInput } from '../generators/arms.js';
 import type { CodexPlanBlock } from '../generators/schedule.js';
-import { GENERATOR_ADAPTER_IDS } from '../generators/types.js';
+import { AGY_GEN_CLI_ADAPTER_ID, GENERATOR_ADAPTER_IDS } from '../generators/types.js';
 import type { GeneratorAdapterId } from '../generators/types.js';
+import { geminiBlockProblems } from '../generators/agy-gen-plan.js';
+import type { GeminiPlanBlock } from '../generators/agy-gen-plan.js';
+
+/**
+ * Adapter ids a loop plan accepts: the E1 ids plus the Gemini generator `agy-cli` (decision CDX), which needs a
+ * `gemini` block with `enabled: true` (off by default; `agy-gen-plan.ts`).
+ */
+export const LOOP_ADAPTER_IDS: readonly string[] = Object.freeze([...GENERATOR_ADAPTER_IDS, AGY_GEN_CLI_ADAPTER_ID]);
 import { CONTEXT_ROOT_RE, LOOP_STYLES } from './style.js';
 import type { LoopContextDecl, LoopStyle } from './style.js';
 import { SPEC_RUNGS } from './prompts.js';
@@ -98,6 +110,8 @@ export interface LoopPlanFile {
   readonly allowBash: boolean;
   readonly timeoutMs?: number;
   readonly codex?: CodexPlanBlock;
+  /** The Gemini generator (`agy-cli`), off unless `enabled` is exactly true (`agy-gen-plan.ts`). */
+  readonly gemini?: GeminiPlanBlock;
   /** The DaedalusArch MCP server of the `daedalus-mcp` arm (absolute paths, outside every cwd). */
   readonly daedalus?: DaedalusServerInput;
   /** Default spec the firewall evaluates each snapshot against (repository-relative or absolute). */
@@ -240,14 +254,17 @@ export function validatePlan(raw: unknown): DomainResult<LoopPlanFile> {
     errors.push(err('LOOP_PLAN_INVALID', `arms must be distinct values of ${LOOP_ARMS.join(', ')}`));
   }
   const adapters = raw.adapters;
+  const gemini = Array.isArray(adapters) && adapters.some((a) => isRecord(a) && a.adapterId === AGY_GEN_CLI_ADAPTER_ID);
   if (
     !Array.isArray(adapters) ||
     adapters.length === 0 ||
-    !adapters.every((a) => isRecord(a) && GENERATOR_ADAPTER_IDS.includes(String(a.adapterId)) && typeof a.modelId === 'string' && MODEL_RE.test(a.modelId))
+    !adapters.every((a) => isRecord(a) && LOOP_ADAPTER_IDS.includes(String(a.adapterId)) && typeof a.modelId === 'string' && MODEL_RE.test(a.modelId))
   ) {
-    errors.push(err('LOOP_PLAN_INVALID', 'adapters must be [{ adapterId: claude-code-cli | codex-cli, modelId }]'));
+    // The message names agy-cli only when a plan lists it, so the message of every existing plan is unchanged.
+    errors.push(err('LOOP_PLAN_INVALID', `adapters must be [{ adapterId: claude-code-cli | codex-cli${gemini ? ' | agy-cli' : ''}, modelId }]`));
   }
-  if (Array.isArray(adapters)) errors.push(...pinProblems(adapters, raw.codex, raw.generatorIsolation));
+  if (Array.isArray(adapters)) errors.push(...pinProblems(adapters, raw.codex, raw.generatorIsolation, raw.gemini));
+  errors.push(...geminiBlockProblems(raw.gemini, gemini));
   if (Array.isArray(arms) && arms.includes('daedalus-mcp') && !isRecord(raw.daedalus)) {
     errors.push(err('LOOP_PLAN_INVALID', 'the daedalus-mcp arm needs a daedalus block { nodeBinary, serverEntry, specPath }'));
   }
@@ -299,16 +316,18 @@ export function planFrame(plan: Pick<LoopPlanFile, 'frame'>): { readonly specRun
 }
 
 /** `adapters[].cliVersion` and `generatorIsolation` (module header). */
-function pinProblems(adapters: readonly unknown[], codex: unknown, isolation: unknown): DomainError[] {
+function pinProblems(adapters: readonly unknown[], codex: unknown, isolation: unknown, gemini?: unknown): DomainError[] {
   const errors: DomainError[] = [];
   const bad = (m: string): void => {
     errors.push(err('LOOP_PLAN_INVALID', m));
   };
   const codexVersion = isRecord(codex) ? codex.cliVersion : undefined;
+  const geminiVersion = isRecord(gemini) ? gemini.cliVersion : undefined;
   for (const a of adapters) {
     if (!isRecord(a) || a.cliVersion === undefined) continue;
     if (typeof a.cliVersion !== 'string' || !VERSION_RE.test(a.cliVersion)) bad(`adapters[${String(a.adapterId)}].cliVersion must be x.y.z`);
     else if (a.adapterId === 'codex-cli' && a.cliVersion !== codexVersion) bad(`adapters[codex-cli].cliVersion ${a.cliVersion} differs from codex.cliVersion`);
+    else if (a.adapterId === AGY_GEN_CLI_ADAPTER_ID && a.cliVersion !== geminiVersion) bad(`adapters[agy-cli].cliVersion ${a.cliVersion} differs from gemini.cliVersion`);
   }
   if (isolation === undefined) return errors;
   if (!isRecord(isolation) || typeof isolation.claudeConfigDir !== 'string' || isolation.claudeConfigDir === '' || Object.keys(isolation).some((k) => k !== 'claudeConfigDir')) {

@@ -18,6 +18,13 @@
  * The pinned per-run tsconfig is written under `<H>/runs/<runId>/` before every turn (the type-check command of the
  * prompt points at it).
  *
+ * - Gemini (`agy-cli`, decision CDX; OFF by default and NOT YET THROUGH S4, `Docs/v1.4/gemini-s4-probe-spec.md`):
+ *   `buildAgyGenArgs` (prompt on stdin), `buildAgyGenChildEnv` (the arm's dedicated generator home as `HOME`), the
+ *   generator home check before every spawn, the turn's home files (exact allow list with the run's type-check
+ *   command; the MCP config with `--project` and `--call-log` for `daedalus-mcp`), `agyGenAttemptDisposition`, and the
+ *   `status` hook. An auth failure or a completed tool step outside the arm's allow list fails the turn
+ *   (`LOOP_GEMINI_AUTH`, `LOOP_GEMINI_TOOL_ESCAPE`), which stops the grid.
+ *
  * Claude only, OFF by default (`isolation.ts`, `Docs/v1.3/loop-isolation.md`): `cliVersion` makes the pre-run probe
  * refuse any other `claude --version`; `isolation` runs the probe and every turn with a per-run `HOME`, the dedicated
  * `CLAUDE_CONFIG_DIR` and auto-update off, checks both before every spawn, and writes `env-<turnId>.json`.
@@ -41,7 +48,12 @@ import { attemptDisposition } from '../generators/outcome.js';
 import type { AttemptDisposition } from '../generators/outcome.js';
 import { DEFAULT_RETRY_POLICY, realSleep, runWithRetries, systemClock } from '../generators/retry.js';
 import type { Clock, RetryPolicy, Sleeper } from '../generators/retry.js';
-import { CLAUDE_CODE_ADAPTER_ID, CODEX_CLI_ADAPTER_ID_VALUE } from '../generators/types.js';
+import { AGY_GEN_CLI_ADAPTER_ID, CLAUDE_CODE_ADAPTER_ID, CODEX_CLI_ADAPTER_ID_VALUE } from '../generators/types.js';
+import { parseAgyVersion } from '../../../src/llm-critic/agy-cli-provider.js';
+import { agyGenArmOf, buildAgyGenArgs, buildAgyGenChildEnv, checkAgyGenHome, checkAncestors, writeAgyTurnFiles } from '../generators/agy-gen-cli.js';
+import type { AgyGenArm, AgyGenCliConfig } from '../generators/agy-gen-cli.js';
+import { agyGenAttemptDisposition, agyGenStop, agyGenTurnStatus, parseAgyGenRun } from '../generators/agy-gen-events.js';
+import { typecheckCommand } from '../generators/argv.js';
 import type { GeneratorCliConfig } from '../generators/types.js';
 import { checkIsolationBeforeSpawn, isolatedClaudeEnv, parseCliVersion, probeHomeOf, runHomeOf, turnEnvRecord } from './isolation.js';
 import type { ClaudeIsolation } from './isolation.js';
@@ -136,6 +148,12 @@ interface CallPlan {
   readonly disposition: (cli: ProcessResult | null, envelope: ParsedEnvelope | null, changed: number) => AttemptDisposition;
   /** Written as `env-<turnId>.json` beside the envelope when present (isolated Claude turns). */
   readonly envRecord?: () => unknown;
+  /**
+   * The turn status; `turnStatus` when absent (Claude and Codex pass none, so their records are unchanged). The Gemini
+   * agent passes `agyGenTurnStatus`: agy reports a print timeout as exit 0 with SUCCESS, which `turnStatus` (keyed on
+   * `cli.timedOut`) would read as completed.
+   */
+  readonly status?: (cli: ProcessResult | null, exhausted: boolean, envelope: ParsedEnvelope | null, modelId: string) => TurnStatus;
 }
 
 /** The shared turn driver: retries, interruptions, envelope, status and usage. */
@@ -191,7 +209,7 @@ async function driveTurn(
     fs.writeFileSync(path.join(input.recordDir, `env-${input.turnId}.json`), `${JSON.stringify(plan.envRecord(), null, 2)}\n`);
   }
   return DomainResult.ok({
-    status: turnStatus(cli, retried.data.exhausted, envelope, config.modelId),
+    status: (plan.status ?? turnStatus)(cli, retried.data.exhausted, envelope, config.modelId),
     usage: turnUsage(envelope),
     wallMs: clock.now() - started,
     attempts: retried.data.attempts,
@@ -417,5 +435,127 @@ export class CodexStepAgent implements StepAgent {
       },
       planned.data.prompt,
     );
+  }
+}
+
+/**
+ * The Gemini generator over `agy` (module header). NOT YET THROUGH S4: the live wiring refuses it without a passing
+ * committed S4 result (`checkS4Result`); the recorded dry run drives it with a scripted runner.
+ */
+export class GeminiStepAgent implements StepAgent {
+  readonly adapterId = AGY_GEN_CLI_ADAPTER_ID;
+  readonly modelId: string;
+  private probedVersion: string | null = null;
+
+  constructor(
+    private readonly config: AgyGenCliConfig,
+    private readonly deps: StepAgentDeps,
+  ) {
+    this.modelId = config.modelId;
+  }
+
+  /** The pre-run probe (no model call): each arm's home passes the structural check, and `agy --version` equals the pin. */
+  async probe(arms: readonly AgyGenArm[] = ['none', 'daedalus-mcp']): Promise<DomainResult<{ readonly cliVersion: string }>> {
+    for (const arm of arms) {
+      const home = checkAgyGenHome(this.config.homes[arm], arm, null, this.config.allowCommand);
+      if (home.problems.length > 0) {
+        return DomainResult.fail([{ code: 'GEN_AGY_HOME_FORBIDDEN', message: `the ${arm} generator home fails ${String(home.problems.length)} check(s)`, context: { problems: [...home.problems] } }]);
+      }
+    }
+    const env = buildAgyGenChildEnv(this.deps.parentEnv ?? process.env, this.config.homes.none);
+    const r = await this.deps.runner.run(this.config.binary, ['--version'], { env, timeoutMs: VERSION_TIMEOUT_MS, stdin: '' });
+    if (!r.success || r.data.exitCode !== 0 || r.data.timedOut) {
+      return DomainResult.fail([{ code: 'LOOP_CLI_UNAVAILABLE', message: 'the agy CLI is not available at the gemini binary path' }]);
+    }
+    const version = parseAgyVersion(r.data.stdout);
+    if (version !== this.config.cliVersion) {
+      return DomainResult.fail([
+        { code: 'LOOP_CLI_VERSION_MISMATCH', message: `agy --version reports ${version ?? 'no version'}, the plan pins ${this.config.cliVersion}`, context: { found: version, pinned: this.config.cliVersion } },
+      ]);
+    }
+    this.probedVersion = version;
+    return DomainResult.ok({ cliVersion: version });
+  }
+
+  /** The argv, the stdin prompt and the arm home of one turn (no process is spawned). */
+  plan(input: Pick<TurnInput, 'prompt' | 'arm'>): { readonly args: readonly string[]; readonly prompt: string; readonly arm: AgyGenArm; readonly home: string } {
+    const arm = agyGenArmOf(input.arm);
+    return { args: buildAgyGenArgs(this.config), prompt: armPrompt(input.prompt, generatorArmFor(input.arm)), arm, home: this.config.homes[arm] };
+  }
+
+  async runTurn(input: TurnInput): Promise<DomainResult<TurnResult>> {
+    const planned = this.plan(input);
+    writeHarnessTsconfig(this.config.harnessRoot, input.runId, input.cwd);
+    const ambient = checkAncestors(input.cwd);
+    if (!ambient.success) return DomainResult.fail(ambient.errors);
+    const files = writeAgyTurnFiles(planned.home, {
+      arm: planned.arm,
+      runId: input.runId,
+      harnessRoot: this.config.harnessRoot,
+      cwd: input.cwd,
+      allowCommand: this.config.allowCommand,
+      ...(input.callLogPath !== undefined ? { callLogPath: input.callLogPath } : {}),
+      ...(this.deps.daedalus !== undefined ? { daedalus: this.deps.daedalus } : {}),
+    });
+    if (!files.success) return DomainResult.fail(files.errors);
+    const secrets = this.deps.knownSecrets ?? [];
+    const env = buildAgyGenChildEnv(this.deps.parentEnv ?? process.env, planned.home);
+    const stopCtx = { arm: planned.arm, allowCommand: this.config.allowCommand, typecheckCommand: typecheckCommand(this.config.harnessRoot, input.runId) };
+    // Design R3: the version pin is checked before every turn (agy self-updates), not only at probe time.
+    const pin = await this.checkVersionPin(env);
+    if (!pin.success) return DomainResult.fail(pin.errors);
+    // Design §3.5 (stop row): every attempt's process result is kept, so a forbidden step completed in an attempt that
+    // was then retried (print timeout with no files, usage-limit pause and resume) still stops the grid.
+    const seen: ProcessResult[] = [];
+    let listingSha256 = '';
+    const driven = await driveTurn(
+      input,
+      this.config,
+      this.deps,
+      {
+        command: this.config.binary,
+        args: planned.args,
+        stdin: planned.prompt,
+        env,
+        before: () => {
+          const home = checkAgyGenHome(planned.home, planned.arm, files.data.allow, this.config.allowCommand);
+          listingSha256 = home.listingSha256;
+          return home.problems.length === 0
+            ? DomainResult.ok(undefined)
+            : DomainResult.fail([{ code: 'GEN_AGY_HOME_FORBIDDEN', message: `the ${planned.arm} generator home fails ${String(home.problems.length)} check(s)`, context: { problems: [...home.problems] } }]);
+        },
+        parse: (cli) => {
+          seen.push(cli);
+          const p = parseAgyGenRun(cli.stdout, secrets);
+          return p.success ? p.data : null;
+        },
+        disposition: agyGenAttemptDisposition,
+        status: agyGenTurnStatus,
+        envRecord: () => ({ schema: 'loop-agy-env/v1', envNames: Object.keys(env).sort(), cliVersion: this.probedVersion, homeListingSha256: listingSha256 }),
+      },
+      planned.prompt,
+    );
+    if (!driven.success) return driven;
+    for (const cli of seen) {
+      const stop = agyGenStop(cli, stopCtx, secrets);
+      if (stop !== null) return DomainResult.fail([stop]);
+    }
+    return driven;
+  }
+
+  /** `agy --version` in the turn's environment equals the pin (`LOOP_CLI_VERSION_MISMATCH`); no model call. */
+  private async checkVersionPin(env: Readonly<Record<string, string>>): Promise<DomainResult<void>> {
+    const r = await this.deps.runner.run(this.config.binary, ['--version'], { env, timeoutMs: VERSION_TIMEOUT_MS, stdin: '' });
+    if (!r.success || r.data.exitCode !== 0 || r.data.timedOut) {
+      return DomainResult.fail([{ code: 'LOOP_CLI_UNAVAILABLE', message: 'the agy CLI is not available at the gemini binary path' }]);
+    }
+    const version = parseAgyVersion(r.data.stdout);
+    if (version !== this.config.cliVersion) {
+      return DomainResult.fail([
+        { code: 'LOOP_CLI_VERSION_MISMATCH', message: `agy --version reports ${version ?? 'no version'} before the turn, the plan pins ${this.config.cliVersion}`, context: { found: version, pinned: this.config.cliVersion } },
+      ]);
+    }
+    this.probedVersion = version;
+    return DomainResult.ok(undefined);
   }
 }
