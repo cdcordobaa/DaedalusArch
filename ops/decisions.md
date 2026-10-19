@@ -24,6 +24,11 @@ The working copy is the decision board, a private claude.ai artifact the author 
 | **SIGN** | Sign V1, ADR-V14 Q-A to Q-E and the 9 adjudication rows from a one-page sheet. Each default comes with its spec evidence and its consequence | The signing sheet |
 | **D15** | Static DDD spec with declared aggregates (evaluator only), confirmed after the B2 numbers | Pending B2 (local agent) |
 | **FPFN** | The SO4-4 FP/FN review is done by an automated root-cause classification: mechanical checks plus an agent explanation per item, declared as AI-assisted. The author reviews the summary, not each item | Classifier run after the hold-out |
+| **EXP** | **A separate exploratory study runs first** (its own registration, estimands, a staged stop rule, no confirmatory claims). The confirmatory Study 2 (the drift record) follows, designed from its results | Exploratory registration; the drift record stays the confirmatory protocol |
+| **EXPT** | The exploratory study runs on rehearsal, probe and exploratory-only tasks. The confirmatory tasks are written blind and sealed before exploratory results are read | Task plan in the registration |
+| **SEM** | **Everything semantic is in scope now:** C1d semantic facts into the graph, C4 interpretation and the agentic meaning protocol (MEAN-02). The instrument is neuro-symbolic, so no semantic path is deferred. In the exploratory study the semantic paths score the snapshots, and an in-loop semantic cell is added if its MCP tool is ready and confined | Builds, pilots, the registration |
+| **F3** | F3 is rewritten around C4 + C1d (models supply facts and interpretation), replacing the judge | Contribution statement edit |
+| **AUTO** | Author away until the evening of 2026-10-19: progress without blockers. Approved: zero-call builds and docs; the capped live pilots of the instrument (C1d ≤ 40 per vendor, C4 ≤ 24 per vendor, Gemini S4 ≤ 30, Claude S4 with MCP, counted first); merging green PRs. **Not approved: any study run** | — |
 
 ## Settled in chat, 2026-10-18 (late)
 - **D1:** confirm the decision sheet **as written**, with no changes.
