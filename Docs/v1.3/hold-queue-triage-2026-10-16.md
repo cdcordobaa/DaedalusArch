@@ -117,7 +117,7 @@ A) None overlap: merge #189 and #201 as they are, and #206 subject to Q8.
 B) Some overlap: those PRs swap the domains (and #189 re-runs those cells) before merging.
 C) Some overlap: park the affected PRs.
 Rec: **A** if your check is clean. This check is the only blocker left on #189 and #201.
-[Answer]:
+[Answer]: B for #206 only (2026-10-19, F23): two of its six demo domains overlap and were replaced (tide-tables, stamp-catalogue). #189 and #201: no overlap (six borderline, kept). Detail: `Docs/DiagnosticRuns/v1.3-f23-and-v4-count-2026-10-18.md` Part 3.
 
 **Q8 — Ungated bug fixes in the harness: #180 and #206.**
 - #180: the gate arm stops on an unscored snapshot (`LOOP_GATE_UNSCORED`), and resume moves stale records to `discarded/restart-<n>/`.

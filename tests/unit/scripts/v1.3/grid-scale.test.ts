@@ -14,9 +14,9 @@ import { context, tmpRoot } from '../loop/helpers.js';
 
 const REPO = path.resolve(__dirname, '../../../..');
 const TASK: LoopTask = {
-  id: 'gym-log',
-  title: 'Gym log (test)',
-  steps: ['workouts', 'exercises', 'personal-bests', 'plans', 'streaks'].map((id) => ({ id, request: `Add ${id}.` })),
+  id: 'tide-tables',
+  title: 'Tide tables (test)',
+  steps: ['stations', 'readings', 'predictions', 'alerts', 'reports'].map((id) => ({ id, request: `Add ${id}.` })),
 };
 const TASKS = new Map([[TASK.id, TASK]]);
 
