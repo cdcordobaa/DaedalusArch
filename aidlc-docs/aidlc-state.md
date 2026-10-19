@@ -127,3 +127,17 @@
 - [ ] Workflow Planning
 - [ ] Application Design (likely: style libraries, fidelity harness, labelling)
 - [ ] Units Generation
+
+### v1.4 INSTRUMENT-ALIGNMENT CYCLE (started 2026-10-18T23:40Z) — build the parts of the instrument map
+- **Current Stage** (updated 2026-10-19T21:42Z): CONSTRUCTION. Inception was minimal: the requirements are the instrument map v3, the build list, the north star and the decisions (`ops/01-instrument-map.md`, `ops/03-build-list.md`, `ops/04-north-star.md`, `ops/decisions.md`; audit entry "v1.4 instrument-alignment cycle: start"). Research work stays outside AI-DLC, in `ops/`.
+- **Units** (`aidlc-docs/construction/v1.4/`):
+  - [x] U1 extractor fixes N33, N38 — merged (PR #253)
+  - [x] U2 norm rules D5, N3 — merged (PRs #255, #260)
+  - [x] U3 semantic-layer facts C1d — merged (PRs #254, #263); never run live
+  - [x] U4 identity and drift metric — merged (PR #256)
+  - [x] U5 control: evasion check, Gemini adapter — merged (PR #257)
+  - [ ] U6 recall fixes — design only, NOT BUILDABLE until Gate 0 is signed (`construction/v1.4/U6/plan.md:5`; signing sheet `ops/notes/signing-sheet-2026-10-19.md`)
+  - [x] U7 meaning analysis — merged (PR #258)
+  - [x] U8 efficiency harness — merged (PR #259)
+- **Study plan (2026-10-19):** an exploratory study runs first (`Docs/v1.4/exploratory-study-registration.md`); the drift record stays the confirmatory Study 2 protocol (`Docs/v1.4/study2-deviation-2026-10-19-drift.md`). No study run is approved.
+- **Waiting on the author:** the signing sheet, ADR-V14-04 (V4), deviations X-1 and SO3-a, the F3 rewording, the exploratory study's counts.

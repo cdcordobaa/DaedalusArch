@@ -8,6 +8,8 @@
 - **It supersedes §2 of the first deviation** ([`Docs/v1.3/study2-deviation-2026-10-16.md`](../v1.3/study2-deviation-2026-10-16.md), the level outcome Y). From today, this record is the single source of the Study 2 protocol. `scripts/v1.3/protocol-consistency-check.mjs` reads its block (§2), and every protocol document carries the line above.
 - **What was read to write it.** No sealed directory, no answer key and no `.env` were read. It names no sealed task.
 
+> **Note, 2026-10-19 (evening, decisions EXP and EXPT, `ops/decisions.md:27-28`).** A separate exploratory study runs before this one. It has its own registration: [`exploratory-study-registration.md`](exploratory-study-registration.md). This record stays the confirmatory Study 2 protocol, and its block in §2 is unchanged. The exploratory study does not use this record's tasks, contrasts, pilot bar or fallback. Any change its results cause here will be a new dated deviation.
+
 The design is [`ops/notes/s2d-01-study2-drift-design.md`](../../ops/notes/s2d-01-study2-drift-design.md) (s2d-01), with the three changes REV-03 asked for ([`ops/notes/rev-03-study2-drift-fable.md`](../../ops/notes/rev-03-study2-drift-fable.md), "Three changes first"), written in §5 below. Where s2d-01 and this record disagree, this record wins.
 
 ## 1. What changes, in one paragraph
@@ -121,4 +123,5 @@ This is s2d-01 §6, with today's decisions applied.
 - The writer of the new tasks: which session and which model.
 
 ## Changelog
+- 2026-10-19 (evening): dated note pointing to the exploratory study registration. No protocol value changed.
 - 2026-10-19: first version.

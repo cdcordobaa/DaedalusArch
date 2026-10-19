@@ -48,3 +48,36 @@ is engineering in support of the contribution and is not claimed as a contributi
 Per G2, the following go to appendices or Future Work and get at most one defence slide together: ISE, ontology v0,
 the cheap proxies (Paper 4), the HTML report, the CI gate, npx mode, the dogfooding run, the OpenSpec demo, the
 in-process interpreter and the MCP tool surface.
+
+## Proposed change, 2026-10-19: F3 around C4 + C1d (decision F3) — NOT ADOPTED UNTIL SIGNED
+
+**Why.** The author decided that F3 is rewritten around C4 + C1d: models supply facts and interpretation, replacing
+the judge (`ops/decisions.md:30`). Today F3 *is* the judge (row F3 above, line 32), while the judge is dropped from
+Study 2 (V7 waived, `Docs/v1.4/study2-deviation-2026-10-19-drift.md` §7) and TRUST-01 has C4 replace its role
+(`ops/notes/trust-01-path-to-a-trusted-instrument.md:42`). REV-05 flags the contradiction
+(`ops/notes/rev-05-first-study-fable.md:115-116`, `:178`). The text below follows C4-01 §2.1
+(`ops/notes/c4-01-interpretation-design.md`, branch `v14/c4-mean02-design`). Everything above this section is
+unchanged until the author signs.
+
+**Proposed F3 row (replaces the F3 row above):**
+
+| # | Finding | Evidence class | Main source |
+|---|---|---|---|
+| F3 | A model has a bounded, complementary role. It supplies grounded facts the rules read (C1d) and interprets findings against the project's docs and ADRs (C4). **It never sets a verdict:** the C3 verdict is copied into its output, and scores with and without its output are byte-identical. On seeded cases with twins, across two vendors, C4 [result of the C4 six-case run] and C1d [result of the NS-02 six-case run]; on agent code, K3/K2m facts arose in [n of 24 sampled snapshots]. An earlier design, a model judge that set verdicts, caught 16/21 = 0.76 [0.55, 0.89] of planted anti-patterns (N63) and changed 0 of 65 Study 1 verdicts (N85), and was dropped. | Seeded cases with twins (designed and piloted); exploratory frequency on agent code; the judge figures are development | `ops/notes/c4-01-interpretation-design.md`; `ops/notes/ns-02-facts-contract-and-cases.md`; `Docs/v1.4/exploratory-study-registration.md` §9; N63, N85 |
+
+**Proposed statement sentence (replaces "Third, a language-model judge … unanimity." in the paragraph above):**
+
+> Third, a language model is given a bounded role beside the deterministic rules: it supplies facts the parser cannot
+> see and interprets findings against the project's own documents, and it never sets a verdict. An earlier design, a
+> model judge that set verdicts, is reported as the reason for this change.
+
+**Proposed wording constraint (replaces "F3 is development-set evidence…"):**
+
+- **F3 says what was done and no more:** "designed, piloted on N cases with twins across two vendors, and measured
+  for frequency on agent code" (`rev-05:123`). The brackets stay empty until the runs exist. If a C4 or C1d bar fails,
+  F3 says "characterised" for that part (TRUST-01 §3). "Very well supported" is not claimed for the semantic half
+  (`rev-05:103`).
+- **Facts and interpretation, never verdicts** (decision N1, `ops/decisions.md:64`). No sentence says the model
+  judges, passes or fails code.
+
+> AUTHOR: sign — F3 rewording adopted as proposed / with changes / not adopted (keep the judge F3). Signed: __________ Date: ____-__-__

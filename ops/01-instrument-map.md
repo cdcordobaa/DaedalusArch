@@ -174,7 +174,7 @@ Each part is tested with a **correct input handed in from upstream** (an oracle 
 | **C2, declared** | are the style libraries a fair reading of each style? | — | the cited literature | sealed, not expert-reviewed | **AMBER** | D1 |
 | **C2, mined** | does mining recover the declared norms? | the code | the hand-written specs | 24/52 vs 50/52; DDD 1/12 (N07, dev) | **AMBER** | rerun as recall of the declared rules on the 15 external specs |
 | **C2r** | do two independent norm authors agree? | the same repo, two blind authors | each other | verdict κ 0.21; same verdict on 10/15 repos (N02). **Both authors were Claude sessions**, so this is an upper bound on agreement between humans (`v1.3-spec-author-reliability.md:99-100`) | **RED**, second-weakest link | report as a limit this month. A human measurement is future work (REV-02) |
-| **C3** | given correct norms, are the findings right? | the gold norm set | the norms, and the hold-out | correctness 283/283 external; clustered at the repo level, 11/11 repos, Wilson [0.741, 1]. Blind recall 0.78 [0.67, 0.86], with four styles below 0.90 (N105). Hold-out not run. **Tool baseline:** parity with dependency-cruiser on the rules both express (N61); 4 blocking rules in 7 style rows that no compared tool can express (`v1.3-validity-convergent-2026-10-16.md`) | **GREEN** for correctness, **AMBER** for recall | R1: F23, then the hold-out. **Blocker:** gate V4 may be unpassable at this size (§8, board V4) |
+| **C3** | given correct norms, are the findings right? | the gold norm set | the norms, and the hold-out | correctness 283/283 external; clustered at the repo level, 11/11 repos, Wilson [0.741, 1]. Blind recall 0.78 [0.67, 0.86], with four styles below 0.90 (N105). Hold-out not run. **Tool baseline:** parity with dependency-cruiser on the rules both express (N61); 4 blocking rules in 7 style rows that no compared tool can express (`v1.3-validity-convergent-2026-10-16.md`) | **GREEN** for correctness, **AMBER** for recall | R1: the U6 recall fixes and the V4 ADR, then the hold-out. *(2026-10-19: F23 is done; V4 is bound by recall, not by F23, `notes/rev-04-gaps-and-promises-2026-10-19.md:32-35`.)* **Blocker:** Layered is likely "characterised"; the route is named in advance in `Docs/v1.4/adr-v4-holdout-bar.md` (proposed) |
 | **C3m** | is a correct finding architecturally meaningful? | about 60 external blocking findings, stratified by rule | one free human rater against the author, with κ ≥ 0.60 under a definition dated before the first label (V6) | 0 labels (N114); registered real-code precision 0.328 [0.132, 0.609] (N115); 51/60 human style-claiming repos fail (N116) | **RED, the weakest link** | board L4 (the definition) and D3 (the rater labels meaning) |
 | **C4** | given correct findings, does N3 tell an exception from a problem? | gold findings plus intent cases | answers written first | catch rate 16/21 = 0.76 vs a target of 0.80; v1 false-fails 16/48 clean units (`study2-outline-v2.md`) | **AMBER / RED** | the NS thread, after C1d |
 | **C5** | how do findings evolve in human histories? | fix-mining snapshots | the t0 norm set | survival 0.76 vs 0.75 for unflagged edges (N123); fix commits name architecture in 5/14 (N123) | **null so far** | a zero-call descriptive now, and a registered exploratory brownfield study after Study 2 |
@@ -223,7 +223,7 @@ A downstream claim is only as strong as its weakest upstream link. **v3: that li
 | Study | Parts it tests | Norms come from | Kind | State |
 |---|---|---|---|---|
 | Study 1 (v1.2E) | C6 | declared | registered, done | GREEN as registered. It ran the "wrong" way |
-| Hold-out (R1) | C3 | declared | confirmatory | not run; F23 first |
+| Hold-out (R1) | C3 | declared | confirmatory | not run; F23 done 2026-10-19; U6 and the V4 ADR come first |
 | NS thread (R3) | C1d, then C4 | declared, plus hand-written intent | pilot, then confirmatory on its own set | **current thread** |
 | Meaning labels (new R2, v3) | C3m | declared | measurement, κ ≥ 0.60 | week 2; needs board L4 and D3 |
 | Norm reliability | C2r, C2 mined | blind authors | limit this month | future work (REV-02) |
@@ -305,6 +305,7 @@ The working mode still holds: a note before any call, 2-case pilots, and the dir
 6. Should the efficiency test (C1c) be a sanity check, or a thesis result? REV-01 recommends a sanity check.
 
 ## Changelog
+- 2026-10-19 (evening): C3 and hold-out rows no longer lead with F23 (done); they point to U6 and the V4 ADR (REV-04 §6 item 15).
 - 2026-10-19: corrected the neural-layer rule. The graph complements reading (NS-03).
 - 2026-10-18 v3: after REV-02 and the conditions register. New part C3m (meaning) is the weakest link. C2r corrected to two Claude sessions. §1 claim is now F1–F3 plus Study 2. New §7b, SO-to-parts. §8 is now a four-week path with a cut list and confirmatory conditions. C1 split into imports vs DDD class facts. C3 gains the tool baseline and the clustered bound.
 - 2026-10-18 v2: four planes, C1e, C2r, artifacts A1–A6, per-part evaluation, chain of trust, risks, studies on the map, ordered work. Drift moved out of Study 2. Figures corrected after REV-01.
