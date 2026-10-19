@@ -359,6 +359,9 @@ describe('P5: usage limits at the repair turn and at an isolated turn (S1 call s
     expect(r.data.interruptions).toHaveLength(1);
     expect(r.data.attempts.map((a) => a.outcome)).toEqual(['completed']);
     expect(sleeps).toHaveLength(1);
+    // S1: the pause is in the turn record, with the duration the policy asked for.
+    expect(r.data.interruptions[0]?.pause?.plannedMs).toBe(sleeps[0]);
+    expect(r.data.interruptions[0]?.pause?.ms).toBeGreaterThanOrEqual(0);
     expect(runner.cliCalls).toHaveLength(2);
   });
 });

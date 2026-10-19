@@ -1,0 +1,57 @@
+{
+  "description": "Exploratory study tasks (REV-05 §3, §6 item 2): the rehearsal tasks ice-rink (Layered) and vineyard-harvest (DDD), copied unchanged from fixtures/v1.3-rehearsal-tasks/tasks.json. Never confirmatory. See experiments/exploratory-study/README.md.",
+  "tasks": [
+    {
+      "id": "ice-rink",
+      "title": "Ice rink",
+      "steps": [
+        {
+          "id": "sessions-and-hire",
+          "request": "Build the backend for a public ice rink. The rink manager schedules skating sessions (date, start, end, capacity, price). Skaters buy tickets for a session online and can add skate hire in their shoe size; the rink has a fixed stock of hire skates per size, and a session never sells more tickets than its capacity or more hire skates of a size than are in stock. Skaters pay through PuckPay: the backend asks PuckPay's HTTP API for a checkout link, and PuckPay later calls a webhook of ours with the payment result. A ticket that is not paid within 15 minutes is released. Keep the data in memory and expose the operations over HTTP."
+        },
+        {
+          "id": "club-ice-time",
+          "request": "The figure-skating club books ice time: whole or half rinks for a date and hours, which then reduce the capacity of any public session at the same time by half or to zero. A club booking never overlaps another club booking on the same half. The club is invoiced monthly for its hours at the club rate. Club members can use their membership number to skate in public sessions without paying, up to four times a month, with the same capacity and skate-hire rules as everyone else."
+        },
+        {
+          "id": "ice-sensors",
+          "request": "The rink has FrostSense sensors in the ice, which post a temperature reading to a webhook of ours every minute. When the ice is warmer than minus 3 °C for 10 minutes, the next session is put on hold: no more tickets are sold for it, and its ticket holders get a text message through DropText (an HTTP API that takes a phone number and a message). The manager either cancels the held session, which refunds every ticket through PuckPay, or releases it."
+        },
+        {
+          "id": "oversell-fix",
+          "request": "Urgent before Saturday's disco session: twice this week the last tickets were sold to two skaters at the same moment and the session went over capacity, and refunds made through PuckPay were not recorded on the tickets. Fix both quickly: a session can never go over capacity, even when two purchases arrive together, and a refund PuckPay confirms is recorded on its ticket. Keep the change small."
+        },
+        {
+          "id": "weekly-report",
+          "request": "The rink manager wants a weekly report, and the council's leisure department downloads the same figures as CSV every Monday: per session, tickets sold, members admitted, occupancy as a share of capacity, skate-hire income per size, refunds, and sessions held or cancelled because of the ice. It has to answer quickly for a whole season."
+        }
+      ]
+    },
+    {
+      "id": "vineyard-harvest",
+      "title": "Vineyard harvest",
+      "steps": [
+        {
+          "id": "picking-and-intake",
+          "request": "Build the backend for a vineyard's harvest. It has two parts, run by different teams. Picking keeps the pickers (name, phone, hourly rate), the vineyard blocks (name, grape variety, area) and each day's picking: which pickers work which block, and the bins they fill; every bin has a numbered tag, and a picker records the bin's tag and block when it is full. The cellar receives the bins at the winery: the weighbridge from ScaleLink posts each weighing to a webhook of ours as JSON (bin tag, gross weight in kilograms, time), and cellar staff record the sugar level of each bin. The cellar accepts a bin only if picking recorded it that day and its sugar level is at least the variety's minimum; otherwise the bin is rejected with a reason. Keep the data in memory and expose the operations over HTTP."
+        },
+        {
+          "id": "picker-pay",
+          "request": "Add picker pay. Pickers are paid their hourly rate for the hours they worked plus a piece rate per kilogram of their bins that the cellar accepted (net of the bin's own weight, which depends on the bin type). A rejected bin pays no piece rate. Each picker gets a weekly pay statement listing their hours, their bins with weight and status, and the total. Once the farm manager has approved a week's pay, it can no longer change."
+        },
+        {
+          "id": "second-weighbridge",
+          "request": "The second winery site uses a WeighWell weighbridge. WeighWell does not call us: its HTTP API must be polled every 5 minutes for new weighings. It reports weights in tenths of a kilogram and identifies bins by an RFID chip number, which cellar staff link to a bin tag. Weighings from either site are checked and accepted in the same way, and count in the same way for picker pay."
+        },
+        {
+          "id": "double-weighing-fix",
+          "request": "Urgent: when the weighbridge loses its network it sends the same weighing again, so some bins were counted twice and pickers were overpaid this week. Fix it before Friday's pay run: a second weighing of a bin that has already been weighed is ignored, unless cellar staff enter it as a correction, which replaces the first weight. Recalculate the pay statements of every week that is not yet approved. Keep the change small."
+        },
+        {
+          "id": "harvest-dashboard",
+          "request": "The owner wants a harvest dashboard: per block and per variety, the kilograms picked and accepted, the rejection rate and its reasons, the average sugar level, and the labour cost per tonne accepted; plus the ten pickers with the most accepted kilograms this season. Picking and the cellar must use the same identifiers for blocks, varieties and bin tags."
+        }
+      ]
+    }
+  ]
+}

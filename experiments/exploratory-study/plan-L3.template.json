@@ -1,0 +1,29 @@
+{
+  "description": "Exploratory study plan TEMPLATE, rung L3 (REV-05 §3; not Study 2, not registered). Cell none@L3 on the rehearsal tasks ice-rink (Layered) and vineyard-harvest (DDD), claude-sonnet-5-5 lane, 3 replicates. Claude CLI pin and generator isolation ON (Docs/v1.3/loop-isolation.md). Values the author must confirm: experiments/exploratory-study/README.md.",
+  "tasksFile": "experiments/exploratory-study/tasks.json",
+  "adapters": [{ "adapterId": "claude-code-cli", "modelId": "claude-sonnet-5-5", "cliVersion": "2.1.294" }],
+  "generatorIsolation": { "claudeConfigDir": "<local>" },
+  "arms": ["none"],
+  "runs": 3,
+  "orderSeed": 20261019,
+  "outRoot": "<local>",
+  "binary": "<local>",
+  "harnessRoot": "<local>",
+  "allowBash": true,
+  "timeoutMs": 1200000,
+  "engine": "cypher-interp",
+  "taskProfiles": {
+    "ice-rink": { "style": "layered", "specMode": "static", "evaluatorSpec": "presets/layered.yaml" },
+    "vineyard-harvest": {
+      "style": "ddd",
+      "specMode": "static",
+      "evaluatorSpec": "experiments/exploratory-study/specs/vineyard-harvest-ddd.yaml",
+      "contexts": [
+        { "root": "src/picking/", "part": "picking" },
+        { "root": "src/cellar/", "part": "the cellar" }
+      ]
+    }
+  },
+  "frame": { "specRung": "L3", "attention": true },
+  "callBudget": { "runs": 6, "stepTurns": 30, "maxRepairTurns": 0, "maxCalls": 30 }
+}
