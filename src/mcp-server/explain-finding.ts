@@ -10,7 +10,7 @@ import { CYPHER_TEMPLATES } from '../fitness-compiler/cypher-templates.js';
 import { HEXAGONAL_TEMPLATES } from '../fitness-compiler/hexagonal-templates.js';
 import { DDD_TEMPLATES } from '../fitness-compiler/ddd-templates.js';
 import { APG2_TEMPLATES } from '../fitness-compiler/apg2-templates.js';
-import { TEMPLATE_EDGE_VIEWS } from '../fitness-compiler/edge-views.js';
+import { POST_SEAL_EDGE_VIEWS, TEMPLATE_EDGE_VIEWS } from '../fitness-compiler/edge-views.js';
 import { explainViolation } from './rule-explainer.js';
 import { hintMeta, ruleMetaFor, CONSTRUCTS } from './rule-meta.js';
 import { APG2_HINT_NAMES, CHEAP_HINT_NAMES } from './fast-hints.js';
@@ -18,6 +18,9 @@ import { fileCheckedRulesV2 } from './file-check.js';
 import { normalisePath, resolveLayer } from './layer-resolver.js';
 import type { ProjectView } from './project-files.js';
 import type { FindingExplanation } from './types.js';
+
+/** The edge view of a template: the v1.3 table, else the post-seal one (v1.4 U2). */
+const viewEntry = (name: string): { readonly view: string; readonly reason: string } | undefined => TEMPLATE_EDGE_VIEWS.get(name) ?? POST_SEAL_EDGE_VIEWS.get(name);
 
 interface Example {
   readonly violating: string;
@@ -256,7 +259,7 @@ export function explainFinding(spec: ParsedSpec | undefined, input: ExplainFindi
       example,
       howChecked: {
         fullEvaluation: template !== undefined
-          ? `evaluate_project compiles template ${name} (${template.tag}) under V13_COMPILE_OPTIONS and runs it on the project graph in Neo4j; edge view ${TEMPLATE_EDGE_VIEWS.get(name)?.view ?? 'none'}${TEMPLATE_EDGE_VIEWS.get(name)?.reason !== undefined ? ` (${TEMPLATE_EDGE_VIEWS.get(name)?.reason ?? ''})` : ''}`
+          ? `evaluate_project compiles template ${name} (${template.tag}) under V13_COMPILE_OPTIONS and runs it on the project graph in Neo4j; edge view ${viewEntry(name)?.view ?? 'none'}${viewEntry(name)?.reason !== undefined ? ` (${viewEntry(name)?.reason ?? ''})` : ''}`
           : 'evaluate_project (semantic or custom rule)',
         edgeView: meta.edgeView,
         fastPath: fast ? FAST_PATH[name] ?? 'decided by check_file / check_diff' : `not decided by check_file / check_diff: run evaluate_project`,

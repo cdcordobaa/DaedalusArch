@@ -76,6 +76,13 @@ export interface PipelineConfig {
    * FF-DT01/FF-DT02 (`src/fitness-compiler/empty-aggregates.ts`). Read by the compile stage only.
    */
   readonly emptyAggregates?: EmptyAggregatePolicy | undefined;
+  /**
+   * v1.4 U2 post-seal rules (`src/fitness-compiler/post-seal-rules.ts`, `Docs/v1.4/adr-v14.md`): FF-S02 in ddd (D5)
+   * and FF-P07 application-purity (N3). Absent = on in the v1.3 scoring mode and off in v1.2e. `false` in the v1.3
+   * mode reproduces the sealed rule set byte for byte (CLI `--post-seal off`); it is the way a registered v1.3 figure
+   * is re-run after U2.
+   */
+  readonly postSealRules?: boolean | undefined;
   /** v1.3 npx mode (MCP template checks): in-memory file contents for extraction (absolute path; `null` = removed). */
   readonly sourceOverrides?: ReadonlyMap<string, string | null> | undefined;
   /**

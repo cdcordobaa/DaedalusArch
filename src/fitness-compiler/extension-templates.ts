@@ -15,6 +15,7 @@ import { APG2_TEMPLATES } from './apg2-templates.js';
 import { CHEAP2_TEMPLATES } from './cheap2-templates.js';
 import { CONSTRUCT_TEMPLATES } from '../construct-switches/compile.js';
 import { RULE_GAP_CATALOGUE, RULE_GAP_TEMPLATES } from './rule-gap-templates.js';
+import { POST_SEAL_TEMPLATES } from './post-seal-rules.js';
 
 export const V13_EXTENSION_TEMPLATE_CATALOGUES: ReadonlyMap<string, ReadonlyMap<string, CypherTemplate>> = new Map([
   ['hexagonal', HEXAGONAL_TEMPLATES],
@@ -24,6 +25,8 @@ export const V13_EXTENSION_TEMPLATE_CATALOGUES: ReadonlyMap<string, ReadonlyMap<
   ['apg2', APG2_TEMPLATES],
   // Batch-2 cheap-proxy templates (`cheap2-templates.ts`), all advisory; they read the cheap facts once persisted.
   ['cheap2', CHEAP2_TEMPLATES],
+  // v1.4 U2 post-seal templates (`post-seal-rules.ts`, ADR-V14-02): FF-P07 application-purity.
+  ['post-seal', POST_SEAL_TEMPLATES],
 ]);
 
 /**
@@ -59,5 +62,6 @@ export function v13ExtensionCatalogueOf(name: string): string | undefined {
 export function getExtensionTemplate(name: string): CypherTemplate | undefined {
   // The construct-switch carrier (only compiled while a switch is set) is found too, so its function result gets the
   // template's tag like any other row; without it a report with a carrier rule fails the schema (R09).
-  return HEXAGONAL_TEMPLATES.get(name) ?? DDD_TEMPLATES.get(name) ?? CONSTRUCT_TEMPLATES.get(name);
+  // The post-seal template (v1.4 U2) is found too, so FF-P07's function result gets its tag.
+  return HEXAGONAL_TEMPLATES.get(name) ?? DDD_TEMPLATES.get(name) ?? CONSTRUCT_TEMPLATES.get(name) ?? POST_SEAL_TEMPLATES.get(name);
 }

@@ -37,6 +37,10 @@ export interface CompileFacts {
   readonly dropped: readonly FunctionId[];
   /** Symbolic instrument version the functions were compiled under (ADR-026); default `INSTRUMENT_VERSION`. */
   readonly instrumentVersion?: InstrumentVersion;
+  /** v1.4 U2: whether the post-seal rules were compiled (`CompileOptions.postSealRules`); absent = off. */
+  readonly postSealRules?: boolean;
+  /** v1.4 U2: the ids the post-seal overlay added to the declared spec (map artefact A3, per rule origin `post-seal`). */
+  readonly postSealAdded?: readonly string[];
 }
 
 /** Everything the builder reads besides the scored report (domain-entities.md §6.1). */

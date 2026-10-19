@@ -76,6 +76,11 @@ export interface PipelineBundle {
  *   8. (optional) DriftDetect           — if `--diff`
  *   9. AssembleReport                   — always last: the one EvaluationReport (BR-U3-50)
  */
+/** Whether a run compiles the post-seal rules (v1.4 U2): `config.postSealRules`, else on exactly in the v1.3 scoring mode. */
+export function postSealRulesOf(config: Pick<PipelineConfig, 'postSealRules' | 'scoringMode'>): boolean {
+  return config.postSealRules ?? config.scoringMode === 'v1.3';
+}
+
 export function createPipeline(config: PipelineConfig): PipelineBundle {
   // ------------------------------------------------------------------
   // 1. Create the shared FirewallContext
@@ -185,7 +190,9 @@ export function createPipeline(config: PipelineConfig): PipelineBundle {
   const compileFacts: CompileFactsHolder = {};
   // v1.3 construct switches apply in the v1.3 scoring mode only: compile overlays, row stage and tiers together (R30).
   const constructAnswers = config.scoringMode === 'v1.3' ? config.constructAnswers ?? CONSTRUCT_ANSWERS : undefined;
-  commands.push(new CompileCommand(compileFacts, config.instrumentVersion, constructAnswers, config.emptyAggregates));
+  // v1.4 U2: the post-seal rules follow the scoring mode unless the config says otherwise (BR-U2-02).
+  const postSealRules = postSealRulesOf(config);
+  commands.push(new CompileCommand(compileFacts, config.instrumentVersion, constructAnswers, config.emptyAggregates, postSealRules));
 
   // ---- Stage 4: Evaluate (mode-dependent) -----------------------------
   // v1.3 construct switches: the row stage runs in the v1.3 scoring mode only, and only when a switch is set.
@@ -337,6 +344,7 @@ class LazyScoreCommand implements PipelineCommand {
         ...(parsedSpec.style !== undefined && { style: parsedSpec.style }),
       }),
       ...(tiers !== undefined && { tierResolver: tiers }),
+      ...(this.config.scoringMode === 'v1.3' && postSealRulesOf(this.config) && { postSealRules: true }),
     });
 
     return scoreCmd.execute(context);

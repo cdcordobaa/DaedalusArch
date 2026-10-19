@@ -90,7 +90,7 @@ async function runCase(c: Case, scoringMode: ScoringMode, password: string, engi
     ...(skipExcluded && { sourceScope: 'analysed' as const }),
     onAcceleration: (e) => { events.push(`${e.query.name}:${e.query.filter}:${e.engine}`); },
   };
-  const bundle = createPipeline(config);
+  const bundle = createPipeline({ ...config, postSealRules: false }); // v1.4 U2: the sealed v1.3 rule set (BR-U2-10)
   try {
     const result = await bundle.executor.execute();
     if (!result.success) throw new Error(`${c.suite}/${c.id}: ${result.errors.map((e) => `${e.code} ${e.message}`).join('; ')}`);

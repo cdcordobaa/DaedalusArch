@@ -55,6 +55,8 @@ export const MANIFEST_DIRS = [
 export const MANIFEST_FILES = [
   'src/shared/construct-switches.ts', 'src/shared/construct-switch-catalogue.ts', 'Docs/v1.3/rule-tiers.md',
   'Docs/v1.3/style-rule-sources.md', PRESPEC, 'package.json', 'package-lock.json',
+  // v1.4 U2: the post-seal tier record and its ADRs, which the hold-out run scores with (BR-U2-08).
+  'Docs/v1.4/rule-tiers-post-seal.md', 'Docs/v1.4/adr-v14.md',
 ] as const;
 
 export type CheckStatus = 'ok' | 'unmet' | 'skipped';

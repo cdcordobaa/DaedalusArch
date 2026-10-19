@@ -3,6 +3,7 @@
  * arguments and returns a `ToolOutcome`: a typed record on success, a plain message on failure. No MCP types
  * here, so the handlers are unit-testable without a transport.
  */
+import { withPostSealRules } from '../fitness-compiler/post-seal-rules.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { ParsedSpec } from '../shared/types/spec.js';
@@ -93,8 +94,12 @@ export interface ServerContext {
 const ok = <T>(data: T): ToolOutcome<T> => ({ ok: true, data });
 const fail = <T>(message: string): ToolOutcome<T> => ({ ok: false, message });
 
-/** A spec loader that parses each file once per modification time (the spec is read-only during a session). */
-export function createSpecLoader(): ServerContext['loadSpec'] {
+/**
+ * A spec loader that parses each file once per modification time (the spec is read-only during a session).
+ * `postSeal` (v1.4 U2, default true): apply the post-seal rules to the loaded spec; false keeps the sealed v1.3 rule
+ * set (a replay of a recorded v1.3 session).
+ */
+export function createSpecLoader(opts: { readonly postSeal?: boolean } = {}): ServerContext['loadSpec'] {
   const cache = new Map<string, { readonly mtimeMs: number; readonly loaded: LoadedSpec }>();
   return async (specPath) => {
     const absolute = path.resolve(specPath);
@@ -106,7 +111,8 @@ export function createSpecLoader(): ServerContext['loadSpec'] {
     if (!parsed.success)
       return fail(`Spec is invalid: ${parsed.errors.map((e) => e.message).join('; ')}`);
     const loaded: LoadedSpec = {
-      spec: parsed.data,
+      // v1.4 U2 (BR-U2-09): the MCP server serves the v1.3 rules, so its tools see the post-seal rules too.
+      spec: opts.postSeal === false ? parsed.data : withPostSealRules(parsed.data),
       specPath: absolute,
       warnings: (parsed.warnings ?? []).map((w) => `${w.code}: ${w.message}`),
     };

@@ -68,6 +68,15 @@ export const TEMPLATE_EDGE_VIEWS: ReadonlyMap<string, EdgeViewEntry> = new Map<s
   ['application-service-thin', { view: 'none', reason: 'reads CONTAINS only' }],
 ]);
 
+/**
+ * v1.4 U2: the views of the post-seal templates (`post-seal-rules.ts`, ADR-V14-02). Kept apart from
+ * `TEMPLATE_EDGE_VIEWS`, whose 38 entries are a registered v1.3 figure (`Docs/v1.3/edge-views.md`); `edgeViewOf` and
+ * `applyEdgeView` read both.
+ */
+export const POST_SEAL_EDGE_VIEWS: ReadonlyMap<string, EdgeViewEntry> = new Map<string, EdgeViewEntry>([
+  ['application-purity', { view: 'resolved', reason: 'usage rule by symbol, as domain-purity: the delivery-framework package a name comes from counts even when a barrel re-exports it' }],
+]);
+
 const VIEW_PREDICATE: Readonly<Record<Exclude<EdgeView, 'none'>, (rel: string) => string>> = {
   literal: (rel) => `NOT coalesce(${rel}.viaReExport, false)`,
   resolved: (rel) => `NOT coalesce(${rel}.reExportHop, false)`,
@@ -82,7 +91,7 @@ function readsImports(types: string): boolean {
 
 /** The view a template reads under v1.3; `undefined` for a name outside the table. */
 export function edgeViewOf(templateName: string): EdgeView | undefined {
-  return TEMPLATE_EDGE_VIEWS.get(templateName)?.view;
+  return (TEMPLATE_EDGE_VIEWS.get(templateName) ?? POST_SEAL_EDGE_VIEWS.get(templateName))?.view;
 }
 
 /** True when the Cypher text has a relationship pattern over IMPORTS. */

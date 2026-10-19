@@ -78,6 +78,8 @@ export interface ImportResolutionContext {
   readonly reExportAdjacency: Map<string, readonly SourceFile[]>;
   /** v1.3 F-P01-ALIAS (`ExtractorOptions.aliasDeclarationPackages`). */
   readonly aliasDeclarationPackages: boolean;
+  /** v1.3 N33 (`ExtractorOptions.aliasShadowsBuiltins`). */
+  readonly aliasShadowsBuiltins: boolean;
   /** Memo of `ts.resolveModuleName` per containing directory and specifier (scale.md §5); absent = no memo. */
   readonly moduleResolutions?: Map<string, ts.ResolvedModuleFull | undefined>;
 }
@@ -180,6 +182,7 @@ export function buildImportResolutionContext(
     resolvedEdgesInLiteralView: opts.resolvedEdgesInLiteralView ?? DEFAULT_OPTIONS.resolvedEdgesInLiteralView,
     reExportAdjacency: new Map(),
     aliasDeclarationPackages: opts.aliasDeclarationPackages ?? DEFAULT_OPTIONS.aliasDeclarationPackages,
+    aliasShadowsBuiltins: opts.aliasShadowsBuiltins ?? DEFAULT_OPTIONS.aliasShadowsBuiltins,
     moduleResolutions: new Map(),
   };
 }
@@ -272,11 +275,33 @@ function resolvedModuleOf(specifier: string, containingFile: string, ctx: Import
   return resolved;
 }
 
+/**
+ * v1.3 N33: the project file a built-in-named specifier reaches through a `paths` or `baseUrl` rule, as tsc resolves
+ * it; undefined for `node:` specifiers, without alias rules, or when TypeScript does not reach a project source file.
+ */
+function builtinShadowedByAlias(specifier: string, fromSourceFile: SourceFile, ctx: ImportResolutionContext): ModuleResolution | undefined {
+  if (!ctx.aliasShadowsBuiltins || specifier.startsWith('node:')) return undefined;
+  if (matchPathsRule(ctx.aliasRules, specifier) === undefined && baseUrlRule(ctx.aliasRules) === undefined) return undefined;
+  const resolved = resolvedModuleOf(specifier, fromSourceFile.getFilePath(), ctx);
+  if (resolved === undefined || resolved.isExternalLibraryImport === true) return undefined;
+  const file = resolved.resolvedFileName;
+  if (hasNodeModulesSegment(file) || isDeclarationFile(file) || !isUnderRoot(ctx.projectRoot, file)) return undefined;
+  return fileResolution(file, ctx);
+}
+
 function resolveModuleSilently(specifier: string, fromSourceFile: SourceFile, ctx: ImportResolutionContext): ModuleResolution {
   const cls = classifySpecifier(specifier);
 
-  // 1. Built-in (BR-U2-03, 04).
-  if (cls === 'node-builtin') return { kind: 'package', root: builtinRoot(specifier), outOfRootAlias: false };
+  // 1. Built-in (BR-U2-03, 04). v1.3 N33: TypeScript applies `paths` and `baseUrl` before it looks for a module
+  // anywhere else, so a project alias whose first segment is a built-in name (`domain/*` -> `src/domain/*` in
+  // msc29-clean) is a project file there. Without a `node:` prefix, a specifier that an alias rule resolves to a
+  // file under the root, outside `node_modules`, takes the alias path; every other built-in name stays built-in.
+  // OFF in the frozen v1.2E options (`aliasShadowsBuiltins`).
+  if (cls === 'node-builtin') {
+    const aliased = builtinShadowedByAlias(specifier, fromSourceFile, ctx);
+    if (aliased !== undefined) return aliased;
+    return { kind: 'package', root: builtinRoot(specifier), outOfRootAlias: false };
+  }
 
   const resolved = resolvedModuleOf(specifier, fromSourceFile.getFilePath(), ctx);
 

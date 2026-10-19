@@ -24,7 +24,8 @@ import { SYMBOLIC_DIMENSIONS } from '../shared/types/enums.js';
 import type { ConfidenceThresholds, FitnessFunction, ScoringWeights } from '../shared/types/spec.js';
 import type { FunctionId } from '../shared/types/value-objects.js';
 import type { APGResult } from '../shared/types/apg.js';
-import { RULE_TIERS_DOC, ruleTier } from './rule-tiers.js';
+import { POST_SEAL_TIERS_DOC, RULE_TIERS_DOC, ruleTier } from './rule-tiers.js';
+import { POST_SEAL_RULES } from '../fitness-compiler/post-seal-rules.js';
 import type { PartialRule, ResolvedTier, RuleTier } from './rule-tiers.js';
 import { avrOf, tallyDimensions } from './score-computer.js';
 import { ahsFromEffectiveWeights, renormaliseWeights } from './renormaliser.js';
@@ -41,6 +42,16 @@ export interface TieredScoringInput {
   readonly apg?: APGResult;
   /** v1.3 construct switches (`src/construct-switches/tiers.ts`); absent at the status quo, where `ruleTier` applies. */
   readonly tierResolver?: TierResolver;
+  /**
+   * v1.4 U2: the post-seal rules were compiled. `tierTable` then names both tier records, and a post-seal rule the spec
+   * did not declare is named by its template (`POST_SEAL_RULES`).
+   */
+  readonly postSealRules?: boolean;
+}
+
+/** `tiers.tierTable`: the sealed record, plus the post-seal record when the post-seal rules were compiled (v1.4 U2). */
+export function tierTableOf(postSealRules: boolean | undefined): string {
+  return postSealRules === true ? `${RULE_TIERS_DOC}; ${POST_SEAL_TIERS_DOC}` : RULE_TIERS_DOC;
 }
 
 /**
@@ -124,6 +135,7 @@ const byId = (a: { functionId: FunctionId }, b: { functionId: FunctionId }): num
 
 export function computeTieredScoring(input: TieredScoringInput): TieredScoring {
   const names = new Map(input.fitnessFunctions.map((f) => [String(f.id), f.name]));
+  if (input.postSealRules === true) for (const r of POST_SEAL_RULES) if (!names.has(r.ruleId)) names.set(r.ruleId, r.name);
   const flowsToEdges = input.apg !== undefined ? input.apg.edges.filter((e) => e.type === 'FLOWS_TO').length : null;
   const executed = executedById(input.evaluationResults);
 
@@ -229,7 +241,7 @@ export function computeTieredScoring(input: TieredScoringInput): TieredScoring {
   const blocking = group(blockingRows.sort(byId));
   return {
     scoringMode: 'v1.3',
-    tierTable: RULE_TIERS_DOC,
+    tierTable: tierTableOf(input.postSealRules),
     style: input.style ?? null,
     verdict: blocking.violatedRules > 0 ? 'fail' : blockingNotExecuted.length > 0 ? 'incomplete' : 'pass',
     verdictRule: 'any-blocking-violation',

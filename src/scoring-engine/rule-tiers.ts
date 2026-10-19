@@ -11,6 +11,9 @@ export type RuleTier = 'blocking' | 'advisory';
 /** Path of the binding tier document (reported in `report.tiers.tierTable`). */
 export const RULE_TIERS_DOC = 'Docs/v1.3/rule-tiers.md';
 
+/** v1.4 U2: the dated post-seal tier record (not the sealed table; each row names its ADR). */
+export const POST_SEAL_TIERS_DOC = 'Docs/v1.4/rule-tiers-post-seal.md';
+
 /** A rule whose violations are partly not applicable (rule-tiers.md, FF-P06). */
 export interface PartialRule {
   /** Rows with this `relType` (the third discriminator of `domain-state-purity`) are reported N/A. */
@@ -149,10 +152,29 @@ const DDD_ID_TIERS: ReadonlyMap<string, RuleTierEntry> = new Map(
   [...DDD_RULE_TIERS.values()].map((d): [string, RuleTierEntry] => [d.ruleId, entry(d.ruleId, d.tier, d.reason)]),
 );
 
+/**
+ * v1.4 U2: the tiers of the rules added after the seal (`Docs/v1.4/rule-tiers-post-seal.md`; rules in
+ * `src/fitness-compiler/post-seal-rules.ts`). Consulted after the sealed tables, so a rule the sealed table already
+ * names (FF-S02, whose ddd membership is the post-seal change) keeps its sealed tier and source `table`.
+ * FF-P07: author question Q-C, default "blocking in clean-architecture, hexagonal and ddd, and in nestjs through the
+ * Clean reading the nestjs preset composes"; status Proposed in ADR-V14-02.
+ */
+export const POST_SEAL_RULE_TIERS: ReadonlyMap<string, RuleTierEntry & { readonly adr: string }> = new Map([
+  ['FF-P07', {
+    ...entry('FF-P07', 'blocking', 'The delivery mechanism (HTTP framework) is a detail outside the application; an import edge is a precise structural fact', {
+      byStyle: { 'clean-architecture': 'blocking', hexagonal: 'blocking', nestjs: 'blocking', ddd: 'blocking' },
+    }),
+    adr: 'ADR-V14-02',
+  }],
+]);
+
 export interface ResolvedTier {
   readonly tier: RuleTier;
-  /** `table`: from rule-tiers.md (DDD ids: `DDD_RULE_TIERS`); `untiered-default`: an id the table does not list (ADR-derived, custom). */
-  readonly source: 'table' | 'untiered-default';
+  /**
+   * `table`: from rule-tiers.md (DDD ids: `DDD_RULE_TIERS`); `untiered-default`: an id the table does not list
+   * (ADR-derived, custom); `post-seal`: from the post-seal record (v1.4 U2, `POST_SEAL_RULE_TIERS`).
+   */
+  readonly source: 'table' | 'untiered-default' | 'post-seal';
   readonly entry?: RuleTierEntry;
 }
 
@@ -163,7 +185,12 @@ export interface ResolvedTier {
  */
 export function ruleTier(ruleId: string, style?: string): ResolvedTier {
   const e = RULE_TIERS.get(ruleId) ?? DDD_ID_TIERS.get(ruleId);
-  if (e === undefined) return { tier: 'advisory', source: 'untiered-default' };
+  if (e === undefined) {
+    const p = POST_SEAL_RULE_TIERS.get(ruleId);
+    if (p === undefined) return { tier: 'advisory', source: 'untiered-default' };
+    const byStyle = style !== undefined ? p.byStyle?.[style.toLowerCase()] : undefined;
+    return { tier: byStyle ?? p.tier, source: 'post-seal', entry: p };
+  }
   const byStyle = style !== undefined ? e.byStyle?.[style.toLowerCase()] : undefined;
   return { tier: byStyle ?? e.tier, source: 'table', entry: e };
 }

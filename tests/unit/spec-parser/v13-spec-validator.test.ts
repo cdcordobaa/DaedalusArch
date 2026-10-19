@@ -9,6 +9,7 @@ import { V13_EXTENSION_TEMPLATE_CATALOGUES, v13ExtensionCatalogueOf } from '../.
 import { V13_CYPHER_TEMPLATES } from '../../../src/fitness-compiler/v13-templates.js';
 import { HEXAGONAL_TEMPLATES } from '../../../src/fitness-compiler/hexagonal-templates.js';
 import { DDD_TEMPLATES } from '../../../src/fitness-compiler/ddd-templates.js';
+import { POST_SEAL_TEMPLATES } from '../../../src/fitness-compiler/post-seal-rules.js';
 import type { CypherTemplate } from '../../../src/fitness-compiler/types.js';
 import type { FitnessFunction, ParsedSpec } from '../../../src/shared/types/spec.js';
 import { functionId } from '../../../src/shared/types/value-objects.js';
@@ -54,12 +55,13 @@ describe('spec validation: v1.3 extension templates', () => {
 
   it('v1.3 accepts every template of every extension catalogue', () => {
     const all = [...V13_EXTENSION_TEMPLATE_CATALOGUES.values()].flatMap((c) => [...c.keys()]);
-    expect(all.sort()).toEqual([...HEXAGONAL_TEMPLATES.keys(), ...V13_CYPHER_TEMPLATES.keys(), ...DDD_TEMPLATES.keys(), ...APG2_TEMPLATES.keys(), ...CHEAP2_TEMPLATES.keys()].sort());
+    expect(all.sort()).toEqual([...HEXAGONAL_TEMPLATES.keys(), ...V13_CYPHER_TEMPLATES.keys(), ...DDD_TEMPLATES.keys(), ...APG2_TEMPLATES.keys(), ...CHEAP2_TEMPLATES.keys(), ...POST_SEAL_TEMPLATES.keys()].sort());
     expect(badRefs(spec(all.map((name, i) => fn(`E-${String(i)}`, name))), 'v1.3')).toEqual([]);
   });
 
   it('the DDD catalogue (U-C1, registered at integration) is accepted under v1.3 only', () => {
-    expect([...V13_EXTENSION_TEMPLATE_CATALOGUES.keys()]).toEqual(['hexagonal', 'module-wiring', 'ddd', 'apg2', 'cheap2']);
+    // v1.4 U2: the post-seal catalogue (FF-P07 application-purity, ADR-V14-02).
+    expect([...V13_EXTENSION_TEMPLATE_CATALOGUES.keys()]).toEqual(['hexagonal', 'module-wiring', 'ddd', 'apg2', 'cheap2', 'post-seal']);
     expect(DDD_TEMPLATES.size).toBeGreaterThan(0);
     for (const name of DDD_TEMPLATES.keys()) expect(v13ExtensionCatalogueOf(name)).toBe('ddd');
     const ddd = spec([...DDD_TEMPLATES.keys()].map((name, i) => fn(`DDD-${String(i)}`, name)));

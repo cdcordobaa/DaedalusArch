@@ -6,7 +6,8 @@
  * `RunRecord`s of that plan (at least one) are allowed; anything else fails. Checked over the tracked files and the
  * branch diff against `origin/v1.2e`. Since 2026-10-16 (decision-chronology row 14) v1.3's result folders are allowed
  * too, by folder pattern (`results/v1.3/**`, `results/v1.3-<name>/**`, `V13_RESULTS_DIR_PATTERN`); the v1.2E rules
- * above are unchanged, so a v1.3 commit that touches a v1.2E result folder still fails.
+ * above are unchanged, so a v1.3 commit that touches a v1.2E result folder still fails. The v1.4 AI-DLC cycle
+ * (`aidlc-docs/inception/v1.4/`) adds `results/v1.4-<name>/**` to the same pattern.
  * BR-U5b-44 (Step 28): no test under `tests/unit/scripts/**` constructs the live Gemini provider or imports its
  * constructor as a value; U5b tests label through Mock providers and cassettes only.
  */
@@ -35,7 +36,7 @@ export function resultsGuardProblems(
   const plans = new Set<string>();
   for (const f of [...new Set(files)].sort()) {
     if (!resultsPathAllowed(f, planIds)) {
-      if (!v13ResultsPath(f, planIds)) problems.push(`${f}: not under results/pre-tag/, results/labels/, results/<registered plan id>/ or a v1.3 result folder`);
+      if (!v13ResultsPath(f, planIds)) problems.push(`${f}: not under results/pre-tag/, results/labels/, results/<registered plan id>/ or a v1.3 or v1.4 result folder`);
       continue;
     }
     const top = f.split('/')[1] ?? '';
@@ -114,14 +115,14 @@ describe('results guard (BR-U5b-56, re-scoped by Build and Test Step 5)', () => 
     expect(problems).toMatch(/r.run.json: planId is not fixtures/);
   });
 
-  it('allows v1.3 result folders by pattern and nothing that only resembles one; the v1.2E checks still apply', () => {
+  it('allows v1.3 and v1.4 result folders by pattern and nothing that only resembles one; the v1.2E checks still apply', () => {
     const rec = JSON.parse(readFileSync(join(ROOT, 'tests/fixtures/u5b/reports/correct-reference.run.json'), 'utf8')) as Record<string, unknown>;
     const records: Record<string, unknown> = { 'results/sensitivity/runs/bad.run.json': { ...rec, planId: 'sensitivity', attempt: 3 } };
-    const ok = ['results/v1.3/loop-fault-drills/drills.json', 'results/v1.3-reference/after-member-facts/report.json', 'results/v1.3-floor-probe-2/x.json'];
+    const ok = ['results/v1.3/loop-fault-drills/drills.json', 'results/v1.3-reference/after-member-facts/report.json', 'results/v1.3-floor-probe-2/x.json', 'results/v1.4-u2/baseline.json', 'results/v1.4-drift-check/a.json'];
     expect(resultsGuardProblems(ok, registeredPlanIds(), () => undefined)).toEqual([]);
-    const bad = ['results/v1.30/x.json', 'results/v1.2e-x/a.json', 'results/v1.3-/a.json', 'results/V1.3-x/a.json', 'results/v1.3.json', 'results/sensitivity/runs/bad.run.json'];
+    const bad = ['results/v1.30/x.json', 'results/v1.2e-x/a.json', 'results/v1.3-/a.json', 'results/V1.3-x/a.json', 'results/v1.3.json', 'results/v1.4/x.json', 'results/v1.4-/a.json', 'results/v1.40-x/a.json', 'results/sensitivity/runs/bad.run.json'];
     const problems = resultsGuardProblems(bad, registeredPlanIds(), (f) => records[f]).join('\n');
-    for (const f of bad.slice(0, 5)) expect(problems).toContain(`${f}: not under`);
+    for (const f of bad.slice(0, 8)) expect(problems).toContain(`${f}: not under`);
     expect(problems).toMatch(/bad.run.json: RunRecord schema/);
     // A v1.3-named folder that is a registered plan id keeps the plan's RunRecord check.
     expect(resultsGuardProblems(['results/v1.3-x/a.json'], ['v1.3-x'], () => undefined)).toEqual(['results/v1.3-x/: no RunRecord under runs/']);

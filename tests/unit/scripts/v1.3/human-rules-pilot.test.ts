@@ -3,7 +3,8 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { parseSpec } from '../../../../src/spec-parser/index.js';
 import { resolveTemplate } from '../../../../src/spec-parser/template-registry.js';
-import { compileFunctions, V13_COMPILE_OPTIONS } from '../../../../src/fitness-compiler/fitness-compiler.js';
+// v1.4 U2: the declared rules exactly, so the sealed rule set (the post-seal overlay would add FF-P07; Docs/v1.4/adr-v14.md).
+import { compileFunctions, V13_SEALED_COMPILE_OPTIONS } from '../../../../src/fitness-compiler/fitness-compiler.js';
 import { compilerInputFromSpec } from '../../../../src/fitness-compiler/compiler-input.js';
 import {
   completeSpec, confusion, globLiteral, inexpressibleEdges, isLayerRule, ourKeys, ruleForbids, selectLayerRules,
@@ -110,7 +111,7 @@ describe('human-rules pilot: emitted specs parse and compile', () => {
     try {
       const parsed = await parseSpec({ specFilePath: file });
       if (!parsed.success) throw new Error(parsed.errors.map((e) => e.message).join('; '));
-      const compiled = compileFunctions(compilerInputFromSpec(parsed.data), V13_COMPILE_OPTIONS);
+      const compiled = compileFunctions(compilerInputFromSpec(parsed.data), V13_SEALED_COMPILE_OPTIONS);
       if (!compiled.success) throw new Error(compiled.errors.map((e) => e.message).join('; '));
       return compiled.data.symbolicQueries.map((q) => String(q.functionId)).sort();
     } finally {

@@ -35,7 +35,7 @@ async function main(): Promise<void> {
           evaluationMode: 'symbolic-only', pipelineMode: 'stateless', persist: false, diff: false, verbose: false,
           apgStorePath: path.join(work, '.apg-store'), scoringMode: 'v1.3', graphEngine: engine,
         };
-        const { executor, cleanup } = createPipeline(config);
+        const { executor, cleanup } = createPipeline({ ...config, postSealRules: false }); // v1.4 U2: the sealed v1.3 rule set (BR-U2-10)
         const t0 = performance.now();
         const r = await executor.execute();
         times.push(performance.now() - t0);
