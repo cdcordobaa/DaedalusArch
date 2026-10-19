@@ -7,6 +7,7 @@ import type { ExtractorOptions } from '../../apg-extractor/index.js';
 import type { LayerModel } from '../../shared/types/spec.js';
 import { extractAndEnrich, openProject } from '../cheap/index.js';
 import type { OntologyInput } from './pipeline.js';
+import { collectProjectDocs } from './reading.js';
 
 export * from './types.js';
 export * from './pipeline.js';
@@ -26,6 +27,8 @@ export { PROMPT_VERSION, ONTOLOGY_SYSTEM } from './prompts.js';
 export { createScriptedResponder, locateQuote } from './scripted-provider.js';
 export type { ScriptedAnswers, ScriptedEntry } from './scripted-provider.js';
 export { buildUnits } from './units.js';
+export * from './reading.js';
+export * from './interpretation.js';
 export { verifyRuleDuplication, comparisonPatterns, numericConstants } from './verify.js';
 
 /** Extracts the APG, runs the cheap proxies and opens the project: everything `runOntology` needs. */
@@ -37,5 +40,6 @@ export async function prepareOntologyInput(projectRoot: string, args: { readonly
     ...(args.layerModel !== undefined ? { layerModel: args.layerModel } : {}),
     ...(args.extractorOptions !== undefined ? { extractorOptions: args.extractorOptions } : {}),
   });
-  return { apg, project: openProject(tsconfig), projectRoot: root, cheap: enrichment, ...(args.layerModel !== undefined ? { layerModel: args.layerModel } : {}) };
+  // Amendment A1: the project's documentation goes into every prompt beside the code and the graph.
+  return { apg, project: openProject(tsconfig), projectRoot: root, cheap: enrichment, docs: collectProjectDocs(root), ...(args.layerModel !== undefined ? { layerModel: args.layerModel } : {}) };
 }

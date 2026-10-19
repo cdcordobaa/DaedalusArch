@@ -16,6 +16,7 @@
 import { canonicalJSON, sha256Hex } from '../../llm-critic/canonical-json.js';
 import type { PassContext } from './passes.js';
 import type { AdjudicationSide } from './prompts.js';
+import type { ProjectDoc } from './reading.js';
 import { ADJUDICATION_SCHEMA, ONTOLOGY_SYSTEM, adjudicationPrompt } from './prompts.js';
 import { equalUpToDecimalScale, jaccard, normName, tokens } from './text.js';
 import type { AdjudicationOut, RuleOperator, SemProvenance } from './types.js';
@@ -33,6 +34,10 @@ export interface ClusterItem {
   readonly fields?: readonly string[];
   /** Concepts only: the class's declared bounded context, or null when its component is a directory fallback. */
   readonly context?: string | null;
+  /** The graph slice of the item's site (amendment A1). */
+  readonly graph?: readonly string[];
+  /** Names the project documentation is searched for (amendment A1). */
+  readonly terms?: readonly string[];
 }
 
 /** Whether two items of one component may still be paired: concepts in the same declared context (N4). */
@@ -126,10 +131,10 @@ export function candidatePairs(items: readonly ClusterItem[], decimalScaleMaxPow
 }
 
 function side(item: ClusterItem): AdjudicationSide {
-  return { kind: item.kind, text: item.text, where: item.where, quotes: item.quotes };
+  return { kind: item.kind, text: item.text, where: item.where, quotes: item.quotes, ...(item.graph !== undefined ? { graph: item.graph } : {}), ...(item.terms !== undefined ? { terms: item.terms } : {}) };
 }
 
-export async function cluster(p: PassContext, items: readonly ClusterItem[], opts: { readonly maxPairs: number; readonly decimalScaleMaxPower: number }): Promise<ClusterResult> {
+export async function cluster(p: PassContext, items: readonly ClusterItem[], opts: { readonly maxPairs: number; readonly decimalScaleMaxPower: number; readonly docs?: readonly ProjectDoc[] }): Promise<ClusterResult> {
   const uf = new UnionFind();
   const firstOf = new Map<string, string>();
   for (const it of items) {
@@ -151,7 +156,7 @@ export async function cluster(p: PassContext, items: readonly ClusterItem[], opt
     taken++;
     const [a, b] = pair.a.key < pair.b.key ? [pair.a, pair.b] : [pair.b, pair.a];
     const itemId = sha256Hex(canonicalJSON([a.key, b.key])).slice(0, 16);
-    const prompt = adjudicationPrompt(side(a), side(b));
+    const prompt = adjudicationPrompt(side(a), side(b), opts.docs ?? []);
     const verdicts: (boolean | null)[] = [];
     const answers: AdjudicationRecord['answers'][number][] = [];
     for (let runIndex = 0; runIndex < p.runs; runIndex++) {

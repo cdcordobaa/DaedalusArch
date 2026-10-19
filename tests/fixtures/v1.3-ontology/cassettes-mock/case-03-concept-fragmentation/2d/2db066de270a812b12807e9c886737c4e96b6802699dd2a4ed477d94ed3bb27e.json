@@ -1,0 +1,45 @@
+{
+  "itemId": "component:billing",
+  "itemName": "component:billing",
+  "key": "2db066de270a812b12807e9c886737c4e96b6802699dd2a4ed477d94ed3bb27e",
+  "parts": {
+    "model": "mock-ontology",
+    "pass": "capability",
+    "promptHash": "bc8a8461fb483825c516d25385cfee401435142afd33a2f982779793ea71508e",
+    "promptVersion": "ontology-v0.3",
+    "provider": "mock",
+    "runIndex": 1,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of component \"billing\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- StatementService (node c2713a42561a0f6a), file src/billing/application/statement.service.ts, declaration line 3: \"export class StatementService {\"\n  component billing, layer application; responsibilities: Build statement headers\n- Buyer (node f23586ef30eb096f), file src/billing/domain/buyer.ts, declaration line 1: \"export class Buyer {\"\n  component billing, layer domain; responsibilities: Label a billing customer\n\n## APG relations of the group\nGraph statistics: 2 classes; 1 relations inside the group; 0 outgoing relations to code outside it.\n- StatementService -> CALLS Buyer",
+  "recordedAt": "2026-10-15T00:00:00.000Z",
+  "resolvedModel": "mock-ontology",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.8,
+        "description": "Billing statements",
+        "evidence": [
+          {
+            "endLine": 3,
+            "file": "src/billing/application/statement.service.ts",
+            "nodeId": "c2713a42561a0f6a",
+            "quote": "export class StatementService {",
+            "startLine": 3
+          }
+        ],
+        "name": "Billing statements",
+        "realizedBy": [
+          "f23586ef30eb096f",
+          "c2713a42561a0f6a"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 244,
+    "outputTokens": 80
+  }
+}

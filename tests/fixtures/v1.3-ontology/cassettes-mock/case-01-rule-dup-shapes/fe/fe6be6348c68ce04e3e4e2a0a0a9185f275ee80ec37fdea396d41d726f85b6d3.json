@@ -1,0 +1,28 @@
+{
+  "itemId": "94fad50109c76d14",
+  "itemName": "Shipping is waived when the invoice sum reaches 50.00 ~ Shipping is free when the order total is at least 50",
+  "key": "fe6be6348c68ce04e3e4e2a0a0a9185f275ee80ec37fdea396d41d726f85b6d3",
+  "parts": {
+    "model": "mock-ontology",
+    "pass": "adjudicate",
+    "promptHash": "e61b4bbb46ccd9428442e1b06c6b8fec0acab7543fa22d55ec56ecb3466c501b",
+    "promptVersion": "ontology-v0.3",
+    "provider": "mock",
+    "runIndex": 1,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B state the same business rule (the same policy, so that changing the policy would require changing both), even if the code is shaped differently or uses other units? Different policies that happen to share a threshold are not the same rule.\n\n### A\nrule: Shipping is waived when the invoice sum reaches 50.00\nwhere: src/invoicing/application/invoice-assembler.ts assemble (component invoicing)\ncode:\n=====SOURCE-BEGIN\n!(sum < FREE_SHIPPING_MIN_CENTS) ? 0 : SHIPPING_FEE_CENTS\n=====SOURCE-END=====\ngraph:\n- class InvoiceAssembler (node 1303728ff45ff08c): layer application, component invoicing, fan-out 0, fan-in 0\n- method assemble (node 60265967979ae567): logic density 4\n\n### B\nrule: Shipping is free when the order total is at least 50\nwhere: src/checkout/domain/shipping-policy.ts shippingFor (component checkout)\ncode:\n=====SOURCE-BEGIN\nif (total >= 50) {\n=====SOURCE-END=====\ngraph:\n- class ShippingPolicy (node 2129045aa2d7117d): layer domain, component checkout, fan-out 0, fan-in 2\n- method shippingFor (node 929c29b519518bca): logic density 4\n- <- CALLS Method CheckoutService.summarise\n- <- CONSTRUCTOR_INJECTS Class CheckoutService",
+  "recordedAt": "2026-10-15T00:00:00.000Z",
+  "resolvedModel": "mock-ontology",
+  "response": {
+    "confidence": 0.9,
+    "rationale": "Both waive shipping from an order value of 50; the invoicing side counts in cents.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 290,
+    "outputTokens": 32
+  }
+}

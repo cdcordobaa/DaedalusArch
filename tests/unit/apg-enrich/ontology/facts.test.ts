@@ -38,7 +38,7 @@ describe('A2 facts file', () => {
     expect(a2).toMatchObject({
       schemaVersion: 1, artifact: 'A2', project: { id: 'case-02-misplaced-pricing', commit: null },
       inputs: { layerModel: { path: LAYERS_PATH } },
-      producer: { part: 'C1d', pipeline: 'ontology-v0', promptVersion: 'ontology-v0.2', provider: 'mock', model: 'mock-ontology', runs: 2, factPolicy: 'agreed-only' },
+      producer: { part: 'C1d', pipeline: 'ontology-v0', promptVersion: 'ontology-v0.3', provider: 'mock', model: 'mock-ontology', runs: 2, factPolicy: 'agreed-only' },
     });
     expect(a2.inputs.a1.apgHash).toMatch(/^[0-9a-f]{64}$/);
     expect(a2.project.contentHash).toMatch(/^[0-9a-f]{64}$/);

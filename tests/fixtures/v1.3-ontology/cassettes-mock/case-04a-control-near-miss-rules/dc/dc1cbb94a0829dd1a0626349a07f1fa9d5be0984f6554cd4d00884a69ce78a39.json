@@ -1,0 +1,43 @@
+{
+  "itemId": "17e4f33d45bc1b13",
+  "itemName": "AgeCheck",
+  "key": "dc1cbb94a0829dd1a0626349a07f1fa9d5be0984f6554cd4d00884a69ce78a39",
+  "parts": {
+    "model": "mock-ontology",
+    "pass": "responsibility",
+    "promptHash": "6f6f0d65166a75db70f2f2179752b7d7294cff9ed1f0b1d2ad298185850a73d4",
+    "promptVersion": "ontology-v0.3",
+    "provider": "mock",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass AgeCheck (node 17e4f33d45bc1b13), file src/accounts/domain/age-check.ts, lines 1-8.\nComponent: accounts. Declared layer: domain (kind domain).\nMethods:\n- mayPurchaseAlcohol (node b475a0ab187e07d2, lines 2-7, logic density 2)\nFields: (none)\n\n## APG neighbourhood\nGraph statistics: 1 methods; fan-out 0; fan-in 0.\n- (none)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- AgeCheck: nameRole=\"unknown\"\n- AgeCheck: behaviourRole=\"coordination\"\n- AgeCheck: ioCategories=[]\n- AgeCheck: lcom4=1\n- AgeCheck: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- AgeCheck.mayPurchaseAlcohol: logicDensity={\"branches\":1,\"comparisons\":1,\"arithmetic\":0,\"validationThrows\":0,\"density\":2}\n\n## Source\n=====SOURCE-BEGIN src/accounts/domain/age-check.ts\n1| export class AgeCheck {\n2|   mayPurchaseAlcohol(age: number): boolean {\n3|     if (age >= 18) {\n4|       return true;\n5|     }\n6|     return false;\n7|   }\n8| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-15T00:00:00.000Z",
+  "resolvedModel": "mock-ontology",
+  "response": {
+    "concepts": [],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Check the legal age for alcohol",
+        "evidence": [
+          {
+            "endLine": 3,
+            "file": "src/accounts/domain/age-check.ts",
+            "nodeId": "b475a0ab187e07d2",
+            "quote": "if (age >= 18) {",
+            "startLine": 3
+          }
+        ],
+        "name": "Check the legal age for alcohol",
+        "naturalLayer": "domain"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 464,
+    "outputTokens": 77
+  }
+}

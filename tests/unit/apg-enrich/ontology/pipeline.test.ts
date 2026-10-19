@@ -112,7 +112,7 @@ describe('ontology pipeline on the planted cases (cassette replay)', () => {
     const cand = units.ruleCandidates[0];
     if (cand === undefined) throw new Error('no rule candidate');
     const task = rulePrompt(cand.cls, cand.methods).split('## Class')[0] ?? '';
-    expect(PROMPT_VERSION).toBe('ontology-v0.2');
+    expect(PROMPT_VERSION).toBe('ontology-v0.3');
     expect(task).not.toMatch(/not a technical check/);
     expect(task).toContain('kind "business"');
     expect(task).toContain('kind "input-validation"');

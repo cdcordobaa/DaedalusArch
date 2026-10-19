@@ -1,0 +1,58 @@
+{
+  "itemId": "35513ef1ce9e22b5",
+  "itemName": "AccountHolder",
+  "key": "b5fb392d92f8c408635f75ed0422f0b8d30bee3d8d5c1686dc736b388bcf06fa",
+  "parts": {
+    "model": "mock-ontology",
+    "pass": "responsibility",
+    "promptHash": "48cb5841b55d620d3004ea0338e447aa007718751632b73e34f4389c4b5a7bbc",
+    "promptVersion": "ontology-v0.3",
+    "provider": "mock",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass AccountHolder (node 35513ef1ce9e22b5), file src/accounts/domain/account-holder.ts, lines 1-12.\nComponent: accounts. Declared layer: domain (kind domain).\nMethods:\n- (none)\nFields: holderId, contactEmail, firstName, lastName\n\n## APG neighbourhood\nGraph statistics: 0 methods; fan-out 0; fan-in 0.\n- (none)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- AccountHolder: nameRole=\"unknown\"\n- AccountHolder: behaviourRole=\"coordination\"\n- AccountHolder: ioCategories=[]\n- AccountHolder: lcom4=1\n- AccountHolder: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n\n## Source\n=====SOURCE-BEGIN src/accounts/domain/account-holder.ts\n 1| export class AccountHolder {\n 2|   constructor(\n 3|     readonly holderId: string,\n 4|     readonly contactEmail: string,\n 5|     readonly firstName: string,\n 6|     readonly lastName: string,\n 7|   ) {}\n 8| \n 9|   get fullName(): string {\n10|     return `${this.firstName} ${this.lastName}`;\n11|   }\n12| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-15T00:00:00.000Z",
+  "resolvedModel": "mock-ontology",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 1,
+            "file": "src/accounts/domain/account-holder.ts",
+            "nodeId": "35513ef1ce9e22b5",
+            "quote": "export class AccountHolder {",
+            "startLine": 1
+          }
+        ],
+        "name": "Customer account",
+        "relation": "defines"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Hold an account owner's identity",
+        "evidence": [
+          {
+            "endLine": 4,
+            "file": "src/accounts/domain/account-holder.ts",
+            "nodeId": "35513ef1ce9e22b5",
+            "quote": "readonly contactEmail: string,",
+            "startLine": 4
+          }
+        ],
+        "name": "Hold an account owner's identity",
+        "naturalLayer": "domain"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 474,
+    "outputTokens": 138
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "itemId": "1303728ff45ff08c",
+  "itemName": "InvoiceAssembler",
+  "key": "5604d125616be619e62ba230786ee95507db039ae6c0d0a91f7fa91f59bdb792",
+  "parts": {
+    "model": "mock-ontology",
+    "pass": "responsibility",
+    "promptHash": "f9d4a320a9b7b28c45dea9fcb91dc5bc60d0a247a06fd82cc5e2c3d1960bdd50",
+    "promptVersion": "ontology-v0.3",
+    "provider": "mock",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass InvoiceAssembler (node 1303728ff45ff08c), file src/invoicing/application/invoice-assembler.ts, lines 15-22.\nComponent: invoicing. Declared layer: application (kind application).\nMethods:\n- assemble (node 60265967979ae567, lines 16-21, logic density 4)\nFields: (none)\n\n## APG neighbourhood\nGraph statistics: 1 methods; fan-out 0; fan-in 0.\n- (none)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- InvoiceAssembler: nameRole=\"unknown\"\n- InvoiceAssembler: behaviourRole=\"business-logic\"\n- InvoiceAssembler: ioCategories=[]\n- InvoiceAssembler: lcom4=1\n- InvoiceAssembler: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- InvoiceAssembler.assemble: logicDensity={\"branches\":2,\"comparisons\":1,\"arithmetic\":1,\"validationThrows\":0,\"density\":4}\n\n## Source\n=====SOURCE-BEGIN src/invoicing/application/invoice-assembler.ts\n15| export class InvoiceAssembler {\n16|   assemble(items: readonly InvoiceItem[]): Invoice {\n17|     let sum = 0;\n18|     for (const item of items) sum += item.amountCents;\n19|     const shippingCents = !(sum < FREE_SHIPPING_MIN_CENTS) ? 0 : SHIPPING_FEE_CENTS;\n20|     return { items, shippingCents, totalCents: sum + shippingCents };\n21|   }\n22| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-15T00:00:00.000Z",
+  "resolvedModel": "mock-ontology",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 16,
+            "file": "src/invoicing/application/invoice-assembler.ts",
+            "nodeId": "60265967979ae567",
+            "quote": "assemble(items: readonly InvoiceItem[]): Invoice {",
+            "startLine": 16
+          }
+        ],
+        "name": "Invoice",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Assemble an invoice with its shipping and total",
+        "evidence": [
+          {
+            "endLine": 20,
+            "file": "src/invoicing/application/invoice-assembler.ts",
+            "nodeId": "60265967979ae567",
+            "quote": "return { items, shippingCents, totalCents: sum + shippingCents };",
+            "startLine": 20
+          }
+        ],
+        "name": "Assemble an invoice with its shipping and total",
+        "naturalLayer": "application"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 531,
+    "outputTokens": 163
+  }
+}

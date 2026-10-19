@@ -33,6 +33,7 @@ import type {
 } from './types.js';
 import { PASS_IDS } from './types.js';
 import { buildUnits } from './units.js';
+import type { ProjectDoc } from './reading.js';
 import type { ClassUnit, OntologyUnits } from './units.js';
 import { verifyRuleDuplication } from './verify.js';
 import { hostIndependentCompare } from '../../shared/collation.js';
@@ -45,6 +46,8 @@ export interface OntologyInput {
   readonly layerModel?: LayerModel;
   /** Reads a project file (default: from disk under `projectRoot`). */
   readonly readFile?: FileReader;
+  /** The project's documentation (README, docs, ADRs; amendment A1). `prepareOntologyInput` collects it; none when absent. */
+  readonly docs?: readonly ProjectDoc[];
 }
 
 export interface OntologyOptions {
@@ -108,6 +111,17 @@ function site(cls: ClassUnit, methodId?: string): CodeSite {
   return { nodeId: m?.nodeId ?? cls.nodeId, file: cls.file, className: cls.name, ...(m !== undefined ? { methodName: m.name } : {}), component: cls.component };
 }
 
+/** The graph slice of a cluster item's site (A1): the class's layer, context and degree, and the method's logic density. */
+function siteGraph(cls: ClassUnit, methodId?: string): string[] {
+  const out = cls.neighbours.filter((n) => n.direction === 'out').length;
+  const m = methodId === undefined ? undefined : cls.methods.find((x) => x.nodeId === methodId);
+  return [
+    `class ${cls.name} (node ${cls.nodeId}): layer ${cls.layerKind ?? 'unknown'}, ${cls.declaredContext !== null ? `declared context ${cls.declaredContext}` : `component ${cls.component}`}, fan-out ${String(out)}, fan-in ${String(cls.neighbours.length - out)}`,
+    ...(m !== undefined ? [`method ${m.name} (node ${m.nodeId}): logic density ${m.logicDensity === null ? 'n/a' : String(m.logicDensity)}`] : []),
+    ...cls.neighbours.slice(0, 8).map((n) => `${n.direction === 'out' ? '->' : '<-'} ${n.relation} ${n.type} ${n.name}`),
+  ];
+}
+
 function mergeAgreement(list: readonly { readonly agreement: Agreement }[]): Agreement {
   return list.every((k) => k.agreement === 'agreed') ? 'agreed' : 'single-run';
 }
@@ -144,7 +158,7 @@ function prepare(input: OntologyInput, o: OntologyOptionsInput): Prepared {
   const options = resolveOptions(o);
   const root = path.resolve(input.projectRoot);
   const ctx = buildContext({ apg: input.apg, project: input.project, projectRoot: root, ...(input.layerModel !== undefined ? { layerModel: input.layerModel } : {}) }, DEFAULT_CHEAP_OPTIONS);
-  const units = buildUnits(ctx, input.cheap, { ruleMinDensity: options.ruleMinDensity });
+  const units = buildUnits(ctx, input.cheap, { ruleMinDensity: options.ruleMinDensity, docs: input.docs ?? [] });
   const read = input.readFile ?? diskReader(root);
   const index = new GroundingIndex(input.apg, units.nodeSpans, read);
   const d = options.provider.describe();
@@ -185,8 +199,8 @@ export function estimateOntology(input: OntologyInput, o: OntologyOptionsInput):
   let cachedKnown = 0;
   let chars = 0;
   const known: { prompt: string; pass: PassId; schema: Readonly<Record<string, unknown>> }[] = [
-    ...units.classes.map((c) => ({ prompt: responsibilityPrompt(c), pass: 'responsibility' as const, schema: RESPONSIBILITY_SCHEMA })),
-    ...units.ruleCandidates.map((r) => ({ prompt: rulePrompt(r.cls, r.methods), pass: 'rules' as const, schema: RULE_SCHEMA })),
+    ...units.classes.map((c) => ({ prompt: responsibilityPrompt(c, units.docs), pass: 'responsibility' as const, schema: RESPONSIBILITY_SCHEMA })),
+    ...units.ruleCandidates.map((r) => ({ prompt: rulePrompt(r.cls, r.methods, units.docs), pass: 'rules' as const, schema: RULE_SCHEMA })),
   ];
   for (const k of known) {
     chars += (k.prompt.length + ONTOLOGY_SYSTEM.length) * options.runs;
@@ -197,7 +211,7 @@ export function estimateOntology(input: OntologyInput, o: OntologyOptionsInput):
   // The capability prompt's size does not depend on the answers much: count it with empty responsibilities.
   for (const g of units.groups) {
     const members = g.classIds.flatMap((id) => units.classes.filter((c) => c.nodeId === id)).map((cls) => ({ cls, responsibilities: [] }));
-    chars += (capabilityPrompt(g, members).length + ONTOLOGY_SYSTEM.length) * options.runs;
+    chars += (capabilityPrompt(g, members, units.docs).length + ONTOLOGY_SYSTEM.length) * options.runs;
   }
   const calls: Record<PassId, number> = {
     responsibility: units.classes.length * options.runs,
@@ -256,7 +270,7 @@ export async function runOntology(input: OntologyInput, o: OntologyOptionsInput)
 
   const classSemantics = await responsibilityPass(p, units);
   const groupSemantics = caller.stopped === null ? await capabilityPass(p, units, classSemantics, options.requireAgreement) : [];
-  const ruleSites = caller.stopped === null ? await rulePass(p, units.ruleCandidates) : [];
+  const ruleSites = caller.stopped === null ? await rulePass(p, units.ruleCandidates, units.docs) : [];
 
   const clsById = new Map(units.classes.map((c) => [c.nodeId, c]));
   // Rules: only business rules are clustered (BR-U3-18); input checks stay rule sites (A2 `enforcesRule` facts) only.
@@ -269,6 +283,7 @@ export async function runOntology(input: OntologyInput, o: OntologyOptionsInput)
       key, kind: 'rule', component: r.cls.component, text: r.rule.out.statement,
       where: `${r.cls.file} ${site(r.cls, r.rule.out.enforcedBy).methodName ?? r.cls.name} (component ${r.cls.component})`,
       quotes: r.rule.evidence.map((e) => e.quote),
+      graph: siteGraph(r.cls, r.rule.out.enforcedBy), terms: [r.cls.name],
       rule: { subject: r.rule.out.subject, operator: r.rule.out.operator, threshold: r.rule.out.threshold },
     });
   });
@@ -281,7 +296,8 @@ export async function runOntology(input: OntologyInput, o: OntologyOptionsInput)
       conceptByKey.set(key, { cls: s.cls, c });
       conceptItems.push({
         key, kind: 'concept', component: s.cls.component, context: s.cls.declaredContext, text: c.out.name, where: `${s.cls.name} (${c.out.relation}), ${s.cls.file}, component ${s.cls.component}`,
-        quotes: c.evidence.map((e) => e.quote), ...(c.out.relation === 'defines' ? { fields: s.cls.fields } : {}),
+        quotes: c.evidence.map((e) => e.quote), graph: siteGraph(s.cls), terms: [s.cls.name],
+        ...(c.out.relation === 'defines' ? { fields: s.cls.fields } : {}),
       });
     });
   }
@@ -292,11 +308,16 @@ export async function runOntology(input: OntologyInput, o: OntologyOptionsInput)
     g.capabilities.filter(keep).forEach((c, i) => {
       const key = `capability:${g.group.id}:${String(i)}`;
       capByKey.set(key, c);
-      capItems.push({ key, kind: 'capability', component: g.group.id, text: c.out.name, where: g.group.id, quotes: c.evidence.map((e) => e.quote) });
+      const members = g.group.classIds.flatMap((cid) => { const cls = clsById.get(cid); return cls === undefined ? [] : [cls]; });
+      capItems.push({
+        key, kind: 'capability', component: g.group.id, text: c.out.name, where: g.group.id, quotes: c.evidence.map((e) => e.quote),
+        graph: [`${g.group.kind} ${g.group.id}: ${String(members.length)} classes (${members.map((m) => m.name).join(', ')})`, ...c.out.realizedBy.flatMap((cid) => { const cls = clsById.get(cid); return cls === undefined ? [] : siteGraph(cls).slice(0, 1); })],
+        terms: members.map((m) => m.name),
+      });
     });
   }
 
-  const clusterOpts = { maxPairs: options.maxAdjudicationPairs, decimalScaleMaxPower: options.decimalScaleMaxPower };
+  const clusterOpts = { maxPairs: options.maxAdjudicationPairs, decimalScaleMaxPower: options.decimalScaleMaxPower, docs: units.docs };
   const rules = await cluster(p, ruleItems, clusterOpts);
   const concepts = await cluster(p, conceptItems, { ...clusterOpts, maxPairs: Math.max(0, options.maxAdjudicationPairs - rules.adjudications.length) });
   const capabilities = await cluster(p, capItems, { ...clusterOpts, maxPairs: Math.max(0, options.maxAdjudicationPairs - rules.adjudications.length - concepts.adjudications.length) });

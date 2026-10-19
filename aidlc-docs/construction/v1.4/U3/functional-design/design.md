@@ -105,6 +105,7 @@ It is written to `<out>/<project>/facts.json`, beside `result.json`.
 | `agreement` | `'agreed' \| 'single-run' \| null` | |
 | `runIndex` | int \| null | null when agreed. Otherwise the primary run's index |
 | `evidence` | `GroundedEvidence[]` | non-empty for model facts (I2) |
+| `citations` | `{ locations: { kind: 'code' \| 'doc', file, startLine, endLine }[], graph: { statistic, value, query }[] }` | **Amendment A1.** At least one code or doc location (I6); graph statistics with their Cypher over the loaded A1 graph where one applies (`inLayer` → `layerKind`, `inContext` → `context`, class facts → `fanOut`/`fanIn`, `enforcesRule` → `callers` plus the class degree, `ruleEquivalenceVerified` → `callers` of both). Model facts cite their grounded evidence spans and the doc excerpts their prompt carried; parser facts cite the class or method span. Not part of the fact id |
 
 ### 3.2 Predicate vocabulary v1 (closed)
 
@@ -130,6 +131,13 @@ It is written to `<out>/<project>/facts.json`, beside `result.json`.
 - **I3.** A parser fact has a null `modelId`, `promptHash`, `confidence`, `agreement` and `runIndex`, and empty evidence.
 - **I4.** No predicate outside §3.2. A unit test also asserts that the vocabulary contains no verdict-shaped name (`violates`, `isDefect`, `misplaced`, `fragmented`, `duplicated`).
 - **I5 (added).** Fact ids are unique. The file is sorted by `(predicate, subject, id)` with `hostIndependentCompare`, so two writes are byte-identical.
+- **I6 (amendment A1).** Every fact cites at least one code or doc location. It is checked **when the fact is written** (`writeFact` throws `A2InvariantError`), not at scoring, and again by `validateFacts`. A graph statistic alone is not a citation.
+
+### 3.3a Amendment A1: the graph complements reading
+
+- **Prompts (`ontology-v0.3`).** Every model prompt carries the code **and** the graph slice. Passes (a) and (c): the class source, the APG neighbourhood with its statistics (methods, fan-out and fan-in by relation), the JSDoc and leading comments of the class and its methods, and the project docs that mention the class or its component. Pass (b): each class's declaration line, the APG relations inside the group with its statistics, and the docs. Pass (d): each side's quoted code and its site's graph slice, and the docs that mention either side. The docs section appears only where docs exist.
+- **Docs.** `prepareOntologyInput` collects the project's Markdown (README, `docs/`, ADRs under `adr/`, `adrs/`, `decisions/` or named `adr-*`), skipping `node_modules`, `dist`, `build` and `.git`. Excerpts are line windows that mention a term, ADRs first, at most 6 per prompt, between `DOC-BEGIN`/`DOC-END` markers that the system prompt declares as data.
+- **C4.** `buildInterpretationContext` / `interpretationPrompt` (`src/apg-enrich/ontology/interpretation.ts`) give the interpreter, for one Sem verdict, its A2 facts with their citations, the site code, the graph slice, the comments within 10 lines of each site and the class JSDoc, and the docs and ADRs that mention the sites (the ADR heads when none does). U3 wires no C4 run and makes no call; the frozen v2.2 judge is not changed.
 
 ### 3.4 Graph load (`loadFacts`) and the Sem rules
 
@@ -369,5 +377,6 @@ The four parent manifests (`case-01`, `case-02`, `case-04a`, `case-04b`) have no
 9. The two N4-changed Ontology v0 numbers are declared as `known` in the replication harness; the design doc is append-only.
 
 ## Changelog
+- 2026-10-19: amendment A1 applied: `citations` and I6 (§3.1, §3.3), §3.3a (prompts `ontology-v0.3`, docs, C4 context).
 - 2026-10-18: first version.
 - 2026-10-18: adversarial review. Added D10 (parent `ns02` blocks, without which the pilot bar can't be scored), D11 and BR-U3-17 (ledger and `g-onto-mock` figures: append-only doc, `known` entries), and BR-U3-18 (only business rules are clustered). BR-U3-11 now changes the rule prompt's scope, which excluded input checks. BR-U3-06 and §3.1: the fact policy is run-level, and `any` is not a zero-call rescore. BR-U3-07 is reworded per context. SEM-MISPLACED is scored at the owning class. SEM-DUP `verified` is per cluster pair, written once per pair. Fact ids leave out the cluster ids, and parser-fact dates come from the cassettes. The case-09 manifest drops the operator and the `Order.*` wildcard. The twin's extra `.length` is stated, and `giftNote` reaches the domain in both cases. Runner tests inject the route factories. Ablation, output-format and memory notes added. R11–R13.

@@ -1,0 +1,45 @@
+{
+  "itemId": "component:checkout",
+  "itemName": "component:checkout",
+  "key": "6eadbfd3c634f48669a99d43b9e5e54f9ffb81d4bea61d9045e1f4a2857ad262",
+  "parts": {
+    "model": "mock-ontology",
+    "pass": "capability",
+    "promptHash": "01dee17019591a066e88fb33b30a8951e14a41883b54c6a6a766b222c9b18ac6",
+    "promptVersion": "ontology-v0.3",
+    "provider": "mock",
+    "runIndex": 0,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of component \"checkout\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- ShippingPolicy (node 2129045aa2d7117d), file src/checkout/domain/shipping-policy.ts, declaration line 8: \"export class ShippingPolicy {\"\n  component checkout, layer domain; responsibilities: Compute the shipping charge, free above a threshold\n- CheckoutService (node cf115feba907f542), file src/checkout/application/checkout.service.ts, declaration line 9: \"export class CheckoutService {\"\n  component checkout, layer application; responsibilities: Summarise a checkout with its shipping charge\n\n## APG relations of the group\nGraph statistics: 2 classes; 2 relations inside the group; 0 outgoing relations to code outside it.\n- CheckoutService -> CALLS ShippingPolicy\n- CheckoutService -> CONSTRUCTOR_INJECTS ShippingPolicy\n\n## Comments near the code\n- ShippingPolicy: Shipping charged at checkout.",
+  "recordedAt": "2026-10-15T00:00:00.000Z",
+  "resolvedModel": "mock-ontology",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.8,
+        "description": "Checkout pricing",
+        "evidence": [
+          {
+            "endLine": 8,
+            "file": "src/checkout/domain/shipping-policy.ts",
+            "nodeId": "2129045aa2d7117d",
+            "quote": "export class ShippingPolicy {",
+            "startLine": 8
+          }
+        ],
+        "name": "Checkout pricing",
+        "realizedBy": [
+          "2129045aa2d7117d",
+          "cf115feba907f542"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 299,
+    "outputTokens": 77
+  }
+}

@@ -17,6 +17,7 @@ import { classesOf, declaredContextOf } from '../cheap/context.js';
 import type { CheapContext } from '../cheap/context.js';
 import type { CheapEnrichment, Evidence } from '../cheap/types.js';
 import { hostIndependentCompare } from '../../shared/collation.js';
+import type { ProjectDoc } from './reading.js';
 
 export interface MethodUnit {
   readonly nodeId: string;
@@ -53,6 +54,8 @@ export interface ClassUnit {
   readonly cheapFlags: readonly string[];
   /** The class source, line-numbered (`  12| code`). */
   readonly numberedSource: string;
+  /** JSDoc and leading comments of the class and its methods (`Name: text`; cheap proxy 10), amendment A1. */
+  readonly comments: readonly string[];
 }
 
 export interface GroupUnit {
@@ -75,6 +78,8 @@ export interface OntologyUnits {
   readonly nodeSpans: ReadonlyMap<string, Evidence>;
   /** ts-morph declaration of every method unit (deterministic verifiers). */
   readonly methodDecls: ReadonlyMap<string, MethodDeclaration>;
+  /** The project's documentation (amendment A1): every prompt gets the excerpts that mention its code. */
+  readonly docs: readonly ProjectDoc[];
 }
 
 const NEIGHBOUR_EDGES = new Set(['CONSTRUCTOR_INJECTS', 'EXTENDS', 'IMPLEMENTS', 'CALLS', 'FLOWS_TO']);
@@ -92,17 +97,19 @@ export function numberLines(sf: SourceFile, span: Evidence): string {
   return out.join('\n');
 }
 
-export function buildUnits(ctx: CheapContext, cheap: CheapEnrichment, opts: { readonly ruleMinDensity: number }): OntologyUnits {
+export function buildUnits(ctx: CheapContext, cheap: CheapEnrichment, opts: { readonly ruleMinDensity: number; readonly docs?: readonly ProjectDoc[] }): OntologyUnits {
   const nodeById = new Map<string, APGNode>(ctx.apg.nodes.map((n) => [n.id, n]));
   const nodeSpans = new Map<string, Evidence>();
   const methodDecls = new Map<string, MethodDeclaration>();
   const density = new Map<string, number>();
   const factsOf = new Map<string, string[]>();
+  const docTextOf = new Map<string, string>();
   for (const f of cheap.nodeFacts) {
     if (f.key === 'logicDensity') {
       const v = typeof f.value === 'number' ? f.value : (f.value as { readonly density?: unknown } | null)?.density;
       if (typeof v === 'number') density.set(f.nodeId, v);
     }
+    if (f.key === 'docText' && typeof f.value === 'string') docTextOf.set(f.nodeId, f.value);
     if (f.key === 'docText' || f.key === 'community') continue;
     factsOf.set(f.nodeId, [...(factsOf.get(f.nodeId) ?? []), `${f.key}=${JSON.stringify(f.value)}`]);
   }
@@ -168,6 +175,10 @@ export function buildUnits(ctx: CheapContext, cheap: CheapEnrichment, opts: { re
         fields: Array.isArray(fieldsProp) ? fieldsProp.filter((x): x is string => typeof x === 'string') : [],
         methods, neighbours: dedup.slice(0, MAX_NEIGHBOURS), cheapFacts, cheapFlags,
         numberedSource: numberLines(sf, span),
+        comments: [nodeId, ...methods.map((m) => m.nodeId)].flatMap((id) => {
+          const text = docTextOf.get(id);
+          return text === undefined ? [] : [`${id === nodeId ? name : (nodeById.get(id)?.name ?? id)}: ${text}`];
+        }),
       };
       classes.push(unit);
       const cands = methods.filter((m) => (m.logicDensity ?? 0) >= opts.ruleMinDensity || ruleFlagged.has(`${name}.${m.name}`));
@@ -201,5 +212,5 @@ export function buildUnits(ctx: CheapContext, cheap: CheapEnrichment, opts: { re
     seen.add(key);
     groups.push({ id: `community:${String(k)}`, kind: 'community', classIds: ids });
   }
-  return { classes, groups, ruleCandidates, nodeSpans, methodDecls };
+  return { classes, groups, ruleCandidates, nodeSpans, methodDecls, docs: opts.docs ?? [] };
 }

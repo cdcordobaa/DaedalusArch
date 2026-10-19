@@ -12,11 +12,13 @@ import type { LayerModel } from '../../../../src/shared/types/spec.js';
 import { CASES, FIXTURES, LAYERS, fixtureInput, nodeId, replayDetail } from './helpers.js';
 
 const EV = [{ nodeId: 'n', file: 'f.ts', startLine: 1, endLine: 1, quote: 'q', grounded: true as const }];
+// Amendment A1 (I6): every fact cites a code or doc location.
+const CITED = { locations: [{ kind: 'code' as const, file: 'f.ts', startLine: 1, endLine: 1 }], graph: [] };
 
 function fact(subject: string, predicate: Fact['predicate'], value: unknown, source: 'parser' | 'model', agreement: 'agreed' | 'single-run' = 'agreed'): Fact {
   const base = source === 'parser'
-    ? { subject, predicate, value: value as Fact['value'], source, basis: 'apg' as const, modelId: null, promptHash: null, date: 'd', confidence: null, agreement: null, runIndex: null, evidence: [] }
-    : { subject, predicate, value: value as Fact['value'], source, basis: null, modelId: 'm', promptHash: 'h', date: 'd', confidence: 0.9, agreement, runIndex: agreement === 'agreed' ? null : 0, evidence: EV };
+    ? { subject, predicate, value: value as Fact['value'], source, basis: 'apg' as const, modelId: null, promptHash: null, date: 'd', confidence: null, agreement: null, runIndex: null, evidence: [], citations: CITED }
+    : { subject, predicate, value: value as Fact['value'], source, basis: null, modelId: 'm', promptHash: 'h', date: 'd', confidence: 0.9, agreement, runIndex: agreement === 'agreed' ? null : 0, evidence: EV, citations: CITED };
   return { id: factId(base), ...base };
 }
 
@@ -24,7 +26,7 @@ function file(facts: readonly Fact[], factPolicy: FactPolicy = 'agreed-only'): F
   return {
     schemaVersion: 1, artifact: 'A2', project: { id: 'synthetic', contentHash: 'h', commit: null },
     inputs: { a1: { apgHash: 'h' }, layerModel: { path: null, hash: null } },
-    producer: { part: 'C1d', pipeline: 'ontology-v0', promptVersion: 'ontology-v0.2', provider: 'mock', model: 'mock-ontology', runs: 2, runId: 'r', factPolicy },
+    producer: { part: 'C1d', pipeline: 'ontology-v0', promptVersion: 'ontology-v0.3', provider: 'mock', model: 'mock-ontology', runs: 2, runId: 'r', factPolicy },
     facts,
   };
 }
