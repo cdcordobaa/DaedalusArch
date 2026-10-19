@@ -89,6 +89,7 @@ export function createScriptedResponder(script: ScriptedAnswers, apg: APGResult,
     const entry = script.responses.find((e) => e.pass === req.pass
       && (e.runs === undefined || e.runs.includes(req.runIndex))
       && (e.pass === 'adjudicate' ? (e.contains ?? []).every((s) => req.itemName.includes(s)) : e.item === req.itemName));
+    if (req.pass === 'interpret') return null; // a C1d script never answers a C4 call (the C4 mock is its own)
     return entry === undefined ? EMPTY[req.pass] : resolve(entry.answer);
   };
 }

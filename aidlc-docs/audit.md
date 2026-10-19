@@ -2413,6 +2413,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+## v1.4 construction: U9 semantic paths (BUILD-S), code generation
+**Timestamp**: 2026-10-19T22:07:22Z
+**User Input**: "Scheduled routine BUILD-S: build the semantic paths of the instrument (C1d facts, C4 interpretation) with zero model calls and no Neo4j, as a new AI-DLC unit U9, then open a PR to main without merging."
+**AI Response**: "Built U9 with zero model calls (mock, estimate and replay only; cypher-interp). S1: one shared agy exploratory-version list (1.3.6, 1.4.2), passed by the gemini-agy ontology route only for an exploratory run; the 1.3.2 pin is unchanged. S2: C4 takes every blocking finding (symbolic rows and SEM verdicts), schema c4-v0.2 with no verdict field, and a byte-identical C3 check with and without A5. S3: grounded A5 contract, two-run merge, runner with estimate/replay/mock and the claude-cli and gemini-agy routes, keyword baseline, scorer, and the six cases plus six twins (all author/Claude-written by this session, unsigned; X1 to X3 to be filled by non-authors). S4: facts.json is loaded into the graph and read by SEM-MISPLACED, SEM-DUP and SEM-FRAG through Cypher. S5: an opt-in read-only semantic_facts MCP tool, off by default and in no study arm. Plan and summary under aidlc-docs/construction/v1.4/U9/."
+**Context**: v1.4 construction, unit U9 (C1d, C4, C6); designs C4-01 (PR #275, unmerged), NS-02, TRUST-01 L3/L7/L9, REV-05; no sealed read; the MEAN-01 sample not opened
 ## v1.4 research ops: TIER-A2 zero-call instrument-map analyses
 **Timestamp**: 2026-10-19T20:40:00Z
 **User Input**: "Scheduled routine: run seven zero-call analyses that close instrument-map gaps with data already in the repo or public clones (N123 re-score with the identity module, type-resolution rate and FLOWS_TO yield, extractor-fix re-run on msc29 and felixle, tool-baseline row, clustered interval for 283/283, SO1-4 expressiveness, V11 leakage census). One note, outputs under results/v1.4-tier-a/, a PR to main, no merge."

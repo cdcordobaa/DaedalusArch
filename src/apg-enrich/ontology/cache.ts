@@ -12,7 +12,7 @@
  */
 import { canonicalJSON, sha256Hex } from '../../llm-critic/canonical-json.js';
 import { readCassetteEntry, sortedJson, writeFileAtomic, cassetteFilePath } from './cassette-io.js';
-import type { PassId } from './types.js';
+import type { CallPass } from './types.js';
 
 export type CacheMode = 'record' | 'replay' | 'off';
 
@@ -20,7 +20,7 @@ export const ONTOLOGY_CACHE_SCHEMA_VERSION = 1;
 
 export interface CacheKeyParts {
   readonly promptVersion: string;
-  readonly pass: PassId;
+  readonly pass: CallPass;
   readonly provider: string;
   readonly model: string;
   readonly systemHash: string;

@@ -5,7 +5,9 @@
  * - `gemini-api`: `GeminiProvider` through `LlmOntologyProvider`. Needs `--model` (no default, BR-U3-13) and a
  *   temperature. The API key is read from `process.env.GEMINI_API_KEY` by the factory only, when a live record opens.
  * - `gemini-agy`: `AgyCliProvider` (its home `LABELLER_AGY_HOME`, else `AGY_HOME_DEFAULT`, and its isolation
- *   pre-flight) through `LlmOntologyProvider`. Needs `--model`. agy sends no temperature.
+ *   pre-flight) through `LlmOntologyProvider`. Needs `--model`. agy sends no temperature. The pre-flight holds the
+ *   frozen labeller pin (`AGY_PINNED_VERSION`, 1.3.2) unless the spec is `exploratory`: then the shared
+ *   `AGY_EXPLORATORY_VERSIONS` list (the BF-01 one, not a copy) is also accepted (C4-01 §3 gap 2).
  * - `mock`: the scripted answers; the runner builds it per project.
  *
  * `describeRoute` is pure (no I/O, no environment, no construction). `openRoute` builds a live provider only in record
@@ -14,7 +16,7 @@
  * Nothing here loads `.env`.
  */
 import * as path from 'node:path';
-import { AGY_HOME_DEFAULT, AgyCliProvider, expandHome } from '../../llm-critic/agy-cli-provider.js';
+import { AGY_EXPLORATORY_VERSIONS, AGY_HOME_DEFAULT, AgyCliProvider, expandHome } from '../../llm-critic/agy-cli-provider.js';
 import { ClaudeCliProvider } from '../../llm-critic/claude-cli-provider.js';
 import { JUDGE_CONFIG_DIR_DEFAULT, JUDGE_EFFORT, JUDGE_MAX_TOKENS, JUDGE_MODEL } from '../../llm-critic/frozen.js';
 import { GeminiProvider } from '../../llm-critic/gemini-provider.js';
@@ -34,6 +36,13 @@ export interface OntologyRouteSpec {
   readonly model?: string;
   readonly temperature?: number;
   readonly maxTokens?: number;
+  /** An exploratory run (gemini-agy only): the agy pre-flight also accepts `AGY_EXPLORATORY_VERSIONS`. */
+  readonly exploratory?: boolean;
+}
+
+/** The agy versions a route's pre-flight accepts besides the pin: the shared exploratory list, or none. */
+export function agyExploratoryVersions(spec: OntologyRouteSpec): readonly string[] | undefined {
+  return spec.route === 'gemini-agy' && spec.exploratory === true ? AGY_EXPLORATORY_VERSIONS : undefined;
 }
 
 export function isOntologyRoute(name: string): name is OntologyRouteName {
@@ -51,6 +60,9 @@ export function checkRoute(spec: OntologyRouteSpec): DomainResult<void> {
   }
   if (spec.route === 'gemini-agy' && spec.temperature !== undefined) {
     errors.push({ code: 'ONTOLOGY_ROUTE_TEMPERATURE_UNSENT', message: 'agy sends no temperature; drop --temperature for gemini-agy' });
+  }
+  if (spec.exploratory === true && spec.route !== 'gemini-agy') {
+    errors.push({ code: 'ONTOLOGY_ROUTE_EXPLORATORY_AGY_ONLY', message: '--exploratory widens the agy version pin only; it applies to gemini-agy alone' });
   }
   return errors.length > 0 ? DomainResult.fail(errors) : DomainResult.ok(undefined);
 }
@@ -84,7 +96,7 @@ export interface ClaudeCliRouteConfig {
 export interface RouteDeps {
   claudeCli(cfg: ClaudeCliRouteConfig): Promise<DomainResult<OpenedRoute>>;
   geminiApi(cfg: { readonly model: string; readonly temperature: number; readonly maxTokens: number }): Promise<DomainResult<LLMProvider>>;
-  agyCli(cfg: { readonly model: string }): Promise<DomainResult<LLMProvider>>;
+  agyCli(cfg: { readonly model: string; readonly exploratoryVersions?: readonly string[] }): Promise<DomainResult<LLMProvider>>;
 }
 
 export type RouteMode = 'record' | 'replay' | 'estimate';
@@ -112,9 +124,10 @@ export async function openRoute(spec: OntologyRouteSpec, deps: RouteDeps, opts: 
     }
     case 'gemini-agy': {
       const model = spec.model ?? '';
-      const inner = await deps.agyCli({ model });
+      const exploratoryVersions = agyExploratoryVersions(spec);
+      const inner = await deps.agyCli({ model, ...(exploratoryVersions !== undefined ? { exploratoryVersions } : {}) });
       if (!inner.success) return DomainResult.fail(inner.errors);
-      return DomainResult.ok({ provider: new LlmOntologyProvider(inner.data, { route: 'gemini-agy', model, maxTokens }), dispose: () => undefined, ready: `gemini-agy route ready: model ${model}` });
+      return DomainResult.ok({ provider: new LlmOntologyProvider(inner.data, { route: 'gemini-agy', model, maxTokens }), dispose: () => undefined, ready: `gemini-agy route ready: model ${model}${exploratoryVersions !== undefined ? ' (exploratory: agy versions beyond the pin accepted)' : ''}` });
     }
   }
 }
@@ -139,8 +152,11 @@ export const DEFAULT_ROUTE_DEPS: RouteDeps = Object.freeze({
     if (apiKey === undefined || apiKey === '') return Promise.resolve(DomainResult.fail([{ code: 'LLM_AUTH', message: 'GEMINI_API_KEY is not set in the environment' }]));
     return Promise.resolve(DomainResult.ok(new GeminiProvider({ apiKey, model: cfg.model, temperature: cfg.temperature, maxTokens: cfg.maxTokens })));
   },
-  async agyCli(cfg: { readonly model: string }): Promise<DomainResult<LLMProvider>> {
-    const agy = new AgyCliProvider({ model: cfg.model, home: expandHome(process.env.LABELLER_AGY_HOME ?? AGY_HOME_DEFAULT), mode: 'record' }, { runner: new NodeProcessRunner() });
+  async agyCli(cfg: { readonly model: string; readonly exploratoryVersions?: readonly string[] }): Promise<DomainResult<LLMProvider>> {
+    const agy = new AgyCliProvider({
+      model: cfg.model, home: expandHome(process.env.LABELLER_AGY_HOME ?? AGY_HOME_DEFAULT), mode: 'record',
+      ...(cfg.exploratoryVersions !== undefined ? { exploratoryVersions: cfg.exploratoryVersions } : {}),
+    }, { runner: new NodeProcessRunner() });
     const prepared = await agy.prepare();
     return prepared.success ? DomainResult.ok(agy) : DomainResult.fail(prepared.errors);
   },

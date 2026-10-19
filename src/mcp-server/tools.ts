@@ -4,6 +4,7 @@
  * here, so the handlers are unit-testable without a transport.
  */
 import { withPostSealRules } from '../fitness-compiler/post-seal-rules.js';
+import type { SemanticFactsConfig } from './semantic-facts.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { ParsedSpec } from '../shared/types/spec.js';
@@ -89,6 +90,8 @@ export interface ServerContext {
   readonly callLog?: CallLogger | undefined;
   /** Register the opt-in `propose_rules` tool (rule mining). Off by default. */
   readonly ruleMining?: boolean | undefined;
+  /** v1.4 U9: register the read-only `semantic_facts` tool over this A2 directory. Off by default (absent). */
+  readonly semanticFacts?: SemanticFactsConfig | undefined;
 }
 
 const ok = <T>(data: T): ToolOutcome<T> => ({ ok: true, data });
