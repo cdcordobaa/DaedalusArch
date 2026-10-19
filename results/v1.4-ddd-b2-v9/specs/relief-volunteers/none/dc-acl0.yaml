@@ -1,0 +1,253 @@
+# v1.4 B2/T1 spec variant dc-acl0 (scripts/v1.4/ddd-b2-t1-rescore.ts), built from experiments/loop-pilot/run-2026-10-16/outputs/runs/claude-code-cli/claude-sonnet-5-5/relief-volunteers/none/run-0/spec/frozen-spec.yaml.
+# ISE-inferred spec (exploratory prototype, src/ise). Review before use.
+# style: ddd (forced); layer mapping: preset-first
+# evidence: +4 2 bounded-context-like folders (src/deployment/, src/registry/) each with its own domain layer; +1 shared kernel next to the contexts; +1 context boundary directories (acl / contracts)
+# units: src/deployment/acl/=infrastructure (preset-glob), src/deployment/api/=api (preset-glob), src/deployment/application/=application (preset-glob), src/deployment/domain/=domain (preset-glob), src/deployment/infrastructure/=infrastructure (preset-glob), src/main.ts=composition (preset-glob), src/registry/acl/=infrastructure (preset-glob), src/registry/api/=api (preset-glob), src/registry/application/=application (preset-glob), src/registry/domain/=domain (preset-glob), src/registry/infrastructure/=infrastructure (preset-glob), src/shared/=domain (structure)
+# Loop pilot: constrained to the declared bounded contexts src/registry/, src/deployment/ and frozen after step 1 (scripts/lib/loop/specs.ts).
+
+spec_version: "1.0.0"
+
+architecture:
+  style: ddd
+
+  layers:
+    - name: domain
+      kind: domain
+      directories:
+        - src/deployment/domain/**
+        - src/registry/domain/**
+        - src/*/domain/**
+      roles:
+        - aggregate
+        - entity
+        - value-object
+        - domain-event
+        - repository-interface
+
+    - name: application
+      kind: application
+      directories:
+        - src/deployment/application/**
+        - src/registry/application/**
+        - src/*/application/**
+      roles:
+        - application-service
+        - port
+
+    - name: infrastructure
+      kind: infrastructure
+      directories:
+        - src/deployment/infrastructure/**
+        - src/registry/infrastructure/**
+        - src/deployment/acl/**
+        - src/registry/acl/**
+        - src/*/infrastructure/**
+        - src/*/acl/**
+      roles:
+        - repository
+        - anti-corruption-layer
+
+    - name: api
+      kind: presentation
+      directories:
+        - src/deployment/api/**
+        - src/registry/api/**
+        - src/*/api/**
+      roles:
+        - controller
+
+    # Composition root, outside every context. kind application is only a placeholder for the kind resolver.
+    - name: composition
+      kind: application
+      directories:
+        - src/main.ts
+      roles:
+        - composition-root
+
+  # Layering inside each context (`from` may import each layer in `to`); cross-context imports are FF-DS02's.
+  allowed_dependencies:
+    - from: application
+      to: [ domain ]
+    - from: infrastructure
+      to: [ application, domain ]
+    - from: api
+      to: [ application, domain ]
+    - from: composition
+      to: [ domain, application, infrastructure, api ]
+
+  ddd:
+    source_root: src/
+    contexts:
+      - name: registry
+        root: src/registry/
+        public_api:
+          - src/registry/index.ts
+          - src/registry/contracts/**
+        acl: []
+      - name: deployment
+        root: src/deployment/
+        public_api:
+          - src/deployment/index.ts
+          - src/deployment/contracts/**
+        acl: []
+    outside_contexts:
+      - src/main.ts
+    aggregates:
+      - name: Volunteer
+        context: registry
+        module: src/registry/domain/**
+        root: src/registry/domain/**?olunteer*.ts
+        inner_entities:
+          - src/registry/domain/**?kill*.ts
+          - src/registry/domain/**?ertification*.ts
+      - name: Incident
+        context: deployment
+        module: src/deployment/domain/**
+        root: src/deployment/domain/**?ncident*.ts
+        inner_entities:
+          - src/deployment/domain/**?hift*.ts
+          - src/deployment/domain/**?ssignment*.ts
+    value_objects:
+      - src/**/value-objects/**
+    repositories:
+      - src/*/infrastructure/**/*Repository.ts
+      - src/*/domain/**/*Repository.ts
+    domain_event_types:
+      - DomainEvent
+    application_services:
+      - src/*/application/*.ts
+
+fitness_functions:
+
+  # ── STRATEGIC ──
+
+  - id: FF-DS01
+    name: bounded-context-modules
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DS02
+    name: context-isolation
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # ── TACTICAL ──
+
+  - id: FF-DT01
+    name: aggregate-boundary
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  - id: FF-DT02
+    name: repository-aggregate-root
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Blocking per the sealed Docs/v1.3/rule-tiers.md. The check is still a method-name proxy (the extractor sees no
+  # readonly, accessors or visibility); see Docs/v1.3-ddd-notes.md §2 for the proposed ADR.
+  - id: FF-DT03
+    name: value-object-immutability
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Framework-free domain: the existing domain-purity template, unchanged, with the DDD package list.
+  - id: FF-DT04
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+    forbidden_imports:
+      - "@nestjs/*"
+      - typeorm
+      - express
+      - prisma
+      - "@prisma/*"
+      - sequelize
+      - mongoose
+      - "@mikro-orm/*"
+      - class-validator
+      - class-transformer
+      - inversify
+      - tsyringe
+
+  # Advisory per the sealed Docs/v1.3/rule-tiers.md (placement guideline).
+  - id: FF-DT05
+    name: domain-event-placement
+    dimension: pattern
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+  # Advisory heuristic: more methods than the threshold in an application service.
+  - id: FF-DT06
+    name: application-service-thin
+    dimension: pattern
+    severity: advisory
+    route: symbolic
+    validated: false
+    tier: advisory
+    threshold: 3
+
+  # ── LAYERING INSIDE EACH CONTEXT (hexagonal templates) ──
+
+  - id: FF-S01
+    name: dependency-direction-graph
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+    tier: blocking
+
+  # Advisory per the sealed Docs/v1.3/rule-tiers.md (hexagonal does not define strict layering).
+  - id: FF-S03
+    name: layer-skip-graph
+    dimension: structural
+    severity: minor
+    route: symbolic
+    validated: false
+    tier: advisory
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70
