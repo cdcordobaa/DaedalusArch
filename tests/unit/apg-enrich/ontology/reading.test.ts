@@ -239,7 +239,9 @@ describe('A1: C4 interpretation gets the docs, the ADRs and the comments near th
       if (mis === undefined) throw new Error('no SEM-MISPLACED verdict');
       const ctx = buildInterpretationContext(mis, facts, run.detail.units, diskReader(run.input.projectRoot));
       expect(ctx.facts.map((f) => f.id)).toEqual(mis.facts);
-      expect(ctx.docs.map((d) => [d.path, d.adr])).toEqual([['docs/adr/0001-pricing-in-application.md', true], ['README.md', false]]);
+      // v1.4 U9: an ADR excerpt below the head brings the head (title, status) first.
+      expect(ctx.docs.map((d) => [d.path, d.adr])).toEqual([['docs/adr/0001-pricing-in-application.md', true], ['docs/adr/0001-pricing-in-application.md', true], ['README.md', false]]);
+      expect(ctx.docs[0]?.startLine).toBe(1);
       expect(ctx.comments.map((c) => c.text)).toEqual(expect.arrayContaining(['/** Applies the loyalty discount (see ADR 1). */', '// The discount threshold is a business rule.']));
       const prompt = interpretationPrompt(ctx);
       for (const part of ['## Facts (A2)', '## Graph slice', 'fan-out', '## Comment lines near the finding', '=====DOC-BEGIN docs/adr/0001-pricing-in-application.md', '(ADR)', 'keeps the discount rule on purpose', '=====SOURCE-BEGIN src/orders/application/pricing.service.ts', 'declared exception']) {

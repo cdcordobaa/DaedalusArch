@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "case": "c4-01-adr-permits-read-skip",
+  "pair": "1",
+  "role": "case",
+  "style": "layered",
+  "spec": "presets/layered.yaml",
+  "authorship": {
+    "writtenBy": "Claude (BUILD-S cloud routine session, 2026-10-19)",
+    "independentOfC4": false,
+    "signedByAuthor": false,
+    "note": "Author/Claude-written. The same session also wrote the C4 runner, so this does not meet C4-01 \u00a76 ('a separate session that never runs or scores C4'). No C4 call was made before or after writing it. The author reads and signs it, or a separate session rewrites it, before any C4 call."
+  },
+  "writtenAt": "2026-10-19",
+  "target": {
+    "rule": "FF-S03",
+    "file": "src/presentation/order.controller.ts",
+    "edgeTarget": "src/persistence/order-read.repository.ts"
+  },
+  "expected": {
+    "exceptionClaimed": true,
+    "citations": [
+      {
+        "path": "docs/adr/0004-read-side.md",
+        "startLine": 10,
+        "endLine": 11
+      }
+    ],
+    "intentMatch": "consistent-with-declared-intent",
+    "severityAllowed": [
+      "low",
+      "medium"
+    ]
+  },
+  "tests": "the basic case: an Accepted ADR permits the import"
+}
