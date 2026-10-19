@@ -206,6 +206,22 @@ export function readAgyStream(stdout: string): AgyStream {
   return { init, result, tools };
 }
 
+/**
+ * True for a stream-json `result` event line. agy can print its result and then never exit (1.4.2, diagnosed
+ * 2026-10-19: answer at 216 s, process still alive at 870 s; the 1.3.6 "hang" had the same symptom). The provider
+ * stops the process on this line instead of waiting for the print timeout.
+ */
+export function isAgyResultLine(line: string): boolean {
+  const t = line.trim();
+  if (!t.startsWith('{') || !t.includes('"result"')) return false;
+  try {
+    const v: unknown = JSON.parse(t);
+    return isRecord(v) && v.event === 'result' && isRecord(v.result);
+  } catch {
+    return false;
+  }
+}
+
 /** Tool steps that ran (not denied, not the answer tool): any one is an isolation breach. */
 export function executedTools(stream: AgyStream): readonly string[] {
   return stream.tools.filter((t) => !AGY_ANSWER_TOOLS.has(t.tool) && t.state !== 'ERROR').map((t) => t.tool);
@@ -261,9 +277,11 @@ export function classifyAgyResult(
   if (matches(AGY_CLASSIFIER.MODEL, errorText)) return fail('LLM_NOT_CONFIGURED', `agy does not know the model ${requestedModel}`);
   const ran = executedTools(stream);
   if (ran.length > 0) return fail('LLM_CLI_TOOL_USE', `agy executed tool(s): ${[...new Set(ran)].sort().join(', ')}`);
-  if (stream.result?.status === 'ERROR' || run.exitCode !== 0) {
+  // A run we stopped on its result event ended by our signal: its exit code says nothing about the answer.
+  const exitCode = run.stoppedOnOutput === true && stream.result !== null ? 0 : run.exitCode;
+  if (stream.result?.status === 'ERROR' || exitCode !== 0) {
     if (matches(AGY_CLASSIFIER.USAGE_LIMIT, errorText)) return fail('LLM_USAGE_LIMIT', 'agy reported a quota or capacity limit');
-    return fail('LLM_CLI_EXIT', `agy failed (exit ${String(run.exitCode)}): ${(stream.result?.error ?? '').slice(0, EXCERPT)}`);
+    return fail('LLM_CLI_EXIT', `agy failed (exit ${String(exitCode)}): ${(stream.result?.error ?? '').slice(0, EXCERPT)}`);
   }
   if (stream.result === null) return fail('LLM_CLI_BAD_ENVELOPE', 'agy printed no result event');
   if (stream.init !== null && stream.init.model !== requestedModel) {
@@ -534,6 +552,7 @@ export class AgyCliProvider implements LLMProvider, ArgvFlagSource {
         cwd: cwd.data,
         env: buildAgyChildEnv(this.parentEnv, this.config.home),
         timeoutMs: (this.printTimeoutS + 30) * 1000,
+        stopOnLine: isAgyResultLine,
       });
       if (!run.success) {
         return DomainResult.fail([{ code: 'LLM_CLI_NOT_FOUND', message: scrubSecrets(run.errors[0]?.message ?? 'agy could not be started', this.secrets) }]);
