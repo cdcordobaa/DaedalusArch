@@ -1,0 +1,744 @@
+You are deriving the architecture spec of an existing TypeScript repository from its docs and its code.
+
+Repository: a clone pinned at commit 7fb1ba431f8dd3d9f581798c072019eceb72d73e (your working directory). Analysis root: the repository root itself. Every glob in the spec, and every pattern citation, is relative to the analysis root. Doc citation paths are relative to the repository root.
+Declared style: `clean-architecture` (the repository states this style). Keep it.
+
+The spec format is the preset at the end of this message. A spec copies the preset's fitness_functions and authors the `architecture:` block: the layers in the preset's order semantics, each layer's `directories` and `file_patterns` globs (relative to the analysis root), `roles`, `decorators` and optional `kind`. It may also change `default_exclude_paths` and make fitness-function changes (enable or disable a function, or change a parameter such as `forbidden_imports`) when the repository gives evidence for them.
+
+Your task: propose the norm set this repository's authors intend (the layers, which folders and files belong to each, the layer order, the enabled functions and their parameters, the excludes), as a careful architect writing this spec for the team would. The intended norm is not necessarily what most files do today.
+
+Tools: You have Read, Grep and Glob on the files of this repository (the working directory). You have no graph tools. Stay inside the working directory. Do not run anything. You cannot write files: your final message is the output.
+
+Reading procedure, in this order:
+1. Read the repository docs supplied below in full. They state the declared intent. Cite them (doc citations) for every unit they bear on.
+2. Inspect the structure: the tracked file list below, and representative files of each folder you assign (Read, Grep, Glob). Cite folder membership with pattern citations.
+3. (No graph step: you have no graph tools.)
+
+Evidence is required for every unit, and it is checked as soon as you answer: a session whose answer has no citation that passes its check, or no passing doc citation while docs are supplied, fails.
+
+Citation types, each checked mechanically at the pinned commit:
+- doc: {"type": "doc", "file": "<path relative to the repository root>", "line": <1-based line number, as numbered below>, "quote": "<verbatim text from that one line>"}
+- pattern: {"type": "pattern", "glob": "<glob relative to the analysis root>", "count": <number of tracked files under the analysis root it matches (picomatch, dot files included); the file list below is that set>}
+
+Units, one evidence entry each: "layer:<name>" for every layer; "order" for the layer order; "ff:<function id>" for every fitness-function change; "exclude:<glob>" for every path added to or removed from the preset's default_exclude_paths; "ddd" only if the style is ddd.
+
+Final answer: exactly two fenced code blocks and nothing after them.
+1. A ```yaml block: top-level keys `architecture` (the full block, style included), `default_exclude_paths` (the full list; leave it out to keep the preset's) and `fitness_overrides` (optional list of {id, enabled, reason, params}).
+2. A ```json block: {"units": [{"id": "layer:domain", "claim": "<one sentence>", "origin": "proposed", "citations": [ ... ]}, ...]}.
+
+Keep to at most 35 tool calls.
+
+=== Repository docs (line-numbered) ===
+--- README.md ---
+   1| **Disclaimer:** this API may change a lot since it is still under development. Feel free to help me to create the best boilerplate possible. My goal is to put at least an authentication system. CRUD operations for users, token and refresh tokens.
+   2| 
+   3| # Clean Architecture API with TypeScript
+   4| 
+   5| This is my attempt to create an API with [node.js](https://nodejs.org/en/) and [typescript](https://www.typescriptlang.org/) following the principles of [clean architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html). I'm using [express.js](https://expressjs.com/pt-br/), but the idea is that you can replace it with any framework you want.
+   6| 
+   7| For data storage, I'm using [knex query builder](http://knexjs.org/), so you can use Postgres, MSSQL, MySQL, MariaDB, SQLite3, Oracle, and Amazon Redshift. Again, you can change the data storage with anything you want. You can create new repositories in `src/infrastructure/repositories`. You can add NoSQL too if needed, but you'll have to create your own repository (I might create an example in the future).
+   8| 
+   9| There's also another layer called "common" that you can use as a [cross-cutting concern](https://en.wikipedia.org/wiki/Cross-cutting_concern) layer. In this layer, you may add things that can be used in all other layers, as validations and helpers.
+  10| 
+  11| Read more about clean architecture in [this article](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html).
+  12| 
+  13| ## Clean Architecture Layers
+  14| 
+  15| The folder structure may change in the future, but currently we have that:
+  16| 
+  17| ### domain layer
+  18| 
+  19| This is the "domain" or "entities" layer. Here's the description by Uncle Bob:
+  20| 
+  21| > Entities encapsulate Enterprise wide business rules. An entity can be an object with methods, or it can be a set of data structures and functions. It doesn’t matter so long as the entities could be used by many different applications in the enterprise.
+  22| >
+  23| > If you don’t have an enterprise, and are just writing a single application, then these entities are the business objects of the application. They encapsulate the most general and high-level rules. They are the least likely to change when something external changes. For example, you would not expect these objects to be affected by a change to page navigation, or security. No operational change to any particular application should affect the entity layer. ([Read the source](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html))
+  24| 
+  25| ### application layer
+  26| 
+  27| This is the **"Use Cases"** layer. Here you may add the application **Use cases**. Here's the description by Uncle Bob:
+  28| 
+  29| >The software in this layer contains application specific business rules. It encapsulates and implements all of the use cases of the system. These use cases orchestrate the flow of data to and from the entities, and direct those entities to use their enterprise wide business rules to achieve the goals of the use case.
+  30| >
+  31| >We do not expect changes in this layer to affect the entities. We also do not expect this layer to be affected by changes to externalities such as the database, the UI, or any of the common frameworks. This layer is isolated from such concerns.
+  32| >
+  33| >We do, however, expect that changes to the operation of the application will affect the use-cases and therefore the software in this layer. If the details of a use-case change, then some code in this layer will certainly be affected. ([Read the source](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html))
+  34| 
+  35| ### adapters (presentation) layer
+  36| 
+  37| This is the "Interface Adapters" layer. I don't really like that name, because I think it's confusing (it's now called presentation). The behavior of software in this layer is not the same as the "Adapter" design pattern by Gof, as it must not depend on external layers.
+  38| 
+  39| I'm using the name **"Presentation"** for this layer.
+  40| 
+  41| Here's the description by Uncle Bob:
+  42| 
+  43| > The software in this layer is a set of adapters that convert data from the format most convenient for the use cases and entities, to the format most convenient for some external agency such as the Database or the Web. It is this layer, for example, that will wholly contain the MVC architecture of a GUI. The Presenters, Views, and Controllers all belong in here. The models are likely just data structures that are passed from the controllers to the use cases, and then back from the use cases to the presenters and views.
+  44| >
+  45| > Similarly, data is converted, in this layer, from the form most convenient for entities and use cases, into the form most convenient for whatever persistence framework is being used. i.e. The Database. No code inward of this circle should know anything at all about the database. If the database is a SQL database, then all the SQL should be restricted to this layer, and in particular to the parts of this layer that have to do with the database.
+  46| >
+  47| > Also in this layer is any other adapter necessary to convert data from some external form, such as an external service, to the internal form used by the use cases and entities. ([Read the source](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html))
+  48| 
+  49| ### infrastructure layer
+  50| 
+  51| This folder (layer) is where we add everything related to external "**Frameworks and Drivers**". Here you can add the repositories, external frameworks, web and so on.
+  52| 
+  53| Here's the description by Uncle Bob:
+  54| 
+  55| >The outermost layer is generally composed of frameworks and tools such as the Database, the Web Framework, etc. Generally you don’t write much code in this layer other than glue code that communicates to the next circle inwards.
+  56| >
+  57| >This layer is where all the details go. The Web is a detail. The database is a detail. We keep these things on the outside where they can do little harm. ([Read the source](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html))
+  58| 
+  59| ### main layer
+  60| 
+  61| This layer is where we put everything together. It's the "dirty layer", because most factories will be here. It may depend on all other layers in the system.
+  62| 
+  63| ## Clean Architecture visual guide
+  64| 
+  65| Here is a visual guide that may help you:
+  66| 
+  67| [![Clean Architecture - By Uncle Bob](https://raw.githubusercontent.com/luizomf/clean-architecture-api-boilerplate/master/docs/clean-architecture.png)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+  68| 
+  69| Notice the "Dependency rule" (the arrows pointing inwards to the Entities). Here's the description of this rule:
+  70| 
+  71| > ## The Dependency Rule
+  72| >The concentric circles represent different areas of software. In general, the further in you go, the higher level the software becomes. The outer circles are mechanisms. The inner circles are policies.
+  73| >
+  74| >The overriding rule that makes this architecture work is The Dependency Rule. This rule says that source code dependencies can only point inwards. Nothing in an inner circle can know anything at all about something in an outer circle. In particular, the name of something declared in an outer circle must not be mentioned by the code in the an inner circle. That includes, functions, classes. variables, or any other named software entity.
+  75| >
+  76| >By the same token, data formats used in an outer circle should not be used by an inner circle, especially if those formats are generate by a framework in an outer circle. We don’t want anything in an outer circle to impact the inner circles. ([Read the source](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html))
+  77| 
+  78| In our case, data enter the system via "express routes" (infrastructure layer) to the "controllers" (adapters layer), to the "use cases" (application layer), to the "domain" (domain/entities layer). Then the system outputs via "domain" -> "use cases" -> "presentation" -> "infrastructure". I'm using the "main" layer to create factories for "middlewares", and "controllers" (and possibly other factories).
+  79| 
+  80| ## Folder Structure in detail
+  81| 
+  82| **Disclaimer** - I'm currently developing this software and I may not keep changing this README. But it's good for you to see how the application is evolving.
+  83| 
+  84| ```
+  85| src - ROOT
+  86| ├── application - Application or Use cases layer
+  87| │   ├── errors - Errors only
+  88| │   ├── ports - Interfaces for everything the use cases need
+  89| │   │   ├── controllers - Interfaces for controllers
+  90| │   │   ├── middlewares - Interfaces for middlewares
+  91| │   │   ├── repositories - Interfaces for repositories
+  92| │   │   │   ├── token - Interfaces for token repositories
+  93| │   │   │   └── user - Interfaces for user repositories
+  94| │   │   ├── requests - Interfaces for requests
+  95| │   │   ├── responses - Interfaces for responses
+  96| │   │   ├── sanitizers - Interfaces for sanitizers
+  97| │   │   ├── security - Interfaces for everything security
+  98| │   │   └── validation - Interfaces for validations
+  99| │   ├── use-cases - Concrete use cases
+ 100| │   │   ├── sign-in - Sign-in use cases
+ 101| │   │   ├── token - Token use cases
+ 102| │   │   └── user - User use cases
+ 103| │   └── validation - Concrete validations
+ 104| │       ├── common - Common validations
+ 105| │       │   └── leaf - Concrete Validations (single)
+ 106| │       ├── sign-in - Sign-in validations
+ 107| │       │   └── composite - Composite sign-in validations
+ 108| │       └── user - User validations
+ 109| │           ├── composite - Composite user validations
+ 110| │           └── leaf - Concrete user validations (single)
+ 111| ├── common - Cross cutting concerns layer
+ 112| │   ├── adapters - Adapters for external services and libs
+ 113| │   │   ├── sanitizers - Sanitizers adapters
+ 114| │   │   │   └── generic - Generic sanitizers
+ 115| │   │   ├── security - Security Adapters
+ 116| │   │   └── validators - Validators Adapters
+ 117| │   └── helpers - Helper functions
+ 118| │       ├── date - date related helper functions
+ 119| │       ├── numbers - number related helper functions
+ 120| │       ├── objects - objects related helper functions
+ 121| │       └── strings - strings related helper functions
+ 122| ├── domain - Domain Layer
+ 123| │   ├── models - All models
+ 124| │   │   ├── role - User role models
+ 125| │   │   ├── sign-in - Sign-in models
+ 126| │   │   ├── token - Token models
+ 127| │   │   └── user - User models
+ 128| │   └── use-cases - Interfaces for use cases
+ 129| │       ├── sign-in - Interfaces for sign-in use cases
+ 130| │       ├── token - Interfaces for token use cases
+ 131| │       └── user - Interfaces for user use cases
+ 132| ├── infrastructure - Infrastructure layer
+ 133| │   ├── express - Everything express related
+ 134| │   │   ├── adapters - Express adapters
+ 135| │   │   ├── middlewares - Express middlewares
+ 136| │   │   ├── routes - Express routes
+ 137| │   │   └── setup - Express setup functions
+ 138| │   ├── knex - Everything knex related
+ 139| │   │   ├── migrations - migrations
+ 140| │   │   └── seeds - seeds
+ 141| │   └── repositories - Repositories implementations
+ 142| │       ├── token - Token repositories
+ 143| │       │   └── sql - SQL Token repositories
+ 144| │       └── user - User repositories
+ 145| │           └── sql - SQL user repositories
+ 146| │               ├── helpers - helper functions
+ 147| │               ├── models - models
+ 148| │               └── repositories - repositories
+ 149| ├── main - Main layer
+ 150| │   └── factories - factories to put everything together
+ 151| │       ├── controllers - Controller factories
+ 152| │       │   ├── sign-in - Sign-in factories
+ 153| │       │   ├── token - Token factories
+ 154| │       │   └── user - user factories
+ 155| │       └── middlewares - application specific middlewares
+ 156| │           └── authentication - authentication middlewares
+ 157| └── presentation - Presentation layer
+ 158|     ├── controllers - Concrete controllers
+ 159|     │   ├── sign-in - Sign-in controller
+ 160|     │   ├── token - Token controller
+ 161|     │   └── user - User controller
+ 162|     ├── middlewares - Concrete application specific middlewares
+ 163|     │   └── authentication - Authentication middlewares
+ 164|     └── responses - Response classes
+ 165| ```
+ 166| ## The "User" model
+ 167| 
+ 168| You may notice I created crud operations for a user, added roles, token, refreshTokens and a way to sign-in. You can change it the way you want. I'm adding things on my free time.
+ 169| 
+ 170| ## Todo
+ 171| 
+ 172| - [x] Create CRUD operations for "user"
+ 173| - [x] Create sign-in system with token and refresh token
+ 174| - [x] Add authorization token to user routes (except "create")
+ 175| - [x] Create "roles" to allow or disallow access to any route
+ 176| - [x] Change user routes to allow "Admin" role and owner to access route
+ 177| - [x] Create a refresh token route to allow regenerate tokens via refresh token
+ 178| 
+ 179| # Routes
+ 180| 
+ 181| Here are routes I already created:
+ 182| 
+ 183| ### Users
+ 184| 
+ 185| |`/users`||||
+ 186| |-|-|-|-|
+ 187| |**Method**|**Route**|**Description**|
+ 188| |GET|`/users/:id`|get one user|
+ 189| |GET|`/users`|get all users|
+ 190| |DELETE|`/users/:id`|delete one user|
+ 191| |PUT|`/users/:id`|update one user|
+ 192| |POST|`/users`|create one user|
+ 193| 
+ 194| ### Sign-in
+ 195| 
+ 196| |`/sign-in`||||
+ 197| |-|-|-|-|
+ 198| |**Method**|**Route**|**Description**|
+ 199| |POST|`/sign-in`|return token and refresh token for a user|
+ 200| 
+ 201| 
+ 202| 
+
+=== Tracked files under the analysis root (197) ===
+.editorconfig
+.env-example
+.eslintignore
+.eslintrc.js
+.gitignore
+.huskyrc.js
+.lintstagedrc.js
+.prettierrc.js
+.vscode/settings.json
+LICENSE
+README.md
+babel.config.js
+docker-compose.yml
+docs/clean-architecture.png
+jest.config.js
+misc/Insomnia_2020-12-09
+package-lock.json
+package.json
+src/application/errors/bad-request-error.spec.ts
+src/application/errors/bad-request-error.ts
+src/application/errors/date-time-error.spec.ts
+src/application/errors/date-time-error.ts
+src/application/errors/default-application-error.ts
+src/application/errors/email-validation-error.spec.ts
+src/application/errors/email-validation-error.ts
+src/application/errors/internal-server-error.spec.ts
+src/application/errors/internal-server-error.ts
+src/application/errors/not-found-error.spec.ts
+src/application/errors/not-found-error.ts
+src/application/errors/repository-error.spec.ts
+src/application/errors/repository-error.ts
+src/application/errors/request-validation-error.spec.ts
+src/application/errors/request-validation-error.ts
+src/application/errors/sanitizer-error.spec.ts
+src/application/errors/sanitizer-error.ts
+src/application/errors/unauthorized-error.spec.ts
+src/application/errors/unauthorized-error.ts
+src/application/errors/user-exists-error.spec.ts
+src/application/errors/user-exists-error.ts
+src/application/ports/controllers/controller.ts
+src/application/ports/middlewares/middleware.ts
+src/application/ports/repositories/token/create-token-repository.ts
+src/application/ports/repositories/token/delete-token-by-user-id-repository.ts
+src/application/ports/repositories/token/find-token-by-id-repository.ts
+src/application/ports/repositories/token/find-token-by-token-repository.ts
+src/application/ports/repositories/token/find-token-by-user-id-repository.ts
+src/application/ports/repositories/user/create-user-repository.ts
+src/application/ports/repositories/user/delete-user-by-id-repository.ts
+src/application/ports/repositories/user/find-all-users-repository.ts
+src/application/ports/repositories/user/find-user-by-email-repository.ts
+src/application/ports/repositories/user/find-user-by-id-repository.ts
+src/application/ports/repositories/user/find-user-with-roles-repository.ts
+src/application/ports/repositories/user/update-user-repository.ts
+src/application/ports/requests/middleware-request-model.ts
+src/application/ports/requests/request-model.ts
+src/application/ports/responses/response-handler.ts
+src/application/ports/responses/response-model.ts
+src/application/ports/sanitizers/sanitizer.ts
+src/application/ports/security/jwt-token.ts
+src/application/ports/security/password-hashing.ts
+src/application/ports/validation/email-validator.ts
+src/application/ports/validation/validation-composite.ts
+src/application/use-cases/sign-in/sign-in.spec.ts
+src/application/use-cases/sign-in/sign-in.ts
+src/application/use-cases/token/refresh-token.spec.ts
+src/application/use-cases/token/refresh-token.ts
+src/application/use-cases/user/create-user.spec.ts
+src/application/use-cases/user/create-user.ts
+src/application/use-cases/user/delete-user-by-id.spec.ts
+src/application/use-cases/user/delete-user-by-id.ts
+src/application/use-cases/user/find-all-users.spec.ts
+src/application/use-cases/user/find-all-users.ts
+src/application/use-cases/user/find-user-by-id.spec.ts
+src/application/use-cases/user/find-user-by-id.ts
+src/application/use-cases/user/update-user.spec.ts
+src/application/use-cases/user/update-user.ts
+src/application/validation/common/leaf/validate-string-not-empty.spec.ts
+src/application/validation/common/leaf/validate-string-not-empty.ts
+src/application/validation/sign-in/composite/sign-in-validation.spec.ts
+src/application/validation/sign-in/composite/sign-in-validation.ts
+src/application/validation/user/composite/create-user-validation.ts
+src/application/validation/user/composite/update-user-validation.ts
+src/application/validation/user/composite/user-composite-validation.spec.ts
+src/application/validation/user/composite/user-composite-validation.ts
+src/application/validation/user/leaf/find-all-users-validation.spec.ts
+src/application/validation/user/leaf/find-all-users-validation.ts
+src/application/validation/user/leaf/user-email-validation.spec.ts
+src/application/validation/user/leaf/user-email-validation.ts
+src/application/validation/user/leaf/user-partial-required-fields-validation.spec.ts
+src/application/validation/user/leaf/user-partial-required-fields-validation.ts
+src/application/validation/user/leaf/user-passwords-must-match-validation.spec.ts
+src/application/validation/user/leaf/user-passwords-must-match-validation.ts
+src/application/validation/user/leaf/user-required-fields-validation.spec.ts
+src/application/validation/user/leaf/user-required-fields-validation.ts
+src/common/adapters/sanitizers/generic/generic-string-sanitizer-adapter.spec.ts
+src/common/adapters/sanitizers/generic/generic-string-sanitizer-adapter.ts
+src/common/adapters/security/bcrypt-adapter.spec.ts
+src/common/adapters/security/bcrypt-adapter.ts
+src/common/adapters/security/jwt-token-adapter.spec.ts
+src/common/adapters/security/jwt-token-adapter.ts
+src/common/adapters/validators/email-validator-adapter.spec.ts
+src/common/adapters/validators/email-validator-adapter.ts
+src/common/helpers/date/create-future-date.spec.ts
+src/common/helpers/date/create-future-date.ts
+src/common/helpers/date/format-date-time.spec.ts
+src/common/helpers/date/format-date-time.ts
+src/common/helpers/numbers/zero-pad-left.spec.ts
+src/common/helpers/numbers/zero-pad-left.ts
+src/common/helpers/objects/object-key-exists.ts
+src/common/helpers/objects/remove-object-empty-keys.ts
+src/common/helpers/strings/is_string.ts
+src/domain/models/role/role.ts
+src/domain/models/sign-in/sign-in-request-model.ts
+src/domain/models/sign-in/sign-in-response-model.ts
+src/domain/models/token/signed-token.ts
+src/domain/models/token/token-request-model.ts
+src/domain/models/token/token.ts
+src/domain/models/user/user-request-partial-fields.ts
+src/domain/models/user/user-request-required-fields.ts
+src/domain/models/user/user.ts
+src/domain/use-cases/sign-in/sign-in-use-case.ts
+src/domain/use-cases/token/refresh-token-use-case.ts
+src/domain/use-cases/user/create-user-use-case.ts
+src/domain/use-cases/user/delete-user-by-id-use-case.ts
+src/domain/use-cases/user/find-all-users-use-case.ts
+src/domain/use-cases/user/find-user-by-id-use-case.ts
+src/domain/use-cases/user/update-user-use-case.ts
+src/infrastructure/express/adapters/express-middleware-adapter.ts
+src/infrastructure/express/adapters/express-route-adapter.ts
+src/infrastructure/express/middlewares/rate-limit.ts
+src/infrastructure/express/routes/refresh-token.ts
+src/infrastructure/express/routes/sign-in.test.ts
+src/infrastructure/express/routes/sign-in.ts
+src/infrastructure/express/routes/user.test.ts
+src/infrastructure/express/routes/user.ts
+src/infrastructure/express/server.ts
+src/infrastructure/express/setup/setup-app.ts
+src/infrastructure/express/setup/setup-async-errors.test.ts
+src/infrastructure/express/setup/setup-async-errors.ts
+src/infrastructure/express/setup/setup-global-middlewares.test.ts
+src/infrastructure/express/setup/setup-global-middlewares.ts
+src/infrastructure/express/setup/setup-routes.ts
+src/infrastructure/knex/connection.ts
+src/infrastructure/knex/knexfile.ts
+src/infrastructure/knex/migrations/20201119051948_create_users.ts
+src/infrastructure/knex/migrations/20201202132246_create_token.ts
+src/infrastructure/knex/migrations/20201206220538_create_roles.ts
+src/infrastructure/knex/migrations/20201206220633_create_user_roles.ts
+src/infrastructure/knex/seeds/01_users.ts
+src/infrastructure/knex/seeds/02_roles.ts
+src/infrastructure/knex/seeds/03_user_roles.ts
+src/infrastructure/repositories/token/sql/token-sql-repository.test.ts
+src/infrastructure/repositories/token/sql/token-sql-repository.ts
+src/infrastructure/repositories/token/token-default-repository.ts
+src/infrastructure/repositories/user/sql/helpers/map-user-fields.spec.ts
+src/infrastructure/repositories/user/sql/helpers/map-user-fields.ts
+src/infrastructure/repositories/user/sql/models/user-with-roles.ts
+src/infrastructure/repositories/user/sql/repositories/user-sql-repository.test.ts
+src/infrastructure/repositories/user/sql/repositories/user-sql-repository.ts
+src/infrastructure/repositories/user/user-default-repository.ts
+src/main/factories/controllers/sign-in/sign-in-controller-factory.ts
+src/main/factories/controllers/token/refresh-token-controller-factory.ts
+src/main/factories/controllers/user/create-user-controller-factory.ts
+src/main/factories/controllers/user/delete-user-by-id-controller-factory.ts
+src/main/factories/controllers/user/find-all-users-controller-factory.ts
+src/main/factories/controllers/user/find-user-by-id-controller-factory.ts
+src/main/factories/controllers/user/update-user-controller-factory.ts
+src/main/factories/middlewares/authentication/is-authenticated-middleware-factory.ts
+src/main/factories/middlewares/authentication/logged-user-is-target-user-middleware-factory.ts
+src/presentation/controllers/sign-in/sign-in-controller.spec.ts
+src/presentation/controllers/sign-in/sign-in-controller.ts
+src/presentation/controllers/token/refresh-token-controller.spec.ts
+src/presentation/controllers/token/refresh-token-controller.ts
+src/presentation/controllers/user/create-user-controller.spec.ts
+src/presentation/controllers/user/create-user-controller.ts
+src/presentation/controllers/user/delete-user-by-id-controller.spec.ts
+src/presentation/controllers/user/delete-user-by-id-controller.ts
+src/presentation/controllers/user/find-all-users-controller.spec.ts
+src/presentation/controllers/user/find-all-users-controller.ts
+src/presentation/controllers/user/find-by-id-controller.spec.ts
+src/presentation/controllers/user/find-by-id-controller.ts
+src/presentation/controllers/user/update-user-controller.spec.ts
+src/presentation/controllers/user/update-user-controller.ts
+src/presentation/middlewares/authentication/is-authenticated.spec.ts
+src/presentation/middlewares/authentication/is-authenticated.ts
+src/presentation/middlewares/authentication/logged-user-is-target-user.spec.ts
+src/presentation/middlewares/authentication/logged-user-is-target-user.ts
+src/presentation/responses/generic-created-response.spec.ts
+src/presentation/responses/generic-created-response.ts
+src/presentation/responses/generic-deleted-response.spec.ts
+src/presentation/responses/generic-deleted-response.ts
+src/presentation/responses/generic-success-response.spec.ts
+src/presentation/responses/generic-success-response.ts
+src/presentation/responses/generic-updated-response.spec.ts
+src/presentation/responses/generic-updated-response.ts
+tsconfig-build.json
+tsconfig.json
+
+=== The preset (`presets/clean-architecture.yaml`) ===
+```yaml
+# Architectonic Firewall — Clean Architecture Preset
+# Canonical fitness functions with empirically calibrated thresholds.
+# Use as a starting point; override thresholds and exclude_paths per project.
+
+spec_version: "1.0.0"
+
+architecture:
+  style: clean-architecture
+
+  layers:
+    - name: domain
+      directories:
+        - src/domain/**
+      roles:
+        - entity
+        - value-object
+        - domain-service
+        - repository-interface
+
+    - name: application
+      directories:
+        - src/application/**
+      roles:
+        - use-case
+        - dto
+        - application-service
+
+    - name: infrastructure
+      directories:
+        - src/infrastructure/**
+      roles:
+        - repository-impl
+        - controller
+        - middleware
+        - orm-entity
+
+fitness_functions:
+
+  # ── STRUCTURAL ──
+
+  - id: FF-S01
+    name: dependency-direction
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: true
+
+  - id: FF-S02
+    name: no-cyclic-deps
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: true
+
+  - id: FF-S03
+    name: no-layer-skip
+    dimension: structural
+    severity: critical
+    route: symbolic
+    validated: false
+
+  - id: FF-S04
+    name: no-domain-outward-dep
+    dimension: structural
+    severity: major
+    route: symbolic
+    validated: false
+
+  # ── PATTERN ──
+
+  - id: FF-P01
+    name: domain-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+    forbidden_imports:
+      - "@nestjs/*"
+      - typeorm
+      - express
+      - prisma
+      - "@prisma/*"
+      - sequelize
+
+  - id: FF-P02
+    name: dependency-inversion
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+    threshold: 0.85
+
+  - id: FF-P03
+    name: repository-pattern
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: true
+
+  - id: FF-P04
+    name: use-case-isolation
+    dimension: pattern
+    severity: major
+    route: symbolic
+    validated: true
+
+  - id: FF-P05
+    name: controller-no-entity
+    dimension: pattern
+    severity: major
+    route: symbolic
+    validated: false
+
+  # FR-21 (U3-R6; BR-U3-22..24): domain class holding infrastructure state (FLOWS_TO | CONSTRUCTOR_INJECTS)
+  - id: FF-P06
+    name: domain-state-purity
+    dimension: pattern
+    severity: critical
+    route: symbolic
+    validated: false
+
+  # ── COUPLING ──
+
+  - id: FF-C01
+    name: domain-stability
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    threshold: 0.3
+
+  - id: FF-C02
+    name: module-fan-out
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+    threshold: 10
+
+  - id: FF-C03
+    name: component-instability
+    dimension: coupling
+    severity: major
+    route: symbolic
+    validated: true
+
+  - id: FF-C04
+    name: no-orphan-files
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    validated: false
+
+  - id: FF-C05
+    name: max-fan-in
+    dimension: coupling
+    severity: minor
+    route: symbolic
+    validated: false
+    threshold: 15
+
+  - id: FF-C06
+    name: abstraction-ratio
+    dimension: coupling
+    severity: advisory
+    route: symbolic
+    validated: false
+    threshold: 0.3
+
+  # ── SOLID ──
+
+  - id: FF-SO01
+    name: single-responsibility-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    validated: true
+    max_public_methods: 10
+    max_dependencies: 5
+
+  - id: FF-SO02
+    name: interface-segregation-proxy
+    dimension: solid
+    severity: major
+    route: symbolic
+    validated: true
+    max_interface_methods: 5
+
+  - id: FF-SO03
+    name: inheritance-depth
+    dimension: solid
+    severity: minor
+    route: symbolic
+    validated: false
+    max_depth: 3
+
+  # ── CONVENTION ──
+
+  - id: FF-CV01
+    name: naming-conventions
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "ADR-016 b (B&T Step 31): cannot fire; per-layer naming patterns compile to .* and no requirement supplies them (SP-FF-CV01 not fired)"
+    validated: true
+
+  - id: FF-CV02
+    name: naming-services
+    dimension: convention
+    severity: minor
+    route: symbolic
+    validated: false
+    pattern: "*Service|*UseCase"
+
+  - id: FF-CV03
+    name: naming-repos
+    dimension: convention
+    severity: minor
+    route: symbolic
+    validated: false
+    pattern: "*Repository|*Repo"
+
+  - id: FF-CV04
+    name: naming-controllers
+    dimension: convention
+    severity: minor
+    route: symbolic
+    enabled: false
+    reason: "ADR-016 b (B&T Step 31): cannot fire; class decorators are not ingested (BR-U2-31), so no controller is selected (SP-FF-CV04 not fired)"
+    validated: false
+    pattern: "*Controller"
+
+  - id: FF-CV05
+    name: test-file-pairing
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    validated: false
+
+  - id: FF-CV06
+    name: no-index-logic
+    dimension: convention
+    severity: advisory
+    route: symbolic
+    validated: false
+
+  # ── NEURONAL ──
+
+  - id: FF-N01
+    name: architectural-integrity
+    dimension: integrity
+    severity: major
+    route: neuronal
+    validated: false
+    semantic_criteria:
+      rule: "The module's files form one coherent unit with a consistent abstraction and boundary."
+      rubric:
+        pass: "The files serve one cohesive concern, use the module's abstractions consistently, and keep each rule or invariant in one place."
+        fail: "The files split into unrelated concerns, duplicate a rule or invariant that should live in one place, or bypass the module's own abstractions."
+        evidence_required: "Name each file involved and cite the declarations that show the split, the duplication or the bypass."
+
+  - id: FF-N02
+    name: intent-alignment
+    dimension: semantic
+    severity: major
+    route: neuronal
+    validated: false
+    semantic_criteria:
+      rule: "The unit's responsibilities match the role of its declared layer."
+      rubric:
+        pass: "Every responsibility in the file belongs to the role and kind of its declared layer, and agrees with any ADR prose given."
+        fail: "The file carries a responsibility that belongs to a different layer kind, for example persistence, transport or framework logic in a domain file, or business rules in an infrastructure or presentation file."
+        evidence_required: "Name the file and cite the function, method or statement that carries the misplaced responsibility, and the layer kind it belongs to."
+
+default_exclude_paths:
+  - "node_modules/**"
+  - "dist/**"
+  - "**/*.spec.ts"
+  - "**/*.test.ts"
+
+scoring:
+  weights:
+    structural: 0.35
+    coupling: 0.20
+    pattern: 0.30
+    solid: 0.10
+    convention: 0.05
+
+  full_mode_weights:
+    structural: 0.32
+    coupling: 0.18
+    pattern: 0.27
+    solid: 0.10
+    convention: 0.05
+    semantic: 0.04
+    integrity: 0.04
+
+  thresholds:
+    pass: 0.80
+    warning: 0.65
+    soft_block: 0.50
+
+confidence_thresholds:
+  high: 0.85
+  medium: 0.60
+  icc_minimum: 0.70
+```

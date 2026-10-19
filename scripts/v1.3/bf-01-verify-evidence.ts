@@ -113,7 +113,7 @@ export async function verifySession(dir: string): Promise<Record<string, unknown
 
   const checked: { id: string; required: boolean; origin: string | null; citations: { type: string; ok: boolean; why: string }[]; supported: boolean }[] = [];
   for (const u of units) {
-    const id = String(u.id ?? '');
+    const id = u.id ?? '';
     const cs: { type: string; ok: boolean; why: string }[] = [];
     for (const c of u.citations ?? []) cs.push({ type: String(c.type), ...(await checkCitation(c, e.id, e.root)) });
     checked.push({ id, required: required.includes(id), origin: typeof u.origin === 'string' ? u.origin : null, citations: cs, supported: cs.some((c) => c.ok) });
@@ -131,7 +131,7 @@ export async function verifySession(dir: string): Promise<Record<string, unknown
     const id = String(it.get('id'));
     if (!unsupported.has(`ff:${id}`)) return it;
     const p = preset.fitness_functions.find((x) => x.id === id);
-    return p === undefined ? it : (doc.createNode(p) as YAML.YAMLMap);
+    return p === undefined ? it : (doc.createNode(p));
   });
   const ex = new Set(derived.default_exclude_paths ?? preset.default_exclude_paths ?? []);
   for (const g of exChanges) if (unsupported.has(`exclude:${g}`)) { if (ex.has(g)) ex.delete(g); else ex.add(g); }

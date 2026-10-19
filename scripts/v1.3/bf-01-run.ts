@@ -37,6 +37,8 @@ import { parseEnvelope } from '../lib/generators/envelope.js';
 import { judgeModelUsage } from '../lib/generators/model-usage.js';
 import { turnStatus, turnUsage } from '../lib/loop/agents.js';
 import { checkIsolationBeforeSpawn, isolatedClaudeEnv, parseCliVersion } from '../lib/loop/isolation.js';
+import type { ClaudeIsolation } from '../lib/loop/isolation.js';
+import { checkConfigListing } from '../../src/llm-critic/claude-cli-provider.js';
 import { analyseTranscript } from './lib/mcp-smoke.js';
 import { FACTS_SERVER, FACT_TOOLS, buildFactsGraph, readOnlyQuery } from './lib/bf-01-facts.js';
 import { checkCitation } from './bf-01-verify-evidence.js';
@@ -49,6 +51,10 @@ export const DESIGN: 'v1' | 'v2' = process.argv.includes('--design') && process.
 export const MODEL = 'claude-sonnet-5-5';
 /** The cross-vendor arm X (v2): Gemini 4 Argon (High) through the repo's agy labeller route, one shot, no tools. */
 export const GEMINI_MODEL = 'gemini-4-argon-high';
+/** Author decision 2026-10-19: agy 1.3.6 is accepted for exploratory runs; the frozen labeller pin (1.3.2) is unchanged. */
+export const AGY_EXPLORATORY_VERSIONS: readonly string[] = ['1.3.6'];
+/** The labeller's 240 s print timeout is too short for the one-shot derivation (X probe 2026-10-19 timed out at 272 s); inside TIMEOUT_MS. */
+export const X_PRINT_TIMEOUT_S = 840;
 export const modelFor = (arm: Arm): string => (arm === 'X' ? GEMINI_MODEL : MODEL);
 /** Hard caps on spawns, counted in the ledger before each start. v2: 18 sessions + 1 retry per arm. */
 export const HARD_CAP = DESIGN === 'v1' ? 14 : 20; // v2: N = 18 planned + 2 (author's rule: N + 2, probes and retries included)
@@ -93,6 +99,59 @@ export function plan(): PlannedSession[] {
   const out: PlannedSession[] = [];
   for (let run = 1; run <= RUNS; run++) for (const repo of REPOS) for (const arm of ALL_ARMS) out.push({ sid: `bf01-${repo}-${arm}-r${String(run)}`, repo, arm, run, order: out.length + 1 });
   return out;
+}
+
+// ── Claude config dir (author decision 2026-10-19) ─────────────────────────────────────────────────────────────
+
+/**
+ * `judge`: the frozen judge dir, ADR-018 listing check unchanged. Never used for MCP runs again (author, 2026-10-19).
+ * `research`: `~/.firewall/research-claude-config`, signed in by the author for research sessions. Its listing check is
+ * the ADR-018 check (names only, plus the settings.json key rule) with exactly these failures allowed:
+ * - `plugins/` and `skills/` when EMPTY (the CLI recreates them at start); any entry inside them still fails;
+ * - `state/**` (the CLI's MCP discovery state, `state/mcp-discover-verdicts.json`);
+ * - `settings.json` whose only problem is keys the CLI itself writes (`RESEARCH_CLI_SETTINGS_KEYS`).
+ * Everything else still fails: history, `projects/*.jsonl`, any CLAUDE.md, any MCP config file (the only MCP server a
+ * session sees is the per-session facts server passed with --mcp-config), and every unlisted entry.
+ */
+export const CONFIG_DIRS = { judge: JUDGE_CONFIG_DIR_DEFAULT, research: '~/.firewall/research-claude-config' } as const;
+export type ConfigKind = keyof typeof CONFIG_DIRS;
+const CONFIG_ARG = process.argv.includes('--config') ? process.argv[process.argv.indexOf('--config') + 1] : undefined;
+export const CONFIG_KIND: ConfigKind = CONFIG_ARG === 'judge' || CONFIG_ARG === 'research' ? CONFIG_ARG : DESIGN === 'v1' ? 'judge' : 'research';
+export const RESEARCH_CLI_SETTINGS_KEYS: readonly string[] = ['tui'];
+export function claudeIso(kind: ConfigKind = CONFIG_KIND): ClaudeIsolation {
+  return { configDir: CONFIG_DIRS[kind].replace(/^~/, os.homedir()) };
+}
+
+/** Which listing failures the research dir tolerates (pure; the failures carry entry names and reasons only). */
+export function researchListingFailures(failures: readonly { readonly entry: string; readonly reason: string }[]): { entry: string; reason: string }[] {
+  const under = (dir: string): boolean => failures.some((f) => f.entry.startsWith(`${dir}/`));
+  const allowed = (f: { entry: string; reason: string }): boolean => {
+    if ((f.entry === 'plugins' || f.entry === 'skills') && !under(f.entry)) return true;
+    if (f.entry === 'state' || f.entry.startsWith('state/')) return !/(^|\/)CLAUDE\.md$|(^|\/)\.?mcp(_config|-config)?\.json$/i.test(f.entry);
+    const keys = /^settings\.json has disallowed keys: (.+)$/.exec(f.reason);
+    if (f.entry === 'settings.json' && keys !== null) return (keys[1] ?? '').split(/,\s*/).every((k) => RESEARCH_CLI_SETTINGS_KEYS.includes(k.trim()));
+    return false;
+  };
+  return failures.filter((f) => !allowed(f)).map((f) => ({ entry: f.entry, reason: f.reason }));
+}
+
+/** The listing check of the selected dir; the per-run HOME is created as before. */
+export function checkClaudeConfig(home: string, kind: ConfigKind = CONFIG_KIND): DomainResult<{ readonly configListingSha256: string }> {
+  const iso = claudeIso(kind);
+  if (kind === 'judge') return checkIsolationBeforeSpawn(home, iso);
+  if (!fs.existsSync(iso.configDir)) return DomainResult.fail([{ code: 'RESEARCH_CONFIG_MISSING', message: 'the research config dir does not exist (not signed in yet)' }]);
+  fs.mkdirSync(home, { recursive: true, mode: 0o700 });
+  const listing = checkConfigListing(iso.configDir);
+  const left = researchListingFailures(listing.failures);
+  if (left.length > 0) return DomainResult.fail([{ code: 'RESEARCH_CONFIG_ISOLATION', message: 'the research config dir fails its listing check', context: { failures: left } }]);
+  return DomainResult.ok({ configListingSha256: listing.configListingSha256 });
+}
+
+/** The first planned session of an arm (every arm has sessions in every plan). */
+export function firstOfArm(sessions: readonly PlannedSession[], arm: Arm): PlannedSession {
+  const s = sessions.find((x) => x.arm === arm);
+  if (s === undefined) throw new Error(`no planned session for arm ${arm}`);
+  return s;
 }
 
 // ── Scrubbing ────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -356,8 +415,8 @@ export async function runSession(s: PlannedSession, runner: ProcessRunner, outRo
   fs.mkdirSync(p.dir, { recursive: true });
   const { args, mcpConfig } = argvFor(s, prompt);
   if (mcpConfig !== null) fs.writeFileSync(p.mcp, `${JSON.stringify(mcpConfig, null, 2)}\n`, { mode: 0o600 });
-  const iso = { configDir: JUDGE_CONFIG_DIR_DEFAULT.replace(/^~/, os.homedir()) };
-  const okIso = checkIsolationBeforeSpawn(p.home, iso);
+  const iso = claudeIso();
+  const okIso: DomainResult<{ readonly configListingSha256: string }> = s.arm === 'X' ? DomainResult.ok({ configListingSha256: '' }) : checkClaudeConfig(p.home);
   if (!okIso.success) throw new Error(`isolation: ${JSON.stringify(okIso.errors.map((x) => x.code))}`);
   // Judge route, not the loop's empty HOME: the CLI keeps the login in the macOS Keychain, which an empty HOME hides
   // ("Not logged in", 2026-10-19). Allow-listed env + CLAUDE_CONFIG_DIR + auto-update off, real HOME (as the judge).
@@ -382,7 +441,7 @@ export async function runSession(s: PlannedSession, runner: ProcessRunner, outRo
   const envelope = cli === null ? null : (() => { const x = parseEnvelope(stdout, []); return x.success ? x.data : null; })();
   const status = turnStatus(cli, false, envelope, modelFor(s.arm));
   const usage = turnUsage(envelope);
-  const processed = usage.inputTokens === null ? null : (usage.inputTokens ?? 0) + (usage.cacheReadTokens ?? 0) + (usage.cacheCreationTokens ?? 0) + (usage.outputTokens ?? 0);
+  const processed = usage.inputTokens === null ? null : usage.inputTokens + (usage.cacheReadTokens ?? 0) + (usage.cacheCreationTokens ?? 0) + (usage.outputTokens ?? 0);
   const t = analyseTranscript(stdout, cwd);
   const toolCalls: Record<string, number> = {};
   for (const c of t.calls) toolCalls[c.name] = (toolCalls[c.name] ?? 0) + 1;
@@ -408,7 +467,7 @@ export async function runSession(s: PlannedSession, runner: ProcessRunner, outRo
       const derived = YAML.parse(yamlText) as { architecture?: { style?: string } };
       output.styleKept = derived.architecture?.style === e.style;
       const header = ` BF-01 derived spec: ${s.sid} (arm ${s.arm}, ${modelFor(s.arm)}). Composed by scripts/v1.3/bf-01-run.ts from ${PRESET_FILE[e.style] ?? ''}\n with the model's architecture block, default_exclude_paths and fitness_overrides. Not a declared spec.`;
-      fs.writeFileSync(path.join(dir, 'derived.yaml'), compose(e.style, derived as never, header));
+      fs.writeFileSync(path.join(dir, 'derived.yaml'), compose(e.style, derived, header));
       output.composed = true;
       const parsed = await parseSpec({ specFilePath: path.join(dir, 'derived.yaml') });
       output.specValid = parsed.success;
@@ -469,7 +528,7 @@ class StubXProvider implements LLMProvider {
  */
 export function xRunner(outer: ProcessRunner): ProcessRunner {
   const provider: LLMProvider = outer instanceof StubRunner ? new StubXProvider()
-    : new AgyCliProvider({ model: GEMINI_MODEL, home: expandHome(AGY_HOME_DEFAULT), mode: 'record' }, { runner: new NodeProcessRunner() });
+    : new AgyCliProvider({ model: GEMINI_MODEL, home: expandHome(AGY_HOME_DEFAULT), mode: 'record', exploratoryVersions: AGY_EXPLORATORY_VERSIONS, printTimeoutS: X_PRINT_TIMEOUT_S }, { runner: new NodeProcessRunner() });
   return {
     async run(_c: string, args: readonly string[]): Promise<DomainResult<ProcessResult>> {
       const t0 = Date.now();
@@ -488,7 +547,8 @@ export function xRunner(outer: ProcessRunner): ProcessRunner {
       } else {
         result = { type: 'result', subtype: 'error', is_error: true, num_turns: 0, duration_ms: Date.now() - t0, result: r.errors.map((e) => `${e.code}: ${e.message}`).join('; '), modelUsage: {} };
       }
-      return DomainResult.ok({ exitCode: r.success ? 0 : 1, stdout: `${init}\n${JSON.stringify(result)}\n`, stderr: '', timedOut: false, durationMs: Date.now() - t0 });
+      const timedOut = !r.success && r.errors.some((e) => e.code === 'LLM_CLI_TIMEOUT');
+      return DomainResult.ok({ exitCode: r.success ? 0 : 1, stdout: `${init}\n${JSON.stringify(result)}\n`, stderr: '', timedOut, durationMs: Date.now() - t0 });
     },
   };
 }
@@ -510,7 +570,7 @@ export async function evidenceGate(s: PlannedSession, dir: string): Promise<{ pa
   const e = entry(s.repo);
   for (const u of units) for (const c of u.citations ?? []) {
     verified.cited = (verified.cited ?? 0) + 1;
-    const r = await checkCitation(c as never, s.repo, e.root);
+    const r = await checkCitation(c, s.repo, e.root);
     if (r.ok) { verified.total = (verified.total ?? 0) + 1; const t = String(c.type); verified[t] = (verified[t] ?? 0) + 1; }
   }
   if ((verified.total ?? 0) === 0) reasons.push('no citation verifies');
@@ -524,7 +584,7 @@ export async function evidenceGate(s: PlannedSession, dir: string): Promise<{ pa
 /** Emits the stream-json a real session would, with a canned final message whose citations are computed truthfully. */
 export class StubRunner implements ProcessRunner {
   readonly calls: { args: readonly string[]; cwd?: string }[] = [];
-  async run(command: string, args: readonly string[], options: ProcessRunOptions): Promise<DomainResult<ProcessResult>> {
+  async run(_command: string, args: readonly string[], options: ProcessRunOptions): Promise<DomainResult<ProcessResult>> {
     this.calls.push({ args, ...(options.cwd !== undefined ? { cwd: options.cwd } : {}) });
     if (args[0] === '--version') return DomainResult.ok({ exitCode: 0, stdout: '0.0.0-stub (Claude Code)\n', stderr: '', timedOut: false, durationMs: 1 });
     const cwd = options.cwd ?? '.';
@@ -560,9 +620,9 @@ export class StubRunner implements ProcessRunner {
 // ── Main ─────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 async function cliVersionOf(runner: ProcessRunner): Promise<string | null> {
-  const iso = { configDir: JUDGE_CONFIG_DIR_DEFAULT.replace(/^~/, os.homedir()) };
+  const iso = claudeIso();
   const home = path.join(HARNESS, 'probe-home');
-  const ok = checkIsolationBeforeSpawn(home, iso);
+  const ok = checkClaudeConfig(home);
   if (!ok.success) throw new Error(`isolation: ${JSON.stringify(ok.errors.map((x) => x.code))}`);
   const r = await runner.run('claude', ['--version'], { env: isolatedClaudeEnv(process.env, home, iso), timeoutMs: 30_000 });
   return r.success ? parseCliVersion(r.data.stdout) : null;
@@ -598,14 +658,14 @@ async function main(): Promise<void> {
     sessions: sessions.length, sessionsByEngine: { claude: sessions.filter((x) => x.arm !== 'X').length, agy: sessions.filter((x) => x.arm === 'X').length }, engineCaps: ENGINE_CAP, retryCeiling: `${String(RETRY_PER_ARM)} per arm (infrastructure, timeout, unreadable envelope only)`, hardCap: HARD_CAP,
     caps: { timeoutMs: TIMEOUT_MS, turns: `${String(TURN_CAP)} (after the fact)`, processedTokens: `${String(TOKEN_CAP)} (after the fact)` },
     order: sessions.map((s) => s.sid),
-    argv: Object.fromEntries(ALL_ARMS.map((a) => [a, argvFor(sessions.find((s) => s.arm === a)!, '<prompt>').args.map(scrub)])),
+    argv: Object.fromEntries(ALL_ARMS.map((a) => [a, argvFor(firstOfArm(sessions, a), '<prompt>').args.map(scrub)])),
     promptChars: Object.fromEntries(sessions.filter((x) => x.run === 1).map((x) => [x.sid, frame(x.repo, x.arm).length])),
     docsSupplied: Object.fromEntries(REPOS.map((r) => [r, DESIGN === 'v2' ? docsFor(r).map((d) => `${d.file}${d.truncated ? ' (truncated)' : ''}`) : []])),
   };
   fs.writeFileSync(path.join(OUT, 'plan.json'), `${JSON.stringify(planDoc, null, 1)}\n`);
   process.stdout.write(`BF-01 pilot plan (${DESIGN}): ${String(sessions.length)} sessions = ${String(REPOS.length)} repos x ${String(ALL_ARMS.length)} arms (${ALL_ARMS.join(', ')}) x ${String(RUNS)} runs; Claude ${String(planDoc.sessionsByEngine.claude)}, Gemini ${String(planDoc.sessionsByEngine.agy)}; hard cap ${String(HARD_CAP)} spawns (Claude ${String(ENGINE_CAP.claude)}, Gemini ${String(ENGINE_CAP.agy)})\n`);
   for (const s of sessions) process.stdout.write(`  ${String(s.order).padStart(2)}. ${s.sid}\n`);
-  for (const [a, v] of Object.entries(planDoc.argv)) process.stdout.write(`argv ${a}: ${a === 'X' ? '' : 'claude '}${(v as string[]).join(' ')}\n`);
+  for (const [a, v] of Object.entries(planDoc.argv)) process.stdout.write(`argv ${a}: ${a === 'X' ? '' : 'claude '}${(v).join(' ')}\n`);
   process.stdout.write(`docs supplied: ${JSON.stringify(planDoc.docsSupplied)}; prompt chars (run 1): ${JSON.stringify(planDoc.promptChars)}\n`);
 
   if (dry) {
@@ -625,11 +685,11 @@ async function main(): Promise<void> {
       const neg = path.join(dryOut, 'gate-negative');
       fs.mkdirSync(neg, { recursive: true });
       fs.writeFileSync(path.join(neg, 'evidence.json'), JSON.stringify({ units: [{ id: 'layer:domain', citations: [] }] }));
-      const g0 = await evidenceGate(sessions.find((x) => x.arm === 'G')!, neg);
+      const g0 = await evidenceGate(firstOfArm(sessions, 'G'), neg);
       fs.writeFileSync(path.join(neg, 'evidence.json'), JSON.stringify({ units: [{ id: 'layer:domain', citations: [{ type: 'pattern', glob: 'src/**', count: trackedUnderRoot(REPOS[0]).filter((f) => f.startsWith('src/')).length }] }] }));
-      const g1 = await evidenceGate(sessions.find((x) => x.arm === 'R')!, neg);
+      const g1 = await evidenceGate(firstOfArm(sessions, 'R'), neg);
       process.stdout.write(`gate negative controls: zero citations -> pass ${String(g0.pass)} (${g0.reasons.join('; ')}); pattern only, docs supplied -> pass ${String(g1.pass)} (${g1.reasons.join('; ')})\n`);
-      const agy = await checkAgyIsolation({ runner: new NodeProcessRunner(), home: expandHome(AGY_HOME_DEFAULT) });
+      const agy = await checkAgyIsolation({ runner: new NodeProcessRunner(), home: expandHome(AGY_HOME_DEFAULT), exploratoryVersions: AGY_EXPLORATORY_VERSIONS });
       process.stdout.write(`agy pre-flight (repo route, zero model calls): ${agy.success ? 'pass' : agy.errors.map((x) => `${x.code}: ${x.message}`).join('; ')}\n`);
     }
     process.stdout.write(`dry run: 0 model calls; stub spawns ${String(stub.calls.length)}; live ledger spawns ${String(readLedger().spawns.length)}\n`);
@@ -638,19 +698,21 @@ async function main(): Promise<void> {
   if (!live) return;
 
   const runner = new NodeProcessRunner();
-  const version = await cliVersionOf(runner);
+  const claudeArms = ARMS.some((a) => a !== 'X');
+  const version = claudeArms ? await cliVersionOf(runner) : null;
   if (ARMS.includes('X')) {
-    const agy = await checkAgyIsolation({ runner, home: expandHome(AGY_HOME_DEFAULT) });
+    const agy = await checkAgyIsolation({ runner, home: expandHome(AGY_HOME_DEFAULT), exploratoryVersions: AGY_EXPLORATORY_VERSIONS });
     process.stdout.write(`agy pre-flight (zero model calls): ${agy.success ? 'pass' : agy.errors.map((x) => x.code).join(', ')}\n`);
     if (!agy.success) { process.stdout.write('arm X cannot run through the labeller route; no session started (pass --arms G,R to run the Claude arms only)\n'); return; }
   }
-  {
-    const iso = { configDir: JUDGE_CONFIG_DIR_DEFAULT.replace(/^~/, os.homedir()) };
+  if (claudeArms) {
+    const iso = claudeIso();
     const env = { ...isolatedClaudeEnv(process.env, path.join(HARNESS, 'probe-home'), iso), HOME: os.homedir() };
     const a = await runner.run('claude', ['auth', 'status'], { env, timeoutMs: 30_000 });
     const logged = a.success && /"loggedIn":\s*true/.test(a.data.stdout);
     process.stdout.write(`auth preflight (zero calls): loggedIn ${String(logged)}\n`);
-    if (!logged) { process.stdout.write('not logged in under the judge config dir: no session started\n'); return; }
+    if (!logged) { process.stdout.write('not logged in under the selected Claude config dir: no session started\n'); return; }
+    process.stdout.write(`claude config dir: ${CONFIG_KIND}\n`);
   }
   const retries: Record<Arm, number> = { G: 0, R: 0, X: 0 };
   const only = argv.includes('--only') ? argv[argv.indexOf('--only') + 1] : undefined;

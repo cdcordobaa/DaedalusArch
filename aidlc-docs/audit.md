@@ -2364,3 +2364,19 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: AI-DLC v1.4 construction; change request from a research finding.
 
 ---
+
+## BF-01 v2 redesign and re-pilot (partial)
+**Timestamp**: 2026-10-19T01:55:00Z
+**User Input**: "Confirm the mechanism (zero calls), redesign v2 (same reading in both arms, graph checks in G, run-time citation gate, dual references, Gemini arm via agy), dry run; then the re-pilot under the author's OK if N <= 24, cap N+2."
+**AI Response**: "Mechanism: 0 code-consistent departures and 0 plain errors; G's v1 difference was omission (G never read files). v2 built and dry-run: N = 18 (G, R, X x 2 repos x 3 runs), cap 20. Gemini blocked by the agy version pin (1.3.6 vs 1.3.2). Re-pilot: 11 spawns, 9 valid sessions (2 probes discarded after a frame fix stating allowed layer kinds). Stopped before spawn 12: the CLI wrote state/mcp-discover-verdicts.json into the judge config dir, which fails ADR-018; not touched. G-v2 at parity with R-v2 on luizomf and closer to A on zeldaplay; NS-03 design rule supported provisionally. Report: Docs/DiagnosticRuns/v1.3-brownfield-llm-repilot-2026-10-19.md."
+**Context**: research track C2; author decisions pending: the config-dir allow-list for state/, the agy re-pin.
+
+---
+
+## BF-01 night run: Gemini arm and research config dir
+**Timestamp**: 2026-10-19T02:40:00Z
+**User Input**: "Allow agy 1.3.6 for exploratory runs (pin stays strict for frozen runs); use a separate research Claude config dir with its own listing check; run the Gemini arm tonight (probe first, stop on first failure), then the 3 Claude sessions; fix tsc and eslint on the bf-01 scripts."
+**AI Response**: "Added an optional exploratoryVersions to the agy route (frozen path unchanged; 20/20 unit tests) and accepted 1.3.6's empty-plugins wording on that path. Gemini: 3 spawns (12-14), all timeouts (272 s, then 873 s twice) with correct configuration; stopped. Research dir check implemented (empty plugins/skills, state/**, CLI settings keys allowed); the dir fails it (synced skills and plugins, a projects transcript), so the 3 Claude sessions did not run; dir untouched. 14/20 spawns. tsc scripts and src pass; eslint 0 errors on the new files. Report updated (§8)."
+**Context**: research track C2; author decisions pending: the research dir's synced skills, the agy 1.3.6 call path.
+
+---

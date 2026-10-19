@@ -102,6 +102,8 @@ export interface AgyCliProviderConfig {
   readonly home: string;
   readonly mode?: VCRMode;
   readonly printTimeoutS?: number;
+  /** Exploratory runs only: passed to `checkAgyIsolation` (absent = the strict pin). */
+  readonly exploratoryVersions?: readonly string[];
 }
 
 export interface AgyCliProviderDeps {
@@ -409,6 +411,8 @@ export interface AgyIsolation {
 
 const MCP_EMPTY = 'No MCP servers configured.';
 const PLUGINS_EMPTY = 'No imported plugins.';
+/** The same empty answer as printed by agy 1.3.6; accepted only on the exploratory-version path. */
+const PLUGINS_EMPTY_EXPLORATORY: readonly string[] = ['No plugins installed.'];
 
 /**
  * Record-mode pre-flight, in order: `agy --version` against the pin (VERSION_DRIFT), the home check,
@@ -420,6 +424,11 @@ export async function checkAgyIsolation(input: {
   readonly binary?: string;
   readonly parentEnv?: NodeJS.ProcessEnv;
   readonly tmpRoot?: string;
+  /**
+   * Exploratory runs only (author decision 2026-10-19, BF-01 re-pilot): further `agy --version` values accepted besides
+   * the pin. Absent (every frozen labeller run) = the pin alone, unchanged. The accepted version is in the result.
+   */
+  readonly exploratoryVersions?: readonly string[];
 }): Promise<DomainResult<AgyIsolation>> {
   const parentEnv = input.parentEnv ?? process.env;
   const secrets = knownSecretsFrom(parentEnv);
@@ -436,7 +445,7 @@ export async function checkAgyIsolation(input: {
     }
     const found = version.data.exitCode === 0 ? parseAgyVersion(version.data.stdout) : null;
     if (found === null) return DomainResult.fail([{ code: 'LLM_CLI_NOT_FOUND', message: 'agy --version printed no version' }]);
-    if (found !== AGY_PINNED_VERSION) {
+    if (found !== AGY_PINNED_VERSION && !(input.exploratoryVersions ?? []).includes(found)) {
       return DomainResult.fail([{ code: 'LLM_CLI_VERSION_DRIFT', message: `agy ${found} differs from the pinned ${AGY_PINNED_VERSION}`, context: { found, pinned: AGY_PINNED_VERSION } }]);
     }
     const home = checkAgyHome(input.home);
@@ -448,7 +457,8 @@ export async function checkAgyIsolation(input: {
     const mcpOut = mcp.success ? mcp.data.stdout.trim() : '';
     const pluginOut = plugins.success ? plugins.data.stdout.trim() : '';
     if (mcpOut !== MCP_EMPTY) return DomainResult.fail([{ code: 'LLM_CLI_ISOLATION', message: 'agy mcp list reports configured servers' }]);
-    if (pluginOut !== PLUGINS_EMPTY) return DomainResult.fail([{ code: 'LLM_CLI_ISOLATION', message: 'agy plugin list reports plugins' }]);
+    const exploratory = found !== AGY_PINNED_VERSION;
+    if (pluginOut !== PLUGINS_EMPTY && !(exploratory && PLUGINS_EMPTY_EXPLORATORY.includes(pluginOut))) return DomainResult.fail([{ code: 'LLM_CLI_ISOLATION', message: 'agy plugin list reports plugins' }]);
     const facts = { cliVersion: found, mcp: mcpOut, plugins: pluginOut, configListingSha256: home.configListingSha256 };
     return DomainResult.ok({ cliVersion: found, configListingSha256: home.configListingSha256, isolationProbeSha256: sha256Hex(canonicalJSON(facts)) });
   } finally {
@@ -497,6 +507,7 @@ export class AgyCliProvider implements LLMProvider, ArgvFlagSource {
     this.preparing ??= checkAgyIsolation({
       runner: this.deps.runner, home: this.config.home, binary: this.binary, parentEnv: this.parentEnv,
       ...(this.deps.tmpRoot !== undefined ? { tmpRoot: this.deps.tmpRoot } : {}),
+      ...(this.config.exploratoryVersions !== undefined ? { exploratoryVersions: this.config.exploratoryVersions } : {}),
     }).then((r) => {
       if (r.success) this.isolation = r.data;
       return r;

@@ -18,7 +18,6 @@
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import YAML from 'yaml';
 import { buildFactsGraph, readOnlyQuery } from './lib/bf-01-facts.js';
 
 const PILOT = 'results/v1.3-brownfield/llm-pilot';
@@ -93,13 +92,14 @@ async function main(): Promise<void> {
     const orderSame = JSON.stringify(S.layerNames.map((l) => S.kinds[l])) === JSON.stringify(a.layerNames.map((l) => a.kinds[l]));
     rows.push({ sid, repo: meta.repo, arm: meta.arm, run: meta.run, layers: S.layerNames, kinds: S.layerNames.map((l) => S.kinds[l]), orderSameKindsAsA: orderSame, filesCompared: files.length, filesDiffering: diff.length, files: cls, units: uc });
   }
-  const agg: Record<string, Record<string, number>> = {};
+  interface Agg { sessions: number; filesCompared: number; filesDiffering: number; kindLabelOnly: number; omission: number; addition: number; bothConsistent: number; fCC: number; fPE: number; fUN: number; fNE: number; uCC: number; uPE: number; uUN: number }
+  const agg: Record<string, Agg> = {};
   for (const r of rows) {
     const k = `${String(r.repo)} ${String(r.arm)}`;
     const t = agg[k] ?? (agg[k] = { sessions: 0, filesCompared: 0, filesDiffering: 0, kindLabelOnly: 0, omission: 0, addition: 0, bothConsistent: 0, fCC: 0, fPE: 0, fUN: 0, fNE: 0, uCC: 0, uPE: 0, uUN: 0 });
     const f = r.files as Record<string, number>; const u = r.units as Record<string, number>;
     t.sessions++; t.filesCompared += Number(r.filesCompared); t.filesDiffering += Number(r.filesDiffering);
-    for (const k2 of ['kindLabelOnly', 'omission', 'addition', 'bothConsistent'] as const) t[k2] = (t[k2] ?? 0) + (f[k2] ?? 0);
+    for (const k2 of ['kindLabelOnly', 'omission', 'addition', 'bothConsistent'] as const) t[k2] += f[k2] ?? 0;
     t.fCC += f.codeConsistent ?? 0; t.fPE += f.plainError ?? 0; t.fUN += f.undecided ?? 0; t.fNE += f.noEdges ?? 0;
     t.uCC += u.codeConsistent ?? 0; t.uPE += u.plainError ?? 0; t.uUN += u.undecided ?? 0;
   }
@@ -108,7 +108,7 @@ async function main(): Promise<void> {
     '| repo arm | sessions | files differing / compared | kind label only | omission (A maps, session does not) | addition | re-placed, 0 violations under both | code-consistent (right about code, not intent) | plain error | undecided / no edges |', '|---|---|---|---|---|---|---|---|---|---|',
     ...Object.entries(agg).map(([k, t]) => `| ${k} | ${String(t.sessions)} | ${String(t.filesDiffering)}/${String(t.filesCompared)} | ${String(t.kindLabelOnly)} | ${String(t.omission)} | ${String(t.addition)} | ${String(t.bothConsistent)} | ${String(t.fCC)} | ${String(t.fPE)} | ${String(t.fUN)} / ${String(t.fNE)} |`),
     '', '| session | unit (folder, A kind -> session kind) | files | verdict | example |', '|---|---|---|---|---|',
-    ...unitsAll.map((u) => `| ${String(u.sid)} | ${String(u.unit)} | ${String(u.files)} | ${String(u.verdict)} | ${String((u.examples as string[])[0] ?? '')} |`)];
+    ...unitsAll.map((u) => `| ${String(u.sid)} | ${String(u.unit)} | ${String(u.files)} | ${String(u.verdict)} | ${(u.examples as string[])[0] ?? ''} |`)];
   fs.writeFileSync(path.join(PILOT, `mechanism.${variant}.md`), `${md.join('\n')}\n`);
   process.stdout.write(`${md.slice(0, 8).join('\n')}\n`);
   for (const r of rows) process.stdout.write(`${String(r.sid)} layers=${JSON.stringify(r.layers)} kinds=${JSON.stringify(r.kinds)} orderSameKindsAsA=${String(r.orderSameKindsAsA)}\n`);

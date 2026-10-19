@@ -1,0 +1,99 @@
+{
+ "duration_api_ms": 26749,
+ "stop_reason": "end_turn",
+ "session_id": "b0617407-1af5-4181-a672-c749a2a87d17",
+ "total_cost_usd": 0.110257,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 16579,
+  "cache_read_input_tokens": 26430,
+  "output_tokens": 4129,
+  "output_tokens_details": {
+   "thinking_tokens": 1530
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 16579,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3983,
+    "cache_read_input_tokens": 20521,
+    "cache_creation_input_tokens": 1967,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1967
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-sonnet-5-5": {
+   "inputTokens": 4,
+   "outputTokens": 4129,
+   "cacheReadInputTokens": 26430,
+   "cacheCreationInputTokens": 16579,
+   "webSearchRequests": 0,
+   "costUSD": 0.110257,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1530,
+   "canonicalModel": "claude-sonnet-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 2,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "```yaml\narchitecture:\n  style: clean-architecture\n  layers:\n    - name: domain\n      directories:\n        - src/domain/**\n      roles:\n        - entity\n        - value-object\n        - use-case-interface\n    - name: application\n      directories:\n        - src/application/**\n      roles:\n        - use-case\n        - dto\n        - application-service\n        - repository-interface\n        - validation\n    - name: common\n      directories:\n        - src/common/**\n      roles:\n        - helper\n        - adapter\n    - name: presentation\n      directories:\n        - src/presentation/**\n      roles:\n        - controller\n        - middleware\n        - response\n    - name: infrastructure\n      directories:\n        - src/infrastructure/**\n      roles:\n        - repository-impl\n        - orm-entity\n        - framework-setup\n    - name: main\n      directories:\n        - src/main/**\n      roles:\n        - factory\ndefault_exclude_paths:\n  - \"node_modules/**\"\n  - \"dist/**\"\n  - \"**/*.spec.ts\"\n  - \"**/*.test.ts\"\n```\n\n```json\n{\"units\": [\n{\"id\":\"layer:domain\",\"claim\":\"The innermost layer holds models and use-case interfaces, and it imports only from itself.\",\"origin\":\"proposed\",\"citations\":[\n{\"type\":\"doc\",\"file\":\"README.md\",\"line\":19,\"quote\":\"This is the \\\"domain\\\" or \\\"entities\\\" layer. Here's the description by Uncle Bob:\"},\n{\"type\":\"pattern\",\"glob\":\"src/domain/**\",\"count\":16},\n{\"type\":\"stat\",\"query\":\"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath STARTS WITH 'src/domain/' AND b.filePath STARTS WITH 'src/domain/' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator\",\"numerator\":12,\"denominator\":10}]},\n{\"id\":\"layer:application\",\"claim\":\"The use-case layer holds use cases, ports, errors and concrete validations, and it depends only on domain, apart from 6 edges into common.\",\"origin\":\"proposed\",\"citations\":[\n{\"type\":\"doc\",\"file\":\"README.md\",\"line\":27,\"quote\":\"This is the **\\\"Use Cases\\\"** layer. Here you may add the application **Use cases**. Here's the description by Uncle Bob:\"},\n{\"type\":\"pattern\",\"glob\":\"src/application/**\",\"count\":78},\n{\"type\":\"stat\",\"query\":\"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath STARTS WITH 'src/application/' AND b.filePath STARTS WITH 'src/domain/' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator\",\"numerator\":39,\"denominator\":25}]},\n{\"id\":\"layer:common\",\"claim\":\"Common is the cross-cutting layer of helpers and library adapters. It sits outside application and implements its ports, and presentation, infrastructure and main may use it.\",\"origin\":\"proposed\",\"citations\":[\n{\"type\":\"doc\",\"file\":\"README.md\",\"line\":9,\"quote\":\"There's also another layer called \\\"common\\\" that you can use as a [cross-cutting concern](https://en.wikipedia.org/wiki/Cross-cutting_concern) layer.\"},\n{\"type\":\"pattern\",\"glob\":\"src/common/**\",\"count\":17},\n{\"type\":\"stat\",\"query\":\"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath STARTS WITH 'src/common/' AND b.filePath STARTS WITH 'src/application/' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator\",\"numerator\":6,\"denominator\":5}]},\n{\"id\":\"layer:presentation\",\"claim\":\"Presentation holds the controllers, middlewares and responses that adapt use cases to the outside, and it depends on application, domain and common.\",\"origin\":\"proposed\",\"citations\":[\n{\"type\":\"doc\",\"file\":\"README.md\",\"line\":39,\"quote\":\"I'm using the name **\\\"Presentation\\\"** for this layer.\"},\n{\"type\":\"pattern\",\"glob\":\"src/presentation/**\",\"count\":26},\n{\"type\":\"stat\",\"query\":\"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath STARTS WITH 'src/presentation/' AND b.filePath STARTS WITH 'src/application/' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator\",\"numerator\":47,\"denominator\":13}]},\n{\"id\":\"layer:infrastructure\",\"claim\":\"Infrastructure holds the express, knex and repository implementations (frameworks and drivers); it should not import main, but 9 edges from 3 files do.\",\"origin\":\"proposed\",\"citations\":[\n{\"type\":\"doc\",\"file\":\"README.md\",\"line\":51,\"quote\":\"This folder (layer) is where we add everything related to external \\\"**Frameworks and Drivers**\\\". Here you can add the repositories, external frameworks, web and so on.\"},\n{\"type\":\"pattern\",\"glob\":\"src/infrastructure/**\",\"count\":33},\n{\"type\":\"stat\",\"query\":\"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath STARTS WITH 'src/infrastructure/' AND b.filePath STARTS WITH 'src/main/' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator\",\"numerator\":9,\"denominator\":3}]},\n{\"id\":\"layer:main\",\"claim\":\"Main is the outermost composition layer. Its factories wire everything together and may depend on all other layers.\",\"origin\":\"proposed\",\"citations\":[\n{\"type\":\"doc\",\"file\":\"README.md\",\"line\":61,\"quote\":\"This layer is where we put everything together. It's the \\\"dirty layer\\\", because most factories will be here. It may depend on all other layers in the system.\"},\n{\"type\":\"pattern\",\"glob\":\"src/main/**\",\"count\":9},\n{\"type\":\"stat\",\"query\":\"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath STARTS WITH 'src/main/' AND b.filePath STARTS WITH 'src/presentation/' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator\",\"numerator\":16,\"denominator\":9}]},\n{\"id\":\"order\",\"claim\":\"The order is domain, application, common, presentation, infrastructure, main, from inner to outer. About 206 cross-layer edges follow it and 15 violate it: 9 from infrastructure to main and 6 from application to common.\",\"origin\":\"proposed\",\"citations\":[\n{\"type\":\"doc\",\"file\":\"README.md\",\"line\":74,\"quote\":\">The overriding rule that makes this architecture work is The Dependency Rule. This rule says that source code dependencies can only point inwards. Nothing in an inner circle can know anything at all about something in an outer circle. In particular, the name of something declared in an outer circle must not be mentioned by the code in the an inner circle. That includes, functions, classes. variables, or any other named software entity.\"},\n{\"type\":\"stat\",\"query\":\"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath STARTS WITH 'src/infrastructure/' AND b.filePath STARTS WITH 'src/main/' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator\",\"numerator\":9,\"denominator\":3}]}\n]}\n```",
+ "ttft_ms": 1661,
+ "type": "result",
+ "duration_ms": 26870,
+ "uuid": "22f4bfaf-0d6e-49f2-a344-d37212dcb515",
+ "ttft_stream_ms": 1115,
+ "time_to_request_ms": 54,
+ "first_content_frame_ms": 1116,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

@@ -1,0 +1,94 @@
+{
+ "units": [
+  {
+   "id": "layer:domain",
+   "claim": "Domain is limited to the app-level shared models and interfaces; the validators folder is left out as a cross-cutting helper.",
+   "origin": "proposed",
+   "citations": [
+    {
+     "type": "doc",
+     "file": "README.md",
+     "line": 11,
+     "quote": "This project is written using [NestJS](https://docs.nestjs.com) for the server"
+    },
+    {
+     "type": "pattern",
+     "glob": "src/app/{models,interfaces}/**",
+     "count": 4
+    }
+   ]
+  },
+  {
+   "id": "layer:infrastructure",
+   "claim": "Infrastructure holds the technical plumbing modules (database, redis, config, cookie, options) and the Google/local auth adapters.",
+   "origin": "proposed",
+   "citations": [
+    {
+     "type": "doc",
+     "file": "README.md",
+     "line": 11,
+     "quote": "This project is written using [NestJS](https://docs.nestjs.com) for the server"
+    },
+    {
+     "type": "pattern",
+     "glob": "src/app/{database,redis,config,cookie,options}/**",
+     "count": 30
+    }
+   ]
+  },
+  {
+   "id": "layer:application",
+   "claim": "Application holds the feature services and the DTO/model classes in each feature's models folder.",
+   "origin": "proposed",
+   "citations": [
+    {
+     "type": "doc",
+     "file": "README.md",
+     "line": 11,
+     "quote": "This project is written using [NestJS](https://docs.nestjs.com) for the server"
+    },
+    {
+     "type": "pattern",
+     "glob": "src/app/*/models/**",
+     "count": 17
+    }
+   ]
+  },
+  {
+   "id": "layer:presentation",
+   "claim": "Presentation holds controllers, modules and guards, which sit next to the services in each feature folder.",
+   "origin": "proposed",
+   "citations": [
+    {
+     "type": "doc",
+     "file": "README.md",
+     "line": 11,
+     "quote": "This project is written using [NestJS](https://docs.nestjs.com) for the server"
+    },
+    {
+     "type": "pattern",
+     "glob": "src/app/**/*.controller.ts",
+     "count": 6
+    }
+   ]
+  },
+  {
+   "id": "order",
+   "claim": "The preset's NestJS order is kept: presentation calls application, application calls infrastructure, and domain is innermost.",
+   "origin": "proposed",
+   "citations": [
+    {
+     "type": "doc",
+     "file": "README.md",
+     "line": 11,
+     "quote": "This project is written using [NestJS](https://docs.nestjs.com) for the server"
+    },
+    {
+     "type": "pattern",
+     "glob": "src/app/**/*.service.ts",
+     "count": 12
+    }
+   ]
+  }
+ ]
+}

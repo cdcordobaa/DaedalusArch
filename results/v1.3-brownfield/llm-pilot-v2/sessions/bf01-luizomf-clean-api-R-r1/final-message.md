@@ -1,0 +1,85 @@
+```yaml
+architecture:
+  style: clean-architecture
+  layers:
+    - name: domain
+      kind: domain
+      directories:
+        - src/domain/**
+      file_patterns:
+        - "src/domain/**/*.ts"
+      roles:
+        - entity
+        - value-object
+        - dto
+      decorators: []
+    - name: application
+      kind: application
+      directories:
+        - src/application/**
+      file_patterns:
+        - "src/application/**/*.ts"
+      roles:
+        - use-case
+        - repository-interface
+        - dto
+        - application-service
+      decorators: []
+    - name: presentation
+      kind: presentation
+      directories:
+        - src/presentation/**
+      file_patterns:
+        - "src/presentation/**/*.ts"
+      roles:
+        - controller
+        - middleware
+      decorators: []
+    - name: infrastructure
+      kind: infrastructure
+      directories:
+        - src/infrastructure/**
+      file_patterns:
+        - "src/infrastructure/**/*.ts"
+      roles:
+        - repository-impl
+        - orm-entity
+      decorators: []
+    - name: main
+      kind: infrastructure
+      directories:
+        - src/main/**
+      file_patterns:
+        - "src/main/**/*.ts"
+      roles:
+        - application-service
+      decorators: []
+default_exclude_paths:
+  - "node_modules/**"
+  - "dist/**"
+  - "**/*.spec.ts"
+  - "**/*.test.ts"
+```
+
+```json
+{"units": [
+{"id": "layer:domain", "claim": "Domain holds models and use-case interfaces, the innermost entities layer.", "origin": "proposed", "citations": [
+{"type": "doc", "file": "README.md", "line": 17, "quote": "### domain layer"},
+{"type": "pattern", "glob": "src/domain/**", "count": 17}]},
+{"id": "layer:application", "claim": "Application holds use cases, ports, errors and validations.", "origin": "proposed", "citations": [
+{"type": "doc", "file": "README.md", "line": 25, "quote": "### application layer"},
+{"type": "pattern", "glob": "src/application/**", "count": 72}]},
+{"id": "layer:presentation", "claim": "Presentation holds controllers, middlewares and response classes.", "origin": "proposed", "citations": [
+{"type": "doc", "file": "README.md", "line": 39, "quote": "I'm using the name **\"Presentation\"** for this layer."},
+{"type": "pattern", "glob": "src/presentation/**", "count": 24}]},
+{"id": "layer:infrastructure", "claim": "Infrastructure holds express, knex and repository implementations (frameworks and drivers).", "origin": "proposed", "citations": [
+{"type": "doc", "file": "README.md", "line": 51, "quote": "This folder (layer) is where we add everything related to external \"**Frameworks and Drivers**\". Here you can add the repositories, external frameworks, web and so on."},
+{"type": "pattern", "glob": "src/infrastructure/**", "count": 36}]},
+{"id": "layer:main", "claim": "Main is the composition root with factories that wire everything; it may depend on all layers. The common folder is cross-cutting and belongs to no layer.", "origin": "proposed", "citations": [
+{"type": "doc", "file": "README.md", "line": 61, "quote": "This layer is where we put everything together. It's the \"dirty layer\", because most factories will be here. It may depend on all other layers in the system."},
+{"type": "pattern", "glob": "src/main/**", "count": 9}]},
+{"id": "order", "claim": "Dependencies point inward: main, then infrastructure, then presentation, then application, then domain.", "origin": "proposed", "citations": [
+{"type": "doc", "file": "README.md", "line": 74, "quote": "The overriding rule that makes this architecture work is The Dependency Rule. This rule says that source code dependencies can only point inwards."},
+{"type": "doc", "file": "README.md", "line": 78, "quote": "In our case, data enter the system via \"express routes\" (infrastructure layer) to the \"controllers\" (adapters layer), to the \"use cases\" (application layer), to the \"domain\" (domain/entities layer)."}]}
+]}
+```

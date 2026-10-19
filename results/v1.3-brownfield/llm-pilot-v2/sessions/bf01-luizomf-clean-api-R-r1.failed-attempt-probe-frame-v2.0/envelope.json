@@ -1,0 +1,99 @@
+{
+ "duration_api_ms": 22190,
+ "stop_reason": "end_turn",
+ "session_id": "ea4a8d1e-8c1a-45d2-8a92-788b9a54b324",
+ "total_cost_usd": 0.102819,
+ "usage": {
+  "input_tokens": 8,
+  "cache_creation_input_tokens": 15738,
+  "cache_read_input_tokens": 60310,
+  "output_tokens": 3382,
+  "output_tokens_details": {
+   "thinking_tokens": 470
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 15738,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2575,
+    "cache_read_input_tokens": 19319,
+    "cache_creation_input_tokens": 561,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 561
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-sonnet-5-5": {
+   "inputTokens": 8,
+   "outputTokens": 3382,
+   "cacheReadInputTokens": 60310,
+   "cacheCreationInputTokens": 15738,
+   "webSearchRequests": 0,
+   "costUSD": 0.102819,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 470,
+   "canonicalModel": "claude-sonnet-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 5,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "```yaml\narchitecture:\n  style: clean-architecture\n  layers:\n    - name: common\n      kind: cross-cutting\n      directories:\n        - src/common/**\n      file_patterns:\n        - \"src/common/**/*.ts\"\n      roles:\n        - helper\n        - adapter\n    - name: domain\n      directories:\n        - src/domain/**\n      file_patterns:\n        - \"src/domain/**/*.ts\"\n      roles:\n        - entity\n        - value-object\n        - use-case-interface\n    - name: application\n      directories:\n        - src/application/**\n      file_patterns:\n        - \"src/application/**/*.ts\"\n      roles:\n        - use-case\n        - port\n        - validation\n        - application-error\n    - name: presentation\n      directories:\n        - src/presentation/**\n      file_patterns:\n        - \"src/presentation/**/*.ts\"\n      roles:\n        - controller\n        - middleware\n        - response\n    - name: infrastructure\n      directories:\n        - src/infrastructure/**\n      file_patterns:\n        - \"src/infrastructure/**/*.ts\"\n      roles:\n        - repository-impl\n        - middleware\n        - orm-entity\n        - route\n    - name: main\n      directories:\n        - src/main/**\n      file_patterns:\n        - \"src/main/**/*.ts\"\n      roles:\n        - factory\n\ndefault_exclude_paths:\n  - \"node_modules/**\"\n  - \"dist/**\"\n  - \"**/*.spec.ts\"\n  - \"**/*.test.ts\"\n  - \"src/infrastructure/knex/migrations/**\"\n  - \"src/infrastructure/knex/seeds/**\"\n\nfitness_overrides:\n  - id: FF-S03\n    enabled: false\n    reason: \"README says main may depend on all layers and the flow runs infrastructure -> presentation -> application -> domain, so layer skipping is normal here.\"\n```\n\n```json\n{\"units\": [\n{\"id\": \"layer:common\", \"claim\": \"common is a cross-cutting layer of helpers and adapters usable by all other layers.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 9, \"quote\": \"There's also another layer called \\\"common\\\" that you can use as a [cross-cutting concern](https://en.wikipedia.org/wiki/Cross-cutting_concern) layer.\"},\n{\"type\": \"pattern\", \"glob\": \"src/common/**/*.ts\", \"count\": 20}]},\n{\"id\": \"layer:domain\", \"claim\": \"domain holds the entities (models) and the use-case interfaces, and is the innermost business layer.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 19, \"quote\": \"This is the \\\"domain\\\" or \\\"entities\\\" layer. Here's the description by Uncle Bob:\"},\n{\"type\": \"pattern\", \"glob\": \"src/domain/**/*.ts\", \"count\": 16}]},\n{\"id\": \"layer:application\", \"claim\": \"application holds the use cases, their ports, validations and errors.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 27, \"quote\": \"This is the **\\\"Use Cases\\\"** layer. Here you may add the application **Use cases**. Here's the description by Uncle Bob:\"},\n{\"type\": \"pattern\", \"glob\": \"src/application/**/*.ts\", \"count\": 72}]},\n{\"id\": \"layer:presentation\", \"claim\": \"presentation holds the controllers, middlewares and responses that adapt data between the use cases and the outside.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 39, \"quote\": \"I'm using the name **\\\"Presentation\\\"** for this layer.\"},\n{\"type\": \"pattern\", \"glob\": \"src/presentation/**/*.ts\", \"count\": 25}]},\n{\"id\": \"layer:infrastructure\", \"claim\": \"infrastructure holds the express, knex and repository implementations, which are the outermost frameworks and drivers.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 51, \"quote\": \"This folder (layer) is where we add everything related to external \\\"**Frameworks and Drivers**\\\". Here you can add the repositories, external frameworks, web and so on.\"},\n{\"type\": \"pattern\", \"glob\": \"src/infrastructure/**/*.ts\", \"count\": 31}]},\n{\"id\": \"layer:main\", \"claim\": \"main is the composition root where factories wire everything together, and it may depend on all layers.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 61, \"quote\": \"This layer is where we put everything together. It's the \\\"dirty layer\\\", because most factories will be here. It may depend on all other layers in the system.\"},\n{\"type\": \"pattern\", \"glob\": \"src/main/**/*.ts\", \"count\": 9}]},\n{\"id\": \"order\", \"claim\": \"Layers run from the innermost (common, domain) outward through application, presentation, infrastructure and main, and dependencies point inwards.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 74, \"quote\": \"This rule says that source code dependencies can only point inwards.\"},\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 78, \"quote\": \"In our case, data enter the system via \\\"express routes\\\" (infrastructure layer) to the \\\"controllers\\\" (adapters layer), to the \\\"use cases\\\" (application layer), to the \\\"domain\\\" (domain/entities layer).\"}]},\n{\"id\": \"ff:FF-S03\", \"claim\": \"no-layer-skip is disabled because main may depend on every layer and the data flow crosses several layers.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 61, \"quote\": \"This layer is where we put everything together. It's the \\\"dirty layer\\\", because most factories will be here. It may depend on all other layers in the system.\"}]},\n{\"id\": \"exclude:src/infrastructure/knex/migrations/**\", \"claim\": \"Knex migrations are database scripts, not architectural code.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 139, \"quote\": \"│   │   ├── migrations - migrations\"},\n{\"type\": \"pattern\", \"glob\": \"src/infrastructure/knex/migrations/**\", \"count\": 4}]},\n{\"id\": \"exclude:src/infrastructure/knex/seeds/**\", \"claim\": \"Knex seeds are data-loading scripts, not architectural code.\", \"origin\": \"proposed\", \"citations\": [\n{\"type\": \"doc\", \"file\": \"README.md\", \"line\": 140, \"quote\": \"│   │   └── seeds - seeds\"},\n{\"type\": \"pattern\", \"glob\": \"src/infrastructure/knex/seeds/**\", \"count\": 3}]}\n]}\n```",
+ "ttft_ms": 3044,
+ "type": "result",
+ "duration_ms": 22583,
+ "uuid": "873cb634-5427-44ed-9c34-da5ff50f8cd2",
+ "ttft_stream_ms": 1250,
+ "time_to_request_ms": 306,
+ "first_content_frame_ms": 1251,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

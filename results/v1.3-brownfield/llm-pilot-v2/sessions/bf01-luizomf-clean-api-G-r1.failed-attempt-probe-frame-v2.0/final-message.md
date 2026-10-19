@@ -1,0 +1,83 @@
+```yaml
+architecture:
+  style: clean-architecture
+  layers:
+    - name: domain
+      directories:
+        - src/domain/**
+      roles:
+        - entity
+        - value-object
+        - use-case-interface
+    - name: application
+      directories:
+        - src/application/**
+      roles:
+        - use-case
+        - dto
+        - application-service
+        - repository-interface
+        - validation
+    - name: common
+      directories:
+        - src/common/**
+      roles:
+        - helper
+        - adapter
+    - name: presentation
+      directories:
+        - src/presentation/**
+      roles:
+        - controller
+        - middleware
+        - response
+    - name: infrastructure
+      directories:
+        - src/infrastructure/**
+      roles:
+        - repository-impl
+        - orm-entity
+        - framework-setup
+    - name: main
+      directories:
+        - src/main/**
+      roles:
+        - factory
+default_exclude_paths:
+  - "node_modules/**"
+  - "dist/**"
+  - "**/*.spec.ts"
+  - "**/*.test.ts"
+```
+
+```json
+{"units": [
+{"id":"layer:domain","claim":"The innermost layer holds models and use-case interfaces, and it imports only from itself.","origin":"proposed","citations":[
+{"type":"doc","file":"README.md","line":19,"quote":"This is the \"domain\" or \"entities\" layer. Here's the description by Uncle Bob:"},
+{"type":"pattern","glob":"src/domain/**","count":16},
+{"type":"stat","query":"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath STARTS WITH 'src/domain/' AND b.filePath STARTS WITH 'src/domain/' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator","numerator":12,"denominator":10}]},
+{"id":"layer:application","claim":"The use-case layer holds use cases, ports, errors and concrete validations, and it depends only on domain, apart from 6 edges into common.","origin":"proposed","citations":[
+{"type":"doc","file":"README.md","line":27,"quote":"This is the **\"Use Cases\"** layer. Here you may add the application **Use cases**. Here's the description by Uncle Bob:"},
+{"type":"pattern","glob":"src/application/**","count":78},
+{"type":"stat","query":"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath STARTS WITH 'src/application/' AND b.filePath STARTS WITH 'src/domain/' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator","numerator":39,"denominator":25}]},
+{"id":"layer:common","claim":"Common is the cross-cutting layer of helpers and library adapters. It sits outside application and implements its ports, and presentation, infrastructure and main may use it.","origin":"proposed","citations":[
+{"type":"doc","file":"README.md","line":9,"quote":"There's also another layer called \"common\" that you can use as a [cross-cutting concern](https://en.wikipedia.org/wiki/Cross-cutting_concern) layer."},
+{"type":"pattern","glob":"src/common/**","count":17},
+{"type":"stat","query":"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath STARTS WITH 'src/common/' AND b.filePath STARTS WITH 'src/application/' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator","numerator":6,"denominator":5}]},
+{"id":"layer:presentation","claim":"Presentation holds the controllers, middlewares and responses that adapt use cases to the outside, and it depends on application, domain and common.","origin":"proposed","citations":[
+{"type":"doc","file":"README.md","line":39,"quote":"I'm using the name **\"Presentation\"** for this layer."},
+{"type":"pattern","glob":"src/presentation/**","count":26},
+{"type":"stat","query":"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath STARTS WITH 'src/presentation/' AND b.filePath STARTS WITH 'src/application/' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator","numerator":47,"denominator":13}]},
+{"id":"layer:infrastructure","claim":"Infrastructure holds the express, knex and repository implementations (frameworks and drivers); it should not import main, but 9 edges from 3 files do.","origin":"proposed","citations":[
+{"type":"doc","file":"README.md","line":51,"quote":"This folder (layer) is where we add everything related to external \"**Frameworks and Drivers**\". Here you can add the repositories, external frameworks, web and so on."},
+{"type":"pattern","glob":"src/infrastructure/**","count":33},
+{"type":"stat","query":"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath STARTS WITH 'src/infrastructure/' AND b.filePath STARTS WITH 'src/main/' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator","numerator":9,"denominator":3}]},
+{"id":"layer:main","claim":"Main is the outermost composition layer. Its factories wire everything together and may depend on all other layers.","origin":"proposed","citations":[
+{"type":"doc","file":"README.md","line":61,"quote":"This layer is where we put everything together. It's the \"dirty layer\", because most factories will be here. It may depend on all other layers in the system."},
+{"type":"pattern","glob":"src/main/**","count":9},
+{"type":"stat","query":"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath STARTS WITH 'src/main/' AND b.filePath STARTS WITH 'src/presentation/' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator","numerator":16,"denominator":9}]},
+{"id":"order","claim":"The order is domain, application, common, presentation, infrastructure, main, from inner to outer. About 206 cross-layer edges follow it and 15 violate it: 9 from infrastructure to main and 6 from application to common.","origin":"proposed","citations":[
+{"type":"doc","file":"README.md","line":74,"quote":">The overriding rule that makes this architecture work is The Dependency Rule. This rule says that source code dependencies can only point inwards. Nothing in an inner circle can know anything at all about something in an outer circle. In particular, the name of something declared in an outer circle must not be mentioned by the code in the an inner circle. That includes, functions, classes. variables, or any other named software entity."},
+{"type":"stat","query":"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath STARTS WITH 'src/infrastructure/' AND b.filePath STARTS WITH 'src/main/' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator","numerator":9,"denominator":3}]}
+]}
+```

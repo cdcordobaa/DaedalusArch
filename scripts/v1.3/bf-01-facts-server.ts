@@ -67,28 +67,28 @@ async function main(): Promise<void> {
     description: `Import edges between folders of the project's parser graph, at a folder depth: for each (from folder, to folder) the number of file-to-file import edges, how many are type-only, and how many distinct files import; plus the npm packages each folder imports. Read-only. ${GRAPH_SCHEMA_NOTE}`,
     inputSchema: { depth, prefix, include_packages: z.boolean().optional().describe('Also list package imports per folder (default true).') },
     annotations: ro,
-  }, wrap('folder_dependency_matrix', (g, a) => folderDependencyMatrix(g, a as never)));
+  }, wrap('folder_dependency_matrix', (g, a) => folderDependencyMatrix(g, a)));
 
   reg('fan_in', {
     title: 'Fan-in per file',
     description: 'Files ranked by the number of distinct project files that import them. Read-only.',
     inputSchema: { top: z.number().int().min(1).max(200).optional().describe('How many files (default 20).'), prefix },
     annotations: ro,
-  }, wrap('fan_in', (g, a) => fanIn(g, a as never)));
+  }, wrap('fan_in', (g, a) => fanIn(g, a)));
 
   reg('class_suffix_stats', {
     title: 'Class-name and file-name suffixes per folder',
     description: 'Per folder: counts of the last CamelCase word of declared class and interface names (e.g. Repository, Controller, UseCase), and counts of file-name suffixes (e.g. "service" in x.service.ts). Read-only.',
     inputSchema: { depth, prefix },
     annotations: ro,
-  }, wrap('class_suffix_stats', (g, a) => classSuffixStats(g, a as never)));
+  }, wrap('class_suffix_stats', (g, a) => classSuffixStats(g, a)));
 
   reg('implements_by_folder', {
     title: 'IMPLEMENTS and EXTENDS by folder',
     description: 'IMPLEMENTS and EXTENDS edges aggregated by (folder of the class, folder of the implemented or extended type). Shows where ports are declared and where adapters implement them. Read-only.',
     inputSchema: { depth, prefix },
     annotations: ro,
-  }, wrap('implements_by_folder', (g, a) => implementsByFolder(g, a as never)));
+  }, wrap('implements_by_folder', (g, a) => implementsByFolder(g, a)));
 
   reg('query_graph', {
     title: 'Read-only Cypher on the parser graph',

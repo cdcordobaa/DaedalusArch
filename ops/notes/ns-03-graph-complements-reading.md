@@ -1,6 +1,6 @@
 # NS-03: the graph must complement reading, not replace it
 
-**Status:** finding from the brownfield LLM pilot, 2026-10-19. The mechanism is **preliminary**: a zero-call diff that would confirm it is still running. Source: `Docs/DiagnosticRuns/v1.3-brownfield-llm-pilot-2026-10-19.md`.
+**Status:** finding from the brownfield LLM pilot and re-pilot, 2026-10-19. The substitution is confirmed and the design rule is provisionally supported. The drift interpretation is **not** supported (see Update). Source: `Docs/DiagnosticRuns/v1.3-brownfield-llm-pilot-2026-10-19.md`.
 
 ## What we saw
 
@@ -29,6 +29,10 @@ In the brownfield pilot, arm G (graph tools plus files) scored below arm R (file
 | C4 interpretation | receives the docs and ADRs, not only the subgraph, because intent is written in prose | AI-DLC U3, amendment A1 |
 | C1c efficiency test (M5) | the arms become **files plus graph** vs **files only**, not graph only vs files | AI-DLC U8, amendment A1 |
 | C2 brownfield norm derivation | the redesigned pilot (bf-01 v2) | re-pilot after your OK |
+
+## Update 2026-10-19: re-pilot (`Docs/DiagnosticRuns/v1.3-brownfield-llm-repilot-2026-10-19.md`)
+- **The mechanism diff (v1, zero calls):** none of G's differences from A were "right about the code", and none were plain errors. **G's v1 problem was omission:** it never opened a file. The substitution half of NS-03 holds. The drift interpretation ("G measured intent vs code") is **not supported**.
+- **Re-pilot v2:** 9 valid sessions out of 18 planned (5 G-v2, 4 R-v2), all passing the citation gate. With the same reading procedure, **G-v2 ties R-v2 or beats it.** On luizomf both arms reach κ 0.90 against A, and G-v2 recovers 27/27 findings. On zeldaplay G-v2 has 1 extra finding against R-v2's 9, and slightly higher κ against A and against code reality. **NS-03's design rule is provisionally supported.** This is a tiny sample, and the Gemini arm hasn't run yet.
 
 ## What would show we're wrong
 

@@ -1,0 +1,64 @@
+```yaml
+architecture:
+  style: nestjs
+  layers:
+    - name: domain
+      kind: domain
+      directories:
+        - src/app/**/models/**
+      roles:
+        - entity
+        - value-object
+    - name: infrastructure
+      kind: infrastructure
+      directories:
+        - src/app/database/**
+        - src/app/redis/**
+        - src/app/cookie/**
+        - src/app/config/**
+        - src/app/options/**
+      file_patterns:
+        - "**/*.repository.ts"
+        - "**/strategies/**"
+      roles:
+        - repository-impl
+        - external-service
+        - middleware
+    - name: application
+      kind: application
+      file_patterns:
+        - "**/*.service.ts"
+        - "**/*.processor.ts"
+        - "**/*.dto.ts"
+      roles:
+        - application-service
+        - dto
+        - use-case
+    - name: presentation
+      kind: presentation
+      directories:
+        - src/app/guards/**
+      file_patterns:
+        - "**/*.controller.ts"
+        - "**/*.module.ts"
+        - "**/*.guard.ts"
+        - "**/*.interceptor.ts"
+      roles:
+        - controller
+        - module
+        - guard
+        - interceptor
+      decorators:
+        - "@Controller"
+        - "@Module"
+```
+
+```json
+{"units":[
+{"id":"layer:domain","claim":"Domain holds the plain data-shape files in the per-feature models folders. These files import no controller, service or guard files.","origin":"proposed","citations":[{"type":"doc","file":"README.md","line":11,"quote":"This project is written using [NestJS](https://docs.nestjs.com) for the server"},{"type":"pattern","glob":"src/app/**/models/**","count":25},{"type":"stat","query":"MATCH (f:File) WHERE f.filePath CONTAINS '/models/' RETURN count(f) AS numerator, count(f) AS denominator","numerator":24,"denominator":24}]},
+{"id":"layer:infrastructure","claim":"Infrastructure is the inner data-access and wiring layer: database, redis, cookie, config and options. Application services call it directly, as in the NestJS preset.","origin":"proposed","citations":[{"type":"doc","file":"README.md","line":11,"quote":"This project is written using [NestJS](https://docs.nestjs.com) for the server"},{"type":"pattern","glob":"src/app/database/**","count":10},{"type":"stat","query":"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath ENDS WITH '.service.ts' AND (b.filePath STARTS WITH 'src/app/database/' OR b.filePath STARTS WITH 'src/app/redis/' OR b.filePath STARTS WITH 'src/app/cookie/' OR b.filePath STARTS WITH 'src/app/config/') RETURN count(*) AS numerator, count(DISTINCT a) AS denominator","numerator":16,"denominator":8}]},
+{"id":"layer:application","claim":"Application holds the feature service files (*.service.ts) and DTO files, which carry the business logic that controllers call.","origin":"proposed","citations":[{"type":"doc","file":"README.md","line":11,"quote":"This project is written using [NestJS](https://docs.nestjs.com) for the server"},{"type":"pattern","glob":"**/*.service.ts","count":12},{"type":"stat","query":"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath ENDS WITH '.controller.ts' AND b.filePath ENDS WITH '.service.ts' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator","numerator":6,"denominator":6}]},
+{"id":"layer:presentation","claim":"Presentation holds the controllers, modules and guards, which are the outermost HTTP and DI-wiring entry points.","origin":"proposed","citations":[{"type":"doc","file":"README.md","line":11,"quote":"This project is written using [NestJS](https://docs.nestjs.com) for the server"},{"type":"pattern","glob":"**/*.controller.ts","count":6},{"type":"stat","query":"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath ENDS WITH '.controller.ts' AND b.filePath ENDS WITH '.service.ts' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator","numerator":6,"denominator":6}]},
+{"id":"order","claim":"The order is presentation → application → infrastructure → domain. Controllers import services (6 edges) and services import infrastructure (16 edges). No infrastructure file imports a service, controller or guard, and no service file imports a controller, guard or module, so there are 0 violating edges.","origin":"proposed","citations":[{"type":"doc","file":"README.md","line":11,"quote":"This project is written using [NestJS](https://docs.nestjs.com) for the server"},{"type":"stat","query":"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath ENDS WITH '.service.ts' AND (b.filePath STARTS WITH 'src/app/database/' OR b.filePath STARTS WITH 'src/app/redis/' OR b.filePath STARTS WITH 'src/app/cookie/' OR b.filePath STARTS WITH 'src/app/config/') RETURN count(*) AS numerator, count(DISTINCT a) AS denominator","numerator":16,"denominator":8}]}
+]}
+```

@@ -109,9 +109,9 @@ export async function folderDependencyMatrix(g: FactsGraph, a: { depth?: number;
       pk.set(key, c);
     }
   }
-  const rows = [...cells].map(([k, v]) => { const [from, to] = k.split('\u0000'); return { from, to, edges: v.edges, typeOnlyEdges: v.typeOnly, importingFiles: v.files.size }; })
+  const rows = [...cells].map(([k, v]) => { const [from = '', to = ''] = k.split('\u0000'); return { from, to, edges: v.edges, typeOnlyEdges: v.typeOnly, importingFiles: v.files.size }; })
     .sort((x, y) => y.edges - x.edges || (x.from + x.to).localeCompare(y.from + y.to));
-  const pkgRows = [...pk].map(([k, v]) => { const [from, pkg] = k.split('\u0000'); return { from, package: pkg, edges: v.edges, importingFiles: v.files.size }; })
+  const pkgRows = [...pk].map(([k, v]) => { const [from = '', pkg = ''] = k.split('\u0000'); return { from, package: pkg, edges: v.edges, importingFiles: v.files.size }; })
     .sort((x, y) => y.edges - x.edges || (x.from + x.package).localeCompare(y.from + y.package));
   return { depth, prefix: a.prefix ?? '', folderEdges: rows.slice(0, ROW_CAP), folderEdgesTotal: rows.length, packageImports: pkgRows.slice(0, ROW_CAP), packageImportsTotal: pkgRows.length };
 }
@@ -157,9 +157,9 @@ export async function classSuffixStats(g: FactsGraph, a: { depth?: number; prefi
     const key = `${folderOf(f, depth)}\u0000${fileSuffix(f)}`;
     fsx.set(key, (fsx.get(key) ?? 0) + 1);
   }
-  const declRows = [...cls].map(([k, n]) => { const [folder, kind, suffix] = k.split('\u0000'); return { folder, kind, suffix, count: n }; })
+  const declRows = [...cls].map(([k, n]) => { const [folder = '', kind = '', suffix = ''] = k.split('\u0000'); return { folder, kind, suffix, count: n }; })
     .sort((x, y) => y.count - x.count || (x.folder + x.suffix).localeCompare(y.folder + y.suffix));
-  const fileRows = [...fsx].map(([k, n]) => { const [folder, suffix] = k.split('\u0000'); return { folder, fileSuffix: suffix, files: n }; })
+  const fileRows = [...fsx].map(([k, n]) => { const [folder = '', suffix = ''] = k.split('\u0000'); return { folder, fileSuffix: suffix, files: n }; })
     .sort((x, y) => y.files - x.files || (x.folder + x.fileSuffix).localeCompare(y.folder + y.fileSuffix));
   return { depth, declarations: declRows.slice(0, ROW_CAP), declarationsTotal: declRows.length, fileSuffixes: fileRows.slice(0, ROW_CAP), fileSuffixesTotal: fileRows.length };
 }
@@ -171,11 +171,12 @@ export async function implementsByFolder(g: FactsGraph, a: { depth?: number; pre
   const m = new Map<string, number>();
   for (const x of r.rows) {
     const s = String(x.a);
-    if (!under(a.prefix)(s) || x.b === null) continue;
-    const key = `${String(x.t)}\u0000${folderOf(s, depth)}\u0000${folderOf(String(x.b), depth)}`;
+    const target = x.b;
+    if (!under(a.prefix)(s) || typeof target !== 'string') continue;
+    const key = `${String(x.t)}\u0000${folderOf(s, depth)}\u0000${folderOf(target, depth)}`;
     m.set(key, (m.get(key) ?? 0) + 1);
   }
-  const rows = [...m].map(([k, n]) => { const [relation, from, to] = k.split('\u0000'); return { relation, from, to, count: n }; })
+  const rows = [...m].map(([k, n]) => { const [relation = '', from = '', to = ''] = k.split('\u0000'); return { relation, from, to, count: n }; })
     .sort((x, y) => y.count - x.count || (x.from + x.to).localeCompare(y.from + y.to));
   return { depth, rows: rows.slice(0, ROW_CAP), total: rows.length };
 }
