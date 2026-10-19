@@ -1,0 +1,99 @@
+{
+ "duration_api_ms": 30598,
+ "stop_reason": "end_turn",
+ "session_id": "ceb575a3-6dda-42b6-8597-68e5059ede7b",
+ "total_cost_usd": 0.136232,
+ "usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 21378,
+  "cache_read_input_tokens": 35380,
+  "output_tokens": 4717,
+  "output_tokens_details": {
+   "thinking_tokens": 1355
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 21378,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3144,
+    "cache_read_input_tokens": 19434,
+    "cache_creation_input_tokens": 1944,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1944
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-sonnet-5-5": {
+   "inputTokens": 6,
+   "outputTokens": 4717,
+   "cacheReadInputTokens": 35380,
+   "cacheCreationInputTokens": 21378,
+   "webSearchRequests": 0,
+   "costUSD": 0.136232,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1355,
+   "canonicalModel": "claude-sonnet-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 7,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "```yaml\narchitecture:\n  style: nestjs\n  layers:\n    - name: domain\n      kind: domain\n      directories:\n        - \"src/app/**/models/**\"\n      roles:\n        - entity\n        - value-object\n    - name: infrastructure\n      kind: infrastructure\n      directories:\n        - src/app/database/**\n        - src/app/redis/**\n        - src/app/cookie/**\n        - src/app/config/**\n        - src/app/options/**\n        - src/app/auth/google/**\n        - src/app/auth/local/**\n      file_patterns:\n        - \"**/*.repository.ts\"\n        - \"**/strategies/**\"\n      roles:\n        - repository-impl\n        - external-service\n    - name: application\n      kind: application\n      file_patterns:\n        - \"**/*.service.ts\"\n        - \"**/*.dto.ts\"\n      roles:\n        - application-service\n        - dto\n    - name: presentation\n      kind: presentation\n      directories:\n        - src/app/guards/**\n      file_patterns:\n        - \"**/*.controller.ts\"\n        - \"**/*.module.ts\"\n        - \"**/*.guard.ts\"\n      roles:\n        - controller\n        - module\n        - guard\n      decorators:\n        - \"@Controller\"\n        - \"@Module\"\n```\n\n```json\n{\"units\": [\n{\"id\":\"layer:domain\",\"claim\":\"Domain holds the per-feature models/ folders (DTO and GraphQL model classes); no model file imports any non-model, non-validator file, and validators stay outside every layer as a cross-cutting helper.\",\"origin\":\"proposed\",\"citations\":[\n{\"type\":\"doc\",\"file\":\"README.md\",\"line\":11,\"quote\":\"This project is written using [NestJS](https://docs.nestjs.com) for the server and [Angular](https://angular.io) as the front end service while using [Nx](https://nx.dev) as a tool for development.\"},\n{\"type\":\"pattern\",\"glob\":\"src/app/**/models/**\",\"count\":24},\n{\"type\":\"stat\",\"query\":\"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath CONTAINS '/models/' AND NOT b.filePath CONTAINS '/models/' AND NOT b.filePath CONTAINS '/validators/' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator\",\"numerator\":0,\"denominator\":0}]},\n{\"id\":\"layer:infrastructure\",\"claim\":\"Infrastructure is the data-access, cache, cookie, configuration and external-provider (google/local auth) modules that services call directly, following the NestJS preset's inner data-access layer.\",\"origin\":\"proposed\",\"citations\":[\n{\"type\":\"doc\",\"file\":\"README.md\",\"line\":11,\"quote\":\"This project is written using [NestJS](https://docs.nestjs.com) for the server and [Angular](https://angular.io) as the front end service while using [Nx](https://nx.dev) as a tool for development.\"},\n{\"type\":\"pattern\",\"glob\":\"src/app/database/**\",\"count\":10},\n{\"type\":\"pattern\",\"glob\":\"src/app/redis/**\",\"count\":5},\n{\"type\":\"stat\",\"query\":\"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE (a.filePath ENDS WITH '.service.ts') AND (b.filePath STARTS WITH 'src/app/database/' OR b.filePath STARTS WITH 'src/app/redis/' OR b.filePath STARTS WITH 'src/app/config/' OR b.filePath STARTS WITH 'src/app/cookie/') RETURN count(*) AS numerator, count(DISTINCT a) AS denominator\",\"numerator\":16,\"denominator\":8}]},\n{\"id\":\"layer:application\",\"claim\":\"Application is the feature services and DTOs, assigned by file name since services are co-located with their controllers.\",\"origin\":\"proposed\",\"citations\":[\n{\"type\":\"doc\",\"file\":\"README.md\",\"line\":11,\"quote\":\"This project is written using [NestJS](https://docs.nestjs.com) for the server and [Angular](https://angular.io) as the front end service while using [Nx](https://nx.dev) as a tool for development.\"},\n{\"type\":\"pattern\",\"glob\":\"**/*.service.ts\",\"count\":12},\n{\"type\":\"stat\",\"query\":\"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath ENDS WITH '.controller.ts' AND b.filePath ENDS WITH '.service.ts' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator\",\"numerator\":6,\"denominator\":6}]},\n{\"id\":\"layer:presentation\",\"claim\":\"Presentation is the controllers, guards and Nest modules (DI wiring) that sit outermost and call services.\",\"origin\":\"proposed\",\"citations\":[\n{\"type\":\"doc\",\"file\":\"README.md\",\"line\":11,\"quote\":\"This project is written using [NestJS](https://docs.nestjs.com) for the server and [Angular](https://angular.io) as the front end service while using [Nx](https://nx.dev) as a tool for development.\"},\n{\"type\":\"pattern\",\"glob\":\"**/*.controller.ts\",\"count\":6},\n{\"type\":\"pattern\",\"glob\":\"**/*.module.ts\",\"count\":14},\n{\"type\":\"stat\",\"query\":\"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE a.filePath ENDS WITH '.service.ts' AND b.filePath ENDS WITH '.controller.ts' RETURN count(*) AS numerator, count(DISTINCT a) AS denominator\",\"numerator\":0,\"denominator\":0}]},\n{\"id\":\"order\",\"claim\":\"Order is domain, infrastructure, application, presentation (inner to outer): 16 service-to-infrastructure edges and 6 controller-to-service edges follow it, while 4 edges from infrastructure folders to services or controllers violate it.\",\"origin\":\"proposed\",\"citations\":[\n{\"type\":\"doc\",\"file\":\"README.md\",\"line\":11,\"quote\":\"This project is written using [NestJS](https://docs.nestjs.com) for the server and [Angular](https://angular.io) as the front end service while using [Nx](https://nx.dev) as a tool for development.\"},\n{\"type\":\"stat\",\"query\":\"MATCH (a:File)-[:IMPORTS]->(b:File) WHERE (a.filePath STARTS WITH 'src/app/database/' OR a.filePath STARTS WITH 'src/app/redis/' OR a.filePath STARTS WITH 'src/app/cookie/') AND (b.filePath ENDS WITH '.service.ts' OR b.filePath ENDS WITH '.controller.ts') AND NOT b.filePath STARTS WITH a.filePath RETURN count(*) AS numerator, count(DISTINCT a) AS denominator\",\"numerator\":4,\"denominator\":4}]}\n]}\n```",
+ "ttft_ms": 1726,
+ "type": "result",
+ "duration_ms": 30692,
+ "uuid": "b0b10bef-0d30-4dfd-b0cd-1508f4816b0a",
+ "ttft_stream_ms": 932,
+ "time_to_request_ms": 34,
+ "first_content_frame_ms": 932,
+ "queued_turn_count": 0,
+ "result_index": 0
+}
