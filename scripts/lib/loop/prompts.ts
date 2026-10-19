@@ -144,9 +144,12 @@ export const FIX_CLAUSE = /^(?:break|go|keep|move|put|use|split|fix|make|extract
  * The L3 sentence of a rule: "It is a violation when <the first clause of RULE_PLAIN>", then the later clauses that
  * state the rule (e.g. "dependencies must point inward"), never the ones that say how to fix it ("break the cycle…",
  * "go through a port…", "keep the domain free…"). `undefined` for a rule with no plain meaning.
+ *
+ * `style` is the spec's `architecture.style`: a style with its own wording (`RULE_PLAIN_BY_STYLE`) states the rule in
+ * that style's layer names; any other style, or none, reads `RULE_PLAIN` as before.
  */
-export function ruleStatement(ruleName: string): string | undefined {
-  const plain = RULE_PLAIN[ruleName];
+export function ruleStatement(ruleName: string, style?: string): string | undefined {
+  const plain = (style !== undefined ? RULE_PLAIN_BY_STYLE[style]?.[ruleName] : undefined) ?? RULE_PLAIN[ruleName];
   if (plain === undefined) return undefined;
   const [first = '', ...rest] = plain.split(/;\s*/);
   const kept = [first, ...rest.filter((c) => !FIX_CLAUSE.test(c.trim()))];
@@ -215,6 +218,26 @@ export const RULE_PLAIN: Readonly<Record<string, string>> = Object.freeze({
   'aggregate-boundary': 'code outside an aggregate reaches an object inside it directly; outside code may only hold and use the aggregate root',
   'repository-aggregate-root': 'a repository is provided for something that is not an aggregate root',
   'value-object-immutability': 'a value object can be changed after it is created (a field that is not readonly, or a setter)',
+});
+
+/**
+ * Per-style wording of the L3 rule sentences (BUILD-L, REV-04 P16). Layered: `presets/layered.yaml` names its layers
+ * persistence, business and presentation (bottom-up), with business as the domain-kind layer and persistence as the
+ * infrastructure-kind layer, so the Clean words of `RULE_PLAIN` ("inner layer", "the domain", "infrastructure") would
+ * name folders the Layered frame never mentions. Each sentence states what the rule's template checks at that preset
+ * (`src/fitness-compiler/cypher-templates.ts`) and no fix. Only the L3/L4 rung reads it; the repair prompt keeps
+ * `RULE_PLAIN`.
+ */
+export const RULE_PLAIN_BY_STYLE: Readonly<Record<string, Readonly<Record<string, string>>>> = Object.freeze({
+  layered: Object.freeze({
+    'dependency-direction':
+      'code in a lower layer imports code from a higher layer; from the bottom up the layers are persistence, business and presentation, and no dependency may point up',
+    'no-layer-skip': 'a layer imports a layer that is not directly below it, such as presentation code importing persistence code',
+    'no-domain-outward-dep': 'business code imports code from the presentation or the persistence layer; the business layer must not depend on the other layers',
+    'domain-purity': 'business code imports a framework, an HTTP library or an I/O module',
+    'repository-pattern': 'a repository class in the persistence layer does not implement an interface',
+    'domain-state-purity': 'a business class receives a persistence object through its constructor or holds one in a field',
+  }),
 });
 
 /** One line per rule among the listed findings: the plain meaning (or the first message), the count and the rule. */

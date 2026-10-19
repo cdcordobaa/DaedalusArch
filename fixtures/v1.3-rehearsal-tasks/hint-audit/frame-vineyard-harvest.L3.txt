@@ -1,0 +1,10 @@
+Organise the code following Domain-Driven Design, with one bounded context per part: src/picking/ for picking and src/cellar/ for the cellar.
+Inside each bounded context folder, organise the source code in the folders domain, application, infrastructure, acl and api (for example src/picking/domain), and put the composition root in src/main.ts.
+The architecture has these rules:
+- It is a violation when some files lie outside every declared bounded context folder.
+- It is a violation when one bounded context imports another context's internal files; imports across contexts must go through that context's public API (its index.ts or contracts folder) or an anti-corruption layer.
+- It is a violation when code outside an aggregate reaches an object inside it directly; outside code may only hold and use the aggregate root.
+- It is a violation when a repository is provided for something that is not an aggregate root.
+- It is a violation when a value object can be changed after it is created (a field that is not readonly, or a setter).
+- It is a violation when the domain imports a framework, an HTTP library or an I/O module.
+- It is a violation when a module imports a layer it may not depend on; adapters may depend on the application and the domain, the application only on the domain, and the domain on nothing outside it.

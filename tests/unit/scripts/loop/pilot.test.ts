@@ -354,13 +354,16 @@ describe('plans with task profiles', () => {
     expect(errs({ ...base, taskProfiles: { a: { style: 'clean', evaluatorSpec: 's.yaml' } } })).toBe(0);
     expect(errs({ ...base, taskProfiles: { a: { style: 'ddd', specMode: 'ise-step1', contexts: CONTEXTS } } })).toBe(0);
     expect(errs(base)).toBe(1); // neither evaluatorSpec nor profiles
-    expect(errs({ ...base, taskProfiles: { a: { style: 'layered', evaluatorSpec: 's' } } })).toBe(1);
+    expect(errs({ ...base, taskProfiles: { a: { style: 'layered', evaluatorSpec: 's' } } })).toBe(0);
+    expect(errs({ ...base, taskProfiles: { a: { style: 'onion', evaluatorSpec: 's' } } })).toBe(1);
     expect(errs({ ...base, taskProfiles: { a: { style: 'clean' } } })).toBe(1);
     expect(errs({ ...base, taskProfiles: { a: { style: 'clean', specMode: 'ise-step1' } } })).toBe(1);
     expect(errs({ ...base, taskProfiles: { a: { style: 'ddd', specMode: 'ise-step1' } } })).toBe(1);
     expect(errs({ ...base, taskProfiles: { a: { style: 'ddd', specMode: 'ise-step1', contexts: [{ root: 'registry', part: 'x' }] } } })).toBe(1);
     expect(errs({ ...base, taskProfiles: { a: { style: 'hexagonal', evaluatorSpec: 's', contexts: CONTEXTS } } })).toBe(1);
-    expect(errs({ ...base, arms: ['none', 'daedalus-mcp'], daedalus: {}, taskProfiles: { a: { style: 'clean', evaluatorSpec: 's' } } })).toBe(1);
+    // Per-task MCP spec (D11c): a static profile is accepted with the daedalus-mcp arm, an ise-step1 profile is not.
+    expect(errs({ ...base, arms: ['none', 'daedalus-mcp'], daedalus: {}, taskProfiles: { a: { style: 'clean', evaluatorSpec: 's' } } })).toBe(0);
+    expect(errs({ ...base, arms: ['none', 'daedalus-mcp'], daedalus: {}, taskProfiles: { a: { style: 'ddd', specMode: 'ise-step1', contexts: CONTEXTS } } })).toBe(1);
     expect(errs({ ...base, evaluatorSpec: 's', callBudget: { runs: 1 } })).toBe(1);
   });
 
@@ -378,6 +381,7 @@ describe('plans with task profiles', () => {
     expect(stubLayoutFor('hexagonal', [], 0).infrastructure).toBe('src/adapters/outbound');
     expect(stubLayoutFor('ddd', ['src/registry/', 'src/deployment/'], 1).domain).toBe('src/deployment/domain');
     expect(stubLayoutFor(undefined, [], 3).domain).toBe('src/domain');
+    expect(stubLayoutFor('layered', [], 0)).toEqual({ domain: 'src/business/domain', application: 'src/presentation', infrastructure: 'src/persistence/infrastructure' });
   });
 });
 

@@ -54,12 +54,22 @@ export function specBlockingRules(specText: string): readonly SpecBlockingRule[]
   return out;
 }
 
-/** The L3 sentences of a spec text; throws when a blocking rule has no plain meaning (`RULE_PLAIN`). */
+/** The spec's `architecture.style`, or undefined. */
+function specStyleOf(specText: string): string | undefined {
+  const doc = parseYaml(specText) as { architecture?: { style?: unknown } } | null;
+  return typeof doc?.architecture?.style === 'string' ? doc.architecture.style : undefined;
+}
+
+/**
+ * The L3 sentences of a spec text, in the wording of the spec's style (`RULE_PLAIN_BY_STYLE`, else `RULE_PLAIN`);
+ * throws when a blocking rule has no plain meaning.
+ */
 export function ruleSentences(specText: string): readonly string[] {
   const rules = specBlockingRules(specText);
   if (rules.length === 0) throw new Error('the spec has no blocking rule');
+  const style = specStyleOf(specText);
   return rules.map((r) => {
-    const s = ruleStatement(r.name);
+    const s = ruleStatement(r.name, style);
     if (s === undefined) throw new Error(`blocking rule ${r.id} ${r.name} has no plain meaning in RULE_PLAIN`);
     return s;
   });

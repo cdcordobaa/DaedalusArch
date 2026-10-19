@@ -1,0 +1,9 @@
+Organise the code following Hexagonal Architecture (ports and adapters).
+Organise the source code under src/ in exactly five folders: src/domain, src/application, src/adapters/inbound, src/adapters/outbound and src/config.
+The architecture has these rules:
+- It is a violation when a module imports a layer it may not depend on; adapters may depend on the application and the domain, the application only on the domain, and the domain on nothing outside it.
+- It is a violation when some files import each other in a circle.
+- It is a violation when the core (domain or application) imports an adapter or outside code; the core must depend on nothing outside it.
+- It is a violation when the domain imports a framework, an HTTP library or an I/O module.
+- It is a violation when an outbound adapter does not implement a port (an interface) declared in the domain or the application.
+- It is a violation when a domain class receives an infrastructure or framework object through its constructor.

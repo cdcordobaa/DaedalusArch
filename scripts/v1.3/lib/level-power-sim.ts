@@ -24,6 +24,11 @@
  * In the simulation the exact p is computed by a subset-sum count (identical to enumeration) and, in the random-flip
  * regime, the Monte Carlo hit count is drawn as Binomial(flips, p_exact), which is its exact sampling distribution
  * when flips are drawn independently. `signFlipMcP` is the literal procedure; the tests check the two agree.
+ *
+ * Drift outcome (`outcome: 'drift'`, s2d-01 §3; the section at the end of this file): D = new blocking identities at
+ * steps 2..k from a shared step-1 tree (`RunTrajectory.newPerStep`), cells `CELLS_DRIFT`, hypotheses
+ * `HYPOTHESES_DRIFT` with Holm over 2, blocks = tasks × replicates × generators, and the drift record §4 input mode
+ * (each generator's pilot-mean lower bound over a θ band). Reading: Docs/v1.4/drift-power-sim.md.
  */
 import { createRng } from '../../lib/stats.js';
 import type { SeededRng } from '../../lib/stats.js';
@@ -61,6 +66,8 @@ export const COLLAPSE_MEANS = [5.33, 4, 3, 2, 1.5, 1, 0.5, 0.25, 0.1, 0] as cons
 export interface RunTrajectory {
   readonly task: string;
   readonly edgesPerStep: readonly number[];
+  /** Drift outcome: new distinct blocking identities per step, steps 1..n (step 1 never counts in D). */
+  readonly newPerStep?: readonly number[];
 }
 
 export interface StyleData {
@@ -496,5 +503,387 @@ export function renderCollapseTable(rows: readonly CollapseRow[], grid: Grid, co
   );
   const lines = ['| none@L2 mean | P(Y = 0) at none@L2 | H1 | H2 | H3 | All three |', '|---|---|---|---|---|---|'];
   for (const r of sel) lines.push(`| ${r.mean} | ${f2(r.pZero)} | ${f2(r.power.H1)} | ${f2(r.power.H2)} | ${f2(r.power.H3)} | ${f2(r.all)} |`);
+  return lines.join('\n');
+}
+
+// ── Drift outcome (s2d-01 §3; drift record Docs/v1.4/study2-deviation-2026-10-19-drift.md §4) ─────────────────────
+
+/**
+ * Drift D per run: the new distinct blocking identities introduced at steps 2..k (s2d-01 §1),
+ * D = Σ_{t=2..k} |E_t \ ∪_{s<t} E_s|, from a shared step-1 tree. Cells per block (task × replicate × generator):
+ * none@L2, none@L3, mcp@L2; H1 none@L2 vs none@L3, H2 none@L2 vs mcp@L2; Holm over 2. The cell model, the correlation
+ * models and the sign-flip test are the level outcome's, restricted to the three cells.
+ */
+export type Outcome = 'level' | 'drift';
+
+/** `xs[i]`, or a thrown error for an index out of range (never reached by the callers below). */
+function at<T>(xs: readonly T[], i: number): T {
+  const v = xs[i];
+  if (v === undefined) throw new RangeError(`index ${String(i)} out of range`);
+  return v;
+}
+
+export const OUTCOMES: readonly Outcome[] = ['level', 'drift'];
+
+/** The drift seed of s2d-01 §3. */
+export const DRIFT_SEED = 20261018;
+
+export const CELLS_DRIFT = ['noneL2', 'noneL3', 'mcpL2'] as const;
+export type DriftCell = (typeof CELLS_DRIFT)[number];
+
+export const HYPOTHESES_DRIFT = [
+  { id: 'H1', a: 'noneL2', b: 'noneL3', label: 'none@L2 vs none@L3 (SO5, one sentence per rule)' },
+  { id: 'H2', a: 'noneL2', b: 'mcpL2', label: 'none@L2 vs mcp@L2 (delivery plus checking)' },
+] as const satisfies readonly { id: string; a: DriftCell; b: DriftCell; label: string }[];
+export type DriftHypothesisId = (typeof HYPOTHESES_DRIFT)[number]['id'];
+
+/** RRs of the drift tables, and the RR the power rule reads (drift record §4: MDE RR ≤ 0.25 only). */
+export const DRIFT_RATE_RATIOS = [0.25, 0.5, 0.75] as const;
+export const POWER_RULE_RR = 0.25;
+export const POWER_RULE_TARGET = 0.8;
+
+/**
+ * Probe 1, none arm, new identities per step (step 1 = the step-1 tree's identities, never counted in D). Probe 1
+ * removed 0 identities at any none step (s2d-01 §1, recomputed from `results/v1.3-floor-probe/<task>/none/step-NN.json`),
+ * so the new count per step is the level increment of `STYLE_DATA` 'layered-measured'.
+ */
+export const DRIFT_DATA: StyleData = {
+  id: 'layered-drift-probe1',
+  label: 'Layered drift, probe 1 (Opus by hand; placeholder for the pilot)',
+  source: 'floor probe 1, none arm, presets/layered.yaml as merged; new = level increments (0 removals)',
+  runs: [
+    { task: 'market-vendors', edgesPerStep: [2, 2, 2, 3], newPerStep: [2, 0, 0, 1] },
+    { task: 'youth-league', edgesPerStep: [2, 4, 4, 4, 4], newPerStep: [2, 2, 0, 0, 0] },
+    { task: 'hive-health', edgesPerStep: [4, 7, 9, 9, 9], newPerStep: [4, 3, 2, 0, 0] },
+  ],
+};
+
+function newPerStepOf(run: RunTrajectory): readonly number[] {
+  if (run.newPerStep === undefined) throw new Error(`run ${run.task} has no newPerStep`);
+  return run.newPerStep;
+}
+
+/** Mean new identities per step from step 3 on, pooled over runs (the drift analogue of `lateIncrement`). */
+export function lateNewIncrement(runs: readonly RunTrajectory[]): number {
+  let sum = 0;
+  let n = 0;
+  for (const r of runs) {
+    const nps = newPerStepOf(r);
+    for (let s = 2; s < nps.length; s += 1) {
+      sum += nps[s] ?? 0;
+      n += 1;
+    }
+  }
+  return n === 0 ? 0 : sum / n;
+}
+
+/** D at horizon k: Σ newPerStep over steps 2..k; past the last step, 0 new per step ('locf') or the late increment ('linear'). */
+export function driftAtStep(run: RunTrajectory, k: number, mode: Extrapolation, increment: number): number {
+  const nps = newPerStepOf(run);
+  if (nps.length === 0) throw new Error(`run ${run.task} has no steps`);
+  if (k < 2) return 0;
+  let d = 0;
+  for (let s = 1; s < Math.min(k, nps.length); s += 1) d += nps[s] ?? 0;
+  if (k > nps.length && mode === 'linear') d += (k - nps.length) * increment;
+  return d;
+}
+
+export function driftParams(style: StyleData, k: number, mode: Extrapolation): StyleParams {
+  const inc = lateNewIncrement(style.runs);
+  return { id: style.id, label: style.label, k, mode, fit: fitNb(style.runs.map((r) => driftAtStep(r, k, mode, inc))) };
+}
+
+export function cellMeansDrift(mu: number, rr: number): Record<DriftCell, number> {
+  return { noneL2: mu, noneL3: mu * rr, mcpL2: mu * rr };
+}
+
+/** One block's D per cell. `shared`: one gamma frailty per block (all cells grow from one step-1 tree). */
+export function drawBlockDrift(rng: SeededRng, style: CellMeanInput, rr: number, corr: Correlation): Record<DriftCell, number> {
+  const m = cellMeansDrift(style.mean, rr);
+  const out = {} as Record<DriftCell, number>;
+  if (corr === 'shared' && Number.isFinite(style.theta) && style.mean > 0) {
+    const f = gamma(rng, style.theta) / style.theta;
+    for (const c of CELLS_DRIFT) out[c] = poisson(rng, m[c] * f);
+  } else {
+    for (const c of CELLS_DRIFT) out[c] = nbDraw(rng, m[c], style.theta);
+  }
+  return out;
+}
+
+export interface DriftGrid {
+  readonly tasks: number;
+  readonly replicates: number;
+  readonly generators: number;
+  readonly k: number;
+}
+
+export const blocksOfDrift = (g: DriftGrid): number => g.tasks * g.replicates * g.generators;
+/** Step turns: per block, step 1 once (shared start) plus 3 cells × (k − 1) steps. */
+export const stepTurnsOfDrift = (g: DriftGrid): number => blocksOfDrift(g) * (1 + CELLS_DRIFT.length * (g.k - 1));
+
+export interface DriftPowerResult {
+  readonly power: Record<DriftHypothesisId, number>;
+  readonly all: number;
+  readonly sims: number;
+}
+
+/**
+ * Power of the drift contrasts. Units are task × generator; unit u = task · generators + generator takes
+ * `styles[u % styles.length]`, so per-generator inputs go in as `[gen0, gen1]`.
+ */
+export function simulateDriftPower(
+  styles: readonly CellMeanInput[],
+  grid: DriftGrid,
+  rr: number,
+  corr: Correlation,
+  sims: number,
+  rng: SeededRng,
+  flips: number = FLIPS,
+): DriftPowerResult {
+  if (styles.length === 0) throw new Error('simulateDriftPower: no style');
+  const hits: Record<DriftHypothesisId, number> = { H1: 0, H2: 0 };
+  let all = 0;
+  const units = grid.tasks * grid.generators;
+  const n = blocksOfDrift(grid);
+  for (let s = 0; s < sims; s += 1) {
+    const diffs: number[][] = HYPOTHESES_DRIFT.map(() => []);
+    for (let u = 0; u < units; u += 1) {
+      const style = at(styles, u % styles.length);
+      for (let r = 0; r < grid.replicates; r += 1) {
+        const y = drawBlockDrift(rng, style, rr, corr);
+        HYPOTHESES_DRIFT.forEach((h, i) => at(diffs, i).push(y[h.a] - y[h.b]));
+      }
+    }
+    const p = diffs.map((d) => (d.length === n ? signFlipSimP(d, rng, flips) : 1));
+    const rej = holmReject(p, ALPHA);
+    HYPOTHESES_DRIFT.forEach((h, i) => {
+      if (rej[i]) hits[h.id] += 1;
+    });
+    if (rej.every(Boolean)) all += 1;
+  }
+  return { power: { H1: hits.H1 / sims, H2: hits.H2 / sims }, all: all / sims, sims };
+}
+
+export interface DriftRow {
+  readonly label: string;
+  readonly mean: number;
+  readonly theta: number;
+  readonly corr: Correlation;
+  readonly grid: DriftGrid;
+  readonly rr: number;
+  readonly blocks: number;
+  readonly stepTurns: number;
+  readonly power: Record<DriftHypothesisId, number>;
+  readonly all: number;
+}
+
+/** One power cell with its own stable seed (`cellSeed`). `mean`/`theta` record the first style's input. */
+export function driftRow(
+  label: string, styles: readonly CellMeanInput[], grid: DriftGrid, rr: number, corr: Correlation, sims: number, seed: number,
+): DriftRow {
+  const inputs = styles.map((s) => `${String(s.mean)}:${String(s.theta)}`).join(',');
+  const key = ['drift', label, inputs, grid.tasks, grid.replicates, grid.generators, grid.k, corr, rr].map(String).join('|');
+  const res = simulateDriftPower(styles, grid, rr, corr, sims, createRng(cellSeed(seed, key)));
+  const first = at(styles, 0);
+  return {
+    label, mean: first.mean, theta: first.theta, corr, grid, rr, blocks: blocksOfDrift(grid), stepTurns: stepTurnsOfDrift(grid), power: res.power, all: res.all,
+  };
+}
+
+// ── Student t and the pilot lower bound (drift record §4) ───────────────────
+
+const LANCZOS = [
+  0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059,
+  12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7,
+];
+
+/** ln Γ(x), Lanczos (g = 7, n = 9). */
+export function lnGamma(x: number): number {
+  if (x < 0.5) return Math.log(Math.PI / Math.sin(Math.PI * x)) - lnGamma(1 - x);
+  const z = x - 1;
+  let a = at(LANCZOS, 0);
+  const t = z + 7.5;
+  for (let i = 1; i < 9; i += 1) a += at(LANCZOS, i) / (z + i);
+  return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t) - t + Math.log(a);
+}
+
+/** Lentz continued fraction of the incomplete beta. */
+function betaContinuedFraction(x: number, a: number, b: number): number {
+  const tiny = 1e-300;
+  const guard = (v: number): number => (Math.abs(v) < tiny ? tiny : v);
+  let c = 1;
+  let d = 1 / guard(1 - ((a + b) * x) / (a + 1));
+  let h = d;
+  for (let m = 1; m <= 300; m += 1) {
+    const m2 = 2 * m;
+    const even = (m * (b - m) * x) / ((a + m2 - 1) * (a + m2));
+    d = 1 / guard(1 + even * d);
+    c = guard(1 + even / c);
+    h *= d * c;
+    const odd = (-(a + m) * (a + b + m) * x) / ((a + m2) * (a + m2 + 1));
+    d = 1 / guard(1 + odd * d);
+    c = guard(1 + odd / c);
+    const del = d * c;
+    h *= del;
+    if (Math.abs(del - 1) < 1e-15) break;
+  }
+  return h;
+}
+
+/** Regularised incomplete beta I_x(a, b). */
+export function incompleteBeta(x: number, a: number, b: number): number {
+  if (x <= 0) return 0;
+  if (x >= 1) return 1;
+  const front = Math.exp(lnGamma(a + b) - lnGamma(a) - lnGamma(b) + a * Math.log(x) + b * Math.log(1 - x));
+  return x < (a + 1) / (a + b + 2) ? (front * betaContinuedFraction(x, a, b)) / a : 1 - (front * betaContinuedFraction(1 - x, b, a)) / b;
+}
+
+/** Student t CDF with `df` degrees of freedom. */
+export function studentTCdf(t: number, df: number): number {
+  if (!(df > 0)) throw new Error('studentTCdf: df must be positive');
+  const tail = 0.5 * incompleteBeta(df / (df + t * t), df / 2, 0.5);
+  return t >= 0 ? 1 - tail : tail;
+}
+
+/** Student t quantile (bisection on the CDF). */
+export function studentTQuantile(p: number, df: number): number {
+  if (!(p > 0 && p < 1)) throw new Error('studentTQuantile: p must be in (0, 1)');
+  if (p < 0.5) return -studentTQuantile(1 - p, df);
+  let lo = 0;
+  let hi = 1;
+  while (studentTCdf(hi, df) < p) hi *= 2;
+  for (let i = 0; i < 200 && hi - lo > 1e-12; i += 1) {
+    const mid = (lo + hi) / 2;
+    if (studentTCdf(mid, df) < p) lo = mid;
+    else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
+
+export interface MeanLowerBound {
+  readonly n: number;
+  readonly mean: number;
+  readonly sd: number;
+  readonly level: number;
+  readonly tQuantile: number;
+  /** max(0, mean − t_{level, n−1} · sd / √n). */
+  readonly lowerBound: number;
+}
+
+/** One-sided t-based lower confidence bound of a mean at `level` (drift record §4: the pilot mean's lower bound). */
+export function meanLowerBound(values: readonly number[], level: number): MeanLowerBound {
+  const n = values.length;
+  if (n < 2) throw new Error('meanLowerBound needs at least 2 values');
+  if (!(level > 0.5 && level < 1)) throw new Error('meanLowerBound: level must be in (0.5, 1)');
+  const mean = values.reduce((a, b) => a + b, 0) / n;
+  const sd = Math.sqrt(values.reduce((a, b) => a + (b - mean) ** 2, 0) / (n - 1));
+  const tq = studentTQuantile(level, n - 1);
+  return { n, mean, sd, level, tQuantile: tq, lowerBound: Math.max(0, mean - (tq * sd) / Math.sqrt(n)) };
+}
+
+/** `1,4,inf` → [1, 4, ∞]. */
+export function parseThetaBand(text: string): number[] {
+  const parts = text.split(',').map((s) => s.trim().toLowerCase()).filter((s) => s !== '');
+  if (parts.length === 0) throw new Error('theta band is empty');
+  return parts.map((s) => {
+    const v = s === 'inf' || s === 'infinity' || s === '∞' ? Number.POSITIVE_INFINITY : Number(s);
+    if (!(v > 0)) throw new Error(`theta band: ${s} is not a positive number or inf`);
+    return v;
+  });
+}
+
+export interface PilotInput {
+  /** Per generator, the pilot D of each run (none@L2, k = 5). */
+  readonly generators: Readonly<Record<string, readonly number[]>>;
+}
+
+export function validatePilot(raw: unknown): PilotInput {
+  const g = (raw as { generators?: unknown } | null)?.generators;
+  if (typeof g !== 'object' || g === null || Array.isArray(g) || Object.keys(g).length === 0) {
+    throw new Error('pilot file: { generators: { <name>: [D, ...] } }');
+  }
+  for (const [name, v] of Object.entries(g as Record<string, unknown>)) {
+    if (!Array.isArray(v) || v.length < 2 || !v.every((x) => Number.isInteger(x) && (x as number) >= 0)) {
+      throw new Error(`pilot file: generators.${name} must list at least 2 non-negative integer D values`);
+    }
+  }
+  return raw as PilotInput;
+}
+
+export interface PilotVerdict {
+  readonly perTheta: readonly { readonly theta: number; readonly power: number }[];
+  /** Power ≥ 0.80 at RR 0.25 under independent cells for every θ of the band; otherwise demoted to secondary. */
+  readonly keep: boolean;
+}
+
+export interface PilotPowerReport {
+  readonly level: number;
+  readonly band: readonly number[];
+  readonly grid: DriftGrid;
+  readonly bounds: Readonly<Record<string, MeanLowerBound>>;
+  readonly rows: readonly DriftRow[];
+  readonly verdict: Readonly<Record<DriftHypothesisId, PilotVerdict>>;
+}
+
+/**
+ * Drift record §4: power at 32 blocks (4 tasks × 4 replicates × the pilot's generators, k = 5), each generator's
+ * input mean being the one-sided lower bound of its pilot mean D, over a θ band, both correlation models.
+ */
+export function pilotPower(
+  pilot: PilotInput, level: number, band: readonly number[], sims: number, seed: number,
+  grid: DriftGrid = { tasks: 4, replicates: 4, generators: Object.keys(pilot.generators).length, k: 5 },
+): PilotPowerReport {
+  const names = Object.keys(pilot.generators);
+  const lbs = names.map((n) => meanLowerBound(pilot.generators[n] ?? [], level));
+  const bounds: Record<string, MeanLowerBound> = Object.fromEntries(names.map((n, i) => [n, at(lbs, i)]));
+  const rows: DriftRow[] = [];
+  for (const theta of band)
+    for (const corr of ['independent', 'shared'] as const)
+      for (const rr of DRIFT_RATE_RATIOS) {
+        const styles = lbs.map((b) => ({ mean: b.lowerBound, theta }));
+        rows.push(driftRow(`pilot lower bound, θ ${fTheta(theta)}`, styles, grid, rr, corr, sims, seed));
+      }
+  const rule = rows.filter((r) => r.corr === 'independent' && r.rr === POWER_RULE_RR);
+  const verdict = {} as Record<DriftHypothesisId, PilotVerdict>;
+  for (const h of HYPOTHESES_DRIFT) {
+    const perTheta = band.map((theta, i) => ({ theta, power: at(rule, i).power[h.id] }));
+    verdict[h.id] = { perTheta, keep: perTheta.every((x) => x.power >= POWER_RULE_TARGET) };
+  }
+  return { level, band, grid, bounds, rows, verdict };
+}
+
+// ── Drift rendering ─────────────────────────────────────────────────────────
+
+const fm = (x: number): string => (Number.isInteger(x) ? String(x) : x.toFixed(2));
+
+export function renderDriftTable(rows: readonly DriftRow[]): string {
+  const lines = [
+    '| Input | Mean D | θ | Model | Tasks × reps × generators (blocks) | Step turns | RR | H1 | H2 | Both |',
+    '|---|---|---|---|---|---|---|---|---|---|',
+  ];
+  for (const r of rows) {
+    const grid = `${String(r.grid.tasks)} × ${String(r.grid.replicates)} × ${String(r.grid.generators)} (${String(r.blocks)})`;
+    lines.push(
+      `| ${r.label} | ${fm(r.mean)} | ${fTheta(r.theta)} | ${r.corr} | ${grid} | ${String(r.stepTurns)} | ${String(r.rr)} | ${f2(r.power.H1)} | ${f2(r.power.H2)} | ${f2(r.all)} |`,
+    );
+  }
+  return lines.join('\n');
+}
+
+export function renderPilotReport(rep: PilotPowerReport): string {
+  const lines = [
+    `Lower bound: one-sided ${String(rep.level)} t bound of each generator's pilot mean D, floored at 0.`,
+    '',
+    '| Generator | n | Mean D | SD | t quantile | Lower bound |',
+    '|---|---|---|---|---|---|',
+  ];
+  for (const [name, b] of Object.entries(rep.bounds))
+    lines.push(`| ${name} | ${String(b.n)} |${f2(b.mean)} | ${f2(b.sd)} | ${b.tQuantile.toFixed(4)} | ${f2(b.lowerBound)} |`);
+  lines.push('', renderDriftTable(rep.rows), '', `Power rule (RR ${String(POWER_RULE_RR)}, independent cells, every θ of the band ≥ ${String(POWER_RULE_TARGET)}):`, '');
+  for (const h of HYPOTHESES_DRIFT) {
+    const v = rep.verdict[h.id];
+    const per = v.perTheta.map((x) => `θ ${fTheta(x.theta)}: ${f2(x.power)}`).join('; ');
+    lines.push(`- ${h.id} ${h.label}: ${per} → **${v.keep ? 'keep as confirmatory' : 'demote to secondary'}**`);
+  }
   return lines.join('\n');
 }

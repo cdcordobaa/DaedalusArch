@@ -140,6 +140,18 @@ export interface GenerationInterruption {
   readonly at: string;
   readonly subtype: string;
   readonly movedTo: string;
+  /** Gate S1: the pause the interruption caused (set by `runWithRetries`; absent on records written before S1). */
+  readonly pause?: GenerationPause;
+}
+
+/** One usage-limit pause (gate S1): reported apart from wall time. */
+export interface GenerationPause {
+  readonly startedAt: string;
+  readonly endedAt: string;
+  /** The pause the policy asked for (`usagePauseMs`). */
+  readonly plannedMs: number;
+  /** Measured on the clock: `endedAt − startedAt`. */
+  readonly ms: number;
 }
 
 /** An instantiated prompt and its provenance (BR-U5a-52). */

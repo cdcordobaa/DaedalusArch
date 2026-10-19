@@ -5,7 +5,8 @@
  * - **usage or rate limit** (`AttemptDisposition.kind = 'usage-limit'`): consumes **no** attempt; the interrupted
  *   directory is moved away by `hooks.onInterruption` (to `interruptions/`, listed in `interruptions[]`), the grid
  *   pauses until the reported reset time plus a margin (or `defaultUsagePauseMs` when none is reported), and the same
- *   cell resumes. More than `maxInterruptions` interruptions of one cell stop the grid (`GEN_USAGE_LIMIT_PERSISTS`)
+ *   cell resumes. Each pause's start, end, planned and measured duration is stored on its interruption (`pause`, gate
+ *   S1), so pause time is reported apart from wall time. More than `maxInterruptions` interruptions of one cell stop the grid (`GEN_USAGE_LIMIT_PERSISTS`)
  *   rather than record a model failure.
  * - **infrastructure failure** (spawn failure, timeout with zero files, exit before the first turn): recorded in
  *   `attempts[]`, retried at most `maxInfrastructureRetries` (2) times after a back-off, the cell directory reset by
@@ -18,6 +19,8 @@
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import type { AttemptDisposition } from './outcome.js';
 import type { GenerationAttempt, GenerationInterruption } from './types.js';
+
+export type { GenerationPause } from './types.js';
 
 export interface RetryPolicy {
   /** BR-U5a-50: at most two infrastructure retries (three attempts in all). */
@@ -116,8 +119,16 @@ export async function runWithRetries<T>(
       }
       const moved = hooks.onInterruption(interruptions.length);
       if (!moved.success) return DomainResult.fail(moved.errors);
-      interruptions.push({ at: iso(startedAt), subtype: d.usage.subtype, movedTo: moved.data });
-      await sleep(usagePauseMs(policy, clock.now(), d.usage.resetAt));
+      const pauseStart = clock.now();
+      const plannedMs = usagePauseMs(policy, pauseStart, d.usage.resetAt);
+      await sleep(plannedMs);
+      const pauseEnd = clock.now();
+      interruptions.push({
+        at: iso(startedAt),
+        subtype: d.usage.subtype,
+        movedTo: moved.data,
+        pause: { startedAt: iso(pauseStart), endedAt: iso(pauseEnd), plannedMs, ms: pauseEnd - pauseStart },
+      });
       continue;
     }
     attempts.push({ startedAt: iso(startedAt), outcome: d.label });
