@@ -10,6 +10,11 @@ jobs:
   build-and-test:
     name: Build & Test
     runs-on: ubuntu-latest
+    # The firewall self-evaluation step posts a PR comment and creates a check run with GITHUB_TOKEN.
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
 
     services:
       neo4j:
