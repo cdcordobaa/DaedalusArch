@@ -51,5 +51,5 @@ This plan is the single source of truth for the unit's code generation. Mark eac
 ### Step 6: checks, docs, audit, PR
 - [x] `npx tsc --noEmit -p .` and `-p tsconfig.scripts.json`: clean.
 - [x] ESLint on the changed `src/` and `scripts/` files: clean. (`scripts/v1.3/bf-01-run.ts` is outside the ESLint project, as on `main`; its change is one import line.)
-- [x] Full `npx jest --maxWorkers=2` (results in `code/summary.md`).
+- [x] Full `npx jest --maxWorkers=2` (results in `code/summary.md`); the new fixture projects pinned in `tests/fixtures/v1.3-byte-identity/v12e-hashes.json`, as that suite requires.
 - [x] `code/summary.md`; one appended `aidlc-docs/audit.md` entry; PR "BUILD-S: semantic paths (U9)" to `main`, not merged.

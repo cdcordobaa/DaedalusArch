@@ -38,7 +38,7 @@ Six cases and six twins; each target fires in C3 on `cypher-interp` (pairs 1 to 
 - `npx tsc --noEmit -p .`: clean. `npx tsc --noEmit -p tsconfig.scripts.json`: clean.
 - ESLint on the changed `src/` and `scripts/` files: clean. `scripts/v1.3/bf-01-run.ts` is outside the ESLint project (as on `main`); its change is one import and one re-export line.
 - New and changed suites: `routes` 10, `c4-contract` 15, `c4-cases` 22, `c4-invariance` 2, `a2-graph-smoke` 4, `semantic-facts` 8, `reading` 13: all pass.
-- Full `npx jest --maxWorkers=2`: see the PR description (filled when the run finished).
+- Full `npx jest --maxWorkers=2` on this branch: 519 suites pass, 7 fail (11 tests). One was this unit's: the new fixture projects were not yet in the v1.2E byte-identity pin list. They are now pinned in `tests/fixtures/v1.3-byte-identity/v12e-hashes.json`, and that suite passes (103/103). The other 6 suites fail identically on `origin/main` in this container and are not touched by this unit: `llm-critic/replay-no-binary`, `scripts/generators/{prompt-distinctness,skeleton}`, `scripts/u5b/{corpus-specs,rescore,score-golden-acceptance}` (`rescore` needs a commit the shallow clone lacks).
 
 ## Open items for the author
 
