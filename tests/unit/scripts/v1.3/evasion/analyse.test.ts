@@ -26,6 +26,26 @@ function grid(): RunSpecIn[] {
 
 const ABS = /(^|[^<])\/(Users|Volumes|home|private|tmp|var)\//;
 
+/** The report fields these tests read. */
+interface Rep {
+  readonly schema: string;
+  readonly identity: string;
+  readonly outRoot: string;
+  readonly cells: readonly string[];
+  readonly movedOnly: Readonly<Record<string, unknown>>;
+  readonly guardedPairs: { readonly observedNotInSpec: readonly (readonly string[])[] };
+  readonly flags: Readonly<Record<string, boolean | null>>;
+  readonly edgeless: number;
+  readonly sample: Readonly<Record<string, unknown>>;
+  readonly notHere: { readonly literalView: string };
+  readonly acceptance: Readonly<Record<string, { readonly stepsWithRecord: number; readonly stepsPassing: number }>>;
+  readonly excluded: { readonly evaluationMissing: number };
+  readonly diffs: readonly { readonly runId: string }[];
+  readonly humanRead: { readonly readers: number } | null;
+}
+
+const asRep = (v: unknown): Rep => v as Rep;
+
 describe('analyseEvasion over the fixture out-root', () => {
   it('is deterministic: byte-identical json and packet on two runs', async () => {
     const a = await analyseEvasion(loadedRuns(grid()), (id) => `/x/${id}`, OPTS, fixtureIO());
@@ -37,7 +57,7 @@ describe('analyseEvasion over the fixture out-root', () => {
 
   it('counts per cell, flags the observed pair without changing a count, and writes no absolute path', async () => {
     const r = await analyseEvasion(loadedRuns(grid()), (id) => `/x/${id}`, OPTS, fixtureIO());
-    const rep = r.report as Record<string, any>;
+    const rep = asRep(r.report);
     expect(rep.schema).toBe('study2-evasion/v1');
     expect(rep.identity).toBe('pilot-metrics');
     expect(rep.cells).toEqual(['daedalus-mcp@L2', 'none@L2']);
@@ -60,9 +80,9 @@ describe('analyseEvasion over the fixture out-root', () => {
 
   it('EV-01: steps before fromStep are never eligible and never counted in A1', async () => {
     const r = await analyseEvasion(loadedRuns(grid()), (id) => `/x/${id}`, { ...OPTS, fromStep: 3 }, fixtureIO());
-    const rep = r.report as Record<string, any>;
+    const rep = asRep(r.report);
     expect(r.diffs).toHaveLength(0);
-    expect(rep.acceptance['none@L2'].stepsWithRecord).toBe(0);
+    expect(rep.acceptance['none@L2']?.stepsWithRecord).toBe(0);
   });
 
   it('EV-02: a step without an evaluation is excluded and counted; without acceptance it never passes', async () => {
@@ -71,9 +91,9 @@ describe('analyseEvasion over the fixture out-root', () => {
       { caseName: 'inlined', arm: 'daedalus-mcp', rung: 'L2', acceptance: false },
     ]);
     const r = await analyseEvasion(runs, (id) => `/x/${id}`, OPTS, fixtureIO());
-    const rep = r.report as Record<string, any>;
+    const rep = asRep(r.report);
     expect(rep.excluded.evaluationMissing).toBe(1);
-    expect(rep.acceptance['daedalus-mcp@L2'].stepsPassing).toBe(0);
+    expect(rep.acceptance['daedalus-mcp@L2']?.stepsPassing).toBe(0);
     expect(rep.sample.pool).toBe(0);
     expect(rep.flags.acceptanceIncomplete).toBe(true);
   });
@@ -100,9 +120,9 @@ describe('the entry body over a real out-root (one snapshots.git per run)', () =
     if (typeof args === 'string') throw new Error(args);
     const r = await runEvasion(args, process.cwd(), () => new Date('2026-10-18T00:00:00Z'));
     expect(r.exitCode).toBe(0);
-    const rep = JSON.parse(fs.readFileSync(path.join(dir, 'report', 'evasion.json'), 'utf8')) as Record<string, any>;
+    const rep = asRep(JSON.parse(fs.readFileSync(path.join(dir, 'report', 'evasion.json'), 'utf8')));
     expect(rep.outRoot).toBe('<out-root>');
-    expect(rep.diffs.map((d: { runId: string }) => d.runId.split('/')[2]).sort()).toEqual(['tool-tell', 'tool-tell', 'wrapped']);
+    expect(rep.diffs.map((d) => d.runId.split('/')[2] ?? '').sort()).toEqual(['tool-tell', 'tool-tell', 'wrapped']);
     const packet = fs.readdirSync(path.join(dir, 'report', 'packet')).sort();
     expect(packet).toEqual(['E-01.md', 'E-02.md', 'E-03.md', 'README.md', 'form.csv']);
     const all = packet.map((f) => fs.readFileSync(path.join(dir, 'report', 'packet', f), 'utf8')).join('\n');
@@ -124,8 +144,8 @@ describe('the entry body over a real out-root (one snapshots.git per run)', () =
     fs.writeFileSync(keyFile, key);
     const read = await runEvasion({ ...args, labels: form }, process.cwd());
     expect(read.exitCode).toBe(0);
-    const unblinded = JSON.parse(fs.readFileSync(path.join(dir, 'report', 'evasion.json'), 'utf8')) as Record<string, any>;
-    expect(unblinded.humanRead.readers).toBe(1);
+    const unblinded = asRep(JSON.parse(fs.readFileSync(path.join(dir, 'report', 'evasion.json'), 'utf8')));
+    expect(unblinded.humanRead?.readers).toBe(1);
     expect(typeof unblinded.flags.evasionHumanRead).toBe('boolean');
   });
 });

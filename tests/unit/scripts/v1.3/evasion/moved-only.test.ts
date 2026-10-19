@@ -24,7 +24,7 @@ async function run(name: string): Promise<{ c: Case; r: ReturnType<typeof analys
 }
 
 describe('A2: each planted case gives its expected kind, signals and class', () => {
-  it.each(ALL_CASES.filter((n) => n !== 'outside-context' && n !== 'observed-pair'))('%s', async (name) => {
+  it.each(ALL_CASES.filter((n) => n !== 'outside-context' && n !== 'observed-pair'))('%s', async (name: string) => {
     const { c, r } = await run(name);
     expect(r.kind).toBe(c.expected.kind);
     expect([...r.signals]).toEqual(c.expected.signals);

@@ -4,7 +4,7 @@
  * Usage (repository root):
  *   npx tsx scripts/loop-harness-cli.ts --plan <plan.json> [--dry-run] [--binary <abs>] [--harness-root <abs>]
  *                                       [--out-root <abs>] [--codex-home <abs>] [--codex-user-home <abs>]
- *                                       [--claude-config-dir <abs>]
+ *                                       [--claude-config-dir <abs>] [--gemini-home-none <abs>] [--gemini-home-mcp <abs>]
  *                                       [--engine neo4j|cypher-interp|both] [--call-log]
  *   npx tsx scripts/loop-harness-cli.ts --help
  *
@@ -55,9 +55,12 @@ import { realSleep, systemClock } from '../generators/retry.js';
 import type { Clock, Sleeper } from '../generators/retry.js';
 import { checkSkeletonIntact, ensureHarness, prepareCellDir } from '../generators/skeleton.js';
 import type { SkeletonInstall } from '../generators/skeleton.js';
-import { CODEX_CLI_ADAPTER_ID_VALUE } from '../generators/types.js';
+import { AGY_GEN_CLI_ADAPTER_ID, CLAUDE_CODE_ADAPTER_ID, CODEX_CLI_ADAPTER_ID_VALUE } from '../generators/types.js';
+import { agyGenArmOf } from '../generators/agy-gen-cli.js';
+import { agyGenConfigFromPlan, checkS4Result } from '../generators/agy-gen-plan.js';
+import type { GeminiHomes } from '../generators/agy-gen-plan.js';
 import { acceptanceRunner } from './acceptance.js';
-import { ClaudeStepAgent, CodexStepAgent } from './agents.js';
+import { ClaudeStepAgent, CodexStepAgent, GeminiStepAgent } from './agents.js';
 import { checkIsolationPaths } from './isolation.js';
 import { harnessTypechecker, loopEvaluatorOf } from './evaluator.js';
 import { evaluatorForEngine, parseLoopEngine } from './engine-tee.js';
@@ -81,7 +84,7 @@ export const LOOP_SCHEDULE_JSON = 'schedule.json';
 export const LOOP_USAGE = [
   'usage: npx tsx scripts/loop-harness-cli.ts --plan <plan.json> [--dry-run] [--binary <abs>] [--harness-root <abs>]',
   '                                          [--out-root <abs>] [--codex-home <abs>] [--codex-user-home <abs>]',
-  '                                          [--claude-config-dir <abs>]',
+  '                                          [--claude-config-dir <abs>] [--gemini-home-none <abs>] [--gemini-home-mcp <abs>]',
   '                                          [--engine neo4j|cypher-interp|both] [--call-log]',
   '       npx tsx scripts/loop-harness-cli.ts --help',
   '',
@@ -92,6 +95,8 @@ export const LOOP_USAGE = [
   '--call-log (off by default): daedalus-mcp turns log their MCP calls under calls/ and steps get a process block.',
   '--engine (or the plan\'s "engine") picks the evaluator\'s graph engine; both = Neo4j of record plus an',
   'interpreter parity check on every snapshot. Absent = the default wiring.',
+  'An agy-cli (Gemini) adapter is off by default: it needs a gemini block with enabled: true, and a live grid refuses',
+  'it without a passing committed S4 result; --gemini-home-none / --gemini-home-mcp fill its "<local>" homes.',
   '',
 ].join('\n');
 
@@ -131,6 +136,8 @@ interface ParsedArgs {
   readonly plan?: string;
   readonly local: LocalOverrides;
   readonly codexHomes: CodexHomes;
+  /** `--gemini-home-none`, `--gemini-home-mcp`: the `"<local>"` generator homes of an `agy-cli` adapter. */
+  readonly geminiHomes: GeminiHomes;
   /** `--engine`; absent = the plan's `engine`, else the default wiring. */
   readonly engine?: LoopEngine;
 }
@@ -143,6 +150,7 @@ export function parseLoopArgs(argv: readonly string[]): DomainResult<ParsedArgs>
   let engine: string | undefined;
   const local: { binary?: string; harnessRoot?: string; outRoot?: string; claudeConfigDir?: string } = {};
   const homes: { codexHome?: string; userHome?: string } = {};
+  const geminiHomes: { none?: string; mcp?: string } = {};
   const value = (i: number): string | undefined => {
     const v = argv[i + 1];
     return v !== undefined && !v.startsWith('--') ? v : undefined;
@@ -155,6 +163,8 @@ export function parseLoopArgs(argv: readonly string[]): DomainResult<ParsedArgs>
     '--codex-home': (v) => (homes.codexHome = v),
     '--codex-user-home': (v) => (homes.userHome = v),
     '--claude-config-dir': (v) => (local.claudeConfigDir = v),
+    '--gemini-home-none': (v) => (geminiHomes.none = v),
+    '--gemini-home-mcp': (v) => (geminiHomes.mcp = v),
     '--engine': (v) => (engine = v),
   };
   for (let i = 0; i < argv.length; i++) {
@@ -172,7 +182,7 @@ export function parseLoopArgs(argv: readonly string[]): DomainResult<ParsedArgs>
   if (!help && plan === undefined) return DomainResult.fail([{ code: 'LOOP_USAGE', message: '--plan <file> is required' }]);
   const parsedEngine = engine !== undefined ? parseLoopEngine(engine) : undefined;
   if (engine !== undefined && parsedEngine === undefined) return DomainResult.fail([{ code: 'LOOP_USAGE', message: `--engine must be neo4j, cypher-interp or both, not ${JSON.stringify(engine)}` }]);
-  return DomainResult.ok({ help, dryRun, callLog, local, codexHomes: homes, ...(plan !== undefined ? { plan } : {}), ...(parsedEngine !== undefined ? { engine: parsedEngine } : {}) });
+  return DomainResult.ok({ help, dryRun, callLog, local, codexHomes: homes, geminiHomes, ...(plan !== undefined ? { plan } : {}), ...(parsedEngine !== undefined ? { engine: parsedEngine } : {}) });
 }
 
 function sha256File(file: string): string {
@@ -344,6 +354,17 @@ function dryRunWiring(loaded: LoadedPlan, repoRoot: string): DomainResult<Wiring
   });
 }
 
+/**
+ * Which step agent the live wiring builds for an adapter id. The Claude branch is explicit: an id that is none of the
+ * three gets null (`LOOP_ADAPTER_UNKNOWN`), never a `ClaudeStepAgent` with another generator's model id.
+ */
+export function liveAgentKind(adapterId: string): 'claude' | 'codex' | 'gemini' | null {
+  if (adapterId === CLAUDE_CODE_ADAPTER_ID) return 'claude';
+  if (adapterId === CODEX_CLI_ADAPTER_ID_VALUE) return 'codex';
+  if (adapterId === AGY_GEN_CLI_ADAPTER_ID) return 'gemini';
+  return null;
+}
+
 /** The engine of a live grid: `--engine`, else the plan's `engine`, else `neo4j` (never the NEO4J_URI default). */
 export function liveEngine(flag: LoopEngine | undefined, plan: LoopEngine | undefined): LoopEngine {
   return flag ?? plan ?? 'neo4j';
@@ -362,6 +383,13 @@ async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs
     const problems = checkIsolationPaths(isolation, where);
     if (problems.length > 0) return DomainResult.fail(problems);
   }
+  // S4 guard (decision CDX): a pre-pass over every adapter, before anything spawns (no `claude --version`, no skeleton
+  // install), so a Gemini adapter without a passing committed S4 result stops the grid even when listed after Claude.
+  for (const a of plan.adapters) {
+    if (a.adapterId !== AGY_GEN_CLI_ADAPTER_ID) continue;
+    const s4 = checkS4Result(repoRoot, plan.gemini, a.modelId, plan.arms);
+    if (!s4.success) return DomainResult.fail(s4.errors);
+  }
   // A plan with a pin or isolation probes its adapters before the skeleton install; any other plan keeps the old order.
   const pinned = isolation !== undefined || plan.adapters.some((a) => a.cliVersion !== undefined);
   let install: SkeletonInstall | undefined;
@@ -373,7 +401,18 @@ async function liveWiring(loaded: LoadedPlan, repoRoot: string, args: ParsedArgs
   const common = { runner: deps.runner, parentEnv: deps.parentEnv, clock: deps.clock, sleep: deps.sleep, ...(plan.daedalus !== undefined ? { daedalus: plan.daedalus } : {}) };
   const agents = new Map<string, StepAgent>();
   for (const a of plan.adapters) {
-    if (a.adapterId === CODEX_CLI_ADAPTER_ID_VALUE) {
+    const kind = liveAgentKind(a.adapterId);
+    if (kind === null) return DomainResult.fail([{ code: 'LOOP_ADAPTER_UNKNOWN', message: `no live wiring for adapter ${a.adapterId}` }]);
+    if (kind === 'gemini') {
+      const c = agyGenConfigFromPlan(plan, a.modelId, repoRoot, args.geminiHomes);
+      if (!c.success) return DomainResult.fail(c.errors);
+      const agent = new GeminiStepAgent(c.data, common);
+      const probed = await agent.probe([...new Set(plan.arms.map(agyGenArmOf))]);
+      if (!probed.success) return DomainResult.fail(probed.errors);
+      agents.set(agentKey(a.adapterId, a.modelId), agent);
+      continue;
+    }
+    if (kind === 'codex') {
       const c = codexConfigFromPlan(plan, a.modelId, repoRoot, args.codexHomes);
       if (!c.success) return DomainResult.fail(c.errors);
       const agent = new CodexStepAgent(c.data, { ...common, repoRoot });

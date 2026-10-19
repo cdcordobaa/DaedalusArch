@@ -21,10 +21,17 @@ export const CLAUDE_CODE_ADAPTER_ID = 'claude-code-cli' as const;
 /** Adapter id of the Codex arm (ADR-029; `codex-cli.ts`). */
 export const CODEX_CLI_ADAPTER_ID_VALUE = 'codex-cli' as const;
 
-/** Every known adapter id. */
+/**
+ * Adapter id of the Gemini generator over the Antigravity CLI `agy` (decision CDX; `agy-gen-cli.ts`). Loop plans only,
+ * off by default, NOT yet through its S4 confinement probe (`Docs/v1.4/gemini-s4-probe-spec.md`). It is deliberately
+ * not in `GENERATOR_ADAPTER_IDS`, so the E1 schedule and the registered plan are unchanged.
+ */
+export const AGY_GEN_CLI_ADAPTER_ID = 'agy-cli' as const;
+
+/** Every known adapter id of the E1 grid (the loop adds `agy-cli`: `LOOP_ADAPTER_IDS` in `scripts/lib/loop/plan.ts`). */
 export const GENERATOR_ADAPTER_IDS: readonly string[] = Object.freeze([CLAUDE_CODE_ADAPTER_ID, CODEX_CLI_ADAPTER_ID_VALUE]);
 
-export type GeneratorAdapterId = typeof CLAUDE_CODE_ADAPTER_ID | typeof CODEX_CLI_ADAPTER_ID_VALUE;
+export type GeneratorAdapterId = typeof CLAUDE_CODE_ADAPTER_ID | typeof CODEX_CLI_ADAPTER_ID_VALUE | typeof AGY_GEN_CLI_ADAPTER_ID;
 
 /** Default wall-clock limit of one CLI call (BR-U5a-50: 20 min). */
 export const DEFAULT_GENERATOR_TIMEOUT_MS = 1_200_000;

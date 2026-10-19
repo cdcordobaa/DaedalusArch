@@ -96,26 +96,26 @@
 
 ## Part B: the Gemini generator adapter
 
-- [ ] **Step 13. Generator fixtures.** Create `tests/fixtures/agy-gen-cli/` with a `README.md` saying the fixtures are synthetic, modelled on `tests/fixtures/agy-cli/` event shapes, and not probe output. The fixtures are:
+- [x] **Step 13. Generator fixtures.** Create `tests/fixtures/agy-gen-cli/` with a `README.md` saying the fixtures are synthetic, modelled on `tests/fixtures/agy-cli/` event shapes, and not probe output. The fixtures are:
   - stream-json files: `stream-gen-completed.ndjson` (write steps, then finish), `stream-gen-model-mismatch.ndjson`, `stream-gen-print-timeout.ndjson` (exit 0, SUCCESS, empty answer, with the stderr line in a sibling `.stderr.txt`), `stream-gen-denied-tool.ndjson`, `stream-gen-tool-escape.ndjson` (a completed `read_url`) and `stream-gen-usage-limit.ndjson`;
   - home settings: `gen-settings-none.json` and `gen-settings-mcp.json`;
   - `s4-result.synthetic.json`, with `"synthetic": true` and verdict `pass`.
-- [ ] **Step 14. S4 probe spec.** Create `Docs/v1.4/gemini-s4-probe-spec.md` from design §4: probes G0–G12, pass rules, 24 model calls with a cap of 30, the result file path, the fail rule, the prerequisites and the author's OK. Status: **spec only, not run**. Add a stub `scripts/generator/probes/agy-gen-confinement.ts` only if the author asks; by default the probe code is a later unit (design §4).
-- [ ] **Step 15. Adapter id.** Edit `scripts/lib/generators/types.ts`: add `AGY_GEN_CLI_ADAPTER_ID = 'agy-cli' as const` and widen `GeneratorAdapterId`. Leave `GENERATOR_ADAPTER_IDS` unchanged, so the E1 schedule and the registered plan stay byte-identical; `registered-plan.test.ts` stays green.
-- [ ] **Step 16. CLI module.** Create `scripts/lib/generators/agy-gen-cli.ts`, reusing `AGY_ENV_ALLOW`, `AGY_ENV_SET`, `AGY_HOME_FORBIDDEN_NAMES`, `AGY_ANCESTOR_FORBIDDEN`, `AGY_CLASSIFIER`, `readAgyStream`, `executedTools`, `deniedToolCount`, `parseAgyVersion` and `findAgyAncestorContext` from `src/llm-critic/agy-cli-provider.ts` (import, don't copy). **Do not reuse `classifyAgyResult`, `checkAgySettings` or `checkAgyHome`.** They are the labeller's contract: any completed tool is an isolation stop, writes, commands and MCP are denied, and the allow list and MCP config are empty. A generator fails all of these by design (design §3.4). Do not edit `src/llm-critic/`. The module contains:
+- [x] **Step 14. S4 probe spec.** Create `Docs/v1.4/gemini-s4-probe-spec.md` from design §4: probes G0–G12, pass rules, 24 model calls with a cap of 30, the result file path, the fail rule, the prerequisites and the author's OK. Status: **spec only, not run**. Add a stub `scripts/generator/probes/agy-gen-confinement.ts` only if the author asks; by default the probe code is a later unit (design §4).
+- [x] **Step 15. Adapter id.** Edit `scripts/lib/generators/types.ts`: add `AGY_GEN_CLI_ADAPTER_ID = 'agy-cli' as const` and widen `GeneratorAdapterId`. Leave `GENERATOR_ADAPTER_IDS` unchanged, so the E1 schedule and the registered plan stay byte-identical; `registered-plan.test.ts` stays green.
+- [x] **Step 16. CLI module.** Create `scripts/lib/generators/agy-gen-cli.ts`, reusing `AGY_ENV_ALLOW`, `AGY_ENV_SET`, `AGY_HOME_FORBIDDEN_NAMES`, `AGY_ANCESTOR_FORBIDDEN`, `AGY_CLASSIFIER`, `readAgyStream`, `executedTools`, `deniedToolCount`, `parseAgyVersion` and `findAgyAncestorContext` from `src/llm-critic/agy-cli-provider.ts` (import, don't copy). **Do not reuse `classifyAgyResult`, `checkAgySettings` or `checkAgyHome`.** They are the labeller's contract: any completed tool is an isolation stop, writes, commands and MCP are denied, and the allow list and MCP config are empty. A generator fails all of these by design (design §3.4). Do not edit `src/llm-critic/`. The module contains:
   - `AgyGenCliConfig` and `createAgyGenCliConfig` (absolute homes outside the repo, the out-root and every cwd; the version is `x.y.z`);
   - `buildAgyGenArgs` (design §3.4; the prompt is not in argv);
   - `buildAgyGenChildEnv` (it strips `*_KEY` and `*_TOKEN`);
   - `checkAgyGenSettings(text, arm, expectedAllow)` and `checkAgyGenHome(home, arm, expectedAllow)`: names and settings keys only. The `none` home has no MCP entry; the mcp home has only `daedalus-arch`. The allow list equals exactly `expectedAllow` for this run and arm. The home's name-listing sha256 is returned for `env-<turnId>.json`;
   - `checkAncestors(cwd)`, through `findAgyAncestorContext`;
   - `writeAgyTurnFiles(home, arm, runId, harnessRoot, input?, cwd, callLogPath?)`. It writes the run's type-check allow rule (`typecheckCommand(harnessRoot, runId)`) and, for `daedalus-mcp`, the MCP entry. The MCP file is the constant `.gemini/config/mcp_config.json` (the labeller's checked path), marked `UNVERIFIED (S4 G0, G9)`. No credential file is read or written.
-- [ ] **Step 17. Events and disposition.** Create `scripts/lib/generators/agy-gen-events.ts` with:
+- [x] **Step 17. Events and disposition.** Create `scripts/lib/generators/agy-gen-events.ts` with:
   - `parseAgyGenRun(stdout, secrets) → DomainResult<ParsedEnvelope>` (the mapping of design §3.5, scrubbed);
   - `agyGenAttemptDisposition(cli, envelope, changed)` (the table in design §3.5; the print timeout comes from the stderr pattern, because agy exits 0);
   - `agyGenTurnStatus(cli, exhausted, envelope, modelId)` for the `status` hook;
   - `agyGenStop(cli, stream, arm)`, which returns `LOOP_GEMINI_AUTH` or `LOOP_GEMINI_TOOL_ESCAPE` (a completed step outside the arm's allow list), or null.
-- [ ] **Step 18. Plan block.** Create `scripts/lib/generators/agy-gen-plan.ts`: `GeminiPlanBlock`, `geminiBlockProblems(block, present)` (`enabled === true`, the version, `printTimeoutS` from 60 to 1170 with default 1170 so that `timeoutMs = (printTimeoutS + 30) × 1000` equals `DEFAULT_GENERATOR_TIMEOUT_MS`, `homes`, `s4Result` repo-relative), `agyGenConfigFromPlan(plan, modelId, repoRoot, homes)`, and `checkS4Result(repoRoot, block, modelId, arms)`. The last returns `LOOP_GEMINI_S4_MISSING`, `LOOP_GEMINI_S4_FAILED`, `LOOP_GEMINI_S4_MISMATCH` or `LOOP_GEMINI_S4_SYNTHETIC` (synthetic is refused unless the caller passes `allowSynthetic`, which only the dry-run entry does).
-- [ ] **Step 19. Step agent.** Edit `scripts/lib/loop/agents.ts`.
+- [x] **Step 18. Plan block.** Create `scripts/lib/generators/agy-gen-plan.ts`: `GeminiPlanBlock`, `geminiBlockProblems(block, present)` (`enabled === true`, the version, `printTimeoutS` from 60 to 1170 with default 1170 so that `timeoutMs = (printTimeoutS + 30) × 1000` equals `DEFAULT_GENERATOR_TIMEOUT_MS`, `homes`, `s4Result` repo-relative), `agyGenConfigFromPlan(plan, modelId, repoRoot, homes)`, and `checkS4Result(repoRoot, block, modelId, arms)`. The last returns `LOOP_GEMINI_S4_MISSING`, `LOOP_GEMINI_S4_FAILED`, `LOOP_GEMINI_S4_MISMATCH` or `LOOP_GEMINI_S4_SYNTHETIC` (synthetic is refused unless the caller passes `allowSynthetic`, which only the dry-run entry does).
+- [x] **Step 19. Step agent.** Edit `scripts/lib/loop/agents.ts`.
   - Add an optional `status?: (cli, exhausted, envelope, modelId) => TurnStatus` to `CallPlan`. `driveTurn` uses it when set and `turnStatus` otherwise. Claude and Codex pass none, so their records are byte-identical.
   - Add `GeminiStepAgent implements StepAgent`, with:
     - the adapter id `agy-cli`;
@@ -123,14 +123,14 @@
     - `plan(input)`: argv and prompt, through `armPrompt` and `generatorArmFor`;
     - `runTurn(input)`: the tsconfig, the ancestor check and `writeAgyTurnFiles`, then `driveTurn`. Its call plan has `stdin` = the prompt, `parse` = `parseAgyGenRun` (which also keeps the last stream for `agyGenStop`), `disposition` = `agyGenAttemptDisposition`, `status` = `agyGenTurnStatus`, `before` = the home check and `envRecord` = the env names plus the home listing hash. After `driveTurn`, if `agyGenStop` fired, `runTurn` returns `DomainResult.fail` with that code, which stops the grid.
   - Update the file header to list the Gemini route as **not yet through S4**.
-- [ ] **Step 20. Plan validation.** Edit `scripts/lib/loop/plan.ts`: add `LOOP_ADAPTER_IDS`, use it in the adapters check, and update the error text. Add `gemini?: GeminiPlanBlock` to the plan type. In `pinProblems`, an `agy-cli` `cliVersion` must equal `gemini.cliVersion`. Call `geminiBlockProblems(raw.gemini, present)`.
-- [ ] **Step 21. Live wiring, off by default.** Edit `scripts/lib/loop/main.ts`:
+- [x] **Step 20. Plan validation.** Edit `scripts/lib/loop/plan.ts`: add `LOOP_ADAPTER_IDS`, use it in the adapters check, and update the error text. Add `gemini?: GeminiPlanBlock` to the plan type. In `pinProblems`, an `agy-cli` `cliVersion` must equal `gemini.cliVersion`. Call `geminiBlockProblems(raw.gemini, present)`.
+- [x] **Step 21. Live wiring, off by default.** Edit `scripts/lib/loop/main.ts`:
   - parse `--gemini-home-none` and `--gemini-home-mcp` (filling `"<local>"`) and add them to `LOOP_USAGE`;
   - in the live wiring, add a **pre-pass** before the adapter loop and before `ensureHarness`: it runs `checkS4Result` for every `agy-cli` adapter, so nothing is spawned (no `claude --version`, no skeleton install) when the guard refuses;
   - add the `agy-cli` branch: `agyGenConfigFromPlan`, then `GeminiStepAgent.probe()`, failing closed on each;
   - make the Claude branch explicit (`adapterId === CLAUDE_CODE_ADAPTER_ID`) and fail any other id with `LOOP_ADAPTER_UNKNOWN`. Today every non-Codex id falls through to `ClaudeStepAgent`;
   - dry-run wiring is unchanged (stub agents for every adapter id, `agy-cli` included).
-- [ ] **Step 22. Adapter unit tests.**
+- [x] **Step 22. Adapter unit tests.**
   - `tests/unit/scripts/generators/agy-gen.test.ts`: argv, env, home check (including an extra allow entry and another run's type-check command failing), ancestors, the turn-file writer, event parsing over the Step 13 fixtures, the disposition table, and a test that `classifyAgyResult` is not imported;
   - `tests/unit/scripts/loop/agents-gemini.test.ts`: `GeminiStepAgent` with a scripted `ProcessRunner`. Per arm it covers:
     - statuses, including the exit-0 print timeout giving `timeout` through the `status` hook;
@@ -147,8 +147,8 @@
     - the two stop codes ending the grid.
 
   Run `npx jest tests/unit/scripts/generators tests/unit/scripts/loop --maxWorkers=2`. The existing `agents.test.ts` and `codex.test.ts` must pass unchanged.
-- [ ] **Step 23. Recorded adapter dry run.** Create `scripts/v1.3/gemini-adapter-dry-run.ts`, which calls `runLoopGrid` with a wiring of the real `GeminiStepAgent`. Its scripted `ProcessRunner` answers `--version`, emits the `stream-gen-completed` events, and writes the stub generator files through `layoutStubScript` (Layered layout). It writes the Clean layout through `layoutStubScript` (`CLEAN_STUB_LAYOUT`): the loop harness has no Layered style, and adding one is outside this unit (design R14). It uses the stub evaluator and typechecker, 2 demo tasks × {`none`, `daedalus-mcp`} × 1 run × k = 3, and the `s4-result.synthetic.json` fixture with `allowSynthetic`. The out-root, harness root, work directories and both homes sit in one OS temp scratch directory, so the ancestor check sees no `.git`. Only the scrubbed summary is copied into `results/`. Output: `results/v1.4-gemini-adapter-dry-run/summary.json` (turns and statuses per run, the redacted argv per arm, env names only, the model check, the MCP config with `<cwd>`, `<H>` and `<spec>` placeholders) and `README.md` ("scripted runner, no model call, not a measurement"). A test in `agents-gemini.test.ts` runs the same function into a temp dir and asserts there is no absolute path and no env value in the summary.
-- [ ] **Step 24. Adapter doc.** Create `Docs/v1.4/gemini-generator.md`. It covers:
+- [x] **Step 23. Recorded adapter dry run.** Create `scripts/v1.3/gemini-adapter-dry-run.ts`, which calls `runLoopGrid` with a wiring of the real `GeminiStepAgent`. Its scripted `ProcessRunner` answers `--version`, emits the `stream-gen-completed` events, and writes the stub generator files through `layoutStubScript` (Layered layout). It writes the Clean layout through `layoutStubScript` (`CLEAN_STUB_LAYOUT`): the loop harness has no Layered style, and adding one is outside this unit (design R14). It uses the stub evaluator and typechecker, 2 demo tasks × {`none`, `daedalus-mcp`} × 1 run × k = 3, and the `s4-result.synthetic.json` fixture with `allowSynthetic`. The out-root, harness root, work directories and both homes sit in one OS temp scratch directory, so the ancestor check sees no `.git`. Only the scrubbed summary is copied into `results/`. Output: `results/v1.4-gemini-adapter-dry-run/summary.json` (turns and statuses per run, the redacted argv per arm, env names only, the model check, the MCP config with `<cwd>`, `<H>` and `<spec>` placeholders) and `README.md` ("scripted runner, no model call, not a measurement"). A test in `agents-gemini.test.ts` runs the same function into a temp dir and asserts there is no absolute path and no env value in the summary.
+- [x] **Step 24. Adapter doc.** Create `Docs/v1.4/gemini-generator.md`. It covers:
   - the route and why (design §3.1);
   - the plan block, which is off by default;
   - the confinement design, with every **UNVERIFIED** item tied to its S4 probe id;
@@ -158,7 +158,7 @@
 
 ## Part C: close-out
 
-- [ ] **Step 25. Whole-unit checks.**
+- [x] **Step 25. Whole-unit checks.**
   - `npx tsc --noEmit -p tsconfig.json`, or the repo's typecheck script;
   - `npx jest tests/unit/scripts/v1.3/evasion tests/unit/scripts/generators tests/unit/scripts/loop --maxWorkers=2`;
   - `node scripts/v1.3/protocol-consistency-check.mjs`, which must still pass unchanged (no protocol line was touched);
@@ -166,6 +166,7 @@
 
   List any test that needs Neo4j as skipped, with its name (none expected).
 - [ ] **Step 26. Code summary.** Create `aidlc-docs/construction/v1.4/U5/code/summary.md` (markdown only). It gives the files created and edited, the test counts, the dry-run result paths, the open S4 prerequisites and the author questions still open. Mark this plan's checkboxes as the steps complete.
+  - **Status 2026-10-18:** the build agent's harness refused to create `code/summary.md` (its rule: an agent does not write report files). The summary is in the PR description instead; the orchestrator can commit it to `code/summary.md` from there. Every other checkbox is ticked.
 
 ---
 

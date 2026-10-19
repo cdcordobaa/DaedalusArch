@@ -5,14 +5,22 @@
 import type { AcceptanceRecord, StepRecord } from '../../../../../scripts/lib/loop/types.js';
 import { acceptanceGap, cellAcceptance, cellOf, notPassingReason, stepPasses } from '../../../../../scripts/v1.3/lib/evasion/acceptance-rate.js';
 import type { LoadedRun } from '../../../../../scripts/v1.3/lib/study2-analysis.js';
-import { loadedRuns } from './helpers.js';
+import { oneRun } from './helpers.js';
 
 const acc = (status: AcceptanceRecord['status'], passed = 3, failed = 0, errors = 0): AcceptanceRecord => ({
   schema: 'loop-acceptance/v1', status, passed, failed, skipped: 0, errors, durationMs: 0, testFileSha256: 'x', files: [],
 });
 
 function withAcceptance(r: LoadedRun, a: readonly (AcceptanceRecord | undefined)[]): LoadedRun {
-  return { run: r.run, steps: r.steps.map((s, i): StepRecord => { const { acceptance: _drop, ...rest } = s; void _drop; const v = a[i]; return v === undefined ? rest : { ...rest, acceptance: v }; }) };
+  return {
+    run: r.run,
+    steps: r.steps.map((s, i): StepRecord => {
+      const rest: StepRecord = { ...s };
+      delete (rest as { acceptance?: AcceptanceRecord }).acceptance;
+      const v = a[i];
+      return v === undefined ? rest : { ...rest, acceptance: v };
+    }),
+  };
 }
 
 describe('A1 pass rule', () => {
@@ -26,15 +34,14 @@ describe('A1 pass rule', () => {
   });
 
   it('cells are <arm>@<rung>, or <arm>@- without a frame', () => {
-    const [a, b] = loadedRuns([{ caseName: 'wrapped', arm: 'none', rung: 'L2' }, { caseName: 'wrapped', arm: 'daedalus-mcp' }]);
-    expect(cellOf(a!.run)).toBe('none@L2');
-    expect(cellOf(b!.run)).toBe('daedalus-mcp@-');
+    expect(cellOf(oneRun({ caseName: 'wrapped', arm: 'none', rung: 'L2' }).run)).toBe('none@L2');
+    expect(cellOf(oneRun({ caseName: 'wrapped', arm: 'daedalus-mcp' }).run)).toBe('daedalus-mcp@-');
   });
 });
 
 describe('A1 per cell and the paired gap', () => {
-  const none = (task: string, a: (AcceptanceRecord | undefined)[]) => withAcceptance(loadedRuns([{ caseName: 'wrapped', arm: 'none', rung: 'L2', taskId: task }])[0]!, a);
-  const mcp = (task: string, a: (AcceptanceRecord | undefined)[]) => withAcceptance(loadedRuns([{ caseName: 'wrapped', arm: 'daedalus-mcp', rung: 'L2', taskId: task }])[0]!, a);
+  const none = (task: string, a: (AcceptanceRecord | undefined)[]): LoadedRun => withAcceptance(oneRun({ caseName: 'wrapped', arm: 'none', rung: 'L2', taskId: task }), a);
+  const mcp = (task: string, a: (AcceptanceRecord | undefined)[]): LoadedRun => withAcceptance(oneRun({ caseName: 'wrapped', arm: 'daedalus-mcp', rung: 'L2', taskId: task }), a);
 
   it('steps before fromStep are ignored (EV-01); coverage counts ran steps', () => {
     const c = cellAcceptance([none('t1', [undefined, acc('ran')]), none('t2', [acc('ran'), acc('build-failed')])], 2);

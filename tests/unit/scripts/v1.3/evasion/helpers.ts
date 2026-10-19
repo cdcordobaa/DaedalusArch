@@ -47,24 +47,24 @@ export interface Case {
   readonly expected: Expected;
 }
 
-function readJson<T>(file: string): T {
-  return JSON.parse(fs.readFileSync(file, 'utf8')) as T;
+function readJson(file: string): unknown {
+  return JSON.parse(fs.readFileSync(file, 'utf8')) as unknown;
 }
 
 export function loadCase(name: string): Case {
   const dir = path.join(FIX, name);
   const renameFile = path.join(dir, 'rename.json');
   const rename: RenameMap = fs.existsSync(renameFile)
-    ? { map: new Map(Object.entries(readJson<Record<string, string>>(renameFile))), renameDetection: 'full' }
+    ? { map: new Map(Object.entries(readJson(renameFile) as Record<string, string>)), renameDetection: 'full' }
     : EMPTY_RENAME;
   return {
     name,
     t0: readTreeDir(path.join(dir, 't0')),
     t1: readTreeDir(path.join(dir, 't1')),
-    f0: readJson(path.join(dir, 't0.findings.json')),
-    f1: readJson(path.join(dir, 't1.findings.json')),
+    f0: readJson(path.join(dir, 't0.findings.json')) as BlockingFinding[],
+    f1: readJson(path.join(dir, 't1.findings.json')) as BlockingFinding[],
     rename,
-    expected: readJson(path.join(dir, 'expected.json')),
+    expected: readJson(path.join(dir, 'expected.json')) as Expected,
   };
 }
 
@@ -186,6 +186,13 @@ export function loadedRuns(specs: readonly RunSpecIn[]): LoadedRun[] {
   });
 }
 
+/** The single loaded run of one spec. */
+export function oneRun(r: RunSpecIn): LoadedRun {
+  const [run] = loadedRuns([r]);
+  if (run === undefined) throw new Error('no run');
+  return run;
+}
+
 export function tmp(prefix = 'evasion-'): string {
   return fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), prefix)));
 }
@@ -225,6 +232,8 @@ export function buildGitOutRoot(outRoot: string, specs: readonly RunSpecIn[]): v
     }
     const steps = lr.steps.map((s, k) => ({ ...s, finalCommit: commits[k] ?? '', turns: s.turns.map((t) => ({ ...t, snapshot: { ...t.snapshot, commit: commits[k] ?? '' } })) }));
     writeJson(path.join(dir, RUN_JSON), lr.run);
-    steps.forEach((s, k) => writeJson(stepRecordPath(dir, k), s));
+    steps.forEach((s, k) => {
+      writeJson(stepRecordPath(dir, k), s);
+    });
   });
 }

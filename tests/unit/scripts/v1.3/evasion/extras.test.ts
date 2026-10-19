@@ -4,7 +4,7 @@
  */
 import type { StepProcess, StepRecord } from '../../../../../scripts/lib/loop/types.js';
 import { importKindsByStep, mechanism, sizeByStep, treeKinds } from '../../../../../scripts/v1.3/lib/evasion/extras.js';
-import { loadedRuns } from './helpers.js';
+import { loadedRuns, oneRun } from './helpers.js';
 
 const proc = (calls: number, logFound = true): StepProcess => ({
   schema: 'loop-process/v1', logs: [], logFound, calls, errors: 0, callsByTool: {}, firstCallAt: null, firstCallBeforeFirstWrite: null, firstWriteEvidence: 'none', latencyMs: { p50: null, p95: null },
@@ -31,7 +31,7 @@ describe('§5.2 size and §5.3 import kinds', () => {
 
 describe('§5.6 mechanism', () => {
   it('share over logged steps, missing logs apart, noMechanism below 0.8', () => {
-    const base = loadedRuns([{ caseName: 'wrapped', arm: 'daedalus-mcp' }])[0]!.steps;
+    const base = oneRun({ caseName: 'wrapped', arm: 'daedalus-mcp' }).steps;
     const mk = (p: (StepProcess | undefined)[]): StepRecord[] => base.map((s, i) => ({ ...s, ...(p[i] !== undefined ? { process: p[i] } : {}) }));
     const m = mechanism([mk([proc(0), proc(2)]), mk([proc(1), proc(0, false)]), mk([proc(1), undefined])], 2);
     expect(m).toEqual({ steps: 3, withCalls: 1, noLog: 2, share: 1, noMechanism: false });
