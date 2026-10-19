@@ -96,8 +96,27 @@ The pipeline-building v1.3 scripts that pass `postSealRules: false` are `rule-mu
 5. **`templateOf` needed no change.** FF-P07 rows have type `CUSTOM_application-purity`, which already maps to the template. The checker falls back to the post-seal default list when the spec does not declare FF-P07.
 6. **More callers were pinned than the design listed.** BR-U2-10 named the importers of `V13_COMPILE_OPTIONS`. The nine v1.3 scripts that build the pipeline themselves, and the SDD demo replay, were also pinned to the sealed rule set, so that no registered figure moves on a re-run.
 7. **The delta extracts each pair twice.** The script runs the full pipeline twice per pair (off, then on), one pair after another. The design asked to extract once and compile twice over one graph; two full runs are simpler and reproduce the pipeline exactly. The whole run takes about 15 seconds.
-8. **The reference runner does not record the flag.** `ue-score.ts` reads `postSealRules` from each raw output (absent means false). The live reference runner (`scripts/v1.3/lib/validate-reference-main.ts`, Neo4j only) does not write that field yet, so its outputs score with the sealed scope until it does.
+8. **The flag did not reach the report.** As merged in PR #255, `ue-score.ts` read `postSealRules` from each raw output, but no report could carry it: `report-builder.ts` did not copy the compile facts and the schema had no field. Fixed in the verification follow-up (ADR-V14-03, below). The live reference runner (`scripts/v1.3/lib/validate-reference-main.ts`, Neo4j only) saves raw rows, not reports, and still does not write the field, so its outputs score with the sealed scope until it does (TODO 1).
 9. **CHECK-2 was not re-run.** No read-only export of `v1.3-judge-v22-prep` was made, so `--check2-repo` was not used for the K-tally.
+
+## Verification follow-up (2026-10-18)
+
+The AI-DLC read-only verification of U2 found these after PR #255 was merged. Fixed in the follow-up PR:
+
+- **Report origin end to end (BR-U2-03.7, BR-U2-08).** `report-builder.ts` now writes `postSealRules: true` and `postSealAdded` from the compile facts when the post-seal rules were compiled, and the report schema has both as optional fields. A report with the rules off is unchanged. Test: `tests/unit/post-seal/ddd-cycle.test.ts` (v09 through the pipeline, on and off).
+- **Frozen schema amendment declared.** ADR-V14-03 (`Docs/v1.4/adr-v14.md`) declares the three schema changes (`tierSource` `post-seal`, `postSealRules`, `postSealAdded`), each dated in the schema `$comment`.
+- **BR-U2-10, CLI path.** Every script that runs `firewall evaluate` passes `--post-seal` explicitly: `off` everywhere except `scripts/v1.3/complementarity.ts` (`on`, the forward K-tally run). `scripts/run-experiment.ts` uses `--scoring v1.2e`, where the flag is not read.
+- **BR-U2-10, unlisted pipeline callers.** `scripts/sdd/lib/full-eval.ts`, `scripts/v1.3/loop-fault-drills.ts`, `scripts/v1.3/ci-gate-synthetic.ts` and `scripts/v1.3/grid-scale-replay.ts` pass `postSealRules: false` (sealed).
+- **Caller test widened.** `tests/unit/post-seal/compile-option-callers.test.ts` now also fails when a pipeline-building script does not set `postSealRules`, or a CLI-calling script does not pass `--post-seal`.
+- **ADR-V14-02 effect table.** The header-only FF-P07 table is replaced by a sentence (no rows).
+
+TODOs (not fixed here):
+
+1. `scripts/v1.3/lib/validate-reference-main.ts` (live, Neo4j) does not write `postSealRules` into its raw outputs, so `ue-score.ts` scores them on the sealed scope.
+2. The Study 2 tunables manifest (`scripts/v1.3/lib/study2-tunables.ts`) does not hash `POST_SEAL_EDGE_VIEWS`, `POST_SEAL_RULE_TIERS`, `POST_SEAL_RULES` or `Docs/v1.4/rule-tiers-post-seal.md` (`SEALED_DOCS` lists only the v1.3 docs). A later change to FF-P07 would not show as tunable drift. Adding them changes the verified manifest (`Docs/v1.3/study2-tunables.json`), so it needs the author's sign-off. The freeze-check already covers them.
+3. Test gaps (design §6.1): the identity test compares `compile({})` with `compile({ postSealRules: false })`, not with pre-change output; the `loadReference` test checks only that FF-P07 and FF-S02 are absent, not equality with the pre-U2 scope; the I1 reference test does not assert the absence of `REPORT_COUNTS_INCONSISTENT`.
+4. Test gap (design §6.2): the FF-P07 positives assert `ruleTier('FF-P07', style)`, not the tier and `tierSource` of the emitted report rows.
+5. The dated deviation list in `ops/` lives on PR #252, not on main. ADR-V14-03 is to be added to it when #252 lands.
 
 ## Author defaults in force (Proposed in the ADRs)
 

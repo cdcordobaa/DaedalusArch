@@ -309,6 +309,10 @@ export function buildEvaluationReport(scored: ScoredReport, facts: RunFacts): Do
     timings: facts.timings,
     judge: facts.judge,
     instrumentVersion: facts.compileFacts.instrumentVersion ?? INSTRUMENT_VERSION,
+    // v1.4 U2 (ADR-V14-03): the post-seal flag and the overlay's added ids, only when the post-seal rules were compiled.
+    ...(facts.compileFacts.postSealRules === true
+      ? { postSealRules: true as const, postSealAdded: [...(facts.compileFacts.postSealAdded ?? [])] }
+      : {}),
     ...(neuralResults !== undefined ? { neuralResults } : {}),
   };
   return DomainResult.ok(report);

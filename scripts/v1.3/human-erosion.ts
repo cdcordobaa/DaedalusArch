@@ -135,7 +135,7 @@ function run(): void {
       const base = { ordinal: s.ordinal, chainIndex: s.chainIndex, sha: s.sha, date: s.date, srcTsFiles: files, loc };
       if (files === 0) { evals.push({ ...base, status: 'no-src', exit: null }); continue; }
       if (!fs.existsSync(path.join(root, 'tsconfig.json'))) { evals.push({ ...base, status: 'no-tsconfig', exit: null }); continue; }
-      const ev = spawnSync('npx', ['tsx', 'bin/firewall.ts', 'evaluate', '--project', root, '--spec', spec, '--symbolic-only',
+      const ev = spawnSync('npx', ['tsx', 'bin/firewall.ts', 'evaluate', '--post-seal', 'off', '--project', root, '--spec', spec, '--symbolic-only',
         '--engine', 'cypher-interp', '--scoring', 'v1.3', '--format', 'json'], { cwd: REPO, encoding: 'utf8', maxBuffer: 1 << 28, env: childEnv() });
       let report: (EvalReport & Record<string, unknown>) | null = null;
       try { report = JSON.parse(ev.stdout) as EvalReport & Record<string, unknown>; } catch { report = null; }

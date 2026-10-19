@@ -33,7 +33,7 @@ const keyOf = (v: Violation): string => [v.functionId, v.filePath, v.target ?? '
 
 function main(): number {
   const run = spawnSync(process.execPath, [
-    '--import', 'tsx', 'bin/firewall.ts', 'evaluate', '--project', '.', '--spec', SPEC,
+    '--import', 'tsx', 'bin/firewall.ts', 'evaluate', '--post-seal', 'off', '--project', '.', '--spec', SPEC,
     '--symbolic-only', '--engine', 'cypher-interp', '--format', 'json',
   ], { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
   // Exit 1 is the tool's "verdict fail"; anything above is a run error.

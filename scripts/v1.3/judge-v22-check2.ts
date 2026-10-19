@@ -533,7 +533,7 @@ interface Target {
 
 function evaluate(projectDir: string, spec: string, extra: readonly string[]): { status: number | null; stdout: string; stderr: string } {
   const tsx = path.resolve(REPO, 'node_modules/.bin/tsx');
-  const args = ['bin/firewall.ts', 'evaluate', '--project', projectDir, '--spec', path.resolve(REPO, spec), '--format', 'json', '--neo4j-uri', process.env['NEO4J_URI'] ?? '', ...extra];
+  const args = ['bin/firewall.ts', 'evaluate', '--post-seal', 'off', '--project', projectDir, '--spec', path.resolve(REPO, spec), '--format', 'json', '--neo4j-uri', process.env['NEO4J_URI'] ?? '', ...extra];
   const r = spawnSync(tsx, args, { cwd: REPO, env: process.env, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024, timeout: 3_600_000 });
   return { status: r.status, stdout: r.stdout, stderr: r.stderr };
 }

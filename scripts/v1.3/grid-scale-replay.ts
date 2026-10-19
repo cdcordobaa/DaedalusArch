@@ -81,7 +81,7 @@ async function run(): Promise<void> {
   const tasks = new Map(loaded.tasks.tasks.map((t) => [t.id, t]));
   const agents = new Map<string, StepAgent>();
   for (const a of loaded.plan.adapters) agents.set(`${a.adapterId}/${a.modelId}`, new StubStepAgent(tasks, { adapterId: a.adapterId, modelId: a.modelId, script: gridStubScript }));
-  const deps: EvaluateDeps = { makeGraph: () => { throw new Error('no Neo4j in the grid replay'); }, makePipeline: createPipeline, graphEngine: 'cypher-interp', interp: createInterpEvaluator() }; // v1.3 forwards tsconfigPath on cypher-interp by default (F1 fixed there)
+  const deps: EvaluateDeps = { makeGraph: () => { throw new Error('no Neo4j in the grid replay'); }, makePipeline: (config) => createPipeline({ ...config, postSealRules: false }) /* v1.4 U2 (BR-U2-10): sealed */, graphEngine: 'cypher-interp', interp: createInterpEvaluator() }; // v1.3 forwards tsconfigPath on cypher-interp by default (F1 fixed there)
   // The work tree has no tsconfig: the pinned per-run tsconfig is written to the lane's harness root before each evaluation.
   const evaluator = firewallEvaluator(path.resolve(repoRoot, loaded.plan.evaluatorSpec ?? ''), {}, deps, (dir, runId) => (runId === undefined ? undefined : writeHarnessTsconfig(harnessRoot, runId, dir)));
   const t0 = Date.now();

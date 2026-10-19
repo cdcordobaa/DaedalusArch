@@ -3,6 +3,9 @@
  * `V13_COMPILE_OPTIONS` (forward: gets the post-seal rules) or `V13_SEALED_COMPILE_OPTIONS` (the sealed rule set) is
  * listed in ADR-V14-02's "Callers" table with the options it imports. A new caller cannot pick up the post-seal rules
  * without being listed.
+ * v1.4 U2 verification: the scripts that build the pipeline themselves (`createPipeline`, `runPipeline`) must set
+ * `postSealRules` explicitly, and the scripts that shell out to `firewall evaluate` must pass `--post-seal on|off`,
+ * so that no registered figure picks up the post-seal rules from a default.
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -57,5 +60,23 @@ describe('V13 compile option callers', () => {
   it('the importers of V13_COMPILE_OPTIONS and V13_SEALED_COMPILE_OPTIONS equal the ADR-V14-02 caller table', () => {
     const sortMap = (m: Map<string, string>): [string, string][] => [...m.entries()].sort((a, b) => a[0].localeCompare(b[0]));
     expect(sortMap(importers())).toEqual(sortMap(callerTable()));
+  });
+
+  it('every script that builds the pipeline sets postSealRules explicitly', () => {
+    const missing = walk(path.join(ROOT, 'scripts'))
+      .filter((f) => /\b(?:createPipeline|runPipeline)\(/.test(fs.readFileSync(f, 'utf8')) && !/\bpostSealRules\b/.test(fs.readFileSync(f, 'utf8')))
+      .map((f) => path.relative(ROOT, f).split(path.sep).join('/'));
+    expect(missing).toEqual([]);
+  });
+
+  it('every script that runs `firewall evaluate` passes --post-seal', () => {
+    const missing: string[] = [];
+    for (const f of walk(path.join(ROOT, 'scripts'))) {
+      for (const line of fs.readFileSync(f, 'utf8').split('\n')) {
+        if (/(?:firewall\.ts'\)?|CLI_ENTRY|cli\/bin\.ts'), 'evaluate',/.test(line) && !line.includes("'--post-seal'")) missing.push(path.relative(ROOT, f).split(path.sep).join('/'));
+      }
+    }
+    // run-experiment.ts runs the registered v1.2E plans with --scoring v1.2e, where --post-seal is not read.
+    expect(missing.filter((f) => f !== 'scripts/run-experiment.ts')).toEqual([]);
   });
 });

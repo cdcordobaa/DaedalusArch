@@ -107,7 +107,7 @@ async function main(): Promise<void> {
   // 2. The tool.
   const spec = path.join(OUT, 'specs', `${id}.yaml`);
   const t0 = Date.now();
-  const run = spawnSync('npx', ['tsx', 'bin/firewall.ts', 'evaluate', '--project', project, '--spec', spec, '--tsconfig', harness,
+  const run = spawnSync('npx', ['tsx', 'bin/firewall.ts', 'evaluate', '--post-seal', 'off', '--project', project, '--spec', spec, '--tsconfig', harness,
     '--symbolic-only', '--engine', engine, '--format', 'json', ...(engine === 'neo4j' ? ['--neo4j-uri', 'bolt://127.0.0.1:7687'] : [])],
   { cwd: REPO, encoding: 'utf8', maxBuffer: 1 << 30, env: { ...process.env, APG_STORE_PATH: path.join(clone, '.apg-store') } });
   const wallMs = Date.now() - t0;

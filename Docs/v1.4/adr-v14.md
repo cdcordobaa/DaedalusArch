@@ -79,10 +79,7 @@ The fixture delta (`results/v1.4-u2/fixture-delta.md`, 83 committed fixture/spec
 
 **Effect.**
 
-The fixture delta (`results/v1.4-u2/fixture-delta.md`, 83 committed fixture/spec pairs, cypher-interp). The FF-P07 rows:
-
-| Pair | Change | Rule | File | Target | Tier |
-|---|---|---|---|---|---|
+The fixture delta (`results/v1.4-u2/fixture-delta.md`, 83 committed fixture/spec pairs, cypher-interp) has no FF-P07 rows.
 
 - No committed fixture gains an FF-P07 row. `antipattern-nest` has none before seeding.
 - The MCP default-path golden (`tests/fixtures/mcp-interp-parity/default-golden.json`) was re-captured with its own command (`npx tsx tests/unit/mcp-server/interp-parity-capture.ts`). Its only changes are additions: FF-P07 in `notChecked`, and the fast-path note on the two application files. `check_import` is unchanged.
@@ -113,6 +110,25 @@ Every file under `src/` and `scripts/` that imports one of the two option sets (
 | `scripts/v1.3/scc-large-latency.ts` | V13_SEALED_COMPILE_OPTIONS | Sealed. Regenerates the SCC latency figures |
 | `scripts/v1.3/lib/construct-rescore.ts` | V13_SEALED_COMPILE_OPTIONS | Sealed. Regenerates the construct re-score figures |
 
-The v1.3 scripts that build the pipeline themselves (`rule-mutation.ts`, `fix-hints-eval.ts`, `fixes-mined-run.ts`, `refactor-pr-run.ts`, `html-report-fixtures.ts`, `memory-parity.ts`, `cypher-interp-bench.ts`, `scale/equivalence.ts`, `scale/profile.ts`) pass `postSealRules: false` for the same reason. The scripts that call the CLI (`firewall evaluate`) take its default, `--post-seal on`. A registered figure from one of them is reproduced with `--post-seal off`. `scripts/v1.3/complementarity.ts` was run forward on purpose, for the K-tally above.
+The v1.3 scripts that build the pipeline themselves (`rule-mutation.ts`, `fix-hints-eval.ts`, `fixes-mined-run.ts`, `refactor-pr-run.ts`, `html-report-fixtures.ts`, `memory-parity.ts`, `cypher-interp-bench.ts`, `scale/equivalence.ts`, `scale/profile.ts`) pass `postSealRules: false` for the same reason. So do `scripts/sdd/lib/full-eval.ts` (the SDD demo, recorded on the sealed rule set, as `scripts/sdd/lib/replay.ts`), `scripts/v1.3/loop-fault-drills.ts`, `scripts/v1.3/ci-gate-synthetic.ts` and `scripts/v1.3/grid-scale-replay.ts` (added in the U2 verification, 2026-10-18). Every script that calls the CLI (`firewall evaluate`) passes `--post-seal` explicitly: `off` in all of them (the registered v1.3 figures, `scripts/lib/freeze-gate-main.ts` included), except `scripts/v1.3/complementarity.ts`, which passes `on` because it was run forward on purpose, for the K-tally above. `scripts/run-experiment.ts` runs the registered v1.2E plans with `--scoring v1.2e`, where `--post-seal` is not read. `tests/unit/post-seal/compile-option-callers.test.ts` fails when a pipeline-building script does not set `postSealRules` or a CLI-calling script does not pass `--post-seal`.
 
 **What is not changed.** The AP-FRAMEWORK-LEAK operator and its `expectedTemplates` (`[]`); G1 and the rule-gap catalogue; the presets; FF-P01 and `domain-purity`; the frozen `CYPHER_TEMPLATES`; `Docs/v1.3/rule-tiers.md`; the 38-entry v1.3 edge-view table.
+
+## ADR-V14-03: Report schema amendment for the post-seal rules (v1.4 U2)
+
+**Date:** 2026-10-18. **Status:** declared deviation from the frozen report schema (`schemas/report.schema.json`, "FROZEN at U3-R10 ... A change reopens U3 as a reviewed patch"). Raised by the U2 AI-DLC verification.
+
+**Context.**
+- ADR-V14-01 and ADR-V14-02 need two things in the report that the frozen schema could not hold. First, a rule row in `tiers` can take its tier from the post-seal record, so `tierSource` needs the value `post-seal`. Second, the report has to say whether the post-seal rules were compiled and which ids the overlay added (BR-U2-03.7, map artefact A3).
+- Without the second, `CompileCommand` recorded `postSealRules` and `postSealAdded` in its compile facts, but `src/scoring-engine/report-builder.ts` did not copy them into the report. So `scripts/v1.3/ue-score.ts` (`postSealScopeOf`) always read `undefined`, every forward output was scored on the sealed reference scope, and the blind-key recovery that ADR-V14-01 claims (Q16: 7/8 to 8/8) could not happen through that path.
+
+**Decision.** The schema (and its embedded copy, `src/scoring-engine/report-schema.ts`) is amended in three places, all additive and optional:
+1. Both `tierSource` enums gain `post-seal` (in U2, commit "declared post-seal norm rules").
+2. Optional top-level `postSealRules` (`const: true`), present only when the post-seal rules were compiled.
+3. Optional top-level `postSealAdded` (array of function ids), the ids the overlay added, in table order; present exactly when `postSealRules` is.
+
+The report builder writes items 2 and 3 from the compile facts. Each amendment is dated in the schema's `$comment`, as every earlier amendment is.
+
+**Effect.** A report built with the post-seal rules off (the v1.2E mode, `--post-seal off`, every sealed caller in ADR-V14-02 "Callers") is unchanged, byte for byte. A forward v1.3 report gains the two fields, so `postSealScopeOf` now selects the post-seal reference scope for forward outputs. Saved pre-U2 outputs carry neither field and keep the sealed scope.
+
+**What is not changed.** Every other field and enum of the schema; the v1.2E report shape; `validateReport` behaviour for any report that carries neither field.

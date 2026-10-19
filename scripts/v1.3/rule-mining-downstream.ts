@@ -79,7 +79,7 @@ function interpEvaluator(repoRoot: string): (projectDir: string, specPath: strin
   const childEnv: Record<string, string> = {};
   for (const k of ['PATH', 'HOME']) { const v = process.env[k]; if (v !== undefined) childEnv[k] = v; }
   return async (projectDir, specPath) => {
-    const r = await runner.run(tsx, [CLI_ENTRY, 'evaluate', '--project', projectDir, '--spec', specPath, '--format', 'json', '--symbolic-only', '--engine', 'cypher-interp'], { cwd: repoRoot, env: childEnv, timeoutMs: 600_000 });
+    const r = await runner.run(tsx, [CLI_ENTRY, 'evaluate', '--post-seal', 'off', '--project', projectDir, '--spec', specPath, '--format', 'json', '--symbolic-only', '--engine', 'cypher-interp'], { cwd: repoRoot, env: childEnv, timeoutMs: 600_000 });
     if (!r.success) throw new Error(r.errors.map((e) => e.message).join('; '));
     const start = r.data.stdout.indexOf('{');
     if (start < 0) throw new Error(`no JSON from evaluate: ${r.data.stderr.slice(0, 300)}`);

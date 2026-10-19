@@ -69,7 +69,7 @@ for (const k of ['PATH', 'HOME', 'NEO4J_URI', 'NEO4J_USER', 'NEO4J_PASSWORD']) {
 }
 
 async function evaluate(projectDir: string, specPath: string): Promise<readonly ActualFinding[]> {
-  const args = [CLI_ENTRY, 'evaluate', '--project', projectDir, '--spec', specPath, '--format', 'json', '--symbolic-only', '--neo4j-uri', env.NEO4J_URI ?? '',
+  const args = [CLI_ENTRY, 'evaluate', '--post-seal', 'off', '--project', projectDir, '--spec', specPath, '--format', 'json', '--symbolic-only', '--neo4j-uri', env.NEO4J_URI ?? '',
     '--engine', engine, ...(advisoryFilter !== undefined ? ['--advisory-filter', advisoryFilter] : []),
     ...(queryEngine !== undefined ? ['--query-engine', queryEngine] : [])];
   const started = Date.now();

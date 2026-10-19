@@ -348,7 +348,7 @@ async function child(c: ChildConfig): Promise<ChildResult> {
       return new MemoryGraphRepository();
     },
     makePipeline: (config) => {
-      const bundle = createPipeline({ ...config, graphEngine: 'cypher-interp' });
+      const bundle = createPipeline({ ...config, graphEngine: 'cypher-interp', postSealRules: false }); // v1.4 U2 (BR-U2-10): sealed, results/v1.3/loop-fault-drills
       if (here('pipeline-throws') && st.fired === 0) {
         st.fired++;
         return { executor: { execute: () => Promise.reject(new Error('drill: injected pipeline failure')) } as unknown as typeof bundle.executor, cleanup: bundle.cleanup };

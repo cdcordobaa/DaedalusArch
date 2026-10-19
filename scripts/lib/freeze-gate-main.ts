@@ -89,7 +89,7 @@ export function cliEvaluate(runner: ProcessRunner, repoRoot: string, env: NodeJS
   }
   const tsx = path.resolve(repoRoot, 'node_modules/.bin/tsx');
   return async (projectDir, specPath) => {
-    const args = [CLI_ENTRY, 'evaluate', '--project', projectDir, '--spec', specPath, '--format', 'json', '--symbolic-only', '--neo4j-uri', env.NEO4J_URI ?? '', '--engine', 'neo4j'];
+    const args = [CLI_ENTRY, 'evaluate', '--post-seal', 'off', '--project', projectDir, '--spec', specPath, '--format', 'json', '--symbolic-only', '--neo4j-uri', env.NEO4J_URI ?? '', '--engine', 'neo4j'];
     const run = await runner.run(tsx, args, { cwd: repoRoot, env: childEnv, timeoutMs: 600_000 });
     if (!run.success) return run;
     if (run.data.timedOut) return DomainResult.fail([{ code: 'GATE_TIMEOUT', message: `evaluation of ${path.basename(projectDir)} timed out` }]);

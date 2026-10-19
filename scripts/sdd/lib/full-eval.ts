@@ -73,6 +73,7 @@ export async function fullEvaluate(projectDir: string, specPath: string): Promis
       apgStorePath: path.join(work, '.apg-store'),
       scoringMode: 'v1.3',
       graphEngine: 'cypher-interp',
+      postSealRules: false, // v1.4 U2 (BR-U2-10): sealed; the SDD demo was recorded on the sealed v1.3 rule set, as in replay.ts
     };
     const { executor, cleanup } = createPipeline(config);
     const t0 = performance.now();
