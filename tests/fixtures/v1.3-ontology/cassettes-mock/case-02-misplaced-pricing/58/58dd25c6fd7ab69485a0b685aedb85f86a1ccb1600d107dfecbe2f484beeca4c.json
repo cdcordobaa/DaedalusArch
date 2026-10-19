@@ -1,0 +1,87 @@
+{
+  "itemId": "99595122f2958507",
+  "itemName": "Order",
+  "key": "58dd25c6fd7ab69485a0b685aedb85f86a1ccb1600d107dfecbe2f484beeca4c",
+  "parts": {
+    "model": "mock-ontology",
+    "pass": "responsibility",
+    "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+    "promptVersion": "ontology-v0.3",
+    "provider": "mock",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass Order (node 99595122f2958507), file src/ordering/domain/order.ts, lines 7-17.\nComponent: ordering. Declared layer: domain (kind domain).\nMethods:\n- subtotal (node 3d1d8ec86b5e61c8, lines 14-16, logic density 2)\nFields: id, customerEmail, lines\n\n## APG neighbourhood\nGraph statistics: 1 methods; fan-out 0; fan-in 1 (CALLS 1).\n- <- CALLS Method OrderNotificationService.sendConfirmation (src/notifications/application/order-notification.service.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- Order: nameRole=\"unknown\"\n- Order: behaviourRole=\"coordination\"\n- Order: ioCategories=[]\n- Order: lcom4=1\n- Order: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- Order.subtotal: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":2,\"validationThrows\":0,\"density\":2}\n\n## Source\n=====SOURCE-BEGIN src/ordering/domain/order.ts\n 7| export class Order {\n 8|   constructor(\n 9|     readonly id: string,\n10|     readonly customerEmail: string,\n11|     readonly lines: readonly OrderLine[],\n12|   ) {}\n13| \n14|   subtotal(): number {\n15|     return this.lines.reduce((acc, l) => acc + l.price * l.quantity, 0);\n16|   }\n17| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-15T00:00:00.000Z",
+  "resolvedModel": "mock-ontology",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 7,
+            "file": "src/ordering/domain/order.ts",
+            "nodeId": "99595122f2958507",
+            "quote": "export class Order {",
+            "startLine": 7
+          }
+        ],
+        "name": "Order",
+        "relation": "defines"
+      },
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 400,
+            "file": "src/ordering/domain/order.ts",
+            "nodeId": "0000000000000000",
+            "quote": "orderHistory",
+            "startLine": 1
+          }
+        ],
+        "name": "Order history",
+        "relation": "defines"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Hold the order lines and compute the subtotal",
+        "evidence": [
+          {
+            "endLine": 15,
+            "file": "src/ordering/domain/order.ts",
+            "nodeId": "3d1d8ec86b5e61c8",
+            "quote": "return this.lines.reduce((acc, l) => acc + l.price * l.quantity, 0);",
+            "startLine": 15
+          }
+        ],
+        "name": "Hold the order lines and compute the subtotal",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Send mail",
+        "evidence": [
+          {
+            "endLine": 3,
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "nodeId": "9e5dca9006c883b8",
+            "quote": "export class ConsoleMailer implements Mailer {",
+            "startLine": 3
+          }
+        ],
+        "name": "Send mail",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 521,
+    "outputTokens": 265
+  }
+}

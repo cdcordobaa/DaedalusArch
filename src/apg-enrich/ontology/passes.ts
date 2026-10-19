@@ -18,6 +18,7 @@ import type {
   ResponsibilityOut, ResponsibilityPassOut, RuleOut, RulePassOut, SemProvenance,
 } from './types.js';
 import type { ClassUnit, GroupUnit, OntologyUnits, RuleCandidateUnit } from './units.js';
+import type { ProjectDoc } from './reading.js';
 
 export interface Kept<T> {
   readonly itemId: string;
@@ -140,7 +141,7 @@ export const sameConcept = (a: ConceptOut, b: ConceptOut): boolean => a.relation
 export async function responsibilityPass(p: PassContext, units: OntologyUnits): Promise<ClassSemantics[]> {
   const out: ClassSemantics[] = [];
   for (const cls of units.classes) {
-    const runs = await callRuns<ResponsibilityPassOut>(p, 'responsibility', cls.nodeId, cls.name, responsibilityPrompt(cls), RESPONSIBILITY_SCHEMA);
+    const runs = await callRuns<ResponsibilityPassOut>(p, 'responsibility', cls.nodeId, cls.name, responsibilityPrompt(cls, units.docs), RESPONSIBILITY_SCHEMA);
     const rule: CitationRule = { types: ['Class', 'Method'], within: idsOf(cls) };
     const grounded = runs.map((r) => r === null ? null : {
       run: r,
@@ -177,7 +178,7 @@ export async function capabilityPass(p: PassContext, units: OntologyUnits, class
       const resp = (semOf.get(id)?.responsibilities ?? []).filter((r) => !requireAgreement || r.agreement === 'agreed').map((r) => r.out.name);
       return [{ cls, responsibilities: resp }];
     });
-    const runs = await callRuns<CapabilityPassOut>(p, 'capability', group.id, group.id, capabilityPrompt(group, members), CAPABILITY_SCHEMA);
+    const runs = await callRuns<CapabilityPassOut>(p, 'capability', group.id, group.id, capabilityPrompt(group, members, units.docs), CAPABILITY_SCHEMA);
     const within = new Set(members.flatMap(({ cls }) => [...idsOf(cls)]));
     const classIds: ReferenceRule = { types: ['Class'], within: new Set(group.classIds) };
     const grounded = runs.map((r) => r === null ? null : {
@@ -201,11 +202,11 @@ export interface RuleSite {
 export const sameRule = (a: RuleOut, b: RuleOut): boolean =>
   a.enforcedBy === b.enforcedBy && a.operator === b.operator && a.threshold === b.threshold;
 
-export async function rulePass(p: PassContext, candidates: readonly RuleCandidateUnit[]): Promise<RuleSite[]> {
+export async function rulePass(p: PassContext, candidates: readonly RuleCandidateUnit[], docs: readonly ProjectDoc[] = []): Promise<RuleSite[]> {
   const out: RuleSite[] = [];
   for (const { cls, methods } of candidates) {
     if (p.caller.stopped !== null) break;
-    const runs = await callRuns<RulePassOut>(p, 'rules', cls.nodeId, cls.name, rulePrompt(cls, methods), RULE_SCHEMA);
+    const runs = await callRuns<RulePassOut>(p, 'rules', cls.nodeId, cls.name, rulePrompt(cls, methods, docs), RULE_SCHEMA);
     const within = idsOf(cls);
     const enforcer: ReferenceRule = { types: ['Method'], within: new Set(methods.map((m) => m.nodeId)) };
     const grounded = runs.map((r) => r === null ? null : {

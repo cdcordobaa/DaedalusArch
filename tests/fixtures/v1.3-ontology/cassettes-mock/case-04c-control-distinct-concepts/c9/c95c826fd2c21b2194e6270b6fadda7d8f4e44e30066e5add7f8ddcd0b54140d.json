@@ -1,0 +1,58 @@
+{
+  "itemId": "4f48286f1a24f502",
+  "itemName": "Invoice",
+  "key": "c95c826fd2c21b2194e6270b6fadda7d8f4e44e30066e5add7f8ddcd0b54140d",
+  "parts": {
+    "model": "mock-ontology",
+    "pass": "responsibility",
+    "promptHash": "bbe2993033eb3076688349ab06db47bdac9b80e488b9358127001876f188b7ba",
+    "promptVersion": "ontology-v0.3",
+    "provider": "mock",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass Invoice (node 4f48286f1a24f502), file src/billing/domain/invoice.ts, lines 1-12.\nComponent: billing. Declared layer: domain (kind domain).\nMethods:\n- isOverdue (node fb5d35ccb24a51e1, lines 9-11, logic density 1)\nFields: id, createdAt, total, dueDate\n\n## APG neighbourhood\nGraph statistics: 1 methods; fan-out 0; fan-in 0.\n- (none)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- Invoice: nameRole=\"unknown\"\n- Invoice: behaviourRole=\"coordination\"\n- Invoice: ioCategories=[]\n- Invoice: lcom4=1\n- Invoice: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- Invoice.isOverdue: logicDensity={\"branches\":0,\"comparisons\":1,\"arithmetic\":0,\"validationThrows\":0,\"density\":1}\n\n## Source\n=====SOURCE-BEGIN src/billing/domain/invoice.ts\n 1| export class Invoice {\n 2|   constructor(\n 3|     readonly id: string,\n 4|     readonly createdAt: Date,\n 5|     readonly total: number,\n 6|     readonly dueDate: Date,\n 7|   ) {}\n 8| \n 9|   isOverdue(today: Date): boolean {\n10|     return today.getTime() > this.dueDate.getTime();\n11|   }\n12| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-15T00:00:00.000Z",
+  "resolvedModel": "mock-ontology",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 1,
+            "file": "src/billing/domain/invoice.ts",
+            "nodeId": "4f48286f1a24f502",
+            "quote": "export class Invoice {",
+            "startLine": 1
+          }
+        ],
+        "name": "Invoice",
+        "relation": "defines"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Record an invoice and tell whether it is overdue",
+        "evidence": [
+          {
+            "endLine": 10,
+            "file": "src/billing/domain/invoice.ts",
+            "nodeId": "fb5d35ccb24a51e1",
+            "quote": "return today.getTime() > this.dueDate.getTime();",
+            "startLine": 10
+          }
+        ],
+        "name": "Record an invoice and tell whether it is overdue",
+        "naturalLayer": "domain"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 497,
+    "outputTokens": 143
+  }
+}

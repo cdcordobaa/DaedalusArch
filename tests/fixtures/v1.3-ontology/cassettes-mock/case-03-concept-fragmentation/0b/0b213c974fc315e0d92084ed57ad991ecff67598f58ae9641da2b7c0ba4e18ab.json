@@ -1,0 +1,45 @@
+{
+  "itemId": "component:sales",
+  "itemName": "component:sales",
+  "key": "0b213c974fc315e0d92084ed57ad991ecff67598f58ae9641da2b7c0ba4e18ab",
+  "parts": {
+    "model": "mock-ontology",
+    "pass": "capability",
+    "promptHash": "539c4025c9f094febd5e5e8e2e33c313f8ac80c2209f8bc8d0096563caaa7f05",
+    "promptVersion": "ontology-v0.3",
+    "provider": "mock",
+    "runIndex": 0,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of component \"sales\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- QuoteService (node ada8058f8f4ed5b8), file src/sales/application/quote.service.ts, declaration line 3: \"export class QuoteService {\"\n  component sales, layer application; responsibilities: Quote prices for customers\n- Client (node bef84812ea6fda02), file src/sales/domain/client.ts, declaration line 1: \"export class Client {\"\n  component sales, layer domain; responsibilities: Represent a sales customer and decide VIP status\n\n## APG relations of the group\nGraph statistics: 2 classes; 1 relations inside the group; 0 outgoing relations to code outside it.\n- QuoteService -> CALLS Client",
+  "recordedAt": "2026-10-15T00:00:00.000Z",
+  "resolvedModel": "mock-ontology",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.8,
+        "description": "Sales quoting",
+        "evidence": [
+          {
+            "endLine": 3,
+            "file": "src/sales/application/quote.service.ts",
+            "nodeId": "ada8058f8f4ed5b8",
+            "quote": "export class QuoteService {",
+            "startLine": 3
+          }
+        ],
+        "name": "Sales quoting",
+        "realizedBy": [
+          "bef84812ea6fda02",
+          "ada8058f8f4ed5b8"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 245,
+    "outputTokens": 75
+  }
+}

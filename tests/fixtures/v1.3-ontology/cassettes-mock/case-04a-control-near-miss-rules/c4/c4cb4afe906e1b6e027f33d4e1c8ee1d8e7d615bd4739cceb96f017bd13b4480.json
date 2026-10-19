@@ -1,0 +1,43 @@
+{
+  "itemId": "bdfd3caeda680191",
+  "itemName": "BulkDiscount",
+  "key": "c4cb4afe906e1b6e027f33d4e1c8ee1d8e7d615bd4739cceb96f017bd13b4480",
+  "parts": {
+    "model": "mock-ontology",
+    "pass": "responsibility",
+    "promptHash": "562c88d6b453a3183aca7156d80881f2759e871b15549b72f50754c4763e9f1e",
+    "promptVersion": "ontology-v0.3",
+    "provider": "mock",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass BulkDiscount (node bdfd3caeda680191), file src/catalog/domain/bulk-discount.ts, lines 1-8.\nComponent: catalog. Declared layer: domain (kind domain).\nMethods:\n- rateFor (node f30d96e21cb90d20, lines 2-7, logic density 2)\nFields: (none)\n\n## APG neighbourhood\nGraph statistics: 1 methods; fan-out 0; fan-in 0.\n- (none)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- BulkDiscount: nameRole=\"unknown\"\n- BulkDiscount: behaviourRole=\"coordination\"\n- BulkDiscount: ioCategories=[]\n- BulkDiscount: lcom4=1\n- BulkDiscount: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- BulkDiscount.rateFor: logicDensity={\"branches\":1,\"comparisons\":1,\"arithmetic\":0,\"validationThrows\":0,\"density\":2}\nFlags:\n- shared-literals/shared-number-literal: literal \"50\" also used in component(s) shipping\n\n## Source\n=====SOURCE-BEGIN src/catalog/domain/bulk-discount.ts\n1| export class BulkDiscount {\n2|   rateFor(quantity: number): number {\n3|     if (quantity >= 50) {\n4|       return 0.05;\n5|     }\n6|     return 0;\n7|   }\n8| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-15T00:00:00.000Z",
+  "resolvedModel": "mock-ontology",
+  "response": {
+    "concepts": [],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Give a bulk discount rate by quantity",
+        "evidence": [
+          {
+            "endLine": 3,
+            "file": "src/catalog/domain/bulk-discount.ts",
+            "nodeId": "f30d96e21cb90d20",
+            "quote": "if (quantity >= 50) {",
+            "startLine": 3
+          }
+        ],
+        "name": "Give a bulk discount rate by quantity",
+        "naturalLayer": "domain"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 491,
+    "outputTokens": 82
+  }
+}

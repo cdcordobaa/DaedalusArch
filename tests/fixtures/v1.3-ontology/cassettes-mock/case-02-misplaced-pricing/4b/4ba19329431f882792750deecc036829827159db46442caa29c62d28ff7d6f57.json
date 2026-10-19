@@ -1,0 +1,26 @@
+{
+  "itemId": "99595122f2958507",
+  "itemName": "Order",
+  "key": "4ba19329431f882792750deecc036829827159db46442caa29c62d28ff7d6f57",
+  "parts": {
+    "model": "mock-ontology",
+    "pass": "rules",
+    "promptHash": "adcbdce20312482d56ba8f2f038d39b1b888f462837380e1422bec6595362935",
+    "promptVersion": "ontology-v0.3",
+    "provider": "mock",
+    "runIndex": 1,
+    "schemaHash": "f0fc4d535ca2368dc75f2c1669e4a1b8563970f49941a37b2cf4202334cf7327",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nExtract the rules enforced by the candidate methods below: the business rules, and the limits or thresholds checked on incoming data. Label each rule with its kind. kind \"business\": a rule of the business domain (a threshold, an eligibility condition, a limit, a rate) that must hold whichever entry point is used. kind \"input-validation\": a check of the form, type or size of incoming data. Leave out null checks, formatting and parsing. State each rule in plain business language with the subject it constrains, the comparison operator and threshold normalised to the most natural business unit, and the unit. Write the rule as the business would state it, independent of how the code is shaped (`!(a < b)` states `a >= b`).\nSet enforcedBy to the node id of the method that enforces the rule. Cite that method and quote the code that enforces it. Return an empty list when the candidates enforce no such rule.\n\n## Class\nClass Order (node 99595122f2958507), file src/ordering/domain/order.ts, lines 7-17.\nComponent: ordering. Declared layer: domain (kind domain).\nCandidate methods (proposed by the cheap proxies):\n- subtotal (node 3d1d8ec86b5e61c8, lines 14-16, logic density 2)\n\n## APG neighbourhood\nGraph statistics: 1 methods; fan-out 0; fan-in 1 (CALLS 1).\n- <- CALLS Method OrderNotificationService.sendConfirmation (src/notifications/application/order-notification.service.ts)\n\n## Source\n=====SOURCE-BEGIN src/ordering/domain/order.ts\n 7| export class Order {\n 8|   constructor(\n 9|     readonly id: string,\n10|     readonly customerEmail: string,\n11|     readonly lines: readonly OrderLine[],\n12|   ) {}\n13| \n14|   subtotal(): number {\n15|     return this.lines.reduce((acc, l) => acc + l.price * l.quantity, 0);\n16|   }\n17| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-15T00:00:00.000Z",
+  "resolvedModel": "mock-ontology",
+  "response": {
+    "rules": []
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 441,
+    "outputTokens": 3
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "itemId": "bdd2e7ff3a65d8e2",
+  "itemName": "InvoiceNumber",
+  "key": "01486967c245ff87ee118463e84301ad867f3a10a309a8c94bc972e82399e1c8",
+  "parts": {
+    "model": "mock-ontology",
+    "pass": "responsibility",
+    "promptHash": "9450d337236f3c05d64282b029945f707594a07b90c8bf0581001b2b780b9c5d",
+    "promptVersion": "ontology-v0.3",
+    "provider": "mock",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass InvoiceNumber (node bdd2e7ff3a65d8e2), file src/invoicing/domain/invoice-number.ts, lines 1-7.\nComponent: invoicing. Declared layer: domain (kind domain).\nMethods:\n- format (node 271d0aaba4987af0, lines 4-6, logic density 0)\nFields: year, sequence\n\n## APG neighbourhood\nGraph statistics: 1 methods; fan-out 0; fan-in 0.\n- (none)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- InvoiceNumber: nameRole=\"unknown\"\n- InvoiceNumber: behaviourRole=\"coordination\"\n- InvoiceNumber: ioCategories=[]\n- InvoiceNumber: lcom4=1\n- InvoiceNumber: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- InvoiceNumber.format: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n\n## Source\n=====SOURCE-BEGIN src/invoicing/domain/invoice-number.ts\n1| export class InvoiceNumber {\n2|   constructor(readonly year: number, readonly sequence: number) {}\n3| \n4|   format(): string {\n5|     return `INV-${String(this.year)}-${String(this.sequence).padStart(6, '0')}`;\n6|   }\n7| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-15T00:00:00.000Z",
+  "resolvedModel": "mock-ontology",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 1,
+            "file": "src/invoicing/domain/invoice-number.ts",
+            "nodeId": "bdd2e7ff3a65d8e2",
+            "quote": "export class InvoiceNumber {",
+            "startLine": 1
+          }
+        ],
+        "name": "Invoice number",
+        "relation": "defines"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Format invoice numbers",
+        "evidence": [
+          {
+            "endLine": 5,
+            "file": "src/invoicing/domain/invoice-number.ts",
+            "nodeId": "271d0aaba4987af0",
+            "quote": "return `INV-${String(this.year)}-${String(this.sequence).padStart(6, '0')}`;",
+            "startLine": 5
+          }
+        ],
+        "name": "Format invoice numbers",
+        "naturalLayer": "domain"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 488,
+    "outputTokens": 144
+  }
+}

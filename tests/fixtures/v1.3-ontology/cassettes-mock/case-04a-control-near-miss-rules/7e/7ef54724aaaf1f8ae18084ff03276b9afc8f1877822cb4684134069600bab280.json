@@ -1,0 +1,43 @@
+{
+  "itemId": "96691c71633101aa",
+  "itemName": "FreeShippingRule",
+  "key": "7ef54724aaaf1f8ae18084ff03276b9afc8f1877822cb4684134069600bab280",
+  "parts": {
+    "model": "mock-ontology",
+    "pass": "responsibility",
+    "promptHash": "7f82e4580398ccf7f1850c6d16437ff76c4db1f6959581e1a957b1cb894db8de",
+    "promptVersion": "ontology-v0.3",
+    "provider": "mock",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass FreeShippingRule (node 96691c71633101aa), file src/shipping/domain/free-shipping.ts, lines 1-8.\nComponent: shipping. Declared layer: domain (kind domain).\nMethods:\n- costFor (node c6b0af1c34abcbdd, lines 2-7, logic density 2)\nFields: (none)\n\n## APG neighbourhood\nGraph statistics: 1 methods; fan-out 0; fan-in 0.\n- (none)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- FreeShippingRule: nameRole=\"unknown\"\n- FreeShippingRule: behaviourRole=\"coordination\"\n- FreeShippingRule: ioCategories=[]\n- FreeShippingRule: lcom4=1\n- FreeShippingRule: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- FreeShippingRule.costFor: logicDensity={\"branches\":1,\"comparisons\":1,\"arithmetic\":0,\"validationThrows\":0,\"density\":2}\nFlags:\n- shared-literals/shared-number-literal: literal \"50\" also used in component(s) catalog\n\n## Source\n=====SOURCE-BEGIN src/shipping/domain/free-shipping.ts\n1| export class FreeShippingRule {\n2|   costFor(orderTotal: number, baseCost: number): number {\n3|     if (orderTotal >= 50) {\n4|       return 0;\n5|     }\n6|     return baseCost;\n7|   }\n8| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-15T00:00:00.000Z",
+  "resolvedModel": "mock-ontology",
+  "response": {
+    "concepts": [],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Waive shipping above an order total",
+        "evidence": [
+          {
+            "endLine": 3,
+            "file": "src/shipping/domain/free-shipping.ts",
+            "nodeId": "c6b0af1c34abcbdd",
+            "quote": "if (orderTotal >= 50) {",
+            "startLine": 3
+          }
+        ],
+        "name": "Waive shipping above an order total",
+        "naturalLayer": "domain"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 506,
+    "outputTokens": 82
+  }
+}

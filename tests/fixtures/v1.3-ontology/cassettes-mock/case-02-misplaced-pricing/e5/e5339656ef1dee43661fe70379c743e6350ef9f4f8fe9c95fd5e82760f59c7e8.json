@@ -1,0 +1,73 @@
+{
+  "itemId": "ee110f001f97012a",
+  "itemName": "OrderNotificationService",
+  "key": "e5339656ef1dee43661fe70379c743e6350ef9f4f8fe9c95fd5e82760f59c7e8",
+  "parts": {
+    "model": "mock-ontology",
+    "pass": "responsibility",
+    "promptHash": "2ed70a34f867c1eaef6aff7c7ca7bfdc7ae88b78e0c10ee2e7183c1dfd1528d2",
+    "promptVersion": "ontology-v0.3",
+    "provider": "mock",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass OrderNotificationService (node ee110f001f97012a), file src/notifications/application/order-notification.service.ts, lines 4-13.\nComponent: notifications. Declared layer: application (kind application).\nMethods:\n- sendConfirmation (node 4309cdf457262c68, lines 7-12, logic density 4)\nFields: mailer\n\n## APG neighbourhood\nGraph statistics: 1 methods; fan-out 2 (CALLS 1, CONSTRUCTOR_INJECTS 1); fan-in 0.\n- -> CALLS Method Order.subtotal (src/ordering/domain/order.ts)\n- -> CONSTRUCTOR_INJECTS Interface Mailer (src/notifications/application/mailer.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- OrderNotificationService: nameRole=\"service\"\n- OrderNotificationService: behaviourRole=\"business-logic\"\n- OrderNotificationService: ioCategories=[]\n- OrderNotificationService: lcom4=1\n- OrderNotificationService: responsibilityBreadth={\"breadth\":1,\"ioCategories\":[],\"componentDependencies\":[\"ordering\"]}\n- OrderNotificationService.sendConfirmation: logicDensity={\"branches\":1,\"comparisons\":1,\"arithmetic\":2,\"validationThrows\":0,\"density\":4}\n\n## Source\n=====SOURCE-BEGIN src/notifications/application/order-notification.service.ts\n 4| export class OrderNotificationService {\n 5|   constructor(private readonly mailer: Mailer) {}\n 6| \n 7|   async sendConfirmation(order: Order): Promise<void> {\n 8|     const subtotal = order.subtotal();\n 9|     const discount = order.lines.length > 3 ? subtotal * 0.1 : 0;\n10|     const payable = subtotal - discount;\n11|     await this.mailer.send(order.customerEmail, 'Order confirmed', `Order ${order.id}: you pay ${payable.toFixed(2)}`);\n12|   }\n13| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-15T00:00:00.000Z",
+  "resolvedModel": "mock-ontology",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 7,
+            "file": "src/notifications/application/order-notification.service.ts",
+            "nodeId": "4309cdf457262c68",
+            "quote": "async sendConfirmation(order: Order): Promise<void> {",
+            "startLine": 7
+          }
+        ],
+        "name": "Order",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Send the order confirmation message",
+        "evidence": [
+          {
+            "endLine": 11,
+            "file": "src/notifications/application/order-notification.service.ts",
+            "nodeId": "4309cdf457262c68",
+            "quote": "await this.mailer.send(order.customerEmail, 'Order confirmed',",
+            "startLine": 11
+          }
+        ],
+        "name": "Send the order confirmation message",
+        "naturalLayer": "application"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Compute the order discount and the payable amount",
+        "evidence": [
+          {
+            "endLine": 9,
+            "file": "src/notifications/application/order-notification.service.ts",
+            "nodeId": "4309cdf457262c68",
+            "quote": "const discount = order.lines.length > 3 ? subtotal * 0.1 : 0;",
+            "startLine": 9
+          }
+        ],
+        "name": "Compute the order discount and the payable amount",
+        "naturalLayer": "domain"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 629,
+    "outputTokens": 257
+  }
+}
