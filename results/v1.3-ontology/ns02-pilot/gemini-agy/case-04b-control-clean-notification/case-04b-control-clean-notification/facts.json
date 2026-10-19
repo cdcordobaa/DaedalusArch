@@ -1,0 +1,663 @@
+{
+  "schemaVersion": 1,
+  "artifact": "A2",
+  "project": {
+    "id": "case-04b-control-clean-notification",
+    "contentHash": "08b4516143af98cb0b5ef5b1cbe261e1c6d556adf3a7a4083740c82d49f59b84",
+    "commit": null
+  },
+  "inputs": {
+    "a1": {
+      "apgHash": "a9ee26783308daebe05feec749b15ff453349e5ec808bf0a634069fd7c5d0e31"
+    },
+    "layerModel": {
+      "path": "tests/fixtures/v1.3-ontology/layers.json",
+      "hash": "029d18d14b37587251633e747ce135abdb7b767cf61108942f270c9f60445f15"
+    }
+  },
+  "producer": {
+    "part": "C1d",
+    "pipeline": "ontology-v0",
+    "promptVersion": "ontology-v0.3",
+    "provider": "gemini-agy",
+    "model": "gemini-4-argon-high",
+    "runs": 2,
+    "runId": "ontology-v0-10f5a0a2a22a",
+    "factPolicy": "agreed-only"
+  },
+  "facts": [
+    {
+      "id": "fact:53c18d9bb10c4ef7",
+      "subject": "21902eaf2ee28c4a",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Shipment",
+        "relation": "uses",
+        "conceptId": "sem:SemBusinessConcept:93ea4b31a959efa2"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "e47e261dfbd8b1df48a1ee81a930d280f5310e10b646c6e79a8bb661bea29ba1",
+      "date": "2026-10-19T23:46:53.154Z",
+      "confidence": 0.95,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 9,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "1e7c92c05d631e52",
+          "quote": "async sendShipped(shipment: Shipment): Promise<void> {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "startLine": 7,
+            "endLine": 9
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:fb2db4a52e2539cf",
+      "subject": "e4b465cb4e5c3815",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Shipment",
+        "relation": "defines",
+        "conceptId": "sem:SemBusinessConcept:93ea4b31a959efa2"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "a7dbb2b5d8aea7fd4394004b8add9f61f0cd0a4ddd11c1462b305e8bfaebaaca",
+      "date": "2026-10-19T23:47:37.614Z",
+      "confidence": 1,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        },
+        {
+          "endLine": 6,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "    readonly id: string,\n    readonly recipientEmail: string,\n    readonly shippedAt: Date,\n    readonly carrier: string,",
+          "startLine": 3,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/shipping/domain/shipment.ts",
+            "startLine": 1,
+            "endLine": 1
+          },
+          {
+            "kind": "code",
+            "file": "src/shipping/domain/shipment.ts",
+            "startLine": 3,
+            "endLine": 6
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:2dae99960f69bdc7",
+      "subject": "21902eaf2ee28c4a",
+      "predicate": "hasResponsibility",
+      "value": {
+        "name": "Sending Shipment Notifications",
+        "description": "Formats a shipment notification message containing the shipping date and carrier and sends an email notification to the shipment recipient via the Mailer port.",
+        "naturalLayer": "application"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "e47e261dfbd8b1df48a1ee81a930d280f5310e10b646c6e79a8bb661bea29ba1",
+      "date": "2026-10-19T23:46:53.154Z",
+      "confidence": 0.95,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 10,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "1e7c92c05d631e52",
+          "quote": "await this.mailer.send(shipment.recipientEmail, 'Your order has shipped', `Shipped on ${day} with ${shipment.carrier}.`);",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "startLine": 7,
+            "endLine": 10
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:5e6609133abeb03e",
+      "subject": "e4b465cb4e5c3815",
+      "predicate": "hasResponsibility",
+      "value": {
+        "name": "Shipment domain data representation",
+        "description": "Represent a shipment record with its identifier, recipient email address, dispatch timestamp, and carrier.",
+        "naturalLayer": "domain"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "a7dbb2b5d8aea7fd4394004b8add9f61f0cd0a4ddd11c1462b305e8bfaebaaca",
+      "date": "2026-10-19T23:47:37.614Z",
+      "confidence": 1,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 7,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "  constructor(\n    readonly id: string,\n    readonly recipientEmail: string,\n    readonly shippedAt: Date,\n    readonly carrier: string,\n  ) {}",
+          "startLine": 2,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/shipping/domain/shipment.ts",
+            "startLine": 2,
+            "endLine": 7
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:36dfb51894702a96",
+      "subject": "21902eaf2ee28c4a",
+      "predicate": "inContext",
+      "value": {
+        "context": "notifications",
+        "declared": false
+      },
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-19T23:46:53.154Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "startLine": 4,
+            "endLine": 11
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "context",
+            "value": "notifications",
+            "query": "MATCH (c:Class {id: $id}) RETURN c.context AS context, c.contextDeclared AS declared"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:dd5ec1359105dca5",
+      "subject": "e4b465cb4e5c3815",
+      "predicate": "inContext",
+      "value": {
+        "context": "shipping",
+        "declared": false
+      },
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-19T23:46:53.154Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/shipping/domain/shipment.ts",
+            "startLine": 1,
+            "endLine": 8
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "context",
+            "value": "shipping",
+            "query": "MATCH (c:Class {id: $id}) RETURN c.context AS context, c.contextDeclared AS declared"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:c0dc258d192ca236",
+      "subject": "21902eaf2ee28c4a",
+      "predicate": "inLayer",
+      "value": "application",
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-19T23:46:53.154Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "startLine": 4,
+            "endLine": 11
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "layerKind",
+            "value": "application",
+            "query": "MATCH (c:Class {id: $id}) RETURN c.layerKind AS layerKind"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:16fa8e3c97cbb443",
+      "subject": "e4b465cb4e5c3815",
+      "predicate": "inLayer",
+      "value": "domain",
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-19T23:46:53.154Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/shipping/domain/shipment.ts",
+            "startLine": 1,
+            "endLine": 8
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "layerKind",
+            "value": "domain",
+            "query": "MATCH (c:Class {id: $id}) RETURN c.layerKind AS layerKind"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:b01b2146d7ba5464",
+      "subject": "1e7c92c05d631e52",
+      "predicate": "logicDensity",
+      "value": 0,
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-19T23:46:53.154Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "startLine": 7,
+            "endLine": 10
+          }
+        ],
+        "graph": []
+      }
+    },
+    {
+      "id": "fact:4031a38527957fdc",
+      "subject": "21902eaf2ee28c4a",
+      "predicate": "realizesCapability",
+      "value": {
+        "capability": "Customer shipping notification",
+        "capabilityId": "sem:SemCapability:7de046067536b2df"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "edae8b893c0e70eaf2c257208d5c85fd8ddcd3f429963ca50187edb210908afb",
+      "date": "2026-10-19T23:49:36.972Z",
+      "confidence": 0.9,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "21902eaf2ee28c4a",
+          "quote": "export class ShipmentNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "startLine": 4,
+            "endLine": 4
+          },
+          {
+            "kind": "code",
+            "file": "src/shipping/domain/shipment.ts",
+            "startLine": 1,
+            "endLine": 1
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:bfc2a6cffa1fee34",
+      "subject": "21902eaf2ee28c4a",
+      "predicate": "realizesCapability",
+      "value": {
+        "capability": "Shipment notification",
+        "capabilityId": "sem:SemCapability:41b433b86a630b93"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "59de78b0ffd3232d2830ad196edab33ae52c5a1cf84fefa518533c177b2562e7",
+      "date": "2026-10-19T23:48:14.008Z",
+      "confidence": 0.95,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "21902eaf2ee28c4a",
+          "quote": "export class ShipmentNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "startLine": 4,
+            "endLine": 4
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:d3db9f154a83a84b",
+      "subject": "e4b465cb4e5c3815",
+      "predicate": "realizesCapability",
+      "value": {
+        "capability": "Order shipping and delivery management",
+        "capabilityId": "sem:SemCapability:e0fbe32fc89ccd27"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "c7385efd69bc3859fe04fe528dd7a6fe52cd76774119804a9c801011cec2484a",
+      "date": "2026-10-19T23:48:46.928Z",
+      "confidence": 0.9,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/shipping/domain/shipment.ts",
+            "startLine": 1,
+            "endLine": 1
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:e1e1b108b7b36ea9",
+      "subject": "e4b465cb4e5c3815",
+      "predicate": "realizesCapability",
+      "value": {
+        "capability": "Customer shipping notification",
+        "capabilityId": "sem:SemCapability:7de046067536b2df"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "edae8b893c0e70eaf2c257208d5c85fd8ddcd3f429963ca50187edb210908afb",
+      "date": "2026-10-19T23:49:36.972Z",
+      "confidence": 0.9,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/shipment-notification.service.ts",
+          "nodeId": "21902eaf2ee28c4a",
+          "quote": "export class ShipmentNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 1,
+          "file": "src/shipping/domain/shipment.ts",
+          "nodeId": "e4b465cb4e5c3815",
+          "quote": "export class Shipment {",
+          "startLine": 1,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "startLine": 4,
+            "endLine": 4
+          },
+          {
+            "kind": "code",
+            "file": "src/shipping/domain/shipment.ts",
+            "startLine": 1,
+            "endLine": 1
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:56f71ae7cfa4bcda",
+      "subject": "21902eaf2ee28c4a",
+      "predicate": "sameConceptAs",
+      "value": {
+        "other": "e4b465cb4e5c3815",
+        "same": true
+      },
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-19T23:46:53.154Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "startLine": 4,
+            "endLine": 11
+          },
+          {
+            "kind": "code",
+            "file": "src/shipping/domain/shipment.ts",
+            "startLine": 1,
+            "endLine": 8
+          }
+        ],
+        "graph": []
+      }
+    }
+  ]
+}

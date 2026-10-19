@@ -1,0 +1,52 @@
+{
+  "itemId": "component:ordering",
+  "itemName": "component:ordering",
+  "key": "7b1f4ea9af2ba16e14a9c22e3dc2614abbea332de2f33a20ad3f25c8e53b110d",
+  "parts": {
+    "model": "gemini-4-argon-high",
+    "pass": "capability",
+    "promptHash": "8615d4973f7d8c6024c14a9838c5dd6560f92c023e26da70cb3f3e3c69ffae64",
+    "promptVersion": "ontology-v0.3",
+    "provider": "gemini-agy",
+    "runIndex": 0,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of component \"ordering\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- PlaceOrderUseCase (node 6860bbf1a3b5131d), file src/ordering/application/place-order.use-case.ts, declaration line 4: \"export class PlaceOrderUseCase {\"\n  component ordering, layer application; responsibilities: Place Order\n- Order (node 99595122f2958507), file src/ordering/domain/order.ts, declaration line 7: \"export class Order {\"\n  component ordering, layer domain; responsibilities: Order representation\n\n## APG relations of the group\nGraph statistics: 2 classes; 0 relations inside the group; 0 outgoing relations to code outside it.\n- (none)",
+  "recordedAt": "2026-10-19T23:42:55.478Z",
+  "resolvedModel": "gemini-4-argon-high",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.95,
+        "description": "Enables placing new orders and representing order data within the ordering domain.",
+        "evidence": [
+          {
+            "endLine": 4,
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "nodeId": "6860bbf1a3b5131d",
+            "quote": "export class PlaceOrderUseCase {",
+            "startLine": 4
+          },
+          {
+            "endLine": 7,
+            "file": "src/ordering/domain/order.ts",
+            "nodeId": "99595122f2958507",
+            "quote": "export class Order {",
+            "startLine": 7
+          }
+        ],
+        "name": "Order placement",
+        "realizedBy": [
+          "6860bbf1a3b5131d",
+          "99595122f2958507"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 8337,
+    "outputTokens": 1591
+  }
+}

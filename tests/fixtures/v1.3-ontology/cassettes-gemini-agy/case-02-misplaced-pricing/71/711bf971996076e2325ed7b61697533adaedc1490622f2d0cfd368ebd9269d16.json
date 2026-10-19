@@ -1,0 +1,69 @@
+{
+  "itemId": "component:notifications",
+  "itemName": "component:notifications",
+  "key": "711bf971996076e2325ed7b61697533adaedc1490622f2d0cfd368ebd9269d16",
+  "parts": {
+    "model": "gemini-4-argon-high",
+    "pass": "capability",
+    "promptHash": "efce1f58df9cbf18d14cbd1c9d5920b8b44ede959565a6c5d40875a7638521de",
+    "promptVersion": "ontology-v0.3",
+    "provider": "gemini-agy",
+    "runIndex": 0,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of component \"notifications\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- ConsoleMailer (node 9e5dca9006c883b8), file src/notifications/infrastructure/console-mailer.ts, declaration line 3: \"export class ConsoleMailer implements Mailer {\"\n  component notifications, layer infrastructure; responsibilities: Email notification delivery adapter\n- OrderNotificationService (node ee110f001f97012a), file src/notifications/application/order-notification.service.ts, declaration line 4: \"export class OrderNotificationService {\"\n  component notifications, layer application; responsibilities: Order discount and payable calculation; Order confirmation notification dispatch\n\n## APG relations of the group\nGraph statistics: 2 classes; 0 relations inside the group; 3 outgoing relations to code outside it.\n- (none)",
+  "recordedAt": "2026-10-19T23:42:01.476Z",
+  "resolvedModel": "gemini-4-argon-high",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.95,
+        "description": "Dispatching and delivering order confirmation notifications to customers via email.",
+        "evidence": [
+          {
+            "endLine": 4,
+            "file": "src/notifications/application/order-notification.service.ts",
+            "nodeId": "ee110f001f97012a",
+            "quote": "export class OrderNotificationService {",
+            "startLine": 4
+          },
+          {
+            "endLine": 3,
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "nodeId": "9e5dca9006c883b8",
+            "quote": "export class ConsoleMailer implements Mailer {",
+            "startLine": 3
+          }
+        ],
+        "name": "Customer notification",
+        "realizedBy": [
+          "ee110f001f97012a",
+          "9e5dca9006c883b8"
+        ]
+      },
+      {
+        "confidence": 0.9,
+        "description": "Calculating order discounts and final payable amounts for customer orders.",
+        "evidence": [
+          {
+            "endLine": 4,
+            "file": "src/notifications/application/order-notification.service.ts",
+            "nodeId": "ee110f001f97012a",
+            "quote": "export class OrderNotificationService {",
+            "startLine": 4
+          }
+        ],
+        "name": "Order pricing",
+        "realizedBy": [
+          "ee110f001f97012a"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 8352,
+    "outputTokens": 1808
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "itemId": "e4b465cb4e5c3815",
+  "itemName": "Shipment",
+  "key": "de458e238d025cddcf90f9913809dbc477d6519fbe952ebdcee25fa7d229c068",
+  "parts": {
+    "model": "gemini-4-argon-high",
+    "pass": "responsibility",
+    "promptHash": "a7dbb2b5d8aea7fd4394004b8add9f61f0cd0a4ddd11c1462b305e8bfaebaaca",
+    "promptVersion": "ontology-v0.3",
+    "provider": "gemini-agy",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass Shipment (node e4b465cb4e5c3815), file src/shipping/domain/shipment.ts, lines 1-8.\nComponent: shipping. Declared layer: domain (kind domain).\nMethods:\n- (none)\nFields: id, recipientEmail, shippedAt, carrier\n\n## APG neighbourhood\nGraph statistics: 0 methods; fan-out 0; fan-in 0.\n- (none)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- Shipment: nameRole=\"unknown\"\n- Shipment: behaviourRole=\"coordination\"\n- Shipment: ioCategories=[]\n- Shipment: lcom4=0\n- Shipment: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\nFlags:\n- communities/community-component-mismatch: src/shipping/domain/shipment.ts (component shipping) clusters with community 0 whose majority component is notifications\n\n## Source\n=====SOURCE-BEGIN src/shipping/domain/shipment.ts\n1| export class Shipment {\n2|   constructor(\n3|     readonly id: string,\n4|     readonly recipientEmail: string,\n5|     readonly shippedAt: Date,\n6|     readonly carrier: string,\n7|   ) {}\n8| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-19T23:47:37.614Z",
+  "resolvedModel": "gemini-4-argon-high",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 1,
+        "evidence": [
+          {
+            "endLine": 1,
+            "file": "src/shipping/domain/shipment.ts",
+            "nodeId": "e4b465cb4e5c3815",
+            "quote": "export class Shipment {",
+            "startLine": 1
+          },
+          {
+            "endLine": 6,
+            "file": "src/shipping/domain/shipment.ts",
+            "nodeId": "e4b465cb4e5c3815",
+            "quote": "    readonly id: string,\n    readonly recipientEmail: string,\n    readonly shippedAt: Date,\n    readonly carrier: string,",
+            "startLine": 3
+          }
+        ],
+        "name": "Shipment",
+        "relation": "defines"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 1,
+        "description": "Represent a shipment record with its identifier, recipient email address, dispatch timestamp, and carrier.",
+        "evidence": [
+          {
+            "endLine": 7,
+            "file": "src/shipping/domain/shipment.ts",
+            "nodeId": "e4b465cb4e5c3815",
+            "quote": "  constructor(\n    readonly id: string,\n    readonly recipientEmail: string,\n    readonly shippedAt: Date,\n    readonly carrier: string,\n  ) {}",
+            "startLine": 2
+          }
+        ],
+        "name": "Shipment domain data representation",
+        "naturalLayer": "domain"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 8747,
+    "outputTokens": 1270
+  }
+}

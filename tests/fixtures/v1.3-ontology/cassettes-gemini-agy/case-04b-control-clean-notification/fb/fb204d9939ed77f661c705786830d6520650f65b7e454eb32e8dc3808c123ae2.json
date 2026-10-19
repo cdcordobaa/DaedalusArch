@@ -1,0 +1,52 @@
+{
+  "itemId": "community:0",
+  "itemName": "community:0",
+  "key": "fb204d9939ed77f661c705786830d6520650f65b7e454eb32e8dc3808c123ae2",
+  "parts": {
+    "model": "gemini-4-argon-high",
+    "pass": "capability",
+    "promptHash": "edae8b893c0e70eaf2c257208d5c85fd8ddcd3f429963ca50187edb210908afb",
+    "promptVersion": "ontology-v0.3",
+    "provider": "gemini-agy",
+    "runIndex": 0,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of community \"0\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- ShipmentNotificationService (node 21902eaf2ee28c4a), file src/notifications/application/shipment-notification.service.ts, declaration line 4: \"export class ShipmentNotificationService {\"\n  component notifications, layer application; responsibilities: Sending Shipment Notifications\n- Shipment (node e4b465cb4e5c3815), file src/shipping/domain/shipment.ts, declaration line 1: \"export class Shipment {\"\n  component shipping, layer domain; responsibilities: Shipment domain data representation\n\n## APG relations of the group\nGraph statistics: 2 classes; 0 relations inside the group; 1 outgoing relations to code outside it.\n- (none)",
+  "recordedAt": "2026-10-19T23:49:36.972Z",
+  "resolvedModel": "gemini-4-argon-high",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.9,
+        "description": "Representing shipment records and sending notifications to customers regarding their deliveries.",
+        "evidence": [
+          {
+            "endLine": 4,
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "nodeId": "21902eaf2ee28c4a",
+            "quote": "export class ShipmentNotificationService {",
+            "startLine": 4
+          },
+          {
+            "endLine": 1,
+            "file": "src/shipping/domain/shipment.ts",
+            "nodeId": "e4b465cb4e5c3815",
+            "quote": "export class Shipment {",
+            "startLine": 1
+          }
+        ],
+        "name": "Customer shipping notification",
+        "realizedBy": [
+          "21902eaf2ee28c4a",
+          "e4b465cb4e5c3815"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 8339,
+    "outputTokens": 2864
+  }
+}

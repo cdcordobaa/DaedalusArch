@@ -2477,3 +2477,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 instrument track, REV-04 P15/P19 Neo4j half, gate D8; D15 left to the author; no sealed reads, MEAN-01 sample not opened
 
 ---
+
+## v1.4 research ops: C1d semantic-facts pilot (Gemini half)
+**Timestamp**: 2026-10-19T23:51:04Z
+**User Input**: "Progress without blockers; the capped instrument pilots are approved (C1d ≤ 40 per vendor)."
+**AI Response**: "Ran the NS-02 2-case pilot. Gemini (agy 1.4.2, exploratory): case-02 defect found, cheap proxies missed it, 0/5 forbidden hits on both cases, 0 hallucinations, 30 calls. The Claude route refused to start (CLI 2.1.303 vs pinned 2.1.294); the pin decision goes to the author. Docs/DiagnosticRuns/v1.4-c1d-pilot-2026-10-19.md."
+**Context**: v1.4 instrument track, TRUST-01 L3; 30 model calls (Gemini)
+
+---

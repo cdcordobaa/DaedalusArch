@@ -1,0 +1,1628 @@
+{
+  "schemaVersion": 1,
+  "artifact": "A2",
+  "project": {
+    "id": "case-02-misplaced-pricing",
+    "contentHash": "26574d93a99e6328ad560ef032f86824c7b084c875f2bc08c0f607439483b717",
+    "commit": null
+  },
+  "inputs": {
+    "a1": {
+      "apgHash": "7f6be0d7495c06f6b6c716b31e31acdd908c7208a8b4113426013de5932d55a5"
+    },
+    "layerModel": {
+      "path": "tests/fixtures/v1.3-ontology/layers.json",
+      "hash": "029d18d14b37587251633e747ce135abdb7b767cf61108942f270c9f60445f15"
+    }
+  },
+  "producer": {
+    "part": "C1d",
+    "pipeline": "ontology-v0",
+    "promptVersion": "ontology-v0.3",
+    "provider": "gemini-agy",
+    "model": "gemini-4-argon-high",
+    "runs": 2,
+    "runId": "ontology-v0-6deb7ec61cd2",
+    "factPolicy": "agreed-only"
+  },
+  "facts": [
+    {
+      "id": "fact:40143a976e9f37e4",
+      "subject": "6860bbf1a3b5131d",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Customer",
+        "relation": "uses",
+        "conceptId": null
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+      "date": "2026-10-19T23:38:05.907Z",
+      "confidence": 0.8,
+      "agreement": "single-run",
+      "runIndex": 0,
+      "evidence": [
+        {
+          "endLine": 7,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "execute(id: string, customerEmail: string, lines: readonly OrderLine[]): Order {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 7,
+            "endLine": 7
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:96d23dc8fb806c4a",
+      "subject": "6860bbf1a3b5131d",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Order",
+        "relation": "uses",
+        "conceptId": "sem:SemBusinessConcept:824b338744229d63"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+      "date": "2026-10-19T23:38:05.907Z",
+      "confidence": 1,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 8,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "const order = new Order(id, customerEmail, lines);",
+          "startLine": 8,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 8,
+            "endLine": 8
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:b10315ad49bc0c3b",
+      "subject": "6860bbf1a3b5131d",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "OrderLine",
+        "relation": "uses",
+        "conceptId": "sem:SemBusinessConcept:384903f65c1d573a"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+      "date": "2026-10-19T23:38:05.907Z",
+      "confidence": 0.9,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 7,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "execute(id: string, customerEmail: string, lines: readonly OrderLine[]): Order {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 7,
+            "endLine": 7
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:2573a90ef151b2e3",
+      "subject": "99595122f2958507",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "OrderLine",
+        "relation": "uses",
+        "conceptId": "sem:SemBusinessConcept:384903f65c1d573a"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+      "date": "2026-10-19T23:39:07.243Z",
+      "confidence": 0.95,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 11,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "readonly lines: readonly OrderLine[],",
+          "startLine": 11,
+          "grounded": true
+        },
+        {
+          "endLine": 15,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "3d1d8ec86b5e61c8",
+          "quote": "return this.lines.reduce((acc, l) => acc + l.price * l.quantity, 0);",
+          "startLine": 15,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 11,
+            "endLine": 11
+          },
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 15,
+            "endLine": 15
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:2b589a5ae4c5bcf3",
+      "subject": "99595122f2958507",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Order",
+        "relation": "defines",
+        "conceptId": "sem:SemBusinessConcept:824b338744229d63"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+      "date": "2026-10-19T23:39:07.243Z",
+      "confidence": 1,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 12,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "export class Order {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 7,
+            "endLine": 12
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:3fb62d0ce29cea6e",
+      "subject": "ee110f001f97012a",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Discount",
+        "relation": "uses",
+        "conceptId": null
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "2ed70a34f867c1eaef6aff7c7ca7bfdc7ae88b78e0c10ee2e7183c1dfd1528d2",
+      "date": "2026-10-19T23:41:00.030Z",
+      "confidence": 0.85,
+      "agreement": "single-run",
+      "runIndex": 0,
+      "evidence": [
+        {
+          "endLine": 9,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const discount = order.lines.length > 3 ? subtotal * 0.1 : 0;",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 9,
+            "endLine": 9
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 2,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:687c4a258a61772a",
+      "subject": "ee110f001f97012a",
+      "predicate": "embodiesConcept",
+      "value": {
+        "concept": "Order",
+        "relation": "uses",
+        "conceptId": "sem:SemBusinessConcept:824b338744229d63"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "2ed70a34f867c1eaef6aff7c7ca7bfdc7ae88b78e0c10ee2e7183c1dfd1528d2",
+      "date": "2026-10-19T23:41:00.030Z",
+      "confidence": 0.95,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 8,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const subtotal = order.subtotal();",
+          "startLine": 8,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 8,
+            "endLine": 8
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 2,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:4b41db66fb408287",
+      "subject": "4309cdf457262c68",
+      "predicate": "enforcesRule",
+      "value": {
+        "statement": "An order with more than 3 lines receives a 10% discount on the subtotal.",
+        "subject": "order line count",
+        "operator": ">",
+        "threshold": 3,
+        "unit": "lines",
+        "kind": "business",
+        "ruleId": "sem:SemBusinessRule:052077d51d5c9c93"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "b9072d5ff95878bae69b4f0b502a25997b313a93e466e8c22ff783b3b3e4db8f",
+      "date": "2026-10-19T23:44:22.626Z",
+      "confidence": 0.95,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 9,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const discount = order.lines.length > 3 ? subtotal * 0.1 : 0;",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 9,
+            "endLine": 9
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "callers",
+            "value": 0,
+            "query": "MATCH (m:Method {id: $id})<-[:CALLS]-(x) RETURN count(DISTINCT x) AS callers"
+          },
+          {
+            "statistic": "fanOut",
+            "value": 2,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:bf2159e5ead9f119",
+      "subject": "6860bbf1a3b5131d",
+      "predicate": "hasResponsibility",
+      "value": {
+        "name": "Place Order",
+        "description": "Orchestrates placing a new order by instantiating an Order from the given identifier, customer email, and order lines, recording it in the placed orders collection, and returning the created order.",
+        "naturalLayer": "application"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "6a94ae2cd30f76ca6d48c206b6e617bd45d3ac635e9f480d0ada655590973bce",
+      "date": "2026-10-19T23:38:05.907Z",
+      "confidence": 1,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 10,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "const order = new Order(id, customerEmail, lines);",
+          "startLine": 8,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 8,
+            "endLine": 10
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:804033286b56a839",
+      "subject": "99595122f2958507",
+      "predicate": "hasResponsibility",
+      "value": {
+        "name": "Order subtotal calculation",
+        "description": "Calculates the order subtotal by summing the product of price and quantity across all order lines.",
+        "naturalLayer": "domain"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+      "date": "2026-10-19T23:39:07.243Z",
+      "confidence": 1,
+      "agreement": "single-run",
+      "runIndex": 0,
+      "evidence": [
+        {
+          "endLine": 16,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "3d1d8ec86b5e61c8",
+          "quote": "return this.lines.reduce((acc, l) => acc + l.price * l.quantity, 0);",
+          "startLine": 14,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 14,
+            "endLine": 16
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:95941421935b9b1a",
+      "subject": "99595122f2958507",
+      "predicate": "hasResponsibility",
+      "value": {
+        "name": "Order representation",
+        "description": "Represents a customer order containing its unique identifier, customer email, and line items.",
+        "naturalLayer": "domain"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "44d784b136a6d6661b95febdecd001072b103a67ecb0a6063cf52c3bd5416006",
+      "date": "2026-10-19T23:39:07.243Z",
+      "confidence": 1,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 12,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "readonly lines: readonly OrderLine[],",
+          "startLine": 8,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 8,
+            "endLine": 12
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:95ec104743d55ed0",
+      "subject": "9e5dca9006c883b8",
+      "predicate": "hasResponsibility",
+      "value": {
+        "name": "Email notification delivery adapter",
+        "description": "Implements the Mailer port as an in-memory adapter that records outgoing email messages (recipient, subject, and body).",
+        "naturalLayer": "infrastructure"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "9dbdd9e58ad09d58175707412ac9de81475f99911ab8077e9970c6e3d8d9ce6b",
+      "date": "2026-10-19T23:40:11.298Z",
+      "confidence": 0.95,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "9e5dca9006c883b8",
+          "quote": "export class ConsoleMailer implements Mailer {",
+          "startLine": 3,
+          "grounded": true
+        },
+        {
+          "endLine": 9,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "a1ab40e4bf0d3824",
+          "quote": "this.sent.push(`${to}|${subject}|${body}`);",
+          "startLine": 6,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "startLine": 3,
+            "endLine": 4
+          },
+          {
+            "kind": "code",
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "startLine": 6,
+            "endLine": 9
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:7071dbe2eb56bd45",
+      "subject": "ee110f001f97012a",
+      "predicate": "hasResponsibility",
+      "value": {
+        "name": "Order confirmation notification dispatch",
+        "description": "Coordinates sending an order confirmation notification to the customer with the order ID and payable total via the mailer port.",
+        "naturalLayer": "application"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "2ed70a34f867c1eaef6aff7c7ca7bfdc7ae88b78e0c10ee2e7183c1dfd1528d2",
+      "date": "2026-10-19T23:41:00.030Z",
+      "confidence": 0.95,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 11,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "await this.mailer.send(order.customerEmail, 'Order confirmed', `Order ${order.id}: you pay ${payable.toFixed(2)}`);",
+          "startLine": 11,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 11,
+            "endLine": 11
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 2,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:8d2aa50acb9f7ad3",
+      "subject": "ee110f001f97012a",
+      "predicate": "hasResponsibility",
+      "value": {
+        "name": "Order discount and payable calculation",
+        "description": "Calculates volume-based order discount and the net payable amount based on order line count and subtotal.",
+        "naturalLayer": "domain"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "2ed70a34f867c1eaef6aff7c7ca7bfdc7ae88b78e0c10ee2e7183c1dfd1528d2",
+      "date": "2026-10-19T23:41:00.030Z",
+      "confidence": 0.95,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 10,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const discount = order.lines.length > 3 ? subtotal * 0.1 : 0;",
+          "startLine": 9,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 9,
+            "endLine": 10
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 2,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:b5c73b638eec056f",
+      "subject": "6860bbf1a3b5131d",
+      "predicate": "inContext",
+      "value": {
+        "context": "ordering",
+        "declared": false
+      },
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-19T23:38:05.907Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 4,
+            "endLine": 12
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "context",
+            "value": "ordering",
+            "query": "MATCH (c:Class {id: $id}) RETURN c.context AS context, c.contextDeclared AS declared"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:79fb5f9e8e58456b",
+      "subject": "99595122f2958507",
+      "predicate": "inContext",
+      "value": {
+        "context": "ordering",
+        "declared": false
+      },
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-19T23:38:05.907Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 7,
+            "endLine": 17
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "context",
+            "value": "ordering",
+            "query": "MATCH (c:Class {id: $id}) RETURN c.context AS context, c.contextDeclared AS declared"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:f012c95f13c0acd2",
+      "subject": "9e5dca9006c883b8",
+      "predicate": "inContext",
+      "value": {
+        "context": "notifications",
+        "declared": false
+      },
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-19T23:38:05.907Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "startLine": 3,
+            "endLine": 10
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "context",
+            "value": "notifications",
+            "query": "MATCH (c:Class {id: $id}) RETURN c.context AS context, c.contextDeclared AS declared"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:867c324740d2324f",
+      "subject": "ee110f001f97012a",
+      "predicate": "inContext",
+      "value": {
+        "context": "notifications",
+        "declared": false
+      },
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-19T23:38:05.907Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 4,
+            "endLine": 13
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "context",
+            "value": "notifications",
+            "query": "MATCH (c:Class {id: $id}) RETURN c.context AS context, c.contextDeclared AS declared"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:bc7bde8413edd03a",
+      "subject": "6860bbf1a3b5131d",
+      "predicate": "inLayer",
+      "value": "application",
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-19T23:38:05.907Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 4,
+            "endLine": 12
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "layerKind",
+            "value": "application",
+            "query": "MATCH (c:Class {id: $id}) RETURN c.layerKind AS layerKind"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:68ce4f1d0429a167",
+      "subject": "99595122f2958507",
+      "predicate": "inLayer",
+      "value": "domain",
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-19T23:38:05.907Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 7,
+            "endLine": 17
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "layerKind",
+            "value": "domain",
+            "query": "MATCH (c:Class {id: $id}) RETURN c.layerKind AS layerKind"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:5d7d79bb834d625e",
+      "subject": "9e5dca9006c883b8",
+      "predicate": "inLayer",
+      "value": "infrastructure",
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-19T23:38:05.907Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "startLine": 3,
+            "endLine": 10
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "layerKind",
+            "value": "infrastructure",
+            "query": "MATCH (c:Class {id: $id}) RETURN c.layerKind AS layerKind"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:9aa29b4a5b04632b",
+      "subject": "ee110f001f97012a",
+      "predicate": "inLayer",
+      "value": "application",
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-19T23:38:05.907Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 4,
+            "endLine": 13
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "layerKind",
+            "value": "application",
+            "query": "MATCH (c:Class {id: $id}) RETURN c.layerKind AS layerKind"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:d5bc24a51ee0b95b",
+      "subject": "3d1d8ec86b5e61c8",
+      "predicate": "logicDensity",
+      "value": 2,
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-19T23:38:05.907Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 14,
+            "endLine": 16
+          }
+        ],
+        "graph": []
+      }
+    },
+    {
+      "id": "fact:1a66e0e4eebe5594",
+      "subject": "4309cdf457262c68",
+      "predicate": "logicDensity",
+      "value": 4,
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-19T23:38:05.907Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 7,
+            "endLine": 12
+          }
+        ],
+        "graph": []
+      }
+    },
+    {
+      "id": "fact:bd5e202222b3bd44",
+      "subject": "a1ab40e4bf0d3824",
+      "predicate": "logicDensity",
+      "value": 0,
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-19T23:38:05.907Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "startLine": 6,
+            "endLine": 9
+          }
+        ],
+        "graph": []
+      }
+    },
+    {
+      "id": "fact:103fe970ca43b392",
+      "subject": "c12d39f40d4561ac",
+      "predicate": "logicDensity",
+      "value": 0,
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-19T23:38:05.907Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 7,
+            "endLine": 11
+          }
+        ],
+        "graph": []
+      }
+    },
+    {
+      "id": "fact:9b28f2a5ce004bd4",
+      "subject": "6860bbf1a3b5131d",
+      "predicate": "realizesCapability",
+      "value": {
+        "capability": "Order placement",
+        "capabilityId": "sem:SemCapability:ee5bdf732296fa34"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "8615d4973f7d8c6024c14a9838c5dd6560f92c023e26da70cb3f3e3c69ffae64",
+      "date": "2026-10-19T23:42:55.478Z",
+      "confidence": 0.95,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "6860bbf1a3b5131d",
+          "quote": "export class PlaceOrderUseCase {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 7,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "export class Order {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 4,
+            "endLine": 4
+          },
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 7,
+            "endLine": 7
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:d7ba251461b49eaa",
+      "subject": "99595122f2958507",
+      "predicate": "realizesCapability",
+      "value": {
+        "capability": "Order placement",
+        "capabilityId": "sem:SemCapability:ee5bdf732296fa34"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "8615d4973f7d8c6024c14a9838c5dd6560f92c023e26da70cb3f3e3c69ffae64",
+      "date": "2026-10-19T23:42:55.478Z",
+      "confidence": 0.95,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "6860bbf1a3b5131d",
+          "quote": "export class PlaceOrderUseCase {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 7,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "export class Order {",
+          "startLine": 7,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 4,
+            "endLine": 4
+          },
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 7,
+            "endLine": 7
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:ca792cc3ec95c4e6",
+      "subject": "9e5dca9006c883b8",
+      "predicate": "realizesCapability",
+      "value": {
+        "capability": "Customer notification",
+        "capabilityId": "sem:SemCapability:41b433b86a630b93"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "efce1f58df9cbf18d14cbd1c9d5920b8b44ede959565a6c5d40875a7638521de",
+      "date": "2026-10-19T23:42:01.476Z",
+      "confidence": 0.95,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "ee110f001f97012a",
+          "quote": "export class OrderNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 3,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "9e5dca9006c883b8",
+          "quote": "export class ConsoleMailer implements Mailer {",
+          "startLine": 3,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 4,
+            "endLine": 4
+          },
+          {
+            "kind": "code",
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "startLine": 3,
+            "endLine": 3
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 1,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:6fb53d7994e93240",
+      "subject": "ee110f001f97012a",
+      "predicate": "realizesCapability",
+      "value": {
+        "capability": "Customer notification",
+        "capabilityId": "sem:SemCapability:41b433b86a630b93"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "efce1f58df9cbf18d14cbd1c9d5920b8b44ede959565a6c5d40875a7638521de",
+      "date": "2026-10-19T23:42:01.476Z",
+      "confidence": 0.95,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "ee110f001f97012a",
+          "quote": "export class OrderNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        },
+        {
+          "endLine": 3,
+          "file": "src/notifications/infrastructure/console-mailer.ts",
+          "nodeId": "9e5dca9006c883b8",
+          "quote": "export class ConsoleMailer implements Mailer {",
+          "startLine": 3,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 4,
+            "endLine": 4
+          },
+          {
+            "kind": "code",
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "startLine": 3,
+            "endLine": 3
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 2,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:881d03efb6a5a22a",
+      "subject": "ee110f001f97012a",
+      "predicate": "realizesCapability",
+      "value": {
+        "capability": "Order pricing",
+        "capabilityId": "sem:SemCapability:744335ec228fc526"
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "efce1f58df9cbf18d14cbd1c9d5920b8b44ede959565a6c5d40875a7638521de",
+      "date": "2026-10-19T23:42:01.476Z",
+      "confidence": 0.9,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 4,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "ee110f001f97012a",
+          "quote": "export class OrderNotificationService {",
+          "startLine": 4,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 4,
+            "endLine": 4
+          }
+        ],
+        "graph": [
+          {
+            "statistic": "fanOut",
+            "value": 2,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]->(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanOut"
+          },
+          {
+            "statistic": "fanIn",
+            "value": 0,
+            "query": "MATCH (c:Class {id: $id}) OPTIONAL MATCH (c)-[:CONTAINS]->(m:Method) WITH [c] + collect(m) AS members UNWIND members AS x MATCH (x)<-[r:CALLS|CONSTRUCTOR_INJECTS|EXTENDS|FLOWS_TO|IMPLEMENTS]-(n) WHERE NOT n IN members RETURN count(DISTINCT [type(r), n.id]) AS fanIn"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fact:18033799a285c252",
+      "subject": "6860bbf1a3b5131d",
+      "predicate": "sameConceptAs",
+      "value": {
+        "other": "ee110f001f97012a",
+        "same": true
+      },
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-19T23:38:05.907Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 4,
+            "endLine": 12
+          },
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 4,
+            "endLine": 13
+          }
+        ],
+        "graph": []
+      }
+    },
+    {
+      "id": "fact:d08e0971ae4fc758",
+      "subject": "6860bbf1a3b5131d",
+      "predicate": "sameConceptAs",
+      "value": {
+        "other": "ee110f001f97012a",
+        "same": false
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "a3183379d724a0462525a14a6b41824bbea0a3475a7d23158f37e97603f26574",
+      "date": "2026-10-19T23:45:34.734Z",
+      "confidence": 0.98,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 7,
+          "file": "src/ordering/application/place-order.use-case.ts",
+          "nodeId": "c12d39f40d4561ac",
+          "quote": "execute(id: string, customerEmail: string, lines: readonly OrderLine[]): Order {",
+          "startLine": 7,
+          "grounded": true
+        },
+        {
+          "endLine": 8,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const subtotal = order.subtotal();",
+          "startLine": 8,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 7,
+            "endLine": 7
+          },
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 8,
+            "endLine": 8
+          }
+        ],
+        "graph": []
+      }
+    },
+    {
+      "id": "fact:fcb73c5527a5824e",
+      "subject": "6860bbf1a3b5131d",
+      "predicate": "sameConceptAs",
+      "value": {
+        "other": "99595122f2958507",
+        "same": true
+      },
+      "source": "parser",
+      "basis": "apg",
+      "modelId": null,
+      "promptHash": null,
+      "date": "2026-10-19T23:38:05.907Z",
+      "confidence": null,
+      "agreement": null,
+      "runIndex": null,
+      "evidence": [],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/application/place-order.use-case.ts",
+            "startLine": 4,
+            "endLine": 12
+          },
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 7,
+            "endLine": 17
+          }
+        ],
+        "graph": []
+      }
+    },
+    {
+      "id": "fact:00329aad35fa2f94",
+      "subject": "99595122f2958507",
+      "predicate": "sameConceptAs",
+      "value": {
+        "other": "ee110f001f97012a",
+        "same": false
+      },
+      "source": "model",
+      "basis": null,
+      "modelId": "gemini-4-argon-high",
+      "promptHash": "d265b08bb0b596b33d32b71000b7075b7c95abc7faedd34c83060ad63b0342fa",
+      "date": "2026-10-19T23:46:06.365Z",
+      "confidence": 1,
+      "agreement": "agreed",
+      "runIndex": null,
+      "evidence": [
+        {
+          "endLine": 11,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "99595122f2958507",
+          "quote": "readonly lines: readonly OrderLine[],",
+          "startLine": 11,
+          "grounded": true
+        },
+        {
+          "endLine": 15,
+          "file": "src/ordering/domain/order.ts",
+          "nodeId": "3d1d8ec86b5e61c8",
+          "quote": "return this.lines.reduce((acc, l) => acc + l.price * l.quantity, 0);",
+          "startLine": 15,
+          "grounded": true
+        },
+        {
+          "endLine": 8,
+          "file": "src/notifications/application/order-notification.service.ts",
+          "nodeId": "4309cdf457262c68",
+          "quote": "const subtotal = order.subtotal();",
+          "startLine": 8,
+          "grounded": true
+        }
+      ],
+      "citations": {
+        "locations": [
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 11,
+            "endLine": 11
+          },
+          {
+            "kind": "code",
+            "file": "src/ordering/domain/order.ts",
+            "startLine": 15,
+            "endLine": 15
+          },
+          {
+            "kind": "code",
+            "file": "src/notifications/application/order-notification.service.ts",
+            "startLine": 8,
+            "endLine": 8
+          }
+        ],
+        "graph": []
+      }
+    }
+  ]
+}
