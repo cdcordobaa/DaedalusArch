@@ -5,8 +5,13 @@
  */
 import { MockFailure, MockOntologyProvider, NoCallProvider, aggregate, createScriptedResponder, diskReader, estimateOntology, runOntology, scoreCase } from '../../../../src/apg-enrich/ontology/index.js';
 import type { CaseScore, OntologyInput, OntologyResult } from '../../../../src/apg-enrich/ontology/index.js';
+import { prepareOntologyInput } from '../../../../src/apg-enrich/ontology/index.js';
+import { buildContext } from '../../../../src/apg-enrich/cheap/context.js';
+import { DEFAULT_CHEAP_OPTIONS } from '../../../../src/apg-enrich/cheap/types.js';
+import { PROMPT_VERSION, buildUnits } from '../../../../src/apg-enrich/ontology/index.js';
+import { rulePrompt } from '../../../../src/apg-enrich/ontology/prompts.js';
 import { canonicalJSON } from '../../../../src/llm-critic/canonical-json.js';
-import { CASES, FIXTURES, fixtureInput, manifest, mockAnswers, tempDir } from './helpers.js';
+import { CASES, FIXTURES, LAYERS, fixtureInput, manifest, mockAnswers, tempDir } from './helpers.js';
 
 const MOCK = { provider: 'mock', model: 'mock-ontology', temperature: null } as const;
 
@@ -52,13 +57,66 @@ describe('ontology pipeline on the planted cases (cassette replay)', () => {
     }
   });
 
-  it('finds the three planted semantic defects the cheap proxies miss, and no forbidden one', () => {
+  it('finds two of the three planted defects; case-03 is out of N4 scope (no declared context), and no forbidden one', () => {
     const agg = aggregate(scores);
-    expect(agg).toMatchObject({ expected: 3, found: 3, forbiddenHits: 0, unexpected: 0, cheapCaughtExpected: 0, cheapFlaggedForbidden: 1 });
+    expect(agg).toMatchObject({ expected: 3, found: 2, forbiddenHits: 0, unexpected: 0, cheapCaughtExpected: 0, cheapFlaggedForbidden: 1 });
     const dup = results.get('case-01-rule-dup-shapes')?.findings[0];
     expect(dup).toMatchObject({ kind: 'semantic-rule-duplication', components: ['checkout', 'invoicing'], verification: { verified: true, method: 'comparison-pattern' } });
     expect(results.get('case-02-misplaced-pricing')?.findings).toEqual([expect.objectContaining({ kind: 'misplaced-responsibility', naturalLayer: 'domain', classLayer: 'application' })]);
-    expect(results.get('case-03-concept-fragmentation')?.findings).toEqual([expect.objectContaining({ kind: 'concept-fragmentation', concept: 'Customer', components: ['accounts', 'billing', 'sales'] })]);
+    // N4 (BR-U3-09): the cross-context Customer identity is kept as a concept cluster, but it is no finding.
+    const r03 = results.get('case-03-concept-fragmentation');
+    expect(r03?.findings.filter((f) => f.kind === 'concept-fragmentation')).toEqual([]);
+    const customer = r03?.nodes.find((n) => n.label === 'SemBusinessConcept' && n.name === 'Customer');
+    expect(customer).toBeDefined();
+    const definers = r03?.edges.filter((e) => e.type === 'SemEMBODIES' && e.targetId === customer?.id && e.properties.relation === 'defines') ?? [];
+    expect(definers.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('BR-U3-18: an input-validation rule is a rule site but enters no rule cluster and no duplication finding', async () => {
+    const c = 'case-01-rule-dup-shapes';
+    const input = inputs.get(c);
+    if (input === undefined) throw new Error('no input');
+    const script = mockAnswers(c);
+    const asInput = { ...script, responses: script.responses.map((e) => e.pass !== 'rules' ? e : { ...e, answer: { rules: ((e.answer as { rules: Record<string, unknown>[] }).rules).map((r) => ({ ...r, kind: 'input-validation' })) } }) };
+    const mock = new MockOntologyProvider(createScriptedResponder(asInput, input.apg, diskReader(input.projectRoot)));
+    const detail = await runOntology(input, { provider: mock });
+    expect(detail.ruleSites.length).toBeGreaterThan(0);
+    expect(detail.ruleSites.every((r) => r.rule.out.kind === 'input-validation')).toBe(true);
+    expect(detail.clusters.rules.clusters).toEqual([]);
+    expect(detail.clusters.rules.adjudications).toEqual([]);
+    expect(detail.result.findings.filter((f) => f.kind === 'semantic-rule-duplication')).toEqual([]);
+    expect(detail.result.nodes.filter((n) => n.label === 'SemBusinessRule')).toEqual([]);
+  }, 60_000);
+
+  it('BR-U3-07/09 positive: case-03 with one declared context around all three definers gives one in-context fragmentation finding; split into one context per component it gives none', async () => {
+    const c = 'case-03-concept-fragmentation';
+    const ctx = (name: string, root: string) => ({ name, root, publicApi: [], acl: [] });
+    const ddd = (contexts: ReturnType<typeof ctx>[]) => ({ sourceRoot: 'src/', contexts, outsideContexts: [], aggregates: [], valueObjects: [], repositories: [], domainEventTypes: [], applicationServices: [] });
+    const run = async (contexts: ReturnType<typeof ctx>[]) => {
+      const input = await prepareOntologyInput(`${FIXTURES}/${c}`, { layerModel: { ...LAYERS, ddd: ddd(contexts) } });
+      const mock = new MockOntologyProvider(createScriptedResponder(mockAnswers(c), input.apg, diskReader(input.projectRoot)));
+      return (await runOntology(input, { provider: mock })).result.findings.filter((f) => f.kind === 'concept-fragmentation');
+    };
+    const one = await run([ctx('customers', 'src')]);
+    expect(one).toHaveLength(1);
+    expect(one[0]).toMatchObject({ components: ['customers'] });
+    expect((one[0] as { classes: unknown[] }).classes.length).toBeGreaterThanOrEqual(2);
+    expect(await run([ctx('sales', 'src/sales'), ctx('billing', 'src/billing'), ctx('accounts', 'src/accounts')])).toEqual([]);
+  }, 60_000);
+
+  it('BR-U3-11: the rule prompt asks for business rules and input checks with their kind, and names no case', () => {
+    const input = inputs.get('case-02-misplaced-pricing');
+    if (input === undefined) throw new Error('no input');
+    const ctx = buildContext({ apg: input.apg, project: input.project, projectRoot: input.projectRoot, layerModel: LAYERS }, DEFAULT_CHEAP_OPTIONS);
+    const units = buildUnits(ctx, input.cheap, { ruleMinDensity: 1 });
+    const cand = units.ruleCandidates[0];
+    if (cand === undefined) throw new Error('no rule candidate');
+    const task = rulePrompt(cand.cls, cand.methods).split('## Class')[0] ?? '';
+    expect(PROMPT_VERSION).toBe('ontology-v0.2');
+    expect(task).not.toMatch(/not a technical check/);
+    expect(task).toContain('kind "business"');
+    expect(task).toContain('kind "input-validation"');
+    for (const word of ['Order', 'Controller', 'quantity', 'gift', 'Customer', 'Shipping', '20']) expect(task).not.toContain(word);
   });
 
   it('rejects the four planted hallucinations and reports run agreement', () => {

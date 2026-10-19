@@ -68,6 +68,29 @@ describe('candidate pairs', () => {
     expect(pairs).toEqual(expect.arrayContaining(['a-b', 'a-c']));
     expect(pairs.some((p) => p.includes('d'))).toBe(false);
   });
+
+  it('N4: pairs concepts inside one declared context, not inside an undeclared component, and still across components', () => {
+    const declared = (key: string, component: string, text: string, context: string | null, fields?: string[]): ClusterItem =>
+      ({ ...concept(key, component, text, fields), context });
+    const pairs = candidatePairs([
+      declared('s1', 'sales', 'Customer', 'sales', ['id', 'email']),
+      declared('s2', 'sales', 'Client', 'sales', ['id', 'email']),
+      declared('u1', 'crm', 'Customer', null, ['id', 'email']),
+      declared('u2', 'crm', 'Client', null, ['id', 'email']),
+      declared('b1', 'billing', 'Payer', 'billing', ['id', 'email']),
+    ], 3).map((p) => `${p.a.key}-${p.b.key}`);
+    expect(pairs).toContain('s1-s2'); // declared same-context pair: proposed (new)
+    expect(pairs).not.toContain('u1-u2'); // undeclared same-component pair: not proposed
+    expect(pairs).toEqual(expect.arrayContaining(['s1-b1', 'u1-b1'])); // cross-component: still proposed
+  });
+
+  it('never pairs rules within a component, even with a declared context', () => {
+    const items = [
+      { ...rule('r1', 'sales', 'Limit 20', 'units', '>=', 20), context: 'sales' },
+      { ...rule('r2', 'sales', 'Limit 20 again', 'units', '>=', 20), context: 'sales' },
+    ];
+    expect(candidatePairs(items, 3)).toEqual([]);
+  });
 });
 
 describe('cluster', () => {

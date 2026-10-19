@@ -2,8 +2,8 @@
 import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { prepareOntologyInput } from '../../../../src/apg-enrich/ontology/index.js';
-import type { ExpectedSemanticManifest, OntologyInput, ScriptedAnswers } from '../../../../src/apg-enrich/ontology/index.js';
+import { NoCallProvider, prepareOntologyInput, runOntology } from '../../../../src/apg-enrich/ontology/index.js';
+import type { ExpectedSemanticManifest, OntologyInput, OntologyRunDetail, ScriptedAnswers } from '../../../../src/apg-enrich/ontology/index.js';
 import type { LayerModel } from '../../../../src/shared/types/spec.js';
 
 export const FIXTURES = join(__dirname, '../../../fixtures/v1.3-ontology');
@@ -15,6 +15,13 @@ export const CASES = [
 
 export function fixtureInput(caseId: string): Promise<OntologyInput> {
   return prepareOntologyInput(join(FIXTURES, caseId), { layerModel: LAYERS });
+}
+
+export const MOCK_DESCRIPTION = { provider: 'mock', model: 'mock-ontology', temperature: null } as const;
+
+/** The run detail of a planted case, replayed from the committed mock cassettes (no provider call). */
+export function replayDetail(input: OntologyInput, caseId: string): Promise<OntologyRunDetail> {
+  return runOntology(input, { provider: new NoCallProvider(MOCK_DESCRIPTION), cacheMode: 'replay', cacheDir: join(FIXTURES, 'cassettes-mock', caseId) });
 }
 
 export function manifest(caseId: string): ExpectedSemanticManifest {

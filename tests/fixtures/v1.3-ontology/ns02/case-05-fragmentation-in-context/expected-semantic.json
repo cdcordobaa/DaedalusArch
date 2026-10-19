@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "case": "case-05-fragmentation-in-context",
+  "writtenAt": "2026-10-18",
+  "writtenBefore": "any NS-02 pipeline change, prompt change or model run on this case (NS-02, ops/notes/ns-02-facts-contract-and-cases.md)",
+  "planted": "concept-fragmentation-in-context",
+  "description": "Inside ONE declared bounded context (sales), the customer is modelled twice under two names: Customer (id, email, name, lifetimeSpend) and Client (clientId, emailAddress, displayName, creditLimit). Two application services each use one of them. Same context, same ubiquitous language, two models: a defect in DDD terms (N4). Redefines the old case-03, which planted the names across three contexts.",
+  "expect": {
+    "ruleDuplications": [],
+    "misplacedResponsibilities": [],
+    "conceptFragmentations": [
+      {
+        "id": "customer-in-sales",
+        "concept": "Customer",
+        "context": "sales",
+        "classes": [
+          {
+            "file": "src/sales/domain/customer.ts",
+            "class": "Customer"
+          },
+          {
+            "file": "src/sales/domain/client.ts",
+            "class": "Client"
+          }
+        ]
+      }
+    ],
+    "capabilityScatter": []
+  },
+  "forbid": {
+    "ruleDuplications": [],
+    "misplacedResponsibilities": [],
+    "conceptFragmentations": [
+      {
+        "classes": [
+          {
+            "file": "src/sales/domain/discount-policy.ts",
+            "class": "DiscountPolicy"
+          }
+        ]
+      }
+    ],
+    "capabilityScatter": []
+  },
+  "cheapExpectation": {
+    "conceptFragmentations": "miss",
+    "why": "Different class names, different field names (id/clientId, email/emailAddress, name/displayName); no shared token sequence."
+  },
+  "ns02": {
+    "set": "NS-02 K3/K2m set, pair 1 of 6",
+    "knowledgeLevel": "K3 (concept identity) + K4 (declared context, from the spec)",
+    "twin": "case-05t-control-contexts-own-models",
+    "layers": "layers.json in this directory (declares the DDD contexts)",
+    "expectedFacts": [
+      {
+        "subject": "Customer",
+        "predicate": "inContext",
+        "value": "sales",
+        "source": "parser",
+        "polarity": "required",
+        "note": "spec-declared context, mapped by componentOf"
+      },
+      {
+        "subject": "Client",
+        "predicate": "inContext",
+        "value": "sales",
+        "source": "parser",
+        "polarity": "required"
+      },
+      {
+        "subject": "Customer",
+        "predicate": "embodiesConcept",
+        "value": {
+          "concept": "Customer",
+          "relation": "defines"
+        },
+        "source": "model",
+        "polarity": "required"
+      },
+      {
+        "subject": "Client",
+        "predicate": "embodiesConcept",
+        "value": {
+          "concept": "Customer",
+          "relation": "defines"
+        },
+        "source": "model",
+        "polarity": "required",
+        "note": "any name the model gives is fine if sameConceptAs links it to Customer"
+      },
+      {
+        "subject": "Customer",
+        "predicate": "sameConceptAs",
+        "value": {
+          "other": "Client",
+          "same": true
+        },
+        "source": "model",
+        "polarity": "required"
+      },
+      {
+        "subject": "DiscountPolicy",
+        "predicate": "embodiesConcept",
+        "value": {
+          "relation": "defines",
+          "concept": "Customer"
+        },
+        "source": "model",
+        "polarity": "forbidden"
+      }
+    ],
+    "expectedVerdicts": [
+      {
+        "rule": "SEM-FRAG",
+        "verdict": "fail",
+        "sites": [
+          "Customer",
+          "Client"
+        ]
+      }
+    ],
+    "harnessStatus": "NOT FINDABLE by the current pipeline: clustering pairs only items in different components (clustering.ts:85) and a fragmentation needs >= 3 names in >= 2 components (pipeline.ts:344). Needs the N4 change (NS-02 section 6) before the 6-case run.",
+    "factPolarity": "required: the run must produce it (agreed); forbidden: producing it is a false fact; tolerated: either answer, the verdict must not depend on it. Subjects are APG names (Class or Class.method), as in the mock-answer scripts."
+  }
+}

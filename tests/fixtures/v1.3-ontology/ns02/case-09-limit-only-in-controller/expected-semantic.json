@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "case": "case-09-limit-only-in-controller",
+  "writtenAt": "2026-10-18",
+  "writtenBefore": "any model run on this case (v1.4 U3, design aidlc-docs/construction/v1.4/U3/functional-design/design.md section 5)",
+  "planted": "misplaced-responsibility",
+  "description": "Replaces case-06 as pair 2 (K3). The purchase limit (at most 20 units of one SKU per order) is checked only in OrderController.create. PlaceOrderService and the Order aggregate do not check it, although the quantity reaches both, so any other entry point creates orders that break the invariant. The twin (case-09t) has the same code shape: the guard checks the gift note length against the same constant instead. Neither file carries an explanatory comment.",
+  "expect": {
+    "ruleDuplications": [],
+    "misplacedResponsibilities": [
+      {
+        "id": "purchase-limit-only-in-controller",
+        "file": "src/ordering/presentation/order.controller.ts",
+        "class": "OrderController",
+        "method": "create",
+        "responsibility": "Enforces the purchase limit (at most 20 units of one SKU per order), a business invariant of the Order aggregate.",
+        "naturalLayer": "domain",
+        "classLayer": "presentation"
+      }
+    ],
+    "conceptFragmentations": [],
+    "capabilityScatter": []
+  },
+  "forbid": {
+    "ruleDuplications": [],
+    "misplacedResponsibilities": [
+      {
+        "file": "src/ordering/domain/order.ts",
+        "class": "Order"
+      },
+      {
+        "file": "src/ordering/application/place-order.service.ts",
+        "class": "PlaceOrderService"
+      },
+      {
+        "file": "src/ordering/infrastructure/in-memory-order.repository.ts",
+        "class": "InMemoryOrderRepository"
+      }
+    ],
+    "conceptFragmentations": [],
+    "capabilityScatter": []
+  },
+  "cheapExpectation": {
+    "misplacedResponsibilities": "caught",
+    "twin": "flagged",
+    "sameOutcomeOnDefectAndTwin": true,
+    "why": "Observed in the zero-call mock dry run on 2026-10-18 (empty scripted answers, scratch cassettes), before any model run: the role proxies (name-behaviour controller-business-logic, logic-density controller-logic-density) flag OrderController.create with density 3 (1 branch, 1 comparison, 1 validation throw) in this case and in case-09t alike. Every cheap proxy output (flags, node facts, edges: no clone, shared-literal or vocabulary signal in either) is identical on the pair, so the cheap outcome is the same on the defect's expected item and the twin's matching forbidden item (caught / flagged, BR-U3-16): no deterministic heuristic separates them."
+  },
+  "revisions": [],
+  "ns02": {
+    "set": "NS-02 K3/K2m set, pair 2 of 6 (replaces case-06 / case-06t, retired 2026-10-18)",
+    "knowledgeLevel": "K3 (is this condition a business rule or input checking?)",
+    "twin": "case-09t-control-length-check-in-controller",
+    "layers": "layers.json in this directory (declares the DDD context ordering)",
+    "expectedFacts": [
+      {
+        "subject": "OrderController",
+        "predicate": "inLayer",
+        "value": "presentation",
+        "source": "parser",
+        "polarity": "required"
+      },
+      {
+        "subject": "OrderController",
+        "predicate": "inContext",
+        "value": {
+          "context": "ordering",
+          "declared": true
+        },
+        "source": "parser",
+        "polarity": "required"
+      },
+      {
+        "subject": "OrderController.create",
+        "predicate": "enforcesRule",
+        "value": {
+          "kind": "business",
+          "threshold": 20
+        },
+        "source": "model",
+        "polarity": "required",
+        "note": "the operator is not scored: the rule prompt asks for the rule as the business states it (quantity <= 20) while the guard reads >"
+      },
+      {
+        "subject": "OrderController",
+        "predicate": "hasResponsibility",
+        "value": {
+          "naturalLayer": "domain"
+        },
+        "source": "model",
+        "polarity": "required"
+      },
+      {
+        "subject": "Order.create",
+        "predicate": "enforcesRule",
+        "value": {
+          "kind": "business"
+        },
+        "source": "model",
+        "polarity": "forbidden",
+        "note": "the aggregate does not enforce the limit here"
+      }
+    ],
+    "expectedVerdicts": [
+      {
+        "rule": "SEM-MISPLACED",
+        "verdict": "fail",
+        "sites": [
+          "OrderController.create"
+        ]
+      }
+    ],
+    "calls": {
+      "estimateRuns2": "classes 4, groups 3, rule-candidate classes 1; a=8 b<=6 c=2 d<=80; upper bound 96",
+      "mockRecordRuns2EmptyAnswers": 16
+    },
+    "factPolarity": "required: the run must produce it (agreed); forbidden: producing it is a false fact; tolerated: either answer, the verdict must not depend on it. Subjects are APG names (Class or Class.method). SEM-MISPLACED sites are scored at the owning class."
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "itemId": "21902eaf2ee28c4a",
+  "itemName": "ShipmentNotificationService",
+  "key": "a070442d816a1859eccd7bddaac23cd3f9de3bc864dc62f5120df9f7ace6d3ba",
+  "parts": {
+    "model": "mock-ontology",
+    "pass": "responsibility",
+    "promptHash": "be63f77e15230b1e51612dbbd1a2e3f6abc01eda6f4ba4cc83dc9732807d148b",
+    "promptVersion": "ontology-v0.2",
+    "provider": "mock",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "1c83830bfa99ad49d460d30b4c3202dea92d0aeeb55aa17addec0d18e16c9cd5"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass ShipmentNotificationService (node 21902eaf2ee28c4a), file src/notifications/application/shipment-notification.service.ts, lines 4-11.\nComponent: notifications. Declared layer: application (kind application).\nMethods:\n- sendShipped (node 1e7c92c05d631e52, lines 7-10, logic density 0)\nFields: mailer\n\n## APG neighbourhood\n- -> CONSTRUCTOR_INJECTS Interface Mailer (src/notifications/application/mailer.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- ShipmentNotificationService: nameRole=\"service\"\n- ShipmentNotificationService: behaviourRole=\"coordination\"\n- ShipmentNotificationService: ioCategories=[]\n- ShipmentNotificationService: lcom4=1\n- ShipmentNotificationService: responsibilityBreadth={\"breadth\":1,\"ioCategories\":[],\"componentDependencies\":[\"shipping\"]}\n- ShipmentNotificationService.sendShipped: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n\n## Source\n=====SOURCE-BEGIN src/notifications/application/shipment-notification.service.ts\n 4| export class ShipmentNotificationService {\n 5|   constructor(private readonly mailer: Mailer) {}\n 6| \n 7|   async sendShipped(shipment: Shipment): Promise<void> {\n 8|     const day = shipment.shippedAt.toISOString().slice(0, 10);\n 9|     await this.mailer.send(shipment.recipientEmail, 'Your order has shipped', `Shipped on ${day} with ${shipment.carrier}.`);\n10|   }\n11| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-15T00:00:00.000Z",
+  "resolvedModel": "mock-ontology",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 7,
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "nodeId": "1e7c92c05d631e52",
+            "quote": "async sendShipped(shipment: Shipment): Promise<void> {",
+            "startLine": 7
+          }
+        ],
+        "name": "Shipment",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Send the shipment notification",
+        "evidence": [
+          {
+            "endLine": 9,
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "nodeId": "1e7c92c05d631e52",
+            "quote": "await this.mailer.send(shipment.recipientEmail, 'Your order has shipped',",
+            "startLine": 9
+          }
+        ],
+        "name": "Send the shipment notification",
+        "naturalLayer": "application"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Format the shipping date for the message",
+        "evidence": [
+          {
+            "endLine": 8,
+            "file": "src/notifications/application/shipment-notification.service.ts",
+            "nodeId": "1e7c92c05d631e52",
+            "quote": "const day = shipment.shippedAt.toISOString().slice(0, 10);",
+            "startLine": 8
+          }
+        ],
+        "name": "Format the shipping date for the message",
+        "naturalLayer": "application"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 576,
+    "outputTokens": 256
+  }
+}

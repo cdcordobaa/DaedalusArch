@@ -6,6 +6,8 @@
  *   stdin), with the ontology's own system prompt and JSON schema passed through the call context. It never reads
  *   credentials: the CLI reads its own login inside the judge config dir.
  * - `MockOntologyProvider` answers from a function, for tests and the recorded-fixture cassettes.
+ * - `LlmOntologyProvider` (v1.4 U3) adapts any other `LLMProvider` (the Gemini API, the agy CLI); routes are opened
+ *   through `routes.ts`.
  *
  * Errors keep the judge's codes. `LLM_USAGE_LIMIT`, `LLM_AUTH`, the isolation and version stops and a missing CLI end
  * the run (`STOP_CODES`); anything else is retried once, then the item is invalid.
@@ -155,5 +157,85 @@ export class ClaudeCliOntologyProvider implements OntologyProvider {
       }
     }
     return DomainResult.ok({ json, model: resolution.resolvedModel, usage: res.data.usage });
+  }
+}
+
+// ── Any LLMProvider (vendor-neutral route; v1.4 U3, design §3.5) ─────────────────────────────────────────────────
+
+/** Routes whose served-model check accepts a dated variant (`<requested>-<suffix>`). */
+const DATED_VARIANT_ROUTES: ReadonlySet<string> = new Set(['gemini-api']);
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null && !Array.isArray(v);
+}
+
+function nullableNode(node: unknown): unknown {
+  if (Array.isArray(node)) return node.map(nullableNode);
+  if (!isRecord(node)) return node;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(node)) {
+    if (k === 'type' && Array.isArray(v) && v.length === 2 && v.includes('null')) {
+      out.type = v.find((t) => t !== 'null');
+      out.nullable = true;
+    } else {
+      out[k] = nullableNode(v);
+    }
+  }
+  return out;
+}
+
+/**
+ * The pass schema in the form a vendor accepts. `gemini-api`: every `type: [T, 'null']` becomes
+ * `{ type: T, nullable: true }` (`GeminiProvider` then keeps its supported subset). Other routes take the schema as is.
+ * `ModelCaller` still validates every answer against the original schema with Ajv, so nothing is relaxed.
+ */
+export function toVendorSchema(route: string, schema: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>> {
+  return route === 'gemini-api' ? nullableNode(schema) as Record<string, unknown> : schema;
+}
+
+export interface LlmOntologyOptions {
+  /** The route name, which is also the provider name in the cache key (`gemini-api`, `gemini-agy`). */
+  readonly route: string;
+  readonly model: string;
+  readonly maxTokens: number;
+  /** Sent when set; `describe().temperature` reports it (null when unset). */
+  readonly temperature?: number;
+}
+
+/**
+ * Adapts any `LLMProvider` (the Gemini API, the agy CLI) to the ontology port: the system prompt and the vendor form
+ * of the pass schema go through the call context, the answer text is parsed as JSON (a failure is `LLM_BAD_JSON`,
+ * which `ModelCaller` retries once), and the served model must be the requested one (VRD-07; `gemini-api` may serve
+ * a dated variant). Error codes pass through unchanged, so the stop codes keep working.
+ */
+export class LlmOntologyProvider implements OntologyProvider {
+  constructor(private readonly inner: LLMProvider, private readonly options: LlmOntologyOptions) {}
+
+  describe(): OntologyProviderDescription {
+    return { provider: this.options.route, model: this.options.model, temperature: this.options.temperature ?? null };
+  }
+
+  async complete(request: OntologyModelRequest): Promise<DomainResult<OntologyModelResponse>> {
+    const { model, maxTokens, temperature, route } = this.options;
+    const res = await this.inner.evaluate(request.prompt, { model, maxTokens, ...(temperature !== undefined ? { temperature } : {}) }, {
+      runIndex: request.runIndex,
+      repetition: 0,
+      functionId: `ontology:${request.pass}`,
+      unitId: request.itemId,
+      systemPrompt: request.system,
+      responseSchema: JSON.stringify(toVendorSchema(route, request.schema)),
+    });
+    if (!res.success) return DomainResult.fail(res.errors);
+    const served = res.data.model;
+    if (served !== model && !(DATED_VARIANT_ROUTES.has(route) && served.startsWith(`${model}-`))) {
+      return DomainResult.fail([{ code: 'LLM_MODEL_MISMATCH', message: `requested ${model}, served ${served}` }]);
+    }
+    let json: unknown;
+    try {
+      json = JSON.parse(res.data.content);
+    } catch {
+      return DomainResult.fail([{ code: 'LLM_BAD_JSON', message: `${route} answer is not JSON` }]);
+    }
+    return DomainResult.ok({ json, model: served, usage: res.data.usage });
   }
 }

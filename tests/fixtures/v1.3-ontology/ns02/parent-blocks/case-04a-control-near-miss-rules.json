@@ -1,0 +1,21 @@
+{
+  "case": "case-04a-control-near-miss-rules",
+  "writtenAt": "2026-10-18",
+  "writtenBefore": "any model run on this case",
+  "derivedFrom": "the parent manifest's own forbid items (tests/fixtures/v1.3-ontology/case-04a-control-near-miss-rules/expected-semantic.json, unchanged) and NS-02 section 3, pair 5. Not from the hand-written mock answers, which already existed.",
+  "note": "Sidecar ns02 block (v1.4 U3, design section 5.1, D10). Pair predicates match in either orientation.",
+  "ns02": {
+    "set": "NS-02 K3/K2m set, pair 5 of 6 (twin)",
+    "knowledgeLevel": "K2m",
+    "twin": "case-01-rule-dup-shapes",
+    "layers": "tests/fixtures/v1.3-ontology/layers.json (no declared context)",
+    "expectedFacts": [
+      { "subject": "BulkDiscount.rateFor", "predicate": "sameRuleAs", "value": { "other": "FreeShippingRule.costFor", "same": true }, "polarity": "forbidden" },
+      { "subject": "BulkDiscount.rateFor", "predicate": "sameRuleAs", "value": { "other": "AgeCheck.mayPurchaseAlcohol", "same": true }, "polarity": "forbidden" },
+      { "subject": "FreeShippingRule.costFor", "predicate": "sameRuleAs", "value": { "other": "AgeCheck.mayPurchaseAlcohol", "same": true }, "polarity": "forbidden" }
+    ],
+    "expectedVerdicts": [
+      { "rule": "SEM-DUP", "verdict": "pass" }
+    ]
+  }
+}

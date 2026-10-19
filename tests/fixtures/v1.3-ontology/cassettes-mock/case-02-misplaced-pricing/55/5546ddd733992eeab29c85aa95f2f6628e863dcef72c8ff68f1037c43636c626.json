@@ -1,0 +1,43 @@
+{
+  "itemId": "9e5dca9006c883b8",
+  "itemName": "ConsoleMailer",
+  "key": "5546ddd733992eeab29c85aa95f2f6628e863dcef72c8ff68f1037c43636c626",
+  "parts": {
+    "model": "mock-ontology",
+    "pass": "responsibility",
+    "promptHash": "90c18985aea90e7e21531063464eebfcc3a7c0cddea115bf4aee1462647e10cf",
+    "promptVersion": "ontology-v0.2",
+    "provider": "mock",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "1c83830bfa99ad49d460d30b4c3202dea92d0aeeb55aa17addec0d18e16c9cd5"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass ConsoleMailer (node 9e5dca9006c883b8), file src/notifications/infrastructure/console-mailer.ts, lines 3-10.\nComponent: notifications. Declared layer: infrastructure (kind infrastructure).\nMethods:\n- send (node a1ab40e4bf0d3824, lines 6-9, logic density 0)\nFields: sent\n\n## APG neighbourhood\n- -> IMPLEMENTS Interface Mailer (src/notifications/application/mailer.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- ConsoleMailer: nameRole=\"unknown\"\n- ConsoleMailer: behaviourRole=\"coordination\"\n- ConsoleMailer: ioCategories=[]\n- ConsoleMailer: lcom4=1\n- ConsoleMailer: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- ConsoleMailer.send: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n\n## Source\n=====SOURCE-BEGIN src/notifications/infrastructure/console-mailer.ts\n 3| export class ConsoleMailer implements Mailer {\n 4|   readonly sent: string[] = [];\n 5| \n 6|   send(to: string, subject: string, body: string): Promise<void> {\n 7|     this.sent.push(`${to}|${subject}|${body}`);\n 8|     return Promise.resolve();\n 9|   }\n10| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-15T00:00:00.000Z",
+  "resolvedModel": "mock-ontology",
+  "response": {
+    "concepts": [],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Deliver mail (console stand-in)",
+        "evidence": [
+          {
+            "endLine": 7,
+            "file": "src/notifications/infrastructure/console-mailer.ts",
+            "nodeId": "a1ab40e4bf0d3824",
+            "quote": "this.sent.push(`${to}|${subject}|${body}`);",
+            "startLine": 7
+          }
+        ],
+        "name": "Deliver mail (console stand-in)",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 509,
+    "outputTokens": 90
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "itemId": "ada8058f8f4ed5b8",
+  "itemName": "QuoteService",
+  "key": "4e163ea563d72601c19ea15a489d8e52c129c92fe2ae4ecf8f81c6ea0f6228bd",
+  "parts": {
+    "model": "mock-ontology",
+    "pass": "responsibility",
+    "promptHash": "7fbaebf9ff907b893f5a2293d87d60cd338fc395cce2cb1708c41da2a2036445",
+    "promptVersion": "ontology-v0.2",
+    "provider": "mock",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "1c83830bfa99ad49d460d30b4c3202dea92d0aeeb55aa17addec0d18e16c9cd5"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass QuoteService (node ada8058f8f4ed5b8), file src/sales/application/quote.service.ts, lines 3-7.\nComponent: sales. Declared layer: application (kind application).\nMethods:\n- quoteFor (node 3c1847cf01d9f378, lines 4-6, logic density 2)\nFields: (none)\n\n## APG neighbourhood\n- -> CALLS Method Client.isVip (src/sales/domain/client.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- QuoteService: nameRole=\"service\"\n- QuoteService: behaviourRole=\"coordination\"\n- QuoteService: ioCategories=[]\n- QuoteService: lcom4=1\n- QuoteService: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- QuoteService.quoteFor: logicDensity={\"branches\":1,\"comparisons\":0,\"arithmetic\":1,\"validationThrows\":0,\"density\":2}\n\n## Source\n=====SOURCE-BEGIN src/sales/application/quote.service.ts\n3| export class QuoteService {\n4|   quoteFor(client: Client, listPrice: number): number {\n5|     return client.isVip() ? listPrice * 0.95 : listPrice;\n6|   }\n7| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-15T00:00:00.000Z",
+  "resolvedModel": "mock-ontology",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 4,
+            "file": "src/sales/application/quote.service.ts",
+            "nodeId": "3c1847cf01d9f378",
+            "quote": "quoteFor(client: Client, listPrice: number): number {",
+            "startLine": 4
+          }
+        ],
+        "name": "Customer",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Quote prices for customers",
+        "evidence": [
+          {
+            "endLine": 5,
+            "file": "src/sales/application/quote.service.ts",
+            "nodeId": "3c1847cf01d9f378",
+            "quote": "return client.isVip() ? listPrice * 0.95 : listPrice;",
+            "startLine": 5
+          }
+        ],
+        "name": "Quote prices for customers",
+        "naturalLayer": "application"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 471,
+    "outputTokens": 146
+  }
+}

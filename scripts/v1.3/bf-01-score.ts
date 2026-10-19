@@ -44,7 +44,7 @@ for (const sid of fs.readdirSync(path.join(PILOT, 'sessions')).filter((x) => !x.
     res.labelsExit = lab.status;
     if (lab.status !== 0) res.labelsError = scrub(lab.stderr).slice(-600);
     const t0 = Date.now();
-    const ev = spawnSync('npx', ['tsx', 'bin/firewall.ts', 'evaluate', '--project', path.join('tmp/brownfield-clones', e.id, e.root), '--spec', spec, '--symbolic-only', '--engine', 'cypher-interp', '--scoring', 'v1.3', '--format', 'json'], { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
+    const ev = spawnSync('npx', ['tsx', 'bin/firewall.ts', 'evaluate', '--post-seal', 'off', '--project', path.join('tmp/brownfield-clones', e.id, e.root), '--spec', spec, '--symbolic-only', '--engine', 'cypher-interp', '--scoring', 'v1.3', '--format', 'json'], { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
     res.evaluateExit = ev.status;
     res.evaluateMs = Date.now() - t0;
     try {

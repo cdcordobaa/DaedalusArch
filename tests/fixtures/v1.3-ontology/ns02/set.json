@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "set": "NS-02 K3/K2m set (v1.4 U3)",
+  "writtenAt": "2026-10-18",
+  "pathsRelativeTo": "tests/fixtures/v1.3-ontology",
+  "note": "Six defect cases plus six twins. Each project names its directory, its layers.json and where its ns02 block lives: the case's own expected-semantic.json, or, for the four parent cases, a sidecar file under ns02/parent-blocks/ (the parent manifests stay byte-unchanged; manifestSha256 is checked by a test).",
+  "pairs": [
+    {
+      "pair": 1, "level": "K3 + K4",
+      "defect": { "id": "case-05-fragmentation-in-context", "dir": "ns02/case-05-fragmentation-in-context", "layers": "ns02/case-05-fragmentation-in-context/layers.json", "ns02": "ns02/case-05-fragmentation-in-context/expected-semantic.json" },
+      "twin": { "id": "case-05t-control-contexts-own-models", "dir": "ns02/case-05t-control-contexts-own-models", "layers": "ns02/case-05t-control-contexts-own-models/layers.json", "ns02": "ns02/case-05t-control-contexts-own-models/expected-semantic.json" }
+    },
+    {
+      "pair": 2, "level": "K3",
+      "defect": { "id": "case-09-limit-only-in-controller", "dir": "ns02/case-09-limit-only-in-controller", "layers": "ns02/case-09-limit-only-in-controller/layers.json", "ns02": "ns02/case-09-limit-only-in-controller/expected-semantic.json" },
+      "twin": { "id": "case-09t-control-length-check-in-controller", "dir": "ns02/case-09t-control-length-check-in-controller", "layers": "ns02/case-09t-control-length-check-in-controller/layers.json", "ns02": "ns02/case-09t-control-length-check-in-controller/expected-semantic.json" }
+    },
+    {
+      "pair": 3, "level": "K3",
+      "defect": { "id": "case-07-policy-in-repository", "dir": "ns02/case-07-policy-in-repository", "layers": "ns02/case-07-policy-in-repository/layers.json", "ns02": "ns02/case-07-policy-in-repository/expected-semantic.json" },
+      "twin": { "id": "case-07t-control-specification-in-domain", "dir": "ns02/case-07t-control-specification-in-domain", "layers": "ns02/case-07t-control-specification-in-domain/layers.json", "ns02": "ns02/case-07t-control-specification-in-domain/expected-semantic.json" }
+    },
+    {
+      "pair": 4, "level": "K3", "pilot": true,
+      "defect": { "id": "case-02-misplaced-pricing", "dir": "case-02-misplaced-pricing", "layers": "layers.json", "ns02": "ns02/parent-blocks/case-02-misplaced-pricing.json", "manifestSha256": "012ac896620027a44b9d68071695518b48cfccb60cebf6d52fb633a70e0a3f03" },
+      "twin": { "id": "case-04b-control-clean-notification", "dir": "case-04b-control-clean-notification", "layers": "layers.json", "ns02": "ns02/parent-blocks/case-04b-control-clean-notification.json", "manifestSha256": "27201b106d89a85421b3dd14a0392328323f957a6557117867e4e862af8a05d5" }
+    },
+    {
+      "pair": 5, "level": "K2m",
+      "defect": { "id": "case-01-rule-dup-shapes", "dir": "case-01-rule-dup-shapes", "layers": "layers.json", "ns02": "ns02/parent-blocks/case-01-rule-dup-shapes.json", "manifestSha256": "5f9bc3bce9219ec969a986a4fc8ead52dc12a044743cb7cba670a59ed656c24b" },
+      "twin": { "id": "case-04a-control-near-miss-rules", "dir": "case-04a-control-near-miss-rules", "layers": "layers.json", "ns02": "ns02/parent-blocks/case-04a-control-near-miss-rules.json", "manifestSha256": "a44fbcb1ce71b6047da4ea3764b97447eb838168cac60025f9dcb25c53d14f42" }
+    },
+    {
+      "pair": 6, "level": "K2m",
+      "defect": { "id": "case-08-refund-window-shapes", "dir": "ns02/case-08-refund-window-shapes", "layers": "ns02/case-08-refund-window-shapes/layers.json", "ns02": "ns02/case-08-refund-window-shapes/expected-semantic.json" },
+      "twin": { "id": "case-08t-control-same-window-different-rules", "dir": "ns02/case-08t-control-same-window-different-rules", "layers": "ns02/case-08t-control-same-window-different-rules/layers.json", "ns02": "ns02/case-08t-control-same-window-different-rules/expected-semantic.json" }
+    }
+  ],
+  "retired": [
+    { "pair": "case-06 / case-06t", "reason": "cheap role proxy separates the pair (NS-01 §7 falsifier 1)", "retiredOn": "2026-10-18", "replacedBy": "pair 2: case-09 / case-09t" }
+  ]
+}

@@ -50,14 +50,22 @@ const SOURCE_ROOTS = ['src', 'lib', 'app', 'apps', 'packages'];
  * names this limit.
  */
 export function componentOf(file: string, layerModel?: LayerModel): string {
-  const ddd = layerModel?.ddd;
-  if (ddd !== undefined) {
-    const hit = ddd.contexts.find((c) => file.startsWith(c.root.endsWith('/') ? c.root : `${c.root}/`));
-    if (hit !== undefined) return hit.name;
-  }
+  const declared = declaredContextOf(file, layerModel);
+  if (declared !== null) return declared;
   const parts = file.split('/');
   const start = parts.length > 1 && SOURCE_ROOTS.includes(parts[0] ?? '') ? 1 : 0;
   return parts.length - start > 1 ? parts[start] ?? '(root)' : '(root)';
+}
+
+/**
+ * The declared DDD bounded context of a file: the first `ddd.contexts[]` entry whose root is a prefix of the file's
+ * path, or null when no declared context matches (then `componentOf` falls back to the directory). Pure.
+ */
+export function declaredContextOf(file: string, layerModel?: LayerModel): string | null {
+  const ddd = layerModel?.ddd;
+  if (ddd === undefined) return null;
+  const hit = ddd.contexts.find((c) => file.startsWith(c.root.endsWith('/') ? c.root : `${c.root}/`));
+  return hit?.name ?? null;
 }
 
 /** `paths` targets of the compiler options as absolute paths without extension → the path key (without `/*`). */

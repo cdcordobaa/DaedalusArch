@@ -1,9 +1,12 @@
 /**
- * Ontology v0 runner (`Docs/v1.3/ontology-v0-design.md`). DEVELOPMENT SET ONLY.
+ * Ontology v0 runner (`Docs/v1.3/ontology-v0-design.md`; v1.4 U3 §13). DEVELOPMENT SET ONLY.
  *
- * Runs the grounded semantic layer over one project or over the planted ground-truth cases
- * (`tests/fixtures/v1.3-ontology/`), and scores the cases against their `expected-semantic.json`, with the cheap
- * proxies' (and, when given, the judge's) outcome on the same items.
+ * Runs the grounded semantic layer over one project, over the planted ground-truth cases
+ * (`tests/fixtures/v1.3-ontology/`) or over the NS-02 set (`tests/fixtures/v1.3-ontology/ns02/set.json`, 12 projects),
+ * and scores the cases against their `expected-semantic.json`, with the cheap proxies' (and, when given, the judge's)
+ * outcome on the same items. Every run also writes the A2 facts (`facts.json`), loads A1 + A2 into the in-process
+ * graph and runs the Sem rules (`verdicts.json`); with an `ns02` block it scores both (`fact-scores.json`,
+ * `verdict-scores.json`).
  *
  * Usage (repository root):
  *   npx tsx scripts/v1.3/ontology-run.ts --fixtures --estimate
@@ -11,11 +14,21 @@
  *   npx tsx scripts/v1.3/ontology-run.ts --fixtures --replay                 # replay the live cassettes, no call
  *   npx tsx scripts/v1.3/ontology-run.ts --fixtures --provider mock          # scripted mock answers, record
  *   npx tsx scripts/v1.3/ontology-run.ts --fixtures --provider mock --replay # replay the mock fixture cassettes
+ *   npx tsx scripts/v1.3/ontology-run.ts --ns02 --estimate                   # the NS-02 set, each with its own layers.json
+ *   npx tsx scripts/v1.3/ontology-run.ts --project <dir> --layers <dir>/layers.json --provider gemini-agy --model <id> --estimate
  *   npx tsx scripts/v1.3/ontology-run.ts --project <dir> --spec <yaml> --estimate
  *
  * Options:
- *   --provider claude-cli|mock   default claude-cli (the judge's route: pinned CLI, `--judge-config-dir`, isolation
- *                                pre-flight; credentials are never read)
+ *   --provider claude-cli|gemini-api|gemini-agy|mock
+ *                                default claude-cli (the judge's route: pinned CLI, `--judge-config-dir`, isolation
+ *                                pre-flight; credentials are never read). gemini-api reads GEMINI_API_KEY from the
+ *                                environment, only when a live record opens; gemini-agy uses LABELLER_AGY_HOME and the
+ *                                agy isolation pre-flight. Estimate and replay never open a route.
+ *   --model <id>                 required for the Gemini routes (no default); claude-cli default is the judge's model
+ *   --temperature <t>            gemini-api only (default: the P4 labeller's temperature, LABELLER_TEMPERATURE)
+ *   --fact-policy agreed-only|any default agreed-only: model facts used only when both runs agree. `any` is a run-level
+ *                                setting (it changes the pass (b) prompts and the pass (d) pairs), so it needs its own
+ *                                calls. --runs 1 needs `any` (record and replay; --estimate --runs 1 still prints)
  *   --replay                     answer from the cassettes only (a miss makes the item invalid; nothing is called)
  *   --cassettes <dir>            default tests/fixtures/v1.3-ontology/cassettes-<provider> (one subdir per project)
  *   --mock-answers <dir>         default tests/fixtures/v1.3-ontology/mock-answers
@@ -25,26 +38,28 @@
  *   --judge-config-dir <dir>     default ~/.firewall/judge-claude-config
  *   --claude-bin <path>          default `claude`
  *   --judge-outcomes <json>      optional {"<case>": {"source": "...", "failedFiles": [...]}} to score the judge
- *   --out <dir>                  default results/v1.3-ontology/<provider>[-replay]
+ *   --out <dir>                  default results/v1.3-ontology/<provider>[-replay] (one subdir per project)
  * A usage limit or auth stop ends the run; what was recorded stays in the cassettes, so the same command resumes.
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import {
-  ClaudeCliOntologyProvider, DEFAULT_ONTOLOGY_OPTIONS, MockOntologyProvider, NoCallProvider, aggregate, createScriptedResponder,
-  diskReader, estimateOntology, prepareOntologyInput, runOntology, scoreCase,
+  DEFAULT_ONTOLOGY_OPTIONS, DEFAULT_ROUTE_DEPS, FACT_POLICIES, MockOntologyProvider, NoCallProvider, aggregate, buildFacts, checkRoute,
+  createScriptedResponder, describeRoute, diskReader, estimateOntology, isOntologyRoute, loadFacts, openRoute, prepareOntologyInput,
+  runOntology, runSemRules, scoreCase, scoreFacts, scoreVerdicts,
 } from '../../src/apg-enrich/ontology/index.js';
 import type {
-  CaseScore, ExpectedSemanticManifest, JudgeCaseOutcome, OntologyInput, OntologyProvider, OntologyProviderDescription, ScriptedAnswers,
+  CaseScore, ExpectedSemanticManifest, FactPolicy, JudgeCaseOutcome, Ns02Block, OntologyInput, OntologyProvider, OntologyRouteSpec,
+  OpenedRoute, RouteDeps, ScriptedAnswers,
 } from '../../src/apg-enrich/ontology/index.js';
-import { ClaudeCliProvider } from '../../src/llm-critic/claude-cli-provider.js';
-import { JUDGE_CONFIG_DIR_DEFAULT, JUDGE_EFFORT, JUDGE_MODEL } from '../../src/llm-critic/frozen.js';
-import { expandHome } from '../../src/cli/llm-options.js';
-import { NodeProcessRunner } from '../../src/shared/process/node-process-runner.js';
+import { MemoryGraphRepository } from '../../src/cypher-interp/index.js';
+import { JUDGE_CONFIG_DIR_DEFAULT } from '../../src/llm-critic/frozen.js';
 import { parseSpec } from '../../src/spec-parser/index.js';
 import type { LayerModel } from '../../src/shared/types/spec.js';
+import { LABELLER_API_MAX_TOKENS, LABELLER_TEMPERATURE } from '../llm-label.js';
 
 export const FIXTURES = 'tests/fixtures/v1.3-ontology';
+export const NS02_SET = path.join(FIXTURES, 'ns02', 'set.json');
 
 function arg(argv: readonly string[], name: string): string | undefined {
   const i = argv.indexOf(name);
@@ -59,79 +74,142 @@ export function fixtureCases(root = FIXTURES): string[] {
   return fs.readdirSync(root).filter((d) => d.startsWith('case-') && fs.existsSync(path.join(root, d, 'expected-semantic.json'))).sort();
 }
 
-async function layerModelOf(argv: readonly string[], fixtures: boolean): Promise<LayerModel | undefined> {
+interface SetProject { readonly id: string; readonly dir: string; readonly layers: string; readonly ns02: string; readonly manifestSha256?: string }
+interface NsSet { readonly pairs: readonly { readonly pair: number; readonly defect: SetProject; readonly twin: SetProject }[]; readonly retired: readonly unknown[] }
+
+export interface RunTarget {
+  readonly id: string;
+  readonly dir: string;
+  /** Repo-relative layers.json of this target (the NS-02 set), else the run-wide layer model is used. */
+  readonly layers?: string;
+  /** Where the target's ns02 block lives (its manifest, or a parent-block sidecar file). */
+  readonly ns02File?: string;
+}
+
+/** The 12 projects of the NS-02 set index, in pair order (defect, then twin); the retired pair is not listed. */
+export function ns02Targets(setFile = NS02_SET): RunTarget[] {
+  const set = JSON.parse(fs.readFileSync(setFile, 'utf8')) as NsSet;
+  const root = path.dirname(path.dirname(setFile));
+  const t = (p: SetProject): RunTarget => ({ id: p.id, dir: path.join(root, p.dir), layers: path.join(root, p.layers), ns02File: path.join(root, p.ns02) });
+  return set.pairs.flatMap((p) => [t(p.defect), t(p.twin)]);
+}
+
+function readLayers(file: string): LayerModel {
+  return JSON.parse(fs.readFileSync(file, 'utf8')) as LayerModel;
+}
+
+/** Design §3.1: `facts.json` records the layer model path repo-relative (cwd-relative, posix), never an absolute path. */
+export function repoRelative(p: string | null): string | null {
+  return p === null ? null : path.relative(process.cwd(), path.resolve(p)).split(path.sep).join('/');
+}
+
+async function layerModelOf(argv: readonly string[], fixtures: boolean): Promise<{ model: LayerModel | undefined; path: string | null }> {
   const spec = arg(argv, '--spec');
   if (spec !== undefined) {
     const parsed = await parseSpec({ specFilePath: spec });
     if (!parsed.success) throw new Error(`spec ${spec}: ${parsed.errors.map((e) => e.message).join('; ')}`);
-    return parsed.data.layerModel;
+    return { model: parsed.data.layerModel, path: spec };
   }
   const layers = arg(argv, '--layers') ?? (fixtures ? path.join(FIXTURES, 'layers.json') : undefined);
-  return layers === undefined ? undefined : JSON.parse(fs.readFileSync(layers, 'utf8')) as LayerModel;
+  return layers === undefined ? { model: undefined, path: null } : { model: readLayers(layers), path: layers };
 }
 
-const CLI_DESCRIPTION: OntologyProviderDescription = { provider: 'claude-cli', model: JUDGE_MODEL, effort: JUDGE_EFFORT, temperature: null };
-const MOCK_DESCRIPTION: OntologyProviderDescription = { provider: 'mock', model: 'mock-ontology', temperature: null };
+/** The target's ns02 block: its set entry, else a parent-case sidecar block (`ns02/parent-blocks/<id>.json`), else its manifest's. */
+function ns02BlockOf(t: RunTarget, manifest: ExpectedSemanticManifest | null): Ns02Block | null {
+  const file = t.ns02File ?? path.join(FIXTURES, 'ns02', 'parent-blocks', `${t.id}.json`);
+  if (fs.existsSync(file)) {
+    const j = JSON.parse(fs.readFileSync(file, 'utf8')) as { readonly ns02?: Ns02Block };
+    if (j.ns02 !== undefined) return j.ns02;
+  }
+  return manifest?.ns02 ?? null;
+}
 
-export async function main(argv: readonly string[]): Promise<number> {
+const RUNS1_TRAP = '--runs 1 with --fact-policy agreed-only: every assertion is single-run, so agreed-only keeps no model fact and every finding and verdict is empty whatever the model answers (the NS-02 §4 runs = 1 trap). Use --runs 2, or --fact-policy any to read the single-run facts.';
+
+export async function main(argv: readonly string[], deps: RouteDeps = DEFAULT_ROUTE_DEPS): Promise<number> {
   const fixtures = argv.includes('--fixtures');
+  const ns02 = argv.includes('--ns02');
   const project = arg(argv, '--project');
-  if (!fixtures && project === undefined) {
-    out('give --fixtures or --project <dir>');
+  if (!fixtures && !ns02 && project === undefined) {
+    out('give --fixtures, --ns02 or --project <dir>');
     return 2;
   }
   const providerName = arg(argv, '--provider') ?? 'claude-cli';
-  if (providerName !== 'claude-cli' && providerName !== 'mock') {
+  if (!isOntologyRoute(providerName)) {
     out(`unknown provider ${providerName}`);
     return 2;
   }
+  const policyArg = arg(argv, '--fact-policy') ?? 'agreed-only';
+  if (!(FACT_POLICIES as readonly string[]).includes(policyArg)) {
+    out(`unknown fact policy ${policyArg} (agreed-only or any)`);
+    return 2;
+  }
+  const factPolicy = policyArg as FactPolicy;
   const replay = argv.includes('--replay');
   const estimate = argv.includes('--estimate');
   const budget = Number(arg(argv, '--budget') ?? String(DEFAULT_ONTOLOGY_OPTIONS.budget));
   const runs = Number(arg(argv, '--runs') ?? String(DEFAULT_ONTOLOGY_OPTIONS.runs));
+  if (runs === 1 && factPolicy === 'agreed-only' && !estimate) {
+    out(RUNS1_TRAP);
+    return 2;
+  }
+  const temperatureArg = arg(argv, '--temperature');
+  const model = arg(argv, '--model');
+  const spec: OntologyRouteSpec = {
+    route: providerName,
+    ...(model !== undefined ? { model } : {}),
+    ...(temperatureArg !== undefined ? { temperature: Number(temperatureArg) } : providerName === 'gemini-api' ? { temperature: LABELLER_TEMPERATURE } : {}),
+    ...(providerName === 'gemini-api' ? { maxTokens: LABELLER_API_MAX_TOKENS } : {}),
+  };
+  const routeOk = checkRoute(spec);
+  if (!routeOk.success) {
+    for (const e of routeOk.errors) out(e.message);
+    return 2;
+  }
+  const description = describeRoute(spec);
   const cassettes = arg(argv, '--cassettes') ?? path.join(FIXTURES, `cassettes-${providerName}`);
   const answersDir = arg(argv, '--mock-answers') ?? path.join(FIXTURES, 'mock-answers');
   const outDir = arg(argv, '--out') ?? path.join('results/v1.3-ontology', `${providerName}${replay ? '-replay' : ''}`);
   const judgeOutcomes = arg(argv, '--judge-outcomes');
   const judge = judgeOutcomes === undefined ? {} : JSON.parse(fs.readFileSync(judgeOutcomes, 'utf8')) as Record<string, JudgeCaseOutcome>;
-  const layerModel = await layerModelOf(argv, fixtures);
-  const targets = fixtures ? fixtureCases().map((c) => ({ id: c, dir: path.join(FIXTURES, c) })) : [{ id: path.basename(path.resolve(project ?? '.')), dir: project ?? '.' }];
+  const runLayers = await layerModelOf(argv, fixtures);
+  const targets: RunTarget[] = ns02 ? ns02Targets()
+    : fixtures ? fixtureCases().map((c) => ({ id: c, dir: path.join(FIXTURES, c) }))
+      : [{ id: path.basename(path.resolve(project ?? '.')), dir: project ?? '.' }];
 
-  let cli: ClaudeCliProvider | null = null;
+  let opened: OpenedRoute | null = null;
   const providerFor = async (input: OntologyInput, id: string): Promise<OntologyProvider | null> => {
-    if (replay || estimate) return new NoCallProvider(providerName === 'mock' ? MOCK_DESCRIPTION : CLI_DESCRIPTION);
+    if (replay || estimate) return new NoCallProvider(description);
     if (providerName === 'mock') {
       const file = path.join(answersDir, `${id}.json`);
       const script: ScriptedAnswers = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) as ScriptedAnswers : { case: id, responses: [] };
-      return new MockOntologyProvider(createScriptedResponder(script, input.apg, diskReader(input.projectRoot)), MOCK_DESCRIPTION.model);
+      return new MockOntologyProvider(createScriptedResponder(script, input.apg, diskReader(input.projectRoot)), description.model);
     }
-    if (cli === null) {
-      cli = new ClaudeCliProvider({
-        binary: arg(argv, '--claude-bin') ?? 'claude',
-        judgeConfigDir: expandHome(arg(argv, '--judge-config-dir') ?? JUDGE_CONFIG_DIR_DEFAULT),
-        mode: 'record',
-        projectRoot: path.resolve('.'),
-      }, { runner: new NodeProcessRunner() });
-      const prepared = await cli.prepare();
-      if (!prepared.success) {
-        out(`judge route pre-flight failed: ${prepared.errors.map((e) => `${e.code}: ${e.message}`).join('; ')}`);
+    if (opened === null) {
+      const r = await openRoute(spec, deps, { mode: 'record', claude: { binary: arg(argv, '--claude-bin') ?? 'claude', judgeConfigDir: arg(argv, '--judge-config-dir') ?? JUDGE_CONFIG_DIR_DEFAULT } });
+      if (!r.success) {
+        out(`${providerName} route pre-flight failed: ${r.errors.map((e) => `${e.code}: ${e.message}`).join('; ')}`);
         return null;
       }
-      out(`judge route ready: CLI ${prepared.data.cliVersion}, probe ${prepared.data.isolationProbeSha256.slice(0, 12)}`);
+      opened = r.data;
+      if (r.data.ready !== null) out(r.data.ready);
     }
-    return new ClaudeCliOntologyProvider(cli);
+    return opened.provider;
   };
 
   fs.mkdirSync(outDir, { recursive: true });
   const scores: CaseScore[] = [];
+  const notes: string[] = [];
   let exit = 0;
   try {
     for (const t of targets) {
-      const input = await prepareOntologyInput(t.dir, { ...(layerModel !== undefined ? { layerModel } : {}) });
+      const layers = t.layers !== undefined ? { model: readLayers(t.layers), path: t.layers } : runLayers;
+      const input = await prepareOntologyInput(t.dir, { ...(layers.model !== undefined ? { layerModel: layers.model } : {}) });
       const provider = await providerFor(input, t.id);
       if (provider === null) return 3;
       const options = {
         provider, runs, budget,
+        requireAgreement: factPolicy === 'agreed-only',
         cacheMode: replay ? 'replay' as const : 'record' as const,
         cacheDir: path.join(cassettes, t.id),
         ...(providerName === 'mock' ? { now: (): string => '2026-10-15T00:00:00.000Z' } : {}),
@@ -141,9 +219,11 @@ export async function main(argv: readonly string[]): Promise<number> {
         out(`${t.id}: classes ${String(e.classes)}, groups ${String(e.groups)}, rule-candidate classes ${String(e.ruleCandidateClasses)}; calls a=${String(e.calls.responsibility)} b<=${String(e.calls.capability)} c=${String(e.calls.rules)} d<=${String(e.calls.adjudicate)}; cached ${String(e.cachedKnown)}; upper bound ${String(e.totalUpperBound)}; prompt tokens ~${String(e.promptTokensKnown)}; budget ${String(e.budget)} ${e.withinBudget ? 'ok' : 'MAY BE EXCEEDED'}`);
         continue;
       }
-      const { result } = await runOntology(input, options);
-      fs.mkdirSync(path.join(outDir, t.id), { recursive: true });
-      fs.writeFileSync(path.join(outDir, t.id, 'result.json'), `${JSON.stringify(result, null, 2)}\n`);
+      const detail = await runOntology(input, options);
+      const { result } = detail;
+      const dir = path.join(outDir, t.id);
+      fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(path.join(dir, 'result.json'), `${JSON.stringify(result, null, 2)}\n`);
       const c = result.calls;
       out(`${t.id}: ${String(result.nodes.length)} Sem nodes, ${String(result.edges.length)} Sem edges, ${String(result.findings.length)} findings, ${String(result.hallucinations.length)} rejected (hallucinations); calls ${String(c.providerCalls)}, cache hits ${String(c.cacheHits)}, invalid ${String(c.invalid)}, budget-skipped ${String(c.skippedForBudget)}, cassette misses ${String(c.cassetteMisses)}`);
       if (result.stopped !== null) {
@@ -151,18 +231,42 @@ export async function main(argv: readonly string[]): Promise<number> {
         exit = 4;
         break;
       }
+      // A2 and the Sem rules (facts through the query layer; in-process graph, no Neo4j).
+      const facts = buildFacts(detail, input, { projectId: t.id, layerModelPath: repoRelative(layers.path) });
+      fs.writeFileSync(path.join(dir, 'facts.json'), `${JSON.stringify(facts, null, 2)}\n`);
+      const repo = new MemoryGraphRepository();
+      const loaded = await loadFacts(input.apg, layers.model, facts, repo);
+      if (!loaded.success) throw new Error(`A2 load: ${loaded.errors.map((e) => e.message).join('; ')}`);
+      const verdicts = await runSemRules(repo, facts, factPolicy);
+      if (!verdicts.success) throw new Error(`Sem rules: ${verdicts.errors.map((e) => e.message).join('; ')}`);
+      fs.writeFileSync(path.join(dir, 'verdicts.json'), `${JSON.stringify(verdicts.data, null, 2)}\n`);
+
       const manifestFile = path.join(t.dir, 'expected-semantic.json');
-      if (fs.existsSync(manifestFile)) {
-        const manifest = JSON.parse(fs.readFileSync(manifestFile, 'utf8')) as ExpectedSemanticManifest;
+      const manifest = fs.existsSync(manifestFile) ? JSON.parse(fs.readFileSync(manifestFile, 'utf8')) as ExpectedSemanticManifest : null;
+      const block = ns02BlockOf(t, manifest);
+      if (block !== null) {
+        const fs1 = scoreFacts(block, facts, input.apg, factPolicy);
+        const vs = scoreVerdicts(block, verdicts.data, input.apg);
+        fs.writeFileSync(path.join(dir, 'fact-scores.json'), `${JSON.stringify(fs1, null, 2)}\n`);
+        fs.writeFileSync(path.join(dir, 'verdict-scores.json'), `${JSON.stringify(vs, null, 2)}\n`);
+        out(`  ns02 ${t.id}: required facts hit ${String(fs1.hit)}/${String(fs1.required)}, false facts ${String(fs1.falseFacts)}/${String(fs1.forbidden)}; verdicts ${vs.map((v) => `${v.rule} ${v.expected} ${v.outcome}`).join(', ')}`);
+      }
+      if (manifest !== null) {
         scores.push(scoreCase(manifest, result, { cheap: input.cheap, apg: input.apg, ...(judge[t.id] !== undefined ? { judge: judge[t.id] } : {}) }));
+        // BR-U3-09: a fragmentation expected without any declared context is outside N4 scope; said on its own line.
+        if (manifest.expect.conceptFragmentations.length > 0 && layers.model?.ddd === undefined) {
+          const line = `  note: ${t.id} conceptFragmentations expected item is missed (N4: no declared context); fragmentation is a finding only inside one declared bounded context`;
+          out(line);
+          notes.push(line.trim());
+        }
       }
     }
   } finally {
-    (cli as ClaudeCliProvider | null)?.dispose();
+    (opened as OpenedRoute | null)?.dispose();
   }
   if (scores.length > 0) {
     const agg = aggregate(scores);
-    fs.writeFileSync(path.join(outDir, 'scores.json'), `${JSON.stringify({ provider: providerName, replay, aggregate: agg, cases: scores }, null, 2)}\n`);
+    fs.writeFileSync(path.join(outDir, 'scores.json'), `${JSON.stringify({ provider: providerName, replay, factPolicy, aggregate: agg, cases: scores, notes }, null, 2)}\n`);
     out('');
     out('| Case | Item | Polarity | Ontology | Cheap proxies | Judge |');
     out('|---|---|---|---|---|---|');

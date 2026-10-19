@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "case": "case-09t-control-length-check-in-controller",
+  "writtenAt": "2026-10-18",
+  "writtenBefore": "any model run on this case (v1.4 U3, design aidlc-docs/construction/v1.4/U3/functional-design/design.md section 5)",
+  "planted": "control",
+  "description": "Twin of case-09, byte-identical except the controller's guard line, its constant and its error text: the controller checks that the gift note is at most 20 characters long, input format checking that belongs at the edge. Nothing is misplaced.",
+  "expect": {
+    "ruleDuplications": [],
+    "misplacedResponsibilities": [],
+    "conceptFragmentations": [],
+    "capabilityScatter": []
+  },
+  "forbid": {
+    "ruleDuplications": [],
+    "misplacedResponsibilities": [
+      {
+        "file": "src/ordering/presentation/order.controller.ts",
+        "class": "OrderController"
+      },
+      {
+        "file": "src/ordering/domain/order.ts",
+        "class": "Order"
+      },
+      {
+        "file": "src/ordering/application/place-order.service.ts",
+        "class": "PlaceOrderService"
+      },
+      {
+        "file": "src/ordering/infrastructure/in-memory-order.repository.ts",
+        "class": "InMemoryOrderRepository"
+      }
+    ],
+    "conceptFragmentations": [],
+    "capabilityScatter": []
+  },
+  "cheapExpectation": {
+    "misplacedResponsibilities": "flagged",
+    "defect": "caught",
+    "sameOutcomeOnDefectAndTwin": true,
+    "why": "Observed in the zero-call mock dry run on 2026-10-18, before any model run: the role proxies flag OrderController.create (logic density 3) here exactly as in case-09, a cheap false positive on the twin. Every cheap proxy output is identical on the pair (BR-U3-16)."
+  },
+  "revisions": [],
+  "ns02": {
+    "set": "NS-02 K3/K2m set, pair 2 of 6 (replaces case-06 / case-06t, retired 2026-10-18)",
+    "knowledgeLevel": "K3",
+    "twin": "case-09-limit-only-in-controller",
+    "layers": "layers.json in this directory (declares the DDD context ordering)",
+    "expectedFacts": [
+      {
+        "subject": "OrderController.create",
+        "predicate": "enforcesRule",
+        "value": {
+          "kind": "business"
+        },
+        "source": "model",
+        "polarity": "forbidden",
+        "note": "a business-rule label on the gift-note check is the false fact that fails the twin"
+      },
+      {
+        "subject": "OrderController",
+        "predicate": "hasResponsibility",
+        "value": {
+          "naturalLayer": "domain"
+        },
+        "source": "model",
+        "polarity": "forbidden"
+      },
+      {
+        "subject": "OrderController.create",
+        "predicate": "enforcesRule",
+        "value": {
+          "kind": "input-validation"
+        },
+        "source": "model",
+        "polarity": "tolerated",
+        "note": "pass (c) may or may not propose the input check"
+      }
+    ],
+    "expectedVerdicts": [
+      {
+        "rule": "SEM-MISPLACED",
+        "verdict": "pass"
+      }
+    ],
+    "calls": {
+      "estimateRuns2": "classes 4, groups 3, rule-candidate classes 1; a=8 b<=6 c=2 d<=80; upper bound 96",
+      "mockRecordRuns2EmptyAnswers": 16
+    },
+    "factPolarity": "required: the run must produce it (agreed); forbidden: producing it is a false fact; tolerated: either answer, the verdict must not depend on it. Subjects are APG names (Class or Class.method)."
+  }
+}

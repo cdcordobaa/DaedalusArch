@@ -32,7 +32,7 @@ export default [{
     n('pair-cap-jaccard', 78, 'capability candidate pair: name-token Jaccard threshold (clustering.ts)', 'at least 0.34'),
     n('max-adjudication', 79, 'maxAdjudicationPairs default', 'default 40'),
     // §5
-    n('min-fragment', 124, 'minFragmentClasses default', '(3)'),
+    n('min-fragment', 124, 'minFragmentClasses default', '(3)', { known: { actual: '(2)', note: 'decision N4 (ADR-V13-N4, v1.4 U3): concept fragmentation is a finding only inside one declared bounded context, with at least 2 differently-named definers (was 3 across at least 2 components). The v0.1 value stays in §5; the v0.2 baseline is in §13 of the design doc.' } }),
     n('scatter-min', 125, 'scatterMinComponents default', '(3)'),
     n('decimal-scale', 128, 'decimal scale 10^k, k max (decimalScaleMaxPower default)', 'k ≤ 3'),
     // §6 agreement matching
@@ -54,7 +54,7 @@ export default [{
     n('cheap-caught', 209, 'cheap proxies: planted defects caught', '0 of 3'),
     n('cheap-flag-50', 210, 'cheap proxies: flagged control pair shares literal', 'share the literal 50'),
     // §9 results (mock)
-    n('found', 218, 'planted defects found (mock)', '3 of 3'),
+    n('found', 218, 'planted defects found (mock)', '3 of 3', { known: { actual: '2 of 3', note: 'decision N4 (ADR-V13-N4, v1.4 U3): case-03 plants Customer across three directory components with no declared context, which N4 makes correct DDD, so its expected fragmentation is out of scope (the runner prints the N4 note on its own line). The v0.1 figure stays in §9; the v0.2 mock baseline (2 of 3) is in §13 of the design doc.' } }),
     n('forbidden', 219, 'forbidden hits / unexpected (mock)', '0 of 14 / 0'),
     n('halluc', 220, 'planted hallucinations rejected (mock)', '4 of 4'),
     n('accepted', 221, 'accepted assertions (mock)', '128'),

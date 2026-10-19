@@ -25,6 +25,8 @@ export interface Kept<T> {
   readonly evidence: readonly GroundedEvidence[];
   readonly provenance: SemProvenance;
   readonly agreement: Agreement;
+  /** The primary run's index (run 0, else the first valid run): the run whose answer this assertion is. */
+  readonly runIndex: number;
 }
 
 export class AgreementTally {
@@ -106,7 +108,7 @@ function agree<T>(p: PassContext, pass: PassId, itemId: string, runs: readonly (
         agreement = 'agreed';
       }
     }
-    return { itemId, out: g.a, evidence: g.evidence, provenance: primary.run.provenance, agreement };
+    return { itemId, out: g.a, evidence: g.evidence, provenance: primary.run.provenance, agreement, runIndex: primary.run.runIndex };
   });
   const agreed = result.filter((k) => k.agreement === 'agreed').length;
   const j = other === undefined ? null : primary.kept.length + other.kept.length === 0 ? 1 : agreed / (primary.kept.length + other.kept.length - agreed);

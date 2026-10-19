@@ -1,0 +1,58 @@
+{
+  "itemId": "bef84812ea6fda02",
+  "itemName": "Client",
+  "key": "fccfb15f80fc1fd19a339561be22ca9a39b91abcd6284cde61e9d49e6a71e348",
+  "parts": {
+    "model": "mock-ontology",
+    "pass": "responsibility",
+    "promptHash": "10552a5909ec5d103da805b5301fcf88181366e9987ec34adb801741b86b237c",
+    "promptVersion": "ontology-v0.2",
+    "provider": "mock",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "1c83830bfa99ad49d460d30b4c3202dea92d0aeeb55aa17addec0d18e16c9cd5"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass Client (node bef84812ea6fda02), file src/sales/domain/client.ts, lines 1-12.\nComponent: sales. Declared layer: domain (kind domain).\nMethods:\n- isVip (node c8d5098b9287cfea, lines 9-11, logic density 1)\nFields: id, email, fullName, lifetimeSpend\n\n## APG neighbourhood\n- <- CALLS Method QuoteService.quoteFor (src/sales/application/quote.service.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- Client: nameRole=\"adapter\"\n- Client: behaviourRole=\"coordination\"\n- Client: ioCategories=[]\n- Client: lcom4=1\n- Client: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- Client.isVip: logicDensity={\"branches\":0,\"comparisons\":1,\"arithmetic\":0,\"validationThrows\":0,\"density\":1}\n\n## Source\n=====SOURCE-BEGIN src/sales/domain/client.ts\n 1| export class Client {\n 2|   constructor(\n 3|     readonly id: string,\n 4|     readonly email: string,\n 5|     readonly fullName: string,\n 6|     private readonly lifetimeSpend: number,\n 7|   ) {}\n 8| \n 9|   isVip(): boolean {\n10|     return this.lifetimeSpend > 10000;\n11|   }\n12| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-15T00:00:00.000Z",
+  "resolvedModel": "mock-ontology",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 1,
+            "file": "src/sales/domain/client.ts",
+            "nodeId": "bef84812ea6fda02",
+            "quote": "export class Client {",
+            "startLine": 1
+          }
+        ],
+        "name": "Customer",
+        "relation": "defines"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Represent a sales customer and decide VIP status",
+        "evidence": [
+          {
+            "endLine": 10,
+            "file": "src/sales/domain/client.ts",
+            "nodeId": "c8d5098b9287cfea",
+            "quote": "return this.lifetimeSpend > 10000;",
+            "startLine": 10
+          }
+        ],
+        "name": "Represent a sales customer and decide VIP status",
+        "naturalLayer": "domain"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 495,
+    "outputTokens": 138
+  }
+}
