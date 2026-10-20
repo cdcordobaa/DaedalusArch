@@ -5,7 +5,7 @@
 | Status | Lines |
 |---|---|
 | GREEN | 25 (plus the "Run once" row) |
-| PENDING-AUTHOR | 1 (D10: the OSF deposit, an author-account action) |
+| PENDING-AUTHOR | 0 (D10 deposited 2026-10-20, https://osf.io/wctnh) |
 | FIXED | 2 (S12, D12) |
 | REGISTERED-DEVIATION | 14 (V3, V4, V5, V7, V8, V9, V10, V11, S1, S3, S10, D1, D8, D16) |
 | NO-GO | 0 |
@@ -57,7 +57,7 @@ NW = never waived under GO-2B. Evidence paths are relative to the repository roo
 | D7 pins, byte-identical re-score | **NW** | GREEN | Freeze cross-check byte-identical; frozen paths equal to X; argv.ts sha256 0ed7c13b… and `presets/layered.yaml` f0d9045d… equal to P5 and the plan pin | — |
 | D8 engine of record | — | REGISTERED-DEVIATION | **DA4**; runbook §6 "Engine parity" | Parity on a post-run sample, not on every snapshot before the run |
 | D9 one analysis script | — | GREEN | `study2b-analyse.ts`, 2a reproduced, planted effect recovered (§4); P8 hashes equal to the files | — |
-| D10 pre-registration | **NW** | PENDING-AUTHOR (deposit) | The never-waived part holds: dated 2026-10-20T12:36:37Z, before any 2b call; file sha256 equals the registered one; on `main` (PR #316, merged at `a672d35d`). Open: the OSF deposit under embargo, carrying that sha256, which the pre-registration places before the first 2b call. It is an action on the author's OSF account; the package is ready in `ops/osf-deposit-2b/` (files, `SHA256SUMS`, README with the steps) | — (nothing waived; the line turns GREEN when the deposit is recorded) |
+| D10 pre-registration | **NW** | GREEN (deposited 2026-10-20, https://osf.io/wctnh; addendum 2) | The never-waived part holds: dated 2026-10-20T12:36:37Z, before any 2b call; file sha256 equals the registered one; on `main` (PR #316, merged at `a672d35d`). Open: the OSF deposit under embargo, carrying that sha256, which the pre-registration places before the first 2b call. It is an action on the author's OSF account; the package is ready in `ops/osf-deposit-2b/` (files, `SHA256SUMS`, README with the steps) | — (nothing waived; the line turns GREEN when the deposit is recorded) |
 | D11 arm set | — | GREEN | 3 cells, shared start (§2); the real plans load and dry-run for all three | — |
 | D12 acceptance checks, no waiver | — | FIXED | Post-run runner committed (`scripts/v1.4/post-run-acceptance.ts`, DA6) and checked on the rehearsal: 15/15 stored step snapshots built, started and passed (`E/D12/acceptance-rehearsal.json`) | — |
 | D13 coverage and import-kind counts | — | GREEN | `snapshot-coverage.ts` on 90 2a snapshots: reproduces Stage C exactly (`E/D13.txt`, `E/D13-coverage.json`); computed on every 2b snapshot after the run (runbook addendum B) | — |
@@ -68,7 +68,7 @@ NW = never waived under GO-2B. Evidence paths are relative to the repository roo
 
 ### Every NW line
 
-V1 GREEN · V2 GREEN · S4 GREEN · S11 GREEN · S13 GREEN · S14 GREEN · D7 GREEN · D10 PENDING-AUTHOR (deposit; the NW part, the pre-registration dated before the run, holds) · Run once GREEN.
+V1 GREEN · V2 GREEN · S4 GREEN · S11 GREEN · S13 GREEN · S14 GREEN · D7 GREEN · D10 GREEN (deposited on OSF; the NW part, the pre-registration dated before the run, holds) · Run once GREEN.
 
 ## 2. Zero-call dry run of the real 2b plans
 
@@ -112,3 +112,6 @@ V1 GREEN · V2 GREEN · S4 GREEN · S11 GREEN · S13 GREEN · S14 GREEN · D7 GR
 - CI: `.github/workflows/ci.yml` (hash gate), `Docs/v1.4/study2b-registered-artefacts.sha256`.
 - Evidence: `results/v1.3-study2-gate/pre-run-2026-10-20/`.
 - OSF deposit package (D10, for the author's account): `ops/osf-deposit-2b/` (README, `SHA256SUMS`).
+
+
+**Update 2026-10-20T18:50:13Z.** The OSF deposit is made (https://osf.io/wctnh; `study2b-preregistration-addendum-2.md`). D10 is GREEN. The one remaining author action before the run is the go.

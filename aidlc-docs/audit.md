@@ -2804,3 +2804,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 Study 2b, before the run; zero model calls
 
 ---
+
+## Study 2b — OSF deposit recorded
+**Timestamp**: 2026-10-20T18:50:29Z
+**User Input**: "Registered the Study 2b pre-registration on OSF Registries (osf.io/wctnh)."
+**AI Response**: "Recorded the deposit in addendum 2 (a new file, so the deposited addendum 1 stays byte-identical); gate line D10 set to GREEN."
+**Context**: Study 2b readiness gate, before any 2b call
+
+---
