@@ -5,7 +5,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import {
-  CONTRASTS, analyseContrast, semanticReading, equivalence, familyDecision, halves, holmDecisions, mcSignFlipP, partA, partB, plantedBlocks,
+  CONTRASTS, agentJustificationReading, analyseContrast, semanticReading, equivalence, familyDecision, halves, holmDecisions, mcSignFlipP, partA, partB, plantedBlocks,
   recallByFamily, signTestP, signedRankP, supportedUnderBoth, taskClusterBootstrap, withinTaskBootstrap,
   type Block, type Cell, type ContrastResult, type FamilyDecision,
 } from '../../../../scripts/v1.4/lib/study2b-analyse';
@@ -105,6 +105,9 @@ describe('the D_sem reading (DELEG11)', () => {
     const h3a: FamilyDecision = { ...d, decisions: { ...d.decisions, H3: { reject: true, predictedSign: null, supportedUnderThisOutcome: null, sign: 1 } } };
     const h3b: FamilyDecision = { ...d, decisions: { ...d.decisions, H3: { reject: true, predictedSign: null, supportedUnderThisOutcome: null, sign: -1 } } };
     expect(semanticReading(h3a, h3b).H3?.survives).toBe(false);
+    expect(agentJustificationReading(h3a, h3b).H3?.reading).toMatch(/sensitive to agent-written justifications/);
+    expect(agentJustificationReading(d, d).H1?.sensitive).toBe(false);
+    expect(agentJustificationReading(d, null).H1?.sensitive).toBeNull();
   });
 });
 

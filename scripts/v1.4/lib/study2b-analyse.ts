@@ -293,6 +293,22 @@ export function semanticReading(d: FamilyDecision, sem: FamilyDecision | null): 
   return out;
 }
 
+/**
+ * sem-01 T1: D_sem over all claims against D_sem over claims citing only non-agent-written text. If the Holm decision or
+ * (for a rejection) the sign of T differs, the reading is "semantic reading sensitive to agent-written justifications".
+ */
+export function agentJustificationReading(all: FamilyDecision | null, nonAgent: FamilyDecision | null): Record<string, { readonly sensitive: boolean | null; readonly reading: string }> {
+  const out: Record<string, { sensitive: boolean | null; reading: string }> = {};
+  for (const id of ['H1', 'H2', 'H3']) {
+    const a = all?.decisions[id];
+    const b = nonAgent?.decisions[id];
+    if (a === undefined || b === undefined) { out[id] = { sensitive: null, reading: 'not available (one of the two D_sem versions is missing)' }; continue; }
+    const agree = a.reject === b.reject && (!a.reject || (a.sign ?? 0) === (b.sign ?? 0));
+    out[id] = { sensitive: !agree, reading: agree ? 'the two D_sem versions agree' : 'semantic reading sensitive to agent-written justifications' };
+  }
+  return out;
+}
+
 // ── equivalence E ────────────────────────────────────────────────────────────
 
 export interface EquivalenceResult {
