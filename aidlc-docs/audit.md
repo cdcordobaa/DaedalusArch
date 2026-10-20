@@ -2702,3 +2702,73 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: Repository hygiene; documents only, zero model calls
 
 ---
+
+## Study 2b — pre-registration DRAFT (zero calls, docs only)
+**Timestamp**: 2026-10-20T09:35:39Z
+**User Input**: "Scheduled task: draft the pre-registration of the confirmatory Study 2b (DRAFT, not dated as registered) from the drift record, the 2a registration and results, the seal record, the freeze record, ADR-V14-04, the exposure definitions, the readiness gate and dashboard, and decisions DELEG, DELEG2, DELEG3 and GO-2B; leave the 2a Stage C numbers as placeholders with the computation written now; run lint:citations and lint:protocol; open a PR, do not merge."
+**AI Response**: "Wrote Docs/v1.4/study2b-preregistration.md (DRAFT). It carries the canonical study2-protocol line and cites the drift record. It covers hypotheses H1 (none@L3 < none@L2), H2 (mcp@L2 < none@L2, delivery plus checking) and H3 (two-sided), plus the registered equivalence E; primary D verbatim; secondaries Y5, repair, D|R=0, per-rule exposure and tool telemetry; the design (4 sealed Layered tasks by hash, shared step 1, k=5, Sonnet on CLI 2.1.304, DELEG3 flags, MCP built at the freeze tag with --confine; Gemini a dated extension arm, with the cross-vendor claim deferred); the sample-size method (an exact sign-flip floor of 7 non-zero pairs at Holm alpha 0.05/3, the registered power script, and resampling power over N in multiples of 4); the analysis (paired two-sided sign-flip, Holm over 3, block-bootstrap RR intervals, full distributions, scoring once at the freeze tag with check-correct); exclusions; the 42-line gate table with the never-waived items; limitations; and six drift-record deviations to file. Two findings flagged. First, ADR-V14-04 section 4 part A needs hold-out recall per rule family, the hold-out has not run, so 2b Layered is exploratory unless that is resolved (placeholder P6). Second, the planned N=8 blocks (104 turns) is at the exact-test floor. lint:protocol was not extended to the new file, because scripts/ is a frozen path after the freeze tag; checkDoc passes on it directly. lint:citations OK; lint:protocol OK."
+**Context**: v1.4 Study 2b, pre-registration drafting (drift record order step: pre-registration); zero model calls; nothing under daedalus-sealed/ or the MEAN-01 sample read
+
+---
+
+## Study 2b — pre-registration DRAFT: P1–P4 filled from 2a Stage C (zero calls)
+**Timestamp**: 2026-10-20T10:33:04Z
+**User Input**: "Scheduled task: on PR #316's branch, merge main (keep both sides of audit/decisions conflicts); fill every placeholder of the 2b pre-registration that committed data can fill, using its §3 method unchanged: P1/P2 from 2a Stage C at the freeze, P3 via the exactness floor, the registered power script and a new committed resampling script with a test, N by the 0.80 rule with demotion, P4 by the stated rule; leave data-dependent placeholders listed with owner and timing; add the Q25 = B main.ts construct finding as a limitation and descriptive secondary; cite the hold-out situation and any registered r_f fallback; run lint, protocol lint, the new test and tsc; commit and push; do not merge or date."
+**AI Response**: "Merged origin/main (audit.md conflict: both entries kept, in time order). Committed Stage C files agree with the brief's per-block D. P1: mean D 1.50 / 0.67 / 0.50, SD 1.05 / 1.03 / 0.84, theta undefined / 1.11 / 1.25, P(D=0) 0.17 / 0.67 / 0.67, mean Y1 2.00. P2: H1 p0 0.17, q 0.80, mean 0.83, SD 1.17; H2 0.50, 1.00, 1.00, 1.26; H3 0.50, 0.67, 0.17, 1.33. P3: floor 7 non-zero pairs; registered level-power-sim.ts ran as registered (lower bound 1.11, 16 blocks): H1 0.34/0.53/0.61, H2 0.34/0.52/0.60 at theta 1/4/inf, both 'demote'. New scripts/v1.4/study2b-power.ts (exact sign-flip p, 2000 sims, seed 20261021): H1 reaches no N at half size (demoted, grid not extended); H2 reaches 0.805 at N = 20. N = 20, r = 5, 260 turns, cap 390. Steps 2 and 3 disagree on H2; read literally both directional contrasts are demoted; left open as P11 for the coordinator. P4: Delta = 0.55 (the cap, half the 1.11 lower bound; estimand 6 gave no D-unit margin). Added limitation 9 and the composition-root placement secondary. Hold-out note and addenda read from the unmerged branch v14/holdout-run-1; F-RF is drafted there, not on main, so V4 is 'pending: hold-out attempt 2 or registered fallback'. lint:citations OK, lint:protocol OK, new test 13/13, tsc OK. Still DRAFT, not dated."
+**Context**: v1.4 Study 2b, pre-registration drafting (placeholders P1–P4); zero model calls; nothing under daedalus-sealed/ or the MEAN-01 sample read
+
+---
+
+## Study 2b — DELEG7 (sample size N = 40)
+**Timestamp**: 2026-10-20T10:49:52Z
+**User Input**: "(standing GO-2B) Make red gate items green where realistic."
+**AI Response**: "D3 power was red: with Claude only, the registered power rule demoted H1 and H2 at 16 blocks. Ran the registered pilotPower and the draft's resampling step on an extended grid (zero calls). Both pass at N = 40 (H1 0.91/0.98/0.99 and 0.879 at half size; H2 0.90/0.98/0.99 and 1.000). Set N = 40, r = 10, 520 turns, cap 780; recorded as DELEG7; pre-registration P11 closed."
+**Context**: Study 2b pre-registration, before dating
+
+## Study 2b — Fable adversarial review of the pre-registration (zero calls, docs only)
+**Timestamp**: 2026-10-20T11:02:15Z
+**User Input**: "Scheduled task: as an adversarial external examiner, review the Study 2b pre-registration DRAFT (PR #316) against the drift record, the 2a registration and report, the freeze, rehearsal and runbook, the exposure definitions, decisions DELEG..DELEG7, GO-2B and V4-ACC, the hold-out status and both power scripts; write ops/review/2026-10-20/fable-2b-prereg-review.md with a verdict and severity-ranked findings; commit on a new branch and open a PR, do not merge."
+**AI Response**: "Verdict GO-WITH-FIXES. Reproduced the DELEG7 power figures at N = 40 from the committed code (CPU only). Six blocking findings: no confirmatory analysis script exists (D9); the Q25 = B composition-root exemption is an arm-sensitive channel with no registered neutralisation (register an exemption-free D-dagger sensitivity and an evasion bar); DELEG7 figures not committed and the draft contradicts itself (P3, D3, no DV7); the registered within-block cell order does not exist and cell is confounded with phase order and lane; the V4 route cites an unmerged fallback, part A is vacuous with one rule family, part B forks on exempt sites; D12 has no start rule and no recorded decision. Six major (equivalence margin as large as the signal, six statistical-plan gaps, evasion bars unregistered, resume unverified, model alias not a pin, Q10 = D under-cited) and six minor. Nothing under daedalus-sealed/ or the MEAN-01 sample read."
+**Context**: v1.4 Study 2b, pre-registration review (drift record order step: pre-registration, before dating); zero model calls
+
+---
+
+## Study 2b — Fable review answered in the pre-registration (DELEG8–DELEG10)
+**Timestamp**: 2026-10-20T11:42:40Z
+**User Input**: "Apply every finding of the Fable adversarial review to the Study 2b pre-registration so it can be dated; merge main and the review first; analysis script, D-dagger, power grid, run order, V4, acceptance, majors and minors; one live kill-and-resume on a practice task; then a Fable re-check, and date and merge on GO."
+**AI Response**: "Merged origin/main (PR #315 F-RF, PR #318 DELEG6) and the review branch (PR #319) into docs/study2b-prereg, keeping both sides. Added scripts/v1.4/study2b-analyse.ts (+lib, tests): MC and exact sign-flip p, Holm (exact governs on disagreement), within-task and task-cluster bootstraps, TOST with the not-established rule, V4 parts A and B as amended, distributions and every sensitivity line; it reproduces the 2a report §3 exactly and recovers a planted RR 0.25 at N = 40 (null not rejected). Added scripts/v1.4/d-dagger.ts (D† = D on all 18 2a runs; exempt share and renames 0) and a zero-call MCP probe (the frozen MCP check flags presentation → persistence in main.ts and server.ts alike; the scorer exempts 6 of 14 names). Extended STUDY2B_GRID to 32 and 40 and committed a pilotPower grid driver (N = 40: H1 0.91/0.98/0.99, H2 0.90/0.98/0.99; resampling half size H1 0.879, H2 1.000; N = 16 reproduces the registered run). Per-replicate run order with alternating lanes, checked by a zero-call dry run on the frozen harness (study2b-plans --replicate). D14 live kill-and-resume on a practice task: 2 calls, one redraw logged and counted, exit 0. Model: the CLI JSON exposes only the alias. Recorded DELEG8 (post-run acceptance entry rule), DELEG9 (run order), DELEG10 (analysis rules); deviations DV7–DV10. tsc (both projects), jest (6 suites, maxWorkers 2), lint:citations and lint:protocol pass."
+**Context**: v1.4 Study 2b, pre-registration (drift record order step: pre-registration, before dating); 2 model calls (D14, practice task); nothing under daedalus-sealed/ or the MEAN-01 sample read; no Neo4j
+
+---
+
+## Study 2b — re-check GO; semantic secondary added before dating (DELEG11)
+**Timestamp**: 2026-10-20T11:55:14Z
+**User Input**: "(coordinator brief; the author decided to add a neuro-symbolic secondary) Before dating, add it: D_sem from C4 verdict classes with the 'survives semantic interpretation' reading, C1d on a seeded sample with the 0.75 threshold both ways, the semantic configuration as a declared swappable parameter (primary: the existing Claude CLI judge route; swap arms dated), caps stated, a DELEG row recording the decision; cover it with one more short Fable re-check, then date."
+**AI Response**: "First Fable re-check returned GO on all 18 findings with three non-blocking notes; applied them (sign comparison only on rejection in the D/D-dagger reading; acceptance runner committed before the first 2b call; D8 parity step in runbook §6). Added pre-registration §4 'Semantic layer' (D_sem from stable grounded C4 exception claims; C4 has no non-violation class by design), C1d sample, primary configuration claude-cli / claude-opus-5-5 / judge config dir / CLI 2.1.294 with 2.1.303-2.1.304 exploratory, swap-arm agreement (not accuracy), caps (C4 4 x identities; C1d the estimator's bound), limitation 10, DELEG11, instrument-map paragraph; study2b-analyse --dsem and semanticReading with a test. Route status: both runners exist; the C4 pilot has never run."
+**Context**: v1.4 Study 2b, pre-registration before dating; zero model calls in this step
+
+---
+
+## Study 2b — pre-registration REGISTERED (re-check 2 GO)
+**Timestamp**: 2026-10-20T12:00:34Z
+**User Input**: "(coordinator) If the re-check returns GO, date the pre-registration with its UTC time and record its sha256; merge PR #316 and #319 once Build & Test is green."
+**AI Response**: "Fable re-check 2 (semantic secondary and applied notes) returned GO; its non-blocking notes applied (sign of T in the D_sem reading, D12 wording, C1d per-snapshot budget). Dated the pre-registration REGISTERED 2026-10-20T12:00:34Z (re-dated 2026-10-20T12:13:11Z after a wording-only change, see below); its sha256 is in Docs/v1.4/study2b-preregistration.registered.sha256. No 2b call made."
+**Context**: v1.4 Study 2b, drift record order step: pre-registration dated, before the gate and the run
+
+---
+
+## Study 2b — wording correction before the deposit (public repository)
+**Timestamp**: 2026-10-20T12:13:11Z
+**User Input**: "(coordinator) The repository is public: record decisions in neutral wording, without quoting chat messages; remove any such quote added on the branch before merging."
+**AI Response**: "Removed the author quote added in DELEG11 and in pre-registration §4 'Semantic layer', replacing it with a neutral statement of the decision; re-dated the pre-registration (wording only, before any 2b call and before the OSF deposit) and recorded the new sha256. Older quotes that are already on main (decisions DELEG, DELEG2, GO-2B, DELEG3 and some earlier audit entries) were not added by this branch and are reported to the coordinator."
+**Context**: v1.4 Study 2b, pre-registration, before merge
+
+---
+
+## Study 2b — D_sem per sem-01; hold-out attempt 3 cited; re-dated REGISTERED
+**Timestamp**: 2026-10-20T12:36:37Z
+**User Input**: "(coordinator brief) Before dating, follow sem-01 (PR #323): D_sem as D minus the findings with a stable, grounded exception claim; D_sem two ways (all claims, and claims citing only non-agent-written text); evasion candidates per cell; the reading 'semantic reading sensitive to agent-written justifications'; C4 on 2b only after the C4 pilot and the six-case set pass their sem-01 bars with Claude, else 'not run'. Neutral wording. Re-check, date, merge."
+**AI Response**: "Applied in pre-registration §4 'Semantic layer' and DELEG11; study2b-analyse gained --dsem-nonagent, evasion candidates per cell and agentJustificationReading (tested). Merged main, which brought hold-out attempt 3 (aborted, no figure): V3, DV2 and the V4 paragraph updated. Fable re-check 3: GO-WITH-FIXES (sign rule 'for a rejection'; the provenance classifier and the D_sem writer committed before the first 2b call); both applied; re-check 4: GO. Re-dated REGISTERED 2026-10-20T12:36:37Z, before any 2b call and before the OSF deposit; sha256 in Docs/v1.4/study2b-preregistration.registered.sha256."
+**Context**: v1.4 Study 2b, pre-registration dated; zero model calls besides the Fable re-checks
+
+---
