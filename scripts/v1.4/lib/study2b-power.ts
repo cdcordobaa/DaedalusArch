@@ -17,7 +17,7 @@ import { momentTheta, sampleVariance } from './stage-c';
 /** Registered in §3 step 3 and §4. */
 export const STUDY2B_SEED = 20261021;
 export const STUDY2B_SIMS = 2000;
-export const STUDY2B_GRID = [8, 12, 16, 20, 24] as const;
+export const STUDY2B_GRID = [8, 12, 16, 20, 24, 32, 40] as const;
 /** The strictest Holm step over 3 tests. */
 export const STUDY2B_ALPHA = 0.05 / 3;
 export const STUDY2B_POWER_BAR = 0.8;

@@ -35,6 +35,12 @@ export interface FillOptions {
   readonly acceptanceRoot: string | null;
   /** Absolute MCP build directory (needed only by a template with a `daedalus` block). */
   readonly daedalusBuild: string | null;
+  /**
+   * Per-replicate run order (pre-registration §2, Fable review finding 4): the plan runs only run indexes
+   * `firstRun .. firstRun + replicates - 1` (the harness's own `firstRun`, at the freeze tag), and a `sharedStart` block
+   * takes one `"<local>"` root for every replicate (its single-string form). Absent: the whole grid, as before.
+   */
+  readonly firstRun?: number;
 }
 
 export interface FilledPlan {
@@ -77,6 +83,11 @@ export function fillTemplate(template: unknown, tasks: LoopTasksFile, opts: Fill
   if (plan.tasksFile !== TASKS_HOLE) problems.push(`tasksFile must be "${TASKS_HOLE}" in a template`);
   plan.tasksFile = opts.tasksPath;
   plan.runs = opts.replicates;
+  const perReplicate = opts.firstRun !== undefined;
+  if (perReplicate) {
+    if (!Number.isInteger(opts.firstRun) || (opts.firstRun as number) < 0) throw new Error('firstRun must be a non-negative integer');
+    plan.firstRun = opts.firstRun;
+  }
   const profiles = plan.taskProfiles;
   if (!isRecord(profiles) || Object.keys(profiles).length !== 1 || profiles[EVERY_TASK] === undefined) {
     problems.push(`taskProfiles must be { "${EVERY_TASK}": profile } in a template`);
@@ -84,7 +95,7 @@ export function fillTemplate(template: unknown, tasks: LoopTasksFile, opts: Fill
     plan.taskProfiles = Object.fromEntries(ids.map((id) => [id, profiles[EVERY_TASK]]));
   }
   if (isRecord(plan.sharedStart)) {
-    plan.sharedStart = { ...plan.sharedStart, fromOutRoot: Array.from({ length: opts.replicates }, () => LOCAL) };
+    plan.sharedStart = { ...plan.sharedStart, fromOutRoot: perReplicate ? LOCAL : Array.from({ length: opts.replicates }, () => LOCAL) };
   }
   if (isRecord(plan.acceptance)) {
     if (opts.acceptanceRoot === null) delete plan.acceptance;
@@ -106,7 +117,7 @@ export function fillTemplate(template: unknown, tasks: LoopTasksFile, opts: Fill
   plan.callBudget = budget;
   // The harness's own checks, with placeholder roots (the out-root and binary come from the CLI flags at run time).
   const probe: Record<string, unknown> = { ...plan, outRoot: '/study2b-probe/out', binary: '/study2b-probe/claude', harnessRoot: '/study2b-probe/h' };
-  if (isRecord(probe.sharedStart)) probe.sharedStart = { ...probe.sharedStart, fromOutRoot: Array.from({ length: opts.replicates }, (_, i) => `/study2b-probe/src-${String(i)}`) };
+  if (isRecord(probe.sharedStart)) probe.sharedStart = { ...probe.sharedStart, fromOutRoot: perReplicate ? '/study2b-probe/src-0' : Array.from({ length: opts.replicates }, (_, i) => `/study2b-probe/src-${String(i)}`) };
   const v = validatePlan(probe);
   if (!v.success) problems.push(...v.errors.map((e) => `${e.code}: ${e.message}`));
   else problems.push(...checkPlanAgainstTasks(v.data, tasks).map((e) => `${e.code}: ${e.message}`));

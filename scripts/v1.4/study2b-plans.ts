@@ -5,12 +5,16 @@
  * Usage (repository root):
  *   npx tsx scripts/v1.4/study2b-plans.ts --tasks <abs tasks.json> --out <abs dir> [--replicates <R>]
  *     [--expect-tasks-sha256 <hex>] [--acceptance-root <abs> | --no-acceptance] [--daedalus-build <abs>]
+ *   npx tsx scripts/v1.4/study2b-plans.ts --tasks <abs> --out <abs> --replicate <r> [... as above]
  *   npx tsx scripts/v1.4/study2b-plans.ts --count [--replicates <R>]
  *
  * The tasks file is read as data and never printed: the output names no task id, title or request (task ids in
  * messages become `<task-N>`). With `--expect-tasks-sha256` the file's sha256 must match before anything is written.
  * Writes `<out>/plan-none-L2.json`, `plan-none-L3.json`, `plan-mcp-L2.json` (mode 0600; they hold the task ids, so a
  * sealed run's plans are not opened either) and `<out>/plans.json` (hashes and budgets only).
+ * `--replicate <r>` (1-based) fills the per-replicate plans of the pre-registered run order (§2; Fable review finding 4):
+ * one replicate, run index r − 1 (the harness's `firstRun`), and a `sharedStart` with one `"<local>"` root, so
+ * `none@L3` and `mcp@L2` replicate r branch from the `none@L2` out-root of replicate r alone. It excludes `--replicates`.
  * `--count` prints the 2b call count for R replicates of 4 tasks × 5 steps and reads nothing.
  * Exit 0 ok; 1 a plan is refused by the harness's checks; 2 usage or I/O error; 3 the tasks sha256 differs.
  */
@@ -29,7 +33,17 @@ const out = (s: string): void => {
 };
 
 function main(): number {
-  const replicates = Number(arg('replicates') ?? String(DEFAULT_REPLICATES));
+  const replicateArg = arg('replicate');
+  if (replicateArg !== undefined && arg('replicates') !== undefined) {
+    process.stderr.write('--replicate and --replicates exclude each other\n');
+    return 2;
+  }
+  const replicate = replicateArg === undefined ? undefined : Number(replicateArg);
+  if (replicate !== undefined && (!Number.isInteger(replicate) || replicate < 1)) {
+    process.stderr.write('--replicate must be a positive integer (1-based)\n');
+    return 2;
+  }
+  const replicates = replicate !== undefined ? 1 : Number(arg('replicates') ?? String(DEFAULT_REPLICATES));
   if (!Number.isInteger(replicates) || replicates < 1) {
     process.stderr.write('--replicates must be a positive integer\n');
     return 2;
@@ -65,7 +79,7 @@ function main(): number {
   }
   const tasks = parsed.tasks;
   const steps = tasks.tasks.map((t) => t.steps.length);
-  out(`tasks: ${String(tasks.tasks.length)}; steps per task: ${[...new Set(steps)].sort().join(', ')}; replicates R = ${String(replicates)}`);
+  out(`tasks: ${String(tasks.tasks.length)}; steps per task: ${[...new Set(steps)].sort().join(', ')}; replicates R = ${String(replicates)}${replicate !== undefined ? `; replicate ${String(replicate)} alone (run index ${String(replicate - 1)})` : ''}`);
   if (acc !== undefined) {
     const c = acceptanceCoverage(acc, tasks);
     out(`acceptance files present: ${String(c.present)} of ${String(c.expected)}; tasks with every step file: ${String(c.tasksComplete)} of ${String(c.tasks)}`);
@@ -82,7 +96,7 @@ function main(): number {
   for (const name of STUDY2B_TEMPLATES) {
     const tplFile = path.join(templates, `${name}.template.json`);
     const tplBytes = fs.readFileSync(tplFile);
-    const filled = fillTemplate(JSON.parse(tplBytes.toString('utf8')), tasks, { tasksPath: tasksArg, replicates, acceptanceRoot: acc ?? null, daedalusBuild: build ?? null });
+    const filled = fillTemplate(JSON.parse(tplBytes.toString('utf8')), tasks, { tasksPath: tasksArg, replicates, acceptanceRoot: acc ?? null, daedalusBuild: build ?? null, ...(replicate !== undefined ? { firstRun: replicate - 1 } : {}) });
     for (const p of filled.problems) out(`${name}: ${p}`);
     if (filled.problems.length > 0) {
       refused++;
@@ -96,7 +110,7 @@ function main(): number {
     summary.push({ plan: `${name}.json`, sha256: sha, template: `experiments/study2b/${name}.template.json`, templateSha256: createHash('sha256').update(tplBytes).digest('hex'), callBudget: filled.budget });
     out(`${name}.json: runs ${String(filled.budget.runs)}, step turns ${String(filled.budget.stepTurns)}, repairs ${String(filled.budget.maxRepairTurns)}, maxCalls ${String(filled.budget.maxCalls)}, sha256 ${sha}`);
   }
-  fs.writeFileSync(path.join(outArg, 'plans.json'), `${JSON.stringify({ schema: 'study2b-plans/v1', tasksSha256: parsed.sha256, tasks: tasks.tasks.length, replicates, acceptance: acc !== undefined, plans: summary, totalMaxCalls: total }, null, 1)}\n`, { mode: 0o600 });
+  fs.writeFileSync(path.join(outArg, 'plans.json'), `${JSON.stringify({ schema: 'study2b-plans/v1', tasksSha256: parsed.sha256, tasks: tasks.tasks.length, replicates, ...(replicate !== undefined ? { replicate, firstRun: replicate - 1 } : {}), acceptance: acc !== undefined, plans: summary, totalMaxCalls: total }, null, 1)}\n`, { mode: 0o600 });
   out(`total maxCalls ${String(total)}${refused > 0 ? `; ${String(refused)} plan(s) refused` : ''}`);
   return refused > 0 ? 1 : 0;
 }

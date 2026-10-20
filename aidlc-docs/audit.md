@@ -2685,3 +2685,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 Study 2b, pre-registration review (drift record order step: pre-registration, before dating); zero model calls
 
 ---
+
+## Study 2b — Fable review answered in the pre-registration (DELEG8–DELEG10)
+**Timestamp**: 2026-10-20T11:42:40Z
+**User Input**: "Apply every finding of the Fable adversarial review to the Study 2b pre-registration so it can be dated; merge main and the review first; analysis script, D-dagger, power grid, run order, V4, acceptance, majors and minors; one live kill-and-resume on a practice task; then a Fable re-check, and date and merge on GO."
+**AI Response**: "Merged origin/main (PR #315 F-RF, PR #318 DELEG6) and the review branch (PR #319) into docs/study2b-prereg, keeping both sides. Added scripts/v1.4/study2b-analyse.ts (+lib, tests): MC and exact sign-flip p, Holm (exact governs on disagreement), within-task and task-cluster bootstraps, TOST with the not-established rule, V4 parts A and B as amended, distributions and every sensitivity line; it reproduces the 2a report §3 exactly and recovers a planted RR 0.25 at N = 40 (null not rejected). Added scripts/v1.4/d-dagger.ts (D† = D on all 18 2a runs; exempt share and renames 0) and a zero-call MCP probe (the frozen MCP check flags presentation → persistence in main.ts and server.ts alike; the scorer exempts 6 of 14 names). Extended STUDY2B_GRID to 32 and 40 and committed a pilotPower grid driver (N = 40: H1 0.91/0.98/0.99, H2 0.90/0.98/0.99; resampling half size H1 0.879, H2 1.000; N = 16 reproduces the registered run). Per-replicate run order with alternating lanes, checked by a zero-call dry run on the frozen harness (study2b-plans --replicate). D14 live kill-and-resume on a practice task: 2 calls, one redraw logged and counted, exit 0. Model: the CLI JSON exposes only the alias. Recorded DELEG8 (post-run acceptance entry rule), DELEG9 (run order), DELEG10 (analysis rules); deviations DV7–DV10. tsc (both projects), jest (6 suites, maxWorkers 2), lint:citations and lint:protocol pass."
+**Context**: v1.4 Study 2b, pre-registration (drift record order step: pre-registration, before dating); 2 model calls (D14, practice task); nothing under daedalus-sealed/ or the MEAN-01 sample read; no Neo4j
+
+---
