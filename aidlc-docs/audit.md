@@ -2545,3 +2545,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **AI Response**: "Added sharedStart (and firstRun) to the loop plan: a branched run checks its source (run, step-1 record and commit, tasks and spec hashes, cell, dry/live; refused otherwise), fetches the step-1 commit into its own snapshots.git, inherits step-01.json (marked inherited) and turns/step-01, records the source in run.json and starts at step 2, so inherited identities never count as new. 15 stub tests (dry-run Stage A then Stage B). Templates for replicate 2 none@L2 (steps 1-5, per the registration), none@L3 and mcp@L2 (replicates 1-2, steps 2-5): 15 + 24 + 24 calls. Isolation as in Stage A; the README flags S3 and per-grid harness roots. No model call."
 **Context**: v1.4 Construction, unit U13 (plan and summary in aidlc-docs/construction/v1.4/U13/); exploratory study Stage B readiness
 ---
+
+## Exploratory study — Stage C exposure analysis registered
+**Timestamp**: 2026-10-20T05:21:19Z
+**User Input**: "Add the per-rule exposure count to Stage C so the thesis can speak to architectural conformance, not only layer-skip drift."
+**AI Response**: "Registered a descriptive per-rule exposure analysis (opportunities, violations, violations per opportunity; zero-opportunity rules reported as not exercised) in the exploratory registration changelog before any Stage C scoring. Also declared that Stage B kept Stage A's environment (S3 not fixed)."
+**Context**: CONSTRUCTION — exploratory study, analysis addition (author decision)
+
+---
