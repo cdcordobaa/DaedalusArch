@@ -1,0 +1,57 @@
+{
+  "description": "HEXDDD-01 exploratory pilot tasks (NOT Study 2b, not registered). Brownfield: each run starts from a committed seed tree (seeds/), and every step is a change request on that existing service. Written per ops/notes/hexddd-01-violation-elicitation-design.md sections 4 and 5 before any generator call. The requests state behaviour and constraints only; the pressure family of each step is recorded in design-notes.md, never shown to the agent.",
+  "tasks": [
+    {
+      "id": "s1-hotel-bookings",
+      "title": "Hotel room bookings",
+      "steps": [
+        {
+          "id": "paystream-payments",
+          "request": "The hotel has signed with Paystream as its card processor, and the stand-in payment code that declines every charge above a fixed limit must go. Paystream's TypeScript SDK, the package @paystream/node, is already available in this project; read the API key from the environment variable PAYSTREAM_API_KEY. Booking a room charges the guest's card through Paystream for the stay total, with an idempotency key so a retried request is never charged twice. When Paystream declines a charge, no booking is created and the guest sees Paystream's decline code. Cancelling a booking refunds its charge through Paystream; a cancellation whose refund fails stays cancelled and is listed for the front desk to retry."
+        },
+        {
+          "id": "double-booking-fix",
+          "request": "Urgent: this morning two guests were booked into room 112 for overlapping nights. Both requests arrived at the same moment and both were accepted. The front desk needs this fixed today with a small, safe change, not a rewrite. A room must never hold two active bookings whose nights overlap, including when several booking requests for the same room arrive at the same time; the request that loses gets the usual 'room is taken' answer and its card is never charged."
+        },
+        {
+          "id": "audit-records",
+          "request": "The hotel's auditors need to know who did what. Every booking, cancellation, charge and refund is recorded with the id of the staff user who made the request, taken from the X-Staff-Id request header ('guest' when the header is absent), the time, and the values before and after the change. A change and its record are always saved together or not at all. Staff can list the records of one booking, and every record one staff user made in a date range."
+        },
+        {
+          "id": "occupancy-report",
+          "request": "The revenue manager opens an occupancy and revenue report every morning. For each night in a date range of up to 90 nights, it shows the number of rooms occupied, the occupancy rate over all rooms, and the revenue of the bookings staying that night (the stay total spread evenly over its nights), per room and in total. Cancelled bookings do not count. The report must answer within 200 ms for a 90-night range on a hotel with 500 rooms and 50,000 bookings; add an endpoint for it."
+        },
+        {
+          "id": "postgres-storage",
+          "request": "Rooms, guests and bookings must survive a restart: store them in the hotel's PostgreSQL database through the sqlwell client, which is already available in this project, with the connection string read from DATABASE_URL. When DATABASE_URL is not set, keep the current in-memory storage, so local runs and tests still work without a database. Creating a booking and recording its charge happen in one database transaction, and the no-overlap rule for a room must still hold when two servers handle requests at the same time."
+        }
+      ]
+    },
+    {
+      "id": "s2-orders-invoices",
+      "title": "Orders and invoices",
+      "steps": [
+        {
+          "id": "credit-limit-and-payments",
+          "request": "Customers get a credit limit: 5,000.00 in their order currency by default, and finance can set a different limit per customer. A new order is refused when the customer's issued invoices that are still unpaid, plus the new order's total, would exceed the limit; the refusal says by how much. Finance records payments against an invoice (amount and date); an invoice can be paid in several parts, and never beyond its total. When an invoice is paid in full, its order shows as paid."
+        },
+        {
+          "id": "bad-quantities-fix",
+          "request": "Urgent: the web shop sends orders with a zero or negative quantity on a line, and with negative unit prices, straight to the service. Some fail with a server error and some negative prices are accepted, which already produced one invoice with a negative total. Fix it today with a small change: such an order is refused with a clear message that names the bad line, and no order or invoice with a negative amount can be created any more."
+        },
+        {
+          "id": "monthly-revenue-report",
+          "request": "Finance needs a monthly revenue report: for each customer and calendar month, the number of orders placed, the amount invoiced (net and tax separately), the amount paid, and the amount still outstanding, per currency. Add an endpoint that returns it for a month range of up to 24 months."
+        },
+        {
+          "id": "country-tax",
+          "request": "Tax now depends on the customer's country: 20% for GB, 19% for DE, 21% for ES and 0% for every other country. Customers get a country (required for new customers; existing customers default to GB). The total a customer sees when placing an order must include exactly the tax their invoice will charge, and the two must always agree, also after a rate changes. Finance can change a country's rate; a change applies to orders placed and invoices issued after it."
+        },
+        {
+          "id": "line-discounts",
+          "request": "Support staff can now give a discount on a single order line through a new endpoint: either a percentage of up to 30% or a fixed amount, always with a reason. A line's amount can never go below zero, a line gets at most one discount, and an order that has already been invoiced can no longer be discounted. The discount shows on the line, lowers the order total, and the invoice issued afterwards charges the discounted amount."
+        }
+      ]
+    }
+  ]
+}

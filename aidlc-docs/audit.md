@@ -2812,3 +2812,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: Study 2b readiness gate, before any 2b call
 
 ---
+
+## HEXDDD-01 exploratory pilot — pre-registration of the pilot inputs (before any generator call)
+**Timestamp**: 2026-10-20T20:35:02Z
+**User Input**: (paraphrase) Run the exploratory 2-case pilot of design ops/notes/hexddd-01-violation-elicitation-design.md §5 in a cloud sandbox, outside Study 2b; commit the task texts, seeds, specs, pass bar and plan before any call; then a 1-call smoke check, the confinement probes, the 10-call pilot (cap 12), zero-call scoring, and results split for a blind hand read.
+**AI Response**: Committed experiments/pilot-hexddd-01/ on branch pilot/hexddd-01: tasks.json (S1 hotel bookings, S2 orders and invoices, 5 steps each, brownfield, pressure families per design §4), design-notes.md (aims per step, never shown to the agent), seed builder and seed trees with sha256 (S1 tree e3cfa16c, S2 tree 5caf330d), the seed evaluation at zero calls (0 type errors each; one planted identity each), specs (hex reference spec plus two SDK packages in FF-P01 forbidden_imports; presets/ddd.yaml verbatim), pass-bar.md (design §5.2 verbatim plus the scorer's reading), plan.json (arm none, claude-sonnet-5-5, 2 runs x 5 steps, 0 repair turns, callBudget 10, hard cap 12), and run-pilot.ts (loop harness unchanged; adds the seed start, a brownfield frame naming no style, layer or folder, and a call ledger enforcing the caps). Hint audit: 0 FAIL on requests and sent frames (one waiver: tsconfig.json inside the harness type-check command). Exploratory differences declared: Linux sandbox, CLI 2.1.304, no generator isolation, engine cypher-interp.
+**Context**: HEXDDD-01 exploratory pilot, step 2 of the run brief (inputs frozen before any call); zero generator calls so far; no Study 2b path, freeze tag or frozen path touched
+
+---
