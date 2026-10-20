@@ -1,6 +1,6 @@
 # ADR-V14-04: one hold-out bar for V4, and the "characterised" route (decision V4, option c)
 
-**Date:** 2026-10-19. **Status: Proposed.** It takes effect when the author signs it below. **It must be signed and merged before the freeze tag, and so before the sealed hold-out runs.** The hold-out has not run: gate V3 is RED and `results/v1.3-holdout` does not exist (`Docs/v1.3/study2-readiness-gate.md:109`).
+**Date:** 2026-10-19. **Status: Accepted under the author's delegation (2026-10-20), bar option (1), margins A = 0.05 and B = 0.10, as proposed.** Accepted under delegation, not signed: the author delegated every remaining signature to the coordinator (`ops/decisions.md` DELEG2; author: "i really dont want signing anymore"; `ops/05-plan-to-friday-2026-10-23.md`). Accepted before the freeze tag and before the hold-out run, with no hold-out figure, count or manifest seen. Originally: it takes effect when the author signs it below. **It must be signed and merged before the freeze tag, and so before the sealed hold-out runs.** The hold-out has not run: gate V3 is RED and `results/v1.3-holdout` does not exist (`Docs/v1.3/study2-readiness-gate.md:109`).
 
 **Written by** an AI session from the author's decision V4, option (c) (`ops/decisions.md:22`). No sealed directory, no hold-out count, no manifest and no `.env` was read. The sealed counts per style are not known to this ADR; it uses only the estimates on file. Zero model calls.
 
@@ -92,5 +92,8 @@ For a style the hold-out only characterises:
 
 > AUTHOR: sign — ADR-V14-04 adopted with bar option (1) / (2), margins A = ____, B = ____. Signed: __________ Date: ____-__-__ (must be before the freeze tag and before the hold-out run).
 
+**Accepted under delegation, 2026-10-20 (not signed):** ADR-V14-04 adopted with bar option (1), point and bound; margins A = 0.05, B = 0.10, as proposed. By the coordinator under DELEG2, before the freeze tag and before the hold-out run; no hold-out figure had been seen.
+
 ## Changelog
 - 2026-10-19: first version (draft for signature).
+- 2026-10-20: accepted under the author's delegation (DELEG2), option (1), margins as proposed; before the freeze tag and the hold-out run.

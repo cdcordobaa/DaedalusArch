@@ -115,7 +115,7 @@ sha256sum Docs/v1.3/rule-tiers.md Docs/v1.3/style-rule-sources.md
 - **Verify.** Read the claim-level table of `Docs/DiagnosticRuns/v1.3-holdout-<date>.md`. The person who unseals the task list confirms, without writing it down, which styles the sealed tasks use, and signs a one-line statement "every Study 2 style is validated at the point estimate or better".
 - **Pass.** As in Check, for every Study 2 style. A style that is only "characterised" makes this line red; Study 2 then cannot use blocking counts as its outcome for that style. No waiver. The lower-bound check is reported but is not part of the pass, because with fewer than 35 expected findings per style it cannot pass even with a perfect result (`holdout-prespec.md:73`; V13-TV-S1).
 - **Status.** RED: depends on V3, V5 and V8. The FR-V11 report does not exist.
-- **Note, 2026-10-19.** Decision V4 chose option (c) (`ops/decisions.md:22`). One bar and the "characterised" route are drafted in ADR-V14-04, `Docs/v1.4/adr-v4-holdout-bar.md` (proposed, unsigned). Once signed before the freeze, the Pass line above is read through it.
+- **Note, 2026-10-19.** Decision V4 chose option (c) (`ops/decisions.md:22`). One bar and the "characterised" route are drafted in ADR-V14-04, `Docs/v1.4/adr-v4-holdout-bar.md` (proposed, unsigned). Once signed before the freeze, the Pass line above is read through it. **Note, 2026-10-20.** ADR-V14-04 was accepted under the author's delegation (DELEG2), option (1), before the freeze tag and the hold-out; the Pass line is now read through it.
 
 ### V5. Human labels with an independent second rater who is not the director
 
