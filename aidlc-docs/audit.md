@@ -2512,3 +2512,10 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **AI Response**: "The blind writer (separate session, no transcript) sealed 4 Layered tasks × 5 steps, 20 acceptance tests, hint audit 0 FAIL / 8 WARN. The author's examiner session returned GO, no overlap, high confidence. Hashes recorded in Docs/v1.4/confirmatory-tasks-seal.md and the registration changelog. The coordinator never saw the content."
 **Context**: v1.4 Study 2, EXPT / V10c / gate S14; writer calls not counted against the study
 ---
+
+## v1.4 Study: exploratory Stage A run
+**Timestamp**: 2026-10-20T03:14:46Z
+**User Input**: "Yes, reuse the research config, go with Stage A"
+**AI Response**: "Stage A ran at 5bfe36e3: Layered x3, none@L2, Claude Sonnet, 15 turns, 3/3 complete. Mean D 1.33, Y1>=1 in 3/3, all FF-S03. The stop check does not trigger, so Layered continues (provisional until the freeze re-score). Two earlier attempts made 0 model calls: an absolute-binary-path error, then 'Not logged in' under the per-run HOME (the S3 keychain finding; that isolation is off for Stage A, declared)."
+**Context**: exploratory study Stage A; 15 Claude generator turns
+---
