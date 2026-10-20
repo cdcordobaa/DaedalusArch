@@ -10,6 +10,7 @@ import { cycleFileSet } from '../../../scripts/v1.3/lib/compare.js';
 import { materialiseVariant } from '../../../scripts/v1.3/lib/materialise.js';
 import { loadReference } from '../../../scripts/v1.3/lib/reference-model.js';
 import { must, ROOT, runPipeline } from './helpers.js';
+import { STATUS_QUO_ANSWERS } from '../../../src/shared/construct-switches.js';
 
 const PLACE = 'src/ordering/application/PlaceOrder.ts';
 const REPO = 'src/ordering/domain/customer/CustomerRepository.ts';
@@ -73,7 +74,8 @@ describe('the ddd reference v09 overlay through the pipeline (cypher-interp, v1.
       const names = [...new Set(cycles)].map((s) => s.split(',').map((f) => f.split('/').pop()).sort().join(','));
       expect(names).toContain(['Customer.ts', 'CustomerRepository.ts', 'PlaceOrder.ts'].sort().join(','));
       expect(on.data.tiers?.blocking.rules.find((r) => String(r.functionId) === 'FF-S02')).toMatchObject({ tier: 'blocking', tierSource: 'table', violated: true });
-      const off = await runPipeline(m.projectDir, ref.specPath, { postSealRules: false });
+      // Off at the construct status quo: under the applied answers Q16 B (ADR-V13-03 draft) adds FF-S02 to ddd by itself.
+      const off = await runPipeline(m.projectDir, ref.specPath, { postSealRules: false, constructAnswers: STATUS_QUO_ANSWERS });
       if (!off.success) throw new Error(off.errors.map((e) => e.message).join('; '));
       expect(off.data.violations.filter((x) => String(x.functionId) === 'FF-S02')).toEqual([]);
       // ADR-V14-03: the report carries the post-seal flag and the overlay's added ids only when the rules were compiled.

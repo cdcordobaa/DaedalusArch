@@ -8,7 +8,7 @@ import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import { functionId, runId } from '../../../src/shared/types/value-objects.js';
 import type { GraphRepository, QueryResult } from '../../../src/shared/interfaces/graph-repository.js';
 import type { APGEdge, APGNode, APGResult } from '../../../src/shared/types/apg.js';
-import { CONSTRUCT_ANSWERS, STATUS_QUO_ANSWERS, withAnswers } from '../../../src/shared/construct-switches.js';
+import { STATUS_QUO_ANSWERS, withAnswers } from '../../../src/shared/construct-switches.js';
 import { constructRowTransform, constructTierResolver } from '../../../src/construct-switches/pipeline.js';
 import { constructGraphFromApg } from '../../../src/construct-switches/graph.js';
 import { presetSpec } from './fixtures.js';
@@ -37,9 +37,9 @@ const APG = {
 } as unknown as APGResult;
 
 describe('construct switches in the pipeline', () => {
-  it('nothing is wired at the status quo (the switch file is at A)', async () => {
-    expect(constructRowTransform(CONSTRUCT_ANSWERS)).toBeUndefined();
-    expect(constructTierResolver(CONSTRUCT_ANSWERS, 'clean-architecture', (await presetSpec('clean-architecture')).layerModel)).toBeUndefined();
+  it('nothing is wired at the status quo (every answer A)', async () => {
+    expect(constructRowTransform(STATUS_QUO_ANSWERS)).toBeUndefined();
+    expect(constructTierResolver(STATUS_QUO_ANSWERS, 'clean-architecture', (await presetSpec('clean-architecture')).layerModel)).toBeUndefined();
   });
 
   it('builds the graph from the APG with the ingestion layers', async () => {

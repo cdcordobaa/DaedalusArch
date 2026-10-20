@@ -1,0 +1,42 @@
+{
+  "note": "Name-to-ruleId mapping for the blind manifests (daedalus-sealed/v1.3-blind/blind-out). Written before scoring. basis: 'library-alias' = a template name the rule library documents for that id (Docs/v1.3-reference-notes.md §4 for hexagonal; the DDD preset composes the hexagonal layering templates); 'tier-row' = the sealed rule-tiers.md row name, resolved through src/scoring-engine/rule-tiers.ts DDD_RULE_TIERS (integration notes, DDD wiring); 'guessed' = an OTHER construct mapped by judgement; 'unmapped' = no compared rule states the construct. Plain FF-xxx ids map to themselves and are not listed. Ids outside a style's compared rules (FF-C04, FF-SO01, and FF-S02/FF-S04/FF-P02 under ddd) are kept but scored as 'unscored'.",
+  "mapping": [
+    { "name": "dependency-direction-graph", "styles": ["hexagonal", "ddd"], "ruleId": "FF-S01", "basis": "library-alias" },
+    { "name": "layer-skip-graph", "styles": ["hexagonal", "ddd"], "ruleId": "FF-S03", "basis": "library-alias" },
+    { "name": "core-isolation", "styles": ["hexagonal"], "ruleId": "FF-S04", "basis": "library-alias" },
+    { "name": "port-dependency-inversion", "styles": ["hexagonal"], "ruleId": "FF-P02", "basis": "library-alias" },
+    { "name": "port-adapter-pattern", "styles": ["hexagonal"], "ruleId": "FF-P03", "basis": "library-alias" },
+    { "name": "DDD aggregate boundary", "styles": ["ddd"], "ruleId": "FF-DT01", "basis": "tier-row" },
+    { "name": "DDD repository only for aggregate roots", "styles": ["ddd"], "ruleId": "FF-DT02", "basis": "tier-row" },
+    { "name": "DDD value-object immutability", "styles": ["ddd"], "ruleId": "FF-DT03", "basis": "tier-row" },
+    { "name": "DDD framework-free domain", "styles": ["ddd"], "ruleId": "FF-DT04", "basis": "tier-row" },
+    { "name": "DDD bounded-context isolation", "styles": ["ddd"], "ruleId": "FF-DS02", "basis": "tier-row" },
+    { "name": "DDD domain events defined in the domain", "styles": ["ddd"], "ruleId": "FF-DT05", "basis": "tier-row" },
+    { "name": "DDD application services hold no business rules", "styles": ["ddd"], "ruleId": "FF-DT06", "basis": "tier-row" },
+    {
+      "name": "OTHER: shared code outside every declared layer and context", "styles": ["ddd"], "ruleId": "FF-DS01", "basis": "guessed",
+      "note": "The construct (a file in no declared context root and no declared outside-context path) is the condition of FF-DS01 bounded-context-modules, which has no row of its own in rule-tiers.md, so the annotator could not name it. The annotator filed it advisory; the tool tiers FF-DS01 blocking (an open author decision, integration notes)."
+    },
+    {
+      "name": "OTHER: repository implementation depends on an application DTO", "styles": ["nestjs"], "ruleId": "FF-S01", "basis": "guessed",
+      "note": "An infrastructure file importing an application file is FF-S01 if the nestjs layer list is a dependency order. The annotator listed FF-S01 in alsoMatches but doubted that reading (confidence low, filed advisory)."
+    },
+    {
+      "name": "OTHER: public API publishes an application service; consumer bypasses its ACL", "styles": ["ddd"], "ruleId": null, "basis": "unmapped",
+      "note": "The annotator states that the literal import satisfies bounded-context isolation. The remaining construct (a published service, a bypassed ACL) is stated by no compared rule."
+    },
+    {
+      "name": "OTHER: lower-layer type exposed through the business API", "styles": ["layered"], "ruleId": null, "basis": "unmapped",
+      "note": "No compared layered rule covers an API signature exposing a lower-layer type."
+    },
+    {
+      "name": "OTHER: cross-module import not via module exports", "styles": ["nestjs"], "ruleId": null, "basis": "unmapped",
+      "note": "Appears in alsoMatches only. NestJS module-export discipline is not a compared rule."
+    }
+  ],
+  "policies": {
+    "alsoMatches": "Headline (expanded): each mapped id in a finding's ruleId and alsoMatches is an expected finding with that finding's file and target; duplicates collapse. Sensitivity (primary): only the finding's own ruleId.",
+    "targets": "A blind target of the form 'X (via Y)' is read as X.",
+    "FF-S02": "Cycle findings match on the unordered file pair, because the blind annotator did not use the template's canonical rotation."
+  }
+}

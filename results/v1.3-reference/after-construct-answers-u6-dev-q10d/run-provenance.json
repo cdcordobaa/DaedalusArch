@@ -1,0 +1,18 @@
+{
+ "unit": "AI-DLC v1.4 U6, second development re-run after Q10 C -> D (the G0.9 Q10 criterion applied as written; plan Step 11, D outcome), run by a local Claude Code agent with zero model calls. DEVELOPMENT-SET numbers (the 71-case reference set); not a validity estimate.",
+ "status": "Second development run on the reference engine, NOT the record run of freeze-check F8: ADR-V13-03 is unsigned and G0.6 = A keeps the record run and ue-score.ts --blind with the author. The first run (after-construct-answers-u6-dev/, Q10 C) is kept unchanged.",
+ "code": "379e2200964d9290f9404151a99b749002decdb8 (branch freeze-prep/u6-signed-answers): switch block = rendering of Docs/v1.3/construct-answers.json with Q10 D (src/shared/construct-switches.ts sha256 1af1c53e74ce55c3a76932c61b9f3afb2cd5c00d4fc6a7a9883d29a7b4d7155c)",
+ "neo4j": "one Neo4j Community 5.26.24 container (image neo4j:5.26-community, id f66304b9511c, the docker-compose.yml digest), APOC core from the image's labs/ folder; heap 512m, page cache 256m, container memory 1200m; bolt 127.0.0.1:7687; password generated for the session, never printed or committed; stopped and removed after the run",
+ "command": "NEO4J_URI=bolt://127.0.0.1:7687 node --import tsx scripts/v1.3/ue-baseline-live.ts --out <dir> --keep-cli; node --import tsx scripts/v1.3/ue-graph.ts --out <dir>; blind-rule-mapping.json copied unchanged from the first run. The cli/ captures were not committed. ue-score.ts --blind was NOT run (G0.6 = A)",
+ "scoring": "node --import tsx scripts/v1.3/blind-misses-rescore.ts --base <dir> --as-run --key-base results/v1.3-reference/after-member-facts --verdicts results/v1.3-reference/after-member-facts/adjudication-verdicts.csv",
+ "runs": [
+  {
+   "attempt": "run1",
+   "start": "2026-10-20T05:11:09Z",
+   "end": "2026-10-20T05:12:55Z",
+   "kept": true
+  }
+ ],
+ "live": "ue-baseline-live.ts printed 'No mismatch' for all 5 styles (raw/ replay)",
+ "diff_vs_first_run": "raw/: only layered/v08-business-service-takes-express-request.json differs (the FF-S01 express row is gone); graph/ identical; evidence/ differs only in elapsedMs"
+}

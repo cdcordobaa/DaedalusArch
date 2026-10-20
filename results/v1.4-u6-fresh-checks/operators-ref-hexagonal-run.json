@@ -1,0 +1,1951 @@
+{
+  "generatedAt": "2026-10-20T03:49:13.917Z",
+  "catalogueVersion": "043425cab9dff06a18f6a10985ca92a6649614d5d76ca0473658f6c87e5cd4dd",
+  "masterSeed": 20261016,
+  "k": 10,
+  "kTwin": 6,
+  "options": {
+    "engine": "cypher-interp",
+    "constructKeys": {
+      "mo03To": "FF-S01",
+      "mo02AlsoS04": true
+    },
+    "constructAnswers": {
+      "Q3": "C",
+      "Q5": "C",
+      "Q6": "B",
+      "Q8": "B",
+      "Q10": "C",
+      "Q12": "B",
+      "Q13": "B",
+      "Q14": "C",
+      "Q15": "B",
+      "Q16": "B",
+      "Q18": "B",
+      "Q21": "B",
+      "Q22": "B",
+      "Q23": "B",
+      "Q25": "B"
+    }
+  },
+  "bases": [
+    {
+      "baseId": "ref-hexagonal",
+      "kind": "reference",
+      "style": "hexagonal",
+      "specPath": "tests/fixtures/v1.3-reference/hexagonal/spec.yaml",
+      "files": 30,
+      "tsc": "repository tsc",
+      "baselineViolations": 36
+    }
+  ],
+  "cells": [
+    {
+      "baseId": "ref-hexagonal",
+      "style": "hexagonal",
+      "operatorId": "MO-H02",
+      "candidates": 15,
+      "eligible": 15,
+      "sampled": 10,
+      "rejected": {}
+    },
+    {
+      "baseId": "ref-hexagonal",
+      "style": "hexagonal",
+      "operatorId": "MO-H02n",
+      "candidates": 11,
+      "eligible": 11,
+      "sampled": 6,
+      "rejected": {}
+    },
+    {
+      "baseId": "ref-hexagonal",
+      "style": "hexagonal",
+      "operatorId": "MO-H03",
+      "candidates": 20,
+      "eligible": 20,
+      "sampled": 10,
+      "rejected": {}
+    },
+    {
+      "baseId": "ref-hexagonal",
+      "style": "hexagonal",
+      "operatorId": "MO-H03n",
+      "candidates": 47,
+      "eligible": 43,
+      "sampled": 6,
+      "rejected": {
+        "edge-exists": 4
+      }
+    }
+  ],
+  "rows": [
+    {
+      "rowId": "ref-hexagonal__MO-H02__0",
+      "operatorId": "MO-H02",
+      "positiveId": "MO-H02",
+      "role": "positive",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/application/services/BookRoomService.ts",
+        "line": 14,
+        "kind": "constructor-injection",
+        "detail": {
+          "class": "BookRoomService",
+          "targetFile": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts",
+          "targetName": "OutboxNotificationAdapter",
+          "form": "default-new"
+        }
+      },
+      "expected": [
+        {
+          "template": "dependency-direction-graph",
+          "functionId": "FF-S01",
+          "filePath": "src/application/services/BookRoomService.ts",
+          "target": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts"
+        },
+        {
+          "template": "core-isolation",
+          "functionId": "FF-S04",
+          "filePath": "src/application/services/BookRoomService.ts",
+          "target": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts"
+        }
+      ],
+      "absentTemplates": [],
+      "hits": [
+        true,
+        true
+      ],
+      "newBlocking": [
+        {
+          "functionId": "FF-S01",
+          "filePath": "src/application/services/BookRoomService.ts",
+          "target": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        },
+        {
+          "functionId": "FF-S04",
+          "filePath": "src/application/services/BookRoomService.ts",
+          "target": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        }
+      ],
+      "newAdvisory": [
+        {
+          "functionId": "FF-P02",
+          "filePath": "src/application/services/BookRoomService.ts",
+          "target": "",
+          "discriminator": [
+            "BookRoomService"
+          ]
+        },
+        {
+          "functionId": "FF-SO01",
+          "filePath": "src/application/services/BookRoomService.ts",
+          "target": "",
+          "discriminator": [
+            "BookRoomService"
+          ]
+        }
+      ],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/application/services/BookRoomService.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/application/services/BookRoomService.ts\n+++ b/src/application/services/BookRoomService.ts\n@@ -10,6 +10,7 @@\n import { NotificationSender } from '../ports/out/NotificationSender';\n import { PaymentGateway } from '../ports/out/PaymentGateway';\n import { RoomRepository } from '../ports/out/RoomRepository';\n+import { OutboxNotificationAdapter } from \"../../adapters/outbound/notification/OutboxNotificationAdapter\";\n \n export class BookRoomService implements BookRoom {\n   private readonly availability = new AvailabilityChecker();\n@@ -20,7 +21,7 @@\n     private readonly bookings: BookingRepository,\n     private readonly guests: GuestRepository,\n     private readonly payments: PaymentGateway,\n-    private readonly notifications: NotificationSender,\n+    private readonly notifications: NotificationSender, readonly outboxNotificationAdapter: OutboxNotificationAdapter = new OutboxNotificationAdapter()\n   ) {}\n \n   async book(command: BookRoomCommand): Promise<BookingView> {\n",
+      "status": "detected"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H02__1",
+      "operatorId": "MO-H02",
+      "positiveId": "MO-H02",
+      "role": "positive",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/application/services/FindAvailableRoomsService.ts",
+        "line": 7,
+        "kind": "constructor-injection",
+        "detail": {
+          "class": "FindAvailableRoomsService",
+          "targetFile": "src/adapters/outbound/payment/FakePaymentGateway.ts",
+          "targetName": "FakePaymentGateway",
+          "form": "default-new"
+        }
+      },
+      "expected": [
+        {
+          "template": "dependency-direction-graph",
+          "functionId": "FF-S01",
+          "filePath": "src/application/services/FindAvailableRoomsService.ts",
+          "target": "src/adapters/outbound/payment/FakePaymentGateway.ts"
+        },
+        {
+          "template": "core-isolation",
+          "functionId": "FF-S04",
+          "filePath": "src/application/services/FindAvailableRoomsService.ts",
+          "target": "src/adapters/outbound/payment/FakePaymentGateway.ts"
+        }
+      ],
+      "absentTemplates": [],
+      "hits": [
+        true,
+        true
+      ],
+      "newBlocking": [
+        {
+          "functionId": "FF-S01",
+          "filePath": "src/application/services/FindAvailableRoomsService.ts",
+          "target": "src/adapters/outbound/payment/FakePaymentGateway.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        },
+        {
+          "functionId": "FF-S04",
+          "filePath": "src/application/services/FindAvailableRoomsService.ts",
+          "target": "src/adapters/outbound/payment/FakePaymentGateway.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        }
+      ],
+      "newAdvisory": [
+        {
+          "functionId": "FF-P02",
+          "filePath": "src/application/services/FindAvailableRoomsService.ts",
+          "target": "",
+          "discriminator": [
+            "FindAvailableRoomsService"
+          ]
+        }
+      ],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/application/services/FindAvailableRoomsService.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/application/services/FindAvailableRoomsService.ts\n+++ b/src/application/services/FindAvailableRoomsService.ts\n@@ -3,13 +3,14 @@\n import { AvailableRoom, FindAvailableRooms } from '../ports/in/FindAvailableRooms';\n import { BookingRepository } from '../ports/out/BookingRepository';\n import { RoomRepository } from '../ports/out/RoomRepository';\n+import { FakePaymentGateway } from \"../../adapters/outbound/payment/FakePaymentGateway\";\n \n export class FindAvailableRoomsService implements FindAvailableRooms {\n   private readonly availability = new AvailabilityChecker();\n \n   constructor(\n     private readonly rooms: RoomRepository,\n-    private readonly bookings: BookingRepository,\n+    private readonly bookings: BookingRepository, readonly fakePaymentGateway: FakePaymentGateway = new FakePaymentGateway()\n   ) {}\n \n   async find(checkIn: string, checkOut: string, guests: number): Promise<AvailableRoom[]> {\n",
+      "status": "detected"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H02__2",
+      "operatorId": "MO-H02",
+      "positiveId": "MO-H02",
+      "role": "positive",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/application/services/BookRoomService.ts",
+        "line": 14,
+        "kind": "constructor-injection",
+        "detail": {
+          "class": "BookRoomService",
+          "targetFile": "src/adapters/outbound/payment/FakePaymentGateway.ts",
+          "targetName": "FakePaymentGateway",
+          "form": "default-new"
+        }
+      },
+      "expected": [
+        {
+          "template": "dependency-direction-graph",
+          "functionId": "FF-S01",
+          "filePath": "src/application/services/BookRoomService.ts",
+          "target": "src/adapters/outbound/payment/FakePaymentGateway.ts"
+        },
+        {
+          "template": "core-isolation",
+          "functionId": "FF-S04",
+          "filePath": "src/application/services/BookRoomService.ts",
+          "target": "src/adapters/outbound/payment/FakePaymentGateway.ts"
+        }
+      ],
+      "absentTemplates": [],
+      "hits": [
+        true,
+        true
+      ],
+      "newBlocking": [
+        {
+          "functionId": "FF-S01",
+          "filePath": "src/application/services/BookRoomService.ts",
+          "target": "src/adapters/outbound/payment/FakePaymentGateway.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        },
+        {
+          "functionId": "FF-S04",
+          "filePath": "src/application/services/BookRoomService.ts",
+          "target": "src/adapters/outbound/payment/FakePaymentGateway.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        }
+      ],
+      "newAdvisory": [
+        {
+          "functionId": "FF-P02",
+          "filePath": "src/application/services/BookRoomService.ts",
+          "target": "",
+          "discriminator": [
+            "BookRoomService"
+          ]
+        },
+        {
+          "functionId": "FF-SO01",
+          "filePath": "src/application/services/BookRoomService.ts",
+          "target": "",
+          "discriminator": [
+            "BookRoomService"
+          ]
+        }
+      ],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/application/services/BookRoomService.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/application/services/BookRoomService.ts\n+++ b/src/application/services/BookRoomService.ts\n@@ -10,6 +10,7 @@\n import { NotificationSender } from '../ports/out/NotificationSender';\n import { PaymentGateway } from '../ports/out/PaymentGateway';\n import { RoomRepository } from '../ports/out/RoomRepository';\n+import { FakePaymentGateway } from \"../../adapters/outbound/payment/FakePaymentGateway\";\n \n export class BookRoomService implements BookRoom {\n   private readonly availability = new AvailabilityChecker();\n@@ -20,7 +21,7 @@\n     private readonly bookings: BookingRepository,\n     private readonly guests: GuestRepository,\n     private readonly payments: PaymentGateway,\n-    private readonly notifications: NotificationSender,\n+    private readonly notifications: NotificationSender, readonly fakePaymentGateway: FakePaymentGateway = new FakePaymentGateway()\n   ) {}\n \n   async book(command: BookRoomCommand): Promise<BookingView> {\n",
+      "status": "detected"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H02__3",
+      "operatorId": "MO-H02",
+      "positiveId": "MO-H02",
+      "role": "positive",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/application/services/CancelBookingService.ts",
+        "line": 9,
+        "kind": "constructor-injection",
+        "detail": {
+          "class": "CancelBookingService",
+          "targetFile": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts",
+          "targetName": "InMemoryGuestRepository",
+          "form": "default-new"
+        }
+      },
+      "expected": [
+        {
+          "template": "dependency-direction-graph",
+          "functionId": "FF-S01",
+          "filePath": "src/application/services/CancelBookingService.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts"
+        },
+        {
+          "template": "core-isolation",
+          "functionId": "FF-S04",
+          "filePath": "src/application/services/CancelBookingService.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts"
+        }
+      ],
+      "absentTemplates": [],
+      "hits": [
+        true,
+        true
+      ],
+      "newBlocking": [
+        {
+          "functionId": "FF-S01",
+          "filePath": "src/application/services/CancelBookingService.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        },
+        {
+          "functionId": "FF-S04",
+          "filePath": "src/application/services/CancelBookingService.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        }
+      ],
+      "newAdvisory": [
+        {
+          "functionId": "FF-P02",
+          "filePath": "src/application/services/CancelBookingService.ts",
+          "target": "",
+          "discriminator": [
+            "CancelBookingService"
+          ]
+        }
+      ],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/application/services/CancelBookingService.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/application/services/CancelBookingService.ts\n+++ b/src/application/services/CancelBookingService.ts\n@@ -5,13 +5,14 @@\n import { GuestRepository } from '../ports/out/GuestRepository';\n import { NotificationSender } from '../ports/out/NotificationSender';\n import { PaymentGateway } from '../ports/out/PaymentGateway';\n+import { InMemoryGuestRepository } from \"../../adapters/outbound/persistence/InMemoryGuestRepository\";\n \n export class CancelBookingService implements CancelBooking {\n   constructor(\n     private readonly bookings: BookingRepository,\n     private readonly guests: GuestRepository,\n     private readonly payments: PaymentGateway,\n-    private readonly notifications: NotificationSender,\n+    private readonly notifications: NotificationSender, readonly inMemoryGuestRepository: InMemoryGuestRepository = new InMemoryGuestRepository()\n   ) {}\n \n   async cancel(bookingId: string): Promise<BookingView> {\n",
+      "status": "detected"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H02__4",
+      "operatorId": "MO-H02",
+      "positiveId": "MO-H02",
+      "role": "positive",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/application/services/BookRoomService.ts",
+        "line": 14,
+        "kind": "constructor-injection",
+        "detail": {
+          "class": "BookRoomService",
+          "targetFile": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts",
+          "targetName": "InMemoryGuestRepository",
+          "form": "default-new"
+        }
+      },
+      "expected": [
+        {
+          "template": "dependency-direction-graph",
+          "functionId": "FF-S01",
+          "filePath": "src/application/services/BookRoomService.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts"
+        },
+        {
+          "template": "core-isolation",
+          "functionId": "FF-S04",
+          "filePath": "src/application/services/BookRoomService.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts"
+        }
+      ],
+      "absentTemplates": [],
+      "hits": [
+        true,
+        true
+      ],
+      "newBlocking": [
+        {
+          "functionId": "FF-S01",
+          "filePath": "src/application/services/BookRoomService.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        },
+        {
+          "functionId": "FF-S04",
+          "filePath": "src/application/services/BookRoomService.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        }
+      ],
+      "newAdvisory": [
+        {
+          "functionId": "FF-P02",
+          "filePath": "src/application/services/BookRoomService.ts",
+          "target": "",
+          "discriminator": [
+            "BookRoomService"
+          ]
+        },
+        {
+          "functionId": "FF-SO01",
+          "filePath": "src/application/services/BookRoomService.ts",
+          "target": "",
+          "discriminator": [
+            "BookRoomService"
+          ]
+        }
+      ],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/application/services/BookRoomService.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/application/services/BookRoomService.ts\n+++ b/src/application/services/BookRoomService.ts\n@@ -10,6 +10,7 @@\n import { NotificationSender } from '../ports/out/NotificationSender';\n import { PaymentGateway } from '../ports/out/PaymentGateway';\n import { RoomRepository } from '../ports/out/RoomRepository';\n+import { InMemoryGuestRepository } from \"../../adapters/outbound/persistence/InMemoryGuestRepository\";\n \n export class BookRoomService implements BookRoom {\n   private readonly availability = new AvailabilityChecker();\n@@ -20,7 +21,7 @@\n     private readonly bookings: BookingRepository,\n     private readonly guests: GuestRepository,\n     private readonly payments: PaymentGateway,\n-    private readonly notifications: NotificationSender,\n+    private readonly notifications: NotificationSender, readonly inMemoryGuestRepository: InMemoryGuestRepository = new InMemoryGuestRepository()\n   ) {}\n \n   async book(command: BookRoomCommand): Promise<BookingView> {\n",
+      "status": "detected"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H02__5",
+      "operatorId": "MO-H02",
+      "positiveId": "MO-H02",
+      "role": "positive",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/application/services/CancelBookingService.ts",
+        "line": 9,
+        "kind": "constructor-injection",
+        "detail": {
+          "class": "CancelBookingService",
+          "targetFile": "src/adapters/outbound/payment/FakePaymentGateway.ts",
+          "targetName": "FakePaymentGateway",
+          "form": "default-new"
+        }
+      },
+      "expected": [
+        {
+          "template": "dependency-direction-graph",
+          "functionId": "FF-S01",
+          "filePath": "src/application/services/CancelBookingService.ts",
+          "target": "src/adapters/outbound/payment/FakePaymentGateway.ts"
+        },
+        {
+          "template": "core-isolation",
+          "functionId": "FF-S04",
+          "filePath": "src/application/services/CancelBookingService.ts",
+          "target": "src/adapters/outbound/payment/FakePaymentGateway.ts"
+        }
+      ],
+      "absentTemplates": [],
+      "hits": [
+        true,
+        true
+      ],
+      "newBlocking": [
+        {
+          "functionId": "FF-S01",
+          "filePath": "src/application/services/CancelBookingService.ts",
+          "target": "src/adapters/outbound/payment/FakePaymentGateway.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        },
+        {
+          "functionId": "FF-S04",
+          "filePath": "src/application/services/CancelBookingService.ts",
+          "target": "src/adapters/outbound/payment/FakePaymentGateway.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        }
+      ],
+      "newAdvisory": [
+        {
+          "functionId": "FF-P02",
+          "filePath": "src/application/services/CancelBookingService.ts",
+          "target": "",
+          "discriminator": [
+            "CancelBookingService"
+          ]
+        }
+      ],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/application/services/CancelBookingService.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/application/services/CancelBookingService.ts\n+++ b/src/application/services/CancelBookingService.ts\n@@ -5,13 +5,14 @@\n import { GuestRepository } from '../ports/out/GuestRepository';\n import { NotificationSender } from '../ports/out/NotificationSender';\n import { PaymentGateway } from '../ports/out/PaymentGateway';\n+import { FakePaymentGateway } from \"../../adapters/outbound/payment/FakePaymentGateway\";\n \n export class CancelBookingService implements CancelBooking {\n   constructor(\n     private readonly bookings: BookingRepository,\n     private readonly guests: GuestRepository,\n     private readonly payments: PaymentGateway,\n-    private readonly notifications: NotificationSender,\n+    private readonly notifications: NotificationSender, readonly fakePaymentGateway: FakePaymentGateway = new FakePaymentGateway()\n   ) {}\n \n   async cancel(bookingId: string): Promise<BookingView> {\n",
+      "status": "detected"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H02__6",
+      "operatorId": "MO-H02",
+      "positiveId": "MO-H02",
+      "role": "positive",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/application/services/BookRoomService.ts",
+        "line": 14,
+        "kind": "constructor-injection",
+        "detail": {
+          "class": "BookRoomService",
+          "targetFile": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+          "targetName": "InMemoryRoomRepository",
+          "form": "default-new"
+        }
+      },
+      "expected": [
+        {
+          "template": "dependency-direction-graph",
+          "functionId": "FF-S01",
+          "filePath": "src/application/services/BookRoomService.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts"
+        },
+        {
+          "template": "core-isolation",
+          "functionId": "FF-S04",
+          "filePath": "src/application/services/BookRoomService.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts"
+        }
+      ],
+      "absentTemplates": [],
+      "hits": [
+        true,
+        true
+      ],
+      "newBlocking": [
+        {
+          "functionId": "FF-S01",
+          "filePath": "src/application/services/BookRoomService.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        },
+        {
+          "functionId": "FF-S04",
+          "filePath": "src/application/services/BookRoomService.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        }
+      ],
+      "newAdvisory": [
+        {
+          "functionId": "FF-P02",
+          "filePath": "src/application/services/BookRoomService.ts",
+          "target": "",
+          "discriminator": [
+            "BookRoomService"
+          ]
+        },
+        {
+          "functionId": "FF-SO01",
+          "filePath": "src/application/services/BookRoomService.ts",
+          "target": "",
+          "discriminator": [
+            "BookRoomService"
+          ]
+        }
+      ],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/application/services/BookRoomService.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/application/services/BookRoomService.ts\n+++ b/src/application/services/BookRoomService.ts\n@@ -10,6 +10,7 @@\n import { NotificationSender } from '../ports/out/NotificationSender';\n import { PaymentGateway } from '../ports/out/PaymentGateway';\n import { RoomRepository } from '../ports/out/RoomRepository';\n+import { InMemoryRoomRepository } from \"../../adapters/outbound/persistence/InMemoryRoomRepository\";\n \n export class BookRoomService implements BookRoom {\n   private readonly availability = new AvailabilityChecker();\n@@ -20,7 +21,7 @@\n     private readonly bookings: BookingRepository,\n     private readonly guests: GuestRepository,\n     private readonly payments: PaymentGateway,\n-    private readonly notifications: NotificationSender,\n+    private readonly notifications: NotificationSender, readonly inMemoryRoomRepository: InMemoryRoomRepository = new InMemoryRoomRepository()\n   ) {}\n \n   async book(command: BookRoomCommand): Promise<BookingView> {\n",
+      "status": "detected"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H02__7",
+      "operatorId": "MO-H02",
+      "positiveId": "MO-H02",
+      "role": "positive",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/application/services/CancelBookingService.ts",
+        "line": 9,
+        "kind": "constructor-injection",
+        "detail": {
+          "class": "CancelBookingService",
+          "targetFile": "src/adapters/outbound/persistence/InMemoryBookingRepository.ts",
+          "targetName": "InMemoryBookingRepository",
+          "form": "default-new"
+        }
+      },
+      "expected": [
+        {
+          "template": "dependency-direction-graph",
+          "functionId": "FF-S01",
+          "filePath": "src/application/services/CancelBookingService.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryBookingRepository.ts"
+        },
+        {
+          "template": "core-isolation",
+          "functionId": "FF-S04",
+          "filePath": "src/application/services/CancelBookingService.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryBookingRepository.ts"
+        }
+      ],
+      "absentTemplates": [],
+      "hits": [
+        true,
+        true
+      ],
+      "newBlocking": [
+        {
+          "functionId": "FF-S01",
+          "filePath": "src/application/services/CancelBookingService.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryBookingRepository.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        },
+        {
+          "functionId": "FF-S04",
+          "filePath": "src/application/services/CancelBookingService.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryBookingRepository.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        }
+      ],
+      "newAdvisory": [
+        {
+          "functionId": "FF-P02",
+          "filePath": "src/application/services/CancelBookingService.ts",
+          "target": "",
+          "discriminator": [
+            "CancelBookingService"
+          ]
+        }
+      ],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/application/services/CancelBookingService.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/application/services/CancelBookingService.ts\n+++ b/src/application/services/CancelBookingService.ts\n@@ -5,13 +5,14 @@\n import { GuestRepository } from '../ports/out/GuestRepository';\n import { NotificationSender } from '../ports/out/NotificationSender';\n import { PaymentGateway } from '../ports/out/PaymentGateway';\n+import { InMemoryBookingRepository } from \"../../adapters/outbound/persistence/InMemoryBookingRepository\";\n \n export class CancelBookingService implements CancelBooking {\n   constructor(\n     private readonly bookings: BookingRepository,\n     private readonly guests: GuestRepository,\n     private readonly payments: PaymentGateway,\n-    private readonly notifications: NotificationSender,\n+    private readonly notifications: NotificationSender, readonly inMemoryBookingRepository: InMemoryBookingRepository = new InMemoryBookingRepository()\n   ) {}\n \n   async cancel(bookingId: string): Promise<BookingView> {\n",
+      "status": "detected"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H02__8",
+      "operatorId": "MO-H02",
+      "positiveId": "MO-H02",
+      "role": "positive",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/application/services/FindAvailableRoomsService.ts",
+        "line": 7,
+        "kind": "constructor-injection",
+        "detail": {
+          "class": "FindAvailableRoomsService",
+          "targetFile": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts",
+          "targetName": "InMemoryGuestRepository",
+          "form": "default-new"
+        }
+      },
+      "expected": [
+        {
+          "template": "dependency-direction-graph",
+          "functionId": "FF-S01",
+          "filePath": "src/application/services/FindAvailableRoomsService.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts"
+        },
+        {
+          "template": "core-isolation",
+          "functionId": "FF-S04",
+          "filePath": "src/application/services/FindAvailableRoomsService.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts"
+        }
+      ],
+      "absentTemplates": [],
+      "hits": [
+        true,
+        true
+      ],
+      "newBlocking": [
+        {
+          "functionId": "FF-S01",
+          "filePath": "src/application/services/FindAvailableRoomsService.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        },
+        {
+          "functionId": "FF-S04",
+          "filePath": "src/application/services/FindAvailableRoomsService.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        }
+      ],
+      "newAdvisory": [
+        {
+          "functionId": "FF-P02",
+          "filePath": "src/application/services/FindAvailableRoomsService.ts",
+          "target": "",
+          "discriminator": [
+            "FindAvailableRoomsService"
+          ]
+        }
+      ],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/application/services/FindAvailableRoomsService.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/application/services/FindAvailableRoomsService.ts\n+++ b/src/application/services/FindAvailableRoomsService.ts\n@@ -3,13 +3,14 @@\n import { AvailableRoom, FindAvailableRooms } from '../ports/in/FindAvailableRooms';\n import { BookingRepository } from '../ports/out/BookingRepository';\n import { RoomRepository } from '../ports/out/RoomRepository';\n+import { InMemoryGuestRepository } from \"../../adapters/outbound/persistence/InMemoryGuestRepository\";\n \n export class FindAvailableRoomsService implements FindAvailableRooms {\n   private readonly availability = new AvailabilityChecker();\n \n   constructor(\n     private readonly rooms: RoomRepository,\n-    private readonly bookings: BookingRepository,\n+    private readonly bookings: BookingRepository, readonly inMemoryGuestRepository: InMemoryGuestRepository = new InMemoryGuestRepository()\n   ) {}\n \n   async find(checkIn: string, checkOut: string, guests: number): Promise<AvailableRoom[]> {\n",
+      "status": "detected"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H02__9",
+      "operatorId": "MO-H02",
+      "positiveId": "MO-H02",
+      "role": "positive",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/application/services/FindAvailableRoomsService.ts",
+        "line": 7,
+        "kind": "constructor-injection",
+        "detail": {
+          "class": "FindAvailableRoomsService",
+          "targetFile": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts",
+          "targetName": "OutboxNotificationAdapter",
+          "form": "default-new"
+        }
+      },
+      "expected": [
+        {
+          "template": "dependency-direction-graph",
+          "functionId": "FF-S01",
+          "filePath": "src/application/services/FindAvailableRoomsService.ts",
+          "target": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts"
+        },
+        {
+          "template": "core-isolation",
+          "functionId": "FF-S04",
+          "filePath": "src/application/services/FindAvailableRoomsService.ts",
+          "target": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts"
+        }
+      ],
+      "absentTemplates": [],
+      "hits": [
+        true,
+        true
+      ],
+      "newBlocking": [
+        {
+          "functionId": "FF-S01",
+          "filePath": "src/application/services/FindAvailableRoomsService.ts",
+          "target": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        },
+        {
+          "functionId": "FF-S04",
+          "filePath": "src/application/services/FindAvailableRoomsService.ts",
+          "target": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        }
+      ],
+      "newAdvisory": [
+        {
+          "functionId": "FF-P02",
+          "filePath": "src/application/services/FindAvailableRoomsService.ts",
+          "target": "",
+          "discriminator": [
+            "FindAvailableRoomsService"
+          ]
+        }
+      ],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/application/services/FindAvailableRoomsService.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/application/services/FindAvailableRoomsService.ts\n+++ b/src/application/services/FindAvailableRoomsService.ts\n@@ -3,13 +3,14 @@\n import { AvailableRoom, FindAvailableRooms } from '../ports/in/FindAvailableRooms';\n import { BookingRepository } from '../ports/out/BookingRepository';\n import { RoomRepository } from '../ports/out/RoomRepository';\n+import { OutboxNotificationAdapter } from \"../../adapters/outbound/notification/OutboxNotificationAdapter\";\n \n export class FindAvailableRoomsService implements FindAvailableRooms {\n   private readonly availability = new AvailabilityChecker();\n \n   constructor(\n     private readonly rooms: RoomRepository,\n-    private readonly bookings: BookingRepository,\n+    private readonly bookings: BookingRepository, readonly outboxNotificationAdapter: OutboxNotificationAdapter = new OutboxNotificationAdapter()\n   ) {}\n \n   async find(checkIn: string, checkOut: string, guests: number): Promise<AvailableRoom[]> {\n",
+      "status": "detected"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H02n__0",
+      "operatorId": "MO-H02n",
+      "positiveId": "MO-H02",
+      "role": "twin",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/application/services/BookRoomService.ts",
+        "line": 14,
+        "kind": "constructor-injection",
+        "detail": {
+          "class": "BookRoomService",
+          "targetFile": "src/application/ports/in/FindAvailableRooms.ts",
+          "targetName": "AvailableRoom",
+          "form": "optional"
+        }
+      },
+      "expected": [],
+      "absentTemplates": [],
+      "hits": [],
+      "newBlocking": [],
+      "newAdvisory": [
+        {
+          "functionId": "FF-SO01",
+          "filePath": "src/application/services/BookRoomService.ts",
+          "target": "",
+          "discriminator": [
+            "BookRoomService"
+          ]
+        }
+      ],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/application/services/BookRoomService.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/application/services/BookRoomService.ts\n+++ b/src/application/services/BookRoomService.ts\n@@ -10,6 +10,7 @@\n import { NotificationSender } from '../ports/out/NotificationSender';\n import { PaymentGateway } from '../ports/out/PaymentGateway';\n import { RoomRepository } from '../ports/out/RoomRepository';\n+import { AvailableRoom } from \"../ports/in/FindAvailableRooms\";\n \n export class BookRoomService implements BookRoom {\n   private readonly availability = new AvailabilityChecker();\n@@ -20,7 +21,7 @@\n     private readonly bookings: BookingRepository,\n     private readonly guests: GuestRepository,\n     private readonly payments: PaymentGateway,\n-    private readonly notifications: NotificationSender,\n+    private readonly notifications: NotificationSender, readonly availableRoom?: AvailableRoom\n   ) {}\n \n   async book(command: BookRoomCommand): Promise<BookingView> {\n",
+      "status": "silent"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H02n__1",
+      "operatorId": "MO-H02n",
+      "positiveId": "MO-H02",
+      "role": "twin",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/application/services/FindAvailableRoomsService.ts",
+        "line": 7,
+        "kind": "constructor-injection",
+        "detail": {
+          "class": "FindAvailableRoomsService",
+          "targetFile": "src/application/ports/out/PaymentGateway.ts",
+          "targetName": "PaymentGateway",
+          "form": "optional"
+        }
+      },
+      "expected": [],
+      "absentTemplates": [],
+      "hits": [],
+      "newBlocking": [],
+      "newAdvisory": [],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/application/services/FindAvailableRoomsService.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/application/services/FindAvailableRoomsService.ts\n+++ b/src/application/services/FindAvailableRoomsService.ts\n@@ -3,13 +3,14 @@\n import { AvailableRoom, FindAvailableRooms } from '../ports/in/FindAvailableRooms';\n import { BookingRepository } from '../ports/out/BookingRepository';\n import { RoomRepository } from '../ports/out/RoomRepository';\n+import { PaymentGateway } from \"../ports/out/PaymentGateway\";\n \n export class FindAvailableRoomsService implements FindAvailableRooms {\n   private readonly availability = new AvailabilityChecker();\n \n   constructor(\n     private readonly rooms: RoomRepository,\n-    private readonly bookings: BookingRepository,\n+    private readonly bookings: BookingRepository, readonly paymentGateway?: PaymentGateway\n   ) {}\n \n   async find(checkIn: string, checkOut: string, guests: number): Promise<AvailableRoom[]> {\n",
+      "status": "silent"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H02n__2",
+      "operatorId": "MO-H02n",
+      "positiveId": "MO-H02",
+      "role": "twin",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/application/services/FindAvailableRoomsService.ts",
+        "line": 7,
+        "kind": "constructor-injection",
+        "detail": {
+          "class": "FindAvailableRoomsService",
+          "targetFile": "src/application/ports/in/BookRoom.ts",
+          "targetName": "BookRoomCommand",
+          "form": "optional"
+        }
+      },
+      "expected": [],
+      "absentTemplates": [],
+      "hits": [],
+      "newBlocking": [],
+      "newAdvisory": [],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/application/services/FindAvailableRoomsService.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/application/services/FindAvailableRoomsService.ts\n+++ b/src/application/services/FindAvailableRoomsService.ts\n@@ -3,13 +3,14 @@\n import { AvailableRoom, FindAvailableRooms } from '../ports/in/FindAvailableRooms';\n import { BookingRepository } from '../ports/out/BookingRepository';\n import { RoomRepository } from '../ports/out/RoomRepository';\n+import { BookRoomCommand } from \"../ports/in/BookRoom\";\n \n export class FindAvailableRoomsService implements FindAvailableRooms {\n   private readonly availability = new AvailabilityChecker();\n \n   constructor(\n     private readonly rooms: RoomRepository,\n-    private readonly bookings: BookingRepository,\n+    private readonly bookings: BookingRepository, readonly bookRoomCommand?: BookRoomCommand\n   ) {}\n \n   async find(checkIn: string, checkOut: string, guests: number): Promise<AvailableRoom[]> {\n",
+      "status": "silent"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H02n__3",
+      "operatorId": "MO-H02n",
+      "positiveId": "MO-H02",
+      "role": "twin",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/application/services/CancelBookingService.ts",
+        "line": 9,
+        "kind": "constructor-injection",
+        "detail": {
+          "class": "CancelBookingService",
+          "targetFile": "src/application/ports/in/BookRoom.ts",
+          "targetName": "BookRoomCommand",
+          "form": "optional"
+        }
+      },
+      "expected": [],
+      "absentTemplates": [],
+      "hits": [],
+      "newBlocking": [],
+      "newAdvisory": [],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/application/services/CancelBookingService.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/application/services/CancelBookingService.ts\n+++ b/src/application/services/CancelBookingService.ts\n@@ -5,13 +5,14 @@\n import { GuestRepository } from '../ports/out/GuestRepository';\n import { NotificationSender } from '../ports/out/NotificationSender';\n import { PaymentGateway } from '../ports/out/PaymentGateway';\n+import { BookRoomCommand } from \"../ports/in/BookRoom\";\n \n export class CancelBookingService implements CancelBooking {\n   constructor(\n     private readonly bookings: BookingRepository,\n     private readonly guests: GuestRepository,\n     private readonly payments: PaymentGateway,\n-    private readonly notifications: NotificationSender,\n+    private readonly notifications: NotificationSender, readonly bookRoomCommand?: BookRoomCommand\n   ) {}\n \n   async cancel(bookingId: string): Promise<BookingView> {\n",
+      "status": "silent"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H02n__4",
+      "operatorId": "MO-H02n",
+      "positiveId": "MO-H02",
+      "role": "twin",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/application/services/FindAvailableRoomsService.ts",
+        "line": 7,
+        "kind": "constructor-injection",
+        "detail": {
+          "class": "FindAvailableRoomsService",
+          "targetFile": "src/application/ports/out/NotificationSender.ts",
+          "targetName": "NotificationSender",
+          "form": "optional"
+        }
+      },
+      "expected": [],
+      "absentTemplates": [],
+      "hits": [],
+      "newBlocking": [],
+      "newAdvisory": [],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/application/services/FindAvailableRoomsService.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/application/services/FindAvailableRoomsService.ts\n+++ b/src/application/services/FindAvailableRoomsService.ts\n@@ -3,13 +3,14 @@\n import { AvailableRoom, FindAvailableRooms } from '../ports/in/FindAvailableRooms';\n import { BookingRepository } from '../ports/out/BookingRepository';\n import { RoomRepository } from '../ports/out/RoomRepository';\n+import { NotificationSender } from \"../ports/out/NotificationSender\";\n \n export class FindAvailableRoomsService implements FindAvailableRooms {\n   private readonly availability = new AvailabilityChecker();\n \n   constructor(\n     private readonly rooms: RoomRepository,\n-    private readonly bookings: BookingRepository,\n+    private readonly bookings: BookingRepository, readonly notificationSender?: NotificationSender\n   ) {}\n \n   async find(checkIn: string, checkOut: string, guests: number): Promise<AvailableRoom[]> {\n",
+      "status": "silent"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H02n__5",
+      "operatorId": "MO-H02n",
+      "positiveId": "MO-H02",
+      "role": "twin",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/application/services/FindAvailableRoomsService.ts",
+        "line": 7,
+        "kind": "constructor-injection",
+        "detail": {
+          "class": "FindAvailableRoomsService",
+          "targetFile": "src/application/ports/in/BookingView.ts",
+          "targetName": "BookingView",
+          "form": "optional"
+        }
+      },
+      "expected": [],
+      "absentTemplates": [],
+      "hits": [],
+      "newBlocking": [],
+      "newAdvisory": [],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/application/services/FindAvailableRoomsService.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/application/services/FindAvailableRoomsService.ts\n+++ b/src/application/services/FindAvailableRoomsService.ts\n@@ -3,13 +3,14 @@\n import { AvailableRoom, FindAvailableRooms } from '../ports/in/FindAvailableRooms';\n import { BookingRepository } from '../ports/out/BookingRepository';\n import { RoomRepository } from '../ports/out/RoomRepository';\n+import { BookingView } from \"../ports/in/BookingView\";\n \n export class FindAvailableRoomsService implements FindAvailableRooms {\n   private readonly availability = new AvailabilityChecker();\n \n   constructor(\n     private readonly rooms: RoomRepository,\n-    private readonly bookings: BookingRepository,\n+    private readonly bookings: BookingRepository, readonly bookingView?: BookingView\n   ) {}\n \n   async find(checkIn: string, checkOut: string, guests: number): Promise<AvailableRoom[]> {\n",
+      "status": "silent"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H03__0",
+      "operatorId": "MO-H03",
+      "positiveId": "MO-H03",
+      "role": "positive",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/adapters/inbound/cli/BookingCli.ts",
+        "line": 1,
+        "kind": "import-edge",
+        "detail": {
+          "targetFile": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+          "symbol": "InMemoryRoomRepository"
+        }
+      },
+      "expected": [
+        {
+          "template": "dependency-direction-graph",
+          "functionId": "FF-S01",
+          "filePath": "src/adapters/inbound/cli/BookingCli.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts"
+        }
+      ],
+      "absentTemplates": [],
+      "hits": [
+        true
+      ],
+      "newBlocking": [
+        {
+          "functionId": "FF-S01",
+          "filePath": "src/adapters/inbound/cli/BookingCli.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        }
+      ],
+      "newAdvisory": [],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/adapters/inbound/cli/BookingCli.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/adapters/inbound/cli/BookingCli.ts\n+++ b/src/adapters/inbound/cli/BookingCli.ts\n@@ -1,5 +1,6 @@\n import { BookRoom } from '../../../application/ports/in/BookRoom';\n import { BookingView } from '../../../application/ports/in/BookingView';\n+import { InMemoryRoomRepository } from \"../../outbound/persistence/InMemoryRoomRepository\";\n \n export function formatCliLine(view: BookingView): string {\n   return `${view.id}\\t${view.roomId}\\t${view.checkIn.slice(0, 10)}..${view.checkOut.slice(0, 10)}\\t${view.status}`;\n@@ -18,3 +19,4 @@\n     return formatCliLine(view);\n   }\n }\n+export const inMemoryRoomRepositoryRef = InMemoryRoomRepository;\n",
+      "status": "detected"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H03__1",
+      "operatorId": "MO-H03",
+      "positiveId": "MO-H03",
+      "role": "positive",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/adapters/inbound/http/HttpTypes.ts",
+        "line": 1,
+        "kind": "import-edge",
+        "detail": {
+          "targetFile": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts",
+          "symbol": "OutboxNotificationAdapter"
+        }
+      },
+      "expected": [
+        {
+          "template": "dependency-direction-graph",
+          "functionId": "FF-S01",
+          "filePath": "src/adapters/inbound/http/HttpTypes.ts",
+          "target": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts"
+        }
+      ],
+      "absentTemplates": [],
+      "hits": [
+        true
+      ],
+      "newBlocking": [
+        {
+          "functionId": "FF-S01",
+          "filePath": "src/adapters/inbound/http/HttpTypes.ts",
+          "target": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        }
+      ],
+      "newAdvisory": [],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/adapters/inbound/http/HttpTypes.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/adapters/inbound/http/HttpTypes.ts\n+++ b/src/adapters/inbound/http/HttpTypes.ts\n@@ -1,3 +1,5 @@\n+import { OutboxNotificationAdapter } from \"../../outbound/notification/OutboxNotificationAdapter\";\n+\n export interface HttpRequest {\n   params: Record<string, string>;\n   query: Record<string, string>;\n@@ -14,3 +16,4 @@\n     super(message);\n   }\n }\n+export const outboxNotificationAdapterRef = OutboxNotificationAdapter;\n",
+      "status": "detected"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H03__2",
+      "operatorId": "MO-H03",
+      "positiveId": "MO-H03",
+      "role": "positive",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/adapters/inbound/http/BookingController.ts",
+        "line": 1,
+        "kind": "import-edge",
+        "detail": {
+          "targetFile": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+          "symbol": "InMemoryRoomRepository"
+        }
+      },
+      "expected": [
+        {
+          "template": "dependency-direction-graph",
+          "functionId": "FF-S01",
+          "filePath": "src/adapters/inbound/http/BookingController.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts"
+        }
+      ],
+      "absentTemplates": [],
+      "hits": [
+        true
+      ],
+      "newBlocking": [
+        {
+          "functionId": "FF-S01",
+          "filePath": "src/adapters/inbound/http/BookingController.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        }
+      ],
+      "newAdvisory": [
+        {
+          "functionId": "FF-C03",
+          "filePath": "src/adapters/inbound/http/BookingController.ts",
+          "target": "",
+          "discriminator": []
+        }
+      ],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/adapters/inbound/http/BookingController.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/adapters/inbound/http/BookingController.ts\n+++ b/src/adapters/inbound/http/BookingController.ts\n@@ -2,6 +2,7 @@\n import { CancelBooking } from '../../../application/ports/in/CancelBooking';\n import { BookingError } from '../../../domain/errors/BookingError';\n import { HttpRequest, HttpResponse } from './HttpTypes';\n+import { InMemoryRoomRepository } from \"../../outbound/persistence/InMemoryRoomRepository\";\n \n const STATUS = { 'not-found': 404, unavailable: 409, invalid: 400, 'payment-declined': 402 } as const;\n \n@@ -40,3 +41,4 @@\n     return { status: 500, body: { error: 'Internal error' } };\n   }\n }\n+export const inMemoryRoomRepositoryRef = InMemoryRoomRepository;\n",
+      "status": "detected"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H03__3",
+      "operatorId": "MO-H03",
+      "positiveId": "MO-H03",
+      "role": "positive",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/adapters/inbound/http/BookingController.ts",
+        "line": 1,
+        "kind": "import-edge",
+        "detail": {
+          "targetFile": "src/adapters/outbound/payment/FakePaymentGateway.ts",
+          "symbol": "FakePaymentGateway"
+        }
+      },
+      "expected": [
+        {
+          "template": "dependency-direction-graph",
+          "functionId": "FF-S01",
+          "filePath": "src/adapters/inbound/http/BookingController.ts",
+          "target": "src/adapters/outbound/payment/FakePaymentGateway.ts"
+        }
+      ],
+      "absentTemplates": [],
+      "hits": [
+        true
+      ],
+      "newBlocking": [
+        {
+          "functionId": "FF-S01",
+          "filePath": "src/adapters/inbound/http/BookingController.ts",
+          "target": "src/adapters/outbound/payment/FakePaymentGateway.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        }
+      ],
+      "newAdvisory": [
+        {
+          "functionId": "FF-C03",
+          "filePath": "src/adapters/inbound/http/BookingController.ts",
+          "target": "",
+          "discriminator": []
+        }
+      ],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/adapters/inbound/http/BookingController.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/adapters/inbound/http/BookingController.ts\n+++ b/src/adapters/inbound/http/BookingController.ts\n@@ -2,6 +2,7 @@\n import { CancelBooking } from '../../../application/ports/in/CancelBooking';\n import { BookingError } from '../../../domain/errors/BookingError';\n import { HttpRequest, HttpResponse } from './HttpTypes';\n+import { FakePaymentGateway } from \"../../outbound/payment/FakePaymentGateway\";\n \n const STATUS = { 'not-found': 404, unavailable: 409, invalid: 400, 'payment-declined': 402 } as const;\n \n@@ -40,3 +41,4 @@\n     return { status: 500, body: { error: 'Internal error' } };\n   }\n }\n+export const fakePaymentGatewayRef = FakePaymentGateway;\n",
+      "status": "detected"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H03__4",
+      "operatorId": "MO-H03",
+      "positiveId": "MO-H03",
+      "role": "positive",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/adapters/inbound/http/RoomController.ts",
+        "line": 1,
+        "kind": "import-edge",
+        "detail": {
+          "targetFile": "src/adapters/outbound/persistence/InMemoryBookingRepository.ts",
+          "symbol": "InMemoryBookingRepository"
+        }
+      },
+      "expected": [
+        {
+          "template": "dependency-direction-graph",
+          "functionId": "FF-S01",
+          "filePath": "src/adapters/inbound/http/RoomController.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryBookingRepository.ts"
+        }
+      ],
+      "absentTemplates": [],
+      "hits": [
+        true
+      ],
+      "newBlocking": [
+        {
+          "functionId": "FF-S01",
+          "filePath": "src/adapters/inbound/http/RoomController.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryBookingRepository.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        }
+      ],
+      "newAdvisory": [],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/adapters/inbound/http/RoomController.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/adapters/inbound/http/RoomController.ts\n+++ b/src/adapters/inbound/http/RoomController.ts\n@@ -1,5 +1,6 @@\n import { FindAvailableRooms } from '../../../application/ports/in/FindAvailableRooms';\n import { HttpRequest, HttpResponse } from './HttpTypes';\n+import { InMemoryBookingRepository } from \"../../outbound/persistence/InMemoryBookingRepository\";\n \n export class RoomController {\n   constructor(private readonly findAvailableRooms: FindAvailableRooms) {}\n@@ -13,3 +14,4 @@\n     return { status: 200, body: rooms };\n   }\n }\n+export const inMemoryBookingRepositoryRef = InMemoryBookingRepository;\n",
+      "status": "detected"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H03__5",
+      "operatorId": "MO-H03",
+      "positiveId": "MO-H03",
+      "role": "positive",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/adapters/inbound/cli/BookingCli.ts",
+        "line": 1,
+        "kind": "import-edge",
+        "detail": {
+          "targetFile": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts",
+          "symbol": "OutboxNotificationAdapter"
+        }
+      },
+      "expected": [
+        {
+          "template": "dependency-direction-graph",
+          "functionId": "FF-S01",
+          "filePath": "src/adapters/inbound/cli/BookingCli.ts",
+          "target": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts"
+        }
+      ],
+      "absentTemplates": [],
+      "hits": [
+        true
+      ],
+      "newBlocking": [
+        {
+          "functionId": "FF-S01",
+          "filePath": "src/adapters/inbound/cli/BookingCli.ts",
+          "target": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        }
+      ],
+      "newAdvisory": [],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/adapters/inbound/cli/BookingCli.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/adapters/inbound/cli/BookingCli.ts\n+++ b/src/adapters/inbound/cli/BookingCli.ts\n@@ -1,5 +1,6 @@\n import { BookRoom } from '../../../application/ports/in/BookRoom';\n import { BookingView } from '../../../application/ports/in/BookingView';\n+import { OutboxNotificationAdapter } from \"../../outbound/notification/OutboxNotificationAdapter\";\n \n export function formatCliLine(view: BookingView): string {\n   return `${view.id}\\t${view.roomId}\\t${view.checkIn.slice(0, 10)}..${view.checkOut.slice(0, 10)}\\t${view.status}`;\n@@ -18,3 +19,4 @@\n     return formatCliLine(view);\n   }\n }\n+export const outboxNotificationAdapterRef = OutboxNotificationAdapter;\n",
+      "status": "detected"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H03__6",
+      "operatorId": "MO-H03",
+      "positiveId": "MO-H03",
+      "role": "positive",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/adapters/inbound/http/BookingController.ts",
+        "line": 1,
+        "kind": "import-edge",
+        "detail": {
+          "targetFile": "src/adapters/outbound/persistence/InMemoryBookingRepository.ts",
+          "symbol": "InMemoryBookingRepository"
+        }
+      },
+      "expected": [
+        {
+          "template": "dependency-direction-graph",
+          "functionId": "FF-S01",
+          "filePath": "src/adapters/inbound/http/BookingController.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryBookingRepository.ts"
+        }
+      ],
+      "absentTemplates": [],
+      "hits": [
+        true
+      ],
+      "newBlocking": [
+        {
+          "functionId": "FF-S01",
+          "filePath": "src/adapters/inbound/http/BookingController.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryBookingRepository.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        }
+      ],
+      "newAdvisory": [
+        {
+          "functionId": "FF-C03",
+          "filePath": "src/adapters/inbound/http/BookingController.ts",
+          "target": "",
+          "discriminator": []
+        }
+      ],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/adapters/inbound/http/BookingController.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/adapters/inbound/http/BookingController.ts\n+++ b/src/adapters/inbound/http/BookingController.ts\n@@ -2,6 +2,7 @@\n import { CancelBooking } from '../../../application/ports/in/CancelBooking';\n import { BookingError } from '../../../domain/errors/BookingError';\n import { HttpRequest, HttpResponse } from './HttpTypes';\n+import { InMemoryBookingRepository } from \"../../outbound/persistence/InMemoryBookingRepository\";\n \n const STATUS = { 'not-found': 404, unavailable: 409, invalid: 400, 'payment-declined': 402 } as const;\n \n@@ -40,3 +41,4 @@\n     return { status: 500, body: { error: 'Internal error' } };\n   }\n }\n+export const inMemoryBookingRepositoryRef = InMemoryBookingRepository;\n",
+      "status": "detected"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H03__7",
+      "operatorId": "MO-H03",
+      "positiveId": "MO-H03",
+      "role": "positive",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/adapters/inbound/http/HttpTypes.ts",
+        "line": 1,
+        "kind": "import-edge",
+        "detail": {
+          "targetFile": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+          "symbol": "InMemoryRoomRepository"
+        }
+      },
+      "expected": [
+        {
+          "template": "dependency-direction-graph",
+          "functionId": "FF-S01",
+          "filePath": "src/adapters/inbound/http/HttpTypes.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts"
+        }
+      ],
+      "absentTemplates": [],
+      "hits": [
+        true
+      ],
+      "newBlocking": [
+        {
+          "functionId": "FF-S01",
+          "filePath": "src/adapters/inbound/http/HttpTypes.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryRoomRepository.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        }
+      ],
+      "newAdvisory": [],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/adapters/inbound/http/HttpTypes.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/adapters/inbound/http/HttpTypes.ts\n+++ b/src/adapters/inbound/http/HttpTypes.ts\n@@ -1,3 +1,5 @@\n+import { InMemoryRoomRepository } from \"../../outbound/persistence/InMemoryRoomRepository\";\n+\n export interface HttpRequest {\n   params: Record<string, string>;\n   query: Record<string, string>;\n@@ -14,3 +16,4 @@\n     super(message);\n   }\n }\n+export const inMemoryRoomRepositoryRef = InMemoryRoomRepository;\n",
+      "status": "detected"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H03__8",
+      "operatorId": "MO-H03",
+      "positiveId": "MO-H03",
+      "role": "positive",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/adapters/inbound/http/BookingController.ts",
+        "line": 1,
+        "kind": "import-edge",
+        "detail": {
+          "targetFile": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts",
+          "symbol": "OutboxNotificationAdapter"
+        }
+      },
+      "expected": [
+        {
+          "template": "dependency-direction-graph",
+          "functionId": "FF-S01",
+          "filePath": "src/adapters/inbound/http/BookingController.ts",
+          "target": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts"
+        }
+      ],
+      "absentTemplates": [],
+      "hits": [
+        true
+      ],
+      "newBlocking": [
+        {
+          "functionId": "FF-S01",
+          "filePath": "src/adapters/inbound/http/BookingController.ts",
+          "target": "src/adapters/outbound/notification/OutboxNotificationAdapter.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        }
+      ],
+      "newAdvisory": [
+        {
+          "functionId": "FF-C03",
+          "filePath": "src/adapters/inbound/http/BookingController.ts",
+          "target": "",
+          "discriminator": []
+        }
+      ],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/adapters/inbound/http/BookingController.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/adapters/inbound/http/BookingController.ts\n+++ b/src/adapters/inbound/http/BookingController.ts\n@@ -2,6 +2,7 @@\n import { CancelBooking } from '../../../application/ports/in/CancelBooking';\n import { BookingError } from '../../../domain/errors/BookingError';\n import { HttpRequest, HttpResponse } from './HttpTypes';\n+import { OutboxNotificationAdapter } from \"../../outbound/notification/OutboxNotificationAdapter\";\n \n const STATUS = { 'not-found': 404, unavailable: 409, invalid: 400, 'payment-declined': 402 } as const;\n \n@@ -40,3 +41,4 @@\n     return { status: 500, body: { error: 'Internal error' } };\n   }\n }\n+export const outboxNotificationAdapterRef = OutboxNotificationAdapter;\n",
+      "status": "detected"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H03__9",
+      "operatorId": "MO-H03",
+      "positiveId": "MO-H03",
+      "role": "positive",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/adapters/inbound/http/BookingController.ts",
+        "line": 1,
+        "kind": "import-edge",
+        "detail": {
+          "targetFile": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts",
+          "symbol": "InMemoryGuestRepository"
+        }
+      },
+      "expected": [
+        {
+          "template": "dependency-direction-graph",
+          "functionId": "FF-S01",
+          "filePath": "src/adapters/inbound/http/BookingController.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts"
+        }
+      ],
+      "absentTemplates": [],
+      "hits": [
+        true
+      ],
+      "newBlocking": [
+        {
+          "functionId": "FF-S01",
+          "filePath": "src/adapters/inbound/http/BookingController.ts",
+          "target": "src/adapters/outbound/persistence/InMemoryGuestRepository.ts",
+          "discriminator": [
+            "IMPORTS"
+          ]
+        }
+      ],
+      "newAdvisory": [
+        {
+          "functionId": "FF-C03",
+          "filePath": "src/adapters/inbound/http/BookingController.ts",
+          "target": "",
+          "discriminator": []
+        }
+      ],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/adapters/inbound/http/BookingController.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/adapters/inbound/http/BookingController.ts\n+++ b/src/adapters/inbound/http/BookingController.ts\n@@ -2,6 +2,7 @@\n import { CancelBooking } from '../../../application/ports/in/CancelBooking';\n import { BookingError } from '../../../domain/errors/BookingError';\n import { HttpRequest, HttpResponse } from './HttpTypes';\n+import { InMemoryGuestRepository } from \"../../outbound/persistence/InMemoryGuestRepository\";\n \n const STATUS = { 'not-found': 404, unavailable: 409, invalid: 400, 'payment-declined': 402 } as const;\n \n@@ -40,3 +41,4 @@\n     return { status: 500, body: { error: 'Internal error' } };\n   }\n }\n+export const inMemoryGuestRepositoryRef = InMemoryGuestRepository;\n",
+      "status": "detected"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H03n__0",
+      "operatorId": "MO-H03n",
+      "positiveId": "MO-H03",
+      "role": "twin",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/adapters/inbound/http/RoomController.ts",
+        "line": 1,
+        "kind": "import-edge",
+        "detail": {
+          "targetFile": "src/application/services/BookRoomService.ts",
+          "symbol": "BookRoomService"
+        }
+      },
+      "expected": [],
+      "absentTemplates": [],
+      "hits": [],
+      "newBlocking": [],
+      "newAdvisory": [],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/adapters/inbound/http/RoomController.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/adapters/inbound/http/RoomController.ts\n+++ b/src/adapters/inbound/http/RoomController.ts\n@@ -1,5 +1,6 @@\n import { FindAvailableRooms } from '../../../application/ports/in/FindAvailableRooms';\n import { HttpRequest, HttpResponse } from './HttpTypes';\n+import { BookRoomService } from \"../../../application/services/BookRoomService\";\n \n export class RoomController {\n   constructor(private readonly findAvailableRooms: FindAvailableRooms) {}\n@@ -13,3 +14,4 @@\n     return { status: 200, body: rooms };\n   }\n }\n+export const bookRoomServiceRef = BookRoomService;\n",
+      "status": "silent"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H03n__1",
+      "operatorId": "MO-H03n",
+      "positiveId": "MO-H03",
+      "role": "twin",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/adapters/inbound/http/BookingController.ts",
+        "line": 1,
+        "kind": "import-edge",
+        "detail": {
+          "targetFile": "src/application/ports/in/FindAvailableRooms.ts",
+          "symbol": "AvailableRoom"
+        }
+      },
+      "expected": [],
+      "absentTemplates": [],
+      "hits": [],
+      "newBlocking": [],
+      "newAdvisory": [
+        {
+          "functionId": "FF-C03",
+          "filePath": "src/adapters/inbound/http/BookingController.ts",
+          "target": "",
+          "discriminator": []
+        }
+      ],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/adapters/inbound/http/BookingController.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/adapters/inbound/http/BookingController.ts\n+++ b/src/adapters/inbound/http/BookingController.ts\n@@ -2,6 +2,7 @@\n import { CancelBooking } from '../../../application/ports/in/CancelBooking';\n import { BookingError } from '../../../domain/errors/BookingError';\n import { HttpRequest, HttpResponse } from './HttpTypes';\n+import { AvailableRoom } from \"../../../application/ports/in/FindAvailableRooms\";\n \n const STATUS = { 'not-found': 404, unavailable: 409, invalid: 400, 'payment-declined': 402 } as const;\n \n@@ -40,3 +41,4 @@\n     return { status: 500, body: { error: 'Internal error' } };\n   }\n }\n+export type AvailableRoomRef = AvailableRoom;\n",
+      "status": "silent"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H03n__2",
+      "operatorId": "MO-H03n",
+      "positiveId": "MO-H03",
+      "role": "twin",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/adapters/inbound/cli/BookingCli.ts",
+        "line": 1,
+        "kind": "import-edge",
+        "detail": {
+          "targetFile": "src/application/ports/out/NotificationSender.ts",
+          "symbol": "NotificationSender"
+        }
+      },
+      "expected": [],
+      "absentTemplates": [],
+      "hits": [],
+      "newBlocking": [],
+      "newAdvisory": [],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/adapters/inbound/cli/BookingCli.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/adapters/inbound/cli/BookingCli.ts\n+++ b/src/adapters/inbound/cli/BookingCli.ts\n@@ -1,5 +1,6 @@\n import { BookRoom } from '../../../application/ports/in/BookRoom';\n import { BookingView } from '../../../application/ports/in/BookingView';\n+import { NotificationSender } from \"../../../application/ports/out/NotificationSender\";\n \n export function formatCliLine(view: BookingView): string {\n   return `${view.id}\\t${view.roomId}\\t${view.checkIn.slice(0, 10)}..${view.checkOut.slice(0, 10)}\\t${view.status}`;\n@@ -18,3 +19,4 @@\n     return formatCliLine(view);\n   }\n }\n+export type NotificationSenderRef = NotificationSender;\n",
+      "status": "silent"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H03n__3",
+      "operatorId": "MO-H03n",
+      "positiveId": "MO-H03",
+      "role": "twin",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/adapters/inbound/http/HttpTypes.ts",
+        "line": 1,
+        "kind": "import-edge",
+        "detail": {
+          "targetFile": "src/application/ports/in/BookRoom.ts",
+          "symbol": "BookRoomCommand"
+        }
+      },
+      "expected": [],
+      "absentTemplates": [],
+      "hits": [],
+      "newBlocking": [],
+      "newAdvisory": [],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/adapters/inbound/http/HttpTypes.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/adapters/inbound/http/HttpTypes.ts\n+++ b/src/adapters/inbound/http/HttpTypes.ts\n@@ -1,3 +1,5 @@\n+import { BookRoomCommand } from \"../../../application/ports/in/BookRoom\";\n+\n export interface HttpRequest {\n   params: Record<string, string>;\n   query: Record<string, string>;\n@@ -14,3 +16,4 @@\n     super(message);\n   }\n }\n+export type BookRoomCommandRef = BookRoomCommand;\n",
+      "status": "silent"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H03n__4",
+      "operatorId": "MO-H03n",
+      "positiveId": "MO-H03",
+      "role": "twin",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/adapters/inbound/http/RoomController.ts",
+        "line": 1,
+        "kind": "import-edge",
+        "detail": {
+          "targetFile": "src/application/ports/out/RoomRepository.ts",
+          "symbol": "RoomRepository"
+        }
+      },
+      "expected": [],
+      "absentTemplates": [],
+      "hits": [],
+      "newBlocking": [],
+      "newAdvisory": [],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/adapters/inbound/http/RoomController.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/adapters/inbound/http/RoomController.ts\n+++ b/src/adapters/inbound/http/RoomController.ts\n@@ -1,5 +1,6 @@\n import { FindAvailableRooms } from '../../../application/ports/in/FindAvailableRooms';\n import { HttpRequest, HttpResponse } from './HttpTypes';\n+import { RoomRepository } from \"../../../application/ports/out/RoomRepository\";\n \n export class RoomController {\n   constructor(private readonly findAvailableRooms: FindAvailableRooms) {}\n@@ -13,3 +14,4 @@\n     return { status: 200, body: rooms };\n   }\n }\n+export type RoomRepositoryRef = RoomRepository;\n",
+      "status": "silent"
+    },
+    {
+      "rowId": "ref-hexagonal__MO-H03n__5",
+      "operatorId": "MO-H03n",
+      "positiveId": "MO-H03",
+      "role": "twin",
+      "baseId": "ref-hexagonal",
+      "baseKind": "reference",
+      "style": "hexagonal",
+      "site": {
+        "filePath": "src/adapters/inbound/http/HttpTypes.ts",
+        "line": 1,
+        "kind": "import-edge",
+        "detail": {
+          "targetFile": "src/application/ports/in/FindAvailableRooms.ts",
+          "symbol": "AvailableRoom"
+        }
+      },
+      "expected": [],
+      "absentTemplates": [],
+      "hits": [],
+      "newBlocking": [],
+      "newAdvisory": [],
+      "typecheckErrors": [],
+      "editedFiles": [
+        "src/adapters/inbound/http/HttpTypes.ts"
+      ],
+      "createdFiles": [],
+      "stubs": [],
+      "diff": "--- a/src/adapters/inbound/http/HttpTypes.ts\n+++ b/src/adapters/inbound/http/HttpTypes.ts\n@@ -1,3 +1,5 @@\n+import { AvailableRoom } from \"../../../application/ports/in/FindAvailableRooms\";\n+\n export interface HttpRequest {\n   params: Record<string, string>;\n   query: Record<string, string>;\n@@ -14,3 +16,4 @@\n     super(message);\n   }\n }\n+export type AvailableRoomRef = AvailableRoom;\n",
+      "status": "silent"
+    }
+  ],
+  "summary": [
+    {
+      "operatorId": "MO-H02",
+      "role": "positive",
+      "style": "hexagonal",
+      "candidates": 15,
+      "eligible": 15,
+      "applied": 10,
+      "compiled": 10,
+      "evaluated": 10,
+      "hits": 10,
+      "rate": 1,
+      "low": 0.7224672001371107,
+      "high": 0.9999999999999999,
+      "perTemplate": {
+        "dependency-direction-graph": {
+          "hit": 10,
+          "of": 10
+        },
+        "core-isolation": {
+          "hit": 10,
+          "of": 10
+        }
+      },
+      "blockingCollateral": 0
+    },
+    {
+      "operatorId": "MO-H02n",
+      "role": "twin",
+      "style": "hexagonal",
+      "candidates": 11,
+      "eligible": 11,
+      "applied": 6,
+      "compiled": 6,
+      "evaluated": 6,
+      "hits": 0,
+      "rate": 0,
+      "low": 2.7755575615628914e-17,
+      "high": 0.3903342879021653,
+      "perTemplate": {},
+      "blockingCollateral": 0
+    },
+    {
+      "operatorId": "MO-H03",
+      "role": "positive",
+      "style": "hexagonal",
+      "candidates": 20,
+      "eligible": 20,
+      "applied": 10,
+      "compiled": 10,
+      "evaluated": 10,
+      "hits": 10,
+      "rate": 1,
+      "low": 0.7224672001371107,
+      "high": 0.9999999999999999,
+      "perTemplate": {
+        "dependency-direction-graph": {
+          "hit": 10,
+          "of": 10
+        }
+      },
+      "blockingCollateral": 0
+    },
+    {
+      "operatorId": "MO-H03n",
+      "role": "twin",
+      "style": "hexagonal",
+      "candidates": 47,
+      "eligible": 43,
+      "applied": 6,
+      "compiled": 6,
+      "evaluated": 6,
+      "hits": 0,
+      "rate": 0,
+      "low": 2.7755575615628914e-17,
+      "high": 0.3903342879021653,
+      "perTemplate": {},
+      "blockingCollateral": 0
+    }
+  ],
+  "summaryByKind": [
+    {
+      "operatorId": "MO-H02",
+      "role": "positive",
+      "style": "hexagonal/reference",
+      "candidates": 15,
+      "eligible": 15,
+      "applied": 10,
+      "compiled": 10,
+      "evaluated": 10,
+      "hits": 10,
+      "rate": 1,
+      "low": 0.7224672001371107,
+      "high": 0.9999999999999999,
+      "perTemplate": {
+        "dependency-direction-graph": {
+          "hit": 10,
+          "of": 10
+        },
+        "core-isolation": {
+          "hit": 10,
+          "of": 10
+        }
+      },
+      "blockingCollateral": 0
+    },
+    {
+      "operatorId": "MO-H02n",
+      "role": "twin",
+      "style": "hexagonal/reference",
+      "candidates": 11,
+      "eligible": 11,
+      "applied": 6,
+      "compiled": 6,
+      "evaluated": 6,
+      "hits": 0,
+      "rate": 0,
+      "low": 2.7755575615628914e-17,
+      "high": 0.3903342879021653,
+      "perTemplate": {},
+      "blockingCollateral": 0
+    },
+    {
+      "operatorId": "MO-H03",
+      "role": "positive",
+      "style": "hexagonal/reference",
+      "candidates": 20,
+      "eligible": 20,
+      "applied": 10,
+      "compiled": 10,
+      "evaluated": 10,
+      "hits": 10,
+      "rate": 1,
+      "low": 0.7224672001371107,
+      "high": 0.9999999999999999,
+      "perTemplate": {
+        "dependency-direction-graph": {
+          "hit": 10,
+          "of": 10
+        }
+      },
+      "blockingCollateral": 0
+    },
+    {
+      "operatorId": "MO-H03n",
+      "role": "twin",
+      "style": "hexagonal/reference",
+      "candidates": 47,
+      "eligible": 43,
+      "applied": 6,
+      "compiled": 6,
+      "evaluated": 6,
+      "hits": 0,
+      "rate": 0,
+      "low": 2.7755575615628914e-17,
+      "high": 0.3903342879021653,
+      "perTemplate": {},
+      "blockingCollateral": 0
+    }
+  ]
+}
