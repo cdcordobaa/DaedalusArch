@@ -2,8 +2,9 @@
  * Construct-switch interactions (Docs/v1.3/post-merge-review-2026-10-16.md), each on a hand-built fixture:
  * - R08: Q22 B's rebuild of FF-P02 must keep the FF-P02 rows Q9 B adds (and the change log must not say "dropped");
  * - R10: under Q5 B (FF-S03 blocking in hexagonal) the Q24 B inward-bypass rows stay advisory, as Q24 B states;
- * - U6 plan Step 7: the author's chosen set (Docs/v1.3/construct-answers.json, signed 2026-10-19: Q5 C, Q6 B, Q10 C,
- *   Q12 B with the other 21 answers) moves each row as its switch alone does, and no switch undoes another.
+ * - U6 plan Step 7: the chosen set (Docs/v1.3/construct-answers.json, signed 2026-10-19: Q5 C, Q6 B, Q12 B with the other
+ *   21 answers; Q10 D since 2026-10-20, the G0.9 Q10 criterion applied as written) moves each row as its switch alone
+ *   does, and no switch undoes another.
  * Only rows and tiers are checked; no development-set effect is computed.
  */
 import * as fs from 'node:fs';
@@ -59,11 +60,11 @@ describe('R10: Q5 B together with Q24 B in hexagonal', () => {
   });
 });
 
-describe('U6 Step 7: the chosen answers together (Q5 C, Q6 B, Q10 C, Q12 B and the rest of the answers file)', () => {
+describe('U6 Step 7: the chosen answers together (Q5 C, Q6 B, Q10 D, Q12 B and the rest of the answers file)', () => {
   const CHOSEN = parseAnswersDocument(JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../../Docs/v1.3/construct-answers.json'), 'utf8')) as unknown).answers;
 
   it('the answers file holds the four U6 switches and the class (c) answers they are read with', () => {
-    expect([CHOSEN.Q5, CHOSEN.Q6, CHOSEN.Q10, CHOSEN.Q12]).toEqual(['C', 'B', 'C', 'B']);
+    expect([CHOSEN.Q5, CHOSEN.Q6, CHOSEN.Q10, CHOSEN.Q12]).toEqual(['C', 'B', 'D', 'B']);
     expect([CHOSEN.Q4, CHOSEN.Q7, CHOSEN.Q8, CHOSEN.Q11, CHOSEN.Q13, CHOSEN.Q20]).toEqual(['A', 'A', 'B', 'A', 'B', 'A']);
   });
 
@@ -122,8 +123,10 @@ describe('U6 Step 7: the chosen answers together (Q5 C, Q6 B, Q10 C, Q12 B and t
     ]),
   ];
 
-  it('layered: express becomes FF-S01 and FF-P01 is not compiled; the adjacent upward FF-S03 row is dropped, the skip kept', async () => {
-    const expectedS01 = ['src/business/services/OrderService.ts -> express', 'src/persistence/ProductGateway.ts -> src/business/model/Money.ts'];
+  it('layered (Q10 D): no express row and FF-P01 is not compiled; the adjacent upward FF-S03 row is dropped, the skip kept', async () => {
+    // Q10 D (2026-10-20): FF-P01 not applicable and no package-to-layer replacement, so express gives no row.
+    const expectedS01 = ['src/persistence/ProductGateway.ts -> src/business/model/Money.ts'];
+    const expectedS01UnderC = ['src/business/services/OrderService.ts -> express', ...expectedS01];
     const expectedS03 = ['src/presentation/v.ts -> src/persistence/ProductGateway.ts'];
     const out = await stage('layered', CHOSEN, layeredResults(), layered);
     expect(rowsOf(out, 'FF-S01').sort()).toEqual(expectedS01);
@@ -134,7 +137,9 @@ describe('U6 Step 7: the chosen answers together (Q5 C, Q6 B, Q10 C, Q12 B and t
     expect(c.data.symbolicQueries.map((q) => String(q.functionId))).not.toContain('FF-P01');
     expect(c.data.disabledFunctions.map((d) => String(d.id))).toContain('FF-P01');
     // Each switch alone gives the same rows of its rule.
-    expect(rowsOf(await stage('layered', withAnswers({ Q10: 'C' }), layeredResults(), layered), 'FF-S01').sort()).toEqual(expectedS01);
+    expect(rowsOf(await stage('layered', withAnswers({ Q10: 'D' }), layeredResults(), layered), 'FF-S01').sort()).toEqual(expectedS01);
+    // The Q10 C mechanism is unchanged; only the chosen answer moved.
+    expect(rowsOf(await stage('layered', withAnswers({ Q10: 'C' }), layeredResults(), layered), 'FF-S01').sort()).toEqual(expectedS01UnderC);
     expect(rowsOf(await stage('layered', withAnswers({ Q12: 'B' }), layeredResults(), layered), 'FF-S03')).toEqual(expectedS03);
   });
 });

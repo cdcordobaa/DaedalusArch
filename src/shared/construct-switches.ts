@@ -34,7 +34,7 @@ export const CONSTRUCT_SWITCHES: readonly ConstructSwitch[] = [
   { Q: 'Q7', option: 'A', kinds: { A: 'no-code', B: 'code' }, note: "signed 2026-10-19 by the author via the decision desk" },
   { Q: 'Q8', option: 'B', kinds: { A: 'no-code', B: 'code' }, note: "signed 2026-10-19 by the author via the decision desk; N/A-half policy" },
   { Q: 'Q9', option: 'A', kinds: { A: 'no-code', B: 'code', C: 'code' }, note: "signed 2026-10-19 by the author via the decision desk" },
-  { Q: 'Q10', option: 'C', kinds: { A: 'no-code', B: 'code', C: 'code', D: 'code' }, note: "signed 2026-10-19 by the author via the decision desk; ADR-V13-03 §Q10; provisional C until the G0.9 Q10 check (C to D only)" },
+  { Q: 'Q10', option: 'D', kinds: { A: 'no-code', B: 'code', C: 'code', D: 'code' }, note: "signed C 2026-10-19 by the author via the decision desk (provisional until the G0.9 Q10 check); the G0.9 Q10 criterion was met, so D was delegated to the coordinator 2026-10-20, criterion applied as written; ADR-V13-03 §Q10" },
   { Q: 'Q11', option: 'A', kinds: { A: 'no-code', B: 'code' }, note: "signed 2026-10-19 by the author via the decision desk" },
   { Q: 'Q12', option: 'B', kinds: { A: 'no-code', B: 'code' }, note: "signed 2026-10-19 by the author via the decision desk; ADR-V13-03 §Q12" },
   { Q: 'Q13', option: 'B', kinds: { A: 'no-code', B: 'code', C: 'code' }, note: "signed 2026-10-19 by the author via the decision desk" },
