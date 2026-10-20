@@ -29,6 +29,14 @@ The working copy is the decision board, a private claude.ai artifact the author 
 | **SEM** | **Everything semantic is in scope now:** C1d semantic facts into the graph, C4 interpretation and the agentic meaning protocol (MEAN-02). The instrument is neuro-symbolic, so no semantic path is deferred. In the exploratory study the semantic paths score the snapshots, and an in-loop semantic cell is added if its MCP tool is ready and confined | Builds, pilots, the registration |
 | **F3** | F3 is rewritten around C4 + C1d (models supply facts and interpretation), replacing the judge | Contribution statement edit |
 | **AUTO** | Author away until the evening of 2026-10-19: progress without blockers. Approved: zero-call builds and docs; the capped live pilots of the instrument (C1d ≤ 40 per vendor, C4 ≤ 24 per vendor, Gemini S4 ≤ 30, Claude S4 with MCP, counted first); merging green PRs. **Not approved: any study run** | — |
+| **D1** | Claude CLI 2.1.303 is allowed for exploratory runs only (as agy 1.4.2); the frozen pin 2.1.294 is unchanged. Both CLIs are re-pinned once at the freeze, with auto-update off | Exploratory allowance in the judge route |
+| **D2** | Gemini C1d/C4 results carry the exploratory label; a dated agy 1.4.2 pin is signed at the freeze | — |
+| **D4** | C4 case keys: the author signs the 6 author-written cases; X1/X2 are keyed blind by a Gemini session | Blind keying |
+| **D5** | DDD runs strategic-only in the exploratory study (3 tactical rules cannot fire on agent code, TIER-A3); class/member grain is decided from its results | — |
+| **D6** | MEAN-02 sample: 18 items (6 per carrying stratum) | about +48 sessions |
+| **D7** | The exploratory registration is approved as written (confirmatory tasks sealed before Stage A; order; counts) | Task writing starts |
+| **D8** | Signed: F3 rewording, X-1, SO3-a. The V4 ADR's bar option and margins go to the decision surface | — |
+| **SIGNUI** | The signing sheet is decided through an easier decision surface (plain-language cards, one choice each), not the raw sheet | Decision page |
 
 ## Settled in chat, 2026-10-18 (late)
 - **D1:** confirm the decision sheet **as written**, with no changes.
