@@ -74,19 +74,23 @@ A turn is confined by three layers. Each is written or checked before the turn's
 | Layer | What | Where |
 |---|---|---|
 | 1. PreToolUse hook | `hooks.json` at `~/.gemini/config/hooks.json` in the generator home (HOME = the home, so each home has its own; never the workspace `.agents/hooks.json`, which loads only after folder trust). One group, `matcher: ".*"`, so every tool is covered. The command is `'<node>' '<home>/.gemini/config/daedalus-confine-hook.mjs' '<home>/.gemini/config/daedalus-confine-turn.json'`, timeout 10 s. The script is a byte copy of the committed `scripts/lib/generators/agy-confine-hook.mjs` (plain Node, no dependencies). The turn config holds the work directory (realpath), the exact type-check command, `allowCommand`, the arm, the hook log path (outside the work directory) and, in `daedalus-mcp`, the allowed and denied daedalus-arch tools. The model never sees it. | `writeAgyTurnFiles` / `installAgyHook` (`agy-gen-cli.ts`) |
-| 2. Permission rules | Only the seven real action kinds. Allow: `read_file(<work>/**)`, `write_file(<work>/**)`, `command(regex:^<exact type-check>$)` (when `allowCommand`), and the nine `mcp(daedalus-arch/<tool>)` in `daedalus-mcp`. Deny: `read_url(*)`, `execute_url(*)`, `unsandboxed(*)`, then `mcp(*)` (none) or `mcp(daedalus-arch/evaluate_project)` (daedalus-mcp), and `command(*)` without `allowCommand`. | `expectedAllow`, `expectedDeny` |
+| 2. Permission rules | Only real action kinds. Allow: `read_file(<work>/**)`, `write_file(<work>/**)`, `command(regex:^<exact type-check>$)` (when `allowCommand`), and in `daedalus-mcp` the nine `mcp(daedalus-arch/<tool>)` plus (round 4) `read_file(<home>/.gemini/antigravity-cli/mcp/daedalus-arch/<tool>.json)` for the same nine tools. Deny: `read_url(*)`, `execute_url(*)`, then `mcp(*)` (none) or `mcp(daedalus-arch/evaluate_project)` (daedalus-mcp), and `command(*)` without `allowCommand`. Round 4: `unsandboxed(*)` dropped, because agy 1.4.2 logs it as invalid and ignores it. | `expectedAllow`, `expectedDeny` |
 | 3. Sandbox | `--sandbox` in argv, `enableTerminalSandbox: true` in settings | unchanged |
 
 **The hook's allow-list** (pure function `decide`; everything else is denied with a reason):
 
 | Tool | Allowed when |
 |---|---|
-| `view_file`, `list_dir`, `find_by_name`, `grep_search`, `write_to_file`, `replace_file_content`, `multi_replace_file_content`, `sed_file`, and the 1.4.2 stream names `read_file`, `write_file` | Every path argument resolves inside the work directory. Relative paths resolve against it. The realpath of the deepest existing ancestor is taken, so a symlink cannot lead out: the cwd's `node_modules` symlink to the skeleton install is outside. `~` paths are denied. A call with no path argument is denied. Content and search-text arguments are not treated as paths. |
+| `view_file`, `list_dir`, `find_by_name`, `grep_search`, `write_to_file`, `replace_file_content`, `multi_replace_file_content`, `sed_file`, and the 1.4.2 stream names `read_file`, `write_file`, `edit_file` (round 4) | Every path argument resolves inside the work directory. Relative paths resolve against it. The realpath of the deepest existing ancestor is taken, so a symlink cannot lead out: the cwd's `node_modules` symlink to the skeleton install is outside. `~` paths are denied. A call with no path argument is denied. Content and search-text arguments are not treated as paths. |
 | `run_command` | `allowCommand` is true and `args.CommandLine` (trimmed) equals the turn's type-check command exactly |
 | `command_status` | The type-check command was allowed earlier in this turn (read from the hook log) |
 | `finish` | Always |
 | `call_mcp_tool` (daedalus-mcp only) | Any server argument is `daedalus-arch`. A tool-name argument names one of the nine spec-only tools. `evaluate_project` never appears. |
 | `read_file`, `view_file` of `<home>/.gemini/antigravity-cli/mcp/daedalus-arch/<tool>.json` (daedalus-mcp only) | `<tool>` is one of the nine. agy 1.4.2 reads the schema there before an MCP call (S4 G9 stream). |
+
+**What agy sees (round 4).** For an allowed call the hook prints `{"decision":"auto_approve"}`. agy's `allow` only
+"delegates to the next hook or default policy", and in S4 run 3 that sent every allowed call to a confirmation, which
+print mode soft-denies. A denied call gets `{"decision":"deny"}`. The hook log still records `allow` or `deny`.
 
 Every other tool is denied, in both arms. That covers the browser tools, `invoke_subagent`, `define_subagent`,
 `manage_subagents`, `schedule`, `search_web`, `read_url_content`, `generate_image`, `run_workflow`, `manage_inbox`,
@@ -210,6 +214,10 @@ What to read in the result (`<out-root>/probes/agy-s4-<stamp>/s4-result.json`):
 - `hook-not-invoked` in any probe: agy ran a tool without calling the hook. Under ADR-029 that fails the arm.
 - `hook-error`: the hook failed closed (for example it could not write its log). The call was blocked, but the probe
   fails, so the cause can be read.
+- Round 4: a stream error "permission check failed ... user denied permission" on a call the hook allowed means
+  agy's confirmation soft-denied it (print mode). After the `auto_approve` change, that should no longer happen.
+- Re-scoring a saved run with the current scorer (zero calls, no agy process):
+  `npx tsx scripts/generator/probes/agy-gen-rescore-cli.ts --probe-dir <out-root>/probes/agy-s4-<stamp> --harness-root <H> --home-none <home> --home-mcp <home>`.
 
 ## S4 runbook (U11, the first run; superseded by the re-run above)
 

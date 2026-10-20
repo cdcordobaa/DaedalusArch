@@ -28,7 +28,9 @@
  *   3. `--sandbox` and `enableTerminalSandbox: true`.
  * - settings (`.gemini/antigravity-cli/settings.json`, harness-owned): `toolPermission: strict`,
  *   `enableTerminalSandbox: true`, `disableSlashCommands: true`, never `allowNonWorkspaceAccess: true`; the allow list
- *   is EXACTLY this run's and arm's set; the deny list is `read_url(*)`, `execute_url(*)`, `unsandboxed(*)` and
+ *   is EXACTLY this run's and arm's set (round 4: plus the allowed MCP tools' schema-file reads in daedalus-mcp, and
+ *   the hook answers allowed calls `auto_approve`); the deny list is `read_url(*)`, `execute_url(*)` (round 4:
+ *   `unsandboxed(*)` dropped, agy 1.4.2 ignores it on macOS) and
  *   `mcp(*)` (none) or `mcp(daedalus-arch/evaluate_project)` (daedalus-mcp). The enforced backstops are the hook and
  *   the tool-escape stop of `agy-gen-events.ts`.
  * - MCP (`.gemini/config/mcp_config.json`, the path the labeller checks for emptiness; UNVERIFIED that agy re-reads it
@@ -90,6 +92,8 @@ export const AGY_GEN_FILE_TOOLS: readonly string[] = Object.freeze([
   // a `Path` parameter); the hook path-checks them like the others.
   'read_file',
   'write_file',
+  // Round 4 (S4 run 3, daedalus-mcp G1): agy 1.4.2 also edits through `edit_file` with a `Path` parameter.
+  'edit_file',
 ]);
 export const AGY_GEN_COMMAND_TOOLS: readonly string[] = Object.freeze(['run_command', 'command_status']);
 export const AGY_GEN_MCP_TOOL = 'call_mcp_tool';
@@ -103,8 +107,11 @@ export const AGY_GEN_ANSWER_TOOLS: readonly string[] = Object.freeze(['finish'])
  * and `plugin(*)` named no action and were ignored (agy 1.4.2 dropped them when it re-saved settings.json, and S4 saw
  * `invoke_subagent` and `schedule` run). Tools no action covers (search_web, invoke_subagent, schedule, browser_*,
  * generate_image, ...) are denied by the PreToolUse hook instead.
+ * 2026-10-20 (round 4): `unsandboxed(*)` removed. agy 1.4.2 on macOS logs it at every start as "Invalid "unsandboxed"
+ * permission rules found; they are ignored and grant nothing" (S4 run 3, every call's cli log), so it denied nothing.
+ * Unsandboxed commands stay impossible: the hook allows only the exact type-check, and `--sandbox` stays on.
  */
-export const AGY_GEN_DENY: readonly string[] = Object.freeze(['read_url(*)', 'execute_url(*)', 'unsandboxed(*)']);
+export const AGY_GEN_DENY: readonly string[] = Object.freeze(['read_url(*)', 'execute_url(*)']);
 
 // ── The PreToolUse hook (layer 1) ─────────────────────────────────────────────────────────────────────────────────
 
@@ -387,12 +394,23 @@ export interface TurnAllowInput {
   readonly harnessRoot: string;
   readonly cwd: string;
   readonly allowCommand: boolean;
+  /**
+   * Round 4: the arm's generator home. With it, the `daedalus-mcp` allow list also names `read_file(<schema file>)` for
+   * each allowed tool's schema file in the home (agy reads it before the MCP call; S4 run 3 G9: the hook allowed the
+   * read of `check_file.json`, the permission layer refused it for lack of a rule).
+   */
+  readonly home?: string;
 }
 
 /**
  * The exact-command allow rule. 2026-10-19 (U12): `command(<text>)` is a PREFIX rule in agy 1.4.2 (the docs'
  * `command(prefix)`), and the S4 run saw `<type-check> && touch ../chain-and.txt` and `<type-check> --tsBuildInfoFile
  * ../x` complete under the old `command(<type-check>)` rule. The anchored regex form allows exactly the command.
+ * 2026-10-20 (round 4) correction: those two steps ended `DONE` but were print-mode SOFT denials (both results list
+ * `denied_actions: [command]`, the agy logs say "soft-denying tool confirmation", and no marker file exists), so the
+ * prefix reading was not shown. The anchored regex stays (it cannot match a chained command). Run 3's G5 command line
+ * is byte-identical to the text this regex matches (tested), so the run-3 G5 denial was not a rule mismatch: every
+ * call the hook answered `allow` was sent to confirmation (see `agy-confine-hook.mjs`, `auto_approve`).
  */
 export function commandAllowRule(command: string): string {
   return `command(regex:^${command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$)`;
@@ -410,6 +428,7 @@ export function expectedAllow(i: TurnAllowInput): readonly string[] {
     `write_file(${cwd}/**)`,
     ...(i.allowCommand ? [commandAllowRule(typecheckCommand(i.harnessRoot, i.runId))] : []),
     ...(i.arm === 'daedalus-mcp' ? DAEDALUS_ARM_TOOLS.map((t) => `mcp(${DAEDALUS_MCP_SERVER}/${t})`) : []),
+    ...(i.arm === 'daedalus-mcp' && i.home !== undefined ? agyMcpSchemaFiles(path.resolve(i.home)).map((f) => `read_file(${f})`) : []),
   ]);
 }
 
@@ -600,7 +619,7 @@ export function writeAgyTurnFiles(home: string, i: TurnFilesInput): DomainResult
       current = {};
     }
   }
-  const allow = expectedAllow(i);
+  const allow = expectedAllow({ ...i, home });
   const next = { ...current, ...AGY_GEN_REQUIRED_SETTINGS, permissions: { allow: [...allow], deny: [...expectedDeny(i.arm, i.allowCommand)], ask: [] } };
   delete (next as Record<string, unknown>).allowNonWorkspaceAccess;
   fs.mkdirSync(path.dirname(settingsFile), { recursive: true, mode: 0o700 });

@@ -18,9 +18,15 @@
 // - daedalus-mcp arm: call_mcp_tool only for the daedalus-arch server's spec-only tools (never evaluate_project), and
 //   read_file / view_file of exactly those tools' schema files in the home (agy 1.4.2 reads them before an MCP call).
 //
-// Output: stdout {"decision":"allow"|"deny","reason":...}, exit 0. Each decision is appended to the turn's hook log
-// (JSON line: tool, decision, reason, stepIdx), which lies outside the work directory. Any internal error (bad config,
-// malformed stdin, a log that cannot be written) exits non-zero, which agy treats as a block (fail-closed).
+// Output: stdout {"decision":"auto_approve"|"deny","reason":...}, exit 0. Each decision is appended to the turn's hook
+// log (JSON line: tool, decision allow|deny, reason, stepIdx), which lies outside the work directory. Any internal error
+// (bad config, malformed stdin, a log that cannot be written) exits non-zero, which agy treats as a block (fail-closed).
+//
+// Round 4 (2026-10-20, declared in Docs/v1.4/gemini-confinement-change-2026-10-20.md): an allowed call is answered
+// `auto_approve`, not `allow`. agy's hook docs: `allow` "delegates to the next hook or default policy"; `auto_approve`
+// "automatically approves the tool call when the default policy would otherwise prompt" and still honours the
+// user-configured (deny) rules. In S4 run 3 every call the hook answered `allow` went to agy's confirmation, which
+// print mode soft-denies ("user denied permission"), so no allowed call ran. `deny` is unchanged.
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -40,6 +46,8 @@ export const FILE_TOOLS = Object.freeze([
   // agy 1.4.2 stream-json names (S4 run of 2026-10-19): the same file access under the permission action names.
   'read_file',
   'write_file',
+  // Round 4 (S4 run 3, daedalus-mcp G1): agy 1.4.2 also edits through `edit_file` with a `Path` parameter.
+  'edit_file',
 ]);
 /** The read tools that may read an allowed MCP tool's schema file in the daedalus-mcp arm. */
 export const SCHEMA_READ_TOOLS = Object.freeze(['view_file', 'read_file']);
@@ -199,6 +207,12 @@ export function priorCommandAllowed(logPath) {
     });
 }
 
+/** The agy hook decision for a decision of `decide`: `auto_approve` for an allowed call, `deny` otherwise. */
+export const AGY_ALLOW_DECISION = 'auto_approve';
+export function agyOutput(d) {
+  return { decision: d.decision === 'allow' ? AGY_ALLOW_DECISION : 'deny', reason: d.reason };
+}
+
 function appendLog(logPath, line) {
   fs.mkdirSync(path.dirname(logPath), { recursive: true });
   fs.appendFileSync(logPath, `${JSON.stringify(line)}\n`);
@@ -221,7 +235,7 @@ export function main(argv, stdinText) {
     const d = decide(input, config, { priorCommandAllowed: priorCommandAllowed(config.logPath) });
     if (config.logPath === null) throw new Error('no turn is configured for this generator home (no hook log)');
     appendLog(config.logPath, { tool: input.toolCall.name, decision: d.decision, reason: d.reason, stepIdx: typeof input.stepIdx === 'number' ? input.stepIdx : null });
-    process.stdout.write(`${JSON.stringify(d)}\n`);
+    process.stdout.write(`${JSON.stringify(agyOutput(d))}\n`);
     return 0;
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
