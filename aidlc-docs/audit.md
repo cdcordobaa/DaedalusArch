@@ -2533,3 +2533,10 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **AI Response**: "Stage A ran at 5bfe36e3: Layered x3, none@L2, Claude Sonnet, 15 turns, 3/3 complete. Mean D 1.33, Y1>=1 in 3/3, all FF-S03. The stop check does not trigger, so Layered continues (provisional until the freeze re-score). Two earlier attempts made 0 model calls: an absolute-binary-path error, then 'Not logged in' under the per-run HOME (the S3 keychain finding; that isolation is off for Stage A, declared)."
 **Context**: exploratory study Stage A; 15 Claude generator turns
 ---
+
+## v1.4 Construction: U13 shared step-1 start (STAGE-B-BUILD)
+**Timestamp**: 2026-10-20T03:42:46Z
+**User Input**: "STAGE-B-BUILD (scheduled routine): build the shared step-1 start Stage B needs (each block's none@L2 step-1 tree shared, none@L3 and mcp@L2 continuing at step 2), with stub-only tests, Stage B plan templates and a README; zero model calls; open a PR, do not merge"
+**AI Response**: "Added sharedStart (and firstRun) to the loop plan: a branched run checks its source (run, step-1 record and commit, tasks and spec hashes, cell, dry/live; refused otherwise), fetches the step-1 commit into its own snapshots.git, inherits step-01.json (marked inherited) and turns/step-01, records the source in run.json and starts at step 2, so inherited identities never count as new. 15 stub tests (dry-run Stage A then Stage B). Templates for replicate 2 none@L2 (steps 1-5, per the registration), none@L3 and mcp@L2 (replicates 1-2, steps 2-5): 15 + 24 + 24 calls. Isolation as in Stage A; the README flags S3 and per-grid harness roots. No model call."
+**Context**: v1.4 Construction, unit U13 (plan and summary in aidlc-docs/construction/v1.4/U13/); exploratory study Stage B readiness
+---

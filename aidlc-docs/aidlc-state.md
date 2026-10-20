@@ -139,5 +139,6 @@
   - [ ] U6 recall fixes — design only, NOT BUILDABLE until Gate 0 is signed (`construction/v1.4/U6/plan.md:5`; signing sheet `ops/notes/signing-sheet-2026-10-19.md`)
   - [x] U7 meaning analysis — merged (PR #258)
   - [x] U8 efficiency harness — merged (PR #259)
+  - [ ] U13 shared step-1 start (STAGE-B-BUILD) — PR open, not merged (`construction/v1.4/U13/plan.md`)
 - **Study plan (2026-10-19):** an exploratory study runs first (`Docs/v1.4/exploratory-study-registration.md`); the drift record stays the confirmatory Study 2 protocol (`Docs/v1.4/study2-deviation-2026-10-19-drift.md`). No study run is approved.
 - **Waiting on the author:** the signing sheet, ADR-V14-04 (V4), deviations X-1 and SO3-a, the F3 rewording, the exploratory study's counts.

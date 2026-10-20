@@ -14,6 +14,7 @@ import type { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import type { GeneratorAdapterId, GenerationAttempt, GenerationInterruption } from '../generators/types.js';
 import type { SpecRung } from './prompts.js';
 import type { ReadLogMethod, SpecReadLog } from './rungs.js';
+import type { InheritedStep, SharedStartRecord } from './shared-start.js';
 
 export type { DomainResult };
 
@@ -378,6 +379,8 @@ export interface StepRecord {
   readonly acceptance?: AcceptanceRecord;
   /** Commit the next step starts from (the last turn's snapshot). */
   readonly finalCommit: string;
+  /** Shared-start runs only (`shared-start.ts`): the step-1 record is the source run's, copied, not drawn by this run. */
+  readonly inherited?: InheritedStep;
   /** Sum over the turns. */
   readonly cost: { readonly costUsd: number | null; readonly inputTokens: number | null; readonly outputTokens: number | null; readonly wallMs: number };
 }
@@ -474,4 +477,6 @@ export interface RunRecord {
   readonly parity?: RunParityCounts;
   /** Present (true) only when the run was created with `--call-log`; a resume must use the same setting. */
   readonly callLog?: true;
+  /** Present only when the plan sets `sharedStart`: the source of the run's step-1 tree (`shared-start.ts`). */
+  readonly sharedStart?: SharedStartRecord;
 }
