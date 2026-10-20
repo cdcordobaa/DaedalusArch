@@ -36,7 +36,7 @@ import { canonicalize, ratio } from '../lib/canonical-json.js';
 import { buildHarnessTsconfig } from '../lib/generators/harness-tsconfig.js';
 import { loadReference } from '../v1.3/lib/reference-model.js';
 import { materialiseVariant } from '../v1.3/lib/materialise.js';
-import { createPipeline } from '../../src/pipeline/pipeline-factory.js';
+import { createPipeline, postSealRulesOf } from '../../src/pipeline/pipeline-factory.js';
 import { MemoryGraphRepository } from '../../src/cypher-interp/repository.js';
 import { createInterpEvaluator } from '../../src/mcp-server/interp-evaluator.js';
 import { evaluateProject } from '../../src/mcp-server/evaluate-project.js';
@@ -69,7 +69,8 @@ async function evaluateExposure(projectDir: string, specPath: string, tsconfigPa
   let context: FirewallContext | undefined;
   const interp = createInterpEvaluator({
     makePipeline: (config) => {
-      const bundle = createPipeline({ ...config, graphRepository: repo });
+      // postSealRules: the value the loop evaluator gets by leaving it unset (`postSealRulesOf`), stated explicitly.
+      const bundle = createPipeline({ ...config, postSealRules: postSealRulesOf(config), graphRepository: repo });
       context = bundle.context;
       return bundle;
     },
