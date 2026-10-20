@@ -2628,6 +2628,22 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+## v1.3 hold-out via the DELEG4 path-only blind adapter (coordinator)
+**Timestamp**: 2026-10-20T09:19:13Z
+**User Input**: "Delegated (DELEG4): run the hold-out once at the freeze tag without anyone seeing sealed content. No scorer or runner change. A blind session copies the sealed tree into the loader's layout, changing paths only and never fabricating a file. A script verifies the content-hash multiset. The frozen runner scores the copy once on one capped Neo4j, and only aggregates are reported. If loading fails again, stop without retrying."
+**AI Response**: "DELEG4 and prespec addendum 1 (own hash row) were committed before the run. The sealed copy matched 1379b561 (608 files). The blind claude-opus-5-5 session (dontAsk, no user settings or hooks, scoped tools) converted 594 files and marked ddd incomplete (patch format; the loader reads ddd as overlay). Script check: converted is a sub-multiset of the source, 0 changed files, MAP consistent. The structure check at the tag (four styles) failed: 34 variants do not materialise (a patch modifies a file that does not exist). STOP: the live run was never started and no figure exists. results/v1.3-holdout/run-1 was not created. The work dir and Neo4j were removed. Disclosure: a redaction bug printed 34 sealed project-relative file paths into the coordinator transcript. Run note Docs/DiagnosticRuns/v1.4-holdout-2026-10-20.md."
+**Context**: CONSTRUCTION, v1.3/v1.4 hold-out (prespec addendum 1); no scoring run; gate V4 stays red; 1 model session (blind adapter)
+
+---
+
+## v1.3 hold-out attempt 2 (DELEG5, header-only patch repair) and fallback F-RF
+**Timestamp**: 2026-10-20T10:26:53Z
+**User Input**: "Coordinator, under GO-2B: record DELEG5 and prespec addendum 2 (with its own hash row) before acting. One try: a fresh copy; a blind session rewrites only the file headers of creation patches into the /dev/null form, leaving hunks untouched; a script verifies; the structure check at the tag on the 4 non-ddd styles; a live run once only if there are 0 problems, otherwise STOP. Register fallback F-RF (r_f from the development record run; layered stays confirmatory in 2b with the limitation) whatever the outcome. Clean up, update the run note and the PR, and merge on green."
+**AI Response**: "DELEG5 and addendum 2 were committed and pushed at 10:04Z, before the attempt. The fresh copy matched 1379b561 (608 files). Blind session JSON: patchesRewritten 34, headerOnly true. Script check: 34 of 34 hunk sequences byte-identical, 34 of 34 header-only creation forms, 0 other files changed, sub-multiset true, MAP consistent. Structure check at X: 4 problems, one per style (missing expected-findings.json), probably a layout regression in the second session's conversion. STOP: no live run, Neo4j not started, work dir deleted. F-RF applies. The redaction filter was fixed before attempt 2, and no path or case name was printed."
+**Context**: CONSTRUCTION, v1.3/v1.4 hold-out (prespec addendum 2); no scoring run; 1 model session (blind adapter)
+
+---
+
 ## Study 2b preparation and dress rehearsal (practice tasks)
 **Timestamp**: 2026-10-20T10:16:00Z
 **User Input**: "Coordinator brief: prepare the confirmatory Study 2b run at the frozen instrument (tag v1.4-freeze-2026-10-20, check it holds PR #311's explicit flags); build per-phase plan templates (none@L2 step 1, none@L2 steps 2-5, none@L3, mcp@L2 with --shared-start-from) fed by the sealed tasks path at run time, replicates as a parameter (default 2); a runbook with commands, out-root layout, the sealed tasks.json hash check and scoring at the tag; a dress rehearsal on practice tasks only (zero-call dry run of all phases, a live 13-turn mini-rehearsal of one task through the three cells, end-to-end scoring); report what broke; PR and merge when Build & Test is green. Never read the sealed folder or the MEAN-01 sample, never run sealed tasks, no Neo4j, no frozen-path fix."
