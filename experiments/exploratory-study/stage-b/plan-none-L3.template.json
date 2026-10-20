@@ -1,0 +1,57 @@
+{
+ "description": "Exploratory study Stage B TEMPLATE (amendment 1): cell none@L3, replicates 1 and 2, branching at step 2 from each block's none@L2 step-1 tree (sharedStart: replicate 1 from the Stage A out-root, replicate 2 from the replicate-2 none@L2 out-root), steps 2-5, Layered tasks ice-rink, youth-league, hive-health, claude-sonnet-5-5 only. CLI pin ON (2.1.304); per-run HOME isolation OFF, as in Stage A. Not run; README.md in this folder.",
+ "tasksFile": "experiments/exploratory-study/stage-a/tasks.json",
+ "adapters": [
+  {
+   "adapterId": "claude-code-cli",
+   "modelId": "claude-sonnet-5-5",
+   "cliVersion": "2.1.304"
+  }
+ ],
+ "arms": [
+  "none"
+ ],
+ "runs": 2,
+ "orderSeed": 20261019,
+ "outRoot": "<local>",
+ "binary": "<local>",
+ "harnessRoot": "<local>",
+ "allowBash": true,
+ "timeoutMs": 1200000,
+ "engine": "cypher-interp",
+ "taskProfiles": {
+  "ice-rink": {
+   "style": "layered",
+   "specMode": "static",
+   "evaluatorSpec": "presets/layered.yaml"
+  },
+  "youth-league": {
+   "style": "layered",
+   "specMode": "static",
+   "evaluatorSpec": "presets/layered.yaml"
+  },
+  "hive-health": {
+   "style": "layered",
+   "specMode": "static",
+   "evaluatorSpec": "presets/layered.yaml"
+  }
+ },
+ "frame": {
+  "specRung": "L3",
+  "attention": true
+ },
+ "sharedStart": {
+  "fromOutRoot": [
+   "<local>",
+   "<local>"
+  ],
+  "fromCell": "none@L2",
+  "step": 1
+ },
+ "callBudget": {
+  "runs": 6,
+  "stepTurns": 24,
+  "maxRepairTurns": 0,
+  "maxCalls": 24
+ }
+}

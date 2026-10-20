@@ -7,14 +7,26 @@
  * Checks per home: an absolute path, not the other home, not the labeller home (nor inside it or around it), outside
  * the repository, outside `--out-root` and `--harness-root` when given, mode 700, outside every git repository, and the
  * generator home check `checkAgyGenHome` (no rule, skill, plugin, agent, workflow or hook entry; conforming settings;
- * no MCP server in the `none` home). `--create` makes a missing home with mode 700 and writes the harness-owned baseline
- * settings (strict, terminal sandbox, the arm's deny list, an empty allow list; every turn rewrites them).
+ * no MCP server in the `none` home; U12: the confinement hook installed). `--create` makes a missing home with mode 700
+ * and writes the harness-owned baseline settings (strict, terminal sandbox, the arm's deny list, an empty allow list;
+ * every turn rewrites them); in every home, new or existing, it (re)installs the harness-owned hook files: hooks.json,
+ * the committed hook script and the baseline turn config (no work directory, so the hook blocks every call until a
+ * turn writes its own), and resets the harness-owned settings keys to the baseline (other keys are kept). It touches no
+ * other file of an existing home.
  */
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { AGY_HOME_DEFAULT, expandHome } from '../../../src/llm-critic/agy-cli-provider.js';
-import { AGY_GEN_REQUIRED_SETTINGS, AGY_GEN_SETTINGS_REL, checkAgyGenHome, expectedDeny } from '../../lib/generators/agy-gen-cli.js';
+import {
+  AGY_GEN_REQUIRED_SETTINGS,
+  AGY_GEN_SETTINGS_REL,
+  agyHookSourcePath,
+  baselineHookConfig,
+  checkAgyGenHome,
+  expectedDeny,
+  installAgyHook,
+} from '../../lib/generators/agy-gen-cli.js';
 import type { AgyGenArm } from '../../lib/generators/agy-gen-cli.js';
 import { isInsideOrEqual } from '../../lib/generators/config.js';
 
@@ -32,6 +44,8 @@ export interface HomesInput {
 export interface HomeReport {
   readonly arm: AgyGenArm;
   readonly created: boolean;
+  /** `--create` (re)installed the hook files. */
+  readonly hookInstalled: boolean;
   readonly problems: readonly string[];
   /** A name that looks like a credential file exists (names only; never opened). Sign-in is not checked further. */
   readonly credentialNamesPresent: boolean;
@@ -64,17 +78,37 @@ export function baselineSettings(arm: AgyGenArm, allowCommand = true): Record<st
   return { ...AGY_GEN_REQUIRED_SETTINGS, permissions: { allow: [], deny: [...expectedDeny(arm, allowCommand)], ask: [] } };
 }
 
+/** Rewrites the harness-owned keys of an existing home's settings (required keys, the baseline permissions). */
+function refreshBaselinePermissions(home: string, arm: AgyGenArm, allowCommand: boolean): void {
+  const file = path.join(home, AGY_GEN_SETTINGS_REL);
+  let current: Record<string, unknown> = {};
+  if (fs.existsSync(file)) {
+    try {
+      const v: unknown = JSON.parse(fs.readFileSync(file, 'utf8'));
+      if (typeof v === 'object' && v !== null && !Array.isArray(v)) current = v as Record<string, unknown>;
+    } catch {
+      current = {};
+    }
+  }
+  const next: Record<string, unknown> = { ...current, ...baselineSettings(arm, allowCommand) };
+  delete next.allowNonWorkspaceAccess;
+  fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
+  fs.writeFileSync(file, `${JSON.stringify(next, null, 2)}\n`, { mode: 0o600 });
+}
+
 /** Creates (when asked) and validates both homes. */
 export function setupGeminiHomes(i: HomesInput): HomesReport {
   const labeller = path.resolve(i.labellerHome ?? expandHome(AGY_HOME_DEFAULT, os.homedir()));
   const allowCommand = i.allowCommand ?? true;
+  const hookSource = agyHookSourcePath(i.repoRoot);
   const reports: HomeReport[] = [];
   for (const arm of ['none', 'daedalus-mcp'] as const) {
     const home = i.homes[arm];
     const problems: string[] = [];
     let created = false;
+    let hookInstalled = false;
     if (!path.isAbsolute(home)) {
-      reports.push({ arm, created, problems: ['the home must be an absolute path'], credentialNamesPresent: false, listingSha256: null });
+      reports.push({ arm, created, hookInstalled, problems: ['the home must be an absolute path'], credentialNamesPresent: false, listingSha256: null });
       continue;
     }
     const other = i.homes[arm === 'none' ? 'daedalus-mcp' : 'none'];
@@ -91,13 +125,21 @@ export function setupGeminiHomes(i: HomesInput): HomesReport {
       fs.writeFileSync(settings, `${JSON.stringify(baselineSettings(arm, allowCommand), null, 2)}\n`, { mode: 0o600 });
       created = true;
     }
+    if (problems.length === 0 && i.create && fs.existsSync(home)) {
+      // U12: an existing home's settings get the corrected baseline rules (the turn rewrites them anyway); other keys
+      // of the file, which agy itself re-saves, are kept.
+      refreshBaselinePermissions(home, arm, allowCommand);
+      const installed = installAgyHook(home, hookSource, baselineHookConfig(arm, allowCommand));
+      if (installed.success) hookInstalled = true;
+      else problems.push(...installed.errors.map((e) => e.message));
+    }
     if (problems.length > 0) {
-      reports.push({ arm, created, problems, credentialNamesPresent: false, listingSha256: null });
+      reports.push({ arm, created, hookInstalled, problems, credentialNamesPresent: false, listingSha256: null });
       continue;
     }
-    const check = checkAgyGenHome(home, arm, null, allowCommand);
+    const check = checkAgyGenHome(home, arm, null, allowCommand, hookSource);
     problems.push(...check.problems);
-    reports.push({ arm, created, problems, credentialNamesPresent: fs.existsSync(home) && hasCredentialName(home), listingSha256: fs.existsSync(home) ? check.listingSha256 : null });
+    reports.push({ arm, created, hookInstalled, problems, credentialNamesPresent: fs.existsSync(home) && hasCredentialName(home), listingSha256: fs.existsSync(home) ? check.listingSha256 : null });
   }
   return {
     schema: 'gemini-homes/v1',

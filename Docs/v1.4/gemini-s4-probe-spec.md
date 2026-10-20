@@ -1,7 +1,15 @@
 # Gemini generator S4 confinement probe: specification
 
-**Status: NOT RUN. The probe code exists since U11 (`scripts/generator/probes/agy-gen-confinement.ts`; dry-run
-tested; runbook in `Docs/v1.4/gemini-generator.md`).** No probe in this document has been executed, and no model was called to write it.
+**Status: RUN ONCE ON agy 1.4.2, FAILED IN BOTH ARMS (2026-10-19,
+`Docs/DiagnosticRuns/v1.4-gemini-s4-agy142-2026-10-19.md`). The confinement mechanism then changed (U12: a PreToolUse
+hook allow-list, corrected permission rules, the sandbox kept; `Docs/v1.4/gemini-confinement-change-2026-10-20.md`).
+RE-RUN PENDING: S4 must be re-run live and pass before any Gemini coding cell.** The probe code exists since U11
+(`scripts/generator/probes/agy-gen-confinement.ts`; runbook in `Docs/v1.4/gemini-generator.md`). U12 added the hook
+evidence: per-call hook logs, `hook-not-invoked` / `hook-error` problems, and the G0 hooks sub-check (`seen` or
+`unverified`, never a failure on its own). The probe table, the 24-call count and the cap of 30 are unchanged. No model
+was called to write this document. **2026-10-20: run 3 (with the hook) failed in both arms, with no security
+escape after re-scoring. The round-4 scorer and config fixes are declared in
+`Docs/v1.4/gemini-confinement-change-2026-10-20.md` ("Round 4"); no pass criterion changed. Run 4 is pending.**
 Decision CDX (`ops/decisions.md`): Gemini over the Antigravity CLI `agy` is the Codex substitute for Study 2, with its
 own S4 probe. s2d-01 §7 says "the Gemini S4 probe is counted in the CDX note"; this spec is that count. Design:
 `aidlc-docs/construction/v1.4/U5/functional-design/design.md` §3.4 and §4. Adapter: `Docs/v1.4/gemini-generator.md`.

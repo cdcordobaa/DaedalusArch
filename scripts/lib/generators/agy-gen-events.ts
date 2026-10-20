@@ -20,6 +20,8 @@
  * agy 1.4.2 prints its `result` event and then never exits: the agent ends the process on that line
  * (`stopOnLine: isAgyResultLine`), and such a run counts as exit 0 (`agyGenExitCode`).
  */
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import type { DomainError } from '../../../src/shared/errors/domain-result.js';
 import { scrubDeep, scrubSecrets } from '../../../src/shared/errors/scrub.js';
@@ -36,15 +38,42 @@ import type { AttemptDisposition } from './outcome.js';
 export interface AgyGenToolStep {
   readonly index: number;
   readonly tool: string;
+  /**
+   * The step's final state; `ERROR` when ANY record of the step ended in ERROR (sticky). Round 4 (2026-10-20): agy
+   * 1.4.2 reports a hook-denied `invoke_subagent` as a `tool` record (ACTIVE) followed by a `subagent` record (ERROR)
+   * with the same step index. The reader used to skip the second record and kept ACTIVE (S4 run 3, the G8 false escape).
+   */
   readonly state: string;
   readonly params: Readonly<Record<string, unknown>>;
+  /**
+   * The text of the step's OUTPUT fields only, as JSON: every `tool_info` field other than `name`, `parameters` and
+   * `error`, and every `step_update` field outside the metadata set. Never the call's own parameters (S4 run 3, G6).
+   */
+  readonly output: string;
 }
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
 }
 
-/** Final state and parameters of every tool step, by step index. */
+/** `step_update` fields that describe a step, not its output. */
+const STEP_META = new Set(['conversation_id', 'step_index', 'state', 'step_type', 'tool_name', 'tool_info', 'duration_seconds', 'usage', 'text_delta']);
+/** `tool_info` fields that are the call's input or its denial, not its output. */
+const TOOL_INFO_INPUT = new Set(['name', 'parameters', 'error']);
+
+function outputOf(s: Record<string, unknown>): string {
+  const parts: Record<string, unknown>[] = [];
+  const info = isRecord(s.tool_info) ? s.tool_info : {};
+  for (const [k, v] of Object.entries(info)) if (!TOOL_INFO_INPUT.has(k)) parts.push({ [k]: v });
+  for (const [k, v] of Object.entries(s)) if (!STEP_META.has(k)) parts.push({ [k]: v });
+  return parts.length === 0 ? '' : JSON.stringify(parts);
+}
+
+/**
+ * Final state, parameters and output of every tool step, by step index. A record belongs to a tool step when its
+ * `step_type` is `tool`, when it names a `tool_name`, or when an earlier record of the same index did (so a
+ * `subagent` record that ends a tool step is folded in). ERROR is sticky: no later record un-denies a step.
+ */
 export function readAgyGenSteps(stdout: string): readonly AgyGenToolStep[] {
   const steps = new Map<number, AgyGenToolStep>();
   for (const line of stdout.split('\n')) {
@@ -58,11 +87,14 @@ export function readAgyGenSteps(stdout: string): readonly AgyGenToolStep[] {
     }
     if (!isRecord(v) || v.event !== 'step_update' || !isRecord(v.step_update)) continue;
     const s = v.step_update;
-    if (s.step_type !== 'tool' || typeof s.step_index !== 'number') continue;
+    if (typeof s.step_index !== 'number') continue;
     const prev = steps.get(s.step_index);
+    if (s.step_type !== 'tool' && typeof s.tool_name !== 'string' && prev === undefined) continue;
     const info = isRecord(s.tool_info) ? s.tool_info : {};
     const params = isRecord(info.parameters) ? info.parameters : (prev?.params ?? {});
-    steps.set(s.step_index, { index: s.step_index, tool: typeof s.tool_name === 'string' ? s.tool_name : (prev?.tool ?? ''), state: typeof s.state === 'string' ? s.state : '', params });
+    const state = prev?.state === 'ERROR' ? 'ERROR' : typeof s.state === 'string' ? s.state : (prev?.state ?? '');
+    const output = [prev?.output ?? '', outputOf(s)].filter((x) => x !== '').join('\n');
+    steps.set(s.step_index, { index: s.step_index, tool: typeof s.tool_name === 'string' ? s.tool_name : (prev?.tool ?? ''), state, params, output });
   }
   return [...steps.values()].sort((a, b) => a.index - b.index);
 }
@@ -182,6 +214,47 @@ export interface StopContext {
   readonly allowCommand: boolean;
   /** The run's exact type-check command. */
   readonly typecheckCommand: string;
+  /**
+   * U12: the turn's work directory. When given, a completed file-tool step with a path argument outside it is an
+   * escape (the after-the-fact twin of the hook's path check); the daedalus-mcp arm may also read `mcpSchemaFiles`.
+   */
+  readonly workDir?: string;
+  readonly mcpSchemaFiles?: readonly string[];
+}
+
+/** Absolute or relative strings under path-like keys of a tool step (the hook's `pathArgs`, simplified). */
+function stepPaths(params: Readonly<Record<string, unknown>>): string[] {
+  const out: string[] = [];
+  for (const [k, v] of Object.entries(params)) {
+    if (!/path|file|dir|uri/i.test(k) || /content|instruction|description|chunk|query|pattern|include|exclude|replacement|code/i.test(k)) continue;
+    for (const x of Array.isArray(v) ? (v as unknown[]) : [v]) if (typeof x === 'string' && x !== '') out.push(x);
+  }
+  return out;
+}
+
+function realish(p: string): string {
+  const rest: string[] = [];
+  for (let at = path.resolve(p); ; at = path.dirname(at)) {
+    try {
+      return path.join(fs.realpathSync(at), ...rest.reverse());
+    } catch {
+      if (path.dirname(at) === at) return path.resolve(p);
+      rest.push(path.basename(at));
+    }
+  }
+}
+
+function fileStepEscape(step: AgyGenToolStep, ctx: StopContext): string | null {
+  if (ctx.workDir === undefined) return null;
+  const work = realish(ctx.workDir);
+  const schema = (ctx.mcpSchemaFiles ?? []).map(realish);
+  for (const p of stepPaths(step.params)) {
+    const r = realish(path.isAbsolute(p) ? p : path.join(work, p));
+    if (ctx.arm === 'daedalus-mcp' && schema.includes(r)) continue;
+    const rel = path.relative(work, r);
+    if (rel.startsWith('..') || path.isAbsolute(rel)) return `${step.tool} (a path outside the work directory)`;
+  }
+  return null;
 }
 
 function stringValues(o: Readonly<Record<string, unknown>>): string[] {
@@ -191,7 +264,8 @@ function stringValues(o: Readonly<Record<string, unknown>>): string[] {
 /** Why a COMPLETED tool step is outside the arm's allow list, or null when it is allowed. */
 export function escapeReason(step: AgyGenToolStep, ctx: StopContext): string | null {
   if (step.state === 'ERROR') return null;
-  if (AGY_GEN_ANSWER_TOOLS.includes(step.tool) || AGY_GEN_FILE_TOOLS.includes(step.tool)) return null;
+  if (AGY_GEN_ANSWER_TOOLS.includes(step.tool)) return null;
+  if (AGY_GEN_FILE_TOOLS.includes(step.tool)) return fileStepEscape(step, ctx);
   if (AGY_GEN_COMMAND_TOOLS.includes(step.tool)) {
     if (!ctx.allowCommand) return `${step.tool} (commands are not allowed)`;
     if (step.tool === 'command_status') return null;

@@ -10,18 +10,29 @@ import * as path from 'node:path';
 import type { ProcessResult } from '../../../../src/shared/interfaces/process-runner.js';
 import { typecheckCommand } from '../../../../scripts/lib/generators/argv.js';
 import {
+  AGY_GEN_HOOK_CONFIG_REL,
+  AGY_GEN_HOOK_SCRIPT_REL,
+  AGY_GEN_HOOKS_REL,
   AGY_GEN_MCP_CONFIG_REL,
+  AGY_GEN_MCP_SCHEMA_REL,
   AGY_GEN_SETTINGS_REL,
+  AGY_HOOK_CONFIG_SCHEMA,
+  agyHookSourcePath,
+  agyHooksJson,
   buildAgyGenArgs,
   buildAgyGenChildEnv,
   checkAgyGenHome,
   checkAgyGenSettings,
   checkAncestors,
+  commandAllowRule,
   createAgyGenCliConfig,
   expectedAllow,
+  expectedDeny,
+  installBaselineAgyHooks,
   writeAgyTurnFiles,
 } from '../../../../scripts/lib/generators/agy-gen-cli.js';
 import { agyGenAttemptDisposition, agyGenStop, agyGenTurnStatus, parseAgyGenRun, readAgyGenSteps } from '../../../../scripts/lib/generators/agy-gen-events.js';
+import { DAEDALUS_ARM_TOOLS } from '../../../../scripts/lib/generators/arms.js';
 import { createGeneratorCliConfig } from '../../../../scripts/lib/generators/config.js';
 import { DEFAULT_GENERATOR_TIMEOUT_MS } from '../../../../scripts/lib/generators/types.js';
 
@@ -29,6 +40,7 @@ const REPO = process.cwd();
 const FIX = path.join(REPO, 'tests/fixtures/agy-gen-cli');
 const MODEL = 'dry-run-gemini-model';
 const RUN = 'agy-cli/dry-run-gemini-model/todo-list/none/run-0';
+const HOOK = agyHookSourcePath(REPO);
 const DAEDALUS = { nodeBinary: '/usr/bin/node', serverEntry: '/opt/daedalus/dist/mcp-server/main.js', specPath: '/opt/daedalus/specs/clean-arch.yaml' };
 
 let tmp: string;
@@ -97,17 +109,17 @@ describe('generator home and settings', () => {
 
   it('the committed settings fixtures pass once their placeholders are filled', () => {
     for (const [file, arm] of [['gen-settings-none.json', 'none'], ['gen-settings-mcp.json', 'daedalus-mcp']] as const) {
-      const text = fs.readFileSync(path.join(FIX, file), 'utf8').replace(/<CWD>/g, cwd).replace(/<H>/g, H).replace(/<RUN>/g, RUN.split('/').join('/'));
+      const text = fs.readFileSync(path.join(FIX, file), 'utf8').replace(/<TYPECHECK_RULE>/g, JSON.stringify(commandAllowRule(typecheckCommand(H, RUN))).slice(1, -1)).replace(/<CWD>/g, cwd).replace(/<H>/g, H).replace(/<RUN>/g, RUN);
       expect(checkAgyGenSettings(text, arm, allow(arm))).toEqual([]);
     }
   });
 
   it('the turn writer gives a home that passes; an extra allow entry or another run\'s command fails', () => {
-    const w = writeAgyTurnFiles(homes.none, { arm: 'none', runId: RUN, harnessRoot: H, cwd, allowCommand: true });
+    const w = writeAgyTurnFiles(homes.none, { arm: 'none', runId: RUN, harnessRoot: H, cwd, allowCommand: true, hookSource: HOOK });
     if (!w.success) throw new Error('write');
-    expect(checkAgyGenHome(homes.none, 'none', allow('none')).problems).toEqual([]);
-    expect(checkAgyGenHome(homes.none, 'none', [...allow('none'), 'command(*)']).problems.join()).toMatch(/permissions\.allow must be exactly/);
-    expect(checkAgyGenHome(homes.none, 'none', allow('none', 'agy-cli/m/other/none/run-1')).problems.join()).toMatch(/permissions\.allow must be exactly/);
+    expect(checkAgyGenHome(homes.none, 'none', allow('none'), true, HOOK).problems).toEqual([]);
+    expect(checkAgyGenHome(homes.none, 'none', [...allow('none'), 'command(*)'], true, HOOK).problems.join()).toMatch(/permissions\.allow must be exactly/);
+    expect(checkAgyGenHome(homes.none, 'none', allow('none', 'agy-cli/m/other/none/run-1'), true, HOOK).problems.join()).toMatch(/permissions\.allow must be exactly/);
   });
 
   it('strict, allowNonWorkspaceAccess and the deny list are checked; problems name keys, never values', () => {
@@ -124,26 +136,26 @@ describe('generator home and settings', () => {
       const p = path.join(homes.none, '.gemini', name);
       fs.mkdirSync(path.dirname(p), { recursive: true });
       fs.writeFileSync(p, '');
-      expect(checkAgyGenHome(homes.none, 'none', null).problems.join()).toMatch(new RegExp(`forbidden entry .gemini/${name}`));
+      expect(checkAgyGenHome(homes.none, 'none', null, true, HOOK).problems.join()).toMatch(new RegExp(`forbidden entry .gemini/${name}`));
       fs.rmSync(p);
     }
     const mcp = path.join(homes.none, AGY_GEN_MCP_CONFIG_REL);
     fs.mkdirSync(path.dirname(mcp), { recursive: true });
     fs.writeFileSync(mcp, JSON.stringify({ mcpServers: { 'daedalus-arch': {} } }));
-    expect(checkAgyGenHome(homes.none, 'none', null).problems).toContain('the none home must list no MCP server');
-    const w = writeAgyTurnFiles(homes['daedalus-mcp'], { arm: 'daedalus-mcp', runId: RUN, harnessRoot: H, cwd, allowCommand: true, daedalus: DAEDALUS });
+    expect(checkAgyGenHome(homes.none, 'none', null, true, HOOK).problems).toContain('the none home must list no MCP server');
+    const w = writeAgyTurnFiles(homes['daedalus-mcp'], { arm: 'daedalus-mcp', runId: RUN, harnessRoot: H, cwd, allowCommand: true, hookSource: HOOK, daedalus: DAEDALUS });
     if (!w.success) throw new Error('write');
-    expect(checkAgyGenHome(homes['daedalus-mcp'], 'daedalus-mcp', allow('daedalus-mcp')).problems).toEqual([]);
+    expect(checkAgyGenHome(homes['daedalus-mcp'], 'daedalus-mcp', w.data.allow, true, HOOK).problems).toEqual([]);
     fs.chmodSync(homes['daedalus-mcp'], 0o755);
-    expect(checkAgyGenHome(homes['daedalus-mcp'], 'daedalus-mcp', allow('daedalus-mcp')).problems).toContain('generator home is accessible to group or others');
+    expect(checkAgyGenHome(homes['daedalus-mcp'], 'daedalus-mcp', w.data.allow, true, HOOK).problems).toContain('generator home is accessible to group or others');
   });
 
   it('the daedalus-mcp MCP config carries --project <cwd> and --call-log; the none arm writes none', () => {
-    const w = writeAgyTurnFiles(homes['daedalus-mcp'], { arm: 'daedalus-mcp', runId: RUN, harnessRoot: H, cwd, allowCommand: true, daedalus: DAEDALUS, callLogPath: path.join(H, 'calls', 'step-01.jsonl') });
+    const w = writeAgyTurnFiles(homes['daedalus-mcp'], { arm: 'daedalus-mcp', runId: RUN, harnessRoot: H, cwd, allowCommand: true, hookSource: HOOK, daedalus: DAEDALUS, callLogPath: path.join(H, 'calls', 'step-01.jsonl') });
     if (!w.success) throw new Error('write');
     const cfg = JSON.parse(fs.readFileSync(path.join(homes['daedalus-mcp'], AGY_GEN_MCP_CONFIG_REL), 'utf8')) as { mcpServers: Record<string, { command: string; args: string[] }> };
     expect(cfg.mcpServers['daedalus-arch']?.args).toEqual([DAEDALUS.serverEntry, '--spec', DAEDALUS.specPath, '--project', cwd, '--engine', 'neo4j', '--call-log', path.join(H, 'calls', 'step-01.jsonl')]);
-    writeAgyTurnFiles(homes.none, { arm: 'none', runId: RUN, harnessRoot: H, cwd, allowCommand: true });
+    writeAgyTurnFiles(homes.none, { arm: 'none', runId: RUN, harnessRoot: H, cwd, allowCommand: true, hookSource: HOOK });
     expect(fs.existsSync(path.join(homes.none, AGY_GEN_MCP_CONFIG_REL))).toBe(false);
     expect(fs.existsSync(path.join(homes.none, AGY_GEN_SETTINGS_REL))).toBe(true);
   });
@@ -217,5 +229,148 @@ describe('events, disposition, status and stops (design §3.5)', () => {
       const text = fs.readFileSync(path.join(REPO, f), 'utf8').replace(/\/\*\*[\s\S]*?\*\//g, '');
       expect(text).not.toMatch(/\b(classifyAgyResult|checkAgySettings|checkAgyHome)\b/);
     }
+  });
+});
+
+describe('U12: the confinement hook in the turn files, the home check and the permission rules', () => {
+  const allow = (arm: 'none' | 'daedalus-mcp'): readonly string[] => expectedAllow({ arm, runId: RUN, harnessRoot: H, cwd, allowCommand: true });
+  const write = (arm: 'none' | 'daedalus-mcp', over: Partial<Parameters<typeof writeAgyTurnFiles>[1]> = {}) =>
+    writeAgyTurnFiles(homes[arm], { arm, runId: RUN, harnessRoot: H, cwd, allowCommand: true, hookSource: HOOK, ...(arm === 'daedalus-mcp' ? { daedalus: DAEDALUS } : {}), ...over });
+
+  it('the turn writer writes hooks.json (one PreToolUse group, matcher ".*"), the committed script and the turn config', () => {
+    const w = write('daedalus-mcp', { hookLogPath: path.join(H, 'runs', 'r', 'hooks', 'step-01.jsonl') });
+    if (!w.success) throw new Error('write');
+    const home = homes['daedalus-mcp'];
+    expect(JSON.parse(fs.readFileSync(path.join(home, AGY_GEN_HOOKS_REL), 'utf8'))).toEqual(agyHooksJson(home));
+    const hooks = agyHooksJson(home) as { hooks: { PreToolUse: { matcher: string; hooks: { type: string; command: string; timeout: number }[] }[] } };
+    expect(Object.keys(hooks.hooks)).toEqual(['PreToolUse']);
+    expect(hooks.hooks.PreToolUse[0]?.matcher).toBe('.*');
+    expect(hooks.hooks.PreToolUse[0]?.hooks[0]?.command).toBe(`'${process.execPath}' '${path.join(home, AGY_GEN_HOOK_SCRIPT_REL)}' '${path.join(home, AGY_GEN_HOOK_CONFIG_REL)}'`);
+    expect(fs.readFileSync(path.join(home, AGY_GEN_HOOK_SCRIPT_REL))).toEqual(fs.readFileSync(HOOK));
+    const c = JSON.parse(fs.readFileSync(path.join(home, AGY_GEN_HOOK_CONFIG_REL), 'utf8')) as Record<string, unknown>;
+    expect(c).toEqual({
+      schema: AGY_HOOK_CONFIG_SCHEMA,
+      arm: 'daedalus-mcp',
+      workDir: fs.realpathSync(cwd),
+      allowCommand: true,
+      typecheckCommand: typecheckCommand(H, RUN),
+      logPath: path.join(H, 'runs', 'r', 'hooks', 'step-01.jsonl'),
+      mcp: { server: 'daedalus-arch', allowedTools: [...DAEDALUS_ARM_TOOLS], deniedTools: ['evaluate_project'], schemaDir: path.join(fs.realpathSync(home), AGY_GEN_MCP_SCHEMA_REL, 'daedalus-arch') },
+    });
+    expect(w.data.hookLogPath).toBe(path.join(H, 'runs', 'r', 'hooks', 'step-01.jsonl'));
+    // The none arm's config names no MCP server, and no command without allowCommand; the default log is under <H>/runs.
+    const n = write('none', { allowCommand: false });
+    if (!n.success) throw new Error('write none');
+    const cn = JSON.parse(fs.readFileSync(path.join(homes.none, AGY_GEN_HOOK_CONFIG_REL), 'utf8')) as Record<string, unknown>;
+    expect(cn.mcp).toBeUndefined();
+    expect(cn.typecheckCommand).toBeNull();
+    expect(cn.logPath).toBe(path.join(H, 'runs', RUN, 'hooks', 'turn.jsonl'));
+  });
+
+  it('a hook log inside the work directory is refused', () => {
+    const w = write('none', { hookLogPath: path.join(cwd, 'hook.jsonl') });
+    expect(w.success ? null : w.errors[0]?.code).toBe('GEN_AGY_HOOK_LOG_INSIDE_CWD');
+  });
+
+  it('the home check requires the hook: hooks.json, the committed sha256, the turn config for this arm, turn and command', () => {
+    expect(write('none').success).toBe(true);
+    const home = homes.none;
+    expect(checkAgyGenHome(home, 'none', allow('none'), true, HOOK).problems).toEqual([]);
+    expect(checkAgyGenHome(home, 'none', null, true, HOOK).problems).toEqual([]);
+    const problems = (): string => checkAgyGenHome(home, 'none', allow('none'), true, HOOK).problems.join('; ');
+    const hooksFile = path.join(home, AGY_GEN_HOOKS_REL);
+    const saved = fs.readFileSync(hooksFile, 'utf8');
+    fs.rmSync(hooksFile);
+    expect(problems()).toMatch(/hooks\.json is missing/);
+    fs.writeFileSync(hooksFile, JSON.stringify({ hooks: { PreToolUse: [{ matcher: 'run_command', hooks: [{ type: 'command', command: 'true', timeout: 10 }] }] } }));
+    expect(problems()).toMatch(/hooks\.json must be exactly the confinement hook/);
+    const extra = JSON.parse(saved) as { hooks: Record<string, unknown> };
+    extra.hooks.Stop = [{ type: 'command', command: 'true' }];
+    fs.writeFileSync(hooksFile, JSON.stringify(extra));
+    expect(problems()).toMatch(/hooks\.json must be exactly/);
+    fs.writeFileSync(hooksFile, saved);
+    fs.appendFileSync(path.join(home, AGY_GEN_HOOK_SCRIPT_REL), '\n// tampered\n');
+    expect(problems()).toMatch(/differs from the committed one/);
+    fs.copyFileSync(HOOK, path.join(home, AGY_GEN_HOOK_SCRIPT_REL));
+    expect(problems()).toBe('');
+    // Another turn's work directory or command.
+    const otherCwd = path.join(tmp, 'out', 'runs', 'other', 'work');
+    fs.mkdirSync(otherCwd, { recursive: true });
+    expect(write('none', { cwd: otherCwd }).success).toBe(true);
+    expect(checkAgyGenHome(home, 'none', allow('none'), true, HOOK).problems.join()).toMatch(/this turn's work directory/);
+    expect(write('none', { runId: 'agy-cli/m/other/none/run-9' }).success).toBe(true);
+    expect(checkAgyGenHome(home, 'none', allow('none'), true, HOOK).problems.join()).toMatch(/this turn's type-check command/);
+    fs.rmSync(path.join(home, AGY_GEN_HOOK_CONFIG_REL));
+    expect(checkAgyGenHome(home, 'none', null, true, HOOK).problems).toContain('the hook turn config is missing');
+    // A home with no hook at all fails the pre-turn check too.
+    expect(checkAgyGenHome(homes['daedalus-mcp'], 'daedalus-mcp', null, true, HOOK).problems).toEqual(
+      expect.arrayContaining(['hooks.json is missing', 'the hook script is missing from the home', 'the hook turn config is missing']),
+    );
+    // Any other hooks entry in the home is still forbidden.
+    fs.mkdirSync(path.join(home, '.agents'), { recursive: true });
+    fs.writeFileSync(path.join(home, '.agents', 'hooks.json'), '{}');
+    expect(checkAgyGenHome(home, 'none', null, true, HOOK).problems.join()).toMatch(/forbidden entry \.agents/);
+  });
+
+  it('the baseline hook config (no turn) passes the pre-turn check but not a turn check', () => {
+    expect(installBaselineAgyHooks(homes, REPO, true).success).toBe(true);
+    expect(checkAgyGenHome(homes.none, 'none', null, true, HOOK).problems).toEqual([]);
+    expect(checkAgyGenHome(homes.none, 'none', allow('none'), true, HOOK).problems.join()).toMatch(/this turn's work directory/);
+  });
+
+  it('permission rules use only the seven real agy action kinds; the command rule is an anchored regex', () => {
+    const kinds = /^(read_file|write_file|command|read_url|execute_url|mcp|unsandboxed)\(/;
+    for (const arm of ['none', 'daedalus-mcp'] as const) {
+      for (const ac of [true, false]) {
+        for (const r of [...expectedDeny(arm, ac), ...expectedAllow({ arm, runId: RUN, harnessRoot: H, cwd, allowCommand: ac })]) expect(r).toMatch(kinds);
+      }
+    }
+    // Round 4: unsandboxed(*) dropped (agy 1.4.2 on macOS logs it as invalid and ignores it).
+    expect([...expectedDeny('none', true)]).toEqual(['read_url(*)', 'execute_url(*)', 'mcp(*)']);
+    expect([...expectedDeny('daedalus-mcp', true)]).toEqual(['read_url(*)', 'execute_url(*)', 'mcp(daedalus-arch/evaluate_project)']);
+    expect([...expectedDeny('none', false)]).toContain('command(*)');
+    const rule = commandAllowRule('/h/bin/tsc --noEmit -p /h/runs/a.b/tsconfig.json');
+    expect(rule).toBe('command(regex:^/h/bin/tsc --noEmit -p /h/runs/a\\.b/tsconfig\\.json$)');
+    const re = new RegExp(rule.slice('command(regex:'.length, -1));
+    expect(re.test('/h/bin/tsc --noEmit -p /h/runs/a.b/tsconfig.json')).toBe(true);
+    expect(re.test('/h/bin/tsc --noEmit -p /h/runs/a.b/tsconfig.json && touch ../x')).toBe(false);
+    expect(re.test('/h/bin/tsc --noEmit -p /h/runs/aXb/tsconfig.json')).toBe(false);
+  });
+
+  it('round 4: the anchored rule matches the exact CommandLine agy passed in S4 run 3 (G5), and no chained form', () => {
+    // The run-3 G5 stream (placeholders): `<H>/bin/tsc --noEmit --incremental false -p <H>/runs/agy-s4/none/G5/tsconfig.json`.
+    const h = '/opt/shared/daedalus-gemini-s4/h';
+    const fromStream = '<H>/bin/tsc --noEmit --incremental false -p <H>/runs/agy-s4/none/G5/tsconfig.json'.split('<H>').join(h);
+    const cmd = typecheckCommand(h, 'agy-s4/none/G5');
+    expect(cmd).toBe(fromStream);
+    const re = new RegExp(commandAllowRule(cmd).slice('command(regex:'.length, -1));
+    expect(re.test(fromStream)).toBe(true);
+    for (const bad of [`${fromStream} && touch ../chain-and.txt`, `${fromStream}; touch ../m`, `${fromStream} --tsBuildInfoFile ../x`, ` ${fromStream}`]) expect(re.test(bad)).toBe(false);
+  });
+
+  it('round 4: a daedalus-mcp turn written for a home allows the nine schema-file reads; the none arm and other files get none', () => {
+    const home = homes['daedalus-mcp'];
+    const w = writeAgyTurnFiles(home, { arm: 'daedalus-mcp', runId: RUN, harnessRoot: H, cwd, allowCommand: true, hookSource: HOOK, daedalus: DAEDALUS });
+    if (!w.success) throw new Error('write');
+    const reads = w.data.allow.filter((r) => r.startsWith('read_file(') && r.endsWith('.json)'));
+    expect(reads).toEqual(DAEDALUS_ARM_TOOLS.map((t) => `read_file(${path.join(path.resolve(home), AGY_GEN_MCP_SCHEMA_REL, 'daedalus-arch', `${t}.json`)})`));
+    expect(reads.some((r) => r.includes('evaluate_project'))).toBe(false);
+    expect(checkAgyGenHome(home, 'daedalus-mcp', w.data.allow, true, HOOK).problems).toEqual([]);
+    const n = writeAgyTurnFiles(homes.none, { arm: 'none', runId: RUN, harnessRoot: H, cwd, allowCommand: true, hookSource: HOOK });
+    if (!n.success) throw new Error('write none');
+    expect(n.data.allow.filter((r) => r.endsWith('.json)'))).toEqual([]);
+  });
+
+  it('the stop rule path-checks completed file steps when the work directory is known (agy 1.4.2 read_file / write_file)', () => {
+    const step = (tool: string, p: string) =>
+      cli([JSON.stringify({ event: 'init', init: { model: MODEL } }), JSON.stringify({ event: 'step_update', step_update: { step_index: 1, state: 'DONE', step_type: 'tool', tool_name: tool, tool_info: { parameters: { Path: p } } } })].join('\n'));
+    const ctx = { arm: 'none' as const, allowCommand: true, typecheckCommand: typecheckCommand(H, RUN), workDir: cwd };
+    expect(agyGenStop(step('read_file', path.join(cwd, 'package.json')), ctx)).toBeNull();
+    expect(agyGenStop(step('write_file', path.join(cwd, 'notes.md')), ctx)).toBeNull();
+    expect(agyGenStop(step('write_file', path.join(tmp, 'escape.txt')), ctx)?.message).toMatch(/write_file \(a path outside the work directory\)/);
+    const schema = path.join(homes['daedalus-mcp'], AGY_GEN_MCP_SCHEMA_REL, 'daedalus-arch', 'check_file.json');
+    expect(agyGenStop(step('read_file', schema), { ...ctx, arm: 'daedalus-mcp', mcpSchemaFiles: [schema] })).toBeNull();
+    expect(agyGenStop(step('read_file', schema), { ...ctx, mcpSchemaFiles: [schema] })?.code).toBe('LOOP_GEMINI_TOOL_ESCAPE');
+    expect(agyGenStop(step('invoke_subagent', ''), ctx)?.message).toMatch(/invoke_subagent/);
   });
 });

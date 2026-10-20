@@ -2504,6 +2504,15 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **User Input**: "Give it the last mile" (the one-hour, zero-call timebox on agy 1.4.2 permissions, then S4 within the 30-call approval)
 **AI Response**: "Run 1: G0 failed on a check-order artifact plus an .agents folder in the home folder (PR #288 fixes it). Run 2: 24 calls; G0 passed, probes failed in both arms. run_command, read_file/write_file escapes, invoke_subagent and schedule all ran, so agy 1.4.2 does not enforce the pruned deny rules. Under ADR-029 Gemini cannot be a coding generator; the exploratory study uses Claude Sonnet only, and Gemini keeps its one-shot roles. Docs/DiagnosticRuns/v1.4-gemini-s4-agy142-2026-10-19.md."
 **Context**: v1.4 instrument track, TRUST-01 L9; 24 Gemini calls
+
+---
+
+## v1.4 DDD-BETA: representation and enforcement capability
+**Timestamp**: 2026-10-20T01:36:21Z
+**User Input**: "Scheduled routine DDD-BETA, zero model calls, engine cypher-interp: per the 2026-10-19 author decision (DDD is a beta instrument), measure whether the instrument can represent a real DDD project and enforce each DDD blocking rule on it (reach, seeded recall with the existing operators, twin false fires, Wilson intervals), what a class/member grain would need (not implemented), and a one-page verdict. Outputs under results/v1.4-ddd-beta/, one audit entry, PR to main, do not merge."
+**AI Response**: "Cloned the 12 DDD entries of results/v1.3-external*/selection.json and the 3 hex/DDD operator-run DDD bases at their pinned SHAs (scratch only), plus the DDD reference project and the two kept relief-volunteers agent trees. New scripts/v1.4/ddd-beta-capability.ts with helpers scripts/v1.4/lib/ddd-beta.ts and their unit tests: CLI census (post-seal off/on), concept map, grain census, rule preconditions, fixtures, seeded recall (U5a + hex/DDD operators, MO-H07 extended to ddd for post-seal FF-S02). Result: 548/548 seeded DDD keys detected; 46 twin false fires, all correct findings from twins that are not legal under DDD (37 U5a cross-context, 9 barrel cycles), 0 instrument false fires. Beta-ready (adjudicated): FF-DS01, DS02, DT01, DT03, DT04, S01, S02; not: FF-DT02 (2 real repos), FF-P07 (no operator). FF-DT01/02/03 have no precondition on either agent tree (inner entities and value shapes inside the root file, often as interfaces/type aliases); §C estimates a declaration-grain version at ~5-7 days plus a post-seal ADR. Report Docs/DiagnosticRuns/v1.4-ddd-beta-capability-2026-10-19.md."
+**Context**: v1.4 instrument track, DDD-BETA capability study; no decisions taken (D5 follow-up, Q15/Q17-Q19, aggregate declaration stay with the author); no sealed path read, MEAN-01 sample not opened, no Neo4j started
+
 ---
 
 ## v1.4 research ops: confirmatory Layered tasks sealed
@@ -2513,6 +2522,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 Study 2, EXPT / V10c / gate S14; writer calls not counted against the study
 ---
 
+## v1.4 instrument track: U12 Gemini hook confinement (code, not run live)
+**Timestamp**: 2026-10-20T03:12:02Z
+**User Input**: "Coordinator brief: build a PreToolUse hook allow-list for the Gemini generator on agy 1.4.2 and correct its permission rules (the S4 run failed in both arms); zero model calls; open a PR, do not merge."
+**AI Response**: "Built scripts/lib/generators/agy-confine-hook.mjs, a per-turn hook config and hooks.json written by writeAgyTurnFiles. The hook allows file tools only inside the work directory (realpath, no symlink escape), only the exact type-check command, finish, command_status after it, and the spec-only daedalus-arch tools in the mcp arm; everything else is denied; any error blocks. Permission rules now use only the seven real agy action kinds; the command rule is an anchored regex, because the S4 streams show the prefix rule let chained and extra-flag commands complete. The home check and G0 require the hook (checked before any agy command); S4 now fails a probe on hook-not-invoked; the G0 hooks-loaded sub-check records unverified (agy prints no such line). Docs, a declared-change note and unit U12 added. Zero model calls; one bare agy --version ran against the user HOME by mistake (no model call). S4 must be re-run live and pass before any Gemini coding cell."
+**Context**: v1.4 instrument track; Gemini generator confinement after the failed S4 of 2026-10-19; plan aidlc-docs/construction/v1.4/U12/plan.md
 ## v1.4 Study: exploratory Stage A run
 **Timestamp**: 2026-10-20T03:14:46Z
 **User Input**: "Yes, reuse the research config, go with Stage A"
@@ -2526,4 +2540,16 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **AI Response**: "Wrote the answers: construct-decisions Q1–Q25 and P1/P2/PREC; the adjudication verdicts (9 rows and N1, all spec); ADR-V14 Q-A..Q-E; the U6 Gate 0 boxes with the G0.8 (b) and G0.9 entries; MEAN-01 §12; the ADR-V13-03 draft (unsigned). Each is marked signed by the author or delegated to the coordinator. Applied all 25 answers through apply-construct-answers.ts (switch file sha256 3f796d43…). Built plan Steps 1–10 with tests. Fresh checks: the Q5, Q6 and Q12 criteria were not met. The Q10 criterion was met as written (2 new FF-S01 express rows judged incorrect by the C3 checker, likely a checker limit on package targets). This was reported to the author, and Q10 stays at the provisional C. One Neo4j 5.26.24 development re-run (not the F8 record run; ue-score --blind not run): blind recall pooled 50/64 → 55/65, layered 7/10 → 8/10, hexagonal 12/18 → 15/18, ddd 9/9 → 10/10; adjudicated 55/55. Run note: Docs/DiagnosticRuns/v1.4-u6-applied-2026-10-19.md."
 **Context**: CONSTRUCTION v1.4, unit U6, Code Generation and the freeze runbook step 3 development re-run. Plan Step 11b (signature) and the record run stay with the author (G0.6 = A). G0.10 = A: merge after the other units' development runs.
 
+---
+
+## v1.4 instrument track: U12 round 4, Gemini S4 run-3 scorer and config fixes (code, not run live)
+**Timestamp**: 2026-10-20T04:25:19Z
+**User Input**: "Coordinator brief: diagnose the third live S4 run (with the hook), fix the scorer false positives (G6, G8), make the allowed command and MCP calls pass both layers, diagnose G1 and G11 without silently changing a pass criterion; zero model calls; PR to main, do not merge."
+**AI Response**: "Re-scored run 3 from its saved streams and hook logs (zero calls). G6 and G8 were scorer false positives: the network regex matched a denied call's parameters, and a subagent ERROR record was skipped. No security escape remains. G5, G9, G10 and G11 share one cause: agy sent every hook-allowed call to a confirmation that print mode soft-denies (a hook 'allow' only delegates). The hook now answers 'auto_approve', the mcp arm gets schema-file read rules, the invalid unsandboxed(*) rule is dropped, and edit_file is path-checked. G1 none was Gemini's provider filter (not attempted, still a fail); a one-retry rule is proposed, not in force. The run-2 'prefix rule' finding is corrected (those steps were soft denials). No pass criterion changed. Run 4 is pending."
+**Context**: v1.4 instrument track; plan aidlc-docs/construction/v1.4/U12/plan.md "Round 4"; declared change Docs/v1.4/gemini-confinement-change-2026-10-20.md "Round 4"
+## v1.4 Construction: U13 shared step-1 start (STAGE-B-BUILD)
+**Timestamp**: 2026-10-20T03:42:46Z
+**User Input**: "STAGE-B-BUILD (scheduled routine): build the shared step-1 start Stage B needs (each block's none@L2 step-1 tree shared, none@L3 and mcp@L2 continuing at step 2), with stub-only tests, Stage B plan templates and a README; zero model calls; open a PR, do not merge"
+**AI Response**: "Added sharedStart (and firstRun) to the loop plan: a branched run checks its source (run, step-1 record and commit, tasks and spec hashes, cell, dry/live; refused otherwise), fetches the step-1 commit into its own snapshots.git, inherits step-01.json (marked inherited) and turns/step-01, records the source in run.json and starts at step 2, so inherited identities never count as new. 15 stub tests (dry-run Stage A then Stage B). Templates for replicate 2 none@L2 (steps 1-5, per the registration), none@L3 and mcp@L2 (replicates 1-2, steps 2-5): 15 + 24 + 24 calls. Isolation as in Stage A; the README flags S3 and per-grid harness roots. No model call."
+**Context**: v1.4 Construction, unit U13 (plan and summary in aidlc-docs/construction/v1.4/U13/); exploratory study Stage B readiness
 ---

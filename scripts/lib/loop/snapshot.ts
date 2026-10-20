@@ -137,9 +137,29 @@ export class WorkTreeSnapshots {
     return r.success ? DomainResult.ok(r.data.split('\n').filter((l) => l !== '').sort()) : DomainResult.fail(r.errors);
   }
 
+  /**
+   * Shared start (`shared-start.ts`): fetches `commit` and its ancestry from another run's store into this one (the
+   * store must exist), then puts the work tree at it. The commit shas are the source's.
+   */
+  seedFrom(sourceGitDir: string, commit: string): DomainResult<void> {
+    let fetched = this.git(['fetch', '--quiet', '--no-tags', sourceGitDir, commit]);
+    // A git that refuses a want by sha fetches the source's HEAD instead (the step-1 commit is its ancestor).
+    if (!fetched.success) fetched = this.git(['fetch', '--quiet', '--no-tags', sourceGitDir, 'HEAD']);
+    if (!fetched.success) return DomainResult.fail(fetched.errors);
+    if (!gitHasCommit(this.gitDir, commit)) return DomainResult.fail([{ code: 'LOOP_SNAPSHOT_GIT', message: `commit ${commit} was not fetched from ${path.basename(sourceGitDir)}` }]);
+    return this.restore(commit);
+  }
+
   /** Commit subjects from the root to HEAD. */
   log(): DomainResult<readonly string[]> {
     const r = this.git(['log', '--reverse', '--format=%s']);
     return r.success ? DomainResult.ok(r.data.split('\n').filter((l) => l !== '')) : DomainResult.fail(r.errors);
   }
+}
+
+/** Whether `commit` names a commit object in the store at `gitDir` (false when the store or the commit is missing). */
+export function gitHasCommit(gitDir: string, commit: string): boolean {
+  if (!fs.existsSync(path.join(gitDir, 'HEAD'))) return false;
+  const r = spawnSync('git', [`--git-dir=${gitDir}`, 'cat-file', '-e', `${commit}^{commit}`], { cwd: gitDir, env: gitEnv(), encoding: 'utf8', timeout: GIT_TIMEOUT_MS });
+  return r.error === undefined && r.status === 0;
 }
