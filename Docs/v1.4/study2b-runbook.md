@@ -156,5 +156,10 @@ Afterwards: copy the step records, call logs and score files into `results/v1.4-
 - A harness exit 1 (CLI missing or version mismatch) or 2 (plan or harness error) stops the run: record the message, then tell the author.
 - No `HEAVY_ADMISSION_BYPASS`, no Neo4j, at most two lanes, `jest --maxWorkers=2`.
 
+## Addendum 2026-10-20 (DELEG6, before any 2b call)
+
+- **Generator binary.** Use the private copy `<shared>/daedalus-study2b/bin/claude-2.1.304` as `--binary`, not the `claude` symlink, which the auto-updater can switch to a newer version. Before step 1, check `claude-2.1.304 --version` = `2.1.304 (Claude Code)` and its sha256 = `b9ac5374839f14abf3f1f45610637c332b5daee5ce0d1634726cef87aab78e6a`. Any mismatch stops the run.
+- **Acceptance (D12).** The fill-time line "tasks with `acceptance.startCommand`: 4 of 4" is **replaced** by the DELEG6 rule (`ops/decisions.md`): acceptance runs after the run on the stored snapshots, with zero calls, under the fixed start rule. The run itself goes ahead with in-loop acceptance recording `no-start-command`, which is expected and not a failure.
+
 ## Changelog
 - 2026-10-20: first version, with the rehearsal's findings applied (§3 acceptance lines).

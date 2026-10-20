@@ -2635,3 +2635,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: CONSTRUCTION — Study 2b readiness (pilot-and-rehearsal step); 13 model calls on practice tasks only
 
 ---
+
+## Study 2b — DELEG6 (acceptance after the run; CLI binary pin)
+**Timestamp**: 2026-10-20T10:40:16Z
+**User Input**: "(standing GO-2B) Make red gate items green where realistic; otherwise register what is lost."
+**AI Response**: "Rehearsal F2 (no start command) resolved by running acceptance post-run on stored snapshots under a start rule fixed before any 2b call; F4 (CLI not re-pinned) resolved by a hashed private copy of the 2.1.304 binary passed as --binary. Recorded as DELEG6; runbook addendum."
+**Context**: Study 2b gate preparation
+
+---
