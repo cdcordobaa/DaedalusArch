@@ -1,0 +1,87 @@
+{
+  "itemId": "f86df271c26e9cd6",
+  "itemName": "ProductRepository",
+  "key": "6c97069d2e8790d35b95706a0865617d8f68c7bfb18aff1683d97204e48a17f2",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "ebf632bde0cd0cdc5059a1435701b9ce1ff1847f586303e123d616a461ea59a5",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass ProductRepository (node f86df271c26e9cd6), file src/persistence/repositories.ts, lines 13-29.\nComponent: persistence. Declared layer: persistence (kind infrastructure).\nMethods:\n- create (node 9fbb80532c978753, lines 16-20, logic density 0)\n- findById (node 08467a021b53f6f6, lines 22-24, logic density 0)\n- findAll (node fa10918f222fbef7, lines 26-28, logic density 0)\nFields: items\n\n## APG neighbourhood\nGraph statistics: 3 methods; fan-out 0; fan-in 7 (CALLS 5, CONSTRUCTOR_INJECTS 2).\n- <- CALLS Method ReportService.quarterlyReport (src/business/reportService.ts)\n- <- CALLS Method TreatmentService.addProduct (src/business/treatmentService.ts)\n- <- CALLS Method TreatmentService.listProducts (src/business/treatmentService.ts)\n- <- CALLS Method TreatmentService.recordHarvest (src/business/treatmentService.ts)\n- <- CALLS Method TreatmentService.recordTreatment (src/business/treatmentService.ts)\n- <- CONSTRUCTOR_INJECTS Class ReportService (src/business/reportService.ts)\n- <- CONSTRUCTOR_INJECTS Class TreatmentService (src/business/treatmentService.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- ProductRepository: nameRole=\"repository\"\n- ProductRepository: behaviourRole=\"coordination\"\n- ProductRepository: ioCategories=[]\n- ProductRepository: lcom4=1\n- ProductRepository: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- ProductRepository.create: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- ProductRepository.findById: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- ProductRepository.findAll: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\nFlags:\n- clones/same-component-near: body clone (near, similarity 0.84) of TreatmentRepository.create in component persistence\n- clones/same-component-near: body clone (near, similarity 0.84) of HarvestRepository.create in component persistence\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of ApiaryRepository.create in component persistence\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of HiveRepository.create in component persistence\n- clones/same-component-near: body clone (near, similarity 0.84) of WeightReadingRepository.create in component persistence\n\n## Source\n=====SOURCE-BEGIN src/persistence/repositories.ts\n13| export class ProductRepository {\n14|   private readonly items = new Map<string, ProductRecord>();\n15| \n16|   create(data: Omit<ProductRecord, \"id\">): ProductRecord {\n17|     const record: ProductRecord = { id: randomUUID(), ...data };\n18|     this.items.set(record.id, record);\n19|     return record;\n20|   }\n21| \n22|   findById(id: string): ProductRecord | undefined {\n23|     return this.items.get(id);\n24|   }\n25| \n26|   findAll(): ProductRecord[] {\n27|     return [...this.items.values()];\n28|   }\n29| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T13:54:46.379Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 14,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "f86df271c26e9cd6",
+            "quote": "private readonly items = new Map<string, ProductRecord>();",
+            "startLine": 14
+          }
+        ],
+        "name": "Product",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Registers new products (e.g. beekeeping treatment products) by assigning a unique identifier and keeping them in an in-memory store.",
+        "evidence": [
+          {
+            "endLine": 20,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "9fbb80532c978753",
+            "quote": "const record: ProductRecord = { id: randomUUID(), ...data };",
+            "startLine": 16
+          },
+          {
+            "endLine": 20,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "9fbb80532c978753",
+            "quote": "this.items.set(record.id, record);",
+            "startLine": 16
+          }
+        ],
+        "name": "Store product records",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Looks up a single product by its identifier and lists all registered products for use by treatment and reporting services.",
+        "evidence": [
+          {
+            "endLine": 24,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "08467a021b53f6f6",
+            "quote": "return this.items.get(id);",
+            "startLine": 22
+          },
+          {
+            "endLine": 28,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "fa10918f222fbef7",
+            "quote": "return [...this.items.values()];",
+            "startLine": 26
+          }
+        ],
+        "name": "Retrieve product records",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 3479,
+    "outputTokens": 625
+  }
+}

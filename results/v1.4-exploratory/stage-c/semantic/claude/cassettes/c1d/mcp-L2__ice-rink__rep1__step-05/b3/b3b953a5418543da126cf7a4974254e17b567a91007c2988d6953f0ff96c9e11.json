@@ -1,0 +1,28 @@
+{
+  "itemId": "da7fc9f864292e5c",
+  "itemName": "Club Booking ~ Booking",
+  "key": "b3b953a5418543da126cf7a4974254e17b567a91007c2988d6953f0ff96c9e11",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "0a7f54d422be94ae67ea9ff8f36b522821527902db0b3020fcf5cab6b2b49b0e",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Club Booking\nwhere: ClubBookingRepository (uses), src/persistence/clubBookingRepository.ts, component persistence\ncode:\n=====SOURCE-BEGIN\nprivate readonly bookings = new Map<string, ClubBooking>();\n=====SOURCE-END=====\ngraph:\n- class ClubBookingRepository (node 440da90bcde7901a): layer infrastructure, component persistence, fan-out 0, fan-in 8\n- <- CALLS Method ClubService.book\n- <- CALLS Method ClubService.getRate\n- <- CALLS Method ClubService.invoice\n- <- CALLS Method ClubService.list\n- <- CALLS Method ClubService.setRate\n- <- CALLS Method RinkService.effectiveCapacity\n- <- CONSTRUCTOR_INJECTS Class ClubService\n- <- CONSTRUCTOR_INJECTS Class RinkService\n\n### B\nconcept: Booking\nwhere: IceMonitorService (uses), src/business/iceMonitorService.ts, component business\ncode:\n=====SOURCE-BEGIN\nfor (const b of this.bookings.listBySession(session.id)) {\n=====SOURCE-END=====\ngraph:\n- class IceMonitorService (node f59a45a01c2ed338): layer domain, component business, fan-out 10, fan-in 0\n- -> CALLS Method BookingRepository.listBySession\n- -> CALLS Method DropTextClient.send\n- -> CALLS Method IceStateRepository.getWarmSince\n- -> CALLS Method IceStateRepository.setWarmSince\n- -> CALLS Method SessionRepository.list\n- -> CALLS Method SessionRepository.update\n- -> CONSTRUCTOR_INJECTS Class BookingRepository\n- -> CONSTRUCTOR_INJECTS Class DropTextClient",
+  "recordedAt": "2026-10-20T12:59:57.648Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.72,
+    "rationale": "I judged these to be two different concepts that both happen to be called bookings. A's ClubBooking lives in its own repository, ClubBookingRepository (node 440da90bcde7901a), which stores it as `private readonly bookings = new Map<string, ClubBooking>();`. ClubService calls it through methods with club-specific behaviour: book, getRate, setRate, invoice and list. RinkService.effectiveCapacity also calls it, which suggests a club reserving a block of session capacity and being charged a rate and invoiced for it. B's Booking comes from a separate BookingRepository. IceMonitorService (node f59a45a01c2ed338) reads it per session (`this.bookings.listBySession(session.id)`) and then calls DropTextClient.send, which looks like notifying the individual people booked on a session. Separate repositories and different behaviour (club rates and invoicing versus per-session individual bookings) point to different real-world things. Both relate to sessions, but sharing that link does not make them the same concept.",
+    "same": false
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2106,
+    "outputTokens": 558
+  }
+}

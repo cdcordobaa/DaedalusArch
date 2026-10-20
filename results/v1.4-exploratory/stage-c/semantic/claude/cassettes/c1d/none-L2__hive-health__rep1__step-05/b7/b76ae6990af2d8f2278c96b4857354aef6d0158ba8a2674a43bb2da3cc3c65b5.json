@@ -1,0 +1,28 @@
+{
+  "itemId": "e4920dc6c22d73db",
+  "itemName": "Remote hive weight monitoring and swarm alerting ~ Remote hive weight monitoring",
+  "key": "b76ae6990af2d8f2278c96b4857354aef6d0158ba8a2674a43bb2da3cc3c65b5",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "b85280bc425f332af66e47247a78793341e058035c47470bf5a1262faeaa0ccd",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business capability?\n\n### A\ncapability: Remote hive weight monitoring and swarm alerting\nwhere: community:1\ncode:\n=====SOURCE-BEGIN\nexport class ScaleService {\nexport class ScaleRepository {\nexport class WeightReadingRepository {\n=====SOURCE-END=====\ngraph:\n- community community:1: 12 classes (ScaleRepository, HiveRepository, TreatmentService, WeightReadingRepository, InspectionRepository, HiveService, ReportService, ApiaryRepository, TreatmentRepository, HarvestRepository, ScaleService, ProductRepository)\n- class ScaleService (node f7e458262ae72ac4): layer domain, component business, fan-out 12, fan-in 0\n- class ScaleRepository (node 18ab235f6c31a91a): layer infrastructure, component persistence, fan-out 0, fan-in 5\n- class WeightReadingRepository (node 47ce227c703f72aa): layer infrastructure, component persistence, fan-out 0, fan-in 2\n- class InspectionRepository (node 55c79c4bdccf51e6): layer infrastructure, component persistence, fan-out 0, fan-in 7\n- class HiveRepository (node 22ea3eb4c082b330): layer infrastructure, component persistence, fan-out 0, fan-in 17\n\n### B\ncapability: Remote hive weight monitoring\nwhere: component:persistence\ncode:\n=====SOURCE-BEGIN\nexport class ScaleRepository {\nexport class WeightReadingRepository {\n=====SOURCE-END=====\ngraph:\n- component component:persistence: 9 classes (ScaleRepository, HiveRepository, WeightReadingRepository, InspectionRepository, TextHiveClient, ApiaryRepository, TreatmentRepository, HarvestRepository, ProductRepository)\n- class ScaleRepository (node 18ab235f6c31a91a): layer infrastructure, component persistence, fan-out 0, fan-in 5\n- class WeightReadingRepository (node 47ce227c703f72aa): layer infrastructure, component persistence, fan-out 0, fan-in 2",
+  "recordedAt": "2026-10-20T15:13:11.139Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.7,
+    "rationale": "I think A and B name the same capability, remote hive weight monitoring. B's code is entirely contained in A's: both are built on ScaleRepository (node 18ab235f6c31a91a) and WeightReadingRepository (node 47ce227c703f72aa). A adds ScaleService (node f7e458262ae72ac4), the domain-layer class that uses these repositories, and adds swarm alerting to the description. So B is the persistence part of the same scale-monitoring capability, not a separate one. I'm not fully certain because A's description is broader and the code doesn't show where swarm alerting is implemented.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2145,
+    "outputTokens": 432
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "itemId": "70d86c5c9c7bfac7",
+  "itemName": "Session ~ Ice Session",
+  "key": "bbd65a7a7c2eaa246c66e030c0b0465658d3af6824f256025b8a7e3cd969d9bf",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "f66c23e4971135d6dcd64c9925f30ebe7e6e9fff8ce7cbe32909f0b9f05211e0",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Session\nwhere: ReportService (uses), src/business/reportService.ts, component business\ncode:\n=====SOURCE-BEGIN\nfor (const s of this.sessions.list()) {\n=====SOURCE-END=====\ngraph:\n- class ReportService (node a663bd12cbc0090c): layer domain, component business, fan-out 4, fan-in 0\n- -> CALLS Method BookingRepository.listBySession\n- -> CALLS Method SessionRepository.list\n- -> CONSTRUCTOR_INJECTS Class BookingRepository\n- -> CONSTRUCTOR_INJECTS Class SessionRepository\n\n### B\nconcept: Ice Session\nwhere: SessionRepository (uses), src/persistence/sessionRepository.ts, component persistence\ncode:\n=====SOURCE-BEGIN\nprivate readonly sessions = new Map<string, Session>();\n=====SOURCE-END=====\ngraph:\n- class SessionRepository (node e3915d8f30e495a9): layer infrastructure, component persistence, fan-out 0, fan-in 12\n- <- CALLS Method IceMonitorService.nextSession\n- <- CALLS Method IceMonitorService.recordReading\n- <- CALLS Method ReportService.weekly\n- <- CALLS Method RinkService.cancelSession\n- <- CALLS Method RinkService.createSession\n- <- CALLS Method RinkService.getSession\n- <- CALLS Method RinkService.listSessions\n- <- CALLS Method RinkService.memberUses",
+  "recordedAt": "2026-10-20T13:00:19.468Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.86,
+    "rationale": "A and B are the same concept: the ice-rink Session entity. In A, ReportService constructor-injects SessionRepository and calls SessionRepository.list. Its `for (const s of this.sessions.list())` loop goes through the sessions that SessionRepository stores in `new Map<string, Session>()`, which is B. The graph also shows ReportService.weekly calling SessionRepository. \"Ice Session\" is just a more specific label for the same Session class, which RinkService and IceMonitorService also manage. The two names refer to one real-world thing.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 1988,
+    "outputTokens": 324
+  }
+}

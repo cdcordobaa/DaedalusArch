@@ -1,0 +1,28 @@
+{
+  "itemId": "ebb457593f26e631",
+  "itemName": "Pending Booking ~ Booking",
+  "key": "bb238a8d411f729697b18c208404512c3e5ad8d407f5d04894268aca53624b12",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "1c18a0a5f1c8f99a7a41e1a233c6a7587624db703faff03dd6c0f888b5f8d7d7",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Pending Booking\nwhere: BookingRepository (uses), src/persistence/bookingRepository.ts, component persistence\ncode:\n=====SOURCE-BEGIN\nreturn [...this.bookings.values()].filter((b) => b.status === \"pending\");\n=====SOURCE-END=====\ngraph:\n- class BookingRepository (node 2e3c5728fffb0180): layer infrastructure, component persistence, fan-out 0, fan-in 12\n- <- CALLS Method BookingService.create\n- <- CALLS Method BookingService.get\n- <- CALLS Method BookingService.handlePaymentResult\n- <- CALLS Method BookingService.releaseExpired\n- <- CALLS Method IceMonitorService.cancel\n- <- CALLS Method IceMonitorService.notifyHolders\n- <- CALLS Method ReportService.range\n- <- CALLS Method SessionService.availability\n\n### B\nconcept: Booking\nwhere: SessionService (uses), src/business/sessionService.ts, component business\ncode:\n=====SOURCE-BEGIN\nconst ticketsUsed = active.reduce((n, b) => n + b.tickets, 0);\n=====SOURCE-END=====\ngraph:\n- class SessionService (node 42a26b41b626f9ec): layer domain, component business, fan-out 10, fan-in 2\n- <- CALLS Method BookingService.create\n- -> CALLS Method BookingRepository.findBySession\n- -> CALLS Method ClubBookingRepository.findByDate\n- -> CALLS Method HireStockRepository.all\n- -> CALLS Method SessionRepository.create\n- -> CALLS Method SessionRepository.findAll\n- -> CALLS Method SessionRepository.findById\n- <- CONSTRUCTOR_INJECTS Class BookingService",
+  "recordedAt": "2026-10-20T15:40:37.163Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.6,
+    "rationale": "I think A and B refer to the same business concept, the Booking entity, but my confidence is only moderate. In A, BookingRepository (node 2e3c5728fffb0180, src/persistence/bookingRepository.ts) takes its stored bookings and keeps only those whose status is \"pending\" (`[...this.bookings.values()].filter((b) => b.status === \"pending\")`). So \"Pending Booking\" is a Booking in one lifecycle state, not a separate kind of thing. In B, SessionService (node 42a26b41b626f9ec, src/business/sessionService.ts) adds up `b.tickets` across its active bookings. The graph shows it gets them by calling BookingRepository.findBySession, so the records come from the same repository. Both snippets work on records from that one repository, just filtered by different status or scope, so the real-world thing is the same. My doubt is whether a status-based subset should count as the same concept or as a narrower refinement of it.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2083,
+    "outputTokens": 646
+  }
+}

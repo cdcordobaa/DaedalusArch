@@ -173,7 +173,28 @@ function runPath(kind: 'c1d' | 'c4', argv: readonly string[]): number {
 
 // ── analyse (zero calls) ────────────────────────────────────────────────────────────────────────────────────────────
 
-interface C4RunOut { readonly output?: { readonly intentMatch?: { status?: string }; readonly exceptionClaim?: { claimed?: boolean; citation?: { path?: string; startLine?: number; quote?: string } | null }; readonly severityClass?: string } | null }
+interface C4Answer { readonly intentMatch?: { status?: string }; readonly exceptionClaim?: { claimed?: boolean }; readonly severityClass?: string }
+interface C4RunOut { readonly grounded?: { readonly answer?: C4Answer | null } | null }
+
+/** Input and output tokens over every cassette under `dir` (the CLI envelope's usage, recorded per call). */
+function cassetteUsage(dir: string): { calls: number; inputTokens: number; outputTokens: number } {
+  const acc = { calls: 0, inputTokens: 0, outputTokens: 0 };
+  if (!fs.existsSync(dir)) return acc;
+  const walk = (d: string): void => {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (e.name.endsWith('.json')) {
+        const c = JSON.parse(fs.readFileSync(p, 'utf8')) as { usage?: { inputTokens?: number; outputTokens?: number } };
+        acc.calls += 1;
+        acc.inputTokens += c.usage?.inputTokens ?? 0;
+        acc.outputTokens += c.usage?.outputTokens ?? 0;
+      }
+    }
+  };
+  walk(dir);
+  return acc;
+}
 
 /** Files in a tree that the agent did not write: the skeleton's and the task's. Everything else is agent-written. */
 function citationProvenance(citedPath: string): 'agent-written' | 'spec' {
@@ -197,23 +218,30 @@ async function analyse(argv: readonly string[]): Promise<number> {
     if (fs.existsSync(factsFile)) {
       const facts = JSON.parse(fs.readFileSync(factsFile, 'utf8')) as FactsFile;
       const model = facts.facts.filter((f) => f.source === 'model');
-      const hi = model.filter((f) => f.confidence !== null && f.confidence >= threshold);
+      const agreed = model.filter((f) => f.agreement === 'agreed');
+      const hi = agreed.filter((f) => f.confidence !== null && f.confidence >= threshold);
       const byPred = (fs1: typeof model): Record<string, number> => fs1.reduce<Record<string, number>>((acc, f) => ({ ...acc, [f.predicate]: (acc[f.predicate] ?? 0) + 1 }), {});
       const conf = model.map((f) => f.confidence).filter((c): c is number => c !== null).sort((x, y) => x - y);
       const input = await prepareOntologyInput(path.join(work, slug), { layerModel: layers });
+      const factById = new Map(facts.facts.map((f) => [f.id, f]));
       const sem = async (ff: FactsFile): Promise<unknown> => {
         const repo = new MemoryGraphRepository();
         const loaded = await loadFacts(input.apg, layers, ff, repo);
         if (!loaded.success) return { error: loaded.errors.map((e) => e.message).join('; ') };
         const v = await runSemRules(repo, ff, ff.producer.factPolicy);
-        return v.success ? v.data.map((x) => ({ rule: x.rule, sites: x.sites.map((id) => input.apg.nodes.find((n) => n.id === id)?.name ?? id), ...(x.verified !== undefined ? { verified: x.verified } : {}) })) : { error: v.errors.map((e) => e.message).join('; ') };
+        return v.success ? v.data.map((x) => ({
+          rule: x.rule, sites: x.sites.map((id) => { const n = input.apg.nodes.find((m) => m.id === id); return n === undefined ? id : `${n.name} (${n.filePath})`; }),
+          ...(x.verified !== undefined ? { verified: x.verified } : {}),
+          facts: x.facts.map((id) => { const f = factById.get(id); return f === undefined ? id : { predicate: f.predicate, value: f.value, confidence: f.confidence }; }),
+        })) : { error: v.errors.map((e) => e.message).join('; ') };
       };
       const filtered: FactsFile = { ...facts, facts: facts.facts.filter((f) => f.source !== 'model' || (f.confidence !== null && f.confidence >= threshold)) };
       row.c1d = {
         factsTotal: facts.facts.length, parserFacts: facts.facts.length - model.length, modelFacts: model.length,
         modelByPredicate: byPred(model), modelByAgreement: model.reduce<Record<string, number>>((acc, f) => ({ ...acc, [String(f.agreement)]: (acc[String(f.agreement)] ?? 0) + 1 }), {}),
         confidence: conf.length === 0 ? null : { min: conf[0], median: conf[Math.floor(conf.length / 2)], max: conf[conf.length - 1] },
-        atOrAboveThreshold: { threshold, modelFacts: hi.length, byPredicate: byPred(hi) },
+        agreedModelFacts: agreed.length, agreedByPredicate: byPred(agreed),
+        atOrAboveThreshold: { threshold, agreedModelFacts: hi.length, byPredicate: byPred(hi) },
         semVerdictsAll: await sem(facts), semVerdictsThreshold: await sem(filtered),
       };
     } else row.c1d = null;
@@ -222,8 +250,8 @@ async function analyse(argv: readonly string[]): Promise<number> {
       const a5 = JSON.parse(fs.readFileSync(a5File, 'utf8')) as { entries: { findingId: string; finding: { rule: string; files: readonly string[] }; runs: readonly C4RunOut[]; merged: { exception: { claimed: boolean; stability: string; citation: { path: string; startLine: number; quote: string } | null } } & Record<string, unknown> }[] };
       const findings = a5.entries.map((e) => ({
         findingId: e.findingId, rule: e.finding.rule, files: e.finding.files,
-        runs: e.runs.map((r) => ({ intent: r.output?.intentMatch?.status ?? null, exception: r.output?.exceptionClaim?.claimed ?? null, severity: r.output?.severityClass ?? null })),
-        merged: e.merged,
+        runs: e.runs.map((r) => ({ intent: r.grounded?.answer?.intentMatch?.status ?? null, exception: r.grounded?.answer?.exceptionClaim?.claimed ?? null, severity: r.grounded?.answer?.severityClass ?? null })),
+        merged: { ...e.merged, explanation: undefined },
         stableException: e.merged.exception.claimed && e.merged.exception.stability === 'agreed' && e.merged.exception.citation !== null,
         citationProvenance: e.merged.exception.citation === null ? null : citationProvenance(e.merged.exception.citation.path),
       }));
@@ -235,7 +263,8 @@ async function analyse(argv: readonly string[]): Promise<number> {
     rows.push(row);
   }
   const file = path.join(outDir, 'analysis.json');
-  fs.writeFileSync(file, `${scrubText(JSON.stringify({ threshold, spec: SPEC, rows }, null, 2), work)}\n`);
+  const usage = { c1d: cassetteUsage(path.join(outDir, 'cassettes', 'c1d')), c4: cassetteUsage(path.join(outDir, 'cassettes', 'c4')) };
+  fs.writeFileSync(file, `${scrubText(JSON.stringify({ threshold, spec: SPEC, usage, rows }, null, 2), work)}\n`);
   out(`wrote ${file}`);
   return 0;
 }

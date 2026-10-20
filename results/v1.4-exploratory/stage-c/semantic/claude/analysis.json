@@ -1,0 +1,2478 @@
+{
+  "threshold": 0.75,
+  "spec": "presets/layered.yaml",
+  "usage": {
+    "c1d": {
+      "calls": 692,
+      "inputTokens": 2189109,
+      "outputTokens": 608238
+    },
+    "c4": {
+      "calls": 34,
+      "inputTokens": 107562,
+      "outputTokens": 24267
+    }
+  },
+  "rows": [
+    {
+      "id": "mcp@L2/hive-health/rep1/step-05",
+      "cell": "mcp@L2",
+      "task": "hive-health",
+      "rep": 1,
+      "blocking": 0,
+      "c1d": {
+        "factsTotal": 284,
+        "parserFacts": 100,
+        "modelFacts": 184,
+        "modelByPredicate": {
+          "embodiesConcept": 52,
+          "enforcesRule": 25,
+          "hasResponsibility": 47,
+          "realizesCapability": 48,
+          "sameConceptAs": 12
+        },
+        "modelByAgreement": {
+          "agreed": 164,
+          "single-run": 20
+        },
+        "confidence": {
+          "min": 0.5,
+          "median": 0.8,
+          "max": 0.95
+        },
+        "agreedModelFacts": 164,
+        "agreedByPredicate": {
+          "embodiesConcept": 40,
+          "enforcesRule": 21,
+          "hasResponsibility": 44,
+          "realizesCapability": 47,
+          "sameConceptAs": 12
+        },
+        "atOrAboveThreshold": {
+          "threshold": 0.75,
+          "agreedModelFacts": 133,
+          "byPredicate": {
+            "embodiesConcept": 30,
+            "enforcesRule": 20,
+            "hasResponsibility": 37,
+            "realizesCapability": 34,
+            "sameConceptAs": 12
+          }
+        },
+        "semVerdictsAll": [
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "TreatmentService (src/business/treatmentService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Treatment history and product listing queries",
+                  "description": "Returns the product catalogue and the treatment history of an existing hive, using repositories to fetch the data.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.7
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "HiveService (src/business/hiveService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Hive status views",
+                  "description": "Lists hives (all, or those in one apiary) and fetches one hive, adding its latest inspection and whether it needs treatment.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "HiveService (src/business/hiveService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Apiary registration and listing",
+                  "description": "Registers a beekeeper's apiary with a required name and region, and lists all apiaries.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "HarvestService (src/business/harvestService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Record harvest use case",
+                  "description": "Coordinates the checks above, then saves the new harvest record.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.75
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "HarvestService (src/business/harvestService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "List harvests of a hive",
+                  "description": "Returns a hive's harvest history after checking that the hive exists.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "ScaleService (src/business/scaleService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Schedule and send the swarm SMS alert",
+                  "description": "Waits until the period after the drop has passed, then sends the hive owner an SMS about the possible swarm. If the SMS fails, the error is ignored so the scale's webhook call does not fail.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          }
+        ],
+        "semVerdictsThreshold": [
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "HiveService (src/business/hiveService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Hive status views",
+                  "description": "Lists hives (all, or those in one apiary) and fetches one hive, adding its latest inspection and whether it needs treatment.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "HiveService (src/business/hiveService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Apiary registration and listing",
+                  "description": "Registers a beekeeper's apiary with a required name and region, and lists all apiaries.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "HarvestService (src/business/harvestService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Record harvest use case",
+                  "description": "Coordinates the checks above, then saves the new harvest record.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.75
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "HarvestService (src/business/harvestService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "List harvests of a hive",
+                  "description": "Returns a hive's harvest history after checking that the hive exists.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "ScaleService (src/business/scaleService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Schedule and send the swarm SMS alert",
+                  "description": "Waits until the period after the drop has passed, then sends the hive owner an SMS about the possible swarm. If the SMS fails, the error is ignored so the scale's webhook call does not fail.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "mcp@L2/hive-health/rep2/step-05",
+      "cell": "mcp@L2",
+      "task": "hive-health",
+      "rep": 2,
+      "blocking": 0,
+      "c1d": {
+        "factsTotal": 260,
+        "parserFacts": 96,
+        "modelFacts": 164,
+        "modelByPredicate": {
+          "embodiesConcept": 47,
+          "enforcesRule": 21,
+          "hasResponsibility": 44,
+          "realizesCapability": 35,
+          "sameConceptAs": 17
+        },
+        "modelByAgreement": {
+          "agreed": 150,
+          "single-run": 14
+        },
+        "confidence": {
+          "min": 0.45,
+          "median": 0.85,
+          "max": 0.95
+        },
+        "agreedModelFacts": 150,
+        "agreedByPredicate": {
+          "embodiesConcept": 42,
+          "enforcesRule": 19,
+          "hasResponsibility": 40,
+          "realizesCapability": 32,
+          "sameConceptAs": 17
+        },
+        "atOrAboveThreshold": {
+          "threshold": 0.75,
+          "agreedModelFacts": 127,
+          "byPredicate": {
+            "embodiesConcept": 29,
+            "enforcesRule": 16,
+            "hasResponsibility": 40,
+            "realizesCapability": 27,
+            "sameConceptAs": 15
+          }
+        },
+        "semVerdictsAll": [
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "TreatmentService (src/business/treatmentService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Querying a hive's treatment and harvest history",
+                  "description": "Lists the treatments and harvests of a hive after checking that the hive exists.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.75
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "BeekeepingService (src/business/services.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Apiary registration and lookup",
+                  "description": "Registers a new apiary owned by the authenticated member with a validated name and region, and lists or retrieves apiaries, raising not_found for unknown ones.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.85
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "BeekeepingService (src/business/services.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Hive status reporting",
+                  "description": "Builds a hive status view with the latest inspection and the needs-treatment flag, and lists hives per apiary or those needing treatment.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "ReportService (src/business/reportService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Quarterly regional report orchestration",
+                  "description": "Builds the quarterly beekeeping report by fetching apiaries, hives, treatments, products and harvests from repositories and putting together one summary per region for the requested quarter.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.85
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "ScaleService (src/business/scaleService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Record and validate weight readings",
+                  "description": "Checks incoming scale weight readings (serial number, kilograms, timestamp), confirms the scale is linked, and stores each reading.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          }
+        ],
+        "semVerdictsThreshold": [
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "TreatmentService (src/business/treatmentService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Querying a hive's treatment and harvest history",
+                  "description": "Lists the treatments and harvests of a hive after checking that the hive exists.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.75
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "BeekeepingService (src/business/services.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Apiary registration and lookup",
+                  "description": "Registers a new apiary owned by the authenticated member with a validated name and region, and lists or retrieves apiaries, raising not_found for unknown ones.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.85
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "BeekeepingService (src/business/services.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Hive status reporting",
+                  "description": "Builds a hive status view with the latest inspection and the needs-treatment flag, and lists hives per apiary or those needing treatment.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "ReportService (src/business/reportService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Quarterly regional report orchestration",
+                  "description": "Builds the quarterly beekeeping report by fetching apiaries, hives, treatments, products and harvests from repositories and putting together one summary per region for the requested quarter.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.85
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "ScaleService (src/business/scaleService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Record and validate weight readings",
+                  "description": "Checks incoming scale weight readings (serial number, kilograms, timestamp), confirms the scale is linked, and stores each reading.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "mcp@L2/ice-rink/rep1/step-05",
+      "cell": "mcp@L2",
+      "task": "ice-rink",
+      "rep": 1,
+      "blocking": 0,
+      "c1d": {
+        "factsTotal": 269,
+        "parserFacts": 90,
+        "modelFacts": 179,
+        "modelByPredicate": {
+          "embodiesConcept": 50,
+          "enforcesRule": 35,
+          "hasResponsibility": 45,
+          "realizesCapability": 38,
+          "sameConceptAs": 11
+        },
+        "modelByAgreement": {
+          "agreed": 158,
+          "single-run": 21
+        },
+        "confidence": {
+          "min": 0.5,
+          "median": 0.8,
+          "max": 0.92
+        },
+        "agreedModelFacts": 158,
+        "agreedByPredicate": {
+          "embodiesConcept": 44,
+          "enforcesRule": 26,
+          "hasResponsibility": 43,
+          "realizesCapability": 34,
+          "sameConceptAs": 11
+        },
+        "atOrAboveThreshold": {
+          "threshold": 0.75,
+          "agreedModelFacts": 123,
+          "byPredicate": {
+            "embodiesConcept": 26,
+            "enforcesRule": 23,
+            "hasResponsibility": 40,
+            "realizesCapability": 26,
+            "sameConceptAs": 8
+          }
+        },
+        "semVerdictsAll": [
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "RinkService (src/business/rinkService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Payment checkout orchestration",
+                  "description": "Opens a PuckPay checkout for a booking that has something to pay. If the checkout cannot be created, the booking is marked failed.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.75
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "RinkService (src/business/rinkService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Payment result settlement",
+                  "description": "Applies payment results from the PuckPay webhook to bookings. Repeated results for bookings that are already settled have no effect.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "ClubService (src/business/clubService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Club booking listing",
+                  "description": "Lists club bookings, each marked as a whole-rink or half-rink booking.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.7
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "ReportService (src/business/reportService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Gather report data from repositories",
+                  "description": "Pulls the sessions and each session's bookings from the repositories in order to build the report.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.6
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "IceMonitorService (src/business/iceMonitorService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Notify booking holders of the session hold",
+                  "description": "Collects the unique phone numbers from paid or pending bookings for the held session and texts each one about the hold. A failed text is logged and does not stop the others.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.85
+              }
+            ]
+          }
+        ],
+        "semVerdictsThreshold": [
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "RinkService (src/business/rinkService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Payment checkout orchestration",
+                  "description": "Opens a PuckPay checkout for a booking that has something to pay. If the checkout cannot be created, the booking is marked failed.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.75
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "RinkService (src/business/rinkService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Payment result settlement",
+                  "description": "Applies payment results from the PuckPay webhook to bookings. Repeated results for bookings that are already settled have no effect.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "IceMonitorService (src/business/iceMonitorService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Notify booking holders of the session hold",
+                  "description": "Collects the unique phone numbers from paid or pending bookings for the held session and texts each one about the hold. A failed text is logged and does not stop the others.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.85
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "mcp@L2/ice-rink/rep2/step-05",
+      "cell": "mcp@L2",
+      "task": "ice-rink",
+      "rep": 2,
+      "blocking": 0,
+      "c1d": {
+        "factsTotal": 253,
+        "parserFacts": 75,
+        "modelFacts": 178,
+        "modelByPredicate": {
+          "embodiesConcept": 49,
+          "enforcesRule": 37,
+          "hasResponsibility": 48,
+          "realizesCapability": 32,
+          "sameConceptAs": 12
+        },
+        "modelByAgreement": {
+          "agreed": 157,
+          "single-run": 21
+        },
+        "confidence": {
+          "min": 0.45,
+          "median": 0.85,
+          "max": 0.95
+        },
+        "agreedModelFacts": 157,
+        "agreedByPredicate": {
+          "embodiesConcept": 36,
+          "enforcesRule": 34,
+          "hasResponsibility": 44,
+          "realizesCapability": 32,
+          "sameConceptAs": 11
+        },
+        "atOrAboveThreshold": {
+          "threshold": 0.75,
+          "agreedModelFacts": 129,
+          "byPredicate": {
+            "embodiesConcept": 25,
+            "enforcesRule": 30,
+            "hasResponsibility": 40,
+            "realizesCapability": 25,
+            "sameConceptAs": 9
+          }
+        },
+        "semVerdictsAll": [
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "DomainError (src/business/errors.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Classify failure by transport status code",
+                  "description": "Tags each failure with an HTTP-style status code (400, 404, 409, 502) so callers can map it to a transport response. This mapping is a presentation concern sitting inside the business layer.",
+                  "naturalLayer": "presentation"
+                },
+                "confidence": 0.65
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "BookingRepository (src/persistence/bookingRepository.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Find a member's active bookings for a month",
+                  "description": "Selects a member's bookings for a given month that count as active. A booking is active when its status is pending or paid. This rule is a business rule built into the query.",
+                  "naturalLayer": "domain"
+                },
+                "confidence": 0.75
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "BookingService (src/business/bookingService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Retrieve bookings",
+                  "description": "Looks up a booking by its id and reports an error if it does not exist.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.7
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "BookingService (src/business/bookingService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Orchestrate booking creation and checkout",
+                  "description": "Saves the booking with a payment deadline and starts a PuckPay checkout. If the checkout cannot be created, the booking is marked as failed.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "SessionService (src/business/sessionService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "List and retrieve sessions with availability",
+                  "description": "Provides session lookups enriched with current availability, failing with not-found for unknown sessions.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "ClubBookingService (src/business/clubBookingService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Record club bookings",
+                  "description": "Saves a validated club booking with a creation timestamp, and lets callers list all bookings or fetch one by id (not found gives a 404 error).",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.75
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "ReportService (src/business/reportService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Orchestrate weekly report generation",
+                  "description": "Runs the report use case: loads the sessions in the range and their bookings from the repositories, then builds and returns the report.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.6
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "IceMonitorService (src/business/iceMonitorService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Manager releases held session",
+                  "description": "Lets a manager reopen a held session so ticket sales resume, and resets the warm window.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.85
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "IceMonitorService (src/business/iceMonitorService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Place session on hold and notify ticket holders",
+                  "description": "Marks the session on hold and sends a text message to the phones of paid or pending bookings.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.85
+              }
+            ]
+          }
+        ],
+        "semVerdictsThreshold": [
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "BookingRepository (src/persistence/bookingRepository.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Find a member's active bookings for a month",
+                  "description": "Selects a member's bookings for a given month that count as active. A booking is active when its status is pending or paid. This rule is a business rule built into the query.",
+                  "naturalLayer": "domain"
+                },
+                "confidence": 0.75
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "BookingService (src/business/bookingService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Orchestrate booking creation and checkout",
+                  "description": "Saves the booking with a payment deadline and starts a PuckPay checkout. If the checkout cannot be created, the booking is marked as failed.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "SessionService (src/business/sessionService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "List and retrieve sessions with availability",
+                  "description": "Provides session lookups enriched with current availability, failing with not-found for unknown sessions.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "ClubBookingService (src/business/clubBookingService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Record club bookings",
+                  "description": "Saves a validated club booking with a creation timestamp, and lets callers list all bookings or fetch one by id (not found gives a 404 error).",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.75
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "IceMonitorService (src/business/iceMonitorService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Manager releases held session",
+                  "description": "Lets a manager reopen a held session so ticket sales resume, and resets the warm window.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.85
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "IceMonitorService (src/business/iceMonitorService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Place session on hold and notify ticket holders",
+                  "description": "Marks the session on hold and sends a text message to the phones of paid or pending bookings.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.85
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "none@L2/hive-health/rep1/step-05",
+      "cell": "none@L2",
+      "task": "hive-health",
+      "rep": 1,
+      "blocking": 2,
+      "c1d": {
+        "factsTotal": 277,
+        "parserFacts": 100,
+        "modelFacts": 177,
+        "modelByPredicate": {
+          "embodiesConcept": 48,
+          "enforcesRule": 24,
+          "hasResponsibility": 47,
+          "realizesCapability": 45,
+          "sameConceptAs": 13
+        },
+        "modelByAgreement": {
+          "single-run": 18,
+          "agreed": 159
+        },
+        "confidence": {
+          "min": 0.4,
+          "median": 0.8,
+          "max": 0.92
+        },
+        "agreedModelFacts": 159,
+        "agreedByPredicate": {
+          "embodiesConcept": 42,
+          "enforcesRule": 21,
+          "hasResponsibility": 42,
+          "realizesCapability": 41,
+          "sameConceptAs": 13
+        },
+        "atOrAboveThreshold": {
+          "threshold": 0.75,
+          "agreedModelFacts": 129,
+          "byPredicate": {
+            "embodiesConcept": 28,
+            "enforcesRule": 20,
+            "hasResponsibility": 35,
+            "realizesCapability": 33,
+            "sameConceptAs": 13
+          }
+        },
+        "semVerdictsAll": [
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "TreatmentService (src/business/treatmentService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Hive treatment and harvest history lookup",
+                  "description": "Returns the treatments and harvests for an existing hive. Fails with a not-found error if the hive does not exist.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.75
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "HiveService (src/business/hiveService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Hive querying with status view",
+                  "description": "Lists hives, optionally filtered by apiary, or fetches one hive. Each hive comes with its latest inspection and whether it needs treatment.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "HiveService (src/business/hiveService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Apiary registration and listing",
+                  "description": "Registers a member's apiary with a required name and region, and lists all apiaries.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "ReportService (src/business/reportService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Quarterly report assembly",
+                  "description": "Runs the quarterly report use case: loads hives, apiaries, treatments, products and harvests from the repositories and returns region reports sorted by region name.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.7
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "ScaleService (src/business/scaleService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "List hive scales",
+                  "description": "Lists the scales linked to an existing hive.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "ScaleService (src/business/scaleService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Send swarm SMS",
+                  "description": "Records when the last alert was sent and texts the scale owner's phone number about a possible swarm.",
+                  "naturalLayer": "infrastructure"
+                },
+                "confidence": 0.7
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "ScaleService (src/business/scaleService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Delayed swarm alerting",
+                  "description": "Holds a swarm SMS alert for a set time and cancels it if an inspection recorded in that time explains the weight drop.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.85
+              }
+            ]
+          }
+        ],
+        "semVerdictsThreshold": [
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "TreatmentService (src/business/treatmentService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Hive treatment and harvest history lookup",
+                  "description": "Returns the treatments and harvests for an existing hive. Fails with a not-found error if the hive does not exist.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.75
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "HiveService (src/business/hiveService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Hive querying with status view",
+                  "description": "Lists hives, optionally filtered by apiary, or fetches one hive. Each hive comes with its latest inspection and whether it needs treatment.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "HiveService (src/business/hiveService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Apiary registration and listing",
+                  "description": "Registers a member's apiary with a required name and region, and lists all apiaries.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "ScaleService (src/business/scaleService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "List hive scales",
+                  "description": "Lists the scales linked to an existing hive.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "ScaleService (src/business/scaleService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Delayed swarm alerting",
+                  "description": "Holds a swarm SMS alert for a set time and cancels it if an inspection recorded in that time explains the weight drop.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.85
+              }
+            ]
+          }
+        ]
+      },
+      "c4": {
+        "findings": [
+          {
+            "findingId": "c4f:44e69c4aa76c1875",
+            "rule": "FF-S03",
+            "files": [
+              "src/presentation/server.ts",
+              "src/persistence/repositories.ts"
+            ],
+            "runs": [
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "medium"
+              },
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "medium"
+              }
+            ],
+            "merged": {
+              "exception": {
+                "claimed": false,
+                "stability": "agreed",
+                "citation": null,
+                "scope": null
+              },
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "stability": "agreed"
+              },
+              "severityClass": {
+                "value": "medium",
+                "stability": "agreed"
+              },
+              "validRuns": 2
+            },
+            "stableException": false,
+            "citationProvenance": null
+          },
+          {
+            "findingId": "c4f:86a8327b8528ccef",
+            "rule": "FF-S03",
+            "files": [
+              "src/presentation/server.ts",
+              "src/persistence/textHiveClient.ts"
+            ],
+            "runs": [
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "medium"
+              },
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "medium"
+              }
+            ],
+            "merged": {
+              "exception": {
+                "claimed": false,
+                "stability": "agreed",
+                "citation": null,
+                "scope": null
+              },
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "stability": "agreed"
+              },
+              "severityClass": {
+                "value": "medium",
+                "stability": "agreed"
+              },
+              "validRuns": 2
+            },
+            "stableException": false,
+            "citationProvenance": null
+          }
+        ],
+        "D": 1,
+        "D_sem": 1,
+        "D_semAnyCitation": 1,
+        "evasionCandidates": 0
+      }
+    },
+    {
+      "id": "none@L2/ice-rink/rep1/step-05",
+      "cell": "none@L2",
+      "task": "ice-rink",
+      "rep": 1,
+      "blocking": 5,
+      "c1d": {
+        "factsTotal": 208,
+        "parserFacts": 83,
+        "modelFacts": 125,
+        "modelByPredicate": {
+          "embodiesConcept": 30,
+          "enforcesRule": 25,
+          "hasResponsibility": 37,
+          "realizesCapability": 30,
+          "sameConceptAs": 3
+        },
+        "modelByAgreement": {
+          "single-run": 15,
+          "agreed": 110
+        },
+        "confidence": {
+          "min": 0.55,
+          "median": 0.85,
+          "max": 0.92
+        },
+        "agreedModelFacts": 110,
+        "agreedByPredicate": {
+          "embodiesConcept": 25,
+          "enforcesRule": 21,
+          "hasResponsibility": 35,
+          "realizesCapability": 26,
+          "sameConceptAs": 3
+        },
+        "atOrAboveThreshold": {
+          "threshold": 0.75,
+          "agreedModelFacts": 97,
+          "byPredicate": {
+            "embodiesConcept": 22,
+            "enforcesRule": 19,
+            "hasResponsibility": 34,
+            "realizesCapability": 19,
+            "sameConceptAs": 3
+          }
+        },
+        "semVerdictsAll": [
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "RinkService (src/business/rinkService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Ticket purchase with pricing and reservation",
+                  "description": "Sells tickets and skate hire for a session. Checks the purchase is valid, makes sure enough places and hire skates are left, and prices the booking (free for members). Then starts a PuckPay checkout.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.9
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "RinkService (src/business/rinkService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Held session cancellation, refund or release",
+                  "description": "Cancels a held session, cancelling pending bookings and refunding paid tickets. Can instead release a held session so ticket sales start again.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.85
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "RinkService (src/business/rinkService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Notifying skaters of session hold",
+                  "description": "Sends an SMS through DropText to each skater with an active booking on a session that has been put on hold.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "RinkService (src/business/rinkService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Payment result settlement",
+                  "description": "Handles PuckPay payment results. It updates the booking status and refunds payments that arrive after the booking was cancelled. Results for bookings that are already settled are ignored.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.85
+              }
+            ]
+          }
+        ],
+        "semVerdictsThreshold": [
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "RinkService (src/business/rinkService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Ticket purchase with pricing and reservation",
+                  "description": "Sells tickets and skate hire for a session. Checks the purchase is valid, makes sure enough places and hire skates are left, and prices the booking (free for members). Then starts a PuckPay checkout.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.9
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "RinkService (src/business/rinkService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Held session cancellation, refund or release",
+                  "description": "Cancels a held session, cancelling pending bookings and refunding paid tickets. Can instead release a held session so ticket sales start again.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.85
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "RinkService (src/business/rinkService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Notifying skaters of session hold",
+                  "description": "Sends an SMS through DropText to each skater with an active booking on a session that has been put on hold.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "RinkService (src/business/rinkService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Payment result settlement",
+                  "description": "Handles PuckPay payment results. It updates the booking status and refunds payments that arrive after the booking was cancelled. Results for bookings that are already settled are ignored.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.85
+              }
+            ]
+          }
+        ]
+      },
+      "c4": {
+        "findings": [
+          {
+            "findingId": "c4f:0cb86b54abf3670b",
+            "rule": "FF-S03",
+            "files": [
+              "src/presentation/server.ts",
+              "src/persistence/puckPayClient.ts"
+            ],
+            "runs": [
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              },
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              }
+            ],
+            "merged": {
+              "exception": {
+                "claimed": false,
+                "stability": "agreed",
+                "citation": null,
+                "scope": null
+              },
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "stability": "agreed"
+              },
+              "severityClass": {
+                "value": "low",
+                "stability": "agreed"
+              },
+              "validRuns": 2
+            },
+            "stableException": false,
+            "citationProvenance": null
+          },
+          {
+            "findingId": "c4f:4e7f197ddb37e937",
+            "rule": "FF-S03",
+            "files": [
+              "src/presentation/server.ts",
+              "src/persistence/bookingRepository.ts"
+            ],
+            "runs": [
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              },
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              }
+            ],
+            "merged": {
+              "exception": {
+                "claimed": false,
+                "stability": "agreed",
+                "citation": null,
+                "scope": null
+              },
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "stability": "agreed"
+              },
+              "severityClass": {
+                "value": "low",
+                "stability": "agreed"
+              },
+              "validRuns": 2
+            },
+            "stableException": false,
+            "citationProvenance": null
+          },
+          {
+            "findingId": "c4f:95bd8895ec396813",
+            "rule": "FF-S03",
+            "files": [
+              "src/presentation/server.ts",
+              "src/persistence/hireStockRepository.ts"
+            ],
+            "runs": [
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              },
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              }
+            ],
+            "merged": {
+              "exception": {
+                "claimed": false,
+                "stability": "agreed",
+                "citation": null,
+                "scope": null
+              },
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "stability": "agreed"
+              },
+              "severityClass": {
+                "value": "low",
+                "stability": "agreed"
+              },
+              "validRuns": 2
+            },
+            "stableException": false,
+            "citationProvenance": null
+          },
+          {
+            "findingId": "c4f:b7fa65ae3910d7ae",
+            "rule": "FF-S03",
+            "files": [
+              "src/presentation/server.ts",
+              "src/persistence/dropTextClient.ts"
+            ],
+            "runs": [
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              },
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              }
+            ],
+            "merged": {
+              "exception": {
+                "claimed": false,
+                "stability": "agreed",
+                "citation": null,
+                "scope": null
+              },
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "stability": "agreed"
+              },
+              "severityClass": {
+                "value": "low",
+                "stability": "agreed"
+              },
+              "validRuns": 2
+            },
+            "stableException": false,
+            "citationProvenance": null
+          },
+          {
+            "findingId": "c4f:f9a83811aa299e28",
+            "rule": "FF-S03",
+            "files": [
+              "src/presentation/server.ts",
+              "src/persistence/sessionRepository.ts"
+            ],
+            "runs": [
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              },
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              }
+            ],
+            "merged": {
+              "exception": {
+                "claimed": false,
+                "stability": "agreed",
+                "citation": null,
+                "scope": null
+              },
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "stability": "agreed"
+              },
+              "severityClass": {
+                "value": "low",
+                "stability": "agreed"
+              },
+              "validRuns": 2
+            },
+            "stableException": false,
+            "citationProvenance": null
+          }
+        ],
+        "D": 1,
+        "D_sem": 1,
+        "D_semAnyCitation": 1,
+        "evasionCandidates": 0
+      }
+    },
+    {
+      "id": "none@L2/ice-rink/rep2/step-05",
+      "cell": "none@L2",
+      "task": "ice-rink",
+      "rep": 2,
+      "blocking": 7,
+      "c1d": {
+        "factsTotal": 273,
+        "parserFacts": 82,
+        "modelFacts": 191,
+        "modelByPredicate": {
+          "embodiesConcept": 50,
+          "enforcesRule": 48,
+          "hasResponsibility": 50,
+          "realizesCapability": 37,
+          "sameConceptAs": 6
+        },
+        "modelByAgreement": {
+          "agreed": 160,
+          "single-run": 31
+        },
+        "confidence": {
+          "min": 0.5,
+          "median": 0.8,
+          "max": 0.95
+        },
+        "agreedModelFacts": 160,
+        "agreedByPredicate": {
+          "embodiesConcept": 33,
+          "enforcesRule": 43,
+          "hasResponsibility": 46,
+          "realizesCapability": 34,
+          "sameConceptAs": 4
+        },
+        "atOrAboveThreshold": {
+          "threshold": 0.75,
+          "agreedModelFacts": 128,
+          "byPredicate": {
+            "embodiesConcept": 21,
+            "enforcesRule": 34,
+            "hasResponsibility": 42,
+            "realizesCapability": 29,
+            "sameConceptAs": 2
+          }
+        },
+        "semVerdictsAll": [
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "DomainError (src/business/errors.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Classify failures into status categories",
+                  "description": "Puts each domain failure into a fixed set of outcome categories that line up with HTTP status codes (400, 404, 409, 502). Callers can then map the failure to a transport response.",
+                  "naturalLayer": "presentation"
+                },
+                "confidence": 0.6
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "BookingService (src/business/bookingService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Orchestrate booking creation and payment checkout",
+                  "description": "Creates the booking record, which is paid straight away when free and pending otherwise. It then starts a PuckPay checkout and marks the booking as failed if the checkout cannot be created.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.85
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "SessionService (src/business/sessionService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Retrieve sessions with their availability",
+                  "description": "Lists all sessions, or looks one up by id, and attaches its current availability. Reports a not-found error when no session has that id.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "ClubBookingService (src/business/clubBookingService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Record and list club bookings",
+                  "description": "Saves an accepted club booking with its creation timestamp and returns all club bookings, using the repository for storage.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.75
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "TemperatureRepository (src/persistence/temperatureRepository.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Keep readings in time order and limit history size",
+                  "description": "Sorts readings chronologically and keeps only the most recent MAX_READINGS entries.",
+                  "naturalLayer": "domain"
+                },
+                "confidence": 0.7
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "ReportService (src/business/reportService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Report CSV export",
+                  "description": "Turns a report into CSV text, with one column per hire size and a final totals row.",
+                  "naturalLayer": "presentation"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "IceMonitorService (src/business/iceMonitorService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Prevent concurrent cancellation",
+                  "description": "Blocks a second cancel or a release while a session is already being cancelled.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.7
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "IceMonitorService (src/business/iceMonitorService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Notify ticket holders of hold",
+                  "description": "Sends a text message to every paid or pending booking holder when their session is put on hold.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          }
+        ],
+        "semVerdictsThreshold": [
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "BookingService (src/business/bookingService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Orchestrate booking creation and payment checkout",
+                  "description": "Creates the booking record, which is paid straight away when free and pending otherwise. It then starts a PuckPay checkout and marks the booking as failed if the checkout cannot be created.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.85
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "SessionService (src/business/sessionService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Retrieve sessions with their availability",
+                  "description": "Lists all sessions, or looks one up by id, and attaches its current availability. Reports a not-found error when no session has that id.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "ClubBookingService (src/business/clubBookingService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Record and list club bookings",
+                  "description": "Saves an accepted club booking with its creation timestamp and returns all club bookings, using the repository for storage.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.75
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "ReportService (src/business/reportService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Report CSV export",
+                  "description": "Turns a report into CSV text, with one column per hire size and a final totals row.",
+                  "naturalLayer": "presentation"
+                },
+                "confidence": 0.8
+              }
+            ]
+          },
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "IceMonitorService (src/business/iceMonitorService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Notify ticket holders of hold",
+                  "description": "Sends a text message to every paid or pending booking holder when their session is put on hold.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.8
+              }
+            ]
+          }
+        ]
+      },
+      "c4": {
+        "findings": [
+          {
+            "findingId": "c4f:051c173cd604b64a",
+            "rule": "FF-S03",
+            "files": [
+              "src/presentation/server.ts",
+              "src/persistence/temperatureRepository.ts"
+            ],
+            "runs": [
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              },
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              }
+            ],
+            "merged": {
+              "exception": {
+                "claimed": false,
+                "stability": "agreed",
+                "citation": null,
+                "scope": null
+              },
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "stability": "agreed"
+              },
+              "severityClass": {
+                "value": "low",
+                "stability": "agreed"
+              },
+              "validRuns": 2
+            },
+            "stableException": false,
+            "citationProvenance": null
+          },
+          {
+            "findingId": "c4f:4413b4beb4596b25",
+            "rule": "FF-S03",
+            "files": [
+              "src/presentation/server.ts",
+              "src/persistence/sessionRepository.ts"
+            ],
+            "runs": [
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              },
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              }
+            ],
+            "merged": {
+              "exception": {
+                "claimed": false,
+                "stability": "agreed",
+                "citation": null,
+                "scope": null
+              },
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "stability": "agreed"
+              },
+              "severityClass": {
+                "value": "low",
+                "stability": "agreed"
+              },
+              "validRuns": 2
+            },
+            "stableException": false,
+            "citationProvenance": null
+          },
+          {
+            "findingId": "c4f:64804249b7a8309a",
+            "rule": "FF-S03",
+            "files": [
+              "src/presentation/server.ts",
+              "src/persistence/hireStockRepository.ts"
+            ],
+            "runs": [
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              },
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              }
+            ],
+            "merged": {
+              "exception": {
+                "claimed": false,
+                "stability": "agreed",
+                "citation": null,
+                "scope": null
+              },
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "stability": "agreed"
+              },
+              "severityClass": {
+                "value": "low",
+                "stability": "agreed"
+              },
+              "validRuns": 2
+            },
+            "stableException": false,
+            "citationProvenance": null
+          },
+          {
+            "findingId": "c4f:76958b6c175b3da4",
+            "rule": "FF-S03",
+            "files": [
+              "src/presentation/server.ts",
+              "src/persistence/clubBookingRepository.ts"
+            ],
+            "runs": [
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              },
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              }
+            ],
+            "merged": {
+              "exception": {
+                "claimed": false,
+                "stability": "agreed",
+                "citation": null,
+                "scope": null
+              },
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "stability": "agreed"
+              },
+              "severityClass": {
+                "value": "low",
+                "stability": "agreed"
+              },
+              "validRuns": 2
+            },
+            "stableException": false,
+            "citationProvenance": null
+          },
+          {
+            "findingId": "c4f:91f1961018fd80d2",
+            "rule": "FF-S03",
+            "files": [
+              "src/presentation/server.ts",
+              "src/persistence/bookingRepository.ts"
+            ],
+            "runs": [
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              },
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              }
+            ],
+            "merged": {
+              "exception": {
+                "claimed": false,
+                "stability": "agreed",
+                "citation": null,
+                "scope": null
+              },
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "stability": "agreed"
+              },
+              "severityClass": {
+                "value": "low",
+                "stability": "agreed"
+              },
+              "validRuns": 2
+            },
+            "stableException": false,
+            "citationProvenance": null
+          },
+          {
+            "findingId": "c4f:aef007626521e658",
+            "rule": "FF-S03",
+            "files": [
+              "src/presentation/server.ts",
+              "src/persistence/puckPayClient.ts"
+            ],
+            "runs": [
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              },
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              }
+            ],
+            "merged": {
+              "exception": {
+                "claimed": false,
+                "stability": "agreed",
+                "citation": null,
+                "scope": null
+              },
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "stability": "agreed"
+              },
+              "severityClass": {
+                "value": "low",
+                "stability": "agreed"
+              },
+              "validRuns": 2
+            },
+            "stableException": false,
+            "citationProvenance": null
+          },
+          {
+            "findingId": "c4f:bce0eb15cecba04a",
+            "rule": "FF-S03",
+            "files": [
+              "src/presentation/server.ts",
+              "src/persistence/dropTextClient.ts"
+            ],
+            "runs": [
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              },
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              }
+            ],
+            "merged": {
+              "exception": {
+                "claimed": false,
+                "stability": "agreed",
+                "citation": null,
+                "scope": null
+              },
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "stability": "agreed"
+              },
+              "severityClass": {
+                "value": "low",
+                "stability": "agreed"
+              },
+              "validRuns": 2
+            },
+            "stableException": false,
+            "citationProvenance": null
+          }
+        ],
+        "D": 3,
+        "D_sem": 3,
+        "D_semAnyCitation": 3,
+        "evasionCandidates": 0
+      }
+    },
+    {
+      "id": "none@L2/youth-league/rep1/step-05",
+      "cell": "none@L2",
+      "task": "youth-league",
+      "rep": 1,
+      "blocking": 3,
+      "c1d": null,
+      "c4": {
+        "findings": [
+          {
+            "findingId": "c4f:039a7ef2ab82edb6",
+            "rule": "FF-S03",
+            "files": [
+              "src/presentation/app.ts",
+              "src/persistence/gateways.ts"
+            ],
+            "runs": [
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "medium"
+              },
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "medium"
+              }
+            ],
+            "merged": {
+              "exception": {
+                "claimed": false,
+                "stability": "agreed",
+                "citation": null,
+                "scope": null
+              },
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "stability": "agreed"
+              },
+              "severityClass": {
+                "value": "medium",
+                "stability": "agreed"
+              },
+              "validRuns": 2
+            },
+            "stableException": false,
+            "citationProvenance": null
+          },
+          {
+            "findingId": "c4f:5f46635a0cc828bd",
+            "rule": "FF-S03",
+            "files": [
+              "src/presentation/app.ts",
+              "src/persistence/repositories.ts"
+            ],
+            "runs": [
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              },
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              }
+            ],
+            "merged": {
+              "exception": {
+                "claimed": false,
+                "stability": "agreed",
+                "citation": null,
+                "scope": null
+              },
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "stability": "agreed"
+              },
+              "severityClass": {
+                "value": "low",
+                "stability": "agreed"
+              },
+              "validRuns": 2
+            },
+            "stableException": false,
+            "citationProvenance": null
+          },
+          {
+            "findingId": "c4f:6bd175af789d2e0f",
+            "rule": "FF-S03",
+            "files": [
+              "src/presentation/server.ts",
+              "src/persistence/gateways.ts"
+            ],
+            "runs": [
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              },
+              {
+                "intent": "no-declared-intent",
+                "exception": false,
+                "severity": "low"
+              }
+            ],
+            "merged": {
+              "exception": {
+                "claimed": false,
+                "stability": "agreed",
+                "citation": null,
+                "scope": null
+              },
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "stability": "agreed"
+              },
+              "severityClass": {
+                "value": "low",
+                "stability": "agreed"
+              },
+              "validRuns": 2
+            },
+            "stableException": false,
+            "citationProvenance": null
+          }
+        ],
+        "D": 2,
+        "D_sem": 2,
+        "D_semAnyCitation": 2,
+        "evasionCandidates": 0
+      }
+    },
+    {
+      "id": "none@L3/hive-health/rep2/step-05",
+      "cell": "none@L3",
+      "task": "hive-health",
+      "rep": 2,
+      "blocking": 0,
+      "c1d": null
+    },
+    {
+      "id": "none@L3/ice-rink/rep1/step-05",
+      "cell": "none@L3",
+      "task": "ice-rink",
+      "rep": 1,
+      "blocking": 0,
+      "c1d": {
+        "factsTotal": 158,
+        "parserFacts": 65,
+        "modelFacts": 93,
+        "modelByPredicate": {
+          "embodiesConcept": 27,
+          "enforcesRule": 24,
+          "hasResponsibility": 26,
+          "realizesCapability": 13,
+          "sameConceptAs": 3
+        },
+        "modelByAgreement": {
+          "agreed": 77,
+          "single-run": 16
+        },
+        "confidence": {
+          "min": 0.5,
+          "median": 0.8,
+          "max": 0.92
+        },
+        "agreedModelFacts": 77,
+        "agreedByPredicate": {
+          "embodiesConcept": 20,
+          "enforcesRule": 20,
+          "hasResponsibility": 21,
+          "realizesCapability": 13,
+          "sameConceptAs": 3
+        },
+        "atOrAboveThreshold": {
+          "threshold": 0.75,
+          "agreedModelFacts": 64,
+          "byPredicate": {
+            "embodiesConcept": 15,
+            "enforcesRule": 18,
+            "hasResponsibility": 19,
+            "realizesCapability": 10,
+            "sameConceptAs": 2
+          }
+        },
+        "semVerdictsAll": [
+          {
+            "rule": "SEM-MISPLACED",
+            "sites": [
+              "RinkService (src/business/rinkService.ts)"
+            ],
+            "facts": [
+              {
+                "predicate": "hasResponsibility",
+                "value": {
+                  "name": "Session reporting",
+                  "description": "Produces per-session figures for a week or date range.",
+                  "naturalLayer": "application"
+                },
+                "confidence": 0.7
+              }
+            ]
+          }
+        ],
+        "semVerdictsThreshold": []
+      }
+    },
+    {
+      "id": "none@L3/youth-league/rep1/step-05",
+      "cell": "none@L3",
+      "task": "youth-league",
+      "rep": 1,
+      "blocking": 0,
+      "c1d": null
+    },
+    {
+      "id": "none@L3/youth-league/rep2/step-05",
+      "cell": "none@L3",
+      "task": "youth-league",
+      "rep": 2,
+      "blocking": 0,
+      "c1d": null
+    }
+  ]
+}

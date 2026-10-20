@@ -1,0 +1,43 @@
+{
+  "itemId": "c4f:039a7ef2ab82edb6",
+  "itemName": "FF-S03 src/presentation/app.ts",
+  "key": "1815ab23fe71e589eb0f42a235dcecc6890f0cc2f1435449b86f77af29f9f8cd",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "interpret",
+    "promptHash": "e584c3c985d1b76709268eca84cea866233055016b185211e4951d39cb6a7c20",
+    "promptVersion": "c4-v0.2",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "facea2932293bfdf5c089b10b035102f81276bf19e6f6f1e2033f400f7a5604a",
+    "systemHash": "ca884522b487944e879ea668531940915fce3cccf97afdb5a0005e622f70d13d"
+  },
+  "prompt": "## Task\nA deterministic rule (FF-S03) found this blocking violation: src/presentation/app.ts (presentation) skips layers to import src/persistence/gateways.ts (persistence). The verdict is fixed (C3: FF-S03 blocking fail). Read the code, the graph and the prose together; the graph alone does not show intent. Then:\n1. explanation: one paragraph on what the dependency or responsibility is and why the rule flags it.\n2. intentMatch.status: does the finding contradict, or stay consistent with, an intent the project declares in its docs, ADRs or comments? If the project declares nothing on it, say no-declared-intent. Read an ADR's status: a superseded or rejected ADR declares nothing.\n3. exceptionClaim: claim a declared exception only when a doc or comment line grants this case on purpose, and cite that line (path, lines, exact quote). Never cite code as the grant. A mention, a negation or a superseded decision is not a grant. Otherwise claimed false, citation null, scope null.\n4. severityClass: rank the work inside the blocking tier (high, medium, low). It never moves the finding out of the blocking tier.\n5. cites: the path:line of every line your answer rests on.\n\n## Finding\nrule FF-S03; origin symbolic; files src/presentation/app.ts, src/persistence/gateways.ts; sites (none); edge src/presentation/app.ts:10 -> src/persistence/gateways.ts\n\n## Facts (A2)\n- (none)\n\n## Graph slice\n- (none)\n\n## Code\n=====SOURCE-BEGIN src/presentation/app.ts (node file:src/presentation/app.ts)\n 1| import express, { NextFunction, Request, Response } from \"express\";\n 2| import { FixtureService } from \"../business/fixtureService\";\n 3| import { PitchService } from \"../business/pitchService\";\n 4| import { PlayerService } from \"../business/playerService\";\n 5| import { RefereeService } from \"../business/refereeService\";\n 6| import { TableService } from \"../business/tableService\";\n 7| import { TeamService } from \"../business/teamService\";\n 8| import { WeatherService } from \"../business/weatherService\";\n 9| import { ConflictError, NotFoundError, ValidationError } from \"../business/errors\";\n10| import { Gateways, createGateways } from \"../persistence/gateways\";\n11| import { createRepositories } from \"../persistence/repositories\";\n12| \n13| const body = (req: Request): Record<string, unknown> =>\n14|   req.body && typeof req.body === \"object\" ? (req.body as Record<string, unknown>) : {};\n15| \n16| export function createApp(gateways: Gateways = createGateways()): express.Express {\n17|   return buildApp(gateways).app;\n18| }\n19| \n20| export function buildApp(gateways: Gateways): { app: express.Express; weather: WeatherService } {\n21|   const repos = createRepositories();\n22|   const teams = new TeamService(repos);\n23|   const players = new PlayerService(repos);\n24|   const referees = new RefereeService(repos);\n25|   const fixtures = new FixtureService(repos, referees);\n26|   const pitches = new PitchService(repos);\n27|   const tables = new TableService(repos);\n28|   const weather = new WeatherService(repos, gateways);\n29| \n30|   const app = express();\n31|   app.use(express.json());\n32| \n33|   app.post(\"/teams\", (req, res) => res.status(201).json(teams.register(body(req))));\n34|   app.get(\"/teams\", (_req, res) => res.json(teams.list()));\n35|   app.get(\"/teams/:id\", (req, res) => res.json(teams.get(String(req.params.id))));\n36| \n37|   app.post(\"/players\", (req, res) => res.status(201).json(players.register(body(req))));\n38|   app.get(\"/players\", (req, res) =>\n39|     res.json(players.list(typeof req.query.teamId === \"string\" ? req.query.teamId : undefined)),\n40|   );\n41|   app.get(\"/players/:id\", (req, res) => res.json(players.get(String(req.params.id))));\n42| \n43|   app.post(\"/pitches\", (req, res) => res.status(201).json(pitches.register(body(req))));\n44|   app.get(\"/pitches\", (_req, res) => res.json(pitches.list()));\n45|   app.get(\"/pitches/:id\", (req, res) => res.json(pitches.get(String(req.params.id))));\n46| \n47|   app.post(\"/referees\", (req, res) => res.status(201).json(referees.register(body(req))));\n48|   app.get(\"/referees\", (_req, res) => res.json(referees.list()));\n49|   app.get(\"/referees/:id\", (req, res) => res.json(referees.get(String(req.params.id))));\n50| \n51|   app.post(\"/fixtures\", (req, res) => res.status(201).json(fixtures.schedule(body(req))));\n52|   app.get(\"/fixtures\", (_req, res) => res.json(fixtures.list()));\n53|   app.get(\"/fixtures/:id\", (req, res) => res.json(fixtures.get(String(req.params.id))));\n54|   app.put(\"/fixtures/:id/result\", (req, res) =>\n55|     res.json(fixtures.recordResult(String(req.params.id), body(req))),\n56|   );\n57|   app.patch(\"/fixtures/:id/result\", (req, res) =>\n58|     res.json(fixtures.correctResult(String(req.params.id), body(req))),\n59|   );\n60|   app.put(\"/fixtures/:id/referee\", (req, res) =>\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:13:28.992Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "cites": [
+      "src/presentation/app.ts:10",
+      "src/presentation/app.ts:11",
+      "src/presentation/app.ts:16",
+      "src/presentation/app.ts:20",
+      "src/presentation/app.ts:28"
+    ],
+    "exceptionClaim": {
+      "citation": null,
+      "claimed": false,
+      "scope": null
+    },
+    "explanation": "At line 10, src/presentation/app.ts imports the `Gateways` type and the `createGateways` factory from src/persistence/gateways.ts. It uses them in three places. `createApp` takes `gateways: Gateways = createGateways()` as a default parameter (line 16). `buildApp` declares `gateways: Gateways` in its public signature (line 20). That value is then passed straight into `new WeatherService(repos, gateways)` (line 28). This makes the presentation module the composition root for persistence-level external gateways: it builds and types persistence objects itself instead of getting everything through the business layer. FF-S03 flags this because a presentation-layer file depends directly on the persistence layer and skips the business layer between them. Presentation code is then tied to how persistence is built and what its types look like, so a change to the gateway API reaches the HTTP layer. Line 11 has the same pattern with `createRepositories` from ../persistence/repositories, which suggests the whole wiring of services, repositories and gateways sits in app.ts. None of the supplied docs, ADRs or comments say this wiring is intended or allowed.",
+    "intentMatch": {
+      "cites": [],
+      "status": "no-declared-intent"
+    },
+    "severityClass": "medium"
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 3502,
+    "outputTokens": 815
+  }
+}

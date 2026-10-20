@@ -1,0 +1,28 @@
+{
+  "itemId": "258408a0918f366f",
+  "itemName": "Skate hire inventory ~ Skate hire stock management",
+  "key": "32e755edc61346315bfe8bf03da134848a6666cc3b6c0331e6c53bb235487872",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "a33031a369d3951890dc47e82ca041ed7e2b092a864bdeb535ef94c96e0a6399",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business capability?\n\n### A\ncapability: Skate hire inventory\nwhere: community:3\ncode:\n=====SOURCE-BEGIN\nexport class HireStockRepository {\nexport class RinkService {\n=====SOURCE-END=====\ngraph:\n- community community:3: 5 classes (RinkService, BookingRepository, PuckPayClient, HireStockRepository, SessionRepository)\n- class RinkService (node 21c65604dec116b1): layer domain, component business, fan-out 22, fan-in 0\n- class HireStockRepository (node ada57feca2e90c67): layer infrastructure, component persistence, fan-out 0, fan-in 5\n\n### B\ncapability: Skate hire stock management\nwhere: component:business\ncode:\n=====SOURCE-BEGIN\nexport class RinkService {\n=====SOURCE-END=====\ngraph:\n- component component:business: 5 classes (DomainError, RinkService, ClubService, ReportService, IceMonitorService)\n- class RinkService (node 21c65604dec116b1): layer domain, component business, fan-out 22, fan-in 0",
+  "recordedAt": "2026-10-20T13:02:31.960Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.74,
+    "rationale": "A and B most likely name the same capability. \"Skate hire inventory\" and \"Skate hire stock management\" are near-synonyms: both are about tracking the stock of skates available to hire. Both point at the same orchestrating class, RinkService (node 21c65604dec116b1). A also includes HireStockRepository (node ada57feca2e90c67), the persistence class behind hire stock. B is defined on component:business, which is a coarser grouping than A's community:3. The difference in where each one is anchored is a difference in how the code is grouped, not a different business function. Confidence is below certain for two reasons. B's grouping also contains unrelated services such as ClubService and ReportService. And neither slice shows the code that actually implements the hire-stock logic.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 1778,
+    "outputTokens": 439
+  }
+}

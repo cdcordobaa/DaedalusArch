@@ -1,0 +1,88 @@
+{
+  "itemId": "community:0",
+  "itemName": "community:0",
+  "key": "07a54a7367e92afb9e9a36f5cba60e677e6be403adf5acaf36a826d9c294b095",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "379641138a38d04dc72ffaf86a232499cc3e0abf12fa8f7d8e7d883776e2c2d7",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of community \"0\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- BookingRepository (node 2e3c5728fffb0180), file src/persistence/bookingRepository.ts, declaration line 4: \"export class BookingRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store and retrieve bookings in memory; Index bookings by session; Find a member's active bookings for a month; Find pending bookings\n- BookingService (node 3aa201f0edaa9fd6), file src/business/bookingService.ts, declaration line 24: \"export class BookingService {\"\n  component business, layer domain; responsibilities: Validate booking requests; Enforce skate hire rules; Enforce membership free-entry allowance; Check session capacity; Price bookings; Orchestrate booking creation and checkout; Apply payment results; Expire unpaid bookings; Retrieve bookings\n- ReportService (node a663bd12cbc0090c), file src/business/reportService.ts, declaration line 58: \"export class ReportService {\"\n  component business, layer domain; responsibilities: Resolve and validate the reporting period; Aggregate per-session sales figures; Compute report-wide totals; Orchestrate weekly report generation\n\n## APG relations of the group\nGraph statistics: 3 classes; 4 relations inside the group; 9 outgoing relations to code outside it.\n- BookingService -> CALLS BookingRepository\n- BookingService -> CONSTRUCTOR_INJECTS BookingRepository\n- ReportService -> CALLS BookingRepository\n- ReportService -> CONSTRUCTOR_INJECTS BookingRepository\n\n## Comments near the code\n- BookingService.handlePaymentResult: Applies a PuckPay payment result. Idempotent; late payments do not revive released bookings.\n- ReportService: Aggregates sales figures per session; one pass over the bookings of the sessions in range.\n- ReportService.weekly: Report for the 7 days starting at weekStart, or for an explicit from/to range.",
+  "recordedAt": "2026-10-20T13:08:58.794Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.85,
+        "description": "Customers can book places on skating sessions. Requests are validated against session capacity, skate hire rules and membership free-entry allowances, then priced, and checkout is handled. Bookings are stored and looked up by session and by member.",
+        "evidence": [
+          {
+            "endLine": 24,
+            "file": "src/business/bookingService.ts",
+            "nodeId": "3aa201f0edaa9fd6",
+            "quote": "export class BookingService {",
+            "startLine": 24
+          },
+          {
+            "endLine": 4,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "2e3c5728fffb0180",
+            "quote": "export class BookingRepository {",
+            "startLine": 4
+          }
+        ],
+        "name": "Session booking and checkout",
+        "realizedBy": [
+          "3aa201f0edaa9fd6",
+          "2e3c5728fffb0180"
+        ]
+      },
+      {
+        "confidence": 0.7,
+        "description": "Payment results from the PuckPay provider are applied to bookings idempotently. Unpaid bookings expire and give their places back, and a late payment does not bring a released booking back.",
+        "evidence": [
+          {
+            "endLine": 24,
+            "file": "src/business/bookingService.ts",
+            "nodeId": "3aa201f0edaa9fd6",
+            "quote": "export class BookingService {",
+            "startLine": 24
+          }
+        ],
+        "name": "Booking payment settlement and expiry",
+        "realizedBy": [
+          "3aa201f0edaa9fd6",
+          "2e3c5728fffb0180"
+        ]
+      },
+      {
+        "confidence": 0.85,
+        "description": "Weekly sales reports cover a 7-day period or an explicit date range. They aggregate sales figures per session and compute totals across the whole report.",
+        "evidence": [
+          {
+            "endLine": 58,
+            "file": "src/business/reportService.ts",
+            "nodeId": "a663bd12cbc0090c",
+            "quote": "export class ReportService {",
+            "startLine": 58
+          }
+        ],
+        "name": "Weekly sales reporting",
+        "realizedBy": [
+          "a663bd12cbc0090c",
+          "2e3c5728fffb0180"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2399,
+    "outputTokens": 812
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "itemId": "5cb2532b440c5744",
+  "itemName": "Monthly club invoicing ~ Club rink hire and monthly invoicing",
+  "key": "2fe31db499cbdd6a0e7ae84bbca793c759980e1651922aea2b8fc431813b9164",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "5d50544eaead85deb66872216e51bc3ce44d384fcfce6d3536666b6fbf3d8f4b",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business capability?\n\n### A\ncapability: Monthly club invoicing\nwhere: community:1\ncode:\n=====SOURCE-BEGIN\nexport class ClubBookingService {\n=====SOURCE-END=====\ngraph:\n- community community:1: 4 classes (SessionService, ClubBookingRepository, ClubBookingService, HireStockRepository)\n- class ClubBookingService (node 44fb2545d0048ec3): layer domain, component business, fan-out 6, fan-in 0\n- class ClubBookingRepository (node 440da90bcde7901a): layer infrastructure, component persistence, fan-out 0, fan-in 7\n\n### B\ncapability: Club rink hire and monthly invoicing\nwhere: component:business\ncode:\n=====SOURCE-BEGIN\nexport class ClubBookingService {\n=====SOURCE-END=====\ngraph:\n- component component:business: 6 classes (DomainError, BookingService, SessionService, ClubBookingService, ReportService, IceMonitorService)\n- class ClubBookingService (node 44fb2545d0048ec3): layer domain, component business, fan-out 6, fan-in 0",
+  "recordedAt": "2026-10-20T13:18:06.288Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.72,
+    "rationale": "I judged these to be the same capability, with moderate confidence. Both labels point to the same class, ClubBookingService (node 44fb2545d0048ec3, domain layer, business component), and that class is the only code shown for either one. A is labelled \"Monthly club invoicing\" and B is labelled \"Club rink hire and monthly invoicing\". B is a little broader because it also covers rink hire, but monthly invoicing for clubs is part of both. What differs is the grouping around the class: A comes from community:1, which ties it to ClubBookingRepository, and B comes from component:business. That is a difference in how the class was grouped, not a different business function. The confidence isn't higher because B's scope is wider, and the code doesn't show whether hire and invoicing are actually separate.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 1795,
+    "outputTokens": 440
+  }
+}

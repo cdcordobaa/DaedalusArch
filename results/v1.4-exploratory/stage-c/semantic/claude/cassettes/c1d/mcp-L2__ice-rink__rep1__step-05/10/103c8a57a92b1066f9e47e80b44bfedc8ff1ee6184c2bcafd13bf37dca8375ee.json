@@ -1,0 +1,87 @@
+{
+  "itemId": "07801d262a4a214c",
+  "itemName": "DomainError",
+  "key": "103c8a57a92b1066f9e47e80b44bfedc8ff1ee6184c2bcafd13bf37dca8375ee",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "95deba3872e85ae81a628367dee835fed93d35df8a72560af9b9497b7ee545fe",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass DomainError (node 07801d262a4a214c), file src/business/errors.ts, lines 1-8.\nComponent: business. Declared layer: business (kind domain).\nMethods:\n- (none)\nFields: kind\n\n## APG neighbourhood\nGraph statistics: 0 methods; fan-out 0; fan-in 0.\n- (none)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- DomainError: nameRole=\"unknown\"\n- DomainError: behaviourRole=\"coordination\"\n- DomainError: ioCategories=[]\n- DomainError: lcom4=0\n- DomainError: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\nFlags:\n- communities/community-component-mismatch: src/business/errors.ts (component business) clusters with community 2 whose majority component is presentation\n\n## Source\n=====SOURCE-BEGIN src/business/errors.ts\n1| export class DomainError extends Error {\n2|   constructor(\n3|     readonly kind: \"validation\" | \"not_found\" | \"conflict\" | \"upstream\",\n4|     message: string,\n5|   ) {\n6|     super(message);\n7|   }\n8| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:46:55.917Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 1,
+            "file": "src/business/errors.ts",
+            "nodeId": "07801d262a4a214c",
+            "quote": "export class DomainError extends Error {",
+            "startLine": 1
+          }
+        ],
+        "name": "Domain Error",
+        "relation": "defines"
+      },
+      {
+        "confidence": 0.6,
+        "evidence": [
+          {
+            "endLine": 3,
+            "file": "src/business/errors.ts",
+            "nodeId": "07801d262a4a214c",
+            "quote": "readonly kind: \"validation\" | \"not_found\" | \"conflict\" | \"upstream\",",
+            "startLine": 3
+          }
+        ],
+        "name": "Error Kind",
+        "relation": "defines"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.8,
+        "description": "Represents a failure of a business operation and sorts it into one of four kinds: validation, not found, conflict, or upstream failure. Callers can then handle each kind differently.",
+        "evidence": [
+          {
+            "endLine": 3,
+            "file": "src/business/errors.ts",
+            "nodeId": "07801d262a4a214c",
+            "quote": "readonly kind: \"validation\" | \"not_found\" | \"conflict\" | \"upstream\",",
+            "startLine": 3
+          }
+        ],
+        "name": "Classify business rule failures",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.6,
+        "description": "Passes a descriptive message about the failure up to the standard error mechanism so it can be reported.",
+        "evidence": [
+          {
+            "endLine": 6,
+            "file": "src/business/errors.ts",
+            "nodeId": "07801d262a4a214c",
+            "quote": "super(message);",
+            "startLine": 6
+          }
+        ],
+        "name": "Carry a human-readable failure message",
+        "naturalLayer": "domain"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2620,
+    "outputTokens": 614
+  }
+}

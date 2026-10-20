@@ -1,0 +1,279 @@
+{
+  "itemId": "a663bd12cbc0090c",
+  "itemName": "ReportService",
+  "key": "e39b4c2e8f10a09a7f0e0f7b6aae0691eeab7e997e08e16efd2d5f3192204898",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "921cda013e010fcd7086bba4693be09e3d7a4f84f23f864cae4ebe52c392f836",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass ReportService (node a663bd12cbc0090c), file src/business/reportService.ts, lines 30-88.\nComponent: business. Declared layer: business (kind domain).\nMethods:\n- quarterly (node 3e3c479f0449547e, lines 40-87, logic density 19)\nFields: apiaries, hives, hiveService, products, treatments, harvests\n\n## APG neighbourhood\nGraph statistics: 1 methods; fan-out 12 (CALLS 6, CONSTRUCTOR_INJECTS 6); fan-in 0.\n- -> CALLS Method ApiaryRepository.findAll (src/persistence/repositories.ts)\n- -> CALLS Method HarvestRepository.findByHive (src/persistence/repositories.ts)\n- -> CALLS Method HiveRepository.findAll (src/persistence/repositories.ts)\n- -> CALLS Method HiveService.isFlagged (src/business/hiveService.ts)\n- -> CALLS Method TreatmentProductRepository.findAll (src/persistence/repositories.ts)\n- -> CALLS Method TreatmentRepository.findByHive (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class ApiaryRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class HarvestRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class HiveRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class HiveService (src/business/hiveService.ts)\n- -> CONSTRUCTOR_INJECTS Class TreatmentProductRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class TreatmentRepository (src/persistence/repositories.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- ReportService: nameRole=\"service\"\n- ReportService: behaviourRole=\"business-logic\"\n- ReportService: ioCategories=[]\n- ReportService: lcom4=1\n- ReportService: responsibilityBreadth={\"breadth\":1,\"ioCategories\":[],\"componentDependencies\":[\"persistence\"]}\n- ReportService.quarterly: logicDensity={\"branches\":9,\"comparisons\":2,\"arithmetic\":8,\"validationThrows\":0,\"density\":19}\nFlags:\n- shared-literals/shared-number-literal: literal \"3\" also used in component(s) presentation\n- shared-literals/shared-number-literal: literal \"3\" also used in component(s) presentation\n\n## Source\n=====SOURCE-BEGIN src/business/reportService.ts\n30| export class ReportService {\n31|   constructor(\n32|     private readonly apiaries: ApiaryRepository,\n33|     private readonly hives: HiveRepository,\n34|     private readonly hiveService: HiveService,\n35|     private readonly products: TreatmentProductRepository,\n36|     private readonly treatments: TreatmentRepository,\n37|     private readonly harvests: HarvestRepository,\n38|   ) {}\n39| \n40|   quarterly(quarter: unknown): QuarterlyReport {\n41|     const { year, q } = parseQuarter(quarter);\n42|     const start = Date.UTC(year, (q - 1) * 3, 1);\n43|     const end = Date.UTC(year, q * 3, 1);\n44|     const inQuarter = (date: string): boolean => {\n45|       const at = Date.parse(date);\n46|       return at >= start && at < end;\n47|     };\n48|     const productNames = new Map(this.products.findAll().map((p) => [p.id, p.name]));\n49|     const regionOf = new Map(this.apiaries.findAll().map((a) => [a.id, a.region]));\n50| \n51|     const regions = new Map<string, RegionReport>();\n52|     const flagged = new Map<string, number>();\n53|     for (const hive of this.hives.findAll()) {\n54|       const region = regionOf.get(hive.apiaryId);\n55|       if (region === undefined) continue;\n56|       let report = regions.get(region);\n57|       if (!report) {\n58|         report = {\n59|           region,\n60|           hives: 0,\n61|           varroaFlaggedShare: 0,\n62|           treatmentsPerProduct: {},\n63|           honeyKilograms: 0,\n64|         };\n65|         regions.set(region, report);\n66|       }\n67|       report.hives += 1;\n68|       if (this.hiveService.isFlagged(hive.id, end)) {\n69|         flagged.set(region, (flagged.get(region) ?? 0) + 1);\n70|       }\n71|       for (const t of this.treatments.findByHive(hive.id)) {\n72|         if (!inQuarter(t.startDate)) continue;\n73|         const name = productNames.get(t.productId) ?? t.productId;\n74|         report.treatmentsPerProduct[name] = (report.treatmentsPerProduct[name] ?? 0) + 1;\n75|       }\n76|       for (const h of this.harvests.findByHive(hive.id)) {\n77|         if (inQuarter(h.date)) report.honeyKilograms += h.kilograms;\n78|       }\n79|     }\n80|     for (const report of regions.values()) {\n81|       report.varroaFlaggedShare = (flagged.get(report.region) ?? 0) / report.hives;\n82|     }\n83|     return {\n84|       quarter: `${year}-Q${q}`,\n85|       regions: [...regions.values()].sort((a, b) => a.region.localeCompare(b.region)),\n86|     };\n87|   }\n88| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:19:21.239Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 84,
+            "file": "src/business/reportService.ts",
+            "nodeId": "3e3c479f0449547e",
+            "quote": "quarter: `${year}-Q${q}`,",
+            "startLine": 84
+          }
+        ],
+        "name": "Quarterly Report",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.65,
+        "evidence": [
+          {
+            "endLine": 51,
+            "file": "src/business/reportService.ts",
+            "nodeId": "3e3c479f0449547e",
+            "quote": "const regions = new Map<string, RegionReport>();",
+            "startLine": 51
+          }
+        ],
+        "name": "Regional Report",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 53,
+            "file": "src/business/reportService.ts",
+            "nodeId": "3e3c479f0449547e",
+            "quote": "for (const hive of this.hives.findAll()) {",
+            "startLine": 53
+          }
+        ],
+        "name": "Hive",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.75,
+        "evidence": [
+          {
+            "endLine": 49,
+            "file": "src/business/reportService.ts",
+            "nodeId": "3e3c479f0449547e",
+            "quote": "const regionOf = new Map(this.apiaries.findAll().map((a) => [a.id, a.region]));",
+            "startLine": 49
+          }
+        ],
+        "name": "Apiary",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 54,
+            "file": "src/business/reportService.ts",
+            "nodeId": "3e3c479f0449547e",
+            "quote": "const region = regionOf.get(hive.apiaryId);",
+            "startLine": 54
+          }
+        ],
+        "name": "Region",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.75,
+        "evidence": [
+          {
+            "endLine": 71,
+            "file": "src/business/reportService.ts",
+            "nodeId": "3e3c479f0449547e",
+            "quote": "for (const t of this.treatments.findByHive(hive.id)) {",
+            "startLine": 71
+          }
+        ],
+        "name": "Treatment",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 48,
+            "file": "src/business/reportService.ts",
+            "nodeId": "3e3c479f0449547e",
+            "quote": "const productNames = new Map(this.products.findAll().map((p) => [p.id, p.name]));",
+            "startLine": 48
+          }
+        ],
+        "name": "Treatment Product",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.75,
+        "evidence": [
+          {
+            "endLine": 76,
+            "file": "src/business/reportService.ts",
+            "nodeId": "3e3c479f0449547e",
+            "quote": "for (const h of this.harvests.findByHive(hive.id)) {",
+            "startLine": 76
+          }
+        ],
+        "name": "Harvest",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.65,
+        "evidence": [
+          {
+            "endLine": 68,
+            "file": "src/business/reportService.ts",
+            "nodeId": "3e3c479f0449547e",
+            "quote": "if (this.hiveService.isFlagged(hive.id, end)) {",
+            "startLine": 68
+          }
+        ],
+        "name": "Varroa Flag",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.6,
+        "evidence": [
+          {
+            "endLine": 41,
+            "file": "src/business/reportService.ts",
+            "nodeId": "3e3c479f0449547e",
+            "quote": "const { year, q } = parseQuarter(quarter);",
+            "startLine": 41
+          }
+        ],
+        "name": "Quarter",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.8,
+        "description": "Puts together the quarterly report: works out the quarter's date window, groups hives by the region of their apiary, and returns per-region reports sorted by region name.",
+        "evidence": [
+          {
+            "endLine": 40,
+            "file": "src/business/reportService.ts",
+            "nodeId": "3e3c479f0449547e",
+            "quote": "quarterly(quarter: unknown): QuarterlyReport {",
+            "startLine": 40
+          },
+          {
+            "endLine": 54,
+            "file": "src/business/reportService.ts",
+            "nodeId": "3e3c479f0449547e",
+            "quote": "const region = regionOf.get(hive.apiaryId);",
+            "startLine": 54
+          },
+          {
+            "endLine": 85,
+            "file": "src/business/reportService.ts",
+            "nodeId": "3e3c479f0449547e",
+            "quote": "regions: [...regions.values()].sort((a, b) => a.region.localeCompare(b.region)),",
+            "startLine": 85
+          }
+        ],
+        "name": "Quarterly regional report compilation",
+        "naturalLayer": "application"
+      },
+      {
+        "confidence": 0.75,
+        "description": "Turns a quarter (year and quarter number) into a UTC date range and checks whether a date falls inside that quarter.",
+        "evidence": [
+          {
+            "endLine": 42,
+            "file": "src/business/reportService.ts",
+            "nodeId": "3e3c479f0449547e",
+            "quote": "const start = Date.UTC(year, (q - 1) * 3, 1);",
+            "startLine": 42
+          },
+          {
+            "endLine": 46,
+            "file": "src/business/reportService.ts",
+            "nodeId": "3e3c479f0449547e",
+            "quote": "return at >= start && at < end;",
+            "startLine": 46
+          }
+        ],
+        "name": "Quarter period calculation",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Counts hives flagged for varroa as of the end of the quarter in each region and calculates the flagged share of that region's hives.",
+        "evidence": [
+          {
+            "endLine": 68,
+            "file": "src/business/reportService.ts",
+            "nodeId": "3e3c479f0449547e",
+            "quote": "if (this.hiveService.isFlagged(hive.id, end)) {",
+            "startLine": 68
+          },
+          {
+            "endLine": 81,
+            "file": "src/business/reportService.ts",
+            "nodeId": "3e3c479f0449547e",
+            "quote": "report.varroaFlaggedShare = (flagged.get(report.region) ?? 0) / report.hives;",
+            "startLine": 81
+          }
+        ],
+        "name": "Varroa-flagged share calculation",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Counts the treatments started in the quarter, grouped by treatment product name. If a product has no name, its id is used instead.",
+        "evidence": [
+          {
+            "endLine": 73,
+            "file": "src/business/reportService.ts",
+            "nodeId": "3e3c479f0449547e",
+            "quote": "const name = productNames.get(t.productId) ?? t.productId;",
+            "startLine": 73
+          },
+          {
+            "endLine": 74,
+            "file": "src/business/reportService.ts",
+            "nodeId": "3e3c479f0449547e",
+            "quote": "report.treatmentsPerProduct[name] = (report.treatmentsPerProduct[name] ?? 0) + 1;",
+            "startLine": 74
+          }
+        ],
+        "name": "Treatment counts per product",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Adds up the kilograms of honey harvested in each region during the quarter.",
+        "evidence": [
+          {
+            "endLine": 77,
+            "file": "src/business/reportService.ts",
+            "nodeId": "3e3c479f0449547e",
+            "quote": "if (inQuarter(h.date)) report.honeyKilograms += h.kilograms;",
+            "startLine": 77
+          }
+        ],
+        "name": "Honey harvest totals",
+        "naturalLayer": "domain"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 4172,
+    "outputTokens": 2385
+  }
+}

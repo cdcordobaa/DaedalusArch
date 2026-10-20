@@ -1,0 +1,80 @@
+{
+  "itemId": "07801d262a4a214c",
+  "itemName": "DomainError",
+  "key": "7d12a520b1ba469f8833cbb0e11184577ff2d3e318f8a56824a9214bca0c1703",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "c6454be817d3f6fe251f98aecb088097421a8ecd722f8c6d003c27d6bce53883",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass DomainError (node 07801d262a4a214c), file src/business/errors.ts, lines 1-8.\nComponent: business. Declared layer: business (kind domain).\nMethods:\n- (none)\nFields: status\n\n## APG neighbourhood\nGraph statistics: 0 methods; fan-out 0; fan-in 0.\n- (none)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- DomainError: nameRole=\"unknown\"\n- DomainError: behaviourRole=\"coordination\"\n- DomainError: ioCategories=[]\n- DomainError: lcom4=0\n- DomainError: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\nFlags:\n- communities/community-component-mismatch: src/business/errors.ts (component business) clusters with community 2 whose majority component is presentation\n\n## Source\n=====SOURCE-BEGIN src/business/errors.ts\n1| export class DomainError extends Error {\n2|   constructor(\n3|     readonly status: 400 | 404 | 409 | 502,\n4|     message: string,\n5|   ) {\n6|     super(message);\n7|   }\n8| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T13:03:01.468Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.55,
+        "evidence": [
+          {
+            "endLine": 1,
+            "file": "src/business/errors.ts",
+            "nodeId": "07801d262a4a214c",
+            "quote": "export class DomainError extends Error {",
+            "startLine": 1
+          }
+        ],
+        "name": "Business Rule Violation",
+        "relation": "defines"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.75,
+        "description": "Stands for an error raised when a business operation fails, such as invalid input, a missing resource, a conflict, or a failed upstream call. It carries a human-readable message.",
+        "evidence": [
+          {
+            "endLine": 1,
+            "file": "src/business/errors.ts",
+            "nodeId": "07801d262a4a214c",
+            "quote": "export class DomainError extends Error {",
+            "startLine": 1
+          },
+          {
+            "endLine": 6,
+            "file": "src/business/errors.ts",
+            "nodeId": "07801d262a4a214c",
+            "quote": "super(message);",
+            "startLine": 6
+          }
+        ],
+        "name": "Signal business failures",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.65,
+        "description": "Tags each failure with an HTTP-style status code (400, 404, 409 or 502) so that the transport layer can turn it into a response. This is a presentation concern that has leaked into the business layer.",
+        "evidence": [
+          {
+            "endLine": 3,
+            "file": "src/business/errors.ts",
+            "nodeId": "07801d262a4a214c",
+            "quote": "readonly status: 400 | 404 | 409 | 502,",
+            "startLine": 3
+          }
+        ],
+        "name": "Classify failures with transport status codes",
+        "naturalLayer": "presentation"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2610,
+    "outputTokens": 714
+  }
+}

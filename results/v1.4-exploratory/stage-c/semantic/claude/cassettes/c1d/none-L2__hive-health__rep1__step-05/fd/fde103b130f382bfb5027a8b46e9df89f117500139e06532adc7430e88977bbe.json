@@ -1,0 +1,94 @@
+{
+  "itemId": "55c79c4bdccf51e6",
+  "itemName": "InspectionRepository",
+  "key": "fde103b130f382bfb5027a8b46e9df89f117500139e06532adc7430e88977bbe",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "f01d321ea18f0f8b2fea94a009184174a572973d2eb6e67a59b69860ed6a2e49",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass InspectionRepository (node 55c79c4bdccf51e6), file src/persistence/repositories.ts, lines 99-116.\nComponent: persistence. Declared layer: persistence (kind infrastructure).\nMethods:\n- create (node ea353283d643d121, lines 103-111, logic density 0)\n- findByHive (node abdb07abf83bd29c, lines 113-115, logic density 1)\nFields: items, sequence\n\n## APG neighbourhood\nGraph statistics: 2 methods; fan-out 0; fan-in 7 (CALLS 5, CONSTRUCTOR_INJECTS 2).\n- <- CALLS Method HiveService.isFlagged (src/business/hiveService.ts)\n- <- CALLS Method HiveService.latest (src/business/hiveService.ts)\n- <- CALLS Method HiveService.listInspections (src/business/hiveService.ts)\n- <- CALLS Method HiveService.recordInspection (src/business/hiveService.ts)\n- <- CALLS Method ScaleService.inspectedAround (src/business/scaleService.ts)\n- <- CONSTRUCTOR_INJECTS Class HiveService (src/business/hiveService.ts)\n- <- CONSTRUCTOR_INJECTS Class ScaleService (src/business/scaleService.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- InspectionRepository: nameRole=\"repository\"\n- InspectionRepository: behaviourRole=\"coordination\"\n- InspectionRepository: ioCategories=[]\n- InspectionRepository: lcom4=1\n- InspectionRepository: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- InspectionRepository.create: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- InspectionRepository.findByHive: logicDensity={\"branches\":0,\"comparisons\":1,\"arithmetic\":0,\"validationThrows\":0,\"density\":1}\n\n## Source\n=====SOURCE-BEGIN src/persistence/repositories.ts\n 99| export class InspectionRepository {\n100|   private readonly items: InspectionRecord[] = [];\n101|   private sequence = 0;\n102| \n103|   create(data: Omit<InspectionRecord, \"id\" | \"recordedAt\">): InspectionRecord {\n104|     const record: InspectionRecord = {\n105|       id: randomUUID(),\n106|       recordedAt: this.sequence++,\n107|       ...data,\n108|     };\n109|     this.items.push(record);\n110|     return record;\n111|   }\n112| \n113|   findByHive(hiveId: string): InspectionRecord[] {\n114|     return this.items.filter((i) => i.hiveId === hiveId);\n115|   }\n116| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T13:20:37.109Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 100,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "55c79c4bdccf51e6",
+            "quote": "private readonly items: InspectionRecord[] = [];",
+            "startLine": 100
+          }
+        ],
+        "name": "Inspection",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.75,
+        "evidence": [
+          {
+            "endLine": 113,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "abdb07abf83bd29c",
+            "quote": "findByHive(hiveId: string): InspectionRecord[] {",
+            "startLine": 113
+          }
+        ],
+        "name": "Hive",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.9,
+        "description": "Stores new hive inspection records in an in-memory store, giving each one a unique identifier and a sequential recording order.",
+        "evidence": [
+          {
+            "endLine": 111,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "ea353283d643d121",
+            "quote": "this.items.push(record);",
+            "startLine": 103
+          },
+          {
+            "endLine": 106,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "ea353283d643d121",
+            "quote": "id: randomUUID(),",
+            "startLine": 105
+          }
+        ],
+        "name": "Persist hive inspection records",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.9,
+        "description": "Looks up all inspection records that belong to a given hive.",
+        "evidence": [
+          {
+            "endLine": 115,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "abdb07abf83bd29c",
+            "quote": "return this.items.filter((i) => i.hiveId === hiveId);",
+            "startLine": 113
+          }
+        ],
+        "name": "Retrieve inspections for a hive",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 3194,
+    "outputTokens": 656
+  }
+}

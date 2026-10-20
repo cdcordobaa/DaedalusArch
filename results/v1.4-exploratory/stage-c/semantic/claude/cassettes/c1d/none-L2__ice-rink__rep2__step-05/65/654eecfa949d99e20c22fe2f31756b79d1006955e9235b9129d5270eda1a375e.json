@@ -1,0 +1,28 @@
+{
+  "itemId": "8545d051826d167a",
+  "itemName": "Skate Hire ~ Hire Skate Stock",
+  "key": "654eecfa949d99e20c22fe2f31756b79d1006955e9235b9129d5270eda1a375e",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "3717450918ae84e575f5ef6c5f4bde6d7b843d3b56da265ca9c6637e0e5f1b25",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Skate Hire\nwhere: BookingService (uses), src/business/bookingService.ts, component business\ncode:\n=====SOURCE-BEGIN\nif (this.stock.get(size) === 0) throw new DomainError(400, `no hire skates of size ${size}`);\n=====SOURCE-END=====\ngraph:\n- class BookingService (node 3aa201f0edaa9fd6): layer domain, component business, fan-out 13, fan-in 0\n- -> CALLS Method BookingRepository.create\n- -> CALLS Method BookingRepository.findById\n- -> CALLS Method BookingRepository.findByMembership\n- -> CALLS Method BookingRepository.findPending\n- -> CALLS Method BookingRepository.save\n- -> CALLS Method HireStockRepository.get\n- -> CALLS Method SessionRepository.findById\n- -> CALLS Method SessionService.availability\n\n### B\nconcept: Hire Skate Stock\nwhere: HireStockRepository (defines), src/persistence/hireStockRepository.ts, component persistence\ncode:\n=====SOURCE-BEGIN\nprivate readonly stock = new Map<string, number>();\n=====SOURCE-END=====\ngraph:\n- class HireStockRepository (node ada57feca2e90c67): layer infrastructure, component persistence, fan-out 0, fan-in 4\n- <- CALLS Method BookingService.create\n- <- CALLS Method SessionService.availability\n- <- CONSTRUCTOR_INJECTS Class BookingService\n- <- CONSTRUCTOR_INJECTS Class SessionService",
+  "recordedAt": "2026-10-20T15:39:13.684Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.62,
+    "rationale": "I judged these to be related but different concepts. A, \"Skate Hire\", is about hiring skates as part of a booking. B, \"Hire Skate Stock\", is the stock count of hire skates for each size. In BookingService (src/business/bookingService.ts), A checks that stock: `if (this.stock.get(size) === 0) throw new DomainError(400, ...)`. The stock itself is defined in HireStockRepository (src/persistence/hireStockRepository.ts) as `private readonly stock = new Map<string, number>();`, and the graph shows BookingService calling HireStockRepository.get. So the hire activity depends on the stock, but one is a booking feature and the other is an inventory count. That makes it a dependency, not one concept under two names. My confidence is moderate because A's only quoted evidence is the stock check, so the two labels may have been drawn from the same idea.",
+    "same": false
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2010,
+    "outputTokens": 537
+  }
+}

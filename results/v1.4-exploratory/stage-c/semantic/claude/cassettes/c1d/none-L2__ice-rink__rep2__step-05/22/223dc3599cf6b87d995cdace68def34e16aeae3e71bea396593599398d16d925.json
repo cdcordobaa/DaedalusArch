@@ -1,0 +1,113 @@
+{
+  "itemId": "component:business",
+  "itemName": "component:business",
+  "key": "223dc3599cf6b87d995cdace68def34e16aeae3e71bea396593599398d16d925",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "27126e3a45aa3e4d26a76e7f116e66ec5b3f80ece1e214c701c90956c9adb8c9",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of component \"business\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- DomainError (node 07801d262a4a214c), file src/business/errors.ts, declaration line 1: \"export class DomainError extends Error {\"\n  component business, layer domain; responsibilities: Signal business rule violations; Classify failures into status categories\n- BookingService (node 3aa201f0edaa9fd6), file src/business/bookingService.ts, declaration line 23: \"export class BookingService {\"\n  component business, layer domain; responsibilities: Validate booking requests; Enforce ticket and skate-hire availability; Enforce the monthly free-skate allowance for members; Calculate booking price; Orchestrate booking creation and payment checkout; Apply payment results to bookings; Expire unpaid bookings\n- SessionService (node 42a26b41b626f9ec), file src/business/sessionService.ts, declaration line 24: \"export class SessionService {\"\n  component business, layer domain; responsibilities: Compute effective session capacity after club bookings; Validate and schedule new sessions; Calculate ticket and hire-equipment availability; Retrieve sessions with their availability\n- ClubBookingService (node 44fb2545d0048ec3), file src/business/clubBookingService.ts, declaration line 29: \"export class ClubBookingService {\"\n  component business, layer domain; responsibilities: Validate club booking requests; Prevent overlapping rink bookings; Record and list club bookings; Produce monthly club invoice\n- ReportService (node a663bd12cbc0090c), file src/business/reportService.ts, declaration line 49: \"export class ReportService {\"\n  component business, layer domain; responsibilities: Weekly period resolution; Date range validation; Session sales and occupancy aggregation; Report CSV export\n- IceMonitorService (node f59a45a01c2ed338), file src/business/iceMonitorService.ts, declaration line 18: \"export class IceMonitorService {\"\n  component business, layer domain; responsibilities: Detect sustained warm ice; Put next session on hold; Notify ticket holders of hold; Cancel held session with refunds; Prevent concurrent cancellation; Release held session\n\n## APG relations of the group\nGraph statistics: 6 classes; 2 relations inside the group; 43 outgoing relations to code outside it.\n- BookingService -> CALLS SessionService\n- BookingService -> CONSTRUCTOR_INJECTS SessionService\n\n## Comments near the code\n- BookingService.handlePaymentResult: Applies a PuckPay payment result. Idempotent; late payments do not revive released bookings.\n- SessionService.effectiveCapacity: Capacity after club bookings: halved if one half is taken, zero if the whole rink is.\n- ReportService.weekly: Report for the Monday-to-Sunday week containing `date`.\n- ReportService.range: Report for an arbitrary inclusive date range (e.g. a whole season).\n- IceMonitorService: Watches ice temperature and manages sessions put on hold because the ice is too warm.\n- IceMonitorService.recordReading: Records a sensor reading; holds the next session once the ice has been warm for long enough.\n- IceMonitorService.cancel: Manager cancels a held session: every paid ticket is refunded through PuckPay.\n- IceMonitorService.release: Manager lifts the hold; ticket sales resume.\n- IceMonitorService.warmLongEnough: True when the readings end in a run of warm readings spanning at least ten minutes.\n- IceMonitorService.nextSession: The earliest session that has not started yet.",
+  "recordedAt": "2026-10-20T15:32:33.944Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.9,
+        "description": "Customers book tickets and skate hire for public sessions, subject to availability and the members' monthly free-skate allowance. Bookings are priced and paid through PuckPay checkout, payment results are applied idempotently, and unpaid bookings expire.",
+        "evidence": [
+          {
+            "endLine": 23,
+            "file": "src/business/bookingService.ts",
+            "nodeId": "3aa201f0edaa9fd6",
+            "quote": "export class BookingService {",
+            "startLine": 23
+          }
+        ],
+        "name": "Public skate ticket booking and payment",
+        "realizedBy": [
+          "3aa201f0edaa9fd6",
+          "42a26b41b626f9ec"
+        ]
+      },
+      {
+        "confidence": 0.85,
+        "description": "New rink sessions are validated and scheduled, and ticket and hire-equipment availability is calculated. Effective capacity shrinks when clubs book half or all of the rink.",
+        "evidence": [
+          {
+            "endLine": 24,
+            "file": "src/business/sessionService.ts",
+            "nodeId": "42a26b41b626f9ec",
+            "quote": "export class SessionService {",
+            "startLine": 24
+          }
+        ],
+        "name": "Skating session scheduling and capacity management",
+        "realizedBy": [
+          "42a26b41b626f9ec"
+        ]
+      },
+      {
+        "confidence": 0.85,
+        "description": "Clubs book the rink without overlapping other bookings, club bookings are recorded and listed, and a monthly invoice is produced for each club.",
+        "evidence": [
+          {
+            "endLine": 29,
+            "file": "src/business/clubBookingService.ts",
+            "nodeId": "44fb2545d0048ec3",
+            "quote": "export class ClubBookingService {",
+            "startLine": 29
+          }
+        ],
+        "name": "Club rink hire and monthly invoicing",
+        "realizedBy": [
+          "44fb2545d0048ec3"
+        ]
+      },
+      {
+        "confidence": 0.85,
+        "description": "Session sales and occupancy are reported for a week or an arbitrary date range such as a season, with CSV export.",
+        "evidence": [
+          {
+            "endLine": 49,
+            "file": "src/business/reportService.ts",
+            "nodeId": "a663bd12cbc0090c",
+            "quote": "export class ReportService {",
+            "startLine": 49
+          }
+        ],
+        "name": "Sales and occupancy reporting",
+        "realizedBy": [
+          "a663bd12cbc0090c"
+        ]
+      },
+      {
+        "confidence": 0.85,
+        "description": "Ice temperature is monitored, and the next session is put on hold when the ice has been warm for long enough, with ticket holders notified. Managers can cancel a held session, refunding paid tickets through PuckPay, or release it so ticket sales resume.",
+        "evidence": [
+          {
+            "endLine": 18,
+            "file": "src/business/iceMonitorService.ts",
+            "nodeId": "f59a45a01c2ed338",
+            "quote": "export class IceMonitorService {",
+            "startLine": 18
+          }
+        ],
+        "name": "Ice condition monitoring and session hold management",
+        "realizedBy": [
+          "f59a45a01c2ed338"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2928,
+    "outputTokens": 1919
+  }
+}

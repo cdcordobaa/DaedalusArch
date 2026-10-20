@@ -1,0 +1,186 @@
+{
+  "itemId": "f7e458262ae72ac4",
+  "itemName": "ScaleService",
+  "key": "a7bcc2f9261103aec2661dfb210aacea08b666f8bd3cd23419bc07f08b59f5c8",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "rules",
+    "promptHash": "368237b4588def6d53cc742dc835208cacd6c1c56870bcaa28eb14e4106341dd",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "f0fc4d535ca2368dc75f2c1669e4a1b8563970f49941a37b2cf4202334cf7327",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nExtract the rules enforced by the candidate methods below: the business rules, and the limits or thresholds checked on incoming data. Label each rule with its kind. kind \"business\": a rule of the business domain (a threshold, an eligibility condition, a limit, a rate) that must hold whichever entry point is used. kind \"input-validation\": a check of the form, type or size of incoming data. Leave out null checks, formatting and parsing. State each rule in plain business language with the subject it constrains, the comparison operator and threshold normalised to the most natural business unit, and the unit. Write the rule as the business would state it, independent of how the code is shaped (`!(a < b)` states `a >= b`).\nSet enforcedBy to the node id of the method that enforces the rule. Cite that method and quote the code that enforces it. Return an empty list when the candidates enforce no such rule.\n\n## Class\nClass ScaleService (node f7e458262ae72ac4), file src/business/scaleService.ts, lines 43-163.\nComponent: business. Declared layer: business (kind domain).\nCandidate methods (proposed by the cheap proxies):\n- inspectedAround (node 6aee253b835d8d0b, lines 55-60, logic density 3)\n- cancelPendingAlerts (node 55a3687c5af59fcd, lines 63-74, logic density 7)\n- linkScale (node 0325ab7d4cbd9dae, lines 76-100, logic density 10)\n- listScales (node c61903d169ea3ab5, lines 102-105, logic density 2)\n- recordReading (node 066aa15062c63d0d, lines 107-146, logic density 17)\n- sendAlert (node 62ce6be11750c86e, lines 148-162, logic density 4)\n\n## APG neighbourhood\nGraph statistics: 6 methods; fan-out 12 (CALLS 7, CONSTRUCTOR_INJECTS 5); fan-in 0.\n- -> CALLS Method HiveRepository.findById (src/persistence/repositories.ts)\n- -> CALLS Method InspectionRepository.findByHive (src/persistence/repositories.ts)\n- -> CALLS Method ScaleRepository.findByHive (src/persistence/repositories.ts)\n- -> CALLS Method ScaleRepository.findBySerial (src/persistence/repositories.ts)\n- -> CALLS Method ScaleRepository.save (src/persistence/repositories.ts)\n- -> CALLS Method WeightReadingRepository.create (src/persistence/repositories.ts)\n- -> CALLS Method WeightReadingRepository.findBySerialBetween (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class HiveRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class InspectionRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class ScaleRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Interface SmsGateway (src/business/scaleService.ts)\n- -> CONSTRUCTOR_INJECTS Class WeightReadingRepository (src/persistence/repositories.ts)\n\n## Comments near the code\n- ScaleService.cancelPendingAlerts: Called when an inspection is recorded: cancels unsent swarm SMS it explains.\n\n## Source\n=====SOURCE-BEGIN src/business/scaleService.ts\n 43| export class ScaleService {\n 44|   private readonly pending = new Map<string, PendingAlert>();\n 45| \n 46|   constructor(\n 47|     private readonly hives: HiveRepository,\n 48|     private readonly scales: ScaleRepository,\n 49|     private readonly readings: WeightReadingRepository,\n 50|     private readonly sms: SmsGateway,\n 51|     private readonly inspections: InspectionRepository,\n 52|     private readonly holdMs = INSPECTION_AFTER_MS,\n 53|   ) {}\n 54| \n 55|   private inspectedAround(hiveId: string, dropAt: number, until: number): boolean {\n 56|     return this.inspections.findByHive(hiveId).some((i) => {\n 57|       const at = Date.parse(i.date);\n 58|       return at >= dropAt - INSPECTION_BEFORE_MS && at <= until;\n 59|     });\n 60|   }\n 61| \n 62|   // Called when an inspection is recorded: cancels unsent swarm SMS it explains.\n 63|   cancelPendingAlerts(hiveId: string, inspectedAt: number): void {\n 64|     for (const [serial, alert] of this.pending) {\n 65|       if (\n 66|         alert.hiveId === hiveId &&\n 67|         inspectedAt >= alert.dropAt - INSPECTION_BEFORE_MS &&\n 68|         inspectedAt <= alert.dropAt + INSPECTION_AFTER_MS\n 69|       ) {\n 70|         clearTimeout(alert.timer);\n 71|         this.pending.delete(serial);\n 72|       }\n 73|     }\n 74|   }\n 75| \n 76|   linkScale(\n 77|     memberId: string,\n 78|     hiveId: string,\n 79|     serialNumber: unknown,\n 80|     phoneNumber: unknown,\n 81|   ): ScaleRecord {\n 82|     const hive = this.hives.findById(hiveId);\n 83|     if (!hive) throw new NotFoundError(\"hive not found\");\n 84|     if (hive.ownerId !== memberId) {\n 85|       throw new ForbiddenError(\"only the hive owner can link a scale\");\n 86|     }\n 87|     const serial = requireText(serialNumber, \"serialNumber\");\n 88|     const phone = requireText(phoneNumber, \"phoneNumber\");\n 89|     const existing = this.scales.findBySerial(serial);\n 90|     if (existing && existing.ownerId !== memberId) {\n 91|       throw new ConflictError(\"scale is already linked by another member\");\n 92|     }\n 93|     return this.scales.save({\n 94|       serialNumber: serial,\n 95|       hiveId,\n 96|       ownerId: memberId,\n 97|       phoneNumber: phone,\n 98|       lastAlertAt: existing && existing.hiveId === hiveId ? existing.lastAlertAt : null,\n 99|     });\n100|   }\n101| \n102|   listScales(hiveId: string): ScaleRecord[] {\n103|     if (!this.hives.findById(hiveId)) throw new NotFoundError(\"hive not found\");\n104|     return this.scales.findByHive(hiveId);\n105|   }\n106| \n107|   async recordReading(input: ReadingInput): Promise<ReadingResult> {\n108|     const serial = requireText(input.serialNumber, \"serialNumber\");\n109|     const kg = input.kilograms;\n110|     if (typeof kg !== \"number\" || !Number.isFinite(kg) || kg < 0) {\n111|       throw new ValidationError(\"kilograms must be a non-negative number\");\n112|     }\n113|     const readAt = Date.parse(requireText(input.time, \"time\"));\n114|     if (Number.isNaN(readAt)) throw new ValidationError(\"time must be a valid date\");\n115| \n116|     const scale = this.scales.findBySerial(serial);\n117|     if (!scale) throw new NotFoundError(\"scale not found\");\n118| \n119|     this.readings.create({ serialNumber: serial, kilograms: kg, readAt });\n120| \n121|     const recent = this.readings.findBySerialBetween(serial, readAt - SWARM_WINDOW_MS, readAt);\n122|     const drop = Math.max(...recent.map((r) => r.kilograms)) - kg;\n123|     if (drop <= SWARM_DROP_KG) return { accepted: true, swarmSuspected: false };\n124| \n125|     // Opening the hive for an inspection also drops the scale reading.\n126|     if (this.inspectedAround(scale.hiveId, readAt, readAt + INSPECTION_AFTER_MS)) {\n127|       return { accepted: true, swarmSuspected: false };\n128|     }\n129| \n130|     // Avoid texting repeatedly for the same ongoing drop.\n131|     const recentlyAlerted =\n132|       (scale.lastAlertAt !== null &&\n133|         readAt >= scale.lastAlertAt &&\n134|         readAt - scale.lastAlertAt < SWARM_WINDOW_MS) ||\n135|       this.pending.has(serial);\n136|     if (recentlyAlerted) return { accepted: true, swarmSuspected: true };\n137| \n138|     // Hold the SMS for the post-drop inspection window so a late inspection can cancel it.\n139|     const timer = setTimeout(() => {\n140|       this.pending.delete(serial);\n141|       void this.sendAlert(serial, readAt, drop);\n142|     }, this.holdMs);\n143|     timer.unref();\n144|     this.pending.set(serial, { hiveId: scale.hiveId, dropAt: readAt, timer });\n145|     return { accepted: true, swarmSuspected: true };\n146|   }\n147| \n148|   private async sendAlert(serial: string, readAt: number, drop: number): Promise<void> {\n149|     const scale = this.scales.findBySerial(serial);\n150|     if (!scale) return;\n151|     if (this.inspectedAround(scale.hiveId, readAt, readAt + INSPECTION_AFTER_MS)) return;\n152|     const hive = this.hives.findById(scale.hiveId);\n153|     this.scales.save({ ...scale, lastAlertAt: readAt });\n154|     try {\n155|       await this.sms.sendSms(\n156|         scale.phoneNumber,\n157|         `Possible swarm: hive \"${hive ? hive.name : scale.hiveId}\" lost ${drop.toFixed(1)} kg within an hour.`,\n158|       );\n159|     } catch (err) {\n160|       console.error(\"failed to send swarm SMS\", err);\n161|     }\n162|   }\n163| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T15:09:07.642Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "rules": [
+      {
+        "confidence": 0.9,
+        "enforcedBy": "0325ab7d4cbd9dae",
+        "evidence": [
+          {
+            "endLine": 86,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "0325ab7d4cbd9dae",
+            "quote": "if (hive.ownerId !== memberId) {",
+            "startLine": 84
+          }
+        ],
+        "kind": "business",
+        "operator": "==",
+        "statement": "Only the owner of a hive may link a scale to that hive.",
+        "subject": "scale linking member",
+        "threshold": null,
+        "unit": null
+      },
+      {
+        "confidence": 0.85,
+        "enforcedBy": "0325ab7d4cbd9dae",
+        "evidence": [
+          {
+            "endLine": 92,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "0325ab7d4cbd9dae",
+            "quote": "if (existing && existing.ownerId !== memberId) {",
+            "startLine": 90
+          }
+        ],
+        "kind": "business",
+        "operator": "==",
+        "statement": "A scale already linked by another member cannot be linked by a different member.",
+        "subject": "scale ownership",
+        "threshold": null,
+        "unit": null
+      },
+      {
+        "confidence": 0.9,
+        "enforcedBy": "066aa15062c63d0d",
+        "evidence": [
+          {
+            "endLine": 112,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "066aa15062c63d0d",
+            "quote": "if (typeof kg !== \"number\" || !Number.isFinite(kg) || kg < 0) {",
+            "startLine": 110
+          }
+        ],
+        "kind": "input-validation",
+        "operator": ">=",
+        "statement": "A scale weight reading must be a finite number of at least 0 kg.",
+        "subject": "weight reading kilograms",
+        "threshold": 0,
+        "unit": "kg"
+      },
+      {
+        "confidence": 0.8,
+        "enforcedBy": "066aa15062c63d0d",
+        "evidence": [
+          {
+            "endLine": 123,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "066aa15062c63d0d",
+            "quote": "if (drop <= SWARM_DROP_KG) return { accepted: true, swarmSuspected: false };",
+            "startLine": 123
+          }
+        ],
+        "kind": "business",
+        "operator": ">",
+        "statement": "A swarm is suspected only when the hive's weight drops by more than the swarm drop threshold (SWARM_DROP_KG) compared with the highest reading in the recent swarm window.",
+        "subject": "hive weight drop within swarm window",
+        "threshold": null,
+        "unit": "kg"
+      },
+      {
+        "confidence": 0.75,
+        "enforcedBy": "066aa15062c63d0d",
+        "evidence": [
+          {
+            "endLine": 128,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "066aa15062c63d0d",
+            "quote": "if (this.inspectedAround(scale.hiveId, readAt, readAt + INSPECTION_AFTER_MS)) {",
+            "startLine": 126
+          },
+          {
+            "endLine": 58,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "6aee253b835d8d0b",
+            "quote": "return at >= dropAt - INSPECTION_BEFORE_MS && at <= until;",
+            "startLine": 58
+          }
+        ],
+        "kind": "business",
+        "operator": "other",
+        "statement": "A weight drop is not treated as a swarm if the hive was inspected from shortly before the drop (INSPECTION_BEFORE_MS) up to the post-drop inspection window (INSPECTION_AFTER_MS), because opening the hive also lowers the reading.",
+        "subject": "inspection time relative to weight drop",
+        "threshold": null,
+        "unit": null
+      },
+      {
+        "confidence": 0.75,
+        "enforcedBy": "066aa15062c63d0d",
+        "evidence": [
+          {
+            "endLine": 134,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "066aa15062c63d0d",
+            "quote": "readAt - scale.lastAlertAt < SWARM_WINDOW_MS) ||",
+            "startLine": 134
+          }
+        ],
+        "kind": "business",
+        "operator": ">=",
+        "statement": "No new swarm SMS is sent for a scale that was already alerted within the swarm window (SWARM_WINDOW_MS) or that already has an alert pending.",
+        "subject": "time since last swarm alert",
+        "threshold": null,
+        "unit": null
+      },
+      {
+        "confidence": 0.75,
+        "enforcedBy": "55a3687c5af59fcd",
+        "evidence": [
+          {
+            "endLine": 68,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "55a3687c5af59fcd",
+            "quote": "inspectedAt >= alert.dropAt - INSPECTION_BEFORE_MS &&",
+            "startLine": 67
+          }
+        ],
+        "kind": "business",
+        "operator": "other",
+        "statement": "A pending swarm SMS is cancelled when an inspection of the same hive is recorded within the window from INSPECTION_BEFORE_MS before the drop to INSPECTION_AFTER_MS after it.",
+        "subject": "inspection time relative to pending swarm alert",
+        "threshold": null,
+        "unit": null
+      },
+      {
+        "confidence": 0.6,
+        "enforcedBy": "62ce6be11750c86e",
+        "evidence": [
+          {
+            "endLine": 151,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "62ce6be11750c86e",
+            "quote": "if (this.inspectedAround(scale.hiveId, readAt, readAt + INSPECTION_AFTER_MS)) return;",
+            "startLine": 151
+          }
+        ],
+        "kind": "business",
+        "operator": "other",
+        "statement": "Just before sending, a held swarm SMS is suppressed if the hive was inspected around the drop (INSPECTION_BEFORE_MS before to INSPECTION_AFTER_MS after).",
+        "subject": "inspection time relative to weight drop",
+        "threshold": null,
+        "unit": null
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 5257,
+    "outputTokens": 2497
+  }
+}

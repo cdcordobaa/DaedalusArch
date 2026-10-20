@@ -1,0 +1,28 @@
+{
+  "itemId": "a37056780b7cf61a",
+  "itemName": "Scale ~ Hive Scale",
+  "key": "86fd6666dd15d0bd05b4f33c84990cf28ced45fc000993267bf724032406bb07",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "c9e2fd182ace63cc3b527c21f2d2063e8b6789e2c04d86fa517afe1f05b7d923",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Scale\nwhere: WeightReadingRepository (uses), src/persistence/repositories.ts, component persistence\ncode:\n=====SOURCE-BEGIN\nfindBySerialBetween(serialNumber: string, from: number, to: number): WeightReadingRecord[] {\n=====SOURCE-END=====\ngraph:\n- class WeightReadingRepository (node 47ce227c703f72aa): layer infrastructure, component persistence, fan-out 0, fan-in 2\n- <- CALLS Method ScaleService.recordReading\n- <- CONSTRUCTOR_INJECTS Class ScaleService\n\n### B\nconcept: Hive Scale\nwhere: ScaleService (uses), src/business/scaleService.ts, component business\ncode:\n=====SOURCE-BEGIN\n): ScaleRecord {\n=====SOURCE-END=====\ngraph:\n- class ScaleService (node f7e458262ae72ac4): layer domain, component business, fan-out 12, fan-in 0\n- -> CALLS Method HiveRepository.findById\n- -> CALLS Method InspectionRepository.findByHive\n- -> CALLS Method ScaleRepository.findByHive\n- -> CALLS Method ScaleRepository.findBySerial\n- -> CALLS Method ScaleRepository.save\n- -> CALLS Method WeightReadingRepository.create\n- -> CALLS Method WeightReadingRepository.findBySerialBetween\n- -> CONSTRUCTOR_INJECTS Class HiveRepository",
+  "recordedAt": "2026-10-20T15:11:08.651Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.85,
+    "rationale": "A's \"Scale\" is the device whose serial number WeightReadingRepository uses to find readings: findBySerialBetween(serialNumber: string, from: number, to: number). B's \"Hive Scale\" is the ScaleRecord that ScaleService returns. The graph shows ScaleService finding scales through ScaleRepository.findBySerial and findByHive, and calling WeightReadingRepository.findBySerialBetween. Both therefore point to the same physical scale on a hive, identified by its serial number, under two names. The link is the scale's identity, not an incidental shared field. Confidence is not higher because only one line of code was visible for each.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 1987,
+    "outputTokens": 778
+  }
+}

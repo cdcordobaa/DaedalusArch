@@ -1,0 +1,28 @@
+{
+  "itemId": "071850b27847683f",
+  "itemName": "Membership free-session entitlement and unpaid booking expiry ~ Membership free-session entitlement",
+  "key": "4a0af69d4be28f4b6a1f75c87d10a58f9affcd9001cea5734f246b758e95672e",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "06237c8104b32f368101f1df8ed35488f3490baddf5ab856943fe2b9e9f02ef8",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business capability?\n\n### A\ncapability: Membership free-session entitlement and unpaid booking expiry\nwhere: community:3\ncode:\n=====SOURCE-BEGIN\nexport class RinkService {\n=====SOURCE-END=====\ngraph:\n- community community:3: 5 classes (RinkService, BookingRepository, PuckPayClient, HireStockRepository, SessionRepository)\n- class RinkService (node 21c65604dec116b1): layer domain, component business, fan-out 22, fan-in 0\n- class BookingRepository (node 2e3c5728fffb0180): layer infrastructure, component persistence, fan-out 0, fan-in 12\n\n### B\ncapability: Membership free-session entitlement\nwhere: component:business\ncode:\n=====SOURCE-BEGIN\nexport class RinkService {\n=====SOURCE-END=====\ngraph:\n- component component:business: 5 classes (DomainError, RinkService, ClubService, ReportService, IceMonitorService)\n- class RinkService (node 21c65604dec116b1): layer domain, component business, fan-out 22, fan-in 0",
+  "recordedAt": "2026-10-20T13:01:40.469Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.6,
+    "rationale": "A and B overlap, but they don't name the same capability. Both are anchored on RinkService (node 21c65604dec116b1, \"export class RinkService {\"). Both include membership free-session entitlement. A also covers a second concern, unpaid booking expiry. A's community supports that wider scope because it includes BookingRepository (node 2e3c5728fffb0180, fan-in 12) and PuckPayClient, which point to booking and payment lifecycle handling. B's scope is the business component (DomainError, RinkService, ClubService, ReportService, IceMonitorService) and names only the entitlement part. So B is a subset of A. Confidence is moderate because the only code visible is the class declaration. Neither the entitlement logic nor the expiry logic can be checked directly.",
+    "same": false
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 1782,
+    "outputTokens": 574
+  }
+}

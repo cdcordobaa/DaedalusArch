@@ -1,0 +1,28 @@
+{
+  "itemId": "2b3e70ddd473e673",
+  "itemName": "Session Report ~ Session",
+  "key": "21f5d2bfee6a9506859478f293940c3ddfe5a170f7a237b2acd0318adf55ac22",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "d63e415cb38864f3c4e21820db8271d9ad70f210e26f2cad5e5de40710a60136",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Session Report\nwhere: RinkService (uses), src/business/rinkService.ts, component business\ncode:\n=====SOURCE-BEGIN\ngetReport(q: { from?: unknown; to?: unknown; weekStart?: unknown }): Report {\n=====SOURCE-END=====\ngraph:\n- class RinkService (node 21c65604dec116b1): layer domain, component business, fan-out 6, fan-in 0\n- -> CONSTRUCTOR_INJECTS Interface BookingStore\n- -> CONSTRUCTOR_INJECTS Interface ClubBookingStore\n- -> CONSTRUCTOR_INJECTS Interface HireStockStore\n- -> CONSTRUCTOR_INJECTS Interface PaymentGateway\n- -> CONSTRUCTOR_INJECTS Interface SessionStore\n- -> CONSTRUCTOR_INJECTS Interface SmsGateway\n\n### B\nconcept: Session\nwhere: InMemorySessionRepository (uses), src/persistence/sessionRepository.ts, component persistence\ncode:\n=====SOURCE-BEGIN\nprivate readonly sessions = new Map<string, Session>();\n=====SOURCE-END=====\ngraph:\n- class InMemorySessionRepository (node cbb2626cc4574661): layer infrastructure, component persistence, fan-out 1, fan-in 0\n- -> IMPLEMENTS Interface SessionRepository",
+  "recordedAt": "2026-10-20T12:07:34.964Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.85,
+    "rationale": "These are different concepts. A is a report that RinkService produces: getReport takes a date range (\"from\", \"to\", \"weekStart\") and returns a Report, so it is a summary built over many items. B is the Session entity itself, held as individual records in InMemorySessionRepository's Map<string, Session>. A report about sessions is a derived summary, not the same real-world thing as one session. Sharing the word \"Session\" in the concept name is not enough to make them the same. Confidence is not full because I can't see the definitions of Report or Session.",
+    "same": false
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 1959,
+    "outputTokens": 352
+  }
+}

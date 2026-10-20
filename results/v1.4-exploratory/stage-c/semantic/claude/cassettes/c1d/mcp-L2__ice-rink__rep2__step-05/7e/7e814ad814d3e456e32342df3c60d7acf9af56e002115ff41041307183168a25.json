@@ -1,0 +1,159 @@
+{
+  "itemId": "44fb2545d0048ec3",
+  "itemName": "ClubBookingService",
+  "key": "7e814ad814d3e456e32342df3c60d7acf9af56e002115ff41041307183168a25",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "04098b9d17c2cf5f5a41492a53e2c36f7ae08b88f0fd178cdeae7a6aa6b31c59",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass ClubBookingService (node 44fb2545d0048ec3), file src/business/clubBookingService.ts, lines 38-90.\nComponent: business. Declared layer: business (kind domain).\nMethods:\n- create (node 364ca2eb4f77a56d, lines 44-65, logic density 11)\n- list (node 701ad886b8e6bf44, lines 67-69, logic density 0)\n- get (node 7911210aa2fa0fe9, lines 71-75, logic density 2)\n- invoice (node 3a5a526a33bd68cd, lines 78-89, logic density 7)\nFields: clubBookings, rateCentsPerHour\n\n## APG neighbourhood\nGraph statistics: 4 methods; fan-out 6 (CALLS 5, CONSTRUCTOR_INJECTS 1); fan-in 0.\n- -> CALLS Method ClubBookingRepository.create (src/persistence/clubBookingRepository.ts)\n- -> CALLS Method ClubBookingRepository.findAll (src/persistence/clubBookingRepository.ts)\n- -> CALLS Method ClubBookingRepository.findByDate (src/persistence/clubBookingRepository.ts)\n- -> CALLS Method ClubBookingRepository.findById (src/persistence/clubBookingRepository.ts)\n- -> CALLS Method ClubBookingRepository.findByMonth (src/persistence/clubBookingRepository.ts)\n- -> CONSTRUCTOR_INJECTS Class ClubBookingRepository (src/persistence/clubBookingRepository.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- ClubBookingService: nameRole=\"service\"\n- ClubBookingService: behaviourRole=\"business-logic\"\n- ClubBookingService: ioCategories=[]\n- ClubBookingService: lcom4=1\n- ClubBookingService: responsibilityBreadth={\"breadth\":1,\"ioCategories\":[],\"componentDependencies\":[\"persistence\"]}\n- ClubBookingService.create: logicDensity={\"branches\":5,\"comparisons\":1,\"arithmetic\":0,\"validationThrows\":5,\"density\":11}\n- ClubBookingService.list: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- ClubBookingService.get: logicDensity={\"branches\":1,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":1,\"density\":2}\n- ClubBookingService.invoice: logicDensity={\"branches\":1,\"comparisons\":0,\"arithmetic\":5,\"validationThrows\":1,\"density\":7}\nFlags:\n- clones/same-component-near: body clone (near, similarity 0.80) of BookingService.get in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of SessionService.create in component business\n- clones/same-component-near: body clone (near, similarity 0.83) of IceMonitorService.heldSession in component business\n\n## Comments near the code\n- ClubBookingService.invoice: Monthly invoice: every booked hour (whole or half rink) at the club rate.\n\n## Source\n=====SOURCE-BEGIN src/business/clubBookingService.ts\n38| export class ClubBookingService {\n39|   constructor(\n40|     private readonly clubBookings: ClubBookingRepository,\n41|     private readonly rateCentsPerHour: number = CLUB_RATE_CENTS_PER_HOUR,\n42|   ) {}\n43| \n44|   create(input: NewClubBooking): ClubBooking {\n45|     if (typeof input.date !== \"string\" || !DATE.test(input.date) || Number.isNaN(Date.parse(input.date)))\n46|       throw new DomainError(400, \"date must be YYYY-MM-DD\");\n47|     if (typeof input.start !== \"string\" || typeof input.end !== \"string\" || !TIME.test(input.start) || !TIME.test(input.end))\n48|       throw new DomainError(400, \"start and end must be HH:MM\");\n49|     if (input.end <= input.start) throw new DomainError(400, \"end must be after start\");\n50|     if (!AREAS.includes(input.area)) throw new DomainError(400, \"area must be whole, half-a or half-b\");\n51| \n52|     const mine = halvesOf(input.area);\n53|     const clash = this.clubBookings\n54|       .findByDate(input.date)\n55|       .some((b) => timesOverlap(b, input) && halvesOf(b.area).some((h) => mine.includes(h)));\n56|     if (clash) throw new DomainError(409, \"overlaps another club booking\");\n57| \n58|     return this.clubBookings.create({\n59|       date: input.date,\n60|       start: input.start,\n61|       end: input.end,\n62|       area: input.area,\n63|       createdAt: Date.now(),\n64|     });\n65|   }\n66| \n67|   list(): ClubBooking[] {\n68|     return this.clubBookings.findAll();\n69|   }\n70| \n71|   get(id: string): ClubBooking {\n72|     const b = this.clubBookings.findById(id);\n73|     if (!b) throw new DomainError(404, \"club booking not found\");\n74|     return b;\n75|   }\n76| \n77|   /** Monthly invoice: every booked hour (whole or half rink) at the club rate. */\n78|   invoice(month: string): ClubInvoice {\n79|     if (typeof month !== \"string\" || !MONTH.test(month)) throw new DomainError(400, \"month must be YYYY-MM\");\n80|     const bookings = this.clubBookings.findByMonth(month);\n81|     const totalMinutes = bookings.reduce((n, b) => n + minutes(b.end) - minutes(b.start), 0);\n82|     return {\n83|       month,\n84|       hours: totalMinutes / 60,\n85|       rateCentsPerHour: this.rateCentsPerHour,\n86|       totalCents: Math.round((totalMinutes * this.rateCentsPerHour) / 60),\n87|       bookings,\n88|     };\n89|   }\n90| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T13:05:38.951Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 44,
+            "file": "src/business/clubBookingService.ts",
+            "nodeId": "364ca2eb4f77a56d",
+            "quote": "create(input: NewClubBooking): ClubBooking {",
+            "startLine": 44
+          }
+        ],
+        "name": "Club Booking",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 78,
+            "file": "src/business/clubBookingService.ts",
+            "nodeId": "3a5a526a33bd68cd",
+            "quote": "invoice(month: string): ClubInvoice {",
+            "startLine": 78
+          }
+        ],
+        "name": "Club Invoice",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 50,
+            "file": "src/business/clubBookingService.ts",
+            "nodeId": "364ca2eb4f77a56d",
+            "quote": "if (!AREAS.includes(input.area)) throw new DomainError(400, \"area must be whole, half-a or half-b\");",
+            "startLine": 50
+          }
+        ],
+        "name": "Rink Area",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 41,
+            "file": "src/business/clubBookingService.ts",
+            "nodeId": "44fb2545d0048ec3",
+            "quote": "private readonly rateCentsPerHour: number = CLUB_RATE_CENTS_PER_HOUR,",
+            "startLine": 41
+          }
+        ],
+        "name": "Club Hourly Rate",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.9,
+        "description": "Checks that a new club booking has a valid date, valid start and end times with end after start, and a valid rink area (whole, half-a or half-b).",
+        "evidence": [
+          {
+            "endLine": 50,
+            "file": "src/business/clubBookingService.ts",
+            "nodeId": "364ca2eb4f77a56d",
+            "quote": "if (input.end <= input.start) throw new DomainError(400, \"end must be after start\");",
+            "startLine": 49
+          }
+        ],
+        "name": "Validate club booking requests",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.9,
+        "description": "Rejects a club booking if, on the same date, its time overlaps another booking that uses the same rink half.",
+        "evidence": [
+          {
+            "endLine": 56,
+            "file": "src/business/clubBookingService.ts",
+            "nodeId": "364ca2eb4f77a56d",
+            "quote": "if (clash) throw new DomainError(409, \"overlaps another club booking\");",
+            "startLine": 55
+          }
+        ],
+        "name": "Prevent overlapping rink bookings",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Saves new club bookings and looks them up by listing all of them or finding one by id, reporting not-found when it does not exist.",
+        "evidence": [
+          {
+            "endLine": 58,
+            "file": "src/business/clubBookingService.ts",
+            "nodeId": "364ca2eb4f77a56d",
+            "quote": "return this.clubBookings.create({",
+            "startLine": 58
+          },
+          {
+            "endLine": 73,
+            "file": "src/business/clubBookingService.ts",
+            "nodeId": "7911210aa2fa0fe9",
+            "quote": "if (!b) throw new DomainError(404, \"club booking not found\");",
+            "startLine": 73
+          },
+          {
+            "endLine": 68,
+            "file": "src/business/clubBookingService.ts",
+            "nodeId": "701ad886b8e6bf44",
+            "quote": "return this.clubBookings.findAll();",
+            "startLine": 68
+          }
+        ],
+        "name": "Record and retrieve club bookings",
+        "naturalLayer": "application"
+      },
+      {
+        "confidence": 0.9,
+        "description": "Adds up the booked hours for a month and charges them at the club's hourly rate to produce a monthly invoice.",
+        "evidence": [
+          {
+            "endLine": 86,
+            "file": "src/business/clubBookingService.ts",
+            "nodeId": "3a5a526a33bd68cd",
+            "quote": "totalCents: Math.round((totalMinutes * this.rateCentsPerHour) / 60),",
+            "startLine": 86
+          }
+        ],
+        "name": "Calculate monthly club invoice",
+        "naturalLayer": "domain"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 4311,
+    "outputTokens": 1396
+  }
+}

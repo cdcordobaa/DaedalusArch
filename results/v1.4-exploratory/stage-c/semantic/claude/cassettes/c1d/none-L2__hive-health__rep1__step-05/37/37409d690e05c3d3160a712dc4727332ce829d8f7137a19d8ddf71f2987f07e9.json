@@ -1,0 +1,28 @@
+{
+  "itemId": "dfb4e6128a69fa68",
+  "itemName": "Hive ~ Hive Scale",
+  "key": "37409d690e05c3d3160a712dc4727332ce829d8f7137a19d8ddf71f2987f07e9",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "caaafbb655832a8d53a1566d741adaf1ee710fd0e46e84f4ce5d97696c697b74",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Hive\nwhere: HarvestRepository (uses), src/persistence/repositories.ts, component persistence\ncode:\n=====SOURCE-BEGIN\nfindByHive(hiveId: string): HarvestRecord[] {\n=====SOURCE-END=====\ngraph:\n- class HarvestRepository (node cfa247680820ee47): layer infrastructure, component persistence, fan-out 0, fan-in 5\n- <- CALLS Method ReportService.quarterlyReport\n- <- CALLS Method TreatmentService.listHarvests\n- <- CALLS Method TreatmentService.recordHarvest\n- <- CONSTRUCTOR_INJECTS Class ReportService\n- <- CONSTRUCTOR_INJECTS Class TreatmentService\n\n### B\nconcept: Hive Scale\nwhere: ScaleService (uses), src/business/scaleService.ts, component business\ncode:\n=====SOURCE-BEGIN\n): ScaleRecord {\n=====SOURCE-END=====\ngraph:\n- class ScaleService (node f7e458262ae72ac4): layer domain, component business, fan-out 12, fan-in 0\n- -> CALLS Method HiveRepository.findById\n- -> CALLS Method InspectionRepository.findByHive\n- -> CALLS Method ScaleRepository.findByHive\n- -> CALLS Method ScaleRepository.findBySerial\n- -> CALLS Method ScaleRepository.save\n- -> CALLS Method WeightReadingRepository.create\n- -> CALLS Method WeightReadingRepository.findBySerialBetween\n- -> CONSTRUCTOR_INJECTS Class HiveRepository",
+  "recordedAt": "2026-10-20T15:12:46.320Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.88,
+    "rationale": "These are different concepts. A \"Hive\" is the beehive itself, which HarvestRepository refers to by id in `findByHive(hiveId: string): HarvestRecord[]`. A \"Hive Scale\" is a separate weighing device that has its own ScaleRecord. ScaleService treats the two as different things. It calls HiveRepository.findById to get hives, and separately calls ScaleRepository.findBySerial and ScaleRepository.save to manage scales, which are looked up by serial number. So a scale is a device linked to a hive, not the hive under another name.",
+    "same": false
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2040,
+    "outputTokens": 318
+  }
+}

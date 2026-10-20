@@ -1,0 +1,28 @@
+{
+  "itemId": "6fc183c65ffed595",
+  "itemName": "Hive Owner ~ Hive",
+  "key": "38f8926805cf0a366ffe415d95c7180ae1724001ca34edfedc86c1d09d4cdd57",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "aa4e06512d19365d4a9049251951af5222bb26caa2c3e31ddad71afeafe7d23d",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Hive Owner\nwhere: TreatmentService (uses), src/business/treatmentService.ts, component business\ncode:\n=====SOURCE-BEGIN\nif (hive.ownerId !== ownerId) {\n=====SOURCE-END=====\ngraph:\n- class TreatmentService (node 2912145e8ad12343): layer domain, component business, fan-out 12, fan-in 0\n- -> CALLS Method HarvestRepository.create\n- -> CALLS Method HarvestRepository.findByHive\n- -> CALLS Method HiveRepository.findById\n- -> CALLS Method TreatmentProductRepository.create\n- -> CALLS Method TreatmentProductRepository.findAll\n- -> CALLS Method TreatmentProductRepository.findById\n- -> CALLS Method TreatmentRepository.create\n- -> CALLS Method TreatmentRepository.findByHive\n\n### B\nconcept: Hive\nwhere: InspectionRepository (uses), src/persistence/repositories.ts, component persistence\ncode:\n=====SOURCE-BEGIN\nfindByHive(hiveId: string): Inspection[] {\n=====SOURCE-END=====\ngraph:\n- class InspectionRepository (node 55c79c4bdccf51e6): layer infrastructure, component persistence, fan-out 0, fan-in 7\n- <- CALLS Method BeekeepingService.isFlagged\n- <- CALLS Method BeekeepingService.latestInspection\n- <- CALLS Method BeekeepingService.listInspections\n- <- CALLS Method BeekeepingService.recordInspection\n- <- CALLS Method ScaleService.hasNearbyInspection\n- <- CONSTRUCTOR_INJECTS Class BeekeepingService\n- <- CONSTRUCTOR_INJECTS Class ScaleService",
+  "recordedAt": "2026-10-20T12:42:55.696Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.9,
+    "rationale": "A is the beekeeper who owns a hive. TreatmentService checks the hive's ownerId against the caller's ownerId. B is the hive itself: InspectionRepository.findByHive looks up inspections by hiveId. An owner and the hive they own are related but separate real-world things. They are linked by a reference, not two names for one concept.",
+    "same": false
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2091,
+    "outputTokens": 225
+  }
+}

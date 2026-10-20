@@ -1,0 +1,129 @@
+{
+  "itemId": "component:persistence",
+  "itemName": "component:persistence",
+  "key": "90914dab34d644b328b1967672850504a0457c4771b49146f95920c2c28c0066",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "e40d5cbf307224e9ad0f031b9ee4d92469d948356ba890e56aae6a14882f055e",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of component \"persistence\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- DropTextClient (node 0e0ffaf33c6872c8), file src/persistence/dropTextClient.ts, declaration line 6: \"export class DropTextClient implements TextGateway {\"\n  component persistence, layer infrastructure; responsibilities: Send text message via DropText API; Report provider delivery failures\n- BookingRepository (node 2e3c5728fffb0180), file src/persistence/bookingRepository.ts, declaration line 4: \"export class BookingRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store and retrieve bookings in memory; Index bookings by session; Find a member's active bookings for a month; Find pending bookings\n- ClubBookingRepository (node 440da90bcde7901a), file src/persistence/clubBookingRepository.ts, declaration line 4: \"export class ClubBookingRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store club bookings; Look up club bookings by id or list them all; Query club bookings by date or month\n- PuckPayClient (node 8ce0b3f14177346a), file src/persistence/puckPayClient.ts, declaration line 15: \"export class PuckPayClient implements PuckPayGateway {\"\n  component persistence, layer infrastructure; responsibilities: Create payment checkout via PuckPay; Translate and validate PuckPay checkout responses; Refund payments via PuckPay\n- HireStockRepository (node ada57feca2e90c67), file src/persistence/hireStockRepository.ts, declaration line 2: \"export class HireStockRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store hire skate stock per shoe size; Look up hire stock for a shoe size; List all hire stock\n- SessionRepository (node e3915d8f30e495a9), file src/persistence/sessionRepository.ts, declaration line 4: \"export class SessionRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store and register sessions; Query the session schedule by date range\n\n## APG relations of the group\nGraph statistics: 6 classes; 0 relations inside the group; 2 outgoing relations to code outside it.\n- (none)\n\n## Comments near the code\n- DropTextClient: HTTP client for the DropText API.\n- PuckPayClient: HTTP client for the PuckPay API.\n- PuckPayClient.refund: Refunds the payment made for the checkout with this reference.\n- HireStockRepository: Fixed stock of hire skates per shoe size.\n- SessionRepository.findBetween: Sessions whose date lies in [from, to] (YYYY-MM-DD), ordered by date and start.",
+  "recordedAt": "2026-10-20T13:08:36.305Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.8,
+        "description": "Registering skating sessions and consulting the session timetable over a date range.",
+        "evidence": [
+          {
+            "endLine": 4,
+            "file": "src/persistence/sessionRepository.ts",
+            "nodeId": "e3915d8f30e495a9",
+            "quote": "export class SessionRepository {",
+            "startLine": 4
+          }
+        ],
+        "name": "Session schedule management",
+        "realizedBy": [
+          "e3915d8f30e495a9"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "Recording members' bookings for sessions, tracking a member's active bookings per month and identifying pending bookings.",
+        "evidence": [
+          {
+            "endLine": 4,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "2e3c5728fffb0180",
+            "quote": "export class BookingRepository {",
+            "startLine": 4
+          }
+        ],
+        "name": "Member session booking",
+        "realizedBy": [
+          "2e3c5728fffb0180"
+        ]
+      },
+      {
+        "confidence": 0.75,
+        "description": "Recording bookings made by clubs and retrieving them by id, date or month.",
+        "evidence": [
+          {
+            "endLine": 4,
+            "file": "src/persistence/clubBookingRepository.ts",
+            "nodeId": "440da90bcde7901a",
+            "quote": "export class ClubBookingRepository {",
+            "startLine": 4
+          }
+        ],
+        "name": "Club group booking",
+        "realizedBy": [
+          "440da90bcde7901a"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "Keeping track of the stock of hire skates available per shoe size.",
+        "evidence": [
+          {
+            "endLine": 2,
+            "file": "src/persistence/hireStockRepository.ts",
+            "nodeId": "ada57feca2e90c67",
+            "quote": "export class HireStockRepository {",
+            "startLine": 2
+          }
+        ],
+        "name": "Skate hire inventory",
+        "realizedBy": [
+          "ada57feca2e90c67"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "Taking customer payments through an external payment provider checkout and refunding them.",
+        "evidence": [
+          {
+            "endLine": 15,
+            "file": "src/persistence/puckPayClient.ts",
+            "nodeId": "8ce0b3f14177346a",
+            "quote": "export class PuckPayClient implements PuckPayGateway {",
+            "startLine": 15
+          }
+        ],
+        "name": "Online payment and refunds",
+        "realizedBy": [
+          "8ce0b3f14177346a"
+        ]
+      },
+      {
+        "confidence": 0.75,
+        "description": "Sending text messages to customers through an external SMS provider and reporting delivery failures.",
+        "evidence": [
+          {
+            "endLine": 6,
+            "file": "src/persistence/dropTextClient.ts",
+            "nodeId": "0e0ffaf33c6872c8",
+            "quote": "export class DropTextClient implements TextGateway {",
+            "startLine": 6
+          }
+        ],
+        "name": "Customer text messaging",
+        "realizedBy": [
+          "0e0ffaf33c6872c8"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2641,
+    "outputTokens": 1486
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "itemId": "4799b1081a692790",
+  "itemName": "TreatmentProductRepository",
+  "key": "af55f9d16aa091016c4c7d3e51e1e2acd6f0c8def0d1cf7d60c962518a864587",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "rules",
+    "promptHash": "bbd0d4c66325b7074321352c726caf33c963f95a37bcc1f42b99afec2e30e147",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "f0fc4d535ca2368dc75f2c1669e4a1b8563970f49941a37b2cf4202334cf7327",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nExtract the rules enforced by the candidate methods below: the business rules, and the limits or thresholds checked on incoming data. Label each rule with its kind. kind \"business\": a rule of the business domain (a threshold, an eligibility condition, a limit, a rate) that must hold whichever entry point is used. kind \"input-validation\": a check of the form, type or size of incoming data. Leave out null checks, formatting and parsing. State each rule in plain business language with the subject it constrains, the comparison operator and threshold normalised to the most natural business unit, and the unit. Write the rule as the business would state it, independent of how the code is shaped (`!(a < b)` states `a >= b`).\nSet enforcedBy to the node id of the method that enforces the rule. Cite that method and quote the code that enforces it. Return an empty list when the candidates enforce no such rule.\n\n## Class\nClass TreatmentProductRepository (node 4799b1081a692790), file src/persistence/repositories.ts, lines 13-34.\nComponent: persistence. Declared layer: persistence (kind infrastructure).\nCandidate methods (proposed by the cheap proxies):\n- create (node 7d1b786a40e58f53, lines 16-20, logic density 0)\n- findByName (node c4bce44bec94f329, lines 26-29, logic density 1)\n\n## APG neighbourhood\nGraph statistics: 4 methods; fan-out 0; fan-in 8 (CALLS 5, CONSTRUCTOR_INJECTS 3).\n- <- CALLS Method HarvestService.recordHarvest (src/business/harvestService.ts)\n- <- CALLS Method ReportService.quarterly (src/business/reportService.ts)\n- <- CALLS Method TreatmentService.addProduct (src/business/treatmentService.ts)\n- <- CALLS Method TreatmentService.listProducts (src/business/treatmentService.ts)\n- <- CALLS Method TreatmentService.recordTreatment (src/business/treatmentService.ts)\n- <- CONSTRUCTOR_INJECTS Class HarvestService (src/business/harvestService.ts)\n- <- CONSTRUCTOR_INJECTS Class ReportService (src/business/reportService.ts)\n- <- CONSTRUCTOR_INJECTS Class TreatmentService (src/business/treatmentService.ts)\n\n## Source\n=====SOURCE-BEGIN src/persistence/repositories.ts\n13| export class TreatmentProductRepository {\n14|   private readonly items = new Map<string, TreatmentProductRecord>();\n15| \n16|   create(data: Omit<TreatmentProductRecord, \"id\">): TreatmentProductRecord {\n17|     const record: TreatmentProductRecord = { id: randomUUID(), ...data };\n18|     this.items.set(record.id, record);\n19|     return record;\n20|   }\n21| \n22|   findById(id: string): TreatmentProductRecord | undefined {\n23|     return this.items.get(id);\n24|   }\n25| \n26|   findByName(name: string): TreatmentProductRecord | undefined {\n27|     const wanted = name.toLowerCase();\n28|     return [...this.items.values()].find((p) => p.name.toLowerCase() === wanted);\n29|   }\n30| \n31|   findAll(): TreatmentProductRecord[] {\n32|     return [...this.items.values()];\n33|   }\n34| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:24:07.917Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "rules": []
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2923,
+    "outputTokens": 171
+  }
+}

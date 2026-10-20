@@ -1,0 +1,28 @@
+{
+  "itemId": "4b91e66c541a0e30",
+  "itemName": "Club Booking ~ Booking",
+  "key": "ef3ddd760510151cf105a296b6d33312042def5e57a9383cca10c19bbc71f025",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "d8449224efa19296d1eb37fcc2dd258e23839516ed721d49c27bede0ccfde438",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Club Booking\nwhere: RinkService (uses), src/business/rinkService.ts, component business\ncode:\n=====SOURCE-BEGIN\nconst created = this.clubBookings.create({ date: input.date, start: input.start, end: input.end, halves });\n=====SOURCE-END=====\ngraph:\n- class RinkService (node 21c65604dec116b1): layer domain, component business, fan-out 25, fan-in 0\n- -> CALLS Method BookingRepository.create\n- -> CALLS Method BookingRepository.get\n- -> CALLS Method BookingRepository.groupBySession\n- -> CALLS Method BookingRepository.list\n- -> CALLS Method BookingRepository.listByMembership\n- -> CALLS Method BookingRepository.listBySession\n- -> CALLS Method BookingRepository.update\n- -> CALLS Method ClubBookingRepository.create\n\n### B\nconcept: Booking\nwhere: BookingRepository (uses), src/persistence/bookingRepository.ts, component persistence\ncode:\n=====SOURCE-BEGIN\ncreate(data: Omit<Booking, \"id\">): Booking {\n=====SOURCE-END=====\ngraph:\n- class BookingRepository (node 2e3c5728fffb0180): layer infrastructure, component persistence, fan-out 0, fan-in 10\n- <- CALLS Method RinkService.cancelSession\n- <- CALLS Method RinkService.expireOverdue\n- <- CALLS Method RinkService.freeEntriesUsed\n- <- CALLS Method RinkService.getBooking\n- <- CALLS Method RinkService.getWeeklyReport\n- <- CALLS Method RinkService.handlePaymentResult\n- <- CALLS Method RinkService.holdSession\n- <- CALLS Method RinkService.purchase",
+  "recordedAt": "2026-10-20T15:24:24.300Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.85,
+    "rationale": "RinkService uses two separate repositories: ClubBookingRepository.create and BookingRepository.create, so the two concepts are stored separately. A club booking is created with date, start, end and rink 'halves', which looks like a club reserving part of the rink for a time slot. Booking is reached through session-, membership-, hold-, purchase-, payment-result- and expiry-related methods (listBySession, listByMembership, holdSession, purchase, handlePaymentResult, expireOverdue), which points to an individual's paid booking on a session. They share timing attributes and the word 'booking', but they model different real-world things.",
+    "same": false
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2086,
+    "outputTokens": 681
+  }
+}

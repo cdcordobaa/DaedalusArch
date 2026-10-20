@@ -1,0 +1,102 @@
+{
+  "itemId": "cfa247680820ee47",
+  "itemName": "HarvestRepository",
+  "key": "01ddd80d4fd064416319a6847fcc76a67909df115b07f9bf3b4e2b3a83974d9a",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "139a28ac3e7bb4890f463a45c6e5331f6e9cfc9e9444a2a8de4e7fd874bd1d89",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass HarvestRepository (node cfa247680820ee47), file src/persistence/repositories.ts, lines 49-65.\nComponent: persistence. Declared layer: persistence (kind infrastructure).\nMethods:\n- create (node e5be7affbbabd209, lines 52-56, logic density 0)\n- findByHive (node cba2b59caddbaea6, lines 58-60, logic density 1)\n- findAll (node 3c3a1e0ee43b86f6, lines 62-64, logic density 0)\nFields: items\n\n## APG neighbourhood\nGraph statistics: 3 methods; fan-out 0; fan-in 5 (CALLS 3, CONSTRUCTOR_INJECTS 2).\n- <- CALLS Method ReportService.quarterlyReport (src/business/reportService.ts)\n- <- CALLS Method TreatmentService.listHarvests (src/business/treatmentService.ts)\n- <- CALLS Method TreatmentService.recordHarvest (src/business/treatmentService.ts)\n- <- CONSTRUCTOR_INJECTS Class ReportService (src/business/reportService.ts)\n- <- CONSTRUCTOR_INJECTS Class TreatmentService (src/business/treatmentService.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- HarvestRepository: nameRole=\"repository\"\n- HarvestRepository: behaviourRole=\"coordination\"\n- HarvestRepository: ioCategories=[]\n- HarvestRepository: lcom4=1\n- HarvestRepository: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- HarvestRepository.create: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- HarvestRepository.findByHive: logicDensity={\"branches\":0,\"comparisons\":1,\"arithmetic\":0,\"validationThrows\":0,\"density\":1}\n- HarvestRepository.findAll: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\nFlags:\n- clones/same-component-near: body clone (near, similarity 0.84) of TreatmentProductRepository.create in component persistence\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of TreatmentRepository.create in component persistence\n- clones/same-component-near: body clone (near, similarity 0.84) of ApiaryRepository.create in component persistence\n- clones/same-component-near: body clone (near, similarity 0.84) of HiveRepository.create in component persistence\n\n## Source\n=====SOURCE-BEGIN src/persistence/repositories.ts\n49| export class HarvestRepository {\n50|   private readonly items: Harvest[] = [];\n51| \n52|   create(data: Omit<Harvest, \"id\">): Harvest {\n53|     const harvest: Harvest = { id: randomUUID(), ...data };\n54|     this.items.push(harvest);\n55|     return harvest;\n56|   }\n57| \n58|   findByHive(hiveId: string): Harvest[] {\n59|     return this.items.filter((h) => h.hiveId === hiveId);\n60|   }\n61| \n62|   findAll(): Harvest[] {\n63|     return [...this.items];\n64|   }\n65| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:35:26.240Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.9,
+        "evidence": [
+          {
+            "endLine": 50,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "cfa247680820ee47",
+            "quote": "private readonly items: Harvest[] = [];",
+            "startLine": 50
+          }
+        ],
+        "name": "Harvest",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.75,
+        "evidence": [
+          {
+            "endLine": 58,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "cba2b59caddbaea6",
+            "quote": "findByHive(hiveId: string): Harvest[] {",
+            "startLine": 58
+          }
+        ],
+        "name": "Hive",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Records a new honey harvest by assigning it a unique identifier and keeping it in the in-memory store.",
+        "evidence": [
+          {
+            "endLine": 54,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "e5be7affbbabd209",
+            "quote": "const harvest: Harvest = { id: randomUUID(), ...data };",
+            "startLine": 53
+          }
+        ],
+        "name": "Store harvest records",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Returns the harvests that were collected from a given hive.",
+        "evidence": [
+          {
+            "endLine": 59,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "cba2b59caddbaea6",
+            "quote": "return this.items.filter((h) => h.hiveId === hiveId);",
+            "startLine": 59
+          }
+        ],
+        "name": "Retrieve harvests per hive",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Returns a copy of every stored harvest, for example for quarterly reporting.",
+        "evidence": [
+          {
+            "endLine": 63,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "3c3a1e0ee43b86f6",
+            "quote": "return [...this.items];",
+            "startLine": 63
+          }
+        ],
+        "name": "List all harvests",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 3378,
+    "outputTokens": 730
+  }
+}
