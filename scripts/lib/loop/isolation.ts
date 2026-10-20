@@ -83,7 +83,8 @@ export function checkIsolationBeforeSpawn(home: string, isolation: ClaudeIsolati
   if (ambient.length > 0) return DomainResult.fail([err('LOOP_ISOLATION', 'the isolated HOME holds Claude configuration', { entries: ambient })]);
   const listing = checkConfigListing(isolation.configDir);
   // The CLI syncs the account's skills and plugins into a signed-in config dir at every start; they are inert because
-  // every generator turn runs with --safe-mode (claude-config-tolerance.ts). Everything else still fails (2026-10-19).
+  // every generator turn runs with the customizations-off flags (argv.ts GENERATOR_CUSTOMIZATIONS_OFF;
+  // claude-config-tolerance.ts). Everything else still fails (2026-10-19; flags 2026-10-20).
   const left = researchListingFailures(listing.failures);
   if (left.length > 0) {
     return DomainResult.fail([err('LOOP_ISOLATION', 'the generator config dir fails the ADR-018 listing check', { failures: left })]);

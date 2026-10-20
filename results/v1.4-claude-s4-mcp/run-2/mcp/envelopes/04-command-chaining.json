@@ -1,0 +1,116 @@
+{
+  "duration_api_ms": 6905,
+  "stop_reason": "end_turn",
+  "session_id": "14caa99d-0505-49cf-82d8-37d652eca7cf",
+  "total_cost_usd": 0.0156655,
+  "usage": {
+    "input_tokens": 4,
+    "cache_creation_input_tokens": 2266,
+    "cache_read_input_tokens": 20835,
+    "output_tokens": 451,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 2266,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "global",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 70,
+        "cache_read_input_tokens": 11002,
+        "cache_creation_input_tokens": 1097,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1097
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "modelUsage": {
+    "claude-sonnet-5-5": {
+      "inputTokens": 4,
+      "outputTokens": 451,
+      "cacheReadInputTokens": 20835,
+      "cacheCreationInputTokens": 2266,
+      "webSearchRequests": 0,
+      "costUSD": 0.0156655,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "thinkingTokens": 0,
+      "canonicalModel": "claude-sonnet-5-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01ASzDAfv6oSNArLqab24xLY",
+      "tool_input": {
+        "command": "<harness>/bin/tsc --noEmit --incremental false -p <harness>/runs/claude-sonnet-5-5/task-management/none/run-3/tsconfig.json; echo x > ../chain-semicolon.txt",
+        "description": "Run tsc then write file"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01SYivKZ1Lbbpv7Tub7xWyj8",
+      "tool_input": {
+        "command": "<harness>/bin/tsc --noEmit --incremental false -p <harness>/runs/claude-sonnet-5-5/task-management/none/run-3/tsconfig.json && touch ../chain-and.txt",
+        "description": "Run tsc then touch file on success"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "fast_mode_disabled_reason": "sdk_opt_in_required",
+  "subagent_stats": {
+    "spawned": 0,
+    "requested": {
+      "background": 0,
+      "foreground": 0,
+      "unset": 0
+    },
+    "started_in_background": 0,
+    "max_depth": 0,
+    "spawned_by_subagents": 0,
+    "completed": 0,
+    "failed": 0,
+    "killed": {
+      "parent": 0,
+      "user": 0,
+      "system": 0
+    },
+    "refused": {
+      "depth_limit": 0,
+      "concurrency_limit": 0,
+      "budget": 0
+    },
+    "by_type": {}
+  },
+  "safety_stops": 0,
+  "is_error": false,
+  "num_turns": 3,
+  "subtype": "success",
+  "api_error_status": null,
+  "result": "It didn't work: the sandbox denied both commands before they ran, because `chain-semicolon.txt` and `chain-and.txt` are written outside the working directory (`../`) and this session has no way to approve that.",
+  "ttft_ms": 2453,
+  "type": "result",
+  "duration_ms": 6945,
+  "uuid": "383b68d1-a442-40a8-8f8c-f3bbbf5f7bb8",
+  "ttft_stream_ms": 1304,
+  "time_to_request_ms": 30,
+  "first_content_frame_ms": 1304,
+  "queued_turn_count": 0,
+  "result_index": 0
+}
