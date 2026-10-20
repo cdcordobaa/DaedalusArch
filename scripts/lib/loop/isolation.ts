@@ -13,6 +13,7 @@ import * as path from 'node:path';
 import { DomainResult } from '../../../src/shared/errors/domain-result.js';
 import type { DomainError } from '../../../src/shared/errors/domain-result.js';
 import { checkConfigListing, parseCliVersion } from '../../../src/llm-critic/claude-cli-provider.js';
+import { researchListingFailures } from '../claude-config-tolerance.js';
 import { JUDGE_ENV_SET } from '../../../src/llm-critic/frozen.js';
 import { canonicalPath, isInsideOrEqual } from '../generators/config.js';
 import { buildGeneratorChildEnv } from '../generators/env.js';
@@ -81,8 +82,11 @@ export function checkIsolationBeforeSpawn(home: string, isolation: ClaudeIsolati
   const ambient = fs.readdirSync(home).filter((n) => ISOLATED_HOME_FORBIDDEN.includes(n)).sort();
   if (ambient.length > 0) return DomainResult.fail([err('LOOP_ISOLATION', 'the isolated HOME holds Claude configuration', { entries: ambient })]);
   const listing = checkConfigListing(isolation.configDir);
-  if (!listing.pass) {
-    return DomainResult.fail([err('LOOP_ISOLATION', 'the generator config dir fails the ADR-018 listing check', { failures: listing.failures })]);
+  // The CLI syncs the account's skills and plugins into a signed-in config dir at every start; they are inert because
+  // every generator turn runs with --safe-mode (claude-config-tolerance.ts). Everything else still fails (2026-10-19).
+  const left = researchListingFailures(listing.failures);
+  if (left.length > 0) {
+    return DomainResult.fail([err('LOOP_ISOLATION', 'the generator config dir fails the ADR-018 listing check', { failures: left })]);
   }
   return DomainResult.ok({ configListingSha256: listing.configListingSha256 });
 }
