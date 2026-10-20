@@ -57,6 +57,9 @@ The source grids are only read. A resume needs only the new run, and refuses a d
    (and `--claude-config-dir`) to all three plans: the cells of a block should then share one environment.
 3. **The `daedalus` block** of `plan-mcp-L2` holds `/opt/daedalus/...` placeholders. Point it at a build of the MCP
    server at the run commit, outside every cwd (the per-task spec is the profile's `presets/layered.yaml`).
+   **Blocked (2026-10-20):** the Claude S4 probe with MCP failed. `--safe-mode` keeps the server from loading, so
+   this cell would run with no MCP tool (`Docs/DiagnosticRuns/v1.4-claude-s4-mcp-2026-10-20.md`). It needs an argv
+   decision and an S4 re-run first.
 4. Approval of the 63 calls (cap per Amendment 1 item 6).
 
 ## Commands (repository root; fill the `<…>` paths, all absolute and outside the repository)
