@@ -2796,3 +2796,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 Study 2b, readiness gate, before the run; zero model calls
 
 ---
+
+## Study 2b — D_sem provenance classifier (DA8)
+**Timestamp**: 2026-10-20T17:22:43Z
+**User Input**: "(coordinator brief) Build the zero-call D_sem provenance classifier that the pre-registration (§4, 'Semantic layer', two-way D_sem) and sem-01 T1 require before the first 2b call: label every citation of each C4 exception claim as non-agent or agent-written from git history in the run's snapshots.git, flag agent text written at or after the finding's first step as an evasion candidate, and report D_sem both ways, the evasion count and the registered reading per cell. New code under scripts/v1.4 only; unit tests on synthetic repositories; smoke run on the 2a semantic results; record the sha256 where registered scripts are hashed; file it as a dated deviation row without changing any registered rule; merge normally once Build & Test is green."
+**AI Response**: "Added scripts/v1.4/dsem-provenance.ts and scripts/v1.4/lib/dsem-provenance.ts (git blame per cited line against the skeleton base commit; classes non-agent, agent-earlier, agent-same-or-later, unknown; writes the --dsem and --dsem-nonagent row files for study2b-analyse.ts, the per-cell P3 reading, and the registered contrast readings when every block has both D_sem values) with 18 unit tests (non-agent, earlier-step agent, same- or later-step agent, no-citation and single-run claims, external and unknown paths, an end-to-end CLI run). Smoke run on the 2a Claude semantic results: 0 stable claims, D_sem = D on every block C4 read, 0 evasion candidates; contrast readings not computed because 2a ran C4 on a sample. Hashes appended to Docs/v1.4/study2b-registered-artefacts.sha256; DA8 row in pre-registration addendum 1; the OSF deposit package refreshed with the new addendum and the classifier. No model call, no Neo4j, no frozen path changed, no sealed file opened."
+**Context**: v1.4 Study 2b, before the run; zero model calls
+
+---
