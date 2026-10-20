@@ -775,7 +775,7 @@ i. **U2 derived settlements** S-1 to S-7 and S-9 (U2 `business-rules.md` §14.1)
 
 ## ADR-017: Scope and requirement amendments for producing the thesis results (v1.2, lanes 3–4)
 
-**Status**: Accepted (author, 2026-10-08: "accept all")
+**Status**: Accepted (author, 2026-10-08: all recommendations accepted)
 
 **Date**: 2026-10-08
 
@@ -1052,7 +1052,7 @@ i. **U2 derived settlements** S-1 to S-7 and S-9 (U2 `business-rules.md` §14.1)
 
 ## ADR-023: FLOWS_TO is near-empty on real projects; reported as a limitation
 
-**Status**: Accepted (author, 2026-10-09: "Report as limitation")
+**Status**: Accepted (author decision, 2026-10-09: report as a limitation)
 
 **Date**: 2026-10-09
 
@@ -1080,7 +1080,7 @@ On the fixtures, extraction and ingestion produce exactly the predicted edges (v
 
 ## ADR-024: SO4 seeding typecheck losses diagnosed; no operator defect, golden N = 75 (pre-run, declared post-hoc)
 
-**Status**: Accepted (author, 2026-10-09: "Diagnose operators first")
+**Status**: Accepted (author decision, 2026-10-09: diagnose the operators first)
 
 **Date**: 2026-10-09
 
@@ -1110,7 +1110,7 @@ A reading of "implementers completed" (MO-SO02) that also rewrites every object 
 
 ## ADR-025: SO4 scoring defects fixed after the strict results (POST-HOC): class-rename identity, MO-S01 style guard, MO-DF01n constructor scope; prereg v9
 
-**Status**: Accepted (author, 2026-10-09: "Fix scoring, spot-check, then decide E7")
+**Status**: Accepted (author decision, 2026-10-09: fix scoring, spot-check, then decide E7)
 
 **Date**: 2026-10-09
 
@@ -1229,7 +1229,7 @@ Lock-file check (decision 2): `scripts/fetch-corpus.ts` runs exactly one install
 
 ## ADR-028: Judge aggregation, registered rule primary plus a pre-declared proportional variant (Option C)
 
-**Status**: Accepted (author, 2026-10-10: "I like option C. Yes. Let's keep track of this decision.")
+**Status**: Accepted (author, 2026-10-10: option C chosen, to be tracked as an ADR)
 
 **Date**: 2026-10-10
 
@@ -1250,7 +1250,7 @@ Lock-file check (decision 2): `scripts/fetch-corpus.ts` runs exactly one install
 
 **Review fixes (2026-10-10, prereg v15, Fable review of PR #47)**: the variant is undefined for SEL-07 baseline reuse; its confidence weighting is biased toward clean, so the confidence-free share is reported beside it; hash order is treated as SRS within a layer and no variance is reported. The judge-effect decomposition is registered (§12.3). The judge dimensions weigh W_n = 0.08 in every registered spec, so the judge can lower `ahsCombined` by at most 0.08 and never raise it above the judge-blind value; on E7 the registered judge contribution is 0 everywhere and no verdict depends on the judge. That the combined AHS stays above the rules-only AHS is a weighting artefact of W_n (`delta_dilution`), not evidence about the judge. Coding frame 1.1.0 codes the violation messages only, with a guarded reasoning coding and a pre-declared discrimination statistic; its E7 reading is post hoc.
 
-**Judge-weighted variant (2026-10-10, prereg v17; author: "Keep 8%, add weighted variant")**: the registered weights (W_n = 0.08) stay primary, and `judge-weighted-v1` (`Docs/analysis-plan.md` §12.5) is a pre-declared sensitivity analysis that rescales the executed weights so the two judge dimensions weigh 2/7 and the symbolic ones 5/7 (same thresholds, computed from the stored reports under the registered, proportional and any-fail aggregations, bound −2/7), because the 0.08 bound leaves the judge's stated role of moving verdicts unreachable; its E7 reading is post hoc (the judge moves 0 of 9 verdicts under the registered aggregation, 2 under the proportional and 8 under any-fail), and its E1 reading is pre-registered.
+**Judge-weighted variant (2026-10-10, prereg v17; author decision: keep 8%, add a weighted variant)**: the registered weights (W_n = 0.08) stay primary, and `judge-weighted-v1` (`Docs/analysis-plan.md` §12.5) is a pre-declared sensitivity analysis that rescales the executed weights so the two judge dimensions weigh 2/7 and the symbolic ones 5/7 (same thresholds, computed from the stored reports under the registered, proportional and any-fail aggregations, bound −2/7), because the 0.08 bound leaves the judge's stated role of moving verdicts unreachable; its E7 reading is post hoc (the judge moves 0 of 9 verdicts under the registered aggregation, 2 under the proportional and 8 under any-fail), and its E1 reading is pre-registered.
 
 ---
 

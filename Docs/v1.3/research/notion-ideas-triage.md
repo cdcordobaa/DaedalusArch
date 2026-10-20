@@ -977,7 +977,7 @@ Roadmap and status log, newest first, plus the v1.2E checklist, reading guide an
 - Step 4: "The 6 misses are all dynamic import(), which is out of coverage" → covered in v1.3; SO4 is 73/73.
 - Checklist "MCP server prototype … neither is merged" → the MCP server is in v1.3 (#80, #122).
 - "construct answers → freeze → sealed test once → human labels" and "Find a second human rater" → validity strategy is non-human first (night-plan decision 2).
-- Hygiene: the page ends with a stray chat prompt ("I need to spend credits against my subscription usage…"). It is not roadmap content.
+- Hygiene: the page ends with a stray chat prompt. It is not roadmap content.
 
 ### Hub "Next Actions" inline database (View of Tasks 3e150d308227801a9fabe41054c08f84, collection://33b50d30-8227-813e-9527-000b73332b4d)
 An inline view of the GTD Tasks data source, filtered to Project = "Governing AI-Agentic Development…" (2d5b9aad…). I queried it three ways (view mode, rows mode with relation filter, SQL LIKE), and each query returned **0 rows**. A title search in the whole Tasks source found one unlinked thesis row.
