@@ -9,7 +9,7 @@
  * Customizations off (`GENERATOR_CUSTOMIZATIONS_OFF`, DELEG3 option D, 2026-10-20): the explicit flags that replace
  * `--safe-mode`. On CLI 2.1.304 `--safe-mode` also drops every `--mcp-config` server, so the `daedalus-mcp` arm had
  * no tool. Both arms share this set; MCP comes only through `--strict-mcp-config` (no server in `none`, exactly the
- * daedalus server in `daedalus-mcp`). Evidence: `results/v1.4-claude-s4-mcp/equivalence/` (one turn under each set:
+ * daedalus server in `daedalus-mcp`). Evidence: the `equivalence/` folder of the S4-with-MCP results (one turn under each set:
  * same tools, servers, plugins and permission mode, no skill, slash command or CLAUDE.md). Stages A and B ran with
  * `--safe-mode`.
  */
