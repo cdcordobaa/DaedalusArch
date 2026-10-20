@@ -1,0 +1,146 @@
+{
+  "schema": "loop-step/v1",
+  "runId": "claude-code-cli/claude-sonnet-5-5/hive-health/none/run-0",
+  "spec": {
+    "adapterId": "claude-code-cli",
+    "modelId": "claude-sonnet-5-5",
+    "taskId": "hive-health",
+    "arm": "none",
+    "runIndex": 0
+  },
+  "stepIndex": 2,
+  "stepId": "treatments-harvests",
+  "startedAt": "2026-10-20T03:10:18.692Z",
+  "finishedAt": "2026-10-20T03:11:34.678Z",
+  "turns": [
+    {
+      "turnId": "step-03",
+      "kind": "step",
+      "promptSha256": "80886b72b130bb155ca3dadebc9507a6a13d58ad91a2e2b878dfbaff9dd75200",
+      "result": {
+        "status": "completed",
+        "usage": {
+          "costUsd": 0.2533218,
+          "inputTokens": 14,
+          "outputTokens": 13993,
+          "cacheReadTokens": 101678,
+          "cacheCreationTokens": 25799,
+          "numTurns": 26,
+          "durationMs": 73750
+        },
+        "wallMs": 75181,
+        "attempts": [
+          {
+            "startedAt": "2026-10-20T03:10:18.692Z",
+            "outcome": "completed"
+          }
+        ],
+        "interruptions": [],
+        "argv": [
+          "-p",
+          "<prompt>",
+          "--model",
+          "claude-sonnet-5-5",
+          "--output-format",
+          "json",
+          "--safe-mode",
+          "--restricted",
+          "--tools",
+          "Read,Write,Edit,Glob,Grep,Bash",
+          "--allowedTools",
+          "Bash(/Users/Shared/daedalus-exploratory/h/bin/tsc --noEmit --incremental false -p /Users/Shared/daedalus-exploratory/h/runs/claude-code-cli/claude-sonnet-5-5/hive-health/none/run-0/tsconfig.json)",
+          "--disallowedTools",
+          "Write(node_modules/**)",
+          "Edit(node_modules/**)",
+          "--permission-mode",
+          "acceptEdits",
+          "--permission-prompts",
+          "none",
+          "--no-session-persistence",
+          "--strict-mcp-config"
+        ],
+        "envelopePath": "envelope-step-03.json",
+        "permissionDenials": 2
+      },
+      "snapshot": {
+        "commit": "82c9cead1788d6555d92e71d3de414bfadeef272",
+        "sourceFiles": [
+          "business/errors.ts",
+          "business/hiveService.ts",
+          "business/scaleService.ts",
+          "business/treatmentService.ts",
+          "persistence/records.ts",
+          "persistence/repositories.ts",
+          "persistence/textHiveClient.ts",
+          "presentation/main.ts",
+          "presentation/server.ts"
+        ],
+        "treeFileCount": 10,
+        "loc": 780,
+        "diff": {
+          "added": 1,
+          "modified": 4,
+          "deleted": 0
+        },
+        "skeletonIntact": true,
+        "typecheck": {
+          "errors": 0,
+          "codes": []
+        },
+        "evaluation": {
+          "scoringMode": "v1.3",
+          "ahs": 0.827,
+          "blockingAhs": 0.821,
+          "verdict": "fail",
+          "violationCount": 11,
+          "blockingViolationCount": 2,
+          "advisoryViolationCount": 9,
+          "blockingByRule": {
+            "FF-S03": 2
+          },
+          "advisoryByRule": {
+            "FF-C03": 1,
+            "FF-CV05": 8
+          },
+          "blockingFindings": [
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-2a6f2a47ad53436c",
+              "filePath": "src/presentation/server.ts",
+              "line": 11,
+              "target": "src/persistence/repositories.ts",
+              "message": "src/presentation/server.ts (presentation) skips layers to import src/persistence/repositories.ts (persistence)"
+            },
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-8f1ccebff2cff58b",
+              "filePath": "src/presentation/server.ts",
+              "line": 21,
+              "target": "src/persistence/textHiveClient.ts",
+              "message": "src/presentation/server.ts (presentation) skips layers to import src/persistence/textHiveClient.ts (persistence)"
+            }
+          ],
+          "durationMs": 1,
+          "engineOfRecord": "cypher-interp"
+        }
+      }
+    }
+  ],
+  "repair": null,
+  "evaluatorSpec": {
+    "kind": "static",
+    "path": "presets/layered.yaml",
+    "sha256": "f0d9045de2364b8dae1ca56b584efd67fb035d9807b983ce4e6f8a7e334eade8"
+  },
+  "finalCommit": "82c9cead1788d6555d92e71d3de414bfadeef272",
+  "cost": {
+    "costUsd": 0.2533218,
+    "inputTokens": 14,
+    "outputTokens": 13993,
+    "wallMs": 75181
+  }
+}
