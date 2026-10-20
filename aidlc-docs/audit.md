@@ -2668,6 +2668,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+## Hold-out — DELEG-H4 (aborted run does not spend the hold-out)
+**Timestamp**: 2026-10-20T11:56:03Z
+**User Input**: "(standing GO-2B) register what is lost when a red item cannot be made green."
+**AI Response**: "Attempt 3 aborted at the first evaluate call (sealed spec fails the frozen spec schema); no output, no figure. Recorded DELEG-H4: not spent; no more attempts before 2b; F-RF applies."
+**Context**: v1.3 hold-out, Study 2b gate (V4)
 ## SEM-01: semantic validity plan, feasibility and threats (design note)
 **Timestamp**: 2026-10-20T12:06:19Z
 **User Input**: "Investigate read-only, with zero model calls, whether the label-free semantic validity battery for C4 and C1d (seeded cases and twins, metamorphic, known groups, reliability and vendor swap, predicted convergence and divergence, consequences), D_sem as a 2b secondary, and the complementarity hypothesis can be carried out with what exists; list threats and sequencing to the Friday deadline; write ops/notes/sem-01-semantic-validity-plan.md; PR and merge on green."
