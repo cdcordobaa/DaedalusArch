@@ -2554,6 +2554,19 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 Construction, unit U13 (plan and summary in aidlc-docs/construction/v1.4/U13/); exploratory study Stage B readiness
 ---
 
+## Exploratory study — Stage C exposure analysis registered
+**Timestamp**: 2026-10-20T05:21:19Z
+**User Input**: "Add the per-rule exposure count to Stage C so the thesis can speak to architectural conformance, not only layer-skip drift."
+**AI Response**: "Registered a descriptive per-rule exposure analysis (opportunities, violations, violations per opportunity; zero-opportunity rules reported as not exercised) in the exploratory registration changelog before any Stage C scoring. Also declared that Stage B kept Stage A's environment (S3 not fixed)."
+**Context**: CONSTRUCTION — exploratory study, analysis addition (author decision)
+
+---
+
+## Study 2b go (conditional) and delegated freeze items
+**Timestamp**: 2026-10-20T05:29:59Z
+**User Input**: "No more signing; run the confirmatory Study 2 if the readiness gate is green. Keep steady progress overnight."
+**AI Response**: "Recorded DELEG2 (ADR-V13-03 acceptance, sample hash, V6 pointers delegated) and GO-2B (run only if every gate item is green; otherwise stop and report) in ops/decisions.md."
+**Context**: Study 2 confirmatory: authorisation, conditional on the gate
 ## Exploratory study Stage B — none@L2 replicate 2 and none@L3 run
 **Timestamp**: 2026-10-20T05:12:41Z
 **User Input**: "How does Study 2a behave? Keep going to the study without more decisions."

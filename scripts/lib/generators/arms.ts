@@ -5,7 +5,7 @@
  *
  * - `none`: the E1 argv, byte for byte. `--strict-mcp-config` with no `--mcp-config` loads no server.
  * - `daedalus-mcp`: `--mcp-config <H>/runs/<runId>/mcp-daedalus-mcp.json` naming only the DaedalusArch server (stdio,
- *   `--spec` and `--project` absolute), `--strict-mcp-config` kept so no user or project server loads, and the
+ *   `--spec` and `--project` absolute, `--confine`), `--strict-mcp-config` kept so no user or project server loads, and the
  *   server's spec-only tools added to `--allowedTools` by exact name (`mcp__daedalus-arch__<tool>`, no wildcard).
  *   `evaluate_project` (Neo4j, replaces the graph, reads the scorer's objective) is never allowed and is also listed in
  *   `--disallowedTools`.
@@ -153,14 +153,19 @@ export function armPrompt(basePrompt: string, arm: ExperimentArm): string {
   return sentence === '' ? basePrompt : `${basePrompt.replace(/\s+$/, '')}\n\n${sentence}\n`;
 }
 
-export function daedalusMcpConfig(input: DaedalusServerInput, req: ArmRequest): McpConfigFile {
+/**
+ * `confine` (the Claude arm, `buildArmCall`; the Claude S4 probe with MCP, probe d): appends `--confine`, so the tools'
+ * `spec` and `project` arguments stay on the configured spec and the run cwd (src/mcp-server/confine.ts). The Gemini
+ * home files call this without it, unchanged until their own S4 round adopts it.
+ */
+export function daedalusMcpConfig(input: DaedalusServerInput, req: ArmRequest, opts: { readonly confine?: boolean } = {}): McpConfigFile {
   return {
     mcpServers: {
       [DAEDALUS_MCP_SERVER]: {
         type: 'stdio',
         command: input.nodeBinary,
         // v1.3 npx mode: the server's engine default follows NEO4J_URI; an experiment arm names the reference engine.
-        args: [input.serverEntry, '--spec', input.specPath, '--project', req.outputDir, '--engine', 'neo4j'],
+        args: [input.serverEntry, '--spec', input.specPath, '--project', req.outputDir, '--engine', 'neo4j', ...(opts.confine === true ? ['--confine'] : [])],
         env: {},
       },
     },
@@ -238,7 +243,7 @@ export function buildArmCall(
       arm: input.arm,
       args,
       mcpConfigPath: configPath,
-      mcpConfig: daedalusMcpConfig(input.daedalus, req),
+      mcpConfig: daedalusMcpConfig(input.daedalus, req, { confine: true }),
       prompt,
     });
   }

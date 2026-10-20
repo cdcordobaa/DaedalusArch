@@ -100,7 +100,7 @@ describe('tool arms', () => {
         'daedalus-arch': {
           type: 'stdio',
           command: '/usr/bin/node',
-          args: [DAEDALUS.serverEntry, '--spec', DAEDALUS.specPath, '--project', REQ.outputDir, '--engine', 'neo4j'],
+          args: [DAEDALUS.serverEntry, '--spec', DAEDALUS.specPath, '--project', REQ.outputDir, '--engine', 'neo4j', '--confine'],
           env: {},
         },
       },

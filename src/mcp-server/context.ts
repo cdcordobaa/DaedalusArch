@@ -37,16 +37,18 @@ export interface McpArgs {
   readonly callLog?: string;
   /** `--semantic-facts <dir>` (v1.4 U9): the A2 directory of the opt-in `semantic_facts` tool; absent = DAEDALUS_SEMANTIC_FACTS, else off. */
   readonly semanticFacts?: string;
+  /** `--confine` (`confine.ts`): bound the `spec` and `project` tool arguments; absent = `DAEDALUS_CONFINE=1`, else off. */
+  readonly confine?: boolean;
 }
 
 const FLAGS: Readonly<Record<string, 'spec' | 'project' | 'engine' | 'fastRulesEngine' | 'tsconfig' | 'callLog' | 'semanticFacts'>> = { '--spec': 'spec', '--project': 'project', '--engine': 'engine', '--fast-rules-engine': 'fastRulesEngine', '--tsconfig': 'tsconfig', '--call-log': 'callLog', '--semantic-facts': 'semanticFacts' };
 
 /**
- * `--spec <path>`, `--project <path>`, `--engine <name>`, `--fast-rules-engine <name>`, `--tsconfig <path>`, `--call-log <path>` and `--semantic-facts <dir>` (also `--flag=value`), `--hints`,
+ * `--confine`, `--spec <path>`, `--project <path>`, `--engine <name>`, `--fast-rules-engine <name>`, `--tsconfig <path>`, `--call-log <path>` and `--semantic-facts <dir>` (also `--flag=value`), `--hints`,
  * `--rule-mining`, plus the neural flags (`neural-context.ts`); unknown flags are ignored. Pure.
  */
 export function parseArgs(argv: readonly string[]): McpArgs {
-  const out: { spec?: string; project?: string; engine?: string; fastRulesEngine?: string; tsconfig?: string; callLog?: string; semanticFacts?: string; hints?: boolean; neural?: NeuralArgs; ruleMining?: boolean } = {};
+  const out: { spec?: string; project?: string; engine?: string; fastRulesEngine?: string; tsconfig?: string; callLog?: string; semanticFacts?: string; hints?: boolean; neural?: NeuralArgs; ruleMining?: boolean; confine?: boolean } = {};
   const neural = parseNeuralArgs(argv);
   if (neural !== undefined) out.neural = neural;
   for (let i = 0; i < argv.length; i++) {
@@ -57,6 +59,10 @@ export function parseArgs(argv: readonly string[]): McpArgs {
     }
     if (arg === '--hints') {
       out.hints = true;
+      continue;
+    }
+    if (arg === '--confine') {
+      out.confine = true;
       continue;
     }
     const [flag, inline] = arg.split('=', 2);
@@ -124,6 +130,7 @@ export function buildContext(args: McpArgs, env: NodeJS.ProcessEnv): ServerConte
     defaultSpecPath: args.spec ?? env.DAEDALUS_SPEC,
     defaultProjectPath: projectPath,
     ...(args.hints === true || env.DAEDALUS_HINTS === '1' ? { hints: true } : {}),
+    ...(args.confine === true || env.DAEDALUS_CONFINE === '1' ? { confine: true } : {}),
     ruleMining: args.ruleMining === true || env.DAEDALUS_RULE_MINING === '1',
     ...(semanticFacts !== undefined ? { semanticFacts } : {}),
     env,
