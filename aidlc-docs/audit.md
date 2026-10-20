@@ -2635,3 +2635,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: CONSTRUCTION, v1.3/v1.4 hold-out (prespec addendum 1); no scoring run; gate V4 stays red; 1 model session (blind adapter)
 
 ---
+
+## v1.3 hold-out attempt 2 (DELEG5, header-only patch repair) and fallback F-RF
+**Timestamp**: 2026-10-20T10:26:53Z
+**User Input**: "Coordinator, under GO-2B: record DELEG5 and prespec addendum 2 (with its own hash row) before acting. One try: a fresh copy; a blind session rewrites only the file headers of creation patches into the /dev/null form, leaving hunks untouched; a script verifies; the structure check at the tag on the 4 non-ddd styles; a live run once only if there are 0 problems, otherwise STOP. Register fallback F-RF (r_f from the development record run; layered stays confirmatory in 2b with the limitation) whatever the outcome. Clean up, update the run note and the PR, and merge on green."
+**AI Response**: "DELEG5 and addendum 2 were committed and pushed at 10:04Z, before the attempt. The fresh copy matched 1379b561 (608 files). Blind session JSON: patchesRewritten 34, headerOnly true. Script check: 34 of 34 hunk sequences byte-identical, 34 of 34 header-only creation forms, 0 other files changed, sub-multiset true, MAP consistent. Structure check at X: 4 problems, one per style (missing expected-findings.json), probably a layout regression in the second session's conversion. STOP: no live run, Neo4j not started, work dir deleted. F-RF applies. The redaction filter was fixed before attempt 2, and no path or case name was printed."
+**Context**: CONSTRUCTION, v1.3/v1.4 hold-out (prespec addendum 2); no scoring run; 1 model session (blind adapter)
+
+---

@@ -94,6 +94,7 @@ Settled earlier: **D4**, the thinking note first (NS-01).
 **Post-seal changes now pending: M3, D5, N3 (and V4 if the count triggers it).** Each one is a declared deviation. The examiner review flags the count of deviations as a risk in its own right. I'll write them up together as one dated list, so the director sees all of them at once.
 
 ## Changelog
+- 2026-10-20 (after attempt 2): DELEG5 outcome. Header repair verified (34 of 34 hunks byte-identical, header-only), but the structure check still shows 4 problems (one missing expected-findings.json per style). STOP: no live run and no hold-out figure. Fallback F-RF applies: r_f comes from the development record run, and layered stays confirmatory in 2b with the limitation stated (`Docs/v1.3/holdout-prespec-addendum-2-2026-10-20.md` §2).
 - 2026-10-20 (10:04Z): DELEG5 recorded before attempt 2 (patch-header-only repair; fallback F-RF for r_f).
 - 2026-10-20 (after the attempt): DELEG4 outcome. The adapter converted four styles; ddd is incomplete (patch format). Under the frozen loader 34 variants do not materialise, so the run stopped before scoring and no figure exists (`Docs/DiagnosticRuns/v1.4-holdout-2026-10-20.md`). Open for the author: a registered fallback for r_f in ADR-V14-04 §4 part A, or layered becomes exploratory.
 - 2026-10-20: DELEG4 (the hold-out through a path-only blind adapter), recorded before the run.
