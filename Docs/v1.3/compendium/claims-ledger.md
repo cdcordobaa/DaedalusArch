@@ -1,6 +1,6 @@
 # Claims ledger (v1.3)
 
-**Compiled 2026-10-16 from `origin/v1.3` at `81933889`, with the documents of PR #244 and #245 (`c49acf03`) added; extended on 2026-10-17 (daily thesis sync) from `origin/main` at `662329ee` with the documents of merge train MT7 and of #247 and #248, and on 2026-10-19 from `origin/main` at `d3461863` with the documents of PRs #252–#263.** This ledger lists every quantitative claim in `Docs/v1.3/**/*.md`, `Docs/DiagnosticRuns/v1.3-*` (including the audit appendices), `papers/` (LaTeX sources, READMEs, STATUS, review and revision notes) and the Study 2 readiness dashboard. At compilation that was 154 documents and 4,952 claims; the 2026-10-17 sync added 994 claims from 49 new or changed documents (five MT7 parts), for 5,946; the 2026-10-19 sync added 870 claims (four parts `v14-*`) from the new DiagnosticRuns reports of 2026-10-18/19, the v1.4 documents and unit summaries, and the `ops/` working surface (secondary), for 6,816 in all. The 2026-10-19 parts also cover `Docs/v1.4/`, `ops/`, `aidlc-docs/construction/v1.4/*/code/summary.md` and the result READMEs of `results/v1.4-*`. For each claim it gives the exact statement, the number strings as the line writes them, the source `file:line`, the evidence type, the data set, a status and, where one exists, the replication group of `replication/v1.3`. The claims tables are split into twenty parts, listed below. This file also holds the **conflicts** between documents and the correct values.
+**Compiled 2026-10-16 from `origin/v1.3` at `81933889`, with the documents of PR #244 and #245 (`c49acf03`) added; extended on 2026-10-17 (daily thesis sync) from `origin/main` at `662329ee` with the documents of merge train MT7 and of #247 and #248, and on 2026-10-19 from `origin/main` at `d3461863` with the documents of PRs #252–#263.** This ledger lists every quantitative claim in `Docs/v1.3/**/*.md`, `Docs/DiagnosticRuns/v1.3-*` (including the audit appendices), `papers/` (LaTeX sources, READMEs, STATUS, review and revision notes) and the Study 2 readiness dashboard. At compilation that was 154 documents and 4,952 claims; the 2026-10-17 sync added 994 claims from 49 new or changed documents (five MT7 parts), for 5,946; the 2026-10-19 sync added 870 claims (four parts `v14-*`) from the new DiagnosticRuns reports of 2026-10-18/19, the v1.4 documents and unit summaries, and the `ops/` working surface (secondary), for 6,816 in all; on 2026-10-20 the exploratory Study 2a Stage C report added 27 claims (part `v14-e-exploratory-2a`), for 6,843. The 2026-10-19 parts also cover `Docs/v1.4/`, `ops/`, `aidlc-docs/construction/v1.4/*/code/summary.md` and the result READMEs of `results/v1.4-*`. For each claim it gives the exact statement, the number strings as the line writes them, the source `file:line`, the evidence type, the data set, a status and, where one exists, the replication group of `replication/v1.3`. The claims tables are split into twenty parts, listed below. This file also holds the **conflicts** between documents and the correct values.
 
 ## Method
 
@@ -40,11 +40,12 @@
 | [2026-10-19 additions: brownfield track BF-01 (mined baseline, LLM pilot and re-pilot)](claims-ledger/v14-b-brownfield.md) | C6137–C6318 | 182 | 0 | 31 | 146 | 5 |
 | [2026-10-19 additions: v1.4 units U2–U8 (post-seal rules, facts, identity and drift D, evasion check, Gemini adapter, meaning analysis, efficiency harness)](claims-ledger/v14-c-units.md) | C6319–C6449 | 131 | 35 | 2 | 94 | 0 |
 | [2026-10-19 additions: the `ops/` working surface (secondary)](claims-ledger/v14-d-ops-surface.md) | C6450–C6816 | 367 | 126 | 68 | 163 | 10 |
-| **total** | C0001–C6816 | **6,816** | 4130 | 751 | 1655 | 280 |
+| [2026-10-20 additions: exploratory Study 2a, Stage C (scoring at the freeze, exploratory report)](claims-ledger/v14-e-exploratory-2a.md) | C6817–C6843 | 27 | 5 | 1 | 21 | 0 |
+| **total** | C0001–C6843 | **6,843** | 4135 | 752 | 1676 | 280 |
 
-By evidence type: descriptive 1,442, criterion 1,069, neural 812, correctness 764, reliability 678, pilot 460, power 335, convergent 163, mutation 153, metamorphic 70.
+By evidence type: descriptive 1,452, criterion 1,069, neural 815, correctness 765, reliability 680, pilot 471, power 335, convergent 163, mutation 153, metamorphic 70.
 
-By set: development 3,522, external 940, wild 542, none 528, synthetic 404, hold-out 10.
+By set: development 3,549, external 940, wild 542, none 528, synthetic 404, hold-out 10.
 
 A claim keeps its status in its own context. For example, `established` on a development-set row means established **as a development-set figure**. No v1.3 row is a held-out estimate.
 
