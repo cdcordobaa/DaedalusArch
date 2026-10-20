@@ -2534,6 +2534,14 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: exploratory study Stage A; 15 Claude generator turns
 ---
 
+## Construction v1.4 U6 — FREEZE-PREP (signed answers applied, U6 built, one development re-run)
+**Timestamp**: 2026-10-20T04:30:00Z
+**User Input**: "Scheduled routine (zero model calls): write the 61 signed decision-desk answers into their files of record, apply the construct answers, build U6 per its plan, run the one Neo4j development re-run, report, and open a PR without merging."
+**AI Response**: "Wrote the answers: construct-decisions Q1–Q25 and P1/P2/PREC; the adjudication verdicts (9 rows and N1, all spec); ADR-V14 Q-A..Q-E; the U6 Gate 0 boxes with the G0.8 (b) and G0.9 entries; MEAN-01 §12; the ADR-V13-03 draft (unsigned). Each is marked signed by the author or delegated to the coordinator. Applied all 25 answers through apply-construct-answers.ts (switch file sha256 3f796d43…). Built plan Steps 1–10 with tests. Fresh checks: the Q5, Q6 and Q12 criteria were not met. The Q10 criterion was met as written (2 new FF-S01 express rows judged incorrect by the C3 checker, likely a checker limit on package targets). This was reported to the author, and Q10 stays at the provisional C. One Neo4j 5.26.24 development re-run (not the F8 record run; ue-score --blind not run): blind recall pooled 50/64 → 55/65, layered 7/10 → 8/10, hexagonal 12/18 → 15/18, ddd 9/9 → 10/10; adjudicated 55/55. Run note: Docs/DiagnosticRuns/v1.4-u6-applied-2026-10-19.md."
+**Context**: CONSTRUCTION v1.4, unit U6, Code Generation and the freeze runbook step 3 development re-run. Plan Step 11b (signature) and the record run stay with the author (G0.6 = A). G0.10 = A: merge after the other units' development runs.
+
+---
+
 ## v1.4 instrument track: U12 round 4, Gemini S4 run-3 scorer and config fixes (code, not run live)
 **Timestamp**: 2026-10-20T04:25:19Z
 **User Input**: "Coordinator brief: diagnose the third live S4 run (with the hook), fix the scorer false positives (G6, G8), make the allowed command and MCP calls pass both layers, diagnose G1 and G11 without silently changing a pass criterion; zero model calls; PR to main, do not merge."
@@ -2564,7 +2572,13 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **User Input**: "How does Study 2a behave? Keep going to the study without more decisions."
 **AI Response**: "Ran none@L2 replicate 2 (15 turns) and none@L3 (24 turns) from the shared step-1 trees, after zero-call dry runs. Committed the step records and a pre-freeze run note: mean D 1.50 (L2, 6 blocks) vs 0.67 (L3, same trees); L3 cleaned the inherited state in 4 of 6 runs. mcp@L2 waits for the Claude S4 MCP probe."
 **Context**: CONSTRUCTION — exploratory study Stage B (approved counts, amendment 1)
+---
 
+## Construction v1.4 U6 — Q10 → D (delegated decision applied, second development run)
+**Timestamp**: 2026-10-20T05:16:40Z
+**User Input**: "Coordinator brief (decision delegated by the author, who asked for no more decisions): apply the G0.9 Q10 criterion as written, Q10 = D; follow U6 plan Step 11 for a D outcome (re-apply once, repeat the Step 9 preview once, repeat the development re-run once on one capped Neo4j); zero model calls; report it as a second run with the checker limitation; finish and merge PR #305 when green."
+**AI Response**: "Merged main into the PR branch (audit conflict kept both sides). Set Q10 = D in Docs/v1.3/construct-answers.json, marked delegated to the coordinator, criterion applied as written; no other answer changed. Re-applied with apply-construct-answers.ts (switch file sha256 1af1c53e…). Offline preview and one Neo4j 5.26.24 + APOC re-run (heap 512m, page cache 256m; stopped and removed afterwards) into results/v1.3-reference/after-construct-answers-u6-dev-q10d/. Only layered v08 changed (the express FF-S01 row is gone). Blind blocking recall layered 8/10 → 7/10, pooled 55/65 → 54/65; adjudicated layered 8/8 → 7/8, pooled 55/55 → 54/55. Limitation recorded: the C3 checker may not handle a package target (the same imports were correct as FF-P01 rows). Run note §7 added; the first run's figures are unchanged. ADR-V13-03 draft updated, still unsigned."
+**Context**: CONSTRUCTION v1.4, unit U6, plan Step 11 (D outcome); ops/decisions.md DELEG-Q10
 ---
 
 ## v1.4 instrument track: Claude S4 confinement probe with the Daedalus MCP server

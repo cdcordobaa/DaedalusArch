@@ -75,6 +75,37 @@ export function newViolations(base: readonly Violation[], mutant: readonly Viola
   return mutant.filter((v) => !seen.has(violationKey(v)));
 }
 
+/**
+ * Expected-key options for a run under the applied construct answers (U6 plan Step 10; the operator catalogue is not
+ * edited). Under Q5 C or D, MO-H03's `layer-skip-graph` (FF-S03) keys move to FF-S01 or FF-S05, because the switch
+ * moves those rows out of FF-S03. Under Q6 B, MO-H02 also expects an FF-S04 row on the same edge.
+ */
+export interface ConstructKeyOptions {
+  readonly mo03To?: 'FF-S01' | 'FF-S05';
+  readonly mo02AlsoS04?: boolean;
+}
+
+export function constructKeyOptions(answers: { readonly Q5: string; readonly Q6: string }): ConstructKeyOptions {
+  return {
+    ...(answers.Q5 === 'C' ? { mo03To: 'FF-S01' as const } : answers.Q5 === 'D' ? { mo03To: 'FF-S05' as const } : {}),
+    ...(answers.Q6 === 'B' ? { mo02AlsoS04: true } : {}),
+  };
+}
+
+const MO03_TEMPLATE: Readonly<Record<'FF-S01' | 'FF-S05', string>> = { 'FF-S01': 'dependency-direction-graph', 'FF-S05': 'adapter-isolation' };
+
+export function applyConstructKeys(positiveId: string, keys: readonly ExpectedKey[], o: ConstructKeyOptions): ExpectedKey[] {
+  if (positiveId === 'MO-H03' && o.mo03To !== undefined) {
+    const to = o.mo03To;
+    return keys.map((k) => (k.template === 'layer-skip-graph' ? { ...k, template: MO03_TEMPLATE[to], functionId: to } : k));
+  }
+  if (positiveId === 'MO-H02' && o.mo02AlsoS04 === true) {
+    const extra = keys.filter((k) => k.template === 'dependency-direction-graph').map((k) => ({ ...k, template: 'core-isolation', functionId: 'FF-S04' }));
+    return [...keys, ...extra.filter((e) => !keys.some((k) => k.functionId === e.functionId && k.filePath === e.filePath && k.target === e.target))];
+  }
+  return [...keys];
+}
+
 export function matchesKey(v: Violation, k: ExpectedKey): boolean {
   if (v.functionId !== k.functionId) return false;
   if (k.cycle === true) {

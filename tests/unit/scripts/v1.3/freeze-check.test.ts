@@ -13,7 +13,7 @@ import {
 } from '../../../../scripts/v1.3/lib/freeze-check.js';
 import type { EngineProbe, FreezeOptions } from '../../../../scripts/v1.3/lib/freeze-check.js';
 import type { GitRunner } from '../../../../scripts/v1.3/lib/holdout-run-main.js';
-import { renderSwitchBlock } from '../../../../scripts/v1.3/lib/construct-answers.js';
+import { parseAnswersDocument, renderSwitchBlock } from '../../../../scripts/v1.3/lib/construct-answers.js';
 import { STATUS_QUO_ANSWERS } from '../../../../src/shared/construct-switches.js';
 import { CONSTRUCT_QUESTION_IDS } from '../../../../src/shared/construct-switch-catalogue.js';
 
@@ -47,9 +47,11 @@ describe('parsers', () => {
     const r = sealedRows(`| A | ${'a'.repeat(64)} | n |\n| v1.3 freeze commit X (tool) | ${'b'.repeat(40)} | n |\n| bad | xyz | n |`);
     expect([...r.entries()]).toEqual([['A', 'a'.repeat(64)], ['v1.3 freeze commit X (tool)', 'b'.repeat(40)]]);
   });
-  it('the switch file today is the rendering of all-A answers without notes', () => {
+  it('the switch file is the rendering of the committed answers file, with its notes (F2; U6 plan Step 6)', () => {
     const block = switchBlockOf(fs.readFileSync(path.join(ROOT, 'src/shared/construct-switches.ts'), 'utf8'));
-    expect(block).toBe(renderSwitchBlock(STATUS_QUO_ANSWERS));
+    const parsed = parseAnswersDocument(JSON.parse(fs.readFileSync(path.join(ROOT, 'Docs/v1.3/construct-answers.json'), 'utf8')) as unknown);
+    expect(block).toBe(renderSwitchBlock(parsed.answers, parsed.notes));
+    expect(block).not.toBe(renderSwitchBlock(STATUS_QUO_ANSWERS));
   });
   it('FF-DS01 stays deferred unless Q15 is answered B', () => {
     expect(deferredRulesOf(STATUS_QUO_ANSWERS)).toEqual(['FF-DS01']);
@@ -63,29 +65,28 @@ describe('parsers', () => {
 });
 
 describe('runFreezeChecks', () => {
-  it('dry run before any answer: names exactly the unmet preconditions', async () => {
+  it('dry run without an answers file, after the answers are applied: names exactly the unmet preconditions', async () => {
     const r = await runFreezeChecks(opts(), { git: cleanTreeGit });
     const status = Object.fromEntries(r.checks.map((c) => [c.id, c.status]));
+    // F3 reads the [Answer]: lines against the switch file in force. F5: the Q15 B and Q21 B tier overrides stay "unsigned" until ADR-V13-03 is signed (U6 plan Step 11b).
     expect(status).toEqual({
-      F1: 'unmet', F2: 'unmet', F3: 'unmet', F4: 'unmet', F5: 'ok', F6: 'ok', F7: 'ok', F8: 'unmet', F9: 'unmet',
+      F1: 'unmet', F2: 'unmet', F3: 'ok', F4: 'unmet', F5: 'unmet', F6: 'ok', F7: 'ok', F8: 'unmet', F9: 'unmet',
       F10: 'unmet', F11: 'unmet', F12: 'unmet', F13: 'ok', F14: 'skipped',
     });
-    expect(renderChecks(r, true)).toMatch(/FREEZE PRECONDITIONS NOT MET: 9 of 14 unmet \(F1, F2, F3, F4, F8, F9, F10, F11, F12\)/);
-    expect(r.checks.find((c) => c.id === 'F3')?.detail).toEqual(['Docs/v1.3/construct-decisions.md: [Answer]: empty for all 25 questions']);
-    expect(r.manifest.deferredRules).toEqual(['FF-DS01']);
+    expect(renderChecks(r, true)).toMatch(/FREEZE PRECONDITIONS NOT MET: 9 of 14 unmet \(F1, F2, F4, F5, F8, F9, F10, F11, F12\)/);
+    expect(r.manifest.deferredRules).toEqual([]);
   }, 120_000);
 
-  it('an all-A answers file passes F1 and F2; a different answer fails F2', async () => {
+  it('the committed answers file passes F1, F2 and F3; an all-A answers file passes F1 but fails F2', async () => {
+    let r = await runFreezeChecks(opts({ answers: path.join(ROOT, 'Docs/v1.3/construct-answers.json') }), { git: cleanTreeGit });
+    for (const id of ['F1', 'F2', 'F3']) expect([id, r.checks.find((c) => c.id === id)?.status]).toEqual([id, 'ok']);
+    expect(r.manifest.deferredRules).toEqual([]);
+    expect(r.checks.find((c) => c.id === 'F4')?.detail.join(' ')).toMatch(/no "## ADR-V13-03" section/);
     const all = path.join(tmp, 'answers.json');
     fs.writeFileSync(all, JSON.stringify(Object.fromEntries(CONSTRUCT_QUESTION_IDS.map((q) => [q, 'A']))));
-    let r = await runFreezeChecks(opts({ answers: all }), { git: cleanTreeGit });
-    expect(r.checks.find((c) => c.id === 'F1')?.status).toBe('ok');
-    expect(r.checks.find((c) => c.id === 'F2')?.status).toBe('ok');
-    expect(r.manifest.deferredRules).toEqual(['FF-DS01']);
-    fs.writeFileSync(all, JSON.stringify({ ...Object.fromEntries(CONSTRUCT_QUESTION_IDS.map((q) => [q, 'A'])), Q3: 'C' }));
     r = await runFreezeChecks(opts({ answers: all }), { git: cleanTreeGit });
+    expect(r.checks.find((c) => c.id === 'F1')?.status).toBe('ok');
     expect(r.checks.find((c) => c.id === 'F2')?.detail[0]).toMatch(/differs from the rendering/);
-    expect(r.checks.find((c) => c.id === 'F4')?.detail.join(' ')).toMatch(/no "## ADR-V13-03" section/);
   }, 120_000);
 
   it('the manifest is deterministic, and F10 compares it byte for byte', async () => {

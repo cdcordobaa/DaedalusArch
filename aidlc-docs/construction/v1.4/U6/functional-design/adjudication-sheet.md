@@ -1,6 +1,6 @@
 # U6 adjudication sheet: the 9 spec–manifest disagreement rows (C3)
 
-**For the author. 2026-10-18. Every verdict field is empty.**
+**For the author. 2026-10-18. Verdicts filled 2026-10-19: all 9 rows and N1 ruled `spec`, signed by the author via the decision desk (`ops/review/2026-10-19/decision-desk/answers.json`, items ADJ-1 to ADJ-13 and N1).** The verdicts follow the construct answers Q4 A, Q7 A, Q13 B, Q20 A and Q6 B, so BR-U6-C1 holds (no split group, no `blind` verdict).
 
 ## What this sheet is for
 
@@ -46,10 +46,10 @@ A "blind is right" verdict implies the switch in the last column, with every sid
 
 | # | Style / variant | Files (sorted pair) | Spec says | Blind manifest says | Verdict | Note |
 |---|---|---|---|---|---|---|
-| 1 | clean / v01-domain-imports-application-port | `src/application/ports/Clock.ts` ↔ `src/domain/entities/Loan.ts` | FF-S01 and FF-S04 on `Loan.ts → Clock.ts`; no FF-S02 (no file cycle) | FF-S02, blocking (alsoMatches of FF-S01, high): "No file-level cycle (Clock.ts imports nothing) but application<->domain is now cyclic at layer level." | | |
-| 2 | clean / v09-dto-depends-on-http-adapter | `src/application/dto/LoanDto.ts` ↔ `src/infrastructure/http/HttpTypes.ts` | FF-S01 on `LoanDto.ts → HttpTypes.ts`; no FF-S02 | FF-S02 (alsoMatches of FF-S01, high): "Layer-level cycle application<->infrastructure; no file-level cycle." | | |
-| 3 | layered / v01-gateway-returns-business-money | `src/business/model/Money.ts` ↔ `src/persistence/ProductGateway.ts` | FF-S01 (and today FF-S03) on `ProductGateway.ts → Money.ts`; no FF-S02 | FF-S02 (alsoMatches of FF-S01, high): "the lowest layer must not depend upward … Layer-level cycle business<->persistence." | | |
-| 4 | layered / v02-service-renders-view | `src/business/services/OrderService.ts` ↔ `src/presentation/views/OrderView.ts` | FF-S01 (and today FF-S03) on `OrderService.ts → OrderView.ts`; no FF-S02 | FF-S02 (alsoMatches of FF-S01, high): "Layer-level cycle presentation<->business; no file-level cycle." | | |
+| 1 | clean / v01-domain-imports-application-port | `src/application/ports/Clock.ts` ↔ `src/domain/entities/Loan.ts` | FF-S01 and FF-S04 on `Loan.ts → Clock.ts`; no FF-S02 (no file cycle) | FF-S02, blocking (alsoMatches of FF-S01, high): "No file-level cycle (Clock.ts imports nothing) but application<->domain is now cyclic at layer level." | **spec** | ADJ-1, signed 2026-10-19 by the author via the decision desk |
+| 2 | clean / v09-dto-depends-on-http-adapter | `src/application/dto/LoanDto.ts` ↔ `src/infrastructure/http/HttpTypes.ts` | FF-S01 on `LoanDto.ts → HttpTypes.ts`; no FF-S02 | FF-S02 (alsoMatches of FF-S01, high): "Layer-level cycle application<->infrastructure; no file-level cycle." | **spec** | ADJ-2, signed 2026-10-19 by the author via the decision desk |
+| 3 | layered / v01-gateway-returns-business-money | `src/business/model/Money.ts` ↔ `src/persistence/ProductGateway.ts` | FF-S01 (and today FF-S03) on `ProductGateway.ts → Money.ts`; no FF-S02 | FF-S02 (alsoMatches of FF-S01, high): "the lowest layer must not depend upward … Layer-level cycle business<->persistence." | **spec** | ADJ-3, signed 2026-10-19 by the author via the decision desk |
+| 4 | layered / v02-service-renders-view | `src/business/services/OrderService.ts` ↔ `src/presentation/views/OrderView.ts` | FF-S01 (and today FF-S03) on `OrderService.ts → OrderView.ts`; no FF-S02 | FF-S02 (alsoMatches of FF-S01, high): "Layer-level cycle presentation<->business; no file-level cycle." | **spec** | ADJ-4, signed 2026-10-19 by the author via the decision desk |
 
 ---
 
@@ -67,9 +67,9 @@ A "blind is right" verdict implies the switch in the last column, with every sid
 
 | # | Style / variant | File → target | Spec says | Blind manifest says | Verdict | Note |
 |---|---|---|---|---|---|---|
-| 7 | nestjs / v07-service-injects-concrete-repository | `src/registrations/registrations.service.ts` → `src/registrations/in-memory-registration.repository.ts` | no FF-P03 (the service is not an implementer); the edge is allowed by the preset order (see #6); FF-P04 advisory reports the service | FF-P03 (alsoMatches of FF-S01, high): "injects the concrete InMemoryRegistrationRepository instead of the REGISTRATION_REPOSITORY port … the domain port is no longer bound." | | |
-| 10 | hexagonal / v03-use-case-injects-concrete-adapter | `src/application/services/FindAvailableRoomsService.ts` → `src/adapters/outbound/persistence/InMemoryRoomRepository.ts` | FF-S01 (blocking); FF-S04 under Q6 B; no FF-P03 | FF-P03 (alsoMatches of core-isolation, high): "depends on the concrete InMemoryRoomRepository instead of the RoomRepository port … (Cockburn 2005)." | | |
-| 13 | hexagonal / v05-inbound-adapter-reads-outbound-adapter | `src/adapters/inbound/http/RoomController.ts` → `src/adapters/outbound/persistence/InMemoryRoomRepository.ts` | FF-S03 advisory today; FF-S05 blocking under Q5 D; no FF-P03 | FF-P03 (alsoMatches of dependency-direction-graph, high): "A driving adapter depends on a driven adapter … bypassing the application and its ports." | | |
+| 7 | nestjs / v07-service-injects-concrete-repository | `src/registrations/registrations.service.ts` → `src/registrations/in-memory-registration.repository.ts` | no FF-P03 (the service is not an implementer); the edge is allowed by the preset order (see #6); FF-P04 advisory reports the service | FF-P03 (alsoMatches of FF-S01, high): "injects the concrete InMemoryRegistrationRepository instead of the REGISTRATION_REPOSITORY port … the domain port is no longer bound." | **spec** | ADJ-7, signed 2026-10-19 by the author via the decision desk |
+| 10 | hexagonal / v03-use-case-injects-concrete-adapter | `src/application/services/FindAvailableRoomsService.ts` → `src/adapters/outbound/persistence/InMemoryRoomRepository.ts` | FF-S01 (blocking); FF-S04 under Q6 B; no FF-P03 | FF-P03 (alsoMatches of core-isolation, high): "depends on the concrete InMemoryRoomRepository instead of the RoomRepository port … (Cockburn 2005)." | **spec** | ADJ-10, signed 2026-10-19 by the author via the decision desk |
+| 13 | hexagonal / v05-inbound-adapter-reads-outbound-adapter | `src/adapters/inbound/http/RoomController.ts` → `src/adapters/outbound/persistence/InMemoryRoomRepository.ts` | FF-S03 advisory today; FF-S05 blocking under Q5 D; no FF-P03 | FF-P03 (alsoMatches of dependency-direction-graph, high): "A driving adapter depends on a driven adapter … bypassing the application and its ports." | **spec** | ADJ-13, signed 2026-10-19 by the author via the decision desk |
 
 ---
 
@@ -77,7 +77,7 @@ A "blind is right" verdict implies the switch in the last column, with every sid
 
 | # | Style / variant | File → target | Spec says | Blind manifest says | Verdict | Note |
 |---|---|---|---|---|---|---|
-| 6 | nestjs / v07-service-injects-concrete-repository | `src/registrations/registrations.service.ts` → `src/registrations/in-memory-registration.repository.ts` | **allowed**: `presets/nestjs.yaml` declares Controller → Service → Repository ("application services call the repositories in the infrastructure layer directly"). No tool row on this edge; FF-P04 (advisory) only | FF-S01, blocking (primary, high): "application depends on infrastructure and the domain port is no longer bound. Note: registrations.module.ts now provides the class directly." | | |
+| 6 | nestjs / v07-service-injects-concrete-repository | `src/registrations/registrations.service.ts` → `src/registrations/in-memory-registration.repository.ts` | **allowed**: `presets/nestjs.yaml` declares Controller → Service → Repository ("application services call the repositories in the infrastructure layer directly"). No tool row on this edge; FF-P04 (advisory) only | FF-S01, blocking (primary, high): "application depends on infrastructure and the domain port is no longer bound. Note: registrations.module.ts now provides the class directly." | **spec** | ADJ-6, signed 2026-10-19 by the author via the decision desk |
 
 - **For the spec (Q13 B):**
   - The preset states the order.
@@ -96,7 +96,7 @@ A "blind is right" verdict implies the switch in the last column, with every sid
 
 | # | Style / variant | File → target | Spec says | Blind manifest says | Verdict | Note |
 |---|---|---|---|---|---|---|
-| 8 | nestjs / v10-domain-policy-holds-repository | `src/domain/registration-policy.ts` → `src/registrations/in-memory-registration.repository.ts` | FF-S01 and FF-S04 (blocking) on this edge; FF-P06 FLOWS_TO (N/A by Q8 B); no FF-P01, because the domain file imports no forbidden package directly | FF-P01 (alsoMatches of FF-S01, high): "imports and instantiates a concrete infrastructure repository; the domain depends outward and, transitively, on @nestjs/common." | | |
+| 8 | nestjs / v10-domain-policy-holds-repository | `src/domain/registration-policy.ts` → `src/registrations/in-memory-registration.repository.ts` | FF-S01 and FF-S04 (blocking) on this edge; FF-P06 FLOWS_TO (N/A by Q8 B); no FF-P01, because the domain file imports no forbidden package directly | FF-P01 (alsoMatches of FF-S01, high): "imports and instantiates a concrete infrastructure repository; the domain depends outward and, transitively, on @nestjs/common." | **spec** | ADJ-8, signed 2026-10-19 by the author via the decision desk |
 
 - **For the spec (Q20 A):** the transitive part is already a direction fault owned by FF-S01 and FF-S04. Counting it under purity would make every outward edge a purity finding (P2).
 - **For the blind:** a domain that reaches a framework through one hop still depends on it at run time.
@@ -111,7 +111,7 @@ A "blind is right" verdict implies the switch in the last column, with every sid
 
 | # | Style / variant | File → target | Spec says (under Q6 B) | Both manifests say | Verdict | Note |
 |---|---|---|---|---|---|---|
-| N1 | hexagonal / v02 (domain → application port) | the hex v02 domain file → its application port (the row that `rows.ts` `q6ApplicationCore` drops) | under Q6 B the edge is **inside the core**, so it is not FF-S04; FF-S01 still reports it (Q11 A) | FF-S04 (agreed by both keys) | | |
+| N1 | hexagonal / v02 (domain → application port) | the hex v02 domain file → its application port (the row that `rows.ts` `q6ApplicationCore` drops) | under Q6 B the edge is **inside the core**, so it is not FF-S04; FF-S01 still reports it (Q11 A) | FF-S04 (agreed by both keys) | **spec** | N1, signed 2026-10-19 by the author via the decision desk |
 
 Rule on N1 only if you choose Q6 B. A `spec` verdict removes it from both references. A `blind` verdict (or keeping it) leaves the miss that Q6 B causes: hexagonal 15/18 after the four fixes, or 15/16 after the 9 rows.
 
@@ -126,4 +126,4 @@ Rule on N1 only if you choose Q6 B. A `spec` verdict removes it from both refere
 
 These are development figures. They are not a reason for any verdict. Decide each group on its construct.
 
-**Signed:** ____________________ **Date:** __________
+**Signed:** the author, via the decision desk (61 signed answers, `ops/review/2026-10-19/decision-desk/answers.json`). **Date:** 2026-10-19. Transcribed to `results/v1.3-reference/after-member-facts/adjudication-verdicts.csv` (plan Step 5).

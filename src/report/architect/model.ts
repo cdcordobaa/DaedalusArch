@@ -8,6 +8,7 @@ import type { APGResult } from '../../shared/types/apg.js';
 import type { Violation } from '../../shared/taxonomy/violation-types.js';
 import { isResolvedReExportEdge } from '../../shared/apg-edge-view.js';
 import { CONSTRUCT_ANSWERS } from '../../shared/construct-switches.js';
+import type { ConstructAnswers } from '../../shared/construct-switches.js';
 import { constructTierResolver } from '../../construct-switches/pipeline.js';
 import { cycleFiles, fileLayerAssigner, layerViewOf } from '../../construct-switches/layer-view.js';
 import { ruleTier } from '../../scoring-engine/rule-tiers.js';
@@ -34,6 +35,11 @@ export interface ArchitectReportInput {
   readonly projectRoot?: string;
   readonly projectName: string;
   readonly specPath: string;
+  /**
+   * The construct answers the report was scored under; defaults to the switch file in force. A report recorded under
+   * other answers (for example a fixture recorded at the status quo) passes them, so the tiers match its scoring.
+   */
+  readonly constructAnswers?: ConstructAnswers;
 }
 
 export interface PathStep {
@@ -168,8 +174,8 @@ function pathOf(v: Violation, layerOf: (f: string) => string | null): { path: Pa
 }
 
 /** Tier of one violation under the v1.3 tiers the scoring used (construct switches included). */
-function tierClassifier(spec: ParsedSpec): (v: Violation) => DisplayTier {
-  const resolver = constructTierResolver(CONSTRUCT_ANSWERS, spec.style, spec.layerModel);
+function tierClassifier(spec: ParsedSpec, answers: ConstructAnswers = CONSTRUCT_ANSWERS): (v: Violation) => DisplayTier {
+  const resolver = constructTierResolver(answers, spec.style, spec.layerModel);
   const ruleOf = resolver?.rule ?? ruleTier;
   return (v) => {
     const id = String(v.functionId);
@@ -189,7 +195,7 @@ export function buildArchitectModel(input: ArchitectReportInput): ArchitectRepor
   const { report, spec } = input;
   const layerOf = fileLayerAssigner(spec.layerModel);
   const view = layerViewOf(spec.layerModel);
-  const tierOf = tierClassifier(spec);
+  const tierOf = tierClassifier(spec, input.constructAnswers);
   const reader = new SourceReader(input.projectRoot);
   const fnName = new Map(spec.fitnessFunctions.map((f) => [String(f.id), f.name]));
 

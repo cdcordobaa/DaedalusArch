@@ -9,7 +9,7 @@ import type { CompileOptions } from '../../../src/fitness-compiler/fitness-compi
 import { compilerInputFromSpec } from '../../../src/fitness-compiler/compiler-input.js';
 import { applyPostSealRules, HTTP_DELIVERY_PACKAGES, POST_SEAL_RULES, withPostSealRules } from '../../../src/fitness-compiler/post-seal-rules.js';
 import { parseInstrumentVersion } from '../../../src/fitness-compiler/role-exemptions.js';
-import { withAnswers } from '../../../src/shared/construct-switches.js';
+import { STATUS_QUO_ANSWERS, withAnswers } from '../../../src/shared/construct-switches.js';
 import { functionId, runId } from '../../../src/shared/types/value-objects.js';
 import type { FitnessFunction, ParsedSpec } from '../../../src/shared/types/spec.js';
 import type { CompiledFunctions } from '../../../src/shared/types/evaluation.js';
@@ -20,6 +20,10 @@ import { loadReference, REFERENCE_STYLES } from '../../../scripts/v1.3/lib/refer
 import { must, presetSpec, PRESET_STYLES, ROOT, runPipeline, specAt } from './helpers.js';
 
 const V2 = must(parseInstrumentVersion('v2'), 'instrument v2');
+// The overlay is measured at the construct status quo: the applied answers (ADR-V13-03 draft) add FF-S02 to ddd by
+// Q16 B and composition-root excludes by Q25 B, which the committed U2 baseline predates. The combination is BR-U2-07.
+const ON: CompileOptions = { ...V13_COMPILE_OPTIONS, constructSwitches: STATUS_QUO_ANSWERS };
+const SEALED: CompileOptions = { ...V13_SEALED_COMPILE_OPTIONS, constructSwitches: STATUS_QUO_ANSWERS };
 
 function compile(spec: ParsedSpec, options: CompileOptions): CompiledFunctions {
   const r = compileFunctions(compilerInputFromSpec(spec), options);
@@ -47,7 +51,7 @@ describe('without the option the compile is unchanged (BR-U2-02)', () => {
   it('V13_SEALED_COMPILE_OPTIONS is the pre-U2 V13_COMPILE_OPTIONS: the five presets compile exactly as the committed baseline', async () => {
     const baseline = JSON.parse(fs.readFileSync(path.join(ROOT, 'results/v1.4-u2/baseline.json'), 'utf8')) as { presets: Record<string, unknown> };
     for (const style of PRESET_STYLES) {
-      const c = compile(await presetSpec(style), { ...V13_SEALED_COMPILE_OPTIONS, instrumentVersion: V2 });
+      const c = compile(await presetSpec(style), { ...SEALED, instrumentVersion: V2 });
       expect({ style, compiled: JSON.parse(JSON.stringify(c)) as unknown }).toEqual({ style, compiled: baseline.presets[style] });
     }
   });
@@ -69,8 +73,8 @@ describe('with the option (BR-U2-03)', () => {
 
   it.each(PRESET_STYLES)('%s: per-style membership', async (style) => {
     const spec = await presetSpec(style);
-    const on = compile(spec, V13_COMPILE_OPTIONS);
-    const sealed = compile(spec, V13_SEALED_COMPILE_OPTIONS);
+    const on = compile(spec, ON);
+    const sealed = compile(spec, SEALED);
     const e = must(expected[style], style);
     expect(count(on, 'FF-P07')).toBe(e.p07 ? 1 : 0);
     expect(count(on, 'FF-S02') - count(sealed, 'FF-S02')).toBe(e.s02Added ? 1 : 0);
@@ -86,8 +90,8 @@ describe('with the option (BR-U2-03)', () => {
 
   it.each(PRESET_STYLES)('%s: every pre-existing query keeps its text and params, and its position', async (style) => {
     const spec = await presetSpec(style);
-    const on = compile(spec, V13_COMPILE_OPTIONS);
-    const sealed = compile(spec, V13_SEALED_COMPILE_OPTIONS);
+    const on = compile(spec, ON);
+    const sealed = compile(spec, SEALED);
     for (const q of sealed.symbolicQueries) {
       const same = must(on.symbolicQueries.find((x) => x.functionId === q.functionId), String(q.functionId));
       expect({ id: q.functionId, cypher: same.cypher, params: same.params }).toEqual({ id: q.functionId, cypher: q.cypher, params: q.params });
@@ -98,10 +102,10 @@ describe('with the option (BR-U2-03)', () => {
 
   it('a spec-declared FF-P07 wins: disabled stays disabled, its own list is kept', async () => {
     const spec = await presetSpec('clean-architecture');
-    const disabled = compile({ ...spec, fitnessFunctions: [...spec.fitnessFunctions, ffp07({ enabled: false, disabledReason: 'framework married (ch. 32)' })] }, V13_COMPILE_OPTIONS);
+    const disabled = compile({ ...spec, fitnessFunctions: [...spec.fitnessFunctions, ffp07({ enabled: false, disabledReason: 'framework married (ch. 32)' })] }, ON);
     expect(ids(disabled)).not.toContain('FF-P07');
     expect(disabled.disabledFunctions.map((d) => String(d.id))).toContain('FF-P07');
-    const own = compile({ ...spec, fitnessFunctions: [...spec.fitnessFunctions, ffp07({ forbiddenImports: ['express'] })] }, V13_COMPILE_OPTIONS);
+    const own = compile({ ...spec, fitnessFunctions: [...spec.fitnessFunctions, ffp07({ forbiddenImports: ['express'] })] }, ON);
     expect(count(own, 'FF-P07')).toBe(1);
     expect(own.symbolicQueries.find((q) => String(q.functionId) === 'FF-P07')?.params.forbiddenImports).toEqual(['express']);
   });
@@ -117,7 +121,7 @@ describe('with the option (BR-U2-03)', () => {
 
   it('application-purity declared under another id: no FF-P07, and a warning naming both ids (BR-U2-03.6)', async () => {
     const spec = await presetSpec('hexagonal');
-    const c = compile({ ...spec, fitnessFunctions: [...spec.fitnessFunctions, ffp07({ id: functionId('FF-X01'), forbiddenImports: ['express'] })] }, V13_COMPILE_OPTIONS);
+    const c = compile({ ...spec, fitnessFunctions: [...spec.fitnessFunctions, ffp07({ id: functionId('FF-X01'), forbiddenImports: ['express'] })] }, ON);
     expect(ids(c)).not.toContain('FF-P07');
     expect(count(c, 'FF-X01')).toBe(1);
     const w = c.warnings.filter((x) => x.message.includes('FF-P07') && x.message.includes('FF-X01'));
@@ -127,7 +131,7 @@ describe('with the option (BR-U2-03)', () => {
 
   it('BR-SPEC-10 guards the post-seal template too: application-purity under another id with no forbidden list fails to compile', async () => {
     const spec = await presetSpec('hexagonal');
-    const r = compileFunctions(compilerInputFromSpec({ ...spec, fitnessFunctions: [...spec.fitnessFunctions, ffp07({ id: functionId('FF-X01') })] }), V13_COMPILE_OPTIONS);
+    const r = compileFunctions(compilerInputFromSpec({ ...spec, fitnessFunctions: [...spec.fitnessFunctions, ffp07({ id: functionId('FF-X01') })] }), ON);
     expect(r.success).toBe(false);
     if (!r.success) expect(r.errors.map((e) => e.message)).toEqual(['BR-SPEC-10 FF-X01: forbiddenImports']);
   });
@@ -135,7 +139,7 @@ describe('with the option (BR-U2-03)', () => {
   it('a ddd no-cyclic-deps under a custom id: no FF-S02 added', async () => {
     const spec = await presetSpec('ddd');
     const custom: FitnessFunction = { ...ffp07(), id: functionId('FF-X02'), name: 'no-cyclic-deps', dimension: 'structural' };
-    const c = compile({ ...spec, fitnessFunctions: [...spec.fitnessFunctions, custom] }, V13_COMPILE_OPTIONS);
+    const c = compile({ ...spec, fitnessFunctions: [...spec.fitnessFunctions, custom] }, ON);
     expect(ids(c)).not.toContain('FF-S02');
     expect(count(c, 'FF-X02')).toBe(1);
   });
@@ -162,7 +166,7 @@ describe('identity I1 and the compile facts (BR-U2-03.7)', () => {
       const context = new FirewallContext(runId(`u2-${style}`));
       context.setParsedSpec(spec);
       const holder: CompileFactsHolder = {};
-      const res = await new CompileCommand(holder).execute(context);
+      const res = await new CompileCommand(holder, undefined, STATUS_QUO_ANSWERS).execute(context);
       expect(res.success).toBe(true);
       expect(holder.facts?.postSealRules).toBe(true);
       expect(holder.facts?.postSealAdded).toEqual(added);
@@ -170,7 +174,7 @@ describe('identity I1 and the compile facts (BR-U2-03.7)', () => {
       const off: CompileFactsHolder = {};
       const sealedContext = new FirewallContext(runId(`u2-${style}-off`));
       sealedContext.setParsedSpec(spec);
-      await new CompileCommand(off, undefined, undefined, undefined, false).execute(sealedContext);
+      await new CompileCommand(off, undefined, STATUS_QUO_ANSWERS, undefined, false).execute(sealedContext);
       expect(off.facts).toMatchObject({ declared: spec.fitnessFunctions.length, postSealRules: false, postSealAdded: [] });
     }
   });
@@ -178,12 +182,13 @@ describe('identity I1 and the compile facts (BR-U2-03.7)', () => {
   it.each(REFERENCE_STYLES)('%s reference (clean variant): a v1.3 run with post-seal rules on ends without REPORT_COUNTS_INCONSISTENT', async (style) => {
     const ref = loadReference(ROOT, style);
     const projectDir = ref.format === 'overlay' ? ref.projectDir : path.join(ref.dir, 'project');
-    const r = await runPipeline(projectDir, ref.specPath);
+    // At the construct status quo, so the declared delta is the overlay's alone (Q16 B also adds FF-S02 to ddd).
+    const r = await runPipeline(projectDir, ref.specPath, { constructAnswers: STATUS_QUO_ANSWERS });
     if (!r.success) throw new Error(r.errors.map((e) => `${e.code}: ${e.message}`).join('; '));
     const spec = await specAt(path.relative(ROOT, ref.specPath));
     const added = POST_SEAL_RULES.filter((x) => x.styles.includes(style) && !spec.fitnessFunctions.some((f) => String(f.id) === x.ruleId));
     expect(r.data.tiers?.tierTable).toBe('Docs/v1.3/rule-tiers.md; Docs/v1.4/rule-tiers-post-seal.md');
-    const sealed = await runPipeline(projectDir, ref.specPath, { postSealRules: false });
+    const sealed = await runPipeline(projectDir, ref.specPath, { postSealRules: false, constructAnswers: STATUS_QUO_ANSWERS });
     if (!sealed.success) throw new Error(sealed.errors.map((e) => e.message).join('; '));
     expect(sealed.data.tiers?.tierTable).toBe('Docs/v1.3/rule-tiers.md');
     expect(r.data.functionExecution.declared - sealed.data.functionExecution.declared).toBe(added.length);

@@ -26,12 +26,12 @@ async function compiled(style: string, answers: ConstructAnswers | undefined): P
 }
 
 describe('status quo and v1.2E', () => {
-  it.each(STYLES)('%s: the switch default compiles exactly as the v1.3 options without switches', async (style) => {
+  it.each(STYLES)('%s: at the status quo the v1.3 options compile exactly as without switches', async (style) => {
     const spec = await presetSpec(style);
     const { constructSwitches: _d, ...v13 } = V13_COMPILE_OPTIONS;
     const without = compileFunctions(compilerInputFromSpec(spec), v13);
-    const withDefault = compileFunctions(compilerInputFromSpec(spec), V13_COMPILE_OPTIONS);
-    expect(JSON.stringify(withDefault)).toBe(JSON.stringify(without));
+    const atStatusQuo = compileFunctions(compilerInputFromSpec(spec), { ...V13_COMPILE_OPTIONS, constructSwitches: STATUS_QUO_ANSWERS });
+    expect(JSON.stringify(atStatusQuo)).toBe(JSON.stringify(without));
     expect(V13_COMPILE_OPTIONS.constructSwitches).toBe(CONSTRUCT_ANSWERS);
   });
 

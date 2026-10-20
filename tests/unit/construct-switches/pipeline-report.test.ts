@@ -4,7 +4,8 @@
  * - R09: the carrier rules Q5 D, Q16 B and Q17 C add are declared by the switch, so report identity I1 must still
  *   hold and the report must assemble (no REPORT_COUNTS_INCONSISTENT);
  * - R30: under `--scoring v1.2e` no switch applies, not even at compile time.
- * The answers are injected (`PipelineConfig.constructAnswers`); the switch file stays at A. No per-option effect on the
+ * The answers are injected (`PipelineConfig.constructAnswers`) over the status quo, so the applied switch file does not
+ * enter. No per-option effect on the
  * development set is computed: only whether a report assembles and which functions ran.
  */
 import * as fs from 'node:fs';
@@ -37,8 +38,9 @@ const codes = (r: DomainResult<unknown>): string[] => (r.success ? [] : r.errors
 const ran = (r: EvaluationReport): string[] => r.functionResults.map((f) => String(f.functionId)).sort();
 
 describe('construct switches through the report builder', () => {
-  it('the switch file is at the status quo (every answer A)', () => {
-    expect(isStatusQuo(CONSTRUCT_ANSWERS)).toBe(true);
+  it('the cases below inject their answers over the status quo, not over the applied switch file', () => {
+    expect(isStatusQuo(withAnswers({}))).toBe(true);
+    expect(isStatusQuo(CONSTRUCT_ANSWERS)).toBe(false);
   });
 
   it.each([

@@ -7,6 +7,7 @@ import { parseSpec } from '../../../src/spec-parser/index.js';
 import type { EvaluationReport } from '../../../src/shared/types/evaluation.js';
 import type { ParsedSpec } from '../../../src/shared/types/spec.js';
 import type { ArchitectGraphInput, ArchitectReportInput } from '../../../src/report/architect/index.js';
+import { STATUS_QUO_ANSWERS } from '../../../src/shared/construct-switches.js';
 
 export const REPO_ROOT = resolve(__dirname, '../../..');
 export const VARIANTS = ['correct-reference', 'variant-a-structural', 'variant-b-pattern'] as const;
@@ -42,5 +43,7 @@ export async function reportInput(variant: Variant): Promise<ArchitectReportInpu
     projectRoot: join(REPO_ROOT, 'fixtures', variant),
     projectName: variant,
     specPath: fx.spec,
+    // The fixture reports were recorded at the construct status quo, before the answers were applied (ADR-V13-03 draft).
+    constructAnswers: STATUS_QUO_ANSWERS,
   };
 }
