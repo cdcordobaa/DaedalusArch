@@ -312,11 +312,12 @@ describe('U3-R9 warning routing and compile facts', () => {
   it('CompileCommand records CompileFacts (declared, adrDerived, dropped) in the shared holder (BR-U3-52)', async () => {
     const spec = {
       ...stubParsedSpec(),
+      // excludePaths as the spec parser always sets it (the applied construct answers read it: Q25 B).
       fitnessFunctions: [
-        { id: 'FF-A', name: 'unknown-template', route: 'symbolic' },
-        { id: 'FF-B', name: 'judge-me', route: 'neuronal' },
-        { id: 'FF-C', name: 'dependency-direction', route: 'symbolic' },
-        { id: 'FF-S03', name: 'no-layer-skip', route: 'symbolic' },
+        { id: 'FF-A', name: 'unknown-template', route: 'symbolic', excludePaths: [] },
+        { id: 'FF-B', name: 'judge-me', route: 'neuronal', excludePaths: [] },
+        { id: 'FF-C', name: 'dependency-direction', route: 'symbolic', excludePaths: [] },
+        { id: 'FF-S03', name: 'no-layer-skip', route: 'symbolic', excludePaths: [] },
       ],
     } as unknown as ParsedSpec;
     context.setParsedSpec(spec);

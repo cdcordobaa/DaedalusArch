@@ -1,5 +1,5 @@
 /**
- * The switch file and the answer script's library: one entry per question, all at A; the code/no-code marks equal the
+ * The switch file and the answer script's library: one entry per question, at the author's answers; the code/no-code marks equal the
  * catalogue; both answer formats parse; the generated block round-trips; the sign-off lists the tier ADRs.
  */
 import * as fs from 'node:fs';
@@ -12,11 +12,13 @@ import {
 } from '../../../scripts/v1.3/lib/construct-answers.js';
 
 const REPO = path.resolve(__dirname, '../../..');
+/** The author's answers (signed 2026-10-19), applied by `apply-construct-answers.ts` (U6 plan Step 6). */
+const ANSWERS = parseAnswersDocument(JSON.parse(fs.readFileSync(path.join(REPO, 'Docs/v1.3/construct-answers.json'), 'utf8')) as unknown);
 
 describe('the switch file', () => {
-  it('has one entry per question, in order, every one at A', () => {
+  it('has one entry per question, in order, each at the option of the answers file', () => {
     expect(CONSTRUCT_SWITCHES.map((s) => s.Q)).toEqual([...CONSTRUCT_QUESTION_IDS]);
-    expect(CONSTRUCT_SWITCHES.every((s) => s.option === 'A')).toBe(true);
+    expect(CONSTRUCT_SWITCHES.map((s) => s.option)).toEqual(CONSTRUCT_QUESTION_IDS.map((q) => ANSWERS.answers[q]));
   });
 
   it('marks code / no-code exactly as the catalogue, and every A is no-code', () => {
@@ -27,9 +29,9 @@ describe('the switch file', () => {
     }
   });
 
-  it('its generated block is what the answer script writes for the status quo', () => {
+  it('its generated block is what the answer script writes for the answers file (freeze-check F2)', () => {
     const text = fs.readFileSync(path.join(REPO, SWITCH_FILE), 'utf8');
-    expect(replaceSwitchBlock(text, renderSwitchBlock(STATUS_QUO_ANSWERS))).toBe(text);
+    expect(replaceSwitchBlock(text, renderSwitchBlock(ANSWERS.answers, ANSWERS.notes))).toBe(text);
   });
 
   it('every non-A option that changes behaviour is marked code, and the only no-code non-A option is Q14 C', () => {

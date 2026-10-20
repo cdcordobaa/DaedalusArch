@@ -1,6 +1,7 @@
 /**
  * The offline re-score from results/v1.3-reference/after-member-facts (no Neo4j, no extraction):
- * - with the switch default (every question at A) it reproduces the after-member-facts report byte for byte;
+ * - the switch file is the rendering of `Docs/v1.3/construct-answers.json` (F2);
+ * - at the status quo (every question at A) it reproduces the after-member-facts report byte for byte;
  * - the transforming path, forced at the status quo, gives the same figures;
  * - Q8 B lists the FLOWS_TO half of FF-P06 as N/A instead of scoring it.
  */
@@ -13,6 +14,8 @@ import { applyConstructRows } from '../../../src/construct-switches/rows.js';
 import { main as validateReference } from '../../../scripts/v1.3/lib/validate-reference-main.js';
 import { readRaw, rescore, toFinding, writeRescore } from '../../../scripts/v1.3/lib/construct-rescore.js';
 import type { Violation } from '../../../src/shared/taxonomy/violation-types.js';
+import { parseAnswersDocument, renderSwitchBlock } from '../../../scripts/v1.3/lib/construct-answers.js';
+import { switchBlockOf } from '../../../scripts/v1.3/lib/freeze-check.js';
 
 const REPO = path.resolve(__dirname, '../../..');
 const BASE_REL = 'results/v1.3-reference/after-member-facts';
@@ -25,8 +28,12 @@ describe('construct re-score of after-member-facts', () => {
   beforeAll(() => { tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'construct-rescore-')); });
   afterAll(() => { fs.rmSync(tmp, { recursive: true, force: true }); });
 
-  it('the switch file is at the status quo', () => {
-    expect(isStatusQuo(CONSTRUCT_ANSWERS)).toBe(true);
+  it('the switch file is the rendering of the answers file (freeze-check F2; U6 plan Step 6)', () => {
+    const parsed = parseAnswersDocument(JSON.parse(fs.readFileSync(path.join(REPO, 'Docs/v1.3/construct-answers.json'), 'utf8')) as unknown);
+    expect(parsed.answered.size).toBe(25);
+    expect(switchBlockOf(fs.readFileSync(path.join(REPO, 'src/shared/construct-switches.ts'), 'utf8'))).toBe(renderSwitchBlock(parsed.answers, parsed.notes));
+    expect(CONSTRUCT_ANSWERS).toEqual(parsed.answers);
+    expect(isStatusQuo(CONSTRUCT_ANSWERS)).toBe(false);
   });
 
   it('the row stage at the switch default leaves every saved row as it is: the projection of the evidence is the raw file, byte for byte', () => {
