@@ -1,0 +1,138 @@
+{
+  "schema": "loop-step/v1",
+  "runId": "claude-code-cli/claude-sonnet-5-5/hive-health/none/run-1",
+  "spec": {
+    "adapterId": "claude-code-cli",
+    "modelId": "claude-sonnet-5-5",
+    "taskId": "hive-health",
+    "arm": "none",
+    "runIndex": 1
+  },
+  "stepIndex": 4,
+  "stepId": "hotfix-false-swarms",
+  "startedAt": "2026-10-20T04:41:36.357Z",
+  "finishedAt": "2026-10-20T04:42:22.522Z",
+  "turns": [
+    {
+      "turnId": "step-05",
+      "kind": "step",
+      "promptSha256": "98fe468982c6f543f815644c927a437d1b5bc1e266414c8a7fad77d476f3680b",
+      "result": {
+        "status": "completed",
+        "usage": {
+          "costUsd": 0.1422877,
+          "inputTokens": 20,
+          "outputTokens": 6417,
+          "cacheReadTokens": 128337,
+          "cacheCreationTokens": 16311,
+          "numTurns": 20,
+          "durationMs": 44407
+        },
+        "wallMs": 45423,
+        "attempts": [
+          {
+            "startedAt": "2026-10-20T04:41:36.357Z",
+            "outcome": "completed"
+          }
+        ],
+        "interruptions": [],
+        "argv": [
+          "-p",
+          "<prompt>",
+          "--model",
+          "claude-sonnet-5-5",
+          "--output-format",
+          "json",
+          "--safe-mode",
+          "--restricted",
+          "--tools",
+          "Read,Write,Edit,Glob,Grep,Bash",
+          "--allowedTools",
+          "Bash(<shared>/daedalus-exploratory/h-r2/bin/tsc --noEmit --incremental false -p <shared>/daedalus-exploratory/h-r2/runs/claude-code-cli/claude-sonnet-5-5/hive-health/none/run-1/tsconfig.json)",
+          "--disallowedTools",
+          "Write(node_modules/**)",
+          "Edit(node_modules/**)",
+          "--permission-mode",
+          "acceptEdits",
+          "--permission-prompts",
+          "none",
+          "--no-session-persistence",
+          "--strict-mcp-config"
+        ],
+        "envelopePath": "envelope-step-05.json",
+        "permissionDenials": 1
+      },
+      "snapshot": {
+        "commit": "ab686619b574bb8bcfb88d99b92576e6c0a7f89f",
+        "sourceFiles": [
+          "business/errors.ts",
+          "business/reports.ts",
+          "business/scales.ts",
+          "business/services.ts",
+          "business/treatments.ts",
+          "persistence/models.ts",
+          "persistence/repositories.ts",
+          "presentation/app.ts",
+          "presentation/server.ts"
+        ],
+        "treeFileCount": 9,
+        "loc": 912,
+        "diff": {
+          "added": 0,
+          "modified": 3,
+          "deleted": 0
+        },
+        "skeletonIntact": true,
+        "typecheck": {
+          "errors": 0,
+          "codes": []
+        },
+        "evaluation": {
+          "scoringMode": "v1.3",
+          "ahs": 0.777,
+          "blockingAhs": 0.821,
+          "verdict": "fail",
+          "violationCount": 15,
+          "blockingViolationCount": 1,
+          "advisoryViolationCount": 14,
+          "blockingByRule": {
+            "FF-S03": 1
+          },
+          "advisoryByRule": {
+            "FF-C03": 2,
+            "FF-CV03": 1,
+            "FF-CV05": 9,
+            "FF-SO01": 2
+          },
+          "blockingFindings": [
+            {
+              "ruleId": "FF-S03",
+              "ruleName": "no-layer-skip",
+              "template": "no-layer-skip",
+              "violationId": "v-bce93e1960d48099",
+              "filePath": "src/presentation/app.ts",
+              "line": 4,
+              "target": "src/persistence/repositories.ts",
+              "message": "src/presentation/app.ts (presentation) skips layers to import src/persistence/repositories.ts (persistence)"
+            }
+          ],
+          "durationMs": 1,
+          "engineOfRecord": "cypher-interp"
+        }
+      }
+    }
+  ],
+  "repair": null,
+  "evaluatorSpec": {
+    "kind": "static",
+    "path": "presets/layered.yaml",
+    "sha256": "f0d9045de2364b8dae1ca56b584efd67fb035d9807b983ce4e6f8a7e334eade8"
+  },
+  "finalCommit": "ab686619b574bb8bcfb88d99b92576e6c0a7f89f",
+  "cost": {
+    "costUsd": 0.1422877,
+    "inputTokens": 20,
+    "outputTokens": 6417,
+    "wallMs": 45423
+  }
+}

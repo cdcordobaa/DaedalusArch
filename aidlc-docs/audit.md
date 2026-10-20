@@ -2554,6 +2554,13 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 Construction, unit U13 (plan and summary in aidlc-docs/construction/v1.4/U13/); exploratory study Stage B readiness
 ---
 
+## Exploratory study Stage B — none@L2 replicate 2 and none@L3 run
+**Timestamp**: 2026-10-20T05:12:41Z
+**User Input**: "How does Study 2a behave? Keep going to the study without more decisions."
+**AI Response**: "Ran none@L2 replicate 2 (15 turns) and none@L3 (24 turns) from the shared step-1 trees, after zero-call dry runs. Committed the step records and a pre-freeze run note: mean D 1.50 (L2, 6 blocks) vs 0.67 (L3, same trees); L3 cleaned the inherited state in 4 of 6 runs. mcp@L2 waits for the Claude S4 MCP probe."
+**Context**: CONSTRUCTION — exploratory study Stage B (approved counts, amendment 1)
+---
+
 ## Construction v1.4 U6 — Q10 → D (delegated decision applied, second development run)
 **Timestamp**: 2026-10-20T05:16:40Z
 **User Input**: "Coordinator brief (decision delegated by the author, who asked for no more decisions): apply the G0.9 Q10 criterion as written, Q10 = D; follow U6 plan Step 11 for a D outcome (re-apply once, repeat the Step 9 preview once, repeat the development re-run once on one capped Neo4j); zero model calls; report it as a second run with the checker limitation; finish and merge PR #305 when green."
