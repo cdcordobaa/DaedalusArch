@@ -2611,3 +2611,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: CONSTRUCTION, v1.4 freeze (runbook steps 2-8 and 10 on the dev set); hold-out blocked before the run; zero model calls
 
 ---
+
+## Exploratory study Stage B — mcp@L2 run
+**Timestamp**: 2026-10-20T08:32:30Z
+**User Input**: "(standing) Keep steady progress overnight; run the approved Stage B cells."
+**AI Response**: "Rebuilt the MCP server at 2c1d5576 (the prepared build predated U6), dry-ran mcp@L2 (6/6), ran it live (24 turns). Tools were used in every run. Preview mean D: L2 1.50, L3 0.67, MCP 0.50; cells to be re-scored on one construct at the freeze."
+**Context**: CONSTRUCTION — exploratory study Stage B (approved counts)
+
+---
