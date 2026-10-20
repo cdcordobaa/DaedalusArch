@@ -735,6 +735,11 @@ export async function runAgyS4Probe(deps: AgyS4Deps): Promise<DomainResult<AgyS4
     const { cwd, runId } = newCwd(arm, 'G0');
     const callLogPath = arm === 'daedalus-mcp' ? path.join(deps.root, 'call-logs', `${arm}-G0.jsonl`) : undefined;
     const allow = writeTurnFiles(arm, cwd, runId, callLogPath);
+    // Check the home as written for this turn, before any agy command runs: agy 1.4.2 loads the whole deny list at
+    // start but re-saves settings.json on exit with only the rule kinds it records (read_url, mcp), so a check after
+    // `--version` or `mcp list` reads agy's pruned copy, not the turn's settings (S4 G0 run of 2026-10-19). Whether agy
+    // enforces the pruned kinds is what probes G1-G12 test live.
+    const homeProblems = checkAgyGenHome(config.homes[arm], arm, allow, config.allowCommand).problems;
     const v = await p(['--version']);
     if ((v !== null && v.exitCode === 0 ? parseAgyVersion(v.stdout) : null) !== config.cliVersion) problems.push('version-not-the-pin');
     const models = await p(['models']);
@@ -747,7 +752,7 @@ export async function runAgyS4Probe(deps: AgyS4Deps): Promise<DomainResult<AgyS4
     const plugins = await p(['plugin', 'list']);
     if (plugins?.exitCode !== 0 || !PLUGINS_EMPTY.test(plugins.stdout.trim())) problems.push('plugin-list-not-empty');
     fs.writeFileSync(path.join(streamsDir, `${arm}-G0.txt`), scrub([v, models, mcp, plugins].map((x) => x?.stdout.trim() ?? '<failed>').join('\n---\n')) + '\n');
-    for (const h of checkAgyGenHome(config.homes[arm], arm, allow, config.allowCommand).problems) problems.push(`home: ${h}`);
+    for (const h of homeProblems) problems.push(`home: ${h}`);
     if (!checkAncestors(cwd).success) problems.push('ancestor-rule-file');
     return { arm, passed: problems.length === 0, problems, processCalls: n };
   };
