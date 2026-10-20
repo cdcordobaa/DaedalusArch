@@ -1,0 +1,28 @@
+{
+  "itemId": "6ab72fa01ce3c731",
+  "itemName": "Booking ~ Club Booking",
+  "key": "ac0778cfa29c20c886f4e569d442255a9d29afa38d8432ecdd95458cd5576d39",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "827b51dea201f0c6e18b497c94a98e3a89ec37c5b802300a3bac9458462d5dba",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Booking\nwhere: BookingRepository (uses), src/persistence/bookingRepository.ts, component persistence\ncode:\n=====SOURCE-BEGIN\nprivate readonly bookings = new Map<string, Booking>();\n=====SOURCE-END=====\ngraph:\n- class BookingRepository (node 2e3c5728fffb0180): layer infrastructure, component persistence, fan-out 0, fan-in 12\n- <- CALLS Method BookingService.create\n- <- CALLS Method BookingService.get\n- <- CALLS Method BookingService.handlePaymentResult\n- <- CALLS Method BookingService.releaseExpired\n- <- CALLS Method IceMonitorService.cancel\n- <- CALLS Method IceMonitorService.hold\n- <- CALLS Method ReportService.weekly\n- <- CALLS Method SessionService.availability\n\n### B\nconcept: Club Booking\nwhere: ClubBookingService (uses), src/business/clubBookingService.ts, component business\ncode:\n=====SOURCE-BEGIN\ncreate(input: NewClubBooking): ClubBooking {\n=====SOURCE-END=====\ngraph:\n- class ClubBookingService (node 44fb2545d0048ec3): layer domain, component business, fan-out 6, fan-in 0\n- -> CALLS Method ClubBookingRepository.create\n- -> CALLS Method ClubBookingRepository.findAll\n- -> CALLS Method ClubBookingRepository.findByDate\n- -> CALLS Method ClubBookingRepository.findById\n- -> CALLS Method ClubBookingRepository.findByMonth\n- -> CONSTRUCTOR_INJECTS Class ClubBookingRepository",
+  "recordedAt": "2026-10-20T13:15:38.216Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.7,
+    "rationale": "I judge these to be two different concepts, though both are reservations of some kind.\n\nBooking is stored in its own map in BookingRepository (node 2e3c5728fffb0180, src/persistence/bookingRepository.ts: \"private readonly bookings = new Map<string, Booking>();\"). The graph shows that repository being called by BookingService.handlePaymentResult, BookingService.releaseExpired, IceMonitorService.hold/cancel and SessionService.availability. That suggests a booking for a session that goes through payment, can be held and can expire.\n\nClub Booking has its own type and its own data path. ClubBookingService (node 44fb2545d0048ec3, src/business/clubBookingService.ts: \"create(input: NewClubBooking): ClubBooking {\") is constructor-injected with a separate ClubBookingRepository. It looks bookings up by date and by month, and the graph shows no payment or session handling.\n\nEach has its own type, repository and lifecycle, which points to a club reserving ice time, not a customer booking a session. They share the general idea of a reservation, but that isn't enough to call them one business concept. My confidence is moderate because I can only see one line of code from each.",
+    "same": false
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2051,
+    "outputTokens": 595
+  }
+}

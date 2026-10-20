@@ -1,6 +1,6 @@
 # Merge train MT7 (v1.3), 2026-10-16
 
-This train ran in a live session. The author approved it explicitly on 2026-10-16 at about 15:55 UTC: "I obviously need everything merged because otherwise that work would be for nothing." The standing rule also applies: non-critical PRs are merged into v1.3. MT7 resumed where MT6 stopped (`Docs/v1.3/merge-train-mt6.md`) and used the MT6 order: #159, #170, #229 (retargeted to `v1.3`), #139, #213, then the rest, and finally #236 (retargeted to `v1.3`).
+This train ran in a live session. The author approved it explicitly on 2026-10-16 at about 15:55 UTC, so that the completed work is merged. The standing rule also applies: non-critical PRs are merged into v1.3. MT7 resumed where MT6 stopped (`Docs/v1.3/merge-train-mt6.md`) and used the MT6 order: #159, #170, #229 (retargeted to `v1.3`), #139, #213, then the rest, and finally #236 (retargeted to `v1.3`).
 
 **Result: all 23 PRs were merged. None was skipped.** The compendium PR (#246) was already merged before MT7 began.
 

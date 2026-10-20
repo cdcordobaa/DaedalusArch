@@ -1,6 +1,6 @@
 # Merge train MT6 (v1.3), 2026-10-16
 
-Scheduled run, under the author's instruction of 2026-10-16 13:50 UTC ("Yes please unblock everything. We need to start aggregating everything we have."). **The train stopped early.** After the third merge, the agent's permission layer refused to merge v1.3 into the next held PR (#159), on the ground of merging without review. The agent did not work around the refusal. All other PRs were left as they were, so the author can confirm and run the rest of the train.
+Scheduled run, under the author's instruction of 2026-10-16 13:50 UTC to unblock the remaining work and start aggregating the results. **The train stopped early.** After the third merge, the agent's permission layer refused to merge v1.3 into the next held PR (#159), on the ground of merging without review. The agent did not work around the refusal. All other PRs were left as they were, so the author can confirm and run the rest of the train.
 
 ## Merged
 

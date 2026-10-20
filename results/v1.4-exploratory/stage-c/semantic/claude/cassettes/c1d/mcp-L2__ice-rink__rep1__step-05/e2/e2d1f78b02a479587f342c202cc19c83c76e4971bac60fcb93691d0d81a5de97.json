@@ -1,0 +1,145 @@
+{
+  "itemId": "component:persistence",
+  "itemName": "component:persistence",
+  "key": "e2d1f78b02a479587f342c202cc19c83c76e4971bac60fcb93691d0d81a5de97",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "11b10870bcf6b7f10ce7bc467925c78079267455585513e5a38f6672dae70430",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of component \"persistence\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- DropTextClient (node 0e0ffaf33c6872c8), file src/persistence/dropTextClient.ts, declaration line 2: \"export class DropTextClient {\"\n  component persistence, layer infrastructure; responsibilities: Send text message via DropText; Report messaging provider failures\n- MemberRepository (node 1cdbf101edd01700), file src/persistence/memberRepository.ts, declaration line 3: \"export class MemberRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store club members; Look up member by membership number; List all members\n- BookingRepository (node 2e3c5728fffb0180), file src/persistence/bookingRepository.ts, declaration line 4: \"export class BookingRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store and retrieve bookings; Index bookings by skating session\n- IceStateRepository (node 347150d64b7d1da9), file src/persistence/iceStateRepository.ts, declaration line 2: \"export class IceStateRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store the ice-too-warm start time\n- ClubBookingRepository (node 440da90bcde7901a), file src/persistence/clubBookingRepository.ts, declaration line 4: \"export class ClubBookingRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store and retrieve club bookings; Query club bookings chronologically by day or month; Hold the club hourly rate\n- PuckPayClient (node 8ce0b3f14177346a), file src/persistence/puckPayClient.ts, declaration line 15: \"export class PuckPayClient {\"\n  component persistence, layer infrastructure; responsibilities: Create payment checkout with PuckPay; Validate payment provider responses; Issue payment refunds via PuckPay\n- HireStockRepository (node ada57feca2e90c67), file src/persistence/hireStockRepository.ts, declaration line 2: \"export class HireStockRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store hire skate stock per shoe size; Look up hire stock for a size; List all hire stock\n- SessionRepository (node e3915d8f30e495a9), file src/persistence/sessionRepository.ts, declaration line 4: \"export class SessionRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store and retrieve rink sessions; List sessions in schedule order\n\n## APG relations of the group\nGraph statistics: 8 classes; 0 relations inside the group; 0 outgoing relations to code outside it.\n- (none)\n\n## Comments near the code\n- DropTextClient: HTTP client for DropText's API (external system access).\n- IceStateRepository: Remembers since when the ice has continuously been too warm.\n- PuckPayClient: HTTP client for PuckPay's API (external system access).\n- HireStockRepository: Fixed stock of hire skates per shoe size.",
+  "recordedAt": "2026-10-20T12:53:04.377Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.85,
+        "description": "Keeping the rink's skating session schedule and the bookings customers make for those sessions.",
+        "evidence": [
+          {
+            "endLine": 4,
+            "file": "src/persistence/sessionRepository.ts",
+            "nodeId": "e3915d8f30e495a9",
+            "quote": "export class SessionRepository {",
+            "startLine": 4
+          },
+          {
+            "endLine": 4,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "2e3c5728fffb0180",
+            "quote": "export class BookingRepository {",
+            "startLine": 4
+          }
+        ],
+        "name": "Public skating session booking",
+        "realizedBy": [
+          "e3915d8f30e495a9",
+          "2e3c5728fffb0180"
+        ]
+      },
+      {
+        "confidence": 0.7,
+        "description": "Recording clubs' ice bookings by day or month and keeping the club hourly rate, plus maintaining the club membership register.",
+        "evidence": [
+          {
+            "endLine": 4,
+            "file": "src/persistence/clubBookingRepository.ts",
+            "nodeId": "440da90bcde7901a",
+            "quote": "export class ClubBookingRepository {",
+            "startLine": 4
+          },
+          {
+            "endLine": 3,
+            "file": "src/persistence/memberRepository.ts",
+            "nodeId": "1cdbf101edd01700",
+            "quote": "export class MemberRepository {",
+            "startLine": 3
+          }
+        ],
+        "name": "Club ice-time rental",
+        "realizedBy": [
+          "440da90bcde7901a",
+          "1cdbf101edd01700"
+        ]
+      },
+      {
+        "confidence": 0.85,
+        "description": "Tracking the fixed stock of hire skates for each shoe size.",
+        "evidence": [
+          {
+            "endLine": 2,
+            "file": "src/persistence/hireStockRepository.ts",
+            "nodeId": "ada57feca2e90c67",
+            "quote": "export class HireStockRepository {",
+            "startLine": 2
+          }
+        ],
+        "name": "Skate hire inventory",
+        "realizedBy": [
+          "ada57feca2e90c67"
+        ]
+      },
+      {
+        "confidence": 0.75,
+        "description": "Recording since when the ice has been too warm in a row.",
+        "evidence": [
+          {
+            "endLine": 2,
+            "file": "src/persistence/iceStateRepository.ts",
+            "nodeId": "347150d64b7d1da9",
+            "quote": "export class IceStateRepository {",
+            "startLine": 2
+          }
+        ],
+        "name": "Ice condition monitoring",
+        "realizedBy": [
+          "347150d64b7d1da9"
+        ]
+      },
+      {
+        "confidence": 0.85,
+        "description": "Taking customer payments through PuckPay checkout and giving refunds.",
+        "evidence": [
+          {
+            "endLine": 15,
+            "file": "src/persistence/puckPayClient.ts",
+            "nodeId": "8ce0b3f14177346a",
+            "quote": "export class PuckPayClient {",
+            "startLine": 15
+          }
+        ],
+        "name": "Payment collection and refunds",
+        "realizedBy": [
+          "8ce0b3f14177346a"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "Sending text messages to customers through the DropText provider.",
+        "evidence": [
+          {
+            "endLine": 2,
+            "file": "src/persistence/dropTextClient.ts",
+            "nodeId": "0e0ffaf33c6872c8",
+            "quote": "export class DropTextClient {",
+            "startLine": 2
+          }
+        ],
+        "name": "Customer text messaging",
+        "realizedBy": [
+          "0e0ffaf33c6872c8"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2748,
+    "outputTokens": 1103
+  }
+}

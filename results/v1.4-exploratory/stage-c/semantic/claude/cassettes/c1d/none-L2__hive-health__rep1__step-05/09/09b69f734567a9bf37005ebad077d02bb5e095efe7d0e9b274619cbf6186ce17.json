@@ -1,0 +1,116 @@
+{
+  "itemId": "18ab235f6c31a91a",
+  "itemName": "ScaleRepository",
+  "key": "09b69f734567a9bf37005ebad077d02bb5e095efe7d0e9b274619cbf6186ce17",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "bbb7d47cb58d33e262405a41f62368163cb8e42ff5cc4072e097a1d2942980d4",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass ScaleRepository (node 18ab235f6c31a91a), file src/persistence/repositories.ts, lines 118-135.\nComponent: persistence. Declared layer: persistence (kind infrastructure).\nMethods:\n- save (node 23e98fceaa25febc, lines 121-126, logic density 0)\n- findBySerial (node 749248172dbe99e2, lines 128-130, logic density 0)\n- findByHive (node 0827e1874890f084, lines 132-134, logic density 1)\nFields: items\n\n## APG neighbourhood\nGraph statistics: 3 methods; fan-out 0; fan-in 5 (CALLS 4, CONSTRUCTOR_INJECTS 1).\n- <- CALLS Method ScaleService.linkScale (src/business/scaleService.ts)\n- <- CALLS Method ScaleService.listScales (src/business/scaleService.ts)\n- <- CALLS Method ScaleService.recordReading (src/business/scaleService.ts)\n- <- CALLS Method ScaleService.sendAlert (src/business/scaleService.ts)\n- <- CONSTRUCTOR_INJECTS Class ScaleService (src/business/scaleService.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- ScaleRepository: nameRole=\"repository\"\n- ScaleRepository: behaviourRole=\"coordination\"\n- ScaleRepository: ioCategories=[]\n- ScaleRepository: lcom4=1\n- ScaleRepository: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- ScaleRepository.save: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- ScaleRepository.findBySerial: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- ScaleRepository.findByHive: logicDensity={\"branches\":0,\"comparisons\":1,\"arithmetic\":0,\"validationThrows\":0,\"density\":1}\n\n## Source\n=====SOURCE-BEGIN src/persistence/repositories.ts\n118| export class ScaleRepository {\n119|   private readonly items = new Map<string, ScaleRecord>();\n120| \n121|   save(data: Omit<ScaleRecord, \"id\">): ScaleRecord {\n122|     const existing = this.items.get(data.serialNumber);\n123|     const record: ScaleRecord = { id: existing?.id ?? randomUUID(), ...data };\n124|     this.items.set(record.serialNumber, record);\n125|     return record;\n126|   }\n127| \n128|   findBySerial(serialNumber: string): ScaleRecord | undefined {\n129|     return this.items.get(serialNumber);\n130|   }\n131| \n132|   findByHive(hiveId: string): ScaleRecord[] {\n133|     return [...this.items.values()].filter((s) => s.hiveId === hiveId);\n134|   }\n135| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T13:19:09.661Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 119,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "18ab235f6c31a91a",
+            "quote": "private readonly items = new Map<string, ScaleRecord>();",
+            "startLine": 119
+          }
+        ],
+        "name": "Hive Scale",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 132,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "0827e1874890f084",
+            "quote": "findByHive(hiveId: string): ScaleRecord[] {",
+            "startLine": 132
+          }
+        ],
+        "name": "Hive",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.6,
+        "evidence": [
+          {
+            "endLine": 128,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "749248172dbe99e2",
+            "quote": "findBySerial(serialNumber: string): ScaleRecord | undefined {",
+            "startLine": 128
+          }
+        ],
+        "name": "Serial Number",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.9,
+        "description": "Stores scale records in memory, keyed by serial number. If a scale with the same serial number is saved again, it keeps the existing id instead of creating a duplicate.",
+        "evidence": [
+          {
+            "endLine": 124,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "23e98fceaa25febc",
+            "quote": "const record: ScaleRecord = { id: existing?.id ?? randomUUID(), ...data };",
+            "startLine": 122
+          }
+        ],
+        "name": "Persist hive scale records keyed by serial number",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Gets one scale record by its device serial number.",
+        "evidence": [
+          {
+            "endLine": 130,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "749248172dbe99e2",
+            "quote": "return this.items.get(serialNumber);",
+            "startLine": 128
+          }
+        ],
+        "name": "Look up a scale by serial number",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Returns all scale records attached to a given hive.",
+        "evidence": [
+          {
+            "endLine": 133,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "0827e1874890f084",
+            "quote": "return [...this.items.values()].filter((s) => s.hiveId === hiveId);",
+            "startLine": 133
+          }
+        ],
+        "name": "List scales linked to a hive",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 3263,
+    "outputTokens": 884
+  }
+}

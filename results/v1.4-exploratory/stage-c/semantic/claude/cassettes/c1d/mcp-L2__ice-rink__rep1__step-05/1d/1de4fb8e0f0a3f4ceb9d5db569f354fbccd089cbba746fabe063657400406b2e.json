@@ -1,0 +1,28 @@
+{
+  "itemId": "071850b27847683f",
+  "itemName": "Membership free-session entitlement and unpaid booking expiry ~ Membership free-session entitlement",
+  "key": "1de4fb8e0f0a3f4ceb9d5db569f354fbccd089cbba746fabe063657400406b2e",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "06237c8104b32f368101f1df8ed35488f3490baddf5ab856943fe2b9e9f02ef8",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business capability?\n\n### A\ncapability: Membership free-session entitlement and unpaid booking expiry\nwhere: community:3\ncode:\n=====SOURCE-BEGIN\nexport class RinkService {\n=====SOURCE-END=====\ngraph:\n- community community:3: 5 classes (RinkService, BookingRepository, PuckPayClient, HireStockRepository, SessionRepository)\n- class RinkService (node 21c65604dec116b1): layer domain, component business, fan-out 22, fan-in 0\n- class BookingRepository (node 2e3c5728fffb0180): layer infrastructure, component persistence, fan-out 0, fan-in 12\n\n### B\ncapability: Membership free-session entitlement\nwhere: component:business\ncode:\n=====SOURCE-BEGIN\nexport class RinkService {\n=====SOURCE-END=====\ngraph:\n- component component:business: 5 classes (DomainError, RinkService, ClubService, ReportService, IceMonitorService)\n- class RinkService (node 21c65604dec116b1): layer domain, component business, fan-out 22, fan-in 0",
+  "recordedAt": "2026-10-20T13:01:47.168Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.6,
+    "rationale": "A and B overlap, but A covers more than B. Both are anchored on the same class, RinkService (node 21c65604dec116b1), and both name membership free-session entitlement. A also includes a second piece of behaviour, unpaid booking expiry. That fits its scope, community:3, which takes in BookingRepository, PuckPayClient and SessionRepository. B covers only the entitlement and is scoped to component:business, a different group of classes (DomainError, ClubService, ReportService, IceMonitorService). The only code shown is the RinkService class line, so I can't confirm how the logic is split. Going by the descriptions, B is a subset of A rather than the same capability.",
+    "same": false
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 1782,
+    "outputTokens": 508
+  }
+}

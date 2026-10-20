@@ -1,0 +1,28 @@
+{
+  "itemId": "4299df03782d62b5",
+  "itemName": "Online ticket payment ~ Online payment and refunds",
+  "key": "69dfa155ae6217c2ac95dbbec819cd3181960a865aad42b18b8603fa882cfa94",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "28fbf9051608667e6823d09a8fe6012a181a30d5e62dc3294f024acd61e94a46",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business capability?\n\n### A\ncapability: Online ticket payment\nwhere: community:3\ncode:\n=====SOURCE-BEGIN\nexport class PuckPayClient implements PuckPayGateway {\n=====SOURCE-END=====\ngraph:\n- community community:3: 4 classes (DropTextClient, PuckPayClient, SessionRepository, IceMonitorService)\n- class PuckPayClient (node 8ce0b3f14177346a): layer infrastructure, component persistence, fan-out 1, fan-in 0\n\n### B\ncapability: Online payment and refunds\nwhere: component:persistence\ncode:\n=====SOURCE-BEGIN\nexport class PuckPayClient implements PuckPayGateway {\n=====SOURCE-END=====\ngraph:\n- component component:persistence: 6 classes (DropTextClient, BookingRepository, ClubBookingRepository, PuckPayClient, HireStockRepository, SessionRepository)\n- class PuckPayClient (node 8ce0b3f14177346a): layer infrastructure, component persistence, fan-out 1, fan-in 0",
+  "recordedAt": "2026-10-20T13:18:53.214Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.8,
+    "rationale": "A and B rest on the same code: class PuckPayClient (node 8ce0b3f14177346a), declared as `export class PuckPayClient implements PuckPayGateway {`. Both describe online payment through the PuckPay gateway. A says the payments are for tickets. B adds refunds, but the material shows nothing separate for refunds, so this looks like a difference in wording rather than in scope. The two labels come from different groupings (community:3 and component:persistence), but both point at the same payment-gateway client. Confidence is not higher because the refund part of B can't be checked against anything visible.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 1780,
+    "outputTokens": 378
+  }
+}

@@ -1,0 +1,116 @@
+{
+  "itemId": "0e0ffaf33c6872c8",
+  "itemName": "DropTextClient",
+  "key": "9dc02f57688b6f5292a5998f00257a6b5694f65be75a9f23e87f4cdcdd409044",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "a168016a76f1918e48e672985a2a50f7be225b997beaaa161710881a458b7d68",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass DropTextClient (node 0e0ffaf33c6872c8), file src/persistence/dropTextClient.ts, lines 6-24.\nComponent: persistence. Declared layer: persistence (kind infrastructure).\nMethods:\n- send (node e376234637f66822, lines 12-23, logic density 2)\nFields: baseUrl, apiKey\n\n## APG neighbourhood\nGraph statistics: 1 methods; fan-out 1 (IMPLEMENTS 1); fan-in 0.\n- -> IMPLEMENTS Interface TextGateway (src/persistence/dropTextClient.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- DropTextClient: nameRole=\"adapter\"\n- DropTextClient: behaviourRole=\"adapter\"\n- DropTextClient: ioCategories=[\"http-client\"]\n- DropTextClient: lcom4=1\n- DropTextClient: responsibilityBreadth={\"breadth\":1,\"ioCategories\":[\"http-client\"],\"componentDependencies\":[]}\n- DropTextClient.send: logicDensity={\"branches\":1,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":1,\"density\":2}\nFlags:\n- clones/same-component-near: body clone (near, similarity 0.96) of PuckPayClient.refund in component persistence\n- shared-literals/shared-number-literal: literal \"10000\" also used in component(s) business\n\n## Comments near the code\n- DropTextClient: HTTP client for the DropText API.\n\n## Source\n=====SOURCE-BEGIN src/persistence/dropTextClient.ts\n 6| export class DropTextClient implements TextGateway {\n 7|   constructor(\n 8|     private readonly baseUrl: string,\n 9|     private readonly apiKey: string,\n10|   ) {}\n11| \n12|   async send(phone: string, message: string): Promise<void> {\n13|     const res = await fetch(`${this.baseUrl.replace(/\\/$/, \"\")}/messages`, {\n14|       method: \"POST\",\n15|       headers: {\n16|         \"content-type\": \"application/json\",\n17|         authorization: `Bearer ${this.apiKey}`,\n18|       },\n19|       body: JSON.stringify({ phone, message }),\n20|       signal: AbortSignal.timeout(10_000),\n21|     });\n22|     if (!res.ok) throw new Error(`DropText responded with HTTP ${res.status}`);\n23|   }\n24| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T15:26:51.958Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 19,
+            "file": "src/persistence/dropTextClient.ts",
+            "nodeId": "e376234637f66822",
+            "quote": "body: JSON.stringify({ phone, message }),",
+            "startLine": 19
+          }
+        ],
+        "name": "Text Message (SMS)",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.75,
+        "evidence": [
+          {
+            "endLine": 12,
+            "file": "src/persistence/dropTextClient.ts",
+            "nodeId": "e376234637f66822",
+            "quote": "async send(phone: string, message: string): Promise<void> {",
+            "startLine": 12
+          }
+        ],
+        "name": "Phone Number",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.92,
+        "description": "Sends a text message to a phone number by POSTing to the external DropText messaging service, authenticating with a bearer API key and enforcing a 10-second timeout.",
+        "evidence": [
+          {
+            "endLine": 13,
+            "file": "src/persistence/dropTextClient.ts",
+            "nodeId": "e376234637f66822",
+            "quote": "const res = await fetch(`${this.baseUrl.replace(/\\/$/, \"\")}/messages`, {",
+            "startLine": 13
+          },
+          {
+            "endLine": 17,
+            "file": "src/persistence/dropTextClient.ts",
+            "nodeId": "e376234637f66822",
+            "quote": "authorization: `Bearer ${this.apiKey}`,",
+            "startLine": 17
+          },
+          {
+            "endLine": 20,
+            "file": "src/persistence/dropTextClient.ts",
+            "nodeId": "e376234637f66822",
+            "quote": "signal: AbortSignal.timeout(10_000),",
+            "startLine": 20
+          }
+        ],
+        "name": "Deliver text message via DropText API",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Turns a non-success HTTP response from DropText into an error, so a failed message delivery is visible to the caller.",
+        "evidence": [
+          {
+            "endLine": 22,
+            "file": "src/persistence/dropTextClient.ts",
+            "nodeId": "e376234637f66822",
+            "quote": "if (!res.ok) throw new Error(`DropText responded with HTTP ${res.status}`);",
+            "startLine": 22
+          }
+        ],
+        "name": "Report delivery failure",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Provides the concrete DropText implementation of the TextGateway abstraction, so the rest of the system can send text messages without depending on the provider.",
+        "evidence": [
+          {
+            "endLine": 6,
+            "file": "src/persistence/dropTextClient.ts",
+            "nodeId": "0e0ffaf33c6872c8",
+            "quote": "export class DropTextClient implements TextGateway {",
+            "startLine": 6
+          }
+        ],
+        "name": "Implement the text gateway port",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 3054,
+    "outputTokens": 985
+  }
+}

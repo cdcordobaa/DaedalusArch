@@ -1,0 +1,223 @@
+{
+  "itemId": "a663bd12cbc0090c",
+  "itemName": "ReportService",
+  "key": "21777e5cfab40b8bb5d9d6fb239acd7bc2e38d2da65d780f5fabd112d2c541a9",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "e6e02e3b5c39adf5783864948134f3bf3ef0084b8766c4a377f892b5fc85d1c7",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass ReportService (node a663bd12cbc0090c), file src/business/reportService.ts, lines 49-134.\nComponent: business. Declared layer: business (kind domain).\nMethods:\n- weekly (node 88bb95ef057181a7, lines 56-62, logic density 8)\n- range (node 4fab0172dd753a1a, lines 65-110, logic density 37)\n- toCsv (node 3183322cbf3f6226, lines 112-133, logic density 3)\nFields: sessions, bookings\n\n## APG neighbourhood\nGraph statistics: 3 methods; fan-out 4 (CALLS 2, CONSTRUCTOR_INJECTS 2); fan-in 0.\n- -> CALLS Method BookingRepository.findBySession (src/persistence/bookingRepository.ts)\n- -> CALLS Method SessionRepository.findByDateRange (src/persistence/sessionRepository.ts)\n- -> CONSTRUCTOR_INJECTS Class BookingRepository (src/persistence/bookingRepository.ts)\n- -> CONSTRUCTOR_INJECTS Class SessionRepository (src/persistence/sessionRepository.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- ReportService: nameRole=\"service\"\n- ReportService: behaviourRole=\"business-logic\"\n- ReportService: ioCategories=[]\n- ReportService: lcom4=2\n- ReportService: responsibilityBreadth={\"breadth\":1,\"ioCategories\":[],\"componentDependencies\":[\"persistence\"]}\n- ReportService.weekly: logicDensity={\"branches\":1,\"comparisons\":0,\"arithmetic\":6,\"validationThrows\":1,\"density\":8}\n- ReportService.range: logicDensity={\"branches\":13,\"comparisons\":7,\"arithmetic\":15,\"validationThrows\":2,\"density\":37}\n- ReportService.toCsv: logicDensity={\"branches\":1,\"comparisons\":0,\"arithmetic\":2,\"validationThrows\":0,\"density\":3}\nFlags:\n- shared-literals/shared-number-literal: literal \"10\" also used in component(s) presentation\n- shared-literals/shared-number-literal: literal \"10\" also used in component(s) presentation\n\n## Comments near the code\n- ReportService.weekly: Report for the Monday-to-Sunday week containing `date`.\n- ReportService.range: Report for an arbitrary inclusive date range (e.g. a whole season).\n\n## Source\n=====SOURCE-BEGIN src/business/reportService.ts\n 49| export class ReportService {\n 50|   constructor(\n 51|     private readonly sessions: SessionRepository,\n 52|     private readonly bookings: BookingRepository,\n 53|   ) {}\n 54| \n 55|   /** Report for the Monday-to-Sunday week containing `date`. */\n 56|   weekly(date: unknown): WeeklyReport {\n 57|     if (!validDate(date)) throw new DomainError(400, \"date must be YYYY-MM-DD\");\n 58|     const t = new Date(`${date}T00:00:00Z`);\n 59|     const monday = new Date(t.getTime() - ((t.getUTCDay() + 6) % 7) * DAY_MS);\n 60|     const sunday = new Date(monday.getTime() + 6 * DAY_MS);\n 61|     return this.range(monday.toISOString().slice(0, 10), sunday.toISOString().slice(0, 10));\n 62|   }\n 63| \n 64|   /** Report for an arbitrary inclusive date range (e.g. a whole season). */\n 65|   range(from: unknown, to: unknown): WeeklyReport {\n 66|     if (!validDate(from) || !validDate(to)) throw new DomainError(400, \"from and to must be YYYY-MM-DD\");\n 67|     if (from > to) throw new DomainError(400, \"from must not be after to\");\n 68| \n 69|     const totals: WeeklyReport[\"totals\"] = {\n 70|       sessions: 0, ticketsSold: 0, membersAdmitted: 0, occupancy: 0, hireIncomeCents: {},\n 71|       refundedBookings: 0, refundedCents: 0, sessionsOnHold: 0, sessionsCancelled: 0,\n 72|     };\n 73|     let capacity = 0;\n 74|     const rows: SessionReportRow[] = [];\n 75|     for (const s of this.sessions.findByDateRange(from, to)) {\n 76|       const row: SessionReportRow = {\n 77|         sessionId: s.id, date: s.date, start: s.start, end: s.end, status: s.status,\n 78|         capacity: s.capacity, ticketsSold: 0, membersAdmitted: 0, occupancy: 0,\n 79|         hireIncomeCents: {}, refundedBookings: 0, refundedCents: 0,\n 80|       };\n 81|       for (const b of this.bookings.findBySession(s.id)) {\n 82|         if (b.status === \"paid\") {\n 83|           if (b.membershipNumber) row.membersAdmitted += b.tickets;\n 84|           else row.ticketsSold += b.tickets;\n 85|           for (const [size, qty] of Object.entries(b.hire)) {\n 86|             row.hireIncomeCents[size] = (row.hireIncomeCents[size] ?? 0) + qty * HIRE_PRICE_CENTS;\n 87|           }\n 88|         } else if (b.status === \"refunded\") {\n 89|           row.refundedBookings++;\n 90|           row.refundedCents += b.amountCents;\n 91|         }\n 92|       }\n 93|       row.occupancy = s.capacity > 0 ? round((row.ticketsSold + row.membersAdmitted) / s.capacity) : 0;\n 94|       rows.push(row);\n 95| \n 96|       totals.sessions++;\n 97|       capacity += s.capacity;\n 98|       totals.ticketsSold += row.ticketsSold;\n 99|       totals.membersAdmitted += row.membersAdmitted;\n100|       totals.refundedBookings += row.refundedBookings;\n101|       totals.refundedCents += row.refundedCents;\n102|       for (const [size, c] of Object.entries(row.hireIncomeCents)) {\n103|         totals.hireIncomeCents[size] = (totals.hireIncomeCents[size] ?? 0) + c;\n104|       }\n105|       if (s.status === \"held\") totals.sessionsOnHold++;\n106|       if (s.status === \"cancelled\") totals.sessionsCancelled++;\n107|     }\n108|     totals.occupancy = capacity > 0 ? round((totals.ticketsSold + totals.membersAdmitted) / capacity) : 0;\n109|     return { from, to, sessions: rows, totals };\n110|   }\n111| \n112|   toCsv(report: WeeklyReport): string {\n113|     const sizes = Object.keys(report.totals.hireIncomeCents).sort(bySize);\n114|     const header = [\n115|       \"session_id\", \"date\", \"start\", \"end\", \"status\", \"capacity\", \"tickets_sold\", \"members_admitted\",\n116|       \"occupancy_percent\", ...sizes.map((z) => `hire_income_cents_size_${z}`), \"refunded_bookings\", \"refunded_cents\",\n117|     ];\n118|     const lines = [header.join(\",\")];\n119|     for (const r of report.sessions) {\n120|       lines.push([\n121|         r.sessionId, r.date, r.start, r.end, r.status, r.capacity, r.ticketsSold, r.membersAdmitted,\n122|         (r.occupancy * 100).toFixed(2), ...sizes.map((z) => r.hireIncomeCents[z] ?? 0),\n123|         r.refundedBookings, r.refundedCents,\n124|       ].join(\",\"));\n125|     }\n126|     const t = report.totals;\n127|     lines.push([\n128|       \"TOTAL\", \"\", \"\", \"\", `on_hold=${t.sessionsOnHold};cancelled=${t.sessionsCancelled}`, \"\", t.ticketsSold,\n129|       t.membersAdmitted, (t.occupancy * 100).toFixed(2), ...sizes.map((z) => t.hireIncomeCents[z] ?? 0),\n130|       t.refundedBookings, t.refundedCents,\n131|     ].join(\",\"));\n132|     return lines.join(\"\\r\\n\") + \"\\r\\n\";\n133|   }\n134| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T15:30:25.567Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.75,
+        "evidence": [
+          {
+            "endLine": 109,
+            "file": "src/business/reportService.ts",
+            "nodeId": "4fab0172dd753a1a",
+            "quote": "return { from, to, sessions: rows, totals };",
+            "startLine": 109
+          }
+        ],
+        "name": "Sales Report",
+        "relation": "defines"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 93,
+            "file": "src/business/reportService.ts",
+            "nodeId": "4fab0172dd753a1a",
+            "quote": "row.occupancy = s.capacity > 0 ? round((row.ticketsSold + row.membersAdmitted) / s.capacity) : 0;",
+            "startLine": 93
+          }
+        ],
+        "name": "Occupancy",
+        "relation": "defines"
+      },
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 75,
+            "file": "src/business/reportService.ts",
+            "nodeId": "4fab0172dd753a1a",
+            "quote": "for (const s of this.sessions.findByDateRange(from, to)) {",
+            "startLine": 75
+          }
+        ],
+        "name": "Session",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 81,
+            "file": "src/business/reportService.ts",
+            "nodeId": "4fab0172dd753a1a",
+            "quote": "for (const b of this.bookings.findBySession(s.id)) {",
+            "startLine": 81
+          }
+        ],
+        "name": "Booking",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 90,
+            "file": "src/business/reportService.ts",
+            "nodeId": "4fab0172dd753a1a",
+            "quote": "} else if (b.status === \"refunded\") {",
+            "startLine": 88
+          }
+        ],
+        "name": "Refund",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.6,
+        "evidence": [
+          {
+            "endLine": 83,
+            "file": "src/business/reportService.ts",
+            "nodeId": "4fab0172dd753a1a",
+            "quote": "if (b.membershipNumber) row.membersAdmitted += b.tickets;",
+            "startLine": 83
+          }
+        ],
+        "name": "Membership",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.6,
+        "evidence": [
+          {
+            "endLine": 85,
+            "file": "src/business/reportService.ts",
+            "nodeId": "4fab0172dd753a1a",
+            "quote": "for (const [size, qty] of Object.entries(b.hire)) {",
+            "startLine": 85
+          }
+        ],
+        "name": "Equipment Hire",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.8,
+        "description": "Works out the Monday-to-Sunday week that contains a given date, checks that the date is valid, and produces the report for that week.",
+        "evidence": [
+          {
+            "endLine": 59,
+            "file": "src/business/reportService.ts",
+            "nodeId": "88bb95ef057181a7",
+            "quote": "const monday = new Date(t.getTime() - ((t.getUTCDay() + 6) % 7) * DAY_MS);",
+            "startLine": 59
+          }
+        ],
+        "name": "Weekly period resolution",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.75,
+        "description": "Rejects report requests whose dates are not in YYYY-MM-DD format or whose start date comes after the end date.",
+        "evidence": [
+          {
+            "endLine": 67,
+            "file": "src/business/reportService.ts",
+            "nodeId": "4fab0172dd753a1a",
+            "quote": "if (from > to) throw new DomainError(400, \"from must not be after to\");",
+            "startLine": 67
+          }
+        ],
+        "name": "Date range validation",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.9,
+        "description": "For each session in the date range, adds up paid tickets sold, members admitted, hire income per size and refunds, and calculates occupancy against capacity.",
+        "evidence": [
+          {
+            "endLine": 83,
+            "file": "src/business/reportService.ts",
+            "nodeId": "4fab0172dd753a1a",
+            "quote": "if (b.membershipNumber) row.membersAdmitted += b.tickets;",
+            "startLine": 83
+          },
+          {
+            "endLine": 86,
+            "file": "src/business/reportService.ts",
+            "nodeId": "4fab0172dd753a1a",
+            "quote": "row.hireIncomeCents[size] = (row.hireIncomeCents[size] ?? 0) + qty * HIRE_PRICE_CENTS;",
+            "startLine": 86
+          },
+          {
+            "endLine": 93,
+            "file": "src/business/reportService.ts",
+            "nodeId": "4fab0172dd753a1a",
+            "quote": "row.occupancy = s.capacity > 0 ? round((row.ticketsSold + row.membersAdmitted) / s.capacity) : 0;",
+            "startLine": 93
+          }
+        ],
+        "name": "Session sales and occupancy aggregation",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Rolls the per-session rows up into totals for the period, including overall occupancy and counts of sessions on hold and cancelled.",
+        "evidence": [
+          {
+            "endLine": 108,
+            "file": "src/business/reportService.ts",
+            "nodeId": "4fab0172dd753a1a",
+            "quote": "totals.occupancy = capacity > 0 ? round((totals.ticketsSold + totals.membersAdmitted) / capacity) : 0;",
+            "startLine": 108
+          },
+          {
+            "endLine": 105,
+            "file": "src/business/reportService.ts",
+            "nodeId": "4fab0172dd753a1a",
+            "quote": "if (s.status === \"held\") totals.sessionsOnHold++;",
+            "startLine": 105
+          }
+        ],
+        "name": "Period totals computation",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Turns a report into CSV text, with one column per hire size and a final totals row.",
+        "evidence": [
+          {
+            "endLine": 132,
+            "file": "src/business/reportService.ts",
+            "nodeId": "3183322cbf3f6226",
+            "quote": "return lines.join(\"\\r\\n\") + \"\\r\\n\";",
+            "startLine": 132
+          }
+        ],
+        "name": "Report CSV export",
+        "naturalLayer": "presentation"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 5112,
+    "outputTokens": 2009
+  }
+}

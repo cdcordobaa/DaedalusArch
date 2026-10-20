@@ -1,0 +1,80 @@
+{
+  "itemId": "4799b1081a692790",
+  "itemName": "TreatmentProductRepository",
+  "key": "d020245c6a62359de0686ed2e0b741ce0ed4e7d3630345d576cc606c63634796",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "89b08ac2660d286841f329d5e00c5db3e0e51cacf6a26773a19333c173d3324e",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass TreatmentProductRepository (node 4799b1081a692790), file src/persistence/repositories.ts, lines 13-29.\nComponent: persistence. Declared layer: persistence (kind infrastructure).\nMethods:\n- create (node 7d1b786a40e58f53, lines 16-20, logic density 0)\n- findById (node 5aa13b9705740788, lines 22-24, logic density 0)\n- findAll (node e086119e75e222f9, lines 26-28, logic density 0)\nFields: items\n\n## APG neighbourhood\nGraph statistics: 3 methods; fan-out 0; fan-in 7 (CALLS 5, CONSTRUCTOR_INJECTS 2).\n- <- CALLS Method ReportService.quarterlyReport (src/business/reportService.ts)\n- <- CALLS Method TreatmentService.assertHarvestAllowed (src/business/treatmentService.ts)\n- <- CALLS Method TreatmentService.listProducts (src/business/treatmentService.ts)\n- <- CALLS Method TreatmentService.recordTreatment (src/business/treatmentService.ts)\n- <- CALLS Method TreatmentService.registerProduct (src/business/treatmentService.ts)\n- <- CONSTRUCTOR_INJECTS Class ReportService (src/business/reportService.ts)\n- <- CONSTRUCTOR_INJECTS Class TreatmentService (src/business/treatmentService.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- TreatmentProductRepository: nameRole=\"repository\"\n- TreatmentProductRepository: behaviourRole=\"coordination\"\n- TreatmentProductRepository: ioCategories=[]\n- TreatmentProductRepository: lcom4=1\n- TreatmentProductRepository: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- TreatmentProductRepository.create: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- TreatmentProductRepository.findById: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- TreatmentProductRepository.findAll: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\nFlags:\n- clones/same-component-near: body clone (near, similarity 0.84) of TreatmentRepository.create in component persistence\n- clones/same-component-near: body clone (near, similarity 0.84) of HarvestRepository.create in component persistence\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of ApiaryRepository.create in component persistence\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of HiveRepository.create in component persistence\n\n## Source\n=====SOURCE-BEGIN src/persistence/repositories.ts\n13| export class TreatmentProductRepository {\n14|   private readonly items = new Map<string, TreatmentProduct>();\n15| \n16|   create(data: Omit<TreatmentProduct, \"id\">): TreatmentProduct {\n17|     const product: TreatmentProduct = { id: randomUUID(), ...data };\n18|     this.items.set(product.id, product);\n19|     return product;\n20|   }\n21| \n22|   findById(id: string): TreatmentProduct | undefined {\n23|     return this.items.get(id);\n24|   }\n25| \n26|   findAll(): TreatmentProduct[] {\n27|     return [...this.items.values()];\n28|   }\n29| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:32:44.638Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 14,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "4799b1081a692790",
+            "quote": "private readonly items = new Map<string, TreatmentProduct>();",
+            "startLine": 14
+          }
+        ],
+        "name": "Treatment Product",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Saves newly registered treatment products in memory, giving each one a generated unique identifier.",
+        "evidence": [
+          {
+            "endLine": 20,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "7d1b786a40e58f53",
+            "quote": "const product: TreatmentProduct = { id: randomUUID(), ...data };",
+            "startLine": 16
+          }
+        ],
+        "name": "Store treatment products",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Looks up a single treatment product by its id, or lists the whole treatment product catalogue.",
+        "evidence": [
+          {
+            "endLine": 24,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "5aa13b9705740788",
+            "quote": "return this.items.get(id);",
+            "startLine": 22
+          },
+          {
+            "endLine": 28,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "e086119e75e222f9",
+            "quote": "return [...this.items.values()];",
+            "startLine": 26
+          }
+        ],
+        "name": "Retrieve treatment products",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 3491,
+    "outputTokens": 551
+  }
+}

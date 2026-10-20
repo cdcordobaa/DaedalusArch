@@ -1,0 +1,80 @@
+{
+  "itemId": "a8066b48e1c14319",
+  "itemName": "ApiaryRepository",
+  "key": "b608d95094076957294ab2c973537c7fdb21a79f8c424525ccee5e522396625c",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "17e3050a08b077434470dd605541b724ad08665be96d938727977c58080b2208",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass ApiaryRepository (node a8066b48e1c14319), file src/persistence/repositories.ts, lines 59-75.\nComponent: persistence. Declared layer: persistence (kind infrastructure).\nMethods:\n- create (node ff042476e34537fd, lines 62-66, logic density 0)\n- findById (node 65736a4318b8bb6b, lines 68-70, logic density 0)\n- findAll (node 7e61cb76e2ebd7be, lines 72-74, logic density 0)\nFields: items\n\n## APG neighbourhood\nGraph statistics: 3 methods; fan-out 0; fan-in 6 (CALLS 4, CONSTRUCTOR_INJECTS 2).\n- <- CALLS Method HiveService.listApiaries (src/business/hiveService.ts)\n- <- CALLS Method HiveService.registerApiary (src/business/hiveService.ts)\n- <- CALLS Method HiveService.registerHive (src/business/hiveService.ts)\n- <- CALLS Method ReportService.quarterlyReport (src/business/reportService.ts)\n- <- CONSTRUCTOR_INJECTS Class HiveService (src/business/hiveService.ts)\n- <- CONSTRUCTOR_INJECTS Class ReportService (src/business/reportService.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- ApiaryRepository: nameRole=\"repository\"\n- ApiaryRepository: behaviourRole=\"coordination\"\n- ApiaryRepository: ioCategories=[]\n- ApiaryRepository: lcom4=1\n- ApiaryRepository: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- ApiaryRepository.create: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- ApiaryRepository.findById: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- ApiaryRepository.findAll: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\nFlags:\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of ProductRepository.create in component persistence\n- clones/same-component-near: body clone (near, similarity 0.84) of TreatmentRepository.create in component persistence\n- clones/same-component-near: body clone (near, similarity 0.84) of HarvestRepository.create in component persistence\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of HiveRepository.create in component persistence\n- clones/same-component-near: body clone (near, similarity 0.84) of WeightReadingRepository.create in component persistence\n\n## Source\n=====SOURCE-BEGIN src/persistence/repositories.ts\n59| export class ApiaryRepository {\n60|   private readonly items = new Map<string, ApiaryRecord>();\n61| \n62|   create(data: Omit<ApiaryRecord, \"id\">): ApiaryRecord {\n63|     const record: ApiaryRecord = { id: randomUUID(), ...data };\n64|     this.items.set(record.id, record);\n65|     return record;\n66|   }\n67| \n68|   findById(id: string): ApiaryRecord | undefined {\n69|     return this.items.get(id);\n70|   }\n71| \n72|   findAll(): ApiaryRecord[] {\n73|     return [...this.items.values()];\n74|   }\n75| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T13:23:26.440Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 60,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "a8066b48e1c14319",
+            "quote": "private readonly items = new Map<string, ApiaryRecord>();",
+            "startLine": 60
+          }
+        ],
+        "name": "Apiary",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Stores a new apiary record in memory and gives it a generated unique identifier.",
+        "evidence": [
+          {
+            "endLine": 64,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "ff042476e34537fd",
+            "quote": "const record: ApiaryRecord = { id: randomUUID(), ...data };",
+            "startLine": 63
+          }
+        ],
+        "name": "Register new apiary records",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Looks up a single apiary by its identifier, or lists every stored apiary.",
+        "evidence": [
+          {
+            "endLine": 69,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "65736a4318b8bb6b",
+            "quote": "return this.items.get(id);",
+            "startLine": 69
+          },
+          {
+            "endLine": 73,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "7e61cb76e2ebd7be",
+            "quote": "return [...this.items.values()];",
+            "startLine": 73
+          }
+        ],
+        "name": "Retrieve apiaries",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 3463,
+    "outputTokens": 549
+  }
+}

@@ -1,0 +1,209 @@
+{
+  "itemId": "2e2e749b26fb57a2",
+  "itemName": "ClubService",
+  "key": "7cbf4317562afb8bc908b95afbd3c060d402ccd71eacba3cd9b65b3df59c8e04",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "7a9a5f389d54eb289cd07e007d6ac5e77dd8cf54c54d27b1254b2b4a43944b9b",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass ClubService (node 2e2e749b26fb57a2), file src/business/clubService.ts, lines 40-130.\nComponent: business. Declared layer: business (kind domain).\nMethods:\n- setRate (node c0d187d10b796d08, lines 46-52, logic density 3)\n- getRate (node 472d38f10f0696d6, lines 54-56, logic density 0)\n- book (node c89a60ec5fc29d88, lines 58-88, logic density 19)\n- list (node 516d5c0d15019284, lines 90-92, logic density 0)\n- invoice (node 93c8043e5c2853b7, lines 95-118, logic density 10)\n- addMember (node 930c223ba38a5504, lines 120-125, logic density 3)\n- listMembers (node 4d9c9f1389476452, lines 127-129, logic density 0)\nFields: club, members\n\n## APG neighbourhood\nGraph statistics: 7 methods; fan-out 10 (CALLS 8, CONSTRUCTOR_INJECTS 2); fan-in 0.\n- -> CALLS Method ClubBookingRepository.create (src/persistence/clubBookingRepository.ts)\n- -> CALLS Method ClubBookingRepository.getRate (src/persistence/clubBookingRepository.ts)\n- -> CALLS Method ClubBookingRepository.list (src/persistence/clubBookingRepository.ts)\n- -> CALLS Method ClubBookingRepository.listByDate (src/persistence/clubBookingRepository.ts)\n- -> CALLS Method ClubBookingRepository.listByMonth (src/persistence/clubBookingRepository.ts)\n- -> CALLS Method ClubBookingRepository.setRate (src/persistence/clubBookingRepository.ts)\n- -> CALLS Method MemberRepository.add (src/persistence/memberRepository.ts)\n- -> CALLS Method MemberRepository.list (src/persistence/memberRepository.ts)\n- -> CONSTRUCTOR_INJECTS Class ClubBookingRepository (src/persistence/clubBookingRepository.ts)\n- -> CONSTRUCTOR_INJECTS Class MemberRepository (src/persistence/memberRepository.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- ClubService: nameRole=\"service\"\n- ClubService: behaviourRole=\"business-logic\"\n- ClubService: ioCategories=[]\n- ClubService: lcom4=2\n- ClubService: responsibilityBreadth={\"breadth\":1,\"ioCategories\":[],\"componentDependencies\":[\"persistence\"]}\n- ClubService.setRate: logicDensity={\"branches\":1,\"comparisons\":1,\"arithmetic\":0,\"validationThrows\":1,\"density\":3}\n- ClubService.getRate: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- ClubService.book: logicDensity={\"branches\":8,\"comparisons\":5,\"arithmetic\":0,\"validationThrows\":6,\"density\":19}\n- ClubService.list: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- ClubService.invoice: logicDensity={\"branches\":2,\"comparisons\":1,\"arithmetic\":6,\"validationThrows\":1,\"density\":10}\n- ClubService.addMember: logicDensity={\"branches\":2,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":1,\"density\":3}\n- ClubService.listMembers: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\nFlags:\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of RinkService.createSession in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of RinkService.setHireStock in component business\n- clones/same-component-guard: guard clone (guard, similarity 1.00) of RinkService.createSession in component business\n- clones/same-component-guard: guard clone (guard, similarity 1.00) of RinkService.createSession in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of RinkService.createSession in component business\n- shared-literals/shared-number-literal: literal \"2\" also used in component(s) presentation\n\n## Comments near the code\n- ClubService.invoice: Monthly invoice: hours at the club rate; a half rink is charged at half the rate.\n\n## Source\n=====SOURCE-BEGIN src/business/clubService.ts\n 40| export class ClubService {\n 41|   constructor(\n 42|     private readonly club: ClubBookingRepository,\n 43|     private readonly members: MemberRepository,\n 44|   ) {}\n 45| \n 46|   setRate(rateCentsPerHour: number): { rateCentsPerHour: number } {\n 47|     if (!Number.isInteger(rateCentsPerHour) || rateCentsPerHour < 0) {\n 48|       throw new DomainError(\"validation\", \"rateCentsPerHour must be a non-negative integer\");\n 49|     }\n 50|     this.club.setRate(rateCentsPerHour);\n 51|     return { rateCentsPerHour };\n 52|   }\n 53| \n 54|   getRate(): { rateCentsPerHour: number } {\n 55|     return { rateCentsPerHour: this.club.getRate() };\n 56|   }\n 57| \n 58|   book(input: NewClubBookingInput): ClubBooking & { rink: \"whole\" | \"half\" } {\n 59|     if (!DATE_RE.test(input.date)) throw new DomainError(\"validation\", \"date must be YYYY-MM-DD\");\n 60|     if (!TIME_RE.test(input.start) || !TIME_RE.test(input.end)) {\n 61|       throw new DomainError(\"validation\", \"start and end must be HH:MM\");\n 62|     }\n 63|     if (input.end <= input.start) throw new DomainError(\"validation\", \"end must be after start\");\n 64|     let halves: Half[];\n 65|     if (input.rink === \"whole\") {\n 66|       halves = [\"a\", \"b\"];\n 67|     } else if (input.rink === \"half\") {\n 68|       if (input.half !== \"a\" && input.half !== \"b\") {\n 69|         throw new DomainError(\"validation\", \"half must be \\\"a\\\" or \\\"b\\\" for a half rink\");\n 70|       }\n 71|       halves = [input.half];\n 72|     } else {\n 73|       throw new DomainError(\"validation\", \"rink must be \\\"whole\\\" or \\\"half\\\"\");\n 74|     }\n 75|     for (const other of this.club.listByDate(input.date)) {\n 76|       if (overlaps(input, other) && other.halves.some((h) => halves.includes(h))) {\n 77|         throw new DomainError(\"conflict\", \"overlaps another club booking on the same half\");\n 78|       }\n 79|     }\n 80|     const booking = this.club.create({\n 81|       date: input.date,\n 82|       start: input.start,\n 83|       end: input.end,\n 84|       halves,\n 85|       rateCentsPerHour: this.club.getRate(),\n 86|     });\n 87|     return { ...booking, rink: rinkOf(booking) };\n 88|   }\n 89| \n 90|   list(): Array<ClubBooking & { rink: \"whole\" | \"half\" }> {\n 91|     return this.club.list().map((b) => ({ ...b, rink: rinkOf(b) }));\n 92|   }\n 93| \n 94|   /** Monthly invoice: hours at the club rate; a half rink is charged at half the rate. */\n 95|   invoice(month: string): ClubInvoice {\n 96|     if (!MONTH_RE.test(month)) throw new DomainError(\"validation\", \"month must be YYYY-MM\");\n 97|     const lines: InvoiceLine[] = this.club.listByMonth(month).map((b) => {\n 98|       const hours = minutesBetween(b.start, b.end) / 60;\n 99|       const share = b.halves.length / 2;\n100|       return {\n101|         bookingId: b.id,\n102|         date: b.date,\n103|         start: b.start,\n104|         end: b.end,\n105|         rink: rinkOf(b),\n106|         half: b.halves.length === 1 ? b.halves[0] : undefined,\n107|         hours,\n108|         amountCents: Math.round(hours * share * b.rateCentsPerHour),\n109|       };\n110|     });\n111|     return {\n112|       month,\n113|       rateCentsPerHour: this.club.getRate(),\n114|       lines,\n115|       totalHours: lines.reduce((n, l) => n + l.hours, 0),\n116|       totalCents: lines.reduce((n, l) => n + l.amountCents, 0),\n117|     };\n118|   }\n119| \n120|   addMember(membershipNumber: unknown, name: unknown): Member {\n121|     if (typeof membershipNumber !== \"string\" || !membershipNumber) {\n122|       throw new DomainError(\"validation\", \"membershipNumber is required\");\n123|     }\n124|     return this.members.add({ membershipNumber, name: typeof name === \"string\" ? name : \"\" });\n125|   }\n126| \n127|   listMembers(): Member[] {\n128|     return this.members.list();\n129|   }\n130| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:48:52.232Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 58,
+            "file": "src/business/clubService.ts",
+            "nodeId": "c89a60ec5fc29d88",
+            "quote": "book(input: NewClubBookingInput): ClubBooking & { rink: \"whole\" | \"half\" } {",
+            "startLine": 58
+          }
+        ],
+        "name": "Club Booking",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 95,
+            "file": "src/business/clubService.ts",
+            "nodeId": "93c8043e5c2853b7",
+            "quote": "invoice(month: string): ClubInvoice {",
+            "startLine": 95
+          }
+        ],
+        "name": "Club Invoice",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 97,
+            "file": "src/business/clubService.ts",
+            "nodeId": "93c8043e5c2853b7",
+            "quote": "const lines: InvoiceLine[] = this.club.listByMonth(month).map((b) => {",
+            "startLine": 97
+          }
+        ],
+        "name": "Invoice Line",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.75,
+        "evidence": [
+          {
+            "endLine": 46,
+            "file": "src/business/clubService.ts",
+            "nodeId": "c0d187d10b796d08",
+            "quote": "setRate(rateCentsPerHour: number): { rateCentsPerHour: number } {",
+            "startLine": 46
+          }
+        ],
+        "name": "Hourly Rate",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 64,
+            "file": "src/business/clubService.ts",
+            "nodeId": "c89a60ec5fc29d88",
+            "quote": "let halves: Half[];",
+            "startLine": 64
+          }
+        ],
+        "name": "Rink Half",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 120,
+            "file": "src/business/clubService.ts",
+            "nodeId": "930c223ba38a5504",
+            "quote": "addMember(membershipNumber: unknown, name: unknown): Member {",
+            "startLine": 120
+          }
+        ],
+        "name": "Member",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Sets and reads the club's hourly rate, and rejects any rate that is not a non-negative whole number of cents.",
+        "evidence": [
+          {
+            "endLine": 49,
+            "file": "src/business/clubService.ts",
+            "nodeId": "c0d187d10b796d08",
+            "quote": "throw new DomainError(\"validation\", \"rateCentsPerHour must be a non-negative integer\");",
+            "startLine": 47
+          }
+        ],
+        "name": "Club hourly rate management",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.9,
+        "description": "Checks the date and times of a club booking, works out which rink halves it takes (the whole rink or half a or b), turns away bookings that overlap another one on the same half, and records the club's current rate on the booking.",
+        "evidence": [
+          {
+            "endLine": 78,
+            "file": "src/business/clubService.ts",
+            "nodeId": "c89a60ec5fc29d88",
+            "quote": "throw new DomainError(\"conflict\", \"overlaps another club booking on the same half\");",
+            "startLine": 76
+          },
+          {
+            "endLine": 66,
+            "file": "src/business/clubService.ts",
+            "nodeId": "c89a60ec5fc29d88",
+            "quote": "halves = [\"a\", \"b\"];",
+            "startLine": 65
+          }
+        ],
+        "name": "Club rink booking with conflict detection",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.9,
+        "description": "Builds the club's invoice for a month. Each booking is charged by its hours at the rate saved on that booking, a half rink pays half, and the hours and amounts are added up into totals.",
+        "evidence": [
+          {
+            "endLine": 108,
+            "file": "src/business/clubService.ts",
+            "nodeId": "93c8043e5c2853b7",
+            "quote": "amountCents: Math.round(hours * share * b.rateCentsPerHour),",
+            "startLine": 108
+          },
+          {
+            "endLine": 116,
+            "file": "src/business/clubService.ts",
+            "nodeId": "93c8043e5c2853b7",
+            "quote": "totalCents: lines.reduce((n, l) => n + l.amountCents, 0),",
+            "startLine": 116
+          }
+        ],
+        "name": "Monthly club invoicing",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.7,
+        "description": "Lists club bookings, each marked as a whole-rink or half-rink booking.",
+        "evidence": [
+          {
+            "endLine": 91,
+            "file": "src/business/clubService.ts",
+            "nodeId": "516d5c0d15019284",
+            "quote": "return this.club.list().map((b) => ({ ...b, rink: rinkOf(b) }));",
+            "startLine": 91
+          }
+        ],
+        "name": "Club booking listing",
+        "naturalLayer": "application"
+      },
+      {
+        "confidence": 0.75,
+        "description": "Registers club members, which requires a membership number, and lists the members.",
+        "evidence": [
+          {
+            "endLine": 122,
+            "file": "src/business/clubService.ts",
+            "nodeId": "930c223ba38a5504",
+            "quote": "throw new DomainError(\"validation\", \"membershipNumber is required\");",
+            "startLine": 122
+          },
+          {
+            "endLine": 128,
+            "file": "src/business/clubService.ts",
+            "nodeId": "4d9c9f1389476452",
+            "quote": "return this.members.list();",
+            "startLine": 128
+          }
+        ],
+        "name": "Club membership registration",
+        "naturalLayer": "domain"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 5439,
+    "outputTokens": 1819
+  }
+}

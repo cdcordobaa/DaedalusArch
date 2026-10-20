@@ -161,7 +161,7 @@ All other hashes are unchanged.
 
 ## P-JW — prereg v17 (ADR-028 judge-weighted sensitivity variant, 2026-10-10)
 
-Previous: v16 (P-LU), commit `f11ffa4`. Author decision 2026-10-10: "Keep 8%, add weighted variant". This bump comes after the v15 E7 re-computation (`58ecd3b`), after the code and plan text (`3daf1cc`, `543ebb6`, renumbered in `1372247` when P-LU took v16 in PR #48), and **before any `e1-grid` run** (no E1 RunRecord exists). The registered spec weights (W_n = 0.08) stay the primary analysis; no spec weight changes. `judge-weighted-v1` is a pre-declared sensitivity analysis: **E1's reading is pre-registered**; **E7's reading is post hoc**.
+Previous: v16 (P-LU), commit `f11ffa4`. Author decision 2026-10-10: keep 8% and add a weighted variant. This bump comes after the v15 E7 re-computation (`58ecd3b`), after the code and plan text (`3daf1cc`, `543ebb6`, renumbered in `1372247` when P-LU took v16 in PR #48), and **before any `e1-grid` run** (no E1 RunRecord exists). The registered spec weights (W_n = 0.08) stay the primary analysis; no spec weight changes. `judge-weighted-v1` is a pre-declared sensitivity analysis: **E1's reading is pre-registered**; **E7's reading is post hoc**.
 
 | Artefact | v16 → v17 sha256 | Change and reason | Post-hoc risk |
 |---|---|---|---|

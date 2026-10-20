@@ -37,6 +37,21 @@ describe('study2b templates', () => {
     }
   });
 
+  it('per-replicate filling (finding 4): one replicate at run index r - 1, one shared-start root, the harness accepts it', () => {
+    const tasks = practice();
+    for (const name of STUDY2B_TEMPLATES) {
+      for (const firstRun of [0, 9]) {
+        const f = fillTemplate(template(name), tasks, { ...opts(1), firstRun });
+        expect(f.problems).toEqual([]);
+        expect(f.plan.runs).toBe(1);
+        expect(f.plan.firstRun).toBe(firstRun);
+        expect(f.budget.maxCalls).toBe(name === 'plan-none-L2' ? 15 : 12);
+        if (name !== 'plan-none-L2') expect((f.plan.sharedStart as { fromOutRoot: string }).fromOutRoot).toBe('<local>');
+      }
+    }
+    expect(() => fillTemplate(template('plan-none-L2'), tasks, { ...opts(1), firstRun: -1 })).toThrow(/firstRun/);
+  });
+
   it('the cells differ only in arm, rung, sharedStart, daedalus and the description', () => {
     const strip = (o: Record<string, unknown>): Record<string, unknown> => {
       const { description: _d, arms: _a, frame, sharedStart: _s, daedalus: _m, callBudget: _b, ...rest } = o;

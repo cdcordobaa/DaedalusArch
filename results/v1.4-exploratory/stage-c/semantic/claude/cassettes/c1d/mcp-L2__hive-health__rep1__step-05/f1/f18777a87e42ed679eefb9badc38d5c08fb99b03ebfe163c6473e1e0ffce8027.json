@@ -1,0 +1,87 @@
+{
+  "itemId": "18ab235f6c31a91a",
+  "itemName": "ScaleRepository",
+  "key": "f18777a87e42ed679eefb9badc38d5c08fb99b03ebfe163c6473e1e0ffce8027",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "d76fc838429c4168eda14fa4e727aaf8eef6d2d922889cb4953c98e48220c674",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass ScaleRepository (node 18ab235f6c31a91a), file src/persistence/repositories.ts, lines 123-134.\nComponent: persistence. Declared layer: persistence (kind infrastructure).\nMethods:\n- save (node 23e98fceaa25febc, lines 126-129, logic density 0)\n- findBySerial (node 749248172dbe99e2, lines 131-133, logic density 0)\nFields: items\n\n## APG neighbourhood\nGraph statistics: 2 methods; fan-out 0; fan-in 4 (CALLS 3, CONSTRUCTOR_INJECTS 1).\n- <- CALLS Method ScaleService.linkScale (src/business/scaleService.ts)\n- <- CALLS Method ScaleService.recordReading (src/business/scaleService.ts)\n- <- CALLS Method ScaleService.sendIfStillSuspected (src/business/scaleService.ts)\n- <- CONSTRUCTOR_INJECTS Class ScaleService (src/business/scaleService.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- ScaleRepository: nameRole=\"repository\"\n- ScaleRepository: behaviourRole=\"coordination\"\n- ScaleRepository: ioCategories=[]\n- ScaleRepository: lcom4=1\n- ScaleRepository: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- ScaleRepository.save: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- ScaleRepository.findBySerial: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n\n## Source\n=====SOURCE-BEGIN src/persistence/repositories.ts\n123| export class ScaleRepository {\n124|   private readonly items = new Map<string, ScaleRecord>();\n125| \n126|   save(record: ScaleRecord): ScaleRecord {\n127|     this.items.set(record.serial, record);\n128|     return record;\n129|   }\n130| \n131|   findBySerial(serial: string): ScaleRecord | undefined {\n132|     return this.items.get(serial);\n133|   }\n134| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:15:19.767Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 124,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "18ab235f6c31a91a",
+            "quote": "private readonly items = new Map<string, ScaleRecord>();",
+            "startLine": 124
+          }
+        ],
+        "name": "Scale",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 132,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "749248172dbe99e2",
+            "quote": "return this.items.get(serial);",
+            "startLine": 132
+          }
+        ],
+        "name": "Scale Serial Number",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Stores scale records in an in-memory store keyed by the scale's serial number, overwriting any earlier record with the same serial.",
+        "evidence": [
+          {
+            "endLine": 127,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "23e98fceaa25febc",
+            "quote": "this.items.set(record.serial, record);",
+            "startLine": 127
+          }
+        ],
+        "name": "Persist scale records",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Retrieves a scale record by its serial number and returns undefined when no scale with that serial exists.",
+        "evidence": [
+          {
+            "endLine": 131,
+            "file": "src/persistence/repositories.ts",
+            "nodeId": "749248172dbe99e2",
+            "quote": "findBySerial(serial: string): ScaleRecord | undefined {",
+            "startLine": 131
+          }
+        ],
+        "name": "Look up scale by serial number",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 3004,
+    "outputTokens": 601
+  }
+}

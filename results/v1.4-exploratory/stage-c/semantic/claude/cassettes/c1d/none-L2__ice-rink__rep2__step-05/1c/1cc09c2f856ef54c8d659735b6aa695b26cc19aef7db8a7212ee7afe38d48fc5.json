@@ -1,0 +1,137 @@
+{
+  "itemId": "component:persistence",
+  "itemName": "component:persistence",
+  "key": "1cc09c2f856ef54c8d659735b6aa695b26cc19aef7db8a7212ee7afe38d48fc5",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "115212e20ec6d2d0f34e36b1cfbaa830ead921c9dc766a8504c465e8dc5830dd",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of component \"persistence\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- DropTextClient (node 0e0ffaf33c6872c8), file src/persistence/dropTextClient.ts, declaration line 6: \"export class DropTextClient implements TextGateway {\"\n  component persistence, layer infrastructure; responsibilities: Deliver text message via DropText API; Report delivery failure; Implement the text gateway port\n- BookingRepository (node 2e3c5728fffb0180), file src/persistence/bookingRepository.ts, declaration line 4: \"export class BookingRepository {\"\n  component persistence, layer infrastructure; responsibilities: Booking persistence; Session booking index; Booking queries\n- ClubBookingRepository (node 440da90bcde7901a), file src/persistence/clubBookingRepository.ts, declaration line 4: \"export class ClubBookingRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store club bookings; Retrieve club bookings by id or in full\n- TemperatureRepository (node 50b830f77ad06c02), file src/persistence/temperatureRepository.ts, declaration line 5: \"export class TemperatureRepository {\"\n  component persistence, layer infrastructure; responsibilities: Store temperature readings; Keep readings in time order and limit history size; Provide reading history\n- PuckPayClient (node 8ce0b3f14177346a), file src/persistence/puckPayClient.ts, declaration line 15: \"export class PuckPayClient implements PuckPayGateway {\"\n  component persistence, layer infrastructure; responsibilities: Create payment checkout via PuckPay; Validate and normalise provider checkout response; Issue idempotent refunds via PuckPay\n- HireStockRepository (node ada57feca2e90c67), file src/persistence/hireStockRepository.ts, declaration line 2: \"export class HireStockRepository {\"\n  component persistence, layer infrastructure; responsibilities: Hold hire skate stock per shoe size; Look up stock for a shoe size; List full hire stock\n- SessionRepository (node e3915d8f30e495a9), file src/persistence/sessionRepository.ts, declaration line 4: \"export class SessionRepository {\"\n  component persistence, layer infrastructure; responsibilities: Session storage and retrieval; Session schedule query by date range\n\n## APG relations of the group\nGraph statistics: 7 classes; 0 relations inside the group; 2 outgoing relations to code outside it.\n- (none)\n\n## Comments near the code\n- DropTextClient: HTTP client for the DropText API.\n- TemperatureRepository.all: Readings in chronological order.\n- PuckPayClient: HTTP client for the PuckPay API.\n- HireStockRepository: Fixed stock of hire skates per shoe size.\n- SessionRepository.findByDateRange: Sessions whose date falls in [from, to] (YYYY-MM-DD, inclusive), in date and start order.",
+  "recordedAt": "2026-10-20T15:32:57.417Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.85,
+        "description": "Stores sessions and lets the business look up its schedule for a date range, ordered by date and start time.",
+        "evidence": [
+          {
+            "endLine": 4,
+            "file": "src/persistence/sessionRepository.ts",
+            "nodeId": "e3915d8f30e495a9",
+            "quote": "export class SessionRepository {",
+            "startLine": 4
+          }
+        ],
+        "name": "Session scheduling",
+        "realizedBy": [
+          "e3915d8f30e495a9"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "Records and retrieves bookings for sessions, including bookings made by clubs. Bookings are indexed by session.",
+        "evidence": [
+          {
+            "endLine": 4,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "2e3c5728fffb0180",
+            "quote": "export class BookingRepository {",
+            "startLine": 4
+          },
+          {
+            "endLine": 4,
+            "file": "src/persistence/clubBookingRepository.ts",
+            "nodeId": "440da90bcde7901a",
+            "quote": "export class ClubBookingRepository {",
+            "startLine": 4
+          }
+        ],
+        "name": "Booking management (individual and club)",
+        "realizedBy": [
+          "2e3c5728fffb0180",
+          "440da90bcde7901a"
+        ]
+      },
+      {
+        "confidence": 0.85,
+        "description": "Opens payment checkouts with an external payment provider (PuckPay), checks and normalises the provider's response, and issues refunds that are safe to repeat (idempotent).",
+        "evidence": [
+          {
+            "endLine": 15,
+            "file": "src/persistence/puckPayClient.ts",
+            "nodeId": "8ce0b3f14177346a",
+            "quote": "export class PuckPayClient implements PuckPayGateway {",
+            "startLine": 15
+          }
+        ],
+        "name": "Online payment collection and refunds",
+        "realizedBy": [
+          "8ce0b3f14177346a"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "Sends text messages to customers through an external SMS provider (DropText) and reports when delivery fails.",
+        "evidence": [
+          {
+            "endLine": 6,
+            "file": "src/persistence/dropTextClient.ts",
+            "nodeId": "0e0ffaf33c6872c8",
+            "quote": "export class DropTextClient implements TextGateway {",
+            "startLine": 6
+          }
+        ],
+        "name": "Customer text notification",
+        "realizedBy": [
+          "0e0ffaf33c6872c8"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "Keeps the fixed stock of hire skates for each shoe size and answers questions about how many are available.",
+        "evidence": [
+          {
+            "endLine": 2,
+            "file": "src/persistence/hireStockRepository.ts",
+            "nodeId": "ada57feca2e90c67",
+            "quote": "export class HireStockRepository {",
+            "startLine": 2
+          }
+        ],
+        "name": "Skate hire stock tracking",
+        "realizedBy": [
+          "ada57feca2e90c67"
+        ]
+      },
+      {
+        "confidence": 0.7,
+        "description": "Records temperature readings in time order, keeps the history to a limited size, and returns the past readings.",
+        "evidence": [
+          {
+            "endLine": 5,
+            "file": "src/persistence/temperatureRepository.ts",
+            "nodeId": "50b830f77ad06c02",
+            "quote": "export class TemperatureRepository {",
+            "startLine": 5
+          }
+        ],
+        "name": "Temperature monitoring history",
+        "realizedBy": [
+          "50b830f77ad06c02"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2727,
+    "outputTokens": 1279
+  }
+}

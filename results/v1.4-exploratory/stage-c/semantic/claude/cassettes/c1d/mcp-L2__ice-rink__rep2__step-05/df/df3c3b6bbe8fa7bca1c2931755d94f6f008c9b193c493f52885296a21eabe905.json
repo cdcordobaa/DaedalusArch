@@ -1,0 +1,102 @@
+{
+  "itemId": "440da90bcde7901a",
+  "itemName": "ClubBookingRepository",
+  "key": "df3c3b6bbe8fa7bca1c2931755d94f6f008c9b193c493f52885296a21eabe905",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "afb374a29ffd8a73f88dcf9d3baca9f2d0bcc97e1cf59e4ed1b78d780951fd92",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass ClubBookingRepository (node 440da90bcde7901a), file src/persistence/clubBookingRepository.ts, lines 4-28.\nComponent: persistence. Declared layer: persistence (kind infrastructure).\nMethods:\n- create (node 21192a96bd61076b, lines 7-11, logic density 0)\n- findById (node 5d2db5592a558a10, lines 13-15, logic density 0)\n- findByDate (node 28e254b80e9f7c50, lines 17-19, logic density 1)\n- findByMonth (node 4ddfe552d21dc5bd, lines 21-23, logic density 0)\n- findAll (node de9465fef6c07cab, lines 25-27, logic density 0)\nFields: bookings\n\n## APG neighbourhood\nGraph statistics: 5 methods; fan-out 0; fan-in 7 (CALLS 5, CONSTRUCTOR_INJECTS 2).\n- <- CALLS Method ClubBookingService.create (src/business/clubBookingService.ts)\n- <- CALLS Method ClubBookingService.get (src/business/clubBookingService.ts)\n- <- CALLS Method ClubBookingService.invoice (src/business/clubBookingService.ts)\n- <- CALLS Method ClubBookingService.list (src/business/clubBookingService.ts)\n- <- CALLS Method SessionService.effectiveCapacity (src/business/sessionService.ts)\n- <- CONSTRUCTOR_INJECTS Class ClubBookingService (src/business/clubBookingService.ts)\n- <- CONSTRUCTOR_INJECTS Class SessionService (src/business/sessionService.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- ClubBookingRepository: nameRole=\"repository\"\n- ClubBookingRepository: behaviourRole=\"coordination\"\n- ClubBookingRepository: ioCategories=[]\n- ClubBookingRepository: lcom4=1\n- ClubBookingRepository: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- ClubBookingRepository.create: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- ClubBookingRepository.findById: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- ClubBookingRepository.findByDate: logicDensity={\"branches\":0,\"comparisons\":1,\"arithmetic\":0,\"validationThrows\":0,\"density\":1}\n- ClubBookingRepository.findByMonth: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- ClubBookingRepository.findAll: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\nFlags:\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of SessionRepository.create in component persistence\n\n## Source\n=====SOURCE-BEGIN src/persistence/clubBookingRepository.ts\n 4| export class ClubBookingRepository {\n 5|   private readonly bookings = new Map<string, ClubBooking>();\n 6| \n 7|   create(data: Omit<ClubBooking, \"id\">): ClubBooking {\n 8|     const booking: ClubBooking = { id: randomUUID(), ...data };\n 9|     this.bookings.set(booking.id, booking);\n10|     return booking;\n11|   }\n12| \n13|   findById(id: string): ClubBooking | undefined {\n14|     return this.bookings.get(id);\n15|   }\n16| \n17|   findByDate(date: string): ClubBooking[] {\n18|     return [...this.bookings.values()].filter((b) => b.date === date);\n19|   }\n20| \n21|   findByMonth(month: string): ClubBooking[] {\n22|     return [...this.bookings.values()].filter((b) => b.date.startsWith(`${month}-`));\n23|   }\n24| \n25|   findAll(): ClubBooking[] {\n26|     return [...this.bookings.values()];\n27|   }\n28| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T13:05:12.036Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.9,
+        "evidence": [
+          {
+            "endLine": 5,
+            "file": "src/persistence/clubBookingRepository.ts",
+            "nodeId": "440da90bcde7901a",
+            "quote": "private readonly bookings = new Map<string, ClubBooking>();",
+            "startLine": 5
+          }
+        ],
+        "name": "Club Booking",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.9,
+        "description": "Keeps new club bookings in an in-memory store and gives each one a unique identifier.",
+        "evidence": [
+          {
+            "endLine": 9,
+            "file": "src/persistence/clubBookingRepository.ts",
+            "nodeId": "21192a96bd61076b",
+            "quote": "const booking: ClubBooking = { id: randomUUID(), ...data };",
+            "startLine": 8
+          }
+        ],
+        "name": "Store club bookings",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Looks up club bookings by id, or returns every stored booking.",
+        "evidence": [
+          {
+            "endLine": 14,
+            "file": "src/persistence/clubBookingRepository.ts",
+            "nodeId": "5d2db5592a558a10",
+            "quote": "return this.bookings.get(id);",
+            "startLine": 14
+          },
+          {
+            "endLine": 26,
+            "file": "src/persistence/clubBookingRepository.ts",
+            "nodeId": "de9465fef6c07cab",
+            "quote": "return [...this.bookings.values()];",
+            "startLine": 26
+          }
+        ],
+        "name": "Retrieve club bookings",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Finds the club bookings for a given calendar day, used for session capacity, or for a given month, used for invoicing.",
+        "evidence": [
+          {
+            "endLine": 18,
+            "file": "src/persistence/clubBookingRepository.ts",
+            "nodeId": "28e254b80e9f7c50",
+            "quote": "return [...this.bookings.values()].filter((b) => b.date === date);",
+            "startLine": 18
+          },
+          {
+            "endLine": 22,
+            "file": "src/persistence/clubBookingRepository.ts",
+            "nodeId": "4ddfe552d21dc5bd",
+            "quote": "return [...this.bookings.values()].filter((b) => b.date.startsWith(`${month}-`));",
+            "startLine": 22
+          }
+        ],
+        "name": "Query club bookings by date or month",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 3685,
+    "outputTokens": 833
+  }
+}

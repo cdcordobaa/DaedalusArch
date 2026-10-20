@@ -1,0 +1,28 @@
+{
+  "itemId": "621af0be5de8c006",
+  "itemName": "SMS text messaging to customers ~ Customer SMS notification",
+  "key": "c4abf8de8bd3e4a69ea575bb31ec69ff3edfa9bec9923332c2646483fc89013f",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "e2b185c126f134248a380a7de18ad38bcfd281eef28311cf315d88954d0f34af",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business capability?\n\n### A\ncapability: SMS text messaging to customers\nwhere: community:0\ncode:\n=====SOURCE-BEGIN\nexport class DropTextClient {\n=====SOURCE-END=====\ngraph:\n- community community:0: 2 classes (DomainError, DropTextClient)\n- class DropTextClient (node 0e0ffaf33c6872c8): layer infrastructure, component persistence, fan-out 0, fan-in 2\n\n### B\ncapability: Customer SMS notification\nwhere: component:persistence\ncode:\n=====SOURCE-BEGIN\nexport class DropTextClient {\n=====SOURCE-END=====\ngraph:\n- component component:persistence: 8 classes (DropTextClient, MemberRepository, BookingRepository, ClubBookingRepository, TemperatureRepository, PuckPayClient, HireStockRepository, SessionRepository)\n- class DropTextClient (node 0e0ffaf33c6872c8): layer infrastructure, component persistence, fan-out 0, fan-in 2",
+  "recordedAt": "2026-10-20T15:26:17.752Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.85,
+    "rationale": "A and B both point to the same class, DropTextClient (node 0e0ffaf33c6872c8, `export class DropTextClient {`). The two labels, \"SMS text messaging to customers\" and \"Customer SMS notification\", describe the same thing: sending SMS messages to customers through the DropText client. The scopes differ, though. A is placed in community:0, which holds only DomainError and DropTextClient. B is placed in component:persistence, which also holds repositories that have nothing to do with SMS. Even so, the only SMS-related code in B's scope is that same DropTextClient, so the capability is the same. I'm not fully certain because only the class header is visible, so this rests on the class name and the labels rather than on the code itself.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 1762,
+    "outputTokens": 393
+  }
+}

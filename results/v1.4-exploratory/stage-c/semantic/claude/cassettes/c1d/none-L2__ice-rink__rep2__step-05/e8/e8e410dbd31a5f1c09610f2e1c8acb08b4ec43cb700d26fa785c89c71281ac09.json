@@ -1,0 +1,158 @@
+{
+  "itemId": "2e3c5728fffb0180",
+  "itemName": "BookingRepository",
+  "key": "e8e410dbd31a5f1c09610f2e1c8acb08b4ec43cb700d26fa785c89c71281ac09",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "1b6607fcc3de83d8ad6e97ed0ab9af3f2d3e2c81be4e3d22c9efeda18bac40c8",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass BookingRepository (node 2e3c5728fffb0180), file src/persistence/bookingRepository.ts, lines 4-39.\nComponent: persistence. Declared layer: persistence (kind infrastructure).\nMethods:\n- create (node f8ac9873a5e46a7f, lines 9-13, logic density 0)\n- findById (node 0945970648a9746d, lines 15-17, logic density 0)\n- findBySession (node ef07851c58f5da96, lines 19-23, logic density 1)\n- findByMembership (node 0c04abc41e625b06, lines 25-27, logic density 1)\n- findPending (node 5706fd87b963c2a2, lines 29-31, logic density 1)\n- save (node 8756210469cb62a1, lines 33-38, logic density 1)\nFields: bookings, bySession\n\n## APG neighbourhood\nGraph statistics: 6 methods; fan-out 0; fan-in 12 (CALLS 8, CONSTRUCTOR_INJECTS 4).\n- <- CALLS Method BookingService.create (src/business/bookingService.ts)\n- <- CALLS Method BookingService.get (src/business/bookingService.ts)\n- <- CALLS Method BookingService.handlePaymentResult (src/business/bookingService.ts)\n- <- CALLS Method BookingService.releaseExpired (src/business/bookingService.ts)\n- <- CALLS Method IceMonitorService.cancel (src/business/iceMonitorService.ts)\n- <- CALLS Method IceMonitorService.notifyHolders (src/business/iceMonitorService.ts)\n- <- CALLS Method ReportService.range (src/business/reportService.ts)\n- <- CALLS Method SessionService.availability (src/business/sessionService.ts)\n- <- CONSTRUCTOR_INJECTS Class BookingService (src/business/bookingService.ts)\n- <- CONSTRUCTOR_INJECTS Class IceMonitorService (src/business/iceMonitorService.ts)\n- <- CONSTRUCTOR_INJECTS Class ReportService (src/business/reportService.ts)\n- <- CONSTRUCTOR_INJECTS Class SessionService (src/business/sessionService.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- BookingRepository: nameRole=\"repository\"\n- BookingRepository: behaviourRole=\"coordination\"\n- BookingRepository: ioCategories=[]\n- BookingRepository: lcom4=1\n- BookingRepository: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- BookingRepository.create: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- BookingRepository.findById: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- BookingRepository.findBySession: logicDensity={\"branches\":1,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":1}\n- BookingRepository.findByMembership: logicDensity={\"branches\":0,\"comparisons\":1,\"arithmetic\":0,\"validationThrows\":0,\"density\":1}\n- BookingRepository.findPending: logicDensity={\"branches\":0,\"comparisons\":1,\"arithmetic\":0,\"validationThrows\":0,\"density\":1}\n- BookingRepository.save: logicDensity={\"branches\":1,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":1}\n\n## Source\n=====SOURCE-BEGIN src/persistence/bookingRepository.ts\n 4| export class BookingRepository {\n 5|   private readonly bookings = new Map<string, Booking>();\n 6|   // Booking ids per session, so per-session lookups do not scan every booking.\n 7|   private readonly bySession = new Map<string, Set<string>>();\n 8| \n 9|   create(data: Omit<Booking, \"id\">): Booking {\n10|     const booking: Booking = { id: randomUUID(), ...data };\n11|     this.save(booking);\n12|     return booking;\n13|   }\n14| \n15|   findById(id: string): Booking | undefined {\n16|     return this.bookings.get(id);\n17|   }\n18| \n19|   findBySession(sessionId: string): Booking[] {\n20|     const ids = this.bySession.get(sessionId);\n21|     if (!ids) return [];\n22|     return [...ids].map((id) => this.bookings.get(id)!);\n23|   }\n24| \n25|   findByMembership(membershipNumber: string): Booking[] {\n26|     return [...this.bookings.values()].filter((b) => b.membershipNumber === membershipNumber);\n27|   }\n28| \n29|   findPending(): Booking[] {\n30|     return [...this.bookings.values()].filter((b) => b.status === \"pending\");\n31|   }\n32| \n33|   save(booking: Booking): void {\n34|     this.bookings.set(booking.id, booking);\n35|     let ids = this.bySession.get(booking.sessionId);\n36|     if (!ids) this.bySession.set(booking.sessionId, (ids = new Set()));\n37|     ids.add(booking.id);\n38|   }\n39| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T15:27:25.302Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.9,
+        "evidence": [
+          {
+            "endLine": 5,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "2e3c5728fffb0180",
+            "quote": "private readonly bookings = new Map<string, Booking>();",
+            "startLine": 5
+          }
+        ],
+        "name": "Booking",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 19,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "ef07851c58f5da96",
+            "quote": "findBySession(sessionId: string): Booking[] {",
+            "startLine": 19
+          }
+        ],
+        "name": "Session",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.65,
+        "evidence": [
+          {
+            "endLine": 25,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "0c04abc41e625b06",
+            "quote": "findByMembership(membershipNumber: string): Booking[] {",
+            "startLine": 25
+          }
+        ],
+        "name": "Membership",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.55,
+        "evidence": [
+          {
+            "endLine": 30,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "5706fd87b963c2a2",
+            "quote": "return [...this.bookings.values()].filter((b) => b.status === \"pending\");",
+            "startLine": 30
+          }
+        ],
+        "name": "Pending Booking",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.9,
+        "description": "Keeps bookings in memory and gives each new booking a unique identifier when it is created.",
+        "evidence": [
+          {
+            "endLine": 10,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "f8ac9873a5e46a7f",
+            "quote": "const booking: Booking = { id: randomUUID(), ...data };",
+            "startLine": 10
+          },
+          {
+            "endLine": 34,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "8756210469cb62a1",
+            "quote": "this.bookings.set(booking.id, booking);",
+            "startLine": 34
+          }
+        ],
+        "name": "Booking storage and identity assignment",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Keeps a secondary index from session to booking ids, so the bookings for a session can be looked up quickly (for example to check availability).",
+        "evidence": [
+          {
+            "endLine": 36,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "8756210469cb62a1",
+            "quote": "if (!ids) this.bySession.set(booking.sessionId, (ids = new Set()));",
+            "startLine": 36
+          },
+          {
+            "endLine": 20,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "ef07851c58f5da96",
+            "quote": "const ids = this.bySession.get(sessionId);",
+            "startLine": 20
+          }
+        ],
+        "name": "Per-session booking index",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Looks up bookings by id, by membership number, or by pending status (pending bookings are the ones expiry handling releases).",
+        "evidence": [
+          {
+            "endLine": 26,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "0c04abc41e625b06",
+            "quote": "return [...this.bookings.values()].filter((b) => b.membershipNumber === membershipNumber);",
+            "startLine": 26
+          },
+          {
+            "endLine": 30,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "5706fd87b963c2a2",
+            "quote": "return [...this.bookings.values()].filter((b) => b.status === \"pending\");",
+            "startLine": 30
+          },
+          {
+            "endLine": 16,
+            "file": "src/persistence/bookingRepository.ts",
+            "nodeId": "0945970648a9746d",
+            "quote": "return this.bookings.get(id);",
+            "startLine": 16
+          }
+        ],
+        "name": "Booking queries by member and status",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 4040,
+    "outputTokens": 1349
+  }
+}

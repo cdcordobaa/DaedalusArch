@@ -1,0 +1,256 @@
+{
+  "schemaVersion": 1,
+  "artifact": "A5",
+  "project": {
+    "id": "none-L2__hive-health__rep1__step-05"
+  },
+  "producer": {
+    "part": "C4",
+    "promptVersion": "c4-v0.2",
+    "provider": "claude-cli",
+    "model": "claude-opus-5-5",
+    "runs": 2,
+    "exploratory": true
+  },
+  "entries": [
+    {
+      "findingId": "c4f:44e69c4aa76c1875",
+      "finding": {
+        "id": "c4f:44e69c4aa76c1875",
+        "origin": "symbolic",
+        "tier": "blocking",
+        "message": "src/presentation/server.ts (presentation) skips layers to import src/persistence/repositories.ts (persistence)",
+        "rule": "FF-S03",
+        "sites": [
+          "e625ab1bb66d4580"
+        ],
+        "files": [
+          "src/presentation/server.ts",
+          "src/persistence/repositories.ts"
+        ],
+        "edge": {
+          "file": "src/presentation/server.ts",
+          "line": 12,
+          "target": "src/persistence/repositories.ts"
+        },
+        "context": null,
+        "facts": [],
+        "sem": null
+      },
+      "c3Verdict": {
+        "rule": "FF-S03",
+        "tier": "blocking",
+        "verdict": "fail"
+      },
+      "promptVersion": "c4-v0.2",
+      "runs": [
+        {
+          "runIndex": 0,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/server.ts:2",
+                "src/presentation/server.ts:5",
+                "src/presentation/server.ts:12",
+                "src/presentation/server.ts:21",
+                "src/presentation/server.ts:22",
+                "src/presentation/server.ts:56",
+                "src/presentation/server.ts:60"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "At lines 12-21, src/presentation/server.ts imports eight concrete repository classes (ApiaryRepository, HiveRepository, HarvestRepository, InspectionRepository, ProductRepository, ScaleRepository, TreatmentRepository, WeightReadingRepository) straight from src/persistence/repositories.ts. At line 22 it also imports TextHiveClient from the persistence layer. The rest of the file works through the business layer: it imports HiveService, ReportService, ScaleService and TreatmentService (lines 2-5) and the business error types (lines 6-11), and createServer takes services as parameters (lines 56-60). The repositories are probably imported so the server module can build and wire the services, acting as a composition root, rather than for request handling. The visible excerpt stops at line 60, so this is not confirmed. Either way, FF-S03 forbids a layer from skipping the layer below it. Here presentation depends directly on persistence instead of going only through business, so the rule flags the edge server.ts:12 -> repositories.ts. The project supplied no docs, ADRs or comments that declare this wiring intentional or that allow presentation to see persistence.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": []
+              },
+              "severityClass": "medium"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "3014fab107f8ce5ad324b761406f4faec7a93603b893330b0987f24cc1729889",
+          "date": "2026-10-20T12:08:29.313Z",
+          "invalidReason": null
+        },
+        {
+          "runIndex": 1,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/server.ts:2",
+                "src/presentation/server.ts:12",
+                "src/presentation/server.ts:21",
+                "src/presentation/server.ts:22",
+                "src/presentation/server.ts:56",
+                "src/presentation/server.ts:60"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "Lines 12-21 of src/presentation/server.ts import eight persistence classes directly from src/persistence/repositories.ts: ApiaryRepository, HiveRepository, HarvestRepository, InspectionRepository, ProductRepository, ScaleRepository, TreatmentRepository and WeightReadingRepository. Line 22 also imports TextHiveClient from the persistence layer. The file already depends on the business layer: HiveService, ScaleService, TreatmentService, ReportService and the business error types (lines 2-11). createServer also takes those services as parameters (lines 56-60). So the HTTP layer reaches past the business layer and depends on concrete storage types. FF-S03 flags exactly this pattern, where presentation imports persistence without going through business. The excerpt ends at line 60, so it does not show whether the repositories are only used to wire things up (a composition-root pattern) or are called inside request handlers. Either way the source dependency crosses the layer boundary. Nothing in the material provided, whether docs, ADRs or comments, says what the intended layering is or allows this shortcut.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": []
+              },
+              "severityClass": "medium"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "3014fab107f8ce5ad324b761406f4faec7a93603b893330b0987f24cc1729889",
+          "date": "2026-10-20T12:08:40.420Z",
+          "invalidReason": null
+        }
+      ],
+      "merged": {
+        "exception": {
+          "claimed": false,
+          "stability": "agreed",
+          "citation": null,
+          "scope": null
+        },
+        "intentMatch": {
+          "status": "no-declared-intent",
+          "stability": "agreed"
+        },
+        "severityClass": {
+          "value": "medium",
+          "stability": "agreed"
+        },
+        "explanation": "At lines 12-21, src/presentation/server.ts imports eight concrete repository classes (ApiaryRepository, HiveRepository, HarvestRepository, InspectionRepository, ProductRepository, ScaleRepository, TreatmentRepository, WeightReadingRepository) straight from src/persistence/repositories.ts. At line 22 it also imports TextHiveClient from the persistence layer. The rest of the file works through the business layer: it imports HiveService, ReportService, ScaleService and TreatmentService (lines 2-5) and the business error types (lines 6-11), and createServer takes services as parameters (lines 56-60). The repositories are probably imported so the server module can build and wire the services, acting as a composition root, rather than for request handling. The visible excerpt stops at line 60, so this is not confirmed. Either way, FF-S03 forbids a layer from skipping the layer below it. Here presentation depends directly on persistence instead of going only through business, so the rule flags the edge server.ts:12 -> repositories.ts. The project supplied no docs, ADRs or comments that declare this wiring intentional or that allow presentation to see persistence.",
+        "validRuns": 2
+      }
+    },
+    {
+      "findingId": "c4f:86a8327b8528ccef",
+      "finding": {
+        "id": "c4f:86a8327b8528ccef",
+        "origin": "symbolic",
+        "tier": "blocking",
+        "message": "src/presentation/server.ts (presentation) skips layers to import src/persistence/textHiveClient.ts (persistence)",
+        "rule": "FF-S03",
+        "sites": [
+          "e625ab1bb66d4580"
+        ],
+        "files": [
+          "src/presentation/server.ts",
+          "src/persistence/textHiveClient.ts"
+        ],
+        "edge": {
+          "file": "src/presentation/server.ts",
+          "line": 22,
+          "target": "src/persistence/textHiveClient.ts"
+        },
+        "context": null,
+        "facts": [],
+        "sem": null
+      },
+      "c3Verdict": {
+        "rule": "FF-S03",
+        "tier": "blocking",
+        "verdict": "fail"
+      },
+      "promptVersion": "c4-v0.2",
+      "runs": [
+        {
+          "runIndex": 0,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/server.ts:22",
+                "src/presentation/server.ts:2",
+                "src/presentation/server.ts:3",
+                "src/presentation/server.ts:4",
+                "src/presentation/server.ts:5",
+                "src/presentation/server.ts:12",
+                "src/presentation/server.ts:21",
+                "src/presentation/server.ts:56",
+                "src/presentation/server.ts:60"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "At line 22, src/presentation/server.ts imports `TextHiveClient` straight from the persistence layer (`../persistence/textHiveClient`). FF-S03 flags this because presentation should reach persistence only through the business layer. The same file already does that in other places: it imports `HiveService`, `ReportService`, `ScaleService` and `TreatmentService` from `../business` (lines 2-5), and `createServer` receives those services as parameters (lines 56-60). So the `TextHiveClient` import goes around that service boundary and ties the HTTP layer to a concrete storage client. The file also imports eight repository classes from `../persistence/repositories` (lines 12-21). That suggests either the file also wires up dependencies or the HTTP layer reaches into persistence more widely. The excerpt cuts off before showing how `TextHiveClient` is used, so I can't tell which. I had no project docs, ADRs or comments that address this dependency.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": []
+              },
+              "severityClass": "medium"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "e4136d36e74d053d66545278642496937be47db56de4a652bb78b65790da5878",
+          "date": "2026-10-20T12:08:49.330Z",
+          "invalidReason": null
+        },
+        {
+          "runIndex": 1,
+          "grounded": {
+            "answer": {
+              "cites": [
+                "src/presentation/server.ts:22",
+                "src/presentation/server.ts:12",
+                "src/presentation/server.ts:21",
+                "src/presentation/server.ts:2",
+                "src/presentation/server.ts:11",
+                "src/presentation/server.ts:56",
+                "src/presentation/server.ts:60"
+              ],
+              "exceptionClaim": {
+                "citation": null,
+                "claimed": false,
+                "scope": null
+              },
+              "explanation": "At line 22, src/presentation/server.ts imports `TextHiveClient` straight from the persistence layer (`../persistence/textHiveClient`). Lines 12-21 do the same with the repository classes from `../persistence/repositories`. The same file already gets its business behaviour through the business layer: it imports HiveService, ScaleService, TreatmentService, ReportService and the business errors (lines 2-11), and createServer takes those services as parameters (lines 56-60). FF-S03 flags the import because presentation reaches past the business layer to a concrete persistence class, so the HTTP layer now depends on how storage is implemented. The visible excerpt ends at line 60, so it doesn't show how TextHiveClient is used. It may only be wiring (composition-root style), or the handlers may call it directly. Either way, the dependency points down past an intermediate layer, which this rule forbids. No document, ADR or comment was provided that says this is intended.",
+              "intentMatch": {
+                "status": "no-declared-intent",
+                "cites": []
+              },
+              "severityClass": "medium"
+            },
+            "rejections": [],
+            "hallucinatedException": false,
+            "inconsistent": false
+          },
+          "modelId": "claude-opus-5-5",
+          "promptHash": "e4136d36e74d053d66545278642496937be47db56de4a652bb78b65790da5878",
+          "date": "2026-10-20T12:08:58.341Z",
+          "invalidReason": null
+        }
+      ],
+      "merged": {
+        "exception": {
+          "claimed": false,
+          "stability": "agreed",
+          "citation": null,
+          "scope": null
+        },
+        "intentMatch": {
+          "status": "no-declared-intent",
+          "stability": "agreed"
+        },
+        "severityClass": {
+          "value": "medium",
+          "stability": "agreed"
+        },
+        "explanation": "At line 22, src/presentation/server.ts imports `TextHiveClient` straight from the persistence layer (`../persistence/textHiveClient`). FF-S03 flags this because presentation should reach persistence only through the business layer. The same file already does that in other places: it imports `HiveService`, `ReportService`, `ScaleService` and `TreatmentService` from `../business` (lines 2-5), and `createServer` receives those services as parameters (lines 56-60). So the `TextHiveClient` import goes around that service boundary and ties the HTTP layer to a concrete storage client. The file also imports eight repository classes from `../persistence/repositories` (lines 12-21). That suggests either the file also wires up dependencies or the HTTP layer reaches into persistence more widely. The excerpt cuts off before showing how `TextHiveClient` is used, so I can't tell which. I had no project docs, ADRs or comments that address this dependency.",
+        "validRuns": 2
+      }
+    }
+  ]
+}

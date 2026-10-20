@@ -1,0 +1,208 @@
+{
+  "itemId": "f59a45a01c2ed338",
+  "itemName": "IceMonitorService",
+  "key": "cd847382984c15f18bebecf8246a0a3bf739fbfdef1164cd93648b27ce97820e",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "50712ee85d4e3c84b9532bbbf3a7764cb53760efb74e9cca20104f20042a223f",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass IceMonitorService (node f59a45a01c2ed338), file src/business/iceMonitorService.ts, lines 23-80.\nComponent: business. Declared layer: business (kind domain).\nMethods:\n- recordReading (node 74ee255f0c438d78, lines 32-57, logic density 12)\n- nextSession (node 2f40e6a49d80cf38, lines 60-64, logic density 2)\n- notifyHolders (node e53f78fad930400c, lines 66-79, logic density 4)\nFields: sessions, bookings, texts, state, now\n\n## APG neighbourhood\nGraph statistics: 3 methods; fan-out 10 (CALLS 6, CONSTRUCTOR_INJECTS 4); fan-in 0.\n- -> CALLS Method BookingRepository.listBySession (src/persistence/bookingRepository.ts)\n- -> CALLS Method DropTextClient.send (src/persistence/dropTextClient.ts)\n- -> CALLS Method IceStateRepository.getWarmSince (src/persistence/iceStateRepository.ts)\n- -> CALLS Method IceStateRepository.setWarmSince (src/persistence/iceStateRepository.ts)\n- -> CALLS Method SessionRepository.list (src/persistence/sessionRepository.ts)\n- -> CALLS Method SessionRepository.update (src/persistence/sessionRepository.ts)\n- -> CONSTRUCTOR_INJECTS Class BookingRepository (src/persistence/bookingRepository.ts)\n- -> CONSTRUCTOR_INJECTS Class DropTextClient (src/persistence/dropTextClient.ts)\n- -> CONSTRUCTOR_INJECTS Class IceStateRepository (src/persistence/iceStateRepository.ts)\n- -> CONSTRUCTOR_INJECTS Class SessionRepository (src/persistence/sessionRepository.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- IceMonitorService: nameRole=\"service\"\n- IceMonitorService: behaviourRole=\"business-logic\"\n- IceMonitorService: ioCategories=[]\n- IceMonitorService: lcom4=1\n- IceMonitorService: responsibilityBreadth={\"breadth\":1,\"ioCategories\":[],\"componentDependencies\":[\"persistence\"]}\n- IceMonitorService.recordReading: logicDensity={\"branches\":6,\"comparisons\":3,\"arithmetic\":1,\"validationThrows\":2,\"density\":12}\n- IceMonitorService.nextSession: logicDensity={\"branches\":0,\"comparisons\":2,\"arithmetic\":0,\"validationThrows\":0,\"density\":2}\n- IceMonitorService.notifyHolders: logicDensity={\"branches\":2,\"comparisons\":2,\"arithmetic\":0,\"validationThrows\":0,\"density\":4}\n\n## Comments near the code\n- IceMonitorService: Turns FrostSense readings into session holds.\n- IceMonitorService.nextSession: The earliest session that has not started yet and is not cancelled.\n\n## Source\n=====SOURCE-BEGIN src/business/iceMonitorService.ts\n23| export class IceMonitorService {\n24|   constructor(\n25|     private readonly sessions: SessionRepository,\n26|     private readonly bookings: BookingRepository,\n27|     private readonly texts: DropTextClient,\n28|     private readonly state: IceStateRepository,\n29|     private readonly now: () => number = Date.now,\n30|   ) {}\n31| \n32|   async recordReading(input: ReadingInput): Promise<ReadingResult> {\n33|     if (typeof input.temperatureC !== \"number\" || !Number.isFinite(input.temperatureC)) {\n34|       throw new DomainError(\"validation\", \"temperatureC must be a number\");\n35|     }\n36|     let at = this.now();\n37|     if (input.recordedAt !== undefined) {\n38|       at = Date.parse(input.recordedAt);\n39|       if (Number.isNaN(at)) throw new DomainError(\"validation\", \"recordedAt must be an ISO timestamp\");\n40|     }\n41| \n42|     if (input.temperatureC <= WARM_THRESHOLD_C) {\n43|       this.state.setWarmSince(undefined);\n44|       return { warm: false };\n45|     }\n46|     const since = Math.min(this.state.getWarmSince() ?? at, at);\n47|     this.state.setWarmSince(since);\n48|     if (at - since < WARM_WINDOW_MS) return { warm: true };\n49| \n50|     const next = this.nextSession(at);\n51|     if (!next || next.status !== \"scheduled\") return { warm: true };\n52|     next.status = \"held\";\n53|     next.iceHold = true;\n54|     this.sessions.update(next);\n55|     await this.notifyHolders(next);\n56|     return { warm: true, heldSessionId: next.id };\n57|   }\n58| \n59|   /** The earliest session that has not started yet and is not cancelled. */\n60|   private nextSession(at: number): Session | undefined {\n61|     return this.sessions\n62|       .list()\n63|       .find((s) => s.status !== \"cancelled\" && new Date(`${s.date}T${s.start}:00`).getTime() >= at);\n64|   }\n65| \n66|   private async notifyHolders(session: Session): Promise<void> {\n67|     const message =\n68|       `The ice is too warm for the skating session on ${session.date} at ${session.start}. ` +\n69|       `The session is on hold; we will be in touch about a refund or an update.`;\n70|     const phones = new Set<string>();\n71|     for (const b of this.bookings.listBySession(session.id)) {\n72|       if ((b.status === \"paid\" || b.status === \"pending\") && b.phone) phones.add(b.phone);\n73|     }\n74|     await Promise.all(\n75|       [...phones].map((p) =>\n76|         this.texts.send(p, message).catch((err) => console.error(`text to ${p} failed: ${(err as Error).message}`)),\n77|       ),\n78|     );\n79|   }\n80| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:51:53.542Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 32,
+            "file": "src/business/iceMonitorService.ts",
+            "nodeId": "74ee255f0c438d78",
+            "quote": "async recordReading(input: ReadingInput): Promise<ReadingResult> {",
+            "startLine": 32
+          }
+        ],
+        "name": "Ice Temperature Reading",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 60,
+            "file": "src/business/iceMonitorService.ts",
+            "nodeId": "2f40e6a49d80cf38",
+            "quote": "private nextSession(at: number): Session | undefined {",
+            "startLine": 60
+          }
+        ],
+        "name": "Skating Session",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.75,
+        "evidence": [
+          {
+            "endLine": 53,
+            "file": "src/business/iceMonitorService.ts",
+            "nodeId": "74ee255f0c438d78",
+            "quote": "next.iceHold = true;",
+            "startLine": 53
+          }
+        ],
+        "name": "Ice Hold",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 71,
+            "file": "src/business/iceMonitorService.ts",
+            "nodeId": "e53f78fad930400c",
+            "quote": "for (const b of this.bookings.listBySession(session.id)) {",
+            "startLine": 71
+          }
+        ],
+        "name": "Booking",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 47,
+            "file": "src/business/iceMonitorService.ts",
+            "nodeId": "74ee255f0c438d78",
+            "quote": "this.state.setWarmSince(since);",
+            "startLine": 47
+          }
+        ],
+        "name": "Warm Ice Condition",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 69,
+            "file": "src/business/iceMonitorService.ts",
+            "nodeId": "e53f78fad930400c",
+            "quote": "`The session is on hold; we will be in touch about a refund or an update.`;",
+            "startLine": 67
+          }
+        ],
+        "name": "Customer Text Notification",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Rejects sensor readings whose temperature is not a finite number or whose recorded timestamp is not a valid ISO timestamp.",
+        "evidence": [
+          {
+            "endLine": 34,
+            "file": "src/business/iceMonitorService.ts",
+            "nodeId": "74ee255f0c438d78",
+            "quote": "throw new DomainError(\"validation\", \"temperatureC must be a number\");",
+            "startLine": 33
+          },
+          {
+            "endLine": 39,
+            "file": "src/business/iceMonitorService.ts",
+            "nodeId": "74ee255f0c438d78",
+            "quote": "if (Number.isNaN(at)) throw new DomainError(\"validation\", \"recordedAt must be an ISO timestamp\");",
+            "startLine": 39
+          }
+        ],
+        "name": "Validate ice temperature readings",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.9,
+        "description": "Checks each reading against the warm threshold, records when the ice first became warm, resets that time once the ice cools, and decides whether the ice has been warm for longer than the allowed window.",
+        "evidence": [
+          {
+            "endLine": 44,
+            "file": "src/business/iceMonitorService.ts",
+            "nodeId": "74ee255f0c438d78",
+            "quote": "if (input.temperatureC <= WARM_THRESHOLD_C) {",
+            "startLine": 42
+          },
+          {
+            "endLine": 46,
+            "file": "src/business/iceMonitorService.ts",
+            "nodeId": "74ee255f0c438d78",
+            "quote": "const since = Math.min(this.state.getWarmSince() ?? at, at);",
+            "startLine": 46
+          },
+          {
+            "endLine": 48,
+            "file": "src/business/iceMonitorService.ts",
+            "nodeId": "74ee255f0c438d78",
+            "quote": "if (at - since < WARM_WINDOW_MS) return { warm: true };",
+            "startLine": 48
+          }
+        ],
+        "name": "Track sustained warm-ice condition",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.9,
+        "description": "When the ice stays warm, finds the earliest upcoming session that is not cancelled. If that session is still scheduled, marks it as held because of the ice and saves the change.",
+        "evidence": [
+          {
+            "endLine": 63,
+            "file": "src/business/iceMonitorService.ts",
+            "nodeId": "2f40e6a49d80cf38",
+            "quote": ".find((s) => s.status !== \"cancelled\" && new Date(`${s.date}T${s.start}:00`).getTime() >= at);",
+            "startLine": 63
+          },
+          {
+            "endLine": 54,
+            "file": "src/business/iceMonitorService.ts",
+            "nodeId": "74ee255f0c438d78",
+            "quote": "next.status = \"held\";",
+            "startLine": 51
+          }
+        ],
+        "name": "Put the next skating session on ice hold",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.85,
+        "description": "Collects the unique phone numbers from paid or pending bookings for the held session and texts each one about the hold. A failed text is logged and does not stop the others.",
+        "evidence": [
+          {
+            "endLine": 72,
+            "file": "src/business/iceMonitorService.ts",
+            "nodeId": "e53f78fad930400c",
+            "quote": "if ((b.status === \"paid\" || b.status === \"pending\") && b.phone) phones.add(b.phone);",
+            "startLine": 72
+          },
+          {
+            "endLine": 76,
+            "file": "src/business/iceMonitorService.ts",
+            "nodeId": "e53f78fad930400c",
+            "quote": "this.texts.send(p, message).catch((err) => console.error(`text to ${p} failed: ${(err as Error).message}`)),",
+            "startLine": 76
+          }
+        ],
+        "name": "Notify booking holders of the session hold",
+        "naturalLayer": "application"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 4305,
+    "outputTokens": 1949
+  }
+}

@@ -1,0 +1,172 @@
+{
+  "itemId": "2912145e8ad12343",
+  "itemName": "TreatmentService",
+  "key": "129a0c9866ab5e70421b01f1693a55314af8b4e9dfce31c74592591a8ec0af5b",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "2b546b9e933a476ec879be8c930d6e04ade0dfe42a1f39ae7016a0fa4d982fa2",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass TreatmentService (node 2912145e8ad12343), file src/business/treatmentService.ts, lines 24-77.\nComponent: business. Declared layer: business (kind domain).\nMethods:\n- addProduct (node a8c208dbfc04fcee, lines 31-44, logic density 5)\n- listProducts (node d2bd39d3ed6f1b95, lines 46-48, logic density 0)\n- recordTreatment (node 72d370555108c6ea, lines 50-71, logic density 10)\n- listTreatments (node f7ca3c201150d6e2, lines 73-76, logic density 2)\nFields: hives, products, treatments\n\n## APG neighbourhood\nGraph statistics: 4 methods; fan-out 10 (CALLS 7, CONSTRUCTOR_INJECTS 3); fan-in 0.\n- -> CALLS Method HiveRepository.findById (src/persistence/repositories.ts)\n- -> CALLS Method TreatmentProductRepository.create (src/persistence/repositories.ts)\n- -> CALLS Method TreatmentProductRepository.findAll (src/persistence/repositories.ts)\n- -> CALLS Method TreatmentProductRepository.findById (src/persistence/repositories.ts)\n- -> CALLS Method TreatmentProductRepository.findByName (src/persistence/repositories.ts)\n- -> CALLS Method TreatmentRepository.create (src/persistence/repositories.ts)\n- -> CALLS Method TreatmentRepository.findByHive (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class HiveRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class TreatmentProductRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class TreatmentRepository (src/persistence/repositories.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- TreatmentService: nameRole=\"service\"\n- TreatmentService: behaviourRole=\"business-logic\"\n- TreatmentService: ioCategories=[]\n- TreatmentService: lcom4=1\n- TreatmentService: responsibilityBreadth={\"breadth\":1,\"ioCategories\":[],\"componentDependencies\":[\"persistence\"]}\n- TreatmentService.addProduct: logicDensity={\"branches\":2,\"comparisons\":1,\"arithmetic\":0,\"validationThrows\":2,\"density\":5}\n- TreatmentService.listProducts: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- TreatmentService.recordTreatment: logicDensity={\"branches\":4,\"comparisons\":2,\"arithmetic\":0,\"validationThrows\":4,\"density\":10}\n- TreatmentService.listTreatments: logicDensity={\"branches\":1,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":1,\"density\":2}\nFlags:\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of HarvestService.recordHarvest in component business\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of HarvestService.listHarvests in component business\n- clones/same-component-guard: guard clone (guard, similarity 1.00) of HarvestService.listHarvests in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of HiveService.registerHive in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of HiveService.recordInspection in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of HiveService.recordInspection in component business\n- clones/same-component-near: fragment clone (near, similarity 0.81) of HiveService.recordInspection in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of HiveService.recordInspection in component business\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of HiveService.listInspections in component business\n- clones/same-component-guard: guard clone (guard, similarity 1.00) of HiveService.listInspections in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of ScaleService.linkScale in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of ScaleService.recordReading in component business\n\n## Source\n=====SOURCE-BEGIN src/business/treatmentService.ts\n24| export class TreatmentService {\n25|   constructor(\n26|     private readonly hives: HiveRepository,\n27|     private readonly products: TreatmentProductRepository,\n28|     private readonly treatments: TreatmentRepository,\n29|   ) {}\n30| \n31|   addProduct(name: unknown, withdrawalDays: unknown): TreatmentProductRecord {\n32|     const productName = requireText(name, \"name\");\n33|     if (\n34|       typeof withdrawalDays !== \"number\" ||\n35|       !Number.isInteger(withdrawalDays) ||\n36|       withdrawalDays < 0\n37|     ) {\n38|       throw new ValidationError(\"withdrawalDays must be a non-negative integer\");\n39|     }\n40|     if (this.products.findByName(productName)) {\n41|       throw new ConflictError(\"product already exists\");\n42|     }\n43|     return this.products.create({ name: productName, withdrawalDays });\n44|   }\n45| \n46|   listProducts(): TreatmentProductRecord[] {\n47|     return this.products.findAll();\n48|   }\n49| \n50|   recordTreatment(\n51|     memberId: string,\n52|     hiveId: string,\n53|     product: unknown,\n54|     startDate: unknown,\n55|     endDate: unknown,\n56|   ): TreatmentRecord {\n57|     const hive = this.hives.findById(hiveId);\n58|     if (!hive) throw new NotFoundError(\"hive not found\");\n59|     if (hive.ownerId !== memberId) {\n60|       throw new ForbiddenError(\"only the hive owner can record treatments\");\n61|     }\n62|     const key = requireText(product, \"product\");\n63|     const found = this.products.findByName(key) ?? this.products.findById(key);\n64|     if (!found) throw new ValidationError(\"unknown treatment product\");\n65|     const start = requireDate(startDate, \"startDate\");\n66|     const end = requireDate(endDate, \"endDate\");\n67|     if (Date.parse(end) < Date.parse(start)) {\n68|       throw new ValidationError(\"endDate must not be before startDate\");\n69|     }\n70|     return this.treatments.create({ hiveId, productId: found.id, startDate: start, endDate: end });\n71|   }\n72| \n73|   listTreatments(hiveId: string): TreatmentRecord[] {\n74|     if (!this.hives.findById(hiveId)) throw new NotFoundError(\"hive not found\");\n75|     return this.treatments.findByHive(hiveId);\n76|   }\n77| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:16:23.725Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 70,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "72d370555108c6ea",
+            "quote": "return this.treatments.create({ hiveId, productId: found.id, startDate: start, endDate: end });",
+            "startLine": 70
+          }
+        ],
+        "name": "Treatment",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 43,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "a8c208dbfc04fcee",
+            "quote": "return this.products.create({ name: productName, withdrawalDays });",
+            "startLine": 43
+          }
+        ],
+        "name": "Treatment Product",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 38,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "a8c208dbfc04fcee",
+            "quote": "throw new ValidationError(\"withdrawalDays must be a non-negative integer\");",
+            "startLine": 38
+          }
+        ],
+        "name": "Withdrawal Period",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 58,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "72d370555108c6ea",
+            "quote": "const hive = this.hives.findById(hiveId);\n    if (!hive) throw new NotFoundError(\"hive not found\");",
+            "startLine": 57
+          }
+        ],
+        "name": "Hive",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 59,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "72d370555108c6ea",
+            "quote": "if (hive.ownerId !== memberId) {",
+            "startLine": 59
+          }
+        ],
+        "name": "Hive Owner",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Registers treatment products with a unique name and a non-negative integer withdrawal period, and lists the catalogue of products.",
+        "evidence": [
+          {
+            "endLine": 38,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "a8c208dbfc04fcee",
+            "quote": "throw new ValidationError(\"withdrawalDays must be a non-negative integer\");",
+            "startLine": 38
+          },
+          {
+            "endLine": 42,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "a8c208dbfc04fcee",
+            "quote": "if (this.products.findByName(productName)) {\n      throw new ConflictError(\"product already exists\");\n    }",
+            "startLine": 40
+          },
+          {
+            "endLine": 47,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "d2bd39d3ed6f1b95",
+            "quote": "return this.products.findAll();",
+            "startLine": 47
+          }
+        ],
+        "name": "Treatment product catalogue management",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.9,
+        "description": "Records a treatment on a hive with a known product and a valid date range. Only the hive owner may record treatments.",
+        "evidence": [
+          {
+            "endLine": 61,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "72d370555108c6ea",
+            "quote": "if (hive.ownerId !== memberId) {\n      throw new ForbiddenError(\"only the hive owner can record treatments\");\n    }",
+            "startLine": 59
+          },
+          {
+            "endLine": 69,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "72d370555108c6ea",
+            "quote": "if (Date.parse(end) < Date.parse(start)) {\n      throw new ValidationError(\"endDate must not be before startDate\");\n    }",
+            "startLine": 67
+          },
+          {
+            "endLine": 70,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "72d370555108c6ea",
+            "quote": "return this.treatments.create({ hiveId, productId: found.id, startDate: start, endDate: end });",
+            "startLine": 70
+          }
+        ],
+        "name": "Recording hive treatments",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.75,
+        "description": "Lists the treatments recorded for an existing hive.",
+        "evidence": [
+          {
+            "endLine": 75,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "f7ca3c201150d6e2",
+            "quote": "if (!this.hives.findById(hiveId)) throw new NotFoundError(\"hive not found\");\n    return this.treatments.findByHive(hiveId);",
+            "startLine": 74
+          }
+        ],
+        "name": "Hive treatment history retrieval",
+        "naturalLayer": "application"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 4713,
+    "outputTokens": 1558
+  }
+}

@@ -1,0 +1,407 @@
+{
+  "itemId": "21c65604dec116b1",
+  "itemName": "RinkService",
+  "key": "e59348b586430873bd7527251db008fee7be1c99b0bc51def82826a514549703",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "rules",
+    "promptHash": "ee8545c35c797d419f32837cb77647ff8e8f81b880334b5f790fe3cc90b5e356",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "f0fc4d535ca2368dc75f2c1669e4a1b8563970f49941a37b2cf4202334cf7327",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nExtract the rules enforced by the candidate methods below: the business rules, and the limits or thresholds checked on incoming data. Label each rule with its kind. kind \"business\": a rule of the business domain (a threshold, an eligibility condition, a limit, a rate) that must hold whichever entry point is used. kind \"input-validation\": a check of the form, type or size of incoming data. Leave out null checks, formatting and parsing. State each rule in plain business language with the subject it constrains, the comparison operator and threshold normalised to the most natural business unit, and the unit. Write the rule as the business would state it, independent of how the code is shaped (`!(a < b)` states `a >= b`).\nSet enforcedBy to the node id of the method that enforces the rule. Cite that method and quote the code that enforces it. Return an empty list when the candidates enforce no such rule.\n\n## Class\nClass RinkService (node 21c65604dec116b1), file src/business/rinkService.ts, lines 52-330.\nComponent: business. Declared layer: business (kind domain).\nCandidate methods (proposed by the cheap proxies):\n- effectiveCapacity (node e6387ba51c5921dd, lines 65-71, logic density 6)\n- memberUses (node 6784f28d54bb3a7d, lines 73-82, logic density 8)\n- createSession (node 5f7d772723a0b6e8, lines 86-109, logic density 15)\n- releaseSession (node c60b20185a60a596, lines 112-118, logic density 3)\n- cancelSession (node 307a1709ba13f498, lines 121-154, logic density 16)\n- setHireStock (node 2978858b2f3dce72, lines 156-162, logic density 5)\n- getSession (node 9ddde2a5a35b152a, lines 174-178, logic density 2)\n- getAvailability (node 943d615fb9ddd8a5, lines 180-191, logic density 6)\n- getBooking (node 06b93f243a13e785, lines 193-198, logic density 2)\n- purchase (node 9586ad77b3d0ca0e, lines 202-286, logic density 44)\n- handlePaymentResult (node f2665a70b81c9047, lines 289-303, logic density 9)\n- expireOverdue (node 99f0cd74c7c98f70, lines 306-317, logic density 4)\n- usage (node 570034c61444165f, lines 320-329, logic density 7)\n\n## APG neighbourhood\nGraph statistics: 15 methods; fan-out 22 (CALLS 16, CONSTRUCTOR_INJECTS 6); fan-in 0.\n- -> CALLS Method BookingRepository.create (src/persistence/bookingRepository.ts)\n- -> CALLS Method BookingRepository.get (src/persistence/bookingRepository.ts)\n- -> CALLS Method BookingRepository.list (src/persistence/bookingRepository.ts)\n- -> CALLS Method BookingRepository.listBySession (src/persistence/bookingRepository.ts)\n- -> CALLS Method BookingRepository.update (src/persistence/bookingRepository.ts)\n- -> CALLS Method ClubBookingRepository.listByDate (src/persistence/clubBookingRepository.ts)\n- -> CALLS Method HireStockRepository.all (src/persistence/hireStockRepository.ts)\n- -> CALLS Method HireStockRepository.get (src/persistence/hireStockRepository.ts)\n- -> CALLS Method HireStockRepository.set (src/persistence/hireStockRepository.ts)\n- -> CALLS Method MemberRepository.get (src/persistence/memberRepository.ts)\n- -> CALLS Method PuckPayClient.createCheckout (src/persistence/puckPayClient.ts)\n- -> CALLS Method PuckPayClient.refund (src/persistence/puckPayClient.ts)\n- -> CALLS Method SessionRepository.create (src/persistence/sessionRepository.ts)\n- -> CALLS Method SessionRepository.get (src/persistence/sessionRepository.ts)\n- -> CALLS Method SessionRepository.list (src/persistence/sessionRepository.ts)\n- -> CALLS Method SessionRepository.update (src/persistence/sessionRepository.ts)\n- -> CONSTRUCTOR_INJECTS Class BookingRepository (src/persistence/bookingRepository.ts)\n- -> CONSTRUCTOR_INJECTS Class ClubBookingRepository (src/persistence/clubBookingRepository.ts)\n- -> CONSTRUCTOR_INJECTS Class HireStockRepository (src/persistence/hireStockRepository.ts)\n- -> CONSTRUCTOR_INJECTS Class MemberRepository (src/persistence/memberRepository.ts)\n- -> CONSTRUCTOR_INJECTS Class PuckPayClient (src/persistence/puckPayClient.ts)\n- -> CONSTRUCTOR_INJECTS Class SessionRepository (src/persistence/sessionRepository.ts)\n\n## Comments near the code\n- RinkService.effectiveCapacity: Capacity left after club bookings: halved by one blocked half, zero when both are blocked.\n- RinkService.createSession: ---- manager operations ----\n- RinkService.releaseSession: Manager: puts a held session back on sale.\n- RinkService.cancelSession: Manager: cancels a held session and refunds every ticket through PuckPay. Safe to retry.\n- RinkService.listSessions: ---- public queries ----\n- RinkService.purchase: ---- purchasing ----\n- RinkService.handlePaymentResult: Handles PuckPay's webhook. Idempotent for already-settled bookings.\n- RinkService.expireOverdue: Releases unpaid bookings whose 15-minute window has elapsed.\n- RinkService.usage: Tickets and hire skates held by pending or paid bookings.\n\n## Source\n=====SOURCE-BEGIN src/business/rinkService.ts\n 52| export class RinkService {\n 53|   constructor(\n 54|     private readonly sessions: SessionRepository,\n 55|     private readonly bookings: BookingRepository,\n 56|     private readonly stock: HireStockRepository,\n 57|     private readonly puckPay: PuckPayClient,\n 58|     private readonly callbackUrl: string,\n 59|     private readonly now: () => number = Date.now,\n 60|     private readonly club: ClubBookingRepository = new ClubBookingRepository(),\n 61|     private readonly members: MemberRepository = new MemberRepository(),\n 62|   ) {}\n 63| \n 64|   /** Capacity left after club bookings: halved by one blocked half, zero when both are blocked. */\n 65|   private effectiveCapacity(session: Session): number {\n 66|     const blocked = new Set<string>();\n 67|     for (const c of this.club.listByDate(session.date)) {\n 68|       if (overlaps(c, session)) for (const h of c.halves) blocked.add(h);\n 69|     }\n 70|     return Math.floor((session.capacity * (2 - blocked.size)) / 2);\n 71|   }\n 72| \n 73|   private memberUses(membershipNumber: string, month: string): number {\n 74|     let uses = 0;\n 75|     for (const b of this.bookings.list()) {\n 76|       if (b.membershipNumber !== membershipNumber) continue;\n 77|       if (b.status !== \"pending\" && b.status !== \"paid\") continue;\n 78|       const s = this.sessions.get(b.sessionId);\n 79|       if (s && s.date.startsWith(`${month}-`)) uses += b.tickets;\n 80|     }\n 81|     return uses;\n 82|   }\n 83| \n 84|   // ---- manager operations ----\n 85| \n 86|   createSession(input: NewSessionInput): Session {\n 87|     if (!DATE_RE.test(input.date)) throw new DomainError(\"validation\", \"date must be YYYY-MM-DD\");\n 88|     if (!TIME_RE.test(input.start) || !TIME_RE.test(input.end)) {\n 89|       throw new DomainError(\"validation\", \"start and end must be HH:MM\");\n 90|     }\n 91|     if (input.end <= input.start) throw new DomainError(\"validation\", \"end must be after start\");\n 92|     if (!isPosInt(input.capacity)) throw new DomainError(\"validation\", \"capacity must be a positive integer\");\n 93|     if (!Number.isInteger(input.priceCents) || input.priceCents < 0) {\n 94|       throw new DomainError(\"validation\", \"priceCents must be a non-negative integer\");\n 95|     }\n 96|     const hirePriceCents = input.hirePriceCents ?? 0;\n 97|     if (!Number.isInteger(hirePriceCents) || hirePriceCents < 0) {\n 98|       throw new DomainError(\"validation\", \"hirePriceCents must be a non-negative integer\");\n 99|     }\n100|     return this.sessions.create({\n101|       date: input.date,\n102|       start: input.start,\n103|       end: input.end,\n104|       capacity: input.capacity,\n105|       priceCents: input.priceCents,\n106|       hirePriceCents,\n107|       status: \"scheduled\",\n108|     });\n109|   }\n110| \n111|   /** Manager: puts a held session back on sale. */\n112|   releaseSession(id: string): Session {\n113|     const session = this.getSession(id);\n114|     if (session.status !== \"held\") throw new DomainError(\"conflict\", \"session is not on hold\");\n115|     session.status = \"released\";\n116|     this.sessions.update(session);\n117|     return session;\n118|   }\n119| \n120|   /** Manager: cancels a held session and refunds every ticket through PuckPay. Safe to retry. */\n121|   async cancelSession(id: string): Promise<{ session: Session; refunded: number }> {\n122|     const session = this.getSession(id);\n123|     if (session.status !== \"held\" && session.status !== \"cancelled\") {\n124|       throw new DomainError(\"conflict\", \"only a session on hold can be cancelled\");\n125|     }\n126|     session.status = \"cancelled\";\n127|     this.sessions.update(session);\n128| \n129|     let refunded = 0;\n130|     const failures: string[] = [];\n131|     for (const b of this.bookings.listBySession(id)) {\n132|       if (b.status === \"pending\") {\n133|         b.status = \"expired\";\n134|         this.bookings.update(b);\n135|         continue;\n136|       }\n137|       if (b.status !== \"paid\") continue;\n138|       try {\n139|         if (b.amountCents > 0) {\n140|           if (!b.paymentId) throw new Error(\"booking has no payment id\");\n141|           await this.puckPay.refund(b.paymentId, b.amountCents, b.id);\n142|         }\n143|         b.status = \"refunded\";\n144|         this.bookings.update(b);\n145|         refunded++;\n146|       } catch (err) {\n147|         failures.push(`${b.id}: ${(err as Error).message}`);\n148|       }\n149|     }\n150|     if (failures.length > 0) {\n151|       throw new DomainError(\"upstream\", `session cancelled but ${failures.length} refund(s) failed: ${failures.join(\"; \")}`);\n152|     }\n153|     return { session, refunded };\n154|   }\n155| \n156|   setHireStock(size: string, quantity: number): void {\n157|     if (!size) throw new DomainError(\"validation\", \"size is required\");\n158|     if (!Number.isInteger(quantity) || quantity < 0) {\n159|       throw new DomainError(\"validation\", \"quantity must be a non-negative integer\");\n160|     }\n161|     this.stock.set(size, quantity);\n162|   }\n163| \n164|   getHireStock(): Record<string, number> {\n165|     return this.stock.all();\n166|   }\n167| \n168|   // ---- public queries ----\n169| \n170|   listSessions(): Session[] {\n171|     return this.sessions.list();\n172|   }\n173| \n174|   getSession(id: string): Session {\n175|     const s = this.sessions.get(id);\n176|     if (!s) throw new DomainError(\"not_found\", \"session not found\");\n177|     return s;\n178|   }\n179| \n180|   getAvailability(sessionId: string): Availability {\n181|     const session = this.getSession(sessionId);\n182|     this.expireOverdue();\n183|     const { tickets, hire } = this.usage(sessionId);\n184|     const hireLeft: Record<string, number> = {};\n185|     for (const [size, qty] of Object.entries(this.stock.all())) {\n186|       hireLeft[size] = Math.max(0, qty - (hire[size] ?? 0));\n187|     }\n188|     const onSale = session.status === \"scheduled\" || session.status === \"released\";\n189|     const ticketsLeft = onSale ? Math.max(0, this.effectiveCapacity(session) - tickets) : 0;\n190|     return { sessionId, ticketsLeft, hireLeft };\n191|   }\n192| \n193|   getBooking(id: string): Booking {\n194|     this.expireOverdue();\n195|     const b = this.bookings.get(id);\n196|     if (!b) throw new DomainError(\"not_found\", \"booking not found\");\n197|     return b;\n198|   }\n199| \n200|   // ---- purchasing ----\n201| \n202|   async purchase(sessionId: string, input: PurchaseInput): Promise<Booking> {\n203|     this.expireOverdue();\n204|     const session = this.getSession(sessionId);\n205|     if (session.status === \"held\") throw new DomainError(\"conflict\", \"session is on hold: ticket sales are paused\");\n206|     if (session.status === \"cancelled\") throw new DomainError(\"conflict\", \"session is cancelled\");\n207| \n208|     if (!input.skaterName || !input.email) {\n209|       throw new DomainError(\"validation\", \"skaterName and email are required\");\n210|     }\n211|     if (!isPosInt(input.tickets)) throw new DomainError(\"validation\", \"tickets must be a positive integer\");\n212|     const hire = input.hire ?? {};\n213|     let hireTotal = 0;\n214|     for (const [size, qty] of Object.entries(hire)) {\n215|       if (!isPosInt(qty)) throw new DomainError(\"validation\", `hire quantity for size ${size} must be a positive integer`);\n216|       hireTotal += qty;\n217|     }\n218|     if (hireTotal > input.tickets) {\n219|       throw new DomainError(\"validation\", \"cannot hire more skates than tickets\");\n220|     }\n221| \n222|     const memberNo = input.membershipNumber;\n223|     if (memberNo !== undefined) {\n224|       if (typeof memberNo !== \"string\" || !this.members.get(memberNo)) {\n225|         throw new DomainError(\"validation\", \"unknown membership number\");\n226|       }\n227|       if (input.tickets !== 1) {\n228|         throw new DomainError(\"validation\", \"a membership covers one ticket per booking\");\n229|       }\n230|       if (this.memberUses(memberNo, session.date.slice(0, 7)) >= MEMBER_FREE_PER_MONTH) {\n231|         throw new DomainError(\"conflict\", \"member has used all free sessions this month\");\n232|       }\n233|     }\n234| \n235|     // Check and reserve synchronously so concurrent requests cannot oversell.\n236|     const used = this.usage(sessionId);\n237|     if (used.tickets + input.tickets > this.effectiveCapacity(session)) {\n238|       throw new DomainError(\"conflict\", \"not enough tickets left for this session\");\n239|     }\n240|     for (const [size, qty] of Object.entries(hire)) {\n241|       if ((used.hire[size] ?? 0) + qty > this.stock.get(size)) {\n242|         throw new DomainError(\"conflict\", `not enough hire skates left in size ${size}`);\n243|       }\n244|     }\n245| \n246|     const createdAt = this.now();\n247|     const booking = this.bookings.create({\n248|       sessionId,\n249|       skaterName: input.skaterName,\n250|       email: input.email,\n251|       ...(typeof input.phone === \"string\" && input.phone ? { phone: input.phone } : {}),\n252|       tickets: input.tickets,\n253|       hire: { ...hire },\n254|       amountCents: (memberNo !== undefined ? 0 : input.tickets * session.priceCents) +\n255|         hireTotal * session.hirePriceCents,\n256|       status: \"pending\",\n257|       createdAt,\n258|       expiresAt: createdAt + PAYMENT_WINDOW_MS,\n259|       ...(memberNo !== undefined ? { membershipNumber: memberNo } : {}),\n260|     });\n261| \n262|     // Nothing to pay (member ticket without paid hire): confirmed straight away.\n263|     if (booking.amountCents === 0) {\n264|       booking.status = \"paid\";\n265|       this.bookings.update(booking);\n266|       return booking;\n267|     }\n268| \n269|     try {\n270|       const checkout = await this.puckPay.createCheckout({\n271|         reference: booking.id,\n272|         amountCents: booking.amountCents,\n273|         currency: \"USD\",\n274|         description: `Skating ${session.date} ${session.start}-${session.end}`,\n275|         callbackUrl: this.callbackUrl,\n276|       });\n277|       booking.checkoutUrl = checkout.checkoutUrl;\n278|       booking.paymentId = checkout.paymentId;\n279|       this.bookings.update(booking);\n280|     } catch (err) {\n281|       booking.status = \"failed\";\n282|       this.bookings.update(booking);\n283|       throw new DomainError(\"upstream\", `could not create checkout: ${(err as Error).message}`);\n284|     }\n285|     return booking;\n286|   }\n287| \n288|   /** Handles PuckPay's webhook. Idempotent for already-settled bookings. */\n289|   handlePaymentResult(result: PaymentResult): Booking {\n290|     this.expireOverdue();\n291|     const booking = this.bookings.get(result.bookingId);\n292|     if (!booking) throw new DomainError(\"not_found\", \"booking not found\");\n293|     if (result.status === \"refunded\") {\n294|       // A refund PuckPay confirms applies to a paid ticket; repeats are no-ops.\n295|       if (booking.status !== \"paid\") return booking;\n296|     } else if (booking.status !== \"pending\") {\n297|       return booking; // expired/settled: ignore\n298|     }\n299|     booking.status = result.status;\n300|     if (result.paymentId) booking.paymentId = result.paymentId;\n301|     this.bookings.update(booking);\n302|     return booking;\n303|   }\n304| \n305|   /** Releases unpaid bookings whose 15-minute window has elapsed. */\n306|   expireOverdue(): number {\n307|     const now = this.now();\n308|     let count = 0;\n309|     for (const b of this.bookings.list()) {\n310|       if (b.status === \"pending\" && b.expiresAt <= now) {\n311|         b.status = \"expired\";\n312|         this.bookings.update(b);\n313|         count++;\n314|       }\n315|     }\n316|     return count;\n317|   }\n318| \n319|   /** Tickets and hire skates held by pending or paid bookings. */\n320|   private usage(sessionId: string): { tickets: number; hire: Record<string, number> } {\n321|     let tickets = 0;\n322|     const hire: Record<string, number> = {};\n323|     for (const b of this.bookings.listBySession(sessionId)) {\n324|       if (b.status !== \"pending\" && b.status !== \"paid\") continue;\n325|       tickets += b.tickets;\n326|       for (const [size, qty] of Object.entries(b.hire)) hire[size] = (hire[size] ?? 0) + qty;\n327|     }\n328|     return { tickets, hire };\n329|   }\n330| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:55:44.824Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "rules": [
+      {
+        "confidence": 0.85,
+        "enforcedBy": "5f7d772723a0b6e8",
+        "evidence": [
+          {
+            "endLine": 91,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "5f7d772723a0b6e8",
+            "quote": "if (input.end <= input.start) throw new DomainError(\"validation\", \"end must be after start\");",
+            "startLine": 91
+          }
+        ],
+        "kind": "input-validation",
+        "operator": ">",
+        "statement": "A session's end time must be after its start time.",
+        "subject": "session end time",
+        "threshold": null,
+        "unit": null
+      },
+      {
+        "confidence": 0.85,
+        "enforcedBy": "5f7d772723a0b6e8",
+        "evidence": [
+          {
+            "endLine": 92,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "5f7d772723a0b6e8",
+            "quote": "if (!isPosInt(input.capacity)) throw new DomainError(\"validation\", \"capacity must be a positive integer\");",
+            "startLine": 92
+          }
+        ],
+        "kind": "input-validation",
+        "operator": ">",
+        "statement": "Session capacity must be a positive whole number of tickets.",
+        "subject": "session capacity",
+        "threshold": 0,
+        "unit": "tickets"
+      },
+      {
+        "confidence": 0.85,
+        "enforcedBy": "5f7d772723a0b6e8",
+        "evidence": [
+          {
+            "endLine": 95,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "5f7d772723a0b6e8",
+            "quote": "if (!Number.isInteger(input.priceCents) || input.priceCents < 0) {",
+            "startLine": 93
+          }
+        ],
+        "kind": "input-validation",
+        "operator": ">=",
+        "statement": "The session ticket price cannot be negative.",
+        "subject": "session ticket price",
+        "threshold": 0,
+        "unit": "cents"
+      },
+      {
+        "confidence": 0.85,
+        "enforcedBy": "5f7d772723a0b6e8",
+        "evidence": [
+          {
+            "endLine": 99,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "5f7d772723a0b6e8",
+            "quote": "if (!Number.isInteger(hirePriceCents) || hirePriceCents < 0) {",
+            "startLine": 97
+          }
+        ],
+        "kind": "input-validation",
+        "operator": ">=",
+        "statement": "The skate hire price cannot be negative.",
+        "subject": "skate hire price",
+        "threshold": 0,
+        "unit": "cents"
+      },
+      {
+        "confidence": 0.85,
+        "enforcedBy": "2978858b2f3dce72",
+        "evidence": [
+          {
+            "endLine": 160,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "2978858b2f3dce72",
+            "quote": "if (!Number.isInteger(quantity) || quantity < 0) {",
+            "startLine": 158
+          }
+        ],
+        "kind": "input-validation",
+        "operator": ">=",
+        "statement": "Hire skate stock for a size cannot be negative.",
+        "subject": "hire skate stock quantity",
+        "threshold": 0,
+        "unit": "skates"
+      },
+      {
+        "confidence": 0.8,
+        "enforcedBy": "c60b20185a60a596",
+        "evidence": [
+          {
+            "endLine": 114,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "c60b20185a60a596",
+            "quote": "if (session.status !== \"held\") throw new DomainError(\"conflict\", \"session is not on hold\");",
+            "startLine": 114
+          }
+        ],
+        "kind": "business",
+        "operator": "==",
+        "statement": "Only a session that is on hold can be put back on sale.",
+        "subject": "session status for release",
+        "threshold": null,
+        "unit": null
+      },
+      {
+        "confidence": 0.8,
+        "enforcedBy": "307a1709ba13f498",
+        "evidence": [
+          {
+            "endLine": 125,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "307a1709ba13f498",
+            "quote": "if (session.status !== \"held\" && session.status !== \"cancelled\") {",
+            "startLine": 123
+          }
+        ],
+        "kind": "business",
+        "operator": "other",
+        "statement": "Only a session that is on hold can be cancelled. Retrying a cancellation that already happened is allowed.",
+        "subject": "session status for cancellation",
+        "threshold": null,
+        "unit": null
+      },
+      {
+        "confidence": 0.7,
+        "enforcedBy": "307a1709ba13f498",
+        "evidence": [
+          {
+            "endLine": 141,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "307a1709ba13f498",
+            "quote": "await this.puckPay.refund(b.paymentId, b.amountCents, b.id);",
+            "startLine": 141
+          }
+        ],
+        "kind": "business",
+        "operator": "other",
+        "statement": "When a session is cancelled, its unpaid bookings expire and every paid booking is refunded.",
+        "subject": "bookings of a cancelled session",
+        "threshold": null,
+        "unit": null
+      },
+      {
+        "confidence": 0.85,
+        "enforcedBy": "9586ad77b3d0ca0e",
+        "evidence": [
+          {
+            "endLine": 206,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "9586ad77b3d0ca0e",
+            "quote": "if (session.status === \"held\") throw new DomainError(\"conflict\", \"session is on hold: ticket sales are paused\");",
+            "startLine": 205
+          }
+        ],
+        "kind": "business",
+        "operator": "other",
+        "statement": "Tickets cannot be bought for a session that is on hold or cancelled.",
+        "subject": "session status for ticket sales",
+        "threshold": null,
+        "unit": null
+      },
+      {
+        "confidence": 0.85,
+        "enforcedBy": "9586ad77b3d0ca0e",
+        "evidence": [
+          {
+            "endLine": 211,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "9586ad77b3d0ca0e",
+            "quote": "if (!isPosInt(input.tickets)) throw new DomainError(\"validation\", \"tickets must be a positive integer\");",
+            "startLine": 211
+          }
+        ],
+        "kind": "input-validation",
+        "operator": ">",
+        "statement": "A booking must be for at least one ticket.",
+        "subject": "tickets per booking",
+        "threshold": 0,
+        "unit": "tickets"
+      },
+      {
+        "confidence": 0.8,
+        "enforcedBy": "9586ad77b3d0ca0e",
+        "evidence": [
+          {
+            "endLine": 215,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "9586ad77b3d0ca0e",
+            "quote": "if (!isPosInt(qty)) throw new DomainError(\"validation\", `hire quantity for size ${size} must be a positive integer`);",
+            "startLine": 215
+          }
+        ],
+        "kind": "input-validation",
+        "operator": ">",
+        "statement": "Each hire skate size requested must have a positive whole-number quantity.",
+        "subject": "hire skate quantity per size",
+        "threshold": 0,
+        "unit": "skates"
+      },
+      {
+        "confidence": 0.85,
+        "enforcedBy": "9586ad77b3d0ca0e",
+        "evidence": [
+          {
+            "endLine": 220,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "9586ad77b3d0ca0e",
+            "quote": "if (hireTotal > input.tickets) {",
+            "startLine": 218
+          }
+        ],
+        "kind": "business",
+        "operator": "<=",
+        "statement": "A booking cannot hire more skates than it has tickets.",
+        "subject": "hired skates per booking",
+        "threshold": null,
+        "unit": "skates"
+      },
+      {
+        "confidence": 0.85,
+        "enforcedBy": "9586ad77b3d0ca0e",
+        "evidence": [
+          {
+            "endLine": 229,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "9586ad77b3d0ca0e",
+            "quote": "if (input.tickets !== 1) {",
+            "startLine": 227
+          }
+        ],
+        "kind": "business",
+        "operator": "==",
+        "statement": "A membership booking covers exactly one ticket.",
+        "subject": "tickets per membership booking",
+        "threshold": 1,
+        "unit": "tickets"
+      },
+      {
+        "confidence": 0.75,
+        "enforcedBy": "9586ad77b3d0ca0e",
+        "evidence": [
+          {
+            "endLine": 232,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "9586ad77b3d0ca0e",
+            "quote": "if (this.memberUses(memberNo, session.date.slice(0, 7)) >= MEMBER_FREE_PER_MONTH) {",
+            "startLine": 230
+          }
+        ],
+        "kind": "business",
+        "operator": "<",
+        "statement": "A member can use free sessions only while their pending or paid member tickets this month are below the monthly free allowance (MEMBER_FREE_PER_MONTH).",
+        "subject": "member free sessions per month",
+        "threshold": null,
+        "unit": "sessions per month"
+      },
+      {
+        "confidence": 0.9,
+        "enforcedBy": "9586ad77b3d0ca0e",
+        "evidence": [
+          {
+            "endLine": 239,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "9586ad77b3d0ca0e",
+            "quote": "if (used.tickets + input.tickets > this.effectiveCapacity(session)) {",
+            "startLine": 237
+          }
+        ],
+        "kind": "business",
+        "operator": "<=",
+        "statement": "Tickets already held plus tickets requested cannot exceed the session's effective capacity.",
+        "subject": "session tickets sold",
+        "threshold": null,
+        "unit": "tickets"
+      },
+      {
+        "confidence": 0.85,
+        "enforcedBy": "9586ad77b3d0ca0e",
+        "evidence": [
+          {
+            "endLine": 243,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "9586ad77b3d0ca0e",
+            "quote": "if ((used.hire[size] ?? 0) + qty > this.stock.get(size)) {",
+            "startLine": 241
+          }
+        ],
+        "kind": "business",
+        "operator": "<=",
+        "statement": "Hire skates already held plus skates requested in a size cannot exceed the stock for that size.",
+        "subject": "hire skates per size",
+        "threshold": null,
+        "unit": "skates"
+      },
+      {
+        "confidence": 0.75,
+        "enforcedBy": "9586ad77b3d0ca0e",
+        "evidence": [
+          {
+            "endLine": 255,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "9586ad77b3d0ca0e",
+            "quote": "amountCents: (memberNo !== undefined ? 0 : input.tickets * session.priceCents) +",
+            "startLine": 254
+          }
+        ],
+        "kind": "business",
+        "operator": "other",
+        "statement": "Member tickets are free: the booking amount is hired skates times the hire price, plus the ticket price times tickets for non-members. A booking with nothing to pay is confirmed straight away.",
+        "subject": "booking amount",
+        "threshold": null,
+        "unit": "cents"
+      },
+      {
+        "confidence": 0.8,
+        "enforcedBy": "e6387ba51c5921dd",
+        "evidence": [
+          {
+            "endLine": 70,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "e6387ba51c5921dd",
+            "quote": "return Math.floor((session.capacity * (2 - blocked.size)) / 2);",
+            "startLine": 70
+          }
+        ],
+        "kind": "business",
+        "operator": "other",
+        "statement": "Each blocked rink half from overlapping club bookings halves session capacity (rounded down). With both halves blocked, capacity is zero.",
+        "subject": "effective session capacity",
+        "threshold": null,
+        "unit": "tickets"
+      },
+      {
+        "confidence": 0.7,
+        "enforcedBy": "99f0cd74c7c98f70",
+        "evidence": [
+          {
+            "endLine": 310,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "99f0cd74c7c98f70",
+            "quote": "if (b.status === \"pending\" && b.expiresAt <= now) {",
+            "startLine": 310
+          }
+        ],
+        "kind": "business",
+        "operator": "<=",
+        "statement": "Unpaid (pending) bookings expire once their payment window has elapsed. The comment above the method states the window is 15 minutes.",
+        "subject": "booking payment window",
+        "threshold": 15,
+        "unit": "minutes"
+      },
+      {
+        "confidence": 0.75,
+        "enforcedBy": "f2665a70b81c9047",
+        "evidence": [
+          {
+            "endLine": 297,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "f2665a70b81c9047",
+            "quote": "if (booking.status !== \"paid\") return booking;",
+            "startLine": 295
+          }
+        ],
+        "kind": "business",
+        "operator": "other",
+        "statement": "A payment result applies only to a pending booking, and a refund result applies only to a paid booking. Any other case is ignored.",
+        "subject": "booking status for payment settlement",
+        "threshold": null,
+        "unit": null
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 8588,
+    "outputTokens": 4858
+  }
+}

@@ -1,0 +1,1167 @@
+{
+ "schema": "study2b-analysis/v1",
+ "params": {
+  "seed": 20261021,
+  "draws": 99999,
+  "resamples": 10000,
+  "fwer": 0.05,
+  "family": [
+   "H1",
+   "H2",
+   "H3"
+  ],
+  "delta": 0.55,
+  "delta2": 0.28,
+  "v4AMargin": 0.05,
+  "v4BMargin": 0.1,
+  "concentration": 0.9,
+  "test": "paired two-sided sign-flip on T = sum d_b; MC p (1 + #{|T*| >= |T|}) / (1 + draws) and exact p; Holm on each; exact governs on disagreement",
+  "intervals": "95 % percentile bootstrap, within-task and task-cluster",
+  "equivalence": "90 % within-task interval of mean(none@L3 - mcp@L2) inside (-delta, delta); not established when the pooled treated mean D < delta"
+ },
+ "inputs": {
+  "runs": "runs.json sha256 f67c9c14ec5d6ea5623784ffd799d5c2ecd833ae67e7d224c99107db1fe85b52",
+  "dagger": "runs.json sha256 0e19b19ff133b5437aa5d9643d4ef533b1279f53f7992f61632ff698b724761d",
+  "scores": "scores.json sha256 4b0c8164113322a82999b859af4070ab4589b71201489b25f26df007718e3f4b",
+  "analysis": "analysis.json sha256 f89d47348dcadc722cdc4682ad096600b31c4e6d065cd7d8b732a7e306c42637",
+  "recall none@L2": "noneL2/run.json sha256 e798ea9969bfdc9b0fc07c8f93c8d4843504a45477bbddfbd67b97c8f36bcaff",
+  "recall none@L3": "noneL3/run.json sha256 ce987c63935405aa1aa3b4678075679d6b088296158770ebb25038f6d32ada61",
+  "recall mcp@L2": "mcpL2/run.json sha256 56f20aaa6ba1b603d7f46dd8cd491b595b2c3671a0ce3ed2235b346f02006b55",
+  "telemetry 1": "telemetry.json sha256 f7084ee44e6f915d4ef4df11defa419077e810df93ef097c2f4227811a0bea32"
+ },
+ "blocks": {
+  "complete": 6,
+  "incomplete": [],
+  "y1Zero": 0,
+  "perBlock": [
+   {
+    "block": "hive-health/rep1",
+    "task": "hive-health",
+    "rep": 1,
+    "Y1": 1,
+    "D": {
+     "none@L2": 1,
+     "none@L3": 2,
+     "mcp@L2": 1
+    },
+    "Yk": {
+     "none@L2": 2,
+     "none@L3": 2,
+     "mcp@L2": 0
+    }
+   },
+   {
+    "block": "hive-health/rep2",
+    "task": "hive-health",
+    "rep": 2,
+    "Y1": 1,
+    "D": {
+     "none@L2": 0,
+     "none@L3": 0,
+     "mcp@L2": 0
+    },
+    "Yk": {
+     "none@L2": 1,
+     "none@L3": 0,
+     "mcp@L2": 0
+    }
+   },
+   {
+    "block": "ice-rink/rep1",
+    "task": "ice-rink",
+    "rep": 1,
+    "Y1": 4,
+    "D": {
+     "none@L2": 1,
+     "none@L3": 0,
+     "mcp@L2": 0
+    },
+    "Yk": {
+     "none@L2": 5,
+     "none@L3": 0,
+     "mcp@L2": 0
+    }
+   },
+   {
+    "block": "ice-rink/rep2",
+    "task": "ice-rink",
+    "rep": 2,
+    "Y1": 4,
+    "D": {
+     "none@L2": 3,
+     "none@L3": 2,
+     "mcp@L2": 0
+    },
+    "Yk": {
+     "none@L2": 7,
+     "none@L3": 6,
+     "mcp@L2": 0
+    }
+   },
+   {
+    "block": "youth-league/rep1",
+    "task": "youth-league",
+    "rep": 1,
+    "Y1": 1,
+    "D": {
+     "none@L2": 2,
+     "none@L3": 0,
+     "mcp@L2": 0
+    },
+    "Yk": {
+     "none@L2": 3,
+     "none@L3": 0,
+     "mcp@L2": 0
+    }
+   },
+   {
+    "block": "youth-league/rep2",
+    "task": "youth-league",
+    "rep": 2,
+    "Y1": 1,
+    "D": {
+     "none@L2": 2,
+     "none@L3": 0,
+     "mcp@L2": 2
+    },
+    "Yk": {
+     "none@L2": 3,
+     "none@L3": 0,
+     "mcp@L2": 3
+    }
+   }
+  ]
+ },
+ "primary": {
+  "contrasts": [
+   {
+    "id": "H1",
+    "reference": "none@L2",
+    "other": "none@L3",
+    "blocks": 6,
+    "diffs": [
+     -1,
+     0,
+     1,
+     1,
+     2,
+     2
+    ],
+    "T": 5,
+    "mcP": 0.25148,
+    "exactP": 0.25,
+    "nonZero": 5,
+    "dbar": 0.8333333333333334,
+    "rr": 0.4444444444444444,
+    "dbarWithinTask": {
+     "estimate": 0.8333333333333334,
+     "low": 0.6666666666666666,
+     "high": 1,
+     "method": "cluster-bootstrap",
+     "resamples": 10000,
+     "seed": 20261021,
+     "undefinedResamples": 0
+    },
+    "dbarTaskCluster": {
+     "estimate": 0.8333333333333334,
+     "low": -0.5,
+     "high": 2,
+     "method": "cluster-bootstrap",
+     "resamples": 10000,
+     "seed": 20261021,
+     "undefinedResamples": 0
+    },
+    "rrWithinTask": {
+     "estimate": 0.4444444444444444,
+     "low": 0,
+     "high": 0.6666666666666666,
+     "method": "cluster-bootstrap",
+     "resamples": 10000,
+     "seed": 20261021,
+     "undefinedResamples": 0
+    },
+    "rrTaskCluster": {
+     "estimate": 0.4444444444444444,
+     "low": 0,
+     "high": 2,
+     "method": "cluster-bootstrap",
+     "resamples": 10000,
+     "seed": 20261021,
+     "undefinedResamples": 0
+    },
+    "signTest": {
+     "positive": 4,
+     "negative": 1,
+     "p": 0.375
+    },
+    "signedRankP": 0.25,
+    "taskLevel": {
+     "taskSums": {
+      "hive-health": -1,
+      "ice-rink": 2,
+      "youth-league": 4
+     },
+     "exactP": 0.5,
+     "smallestPossibleP": 0.25
+    }
+   },
+   {
+    "id": "H2",
+    "reference": "none@L2",
+    "other": "mcp@L2",
+    "blocks": 6,
+    "diffs": [
+     0,
+     0,
+     1,
+     3,
+     2,
+     0
+    ],
+    "T": 6,
+    "mcP": 0.25092,
+    "exactP": 0.25,
+    "nonZero": 3,
+    "dbar": 1,
+    "rr": 0.3333333333333333,
+    "dbarWithinTask": {
+     "estimate": 1,
+     "low": 0.3333333333333333,
+     "high": 1.6666666666666667,
+     "method": "cluster-bootstrap",
+     "resamples": 10000,
+     "seed": 20261021,
+     "undefinedResamples": 0
+    },
+    "dbarTaskCluster": {
+     "estimate": 1,
+     "low": 0,
+     "high": 2,
+     "method": "cluster-bootstrap",
+     "resamples": 10000,
+     "seed": 20261021,
+     "undefinedResamples": 0
+    },
+    "rrWithinTask": {
+     "estimate": 0.3333333333333333,
+     "low": 0,
+     "high": 0.7142857142857143,
+     "method": "cluster-bootstrap",
+     "resamples": 10000,
+     "seed": 20261021,
+     "undefinedResamples": 0
+    },
+    "rrTaskCluster": {
+     "estimate": 0.3333333333333333,
+     "low": 0,
+     "high": 1,
+     "method": "cluster-bootstrap",
+     "resamples": 10000,
+     "seed": 20261021,
+     "undefinedResamples": 0
+    },
+    "signTest": {
+     "positive": 3,
+     "negative": 0,
+     "p": 0.25
+    },
+    "signedRankP": 0.25,
+    "taskLevel": {
+     "taskSums": {
+      "hive-health": 0,
+      "ice-rink": 4,
+      "youth-league": 2
+     },
+     "exactP": 0.5,
+     "smallestPossibleP": 0.25
+    }
+   },
+   {
+    "id": "H3",
+    "reference": "none@L3",
+    "other": "mcp@L2",
+    "blocks": 6,
+    "diffs": [
+     1,
+     0,
+     0,
+     2,
+     0,
+     -2
+    ],
+    "T": 1,
+    "mcP": 1,
+    "exactP": 1,
+    "nonZero": 3,
+    "dbar": 0.16666666666666666,
+    "rr": 0.75,
+    "dbarWithinTask": {
+     "estimate": 0.16666666666666666,
+     "low": -0.5,
+     "high": 0.8333333333333334,
+     "method": "cluster-bootstrap",
+     "resamples": 10000,
+     "seed": 20261021,
+     "undefinedResamples": 0
+    },
+    "dbarTaskCluster": {
+     "estimate": 0.16666666666666666,
+     "low": -1,
+     "high": 1,
+     "method": "cluster-bootstrap",
+     "resamples": 10000,
+     "seed": 20261021,
+     "undefinedResamples": 0
+    },
+    "rrWithinTask": {
+     "estimate": 0.75,
+     "low": 0,
+     "high": 2.5,
+     "method": "cluster-bootstrap",
+     "resamples": 10000,
+     "seed": 20261021,
+     "undefinedResamples": 595
+    },
+    "rrTaskCluster": {
+     "estimate": 0.75,
+     "low": 0,
+     "high": 2.5,
+     "method": "cluster-bootstrap",
+     "resamples": 10000,
+     "seed": 20261021,
+     "undefinedResamples": 377
+    },
+    "signTest": {
+     "positive": 2,
+     "negative": 1,
+     "p": 1
+    },
+    "signedRankP": 1,
+    "taskLevel": {
+     "taskSums": {
+      "hive-health": 1,
+      "ice-rink": 2,
+      "youth-league": -2
+     },
+     "exactP": 1,
+     "smallestPossibleP": 0.25
+    }
+   }
+  ],
+  "decision": {
+   "family": [
+    "H1",
+    "H2",
+    "H3"
+   ],
+   "holmMc": [
+    {
+     "id": "H1",
+     "p": 0.25148,
+     "alphaStep": 0.025,
+     "reject": false
+    },
+    {
+     "id": "H2",
+     "p": 0.25092,
+     "alphaStep": 0.016666666666666666,
+     "reject": false
+    },
+    {
+     "id": "H3",
+     "p": 1,
+     "alphaStep": 0.05,
+     "reject": false
+    }
+   ],
+   "holmExact": [
+    {
+     "id": "H1",
+     "p": 0.25,
+     "alphaStep": 0.016666666666666666,
+     "reject": false
+    },
+    {
+     "id": "H2",
+     "p": 0.25,
+     "alphaStep": 0.025,
+     "reject": false
+    },
+    {
+     "id": "H3",
+     "p": 1,
+     "alphaStep": 0.05,
+     "reject": false
+    }
+   ],
+   "disagree": false,
+   "governing": "mc",
+   "decisions": {
+    "H1": {
+     "reject": false,
+     "predictedSign": true,
+     "supportedUnderThisOutcome": false,
+     "sign": 1
+    },
+    "H2": {
+     "reject": false,
+     "predictedSign": true,
+     "supportedUnderThisOutcome": false,
+     "sign": 1
+    },
+    "H3": {
+     "reject": false,
+     "predictedSign": null,
+     "supportedUnderThisOutcome": null,
+     "sign": 1
+    }
+   }
+  },
+  "supported": {
+   "H1": {
+    "supported": false,
+    "reading": "not rejected under D or D†: no difference detected at RR <= 0.25 MDE"
+   },
+   "H2": {
+    "supported": false,
+    "reading": "not rejected under D or D†: no difference detected at RR <= 0.25 MDE"
+   }
+  }
+ },
+ "equivalence": {
+  "blocks": 6,
+  "dbar": 0.16666666666666666,
+  "interval90": {
+   "estimate": 0.16666666666666666,
+   "low": -0.3333333333333333,
+   "high": 0.6666666666666666,
+   "method": "cluster-bootstrap",
+   "resamples": 10000,
+   "seed": 20261021,
+   "undefinedResamples": 0
+  },
+  "delta": 0.55,
+  "withinDelta": false,
+  "delta2": 0.28,
+  "withinDelta2": false,
+  "pooledTreatedMeanD": 0.5833333333333334,
+  "established": false,
+  "reading": "E fails: nothing is claimed about the two cells being equal"
+ },
+ "distributions": {
+  "cells": [
+   {
+    "cell": "none@L2",
+    "n": 6,
+    "values": [
+     1,
+     0,
+     1,
+     3,
+     2,
+     2
+    ],
+    "sum": 9,
+    "mean": 1.5,
+    "histogram": {
+     "0": 1,
+     "1": 2,
+     "2": 2,
+     "3": 1
+    },
+    "zero": 1,
+    "pZero": 0.16666666666666666,
+    "pZeroWilson": {
+     "low": 0.030053369748306635,
+     "high": 0.5635028221864702
+    }
+   },
+   {
+    "cell": "none@L3",
+    "n": 6,
+    "values": [
+     2,
+     0,
+     0,
+     2,
+     0,
+     0
+    ],
+    "sum": 4,
+    "mean": 0.6666666666666666,
+    "histogram": {
+     "0": 4,
+     "2": 2
+    },
+    "zero": 4,
+    "pZero": 0.6666666666666666,
+    "pZeroWilson": {
+     "low": 0.299993315138392,
+     "high": 0.9032285888942195
+    }
+   },
+   {
+    "cell": "mcp@L2",
+    "n": 6,
+    "values": [
+     1,
+     0,
+     0,
+     0,
+     0,
+     2
+    ],
+    "sum": 3,
+    "mean": 0.5,
+    "histogram": {
+     "0": 4,
+     "1": 1,
+     "2": 1
+    },
+    "zero": 4,
+    "pZero": 0.6666666666666666,
+    "pZeroWilson": {
+     "low": 0.299993315138392,
+     "high": 0.9032285888942195
+    }
+   }
+  ],
+  "zeroTables": [
+   {
+    "id": "H1",
+    "bothZero": 1,
+    "refZeroOnly": 0,
+    "otherZeroOnly": 3,
+    "neitherZero": 2
+   },
+   {
+    "id": "H2",
+    "bothZero": 1,
+    "refZeroOnly": 0,
+    "otherZeroOnly": 3,
+    "neitherZero": 2
+   },
+   {
+    "id": "H3",
+    "bothZero": 3,
+    "refZeroOnly": 1,
+    "otherZeroOnly": 1,
+    "neitherZero": 1
+   }
+  ]
+ },
+ "sensitivity": {
+  "dagger": {
+   "decisions": {
+    "family": [
+     "H1",
+     "H2",
+     "H3"
+    ],
+    "holmMc": [
+     {
+      "id": "H1",
+      "p": 0.25148,
+      "alphaStep": 0.025,
+      "reject": false
+     },
+     {
+      "id": "H2",
+      "p": 0.25092,
+      "alphaStep": 0.016666666666666666,
+      "reject": false
+     },
+     {
+      "id": "H3",
+      "p": 1,
+      "alphaStep": 0.05,
+      "reject": false
+     }
+    ],
+    "holmExact": [
+     {
+      "id": "H1",
+      "p": 0.25,
+      "alphaStep": 0.016666666666666666,
+      "reject": false
+     },
+     {
+      "id": "H2",
+      "p": 0.25,
+      "alphaStep": 0.025,
+      "reject": false
+     },
+     {
+      "id": "H3",
+      "p": 1,
+      "alphaStep": 0.05,
+      "reject": false
+     }
+    ],
+    "disagree": false,
+    "governing": "mc",
+    "decisions": {
+     "H1": {
+      "reject": false,
+      "predictedSign": true,
+      "supportedUnderThisOutcome": false,
+      "sign": 1
+     },
+     "H2": {
+      "reject": false,
+      "predictedSign": true,
+      "supportedUnderThisOutcome": false,
+      "sign": 1
+     },
+     "H3": {
+      "reject": false,
+      "predictedSign": null,
+      "supportedUnderThisOutcome": null,
+      "sign": 1
+     }
+    }
+   },
+   "contrasts": [
+    {
+     "id": "H1",
+     "T": 5,
+     "mcP": 0.25148,
+     "exactP": 0.25,
+     "dbar": 0.8333333333333334,
+     "rr": 0.4444444444444444
+    },
+    {
+     "id": "H2",
+     "T": 6,
+     "mcP": 0.25092,
+     "exactP": 0.25,
+     "dbar": 1,
+     "rr": 0.3333333333333333
+    },
+    {
+     "id": "H3",
+     "T": 1,
+     "mcP": 1,
+     "exactP": 1,
+     "dbar": 0.16666666666666666,
+     "rr": 0.75
+    }
+   ]
+  },
+  "evasionBar": {
+   "cells": {
+    "none@L2": {
+     "cell": "none@L2",
+     "runs": 6,
+     "lastStepEdges": 21,
+     "lastStepExempt": 0,
+     "exemptShare": 0,
+     "runsWithRenameToExempt": 0,
+     "renameShare": 0
+    },
+    "none@L3": {
+     "cell": "none@L3",
+     "runs": 6,
+     "lastStepEdges": 8,
+     "lastStepExempt": 0,
+     "exemptShare": 0,
+     "runsWithRenameToExempt": 0,
+     "renameShare": 0
+    },
+    "mcp@L2": {
+     "cell": "mcp@L2",
+     "runs": 6,
+     "lastStepEdges": 3,
+     "lastStepExempt": 0,
+     "exemptShare": 0,
+     "runsWithRenameToExempt": 0,
+     "renameShare": 0
+    }
+   },
+   "contrasts": [
+    {
+     "id": "H1",
+     "exemptShareDiff": 0,
+     "renameShareDiff": 0,
+     "flagged": false
+    },
+    {
+     "id": "H2",
+     "exemptShareDiff": 0,
+     "renameShareDiff": 0,
+     "flagged": false
+    },
+    {
+     "id": "H3",
+     "exemptShareDiff": 0,
+     "renameShareDiff": 0,
+     "flagged": false
+    }
+   ]
+  },
+  "dsem": null,
+  "dsemNonAgent": null,
+  "agentJustificationSensitivity": {
+   "H1": {
+    "sensitive": null,
+    "reading": "not available (one of the two D_sem versions is missing)"
+   },
+   "H2": {
+    "sensitive": null,
+    "reading": "not available (one of the two D_sem versions is missing)"
+   },
+   "H3": {
+    "sensitive": null,
+    "reading": "not available (one of the two D_sem versions is missing)"
+   }
+  },
+  "semanticReading": {
+   "H1": {
+    "survives": null,
+    "reading": "D_sem not available (semantic layer not run, or configuration pending)"
+   },
+   "H2": {
+    "survives": null,
+    "reading": "D_sem not available (semantic layer not run, or configuration pending)"
+   },
+   "H3": {
+    "survives": null,
+    "reading": "D_sem not available (semantic layer not run, or configuration pending)"
+   }
+  },
+  "y1PositiveOnly": {
+   "blocks": 6,
+   "decisions": {
+    "H1": {
+     "reject": false,
+     "predictedSign": true,
+     "supportedUnderThisOutcome": false,
+     "sign": 1
+    },
+    "H2": {
+     "reject": false,
+     "predictedSign": true,
+     "supportedUnderThisOutcome": false,
+     "sign": 1
+    },
+    "H3": {
+     "reject": false,
+     "predictedSign": null,
+     "supportedUnderThisOutcome": null,
+     "sign": 1
+    }
+   },
+   "exactP": {
+    "H1": 0.25,
+    "H2": 0.25,
+    "H3": 1
+   }
+  },
+  "robustness": [
+   {
+    "id": "H1",
+    "signTestP": 0.375,
+    "signedRankP": 0.25,
+    "taskLevelExactP": 0.5
+   },
+   {
+    "id": "H2",
+    "signTestP": 0.25,
+    "signedRankP": 0.25,
+    "taskLevelExactP": 0.5
+   },
+   {
+    "id": "H3",
+    "signTestP": 1,
+    "signedRankP": 1,
+    "taskLevelExactP": 1
+   }
+  ],
+  "halves": {
+   "cut": 1,
+   "first": {
+    "blocks": 3,
+    "meanDnoneL2": 1.3333333333333333,
+    "dbar": {
+     "H1": 0.6666666666666666,
+     "H2": 1,
+     "H3": 0.3333333333333333
+    }
+   },
+   "second": {
+    "blocks": 3,
+    "meanDnoneL2": 1.6666666666666667,
+    "dbar": {
+     "H1": 1,
+     "H2": 1,
+     "H3": 0
+    }
+   },
+   "signReversal": {
+    "H1": false,
+    "H2": false,
+    "H3": false
+   }
+  },
+  "byLane": null,
+  "droppedFlagged": null
+ },
+ "v4": {
+  "partA": {
+   "cells": [
+    {
+     "cell": "none@L2",
+     "identities": 9,
+     "shares": {
+      "FF-S03": 1.0000000000000002
+     },
+     "m": 0,
+     "vacuous": false
+    },
+    {
+     "cell": "none@L3",
+     "identities": 4,
+     "shares": {
+      "FF-S03": 1
+     },
+     "m": 0,
+     "vacuous": false
+    },
+    {
+     "cell": "mcp@L2",
+     "identities": 3,
+     "shares": {
+      "FF-S03": 1
+     },
+     "m": 0,
+     "vacuous": false
+    }
+   ],
+   "pairs": [
+    {
+     "a": "none@L2",
+     "b": "none@L3",
+     "diff": 0,
+     "pass": true
+    },
+    {
+     "a": "none@L2",
+     "b": "mcp@L2",
+     "diff": 0,
+     "pass": true
+    },
+    {
+     "a": "none@L3",
+     "b": "mcp@L2",
+     "diff": 0,
+     "pass": true
+    }
+   ],
+   "pass": true,
+   "uninformative": true,
+   "dominantFamily": "FF-S03"
+  },
+  "partB": {
+   "cells": [
+    {
+     "cell": "none@L2",
+     "detected": 9,
+     "evaluated": 9,
+     "rate": 1,
+     "exemptSites": 2,
+     "allSites": 11,
+     "exemptShare": 0.18181818181818182
+    },
+    {
+     "cell": "none@L3",
+     "detected": 11,
+     "evaluated": 11,
+     "rate": 1,
+     "exemptSites": 1,
+     "allSites": 12,
+     "exemptShare": 0.08333333333333333
+    },
+    {
+     "cell": "mcp@L2",
+     "detected": 10,
+     "evaluated": 10,
+     "rate": 1,
+     "exemptSites": 2,
+     "allSites": 12,
+     "exemptShare": 0.16666666666666666
+    }
+   ],
+   "pairs": [
+    {
+     "a": "none@L2",
+     "b": "none@L3",
+     "diff": 0,
+     "interval": {
+      "low": 0,
+      "high": 0
+     },
+     "coversZero": true,
+     "pass": true
+    },
+    {
+     "a": "none@L2",
+     "b": "mcp@L2",
+     "diff": 0,
+     "interval": {
+      "low": 0,
+      "high": 0
+     },
+     "coversZero": true,
+     "pass": true
+    },
+    {
+     "a": "none@L3",
+     "b": "mcp@L2",
+     "diff": 0,
+     "interval": {
+      "low": 0,
+      "high": 0
+     },
+     "coversZero": true,
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "layeredConfirmatory": true,
+  "reading": "part A uninformative (one family >= 90 % in every cell; reported); part B passes: Layered confirmatory, conditional on part B"
+ },
+ "evasion": {
+  "mechanism": {
+   "steps": 24,
+   "withToolUse": 24,
+   "shareToolUse": 1,
+   "withCheck": 11,
+   "shareCheck": 0.4583333333333333,
+   "bar": 0.8,
+   "pass": true
+  },
+  "acceptance": null,
+  "concentration": {
+   "identities": 16,
+   "dominantFamily": "FF-S03",
+   "dominantShare": 1,
+   "presentationFF_S03Share": 1,
+   "scoped": true,
+   "scopeSentence": "100 % of counted identities are FF-S03: the claim is scoped to that family (composition-root wiring, G12)",
+   "withoutDominant": {
+    "decisions": {
+     "H1": {
+      "reject": false,
+      "predictedSign": false,
+      "supportedUnderThisOutcome": false,
+      "sign": 0
+     },
+     "H2": {
+      "reject": false,
+      "predictedSign": false,
+      "supportedUnderThisOutcome": false,
+      "sign": 0
+     },
+     "H3": {
+      "reject": false,
+      "predictedSign": null,
+      "supportedUnderThisOutcome": null,
+      "sign": 0
+     }
+    },
+    "exactP": {
+     "H1": 1,
+     "H2": 1,
+     "H3": 1
+    },
+    "dbar": {
+     "H1": 0,
+     "H2": 0,
+     "H3": 0
+    }
+   }
+  },
+  "computedElsewhere": {
+   "coverage": "scripts/v1.4/snapshot-coverage.ts",
+   "literalView": "stage-c-rescore at the literal view",
+   "movedOnly": "Docs/v1.4/evasion-check.md A2 + the blind read"
+  }
+ },
+ "reproduction2a": {
+  "seed": 20261019,
+  "resamples": 10000,
+  "cells": [
+   {
+    "cell": "none@L2",
+    "D": [
+     1,
+     0,
+     1,
+     3,
+     2,
+     2
+    ],
+    "sum": 9,
+    "mean": 1.5,
+    "meanInterval": {
+     "estimate": 1.5,
+     "low": 0.5,
+     "high": 2,
+     "method": "cluster-bootstrap",
+     "resamples": 10000,
+     "seed": 20261019,
+     "undefinedResamples": 0
+    },
+    "variance": 1.1,
+    "theta": null,
+    "distribution": {
+     "0": 1,
+     "1": 2,
+     "2": 2,
+     "3": 1
+    },
+    "Yk": [
+     2,
+     1,
+     5,
+     7,
+     3,
+     3
+    ],
+    "endStateZero": 0
+   },
+   {
+    "cell": "none@L3",
+    "D": [
+     2,
+     0,
+     0,
+     2,
+     0,
+     0
+    ],
+    "sum": 4,
+    "mean": 0.6666666666666666,
+    "meanInterval": {
+     "estimate": 0.6666666666666666,
+     "low": 0,
+     "high": 1,
+     "method": "cluster-bootstrap",
+     "resamples": 10000,
+     "seed": 20261019,
+     "undefinedResamples": 0
+    },
+    "variance": 1.0666666666666669,
+    "theta": 1.1111111111111103,
+    "distribution": {
+     "0": 4,
+     "2": 2
+    },
+    "Yk": [
+     2,
+     0,
+     0,
+     6,
+     0,
+     0
+    ],
+    "endStateZero": 4
+   },
+   {
+    "cell": "mcp@L2",
+    "D": [
+     1,
+     0,
+     0,
+     0,
+     0,
+     2
+    ],
+    "sum": 3,
+    "mean": 0.5,
+    "meanInterval": {
+     "estimate": 0.5,
+     "low": 0,
+     "high": 1,
+     "method": "cluster-bootstrap",
+     "resamples": 10000,
+     "seed": 20261019,
+     "undefinedResamples": 0
+    },
+    "variance": 0.7,
+    "theta": 1.2500000000000002,
+    "distribution": {
+     "0": 4,
+     "1": 1,
+     "2": 1
+    },
+    "Yk": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     3
+    ],
+    "endStateZero": 5
+   }
+  ],
+  "Y1": [
+   1,
+   1,
+   4,
+   4,
+   1,
+   1
+  ],
+  "ratios": [
+   {
+    "cell": "none@L3",
+    "sumCell": 4,
+    "sumReference": 9,
+    "ratio": {
+     "estimate": 0.4444444444444444,
+     "low": 0,
+     "high": 2,
+     "method": "cluster-bootstrap",
+     "resamples": 10000,
+     "seed": 20261019,
+     "undefinedResamples": 0
+    },
+    "differenceCellMinusReference": {
+     "estimate": -0.8333333333333334,
+     "low": -2,
+     "high": 0.5,
+     "method": "cluster-bootstrap",
+     "resamples": 10000,
+     "seed": 20261019,
+     "undefinedResamples": 0
+    }
+   },
+   {
+    "cell": "mcp@L2",
+    "sumCell": 3,
+    "sumReference": 9,
+    "ratio": {
+     "estimate": 0.3333333333333333,
+     "low": 0,
+     "high": 1,
+     "method": "cluster-bootstrap",
+     "resamples": 10000,
+     "seed": 20261019,
+     "undefinedResamples": 0
+    },
+    "differenceCellMinusReference": {
+     "estimate": -1,
+     "low": -2,
+     "high": 0,
+     "method": "cluster-bootstrap",
+     "resamples": 10000,
+     "seed": 20261019,
+     "undefinedResamples": 0
+    }
+   }
+  ]
+ }
+}

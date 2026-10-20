@@ -1,0 +1,109 @@
+{
+  "itemId": "50b830f77ad06c02",
+  "itemName": "TemperatureRepository",
+  "key": "bf2d6abb77898801e6e8bda302d57f58089890b1fc3f6ed17cc74a61f4067013",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "d706a04ca65e9a5c365619a9e6377a33ba2a9f8b7455b5f24f6b7ceaf022b029",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass TemperatureRepository (node 50b830f77ad06c02), file src/persistence/temperatureRepository.ts, lines 3-23.\nComponent: persistence. Declared layer: persistence (kind infrastructure).\nMethods:\n- add (node a25da41ce1f0ebbc, lines 7-10, logic density 2)\n- latest (node 8d405a8bef63d4a2, lines 12-14, logic density 1)\n- getSpell (node b6534d188ca17cc7, lines 16-18, logic density 0)\n- setSpell (node fc873e1ba69100a1, lines 20-22, logic density 0)\nFields: readings, spell\n\n## APG neighbourhood\nGraph statistics: 4 methods; fan-out 0; fan-in 2 (CALLS 1, CONSTRUCTOR_INJECTS 1).\n- <- CALLS Method RinkService.recordTemperature (src/business/rinkService.ts)\n- <- CONSTRUCTOR_INJECTS Class RinkService (src/business/rinkService.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- TemperatureRepository: nameRole=\"repository\"\n- TemperatureRepository: behaviourRole=\"coordination\"\n- TemperatureRepository: ioCategories=[]\n- TemperatureRepository: lcom4=2\n- TemperatureRepository: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- TemperatureRepository.add: logicDensity={\"branches\":1,\"comparisons\":1,\"arithmetic\":0,\"validationThrows\":0,\"density\":2}\n- TemperatureRepository.latest: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":1,\"validationThrows\":0,\"density\":1}\n- TemperatureRepository.getSpell: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- TemperatureRepository.setSpell: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\nFlags:\n- shared-literals/shared-number-literal: literal \"1000\" also used in component(s) business\n\n## Source\n=====SOURCE-BEGIN src/persistence/temperatureRepository.ts\n 3| export class TemperatureRepository {\n 4|   private readings: TemperatureReading[] = [];\n 5|   private spell: WarmSpell = { triggered: false };\n 6| \n 7|   add(reading: TemperatureReading): void {\n 8|     this.readings.push(reading);\n 9|     if (this.readings.length > 1000) this.readings.shift();\n10|   }\n11| \n12|   latest(): TemperatureReading | undefined {\n13|     return this.readings[this.readings.length - 1];\n14|   }\n15| \n16|   getSpell(): WarmSpell {\n17|     return { ...this.spell };\n18|   }\n19| \n20|   setSpell(spell: WarmSpell): void {\n21|     this.spell = { ...spell };\n22|   }\n23| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T15:18:25.722Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 4,
+            "file": "src/persistence/temperatureRepository.ts",
+            "nodeId": "50b830f77ad06c02",
+            "quote": "private readings: TemperatureReading[] = [];",
+            "startLine": 4
+          }
+        ],
+        "name": "Temperature Reading",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 5,
+            "file": "src/persistence/temperatureRepository.ts",
+            "nodeId": "50b830f77ad06c02",
+            "quote": "private spell: WarmSpell = { triggered: false };",
+            "startLine": 5
+          }
+        ],
+        "name": "Warm Spell",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Keeps an in-memory, bounded history of rink temperature readings, discarding the oldest once 1000 readings are held.",
+        "evidence": [
+          {
+            "endLine": 10,
+            "file": "src/persistence/temperatureRepository.ts",
+            "nodeId": "a25da41ce1f0ebbc",
+            "quote": "if (this.readings.length > 1000) this.readings.shift();",
+            "startLine": 7
+          }
+        ],
+        "name": "Store temperature reading history",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Returns the most recently recorded temperature reading, if there is one.",
+        "evidence": [
+          {
+            "endLine": 14,
+            "file": "src/persistence/temperatureRepository.ts",
+            "nodeId": "8d405a8bef63d4a2",
+            "quote": "return this.readings[this.readings.length - 1];",
+            "startLine": 12
+          }
+        ],
+        "name": "Provide latest temperature reading",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Stores and returns copies of the current warm-spell state, which records whether a warm spell has been triggered.",
+        "evidence": [
+          {
+            "endLine": 22,
+            "file": "src/persistence/temperatureRepository.ts",
+            "nodeId": "fc873e1ba69100a1",
+            "quote": "this.spell = { ...spell };",
+            "startLine": 20
+          },
+          {
+            "endLine": 18,
+            "file": "src/persistence/temperatureRepository.ts",
+            "nodeId": "b6534d188ca17cc7",
+            "quote": "return { ...this.spell };",
+            "startLine": 16
+          }
+        ],
+        "name": "Persist warm spell state",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 3287,
+    "outputTokens": 843
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "itemId": "3de2d5975e9333a5",
+  "itemName": "Ice Temperature Reading ~ Temperature Reading",
+  "key": "b1098e6a3cdaceb897157f35e454e2be4f3ae453dd0c0fe8add37b536d62f00f",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "78280a16037a950115011965401c6b5401df6874a25610e45c02a50b54a181f2",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Ice Temperature Reading\nwhere: RinkService (uses), src/business/rinkService.ts, component business\ncode:\n=====SOURCE-BEGIN\nthis.temperatures.add({ temperatureC: temp, at });\n=====SOURCE-END=====\ngraph:\n- class RinkService (node 21c65604dec116b1): layer domain, component business, fan-out 25, fan-in 0\n- -> CALLS Method BookingRepository.create\n- -> CALLS Method BookingRepository.get\n- -> CALLS Method BookingRepository.groupBySession\n- -> CALLS Method BookingRepository.list\n- -> CALLS Method BookingRepository.listByMembership\n- -> CALLS Method BookingRepository.listBySession\n- -> CALLS Method BookingRepository.update\n- -> CALLS Method ClubBookingRepository.create\n\n### B\nconcept: Temperature Reading\nwhere: TemperatureRepository (uses), src/persistence/temperatureRepository.ts, component persistence\ncode:\n=====SOURCE-BEGIN\nprivate readings: TemperatureReading[] = [];\n=====SOURCE-END=====\ngraph:\n- class TemperatureRepository (node 50b830f77ad06c02): layer infrastructure, component persistence, fan-out 0, fan-in 2\n- <- CALLS Method RinkService.recordTemperature\n- <- CONSTRUCTOR_INJECTS Class RinkService",
+  "recordedAt": "2026-10-20T15:23:46.563Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.88,
+    "rationale": "A and B are the same concept. RinkService (node 21c65604dec116b1, src/business/rinkService.ts) builds a reading with `this.temperatures.add({ temperatureC: temp, at });`. TemperatureRepository (node 50b830f77ad06c02, src/persistence/temperatureRepository.ts) stores these as `private readings: TemperatureReading[] = [];`. The graph shows TemperatureRepository is constructor-injected into RinkService and called by RinkService.recordTemperature, so `this.temperatures` is almost certainly that repository. The service creates the ice temperature reading and the repository stores it; \"Ice\" in A's name only adds rink context. Confidence is not total because the repository's add method and the TemperatureReading type definition are not visible.",
+    "same": true
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 1961,
+    "outputTokens": 705
+  }
+}

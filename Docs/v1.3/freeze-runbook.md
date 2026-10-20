@@ -77,7 +77,7 @@ Add to `Docs/v1.3/adr-v13.md`, after ADR-V13-01, the sections below. Their conte
 ```markdown
 ## ADR-V13-03: Construct decisions Q1–Q25
 
-**Date**: <date>. **Status**: Accepted (author: "<the author's words>").
+**Date**: <date>. **Status**: Accepted (author decision: <summary of the decision>).
 
 Answers file: `Docs/v1.3/construct-answers.json` (sha256 <sha>). One entry per answered question that owes an
 ADR (applicability, rule, preset, policy, tier), each naming its question, e.g. "Q3 C: ...".

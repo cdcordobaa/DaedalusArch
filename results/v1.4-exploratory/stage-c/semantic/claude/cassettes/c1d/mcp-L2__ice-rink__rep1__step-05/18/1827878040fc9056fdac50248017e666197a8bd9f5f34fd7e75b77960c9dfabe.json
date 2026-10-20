@@ -1,0 +1,102 @@
+{
+  "itemId": "ada57feca2e90c67",
+  "itemName": "HireStockRepository",
+  "key": "1827878040fc9056fdac50248017e666197a8bd9f5f34fd7e75b77960c9dfabe",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "af30c63e24c1b18000b999a08ecb2844556baa35c045cd1ee39548d66d9f7c1a",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass HireStockRepository (node ada57feca2e90c67), file src/persistence/hireStockRepository.ts, lines 2-16.\nComponent: persistence. Declared layer: persistence (kind infrastructure).\nMethods:\n- set (node e83b7cf624374151, lines 5-7, logic density 0)\n- get (node f059274e911452e5, lines 9-11, logic density 0)\n- all (node 9ae07999c2a3823d, lines 13-15, logic density 0)\nFields: stock\n\n## APG neighbourhood\nGraph statistics: 3 methods; fan-out 0; fan-in 5 (CALLS 4, CONSTRUCTOR_INJECTS 1).\n- <- CALLS Method RinkService.getAvailability (src/business/rinkService.ts)\n- <- CALLS Method RinkService.getHireStock (src/business/rinkService.ts)\n- <- CALLS Method RinkService.purchase (src/business/rinkService.ts)\n- <- CALLS Method RinkService.setHireStock (src/business/rinkService.ts)\n- <- CONSTRUCTOR_INJECTS Class RinkService (src/business/rinkService.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- HireStockRepository: nameRole=\"repository\"\n- HireStockRepository: behaviourRole=\"coordination\"\n- HireStockRepository: ioCategories=[]\n- HireStockRepository: lcom4=1\n- HireStockRepository: responsibilityBreadth={\"breadth\":0,\"ioCategories\":[],\"componentDependencies\":[]}\n- HireStockRepository.set: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- HireStockRepository.get: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- HireStockRepository.all: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n\n## Comments near the code\n- HireStockRepository: Fixed stock of hire skates per shoe size.\n\n## Source\n=====SOURCE-BEGIN src/persistence/hireStockRepository.ts\n 2| export class HireStockRepository {\n 3|   private readonly stock = new Map<string, number>();\n 4| \n 5|   set(size: string, quantity: number): void {\n 6|     this.stock.set(size, quantity);\n 7|   }\n 8| \n 9|   get(size: string): number {\n10|     return this.stock.get(size) ?? 0;\n11|   }\n12| \n13|   all(): Record<string, number> {\n14|     return Object.fromEntries(this.stock);\n15|   }\n16| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:51:20.976Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.75,
+        "evidence": [
+          {
+            "endLine": 3,
+            "file": "src/persistence/hireStockRepository.ts",
+            "nodeId": "ada57feca2e90c67",
+            "quote": "private readonly stock = new Map<string, number>();",
+            "startLine": 3
+          }
+        ],
+        "name": "Hire Skate Stock",
+        "relation": "defines"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 5,
+            "file": "src/persistence/hireStockRepository.ts",
+            "nodeId": "e83b7cf624374151",
+            "quote": "set(size: string, quantity: number): void {",
+            "startLine": 5
+          }
+        ],
+        "name": "Shoe Size",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Records how many hire skates are held for each shoe size, keeping them in an in-memory map.",
+        "evidence": [
+          {
+            "endLine": 7,
+            "file": "src/persistence/hireStockRepository.ts",
+            "nodeId": "e83b7cf624374151",
+            "quote": "this.stock.set(size, quantity);",
+            "startLine": 5
+          }
+        ],
+        "name": "Store hire skate stock per shoe size",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Returns the stocked quantity for a given shoe size. A size with no recorded stock counts as zero.",
+        "evidence": [
+          {
+            "endLine": 11,
+            "file": "src/persistence/hireStockRepository.ts",
+            "nodeId": "f059274e911452e5",
+            "quote": "return this.stock.get(size) ?? 0;",
+            "startLine": 9
+          }
+        ],
+        "name": "Look up hire skate stock for a size",
+        "naturalLayer": "infrastructure"
+      },
+      {
+        "confidence": 0.8,
+        "description": "Gives a snapshot of the stock level for every shoe size.",
+        "evidence": [
+          {
+            "endLine": 15,
+            "file": "src/persistence/hireStockRepository.ts",
+            "nodeId": "9ae07999c2a3823d",
+            "quote": "return Object.fromEntries(this.stock);",
+            "startLine": 13
+          }
+        ],
+        "name": "List all hire skate stock",
+        "naturalLayer": "infrastructure"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 3168,
+    "outputTokens": 754
+  }
+}

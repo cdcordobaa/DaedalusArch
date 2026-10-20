@@ -1,0 +1,157 @@
+{
+  "itemId": "component:business",
+  "itemName": "component:business",
+  "key": "dc666715d55c99f830e2970983c0990e1da1d0fcb4a0142ef3c8808d1d3aa01f",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "5356e6b36fd39deec9a68f7c8bb07da9765fc9661b9c7c3961307ec7d88e5a32",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of component \"business\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- NotFoundError (node 1d689d7aed6f811c), file src/business/errors.ts, declaration line 2: \"export class NotFoundError extends Error {}\"\n  component business, layer domain; responsibilities: Signal missing business resource\n- TreatmentService (node 2912145e8ad12343), file src/business/treatmentService.ts, declaration line 24: \"export class TreatmentService {\"\n  component business, layer domain; responsibilities: Treatment product catalogue registration; Recording hive treatments with owner authorisation; Treatment history and product listing queries\n- ConflictError (node 97d78fc7fa6c1e13), file src/business/errors.ts, declaration line 4: \"export class ConflictError extends Error {}\"\n  component business, layer domain; responsibilities: Signal business conflict\n- ValidationError (node a1528852461831a2), file src/business/errors.ts, declaration line 1: \"export class ValidationError extends Error {}\"\n  component business, layer domain; responsibilities: Signal business validation failure\n- HiveService (node a539722e0cf13224), file src/business/hiveService.ts, declaration line 32: \"export class HiveService {\"\n  component business, layer domain; responsibilities: Apiary registration and listing; Hive registration with ownership rule; Hive status views; Inspection recording and validation; Inspection history and latest inspection; Varroa treatment-need flagging\n- ReportService (node a663bd12cbc0090c), file src/business/reportService.ts, declaration line 30: \"export class ReportService {\"\n  component business, layer domain; responsibilities: Compile quarterly regional beekeeping report; Determine quarter date window\n- HarvestService (node e4a0a62f13370a5f), file src/business/harvestService.ts, declaration line 13: \"export class HarvestService {\"\n  component business, layer domain; responsibilities: Enforce hive ownership for harvest recording; Validate harvest data; Refuse harvests during treatment or withdrawal period; Record harvest use case; List harvests of a hive\n- ForbiddenError (node eda714dca104af35), file src/business/errors.ts, declaration line 3: \"export class ForbiddenError extends Error {}\"\n  component business, layer domain; responsibilities: Signal authorization denial\n- ScaleService (node f7e458262ae72ac4), file src/business/scaleService.ts, declaration line 23: \"export class ScaleService {\"\n  component business, layer domain; responsibilities: Link a hive scale to a hive; Detect a suspected swarm from weight loss; Suppress swarm alerts; Schedule and send the swarm SMS alert\n\n## APG relations of the group\nGraph statistics: 9 classes; 2 relations inside the group; 55 outgoing relations to code outside it.\n- ReportService -> CALLS HiveService\n- ReportService -> CONSTRUCTOR_INJECTS HiveService\n\n## Comments near the code\n- HiveService.isFlagged: Flagged from a high-mite inspection until a treatment starting after it / is followed by a later inspection at or under the threshold.",
+  "recordedAt": "2026-10-20T12:21:57.686Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.85,
+        "description": "Beekeepers register apiaries and the hives in them, with ownership rules, and can see hive status.",
+        "evidence": [
+          {
+            "endLine": 32,
+            "file": "src/business/hiveService.ts",
+            "nodeId": "a539722e0cf13224",
+            "quote": "export class HiveService {",
+            "startLine": 32
+          }
+        ],
+        "name": "Apiary and hive registration",
+        "realizedBy": [
+          "a539722e0cf13224"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "Records and validates hive inspections, keeps inspection history, and flags hives whose mite counts call for treatment.",
+        "evidence": [
+          {
+            "endLine": 32,
+            "file": "src/business/hiveService.ts",
+            "nodeId": "a539722e0cf13224",
+            "quote": "export class HiveService {",
+            "startLine": 32
+          }
+        ],
+        "name": "Hive inspection and varroa monitoring",
+        "realizedBy": [
+          "a539722e0cf13224"
+        ]
+      },
+      {
+        "confidence": 0.85,
+        "description": "Keeps a catalogue of treatment products and records treatments applied to hives, checking that the user owns the hive, with queries for treatment history.",
+        "evidence": [
+          {
+            "endLine": 24,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "2912145e8ad12343",
+            "quote": "export class TreatmentService {",
+            "startLine": 24
+          }
+        ],
+        "name": "Hive treatment management",
+        "realizedBy": [
+          "2912145e8ad12343"
+        ]
+      },
+      {
+        "confidence": 0.85,
+        "description": "Records and lists hive harvests, checking ownership and data validity, and refuses harvests during a treatment or withdrawal period.",
+        "evidence": [
+          {
+            "endLine": 13,
+            "file": "src/business/harvestService.ts",
+            "nodeId": "e4a0a62f13370a5f",
+            "quote": "export class HarvestService {",
+            "startLine": 13
+          }
+        ],
+        "name": "Honey harvest recording",
+        "realizedBy": [
+          "e4a0a62f13370a5f"
+        ]
+      },
+      {
+        "confidence": 0.85,
+        "description": "Links hive scales to hives, spots a suspected swarm from weight loss, and schedules SMS alerts, with an option to suppress them.",
+        "evidence": [
+          {
+            "endLine": 23,
+            "file": "src/business/scaleService.ts",
+            "nodeId": "f7e458262ae72ac4",
+            "quote": "export class ScaleService {",
+            "startLine": 23
+          }
+        ],
+        "name": "Swarm detection and alerting",
+        "realizedBy": [
+          "f7e458262ae72ac4"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "Builds a quarterly report of beekeeping activity per region for a given quarter's date range, using hive data.",
+        "evidence": [
+          {
+            "endLine": 30,
+            "file": "src/business/reportService.ts",
+            "nodeId": "a663bd12cbc0090c",
+            "quote": "export class ReportService {",
+            "startLine": 30
+          }
+        ],
+        "name": "Quarterly regional beekeeping reporting",
+        "realizedBy": [
+          "a663bd12cbc0090c",
+          "a539722e0cf13224"
+        ]
+      },
+      {
+        "confidence": 0.55,
+        "description": "Reports invalid input, missing resources, denied access and conflicting operations as distinct business outcomes.",
+        "evidence": [
+          {
+            "endLine": 1,
+            "file": "src/business/errors.ts",
+            "nodeId": "a1528852461831a2",
+            "quote": "export class ValidationError extends Error {}",
+            "startLine": 1
+          },
+          {
+            "endLine": 3,
+            "file": "src/business/errors.ts",
+            "nodeId": "eda714dca104af35",
+            "quote": "export class ForbiddenError extends Error {}",
+            "startLine": 3
+          }
+        ],
+        "name": "Business rule violation signalling",
+        "realizedBy": [
+          "a1528852461831a2",
+          "1d689d7aed6f811c",
+          "eda714dca104af35",
+          "97d78fc7fa6c1e13"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2777,
+    "outputTokens": 1508
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "itemId": "b188f48e27bc5135",
+  "itemName": "Treatment Product ~ Treatment",
+  "key": "0f7292ef16cee6ebf36ce76248938fff3383070ffa3b0fe9150dd885f559c620",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "adjudicate",
+    "promptHash": "17d8e5f798eb8b0902c58b153ef7672f3809a3aed7c2bd4068d28d6242b547e2",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "a9728eb9ba64d3756b4588865894c34d4b4ca95e13a54da5518e1f3b8057fcc0",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nDo A and B name the same business concept (the same real-world thing, so the classes model one concept under different names)? Concepts that merely share attributes such as an id or a date are not the same.\n\n### A\nconcept: Treatment Product\nwhere: TreatmentProductRepository (uses), src/persistence/repositories.ts, component persistence\ncode:\n=====SOURCE-BEGIN\nprivate readonly items = new Map<string, TreatmentProductRecord>();\n=====SOURCE-END=====\ngraph:\n- class TreatmentProductRepository (node 4799b1081a692790): layer infrastructure, component persistence, fan-out 0, fan-in 8\n- <- CALLS Method HarvestService.recordHarvest\n- <- CALLS Method ReportService.quarterly\n- <- CALLS Method TreatmentService.addProduct\n- <- CALLS Method TreatmentService.listProducts\n- <- CALLS Method TreatmentService.recordTreatment\n- <- CONSTRUCTOR_INJECTS Class HarvestService\n- <- CONSTRUCTOR_INJECTS Class ReportService\n- <- CONSTRUCTOR_INJECTS Class TreatmentService\n\n### B\nconcept: Treatment\nwhere: HarvestService (uses), src/business/harvestService.ts, component business\ncode:\n=====SOURCE-BEGIN\nfor (const t of this.treatments.findByHive(hiveId)) {\n=====SOURCE-END=====\ngraph:\n- class HarvestService (node e4a0a62f13370a5f): layer domain, component business, fan-out 9, fan-in 0\n- -> CALLS Method HarvestRepository.create\n- -> CALLS Method HarvestRepository.findByHive\n- -> CALLS Method HiveRepository.findById\n- -> CALLS Method TreatmentProductRepository.findById\n- -> CALLS Method TreatmentRepository.findByHive\n- -> CONSTRUCTOR_INJECTS Class HarvestRepository\n- -> CONSTRUCTOR_INJECTS Class HiveRepository\n- -> CONSTRUCTOR_INJECTS Class TreatmentProductRepository",
+  "recordedAt": "2026-10-20T12:28:17.523Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "confidence": 0.88,
+    "rationale": "These are two different concepts that are related to each other. A Treatment Product is a catalogue item: the persistence layer keeps them as `TreatmentProductRecord` in `TreatmentProductRepository`, and `TreatmentService.addProduct` and `TreatmentService.listProducts` manage them. A Treatment is an event tied to one hive, which is why `HarvestService` looks them up with `this.treatments.findByHive(hiveId)` in `TreatmentRepository`. `HarvestService` uses both: it calls `TreatmentRepository.findByHive` and, separately, `TreatmentProductRepository.findById`. That fits a treatment pointing to the product it uses, so a treatment applies a product rather than being one. They have separate repositories and are used in different ways, so they are not the same thing under two names.",
+    "same": false
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2143,
+    "outputTokens": 434
+  }
+}

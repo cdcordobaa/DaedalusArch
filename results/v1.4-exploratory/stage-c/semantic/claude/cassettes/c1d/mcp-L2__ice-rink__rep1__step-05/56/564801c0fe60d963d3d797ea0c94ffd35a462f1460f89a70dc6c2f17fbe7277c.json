@@ -1,0 +1,154 @@
+{
+  "itemId": "component:business",
+  "itemName": "component:business",
+  "key": "564801c0fe60d963d3d797ea0c94ffd35a462f1460f89a70dc6c2f17fbe7277c",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "capability",
+    "promptHash": "6c22f672280e81e2b9fd547cadaedcb5f8c82f7d8a041faff0474a71fc5dc379",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 0,
+    "schemaHash": "debbb15b33d8f329956f9403806ac72c408d9339f4a4234f4ce1cbb3697b794f",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nName the business capabilities that the classes of component \"business\" realize together: what the business can do thanks to this code (for example \"Order pricing\", \"Customer notification\"). Name a capability in business language, independent of class names. For each, list the node ids of the classes that realize it and cite the declaration line of at least one of them.\n\n## Classes\n- DomainError (node 07801d262a4a214c), file src/business/errors.ts, declaration line 1: \"export class DomainError extends Error {\"\n  component business, layer domain; responsibilities: Classify business rule failures; Carry a human-readable failure message\n- RinkService (node 21c65604dec116b1), file src/business/rinkService.ts, declaration line 52: \"export class RinkService {\"\n  component business, layer domain; responsibilities: Session scheduling and validation; Session hold lifecycle (release/cancel with refunds); Hire skate stock management; Availability and effective capacity calculation; Ticket purchase with pricing and oversell protection; Membership free-session entitlement; Payment checkout orchestration; Payment result settlement; Expiry of unpaid bookings\n- ClubService (node 2e2e749b26fb57a2), file src/business/clubService.ts, declaration line 40: \"export class ClubService {\"\n  component business, layer domain; responsibilities: Club hourly rate management; Club rink booking with conflict detection; Monthly club invoicing; Club booking listing\n- ReportService (node a663bd12cbc0090c), file src/business/reportService.ts, declaration line 58: \"export class ReportService {\"\n  component business, layer domain; responsibilities: Determine weekly reporting period; Compute per-session sales, attendance and refund figures; Flag sessions held or cancelled for ice; Aggregate weekly totals for the manager's report; Gather report data from repositories\n- IceMonitorService (node f59a45a01c2ed338), file src/business/iceMonitorService.ts, declaration line 23: \"export class IceMonitorService {\"\n  component business, layer domain; responsibilities: Validate ice temperature readings; Track sustained warm-ice condition; Put the next skating session on ice hold; Notify booking holders of the session hold\n\n## APG relations of the group\nGraph statistics: 5 classes; 0 relations inside the group; 46 outgoing relations to code outside it.\n- (none)\n\n## Comments near the code\n- RinkService.effectiveCapacity: Capacity left after club bookings: halved by one blocked half, zero when both are blocked.\n- RinkService.createSession: ---- manager operations ----\n- RinkService.releaseSession: Manager: puts a held session back on sale.\n- RinkService.cancelSession: Manager: cancels a held session and refunds every ticket through PuckPay. Safe to retry.\n- RinkService.listSessions: ---- public queries ----\n- RinkService.purchase: ---- purchasing ----\n- RinkService.handlePaymentResult: Handles PuckPay's webhook. Idempotent for already-settled bookings.\n- RinkService.expireOverdue: Releases unpaid bookings whose 15-minute window has elapsed.\n- RinkService.usage: Tickets and hire skates held by pending or paid bookings.\n- ClubService.invoice: Monthly invoice: hours at the club rate; a half rink is charged at half the rate.\n- ReportService: Builds the manager's weekly report; one pass over the period's sessions and their bookings.\n- ReportService.weekly: `from` defaults to the Monday of the current week, `to` to six days after `from`.\n- IceMonitorService: Turns FrostSense readings into session holds.\n- IceMonitorService.nextSession: The earliest session that has not started yet and is not cancelled.",
+  "recordedAt": "2026-10-20T12:52:24.526Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "capabilities": [
+      {
+        "confidence": 0.85,
+        "description": "The rink can schedule public skating sessions, check them against the rules, and work out how many places are left once club bookings take up half or all of the ice.",
+        "evidence": [
+          {
+            "endLine": 52,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "21c65604dec116b1",
+            "quote": "export class RinkService {",
+            "startLine": 52
+          }
+        ],
+        "name": "Public skating session scheduling and capacity management",
+        "realizedBy": [
+          "21c65604dec116b1"
+        ]
+      },
+      {
+        "confidence": 0.85,
+        "description": "Customers can buy session tickets at the right price without the session being oversold. Payment goes through the payment provider. Bookings are settled when the payment result arrives, and unpaid bookings are released once their payment window runs out.",
+        "evidence": [
+          {
+            "endLine": 52,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "21c65604dec116b1",
+            "quote": "export class RinkService {",
+            "startLine": 52
+          }
+        ],
+        "name": "Ticket sales with online payment",
+        "realizedBy": [
+          "21c65604dec116b1"
+        ]
+      },
+      {
+        "confidence": 0.7,
+        "description": "The rink keeps track of its hire skates and how many of them are held by bookings, so customers can hire skates along with their tickets.",
+        "evidence": [
+          {
+            "endLine": 52,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "21c65604dec116b1",
+            "quote": "export class RinkService {",
+            "startLine": 52
+          }
+        ],
+        "name": "Skate hire stock management",
+        "realizedBy": [
+          "21c65604dec116b1"
+        ]
+      },
+      {
+        "confidence": 0.6,
+        "description": "Members get free sessions as part of their membership.",
+        "evidence": [
+          {
+            "endLine": 52,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "21c65604dec116b1",
+            "quote": "export class RinkService {",
+            "startLine": 52
+          }
+        ],
+        "name": "Membership free-session entitlement",
+        "realizedBy": [
+          "21c65604dec116b1"
+        ]
+      },
+      {
+        "confidence": 0.85,
+        "description": "Clubs can book all or half of the rink, with conflicting bookings detected. Each club has an hourly rate, and clubs are invoiced every month for the hours they booked, with half-rink hours charged at half the rate.",
+        "evidence": [
+          {
+            "endLine": 40,
+            "file": "src/business/clubService.ts",
+            "nodeId": "2e2e749b26fb57a2",
+            "quote": "export class ClubService {",
+            "startLine": 40
+          }
+        ],
+        "name": "Club rink hire and monthly invoicing",
+        "realizedBy": [
+          "2e2e749b26fb57a2"
+        ]
+      },
+      {
+        "confidence": 0.8,
+        "description": "The rink checks ice temperature readings from its sensor. If the ice stays too warm, the next session is put on hold and its booking holders are notified. A manager can then put the session back on sale, or cancel it and refund every ticket.",
+        "evidence": [
+          {
+            "endLine": 23,
+            "file": "src/business/iceMonitorService.ts",
+            "nodeId": "f59a45a01c2ed338",
+            "quote": "export class IceMonitorService {",
+            "startLine": 23
+          },
+          {
+            "endLine": 52,
+            "file": "src/business/rinkService.ts",
+            "nodeId": "21c65604dec116b1",
+            "quote": "export class RinkService {",
+            "startLine": 52
+          }
+        ],
+        "name": "Ice condition monitoring and session safety holds",
+        "realizedBy": [
+          "f59a45a01c2ed338",
+          "21c65604dec116b1"
+        ]
+      },
+      {
+        "confidence": 0.85,
+        "description": "The manager gets a weekly report showing sales, attendance and refunds for each session, which sessions were held or cancelled because of the ice, and totals for the week.",
+        "evidence": [
+          {
+            "endLine": 58,
+            "file": "src/business/reportService.ts",
+            "nodeId": "a663bd12cbc0090c",
+            "quote": "export class ReportService {",
+            "startLine": 58
+          }
+        ],
+        "name": "Weekly management reporting",
+        "realizedBy": [
+          "a663bd12cbc0090c"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 2885,
+    "outputTokens": 1730
+  }
+}

@@ -1,0 +1,230 @@
+{
+  "itemId": "2912145e8ad12343",
+  "itemName": "TreatmentService",
+  "key": "08f1540c27984d2dc87f41fa37c70edc8d4e00b91a8a34e5fd0bc17c9644c469",
+  "parts": {
+    "model": "claude-opus-5-5",
+    "pass": "responsibility",
+    "promptHash": "9afa8b58bfe21e98554fae2fd6ff94332deaa9b72eb089c2b60875b307a74d02",
+    "promptVersion": "ontology-v0.3",
+    "provider": "claude-cli",
+    "runIndex": 1,
+    "schemaHash": "86b7142209f50e75663e2c7551f16602ebb4d73cac0359de735177b1ecf71d25",
+    "systemHash": "9ca30fdbe878ce4d4c839f265686cd5395ba0d8862ac43ad72a24dab037da68d"
+  },
+  "prompt": "## Task\nList the responsibilities of the class below: what it is responsible for in business terms, one entry per distinct responsibility. For each, give the layer kind it naturally belongs to in a layered architecture (domain: business rules and business concepts; application: use-case orchestration; infrastructure: I/O and technical adapters; presentation: transport and user interface), whatever layer the class is in.\nAlso list the business concepts the class embodies, named in the ubiquitous language of the business domain (for example Customer, Order, Invoice), not by the class name. Use relation \"defines\" when the class models the concept itself (an entity or value of it) and \"uses\" when it only handles one.\nCite the class node id or a method node id, and quote the code that shows the claim.\nLayer kinds: domain, application, infrastructure, presentation.\n\n## Class\nClass TreatmentService (node 2912145e8ad12343), file src/business/treatmentService.ts, lines 13-110.\nComponent: business. Declared layer: business (kind domain).\nMethods:\n- registerProduct (node bf616c365c33388f, lines 21-34, logic density 3)\n- listProducts (node d2bd39d3ed6f1b95, lines 36-38, logic density 0)\n- recordTreatment (node 72d370555108c6ea, lines 40-60, logic density 8)\n- listTreatments (node f7ca3c201150d6e2, lines 62-65, logic density 0)\n- recordHarvest (node 59d9d557e26b05fa, lines 67-84, logic density 6)\n- listHarvests (node 502f3a2735f24d62, lines 86-89, logic density 0)\n- assertHarvestAllowed (node e12a9abbf3c8839d, lines 91-103, logic density 11)\n- findHive (node d67ad9ffbe6790a4, lines 105-109, logic density 2)\nFields: products, treatments, harvests, hives\n\n## APG neighbourhood\nGraph statistics: 8 methods; fan-out 12 (CALLS 8, CONSTRUCTOR_INJECTS 4); fan-in 0.\n- -> CALLS Method HarvestRepository.create (src/persistence/repositories.ts)\n- -> CALLS Method HarvestRepository.findByHive (src/persistence/repositories.ts)\n- -> CALLS Method HiveRepository.findById (src/persistence/repositories.ts)\n- -> CALLS Method TreatmentProductRepository.create (src/persistence/repositories.ts)\n- -> CALLS Method TreatmentProductRepository.findAll (src/persistence/repositories.ts)\n- -> CALLS Method TreatmentProductRepository.findById (src/persistence/repositories.ts)\n- -> CALLS Method TreatmentRepository.create (src/persistence/repositories.ts)\n- -> CALLS Method TreatmentRepository.findByHive (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class HarvestRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class HiveRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class TreatmentProductRepository (src/persistence/repositories.ts)\n- -> CONSTRUCTOR_INJECTS Class TreatmentRepository (src/persistence/repositories.ts)\n\n## Cheap facts (deterministic proxies; candidates, not verdicts)\n- TreatmentService: nameRole=\"service\"\n- TreatmentService: behaviourRole=\"business-logic\"\n- TreatmentService: ioCategories=[]\n- TreatmentService: lcom4=1\n- TreatmentService: responsibilityBreadth={\"breadth\":1,\"ioCategories\":[],\"componentDependencies\":[\"persistence\"]}\n- TreatmentService.registerProduct: logicDensity={\"branches\":1,\"comparisons\":1,\"arithmetic\":0,\"validationThrows\":1,\"density\":3}\n- TreatmentService.listProducts: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- TreatmentService.recordTreatment: logicDensity={\"branches\":3,\"comparisons\":2,\"arithmetic\":0,\"validationThrows\":3,\"density\":8}\n- TreatmentService.listTreatments: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- TreatmentService.recordHarvest: logicDensity={\"branches\":2,\"comparisons\":2,\"arithmetic\":0,\"validationThrows\":2,\"density\":6}\n- TreatmentService.listHarvests: logicDensity={\"branches\":0,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":0,\"density\":0}\n- TreatmentService.assertHarvestAllowed: logicDensity={\"branches\":3,\"comparisons\":4,\"arithmetic\":2,\"validationThrows\":2,\"density\":11}\n- TreatmentService.findHive: logicDensity={\"branches\":1,\"comparisons\":0,\"arithmetic\":0,\"validationThrows\":1,\"density\":2}\nFlags:\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of ScaleService.linkScale in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of ScaleService.linkScale in component business\n- clones/same-component-near: fragment clone (near, similarity 0.80) of ScaleService.linkScale in component business\n- clones/same-component-near: fragment clone (near, similarity 0.80) of ScaleService.linkScale in component business\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of BeekeepingService.getApiary in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of BeekeepingService.registerHive in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of BeekeepingService.registerHive in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of BeekeepingService.recordInspection in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of BeekeepingService.recordInspection in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of BeekeepingService.recordInspection in component business\n- clones/same-component-near: fragment clone (near, similarity 0.81) of BeekeepingService.recordInspection in component business\n- clones/same-component-exact-structural: body clone (exact-structural, similarity 1.00) of BeekeepingService.findHive in component business\n- clones/same-component-near: fragment clone (near, similarity 0.81) of TreatmentService.recordHarvest in component business\n- clones/same-component-near: fragment clone (near, similarity 0.81) of TreatmentService.registerProduct in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of TreatmentService.recordHarvest in component business\n- clones/same-component-exact-structural: fragment clone (exact-structural, similarity 1.00) of TreatmentService.recordTreatment in component business\n\n## Source\n=====SOURCE-BEGIN src/business/treatmentService.ts\n 13| export class TreatmentService {\n 14|   constructor(\n 15|     private readonly products: TreatmentProductRepository,\n 16|     private readonly treatments: TreatmentRepository,\n 17|     private readonly harvests: HarvestRepository,\n 18|     private readonly hives: HiveRepository,\n 19|   ) {}\n 20| \n 21|   registerProduct(\n 22|     memberId: string | undefined,\n 23|     input: { name?: unknown; withdrawalDays?: unknown },\n 24|   ): TreatmentProduct {\n 25|     requireMember(memberId);\n 26|     const days = input.withdrawalDays;\n 27|     if (typeof days !== \"number\" || !Number.isInteger(days) || days < 0) {\n 28|       throw new DomainError(\"validation\", \"withdrawalDays must be an integer >= 0\");\n 29|     }\n 30|     return this.products.create({\n 31|       name: requireString(input.name, \"name\"),\n 32|       withdrawalDays: days,\n 33|     });\n 34|   }\n 35| \n 36|   listProducts(): TreatmentProduct[] {\n 37|     return this.products.findAll();\n 38|   }\n 39| \n 40|   recordTreatment(\n 41|     memberId: string | undefined,\n 42|     hiveId: string,\n 43|     input: { product?: unknown; productId?: unknown; startDate?: unknown; endDate?: unknown },\n 44|   ): Treatment {\n 45|     const ownerId = requireMember(memberId);\n 46|     const hive = this.findHive(hiveId);\n 47|     if (hive.ownerId !== ownerId) {\n 48|       throw new DomainError(\"forbidden\", \"Only the hive owner can record treatments\");\n 49|     }\n 50|     const productId = requireString(input.productId ?? input.product, \"productId\");\n 51|     if (!this.products.findById(productId)) {\n 52|       throw new DomainError(\"validation\", \"Unknown treatment product\");\n 53|     }\n 54|     const startDate = requireDate(input.startDate);\n 55|     const endDate = requireDate(input.endDate);\n 56|     if (Date.parse(endDate) < Date.parse(startDate)) {\n 57|       throw new DomainError(\"validation\", \"endDate must not be before startDate\");\n 58|     }\n 59|     return this.treatments.create({ hiveId, productId, startDate, endDate });\n 60|   }\n 61| \n 62|   listTreatments(hiveId: string): Treatment[] {\n 63|     this.findHive(hiveId);\n 64|     return this.treatments.findByHive(hiveId);\n 65|   }\n 66| \n 67|   recordHarvest(\n 68|     memberId: string | undefined,\n 69|     hiveId: string,\n 70|     input: { date?: unknown; kilograms?: unknown },\n 71|   ): Harvest {\n 72|     const ownerId = requireMember(memberId);\n 73|     const hive = this.findHive(hiveId);\n 74|     if (hive.ownerId !== ownerId) {\n 75|       throw new DomainError(\"forbidden\", \"Only the hive owner can record harvests\");\n 76|     }\n 77|     const date = requireDate(input.date);\n 78|     const kilograms = input.kilograms;\n 79|     if (typeof kilograms !== \"number\" || !Number.isFinite(kilograms) || kilograms <= 0) {\n 80|       throw new DomainError(\"validation\", \"kilograms must be a number > 0\");\n 81|     }\n 82|     this.assertHarvestAllowed(hiveId, Date.parse(date));\n 83|     return this.harvests.create({ hiveId, date, kilograms });\n 84|   }\n 85| \n 86|   listHarvests(hiveId: string): Harvest[] {\n 87|     this.findHive(hiveId);\n 88|     return this.harvests.findByHive(hiveId);\n 89|   }\n 90| \n 91|   private assertHarvestAllowed(hiveId: string, time: number): void {\n 92|     for (const t of this.treatments.findByHive(hiveId)) {\n 93|       const start = Date.parse(t.startDate);\n 94|       const end = Date.parse(t.endDate);\n 95|       if (time >= start && time <= end) {\n 96|         throw new DomainError(\"conflict\", \"Harvest refused: hive is under treatment\");\n 97|       }\n 98|       const withdrawalDays = this.products.findById(t.productId)?.withdrawalDays ?? 0;\n 99|       if (time > end && time < end + withdrawalDays * DAY_MS) {\n100|         throw new DomainError(\"conflict\", \"Harvest refused: withdrawal period has not passed\");\n101|       }\n102|     }\n103|   }\n104| \n105|   private findHive(id: string): Hive {\n106|     const hive = this.hives.findById(id);\n107|     if (!hive) throw new DomainError(\"not_found\", \"Hive not found\");\n108|     return hive;\n109|   }\n110| }\n=====SOURCE-END=====",
+  "recordedAt": "2026-10-20T12:32:32.055Z",
+  "resolvedModel": "claude-opus-5-5",
+  "response": {
+    "concepts": [
+      {
+        "confidence": 0.9,
+        "evidence": [
+          {
+            "endLine": 59,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "72d370555108c6ea",
+            "quote": "return this.treatments.create({ hiveId, productId, startDate, endDate });",
+            "startLine": 59
+          }
+        ],
+        "name": "Treatment",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 33,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "bf616c365c33388f",
+            "quote": "return this.products.create({",
+            "startLine": 30
+          }
+        ],
+        "name": "Treatment Product",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.9,
+        "evidence": [
+          {
+            "endLine": 83,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "59d9d557e26b05fa",
+            "quote": "return this.harvests.create({ hiveId, date, kilograms });",
+            "startLine": 83
+          }
+        ],
+        "name": "Harvest",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "endLine": 98,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "e12a9abbf3c8839d",
+            "quote": "const withdrawalDays = this.products.findById(t.productId)?.withdrawalDays ?? 0;",
+            "startLine": 98
+          }
+        ],
+        "name": "Withdrawal Period",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "endLine": 106,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "d67ad9ffbe6790a4",
+            "quote": "const hive = this.hives.findById(id);",
+            "startLine": 106
+          }
+        ],
+        "name": "Hive",
+        "relation": "uses"
+      },
+      {
+        "confidence": 0.7,
+        "evidence": [
+          {
+            "endLine": 47,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "72d370555108c6ea",
+            "quote": "if (hive.ownerId !== ownerId) {",
+            "startLine": 47
+          }
+        ],
+        "name": "Hive Owner",
+        "relation": "uses"
+      }
+    ],
+    "responsibilities": [
+      {
+        "confidence": 0.85,
+        "description": "Registers treatment products with a validated non-negative integer withdrawal period and lists the catalogue.",
+        "evidence": [
+          {
+            "endLine": 29,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "bf616c365c33388f",
+            "quote": "throw new DomainError(\"validation\", \"withdrawalDays must be an integer >= 0\");",
+            "startLine": 27
+          },
+          {
+            "endLine": 37,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "d2bd39d3ed6f1b95",
+            "quote": "return this.products.findAll();",
+            "startLine": 37
+          }
+        ],
+        "name": "Treatment product catalogue management",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.9,
+        "description": "Lets only the hive owner record a treatment for a known product, with a valid date range where the end is not before the start.",
+        "evidence": [
+          {
+            "endLine": 48,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "72d370555108c6ea",
+            "quote": "throw new DomainError(\"forbidden\", \"Only the hive owner can record treatments\");",
+            "startLine": 48
+          },
+          {
+            "endLine": 58,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "72d370555108c6ea",
+            "quote": "if (Date.parse(endDate) < Date.parse(startDate)) {",
+            "startLine": 56
+          }
+        ],
+        "name": "Recording hive treatments",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.9,
+        "description": "Lets only the hive owner record a harvest with a positive weight in kilograms, after checking that harvesting is allowed.",
+        "evidence": [
+          {
+            "endLine": 75,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "59d9d557e26b05fa",
+            "quote": "throw new DomainError(\"forbidden\", \"Only the hive owner can record harvests\");",
+            "startLine": 75
+          },
+          {
+            "endLine": 80,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "59d9d557e26b05fa",
+            "quote": "throw new DomainError(\"validation\", \"kilograms must be a number > 0\");",
+            "startLine": 80
+          }
+        ],
+        "name": "Recording honey harvests",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.95,
+        "description": "Refuses a harvest while the hive is under treatment, or before the product's withdrawal period has passed since the treatment ended.",
+        "evidence": [
+          {
+            "endLine": 96,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "e12a9abbf3c8839d",
+            "quote": "throw new DomainError(\"conflict\", \"Harvest refused: hive is under treatment\");",
+            "startLine": 96
+          },
+          {
+            "endLine": 99,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "e12a9abbf3c8839d",
+            "quote": "if (time > end && time < end + withdrawalDays * DAY_MS) {",
+            "startLine": 99
+          }
+        ],
+        "name": "Harvest safety rule: treatment and withdrawal period",
+        "naturalLayer": "domain"
+      },
+      {
+        "confidence": 0.75,
+        "description": "Lists the treatments and harvests recorded for an existing hive.",
+        "evidence": [
+          {
+            "endLine": 64,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "f7ca3c201150d6e2",
+            "quote": "return this.treatments.findByHive(hiveId);",
+            "startLine": 64
+          },
+          {
+            "endLine": 88,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "502f3a2735f24d62",
+            "quote": "return this.harvests.findByHive(hiveId);",
+            "startLine": 88
+          },
+          {
+            "endLine": 107,
+            "file": "src/business/treatmentService.ts",
+            "nodeId": "d67ad9ffbe6790a4",
+            "quote": "if (!hive) throw new DomainError(\"not_found\", \"Hive not found\");",
+            "startLine": 107
+          }
+        ],
+        "name": "Querying a hive's treatment and harvest history",
+        "naturalLayer": "application"
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "usage": {
+    "inputTokens": 6212,
+    "outputTokens": 2051
+  }
+}
