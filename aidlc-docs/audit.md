@@ -2660,6 +2660,14 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+## Study 2b — Fable adversarial review of the pre-registration (zero calls, docs only)
+**Timestamp**: 2026-10-20T11:02:15Z
+**User Input**: "Scheduled task: as an adversarial external examiner, review the Study 2b pre-registration DRAFT (PR #316) against the drift record, the 2a registration and report, the freeze, rehearsal and runbook, the exposure definitions, decisions DELEG..DELEG7, GO-2B and V4-ACC, the hold-out status and both power scripts; write ops/review/2026-10-20/fable-2b-prereg-review.md with a verdict and severity-ranked findings; commit on a new branch and open a PR, do not merge."
+**AI Response**: "Verdict GO-WITH-FIXES. Reproduced the DELEG7 power figures at N = 40 from the committed code (CPU only). Six blocking findings: no confirmatory analysis script exists (D9); the Q25 = B composition-root exemption is an arm-sensitive channel with no registered neutralisation (register an exemption-free D-dagger sensitivity and an evasion bar); DELEG7 figures not committed and the draft contradicts itself (P3, D3, no DV7); the registered within-block cell order does not exist and cell is confounded with phase order and lane; the V4 route cites an unmerged fallback, part A is vacuous with one rule family, part B forks on exempt sites; D12 has no start rule and no recorded decision. Six major (equivalence margin as large as the signal, six statistical-plan gaps, evasion bars unregistered, resume unverified, model alias not a pin, Q10 = D under-cited) and six minor. Nothing under daedalus-sealed/ or the MEAN-01 sample read."
+**Context**: v1.4 Study 2b, pre-registration review (drift record order step: pre-registration, before dating); zero model calls
+
+---
+
 ## v1.3 hold-out attempt 3 (DELEG-H3): attempt-1 layout + scripted header repair; live run aborted
 **Timestamp**: 2026-10-20T11:32:03Z
 **User Input**: "Coordinator, under GO-2B: record DELEG-H3 and addendum 3 (with its own hash row) before acting. Attempt 3, one try only: attempt 1's path-only layout plus attempt 2's header-only repair, the layout and repair done without a model where possible; verify by script; structure check at the tag on 4 styles; live run once if 0 problems, otherwise STOP; clean up, record, merge on green; don't touch docs/study2b-prereg."
