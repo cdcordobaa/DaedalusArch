@@ -2559,5 +2559,10 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **User Input**: "No more signing; run the confirmatory Study 2 if the readiness gate is green. Keep steady progress overnight."
 **AI Response**: "Recorded DELEG2 (ADR-V13-03 acceptance, sample hash, V6 pointers delegated) and GO-2B (run only if every gate item is green; otherwise stop and report) in ops/decisions.md."
 **Context**: Study 2 confirmatory: authorisation, conditional on the gate
+## Exploratory study Stage B — none@L2 replicate 2 and none@L3 run
+**Timestamp**: 2026-10-20T05:12:41Z
+**User Input**: "How does Study 2a behave? Keep going to the study without more decisions."
+**AI Response**: "Ran none@L2 replicate 2 (15 turns) and none@L3 (24 turns) from the shared step-1 trees, after zero-call dry runs. Committed the step records and a pre-freeze run note: mean D 1.50 (L2, 6 blocks) vs 0.67 (L3, same trees); L3 cleaned the inherited state in 4 of 6 runs. mcp@L2 waits for the Claude S4 MCP probe."
+**Context**: CONSTRUCTION — exploratory study Stage B (approved counts, amendment 1)
 
 ---
