@@ -1,6 +1,6 @@
 # v1.3 hold-out run: pre-specification
 
-**2026-10-15. Status: draft, to be frozen.** This file fixes, before the run, how the one-time hold-out run is done, scored and read. At freeze time its placeholders are filled, and its sha256 is recorded in `Docs/v1.3/sealed-hashes.md`. After that it does not change. Any later note goes into a separate addendum, which is dated and hashed on its own.
+**2026-10-15; frozen 2026-10-20. Status: frozen at X = 4d28d2803bec018e48f848e6a0f27ff87b3babf2.** (Frozen by the coordinator under the author's delegation, DELEG2.) This file fixes, before the run, how the one-time hold-out run is done, scored and read. At freeze time its placeholders are filled, and its sha256 is recorded in `Docs/v1.3/sealed-hashes.md`. After that it does not change. Any later note goes into a separate addendum, which is dated and hashed on its own.
 
 It is not a pre-registration of Study 2. It covers only the validation of the tool (FR-V11).
 
@@ -8,14 +8,14 @@ It is not a pre-registration of Study 2. It covers only the validation of the to
 
 | Item | Value |
 |---|---|
-| Tool commit | `<FREEZE_SHA>` |
-| Hold-out manifests (sealed outside the repository) | path `<HOLDOUT_PATH>`, sha256: see the row "../daedalus-sealed/v1.3-holdout (directory manifest)" in `Docs/v1.3/sealed-hashes.md`, section "Hold-out and blind manifests (recorded late, 2026-10-15T20:38Z)" (`1379b561…`; the author's own `out.sha256` value is `cddec14a…`). The blind manifests are hashed in the same section. |
-| Rule tiers | `Docs/v1.3/rule-tiers.md` at its sealed hash, plus the tier ADRs merged at `<FREEZE_SHA>` |
-| Defaults | the v1.3 extractor and compile defaults at `<FREEZE_SHA>` (`V13_DEFAULT_OPTIONS`, `V13_COMPILE_OPTIONS`) |
-| Presets, templates, specs | as at `<FREEZE_SHA>`, sha256 of each listed in the freeze commit |
-| Matching | `scripts/v1.3/lib/compare.ts` at `<FREEZE_SHA>` |
+| Tool commit | `4d28d2803bec018e48f848e6a0f27ff87b3babf2` |
+| Hold-out manifests (sealed outside the repository) | path `../daedalus-sealed/v1.3-holdout`, sha256: see the row "../daedalus-sealed/v1.3-holdout (directory manifest)" in `Docs/v1.3/sealed-hashes.md`, section "Hold-out and blind manifests (recorded late, 2026-10-15T20:38Z)" (`1379b561…`; the author's own `out.sha256` value is `cddec14a…`). The blind manifests are hashed in the same section. |
+| Rule tiers | `Docs/v1.3/rule-tiers.md` at its sealed hash, plus the tier ADRs merged at `4d28d2803bec018e48f848e6a0f27ff87b3babf2` |
+| Defaults | the v1.3 extractor and compile defaults at `4d28d2803bec018e48f848e6a0f27ff87b3babf2` (`V13_DEFAULT_OPTIONS`, `V13_COMPILE_OPTIONS`) |
+| Presets, templates, specs | as at `4d28d2803bec018e48f848e6a0f27ff87b3babf2`, sha256 of each listed in the freeze commit |
+| Matching | `scripts/v1.3/lib/compare.ts` at `4d28d2803bec018e48f848e6a0f27ff87b3babf2` |
 
-**How the freeze works.** Commit X holds the tool. Commit Y fills `<FREEZE_SHA>` = X in this file and records the file's hash. The run uses the code at X. Before the run, `git diff X Y -- src scripts presets specs package.json package-lock.json 'tsconfig*.json'` must be empty, and every package installed under `node_modules` must have its `package-lock.json` version. The run's provenance records the sha256 of `package-lock.json` and the installed version of each direct dependency. Construct decisions that change code (`Docs/v1.3/construct-decisions.md`) must be merged before X, including their single development-set runs (Q16, Q25). Nothing merges between X and the run.
+**How the freeze works.** Commit X holds the tool. Commit Y fills `4d28d2803bec018e48f848e6a0f27ff87b3babf2` = X in this file and records the file's hash. The run uses the code at X. Before the run, `git diff X Y -- src scripts presets specs package.json package-lock.json 'tsconfig*.json'` must be empty, and every package installed under `node_modules` must have its `package-lock.json` version. The run's provenance records the sha256 of `package-lock.json` and the installed version of each direct dependency. Construct decisions that change code (`Docs/v1.3/construct-decisions.md`) must be merged before X, including their single development-set runs (Q16, Q25). Nothing merges between X and the run.
 
 *Amended 2026-10-16 (before the freeze; review finding F19):* the frozen paths now include the dependency manifests and the TypeScript configs, and `holdout-run.ts` checks the installed dependency versions against the lockfile and records the lockfile hash. Before this amendment a changed lockfile, `package.json` or `node_modules` passed the freeze check.
 
@@ -56,7 +56,7 @@ Also reported, without a target: per-rule recall and precision, which are descri
 - **The reference is the sealed manifest, as sealed.** Nobody edits a manifest after the run. A manifest that looks wrong is recorded under §6. It is not corrected in the figures.
 - **Matching** is that of `compare.ts`: rule, file, target, and the file set for cycles. The two declared normalisations of `ue-score.ts` are reported next to the literal figures. **The literal figures are primary.**
 - **Two manifests.** If a hold-out project carries both an author-manifest and a blind manifest, each is scored on its own and both are reported. The pass decision uses the manifest written without sight of the rule implementation, because the author-manifest's writers could see it (validation protocol §1).
-- **Construct decisions.** A rule whose tier is still deferred at X, such as FF-DS01 under Q15, has its findings reported separately and kept out of M1 and M2. This is listed in the freeze commit.
+- **Construct decisions.** A rule whose tier is still deferred at X, such as FF-DS01 under Q15, has its findings reported separately and kept out of M1 and M2. This is listed in the freeze commit. **Deferred rules at X: none** (Q15 = B gives FF-DS01 its own advisory row; `deferredRules: []` in `results/v1.3-freeze/manifest.json`).
 
 ## 5. Pass thresholds
 
@@ -72,7 +72,7 @@ Each target is checked twice, and **both results are reported**:
 - **against the point estimate**;
 - **against the 95% Wilson lower bound.**
 
-**What the lower bound can show.** With no misses at all, the 95% Wilson lower bound of a proportion reaches 0.90 only at n ≥ 35. With one miss, it needs n ≥ 53, and with two, n ≥ 69. If a style has fewer than 35 expected blocking findings in the hold-out (n = `<N_PER_STYLE>`, filled at freeze from the sealed counts), its lower-bound check **cannot pass, even with a perfect result**. This is stated now so that it is not read as a failure later.
+**What the lower bound can show.** With no misses at all, the 95% Wilson lower bound of a proportion reaches 0.90 only at n ≥ 35. With one miss, it needs n ≥ 53, and with two, n ≥ 69. If a style has fewer than 35 expected blocking findings in the hold-out (n = `not established at the freeze (2026-10-20): the structure dry run of freeze-runbook step 5 found the sealed copy at its sealed hash (`1379b561…`) but in a layout the registered runner does not load, so no per-style count could be computed blind; see the freeze note at the end of this file`, filled at freeze from the sealed counts), its lower-bound check **cannot pass, even with a perfect result**. This is stated now so that it is not read as a failure later.
 
 **Claim levels**, decided per metric and per style:
 
@@ -102,3 +102,10 @@ M5 and M6 have no numeric target. Their false alarms enter M2 and are also repor
 ## 8. Report
 
 `Docs/DiagnosticRuns/v1.3-holdout-<date>.md` and `results/v1.3-holdout/run-1/`. The report gives every metric of §3, the claim level of every target in §5 with both checks, the negative control, the near-miss false alarms, the defect ADR's link, and the hashes of §1. The FR-V11 validation report cites these figures and no development-set figure as validity.
+
+## Freeze note (2026-10-20, recorded at the freeze, before any hold-out run)
+
+- X = `4d28d2803bec018e48f848e6a0f27ff87b3babf2`. The freeze record commit Y fills this file; `Docs/v1.3/sealed-hashes.md` records its hash.
+- **The hold-out has not run.** Freeze-runbook step 5 (`holdout-run.ts --dry-run --expect-sealed-sha256 1379b561…`) was run on an unsealed copy by script; no agent opened it. The sealed-method hash matched. The runner then found no style directory at the top of the copy (only `input/` and `out/`). A structure-only check of `out/` found the five style directories, but four have no `expected-findings.json` where the runner looks for it, and the ddd overlay has no clean variant where the runner looks for it. `input/` holds 12 schema files. Only these runner messages were seen: no case, manifest or file content.
+- Runbook rule: "Any other structure problem stops the freeze: the hold-out is never edited." The hold-out was not edited, and it was not run. Making it runnable needs a loader for its layout. Writing that loader requires looking at the sealed layout (not blind) and changes `scripts/v1.3/` (a frozen path), so it would need a new X. That is for the author, or a session the author clears to look at the layout.
+- Unsealed copy destroyed after the check. `results/v1.3-holdout/run-1` does not exist (F13).

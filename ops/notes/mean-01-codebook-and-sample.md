@@ -153,6 +153,7 @@ The spread is A: 2 `yes` / 3 `no`, and B: 3 `yes` / 2 `no`. **C5 is the case whe
 - Two runs gave a byte-identical CSV, with sha256 prefix `d4697ec5377d6fdc`.
 - The script's sha256 prefix is `0486343f0feee4b0` and the packet head's is `7aa5a5cf8c5b4f68`.
 - Record the full hashes at sign-off (`shasum -a 256`).
+- **Sample sha256 (full), recorded 2026-10-20 under the author's delegation (DELEG2, SAMPLE-HASH):** `d4697ec5377d6fdc6e9504ff2ea8df9f9beb431cbb6584b266d4cc664debad8d` (`results/v1.3-meaning/mean-01-sample.csv`). Computed with `shasum -a 256` only; the file was not opened. It matches the expected prefix `d4697ec5377d6fdc`.
 - Any change to the calibration list, the quotas or the caps changes the whole draw. **After sign-off, the sample is frozen.**
 
 **Reproduce** (from the repo root):
@@ -304,7 +305,7 @@ Fixed before any label, for the primary field and the stratified p̂:
 
 ```
 L4 = A         R3 accepted yes  R4 accepted yes  R5 accepted yes
-κ definition (§4) dated: 2026-10-19     sample sha256: recorded by the author (SAMPLE-HASH = A; expected prefix d4697ec5377d6fdc)
+κ definition (§4) dated: 2026-10-19     sample sha256: d4697ec5377d6fdc6e9504ff2ea8df9f9beb431cbb6584b266d4cc664debad8d (recorded 2026-10-20 under delegation DELEG2)
 signed: the author, via the decision desk, 2026-10-19   before first label: yes (no label exists on 2026-10-19)
 ```
 
@@ -312,6 +313,6 @@ Each item above was **signed 2026-10-19 by the author via the decision desk** (`
 - **L4 = A** (practitioner reading; field A primary, κ gate on field A). Records the 2026-10-18 decision (`ops/decisions.md`).
 - **R3, R4, R5 accepted** (option A each). R4 keeps field B consistent with Q3 C (`Docs/v1.3/construct-decisions.md`); calibration item C4 stands as written.
 - **KAPPA-DATE = A.** The κ definition of §4 (pass if κ ≥ 0.60 on field A, n = 60) is binding from 2026-10-19, before any label.
-- **SAMPLE-HASH = A.** The author computes and records the full sha256 of the sample (`shasum -a 256`). The session that transcribed this sign-off did not open the sample, so the full hash is not written here; if the author's prefix differs from `d4697ec5377d6fdc`, stop and ask (§6).
-- **V6-PTR = A.** The author adds the three one-line pointers of blocker B4 to the frozen documents (validation-protocol §3, labelling §6, human-labelling-protocol §6), dated. Until they exist, V6 stays red.
+- **SAMPLE-HASH = A.** The author computes and records the full sha256 of the sample (`shasum -a 256`). The session that transcribed this sign-off did not open the sample, so the full hash is not written here; if the author's prefix differs from `d4697ec5377d6fdc`, stop and ask (§6). **Done 2026-10-20 under the author's delegation (DELEG2):** `d4697ec5377d6fdc6e9504ff2ea8df9f9beb431cbb6584b266d4cc664debad8d`, by `shasum -a 256` only, sample not opened; the prefix matches (§6).
+- **V6-PTR = A.** The author adds the three one-line pointers of blocker B4 to the frozen documents (validation-protocol §3, labelling §6, human-labelling-protocol §6), dated. Until they exist, V6 stays red. **Done 2026-10-20 as a delegated edit (DELEG2):** one dated pointer line at the end of each of the three sections.
 - **FIELD-A-DATE = A.** Field A labels are due by 2026-11-30, before chapters 7 to 9 (MEAN-02 §0). If the date is missed, the thesis says field A is unmeasured. It still depends on blocker B2 (a qualified rater).

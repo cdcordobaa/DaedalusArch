@@ -41,17 +41,17 @@ export function constructRuleTier(ruleId: string, style: string | undefined, ans
   if (answers.Q14 === 'B' && ruleId === 'FF-DT03') {
     return override(base, ruleId, 'advisory', 'Construct switch Q14 B: FF-DT03 advisory (ADR-V13-03, unsigned)');
   }
-  // TODO(ADR-V13-03, Q15 B): tier ADR giving FF-DS01 its own advisory row.
+  // Q15 B: FF-DS01 has its own advisory row (ADR-V13-03, accepted under the author's delegation, DELEG2 2026-10-20).
   if (answers.Q15 === 'B' && ruleId === 'FF-DS01') {
-    return override(base, ruleId, 'advisory', 'Construct switch Q15 B: FF-DS01 advisory (ADR-V13-03, unsigned)');
+    return override(base, ruleId, 'advisory', 'Construct switch Q15 B: FF-DS01 advisory (ADR-V13-03, accepted under delegation DELEG2 2026-10-20)');
   }
   // TODO(ADR-V13-03, Q17 C): new tier row "FF-DS03 barrel-publishes-application advisory".
   if (answers.Q17 === 'C' && ruleId === BARREL_APPLICATION_ID) {
     return override(base, ruleId, 'advisory', 'Construct switch Q17 C: new advisory rule (ADR-V13-03, unsigned)');
   }
-  // TODO(ADR-V13-03, Q21 B): tier ADR "FF-DT05 blocking" (Vernon ch. 8).
+  // Q21 B: FF-DT05 blocking (Vernon ch. 8; ADR-V13-03, accepted under the author's delegation, DELEG2 2026-10-20).
   if (answers.Q21 === 'B' && ruleId === 'FF-DT05') {
-    return override(base, ruleId, 'blocking', 'Construct switch Q21 B: FF-DT05 blocking (ADR-V13-03, unsigned)');
+    return override(base, ruleId, 'blocking', 'Construct switch Q21 B: FF-DT05 blocking (ADR-V13-03, accepted under delegation DELEG2 2026-10-20)');
   }
   return base;
 }
@@ -70,7 +70,7 @@ export const Q24_BYPASS_DISCRIMINATOR = 'bypass';
 /**
  * Q3 C: a file cycle inside one layer and one module is advisory (a proxy for ADP); a cycle across layers or modules
  * keeps the FF-S02 tier. Layers are assigned from the declared globs, as ingestion does for File nodes.
- * TODO(ADR-V13-03, Q3 C): the author must write and sign the tier ADR "FF-S02 split by component".
+ * Q3 C: tier ADR "FF-S02 split by component" (ADR-V13-03, accepted under the author's delegation, DELEG2 2026-10-20).
  */
 export function constructRowTiers(
   style: string | undefined, layerModel: LayerModel, answers: ConstructAnswers, layerOf: (file: string) => string | null = fileLayerAssigner(layerModel),

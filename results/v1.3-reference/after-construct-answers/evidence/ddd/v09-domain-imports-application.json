@@ -1,0 +1,45 @@
+{
+  "style": "ddd",
+  "variant": "v09-domain-imports-application",
+  "elapsedMs": 1126,
+  "violations": [
+    {
+      "id": "v-c812eee6bef7bf3a",
+      "type": "CUSTOM_dependency-direction-graph",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S01",
+      "route": "symbolic",
+      "filePath": "src/ordering/domain/customer/Customer.ts",
+      "message": "src/ordering/domain/customer/Customer.ts (domain) imports against the allowed direction from src/ordering/application/PlaceOrder.ts (application)",
+      "deterministic": true,
+      "target": "src/ordering/application/PlaceOrder.ts",
+      "line": 3,
+      "lines": [
+        3
+      ],
+      "isTypeOnly": true,
+      "discriminator": [
+        "IMPORTS"
+      ],
+      "tag": "structural"
+    },
+    {
+      "id": "v-e6c9c0b32094681a",
+      "type": "CYCLIC_DEPENDENCY",
+      "dimension": "structural",
+      "severity": "critical",
+      "functionId": "FF-S02",
+      "route": "symbolic",
+      "filePath": "src/ordering/application/PlaceOrder.ts,src/ordering/domain/customer/CustomerRepository.ts,src/ordering/domain/customer/Customer.ts,src/ordering/application/PlaceOrder.ts",
+      "message": "Circular dependency: src/ordering/application/PlaceOrder.ts,src/ordering/domain/customer/CustomerRepository.ts,src/ordering/domain/customer/Customer.ts,src/ordering/application/PlaceOrder.ts",
+      "deterministic": true,
+      "target": "src/ordering/domain/customer/CustomerRepository.ts",
+      "line": 5,
+      "discriminator": [
+        "[\"src/ordering/application/PlaceOrder.ts\",\"src/ordering/domain/customer/CustomerRepository.ts\",\"src/ordering/domain/customer/Customer.ts\",\"src/ordering/application/PlaceOrder.ts\"]"
+      ],
+      "tag": "topological"
+    }
+  ]
+}

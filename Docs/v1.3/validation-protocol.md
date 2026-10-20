@@ -32,6 +32,8 @@
 - **Author audit:** at least 30 items, shuffled and blind to the rule id. The labeller is valid if κ ≥ 0.60 between the author and Gemini on *meaningful*.
 - **Director:** ask for 30 items rated independently.
 
+**V6 pointer (delegated edit to a frozen document, 2026-10-20; author's delegation DELEG2, item V6-PTR):** for the C3m (MEAN-01 meaning) labels, κ is defined in `ops/notes/mean-01-codebook-and-sample.md` §4 and dated in its §12 sign-off (binding from 2026-10-19, before any label). This line only points there; nothing above changes.
+
 ## 4. Study 2 sealing (finding 4, MAJOR)
 
 - The Study 2 task list is written now and sealed outside the repo (`../daedalus-sealed/v1.3-study2-tasks.md`). Its sha256 is recorded in `Docs/v1.3/sealed-hashes.md`. No v1.3 generation uses these tasks.
