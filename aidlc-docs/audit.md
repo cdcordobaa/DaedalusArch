@@ -2668,6 +2668,14 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 
 ---
 
+## SEM-01: semantic validity plan, feasibility and threats (design note)
+**Timestamp**: 2026-10-20T12:06:19Z
+**User Input**: "Investigate read-only, with zero model calls, whether the label-free semantic validity battery for C4 and C1d (seeded cases and twins, metamorphic, known groups, reliability and vendor swap, predicted convergence and divergence, consequences), D_sem as a 2b secondary, and the complementarity hypothesis can be carried out with what exists; list threats and sequencing to the Friday deadline; write ops/notes/sem-01-semantic-validity-plan.md; PR and merge on green."
+**AI Response**: "Wrote SEM-01. Verdict: feasible in stages. (a) and (d) are mostly built (C4 runner, 6+6 cases, estimator; C1d pilot ran), (e) is free, (b), (c) and complementarity need small builds or design, and (f) is MEAN-02, later. Ran only the zero-call estimator: C4 pilot 8/16, six cases 32/64 calls per vendor. Two issues before the 2b run: the registered D_sem drops every stable grounded exception claim, and in greenfield code every citable line is agent-written, so D_sem would count evasion (split it into all claims vs non-agent claims, plus an evasion count). The C4 pilot has never run. Also: Claude C1d failed its twin bar at the pilot (1/2); C4 is downstream of the symbolic finding set, so rename-to-main.ts tests the symbolic path and a blind neural arm, not C4. No frozen path is needed. The prereg branch was read, not edited."
+**Context**: v1.4 semantic validity design (SEM-01); 0 model calls, no Neo4j
+
+---
+
 ## Editorial: neutral wording in public records
 **Timestamp**: 2026-10-20T12:24:38Z
 **User Input**: "Requested that the public decision and audit records state decisions and intent in neutral, professional wording."
