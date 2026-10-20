@@ -2504,6 +2504,15 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **User Input**: "Give it the last mile" (the one-hour, zero-call timebox on agy 1.4.2 permissions, then S4 within the 30-call approval)
 **AI Response**: "Run 1: G0 failed on a check-order artifact plus an .agents folder in the home folder (PR #288 fixes it). Run 2: 24 calls; G0 passed, probes failed in both arms. run_command, read_file/write_file escapes, invoke_subagent and schedule all ran, so agy 1.4.2 does not enforce the pruned deny rules. Under ADR-029 Gemini cannot be a coding generator; the exploratory study uses Claude Sonnet only, and Gemini keeps its one-shot roles. Docs/DiagnosticRuns/v1.4-gemini-s4-agy142-2026-10-19.md."
 **Context**: v1.4 instrument track, TRUST-01 L9; 24 Gemini calls
+
+---
+
+## v1.4 DDD-BETA: representation and enforcement capability
+**Timestamp**: 2026-10-20T01:36:21Z
+**User Input**: "Scheduled routine DDD-BETA, zero model calls, engine cypher-interp: per the 2026-10-19 author decision (DDD is a beta instrument), measure whether the instrument can represent a real DDD project and enforce each DDD blocking rule on it (reach, seeded recall with the existing operators, twin false fires, Wilson intervals), what a class/member grain would need (not implemented), and a one-page verdict. Outputs under results/v1.4-ddd-beta/, one audit entry, PR to main, do not merge."
+**AI Response**: "Cloned the 12 DDD entries of results/v1.3-external*/selection.json and the 3 hex/DDD operator-run DDD bases at their pinned SHAs (scratch only), plus the DDD reference project and the two kept relief-volunteers agent trees. New scripts/v1.4/ddd-beta-capability.ts with helpers scripts/v1.4/lib/ddd-beta.ts and their unit tests: CLI census (post-seal off/on), concept map, grain census, rule preconditions, fixtures, seeded recall (U5a + hex/DDD operators, MO-H07 extended to ddd for post-seal FF-S02). Result: 548/548 seeded DDD keys detected; 46 twin false fires, all correct findings from twins that are not legal under DDD (37 U5a cross-context, 9 barrel cycles), 0 instrument false fires. Beta-ready (adjudicated): FF-DS01, DS02, DT01, DT03, DT04, S01, S02; not: FF-DT02 (2 real repos), FF-P07 (no operator). FF-DT01/02/03 have no precondition on either agent tree (inner entities and value shapes inside the root file, often as interfaces/type aliases); §C estimates a declaration-grain version at ~5-7 days plus a post-seal ADR. Report Docs/DiagnosticRuns/v1.4-ddd-beta-capability-2026-10-19.md."
+**Context**: v1.4 instrument track, DDD-BETA capability study; no decisions taken (D5 follow-up, Q15/Q17-Q19, aggregate declaration stay with the author); no sealed path read, MEAN-01 sample not opened, no Neo4j started
+
 ---
 
 ## v1.4 research ops: confirmatory Layered tasks sealed
