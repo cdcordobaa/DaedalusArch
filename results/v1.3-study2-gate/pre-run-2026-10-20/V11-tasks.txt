@@ -1,0 +1,51 @@
+# V11 leakage scan, 2026-10-20 (zero calls; hashed word 8-grams; sealed text, names and ids never printed).
+# npx tsx scripts/v1.4/leakage-scan.ts --sealed-dir <sealed>/v14-confirmatory --expect-tasks-sha256 6ac21079... --index-only tasks.json (the task text alone)
+#   --baseline experiments/exploratory-study/tasks.json --baseline experiments/exploratory-study/stage-a/tasks.json --baseline experiments/v1.3-floor-probe-3/tasks.json
+#   --baseline experiments/grid-scale/tasks.json --baseline experiments/loop-acceptance-demo --baseline experiments/study2b/rehearsal-acceptance
+#   --skip-dir node_modules --skip-dir worktrees --scan repo=<repo> --scan main-checkout=<main-checkout> --scan study2b-shared=<shared>/daedalus-study2b
+#   --info home-claude-projects=<home>/.claude/projects (informational: counts only, no file names)
+# Leak rule (fixed before the first span was seen): a shared verbatim run of >= 20 words outside the baseline, or a whole-file match of a non-empty sealed file.
+sealed set: tasks.json sha256 ok; 1 files; 2601 distinct 8-grams; 4 of them also in the public baseline
+repo: 31072 files (30256 text, 0 over the size cap), 520.3 MB; files with a sealed 8-gram 30; outside the baseline 11 (13 distinct 8-grams; longest shared run 14 words); whole-file matches 0
+  files with a shared run >= 20 words or a whole-file match: 0
+  HIT repo/Docs/v1.3/pilot-tasks.md: 2 unexplained 8-gram(s), longest run 9 words
+  HIT repo/Docs/v1.3/study2-task-design/calibration/pilot-tasks.json: 2 unexplained 8-gram(s), longest run 9 words
+  HIT repo/Docs/v1.4/study2-deviation-2026-10-19-drift.md: 4 unexplained 8-gram(s), longest run 11 words
+  HIT repo/experiments/loop-pilot/pilot-tasks.json: 2 unexplained 8-gram(s), longest run 9 words
+  HIT repo/experiments/loop-pilot/run-2026-10-16/outputs/runs/claude-code-cli/claude-sonnet-5-5/shelter-adoptions/gate/run-0/turns/step-03/prompt-step-03.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT repo/experiments/loop-pilot/run-2026-10-16/outputs/runs/claude-code-cli/claude-sonnet-5-5/shelter-adoptions/none/run-0/turns/step-03/prompt-step-03.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT repo/fixtures/v1.3-rehearsal-tasks/tasks.json: 7 unexplained 8-gram(s), longest run 14 words
+  HIT repo/results/v1.3-floor-probe/tasks.json: 2 unexplained 8-gram(s), longest run 9 words
+  HIT repo/results/v1.3-floor-probe-2/prompts/shelter-adoptions/C1/step-03.prompt.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT repo/results/v1.3-floor-probe-2/prompts/shelter-adoptions/C2/step-03.prompt.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT repo/results/v1.3-floor-probe-2/prompts/shelter-adoptions/C3/step-03.prompt.txt: 2 unexplained 8-gram(s), longest run 9 words
+main-checkout: 34068 files (33175 text, 0 over the size cap), 537.5 MB; files with a sealed 8-gram 29; outside the baseline 11 (13 distinct 8-grams; longest shared run 14 words); whole-file matches 0
+  files with a shared run >= 20 words or a whole-file match: 0
+  HIT main-checkout/Docs/v1.3/pilot-tasks.md: 2 unexplained 8-gram(s), longest run 9 words
+  HIT main-checkout/Docs/v1.3/study2-task-design/calibration/pilot-tasks.json: 2 unexplained 8-gram(s), longest run 9 words
+  HIT main-checkout/Docs/v1.4/study2-deviation-2026-10-19-drift.md: 4 unexplained 8-gram(s), longest run 11 words
+  HIT main-checkout/experiments/loop-pilot/pilot-tasks.json: 2 unexplained 8-gram(s), longest run 9 words
+  HIT main-checkout/experiments/loop-pilot/run-2026-10-16/outputs/runs/claude-code-cli/claude-sonnet-5-5/shelter-adoptions/gate/run-0/turns/step-03/prompt-step-03.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT main-checkout/experiments/loop-pilot/run-2026-10-16/outputs/runs/claude-code-cli/claude-sonnet-5-5/shelter-adoptions/none/run-0/turns/step-03/prompt-step-03.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT main-checkout/fixtures/v1.3-rehearsal-tasks/tasks.json: 7 unexplained 8-gram(s), longest run 14 words
+  HIT main-checkout/results/v1.3-floor-probe/tasks.json: 2 unexplained 8-gram(s), longest run 9 words
+  HIT main-checkout/results/v1.3-floor-probe-2/prompts/shelter-adoptions/C1/step-03.prompt.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT main-checkout/results/v1.3-floor-probe-2/prompts/shelter-adoptions/C2/step-03.prompt.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT main-checkout/results/v1.3-floor-probe-2/prompts/shelter-adoptions/C3/step-03.prompt.txt: 2 unexplained 8-gram(s), longest run 9 words
+study2b-shared: 35154 files (33754 text, 2 over the size cap), 540.0 MB; files with a sealed 8-gram 46; outside the baseline 11 (13 distinct 8-grams; longest shared run 14 words); whole-file matches 0
+  files with a shared run >= 20 words or a whole-file match: 0
+  HIT study2b-shared/instrument-4d28d280/Docs/v1.3/pilot-tasks.md: 2 unexplained 8-gram(s), longest run 9 words
+  HIT study2b-shared/instrument-4d28d280/Docs/v1.3/study2-task-design/calibration/pilot-tasks.json: 2 unexplained 8-gram(s), longest run 9 words
+  HIT study2b-shared/instrument-4d28d280/Docs/v1.4/study2-deviation-2026-10-19-drift.md: 4 unexplained 8-gram(s), longest run 11 words
+  HIT study2b-shared/instrument-4d28d280/experiments/loop-pilot/pilot-tasks.json: 2 unexplained 8-gram(s), longest run 9 words
+  HIT study2b-shared/instrument-4d28d280/experiments/loop-pilot/run-2026-10-16/outputs/runs/claude-code-cli/claude-sonnet-5-5/shelter-adoptions/gate/run-0/turns/step-03/prompt-step-03.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT study2b-shared/instrument-4d28d280/experiments/loop-pilot/run-2026-10-16/outputs/runs/claude-code-cli/claude-sonnet-5-5/shelter-adoptions/none/run-0/turns/step-03/prompt-step-03.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT study2b-shared/instrument-4d28d280/fixtures/v1.3-rehearsal-tasks/tasks.json: 7 unexplained 8-gram(s), longest run 14 words
+  HIT study2b-shared/instrument-4d28d280/results/v1.3-floor-probe/tasks.json: 2 unexplained 8-gram(s), longest run 9 words
+  HIT study2b-shared/instrument-4d28d280/results/v1.3-floor-probe-2/prompts/shelter-adoptions/C1/step-03.prompt.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT study2b-shared/instrument-4d28d280/results/v1.3-floor-probe-2/prompts/shelter-adoptions/C2/step-03.prompt.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT study2b-shared/instrument-4d28d280/results/v1.3-floor-probe-2/prompts/shelter-adoptions/C3/step-03.prompt.txt: 2 unexplained 8-gram(s), longest run 9 words
+(informational) home-claude-projects: 2200 files (2183 text, 4 over the size cap), 923.8 MB; files with a sealed 8-gram 24; outside the baseline 16 (2386 distinct 8-grams; longest shared run 211 words); whole-file matches 0
+  files with a shared run >= 20 words or a whole-file match: 1
+positive control (indexed sealed files against the index): 1 of 1 text files hit, 1 of 1 non-empty files match whole, longest shared run 2642 words: ok
+verdict: no-leakage-found

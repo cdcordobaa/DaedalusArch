@@ -91,6 +91,13 @@ jobs:
         # Fails when a protocol document contradicts Docs/v1.3/study2-deviation-2026-10-16.md §2 (arms, k, outcome, unit).
         run: npm run lint:protocol
 
+      - name: Study 2b registered-artefact hash gate
+        # Readiness gate S10 for Study 2b (Docs/v1.4/study2b-gate-verdict.md; pre-registration addendum 1, DA2). The loop
+        # harness has no `--check-prereg`, and adding one would change frozen code, so on main (the Study 2 base) CI
+        # refuses any change to the registered pre-registration text, the scripts the 2b run, scoring and analysis use, and
+        # the plan templates, unless the same PR updates the hash file with its own dated deviation.
+        run: sha256sum -c Docs/v1.4/study2b-preregistration.registered.sha256 Docs/v1.4/study2b-registered-artefacts.sha256
+
       - name: Lint
         # D-U0-16: lint tooling broken at 7cd15b4; repaired in U0 Step 11, findings are a recorded residual
         continue-on-error: true

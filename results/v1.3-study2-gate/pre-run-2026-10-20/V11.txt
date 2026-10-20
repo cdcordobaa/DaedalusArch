@@ -1,0 +1,128 @@
+# V11 leakage scan, 2026-10-20 (zero calls; hashed word 8-grams; sealed text, names and ids never printed).
+# npx tsx scripts/v1.4/leakage-scan.ts --sealed-dir <sealed>/v14-confirmatory --expect-tasks-sha256 6ac21079... (every file of the sealed set indexed)
+#   --baseline experiments/exploratory-study/tasks.json --baseline experiments/exploratory-study/stage-a/tasks.json --baseline experiments/v1.3-floor-probe-3/tasks.json
+#   --baseline experiments/grid-scale/tasks.json --baseline experiments/loop-acceptance-demo --baseline experiments/study2b/rehearsal-acceptance
+#   --skip-dir node_modules --skip-dir worktrees --scan repo=<repo> --scan main-checkout=<main-checkout> --scan study2b-shared=<shared>/daedalus-study2b
+#   --info home-claude-projects=<home>/.claude/projects (informational: counts only, no file names)
+# Leak rule (fixed before the first span was seen): a shared verbatim run of >= 20 words outside the baseline, or a whole-file match of a non-empty sealed file.
+sealed set: tasks.json sha256 ok; 28 files; 14739 distinct 8-grams; 78 of them also in the public baseline
+repo: 31062 files (30246 text, 0 over the size cap), 520.2 MB; files with a sealed 8-gram 72; outside the baseline 37 (44 distinct 8-grams; longest shared run 18 words); whole-file matches 0
+  files with a shared run >= 20 words or a whole-file match: 0
+  HIT repo/.git: 1 unexplained 8-gram(s), longest run 8 words
+  HIT repo/Docs/v1.3/compendium/nulls-and-limits.md: 3 unexplained 8-gram(s), longest run 10 words
+  HIT repo/Docs/v1.3/pilot-tasks.md: 2 unexplained 8-gram(s), longest run 9 words
+  HIT repo/Docs/v1.3/study2-task-design/calibration/pilot-tasks.json: 2 unexplained 8-gram(s), longest run 9 words
+  HIT repo/Docs/v1.3/study2-task-design/calibration/pilot.clean-architecture.txt: 5 unexplained 8-gram(s), longest run 12 words
+  HIT repo/Docs/v1.3/study2-task-design/calibration/pilot.hexagonal.txt: 5 unexplained 8-gram(s), longest run 12 words
+  HIT repo/Docs/v1.3/study2-task-design/calibration/pilot.layered.txt: 16 unexplained 8-gram(s), longest run 18 words
+  HIT repo/Docs/v1.3/study2-task-design/calibration/probe.clean-architecture.txt: 5 unexplained 8-gram(s), longest run 12 words
+  HIT repo/Docs/v1.3/study2-task-design/calibration/probe.hexagonal.txt: 5 unexplained 8-gram(s), longest run 12 words
+  HIT repo/Docs/v1.3/study2-task-design/calibration/probe.layered.txt: 16 unexplained 8-gram(s), longest run 18 words
+  HIT repo/Docs/v1.4/confirmatory-tasks-seal.md: 6 unexplained 8-gram(s), longest run 10 words
+  HIT repo/Docs/v1.4/study2-deviation-2026-10-19-drift.md: 4 unexplained 8-gram(s), longest run 11 words
+  HIT repo/demo/demo.ts: 1 unexplained 8-gram(s), longest run 8 words
+  HIT repo/examples/agent-proof-clinic/scripts/firewall-cli.cjs: 1 unexplained 8-gram(s), longest run 8 words
+  HIT repo/examples/agent-proof-clinic/scripts/run-task.sh: 1 unexplained 8-gram(s), longest run 8 words
+  HIT repo/experiments/loop-pilot/pilot-tasks.json: 2 unexplained 8-gram(s), longest run 9 words
+  HIT repo/experiments/loop-pilot/run-2026-10-16/outputs/runs/claude-code-cli/claude-sonnet-5-5/relief-volunteers/gate/run-0/turns/step-02/envelope-step-02.json: 1 unexplained 8-gram(s), longest run 8 words
+  HIT repo/experiments/loop-pilot/run-2026-10-16/outputs/runs/claude-code-cli/claude-sonnet-5-5/relief-volunteers/gate/run-0/work/src/deployment/application/deployment-service.ts: 1 unexplained 8-gram(s), longest run 8 words
+  HIT repo/experiments/loop-pilot/run-2026-10-16/outputs/runs/claude-code-cli/claude-sonnet-5-5/shelter-adoptions/gate/run-0/turns/step-03/prompt-step-03.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT repo/experiments/loop-pilot/run-2026-10-16/outputs/runs/claude-code-cli/claude-sonnet-5-5/shelter-adoptions/none/run-0/turns/step-03/prompt-step-03.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT repo/fixtures/v1.3-rehearsal-tasks/hint-audit/ice-rink.frame-L3.txt: 11 unexplained 8-gram(s), longest run 18 words
+  HIT repo/fixtures/v1.3-rehearsal-tasks/hint-audit/ice-rink.frame-as-no-hint.txt: 10 unexplained 8-gram(s), longest run 17 words
+  HIT repo/fixtures/v1.3-rehearsal-tasks/hint-audit/ice-rink.frame-layout-arm.txt: 11 unexplained 8-gram(s), longest run 18 words
+  HIT repo/fixtures/v1.3-rehearsal-tasks/hint-audit/ice-rink.requests.txt: 15 unexplained 8-gram(s), longest run 18 words
+  HIT repo/fixtures/v1.3-rehearsal-tasks/hint-audit/repair-cafe.requests.txt: 1 unexplained 8-gram(s), longest run 8 words
+  HIT repo/fixtures/v1.3-rehearsal-tasks/hint-audit/school-bus.requests.txt: 4 unexplained 8-gram(s), longest run 11 words
+  HIT repo/fixtures/v1.3-rehearsal-tasks/tasks.json: 7 unexplained 8-gram(s), longest run 14 words
+  HIT repo/ops/decisions.md: 1 unexplained 8-gram(s), longest run 8 words
+  HIT repo/ops/review/2026-10-19/confirmatory-writer-prompt.md: 3 unexplained 8-gram(s), longest run 10 words
+  HIT repo/results/v1.3-floor-probe/tasks.json: 2 unexplained 8-gram(s), longest run 9 words
+  HIT repo/results/v1.3-floor-probe-2/prompts/shelter-adoptions/C1/step-03.prompt.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT repo/results/v1.3-floor-probe-2/prompts/shelter-adoptions/C2/step-03.prompt.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT repo/results/v1.3-floor-probe-2/prompts/shelter-adoptions/C3/step-03.prompt.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT repo/scripts/llm-review-cli.ts: 1 unexplained 8-gram(s), longest run 8 words
+  HIT repo/scripts/v1.3/lib/construct-answers.ts: 2 unexplained 8-gram(s), longest run 9 words
+  HIT repo/tests/fixtures/loop-acceptance/_router.mjs: 1 unexplained 8-gram(s), longest run 8 words
+  HIT repo/tests/fixtures/loop-acceptance/relief-volunteers/server.mjs: 1 unexplained 8-gram(s), longest run 8 words
+main-checkout: 34068 files (33175 text, 0 over the size cap), 537.5 MB; files with a sealed 8-gram 67; outside the baseline 35 (44 distinct 8-grams; longest shared run 18 words); whole-file matches 0
+  files with a shared run >= 20 words or a whole-file match: 0
+  HIT main-checkout/.claude/settings.local.json: 1 unexplained 8-gram(s), longest run 8 words
+  HIT main-checkout/Docs/v1.3/pilot-tasks.md: 2 unexplained 8-gram(s), longest run 9 words
+  HIT main-checkout/Docs/v1.3/study2-task-design/calibration/pilot-tasks.json: 2 unexplained 8-gram(s), longest run 9 words
+  HIT main-checkout/Docs/v1.3/study2-task-design/calibration/pilot.clean-architecture.txt: 5 unexplained 8-gram(s), longest run 12 words
+  HIT main-checkout/Docs/v1.3/study2-task-design/calibration/pilot.hexagonal.txt: 5 unexplained 8-gram(s), longest run 12 words
+  HIT main-checkout/Docs/v1.3/study2-task-design/calibration/pilot.layered.txt: 16 unexplained 8-gram(s), longest run 18 words
+  HIT main-checkout/Docs/v1.3/study2-task-design/calibration/probe.clean-architecture.txt: 5 unexplained 8-gram(s), longest run 12 words
+  HIT main-checkout/Docs/v1.3/study2-task-design/calibration/probe.hexagonal.txt: 5 unexplained 8-gram(s), longest run 12 words
+  HIT main-checkout/Docs/v1.3/study2-task-design/calibration/probe.layered.txt: 16 unexplained 8-gram(s), longest run 18 words
+  HIT main-checkout/Docs/v1.4/confirmatory-tasks-seal.md: 6 unexplained 8-gram(s), longest run 10 words
+  HIT main-checkout/Docs/v1.4/study2-deviation-2026-10-19-drift.md: 4 unexplained 8-gram(s), longest run 11 words
+  HIT main-checkout/demo/demo.ts: 1 unexplained 8-gram(s), longest run 8 words
+  HIT main-checkout/examples/agent-proof-clinic/scripts/firewall-cli.cjs: 1 unexplained 8-gram(s), longest run 8 words
+  HIT main-checkout/examples/agent-proof-clinic/scripts/run-task.sh: 1 unexplained 8-gram(s), longest run 8 words
+  HIT main-checkout/experiments/loop-pilot/pilot-tasks.json: 2 unexplained 8-gram(s), longest run 9 words
+  HIT main-checkout/experiments/loop-pilot/run-2026-10-16/outputs/runs/claude-code-cli/claude-sonnet-5-5/relief-volunteers/gate/run-0/turns/step-02/envelope-step-02.json: 1 unexplained 8-gram(s), longest run 8 words
+  HIT main-checkout/experiments/loop-pilot/run-2026-10-16/outputs/runs/claude-code-cli/claude-sonnet-5-5/relief-volunteers/gate/run-0/work/src/deployment/application/deployment-service.ts: 1 unexplained 8-gram(s), longest run 8 words
+  HIT main-checkout/experiments/loop-pilot/run-2026-10-16/outputs/runs/claude-code-cli/claude-sonnet-5-5/shelter-adoptions/gate/run-0/turns/step-03/prompt-step-03.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT main-checkout/experiments/loop-pilot/run-2026-10-16/outputs/runs/claude-code-cli/claude-sonnet-5-5/shelter-adoptions/none/run-0/turns/step-03/prompt-step-03.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT main-checkout/fixtures/v1.3-rehearsal-tasks/hint-audit/ice-rink.frame-L3.txt: 11 unexplained 8-gram(s), longest run 18 words
+  HIT main-checkout/fixtures/v1.3-rehearsal-tasks/hint-audit/ice-rink.frame-as-no-hint.txt: 10 unexplained 8-gram(s), longest run 17 words
+  HIT main-checkout/fixtures/v1.3-rehearsal-tasks/hint-audit/ice-rink.frame-layout-arm.txt: 11 unexplained 8-gram(s), longest run 18 words
+  HIT main-checkout/fixtures/v1.3-rehearsal-tasks/hint-audit/ice-rink.requests.txt: 15 unexplained 8-gram(s), longest run 18 words
+  HIT main-checkout/fixtures/v1.3-rehearsal-tasks/hint-audit/repair-cafe.requests.txt: 1 unexplained 8-gram(s), longest run 8 words
+  HIT main-checkout/fixtures/v1.3-rehearsal-tasks/hint-audit/school-bus.requests.txt: 4 unexplained 8-gram(s), longest run 11 words
+  HIT main-checkout/fixtures/v1.3-rehearsal-tasks/tasks.json: 7 unexplained 8-gram(s), longest run 14 words
+  HIT main-checkout/ops/review/2026-10-19/confirmatory-writer-prompt.md: 3 unexplained 8-gram(s), longest run 10 words
+  HIT main-checkout/results/v1.3-floor-probe/tasks.json: 2 unexplained 8-gram(s), longest run 9 words
+  HIT main-checkout/results/v1.3-floor-probe-2/prompts/shelter-adoptions/C1/step-03.prompt.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT main-checkout/results/v1.3-floor-probe-2/prompts/shelter-adoptions/C2/step-03.prompt.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT main-checkout/results/v1.3-floor-probe-2/prompts/shelter-adoptions/C3/step-03.prompt.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT main-checkout/scripts/llm-review-cli.ts: 1 unexplained 8-gram(s), longest run 8 words
+  HIT main-checkout/scripts/v1.3/lib/construct-answers.ts: 2 unexplained 8-gram(s), longest run 9 words
+  HIT main-checkout/tests/fixtures/loop-acceptance/_router.mjs: 1 unexplained 8-gram(s), longest run 8 words
+  HIT main-checkout/tests/fixtures/loop-acceptance/relief-volunteers/server.mjs: 1 unexplained 8-gram(s), longest run 8 words
+study2b-shared: 35154 files (33754 text, 2 over the size cap), 540.0 MB; files with a sealed 8-gram 88; outside the baseline 38 (44 distinct 8-grams; longest shared run 18 words); whole-file matches 0
+  files with a shared run >= 20 words or a whole-file match: 0
+  HIT study2b-shared/instrument-4d28d280/Docs/v1.3/pilot-tasks.md: 2 unexplained 8-gram(s), longest run 9 words
+  HIT study2b-shared/instrument-4d28d280/Docs/v1.3/study2-task-design/calibration/pilot-tasks.json: 2 unexplained 8-gram(s), longest run 9 words
+  HIT study2b-shared/instrument-4d28d280/Docs/v1.3/study2-task-design/calibration/pilot.clean-architecture.txt: 5 unexplained 8-gram(s), longest run 12 words
+  HIT study2b-shared/instrument-4d28d280/Docs/v1.3/study2-task-design/calibration/pilot.hexagonal.txt: 5 unexplained 8-gram(s), longest run 12 words
+  HIT study2b-shared/instrument-4d28d280/Docs/v1.3/study2-task-design/calibration/pilot.layered.txt: 16 unexplained 8-gram(s), longest run 18 words
+  HIT study2b-shared/instrument-4d28d280/Docs/v1.3/study2-task-design/calibration/probe.clean-architecture.txt: 5 unexplained 8-gram(s), longest run 12 words
+  HIT study2b-shared/instrument-4d28d280/Docs/v1.3/study2-task-design/calibration/probe.hexagonal.txt: 5 unexplained 8-gram(s), longest run 12 words
+  HIT study2b-shared/instrument-4d28d280/Docs/v1.3/study2-task-design/calibration/probe.layered.txt: 16 unexplained 8-gram(s), longest run 18 words
+  HIT study2b-shared/instrument-4d28d280/Docs/v1.4/confirmatory-tasks-seal.md: 6 unexplained 8-gram(s), longest run 10 words
+  HIT study2b-shared/instrument-4d28d280/Docs/v1.4/study2-deviation-2026-10-19-drift.md: 4 unexplained 8-gram(s), longest run 11 words
+  HIT study2b-shared/instrument-4d28d280/demo/demo.ts: 1 unexplained 8-gram(s), longest run 8 words
+  HIT study2b-shared/instrument-4d28d280/examples/agent-proof-clinic/scripts/firewall-cli.cjs: 1 unexplained 8-gram(s), longest run 8 words
+  HIT study2b-shared/instrument-4d28d280/examples/agent-proof-clinic/scripts/run-task.sh: 1 unexplained 8-gram(s), longest run 8 words
+  HIT study2b-shared/instrument-4d28d280/experiments/loop-pilot/pilot-tasks.json: 2 unexplained 8-gram(s), longest run 9 words
+  HIT study2b-shared/instrument-4d28d280/experiments/loop-pilot/run-2026-10-16/outputs/runs/claude-code-cli/claude-sonnet-5-5/relief-volunteers/gate/run-0/turns/step-02/envelope-step-02.json: 1 unexplained 8-gram(s), longest run 8 words
+  HIT study2b-shared/instrument-4d28d280/experiments/loop-pilot/run-2026-10-16/outputs/runs/claude-code-cli/claude-sonnet-5-5/relief-volunteers/gate/run-0/work/src/deployment/application/deployment-service.ts: 1 unexplained 8-gram(s), longest run 8 words
+  HIT study2b-shared/instrument-4d28d280/experiments/loop-pilot/run-2026-10-16/outputs/runs/claude-code-cli/claude-sonnet-5-5/shelter-adoptions/gate/run-0/turns/step-03/prompt-step-03.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT study2b-shared/instrument-4d28d280/experiments/loop-pilot/run-2026-10-16/outputs/runs/claude-code-cli/claude-sonnet-5-5/shelter-adoptions/none/run-0/turns/step-03/prompt-step-03.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT study2b-shared/instrument-4d28d280/fixtures/v1.3-rehearsal-tasks/hint-audit/ice-rink.frame-L3.txt: 11 unexplained 8-gram(s), longest run 18 words
+  HIT study2b-shared/instrument-4d28d280/fixtures/v1.3-rehearsal-tasks/hint-audit/ice-rink.frame-as-no-hint.txt: 10 unexplained 8-gram(s), longest run 17 words
+  HIT study2b-shared/instrument-4d28d280/fixtures/v1.3-rehearsal-tasks/hint-audit/ice-rink.frame-layout-arm.txt: 11 unexplained 8-gram(s), longest run 18 words
+  HIT study2b-shared/instrument-4d28d280/fixtures/v1.3-rehearsal-tasks/hint-audit/ice-rink.requests.txt: 15 unexplained 8-gram(s), longest run 18 words
+  HIT study2b-shared/instrument-4d28d280/fixtures/v1.3-rehearsal-tasks/hint-audit/repair-cafe.requests.txt: 1 unexplained 8-gram(s), longest run 8 words
+  HIT study2b-shared/instrument-4d28d280/fixtures/v1.3-rehearsal-tasks/hint-audit/school-bus.requests.txt: 4 unexplained 8-gram(s), longest run 11 words
+  HIT study2b-shared/instrument-4d28d280/fixtures/v1.3-rehearsal-tasks/tasks.json: 7 unexplained 8-gram(s), longest run 14 words
+  HIT study2b-shared/instrument-4d28d280/ops/decisions.md: 1 unexplained 8-gram(s), longest run 8 words
+  HIT study2b-shared/instrument-4d28d280/ops/review/2026-10-19/confirmatory-writer-prompt.md: 3 unexplained 8-gram(s), longest run 10 words
+  HIT study2b-shared/instrument-4d28d280/results/v1.3-floor-probe/tasks.json: 2 unexplained 8-gram(s), longest run 9 words
+  HIT study2b-shared/instrument-4d28d280/results/v1.3-floor-probe-2/prompts/shelter-adoptions/C1/step-03.prompt.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT study2b-shared/instrument-4d28d280/results/v1.3-floor-probe-2/prompts/shelter-adoptions/C2/step-03.prompt.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT study2b-shared/instrument-4d28d280/results/v1.3-floor-probe-2/prompts/shelter-adoptions/C3/step-03.prompt.txt: 2 unexplained 8-gram(s), longest run 9 words
+  HIT study2b-shared/instrument-4d28d280/scripts/llm-review-cli.ts: 1 unexplained 8-gram(s), longest run 8 words
+  HIT study2b-shared/instrument-4d28d280/scripts/v1.3/lib/construct-answers.ts: 2 unexplained 8-gram(s), longest run 9 words
+  HIT study2b-shared/instrument-4d28d280/tests/fixtures/loop-acceptance/_router.mjs: 1 unexplained 8-gram(s), longest run 8 words
+  HIT study2b-shared/instrument-4d28d280/tests/fixtures/loop-acceptance/relief-volunteers/server.mjs: 1 unexplained 8-gram(s), longest run 8 words
+  HIT study2b-shared/rehearsal/dry/plans/plan-mcp-L2.json: 1 unexplained 8-gram(s), longest run 8 words
+  HIT study2b-shared/rehearsal/dry/plans/plan-none-L2.json: 1 unexplained 8-gram(s), longest run 8 words
+  HIT study2b-shared/rehearsal/dry/plans/plan-none-L3.json: 1 unexplained 8-gram(s), longest run 8 words
+(informational) home-claude-projects: 2200 files (2183 text, 4 over the size cap), 923.1 MB; files with a sealed 8-gram 944; outside the baseline 943 (2409 distinct 8-grams; longest shared run 211 words); whole-file matches 0
+  files with a shared run >= 20 words or a whole-file match: 1
+positive control (sealed set against itself): 27 of 27 text files hit, 27 of 27 non-empty files match whole, longest shared run 2642 words: ok
+verdict: no-leakage-found

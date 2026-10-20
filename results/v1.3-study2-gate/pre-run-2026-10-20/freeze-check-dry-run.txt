@@ -1,0 +1,70 @@
+v1.3 freeze check (DRY RUN: nothing written) at X = 9639ad251254706c1605ce217e6139fc0b4e9ac6
+[ OK  ] F1 Construct answers file committed, 25 of 25 answered
+        Docs/v1.3/construct-answers.json sha256 c0c70b2802c8965c3c4593fce8b329a11ce724342e2322caf53cc5ac67782e25
+[ OK  ] F2 Answers applied: switch file equals the rendering of the answers file
+[ OK  ] F3 construct-decisions.md answered, and equal to the answers file
+[ OK  ] F4 ADR-V13-03 accepted with an entry per answer that owes one (ADR-V13-02 when Q1 A)
+[ OK  ] F5 No tier override in force is marked unsigned
+[ OK  ] F6 Rule tiers and rule sources at their sealed hashes
+        rule-tiers.md and style-rule-sources.md equal their sealed rows
+[UNMET] F7 Working tree equals HEAD in src, scripts, presets, specs, package.json, package-lock.json, tsconfig*.json, nothing untracked
+        untracked files in the frozen paths: scripts/v1.4/leakage-scan.ts, scripts/v1.4/lib/leakage-scan.ts, scripts/v1.4/lib/post-run-acceptance.ts, scripts/v1.4/mcp-latency-live.ts, scripts/v1.4/post-run-acceptance.ts, scripts/v1.4/v9-2a.ts
+[UNMET] F8 Development-set re-run and re-score with the answers, at code equal to X
+        the frozen paths differ between 9aa2afffa083 and X: scripts/v1.4/cr-exemption-probe.ts, scripts/v1.4/d-dagger.ts, scripts/v1.4/lib/d-dagger.ts, scripts/v1.4/lib/mcp-telemetry.ts, scripts/v1.4/lib/stage-c.ts, scripts/v1.4/lib/study2b-analyse.ts, scripts/v1.4/lib/study2b-plans.ts, scripts/v1.4/lib/study2b-power.ts
+[UNMET] F9 Full test suite green (jest --maxWorkers=2) at code equal to X
+        the frozen paths differ between 4d28d2803bec and X: scripts/v1.4/cr-exemption-probe.ts, scripts/v1.4/d-dagger.ts, scripts/v1.4/lib/d-dagger.ts, scripts/v1.4/lib/mcp-telemetry.ts, scripts/v1.4/lib/stage-c.ts, scripts/v1.4/lib/study2b-analyse.ts, scripts/v1.4/lib/study2b-plans.ts, scripts/v1.4/lib/study2b-power.ts
+[UNMET] F10 Byte-identity manifest committed and equal to the recomputed one
+        results/v1.3-freeze/manifest.json is not byte-identical to the recomputed manifest; differs in commit, frozenPathTrees
+[UNMET] F11 Hold-out prespec frozen (placeholders filled, X named)
+        Docs/v1.3/holdout-prespec.md does not name X = 9639ad251254706c1605ce217e6139fc0b4e9ac6
+[UNMET] F12 sealed-hashes.md records X, the frozen prespec, the manifest and the answers
+        Docs/v1.3/sealed-hashes.md: "v1.3 freeze commit X (tool)" is 4d28d2803bec018e48f848e6a0f27ff87b3babf2, expected 9639ad251254706c1605ce217e6139fc0b4e9ac6
+[ OK  ] F13 The hold-out has not been run (no results/v1.3-holdout/run-1)
+[SKIP ] F14 Reference engine reachable: Neo4j 5.26.x with APOC
+        dry run without --probe-engine
+FREEZE PRECONDITIONS NOT MET: 6 of 14 unmet (F7, F8, F9, F10, F11, F12)
+manifest (sha256):
+  commit 9639ad251254706c1605ce217e6139fc0b4e9ac6
+  tree src e49209c2003b676062c9e7bc7885c784119da448
+  tree scripts e59f448c59ae0f508cb003751ffb0f64e78b15da
+  tree presets 38e91ce00c38fae90e046150ebf127c7f04d29c3
+  tree specs 80476078dd80348c8dee09bff0c6136a7c277c1b
+  tree package.json 9ce68b5ee063a048c9d4328336fb634eccf65ec3
+  tree package-lock.json 25a0d99d2af4f8833c354158bc4c7e591b5a24cd
+  tree tsconfig*.json 9639ad251254706c1605ce217e6139fc0b4e9ac6:tsconfig*.json
+  engine neo4j 5.26.x + apoc-core 5.26; cross-check cypher-interp; node 24
+  answers Docs/v1.3/construct-answers.json c0c70b2802c8965c3c4593fce8b329a11ce724342e2322caf53cc5ac67782e25 (25 of 25 answered); deferred rules: none
+  compiled clean-architecture f4c83f73a8c4da97e8571e36e769ce98c1ac9ad64225e49065687af00037d23d (23 functions, disabled: FF-CV01, FF-CV04, FF-S03)
+  compiled layered ebf45d875b61e05030308697616b11bd6a7fd87e0b75a46aa39d95a9200f7591 (14 functions, disabled: FF-CV01, FF-CV04, FF-S04, FF-P01, FF-P02, FF-P03, FF-P04, FF-P05, FF-P06, FF-C01, FF-CV02)
+  compiled nestjs 64ad93dbfac5910cb8bdf436e8525b4d232a3e070a49198d0517a0764f01217d (23 functions, disabled: FF-CV01, FF-CV04, FF-S03)
+  compiled hexagonal 36c499b4023294afbd619ac2ddfb992721756db83246171fd5921a7f77205b68 (21 functions, disabled: FF-CV01, FF-CV04)
+  compiled ddd 1085599ac781598549cfe4a9453794f735317aca14ba2b2ac9179b5ca41e8fcc (12 functions, disabled: none)
+  tiers clean-architecture 2e8138281749813f120cb5b242f038469e001e6ae96c10e7fcf7a7819837e2cf (blocking: FF-P01, FF-P03, FF-P06, FF-P07, FF-S01, FF-S02, FF-S04)
+  tiers layered 9431f6ade6d21f6b83ca4a75115c7f1fc132f41cb14d6641fb59c4291129fb5a (blocking: FF-S01, FF-S02, FF-S03)
+  tiers nestjs 2e8138281749813f120cb5b242f038469e001e6ae96c10e7fcf7a7819837e2cf (blocking: FF-P01, FF-P03, FF-P06, FF-P07, FF-S01, FF-S02, FF-S04)
+  tiers hexagonal 69abf294d03328d5575b53c339b8d7c070387e27007fc42df21c803ea08ece50 (blocking: FF-P01, FF-P03, FF-P06, FF-P07, FF-S01, FF-S02, FF-S04)
+  tiers ddd 25283649420d60207d0f02e9f08cba60cfd4691d881935c0fa05d0ae6b369d1a (blocking: FF-DS02, FF-DT01, FF-DT02, FF-DT03, FF-DT04, FF-DT05, FF-P07, FF-S01, FF-S02)
+  file Docs/v1.3/construct-answers.json c0c70b2802c8965c3c4593fce8b329a11ce724342e2322caf53cc5ac67782e25
+  file Docs/v1.3/holdout-prespec.md f15cb5f135f1eec0308250d8df2bdc53739bf17e2ece19cf18b37f6579d612fd
+  file Docs/v1.3/rule-tiers.md 290794e0bf8edc0d02b631b576b1181cb3e9fb603af3b4fd110a61b60543f27a
+  file Docs/v1.3/style-rule-sources.md 7ce49c630178bad9effd27ae4acce6286effcffd2099b6d353023fca23715c28
+  file presets/clean-architecture.yaml 285447919fcedee05b8c0a5b01a61a82a36e2c0a482010b3b305863ae2dddf68
+  file presets/ddd.yaml ce28a78582a92571c5c8ff2c9144eb2161c580e140db3af880d451737b6260f7
+  file presets/hexagonal.yaml d085d6b9badca2e79ade19b12fcfff96d1317df139d646772871266f0ed20ab7
+  file presets/layered.yaml f0d9045de2364b8dae1ca56b584efd67fb035d9807b983ce4e6f8a7e334eade8
+  file presets/nestjs.yaml 0172db1cb6160d5e92959ef9188be5e7bfdd9667e20ee8b34eecb3753e30997f
+  file scripts/v1.3/lib/compare.ts dc6e128b6f29d1c57679fe1053b7d8cdb3fb23ce1bd4e4accc62608f6c6e22e3
+  file scripts/v1.3/lib/holdout-run-main.ts 0520ba500d97e728b32aa4f98db40d02793e56d19973a9c8a64b552268acecb6
+  file scripts/v1.3/lib/holdout-score.ts facb3c1e3907d8d26ed0ef98ad6345ecd4316e7aaf2452b7761e57c5ddbb4b5c
+  file specs/.gitkeep e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  file specs/clean-arch.yaml 91bd152e0ae58dcc28a35f2ebc6fe264bf9ff7cd11a2fa6a8094ef54fcd6f6a8
+  file specs/daedalus-arch.yaml ecad7116bf77a86e2ff853568caca51bb8ef6aaeb420cf04816905abaeac9ee5
+  file specs/dogfood/RATIONALE.md daec21773390dfb4907eb9b1614318ec11cff3e97ca58c5306ab191880caf383
+  file specs/dogfood/daedalus-self.revised.yaml 3bb0631bfaa71e62e946666bb2cc8912bd58e8dce0cbeaff5c2b6fb0f6175f1b
+  file specs/dogfood/daedalus-self.yaml 481f06e8a5570b558f287ee562a33fb968cd719db287e45e916d3d3cec20b201
+  file specs/dogfood/known-findings.json a5446827a2246a008dbaba59cf0a9501bc43f2f39aedde8f80c0668bc9dcd800
+  file src/fitness-compiler/cypher-templates.ts 6e3a313db87d0d82530508d892106e3eb343e1bd08a9908acdc5e92f541c0c5d
+  file src/fitness-compiler/v13-templates.ts f2da2f083dcdc456869df2d335e8edae2aa8140c0612839f5ce2b42e27c28719
+  file src/scoring-engine/rule-tiers.ts ca0d29ca36669378a8485e56cbcbad3d5f40c3dbfa0655237f96682d2ab48d7b
+  (455 files hashed in all; manifest sha256 09c302fb7eb2b6708f9480095e135a7f61679149822eb443a6ac6a03db4e90de)
+FREEZE CHECK FAILED: F7, F8, F9, F10, F11, F12 unmet

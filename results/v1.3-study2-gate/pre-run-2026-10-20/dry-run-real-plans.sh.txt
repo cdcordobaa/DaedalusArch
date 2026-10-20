@@ -1,0 +1,93 @@
+#!/bin/bash
+# Zero-call dry run of the REAL 2b plans (runbook §3-§4), R = 10, per replicate. Prints counts and hashes only.
+set -u
+REPO=<repo>
+SEALED=<sealed>/v14-confirmatory
+S=<shared>/daedalus-study2b
+I=$S/instrument-4d28d280
+C=$S/bin/claude-2.1.304
+D=$S/run-dry
+TSHA=6ac2107916d40b2b8b261613828211f71f39f9581927a6a7286c629ce444c5fc
+BSHA=b9ac5374839f14abf3f1f45610637c332b5daee5ce0d1634726cef87aab78e6a
+red() { sed "s#$S#<shared>/daedalus-study2b#g; s#$SEALED#<sealed>#g; s#$REPO#<repo>#g"; }
+
+echo "start $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+got=$(shasum -a 256 "$SEALED/tasks.json" | cut -d' ' -f1)
+echo "tasks.json sha256 $got $([ "$got" = "$TSHA" ] && echo MATCH || echo MISMATCH)"
+[ "$got" = "$TSHA" ] || exit 3
+echo "MANIFEST.sha256 sha256 $(shasum -a 256 "$SEALED/MANIFEST.sha256" | cut -d' ' -f1)"
+gb=$(shasum -a 256 "$C" | cut -d' ' -f1)
+echo "pinned CLI sha256 $gb $([ "$gb" = "$BSHA" ] && echo MATCH || echo MISMATCH); version: $("$C" --version)"
+[ "$gb" = "$BSHA" ] || exit 3
+echo "tag: $(git -C "$REPO" rev-parse 'v1.4-freeze-2026-10-20^{commit}')"
+echo "layered.yaml in build: $(shasum -a 256 "$S/daedalus-build/4d28d280/presets/layered.yaml" | cut -d' ' -f1)"
+grep -c -- '--disable-slash-commands' "$I/scripts/lib/generators/argv.ts" | sed 's/^/argv.ts --disable-slash-commands count: /'
+
+# The sealed acceptance root: the directory under the sealed set whose subdirectories hold step-01.test.mjs (path not printed).
+ACC=$(python3 -I - "$SEALED" <<'PY'
+import os, sys
+root = sys.argv[1]
+for d, subs, files in os.walk(root):
+    kids = [k for k in subs if os.path.isfile(os.path.join(d, k, 'step-01.test.mjs'))]
+    if len(kids) >= 1:
+        print(d); break
+PY
+)
+[ -n "$ACC" ] || { echo "acceptance root not found"; exit 3; }
+echo "acceptance root located (path not printed)"
+
+[ -e "$D" ] && { echo "run-dry exists: refusing"; exit 3; }
+mkdir -p "$D/plans" "$D/logs"
+for n in $(seq 1 10); do
+  r=$(printf %02d "$n")
+  (cd "$REPO" && npx tsx scripts/v1.4/study2b-plans.ts --tasks "$SEALED/tasks.json" --expect-tasks-sha256 "$TSHA" \
+    --replicate "$n" --acceptance-root "$ACC" --daedalus-build "$S/daedalus-build/4d28d280" --out "$D/plans/r$r") > "$D/logs/plans-r$r.log" 2>&1
+  echo "fill r$r exit=$?"
+done
+echo "--- plan filler output, replicate 1 (counts only by design):"
+red < "$D/logs/plans-r01.log"
+echo "--- replicates 2-10, lines differing from replicate 1:"
+for n in $(seq 2 10); do r=$(printf %02d "$n"); diff <(red < "$D/logs/plans-r01.log") <(red < "$D/logs/plans-r$r.log") | grep '^[<>]' | sed "s/^/r$r: /"; done
+
+summ() { # log file -> runs/completed/step turns/maxCalls, from the harness's final JSON summary
+  python3 -I - "$1" <<'PY'
+import json, sys, re
+t = open(sys.argv[1]).read()
+i = t.rfind('{\n  "outRoot"')
+if i < 0:
+    i = t.rfind('{"outRoot"')
+try:
+    j = json.JSONDecoder().raw_decode(t[i:])[0]
+    print("runs=%s completed=%s skipped=%s stepTurns=%s repairTurns=%s maxCalls=%s dryRun=%s" % (j['runs'], j['completed'], j['skipped'], j['turnsThisInvocation']['step'], j['turnsThisInvocation']['repair'], j['callBudget'].get('maxCalls'), j['dryRun']))
+except Exception as e:
+    print("no summary parsed (%s)" % type(e).__name__)
+PY
+}
+cell() { # cell, replicate, lane, plan, out-root, harness root, extra flags
+  local log="$D/logs/$1-r$2.log"
+  (cd "$I" && npx tsx scripts/loop-harness-cli.ts --plan "$4" --out-root "$5" --binary "$C" --harness-root "$6" --call-log ${7:-} --dry-run) > "$log" 2>&1
+  local ex=$?
+  echo "$1 r$2 lane $3: exit=$ex $(summ "$log")"
+}
+for n in $(seq 1 10); do
+  r=$(printf %02d "$n"); P=$D/plans/r$r
+  cell none@L2 "$n" l2 "$P/plan-none-L2.json" "$D/l2/r$r" "$D/h-l2"
+  if [ $((n % 2)) -eq 1 ]; then A=(none@L3 "$P/plan-none-L3.json" "$D/l3/r$r"); B=(mcp@L2 "$P/plan-mcp-L2.json" "$D/mcp/r$r")
+  else A=(mcp@L2 "$P/plan-mcp-L2.json" "$D/mcp/r$r"); B=(none@L3 "$P/plan-none-L3.json" "$D/l3/r$r"); fi
+  cell "${A[0]}" "$n" A "${A[1]}" "${A[2]}" "$D/h-a" "--shared-start-from $D/l2/r$r" &
+  cell "${B[0]}" "$n" B "${B[1]}" "${B[2]}" "$D/h-b" "--shared-start-from $D/l2/r$r" &
+  wait
+done
+echo "plans.json budgets (from the filler's own file, counts only):"
+for n in 1 10; do r=$(printf %02d "$n"); python3 -I -c "
+import json,sys
+d=json.load(open(sys.argv[1]))
+def walk(v,p=''):
+    if isinstance(v,dict):
+        for k,x in v.items(): walk(x,p+'/'+k)
+    elif isinstance(v,list):
+        for i,x in enumerate(v): walk(x,p+'/'+str(i))
+    elif p.endswith('maxCalls') or p.endswith('sha256') or p.endswith('Sha256'):
+        print('  r$r'+p, v)
+walk(d)" "$D/plans/r$r/plans.json" 2>/dev/null | head -20; done
+echo "end $(date -u +%Y-%m-%dT%H:%M:%SZ)"
