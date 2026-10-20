@@ -2502,7 +2502,7 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 ## v1.4 research ops: Gemini S4 on agy 1.4.2 fails; exploratory generator is Claude only
 **Timestamp**: 2026-10-20T02:12:15Z
 **User Input**: "Give it the last mile" (the one-hour, zero-call timebox on agy 1.4.2 permissions, then S4 within the 30-call approval)
-**AI Response**: "Run 1: G0 failed on a check-order artifact plus ~/.agents (PR #288 fixes it). Run 2: 24 calls; G0 passed, probes failed in both arms. run_command, read_file/write_file escapes, invoke_subagent and schedule all ran, so agy 1.4.2 does not enforce the pruned deny rules. Under ADR-029 Gemini cannot be a coding generator; the exploratory study uses Claude Sonnet only, and Gemini keeps its one-shot roles. Docs/DiagnosticRuns/v1.4-gemini-s4-agy142-2026-10-19.md."
+**AI Response**: "Run 1: G0 failed on a check-order artifact plus an .agents folder in the home folder (PR #288 fixes it). Run 2: 24 calls; G0 passed, probes failed in both arms. run_command, read_file/write_file escapes, invoke_subagent and schedule all ran, so agy 1.4.2 does not enforce the pruned deny rules. Under ADR-029 Gemini cannot be a coding generator; the exploratory study uses Claude Sonnet only, and Gemini keeps its one-shot roles. Docs/DiagnosticRuns/v1.4-gemini-s4-agy142-2026-10-19.md."
 **Context**: v1.4 instrument track, TRUST-01 L9; 24 Gemini calls
 ---
 
@@ -2518,4 +2518,9 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **User Input**: "Coordinator brief: build a PreToolUse hook allow-list for the Gemini generator on agy 1.4.2 and correct its permission rules (the S4 run failed in both arms); zero model calls; open a PR, do not merge."
 **AI Response**: "Built scripts/lib/generators/agy-confine-hook.mjs, a per-turn hook config and hooks.json written by writeAgyTurnFiles. The hook allows file tools only inside the work directory (realpath, no symlink escape), only the exact type-check command, finish, command_status after it, and the spec-only daedalus-arch tools in the mcp arm; everything else is denied; any error blocks. Permission rules now use only the seven real agy action kinds; the command rule is an anchored regex, because the S4 streams show the prefix rule let chained and extra-flag commands complete. The home check and G0 require the hook (checked before any agy command); S4 now fails a probe on hook-not-invoked; the G0 hooks-loaded sub-check records unverified (agy prints no such line). Docs, a declared-change note and unit U12 added. Zero model calls; one bare agy --version ran against the user HOME by mistake (no model call). S4 must be re-run live and pass before any Gemini coding cell."
 **Context**: v1.4 instrument track; Gemini generator confinement after the failed S4 of 2026-10-19; plan aidlc-docs/construction/v1.4/U12/plan.md
+## v1.4 Study: exploratory Stage A run
+**Timestamp**: 2026-10-20T03:14:46Z
+**User Input**: "Yes, reuse the research config, go with Stage A"
+**AI Response**: "Stage A ran at 5bfe36e3: Layered x3, none@L2, Claude Sonnet, 15 turns, 3/3 complete. Mean D 1.33, Y1>=1 in 3/3, all FF-S03. The stop check does not trigger, so Layered continues (provisional until the freeze re-score). Two earlier attempts made 0 model calls: an absolute-binary-path error, then 'Not logged in' under the per-run HOME (the S3 keychain finding; that isolation is off for Stage A, declared)."
+**Context**: exploratory study Stage A; 15 Claude generator turns
 ---

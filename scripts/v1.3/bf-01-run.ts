@@ -39,6 +39,8 @@ import { turnStatus, turnUsage } from '../lib/loop/agents.js';
 import { checkIsolationBeforeSpawn, isolatedClaudeEnv, parseCliVersion } from '../lib/loop/isolation.js';
 import type { ClaudeIsolation } from '../lib/loop/isolation.js';
 import { checkConfigListing } from '../../src/llm-critic/claude-cli-provider.js';
+import { RESEARCH_CLI_SETTINGS_KEYS, researchListingFailures } from '../lib/claude-config-tolerance.js';
+export { RESEARCH_CLI_SETTINGS_KEYS, researchListingFailures };
 import { analyseTranscript } from './lib/mcp-smoke.js';
 import { FACTS_SERVER, FACT_TOOLS, buildFactsGraph, readOnlyQuery } from './lib/bf-01-facts.js';
 import { checkCitation } from './bf-01-verify-evidence.js';
@@ -119,27 +121,10 @@ export const CONFIG_DIRS = { judge: JUDGE_CONFIG_DIR_DEFAULT, research: '~/.fire
 export type ConfigKind = keyof typeof CONFIG_DIRS;
 const CONFIG_ARG = process.argv.includes('--config') ? process.argv[process.argv.indexOf('--config') + 1] : undefined;
 export const CONFIG_KIND: ConfigKind = CONFIG_ARG === 'judge' || CONFIG_ARG === 'research' ? CONFIG_ARG : DESIGN === 'v1' ? 'judge' : 'research';
-export const RESEARCH_CLI_SETTINGS_KEYS: readonly string[] = ['tui'];
 export function claudeIso(kind: ConfigKind = CONFIG_KIND): ClaudeIsolation {
   return { configDir: CONFIG_DIRS[kind].replace(/^~/, os.homedir()) };
 }
 
-/** Which listing failures the research dir tolerates (pure; the failures carry entry names and reasons only). */
-export function researchListingFailures(failures: readonly { readonly entry: string; readonly reason: string }[]): { entry: string; reason: string }[] {
-  const synced = (e: string): boolean => /^(plugins|skills)\/synced(\/|$)/.test(e);
-  const under = (dir: string): boolean => failures.some((f) => f.entry.startsWith(`${dir}/`) && !synced(f.entry));
-  const allowed = (f: { entry: string; reason: string }): boolean => {
-    if ((f.entry === 'plugins' || f.entry === 'skills') && !under(f.entry)) return true;
-    // The CLI syncs the account's skills and plugins here at every start (2026-10-19). Tolerated because every session
-    // runs with --disable-slash-commands and initExtensionViolations() fails any session whose init shows one loaded.
-    if (synced(f.entry)) return !/(^|\/)CLAUDE\.md$|(^|\/)\.?mcp(_config|-config)?\.json$/i.test(f.entry);
-    if (f.entry === 'state' || f.entry.startsWith('state/')) return !/(^|\/)CLAUDE\.md$|(^|\/)\.?mcp(_config|-config)?\.json$/i.test(f.entry);
-    const keys = /^settings\.json has disallowed keys: (.+)$/.exec(f.reason);
-    if (f.entry === 'settings.json' && keys !== null) return (keys[1] ?? '').split(/,\s*/).every((k) => RESEARCH_CLI_SETTINGS_KEYS.includes(k.trim()));
-    return false;
-  };
-  return failures.filter((f) => !allowed(f)).map((f) => ({ entry: f.entry, reason: f.reason }));
-}
 
 /** The listing check of the selected dir; the per-run HOME is created as before. */
 export function checkClaudeConfig(home: string, kind: ConfigKind = CONFIG_KIND): DomainResult<{ readonly configListingSha256: string }> {
