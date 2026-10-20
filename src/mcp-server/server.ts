@@ -29,6 +29,7 @@ import {
 import { REVIEW_JUDGE_VERSIONS } from './neural-review.js';
 import type { ServerContext, ToolOutcome } from './tools.js';
 import { withCallLog } from './call-log.js';
+import { confineArgs } from './confine.js';
 import { SEMANTIC_FACTS_TOOL, semanticFactsTool } from './semantic-facts.js';
 
 export const SERVER_NAME = 'daedalus-arch';
@@ -276,8 +277,20 @@ export function createServer(ctx: ServerContext): McpServer {
   // Call log (`--call-log`, off by default): the same registration with each handler wrapped (call-log.ts).
   const logger = ctx.callLog;
   let seq = 0;
+  // `--confine` (confine.ts, off by default): the spec and project arguments are checked before the handler runs. The
+  // check sits inside the call-log wrapper, so a refusal is logged as a call with that error.
+  type Handler = Parameters<RegisterTool>[2];
+  const guard = (handler: Handler): Handler =>
+    ctx.confine !== true
+      ? handler
+      : async (args) => {
+          const refusal = confineArgs({ specPath: ctx.defaultSpecPath, projectPath: ctx.defaultProjectPath, cwd: process.cwd() }, args);
+          return refusal === null ? handler(args) : { isError: true, content: [{ type: 'text', text: refusal }] };
+        };
   const register: RegisterTool =
-    logger === undefined ? registerTool : (name, config, handler) => registerTool(name, config, withCallLog(logger, name, handler, () => ++seq));
+    logger === undefined
+      ? (name, config, handler) => registerTool(name, config, guard(handler))
+      : (name, config, handler) => registerTool(name, config, withCallLog(logger, name, guard(handler), () => ++seq));
   const followUp = ctx.neural !== undefined ? NEURAL_FOLLOW_UP : '';
 
   register(

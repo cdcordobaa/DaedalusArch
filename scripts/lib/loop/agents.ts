@@ -238,7 +238,8 @@ async function driveTurn(
   });
 }
 
-function writeMcpConfig(file: string, config: unknown): void {
+/** Writes a turn's MCP config (mode 600); the Claude S4 MCP probe writes its configs with it too. */
+export function writeMcpConfig(file: string, config: unknown): void {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, `${JSON.stringify(config, null, 2)}\n`, { mode: 0o600 });
 }
