@@ -2505,3 +2505,10 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **AI Response**: "Run 1: G0 failed on a check-order artifact plus ~/.agents (PR #288 fixes it). Run 2: 24 calls; G0 passed, probes failed in both arms. run_command, read_file/write_file escapes, invoke_subagent and schedule all ran, so agy 1.4.2 does not enforce the pruned deny rules. Under ADR-029 Gemini cannot be a coding generator; the exploratory study uses Claude Sonnet only, and Gemini keeps its one-shot roles. Docs/DiagnosticRuns/v1.4-gemini-s4-agy142-2026-10-19.md."
 **Context**: v1.4 instrument track, TRUST-01 L9; 24 Gemini calls
 ---
+
+## v1.4 research ops: confirmatory Layered tasks sealed
+**Timestamp**: 2026-10-20T02:30:35Z
+**User Input**: "Let's do the confirmatory tasks; send an external examiner" (the author started the examiner session)
+**AI Response**: "The blind writer (separate session, no transcript) sealed 4 Layered tasks × 5 steps, 20 acceptance tests, hint audit 0 FAIL / 8 WARN. The author's examiner session returned GO, no overlap, high confidence. Hashes recorded in Docs/v1.4/confirmatory-tasks-seal.md and the registration changelog. The coordinator never saw the content."
+**Context**: v1.4 Study 2, EXPT / V10c / gate S14; writer calls not counted against the study
+---
