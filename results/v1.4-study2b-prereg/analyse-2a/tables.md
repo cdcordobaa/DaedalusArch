@@ -73,6 +73,7 @@ Holm over {H1, H2, H3} at FWER 0.05. MC and exact decisions agree.
 | H3 | 0.0500 | false | 0.0500 | false | false | — | — |
 
 - **Evasion bar** (exempt-file share of presentation → persistence edges at step 5; share of runs with a rename to an exempt name; flag above 0.20): H1 exempt-share diff 0.00, rename-share diff 0.00, flagged false; H2 exempt-share diff 0.00, rename-share diff 0.00, flagged false; H3 exempt-share diff 0.00, rename-share diff 0.00, flagged false. Cells: none@L2 0/21 exempt, 0/6 runs renamed; none@L3 0/8 exempt, 0/6 runs renamed; mcp@L2 0/3 exempt, 0/6 runs renamed.
+- **D_sem (semantic secondary, descriptive):** H1: D_sem not available (semantic layer not run, or configuration pending); H2: D_sem not available (semantic layer not run, or configuration pending); H3: D_sem not available (semantic layer not run, or configuration pending).
 - **Y₁ = 0 blocks dropped** (6 blocks): H1 reject false, H2 reject false, H3 reject false; exact p H1 0.2500, H2 0.2500, H3 1.0000.
 - **Robustness:** H1 sign test p 0.3750, signed-rank p 0.2500; H2 sign test p 0.2500, signed-rank p 0.2500; H3 sign test p 1.0000, signed-rank p 1.0000.
 - **Run-index halves** (replicates ≤ 1 vs the rest): first half 3 blocks, mean D none@L2 1.33, d̄ {"H1":0.6666666666666666,"H2":1,"H3":0.3333333333333333}; second half 3 blocks, mean D none@L2 1.67, d̄ {"H1":1,"H2":1,"H3":0}; sign reversal {"H1":false,"H2":false,"H3":false}.

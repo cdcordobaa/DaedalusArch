@@ -265,10 +265,29 @@ export function supportedUnderBoth(d: FamilyDecision, dagger: FamilyDecision | n
     const a = d.decisions[id];
     if (a === undefined) continue;
     const b = dagger?.decisions[id];
-    const agree = b !== undefined && a.reject === b.reject && a.predictedSign === b.predictedSign;
+    // Signs are compared only for a rejection: two non-rejections agree whatever their signs (re-check note).
+    const agree = b !== undefined && a.reject === b.reject && (!a.reject || a.predictedSign === b.predictedSign);
     if (dagger === null || b === undefined) out[id] = { supported: false, reading: 'D† not available: the claim cannot be called supported (finding 2 rule)' };
     else if (!agree) out[id] = { supported: false, reading: 'D and D† disagree: holds under the composition-root exemption only; claim scoped' };
     else out[id] = { supported: a.supportedUnderThisOutcome === true, reading: a.supportedUnderThisOutcome === true ? 'supported (D and D† agree)' : a.reject ? 'rejected against the prediction (D and D† agree): a finding against the hypothesis' : 'not rejected under D or D†: no difference detected at RR <= 0.25 MDE' };
+  }
+  return out;
+}
+
+/**
+ * The registered D_sem reading (pre-registration §4, "Semantic layer"; DELEG11): per contrast, "the symbolic conclusion
+ * survives semantic interpretation" when the Holm decision (and, for a rejection, the sign) is the same under D and
+ * D_sem; otherwise "conclusion depends on the semantic layer". Descriptive: it changes no decision.
+ */
+export function semanticReading(d: FamilyDecision, sem: FamilyDecision | null): Record<string, { readonly survives: boolean | null; readonly reading: string }> {
+  const out: Record<string, { survives: boolean | null; reading: string }> = {};
+  for (const id of d.family) {
+    const a = d.decisions[id];
+    const b = sem?.decisions[id];
+    if (a === undefined) continue;
+    if (sem === null || b === undefined) { out[id] = { survives: null, reading: 'D_sem not available (semantic layer not run, or configuration pending)' }; continue; }
+    const agree = a.reject === b.reject && (!a.reject || a.predictedSign === b.predictedSign);
+    out[id] = { survives: agree, reading: agree ? 'the symbolic conclusion survives semantic interpretation' : 'conclusion depends on the semantic layer' };
   }
   return out;
 }

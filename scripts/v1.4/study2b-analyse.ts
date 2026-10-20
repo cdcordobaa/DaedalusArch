@@ -9,6 +9,7 @@
  *     [--recall <cell>=<seeded-recall run.json> ...]           seeded recall per cell (V4 part B)
  *     [--scores results/v1.3-reference/after-construct-answers/scores.json]   r_f under F-RF
  *     [--dagger <d-dagger>/runs.json]                          D† (finding 2) and the evasion bar
+ *     [--dsem <dsem.json>]                                     D_sem, the semantic secondary: [{cell, block, D}] (DELEG11)
  *     [--telemetry <mcp-telemetry>/telemetry.json ...]         evasion item 6 (mechanism); repeatable
  *     [--acceptance <acceptance.json>]                         evasion item 1: [{cell, block, step, passed}]
  *     [--order <order.jsonl>]                                  run-order covariates (runbook §5: {cell, replicate, lane, start|end})
@@ -28,7 +29,7 @@ import { cellEvasion, evasionFlag, type RunEvasion } from './lib/d-dagger.js';
 import {
   ANALYSIS_SEED, BOOT_RESAMPLES, CELLS, CONCENTRATION_SHARE, CONTRASTS, DELTA, DELTA2, FWER, MC_DRAWS, V4_A_MARGIN, V4_B_MARGIN,
   analyseContrast, cellDistribution, equivalence, familyDecision, halves, isComplete, partA, partB, plantedBlocks, recallByFamily,
-  supportedUnderBoth, taskClusterBootstrap, zeroTable,
+  semanticReading, supportedUnderBoth, taskClusterBootstrap, zeroTable,
   type Block, type Cell, type ContrastResult, type FamilyDecision, type HypothesisId, type RecallSite,
 } from './lib/study2b-analyse.js';
 import { momentTheta, sampleVariance } from './lib/stage-c.js';
@@ -143,6 +144,19 @@ function main(): number {
     dagger = { results: primary, decision };
   }
   const support = supportedUnderBoth(decision, dagger?.decision ?? null);
+
+  // ── D_sem (semantic secondary, descriptive; DELEG11) ──
+  const dsemFile = arg('dsem');
+  let dsem: { results: ContrastResult[]; decision: FamilyDecision; perCell: { cell: Cell; values: (number | null)[]; sum: number }[] } | null = null;
+  if (dsemFile !== undefined && plant === undefined) {
+    inputs.dsem = `${path.basename(dsemFile)} sha256 ${sha(dsemFile)}`;
+    const sr = readJson<{ cell: string; block: string; D: number | null }[]>(dsemFile);
+    const sv = (b: Block, cell: Cell): number | null => sr.find((r) => r.cell === cell && r.block === b.block)?.D ?? null;
+    const results = CONTRASTS.map((c) => analyseContrast(blocks, c, { ...opts, value: sv }));
+    const perCell = CELLS.map((c) => { const values = blocks.map((b) => sv(b, c)); return { cell: c, values, sum: values.reduce<number>((a, x) => a + (x ?? 0), 0) }; });
+    dsem = { results, decision: familyDecision(results, family), perCell };
+  }
+  const semantic = semanticReading(decision, dsem?.decision ?? null);
 
   // ── sensitivity ──
   const rerun = (bs: readonly Block[]): { results: ContrastResult[]; decision: FamilyDecision } => {
@@ -307,6 +321,8 @@ function main(): number {
     sensitivity: {
       dagger: dagger === null ? null : { decisions: dagger.decision, contrasts: dagger.results.map((r) => ({ id: r.id, T: r.T, mcP: r.mcP, exactP: r.exactP, dbar: r.dbar, rr: r.rr })) },
       evasionBar,
+      dsem: dsem === null ? null : { decisions: dsem.decision, contrasts: dsem.results.map((r) => ({ id: r.id, T: r.T, mcP: r.mcP, exactP: r.exactP, dbar: r.dbar, rr: r.rr })), perCell: dsem.perCell },
+      semanticReading: semantic,
       y1PositiveOnly: { blocks: blocks.filter((b) => b.Y1 !== 0).length, decisions: y1Pos.decision.decisions, exactP: Object.fromEntries(y1Pos.results.map((r) => [r.id, r.exactP])) },
       robustness: primary.map((r) => ({ id: r.id, signTestP: r.signTest.p, signedRankP: r.signedRankP, taskLevelExactP: r.taskLevel.exactP })),
       halves: { cut: h.cut, first, second, signReversal: reversal },
@@ -339,6 +355,8 @@ function main(): number {
     '', '## 5. Sensitivity', '',
     dagger === null ? '- **D†:** not given.' : `- **D†** (no composition-root exemption):`, ...(dagger === null ? [] : ['', ...contrastRows(dagger.results), '', ...holmRows(dagger.decision), '']),
     evasionBar === null ? '- **Evasion bar:** not given (needs D†).' : `- **Evasion bar** (exempt-file share of presentation → persistence edges at step 5; share of runs with a rename to an exempt name; flag above 0.20): ${(evasionBar.contrasts as { id: string; exemptShareDiff: number | null; renameShareDiff: number; flagged: boolean }[]).map((x) => `${x.id} exempt-share diff ${f(x.exemptShareDiff)}, rename-share diff ${f(x.renameShareDiff)}, flagged ${String(x.flagged)}`).join('; ')}. Cells: ${Object.values(evasionBar.cells as Record<string, ReturnType<typeof cellEvasion>>).map((c) => `${c.cell} ${String(c.lastStepExempt)}/${String(c.lastStepEdges)} exempt, ${String(c.runsWithRenameToExempt)}/${String(c.runs)} runs renamed`).join('; ')}.`,
+    `- **D_sem (semantic secondary, descriptive):** ${Object.entries(semantic).map(([id, x]) => `${id}: ${x.reading}`).join('; ')}.`,
+    ...(dsem === null ? [] : ['', ...contrastRows(dsem.results), '', ...holmRows(dsem.decision), '']),
     `- **Y₁ = 0 blocks dropped** (${String(blocks.filter((b) => b.Y1 !== 0).length)} blocks): ${Object.entries(y1Pos.decision.decisions).map(([id, x]) => `${id} reject ${String(x.reject)}`).join(', ')}; exact p ${y1Pos.results.map((r) => `${r.id} ${pf(r.exactP)}`).join(', ')}.`,
     `- **Robustness:** ${primary.map((r) => `${r.id} sign test p ${pf(r.signTest.p)}, signed-rank p ${pf(r.signedRankP)}`).join('; ')}.`,
     `- **Run-index halves** (replicates ≤ ${String(h.cut)} vs the rest): first half ${String(first.blocks)} blocks, mean D none@L2 ${f(first.meanDnoneL2 as number)}, d̄ ${JSON.stringify(first.dbar)}; second half ${String(second.blocks)} blocks, mean D none@L2 ${f(second.meanDnoneL2 as number)}, d̄ ${JSON.stringify(second.dbar)}; sign reversal ${JSON.stringify(reversal)}.`,

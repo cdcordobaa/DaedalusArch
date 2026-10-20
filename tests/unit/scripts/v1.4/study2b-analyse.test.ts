@@ -5,7 +5,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import {
-  CONTRASTS, analyseContrast, equivalence, familyDecision, halves, holmDecisions, mcSignFlipP, partA, partB, plantedBlocks,
+  CONTRASTS, analyseContrast, semanticReading, equivalence, familyDecision, halves, holmDecisions, mcSignFlipP, partA, partB, plantedBlocks,
   recallByFamily, signTestP, signedRankP, supportedUnderBoth, taskClusterBootstrap, withinTaskBootstrap,
   type Block, type Cell, type ContrastResult, type FamilyDecision,
 } from '../../../../scripts/v1.4/lib/study2b-analyse';
@@ -90,6 +90,18 @@ describe('the D / D† agreement rule (finding 2)', () => {
     expect(supportedUnderBoth(dec(true, true), dec(true, true)).H1?.supported).toBe(true);
     expect(supportedUnderBoth(dec(true, true), dec(false, true)).H1?.reading).toMatch(/composition-root exemption only/);
     expect(supportedUnderBoth(dec(true, true), null).H1?.supported).toBe(false);
+    expect(supportedUnderBoth(dec(false, true), dec(false, false)).H1?.reading).toMatch(/not rejected under D or D†/);
+  });
+});
+
+describe('the D_sem reading (DELEG11)', () => {
+  it('survives when Holm decisions and signs agree; depends on the semantic layer otherwise', () => {
+    const r = CONTRASTS.map((c) => analyseContrast(A2, c, { draws: 500, resamples: 50 }));
+    const d = familyDecision(r);
+    expect(semanticReading(d, d).H1?.reading).toMatch(/survives/);
+    const flipped: FamilyDecision = { ...d, decisions: { ...d.decisions, H1: { reject: true, predictedSign: true, supportedUnderThisOutcome: true } } };
+    expect(semanticReading(d, flipped).H1?.reading).toMatch(/depends on the semantic layer/);
+    expect(semanticReading(d, null).H1?.survives).toBeNull();
   });
 });
 

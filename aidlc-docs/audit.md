@@ -2693,3 +2693,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: v1.4 Study 2b, pre-registration (drift record order step: pre-registration, before dating); 2 model calls (D14, practice task); nothing under daedalus-sealed/ or the MEAN-01 sample read; no Neo4j
 
 ---
+
+## Study 2b — re-check GO; semantic secondary added before dating (DELEG11)
+**Timestamp**: 2026-10-20T11:55:14Z
+**User Input**: "(coordinator, author's decision) Before dating, add a neuro-symbolic secondary: D_sem from C4 verdict classes with the 'survives semantic interpretation' reading, C1d on a seeded sample with the 0.75 threshold both ways, the semantic configuration as a declared swappable parameter (primary: the existing Claude CLI judge route; swap arms dated), caps stated, a DELEG row quoting the author; cover it with one more short Fable re-check, then date."
+**AI Response**: "First Fable re-check returned GO on all 18 findings with three non-blocking notes; applied them (sign comparison only on rejection in the D/D-dagger reading; acceptance runner committed before the first 2b call; D8 parity step in runbook §6). Added pre-registration §4 'Semantic layer' (D_sem from stable grounded C4 exception claims; C4 has no non-violation class by design), C1d sample, primary configuration claude-cli / claude-opus-5-5 / judge config dir / CLI 2.1.294 with 2.1.303-2.1.304 exploratory, swap-arm agreement (not accuracy), caps (C4 4 x identities; C1d the estimator's bound), limitation 10, DELEG11, instrument-map paragraph; study2b-analyse --dsem and semanticReading with a test. Route status: both runners exist; the C4 pilot has never run."
+**Context**: v1.4 Study 2b, pre-registration before dating; zero model calls in this step
+
+---

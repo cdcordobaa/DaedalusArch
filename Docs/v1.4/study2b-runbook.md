@@ -156,6 +156,8 @@ for c in l2 l3 mcp; do for r in $(seq -w 1 10); do npx tsx scripts/v1.4/loop-tel
 for r in $(seq -w 1 10); do npx tsx scripts/v1.4/mcp-telemetry.ts --out-root $S/run/mcp/r$r --out $O/mcp-telemetry/r$r; done
 ```
 
+**Engine parity (D8).** The engine of record is Neo4j 5.26.24 (pre-registration §4). Before the 2b figures are read, re-score a seeded sample of 2b snapshots on one capped Neo4j with the same preset and compare the blocking rows with the `cypher-interp` re-score (the 2a parity check, report §9, is the template); any difference is reported and Neo4j's rows govern.
+
 What each gives, and the check:
 - `rescore/analysis.json`: `snapshots.evaluationFailures` must be 0. `findings.byVerdict` gives the check-correct labels; the registered D counts `correct` only. `summaries.registered` is D per cell; `ratios` are against `none@L2`. `runs.json` has D, Y₁, Yₖ and the inherited-removal counts per run, in three readings. The `stopCheck` and `semanticSample` fields are 2a items and are not 2b outcomes.
 - `exposure/<cell>/exposure.json`: opportunities and violations per rule; exit 0 means every row check passed and every recorded count matched.
