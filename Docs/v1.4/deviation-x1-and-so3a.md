@@ -91,9 +91,9 @@ REV-04 lists it as a stale contradiction (`rev-04:245`), and REV-05 notes it is 
 
 ## Sign-off
 
-> AUTHOR: signed — X-1 adopted as written. Signed: the author, in chat (recorded by the coordinator) Date: 2026-10-19
+> AUTHOR: signed — X-1 adopted as written. Signed by the author (recorded by the coordinator) Date: 2026-10-19
 
-> AUTHOR: signed — SO3-a adopted as written. Signed: the author, in chat (recorded by the coordinator) Date: 2026-10-19
+> AUTHOR: signed — SO3-a adopted as written. Signed by the author (recorded by the coordinator) Date: 2026-10-19
 
 > AUTHOR: sign (optional) — V5 scope draft adopted / not adopted. Signed: __________ Date: ____-__-__
 

@@ -9,7 +9,7 @@ The working copy is the decision board, a private claude.ai artifact the author 
 - **The 9 spec–manifest disagreement rows (C3).** U6 will deliver a short adjudication sheet.
 - ~~**F23.**~~ *Done 2026-10-19:* the author and an examiner compared the domains with the sealed list; two demo tasks were replaced (`Docs/DiagnosticRuns/v1.3-f23-and-v4-count-2026-10-18.md`, Part 3).
 
-## Settled in chat, 2026-10-19
+## Settled by the author, 2026-10-19
 
 | Id | Decision | Work it creates |
 |---|---|---|
@@ -51,7 +51,7 @@ The working copy is the decision board, a private claude.ai artifact the author 
 | **DELEG5** | **Delegated to the coordinator under GO-2B (a red item is made green where realistic; otherwise what is lost is registered), 2026-10-20, recorded 10:04Z before attempt 2: one more hold-out attempt with a header-only patch repair, plus a registered fallback for r_f.** A blind session (attempt 1 flags, plus Write on converted/) rewrites only the file-header lines of variant patches whose target is absent from the clean project into a creation against /dev/null. Every hunk line stays byte-identical, which a script verifies. If the structure check at the tag then shows 0 problems, the hold-out runs live once; otherwise STOP. *Fallback F-RF, applying whatever the outcome:* if layered has no hold-out figure, ADR-V14-04 §4 part A takes r_f from the frozen development record run (layered blind-primary per-rule blocking recall, scores.json at X). It is a development-set estimate, not validity evidence; layered stays confirmatory in 2b with that limitation stated, worded "characterised on the development set, not validated on a hold-out". *Limitation:* the repair is a declared content change to the hold-out (prespec §6) | `Docs/v1.3/holdout-prespec-addendum-2-2026-10-20.md` |
 | **DELEG-H3** | **Delegated to the coordinator under GO-2B, 2026-10-20, recorded 11:07Z before attempt 3: hold-out attempt 3, one try only.** It combines attempt 1 path-only layout (the attempt-1 blind adapter session re-run unchanged, because its MAP was deleted with the work dir) with attempt 2 header-only repair of creation patches, now applied by a deterministic script (in a header line `--- a/<p>` with <p> absent from the clean project becomes `--- /dev/null`). It is verified by the attempt-2 verifier unchanged, then the structure check runs at the tag on the 4 patch-format styles. On 0 problems the hold-out runs live once on one capped Neo4j; on any problem, STOP. Fallback F-RF (addendum 2 §2) still applies if layered gets no figure | `Docs/v1.3/holdout-prespec-addendum-3-2026-10-20.md` |
 
-## Settled in chat, 2026-10-18 (late)
+## Settled by the author, 2026-10-18 (late)
 - **D1:** confirm the decision sheet **as written**, with no changes.
 - **L4:** **practitioner reading**: a finding is meaningful if a competent developer of that style would ask for it to change in review. Style fidelity is recorded as a second field.
 - **Standing OK for three counted runs.** Each one is still reported with its count before it starts:
@@ -66,7 +66,7 @@ The working copy is the decision board, a private claude.ai artifact the author 
 
 | Id | Decision | Work it creates |
 |---|---|---|
-| **M3** | **Study 2 is redesigned around drift.** Confirmed in chat, knowing that the registered simulation puts trend outcomes at power ≤ 0.08 | A design note first (working mode). Then a new primary outcome, a new power simulation, and updates to the deviation record and readiness gate before the freeze, all taken to the director at design stage |
+| **M3** | **Study 2 is redesigned around drift.** Confirmed by the author, knowing that the registered simulation puts trend outcomes at power ≤ 0.08 | A design note first (working mode). Then a new primary outcome, a new power simulation, and updates to the deviation record and readiness gate before the freeze, all taken to the director at design stage |
 | **M5** | The efficiency test (graph tools vs raw files) becomes a thesis result | A design note: fixed questions, repo sizes, tool sets and caps, a call count, and a falsifier |
 | **D2b** | Layered keeps counting wiring-code imports; no composition slot | Keeps the base rate at 5.33 and the power. The count includes imports from correct wiring code, and this is stated as a construct limit |
 | **D5** | DDD gets a declared post-seal cycle rule, with an ADR | An ADR plus the rule. It counts as a deviation and changes the tiers Study 2 is scored on |
@@ -77,9 +77,9 @@ The working copy is the decision board, a private claude.ai artifact the author 
 
 **These match my recommendation:**
 - **D2a:** run F23 now.
-- **D3:** the free rater labels meaning on about 60 findings, plus the K3 cases. Confirmed in chat.
-- **M1:** the claim is F1–F3 plus Study 2. Tacit knowledge goes in the discussion. Confirmed in chat.
-- **M2:** confirmatory claims only where norms are declared (greenfield). Changed in chat from "both".
+- **D3:** the free rater labels meaning on about 60 findings, plus the K3 cases. Confirmed by the author.
+- **M1:** the claim is F1–F3 plus Study 2. Tacit knowledge goes in the discussion. Confirmed by the author.
+- **M2:** confirmatory claims only where norms are declared (greenfield). Changed by the author from "both".
 - **M4:** the model interprets before detection, as facts.
 - **M6:** pre-register an evasion check.
 - **N1:** the model supplies facts, not verdicts.
@@ -105,6 +105,6 @@ Settled earlier: **D4**, the thinking note first (NS-01).
 - 2026-10-20: DELEG4 (the hold-out through a path-only blind adapter), recorded before the run.
 - 2026-10-19 (evening): F23 marked done under "Still open" (REV-04 §6 item 7).
 - 2026-10-19: the drift record, tasks, fallback, generators, styles, label timing, V4 (c), U6 under the spec-derived principle, the signing sheet, D15 (pending B2) and the automated FP/FN review.
-- 2026-10-18: all board decisions recorded except L4, plus the D1 changes. M2, M3, D3 and M1 were confirmed in chat.
+- 2026-10-18: all board decisions recorded except L4, plus the D1 changes. M2, M3, D3 and M1 were confirmed by the author.
 - 2026-10-18: D4 settled.
 - 2026-10-18: first version, D1–D7.
