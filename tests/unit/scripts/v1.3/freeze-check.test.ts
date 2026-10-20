@@ -71,7 +71,9 @@ describe('runFreezeChecks', () => {
     // F3 reads the [Answer]: lines against the switch file in force. F4 and F5: ADR-V13-03 (and ADR-V13-02, Q1 A) were
     // accepted under the author's delegation on 2026-10-20 (DELEG2). F8, F11 and F13 follow the repository's freeze state
     // (the record run, the frozen prespec and the one hold-out run), so they are derived from it rather than pinned.
-    const frozenPrespec = !/<FREEZE_SHA>|Status: draft/i.test(fs.readFileSync(path.join(ROOT, 'Docs/v1.3/holdout-prespec.md'), 'utf8'));
+    // F11 also requires the prespec to name the checked commit, here HEAD (X itself only on the freeze commit).
+    const prespec = fs.readFileSync(path.join(ROOT, 'Docs/v1.3/holdout-prespec.md'), 'utf8');
+    const frozenPrespec = !/<FREEZE_SHA>|Status: draft/i.test(prespec) && prespec.includes(r.commit);
     const devRerun = fs.existsSync(path.join(ROOT, 'results/v1.3-reference/after-construct-answers/tool-commit.txt'));
     const heldOut = fs.existsSync(path.join(ROOT, 'results/v1.3-holdout/run-1'));
     const expected: Record<string, string> = {
