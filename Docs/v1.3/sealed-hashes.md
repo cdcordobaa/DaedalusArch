@@ -46,3 +46,15 @@ Exploratory loop pilot (`Docs/v1.3/pilot-outcome-memo.md`), not Study 2. Recorde
 | presets/hexagonal.yaml | d085d6b9badca2e79ade19b12fcfff96d1317df139d646772871266f0ed20ab7 | `shelter-adoptions` spec |
 | presets/ddd.yaml | ce28a78582a92571c5c8ff2c9144eb2161c580e140db3af880d451737b6260f7 | Base of the per-run DDD specs frozen after step 1 |
 | presets/clean-architecture.yaml | 285447919fcedee05b8c0a5b01a61a82a36e2c0a482010b3b305863ae2dddf68 | Source of the Clean layout sentence |
+
+## v1.3 freeze (2026-10-20)
+
+Recorded by the coordinator under the author's delegation (`ops/decisions.md` DELEG2). Freeze tag `v1.4-freeze-2026-10-20` (the runbook names no tag; this is the coordinator's default name). The hold-out has **not** run: see the freeze note of `Docs/v1.3/holdout-prespec.md`.
+
+| Artefact | sha256 | Note |
+|---|---|---|
+| v1.3 freeze commit X (tool) | 4d28d2803bec018e48f848e6a0f27ff87b3babf2 | The tool of the hold-out run. The frozen paths (src, scripts, presets, specs) are unchanged between X and Y. |
+| Docs/v1.3/holdout-prespec.md (frozen) | f15cb5f135f1eec0308250d8df2bdc53739bf17e2ece19cf18b37f6579d612fd | Placeholders filled; never edited again (addenda only). |
+| results/v1.3-freeze/manifest.json (byte-identity manifest) | ce5f3298644fbb0f6cdc3337347e30cd74e0e808b4b542f7b7ffb901364787ea | Recomputed and compared by freeze-check.ts. |
+| Docs/v1.3/construct-answers.json (construct answers) | c0c70b2802c8965c3c4593fce8b329a11ce724342e2322caf53cc5ac67782e25 | The author's 25 answers (Q10 D under delegation). |
+| Docs/v1.3/study2-tunables.json (Study 2 frozen tunables) | a3e8307d4b5cd0b3f844d167e443bafc838bce49b86907e53d07e3cc3bb983dd | Written at X; verified by CI (`study2-tunables.ts verify`). |
