@@ -2553,3 +2553,11 @@ Options taken under delegation: (1) all new behaviour is opt-in (night rule 3), 
 **Context**: CONSTRUCTION — exploratory study, analysis addition (author decision)
 
 ---
+
+## Study 2b go (conditional) and delegated freeze items
+**Timestamp**: 2026-10-20T05:29:59Z
+**User Input**: "No more signing; run the confirmatory Study 2 if the readiness gate is green. Keep steady progress overnight."
+**AI Response**: "Recorded DELEG2 (ADR-V13-03 acceptance, sample hash, V6 pointers delegated) and GO-2B (run only if every gate item is green; otherwise stop and report) in ops/decisions.md."
+**Context**: Study 2 confirmatory: authorisation, conditional on the gate
+
+---
